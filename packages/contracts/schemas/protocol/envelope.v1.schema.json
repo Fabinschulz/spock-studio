@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/protocol/envelope.v1.schema.json",
+  "title": "Envelope do protocolo Mariliz v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["v", "kind", "id", "method"],
+      "properties": {
+        "v": { "const": 1 },
+        "kind": { "const": "request" },
+        "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "method": { "type": "string", "pattern": "^[a-z]+([.][a-z]+)+$" },
+        "params": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["v", "kind", "id"],
+      "properties": {
+        "v": { "const": 1 },
+        "kind": { "const": "response" },
+        "id": { "type": ["string", "null"], "maxLength": 64 },
+        "result": { "type": "object" },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+            "message": { "type": "string" },
+            "data": { "type": "object" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "oneOf": [{ "required": ["result"] }, { "required": ["error"] }],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["v", "kind", "runId", "type", "seq"],
+      "properties": {
+        "v": { "const": 1 },
+        "kind": { "const": "event" },
+        "runId": { "type": "string", "minLength": 1 },
+        "type": { "type": "string" },
+        "seq": { "type": "integer", "minimum": 0 },
+        "data": { "type": "object" }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

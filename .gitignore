@@ -1,0 +1,9 @@
+node_modules/
+dist/
+bin/
+obj/
+*.user
+.vs/
+target/
+apps/desktop-host/src-tauri/binaries/
+apps/desktop-host/src-tauri/gen/

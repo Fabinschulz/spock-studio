@@ -1,0 +1,39 @@
+.screen {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 860px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 16px 32px 20px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--mark-bg);
+}
+
+.mark {
+  flex: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li {
+    min-width: 0;
+  }
+
+  // Uma coluna quando a janela fica estreita.
+  @media (max-width: 680px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

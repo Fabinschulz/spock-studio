@@ -1,0 +1,13 @@
+{
+  "name": "mariliz-ai-engineering",
+  "private": true,
+  "packageManager": "pnpm@9.1.2",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "ui:dev": "pnpm --filter @mariliz/desktop-ui dev",
+    "ui:build": "pnpm --filter @mariliz/desktop-ui build",
+    "ui:test": "pnpm --filter @mariliz/desktop-ui test",
+    "ui:typecheck": "pnpm --filter @mariliz/desktop-ui typecheck",
+    "ui:lint": "pnpm --filter @mariliz/desktop-ui lint"
+  }
+}

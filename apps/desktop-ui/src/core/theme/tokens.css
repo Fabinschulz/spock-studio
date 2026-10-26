@@ -1,0 +1,18 @@
+/* Cores usadas só pela marca; o restante vem do tema da Synthra. */
+:root,
+[data-color-mode='light'] {
+  --mark-bg: #116b67;
+  --mark-ink: #ffffff;
+}
+
+[data-color-mode='dark'] {
+  --mark-bg: #33c1ba;
+  --mark-ink: #050c0c;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}

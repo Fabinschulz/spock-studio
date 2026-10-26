@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/protocol/methods/engine.hello.result.schema.json",
+  "type": "object",
+  "required": ["protocol", "engineVersion", "capabilities"],
+  "properties": {
+    "protocol": { "type": "integer", "minimum": 1 },
+    "engineVersion": { "type": "string", "minLength": 1 },
+    "capabilities": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}
