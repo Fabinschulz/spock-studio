@@ -16,8 +16,8 @@ public class EngineProcessTests
 
     private static Process StartEngine()
     {
-        var dll = Directory.GetFiles(Path.Combine(Root(), "src", "Mariliz.Engine", "bin"), "Mariliz.Engine.dll", SearchOption.AllDirectories)
-            .OrderByDescending(File.GetLastWriteTimeUtc).First();
+        // O motor chega à saída dos testes pela ProjectReference; é o mesmo build que está sendo testado.
+        var dll = Path.Combine(AppContext.BaseDirectory, "Mariliz.Engine.dll");
         var psi = new ProcessStartInfo("dotnet", $"\"{dll}\"")
         {
             RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,

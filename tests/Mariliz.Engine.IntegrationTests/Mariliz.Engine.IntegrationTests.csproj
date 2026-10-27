@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -21,6 +21,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Mariliz.Application\Mariliz.Application.csproj" />
+    <!-- Garante que o motor é compilado antes dos testes e copia seus arquivos para a saída deles. -->
+    <ProjectReference Include="..\..\src\Mariliz.Engine\Mariliz.Engine.csproj" />
   </ItemGroup>
 
 </Project>
