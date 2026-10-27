@@ -221,7 +221,7 @@ Os 23 critérios da seção 22 do briefing, filtrados para o escopo acima, estã
 | Dependência do formato do Claude Code | Alta | Alto: mudanças do runtime quebram o harness gerado | Adaptador isolado, testes de contrato do formato gerado, matriz de capacidades por runtime |
 | Custo da terceira linguagem (Rust) | Alta | Médio | Rust restrito a ~3 comandos e ao ciclo de vida do sidecar; sem regra de negócio |
 | Empacotamento e assinatura em 3 sistemas | Alta | Médio | CI matricial desde a Fase 1; assinatura tratada como decisão separada |
-| Synthra 0.x muda API entre versões | Média | Médio | Versão fixa, wrappers finos em `packages/ui`, atualização controlada |
+| Synthra 0.x muda API entre versões | Média | Médio | Versão fixa, wrappers finos em `apps/desktop-ui/src/shared/components/ui`, atualização controlada |
 | Lacunas da Synthra (sem `Card`, sem `Stepper`, sem ícones de pasta/código/documento) | Certa | Baixo | Compor com MUI já instalado (peer da Synthra) ou contribuir os ícones na própria Synthra |
 | Conteúdo de projeto e instruções em arquivos importados tentarem ampliar permissões (prompt injection) | Média | Alto | Política imposta pelo motor; conteúdo importado tratado como dado |
 | Tamanho do instalador (WebView + motor self-contained) | Média | Baixo | Medir na Fase 1; avaliar trimming e NativeAOT |

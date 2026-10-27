@@ -1,0 +1,15 @@
+.logo {
+  flex: none;
+}
+
+.tile {
+  fill: var(--color-primary);
+}
+
+.letter {
+  fill: none;
+  stroke: var(--color-on-primary);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

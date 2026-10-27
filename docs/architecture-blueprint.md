@@ -370,6 +370,43 @@ Dependências e cuidados por plataforma:
 
 - **[FATO]** Versão 0.5.0, MIT, ESM, `sideEffects: false`. Peers: `react` 18|19, `@mui/material` ^9, `@mui/x-data-grid` ^9, `@emotion/react`/`styled` ^11, `react-hook-form` ^7.55, `next` opcional (o subpath `./next` não é importado pelo entry principal — verificado: nenhum import de `next` em `dist/index.js`).
 - Instalar como dependência de `apps/desktop-ui` com versão **exata** (`0.5.0`), atualizada por PR dedicado.
-- `packages/ui` contém só wrappers que a Synthra não cobre (`ActionCard`, `WizardSteps`, `DiffView`, `ProjectPicker`), compostos com MUI e com os tokens do tema; nenhuma cópia de componente da Synthra.
+- Os componentes que a Synthra não cobre (`ActionCard`, depois `WizardSteps` e `DiffView`) ficam em `apps/desktop-ui/src/shared/components/ui`, como no Mariliz Web, compostos com MUI e com os tokens do tema; nenhuma cópia de componente da Synthra. Não existe `packages/ui` (decisão de 2026-10-27: a UI segue a estrutura do Mariliz Web).
 - Deduplicação: `pnpm` com `react`, `react-dom`, `@mui/material` e `@emotion/*` declarados uma vez; teste de build verifica uma única instância (`pnpm why` no CI).
 - Tema: `initializeTheme` com overrides completos de paleta, seguindo a nota do Mariliz Web de que a Synthra não recalcula tons derivados.
+
+---
+
+## 16. Estrutura do frontend (espelha o Mariliz Web)
+
+Referência: `MyApps/frontend/mariliz` (`docs/ARCHITECTURE.md`, seção 4). Diferenças deliberadas: o desktop é uma SPA com `createHashRouter` (sem React Router framework mode, sem pré-renderização) e não tem SEO, WhatsApp nem busca.
+
+```text
+apps/desktop-ui/src/
+├── app/                       # só roteamento e composição
+│   ├── root.tsx               # AppProviders + RouterProvider + estilos globais
+│   ├── routes.tsx             # tabela de rotas
+│   ├── layouts/               # window-layout (main, Container, ErrorBoundary de rota)
+│   └── routes/                # route modules finos: só montam a página da feature
+├── features/                  # um slice por jornada; nomes em kebab-case
+│   ├── home/{hero, journey-grid, home-page.tsx, index.ts}
+│   └── project-selection/{core, hooks, ui, project-selection.tsx, index.ts}
+├── shared/
+│   ├── components/{common, providers, ui/{atoms, molecules, organisms, templates}}
+│   ├── config/                # app.ts
+│   ├── routing/               # paths.ts (fonte única dos caminhos)
+│   ├── styles/                # tokens, reset, tipografia, abstracts (SCSS)
+│   └── utils/lib/             # cn
+├── test/setup.ts
+└── main.tsx
+```
+
+Regras, garantidas por ESLint (verificadas com arquivos de violação em 2026-10-27):
+
+- Camadas `app → features → shared`; `shared` não importa `features`/`app`, `features` não importa `app`.
+- Proibido o mega-barrel `@/shared`; importe `@/shared/components`, `@/shared/utils` etc.
+- Entre slices, só a API pública (`@/features/<slice>`); dentro do slice, caminhos relativos.
+- Barrels de feature com exports nomeados (sem `export *`); barrels de `shared` podem usar `export *`.
+- Componentes de `shared/components/ui` em PascalCase com `index.ts`; arquivos de feature em kebab-case.
+- Estilos em SCSS Modules ao lado do componente, usando só tokens semânticos (`shared/styles/_tokens.scss`); a Synthra fica para os componentes interativos (`Provider`, `Alert`, `Button`, ícones).
+- Nova regra do desktop: a UI não importa `@tauri-apps/plugin-*`; só o host acessa o sistema operacional.
+- Prettier idêntico ao do Mariliz Web (120 colunas, aspas simples, sem vírgula final).

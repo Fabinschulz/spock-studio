@@ -207,18 +207,18 @@ Fonte: `@synthra.io/ui-kit` 0.5.0, `dist/index.d.ts` inspecionado em 2026-10-25.
 | "Como podemos ajudar?" | `Typography` `h4` | Synthra | |
 | Texto de apoio | `Typography` `body1`, cor `text.secondary` | Synthra | |
 | Grade 2 × 2 | CSS Grid em SCSS Module | Próprio | Uma coluna abaixo de ~620 px de largura de conteúdo |
-| Cartão de ação | `Card` + `CardActionArea` | **MUI** (peer da Synthra, já instalado) | Wrapper `ActionCard` em `packages/ui`; `CardActionArea` renderiza `<button>` |
+| Cartão de ação | `<button>` com SCSS Module | Próprio (`shared/components/ui/molecules/action-card`) | A Synthra não tem cartão de ação; usa os tokens do tema, sem componente MUI |
 | Ícone "Importar requisitos" | `BookUploadIcon` | Synthra | |
 | Ícone "Conectar ferramentas" | `UserConnectionsIcon` (alternativa: `ShareIcon`) | Synthra | Semântica aproximada |
 | Ícone "Modernizar sistema" | `UpdateIcon` | Synthra | |
 | Ícone "Configurar projeto" | **Inexistente** (provisório: `ListViewRectangleIcon`) | — | **[DECISÃO PENDENTE]** contribuir `FolderCodeIcon` na Synthra |
 | Rótulo "PROJETO" | `Typography` `overline` | Synthra | |
-| Linha do seletor | `Card` variant outlined + `CardActionArea` | MUI | Mesmo wrapper `ActionCard`, variante `row` |
+| Linha do seletor | `<button>` com SCSS Module | Próprio (`features/project-selection/ui/project-picker`) | Específico da feature de seleção de projeto |
 | Ícone de pasta | **Inexistente** | — | **[DECISÃO PENDENTE]** contribuir `FolderIcon` na Synthra |
 | Indicador ">" | `ArrowRightIcon` | Synthra | Já usado no Mariliz Web |
 | Carregamento | `LoadingBar` | Synthra | Durante a abertura do diálogo e o discovery inicial |
 | Mensagens de erro e aviso | `Alert` | Synthra | |
-| Wizard (progresso) | `Stepper` | MUI | Wrapper `WizardSteps` em `packages/ui` |
+| Wizard (progresso) | `Stepper` | MUI | Wrapper `WizardSteps` em `shared/components/ui/molecules` (Fase 1b) |
 | Formulários de configuração | `FormProvider`, `TextFormField`, `SelectFormField`, `CheckboxFormField` + Zod | Synthra + `react-hook-form` + `zod` | Mesmo padrão do formulário de contato do Mariliz Web |
 | Confirmações | `Modal` | Synthra | |
 | Detalhes da execução | `Drawer` | Synthra | |

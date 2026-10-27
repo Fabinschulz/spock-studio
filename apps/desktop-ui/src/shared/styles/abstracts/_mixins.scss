@@ -1,0 +1,33 @@
+@mixin focus-ring($offset: 3px) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: $offset;
+}
+
+@mixin visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Hover só em dispositivos com hover de verdade: evita "hover grudado" no touch.
+@mixin hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @content;
+    }
+  }
+}
+
+// Rótulo curto em caixa alta (ex.: "Em breve", "Projeto").
+@mixin eyebrow {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

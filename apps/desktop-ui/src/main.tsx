@@ -1,13 +1,10 @@
-import '@fontsource-variable/geist';
-import './core/theme/tokens.css';
-
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { App } from '@/app/App';
+import { Root } from '@/app/root';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <Root />
   </StrictMode>
 );

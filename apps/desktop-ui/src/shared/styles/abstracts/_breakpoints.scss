@@ -1,0 +1,20 @@
+@use 'sass:map';
+
+// Larguras da janela do aplicativo (mínima 760px; referência 900px).
+$breakpoints: (
+  sm: 40rem,
+  md: 48rem,
+  lg: 64rem
+);
+
+@mixin up($name) {
+  @media (min-width: map.get($breakpoints, $name)) {
+    @content;
+  }
+}
+
+@mixin down($name) {
+  @media (max-width: calc(#{map.get($breakpoints, $name)} - 0.02px)) {
+    @content;
+  }
+}

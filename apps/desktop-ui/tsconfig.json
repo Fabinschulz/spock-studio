@@ -1,5 +1,5 @@
 {
-  "include": ["src", "../../packages/ui/src", "vite.config.ts"],
+  "include": ["src", "vite.config.ts"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2023"],
     "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
@@ -7,7 +7,9 @@
     "module": "ES2022",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
-    "paths": { "@/*": ["./src/*"] },
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "verbatimModuleSyntax": true,
     "noEmit": true,
     "resolveJsonModule": true,

@@ -1,0 +1,3 @@
+// Só abstrações (zero CSS emitido). Uso em CSS Modules: @use '@/shared/styles/abstracts' as *;
+@forward 'breakpoints';
+@forward 'mixins';
