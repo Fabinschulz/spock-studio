@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { StatusChip } from '@/shared/components/ui';
 import type { EvalResult, RunResult } from '@/shared/schemas';
 
-import type { JourneyResults, RunView } from '../../core/journey-state';
+import { HARNESS_ENGINEER_NOT_INVOKED, harnessEngineerPrompt } from '../../core/harness-engineer-prompt';
+
+import type { JourneyResults, Loadable, RunView } from '../../core/journey-state';
 import { evalStatusLabel, evalStatusTone, outcomeLabel, runKindLabel } from '../../core/labels';
 import { EvidenceList } from '../../ui/evidence-list';
 import styles from '../../ui/panels.module.scss';
@@ -17,6 +19,10 @@ interface ResultStepProps {
   onRevert: (runId: string) => void;
   onValidate: () => void;
   onDone: () => void;
+  /** Gera o plano de novo, agora com a proposta do Harness Engineer (se a pessoa a escreveu). */
+  onReplan: () => void;
+  /** Estado do plano gerado a partir daqui; o erro dele precisa aparecer nesta etapa. */
+  replan: Loadable<unknown>;
 }
 
 type Severity = 'success' | 'warning' | 'error' | 'info';
@@ -48,13 +54,20 @@ function explain(result: RunResult): string {
   }
 }
 
-export function ResultStep({ results, run, onRevert, onValidate, onDone }: ResultStepProps) {
+export function ResultStep({ results, run, onRevert, onValidate, onDone, onReplan, replan }: ResultStepProps) {
   const [confirming, setConfirming] = useState(false);
   const apply = results.apply;
   const revert = results.revert;
   const busy = run !== null && run.error === null;
   const validation = results.validate?.validation ?? apply?.validation;
   const canRevert = apply?.rollbackAvailable === true && revert?.outcome !== 'completed';
+  // O agente só existe no projeto depois de aplicado; enquanto o plano ainda usou as regras-base, falta pedir a proposta.
+  const awaitingProposal =
+    apply !== null &&
+    apply.changesApplied &&
+    !apply.rolledBack &&
+    revert?.outcome !== 'completed' &&
+    (apply.limitations ?? []).some((l) => l.code === HARNESS_ENGINEER_NOT_INVOKED);
 
   return (
     <section className={styles.step}>
@@ -104,6 +117,8 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone }: Resul
       {apply?.risks && apply.risks.length > 0 ? (
         <EvidenceList summary={`Riscos remanescentes (${apply.risks.length})`} items={apply.risks} />
       ) : null}
+
+      {awaitingProposal ? <ProposalGuide onReplan={onReplan} replan={replan} /> : null}
 
       {revert ? <RevertSummary result={revert} /> : null}
 
@@ -155,6 +170,60 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone }: Resul
         </div>
       </Modal>
     </section>
+  );
+}
+
+type CopyState = 'idle' | 'copied' | 'failed';
+
+/** Próximo passo guiado: o prompt pronto para o agente e o botão para planejar de novo com a proposta dele. */
+function ProposalGuide({ onReplan, replan }: { onReplan: () => void; replan: Loadable<unknown> }) {
+  const [copy, setCopy] = useState<CopyState>('idle');
+
+  const copyPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(harnessEngineerPrompt);
+      setCopy('copied');
+    } catch {
+      setCopy('failed');
+    }
+  };
+
+  return (
+    <div className={styles.card}>
+      <h3 className={styles.cardTitle}>Próximo passo: peça a proposta ao Harness Engineer</h3>
+      <span className={styles.muted}>
+        O plano usou as regras-base. O agente <span className={styles.mono}>harness-engineer</span> já está no projeto (
+        <span className={styles.mono}>.claude/agents/harness-engineer.md</span>). Abra a pasta no Claude Code, cole o
+        pedido abaixo e deixe que ele escreva <span className={styles.mono}>.mariliz/proposal.json</span>. O motor
+        valida a proposta antes de usá-la e você revisa tudo de novo antes de aplicar.
+      </span>
+      <textarea
+        className={styles.prompt}
+        readOnly
+        aria-label="Pedido para o Harness Engineer"
+        value={harnessEngineerPrompt}
+        onFocus={(event) => event.currentTarget.select()}
+      />
+      <div className={styles.actions}>
+        <Button variant="outlined" color="inherit" onClick={() => void copyPrompt()}>
+          {copy === 'copied' ? 'Copiado' : 'Copiar pedido'}
+        </Button>
+        <Button variant="contained" onClick={onReplan} disabled={replan.status === 'loading'}>
+          {replan.status === 'loading' ? 'Gerando plano…' : 'Gerar o plano de novo'}
+        </Button>
+      </div>
+      <div role="status" aria-live="polite">
+        {copy === 'copied' ? <span className={styles.muted}>Pedido copiado para a área de transferência.</span> : null}
+        {copy === 'failed' ? (
+          <span className={styles.muted}>
+            Não foi possível copiar automaticamente. Selecione o texto acima e copie com Ctrl+C.
+          </span>
+        ) : null}
+      </div>
+      {replan.status === 'error' ? (
+        <Alert severity="error" title="Não foi possível gerar o plano" description={replan.message} />
+      ) : null}
+    </div>
   );
 }
 

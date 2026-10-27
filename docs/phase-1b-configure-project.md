@@ -78,7 +78,9 @@ Divisão de papéis, para que o motor continue determinístico:
 3. O motor lê a proposta (`ProposalReader`) e só aceita: ids do catálogo, decisões `enable|keep|skip`, regras adicionais em texto e observações classificadas como `fact|inference|hypothesis|unverified`. **Rejeita** hooks, permissões, comandos, servidores MCP, instalação, segredos e injeção de frontmatter.
 4. Precedência: `mariliz.yaml` (a pessoa) > proposta > regras-base.
 
-Sem proposta, o plano usa as regras-base e **diz isso** (`proposalOrigin: baseline-rules`, limitação `HARNESS_ENGINEER_NOT_INVOKED`). A invocação do agente é manual nesta fase (ver §9).
+Sem proposta, o plano usa as regras-base e **diz isso** (`proposalOrigin: baseline-rules`, limitação `HARNESS_ENGINEER_NOT_INVOKED`).
+
+**Próximo passo guiado (etapa F).** O agente só existe no projeto depois de aplicar, então é na etapa **Resultado** que a interface guia a pessoa: o card "Próximo passo: peça a proposta ao Harness Engineer" traz o pedido pronto (somente leitura, selecionável), o botão **Copiar pedido** (com aviso e instrução manual se a cópia falhar) e **Gerar o plano de novo**, que consulta o motor outra vez e volta à etapa do plano, agora com a origem `harness-engineer` se a proposta for válida. O card só aparece quando a aplicação gravou arquivos, não foi revertida e o plano ainda usou as regras-base. O motor continua sem chamar nenhum modelo: quem executa o agente é a pessoa, no ambiente de IA dela.
 
 ## 5. Componentes gerenciados
 
@@ -110,7 +112,7 @@ Sem proposta, o plano usa as regras-base e **diz isso** (`proposalOrigin: baseli
 
 ## 7. Testes e evidências
 
-Última execução local: **.NET 228 (Application) + 2 (integração do motor), UI 50, Rust 8 — todos aprovados.**
+Última execução local: **.NET 232 (Application) + 2 (integração do motor), UI 59, Rust 8 — todos aprovados.**
 
 | Cenário exigido | Evidência (teste) |
 | --- | --- |
@@ -160,13 +162,13 @@ Códigos de saída: `0` concluído; `10` concluído com limitações; `1` falhou
 ## 9. Limitações e riscos abertos
 
 1. **O instalador real do TLC foi executado** (versão 1.6.0 do `@tech-leads-club/agent-skills`, instalando o TLC 4.0.0) num projeto descartável, pela CLI do produto: instalação, validação (hash e gates reais), 12 Evals obrigatórios aprovados e reversão completa (40 arquivos restaurados e conferidos). A execução expôs e levou a corrigir: (a) o `npx.cmd` do Windows quebrava ao ser iniciado pelo nome simples (agora o caminho absoluto é resolvido no `PATH`); (b) a lista de arquivos exigidos era da 3.3.0 e rejeitava a 4.0.0; (c) o lock gravava a versão do TLC fixa em `3.3.0`; (d) o instalador pode gravar fora do projeto (ver §3); (e) a saída do instalador era descartada, então a mensagem de erro prometia detalhes que não existiam. Os testes automatizados continuam usando um instalador simulado (`npx` nunca roda no CI). O `selftest.py` da própria skill 4.0.0 falha no Windows (`signal.SIGHUP` inexistente): defeito do TLC, que não afeta os gates usados pelo motor (`check_commit.py` e `lessons.py selftest`).
-2. **Harness Engineer:** não havia um existente autorizado para reuso (§4); o agente é original. A invocação é manual (a pessoa pede a ele, no ambiente de IA, que escreva `.mariliz/proposal.json`); o motor não dispara o agente. Até haver proposta, o plano usa regras-base e diz isso.
+2. **Harness Engineer:** não havia um existente autorizado para reuso (§4); o agente é original. A invocação continua sendo da pessoa (guiada pela interface, ver §4): o motor não dispara o agente nem chama modelos. Até haver proposta, o plano usa regras-base e diz isso. O fluxo com uma proposta **real** escrita pelo agente ainda não foi exercitado de ponta a ponta; só proposta sintética nos testes.
 3. **Só `claude-code` gera configuração.** Cursor e Codex são detectados e avisados; para eles só `mariliz.yaml` é criado.
 4. **EV-JUDGE (juiz por modelo) é sempre `not_run`.** Nenhum Eval de qualidade semântica dos agentes foi executado; os Evals são estruturais e comportamentais (hook).
 5. **Python é requisito dos Evals do hook e do TLC.** Sem ele, esses Evals ficam `blocked` e o resultado é "com limitações".
 6. **Concorrência fora do motor:** uma edição feita por outro programa *durante* a aplicação é detectada na reversão (`requires_intervention`), não impedida.
 7. **Tipos TypeScript não são gerados a partir dos schemas;** a UI usa schemas Zod mantidos à mão, protegidos por fixtures golden.
-8. **Instalador Windows** foi gerado e o sidecar testado; a instalação em máquina limpa continua sendo verificação manual.
+8. **Instalador Windows.** Testado neste PC, por usuário, e não numa máquina limpa (sem Windows Sandbox/Hyper-V disponível aqui): instalação silenciosa em 6 s, atalhos e entrada de desinstalação criados, app aberto com o motor como processo filho, seletor de pasta nativo, jornada completa com o motor embutido, fechamento da janela encerrando o motor em menos de 1 s e desinstalação sem restos (pasta, atalhos e registro; os dados do usuário em `%LOCALAPPDATA%\Mariliz`, o diário das execuções, são preservados). O instalador não é assinado (aviso do SmartScreen esperado). Esse teste pegou um build desatualizado instalado (anterior às correções do instalador do TLC): **sempre reinstale a partir de um build novo**. Os prints do fluxo real estão em `docs/screenshots/`. Dirigir o aplicativo instalado (seletor de pasta nativo, jornada completa, cópia do pedido e novo plano) revelou quatro defeitos que nenhum teste automatizado havia mostrado, todos corrigidos e cobertos por teste: (a) **o filho herdava a entrada padrão do motor**, que no aplicativo é o canal do protocolo com o host: um script que lê a entrada esperava o limite de tempo (a aplicação levava mais de 60 s e o EV-TLC reprovava), e poderia engolir mensagens do protocolo; agora todo processo filho recebe entrada vazia e fechada (aplicação completa em ~8 s); (b) o EV-AGENT avaliava também o **arquivo da pessoa mantido num conflito**, reprovando uma configuração correta; agora só o que o produto gerencia é avaliado; (c) um script do TLC que estoura o tempo ou não roda era contado como "resposta errada" (reprovado); agora é **bloqueado** (não verificado), com a saída na evidência; (d) cada etapa abria rolada até o fim; agora abre no topo. Falta ainda: máquina realmente limpa, sem Node/Python, e o comportamento com o WebView2 ausente.
 
 ## 10. Critérios de aceite (§13 do prompt)
 

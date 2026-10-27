@@ -204,3 +204,18 @@
     animation: none;
   }
 }
+
+// Texto pronto para copiar (somente leitura, selecionável e focável pelo teclado).
+.prompt {
+  width: 100%;
+  min-height: 11rem;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg, transparent);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+  resize: vertical;
+}

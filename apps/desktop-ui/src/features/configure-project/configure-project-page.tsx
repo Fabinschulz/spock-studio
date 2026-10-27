@@ -1,5 +1,5 @@
 import { Alert, Button } from '@synthra.io/ui-kit';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 
 import { useProjectSelectionContext } from '@/features/project-selection';
@@ -68,6 +68,11 @@ function Journey({ api, projectId, projectName, pollMs }: JourneyProps) {
   const { state, actions } = useConfigureJourney(api, projectId, pollMs);
   const home = () => navigate(pathTo('home'));
 
+  // Cada etapa abre no topo: sem isso, a tela nova herdava a rolagem da anterior (visto no aplicativo instalado).
+  useEffect(() => {
+    (document.scrollingElement ?? document.documentElement).scrollTo?.({ top: 0 });
+  }, [state.step]);
+
   return (
     <div className={styles.page}>
       <WizardSteps steps={journeySteps} currentId={state.step} />
@@ -130,6 +135,8 @@ function Journey({ api, projectId, projectName, pollMs }: JourneyProps) {
           run={state.run}
           onRevert={(runId) => void actions.revert(runId)}
           onValidate={() => void actions.validate()}
+          onReplan={() => void actions.generatePlan()}
+          replan={state.plan}
           onDone={home}
         />
       ) : null}

@@ -10,20 +10,31 @@ public sealed class SystemProcessRunner : IProcessRunner
 {
     private const int MaxOutputChars = 1_000_000;
 
-    public async Task<ProcessResult> RunAsync(ProcessSpec spec, CancellationToken ct)
+    /// <summary>
+    /// A entrada padrão do processo filho é <b>sempre</b> redirecionada. Sem isso ele herdaria a entrada do próprio motor,
+    /// que no aplicativo é o canal do protocolo com o host: um script que leia a entrada ficaria esperando (e poderia
+    /// engolir mensagens do protocolo). Sem <see cref="ProcessSpec.StandardInput"/>, o filho recebe uma entrada vazia e fechada.
+    /// </summary>
+    public static ProcessStartInfo BuildStartInfo(ProcessSpec spec)
     {
         var psi = new ProcessStartInfo(Executable(spec.Executable))
         {
             WorkingDirectory = spec.WorkingDirectory,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
-            RedirectStandardInput = spec.StandardInput is not null,
+            RedirectStandardInput = true,
             UseShellExecute = false,
             CreateNoWindow = true,
             StandardOutputEncoding = Encoding.UTF8,
             StandardErrorEncoding = Encoding.UTF8
         };
         foreach (var arg in spec.Arguments) psi.ArgumentList.Add(arg);
+        return psi;
+    }
+
+    public async Task<ProcessResult> RunAsync(ProcessSpec spec, CancellationToken ct)
+    {
+        var psi = BuildStartInfo(spec);
 
         Process process;
         try { process = Process.Start(psi) ?? throw new InvalidOperationException(); }
@@ -41,15 +52,12 @@ public sealed class SystemProcessRunner : IProcessRunner
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-            if (spec.StandardInput is not null)
+            try
             {
-                try
-                {
-                    await process.StandardInput.WriteAsync(spec.StandardInput);
-                    process.StandardInput.Close();
-                }
-                catch (IOException) { /* o processo encerrou antes de ler: o código de saída diz o que houve */ }
+                if (spec.StandardInput is not null) await process.StandardInput.WriteAsync(spec.StandardInput);
+                process.StandardInput.Close();
             }
+            catch (IOException) { /* o processo encerrou antes de ler: o código de saída diz o que houve */ }
 
             using var timeout = new CancellationTokenSource(spec.Timeout);
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, timeout.Token);

@@ -196,6 +196,28 @@ public class ConfigureJourneyTests
     }
 
     [Fact]
+    public async Task Agente_da_pessoa_mantido_num_conflito_nao_reprova_o_eval_de_agentes()
+    {
+        // Achado no aplicativo instalado: o arquivo da pessoa (frontmatter mínimo, sem as seções do nosso padrão) era avaliado
+        // como se fosse gerenciado e reprovava uma configuração correta.
+        using var project = TempProject.Dotnet();
+        TlcFixture.Install(project);
+        const string mine = "---\nname: code-reviewer\ndescription: o meu revisor\ntools: Read\n---\nRevise meus diffs com cuidado.\n";
+        project.Write(".claude/agents/code-reviewer.md", mine);
+        var journey = new Journey(project);
+
+        var plan = await journey.PlanAsync();
+        var result = await journey.ApplyAsync(plan);
+
+        Assert.Equal(mine, project.Read(".claude/agents/code-reviewer.md"));
+        Assert.Equal("passed", Journey.Status(result, "EV-AGENT-001"));
+        // Nenhum Eval reprova; o arquivo mantido é uma pendência dita, então o desfecho é "com limitações", nunca "falhou".
+        Assert.Equal("completed_with_limitations", result["outcome"]!.GetValue<string>());
+        Assert.Contains(result["pending"]!.AsArray(), n => n!.GetValue<string>().Contains("code-reviewer.md"));
+        Assert.Contains(".claude/agents/code-reviewer.md", result["files"]!["kept"]!.AsArray().Select(n => n!.GetValue<string>()));
+    }
+
+    [Fact]
     public async Task Conflito_so_e_substituido_com_decisao_explicita_e_a_reversao_devolve_o_arquivo_da_pessoa()
     {
         using var project = TempProject.Dotnet();

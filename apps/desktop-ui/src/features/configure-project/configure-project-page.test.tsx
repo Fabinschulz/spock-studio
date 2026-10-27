@@ -134,6 +134,21 @@ describe('jornada Configurar projeto', () => {
     });
   });
 
+  describe('navegação entre etapas', () => {
+    it('cada etapa abre no topo da tela, em vez de herdar a rolagem da anterior', async () => {
+      const scrollTo = vi.fn();
+      Object.defineProperty(document.documentElement, 'scrollTo', { value: scrollTo, configurable: true });
+      renderJourney(fakeApi());
+      await screen.findByText('Stack detectada');
+      scrollTo.mockClear();
+
+      await click('Continuar');
+      await screen.findByText('Método e ambiente de IA');
+
+      expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
+    });
+  });
+
   describe('B · método e ambiente', () => {
     it('apresenta o TLC como único método e sugere o único ambiente suportado detectado', async () => {
       renderJourney(fakeApi());
@@ -562,6 +577,116 @@ describe('jornada Configurar projeto', () => {
       await waitFor(() =>
         expect(within(screen.getByLabelText('Resumo dos Evals')).getByText('1 não executado')).toBeInTheDocument()
       );
+    });
+
+    describe('próximo passo: proposta do Harness Engineer', () => {
+      const stubClipboard = (writeText: (text: string) => Promise<void>) =>
+        Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+
+      async function reachResult(api: HarnessApi) {
+        await reachReview(api);
+        await click(/Aplicar configuração/);
+        await screen.findByRole('heading', { name: 'Resultado' });
+      }
+
+      it('depois de aplicar com as regras-base, guia a pessoa com o pedido pronto e explica o que acontece', async () => {
+        await reachResult(fakeApi());
+
+        expect(screen.getByText('Próximo passo: peça a proposta ao Harness Engineer')).toBeInTheDocument();
+        const prompt = screen.getByRole<HTMLTextAreaElement>('textbox', { name: 'Pedido para o Harness Engineer' });
+        expect(prompt).toHaveAttribute('readonly');
+        expect(prompt.value).toContain('harness-engineer');
+        expect(prompt.value).toContain('.mariliz/proposal.json');
+        expect(prompt.value).toContain('SOMENTE .mariliz/proposal.json');
+        expect(prompt.value).toContain('Nunca inclua segredos');
+        expect(screen.getByText(/O motor valida a proposta antes de usá-la/)).toBeInTheDocument();
+      });
+
+      it('copia o pedido para a área de transferência e confirma', async () => {
+        const writeText = vi.fn().mockResolvedValue(undefined);
+        stubClipboard(writeText);
+        await reachResult(fakeApi());
+
+        await click('Copiar pedido');
+
+        expect(writeText).toHaveBeenCalledWith(
+          screen.getByRole<HTMLTextAreaElement>('textbox', { name: 'Pedido para o Harness Engineer' }).value
+        );
+        expect(await screen.findByText('Pedido copiado para a área de transferência.')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Copiado' })).toBeInTheDocument();
+      });
+
+      it('se a cópia automática falhar, diz como copiar à mão em vez de fingir que copiou', async () => {
+        stubClipboard(vi.fn().mockRejectedValue(new Error('negado')));
+        await reachResult(fakeApi());
+
+        await click('Copiar pedido');
+
+        expect(await screen.findByText(/Não foi possível copiar automaticamente/)).toBeInTheDocument();
+        expect(screen.queryByText('Pedido copiado para a área de transferência.')).not.toBeInTheDocument();
+      });
+
+      it('"Gerar o plano de novo" consulta o motor outra vez, com o mesmo ambiente, e volta ao plano', async () => {
+        const api = fakeApi();
+        await reachResult(api);
+        expect(api.plan).toHaveBeenCalledTimes(1);
+
+        await click('Gerar o plano de novo');
+
+        expect(await screen.findByText('Composição do Harness')).toBeInTheDocument();
+        expect(api.plan).toHaveBeenCalledTimes(2);
+        expect(vi.mocked(api.plan).mock.calls[1]![0]).toMatchObject({ projectId: 'p-1', aiEnvironment: 'claude-code' });
+      });
+
+      it('se o novo plano falhar, o erro aparece aqui mesmo e o resultado anterior continua visível', async () => {
+        const planMock = vi
+          .fn()
+          .mockResolvedValueOnce(plan)
+          .mockRejectedValue(new EngineError('PLAN_FAILED', 'A proposta é inválida.'));
+        await reachResult(fakeApi({ plan: planMock }));
+
+        await click('Gerar o plano de novo');
+
+        expect(await screen.findByText('A proposta é inválida.')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Resultado' })).toBeInTheDocument();
+        expect(screen.getByText('Concluído')).toBeInTheDocument();
+      });
+
+      it('não aparece quando o plano já veio da proposta do agente', async () => {
+        const applied = {
+          ...runResultSchema.parse(applyResult),
+          limitations: []
+        };
+        await reachResult(fakeApi({ snapshot: vi.fn().mockResolvedValue(snapshotOf(applied)) }));
+
+        expect(screen.queryByText('Próximo passo: peça a proposta ao Harness Engineer')).not.toBeInTheDocument();
+      });
+
+      it('não aparece quando a aplicação falhou, pois o agente nem chegou ao projeto', async () => {
+        const failure = runResultSchema.parse(applyFailure);
+        await reachResult(fakeApi({ snapshot: vi.fn().mockResolvedValue(snapshotOf(failure)) }));
+
+        expect(screen.queryByText('Próximo passo: peça a proposta ao Harness Engineer')).not.toBeInTheDocument();
+      });
+
+      it('some depois que a aplicação é revertida, porque o agente deixou de existir no projeto', async () => {
+        const apply = runResultSchema.parse(applyResult);
+        const revert = runResultSchema.parse(revertResult);
+        const api = fakeApi({
+          snapshot: vi
+            .fn()
+            .mockImplementation(async (runId: string) => snapshotOf(runId === 'run-revert' ? revert : apply))
+        });
+        await reachResult(api);
+        expect(screen.getByText('Próximo passo: peça a proposta ao Harness Engineer')).toBeInTheDocument();
+
+        await click('Reverter alterações');
+        await click('Reverter agora');
+
+        await waitFor(() =>
+          expect(screen.queryByText('Próximo passo: peça a proposta ao Harness Engineer')).not.toBeInTheDocument()
+        );
+      });
     });
 
     it('"Concluir" volta à tela inicial', async () => {

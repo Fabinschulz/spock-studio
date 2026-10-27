@@ -194,10 +194,17 @@ public static class EvalRunner
     private static readonly string[] AgentSections = ["## Role", "## Use when", "## Do not use when", "## Required context", "## Inviolable rules", "## Output format"];
     private static readonly string[] WriteTools = ["Edit", "Write", "NotebookEdit", "MultiEdit"];
 
+    /// <summary>
+    /// Só o que a aplicação gerencia. Um arquivo da pessoa que foi mantido num conflito (modo "kept") fica registrado
+    /// no lock para a decisão não se perder, mas não é avaliado: as regras de conformidade valem para o que geramos.
+    /// </summary>
+    private static IEnumerable<ManagedLockFile.ManagedFileEntry> Owned(ValidationContext ctx) =>
+        ctx.Lock?.ManagedFiles.Where(f => f.Mode != "kept") ?? [];
+
     private static EvalResult Agents(Spec spec, ValidationContext ctx)
     {
         if (ctx.Lock is null) return Block(spec, "Sem mariliz.lock, não há agentes gerenciados a conferir.");
-        var agents = ctx.Lock.ManagedFiles.Where(f => f.Path.StartsWith(".claude/agents/", StringComparison.Ordinal)).ToList();
+        var agents = Owned(ctx).Where(f => f.Path.StartsWith(".claude/agents/", StringComparison.Ordinal)).ToList();
         if (agents.Count == 0) return Pass(spec, ["Nenhum agente gerenciado"], ["Nenhum agente foi configurado neste projeto."]);
 
         var problems = new List<string>();
@@ -230,7 +237,7 @@ public static class EvalRunner
     private static EvalResult Skills(Spec spec, ValidationContext ctx)
     {
         if (ctx.Lock is null) return Block(spec, "Sem mariliz.lock, não há skills gerenciadas a conferir.");
-        var skills = ctx.Lock.ManagedFiles.Where(f => f.Path.EndsWith("/SKILL.md", StringComparison.Ordinal)).ToList();
+        var skills = Owned(ctx).Where(f => f.Path.EndsWith("/SKILL.md", StringComparison.Ordinal)).ToList();
         if (skills.Count == 0) return Pass(spec, ["Nenhuma skill gerenciada"], ["Nenhuma skill foi configurada neste projeto."]);
 
         var problems = new List<string>();
@@ -338,7 +345,7 @@ public static class EvalRunner
     private static EvalResult Rules(Spec spec, ValidationContext ctx)
     {
         if (ctx.Lock is null) return Block(spec, "Sem mariliz.lock, não há regras gerenciadas a conferir.");
-        var rules = ctx.Lock.ManagedFiles.Where(f => f.Path.StartsWith(".claude/rules/", StringComparison.Ordinal)).ToList();
+        var rules = Owned(ctx).Where(f => f.Path.StartsWith(".claude/rules/", StringComparison.Ordinal)).ToList();
         var problems = new List<string>();
 
         if (!rules.Any(r => r.Path == Catalog.PathRuleGeneral) && !(ctx.Declared?.Components.Exclude.Contains(Catalog.RuleGeneral) ?? false))
@@ -426,10 +433,17 @@ public static class EvalRunner
         var bad = await ctx.Runner.RunAsync(new ProcessSpec(python, [Path.Combine(scripts, "check_commit.py"), "--message", "Mensagem sem tipo"], ctx.RootPath, ScriptTimeout), ct);
         var self = await ctx.Runner.RunAsync(new ProcessSpec(python, [Path.Combine(scripts, "lessons.py"), "selftest"], ctx.RootPath, ScriptTimeout), ct);
 
+        // Não rodar ou estourar o tempo não é uma resposta errada: é uma verificação que não pôde ser concluída.
+        var notRun = new[] { ("check_commit.py (mensagem válida)", good), ("check_commit.py (mensagem inválida)", bad), ("lessons.py selftest", self) }
+            .Where(x => x.Item2.TimedOut || x.Item2.NotFound)
+            .Select(x => $"{x.Item1}: {(x.Item2.TimedOut ? $"excedeu {ScriptTimeout.TotalSeconds:0} s" : "não pôde ser executado")}.{ApplyService.OutputTail(x.Item2)}")
+            .ToList();
+        if (notRun.Count > 0) return Make(spec, EvalStatus.Blocked, notRun, "Os scripts do TLC não puderam ser executados até o fim; os gates não foram verificados.", []);
+
         var failures = new List<string>();
-        if (good.ExitCode != 0) failures.Add($"check_commit.py rejeitou uma mensagem válida (saída {good.ExitCode}).");
-        if (bad.ExitCode != 1) failures.Add($"check_commit.py não rejeitou uma mensagem inválida (saída {bad.ExitCode}, esperado 1).");
-        if (self.ExitCode != 0) failures.Add($"lessons.py selftest falhou (saída {self.ExitCode}).");
+        if (good.ExitCode != 0) failures.Add($"check_commit.py rejeitou uma mensagem válida (saída {good.ExitCode}).{ApplyService.OutputTail(good)}");
+        if (bad.ExitCode != 1) failures.Add($"check_commit.py não rejeitou uma mensagem inválida (saída {bad.ExitCode}, esperado 1).{ApplyService.OutputTail(bad)}");
+        if (self.ExitCode != 0) failures.Add($"lessons.py selftest falhou (saída {self.ExitCode}).{ApplyService.OutputTail(self)}");
         if (failures.Count > 0) return Fail(spec, "Os scripts do TLC não responderam como esperado.", failures);
 
         evidence.Add("check_commit.py: aceita 'feat(core): add validation' (saída 0) e rejeita uma mensagem sem tipo (saída 1)");
