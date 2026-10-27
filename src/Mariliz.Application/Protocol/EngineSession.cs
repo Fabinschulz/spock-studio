@@ -151,7 +151,8 @@ public sealed class EngineSession
                 var env = OptionalStr(p, "aiEnvironment");
                 if (env is not null && !AiEnvironments.Known.Contains(env)) throw new ParamException("aiEnvironment desconhecido.");
                 var force = p?["allowTlcForceReinstall"]?.GetValue<bool>() ?? false;
-                return Ok(id, Json(await service.PlanAsync(Str(p, "projectId"), new PlanOptions(env, force), ct)));
+                var updateTlc = p?["updateTlc"]?.GetValue<bool>() ?? false;
+                return Ok(id, Json(await service.PlanAsync(Str(p, "projectId"), new PlanOptions(env, force, updateTlc), ct)));
             }
 
             case "harness.apply":

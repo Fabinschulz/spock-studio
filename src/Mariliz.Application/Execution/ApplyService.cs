@@ -36,6 +36,17 @@ public sealed record Replanned(ConfigurationPlan Plan, ComposeResult Composed, D
 public sealed class ApplyService(IProcessRunner runner, IRunStore store, IClock clock)
 {
     private static readonly TimeSpan InstallTimeout = TimeSpan.FromMinutes(5);
+
+    /// <summary>Final da saída do programa, para a pessoa saber o que houve. Credenciais são omitidas antes de qualquer registro.</summary>
+    internal static string OutputTail(ProcessResult result)
+    {
+        var text = SecretScanner.RedactLines(string.Join("\n", new[] { result.StandardError, result.StandardOutput }.Where(t => !string.IsNullOrWhiteSpace(t))));
+        var lines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).TakeLast(15).ToList();
+        if (lines.Count == 0) return " O programa não escreveu nenhuma saída.";
+        var tail = string.Join(" | ", lines);
+        return " Saída (final): " + (tail.Length > 1200 ? tail[^1200..] : tail);
+    }
+
     private static readonly string[] BlockingLimitations =
     [
         LimitationCodes.HookBlocked, LimitationCodes.TlcBlocked, LimitationCodes.TlcNeedsForce,
@@ -44,7 +55,8 @@ public sealed class ApplyService(IProcessRunner runner, IRunStore store, IClock 
 
     public async Task<JsonObject> ExecuteAsync(
         RunHandle run, string root, IProjectFiles files, PlanSession session, ApplyApprovals approvals,
-        Func<CancellationToken, Task<Replanned>> replan, CancellationToken ct)
+        Func<CancellationToken, Task<Replanned>> replan, CancellationToken ct,
+        Func<CancellationToken, Task<Replanned>>? replanAfterApply = null)
     {
         var journal = new RunJournal { RunId = run.RunId, ProjectId = run.ProjectId, Kind = RunKinds.Apply, PlanId = session.Plan.PlanId, StartedAt = clock.UtcNow };
         void Save() => store.SaveJournal(journal);
@@ -132,9 +144,9 @@ public sealed class ApplyService(IProcessRunner runner, IRunStore store, IClock 
                 }
 
                 if (result.NotFound) throw new EngineException("COMMAND_NOT_FOUND", $"O programa '{command.Executable}' não foi encontrado.");
-                if (result.TimedOut) throw new EngineException("COMMAND_TIMEOUT", "O instalador excedeu o tempo limite.");
+                if (result.TimedOut) throw new EngineException("COMMAND_TIMEOUT", "O instalador excedeu o tempo limite." + OutputTail(result));
                 if (result.ExitCode != 0)
-                    throw new EngineException("COMMAND_FAILED", $"O instalador terminou com código {result.ExitCode}. Detalhes foram guardados no diário da execução.");
+                    throw new EngineException("COMMAND_FAILED", $"O instalador terminou com código {result.ExitCode}.{OutputTail(result)}");
 
                 tlc = TlcInspector.Inspect(files);
                 if (tlc.State != TlcState.Installed)
@@ -202,7 +214,7 @@ public sealed class ApplyService(IProcessRunner runner, IRunStore store, IClock 
             // ---- 7. Validação
             run.SetState(RunStates.Validating);
             var validation = Step("validate", "Validar a configuração aplicada");
-            var report = await ValidationService.RunAsync(runner, store, files, root, run.ProjectId, replan, ct);
+            var report = await ValidationService.RunAsync(runner, store, files, root, run.ProjectId, replanAfterApply ?? replan, ct);
             journal.Evals = report.Results.Select(r => new EvalSummary { Id = r.Id, Status = r.Status.ToString(), Required = r.Required }).ToList();
             Done(validation, "completed", report.Outcome.ToString());
 

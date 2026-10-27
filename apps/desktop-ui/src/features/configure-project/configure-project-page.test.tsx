@@ -185,9 +185,45 @@ describe('jornada Configurar projeto', () => {
         expect(api.plan).toHaveBeenCalledWith({
           projectId: 'p-1',
           aiEnvironment: 'claude-code',
-          allowTlcForceReinstall: true
+          allowTlcForceReinstall: true,
+          updateTlc: false
         })
       );
+    });
+
+    it('com o TLC instalado, oferece buscar a versão mais recente e envia o pedido ao motor', async () => {
+      const installed = {
+        ...discovery,
+        tlc: { ...discovery.tlc, state: 'installed' as const, version: '3.3.0', versionTested: true }
+      };
+      const api = fakeApi({ discover: vi.fn().mockResolvedValue(installed) });
+      renderJourney(api);
+      await screen.findByText('Stack detectada');
+      await click('Continuar');
+
+      const update = await screen.findByRole('checkbox', { name: /Buscar a versão mais recente do TLC/ });
+      expect(update).not.toBeChecked();
+      expect(screen.getByText(/Usa a rede e só executa se você aprovar/)).toBeInTheDocument();
+      await userEvent.click(update);
+      await click('Gerar plano');
+
+      await waitFor(() =>
+        expect(api.plan).toHaveBeenCalledWith({
+          projectId: 'p-1',
+          aiEnvironment: 'claude-code',
+          allowTlcForceReinstall: false,
+          updateTlc: true
+        })
+      );
+    });
+
+    it('sem o TLC instalado não oferece atualizar: a instalação já traz a versão mais recente', async () => {
+      renderJourney(fakeApi());
+      await screen.findByText('Stack detectada');
+      await click('Continuar');
+      await screen.findByText('Método e ambiente de IA');
+
+      expect(screen.queryByRole('checkbox', { name: /Buscar a versão mais recente do TLC/ })).not.toBeInTheDocument();
     });
 
     it('não oferece reinstalar quando o TLC não está alterado', async () => {

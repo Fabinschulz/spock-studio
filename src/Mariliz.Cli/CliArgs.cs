@@ -6,7 +6,7 @@ public sealed class CliUsageException(string message) : Exception(message);
 public sealed class CliArgs
 {
     private static readonly HashSet<string> Flags =
-        ["--json", "--yes", "--diff", "--allow-tlc-reinstall", "--approve-removals", "--help"];
+        ["--json", "--yes", "--diff", "--allow-tlc-reinstall", "--update-tlc", "--approve-removals", "--help"];
 
     private static readonly HashSet<string> Valued = ["--env", "--run", "--overwrite", "--approve-command"];
 

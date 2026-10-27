@@ -86,7 +86,7 @@ public class ConfigureJourneyTests
         Assert.Single(journey.Runner.Calls.Where(c => c.Executable == "npx"));
         Assert.Equal("passed", Journey.Status(installed, "EV-TLC-001"));
         var lockText = project.Read("mariliz.lock")!;
-        Assert.Contains("version: 3.3.0", lockText);
+        Assert.Contains("version: 4.0.0", lockText);
     }
 
     [Fact]

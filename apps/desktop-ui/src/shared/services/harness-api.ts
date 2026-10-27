@@ -15,7 +15,13 @@ import {
 
 import { EngineError, type EngineClient } from './engine-client';
 
-export type PlanInput = { projectId: string; aiEnvironment?: string; allowTlcForceReinstall?: boolean };
+export type PlanInput = {
+  projectId: string;
+  aiEnvironment?: string;
+  allowTlcForceReinstall?: boolean;
+  /** Pede ao instalador oficial a versão mais recente do TLC, mesmo que a instalada já seja a mais recente conhecida. */
+  updateTlc?: boolean;
+};
 
 export type ApplyInput = {
   projectId: string;
@@ -42,13 +48,14 @@ export type HarnessApi = {
 export function createHarnessApi(client: EngineClient): HarnessApi {
   return {
     discover: (projectId) => client.request('project.discover', { projectId }, discoverySchema),
-    plan: ({ projectId, aiEnvironment, allowTlcForceReinstall }) =>
+    plan: ({ projectId, aiEnvironment, allowTlcForceReinstall, updateTlc }) =>
       client.request(
         'harness.plan',
         {
           projectId,
           ...(aiEnvironment ? { aiEnvironment } : {}),
-          ...(allowTlcForceReinstall ? { allowTlcForceReinstall: true } : {})
+          ...(allowTlcForceReinstall ? { allowTlcForceReinstall: true } : {}),
+          ...(updateTlc ? { updateTlc: true } : {})
         },
         planSchema
       ),

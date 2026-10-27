@@ -101,7 +101,9 @@ public sealed class ConfigureProjectService(
         run.Completion = Task.Run(async () =>
         {
             var result = await _apply.ExecuteAsync(run, root, files, session, approvals,
-                ct => ReplanAsync(projectId, root, files, session.Options, ct), run.Cancellation.Token);
+                ct => ReplanAsync(projectId, root, files, session.Options, ct), run.Cancellation.Token,
+                // O pedido de atualizar o TLC vale uma vez: depois de aplicado, a idempotência é medida sem ele.
+                ct => ReplanAsync(projectId, root, files, session.Options with { UpdateTlc = false }, ct));
             run.Complete(result["outcome"]?.GetValue<string>() ?? RunStates.Failed, result);
         });
         return run;

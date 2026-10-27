@@ -21,6 +21,7 @@ public class SafetyTests
         public string RootName => inner.RootName;
         public bool FileExists(string path) => inner.FileExists(path);
         public bool DirectoryExists(string path) => inner.DirectoryExists(path);
+        public string? NearestAncestorFolderWith(string fileName) => null;
         public byte[]? ReadBytes(string path) => inner.ReadBytes(path);
         public string? ReadText(string path) => inner.ReadText(path);
         public IReadOnlyList<string> EnumerateFiles(string directory, int maxDepth = 8) => inner.EnumerateFiles(directory, maxDepth);

@@ -11,6 +11,29 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests.Support;
 
+/// <summary>
+/// Arquivos reais do projeto, mas com o "package.json mais próximo acima da raiz" sob controle do teste. Sem isso, o resultado
+/// dependeria de haver (ou não) um package.json em alguma pasta acima da pasta temporária do computador que roda os testes.
+/// </summary>
+internal sealed class TestFiles(IProjectFiles inner, string? ancestorWithPackageJson) : IProjectFiles
+{
+    public string RootName => inner.RootName;
+    public bool FileExists(string path) => inner.FileExists(path);
+    public bool DirectoryExists(string path) => inner.DirectoryExists(path);
+    public string? NearestAncestorFolderWith(string fileName) => fileName == "package.json" ? ancestorWithPackageJson : null;
+    public byte[]? ReadBytes(string path) => inner.ReadBytes(path);
+    public string? ReadText(string path) => inner.ReadText(path);
+    public IReadOnlyList<string> EnumerateFiles(string directory, int maxDepth = 8) => inner.EnumerateFiles(directory, maxDepth);
+    public void WriteAtomic(string path, byte[] content, WriteScope scope = WriteScope.Managed) => inner.WriteAtomic(path, content, scope);
+    public void Delete(string path, WriteScope scope = WriteScope.Managed) => inner.Delete(path, scope);
+    public void PruneEmptyDirectories(string directory) => inner.PruneEmptyDirectories(directory);
+}
+
+internal sealed class TestFilesFactory(string? ancestorWithPackageJson = null) : IProjectFilesFactory
+{
+    public IProjectFiles Open(string authorizedRoot) => new TestFiles(new LocalProjectFiles(authorizedRoot), ancestorWithPackageJson);
+}
+
 /// <summary>Projeto sintético em pasta temporária. Nada aqui é cópia de projeto de cliente.</summary>
 internal sealed class TempProject : IDisposable
 {
@@ -88,7 +111,10 @@ internal sealed class TempProject : IDisposable
 /// <summary>Skill TLC sintética (instalador simulado): mesmos nomes de arquivo e hash que o instalador real calcula.</summary>
 internal static class TlcFixture
 {
-    public static void Install(TempProject project, string version = "3.3.0")
+    /// <summary>Arquivos que a 4.0.0 real removeu em relação à 3.3.0 e os que ela acrescentou (observado na instalação oficial).</summary>
+    private static readonly string[] RemovedIn4 = ["references/code-analysis.md", "references/context-limits.md", "scripts/validate_state.py"];
+
+    public static void Install(TempProject project, string version = "4.0.0")
     {
         var files = new Dictionary<string, byte[]>(StringComparer.Ordinal);
         string Frontmatter() => $"---\nname: tlc-spec-driven\ndescription: test double of the TLC skill\nlicense: CC-BY-4.0\nmetadata:\n  author: test\n  version: {version}\n---\n\n# Test double\n";
@@ -101,6 +127,13 @@ internal static class TlcFixture
         files["scripts/lessons.py"] = Encoding.UTF8.GetBytes("import sys\nif len(sys.argv) > 1 and sys.argv[1] == 'selftest':\n    print('selftest_norm: ok')\n    sys.exit(0)\nsys.exit(2)\n");
         foreach (var s in new[] { "validate_spec", "validate_state", "validate_tasks" })
             files[$"scripts/{s}.py"] = Encoding.UTF8.GetBytes("print('ok')\n");
+
+        if (version.StartsWith("4.", StringComparison.Ordinal))
+        {
+            foreach (var removed in RemovedIn4) files.Remove(removed);
+            foreach (var added in new[] { "references/verify-screens.md", "scripts/check_proofs.py", "scripts/mutate.py", "scripts/selftest.py", "scripts/validate_verification.py" })
+                files[added] = Encoding.UTF8.GetBytes("# " + added + "\n");
+        }
 
         foreach (var (rel, bytes) in files)
         {
@@ -148,7 +181,7 @@ internal sealed class Journey
         Tracker = new RunTracker((_, _, type, data) => { lock (Events) Events.Add((type, data)); });
         var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
         ProjectId = workspace.Authorize(project.Root).Project!.ProjectId;
-        Service = new ConfigureProjectService(workspace, files ?? new LocalProjectFilesFactory(), Runner, Store, clock ?? new SystemClock(), Tracker);
+        Service = new ConfigureProjectService(workspace, files ?? new TestFilesFactory(), Runner, Store, clock ?? new SystemClock(), Tracker);
     }
 
     public static Func<ProcessSpec, CancellationToken, Task<ProcessResult?>> FakeInstaller(TempProject project, int exitCode = 0) => (spec, _) =>

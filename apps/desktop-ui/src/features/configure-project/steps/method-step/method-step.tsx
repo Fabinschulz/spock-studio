@@ -12,9 +12,11 @@ interface MethodStepProps {
   discovery: Discovery;
   aiEnvironment: string | null;
   allowReinstall: boolean;
+  updateTlc: boolean;
   plan: Loadable<unknown>;
   onEnvironment: (id: string) => void;
   onReinstall: (value: boolean) => void;
+  onUpdateTlc: (value: boolean) => void;
   onBack: () => void;
   onPlan: () => void;
 }
@@ -25,9 +27,11 @@ export function MethodStep({
   discovery,
   aiEnvironment,
   allowReinstall,
+  updateTlc,
   plan,
   onEnvironment,
   onReinstall,
+  onUpdateTlc,
   onBack,
   onPlan
 }: MethodStepProps) {
@@ -67,6 +71,20 @@ export function MethodStep({
             O TLC será instalado pelo instalador oficial (@tech-leads-club/agent-skills) somente se você aprovar o
             comando na revisão.
           </span>
+        ) : null}
+        {tlc.state === 'installed' ? (
+          <label className={styles.field}>
+            <input type="checkbox" checked={updateTlc} onChange={(e) => onUpdateTlc(e.target.checked)} />
+            <span>
+              Buscar a versão mais recente do TLC
+              <br />
+              <span className={styles.muted}>
+                O plano já propõe a atualização quando a versão instalada é anterior à mais recente conhecida. Marque
+                para pedir ao instalador oficial a versão mais nova disponível. Usa a rede e só executa se você aprovar
+                o comando.
+              </span>
+            </span>
+          </label>
         ) : null}
         {needsForce ? (
           <label className={styles.field}>

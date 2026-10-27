@@ -109,7 +109,7 @@ public static class PlanBuilder
         var current = files.ReadText(ManagedLockFile.FileName);
         // Sem nada gerenciado (ex.: ambiente sem suporte), não há o que registrar.
         if (current is null && composed.Files.All(f => f.Path == DeclaredConfig.FileName) && composed.Commands.Count == 0) return null;
-        var pendingTlc = composed.Commands.Any(c => c.Id == "tlc-install");
+        var pendingTlc = composed.Commands.Any(c => c.Id is "tlc-install" or "tlc-update");
         var content = LockBuilder.Build(composed, changes, existing, report.Tlc, pendingTlc);
         var currentHash = current is null ? null : Hashing.Sha256(Normalize(current));
 
@@ -235,7 +235,7 @@ public static class LockBuilder
         foreach (var id in componentIds)
         {
             var component = Catalog.Find(id);
-            lockFile.Components.Add(new() { Id = id, Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(), Version = component?.Version ?? Catalog.ComponentVersion });
+            lockFile.Components.Add(new() { Id = id, Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(), Version = ComponentVersion(id, component, tlc) });
         }
         return lockFile.ToYaml();
     }
@@ -280,8 +280,12 @@ public static class LockBuilder
         foreach (var id in lockFile.ManagedFiles.Select(f => f.Component).Distinct())
         {
             var component = Catalog.Find(id);
-            lockFile.Components.Add(new() { Id = id, Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(), Version = component?.Version ?? Catalog.ComponentVersion });
+            lockFile.Components.Add(new() { Id = id, Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(), Version = ComponentVersion(id, component, tlc) });
         }
         return lockFile.ToYaml();
     }
+
+    /// <summary>O TLC é externo: a versão registrada é a da instalação verificada, nunca um valor fixo do catálogo.</summary>
+    private static string ComponentVersion(string id, CatalogComponent? component, TlcStatus tlc) =>
+        id == Catalog.SddTlc ? (tlc.State == TlcState.Installed ? tlc.Version ?? "" : "") : component?.Version ?? Catalog.ComponentVersion;
 }

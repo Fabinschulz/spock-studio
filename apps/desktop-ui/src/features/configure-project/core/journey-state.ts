@@ -45,6 +45,7 @@ export interface JourneyState {
   discovery: Loadable<Discovery>;
   aiEnvironment: string | null;
   allowTlcReinstall: boolean;
+  updateTlc: boolean;
   plan: Loadable<ConfigurationPlan>;
   approvedChanges: string[];
   approvedCommands: string[];
@@ -58,6 +59,7 @@ export const initialJourneyState: JourneyState = {
   discovery: { status: 'idle' },
   aiEnvironment: null,
   allowTlcReinstall: false,
+  updateTlc: false,
   plan: { status: 'idle' },
   approvedChanges: [],
   approvedCommands: [],
@@ -72,6 +74,7 @@ export type JourneyAction =
   | { type: 'discover.error'; message: string }
   | { type: 'environment.set'; id: string }
   | { type: 'reinstall.set'; value: boolean }
+  | { type: 'update.set'; value: boolean }
   | { type: 'plan.start' }
   | { type: 'plan.ok'; plan: ConfigurationPlan }
   | { type: 'plan.error'; message: string }
@@ -148,6 +151,8 @@ export function journeyReducer(state: JourneyState, action: JourneyAction): Jour
       return { ...state, aiEnvironment: action.id };
     case 'reinstall.set':
       return { ...state, allowTlcReinstall: action.value };
+    case 'update.set':
+      return { ...state, updateTlc: action.value };
     case 'plan.start':
       return { ...state, plan: { status: 'loading' } };
     case 'plan.ok':

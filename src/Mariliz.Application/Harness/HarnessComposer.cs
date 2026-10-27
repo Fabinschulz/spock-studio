@@ -6,7 +6,8 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Harness;
 
-public sealed record PlanOptions(string? AiEnvironment, bool AllowTlcForceReinstall = false);
+/// <param name="UpdateTlc">Pedido explícito: re-executar o instalador oficial para trazer a versão mais recente do TLC.</param>
+public sealed record PlanOptions(string? AiEnvironment, bool AllowTlcForceReinstall = false, bool UpdateTlc = false);
 
 /// <summary><c>Mode</c>: "file" = a aplicação é dona do arquivo inteiro; "merge" = só de chaves dele.</summary>
 public sealed record DesiredFile(string Path, ComponentKind Kind, string ComponentId, string Origin, string Reason, string Content, string Mode);
@@ -33,6 +34,7 @@ public static class LimitationCodes
     public const string TlcBlocked = "TLC_BLOCKED";
     public const string TlcNeedsForce = "TLC_NEEDS_FORCE";
     public const string TlcUntested = "TLC_UNTESTED_VERSION";
+    public const string TlcOutdated = "TLC_OUTDATED";
     public const string HarnessEngineerNotInvoked = "HARNESS_ENGINEER_NOT_INVOKED";
     public const string JudgeNotConfigured = "JUDGE_NOT_CONFIGURED";
 }
@@ -215,7 +217,7 @@ public static class HarnessComposer
         }
 
         // ---- TLC
-        PlanTlc(report, options, decisions, commands, limitations, risks);
+        PlanTlc(report, files, options, decisions, commands, limitations, risks);
 
         // Componentes que ficaram sem arquivos porque a pessoa ou a proposta os dispensou: mantidos como estão.
         return new ComposeResult(env, proposalOrigin, desired, decisions, commands, limitations, Merge(observations, proposal), Merge(risks, proposal));
@@ -223,24 +225,62 @@ public static class HarnessComposer
 
     // ------------------------------------------------------------------ TLC
 
-    private static void PlanTlc(DiscoveryReport report, PlanOptions options, List<ComponentDecision> decisions,
+    /// <summary>Motivo pelo qual o instalador oficial não pode rodar com segurança; <c>Decision</c> é a frase da decisão, <c>Reason</c> a da limitação.</summary>
+    private sealed record InstallerBlock(string Decision, string Reason);
+
+    private static InstallerBlock? InstallerBlocker(DiscoveryReport report, IProjectFiles files)
+    {
+        if (report.Tools.Node is null)
+            return new("Node.js não encontrado; o instalador oficial do TLC exige npx.", "Node.js (22 ou superior) não foi encontrado.");
+
+        // O instalador oficial grava na pasta do package.json mais próximo, subindo a partir da pasta de trabalho.
+        // Sem package.json no projeto, mas com um acima dele, a instalação cairia fora do projeto: nunca arriscamos isso.
+        if (!files.FileExists("package.json") && files.NearestAncestorFolderWith("package.json") is { } outside)
+            return new($"O instalador oficial instalaria o TLC na pasta '{outside}', acima do projeto.",
+                $"o instalador oficial grava na pasta do package.json mais próximo, e aqui seria '{outside}', fora do projeto. " +
+                "Crie um package.json na raiz do projeto, ou instale o TLC você mesmo na pasta do projeto, e planeje de novo.");
+
+        return null;
+    }
+
+    private static void KeepInstalledTlc(TlcStatus tlc, List<ComponentDecision> decisions, List<Limitation> limitations)
+    {
+        decisions.Add(new(ComponentKind.Sdd, Catalog.SddTlc, "keep", $"TLC {tlc.Version} instalado e íntegro (hash conferido com o lockfile do instalador).", DecisionOrigins.Existing, [TlcManifest.SkillDirectory]));
+        if (!tlc.VersionTested)
+            limitations.Add(new(LimitationCodes.TlcUntested, $"A versão {tlc.Version ?? "desconhecida"} do TLC não foi validada por esta fase; o funcionamento não é garantido."));
+    }
+
+    private static void PlanTlc(DiscoveryReport report, IProjectFiles files, PlanOptions options, List<ComponentDecision> decisions,
         List<PlannedCommand> commands, List<Limitation> limitations, List<string> risks)
     {
         var tlc = report.Tlc;
         var evidence = tlc.Problems.Take(3).ToList();
+        var installed = tlc.State == TlcState.Installed;
+        var outdated = installed && TlcManifest.IsOlderThanLatest(tlc.Version);
 
-        if (tlc.State == TlcState.Installed)
+        // Instalação íntegra e atual: nada a fazer, e o plano continua idempotente.
+        if (installed && !outdated && !options.UpdateTlc)
         {
-            decisions.Add(new(ComponentKind.Sdd, Catalog.SddTlc, "keep", $"TLC {tlc.Version} instalado e íntegro (hash conferido com o lockfile do instalador).", DecisionOrigins.Existing, [TlcManifest.SkillDirectory]));
-            if (!tlc.VersionTested)
-                limitations.Add(new(LimitationCodes.TlcUntested, $"A versão {tlc.Version ?? "desconhecida"} do TLC não foi validada por esta fase; o funcionamento não é garantido."));
+            KeepInstalledTlc(tlc, decisions, limitations);
             return;
         }
 
-        if (report.Tools.Node is null)
+        var blocker = InstallerBlocker(report, files);
+        if (blocker is not null)
         {
-            decisions.Add(new(ComponentKind.Sdd, Catalog.SddTlc, "blocked", "Node.js não encontrado; o instalador oficial do TLC exige npx.", DecisionOrigins.Baseline, []));
-            limitations.Add(new(LimitationCodes.TlcBlocked, "O TLC não pode ser instalado: Node.js (22 ou superior) não foi encontrado."));
+            if (installed)
+            {
+                // O TLC atual continua utilizável: o impedimento só barra a atualização, e a pessoa fica sabendo.
+                KeepInstalledTlc(tlc, decisions, limitations);
+                limitations.Add(new(LimitationCodes.TlcOutdated,
+                    (outdated ? $"O TLC {tlc.Version} é anterior à versão mais recente conhecida ({TlcManifest.LatestKnownVersion}). " : "A atualização do TLC foi pedida. ")
+                    + "Ela não foi planejada: " + blocker.Reason));
+            }
+            else
+            {
+                decisions.Add(new(ComponentKind.Sdd, Catalog.SddTlc, "blocked", blocker.Decision, DecisionOrigins.Baseline, []));
+                limitations.Add(new(LimitationCodes.TlcBlocked, "O TLC não pôde ser instalado: " + blocker.Reason));
+            }
             return;
         }
 
@@ -256,8 +296,25 @@ public static class HarnessComposer
         }
 
         var args = needsForce ? TlcManifest.ForceInstallArguments : TlcManifest.InstallArguments;
+        if (installed)
+        {
+            // O instalador substitui a pasta da skill inteira (remove arquivos abolidos pela versão nova). Como a instalação
+            // está íntegra, não há edição local a perder.
+            decisions.Add(new(ComponentKind.Sdd, Catalog.SddTlc, "enable",
+                outdated
+                    ? $"O TLC {tlc.Version} é anterior à versão mais recente conhecida ({TlcManifest.LatestKnownVersion}): atualização pelo instalador oficial."
+                    : "Atualização do TLC pedida: o instalador oficial traz a versão mais recente disponível.",
+                DecisionOrigins.Baseline, [TlcManifest.SkillDirectory]));
+            commands.Add(new PlannedCommand(
+                "tlc-update", "Atualizar o TLC para a versão mais recente (instalador oficial)",
+                "npx", args, [CommandEffect.Process, CommandEffect.Network, CommandEffect.WriteLocal], false,
+                [TlcManifest.SkillDirectory, ".agents"]));
+            risks.Add("A atualização do TLC baixa a versão mais recente da rede e substitui a pasta da skill; o resultado é validado (arquivos, hash e scripts) e, se falhar, a versão atual é restaurada.");
+            return;
+        }
+
         decisions.Add(new(ComponentKind.Sdd, Catalog.SddTlc, "enable",
-            needsForce ? "Reinstalação autorizada do TLC pelo instalador oficial." : "TLC ausente: instalação pelo instalador oficial (@tech-leads-club/agent-skills).",
+            needsForce ? "Reinstalação autorizada do TLC pelo instalador oficial." : "TLC ausente: instalação pelo instalador oficial (@tech-leads-club/agent-skills), sempre na versão mais recente.",
             DecisionOrigins.Baseline, evidence));
         commands.Add(new PlannedCommand(
             "tlc-install",

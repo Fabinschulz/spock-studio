@@ -7,6 +7,13 @@ public interface IProjectFiles
     bool FileExists(string path);
     bool DirectoryExists(string path);
 
+    /// <summary>
+    /// Nome da pasta mais próxima, <b>acima</b> da raiz do projeto, que contém <paramref name="fileName"/>; <c>null</c> se não há.
+    /// Somente leitura e só devolve o nome da pasta. Serve para saber onde ferramentas que procuram a "raiz do projeto"
+    /// subindo pelas pastas-pai (como o instalador do TLC com o package.json) vão gravar.
+    /// </summary>
+    string? NearestAncestorFolderWith(string fileName);
+
     /// <summary><c>null</c> quando o arquivo não existe.</summary>
     byte[]? ReadBytes(string path);
 

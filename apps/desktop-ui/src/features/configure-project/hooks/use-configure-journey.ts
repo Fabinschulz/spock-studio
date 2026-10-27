@@ -37,13 +37,14 @@ export function useConfigureJourney(api: HarnessApi, projectId: string, pollMs =
   }, [discover]);
 
   const generatePlan = useCallback(async () => {
-    const { aiEnvironment, allowTlcReinstall } = latest.current;
+    const { aiEnvironment, allowTlcReinstall, updateTlc } = latest.current;
     dispatch({ type: 'plan.start' });
     try {
       const plan = await api.plan({
         projectId,
         ...(aiEnvironment ? { aiEnvironment } : {}),
-        allowTlcForceReinstall: allowTlcReinstall
+        allowTlcForceReinstall: allowTlcReinstall,
+        updateTlc
       });
       dispatch({ type: 'plan.ok', plan });
     } catch (error) {
@@ -101,6 +102,7 @@ export function useConfigureJourney(api: HarnessApi, projectId: string, pollMs =
       goTo: (step: JourneyStepId) => dispatch({ type: 'step.go', step }),
       setEnvironment: (id: string) => dispatch({ type: 'environment.set', id }),
       setReinstall: (value: boolean) => dispatch({ type: 'reinstall.set', value }),
+      setUpdateTlc: (value: boolean) => dispatch({ type: 'update.set', value }),
       toggleChange: (id: string) => dispatch({ type: 'change.toggle', id }),
       toggleCommand: (id: string) => dispatch({ type: 'command.toggle', id }),
       setResolution: (id: string, value: 'keep' | 'overwrite') => dispatch({ type: 'resolution.set', id, value })

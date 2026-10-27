@@ -58,9 +58,11 @@ Mudança proposital de formato: `MARILIZ_UPDATE_GOLDEN=1 dotnet test`, e revisar
 ## 3. Como o TLC é usado
 
 - **Único SDD.** Nenhum outro kit é oferecido, detectado como alternativa ou instalado.
-- **Detecção** (`TlcInspector`): `not_installed`, `installed`, `drifted` (hash diferente do registro do instalador) ou `invalid` (arquivos obrigatórios ausentes). Validação: 18 arquivos obrigatórios, hash do conteúdo igual ao de `.agents/.skill-lock.json`, versão conhecida (testada: 3.3.0; outra versão é aceita **com limitação dita**).
+- **Detecção** (`TlcInspector`): `not_installed`, `installed`, `drifted` (hash diferente do registro do instalador) ou `invalid` (arquivos obrigatórios ausentes). Validação: 15 arquivos obrigatórios (o conjunto comum às versões testadas), hash do conteúdo igual ao `contentHash` de `.agents/.skill-lock.json`, versão conhecida (testadas: 3.3.0 e **4.0.0**, esta última contra uma instalação real; outra versão é aceita **com limitação dita**). O lock do projeto grava a versão realmente instalada.
 - **Instalação.** Só pelo instalador oficial, e **só com a aprovação do comando**, mostrado por inteiro antes:
-  `npx -y @tech-leads-club/agent-skills install -s tlc-spec-driven -a claude-code`. O motor não inventa comandos do TLC. Reinstalar uma skill alterada (`--force`) exige uma permissão separada, o comando é marcado como **destrutivo** e os arquivos atuais são copiados antes.
+  `npx -y @tech-leads-club/agent-skills install -s tlc-spec-driven -a claude-code`. O motor não inventa comandos do TLC.
+  **Escopo do instalador (achado da execução real):** ele grava na pasta do `package.json` **mais próximo, subindo pelas pastas-pai**, e não necessariamente na pasta de trabalho. Um projeto sem `package.json` (por exemplo, só .NET) abaixo de uma pasta que tenha um instalaria o TLC **fora do projeto**. Por isso o plano checa isso, somente leitura, e **bloqueia** o comando (`TLC_BLOCKED`, dizendo a pasta) em vez de arriscar; a saída é criar um `package.json` na raiz do projeto ou instalar o TLC manualmente. Reinstalar uma skill alterada (`--force`) exige uma permissão separada, o comando é marcado como **destrutivo** e os arquivos atuais são copiados antes.
+- **Sempre a versão mais recente.** O instalador oficial não fixa versão, então toda **instalação nova** traz a atual. Para um TLC **já instalado**, o plano compara com a última versão conhecida e validada pelo produto (`TlcManifest.LatestKnownVersion`, hoje 4.0.0; o plano é local e não consulta a rede): se a instalada for anterior, o plano propõe o comando `tlc-update` (o mesmo instalador oficial, aprovado por você, não destrutivo quando a instalação está íntegra). O instalador substitui a pasta da skill inteira, removendo os arquivos que a versão nova aboliu. Para buscar uma versão ainda mais nova que a conhecida, há o pedido explícito de uso único (**"Buscar a versão mais recente do TLC"** na UI, `--update-tlc` na CLI). Se a atualização não for aprovada, o TLC atual é mantido e o resultado diz que ficou pendente (EV-IDEMP `blocked`); se o instalador falhar, a versão anterior é restaurada. Uma versão nova ainda desconhecida do produto é aceita **com limitação dita** (não validada), nunca em silêncio.
 - **Validação do TLC** (EV-TLC): estrutura, hash e os dois gates por script — `check_commit.py` e `lessons.py selftest` — executados de fato; sem Python, o Eval fica `blocked` com o motivo.
 - **Propriedade.** Os arquivos do TLC só são graváveis por `WriteScope.TlcRestore` (restauração após falha); a configuração gerenciada nunca os toca. Licença da skill (CC-BY-4.0, atribuição ao Tech Leads Club) é mostrada na etapa B.
 - **Verificador independente** (`.claude/agents/verifier.md`): reflete a regra do TLC de que quem escreve não verifica.
@@ -108,7 +110,7 @@ Sem proposta, o plano usa as regras-base e **diz isso** (`proposalOrigin: baseli
 
 ## 7. Testes e evidências
 
-Última execução local: **.NET 203 (Application) + 2 (integração do motor), UI 48, Rust 8 — todos aprovados.**
+Última execução local: **.NET 228 (Application) + 2 (integração do motor), UI 50, Rust 8 — todos aprovados.**
 
 | Cenário exigido | Evidência (teste) |
 | --- | --- |
@@ -144,7 +146,7 @@ cargo test --manifest-path apps/desktop-host/src-tauri/Cargo.toml
 
 ```bash
 dotnet run --project src/Mariliz.Cli -- discover <pasta>
-dotnet run --project src/Mariliz.Cli -- plan <pasta> --env claude-code [--diff] [--json]
+dotnet run --project src/Mariliz.Cli -- plan <pasta> --env claude-code [--update-tlc] [--diff] [--json]
 dotnet run --project src/Mariliz.Cli -- apply <pasta> --env claude-code [--approve-command tlc-install] \
     [--overwrite .claude/agents/x.md] [--approve-removals] [--yes]
 dotnet run --project src/Mariliz.Cli -- validate <pasta>
@@ -157,7 +159,7 @@ Códigos de saída: `0` concluído; `10` concluído com limitações; `1` falhou
 
 ## 9. Limitações e riscos abertos
 
-1. **O instalador real do TLC (`npx @tech-leads-club/agent-skills`) não foi executado por esta implementação.** Os testes usam um instalador simulado que reproduz o layout e o hash; o layout e as regras de validação foram derivados da inspeção somente leitura de uma instalação real. A primeira instalação real deve ser acompanhada.
+1. **O instalador real do TLC foi executado** (versão 1.6.0 do `@tech-leads-club/agent-skills`, instalando o TLC 4.0.0) num projeto descartável, pela CLI do produto: instalação, validação (hash e gates reais), 12 Evals obrigatórios aprovados e reversão completa (40 arquivos restaurados e conferidos). A execução expôs e levou a corrigir: (a) o `npx.cmd` do Windows quebrava ao ser iniciado pelo nome simples (agora o caminho absoluto é resolvido no `PATH`); (b) a lista de arquivos exigidos era da 3.3.0 e rejeitava a 4.0.0; (c) o lock gravava a versão do TLC fixa em `3.3.0`; (d) o instalador pode gravar fora do projeto (ver §3); (e) a saída do instalador era descartada, então a mensagem de erro prometia detalhes que não existiam. Os testes automatizados continuam usando um instalador simulado (`npx` nunca roda no CI). O `selftest.py` da própria skill 4.0.0 falha no Windows (`signal.SIGHUP` inexistente): defeito do TLC, que não afeta os gates usados pelo motor (`check_commit.py` e `lessons.py selftest`).
 2. **Harness Engineer:** não havia um existente autorizado para reuso (§4); o agente é original. A invocação é manual (a pessoa pede a ele, no ambiente de IA, que escreva `.mariliz/proposal.json`); o motor não dispara o agente. Até haver proposta, o plano usa regras-base e diz isso.
 3. **Só `claude-code` gera configuração.** Cursor e Codex são detectados e avisados; para eles só `mariliz.yaml` é criado.
 4. **EV-JUDGE (juiz por modelo) é sempre `not_run`.** Nenhum Eval de qualidade semântica dos agentes foi executado; os Evals são estruturais e comportamentais (hook).
@@ -172,7 +174,7 @@ Códigos de saída: `0` concluído; `10` concluído com limitações; `1` falhou
 | --- | --- | --- |
 | 1 | Jornada de ponta a ponta | Atendido: UI (testes com motor simulado por fixtures + verificação visual) e sidecar real pelo protocolo; CLI com testes |
 | 2 | TLC como único SDD | Atendido |
-| 3 | TLC existente detectado e validado | Atendido, validado contra instalação sintética (ver limitação 1) |
+| 3 | TLC existente detectado e validado | Atendido, inclusive contra uma instalação real da 4.0.0 (ver limitação 1) |
 | 4 | Ambiente de IA identificado e configuração aplicada onde suportado | Atendido para `claude-code`; os demais declarados sem suporte |
 | 5 | Harness Engineer existente inspecionado e integrado | **Parcial:** não havia um autorizado; integrado um agente original via proposta validada (limitação 2) |
 | 6 | Plano distingue preservado/criado/atualizado/removido | Atendido |

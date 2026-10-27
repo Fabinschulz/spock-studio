@@ -34,7 +34,8 @@ public static class Catalog
         new(RuleStackJavascript, ComponentKind.Rule, ComponentVersion, "Regras JavaScript e TypeScript"),
         new(RuleRepoCommands, ComponentKind.Rule, ComponentVersion, "Comandos do repositório"),
         new(HookPolicy, ComponentKind.Hook, ComponentVersion, "Hook de política"),
-        new(SddTlc, ComponentKind.Sdd, "3.3.0", "TLC (spec-driven)"),
+        // Externo: a versão real vem da instalação verificada (ver LockBuilder), não do catálogo.
+        new(SddTlc, ComponentKind.Sdd, "", "TLC (spec-driven)"),
         new(ConfigDeclaration, ComponentKind.Config, ComponentVersion, "Declaração e lock")
     ];
 

@@ -27,7 +27,7 @@ public class CliTests
             Project = project;
             Processes = new InterceptingRunner(intercept);
             var tracker = new RunTracker((runId, seq, type, data) => _runner?.OnEvent(runId, seq, type, data));
-            _service = new ConfigureProjectService(_workspace, new LocalProjectFilesFactory(), Processes,
+            _service = new ConfigureProjectService(_workspace, new TestFilesFactory(), Processes,
                 new FileRunStore(project.DataDir), new SystemClock(), tracker);
         }
 
@@ -276,5 +276,41 @@ public class CliTests
 
         Assert.Equal(CliRunner.ExitUsage, code);
         Assert.Contains("Uso:", cli.Err);
+    }
+
+    [Fact]
+    public async Task TLC_antigo_vira_o_comando_de_atualizacao_e_so_roda_com_a_aprovacao_dele()
+    {
+        var project = TempProject.Dotnet();
+        TlcFixture.Install(project, "3.3.0");
+        using var cli = new CliHarness(project, (spec, _) =>
+        {
+            if (spec.Executable != "npx") return Task.FromResult<ProcessResult?>(null);
+            Directory.Delete(Path.Combine(project.Root, ".claude", "skills", "tlc-spec-driven"), recursive: true);
+            TlcFixture.Install(project, "4.0.0");
+            return Task.FromResult<ProcessResult?>(new ProcessResult(0, "", "", false, false));
+        });
+
+        await cli.RunAsync("apply", project.Root, "--env", "claude-code", "--yes");
+        Assert.DoesNotContain(cli.Processes.Calls, c => c.Executable == "npx");
+        Assert.Contains("comando NÃO aprovado (use --approve-command tlc-update)", cli.Out);
+
+        var code = await cli.RunAsync("apply", project.Root, "--env", "claude-code", "--approve-command", "tlc-update", "--yes");
+
+        Assert.Equal(CliRunner.ExitOk, code);
+        Assert.Single(cli.Processes.Calls, c => c.Executable == "npx");
+        Assert.Contains("version: 4.0.0", project.Read("mariliz.lock")!);
+    }
+
+    [Fact]
+    public async Task Update_tlc_pede_a_versao_mais_nova_mesmo_com_a_atual_instalada()
+    {
+        using var cli = WithTlc();
+
+        await cli.RunAsync("plan", cli.Project.Root, "--env", "claude-code");
+        Assert.DoesNotContain("tlc-update", cli.Out);
+
+        Assert.Equal(CliRunner.ExitOk, await cli.RunAsync("plan", cli.Project.Root, "--env", "claude-code", "--update-tlc"));
+        Assert.Contains("tlc-update: npx -y @tech-leads-club/agent-skills install -s tlc-spec-driven -a claude-code", cli.Out);
     }
 }

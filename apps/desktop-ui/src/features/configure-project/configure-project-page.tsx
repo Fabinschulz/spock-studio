@@ -86,9 +86,11 @@ function Journey({ api, projectId, projectName, pollMs }: JourneyProps) {
           discovery={state.discovery.data}
           aiEnvironment={state.aiEnvironment}
           allowReinstall={state.allowTlcReinstall}
+          updateTlc={state.updateTlc}
           plan={state.plan}
           onEnvironment={actions.setEnvironment}
           onReinstall={actions.setReinstall}
+          onUpdateTlc={actions.setUpdateTlc}
           onBack={() => actions.goTo('project')}
           onPlan={() => void actions.generatePlan()}
         />

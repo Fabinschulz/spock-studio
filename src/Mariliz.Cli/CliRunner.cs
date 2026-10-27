@@ -33,14 +33,16 @@ public sealed class CliRunner(
         Uso:
           mariliz version
           mariliz discover <pasta> [--json]
-          mariliz plan     <pasta> [--env <ambiente>] [--allow-tlc-reinstall] [--diff] [--json]
+          mariliz plan     <pasta> [--env <ambiente>] [--allow-tlc-reinstall] [--update-tlc] [--diff] [--json]
           mariliz apply    <pasta> --env <ambiente> [--approve-command <id>]... [--overwrite <caminho>]...
-                                   [--approve-removals] [--allow-tlc-reinstall] [--yes] [--json]
+                                   [--approve-removals] [--allow-tlc-reinstall] [--update-tlc] [--yes] [--json]
           mariliz validate <pasta> [--json]
           mariliz revert   <pasta> [--run <id>] [--yes] [--json]
 
         Nada é gravado sem aprovação: 'apply' aprova só criar e atualizar arquivos; remoções, comandos e
         substituição de arquivos seus exigem as opções acima. Conflitos mantêm o seu arquivo por padrão.
+        O TLC é sempre instalado na versão mais recente; um TLC anterior à mais recente conhecida vira o comando
+        'tlc-update' (aprove com --approve-command tlc-update). --update-tlc força a busca de uma versão ainda mais nova.
         """;
 
     /// <summary>Progresso das execuções, em stderr (stdout fica para o resultado).</summary>
@@ -193,7 +195,7 @@ public sealed class CliRunner(
         });
     }
 
-    private static PlanOptions Options(CliArgs args) => new(args.Single("--env"), args.Has("--allow-tlc-reinstall"));
+    private static PlanOptions Options(CliArgs args) => new(args.Single("--env"), args.Has("--allow-tlc-reinstall"), args.Has("--update-tlc"));
 
     private static ApplyApprovals BuildApprovals(CliArgs args, ConfigurationPlan plan)
     {

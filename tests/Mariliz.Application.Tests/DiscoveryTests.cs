@@ -174,7 +174,7 @@ public class DiscoveryTests
         TlcFixture.Install(ok);
         var installed = (await Discover(ok)).Tlc;
         Assert.Equal(TlcState.Installed, installed.State);
-        Assert.Equal("3.3.0", installed.Version);
+        Assert.Equal("4.0.0", installed.Version);
         Assert.True(installed.VersionTested);
         Assert.Equal(installed.LockedHash, installed.ComputedHash);
 

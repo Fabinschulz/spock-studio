@@ -38,6 +38,17 @@ public sealed class LocalProjectFiles : IProjectFiles
     public bool DirectoryExists(string path) =>
         string.IsNullOrEmpty(path) ? Directory.Exists(_root) : TryResolve(path, out var full) && Directory.Exists(full) && !IsReparse(full);
 
+    public string? NearestAncestorFolderWith(string fileName)
+    {
+        try
+        {
+            for (var dir = Directory.GetParent(_root); dir is not null; dir = dir.Parent)
+                if (File.Exists(Path.Combine(dir.FullName, fileName))) return dir.Name.Length > 0 ? dir.Name : dir.FullName;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { /* sem acesso: não há o que afirmar */ }
+        return null;
+    }
+
     public byte[]? ReadBytes(string path)
     {
         if (!TryResolve(path, out var full) || !File.Exists(full) || IsReparse(full)) return null;

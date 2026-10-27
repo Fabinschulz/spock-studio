@@ -70,8 +70,26 @@ public sealed class SystemProcessRunner : IProcessRunner
         }
     }
 
-    private static string Executable(string name) =>
-        OperatingSystem.IsWindows() && name is "npx" or "npm" ? name + ".cmd" : name;
+    /// <summary>
+    /// No Windows, npx e npm são scripts .cmd. Com o nome simples, o script resolve o npm a partir da pasta de trabalho
+    /// (a do projeto) e quebra; por isso o caminho absoluto é procurado no PATH, como faz um shell.
+    /// </summary>
+    private static string Executable(string name)
+    {
+        if (!OperatingSystem.IsWindows() || name is not ("npx" or "npm")) return name;
+
+        var script = name + ".cmd";
+        foreach (var dir in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+        {
+            try
+            {
+                var candidate = Path.Combine(dir.Trim().Trim('"'), script);
+                if (File.Exists(candidate)) return candidate;
+            }
+            catch (ArgumentException) { /* entrada inválida no PATH: segue para a próxima */ }
+        }
+        return script;
+    }
 
     private static void Append(StringBuilder sb, string? line)
     {
