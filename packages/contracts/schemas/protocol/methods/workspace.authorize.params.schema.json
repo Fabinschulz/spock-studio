@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/protocol/methods/workspace.authorize.params.schema.json",
+  "type": "object",
+  "required": ["path"],
+  "properties": {
+    "path": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}

@@ -5,5 +5,7 @@ obj/
 *.user
 .vs/
 target/
-apps/desktop-host/src-tauri/binaries/
+artifacts/
 apps/desktop-host/src-tauri/gen/
+apps/desktop-host/src-tauri/binaries/*
+!apps/desktop-host/src-tauri/binaries/.gitkeep

@@ -22,10 +22,18 @@ internal static class ContractFiles
     public static JsonSchema Schema(params string[] parts)
     {
         var path = Path_(["schemas", .. parts]);
-        return Cache.GetOrAdd(path, p => JsonSchema.FromText(File.ReadAllText(p)));
+        lock (EvaluationLock) return Cache.GetOrAdd(path, p => JsonSchema.FromText(File.ReadAllText(p)));
     }
 
-    public static bool IsValid(JsonSchema schema, JsonNode? node) => schema.Evaluate(System.Text.Json.JsonSerializer.SerializeToElement(node)).IsValid;
+    // A avaliação do mesmo JsonSchema em paralelo dava resultado errado de forma intermitente
+    // (fixture inválida aceita). Serializar é barato e torna o teste de contrato determinístico.
+    private static readonly object EvaluationLock = new();
+
+    public static bool IsValid(JsonSchema schema, JsonNode? node)
+    {
+        var element = System.Text.Json.JsonSerializer.SerializeToElement(node);
+        lock (EvaluationLock) return schema.Evaluate(element).IsValid;
+    }
 
     public static IEnumerable<object[]> Fixtures(string folder) =>
         Directory.GetFiles(Path_("fixtures", folder), "*.json").Select(f => new object[] { System.IO.Path.GetFileName(f) });

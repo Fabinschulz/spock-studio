@@ -7,4 +7,7 @@ public static class ProtocolErrorCodes
     public const string MethodNotFound = "METHOD_NOT_FOUND";
     public const string InvalidParams = "INVALID_PARAMS";
     public const string MessageTooLarge = "MESSAGE_TOO_LARGE";
+    public const string PathNotFound = "PATH_NOT_FOUND";
+    public const string PathNotAllowed = "PATH_NOT_ALLOWED";
+    public const string PathNotReadable = "PATH_NOT_READABLE";
 }

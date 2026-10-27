@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/protocol/methods/workspace.authorize.result.schema.json",
+  "type": "object",
+  "required": ["projectId", "displayName", "displayPath"],
+  "properties": {
+    "projectId": { "type": "string", "pattern": "^p-[0-9a-f]{12}$" },
+    "displayName": { "type": "string", "minLength": 1 },
+    "displayPath": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,108 @@
+name: ci
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  engine:
+    name: motor .NET
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: testes
+        run: dotnet test Mariliz.sln --nologo
+
+  ui:
+    name: interface React
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.1.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm ui:typecheck
+      - run: pnpm ui:lint
+      - run: pnpm ui:test
+      - run: pnpm ui:build
+
+  desktop:
+    name: instalador (${{ matrix.name }})
+    needs: [engine, ui]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows-x64
+            os: windows-latest
+            rid: win-x64
+            triple: x86_64-pc-windows-msvc
+            bundles: nsis
+          - name: macos-arm64
+            os: macos-latest
+            rid: osx-arm64
+            triple: aarch64-apple-darwin
+            bundles: dmg
+          - name: linux-x64
+            os: ubuntu-22.04
+            rid: linux-x64
+            triple: x86_64-unknown-linux-gnu
+            bundles: appimage,deb
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.1.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.triple }}
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop-host/src-tauri
+      - name: dependências do Linux (WebKitGTK)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - run: pnpm install --frozen-lockfile
+      - name: motor como sidecar
+        shell: bash
+        run: |
+          dotnet publish src/Mariliz.Engine/Mariliz.Engine.csproj -c Release -r ${{ matrix.rid }} --self-contained true \
+            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o artifacts/engine/${{ matrix.rid }}
+          ext=""; [ "${{ runner.os }}" = "Windows" ] && ext=".exe"
+          cp "artifacts/engine/${{ matrix.rid }}/Mariliz.Engine$ext" "apps/desktop-host/src-tauri/binaries/mariliz-engine-${{ matrix.triple }}$ext"
+      - name: testes do host
+        working-directory: apps/desktop-host/src-tauri
+        run: cargo test
+      - name: instalador
+        working-directory: apps/desktop-host
+        run: pnpm tauri build --target ${{ matrix.triple }} --bundles ${{ matrix.bundles }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mariliz-${{ matrix.name }}
+          path: apps/desktop-host/src-tauri/target/${{ matrix.triple }}/release/bundle/**
+          if-no-files-found: error

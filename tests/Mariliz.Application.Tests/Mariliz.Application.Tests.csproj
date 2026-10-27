@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Mariliz.Application\Mariliz.Application.csproj" />
+    <ProjectReference Include="..\..\src\Mariliz.Infrastructure\Mariliz.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

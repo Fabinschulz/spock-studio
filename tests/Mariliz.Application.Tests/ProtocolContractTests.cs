@@ -68,6 +68,20 @@ public class ProtocolContractTests
     }
 
     [Fact]
+    public async Task Sessao_aceita_BOM_utf8_no_inicio_da_primeira_linha()
+    {
+        var input = new StringReader(
+            "﻿{\"v\":1,\"kind\":\"request\",\"id\":\"1\",\"method\":\"engine.hello\",\"params\":{\"protocol\":[1],\"hostVersion\":\"x\"}}\n" +
+            "{\"v\":1,\"kind\":\"request\",\"id\":\"2\",\"method\":\"engine.shutdown\"}\n");
+        var output = new StringWriter { NewLine = "\n" };
+
+        await new EngineSession("0.1.0").RunAsync(input, output, CancellationToken.None);
+
+        var first = JsonNode.Parse(output.ToString().Split('\n', StringSplitOptions.RemoveEmptyEntries)[0])!;
+        Assert.NotNull(first["result"]);
+    }
+
+    [Fact]
     public async Task Sessao_responde_uma_linha_por_mensagem_e_ignora_linhas_vazias()
     {
         var input = new StringReader(

@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
+using Mariliz.Application.Workspace;
+
 namespace Mariliz.Application.Protocol;
 
 /// <summary>
@@ -14,11 +16,13 @@ public sealed class EngineSession
 
     private readonly string _engineVersion;
     private readonly string[] _capabilities;
+    private readonly WorkspaceAuthorizer? _workspace;
 
-    public EngineSession(string engineVersion, IEnumerable<string>? capabilities = null)
+    public EngineSession(string engineVersion, IEnumerable<string>? capabilities = null, WorkspaceAuthorizer? workspace = null)
     {
         _engineVersion = engineVersion;
-        _capabilities = capabilities?.ToArray() ?? [];
+        _workspace = workspace;
+        _capabilities = (capabilities ?? []).Concat(workspace is null ? [] : ["workspace.authorize"]).ToArray();
     }
 
     public async Task RunAsync(TextReader input, TextWriter output, CancellationToken ct)
@@ -27,6 +31,8 @@ public sealed class EngineSession
         {
             var line = await input.ReadLineAsync(ct);
             if (line is null) return;
+            // Alguns escritores de stdin (ex.: PowerShell 5.1) prefixam a primeira linha com um BOM UTF-8.
+            line = line.TrimStart('﻿');
             if (string.IsNullOrWhiteSpace(line)) continue;
 
             var (response, shutdown) = Handle(line);
@@ -60,6 +66,7 @@ public sealed class EngineSession
         {
             "engine.hello" => (Hello(id, message["params"] as JsonObject), false),
             "engine.shutdown" => (Ok(id, new JsonObject()), true),
+            "workspace.authorize" when _workspace is not null => (Authorize(id, message["params"] as JsonObject), false),
             _ => (Error(id, ProtocolErrorCodes.MethodNotFound, "Método desconhecido."), false)
         };
     }
@@ -79,6 +86,23 @@ public sealed class EngineSession
             ["engineVersion"] = _engineVersion,
             ["capabilities"] = new JsonArray(_capabilities.Select(c => (JsonNode)JsonValue.Create(c)!).ToArray())
         });
+    }
+
+    private JsonObject Authorize(string id, JsonObject? parameters)
+    {
+        if (parameters?["path"] is not JsonValue pathNode || !pathNode.TryGetValue<string>(out var path))
+            return Error(id, ProtocolErrorCodes.InvalidParams, "Parâmetros de workspace.authorize inválidos.");
+
+        var result = _workspace!.Authorize(path);
+        if (result.Project is { } p)
+            return Ok(id, new JsonObject { ["projectId"] = p.ProjectId, ["displayName"] = p.DisplayName, ["displayPath"] = p.DisplayPath });
+
+        return result.Error switch
+        {
+            WorkspaceError.NotFound => Error(id, ProtocolErrorCodes.PathNotFound, "A pasta escolhida não foi encontrada."),
+            WorkspaceError.NotAllowed => Error(id, ProtocolErrorCodes.PathNotAllowed, "Escolha a pasta de um projeto, não a raiz de uma unidade."),
+            _ => Error(id, ProtocolErrorCodes.PathNotReadable, "Não há permissão para ler a pasta escolhida.")
+        };
     }
 
     private static JsonObject Ok(string id, JsonObject result) => new()
