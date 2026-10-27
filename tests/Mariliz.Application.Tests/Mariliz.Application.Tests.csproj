@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Mariliz.Application\Mariliz.Application.csproj" />
     <ProjectReference Include="..\..\src\Mariliz.Infrastructure\Mariliz.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Mariliz.Cli\Mariliz.Cli.csproj" />
   </ItemGroup>
 
 </Project>

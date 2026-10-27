@@ -18,6 +18,12 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+      # Os Evals do hook e dos gates do TLC executam scripts Python; a versão é fixa para o resultado não depender do runner.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # Os testes de contrato comparam a saída do motor com packages/contracts/fixtures/golden. Se o formato mudar de
+      # propósito, regenere com MARILIZ_UPDATE_GOLDEN=1 dotnet test e revise o diff das fixtures.
       - name: testes
         run: dotnet test Mariliz.sln --nologo
 

@@ -124,6 +124,8 @@ generated/ts/                         # tipos TS gerados (não editados à mão)
 | C# | Records escritos à mão em `Mariliz.Application/Contracts`, com **teste de contrato** que serializa cada record e valida contra o schema, e desserializa cada fixture válida |
 | Rust | Só a struct do envelope (serde) |
 
+**[DECIDIDO na Fase 1b]** Validação por fixtures golden geradas pelo motor real, conferidas em C# (JSON Schema, `JsonSchema.Net`) e em TypeScript (schemas Zod da UI). Tipos TS gerados a partir dos schemas continuam pendentes. Detalhes em [phase-1b-configure-project.md](phase-1b-configure-project.md).
+
 **[DECISÃO PENDENTE]** Ferramentas exatas de geração e validação (TS: `json-schema-to-typescript` + Ajv ou geração para Zod; C#: biblioteca de validação de JSON Schema). Critério: manutenção ativa e suporte ao draft 2020-12. A escolha fica para o início da Fase 1, com um protótipo de um método de ponta a ponta.
 
 CI: um job falha se os tipos gerados estiverem desatualizados em relação aos schemas, ou se qualquer fixture deixar de validar em TS ou C#.

@@ -7,9 +7,14 @@ export default defineConfig({
   plugins: [react()],
   // O Tauri serve os arquivos do pacote, não um servidor na raiz.
   base: './',
-  resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@contracts': fileURLToPath(new URL('../../packages/contracts', import.meta.url))
+    }
+  },
   css: { modules: { localsConvention: 'camelCaseOnly' } },
-  server: { port: 1420, strictPort: true },
+  server: { port: 1420, strictPort: true, fs: { allow: ['../..'] } },
   build: { target: 'es2022' },
   test: {
     environment: 'jsdom',

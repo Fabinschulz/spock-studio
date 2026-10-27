@@ -40,7 +40,7 @@ Entregáveis: os quatro documentos desta pasta.
 
 **Dependências:** decisão 3 (assinatura) não bloqueia: instaladores de avaliação podem sair sem assinatura, marcados como tal.
 
-### Fase 1b — Jornada "Configurar projeto" · G
+### Fase 1b — Jornada "Configurar projeto" · G · implementada (ver [phase-1b-configure-project.md](phase-1b-configure-project.md))
 
 **Objetivo:** configurar o harness de um projeto real de teste pela UI e pela CLI, com preview, diff, conflitos, aplicação idempotente e validação.
 
@@ -54,6 +54,8 @@ Entregáveis: os quatro documentos desta pasta.
 | Lint Tier 0 no motor (`mariliz validate`) | Detecta referência quebrada, permissão incoerente, segredo em arquivo gerado |
 | Telas Contexto → Análise → Configuração → Revisão → Aplicar → Resultado | Estados vêm do motor; cancelar e retomar funcionam |
 | CLI `discover`, `plan`, `apply`, `validate` | Mesmos resultados da UI para o mesmo projeto |
+
+> **Situação (implementada):** o escopo foi entregue com estas diferenças em relação à tabela acima: o SDD é o **TLC** (único), em vez de profiles `dotnet`/`nextjs`; o agente Harness Engineer é **original** (não havia um existente com autorização comprovada para reuso) e escreve uma proposta validada pelo motor; só `claude-code` gera configuração; os contratos são validados por fixtures golden (C#) e schemas Zod (UI), sem geração de tipos TS. Limitações abertas e mapa de testes em [phase-1b-configure-project.md](phase-1b-configure-project.md).
 
 **Teste com projetos distintos:** cópias descartáveis (fora do repositório original) de um projeto .NET e de um Next.js de referência, **somente se a decisão 1 autorizar**; caso contrário, projetos sintéticos criados para o teste. Os harness instalados nos projetos de referência não são alterados.
 

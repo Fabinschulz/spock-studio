@@ -25,6 +25,17 @@
 
   --color-error: #b42318;
   --color-success: #1c7f45;
+
+  --tone-success-fg: #17683a;
+  --tone-success-bg: #e6f4ec;
+  --tone-warning-fg: #7a4300;
+  --tone-warning-bg: #fff2d6;
+  --tone-danger-fg: #a4200f;
+  --tone-danger-bg: #fdebe8;
+  --tone-info-fg: #0b5280;
+  --tone-info-bg: #e3f1fa;
+  --tone-neutral-fg: #4a5b59;
+  --tone-neutral-bg: #eef3f2;
 }
 
 @mixin theme-dark {
@@ -48,6 +59,17 @@
 
   --color-error: #f97066;
   --color-success: #3fbf7f;
+
+  --tone-success-fg: #7fd1a4;
+  --tone-success-bg: #12281d;
+  --tone-warning-fg: #f0c36d;
+  --tone-warning-bg: #2e2410;
+  --tone-danger-fg: #ffa198;
+  --tone-danger-bg: #33171a;
+  --tone-info-fg: #8cc8f0;
+  --tone-info-bg: #0f2536;
+  --tone-neutral-fg: #b3c2c0;
+  --tone-neutral-bg: #1e302e;
 }
 
 :root {
@@ -72,6 +94,7 @@
   --neutral-975: #050c0c; // ink
 
   // Tipografia
+  --font-mono: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
   --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;

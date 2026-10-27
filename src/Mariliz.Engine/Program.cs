@@ -1,5 +1,8 @@
 using System.Text;
 using Mariliz.Application;
+using Mariliz.Application.Execution;
+using Mariliz.Application.Harness;
+using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Workspace;
 using Mariliz.Infrastructure;
@@ -12,7 +15,12 @@ Console.OutputEncoding = utf8;
 using var cts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
 
-var session = new EngineSession(BuildInfo.Version, workspace: new WorkspaceAuthorizer(new LocalWorkspaceFileSystem()));
+var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
+var relay = new EventRelay();
+var tracker = new RunTracker(relay.Emit);
+var configure = new ConfigureProjectService(
+    workspace, new LocalProjectFilesFactory(), new SystemProcessRunner(), new FileRunStore(FileRunStore.DefaultDataRoot()), new SystemClock(), tracker);
+var session = new EngineSession(BuildInfo.Version, workspace: workspace, configure: configure, relay: relay, tracker: tracker);
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

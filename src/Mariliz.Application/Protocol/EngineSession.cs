@@ -1,13 +1,25 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
+using Mariliz.Application.Discovery;
+using Mariliz.Application.Execution;
+using Mariliz.Application.Harness;
 using Mariliz.Application.Workspace;
+using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Protocol;
 
+/// <summary>Liga os eventos das execuções ao fluxo de saída da sessão, que só existe depois de a sessão ser criada.</summary>
+public sealed class EventRelay
+{
+    public Action<string, int, string, JsonObject>? Target { get; set; }
+    public void Emit(string runId, int seq, string type, JsonObject data) => Target?.Invoke(runId, seq, type, data);
+}
+
 /// <summary>
-/// Laço do protocolo NDJSON v1: uma mensagem JSON por linha. Só escreve respostas e eventos
-/// no <c>output</c>; diagnósticos são responsabilidade de quem hospeda a sessão (stderr).
+/// Laço do protocolo NDJSON v1: uma mensagem JSON por linha. Só escreve respostas e eventos no <c>output</c>;
+/// diagnósticos são responsabilidade de quem hospeda a sessão (stderr). Execuções longas respondem com o
+/// <c>runId</c> e avisam o progresso por eventos, então o laço nunca fica preso esperando uma delas.
 /// </summary>
 public sealed class EngineSession
 {
@@ -17,32 +29,59 @@ public sealed class EngineSession
     private readonly string _engineVersion;
     private readonly string[] _capabilities;
     private readonly WorkspaceAuthorizer? _workspace;
+    private readonly ConfigureProjectService? _configure;
+    private readonly RunTracker? _tracker;
+    private readonly SemaphoreSlim _outputGate = new(1, 1);
+    private TextWriter? _output;
 
-    public EngineSession(string engineVersion, IEnumerable<string>? capabilities = null, WorkspaceAuthorizer? workspace = null)
+    public EngineSession(
+        string engineVersion,
+        IEnumerable<string>? capabilities = null,
+        WorkspaceAuthorizer? workspace = null,
+        ConfigureProjectService? configure = null,
+        EventRelay? relay = null,
+        RunTracker? tracker = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
-        _capabilities = (capabilities ?? []).Concat(workspace is null ? [] : ["workspace.authorize"]).ToArray();
+        _configure = configure;
+        _tracker = tracker;
+        if (relay is not null) relay.Target = WriteEvent;
+
+        var extra = new List<string>();
+        if (workspace is not null) extra.Add("workspace.authorize");
+        if (configure is not null) extra.AddRange(["project.discover", "harness.plan", "harness.apply", "harness.validate", "harness.revert", "harness.runs", "run.snapshot", "run.cancel"]);
+        _capabilities = (capabilities ?? []).Concat(extra).ToArray();
     }
 
     public async Task RunAsync(TextReader input, TextWriter output, CancellationToken ct)
     {
-        while (!ct.IsCancellationRequested)
+        _output = output;
+        try
         {
-            var line = await input.ReadLineAsync(ct);
-            if (line is null) return;
-            // Alguns escritores de stdin (ex.: PowerShell 5.1) prefixam a primeira linha com um BOM UTF-8.
-            line = line.TrimStart('﻿');
-            if (string.IsNullOrWhiteSpace(line)) continue;
+            while (!ct.IsCancellationRequested)
+            {
+                var line = await input.ReadLineAsync(ct);
+                if (line is null) return;
+                // Alguns escritores de stdin (ex.: PowerShell 5.1) prefixam a primeira linha com um BOM UTF-8.
+                line = line.TrimStart('﻿');
+                if (string.IsNullOrWhiteSpace(line)) continue;
 
-            var (response, shutdown) = Handle(line);
-            await output.WriteLineAsync(response.ToJsonString());
-            await output.FlushAsync(ct);
-            if (shutdown) return;
+                var (response, shutdown) = await HandleAsync(line, ct);
+                await WriteLineAsync(response.ToJsonString());
+                if (shutdown) return;
+            }
+        }
+        finally
+        {
+            // Sem a interface (ou ao encerrar), nenhuma execução fica rodando: o que está no meio é desfeito.
+            if (_tracker is not null) await _tracker.CancelAllAndWaitAsync(TimeSpan.FromSeconds(15));
         }
     }
 
-    internal (JsonObject Response, bool Shutdown) Handle(string line)
+    internal (JsonObject Response, bool Shutdown) Handle(string line) => HandleAsync(line, CancellationToken.None).GetAwaiter().GetResult();
+
+    internal async Task<(JsonObject Response, bool Shutdown)> HandleAsync(string line, CancellationToken ct)
     {
         if (System.Text.Encoding.UTF8.GetByteCount(line) > MaxMessageBytes)
             return (Error(null, ProtocolErrorCodes.MessageTooLarge, "Mensagem acima do limite permitido."), false);
@@ -62,14 +101,119 @@ public sealed class EngineSession
         if (message["kind"]?.GetValue<string>() != "request" || id is null || message["method"] is not JsonValue methodNode)
             return (Error(id, ProtocolErrorCodes.InvalidMessage, "Requisição malformada."), false);
 
-        return methodNode.GetValue<string>() switch
+        var method = methodNode.GetValue<string>();
+        var p = message["params"] as JsonObject;
+
+        try
         {
-            "engine.hello" => (Hello(id, message["params"] as JsonObject), false),
-            "engine.shutdown" => (Ok(id, new JsonObject()), true),
-            "workspace.authorize" when _workspace is not null => (Authorize(id, message["params"] as JsonObject), false),
-            _ => (Error(id, ProtocolErrorCodes.MethodNotFound, "Método desconhecido."), false)
-        };
+            return method switch
+            {
+                "engine.hello" => (Hello(id, p), false),
+                "engine.shutdown" => (Ok(id, new JsonObject()), true),
+                "workspace.authorize" when _workspace is not null => (Authorize(id, p), false),
+                _ when _configure is not null && IsConfigureMethod(method) => (await HandleConfigureAsync(id, method, p, ct), false),
+                _ => (Error(id, ProtocolErrorCodes.MethodNotFound, "Método desconhecido."), false)
+            };
+        }
+        catch (ParamException ex)
+        {
+            return (Error(id, ProtocolErrorCodes.InvalidParams, ex.Message), false);
+        }
+        catch (EngineException ex)
+        {
+            return (Error(id, ex.Code, ex.Message), false);
+        }
+        catch (OperationCanceledException)
+        {
+            return (Error(id, "CANCELLED", "A operação foi cancelada."), false);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or JsonException)
+        {
+            // O texto da exceção pode conter caminhos ou dados do projeto: só o tipo vai para o protocolo.
+            return (Error(id, "INTERNAL_ERROR", $"Falha interna ({ex.GetType().Name})."), false);
+        }
     }
+
+    private static bool IsConfigureMethod(string method) =>
+        method is "project.discover" or "harness.plan" or "harness.apply" or "harness.validate" or "harness.revert"
+            or "harness.runs" or "run.snapshot" or "run.cancel";
+
+    private async Task<JsonObject> HandleConfigureAsync(string id, string method, JsonObject? p, CancellationToken ct)
+    {
+        var service = _configure!;
+        switch (method)
+        {
+            case "project.discover":
+                return Ok(id, Json(await service.DiscoverAsync(Str(p, "projectId"), ct)));
+
+            case "harness.plan":
+            {
+                var env = OptionalStr(p, "aiEnvironment");
+                if (env is not null && !AiEnvironments.Known.Contains(env)) throw new ParamException("aiEnvironment desconhecido.");
+                var force = p?["allowTlcForceReinstall"]?.GetValue<bool>() ?? false;
+                return Ok(id, Json(await service.PlanAsync(Str(p, "projectId"), new PlanOptions(env, force), ct)));
+            }
+
+            case "harness.apply":
+            {
+                var resolutions = new Dictionary<string, ConflictResolution>();
+                if (p?["resolutions"] is JsonObject map)
+                    foreach (var (key, value) in map)
+                        resolutions[key] = value?.GetValue<string>() switch
+                        {
+                            "keep" => ConflictResolution.Keep,
+                            "overwrite" => ConflictResolution.Overwrite,
+                            _ => throw new ParamException("resolutions só aceita 'keep' ou 'overwrite'.")
+                        };
+                var approvals = new ApplyApprovals(StrList(p, "approvedChangeIds"), StrList(p, "approvedCommandIds"), resolutions);
+                var run = service.StartApply(Str(p, "projectId"), Str(p, "planId"), approvals);
+                return Ok(id, new JsonObject { ["runId"] = run.RunId });
+            }
+
+            case "harness.validate":
+                return Ok(id, new JsonObject { ["runId"] = service.StartValidate(Str(p, "projectId")).RunId });
+
+            case "harness.revert":
+                return Ok(id, new JsonObject { ["runId"] = service.StartRevert(Str(p, "projectId"), Str(p, "runId")).RunId });
+
+            case "harness.runs":
+                return Ok(id, new JsonObject { ["runs"] = ConfigureProjectService.ToJson(service.ListRuns(Str(p, "projectId"))) });
+
+            case "run.snapshot":
+                return Ok(id, service.Snapshot(Str(p, "runId")));
+
+            case "run.cancel":
+                return Ok(id, new JsonObject { ["cancelled"] = service.Cancel(Str(p, "runId")) });
+        }
+        return Error(id, ProtocolErrorCodes.MethodNotFound, "Método desconhecido.");
+    }
+
+    // ------------------------------------------------------------------ Saída
+
+    private void WriteEvent(string runId, int seq, string type, JsonObject data)
+    {
+        var message = new JsonObject
+        {
+            ["v"] = ProtocolVersion, ["kind"] = "event", ["runId"] = runId, ["type"] = type, ["seq"] = seq, ["data"] = data.DeepClone()
+        };
+        // Eventos vêm de outras threads; a escrita é serializada com as respostas.
+        WriteLineAsync(message.ToJsonString()).GetAwaiter().GetResult();
+    }
+
+    private async Task WriteLineAsync(string json)
+    {
+        var output = _output;
+        if (output is null) return;
+        await _outputGate.WaitAsync();
+        try
+        {
+            await output.WriteLineAsync(json);
+            await output.FlushAsync();
+        }
+        finally { _outputGate.Release(); }
+    }
+
+    // ------------------------------------------------------------------ Métodos simples
 
     private JsonObject Hello(string id, JsonObject? parameters)
     {
@@ -104,6 +248,25 @@ public sealed class EngineSession
             _ => Error(id, ProtocolErrorCodes.PathNotReadable, "Não há permissão para ler a pasta escolhida.")
         };
     }
+
+    // ------------------------------------------------------------------ Utilidades
+
+    private sealed class ParamException(string message) : Exception(message);
+
+    private static string Str(JsonObject? p, string name) =>
+        p?[name] is JsonValue v && v.TryGetValue<string>(out var s) && !string.IsNullOrWhiteSpace(s) ? s : throw new ParamException($"'{name}' é obrigatório.");
+
+    private static string? OptionalStr(JsonObject? p, string name) =>
+        p?[name] is JsonValue v && v.TryGetValue<string>(out var s) && !string.IsNullOrWhiteSpace(s) ? s : null;
+
+    private static List<string> StrList(JsonObject? p, string name)
+    {
+        if (p?[name] is null) return [];
+        if (p[name] is not JsonArray array) throw new ParamException($"'{name}' precisa ser uma lista.");
+        return array.Select(n => n is JsonValue v && v.TryGetValue<string>(out var s) ? s : throw new ParamException($"'{name}' só aceita textos.")).ToList();
+    }
+
+    private static JsonObject Json<T>(T value) => (JsonObject)ConfigureProjectService.ToJson(value)!;
 
     private static JsonObject Ok(string id, JsonObject result) => new()
     {

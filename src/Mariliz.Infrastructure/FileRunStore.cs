@@ -1,0 +1,72 @@
+using System.Text.Json;
+using Mariliz.Application.Execution;
+using Mariliz.Core.Text;
+
+namespace Mariliz.Infrastructure;
+
+/// <summary>Diários e backups no diretório de dados do usuário, fora do repositório do projeto.</summary>
+public sealed class FileRunStore(string dataRoot) : IRunStore
+{
+    public static string DefaultDataRoot()
+    {
+        var overrideDir = Environment.GetEnvironmentVariable("MARILIZ_DATA_DIR");
+        if (!string.IsNullOrWhiteSpace(overrideDir)) return overrideDir;
+
+        if (OperatingSystem.IsWindows())
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Mariliz");
+        if (OperatingSystem.IsMacOS())
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Application Support", "Mariliz");
+
+        var xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+        var baseDir = string.IsNullOrWhiteSpace(xdg) ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share") : xdg;
+        return Path.Combine(baseDir, "mariliz");
+    }
+
+    private string RunDir(string projectId, string runId) => Path.Combine(dataRoot, "projects", Safe(projectId), "runs", Safe(runId));
+
+    public void SaveJournal(RunJournal journal)
+    {
+        var dir = RunDir(journal.ProjectId, journal.RunId);
+        Directory.CreateDirectory(dir);
+        var path = Path.Combine(dir, "journal.json");
+        var temp = path + ".tmp";
+        File.WriteAllText(temp, JsonSerializer.Serialize(journal, JournalJson.Options));
+        File.Move(temp, path, overwrite: true);
+    }
+
+    public RunJournal? LoadJournal(string projectId, string runId)
+    {
+        var path = Path.Combine(RunDir(projectId, runId), "journal.json");
+        if (!File.Exists(path)) return null;
+        try { return JsonSerializer.Deserialize<RunJournal>(File.ReadAllText(path), JournalJson.Options); }
+        catch (JsonException) { return null; }
+    }
+
+    public IReadOnlyList<RunJournal> ListJournals(string projectId)
+    {
+        var dir = Path.Combine(dataRoot, "projects", Safe(projectId), "runs");
+        if (!Directory.Exists(dir)) return [];
+        return Directory.EnumerateDirectories(dir)
+            .Select(d => LoadJournal(projectId, Path.GetFileName(d)))
+            .Where(j => j is not null).Cast<RunJournal>().ToList();
+    }
+
+    public void SaveBackup(string projectId, string runId, string relativePath, byte[] content)
+    {
+        var dir = Path.Combine(RunDir(projectId, runId), "backup");
+        Directory.CreateDirectory(dir);
+        File.WriteAllBytes(Path.Combine(dir, BackupName(relativePath)), content);
+    }
+
+    public byte[]? LoadBackup(string projectId, string runId, string relativePath)
+    {
+        var path = Path.Combine(RunDir(projectId, runId), "backup", BackupName(relativePath));
+        return File.Exists(path) ? File.ReadAllBytes(path) : null;
+    }
+
+    private static string BackupName(string relativePath) => Hashing.Sha256(relativePath) + ".bin";
+
+    /// <summary>Os ids vêm do motor, mas a pasta é montada a partir deles: só caracteres seguros passam.</summary>
+    private static string Safe(string id) =>
+        id.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_') ? id : throw new ArgumentException("Identificador inválido.");
+}

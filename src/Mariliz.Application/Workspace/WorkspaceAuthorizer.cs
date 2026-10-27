@@ -53,6 +53,14 @@ public sealed class WorkspaceAuthorizer(IWorkspaceFileSystem fileSystem)
 
     public bool IsAuthorized(string projectId) => _authorized.ContainsKey(projectId);
 
+    /// <summary>Raiz absoluta de um projeto já autorizado. É a única forma de resolver um id em caminho.</summary>
+    public bool TryGetRoot(string projectId, out string root)
+    {
+        var found = _authorized.TryGetValue(projectId, out var value);
+        root = value ?? "";
+        return found;
+    }
+
     private static string Normalize(string path) =>
         OperatingSystem.IsWindows() ? path.ToUpperInvariant() : path;
 

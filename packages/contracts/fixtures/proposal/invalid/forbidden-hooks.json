@@ -1,0 +1,1 @@
+{"schema":1,"origin":"harness-engineer","decisions":[{"id":"mariliz.agent.verifier","decision":"enable","justification":"O TLC exige verificação independente.","evidence":["x"]}],"hooks":{"PreToolUse":[]}}

@@ -1,16 +1,26 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter, Route, Routes } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ProjectPickError, type ProjectPickerPort } from '@/features/project-selection';
+import { ProjectPickError, ProjectSelectionProvider, type ProjectPickerPort } from '@/features/project-selection';
 import { AppProviders } from '@/shared/components';
 
 import { HomePage } from './home-page';
 
-function renderHome(picker: ProjectPickerPort, pickerUnavailableReason?: string) {
+const project = { projectId: 'p-1', displayName: 'EmpregaNetAPI', displayPath: '~\\…\\backend\\EmpregaNetAPI' };
+
+function renderHome(picker: ProjectPickerPort, unavailableReason?: string) {
   return render(
     <AppProviders>
-      <HomePage picker={picker} unavailableReason={pickerUnavailableReason} />
+      <ProjectSelectionProvider picker={picker} unavailableReason={unavailableReason}>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/configurar" element={<p>JORNADA ABERTA</p>} />
+          </Routes>
+        </MemoryRouter>
+      </ProjectSelectionProvider>
     </AppProviders>
   );
 }
@@ -49,24 +59,20 @@ describe('HomePage', () => {
     expect(screen.getByText('Analisar um legado e planejar sua modernização.')).toBeInTheDocument();
   });
 
-  it('marca as jornadas ainda inexistentes como indisponíveis, sem removê-las da navegação por teclado', async () => {
-    const onStart = vi.fn();
+  it('só "Configurar projeto" está disponível; as demais jornadas dizem "Em breve" e continuam focáveis', async () => {
     const user = userEvent.setup();
-    render(
-      <AppProviders>
-        <HomePage picker={neverCalled} onStartJourney={onStart} />
-      </AppProviders>
-    );
+    renderHome(neverCalled);
 
-    const first = screen.getByRole('button', { name: /Configurar projeto/ });
-    expect(first).toHaveAttribute('aria-disabled', 'true');
-    expect(first).not.toBeDisabled();
-    expect(first).toHaveAccessibleDescription(expect.stringContaining('Em breve'));
+    expect(screen.getByRole('button', { name: /Configurar projeto/ })).not.toHaveAttribute('aria-disabled');
+    for (const name of [/Importar requisitos/, /Conectar ferramentas/, /Modernizar sistema/]) {
+      const card = screen.getByRole('button', { name });
+      expect(card).toHaveAttribute('aria-disabled', 'true');
+      expect(card).not.toBeDisabled();
+      expect(card).toHaveAccessibleDescription(expect.stringContaining('Em breve'));
+    }
 
-    await user.tab();
-    expect(first).toHaveFocus();
-    await user.click(first);
-    expect(onStart).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: /Importar requisitos/ }));
+    expect(screen.queryByText('JORNADA ABERTA')).not.toBeInTheDocument();
   });
 
   it('segue a ordem de tabulação: cartões e depois o seletor de projeto', async () => {
@@ -88,15 +94,8 @@ describe('HomePage', () => {
   });
 
   it('mostra o nome e o caminho abreviado depois de selecionar, com opção de trocar', async () => {
-    const picker: ProjectPickerPort = {
-      pick: vi.fn().mockResolvedValue({
-        projectId: 'p-1',
-        displayName: 'EmpregaNetAPI',
-        displayPath: '~\\…\\backend\\EmpregaNetAPI'
-      })
-    };
     const user = userEvent.setup();
-    renderHome(picker);
+    renderHome({ pick: vi.fn().mockResolvedValue(project) });
 
     await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
 
@@ -119,9 +118,7 @@ describe('HomePage', () => {
 
   it('exibe a mensagem sanitizada do host quando a seleção falha', async () => {
     const picker: ProjectPickerPort = {
-      pick: vi
-        .fn()
-        .mockRejectedValue(new ProjectPickError('PATH_NOT_AUTHORIZED', 'A pasta escolhida não pode ser usada.'))
+      pick: vi.fn().mockRejectedValue(new ProjectPickError('PATH_NOT_ALLOWED', 'A pasta escolhida não pode ser usada.'))
     };
     const user = userEvent.setup();
     renderHome(picker);
@@ -141,5 +138,43 @@ describe('HomePage', () => {
     await user.click(row);
     expect(picker.pick).not.toHaveBeenCalled();
     expect(screen.getByText('Disponível apenas no aplicativo desktop.')).toBeInTheDocument();
+  });
+
+  describe('jornada Configurar projeto', () => {
+    it('sem pasta escolhida, abre o diálogo e começa a jornada ao escolher', async () => {
+      const picker: ProjectPickerPort = { pick: vi.fn().mockResolvedValue(project) };
+      const user = userEvent.setup();
+      renderHome(picker);
+
+      await user.click(screen.getByRole('button', { name: /Configurar projeto/ }));
+
+      expect(picker.pick).toHaveBeenCalledTimes(1);
+      expect(await screen.findByText('JORNADA ABERTA')).toBeInTheDocument();
+    });
+
+    it('com pasta já escolhida, não pergunta de novo', async () => {
+      const picker: ProjectPickerPort = { pick: vi.fn().mockResolvedValue(project) };
+      const user = userEvent.setup();
+      renderHome(picker);
+      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+      await screen.findByText('Trocar');
+
+      await user.click(screen.getByRole('button', { name: /Configurar projeto/ }));
+
+      expect(await screen.findByText('JORNADA ABERTA')).toBeInTheDocument();
+      expect(picker.pick).toHaveBeenCalledTimes(1);
+    });
+
+    it('se a pessoa cancela o diálogo, fica na tela inicial', async () => {
+      const picker: ProjectPickerPort = { pick: vi.fn().mockResolvedValue(null) };
+      const user = userEvent.setup();
+      renderHome(picker);
+
+      await user.click(screen.getByRole('button', { name: /Configurar projeto/ }));
+
+      await waitFor(() => expect(picker.pick).toHaveBeenCalled());
+      expect(screen.queryByText('JORNADA ABERTA')).not.toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: 'Como podemos ajudar?' })).toBeInTheDocument();
+    });
   });
 });

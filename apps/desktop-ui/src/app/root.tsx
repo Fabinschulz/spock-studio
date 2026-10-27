@@ -1,5 +1,6 @@
 import { createHashRouter, RouterProvider } from 'react-router';
 
+import { ProjectSelectionProvider } from '@/features/project-selection';
 import { AppProviders } from '@/shared/components';
 import '@/shared/styles/index.scss';
 
@@ -11,7 +12,9 @@ const router = createHashRouter(routes);
 export function Root() {
   return (
     <AppProviders>
-      <RouterProvider router={router} />
+      <ProjectSelectionProvider>
+        <RouterProvider router={router} />
+      </ProjectSelectionProvider>
     </AppProviders>
   );
 }

@@ -7,9 +7,19 @@ use serde_json::Value;
 pub const PROTOCOL_VERSION: u64 = 1;
 pub const MAX_MESSAGE_BYTES: usize = 4 * 1024 * 1024;
 
-/// Métodos que a UI pode pedir ao motor. `workspace.authorize` fica de fora de propósito: ele
-/// recebe um caminho, e só o diálogo nativo (comando `pick_project_folder`) pode originá-lo.
-pub const FRONTEND_METHODS: &[&str] = &[];
+/// Métodos que a UI pode pedir ao motor: a jornada "Configurar projeto". `workspace.authorize` e
+/// `engine.*` ficam de fora de propósito: o primeiro recebe um caminho e só o diálogo nativo
+/// (comando `pick_project_folder`) pode originá-lo; os demais são do ciclo de vida do host.
+pub const FRONTEND_METHODS: &[&str] = &[
+    "project.discover",
+    "harness.plan",
+    "harness.apply",
+    "harness.validate",
+    "harness.revert",
+    "harness.runs",
+    "run.snapshot",
+    "run.cancel",
+];
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct HostError {
@@ -102,9 +112,27 @@ mod tests {
     }
 
     #[test]
-    fn ui_nao_pode_chamar_nenhum_metodo_enquanto_a_lista_estiver_vazia() {
-        let req = json!({"v":1,"kind":"request","id":"a","method":"engine.hello"});
-        assert_eq!(validate_frontend_request(&req).unwrap_err().code, "METHOD_NOT_ALLOWED");
+    fn ui_nao_pode_chamar_metodos_do_ciclo_de_vida_do_host() {
+        for method in ["engine.hello", "engine.shutdown", "workspace.authorize", "metodo.desconhecido"] {
+            let req = json!({"v":1,"kind":"request","id":"a","method":method});
+            assert_eq!(validate_frontend_request(&req).unwrap_err().code, "METHOD_NOT_ALLOWED", "{method}");
+        }
+    }
+
+    #[test]
+    fn ui_pode_chamar_os_metodos_da_jornada_com_params_objeto() {
+        for method in FRONTEND_METHODS {
+            let req = json!({"v":1,"kind":"request","id":"a","method":method,"params":{"projectId":"p-1"}});
+            let (m, params) = validate_frontend_request(&req).unwrap();
+            assert_eq!(m, *method);
+            assert_eq!(params["projectId"], "p-1");
+        }
+    }
+
+    #[test]
+    fn params_que_nao_e_objeto_e_rejeitado() {
+        let req = json!({"v":1,"kind":"request","id":"a","method":"harness.plan","params":[1]});
+        assert_eq!(validate_frontend_request(&req).unwrap_err().code, "INVALID_PARAMS");
     }
 
     #[test]

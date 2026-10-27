@@ -29,6 +29,11 @@ internal static class ContractFiles
     // (fixture inválida aceita). Serializar é barato e torna o teste de contrato determinístico.
     private static readonly object EvaluationLock = new();
 
+    public static JsonSchema SchemaFromPath(string absolutePath)
+    {
+        lock (EvaluationLock) return Cache.GetOrAdd(absolutePath, p => JsonSchema.FromText(File.ReadAllText(p)));
+    }
+
     public static bool IsValid(JsonSchema schema, JsonNode? node)
     {
         var element = System.Text.Json.JsonSerializer.SerializeToElement(node);

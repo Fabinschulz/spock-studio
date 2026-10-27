@@ -19,8 +19,10 @@ use tokio::sync::oneshot;
 
 use crate::protocol::{parse_engine_line, EngineMessage, HostError, PROTOCOL_VERSION};
 
-const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
+// Descoberta e plano leem o projeto e consultam ferramentas; execuções longas respondem na hora e avisam por eventos.
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(120);
 const SIDECAR: &str = "mariliz-engine";
+const SHUTDOWN_GRACE: Duration = Duration::from_secs(10);
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Status {
@@ -47,6 +49,7 @@ struct Inner {
     next_id: AtomicU64,
     restarts: AtomicU64,
     shutting_down: AtomicBool,
+    terminated: AtomicBool,
 }
 
 #[derive(Clone, Default)]
@@ -143,6 +146,7 @@ impl Engine {
     }
 
     fn on_terminated(&self, app: &AppHandle, code: Option<i32>) {
+        self.0.terminated.store(true, Ordering::SeqCst);
         *self.0.child.lock().unwrap() = None;
         // Descartar os remetentes faz as requisições pendentes falharem com ENGINE_STOPPED.
         self.0.pending.lock().unwrap().clear();
@@ -202,11 +206,23 @@ impl Engine {
             .ok_or_else(|| HostError::new("INVALID_MESSAGE", "Resposta do motor sem resultado."))
     }
 
-    /// Pede o encerramento ordenado e, em seguida, finaliza o processo.
+    /// Pede o encerramento ordenado e espera o motor terminar. Uma aplicação em andamento é cancelada e
+    /// desfeita pelo motor antes de ele sair; só depois do prazo o processo é finalizado à força.
     pub fn shutdown(&self) {
         self.0.shutting_down.store(true, Ordering::SeqCst);
-        if let Some(mut child) = self.0.child.lock().unwrap().take() {
+        self.0.terminated.store(false, Ordering::SeqCst);
+        {
+            let mut guard = self.0.child.lock().unwrap();
+            let Some(child) = guard.as_mut() else { return };
             let _ = child.write(b"{\"v\":1,\"kind\":\"request\",\"id\":\"h-shutdown\",\"method\":\"engine.shutdown\"}\n");
+        }
+
+        let deadline = std::time::Instant::now() + SHUTDOWN_GRACE;
+        while std::time::Instant::now() < deadline && !self.0.terminated.load(Ordering::SeqCst) {
+            std::thread::sleep(Duration::from_millis(50));
+        }
+
+        if let Some(child) = self.0.child.lock().unwrap().take() {
             let _ = child.kill();
         }
     }

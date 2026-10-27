@@ -1,0 +1,31 @@
+{
+  "runId": "run-000000000000",
+  "projectId": "p-000000000000",
+  "kind": "revert",
+  "revertsRunId": "run-000000000000",
+  "outcome": "completed",
+  "reverted": [
+    "create: mariliz.lock",
+    "create: mariliz.yaml",
+    "create: .mariliz/schemas/harness-proposal.v1.schema.json",
+    "create: .claude/skills/harness-contract/SKILL.md",
+    "create: .claude/settings.json",
+    "create: .claude/rules/mariliz-stack-dotnet.md",
+    "create: .claude/rules/mariliz-repo.md",
+    "create: .claude/rules/mariliz-general.md",
+    "create: .claude/hooks/mariliz-policy.py",
+    "create: .claude/agents/verifier.md",
+    "create: .claude/agents/harness-engineer.md",
+    "create: .claude/agents/code-reviewer.md"
+  ],
+  "conflicts": [],
+  "verified": true,
+  "steps": [
+    {
+      "id": "revert",
+      "title": "Restaurar o estado anterior",
+      "status": "completed",
+      "detail": null
+    }
+  ]
+}

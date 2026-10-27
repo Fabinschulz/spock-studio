@@ -8,7 +8,8 @@
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@contracts/*": ["../../packages/contracts/*"]
     },
     "verbatimModuleSyntax": true,
     "noEmit": true,

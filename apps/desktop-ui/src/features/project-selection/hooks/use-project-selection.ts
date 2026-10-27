@@ -7,14 +7,16 @@ export function useProjectSelection(port: ProjectPickerPort) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const pick = useCallback(async () => {
+  const pick = useCallback(async (): Promise<SelectedProject | null> => {
     setBusy(true);
     setError(null);
     try {
       const project = await port.pick();
       if (project) setSelected(project);
+      return project;
     } catch (e) {
       setError(e instanceof ProjectPickError ? e.message : 'Não foi possível selecionar a pasta.');
+      return null;
     } finally {
       setBusy(false);
     }

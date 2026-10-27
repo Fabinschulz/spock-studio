@@ -14,8 +14,7 @@ export const journeys: readonly Journey[] = [
   {
     id: 'configure-project',
     title: 'Configurar projeto',
-    description: 'Analisar o repositório e configurar o Harness.',
-    unavailableReason: SOON
+    description: 'Analisar o repositório e configurar o Harness.'
   },
   {
     id: 'import-requirements',

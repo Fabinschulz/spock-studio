@@ -1,0 +1,285 @@
+{
+  "runId": "run-000000000000",
+  "projectId": "p-000000000000",
+  "kind": "apply",
+  "planId": "plan-0000000000000000",
+  "outcome": "completed",
+  "changesApplied": true,
+  "rolledBack": false,
+  "files": {
+    "created": [
+      ".claude/agents/code-reviewer.md",
+      ".claude/agents/harness-engineer.md",
+      ".claude/agents/verifier.md",
+      ".claude/hooks/mariliz-policy.py",
+      ".claude/rules/mariliz-general.md",
+      ".claude/rules/mariliz-repo.md",
+      ".claude/rules/mariliz-stack-dotnet.md",
+      ".claude/settings.json",
+      ".claude/skills/harness-contract/SKILL.md",
+      ".mariliz/schemas/harness-proposal.v1.schema.json",
+      "mariliz.yaml"
+    ],
+    "updated": [],
+    "removed": [],
+    "preserved": [],
+    "kept": [],
+    "notApplied": [],
+    "commandEffects": []
+  },
+  "lockWritten": true,
+  "validation": {
+    "outcome": "passed",
+    "results": [
+      {
+        "id": "EV-CONFIG-001",
+        "name": "Declaração e lock",
+        "property": "Integridade e completude da configuração",
+        "kind": "deterministic",
+        "required": true,
+        "status": "passed",
+        "criteria": "mariliz.yaml (se existir) e mariliz.lock são válidos, no schema 1, e declaram o mesmo ambiente de IA.",
+        "evidence": [
+          "mariliz.lock: schema 1, motor 0.1.0, ambiente claude-code, 10 arquivo(s)",
+          "mariliz.yaml: schema 1, method.sdd=tlc"
+        ],
+        "reason": null,
+        "limitations": []
+      },
+      {
+        "id": "EV-LOCK-001",
+        "name": "Arquivos gerenciados",
+        "property": "Integridade dos arquivos escritos pela aplicação",
+        "kind": "deterministic",
+        "required": true,
+        "status": "passed",
+        "criteria": "Todo arquivo do lock existe e tem o hash registrado; os arquivos mesclados mantêm as chaves gerenciadas.",
+        "evidence": [
+          "10 arquivo(s) conferido(s) contra o lock"
+        ],
+        "reason": null,
+        "limitations": []
+      },
+      {
+        "id": "EV-AGENT-001",
+        "name": "Agentes",
+        "property": "Conformidade dos agentes gerenciados",
+        "kind": "deterministic",
+        "required": true,
+        "status": "passed",
+        "criteria": "Frontmatter com name igual ao arquivo, description e tools explícitos; seções obrigatórias; ferramentas dentro do conjunto permitido; agente somente leitura sem Edit/Write.",
+        "evidence": [
+          ".claude/agents/code-reviewer.md: conforme",
+          ".claude/agents/harness-engineer.md: conforme",
+          ".claude/agents/verifier.md: conforme"
+        ],
+        "reason": null,
+        "limitations": []
+      },
+      {
+        "id": "EV-SKILL-001",
+        "name": "Skills",
+        "property": "Conformidade das skills gerenciadas",
+        "kind": "deterministic",
+        "required": true,
+        "status": "passed",
+        "criteria": "SKILL.md com frontmatter, name igual à pasta e description.",
+        "evidence": [
+          ".claude/skills/harness-contract/SKILL.md: conforme"
+        ],
+        "reason": null,
+        "limitations": []
+      },
+      {
+        "id": "EV-HOOK-001",
+        "name": "Hooks",
+        "property": "Conformidade e comportamento do hook de política",
+        "kind": "deterministic",
+        "required": true,
+        "status": "passed",
+        "criteria": "settings.json válido com o hook registrado uma vez, script presente e íntegro, sem rede nem escrita, e as decisões esperadas para entradas conhecidas.",
+        "evidence": [
+          ".claude/settings.json: hook PreToolUse registrado uma vez",
+          ".claude/hooks/mariliz-policy.py: sem rede, sem processos, sem escrita (análise estática)",
+          "11 entradas conhecidas com a decisão esperada (python .claude/hooks/mariliz-policy.py)"
+        ],
+        "reason": null,
+        "limitations": [
+          "O hook é uma barreira de apoio: casa texto de comandos e não é um limite de segurança."
+        ]
+      },
+      {
+        "id": "EV-RULE-001",
+        "name": "Regras",
+        "property": "Presença das regras exigidas",
+        "kind": "deterministic",
+        "required": true,
+        "status": "passed",
+        "criteria": "As regras gerais e as de cada stack detectada existem, não estão vazias, e as de stack têm 'paths' válidos.",
+        "evidence": [
+          ".claude/rules/mariliz-general.md: presente",
+          ".claude/rules/mariliz-repo.md: presente",
+          ".claude/rules/mariliz-stack-dotnet.md: presente"
+        ],
+        "reason": null,
+        "limitations": []
+      },
+      {
+        "id": "EV-REF-001",
+        "name": "Referências",
+        "property": "Consistência de referências",
+        "kind": "deterministic",
+        "required": true,
+        "status": "passed",
+        "criteria": "Todo link relativo dos arquivos Markdown gerenciados aponta para um arquivo que existe.",
+        "evidence": [
+          "7 arquivo(s) Markdown, 0 link(s) relativo(s) resolvidos"
+        ],
+        "reason": null,
+        "limitations": []
+      },
+      {
+        "id": "EV-TLC-001",
+        "name": "TLC operacional",
+        "property": "O método SDD é utilizável",
+        "kind": "deterministic",
+        "required": true,
+        "status": "passed",
+        "criteria": "Instalação completa, hash igual ao do instalador, versão validada, Python disponível, e os scripts do TLC respondem corretamente a entradas conhecidas.",
+        "evidence": [
+          ".claude/skills/tlc-spec-driven: 18 arquivos exigidos presentes",
+          "Hash conferido com .agents/.skill-lock.json (86ee546da349…)",
+          "Versão 3.3.0 validada por esta fase",
+          "check_commit.py: aceita 'feat(core): add validation' (saída 0) e rejeita uma mensagem sem tipo (saída 1)",
+          "lessons.py selftest: saída 0"
+        ],
+        "reason": null,
+        "limitations": []
+      },
+      {
+        "id": "EV-SEC-001",
+        "name": "Segredos",
+        "property": "Ausência de credenciais nos arquivos de configuração",
+        "kind": "deterministic",
+        "required": true,
+        "status": "passed",
+        "criteria": "Nenhum arquivo gerenciado, .mcp.json, mariliz.yaml ou proposta contém formato conhecido de credencial.",
+        "evidence": [
+          "12 arquivo(s) verificado(s); nenhum formato conhecido de credencial"
+        ],
+        "reason": null,
+        "limitations": []
+      },
+      {
+        "id": "EV-ENV-001",
+        "name": "Ambiente de IA",
+        "property": "Compatibilidade com o ambiente selecionado",
+        "kind": "deterministic",
+        "required": true,
+        "status": "passed",
+        "criteria": "O ambiente declarado é suportado e nenhum arquivo gerenciado está fora das pastas desse ambiente.",
+        "evidence": [
+          "Ambiente claude-code; 10 arquivo(s) todos em .claude/, .mariliz/ ou na raiz de configuração"
+        ],
+        "reason": null,
+        "limitations": []
+      },
+      {
+        "id": "EV-REQ-001",
+        "name": "Requisitos do projeto",
+        "property": "Cumprimento dos requisitos identificados",
+        "kind": "deterministic",
+        "required": true,
+        "status": "passed",
+        "criteria": "Cada requisito derivado da descoberta (stack, comandos, proteção por hook) tem o artefato correspondente. O TLC é verificado à parte.",
+        "evidence": [
+          "5 requisito(s) derivado(s) da descoberta, todos atendidos"
+        ],
+        "reason": null,
+        "limitations": []
+      },
+      {
+        "id": "EV-IDEMP-001",
+        "name": "Idempotência",
+        "property": "Repetir o fluxo não altera nada",
+        "kind": "deterministic",
+        "required": true,
+        "status": "passed",
+        "criteria": "Um novo plano não contém criação, atualização, remoção, conflito nem comando.",
+        "evidence": [
+          "Novo plano: 11 arquivo(s) preservado(s), nenhuma alteração, nenhum comando"
+        ],
+        "reason": null,
+        "limitations": []
+      },
+      {
+        "id": "EV-REGR-001",
+        "name": "Regressão",
+        "property": "Nenhuma verificação que passava passou a falhar",
+        "kind": "deterministic",
+        "required": false,
+        "status": "not_run",
+        "criteria": "Todo Eval aprovado na execução anterior continua aprovado.",
+        "evidence": [],
+        "reason": "Não há execução anterior para comparar.",
+        "limitations": []
+      },
+      {
+        "id": "EV-JUDGE-001",
+        "name": "Juiz por modelo",
+        "property": "Qualidade semântica do Harness",
+        "kind": "model",
+        "required": false,
+        "status": "not_run",
+        "criteria": "Avaliação por modelo com critérios explícitos; nunca aprova sozinha.",
+        "evidence": [],
+        "reason": "Nenhum modelo está configurado: esta fase não chama modelos de IA. O juiz semântico fica para uma fase futura.",
+        "limitations": []
+      }
+    ]
+  },
+  "pending": [],
+  "limitations": [
+    {
+      "code": "HARNESS_ENGINEER_NOT_INVOKED",
+      "message": "O Harness Engineer ainda não gerou .mariliz/proposal.json; o plano usa as regras-base. Peça a proposta ao agente no seu ambiente de IA e planeje de novo."
+    }
+  ],
+  "risks": [
+    "A pasta não é um repositório git; a reversão depende apenas do backup da aplicação.",
+    "O hook usa o comando 'python' em .claude/settings.json; em máquinas onde esse nome não existe ele falha sem bloquear (comportamento documentado)."
+  ],
+  "steps": [
+    {
+      "id": "precheck",
+      "title": "Verificar pré-condições",
+      "status": "completed",
+      "detail": null
+    },
+    {
+      "id": "backup",
+      "title": "Guardar cópia do que será alterado",
+      "status": "completed",
+      "detail": null
+    },
+    {
+      "id": "write",
+      "title": "Aplicar as alterações aprovadas",
+      "status": "completed",
+      "detail": "11 operação(ões)"
+    },
+    {
+      "id": "lock",
+      "title": "Registrar os arquivos gerenciados",
+      "status": "completed",
+      "detail": null
+    },
+    {
+      "id": "validate",
+      "title": "Validar a configuração aplicada",
+      "status": "completed",
+      "detail": "Passed"
+    }
+  ],
+  "rollbackAvailable": true
+}
