@@ -1,5 +1,7 @@
-import { ArrowRightIcon } from '@synthra.io/ui-kit';
+import { ArrowRightIcon, Button } from '@synthra.io/ui-kit';
 import { useId } from 'react';
+
+import { FolderIcon } from '@/shared/components/ui';
 
 import type { SelectedProject } from '../core/types';
 import styles from './project-picker.module.scss';
@@ -10,23 +12,15 @@ interface ProjectPickerProps {
   busy?: boolean;
   /** Presente quando a seleção não está disponível neste ambiente (ex.: navegador sem o host desktop). */
   unavailableReason?: string;
+  /** Com uma pasta escolhida, a ação principal da tela. Escolher a pasta nunca é o mesmo que analisá-la. */
+  onAnalyze?: () => void;
 }
 
-/** O ícone de pasta ainda não existe na Synthra (docs/experience-blueprint.md, seção 11.2): SVG provisório. */
-function FolderGlyph() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
-      <path
-        d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.2l2 2H19.5A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5v-11Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-export function ProjectPicker({ selected, onPick, busy, unavailableReason }: ProjectPickerProps) {
+/**
+ * Sem pasta: uma linha inteira clicável. Com pasta: o nome, o caminho abreviado pelo host, "Trocar" e a ação principal.
+ * O caminho só é cortado visualmente (reticências); o texto completo continua no documento para quem usa leitor de tela.
+ */
+export function ProjectPicker({ selected, onPick, busy, unavailableReason, onAnalyze }: ProjectPickerProps) {
   const id = useId();
   const unavailable = unavailableReason !== undefined;
   const inactive = unavailable || busy;
@@ -36,31 +30,60 @@ export function ProjectPicker({ selected, onPick, busy, unavailableReason }: Pro
       <h2 id={`${id}-rotulo`} className={styles.label}>
         Projeto
       </h2>
-      <button
-        type="button"
-        className={styles.row}
-        aria-disabled={inactive || undefined}
-        aria-describedby={`${id}-detalhe`}
-        onClick={inactive ? undefined : onPick}
-      >
-        <span className={styles.icon} aria-hidden="true">
-          <FolderGlyph />
-        </span>
-        <span className={styles.text}>
-          <span className={styles.title}>{selected ? selected.displayName : 'Selecionar pasta do projeto'}</span>
-          <span id={`${id}-detalhe`} className={styles.detail}>
-            {selected ? selected.displayPath : (unavailableReason ?? 'Os arquivos permanecem no computador.')}
+
+      {selected ? (
+        <div className={styles.selected}>
+          <span className={styles.icon} aria-hidden="true">
+            <FolderIcon />
           </span>
-        </span>
-        {selected ? (
-          <span className={styles.action}>Trocar</span>
-        ) : (
+          <span className={styles.text}>
+            <span className={styles.title}>{selected.displayName}</span>
+            <span className={styles.path} title={selected.displayPath}>
+              {selected.displayPath}
+            </span>
+            <span className={styles.note}>
+              Os arquivos permanecem no computador. A análise inicial é somente de leitura.
+            </span>
+          </span>
+          <span className={styles.actions}>
+            <button
+              type="button"
+              className={styles.change}
+              aria-disabled={inactive || undefined}
+              aria-label={`Trocar a pasta do projeto ${selected.displayName}`}
+              onClick={inactive ? undefined : onPick}
+            >
+              {busy ? 'Abrindo…' : 'Trocar'}
+            </button>
+            {onAnalyze ? (
+              <Button variant="contained" onClick={onAnalyze} endIcon={<ArrowRightIcon fontSize="small" />}>
+                Analisar projeto
+              </Button>
+            ) : null}
+          </span>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className={styles.row}
+          aria-disabled={inactive || undefined}
+          aria-describedby={`${id}-detalhe`}
+          onClick={inactive ? undefined : onPick}
+        >
+          <span className={styles.icon} aria-hidden="true">
+            <FolderIcon />
+          </span>
+          <span className={styles.text}>
+            <span className={styles.title}>Selecionar pasta do projeto</span>
+            <span id={`${id}-detalhe`} className={styles.path}>
+              {unavailableReason ?? 'Os arquivos permanecem no computador.'}
+            </span>
+          </span>
           <span className={styles.chevron} aria-hidden="true">
-            <ArrowRightIcon />
+            {busy ? '…' : <ArrowRightIcon />}
           </span>
-        )}
-      </button>
-      {selected ? <p className={styles.note}>Os arquivos permanecem no computador.</p> : null}
+        </button>
+      )}
     </section>
   );
 }

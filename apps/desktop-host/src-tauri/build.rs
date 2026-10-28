@@ -5,6 +5,8 @@ fn main() {
         "engine_request",
         "pick_project_folder",
         "engine_status",
+        "list_recent_projects",
+        "open_recent_project",
     ]);
 
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(manifest))

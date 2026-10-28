@@ -3,12 +3,12 @@ import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 
 import { useProjectSelectionContext } from '@/features/project-selection';
-import { WizardSteps } from '@/shared/components/ui';
+import { PageHeader, WizardSteps } from '@/shared/components/ui';
 import { pathTo } from '@/shared/routing';
 import { createHarnessApi, tauriEngineClient, type HarnessApi } from '@/shared/services';
 
 import styles from './configure-project-page.module.scss';
-import { countApprovals, journeySteps } from './core/journey-state';
+import { countApprovals, journeySteps, stepIssue } from './core/journey-state';
 import { useConfigureJourney } from './hooks/use-configure-journey';
 import { MethodStep } from './steps/method-step';
 import { PlanStep } from './steps/plan-step';
@@ -16,6 +16,7 @@ import { ProjectStep } from './steps/project-step';
 import { ResultStep } from './steps/result-step';
 import { ReviewStep } from './steps/review-step';
 import { RunStep } from './steps/run-step';
+import { MethodBadge } from './ui/method-badge';
 
 interface ConfigureProjectPageProps {
   /** Padrão: o motor real, pelo host Tauri. Os testes injetam um dublê. */
@@ -24,7 +25,7 @@ interface ConfigureProjectPageProps {
 }
 
 export function ConfigureProjectPage({ api, pollMs }: ConfigureProjectPageProps) {
-  const { selected } = useProjectSelectionContext();
+  const { selected, pick } = useProjectSelectionContext();
   const navigate = useNavigate();
   const resolved = useMemo(() => api ?? createHarnessApi(tauriEngineClient), [api]);
 
@@ -51,6 +52,8 @@ export function ConfigureProjectPage({ api, pollMs }: ConfigureProjectPageProps)
       api={resolved}
       projectId={selected.projectId}
       projectName={selected.displayName}
+      projectPath={selected.displayPath}
+      onChangeProject={() => void pick()}
       pollMs={pollMs}
     />
   );
@@ -60,10 +63,12 @@ interface JourneyProps {
   api: HarnessApi;
   projectId: string;
   projectName: string;
+  projectPath: string;
+  onChangeProject: () => void;
   pollMs?: number;
 }
 
-function Journey({ api, projectId, projectName, pollMs }: JourneyProps) {
+function Journey({ api, projectId, projectName, projectPath, onChangeProject, pollMs }: JourneyProps) {
   const navigate = useNavigate();
   const { state, actions } = useConfigureJourney(api, projectId, pollMs);
   const home = () => navigate(pathTo('home'));
@@ -75,11 +80,19 @@ function Journey({ api, projectId, projectName, pollMs }: JourneyProps) {
 
   return (
     <div className={styles.page}>
-      <WizardSteps steps={journeySteps} currentId={state.step} />
+      <PageHeader
+        breadcrumb={[{ label: 'Início', to: pathTo('home') }, { label: 'Configurar projeto' }]}
+        title="Configurar projeto"
+        actions={<MethodBadge />}
+        description="Vamos analisar o seu projeto e preparar o ambiente de engenharia com o TLC."
+      />
+      <WizardSteps steps={journeySteps} currentId={state.step} issue={stepIssue(state)} />
 
       {state.step === 'project' ? (
         <ProjectStep
           projectName={projectName}
+          projectPath={projectPath}
+          onChangeProject={onChangeProject}
           discovery={state.discovery}
           onRetry={() => void actions.discover()}
           onContinue={() => actions.goTo('method')}

@@ -1,4 +1,4 @@
-# Mariliz AI Engineering — Product Discovery
+# Mariliz Studio — Product Discovery
 
 **Fase:** 0 (Discovery e planejamento). **Data:** 2026-10-25. **Estado:** aguardando aprovação; nada foi implementado.
 

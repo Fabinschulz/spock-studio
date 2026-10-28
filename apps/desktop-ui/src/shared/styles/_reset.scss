@@ -26,7 +26,11 @@ ol[role='list'] {
   list-style: none;
 }
 
+// Botões simples ficam sem o visual do navegador; os da Synthra (MUI) trazem as próprias classes e vencem por especificidade.
 button {
+  padding: 0;
+  border: 0;
+  background: none;
   font: inherit;
   color: inherit;
 }

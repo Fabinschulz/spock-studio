@@ -210,3 +210,30 @@ export function countApprovals(state: JourneyState, plan: ConfigurationPlan): nu
   const input = buildApplyInput(state, '', plan);
   return input.approvedChangeIds.length + input.approvedCommandIds.length;
 }
+
+/**
+ * Problema da etapa atual, para o indicador de progresso. Sai do estado real da jornada: nada é inferido da aparência.
+ * `error` = a operação da etapa falhou; `blocked` = há algo que o motor bloqueou e a pessoa precisa ver.
+ */
+export function stepIssue(state: JourneyState): { stepId: JourneyStepId; kind: 'error' | 'blocked' } | undefined {
+  switch (state.step) {
+    case 'project':
+      return state.discovery.status === 'error' ? { stepId: 'project', kind: 'error' } : undefined;
+    case 'method':
+      return state.plan.status === 'error' ? { stepId: 'method', kind: 'error' } : undefined;
+    case 'plan':
+      return state.plan.status === 'ready' && state.plan.data.decisions.some((d) => d.decision === 'blocked')
+        ? { stepId: 'plan', kind: 'blocked' }
+        : undefined;
+    case 'run':
+      return state.run?.error ? { stepId: 'run', kind: 'error' } : undefined;
+    case 'result': {
+      const outcome = state.results.apply?.outcome;
+      return outcome === 'failed' || outcome === 'requires_intervention'
+        ? { stepId: 'result', kind: 'error' }
+        : undefined;
+    }
+    default:
+      return undefined;
+  }
+}

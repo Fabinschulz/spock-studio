@@ -5,7 +5,7 @@ paths:
 
 # .NET rules
 
-Managed by Mariliz AI Engineering. Defaults for {{detail}}; a recorded project decision overrides them.
+Managed by Mariliz Studio. Defaults for {{detail}}; a recorded project decision overrides them.
 
 ## Structure
 

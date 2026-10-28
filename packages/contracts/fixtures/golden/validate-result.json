@@ -122,9 +122,9 @@
         "status": "passed",
         "criteria": "Instalação completa, hash igual ao do instalador, versão validada, Python disponível, e os scripts do TLC respondem corretamente a entradas conhecidas.",
         "evidence": [
-          ".claude/skills/tlc-spec-driven: 18 arquivos exigidos presentes",
-          "Hash conferido com .agents/.skill-lock.json (86ee546da349…)",
-          "Versão 3.3.0 validada por esta fase",
+          ".claude/skills/tlc-spec-driven: 15 arquivos exigidos presentes",
+          "Hash conferido com .agents/.skill-lock.json (4c3a850f35f1…)",
+          "Versão 4.0.0 validada por esta fase",
           "check_commit.py: aceita 'feat(core): add validation' (saída 0) e rejeita uma mensagem sem tipo (saída 1)",
           "lessons.py selftest: saída 0"
         ],

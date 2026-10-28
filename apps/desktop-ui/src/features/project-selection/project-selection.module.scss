@@ -1,5 +1,10 @@
 .selection {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
+}
+
+.busy {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
 }

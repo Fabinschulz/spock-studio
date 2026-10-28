@@ -8,7 +8,7 @@
   "rolledBack": false,
   "error": {
     "code": "COMMAND_FAILED",
-    "message": "O instalador terminou com código 1. Detalhes foram guardados no diário da execução."
+    "message": "O instalador terminou com código 1. Saída (final): x"
   },
   "pending": [],
   "steps": [

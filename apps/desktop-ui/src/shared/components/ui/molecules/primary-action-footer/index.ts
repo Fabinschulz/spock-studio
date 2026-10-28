@@ -1,0 +1,1 @@
+export { PrimaryActionFooter } from './PrimaryActionFooter';

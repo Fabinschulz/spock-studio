@@ -1,4 +1,23 @@
+@use '@/shared/styles/abstracts' as *;
+
+// A largura útil é a do cabeçalho, não a da janela: o ornamento só aparece quando sobra espaço.
 .hero {
+  container-type: inline-size;
+}
+
+// Uma container query só estiliza os descendentes do contêiner: o layout é um filho dele.
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+
+  @container (min-width: 40rem) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+}
+
+.main {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -6,19 +25,18 @@
 
 .brand {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
 }
 
 .name {
-  font-size: var(--font-size-lg);
   font-weight: 600;
-  line-height: var(--line-height-snug);
   color: var(--color-primary-text);
 }
 
 .tagline {
-  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
 }
 
@@ -30,9 +48,47 @@
 
 .title {
   font-size: var(--font-size-2xl);
+
+  @include up(md) {
+    font-size: 2rem;
+  }
+}
+
+// Destaque tipográfico na cor da marca (contraste validado nos tokens); o sentido não depende dela.
+.accent {
+  color: var(--color-primary-text);
 }
 
 .text {
   max-width: 62ch;
   color: var(--color-text-muted);
+}
+
+// ---- Ornamento
+.pitch {
+  display: none;
+  align-items: center;
+  gap: var(--space-3);
+
+  @container (min-width: 40rem) {
+    display: flex;
+  }
+}
+
+.pitchText {
+  max-width: 14rem;
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+.chevrons {
+  width: 4.5rem;
+  height: auto;
+  stroke: var(--color-primary);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.55;
 }

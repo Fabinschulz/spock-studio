@@ -1,0 +1,42 @@
+@use '@/shared/styles/abstracts' as *;
+
+.card {
+  @include card(var(--space-5));
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.accent {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-accent-glow);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+}
+
+.title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+}
+
+.aside {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}

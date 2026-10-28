@@ -1,7 +1,7 @@
 import { Alert, Button } from '@synthra.io/ui-kit';
 import { useState } from 'react';
 
-import { StatusChip } from '@/shared/components/ui';
+import { PrimaryActionFooter, StatusChip } from '@/shared/components/ui';
 
 import type { RunView } from '../../core/journey-state';
 import { runKindLabel } from '../../core/labels';
@@ -68,7 +68,7 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
         <Alert severity="error" title="Não foi possível acompanhar a execução" description={run.error} />
       ) : null}
 
-      <div className={styles.actions}>
+      <PrimaryActionFooter>
         {failed ? (
           <Button variant="outlined" color="inherit" onClick={onBack}>
             Voltar à revisão
@@ -86,7 +86,7 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
             {cancelling ? 'Cancelando…' : 'Cancelar e desfazer'}
           </Button>
         )}
-      </div>
+      </PrimaryActionFooter>
     </section>
   );
 }

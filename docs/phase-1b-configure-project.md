@@ -1,6 +1,6 @@
-# Mariliz AI Engineering — Fase 1B: jornada "Configurar projeto"
+# Mariliz Studio — Fase 1B: jornada "Configurar projeto"
 
-Documento de referência da implementação. Complementa o [roadmap](implementation-roadmap.md), a [arquitetura](architecture-blueprint.md) e o [blueprint de experiência](experience-blueprint.md); onde divergir deles, este documento descreve o que foi de fato construído.
+Documento de referência da implementação. A interface foi modernizada depois (marca, tokens, menu lateral, stepper): ver [ui-modernization.md](ui-modernization.md). Complementa o [roadmap](implementation-roadmap.md), a [arquitetura](architecture-blueprint.md) e o [blueprint de experiência](experience-blueprint.md); onde divergir deles, este documento descreve o que foi de fato construído.
 
 ## 1. O que a jornada faz
 
@@ -38,7 +38,7 @@ apps/desktop-ui (React) ─ invoke ─▶ apps/desktop-host (Tauri/Rust, allowli
 | Core | Modelos de descoberta, plano e Evals; `PathGuard`/`ManagedScope`; `SecretScanner`; hash e diff | `Mariliz.Core/{Discovery,Plan,Evals,Policy,Text}` |
 | Application | Descoberta, composição, plano de três vias, aplicação, reversão, Evals, protocolo | `Discovery/ProjectDiscoverer.cs`, `Harness/{HarnessComposer,PlanBuilder,ProposalReader,SettingsMerger,ProjectConfig,ConfigureProjectService}.cs`, `Execution/*`, `Validation/EvalRunner.cs`, `Protocol/EngineSession.cs` |
 | Infrastructure | Arquivos com caminho protegido, runner de processos sem shell, diário em disco | `LocalProjectFiles.cs`, `SystemProcessRunner.cs`, `FileRunStore.cs` |
-| Host (Rust) | Três comandos (`engine_request`, `pick_project_folder`, `engine_status`) e uma allowlist de métodos; `workspace.authorize` e `engine.*` **não** passam pela UI | `apps/desktop-host/src-tauri/src/{protocol,engine}.rs` |
+| Host (Rust) | Cinco comandos (`engine_request`, `pick_project_folder`, `engine_status`, e `list_recent_projects` e `open_recent_project` para os projetos recentes) e uma allowlist de métodos; `workspace.authorize` e `engine.*` **não** passam pela UI | `apps/desktop-host/src-tauri/src/{protocol,engine}.rs` |
 | UI | Seis etapas, estado num reducer, validação Zod de toda resposta | `apps/desktop-ui/src/features/configure-project/*`, `src/shared/{schemas,services}` |
 | CLI | `discover`, `plan`, `apply`, `validate`, `revert` | `src/Mariliz.Cli/*` |
 
@@ -112,7 +112,7 @@ Sem proposta, o plano usa as regras-base e **diz isso** (`proposalOrigin: baseli
 
 ## 7. Testes e evidências
 
-Última execução local: **.NET 232 (Application) + 2 (integração do motor), UI 59, Rust 8 — todos aprovados.**
+Última execução local: **.NET 232 (Application) + 2 (integração do motor), UI 167, Rust 16 — todos aprovados.**
 
 | Cenário exigido | Evidência (teste) |
 | --- | --- |

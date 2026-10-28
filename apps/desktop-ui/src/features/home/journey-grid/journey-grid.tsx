@@ -1,17 +1,24 @@
-import { BookUploadIcon, ListViewRectangleIcon, UpdateIcon, UserConnectionsIcon } from '@synthra.io/ui-kit';
+import { BookUploadIcon, UpdateIcon, UserConnectionsIcon } from '@synthra.io/ui-kit';
 import type { ReactNode } from 'react';
 
-import { ActionCard } from '@/shared/components/ui';
+import { ActionCard, FolderIcon, type CardAccent } from '@/shared/components/ui';
 
 import styles from './journey-grid.module.scss';
 import { journeys, type JourneyId } from './journeys';
 
-// A Synthra não tem ícones de pasta, código ou documento (docs/experience-blueprint.md, seção 11.2): ícones provisórios.
+// A Synthra não tem ícone de pasta: o da atividade principal é o glifo próprio compartilhado.
 const icons: Record<JourneyId, ReactNode> = {
-  'configure-project': <ListViewRectangleIcon />,
+  'configure-project': <FolderIcon />,
   'import-requirements': <BookUploadIcon />,
   'connect-tools': <UserConnectionsIcon />,
   'modernize-system': <UpdateIcon />
+};
+
+const accents: Record<JourneyId, CardAccent> = {
+  'configure-project': 'teal',
+  'import-requirements': 'indigo',
+  'connect-tools': 'blue',
+  'modernize-system': 'orange'
 };
 
 interface JourneyGridProps {
@@ -27,6 +34,8 @@ export function JourneyGrid({ onStartJourney }: JourneyGridProps) {
             title={journey.title}
             description={journey.description}
             icon={icons[journey.id]}
+            variant={journey.id === 'configure-project' ? 'primary' : 'default'}
+            accent={accents[journey.id]}
             unavailableReason={journey.unavailableReason}
             onClick={() => onStartJourney?.(journey.id)}
           />

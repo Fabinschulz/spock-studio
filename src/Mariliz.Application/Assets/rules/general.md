@@ -1,6 +1,6 @@
 # General engineering rules
 
-Managed by Mariliz AI Engineering. These are defaults. When a rule here conflicts with a decision recorded in this
+Managed by Mariliz Studio. These are defaults. When a rule here conflicts with a decision recorded in this
 repository (`CLAUDE.md`, an ADR, `.specs/STATE.md`), the recorded decision wins and the divergence is reported as a
 finding, never merged silently.
 

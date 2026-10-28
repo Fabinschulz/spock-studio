@@ -1,19 +1,34 @@
+import { ArrowRightIcon } from '@synthra.io/ui-kit';
 import { useId, type ReactNode } from 'react';
 
 import { cn } from '@/shared/utils';
 
 import styles from './ActionCard.module.scss';
 
+export type CardAccent = 'teal' | 'indigo' | 'blue' | 'orange';
+
 interface ActionCardProps {
   title: string;
   description: string;
   icon: ReactNode;
   onClick?: () => void;
+  /** A atividade principal da tela recebe mais peso visual. */
+  variant?: 'primary' | 'default';
+  /** Tom do quadrado do ícone. Só decora: o nome e o estado da atividade estão em texto. */
+  accent?: CardAccent;
   /** Quando definido o cartão fica indisponível, mas continua focável (aria-disabled) para o leitor de tela anunciar o motivo. */
   unavailableReason?: string;
 }
 
-export function ActionCard({ title, description, icon, onClick, unavailableReason }: ActionCardProps) {
+export function ActionCard({
+  title,
+  description,
+  icon,
+  onClick,
+  variant = 'default',
+  accent = 'teal',
+  unavailableReason
+}: ActionCardProps) {
   const id = useId();
   const descriptionId = `${id}-descricao`;
   const reasonId = `${id}-motivo`;
@@ -22,12 +37,16 @@ export function ActionCard({ title, description, icon, onClick, unavailableReaso
   return (
     <button
       type="button"
-      className={cn(styles.card, unavailable && styles.unavailable)}
+      className={cn(
+        styles.card,
+        variant === 'primary' && !unavailable && styles.primary,
+        unavailable && styles.unavailable
+      )}
       aria-disabled={unavailable || undefined}
       aria-describedby={unavailable ? `${descriptionId} ${reasonId}` : descriptionId}
       onClick={unavailable ? undefined : onClick}
     >
-      <span className={styles.icon} aria-hidden="true">
+      <span className={cn(styles.icon, styles[accent])} aria-hidden="true">
         {icon}
       </span>
       <span className={styles.body}>
@@ -36,6 +55,7 @@ export function ActionCard({ title, description, icon, onClick, unavailableReaso
           {unavailable ? (
             <span id={reasonId} className={styles.badge}>
               {unavailableReason}
+              <span className="visually-hidden">: esta atividade ainda não está disponível.</span>
             </span>
           ) : null}
         </span>
@@ -43,6 +63,11 @@ export function ActionCard({ title, description, icon, onClick, unavailableReaso
           {description}
         </span>
       </span>
+      {unavailable ? null : (
+        <span className={styles.arrow} aria-hidden="true">
+          <ArrowRightIcon fontSize="small" />
+        </span>
+      )}
     </button>
   );
 }

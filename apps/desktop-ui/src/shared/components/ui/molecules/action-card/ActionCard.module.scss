@@ -1,15 +1,15 @@
 @use '@/shared/styles/abstracts' as *;
 
 .card {
+  @include card(var(--space-4));
+
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-4);
   width: 100%;
   height: 100%;
-  padding: var(--space-4);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-surface);
+  min-height: 5rem;
+  border-color: var(--color-border-strong);
   text-align: left;
   cursor: pointer;
   transition:
@@ -26,20 +26,59 @@
   }
 }
 
+.teal {
+  background-color: var(--tile-teal-bg);
+  color: var(--tile-teal-fg);
+}
+
+.indigo {
+  background-color: var(--tile-indigo-bg);
+  color: var(--tile-indigo-fg);
+}
+
+.blue {
+  background-color: var(--tile-blue-bg);
+  color: var(--tile-blue-fg);
+}
+
+.orange {
+  background-color: var(--tile-orange-bg);
+  color: var(--tile-orange-fg);
+}
+
+// Atividade principal: borda na cor da marca e um halo discreto; nenhum outro cartão ganha esse destaque.
+.primary {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-subtle);
+  box-shadow: 0 0 0 1px var(--color-accent-glow);
+}
+
+// Indisponível: o texto continua legível (sem opacidade); o estado é dito por "Em breve" e por aria-disabled.
 .unavailable {
   cursor: default;
-  opacity: 0.78;
+  border-style: dashed;
+  border-color: var(--color-border-strong);
+  box-shadow: none;
+  color: var(--color-text-muted);
+
+  .title {
+    color: var(--color-text-muted);
+  }
 
   @include hover {
-    border-color: var(--color-border-strong);
+    border-color: var(--color-border);
     background-color: var(--color-surface);
   }
 }
 
 .icon {
   display: flex;
-  padding-top: 2px;
-  color: var(--color-primary-text);
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-md);
 }
 
 .body {
@@ -52,18 +91,22 @@
 
 .heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--space-2);
+  gap: var(--space-1) var(--space-2);
 }
 
 .title {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: 600;
 }
 
 .badge {
   @include eyebrow;
+  padding: 1px var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
   color: var(--color-text-muted);
   white-space: nowrap;
 }
@@ -71,4 +114,10 @@
 .description {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+}
+
+.arrow {
+  display: flex;
+  flex: none;
+  color: var(--color-primary-text);
 }

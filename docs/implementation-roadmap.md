@@ -1,4 +1,4 @@
-# Mariliz AI Engineering — Implementation Roadmap
+# Mariliz Studio — Implementation Roadmap
 
 **Fase:** 0. **Data:** 2026-10-25. Rótulos conforme [`product-discovery.md`](product-discovery.md). Esforço relativo: **P** (dias), **M** (uma a duas semanas), **G** (várias semanas). Não há estimativa de calendário: falta histórico de velocidade para isso.
 

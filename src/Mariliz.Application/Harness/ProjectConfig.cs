@@ -37,7 +37,7 @@ public sealed class DeclaredConfig
         .Build();
 
     public string ToYaml() =>
-        "# Declaração do Harness gerenciado pela Mariliz AI Engineering.\n"
+        "# Declaração do Harness gerenciado pelo Mariliz Studio.\n"
         + "# Este arquivo é seu: edite à vontade. A aplicação o lê, mas não o reescreve.\n"
         + Writer.Serialize(this);
 
@@ -114,7 +114,7 @@ public sealed class ManagedLockFile
     {
         Components = Components.OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
         ManagedFiles = ManagedFiles.OrderBy(f => f.Path, StringComparer.Ordinal).ToList();
-        return "# Gerado pela Mariliz AI Engineering. Não edite à mão: use a aplicação.\n" + Writer.Serialize(this);
+        return "# Gerado pelo Mariliz Studio. Não edite à mão: use a aplicação.\n" + Writer.Serialize(this);
     }
 
     public static ManagedLockFile? Read(IProjectFiles files)

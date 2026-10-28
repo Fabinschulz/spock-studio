@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { ProjectPickError, ProjectSelectionProvider, type ProjectPickerPort } from '@/features/project-selection';
 import { AppProviders } from '@/shared/components';
+import { expectNoA11yViolations } from '@/test/a11y';
 
 import { HomePage } from './home-page';
 
@@ -37,7 +38,7 @@ describe('HomePage', () => {
         'Escolha uma atividade para começar. Vamos configurar o ambiente conforme as necessidades do seu projeto.'
       )
     ).toBeInTheDocument();
-    expect(screen.getByText('Mariliz AI Engineering')).toBeInTheDocument();
+    expect(screen.getByText('Mariliz Studio')).toBeInTheDocument();
     expect(screen.getByText('Engenharia de software assistida por IA')).toBeInTheDocument();
   });
 
@@ -138,6 +139,85 @@ describe('HomePage', () => {
     await user.click(row);
     expect(picker.pick).not.toHaveBeenCalled();
     expect(screen.getByText('Disponível apenas no aplicativo desktop.')).toBeInTheDocument();
+  });
+
+  describe('seleção de projeto · estados', () => {
+    it('com pasta escolhida, a ação principal é "Analisar projeto" e leva à jornada; escolher não é analisar', async () => {
+      const user = userEvent.setup();
+      renderHome({ pick: vi.fn().mockResolvedValue(project) });
+
+      expect(screen.queryByRole('button', { name: /Analisar projeto/ })).not.toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+      await screen.findByText('Os arquivos permanecem no computador. A análise inicial é somente de leitura.');
+      expect(screen.queryByText('JORNADA ABERTA')).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: /Analisar projeto/ }));
+
+      expect(await screen.findByText('JORNADA ABERTA')).toBeInTheDocument();
+    });
+
+    it('o caminho aparece inteiro no documento e a ação "Trocar" diz de qual pasta é', async () => {
+      const user = userEvent.setup();
+      const picker: ProjectPickerPort = { pick: vi.fn().mockResolvedValue(project) };
+      renderHome(picker);
+
+      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+
+      const path = await screen.findByText(project.displayPath);
+      expect(path).toHaveAttribute('title', project.displayPath);
+      const change = screen.getByRole('button', { name: 'Trocar a pasta do projeto EmpregaNetAPI' });
+      await user.click(change);
+      expect(picker.pick).toHaveBeenCalledTimes(2);
+    });
+
+    it('seleção cancelada é dita, sem alarme, e some na próxima tentativa', async () => {
+      const user = userEvent.setup();
+      const pick = vi.fn().mockResolvedValueOnce(null).mockResolvedValue(project);
+      renderHome({ pick });
+
+      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+
+      expect(await screen.findByText(/Seleção cancelada\. Nenhuma pasta foi escolhida/)).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+      await screen.findByText('EmpregaNetAPI');
+      expect(screen.queryByText(/Seleção cancelada/)).not.toBeInTheDocument();
+    });
+
+    it('pasta inválida ou inacessível vira um erro anunciado, com a causa que o host informou', async () => {
+      const user = userEvent.setup();
+      renderHome({
+        pick: vi.fn().mockRejectedValue(new ProjectPickError('NOT_READABLE', 'Não foi possível ler a pasta.'))
+      });
+
+      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent('Não foi possível usar esta pasta');
+      expect(alert).toHaveTextContent('Não foi possível ler a pasta.');
+    });
+
+    it('enquanto o diálogo está aberto, a tela diz isso e não aceita um segundo clique', async () => {
+      const user = userEvent.setup();
+      let finish: (value: typeof project) => void = () => undefined;
+      const pick = vi.fn().mockReturnValue(new Promise((resolve) => (finish = resolve)));
+      renderHome({ pick });
+
+      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+      expect(await screen.findByText('Abrindo o seletor de pastas…')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+      expect(pick).toHaveBeenCalledTimes(1);
+
+      finish(project);
+      await screen.findByText('EmpregaNetAPI');
+    });
+
+    it('a tela inicial não tem violações estruturais de acessibilidade', async () => {
+      const { container } = renderHome(neverCalled);
+
+      await expectNoA11yViolations(container);
+    });
   });
 
   describe('jornada Configurar projeto', () => {

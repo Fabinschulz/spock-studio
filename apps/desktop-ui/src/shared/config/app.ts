@@ -1,5 +1,5 @@
 export const app = {
-  name: 'Mariliz AI Engineering',
+  name: 'Mariliz Studio',
   tagline: 'Engenharia de software assistida por IA',
   language: 'pt-BR'
 } as const;

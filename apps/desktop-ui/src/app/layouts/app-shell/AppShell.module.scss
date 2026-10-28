@@ -1,0 +1,240 @@
+@use '@/shared/styles/abstracts' as *;
+
+$rail-wide: 9.5rem;
+$rail-narrow: 4.25rem;
+$collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu aberto.
+
+.shell {
+  display: grid;
+  grid-template-columns: $rail-wide minmax(0, 1fr);
+  min-height: 100vh;
+  background-color: var(--color-background);
+
+  @media (max-width: calc(#{$collapse-below} - 0.02px)) {
+    grid-template-columns: $rail-narrow minmax(0, 1fr);
+  }
+}
+
+// ---- Atalho para o conteúdo (visível só com foco do teclado)
+.skip {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 10;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-raised);
+  transform: translateY(-200%);
+
+  &:focus-visible {
+    transform: none;
+  }
+}
+
+// ---- Menu lateral
+.rail {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  height: 100vh;
+  padding: var(--space-4) var(--space-3);
+  border-right: 1px solid var(--color-hairline);
+  background-color: var(--color-surface);
+
+  nav {
+    flex: 1;
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--control-height-lg);
+  padding-inline: var(--space-1);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  text-decoration: none;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.studio {
+  @include eyebrow;
+  color: var(--color-primary-text);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--control-height);
+  padding: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-align: left;
+  text-decoration: none;
+  transition:
+    background-color var(--duration-fast),
+    color var(--duration-fast);
+
+  @include hover {
+    background-color: var(--color-primary-subtle);
+    color: var(--color-text);
+  }
+
+  &:focus-visible {
+    @include focus-ring(-2px);
+  }
+}
+
+.active {
+  border-color: var(--color-border-strong);
+  background-color: var(--color-primary-subtle);
+  color: var(--color-text);
+  font-weight: 600;
+
+  .itemIcon {
+    color: var(--color-primary-text);
+  }
+}
+
+.unavailable {
+  cursor: default;
+
+  @include hover {
+    background-color: transparent;
+    color: var(--color-text-muted);
+  }
+}
+
+.itemIcon {
+  display: flex;
+  flex: none;
+}
+
+.itemText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.itemLabel {
+  min-width: 0;
+}
+
+// Motivo da indisponibilidade, em texto sob o nome (também é a descrição lida pelo leitor de tela).
+.itemReason {
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+// ---- Estado do motor (real, vindo do host)
+.engine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--color-hairline);
+  font-size: var(--font-size-xs);
+}
+
+.dot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+}
+
+.dot-ok {
+  background-color: var(--color-success);
+}
+
+.dot-pending {
+  background-color: var(--tone-warning-fg);
+}
+
+.dot-bad {
+  background-color: var(--color-error);
+}
+
+.dot-idle {
+  background-color: var(--color-border-strong);
+}
+
+.engineText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.engineTitle {
+  font-weight: 600;
+}
+
+.engineDetail {
+  color: var(--color-text-muted);
+}
+
+.main {
+  min-width: 0;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+// ---- Janela estreita: o menu vira uma faixa de ícones; os nomes continuam acessíveis.
+@media (max-width: calc(#{$collapse-below} - 0.02px)) {
+  .rail {
+    align-items: center;
+    padding-inline: var(--space-2);
+  }
+
+  .brandText,
+  .itemReason,
+  .engineDetail {
+    @include visually-hidden;
+  }
+
+  .itemLabel,
+  .engineTitle {
+    @include visually-hidden;
+  }
+
+  .item {
+    justify-content: center;
+    padding-inline: var(--space-2);
+  }
+
+  .engine {
+    padding-inline: var(--space-2);
+  }
+}

@@ -11,16 +11,19 @@
   color: var(--color-text-muted);
 }
 
-.row {
+.row,
+.selected {
+  @include card(var(--space-4) var(--space-5));
+
   display: flex;
   align-items: center;
   gap: var(--space-4);
   width: 100%;
-  padding: var(--space-4);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-surface);
+  border-color: var(--color-border-strong);
   text-align: left;
+}
+
+.row {
   cursor: pointer;
   transition:
     border-color var(--duration-fast),
@@ -31,9 +34,12 @@
     background-color: var(--color-primary-subtle);
   }
 
+  &:focus-visible {
+    @include focus-ring;
+  }
+
   &[aria-disabled='true'] {
     cursor: default;
-    opacity: 0.78;
 
     @include hover {
       border-color: var(--color-border-strong);
@@ -42,8 +48,20 @@
   }
 }
 
+.selected {
+  flex-wrap: wrap;
+  border-color: var(--color-primary);
+}
+
 .icon {
   display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary-subtle);
   color: var(--color-primary-text);
 }
 
@@ -51,15 +69,17 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  min-width: 0;
+  gap: 2px;
+  min-width: 12rem;
 }
 
 .title {
   font-size: var(--font-size-base);
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
-.detail {
+.path {
   overflow: hidden;
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
@@ -67,18 +87,41 @@
   white-space: nowrap;
 }
 
-.action {
+.note {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-left: auto;
+}
+
+.change {
+  min-height: var(--control-height);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--color-primary-text);
+  cursor: pointer;
+
+  @include hover {
+    background-color: var(--color-primary-subtle);
+  }
+
+  &[aria-disabled='true'] {
+    cursor: default;
+    color: var(--color-text-muted);
+  }
 }
 
 .chevron {
   display: flex;
-  color: var(--color-text-muted);
-}
-
-.note {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
+  flex: none;
+  color: var(--color-primary-text);
 }

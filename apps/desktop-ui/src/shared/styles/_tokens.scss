@@ -10,6 +10,7 @@
   --color-background: var(--neutral-0);
   --color-surface: var(--neutral-50);
   --color-surface-raised: var(--neutral-0);
+  --color-surface-sunken: var(--neutral-100);
 
   --color-text: var(--neutral-950);
   --color-text-muted: var(--neutral-600);
@@ -17,10 +18,15 @@
   --color-primary: var(--teal-700);
   --color-primary-subtle: var(--teal-50);
   --color-primary-text: var(--teal-700);
+  --color-primary-hover: var(--teal-800);
+  --color-primary-active: var(--teal-900);
   --color-on-primary: var(--neutral-0);
 
   --color-border: var(--neutral-200);
-  --color-border-strong: var(--neutral-400); // bordas de controles: contraste ≥ 3:1 (WCAG 1.4.11)
+  --color-hairline: rgb(5 12 12 / 0.1);
+  --color-accent-glow: rgb(17 107 103 / 0.18);
+  // Bordas de controles: contraste ≥ 3:1 em todas as superfícies (WCAG 1.4.11).
+  --color-border-strong: var(--neutral-500);
   --color-focus: var(--teal-700);
 
   --color-error: #b42318;
@@ -36,6 +42,9 @@
   --tone-info-bg: #e3f1fa;
   --tone-neutral-fg: #4a5b59;
   --tone-neutral-bg: #eef3f2;
+
+  --shadow-card: 0 1px 2px rgb(5 12 12 / 0.06);
+  --shadow-raised: 0 8px 24px -12px rgb(5 12 12 / 0.28);
 }
 
 @mixin theme-dark {
@@ -44,6 +53,7 @@
   --color-background: var(--neutral-975);
   --color-surface: var(--neutral-950);
   --color-surface-raised: var(--neutral-900);
+  --color-surface-sunken: var(--neutral-975);
 
   --color-text: var(--neutral-50);
   --color-text-muted: var(--neutral-350);
@@ -51,9 +61,13 @@
   --color-primary: var(--teal-400);
   --color-primary-subtle: rgb(51 193 186 / 0.12);
   --color-primary-text: var(--teal-400);
+  --color-primary-hover: var(--teal-300);
+  --color-primary-active: var(--teal-450);
   --color-on-primary: var(--neutral-975);
 
   --color-border: var(--neutral-800);
+  --color-hairline: rgb(241 247 246 / 0.08);
+  --color-accent-glow: rgb(51 193 186 / 0.22);
   --color-border-strong: var(--neutral-500);
   --color-focus: var(--teal-400);
 
@@ -70,6 +84,9 @@
   --tone-info-bg: #0f2536;
   --tone-neutral-fg: #b3c2c0;
   --tone-neutral-bg: #1e302e;
+
+  --shadow-card: 0 1px 0 rgb(241 247 246 / 0.04) inset;
+  --shadow-raised: 0 10px 28px -14px rgb(0 0 0 / 0.7);
 }
 
 :root {
@@ -77,21 +94,35 @@
   --teal-50: #e8f8f7;
   --teal-300: #5ccfc9;
   --teal-400: #33c1ba; // marca
+  --teal-450: #2ab0a9;
   --teal-500: #22a59f;
   --teal-700: #116b67;
   --teal-800: #0f5451;
+  --teal-900: #0c403e;
 
   --neutral-0: #ffffff;
   --neutral-50: #f1f7f6;
+  --neutral-100: #e3eeec;
   --neutral-200: #cfdcda;
   --neutral-350: #9baaa8;
   --neutral-400: #839593;
   --neutral-500: #627371;
   --neutral-600: #4a5b59;
+  --neutral-700: #33433f;
   --neutral-800: #1e302e;
   --neutral-900: #142321;
   --neutral-950: #0a1615;
   --neutral-975: #050c0c; // ink
+
+  // Ícones das atividades: um tom por atividade, como no modelo da interface. Cada par (fundo, ícone) tem ≥ 3:1.
+  --tile-teal-bg: #33c1ba;
+  --tile-teal-fg: #050c0c;
+  --tile-indigo-bg: #5b5bd6;
+  --tile-indigo-fg: #ffffff;
+  --tile-blue-bg: #2f6fd8;
+  --tile-blue-fg: #ffffff;
+  --tile-orange-bg: #f59e0b;
+  --tile-orange-fg: #050c0c;
 
   // Tipografia
   --font-mono: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
@@ -100,6 +131,7 @@
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
   --font-size-lg: 1.125rem;
+  --font-size-xl: 1.375rem;
   --font-size-2xl: 1.75rem;
   --font-weight-display: 620; // Geist é variável: peso entre semibold e bold
   --line-height-tight: 1.15;
@@ -117,6 +149,12 @@
   --space-8: 2rem;
   --radius-sm: 8px;
   --radius-md: 12px;
+  --radius-lg: 16px;
+
+  // Controles: alvos confortáveis (WCAG 2.5.8 pede 24px no mínimo; ações principais ficam perto de 44px).
+  --control-height: 2.5rem;
+  --control-height-lg: 2.75rem;
+  --target-min: 1.5rem;
 
   // Movimento
   --duration-fast: 120ms;

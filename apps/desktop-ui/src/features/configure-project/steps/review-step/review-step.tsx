@@ -1,11 +1,10 @@
-import { Alert, Button } from '@synthra.io/ui-kit';
+import { Button } from '@synthra.io/ui-kit';
 import { useState } from 'react';
 
-import { DiffView, StatusChip } from '@/shared/components/ui';
+import { DiffView, EvidenceDisclosure, InlineNotice, PrimaryActionFooter, StatusChip } from '@/shared/components/ui';
 import type { ConfigurationPlan, FileChange } from '@/shared/schemas';
 
 import { actionLabel, actionTone, effectLabel, kindLabel, originLabel } from '../../core/labels';
-import { EvidenceList } from '../../ui/evidence-list';
 import styles from '../../ui/panels.module.scss';
 import { StepHeader } from '../../ui/step-header';
 
@@ -80,12 +79,12 @@ export function ReviewStep({
                   </StatusChip>
                 ))}
               </div>
-              <EvidenceList summary="Pastas afetadas" items={cmd.affectedPaths} />
+              <EvidenceDisclosure summary="Pastas afetadas" items={cmd.affectedPaths} />
               {cmd.destructive ? (
-                <Alert
-                  severity="warning"
-                  description="Este comando sobrescreve edições locais da skill do TLC. Os arquivos atuais são copiados antes e podem ser restaurados."
-                />
+                <InlineNotice tone="warning">
+                  Este comando sobrescreve edições locais da skill do TLC. Os arquivos atuais são copiados antes e podem
+                  ser restaurados.
+                </InlineNotice>
               ) : null}
               <label className={styles.field}>
                 <input
@@ -125,10 +124,9 @@ export function ReviewStep({
 
             {change.action === 'conflict' ? (
               <>
-                <Alert
-                  severity="warning"
-                  description={change.conflictReason ?? 'O arquivo atual é diferente do proposto.'}
-                />
+                <InlineNotice tone="warning">
+                  {change.conflictReason ?? 'O arquivo atual é diferente do proposto.'}
+                </InlineNotice>
                 <fieldset className={styles.fieldset}>
                   <legend>{`Decisão para ${change.path}`}</legend>
                   <label className={styles.field}>
@@ -175,7 +173,7 @@ export function ReviewStep({
       </ul>
 
       {preserved.length > 0 ? (
-        <EvidenceList
+        <EvidenceDisclosure
           summary={`${preserved.length} arquivo(s) preservado(s), sem alteração`}
           items={preserved.map((c) => c.path)}
         />
@@ -192,7 +190,7 @@ export function ReviewStep({
         </div>
       ) : null}
 
-      <div className={styles.actions}>
+      <PrimaryActionFooter>
         <Button variant="outlined" color="inherit" onClick={onBack}>
           Voltar
         </Button>
@@ -204,7 +202,7 @@ export function ReviewStep({
             ? 'Nada aprovado para aplicar'
             : `Aplicar configuração (${approvalCount} aprovado${approvalCount === 1 ? '' : 's'})`}
         </Button>
-      </div>
+      </PrimaryActionFooter>
     </section>
   );
 }

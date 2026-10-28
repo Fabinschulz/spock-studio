@@ -1,18 +1,14 @@
 import { Outlet, useRouteError } from 'react-router';
 
-import { Container, ErrorContent } from '@/shared/components';
+import { ErrorContent } from '@/shared/components';
 
-import styles from './window-layout.module.scss';
-
-const MAIN_CONTENT_ID = 'conteudo';
+import { AppShell } from './app-shell';
 
 export function WindowLayout() {
   return (
-    <main id={MAIN_CONTENT_ID} className={styles.window}>
-      <Container>
-        <Outlet />
-      </Container>
-    </main>
+    <AppShell>
+      <Outlet />
+    </AppShell>
   );
 }
 
@@ -21,10 +17,8 @@ export function WindowLayoutError() {
   const error = useRouteError();
 
   return (
-    <main id={MAIN_CONTENT_ID} className={styles.window}>
-      <Container>
-        <ErrorContent error={error} source="route-error" />
-      </Container>
-    </main>
+    <AppShell>
+      <ErrorContent error={error} source="route-error" />
+    </AppShell>
   );
 }

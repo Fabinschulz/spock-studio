@@ -1,0 +1,43 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 1px;
+  border-radius: 50%;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.ok .mark {
+  background-color: var(--tone-success-bg);
+  color: var(--tone-success-fg);
+}
+
+.warn .mark {
+  background-color: var(--tone-warning-bg);
+  color: var(--tone-warning-fg);
+}
+
+.neutral .mark {
+  background-color: var(--tone-neutral-bg);
+  color: var(--tone-neutral-fg);
+}

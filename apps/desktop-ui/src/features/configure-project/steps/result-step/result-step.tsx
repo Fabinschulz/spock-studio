@@ -1,14 +1,13 @@
 import { Alert, Button, Modal } from '@synthra.io/ui-kit';
 import { useState } from 'react';
 
-import { StatusChip } from '@/shared/components/ui';
+import { EvidenceDisclosure, PrimaryActionFooter, StatusChip } from '@/shared/components/ui';
 import type { EvalResult, RunResult } from '@/shared/schemas';
 
 import { HARNESS_ENGINEER_NOT_INVOKED, harnessEngineerPrompt } from '../../core/harness-engineer-prompt';
 
 import type { JourneyResults, Loadable, RunView } from '../../core/journey-state';
 import { evalStatusLabel, evalStatusTone, outcomeLabel, runKindLabel } from '../../core/labels';
-import { EvidenceList } from '../../ui/evidence-list';
 import styles from '../../ui/panels.module.scss';
 import { StepHeader } from '../../ui/step-header';
 
@@ -115,7 +114,7 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
       ) : null}
 
       {apply?.risks && apply.risks.length > 0 ? (
-        <EvidenceList summary={`Riscos remanescentes (${apply.risks.length})`} items={apply.risks} />
+        <EvidenceDisclosure summary={`Riscos remanescentes (${apply.risks.length})`} items={apply.risks} />
       ) : null}
 
       {awaitingProposal ? <ProposalGuide onReplan={onReplan} replan={replan} /> : null}
@@ -133,7 +132,7 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
         </div>
       ) : null}
 
-      <div className={styles.actions}>
+      <PrimaryActionFooter>
         {canRevert ? (
           <Button variant="outlined" color="inherit" disabled={busy} onClick={() => setConfirming(true)}>
             Reverter alterações
@@ -145,7 +144,7 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
         <Button variant="contained" disabled={busy} onClick={onDone}>
           Concluir
         </Button>
-      </div>
+      </PrimaryActionFooter>
 
       <Modal
         open={confirming}
@@ -248,10 +247,15 @@ function FilesSummary({ files }: { files: NonNullable<RunResult['files']> }) {
         ))}
       </div>
       {groups.map(([label, items]) =>
-        items.length > 0 ? <EvidenceList key={label} summary={`${label} (${items.length})`} items={items} /> : null
+        items.length > 0 ? (
+          <EvidenceDisclosure key={label} summary={`${label} (${items.length})`} items={items} />
+        ) : null
       )}
       {files.commandEffects.length > 0 ? (
-        <EvidenceList summary={`Efeitos do instalador (${files.commandEffects.length})`} items={files.commandEffects} />
+        <EvidenceDisclosure
+          summary={`Efeitos do instalador (${files.commandEffects.length})`}
+          items={files.commandEffects}
+        />
       ) : null}
     </div>
   );
@@ -301,9 +305,9 @@ function ValidationTable({ report }: { report: NonNullable<RunResult['validation
                       Limite: {l}
                     </div>
                   ))}
-                  <EvidenceList summary={`Critério e evidências (${r.evidence.length})`} items={r.evidence}>
+                  <EvidenceDisclosure summary={`Critério e evidências (${r.evidence.length})`} items={r.evidence}>
                     <p className={styles.muted}>Critério: {r.criteria}</p>
-                  </EvidenceList>
+                  </EvidenceDisclosure>
                 </td>
               </tr>
             ))}
@@ -330,13 +334,15 @@ function RevertSummary({ result }: { result: RunResult }) {
           : 'Os arquivos restaurados não foram todos conferidos.'}
       </span>
       {result.reverted ? (
-        <EvidenceList summary={`Restaurados (${result.reverted.length})`} items={result.reverted} />
+        <EvidenceDisclosure summary={`Restaurados (${result.reverted.length})`} items={result.reverted} />
       ) : null}
       {result.conflicts && result.conflicts.length > 0 ? (
         <Alert
           severity="warning"
           title="Mantidos como estão"
-          description={<EvidenceList summary={`Arquivos (${result.conflicts.length})`} items={result.conflicts} />}
+          description={
+            <EvidenceDisclosure summary={`Arquivos (${result.conflicts.length})`} items={result.conflicts} />
+          }
         />
       ) : null}
     </div>

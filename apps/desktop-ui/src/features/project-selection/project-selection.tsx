@@ -1,16 +1,47 @@
-import { Alert } from '@synthra.io/ui-kit';
+import { InlineNotice } from '@/shared/components/ui';
 
 import { useProjectSelectionContext } from './context/project-selection-context';
 import styles from './project-selection.module.scss';
 import { ProjectPicker } from './ui/project-picker';
+import { RecentProjects } from './ui/recent-projects';
 
-export function ProjectSelection() {
-  const { selected, busy, error, pick, unavailableReason } = useProjectSelectionContext();
+interface ProjectSelectionProps {
+  /** Ação principal depois de escolhida a pasta (ex.: abrir a análise). */
+  onAnalyze?: () => void;
+}
+
+/** Os estados da escolha da pasta: nenhuma, escolhida, cancelada, inválida ou inacessível, e indisponível; e os recentes. */
+export function ProjectSelection({ onAnalyze }: ProjectSelectionProps) {
+  const { selected, busy, error, cancelled, recents, pick, openRecent, unavailableReason } =
+    useProjectSelectionContext();
 
   return (
     <div className={styles.selection}>
-      {error ? <Alert severity="error" description={error} /> : null}
-      <ProjectPicker selected={selected} busy={busy} onPick={() => void pick()} unavailableReason={unavailableReason} />
+      {error ? (
+        <InlineNotice tone="danger" title="Não foi possível usar esta pasta">
+          {error}
+        </InlineNotice>
+      ) : null}
+      <ProjectPicker
+        selected={selected}
+        busy={busy}
+        onPick={() => void pick()}
+        unavailableReason={unavailableReason}
+        onAnalyze={selected ? onAnalyze : undefined}
+      />
+      {/* Região de status: o anúncio acontece quando o texto entra, sem tirar o foco de onde a pessoa está. */}
+      <div role="status" aria-live="polite">
+        {cancelled && !error ? (
+          <InlineNotice tone="info">Seleção cancelada. Nenhuma pasta foi escolhida e nada foi alterado.</InlineNotice>
+        ) : null}
+        {busy ? <span className={styles.busy}>Abrindo o seletor de pastas…</span> : null}
+      </div>
+      <RecentProjects
+        recents={recents}
+        selectedName={selected?.displayName}
+        busy={busy}
+        onOpen={(id) => void openRecent(id)}
+      />
     </div>
   );
 }

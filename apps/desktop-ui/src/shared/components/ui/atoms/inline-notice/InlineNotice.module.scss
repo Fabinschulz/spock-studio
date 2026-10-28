@@ -1,0 +1,42 @@
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+}
+
+.icon {
+  flex: none;
+  margin-top: 1px;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: var(--font-size-sm);
+}
+
+.title {
+  font-weight: 600;
+}
+
+.body {
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+@each $tone in (info, warning, danger, success) {
+  .#{$tone} {
+    border-left-color: var(--tone-#{$tone}-fg);
+
+    .icon {
+      color: var(--tone-#{$tone}-fg);
+    }
+  }
+}

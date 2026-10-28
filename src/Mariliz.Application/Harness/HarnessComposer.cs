@@ -344,7 +344,7 @@ public static class HarnessComposer
     {
         var sb = new StringBuilder();
         sb.Append("# Repository commands\n\n");
-        sb.Append("Managed by Mariliz AI Engineering. Detected from the repository's own files; each row cites its evidence.\n");
+        sb.Append("Managed by Mariliz Studio. Detected from the repository's own files; each row cites its evidence.\n");
         sb.Append("Confirm a command before relying on it. If a command here is wrong, fix the source file it comes from.\n\n");
         sb.Append("| Purpose | Command | Evidence |\n| --- | --- | --- |\n");
         foreach (var t in commands.OrderBy(t => t.Kind, StringComparer.Ordinal).ThenBy(t => t.Command, StringComparer.Ordinal))
@@ -357,7 +357,7 @@ public static class HarnessComposer
     {
         var sb = new StringBuilder();
         sb.Append("# ").Append(rule.Title).Append("\n\n");
-        sb.Append("Managed by Mariliz AI Engineering. Proposed by the Harness Engineer and approved by a person.\n");
+        sb.Append("Managed by Mariliz Studio. Proposed by the Harness Engineer and approved by a person.\n");
         sb.Append("Why: ").Append(rule.Justification).Append('\n');
         sb.Append("Evidence: ").Append(string.Join("; ", rule.Evidence)).Append("\n\n");
         sb.Append(rule.Content.Replace("\r\n", "\n").TrimEnd()).Append('\n');

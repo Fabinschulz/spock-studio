@@ -1,4 +1,4 @@
-# Mariliz AI Engineering — Architecture Blueprint
+# Mariliz Studio — Architecture Blueprint
 
 **Fase:** 0. **Data:** 2026-10-25. Rótulos conforme [`product-discovery.md`](product-discovery.md). Tudo aqui é proposta para aprovação; nenhum código existe.
 
@@ -290,7 +290,7 @@ public interface IWritableTarget<TEntity>  { Task<WriteResult> WriteAsync(TEntit
 
 | Requisito | Como é imposto |
 | --- | --- |
-| Menor privilégio no host | Capabilities do Tauri limitadas aos 3 comandos; sem plugin shell nem fs no frontend; CSP restritiva no WebView |
+| Menor privilégio no host | Capabilities do Tauri limitadas aos 5 comandos do host (`engine_request`, `pick_project_folder`, `engine_status`, `list_recent_projects`, `open_recent_project`); sem plugin shell nem fs no frontend; CSP restritiva no WebView |
 | Pastas autorizadas | Só pastas escolhidas no diálogo nativo entram na lista `workspace`; todo caminho é normalizado e verificado contra a raiz autorizada (protege contra path traversal e links simbólicos que saem da raiz) |
 | Execução de processos | O motor executa somente comandos declarados no `mariliz.yaml` aprovado ou no profile, com timeout, diretório de trabalho fixo e ambiente limpo |
 | Segredos | Cofre do SO via `ISecretStore`; nunca em log, mensagem de protocolo, prompt, arquivo versionado ou relatório. **[DECISÃO PENDENTE]** biblioteca .NET multiplataforma de cofre |

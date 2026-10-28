@@ -1,0 +1,69 @@
+@use '@/shared/styles/abstracts' as *;
+
+.details {
+  font-size: var(--font-size-sm);
+}
+
+.summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  color: var(--color-primary-text);
+  cursor: pointer;
+  list-style: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  // O triângulo é decorativo: o estado aberto/fechado é anunciado pelo próprio <details>.
+  &::before {
+    width: 0;
+    height: 0;
+    border-block: 4px solid transparent;
+    border-left: 6px solid currentColor;
+    content: '';
+    transition: transform var(--duration-fast);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+
+    border-radius: var(--radius-sm);
+  }
+}
+
+.details[open] > .summary::before {
+  transform: rotate(90deg);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  border-left: 2px solid var(--color-border);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .summary::before {
+    transition: none;
+  }
+}

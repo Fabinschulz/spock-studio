@@ -1,12 +1,14 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Permissões mínimas da janela principal: só os três comandos do host e a escuta de eventos do motor.",
+  "description": "Permissões mínimas da janela principal: só os cinco comandos do host e a escuta de eventos do motor.",
   "windows": ["main"],
   "permissions": [
     "allow-engine-request",
     "allow-pick-project-folder",
     "allow-engine-status",
+    "allow-list-recent-projects",
+    "allow-open-recent-project",
     "core:event:allow-listen",
     "core:event:allow-unlisten"
   ]

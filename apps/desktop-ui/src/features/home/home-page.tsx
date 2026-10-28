@@ -22,7 +22,7 @@ export function HomePage() {
     <div className={styles.page}>
       <Hero />
       <JourneyGrid onStartJourney={(id) => void startJourney(id)} />
-      <ProjectSelection />
+      <ProjectSelection onAnalyze={() => navigate(pathTo('configure'))} />
     </div>
   );
 }

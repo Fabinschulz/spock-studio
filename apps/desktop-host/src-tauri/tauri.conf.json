@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Mariliz AI Engineering",
+  "productName": "Mariliz Studio",
   "version": "0.1.0",
   "identifier": "dev.mariliz.ai-engineering",
   "build": {
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Mariliz AI Engineering",
+        "title": "Mariliz Studio",
         "width": 900,
         "height": 650,
         "minWidth": 760,

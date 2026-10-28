@@ -1,12 +1,27 @@
-import { Alert, Button } from '@synthra.io/ui-kit';
+import { Button } from '@synthra.io/ui-kit';
+import { Fragment } from 'react';
 
-import { StatusChip } from '@/shared/components/ui';
+import { EvidenceDisclosure, InlineNotice, PrimaryActionFooter, StatusChip } from '@/shared/components/ui';
 import type { ConfigurationPlan } from '@/shared/schemas';
 
 import { decisionLabel, decisionTone, kindLabel, observationLabel, originLabel } from '../../core/labels';
-import { EvidenceList } from '../../ui/evidence-list';
 import styles from '../../ui/panels.module.scss';
 import { StepHeader } from '../../ui/step-header';
+
+// Permite a quebra de linha depois de cada ponto do id, em vez de no meio de uma palavra.
+// <wbr> s\u00f3 sugere o ponto de quebra: o texto copiado continua sendo o id exato.
+function Breakable({ id }: { id: string }) {
+  return id.split('.').map((part, index) => (
+    <Fragment key={index}>
+      {index > 0 ? (
+        <>
+          .<wbr />
+        </>
+      ) : null}
+      {part}
+    </Fragment>
+  ));
+}
 
 interface PlanStepProps {
   plan: ConfigurationPlan;
@@ -24,15 +39,14 @@ export function PlanStep({ plan, onBack, onContinue }: PlanStepProps) {
         da revisão.
       </StepHeader>
 
-      <Alert
-        severity="info"
+      <InlineNotice
+        tone="info"
         title={fromEngineer ? 'Plano com a proposta do Harness Engineer' : 'Plano pelas regras-base'}
-        description={
-          fromEngineer
-            ? 'A proposta do agente foi validada pelo motor (formato, catálogo de componentes e ausência de segredos) antes de entrar no plano.'
-            : 'O Harness Engineer ainda não gerou uma proposta. Depois de aplicar, o agente fica em .claude/agents/harness-engineer.md: peça a ele, no seu ambiente de IA, que escreva .mariliz/proposal.json e gere o plano de novo.'
-        }
-      />
+      >
+        {fromEngineer
+          ? 'A proposta do agente foi validada pelo motor (formato, catálogo de componentes e ausência de segredos) antes de entrar no plano.'
+          : 'O Harness Engineer ainda não gerou uma proposta. Depois de aplicar, o agente fica em .claude/agents/harness-engineer.md: peça a ele, no seu ambiente de IA, que escreva .mariliz/proposal.json e gere o plano de novo.'}
+      </InlineNotice>
 
       <h3 className={styles.sectionTitle}>Decisões por componente</h3>
       {/* Região rolável: precisa de foco para quem navega só pelo teclado. */}
@@ -51,7 +65,9 @@ export function PlanStep({ plan, onBack, onContinue }: PlanStepProps) {
               <tr key={d.componentId}>
                 <td>
                   <div>{kindLabel[d.kind]}</div>
-                  <div className={styles.mono}>{d.componentId}</div>
+                  <div className={styles.mono}>
+                    <Breakable id={d.componentId} />
+                  </div>
                 </td>
                 <td>
                   <StatusChip tone={decisionTone(d.decision)}>{decisionLabel[d.decision] ?? d.decision}</StatusChip>
@@ -59,7 +75,7 @@ export function PlanStep({ plan, onBack, onContinue }: PlanStepProps) {
                 <td>
                   <div>{d.justification}</div>
                   <div className={styles.muted}>Origem: {originLabel[d.origin] ?? d.origin}</div>
-                  <EvidenceList summary={`Evidências (${d.evidence.length})`} items={d.evidence} />
+                  <EvidenceDisclosure summary={`Evidências (${d.evidence.length})`} items={d.evidence} />
                 </td>
               </tr>
             ))}
@@ -71,7 +87,9 @@ export function PlanStep({ plan, onBack, onContinue }: PlanStepProps) {
         <>
           <h3 className={styles.sectionTitle}>Limitações</h3>
           {plan.limitations.map((l) => (
-            <Alert key={l.code + l.message} severity="warning" description={l.message} />
+            <InlineNotice key={l.code + l.message} tone="warning">
+              {l.message}
+            </InlineNotice>
           ))}
         </>
       ) : null}
@@ -86,7 +104,7 @@ export function PlanStep({ plan, onBack, onContinue }: PlanStepProps) {
                   {observationLabel[o.kind]}
                 </StatusChip>
                 <span>{o.text}</span>
-                <EvidenceList summary={`Evidências (${o.evidence.length})`} items={o.evidence} />
+                <EvidenceDisclosure summary={`Evidências (${o.evidence.length})`} items={o.evidence} />
               </li>
             ))}
           </ul>
@@ -104,14 +122,14 @@ export function PlanStep({ plan, onBack, onContinue }: PlanStepProps) {
         </>
       ) : null}
 
-      <div className={styles.actions}>
+      <PrimaryActionFooter>
         <Button variant="outlined" color="inherit" onClick={onBack}>
           Voltar
         </Button>
         <Button variant="contained" onClick={onContinue}>
           Revisar alterações
         </Button>
-      </div>
+      </PrimaryActionFooter>
     </section>
   );
 }

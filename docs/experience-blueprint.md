@@ -1,4 +1,4 @@
-# Mariliz AI Engineering — Experience Blueprint
+# Mariliz Studio — Experience Blueprint
 
 **Fase:** 0. **Data:** 2026-10-25. Rótulos **[FATO]**, **[INFERÊNCIA]**, **[HIPÓTESE]** e **[DECISÃO PENDENTE]** conforme [`product-discovery.md`](product-discovery.md).
 
@@ -152,7 +152,7 @@ Relatório final com: estado final, etapas com duração, arquivos alterados, va
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│ [Marca] Mariliz AI Engineering                         [—] [□] [×]│
+│ [Marca] Mariliz Studio                         [—] [□] [×]│
 │        Engenharia de software assistida por IA                    │
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                  │

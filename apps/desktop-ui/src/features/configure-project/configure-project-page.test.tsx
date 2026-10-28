@@ -105,7 +105,8 @@ describe('jornada Configurar projeto', () => {
       expect(await screen.findByText('Projeto EmpregaNetAPI')).toBeInTheDocument();
       expect(screen.getByText(/A análise é somente de leitura/)).toBeInTheDocument();
       const stacks = within(await screen.findByRole('list', { name: 'Stacks detectadas' }));
-      expect(stacks.getByText(/\.NET net10\.0/)).toBeInTheDocument();
+      expect(stacks.getByText('.NET')).toBeInTheDocument();
+      expect(stacks.getByText('net10.0')).toBeInTheDocument();
       expect(stacks.getByText('confiança alta')).toBeInTheDocument();
       expect(screen.getByText('Não instalado')).toBeInTheDocument();
       expect(screen.getByText(/Git: 2\.56\.0|Git: versão 2\.56\.0/)).toBeInTheDocument();
@@ -146,6 +147,41 @@ describe('jornada Configurar projeto', () => {
       await screen.findByText('Método e ambiente de IA');
 
       expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
+    });
+  });
+
+  describe('A · contexto da pasta', () => {
+    it('mostra a pasta escolhida e o selo do método; "Trocar pasta" abre o seletor de novo', async () => {
+      const pick = vi.fn().mockResolvedValue(project);
+      render(
+        <AppProviders>
+          <ProjectSelectionProvider picker={{ pick }}>
+            <MemoryRouter initialEntries={['/configurar']}>
+              <Routes>
+                <Route
+                  path="/configurar"
+                  element={
+                    <WithProject>
+                      <ConfigureProjectPage api={fakeApi()} pollMs={5} />
+                    </WithProject>
+                  }
+                />
+              </Routes>
+            </MemoryRouter>
+          </ProjectSelectionProvider>
+        </AppProviders>
+      );
+
+      expect(await screen.findByText('Projeto selecionado')).toBeInTheDocument();
+      expect(screen.getByText(project.displayPath)).toBeInTheDocument();
+      expect(screen.getByText('Método de especificação:')).toBeInTheDocument();
+      expect(screen.getByText(/TLC \(padrão\)/)).toBeInTheDocument();
+      expect(screen.getByText('Stack e tecnologias do projeto')).toBeInTheDocument();
+      const calls = pick.mock.calls.length;
+
+      await userEvent.click(screen.getByRole('button', { name: 'Trocar pasta' }));
+
+      await waitFor(() => expect(pick.mock.calls.length).toBe(calls + 1));
     });
   });
 
