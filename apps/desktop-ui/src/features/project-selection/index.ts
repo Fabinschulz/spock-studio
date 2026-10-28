@@ -6,3 +6,4 @@ export {
 export { formatRecentDate } from './core/format-recent-date';
 export { ProjectPickError, type ProjectPickerPort, type RecentProject, type SelectedProject } from './core/types';
 export { ProjectSelection } from './project-selection';
+export { RecentProjects } from './ui/recent-projects';

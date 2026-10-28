@@ -14,24 +14,24 @@ export const journeys: readonly Journey[] = [
   {
     id: 'configure-project',
     title: 'Configurar projeto',
-    description: 'Analisar o repositório e configurar o Harness.'
+    description: 'Analise o repositório e configure o Harness.'
   },
   {
     id: 'import-requirements',
     title: 'Importar requisitos',
-    description: 'Gerar especificações, backlog e roadmap a partir de documentos ou ferramentas existentes.',
+    description: 'Gere especificações, backlog e roadmap a partir de documentos existentes.',
     unavailableReason: SOON
   },
   {
     id: 'connect-tools',
     title: 'Conectar ferramentas',
-    description: 'Configurar Jira, Azure DevOps, GitHub, MCPs e bancos de dados.',
+    description: 'Configure Jira, Azure DevOps, GitHub, MCPs e bancos de dados.',
     unavailableReason: SOON
   },
   {
     id: 'modernize-system',
     title: 'Modernizar sistema',
-    description: 'Analisar um legado e planejar sua modernização.',
+    description: 'Analise um legado e planeje sua modernização.',
     unavailableReason: SOON
   }
 ];

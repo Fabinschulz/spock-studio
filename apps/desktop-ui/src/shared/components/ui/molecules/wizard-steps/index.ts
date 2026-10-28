@@ -1,1 +1,1 @@
-export { WizardSteps, type WizardStep } from './WizardSteps';
+export { WizardSteps, type StepIssue, type WizardStep } from './WizardSteps';

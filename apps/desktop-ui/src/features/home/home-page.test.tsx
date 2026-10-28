@@ -29,7 +29,7 @@ function renderHome(picker: ProjectPickerPort, unavailableReason?: string) {
 const neverCalled: ProjectPickerPort = { pick: vi.fn() };
 
 describe('HomePage', () => {
-  it('mostra o título, o texto de apoio e a marca', () => {
+  it('mostra a saudação, o título, o texto de apoio e a frase da marca', () => {
     renderHome(neverCalled);
 
     expect(screen.getByRole('heading', { level: 1, name: 'Como podemos ajudar?' })).toBeInTheDocument();
@@ -38,8 +38,8 @@ describe('HomePage', () => {
         'Escolha uma atividade para começar. Vamos configurar o ambiente conforme as necessidades do seu projeto.'
       )
     ).toBeInTheDocument();
-    expect(screen.getByText('Mariliz Studio')).toBeInTheDocument();
-    expect(screen.getByText('Engenharia de software assistida por IA')).toBeInTheDocument();
+    expect(screen.getByText('Bem-vindo(a)!')).toBeInTheDocument();
+    expect(screen.getByText(/Mais que ferramentas,/)).toBeInTheDocument();
   });
 
   it('apresenta os quatro cartões na ordem definida, com título e descrição completos', () => {
@@ -52,12 +52,12 @@ describe('HomePage', () => {
       expect.stringContaining('Conectar ferramentas'),
       expect.stringContaining('Modernizar sistema')
     ]);
-    expect(screen.getByText('Analisar o repositório e configurar o Harness.')).toBeInTheDocument();
+    expect(screen.getByText('Analise o repositório e configure o Harness.')).toBeInTheDocument();
     expect(
-      screen.getByText('Gerar especificações, backlog e roadmap a partir de documentos ou ferramentas existentes.')
+      screen.getByText('Gere especificações, backlog e roadmap a partir de documentos existentes.')
     ).toBeInTheDocument();
-    expect(screen.getByText('Configurar Jira, Azure DevOps, GitHub, MCPs e bancos de dados.')).toBeInTheDocument();
-    expect(screen.getByText('Analisar um legado e planejar sua modernização.')).toBeInTheDocument();
+    expect(screen.getByText('Configure Jira, Azure DevOps, GitHub, MCPs e bancos de dados.')).toBeInTheDocument();
+    expect(screen.getByText('Analise um legado e planeje sua modernização.')).toBeInTheDocument();
   });
 
   it('só "Configurar projeto" está disponível; as demais jornadas dizem "Em breve" e continuam focáveis', async () => {
@@ -76,14 +76,16 @@ describe('HomePage', () => {
     expect(screen.queryByText('JORNADA ABERTA')).not.toBeInTheDocument();
   });
 
-  it('segue a ordem de tabulação: cartões e depois o seletor de projeto', async () => {
+  it('segue a ordem de tabulação: cartões, o aviso e depois o seletor de projeto', async () => {
     const user = userEvent.setup();
     renderHome(neverCalled);
 
     for (let i = 0; i < 4; i++) await user.tab();
     expect(screen.getByRole('button', { name: /Modernizar sistema/ })).toHaveFocus();
     await user.tab();
-    expect(screen.getByRole('button', { name: /Selecionar pasta do projeto/ })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Dispensar aviso' })).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Selecionar pasta' })).toHaveFocus();
   });
 
   it('exibe o texto auxiliar do seletor de projeto', () => {
@@ -98,7 +100,7 @@ describe('HomePage', () => {
     const user = userEvent.setup();
     renderHome({ pick: vi.fn().mockResolvedValue(project) });
 
-    await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+    await user.click(screen.getByRole('button', { name: 'Selecionar pasta' }));
 
     expect(await screen.findByText('EmpregaNetAPI')).toBeInTheDocument();
     expect(screen.getByText('~\\…\\backend\\EmpregaNetAPI')).toBeInTheDocument();
@@ -110,7 +112,7 @@ describe('HomePage', () => {
     const user = userEvent.setup();
     renderHome(picker);
 
-    await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+    await user.click(screen.getByRole('button', { name: 'Selecionar pasta' }));
 
     await waitFor(() => expect(picker.pick).toHaveBeenCalledTimes(1));
     expect(screen.getByText('Selecionar pasta do projeto')).toBeInTheDocument();
@@ -124,36 +126,52 @@ describe('HomePage', () => {
     const user = userEvent.setup();
     renderHome(picker);
 
-    await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+    await user.click(screen.getByRole('button', { name: 'Selecionar pasta' }));
 
     expect(await screen.findByText('A pasta escolhida não pode ser usada.')).toBeInTheDocument();
   });
 
-  it('não tenta abrir o diálogo fora do aplicativo desktop e explica o motivo', async () => {
+  it('não tenta abrir o diálogo fora do aplicativo desktop e explica o motivo', () => {
     const picker: ProjectPickerPort = { pick: vi.fn() };
-    const user = userEvent.setup();
     renderHome(picker, 'Disponível apenas no aplicativo desktop.');
 
-    const row = screen.getByRole('button', { name: /Selecionar pasta do projeto/ });
-    expect(row).toHaveAttribute('aria-disabled', 'true');
-    await user.click(row);
+    expect(screen.getByRole('button', { name: 'Selecionar pasta' })).toBeDisabled();
     expect(picker.pick).not.toHaveBeenCalled();
     expect(screen.getByText('Disponível apenas no aplicativo desktop.')).toBeInTheDocument();
   });
 
-  describe('seleção de projeto · estados', () => {
-    it('com pasta escolhida, a ação principal é "Analisar projeto" e leva à jornada; escolher não é analisar', async () => {
-      const user = userEvent.setup();
-      renderHome({ pick: vi.fn().mockResolvedValue(project) });
+  it('o aviso de funcionalidades em breve lista só o que não existe e pode ser dispensado', async () => {
+    const user = userEvent.setup();
+    renderHome(neverCalled);
 
-      expect(screen.queryByRole('button', { name: /Analisar projeto/ })).not.toBeInTheDocument();
-      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+    expect(screen.getByText('Funcionalidades em breve')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'As opções Importar requisitos, Conectar ferramentas e Modernizar sistema ainda estão em desenvolvimento.'
+      )
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Dispensar aviso' }));
+    expect(screen.queryByText('Funcionalidades em breve')).not.toBeInTheDocument();
+  });
+
+  describe('seleção de projeto · estados', () => {
+    it('com pasta escolhida, ela é marcada e a análise só começa pela atividade; escolher não é analisar', async () => {
+      const user = userEvent.setup();
+      const pick = vi.fn().mockResolvedValue(project);
+      renderHome({ pick });
+
+      expect(screen.queryByText('Pasta selecionada')).not.toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Selecionar pasta' }));
       await screen.findByText('Os arquivos permanecem no computador. A análise inicial é somente de leitura.');
+      expect(screen.getByText('Pasta selecionada')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Analisar projeto/ })).not.toBeInTheDocument();
       expect(screen.queryByText('JORNADA ABERTA')).not.toBeInTheDocument();
 
-      await user.click(screen.getByRole('button', { name: /Analisar projeto/ }));
+      await user.click(screen.getByRole('button', { name: /Configurar projeto/ }));
 
       expect(await screen.findByText('JORNADA ABERTA')).toBeInTheDocument();
+      expect(pick).toHaveBeenCalledTimes(1);
     });
 
     it('o caminho aparece inteiro no documento e a ação "Trocar" diz de qual pasta é', async () => {
@@ -161,7 +179,7 @@ describe('HomePage', () => {
       const picker: ProjectPickerPort = { pick: vi.fn().mockResolvedValue(project) };
       renderHome(picker);
 
-      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+      await user.click(screen.getByRole('button', { name: 'Selecionar pasta' }));
 
       const path = await screen.findByText(project.displayPath);
       expect(path).toHaveAttribute('title', project.displayPath);
@@ -175,12 +193,12 @@ describe('HomePage', () => {
       const pick = vi.fn().mockResolvedValueOnce(null).mockResolvedValue(project);
       renderHome({ pick });
 
-      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+      await user.click(screen.getByRole('button', { name: 'Selecionar pasta' }));
 
       expect(await screen.findByText(/Seleção cancelada\. Nenhuma pasta foi escolhida/)).toBeInTheDocument();
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
-      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+      await user.click(screen.getByRole('button', { name: 'Selecionar pasta' }));
       await screen.findByText('EmpregaNetAPI');
       expect(screen.queryByText(/Seleção cancelada/)).not.toBeInTheDocument();
     });
@@ -191,7 +209,7 @@ describe('HomePage', () => {
         pick: vi.fn().mockRejectedValue(new ProjectPickError('NOT_READABLE', 'Não foi possível ler a pasta.'))
       });
 
-      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+      await user.click(screen.getByRole('button', { name: 'Selecionar pasta' }));
 
       const alert = await screen.findByRole('alert');
       expect(alert).toHaveTextContent('Não foi possível usar esta pasta');
@@ -204,9 +222,9 @@ describe('HomePage', () => {
       const pick = vi.fn().mockReturnValue(new Promise((resolve) => (finish = resolve)));
       renderHome({ pick });
 
-      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+      await user.click(screen.getByRole('button', { name: 'Selecionar pasta' }));
       expect(await screen.findByText('Abrindo o seletor de pastas…')).toBeInTheDocument();
-      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+      expect(screen.getByRole('button', { name: 'Abrindo…' })).toBeDisabled();
       expect(pick).toHaveBeenCalledTimes(1);
 
       finish(project);
@@ -236,7 +254,7 @@ describe('HomePage', () => {
       const picker: ProjectPickerPort = { pick: vi.fn().mockResolvedValue(project) };
       const user = userEvent.setup();
       renderHome(picker);
-      await user.click(screen.getByRole('button', { name: /Selecionar pasta do projeto/ }));
+      await user.click(screen.getByRole('button', { name: 'Selecionar pasta' }));
       await screen.findByText('Trocar');
 
       await user.click(screen.getByRole('button', { name: /Configurar projeto/ }));

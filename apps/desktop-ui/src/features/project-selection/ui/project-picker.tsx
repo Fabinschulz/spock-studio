@@ -12,15 +12,14 @@ interface ProjectPickerProps {
   busy?: boolean;
   /** Presente quando a seleção não está disponível neste ambiente (ex.: navegador sem o host desktop). */
   unavailableReason?: string;
-  /** Com uma pasta escolhida, a ação principal da tela. Escolher a pasta nunca é o mesmo que analisá-la. */
-  onAnalyze?: () => void;
 }
 
 /**
- * Sem pasta: uma linha inteira clicável. Com pasta: o nome, o caminho abreviado pelo host, "Trocar" e a ação principal.
+ * Cartão do projeto: a ação de escolher a pasta e, depois de escolhida, o nome, o caminho abreviado pelo host e "Trocar".
  * O caminho só é cortado visualmente (reticências); o texto completo continua no documento para quem usa leitor de tela.
+ * Escolher a pasta nunca é o mesmo que analisá-la: a análise começa na atividade "Configurar projeto".
  */
-export function ProjectPicker({ selected, onPick, busy, unavailableReason, onAnalyze }: ProjectPickerProps) {
+export function ProjectPicker({ selected, onPick, busy, unavailableReason }: ProjectPickerProps) {
   const id = useId();
   const unavailable = unavailableReason !== undefined;
   const inactive = unavailable || busy;
@@ -31,21 +30,40 @@ export function ProjectPicker({ selected, onPick, busy, unavailableReason, onAna
         Projeto
       </h2>
 
-      {selected ? (
-        <div className={styles.selected}>
+      <div className={`${styles.card} ${selected ? styles.hasProject : ''}`}>
+        <div className={styles.header}>
           <span className={styles.icon} aria-hidden="true">
             <FolderIcon />
           </span>
           <span className={styles.text}>
-            <span className={styles.title}>{selected.displayName}</span>
-            <span className={styles.path} title={selected.displayPath}>
-              {selected.displayPath}
-            </span>
-            <span className={styles.note}>
-              Os arquivos permanecem no computador. A análise inicial é somente de leitura.
-            </span>
+            <span className={styles.title}>Selecionar pasta do projeto</span>
+            <span className={styles.note}>{unavailableReason ?? 'Os arquivos permanecem no computador.'}</span>
           </span>
-          <span className={styles.actions}>
+          <Button
+            variant="contained"
+            onClick={onPick}
+            disabled={inactive}
+            startIcon={<FolderIcon size={18} />}
+            endIcon={<ArrowRightIcon fontSize="small" />}
+          >
+            {busy ? 'Abrindo…' : 'Selecionar pasta'}
+          </Button>
+        </div>
+
+        {selected ? (
+          <div className={styles.selected}>
+            <span className={styles.icon} aria-hidden="true">
+              <FolderIcon />
+            </span>
+            <span className={styles.text}>
+              <span className={styles.name}>
+                <span className={styles.title}>{selected.displayName}</span>
+                <span className={styles.chip}>Pasta selecionada</span>
+              </span>
+              <span className={styles.path} title={selected.displayPath}>
+                {selected.displayPath}
+              </span>
+            </span>
             <button
               type="button"
               className={styles.change}
@@ -53,37 +71,34 @@ export function ProjectPicker({ selected, onPick, busy, unavailableReason, onAna
               aria-label={`Trocar a pasta do projeto ${selected.displayName}`}
               onClick={inactive ? undefined : onPick}
             >
-              {busy ? 'Abrindo…' : 'Trocar'}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+                <path
+                  d="M2.5 6h10M10 3l3 3-3 3M13.5 10h-10M6 7l-3 3 3 3"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Trocar
             </button>
-            {onAnalyze ? (
-              <Button variant="contained" onClick={onAnalyze} endIcon={<ArrowRightIcon fontSize="small" />}>
-                Analisar projeto
-              </Button>
-            ) : null}
-          </span>
-        </div>
-      ) : (
-        <button
-          type="button"
-          className={styles.row}
-          aria-disabled={inactive || undefined}
-          aria-describedby={`${id}-detalhe`}
-          onClick={inactive ? undefined : onPick}
-        >
-          <span className={styles.icon} aria-hidden="true">
-            <FolderIcon />
-          </span>
-          <span className={styles.text}>
-            <span className={styles.title}>Selecionar pasta do projeto</span>
-            <span id={`${id}-detalhe`} className={styles.path}>
-              {unavailableReason ?? 'Os arquivos permanecem no computador.'}
-            </span>
-          </span>
-          <span className={styles.chevron} aria-hidden="true">
-            {busy ? '…' : <ArrowRightIcon />}
-          </span>
-        </button>
-      )}
+            <p className={styles.info}>
+              <InlineNoticeGlyph />
+              <span>Os arquivos permanecem no computador. A análise inicial é somente de leitura.</span>
+            </p>
+          </div>
+        ) : null}
+      </div>
     </section>
+  );
+}
+
+/** Pequeno "i" em círculo, no mesmo traço dos avisos. Decorativo. */
+function InlineNoticeGlyph() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
+      <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M10 9v5M10 6.2v.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
   );
 }

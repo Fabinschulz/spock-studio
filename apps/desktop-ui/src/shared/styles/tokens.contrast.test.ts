@@ -85,7 +85,7 @@ for (const [themeName, scope] of [
   const ratio = (fg: string, bg: string) => contrast(color(fg), color(bg));
 
   describe(`contraste dos tokens (tema ${themeName})`, () => {
-    const surfaces = ['color-background', 'color-surface', 'color-surface-raised'] as const;
+    const surfaces = ['color-background', 'color-surface', 'color-surface-raised', 'color-surface-sunken'] as const;
 
     it.each(surfaces)('texto principal em %s ≥ 7:1', (surface) => {
       expect(ratio('color-text', surface)).toBeGreaterThanOrEqual(7);
@@ -120,19 +120,13 @@ for (const [themeName, scope] of [
       expect(ratio(token, 'color-background')).toBeGreaterThanOrEqual(4.5);
     });
 
-    it.each(['color-background', 'color-surface', 'color-surface-raised'])(
-      'borda de controle contra %s ≥ 3:1 (WCAG 1.4.11)',
-      (surface) => {
-        expect(ratio('color-border-strong', surface)).toBeGreaterThanOrEqual(3);
-      }
-    );
+    it.each(surfaces)('borda de controle contra %s ≥ 3:1 (WCAG 1.4.11)', (surface) => {
+      expect(ratio('color-border-strong', surface)).toBeGreaterThanOrEqual(3);
+    });
 
-    it.each(['color-background', 'color-surface', 'color-surface-raised'])(
-      'anel de foco contra %s ≥ 3:1 (WCAG 2.4.11)',
-      (surface) => {
-        expect(ratio('color-focus', surface)).toBeGreaterThanOrEqual(3);
-      }
-    );
+    it.each(surfaces)('anel de foco contra %s ≥ 3:1 (WCAG 2.4.11)', (surface) => {
+      expect(ratio('color-focus', surface)).toBeGreaterThanOrEqual(3);
+    });
 
     it.each(TILES)('ícone da atividade %s sobre o próprio fundo ≥ 3:1 (componente gráfico)', (tile) => {
       expect(ratio(`tile-${tile}-fg`, `tile-${tile}-bg`)).toBeGreaterThanOrEqual(3);

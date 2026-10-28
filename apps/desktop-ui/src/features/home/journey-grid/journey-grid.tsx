@@ -36,6 +36,7 @@ export function JourneyGrid({ onStartJourney }: JourneyGridProps) {
             icon={icons[journey.id]}
             variant={journey.id === 'configure-project' ? 'primary' : 'default'}
             accent={accents[journey.id]}
+            highlight={journey.id === 'configure-project' ? 'Principal' : undefined}
             unavailableReason={journey.unavailableReason}
             onClick={() => onStartJourney?.(journey.id)}
           />

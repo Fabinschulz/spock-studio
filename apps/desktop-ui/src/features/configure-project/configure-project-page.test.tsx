@@ -90,7 +90,7 @@ const click = (name: RegExp | string) => userEvent.click(screen.getByRole('butto
 async function reachReview(api: HarnessApi) {
   renderJourney(api);
   await screen.findByText('Stack detectada');
-  await click('Continuar');
+  await click('Próximo');
   await click('Gerar plano');
   await screen.findByText('Composição do Harness');
   await click('Revisar alterações');
@@ -103,8 +103,8 @@ describe('jornada Configurar projeto', () => {
       renderJourney(fakeApi());
 
       expect(await screen.findByText('Projeto EmpregaNetAPI')).toBeInTheDocument();
-      expect(screen.getByText(/A análise é somente de leitura/)).toBeInTheDocument();
       const stacks = within(await screen.findByRole('list', { name: 'Stacks detectadas' }));
+      expect(screen.getByText(/Análise concluída: a pasta foi lida e nada foi alterado/)).toBeInTheDocument();
       expect(stacks.getByText('.NET')).toBeInTheDocument();
       expect(stacks.getByText('net10.0')).toBeInTheDocument();
       expect(stacks.getByText('confiança alta')).toBeInTheDocument();
@@ -143,15 +143,15 @@ describe('jornada Configurar projeto', () => {
       await screen.findByText('Stack detectada');
       scrollTo.mockClear();
 
-      await click('Continuar');
-      await screen.findByText('Método e ambiente de IA');
+      await click('Próximo');
+      await screen.findByText('Método de especificação e ambiente');
 
       expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
     });
   });
 
   describe('A · contexto da pasta', () => {
-    it('mostra a pasta escolhida e o selo do método; "Trocar pasta" abre o seletor de novo', async () => {
+    it('mostra a pasta escolhida e o selo do método; o botão de trocar a pasta abre o seletor de novo', async () => {
       const pick = vi.fn().mockResolvedValue(project);
       render(
         <AppProviders>
@@ -172,14 +172,14 @@ describe('jornada Configurar projeto', () => {
         </AppProviders>
       );
 
-      expect(await screen.findByText('Projeto selecionado')).toBeInTheDocument();
+      expect(await screen.findByText('Selecionar pasta do projeto')).toBeInTheDocument();
       expect(screen.getByText(project.displayPath)).toBeInTheDocument();
       expect(screen.getByText('Método de especificação:')).toBeInTheDocument();
       expect(screen.getByText(/TLC \(padrão\)/)).toBeInTheDocument();
       expect(screen.getByText('Stack e tecnologias do projeto')).toBeInTheDocument();
       const calls = pick.mock.calls.length;
 
-      await userEvent.click(screen.getByRole('button', { name: 'Trocar pasta' }));
+      await userEvent.click(screen.getByRole('button', { name: /^Trocar a pasta do projeto / }));
 
       await waitFor(() => expect(pick.mock.calls.length).toBe(calls + 1));
     });
@@ -189,9 +189,9 @@ describe('jornada Configurar projeto', () => {
     it('apresenta o TLC como único método e sugere o único ambiente suportado detectado', async () => {
       renderJourney(fakeApi());
       await screen.findByText('Stack detectada');
-      await click('Continuar');
+      await click('Próximo');
 
-      expect(await screen.findByText('Método e ambiente de IA')).toBeInTheDocument();
+      expect(await screen.findByText('Método de especificação e ambiente')).toBeInTheDocument();
       expect(screen.getByText(/TLC \(Tech Leads Club\)/)).toBeInTheDocument();
       expect(screen.getByText(/somente se você aprovar o comando/)).toBeInTheDocument();
       expect(screen.getByRole('radio', { name: /Claude Code/ })).toBeChecked();
@@ -202,7 +202,7 @@ describe('jornada Configurar projeto', () => {
       const api = fakeApi({ discover: vi.fn().mockResolvedValue({ ...discovery, aiEnvironments: [] }) });
       renderJourney(api);
       await screen.findByText('Stack detectada');
-      await click('Continuar');
+      await click('Próximo');
 
       expect(await screen.findByRole('button', { name: 'Gerar plano' })).toBeDisabled();
       await userEvent.click(screen.getByRole('radio', { name: /Claude Code/ }));
@@ -212,8 +212,8 @@ describe('jornada Configurar projeto', () => {
     it('avisa que Cursor e Codex não têm configuração gerada nesta fase', async () => {
       renderJourney(fakeApi());
       await screen.findByText('Stack detectada');
-      await click('Continuar');
-      await screen.findByText('Método e ambiente de IA');
+      await click('Próximo');
+      await screen.findByText('Método de especificação e ambiente');
 
       await userEvent.click(screen.getByRole('radio', { name: /Cursor/ }));
 
@@ -225,7 +225,7 @@ describe('jornada Configurar projeto', () => {
       const api = fakeApi({ discover: vi.fn().mockResolvedValue(drifted) });
       renderJourney(api);
       await screen.findByText('Stack detectada');
-      await click('Continuar');
+      await click('Próximo');
 
       const reinstall = await screen.findByRole('checkbox', { name: /Permitir reinstalar o TLC/ });
       expect(reinstall).not.toBeChecked();
@@ -250,7 +250,7 @@ describe('jornada Configurar projeto', () => {
       const api = fakeApi({ discover: vi.fn().mockResolvedValue(installed) });
       renderJourney(api);
       await screen.findByText('Stack detectada');
-      await click('Continuar');
+      await click('Próximo');
 
       const update = await screen.findByRole('checkbox', { name: /Buscar a versão mais recente do TLC/ });
       expect(update).not.toBeChecked();
@@ -271,8 +271,8 @@ describe('jornada Configurar projeto', () => {
     it('sem o TLC instalado não oferece atualizar: a instalação já traz a versão mais recente', async () => {
       renderJourney(fakeApi());
       await screen.findByText('Stack detectada');
-      await click('Continuar');
-      await screen.findByText('Método e ambiente de IA');
+      await click('Próximo');
+      await screen.findByText('Método de especificação e ambiente');
 
       expect(screen.queryByRole('checkbox', { name: /Buscar a versão mais recente do TLC/ })).not.toBeInTheDocument();
     });
@@ -280,8 +280,8 @@ describe('jornada Configurar projeto', () => {
     it('não oferece reinstalar quando o TLC não está alterado', async () => {
       renderJourney(fakeApi());
       await screen.findByText('Stack detectada');
-      await click('Continuar');
-      await screen.findByText('Método e ambiente de IA');
+      await click('Próximo');
+      await screen.findByText('Método de especificação e ambiente');
 
       expect(screen.queryByRole('checkbox', { name: /Permitir reinstalar o TLC/ })).not.toBeInTheDocument();
     });
@@ -290,7 +290,7 @@ describe('jornada Configurar projeto', () => {
       const api = fakeApi({ plan: vi.fn().mockRejectedValue(new EngineError('PLAN_FAILED', 'Plano inválido.')) });
       renderJourney(api);
       await screen.findByText('Stack detectada');
-      await click('Continuar');
+      await click('Próximo');
       await click('Gerar plano');
 
       expect(await screen.findByText('Não foi possível gerar o plano')).toBeInTheDocument();
@@ -303,7 +303,7 @@ describe('jornada Configurar projeto', () => {
     it('mostra cada componente com decisão, origem e justificativa, e diz quando a proposta é só das regras-base', async () => {
       renderJourney(fakeApi());
       await screen.findByText('Stack detectada');
-      await click('Continuar');
+      await click('Próximo');
       await click('Gerar plano');
 
       const table = within(await screen.findByRole('region', { name: 'Decisões por componente' }));
@@ -737,22 +737,30 @@ describe('jornada Configurar projeto', () => {
   });
 
   describe('sem projeto', () => {
-    it('pede para voltar ao início e escolher a pasta', () => {
+    it('sem pasta, mostra só a primeira etapa, com a escolha da pasta, e não inicia análise', async () => {
+      const pick = vi.fn().mockResolvedValue(null);
+      const api = fakeApi();
       render(
         <AppProviders>
-          <ProjectSelectionProvider picker={{ pick: vi.fn() }}>
+          <ProjectSelectionProvider picker={{ pick }}>
             <MemoryRouter initialEntries={['/configurar']}>
               <Routes>
-                <Route path="/configurar" element={<ConfigureProjectPage api={fakeApi()} />} />
-                <Route path="/" element={<p>TELA INICIAL</p>} />
+                <Route path="/configurar" element={<ConfigureProjectPage api={api} />} />
               </Routes>
             </MemoryRouter>
           </ProjectSelectionProvider>
         </AppProviders>
       );
 
-      expect(screen.getByText('Selecione um projeto')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Voltar ao início' })).toBeInTheDocument();
+      expect(screen.getByText('Selecionar pasta do projeto')).toBeInTheDocument();
+      expect(screen.getByText('Nenhuma pasta selecionada')).toBeInTheDocument();
+      expect(screen.getByRole('list', { name: 'Etapas da configuração' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Próximo' })).not.toBeInTheDocument();
+      expect(api.discover).not.toHaveBeenCalled();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Selecionar pasta' }));
+      await waitFor(() => expect(pick).toHaveBeenCalledTimes(1));
+      expect(await screen.findByText(/Seleção cancelada/)).toBeInTheDocument();
     });
   });
 });

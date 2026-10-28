@@ -2,11 +2,15 @@
 
 // A largura útil é a do cabeçalho, não a da janela: o ornamento só aparece quando sobra espaço.
 .hero {
+  position: relative;
   container-type: inline-size;
+  // O brilho do ornamento passa da borda do cabeçalho: sem isto a janela ganhava rolagem horizontal.
+  overflow-x: clip;
 }
 
 // Uma container query só estiliza os descendentes do contêiner: o layout é um filho dele.
 .layout {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
@@ -20,38 +24,18 @@
 .main {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-}
-
-.brand {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-1) var(--space-3);
-  font-size: var(--font-size-sm);
-}
-
-.name {
-  font-weight: 600;
-  color: var(--color-primary-text);
-}
-
-.tagline {
-  color: var(--color-text-muted);
-}
-
-.intro {
-  display: flex;
-  flex-direction: column;
   gap: var(--space-2);
 }
 
-.title {
-  font-size: var(--font-size-2xl);
+.welcome {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-primary-text);
+}
 
-  @include up(md) {
-    font-size: 2rem;
-  }
+.title {
+  font-size: var(--font-size-display);
+  line-height: var(--line-height-tight);
 }
 
 // Destaque tipográfico na cor da marca (contraste validado nos tokens); o sentido não depende dela.
@@ -60,35 +44,60 @@
 }
 
 .text {
-  max-width: 62ch;
+  max-width: 54ch;
+  font-size: var(--font-size-base);
   color: var(--color-text-muted);
 }
 
-// ---- Ornamento
+// ---- Ornamento: texto com um traço de destaque e a rajada de chevrons da marca, com um brilho suave ao fundo.
 .pitch {
+  position: relative;
   display: none;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-4);
+  padding-inline: var(--space-2) var(--space-4);
 
   @container (min-width: 40rem) {
     display: flex;
   }
+
+  &::before {
+    position: absolute;
+    inset: -2rem -3rem -2rem -1rem;
+    z-index: 0;
+    background: radial-gradient(60% 70% at 70% 50%, var(--color-accent-glow), transparent 70%);
+    content: '';
+    pointer-events: none;
+  }
 }
 
 .pitchText {
+  position: relative;
+  z-index: 1;
   max-width: 14rem;
+  padding-bottom: var(--space-2);
+  border-bottom: 2px solid var(--color-primary);
   font-size: var(--font-size-sm);
   line-height: 1.45;
-  color: var(--color-text-muted);
-  text-align: right;
+  color: var(--color-text);
+  text-align: left;
 }
 
 .chevrons {
-  width: 4.5rem;
+  position: relative;
+  z-index: 1;
+  width: 5rem;
   height: auto;
   stroke: var(--color-primary);
-  stroke-width: 8;
+  stroke-width: 10;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0.55;
+
+  path:nth-child(1) {
+    opacity: 0.35;
+  }
+
+  path:nth-child(2) {
+    opacity: 0.65;
+  }
 }

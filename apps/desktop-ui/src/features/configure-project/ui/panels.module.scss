@@ -106,6 +106,11 @@
   flex-direction: column;
   gap: var(--space-4);
   min-width: 0;
+
+  // Listas de definição (resumo): sem o recuo padrão do navegador.
+  dd {
+    margin: 0;
+  }
 }
 
 .table {
@@ -286,4 +291,187 @@
   font-size: var(--font-size-xs);
   font-weight: 700;
   color: var(--color-primary-text);
+}
+
+// ---- Etapa Projeto: a pasta e os recentes à esquerda, o que será analisado à direita (empilha quando falta largura).
+// A largura útil é a do próprio bloco, não a da janela: o menu lateral já ocupa parte dela.
+.projectWrap,
+.methodWrap {
+  container-type: inline-size;
+}
+
+.projectGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+
+  @container (min-width: 36rem) {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  }
+}
+
+// Campo que mostra a pasta escolhida: a escolha em si é o diálogo nativo (só ele autoriza um caminho).
+.pathField {
+  display: flex;
+  align-items: stretch;
+  min-height: var(--control-height-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-sunken);
+}
+
+.pathValue,
+.pathEmpty {
+  display: block;
+  flex: 1;
+  align-self: center;
+  min-width: 0;
+  padding-inline: var(--space-3);
+  overflow: hidden;
+  font-size: var(--font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pathEmpty {
+  color: var(--color-text-muted);
+}
+
+.pathButton {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  border-left: 1px solid var(--color-border-strong);
+  color: var(--color-primary-text);
+  cursor: pointer;
+
+  @include hover {
+    background-color: var(--color-primary-subtle);
+  }
+
+  &:focus-visible {
+    @include focus-ring(-3px);
+  }
+
+  &[aria-disabled='true'] {
+    cursor: default;
+    color: var(--color-text-muted);
+  }
+}
+
+.doneLine {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--tone-success-fg);
+}
+
+// ---- Etapa Método: cartão do TLC, ambientes de IA e resumo. Três colunas quando há largura; duas; ou uma.
+.methodGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'tlc'
+    'env'
+    'summary';
+  gap: var(--space-4);
+  align-items: start;
+
+  @container (min-width: 36rem) {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    grid-template-areas:
+      'tlc tlc'
+      'env summary';
+  }
+
+  @container (min-width: 62rem) {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(14rem, 0.8fr);
+    grid-template-areas: 'tlc env summary';
+  }
+}
+
+.areaTlc {
+  grid-area: tlc;
+}
+
+.areaEnv {
+  grid-area: env;
+}
+
+.areaSummary {
+  grid-area: summary;
+}
+
+// Lista de ambientes: cada opção é uma linha com o marcador à direita, como no modelo.
+.envItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--control-height-lg);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-sunken);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast),
+    background-color var(--duration-fast);
+
+  input {
+    flex: none;
+    order: 3;
+    display: grid;
+    place-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0 0 0 auto;
+    border: 2px solid var(--color-border-strong);
+    border-radius: 50%;
+    appearance: none;
+
+    &::after {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background-color: var(--color-primary);
+      content: '';
+      transform: scale(0);
+      transition: transform var(--duration-fast);
+    }
+
+    &:checked {
+      border-color: var(--color-primary);
+
+      &::after {
+        transform: scale(1);
+      }
+    }
+  }
+
+  &:has(input:checked) {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary-subtle);
+  }
+
+  &:has(input:focus-visible) {
+    @include focus-ring;
+  }
+}
+
+.envText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+@media (forced-colors: active) {
+  .envItem input::after {
+    background-color: Highlight;
+  }
 }

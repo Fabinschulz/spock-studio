@@ -3,18 +3,17 @@
 .recents {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .title {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   font-weight: 600;
 }
 
 .list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
-  gap: var(--space-3);
+  display: flex;
+  flex-direction: column;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -22,33 +21,37 @@
 
 .item {
   min-width: 0;
+
+  & + & {
+    border-top: 1px solid var(--color-hairline);
+  }
 }
 
-.card {
-  @include card(var(--space-3) var(--space-4));
-
+// Linha de lista: ícone, nome e caminho à esquerda, data à direita.
+.row {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  min-height: 3.75rem;
+  min-height: 3.25rem;
+  padding: var(--space-2) var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   text-align: left;
   cursor: pointer;
-  transition:
-    border-color var(--duration-fast),
-    background-color var(--duration-fast);
+  transition: background-color var(--duration-fast);
 
   @include hover {
-    border-color: var(--color-primary);
     background-color: var(--color-primary-subtle);
   }
 
   &:focus-visible {
-    @include focus-ring;
+    @include focus-ring(-2px);
   }
 
   &[aria-current='true'] {
     border-color: var(--color-primary);
+    background-color: var(--color-primary-subtle);
   }
 
   &[aria-disabled='true'] {
@@ -56,8 +59,7 @@
     color: var(--color-text-muted);
 
     @include hover {
-      border-color: var(--color-border);
-      background-color: var(--color-surface);
+      background-color: transparent;
     }
   }
 }
@@ -70,6 +72,7 @@
 
 .text {
   display: flex;
+  flex: 1;
   flex-direction: column;
   min-width: 0;
 }
@@ -82,7 +85,18 @@
   white-space: nowrap;
 }
 
-.meta {
+.path {
+  overflow: hidden;
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  flex: none;
+  max-width: 45%;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-align: right;
 }

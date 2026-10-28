@@ -2,6 +2,7 @@ import { useRef, type ReactNode } from 'react';
 import { Link } from 'react-router';
 
 import { Container, Logo, Wordmark } from '@/shared/components';
+import { app } from '@/shared/config/app';
 import { pathTo } from '@/shared/routing';
 
 import styles from './AppShell.module.scss';
@@ -25,13 +26,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       </button>
 
       <aside className={styles.rail}>
-        <Link to={pathTo('home')} className={styles.brand} aria-label="Mariliz Studio, página inicial">
-          <Logo />
-          <span className={styles.brandText} aria-hidden="true">
-            <Wordmark />
-            <span className={styles.studio}>Studio</span>
-          </span>
-        </Link>
+        <div className={styles.brandBlock}>
+          <Link to={pathTo('home')} className={styles.brand} aria-label="Mariliz Studio, página inicial">
+            <Logo />
+            <span className={styles.brandText} aria-hidden="true">
+              <Wordmark />
+              <span className={styles.studio}>Studio</span>
+            </span>
+          </Link>
+          <p className={styles.tagline}>{app.tagline}</p>
+        </div>
         <SideNav />
         <EngineStatus />
       </aside>

@@ -2,7 +2,6 @@ import { Home01Icon, LibraryIcon, ListViewRectangleIcon, SettingIcon } from '@sy
 import { useId, type ReactNode } from 'react';
 import { NavLink } from 'react-router';
 
-import { useProjectSelectionContext } from '@/features/project-selection';
 import { pathTo } from '@/shared/routing';
 import { cn } from '@/shared/utils';
 
@@ -20,17 +19,9 @@ interface NavItem {
 
 /** Só destinos que existem funcionam. O resto aparece como indisponível, com o motivo dito em texto. */
 export function SideNav() {
-  const { selected } = useProjectSelectionContext();
-
   const items: NavItem[] = [
     { id: 'home', label: 'Início', icon: <Home01Icon fontSize="small" />, to: pathTo('home'), end: true },
-    {
-      id: 'configure',
-      label: 'Projetos',
-      icon: <ListViewRectangleIcon fontSize="small" />,
-      to: selected ? pathTo('configure') : undefined,
-      unavailableReason: selected ? undefined : 'Selecione uma pasta'
-    },
+    { id: 'configure', label: 'Projetos', icon: <ListViewRectangleIcon fontSize="small" />, to: pathTo('configure') },
     { id: 'catalog', label: 'Catálogo', icon: <LibraryIcon fontSize="small" />, unavailableReason: 'Em breve' },
     { id: 'settings', label: 'Configurações', icon: <SettingIcon fontSize="small" />, unavailableReason: 'Em breve' }
   ];

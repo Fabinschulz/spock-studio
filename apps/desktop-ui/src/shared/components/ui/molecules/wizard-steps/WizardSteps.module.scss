@@ -32,9 +32,9 @@
   // Conector até a próxima etapa.
   &:not(:last-child)::after {
     flex: 1;
-    min-width: 0.75rem;
+    min-width: 0.5rem;
     height: 2px;
-    margin-inline: 0.375rem;
+    margin-inline: 0.25rem;
     border-radius: 1px;
     background-color: var(--color-border-strong);
     content: '';
@@ -105,7 +105,7 @@
 }
 
 // Sem largura para os seis rótulos: ficam só os marcadores (com a mesma lista para o leitor de tela) e o resumo.
-@container (max-width: 40rem) {
+@container (max-width: 38rem) {
   .label {
     @include visually-hidden;
   }

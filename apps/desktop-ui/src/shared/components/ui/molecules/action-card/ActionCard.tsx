@@ -16,6 +16,8 @@ interface ActionCardProps {
   variant?: 'primary' | 'default';
   /** Tom do quadrado do ícone. Só decora: o nome e o estado da atividade estão em texto. */
   accent?: CardAccent;
+  /** Selo de destaque abaixo da descrição (ex.: "Principal"). */
+  highlight?: string;
   /** Quando definido o cartão fica indisponível, mas continua focável (aria-disabled) para o leitor de tela anunciar o motivo. */
   unavailableReason?: string;
 }
@@ -27,6 +29,7 @@ export function ActionCard({
   onClick,
   variant = 'default',
   accent = 'teal',
+  highlight,
   unavailableReason
 }: ActionCardProps) {
   const id = useId();
@@ -62,6 +65,7 @@ export function ActionCard({
         <span id={descriptionId} className={styles.description}>
           {description}
         </span>
+        {highlight && !unavailable ? <span className={styles.highlight}>{highlight}</span> : null}
       </span>
       {unavailable ? null : (
         <span className={styles.arrow} aria-hidden="true">

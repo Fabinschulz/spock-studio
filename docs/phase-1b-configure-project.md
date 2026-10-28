@@ -112,7 +112,7 @@ Sem proposta, o plano usa as regras-base e **diz isso** (`proposalOrigin: baseli
 
 ## 7. Testes e evidências
 
-Última execução local: **.NET 232 (Application) + 2 (integração do motor), UI 167, Rust 16 — todos aprovados.**
+Última execução local: **.NET 232 (Application) + 2 (integração do motor), UI 177, Rust 16 — todos aprovados.**
 
 | Cenário exigido | Evidência (teste) |
 | --- | --- |

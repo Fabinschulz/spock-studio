@@ -15,7 +15,7 @@ interface RecentProjectsProps {
 }
 
 /**
- * Projetos escolhidos antes. Escolher um aqui só o seleciona, como o diálogo: analisar é uma ação à parte.
+ * Projetos escolhidos antes. Escolher um aqui só o seleciona, como o diálogo.
  * Pasta que não existe mais fica visível, mas indisponível e com o motivo dito.
  */
 export function RecentProjects({ recents, selectedName, busy, onOpen }: RecentProjectsProps) {
@@ -24,9 +24,9 @@ export function RecentProjects({ recents, selectedName, busy, onOpen }: RecentPr
 
   return (
     <section className={styles.recents} aria-labelledby={`${id}-titulo`}>
-      <h2 id={`${id}-titulo`} className={styles.title}>
+      <h3 id={`${id}-titulo`} className={styles.title}>
         Projetos recentes
-      </h2>
+      </h3>
       <ul className={styles.list} role="list">
         {recents.map((project) => {
           const inactive = busy || !project.available;
@@ -35,7 +35,7 @@ export function RecentProjects({ recents, selectedName, busy, onOpen }: RecentPr
             <li key={project.id} className={styles.item}>
               <button
                 type="button"
-                className={styles.card}
+                className={styles.row}
                 aria-disabled={inactive || undefined}
                 aria-current={project.displayName === selectedName ? 'true' : undefined}
                 aria-describedby={reasonId}
@@ -46,11 +46,14 @@ export function RecentProjects({ recents, selectedName, busy, onOpen }: RecentPr
                 </span>
                 <span className={styles.text}>
                   <span className={styles.name}>{project.displayName}</span>
-                  <span id={reasonId} className={styles.meta}>
-                    {project.available
-                      ? formatRecentDate(project.lastOpenedMs)
-                      : 'Pasta indisponível: não existe mais ou não está acessível'}
+                  <span className={styles.path} title={project.displayPath}>
+                    {project.displayPath}
                   </span>
+                </span>
+                <span id={reasonId} className={styles.meta}>
+                  {project.available
+                    ? formatRecentDate(project.lastOpenedMs)
+                    : 'Indisponível: a pasta não existe mais ou não está acessível'}
                 </span>
               </button>
             </li>

@@ -1,15 +1,16 @@
 @use '@/shared/styles/abstracts' as *;
 
 .card {
-  @include card(var(--space-4));
+  @include card(var(--space-4) var(--space-5));
 
   display: flex;
   align-items: center;
   gap: var(--space-4);
   width: 100%;
   height: 100%;
-  min-height: 5rem;
+  min-height: 6.5rem;
   border-color: var(--color-border-strong);
+  border-radius: var(--radius-lg);
   text-align: left;
   cursor: pointer;
   transition:
@@ -46,23 +47,23 @@
   color: var(--tile-orange-fg);
 }
 
-// Atividade principal: borda na cor da marca e um halo discreto; nenhum outro cartão ganha esse destaque.
+// Atividade principal: borda na cor da marca, halo e um brilho no canto; nenhum outro cartão ganha esse destaque.
 .primary {
   border-color: var(--color-primary);
-  background-color: var(--color-primary-subtle);
+  background:
+    radial-gradient(90% 120% at 0% 0%, var(--color-accent-glow), transparent 60%), var(--color-primary-subtle);
   box-shadow: 0 0 0 1px var(--color-accent-glow);
 }
 
 // Indisponível: o texto continua legível (sem opacidade); o estado é dito por "Em breve" e por aria-disabled.
 .unavailable {
   cursor: default;
-  border-style: dashed;
-  border-color: var(--color-border-strong);
+  border-color: var(--color-border);
   box-shadow: none;
   color: var(--color-text-muted);
 
   .title {
-    color: var(--color-text-muted);
+    color: var(--color-text);
   }
 
   @include hover {
@@ -76,15 +77,16 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: var(--radius-md);
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
 }
 
 .body {
   display: flex;
   flex: 1;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--space-1);
   min-width: 0;
 }
@@ -92,23 +94,36 @@
 .heading {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-1) var(--space-2);
+  width: 100%;
 }
 
 .title {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-lg);
   font-weight: 600;
 }
 
 .badge {
   @include eyebrow;
-  padding: 1px var(--space-2);
+  padding: 2px var(--space-2);
   border: 1px solid var(--color-border-strong);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-raised);
   color: var(--color-text-muted);
   white-space: nowrap;
+}
+
+.highlight {
+  @include eyebrow;
+  margin-top: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background-color: var(--tone-success-bg);
+  color: var(--tone-success-fg);
+  text-transform: none;
+  letter-spacing: 0.02em;
 }
 
 .description {

@@ -6,6 +6,7 @@ import type { Discovery } from '@/shared/schemas';
 import type { Loadable } from '../../core/journey-state';
 import { aiEnvironmentNames, tlcStateLabel, tlcStateTone } from '../../core/labels';
 import styles from '../../ui/panels.module.scss';
+import { TlcGlyph } from '../../ui/method-badge';
 import { StepHeader } from '../../ui/step-header';
 
 interface MethodStepProps {
@@ -66,20 +67,25 @@ export function MethodStep({
 
   return (
     <section className={styles.step}>
-      <StepHeader title="Método e ambiente de IA">
-        O método de desenvolvimento orientado a especificações é fixo nesta fase. Falta escolher o ambiente de IA em que
-        o Harness será configurado.
+      <StepHeader title="Método de especificação e ambiente">
+        O TLC estrutura as especificações do seu projeto, e esse método é fixo nesta fase. O Harness Engineer planeja a
+        configuração das demais estruturas no ambiente de IA que você escolher.
       </StepHeader>
 
-      <div className={styles.split}>
-        <div className={styles.stack}>
+      <div className={styles.methodWrap}>
+        <div className={styles.methodGrid}>
           <SectionCard
+            className={styles.areaTlc}
             title="TLC (Tech Leads Club)"
+            icon={<TlcGlyph size={20} />}
             tone="accent"
             aside={
               <>
                 <StatusChip tone="info">Padrão</StatusChip>
-                <StatusChip tone={tlcStateTone(tlc.state)}>{tlcStateLabel[tlc.state]}</StatusChip>
+                {/* "Não instalado" já aparece no bloco de instalação, logo abaixo: não se repete. */}
+                {tlc.state === 'not_installed' ? null : (
+                  <StatusChip tone={tlcStateTone(tlc.state)}>{tlcStateLabel[tlc.state]}</StatusChip>
+                )}
               </>
             }
           >
@@ -158,85 +164,87 @@ export function MethodStep({
             ) : null}
           </SectionCard>
 
-          <fieldset className={styles.fieldset}>
-            <legend>Ambiente de IA do projeto</legend>
-            <p className={styles.muted}>Selecione o ambiente que será utilizado.</p>
-            {KNOWN_ENVIRONMENTS.map((id) => {
-              const found = detected.get(id);
-              return (
-                <label key={id} className={styles.field}>
-                  <input
-                    type="radio"
-                    name="ai-environment"
-                    value={id}
-                    checked={aiEnvironment === id}
-                    onChange={() => onEnvironment(id)}
-                  />
-                  <EnvironmentGlyph id={id} />
-                  <span>
-                    {aiEnvironmentNames[id]}
-                    <span className={styles.chips}>
-                      {found ? <StatusChip tone="info">detectado</StatusChip> : null}
-                      <StatusChip tone={id === 'claude-code' ? 'success' : 'warning'}>
-                        {id === 'claude-code' ? 'configuração suportada' : 'sem suporte de configuração nesta fase'}
-                      </StatusChip>
+          <SectionCard className={styles.areaEnv} title="Ambiente de IA">
+            <fieldset className={styles.fieldset}>
+              <legend className="visually-hidden">Ambiente de IA do projeto</legend>
+              <p className={styles.muted}>Selecione o ambiente que será utilizado.</p>
+              {KNOWN_ENVIRONMENTS.map((id) => {
+                const found = detected.get(id);
+                return (
+                  <label key={id} className={styles.envItem}>
+                    <input
+                      type="radio"
+                      name="ai-environment"
+                      value={id}
+                      checked={aiEnvironment === id}
+                      onChange={() => onEnvironment(id)}
+                    />
+                    <EnvironmentGlyph id={id} />
+                    <span className={styles.envText}>
+                      {aiEnvironmentNames[id]}
+                      <span className={styles.chips}>
+                        {found ? <StatusChip tone="info">detectado</StatusChip> : null}
+                        <StatusChip tone={id === 'claude-code' ? 'success' : 'warning'}>
+                          {id === 'claude-code' ? 'configuração suportada' : 'sem suporte nesta fase'}
+                        </StatusChip>
+                      </span>
                     </span>
-                  </span>
-                </label>
-              );
-            })}
+                  </label>
+                );
+              })}
+              <p className={styles.muted}>
+                O ambiente selecionado será usado para configurar os agentes, skills, hooks e demais componentes do
+                Harness.
+              </p>
+            </fieldset>
+          </SectionCard>
+
+          <SectionCard className={styles.areaSummary} title="Resumo da configuração">
+            <dl className={styles.stack}>
+              <div>
+                <dt className={styles.sectionTitle}>Método de especificação</dt>
+                <dd className={styles.row}>
+                  <span>TLC (padrão)</span>
+                  {tlc.version ? <StatusChip tone="info">v{tlc.version}</StatusChip> : null}
+                </dd>
+              </div>
+              <div>
+                <dt className={styles.sectionTitle}>Ambiente de IA</dt>
+                <dd>{aiEnvironment ? (aiEnvironmentNames[aiEnvironment] ?? aiEnvironment) : 'Ainda não escolhido'}</dd>
+              </div>
+              <div>
+                <dt className={styles.sectionTitle}>O que será configurado</dt>
+                <dd>
+                  <Checklist
+                    items={[
+                      { text: 'Agentes: Harness Engineer, revisor de código e verificador' },
+                      { text: 'Skill: contrato de evidência' },
+                      { text: 'Hook: política de segurança antes de escritas e comandos' },
+                      { text: 'Regras gerais, da stack e dos comandos do repositório' },
+                      { text: 'Evals: verificações da configuração aplicada' },
+                      { text: 'Tools e MCPs: nenhum é instalado nesta jornada', state: 'neutral' }
+                    ]}
+                  />
+                </dd>
+              </div>
+            </dl>
             <p className={styles.muted}>
-              O ambiente selecionado será usado para configurar os agentes, skills, hooks e demais componentes do
-              Harness.
+              Nada é gravado antes da revisão: a configuração só é aplicada depois da sua aprovação.
             </p>
-          </fieldset>
-
-          {unsupportedSelected || selectedUnsupported ? (
-            <InlineNotice tone="warning" title="Ambiente sem suporte nesta fase">
-              Só a declaração do projeto (mariliz.yaml) pode ser criada de forma genérica. Agentes, skills, regras e
-              hooks não serão gerados para este ambiente.
-            </InlineNotice>
-          ) : null}
-
-          {plan.status === 'error' ? (
-            <Alert severity="error" title="Não foi possível gerar o plano" description={plan.message} />
-          ) : null}
+          </SectionCard>
         </div>
-
-        <SectionCard title="Resumo da configuração">
-          <dl className={styles.stack}>
-            <div>
-              <dt className={styles.sectionTitle}>Método de especificação</dt>
-              <dd className={styles.row}>
-                <span>TLC (padrão)</span>
-                {tlc.version ? <StatusChip tone="info">v{tlc.version}</StatusChip> : null}
-              </dd>
-            </div>
-            <div>
-              <dt className={styles.sectionTitle}>Ambiente de IA</dt>
-              <dd>{aiEnvironment ? (aiEnvironmentNames[aiEnvironment] ?? aiEnvironment) : 'Ainda não escolhido'}</dd>
-            </div>
-            <div>
-              <dt className={styles.sectionTitle}>O que será configurado</dt>
-              <dd>
-                <Checklist
-                  items={[
-                    { text: 'Agentes: Harness Engineer, revisor de código e verificador' },
-                    { text: 'Skill: contrato de evidência' },
-                    { text: 'Hook: política de segurança antes de escritas e comandos' },
-                    { text: 'Regras gerais, da stack e dos comandos do repositório' },
-                    { text: 'Evals: verificações da configuração aplicada' },
-                    { text: 'Tools e MCPs: nenhum é instalado nesta jornada', state: 'neutral' }
-                  ]}
-                />
-              </dd>
-            </div>
-          </dl>
-          <p className={styles.muted}>
-            Nada é gravado antes da revisão: a configuração só é aplicada depois da sua aprovação.
-          </p>
-        </SectionCard>
       </div>
+
+      {unsupportedSelected || selectedUnsupported ? (
+        <InlineNotice tone="warning" title="Ambiente sem suporte nesta fase">
+          Só a declaração do projeto (mariliz.yaml) pode ser criada de forma genérica. Agentes, skills, regras e hooks
+          não serão gerados para este ambiente.
+        </InlineNotice>
+      ) : null}
+
+      {plan.status === 'error' ? (
+        <Alert severity="error" title="Não foi possível gerar o plano" description={plan.message} />
+      ) : null}
 
       <PrimaryActionFooter>
         <Button variant="outlined" color="inherit" onClick={onBack}>

@@ -15,10 +15,12 @@ interface PageHeaderProps {
   breadcrumb?: readonly Crumb[];
   /** Ações da página (à direita em janelas largas). */
   actions?: ReactNode;
+  /** Entre a trilha e o título (ex.: o progresso de uma jornada). */
+  lead?: ReactNode;
 }
 
 /** Título da página (h1), trilha de navegação e texto de apoio. Uma por tela. */
-export function PageHeader({ title, description, breadcrumb, actions }: PageHeaderProps) {
+export function PageHeader({ title, description, breadcrumb, actions, lead }: PageHeaderProps) {
   return (
     <header className={styles.header}>
       {breadcrumb && breadcrumb.length > 0 ? (
@@ -38,6 +40,7 @@ export function PageHeader({ title, description, breadcrumb, actions }: PageHead
           </ol>
         </nav>
       ) : null}
+      {lead}
       <div className={styles.row}>
         <h1 className={styles.title}>{title}</h1>
         {actions ? <div className={styles.actions}>{actions}</div> : null}

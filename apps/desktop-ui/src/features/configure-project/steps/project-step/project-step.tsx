@@ -1,5 +1,6 @@
-import { Alert, Button } from '@synthra.io/ui-kit';
+import { Alert, ArrowRightIcon, Button } from '@synthra.io/ui-kit';
 
+import { RecentProjects, type RecentProject } from '@/features/project-selection';
 import {
   Checklist,
   CommandDisplay,
@@ -15,14 +16,21 @@ import type { Discovery } from '@/shared/schemas';
 import type { Loadable } from '../../core/journey-state';
 import { aiEnvironmentNames, confidenceLabel, confidenceTone, tlcStateLabel, tlcStateTone } from '../../core/labels';
 import styles from '../../ui/panels.module.scss';
-import { StepHeader } from '../../ui/step-header';
 
 interface ProjectStepProps {
-  projectName: string;
-  /** Caminho abreviado pelo host; a UI nunca tem o caminho completo. */
-  projectPath: string;
+  /** `null` enquanto nenhuma pasta foi escolhida. O caminho é o abreviado pelo host: a UI nunca tem o completo. */
+  project: { name: string; path: string } | null;
   discovery: Loadable<Discovery>;
-  onChangeProject: () => void;
+  recents: readonly RecentProject[];
+  busy: boolean;
+  /** Falha ao usar a pasta escolhida. */
+  error: string | null;
+  /** A pessoa fechou o diálogo sem escolher. */
+  cancelled: boolean;
+  /** Presente quando a escolha da pasta não existe neste ambiente (ex.: navegador sem o host desktop). */
+  unavailableReason?: string;
+  onPick: () => void;
+  onOpenRecent: (id: string) => void;
   onRetry: () => void;
   onContinue: () => void;
 }
@@ -39,63 +47,100 @@ const kindLabel: Record<string, string> = {
 };
 
 export function ProjectStep({
-  projectName,
-  projectPath,
+  project,
   discovery,
-  onChangeProject,
+  recents,
+  busy,
+  error,
+  cancelled,
+  unavailableReason,
+  onPick,
+  onOpenRecent,
   onRetry,
   onContinue
 }: ProjectStepProps) {
+  const inactive = busy || unavailableReason !== undefined;
+  const analyzing = project !== null && (discovery.status === 'loading' || discovery.status === 'idle');
+
   return (
     <section className={styles.step}>
-      <StepHeader title={`Projeto ${projectName}`}>
-        A análise é somente de leitura: nada no repositório é alterado nesta etapa.
-      </StepHeader>
+      <h2 className="visually-hidden">{project ? `Projeto ${project.name}` : 'Projeto'}</h2>
 
-      <div className={styles.split}>
-        <SectionCard title="Projeto selecionado">
-          <div className={styles.row}>
-            <span className={styles.folderTile} aria-hidden="true">
-              <FolderIcon />
-            </span>
-            <span className={styles.stack}>
-              <span className={styles.cardTitle}>{projectName}</span>
-              <span className={styles.mono} title={projectPath}>
-                {projectPath}
+      <div className={styles.projectWrap}>
+        <div className={styles.projectGrid}>
+          <SectionCard title="Selecionar pasta do projeto">
+            <p className={styles.muted}>
+              {unavailableReason ?? 'Escolha o diretório do seu projeto no computador. Os arquivos permanecem nele.'}
+            </p>
+
+            {error ? (
+              <InlineNotice tone="danger" title="Não foi possível usar esta pasta">
+                {error}
+              </InlineNotice>
+            ) : null}
+
+            <div className={styles.pathField} role="group" aria-label="Pasta do projeto">
+              <span className={project ? styles.pathValue : styles.pathEmpty} title={project?.path}>
+                {project ? project.path : 'Nenhuma pasta selecionada'}
               </span>
-            </span>
-          </div>
-          <p className={styles.muted}>Os arquivos permanecem no computador.</p>
-          <div>
-            <Button variant="outlined" color="inherit" onClick={onChangeProject}>
-              Trocar pasta
-            </Button>
-          </div>
-        </SectionCard>
+              <button
+                type="button"
+                className={styles.pathButton}
+                aria-disabled={inactive || undefined}
+                aria-label={project ? `Trocar a pasta do projeto ${project.name}` : 'Selecionar pasta do projeto'}
+                onClick={inactive ? undefined : onPick}
+              >
+                <FolderIcon />
+              </button>
+            </div>
 
-        <SectionCard title="O que vamos analisar?">
-          <Checklist
-            items={[
-              { text: 'Stack e tecnologias do projeto' },
-              { text: 'Ferramentas e dependências' },
-              { text: 'Agentes, skills e configurações existentes' },
-              { text: 'Alterações locais e conflitos' }
-            ]}
-          />
-        </SectionCard>
+            {project === null ? (
+              <div>
+                <Button variant="contained" onClick={onPick} disabled={inactive} endIcon={<ArrowRightIcon />}>
+                  {busy ? 'Abrindo…' : 'Selecionar pasta'}
+                </Button>
+              </div>
+            ) : null}
+
+            {/* Região de status: o anúncio acontece quando o texto entra, sem tirar o foco de onde a pessoa está. */}
+            <div role="status" aria-live="polite" className={styles.stack}>
+              {cancelled && !error ? (
+                <InlineNotice tone="info">
+                  Seleção cancelada. Nenhuma pasta foi escolhida e nada foi alterado.
+                </InlineNotice>
+              ) : null}
+              {busy ? <span className={styles.muted}>Abrindo o seletor de pastas…</span> : null}
+              {analyzing ? <span className={styles.muted}>Analisando o projeto…</span> : null}
+              {project && discovery.status === 'ready' ? (
+                <span className={styles.doneLine}>Análise concluída: a pasta foi lida e nada foi alterado.</span>
+              ) : null}
+            </div>
+
+            <RecentProjects recents={recents} selectedName={project?.name} busy={busy} onOpen={onOpenRecent} />
+          </SectionCard>
+
+          <div className={styles.stack}>
+            <SectionCard title="O que vamos analisar?">
+              <Checklist
+                items={[
+                  { text: 'Stack e tecnologias do projeto' },
+                  { text: 'Ferramentas e dependências' },
+                  { text: 'Agentes, skills e configurações existentes' },
+                  { text: 'Alterações locais e conflitos' }
+                ]}
+              />
+            </SectionCard>
+
+            <SectionCard title="Ambiente de IA">
+              <DetectedEnvironments discovery={discovery} />
+            </SectionCard>
+          </div>
+        </div>
       </div>
 
-      {discovery.status === 'loading' || discovery.status === 'idle' ? (
-        <div role="status" aria-live="polite" className={styles.card}>
-          <p>Analisando o projeto…</p>
-          <p className={styles.muted}>
-            O motor lê os arquivos de configuração do repositório. Isto não leva mais que alguns segundos.
-          </p>
-          <div className={styles.progress} />
-        </div>
-      ) : null}
+      {analyzing ? <div aria-hidden="true" className={styles.progress} /> : null}
 
-      {discovery.status === 'error' ? (
+      {discovery.status === 'error' && project ? (
         <>
           <Alert severity="error" title="Não foi possível analisar o projeto" description={discovery.message} />
           <PrimaryActionFooter>
@@ -106,8 +151,33 @@ export function ProjectStep({
         </>
       ) : null}
 
-      {discovery.status === 'ready' ? <DiscoveryDetails discovery={discovery.data} onContinue={onContinue} /> : null}
+      {project && discovery.status === 'ready' ? (
+        <DiscoveryDetails discovery={discovery.data} onContinue={onContinue} />
+      ) : null}
     </section>
+  );
+}
+
+/** O que o motor encontrou, só depois da análise. A escolha do ambiente é da próxima etapa. */
+function DetectedEnvironments({ discovery }: { discovery: Loadable<Discovery> }) {
+  if (discovery.status !== 'ready') {
+    return <span className={styles.muted}>Detectado durante a análise. Você escolhe o ambiente na próxima etapa.</span>;
+  }
+  if (discovery.data.aiEnvironments.length === 0) {
+    return <span className={styles.muted}>Nenhum detectado; você escolhe na próxima etapa.</span>;
+  }
+  return (
+    <>
+      {discovery.data.aiEnvironments.map((e) => (
+        <div key={e.id} className={styles.row}>
+          <span>{aiEnvironmentNames[e.id] ?? e.name}</span>
+          <StatusChip tone={e.supported ? 'success' : 'warning'}>
+            {e.supported ? 'suportado' : 'sem suporte nesta fase'}
+          </StatusChip>
+          <StatusChip tone={confidenceTone(e.confidence)}>confiança {confidenceLabel[e.confidence]}</StatusChip>
+        </div>
+      ))}
+    </>
   );
 }
 
@@ -203,22 +273,6 @@ function DiscoveryDetails({ discovery, onContinue }: { discovery: Discovery; onC
       ) : null}
 
       <div className={styles.grid}>
-        <SectionCard title="Ambiente de IA">
-          {discovery.aiEnvironments.length === 0 ? (
-            <span className={styles.muted}>Nenhum detectado; você escolhe na próxima etapa.</span>
-          ) : (
-            discovery.aiEnvironments.map((e) => (
-              <div key={e.id} className={styles.row}>
-                <span>{aiEnvironmentNames[e.id] ?? e.name}</span>
-                <StatusChip tone={e.supported ? 'success' : 'warning'}>
-                  {e.supported ? 'suportado' : 'sem suporte nesta fase'}
-                </StatusChip>
-                <StatusChip tone={confidenceTone(e.confidence)}>confiança {confidenceLabel[e.confidence]}</StatusChip>
-              </div>
-            ))
-          )}
-        </SectionCard>
-
         <SectionCard
           title="TLC (método SDD)"
           aside={<StatusChip tone={tlcStateTone(tlc.state)}>{tlcStateLabel[tlc.state]}</StatusChip>}
@@ -260,8 +314,8 @@ function DiscoveryDetails({ discovery, onContinue }: { discovery: Discovery; onC
       </div>
 
       <PrimaryActionFooter>
-        <Button variant="contained" onClick={onContinue}>
-          Continuar
+        <Button variant="contained" onClick={onContinue} endIcon={<ArrowRightIcon />}>
+          Próximo
         </Button>
       </PrimaryActionFooter>
     </>

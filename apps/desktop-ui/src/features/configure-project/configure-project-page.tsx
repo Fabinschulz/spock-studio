@@ -1,14 +1,13 @@
-import { Alert, Button } from '@synthra.io/ui-kit';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 
 import { useProjectSelectionContext } from '@/features/project-selection';
-import { PageHeader, WizardSteps } from '@/shared/components/ui';
+import { PageHeader, WizardSteps, type StepIssue } from '@/shared/components/ui';
 import { pathTo } from '@/shared/routing';
 import { createHarnessApi, tauriEngineClient, type HarnessApi } from '@/shared/services';
 
 import styles from './configure-project-page.module.scss';
-import { countApprovals, journeySteps, stepIssue } from './core/journey-state';
+import { countApprovals, journeySteps, stepIssue, type JourneyStepId } from './core/journey-state';
 import { useConfigureJourney } from './hooks/use-configure-journey';
 import { MethodStep } from './steps/method-step';
 import { PlanStep } from './steps/plan-step';
@@ -25,24 +24,15 @@ interface ConfigureProjectPageProps {
 }
 
 export function ConfigureProjectPage({ api, pollMs }: ConfigureProjectPageProps) {
-  const { selected, pick } = useProjectSelectionContext();
-  const navigate = useNavigate();
+  const { selected } = useProjectSelectionContext();
   const resolved = useMemo(() => api ?? createHarnessApi(tauriEngineClient), [api]);
 
+  // Sem pasta, a jornada ainda não existe: só a primeira etapa, para escolher uma (ou reabrir uma recente).
   if (!selected) {
     return (
-      <div className={styles.page}>
-        <Alert
-          severity="info"
-          title="Selecione um projeto"
-          description="A configuração começa por uma pasta de projeto. Volte ao início e escolha a pasta."
-        />
-        <div>
-          <Button variant="contained" onClick={() => navigate(pathTo('home'))}>
-            Voltar ao início
-          </Button>
-        </div>
-      </div>
+      <Frame step="project">
+        <ProjectChoice />
+      </Frame>
     );
   }
 
@@ -53,8 +43,43 @@ export function ConfigureProjectPage({ api, pollMs }: ConfigureProjectPageProps)
       projectId={selected.projectId}
       projectName={selected.displayName}
       projectPath={selected.displayPath}
-      onChangeProject={() => void pick()}
       pollMs={pollMs}
+    />
+  );
+}
+
+/** Cabeçalho da jornada: trilha, progresso, título e o método. Igual em todas as etapas. */
+function Frame({ step, issue, children }: { step: JourneyStepId; issue?: StepIssue; children: ReactNode }) {
+  return (
+    <div className={styles.page}>
+      <PageHeader
+        breadcrumb={[{ label: 'Início', to: pathTo('home') }, { label: 'Configurar projeto' }]}
+        lead={<WizardSteps steps={journeySteps} currentId={step} issue={issue} />}
+        title="Configurar projeto"
+        actions={<MethodBadge />}
+        description="Vamos analisar o seu projeto e preparar o ambiente de engenharia com o TLC."
+      />
+      {children}
+    </div>
+  );
+}
+
+/** A primeira etapa quando ainda não há pasta escolhida. */
+function ProjectChoice() {
+  const { busy, error, cancelled, recents, pick, openRecent, unavailableReason } = useProjectSelectionContext();
+  return (
+    <ProjectStep
+      project={null}
+      discovery={{ status: 'idle' }}
+      recents={recents}
+      busy={busy}
+      error={error}
+      cancelled={cancelled}
+      unavailableReason={unavailableReason}
+      onPick={() => void pick()}
+      onOpenRecent={(id) => void openRecent(id)}
+      onRetry={() => undefined}
+      onContinue={() => undefined}
     />
   );
 }
@@ -64,12 +89,12 @@ interface JourneyProps {
   projectId: string;
   projectName: string;
   projectPath: string;
-  onChangeProject: () => void;
   pollMs?: number;
 }
 
-function Journey({ api, projectId, projectName, projectPath, onChangeProject, pollMs }: JourneyProps) {
+function Journey({ api, projectId, projectName, projectPath, pollMs }: JourneyProps) {
   const navigate = useNavigate();
+  const { busy, error, cancelled, recents, pick, openRecent, unavailableReason } = useProjectSelectionContext();
   const { state, actions } = useConfigureJourney(api, projectId, pollMs);
   const home = () => navigate(pathTo('home'));
 
@@ -79,21 +104,18 @@ function Journey({ api, projectId, projectName, projectPath, onChangeProject, po
   }, [state.step]);
 
   return (
-    <div className={styles.page}>
-      <PageHeader
-        breadcrumb={[{ label: 'Início', to: pathTo('home') }, { label: 'Configurar projeto' }]}
-        title="Configurar projeto"
-        actions={<MethodBadge />}
-        description="Vamos analisar o seu projeto e preparar o ambiente de engenharia com o TLC."
-      />
-      <WizardSteps steps={journeySteps} currentId={state.step} issue={stepIssue(state)} />
-
+    <Frame step={state.step} issue={stepIssue(state)}>
       {state.step === 'project' ? (
         <ProjectStep
-          projectName={projectName}
-          projectPath={projectPath}
-          onChangeProject={onChangeProject}
+          project={{ name: projectName, path: projectPath }}
           discovery={state.discovery}
+          recents={recents}
+          busy={busy}
+          error={error}
+          cancelled={cancelled}
+          unavailableReason={unavailableReason}
+          onPick={() => void pick()}
+          onOpenRecent={(id) => void openRecent(id)}
           onRetry={() => void actions.discover()}
           onContinue={() => actions.goTo('method')}
         />
@@ -153,6 +175,6 @@ function Journey({ api, projectId, projectName, projectPath, onChangeProject, po
           onDone={home}
         />
       ) : null}
-    </div>
+    </Frame>
   );
 }

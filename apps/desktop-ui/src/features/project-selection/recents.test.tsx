@@ -10,6 +10,8 @@ import {
   formatRecentDate,
   ProjectPickError,
   ProjectSelectionProvider,
+  RecentProjects,
+  useProjectSelectionContext,
   type ProjectPickerPort,
   type RecentProject
 } from '.';
@@ -34,12 +36,28 @@ const recent = (over: Partial<RecentProject> = {}): RecentProject => ({
 
 const opened = { projectId: 'p-1', displayName: 'easymart-web', displayPath: '~\\…\\easymart-web' };
 
+/** A escolha da pasta (com seus avisos) e a lista de recentes, ligadas ao mesmo contexto, como na jornada. */
+function Harness() {
+  const { recents, selected, busy, openRecent } = useProjectSelectionContext();
+  return (
+    <>
+      <ProjectSelection />
+      <RecentProjects
+        recents={recents}
+        selectedName={selected?.displayName}
+        busy={busy}
+        onOpen={(id) => void openRecent(id)}
+      />
+    </>
+  );
+}
+
 function renderSelection(port: ProjectPickerPort) {
   return render(
     <AppProviders>
       <ProjectSelectionProvider picker={port}>
         <MemoryRouter>
-          <ProjectSelection />
+          <Harness />
         </MemoryRouter>
       </ProjectSelectionProvider>
     </AppProviders>
@@ -73,7 +91,7 @@ describe('Projetos recentes', () => {
         ])
     });
 
-    const list = within(await screen.findByRole('list', { name: '' }));
+    const list = within(await screen.findByRole('region', { name: 'Projetos recentes' }));
     const items = list.getAllByRole('button');
     expect(items[0]).toHaveTextContent('easymart-web');
     expect(items[0]).toHaveTextContent('Hoje · 14:32');
@@ -107,7 +125,7 @@ describe('Projetos recentes', () => {
     const card = await screen.findByRole('button', { name: /easymart-web/ });
 
     expect(card).toHaveAttribute('aria-disabled', 'true');
-    expect(card).toHaveAccessibleDescription(/Pasta indisponível/);
+    expect(card).toHaveAccessibleDescription(/Indisponível: a pasta não existe mais/);
     await userEvent.click(card);
     expect(openRecent).not.toHaveBeenCalled();
   });
@@ -129,7 +147,7 @@ describe('Projetos recentes', () => {
     const recents = vi.fn().mockResolvedValueOnce([]).mockResolvedValue([recent()]);
     renderSelection({ pick: vi.fn().mockResolvedValue(opened), recents });
 
-    await userEvent.click(await screen.findByRole('button', { name: /Selecionar pasta do projeto/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Selecionar pasta' }));
 
     expect(await screen.findByRole('heading', { name: 'Projetos recentes' })).toBeInTheDocument();
   });

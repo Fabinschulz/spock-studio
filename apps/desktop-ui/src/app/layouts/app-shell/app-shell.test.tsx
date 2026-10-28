@@ -62,25 +62,16 @@ describe('AppShell · navegação', () => {
     const nav = screen.getByRole('navigation', { name: 'Navegação principal' });
 
     expect(within(nav).getByRole('link', { name: 'Início' })).toHaveAttribute('aria-current', 'page');
+    // "Projetos" abre a primeira etapa da jornada, onde se escolhe a pasta: sempre existe.
+    expect(within(nav).getByRole('link', { name: 'Projetos' })).toHaveAttribute('href', '/configurar');
     for (const [name, reason] of [
       ['Catálogo', 'Em breve'],
-      ['Configurações', 'Em breve'],
-      ['Projetos', 'Selecione uma pasta']
+      ['Configurações', 'Em breve']
     ] as const) {
       const item = within(nav).getByRole('button', { name: new RegExp(name) });
       expect(item).toHaveAttribute('aria-disabled', 'true');
       expect(item).toHaveAccessibleDescription(reason);
     }
-  });
-
-  it('"Projetos" só vira link depois de escolhida uma pasta', async () => {
-    renderShell();
-    const nav = screen.getByRole('navigation', { name: 'Navegação principal' });
-    expect(within(nav).queryByRole('link', { name: 'Projetos' })).not.toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole('button', { name: 'escolher' }));
-
-    expect(await within(nav).findByRole('link', { name: 'Projetos' })).toHaveAttribute('href', '/configurar');
   });
 
   it('o atalho "Ir para o conteúdo" move o foco para a área principal, sem mudar a rota', async () => {
