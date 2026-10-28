@@ -17,9 +17,11 @@ import {
 } from '.';
 import { ProjectSelection } from './project-selection';
 
-const NOW = new Date(2026, 9, 27, 18, 0).getTime();
-const at = (daysAgo: number, hour: number, minute: number) => {
-  const d = new Date(NOW);
+// Dois relógios: um fixo, para a função pura; e o real, porque os componentes leem a data de hoje do sistema.
+const FIXED = new Date(2026, 9, 27, 18, 0).getTime();
+const NOW = Date.now();
+const at = (daysAgo: number, hour: number, minute: number, base = NOW) => {
+  const d = new Date(base);
   d.setDate(d.getDate() - daysAgo);
   d.setHours(hour, minute, 0, 0);
   return d.getTime();
@@ -65,17 +67,17 @@ function renderSelection(port: ProjectPickerPort) {
 }
 
 describe('formatRecentDate', () => {
-  it('hoje, ontem e data completa, sempre com a hora', () => {
-    expect(formatRecentDate(at(0, 14, 32), NOW)).toBe('Hoje · 14:32');
-    expect(formatRecentDate(at(1, 16, 20), NOW)).toBe('Ontem · 16:20');
-    expect(formatRecentDate(at(4, 10, 15), NOW)).toBe('23/10/2026 · 10:15');
+  it('hoje, ontem e data completa', () => {
+    expect(formatRecentDate(at(0, 14, 32, FIXED), FIXED)).toBe('Hoje');
+    expect(formatRecentDate(at(1, 16, 20, FIXED), FIXED)).toBe('Ontem');
+    expect(formatRecentDate(at(4, 10, 15, FIXED), FIXED)).toBe('23/10/2026');
   });
 
   it('a virada do dia conta pelo calendário, não por 24 horas', () => {
     const justAfterMidnight = new Date(2026, 9, 27, 0, 5).getTime();
     const lateYesterday = new Date(2026, 9, 26, 23, 50).getTime();
 
-    expect(formatRecentDate(lateYesterday, justAfterMidnight)).toBe('Ontem · 23:50');
+    expect(formatRecentDate(lateYesterday, justAfterMidnight)).toBe('Ontem');
   });
 });
 
@@ -94,9 +96,9 @@ describe('Projetos recentes', () => {
     const list = within(await screen.findByRole('region', { name: 'Projetos recentes' }));
     const items = list.getAllByRole('button');
     expect(items[0]).toHaveTextContent('easymart-web');
-    expect(items[0]).toHaveTextContent('Hoje · 14:32');
+    expect(items[0]).toHaveTextContent('Hoje');
     expect(items[1]).toHaveTextContent('empreganet-api');
-    expect(items[1]).toHaveTextContent('Ontem · 16:20');
+    expect(items[1]).toHaveTextContent('Ontem');
   });
 
   it('sem recentes (ou fora do aplicativo desktop) a seção nem aparece', async () => {
@@ -112,9 +114,7 @@ describe('Projetos recentes', () => {
     await userEvent.click(await screen.findByRole('button', { name: /easymart-web/ }));
 
     expect(openRecent).toHaveBeenCalledWith('r-1');
-    expect(
-      await screen.findByText('Os arquivos permanecem no computador. A análise inicial é somente de leitura.')
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Pasta selecionada')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Analisar projeto/ })).not.toBeInTheDocument();
   });
 

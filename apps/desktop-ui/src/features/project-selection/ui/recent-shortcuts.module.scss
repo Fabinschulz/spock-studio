@@ -1,0 +1,86 @@
+@use '@/shared/styles/abstracts' as *;
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.title {
+  font-size: var(--font-size-heading);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  min-width: 0;
+}
+
+.card {
+  @include card(var(--space-4));
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast),
+    background-color var(--duration-fast);
+
+  @include hover {
+    border-color: color-mix(in srgb, var(--color-primary) 53%, transparent);
+    background-color: var(--color-card-hover);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &[aria-disabled='true'] {
+    cursor: default;
+    color: var(--color-text-muted);
+
+    @include hover {
+      border-color: var(--color-border);
+      background-color: var(--color-surface);
+    }
+  }
+}
+
+.icon {
+  display: flex;
+  flex: none;
+  color: var(--color-primary-text);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  font-weight: var(--font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.path,
+.meta {
+  overflow: hidden;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

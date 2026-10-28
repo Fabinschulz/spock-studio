@@ -31,10 +31,8 @@ export function useConfigureJourney(api: HarnessApi, projectId: string, pollMs =
     }
   }, [api, projectId]);
 
-  useEffect(() => {
-    void discover();
-    return () => abort.current?.abort();
-  }, [discover]);
+  // A análise só começa quando a pessoa pede ("Analisar projeto"); sair da tela cancela o acompanhamento de execuções.
+  useEffect(() => () => abort.current?.abort(), []);
 
   const generatePlan = useCallback(async () => {
     const { aiEnvironment, allowTlcReinstall, updateTlc } = latest.current;

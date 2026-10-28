@@ -1,3 +1,4 @@
+import { ChevronDownGlyph } from './glyphs';
 import styles from './panels.module.scss';
 
 /** Hexágono com a marca de verificação: o glifo do método SDD. Decorativo. */
@@ -10,14 +11,18 @@ export function TlcGlyph({ size = 18 }: { size?: number }) {
   );
 }
 
-/** Método SDD fixo desta fase, como informação (não é um seletor: não há outro kit). */
+/**
+ * Seletor do método. Nesta fase só existe o TLC: o seletor tem uma única opção, e dizer isso é mais honesto que
+ * esconder o controle (não há outro kit para escolher).
+ */
 export function MethodBadge() {
   return (
     <span className={styles.methodBadge}>
       <TlcGlyph />
-      <span>
-        <span className="visually-hidden">Método de especificação: </span>TLC (padrão)
-      </span>
+      <select className={styles.methodSelect} aria-label="Método de especificação" defaultValue="tlc">
+        <option value="tlc">TLC (padrão)</option>
+      </select>
+      <ChevronDownGlyph />
     </span>
   );
 }

@@ -1,4 +1,4 @@
-/** Paleta da marca, a mesma do Mariliz Web (src/shared/components/providers/brand-palette.ts). */
+/** Paleta da marca: o teal do Mariliz Web (tema claro) e a paleta Dark Futuristic do Mariliz AI Engineering (tema escuro). */
 export const brandPalette = {
   teal300: '#5ccfc9',
   teal400: '#33c1ba',
@@ -15,8 +15,18 @@ export const brandPalette = {
   neutral800: '#1e302e',
   neutral950: '#0a1615',
   neutral975: '#050c0c',
+  navy975: '#020b11',
+  navy950: '#030f17',
+  navy850: '#061824',
+  navy700: '#0e2a3c',
+  cyan300: '#1affe6',
+  cyan400: '#00f2da',
+  cyan500: '#00ddbb',
+  ice50: '#ffffff',
+  ice300: '#8ca1b0',
+  mint400: '#00e676',
   errorLight: '#b42318',
   errorDark: '#f97066',
   successLight: '#1c7f45',
-  successDark: '#3fbf7f'
+  successDark: '#00e676'
 } as const;

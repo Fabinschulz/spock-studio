@@ -2,14 +2,22 @@ body {
   font-family: var(--font-sans);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
+  font-weight: var(--font-weight-regular);
   color: var(--color-text);
   background-color: var(--color-background);
 }
 
-:where(h1, h2, h3) {
-  font-weight: var(--font-weight-display);
-  line-height: var(--line-height-tight);
-  letter-spacing: var(--letter-spacing-tight);
+:where(h1) {
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-display);
+  letter-spacing: var(--letter-spacing-display);
+  text-wrap: balance;
+}
+
+:where(h2, h3) {
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-heading);
+  letter-spacing: var(--letter-spacing-heading);
   text-wrap: balance;
 }
 

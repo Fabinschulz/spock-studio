@@ -53,7 +53,7 @@ function Frame({ step, issue, children }: { step: JourneyStepId; issue?: StepIss
   return (
     <div className={styles.page}>
       <PageHeader
-        breadcrumb={[{ label: 'Início', to: pathTo('home') }, { label: 'Configurar projeto' }]}
+        breadcrumb={[{ label: 'Projetos', to: pathTo('configure') }, { label: 'Configurar projeto' }]}
         lead={<WizardSteps steps={journeySteps} currentId={step} issue={issue} />}
         title="Configurar projeto"
         actions={<MethodBadge />}
@@ -78,7 +78,9 @@ function ProjectChoice() {
       unavailableReason={unavailableReason}
       onPick={() => void pick()}
       onOpenRecent={(id) => void openRecent(id)}
-      onRetry={() => undefined}
+      aiEnvironment={null}
+      onEnvironment={() => undefined}
+      onAnalyze={() => undefined}
       onContinue={() => undefined}
     />
   );
@@ -116,7 +118,9 @@ function Journey({ api, projectId, projectName, projectPath, pollMs }: JourneyPr
           unavailableReason={unavailableReason}
           onPick={() => void pick()}
           onOpenRecent={(id) => void openRecent(id)}
-          onRetry={() => void actions.discover()}
+          aiEnvironment={state.aiEnvironment}
+          onEnvironment={actions.setEnvironment}
+          onAnalyze={() => void actions.discover()}
           onContinue={() => actions.goTo('method')}
         />
       ) : null}

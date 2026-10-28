@@ -15,6 +15,8 @@ import type { Discovery } from '@/shared/schemas';
 
 import type { Loadable } from '../../core/journey-state';
 import { aiEnvironmentNames, confidenceLabel, confidenceTone, tlcStateLabel, tlcStateTone } from '../../core/labels';
+import { ChevronDownGlyph, NodesGlyph, TerminalGlyph } from '../../ui/glyphs';
+import { TlcGlyph } from '../../ui/method-badge';
 import styles from '../../ui/panels.module.scss';
 
 interface ProjectStepProps {
@@ -31,7 +33,11 @@ interface ProjectStepProps {
   unavailableReason?: string;
   onPick: () => void;
   onOpenRecent: (id: string) => void;
-  onRetry: () => void;
+  /** Ambiente de IA escolhido (o mesmo da etapa seguinte). */
+  aiEnvironment: string | null;
+  onEnvironment: (id: string) => void;
+  /** Começa a análise: ela nunca roda sozinha. */
+  onAnalyze: () => void;
   onContinue: () => void;
 }
 
@@ -46,6 +52,8 @@ const kindLabel: Record<string, string> = {
   run: 'Executar'
 };
 
+const ENVIRONMENTS = ['claude-code', 'cursor', 'codex'] as const;
+
 export function ProjectStep({
   project,
   discovery,
@@ -54,13 +62,16 @@ export function ProjectStep({
   error,
   cancelled,
   unavailableReason,
+  aiEnvironment,
+  onEnvironment,
   onPick,
   onOpenRecent,
-  onRetry,
+  onAnalyze,
   onContinue
 }: ProjectStepProps) {
   const inactive = busy || unavailableReason !== undefined;
-  const analyzing = project !== null && (discovery.status === 'loading' || discovery.status === 'idle');
+  const analyzing = discovery.status === 'loading';
+  const ready = project !== null && discovery.status === 'ready';
 
   return (
     <section className={styles.step}>
@@ -68,10 +79,8 @@ export function ProjectStep({
 
       <div className={styles.projectWrap}>
         <div className={styles.projectGrid}>
-          <SectionCard title="Selecionar pasta do projeto">
-            <p className={styles.muted}>
-              {unavailableReason ?? 'Escolha o diretório do seu projeto no computador. Os arquivos permanecem nele.'}
-            </p>
+          <SectionCard title="Selecionar pasta do projeto" icon={<TerminalGlyph />}>
+            <p className={styles.muted}>{unavailableReason ?? 'Escolha o diretório do seu projeto no computador.'}</p>
 
             {error ? (
               <InlineNotice tone="danger" title="Não foi possível usar esta pasta">
@@ -94,13 +103,11 @@ export function ProjectStep({
               </button>
             </div>
 
-            {project === null ? (
-              <div>
-                <Button variant="contained" onClick={onPick} disabled={inactive} endIcon={<ArrowRightIcon />}>
-                  {busy ? 'Abrindo…' : 'Selecionar pasta'}
-                </Button>
-              </div>
-            ) : null}
+            <div className={styles.analyzeRow}>
+              <Button variant="contained" onClick={onAnalyze} disabled={project === null || analyzing}>
+                {analyzing ? 'Analisando…' : 'Analisar projeto'}
+              </Button>
+            </div>
 
             {/* Região de status: o anúncio acontece quando o texto entra, sem tirar o foco de onde a pessoa está. */}
             <div role="status" aria-live="polite" className={styles.stack}>
@@ -111,16 +118,13 @@ export function ProjectStep({
               ) : null}
               {busy ? <span className={styles.muted}>Abrindo o seletor de pastas…</span> : null}
               {analyzing ? <span className={styles.muted}>Analisando o projeto…</span> : null}
-              {project && discovery.status === 'ready' ? (
-                <span className={styles.doneLine}>Análise concluída: a pasta foi lida e nada foi alterado.</span>
-              ) : null}
             </div>
 
             <RecentProjects recents={recents} selectedName={project?.name} busy={busy} onOpen={onOpenRecent} />
           </SectionCard>
 
           <div className={styles.stack}>
-            <SectionCard title="O que vamos analisar?">
+            <SectionCard title="O que vamos analisar?" icon={<TlcGlyph size={20} />}>
               <Checklist
                 items={[
                   { text: 'Stack e tecnologias do projeto' },
@@ -131,8 +135,28 @@ export function ProjectStep({
               />
             </SectionCard>
 
-            <SectionCard title="Ambiente de IA">
-              <DetectedEnvironments discovery={discovery} />
+            <SectionCard className={styles.fillCard} title="Ambiente de IA" icon={<NodesGlyph />}>
+              <p className={styles.muted}>Selecione o ambiente que você utiliza para o desenvolvimento com IA.</p>
+              <span className={styles.selectWrap}>
+                <select
+                  className={styles.select}
+                  aria-label="Ambiente de IA"
+                  value={aiEnvironment ?? ''}
+                  disabled={project === null}
+                  onChange={(e) => onEnvironment(e.target.value)}
+                >
+                  <option value="" disabled>
+                    Selecione o ambiente
+                  </option>
+                  {ENVIRONMENTS.map((id) => (
+                    <option key={id} value={id}>
+                      {aiEnvironmentNames[id]}
+                      {id === 'claude-code' ? '' : ' (sem suporte nesta fase)'}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDownGlyph />
+              </span>
             </SectionCard>
           </div>
         </div>
@@ -141,47 +165,21 @@ export function ProjectStep({
       {analyzing ? <div aria-hidden="true" className={styles.progress} /> : null}
 
       {discovery.status === 'error' && project ? (
-        <>
-          <Alert severity="error" title="Não foi possível analisar o projeto" description={discovery.message} />
-          <PrimaryActionFooter>
-            <Button variant="contained" onClick={onRetry}>
-              Tentar de novo
-            </Button>
-          </PrimaryActionFooter>
-        </>
+        <Alert severity="error" title="Não foi possível analisar o projeto" description={discovery.message} />
       ) : null}
 
-      {project && discovery.status === 'ready' ? (
-        <DiscoveryDetails discovery={discovery.data} onContinue={onContinue} />
-      ) : null}
+      {ready ? <DiscoveryDetails discovery={discovery.data} /> : null}
+
+      <PrimaryActionFooter>
+        <Button variant="contained" onClick={onContinue} disabled={!ready} endIcon={<ArrowRightIcon />}>
+          Próximo
+        </Button>
+      </PrimaryActionFooter>
     </section>
   );
 }
 
-/** O que o motor encontrou, só depois da análise. A escolha do ambiente é da próxima etapa. */
-function DetectedEnvironments({ discovery }: { discovery: Loadable<Discovery> }) {
-  if (discovery.status !== 'ready') {
-    return <span className={styles.muted}>Detectado durante a análise. Você escolhe o ambiente na próxima etapa.</span>;
-  }
-  if (discovery.data.aiEnvironments.length === 0) {
-    return <span className={styles.muted}>Nenhum detectado; você escolhe na próxima etapa.</span>;
-  }
-  return (
-    <>
-      {discovery.data.aiEnvironments.map((e) => (
-        <div key={e.id} className={styles.row}>
-          <span>{aiEnvironmentNames[e.id] ?? e.name}</span>
-          <StatusChip tone={e.supported ? 'success' : 'warning'}>
-            {e.supported ? 'suportado' : 'sem suporte nesta fase'}
-          </StatusChip>
-          <StatusChip tone={confidenceTone(e.confidence)}>confiança {confidenceLabel[e.confidence]}</StatusChip>
-        </div>
-      ))}
-    </>
-  );
-}
-
-function DiscoveryDetails({ discovery, onContinue }: { discovery: Discovery; onContinue: () => void }) {
+function DiscoveryDetails({ discovery }: { discovery: Discovery }) {
   const { inventory, tlc, git, tools } = discovery;
   const existing = [
     ...inventory.agents,
@@ -312,12 +310,6 @@ function DiscoveryDetails({ discovery, onContinue }: { discovery: Discovery; onC
           </div>
         </SectionCard>
       </div>
-
-      <PrimaryActionFooter>
-        <Button variant="contained" onClick={onContinue} endIcon={<ArrowRightIcon />}>
-          Próximo
-        </Button>
-      </PrimaryActionFooter>
     </>
   );
 }

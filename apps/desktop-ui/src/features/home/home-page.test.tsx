@@ -29,7 +29,7 @@ function renderHome(picker: ProjectPickerPort, unavailableReason?: string) {
 const neverCalled: ProjectPickerPort = { pick: vi.fn() };
 
 describe('HomePage', () => {
-  it('mostra a saudação, o título, o texto de apoio e a frase da marca', () => {
+  it('mostra o título, o texto de apoio e a frase da marca', () => {
     renderHome(neverCalled);
 
     expect(screen.getByRole('heading', { level: 1, name: 'Como podemos ajudar?' })).toBeInTheDocument();
@@ -38,7 +38,7 @@ describe('HomePage', () => {
         'Escolha uma atividade para começar. Vamos configurar o ambiente conforme as necessidades do seu projeto.'
       )
     ).toBeInTheDocument();
-    expect(screen.getByText('Bem-vindo(a)!')).toBeInTheDocument();
+    expect(screen.queryByText('Bem-vindo(a)!')).not.toBeInTheDocument();
     expect(screen.getByText(/Mais que ferramentas,/)).toBeInTheDocument();
   });
 
@@ -52,7 +52,7 @@ describe('HomePage', () => {
       expect.stringContaining('Conectar ferramentas'),
       expect.stringContaining('Modernizar sistema')
     ]);
-    expect(screen.getByText('Analise o repositório e configure o Harness.')).toBeInTheDocument();
+    expect(screen.getByText('Analisa o repositório e configura o Harness.')).toBeInTheDocument();
     expect(
       screen.getByText('Gere especificações, backlog e roadmap a partir de documentos existentes.')
     ).toBeInTheDocument();
@@ -76,14 +76,12 @@ describe('HomePage', () => {
     expect(screen.queryByText('JORNADA ABERTA')).not.toBeInTheDocument();
   });
 
-  it('segue a ordem de tabulação: cartões, o aviso e depois o seletor de projeto', async () => {
+  it('segue a ordem de tabulação: cartões e depois o seletor de projeto', async () => {
     const user = userEvent.setup();
     renderHome(neverCalled);
 
     for (let i = 0; i < 4; i++) await user.tab();
     expect(screen.getByRole('button', { name: /Modernizar sistema/ })).toHaveFocus();
-    await user.tab();
-    expect(screen.getByRole('button', { name: 'Dispensar aviso' })).toHaveFocus();
     await user.tab();
     expect(screen.getByRole('button', { name: 'Selecionar pasta' })).toHaveFocus();
   });
@@ -140,19 +138,36 @@ describe('HomePage', () => {
     expect(screen.getByText('Disponível apenas no aplicativo desktop.')).toBeInTheDocument();
   });
 
-  it('o aviso de funcionalidades em breve lista só o que não existe e pode ser dispensado', async () => {
-    const user = userEvent.setup();
+  it('a faixa de informação diz que trocar a pasta é possível e que a análise não altera arquivos', () => {
     renderHome(neverCalled);
 
-    expect(screen.getByText('Funcionalidades em breve')).toBeInTheDocument();
     expect(
       screen.getByText(
-        'As opções Importar requisitos, Conectar ferramentas e Modernizar sistema ainda estão em desenvolvimento.'
+        'Você pode trocar a pasta a qualquer momento. A análise inicial é somente de leitura e não altera seus arquivos.'
       )
     ).toBeInTheDocument();
+  });
 
-    await user.click(screen.getByRole('button', { name: 'Dispensar aviso' }));
-    expect(screen.queryByText('Funcionalidades em breve')).not.toBeInTheDocument();
+  it('mostra atalhos para os projetos recentes, com o último acesso, e escolher um só o seleciona', async () => {
+    const user = userEvent.setup();
+    const openRecent = vi.fn().mockResolvedValue(project);
+    const lastOpenedMs = new Date(2026, 9, 20, 14, 32).getTime();
+    renderHome({
+      pick: vi.fn(),
+      recents: vi
+        .fn()
+        .mockResolvedValue([
+          { id: 'r-1', displayName: 'easymart-web', displayPath: '~/easymart-web', lastOpenedMs, available: true }
+        ]),
+      openRecent
+    });
+
+    const card = await screen.findByRole('button', { name: /easymart-web/ });
+    expect(card).toHaveTextContent('20/10/2026 · 14:32');
+    await user.click(card);
+
+    expect(openRecent).toHaveBeenCalledWith('r-1');
+    expect(screen.queryByText('JORNADA ABERTA')).not.toBeInTheDocument();
   });
 
   describe('seleção de projeto · estados', () => {
@@ -163,8 +178,7 @@ describe('HomePage', () => {
 
       expect(screen.queryByText('Pasta selecionada')).not.toBeInTheDocument();
       await user.click(screen.getByRole('button', { name: 'Selecionar pasta' }));
-      await screen.findByText('Os arquivos permanecem no computador. A análise inicial é somente de leitura.');
-      expect(screen.getByText('Pasta selecionada')).toBeInTheDocument();
+      expect(await screen.findByText('Pasta selecionada')).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /Analisar projeto/ })).not.toBeInTheDocument();
       expect(screen.queryByText('JORNADA ABERTA')).not.toBeInTheDocument();
 

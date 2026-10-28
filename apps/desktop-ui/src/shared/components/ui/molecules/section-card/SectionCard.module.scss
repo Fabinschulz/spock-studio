@@ -7,11 +7,13 @@
   flex-direction: column;
   gap: var(--space-3);
   min-width: 0;
+  border-color: var(--color-border-panel);
 }
 
 .accent {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 1px var(--color-accent-glow);
+  @include selected-border;
+
+  background: var(--card-selected-bg);
 }
 
 .header {
@@ -42,8 +44,8 @@
 }
 
 .title {
-  font-size: var(--font-size-base);
-  font-weight: 600;
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-semibold);
 }
 
 .aside {

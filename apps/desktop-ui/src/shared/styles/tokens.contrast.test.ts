@@ -85,7 +85,14 @@ for (const [themeName, scope] of [
   const ratio = (fg: string, bg: string) => contrast(color(fg), color(bg));
 
   describe(`contraste dos tokens (tema ${themeName})`, () => {
-    const surfaces = ['color-background', 'color-surface', 'color-surface-raised', 'color-surface-sunken'] as const;
+    const surfaces = [
+      'color-background',
+      'color-surface',
+      'color-surface-raised',
+      'color-surface-sunken',
+      'color-sidebar',
+      'color-notice'
+    ] as const;
 
     it.each(surfaces)('texto principal em %s ≥ 7:1', (surface) => {
       expect(ratio('color-text', surface)).toBeGreaterThanOrEqual(7);
@@ -133,6 +140,34 @@ for (const [themeName, scope] of [
     });
 
     // O quadrado do ícone é decorativo: o significado está no glifo, e é o par glifo/fundo que a WCAG 1.4.11 exige.
+
+    it.each(['color-primary-text', 'color-text'])('%s sobre o item ativo do menu ≥ 4,5:1', (token) => {
+      expect(ratio(token, 'color-active')).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it('badge: texto sobre o próprio fundo ≥ 4,5:1', () => {
+      expect(ratio('color-badge-fg', 'color-badge-bg')).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it.each(['color-sidebar', 'color-menu-hover'])('texto do menu inativo sobre %s ≥ 4,5:1', (bg) => {
+      expect(ratio('color-text-menu', bg)).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it.each(['color-notice', 'color-surface', 'color-background'])('texto pequeno sobre %s ≥ 4,5:1', (bg) => {
+      expect(ratio('color-text-subtle', bg)).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it.each(['color-card-hover', 'color-card-selected'])('texto, secundário e marca sobre o cartão em %s', (bg) => {
+      expect(ratio('color-text', bg)).toBeGreaterThanOrEqual(7);
+      expect(ratio('color-text-muted', bg)).toBeGreaterThanOrEqual(4.5);
+      expect(ratio('color-primary-text', bg)).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it('cartão selecionado: texto sobre o início do degradê ≥ 4,5:1', () => {
+      expect(ratio('color-text', 'color-card-selected-start')).toBeGreaterThanOrEqual(7);
+      expect(ratio('color-card-selected-text', 'color-card-selected-start')).toBeGreaterThanOrEqual(4.5);
+      expect(ratio('color-primary-text', 'color-card-selected-start')).toBeGreaterThanOrEqual(4.5);
+    });
 
     it('indicador da etapa atual (cor primária) contra o fundo ≥ 3:1', () => {
       expect(ratio('color-primary', 'color-background')).toBeGreaterThanOrEqual(3);

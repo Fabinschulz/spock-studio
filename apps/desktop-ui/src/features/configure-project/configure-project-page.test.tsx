@@ -63,7 +63,13 @@ function WithProject({ children }: { children: ReactNode }) {
   return selected ? children : null;
 }
 
-function renderJourney(api: HarnessApi) {
+/** A análise só começa quando a pessoa pede: o helper faz esse pedido, assim que o botão aparece. */
+async function analyzeWhenReady() {
+  await userEvent.click(await screen.findByRole('button', { name: 'Analisar projeto' }));
+}
+
+function renderJourney(api: HarnessApi, { analyze = true } = {}) {
+  if (analyze) void analyzeWhenReady();
   return render(
     <AppProviders>
       <ProjectSelectionProvider picker={{ pick: vi.fn().mockResolvedValue(project) }}>
@@ -104,7 +110,6 @@ describe('jornada Configurar projeto', () => {
 
       expect(await screen.findByText('Projeto EmpregaNetAPI')).toBeInTheDocument();
       const stacks = within(await screen.findByRole('list', { name: 'Stacks detectadas' }));
-      expect(screen.getByText(/Análise concluída: a pasta foi lida e nada foi alterado/)).toBeInTheDocument();
       expect(stacks.getByText('.NET')).toBeInTheDocument();
       expect(stacks.getByText('net10.0')).toBeInTheDocument();
       expect(stacks.getByText('confiança alta')).toBeInTheDocument();
@@ -118,7 +123,7 @@ describe('jornada Configurar projeto', () => {
       expect(await screen.findByText(/A pasta nã/)).toBeInTheDocument();
     });
 
-    it('permite tentar de novo quando a análise falha, sem mostrar resultado parcial', async () => {
+    it('permite analisar de novo quando a análise falha, sem mostrar resultado parcial', async () => {
       const discover = vi
         .fn()
         .mockRejectedValueOnce(new EngineError('INTERNAL', 'O motor não respondeu.'))
@@ -129,7 +134,7 @@ describe('jornada Configurar projeto', () => {
       expect(screen.getByText('O motor não respondeu.')).toBeInTheDocument();
       expect(screen.queryByText('Stack detectada')).not.toBeInTheDocument();
 
-      await click('Tentar de novo');
+      await click('Analisar projeto');
       expect(await screen.findByText('Stack detectada')).toBeInTheDocument();
       expect(discover).toHaveBeenCalledTimes(2);
     });
@@ -151,8 +156,9 @@ describe('jornada Configurar projeto', () => {
   });
 
   describe('A · contexto da pasta', () => {
-    it('mostra a pasta escolhida e o selo do método; o botão de trocar a pasta abre o seletor de novo', async () => {
+    it('mostra a pasta e o seletor do método, só analisa quando a pessoa pede e o botão de trocar abre o seletor', async () => {
       const pick = vi.fn().mockResolvedValue(project);
+      const api = fakeApi();
       render(
         <AppProviders>
           <ProjectSelectionProvider picker={{ pick }}>
@@ -162,7 +168,7 @@ describe('jornada Configurar projeto', () => {
                   path="/configurar"
                   element={
                     <WithProject>
-                      <ConfigureProjectPage api={fakeApi()} pollMs={5} />
+                      <ConfigureProjectPage api={api} pollMs={5} />
                     </WithProject>
                   }
                 />
@@ -174,14 +180,33 @@ describe('jornada Configurar projeto', () => {
 
       expect(await screen.findByText('Selecionar pasta do projeto')).toBeInTheDocument();
       expect(screen.getByText(project.displayPath)).toBeInTheDocument();
-      expect(screen.getByText('Método de especificação:')).toBeInTheDocument();
-      expect(screen.getByText(/TLC \(padrão\)/)).toBeInTheDocument();
+      expect(screen.getByRole('combobox', { name: 'Método de especificação' })).toHaveDisplayValue('TLC (padrão)');
       expect(screen.getByText('Stack e tecnologias do projeto')).toBeInTheDocument();
+      // Nada de análise, resultado nem estado de conclusão antes do pedido.
+      expect(api.discover).not.toHaveBeenCalled();
+      expect(screen.queryByText('Stack detectada')).not.toBeInTheDocument();
+      expect(screen.queryByText(/Análise concluída/)).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Próximo' })).toBeDisabled();
       const calls = pick.mock.calls.length;
 
       await userEvent.click(screen.getByRole('button', { name: /^Trocar a pasta do projeto / }));
-
       await waitFor(() => expect(pick.mock.calls.length).toBe(calls + 1));
+
+      await userEvent.click(screen.getByRole('button', { name: 'Analisar projeto' }));
+      expect(await screen.findByText('Stack detectada')).toBeInTheDocument();
+      expect(api.discover).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole('button', { name: 'Próximo' })).toBeEnabled();
+    });
+
+    it('o ambiente escolhido na primeira etapa é o mesmo da etapa seguinte', async () => {
+      renderJourney(fakeApi({ discover: vi.fn().mockResolvedValue({ ...discovery, aiEnvironments: [] }) }));
+      await screen.findByText('Stack detectada');
+
+      await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Ambiente de IA' }), 'claude-code');
+      await click('Próximo');
+
+      expect(await screen.findByRole('radio', { name: /Claude Code/ })).toBeChecked();
+      expect(screen.getByRole('button', { name: 'Gerar plano' })).toBeEnabled();
     });
   });
 
@@ -755,10 +780,11 @@ describe('jornada Configurar projeto', () => {
       expect(screen.getByText('Selecionar pasta do projeto')).toBeInTheDocument();
       expect(screen.getByText('Nenhuma pasta selecionada')).toBeInTheDocument();
       expect(screen.getByRole('list', { name: 'Etapas da configuração' })).toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: 'Próximo' })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Próximo' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Analisar projeto' })).toBeDisabled();
       expect(api.discover).not.toHaveBeenCalled();
 
-      await userEvent.click(screen.getByRole('button', { name: 'Selecionar pasta' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Selecionar pasta do projeto' }));
       await waitFor(() => expect(pick).toHaveBeenCalledTimes(1));
       expect(await screen.findByText(/Seleção cancelada/)).toBeInTheDocument();
     });

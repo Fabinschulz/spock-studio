@@ -8,6 +8,6 @@
   gap: var(--space-3);
   margin-top: var(--space-2);
   padding-block: var(--space-3);
-  border-top: 1px solid var(--color-hairline);
+  border-top: var(--border-width-divider) solid var(--color-divider);
   background-color: var(--color-background);
 }

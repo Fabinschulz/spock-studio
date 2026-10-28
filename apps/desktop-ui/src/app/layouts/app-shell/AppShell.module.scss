@@ -1,6 +1,6 @@
 @use '@/shared/styles/abstracts' as *;
 
-$rail-wide: 11.5rem;
+$rail-wide: 14rem;
 $rail-narrow: 4.25rem;
 $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu aberto.
 
@@ -40,27 +40,20 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   flex-direction: column;
   gap: var(--space-5);
   height: 100vh;
-  padding: var(--space-4) var(--space-3);
-  border-right: 1px solid var(--color-hairline);
-  background-color: var(--color-surface);
+  padding: var(--space-5) var(--space-4);
+  border-right: var(--border-width-divider) solid var(--color-divider);
+  background-color: var(--color-sidebar);
 
   nav {
     flex: 1;
   }
 }
 
-.brandBlock {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding-inline: var(--space-1);
-}
-
 .brand {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
   min-height: var(--control-height-lg);
+  padding-inline: var(--space-2);
   border-radius: var(--radius-sm);
   color: var(--color-text);
   text-decoration: none;
@@ -70,28 +63,10 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   }
 }
 
-.brandText {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.tagline {
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-snug);
-  color: var(--color-text-muted);
-}
-
-.studio {
-  @include eyebrow;
-  color: var(--color-primary-text);
-}
-
 .nav {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -102,13 +77,13 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  min-height: var(--control-height-lg);
-  padding: var(--space-2) var(--space-3);
+  padding: 0.625rem 0.875rem;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-text-muted);
+  font-size: var(--font-size-navigation);
+  line-height: var(--line-height-navigation);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-menu);
   text-align: left;
   text-decoration: none;
   transition:
@@ -116,7 +91,7 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
     color var(--duration-fast);
 
   @include hover {
-    background-color: var(--color-primary-subtle);
+    background-color: var(--color-menu-hover);
     color: var(--color-text);
   }
 
@@ -125,13 +100,12 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   }
 }
 
-// Item atual: preenchimento na cor da marca e barra à esquerda (a forma, não só a cor, marca onde você está).
+// Item atual: preenchimento na cor da marca, texto e ícone na cor da marca; `aria-current` diz o mesmo ao leitor de tela.
 .active {
-  border-color: var(--color-hairline);
-  background-color: var(--color-primary-subtle);
-  box-shadow: inset 3px 0 0 var(--color-primary);
-  color: var(--color-text);
-  font-weight: 600;
+  border-color: transparent;
+  background-color: var(--color-active);
+  color: var(--color-primary-text);
+  font-weight: var(--font-weight-medium);
 
   .itemIcon {
     color: var(--color-primary-text);
@@ -150,6 +124,7 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
 .itemIcon {
   display: flex;
   flex: none;
+  font-size: 1.25rem;
 }
 
 .itemText {
@@ -174,10 +149,15 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
 .engine {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
-  border-top: 1px solid var(--color-hairline);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
+}
+
+// Indicador de estado: ponto com um halo suave na própria cor (o texto ao lado diz o estado; a cor não é a única pista).
+@mixin glow($color) {
+  background-color: $color;
+  box-shadow: 0 0 0.5rem 0.0625rem color-mix(in srgb, #{$color} 60%, transparent);
 }
 
 .dot {
@@ -187,19 +167,19 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   border-radius: 50%;
 }
 
-.dot-ok {
-  background-color: var(--color-success);
+.dotOk {
+  @include glow(var(--color-success));
 }
 
-.dot-pending {
-  background-color: var(--tone-warning-fg);
+.dotPending {
+  @include glow(var(--tone-warning-fg));
 }
 
-.dot-bad {
-  background-color: var(--color-error);
+.dotBad {
+  @include glow(var(--color-error));
 }
 
-.dot-idle {
+.dotIdle {
   background-color: var(--color-border-strong);
 }
 
@@ -210,15 +190,94 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
 }
 
 .engineTitle {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .engineDetail {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+// ---- Cabeçalho da janela: marca, nome e estado. O "Online" é o estado real do motor, não um enfeite.
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 3.5rem;
+  padding: var(--space-2) var(--space-6);
+  border-bottom: var(--border-width-divider) solid var(--color-divider);
+  background-color: var(--color-background);
+}
+
+.topLogo {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+}
+
+.topText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topName {
+  font-size: var(--font-size-brand);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-brand);
+}
+
+.topAccent {
+  color: var(--color-primary-text);
+}
+
+.topTagline {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.topStatus {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+  font-weight: var(--font-weight-medium);
+}
+
+.topStatusItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.topVersion {
+  padding-left: var(--space-4);
+  border-left: var(--border-width-divider) solid var(--color-divider);
   color: var(--color-text-muted);
 }
 
 .main {
+  position: relative;
+  flex: 1;
   min-width: 0;
+  // A área útil da janela é o contêiner das telas: elas consultam e medem por ela (unidades `cqw`), não pela janela inteira.
+  container-type: inline-size;
+  // Ornamentos que sangram até a borda direita não podem criar rolagem horizontal.
+  overflow-x: clip;
 
   &:focus {
     outline: none;
@@ -232,8 +291,6 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
     padding-inline: var(--space-2);
   }
 
-  .brandText,
-  .tagline,
   .itemReason,
   .engineDetail {
     @include visually-hidden;
@@ -242,6 +299,14 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   .itemLabel,
   .engineTitle {
     @include visually-hidden;
+  }
+
+  .topbar {
+    padding-inline: var(--space-4);
+  }
+
+  .topTagline {
+    display: none;
   }
 
   .item {

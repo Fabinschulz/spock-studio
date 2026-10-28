@@ -100,6 +100,41 @@ describe('AppShell · navegação', () => {
   });
 });
 
+describe('AppShell · cabeçalho', () => {
+  it('mostra a marca, a tagline e a versão do pacote', () => {
+    renderShell();
+
+    const header = screen.getByRole('banner');
+    expect(within(header).getByText('Engenharia de software assistida por IA')).toBeInTheDocument();
+    expect(within(header).getByText(/^v\d+\.\d+\.\d+/)).toBeInTheDocument();
+  });
+
+  it('fora do aplicativo não finge que está online', () => {
+    renderShell();
+
+    expect(within(screen.getByRole('banner')).getByText('Prévia')).toBeInTheDocument();
+    expect(within(screen.getByRole('banner')).queryByText('Online')).not.toBeInTheDocument();
+  });
+
+  it('no aplicativo, "Online" só aparece quando o host diz que o motor está pronto', async () => {
+    (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {};
+    invoke.mockResolvedValue('starting');
+    renderShell();
+
+    expect(await within(screen.getByRole('banner')).findByText('Iniciando…')).toBeInTheDocument();
+    expect(within(screen.getByRole('banner')).queryByText('Online')).not.toBeInTheDocument();
+  });
+
+  it('com o motor pronto, diz "Online"', async () => {
+    (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {};
+    invoke.mockResolvedValue('ready');
+    renderShell();
+
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Pronto para usar'));
+    expect(within(screen.getByRole('banner')).getByText('Online')).toBeInTheDocument();
+  });
+});
+
 describe('AppShell · estado do motor', () => {
   it('fora do aplicativo desktop não finge que há motor', () => {
     renderShell();
