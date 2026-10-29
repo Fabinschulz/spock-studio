@@ -4,7 +4,6 @@ import styles from './DiffView.module.scss';
 
 interface DiffViewProps {
   diff: string;
-  /** Nome acessível do bloco, ex.: o caminho do arquivo. */
   label: string;
 }
 

@@ -1,27 +1,12 @@
 import { Button } from '@synthra.io/ui-kit';
-import { Fragment } from 'react';
 
 import { EvidenceDisclosure, InlineNotice, PrimaryActionFooter, StatusChip } from '@/shared/components/ui';
-import type { ConfigurationPlan } from '@/shared/schemas';
+import type { ConfigurationPlan } from '@/shared/schema';
 
-import { decisionLabel, decisionTone, kindLabel, observationLabel, originLabel } from '../../core/labels';
-import styles from '../../ui/panels.module.scss';
-import { StepHeader } from '../../ui/step-header';
-
-// Permite a quebra de linha depois de cada ponto do id, em vez de no meio de uma palavra.
-// <wbr> s\u00f3 sugere o ponto de quebra: o texto copiado continua sendo o id exato.
-function Breakable({ id }: { id: string }) {
-  return id.split('.').map((part, index) => (
-    <Fragment key={index}>
-      {index > 0 ? (
-        <>
-          .<wbr />
-        </>
-      ) : null}
-      {part}
-    </Fragment>
-  ));
-}
+import styles from '../../components/panels.module.scss';
+import { StepHeader } from '../../components/step-header';
+import { observationLabel, observationTone } from '../../domain/labels';
+import { DecisionsTable } from './decisions-table';
 
 interface PlanStepProps {
   plan: ConfigurationPlan;
@@ -49,46 +34,14 @@ export function PlanStep({ plan, onBack, onContinue }: PlanStepProps) {
       </InlineNotice>
 
       <h3 className={styles.sectionTitle}>Decisões por componente</h3>
-      {/* Região rolável: precisa de foco para quem navega só pelo teclado. */}
-      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex */}
-      <div role="region" aria-label="Decisões por componente" tabIndex={0} style={{ overflowX: 'auto' }}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th scope="col">Componente</th>
-              <th scope="col">Decisão</th>
-              <th scope="col">Origem e justificativa</th>
-            </tr>
-          </thead>
-          <tbody>
-            {plan.decisions.map((d) => (
-              <tr key={d.componentId}>
-                <td>
-                  <div>{kindLabel[d.kind]}</div>
-                  <div className={styles.mono}>
-                    <Breakable id={d.componentId} />
-                  </div>
-                </td>
-                <td>
-                  <StatusChip tone={decisionTone(d.decision)}>{decisionLabel[d.decision] ?? d.decision}</StatusChip>
-                </td>
-                <td>
-                  <div>{d.justification}</div>
-                  <div className={styles.muted}>Origem: {originLabel[d.origin] ?? d.origin}</div>
-                  <EvidenceDisclosure summary={`Evidências (${d.evidence.length})`} items={d.evidence} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DecisionsTable decisions={plan.decisions} />
 
       {plan.limitations.length > 0 ? (
         <>
           <h3 className={styles.sectionTitle}>Limitações</h3>
-          {plan.limitations.map((l) => (
-            <InlineNotice key={l.code + l.message} tone="warning">
-              {l.message}
+          {plan.limitations.map((limitation) => (
+            <InlineNotice key={limitation.code + limitation.message} tone="warning">
+              {limitation.message}
             </InlineNotice>
           ))}
         </>
@@ -98,13 +51,14 @@ export function PlanStep({ plan, onBack, onContinue }: PlanStepProps) {
         <>
           <h3 className={styles.sectionTitle}>Observações</h3>
           <ul className={styles.list}>
-            {plan.observations.map((o) => (
-              <li key={o.kind + o.text} className={styles.row}>
-                <StatusChip tone={o.kind === 'fact' ? 'success' : o.kind === 'inference' ? 'info' : 'warning'}>
-                  {observationLabel[o.kind]}
-                </StatusChip>
-                <span>{o.text}</span>
-                <EvidenceDisclosure summary={`Evidências (${o.evidence.length})`} items={o.evidence} />
+            {plan.observations.map((observation) => (
+              <li key={observation.kind + observation.text} className={styles.row}>
+                <StatusChip tone={observationTone[observation.kind]}>{observationLabel[observation.kind]}</StatusChip>
+                <span>{observation.text}</span>
+                <EvidenceDisclosure
+                  summary={`Evidências (${observation.evidence.length})`}
+                  items={observation.evidence}
+                />
               </li>
             ))}
           </ul>
@@ -115,8 +69,8 @@ export function PlanStep({ plan, onBack, onContinue }: PlanStepProps) {
         <>
           <h3 className={styles.sectionTitle}>Riscos</h3>
           <ul className={styles.list}>
-            {plan.risks.map((r) => (
-              <li key={r}>{r}</li>
+            {plan.risks.map((risk) => (
+              <li key={risk}>{risk}</li>
             ))}
           </ul>
         </>

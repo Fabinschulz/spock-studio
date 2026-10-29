@@ -1,0 +1,804 @@
+@use '@/shared/styles/abstracts' as *;
+
+// Estilos comuns às etapas da jornada.
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.title {
+  font-size: var(--font-size-xl);
+}
+
+.intro {
+  max-width: 70ch;
+  color: var(--color-text-muted);
+}
+
+.card {
+  @include card(var(--space-5));
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.cardTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+}
+
+.sectionTitle {
+  @include eyebrow;
+  color: var(--color-text-subtle);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+
+  @include up(sm) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+// Coluna principal + resumo lateral (etapa de método). Empilha quando falta largura.
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+
+  @include up(lg) {
+    grid-template-columns: minmax(0, 1fr) 17rem;
+  }
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+
+  // Listas de definição (resumo): sem o recuo padrão do navegador.
+  dd {
+    margin: 0;
+  }
+}
+
+.scrollRegion {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+
+  th,
+  td {
+    padding: var(--space-3) var(--space-2);
+    border-bottom: var(--border-width-divider) solid var(--color-divider);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    @include eyebrow;
+    color: var(--color-text-muted);
+  }
+}
+
+// Ações dentro de um cartão ou de uma janela. As ações de navegação da etapa usam o PrimaryActionFooter.
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.field {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-height: var(--control-height);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast),
+    background-color var(--duration-fast);
+
+  input {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin-top: 0.2rem;
+    accent-color: var(--color-primary);
+  }
+
+  &:has(input:checked) {
+    @include selected-border;
+
+    background-color: var(--color-primary-subtle);
+  }
+
+  &:has(input:focus-visible) {
+    @include focus-ring;
+  }
+}
+
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  legend {
+    @include eyebrow;
+    padding: 0;
+    margin-bottom: var(--space-2);
+    color: var(--color-text-muted);
+  }
+}
+
+// Progresso indeterminado: a operação real não informa percentual, então nenhum percentual é inventado.
+.progress {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background-color: var(--color-border);
+
+  &::after {
+    display: block;
+    width: 40%;
+    height: 100%;
+    background-color: var(--color-primary);
+    content: '';
+    animation: slide 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress::after {
+    width: 100%;
+    animation: none;
+  }
+}
+
+// Texto pronto para copiar (somente leitura, selecionável e focável pelo teclado).
+.prompt {
+  width: 100%;
+  min-height: 11rem;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-sunken);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+  resize: vertical;
+}
+
+// ---- Selo do método no cabeçalho
+.methodBadge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-3) 0 var(--space-3);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+
+  svg {
+    flex: none;
+    color: var(--color-primary-text);
+  }
+
+  &:has(select:focus-visible) {
+    @include focus-ring;
+  }
+}
+
+// Seletor nativo sem a aparência do sistema: o texto, o ícone e a seta são do desenho.
+.methodSelect,
+.select {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.methodSelect {
+  padding-right: var(--space-1);
+}
+
+.selectWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  svg {
+    position: absolute;
+    right: var(--space-3);
+    color: var(--color-text-muted);
+    pointer-events: none;
+  }
+}
+
+.select {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 var(--space-8) 0 var(--space-3);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-sunken);
+  font-size: var(--font-size-sm);
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: default;
+    color: var(--color-text-muted);
+  }
+
+  option {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+  }
+}
+
+// ---- Projeto selecionado
+.folderTile {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary-text);
+}
+
+// ---- Cartão do TLC: duas colunas quando há largura
+.twoCols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+
+  @include up(md) {
+    grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+  }
+}
+
+// Glifo do ambiente de IA (a Synthra não traz as marcas dessas ferramentas).
+.envGlyph {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-text);
+}
+
+// ---- Etapa Projeto: a pasta e os recentes à esquerda, o que será analisado à direita (empilha quando falta largura).
+// A largura útil é a do próprio bloco, não a da janela: o menu lateral já ocupa parte dela.
+.projectWrap,
+.methodWrap {
+  container-type: inline-size;
+}
+
+.projectGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: stretch;
+
+  @container (min-width: 36rem) {
+    grid-template-columns: minmax(0, 65fr) minmax(0, 35fr);
+  }
+}
+
+// Campo que mostra a pasta escolhida: a escolha em si é o diálogo nativo (só ele autoriza um caminho).
+.pathField {
+  display: flex;
+  align-items: stretch;
+  min-height: 3rem;
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-border-field);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-sunken);
+}
+
+.pathValue,
+.pathEmpty {
+  display: block;
+  flex: 1;
+  align-self: center;
+  min-width: 0;
+  padding-inline: var(--space-3);
+  overflow: hidden;
+  font-size: var(--font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pathEmpty {
+  color: var(--color-text-muted);
+}
+
+.pathButton {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  border-left: var(--border-width) solid var(--color-border-field);
+  color: var(--color-primary-text);
+  cursor: pointer;
+
+  @include hover {
+    background-color: var(--color-primary-subtle);
+  }
+
+  &:focus-visible {
+    @include focus-ring(-3px);
+  }
+
+  &[aria-disabled='true'] {
+    cursor: default;
+    color: var(--color-text-muted);
+  }
+}
+
+.doneLine {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--tone-success-fg);
+}
+
+// ---- Etapa Método: cartão do TLC, ambientes de IA e resumo. Três colunas quando há largura; duas; ou uma.
+.methodGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'tlc'
+    'env'
+    'summary';
+  gap: var(--space-4);
+  align-items: stretch;
+
+  @container (min-width: 36rem) {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    grid-template-areas:
+      'tlc tlc'
+      'env summary';
+  }
+
+  @container (min-width: 62rem) {
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) minmax(13rem, 0.75fr);
+    grid-template-areas: 'tlc env summary';
+  }
+}
+
+.areaTlc {
+  grid-area: tlc;
+}
+
+.areaEnv {
+  grid-area: env;
+}
+
+.areaSummary {
+  grid-area: summary;
+}
+
+// Lista de ambientes: cada opção é uma linha com o marcador à direita, como no modelo.
+.envItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--control-height-lg);
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-sunken);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast),
+    background-color var(--duration-fast);
+
+  input {
+    flex: none;
+    order: 3;
+    display: grid;
+    place-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0 0 0 auto;
+    border: 2px solid var(--color-border-strong);
+    border-radius: 50%;
+    appearance: none;
+
+    &::after {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background-color: var(--color-primary);
+      content: '';
+      transform: scale(0);
+      transition: transform var(--duration-fast);
+    }
+
+    &:checked {
+      border-color: var(--color-primary);
+
+      &::after {
+        transform: scale(1);
+      }
+    }
+  }
+
+  &:has(input:checked) {
+    @include selected-border;
+
+    background-color: var(--color-primary-subtle);
+  }
+
+  &:has(input:focus-visible) {
+    @include focus-ring;
+  }
+}
+
+.envText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+@media (forced-colors: active) {
+  .envItem input::after {
+    background-color: Highlight;
+  }
+}
+
+// "Analisar projeto": à direita, abaixo do campo da pasta, com folga acima e altura de 48 px.
+.analyzeRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-5);
+
+  button {
+    min-height: 3rem;
+  }
+}
+
+// Coluna da direita: a soma dos dois cartões iguala a altura da esquerda; o último cresce e fixa o seletor na base.
+.fillCard {
+  flex: 1;
+
+  > div:last-child {
+    flex: 1;
+    justify-content: space-between;
+  }
+}
+
+// Seleção de ambiente: o que não tem suporte nesta fase fica mais apagado no texto (sem baixar o contraste abaixo do mínimo).
+.envMuted {
+  color: var(--color-text-muted);
+}
+
+// Sub-cartão dentro de um cartão (ex.: buscar a versão mais recente do TLC).
+.subCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-1) var(--space-3);
+  margin-top: var(--space-2);
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-sunken);
+  cursor: pointer;
+
+  input {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: 0.2rem 0 0;
+    accent-color: var(--color-primary);
+  }
+
+  &:has(input:focus-visible) {
+    @include focus-ring;
+  }
+}
+
+.subCardIcon {
+  display: inline-flex;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  color: var(--color-primary-text);
+}
+
+.subCardTitle {
+  grid-column: 2;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.subCardText {
+  grid-column: 2;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+// Nota no pé de um cartão, separada por uma divisória.
+.cardNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin: auto 0 0;
+  padding-top: var(--space-4);
+  border-top: var(--border-width-divider) solid var(--color-divider);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+
+  svg {
+    flex: none;
+    margin-top: 1px;
+  }
+}
+
+.spread {
+  justify-content: space-between;
+}
+
+// Versão instalada em destaque na cor da marca.
+.version {
+  padding: 2px var(--space-3);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-primary) 55%, transparent);
+  border-radius: var(--radius-sm);
+  background-color: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface-sunken));
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary-text);
+}
+
+// Dependências: o ícone da ferramenta, o nome e a versão. "Não encontrado" é dito em texto, além da cor.
+.deps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dep {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.depIcon {
+  display: inline-flex;
+  flex: none;
+  color: var(--color-primary-text);
+}
+
+.depMissing .depIcon {
+  color: var(--tone-warning-fg);
+}
+
+// ---- Cartão do método (TLC): ícone em destaque, título com o selo ao lado e duas colunas (texto | versão e dependências).
+.tlcCard {
+  @include card(var(--space-6));
+
+  min-width: 0;
+  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+  background: radial-gradient(70% 90% at 0% 0%, var(--color-accent-glow), transparent 70%), var(--color-surface);
+}
+
+.tlcGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+
+  @include up(md) {
+    grid-template-columns: auto minmax(0, 1.9fr) minmax(0, 1fr);
+  }
+}
+
+.tlcIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: var(--border-width) solid color-mix(in srgb, var(--color-primary) 40%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-primary) 16%, var(--color-surface-sunken));
+  color: var(--color-primary-text);
+}
+
+.tlcHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.tlcTitle {
+  font-size: var(--font-size-heading);
+}
+
+// Rótulos em frase (não em caixa alta), como no modelo: o do bloco principal em branco, os laterais em tom suave.
+.featuresTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.fieldLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+// Descrição do método em branco (texto principal), como pedido; os itens da lista já usam a cor do texto.
+.tlcDescription {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+// Título e itens dos recursos juntos (pouco espaço entre eles) e com texto leve, como no modelo.
+.featureGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  li {
+    font-weight: 300;
+  }
+}
+
+// Sub-cartões do método (atualizar / reinstalar): ocupam toda a largura à direita do ícone, sob as duas colunas.
+.tlcFooter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+
+  @include up(md) {
+    grid-column: 2 / -1;
+  }
+
+  .subCard {
+    margin-top: 0;
+  }
+}
+
+// ---- Ambientes de IA: linhas compactas (ícone, nome, etiquetas e o marcador à direita), como no modelo.
+.envItem {
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-3);
+
+  input {
+    margin-left: auto;
+
+    &:checked {
+      background-color: var(--color-primary);
+
+      &::after {
+        width: 0.3125rem;
+        height: 0.5625rem;
+        margin-top: -0.0625rem;
+        border: solid var(--color-on-primary);
+        border-width: 0 2px 2px 0;
+        border-radius: 0;
+        background: transparent;
+        transform: rotate(45deg);
+      }
+    }
+  }
+}
+
+.envName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.envTag {
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  background-color: var(--tone-info-bg);
+  color: var(--tone-info-fg);
+  font-size: var(--font-size-badge);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.envTagWarn {
+  background-color: var(--tone-warning-bg);
+  color: var(--tone-warning-fg);
+}

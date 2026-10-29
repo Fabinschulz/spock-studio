@@ -13,10 +13,11 @@ import validateResult from '@contracts/fixtures/golden/validate-result.json';
 
 import { ProjectSelectionProvider, useProjectSelectionContext } from '@/features/project-selection';
 import { AppProviders } from '@/shared/components';
-import { discoverySchema, planSchema, runResultSchema, type RunResult } from '@/shared/schemas';
-import { EngineError, type HarnessApi } from '@/shared/services';
+import { discoverySchema, planSchema, runResultSchema, type RunResult } from '@/shared/schema';
+import { EngineError } from '@/shared/api';
 
 import { ConfigureProjectPage } from './configure-project-page';
+import type { HarnessApi } from './service';
 
 const discovery = discoverySchema.parse(discoveryFixture);
 const plan = planSchema.parse(planFixture);

@@ -39,7 +39,6 @@ interface InlineNoticeProps {
   title?: string;
   children: ReactNode;
   className?: string;
-  /** Com esta função o aviso ganha um botão para dispensá-lo (só para avisos que não bloqueiam nada). */
   onDismiss?: () => void;
 }
 

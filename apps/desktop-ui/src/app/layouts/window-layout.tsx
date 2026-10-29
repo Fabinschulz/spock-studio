@@ -12,7 +12,6 @@ export function WindowLayout() {
   );
 }
 
-/** Erro numa tela: a janela continua utilizável para a pessoa se recuperar. */
 export function WindowLayoutError() {
   const error = useRouteError();
 

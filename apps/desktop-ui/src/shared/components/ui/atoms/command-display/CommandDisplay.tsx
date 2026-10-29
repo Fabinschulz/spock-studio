@@ -6,15 +6,12 @@ import styles from './CommandDisplay.module.scss';
 interface CommandDisplayProps {
   /** O comando exato, como seria executado. Só é exibido e copiado: nada aqui executa. */
   command: string;
-  /** Tipo da operação (build, test, lint…), em texto. */
   kind?: string;
-  /** Texto auxiliar, quando o motor o informa. */
   description?: string;
 }
 
 type CopyState = 'idle' | 'copied' | 'failed';
 
-/** Comando técnico legível, com cópia. Detectar um comando nunca o executa. */
 export function CommandDisplay({ command, kind, description }: CommandDisplayProps) {
   const [copy, setCopy] = useState<CopyState>('idle');
 

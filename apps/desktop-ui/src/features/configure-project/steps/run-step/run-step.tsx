@@ -3,10 +3,10 @@ import { useState } from 'react';
 
 import { PrimaryActionFooter, StatusChip } from '@/shared/components/ui';
 
-import type { RunView } from '../../core/journey-state';
-import { runKindLabel } from '../../core/labels';
-import styles from '../../ui/panels.module.scss';
-import { StepHeader } from '../../ui/step-header';
+import styles from '../../components/panels.module.scss';
+import { StepHeader } from '../../components/step-header';
+import type { RunView } from '../../domain/journey-state';
+import { runKindLabel, runStateLabel, stepStatusLabel, stepStatusTone } from '../../domain/labels';
 
 interface RunStepProps {
   run: RunView;
@@ -14,21 +14,15 @@ interface RunStepProps {
   onBack: () => void;
 }
 
-const stateLabel: Record<string, string> = {
-  running: 'Executando',
-  validating: 'Validando',
-  failed: 'Falhou'
-};
-
-const stepTone = (status: string) =>
-  status === 'running' ? 'info' : status.startsWith('completed') ? 'success' : 'warning';
-const stepLabel = (status: string) =>
-  status === 'running' ? 'em andamento' : status === 'completed' ? 'concluída' : status.replace(/_/g, ' ');
-
 /** O progresso vem dos eventos do motor: nenhuma etapa aparece como feita antes de ele dizer que foi. */
 export function RunStep({ run, onCancel, onBack }: RunStepProps) {
   const [cancelling, setCancelling] = useState(false);
   const failed = run.error !== null;
+
+  const cancel = async () => {
+    setCancelling(true);
+    await onCancel();
+  };
 
   return (
     <section className={styles.step}>
@@ -38,15 +32,15 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
 
       <div role="status" aria-live="polite" className={styles.card}>
         <div className={styles.cardTitle}>
-          Estado: <StatusChip tone={failed ? 'danger' : 'info'}>{stateLabel[run.state] ?? run.state}</StatusChip>
+          Estado: <StatusChip tone={failed ? 'danger' : 'info'}>{runStateLabel[run.state] ?? run.state}</StatusChip>
         </div>
         {failed ? null : <div className={styles.progress} />}
         <ol className={styles.list} aria-label="Etapas da execução">
-          {run.steps.map((s) => (
-            <li key={s.id} className={styles.row}>
-              <StatusChip tone={stepTone(s.status)}>{stepLabel(s.status)}</StatusChip>
-              <span>{s.title}</span>
-              {s.detail ? <span className={styles.muted}>{s.detail}</span> : null}
+          {run.steps.map((step) => (
+            <li key={step.id} className={styles.row}>
+              <StatusChip tone={stepStatusTone(step.status)}>{stepStatusLabel(step.status)}</StatusChip>
+              <span>{step.title}</span>
+              {step.detail ? <span className={styles.muted}>{step.detail}</span> : null}
             </li>
           ))}
         </ol>
@@ -54,9 +48,9 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
           <details className={styles.details}>
             <summary>{run.files.length} arquivo(s) processado(s)</summary>
             <ul className={styles.list}>
-              {run.files.map((f, i) => (
-                <li key={`${f}-${i}`} className={styles.mono}>
-                  {f}
+              {run.files.map((file, index) => (
+                <li key={`${file}-${index}`} className={styles.mono}>
+                  {file}
                 </li>
               ))}
             </ul>
@@ -74,15 +68,7 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
             Voltar à revisão
           </Button>
         ) : (
-          <Button
-            variant="outlined"
-            color="inherit"
-            disabled={cancelling || run.runId === null}
-            onClick={async () => {
-              setCancelling(true);
-              await onCancel();
-            }}
-          >
+          <Button variant="outlined" color="inherit" disabled={cancelling || run.runId === null} onClick={cancel}>
             {cancelling ? 'Cancelando…' : 'Cancelar e desfazer'}
           </Button>
         )}

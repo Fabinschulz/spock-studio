@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 
-import { EngineError, waitForRun, type HarnessApi } from '@/shared/services';
+import { EngineError } from '@/shared/api';
+import type { ConflictResolution } from '@/shared/schema';
+
+import { waitForRun, type HarnessApi } from '../service';
 
 import {
   buildApplyInput,
@@ -8,7 +11,7 @@ import {
   journeyReducer,
   type JourneyStepId,
   type RunKind
-} from '../core/journey-state';
+} from '../domain/journey-state';
 
 const messageOf = (error: unknown) =>
   error instanceof EngineError ? error.message : 'Algo inesperado aconteceu. Tente de novo.';
@@ -103,7 +106,7 @@ export function useConfigureJourney(api: HarnessApi, projectId: string, pollMs =
       setUpdateTlc: (value: boolean) => dispatch({ type: 'update.set', value }),
       toggleChange: (id: string) => dispatch({ type: 'change.toggle', id }),
       toggleCommand: (id: string) => dispatch({ type: 'command.toggle', id }),
-      setResolution: (id: string, value: 'keep' | 'overwrite') => dispatch({ type: 'resolution.set', id, value })
+      setResolution: (id: string, value: ConflictResolution) => dispatch({ type: 'resolution.set', id, value })
     }
   };
 }

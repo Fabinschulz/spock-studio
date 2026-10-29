@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import { Container, Logo } from '@/shared/components';
 import { app } from '@/shared/config/app';
 import { pathTo } from '@/shared/routing';
-import { useEngineStatus, type EngineStatus as Status } from '@/shared/services';
+import { useEngineStatus, type EngineStatus as Status } from '@/shared/hooks';
 import { cn } from '@/shared/utils';
 
 import styles from './AppShell.module.scss';
@@ -47,10 +47,6 @@ function AppHeader({ engine }: { engine: { status: Status; hosted: boolean } }) 
   );
 }
 
-/**
- * Moldura da janela: menu lateral (marca, navegação e estado do motor), cabeçalho e a área de conteúdo.
- * A barra de título é a nativa do sistema; o menu encolhe para ícones quando a janela é estreita.
- */
 export function AppShell({ children }: { children: ReactNode }) {
   const main = useRef<HTMLElement>(null);
   // Uma só escuta do host para o cabeçalho e para o menu: os dois sempre dizem o mesmo.

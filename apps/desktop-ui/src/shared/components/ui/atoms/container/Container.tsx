@@ -10,7 +10,6 @@ interface ContainerProps {
   children: ReactNode;
 }
 
-/** Coluna de conteúdo da janela: largura máxima e respiro lateral consistentes. */
 export function Container({ as: Tag = 'div', className, children }: ContainerProps) {
   return <Tag className={cn(styles.container, className)}>{children}</Tag>;
 }

@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
-import { isTauriRuntime, tauriProjectPicker } from '../core/tauri-project-picker';
-import type { ProjectPickerPort, RecentProject, SelectedProject } from '../core/types';
+import { isTauriRuntime, tauriProjectPicker } from '../domain/tauri-project-picker';
+import type { ProjectPickerPort, RecentProject, SelectedProject } from '../domain/types';
 import { useProjectSelection } from '../hooks/use-project-selection';
 
 const HOST_UNAVAILABLE = 'Disponível apenas no aplicativo desktop.';
@@ -14,11 +14,9 @@ export interface ProjectSelectionValue {
   cancelled: boolean;
   /** Abre o diálogo nativo. Devolve a pasta escolhida, ou `null` se a pessoa cancelou ou houve erro. */
   pick: () => Promise<SelectedProject | null>;
-  /** Projetos escolhidos antes (vazio fora do aplicativo desktop). */
   recents: RecentProject[];
   /** Seleciona um recente pelo id. Devolve a pasta, ou `null` se não foi possível. */
   openRecent: (id: string) => Promise<SelectedProject | null>;
-  /** Presente quando a seleção não está disponível neste ambiente (ex.: navegador sem o host desktop). */
   unavailableReason?: string;
 }
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { ProjectPickError, type ProjectPickerPort, type RecentProject, type SelectedProject } from '../core/types';
+import { ProjectPickError, type ProjectPickerPort, type RecentProject, type SelectedProject } from '../domain/types';
 
 export function useProjectSelection(port: ProjectPickerPort) {
   const [selected, setSelected] = useState<SelectedProject | null>(null);

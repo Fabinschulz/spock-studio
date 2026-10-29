@@ -18,7 +18,6 @@ interface ChecklistProps {
 
 const spoken = { ok: '', warn: ' (atenção)', neutral: '' } as const;
 
-/** Lista de itens com marca. O estado de cada item também é dito em texto: a marca e a cor só reforçam. */
 export function Checklist({ items, label }: ChecklistProps) {
   return (
     <ul className={styles.list} role="list" aria-label={label}>

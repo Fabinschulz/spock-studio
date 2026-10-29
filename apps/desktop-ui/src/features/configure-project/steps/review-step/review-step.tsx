@@ -1,26 +1,31 @@
 import { Button } from '@synthra.io/ui-kit';
-import { useState } from 'react';
 
-import { DiffView, EvidenceDisclosure, InlineNotice, PrimaryActionFooter, StatusChip } from '@/shared/components/ui';
-import type { ConfigurationPlan, FileChange } from '@/shared/schemas';
+import { EvidenceDisclosure, PrimaryActionFooter, StatusChip } from '@/shared/components/ui';
+import type { ConfigurationPlan, ConflictResolution, FileChange } from '@/shared/schema';
 
-import { actionLabel, actionTone, effectLabel, kindLabel, originLabel } from '../../core/labels';
-import styles from '../../ui/panels.module.scss';
-import { StepHeader } from '../../ui/step-header';
+import styles from '../../components/panels.module.scss';
+import { StepHeader } from '../../components/step-header';
+import { CommandCard } from './command-card';
+import { FileChangeCard } from './file-change-card';
 
 interface ReviewStepProps {
   plan: ConfigurationPlan;
   approvedChanges: readonly string[];
   approvedCommands: readonly string[];
-  resolutions: Readonly<Record<string, 'keep' | 'overwrite'>>;
+  resolutions: Readonly<Record<string, ConflictResolution>>;
   approvalCount: number;
   onToggleChange: (id: string) => void;
   onToggleCommand: (id: string) => void;
-  onResolution: (id: string, value: 'keep' | 'overwrite') => void;
+  onResolution: (id: string, value: ConflictResolution) => void;
   onBack: () => void;
   onCancel: () => void;
   onApply: () => void;
 }
+
+const applyLabel = (approvalCount: number) =>
+  approvalCount === 0
+    ? 'Nada aprovado para aplicar'
+    : `Aplicar configuração (${approvalCount} aprovado${approvalCount === 1 ? '' : 's'})`;
 
 export function ReviewStep({
   plan,
@@ -35,18 +40,9 @@ export function ReviewStep({
   onCancel,
   onApply
 }: ReviewStepProps) {
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
-  const toggleDiff = (id: string) =>
-    setExpanded((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-
-  const actionable = plan.changes.filter((c) => c.action !== 'preserve');
-  const preserved = plan.changes.filter((c) => c.action === 'preserve');
-  const count = (action: FileChange['action']) => plan.changes.filter((c) => c.action === action).length;
+  const actionable = plan.changes.filter((change) => change.action !== 'preserve');
+  const preserved = plan.changes.filter((change) => change.action === 'preserve');
+  const countOf = (action: FileChange['action']) => plan.changes.filter((change) => change.action === action).length;
 
   return (
     <section className={styles.step}>
@@ -56,51 +52,23 @@ export function ReviewStep({
       </StepHeader>
 
       <div className={styles.chips} aria-label="Resumo do plano">
-        <StatusChip tone="success">{count('create')} a criar</StatusChip>
-        <StatusChip tone="info">{count('update')} a atualizar</StatusChip>
-        <StatusChip tone="warning">{count('remove')} a remover</StatusChip>
-        <StatusChip tone={count('conflict') > 0 ? 'danger' : 'neutral'}>{count('conflict')} conflito(s)</StatusChip>
-        <StatusChip>{count('preserve')} preservado(s)</StatusChip>
+        <StatusChip tone="success">{countOf('create')} a criar</StatusChip>
+        <StatusChip tone="info">{countOf('update')} a atualizar</StatusChip>
+        <StatusChip tone="warning">{countOf('remove')} a remover</StatusChip>
+        <StatusChip tone={countOf('conflict') > 0 ? 'danger' : 'neutral'}>{countOf('conflict')} conflito(s)</StatusChip>
+        <StatusChip>{countOf('preserve')} preservado(s)</StatusChip>
       </div>
 
       {plan.commands.length > 0 ? (
         <>
           <h3 className={styles.sectionTitle}>Comandos que executam fora do arquivo</h3>
-          {plan.commands.map((cmd) => (
-            <div key={cmd.id} className={styles.card}>
-              <div className={styles.cardTitle}>{cmd.description}</div>
-              <code className={styles.mono}>
-                {cmd.executable} {cmd.arguments.join(' ')}
-              </code>
-              <div className={styles.chips}>
-                {cmd.effects.map((e) => (
-                  <StatusChip key={e} tone={e === 'network' ? 'warning' : 'info'}>
-                    {effectLabel[e]}
-                  </StatusChip>
-                ))}
-              </div>
-              <EvidenceDisclosure summary="Pastas afetadas" items={cmd.affectedPaths} />
-              {cmd.destructive ? (
-                <InlineNotice tone="warning">
-                  Este comando sobrescreve edições locais da skill do TLC. Os arquivos atuais são copiados antes e podem
-                  ser restaurados.
-                </InlineNotice>
-              ) : null}
-              <label className={styles.field}>
-                <input
-                  type="checkbox"
-                  checked={approvedCommands.includes(cmd.id)}
-                  onChange={() => onToggleCommand(cmd.id)}
-                />
-                <span>
-                  Aprovar a execução deste comando
-                  <br />
-                  <span className={styles.muted}>
-                    Desmarcado por padrão: executar programas e acessar a rede exige a sua aprovação.
-                  </span>
-                </span>
-              </label>
-            </div>
+          {plan.commands.map((command) => (
+            <CommandCard
+              key={command.id}
+              command={command}
+              approved={approvedCommands.includes(command.id)}
+              onToggle={() => onToggleCommand(command.id)}
+            />
           ))}
         </>
       ) : null}
@@ -109,73 +77,21 @@ export function ReviewStep({
       {actionable.length === 0 ? <p className={styles.muted}>Nenhum arquivo precisa mudar.</p> : null}
       <ul className={styles.list} aria-label="Alterações em arquivos">
         {actionable.map((change) => (
-          <li key={change.id} className={styles.card}>
-            <div className={styles.cardTitle}>
-              <StatusChip tone={actionTone(change.action)}>{actionLabel[change.action]}</StatusChip>
-              <span className={styles.mono}>{change.path}</span>
-              {change.destructive && change.action !== 'conflict' ? (
-                <StatusChip tone="danger">destrutivo</StatusChip>
-              ) : null}
-            </div>
-            <span className={styles.muted}>
-              {kindLabel[change.kind]} · {originLabel[change.origin] ?? change.origin}
-            </span>
-            <span>{change.reason}</span>
-
-            {change.action === 'conflict' ? (
-              <>
-                <InlineNotice tone="warning">
-                  {change.conflictReason ?? 'O arquivo atual é diferente do proposto.'}
-                </InlineNotice>
-                <fieldset className={styles.fieldset}>
-                  <legend>{`Decisão para ${change.path}`}</legend>
-                  <label className={styles.field}>
-                    <input
-                      type="radio"
-                      name={`resolution-${change.id}`}
-                      checked={(resolutions[change.id] ?? 'keep') === 'keep'}
-                      onChange={() => onResolution(change.id, 'keep')}
-                    />
-                    <span>Manter o meu arquivo (padrão)</span>
-                  </label>
-                  <label className={styles.field}>
-                    <input
-                      type="radio"
-                      name={`resolution-${change.id}`}
-                      checked={resolutions[change.id] === 'overwrite'}
-                      onChange={() => onResolution(change.id, 'overwrite')}
-                    />
-                    <span>Substituir pelo proposto (o meu fica guardado em backup e pode ser restaurado)</span>
-                  </label>
-                </fieldset>
-              </>
-            ) : (
-              <label className={styles.field}>
-                <input
-                  type="checkbox"
-                  checked={approvedChanges.includes(change.id)}
-                  onChange={() => onToggleChange(change.id)}
-                />
-                <span>{`Aprovar ${actionLabel[change.action].toLowerCase()} ${change.path}`}</span>
-              </label>
-            )}
-
-            {change.diff ? (
-              <>
-                <Button variant="text" onClick={() => toggleDiff(change.id)} aria-expanded={expanded.has(change.id)}>
-                  {expanded.has(change.id) ? 'Ocultar diferenças' : 'Ver diferenças'}
-                </Button>
-                {expanded.has(change.id) ? <DiffView diff={change.diff} label={change.path} /> : null}
-              </>
-            ) : null}
-          </li>
+          <FileChangeCard
+            key={change.id}
+            change={change}
+            approved={approvedChanges.includes(change.id)}
+            resolution={resolutions[change.id] ?? 'keep'}
+            onToggle={() => onToggleChange(change.id)}
+            onResolve={(value) => onResolution(change.id, value)}
+          />
         ))}
       </ul>
 
       {preserved.length > 0 ? (
         <EvidenceDisclosure
           summary={`${preserved.length} arquivo(s) preservado(s), sem alteração`}
-          items={preserved.map((c) => c.path)}
+          items={preserved.map((change) => change.path)}
         />
       ) : null}
 
@@ -183,8 +99,8 @@ export function ReviewStep({
         <div className={styles.card}>
           <h3 className={styles.cardTitle}>Depois de aplicar, a validação executa</h3>
           <ul className={styles.list}>
-            {plan.validations.map((v) => (
-              <li key={v}>{v}</li>
+            {plan.validations.map((validation) => (
+              <li key={validation}>{validation}</li>
             ))}
           </ul>
         </div>
@@ -198,9 +114,7 @@ export function ReviewStep({
           Cancelar sem aplicar
         </Button>
         <Button variant="contained" onClick={onApply} disabled={approvalCount === 0}>
-          {approvalCount === 0
-            ? 'Nada aprovado para aplicar'
-            : `Aplicar configuração (${approvalCount} aprovado${approvalCount === 1 ? '' : 's'})`}
+          {applyLabel(approvalCount)}
         </Button>
       </PrimaryActionFooter>
     </section>

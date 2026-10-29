@@ -213,7 +213,7 @@ Fonte: `@synthra.io/ui-kit` 0.5.0, `dist/index.d.ts` inspecionado em 2026-10-25.
 | Ícone "Modernizar sistema" | `UpdateIcon` | Synthra | |
 | Ícone "Configurar projeto" | **Inexistente** (provisório: `ListViewRectangleIcon`) | — | **[DECISÃO PENDENTE]** contribuir `FolderCodeIcon` na Synthra |
 | Rótulo "PROJETO" | `Typography` `overline` | Synthra | |
-| Linha do seletor | `<button>` com SCSS Module | Próprio (`features/project-selection/ui/project-picker`) | Específico da feature de seleção de projeto |
+| Linha do seletor | `<button>` com SCSS Module | Próprio (`features/project-selection/components/project-picker`) | Específico da feature de seleção de projeto |
 | Ícone de pasta | **Inexistente** | — | **[DECISÃO PENDENTE]** contribuir `FolderIcon` na Synthra |
 | Indicador ">" | `ArrowRightIcon` | Synthra | Já usado no Mariliz Web |
 | Carregamento | `LoadingBar` | Synthra | Durante a abertura do diálogo e o discovery inicial |

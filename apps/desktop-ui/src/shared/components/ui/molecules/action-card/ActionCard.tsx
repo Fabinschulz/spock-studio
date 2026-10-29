@@ -12,11 +12,8 @@ interface ActionCardProps {
   description: string;
   icon: ReactNode;
   onClick?: () => void;
-  /** A atividade principal da tela recebe mais peso visual. */
   variant?: 'primary' | 'default';
-  /** Tom do quadrado do ícone. Só decora: o nome e o estado da atividade estão em texto. */
   accent?: CardAccent;
-  /** Selo de destaque abaixo da descrição (ex.: "Principal"). */
   highlight?: string;
   /** Quando definido o cartão fica indisponível, mas continua focável (aria-disabled) para o leitor de tela anunciar o motivo. */
   unavailableReason?: string;

@@ -6,7 +6,6 @@ import { ActionCard, FolderIcon, type CardAccent } from '@/shared/components/ui'
 import styles from './journey-grid.module.scss';
 import { journeys, type JourneyId } from './journeys';
 
-// A Synthra não tem ícone de pasta: o da atividade principal é o glifo próprio compartilhado.
 const icons: Record<JourneyId, ReactNode> = {
   'configure-project': <FolderIcon />,
   'import-requirements': <BookUploadIcon />,

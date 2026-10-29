@@ -22,7 +22,6 @@ export function HeroArt({ className }: { className?: string }) {
 
       <ellipse cx="190" cy="184" rx="170" ry="20" fill="url(#hero-floor)" />
 
-      {/* Painel de código, à esquerda */}
       <g transform="translate(34 40) skewY(-14)">
         <rect
           width="96"
@@ -44,7 +43,6 @@ export function HeroArt({ className }: { className?: string }) {
         />
       </g>
 
-      {/* Painel de rede, à direita */}
       <g transform="translate(252 34) skewY(14)">
         <rect
           width="96"
@@ -66,7 +64,6 @@ export function HeroArt({ className }: { className?: string }) {
         </g>
       </g>
 
-      {/* Placa central com a marca */}
       <g transform="translate(190 88)">
         <rect
           x="-52"

@@ -17,7 +17,6 @@ interface NavItem {
   unavailableReason?: string;
 }
 
-/** Só destinos que existem funcionam. O resto aparece como indisponível, com o motivo dito em texto. */
 export function SideNav() {
   const items: NavItem[] = [
     { id: 'home', label: 'Início', icon: <Home01Icon fontSize="small" />, to: pathTo('home'), end: true },

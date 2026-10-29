@@ -5,7 +5,6 @@ import styles from './PageHeader.module.scss';
 
 export interface Crumb {
   label: string;
-  /** Sem destino = página atual. */
   to?: string;
 }
 
@@ -13,13 +12,10 @@ interface PageHeaderProps {
   title: ReactNode;
   description?: string;
   breadcrumb?: readonly Crumb[];
-  /** Ações da página (à direita em janelas largas). */
   actions?: ReactNode;
-  /** Entre a trilha e o título (ex.: o progresso de uma jornada). */
   lead?: ReactNode;
 }
 
-/** Título da página (h1), trilha de navegação e texto de apoio. Uma por tela. */
 export function PageHeader({ title, description, breadcrumb, actions, lead }: PageHeaderProps) {
   return (
     <header className={styles.header}>
