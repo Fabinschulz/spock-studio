@@ -1,6 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
-
 namespace Mariliz.Application.Workspace;
 
 /// <summary>Porta para o sistema de arquivos usada na autorização de pastas.</summary>

@@ -2,7 +2,6 @@ using Mariliz.Application.Discovery;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Ports;
 using Mariliz.Core.Discovery;
-using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Harness;
 

@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace Mariliz.Application.Execution;
 
 public sealed class JournalStep

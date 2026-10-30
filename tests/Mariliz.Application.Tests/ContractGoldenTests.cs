@@ -2,7 +2,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Harness;
 using Mariliz.Application.Tests.Support;
-using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Tests;
 
