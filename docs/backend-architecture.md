@@ -7,7 +7,7 @@ Application, e tudo que toca o sistema operacional na Infrastructure.
 
 | Projeto | Papel | Depende de |
 | ------- | ----- | ---------- |
-| `Mariliz.Core` | Modelos, políticas puras (`PathGuard`, `SecretScanner`), hash, diff e caminhos | nada |
+| `Mariliz.Core` | Modelos por contexto (`Discovery/`, `Plan/`, `Evals/`), políticas puras (`PathGuard`, `ManagedScope`, `SecretScanner`), hash, diff e caminhos | nada |
 | `Mariliz.Application` | Casos de uso e protocolo. Define as portas (`IProjectFiles`, `IProcessRunner`, `IRunStore`, `IClock`) | Core |
 | `Mariliz.Infrastructure` | Implementa as portas: disco, processos, diário | Application |
 | `Mariliz.Engine` / `Mariliz.Cli` | Pontos de entrada (protocolo NDJSON e linha de comando) | Application, Infrastructure |
@@ -18,7 +18,8 @@ A Application nunca acessa disco nem processos diretamente: usa as portas.
 
 | Pasta | Responsabilidade |
 | ----- | ---------------- |
-| `Harness/` | Compor e planejar: `HarnessComposer`, `ComponentSelector`, `TlcPlanner`, `PlanBuilder`, `LockBuilder` |
+| `Harness/` | Compor e planejar: `HarnessComposition`, `ComponentSelector`, `PlanBuilder`, `LockBuilder` |
+| `Specification/` | O único ponto que conhece o mecanismo da estrutura de especificação: `SpecificationManifest` (instalador, pacote, versões), `SpecificationInspector`, `SpecificationPlanner` |
 | `Discovery/` | Descobrir o projeto: um detector por stack (`DotnetDetector`, `NodeDetector`...), `SystemProbe`, `HarnessInventoryReader` |
 | `Execution/` | Aplicar e reverter: `ApplyService` (orquestra e desfaz), `ApplyExecution` (uma fase por método), `WritePlanner`, `RevertService`, `RunJournalRecorder` |
 | `Validation/` | Evals: `EvalRunner` roda o catálogo; cada verificação é um `IEvalCheck` em `Checks/` |
@@ -27,12 +28,23 @@ A Application nunca acessa disco nem processos diretamente: usa as portas.
 
 ## Regras
 
-- Um tipo por arquivo; o nome do arquivo é o nome do tipo.
+- Um tipo por arquivo; o nome do arquivo é o nome do tipo. A pasta é o contexto e o namespace acompanha a pasta; não há
+  pastas `Enums/` ou `Interfaces/`. Seções aninhadas de um formato de arquivo (`DeclaredConfig`, `ManagedLockFile`) ficam
+  no tipo que as contém.
+- **Produto x mecanismo.** O produto fala em "modelo de implementação" (`ImplementationModels.Mariliz`) e em "estrutura de
+  especificação" (`SpecificationStatus`, `ComponentKind.Specification`, `EvalIds.Specification`, `PlanOptions`). Só
+  `Specification/` sabe que hoje a estrutura é uma skill instalada por um instalador de terceiros; trocar o mecanismo muda
+  essa pasta, não os contratos. A exceção é a política de escrita (`ManagedScope.SpecificationDirectory`), que fica no Core
+  porque a decisão de "quem é dono deste caminho" é de segurança.
+- Os identificadores que viajam no protocolo ou ficam em disco (`implementationModel` em `mariliz.yaml`, seção
+  `specification` em `mariliz.lock`, `mariliz.specification.structure`) são neutros. O que é fato do instalador (comando
+  `npx`, pasta `.claude/skills/tlc-spec-driven`) continua visível no cartão de aprovação do comando, porque é o que a
+  pessoa aprova.
 - Um método faz uma coisa. Uma sequência de fases vira uma classe com um método por fase (`ApplyExecution`).
 - Adicionar uma verificação de validação é criar um `IEvalCheck` e uma entrada em `EvalCatalog`, sem mexer em `EvalRunner`.
 - Valores textuais repetidos viram constante (`OpKinds`, `OpSources`, `StepStatus`, `ComponentDecisions`, `ProtocolMethods`).
 - Interface só quando há mais de uma implementação (`IEvalCheck`) ou uma fronteira com o sistema (portas).
-- Comentário explica um **porquê** que o código não mostra (segurança, contrato com o TLC, protocolo). Não repete o nome
+- Comentário explica um **porquê** que o código não mostra (segurança, contrato com o instalador, protocolo). Não repete o nome
   do tipo nem descreve o que o código já diz.
 
 ## Validação

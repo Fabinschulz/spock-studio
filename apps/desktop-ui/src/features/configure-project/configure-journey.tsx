@@ -8,7 +8,7 @@ import { JourneyFrame } from './components/journey-frame';
 import { countApprovals, stepIssue } from './domain/journey-state';
 import { useConfigureJourney } from './hooks/use-configure-journey';
 import type { HarnessApi } from './service';
-import { MethodStep } from './steps/method-step';
+import { ModelStep } from './steps/model-step';
 import { PlanStep } from './steps/plan-step';
 import { ProjectStep } from './steps/project-step';
 import { ResultStep } from './steps/result-step';
@@ -47,20 +47,20 @@ export function ConfigureJourney({ api, projectId, projectName, projectPath, pol
           aiEnvironment={state.aiEnvironment}
           onEnvironment={actions.setEnvironment}
           onAnalyze={() => void actions.discover()}
-          onContinue={() => actions.goTo('method')}
+          onContinue={() => actions.goTo('model')}
         />
       ) : null}
 
-      {state.step === 'method' && state.discovery.status === 'ready' ? (
-        <MethodStep
+      {state.step === 'model' && state.discovery.status === 'ready' ? (
+        <ModelStep
           discovery={state.discovery.data}
           aiEnvironment={state.aiEnvironment}
-          allowReinstall={state.allowTlcReinstall}
-          updateTlc={state.updateTlc}
+          allowReinstall={state.allowSpecificationReinstall}
+          updateSpecification={state.updateSpecification}
           plan={state.plan}
           onEnvironment={actions.setEnvironment}
           onReinstall={actions.setReinstall}
-          onUpdateTlc={actions.setUpdateTlc}
+          onUpdateSpecification={actions.setUpdateSpecification}
           onBack={() => actions.goTo('project')}
           onPlan={() => void actions.generatePlan()}
         />
@@ -69,7 +69,7 @@ export function ConfigureJourney({ api, projectId, projectName, projectPath, pol
       {state.step === 'plan' && state.plan.status === 'ready' ? (
         <PlanStep
           plan={state.plan.data}
-          onBack={() => actions.goTo('method')}
+          onBack={() => actions.goTo('model')}
           onContinue={() => actions.goTo('review')}
         />
       ) : null}

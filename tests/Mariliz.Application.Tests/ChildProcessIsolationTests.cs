@@ -37,18 +37,18 @@ public class ChildProcessIsolationTests
     }
 
     [Fact]
-    public async Task Script_do_TLC_que_estoura_o_tempo_deixa_o_eval_bloqueado_e_nao_reprovado()
+    public async Task Script_de_validacao_que_estoura_o_tempo_deixa_o_eval_bloqueado_e_nao_reprovado()
     {
         using var project = TempProject.Dotnet();
-        TlcFixture.Install(project);
+        SpecificationFixture.Install(project);
         var journey = new Journey(project, (spec, _) => Task.FromResult<ProcessResult?>(
             spec.Arguments.Any(a => a.EndsWith("check_commit.py", StringComparison.Ordinal)) ? new ProcessResult(-1, "", "", true, false) : null));
 
         var result = await journey.ApplyAsync(await journey.PlanAsync());
 
-        Assert.Equal("blocked", Journey.Status(result, "EV-TLC-001"));
+        Assert.Equal("blocked", Journey.Status(result, "EV-SPEC-001"));
         Assert.NotEqual("failed", result["outcome"]!.GetValue<string>());
-        var evidence = result["validation"]!["results"]!.AsArray().First(r => r!["id"]!.GetValue<string>() == "EV-TLC-001")!["evidence"]!.AsArray();
+        var evidence = result["validation"]!["results"]!.AsArray().First(r => r!["id"]!.GetValue<string>() == "EV-SPEC-001")!["evidence"]!.AsArray();
         Assert.Contains(evidence, e => e!.GetValue<string>().Contains("excedeu"));
     }
 }

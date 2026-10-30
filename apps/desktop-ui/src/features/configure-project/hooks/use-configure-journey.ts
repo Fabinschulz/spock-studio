@@ -38,14 +38,14 @@ export function useConfigureJourney(api: HarnessApi, projectId: string, pollMs =
   useEffect(() => () => abort.current?.abort(), []);
 
   const generatePlan = useCallback(async () => {
-    const { aiEnvironment, allowTlcReinstall, updateTlc } = latest.current;
+    const { aiEnvironment, allowSpecificationReinstall, updateSpecification } = latest.current;
     dispatch({ type: 'plan.start' });
     try {
       const plan = await api.plan({
         projectId,
         ...(aiEnvironment ? { aiEnvironment } : {}),
-        allowTlcForceReinstall: allowTlcReinstall,
-        updateTlc
+        allowSpecificationReinstall: allowSpecificationReinstall,
+        updateSpecification
       });
       dispatch({ type: 'plan.ok', plan });
     } catch (error) {
@@ -103,7 +103,7 @@ export function useConfigureJourney(api: HarnessApi, projectId: string, pollMs =
       goTo: (step: JourneyStepId) => dispatch({ type: 'step.go', step }),
       setEnvironment: (id: string) => dispatch({ type: 'environment.set', id }),
       setReinstall: (value: boolean) => dispatch({ type: 'reinstall.set', value }),
-      setUpdateTlc: (value: boolean) => dispatch({ type: 'update.set', value }),
+      setUpdateSpecification: (value: boolean) => dispatch({ type: 'update.set', value }),
       toggleChange: (id: string) => dispatch({ type: 'change.toggle', id }),
       toggleCommand: (id: string) => dispatch({ type: 'command.toggle', id }),
       setResolution: (id: string, value: ConflictResolution) => dispatch({ type: 'resolution.set', id, value })

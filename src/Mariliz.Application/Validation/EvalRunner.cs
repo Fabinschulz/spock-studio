@@ -12,7 +12,7 @@ public static class EvalRunner
     private static readonly IReadOnlyDictionary<string, IEvalCheck> Checks = new IEvalCheck[]
     {
         new ConfigCheck(), new LockIntegrityCheck(), new AgentsCheck(), new SkillsCheck(), new HookCheck(),
-        new RulesCheck(), new ReferencesCheck(), new TlcCheck(), new SecretsCheck(), new EnvironmentCheck(),
+        new RulesCheck(), new ReferencesCheck(), new SpecificationCheck(), new SecretsCheck(), new EnvironmentCheck(),
         new RequirementsCheck(), new IdempotenceCheck(), new RegressionCheck(), new ModelJudgeCheck()
     }.ToDictionary(check => check.Id, StringComparer.Ordinal);
 

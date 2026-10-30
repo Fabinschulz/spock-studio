@@ -1,12 +1,10 @@
 namespace Mariliz.Cli;
 
-public sealed class CliUsageException(string message) : Exception(message);
-
 /// <summary>Argumentos da linha de comando: um comando, uma pasta e opções conhecidas. Opção desconhecida é erro, nunca ignorada.</summary>
 public sealed class CliArgs
 {
     private static readonly HashSet<string> Flags =
-        ["--json", "--yes", "--diff", "--allow-tlc-reinstall", "--update-tlc", "--approve-removals", "--help"];
+        ["--json", "--yes", "--diff", "--allow-specification-reinstall", "--update-specification", "--approve-removals", "--help"];
 
     private static readonly HashSet<string> Valued = ["--env", "--run", "--overwrite", "--approve-command"];
 

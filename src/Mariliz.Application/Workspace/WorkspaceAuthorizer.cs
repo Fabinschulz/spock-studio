@@ -3,28 +3,6 @@ using System.Text;
 
 namespace Mariliz.Application.Workspace;
 
-/// <summary>Porta para o sistema de arquivos usada na autorização de pastas.</summary>
-public interface IWorkspaceFileSystem
-{
-    /// <summary>Caminho absoluto canônico (links resolvidos) ou <c>null</c> se a pasta não existir.</summary>
-    string? ResolveDirectory(string path);
-
-    bool CanEnumerate(string directory);
-
-    /// <summary>Pasta do usuário, usada só para abreviar caminhos exibidos.</summary>
-    string HomeDirectory { get; }
-}
-
-public sealed record AuthorizedProject(string ProjectId, string DisplayName, string DisplayPath);
-
-public enum WorkspaceError { NotFound, NotAllowed, NotReadable }
-
-public sealed record WorkspaceResult(AuthorizedProject? Project, WorkspaceError? Error)
-{
-    public static WorkspaceResult Ok(AuthorizedProject project) => new(project, null);
-    public static WorkspaceResult Fail(WorkspaceError error) => new(null, error);
-}
-
 /// <summary>
 /// Registra as pastas que o usuário escolheu no diálogo nativo. É a única origem de caminhos
 /// que o motor aceita; qualquer outro caminho fica fora da lista autorizada.

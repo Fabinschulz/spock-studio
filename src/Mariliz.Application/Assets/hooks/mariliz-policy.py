@@ -10,7 +10,7 @@ What it enforces:
   - writes outside the project folder are denied;
   - writes to files that normally hold secrets (.env, keys, certificates) are denied;
   - writes to the harness files (.claude/, mariliz.yaml, mariliz.lock, .mcp.json) ask for confirmation, except the
-    proposal file .mariliz/proposal.json and TLC feature files under .specs/;
+    proposal file .mariliz/proposal.json and specification feature files under .specs/;
   - catastrophic shell commands are denied; risky ones (force push, hard reset, reading .env) ask.
 
 This is a guard rail, not a security boundary: it matches command text. If this script fails internally it exits

@@ -39,7 +39,7 @@ public class SafetyTests
     public async Task Falha_no_meio_da_aplicacao_desfaz_tudo_e_diz_que_desfez()
     {
         using var project = TempProject.Dotnet();
-        TlcFixture.Install(project);
+        SpecificationFixture.Install(project);
         project.Write("CLAUDE.md", "# meu\n");
         var before = project.Fingerprint();
         var journey = new Journey(project, files: new FailingFilesFactory(failOnWrite: 5));
@@ -62,7 +62,7 @@ public class SafetyTests
     public async Task Falha_parcial_com_edicao_concorrente_nao_sobrescreve_o_que_a_pessoa_escreveu()
     {
         using var project = TempProject.Dotnet();
-        TlcFixture.Install(project);
+        SpecificationFixture.Install(project);
         const string edited = "# editei enquanto a aplicação rodava\n";
         // Na 4ª escrita o disco "falha"; um instante antes a pessoa edita um arquivo que a aplicação já gravou.
         var journey = new Journey(project, files: new FailingFilesFactory(4, () => project.Write(".claude/agents/code-reviewer.md", edited)));
@@ -111,21 +111,21 @@ public class SafetyTests
     }
 
     [Fact]
-    public void Restauracao_do_tlc_so_alcanca_os_arquivos_do_tlc()
+    public void Restauracao_da_especificacao_so_alcanca_os_arquivos_dela()
     {
         using var project = TempProject.Dotnet();
         var files = new LocalProjectFiles(project.Root);
 
-        files.WriteAtomic(".claude/skills/tlc-spec-driven/SKILL.md", [1], WriteScope.TlcRestore);
-        Assert.Throws<UnauthorizedAccessException>(() => files.WriteAtomic(".claude/agents/x.md", [1], WriteScope.TlcRestore));
-        Assert.Throws<UnauthorizedAccessException>(() => files.WriteAtomic("src/a.cs", [1], WriteScope.TlcRestore));
+        files.WriteAtomic(".claude/skills/tlc-spec-driven/SKILL.md", [1], WriteScope.SpecificationRestore);
+        Assert.Throws<UnauthorizedAccessException>(() => files.WriteAtomic(".claude/agents/x.md", [1], WriteScope.SpecificationRestore));
+        Assert.Throws<UnauthorizedAccessException>(() => files.WriteAtomic("src/a.cs", [1], WriteScope.SpecificationRestore));
     }
 
     [Fact]
     public async Task Plano_com_caminho_fora_do_escopo_falha_antes_de_gravar_e_desfaz_o_que_ja_foi_gravado()
     {
         using var project = TempProject.Dotnet();
-        TlcFixture.Install(project);
+        SpecificationFixture.Install(project);
         var journey = new Journey(project);
         var good = await journey.PlanAsync();
 
@@ -163,7 +163,7 @@ public class SafetyTests
     private static async Task<(TempProject, Journey)> Applied()
     {
         var project = TempProject.Dotnet();
-        TlcFixture.Install(project);
+        SpecificationFixture.Install(project);
         var journey = new Journey(project);
         var result = await journey.ApplyAsync(await journey.PlanAsync());
         Assert.Equal("completed", result["outcome"]!.GetValue<string>());

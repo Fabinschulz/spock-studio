@@ -92,7 +92,7 @@
     "mcpServers": [],
     "evals": []
   },
-  "tlc": {
+  "specification": {
     "state": "not_installed",
     "version": null,
     "lockedHash": null,

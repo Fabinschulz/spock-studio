@@ -1,8 +1,9 @@
-using System.Text;
 using Mariliz.Application.Ports;
 using Mariliz.Core.Discovery;
 using Mariliz.Core.Plan;
+using Mariliz.Core.Policy;
 using Mariliz.Core.Text;
+using System.Text;
 
 namespace Mariliz.Application.Harness;
 
@@ -58,7 +59,7 @@ public static class PlanBuilder
 
         var planId = PlanIdentity(projectId, composed, changes);
         return new ConfigurationPlan(
-            planId, projectId, composed.AiEnvironment, "tlc", composed.ProposalOrigin,
+            planId, projectId, composed.AiEnvironment, ImplementationModels.Mariliz, composed.ProposalOrigin,
             composed.Decisions, changes, composed.Commands, composed.Limitations, composed.Observations, composed.Risks, PlannedValidations(report));
     }
 
@@ -106,16 +107,16 @@ public static class PlanBuilder
         var current = files.ReadText(ManagedLockFile.FileName);
         // Sem nada gerenciado (ex.: ambiente sem suporte), não há o que registrar.
         if (current is null && composed.Files.All(f => f.Path == DeclaredConfig.FileName) && composed.Commands.Count == 0) return null;
-        var pendingTlc = composed.Commands.Any(c => c.Id is "tlc-install" or "tlc-update");
-        var content = LockBuilder.Build(composed, changes, existing, report.Tlc, pendingTlc);
+        var pendingSpecification = composed.Commands.Any(c => c.Id is "specification-install" or "specification-update");
+        var content = LockBuilder.Build(composed, changes, existing, report.Specification, pendingSpecification);
         var currentHash = current is null ? null : Hashing.Sha256(Normalize(current));
 
         if (content is null)
         {
-            // O hash do TLC só existe depois da instalação; o lock é gravado ao final da aplicação.
+            // O hash da estrutura de especificação só existe depois da instalação; o lock é gravado ao final da aplicação.
             return New(ManagedLockFile.FileName, ComponentKind.Config, Catalog.ConfigDeclaration,
                 current is null ? ChangeAction.Create : ChangeAction.Update,
-                "Registro dos arquivos gerenciados e do TLC. O conteúdo é calculado depois da instalação do TLC.",
+                "Registro dos arquivos gerenciados e da estrutura de especificação. O conteúdo é calculado depois da instalação dela.",
                 DecisionOrigins.Baseline, currentHash, null, false, null, null, false);
         }
 
@@ -126,14 +127,14 @@ public static class PlanBuilder
 
         return New(ManagedLockFile.FileName, ComponentKind.Config, Catalog.ConfigDeclaration,
             current is null ? ChangeAction.Create : ChangeAction.Update,
-            "Registro dos arquivos gerenciados, das versões e do TLC.", DecisionOrigins.Baseline, currentHash, afterHash, false, null,
+            "Registro dos arquivos gerenciados, das versões e da estrutura de especificação.", DecisionOrigins.Baseline, currentHash, afterHash, false, null,
             Diff(ManagedLockFile.FileName, current, Normalize(content)), false);
     }
 
     private static IEnumerable<(InventoryItem Item, ComponentKind Kind)> InventoryWithKind(HarnessInventory inv)
     {
         foreach (var i in inv.Agents) yield return (i, ComponentKind.Agent);
-        foreach (var i in inv.Skills.Where(s => !s.Path.StartsWith(ManagedPaths.Tlc, StringComparison.Ordinal))) yield return (i, ComponentKind.Skill);
+        foreach (var i in inv.Skills.Where(s => !s.Path.StartsWith(ManagedScope.SpecificationDirectory, StringComparison.Ordinal))) yield return (i, ComponentKind.Skill);
         foreach (var i in inv.Rules) yield return (i, ComponentKind.Rule);
         foreach (var i in inv.Hooks.Where(h => h.Path != Catalog.PathSettings)) yield return (i, ComponentKind.Hook);
         foreach (var i in inv.Evals) yield return (i, ComponentKind.Eval);
@@ -147,7 +148,7 @@ public static class PlanBuilder
         [
             "Conferir arquivos, hashes, agentes, skills, regras, referências e ausência de segredos (somente leitura).",
             $"Executar o script do hook com entradas conhecidas: {python} .claude/hooks/mariliz-policy.py (sem rede, sem escrita).",
-            $"Executar os gates do TLC: {python} <skill>/scripts/check_commit.py e lessons.py selftest (somente leitura).",
+            $"Executar as validações da especificação: {python} <skill>/scripts/check_commit.py e lessons.py selftest (somente leitura).",
             "Gerar um novo plano e confirmar que ele não propõe nenhuma mudança (idempotência)."
         ];
     }

@@ -1,1 +1,1 @@
-{"schema":1,"origin":"harness-engineer","decisions":[{"id":"mariliz.agent.verifier","decision":"enable","justification":"O TLC exige verificação independente ao fim de cada feature.","evidence":[".claude/skills/tlc-spec-driven/SKILL.md:1"]}]}
+{"schema":1,"origin":"harness-engineer","decisions":[{"id":"mariliz.agent.verifier","decision":"enable","justification":"O ciclo de especificação exige verificação independente ao fim de cada feature.","evidence":[".claude/skills/tlc-spec-driven/SKILL.md:1"]}]}

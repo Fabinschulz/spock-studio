@@ -1,5 +1,6 @@
 using Mariliz.Application.Discovery;
 using Mariliz.Application.Ports;
+using Mariliz.Application.Specification;
 using Mariliz.Core.Discovery;
 using Mariliz.Core.Plan;
 
@@ -45,7 +46,7 @@ internal sealed class HarnessComposition(
         AddRepositoryCommands();
         AddProposedRules();
         AddPolicyHook();
-        TlcPlanner.Plan(report, files, options, _decisions, _commands, _limitations, _risks);
+        SpecificationPlanner.Plan(report, files, options, _decisions, _commands, _limitations, _risks);
 
         return new ComposeResult(environment, _proposalOrigin, _desired, _decisions, _commands, _limitations,
             [.. _observations, .. proposal.Proposal?.Observations ?? []],
@@ -138,7 +139,7 @@ internal sealed class HarnessComposition(
             _desired.Add(RuleContent.Asset(Catalog.PathCodeReviewer, ComponentKind.Agent, Catalog.AgentCodeReviewer, "agents/code-reviewer.md",
                 "Revisor independente, sem permissão de escrita."));
 
-        if (_components.Wants(Catalog.AgentVerifier, true, "Verificação independente de requisitos e critérios de aceite, como o TLC exige.", [".claude/skills/tlc-spec-driven (método fixo)"]))
+        if (_components.Wants(Catalog.AgentVerifier, true, "Verificação independente de requisitos e critérios de aceite, como o ciclo de especificação exige.", [$"{SpecificationManifest.SkillDirectory} (estrutura fixa)"]))
             _desired.Add(RuleContent.Asset(Catalog.PathVerifier, ComponentKind.Agent, Catalog.AgentVerifier, "agents/verifier.md",
                 "Verificador do ciclo spec-driven (autor diferente do verificador)."));
 

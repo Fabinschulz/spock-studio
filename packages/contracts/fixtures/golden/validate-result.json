@@ -16,7 +16,7 @@
         "criteria": "mariliz.yaml (se existir) e mariliz.lock são válidos, no schema 1, e declaram o mesmo ambiente de IA.",
         "evidence": [
           "mariliz.lock: schema 1, motor 0.1.0, ambiente claude-code, 10 arquivo(s)",
-          "mariliz.yaml: schema 1, method.sdd=tlc"
+          "mariliz.yaml: schema 1, implementationModel=mariliz"
         ],
         "reason": null,
         "limitations": []
@@ -114,16 +114,16 @@
         "limitations": []
       },
       {
-        "id": "EV-TLC-001",
-        "name": "TLC operacional",
-        "property": "O método SDD é utilizável",
+        "id": "EV-SPEC-001",
+        "name": "Estrutura de especificação operacional",
+        "property": "A estrutura de especificação é utilizável",
         "kind": "deterministic",
         "required": true,
         "status": "passed",
-        "criteria": "Instalação completa, hash igual ao do instalador, versão validada, Python disponível, e os scripts do TLC respondem corretamente a entradas conhecidas.",
+        "criteria": "Instalação completa, hash igual ao do instalador, versão validada, Python disponível, e os scripts de validação respondem corretamente a entradas conhecidas.",
         "evidence": [
           ".claude/skills/tlc-spec-driven: 15 arquivos exigidos presentes",
-          "Hash conferido com .agents/.skill-lock.json (4c3a850f35f1…)",
+          "Hash conferido com .agents/.skill-lock.json (bdb2d09766f2…)",
           "Versão 4.0.0 validada por esta fase",
           "check_commit.py: aceita 'feat(core): add validation' (saída 0) e rejeita uma mensagem sem tipo (saída 1)",
           "lessons.py selftest: saída 0"
@@ -166,7 +166,7 @@
         "kind": "deterministic",
         "required": true,
         "status": "passed",
-        "criteria": "Cada requisito derivado da descoberta (stack, comandos, proteção por hook) tem o artefato correspondente. O TLC é verificado à parte.",
+        "criteria": "Cada requisito derivado da descoberta (stack, comandos, proteção por hook) tem o artefato correspondente. A estrutura de especificação é verificada à parte.",
         "evidence": [
           "5 requisito(s) derivado(s) da descoberta, todos atendidos"
         ],

@@ -72,7 +72,7 @@ public class ProtocolJourneyTests
     public async Task Jornada_completa_pelo_protocolo_com_eventos_de_progresso_e_snapshot()
     {
         using var project = TempProject.Dotnet();
-        TlcFixture.Install(project);
+        SpecificationFixture.Install(project);
         var wire = Start(project);
 
         var hello = wire.Request("engine.hello", new JsonObject { ["protocol"] = new JsonArray(1), ["hostVersion"] = "t" });
@@ -87,7 +87,7 @@ public class ProtocolJourneyTests
         var projectId = wire.Request("workspace.authorize", new JsonObject { ["path"] = project.Root })["result"]!["projectId"]!.GetValue<string>();
         var discovery = wire.Request("project.discover", new JsonObject { ["projectId"] = projectId })["result"]!;
         Assert.Equal("dotnet", discovery["stacks"]![0]!["id"]!.GetValue<string>());
-        Assert.Equal("installed", discovery["tlc"]!["state"]!.GetValue<string>());
+        Assert.Equal("installed", discovery["specification"]!["state"]!.GetValue<string>());
 
         var plan = wire.Request("harness.plan", new JsonObject { ["projectId"] = projectId, ["aiEnvironment"] = "claude-code" })["result"]!;
         var changeIds = new JsonArray(plan["changes"]!.AsArray()
@@ -114,7 +114,7 @@ public class ProtocolJourneyTests
         var snapshot = wire.Request("run.snapshot", new JsonObject { ["runId"] = runId })["result"]!;
         Assert.Equal("completed", snapshot["state"]!.GetValue<string>());
         Assert.Equal("completed", snapshot["result"]!["outcome"]!.GetValue<string>());
-        Assert.Equal("passed", snapshot["result"]!["validation"]!["results"]!.AsArray().First(r => r!["id"]!.GetValue<string>() == "EV-TLC-001")!["status"]!.GetValue<string>());
+        Assert.Equal("passed", snapshot["result"]!["validation"]!["results"]!.AsArray().First(r => r!["id"]!.GetValue<string>() == "EV-SPEC-001")!["status"]!.GetValue<string>());
 
         var runs = wire.Request("harness.runs", new JsonObject { ["projectId"] = projectId })["result"]!["runs"]!.AsArray();
         Assert.Equal(runId, runs[0]!["runId"]!.GetValue<string>());
@@ -149,7 +149,7 @@ public class ProtocolJourneyTests
         var runner = new InterceptingRunner(async (spec, ct) =>
         {
             if (spec.Executable != "npx") return null;
-            TlcFixture.Install(project);
+            SpecificationFixture.Install(project);
             started.TrySetResult();
             await Task.Delay(Timeout.Infinite, ct);
             return null;
@@ -168,7 +168,7 @@ public class ProtocolJourneyTests
         wire.Request("harness.apply", new JsonObject
         {
             ["projectId"] = projectId, ["planId"] = plan["planId"]!.GetValue<string>(),
-            ["approvedChangeIds"] = new JsonArray(), ["approvedCommandIds"] = new JsonArray("tlc-install")
+            ["approvedChangeIds"] = new JsonArray(), ["approvedCommandIds"] = new JsonArray("specification-install")
         });
         await started.Task.WaitAsync(TimeSpan.FromSeconds(30));
 

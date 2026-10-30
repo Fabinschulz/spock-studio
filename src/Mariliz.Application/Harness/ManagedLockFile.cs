@@ -16,13 +16,12 @@ public sealed class ManagedLockFile
     public int Schema { get; set; } = 1;
     public string Engine { get; set; } = "";
     public string AiEnvironment { get; set; } = "";
-    public SddSection Sdd { get; set; } = new();
+    public SpecificationSection Specification { get; set; } = new();
     public List<ComponentEntry> Components { get; set; } = [];
     public List<ManagedFileEntry> ManagedFiles { get; set; } = [];
 
-    public sealed class SddSection
+    public sealed class SpecificationSection
     {
-        public string Method { get; set; } = "tlc";
         public string Version { get; set; } = "";
         public string ContentHash { get; set; } = "";
     }

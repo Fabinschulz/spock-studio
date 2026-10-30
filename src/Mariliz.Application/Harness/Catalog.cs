@@ -17,7 +17,7 @@ public static class Catalog
     public const string RuleStackJavascript = "mariliz.rule.stack-javascript";
     public const string RuleRepoCommands = "mariliz.rule.repo-commands";
     public const string HookPolicy = "mariliz.hook.policy";
-    public const string SddTlc = "mariliz.sdd.tlc";
+    public const string SpecificationStructure = "mariliz.specification.structure";
     public const string ConfigDeclaration = "mariliz.config.declaration";
     public const string CustomRulePrefix = "mariliz.rule.custom.";
 
@@ -33,7 +33,7 @@ public static class Catalog
         new(RuleRepoCommands, ComponentKind.Rule, ComponentVersion, "Comandos do repositório"),
         new(HookPolicy, ComponentKind.Hook, ComponentVersion, "Hook de política"),
         // Externo: a versão real vem da instalação verificada (ver LockBuilder), não do catálogo.
-        new(SddTlc, ComponentKind.Sdd, "", "TLC (spec-driven)"),
+        new(SpecificationStructure, ComponentKind.Specification, "", "Estrutura de especificação"),
         new(ConfigDeclaration, ComponentKind.Config, ComponentVersion, "Declaração e lock")
     ];
 

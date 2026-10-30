@@ -6,16 +6,16 @@ namespace Mariliz.Application.Harness;
 /// <summary>Calcula o conteúdo do <c>mariliz.lock</c> a partir do que existirá no disco depois da aplicação.</summary>
 public static class LockBuilder
 {
-    /// <returns><c>null</c> quando o conteúdo depende de uma instalação do TLC ainda pendente.</returns>
-    public static string? Build(ComposeResult composed, IReadOnlyList<FileChange> changes, ManagedLockFile? existing, TlcStatus tlc, bool tlcPending)
+    /// <returns><c>null</c> quando o conteúdo depende da instalação da estrutura de especificação, ainda pendente.</returns>
+    public static string? Build(ComposeResult composed, IReadOnlyList<FileChange> changes, ManagedLockFile? existing, SpecificationStatus specification, bool specificationPending)
     {
-        if (tlcPending) return null;
+        if (specificationPending) return null;
 
         var lockFile = new ManagedLockFile
         {
             Engine = BuildInfo.Version,
             AiEnvironment = composed.AiEnvironment,
-            Sdd = new ManagedLockFile.SddSection { Method = "tlc", Version = tlc.Version ?? "", ContentHash = tlc.ComputedHash ?? "" }
+            Specification = new ManagedLockFile.SpecificationSection { Version = specification.Version ?? "", ContentHash = specification.ComputedHash ?? "" }
         };
 
         var byPath = composed.Files.ToDictionary(f => f.Path, StringComparer.Ordinal);
@@ -45,22 +45,21 @@ public static class LockBuilder
         foreach (var id in componentIds)
         {
             var component = Catalog.Find(id);
-            lockFile.Components.Add(new() { Id = id, Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(), Version = ComponentVersion(id, component, tlc) });
+            lockFile.Components.Add(new() { Id = id, Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(), Version = ComponentVersion(id, component, specification) });
         }
         return lockFile.ToYaml();
     }
 
-    internal static string BuildFromOutcomes(ComposeResult composed, IReadOnlyDictionary<string, Execution.FileOutcome> outcomes, ManagedLockFile? existing, TlcStatus tlc)
+    internal static string BuildFromOutcomes(ComposeResult composed, IReadOnlyDictionary<string, Execution.FileOutcome> outcomes, ManagedLockFile? existing, SpecificationStatus specification)
     {
         var lockFile = new ManagedLockFile
         {
             Engine = BuildInfo.Version,
             AiEnvironment = composed.AiEnvironment,
-            Sdd = new ManagedLockFile.SddSection
+            Specification = new ManagedLockFile.SpecificationSection
             {
-                Method = "tlc",
-                Version = tlc.State == TlcState.Installed ? tlc.Version ?? "" : "",
-                ContentHash = tlc.State == TlcState.Installed ? tlc.ComputedHash ?? "" : ""
+                Version = specification.State == SpecificationState.Installed ? specification.Version ?? "" : "",
+                ContentHash = specification.State == SpecificationState.Installed ? specification.ComputedHash ?? "" : ""
             }
         };
 
@@ -90,12 +89,12 @@ public static class LockBuilder
         foreach (var id in lockFile.ManagedFiles.Select(f => f.Component).Distinct())
         {
             var component = Catalog.Find(id);
-            lockFile.Components.Add(new() { Id = id, Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(), Version = ComponentVersion(id, component, tlc) });
+            lockFile.Components.Add(new() { Id = id, Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(), Version = ComponentVersion(id, component, specification) });
         }
         return lockFile.ToYaml();
     }
 
-    /// <summary>O TLC é externo: a versão registrada é a da instalação verificada, nunca um valor fixo do catálogo.</summary>
-    private static string ComponentVersion(string id, CatalogComponent? component, TlcStatus tlc) =>
-        id == Catalog.SddTlc ? (tlc.State == TlcState.Installed ? tlc.Version ?? "" : "") : component?.Version ?? Catalog.ComponentVersion;
+    /// <summary>A estrutura de especificação é externa: a versão registrada é a da instalação verificada, nunca um valor fixo do catálogo.</summary>
+    private static string ComponentVersion(string id, CatalogComponent? component, SpecificationStatus specification) =>
+        id == Catalog.SpecificationStructure ? (specification.State == SpecificationState.Installed ? specification.Version ?? "" : "") : component?.Version ?? Catalog.ComponentVersion;
 }

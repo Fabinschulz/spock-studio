@@ -9,10 +9,10 @@ public static class LimitationCodes
     public const string ProposalIgnored = "PROPOSAL_IGNORED";
     public const string NoRuleProfile = "NO_RULE_PROFILE";
     public const string HookBlocked = "HOOK_BLOCKED";
-    public const string TlcBlocked = "TLC_BLOCKED";
-    public const string TlcNeedsForce = "TLC_NEEDS_FORCE";
-    public const string TlcUntested = "TLC_UNTESTED_VERSION";
-    public const string TlcOutdated = "TLC_OUTDATED";
+    public const string SpecificationBlocked = "SPECIFICATION_BLOCKED";
+    public const string SpecificationNeedsReinstall = "SPECIFICATION_NEEDS_REINSTALL";
+    public const string SpecificationUntested = "SPECIFICATION_UNTESTED_VERSION";
+    public const string SpecificationOutdated = "SPECIFICATION_OUTDATED";
     public const string HarnessEngineerNotInvoked = "HARNESS_ENGINEER_NOT_INVOKED";
     public const string JudgeNotConfigured = "JUDGE_NOT_CONFIGURED";
 }

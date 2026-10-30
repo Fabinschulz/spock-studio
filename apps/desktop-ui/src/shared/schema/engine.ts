@@ -41,7 +41,7 @@ const inventoryItem = z.object({
   issue: z.string().nullable()
 });
 
-export const tlcStatusSchema = z.object({
+export const specificationStatusSchema = z.object({
   state: z.enum(['not_installed', 'installed', 'drifted', 'invalid']),
   version: z.string().nullable(),
   lockedHash: z.string().nullable(),
@@ -66,7 +66,7 @@ export const discoverySchema = z.object({
     mcpServers: z.array(inventoryItem),
     evals: z.array(inventoryItem)
   }),
-  tlc: tlcStatusSchema,
+  specification: specificationStatusSchema,
   git: z.object({
     isRepository: z.boolean(),
     hasUncommittedChanges: z.boolean().nullable(),
@@ -82,7 +82,7 @@ export const discoverySchema = z.object({
   warnings: z.array(discoveryWarningSchema)
 });
 
-const componentKind = z.enum(['sdd', 'agent', 'skill', 'hook', 'rule', 'tool', 'eval', 'config']);
+const componentKind = z.enum(['specification', 'agent', 'skill', 'hook', 'rule', 'tool', 'eval', 'config']);
 const changeAction = z.enum(['create', 'update', 'preserve', 'remove', 'conflict']);
 
 export const componentDecisionSchema = z.object({
@@ -132,7 +132,7 @@ export const planSchema = z.object({
   planId: z.string(),
   projectId: z.string(),
   aiEnvironment: z.string(),
-  sdd: z.string(),
+  implementationModel: z.string(),
   proposalOrigin: z.string(),
   decisions: z.array(componentDecisionSchema),
   changes: z.array(fileChangeSchema),

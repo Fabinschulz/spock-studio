@@ -150,14 +150,14 @@ describe('jornada Configurar projeto', () => {
       scrollTo.mockClear();
 
       await click('Próximo');
-      await screen.findByText('Método de especificação e ambiente');
+      await screen.findByText('Modelo de implementação e ambiente');
 
       expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
     });
   });
 
   describe('A · contexto da pasta', () => {
-    it('mostra a pasta e o seletor do método, só analisa quando a pessoa pede e o botão de trocar abre o seletor', async () => {
+    it('mostra a pasta e o modelo de implementação Mariliz, só analisa quando a pessoa pede e o botão de trocar abre o seletor', async () => {
       const pick = vi.fn().mockResolvedValue(project);
       const api = fakeApi();
       render(
@@ -181,7 +181,8 @@ describe('jornada Configurar projeto', () => {
 
       expect(await screen.findByText('Selecionar pasta do projeto')).toBeInTheDocument();
       expect(screen.getByText(project.displayPath)).toBeInTheDocument();
-      expect(screen.getByRole('combobox', { name: 'Método de especificação' })).toHaveDisplayValue('TLC (padrão)');
+      expect(screen.getByText('Modelo de implementação Mariliz')).toBeInTheDocument();
+      expect(screen.queryByRole('combobox', { name: /método/i })).not.toBeInTheDocument();
       expect(screen.getByText('Stack e tecnologias do projeto')).toBeInTheDocument();
       // Nada de análise, resultado nem estado de conclusão antes do pedido.
       expect(api.discover).not.toHaveBeenCalled();
@@ -211,14 +212,15 @@ describe('jornada Configurar projeto', () => {
     });
   });
 
-  describe('B · método e ambiente', () => {
-    it('apresenta o TLC como único método e sugere o único ambiente suportado detectado', async () => {
+  describe('B · modelo e ambiente', () => {
+    it('apresenta a estrutura de especificação sem nomes de kits e sugere o único ambiente suportado detectado', async () => {
       renderJourney(fakeApi());
       await screen.findByText('Stack detectada');
       await click('Próximo');
 
-      expect(await screen.findByText('Método de especificação e ambiente')).toBeInTheDocument();
-      expect(screen.getByText(/TLC \(Tech Leads Club\)/)).toBeInTheDocument();
+      expect(await screen.findByText('Modelo de implementação e ambiente')).toBeInTheDocument();
+      expect(screen.getByText('Estrutura de especificação')).toBeInTheDocument();
+      expect(document.body).not.toHaveTextContent(/TLC|Tech Leads|SDD|Superpowers|Spec Power/);
       expect(screen.getByText(/somente se você aprovar o comando/)).toBeInTheDocument();
       expect(screen.getByRole('radio', { name: /Claude Code/ })).toBeChecked();
       expect(screen.getByRole('button', { name: 'Gerar plano' })).toBeEnabled();
@@ -239,21 +241,26 @@ describe('jornada Configurar projeto', () => {
       renderJourney(fakeApi());
       await screen.findByText('Stack detectada');
       await click('Próximo');
-      await screen.findByText('Método de especificação e ambiente');
+      await screen.findByText('Modelo de implementação e ambiente');
 
       await userEvent.click(screen.getByRole('radio', { name: /Cursor/ }));
 
       expect(screen.getByText('Ambiente sem suporte nesta fase')).toBeInTheDocument();
     });
 
-    it('só oferece reinstalar o TLC quando ele está alterado, e o envia como permissão explícita', async () => {
-      const drifted = { ...discovery, tlc: { ...discovery.tlc, state: 'drifted' as const, version: '3.3.0' } };
+    it('só oferece reinstalar a estrutura de especificação quando ela está alterada, e o envia como permissão explícita', async () => {
+      const drifted = {
+        ...discovery,
+        specification: { ...discovery.specification, state: 'drifted' as const, version: '3.3.0' }
+      };
       const api = fakeApi({ discover: vi.fn().mockResolvedValue(drifted) });
       renderJourney(api);
       await screen.findByText('Stack detectada');
       await click('Próximo');
 
-      const reinstall = await screen.findByRole('checkbox', { name: /Permitir reinstalar o TLC/ });
+      const reinstall = await screen.findByRole('checkbox', {
+        name: /Permitir reinstalar a estrutura de especificação/
+      });
       expect(reinstall).not.toBeChecked();
       await userEvent.click(reinstall);
       await click('Gerar plano');
@@ -262,23 +269,30 @@ describe('jornada Configurar projeto', () => {
         expect(api.plan).toHaveBeenCalledWith({
           projectId: 'p-1',
           aiEnvironment: 'claude-code',
-          allowTlcForceReinstall: true,
-          updateTlc: false
+          allowSpecificationReinstall: true,
+          updateSpecification: false
         })
       );
     });
 
-    it('com o TLC instalado, oferece buscar a versão mais recente e envia o pedido ao motor', async () => {
+    it('com a estrutura de especificação instalada, oferece buscar a versão mais recente e envia o pedido ao motor', async () => {
       const installed = {
         ...discovery,
-        tlc: { ...discovery.tlc, state: 'installed' as const, version: '3.3.0', versionTested: true }
+        specification: {
+          ...discovery.specification,
+          state: 'installed' as const,
+          version: '3.3.0',
+          versionTested: true
+        }
       };
       const api = fakeApi({ discover: vi.fn().mockResolvedValue(installed) });
       renderJourney(api);
       await screen.findByText('Stack detectada');
       await click('Próximo');
 
-      const update = await screen.findByRole('checkbox', { name: /Buscar a versão mais recente do TLC/ });
+      const update = await screen.findByRole('checkbox', {
+        name: /Buscar a versão mais recente da estrutura de especificação/
+      });
       expect(update).not.toBeChecked();
       expect(screen.getByText(/Usa a rede e só executa se você aprovar/)).toBeInTheDocument();
       await userEvent.click(update);
@@ -288,28 +302,32 @@ describe('jornada Configurar projeto', () => {
         expect(api.plan).toHaveBeenCalledWith({
           projectId: 'p-1',
           aiEnvironment: 'claude-code',
-          allowTlcForceReinstall: false,
-          updateTlc: true
+          allowSpecificationReinstall: false,
+          updateSpecification: true
         })
       );
     });
 
-    it('sem o TLC instalado não oferece atualizar: a instalação já traz a versão mais recente', async () => {
+    it('sem a estrutura de especificação instalada não oferece atualizar: a instalação já traz a versão mais recente', async () => {
       renderJourney(fakeApi());
       await screen.findByText('Stack detectada');
       await click('Próximo');
-      await screen.findByText('Método de especificação e ambiente');
+      await screen.findByText('Modelo de implementação e ambiente');
 
-      expect(screen.queryByRole('checkbox', { name: /Buscar a versão mais recente do TLC/ })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('checkbox', { name: /Buscar a versão mais recente da estrutura de especificação/ })
+      ).not.toBeInTheDocument();
     });
 
-    it('não oferece reinstalar quando o TLC não está alterado', async () => {
+    it('não oferece reinstalar quando a estrutura de especificação não está alterada', async () => {
       renderJourney(fakeApi());
       await screen.findByText('Stack detectada');
       await click('Próximo');
-      await screen.findByText('Método de especificação e ambiente');
+      await screen.findByText('Modelo de implementação e ambiente');
 
-      expect(screen.queryByRole('checkbox', { name: /Permitir reinstalar o TLC/ })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('checkbox', { name: /Permitir reinstalar a estrutura de especificação/ })
+      ).not.toBeInTheDocument();
     });
 
     it('mantém a pessoa nesta etapa, com a mensagem do motor, quando o plano falha', async () => {
@@ -362,7 +380,7 @@ describe('jornada Configurar projeto', () => {
     it('mostra o comando exato, seus efeitos e as pastas afetadas', async () => {
       await reachReview(fakeApi());
 
-      expect(screen.getByText('Instalar o TLC pelo instalador oficial')).toBeInTheDocument();
+      expect(screen.getByText('Instalar a estrutura de especificação pelo instalador oficial')).toBeInTheDocument();
       expect(
         screen.getByText('npx -y @tech-leads-club/agent-skills install -s tlc-spec-driven -a claude-code')
       ).toBeInTheDocument();
@@ -561,14 +579,19 @@ describe('jornada Configurar projeto', () => {
       const limited = {
         ...runResultSchema.parse(applyResult),
         outcome: 'completed_with_limitations' as const,
-        limitations: [{ code: 'TLC_PYTHON_MISSING', message: 'Python ausente: os gates do TLC não puderam rodar.' }]
+        limitations: [
+          {
+            code: 'SPECIFICATION_PYTHON_MISSING',
+            message: 'Python ausente: as validações da especificação não puderam rodar.'
+          }
+        ]
       };
       const api = fakeApi({ snapshot: vi.fn().mockResolvedValue(snapshotOf(limited)) });
       await reachReview(api);
       await click(/Aplicar configuração/);
 
       expect(await screen.findByText('Concluído com limitações')).toBeInTheDocument();
-      expect(screen.getByText(/Python ausente: os gates do TLC/)).toBeInTheDocument();
+      expect(screen.getByText(/Python ausente: as validações da especificação/)).toBeInTheDocument();
       expect(screen.queryByText('Todas as verificações obrigatórias foram aprovadas com evidência.')).toBeNull();
     });
 

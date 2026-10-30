@@ -28,7 +28,7 @@ internal sealed class ConfigureRequestHandler(ConfigureProjectService service)
         if (environment is not null && !AiEnvironments.Known.Contains(environment))
             throw new ParamException("aiEnvironment desconhecido.");
 
-        var options = new PlanOptions(environment, p.Flag("allowTlcForceReinstall"), p.Flag("updateTlc"));
+        var options = new PlanOptions(environment, p.Flag("allowSpecificationReinstall"), p.Flag("updateSpecification"));
         return Json(await service.PlanAsync(p.Str("projectId"), options, ct));
     }
 

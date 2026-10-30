@@ -9,7 +9,7 @@ public static class EvalIds
     public const string Hook = "EV-HOOK-001";
     public const string Rule = "EV-RULE-001";
     public const string Reference = "EV-REF-001";
-    public const string Tlc = "EV-TLC-001";
+    public const string Specification = "EV-SPEC-001";
     public const string Secrets = "EV-SEC-001";
     public const string Environment = "EV-ENV-001";
     public const string Requirements = "EV-REQ-001";

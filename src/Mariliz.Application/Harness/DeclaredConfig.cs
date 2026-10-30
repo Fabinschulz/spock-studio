@@ -1,5 +1,6 @@
 using Mariliz.Application.Discovery;
 using Mariliz.Application.Ports;
+using Mariliz.Core.Plan;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -16,13 +17,12 @@ public sealed class DeclaredConfig
 
     public int Schema { get; set; } = 1;
     public ProjectSection Project { get; set; } = new();
-    public MethodSection Method { get; set; } = new();
+    public string ImplementationModel { get; set; } = ImplementationModels.Mariliz;
     public string AiEnvironment { get; set; } = "";
     public ComponentsSection Components { get; set; } = new();
     public EvalsSection Evals { get; set; } = new();
 
     public sealed class ProjectSection { public string Name { get; set; } = ""; }
-    public sealed class MethodSection { public string Sdd { get; set; } = "tlc"; }
     public sealed class ComponentsSection { public List<string> Exclude { get; set; } = []; }
     public sealed class EvalsSection { public List<string> Required { get; set; } = []; }
 
@@ -49,8 +49,8 @@ public sealed class DeclaredConfig
         {
             var config = Reader.Deserialize<DeclaredConfig>(text) ?? new DeclaredConfig();
             if (config.Schema != 1) return (null, $"mariliz.yaml: schema {config.Schema} não é suportado (esperado 1).");
-            if (!string.Equals(config.Method.Sdd, "tlc", StringComparison.OrdinalIgnoreCase))
-                return (null, $"mariliz.yaml: method.sdd '{config.Method.Sdd}' não é suportado; esta fase usa somente 'tlc'.");
+            if (!string.Equals(config.ImplementationModel, ImplementationModels.Mariliz, StringComparison.OrdinalIgnoreCase))
+                return (null, $"mariliz.yaml: implementationModel '{config.ImplementationModel}' não é suportado; esta fase usa somente '{ImplementationModels.Mariliz}'.");
             if (config.AiEnvironment.Length > 0 && !AiEnvironments.Known.Contains(config.AiEnvironment))
                 return (null, $"mariliz.yaml: aiEnvironment '{config.AiEnvironment}' é desconhecido.");
             return (config, null);

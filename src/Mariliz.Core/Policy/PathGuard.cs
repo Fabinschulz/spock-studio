@@ -33,29 +33,3 @@ public static class PathGuard
         return true;
     }
 }
-
-/// <summary>Quais caminhos a aplicação pode escrever por conta própria.</summary>
-public static class ManagedScope
-{
-    public const string TlcSkillDirectory = ".claude/skills/tlc-spec-driven";
-    public const string SkillsLockDirectory = ".agents";
-
-    private static readonly string[] AllowedPrefixes = [".claude/", ".mariliz/"];
-    private static readonly string[] AllowedFiles = ["mariliz.yaml", "mariliz.lock"];
-
-    /// <summary>Arquivos de configuração que a aplicação escreve diretamente.</summary>
-    public static bool IsWritable(string normalizedPath)
-    {
-        if (IsTlcOwned(normalizedPath)) return false;
-        if (normalizedPath.StartsWith(".git/", StringComparison.OrdinalIgnoreCase) || normalizedPath.Equals(".git", StringComparison.OrdinalIgnoreCase)) return false;
-        if (AllowedFiles.Contains(normalizedPath, StringComparer.Ordinal)) return true;
-        return AllowedPrefixes.Any(p => normalizedPath.StartsWith(p, StringComparison.Ordinal));
-    }
-
-    /// <summary>O TLC é dono dos próprios arquivos: só o instalador oficial os escreve.</summary>
-    public static bool IsTlcOwned(string normalizedPath) =>
-        normalizedPath.Equals(TlcSkillDirectory, StringComparison.Ordinal)
-        || normalizedPath.StartsWith(TlcSkillDirectory + "/", StringComparison.Ordinal)
-        || normalizedPath.Equals(SkillsLockDirectory, StringComparison.Ordinal)
-        || normalizedPath.StartsWith(SkillsLockDirectory + "/", StringComparison.Ordinal);
-}

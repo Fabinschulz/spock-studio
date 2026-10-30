@@ -3,13 +3,6 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Execution;
 
-internal sealed record PlannedWrite(FileChange Change, string Op);
-
-internal sealed record WriteDecision(
-    IReadOnlyList<PlannedWrite> Writes,
-    Dictionary<string, FileOutcome> Outcomes,
-    IReadOnlyList<string> NotApplied);
-
 /// <summary>Transforma o plano e as aprovações em operações de arquivo. O arquivo de lock é tratado à parte.</summary>
 internal static class WritePlanner
 {

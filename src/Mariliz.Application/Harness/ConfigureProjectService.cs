@@ -9,8 +9,6 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Harness;
 
-public sealed record RunSummary(string RunId, string Kind, string State, DateTimeOffset StartedAt, bool ChangesApplied, bool Reverted);
-
 /// <summary>
 /// A jornada "Configurar projeto" como casos de uso: descobrir, planejar, aplicar, validar e reverter.
 /// UI e CLI chamam esta mesma classe; nenhuma regra mora na interface.
@@ -72,9 +70,9 @@ public sealed class ConfigureProjectService(
 
         run.Completion = Task.Run(async () =>
         {
-            // O pedido de atualizar o TLC vale uma vez: depois de aplicado, a idempotência é medida sem ele.
+            // O pedido de atualizar a estrutura de especificação vale uma vez: depois de aplicado, a idempotência é medida sem ele.
             var result = await _apply.ExecuteAsync(run, root, files, session, approvals,
-                ReplanWith(session.Options), run.Cancellation.Token, ReplanWith(session.Options with { UpdateTlc = false }));
+                ReplanWith(session.Options), run.Cancellation.Token, ReplanWith(session.Options with { UpdateSpecification = false }));
             run.Complete(OutcomeOf(result), result);
         });
         return run;

@@ -1,5 +1,4 @@
 using System.Text.Json.Nodes;
-using Mariliz.Application.Harness;
 using Mariliz.Application.Execution;
 using Mariliz.Core.Plan;
 
@@ -38,10 +37,10 @@ internal static class CliRender
         foreach (var e in envs)
             w.WriteLine($"  {Str(e, "id")} ({(e?["supported"]?.GetValue<bool>() == true ? "suportado" : "sem suporte de configuração nesta fase")}, confiança {Str(e, "confidence")})");
 
-        var tlc = report["tlc"];
+        var specification = report["specification"];
         w.WriteLine();
-        w.WriteLine($"TLC: {Str(tlc, "state")}{(Str(tlc, "version") is { Length: > 0 } v ? $" (versão {v})" : "")}");
-        foreach (var p in Items(tlc, "problems")) w.WriteLine($"  problema: {p?.GetValue<string>()}");
+        w.WriteLine($"Estrutura de especificação: {Str(specification, "state")}{(Str(specification, "version") is { Length: > 0 } v ? $" (versão {v})" : "")}");
+        foreach (var p in Items(specification, "problems")) w.WriteLine($"  problema: {p?.GetValue<string>()}");
 
         var inventory = report["inventory"];
         w.WriteLine();
@@ -51,7 +50,7 @@ internal static class CliRender
 
     public static void Plan(TextWriter w, ConfigurationPlan plan, bool showDiff)
     {
-        w.WriteLine($"Plano {plan.PlanId} — ambiente {(plan.AiEnvironment.Length == 0 ? "(não definido)" : plan.AiEnvironment)}, método {plan.Sdd}");
+        w.WriteLine($"Plano {plan.PlanId} — ambiente {(plan.AiEnvironment.Length == 0 ? "(não definido)" : plan.AiEnvironment)}, modelo de implementação {plan.ImplementationModel}");
         w.WriteLine(plan.ProposalOrigin == "harness-engineer"
             ? "Proposta do Harness Engineer, validada pelo motor."
             : "Plano pelas regras-base (o Harness Engineer ainda não gerou .mariliz/proposal.json).");

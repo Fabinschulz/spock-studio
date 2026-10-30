@@ -165,36 +165,36 @@ public class DiscoveryTests
     }
 
     [Fact]
-    public async Task Estado_do_tlc_distingue_ausente_instalado_divergente_e_incompleto()
+    public async Task Estado_da_especificacao_distingue_ausente_instalado_divergente_e_incompleto()
     {
         using var absent = TempProject.Dotnet();
-        Assert.Equal(TlcState.NotInstalled, (await Discover(absent)).Tlc.State);
+        Assert.Equal(SpecificationState.NotInstalled, (await Discover(absent)).Specification.State);
 
         using var ok = TempProject.Dotnet();
-        TlcFixture.Install(ok);
-        var installed = (await Discover(ok)).Tlc;
-        Assert.Equal(TlcState.Installed, installed.State);
+        SpecificationFixture.Install(ok);
+        var installed = (await Discover(ok)).Specification;
+        Assert.Equal(SpecificationState.Installed, installed.State);
         Assert.Equal("4.0.0", installed.Version);
         Assert.True(installed.VersionTested);
         Assert.Equal(installed.LockedHash, installed.ComputedHash);
 
         using var drift = TempProject.Dotnet();
-        TlcFixture.Install(drift);
+        SpecificationFixture.Install(drift);
         drift.Write(".claude/skills/tlc-spec-driven/references/tasks.md", "# editado\n");
-        var drifted = (await Discover(drift)).Tlc;
-        Assert.Equal(TlcState.Drifted, drifted.State);
+        var drifted = (await Discover(drift)).Specification;
+        Assert.Equal(SpecificationState.Drifted, drifted.State);
         Assert.NotEqual(drifted.LockedHash, drifted.ComputedHash);
 
         using var broken = TempProject.Dotnet();
-        TlcFixture.Install(broken);
+        SpecificationFixture.Install(broken);
         File.Delete(Path.Combine(broken.Root, ".claude", "skills", "tlc-spec-driven", "scripts", "validate_spec.py"));
-        var invalid = (await Discover(broken)).Tlc;
-        Assert.Equal(TlcState.Invalid, invalid.State);
+        var invalid = (await Discover(broken)).Specification;
+        Assert.Equal(SpecificationState.Invalid, invalid.State);
         Assert.Contains(invalid.Problems, p => p.Contains("validate_spec.py"));
 
         using var nolock = TempProject.Dotnet();
-        TlcFixture.Install(nolock);
+        SpecificationFixture.Install(nolock);
         File.Delete(Path.Combine(nolock.Root, ".agents", ".skill-lock.json"));
-        Assert.Equal(TlcState.Drifted, (await Discover(nolock)).Tlc.State);
+        Assert.Equal(SpecificationState.Drifted, (await Discover(nolock)).Specification.State);
     }
 }

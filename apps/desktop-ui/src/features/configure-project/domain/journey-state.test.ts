@@ -24,9 +24,9 @@ describe('stepIssue · problema da etapa para o indicador de progresso', () => {
     });
   });
 
-  it('falha ao gerar o plano marca Método e ambiente com erro', () => {
-    expect(stepIssue(at({ step: 'method', plan: { status: 'error', message: 'x' } }))).toEqual({
-      stepId: 'method',
+  it('falha ao gerar o plano marca Modelo e ambiente com erro', () => {
+    expect(stepIssue(at({ step: 'model', plan: { status: 'error', message: 'x' } }))).toEqual({
+      stepId: 'model',
       kind: 'error'
     });
   });

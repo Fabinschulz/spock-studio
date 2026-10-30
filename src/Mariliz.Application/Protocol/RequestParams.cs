@@ -2,8 +2,6 @@ using System.Text.Json.Nodes;
 
 namespace Mariliz.Application.Protocol;
 
-internal sealed class ParamException(string message) : Exception(message);
-
 internal readonly struct RequestParams(JsonObject? values)
 {
     public string Str(string name) =>

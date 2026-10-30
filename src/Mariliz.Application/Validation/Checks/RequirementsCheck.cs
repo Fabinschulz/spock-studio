@@ -33,7 +33,7 @@ internal sealed class RequirementsCheck : IEvalCheck
         if (ctx.Discovery.Tooling.Any(t => t.Command is not null && t.Kind is "build" or "test" or "lint" or "typecheck")) Need(Catalog.RuleRepoCommands, Catalog.PathRuleRepo, "comandos do repositório detectados");
         if (ctx.Discovery.Tools.PythonCommand is not null) Need(Catalog.HookPolicy, Catalog.PathHookScript, "Python disponível: o hook de política é exigido");
 
-        // O TLC é verificado pelo EV-TLC-001 (bloqueado quando não instalado); contá-lo aqui duplicaria a falha.
+        // A estrutura de especificação é verificada pelo EV-SPEC-001 (bloqueado quando não instalado); contá-lo aqui duplicaria a falha.
 
         return missing.Count == 0
             ? Pass(spec, [$"{checks} requisito(s) derivado(s) da descoberta, todos atendidos"])

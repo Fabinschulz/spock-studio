@@ -11,11 +11,11 @@ namespace Mariliz.Application.Tests;
 /// <summary>A jornada completa em projetos sintéticos: descobrir, planejar, aplicar, validar e reverter.</summary>
 public class ConfigureJourneyTests
 {
-    private static async Task<(TempProject Project, Journey Journey, ConfigurationPlan Plan, JsonObject Result)> Configured(bool tlcInstalled = true, bool next = false)
+    private static async Task<(TempProject Project, Journey Journey, ConfigurationPlan Plan, JsonObject Result)> Configured(bool specificationInstalled = true, bool next = false)
     {
         var project = next ? TempProject.Next() : TempProject.Dotnet();
-        if (tlcInstalled) TlcFixture.Install(project);
-        var journey = new Journey(project, tlcInstalled ? null : Journey.FakeInstaller(project));
+        if (specificationInstalled) SpecificationFixture.Install(project);
+        var journey = new Journey(project, specificationInstalled ? null : Journey.FakeInstaller(project));
         var plan = await journey.PlanAsync();
         var result = await journey.ApplyAsync(plan);
         return (project, journey, plan, result);
@@ -61,7 +61,7 @@ public class ConfigureJourneyTests
     }
 
     [Fact]
-    public async Task Tlc_ausente_e_instalado_somente_com_aprovacao_e_depois_validado()
+    public async Task Especificacao_ausente_e_instalado_somente_com_aprovacao_e_depois_validado()
     {
         var project = TempProject.Dotnet();
         using var _ = project;
@@ -77,58 +77,58 @@ public class ConfigureJourneyTests
         var withoutCommand = new ApplyApprovals(plan.Changes.Where(c => c.Action == ChangeAction.Create).Select(c => c.Id).ToList(), [], new Dictionary<string, ConflictResolution>());
         var notInstalled = await journey.ApplyAsync(plan, withoutCommand);
         Assert.Empty(journey.Runner.Calls.Where(c => c.Executable == "npx"));
-        Assert.Equal("blocked", Journey.Status(notInstalled, "EV-TLC-001"));
+        Assert.Equal("blocked", Journey.Status(notInstalled, "EV-SPEC-001"));
         Assert.Equal("completed_with_limitations", notInstalled["outcome"]!.GetValue<string>());
 
-        // Com aprovação, instala, verifica e o Eval do TLC passa com evidência.
+        // Com aprovação, instala, verifica e o Eval da estrutura de especificação passa com evidência.
         var plan2 = await journey.PlanAsync();
         var installed = await journey.ApplyAsync(plan2);
         Assert.Single(journey.Runner.Calls.Where(c => c.Executable == "npx"));
-        Assert.Equal("passed", Journey.Status(installed, "EV-TLC-001"));
+        Assert.Equal("passed", Journey.Status(installed, "EV-SPEC-001"));
         var lockText = project.Read("mariliz.lock")!;
         Assert.Contains("version: 4.0.0", lockText);
     }
 
     [Fact]
-    public async Task Tlc_ja_instalado_e_mantido_sem_comando()
+    public async Task Especificacao_ja_instalado_e_mantido_sem_comando()
     {
         using var project = TempProject.Dotnet();
-        TlcFixture.Install(project);
+        SpecificationFixture.Install(project);
         var journey = new Journey(project);
 
         var plan = await journey.PlanAsync();
 
         Assert.Empty(plan.Commands);
-        Assert.Contains(plan.Decisions, d => d.ComponentId == Catalog.SddTlc && d.Decision == "keep");
+        Assert.Contains(plan.Decisions, d => d.ComponentId == Catalog.SpecificationStructure && d.Decision == "keep");
     }
 
     [Fact]
-    public async Task Tlc_com_versao_nao_validada_e_aceito_com_limitacao_dita()
+    public async Task Especificacao_com_versao_nao_validada_e_aceito_com_limitacao_dita()
     {
         using var project = TempProject.Dotnet();
-        TlcFixture.Install(project, "9.9.9");
+        SpecificationFixture.Install(project, "9.9.9");
         var journey = new Journey(project);
         var plan = await journey.PlanAsync();
 
         var result = await journey.ApplyAsync(plan);
 
-        Assert.Contains(plan.Limitations, l => l.Code == LimitationCodes.TlcUntested);
-        var tlc = result["validation"]!["results"]!.AsArray().First(r => r!["id"]!.GetValue<string>() == "EV-TLC-001")!;
-        Assert.Equal("passed", tlc["status"]!.GetValue<string>());
-        Assert.Contains("9.9.9", tlc["limitations"]!.AsArray()[0]!.GetValue<string>());
+        Assert.Contains(plan.Limitations, l => l.Code == LimitationCodes.SpecificationUntested);
+        var specification = result["validation"]!["results"]!.AsArray().First(r => r!["id"]!.GetValue<string>() == "EV-SPEC-001")!;
+        Assert.Equal("passed", specification["status"]!.GetValue<string>());
+        Assert.Contains("9.9.9", specification["limitations"]!.AsArray()[0]!.GetValue<string>());
     }
 
     [Fact]
-    public async Task Tlc_editado_localmente_exige_autorizacao_para_reinstalar_e_o_comando_e_marcado_destrutivo()
+    public async Task Especificacao_editado_localmente_exige_autorizacao_para_reinstalar_e_o_comando_e_marcado_destrutivo()
     {
         using var project = TempProject.Dotnet();
-        TlcFixture.Install(project);
+        SpecificationFixture.Install(project);
         project.Write(".claude/skills/tlc-spec-driven/references/design.md", "# editado por mim\n");
         var journey = new Journey(project, Journey.FakeInstaller(project));
 
         var blocked = await journey.PlanAsync();
         Assert.Empty(blocked.Commands);
-        Assert.Contains(blocked.Limitations, l => l.Code == LimitationCodes.TlcNeedsForce);
+        Assert.Contains(blocked.Limitations, l => l.Code == LimitationCodes.SpecificationNeedsReinstall);
 
         var allowed = await journey.PlanAsync(force: true);
         var command = Assert.Single(allowed.Commands);
@@ -162,8 +162,8 @@ public class ConfigureJourneyTests
         var plan = await journey.PlanAsync();
 
         Assert.Empty(plan.Commands);
-        Assert.Contains(plan.Limitations, l => l.Code == LimitationCodes.TlcBlocked);
-        Assert.Contains(plan.Decisions, d => d.ComponentId == Catalog.SddTlc && d.Decision == "blocked");
+        Assert.Contains(plan.Limitations, l => l.Code == LimitationCodes.SpecificationBlocked);
+        Assert.Contains(plan.Decisions, d => d.ComponentId == Catalog.SpecificationStructure && d.Decision == "blocked");
         Assert.Equal(before, project.Fingerprint());
     }
 
@@ -171,7 +171,7 @@ public class ConfigureJourneyTests
     public async Task Arquivo_existente_nao_gerenciado_no_mesmo_caminho_vira_conflito_e_e_mantido_por_padrao()
     {
         using var project = TempProject.Dotnet();
-        TlcFixture.Install(project);
+        SpecificationFixture.Install(project);
         project.Write(".claude/agents/code-reviewer.md", "---\nname: code-reviewer\ndescription: o meu\ntools: Read\n---\n\n# meu revisor\n");
         project.Write(".claude/agents/my-agent.md", "---\nname: my-agent\ndescription: meu\ntools: Read\n---\n");
         project.Write("CLAUDE.md", "# minhas regras\n");
@@ -201,7 +201,7 @@ public class ConfigureJourneyTests
         // Achado no aplicativo instalado: o arquivo da pessoa (frontmatter mínimo, sem as seções do nosso padrão) era avaliado
         // como se fosse gerenciado e reprovava uma configuração correta.
         using var project = TempProject.Dotnet();
-        TlcFixture.Install(project);
+        SpecificationFixture.Install(project);
         const string mine = "---\nname: code-reviewer\ndescription: o meu revisor\ntools: Read\n---\nRevise meus diffs com cuidado.\n";
         project.Write(".claude/agents/code-reviewer.md", mine);
         var journey = new Journey(project);
@@ -221,7 +221,7 @@ public class ConfigureJourneyTests
     public async Task Conflito_so_e_substituido_com_decisao_explicita_e_a_reversao_devolve_o_arquivo_da_pessoa()
     {
         using var project = TempProject.Dotnet();
-        TlcFixture.Install(project);
+        SpecificationFixture.Install(project);
         const string mine = "---\nname: code-reviewer\ndescription: o meu\ntools: Read\n---\n\n# meu revisor\n";
         project.Write(".claude/agents/code-reviewer.md", mine);
         var journey = new Journey(project);
@@ -264,7 +264,7 @@ public class ConfigureJourneyTests
     public async Task Alteracoes_locais_nao_commitadas_geram_aviso_e_nao_impedem_a_preservacao()
     {
         using var project = TempProject.Dotnet();
-        TlcFixture.Install(project);
+        SpecificationFixture.Install(project);
         project.Git("init", "-q");
         project.Git("add", "-A");
         project.Git("commit", "-q", "-m", "base");
@@ -322,7 +322,7 @@ public class ConfigureJourneyTests
         var journey = new Journey(project, async (spec, ct) =>
         {
             if (spec.Executable != "npx") return null;
-            TlcFixture.Install(project);
+            SpecificationFixture.Install(project);
             started.TrySetResult();
             await Task.Delay(Timeout.Infinite, ct);
             return new ProcessResult(0, "", "", false, false);
@@ -342,7 +342,7 @@ public class ConfigureJourneyTests
     public async Task Plano_desatualizado_e_recusado_sem_escrever_nada()
     {
         using var project = TempProject.Dotnet();
-        TlcFixture.Install(project);
+        SpecificationFixture.Install(project);
         var journey = new Journey(project);
         var plan = await journey.PlanAsync();
         project.Write(".claude/rules/mariliz-general.md", "alguém criou isto depois do plano\n");
@@ -364,7 +364,7 @@ public class ConfigureJourneyTests
         {
             if (spec.Executable != "npx") return null;
             await gate.Task;
-            TlcFixture.Install(project);
+            SpecificationFixture.Install(project);
             return new ProcessResult(0, "", "", false, false);
         });
         var plan = await journey.PlanAsync();

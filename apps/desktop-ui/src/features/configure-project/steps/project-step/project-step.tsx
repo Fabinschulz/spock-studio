@@ -4,7 +4,7 @@ import type { RecentProject } from '@/features/project-selection';
 import { Checklist, PrimaryActionFooter, SectionCard } from '@/shared/components/ui';
 import type { Discovery } from '@/shared/schema';
 
-import { TlcGlyph } from '../../components/method-badge';
+import { SpecificationGlyph } from '../../components/implementation-model-badge';
 import styles from '../../components/panels.module.scss';
 import type { Loadable } from '../../domain/journey-state';
 import { AiEnvironmentSelect } from './ai-environment-select';
@@ -74,7 +74,7 @@ export function ProjectStep({
           />
 
           <div className={styles.stack}>
-            <SectionCard title="O que vamos analisar?" icon={<TlcGlyph size={20} />}>
+            <SectionCard title="O que vamos analisar?" icon={<SpecificationGlyph size={20} />}>
               <Checklist items={ANALYSIS_TOPICS} />
             </SectionCard>
             <AiEnvironmentSelect value={aiEnvironment} disabled={project === null} onChange={onEnvironment} />

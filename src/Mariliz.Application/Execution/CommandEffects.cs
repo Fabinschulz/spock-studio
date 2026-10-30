@@ -4,10 +4,10 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Execution;
 
-/// <summary>Registra no diário o que o instalador do TLC gravou, para poder desfazer.</summary>
+/// <summary>Registra no diário o que o instalador da estrutura de especificação gravou, para poder desfazer.</summary>
 internal static class CommandEffects
 {
-    private static readonly string[] WatchedDirectories = [ManagedScope.TlcSkillDirectory, ManagedScope.SkillsLockDirectory];
+    private static readonly string[] WatchedDirectories = [ManagedScope.SpecificationDirectory, ManagedScope.SkillsLockDirectory];
 
     public static Dictionary<string, string> Snapshot(IProjectFiles files)
     {

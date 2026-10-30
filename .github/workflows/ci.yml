@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-      # Os Evals do hook e dos gates do TLC executam scripts Python; a versão é fixa para o resultado não depender do runner.
+      # Os Evals do hook e das validações da especificação executam scripts Python; a versão é fixa para o resultado não depender do runner.
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'

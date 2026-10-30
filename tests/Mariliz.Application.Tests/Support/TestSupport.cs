@@ -108,8 +108,8 @@ internal sealed class TempProject : IDisposable
     }
 }
 
-/// <summary>Skill TLC sintética (instalador simulado): mesmos nomes de arquivo e hash que o instalador real calcula.</summary>
-internal static class TlcFixture
+/// <summary>Skill estrutura de especificação sintética (instalador simulado): mesmos nomes de arquivo e hash que o instalador real calcula.</summary>
+internal static class SpecificationFixture
 {
     /// <summary>Arquivos que a 4.0.0 real removeu em relação à 3.3.0 e os que ela acrescentou (observado na instalação oficial).</summary>
     private static readonly string[] RemovedIn4 = ["references/code-analysis.md", "references/context-limits.md", "scripts/validate_state.py"];
@@ -117,7 +117,7 @@ internal static class TlcFixture
     public static void Install(TempProject project, string version = "4.0.0")
     {
         var files = new Dictionary<string, byte[]>(StringComparer.Ordinal);
-        string Frontmatter() => $"---\nname: tlc-spec-driven\ndescription: test double of the TLC skill\nlicense: CC-BY-4.0\nmetadata:\n  author: test\n  version: {version}\n---\n\n# Test double\n";
+        string Frontmatter() => $"---\nname: tlc-spec-driven\ndescription: test double of the estrutura de especificação skill\nlicense: CC-BY-4.0\nmetadata:\n  author: test\n  version: {version}\n---\n\n# Test double\n";
         files["SKILL.md"] = Encoding.UTF8.GetBytes(Frontmatter());
         foreach (var r in new[] { "code-analysis", "coding-principles", "context-limits", "design", "discuss", "implement", "lessons", "memory", "specify", "sub-agents", "tasks", "validate" })
             files[$"references/{r}.md"] = Encoding.UTF8.GetBytes($"# {r}\n");
@@ -187,7 +187,7 @@ internal sealed class Journey
     public static Func<ProcessSpec, CancellationToken, Task<ProcessResult?>> FakeInstaller(TempProject project, int exitCode = 0) => (spec, _) =>
     {
         if (spec.Executable != "npx") return Task.FromResult<ProcessResult?>(null);
-        if (exitCode == 0) TlcFixture.Install(project);
+        if (exitCode == 0) SpecificationFixture.Install(project);
         return Task.FromResult<ProcessResult?>(new ProcessResult(exitCode, "", exitCode == 0 ? "" : "boom", false, false));
     };
 

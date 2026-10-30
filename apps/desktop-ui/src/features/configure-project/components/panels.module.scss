@@ -89,7 +89,7 @@
   }
 }
 
-// Coluna principal + resumo lateral (etapa de método). Empilha quando falta largura.
+// Coluna principal + resumo lateral (etapa do modelo). Empilha quando falta largura.
 .split {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -241,8 +241,8 @@
   resize: vertical;
 }
 
-// ---- Selo do método no cabeçalho
-.methodBadge {
+// ---- Selo do modelo de implementação no cabeçalho
+.modelBadge {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -259,14 +259,9 @@
     flex: none;
     color: var(--color-primary-text);
   }
-
-  &:has(select:focus-visible) {
-    @include focus-ring;
-  }
 }
 
 // Seletor nativo sem a aparência do sistema: o texto, o ícone e a seta são do desenho.
-.methodSelect,
 .select {
   appearance: none;
   border: 0;
@@ -334,7 +329,7 @@
   color: var(--color-primary-text);
 }
 
-// ---- Cartão do TLC: duas colunas quando há largura
+// ---- Cartão da estrutura de especificação: duas colunas quando há largura
 .twoCols {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -357,7 +352,7 @@
 // ---- Etapa Projeto: a pasta e os recentes à esquerda, o que será analisado à direita (empilha quando falta largura).
 // A largura útil é a do próprio bloco, não a da janela: o menu lateral já ocupa parte dela.
 .projectWrap,
-.methodWrap {
+.modelWrap {
   container-type: inline-size;
 }
 
@@ -430,12 +425,12 @@
   color: var(--tone-success-fg);
 }
 
-// ---- Etapa Método: cartão do TLC, ambientes de IA e resumo. Três colunas quando há largura; duas; ou uma.
-.methodGrid {
+// ---- Etapa Modelo: cartão da estrutura de especificação, ambientes de IA e resumo. Três colunas quando há largura; duas; ou uma.
+.modelGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    'tlc'
+    'specification'
     'env'
     'summary';
   gap: var(--space-4);
@@ -444,18 +439,18 @@
   @container (min-width: 36rem) {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
     grid-template-areas:
-      'tlc tlc'
+      'specification specification'
       'env summary';
   }
 
   @container (min-width: 62rem) {
     grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) minmax(13rem, 0.75fr);
-    grid-template-areas: 'tlc env summary';
+    grid-template-areas: 'specification env summary';
   }
 }
 
-.areaTlc {
-  grid-area: tlc;
+.areaSpecification {
+  grid-area: specification;
 }
 
 .areaEnv {
@@ -564,7 +559,7 @@
   color: var(--color-text-muted);
 }
 
-// Sub-cartão dentro de um cartão (ex.: buscar a versão mais recente do TLC).
+// Sub-cartão dentro de um cartão (ex.: buscar a versão mais recente da estrutura de especificação).
 .subCard {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -668,8 +663,8 @@
   color: var(--tone-warning-fg);
 }
 
-// ---- Cartão do método (TLC): ícone em destaque, título com o selo ao lado e duas colunas (texto | versão e dependências).
-.tlcCard {
+// ---- Cartão da estrutura de especificação: ícone em destaque, título com o selo ao lado e duas colunas (texto | versão e dependências).
+.specificationCard {
   @include card(var(--space-6));
 
   min-width: 0;
@@ -677,7 +672,7 @@
   background: radial-gradient(70% 90% at 0% 0%, var(--color-accent-glow), transparent 70%), var(--color-surface);
 }
 
-.tlcGrid {
+.specificationGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);
@@ -687,7 +682,7 @@
   }
 }
 
-.tlcIcon {
+.specificationIcon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -699,14 +694,14 @@
   color: var(--color-primary-text);
 }
 
-.tlcHeader {
+.specificationHeader {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2) var(--space-3);
 }
 
-.tlcTitle {
+.specificationTitle {
   font-size: var(--font-size-heading);
 }
 
@@ -723,8 +718,8 @@
   color: var(--color-text-muted);
 }
 
-// Descrição do método em branco (texto principal), como pedido; os itens da lista já usam a cor do texto.
-.tlcDescription {
+// Descrição da estrutura em branco (texto principal), como pedido; os itens da lista já usam a cor do texto.
+.specificationDescription {
   font-size: var(--font-size-sm);
   color: var(--color-text);
 }
@@ -740,8 +735,8 @@
   }
 }
 
-// Sub-cartões do método (atualizar / reinstalar): ocupam toda a largura à direita do ícone, sob as duas colunas.
-.tlcFooter {
+// Sub-cartões da estrutura (atualizar / reinstalar): ocupam toda a largura à direita do ícone, sob as duas colunas.
+.specificationFooter {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);

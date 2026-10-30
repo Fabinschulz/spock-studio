@@ -28,8 +28,8 @@ export function CommandCard({ command, approved, onToggle }: CommandCardProps) {
       <EvidenceDisclosure summary="Pastas afetadas" items={command.affectedPaths} />
       {command.destructive ? (
         <InlineNotice tone="warning">
-          Este comando sobrescreve edições locais da skill do TLC. Os arquivos atuais são copiados antes e podem ser
-          restaurados.
+          Este comando sobrescreve edições locais da estrutura de especificação. Os arquivos atuais são copiados antes e
+          podem ser restaurados.
         </InlineNotice>
       ) : null}
       <ChoiceField type="checkbox" checked={approved} onChange={onToggle}>

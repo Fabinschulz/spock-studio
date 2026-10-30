@@ -11,8 +11,8 @@ public static class Hashing
     public static string Sha256(string text) => Sha256(Encoding.UTF8.GetBytes(text));
 
     /// <summary>
-    /// Hash do conteúdo de uma skill do instalador do TLC: SHA-256 sobre cada caminho relativo
-    /// (com '/', ordenado) seguido dos bytes do arquivo. Verificado contra o lockfile real do TLC.
+    /// Hash do conteúdo de uma skill instalada pelo instalador oficial: SHA-256 sobre cada caminho relativo
+    /// (com '/', ordenado) seguido dos bytes do arquivo. Verificado contra o lockfile real do instalador.
     /// </summary>
     public static string SkillContentHash(IReadOnlyDictionary<string, byte[]> files)
     {

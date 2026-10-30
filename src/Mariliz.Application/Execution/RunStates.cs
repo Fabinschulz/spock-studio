@@ -15,10 +15,3 @@ public static class RunStates
     public static bool IsTerminal(string state) =>
         state is Completed or CompletedWithLimitations or Failed or RequiresIntervention or Cancelled;
 }
-
-public static class RunKinds
-{
-    public const string Apply = "apply";
-    public const string Revert = "revert";
-    public const string Validate = "validate";
-}

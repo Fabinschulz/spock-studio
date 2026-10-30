@@ -84,7 +84,7 @@ public class SettingsMergerTests
 public class ProposalReaderTests
 {
     private static string Valid(string extra = "") =>
-        "{\"schema\":1,\"origin\":\"harness-engineer\",\"decisions\":[{\"id\":\"mariliz.agent.verifier\",\"decision\":\"enable\",\"justification\":\"O TLC exige verificação independente.\",\"evidence\":[\".claude/skills/tlc-spec-driven/SKILL.md:1\"]}]" + extra + "}";
+        "{\"schema\":1,\"origin\":\"harness-engineer\",\"decisions\":[{\"id\":\"mariliz.agent.verifier\",\"decision\":\"enable\",\"justification\":\"O ciclo de especificação exige verificação independente.\",\"evidence\":[\".claude/skills/tlc-spec-driven/SKILL.md:1\"]}]" + extra + "}";
 
     [Fact]
     public void Proposta_valida_e_lida_com_decisoes_regras_observacoes_e_riscos()

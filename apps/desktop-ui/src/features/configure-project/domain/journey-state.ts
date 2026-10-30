@@ -1,10 +1,10 @@
 import type { ConfigurationPlan, ConflictResolution, Discovery, RunEvent, RunResult } from '@/shared/schema';
 
-export type JourneyStepId = 'project' | 'method' | 'plan' | 'review' | 'run' | 'result';
+export type JourneyStepId = 'project' | 'model' | 'plan' | 'review' | 'run' | 'result';
 
 export const journeySteps = [
   { id: 'project', label: 'Projeto' },
-  { id: 'method', label: 'Método e ambiente' },
+  { id: 'model', label: 'Modelo e ambiente' },
   { id: 'plan', label: 'Plano' },
   { id: 'review', label: 'Revisão' },
   { id: 'run', label: 'Aplicação' },
@@ -44,8 +44,8 @@ export interface JourneyState {
   step: JourneyStepId;
   discovery: Loadable<Discovery>;
   aiEnvironment: string | null;
-  allowTlcReinstall: boolean;
-  updateTlc: boolean;
+  allowSpecificationReinstall: boolean;
+  updateSpecification: boolean;
   plan: Loadable<ConfigurationPlan>;
   approvedChanges: string[];
   approvedCommands: string[];
@@ -58,8 +58,8 @@ export const initialJourneyState: JourneyState = {
   step: 'project',
   discovery: { status: 'idle' },
   aiEnvironment: null,
-  allowTlcReinstall: false,
-  updateTlc: false,
+  allowSpecificationReinstall: false,
+  updateSpecification: false,
   plan: { status: 'idle' },
   approvedChanges: [],
   approvedCommands: [],
@@ -150,9 +150,9 @@ export function journeyReducer(state: JourneyState, action: JourneyAction): Jour
     case 'environment.set':
       return { ...state, aiEnvironment: action.id };
     case 'reinstall.set':
-      return { ...state, allowTlcReinstall: action.value };
+      return { ...state, allowSpecificationReinstall: action.value };
     case 'update.set':
-      return { ...state, updateTlc: action.value };
+      return { ...state, updateSpecification: action.value };
     case 'plan.start':
       return { ...state, plan: { status: 'loading' } };
     case 'plan.ok':
@@ -219,8 +219,8 @@ export function stepIssue(state: JourneyState): { stepId: JourneyStepId; kind: '
   switch (state.step) {
     case 'project':
       return state.discovery.status === 'error' ? { stepId: 'project', kind: 'error' } : undefined;
-    case 'method':
-      return state.plan.status === 'error' ? { stepId: 'method', kind: 'error' } : undefined;
+    case 'model':
+      return state.plan.status === 'error' ? { stepId: 'model', kind: 'error' } : undefined;
     case 'plan':
       return state.plan.status === 'ready' && state.plan.data.decisions.some((d) => d.decision === 'blocked')
         ? { stepId: 'plan', kind: 'blocked' }

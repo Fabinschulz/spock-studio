@@ -2,8 +2,6 @@ using System.Text.RegularExpressions;
 
 namespace Mariliz.Core.Policy;
 
-public sealed record SecretFinding(string Rule, int Line);
-
 /// <summary>
 /// Procura formatos conhecidos de credenciais. Devolve só a regra e a linha: o valor encontrado
 /// nunca sai desta classe, então não pode vazar para log, relatório ou resultado de Eval.

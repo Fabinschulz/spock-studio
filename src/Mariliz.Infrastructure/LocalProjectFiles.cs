@@ -4,11 +4,6 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Infrastructure;
 
-public sealed class LocalProjectFilesFactory : IProjectFilesFactory
-{
-    public IProjectFiles Open(string authorizedRoot) => new LocalProjectFiles(authorizedRoot);
-}
-
 /// <summary>
 /// Arquivos de um projeto autorizado. Nenhum caminho sai da raiz: são normalizados, comparados com a raiz
 /// canônica e recusados se passarem por um link simbólico. Escrita só no escopo pedido.
@@ -160,7 +155,7 @@ public sealed class LocalProjectFiles : IProjectFiles
         if (!PathGuard.TryNormalize(path, out var normalized, out var error))
             throw new UnauthorizedAccessException(error ?? "Caminho inválido.");
 
-        var allowed = scope == WriteScope.Managed ? ManagedScope.IsWritable(normalized) : ManagedScope.IsTlcOwned(normalized);
+        var allowed = scope == WriteScope.Managed ? ManagedScope.IsWritable(normalized) : ManagedScope.IsSpecificationOwned(normalized);
         if (!allowed) throw new UnauthorizedAccessException($"O caminho '{normalized}' está fora do escopo de escrita.");
         if (!TryResolve(normalized, out var full)) throw new UnauthorizedAccessException("O caminho sai da pasta do projeto.");
         return (normalized, full);

@@ -35,7 +35,7 @@ Read these before proposing anything. Reference them; do not copy their content 
 - `.mariliz/schemas/harness-proposal.v1.schema.json`: the exact shape of the proposal.
 - The existing `CLAUDE.md`, `.claude/rules/`, `.claude/agents/`, `.claude/skills/` and `.mcp.json`.
 - The `harness-contract` skill: how to label facts, inferences and confidence.
-- The TLC skill (`tlc-spec-driven`): the spec-driven method this harness is built around. The method is fixed.
+- The specification skill (`tlc-spec-driven`): the structure this harness is built around. It is fixed.
 
 ## Process
 

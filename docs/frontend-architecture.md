@@ -4,6 +4,12 @@ Espelha a organização do frontend do EmpregaNet: camadas `app → features →
 responsabilidades separadas e nada de lógica no JSX. O transporte aqui é o motor .NET via host Tauri, e não HTTP; por isso
 `shared/api` faz o papel do cliente axios.
 
+## Linguagem do produto
+
+A interface fala só do **modelo de implementação Mariliz** e da **estrutura de especificação**. Nomes de kits ou
+metodologias de terceiros não aparecem como escolha, rótulo ou título; o teste da etapa "Modelo e ambiente" falha se
+aparecerem. Os ids das etapas são `project`, `model`, `plan`, `review`, `run` e `result`.
+
 ## Camadas
 
 | Camada | Pasta | Regra |

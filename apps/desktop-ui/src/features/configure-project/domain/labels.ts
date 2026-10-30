@@ -23,14 +23,14 @@ export const confidenceTone: Record<StackFinding['confidence'], Tone> = {
   low: 'warning'
 };
 
-export const tlcStateLabel = {
+export const specificationStateLabel = {
   not_installed: 'Não instalado',
   installed: 'Instalado e íntegro',
   drifted: 'Instalado, mas diferente do registro do instalador',
   invalid: 'Instalação incompleta'
 } as const;
 
-export const tlcStateTone: Record<keyof typeof tlcStateLabel, Tone> = {
+export const specificationStateTone: Record<keyof typeof specificationStateLabel, Tone> = {
   not_installed: 'neutral',
   installed: 'success',
   drifted: 'danger',
@@ -54,7 +54,7 @@ export const actionTone: Record<FileChange['action'], Tone> = {
 };
 
 export const componentKindLabel: Record<ComponentDecision['kind'], string> = {
-  sdd: 'Método SDD',
+  specification: 'Estrutura de especificação',
   agent: 'Agente',
   skill: 'Skill',
   hook: 'Hook',

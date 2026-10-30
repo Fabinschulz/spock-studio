@@ -1,11 +1,13 @@
 # Mariliz Studio — Fase 1B: jornada "Configurar projeto"
 
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+
 Documento de referência da implementação. A interface foi modernizada depois (marca, tokens, menu lateral, stepper): ver [ui-modernization.md](ui-modernization.md). Complementa o [roadmap](implementation-roadmap.md), a [arquitetura](architecture-blueprint.md) e o [blueprint de experiência](experience-blueprint.md); onde divergir deles, este documento descreve o que foi de fato construído.
 
 ## 1. O que a jornada faz
 
 ```
-pasta do projeto ─▶ descoberta (somente leitura) ─▶ método (TLC) e ambiente de IA ─▶ plano do Harness
+pasta do projeto ─▶ descoberta (somente leitura) ─▶ modelo de implementação e ambiente de IA ─▶ plano do Harness
       ─▶ revisão (diff, conflitos, comandos, aprovações) ─▶ aplicação (backup, diário, reversível)
       ─▶ validação (Evals) ─▶ relatório
 ```

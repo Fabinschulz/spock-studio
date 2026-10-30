@@ -60,7 +60,7 @@ public class ContractGoldenTests
     {
         var scenarios = new List<Scenario>();
 
-        // Sem TLC e com conflito: cobre comando planejado, diff e conflito.
+        // Sem estrutura de especificação e com conflito: cobre comando planejado, diff e conflito.
         using (var project = TempProject.Dotnet())
         {
             project.Write(".claude/agents/code-reviewer.md", "---\nname: code-reviewer\ndescription: o meu\ntools: Read\n---\n\n# meu\n");
@@ -75,7 +75,7 @@ public class ContractGoldenTests
         // Aplicação, validação e reversão completas.
         using (var project = TempProject.Dotnet())
         {
-            TlcFixture.Install(project);
+            SpecificationFixture.Install(project);
             var journey = new Journey(project);
             var plan = await journey.PlanAsync();
             var apply = await journey.ApplyAsync(plan);

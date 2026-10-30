@@ -33,16 +33,16 @@ public sealed class CliRunner(
         Uso:
           mariliz version
           mariliz discover <pasta> [--json]
-          mariliz plan     <pasta> [--env <ambiente>] [--allow-tlc-reinstall] [--update-tlc] [--diff] [--json]
+          mariliz plan     <pasta> [--env <ambiente>] [--allow-specification-reinstall] [--update-specification] [--diff] [--json]
           mariliz apply    <pasta> --env <ambiente> [--approve-command <id>]... [--overwrite <caminho>]...
-                                   [--approve-removals] [--allow-tlc-reinstall] [--update-tlc] [--yes] [--json]
+                                   [--approve-removals] [--allow-specification-reinstall] [--update-specification] [--yes] [--json]
           mariliz validate <pasta> [--json]
           mariliz revert   <pasta> [--run <id>] [--yes] [--json]
 
         Nada é gravado sem aprovação: 'apply' aprova só criar e atualizar arquivos; remoções, comandos e
         substituição de arquivos seus exigem as opções acima. Conflitos mantêm o seu arquivo por padrão.
-        O TLC é sempre instalado na versão mais recente; um TLC anterior à mais recente conhecida vira o comando
-        'tlc-update' (aprove com --approve-command tlc-update). --update-tlc força a busca de uma versão ainda mais nova.
+        A estrutura de especificação é sempre instalada na versão mais recente; uma anterior à mais recente conhecida vira o comando
+        'specification-update' (aprove com --approve-command specification-update). --update-specification força a busca de uma versão ainda mais nova.
         """;
 
     /// <summary>Progresso das execuções, em stderr (stdout fica para o resultado).</summary>
@@ -191,7 +191,7 @@ public sealed class CliRunner(
         });
     }
 
-    private static PlanOptions Options(CliArgs args) => new(args.Single("--env"), args.Has("--allow-tlc-reinstall"), args.Has("--update-tlc"));
+    private static PlanOptions Options(CliArgs args) => new(args.Single("--env"), args.Has("--allow-specification-reinstall"), args.Has("--update-specification"));
 
     private static ApplyApprovals BuildApprovals(CliArgs args, ConfigurationPlan plan)
     {

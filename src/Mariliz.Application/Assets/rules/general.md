@@ -6,7 +6,7 @@ finding, never merged silently.
 
 ## Method
 
-- Features follow the TLC spec-driven cycle: Specify, Design, Tasks, Execute, Validate. Use the `tlc-spec-driven`
+- Features follow the Mariliz specification cycle: Specify, Design, Tasks, Execute, Validate. Use the `tlc-spec-driven`
   skill; do not invent a parallel process. Specs and decisions live under `.specs/`.
 - A task is done when its verification ran and its output was read, not when an agent says it is done.
 - An independent check (`verifier`) closes a feature. The author of a change is never its only judge.

@@ -25,8 +25,8 @@
       "detail": null
     },
     {
-      "id": "command:tlc-install",
-      "title": "Instalar o TLC pelo instalador oficial",
+      "id": "command:specification-install",
+      "title": "Instalar a estrutura de especificação pelo instalador oficial",
       "status": "running",
       "detail": null
     }

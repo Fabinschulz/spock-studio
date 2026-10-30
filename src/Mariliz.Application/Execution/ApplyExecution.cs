@@ -1,14 +1,14 @@
-using System.Text;
-using System.Text.Json.Nodes;
-using Mariliz.Application.Discovery;
 using Mariliz.Application.Harness;
 using Mariliz.Application.Ports;
+using Mariliz.Application.Specification;
 using Mariliz.Application.Validation;
 using Mariliz.Core.Discovery;
 using Mariliz.Core.Evals;
 using Mariliz.Core.Plan;
 using Mariliz.Core.Policy;
 using Mariliz.Core.Text;
+using System.Text.Json.Nodes;
+using System.Text;
 
 namespace Mariliz.Application.Execution;
 
@@ -34,7 +34,7 @@ internal sealed class ApplyExecution(
 
     private static readonly string[] BlockingLimitations =
     [
-        LimitationCodes.HookBlocked, LimitationCodes.TlcBlocked, LimitationCodes.TlcNeedsForce,
+        LimitationCodes.HookBlocked, LimitationCodes.SpecificationBlocked, LimitationCodes.SpecificationNeedsReinstall,
         LimitationCodes.EnvironmentNotSupported, LimitationCodes.EnvironmentNotSelected
     ];
 
@@ -53,9 +53,9 @@ internal sealed class ApplyExecution(
         journal.NotApplied.AddRange(decision.NotApplied);
 
         var snapshot = BackUp(decision.Writes, commands);
-        var tlc = await InstallAsync(commands, snapshot);
+        var specification = await InstallAsync(commands, snapshot);
         ApplyWrites(decision);
-        WriteLock(decision.Outcomes, tlc);
+        WriteLock(decision.Outcomes, specification);
         var report = await ValidateAsync();
 
         return Conclude(report, decision);
@@ -93,9 +93,9 @@ internal sealed class ApplyExecution(
         return snapshot;
     }
 
-    private async Task<TlcStatus> InstallAsync(IReadOnlyList<PlannedCommand> commands, IReadOnlyDictionary<string, string> before)
+    private async Task<SpecificationStatus> InstallAsync(IReadOnlyList<PlannedCommand> commands, IReadOnlyDictionary<string, string> before)
     {
-        var tlc = TlcInspector.Inspect(files);
+        var specification = SpecificationInspector.Inspect(files);
 
         foreach (var command in commands)
         {
@@ -104,14 +104,14 @@ internal sealed class ApplyExecution(
             var result = await RunCommandAsync(command, before);
             EnsureSucceeded(command, result);
 
-            tlc = TlcInspector.Inspect(files);
-            if (tlc.State != TlcState.Installed)
-                throw new EngineException("TLC_VALIDATION_FAILED", "O instalador terminou, mas a instalação do TLC não passou na verificação: " + string.Join(" ", tlc.Problems));
+            specification = SpecificationInspector.Inspect(files);
+            if (specification.State != SpecificationState.Installed)
+                throw new EngineException("SPECIFICATION_VALIDATION_FAILED", "O instalador terminou, mas a estrutura de especificação não passou na verificação: " + string.Join(" ", specification.Problems));
 
-            _recorder.CompleteStep(step, StepStatus.Completed, $"TLC {tlc.Version} instalado e verificado");
+            _recorder.CompleteStep(step, StepStatus.Completed, $"Estrutura de especificação {specification.Version} instalada e verificada");
         }
 
-        return tlc;
+        return specification;
     }
 
     private async Task<ProcessResult> RunCommandAsync(PlannedCommand command, IReadOnlyDictionary<string, string> before)
@@ -190,12 +190,12 @@ internal sealed class ApplyExecution(
         return new FileOutcome(OutcomeKind.Written, change.AfterHash);
     }
 
-    private void WriteLock(IReadOnlyDictionary<string, FileOutcome> outcomes, TlcStatus tlc)
+    private void WriteLock(IReadOnlyDictionary<string, FileOutcome> outcomes, SpecificationStatus specification)
     {
         var step = _recorder.BeginStep("lock", "Registrar os arquivos gerenciados");
         ct.ThrowIfCancellationRequested();
 
-        var content = LockBuilder.BuildFromOutcomes(session.Composed, outcomes, ManagedLockFile.Read(files), tlc);
+        var content = LockBuilder.BuildFromOutcomes(session.Composed, outcomes, ManagedLockFile.Read(files), specification);
         var newHash = Hashing.Sha256(Encoding.UTF8.GetBytes(content));
         var current = files.ReadBytes(ManagedLockFile.FileName);
 
