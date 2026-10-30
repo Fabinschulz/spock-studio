@@ -28,8 +28,9 @@ A Application nunca acessa disco nem processos diretamente: usa as portas.
 
 ## Regras
 
-- Um tipo por arquivo; o nome do arquivo é o nome do tipo. A pasta é o contexto e o namespace acompanha a pasta; não há
-  pastas `Enums/` ou `Interfaces/`. Seções aninhadas de um formato de arquivo (`DeclaredConfig`, `ManagedLockFile`) ficam
+- Um tipo por arquivo; o nome do arquivo é o nome do tipo. A pasta é o contexto (`Plan/`, `Ports/`...); dentro dela, enums ficam em
+  `Enums/` e interfaces em `Interfaces/`. O namespace é o do contexto e não inclui `Enums` nem `Interfaces`, para que mover
+  um tipo entre subpastas não mude nenhuma referência. Seções aninhadas de um formato de arquivo (`DeclaredConfig`, `ManagedLockFile`) ficam
   no tipo que as contém.
 - **Produto x mecanismo.** O produto fala em "modelo de implementação" (`ImplementationModels.Mariliz`) e em "estrutura de
   especificação" (`SpecificationStatus`, `ComponentKind.Specification`, `EvalIds.Specification`, `PlanOptions`). Só
