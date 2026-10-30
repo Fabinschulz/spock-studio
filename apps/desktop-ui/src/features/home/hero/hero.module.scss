@@ -1,14 +1,11 @@
 @use '@/shared/styles/abstracts' as *;
 
-// O cabeçalho não é contêiner: as unidades `cqw` e as consultas vêm da área útil da janela (<main>), porque a arte
-// sangra até a borda direita da janela, por fora do contêiner centralizado do conteúdo.
 .hero {
   position: relative;
   display: flex;
   align-items: center;
   min-height: 9rem;
 
-  // Tema escuro: a altura é a da faixa da imagem que tem desenho (proporção ~2,9:1), e o texto fica centrado nela.
   @media (prefers-color-scheme: dark) {
     @container (min-width: 36rem) {
       min-height: calc(min(50cqw, 46rem) / 2.9);
@@ -16,7 +13,6 @@
   }
 }
 
-// O texto fica na metade esquerda; a arte ocupa a direita.
 .main {
   display: flex;
   flex-direction: column;
@@ -25,13 +21,11 @@
 }
 
 .title {
-  // Proporcional à janela útil: cabe numa linha quando há largura, como no modelo.
   font-size: var(--font-size-display);
   line-height: var(--line-height-display);
   text-wrap: balance;
 }
 
-// Destaque tipográfico na cor da marca (contraste validado nos tokens); o sentido não depende dela.
 .accent {
   color: var(--color-primary-text);
 }
@@ -43,12 +37,10 @@
   color: var(--color-text-muted);
 }
 
-// ---- Arte da marca, encostada na borda direita da janela. A frase é texto real; entre os temas muda a arte sob ela.
 .banner {
   position: absolute;
   top: 0;
   bottom: 0;
-  // O cabeçalho é centralizado e simétrico: a distância dele até a borda direita da janela é (janela − cabeçalho) / 2.
   right: calc((100% - 100cqw) / 2);
   z-index: 0;
   display: none;
@@ -62,7 +54,6 @@
     display: flex;
   }
 
-  // Tema escuro: a imagem da marca, sem recuo à direita, com a frase sobre o espaço livre ao lado da arte.
   @media (prefers-color-scheme: dark) {
     width: min(50cqw, 46rem);
     padding-right: 0;
@@ -77,12 +68,10 @@
   display: none;
   width: 100%;
   height: 100%;
-  // Recorta o céu e o chão vazios da imagem: sobra a faixa com o desenho, centrada.
   object-fit: cover;
   object-position: center;
   pointer-events: none;
   user-select: none;
-  // A borda direita é a da janela (fica nítida); esquerda, topo e base se dissolvem no fundo, sem corte seco.
   mask-image:
     linear-gradient(to right, transparent 0, #000 26%),
     linear-gradient(to bottom, transparent 0, #000 14%, #000 86%, transparent 100%);
@@ -121,7 +110,6 @@
     left: 55%;
     padding-bottom: 0;
     border-bottom: 0;
-    // Proporcional à largura da arte: a frase cabe no espaço livre em qualquer janela.
     font-size: clamp(0.6875rem, 2.9cqi, 1.0625rem);
     transform: translateY(-50%);
   }

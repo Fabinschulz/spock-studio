@@ -1,5 +1,4 @@
 import { z } from 'zod';
-
 import { ProjectPickError, type ProjectPickerPort, type RecentProject, type SelectedProject } from './types';
 
 export { isTauriRuntime } from '@/shared/api';
@@ -34,7 +33,6 @@ export const tauriProjectPicker: ProjectPickerPort = {
   async recents(): Promise<RecentProject[]> {
     const { invoke } = await import('@tauri-apps/api/core');
     const parsed = z.array(recentSchema).safeParse(await invoke('list_recent_projects'));
-    // Um formato inesperado vira "sem recentes": o histórico é uma conveniência, nunca um impedimento.
     return parsed.success ? parsed.data : [];
   },
 

@@ -1,7 +1,3 @@
-/**
- * Ilustração da marca: painéis em camadas com a marca ao centro, como nos modelos. Só ornamento: não carrega informação
- * e fica escondida do leitor de tela. As cores vêm dos tokens, então acompanha o tema.
- */
 export function HeroArt({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 380 210" fill="none" aria-hidden="true" focusable="false">

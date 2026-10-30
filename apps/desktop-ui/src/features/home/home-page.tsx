@@ -11,7 +11,6 @@ export function HomePage() {
   const navigate = useNavigate();
   const { selected, pick } = useProjectSelectionContext();
 
-  // "Configurar projeto" precisa de uma pasta: se ainda não há, o diálogo abre agora e a jornada começa ao escolher.
   const startJourney = async (id: JourneyId) => {
     if (id !== 'configure-project') return;
     const project = selected ?? (await pick());

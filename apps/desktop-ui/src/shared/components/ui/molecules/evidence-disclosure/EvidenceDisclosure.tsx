@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-
 import styles from './EvidenceDisclosure.module.scss';
 
 interface EvidenceDisclosureProps {

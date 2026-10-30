@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-
 import styles from './PageHeader.module.scss';
 
 export interface Crumb {

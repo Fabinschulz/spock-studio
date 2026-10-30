@@ -1,12 +1,9 @@
-import type { ReactNode } from 'react';
-
 import { cn } from '@/shared/utils';
-
+import type { ReactNode } from 'react';
 import styles from './InlineNotice.module.scss';
 
 export type NoticeTone = 'info' | 'warning' | 'danger' | 'success';
 
-/** Glifos próprios em `currentColor`: assim o ícone segue o tom do aviso (os da Synthra trazem cor fixa). */
 const glyphs: Record<NoticeTone, ReactNode> = {
   info: (
     <>
@@ -42,11 +39,6 @@ interface InlineNoticeProps {
   onDismiss?: () => void;
 }
 
-/**
- * Aviso proporcional ao problema: uma linha com ícone e texto, sem a moldura de um alerta de tela cheia.
- * Só o erro é anunciado ao leitor de tela ao aparecer; informação e aviso são lidos quando a pessoa chega até eles.
- * O ícone e o título reforçam a cor, que nunca é a única pista.
- */
 export function InlineNotice({ tone = 'info', title, children, className, onDismiss }: InlineNoticeProps) {
   return (
     <div className={cn(styles.notice, styles[tone], className)} role={tone === 'danger' ? 'alert' : undefined}>

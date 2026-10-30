@@ -1,7 +1,5 @@
-import { useId } from 'react';
-
 import { FolderIcon } from '@/shared/components/ui';
-
+import { useId } from 'react';
 import { formatRecentDate } from '../domain/format-recent-date';
 import type { RecentProject } from '../domain/types';
 import styles from './recent-projects.module.scss';
@@ -13,10 +11,6 @@ interface RecentProjectsProps {
   onOpen: (id: string) => void;
 }
 
-/**
- * Projetos escolhidos antes. Escolher um aqui só o seleciona, como o diálogo.
- * Pasta que não existe mais fica visível, mas indisponível e com o motivo dito.
- */
 export function RecentProjects({ recents, selectedName, busy, onOpen }: RecentProjectsProps) {
   const id = useId();
   if (recents.length === 0) return null;

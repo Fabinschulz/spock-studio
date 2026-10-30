@@ -23,7 +23,6 @@
   border-radius: var(--radius-md);
 }
 
-// Com pasta escolhida o cartão não vira "selecionado": quem confirma a escolha é o bloco interno, com o círculo de verificação.
 .hasProject {
   border-color: var(--color-border-soft);
 }
@@ -66,7 +65,6 @@
   color: var(--color-text-muted);
 }
 
-// ---- Pasta escolhida: círculo de confirmação, nome e caminho à esquerda; "Trocar" e a nota de privacidade à direita.
 .selected {
   display: flex;
   flex-wrap: wrap;
@@ -182,7 +180,6 @@
   opacity: 0.85;
 }
 
-// Faixa de informação sob o cartão, como no modelo.
 .info {
   display: flex;
   align-items: center;

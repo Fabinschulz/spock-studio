@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 
 import { themes } from './theme';
 
-/** Tema da Synthra seguindo o sistema operacional. O reset global fica em shared/styles. */
 export function AppProviders({ children }: { children: ReactNode }) {
   const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
 

@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-
 import { ProjectPickError, type ProjectPickerPort, type RecentProject, type SelectedProject } from '../domain/types';
 
 export function useProjectSelection(port: ProjectPickerPort) {
   const [selected, setSelected] = useState<SelectedProject | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // O diálogo foi fechado sem escolher: nada mudou, e a tela diz isso em vez de ficar muda.
   const [cancelled, setCancelled] = useState(false);
   const [recents, setRecents] = useState<RecentProject[]>([]);
 
@@ -53,7 +51,6 @@ export function useProjectSelection(port: ProjectPickerPort) {
     }
   }, [port, refreshRecents]);
 
-  /** Escolher um recente seleciona a pasta, como o diálogo: analisar é uma ação à parte. */
   const openRecent = useCallback(
     async (id: string): Promise<SelectedProject | null> => {
       if (!port.openRecent) return null;

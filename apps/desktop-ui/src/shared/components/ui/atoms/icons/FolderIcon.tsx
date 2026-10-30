@@ -1,4 +1,3 @@
-/** A Synthra não tem ícone de pasta: SVG próprio, no mesmo traço dos demais. Decorativo. */
 export function FolderIcon({ size = 24 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">

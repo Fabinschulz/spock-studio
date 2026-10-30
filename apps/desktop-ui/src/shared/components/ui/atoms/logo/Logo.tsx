@@ -6,10 +6,6 @@ interface LogoProps {
   className?: string;
 }
 
-/**
- * Marca da Mariliz: dois arcos de "m" e o nó teal, a mesma do favicon do site. O tile é a tinta da marca; no tema
- * escuro ele se confunde com o fundo e o que se vê é o "m" e o nó. Decorativa: quem usa fornece o nome acessível.
- */
 export function Logo({ className }: LogoProps) {
   return (
     <svg className={cn(styles.mark, className)} viewBox="0 0 32 32" aria-hidden="true" focusable="false">

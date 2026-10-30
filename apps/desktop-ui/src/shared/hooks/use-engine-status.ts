@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
-
 import { isTauriRuntime } from '@/shared/api';
+import { useEffect, useState } from 'react';
 
 /** Estado real do motor .NET, como o host o informa (comando e evento `engine_status`). */
 export type EngineStatus = 'unknown' | 'starting' | 'ready' | 'crashed';

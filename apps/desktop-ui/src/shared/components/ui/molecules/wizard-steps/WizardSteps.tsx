@@ -1,5 +1,4 @@
 import { cn } from '@/shared/utils';
-
 import { CheckGlyph } from '../../atoms/icons';
 import styles from './WizardSteps.module.scss';
 
@@ -8,7 +7,6 @@ export interface WizardStep {
   label: string;
 }
 
-/** Etapa com problema: `error` (falhou) ou `blocked` (não pode seguir). Vem do estado real da jornada, nunca da aparência. */
 export interface StepIssue {
   stepId: string;
   kind: 'error' | 'blocked';

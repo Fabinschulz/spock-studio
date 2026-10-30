@@ -1,5 +1,4 @@
 import { cn } from '@/shared/utils';
-
 import styles from './DiffView.module.scss';
 
 interface DiffViewProps {

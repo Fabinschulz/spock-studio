@@ -1,8 +1,6 @@
+import { cn } from '@/shared/utils';
 import { ArrowRightIcon } from '@synthra.io/ui-kit';
 import { useId, type ReactNode } from 'react';
-
-import { cn } from '@/shared/utils';
-
 import styles from './ActionCard.module.scss';
 
 export type CardAccent = 'teal' | 'indigo' | 'blue' | 'orange';

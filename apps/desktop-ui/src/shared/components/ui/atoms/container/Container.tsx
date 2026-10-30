@@ -1,7 +1,5 @@
-import type { ElementType, ReactNode } from 'react';
-
 import { cn } from '@/shared/utils';
-
+import type { ElementType, ReactNode } from 'react';
 import styles from './Container.module.scss';
 
 interface ContainerProps {

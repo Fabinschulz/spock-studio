@@ -1,4 +1,3 @@
-/** Paleta da marca: o teal do Mariliz Web (tema claro) e a paleta Dark Futuristic do Mariliz AI Engineering (tema escuro). */
 export const brandPalette = {
   teal300: '#5ccfc9',
   teal400: '#33c1ba',

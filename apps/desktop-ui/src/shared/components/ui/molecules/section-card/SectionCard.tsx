@@ -1,7 +1,5 @@
-import { useId, type ReactNode } from 'react';
-
 import { cn } from '@/shared/utils';
-
+import { useId, type ReactNode } from 'react';
 import styles from './SectionCard.module.scss';
 
 interface SectionCardProps {

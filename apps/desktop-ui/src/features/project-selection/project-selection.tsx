@@ -1,8 +1,7 @@
 import { InlineNotice } from '@/shared/components/ui';
-
+import { ProjectPicker } from './components/project-picker';
 import { useProjectSelectionContext } from './context/project-selection-context';
 import styles from './project-selection.module.scss';
-import { ProjectPicker } from './components/project-picker';
 
 export function ProjectSelection() {
   const { selected, busy, error, cancelled, pick, unavailableReason } = useProjectSelectionContext();

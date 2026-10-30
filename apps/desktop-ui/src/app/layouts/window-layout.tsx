@@ -1,7 +1,5 @@
-import { Outlet, useRouteError } from 'react-router';
-
 import { ErrorContent } from '@/shared/components';
-
+import { Outlet, useRouteError } from 'react-router';
 import { AppShell } from './app-shell';
 
 export function WindowLayout() {

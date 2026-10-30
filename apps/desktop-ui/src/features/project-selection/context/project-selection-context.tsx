@@ -1,5 +1,4 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
-
 import { isTauriRuntime, tauriProjectPicker } from '../domain/tauri-project-picker';
 import type { ProjectPickerPort, RecentProject, SelectedProject } from '../domain/types';
 import { useProjectSelection } from '../hooks/use-project-selection';
@@ -23,13 +22,11 @@ export interface ProjectSelectionValue {
 const Context = createContext<ProjectSelectionValue | null>(null);
 
 interface ProjectSelectionProviderProps {
-  /** Padrão: o diálogo nativo do host Tauri. Os testes injetam um dublê. */
   picker?: ProjectPickerPort;
   unavailableReason?: string;
   children: ReactNode;
 }
 
-/** A pasta escolhida vale para o aplicativo inteiro: a tela inicial e a jornada leem a mesma seleção. */
 export function ProjectSelectionProvider({ picker, unavailableReason, children }: ProjectSelectionProviderProps) {
   const reason = unavailableReason ?? (picker || isTauriRuntime() ? undefined : HOST_UNAVAILABLE);
   const { selected, busy, error, cancelled, recents, pick, openRecent } = useProjectSelection(

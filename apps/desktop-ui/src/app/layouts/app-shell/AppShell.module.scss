@@ -15,7 +15,6 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   }
 }
 
-// ---- Atalho para o conteúdo (visível só com foco do teclado)
 .skip {
   position: absolute;
   top: var(--space-2);
@@ -138,7 +137,6 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   min-width: 0;
 }
 
-// Motivo da indisponibilidade, em texto sob o nome (também é a descrição lida pelo leitor de tela).
 .itemReason {
   font-size: var(--font-size-xs);
   font-weight: 400;
@@ -274,9 +272,7 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   position: relative;
   flex: 1;
   min-width: 0;
-  // A área útil da janela é o contêiner das telas: elas consultam e medem por ela (unidades `cqw`), não pela janela inteira.
   container-type: inline-size;
-  // Ornamentos que sangram até a borda direita não podem criar rolagem horizontal.
   overflow-x: clip;
 
   &:focus {
@@ -284,7 +280,6 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   }
 }
 
-// ---- Janela estreita: o menu vira uma faixa de ícones; os nomes continuam acessíveis.
 @media (max-width: calc(#{$collapse-below} - 0.02px)) {
   .rail {
     align-items: center;

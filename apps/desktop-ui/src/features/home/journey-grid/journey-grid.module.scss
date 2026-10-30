@@ -8,7 +8,6 @@
   padding: 0;
   list-style: none;
 
-  // Duas colunas a partir da largura mínima da janela do aplicativo.
   @include up(sm) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

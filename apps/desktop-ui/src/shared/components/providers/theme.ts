@@ -1,24 +1,35 @@
 import { alpha, type ThemeOptions } from '@mui/material/styles';
 import { initializeTheme } from '@synthra.io/ui-kit';
-
 import { brandPalette as c } from './brand-palette';
 
 export type ColorMode = 'light' | 'dark';
 
 const FONT_SANS = "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
 
-/** A Synthra calcula as variantes com Lato antes dos overrides; a fonte é trocada variante a variante. */
 const VARIANTS = [
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle1', 'subtitle2', 'body1', 'body2',
-  'button', 'caption', 'overline', 'xg', 'xxxl', 'xxl'
-] as const; // prettier-ignore
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'subtitle1',
+  'subtitle2',
+  'body1',
+  'body2',
+  'button',
+  'caption',
+  'overline',
+  'xg',
+  'xxxl',
+  'xxl'
+] as const;
 
 const typography = {
   fontFamily: FONT_SANS,
   ...Object.fromEntries(VARIANTS.map((variant) => [variant, { fontFamily: FONT_SANS }]))
 };
 
-/** A Synthra não recalcula tons derivados: todo tom usado pelos componentes é declarado aqui. */
 function paletteFor(mode: ColorMode): ThemeOptions['palette'] {
   const dark = mode === 'dark';
   const accent = dark ? c.cyan400 : c.teal700;

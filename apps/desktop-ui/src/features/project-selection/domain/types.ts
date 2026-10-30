@@ -5,7 +5,6 @@ export type SelectedProject = {
   displayPath: string;
 };
 
-/** Projeto escolhido antes, como o host o entrega: id opaco, nome e caminho abreviado. Nunca o caminho completo. */
 export type RecentProject = {
   id: string;
   displayName: string;

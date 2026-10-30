@@ -1,10 +1,8 @@
+import { pathTo } from '@/shared/routing';
+import { cn } from '@/shared/utils';
 import { Home01Icon, LibraryIcon, ListViewRectangleIcon, SettingIcon } from '@synthra.io/ui-kit';
 import { useId, type ReactNode } from 'react';
 import { NavLink } from 'react-router';
-
-import { pathTo } from '@/shared/routing';
-import { cn } from '@/shared/utils';
-
 import styles from './AppShell.module.scss';
 
 interface NavItem {
@@ -54,7 +52,6 @@ function NavEntry({ item }: { item: NavItem }) {
     );
   }
 
-  // Indisponível mas focável (aria-disabled), para o leitor de tela anunciar o motivo.
   return (
     <button
       type="button"

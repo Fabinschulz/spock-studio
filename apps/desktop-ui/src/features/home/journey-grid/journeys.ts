@@ -4,7 +4,6 @@ export type Journey = {
   id: JourneyId;
   title: string;
   description: string;
-  /** Preenchido enquanto a jornada não existe no motor; nenhuma jornada é simulada. */
   unavailableReason?: string;
 };
 

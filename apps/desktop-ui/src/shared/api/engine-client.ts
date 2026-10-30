@@ -1,6 +1,5 @@
-import type { ZodType } from 'zod';
-
 import { runEventSchema, type RunEvent } from '@/shared/schema';
+import type { ZodType } from 'zod';
 
 export class EngineError extends Error {
   constructor(
@@ -39,7 +38,6 @@ export const tauriEngineClient: EngineClient = {
       throw toEngineError(error);
     }
 
-    // Toda resposta é validada: um formato inesperado é um erro explícito, não uma tela quebrada.
     const parsed = schema.safeParse(raw);
     if (!parsed.success) throw new EngineError('INVALID_RESPONSE', 'O motor respondeu num formato inesperado.');
     return parsed.data;

@@ -1,6 +1,5 @@
 import { Alert, Button, ReloadIcon } from '@synthra.io/ui-kit';
 import { useEffect } from 'react';
-
 import styles from './error-content.module.scss';
 
 export interface ErrorContentProps {
@@ -11,7 +10,6 @@ export interface ErrorContentProps {
 
 export function ErrorContent({ error, source }: ErrorContentProps) {
   useEffect(() => {
-    // O objeto de erro pode conter detalhes internos: só o nome e a origem vão para o console.
     console.error(`[${source}]`, error instanceof Error ? error.name : 'erro desconhecido');
   }, [error, source]);
 

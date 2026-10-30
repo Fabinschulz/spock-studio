@@ -1,8 +1,6 @@
+import { CheckGlyph, FolderIcon } from '@/shared/components/ui';
 import { Button, CopyIcon } from '@synthra.io/ui-kit';
 import { useId, useState } from 'react';
-
-import { CheckGlyph, FolderIcon } from '@/shared/components/ui';
-
 import type { SelectedProject } from '../domain/types';
 import styles from './project-picker.module.scss';
 
@@ -19,7 +17,6 @@ export function ProjectPicker({ selected, onPick, busy, unavailableReason }: Pro
   const inactive = unavailable || busy;
   const [copied, setCopied] = useState(false);
 
-  // Copia o caminho como aparece na tela (o host entrega só o caminho abreviado); a confirmação é dita em texto.
   const copyPath = async (path: string) => {
     try {
       await navigator.clipboard.writeText(path);

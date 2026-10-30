@@ -1,6 +1,5 @@
 import type { EngineStatus as Status } from '@/shared/hooks';
 import { cn } from '@/shared/utils';
-
 import styles from './AppShell.module.scss';
 
 export type Tone = 'ok' | 'pending' | 'bad' | 'idle';
