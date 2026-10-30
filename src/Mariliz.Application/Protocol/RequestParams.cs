@@ -1,0 +1,28 @@
+using System.Text.Json.Nodes;
+
+namespace Mariliz.Application.Protocol;
+
+internal sealed class ParamException(string message) : Exception(message);
+
+internal readonly struct RequestParams(JsonObject? values)
+{
+    public string Str(string name) =>
+        OptionalStr(name) ?? throw new ParamException($"'{name}' é obrigatório.");
+
+    public string? OptionalStr(string name) =>
+        values?[name] is JsonValue v && v.TryGetValue<string>(out var text) && !string.IsNullOrWhiteSpace(text) ? text : null;
+
+    public bool Flag(string name) => values?[name]?.GetValue<bool>() ?? false;
+
+    public JsonObject? Object(string name) => values?[name] as JsonObject;
+
+    public List<string> StrList(string name)
+    {
+        if (values?[name] is null) return [];
+        if (values[name] is not JsonArray array) throw new ParamException($"'{name}' precisa ser uma lista.");
+
+        return array
+            .Select(n => n is JsonValue v && v.TryGetValue<string>(out var text) ? text : throw new ParamException($"'{name}' só aceita textos."))
+            .ToList();
+    }
+}

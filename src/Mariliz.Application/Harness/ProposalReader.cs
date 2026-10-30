@@ -6,17 +6,6 @@ using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Harness;
 
-public sealed record ProposalDecision(string Id, string Decision, string Justification, IReadOnlyList<string> Evidence);
-public sealed record ProposalRule(string Id, string Title, string Content, string Justification, IReadOnlyList<string> Evidence);
-
-public sealed record HarnessProposal(
-    IReadOnlyList<ProposalDecision> Decisions,
-    IReadOnlyList<ProposalRule> AdditionalRules,
-    IReadOnlyList<Observation> Observations,
-    IReadOnlyList<string> Risks);
-
-public sealed record ProposalResult(bool Present, HarnessProposal? Proposal, IReadOnlyList<string> Errors);
-
 /// <summary>
 /// Lê <c>.mariliz/proposal.json</c>, escrito pelo agente Harness Engineer, e o trata como dado não confiável:
 /// só passa o que cabe no schema. Permissões, hooks, comandos e MCPs não têm lugar na proposta.
@@ -26,7 +15,7 @@ public static class ProposalReader
     private static readonly string[] ForbiddenKeys = ["hooks", "permissions", "commands", "command", "mcpServers", "mcp", "tools", "install", "settings"];
     private static readonly string[] AllowedKeys = ["schema", "origin", "decisions", "additionalRules", "observations", "risks"];
     private static readonly string[] ObservationKinds = ["fact", "inference", "hypothesis", "unverified"];
-    private static readonly string[] DecisionKinds = ["enable", "keep", "skip"];
+    private static readonly string[] DecisionKinds = [ComponentDecisions.Enable, ComponentDecisions.Keep, ComponentDecisions.Skip];
     private static readonly Regex RuleId = new("^[a-z][a-z0-9-]{2,40}$", RegexOptions.Compiled);
 
     public static ProposalResult Read(IProjectFiles files)

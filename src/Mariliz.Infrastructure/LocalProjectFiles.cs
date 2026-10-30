@@ -1,5 +1,6 @@
 using Mariliz.Application.Ports;
 using Mariliz.Core.Policy;
+using Mariliz.Core.Text;
 
 namespace Mariliz.Infrastructure;
 
@@ -140,11 +141,9 @@ public sealed class LocalProjectFiles : IProjectFiles
             if (!TryResolve(normalized, out var full) || !Directory.Exists(full) || IsReparse(full)) return;
             if (Directory.EnumerateFileSystemEntries(full).Any()) return;
             Directory.Delete(full);
-            current = normalized.Contains('/') ? normalized[..normalized.LastIndexOf('/')] : "";
+            current = ProjectPath.Parent(normalized);
         }
     }
-
-    // ------------------------------------------------------------------ Guarda de caminho
 
     private bool TryResolve(string path, out string full)
     {

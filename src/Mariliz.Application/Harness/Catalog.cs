@@ -3,8 +3,6 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Harness;
 
-public sealed record CatalogComponent(string Id, ComponentKind Kind, string Version, string Title);
-
 /// <summary>Os componentes que a aplicação sabe gerar. A proposta do Harness Engineer só pode escolher entre eles.</summary>
 public static class Catalog
 {
@@ -61,23 +59,4 @@ public static class Catalog
     public const string PathRuleRepo = ".claude/rules/mariliz-repo.md";
     public const string PathHookScript = ".claude/hooks/mariliz-policy.py";
     public const string PathSettings = ".claude/settings.json";
-}
-
-/// <summary>Conteúdo embutido no motor (ativos originais ou adaptados de fonte autorizada, MIT).</summary>
-public static class AssetLoader
-{
-    private static readonly Assembly Assembly = typeof(AssetLoader).Assembly;
-
-    public static string Read(string name)
-    {
-        var normalized = name.Replace('\\', '/');
-        var resource = Assembly.GetManifestResourceNames()
-            .FirstOrDefault(r => r.Replace('\\', '/').EndsWith("Assets/" + normalized, StringComparison.Ordinal)
-                                 || r.Replace('\\', '/').EndsWith("." + normalized.Replace('/', '.'), StringComparison.Ordinal))
-            ?? throw new InvalidOperationException($"Ativo embutido não encontrado: {name}");
-
-        using var stream = Assembly.GetManifestResourceStream(resource)!;
-        using var reader = new StreamReader(stream, System.Text.Encoding.UTF8);
-        return reader.ReadToEnd().Replace("\r\n", "\n");
-    }
 }

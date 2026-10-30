@@ -30,39 +30,3 @@ public interface IProjectFiles
     /// <summary>Remove pastas vazias a partir de <paramref name="directory"/> para cima, sem passar da raiz.</summary>
     void PruneEmptyDirectories(string directory);
 }
-
-/// <summary>
-/// <c>Managed</c>: arquivos que a aplicação gera (.claude/, .mariliz/, mariliz.yaml, mariliz.lock).
-/// <c>TlcRestore</c>: só para desfazer o efeito do instalador do TLC, que é dono dos próprios arquivos.
-/// </summary>
-public enum WriteScope { Managed, TlcRestore }
-
-public interface IProjectFilesFactory
-{
-    IProjectFiles Open(string authorizedRoot);
-}
-
-public sealed record ProcessSpec(
-    string Executable,
-    IReadOnlyList<string> Arguments,
-    string WorkingDirectory,
-    TimeSpan Timeout,
-    string? StandardInput = null);
-
-public sealed record ProcessResult(int ExitCode, string StandardOutput, string StandardError, bool TimedOut, bool NotFound);
-
-/// <summary>Executa processos sem shell: executável e argumentos separados, nunca uma linha de comando.</summary>
-public interface IProcessRunner
-{
-    Task<ProcessResult> RunAsync(ProcessSpec spec, CancellationToken ct);
-}
-
-public interface IClock
-{
-    DateTimeOffset UtcNow { get; }
-}
-
-public sealed class SystemClock : IClock
-{
-    public DateTimeOffset UtcNow => DateTimeOffset.UtcNow;
-}

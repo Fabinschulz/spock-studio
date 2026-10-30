@@ -131,7 +131,8 @@ public class SafetyTests
 
         // Plano adulterado: um caminho fora do escopo no meio de caminhos legítimos.
         var evil = new DesiredFile(".git/hooks/pre-commit", ComponentKind.Hook, Catalog.HookPolicy, "baseline-rules", "x", "#!/bin/sh\n", "file");
-        var composed = (await ComposeFrom(journey, good)) with { Files = [.. (await ComposeFrom(journey, good)).Files, evil] };
+        var original = ComposeFrom(journey, good);
+        var composed = original with { Files = [.. original.Files, evil] };
         var forgedChange = new FileChange("chg-evil", ComponentKind.Hook, Catalog.HookPolicy, evil.Path, ChangeAction.Create, "x", "baseline-rules", null, "00", false, null, null, false);
         var plan = good with { Changes = [.. good.Changes, forgedChange] };
         var session = new PlanSession(journey.ProjectId, project.Root, new PlanOptions("claude-code"), plan, composed);
@@ -150,12 +151,11 @@ public class SafetyTests
         Assert.Equal(before, project.Fingerprint());
     }
 
-    private static async Task<ComposeResult> ComposeFrom(Journey journey, ConfigurationPlan plan)
+    private static ComposeResult ComposeFrom(Journey journey, ConfigurationPlan plan)
     {
         var field = typeof(ConfigureProjectService).GetField("_plans", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
-        var plans = (Dictionary<string, PlanSession>)field.GetValue(journey.Service)!;
-        await Task.CompletedTask;
-        return plans[plan.PlanId].Composed;
+        var plans = (PlanSessionStore)field.GetValue(journey.Service)!;
+        return plans.Find(plan.PlanId)!.Composed;
     }
 
     // ------------------------------------------------------------------ Evals: aprovado, reprovado, bloqueado

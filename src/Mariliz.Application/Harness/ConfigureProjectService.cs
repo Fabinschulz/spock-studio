@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Mariliz.Application.Discovery;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Validation;
@@ -24,87 +23,59 @@ public sealed class ConfigureProjectService(
     IClock clock,
     RunTracker tracker)
 {
-    private readonly Dictionary<string, PlanSession> _plans = new();
-    private readonly object _plansGate = new();
-    private readonly ProjectDiscoverer _discoverer = new(runner);
+    private readonly PlanSessionStore _plans = new();
+    private readonly ProjectPlanner _planner = new(runner);
     private readonly ApplyService _apply = new(runner, store, clock);
     private readonly RevertService _revert = new(store, clock);
-
-    // ------------------------------------------------------------------ Leitura
 
     public async Task<DiscoveryReport> DiscoverAsync(string projectId, CancellationToken ct)
     {
         var (root, files) = Open(projectId);
-        return await _discoverer.DiscoverAsync(projectId, root, files, ct);
+        return await _planner.DiscoverAsync(projectId, root, files, ct);
     }
 
     public async Task<ConfigurationPlan> PlanAsync(string projectId, PlanOptions options, CancellationToken ct)
     {
         var (root, files) = Open(projectId);
-        var replanned = await ReplanAsync(projectId, root, files, options, ct);
-        lock (_plansGate)
-        {
-            _plans[replanned.Plan.PlanId] = new PlanSession(projectId, root, options, replanned.Plan, replanned.Composed);
-            if (_plans.Count > 20) _plans.Remove(_plans.Keys.First());
-        }
+        var replanned = await _planner.ReplanAsync(projectId, root, files, options, ct);
+        _plans.Save(new PlanSession(projectId, root, options, replanned.Plan, replanned.Composed));
         return replanned.Plan;
-    }
-
-    private async Task<Replanned> ReplanAsync(string projectId, string root, IProjectFiles files, PlanOptions options, CancellationToken ct)
-    {
-        var discovery = await _discoverer.DiscoverAsync(projectId, root, files, ct);
-        var (declared, declaredError) = DeclaredConfig.TryRead(files);
-
-        ComposeResult composed;
-        if (declaredError is not null)
-        {
-            composed = new ComposeResult("", DecisionOrigins.Baseline, [], [], [],
-                [new(LimitationCodes.InvalidDeclaredConfig, declaredError + " Corrija o arquivo e planeje de novo.")], [], []);
-        }
-        else
-        {
-            composed = HarnessComposer.Compose(discovery, files, declared, ProposalReader.Read(files), options);
-        }
-
-        var plan = PlanBuilder.Build(projectId, discovery, files, composed, ManagedLockFile.Read(files));
-        return new Replanned(plan, composed, discovery);
     }
 
     public IReadOnlyList<RunSummary> ListRuns(string projectId)
     {
         Open(projectId);
-        return store.ListJournals(projectId).OrderByDescending(j => j.StartedAt)
-            .Select(j => new RunSummary(j.RunId, j.Kind, j.State, j.StartedAt, j.ChangesApplied && !j.RolledBack, j.RevertedByRunId is not null)).ToList();
+        return store.ListJournals(projectId)
+            .OrderByDescending(j => j.StartedAt)
+            .Select(j => new RunSummary(j.RunId, j.Kind, j.State, j.StartedAt, j.ChangesApplied && !j.RolledBack, j.RevertedByRunId is not null))
+            .ToList();
     }
 
-    public JsonObject Snapshot(string runId)
-    {
-        var run = tracker.Find(runId) ?? throw new EngineException("RUN_NOT_FOUND", "Execução não encontrada.");
-        return run.Snapshot();
-    }
+    public JsonObject Snapshot(string runId) =>
+        (tracker.Find(runId) ?? throw new EngineException("RUN_NOT_FOUND", "Execução não encontrada.")).Snapshot();
 
     public bool Cancel(string runId) => tracker.Cancel(runId);
-
-    // ------------------------------------------------------------------ Execuções
 
     public RunHandle StartApply(string projectId, string planId, ApplyApprovals approvals)
     {
         var (root, files) = Open(projectId);
-        PlanSession? session;
-        lock (_plansGate) _plans.TryGetValue(planId, out session);
+
+        var session = _plans.Find(planId);
         if (session is null || session.ProjectId != projectId)
             throw new EngineException("PLAN_UNKNOWN", "O plano não está mais disponível. Gere o plano de novo.");
-        if (session.Plan.IsEmpty && session.Plan.Commands.Count == 0 && session.Plan.Changes.All(c => c.Action == ChangeAction.Preserve) && session.Plan.AiEnvironment.Length == 0)
+        if (HasNothingToApply(session.Plan))
             throw new EngineException("NOTHING_TO_APPLY", "O plano não tem o que aplicar.");
 
         var run = Start(projectId, RunKinds.Apply);
+        Func<CancellationToken, Task<Replanned>> ReplanWith(PlanOptions options) =>
+            ct => _planner.ReplanAsync(projectId, root, files, options, ct);
+
         run.Completion = Task.Run(async () =>
         {
+            // O pedido de atualizar o TLC vale uma vez: depois de aplicado, a idempotência é medida sem ele.
             var result = await _apply.ExecuteAsync(run, root, files, session, approvals,
-                ct => ReplanAsync(projectId, root, files, session.Options, ct), run.Cancellation.Token,
-                // O pedido de atualizar o TLC vale uma vez: depois de aplicado, a idempotência é medida sem ele.
-                ct => ReplanAsync(projectId, root, files, session.Options with { UpdateTlc = false }, ct));
-            run.Complete(result["outcome"]?.GetValue<string>() ?? RunStates.Failed, result);
+                ReplanWith(session.Options), run.Cancellation.Token, ReplanWith(session.Options with { UpdateTlc = false }));
+            run.Complete(OutcomeOf(result), result);
         });
         return run;
     }
@@ -113,20 +84,20 @@ public sealed class ConfigureProjectService(
     {
         var (root, files) = Open(projectId);
         var run = Start(projectId, RunKinds.Validate);
+
+        var startedAt = clock.UtcNow;
+
         run.Completion = Task.Run(async () =>
         {
-            var journal = new RunJournal { RunId = run.RunId, ProjectId = projectId, Kind = RunKinds.Validate, StartedAt = clock.UtcNow };
             try
             {
                 run.SetState(RunStates.Validating);
                 var report = await ValidationService.RunAsync(runner, store, files, root, projectId,
-                    ct => ReplanAsync(projectId, root, files, new PlanOptions(null), ct), run.Cancellation.Token);
-                journal.Evals = report.Results.Select(r => new EvalSummary { Id = r.Id, Status = r.Status.ToString(), Required = r.Required }).ToList();
+                    ct => _planner.ReplanAsync(projectId, root, files, new PlanOptions(null), ct), run.Cancellation.Token);
+
                 var result = ResultJson.BuildValidation(run.RunId, projectId, report);
-                journal.State = result["outcome"]!.GetValue<string>();
-                journal.FinishedAt = clock.UtcNow;
-                store.SaveJournal(journal);
-                run.Complete(journal.State, result);
+                SaveValidationJournal(run, startedAt, report, result);
+                run.Complete(OutcomeOf(result), result);
             }
             catch (OperationCanceledException)
             {
@@ -140,18 +111,21 @@ public sealed class ConfigureProjectService(
     {
         var (_, files) = Open(projectId);
         var run = Start(projectId, RunKinds.Revert);
-        run.Completion = Task.Run(async () =>
+
+        run.Completion = Task.Run(() =>
         {
             try
             {
-                var result = await _revert.ExecuteAsync(run, files, targetRunId, run.Cancellation.Token);
-                run.Complete(result["outcome"]?.GetValue<string>() ?? RunStates.Failed, result);
+                var result = _revert.Execute(run, files, targetRunId, run.Cancellation.Token);
+                run.Complete(OutcomeOf(result), result);
             }
             catch (EngineException ex)
             {
                 run.Complete(RunStates.Failed, new JsonObject
                 {
-                    ["runId"] = run.RunId, ["outcome"] = RunStates.Failed, ["kind"] = RunKinds.Revert,
+                    ["runId"] = run.RunId,
+                    ["outcome"] = RunStates.Failed,
+                    ["kind"] = RunKinds.Revert,
                     ["error"] = new JsonObject { ["code"] = ex.Code, ["message"] = ex.Message }
                 });
             }
@@ -159,7 +133,29 @@ public sealed class ConfigureProjectService(
         return run;
     }
 
-    // ------------------------------------------------------------------ Apoio
+    public static JsonNode? ToJson<T>(T value) => JsonSerializer.SerializeToNode(value, JournalJson.Options);
+
+    private static bool HasNothingToApply(ConfigurationPlan plan) =>
+        plan.IsEmpty
+        && plan.Commands.Count == 0
+        && plan.Changes.All(c => c.Action == ChangeAction.Preserve)
+        && plan.AiEnvironment.Length == 0;
+
+    private static string OutcomeOf(JsonObject result) => result["outcome"]?.GetValue<string>() ?? RunStates.Failed;
+
+    private void SaveValidationJournal(RunHandle run, DateTimeOffset startedAt, Core.Evals.ValidationReport report, JsonObject result)
+    {
+        store.SaveJournal(new RunJournal
+        {
+            RunId = run.RunId,
+            ProjectId = run.ProjectId,
+            Kind = RunKinds.Validate,
+            StartedAt = startedAt,
+            FinishedAt = clock.UtcNow,
+            State = OutcomeOf(result),
+            Evals = EvalSummary.From(report)
+        });
+    }
 
     private RunHandle Start(string projectId, string kind)
     {
@@ -174,6 +170,4 @@ public sealed class ConfigureProjectService(
             throw new EngineException("PROJECT_NOT_AUTHORIZED", "O projeto não foi autorizado. Selecione a pasta pelo diálogo do aplicativo.");
         return (root, filesFactory.Open(root));
     }
-
-    public static JsonNode? ToJson<T>(T value) => JsonSerializer.SerializeToNode(value, JournalJson.Options);
 }

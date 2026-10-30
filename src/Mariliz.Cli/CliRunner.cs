@@ -104,8 +104,6 @@ public sealed class CliRunner(
         }
     }
 
-    // ------------------------------------------------------------------ Comandos
-
     private async Task<int> DiscoverAsync(CliArgs args, CancellationToken ct)
     {
         var projectId = Authorize(args);
@@ -155,8 +153,6 @@ public sealed class CliRunner(
         if (!Confirm(args, "Reverter agora?")) return Declined();
         return await FinishAsync(service.StartRevert(projectId, target), ct);
     }
-
-    // ------------------------------------------------------------------ Apoio
 
     private async Task<int> FinishAsync(RunHandle run, CancellationToken ct)
     {

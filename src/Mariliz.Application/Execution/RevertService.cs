@@ -5,63 +5,92 @@ using Mariliz.Core.Text;
 namespace Mariliz.Application.Execution;
 
 /// <summary>
-/// Desfaz uma aplicação a partir do diário e dos backups. Só restaura um arquivo se ele ainda está exatamente
-/// como a aplicação o deixou; uma edição posterior da pessoa nunca é sobrescrita, vira um conflito dito no resultado.
+/// Desfaz uma aplicação a partir do diário e dos backups. Uma edição posterior da pessoa nunca é sobrescrita:
+/// vira um conflito dito no resultado.
 /// </summary>
 public sealed class RevertService(IRunStore store, IClock clock)
 {
-    public Task<JsonObject> ExecuteAsync(RunHandle run, IProjectFiles files, string targetRunId, CancellationToken ct)
+    public JsonObject Execute(RunHandle run, IProjectFiles files, string targetRunId, CancellationToken ct)
     {
-        var target = store.LoadJournal(run.ProjectId, targetRunId)
-                     ?? throw new EngineException("RUN_NOT_FOUND", "A execução a reverter não foi encontrada.");
-        if (target.Kind != RunKinds.Apply) throw new EngineException("NOT_REVERTIBLE", "Só execuções de aplicação podem ser revertidas.");
-        if (target.RevertedByRunId is not null) throw new EngineException("ALREADY_REVERTED", "Esta execução já foi revertida.");
-        if (!target.ChangesApplied || target.RolledBack) throw new EngineException("NOTHING_TO_REVERT", "Esta execução não deixou alterações para reverter.");
+        var target = LoadRevertibleTarget(run.ProjectId, targetRunId);
 
-        // Reverter fora de ordem desfaria o estado de execuções posteriores: só a mais recente pode ser revertida.
-        var later = store.ListJournals(run.ProjectId)
-            .Any(j => j.Kind == RunKinds.Apply && j.StartedAt > target.StartedAt && j.ChangesApplied && !j.RolledBack && j.RevertedByRunId is null);
-        if (later) throw new EngineException("NOT_LATEST_RUN", "Há uma aplicação mais recente; reverta primeiro a mais recente.");
+        var journal = new RunJournal
+        {
+            RunId = run.RunId,
+            ProjectId = run.ProjectId,
+            Kind = RunKinds.Revert,
+            PlanId = target.PlanId,
+            RevertsRunId = targetRunId,
+            StartedAt = clock.UtcNow
+        };
+        var recorder = new RunJournalRecorder(run, journal, store);
 
-        var journal = new RunJournal { RunId = run.RunId, ProjectId = run.ProjectId, Kind = RunKinds.Revert, PlanId = target.PlanId, RevertsRunId = targetRunId, StartedAt = clock.UtcNow };
-        var step = new JournalStep { Id = "revert", Title = "Restaurar o estado anterior", Status = "running" };
-        journal.Steps.Add(step);
-        store.SaveJournal(journal);
         run.SetState(RunStates.Running);
-        run.Publish("step.started", new JsonObject { ["id"] = step.Id, ["title"] = step.Title });
+        var step = recorder.BeginStep("revert", "Restaurar o estado anterior");
 
         var conflicts = new List<string>();
+        var reverted = UndoOperations(run, files, target, conflicts, ct);
+
+        var verified = reverted.All(op => IsRestored(files, op));
+        if (!verified) conflicts.Add("A conferência final encontrou arquivos que não voltaram ao estado anterior.");
+
+        var clean = conflicts.Count == 0;
+        target.RevertedByRunId = clean ? run.RunId : null;
+        store.SaveJournal(target);
+
+        journal.State = clean ? RunStates.Completed : RunStates.CompletedWithLimitations;
+        journal.Pending = conflicts;
+        journal.FinishedAt = clock.UtcNow;
+        recorder.CompleteStep(step, clean ? StepStatus.Completed : StepStatus.CompletedWithConflicts);
+
+        return ResultJson.BuildRevert(journal, reverted, conflicts, verified);
+    }
+
+    private RunJournal LoadRevertibleTarget(string projectId, string targetRunId)
+    {
+        var target = store.LoadJournal(projectId, targetRunId)
+                     ?? throw new EngineException("RUN_NOT_FOUND", "A execução a reverter não foi encontrada.");
+
+        if (target.Kind != RunKinds.Apply)
+            throw new EngineException("NOT_REVERTIBLE", "Só execuções de aplicação podem ser revertidas.");
+        if (target.RevertedByRunId is not null)
+            throw new EngineException("ALREADY_REVERTED", "Esta execução já foi revertida.");
+        if (!target.ChangesApplied || target.RolledBack)
+            throw new EngineException("NOTHING_TO_REVERT", "Esta execução não deixou alterações para reverter.");
+
+        var hasLaterApply = store.ListJournals(projectId)
+            .Any(j => j.Kind == RunKinds.Apply && j.StartedAt > target.StartedAt && j.CanBeReverted);
+        if (hasLaterApply)
+            throw new EngineException("NOT_LATEST_RUN", "Há uma aplicação mais recente; reverta primeiro a mais recente.");
+
+        return target;
+    }
+
+    private List<JournalOp> UndoOperations(RunHandle run, IProjectFiles files, RunJournal target, List<string> conflicts, CancellationToken ct)
+    {
         var reverted = new List<JournalOp>();
 
-        // Ordem inversa: o que foi aplicado por último é desfeito primeiro.
         foreach (var op in Enumerable.Reverse(target.Ops).Where(o => o.Status is OpStatus.Applied or OpStatus.Conflict))
         {
-            // Cancelar aqui deixaria a reversão pela metade; ela só para entre operações e o que sobrar é dito.
-            if (ct.IsCancellationRequested) { conflicts.Add($"{op.Path}: reversão interrompida antes deste arquivo."); continue; }
+            // Cancelar no meio deixaria a reversão pela metade: ela só para entre operações e o que sobrar é dito.
+            if (ct.IsCancellationRequested)
+            {
+                conflicts.Add($"{op.Path}: reversão interrompida antes deste arquivo.");
+                continue;
+            }
 
-            RevertHelper.Undo(store, run.ProjectId, targetRunId, files, op, conflicts);
+            OperationUndoer.Undo(store, run.ProjectId, target.RunId, files, op, conflicts);
             if (op.Status == OpStatus.Reverted) reverted.Add(op);
             run.Publish("file.reverted", new JsonObject { ["path"] = op.Path, ["status"] = op.Status });
         }
 
-        // Conferência pós-reversão: o que foi restaurado precisa bater com o estado anterior.
-        var verified = reverted.All(op => op.Op switch
-        {
-            "create" => !files.FileExists(op.Path),
-            "update" or "delete" => files.ReadBytes(op.Path) is { } b && Hashing.Sha256(b) == op.BeforeHash,
-            _ => true
-        });
-        if (!verified) conflicts.Add("A conferência final encontrou arquivos que não voltaram ao estado anterior.");
-
-        target.RevertedByRunId = conflicts.Count == 0 ? run.RunId : null;
-        store.SaveJournal(target);
-
-        step.Status = conflicts.Count == 0 ? "completed" : "completed_with_conflicts";
-        journal.State = conflicts.Count == 0 ? RunStates.Completed : RunStates.CompletedWithLimitations;
-        journal.Pending = conflicts;
-        journal.FinishedAt = clock.UtcNow;
-        store.SaveJournal(journal);
-        run.Publish("step.completed", new JsonObject { ["id"] = step.Id, ["status"] = step.Status });
-        return Task.FromResult(ResultJson.BuildRevert(journal, reverted, conflicts, verified));
+        return reverted;
     }
+
+    private static bool IsRestored(IProjectFiles files, JournalOp op) => op.Op switch
+    {
+        OpKinds.Create => !files.FileExists(op.Path),
+        OpKinds.Update or OpKinds.Delete => files.ReadBytes(op.Path) is { } bytes && Hashing.Sha256(bytes) == op.BeforeHash,
+        _ => true
+    };
 }

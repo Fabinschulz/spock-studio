@@ -1,5 +1,4 @@
 using System.Text;
-using Mariliz.Application.Discovery;
 using Mariliz.Application.Ports;
 using Mariliz.Core.Discovery;
 using Mariliz.Core.Plan;
@@ -19,7 +18,7 @@ public static class PlanBuilder
     {
         var changes = new List<FileChange>();
         var desiredPaths = composed.Files.Select(f => f.Path).ToHashSet(StringComparer.Ordinal);
-        var removalCandidates = composed.Decisions.Where(d => d.Decision == "skip").Select(d => d.ComponentId).ToHashSet(StringComparer.Ordinal);
+        var removalCandidates = composed.Decisions.Where(d => d.Decision == ComponentDecisions.Skip).Select(d => d.ComponentId).ToHashSet(StringComparer.Ordinal);
 
         foreach (var file in composed.Files.OrderBy(f => f.Path, StringComparer.Ordinal))
             changes.Add(Classify(file, files, existingLock));
@@ -62,8 +61,6 @@ public static class PlanBuilder
             planId, projectId, composed.AiEnvironment, "tlc", composed.ProposalOrigin,
             composed.Decisions, changes, composed.Commands, composed.Limitations, composed.Observations, composed.Risks, PlannedValidations(report));
     }
-
-    // ------------------------------------------------------------------ Classificação
 
     private static FileChange Classify(DesiredFile file, IProjectFiles files, ManagedLockFile? lockFile)
     {
@@ -155,8 +152,6 @@ public static class PlanBuilder
         ];
     }
 
-    // ------------------------------------------------------------------ Identidade do plano
-
     private static string PlanIdentity(string projectId, ComposeResult composed, IReadOnlyList<FileChange> changes)
     {
         var sb = new StringBuilder();
@@ -167,8 +162,6 @@ public static class PlanBuilder
             sb.Append(cmd.Id).Append('|').Append(cmd.Executable).Append(' ').Append(string.Join(' ', cmd.Arguments)).Append('\n');
         return "plan-" + Hashing.Sha256(sb.ToString())[..16];
     }
-
-    // ------------------------------------------------------------------ Utilidades
 
     private static FileChange New(string path, ComponentKind kind, string componentId, ChangeAction action, string reason, string origin,
         string? before, string? after, bool destructive, string? conflict, (string Diff, bool Truncated)? diff, bool _) =>
@@ -186,106 +179,4 @@ public static class PlanBuilder
 
     /// <summary>Fim de linha e espaço final uniformes: o hash e o diff não dependem do sistema que escreveu.</summary>
     public static string Normalize(string text) => text.Replace("\r\n", "\n");
-}
-
-public static class ManagedPaths
-{
-    public const string Tlc = ".claude/skills/tlc-spec-driven";
-}
-
-/// <summary>Calcula o conteúdo do <c>mariliz.lock</c> a partir do que existirá no disco depois da aplicação.</summary>
-public static class LockBuilder
-{
-    /// <returns><c>null</c> quando o conteúdo depende de uma instalação do TLC ainda pendente.</returns>
-    public static string? Build(ComposeResult composed, IReadOnlyList<FileChange> changes, ManagedLockFile? existing, TlcStatus tlc, bool tlcPending)
-    {
-        if (tlcPending) return null;
-
-        var lockFile = new ManagedLockFile
-        {
-            Engine = BuildInfo.Version,
-            AiEnvironment = composed.AiEnvironment,
-            Sdd = new ManagedLockFile.SddSection { Method = "tlc", Version = tlc.Version ?? "", ContentHash = tlc.ComputedHash ?? "" }
-        };
-
-        var byPath = composed.Files.ToDictionary(f => f.Path, StringComparer.Ordinal);
-        foreach (var change in changes)
-        {
-            if (!byPath.TryGetValue(change.Path, out var desired) || change.Path == DeclaredConfig.FileName) continue;
-            switch (change.Action)
-            {
-                case ChangeAction.Create or ChangeAction.Update:
-                    lockFile.ManagedFiles.Add(new() { Path = change.Path, Component = desired.ComponentId, Mode = desired.Mode, Sha256 = change.AfterHash ?? "" });
-                    break;
-                case ChangeAction.Preserve when change.Origin == DecisionOrigins.Existing:
-                    lockFile.ManagedFiles.Add(new() { Path = change.Path, Component = desired.ComponentId, Mode = "kept", Sha256 = change.BeforeHash ?? "" });
-                    break;
-                case ChangeAction.Preserve:
-                    lockFile.ManagedFiles.Add(new() { Path = change.Path, Component = desired.ComponentId, Mode = desired.Mode, Sha256 = change.AfterHash ?? "" });
-                    break;
-                case ChangeAction.Conflict:
-                    // Resolvido na aplicação: se mantido, registra-se como "kept" naquele momento.
-                    var prior = existing?.ManagedFiles.FirstOrDefault(e => e.Path == change.Path);
-                    if (prior is not null) lockFile.ManagedFiles.Add(prior);
-                    break;
-            }
-        }
-
-        var componentIds = lockFile.ManagedFiles.Select(f => f.Component).Distinct().ToList();
-        foreach (var id in componentIds)
-        {
-            var component = Catalog.Find(id);
-            lockFile.Components.Add(new() { Id = id, Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(), Version = ComponentVersion(id, component, tlc) });
-        }
-        return lockFile.ToYaml();
-    }
-
-    internal static string BuildFromOutcomes(ComposeResult composed, IReadOnlyDictionary<string, Execution.ApplyService.Outcome> outcomes, ManagedLockFile? existing, TlcStatus tlc)
-    {
-        var lockFile = new ManagedLockFile
-        {
-            Engine = BuildInfo.Version,
-            AiEnvironment = composed.AiEnvironment,
-            Sdd = new ManagedLockFile.SddSection
-            {
-                Method = "tlc",
-                Version = tlc.State == TlcState.Installed ? tlc.Version ?? "" : "",
-                ContentHash = tlc.State == TlcState.Installed ? tlc.ComputedHash ?? "" : ""
-            }
-        };
-
-        var desired = composed.Files.ToDictionary(f => f.Path, StringComparer.Ordinal);
-        foreach (var (path, outcome) in outcomes)
-        {
-            // mariliz.yaml é da pessoa depois de criado: a aplicação não o registra como gerenciado.
-            if (!desired.TryGetValue(path, out var d) || path == DeclaredConfig.FileName) continue;
-            switch (outcome.Kind)
-            {
-                case Execution.ApplyService.OutcomeKind.Written or Execution.ApplyService.OutcomeKind.Preserved:
-                    lockFile.ManagedFiles.Add(new() { Path = path, Component = d.ComponentId, Mode = d.Mode, Sha256 = outcome.Hash ?? "" });
-                    break;
-                case Execution.ApplyService.OutcomeKind.Kept:
-                    lockFile.ManagedFiles.Add(new() { Path = path, Component = d.ComponentId, Mode = "kept", Sha256 = outcome.Hash ?? "" });
-                    break;
-                case Execution.ApplyService.OutcomeKind.NotApplied:
-                    if (existing?.ManagedFiles.FirstOrDefault(e => e.Path == path) is { } prior) lockFile.ManagedFiles.Add(prior);
-                    break;
-            }
-        }
-
-        // O que a aplicação já gerenciava e esta execução não tocou continua registrado.
-        foreach (var prior in existing?.ManagedFiles ?? [])
-            if (!desired.ContainsKey(prior.Path) && !outcomes.ContainsKey(prior.Path)) lockFile.ManagedFiles.Add(prior);
-
-        foreach (var id in lockFile.ManagedFiles.Select(f => f.Component).Distinct())
-        {
-            var component = Catalog.Find(id);
-            lockFile.Components.Add(new() { Id = id, Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(), Version = ComponentVersion(id, component, tlc) });
-        }
-        return lockFile.ToYaml();
-    }
-
-    /// <summary>O TLC é externo: a versão registrada é a da instalação verificada, nunca um valor fixo do catálogo.</summary>
-    private static string ComponentVersion(string id, CatalogComponent? component, TlcStatus tlc) =>
-        id == Catalog.SddTlc ? (tlc.State == TlcState.Installed ? tlc.Version ?? "" : "") : component?.Version ?? Catalog.ComponentVersion;
 }

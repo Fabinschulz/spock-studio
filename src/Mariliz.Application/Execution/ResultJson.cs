@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Mariliz.Application.Harness;
 using Mariliz.Core.Evals;
 using Mariliz.Core.Plan;
 
@@ -11,19 +12,19 @@ internal static class ResultJson
     private static JsonNode? Node<T>(T value) => JsonSerializer.SerializeToNode(value, JournalJson.Options);
 
     public static JsonObject Build(RunJournal journal, ValidationReport report, ConfigurationPlan plan,
-        IReadOnlyDictionary<string, ApplyService.Outcome> outcomes)
+        IReadOnlyDictionary<string, FileOutcome> outcomes)
     {
-        string[] Paths(Func<JournalOp, bool> predicate) => journal.Ops.Where(o => o.Source == "write" && predicate(o) && o.Path != "mariliz.lock").Select(o => o.Path).ToArray();
+        string[] Paths(Func<JournalOp, bool> predicate) => journal.Ops.Where(o => o.Source == OpSources.Write && predicate(o) && o.Path != ManagedLockFile.FileName).Select(o => o.Path).ToArray();
 
         var files = new JsonObject
         {
-            ["created"] = Node(Paths(o => o.Op == "create")),
-            ["updated"] = Node(Paths(o => o.Op == "update")),
-            ["removed"] = Node(Paths(o => o.Op == "delete")),
-            ["preserved"] = Node(outcomes.Where(o => o.Value.Kind == ApplyService.OutcomeKind.Preserved).Select(o => o.Key).Order().ToArray()),
-            ["kept"] = Node(outcomes.Where(o => o.Value.Kind == ApplyService.OutcomeKind.Kept).Select(o => o.Key).Order().ToArray()),
+            ["created"] = Node(Paths(o => o.Op == OpKinds.Create)),
+            ["updated"] = Node(Paths(o => o.Op == OpKinds.Update)),
+            ["removed"] = Node(Paths(o => o.Op == OpKinds.Delete)),
+            ["preserved"] = Node(outcomes.Where(o => o.Value.Kind == OutcomeKind.Preserved).Select(o => o.Key).Order().ToArray()),
+            ["kept"] = Node(outcomes.Where(o => o.Value.Kind == OutcomeKind.Kept).Select(o => o.Key).Order().ToArray()),
             ["notApplied"] = Node(journal.NotApplied.ToArray()),
-            ["commandEffects"] = Node(journal.Ops.Where(o => o.Source == "command").Select(o => $"{o.Op}: {o.Path}").ToArray())
+            ["commandEffects"] = Node(journal.Ops.Where(o => o.Source == OpSources.Command).Select(o => $"{o.Op}: {o.Path}").ToArray())
         };
 
         return new JsonObject
@@ -36,7 +37,7 @@ internal static class ResultJson
             ["changesApplied"] = journal.ChangesApplied,
             ["rolledBack"] = journal.RolledBack,
             ["files"] = files,
-            ["lockWritten"] = journal.Ops.Any(o => o.Path == "mariliz.lock"),
+            ["lockWritten"] = journal.Ops.Any(o => o.Path == ManagedLockFile.FileName),
             ["validation"] = new JsonObject
             {
                 ["outcome"] = Node(report.Outcome),
@@ -46,7 +47,7 @@ internal static class ResultJson
             ["limitations"] = Node(plan.Limitations),
             ["risks"] = Node(plan.Risks),
             ["steps"] = Node(journal.Steps),
-            ["rollbackAvailable"] = journal.ChangesApplied && !journal.RolledBack && journal.RevertedByRunId is null
+            ["rollbackAvailable"] = journal.CanBeReverted
         };
     }
 
@@ -62,7 +63,7 @@ internal static class ResultJson
         ["error"] = new JsonObject { ["code"] = code ?? (journal.State == RunStates.Cancelled ? "CANCELLED" : "FAILED"), ["message"] = message },
         ["pending"] = Node(conflicts.ToArray()),
         ["steps"] = Node(journal.Steps),
-        ["rollbackAvailable"] = journal.ChangesApplied && !journal.RolledBack
+        ["rollbackAvailable"] = journal.CanBeReverted
     };
 
     public static JsonObject BuildValidation(string runId, string projectId, ValidationReport report) => new()
