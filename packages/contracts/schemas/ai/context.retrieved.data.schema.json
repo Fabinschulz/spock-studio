@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/ai/context.retrieved.data.schema.json",
+  "type": "object",
+  "required": ["documentId", "chunkId", "filePath", "hash", "score", "at"],
+  "properties": {
+    "documentId": { "type": "string", "minLength": 1 },
+    "chunkId": { "type": "string", "minLength": 1 },
+    "filePath": { "type": "string", "minLength": 1 },
+    "hash": { "type": "string", "minLength": 64, "maxLength": 64 },
+    "score": { "type": "number" },
+    "at": { "type": "string", "minLength": 20 }
+  },
+  "additionalProperties": false
+}

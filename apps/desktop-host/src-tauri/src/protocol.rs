@@ -7,9 +7,9 @@ use serde_json::Value;
 pub const PROTOCOL_VERSION: u64 = 1;
 pub const MAX_MESSAGE_BYTES: usize = 4 * 1024 * 1024;
 
-/// Métodos que a UI pode pedir ao motor: a jornada "Configurar projeto". `workspace.authorize` e
-/// `engine.*` ficam de fora de propósito: o primeiro recebe um caminho e só o diálogo nativo
-/// (comando `pick_project_folder`) pode originá-lo; os demais são do ciclo de vida do host.
+/// Métodos que a UI pode pedir ao motor: a jornada "Configurar projeto" e o início de um workflow.
+/// `workspace.authorize` e `engine.*` ficam de fora de propósito: o primeiro recebe um caminho e só
+/// o diálogo nativo (comando `pick_project_folder`) pode originá-lo; os demais são do ciclo de vida do host.
 pub const FRONTEND_METHODS: &[&str] = &[
     "project.discover",
     "harness.plan",
@@ -19,6 +19,8 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "harness.runs",
     "run.snapshot",
     "run.cancel",
+    "workflow.start",
+    "workflow.resume",
 ];
 
 #[derive(Debug, Clone, Serialize, PartialEq)]

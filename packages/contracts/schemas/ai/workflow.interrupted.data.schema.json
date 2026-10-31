@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/ai/workflow.interrupted.data.schema.json",
+  "type": "object",
+  "required": ["workflowId", "executionId", "status", "at"],
+  "properties": {
+    "workflowId": { "type": "string", "minLength": 1 },
+    "executionId": { "type": "string", "minLength": 1 },
+    "status": { "const": "interrupted" },
+    "at": { "type": "string", "minLength": 20 },
+    "steps": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+  },
+  "additionalProperties": false
+}

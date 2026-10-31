@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/ai/workflow.start.params.schema.json",
+  "type": "object",
+  "required": ["projectId"],
+  "properties": {
+    "projectId": { "type": "string", "minLength": 1 },
+    "input": { "type": "object" }
+  },
+  "additionalProperties": false
+}

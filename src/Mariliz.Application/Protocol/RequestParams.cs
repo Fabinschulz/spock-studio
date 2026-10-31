@@ -14,6 +14,12 @@ internal readonly struct RequestParams(JsonObject? values)
 
     public JsonObject? Object(string name) => values?[name] as JsonObject;
 
+    public JsonObject ObjectOrEmpty(string name)
+    {
+        if (values?[name] is null) return new JsonObject();
+        return values[name] as JsonObject ?? throw new ParamException($"'{name}' precisa ser um objeto.");
+    }
+
     public List<string> StrList(string name)
     {
         if (values?[name] is null) return [];

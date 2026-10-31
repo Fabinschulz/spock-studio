@@ -15,6 +15,11 @@ public static class ProtocolMethods
     public const string Snapshot = "run.snapshot";
     public const string Cancel = "run.cancel";
 
+    public const string WorkflowStart = "workflow.start";
+    public const string WorkflowResume = "workflow.resume";
+
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs, Snapshot, Cancel];
+
+    public static readonly IReadOnlyList<string> Workflow = [WorkflowStart, WorkflowResume];
 }

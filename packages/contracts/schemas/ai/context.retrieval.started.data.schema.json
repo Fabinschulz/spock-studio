@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/ai/context.retrieval.started.data.schema.json",
+  "type": "object",
+  "required": ["at"],
+  "properties": {
+    "at": { "type": "string", "minLength": 20 }
+  },
+  "additionalProperties": false
+}

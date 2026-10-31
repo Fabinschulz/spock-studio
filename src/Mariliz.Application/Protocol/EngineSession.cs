@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Harness;
+using Mariliz.Application.Workflows;
 using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Protocol;
@@ -18,6 +19,7 @@ public sealed class EngineSession
     private readonly string[] _capabilities;
     private readonly WorkspaceAuthorizer? _workspace;
     private readonly ConfigureRequestHandler? _configure;
+    private readonly WorkflowRequestHandler? _workflows;
     private readonly RunTracker? _tracker;
     private readonly SemaphoreSlim _outputGate = new(1, 1);
     private TextWriter? _output;
@@ -28,17 +30,20 @@ public sealed class EngineSession
         WorkspaceAuthorizer? workspace = null,
         ConfigureProjectService? configure = null,
         EventRelay? relay = null,
-        RunTracker? tracker = null)
+        RunTracker? tracker = null,
+        WorkflowService? workflows = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
         _configure = configure is null ? null : new ConfigureRequestHandler(configure);
+        _workflows = workflows is null ? null : new WorkflowRequestHandler(workflows);
         _tracker = tracker;
         if (relay is not null) relay.Target = WriteEvent;
 
         var offered = new List<string>(capabilities ?? []);
         if (workspace is not null) offered.Add(ProtocolMethods.AuthorizeWorkspace);
         if (configure is not null) offered.AddRange(ProtocolMethods.Configure);
+        if (workflows is not null) offered.AddRange(ProtocolMethods.Workflow);
         _capabilities = [.. offered];
     }
 
@@ -65,6 +70,7 @@ public sealed class EngineSession
         {
             // Sem a interface (ou ao encerrar), nenhuma execução fica rodando: o que está no meio é desfeito.
             if (_tracker is not null) await _tracker.CancelAllAndWaitAsync(TimeSpan.FromSeconds(15));
+            if (_workflows is not null) await _workflows.ShutdownAsync();
         }
     }
 
@@ -127,6 +133,9 @@ public sealed class EngineSession
 
         if (_configure is not null && ProtocolMethods.Configure.Contains(method))
             return Reply(ProtocolMessages.Ok(id, await _configure.HandleAsync(method, new RequestParams(parameters), ct)));
+
+        if (_workflows is not null && ProtocolMethods.Workflow.Contains(method))
+            return Reply(ProtocolMessages.Ok(id, await _workflows.HandleAsync(method, new RequestParams(parameters), ct)));
 
         return Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.MethodNotFound, "Método desconhecido."));
     }

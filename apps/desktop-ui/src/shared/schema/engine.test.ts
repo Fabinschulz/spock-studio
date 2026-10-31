@@ -6,8 +6,9 @@ import discovery from '@contracts/fixtures/golden/discovery.json';
 import plan from '@contracts/fixtures/golden/plan.json';
 import revertResult from '@contracts/fixtures/golden/revert-result.json';
 import validateResult from '@contracts/fixtures/golden/validate-result.json';
+import workflowStarted from '@contracts/fixtures/valid/event.workflow.started.json';
 
-import { discoverySchema, planSchema, runResultSchema, runSnapshotSchema } from './engine';
+import { discoverySchema, planSchema, runEventSchema, runResultSchema, runSnapshotSchema } from './engine';
 
 /** As fixtures são geradas pelo motor real (MARILIZ_UPDATE_GOLDEN=1 dotnet test). Se o formato mudar, este teste falha. */
 describe('contrato do motor (fixtures golden)', () => {
@@ -52,6 +53,13 @@ describe('contrato do motor (fixtures golden)', () => {
       result: null
     };
     expect(runSnapshotSchema.parse(snapshot).result).toBeNull();
+  });
+
+  it('evento workflow.started no canal que a interface já escuta', () => {
+    const parsed = runEventSchema.parse(workflowStarted);
+    expect(parsed.type).toBe('workflow.started');
+    expect(parsed.data.workflowId).toBe('engineering.request.v1');
+    expect(parsed.data.status).toBe('started');
   });
 
   it('rejeita um formato inesperado em vez de aceitar em silêncio', () => {
