@@ -93,7 +93,7 @@ describe('Pedido de engenharia', () => {
     );
 
     expect(await screen.findByRole('heading', { name: 'Pedido de engenharia' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Selecionar pasta do projeto' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Selecionar pasta' })).toBeInTheDocument();
     expect(client.calls).toHaveLength(0);
   });
 });

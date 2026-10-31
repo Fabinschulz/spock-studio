@@ -1,5 +1,4 @@
-import { ProjectChoice } from '@/features/configure-project/components/project-choice';
-import { useProjectSelectionContext, type SelectedProject } from '@/features/project-selection';
+import { ProjectSelection, useProjectSelectionContext, type SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 
 import { EngineeringRequestForm } from './components/engineering-request-form';
@@ -22,7 +21,7 @@ export function EngineeringRequestPage({ client }: EngineeringRequestPageProps) 
   if (!selected) {
     return (
       <EngineeringRequestLayout description={DESCRIPTION_WITHOUT_PROJECT}>
-        <ProjectChoice />
+        <ProjectSelection />
       </EngineeringRequestLayout>
     );
   }
