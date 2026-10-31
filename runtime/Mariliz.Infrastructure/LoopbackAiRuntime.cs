@@ -74,15 +74,18 @@ public sealed class LoopbackAiRuntime : IAiRuntime
     public Task<WorkflowAck> StartAsync(string runId, string projectId, string executionId, JsonObject input, JsonObject context, CancellationToken ct) =>
         PostWorkflowAsync("v1/workflows", runId, projectId, executionId, input, context, ct);
 
-    public Task<WorkflowAck> ResumeAsync(string runId, string projectId, string executionId, CancellationToken ct) =>
-        PostWorkflowAsync($"v1/workflows/{Uri.EscapeDataString(runId)}/resume", runId, projectId, executionId, new JsonObject { ["approved"] = true }, new JsonObject(), ct);
+    public Task<WorkflowAck> ResumeAsync(string runId, string projectId, string executionId, JsonObject context, CancellationToken ct) =>
+        PostWorkflowAsync($"v1/workflows/{Uri.EscapeDataString(runId)}/resume", runId, projectId, executionId, new JsonObject { ["approved"] = true }, context, ct);
 
-    public async Task CancelAsync(string runId)
+    public async Task CancelAsync(string runId, string? projectId = null, string? executionRoot = null)
     {
         try
         {
             if (!await HealthyAsync(CancellationToken.None)) return;
-            await PostAsync($"v1/workflows/{Uri.EscapeDataString(runId)}/cancel", new JsonObject { ["runId"] = runId }, CancellationToken.None);
+            var body = new JsonObject { ["runId"] = runId };
+            if (!string.IsNullOrEmpty(projectId)) body["projectId"] = projectId;
+            if (!string.IsNullOrEmpty(executionRoot)) body["executionRoot"] = executionRoot;
+            await PostAsync($"v1/workflows/{Uri.EscapeDataString(runId)}/cancel", body, CancellationToken.None);
         }
         catch (Exception ex) when (ex is EngineException or HttpRequestException or IOException or OperationCanceledException)
         {

@@ -16,15 +16,16 @@ Console.OutputEncoding = utf8;
 using var cts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
 
-var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
+var dataRoot = FileRunStore.DefaultDataRoot();
+var store = new FileRunStore(dataRoot);
+var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(dataRoot));
 var relay = new EventRelay();
 var tracker = new RunTracker(relay.Emit);
 var clock = new SystemClock();
 var runner = new SystemProcessRunner();
-var dataRoot = FileRunStore.DefaultDataRoot();
 var configure = new ConfigureProjectService(
-    workspace, new LocalProjectFilesFactory(), runner, new FileRunStore(dataRoot), clock, tracker);
-var workflows = new WorkflowService(workspace, new LoopbackAiRuntime(), tracker, clock, new LocalProjectFilesFactory(), runner, dataRoot);
+    workspace, new LocalProjectFilesFactory(), runner, store, clock, tracker);
+var workflows = new WorkflowService(workspace, new LoopbackAiRuntime(), tracker, clock, new LocalProjectFilesFactory(), runner, dataRoot, store);
 var session = new EngineSession(BuildInfo.Version, workspace: workspace, configure: configure, relay: relay, tracker: tracker, workflows: workflows);
 try
 {

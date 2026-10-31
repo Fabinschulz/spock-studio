@@ -1,8 +1,11 @@
 """Grafo engineering.request.v1.
 
 Nós determinísticos: nenhum modelo é chamado e nada é gravado no projeto.
-A busca usa só as fontes que o motor enviou. A pausa para aprovação fica em memória
-deste processo; persistir isso entre reinícios é a fase de memória.
+A busca usa só as fontes que o motor enviou.
+
+A memória de trabalho é o dicionário deste processo. A pausa também vai para a
+memória de execução (checkpoint em SQLite, fora do índice e fora do projeto),
+para a retomada sobreviver a um reinício. O diário de negócio fica no motor.
 """
 
 from __future__ import annotations
@@ -11,6 +14,7 @@ import re
 import threading
 
 from knowledge.index import KnowledgeError, search, sync
+from memory.execution import ExecutionError, delete as delete_checkpoint, load as load_checkpoint, save as save_checkpoint
 
 WORKFLOW_ID = "engineering.request.v1"
 _STACK = re.compile(r"^[a-z0-9][a-z0-9_-]{0,31}$")
@@ -30,8 +34,7 @@ def run_start(payload: dict, model=None) -> dict:
         return _ack(state, "failed")
     state = approval_gate(state)
     if state.get("paused"):
-        with _lock:
-            _sessions[state["run_id"]] = state
+        _remember(state)
         return _ack(state, "interrupted")
     state = synthesizer(state)
     state = evaluation_judge(state, model)
@@ -40,8 +43,7 @@ def run_start(payload: dict, model=None) -> dict:
 
 def run_resume(payload: dict, model=None) -> dict:
     run_id = _text(payload.get("runId"))
-    with _lock:
-        state = _sessions.get(run_id)
+    state = _recall(run_id, payload)
     if state is None:
         return _lost(payload)
     incoming = payload.get("input") if isinstance(payload.get("input"), dict) else {}
@@ -53,14 +55,17 @@ def run_resume(payload: dict, model=None) -> dict:
     state["paused"] = False
     state = synthesizer(state)
     state = evaluation_judge(state, model)
-    with _lock:
-        _sessions.pop(run_id, None)
+    _forget(state)
     return _ack(state, "completed")
 
 
-def run_cancel(run_id: str) -> None:
+def run_cancel(run_id: str, project_id: str = "", execution_root: str = "") -> None:
     with _lock:
-        _sessions.pop(run_id, None)
+        state = _sessions.pop(run_id, None)
+    root = execution_root or (state or {}).get("execution_root") or ""
+    project = project_id or (state or {}).get("project_id") or ""
+    if root and project:
+        _drop(root, project, run_id)
 
 
 def request_analyzer(state: dict) -> dict:
@@ -162,6 +167,7 @@ def _initial(payload: dict) -> dict:
         "paused": False,
         "stacks": _stacks(context.get("stacks")),
         "knowledge_root": _text(context.get("knowledgeRoot")),
+        "execution_root": _text(context.get("executionRoot")),
         "sources": context.get("sources") if isinstance(context.get("sources"), list) else None,
         "evidence": [],
         "retrieval_attempted": False,
@@ -191,6 +197,96 @@ def _forbidden(value: object) -> bool:
     if isinstance(value, list):
         return any(_forbidden(item) for item in value)
     return False
+
+
+_DURABLE = (
+    "run_id",
+    "project_id",
+    "execution_id",
+    "goal",
+    "requires_approval",
+    "approved",
+    "paused",
+    "stacks",
+    "evidence",
+    "retrieval_attempted",
+    "limitations",
+    "plan",
+    "valid",
+    "summary",
+    "iterations",
+    "execution_root",
+)
+
+
+def _remember(state: dict) -> None:
+    with _lock:
+        _sessions[state["run_id"]] = state
+    _persist(state)
+
+
+def _persist(state: dict) -> None:
+    root = state.get("execution_root") or ""
+    if not root:
+        return
+    try:
+        save_checkpoint(root, state["project_id"], state["run_id"], {key: state.get(key) for key in _DURABLE})
+    except (ExecutionError, TypeError, ValueError):
+        return
+
+
+def _recall(run_id: str, payload: dict) -> dict | None:
+    with _lock:
+        state = _sessions.get(run_id)
+    if state is not None:
+        return state
+    context = payload.get("context") if isinstance(payload.get("context"), dict) else {}
+    root = _text(context.get("executionRoot"))
+    project_id = _text(payload.get("projectId"))
+    if not root or not project_id:
+        return None
+    try:
+        restored = load_checkpoint(root, project_id, run_id)
+    except ExecutionError:
+        return None
+    if not _checkpoint_ok(restored, project_id, run_id):
+        return None
+    restored["execution_root"] = restored.get("execution_root") or root
+    with _lock:
+        _sessions[run_id] = restored
+    return restored
+
+
+def _checkpoint_ok(state: object, project_id: str, run_id: str) -> bool:
+    if not isinstance(state, dict):
+        return False
+    if state.get("project_id") != project_id or state.get("run_id") != run_id or state.get("paused") is not True:
+        return False
+    if not isinstance(state.get("stacks"), list) or not isinstance(state.get("limitations"), list):
+        return False
+    evidence = state.get("evidence")
+    if not isinstance(evidence, list) or any(not isinstance(item, dict) for item in evidence):
+        return False
+    if _forbidden(state.get("plan")):
+        return False
+    clone = dict(state)
+    clone["limitations"] = list(state["limitations"])
+    return plan_validator(clone).get("valid") is True
+
+
+def _forget(state: dict) -> None:
+    with _lock:
+        _sessions.pop(state["run_id"], None)
+    _drop(state.get("execution_root") or "", state.get("project_id") or "", state["run_id"])
+
+
+def _drop(root: str, project_id: str, run_id: str) -> None:
+    if not root or not project_id:
+        return
+    try:
+        delete_checkpoint(root, project_id, run_id)
+    except ExecutionError:
+        return
 
 
 def _limit(state: dict, code: str, message: str) -> None:

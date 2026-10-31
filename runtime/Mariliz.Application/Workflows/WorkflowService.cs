@@ -20,7 +20,8 @@ public sealed class WorkflowService(
     IClock clock,
     IProjectFilesFactory? filesFactory = null,
     IProcessRunner? processRunner = null,
-    string? knowledgeRoot = null)
+    string? knowledgeRoot = null,
+    IRunStore? store = null)
 {
     public const string Kind = "workflow";
     public const string WorkflowId = "engineering.request.v1";
@@ -51,23 +52,44 @@ public sealed class WorkflowService(
             throw new EngineException("PROJECT_NOT_AUTHORIZED", "O projeto não foi autorizado. Selecione a pasta pelo diálogo do aplicativo.");
 
         var run = tracker.Find(runId);
-        if (run is null || run.ProjectId != projectId)
-            throw new EngineException("RUN_NOT_FOUND", "Execução não encontrada.");
-        if (!_approvals.TryGetValue(runId, out var gate) || !gate.TrySetResult(true))
-            throw new EngineException("WORKFLOW_NOT_INTERRUPTED", "Não há uma execução aguardando aprovação.");
+        if (run is not null)
+        {
+            if (run.ProjectId != projectId)
+                throw new EngineException("RUN_NOT_FOUND", "Execução não encontrada.");
+            if (!_approvals.TryGetValue(runId, out var gate) || !gate.TrySetResult(true))
+                throw new EngineException("WORKFLOW_NOT_INTERRUPTED", "Não há uma execução aguardando aprovação.");
+            return Task.FromResult(run);
+        }
 
-        return Task.FromResult(run);
+        return ResumeFromJournal(projectId, runId);
     }
 
     public Task ShutdownAsync() => runtime.ShutdownAsync();
 
+    private Task<RunHandle> ResumeFromJournal(string projectId, string runId)
+    {
+        var journal = store?.LoadJournal(projectId, runId);
+        if (journal is null || journal.Kind != Kind || journal.State != RunStates.AwaitingApproval || string.IsNullOrEmpty(journal.ExecutionId))
+            throw new EngineException("RUN_NOT_FOUND", "Execução não encontrada.");
+
+        var run = tracker.TryRehydrate(runId, projectId, Kind);
+        if (run is null)
+            throw new EngineException("RUN_IN_PROGRESS", "Já há uma execução em andamento neste projeto.");
+
+        run.SetState(RunStates.AwaitingApproval, "Aguardando aprovação");
+        run.Completion = ContinueFromCheckpointAsync(run, journal);
+        return Task.FromResult(run);
+    }
+
     private async Task ExecuteAsync(RunHandle run, string executionId, JsonObject input)
     {
+        var journal = BeginJournal(run, executionId);
         try
         {
             run.SetState(RunStates.Running, "Iniciando a execução");
             var context = await ContextAsync(run.ProjectId, run.Cancellation.Token);
             await AttachKnowledgeAsync(run.ProjectId, context, run.Cancellation.Token);
+            StampExecutionRoot(context);
             var ack = await runtime.StartAsync(run.RunId, run.ProjectId, executionId, input, context, run.Cancellation.Token);
             EnsureAck(run, executionId, ack);
             Publish(run, ack, "workflow.started", "started");
@@ -75,6 +97,7 @@ public sealed class WorkflowService(
 
             if (ack.Status == "interrupted")
             {
+                Mark(journal, RunStates.AwaitingApproval);
                 var gate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _approvals[run.RunId] = gate;
                 run.SetState(RunStates.AwaitingApproval, "Aguardando aprovação");
@@ -84,31 +107,128 @@ public sealed class WorkflowService(
                 using (run.Cancellation.Token.Register(() => gate.TrySetCanceled(run.Cancellation.Token)))
                     await gate.Task;
                 _approvals.TryRemove(run.RunId, out _);
-                ack = await runtime.ResumeAsync(run.RunId, run.ProjectId, executionId, run.Cancellation.Token);
+                ack = await runtime.ResumeAsync(run.RunId, run.ProjectId, executionId, ExecutionContext(), run.Cancellation.Token);
                 EnsureAck(run, executionId, ack);
             }
 
-            if (ack.Status == "interrupted")
-                throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
-
-            var outcome = ack.Status == "failed" ? RunStates.Failed : RunStates.CompletedWithLimitations;
-            Publish(run, ack, ack.Status == "failed" ? "workflow.failed" : "workflow.completed", ack.Status);
-            run.Complete(outcome, Result(ack));
+            Finish(run, journal, ack);
         }
         catch (OperationCanceledException)
         {
-            _approvals.TryRemove(run.RunId, out _);
-            await runtime.CancelAsync(run.RunId);
-            run.Complete(RunStates.Cancelled, new JsonObject { ["kind"] = Kind });
+            await Abandon(run, journal);
         }
         catch (EngineException ex)
         {
-            run.Complete(RunStates.Failed, Failure(ex.Code, ex.Message));
+            Fail(run, journal, ex.Code, ex.Message);
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidOperationException)
         {
-            run.Complete(RunStates.Failed, Failure("AI_RUNTIME_UNAVAILABLE", "O runtime de IA não respondeu."));
+            Fail(run, journal, "AI_RUNTIME_UNAVAILABLE", "O runtime de IA não respondeu.");
         }
+    }
+
+    private async Task ContinueFromCheckpointAsync(RunHandle run, RunJournal journal)
+    {
+        try
+        {
+            run.SetState(RunStates.Running, "Retomando a execução");
+            var ack = await runtime.ResumeAsync(run.RunId, run.ProjectId, journal.ExecutionId!, ExecutionContext(), run.Cancellation.Token);
+            EnsureAck(run, journal.ExecutionId!, ack);
+            PublishRetrieval(run, ack);
+            Finish(run, journal, ack);
+        }
+        catch (OperationCanceledException)
+        {
+            await Abandon(run, journal);
+        }
+        catch (EngineException ex)
+        {
+            Fail(run, journal, ex.Code, ex.Message);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidOperationException)
+        {
+            Fail(run, journal, "AI_RUNTIME_UNAVAILABLE", "O runtime de IA não respondeu.");
+        }
+    }
+
+    private RunJournal BeginJournal(RunHandle run, string executionId)
+    {
+        var journal = new RunJournal
+        {
+            RunId = run.RunId,
+            ProjectId = run.ProjectId,
+            Kind = Kind,
+            ExecutionId = executionId,
+            State = RunStates.Running,
+            StartedAt = clock.UtcNow
+        };
+        store?.SaveJournal(journal);
+        return journal;
+    }
+
+    private void Mark(RunJournal journal, string state)
+    {
+        journal.State = state;
+        store?.SaveJournal(journal);
+    }
+
+    private void Finish(RunHandle run, RunJournal journal, WorkflowAck ack)
+    {
+        if (ack.Status == "interrupted")
+            throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+
+        var outcome = ack.Status == "failed" ? RunStates.Failed : RunStates.CompletedWithLimitations;
+        Publish(run, ack, ack.Status == "failed" ? "workflow.failed" : "workflow.completed", ack.Status);
+        journal.State = outcome;
+        journal.FinishedAt = clock.UtcNow;
+        journal.Error = outcome == RunStates.Failed ? ack.Limitations.FirstOrDefault()?.Code : null;
+        journal.Evals = ack.Limitations.Select(item => new EvalSummary
+        {
+            Id = item.Code,
+            Status = item.Code == "JUDGE_NOT_RUN" ? "not_run" : "recorded",
+            Required = false
+        }).ToList();
+        store?.SaveJournal(journal);
+        run.Complete(outcome, Result(ack));
+    }
+
+    private void Fail(RunHandle run, RunJournal journal, string code, string message)
+    {
+        journal.State = RunStates.Failed;
+        journal.FinishedAt = clock.UtcNow;
+        journal.Error = code;
+        store?.SaveJournal(journal);
+        run.Complete(RunStates.Failed, Failure(code, message));
+    }
+
+    private async Task Abandon(RunHandle run, RunJournal journal)
+    {
+        _approvals.TryRemove(run.RunId, out _);
+        var stored = store?.LoadJournal(run.ProjectId, run.RunId);
+        if (stored is not null && RunStates.IsTerminal(stored.State))
+        {
+            run.Complete(stored.State, new JsonObject { ["kind"] = Kind });
+            return;
+        }
+
+        await runtime.CancelAsync(run.RunId, run.ProjectId, knowledgeRoot);
+        journal.State = RunStates.Cancelled;
+        journal.FinishedAt = clock.UtcNow;
+        store?.SaveJournal(journal);
+        run.Complete(RunStates.Cancelled, new JsonObject { ["kind"] = Kind });
+    }
+
+    private void StampExecutionRoot(JsonObject context)
+    {
+        if (!string.IsNullOrWhiteSpace(knowledgeRoot))
+            context["executionRoot"] = knowledgeRoot;
+    }
+
+    private JsonObject ExecutionContext()
+    {
+        var context = new JsonObject();
+        StampExecutionRoot(context);
+        return context;
     }
 
     private async Task<JsonObject> ContextAsync(string projectId, CancellationToken ct)

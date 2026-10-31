@@ -34,6 +34,21 @@ public sealed class RunTracker
         lock (_gate) return _runs.GetValueOrDefault(runId);
     }
 
+    /// <summary>Religa uma execução que só existe no diário, com o mesmo id, depois que o processo caiu.</summary>
+    public RunHandle? TryRehydrate(string runId, string projectId, string kind)
+    {
+        lock (_gate)
+        {
+            if (_runs.ContainsKey(runId)) return null;
+            if (_activeByProject.TryGetValue(projectId, out var active) && _runs.TryGetValue(active, out var current) && !RunStates.IsTerminal(current.State))
+                return null;
+            var handle = new RunHandle(runId, projectId, kind, _emit);
+            _runs[runId] = handle;
+            _activeByProject[projectId] = runId;
+            return handle;
+        }
+    }
+
     public bool Cancel(string runId)
     {
         var run = Find(runId);

@@ -14,9 +14,9 @@ public interface IAiRuntime
 
     Task<WorkflowAck> StartAsync(string runId, string projectId, string executionId, JsonObject input, JsonObject context, CancellationToken ct);
 
-    Task<WorkflowAck> ResumeAsync(string runId, string projectId, string executionId, CancellationToken ct);
+    Task<WorkflowAck> ResumeAsync(string runId, string projectId, string executionId, JsonObject context, CancellationToken ct);
 
-    Task CancelAsync(string runId);
+    Task CancelAsync(string runId, string? projectId = null, string? executionRoot = null);
 
     Task ShutdownAsync();
 }

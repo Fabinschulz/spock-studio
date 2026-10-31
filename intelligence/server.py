@@ -77,7 +77,7 @@ def make_handler(token: str):
                     self._send(200, run_resume(payload))
                     return
                 if path.startswith("/v1/workflows/") and path.endswith("/cancel"):
-                    run_cancel(_text(payload.get("runId")))
+                    run_cancel(_text(payload.get("runId")), _text(payload.get("projectId")), _text(payload.get("executionRoot")))
                     self._send(200, {"schema": "workflow.ack.v1", "status": "cancelled"})
                     return
             except Exception:

@@ -1,5 +1,6 @@
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -31,6 +32,8 @@ def _payload(**input_fields):
 class GraphTests(unittest.TestCase):
     def tearDown(self) -> None:
         graph.run_cancel("run-1")
+        graph.run_cancel("run-aaaaaaaaaaaa", "p-aaaaaaaaaaaa")
+        graph.run_cancel("run-bbbbbbbbbbbb", "p-aaaaaaaaaaaa")
 
     def test_conclui_sem_modelo_sem_objetivo_no_resultado_e_sem_comando(self) -> None:
         model = RecordingModel()
@@ -66,6 +69,72 @@ class GraphTests(unittest.TestCase):
         validated = graph.plan_validator(state)
         self.assertFalse(validated["valid"])
         self.assertEqual(validated["limitations"][-1]["code"], "PLAN_INVALID")
+
+    def test_retomada_depois_que_a_memoria_de_trabalho_some(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            payload = _payload(requiresApproval=True)
+            payload["runId"] = "run-aaaaaaaaaaaa"
+            payload["projectId"] = "p-aaaaaaaaaaaa"
+            payload["context"] = {"stacks": ["dotnet"], "executionRoot": tmp}
+            paused = graph.run_start(payload)
+            self.assertEqual(paused["status"], "interrupted")
+            checkpoint = Path(tmp) / "projects" / "p-aaaaaaaaaaaa" / "execution" / "checkpoint.sqlite"
+            self.assertTrue(checkpoint.is_file())
+            self.assertFalse((Path(tmp) / "p-aaaaaaaaaaaa" / "index.sqlite").exists())
+            graph._sessions.clear()
+
+            done = graph.run_resume(
+                {
+                    "runId": "run-aaaaaaaaaaaa",
+                    "projectId": "p-aaaaaaaaaaaa",
+                    "executionId": "ex-1",
+                    "approved": True,
+                    "context": {"executionRoot": tmp},
+                }
+            )
+            encoded = json.dumps(done)
+            self.assertEqual(done["status"], "completed")
+            self.assertNotIn("descrever o módulo de cobrança", encoded)
+            self.assertFalse(checkpoint.exists())
+
+    def test_checkpoint_adulterado_com_comando_nao_volta(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            from memory.execution import save
+
+            save(
+                tmp,
+                "p-aaaaaaaaaaaa",
+                "run-bbbbbbbbbbbb",
+                {
+                    "run_id": "run-bbbbbbbbbbbb",
+                    "project_id": "p-aaaaaaaaaaaa",
+                    "execution_id": "ex-1",
+                    "goal": "rm -rf",
+                    "requires_approval": True,
+                    "approved": False,
+                    "paused": True,
+                    "stacks": [],
+                    "evidence": [],
+                    "retrieval_attempted": False,
+                    "limitations": [],
+                    "plan": {"schema": "engineering.plan.v1", "steps": [{"id": "x", "title": "y", "command": "rm"}]},
+                    "valid": True,
+                    "summary": "",
+                    "iterations": 1,
+                    "execution_root": tmp,
+                },
+            )
+            ack = graph.run_resume(
+                {
+                    "runId": "run-bbbbbbbbbbbb",
+                    "projectId": "p-aaaaaaaaaaaa",
+                    "approved": True,
+                    "context": {"executionRoot": tmp},
+                }
+            )
+            self.assertEqual(ack["status"], "failed")
+            self.assertEqual(ack["limitations"][0]["code"], "CHECKPOINT_LOST")
+            self.assertNotIn("rm", json.dumps(ack))
 
     def test_pedido_vazio_declara_a_limitacao(self) -> None:
         payload = _payload()

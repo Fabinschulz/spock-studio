@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Channels;
 using Mariliz.Application.Execution;
@@ -240,6 +241,103 @@ public class WorkflowRuntimeTests
     }
 
     [Fact]
+    public async Task Reinicio_do_runtime_retoma_o_checkpoint_sem_gravar_no_projeto()
+    {
+        using var project = TempProject.Dotnet();
+        var before = project.Fingerprint();
+        var runtime = new LoopbackAiRuntime();
+        var wire = Start(project, runtime);
+        const string goal = "pedido-fase-d-7f3a";
+        try
+        {
+            var projectId = wire.Request("workspace.authorize", new JsonObject { ["path"] = project.Root })["result"]!["projectId"]!.GetValue<string>();
+            var runId = wire.Request("workflow.start", new JsonObject
+            {
+                ["projectId"] = projectId,
+                ["input"] = new JsonObject { ["goal"] = goal, ["requiresApproval"] = true }
+            })["result"]!["runId"]!.GetValue<string>();
+            wire.Wait(m => m["type"]?.GetValue<string>() == "workflow.interrupted" && m["runId"]?.GetValue<string>() == runId);
+
+            var checkpoint = Path.Combine(project.DataDir, "projects", projectId, "execution", "checkpoint.sqlite");
+            var journalPath = Path.Combine(project.DataDir, "projects", projectId, "runs", runId, "journal.json");
+            Assert.Contains(goal, Encoding.Latin1.GetString(File.ReadAllBytes(checkpoint)));
+            Assert.DoesNotContain(goal, File.ReadAllText(journalPath));
+            Assert.False(File.Exists(Path.Combine(project.DataDir, projectId, "execution", "checkpoint.sqlite")));
+
+            await runtime.ShutdownAsync();
+            Assert.False(runtime.IsRunning);
+
+            var resume = wire.Request("workflow.resume", new JsonObject { ["projectId"] = projectId, ["runId"] = runId });
+            Assert.Equal(runId, resume["result"]!["runId"]!.GetValue<string>());
+            wire.Wait(m => m["type"]?.GetValue<string>() == "workflow.completed" && m["runId"]?.GetValue<string>() == runId);
+            Assert.False(File.Exists(checkpoint));
+            Assert.DoesNotContain(goal, File.ReadAllText(journalPath));
+            Assert.Contains("JUDGE_NOT_RUN", File.ReadAllText(journalPath));
+            Assert.Equal(before, project.Fingerprint());
+        }
+        finally
+        {
+            await Stop(wire, runtime);
+        }
+    }
+
+    [Fact]
+    public async Task Reinicio_do_motor_retoma_pelo_diario_sem_expor_o_caminho()
+    {
+        using var project = TempProject.Dotnet();
+        var before = project.Fingerprint();
+        var store = new FileRunStore(project.DataDir);
+        var registry = new FileWorkspaceRegistry(project.DataDir);
+        var firstRuntime = new LoopbackAiRuntime();
+        var first = Start(project, firstRuntime, store, registry);
+        const string goal = "pedido-fase-d-7f3a";
+        var projectId = "";
+        var runId = "";
+        try
+        {
+            projectId = first.Request("workspace.authorize", new JsonObject { ["path"] = project.Root })["result"]!["projectId"]!.GetValue<string>();
+            runId = first.Request("workflow.start", new JsonObject
+            {
+                ["projectId"] = projectId,
+                ["input"] = new JsonObject { ["goal"] = goal, ["requiresApproval"] = true }
+            })["result"]!["runId"]!.GetValue<string>();
+            first.Wait(m => m["type"]?.GetValue<string>() == "workflow.interrupted" && m["runId"]?.GetValue<string>() == runId);
+            Assert.Equal(RunStates.AwaitingApproval, store.LoadJournal(projectId, runId)!.State);
+            Assert.True(File.Exists(Path.Combine(project.DataDir, "workspaces.json")));
+            Assert.False(File.Exists(Path.Combine(project.Root, "workspaces.json")));
+            await firstRuntime.ShutdownAsync();
+
+            var secondRuntime = new LoopbackAiRuntime();
+            var second = Start(project, secondRuntime, store, registry);
+            try
+            {
+                var resumed = second.Request("workflow.resume", new JsonObject { ["projectId"] = projectId, ["runId"] = runId });
+                Assert.Equal(runId, resumed["result"]!["runId"]!.GetValue<string>());
+                second.Wait(m => m["type"]?.GetValue<string>() == "workflow.completed" && m["runId"]?.GetValue<string>() == runId);
+                var journal = store.LoadJournal(projectId, runId)!;
+                Assert.Equal(RunStates.CompletedWithLimitations, journal.State);
+                Assert.Contains(journal.Evals, eval => eval.Id == "JUDGE_NOT_RUN" && eval.Status == "not_run");
+                var journalText = File.ReadAllText(Path.Combine(project.DataDir, "projects", projectId, "runs", runId, "journal.json"));
+                Assert.DoesNotContain(goal, journalText);
+                Assert.DoesNotContain(project.Root, journalText);
+                Assert.DoesNotContain(project.Root, second.Output.ToString());
+                Assert.False(File.Exists(Path.Combine(project.DataDir, "projects", projectId, "execution", "checkpoint.sqlite")));
+                Assert.Equal(before, project.Fingerprint());
+            }
+            finally
+            {
+                await Stop(second, secondRuntime);
+            }
+        }
+        finally
+        {
+            await Stop(first, firstRuntime);
+        }
+
+        Assert.Equal(RunStates.CompletedWithLimitations, store.LoadJournal(projectId, runId)!.State);
+    }
+
+    [Fact]
     public void Fixture_de_workflow_started_respeita_o_envelope_e_o_corpo()
     {
         var evt = ContractFiles.ReadFixture("valid", "event.workflow.started.json");
@@ -253,22 +351,35 @@ public class WorkflowRuntimeTests
             new JsonObject { ["projectId"] = "p-1", ["runId"] = "run-1" }));
     }
 
+    private static async Task Stop(Wire wire, LoopbackAiRuntime runtime)
+    {
+        wire.Input.Close();
+        Exception? stopped = null;
+        try { await wire.Running.WaitAsync(TimeSpan.FromSeconds(20)); }
+        catch (Exception ex) { stopped = ex; }
+        await runtime.ShutdownAsync();
+        Assert.False(runtime.IsRunning);
+        if (stopped is not null) throw stopped;
+    }
+
     private static string Authorize(EngineSession session, string path) =>
         session.Handle(Line("workspace.authorize", new JsonObject { ["path"] = path })).Response["result"]!["projectId"]!.GetValue<string>();
 
     private static string Line(string method, JsonObject parameters) =>
         new JsonObject { ["v"] = 1, ["kind"] = "request", ["id"] = "t", ["method"] = method, ["params"] = parameters }.ToJsonString();
 
-    private static Wire Start(TempProject project, LoopbackAiRuntime runtime)
+    private static Wire Start(TempProject project, LoopbackAiRuntime runtime, FileRunStore? store = null, FileWorkspaceRegistry? registry = null)
     {
         var wire = new Wire();
         var relay = new EventRelay();
         var tracker = new RunTracker(relay.Emit);
-        var authorizer = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
+        store ??= new FileRunStore(project.DataDir);
+        registry ??= new FileWorkspaceRegistry(project.DataDir);
+        var authorizer = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), registry);
         var runner = new SystemProcessRunner();
         var configure = new ConfigureProjectService(
-            authorizer, new TestFilesFactory(), runner, new FileRunStore(project.DataDir), new SystemClock(), tracker);
-        var workflows = new WorkflowService(authorizer, runtime, tracker, new SystemClock(), new TestFilesFactory(), runner, project.DataDir);
+            authorizer, new TestFilesFactory(), runner, store, new SystemClock(), tracker);
+        var workflows = new WorkflowService(authorizer, runtime, tracker, new SystemClock(), new TestFilesFactory(), runner, project.DataDir, store);
         var session = new EngineSession("test", workspace: authorizer, configure: configure, relay: relay, tracker: tracker, workflows: workflows);
         wire.Running = Task.Run(() => session.RunAsync(wire.Input, wire.Output, CancellationToken.None));
         return wire;

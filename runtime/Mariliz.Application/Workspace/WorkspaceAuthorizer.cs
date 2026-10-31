@@ -1,30 +1,52 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Mariliz.Application.Workspace;
 
 /// <summary>
 /// Registra as pastas que o usuário escolheu no diálogo nativo. É a única origem de caminhos
 /// que o motor aceita; qualquer outro caminho fica fora da lista autorizada.
+/// Se houver um registro, a autorização sobrevive ao reinício do processo e continua fora da interface.
 /// </summary>
-public sealed class WorkspaceAuthorizer(IWorkspaceFileSystem fileSystem)
+public sealed class WorkspaceAuthorizer
 {
+    private static readonly Regex ProjectIdPattern = new("^p-[0-9a-f]{12}$", RegexOptions.CultureInvariant);
+
+    private readonly IWorkspaceFileSystem _fileSystem;
+    private readonly IWorkspaceRegistry? _registry;
     private readonly Dictionary<string, string> _authorized = new();
+
+    public WorkspaceAuthorizer(IWorkspaceFileSystem fileSystem, IWorkspaceRegistry? registry = null)
+    {
+        _fileSystem = fileSystem;
+        _registry = registry;
+        if (registry is null) return;
+
+        foreach (var (id, path) in registry.Load())
+        {
+            if (!ProjectIdPattern.IsMatch(id)) continue;
+            var resolved = fileSystem.ResolveDirectory(path);
+            if (resolved is null) continue;
+            var trimmed = Trim(resolved);
+            if (!IsProjectRoot(resolved, trimmed) || !fileSystem.CanEnumerate(resolved)) continue;
+            if (ProjectIdFor(trimmed) != id) continue;
+            _authorized[id] = trimmed;
+        }
+    }
 
     public WorkspaceResult Authorize(string path)
     {
-        var resolved = string.IsNullOrWhiteSpace(path) ? null : fileSystem.ResolveDirectory(path);
+        var resolved = string.IsNullOrWhiteSpace(path) ? null : _fileSystem.ResolveDirectory(path);
         if (resolved is null) return WorkspaceResult.Fail(WorkspaceError.NotFound);
 
-        var trimmed = resolved.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        // Raiz de unidade ou de sistema não é um projeto.
-        if (trimmed.Length == 0 || Directory.GetParent(trimmed) is null || Path.GetPathRoot(resolved) == resolved)
-            return WorkspaceResult.Fail(WorkspaceError.NotAllowed);
+        var trimmed = Trim(resolved);
+        if (!IsProjectRoot(resolved, trimmed)) return WorkspaceResult.Fail(WorkspaceError.NotAllowed);
+        if (!_fileSystem.CanEnumerate(resolved)) return WorkspaceResult.Fail(WorkspaceError.NotReadable);
 
-        if (!fileSystem.CanEnumerate(resolved)) return WorkspaceResult.Fail(WorkspaceError.NotReadable);
-
-        var projectId = "p-" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Normalize(trimmed))))[..12].ToLowerInvariant();
+        var projectId = ProjectIdFor(trimmed);
         _authorized[projectId] = trimmed;
+        _registry?.Save(projectId, trimmed);
 
         return WorkspaceResult.Ok(new AuthorizedProject(projectId, Path.GetFileName(trimmed), Abbreviate(trimmed)));
     }
@@ -39,6 +61,14 @@ public sealed class WorkspaceAuthorizer(IWorkspaceFileSystem fileSystem)
         return found;
     }
 
+    private static string Trim(string path) => path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+    private static bool IsProjectRoot(string resolved, string trimmed) =>
+        trimmed.Length > 0 && Directory.GetParent(trimmed) is not null && Path.GetPathRoot(resolved) != resolved;
+
+    private static string ProjectIdFor(string trimmed) =>
+        "p-" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Normalize(trimmed))))[..12].ToLowerInvariant();
+
     private static string Normalize(string path) =>
         OperatingSystem.IsWindows() ? path.ToUpperInvariant() : path;
 
@@ -46,7 +76,7 @@ public sealed class WorkspaceAuthorizer(IWorkspaceFileSystem fileSystem)
     internal string Abbreviate(string path)
     {
         var sep = Path.DirectorySeparatorChar;
-        var home = fileSystem.HomeDirectory.TrimEnd(sep);
+        var home = _fileSystem.HomeDirectory.TrimEnd(sep);
         var shown = home.Length > 0 && path.StartsWith(home, StringComparison.OrdinalIgnoreCase)
             ? "~" + path[home.Length..]
             : path;

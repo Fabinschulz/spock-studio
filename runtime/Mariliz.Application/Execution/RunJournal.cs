@@ -9,6 +9,10 @@ public sealed class RunJournal
     public string ProjectId { get; set; } = "";
     public string Kind { get; set; } = "";
     public string PlanId { get; set; } = "";
+
+    /// <summary>Identificador da execução no runtime. Só o workflow preenche; o diário do harness não.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ExecutionId { get; set; }
     public string State { get; set; } = RunStates.Running;
     public DateTimeOffset StartedAt { get; set; }
     public DateTimeOffset? FinishedAt { get; set; }
