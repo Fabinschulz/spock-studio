@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
+using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Validation;
 using Mariliz.Application.Workspace;
@@ -19,11 +20,12 @@ public sealed class ConfigureProjectService(
     IProcessRunner runner,
     IRunStore store,
     IClock clock,
-    RunTracker tracker)
+    RunTracker tracker,
+    IModelSettings? models = null)
 {
     private readonly PlanSessionStore _plans = new();
     private readonly ProjectPlanner _planner = new(runner);
-    private readonly ApplyService _apply = new(runner, store, clock);
+    private readonly ApplyService _apply = new(runner, store, clock, models);
     private readonly RevertService _revert = new(store, clock);
 
     public async Task<DiscoveryReport> DiscoverAsync(string projectId, CancellationToken ct)
@@ -91,7 +93,7 @@ public sealed class ConfigureProjectService(
             {
                 run.SetState(RunStates.Validating);
                 var report = await ValidationService.RunAsync(runner, store, files, root, projectId,
-                    ct => _planner.ReplanAsync(projectId, root, files, new PlanOptions(null), ct), run.Cancellation.Token);
+                    ct => _planner.ReplanAsync(projectId, root, files, new PlanOptions(null), ct), run.Cancellation.Token, models);
 
                 var result = ResultJson.BuildValidation(run.RunId, projectId, report);
                 SaveValidationJournal(run, startedAt, report, result);

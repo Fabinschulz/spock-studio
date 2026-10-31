@@ -1,4 +1,5 @@
 using Mariliz.Application.Harness;
+using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Specification;
 using Mariliz.Application.Validation;
@@ -28,7 +29,8 @@ internal sealed class ApplyExecution(
     ApplyApprovals approvals,
     Func<CancellationToken, Task<Replanned>> replan,
     Func<CancellationToken, Task<Replanned>> replanAfterApply,
-    CancellationToken ct)
+    CancellationToken ct,
+    IModelSettings? models = null)
 {
     private static readonly TimeSpan InstallTimeout = TimeSpan.FromMinutes(5);
 
@@ -234,7 +236,7 @@ internal sealed class ApplyExecution(
         run.SetState(RunStates.Validating);
         var step = _recorder.BeginStep("validate", "Validar a configuração aplicada");
 
-        var report = await ValidationService.RunAsync(runner, store, files, root, run.ProjectId, replanAfterApply, ct);
+        var report = await ValidationService.RunAsync(runner, store, files, root, run.ProjectId, replanAfterApply, ct, models);
         journal.Evals = EvalSummary.From(report);
 
         _recorder.CompleteStep(step, StepStatus.Completed, report.Outcome.ToString());

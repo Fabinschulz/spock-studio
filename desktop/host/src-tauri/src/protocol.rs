@@ -21,6 +21,10 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "run.cancel",
     "workflow.start",
     "workflow.resume",
+    "model.status",
+    "model.save",
+    "model.clear",
+    "model.complete",
 ];
 
 #[derive(Debug, Clone, Serialize, PartialEq)]

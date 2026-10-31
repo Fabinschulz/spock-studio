@@ -10,17 +10,10 @@ internal sealed class ModelJudgeCheck : IEvalCheck
 {
     public string Id => EvalIds.Judge;
 
-    public Task<EvalResult> RunAsync(EvalSpec spec, ValidationContext ctx, IReadOnlyList<EvalResult> completed, CancellationToken ct)
-    {
-        if (!ModelGateway.IsConfigured)
-            return Task.FromResult(EvalResults.NotRun(spec,
-                "Nenhum modelo está configurado: esta fase não chama modelos de IA. O juiz semântico fica para uma fase futura."));
-
-        return Task.FromResult(EvalResults.NotRun(spec, "O juiz por modelo não decide o resultado."));
-    }
-}
-
-internal static class ModelGateway
-{
-    public static bool IsConfigured => false;
+    public Task<EvalResult> RunAsync(EvalSpec spec, ValidationContext ctx, IReadOnlyList<EvalResult> completed, CancellationToken ct) =>
+        Task.FromResult(ctx.Models?.Status() switch
+        {
+            { Configured: true } => EvalResults.NotRun(spec, "O juiz por modelo não decide o resultado."),
+            _ => EvalResults.NotRun(spec, "Nenhum modelo está configurado: esta fase não chama modelos de IA. O juiz semântico fica para uma fase futura.")
+        });
 }

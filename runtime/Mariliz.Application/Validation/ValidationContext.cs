@@ -1,4 +1,5 @@
 using Mariliz.Application.Execution;
+using Mariliz.Application.Models;
 using Mariliz.Application.Harness;
 using Mariliz.Application.Ports;
 using Mariliz.Core.Discovery;
@@ -15,7 +16,8 @@ public sealed record ValidationContext(
     string? DeclaredError,
     IProcessRunner Runner,
     Func<CancellationToken, Task<ConfigurationPlan>> Replan,
-    IReadOnlyList<EvalSummary> PreviousEvals)
+    IReadOnlyList<EvalSummary> PreviousEvals,
+    IModelSettings? Models = null)
 {
     /// <summary>
     /// Arquivos que a aplicação gerou. Os mesclados e "kept" ficam no lock para a decisão não se perder,

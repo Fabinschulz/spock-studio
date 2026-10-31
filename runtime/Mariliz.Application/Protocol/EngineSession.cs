@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Harness;
+using Mariliz.Application.Models;
 using Mariliz.Application.Workflows;
 using Mariliz.Application.Workspace;
 
@@ -20,6 +21,7 @@ public sealed class EngineSession
     private readonly WorkspaceAuthorizer? _workspace;
     private readonly ConfigureRequestHandler? _configure;
     private readonly WorkflowRequestHandler? _workflows;
+    private readonly ModelGateway? _models;
     private readonly RunTracker? _tracker;
     private readonly SemaphoreSlim _outputGate = new(1, 1);
     private TextWriter? _output;
@@ -31,12 +33,14 @@ public sealed class EngineSession
         ConfigureProjectService? configure = null,
         EventRelay? relay = null,
         RunTracker? tracker = null,
-        WorkflowService? workflows = null)
+        WorkflowService? workflows = null,
+        ModelGateway? models = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
         _configure = configure is null ? null : new ConfigureRequestHandler(configure);
         _workflows = workflows is null ? null : new WorkflowRequestHandler(workflows);
+        _models = models;
         _tracker = tracker;
         if (relay is not null) relay.Target = WriteEvent;
 
@@ -44,6 +48,7 @@ public sealed class EngineSession
         if (workspace is not null) offered.Add(ProtocolMethods.AuthorizeWorkspace);
         if (configure is not null) offered.AddRange(ProtocolMethods.Configure);
         if (workflows is not null) offered.AddRange(ProtocolMethods.Workflow);
+        if (models is not null) offered.AddRange(ProtocolMethods.Model);
         _capabilities = [.. offered];
     }
 
@@ -119,32 +124,72 @@ public sealed class EngineSession
         }
     }
 
-    private async Task<(JsonObject Response, bool Shutdown)> DispatchAsync(string id, string method, JsonObject? parameters, CancellationToken ct)
-    {
-        switch (method)
+    private async Task<(JsonObject Response, bool Shutdown)> DispatchAsync(string id, string method, JsonObject? parameters, CancellationToken ct) =>
+        method switch
         {
-            case ProtocolMethods.Hello:
-                return Reply(Hello(id, parameters));
-            case ProtocolMethods.Shutdown:
-                return (ProtocolMessages.Ok(id, new JsonObject()), true);
-            case ProtocolMethods.AuthorizeWorkspace when _workspace is not null:
-                return Reply(Authorize(id, parameters));
-            case ProtocolMethods.RuntimeHealth when _workflows is not null:
-                return Reply(ProtocolMessages.Ok(id, new JsonObject
-                {
-                    ["engine"] = "ready",
-                    ["aiRuntime"] = _workflows.AiRuntimeStatus()
-                }));
-        }
+            ProtocolMethods.Hello => Reply(Hello(id, parameters)),
+            ProtocolMethods.Shutdown => (ProtocolMessages.Ok(id, new JsonObject()), true),
+            ProtocolMethods.AuthorizeWorkspace when _workspace is not null => Reply(Authorize(id, parameters)),
+            ProtocolMethods.RuntimeHealth when _workflows is not null => Reply(Health(id)),
+            ProtocolMethods.ModelStatus when _models is not null => Reply(ProtocolMessages.Ok(id, StatusJson(_models.Status()))),
+            ProtocolMethods.ModelSave when _models is not null => Reply(SaveModel(id, parameters)),
+            ProtocolMethods.ModelClear when _models is not null => Reply(ClearModel(id)),
+            ProtocolMethods.ModelComplete when _models is not null => Reply(await CompleteModel(id, parameters, ct)),
+            _ when _configure is not null && ProtocolMethods.Configure.Contains(method) =>
+                Reply(ProtocolMessages.Ok(id, await _configure.HandleAsync(method, new RequestParams(parameters), ct))),
+            _ when _workflows is not null && ProtocolMethods.Workflow.Contains(method) =>
+                Reply(ProtocolMessages.Ok(id, await _workflows.HandleAsync(method, new RequestParams(parameters), ct))),
+            _ => Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.MethodNotFound, "Método desconhecido."))
+        };
 
-        if (_configure is not null && ProtocolMethods.Configure.Contains(method))
-            return Reply(ProtocolMessages.Ok(id, await _configure.HandleAsync(method, new RequestParams(parameters), ct)));
+    private JsonObject Health(string id) =>
+        ProtocolMessages.Ok(id, new JsonObject
+        {
+            ["engine"] = "ready",
+            ["aiRuntime"] = _workflows!.AiRuntimeStatus()
+        });
 
-        if (_workflows is not null && ProtocolMethods.Workflow.Contains(method))
-            return Reply(ProtocolMessages.Ok(id, await _workflows.HandleAsync(method, new RequestParams(parameters), ct)));
-
-        return Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.MethodNotFound, "Método desconhecido."));
+    private JsonObject ClearModel(string id)
+    {
+        _models!.Clear();
+        return ProtocolMessages.Ok(id, StatusJson(_models.Status()));
     }
+
+    private JsonObject SaveModel(string id, JsonObject? parameters) =>
+        (ReadString(parameters, "provider"), ReadString(parameters, "key")) switch
+        {
+            (string provider, string key) => StoreModel(id, provider, key),
+            _ => ProtocolMessages.Error(id, ProtocolErrorCodes.InvalidParams, "Parâmetros de model.save inválidos.")
+        };
+
+    private JsonObject StoreModel(string id, string provider, string key)
+    {
+        _models!.Save(provider, key);
+        return ProtocolMessages.Ok(id, StatusJson(_models.Status()));
+    }
+
+    private async Task<JsonObject> CompleteModel(string id, JsonObject? parameters, CancellationToken ct) =>
+        ReadString(parameters, "prompt") switch
+        {
+            string prompt => ProtocolMessages.Ok(id, CompletionJson(await _models!.CompleteAsync(prompt, ct))),
+            _ => ProtocolMessages.Error(id, ProtocolErrorCodes.InvalidParams, "Parâmetros de model.complete inválidos.")
+        };
+
+    private static JsonObject CompletionJson(ModelCompletion completion) => new()
+    {
+        ["text"] = completion.Text,
+        ["tokens"] = completion.Tokens,
+        ["limitation"] = completion.Limitation
+    };
+
+    private static string? ReadString(JsonObject? values, string name) =>
+        values?[name] is JsonValue node && node.TryGetValue<string>(out var text) ? text : null;
+
+    private static JsonObject StatusJson(ModelStatus status) => new()
+    {
+        ["configured"] = status.Configured,
+        ["provider"] = status.Provider
+    };
 
     private static (JsonObject Response, bool Shutdown) Reply(JsonObject response) => (response, false);
 

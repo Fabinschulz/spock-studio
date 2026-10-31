@@ -1,4 +1,5 @@
 using Mariliz.Application.Execution;
+using Mariliz.Application.Models;
 using Mariliz.Application.Harness;
 using Mariliz.Application.Ports;
 using Mariliz.Core.Evals;
@@ -10,7 +11,7 @@ public static class ValidationService
 {
     public static async Task<ValidationReport> RunAsync(
         IProcessRunner runner, IRunStore store, IProjectFiles files, string root, string projectId,
-        Func<CancellationToken, Task<Replanned>> replan, CancellationToken ct)
+        Func<CancellationToken, Task<Replanned>> replan, CancellationToken ct, IModelSettings? models = null)
     {
         var fresh = await replan(ct);
         var (declared, declaredError) = DeclaredConfig.TryRead(files);
@@ -21,7 +22,7 @@ public static class ValidationService
             .FirstOrDefault()?.Evals ?? [];
 
         var context = new ValidationContext(files, root, fresh.Discovery, ManagedLockFile.Read(files), declared, declaredError, runner,
-            async c => (await replan(c)).Plan, previous);
+            async c => (await replan(c)).Plan, previous, models);
 
         return await EvalRunner.RunAsync(context, ct);
     }

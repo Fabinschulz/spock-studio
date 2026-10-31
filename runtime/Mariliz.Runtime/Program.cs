@@ -2,6 +2,7 @@ using System.Text;
 using Mariliz.Application;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Harness;
+using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Workflows;
@@ -23,10 +24,12 @@ var relay = new EventRelay();
 var tracker = new RunTracker(relay.Emit);
 var clock = new SystemClock();
 var runner = new SystemProcessRunner();
+var settings = new FileModelSettings(dataRoot);
+var models = new ModelGateway(settings, new HttpsModelTransport());
 var configure = new ConfigureProjectService(
-    workspace, new LocalProjectFilesFactory(), runner, store, clock, tracker);
+    workspace, new LocalProjectFilesFactory(), runner, store, clock, tracker, settings);
 var workflows = new WorkflowService(workspace, new LoopbackAiRuntime(), tracker, clock, new LocalProjectFilesFactory(), runner, dataRoot, store);
-var session = new EngineSession(BuildInfo.Version, workspace: workspace, configure: configure, relay: relay, tracker: tracker, workflows: workflows);
+var session = new EngineSession(BuildInfo.Version, workspace: workspace, configure: configure, relay: relay, tracker: tracker, workflows: workflows, models: models);
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);
