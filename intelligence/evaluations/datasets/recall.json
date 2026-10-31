@@ -1,0 +1,47 @@
+{
+  "schema": "rag.recall.v1",
+  "k": 3,
+  "minMeanRecall": 1.0,
+  "cases": [
+    {
+      "id": "termo-distintivo",
+      "projectId": "p-aaaaaaaaaaaa",
+      "query": "mariliz cobrança recorrente",
+      "expectChunkIds": ["docs/cobranca.md#1"],
+      "sources": [
+        {
+          "path": "docs/cobranca.md",
+          "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "text": "O módulo de mariliz cobrança recorrente descreve faturamento, ciclo de vida da assinatura e reconciliação bancária com texto longo o bastante para indexar."
+        },
+        {
+          "path": "docs/catalogo.md",
+          "hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "text": "Catálogo de produtos, estoque e preços promocionais sem relação com o fluxo de pagamento recorrente."
+        }
+      ]
+    },
+    {
+      "id": "atualizacao-incremental",
+      "projectId": "p-bbbbbbbbbbbb",
+      "query": "token exclusivo delta",
+      "expectChunkIds": ["docs/nota.md#1"],
+      "sources": [
+        {
+          "path": "docs/nota.md",
+          "hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "text": "Versão inicial do documento sem o termo procurado, apenas contexto genérico longo o suficiente para chunk."
+        }
+      ],
+      "resync": {
+        "sources": [
+          {
+            "path": "docs/nota.md",
+            "hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "text": "Após a sincronização incremental, o token exclusivo delta aparece neste parágrafo com conteúdo longo para a busca lexical encontrar."
+          }
+        ]
+      }
+    }
+  ]
+}

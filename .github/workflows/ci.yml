@@ -26,6 +26,8 @@ jobs:
       # propósito, regenere com MARILIZ_UPDATE_GOLDEN=1 dotnet test e revise o diff das fixtures.
       - name: testes
         run: dotnet test runtime/Mariliz.sln --nologo
+      - name: inteligência (Python)
+        run: python -m unittest discover -s intelligence/tests -p "test_*.py" -v
 
   ui:
     name: interface React
