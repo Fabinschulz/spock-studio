@@ -10,9 +10,10 @@ export function HomePage() {
   const { selected, pick } = useProjectSelectionContext();
 
   const startJourney = async (id: JourneyId) => {
-    if (id !== 'configure-project') return;
+    if (id !== 'configure-project' && id !== 'engineering-request') return;
     const project = selected ?? (await pick());
-    if (project) navigate(pathTo('configure'));
+    if (!project) return;
+    navigate(pathTo(id === 'engineering-request' ? 'engineeringRequest' : 'configure'));
   };
 
   return (

@@ -1,11 +1,12 @@
 import { ActionCard, FolderIcon } from '@/shared/components/ui';
-import { BookUploadIcon, UpdateIcon, UserConnectionsIcon } from '@synthra.io/ui-kit';
+import { BookUploadIcon, SearchIcon, UpdateIcon, UserConnectionsIcon } from '@synthra.io/ui-kit';
 import type { ReactNode } from 'react';
 import styles from './journey-grid.module.scss';
 import { journeys, type JourneyId } from './journeys';
 
 const icons: Record<JourneyId, ReactNode> = {
   'configure-project': <FolderIcon />,
+  'engineering-request': <SearchIcon />,
   'import-requirements': <BookUploadIcon />,
   'connect-tools': <UserConnectionsIcon />,
   'modernize-system': <UpdateIcon />
@@ -24,7 +25,7 @@ export function JourneyGrid({ onStartJourney }: JourneyGridProps) {
             title={journey.title}
             description={journey.description}
             icon={icons[journey.id]}
-            variant={journey.id === 'configure-project' ? 'primary' : 'default'}
+            variant={journey.id === 'configure-project' || journey.id === 'engineering-request' ? 'primary' : 'default'}
             unavailableReason={journey.unavailableReason}
             onClick={() => onStartJourney?.(journey.id)}
           />

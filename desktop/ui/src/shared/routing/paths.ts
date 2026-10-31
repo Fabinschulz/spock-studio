@@ -2,6 +2,7 @@
 export const paths = {
   home: '/',
   configure: '/configurar',
+  engineeringRequest: '/pedido',
   settings: '/configuracoes'
 } as const;
 

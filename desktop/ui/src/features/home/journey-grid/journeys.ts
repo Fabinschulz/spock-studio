@@ -1,4 +1,9 @@
-export type JourneyId = 'configure-project' | 'import-requirements' | 'connect-tools' | 'modernize-system';
+export type JourneyId =
+  | 'configure-project'
+  | 'engineering-request'
+  | 'import-requirements'
+  | 'connect-tools'
+  | 'modernize-system';
 
 export type Journey = {
   id: JourneyId;
@@ -14,6 +19,11 @@ export const journeys: readonly Journey[] = [
     id: 'configure-project',
     title: 'Configurar projeto',
     description: 'Analisa o repositório e configura o Harness.'
+  },
+  {
+    id: 'engineering-request',
+    title: 'Pedido de engenharia',
+    description: 'Analisa objetivo, evidências e impacto sem alterar o repositório.'
   },
   {
     id: 'import-requirements',
