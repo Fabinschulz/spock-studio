@@ -20,7 +20,7 @@ export function SideNav() {
     { id: 'home', label: 'Início', icon: <Home01Icon fontSize="small" />, to: pathTo('home'), end: true },
     { id: 'configure', label: 'Projetos', icon: <ListViewRectangleIcon fontSize="small" />, to: pathTo('configure') },
     { id: 'catalog', label: 'Catálogo', icon: <LibraryIcon fontSize="small" />, unavailableReason: 'Em breve' },
-    { id: 'settings', label: 'Configurações', icon: <SettingIcon fontSize="small" />, unavailableReason: 'Em breve' }
+    { id: 'settings', label: 'Configurações', icon: <SettingIcon fontSize="small" />, to: pathTo('settings') }
   ];
 
   return (

@@ -64,14 +64,10 @@ describe('AppShell · navegação', () => {
     expect(within(nav).getByRole('link', { name: 'Início' })).toHaveAttribute('aria-current', 'page');
     // "Projetos" abre a primeira etapa da jornada, onde se escolhe a pasta: sempre existe.
     expect(within(nav).getByRole('link', { name: 'Projetos' })).toHaveAttribute('href', '/configurar');
-    for (const [name, reason] of [
-      ['Catálogo', 'Em breve'],
-      ['Configurações', 'Em breve']
-    ] as const) {
-      const item = within(nav).getByRole('button', { name: new RegExp(name) });
-      expect(item).toHaveAttribute('aria-disabled', 'true');
-      expect(item).toHaveAccessibleDescription(reason);
-    }
+    expect(within(nav).getByRole('link', { name: 'Configurações' })).toHaveAttribute('href', '/configuracoes');
+    const catalog = within(nav).getByRole('button', { name: /Catálogo/ });
+    expect(catalog).toHaveAttribute('aria-disabled', 'true');
+    expect(catalog).toHaveAccessibleDescription('Em breve');
   });
 
   it('o atalho "Ir para o conteúdo" move o foco para a área principal, sem mudar a rota', async () => {

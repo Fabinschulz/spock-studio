@@ -239,6 +239,11 @@ export const runsListSchema = z.object({
 });
 export const cancelSchema = z.object({ cancelled: z.boolean() });
 
+export const modelStatusSchema = z.object({
+  configured: z.boolean(),
+  provider: z.string()
+});
+
 /** Decisão da pessoa para um arquivo em conflito: manter o dela ou substituir (com backup). */
 export type ConflictResolution = 'keep' | 'overwrite';
 
