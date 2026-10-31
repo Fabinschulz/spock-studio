@@ -1,0 +1,380 @@
+$compact: 54rem; // abaixo de 864 px o menu vira faixa de ícones
+$wide: 73.75rem; // 1180 px: o painel de contexto cabe ao lado
+
+.frame {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 0;
+}
+
+.demoStrip {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mz-2);
+  min-height: 1.75rem;
+  padding: 2px var(--mz-4);
+  background: var(--mz-warning-subtle);
+  border-bottom: 1px solid var(--mz-line-subtle);
+  color: var(--mz-warning);
+  font-size: var(--mz-fs-caption);
+  text-align: center;
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+.body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: var(--mz-rail-w) minmax(0, 1fr);
+  min-height: 0;
+
+  @media (max-width: calc(#{$compact} - 0.02px)) {
+    grid-template-columns: var(--mz-rail-w-compact) minmax(0, 1fr);
+  }
+}
+
+// ---- Menu lateral
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mz-4);
+  min-height: 0;
+  padding: var(--mz-4) var(--mz-3);
+  background: var(--mz-bg-rail);
+  border-right: 1px solid var(--mz-line-subtle);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--mz-3);
+  padding: var(--mz-1) var(--mz-2);
+  color: var(--mz-text);
+  text-decoration: none;
+  border-radius: var(--mz-radius-sm);
+
+  svg:first-child {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+}
+
+.wordmark {
+  height: 0.95rem;
+  color: var(--mz-text);
+}
+
+.nav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--mz-4);
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}
+
+.soonList {
+  margin-top: auto !important;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--mz-3);
+  width: 100%;
+  min-height: 2rem;
+  padding: 0 var(--mz-3);
+  border-radius: var(--mz-radius-sm);
+  color: var(--mz-text-2);
+  font-size: var(--mz-fs-body-sm);
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background var(--mz-dur-1) var(--mz-ease),
+    color var(--mz-dur-1) var(--mz-ease);
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--mz-surface-hover);
+      color: var(--mz-text);
+    }
+  }
+}
+
+// Item atual: marca fina à esquerda + texto claro. Sem preenchimento chamativo.
+.itemActive {
+  position: relative;
+  background: var(--mz-surface-hover);
+  color: var(--mz-text);
+
+  svg {
+    color: var(--mz-accent-text);
+  }
+
+  &::before {
+    position: absolute;
+    top: 7px;
+    bottom: 7px;
+    left: 0;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--mz-accent);
+    content: '';
+  }
+}
+
+.itemSoon {
+  cursor: default;
+  color: var(--mz-text-3);
+
+  @media (hover: hover) {
+    &:hover {
+      background: transparent;
+      color: var(--mz-text-3);
+    }
+  }
+}
+
+.itemLabel {
+  min-width: 0;
+}
+
+.soonTag {
+  flex: none;
+  margin-left: auto;
+  white-space: nowrap;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: var(--mz-text-3);
+}
+
+.engine {
+  display: flex;
+  align-items: center;
+  gap: var(--mz-3);
+  padding: 0 var(--mz-3);
+  color: var(--mz-text-2);
+  font-size: var(--mz-fs-caption);
+}
+
+.engineState {
+  color: var(--mz-text-3);
+}
+
+.engineDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--mz-success);
+  box-shadow: 0 0 0 3px var(--mz-success-subtle);
+}
+
+@media (max-width: calc(#{$compact} - 0.02px)) {
+  .rail {
+    align-items: center;
+    padding-inline: var(--mz-2);
+  }
+
+  .brand {
+    padding: 0;
+
+    .wordmark {
+      display: none;
+    }
+  }
+
+  .itemLabel,
+  .soonTag {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .item {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .engine {
+    padding: 0;
+  }
+}
+
+// ---- Área da tela: coluna principal + painel de contexto
+.stage {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--mz-3);
+  min-height: 3rem;
+  padding: 0 var(--mz-5);
+  border-bottom: 1px solid var(--mz-line-subtle);
+}
+
+.barMain {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--mz-3);
+  min-width: 0;
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--mz-6) var(--mz-5) var(--mz-6);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mz-5);
+  max-width: 46rem;
+  margin: 0 auto;
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--mz-3);
+  padding: var(--mz-3) var(--mz-5);
+  border-top: 1px solid var(--mz-line-subtle);
+  background: var(--mz-bg);
+}
+
+.actionsNote {
+  flex: 1;
+  min-width: 12rem;
+  color: var(--mz-text-3);
+  font-size: var(--mz-fs-caption);
+}
+
+// ---- Painel de contexto
+.panel {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: var(--mz-panel-w);
+  min-height: 0;
+  border-left: 1px solid var(--mz-line-subtle);
+  background: var(--mz-bg);
+}
+
+// Janela estreita: o painel vira gaveta sobre o conteúdo (não espreme a área de trabalho).
+.panelOverlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  background: var(--mz-surface);
+  box-shadow: var(--mz-shadow-overlay);
+  animation: drawer var(--mz-dur-2) var(--mz-ease);
+}
+
+@keyframes drawer {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+
+.panelHead {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3rem;
+  padding: 0 var(--mz-4);
+  border-bottom: 1px solid var(--mz-line-subtle);
+}
+
+.panelTitle {
+  font-size: var(--mz-fs-body-sm);
+  font-weight: 600;
+  color: var(--mz-text-2);
+}
+
+.panelBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--mz-5);
+  min-height: 0;
+  padding: var(--mz-4);
+  overflow-y: auto;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: var(--mz-target);
+  height: var(--mz-target);
+  border-radius: var(--mz-radius-sm);
+  color: var(--mz-text-2);
+  cursor: pointer;
+  transition:
+    background var(--mz-dur-1) var(--mz-ease),
+    color var(--mz-dur-1) var(--mz-ease);
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--mz-surface-hover);
+      color: var(--mz-text);
+    }
+  }
+
+  &[aria-expanded='true'] {
+    color: var(--mz-accent-text);
+  }
+}
+
+// Ponto de atividade no botão do painel: existe só enquanto há algo em andamento.
+.livePip {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--mz-working);
+}

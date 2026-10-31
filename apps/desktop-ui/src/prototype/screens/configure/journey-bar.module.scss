@@ -1,0 +1,142 @@
+.bar {
+  container-type: inline-size;
+  flex: 1;
+  min-width: 0;
+}
+
+.list {
+  display: flex;
+  align-items: center;
+  gap: var(--mz-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--mz-1);
+
+  & + &::before {
+    width: 0.875rem;
+    height: 1px;
+    background: var(--mz-line);
+    content: '';
+  }
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mz-2);
+  min-height: var(--mz-target);
+  padding: 0 var(--mz-2);
+  border-radius: var(--mz-radius-sm);
+  color: var(--mz-text-3);
+  font-size: var(--mz-fs-body-sm);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+button.step {
+  cursor: pointer;
+  color: var(--mz-text-2);
+  transition: background var(--mz-dur-1) var(--mz-ease);
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--mz-surface-hover);
+      color: var(--mz-text);
+    }
+  }
+}
+
+.dot {
+  display: inline-grid;
+  flex: none;
+  place-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 1px solid var(--mz-line-control);
+  border-radius: 50%;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  transition:
+    background var(--mz-dur-2) var(--mz-ease),
+    border-color var(--mz-dur-2) var(--mz-ease),
+    color var(--mz-dur-2) var(--mz-ease);
+}
+
+[data-state='done'] .dot {
+  border-color: var(--mz-success);
+  background: var(--mz-success-subtle);
+  color: var(--mz-success);
+}
+
+[data-state='current'] {
+  .step {
+    color: var(--mz-text);
+  }
+
+  .dot {
+    border-color: var(--mz-accent);
+    background: var(--mz-accent);
+    color: var(--mz-on-accent);
+    font-weight: 700;
+  }
+}
+
+[data-state='issue'] {
+  .step {
+    color: var(--mz-danger);
+  }
+
+  .dot {
+    border-color: var(--mz-danger);
+    background: var(--mz-danger-subtle);
+  }
+}
+
+.compact {
+  display: none;
+  color: var(--mz-text-2);
+  font-size: var(--mz-fs-body-sm);
+
+  strong {
+    color: var(--mz-text);
+    font-weight: 600;
+  }
+}
+
+// Janela estreita: só a etapa atual por extenso ("Etapa 3 de 6 · Plano"); os marcadores continuam.
+@container (max-width: 46rem) {
+  .list {
+    gap: 0;
+  }
+
+  .item:not([data-state='current']) .label {
+    display: none;
+  }
+
+  .item:not([data-state='current']) .step {
+    padding: 0 2px;
+  }
+}
+
+@container (max-width: 30rem) {
+  // Fica no DOM (leitor de tela) mas sai da vista; o texto compacto, só visual, toma o lugar.
+  .list {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .compact {
+    display: block;
+  }
+}

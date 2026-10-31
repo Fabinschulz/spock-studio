@@ -1,0 +1,61 @@
+@use '@/shared/styles/fonts';
+@use '@/shared/styles/reset';
+@use 'tokens';
+
+html,
+body {
+  margin: 0;
+  background: #0a0f10;
+}
+
+.mz {
+  min-height: 100vh;
+  background: var(--mz-bg);
+  color: var(--mz-text);
+  font-family: var(--mz-font);
+  font-size: var(--mz-fs-body);
+  line-height: 1.5;
+  font-feature-settings: 'cv11', 'ss03';
+  -webkit-font-smoothing: antialiased;
+
+  h1,
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--mz-focus);
+    outline-offset: 2px;
+    border-radius: var(--mz-radius-sm);
+  }
+
+  ::selection {
+    background: var(--mz-accent-subtle);
+  }
+
+  // Barras de rolagem discretas (a janela é de um aplicativo, não de um site).
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--mz-ink-500) transparent;
+  }
+}
+
+.mz-vh {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mz-mono {
+  font-family: var(--mz-mono);
+  font-size: var(--mz-fs-caption);
+  overflow-wrap: anywhere;
+}

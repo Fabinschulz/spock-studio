@@ -1,0 +1,469 @@
+// Estilos comuns às telas do protótipo: títulos, linhas e campos. Sem cartões: a estrutura vem de espaço e linhas finas.
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mz-2);
+}
+
+.title {
+  font-size: var(--mz-fs-display);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: var(--mz-ls-display);
+}
+
+.heading {
+  font-size: var(--mz-fs-heading);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+.lead {
+  max-width: 60ch;
+  color: var(--mz-text-2);
+  font-size: var(--mz-fs-body);
+}
+
+.barTitle {
+  font-size: var(--mz-fs-body-sm);
+  font-weight: 600;
+}
+
+.barSub {
+  color: var(--mz-text-3);
+  font-size: var(--mz-fs-body-sm);
+}
+
+// ---- Campo do projeto (como o campo de envio de uma conversa: uma peça só, discreta)
+.composer {
+  display: flex;
+  align-items: center;
+  gap: var(--mz-3);
+  padding: var(--mz-2) var(--mz-2) var(--mz-2) var(--mz-4);
+  border: 1px solid var(--mz-line);
+  border-radius: var(--mz-radius-md);
+  background: var(--mz-surface);
+  transition: border-color var(--mz-dur-2) var(--mz-ease);
+
+  &:focus-within,
+  &:hover {
+    border-color: var(--mz-line-control);
+  }
+
+  > svg {
+    flex: none;
+    color: var(--mz-accent-text);
+  }
+}
+
+.composerText {
+  flex: 1;
+  min-width: 0;
+}
+
+.composerName {
+  overflow: hidden;
+  font-size: var(--mz-fs-body-sm);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.composerPath {
+  overflow: hidden;
+  color: var(--mz-text-3);
+  font-family: var(--mz-mono);
+  font-size: var(--mz-fs-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note {
+  color: var(--mz-text-3);
+  font-size: var(--mz-fs-caption);
+}
+
+// ---- Linhas (listas planas com separadores)
+.rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--mz-3);
+  min-height: 2.75rem;
+  padding: var(--mz-2) var(--mz-3);
+  margin: 0 calc(var(--mz-3) * -1);
+  border-radius: var(--mz-radius-sm);
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  transition: background var(--mz-dur-1) var(--mz-ease);
+
+  & + & {
+    box-shadow: 0 -1px 0 var(--mz-line-subtle);
+  }
+}
+
+button.row,
+a.row {
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--mz-surface-hover);
+    }
+  }
+}
+
+.rowDisabled {
+  color: var(--mz-text-3);
+  cursor: default;
+}
+
+.rowIcon {
+  display: inline-flex;
+  color: var(--mz-text-3);
+}
+
+.rowAccent {
+  color: var(--mz-accent-text);
+}
+
+.rowTitle {
+  font-size: var(--mz-fs-body);
+  font-weight: 500;
+}
+
+.rowMeta {
+  color: var(--mz-text-3);
+  font-size: var(--mz-fs-body-sm);
+}
+
+.rowEnd {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mz-2);
+  color: var(--mz-text-3);
+  font-size: var(--mz-fs-body-sm);
+}
+
+.mono {
+  font-family: var(--mz-mono);
+  font-size: var(--mz-fs-caption);
+  overflow-wrap: anywhere;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mz-3);
+}
+
+// ---- Estado vazio / carregando honesto
+.working {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mz-3);
+  padding: var(--mz-4) 0;
+}
+
+.workingLine {
+  display: flex;
+  align-items: center;
+  gap: var(--mz-3);
+  font-size: var(--mz-fs-body);
+}
+
+// Barra indeterminada: o motor não informa percentual nesta etapa, então nenhum percentual é mostrado.
+.indeterminate {
+  position: relative;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--mz-line);
+
+  &::after {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 35%;
+    border-radius: 2px;
+    background: var(--mz-accent);
+    content: '';
+    animation: slide 1.4s var(--mz-ease) infinite;
+  }
+}
+
+@keyframes slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indeterminate::after {
+    width: 100%;
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+// ---- Aviso em linha (sem caixa pesada)
+.notice {
+  display: flex;
+  gap: var(--mz-3);
+  padding: var(--mz-3) var(--mz-4);
+  border-radius: var(--mz-radius-md);
+  background: var(--mz-surface);
+  font-size: var(--mz-fs-body-sm);
+
+  > svg {
+    flex: none;
+    margin-top: 2px;
+    color: var(--mz-accent-text);
+  }
+
+  p + p {
+    margin-top: var(--mz-1);
+    color: var(--mz-text-2);
+  }
+}
+
+.noticeWarn > svg {
+  color: var(--mz-warning);
+}
+
+// ---- Detalhes que expandem
+.details {
+  summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mz-1);
+    color: var(--mz-text-2);
+    font-size: var(--mz-fs-body-sm);
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::before {
+      content: '›';
+      display: inline-block;
+      transition: transform var(--mz-dur-1) var(--mz-ease);
+    }
+  }
+
+  &[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  > :not(summary) {
+    margin-top: var(--mz-2);
+  }
+}
+
+// ---- Escolha única (linhas com marcador à direita)
+.choice {
+  display: flex;
+  align-items: center;
+  gap: var(--mz-3);
+  min-height: 2.75rem;
+  padding: var(--mz-2) var(--mz-3);
+  border: 1px solid transparent;
+  border-radius: var(--mz-radius-md);
+  cursor: pointer;
+  transition:
+    background var(--mz-dur-1) var(--mz-ease),
+    border-color var(--mz-dur-1) var(--mz-ease);
+
+  @media (hover: hover) {
+    &:hover:not([aria-disabled='true']) {
+      background: var(--mz-surface-hover);
+    }
+  }
+
+  &[data-checked='true'] {
+    border-color: var(--mz-accent);
+    background: var(--mz-accent-subtle);
+  }
+
+  &[aria-disabled='true'] {
+    color: var(--mz-text-3);
+    cursor: default;
+  }
+
+  &:has(input:focus-visible) {
+    outline: 2px solid var(--mz-focus);
+    outline-offset: 2px;
+  }
+
+  input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.choiceBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.radio {
+  display: inline-grid;
+  flex: none;
+  place-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 1.5px solid var(--mz-line-control);
+  border-radius: 50%;
+
+  &::after {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--mz-accent);
+    content: '';
+    transform: scale(0);
+    transition: transform var(--mz-dur-1) var(--mz-ease);
+  }
+}
+
+.choice[data-checked='true'] .radio {
+  border-color: var(--mz-accent);
+
+  &::after {
+    transform: scale(1);
+  }
+}
+
+// Caixa de marcação (aprovar uma alteração)
+.check {
+  display: inline-grid;
+  flex: none;
+  place-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 1.5px solid var(--mz-line-control);
+  border-radius: 4px;
+  color: var(--mz-on-accent);
+  transition:
+    background var(--mz-dur-1) var(--mz-ease),
+    border-color var(--mz-dur-1) var(--mz-ease);
+
+  svg {
+    opacity: 0;
+    transition: opacity var(--mz-dur-1) var(--mz-ease);
+  }
+}
+
+[data-checked='true'] > .check {
+  border-color: var(--mz-accent);
+  background: var(--mz-accent);
+
+  svg {
+    opacity: 1;
+  }
+}
+
+// Linha de uma verificação (resumo do <details>) e o corpo que expande.
+.evalSummary {
+  display: flex !important;
+  align-items: center;
+  gap: var(--mz-3);
+  width: 100%;
+  min-height: 2.5rem;
+  color: var(--mz-text);
+}
+
+.evalBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mz-2);
+  padding: 0 0 var(--mz-3) 2.1rem;
+  color: var(--mz-text-2);
+  font-size: var(--mz-fs-body-sm);
+}
+
+.pushRight {
+  margin-left: auto;
+}
+
+.approve {
+  display: inline-flex;
+  cursor: pointer;
+
+  &:has(input:focus-visible) {
+    outline: 2px solid var(--mz-focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.block {
+  display: block;
+}
+
+.minZero {
+  min-width: 0;
+}
+
+.indent {
+  padding: 0 0 var(--mz-2) 2.1rem;
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--mz-line);
+  border-radius: var(--mz-radius-sm);
+
+  button {
+    min-height: 1.625rem;
+    padding: 0 var(--mz-3);
+    border-radius: 4px;
+    color: var(--mz-text-2);
+    font-size: var(--mz-fs-caption);
+    font-weight: 500;
+    cursor: pointer;
+
+    &[aria-pressed='true'] {
+      background: var(--mz-surface-active);
+      color: var(--mz-text);
+    }
+  }
+}
+
+.diff {
+  max-height: 12rem;
+  margin: 0;
+  padding: var(--mz-3);
+  overflow: auto;
+  border-radius: var(--mz-radius-sm);
+  background: var(--mz-sunken);
+  color: var(--mz-text-2);
+  font-family: var(--mz-mono);
+  font-size: var(--mz-fs-caption);
+  white-space: pre;
+}
+
+.summaryLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mz-2) var(--mz-4);
+  color: var(--mz-text-2);
+  font-size: var(--mz-fs-body-sm);
+}

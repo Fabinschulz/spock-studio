@@ -1,0 +1,106 @@
+// =============================================================================
+// PROTÓTIPO — tokens da direção "Workbench" (proposta, ainda não aprovada).
+// Escopo: .mz. Em produção estes valores substituiriam os de shared/styles/_tokens.scss,
+// mantendo as camadas primitivo → semântico → componente.
+// =============================================================================
+
+.mz {
+  color-scheme: dark;
+
+  // ---- Primitivos
+  --mz-teal-300: #7fdcd6;
+  --mz-teal-400: #4fd3cc;
+  --mz-teal-500: #33c1ba; // cor da marca Mariliz
+  --mz-teal-700: #1f7f7a;
+  --mz-ink-0: #070b0c;
+  --mz-ink-100: #0a0f10;
+  --mz-ink-200: #0f1617;
+  --mz-ink-300: #141d1f;
+  --mz-ink-400: #1a2528;
+  --mz-ink-500: #243235;
+
+  // ---- Superfícies: poucas, discretas; a separação vem de linhas finas, não de caixas.
+  --mz-bg: var(--mz-ink-100);
+  --mz-bg-rail: var(--mz-ink-0);
+  --mz-surface: var(--mz-ink-200);
+  --mz-surface-hover: var(--mz-ink-300);
+  --mz-surface-active: var(--mz-ink-400);
+  --mz-sunken: var(--mz-ink-0);
+
+  // ---- Linhas
+  --mz-line-subtle: rgb(160 200 196 / 0.08);
+  --mz-line: rgb(160 200 196 / 0.14);
+  --mz-line-control: #5f7a7a; // bordas de controles: ≥ 3:1 sobre as superfícies (WCAG 1.4.11)
+
+  // ---- Texto
+  --mz-text: #e8f0ef;
+  --mz-text-2: #a5b5b4;
+  --mz-text-3: #7f9190;
+
+  // ---- Marca (usada com parcimônia: ação principal, foco, atividade viva, item atual)
+  --mz-accent: var(--mz-teal-500);
+  --mz-accent-hover: var(--mz-teal-400);
+  --mz-accent-text: var(--mz-teal-400);
+  --mz-accent-subtle: rgb(51 193 186 / 0.12);
+  --mz-on-accent: #06201f;
+  --mz-focus: var(--mz-teal-400);
+
+  // ---- Estados semânticos (sempre acompanhados de ícone + texto)
+  --mz-success: #7bd88f;
+  --mz-success-subtle: rgb(123 216 143 / 0.12);
+  --mz-warning: #e9b44c;
+  --mz-warning-subtle: rgb(233 180 76 / 0.12);
+  --mz-danger: #f2766e;
+  --mz-danger-subtle: rgb(242 118 110 / 0.13);
+  --mz-working: var(--mz-accent-text); // "processando" usa a marca: é a inteligência em atividade
+
+  // ---- Tipografia (Inter; mono do sistema para caminhos e ids)
+  --mz-font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --mz-mono: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
+  --mz-fs-caption: 0.75rem; // 12
+  --mz-fs-body-sm: 0.8125rem; // 13: texto de interface (densidade desktop)
+  --mz-fs-body: 0.875rem; // 14
+  --mz-fs-title: 1rem; // 16
+  --mz-fs-heading: 1.375rem; // 22
+  --mz-fs-display: 1.75rem; // 28
+  --mz-ls-display: -0.02em;
+
+  // ---- Espaço, forma, elevação
+  --mz-1: 0.25rem;
+  --mz-2: 0.5rem;
+  --mz-3: 0.75rem;
+  --mz-4: 1rem;
+  --mz-5: 1.5rem;
+  --mz-6: 2rem;
+  --mz-7: 3rem;
+  --mz-radius-sm: 6px;
+  --mz-radius-md: 10px;
+  --mz-radius-pill: 999px;
+  --mz-shadow-overlay: 0 12px 32px -8px rgb(0 0 0 / 0.6), 0 0 0 1px var(--mz-line);
+
+  // ---- Movimento: curto, só para mudança de estado.
+  --mz-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --mz-dur-1: 120ms;
+  --mz-dur-2: 220ms;
+  --mz-dur-3: 360ms;
+
+  // ---- Compatibilidade: tokens antigos que componentes compartilhados (Logo) ainda leem.
+  --neutral-975: #050c0c;
+  --neutral-50: #f1f7f6;
+  --color-primary: var(--mz-accent);
+  --color-hairline: var(--mz-line);
+
+  // ---- Medidas do workspace
+  --mz-rail-w: 14rem;
+  --mz-rail-w-compact: 3.5rem;
+  --mz-panel-w: 20rem;
+  --mz-target: 2rem; // alvo mínimo de controles secundários (WCAG 2.5.8 pede 24 px)
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mz {
+    --mz-dur-1: 0.01ms;
+    --mz-dur-2: 0.01ms;
+    --mz-dur-3: 0.01ms;
+  }
+}
