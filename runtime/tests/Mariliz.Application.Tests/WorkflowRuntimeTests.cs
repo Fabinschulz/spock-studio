@@ -446,10 +446,37 @@ public class WorkflowRuntimeTests
         public override async ValueTask<string?> ReadLineAsync(CancellationToken ct) => await _lines.Reader.ReadAsync(ct);
     }
 
+    private sealed class LockedWriter : StringWriter
+    {
+        private readonly object _gate = new();
+
+        public LockedWriter() => NewLine = "\n";
+
+        public override void Write(char[] buffer, int index, int count)
+        {
+            lock (_gate) base.Write(buffer, index, count);
+        }
+
+        public override void Write(ReadOnlySpan<char> buffer)
+        {
+            lock (_gate) base.Write(buffer);
+        }
+
+        public override void Write(string? value)
+        {
+            lock (_gate) base.Write(value);
+        }
+
+        public string Snapshot()
+        {
+            lock (_gate) return base.ToString();
+        }
+    }
+
     private sealed class Wire
     {
         public QueueReader Input { get; } = new();
-        public StringWriter Output { get; } = new() { NewLine = "\n" };
+        public LockedWriter Output { get; } = new();
         public Task Running { get; set; } = Task.CompletedTask;
         private int _id;
 
@@ -476,8 +503,7 @@ public class WorkflowRuntimeTests
 
         private List<JsonObject> Messages()
         {
-            string text;
-            lock (Output) text = Output.ToString();
+            var text = Output.Snapshot();
             return text.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(l => (JsonObject)JsonNode.Parse(l)!).ToList();
         }
     }

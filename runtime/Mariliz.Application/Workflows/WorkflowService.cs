@@ -182,7 +182,6 @@ public sealed class WorkflowService(
             throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
 
         var outcome = ack.Status == "failed" ? RunStates.Failed : RunStates.CompletedWithLimitations;
-        Publish(run, ack, ack.Status == "failed" ? "workflow.failed" : "workflow.completed", ack.Status);
         journal.State = outcome;
         journal.FinishedAt = clock.UtcNow;
         journal.Error = outcome == RunStates.Failed ? ack.Limitations.FirstOrDefault()?.Code : null;
@@ -193,7 +192,9 @@ public sealed class WorkflowService(
             Required = false
         }).ToList();
         store?.SaveJournal(journal);
-        run.Complete(outcome, Result(ack));
+        var result = Result(ack);
+        run.Complete(outcome, result);
+        Publish(run, ack, ack.Status == "failed" ? "workflow.failed" : "workflow.completed", ack.Status);
     }
 
     private void Fail(RunHandle run, RunJournal journal, string code, string message)
