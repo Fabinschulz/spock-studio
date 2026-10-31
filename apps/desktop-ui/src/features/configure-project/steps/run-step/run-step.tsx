@@ -1,79 +1,27 @@
 import { Alert, Button } from '@synthra.io/ui-kit';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-import { PrimaryActionFooter, StatusGlyph, type GlyphState } from '@/shared/components/ui';
+import { PrimaryActionFooter } from '@/shared/components/ui';
+import { formatElapsed } from '@/shared/utils';
 
-import panels from '../../components/panels.module.scss';
+import { RunStepRow } from '../../components/run-step-row';
 import { StepHeader } from '../../components/step-header';
-import type { RunStepView, RunView } from '../../domain/journey-state';
-import { formatElapsed, runningStep, stepProgress } from '../../domain/run-progress';
-import { runKindLabel, stepStatusLabel } from '../../domain/labels';
+import panels from '../../components/panels.module.scss';
+import { runKindLabel } from '../../domain/labels';
+import { runHeadline } from '../../domain/run-headline';
+import { useElapsed } from '../../hooks/use-elapsed';
 import styles from './run-step.module.scss';
+import type { RunStepProps } from './types';
 
-interface RunStepProps {
-  run: RunView;
-  onCancel: () => Promise<void> | void;
-  onBack: () => void;
-}
-
-const glyphOf = (status: string): GlyphState =>
-  status === 'pending'
-    ? 'pending'
-    : status === 'running'
-      ? 'running'
-      : status === 'completed'
-        ? 'done'
-        : status === 'failed'
-          ? 'failed'
-          : 'warning';
-
-/** Tempo desde o início, medido aqui: o motor ainda não carimba os eventos. Só corre enquanto há execução. */
-function useElapsed(startedAt: number, active: boolean) {
-  const [now, setNow] = useState(startedAt);
-  useEffect(() => {
-    if (!active) return;
-    const tick = () => setNow(Date.now());
-    const id = window.setInterval(tick, 1000);
-    return () => window.clearInterval(id);
-  }, [active]);
-  return Math.max(0, now - startedAt);
-}
-
-function StepRow({ step }: { step: RunStepView }) {
-  const seconds = step.startedAt !== null && step.endedAt !== null ? (step.endedAt - step.startedAt) / 1000 : null;
-  return (
-    <li className={styles.step} data-status={step.status}>
-      <StatusGlyph state={glyphOf(step.status)} />
-      <div className={styles.stepLine}>
-        <span className={styles.stepTitle}>{step.title}</span>
-        {step.status === 'completed' ? null : <span className={styles.stepMeta}>{stepStatusLabel(step.status)}</span>}
-        {step.detail ? <span className={styles.stepMeta}>{step.detail}</span> : null}
-        {seconds !== null && seconds > 0 ? <span className={styles.stepTime}>{seconds.toFixed(1)} s</span> : null}
-      </div>
-    </li>
-  );
-}
-
-/** O progresso vem dos eventos do motor: nenhuma etapa aparece como feita antes de ele dizer que foi. */
 export function RunStep({ run, onCancel, onBack }: RunStepProps) {
   const [cancelling, setCancelling] = useState(false);
   const failed = run.error !== null;
   const elapsed = useElapsed(run.startedAt, !failed);
-  const { done, total } = stepProgress(run);
-  const running = runningStep(run);
 
   const cancel = async () => {
     setCancelling(true);
     await onCancel();
   };
-
-  const headline = running
-    ? total > 0
-      ? `${running.title} · etapa ${Math.min(done + 1, total)} de ${total}`
-      : `${running.title}…`
-    : failed
-      ? 'A execução não pôde ser acompanhada'
-      : 'Aguardando o motor…';
 
   return (
     <section className={panels.step}>
@@ -82,9 +30,8 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
       </StepHeader>
 
       <div className={styles.summary}>
-        {/* Região viva: anuncia a etapa atual, não cada arquivo gravado. */}
         <p className={styles.headline} role="status" aria-live="polite">
-          {headline}
+          {runHeadline(run)}
         </p>
         <p className={styles.elapsed}>
           <span className="visually-hidden">Tempo decorrido </span>
@@ -92,18 +39,17 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
         </p>
       </div>
 
-      {total > 0 ? (
-        // Um segmento por etapa: não é percentual (o motor não informa percentuais).
+      {run.steps.length > 0 ? (
         <div className={styles.segments} aria-hidden="true">
-          {run.steps.map((s) => (
-            <span key={s.id} className={styles.segment} data-status={s.status} />
+          {run.steps.map((step) => (
+            <span key={step.id} className={styles.segment} data-status={step.status} />
           ))}
         </div>
       ) : null}
 
       <ol className={styles.steps} aria-label="Etapas da execução">
         {run.steps.map((step) => (
-          <StepRow key={step.id} step={step} />
+          <RunStepRow key={step.id} step={step} />
         ))}
       </ol>
 

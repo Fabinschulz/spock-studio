@@ -1,1 +1,1 @@
-export { ActionCard, type CardAccent } from './ActionCard';
+export { ActionCard } from './ActionCard';

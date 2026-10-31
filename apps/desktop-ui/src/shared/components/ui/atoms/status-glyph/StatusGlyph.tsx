@@ -1,22 +1,8 @@
+import { stateText } from './constants';
 import styles from './StatusGlyph.module.scss';
+import type { StatusGlyphProps } from './types';
 
-export type GlyphState = 'pending' | 'running' | 'done' | 'warning' | 'failed' | 'skipped';
-
-const stateText: Record<GlyphState, string> = {
-  pending: 'aguardando',
-  running: 'em andamento',
-  done: 'concluída',
-  warning: 'com ressalva',
-  failed: 'falhou',
-  skipped: 'não executada'
-};
-
-/**
- * Indicador de estado. A forma muda com o estado (anel tracejado, arco girando, marca, triângulo, X, traço) e o
- * nome acessível diz o mesmo: a cor nunca é a única pista. O giro só existe enquanto algo roda de fato e para com
- * `prefers-reduced-motion`.
- */
-export function StatusGlyph({ state, label }: { state: GlyphState; label?: string }) {
+export function StatusGlyph({ state, label }: StatusGlyphProps) {
   return (
     <span className={styles.glyph} data-state={state} role="img" aria-label={label ?? stateText[state]}>
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">

@@ -1,4 +1,4 @@
-import { ActionCard, FolderIcon, type CardAccent } from '@/shared/components/ui';
+import { ActionCard, FolderIcon } from '@/shared/components/ui';
 import { BookUploadIcon, UpdateIcon, UserConnectionsIcon } from '@synthra.io/ui-kit';
 import type { ReactNode } from 'react';
 import styles from './journey-grid.module.scss';
@@ -9,13 +9,6 @@ const icons: Record<JourneyId, ReactNode> = {
   'import-requirements': <BookUploadIcon />,
   'connect-tools': <UserConnectionsIcon />,
   'modernize-system': <UpdateIcon />
-};
-
-const accents: Record<JourneyId, CardAccent> = {
-  'configure-project': 'teal',
-  'import-requirements': 'indigo',
-  'connect-tools': 'blue',
-  'modernize-system': 'orange'
 };
 
 interface JourneyGridProps {
@@ -32,7 +25,6 @@ export function JourneyGrid({ onStartJourney }: JourneyGridProps) {
             description={journey.description}
             icon={icons[journey.id]}
             variant={journey.id === 'configure-project' ? 'primary' : 'default'}
-            accent={accents[journey.id]}
             unavailableReason={journey.unavailableReason}
             onClick={() => onStartJourney?.(journey.id)}
           />

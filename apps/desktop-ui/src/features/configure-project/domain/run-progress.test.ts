@@ -5,9 +5,11 @@ import plan from '@contracts/fixtures/golden/plan.json';
 
 import { planSchema, type RunEvent } from '@/shared/schema';
 
-import { initialJourneyState, journeyReducer, type JourneyState } from './journey-state';
+import { initialJourneyState } from '../constants/initial-journey-state';
+import { journeyReducer } from '../domain/journey-reducer';
+import { type JourneyState } from '../types/journey';
 import { plannedApplySteps } from './planned-steps';
-import { formatElapsed, runningStep, stepProgress } from './run-progress';
+import { runningStep, stepProgress } from './run-progress';
 
 const parsedPlan = planSchema.parse(plan);
 const event = (type: string, data: Record<string, unknown>): RunEvent => ({
@@ -132,15 +134,5 @@ describe('execução: progresso a partir dos eventos', () => {
 
     expect(state.run!.steps).toEqual([]);
     expect(applyResult.kind).toBe('apply');
-  });
-});
-
-describe('formatElapsed', () => {
-  it.each([
-    [0, '0:00'],
-    [9_400, '0:09'],
-    [75_000, '1:15']
-  ])('%i ms → %s', (ms, text) => {
-    expect(formatElapsed(ms)).toBe(text);
   });
 });

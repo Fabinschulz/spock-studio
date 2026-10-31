@@ -74,7 +74,6 @@
   }
 }
 
-// Sem movimento: o arco fica parado e o nome acessível "em andamento" continua dizendo o estado.
 @media (prefers-reduced-motion: reduce) {
   .arc {
     animation: none;

@@ -1,1 +1,2 @@
-export { Glyph, type GlyphName } from './Glyph';
+export { Glyph } from './Glyph';
+export type { GlyphName, GlyphProps } from './types';

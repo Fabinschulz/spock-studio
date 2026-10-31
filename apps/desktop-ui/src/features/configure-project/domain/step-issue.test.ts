@@ -6,7 +6,10 @@ import planFixture from '@contracts/fixtures/golden/plan.json';
 
 import { planSchema, runResultSchema } from '@/shared/schema';
 
-import { initialJourneyState, stepIssue, type JourneyState, type RunView } from './journey-state';
+import { initialJourneyState } from '../constants/initial-journey-state';
+import { stepIssue } from '../domain/step-issue';
+import { type JourneyState } from '../types/journey';
+import { type RunView } from '../types/run';
 
 const plan = planSchema.parse(planFixture);
 const at = (patch: Partial<JourneyState>): JourneyState => ({ ...initialJourneyState, ...patch });

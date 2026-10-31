@@ -5,7 +5,8 @@ import { EvidenceDisclosure, PrimaryActionFooter } from '@/shared/components/ui'
 
 import styles from '../../components/panels.module.scss';
 import { StepHeader } from '../../components/step-header';
-import type { JourneyResults, Loadable, RunView } from '../../domain/journey-state';
+import type { JourneyResults, Loadable } from '../../types/journey';
+import type { RunView } from '../../types/run';
 import { outcomeLabel, runKindLabel } from '../../domain/labels';
 import { awaitingHarnessProposal, explainOutcome, outcomeSeverity } from '../../domain/run-outcome';
 import { FilesSummary } from './files-summary';

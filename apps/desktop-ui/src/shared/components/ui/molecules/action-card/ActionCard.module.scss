@@ -1,6 +1,5 @@
 @use '@/shared/styles/abstracts' as *;
 
-// Atividade como linha de lista (não como cartão): ícone, título, descrição e uma seta. Sem bordas nem fundos de cor.
 .card {
   display: flex;
   align-items: center;
@@ -22,7 +21,6 @@
   }
 }
 
-// O ícone é só um glifo: a cor do "tile" antigo deixa de existir (o significado está no desenho e no título).
 .icon {
   display: flex;
   flex: none;
@@ -38,14 +36,6 @@
   }
 }
 
-.teal,
-.indigo,
-.blue,
-.orange {
-  background: none;
-}
-
-// Atividade principal: o ícone leva a cor da marca; nenhum outro item ganha esse destaque.
 .primary {
   .icon {
     color: var(--color-primary-text);
@@ -56,7 +46,6 @@
   }
 }
 
-// Indisponível: o texto continua legível (sem opacidade); o estado é dito por "Em breve" e por aria-disabled.
 .unavailable {
   cursor: default;
   color: var(--color-text-subtle);

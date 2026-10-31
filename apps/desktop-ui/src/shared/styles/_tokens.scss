@@ -1,16 +1,8 @@
-// =============================================================================
-// Design tokens — direção "Workbench" (aprovada). Tema escuro único.
-// Camadas: primitivos (paleta crua) → semânticos (intenção) → componentes.
-// Componentes usam SOMENTE tokens semânticos. Os contrastes são verificados por tokens.contrast.test.ts.
-//
-// Os nomes dos primitivos `navy-*`, `cyan-*`, `ice-*`, `slate-*` e `mint-*` são herdados do desenho anterior e foram
-// mantidos para não tocar todos os componentes de uma vez; hoje guardam a paleta tinta + teal da marca.
-// =============================================================================
+// Tokens do Workbench (tema escuro único): primitivos → semânticos. Os componentes usam só os semânticos.
 
 :root {
   color-scheme: dark;
 
-  // ---- Primitivos
   --teal-50: #e8f8f7;
   --teal-300: #5ccfc9;
   --teal-400: #33c1ba; // marca Mariliz
@@ -34,7 +26,6 @@
   --neutral-950: #0a1615;
   --neutral-975: #050c0c; // tinta da marca
 
-  // Tinta (superfícies)
   --navy-975: #070b0c; // menu lateral, superfície rebaixada
   --navy-950: #0a0f10; // fundo da aplicação
   --navy-900: #0f1617; // avisos
@@ -48,11 +39,9 @@
   --navy-500: #141d1f;
   --navy-450: #141d1f;
   --navy-400: #5f7a7a; // borda de controles (≥ 3:1 sobre as superfícies)
-  // Marca
   --cyan-300: #4fd3cc; // hover e texto na cor da marca
   --cyan-400: #33c1ba; // marca
   --cyan-500: #4fd3cc; // foco
-  // Texto
   --ice-50: #e8f0ef;
   --ice-200: #a5b5b4;
   --ice-300: #a5b5b4;
@@ -61,17 +50,6 @@
   --slate-400: #a5b5b4;
   --mint-400: #7bd88f; // sucesso
 
-  // Ícones das atividades (uso residual)
-  --tile-teal-bg: #33c1ba;
-  --tile-teal-fg: #06201f;
-  --tile-indigo-bg: #4e44e2;
-  --tile-indigo-fg: #ffffff;
-  --tile-blue-bg: #0066ff;
-  --tile-blue-fg: #ffffff;
-  --tile-orange-bg: #e68a00;
-  --tile-orange-fg: #020b11;
-
-  // ---- Semânticos: superfícies (poucas; a separação vem de linhas finas, não de caixas)
   --color-background: var(--navy-950);
   --color-surface: var(--navy-850);
   --color-surface-raised: var(--navy-800);
@@ -87,7 +65,6 @@
   --color-menu-hover: var(--navy-800);
   --color-icon-well: var(--navy-800);
 
-  // ---- Linhas
   --color-border: rgb(160 200 196 / 0.14);
   --color-border-panel: rgb(160 200 196 / 0.14);
   --color-border-field: rgb(160 200 196 / 0.14);
@@ -97,13 +74,11 @@
   --color-hairline: rgb(160 200 196 / 0.14);
   --color-border-strong: var(--navy-400);
 
-  // ---- Texto
   --color-text: var(--ice-50);
   --color-text-muted: var(--ice-300);
   --color-text-menu: var(--ice-350);
   --color-text-subtle: var(--ice-500);
 
-  // ---- Marca (ação principal, foco, item atual, atividade viva)
   --color-primary: var(--cyan-400);
   --color-primary-subtle: rgb(51 193 186 / 0.12);
   --color-primary-text: var(--cyan-300);
@@ -114,7 +89,6 @@
   --color-focus: var(--cyan-500);
   --color-working: var(--color-primary-text);
 
-  // ---- Estados semânticos (sempre com ícone e texto, nunca só cor)
   --color-error: #f2766e;
   --color-success: var(--mint-400);
 
@@ -132,13 +106,11 @@
   --color-badge-bg: var(--navy-750);
   --color-badge-fg: var(--slate-400);
 
-  // ---- Elevação: só overlays; painéis usam linhas.
   --shadow-card: none;
   --shadow-raised: 0 12px 32px -8px rgb(0 0 0 / 0.6);
   --glow-card: none;
   --glow-button: none;
 
-  // ---- Tipografia: Inter em tudo; a hierarquia vem de tamanho, peso e cor.
   --font-mono: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --font-size-xs: 0.75rem;
@@ -177,7 +149,6 @@
   --line-height-normal: 1.5;
   --letter-spacing-tight: -0.02em;
 
-  // ---- Espaço e forma
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -195,12 +166,10 @@
   --border-selected-ring: 0px;
   --border-width-divider: 1px;
 
-  // ---- Controles: alvos confortáveis (WCAG 2.5.8 pede 24 px no mínimo)
   --control-height: 2.25rem;
   --control-height-lg: 2.5rem;
   --target-min: 2rem;
 
-  // ---- Movimento: curto, só para mudança de estado
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --duration-fast: 120ms;
   --duration-base: 220ms;

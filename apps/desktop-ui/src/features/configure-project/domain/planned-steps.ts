@@ -1,15 +1,10 @@
 import type { ConfigurationPlan } from '@/shared/schema';
 
-export interface PlannedStep {
-  id: string;
-  title: string;
-}
+import type { PlannedStep } from '../types/run';
 
 /**
- * Etapas que a aplicação executa, na ordem (ApplyExecution.cs): pré-condições, backup, um comando por instalação
- * aprovada, escrita, registro e validação. Os títulos são os que o motor publica; o motor deveria declarar esta lista
- * ao iniciar (evento proposto `run.plan`, ver docs/redesign/contratos-propostos.md). Até lá, a lista é derivada do
- * plano e das aprovações, e a UI só trata como "aguardando" o que o motor de fato sempre faz.
+ * Ordem das etapas de ApplyExecution.cs. O motor ainda não declara a lista ao iniciar (evento proposto `run.plan`),
+ * então ela é derivada do plano e das aprovações.
  */
 export function plannedApplySteps(plan: ConfigurationPlan, approvedCommandIds: readonly string[]): PlannedStep[] {
   const commands = plan.commands

@@ -5,7 +5,7 @@ import { useCopyToClipboard } from '@/shared/hooks';
 import styles from '../../components/panels.module.scss';
 import { PlanError } from '../../components/plan-error';
 import { harnessEngineerPrompt } from '../../domain/harness-engineer-prompt';
-import type { Loadable } from '../../domain/journey-state';
+import type { Loadable } from '../../types/journey';
 
 interface ProposalGuideProps {
   onReplan: () => void;

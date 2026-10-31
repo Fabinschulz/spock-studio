@@ -1,6 +1,5 @@
 @use '@/shared/styles/abstracts' as *;
 
-// Barra de etapas compacta. A largura útil é a do próprio componente, não a da janela.
 .root {
   container-type: inline-size;
   display: flex;
@@ -28,7 +27,6 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
 
-  // Fio até a próxima etapa.
   &:not(:last-child)::after {
     width: 0.875rem;
     height: 1px;
@@ -116,7 +114,6 @@
   }
 }
 
-// Sem largura para os rótulos: só a etapa atual por extenso; os marcadores continuam.
 @container (max-width: 46rem) {
   .step:not(.current) .label {
     @include visually-hidden;
@@ -127,7 +124,6 @@
   }
 }
 
-// Mais estreito ainda: o resumo "Etapa N de M" toma o lugar da lista (a lista segue no DOM para o leitor de tela).
 @container (max-width: 30rem) {
   .steps {
     @include visually-hidden;

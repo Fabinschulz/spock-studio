@@ -7,7 +7,7 @@ import styles from '../../components/panels.module.scss';
 import { PlanError } from '../../components/plan-error';
 import { StepHeader } from '../../components/step-header';
 import { isSupportedEnvironment } from '../../domain/ai-environments';
-import type { Loadable } from '../../domain/journey-state';
+import type { Loadable } from '../../types/journey';
 import { AiEnvironmentCard } from './ai-environment-card';
 import { ConfigurationSummaryCard } from './configuration-summary-card';
 import { SpecificationCard } from './specification-card';

@@ -1,42 +1,14 @@
 import { Container, Logo, Wordmark } from '@/shared/components';
-import { app } from '@/shared/config/app';
-import { useEngineStatus, type EngineStatus as Status } from '@/shared/hooks';
+import { useEngineStatus } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
-import { cn } from '@/shared/utils';
 import { useRef, type ReactNode } from 'react';
 import { Link } from 'react-router';
+import { AppHeader } from './AppHeader';
 import styles from './AppShell.module.scss';
-import { dotClass, EngineStatus } from './EngineStatus';
+import { EngineStatus } from './EngineStatus';
 import { SideNav } from './SideNav';
 
 export const MAIN_CONTENT_ID = 'conteudo';
-
-function headerStatus({ status, hosted }: { status: Status; hosted: boolean }) {
-  if (!hosted) return { label: 'Prévia', tone: 'idle' } as const;
-  if (status === 'ready') return { label: 'Online', tone: 'ok' } as const;
-  if (status === 'crashed') return { label: 'Indisponível', tone: 'bad' } as const;
-  return { label: 'Iniciando…', tone: 'pending' } as const;
-}
-
-/** Faixa fina da janela: o que o produto é, o estado real do motor e a versão. A marca fica só no menu. */
-function AppHeader({ engine }: { engine: { status: Status; hosted: boolean } }) {
-  const { label, tone } = headerStatus(engine);
-
-  return (
-    <header className={styles.topbar}>
-      <p className={styles.topTagline}>{app.tagline}</p>
-      <p className={styles.topStatus}>
-        <span className={styles.topStatusItem}>
-          <span className={cn(styles.dot, dotClass[tone])} aria-hidden="true" />
-          {label}
-        </span>
-        <span className={styles.topVersion}>
-          <span className="visually-hidden">Versão </span>v{app.version}
-        </span>
-      </p>
-    </header>
-  );
-}
 
 export function AppShell({ children }: { children: ReactNode }) {
   const main = useRef<HTMLElement>(null);

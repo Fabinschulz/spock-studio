@@ -4,7 +4,6 @@ $rail-wide: 15rem;
 $rail-narrow: 3.5rem;
 $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu aberto.
 
-// A janela é um aplicativo: a moldura ocupa a altura toda e só a área de trabalho rola.
 .shell {
   display: grid;
   grid-template-columns: $rail-wide minmax(0, 1fr);
@@ -32,7 +31,6 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   }
 }
 
-// ---- Menu lateral
 .rail {
   display: flex;
   flex-direction: column;
@@ -109,7 +107,6 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   }
 }
 
-// Item atual: marca fina à esquerda e texto claro; `aria-current` diz o mesmo ao leitor de tela.
 .active {
   background-color: var(--color-active);
   color: var(--color-text);
@@ -146,7 +143,6 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   font-size: 1.125rem;
 }
 
-// "Em breve" fica à direita do nome, em texto pequeno: dito, não escondido.
 .itemText {
   display: flex;
   flex: 1;
@@ -168,7 +164,6 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   white-space: nowrap;
 }
 
-// ---- Estado do motor (real, vindo do host)
 .engine {
   display: flex;
   align-items: center;
@@ -177,7 +172,6 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   font-size: var(--font-size-xs);
 }
 
-// Indicador de estado: ponto com halo suave na própria cor (o texto ao lado diz o estado; a cor não é a única pista).
 @mixin glow($color) {
   background-color: $color;
   box-shadow: 0 0 0 3px color-mix(in srgb, #{$color} 18%, transparent);
@@ -228,7 +222,6 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   min-height: 0;
 }
 
-// ---- Faixa superior: estado real do motor e versão (não é enfeite).
 .topbar {
   display: flex;
   flex: none;

@@ -1,7 +1,5 @@
 $panel-width: 20rem;
 
-// Área de trabalho + painel de contexto. O painel cabe ao lado quando a coluna principal tem largura; senão é gaveta.
-// A largura de referência é a do <main> (container-type: inline-size no AppShell), não a da janela.
 .workbench {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -92,14 +90,12 @@ $panel-width: 20rem;
   padding: var(--space-5) var(--space-4);
 }
 
-// Coluna principal larga: painel ao lado.
 @container (min-width: 62rem) {
   .workbench[data-panel='open'] {
     grid-template-columns: minmax(0, 1fr) $panel-width;
   }
 }
 
-// Coluna estreita: o painel vira gaveta sobre o conteúdo (mesma célula da grade) e não o espreme.
 @container (max-width: 61.99rem) {
   .workbench[data-panel='open'] {
     .content,

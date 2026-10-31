@@ -3,15 +3,12 @@ import { ArrowRightIcon } from '@synthra.io/ui-kit';
 import { useId, type ReactNode } from 'react';
 import styles from './ActionCard.module.scss';
 
-export type CardAccent = 'teal' | 'indigo' | 'blue' | 'orange';
-
 interface ActionCardProps {
   title: string;
   description: string;
   icon: ReactNode;
   onClick?: () => void;
   variant?: 'primary' | 'default';
-  accent?: CardAccent;
   highlight?: string;
   /** Quando definido o cartão fica indisponível, mas continua focável (aria-disabled) para o leitor de tela anunciar o motivo. */
   unavailableReason?: string;
@@ -23,7 +20,6 @@ export function ActionCard({
   icon,
   onClick,
   variant = 'default',
-  accent = 'teal',
   highlight,
   unavailableReason
 }: ActionCardProps) {
@@ -44,7 +40,7 @@ export function ActionCard({
       aria-describedby={unavailable ? `${descriptionId} ${reasonId}` : descriptionId}
       onClick={unavailable ? undefined : onClick}
     >
-      <span className={cn(styles.icon, styles[accent])} aria-hidden="true">
+      <span className={styles.icon} aria-hidden="true">
         {icon}
       </span>
       <span className={styles.body}>

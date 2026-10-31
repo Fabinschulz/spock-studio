@@ -7,7 +7,8 @@ import planJson from '@contracts/fixtures/golden/plan.json';
 import { planSchema, runResultSchema } from '@/shared/schema';
 import { expectNoA11yViolations } from '@/test/a11y';
 
-import type { JourneyResults, RunView } from '../domain/journey-state';
+import type { JourneyResults } from '../../types/journey';
+import type { RunView } from '../../types/run';
 import { ContextPanel } from './context-panel';
 
 const plan = planSchema.parse(planJson);

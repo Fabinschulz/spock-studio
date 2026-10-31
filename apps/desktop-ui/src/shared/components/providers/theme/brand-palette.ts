@@ -1,10 +1,7 @@
-/**
- * Cores que o tema da Synthra (MUI) precisa em TypeScript. A fonte de verdade é shared/styles/_tokens.scss;
- * brand-palette.test.ts falha se os valores divergirem.
- */
+// Fonte de verdade: shared/styles/_tokens.scss (brand-palette.test.ts falha se divergirem).
 export const brandPalette = {
-  teal400: '#33c1ba', // marca
-  teal300: '#4fd3cc', // hover e texto na cor da marca
+  teal400: '#33c1ba',
+  teal300: '#4fd3cc',
   onPrimary: '#06201f',
   background: '#0a0f10',
   surface: '#0f1617',

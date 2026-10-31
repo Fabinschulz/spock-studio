@@ -12,7 +12,6 @@
   color: var(--color-text-muted);
 }
 
-// Campo do projeto: uma peça só, como o campo de envio de uma conversa. Única caixa da tela.
 .card {
   display: flex;
   flex-direction: column;
@@ -179,7 +178,6 @@
   color: var(--color-text-subtle);
 }
 
-// Nota em linha, sem caixa.
 .info {
   display: flex;
   align-items: center;

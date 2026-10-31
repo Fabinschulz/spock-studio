@@ -1,1 +1,2 @@
-export { StatusGlyph, type GlyphState } from './StatusGlyph';
+export { StatusGlyph } from './StatusGlyph';
+export type { GlyphState, StatusGlyphProps } from './types';

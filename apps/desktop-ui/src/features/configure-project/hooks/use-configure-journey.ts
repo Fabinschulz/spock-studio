@@ -6,13 +6,11 @@ import type { ConflictResolution } from '@/shared/schema';
 import { waitForRun, type HarnessApi } from '../service';
 import { plannedApplySteps } from '../domain/planned-steps';
 
-import {
-  buildApplyInput,
-  initialJourneyState,
-  journeyReducer,
-  type JourneyStepId,
-  type RunKind
-} from '../domain/journey-state';
+import { buildApplyInput } from '../domain/approvals';
+import { initialJourneyState } from '../constants/initial-journey-state';
+import { journeyReducer } from '../domain/journey-reducer';
+import { type JourneyStepId } from '../types/journey';
+import { type RunKind } from '../types/run';
 
 const messageOf = (error: unknown) =>
   error instanceof EngineError ? error.message : 'Algo inesperado aconteceu. Tente de novo.';

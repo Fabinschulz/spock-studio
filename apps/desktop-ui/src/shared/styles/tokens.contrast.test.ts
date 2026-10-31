@@ -72,7 +72,6 @@ function contrast(fg: Rgba, bg: Rgba): number {
 }
 
 const TONES = ['neutral', 'success', 'warning', 'danger', 'info'] as const;
-const TILES = ['teal', 'indigo', 'blue', 'orange'] as const;
 
 for (const [themeName, scope] of [['escuro', dark]] as const) {
   const color = (token: string) => parse(resolve(token, scope));
@@ -128,12 +127,6 @@ for (const [themeName, scope] of [['escuro', dark]] as const) {
     it.each(surfaces)('anel de foco contra %s ≥ 3:1 (WCAG 2.4.11)', (surface) => {
       expect(ratio('color-focus', surface)).toBeGreaterThanOrEqual(3);
     });
-
-    it.each(TILES)('ícone da atividade %s sobre o próprio fundo ≥ 3:1 (componente gráfico)', (tile) => {
-      expect(ratio(`tile-${tile}-fg`, `tile-${tile}-bg`)).toBeGreaterThanOrEqual(3);
-    });
-
-    // O quadrado do ícone é decorativo: o significado está no glifo, e é o par glifo/fundo que a WCAG 1.4.11 exige.
 
     it.each(['color-primary-text', 'color-text'])('%s sobre o item ativo do menu ≥ 4,5:1', (token) => {
       expect(ratio(token, 'color-active')).toBeGreaterThanOrEqual(4.5);

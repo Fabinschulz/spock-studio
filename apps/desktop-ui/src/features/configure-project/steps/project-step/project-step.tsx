@@ -6,7 +6,7 @@ import type { Discovery } from '@/shared/schema';
 
 import { SpecificationGlyph } from '../../components/implementation-model-badge';
 import styles from '../../components/panels.module.scss';
-import type { Loadable } from '../../domain/journey-state';
+import type { Loadable } from '../../types/journey';
 import { AiEnvironmentSelect } from './ai-environment-select';
 import { DiscoveryDetails } from './discovery-details';
 import { FolderPickerCard, type PickedProject } from './folder-picker-card';

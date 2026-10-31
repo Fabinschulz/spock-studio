@@ -6,7 +6,8 @@ import { pathTo } from '@/shared/routing';
 
 import { ContextPanel } from './components/context-panel';
 import { JourneyFrame } from './components/journey-frame';
-import { countApprovals, stepIssue } from './domain/journey-state';
+import { countApprovals } from './domain/approvals';
+import { stepIssue } from './domain/step-issue';
 import { useConfigureJourney } from './hooks/use-configure-journey';
 import type { HarnessApi } from './service';
 import { ModelStep } from './steps/model-step';
