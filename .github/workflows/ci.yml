@@ -94,13 +94,23 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf
       - run: pnpm install --frozen-lockfile
-      - name: motor como sidecar
+      - name: motor e recursos embarcados (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/build-runtime.ps1 -Rid ${{ matrix.rid }} -FetchPythonEmbed
+      - name: motor como sidecar (demais plataformas)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           dotnet publish runtime/Mariliz.Runtime/Mariliz.Runtime.csproj -c Release -r ${{ matrix.rid }} --self-contained true \
             -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o dist/runtime/${{ matrix.rid }}
           ext=""; [ "${{ runner.os }}" = "Windows" ] && ext=".exe"
           cp "dist/runtime/${{ matrix.rid }}/Mariliz.Runtime$ext" "desktop/host/src-tauri/binaries/mariliz-runtime-${{ matrix.triple }}$ext"
+      - name: runtime de IA pronto no pacote (Windows)
+        if: runner.os == 'Windows'
+        env:
+          MARILIZ_PACKAGED_RESOURCES: desktop/host/src-tauri/resources
+        run: dotnet test runtime/Mariliz.sln --filter "FullyQualifiedName~Pacote_embarcado" --nologo
       - name: testes do host
         working-directory: desktop/host/src-tauri
         run: cargo test
