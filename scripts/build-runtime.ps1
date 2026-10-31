@@ -7,7 +7,10 @@
 .PARAMETER Rid
   Identificador de runtime do .NET (padrão: win-x64).
 #>
-param([string]$Rid = 'win-x64')
+param(
+    [string]$Rid = 'win-x64',
+    [switch]$FetchPythonEmbed
+)
 
 $ErrorActionPreference = 'Stop'
 
@@ -52,7 +55,37 @@ Get-ChildItem $intelDest -Recurse -Directory -Filter __pycache__ -ErrorAction Si
 $intelBytes = (Get-ChildItem $intelDest -Recurse -File | Measure-Object Length -Sum).Sum
 "Inteligência: $intelDest ({0:N0} bytes)" -f $intelBytes
 
+function Enable-EmbedSiteImports {
+    param([string]$Dir)
+    $pth = Get-ChildItem $Dir -Filter 'python*._pth' -File | Select-Object -First 1
+    if (-not $pth) { return }
+    $lines = Get-Content $pth.FullName
+    $lines = $lines | ForEach-Object { if ($_ -match '^\#import site') { 'import site' } else { $_ } }
+    if ($lines -notcontains 'import site') { $lines += 'import site' }
+    Set-Content -Path $pth.FullName -Value $lines -Encoding ascii
+}
+
 $pythonHome = $env:MARILIZ_PYTHON_HOME
+$fetchEmbed = $FetchPythonEmbed -or ($env:MARILIZ_FETCH_PYTHON_EMBED -eq '1')
+if (-not $pythonHome -and $fetchEmbed) {
+    if ($Rid -ne 'win-x64') {
+        throw 'O download automático do CPython embed só está disponível para win-x64. Use MARILIZ_PYTHON_HOME.'
+    }
+    $embedUrl = 'https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip'
+    $cache = Join-Path $root '.cache\python-embed-amd64'
+    $zip = Join-Path $cache 'python-3.12.10-embed-amd64.zip'
+    New-Item -ItemType Directory -Force $cache | Out-Null
+    if (-not (Test-Path $zip)) {
+        "Baixando CPython embed: $embedUrl"
+        Invoke-WebRequest -Uri $embedUrl -OutFile $zip -UseBasicParsing
+    }
+    $extract = Join-Path $cache 'extracted'
+    if (Test-Path $extract) { Remove-Item $extract -Recurse -Force }
+    Expand-Archive -Path $zip -DestinationPath $extract -Force
+    Enable-EmbedSiteImports $extract
+    $pythonHome = $extract
+}
+
 $pythonDest = Join-Path $resources 'python'
 if ($pythonHome -and (Test-Path (Join-Path $pythonHome 'python.exe'))) {
     $pythonBytes = (Get-ChildItem $pythonHome -Recurse -File | Measure-Object Length -Sum).Sum
@@ -63,5 +96,5 @@ if ($pythonHome -and (Test-Path (Join-Path $pythonHome 'python.exe'))) {
     Copy-Item $pythonHome $pythonDest -Recurse -Force
     "Interpretador embarcado: $pythonDest ({0:N1} MB)" -f ($pythonBytes / 1MB)
 } else {
-    "Interpretador embarcado: ausente. Defina MARILIZ_PYTHON_HOME com o CPython embed-amd64 extraído (zip oficial de 10,6 MB)."
+    "Interpretador embarcado: ausente. Defina MARILIZ_PYTHON_HOME ou execute com -FetchPythonEmbed (win-x64)."
 }
