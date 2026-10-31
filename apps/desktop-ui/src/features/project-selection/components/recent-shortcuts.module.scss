@@ -7,13 +7,16 @@
 }
 
 .title {
-  font-size: var(--font-size-heading);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
 }
 
+// Recentes como linhas, não como cartões.
 .grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-  gap: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  max-width: 44rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -21,23 +24,25 @@
 
 .item {
   min-width: 0;
+
+  & + & {
+    box-shadow: 0 -1px 0 var(--color-divider);
+  }
 }
 
 .card {
-  @include card(var(--space-4));
-
   display: flex;
   align-items: center;
   gap: var(--space-3);
   width: 100%;
+  min-height: 3rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
   text-align: left;
   cursor: pointer;
-  transition:
-    border-color var(--duration-fast),
-    background-color var(--duration-fast);
+  transition: background-color var(--duration-fast) var(--ease);
 
   @include hover {
-    border-color: color-mix(in srgb, var(--color-primary) 53%, transparent);
     background-color: var(--color-card-hover);
   }
 
@@ -47,11 +52,10 @@
 
   &[aria-disabled='true'] {
     cursor: default;
-    color: var(--color-text-muted);
+    color: var(--color-text-subtle);
 
     @include hover {
-      border-color: var(--color-border);
-      background-color: var(--color-surface);
+      background-color: transparent;
     }
   }
 }
@@ -59,28 +63,42 @@
 .icon {
   display: flex;
   flex: none;
-  color: var(--color-primary-text);
+  color: var(--color-text-muted);
 }
 
 .text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'name meta'
+    'path meta';
+  column-gap: var(--space-4);
   min-width: 0;
 }
 
 .name {
+  grid-area: name;
   overflow: hidden;
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.path,
-.meta {
+.path {
+  grid-area: path;
   overflow: hidden;
+  font-family: var(--font-mono);
   font-size: var(--font-size-caption);
-  color: var(--color-text-muted);
+  color: var(--color-text-subtle);
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  grid-area: meta;
+  align-self: center;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-subtle);
   white-space: nowrap;
 }

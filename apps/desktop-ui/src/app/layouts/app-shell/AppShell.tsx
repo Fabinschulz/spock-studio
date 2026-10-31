@@ -1,4 +1,4 @@
-import { Container, Logo } from '@/shared/components';
+import { Container, Logo, Wordmark } from '@/shared/components';
 import { app } from '@/shared/config/app';
 import { useEngineStatus, type EngineStatus as Status } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
@@ -18,18 +18,13 @@ function headerStatus({ status, hosted }: { status: Status; hosted: boolean }) {
   return { label: 'Iniciando…', tone: 'pending' } as const;
 }
 
+/** Faixa fina da janela: o que o produto é, o estado real do motor e a versão. A marca fica só no menu. */
 function AppHeader({ engine }: { engine: { status: Status; hosted: boolean } }) {
   const { label, tone } = headerStatus(engine);
 
   return (
     <header className={styles.topbar}>
-      <Logo className={styles.topLogo} />
-      <div className={styles.topText}>
-        <p className={styles.topName}>
-          Mariliz <span className={styles.topAccent}>Studio</span>
-        </p>
-        <p className={styles.topTagline}>{app.tagline}</p>
-      </div>
+      <p className={styles.topTagline}>{app.tagline}</p>
       <p className={styles.topStatus}>
         <span className={styles.topStatusItem}>
           <span className={cn(styles.dot, dotClass[tone])} aria-hidden="true" />
@@ -55,7 +50,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <aside className={styles.rail}>
         <Link to={pathTo('home')} className={styles.brand} aria-label="Mariliz Studio, página inicial">
-          <Logo />
+          <Logo className={styles.logo} />
+          <Wordmark className={styles.wordmark} />
         </Link>
         <SideNav />
         <EngineStatus {...engine} />

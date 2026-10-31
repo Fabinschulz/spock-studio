@@ -7,24 +7,30 @@
 }
 
 .label {
-  font-size: var(--font-size-heading);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
 }
 
+// Campo do projeto: uma peça só, como o campo de envio de uma conversa. Única caixa da tela.
 .card {
-  @include card(var(--space-5));
-
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
-  padding: var(--space-8);
-  border-color: var(--color-border-soft);
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  transition: border-color var(--duration-base) var(--ease);
+
+  &:hover,
+  &:focus-within {
+    border-color: var(--color-border-strong);
+  }
 }
 
 .hasProject {
-  border-color: var(--color-border-soft);
+  border-color: var(--color-border);
 }
 
 .header {
@@ -39,10 +45,6 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
-  background-color: var(--color-icon-well);
   color: var(--color-primary-text);
 }
 
@@ -56,7 +58,7 @@
 
 .title {
   font-size: var(--font-size-base);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   overflow-wrap: anywhere;
 }
 
@@ -68,29 +70,27 @@
 .selected {
   display: flex;
   flex-wrap: wrap;
-  align-items: stretch;
-  gap: var(--space-3) var(--space-5);
-  padding: var(--space-5) var(--space-6);
-  border: var(--border-width) solid var(--color-border-soft);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface-sunken);
-}
-
-.selected > .text {
-  align-self: center;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-3) var(--space-1) 0;
+  border-top: var(--border-width-divider) solid var(--color-divider);
 }
 
 .check {
-  align-self: center;
   display: flex;
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 1.5rem;
+  height: 1.5rem;
   border-radius: 50%;
   background-color: var(--color-primary);
   color: var(--color-on-primary);
+
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
 }
 
 .sync {
@@ -107,6 +107,7 @@
 
 .path {
   overflow: hidden;
+  font-family: var(--font-mono);
   font-size: var(--font-size-small);
   color: var(--color-text-muted);
   text-overflow: ellipsis;
@@ -125,8 +126,8 @@
   cursor: pointer;
 
   @include hover {
-    background-color: var(--color-primary-subtle);
-    color: var(--color-primary-text);
+    background-color: var(--color-menu-hover);
+    color: var(--color-text);
   }
 
   &:focus-visible {
@@ -148,16 +149,16 @@
   align-items: center;
   gap: var(--space-2);
   min-height: var(--control-height);
-  padding-inline: var(--space-4);
-  border: var(--border-width) solid var(--color-primary);
+  padding-inline: var(--space-3);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-button);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-primary-text);
+  color: var(--color-text-muted);
   cursor: pointer;
 
   @include hover {
-    background-color: var(--color-primary-subtle);
+    background-color: var(--color-menu-hover);
+    color: var(--color-text);
   }
 
   &:focus-visible {
@@ -166,8 +167,7 @@
 
   &[aria-disabled='true'] {
     cursor: default;
-    border-color: var(--color-border-strong);
-    color: var(--color-text-muted);
+    color: var(--color-text-subtle);
   }
 }
 
@@ -177,24 +177,19 @@
   gap: var(--space-2);
   font-size: var(--font-size-small);
   color: var(--color-text-subtle);
-  opacity: 0.85;
 }
 
+// Nota em linha, sem caixa.
 .info {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-5);
-  border: var(--border-width) solid var(--color-border-info);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-notice);
   font-size: var(--font-size-caption);
-  color: var(--color-text-muted);
+  color: var(--color-text-subtle);
 
   svg {
     flex: none;
-    width: 1.25rem;
-    height: 1.25rem;
-    color: var(--color-text);
+    width: 1rem;
+    height: 1rem;
   }
 }

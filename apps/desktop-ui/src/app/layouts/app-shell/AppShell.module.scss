@@ -1,13 +1,14 @@
 @use '@/shared/styles/abstracts' as *;
 
-$rail-wide: 14rem;
-$rail-narrow: 4.25rem;
+$rail-wide: 15rem;
+$rail-narrow: 3.5rem;
 $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu aberto.
 
+// A janela é um aplicativo: a moldura ocupa a altura toda e só a área de trabalho rola.
 .shell {
   display: grid;
   grid-template-columns: $rail-wide minmax(0, 1fr);
-  min-height: 100vh;
+  height: 100vh;
   background-color: var(--color-background);
 
   @media (max-width: calc(#{$collapse-below} - 0.02px)) {
@@ -33,13 +34,11 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
 
 // ---- Menu lateral
 .rail {
-  position: sticky;
-  top: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
-  height: 100vh;
-  padding: var(--space-5) var(--space-4);
+  gap: var(--space-4);
+  min-height: 0;
+  padding: var(--space-4) var(--space-3);
   border-right: var(--border-width-divider) solid var(--color-divider);
   background-color: var(--color-sidebar);
 
@@ -51,8 +50,8 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
 .brand {
   display: flex;
   align-items: center;
-  min-height: var(--control-height-lg);
-  padding-inline: var(--space-2);
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
   color: var(--color-text);
   text-decoration: none;
@@ -62,32 +61,43 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   }
 }
 
+.logo {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.wordmark {
+  height: 0.95rem;
+}
+
 .nav {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 2px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  padding: 0.625rem 0.875rem;
-  border: 1px solid transparent;
+  min-height: var(--target-min);
+  padding: 0 var(--space-3);
+  border: 0;
   border-radius: var(--radius-sm);
   font-size: var(--font-size-navigation);
   line-height: var(--line-height-navigation);
-  font-weight: var(--font-weight-regular);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-menu);
   text-align: left;
   text-decoration: none;
   transition:
-    background-color var(--duration-fast),
-    color var(--duration-fast);
+    background-color var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
 
   @include hover {
     background-color: var(--color-menu-hover);
@@ -99,37 +109,50 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   }
 }
 
-// Item atual: preenchimento na cor da marca, texto e ícone na cor da marca; `aria-current` diz o mesmo ao leitor de tela.
+// Item atual: marca fina à esquerda e texto claro; `aria-current` diz o mesmo ao leitor de tela.
 .active {
-  border-color: transparent;
   background-color: var(--color-active);
-  color: var(--color-primary-text);
-  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
 
   .itemIcon {
     color: var(--color-primary-text);
+  }
+
+  &::before {
+    position: absolute;
+    top: 7px;
+    bottom: 7px;
+    left: 0;
+    width: 2px;
+    border-radius: 2px;
+    background-color: var(--color-primary);
+    content: '';
   }
 }
 
 .unavailable {
   cursor: default;
+  color: var(--color-text-subtle);
 
   @include hover {
     background-color: transparent;
-    color: var(--color-text-muted);
+    color: var(--color-text-subtle);
   }
 }
 
 .itemIcon {
   display: flex;
   flex: none;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
 }
 
+// "Em breve" fica à direita do nome, em texto pequeno: dito, não escondido.
 .itemText {
   display: flex;
   flex: 1;
-  flex-direction: column;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
   min-width: 0;
 }
 
@@ -138,9 +161,11 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
 }
 
 .itemReason {
-  font-size: var(--font-size-xs);
-  font-weight: 400;
-  color: var(--color-text-muted);
+  flex: none;
+  font-size: var(--font-size-badge);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-subtle);
+  white-space: nowrap;
 }
 
 // ---- Estado do motor (real, vindo do host)
@@ -148,20 +173,20 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-sm);
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-xs);
 }
 
-// Indicador de estado: ponto com um halo suave na própria cor (o texto ao lado diz o estado; a cor não é a única pista).
+// Indicador de estado: ponto com halo suave na própria cor (o texto ao lado diz o estado; a cor não é a única pista).
 @mixin glow($color) {
   background-color: $color;
-  box-shadow: 0 0 0.5rem 0.0625rem color-mix(in srgb, #{$color} 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, #{$color} 18%, transparent);
 }
 
 .dot {
   flex: none;
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 0.4375rem;
+  height: 0.4375rem;
   border-radius: 50%;
 }
 
@@ -188,72 +213,51 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
 }
 
 .engineTitle {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
 }
 
 .engineDetail {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
+  color: var(--color-text-subtle);
 }
 
 .column {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
 }
 
-// ---- Cabeçalho da janela: marca, nome e estado. O "Online" é o estado real do motor, não um enfeite.
+// ---- Faixa superior: estado real do motor e versão (não é enfeite).
 .topbar {
-  position: sticky;
-  top: 0;
-  z-index: 2;
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  min-height: 3.5rem;
-  padding: var(--space-2) var(--space-6);
-  border-bottom: var(--border-width-divider) solid var(--color-divider);
-  background-color: var(--color-background);
-}
-
-.topLogo {
-  width: 2.25rem;
-  height: 2.25rem;
   flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 2.25rem;
+  padding: 0 var(--space-5);
+  border-bottom: var(--border-width-divider) solid var(--color-divider);
 }
 
 .topText {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
   min-width: 0;
-}
-
-.topName {
-  font-size: var(--font-size-brand);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-brand);
-}
-
-.topAccent {
-  color: var(--color-primary-text);
 }
 
 .topTagline {
   font-size: var(--font-size-small);
   line-height: var(--line-height-small);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-muted);
+  color: var(--color-text-subtle);
 }
 
 .topStatus {
   display: flex;
   flex: none;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
   font-size: var(--font-size-small);
   line-height: var(--line-height-small);
-  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
 }
 
 .topStatusItem {
@@ -263,17 +267,18 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
 }
 
 .topVersion {
-  padding-left: var(--space-4);
+  padding-left: var(--space-3);
   border-left: var(--border-width-divider) solid var(--color-divider);
-  color: var(--color-text-muted);
+  color: var(--color-text-subtle);
 }
 
 .main {
   position: relative;
   flex: 1;
   min-width: 0;
+  min-height: 0;
   container-type: inline-size;
-  overflow-x: clip;
+  overflow: hidden auto;
 
   &:focus {
     outline: none;
@@ -286,9 +291,14 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
     padding-inline: var(--space-2);
   }
 
+  .wordmark,
   .itemReason,
   .engineDetail {
     @include visually-hidden;
+  }
+
+  .brand {
+    padding: 0;
   }
 
   .itemLabel,
@@ -300,16 +310,12 @@ $collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu
     padding-inline: var(--space-4);
   }
 
-  .topTagline {
-    display: none;
-  }
-
   .item {
     justify-content: center;
-    padding-inline: var(--space-2);
+    padding-inline: 0;
   }
 
   .engine {
-    padding-inline: var(--space-2);
+    padding-inline: 0;
   }
 }
