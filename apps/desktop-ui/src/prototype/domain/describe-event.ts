@@ -1,51 +1,31 @@
-import type { ScriptedEvent } from '../data/demo-scripts';
+import { EVAL_STATUS_TEXT } from '@/prototype/constants/evals';
+import type { ScriptedEvent } from '@/prototype/types/event';
+import type { FeedItem } from '@/prototype/types/feed';
+import type { OperationView } from '@/prototype/types/operation';
 
-import type { OperationView } from './operation-model';
+import { readString } from './operation/read-event-data';
 
-export interface FeedItem {
-  key: string;
-  at: number;
-  text: string;
-  /** Eventos que o motor atual ainda não publica. */
-  proposed: boolean;
-}
-
-const str = (data: Record<string, unknown>, key: string): string | null =>
-  typeof data[key] === 'string' ? data[key] : null;
-
-const evalStatusText: Record<string, string> = {
-  passed: 'aprovado',
-  failed: 'reprovado',
-  blocked: 'bloqueado',
-  not_run: 'não executado'
-};
-
-/** Texto de uma linha do feed de atividade, em linguagem de pessoa: sem códigos e sem logs. */
-export function describeEvent(e: ScriptedEvent, view: OperationView, index: number): FeedItem | null {
+export function describeEvent(event: ScriptedEvent, view: OperationView, index: number): FeedItem | null {
+  const { data } = event;
   const stepTitle = (id: string | null) => view.steps.find((s) => s.id === id)?.title ?? id ?? 'etapa';
-  const key = `${index}-${e.type}`;
-  const base = { key, at: e.t, proposed: e.source === 'proposed' };
+  const base = { key: `${index}-${event.type}`, at: event.t, proposed: event.source === 'proposed' };
 
-  switch (e.type) {
+  switch (event.type) {
     case 'step.started':
-      return { ...base, text: `Iniciou: ${stepTitle(str(e.data, 'id'))}` };
+      return { ...base, text: `Iniciou: ${stepTitle(readString(data, 'id'))}` };
     case 'step.completed':
-      return { ...base, text: `Concluiu: ${stepTitle(str(e.data, 'id'))}` };
+      return { ...base, text: `Concluiu: ${stepTitle(readString(data, 'id'))}` };
     case 'file.applied':
-      return { ...base, text: `Gravou ${str(e.data, 'path') ?? 'arquivo'}` };
+      return { ...base, text: `Gravou ${readString(data, 'path') ?? 'arquivo'}` };
     case 'eval.completed': {
-      const id = str(e.data, 'id');
-      const name = view.steps.find((s) => s.id === 'validate')?.evals.find((x) => x.id === id)?.name ?? id;
-      return { ...base, text: `Avaliação “${name}”: ${evalStatusText[str(e.data, 'status') ?? ''] ?? 'concluída'}` };
+      const id = readString(data, 'id');
+      const name = view.steps.find((s) => s.id === 'validate')?.evals.find((e) => e.id === id)?.name ?? id;
+      const status = EVAL_STATUS_TEXT[readString(data, 'status') as keyof typeof EVAL_STATUS_TEXT] ?? 'concluída';
+      return { ...base, text: `Avaliação “${name}”: ${status}` };
     }
     case 'agent.state':
-      return { ...base, text: `${str(e.data, 'name') ?? 'Agente'}: ${str(e.data, 'activity') ?? ''}`.trim() };
+      return { ...base, text: `${readString(data, 'name') ?? 'Agente'}: ${readString(data, 'activity') ?? ''}`.trim() };
     default:
       return null;
   }
 }
-
-export const formatClock = (ms: number) => {
-  const total = Math.floor(ms / 1000);
-  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
-};

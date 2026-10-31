@@ -1,0 +1,26 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mz-3);
+  padding-top: var(--mz-4);
+  border-top: 1px solid var(--mz-line-subtle);
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--mz-3);
+}
+
+.sectionTitle {
+  color: var(--mz-text-2);
+  font-size: var(--mz-fs-body-sm);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.sectionAside {
+  color: var(--mz-text-3);
+  font-size: var(--mz-fs-caption);
+}

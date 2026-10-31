@@ -1,0 +1,53 @@
+.empty {
+  color: var(--mz-text-3);
+  font-size: var(--mz-fs-body-sm);
+}
+
+.actors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mz-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.actor {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mz-3);
+
+  > span:first-child {
+    margin-top: 2px;
+  }
+}
+
+.actorText {
+  min-width: 0;
+}
+
+.actorName {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mz-2);
+  font-size: var(--mz-fs-body-sm);
+  font-weight: 600;
+}
+
+.actorState {
+  color: var(--mz-text-2);
+  font-size: var(--mz-fs-caption);
+}
+
+.actorActivity {
+  margin-top: 2px;
+  color: var(--mz-text);
+  font-size: var(--mz-fs-body-sm);
+}
+
+.actorNote {
+  margin-top: 2px;
+  color: var(--mz-text-3);
+  font-size: var(--mz-fs-caption);
+}

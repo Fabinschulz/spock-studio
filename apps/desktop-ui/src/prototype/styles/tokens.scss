@@ -84,11 +84,20 @@
   --mz-dur-2: 220ms;
   --mz-dur-3: 360ms;
 
-  // ---- Compatibilidade: tokens antigos que componentes compartilhados (Logo) ainda leem.
+  // ---- Compatibilidade: tokens que os componentes compartilhados (Logo, StatusGlyph) leem.
   --neutral-975: #050c0c;
   --neutral-50: #f1f7f6;
   --color-primary: var(--mz-accent);
   --color-hairline: var(--mz-line);
+  --color-border: var(--mz-line);
+  --color-border-strong: var(--mz-line-control);
+  --color-success: var(--mz-success);
+  --color-working: var(--mz-working);
+  --tone-success-bg: var(--mz-success-subtle);
+  --tone-warning-bg: var(--mz-warning-subtle);
+  --tone-danger-bg: var(--mz-danger-subtle);
+  --tone-warning-fg: var(--mz-warning);
+  --tone-danger-fg: var(--mz-danger);
 
   // ---- Medidas do workspace
   --mz-rail-w: 14rem;

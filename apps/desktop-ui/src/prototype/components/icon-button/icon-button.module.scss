@@ -1,0 +1,25 @@
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: var(--mz-target);
+  height: var(--mz-target);
+  border-radius: var(--mz-radius-sm);
+  color: var(--mz-text-2);
+  cursor: pointer;
+  transition:
+    background var(--mz-dur-1) var(--mz-ease),
+    color var(--mz-dur-1) var(--mz-ease);
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--mz-surface-hover);
+      color: var(--mz-text);
+    }
+  }
+
+  &[aria-expanded='true'] {
+    color: var(--mz-accent-text);
+  }
+}

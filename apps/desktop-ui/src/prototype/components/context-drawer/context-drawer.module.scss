@@ -1,0 +1,54 @@
+.panel {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: var(--mz-panel-w);
+  min-height: 0;
+  border-left: 1px solid var(--mz-line-subtle);
+  background: var(--mz-bg);
+}
+
+// Janela estreita: o painel vira gaveta sobre o conteúdo (não espreme a área de trabalho).
+.panelOverlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  background: var(--mz-surface);
+  box-shadow: var(--mz-shadow-overlay);
+  animation: drawer var(--mz-dur-2) var(--mz-ease);
+}
+
+@keyframes drawer {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+
+.panelHead {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3rem;
+  padding: 0 var(--mz-4);
+  border-bottom: 1px solid var(--mz-line-subtle);
+}
+
+.panelTitle {
+  font-size: var(--mz-fs-body-sm);
+  font-weight: 600;
+  color: var(--mz-text-2);
+}
+
+.panelBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--mz-5);
+  min-height: 0;
+  padding: var(--mz-4);
+  overflow-y: auto;
+}

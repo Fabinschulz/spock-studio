@@ -1,0 +1,66 @@
+.stage {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--mz-3);
+  min-height: 3rem;
+  padding: 0 var(--mz-5);
+  border-bottom: 1px solid var(--mz-line-subtle);
+}
+
+.barMain {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--mz-3);
+  min-width: 0;
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--mz-6) var(--mz-5) var(--mz-6);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mz-5);
+  max-width: 46rem;
+  margin: 0 auto;
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--mz-3);
+  padding: var(--mz-3) var(--mz-5);
+  border-top: 1px solid var(--mz-line-subtle);
+  background: var(--mz-bg);
+}
+
+.actionsNote {
+  flex: 1;
+  min-width: 12rem;
+  color: var(--mz-text-3);
+  font-size: var(--mz-fs-caption);
+}

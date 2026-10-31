@@ -1,0 +1,39 @@
+.replay {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mz-3);
+  padding: var(--mz-2) var(--mz-3);
+  border: 1px dashed var(--mz-line-control);
+  border-radius: var(--mz-radius-md);
+  font-size: var(--mz-fs-caption);
+  color: var(--mz-text-2);
+}
+
+.replayLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mz-2);
+}
+
+.scrub {
+  flex: 1;
+  min-width: 8rem;
+  accent-color: var(--mz-accent);
+}
+
+.replayControls {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mz-1);
+}
+
+.select {
+  min-height: var(--mz-target);
+  padding: 0 var(--mz-2);
+  border: 1px solid var(--mz-line-control);
+  border-radius: var(--mz-radius-sm);
+  background: var(--mz-sunken);
+  color: var(--mz-text);
+  font: inherit;
+}

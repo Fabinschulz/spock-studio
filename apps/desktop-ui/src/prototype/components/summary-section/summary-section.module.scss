@@ -1,0 +1,9 @@
+.facts {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+
+  > div {
+    grid-template-columns: 6.25rem minmax(0, 1fr);
+  }
+}

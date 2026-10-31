@@ -1,0 +1,17 @@
+.fact {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: var(--mz-3);
+  padding: var(--mz-1) 0;
+  font-size: var(--mz-fs-body-sm);
+
+  dt {
+    color: var(--mz-text-3);
+  }
+
+  dd {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}

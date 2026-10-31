@@ -1,0 +1,23 @@
+.notice {
+  display: flex;
+  gap: var(--mz-3);
+  padding: var(--mz-3) var(--mz-4);
+  border-radius: var(--mz-radius-md);
+  background: var(--mz-surface);
+  font-size: var(--mz-fs-body-sm);
+
+  > svg {
+    flex: none;
+    margin-top: 2px;
+    color: var(--mz-accent-text);
+  }
+
+  p + p {
+    margin-top: var(--mz-1);
+    color: var(--mz-text-2);
+  }
+}
+
+.noticeWarn > svg {
+  color: var(--mz-warning);
+}

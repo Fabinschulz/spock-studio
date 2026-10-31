@@ -1,0 +1,33 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mz-1);
+  padding: 1px var(--mz-2);
+  border-radius: var(--mz-radius-pill);
+  background: var(--mz-surface-active);
+  color: var(--mz-text-2);
+  font-size: var(--mz-fs-caption);
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
+
+  &[data-tone='accent'] {
+    background: var(--mz-accent-subtle);
+    color: var(--mz-accent-text);
+  }
+
+  &[data-tone='success'] {
+    background: var(--mz-success-subtle);
+    color: var(--mz-success);
+  }
+
+  &[data-tone='warning'] {
+    background: var(--mz-warning-subtle);
+    color: var(--mz-warning);
+  }
+
+  &[data-tone='danger'] {
+    background: var(--mz-danger-subtle);
+    color: var(--mz-danger);
+  }
+}
