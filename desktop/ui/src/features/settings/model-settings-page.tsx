@@ -2,7 +2,7 @@ import type { EngineClient } from '@/shared/api';
 import { EngineError } from '@/shared/api';
 import { modelStatusSchema } from '@/shared/schema';
 import { Button } from '@synthra.io/ui-kit';
-import { useCallback, useEffect, useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 import styles from './model-settings-page.module.scss';
 
@@ -24,16 +24,22 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
-    const next = await client.request('model.status', {}, modelStatusSchema);
-    setStatus(next);
-  }, [client]);
-
   useEffect(() => {
-    void refresh().catch((cause) => {
-      setError(cause instanceof EngineError ? cause.message : 'Não foi possível ler o estado do modelo.');
-    });
-  }, [refresh]);
+    let active = true;
+    void client
+      .request('model.status', {}, modelStatusSchema)
+      .then((next) => {
+        if (active) setStatus(next);
+      })
+      .catch((cause) => {
+        if (active) {
+          setError(cause instanceof EngineError ? cause.message : 'Não foi possível ler o estado do modelo.');
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [client]);
 
   const canSave = KEY_PATTERN.test(key.trim());
 

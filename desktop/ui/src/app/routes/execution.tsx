@@ -4,5 +4,5 @@ import { useParams } from 'react-router';
 
 export default function Execution() {
   const { runId = '' } = useParams();
-  return <ExecutionPage runId={runId} client={tauriEngineClient} />;
+  return <ExecutionPage key={runId} runId={runId} client={tauriEngineClient} />;
 }

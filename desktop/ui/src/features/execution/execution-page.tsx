@@ -59,8 +59,6 @@ export function ExecutionPage({ runId, client }: { runId: string; client: Engine
 
   useEffect(() => {
     let active = true;
-    setSnapshot(null);
-    setError(null);
     client
       .request('run.snapshot', { runId }, workflowSnapshotSchema)
       .then((next) => {
