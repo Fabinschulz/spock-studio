@@ -11,3 +11,7 @@ target/
 desktop/host/src-tauri/gen/
 desktop/host/src-tauri/binaries/*
 !desktop/host/src-tauri/binaries/.gitkeep
+desktop/host/src-tauri/resources/intelligence/**
+!desktop/host/src-tauri/resources/intelligence/.gitkeep
+desktop/host/src-tauri/resources/python/**
+!desktop/host/src-tauri/resources/python/.gitkeep

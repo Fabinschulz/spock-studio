@@ -35,3 +35,33 @@ $exe = Join-Path $out ("Mariliz.Runtime" + $t.Ext)
 $target = Join-Path $dest ("mariliz-runtime-" + $t.Triple + $t.Ext)
 Copy-Item $exe $target -Force
 "Sidecar: $target ({0:N1} MB)" -f ((Get-Item $target).Length / 1MB)
+
+# Medido em 2026-10-31: sidecar 70,8 MB; scripts 34 KB; zip oficial python-3.12.10-embed-amd64 10,6 MB.
+# O instalador leva esse CPython embarcável (orçamento 25 MB). PyInstaller não entra: o runtime só usa a biblioteca padrão.
+$budget = 25MB
+$resources = Join-Path $root 'desktop\host\src-tauri\resources'
+$intelDest = Join-Path $resources 'intelligence'
+if (Test-Path $intelDest) { Remove-Item $intelDest -Recurse -Force }
+New-Item -ItemType Directory -Force $intelDest | Out-Null
+Copy-Item (Join-Path $root 'intelligence\*') $intelDest -Recurse -Force
+foreach ($drop in @('tests', 'evaluations')) {
+    $path = Join-Path $intelDest $drop
+    if (Test-Path $path) { Remove-Item $path -Recurse -Force }
+}
+Get-ChildItem $intelDest -Recurse -Directory -Filter __pycache__ -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+$intelBytes = (Get-ChildItem $intelDest -Recurse -File | Measure-Object Length -Sum).Sum
+"Inteligência: $intelDest ({0:N0} bytes)" -f $intelBytes
+
+$pythonHome = $env:MARILIZ_PYTHON_HOME
+$pythonDest = Join-Path $resources 'python'
+if ($pythonHome -and (Test-Path (Join-Path $pythonHome 'python.exe'))) {
+    $pythonBytes = (Get-ChildItem $pythonHome -Recurse -File | Measure-Object Length -Sum).Sum
+    if ($pythonBytes -gt $budget) {
+        throw ("O interpretador em MARILIZ_PYTHON_HOME tem {0:N1} MB e passa do orçamento de 25 MB." -f ($pythonBytes / 1MB))
+    }
+    if (Test-Path $pythonDest) { Remove-Item $pythonDest -Recurse -Force }
+    Copy-Item $pythonHome $pythonDest -Recurse -Force
+    "Interpretador embarcado: $pythonDest ({0:N1} MB)" -f ($pythonBytes / 1MB)
+} else {
+    "Interpretador embarcado: ausente. Defina MARILIZ_PYTHON_HOME com o CPython embed-amd64 extraído (zip oficial de 10,6 MB)."
+}

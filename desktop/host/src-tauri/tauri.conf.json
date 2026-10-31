@@ -40,6 +40,10 @@
       "icons/icon.ico"
     ],
     "externalBin": ["binaries/mariliz-runtime"],
+    "resources": {
+      "resources/intelligence/": "intelligence/",
+      "resources/python/": "python/"
+    },
     "windows": {
       "nsis": {
         "installMode": "currentUser",

@@ -2,6 +2,7 @@
 
 use std::{
     collections::HashMap,
+    path::{Path, PathBuf},
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         Arc, Mutex,
@@ -10,7 +11,7 @@ use std::{
 };
 
 use serde_json::{json, Value};
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_shell::{
     process::{CommandChild, CommandEvent},
     ShellExt,
@@ -39,6 +40,17 @@ impl Status {
             Status::Crashed => "crashed",
         }
     }
+}
+
+/// Caminhos do interpretador e do script empacotados como recursos do instalador.
+pub fn packaged_runtime(resource_dir: &Path) -> (Option<PathBuf>, Option<PathBuf>) {
+    let script = resource_dir.join("intelligence").join("server.py");
+    let python = if cfg!(windows) {
+        resource_dir.join("python").join("python.exe")
+    } else {
+        resource_dir.join("python").join("bin").join("python3")
+    };
+    (script.is_file().then_some(script), python.is_file().then_some(python))
 }
 
 /// O motor e o runtime de IA são estados diferentes: a inteligência indisponível não derruba o motor.
@@ -113,10 +125,19 @@ impl Engine {
     }
 
     fn spawn_process(&self, app: &AppHandle) -> Result<(), HostError> {
-        let command = app
+        let mut command = app
             .shell()
             .sidecar(SIDECAR)
             .map_err(|_| HostError::new("ENGINE_NOT_FOUND", "O executável do motor não foi encontrado."))?;
+        if let Ok(dir) = app.path().resource_dir() {
+            let (script, python) = packaged_runtime(&dir);
+            if let Some(script) = script {
+                command = command.env("MARILIZ_AI", script);
+            }
+            if let Some(python) = python {
+                command = command.env("MARILIZ_PYTHON", python);
+            }
+        }
         let (mut rx, child) = command
             .spawn()
             .map_err(|_| HostError::new("ENGINE_START_FAILED", "Não foi possível iniciar o motor."))?;
@@ -257,5 +278,23 @@ mod tests {
 
         let unknown = compose_status("ready", Some(&json!({ "aiRuntime": "inventado" })));
         assert_eq!(unknown["aiRuntime"], "unavailable");
+    }
+
+    #[test]
+    fn recursos_empacotados_so_existem_quando_os_arquivos_existem() {
+        let dir = std::env::temp_dir().join(format!("mariliz-res-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("intelligence")).unwrap();
+        std::fs::write(dir.join("intelligence").join("server.py"), b"print('ok')").unwrap();
+        let (script, python) = packaged_runtime(&dir);
+        assert!(script.is_some());
+        assert!(python.is_none());
+
+        std::fs::create_dir_all(dir.join("python")).unwrap();
+        std::fs::write(dir.join("python").join("python.exe"), b"").unwrap();
+        let (script, python) = packaged_runtime(&dir);
+        assert!(script.is_some());
+        assert!(python.is_some());
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

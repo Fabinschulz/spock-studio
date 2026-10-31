@@ -272,44 +272,12 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         return items;
     }
 
-    private IEnumerable<string> PythonCandidates()
-    {
-        if (!string.IsNullOrWhiteSpace(_pythonOverride))
-        {
-            yield return _pythonOverride;
-            yield break;
-        }
-
-        var bundled = Path.Combine(AppContext.BaseDirectory, "python", OperatingSystem.IsWindows() ? "python.exe" : Path.Combine("bin", "python3"));
-        if (File.Exists(bundled)) yield return bundled;
-
-        var names = OperatingSystem.IsWindows() ? new[] { "py", "python3", "python" } : new[] { "python3", "python" };
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var name in names)
-        {
-            var found = FindOnPath(name);
-            if (found is not null && seen.Add(found)) yield return found;
-        }
-    }
-
-    private static string? FindOnPath(string name)
-    {
-        var extensions = OperatingSystem.IsWindows() ? new[] { ".exe", ".cmd", "" } : new[] { "" };
-        foreach (var dir in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
-        {
-            foreach (var ext in extensions)
-            {
-                try
-                {
-                    var candidate = Path.Combine(dir.Trim().Trim('"'), name + ext);
-                    if (File.Exists(candidate)) return candidate;
-                }
-                catch (ArgumentException) { }
-            }
-        }
-
-        return null;
-    }
+    private IEnumerable<string> PythonCandidates() =>
+        PythonRuntimeLayout.Candidates(
+            AppContext.BaseDirectory,
+            _pythonOverride,
+            Environment.GetEnvironmentVariable("MARILIZ_PYTHON"),
+            Environment.GetEnvironmentVariable("PATH"));
 
     private static int FreeLoopbackPort()
     {
