@@ -1,7 +1,6 @@
+// Cada tela define a própria coluna de leitura; o contêiner só garante a altura e a folga lateral.
 .container {
   width: 100%;
-  max-width: 1240px;
   min-height: 100%;
-  margin-inline: auto;
-  padding: var(--space-8) 2.5rem var(--space-6);
+  padding: var(--space-5) var(--space-5) 0;
 }

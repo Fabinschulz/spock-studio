@@ -1,2 +1,2 @@
-export * from './app-providers';
-export { themes, type ColorMode } from './theme';
+export { AppProviders } from './app-providers';
+export { theme } from './theme';

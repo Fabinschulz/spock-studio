@@ -1,31 +1,17 @@
+/**
+ * Cores que o tema da Synthra (MUI) precisa em TypeScript. A fonte de verdade é shared/styles/_tokens.scss;
+ * brand-palette.test.ts falha se os valores divergirem.
+ */
 export const brandPalette = {
-  teal300: '#5ccfc9',
-  teal400: '#33c1ba',
-  teal500: '#22a59f',
-  teal700: '#116b67',
-  teal800: '#0f5451',
-  white: '#ffffff',
-  neutral50: '#f1f7f6',
-  neutral200: '#cfdcda',
-  neutral350: '#9baaa8',
-  neutral400: '#839593',
-  neutral500: '#627371',
-  neutral600: '#4a5b59',
-  neutral800: '#1e302e',
-  neutral950: '#0a1615',
-  neutral975: '#050c0c',
-  navy975: '#020b11',
-  navy950: '#030f17',
-  navy850: '#061824',
-  navy700: '#0e2a3c',
-  cyan300: '#1affe6',
-  cyan400: '#00f2da',
-  cyan500: '#00ddbb',
-  ice50: '#ffffff',
-  ice300: '#8ca1b0',
-  mint400: '#00e676',
-  errorLight: '#b42318',
-  errorDark: '#f97066',
-  successLight: '#1c7f45',
-  successDark: '#00e676'
+  teal400: '#33c1ba', // marca
+  teal300: '#4fd3cc', // hover e texto na cor da marca
+  onPrimary: '#06201f',
+  background: '#0a0f10',
+  surface: '#0f1617',
+  text: '#e8f0ef',
+  textMuted: '#a5b5b4',
+  line: 'rgba(160, 200, 196, 0.14)',
+  borderStrong: '#5f7a7a',
+  error: '#f2766e',
+  success: '#7bd88f'
 } as const;

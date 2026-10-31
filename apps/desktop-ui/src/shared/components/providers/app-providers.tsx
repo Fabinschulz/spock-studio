@@ -1,14 +1,11 @@
-import { useMediaQuery } from '@mui/material';
 import { Provider } from '@synthra.io/ui-kit';
 import type { ReactNode } from 'react';
 
-import { themes } from './theme';
+import { theme } from './theme';
 
 export function AppProviders({ children }: { children: ReactNode }) {
-  const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
-
   return (
-    <Provider theme={prefersDark ? themes.dark : themes.light} cssBaseline={false}>
+    <Provider theme={theme} cssBaseline={false}>
       {children}
     </Provider>
   );

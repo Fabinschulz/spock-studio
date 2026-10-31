@@ -1,24 +1,19 @@
 @use '@/shared/styles/abstracts' as *;
 
+// Atividade como linha de lista (não como cartão): ícone, título, descrição e uma seta. Sem bordas nem fundos de cor.
 .card {
-  @include card(var(--space-5) var(--space-6));
-
   display: flex;
   align-items: center;
   gap: var(--space-4);
   width: 100%;
-  height: 100%;
-  min-height: 7rem;
-  border-color: var(--color-border);
-  border-radius: var(--radius-md);
+  min-height: 3.5rem;
+  padding: var(--space-3) var(--space-3);
+  border-radius: var(--radius-sm);
   text-align: left;
   cursor: pointer;
-  transition:
-    border-color var(--duration-fast),
-    background-color var(--duration-fast);
+  transition: background-color var(--duration-fast) var(--ease);
 
   @include hover {
-    border-color: color-mix(in srgb, var(--color-primary) 53%, transparent);
     background-color: var(--color-card-hover);
   }
 
@@ -27,66 +22,51 @@
   }
 }
 
-.teal {
-  background-color: var(--tile-teal-bg);
-  color: var(--tile-teal-fg);
+// O ícone é só um glifo: a cor do "tile" antigo deixa de existir (o significado está no desenho e no título).
+.icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--color-text-muted);
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
 }
 
-.indigo {
-  background-color: var(--tile-indigo-bg);
-  color: var(--tile-indigo-fg);
-}
-
-.blue {
-  background-color: var(--tile-blue-bg);
-  color: var(--tile-blue-fg);
-}
-
+.teal,
+.indigo,
+.blue,
 .orange {
-  background-color: var(--tile-orange-bg);
-  color: var(--tile-orange-fg);
+  background: none;
 }
 
-// Atividade principal: borda na cor da marca, halo e um brilho no canto; nenhum outro cartão ganha esse destaque.
+// Atividade principal: o ícone leva a cor da marca; nenhum outro item ganha esse destaque.
 .primary {
-  @include selected-border;
+  .icon {
+    color: var(--color-primary-text);
+  }
 
-  background: var(--card-selected-bg);
-
-  .description {
-    color: var(--color-card-selected-text);
+  .arrow {
+    color: var(--color-primary-text);
   }
 }
 
 // Indisponível: o texto continua legível (sem opacidade); o estado é dito por "Em breve" e por aria-disabled.
 .unavailable {
   cursor: default;
-  border-color: var(--color-border);
-  box-shadow: none;
-  color: var(--color-text-muted);
+  color: var(--color-text-subtle);
 
   .title {
-    color: var(--color-text);
+    color: var(--color-text-muted);
   }
 
   @include hover {
-    border-color: var(--color-border);
-    background-color: var(--color-surface);
-  }
-}
-
-.icon {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 50%;
-
-  svg {
-    width: 1.25rem;
-    height: 1.25rem;
+    background-color: transparent;
   }
 }
 
@@ -95,58 +75,47 @@
   flex: 1;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-1);
+  gap: 2px;
   min-width: 0;
 }
 
 .heading {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-2);
+  align-items: baseline;
+  gap: var(--space-3);
   width: 100%;
 }
 
 .title {
-  font-size: var(--font-size-heading);
+  font-size: var(--font-size-base);
   line-height: var(--line-height-heading);
-  letter-spacing: var(--letter-spacing-heading);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-medium);
 }
 
 .badge {
   flex: none;
-  padding: 2px var(--space-3);
+  padding: 1px var(--space-2);
   border-radius: var(--radius-pill);
   background-color: var(--color-badge-bg);
   color: var(--color-badge-fg);
   font-size: var(--font-size-badge);
   line-height: var(--line-height-badge);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-weight: var(--font-weight-medium);
   white-space: nowrap;
 }
 
-.highlight {
-  @include eyebrow;
-  margin-top: var(--space-1);
-  padding: 2px var(--space-2);
-  border-radius: var(--radius-pill);
-  background-color: var(--tone-success-bg);
-  color: var(--tone-success-fg);
-  text-transform: none;
-  letter-spacing: 0.02em;
+.description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
 }
 
-.description {
-  font-size: var(--font-size-body);
-  line-height: var(--line-height-body);
-  color: var(--color-text-muted);
+.highlight {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary-text);
 }
 
 .arrow {
   display: flex;
   flex: none;
-  color: var(--color-primary-text);
+  color: var(--color-text-muted);
 }

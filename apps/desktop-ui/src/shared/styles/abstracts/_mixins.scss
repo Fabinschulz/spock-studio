@@ -24,28 +24,25 @@
   }
 }
 
-// Rótulo curto em caixa alta (ex.: "Em breve", "Projeto").
+// Título de seção: em frase, semibold e discreto. A hierarquia vem de tamanho e peso, não de caixa alta.
 @mixin eyebrow {
-  font-size: var(--font-size-caption);
+  font-size: var(--font-size-sm);
   line-height: var(--line-height-caption);
   font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
-// Superfície de cartão: borda sutil, raio moderado e sombra mínima. Um só padrão para todas as telas.
+// Seção: sem caixa. Só uma linha fina acima e espaço; a estrutura vem da tipografia e do espaçamento, não de bordas.
+// (O nome `card` foi mantido para não tocar todos os usos de uma vez.)
 @mixin card($padding: var(--space-4)) {
-  padding: $padding;
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface);
-  box-shadow: var(--shadow-card);
+  padding: $padding 0 0;
+  border: 0;
+  border-top: var(--border-width) solid var(--color-divider);
+  border-radius: 0;
+  background-color: transparent;
 }
 
-// Item selecionado: borda de 2,5 px na cor da marca (a borda de 1,5 px mais um anel interno de 1 px, então nada se mexe).
+// Item selecionado (escolhas em lista): contorno e fundo na cor da marca, sem brilho.
 @mixin selected-border {
   border-color: var(--color-primary);
-  box-shadow:
-    inset 0 0 0 var(--border-selected-ring) var(--color-primary),
-    var(--glow-card);
 }
