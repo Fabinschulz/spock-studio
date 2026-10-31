@@ -66,6 +66,8 @@ public sealed class WorkflowService(
 
     public Task ShutdownAsync() => runtime.ShutdownAsync();
 
+    public string AiRuntimeStatus() => runtime.Probe();
+
     private Task<RunHandle> ResumeFromJournal(string projectId, string runId)
     {
         var journal = store?.LoadJournal(projectId, runId);
@@ -93,6 +95,7 @@ public sealed class WorkflowService(
             var ack = await runtime.StartAsync(run.RunId, run.ProjectId, executionId, input, context, run.Cancellation.Token);
             EnsureAck(run, executionId, ack);
             Publish(run, ack, "workflow.started", "started");
+            PublishAgents(run, ack);
             PublishRetrieval(run, ack);
 
             if (ack.Status == "interrupted")
@@ -134,6 +137,7 @@ public sealed class WorkflowService(
             run.SetState(RunStates.Running, "Retomando a execução");
             var ack = await runtime.ResumeAsync(run.RunId, run.ProjectId, journal.ExecutionId!, ExecutionContext(), run.Cancellation.Token);
             EnsureAck(run, journal.ExecutionId!, ack);
+            PublishAgents(run, ack);
             PublishRetrieval(run, ack);
             Finish(run, journal, ack);
         }
@@ -301,6 +305,19 @@ public sealed class WorkflowService(
     private void Publish(RunHandle run, WorkflowAck ack, string type, string status) =>
         run.Publish(type, EventData(ack, status));
 
+    private void PublishAgents(RunHandle run, WorkflowAck ack)
+    {
+        if (ack.Output["agents"] is not JsonArray agents) return;
+        foreach (var node in agents)
+        {
+            if (node is not JsonObject item) continue;
+            var id = Text(item, "id");
+            var status = Text(item, "status");
+            if (id != "architecture" || status != "completed") continue;
+            run.Publish("agent.completed", new JsonObject { ["agentId"] = id, ["at"] = clock.UtcNow.ToString("O") });
+        }
+    }
+
     private JsonObject EventData(WorkflowAck ack, string status) => new()
     {
         ["workflowId"] = ack.WorkflowId,
@@ -320,7 +337,7 @@ public sealed class WorkflowService(
     private static JsonObject Result(WorkflowAck ack)
     {
         var summary = ack.Output["summary"] is JsonValue value && value.TryGetValue<string>(out var text) ? text : "";
-        return new JsonObject
+        var result = new JsonObject
         {
             ["kind"] = Kind,
             ["workflowId"] = ack.WorkflowId,
@@ -334,7 +351,55 @@ public sealed class WorkflowService(
                 ["message"] = item.Message
             }).ToArray())
         };
+        if (TryImpact(ack.Output["impact"], out var impact)) result["impact"] = impact;
+        if (TryEvaluation(ack.Output["evaluation"], out var evaluation)) result["evaluation"] = evaluation;
+        return result;
     }
+
+    private static bool TryImpact(JsonNode? node, out JsonObject impact)
+    {
+        impact = new JsonObject();
+        if (node is not JsonObject item || Text(item, "schema") != "engineering.impact.v1") return false;
+        if (item["areas"] is not JsonArray areas || item["risks"] is not JsonArray risks || item["evidence"] is not JsonArray refs) return false;
+        var copyAreas = new JsonArray();
+        foreach (var area in areas)
+        {
+            if (area is not JsonValue value || !value.TryGetValue<string>(out var text) || text is not ("servico" or "interface" or "projeto")) return false;
+            copyAreas.Add(text);
+        }
+        if (copyAreas.Count == 0) return false;
+        var copyRisks = new JsonArray();
+        foreach (var risk in risks)
+        {
+            if (risk is not JsonValue value || !value.TryGetValue<string>(out var text) || text is not ("sem-evidencia" or "sem-stack")) return false;
+            copyRisks.Add(text);
+        }
+        var copyRefs = new JsonArray();
+        foreach (var reference in refs)
+        {
+            if (reference is not JsonValue value || !value.TryGetValue<string>(out var text) || !SafeChunk(text)) return false;
+            copyRefs.Add(text);
+        }
+        impact["schema"] = "engineering.impact.v1";
+        impact["areas"] = copyAreas;
+        impact["risks"] = copyRisks;
+        impact["evidence"] = copyRefs;
+        return true;
+    }
+
+    private static bool TryEvaluation(JsonNode? node, out JsonObject evaluation)
+    {
+        evaluation = new JsonObject();
+        if (node is not JsonObject item || Text(item, "verdict") != "deterministic" || Text(item, "judge") != "not_run") return false;
+        evaluation["schema"] = "engineering.evaluation.v1";
+        evaluation["verdict"] = "deterministic";
+        evaluation["judge"] = "not_run";
+        evaluation["tokens"] = 0;
+        return true;
+    }
+
+    private static bool SafeChunk(string value) =>
+        value.Length is > 0 and <= 240 && !value.Contains('\\') && !value.Contains("..");
 
     private static JsonArray CopyEvidence(JsonObject output)
     {

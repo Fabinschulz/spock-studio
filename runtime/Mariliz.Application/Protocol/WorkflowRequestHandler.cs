@@ -16,5 +16,7 @@ internal sealed class WorkflowRequestHandler(WorkflowService service)
 
     public Task ShutdownAsync() => service.ShutdownAsync();
 
+    public string AiRuntimeStatus() => service.AiRuntimeStatus();
+
     private static JsonObject RunStarted(RunHandle run) => new() { ["runId"] = run.RunId };
 }

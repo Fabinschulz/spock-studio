@@ -17,6 +17,7 @@ public static class ProtocolMethods
 
     public const string WorkflowStart = "workflow.start";
     public const string WorkflowResume = "workflow.resume";
+    public const string RuntimeHealth = "runtime.health";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs, Snapshot, Cancel];

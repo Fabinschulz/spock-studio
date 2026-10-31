@@ -41,6 +41,19 @@ impl Status {
     }
 }
 
+/// O motor e o runtime de IA são estados diferentes: a inteligência indisponível não derruba o motor.
+pub fn compose_status(lifecycle: &str, health: Option<&Value>) -> Value {
+    if lifecycle != "ready" {
+        return json!({ "engine": lifecycle, "aiRuntime": "unknown" });
+    }
+    let ai = health
+        .and_then(|value| value.get("aiRuntime"))
+        .and_then(Value::as_str)
+        .filter(|status| matches!(*status, "ready" | "stopped" | "unavailable"))
+        .unwrap_or("unavailable");
+    json!({ "engine": "ready", "aiRuntime": ai })
+}
+
 #[derive(Default)]
 struct Inner {
     child: Mutex<Option<CommandChild>>,
@@ -225,5 +238,24 @@ impl Engine {
         if let Some(child) = self.0.child.lock().unwrap().take() {
             let _ = child.kill();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn inteligencia_indisponivel_nao_derruba_o_motor() {
+        let down = compose_status("ready", Some(&json!({ "aiRuntime": "unavailable" })));
+        assert_eq!(down["engine"], "ready");
+        assert_eq!(down["aiRuntime"], "unavailable");
+
+        let crashed = compose_status("crashed", Some(&json!({ "aiRuntime": "ready" })));
+        assert_eq!(crashed["engine"], "crashed");
+        assert_eq!(crashed["aiRuntime"], "unknown");
+
+        let unknown = compose_status("ready", Some(&json!({ "aiRuntime": "inventado" })));
+        assert_eq!(unknown["aiRuntime"], "unavailable");
     }
 }

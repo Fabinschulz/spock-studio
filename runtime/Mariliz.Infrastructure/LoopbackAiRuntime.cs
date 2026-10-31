@@ -33,6 +33,14 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         get { lock (_gate) return _process is { HasExited: false }; }
     }
 
+    public string Probe()
+    {
+        if (IsRunning) return "ready";
+        var script = _scriptPath;
+        if (string.IsNullOrWhiteSpace(script) || !File.Exists(script)) return "unavailable";
+        return PythonCandidates().Any() ? "stopped" : "unavailable";
+    }
+
     public async Task EnsureReadyAsync(CancellationToken ct)
     {
         if (await HealthyAsync(ct)) return;
@@ -271,6 +279,9 @@ public sealed class LoopbackAiRuntime : IAiRuntime
             yield return _pythonOverride;
             yield break;
         }
+
+        var bundled = Path.Combine(AppContext.BaseDirectory, "python", OperatingSystem.IsWindows() ? "python.exe" : Path.Combine("bin", "python3"));
+        if (File.Exists(bundled)) yield return bundled;
 
         var names = OperatingSystem.IsWindows() ? new[] { "py", "python3", "python" } : new[] { "python3", "python" };
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

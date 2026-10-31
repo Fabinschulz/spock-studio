@@ -9,3 +9,7 @@ export type RouteName = keyof typeof paths;
 export function pathTo(name: RouteName): string {
   return paths[name];
 }
+
+export function executionPath(runId: string): string {
+  return `/execucao/${encodeURIComponent(runId)}`;
+}

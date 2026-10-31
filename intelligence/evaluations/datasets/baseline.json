@@ -1,0 +1,19 @@
+{
+  "schema": "engineering.baseline.v1",
+  "cases": [
+    {
+      "id": "sem-impacto",
+      "impact": false,
+      "steps": ["describe", "context"],
+      "agents": [],
+      "limitations": ["RAG_NOT_READY", "JUDGE_NOT_RUN"]
+    },
+    {
+      "id": "com-impacto",
+      "impact": true,
+      "steps": ["describe", "context", "impact"],
+      "agents": ["architecture"],
+      "limitations": ["RAG_NOT_READY", "JUDGE_NOT_RUN"]
+    }
+  ]
+}

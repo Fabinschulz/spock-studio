@@ -129,6 +129,12 @@ public sealed class EngineSession
                 return (ProtocolMessages.Ok(id, new JsonObject()), true);
             case ProtocolMethods.AuthorizeWorkspace when _workspace is not null:
                 return Reply(Authorize(id, parameters));
+            case ProtocolMethods.RuntimeHealth when _workflows is not null:
+                return Reply(ProtocolMessages.Ok(id, new JsonObject
+                {
+                    ["engine"] = "ready",
+                    ["aiRuntime"] = _workflows.AiRuntimeStatus()
+                }));
         }
 
         if (_configure is not null && ProtocolMethods.Configure.Contains(method))

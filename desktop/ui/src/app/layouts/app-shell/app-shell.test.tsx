@@ -165,6 +165,17 @@ describe('AppShell · estado do motor', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Motor indisponível');
   });
 
+  it('inteligência indisponível não aparece como motor caído', async () => {
+    (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {};
+    invoke.mockResolvedValue({ engine: 'ready', aiRuntime: 'unavailable' });
+    renderShell();
+
+    const status = await screen.findByRole('status');
+    expect(status).toHaveTextContent('Motor pronto. A inteligência local não está disponível.');
+    expect(status).not.toHaveTextContent('Motor indisponível');
+    expect(within(screen.getByRole('banner')).getByText('Online')).toBeInTheDocument();
+  });
+
   it('um valor desconhecido do host nunca vira "pronto"', async () => {
     (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {};
     invoke.mockResolvedValue('qualquer-coisa');

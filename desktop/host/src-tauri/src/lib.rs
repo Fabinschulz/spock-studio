@@ -108,8 +108,13 @@ async fn open_recent_project(
 }
 
 #[tauri::command]
-fn engine_status(engine: State<'_, Engine>) -> &'static str {
-    engine.status().as_str()
+async fn engine_status(engine: State<'_, Engine>) -> Result<serde_json::Value, HostError> {
+    let lifecycle = engine.status().as_str();
+    if lifecycle != "ready" {
+        return Ok(crate::engine::compose_status(lifecycle, None));
+    }
+    let health = engine.request("runtime.health", serde_json::json!({})).await.ok();
+    Ok(crate::engine::compose_status(lifecycle, health.as_ref()))
 }
 
 pub fn run() {
