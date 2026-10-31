@@ -1,3 +1,4 @@
+import { EngineeringRequestShortcut } from '@/features/engineering-request';
 import { useProjectSelectionContext } from '@/features/project-selection';
 import { useScrollToTop } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
@@ -51,6 +52,7 @@ export function ConfigureJourney({ api, projectId, projectName, projectPath, pol
         />
       }
     >
+      <EngineeringRequestShortcut />
       {state.step === 'project' ? (
         <ProjectStep
           project={{ name: projectName, path: projectPath }}

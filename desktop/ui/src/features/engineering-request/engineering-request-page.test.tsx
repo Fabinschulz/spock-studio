@@ -64,9 +64,9 @@ describe('Pedido de engenharia', () => {
     const client = clientFor('run-eng-1');
     renderPage(client);
 
-    expect(await screen.findByLabelText('Objetivo')).toBeInTheDocument();
-    await userEvent.type(screen.getByLabelText('Objetivo'), 'descrever o serviço de autenticação');
-    await userEvent.click(screen.getByRole('button', { name: 'Iniciar pedido' }));
+    const goal = await screen.findByPlaceholderText(/descrever impacto/i);
+    await userEvent.type(goal, 'descrever o serviço de autenticação');
+    await userEvent.click(screen.getByRole('button', { name: /^Iniciar pedido$/ }));
 
     expect(await screen.findByTestId('exec')).toBeInTheDocument();
     expect(client.calls).toEqual([
