@@ -111,7 +111,7 @@ jobs:
       - name: runtime de IA pronto no pacote (Windows)
         if: runner.os == 'Windows'
         env:
-          MARILIZ_PACKAGED_RESOURCES: desktop/host/src-tauri/resources
+          MARILIZ_PACKAGED_RESOURCES: ${{ github.workspace }}/desktop/host/src-tauri/resources
         run: dotnet test runtime/Mariliz.sln --filter "FullyQualifiedName~Pacote_embarcado" --nologo
       - name: testes do host
         working-directory: desktop/host/src-tauri

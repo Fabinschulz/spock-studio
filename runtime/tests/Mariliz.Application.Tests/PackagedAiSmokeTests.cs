@@ -15,6 +15,17 @@ public class PackagedAiSmokeTests
         if (string.IsNullOrWhiteSpace(root))
             return;
 
+        if (!Path.IsPathRooted(root))
+        {
+            var workspace = Environment.GetEnvironmentVariable("GITHUB_WORKSPACE");
+            if (string.IsNullOrWhiteSpace(workspace))
+            {
+                workspace = Path.GetFullPath(
+                    Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
+            }
+            root = Path.GetFullPath(Path.Combine(workspace, root));
+        }
+
         var script = Path.Combine(root, "intelligence", "server.py");
         var python = Path.Combine(root, "python", "python.exe");
         Assert.True(File.Exists(script), "server.py embarcado ausente.");

@@ -290,8 +290,13 @@ mod tests {
         assert!(script.is_some());
         assert!(python.is_none());
 
-        std::fs::create_dir_all(dir.join("python")).unwrap();
-        std::fs::write(dir.join("python").join("python.exe"), b"").unwrap();
+        let python_file = if cfg!(windows) {
+            dir.join("python").join("python.exe")
+        } else {
+            dir.join("python").join("bin").join("python3")
+        };
+        std::fs::create_dir_all(python_file.parent().unwrap()).unwrap();
+        std::fs::write(&python_file, b"").unwrap();
         let (script, python) = packaged_runtime(&dir);
         assert!(script.is_some());
         assert!(python.is_some());
