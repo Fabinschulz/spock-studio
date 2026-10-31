@@ -197,20 +197,13 @@ public static class ProposalReader
         return list;
     }
 
-    private static IEnumerable<(string Path, string Value)> Strings(JsonElement e, string path)
+    private static IEnumerable<(string Path, string Value)> Strings(JsonElement e, string path) => e.ValueKind switch
     {
-        switch (e.ValueKind)
-        {
-            case JsonValueKind.String: yield return (path, e.GetString() ?? ""); break;
-            case JsonValueKind.Object:
-                foreach (var p in e.EnumerateObject()) foreach (var s in Strings(p.Value, path + "." + p.Name)) yield return s;
-                break;
-            case JsonValueKind.Array:
-                var i = 0;
-                foreach (var item in e.EnumerateArray()) foreach (var s in Strings(item, $"{path}[{i++}]")) yield return s;
-                break;
-        }
-    }
+        JsonValueKind.String => [(path, e.GetString() ?? "")],
+        JsonValueKind.Object => e.EnumerateObject().SelectMany(property => Strings(property.Value, path + "." + property.Name)),
+        JsonValueKind.Array => e.EnumerateArray().SelectMany((item, index) => Strings(item, $"{path}[{index}]")),
+        _ => []
+    };
 
     private static string Shorten(string? s) => s is null ? "" : s.Length <= 60 ? s : s[..60] + "…";
 }

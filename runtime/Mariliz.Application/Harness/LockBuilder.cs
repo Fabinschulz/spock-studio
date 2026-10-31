@@ -22,23 +22,7 @@ public static class LockBuilder
         foreach (var change in changes)
         {
             if (!byPath.TryGetValue(change.Path, out var desired) || change.Path == DeclaredConfig.FileName) continue;
-            switch (change.Action)
-            {
-                case ChangeAction.Create or ChangeAction.Update:
-                    lockFile.ManagedFiles.Add(new() { Path = change.Path, Component = desired.ComponentId, Mode = desired.Mode, Sha256 = change.AfterHash ?? "" });
-                    break;
-                case ChangeAction.Preserve when change.Origin == DecisionOrigins.Existing:
-                    lockFile.ManagedFiles.Add(new() { Path = change.Path, Component = desired.ComponentId, Mode = "kept", Sha256 = change.BeforeHash ?? "" });
-                    break;
-                case ChangeAction.Preserve:
-                    lockFile.ManagedFiles.Add(new() { Path = change.Path, Component = desired.ComponentId, Mode = desired.Mode, Sha256 = change.AfterHash ?? "" });
-                    break;
-                case ChangeAction.Conflict:
-                    // Resolvido na aplicação: se mantido, registra-se como "kept" naquele momento.
-                    var prior = existing?.ManagedFiles.FirstOrDefault(e => e.Path == change.Path);
-                    if (prior is not null) lockFile.ManagedFiles.Add(prior);
-                    break;
-            }
+            if (EntryFor(change, desired, existing) is { } entry) lockFile.ManagedFiles.Add(entry);
         }
 
         var componentIds = lockFile.ManagedFiles.Select(f => f.Component).Distinct().ToList();
@@ -67,19 +51,8 @@ public static class LockBuilder
         foreach (var (path, outcome) in outcomes)
         {
             // mariliz.yaml é da pessoa depois de criado: a aplicação não o registra como gerenciado.
-            if (!desired.TryGetValue(path, out var d) || path == DeclaredConfig.FileName) continue;
-            switch (outcome.Kind)
-            {
-                case Execution.OutcomeKind.Written or Execution.OutcomeKind.Preserved:
-                    lockFile.ManagedFiles.Add(new() { Path = path, Component = d.ComponentId, Mode = d.Mode, Sha256 = outcome.Hash ?? "" });
-                    break;
-                case Execution.OutcomeKind.Kept:
-                    lockFile.ManagedFiles.Add(new() { Path = path, Component = d.ComponentId, Mode = "kept", Sha256 = outcome.Hash ?? "" });
-                    break;
-                case Execution.OutcomeKind.NotApplied:
-                    if (existing?.ManagedFiles.FirstOrDefault(e => e.Path == path) is { } prior) lockFile.ManagedFiles.Add(prior);
-                    break;
-            }
+            if (!desired.TryGetValue(path, out var file) || path == DeclaredConfig.FileName) continue;
+            if (EntryFromOutcome(path, file, outcome, existing) is { } entry) lockFile.ManagedFiles.Add(entry);
         }
 
         // O que a aplicação já gerenciava e esta execução não tocou continua registrado.
@@ -93,6 +66,29 @@ public static class LockBuilder
         }
         return lockFile.ToYaml();
     }
+
+    private static ManagedLockFile.ManagedFileEntry? EntryFor(FileChange change, DesiredFile desired, ManagedLockFile? existing) =>
+        change.Action switch
+        {
+            ChangeAction.Create or ChangeAction.Update => Entry(change.Path, desired.ComponentId, desired.Mode, change.AfterHash ?? ""),
+            ChangeAction.Preserve when change.Origin == DecisionOrigins.Existing => Entry(change.Path, desired.ComponentId, "kept", change.BeforeHash ?? ""),
+            ChangeAction.Preserve => Entry(change.Path, desired.ComponentId, desired.Mode, change.AfterHash ?? ""),
+            // Resolvido na aplicação: se mantido, registra-se como "kept" naquele momento.
+            ChangeAction.Conflict => existing?.ManagedFiles.FirstOrDefault(e => e.Path == change.Path),
+            _ => null
+        };
+
+    private static ManagedLockFile.ManagedFileEntry? EntryFromOutcome(string path, DesiredFile desired, Execution.FileOutcome outcome, ManagedLockFile? existing) =>
+        outcome.Kind switch
+        {
+            Execution.OutcomeKind.Written or Execution.OutcomeKind.Preserved => Entry(path, desired.ComponentId, desired.Mode, outcome.Hash ?? ""),
+            Execution.OutcomeKind.Kept => Entry(path, desired.ComponentId, "kept", outcome.Hash ?? ""),
+            Execution.OutcomeKind.NotApplied => existing?.ManagedFiles.FirstOrDefault(e => e.Path == path),
+            _ => null
+        };
+
+    private static ManagedLockFile.ManagedFileEntry Entry(string path, string component, string mode, string hash) =>
+        new() { Path = path, Component = component, Mode = mode, Sha256 = hash };
 
     /// <summary>A estrutura de especificação é externa: a versão registrada é a da instalação verificada, nunca um valor fixo do catálogo.</summary>
     private static string ComponentVersion(string id, CatalogComponent? component, SpecificationStatus specification) =>

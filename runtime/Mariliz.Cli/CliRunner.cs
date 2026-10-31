@@ -48,20 +48,24 @@ public sealed class CliRunner(
     /// <summary>Progresso das execuções, em stderr (stdout fica para o resultado).</summary>
     public void OnEvent(string runId, int seq, string type, JsonObject data)
     {
-        if (_json) return;
-        var id = data["id"]?.GetValue<string>();
-        switch (type)
+        if (_json || data["id"]?.GetValue<string>() is not string id) return;
+        var line = type switch
         {
-            case "step.started" when id is not null:
-                _stepTitles[id] = data["title"]?.GetValue<string>() ?? id;
-                stderr.WriteLine($"  … {_stepTitles[id]}");
-                break;
-            case "step.completed" when id is not null:
-                var status = data["status"]?.GetValue<string>() ?? "completed";
-                stderr.WriteLine($"  {(status == "completed" ? "✓" : "!")} {_stepTitles.GetValueOrDefault(id, id)} ({status.Replace('_', ' ')})");
-                break;
-        }
+            "step.started" => RememberStep(id, data["title"]?.GetValue<string>() ?? id),
+            "step.completed" => FinishStep(id, data["status"]?.GetValue<string>() ?? "completed"),
+            _ => null
+        };
+        if (line is not null) stderr.WriteLine(line);
     }
+
+    private string RememberStep(string id, string title)
+    {
+        _stepTitles[id] = title;
+        return $"  … {title}";
+    }
+
+    private string FinishStep(string id, string status) =>
+        $"  {(status == "completed" ? "✓" : "!")} {_stepTitles.GetValueOrDefault(id, id)} ({status.Replace('_', ' ')})";
 
     public async Task<int> RunAsync(IReadOnlyList<string> argv, CancellationToken ct)
     {
