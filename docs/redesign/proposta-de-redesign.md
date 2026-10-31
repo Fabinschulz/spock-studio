@@ -1,17 +1,17 @@
 # Mariliz Studio — Redesign: auditoria, proposta e protótipo
 
-> **Estado:** Fases 1 a 5 concluídas. **Nada da interface real foi substituído.** O protótipo vive em `apps/desktop-ui/src/prototype/` e `apps/desktop-ui/prototype.html`, fora do build de produção. A Fase 6 só começa depois da sua avaliação (seção 11).
+> **Estado:** Fases 1 a 5 concluídas. **Nada da interface real foi substituído.** O protótipo vive em `desktop/ui/src/prototype/` e `desktop/ui/prototype.html`, fora do build de produção. A Fase 6 só começa depois da sua avaliação (seção 11).
 >
 > Documentos relacionados: [contratos-propostos.md](contratos-propostos.md) (eventos que o motor ainda não publica) e [ui-modernization.md](../ui-modernization.md) (desenho atual).
 
 ## Como ver o protótipo
 
 ```bash
-pnpm --dir apps/desktop-ui exec vite --port 1420
+pnpm --dir desktop/ui exec vite --port 1420
 # http://localhost:1420/prototype.html
 ```
 
-Os dados são as respostas _golden_ do motor (`packages/contracts`), validadas pelos mesmos esquemas Zod do aplicativo. A faixa amarela no topo e o selo "demonstração" lembram que nada lê, grava ou executa em projeto algum. Links diretos úteis (parâmetros existem só no protótipo):
+Os dados são as respostas _golden_ do motor (`contracts`), validadas pelos mesmos esquemas Zod do aplicativo. A faixa amarela no topo e o selo "demonstração" lembram que nada lê, grava ou executa em projeto algum. Links diretos úteis (parâmetros existem só no protótipo):
 
 | Para ver | Endereço (depois de `prototype.html`) |
 | --- | --- |
@@ -43,7 +43,7 @@ _As capturas do desenho atual usam o host simulado com as respostas golden do mo
 
 ## 1. Problemas visuais encontrados (Fase 1)
 
-Método: leitura do código (`apps/desktop-ui/src`, SCSS, tokens, tema da Synthra), execução do aplicativo atual no navegador com o host Tauri simulado pelas fixtures _golden_ (percorrendo as seis etapas a 900×650) e medição no DOM. Cada item abaixo foi **confirmado**; o que não se confirmou está na última linha da tabela.
+Método: leitura do código (`desktop/ui/src`, SCSS, tokens, tema da Synthra), execução do aplicativo atual no navegador com o host Tauri simulado pelas fixtures _golden_ (percorrendo as seis etapas a 900×650) e medição no DOM. Cada item abaixo foi **confirmado**; o que não se confirmou está na última linha da tabela.
 
 | # | Hipótese do pedido | Veredito | Evidência concreta |
 | --- | --- | --- | --- |
@@ -295,7 +295,7 @@ Cada fatia entrega valor, mantém `pnpm check` verde e não muda regra de negóc
 | 5 | **Jornada (etapas 1–4)** | `JourneyBar`; etapas migram uma a uma para o novo layout; ambiente pedido uma vez; mesmo reducer | `configure-project-page.test` + `journey-state.test` |
 | 6 | **Operação** | `OperationTimeline` e Participantes consumindo `RunEvent` reais; fim do `.progress` genérico | testes com dublê do `HarnessApi` |
 | 7 | **Resultado** | Lista de verificações expansível; próximo passo do Harness Engineer | testes |
-| 8 | **Contratos** (com .NET) | `run.plan`, `eval.*`, `at`, `discover.probe`; fixtures _golden_ e Zod | `packages/contracts` + testes .NET |
+| 8 | **Contratos** (com .NET) | `run.plan`, `eval.*`, `at`, `discover.probe`; fixtures _golden_ e Zod | `contracts` + testes .NET |
 | 9 | **Validação final** | Responsivo (760–1600), contraste efetivo no navegador, teclado, leitor de tela (NVDA/Narrator), zoom/alto contraste, comparação com este protótipo | relatório |
 
 As fatias 1–7 não dependem do .NET; a 8 melhora a fidelidade (hoje o protótipo as exibe como "contrato proposto"). A 6 já entrega Participantes honestos com o que existe.
@@ -313,7 +313,7 @@ As fatias 1–7 não dependem do .NET; a 8 melhora a fidelidade (hoje o protóti
 
 | Verificação | Resultado |
 | --- | --- |
-| `pnpm check` completo em `apps/desktop-ui` (tsc, ESLint, Prettier, Vitest) | passa: 56 testes, dos quais 7 novos cobrem `buildOperation` (os dois contratos e a regra "sem evento, sem agente") |
+| `pnpm check` completo em `desktop/ui` (tsc, ESLint, Prettier, Vitest) | passa: 56 testes, dos quais 7 novos cobrem `buildOperation` (os dois contratos e a regra "sem evento, sem agente") |
 | Contraste dos tokens (script, 5 superfícies, 45+ pares) | todos passam |
 | axe-core no navegador (WCAG 2.0/2.1/2.2 A/AA) | 0 violações em Resultado; `color-contrast` marcado "incompleto" pelo axe, por isso foi feito o próximo item |
 | Auditor de contraste **efetivo** (cor computada composta com o fundo) em 8 telas a 1280 px | 0 falhas, exceto botões **desabilitados** (isentos na WCAG 1.4.3) |
@@ -339,7 +339,7 @@ Decisões tomadas com a aprovação: direção A (Workbench), `#33C1BA`, **tema 
 | 8 · Contratos | não iniciado | Depende de mudanças no .NET (ver `contratos-propostos.md`) |
 | 9 · Validação | parcial | Ver abaixo |
 
-**Verificação desta rodada** (`pnpm check` em `apps/desktop-ui`): `tsc`, ESLint, Prettier e **204 testes** passam (20 novos: etapas planejadas, reducer de progresso, painel de contexto com regras "sem evento não há agente" e juiz "não executado", paridade de paleta). No aplicativo real com o host simulado pelas fixtures _golden_: axe-core com **0 violações** e auditor de contraste efetivo com **0 falhas** em Revisão, Aplicação (em andamento) e Resultado; capturas a 760×560, 900×650, 1280×800 e 1600×900 em `screenshots/implementado-*`.
+**Verificação desta rodada** (`pnpm check` em `desktop/ui`): `tsc`, ESLint, Prettier e **204 testes** passam (20 novos: etapas planejadas, reducer de progresso, painel de contexto com regras "sem evento não há agente" e juiz "não executado", paridade de paleta). No aplicativo real com o host simulado pelas fixtures _golden_: axe-core com **0 violações** e auditor de contraste efetivo com **0 falhas** em Revisão, Aplicação (em andamento) e Resultado; capturas a 760×560, 900×650, 1280×800 e 1600×900 em `screenshots/implementado-*`.
 
 **Não verificado:** leitor de tela real, zoom do sistema, alto contraste do Windows, execução dentro do Tauri (as capturas são do front-end em navegador), Análise/Modelo/Plano passaram só na inspeção visual e nos testes, e o desenho interno das etapas 1–4 ainda usa os componentes antigos com o novo visual (por exemplo o cartão "Estrutura de especificação" e as colunas da etapa Projeto).
 

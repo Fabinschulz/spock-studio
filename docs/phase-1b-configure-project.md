@@ -1,8 +1,8 @@
 # Mariliz Studio — Fase 1B: jornada "Configurar projeto"
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
-Documento de referência da implementação. A interface foi modernizada depois (marca, tokens, menu lateral, stepper): ver [ui-modernization.md](ui-modernization.md). Complementa o [roadmap](implementation-roadmap.md), a [arquitetura](architecture-blueprint.md) e o [blueprint de experiência](experience-blueprint.md); onde divergir deles, este documento descreve o que foi de fato construído.
+Documento de referência da implementação. A interface foi modernizada depois (marca, tokens, menu lateral, stepper): ver [ui-modernization.md](ui-modernization.md). Complementa o [roadmap](implementation-roadmap.md), a [arquitetura](blueprints/architecture-blueprint.md) e o [blueprint de experiência](blueprints/experience-blueprint.md); onde divergir deles, este documento descreve o que foi de fato construído.
 
 ## 1. O que a jornada faz
 
@@ -28,7 +28,7 @@ O resultado nunca é um "sucesso" genérico: `completed` só existe se todo Eval
 Uma única classe, `ConfigureProjectService`, implementa os casos de uso; **UI e CLI chamam a mesma classe**.
 
 ```
-apps/desktop-ui (React) ─ invoke ─▶ apps/desktop-host (Tauri/Rust, allowlist) ─ NDJSON ─▶ Mariliz.Engine
+desktop/ui (React) ─ invoke ─▶ desktop/host (Tauri/Rust, allowlist) ─ NDJSON ─▶ Mariliz.Runtime
                                                                                   └─ Mariliz.Cli ─────────┘
                                          ▼
                       Mariliz.Application (ConfigureProjectService, ApplyService, EvalRunner…)
@@ -40,9 +40,9 @@ apps/desktop-ui (React) ─ invoke ─▶ apps/desktop-host (Tauri/Rust, allowli
 | Core | Modelos de descoberta, plano e Evals; `PathGuard`/`ManagedScope`; `SecretScanner`; hash e diff | `Mariliz.Core/{Discovery,Plan,Evals,Policy,Text}` |
 | Application | Descoberta, composição, plano de três vias, aplicação, reversão, Evals, protocolo | `Discovery/ProjectDiscoverer.cs`, `Harness/{HarnessComposer,PlanBuilder,ProposalReader,SettingsMerger,ProjectConfig,ConfigureProjectService}.cs`, `Execution/*`, `Validation/EvalRunner.cs`, `Protocol/EngineSession.cs` |
 | Infrastructure | Arquivos com caminho protegido, runner de processos sem shell, diário em disco | `LocalProjectFiles.cs`, `SystemProcessRunner.cs`, `FileRunStore.cs` |
-| Host (Rust) | Cinco comandos (`engine_request`, `pick_project_folder`, `engine_status`, e `list_recent_projects` e `open_recent_project` para os projetos recentes) e uma allowlist de métodos; `workspace.authorize` e `engine.*` **não** passam pela UI | `apps/desktop-host/src-tauri/src/{protocol,engine}.rs` |
-| UI | Seis etapas, estado num reducer, validação Zod de toda resposta | `apps/desktop-ui/src/features/configure-project/*`, `src/shared/{schemas,services}` |
-| CLI | `discover`, `plan`, `apply`, `validate`, `revert` | `src/Mariliz.Cli/*` |
+| Host (Rust) | Cinco comandos (`engine_request`, `pick_project_folder`, `engine_status`, e `list_recent_projects` e `open_recent_project` para os projetos recentes) e uma allowlist de métodos; `workspace.authorize` e `engine.*` **não** passam pela UI | `desktop/host/src-tauri/src/{protocol,engine}.rs` |
+| UI | Seis etapas, estado num reducer, validação Zod de toda resposta | `desktop/ui/src/features/configure-project/*`, `src/shared/{schemas,services}` |
+| CLI | `discover`, `plan`, `apply`, `validate`, `revert` | `runtime/Mariliz.Cli/*` |
 
 ### Protocolo (v1, NDJSON)
 
@@ -50,7 +50,7 @@ Métodos novos: `project.discover`, `harness.plan`, `harness.apply`, `harness.va
 
 ### Contratos
 
-O formato das respostas é fixado por **fixtures golden** em `packages/contracts/fixtures/golden/` (geradas pelo motor real) e por `packages/contracts/fixtures/proposal/{valid,invalid}`. Os dois lados verificam:
+O formato das respostas é fixado por **fixtures golden** em `contracts/fixtures/golden/` (geradas pelo motor real) e por `contracts/fixtures/proposal/{valid,invalid}`. Os dois lados verificam:
 
 - C#: `ContractGoldenTests` regenera a resposta e compara com a fixture; o schema JSON da proposta é validado contra as fixtures válidas e inválidas.
 - TypeScript: `engine.test.ts` parseia as mesmas fixtures com os schemas Zod da UI.
@@ -133,7 +133,7 @@ Sem proposta, o plano usa as regras-base e **diz isso** (`proposalOrigin: baseli
 | Cancelamento antes da aplicação | `Plano_e_descoberta_sao_somente_leitura`; UI: "Cancelar sem aplicar" não chama `apply`; `Cancelar_durante_a_aplicacao_desfaz…` |
 | Arquivo fora do escopo bloqueado | `Escrita_fora_do_escopo_gerenciado_e_bloqueada`, `Plano_com_caminho_fora_do_escopo_falha_antes_de_gravar…`, `Caminho_perigoso_e_recusado` |
 
-Além dos testes unitários e de integração, o **sidecar publicado** (`mariliz-engine.exe`) foi exercitado de ponta a ponta pelo protocolo NDJSON num projeto temporário: `hello → authorize → discover → plan → apply → validate → revert`. Resultado observado: `completed_with_limitations` (TLC não instalado e comando não aprovado ⇒ EV-TLC e EV-IDEMP `blocked`, com motivo), 10 Evals `passed`, 2 `not_run`, reversão verificada e pasta restaurada byte a byte, stderr vazio.
+Além dos testes unitários e de integração, o **sidecar publicado** (`mariliz-runtime.exe`) foi exercitado de ponta a ponta pelo protocolo NDJSON num projeto temporário: `hello → authorize → discover → plan → apply → validate → revert`. Resultado observado: `completed_with_limitations` (TLC não instalado e comando não aprovado ⇒ EV-TLC e EV-IDEMP `blocked`, com motivo), 10 Evals `passed`, 2 `not_run`, reversão verificada e pasta restaurada byte a byte, stderr vazio.
 
 ## 8. Como executar e validar localmente
 
@@ -141,25 +141,25 @@ Pré-requisitos: .NET 10 SDK, Node ≥ 22 com pnpm 9, Python 3 (os Evals do hook
 
 ```bash
 pnpm install
-dotnet test Mariliz.sln                    # motor, CLI e contratos
+dotnet test runtime/Mariliz.sln                    # motor, CLI e contratos
 pnpm ui:typecheck && pnpm ui:lint && pnpm ui:test && pnpm ui:build
-cargo test --manifest-path apps/desktop-host/src-tauri/Cargo.toml
+cargo test --manifest-path desktop/host/src-tauri/Cargo.toml
 ```
 
 **CLI** (mesmo serviço da UI; nada é gravado sem aprovação explícita):
 
 ```bash
-dotnet run --project src/Mariliz.Cli -- discover <pasta>
-dotnet run --project src/Mariliz.Cli -- plan <pasta> --env claude-code [--update-tlc] [--diff] [--json]
-dotnet run --project src/Mariliz.Cli -- apply <pasta> --env claude-code [--approve-command tlc-install] \
+dotnet run --project runtime/Mariliz.Cli -- discover <pasta>
+dotnet run --project runtime/Mariliz.Cli -- plan <pasta> --env claude-code [--update-tlc] [--diff] [--json]
+dotnet run --project runtime/Mariliz.Cli -- apply <pasta> --env claude-code [--approve-command tlc-install] \
     [--overwrite .claude/agents/x.md] [--approve-removals] [--yes]
-dotnet run --project src/Mariliz.Cli -- validate <pasta>
-dotnet run --project src/Mariliz.Cli -- revert <pasta> [--run <id>] [--yes]
+dotnet run --project runtime/Mariliz.Cli -- validate <pasta>
+dotnet run --project runtime/Mariliz.Cli -- revert <pasta> [--run <id>] [--yes]
 ```
 
 Códigos de saída: `0` concluído; `10` concluído com limitações; `1` falhou, cancelado ou recusado; `2` uso incorreto. Sem terminal interativo, `apply` e `revert` exigem `--yes`.
 
-**Aplicativo desktop:** `scripts/build-engine.ps1` publica o sidecar; depois `pnpm --filter @mariliz/desktop-host tauri dev` (ou `tauri build --bundles nsis` para o instalador). Na tela inicial: **Configurar projeto → escolher a pasta → seguir as seis etapas**. Use primeiro uma **cópia descartável** de um projeto.
+**Aplicativo desktop:** `scripts/build-runtime.ps1` publica o sidecar; depois `pnpm --filter @mariliz/desktop-host tauri dev` (ou `tauri build --bundles nsis` para o instalador). Na tela inicial: **Configurar projeto → escolher a pasta → seguir as seis etapas**. Use primeiro uma **cópia descartável** de um projeto.
 
 ## 9. Limitações e riscos abertos
 

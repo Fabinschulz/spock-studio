@@ -8,13 +8,13 @@ importers:
 
   .: {}
 
-  apps/desktop-host:
+  desktop/host:
     devDependencies:
       '@tauri-apps/cli':
         specifier: 2.12.4
         version: 2.12.4
 
-  apps/desktop-ui:
+  desktop/ui:
     dependencies:
       '@emotion/react':
         specifier: ^11.14.0

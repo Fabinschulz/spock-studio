@@ -1,14 +1,14 @@
 # Mariliz Studio — Product Discovery
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 **Fase:** 0 (Discovery e planejamento). **Data:** 2026-10-25. **Estado:** aguardando aprovação; nada foi implementado.
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 Convenção de rótulos usada em todos os documentos desta pasta:
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 | Rótulo | Significado |
 | --- | --- |
@@ -17,32 +17,32 @@ Convenção de rótulos usada em todos os documentos desta pasta:
 | **[HIPÓTESE]** | Não verificado; precisa de confirmação |
 | **[DECISÃO PENDENTE]** | Depende do responsável pelo produto |
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
-Documentos relacionados: [`experience-blueprint.md`](experience-blueprint.md), [`architecture-blueprint.md`](architecture-blueprint.md), [`implementation-roadmap.md`](implementation-roadmap.md).
+Documentos relacionados: [`experience-blueprint.md`](blueprints/experience-blueprint.md), [`architecture-blueprint.md`](blueprints/architecture-blueprint.md), [`implementation-roadmap.md`](implementation-roadmap.md).
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ---
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ## 1. Estado atual do ambiente
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ### 1.1 Repositório do produto
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 - **[FATO]** `MyApps/frontend/mariliz-ai-engineering/` existe, com `git init` e **nenhum commit**. Estes quatro documentos são os primeiros arquivos.
 - **[FATO]** Não há código, CI, licença nem `README.md` no repositório.
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ### 1.2 Ferramentas na máquina de desenvolvimento (Windows 11 x64)
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 | Ferramenta | Versão detectada | Situação para o produto |
 | --- | --- | --- |
@@ -56,15 +56,15 @@ Documentos relacionados: [`experience-blueprint.md`](experience-blueprint.md), [
 | **Rust (rustc/cargo)** | **ausente** | **Bloqueia a Fase 1** — instalar via `rustup` |
 | **MSVC C++ Build Tools** | **não detectado** (`vswhere` sem componente VC.Tools) | **Bloqueia a compilação do Tauri no Windows** |
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 - **[FATO]** Não há máquina macOS nem Linux disponível. Builds dessas plataformas só podem ser validadas em CI (runners hospedados) ou em máquinas a providenciar.
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ### 1.3 Versões publicadas relevantes (consultadas no registro npm em 2026-10-25)
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 | Pacote | Versão |
 | --- | --- |
@@ -74,23 +74,23 @@ Documentos relacionados: [`experience-blueprint.md`](experience-blueprint.md), [
 | `@tauri-apps/plugin-updater` | 2.14.0 |
 | `@synthra.io/ui-kit` | 0.5.0 (publicada em 2026-09-30) |
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 As versões dos crates Rust correspondentes não foram consultadas; serão fixadas no `Cargo.lock` da Fase 1.
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ---
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ## 2. Evidências sobre os Harnesses existentes
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 Base: a auditoria de 2026-10-22 (Artifact "Auditoria Mariliz AI Engineering") revalidada nesta fase.
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 | Projeto | Stack | Agentes | Método | Evals | Revalidação em 2026-10-25 |
 | --- | --- | --- | --- | --- | --- |
@@ -99,29 +99,29 @@ Base: a auditoria de 2026-10-22 (Artifact "Auditoria Mariliz AI Engineering") re
 | Easymart.CRM | Angular 19 | 3 | TLC | Nenhum no CI | 29 arquivos de harness alterados desde 2026-10-22; 24 features |
 | EmpregaNetAPI | .NET 10 + Next.js | 8 | SDD próprio | `check-harness.mjs` + `audit-traces.mjs` | **[FATO]** `node .claude/evals/check-harness.mjs` → `harness ok — 8 agentes, 6 skills, 17 documentos verificados` |
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 Conclusões que continuam válidas:
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 - **[FATO]** A orquestração atual é prosa seguida pela sessão do Claude Code. Não existe motor de execução, estado persistido, idempotência nem cancelamento.
 - **[FATO]** Os gates de entrega (Jira, PR, sem atribuição de IA) são reforçados por instrução, não por hook.
 - **[FATO]** Os harness continuam evoluindo por cópia: o CRM e o Integrador mudaram nos últimos três dias sem fonte comum. A divergência entre forks cresce a cada semana em que o núcleo não existe.
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ---
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ## 3. Classificação dos ativos
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 Classificação da seção 3.1 do briefing. "Uso no produto" indica se o ativo pode servir de referência técnica ou de base de código, sempre sujeito à seção 4.
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 | Ativo | Classe | Onde está | Uso no produto |
 | --- | --- | --- | --- |
@@ -145,15 +145,15 @@ Classificação da seção 3.1 do briefing. "Uso no produto" indica se o ativo p
 | `@synthra.io/ui-kit` 0.5.0 (MIT, autoria "Synthra", repositório `Fabinschulz/synthra-components-library`) | **Third-party / dependência** | npm | Dependência visual principal |
 | Mariliz Web (organização de frontend, tema, ESLint, Vitest) | Referência técnica | `MyApps/frontend/mariliz` | Padrões, não código copiado em bloco |
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ---
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ## 4. Ativos que exigem autorização ou investigação de licença
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 | Ativo | Pergunta em aberto | Bloqueia |
 | --- | --- | --- |
@@ -163,19 +163,19 @@ Classificação da seção 3.1 do briefing. "Uso no produto" indica se o ativo p
 | Synthra UI | Licença MIT. Falta confirmar se "Synthra" e a Mariliz são a mesma titular e se há plano de versão estável (hoje 0.x) | Nenhum para o MVP; afeta a política de atualização |
 | Dependências de terceiros que o produto vai instalar no projeto do cliente (MCPs, servidores) | Licença, manutenção e superfície de permissão de cada uma | Fase 4 |
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 **Regra aplicada nesta fase:** nenhum arquivo dos projetos de referência foi copiado para este repositório. Os lints foram apenas executados, em modo leitura.
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ---
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ## 5. Lacunas técnicas
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 | Lacuna | Impacto |
 | --- | --- |
@@ -188,27 +188,27 @@ Classificação da seção 3.1 do briefing. "Uso no produto" indica se o ativo p
 | Nenhuma métrica de custo, retrabalho ou intervenção humana é registrada hoje | Não há baseline para comparar versões do harness |
 | Rust e MSVC Build Tools ausentes; sem macOS/Linux | A Fase 1 começa por preparar o ambiente e o CI |
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ---
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ## 6. Arquitetura geral recomendada
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
-A decisão de referência do briefing é adotada: **Tauri 2 + React/TypeScript/Vite + Synthra UI + motor .NET 10 (sidecar) + CLI .NET compartilhando a camada Application**. O detalhamento está em [`architecture-blueprint.md`](architecture-blueprint.md).
+A decisão de referência do briefing é adotada: **Tauri 2 + React/TypeScript/Vite + Synthra UI + motor .NET 10 (sidecar) + CLI .NET compartilhando a camada Application**. O detalhamento está em [`architecture-blueprint.md`](blueprints/architecture-blueprint.md).
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ```
 ┌──────────────────────── Aplicativo desktop ────────────────────────┐
 │ desktop-ui (React + Vite + Synthra)                                 │
 │    │  invoke("engine_request") / listen("engine_event")             │
 │ desktop-host (Tauri 2, Rust mínimo)                                 │
-│    │  stdin/stdout NDJSON versionado (contrato em packages/contracts)│
-│ Mariliz.Engine (.NET 10, sidecar, sem UI)                           │
+│    │  stdin/stdout NDJSON versionado (contrato em contracts)│
+│ Mariliz.Runtime (.NET 10, sidecar, sem UI)                          │
 └─────┬───────────────────────────────────────────────────────────────┘
       │ mesma camada Application
 Mariliz.Cli (.NET 10) ── automação, CI, usuários avançados
@@ -218,21 +218,21 @@ Mariliz.Application → Mariliz.Core ← Mariliz.Infrastructure
                                         conectores, runtime adapters)
 ```
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 Princípios:
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 1. **Regras só no .NET.** A UI apresenta e coleta; o Rust só gerencia janela, permissões e o processo do motor.
 2. **O motor é a autoridade.** Permissões, aprovação, idempotência e validação são impostas pelo motor, nunca pela UI nem por instrução a um agente.
 3. **Projeto do cliente é a fonte da verdade.** O que é versionado vive no repositório do cliente (`mariliz.yaml`, `mariliz.lock`, artefatos gerados). O motor não mantém estado oculto que o projeto não consiga reconstruir.
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ### 6.1 Alternativas e trade-offs
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 | Decisão | Escolhida | Alternativas avaliadas | Por quê |
 | --- | --- | --- | --- |
@@ -243,15 +243,15 @@ Princípios:
 | Gerenciador JS | **pnpm workspaces, um lockfile** | npm workspaces | A Synthra já usa pnpm; pnpm evita instâncias duplicadas de React/MUI/Emotion em monorepo. O Mariliz Web usa npm, mas é um repositório separado |
 | Runtime de IA alvo | **Claude Code primeiro**, via adaptador | Agnóstico desde o início | Todos os ativos existentes estão nesse formato. O contrato interno da Mariliz fica separado do formato de saída |
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ---
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ## 7. Modelo local-first
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 | Camada | Onde vive | Versionado no projeto? |
 | --- | --- | --- |
@@ -263,39 +263,39 @@ Princípios:
 | Arquivos temporários de importação | Diretório temporário controlado, com retenção | Não |
 | Segredos | Cofre do sistema operacional (Windows Credential Manager, macOS Keychain, Secret Service/libsecret) | Nunca |
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 **O que não é local, e deve ser dito ao usuário sempre que acontecer:** chamadas a provedores de modelo, autenticação OAuth no navegador, chamadas às APIs de Jira/GitHub/Azure DevOps, downloads de servidores MCP. Nada disso é necessário para o fluxo de configuração do MVP, exceto se o usuário habilitar uma integração.
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 **Telemetria:** nenhuma no MVP.
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ---
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ## 8. Escopo do MVP
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ### 8.1 Tensão com a auditoria anterior
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 A auditoria de 2026-10-22 recomendou começar por uma CLI, porque a hipótese de valor ainda não foi validada. O briefing atual exige um aplicativo desktop. As duas coisas são compatíveis desde que **o desktop seja uma casca fina sobre a mesma camada Application usada pela CLI**. O MVP abaixo segue essa linha: todo caso de uso nasce no motor, é coberto por testes e pode ser chamado pela CLI; a UI só o expõe.
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 **[INFERÊNCIA]** O desktop acrescenta à Fase 1 três frentes que não existem na CLI: o host Rust, o empacotamento do sidecar por plataforma e a assinatura de instaladores. Isso atrasa a validação da hipótese de valor; o roadmap mantém essas frentes no menor tamanho possível.
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ### 8.2 Escopo
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 | Dentro | Fora |
 | --- | --- |
@@ -309,23 +309,23 @@ A auditoria de 2026-10-22 recomendou começar por uma CLI, porque a hipótese de
 | CLI com `discover`, `plan`, `apply`, `validate` | Workflows automáticos, gatilhos por evento |
 | Instalador Windows x64; builds macOS/Linux compilando no CI | Assinatura e notarização em produção (avaliado, não obrigatório no MVP) |
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ### 8.3 Critérios de aceite do MVP
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 Os 23 critérios da seção 22 do briefing, filtrados para o escopo acima, estão em [`implementation-roadmap.md`](implementation-roadmap.md), seção 4, com o teste que comprova cada um.
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ---
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ## 9. Riscos
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 | Risco | Probabilidade | Impacto | Mitigação |
 | --- | --- | --- | --- |
@@ -333,25 +333,25 @@ Os 23 critérios da seção 22 do briefing, filtrados para o escopo acima, estã
 | Dependência do formato do Claude Code | Alta | Alto: mudanças do runtime quebram o harness gerado | Adaptador isolado, testes de contrato do formato gerado, matriz de capacidades por runtime |
 | Custo da terceira linguagem (Rust) | Alta | Médio | Rust restrito a ~3 comandos e ao ciclo de vida do sidecar; sem regra de negócio |
 | Empacotamento e assinatura em 3 sistemas | Alta | Médio | CI matricial desde a Fase 1; assinatura tratada como decisão separada |
-| Synthra 0.x muda API entre versões | Média | Médio | Versão fixa, wrappers finos em `apps/desktop-ui/src/shared/components/ui`, atualização controlada |
+| Synthra 0.x muda API entre versões | Média | Médio | Versão fixa, wrappers finos em `desktop/ui/src/shared/components/ui`, atualização controlada |
 | Lacunas da Synthra (sem `Card`, sem `Stepper`, sem ícones de pasta/código/documento) | Certa | Baixo | Compor com MUI já instalado (peer da Synthra) ou contribuir os ícones na própria Synthra |
 | Conteúdo de projeto e instruções em arquivos importados tentarem ampliar permissões (prompt injection) | Média | Alto | Política imposta pelo motor; conteúdo importado tratado como dado |
 | Tamanho do instalador (WebView + motor self-contained) | Média | Baixo | Medir na Fase 1; avaliar trimming e NativeAOT |
 | Demanda comercial não comprovada | — | Alto | Critérios de continuidade do roadmap |
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ---
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 ## 10. Decisões pendentes
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 Em ordem de prioridade. Detalhes em [`implementation-roadmap.md`](implementation-roadmap.md), seção 6.
 
-> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](backend-architecture.md)).
+> **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
 1. **[DECISÃO PENDENTE]** Titularidade: o que dos projetos Easymart e EmpregaNet pode alimentar o núcleo?
 2. **[DECISÃO PENDENTE]** Método do núcleo: TLC (redistribuído com atribuição ou instalado pelo canal oficial) ou método próprio da Mariliz.

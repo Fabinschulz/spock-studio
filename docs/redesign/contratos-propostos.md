@@ -6,7 +6,7 @@ Regras que valem para todos:
 
 - Mesmo envelope dos eventos atuais (`v`, `kind: "event"`, `runId`, `type`, `seq`, `data`), mesmo canal (`engine_event`) e mesmos snapshots (`run.snapshot` devolve os eventos).
 - Campos novos são **opcionais** e a interface ignora tipos que não conhece (o `applyEvent` atual já faz isso: `default: return run`). Compatível com versões antigas.
-- Cada evento novo entra em `packages/contracts` (JSON Schema + fixture _golden_) e no Zod de `shared/schema`.
+- Cada evento novo entra em `contracts` (JSON Schema + fixture _golden_) e no Zod de `shared/schema`.
 - A interface nunca deduz estado de um evento ausente: sem evento, mostra "o motor não informa".
 
 ## 1. Carimbo de tempo — `at`
@@ -79,4 +79,4 @@ Enquanto isso não existir, a interface mostra o Harness Engineer como o fato qu
 | --- | --- |
 | Interface antiga com motor novo | ignora os tipos desconhecidos |
 | Motor antigo com interface nova | cai no vocabulário atual (`EXPECTED_APPLY_STEPS` local, validação como uma etapa, sem Evals individuais), que é exatamente o modo **Contrato atual** do protótipo |
-| Fixtures | um _golden_ por evento em `packages/contracts/fixtures`; `buildOperation` já tem testes que cobrem os dois modos (`src/prototype/domain/operation-model.test.ts`) |
+| Fixtures | um _golden_ por evento em `contracts/fixtures`; `buildOperation` já tem testes que cobrem os dois modos (`src/prototype/domain/operation-model.test.ts`) |

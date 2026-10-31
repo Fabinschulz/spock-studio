@@ -22,10 +22,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      # Os testes de contrato comparam a saída do motor com packages/contracts/fixtures/golden. Se o formato mudar de
+      # Os testes de contrato comparam a saída do runtime com contracts/fixtures/golden. Se o formato mudar de
       # propósito, regenere com MARILIZ_UPDATE_GOLDEN=1 dotnet test e revise o diff das fixtures.
       - name: testes
-        run: dotnet test Mariliz.sln --nologo
+        run: dotnet test runtime/Mariliz.sln --nologo
 
   ui:
     name: interface React
@@ -87,7 +87,7 @@ jobs:
           targets: ${{ matrix.triple }}
       - uses: swatinem/rust-cache@v2
         with:
-          workspaces: apps/desktop-host/src-tauri
+          workspaces: desktop/host/src-tauri
       - name: dependências do Linux (WebKitGTK)
         if: runner.os == 'Linux'
         run: |
@@ -97,15 +97,15 @@ jobs:
       - name: motor como sidecar
         shell: bash
         run: |
-          dotnet publish src/Mariliz.Engine/Mariliz.Engine.csproj -c Release -r ${{ matrix.rid }} --self-contained true \
-            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o artifacts/engine/${{ matrix.rid }}
+          dotnet publish runtime/Mariliz.Runtime/Mariliz.Runtime.csproj -c Release -r ${{ matrix.rid }} --self-contained true \
+            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o dist/runtime/${{ matrix.rid }}
           ext=""; [ "${{ runner.os }}" = "Windows" ] && ext=".exe"
-          cp "artifacts/engine/${{ matrix.rid }}/Mariliz.Engine$ext" "apps/desktop-host/src-tauri/binaries/mariliz-engine-${{ matrix.triple }}$ext"
+          cp "dist/runtime/${{ matrix.rid }}/Mariliz.Runtime$ext" "desktop/host/src-tauri/binaries/mariliz-runtime-${{ matrix.triple }}$ext"
       - name: testes do host
-        working-directory: apps/desktop-host/src-tauri
+        working-directory: desktop/host/src-tauri
         run: cargo test
       - name: instalador
-        working-directory: apps/desktop-host
+        working-directory: desktop/host
         env:
           # O AppImage é gerado sem FUSE nos runners hospedados.
           APPIMAGE_EXTRACT_AND_RUN: '1'
@@ -113,5 +113,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: mariliz-${{ matrix.name }}
-          path: apps/desktop-host/src-tauri/target/${{ matrix.triple }}/release/bundle/**
+          path: desktop/host/src-tauri/target/${{ matrix.triple }}/release/bundle/**
           if-no-files-found: error
