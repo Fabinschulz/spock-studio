@@ -1,5 +1,4 @@
 import type { GlyphState } from '@/shared/components/ui';
-
 import { stepStatusGlyphs } from '../constants/step-status-glyphs';
 import type { RunView } from '../types/run';
 import { runningStep, stepProgress } from './run-progress';

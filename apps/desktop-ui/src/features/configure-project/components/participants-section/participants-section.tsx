@@ -1,5 +1,4 @@
 import { StatusGlyph } from '@/shared/components/ui';
-
 import { PanelSection } from '../panel-section';
 import styles from './participants-section.module.scss';
 import type { ParticipantsSectionProps } from './types';

@@ -1,5 +1,4 @@
 import type { RunResult } from '@/shared/schema';
-
 import { HARNESS_ENGINEER_NOT_INVOKED } from './harness-engineer-prompt';
 
 type Outcome = RunResult['outcome'];

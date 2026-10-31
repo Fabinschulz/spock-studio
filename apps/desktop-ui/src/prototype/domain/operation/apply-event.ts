@@ -1,6 +1,5 @@
 import type { ScriptedEvent } from '@/prototype/types/event';
 import type { ActorState, ExpectedStep, OperationDraft } from '@/prototype/types/operation';
-
 import { ensureStep } from './ensure-step';
 import { readString } from './read-event-data';
 import { stepStateFromStatus } from './step-state';

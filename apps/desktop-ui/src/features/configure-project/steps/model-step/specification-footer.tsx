@@ -1,5 +1,4 @@
 import type { Discovery } from '@/shared/schema';
-
 import { ChoiceField } from '../../components/choice-field';
 import { RefreshGlyph } from '../../components/glyphs';
 import styles from '../../components/panels.module.scss';

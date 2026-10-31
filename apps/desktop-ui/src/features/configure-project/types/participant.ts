@@ -1,6 +1,5 @@
 import type { GlyphState } from '@/shared/components/ui';
 import type { ConfigurationPlan } from '@/shared/schema';
-
 import type { JourneyResults, JourneyStepId, Loadable } from './journey';
 import type { RunView } from './run';
 

@@ -1,5 +1,4 @@
 import { formatElapsed } from '@/shared/utils';
-
 import { PanelSection } from '../panel-section';
 import styles from './activity-section.module.scss';
 import type { ActivitySectionProps } from './types';

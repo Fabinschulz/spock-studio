@@ -1,8 +1,6 @@
-import { useMemo } from 'react';
-
 import { useProjectSelectionContext } from '@/features/project-selection';
 import { tauriEngineClient } from '@/shared/api';
-
+import { useMemo } from 'react';
 import { JourneyFrame } from './components/journey-frame';
 import { ProjectChoice } from './components/project-choice';
 import { ConfigureJourney } from './configure-journey';

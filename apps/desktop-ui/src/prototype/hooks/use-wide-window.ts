@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
-
 import { WIDE_QUERY } from '@/prototype/constants/shell';
+import { useEffect, useState } from 'react';
 
 export function useWideWindow(): boolean {
   const [wide, setWide] = useState(() => window.matchMedia(WIDE_QUERY).matches);

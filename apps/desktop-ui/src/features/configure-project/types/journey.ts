@@ -1,5 +1,4 @@
 import type { ConfigurationPlan, ConflictResolution, Discovery, RunEvent, RunResult } from '@/shared/schema';
-
 import type { PlannedStep, RunKind, RunView } from './run';
 
 export type JourneyStepId = 'project' | 'model' | 'plan' | 'review' | 'run' | 'result';

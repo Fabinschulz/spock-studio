@@ -1,5 +1,4 @@
 import { useProjectSelectionContext } from '@/features/project-selection';
-
 import { ProjectStep } from '../steps/project-step';
 
 /** A primeira etapa quando ainda não há pasta escolhida: só escolher uma pasta ou reabrir uma recente. */

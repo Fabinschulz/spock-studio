@@ -1,6 +1,5 @@
 import type { Discovery } from '@/shared/schema';
 import { cn } from '@/shared/utils';
-
 import { GitGlyph, NodeGlyph, PythonGlyph } from '../../components/glyphs';
 import styles from '../../components/panels.module.scss';
 

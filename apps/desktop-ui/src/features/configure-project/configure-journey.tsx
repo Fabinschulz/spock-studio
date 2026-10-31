@@ -1,9 +1,7 @@
-import { useNavigate } from 'react-router';
-
 import { useProjectSelectionContext } from '@/features/project-selection';
 import { useScrollToTop } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
-
+import { useNavigate } from 'react-router';
 import { ContextPanel } from './components/context-panel';
 import { JourneyFrame } from './components/journey-frame';
 import { countApprovals } from './domain/approvals';

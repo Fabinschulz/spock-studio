@@ -1,7 +1,6 @@
+import type { EvalProgressState } from '@/prototype/types/operation';
 import type { GlyphState } from '@/shared/components/ui';
 import type { EvalResult } from '@/shared/schema';
-
-import type { EvalProgressState } from '@/prototype/types/operation';
 
 export const EVAL_STATUS_TEXT: Record<EvalResult['status'], string> = {
   passed: 'aprovado',

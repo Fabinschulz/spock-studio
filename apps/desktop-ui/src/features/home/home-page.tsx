@@ -1,8 +1,6 @@
-import { useNavigate } from 'react-router';
-
 import { ProjectSelection, RecentShortcuts, useProjectSelectionContext } from '@/features/project-selection';
 import { pathTo } from '@/shared/routing';
-
+import { useNavigate } from 'react-router';
 import { Hero } from './hero';
 import styles from './home-page.module.scss';
 import { JourneyGrid, type JourneyId } from './journey-grid';

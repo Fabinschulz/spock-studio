@@ -1,9 +1,8 @@
-import { useState } from 'react';
-
 import { plan } from '@/prototype/data/fixtures';
 import { defaultApproved, defaultResolutions } from '@/prototype/domain/default-approvals';
 import { toggleId } from '@/prototype/domain/toggle-id';
 import type { ConfigureActions, ConfigureState, ForcedState, StepSlug } from '@/prototype/types/journey';
+import { useState } from 'react';
 
 interface Options {
   stepIndex: number;

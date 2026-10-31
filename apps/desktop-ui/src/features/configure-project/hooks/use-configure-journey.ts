@@ -1,14 +1,11 @@
-import { useCallback, useEffect, useReducer, useRef } from 'react';
-
 import { EngineError } from '@/shared/api';
 import type { ConflictResolution } from '@/shared/schema';
-
-import { waitForRun, type HarnessApi } from '../service';
-import { plannedApplySteps } from '../domain/planned-steps';
-
-import { buildApplyInput } from '../domain/approvals';
+import { useCallback, useEffect, useReducer, useRef } from 'react';
 import { initialJourneyState } from '../constants/initial-journey-state';
+import { buildApplyInput } from '../domain/approvals';
 import { journeyReducer } from '../domain/journey-reducer';
+import { plannedApplySteps } from '../domain/planned-steps';
+import { waitForRun, type HarnessApi } from '../service';
 import { type JourneyStepId } from '../types/journey';
 import { type RunKind } from '../types/run';
 

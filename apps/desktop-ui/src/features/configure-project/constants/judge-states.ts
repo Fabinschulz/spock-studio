@@ -1,5 +1,4 @@
 import type { EvalResult } from '@/shared/schema';
-
 import type { Participant } from '../types/participant';
 
 export const judgeStates: Record<EvalResult['status'], Pick<Participant, 'glyph' | 'state'>> = {

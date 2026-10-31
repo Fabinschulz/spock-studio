@@ -1,5 +1,4 @@
 import type { ConfigurationPlan } from '@/shared/schema';
-
 import type { JourneyStepId, Loadable } from './journey';
 
 export type SummaryFact = readonly [label: string, value: string];

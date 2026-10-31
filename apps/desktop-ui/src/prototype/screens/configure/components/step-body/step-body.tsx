@@ -1,5 +1,4 @@
 import { applyResult, plan } from '@/prototype/data/fixtures';
-
 import { ModelStep } from '../../steps/model-step';
 import { OperationStep } from '../../steps/operation-step';
 import { PlanStep } from '../../steps/plan-step';

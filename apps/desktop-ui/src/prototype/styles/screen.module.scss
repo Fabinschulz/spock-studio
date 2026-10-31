@@ -1,4 +1,3 @@
-// Estilos comuns às telas do protótipo: títulos, linhas e campos. Sem cartões: a estrutura vem de espaço e linhas finas.
 
 .head {
   display: flex;
@@ -29,7 +28,6 @@
   font-size: var(--mz-fs-body-sm);
 }
 
-// ---- Campo do projeto (como o campo de envio de uma conversa: uma peça só, discreta)
 .composer {
   display: flex;
   align-items: center;

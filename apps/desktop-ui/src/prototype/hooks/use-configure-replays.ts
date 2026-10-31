@@ -1,5 +1,3 @@
-import { useEffect, useMemo } from 'react';
-
 import { EXPECTED_APPLY_STEPS } from '@/prototype/constants/apply-steps';
 import { ENGINE_IDENTITY } from '@/prototype/constants/harness';
 import { applyScriptCurrent } from '@/prototype/data/scripts/apply-current';
@@ -8,6 +6,7 @@ import { planningScriptProposed } from '@/prototype/data/scripts/planning-propos
 import { describeEvent } from '@/prototype/domain/describe-event';
 import { buildOperation } from '@/prototype/domain/operation/build-operation';
 import type { Contract, StepSlug } from '@/prototype/types/journey';
+import { useEffect, useMemo } from 'react';
 
 import { useReplay } from './use-replay';
 

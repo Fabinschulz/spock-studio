@@ -1,5 +1,4 @@
 import { Glyph, WizardSteps } from '@/shared/components/ui';
-
 import { journeySteps } from '../../constants/journey-steps';
 import { usePanelOpen } from '../../hooks/use-panel-open';
 import { ImplementationModelBadge } from '../implementation-model-badge';

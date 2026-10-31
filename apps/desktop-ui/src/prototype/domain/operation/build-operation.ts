@@ -1,6 +1,5 @@
 import type { ScriptedEvent } from '@/prototype/types/event';
 import type { EngineIdentity, ExpectedStep, OperationDraft, OperationView } from '@/prototype/types/operation';
-
 import { applyEvent } from './apply-event';
 import { deriveView } from './derive-view';
 import { ensureStep } from './ensure-step';

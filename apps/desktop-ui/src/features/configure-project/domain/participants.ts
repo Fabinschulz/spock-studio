@@ -1,5 +1,4 @@
 import type { EvalResult } from '@/shared/schema';
-
 import { ENGINE_NOTE, HARNESS_ENGINEER_NOTE, judgeStates } from '../constants/judge-states';
 import type { Participant, ParticipantsContext } from '../types/participant';
 import { HARNESS_ENGINEER_NOT_INVOKED } from './harness-engineer-prompt';

@@ -1,5 +1,4 @@
 import { StatusGlyph } from '@/shared/components/ui';
-
 import { stepStatusLabel } from '../../domain/labels';
 import { glyphOfStatus } from '../../domain/run-headline';
 import styles from './run-step-row.module.scss';

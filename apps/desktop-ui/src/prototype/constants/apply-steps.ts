@@ -1,4 +1,3 @@
-// Ordem e títulos publicados pelo motor (ApplyExecution.cs).
 export const EXPECTED_APPLY_STEPS = [
   { id: 'precheck', title: 'Verificar pré-condições' },
   { id: 'backup', title: 'Guardar cópia do que será alterado' },

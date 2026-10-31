@@ -1,9 +1,8 @@
 import { Checklist, StatusChip } from '@/shared/components/ui';
 import type { Discovery } from '@/shared/schema';
 import { cn } from '@/shared/utils';
-
-import styles from '../../components/panels.module.scss';
 import { SpecificationGlyph } from '../../components/implementation-model-badge';
+import styles from '../../components/panels.module.scss';
 import { specificationStateLabel, specificationStateTone } from '../../domain/labels';
 import { SpecificationDependencies } from './specification-dependencies';
 import { SpecificationFooter } from './specification-footer';

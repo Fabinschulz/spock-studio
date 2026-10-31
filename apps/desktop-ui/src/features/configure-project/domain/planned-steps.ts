@@ -1,5 +1,4 @@
 import type { ConfigurationPlan } from '@/shared/schema';
-
 import type { PlannedStep } from '../types/run';
 
 /**

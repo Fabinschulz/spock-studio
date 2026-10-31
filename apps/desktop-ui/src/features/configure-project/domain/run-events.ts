@@ -1,5 +1,4 @@
 import type { RunEvent } from '@/shared/schema';
-
 import type { RunFeedItem, RunStepView, RunView } from '../types/run';
 
 const withFeed = (run: RunView, at: number, text: string): RunFeedItem[] => [...run.feed, { at, text }];
