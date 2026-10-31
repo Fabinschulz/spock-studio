@@ -146,4 +146,10 @@ export const stepStatusTone = (status: string): Tone =>
   status === 'running' ? 'info' : status.startsWith('completed') ? 'success' : 'warning';
 
 export const stepStatusLabel = (status: string): string =>
-  status === 'running' ? 'em andamento' : status === 'completed' ? 'concluída' : status.replace(/_/g, ' ');
+  status === 'running'
+    ? 'em andamento'
+    : status === 'pending'
+      ? 'aguardando'
+      : status === 'completed'
+        ? 'concluída'
+        : status.replace(/_/g, ' ');

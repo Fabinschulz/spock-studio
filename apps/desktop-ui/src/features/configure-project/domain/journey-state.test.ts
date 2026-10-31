@@ -45,7 +45,16 @@ describe('stepIssue · problema da etapa para o indicador de progresso', () => {
   });
 
   it('erro no acompanhamento da aplicação marca a etapa Aplicação', () => {
-    const run: RunView = { kind: 'apply', runId: 'r', state: 'failed', steps: [], files: [], error: 'x' };
+    const run: RunView = {
+      kind: 'apply',
+      runId: 'r',
+      state: 'failed',
+      steps: [],
+      files: [],
+      feed: [],
+      startedAt: 0,
+      error: 'x'
+    };
 
     expect(stepIssue(at({ step: 'run', run }))).toEqual({ stepId: 'run', kind: 'error' });
     expect(stepIssue(at({ step: 'run', run: { ...run, error: null } }))).toBeUndefined();

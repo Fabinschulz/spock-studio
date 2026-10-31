@@ -1,5 +1,7 @@
 import type { ConfigurationPlan, ConflictResolution, Discovery, RunEvent, RunResult } from '@/shared/schema';
 
+import type { PlannedStep } from './planned-steps';
+
 export type JourneyStepId = 'project' | 'model' | 'plan' | 'review' | 'run' | 'result';
 
 export const journeySteps = [
@@ -19,8 +21,18 @@ export type RunKind = 'apply' | 'revert' | 'validate';
 export interface RunStepView {
   id: string;
   title: string;
+  /** `pending` só existe para etapas que o motor sempre executa (ver planned-steps.ts); as demais vêm dos eventos. */
   status: string;
   detail: string | null;
+  /** Instantes medidos no cliente, na chegada de cada evento (o motor ainda não carimba os eventos). */
+  startedAt: number | null;
+  endedAt: number | null;
+}
+
+/** Uma linha do feed de atividade, em linguagem de pessoa. */
+export interface RunFeedItem {
+  at: number;
+  text: string;
 }
 
 /** O que a tela mostra de uma execução em andamento. Tudo vem de eventos do motor; nada é simulado. */
@@ -30,6 +42,8 @@ export interface RunView {
   state: string;
   steps: RunStepView[];
   files: string[];
+  feed: RunFeedItem[];
+  startedAt: number;
   error: string | null;
 }
 
@@ -82,9 +96,9 @@ export type JourneyAction =
   | { type: 'command.toggle'; id: string }
   | { type: 'resolution.set'; id: string; value: ConflictResolution }
   | { type: 'step.go'; step: JourneyStepId }
-  | { type: 'run.start'; kind: RunKind }
+  | { type: 'run.start'; kind: RunKind; at?: number; planned?: readonly PlannedStep[] }
   | { type: 'run.id'; runId: string }
-  | { type: 'run.event'; event: RunEvent }
+  | { type: 'run.event'; event: RunEvent; at?: number }
   | { type: 'run.done'; result: RunResult }
   | { type: 'run.error'; message: string };
 
@@ -101,7 +115,9 @@ export function defaultApprovals(plan: ConfigurationPlan) {
 
 const toggle = (list: string[], id: string) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
 
-function applyEvent(run: RunView, event: RunEvent): RunView {
+const feedOf = (run: RunView, at: number, text: string): RunFeedItem[] => [...run.feed, { at, text }];
+
+function applyEvent(run: RunView, event: RunEvent, at: number): RunView {
   const data = event.data as Record<string, unknown>;
   const text = (key: string) => (typeof data[key] === 'string' ? (data[key] as string) : null);
 
@@ -110,21 +126,29 @@ function applyEvent(run: RunView, event: RunEvent): RunView {
       return { ...run, state: text('state') ?? run.state };
     case 'step.started': {
       const id = text('id') ?? `step-${run.steps.length}`;
-      const step: RunStepView = { id, title: text('title') ?? id, status: 'running', detail: null };
-      return { ...run, steps: [...run.steps.filter((s) => s.id !== id), step] };
+      const title = text('title') ?? id;
+      const started: RunStepView = { id, title, status: 'running', detail: null, startedAt: at, endedAt: null };
+      // Uma etapa conhecida de antemão muda de lugar? Não: ganha o estado. Uma desconhecida entra no fim.
+      const known = run.steps.some((s) => s.id === id);
+      const steps = known ? run.steps.map((s) => (s.id === id ? started : s)) : [...run.steps, started];
+      return { ...run, steps, feed: feedOf(run, at, `Iniciou: ${title}`) };
     }
     case 'step.completed': {
       const id = text('id');
+      const step = run.steps.find((s) => s.id === id);
       return {
         ...run,
         steps: run.steps.map((s) =>
-          s.id === id ? { ...s, status: text('status') ?? 'completed', detail: text('detail') } : s
-        )
+          s.id === id ? { ...s, status: text('status') ?? 'completed', detail: text('detail'), endedAt: at } : s
+        ),
+        feed: step ? feedOf(run, at, `Concluiu: ${step.title}`) : run.feed
       };
     }
     case 'file.applied':
-    case 'file.reverted':
-      return { ...run, files: [...run.files, `${text('op') ?? text('status') ?? ''} ${text('path') ?? ''}`.trim()] };
+    case 'file.reverted': {
+      const line = `${text('op') ?? text('status') ?? ''} ${text('path') ?? ''}`.trim();
+      return { ...run, files: [...run.files, line], feed: feedOf(run, at, `Gravou ${text('path') ?? 'arquivo'}`) };
+    }
     default:
       return run;
   }
@@ -171,12 +195,27 @@ export function journeyReducer(state: JourneyState, action: JourneyAction): Jour
       return {
         ...state,
         step: action.kind === 'apply' ? 'run' : state.step,
-        run: { kind: action.kind, runId: null, state: 'running', steps: [], files: [], error: null }
+        run: {
+          kind: action.kind,
+          runId: null,
+          state: 'running',
+          steps: (action.planned ?? []).map((s) => ({
+            ...s,
+            status: 'pending',
+            detail: null,
+            startedAt: null,
+            endedAt: null
+          })),
+          files: [],
+          feed: [],
+          startedAt: action.at ?? 0,
+          error: null
+        }
       };
     case 'run.id':
       return state.run ? { ...state, run: { ...state.run, runId: action.runId } } : state;
     case 'run.event':
-      return state.run ? { ...state, run: applyEvent(state.run, action.event) } : state;
+      return state.run ? { ...state, run: applyEvent(state.run, action.event, action.at ?? 0) } : state;
     case 'run.done': {
       const kind = action.result.kind;
       return {

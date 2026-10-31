@@ -247,13 +247,9 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  min-height: var(--control-height);
-  padding: 0 var(--space-3) 0 var(--space-3);
-  border: var(--border-width) solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-surface);
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-subtle);
 
   svg {
     flex: none;
@@ -665,11 +661,9 @@
 
 // ---- Cartão da estrutura de especificação: ícone em destaque, título com o selo ao lado e duas colunas (texto | versão e dependências).
 .specificationCard {
-  @include card(var(--space-6));
+  @include card(var(--space-5));
 
   min-width: 0;
-  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
-  background: radial-gradient(70% 90% at 0% 0%, var(--color-accent-glow), transparent 70%), var(--color-surface);
 }
 
 .specificationGrid {
@@ -686,11 +680,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 3.5rem;
-  height: 3.5rem;
-  border: var(--border-width) solid color-mix(in srgb, var(--color-primary) 40%, transparent);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--color-primary) 16%, var(--color-surface-sunken));
+  width: 2rem;
+  height: 2rem;
   color: var(--color-primary-text);
 }
 

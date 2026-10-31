@@ -1,0 +1,121 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: var(--border-width-divider) solid var(--color-divider);
+
+  &:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+}
+
+.title {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 6.25rem minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+  font-size: var(--font-size-sm);
+
+  dt {
+    color: var(--color-text-subtle);
+  }
+
+  dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.actors,
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.actor {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+
+  > span:first-child {
+    margin-top: 2px;
+  }
+}
+
+.actorText {
+  min-width: 0;
+}
+
+.actorName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.actorState {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.actorActivity {
+  margin-top: 2px;
+  font-size: var(--font-size-sm);
+}
+
+.actorNote {
+  margin-top: 2px;
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
+}
+
+.empty {
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-sm);
+}
+
+.feedItem {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  animation: enter var(--duration-base) var(--ease);
+}
+
+.feedTime {
+  padding-top: 1px;
+  color: var(--color-text-subtle);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.feedText {
+  min-width: 0;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}

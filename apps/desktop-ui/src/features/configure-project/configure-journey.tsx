@@ -4,6 +4,7 @@ import { useProjectSelectionContext } from '@/features/project-selection';
 import { useScrollToTop } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 
+import { ContextPanel } from './components/context-panel';
 import { JourneyFrame } from './components/journey-frame';
 import { countApprovals, stepIssue } from './domain/journey-state';
 import { useConfigureJourney } from './hooks/use-configure-journey';
@@ -31,8 +32,26 @@ export function ConfigureJourney({ api, projectId, projectName, projectPath, pol
 
   useScrollToTop(state.step);
 
+  const approvalCount = state.plan.status === 'ready' ? countApprovals(state, state.plan.data) : 0;
+  const live = state.run !== null && state.run.error === null;
+
   return (
-    <JourneyFrame step={state.step} issue={stepIssue(state)}>
+    <JourneyFrame
+      step={state.step}
+      issue={stepIssue(state)}
+      live={live}
+      panel={
+        <ContextPanel
+          step={state.step}
+          projectName={projectName}
+          aiEnvironment={state.aiEnvironment}
+          plan={state.plan}
+          approvalCount={approvalCount}
+          run={state.run}
+          results={state.results}
+        />
+      }
+    >
       {state.step === 'project' ? (
         <ProjectStep
           project={{ name: projectName, path: projectPath }}

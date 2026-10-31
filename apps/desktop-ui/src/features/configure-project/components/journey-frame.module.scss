@@ -1,0 +1,126 @@
+$panel-width: 20rem;
+
+// Área de trabalho + painel de contexto. O painel cabe ao lado quando a coluna principal tem largura; senão é gaveta.
+// A largura de referência é a do <main> (container-type: inline-size no AppShell), não a da janela.
+.workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin-inline: calc(-1 * var(--space-5));
+  min-height: 100%;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+  max-width: 50rem;
+  padding: var(--space-5) var(--space-5) 0;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+  color: var(--color-text-muted);
+}
+
+.toggle {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--target-min);
+  height: var(--target-min);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
+
+  &:hover {
+    background-color: var(--color-menu-hover);
+    color: var(--color-text);
+  }
+
+  &[aria-expanded='true'] {
+    color: var(--color-primary-text);
+  }
+}
+
+.pip {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--color-working);
+}
+
+.panel {
+  position: sticky;
+  top: calc(-1 * var(--space-5));
+  align-self: start;
+  height: calc(100vh - 2.25rem);
+  overflow-y: auto;
+  border-left: var(--border-width-divider) solid var(--color-divider);
+  background-color: var(--color-background);
+}
+
+.panelBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-4);
+}
+
+// Coluna principal larga: painel ao lado.
+@container (min-width: 62rem) {
+  .workbench[data-panel='open'] {
+    grid-template-columns: minmax(0, 1fr) $panel-width;
+  }
+}
+
+// Coluna estreita: o painel vira gaveta sobre o conteúdo (mesma célula da grade) e não o espreme.
+@container (max-width: 61.99rem) {
+  .workbench[data-panel='open'] {
+    .content,
+    .panel {
+      grid-area: 1 / 1;
+    }
+
+    .panel {
+      z-index: 5;
+      justify-self: end;
+      width: min(#{$panel-width}, 100%);
+      background-color: var(--color-surface);
+      box-shadow: var(--shadow-raised);
+      animation: drawer var(--duration-base) var(--ease);
+    }
+  }
+}
+
+@keyframes drawer {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}

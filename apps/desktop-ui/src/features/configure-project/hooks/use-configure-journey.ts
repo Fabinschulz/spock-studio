@@ -4,6 +4,7 @@ import { EngineError } from '@/shared/api';
 import type { ConflictResolution } from '@/shared/schema';
 
 import { waitForRun, type HarnessApi } from '../service';
+import { plannedApplySteps } from '../domain/planned-steps';
 
 import {
   buildApplyInput,
@@ -56,11 +57,13 @@ export function useConfigureJourney(api: HarnessApi, projectId: string, pollMs =
   const track = useCallback(
     async (kind: RunKind, start: () => Promise<{ runId: string }>) => {
       abort.current = new AbortController();
-      dispatch({ type: 'run.start', kind });
+      const { plan, approvedCommands } = latest.current;
+      const planned = kind === 'apply' && plan.status === 'ready' ? plannedApplySteps(plan.data, approvedCommands) : [];
+      dispatch({ type: 'run.start', kind, at: Date.now(), planned });
       try {
         const { runId } = await start();
         dispatch({ type: 'run.id', runId });
-        const result = await waitForRun(api, runId, (event) => dispatch({ type: 'run.event', event }), {
+        const result = await waitForRun(api, runId, (event) => dispatch({ type: 'run.event', event, at: Date.now() }), {
           pollMs,
           signal: abort.current.signal
         });
