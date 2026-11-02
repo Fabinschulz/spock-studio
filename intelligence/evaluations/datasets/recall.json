@@ -42,6 +42,42 @@
           }
         ]
       }
+    },
+    {
+      "id": "piloto-html-produto",
+      "projectId": "p-010010010001",
+      "query": "mariliz piloto landing cobrança recorrente",
+      "expectChunkIds": ["docs/produto.md#2"],
+      "sources": [
+        {
+          "path": "docs/produto.md",
+          "hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "text": "# Produto piloto\n\nEste repositório existe só para exercitar o Mariliz Studio em um projeto\nreal pequeno, sem dependências de build.\n\n## Cobrança recorrente (texto de teste)\n\nO módulo fictício **mariliz piloto landing cobrança recorrente** descreve um\nfluxo de assinatura mensal, faturamento automático, reconciliação bancária e\ncancelamento com período de carência. O parágrafo é longo de propósito para\ngerar chunks indexáveis durante a recuperação lexical: ciclo de vida da\nassinatura, notas fiscais, chargeback, dunning e reativação após falha de\npagamento. Use esta frase como consulta no pedido de engenharia.\n\n## Escopo\n\n- Uma landing (`index.html`)\n- Estilos em `css/main.css`\n- Sem JavaScript de aplicação e sem framework\n"
+        },
+        {
+          "path": "docs/estilo-piloto.md",
+          "hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "text": "# Guia de estilo piloto\n\nTokens usados na landing de teste do Mariliz.\n\n## Cores\n\n| Token   | Valor   | Uso              |\n| ------- | ------- | ---------------- |\n| `--bg`  | `#0f1419` | Fundo da página |\n| `--accent` | `#33c1ba` | Destaques e eyebrow |\n| `--surface` | `#1a2332` | Cartões        |\n\n## Layout\n\n- Largura máxima do conteúdo: **42rem**\n- Grid de duas colunas a partir de **640px**\n- Raio padrão dos cartões: **12px**\n\n## Acessibilidade\n\n- Títulos de seção com `id` e `aria-labelledby`\n- Contraste alto entre texto e fundo\n- Foco visível nos links (quando forem adicionados)\n\n## Consulta sugerida\n\nPara testar busca: *\"tokens de cor accent e grid responsivo\"*.\n"
+        }
+      ]
+    },
+    {
+      "id": "piloto-html-estilo",
+      "projectId": "p-010010010002",
+      "query": "cores accent surface",
+      "expectChunkIds": ["docs/estilo-piloto.md#2"],
+      "sources": [
+        {
+          "path": "docs/estilo-piloto.md",
+          "hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "text": "# Guia de estilo piloto\n\nTokens usados na landing de teste do Mariliz.\n\n## Cores\n\n| Token   | Valor   | Uso              |\n| ------- | ------- | ---------------- |\n| `--bg`  | `#0f1419` | Fundo da página |\n| `--accent` | `#33c1ba` | Destaques e eyebrow |\n| `--surface` | `#1a2332` | Cartões        |\n\n## Layout\n\n- Largura máxima do conteúdo: **42rem**\n- Grid de duas colunas a partir de **640px**\n- Raio padrão dos cartões: **12px**\n\n## Acessibilidade\n\n- Títulos de seção com `id` e `aria-labelledby`\n- Contraste alto entre texto e fundo\n- Foco visível nos links (quando forem adicionados)\n\n## Consulta sugerida\n\nPara testar busca: *\"tokens de cor accent e grid responsivo\"*.\n"
+        },
+        {
+          "path": "docs/produto.md",
+          "hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "text": "# Produto piloto\n\nEste repositório existe só para exercitar o Mariliz Studio em um projeto\nreal pequeno, sem dependências de build.\n\n## Cobrança recorrente (texto de teste)\n\nO módulo fictício **mariliz piloto landing cobrança recorrente** descreve um\nfluxo de assinatura mensal, faturamento automático, reconciliação bancária e\ncancelamento com período de carência. O parágrafo é longo de propósito para\ngerar chunks indexáveis durante a recuperação lexical: ciclo de vida da\nassinatura, notas fiscais, chargeback, dunning e reativação após falha de\npagamento. Use esta frase como consulta no pedido de engenharia.\n\n## Escopo\n\n- Uma landing (`index.html`)\n- Estilos em `css/main.css`\n- Sem JavaScript de aplicação e sem framework\n"
+        }
+      ]
     }
   ]
 }
