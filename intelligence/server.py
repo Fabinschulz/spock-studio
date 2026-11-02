@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Servidor local da inteligência do Mariliz.
 
-Encaminha saúde, o workflow engineering.request.v1 e o índice de conhecimento.
+Encaminha saúde, o workflow engineering.request e o índice de conhecimento.
 Não lê o projeto, não grava arquivos e não chama modelo. O runtime .NET é quem
 autoriza, aplica e publica eventos.
+
+Início e retomada respondem em NDJSON (``application/x-ndjson``, chunked): um ai.event.v1 por
+linha enquanto o grafo anda e, por último, o ai.ack.v2.
 """
 
 from __future__ import annotations
@@ -15,11 +18,21 @@ import os
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from knowledge.index import KnowledgeError, manifest
-from workflows.engineering.graph import run_cancel, run_resume, run_start
+# Telemetria de terceiros desligada antes de qualquer import do LangChain.
+os.environ["LANGSMITH_TRACING"] = "false"
+os.environ["LANGCHAIN_TRACING_V2"] = "false"
+os.environ["LANGSMITH_OTEL_ENABLED"] = "false"
 
-MAX_BODY = 1_000_000
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _HERE)
+_PACKAGES = os.path.join(_HERE, "packages")
+if os.path.isdir(_PACKAGES):
+    sys.path.insert(0, _PACKAGES)
+
+from knowledge.index import KnowledgeError, manifest  # noqa: E402
+from workflows.engineering.graph import run_cancel, run_resume, run_start  # noqa: E402
+
+MAX_BODY = 4_000_000
 
 
 def main() -> None:
@@ -71,10 +84,10 @@ def make_handler(token: str):
                     self._send(200, {"files": files})
                     return
                 if path == "/v1/workflows":
-                    self._send(200, run_start(payload))
+                    self._stream(run_start(payload))
                     return
                 if path.startswith("/v1/workflows/") and path.endswith("/resume"):
-                    self._send(200, run_resume(payload))
+                    self._stream(run_resume(payload))
                     return
                 if path.startswith("/v1/workflows/") and path.endswith("/cancel"):
                     run_cancel(_text(payload.get("runId")), _text(payload.get("projectId")), _text(payload.get("executionRoot")))
@@ -112,6 +125,31 @@ def make_handler(token: str):
                 self._send(400, {"error": "invalid_body"})
                 return None
             return payload
+
+        def _stream(self, lines) -> None:
+            """Cada mensagem sai num pedaço próprio. Se o motor fechar a conexão, o grafo para no próximo evento."""
+            self.send_response(200)
+            self.send_header("Content-Type", "application/x-ndjson; charset=utf-8")
+            self.send_header("Transfer-Encoding", "chunked")
+            self.send_header("Connection", "close")
+            self.end_headers()
+            try:
+                for message in lines:
+                    body = (json.dumps(message, separators=(",", ":"), ensure_ascii=False) + "\n").encode("utf-8")
+                    self.wfile.write(f"{len(body):X}\r\n".encode("ascii") + body + b"\r\n")
+                    self.wfile.flush()
+                self.wfile.write(b"0\r\n\r\n")
+                self.wfile.flush()
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+                lines.close()
+            except Exception:
+                # Sem o ai.ack.v2 no fim, o motor trata a resposta como fora do contrato.
+                lines.close()
+                try:
+                    self.wfile.write(b"0\r\n\r\n")
+                except OSError:
+                    pass
+            self.close_connection = True
 
         def _send(self, status: int, payload: dict) -> None:
             body = json.dumps(payload, separators=(",", ":")).encode("utf-8")

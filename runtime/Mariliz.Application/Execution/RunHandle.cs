@@ -5,6 +5,7 @@ namespace Mariliz.Application.Execution;
 /// <summary>Uma execução em andamento ou concluída, com eventos e cancelamento.</summary>
 public sealed class RunHandle
 {
+    private const int Retained = 500;
     private readonly object _gate = new();
     private readonly List<JsonObject> _events = [];
     private int _seq;
@@ -24,18 +25,32 @@ public sealed class RunHandle
     public JsonObject? Result { get; private set; }
     public CancellationTokenSource Cancellation { get; } = new();
     public Task? Completion { get; set; }
+
+    /// <summary>Recebe cada evento publicado (<c>{seq, type, data}</c>), na ordem, para o histórico em disco.</summary>
+    public Action<JsonObject>? Recorder { get; set; }
+
     private Action<string, int, string, JsonObject> Emit { get; }
 
-    public void Publish(string type, JsonObject data)
+    /// <summary>Uma execução religada depois de o motor cair continua a numeração que já foi publicada.</summary>
+    public void ContinueFrom(int nextSeq)
+    {
+        lock (_gate) _seq = Math.Max(_seq, nextSeq);
+    }
+
+    public int Publish(string type, JsonObject data)
     {
         int seq;
+        JsonObject recorded;
         lock (_gate)
         {
             seq = _seq++;
-            _events.Add(new JsonObject { ["seq"] = seq, ["type"] = type, ["data"] = data.DeepClone() });
-            if (_events.Count > 500) _events.RemoveAt(0);
+            recorded = new JsonObject { ["seq"] = seq, ["type"] = type, ["data"] = data.DeepClone() };
+            _events.Add(recorded);
+            if (_events.Count > Retained) _events.RemoveAt(0);
+            Recorder?.Invoke((JsonObject)recorded.DeepClone());
         }
         Emit(RunId, seq, type, data);
+        return seq;
     }
 
     public void SetState(string state, string? detail = null)
@@ -50,10 +65,17 @@ public sealed class RunHandle
         Publish("run.completed", new JsonObject { ["state"] = state });
     }
 
-    public JsonObject Snapshot()
+    /// <summary>
+    /// Sem <paramref name="sinceSeq"/>, os 100 eventos mais recentes. Com ele, todos os retidos depois desse número;
+    /// <c>firstSeq</c> diz onde a memória começa, para quem precisar buscar o resto no histórico.
+    /// </summary>
+    public JsonObject Snapshot(int? sinceSeq = null)
     {
         lock (_gate)
         {
+            var events = sinceSeq is { } since
+                ? _events.Where(e => e["seq"]!.GetValue<int>() > since)
+                : _events.TakeLast(100);
             return new JsonObject
             {
                 ["runId"] = RunId,
@@ -61,7 +83,8 @@ public sealed class RunHandle
                 ["kind"] = Kind,
                 ["state"] = State,
                 ["lastSeq"] = _seq - 1,
-                ["events"] = new JsonArray(_events.TakeLast(100).Select(e => (JsonNode)e.DeepClone()).ToArray()),
+                ["firstSeq"] = _events.Count == 0 ? _seq : _events[0]["seq"]!.GetValue<int>(),
+                ["events"] = new JsonArray(events.Select(e => (JsonNode)e.DeepClone()).ToArray()),
                 ["result"] = Result?.DeepClone()
             };
         }

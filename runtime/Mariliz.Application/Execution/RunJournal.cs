@@ -13,6 +13,17 @@ public sealed class RunJournal
     /// <summary>Identificador da execução no runtime. Só o workflow preenche; o diário do harness não.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ExecutionId { get; set; }
+
+    /// <summary>Pausa do grafo que está esperando aprovação e a aprovação que o motor abriu para ela.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? InterruptId { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ApprovalId { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? ApprovedAt { get; set; }
+
     public string State { get; set; } = RunStates.Running;
     public DateTimeOffset StartedAt { get; set; }
     public DateTimeOffset? FinishedAt { get; set; }

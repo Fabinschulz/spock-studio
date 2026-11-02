@@ -12,6 +12,14 @@ internal readonly struct RequestParams(JsonObject? values)
 
     public bool Flag(string name) => values?[name]?.GetValue<bool>() ?? false;
 
+    public int? OptionalInt(string name)
+    {
+        if (values?[name] is null) return null;
+        return values[name] is JsonValue v && v.TryGetValue<int>(out var number) && number >= -1
+            ? number
+            : throw new ParamException($"'{name}' precisa ser um inteiro a partir de -1.");
+    }
+
     public JsonObject? Object(string name) => values?[name] as JsonObject;
 
     public JsonObject ObjectOrEmpty(string name)

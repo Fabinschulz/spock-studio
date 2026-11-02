@@ -1,9 +1,11 @@
 using System.Collections.Concurrent;
 using System.Globalization;
+using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Discovery;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Ports;
+using Mariliz.Application.Protocol;
 using Mariliz.Application.Workspace;
 using Mariliz.Core.Policy;
 
@@ -11,7 +13,8 @@ namespace Mariliz.Application.Workflows;
 
 /// <summary>
 /// Execução do grafo <c>engineering.request.v1</c>. O motor autoriza, descreve o projeto, indexa
-/// as fontes permitidas fora da pasta e publica os eventos. O runtime não grava no projeto.
+/// as fontes permitidas fora da pasta, fixa limites e política, guarda a aprovação e publica os eventos
+/// à medida que o runtime os transmite. O runtime não grava no projeto.
 /// </summary>
 public sealed class WorkflowService(
     WorkspaceAuthorizer workspace,
@@ -25,6 +28,12 @@ public sealed class WorkflowService(
 {
     public const string Kind = "workflow";
     public const string WorkflowId = "engineering.request.v1";
+    private const string GraphId = "engineering.request";
+    private const string GraphVersion = "1";
+    private const int MaxGoal = 4000;
+    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(60);
+    private static readonly HashSet<string> KnownAgents = new(StringComparer.Ordinal) { "architecture" };
+    private static readonly HashSet<string> InputFields = new(StringComparer.Ordinal) { "goal", "impact", "requiresApproval" };
 
     private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> _approvals = new();
     private readonly ProjectDiscoverer? _discoverer = filesFactory is not null && processRunner is not null
@@ -37,12 +46,14 @@ public sealed class WorkflowService(
             throw new EngineException("PROJECT_NOT_AUTHORIZED", "O projeto não foi autorizado. Selecione a pasta pelo diálogo do aplicativo.");
 
         await runtime.EnsureReadyAsync(ct);
+        var request = Input(input);
 
         if (!tracker.TryStart(projectId, Kind, out var run) || run is null)
             throw new EngineException("RUN_IN_PROGRESS", "Já há uma execução em andamento neste projeto.");
 
+        Record(run);
         var executionId = "ex-" + Guid.NewGuid().ToString("N")[..12];
-        run.Completion = ExecuteAsync(run, executionId, input);
+        run.Completion = ExecuteAsync(run, executionId, request);
         return run;
     }
 
@@ -71,13 +82,19 @@ public sealed class WorkflowService(
     private Task<RunHandle> ResumeFromJournal(string projectId, string runId)
     {
         var journal = store?.LoadJournal(projectId, runId);
-        if (journal is null || journal.Kind != Kind || journal.State != RunStates.AwaitingApproval || string.IsNullOrEmpty(journal.ExecutionId))
+        if (journal is null || journal.Kind != Kind || journal.State != RunStates.AwaitingApproval
+            || string.IsNullOrEmpty(journal.ExecutionId) || string.IsNullOrEmpty(journal.InterruptId) || string.IsNullOrEmpty(journal.ApprovalId))
             throw new EngineException("RUN_NOT_FOUND", "Execução não encontrada.");
 
         var run = tracker.TryRehydrate(runId, projectId, Kind);
         if (run is null)
             throw new EngineException("RUN_IN_PROGRESS", "Já há uma execução em andamento neste projeto.");
 
+        var published = store!.LoadEvents(projectId, runId);
+        if (published.Count > 0 && published[^1]["seq"] is JsonValue last)
+            run.ContinueFrom(last.GetValue<int>() + 1);
+        Record(run);
+        Approve(journal);
         run.SetState(RunStates.AwaitingApproval, "Aguardando aprovação");
         run.Completion = ContinueFromCheckpointAsync(run, journal);
         return Task.FromResult(run);
@@ -86,35 +103,38 @@ public sealed class WorkflowService(
     private async Task ExecuteAsync(RunHandle run, string executionId, JsonObject input)
     {
         var journal = BeginJournal(run, executionId);
+        var filter = new AiEventFilter(executionId);
+        using var budget = CancellationTokenSource.CreateLinkedTokenSource(run.Cancellation.Token);
+        budget.CancelAfter(Deadline);
         try
         {
             run.SetState(RunStates.Running, "Iniciando a execução");
-            var context = await ContextAsync(run.ProjectId, run.Cancellation.Token);
-            await AttachKnowledgeAsync(run.ProjectId, context, run.Cancellation.Token);
+            var context = await ContextAsync(run.ProjectId, budget.Token);
+            await AttachKnowledgeAsync(run.ProjectId, context, budget.Token);
             StampExecutionRoot(context);
-            var ack = await runtime.StartAsync(run.RunId, run.ProjectId, executionId, input, context, run.Cancellation.Token);
+            var ack = await runtime.StartAsync(StartRequest(run, executionId, input, context), Relay(run, filter), budget.Token);
             EnsureAck(run, executionId, ack);
-            Publish(run, ack, "workflow.started", "started");
-            PublishAgents(run, ack);
-            PublishRetrieval(run, ack);
 
             if (ack.Status == "interrupted")
             {
-                Mark(journal, RunStates.AwaitingApproval);
+                OpenApproval(run, journal, ack);
                 var gate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _approvals[run.RunId] = gate;
-                run.SetState(RunStates.AwaitingApproval, "Aguardando aprovação");
-                var paused = EventData(ack, "interrupted");
-                paused["steps"] = StepIds(ack.Output);
-                run.Publish("workflow.interrupted", paused);
                 using (run.Cancellation.Token.Register(() => gate.TrySetCanceled(run.Cancellation.Token)))
                     await gate.Task;
                 _approvals.TryRemove(run.RunId, out _);
-                ack = await runtime.ResumeAsync(run.RunId, run.ProjectId, executionId, ExecutionContext(), run.Cancellation.Token);
+                Approve(journal);
+                budget.CancelAfter(Deadline);
+                ack = await runtime.ResumeAsync(ResumeRequest(run, journal), Relay(run, filter), budget.Token);
                 EnsureAck(run, executionId, ack);
             }
 
             Finish(run, journal, ack);
+        }
+        catch (OperationCanceledException) when (!run.Cancellation.IsCancellationRequested)
+        {
+            await runtime.CancelAsync(run.RunId, run.ProjectId, knowledgeRoot);
+            Fail(run, journal, "AI_RUNTIME_TIMEOUT", "O runtime de IA passou do tempo limite.");
         }
         catch (OperationCanceledException)
         {
@@ -132,14 +152,19 @@ public sealed class WorkflowService(
 
     private async Task ContinueFromCheckpointAsync(RunHandle run, RunJournal journal)
     {
+        using var budget = CancellationTokenSource.CreateLinkedTokenSource(run.Cancellation.Token);
+        budget.CancelAfter(Deadline);
         try
         {
             run.SetState(RunStates.Running, "Retomando a execução");
-            var ack = await runtime.ResumeAsync(run.RunId, run.ProjectId, journal.ExecutionId!, ExecutionContext(), run.Cancellation.Token);
+            var ack = await runtime.ResumeAsync(ResumeRequest(run, journal), Relay(run, new AiEventFilter(journal.ExecutionId!)), budget.Token);
             EnsureAck(run, journal.ExecutionId!, ack);
-            PublishAgents(run, ack);
-            PublishRetrieval(run, ack);
             Finish(run, journal, ack);
+        }
+        catch (OperationCanceledException) when (!run.Cancellation.IsCancellationRequested)
+        {
+            await runtime.CancelAsync(run.RunId, run.ProjectId, knowledgeRoot);
+            Fail(run, journal, "AI_RUNTIME_TIMEOUT", "O runtime de IA passou do tempo limite.");
         }
         catch (OperationCanceledException)
         {
@@ -153,6 +178,115 @@ public sealed class WorkflowService(
         {
             Fail(run, journal, "AI_RUNTIME_UNAVAILABLE", "O runtime de IA não respondeu.");
         }
+    }
+
+    /// <summary>O pedido entra só com os campos do contrato; o objetivo é obrigatório e limitado.</summary>
+    private static JsonObject Input(JsonObject input)
+    {
+        if (input.Any(pair => !InputFields.Contains(pair.Key)))
+            throw new EngineException(ProtocolErrorCodes.InvalidParams, "'input' só aceita goal, impact e requiresApproval.");
+        var goal = input["goal"] is JsonValue value && value.TryGetValue<string>(out var text) ? text.Trim() : "";
+        if (goal.Length is 0 or > MaxGoal)
+            throw new EngineException(ProtocolErrorCodes.InvalidParams, $"Descreva o pedido em até {MaxGoal} caracteres.");
+        var request = new JsonObject { ["goal"] = goal };
+        foreach (var flag in new[] { "impact", "requiresApproval" })
+        {
+            if (input[flag] is null) continue;
+            if (input[flag] is not JsonValue item || !item.TryGetValue<bool>(out var on))
+                throw new EngineException(ProtocolErrorCodes.InvalidParams, $"'{flag}' precisa ser verdadeiro ou falso.");
+            request[flag] = on;
+        }
+        return request;
+    }
+
+    private static JsonObject StartRequest(RunHandle run, string executionId, JsonObject input, JsonObject context) => new()
+    {
+        ["schema"] = "ai.workflow.start.v2",
+        ["workflowId"] = GraphId,
+        ["workflowVersion"] = GraphVersion,
+        ["runId"] = run.RunId,
+        ["executionId"] = executionId,
+        ["projectId"] = run.ProjectId,
+        ["workspaceId"] = null,
+        ["input"] = input.DeepClone(),
+        ["context"] = context,
+        ["limits"] = new JsonObject { ["maxIterations"] = 8, ["maxMilliseconds"] = 10_000, ["maxTokens"] = 0, ["maxCostUsd"] = 0 },
+        ["policy"] = new JsonObject { ["allowedActions"] = new JsonArray(), ["modelAllowed"] = false }
+    };
+
+    private JsonObject ResumeRequest(RunHandle run, RunJournal journal) => new()
+    {
+        ["schema"] = "ai.workflow.resume.v2",
+        ["runId"] = run.RunId,
+        ["executionId"] = journal.ExecutionId,
+        ["projectId"] = run.ProjectId,
+        ["interruptId"] = journal.InterruptId,
+        ["decision"] = new JsonObject { ["approvalId"] = journal.ApprovalId, ["approved"] = true, ["actionIds"] = new JsonArray() },
+        ["context"] = new JsonObject { ["executionRoot"] = knowledgeRoot ?? "" }
+    };
+
+    /// <summary>A pausa só vale se o runtime disse qual interrupção espera; o motor abre a aprovação e grava antes de publicar.</summary>
+    private void OpenApproval(RunHandle run, RunJournal journal, WorkflowAck ack)
+    {
+        if (ack.InterruptId is null)
+            throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+        journal.InterruptId = ack.InterruptId;
+        journal.ApprovalId = "apr-" + Convert.ToHexString(RandomNumberGenerator.GetBytes(6)).ToLowerInvariant();
+        Mark(journal, RunStates.AwaitingApproval);
+        run.SetState(RunStates.AwaitingApproval, "Aguardando aprovação");
+        run.Publish("approval.required", new JsonObject
+        {
+            ["approvalId"] = journal.ApprovalId,
+            ["executionId"] = ack.ExecutionId,
+            ["actions"] = new JsonArray(),
+            ["at"] = Now()
+        });
+        var paused = EventData(ack.ExecutionId, "interrupted");
+        paused["steps"] = StepIds(ack.Output);
+        run.Publish("workflow.interrupted", paused);
+    }
+
+    private void Approve(RunJournal journal)
+    {
+        journal.ApprovedAt = clock.UtcNow;
+        store?.SaveJournal(journal);
+    }
+
+    private Action<JsonObject> Relay(RunHandle run, AiEventFilter filter) => evt =>
+    {
+        if (filter.Accept(evt)) Translate(run, evt);
+    };
+
+    /// <summary>Traduz o evento do runtime para o vocabulário da interface. O que não tem tradução segura fica de fora.</summary>
+    private void Translate(RunHandle run, JsonObject evt)
+    {
+        var data = (JsonObject)evt["data"]!;
+        var agentId = Text(evt, "agentId");
+        switch (Text(evt, "type"))
+        {
+            case "workflow.started":
+                run.Publish("workflow.started", EventData(Text(evt, "executionId"), "started"));
+                break;
+            case "context.retrieval.started":
+                run.Publish("context.retrieval.started", new JsonObject { ["at"] = Now() });
+                break;
+            case "context.retrieved" when TryEvidence(data, out var evidence):
+                evidence["at"] = Now();
+                run.Publish("context.retrieved", evidence);
+                break;
+            case "agent.started" when KnownAgents.Contains(agentId) && IsVersion(Text(data, "agentVersion")):
+                run.Publish("agent.started", new JsonObject { ["agentId"] = agentId, ["agentVersion"] = Text(data, "agentVersion"), ["at"] = Now() });
+                break;
+            case "agent.completed" when KnownAgents.Contains(agentId) && Text(data, "status") == "completed":
+                run.Publish("agent.completed", new JsonObject { ["agentId"] = agentId, ["at"] = Now() });
+                break;
+        }
+    }
+
+    private void Record(RunHandle run)
+    {
+        if (store is not null)
+            run.Recorder = evt => store.AppendEvent(run.ProjectId, run.RunId, evt);
     }
 
     private RunJournal BeginJournal(RunHandle run, string executionId)
@@ -184,7 +318,7 @@ public sealed class WorkflowService(
         var outcome = ack.Status == "failed" ? RunStates.Failed : RunStates.CompletedWithLimitations;
         journal.State = outcome;
         journal.FinishedAt = clock.UtcNow;
-        journal.Error = outcome == RunStates.Failed ? ack.Limitations.FirstOrDefault()?.Code : null;
+        journal.Error = outcome == RunStates.Failed ? (ack.Errors.FirstOrDefault() ?? ack.Limitations.FirstOrDefault())?.Code : null;
         journal.Evals = ack.Limitations.Select(item => new EvalSummary
         {
             Id = item.Code,
@@ -194,7 +328,7 @@ public sealed class WorkflowService(
         store?.SaveJournal(journal);
         var result = Result(ack);
         run.Complete(outcome, result);
-        Publish(run, ack, ack.Status == "failed" ? "workflow.failed" : "workflow.completed", ack.Status);
+        run.Publish(ack.Status == "failed" ? "workflow.failed" : "workflow.completed", EventData(ack.ExecutionId, ack.Status));
     }
 
     private void Fail(RunHandle run, RunJournal journal, string code, string message)
@@ -229,13 +363,6 @@ public sealed class WorkflowService(
             context["executionRoot"] = knowledgeRoot;
     }
 
-    private JsonObject ExecutionContext()
-    {
-        var context = new JsonObject();
-        StampExecutionRoot(context);
-        return context;
-    }
-
     private async Task<JsonObject> ContextAsync(string projectId, CancellationToken ct)
     {
         if (_discoverer is null || filesFactory is null || !workspace.TryGetRoot(projectId, out var root))
@@ -247,7 +374,7 @@ public sealed class WorkflowService(
             return new JsonObject
             {
                 ["available"] = true,
-                ["stacks"] = new JsonArray(report.Stacks.Select(stack => (JsonNode)JsonValue.Create(stack.Id)!).ToArray())
+                ["stacks"] = new JsonArray(report.Stacks.Select(stack => stack.Id).Distinct().Take(8).Select(id => (JsonNode)JsonValue.Create(id)!).ToArray())
             };
         }
         catch (OperationCanceledException) { throw; }
@@ -284,52 +411,26 @@ public sealed class WorkflowService(
         context["sources"] = sources;
     }
 
-    private void PublishRetrieval(RunHandle run, WorkflowAck ack)
-    {
-        if (ack.Output["retrievalAttempted"] is not JsonValue flag || !flag.TryGetValue<bool>(out var attempted) || !attempted)
-            return;
-        run.Publish("context.retrieval.started", new JsonObject { ["at"] = clock.UtcNow.ToString("O") });
-        if (ack.Output["evidence"] is not JsonArray evidence) return;
-        foreach (var node in evidence)
-        {
-            if (node is not JsonObject item || !TryEvidence(item, out var data)) continue;
-            data["at"] = clock.UtcNow.ToString("O");
-            run.Publish("context.retrieved", data);
-        }
-    }
-
     private static bool SafeProjectId(string projectId) =>
         projectId.Length == 14
         && projectId.StartsWith("p-", StringComparison.Ordinal)
         && projectId[2..].All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f');
 
-    private void Publish(RunHandle run, WorkflowAck ack, string type, string status) =>
-        run.Publish(type, EventData(ack, status));
+    private static bool IsVersion(string value) => value.Length is > 0 and <= 9 && value.All(char.IsAsciiDigit);
 
-    private void PublishAgents(RunHandle run, WorkflowAck ack)
-    {
-        if (ack.Output["agents"] is not JsonArray agents) return;
-        foreach (var node in agents)
-        {
-            if (node is not JsonObject item) continue;
-            var id = Text(item, "id");
-            var status = Text(item, "status");
-            if (id != "architecture" || status != "completed") continue;
-            run.Publish("agent.completed", new JsonObject { ["agentId"] = id, ["at"] = clock.UtcNow.ToString("O") });
-        }
-    }
+    private string Now() => clock.UtcNow.ToString("O");
 
-    private JsonObject EventData(WorkflowAck ack, string status) => new()
+    private JsonObject EventData(string executionId, string status) => new()
     {
-        ["workflowId"] = ack.WorkflowId,
-        ["executionId"] = ack.ExecutionId,
+        ["workflowId"] = WorkflowId,
+        ["executionId"] = executionId,
         ["status"] = status,
-        ["at"] = clock.UtcNow.ToString("O")
+        ["at"] = Now()
     };
 
     private static void EnsureAck(RunHandle run, string executionId, WorkflowAck ack)
     {
-        if (ack.RunId != run.RunId || ack.ExecutionId != executionId || ack.WorkflowId != WorkflowId)
+        if (ack.RunId != run.RunId || ack.ProjectId != run.ProjectId || ack.ExecutionId != executionId || ack.WorkflowId != WorkflowId)
             throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
         if (ack.Status is not ("completed" or "interrupted" or "failed"))
             throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");

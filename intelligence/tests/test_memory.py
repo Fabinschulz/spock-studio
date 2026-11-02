@@ -1,11 +1,21 @@
-import sys
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import _paths  # noqa: F401
 
-from memory.execution import ExecutionError, delete, load, save
+from memory.execution import ExecutionError, checkpoint_file, drop, saver
+
+RUN = "run-aaaaaaaaaaaa"
+
+
+def _write(root: str, project: str, goal: str) -> None:
+    with saver(root, project, RUN) as checkpoints:
+        config = {"configurable": {"thread_id": RUN, "checkpoint_ns": ""}}
+        checkpoint = {"v": 1, "id": "1", "ts": "2026-11-02T00:00:00+00:00", "channel_values": {"goal": goal},
+                      "channel_versions": {}, "versions_seen": {}, "pending_sends": []}
+        checkpoints.put(config, checkpoint, {}, {})
 
 
 class ExecutionMemoryTests(unittest.TestCase):
@@ -14,34 +24,36 @@ class ExecutionMemoryTests(unittest.TestCase):
             root = Path(tmp)
             first = "p-aaaaaaaaaaaa"
             second = "p-bbbbbbbbbbbb"
-            run = "run-aaaaaaaaaaaa"
-            save(str(root), first, run, {"goal": "alfa-mariliz-91", "paused": True})
+            _write(tmp, first, "alfa-mariliz-91")
 
             self.assertFalse((root / first / "index.sqlite").exists())
             checkpoint = root / "projects" / first / "execution" / "checkpoint.sqlite"
             self.assertTrue(checkpoint.is_file())
             self.assertIn(b"alfa-mariliz-91", checkpoint.read_bytes())
-            import sqlite3
-
             conn = sqlite3.connect(checkpoint)
             try:
-                tables = [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")]
+                tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
             finally:
                 conn.close()
-            self.assertEqual(tables, ["checkpoints"])
-            self.assertEqual(load(str(root), first, run)["goal"], "alfa-mariliz-91")
-            self.assertIsNone(load(str(root), second, run))
+            self.assertNotIn("chunks_fts", tables)
+            self.assertIn("checkpoints", tables)
             self.assertFalse((root / "projects" / second / "execution" / "checkpoint.sqlite").exists())
 
-            delete(str(root), first, run)
+            drop(tmp, first, RUN)
             self.assertFalse(checkpoint.exists())
-            self.assertIsNone(load(str(root), first, run))
 
     def test_recusa_id_e_caminho_que_escapam_da_raiz(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(ExecutionError):
-                save(tmp, "../p-aaaaaaaaaaaa", "run-aaaaaaaaaaaa", {})
+                checkpoint_file(tmp, "../p-aaaaaaaaaaaa")
             with self.assertRaises(ExecutionError):
-                save(tmp, "p-aaaaaaaaaaaa", "../run-aaaaaaaaaaaa", {})
+                with saver(tmp, "p-aaaaaaaaaaaa", "../run-aaaaaaaaaaaa"):
+                    pass
             with self.assertRaises(ExecutionError):
-                load(tmp, "p-1", "run-aaaaaaaaaaaa")
+                checkpoint_file(tmp, "p-1")
+            with self.assertRaises(ExecutionError):
+                checkpoint_file("", "p-aaaaaaaaaaaa")
+
+
+if __name__ == "__main__":
+    unittest.main()

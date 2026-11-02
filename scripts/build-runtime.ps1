@@ -39,21 +39,13 @@ $target = Join-Path $dest ("mariliz-runtime-" + $t.Triple + $t.Ext)
 Copy-Item $exe $target -Force
 "Sidecar: $target ({0:N1} MB)" -f ((Get-Item $target).Length / 1MB)
 
-# Medido em 2026-10-31: sidecar 70,8 MB; scripts 34 KB; zip oficial python-3.12.10-embed-amd64 10,6 MB.
-# O instalador leva esse CPython embarcável (orçamento 25 MB). PyInstaller não entra: o runtime só usa a biblioteca padrão.
+# Medido em 2026-10-31: sidecar 70,8 MB; zip oficial python-3.12.10-embed-amd64 10,6 MB (orçamento do interpretador: 25 MB).
+# A inteligência e as dependências (bytecode, orçamento 30 MB) saem de scripts/package-intelligence.py (ADR-0001).
 $budget = 25MB
 $resources = Join-Path $root 'desktop\host\src-tauri\resources'
-$intelDest = Join-Path $resources 'intelligence'
-if (Test-Path $intelDest) { Remove-Item $intelDest -Recurse -Force }
-New-Item -ItemType Directory -Force $intelDest | Out-Null
-Copy-Item (Join-Path $root 'intelligence\*') $intelDest -Recurse -Force
-foreach ($drop in @('tests', 'evaluations')) {
-    $path = Join-Path $intelDest $drop
-    if (Test-Path $path) { Remove-Item $path -Recurse -Force }
-}
-Get-ChildItem $intelDest -Recurse -Directory -Filter __pycache__ -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
-$intelBytes = (Get-ChildItem $intelDest -Recurse -File | Measure-Object Length -Sum).Sum
-"Inteligência: $intelDest ({0:N0} bytes)" -f $intelBytes
+$builder = if ($env:MARILIZ_BUILD_PYTHON) { $env:MARILIZ_BUILD_PYTHON } else { 'python' }
+& $builder (Join-Path $root 'scripts\package-intelligence.py') bundle --resources $resources
+if ($LASTEXITCODE -ne 0) { throw 'Empacotamento da inteligência falhou' }
 
 function Enable-EmbedSiteImports {
     param([string]$Dir)
@@ -94,6 +86,7 @@ if ($pythonHome -and (Test-Path (Join-Path $pythonHome 'python.exe'))) {
     }
     if (Test-Path $pythonDest) { Remove-Item $pythonDest -Recurse -Force }
     Copy-Item $pythonHome $pythonDest -Recurse -Force
+    New-Item -ItemType File -Force (Join-Path $pythonDest '.gitkeep') | Out-Null
     "Interpretador embarcado: $pythonDest ({0:N1} MB)" -f ($pythonBytes / 1MB)
 } else {
     "Interpretador embarcado: ausente. Defina MARILIZ_PYTHON_HOME ou execute com -FetchPythonEmbed (win-x64)."

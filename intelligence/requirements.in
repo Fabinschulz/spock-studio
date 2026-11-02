@@ -1,0 +1,4 @@
+# Dependências da inteligência. O lock com hash é gerado por:
+#   uv pip compile intelligence/requirements.in --universal --python-version 3.12 --generate-hashes -o intelligence/requirements.lock
+langgraph==1.2.19
+langgraph-checkpoint-sqlite==3.1.3
