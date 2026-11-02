@@ -1,9 +1,8 @@
 import json
-import sys
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import _paths  # noqa: F401
 
 from workflows.engineering import graph
 
@@ -16,19 +15,27 @@ class BaselineTests(unittest.TestCase):
         self.assertEqual(document["schema"], "engineering.baseline.v1")
         for case in document["cases"]:
             payload = {
+                "schema": "ai.workflow.start.v2",
+                "workflowId": graph.WORKFLOW_ID,
+                "workflowVersion": graph.WORKFLOW_VERSION,
                 "runId": "run-cccccccccccc",
                 "projectId": "p-cccccccccccc",
-                "executionId": "ex-1",
+                "executionId": "ex-cccccccccccc",
                 "input": {"goal": "descrever o módulo de cobrança", "impact": case["impact"]},
-                "context": {"stacks": ["dotnet"]},
+                "context": {"available": True, "stacks": ["dotnet"]},
+                "limits": {"maxIterations": 8, "maxMilliseconds": 10000, "maxTokens": 0, "maxCostUsd": 0},
+                "policy": {"allowedActions": [], "modelAllowed": False},
             }
-            ack = graph.run_start(payload)
-            codes = {item["code"] for item in ack["limitations"]}
+            ack = list(graph.run_start(payload))[-1]
+            codes = {item["code"] for item in ack["warnings"] + ack["errors"]}
             steps = [step["id"] for step in ack["output"]["plan"]["steps"]]
-            agents = [item["id"] for item in ack["output"]["agents"]]
+            agents = [item["agentId"] for item in ack["agents"]]
             self.assertEqual(ack["status"], "completed", case["id"])
             self.assertEqual(steps, case["steps"], case["id"])
             self.assertEqual(agents, case["agents"], case["id"])
             self.assertTrue(set(case["limitations"]).issubset(codes), case["id"])
             self.assertEqual(ack["output"]["evaluation"]["verdict"], "deterministic", case["id"])
-            graph.run_cancel("run-cccccccccccc", "p-cccccccccccc")
+
+
+if __name__ == "__main__":
+    unittest.main()

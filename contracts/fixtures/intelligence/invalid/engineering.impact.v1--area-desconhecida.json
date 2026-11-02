@@ -1,0 +1,10 @@
+{
+  "schema": "engineering.impact.v1",
+  "areas": [
+    "banco"
+  ],
+  "risks": [
+    "sem-evidencia"
+  ],
+  "evidence": []
+}

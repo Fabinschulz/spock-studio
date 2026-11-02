@@ -15,9 +15,11 @@ public interface IAiRuntime
 
     Task<IReadOnlyDictionary<string, string>> IndexedHashesAsync(string projectId, string indexRoot, CancellationToken ct);
 
-    Task<WorkflowAck> StartAsync(string runId, string projectId, string executionId, JsonObject input, JsonObject context, CancellationToken ct);
+    /// <summary>Envia um <c>ai.workflow.start.v2</c>. Cada <c>ai.event.v1</c> chega em <paramref name="onEvent"/> enquanto o grafo anda.</summary>
+    Task<WorkflowAck> StartAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct);
 
-    Task<WorkflowAck> ResumeAsync(string runId, string projectId, string executionId, JsonObject context, CancellationToken ct);
+    /// <summary>Envia um <c>ai.workflow.resume.v2</c> com a aprovação que o motor já gravou.</summary>
+    Task<WorkflowAck> ResumeAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct);
 
     Task CancelAsync(string runId, string? projectId = null, string? executionRoot = null);
 

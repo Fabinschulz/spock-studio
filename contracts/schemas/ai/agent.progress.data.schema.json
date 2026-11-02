@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/ai/agent.progress.data.schema.json",
+  "description": "activity é um código que a interface traduz; nunca texto livre do modelo.",
+  "type": "object",
+  "required": ["agentId", "activity", "at"],
+  "properties": {
+    "agentId": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,31}$" },
+    "activity": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]{0,63}$" },
+    "at": { "type": "string", "minLength": 20 }
+  },
+  "additionalProperties": false
+}

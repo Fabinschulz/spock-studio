@@ -375,6 +375,226 @@ public class WorkflowRuntimeTests
     }
 
     [Fact]
+    public async Task Eventos_chegam_durante_a_execucao_em_ordem_e_ficam_no_historico()
+    {
+        using var project = TempProject.Dotnet();
+        project.Write("docs/nota.md", "O modulo de cobranca recorrente fatura as assinaturas do projeto.\n");
+        var store = new FileRunStore(project.DataDir);
+        var runtime = new LoopbackAiRuntime();
+        var wire = Start(project, runtime, store);
+        try
+        {
+            var projectId = wire.Request("workspace.authorize", new JsonObject { ["path"] = project.Root })["result"]!["projectId"]!.GetValue<string>();
+            var runId = wire.Request("workflow.start", new JsonObject
+            {
+                ["projectId"] = projectId,
+                ["input"] = new JsonObject { ["goal"] = "cobranca recorrente", ["impact"] = true }
+            })["result"]!["runId"]!.GetValue<string>();
+            wire.Wait(m => m["type"]?.GetValue<string>() == "workflow.completed" && m["runId"]?.GetValue<string>() == runId);
+
+            var events = wire.Events(runId);
+            var types = events.Select(e => e["type"]!.GetValue<string>()).ToList();
+            var order = new[] { "workflow.started", "context.retrieval.started", "context.retrieved", "agent.started", "agent.completed", "run.completed", "workflow.completed" };
+            Assert.Equal(order, types.Where(order.Contains).Distinct().ToList());
+            var seqs = events.Select(e => e["seq"]!.GetValue<int>()).ToList();
+            Assert.Equal(Enumerable.Range(seqs[0], seqs.Count), seqs);
+            var started = events.Single(e => e["type"]!.GetValue<string>() == "agent.started");
+            Assert.True(ContractFiles.IsValid(ContractFiles.Schema("ai", "agent.started.data.schema.json"), started["data"]));
+
+            var recorded = store.LoadEvents(projectId, runId);
+            Assert.Equal(seqs, recorded.Select(e => e["seq"]!.GetValue<int>()).ToList());
+            Assert.Equal(types, recorded.Select(e => e["type"]!.GetValue<string>()).ToList());
+            Assert.DoesNotContain("cobranca recorrente", File.ReadAllText(Path.Combine(project.DataDir, "projects", projectId, "runs", runId, "events.jsonl")));
+
+            var since = seqs[^3];
+            var later = wire.Request("run.snapshot", new JsonObject { ["runId"] = runId, ["sinceSeq"] = since })["result"]!;
+            Assert.Equal(seqs.Where(s => s > since).ToList(), later["events"]!.AsArray().Select(e => e!["seq"]!.GetValue<int>()).ToList());
+        }
+        finally
+        {
+            await Stop(wire, runtime);
+        }
+    }
+
+    [Fact]
+    public async Task Pausa_abre_a_aprovacao_no_diario_e_a_retomada_continua_a_numeracao()
+    {
+        using var project = TempProject.Dotnet();
+        var store = new FileRunStore(project.DataDir);
+        var registry = new FileWorkspaceRegistry(project.DataDir);
+        var firstRuntime = new LoopbackAiRuntime();
+        var first = Start(project, firstRuntime, store, registry);
+        try
+        {
+            var projectId = first.Request("workspace.authorize", new JsonObject { ["path"] = project.Root })["result"]!["projectId"]!.GetValue<string>();
+            var runId = first.Request("workflow.start", new JsonObject
+            {
+                ["projectId"] = projectId,
+                ["input"] = new JsonObject { ["goal"] = "alterar o harness", ["requiresApproval"] = true }
+            })["result"]!["runId"]!.GetValue<string>();
+            var approval = first.Wait(m => m["type"]?.GetValue<string>() == "approval.required" && m["runId"]?.GetValue<string>() == runId);
+            Assert.True(ContractFiles.IsValid(ContractFiles.Schema("ai", "approval.required.data.schema.json"), approval["data"]));
+            first.Wait(m => m["type"]?.GetValue<string>() == "workflow.interrupted" && m["runId"]?.GetValue<string>() == runId);
+
+            var journal = store.LoadJournal(projectId, runId)!;
+            Assert.Equal(approval["data"]!["approvalId"]!.GetValue<string>(), journal.ApprovalId);
+            Assert.Matches("^int-[0-9a-f]{12}$", journal.InterruptId);
+            Assert.Null(journal.ApprovedAt);
+            var lastBefore = first.Events(runId).Max(e => e["seq"]!.GetValue<int>());
+
+            // O motor cai sem encerrar a sessão: a execução pausada fica no diário e no checkpoint.
+            await firstRuntime.ShutdownAsync();
+            var secondRuntime = new LoopbackAiRuntime();
+            var second = Start(project, secondRuntime, store, registry);
+            try
+            {
+                second.Request("workflow.resume", new JsonObject { ["projectId"] = projectId, ["runId"] = runId });
+                second.Wait(m => m["type"]?.GetValue<string>() == "workflow.completed" && m["runId"]?.GetValue<string>() == runId);
+                Assert.True(second.Events(runId).All(e => e["seq"]!.GetValue<int>() > lastBefore));
+                Assert.NotNull(store.LoadJournal(projectId, runId)!.ApprovedAt);
+                var recorded = store.LoadEvents(projectId, runId).Select(e => e["seq"]!.GetValue<int>()).ToList();
+                Assert.Equal(recorded.Distinct().Count(), recorded.Count);
+            }
+            finally
+            {
+                await Stop(second, secondRuntime);
+            }
+        }
+        finally
+        {
+            await Stop(first, firstRuntime);
+        }
+    }
+
+    [Fact]
+    public async Task Runtime_real_responde_dentro_dos_schemas_v2()
+    {
+        using var project = TempProject.Dotnet();
+        var runtime = new LoopbackAiRuntime();
+        var events = new List<JsonObject>();
+        var request = new JsonObject
+        {
+            ["schema"] = "ai.workflow.start.v2",
+            ["workflowId"] = "engineering.request",
+            ["workflowVersion"] = "1",
+            ["runId"] = "run-0123456789ab",
+            ["executionId"] = "ex-0123456789ab",
+            ["projectId"] = "p-0123456789ab",
+            ["workspaceId"] = null,
+            ["input"] = new JsonObject { ["goal"] = "cobranca recorrente", ["impact"] = true, ["requiresApproval"] = true },
+            ["context"] = new JsonObject
+            {
+                ["available"] = true,
+                ["stacks"] = new JsonArray("dotnet"),
+                ["knowledgeRoot"] = project.DataDir,
+                ["executionRoot"] = project.DataDir,
+                ["sources"] = new JsonArray(new JsonObject
+                {
+                    ["path"] = "docs/nota.md",
+                    ["hash"] = new string('a', 64),
+                    ["text"] = "O modulo de cobranca recorrente fatura as assinaturas."
+                })
+            },
+            ["limits"] = new JsonObject { ["maxIterations"] = 8, ["maxMilliseconds"] = 10_000, ["maxTokens"] = 0, ["maxCostUsd"] = 0 },
+            ["policy"] = new JsonObject { ["allowedActions"] = new JsonArray(), ["modelAllowed"] = false }
+        };
+        Assert.True(ContractFiles.IsValid(ContractFiles.Schema("intelligence", "ai.workflow.start.v2.schema.json"), request));
+        try
+        {
+            var raw = new List<JsonObject>();
+            var paused = await runtime.StartAsync(request, raw.Add, CancellationToken.None);
+            events.AddRange(raw);
+            Assert.Equal("interrupted", paused.Status);
+            var resume = new JsonObject
+            {
+                ["schema"] = "ai.workflow.resume.v2",
+                ["runId"] = "run-0123456789ab",
+                ["executionId"] = "ex-0123456789ab",
+                ["projectId"] = "p-0123456789ab",
+                ["interruptId"] = paused.InterruptId,
+                ["decision"] = new JsonObject { ["approvalId"] = "apr-0123456789ab", ["approved"] = true, ["actionIds"] = new JsonArray() },
+                ["context"] = new JsonObject { ["executionRoot"] = project.DataDir }
+            };
+            Assert.True(ContractFiles.IsValid(ContractFiles.Schema("intelligence", "ai.workflow.resume.v2.schema.json"), resume));
+            var done = await runtime.ResumeAsync(resume, events.Add, CancellationToken.None);
+            Assert.Equal("completed", done.Status);
+
+            Assert.NotEmpty(events);
+            foreach (var evt in events)
+                Assert.True(ContractFiles.IsValid(ContractFiles.Schema("intelligence", "ai.event.v1.schema.json"), evt), evt.ToJsonString());
+            Assert.Contains(events, e => e["type"]!.GetValue<string>() == "context.retrieved");
+        }
+        finally
+        {
+            await runtime.ShutdownAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Ack_real_do_runtime_respeita_o_schema_v2()
+    {
+        using var project = TempProject.Dotnet();
+        var lines = await RawWorkflowLinesAsync(project.DataDir);
+        var ack = lines[^1];
+        Assert.True(ContractFiles.IsValid(ContractFiles.Schema("intelligence", "ai.ack.v2.schema.json"), ack), ack.ToJsonString());
+        Assert.True(ContractFiles.IsValid(ContractFiles.Schema("intelligence", "engineering.plan.v1.schema.json"), ack["output"]!["plan"]));
+        Assert.True(ContractFiles.IsValid(ContractFiles.Schema("intelligence", "engineering.impact.v1.schema.json"), ack["output"]!["impact"]));
+    }
+
+    /// <summary>Fala HTTP direto com o servidor da inteligência, sem o adaptador, para conferir as linhas como saem.</summary>
+    private static async Task<List<JsonObject>> RawWorkflowLinesAsync(string dataDir)
+    {
+        var script = Path.Combine(ContractFiles.Root, "intelligence", "server.py");
+        var python = Mariliz.Infrastructure.PythonRuntimeLayout.Candidates(AppContext.BaseDirectory, null, null, Environment.GetEnvironmentVariable("PATH")).First();
+        var port = FreePort();
+        var token = Guid.NewGuid().ToString("N");
+        var psi = new System.Diagnostics.ProcessStartInfo(python) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
+        psi.ArgumentList.Add(script);
+        psi.ArgumentList.Add("--port");
+        psi.ArgumentList.Add(port.ToString());
+        psi.Environment["MARILIZ_AI_TOKEN"] = token;
+        using var process = System.Diagnostics.Process.Start(psi)!;
+        try
+        {
+            using var http = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{port}/") };
+            http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            for (var i = 0; i < 200; i++)
+            {
+                try { if ((await http.GetAsync("health")).IsSuccessStatusCode) break; }
+                catch (HttpRequestException) { }
+                await Task.Delay(100);
+            }
+            var body = new JsonObject
+            {
+                ["schema"] = "ai.workflow.start.v2", ["workflowId"] = "engineering.request", ["workflowVersion"] = "1",
+                ["runId"] = "run-0123456789ab", ["executionId"] = "ex-0123456789ab", ["projectId"] = "p-0123456789ab",
+                ["input"] = new JsonObject { ["goal"] = "descrever", ["impact"] = true },
+                ["context"] = new JsonObject { ["available"] = true, ["stacks"] = new JsonArray("dotnet"), ["executionRoot"] = dataDir },
+                ["limits"] = new JsonObject { ["maxIterations"] = 8, ["maxMilliseconds"] = 10_000, ["maxTokens"] = 0, ["maxCostUsd"] = 0 },
+                ["policy"] = new JsonObject { ["allowedActions"] = new JsonArray(), ["modelAllowed"] = false }
+            };
+            using var response = await http.PostAsync("v1/workflows", new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json"));
+            Assert.Equal("application/x-ndjson", response.Content.Headers.ContentType?.MediaType);
+            var text = await response.Content.ReadAsStringAsync();
+            return text.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(line => (JsonObject)JsonNode.Parse(line)!).ToList();
+        }
+        finally
+        {
+            process.Kill(entireProcessTree: true);
+            await process.WaitForExitAsync();
+        }
+    }
+
+    private static int FreePort()
+    {
+        var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+        listener.Start();
+        var port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+        listener.Stop();
+        return port;
+    }
+
+    [Fact]
     public void Saude_separa_o_motor_do_runtime_ausente()
     {
         using var project = TempProject.Dotnet();
@@ -500,6 +720,9 @@ public class WorkflowRuntimeTests
 
             throw new TimeoutException("Mensagem esperada não chegou: " + string.Join(" | ", Messages().Select(m => m["type"]?.ToString() ?? m["kind"]?.ToString())));
         }
+
+        public List<JsonObject> Events(string runId) =>
+            Messages().Where(m => m["kind"]?.GetValue<string>() == "event" && m["runId"]?.GetValue<string>() == runId).ToList();
 
         private List<JsonObject> Messages()
         {

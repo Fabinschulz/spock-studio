@@ -1,0 +1,7 @@
+{
+  "evalId": "EV-JUDGE-001",
+  "kind": "model",
+  "outcome": "failed",
+  "model": "modelo-x",
+  "at": "2026-11-02T19:00:00.0000000+00:00"
+}

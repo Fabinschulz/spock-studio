@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/intelligence/ai.workflow.resume.v2.schema.json",
+  "title": "Motor → inteligência: retomar um workflow interrompido",
+  "description": "O motor só envia depois de gravar a aprovação com o mesmo hash das ações propostas. A inteligência só retoma se interruptId for o do checkpoint.",
+  "type": "object",
+  "required": ["schema", "runId", "executionId", "projectId", "interruptId", "decision", "context"],
+  "properties": {
+    "schema": { "const": "ai.workflow.resume.v2" },
+    "runId": { "type": "string", "pattern": "^run-[0-9a-f]{12}$" },
+    "executionId": { "type": "string", "pattern": "^ex-[0-9a-f]{12}$" },
+    "projectId": { "type": "string", "pattern": "^p-[0-9a-f]{12}$" },
+    "interruptId": { "type": "string", "pattern": "^int-[0-9a-f]{12}$" },
+    "decision": {
+      "type": "object",
+      "required": ["approvalId", "approved", "actionIds"],
+      "properties": {
+        "approvalId": { "type": "string", "pattern": "^apr-[0-9a-f]{12}$" },
+        "approved": { "type": "boolean" },
+        "actionIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^act-[0-9a-z-]{1,32}$" } }
+      },
+      "additionalProperties": false
+    },
+    "context": {
+      "type": "object",
+      "required": ["executionRoot"],
+      "properties": {
+        "executionRoot": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "broker": {
+      "description": "Token novo para a retomada; o da primeira etapa morre na pausa.",
+      "type": "object",
+      "required": ["url", "token"],
+      "properties": {
+        "url": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]{1,5}/v1/model$" },
+        "token": { "type": "string", "minLength": 32, "maxLength": 128 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
 using Mariliz.Core.Text;
 
@@ -7,6 +8,8 @@ namespace Mariliz.Infrastructure;
 /// <summary>Diários e backups no diretório de dados do usuário, fora do repositório do projeto.</summary>
 public sealed class FileRunStore(string dataRoot) : IRunStore
 {
+    private readonly object _events = new();
+
     public static string DefaultDataRoot()
     {
         var overrideDir = Environment.GetEnvironmentVariable("MARILIZ_DATA_DIR");
@@ -62,6 +65,36 @@ public sealed class FileRunStore(string dataRoot) : IRunStore
     {
         var path = Path.Combine(RunDir(projectId, runId), "backup", BackupName(relativePath));
         return File.Exists(path) ? File.ReadAllBytes(path) : null;
+    }
+
+    public void AppendEvent(string projectId, string runId, JsonObject evt)
+    {
+        var dir = RunDir(projectId, runId);
+        lock (_events)
+        {
+            Directory.CreateDirectory(dir);
+            File.AppendAllText(Path.Combine(dir, "events.jsonl"), evt.ToJsonString() + "\n");
+        }
+    }
+
+    public IReadOnlyList<JsonObject> LoadEvents(string projectId, string runId)
+    {
+        var path = Path.Combine(RunDir(projectId, runId), "events.jsonl");
+        string[] lines;
+        lock (_events)
+        {
+            if (!File.Exists(path)) return [];
+            lines = File.ReadAllLines(path);
+        }
+
+        var events = new List<JsonObject>();
+        foreach (var line in lines)
+        {
+            // Uma linha cortada por uma queda no meio da escrita fica de fora; as anteriores continuam válidas.
+            try { if (JsonNode.Parse(line) is JsonObject item) events.Add(item); }
+            catch (JsonException) { }
+        }
+        return events;
     }
 
     private static string BackupName(string relativePath) => Hashing.Sha256(relativePath) + ".bin";

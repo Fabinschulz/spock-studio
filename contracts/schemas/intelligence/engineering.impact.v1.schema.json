@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/intelligence/engineering.impact.v1.schema.json",
+  "title": "Impacto técnico do agente de arquitetura",
+  "description": "Formato que _impact_ok (graph.py) e TryImpact (WorkflowService.cs) já exigem. evidence só cita chunkId recuperado nesta execução (conferido em código).",
+  "type": "object",
+  "required": ["schema", "areas", "risks", "evidence"],
+  "properties": {
+    "schema": { "const": "engineering.impact.v1" },
+    "areas": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["servico", "interface", "projeto"] } },
+    "risks": { "type": "array", "uniqueItems": true, "items": { "enum": ["sem-evidencia", "sem-stack"] } },
+    "evidence": { "type": "array", "maxItems": 8, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+  },
+  "additionalProperties": false
+}

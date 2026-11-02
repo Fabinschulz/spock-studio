@@ -1,0 +1,87 @@
+{
+  "schema": "ai.ack.v2",
+  "workflowId": "engineering.request",
+  "workflowVersion": "2",
+  "runId": "run-0123456789ab",
+  "executionId": "ex-0123456789ab",
+  "projectId": "p-0123456789ab",
+  "status": "completed",
+  "startedAt": "2026-11-02T19:00:00.0000000+00:00",
+  "completedAt": "2026-11-02T19:00:00.0000000+00:00",
+  "warnings": [
+    {
+      "code": "EMBEDDINGS_NOT_READY",
+      "message": "A busca é lexical."
+    }
+  ],
+  "errors": [],
+  "output": {
+    "summary": "3 etapa(s).",
+    "plan": {
+      "schema": "engineering.plan.v1",
+      "steps": [
+        {
+          "id": "describe",
+          "title": "Descrever o pedido"
+        }
+      ]
+    },
+    "stacks": [
+      "dotnet"
+    ],
+    "evidence": [
+      {
+        "documentId": "docs/cobranca.md",
+        "chunkId": "docs/cobranca.md#1",
+        "filePath": "docs/cobranca.md",
+        "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "score": 1.2,
+        "excerpt": "Cobrança recorrente"
+      }
+    ],
+    "retrievalAttempted": true,
+    "impact": {
+      "schema": "engineering.impact.v1",
+      "areas": [
+        "servico"
+      ],
+      "risks": [],
+      "evidence": [
+        "docs/cobranca.md#1"
+      ]
+    },
+    "evaluation": {
+      "schema": "engineering.evaluation.v1",
+      "verdict": "deterministic",
+      "judge": "not_run",
+      "tokens": 0
+    }
+  },
+  "agents": [
+    {
+      "agentId": "planning",
+      "agentVersion": "1",
+      "status": "completed",
+      "durationMs": 412,
+      "tokens": 0
+    },
+    {
+      "agentId": "architecture",
+      "agentVersion": "1",
+      "status": "completed",
+      "durationMs": 3,
+      "tokens": 0
+    }
+  ],
+  "usage": {
+    "modelCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "costUsd": 0
+  },
+  "nextActions": [],
+  "approval": {
+    "interruptId": "int-0123456789ab",
+    "actionIds": []
+  }
+}

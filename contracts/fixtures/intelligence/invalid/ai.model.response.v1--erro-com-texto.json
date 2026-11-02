@@ -1,0 +1,8 @@
+{
+  "schema": "ai.model.response.v1",
+  "status": "error",
+  "error": {
+    "code": "MODEL_BUDGET_EXCEEDED"
+  },
+  "text": "x"
+}

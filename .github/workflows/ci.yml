@@ -22,6 +22,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      # Dependências da inteligência (LangGraph) com hash verificado, em intelligence/packages.
+      - name: dependências da inteligência
+        run: python scripts/package-intelligence.py dev
       # Os testes de contrato comparam a saída do runtime com contracts/fixtures/golden. Se o formato mudar de
       # propósito, regenere com MARILIZ_UPDATE_GOLDEN=1 dotnet test e revise o diff das fixtures.
       - name: testes
@@ -84,6 +87,10 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+      # Monta o pacote da inteligência; o bytecode precisa da mesma versão menor do interpretador embarcado (3.12).
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.triple }}
@@ -108,8 +115,11 @@ jobs:
             -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o dist/runtime/${{ matrix.rid }}
           ext=""; [ "${{ runner.os }}" = "Windows" ] && ext=".exe"
           cp "dist/runtime/${{ matrix.rid }}/Mariliz.Runtime$ext" "desktop/host/src-tauri/binaries/mariliz-runtime-${{ matrix.triple }}$ext"
-      - name: runtime de IA pronto no pacote (Windows)
-        if: runner.os == 'Windows'
+      # CPython do python-build-standalone (ADR-0001, D2), hash fixado no script, mais a inteligência em bytecode.
+      - name: inteligência e interpretador embarcados (demais plataformas)
+        if: runner.os != 'Windows'
+        run: python scripts/package-intelligence.py bundle --resources desktop/host/src-tauri/resources --python ${{ matrix.triple }}
+      - name: runtime de IA pronto no pacote
         env:
           MARILIZ_PACKAGED_RESOURCES: ${{ github.workspace }}/desktop/host/src-tauri/resources
         run: dotnet test runtime/Mariliz.sln --filter "FullyQualifiedName~Pacote_embarcado" --nologo

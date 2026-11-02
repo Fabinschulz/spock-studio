@@ -1,0 +1,11 @@
+{
+  "schema": "engineering.impact.v1",
+  "areas": [
+    "servico",
+    "interface"
+  ],
+  "risks": [
+    "sem-evidencia"
+  ],
+  "evidence": []
+}

@@ -3,7 +3,9 @@ namespace Mariliz.Infrastructure;
 /// <summary>
 /// Onde o instalador coloca o interpretador. Medido em 2026-10-31: o sidecar autocontido tem 70,8 MB,
 /// os scripts têm 34 KB e o zip oficial <c>python-3.12.10-embed-amd64.zip</c> tem 10,6 MB.
-/// O pacote usa esse CPython embarcável. Um interpretador maior que o orçamento é uma instalação completa, não o runtime do produto.
+/// O pacote usa esse CPython embarcável no Windows e o python-build-standalone podado no macOS (≤ 30 MB) e no Linux (≤ 55 MB).
+/// As dependências da inteligência ficam em <c>intelligence/packages</c>, fora do interpretador (ADR-0001).
+/// Um interpretador maior que o orçamento é uma instalação completa, não o runtime do produto.
 /// </summary>
 public static class PythonRuntimeLayout
 {

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/ai/eval.data.schema.json",
+  "description": "Dados de eval.started e eval.completed. outcome só existe em eval.completed; model e criteriaVersion só em avaliações por modelo.",
+  "type": "object",
+  "required": ["evalId", "kind", "at"],
+  "properties": {
+    "evalId": { "type": "string", "pattern": "^[A-Z][A-Z0-9]*(-[A-Z0-9]+)+$" },
+    "kind": { "enum": ["deterministic", "model"] },
+    "required": { "type": "boolean" },
+    "outcome": { "enum": ["passed", "failed", "not_run", "blocked"] },
+    "model": { "type": "string", "minLength": 1 },
+    "modelVersion": { "type": "string", "minLength": 1 },
+    "criteriaVersion": { "type": "string", "pattern": "^[0-9]+$" },
+    "at": { "type": "string", "minLength": 20 }
+  },
+  "additionalProperties": false,
+  "if": { "properties": { "kind": { "const": "model" }, "outcome": { "enum": ["passed", "failed"] } }, "required": ["kind", "outcome"] },
+  "then": { "required": ["model", "modelVersion", "criteriaVersion"] }
+}

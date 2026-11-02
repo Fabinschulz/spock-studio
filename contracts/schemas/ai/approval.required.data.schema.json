@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/ai/approval.required.data.schema.json",
+  "description": "Publicado pelo motor depois de gravar a aprovação pendente. A interface devolve approvalId em workflow.resume.",
+  "type": "object",
+  "required": ["approvalId", "executionId", "actions", "at"],
+  "properties": {
+    "approvalId": { "type": "string", "pattern": "^apr-[0-9a-f]{12}$" },
+    "executionId": { "type": "string", "pattern": "^ex-[0-9a-f]{12}$" },
+    "actions": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "summary"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^act-[0-9a-z-]{1,32}$" },
+          "kind": { "enum": ["file.write", "command.run", "dependency.install", "config.change", "migration.run", "external.write"] },
+          "summary": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "target": { "type": "string", "minLength": 1, "maxLength": 260 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "at": { "type": "string", "minLength": 20 }
+  },
+  "additionalProperties": false
+}

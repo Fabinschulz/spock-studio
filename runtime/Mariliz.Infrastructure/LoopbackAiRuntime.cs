@@ -16,6 +16,9 @@ namespace Mariliz.Infrastructure;
 /// </summary>
 public sealed class LoopbackAiRuntime : IAiRuntime
 {
+    private const int MaxLine = 1_000_000;
+    private static readonly TimeSpan StartupBudget = TimeSpan.FromSeconds(20);
+
     private readonly string? _scriptPath;
     private readonly string? _pythonOverride;
     private readonly object _gate = new();
@@ -79,11 +82,11 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         return hashes;
     }
 
-    public Task<WorkflowAck> StartAsync(string runId, string projectId, string executionId, JsonObject input, JsonObject context, CancellationToken ct) =>
-        PostWorkflowAsync("v1/workflows", runId, projectId, executionId, input, context, ct);
+    public Task<WorkflowAck> StartAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct) =>
+        StreamWorkflowAsync("v1/workflows", request, onEvent, ct);
 
-    public Task<WorkflowAck> ResumeAsync(string runId, string projectId, string executionId, JsonObject context, CancellationToken ct) =>
-        PostWorkflowAsync($"v1/workflows/{Uri.EscapeDataString(runId)}/resume", runId, projectId, executionId, new JsonObject { ["approved"] = true }, context, ct);
+    public Task<WorkflowAck> ResumeAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct) =>
+        StreamWorkflowAsync($"v1/workflows/{Uri.EscapeDataString(Text(request, "runId"))}/resume", request, onEvent, ct);
 
     public async Task CancelAsync(string runId, string? projectId = null, string? executionRoot = null)
     {
@@ -100,29 +103,66 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         }
     }
 
-    private async Task<WorkflowAck> PostWorkflowAsync(
-        string path, string runId, string projectId, string executionId, JsonObject input, JsonObject context, CancellationToken ct)
+    /// <summary>
+    /// Lê o NDJSON à medida que chega: cada <c>ai.event.v1</c> vai para <paramref name="onEvent"/> na hora, e a última linha
+    /// precisa ser o <c>ai.ack.v2</c>. Se o fluxo terminar sem ele, a resposta está fora do contrato.
+    /// </summary>
+    private async Task<WorkflowAck> StreamWorkflowAsync(string path, JsonObject body, Action<JsonObject> onEvent, CancellationToken ct)
     {
         await EnsureReadyAsync(ct);
-        var body = new JsonObject
+        HttpClient? http;
+        lock (_gate) http = _http;
+        if (http is null) throw new EngineException("AI_RUNTIME_UNAVAILABLE", "O runtime de IA não está disponível nesta máquina.");
+
+        using var message = new HttpRequestMessage(HttpMethod.Post, path)
         {
-            ["schema"] = "workflow.start.v1",
-            ["runId"] = runId,
-            ["projectId"] = projectId,
-            ["executionId"] = executionId,
-            ["input"] = input.DeepClone(),
-            ["context"] = context.DeepClone()
+            Content = new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json")
         };
-        var ack = await PostAsync(path, body, ct);
+        using var response = await http.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, ct);
+        if (!response.IsSuccessStatusCode || response.Content.Headers.ContentType?.MediaType != "application/x-ndjson")
+            throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+
+        await using var stream = await response.Content.ReadAsStreamAsync(ct);
+        using var reader = new StreamReader(stream, Encoding.UTF8);
+        while (await reader.ReadLineAsync(ct) is { } line)
+        {
+            if (line.Length == 0) continue;
+            if (line.Length > MaxLine || JsonNode.Parse(line) is not JsonObject item)
+                throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+            switch (Text(item, "schema"))
+            {
+                case "ai.event.v1":
+                    onEvent(item);
+                    break;
+                case "ai.ack.v2":
+                    return ReadAck(item);
+                default:
+                    throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+            }
+        }
+
+        throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+    }
+
+    private static WorkflowAck ReadAck(JsonObject ack)
+    {
+        var warnings = ReadNotices(ack, "warnings");
+        var errors = ReadNotices(ack, "errors");
+        var interrupt = ack["approval"] is JsonObject approval ? Text(approval, "interruptId") : "";
         return new WorkflowAck(
-            Text(ack, "workflowId"),
+            $"{Text(ack, "workflowId")}.v{Text(ack, "workflowVersion")}",
             Text(ack, "runId"),
             Text(ack, "projectId"),
             Text(ack, "executionId"),
             Text(ack, "status"),
             ack["output"] as JsonObject ?? new JsonObject(),
-            ReadLimitations(ack));
+            [.. warnings, .. errors],
+            errors,
+            IsInterruptId(interrupt) ? interrupt : null);
     }
+
+    private static bool IsInterruptId(string value) =>
+        value.Length == 16 && value.StartsWith("int-", StringComparison.Ordinal) && value[4..].All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f');
 
     public async Task ShutdownAsync()
     {
@@ -187,6 +227,10 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         psi.Environment["MARILIZ_AI_TOKEN"] = token;
         psi.Environment["PYTHONUNBUFFERED"] = "1";
         psi.Environment["PYTHONIOENCODING"] = "utf-8";
+        // A inteligência não fala com serviços de telemetria; o servidor também desliga, isto vale antes do primeiro import.
+        psi.Environment["LANGSMITH_TRACING"] = "false";
+        psi.Environment["LANGCHAIN_TRACING_V2"] = "false";
+        psi.Environment["LANGSMITH_OTEL_ENABLED"] = "false";
 
         Process process;
         try { process = Process.Start(psi) ?? throw new InvalidOperationException(); }
@@ -225,7 +269,9 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         }
         if (http is null || process is null) return false;
 
-        for (var attempt = 0; attempt < 50; attempt++)
+        // A primeira importação do LangGraph sem bytecode pronto leva alguns segundos (medido: 2,5 s).
+        var deadline = DateTime.UtcNow + StartupBudget;
+        while (DateTime.UtcNow < deadline)
         {
             ct.ThrowIfCancellationRequested();
             if (process.HasExited) return false;
@@ -259,9 +305,9 @@ public sealed class LoopbackAiRuntime : IAiRuntime
     private static string Text(JsonObject ack, string name) =>
         ack[name] is JsonValue value && value.TryGetValue<string>(out var text) ? text : "";
 
-    private static IReadOnlyList<WorkflowLimitation> ReadLimitations(JsonObject ack)
+    private static IReadOnlyList<WorkflowLimitation> ReadNotices(JsonObject ack, string name)
     {
-        if (ack["limitations"] is not JsonArray array) return [];
+        if (ack[name] is not JsonArray array) return [];
         var items = new List<WorkflowLimitation>();
         foreach (var node in array)
         {

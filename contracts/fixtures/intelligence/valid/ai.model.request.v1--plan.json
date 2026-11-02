@@ -1,0 +1,18 @@
+{
+  "schema": "ai.model.request.v1",
+  "executionId": "ex-0123456789ab",
+  "agentId": "planning",
+  "purpose": "plan",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Responda só com JSON no schema engineering.plan.v1."
+    },
+    {
+      "role": "user",
+      "content": "<conteudo-do-projeto>trecho</conteudo-do-projeto>"
+    }
+  ],
+  "maxTokens": 1024,
+  "responseSchema": "engineering.plan.v1"
+}

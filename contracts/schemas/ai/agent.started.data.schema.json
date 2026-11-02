@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/ai/agent.started.data.schema.json",
+  "type": "object",
+  "required": ["agentId", "agentVersion", "at"],
+  "properties": {
+    "agentId": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,31}$" },
+    "agentVersion": { "type": "string", "pattern": "^[0-9]+$" },
+    "at": { "type": "string", "minLength": 20 }
+  },
+  "additionalProperties": false
+}
