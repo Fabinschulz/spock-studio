@@ -1,48 +1,23 @@
 import type { EngineClient } from '@/shared/api';
 import { Button } from '@synthra.io/ui-kit';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { z } from 'zod';
 
+import { describeEvent } from './domain/run-timeline';
 import styles from './execution-page.module.scss';
+import { useRunFollow } from './hooks/use-run-follow';
 
-const evidenceSchema = z.object({
-  filePath: z.string(),
-  excerpt: z.string(),
-  chunkId: z.string()
-});
-
-const impactSchema = z.object({
-  schema: z.literal('engineering.impact.v1'),
-  areas: z.array(z.string()),
-  risks: z.array(z.string()),
-  evidence: z.array(z.string())
-});
-
-const resultSchema = z.object({
-  kind: z.literal('workflow'),
-  summary: z.string(),
-  evidence: z.array(evidenceSchema).default([]),
-  limitations: z.array(z.object({ code: z.string(), message: z.string() })).default([]),
-  impact: impactSchema.optional()
-});
-
-export const workflowSnapshotSchema = z.object({
-  runId: z.string(),
-  projectId: z.string(),
-  kind: z.string(),
-  state: z.string(),
-  events: z.array(z.object({ seq: z.number(), type: z.string(), data: z.record(z.string(), z.unknown()) })).default([]),
-  result: resultSchema.nullable()
-});
-
-export type WorkflowSnapshot = z.infer<typeof workflowSnapshotSchema>;
+export { workflowSnapshotSchema, type WorkflowSnapshot } from './domain/run-timeline';
 
 const STATE_LABEL: Record<string, string> = {
+  analyzing: 'Analisando',
   awaiting_approval: 'Aguardando aprovação',
   running: 'Em execução',
+  validating: 'Validando',
   completed_with_limitations: 'Concluído com limitações',
   completed: 'Concluído',
   failed: 'Falhou',
+  requires_intervention: 'Requer intervenção',
   cancelled: 'Cancelado'
 };
 
@@ -53,33 +28,20 @@ const AREA_LABEL: Record<string, string> = {
 };
 
 export function ExecutionPage({ runId, client }: { runId: string; client: EngineClient }) {
-  const [snapshot, setSnapshot] = useState<WorkflowSnapshot | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { view, error, setError, refresh } = useRunFollow(client, runId);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    client
-      .request('run.snapshot', { runId }, workflowSnapshotSchema)
-      .then((next) => {
-        if (active) setSnapshot(next);
-      })
-      .catch(() => {
-        if (active) setError('Não foi possível ler esta execução.');
-      });
-    return () => {
-      active = false;
-    };
-  }, [client, runId]);
-
   const approve = async () => {
-    if (!snapshot) return;
+    if (!view) return;
     setBusy(true);
     setError(null);
     try {
-      await client.request('workflow.resume', { projectId: snapshot.projectId, runId }, z.object({ runId: z.string() }));
-      const next = await client.request('run.snapshot', { runId }, workflowSnapshotSchema);
-      setSnapshot(next);
+      await client.request(
+        'workflow.resume',
+        { projectId: view.snapshot.projectId, runId },
+        z.object({ runId: z.string() })
+      );
+      await refresh();
     } catch {
       setError('Não foi possível retomar a execução.');
     } finally {
@@ -87,35 +49,35 @@ export function ExecutionPage({ runId, client }: { runId: string; client: Engine
     }
   };
 
-  if (error && !snapshot) return <p role="alert">{error}</p>;
-  if (!snapshot) return <p role="status">Lendo a execução…</p>;
+  if (error && !view) return <p role="alert">{error}</p>;
+  if (!view) return <p role="status">Lendo a execução…</p>;
 
+  const { snapshot } = view;
   const stateLabel = STATE_LABEL[snapshot.state] ?? snapshot.state;
-  const agents = snapshot.events.filter((event) => event.type === 'agent.completed');
+  const timeline = view.events.flatMap((event) => {
+    const text = describeEvent(event);
+    return text ? [{ seq: event.seq, text }] : [];
+  });
 
   return (
     <section className={styles.page} aria-labelledby="execucao-titulo">
       <h1 id="execucao-titulo">Execução</h1>
-      <p>
+      <p role="status">
         Estado: <strong>{stateLabel}</strong>
       </p>
       {snapshot.result?.summary ? <p>{snapshot.result.summary}</p> : null}
       {error ? <p role="alert">{error}</p> : null}
 
-      {agents.length > 0 ? (
-        <section aria-labelledby="agentes-titulo">
-          <h2 id="agentes-titulo">Quem atuou</h2>
-          <ul className={styles.list}>
-            {agents.map((event) => {
-              const id = typeof event.data.agentId === 'string' ? event.data.agentId : '';
-              const label = id === 'architecture' ? 'Arquitetura' : id;
-              return (
-                <li key={event.seq} className={styles.row}>
-                  {label || 'Agente'} concluiu
-                </li>
-              );
-            })}
-          </ul>
+      {timeline.length > 0 ? (
+        <section aria-labelledby="linha-titulo">
+          <h2 id="linha-titulo">O que aconteceu</h2>
+          <ol className={styles.list} aria-live="polite">
+            {timeline.map((item) => (
+              <li key={item.seq} className={styles.row}>
+                {item.text}
+              </li>
+            ))}
+          </ol>
         </section>
       ) : null}
 
