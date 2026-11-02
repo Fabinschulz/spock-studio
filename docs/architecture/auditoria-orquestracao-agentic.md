@@ -628,3 +628,51 @@ P = pequeno, M = médio, G = grande.
 - A linha do tempo "O que aconteceu" mostra só eventos publicados pelo motor.
 
 A validação foi feita com testes de componente; no app Tauri ainda não.
+
+**Fase 4 (Agentic RAG):** entregue, exceto vetores (D3 segue adiada).
+
+| Medida | Antes | Depois |
+| --- | --- | --- |
+| recall@3 (`rag.recall.v2`, 14 casos) | 0,786 | **1,0** |
+| MRR | 0,756 | **1,0** |
+
+Ablação no mesmo dataset:
+
+- só lexical com o chunking novo: 0,857 (falha em `Pix` e `REQ-012`);
+- só símbolos: 0,571 (falha em texto livre);
+- fusão: 1,0.
+
+O dataset foi escrito junto com a mudança, então mede regressão, não generalização.
+
+No próprio repositório do Mariliz (726 arquivos, 3.153 trechos):
+
+- indexação em 0,3 s;
+- reindexação sem mudança em 6 ms;
+- consulta entre 15 e 40 ms.
+
+O que mudou:
+
+- **Fontes (motor):**
+  - sem o teto de 40 arquivos (até 2.000, com orçamento de 1,5 M caracteres de texto novo por execução; o resto entra nas próximas);
+  - `.gitignore` com curingas;
+  - bloqueio de chaves SSH, `credentials.*`, `secrets.*`, lockfiles e minificados;
+  - `mariliz.yaml` aceita `knowledge.include` e `knowledge.exclude`.
+- **Chunking estrutural** (`intelligence/knowledge/chunking.py`):
+  - Markdown por seção, com caminho de títulos;
+  - Python pela AST;
+  - C# e TypeScript/JavaScript por declaração;
+  - JSON e YAML por chave;
+  - ids `REQ-`/`AC-`/`ADR-` como símbolos.
+  - O `chunkId` é estável (`path#sym:Classe.Metodo`). Tree-sitter não entrou: o chunking por declaração já resolveu os casos do dataset, sem custo de pacote.
+- **Índice v2** em `projects/<id>/knowledge/index.sqlite`:
+  - documentos com versão, linguagem e módulo;
+  - trechos com tipo, título e linha;
+  - tabela de símbolos.
+  - O índice antigo é apagado e reconstruído.
+  - A validação da indexação gera as limitações `INDEX_INVALID` e `INDEX_PENDING`.
+- **Recuperação híbrida** (`intelligence/knowledge/retrieval.py`):
+  - BM25 sobre texto e símbolos quebrados em palavras;
+  - lista de símbolos;
+  - RRF (k=60);
+  - desempate determinístico por cobertura.
+  - Cada evidência informa qual lista a achou (`retriever`).

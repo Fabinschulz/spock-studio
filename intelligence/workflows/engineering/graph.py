@@ -22,7 +22,8 @@ from langgraph.types import Command, interrupt
 
 from contracts.messages import ContractError, ResumeRequest, StartRequest, parse_resume, parse_start
 from infrastructure.events import Emitter, now
-from knowledge.index import KnowledgeError, search, sync
+from knowledge import retrieval
+from knowledge.index import KnowledgeError, sync
 from memory.execution import ExecutionError, drop, saver
 
 WORKFLOW_ID = "engineering.request"
@@ -150,10 +151,10 @@ def rag_research(state: dict, segment: Segment) -> dict:
     if not root or segment.sources is None:
         _limit(state, "RAG_NOT_READY", "A recuperação de contexto ainda não indexa o projeto.")
         return state
-    segment.emitter.emit("context.retrieval.started", {"strategy": ["lexical"]})
+    segment.emitter.emit("context.retrieval.started", {"strategy": ["lexical", "symbol"]})
     try:
         stats = sync(root, state["project_id"], segment.sources)
-        hits = search(root, state["project_id"], state["goal"])
+        hits = retrieval.search(root, state["project_id"], state["goal"])
     except KnowledgeError:
         _limit(state, "RAG_NOT_READY", "A recuperação de contexto ainda não indexa o projeto.")
         return state
@@ -166,9 +167,13 @@ def rag_research(state: dict, segment: Segment) -> dict:
             "filePath": hit["filePath"],
             "hash": hit["hash"],
             "score": hit["score"],
-            "retriever": "lexical",
+            "retriever": hit.get("retriever", "lexical"),
         })
-    _limit(state, "EMBEDDINGS_NOT_READY", "A busca é lexical. Embeddings ficam para quando houver uma baseline de recall.")
+    _limit(state, "EMBEDDINGS_NOT_READY", "A busca é híbrida (texto e símbolos). Embeddings ficam para quando a avaliação mostrar ganho.")
+    if not stats["valid"]:
+        _limit(state, "INDEX_INVALID", "Parte do índice não passou na validação e será refeita na próxima execução.")
+    if stats["pending"]:
+        _limit(state, "INDEX_PENDING", "Parte do projeto ainda não foi indexada; entra nas próximas execuções.")
     if not hits:
         if stats["documents"] == 0:
             _limit(state, "RAG_EMPTY", "Não há fontes indexáveis neste projeto.")
