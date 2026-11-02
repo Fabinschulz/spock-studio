@@ -1,0 +1,7 @@
+{
+  "toolId": "knowledge.search",
+  "agentId": "rag-research",
+  "effect": "none",
+  "durationMs": 8,
+  "at": "2026-11-02T19:00:00.0000000+00:00"
+}

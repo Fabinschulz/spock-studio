@@ -1,0 +1,21 @@
+{
+  "schema": "ai.workflow.resume.v2",
+  "runId": "run-0123456789ab",
+  "executionId": "ex-0123456789ab",
+  "projectId": "p-0123456789ab",
+  "interruptId": "int-0123456789ab",
+  "decision": {
+    "approvalId": "apr-0123456789ab",
+    "approved": true,
+    "actionIds": [
+      "act-1"
+    ]
+  },
+  "context": {
+    "executionRoot": "C:/Users/x/AppData/Local/Mariliz"
+  },
+  "broker": {
+    "url": "http://127.0.0.1:49153/v1/model",
+    "token": "ttttttttttttttttttttttttttttttttttttttttttt"
+  }
+}

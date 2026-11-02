@@ -1,0 +1,15 @@
+{
+  "schema": "ai.event.v1",
+  "eventId": "ex-0123456789ab:2",
+  "executionId": "ex-0123456789ab",
+  "localSeq": 2,
+  "type": "context.retrieved",
+  "at": "2026-11-02T19:00:00.0000000+00:00",
+  "data": {
+    "documentId": "a",
+    "chunkId": "a#1",
+    "filePath": "a",
+    "score": 1,
+    "retriever": "lexical"
+  }
+}

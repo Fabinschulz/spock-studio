@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/intelligence/ai.event.v1.schema.json",
+  "title": "Inteligência → motor: um evento durante a execução (uma linha NDJSON)",
+  "description": "O motor descarta duplicatas por eventId, atribui o seq público, persiste e republica. Estados terminais e interrupções vêm só do ai.ack.v2, nunca de um evento.",
+  "type": "object",
+  "required": ["schema", "eventId", "executionId", "localSeq", "type", "at", "data"],
+  "properties": {
+    "schema": { "const": "ai.event.v1" },
+    "eventId": { "type": "string", "pattern": "^ex-[0-9a-f]{12}:[0-9]{1,9}$" },
+    "executionId": { "type": "string", "pattern": "^ex-[0-9a-f]{12}$" },
+    "localSeq": { "type": "integer", "minimum": 0 },
+    "type": {
+      "enum": [
+        "workflow.started",
+        "context.retrieval.started",
+        "context.retrieved",
+        "agent.started",
+        "agent.progress",
+        "agent.completed",
+        "tool.started",
+        "tool.completed",
+        "eval.started",
+        "eval.completed"
+      ]
+    },
+    "agentId": { "$ref": "#/$defs/agentId" },
+    "at": { "type": "string", "minLength": 20 },
+    "data": { "type": "object" }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "enum": ["agent.started", "agent.progress", "agent.completed"] } } },
+      "then": { "required": ["agentId"] }
+    },
+    {
+      "if": { "properties": { "type": { "const": "context.retrieval.started" } } },
+      "then": {
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["strategy"],
+            "properties": { "strategy": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["lexical", "symbol", "vector"] } } },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "context.retrieved" } } },
+      "then": {
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["documentId", "chunkId", "filePath", "hash", "score", "retriever"],
+            "properties": {
+              "documentId": { "type": "string", "minLength": 1 },
+              "chunkId": { "type": "string", "minLength": 1 },
+              "filePath": { "type": "string", "minLength": 1 },
+              "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+              "score": { "type": "number" },
+              "retriever": { "enum": ["lexical", "symbol", "vector", "fused"] }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "agent.started" } } },
+      "then": {
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["agentVersion"],
+            "properties": { "agentVersion": { "type": "string", "pattern": "^[0-9]+$" } },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "agent.progress" } } },
+      "then": {
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["activity"],
+            "properties": { "activity": { "$ref": "#/$defs/code" } },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "agent.completed" } } },
+      "then": {
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["status", "durationMs", "tokens"],
+            "properties": {
+              "status": { "enum": ["completed", "failed"] },
+              "durationMs": { "type": "integer", "minimum": 0 },
+              "tokens": { "type": "integer", "minimum": 0 }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "enum": ["tool.started", "tool.completed"] } } },
+      "then": {
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["toolId", "effect"],
+            "properties": {
+              "toolId": { "$ref": "#/$defs/code" },
+              "effect": { "const": "none" },
+              "durationMs": { "type": "integer", "minimum": 0 }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "enum": ["eval.started", "eval.completed"] } } },
+      "then": {
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["evalId", "kind"],
+            "properties": {
+              "evalId": { "type": "string", "pattern": "^[A-Z][A-Z0-9]*(-[A-Z0-9]+)+$" },
+              "kind": { "enum": ["deterministic", "model"] },
+              "outcome": { "enum": ["passed", "failed", "not_run", "blocked"] }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "eval.completed" } } },
+      "then": { "properties": { "data": { "required": ["outcome"] } } }
+    }
+  ],
+  "$defs": {
+    "agentId": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,31}$" },
+    "code": {
+      "description": "Código curto produzido pelo código do grafo, nunca texto livre do modelo.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+    }
+  }
+}

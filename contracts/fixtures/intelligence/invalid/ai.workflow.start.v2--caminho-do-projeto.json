@@ -1,0 +1,50 @@
+{
+  "schema": "ai.workflow.start.v2",
+  "workflowId": "engineering.request",
+  "workflowVersion": "2",
+  "runId": "run-0123456789ab",
+  "executionId": "ex-0123456789ab",
+  "projectId": "p-0123456789ab",
+  "workspaceId": null,
+  "input": {
+    "goal": "avaliar o impacto de trocar o módulo de cobrança",
+    "impact": true,
+    "requiresApproval": true
+  },
+  "context": {
+    "available": true,
+    "stacks": [
+      "dotnet"
+    ],
+    "knowledgeRoot": "C:/Users/x/AppData/Local/Mariliz",
+    "executionRoot": "C:/Users/x/AppData/Local/Mariliz",
+    "sources": [
+      {
+        "path": "docs/cobranca.md",
+        "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "text": "# Cobrança"
+      },
+      {
+        "path": "src/A.cs",
+        "hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    ]
+  },
+  "limits": {
+    "maxIterations": 8,
+    "maxMilliseconds": 60000,
+    "maxTokens": 20000,
+    "maxCostUsd": 0.1
+  },
+  "policy": {
+    "allowedActions": [
+      "file.write"
+    ],
+    "modelAllowed": true
+  },
+  "broker": {
+    "url": "http://127.0.0.1:49152/v1/model",
+    "token": "ttttttttttttttttttttttttttttttttttttttttttt"
+  },
+  "projectPath": "C:/repo"
+}

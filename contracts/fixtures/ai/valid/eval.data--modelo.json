@@ -1,0 +1,10 @@
+{
+  "evalId": "EV-JUDGE-001",
+  "kind": "model",
+  "required": false,
+  "outcome": "passed",
+  "model": "modelo-x",
+  "modelVersion": "2026-10-01",
+  "criteriaVersion": "1",
+  "at": "2026-11-02T19:00:00.0000000+00:00"
+}

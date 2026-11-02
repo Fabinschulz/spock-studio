@@ -1,0 +1,14 @@
+{
+  "schema": "engineering.plan.v1",
+  "steps": [
+    {
+      "id": "describe",
+      "title": "Descrever o pedido",
+      "command": "dotnet test"
+    },
+    {
+      "id": "impact",
+      "title": "Avaliar o impacto técnico"
+    }
+  ]
+}

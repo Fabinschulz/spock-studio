@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/intelligence/ai.model.response.v1.schema.json",
+  "title": "Proxy de modelo do motor → inteligência",
+  "description": "Texto já passou pela redação de segredos do motor. Uso e custo também vão para o journal da execução.",
+  "type": "object",
+  "required": ["schema", "status"],
+  "properties": {
+    "schema": { "const": "ai.model.response.v1" },
+    "status": { "enum": ["ok", "error"] },
+    "text": { "type": "string", "maxLength": 64000 },
+    "model": { "type": "string", "minLength": 1 },
+    "modelVersion": { "type": "string", "minLength": 1 },
+    "inputTokens": { "type": "integer", "minimum": 0 },
+    "outputTokens": { "type": "integer", "minimum": 0 },
+    "costUsd": { "type": "number", "minimum": 0 },
+    "error": {
+      "type": "object",
+      "required": ["code"],
+      "properties": {
+        "code": { "enum": ["MODEL_NOT_CONFIGURED", "MODEL_BUDGET_EXCEEDED", "MODEL_TIMEOUT", "MODEL_UNAVAILABLE", "MODEL_FORBIDDEN"] }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "if": { "properties": { "status": { "const": "ok" } } },
+  "then": { "required": ["text", "model", "modelVersion", "inputTokens", "outputTokens", "costUsd"], "not": { "required": ["error"] } },
+  "else": { "required": ["error"], "not": { "required": ["text"] } }
+}

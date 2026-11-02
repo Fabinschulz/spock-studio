@@ -1,0 +1,13 @@
+{
+  "approvalId": "apr-0123456789ab",
+  "executionId": "ex-0123456789ab",
+  "actions": [
+    {
+      "id": "act-1",
+      "kind": "file.write",
+      "summary": "Registrar a decisão de arquitetura",
+      "target": ".mariliz/decisions/cobranca.md"
+    }
+  ],
+  "at": "2026-11-02T19:00:00.0000000+00:00"
+}

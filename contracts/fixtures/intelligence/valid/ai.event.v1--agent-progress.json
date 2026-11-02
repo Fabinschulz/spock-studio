@@ -1,0 +1,12 @@
+{
+  "schema": "ai.event.v1",
+  "eventId": "ex-0123456789ab:4",
+  "executionId": "ex-0123456789ab",
+  "localSeq": 4,
+  "type": "agent.progress",
+  "at": "2026-11-02T19:00:00.0000000+00:00",
+  "data": {
+    "activity": "plan.validating"
+  },
+  "agentId": "planning"
+}

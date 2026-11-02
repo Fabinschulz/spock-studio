@@ -1,0 +1,43 @@
+{
+  "schema": "ai.agent.result.v1",
+  "agentId": "planning",
+  "agentVersion": "1",
+  "executionId": "ex-0123456789ab",
+  "status": "failed",
+  "startedAt": "2026-11-02T19:00:00.0000000+00:00",
+  "completedAt": "2026-11-02T19:00:00.0000000+00:00",
+  "inputDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "output": {
+    "schema": "engineering.plan.v1",
+    "steps": [
+      {
+        "id": "describe",
+        "title": "Descrever o pedido"
+      }
+    ]
+  },
+  "evidence": [
+    "docs/cobranca.md#1"
+  ],
+  "warnings": [],
+  "errors": [],
+  "nextActions": [
+    {
+      "id": "act-1",
+      "kind": "file.write",
+      "summary": "Registrar a decisão de arquitetura",
+      "target": ".mariliz/decisions/cobranca.md",
+      "evidence": [
+        "docs/cobranca.md#1"
+      ],
+      "requiresApproval": true
+    }
+  ],
+  "approvalRequired": true,
+  "usage": {
+    "model": "modelo-x",
+    "modelVersion": "2026-10-01",
+    "inputTokens": 812,
+    "outputTokens": 120
+  }
+}

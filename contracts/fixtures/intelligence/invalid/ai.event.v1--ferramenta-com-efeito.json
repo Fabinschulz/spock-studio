@@ -1,0 +1,12 @@
+{
+  "schema": "ai.event.v1",
+  "eventId": "ex-0123456789ab:6",
+  "executionId": "ex-0123456789ab",
+  "localSeq": 6,
+  "type": "tool.completed",
+  "at": "2026-11-02T19:00:00.0000000+00:00",
+  "data": {
+    "toolId": "fs.write",
+    "effect": "write"
+  }
+}

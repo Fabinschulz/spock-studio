@@ -1,0 +1,13 @@
+{
+  "schema": "engineering.plan.v1",
+  "steps": [
+    {
+      "id": "describe",
+      "title": "Descrever o pedido"
+    },
+    {
+      "id": "impact",
+      "title": "Avaliar o impacto técnico"
+    }
+  ]
+}

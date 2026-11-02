@@ -1,0 +1,13 @@
+{
+  "schema": "ai.model.response.v1",
+  "status": "ok",
+  "text": "{\"schema\":\"engineering.plan.v1\",\"steps\":[]}",
+  "model": "modelo-x",
+  "modelVersion": "2026-10-01",
+  "inputTokens": 812,
+  "outputTokens": 120,
+  "costUsd": 0.0021,
+  "error": {
+    "code": "MODEL_TIMEOUT"
+  }
+}
