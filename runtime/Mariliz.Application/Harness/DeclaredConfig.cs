@@ -22,9 +22,20 @@ public sealed class DeclaredConfig
     public ComponentsSection Components { get; set; } = new();
     public EvalsSection Evals { get; set; } = new();
 
+    /// <summary>Fontes do índice de contexto. Opcional e nunca escrito pela aplicação: só existe se a pessoa declarar.</summary>
+    [YamlMember(DefaultValuesHandling = DefaultValuesHandling.OmitNull)]
+    public KnowledgeSection? Knowledge { get; set; }
+
     public sealed class ProjectSection { public string Name { get; set; } = ""; }
     public sealed class ComponentsSection { public List<string> Exclude { get; set; } = []; }
     public sealed class EvalsSection { public List<string> Required { get; set; } = []; }
+
+    /// <summary>Padrões no estilo do .gitignore. Com <c>include</c>, só entra o que casar; <c>exclude</c> sempre tira.</summary>
+    public sealed class KnowledgeSection
+    {
+        public List<string> Include { get; set; } = [];
+        public List<string> Exclude { get; set; } = [];
+    }
 
     private static readonly IDeserializer Reader = new DeserializerBuilder()
         .WithNamingConvention(CamelCaseNamingConvention.Instance)

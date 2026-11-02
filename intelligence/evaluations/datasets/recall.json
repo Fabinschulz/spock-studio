@@ -1,23 +1,77 @@
 {
-  "schema": "rag.recall.v1",
+  "schema": "rag.recall.v2",
+  "description": "Recall@k e MRR da recuperação. Cada expectativa é um arquivo e um trecho que o chunk precisa conter; o formato do chunkId não importa.",
   "k": 3,
-  "minMeanRecall": 1.0,
+  "baseline": {
+    "recallAtK": 1.0,
+    "mrr": 1.0,
+    "measuredAt": "2026-11-02",
+    "retrieval": "híbrida: BM25 + símbolos com RRF (k=60) sobre chunking estrutural",
+    "previous": {
+      "recallAtK": 0.7857,
+      "mrr": 0.756,
+      "retrieval": "lexical antes da Fase 4"
+    }
+  },
+  "corpora": {
+    "loja": [
+      {
+        "path": "src/Billing/BillingService.cs",
+        "text": "using System;\nusing System.Collections.Generic;\n\nnamespace Loja.Billing;\n\n/// <summary>Cobrança de assinaturas.</summary>\npublic sealed class BillingService\n{\n    private readonly IPaymentGateway _gateway;\n\n    public BillingService(IPaymentGateway gateway)\n    {\n        _gateway = gateway;\n    }\n\n    public Invoice Charge(Subscription subscription, DateOnly cycle)\n    {\n        var amount = subscription.Plan.MonthlyPrice;\n        var invoice = Invoice.For(subscription, cycle, amount);\n        _gateway.Capture(invoice);\n        return invoice;\n    }\n\n    public void ChargeRecurring(IEnumerable<Subscription> active, DateOnly cycle)\n    {\n        foreach (var subscription in active)\n        {\n            if (subscription.IsPaused) continue;\n            Charge(subscription, cycle);\n        }\n    }\n\n    public Refund RefundLastInvoice(Subscription subscription)\n    {\n        var last = subscription.Invoices[^1];\n        return _gateway.Refund(last);\n    }\n}\n"
+      },
+      {
+        "path": "src/Billing/Methods/Pix.cs",
+        "text": "namespace Loja.Billing.Methods;\n\n/// <summary>Pagamento instantâneo.</summary>\npublic sealed record Pix(string Key, decimal Amount)\n{\n    public string QrPayload() => $\"00020126{Key}{Amount:0.00}\";\n}\n\npublic sealed record Boleto(string Barcode, DateOnly DueDate);\n"
+      },
+      {
+        "path": "tools/juros.py",
+        "text": "from decimal import Decimal\n\n\ndef calcular_juros(saldo: Decimal, taxa_mensal: Decimal, meses: int) -> Decimal:\n    \"\"\"Juros compostos sobre o saldo em atraso.\"\"\"\n    return saldo * ((1 + taxa_mensal) ** meses - 1)\n\n\ndef aplicar_multa(saldo: Decimal) -> Decimal:\n    \"\"\"Multa fixa de dois por cento sobre o saldo devedor.\"\"\"\n    return saldo * Decimal(\"0.02\")\n\n\nclass Inadimplencia:\n    \"\"\"Agrupa cobranças vencidas por cliente.\"\"\"\n\n    def __init__(self) -> None:\n        self.vencidas: dict[str, list[Decimal]] = {}\n\n    def registrar(self, cliente: str, valor: Decimal) -> None:\n        self.vencidas.setdefault(cliente, []).append(valor)\n"
+      },
+      {
+        "path": "web/src/features/invoices/use-invoices.ts",
+        "text": "import { useEffect, useState } from 'react';\n\nexport type InvoiceRow = { id: string; total: number; status: 'open' | 'paid' };\n\nexport function useInvoices(customerId: string) {\n  const [rows, setRows] = useState<InvoiceRow[]>([]);\n  useEffect(() => {\n    let active = true;\n    fetch(`/api/customers/${customerId}/invoices`)\n      .then((response) => response.json())\n      .then((data: InvoiceRow[]) => {\n        if (active) setRows(data);\n      });\n    return () => {\n      active = false;\n    };\n  }, [customerId]);\n  return rows;\n}\n\nexport function formatTotal(total: number): string {\n  return total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });\n}\n"
+      },
+      {
+        "path": "docs/arquitetura.md",
+        "text": "# Arquitetura da loja\n\nVisão geral dos módulos de cobrança, catálogo e pedidos. Cobrança, cobrança e mais\ncobrança: este documento fala de cobrança o tempo todo porque é o assunto principal.\n\n## Cobrança\n\nO módulo de cobrança emite faturas mensais e conversa com o gateway de pagamento.\nA cobrança recorrente roda uma vez por ciclo.\n\n### Conciliação bancária\n\nA conciliação compara o extrato do banco com as faturas pagas e marca divergências\npara revisão manual no fim do dia.\n\n## Catálogo\n\nProdutos, preços e estoque. O catálogo não conhece a cobrança.\n\n## Decisões\n\n- ADR-007: filas para a cobrança recorrente em vez de cron.\n"
+      },
+      {
+        "path": "docs/glossario.md",
+        "text": "# Glossário de cobrança\n\nCobrança: emissão de fatura. Cobrança recorrente: cobrança automática por ciclo.\nCobrança avulsa: cobrança fora do ciclo. Cobrança, cobrança, cobrança e cobrança\naparecem aqui muitas vezes, mas este texto só define termos.\n"
+      },
+      {
+        "path": ".specs/features/dunning/spec.md",
+        "text": "# Especificação: dunning\n\n## Requisitos\n\n- REQ-011: QUANDO uma cobrança falhar, O SISTEMA DEVE tentar de novo em 24 horas.\n- REQ-012: QUANDO três tentativas falharem, O SISTEMA DEVE suspender a assinatura e avisar o cliente por e-mail.\n- REQ-013: O SISTEMA DEVE reativar a assinatura assim que o pagamento pendente for confirmado.\n\n## Critérios de aceite\n\n- AC-031: uma assinatura suspensa não gera nova fatura.\n"
+      },
+      {
+        "path": "src/Api/appsettings.json",
+        "text": "{\n  \"Logging\": { \"LogLevel\": { \"Default\": \"Information\" } },\n  \"ConnectionStrings\": { \"Billing\": \"Server=db;Database=billing;Integrated Security=true\" },\n  \"Gateway\": { \"BaseUrl\": \"https://gateway.exemplo\", \"TimeoutSeconds\": 15 },\n  \"FeatureFlags\": { \"RecurringQueue\": true }\n}\n"
+      },
+      {
+        "path": ".github/workflows/ci.yml",
+        "text": "name: ci\non:\n  push:\n    branches: [main]\njobs:\n  testes-cobranca:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: dotnet test Loja.sln\n  publicar-imagem:\n    runs-on: ubuntu-latest\n    needs: testes-cobranca\n    steps:\n      - run: docker build -t loja .\n"
+      }
+    ]
+  },
   "cases": [
     {
       "id": "termo-distintivo",
       "projectId": "p-aaaaaaaaaaaa",
       "query": "mariliz cobrança recorrente",
-      "expectChunkIds": ["docs/cobranca.md#1"],
       "sources": [
         {
           "path": "docs/cobranca.md",
-          "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "text": "O módulo de mariliz cobrança recorrente descreve faturamento, ciclo de vida da assinatura e reconciliação bancária com texto longo o bastante para indexar."
         },
         {
           "path": "docs/catalogo.md",
-          "hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "text": "Catálogo de produtos, estoque e preços promocionais sem relação com o fluxo de pagamento recorrente."
+        }
+      ],
+      "expect": [
+        {
+          "filePath": "docs/cobranca.md",
+          "anchor": "mariliz cobrança recorrente"
         }
       ]
     },
@@ -25,57 +79,184 @@
       "id": "atualizacao-incremental",
       "projectId": "p-bbbbbbbbbbbb",
       "query": "token exclusivo delta",
-      "expectChunkIds": ["docs/nota.md#1"],
       "sources": [
         {
           "path": "docs/nota.md",
-          "hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
           "text": "Versão inicial do documento sem o termo procurado, apenas contexto genérico longo o suficiente para chunk."
         }
       ],
-      "resync": {
-        "sources": [
-          {
-            "path": "docs/nota.md",
-            "hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-            "text": "Após a sincronização incremental, o token exclusivo delta aparece neste parágrafo com conteúdo longo para a busca lexical encontrar."
-          }
-        ]
-      }
+      "resync": [
+        {
+          "path": "docs/nota.md",
+          "text": "Após a sincronização incremental, o token exclusivo delta aparece neste parágrafo com conteúdo longo para a busca lexical encontrar."
+        }
+      ],
+      "expect": [
+        {
+          "filePath": "docs/nota.md",
+          "anchor": "token exclusivo delta"
+        }
+      ]
     },
     {
       "id": "piloto-html-produto",
-      "projectId": "p-010010010001",
+      "projectId": "p-dddddddddddd",
       "query": "mariliz piloto landing cobrança recorrente",
-      "expectChunkIds": ["docs/produto.md#2"],
       "sources": [
         {
           "path": "docs/produto.md",
-          "hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "text": "# Produto piloto\n\nEste repositório existe só para exercitar o Mariliz Studio em um projeto\nreal pequeno, sem dependências de build.\n\n## Cobrança recorrente (texto de teste)\n\nO módulo fictício **mariliz piloto landing cobrança recorrente** descreve um\nfluxo de assinatura mensal, faturamento automático, reconciliação bancária e\ncancelamento com período de carência. O parágrafo é longo de propósito para\ngerar chunks indexáveis durante a recuperação lexical: ciclo de vida da\nassinatura, notas fiscais, chargeback, dunning e reativação após falha de\npagamento. Use esta frase como consulta no pedido de engenharia.\n\n## Escopo\n\n- Uma landing (`index.html`)\n- Estilos em `css/main.css`\n- Sem JavaScript de aplicação e sem framework\n"
         },
         {
           "path": "docs/estilo-piloto.md",
-          "hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "text": "# Guia de estilo piloto\n\nTokens usados na landing de teste do Mariliz.\n\n## Cores\n\n| Token   | Valor   | Uso              |\n| ------- | ------- | ---------------- |\n| `--bg`  | `#0f1419` | Fundo da página |\n| `--accent` | `#33c1ba` | Destaques e eyebrow |\n| `--surface` | `#1a2332` | Cartões        |\n\n## Layout\n\n- Largura máxima do conteúdo: **42rem**\n- Grid de duas colunas a partir de **640px**\n- Raio padrão dos cartões: **12px**\n\n## Acessibilidade\n\n- Títulos de seção com `id` e `aria-labelledby`\n- Contraste alto entre texto e fundo\n- Foco visível nos links (quando forem adicionados)\n\n## Consulta sugerida\n\nPara testar busca: *\"tokens de cor accent e grid responsivo\"*.\n"
+        }
+      ],
+      "expect": [
+        {
+          "filePath": "docs/produto.md",
+          "anchor": "## Cobrança recorrente"
         }
       ]
     },
     {
       "id": "piloto-html-estilo",
-      "projectId": "p-010010010002",
+      "projectId": "p-dddddddddddd",
       "query": "cores accent surface",
-      "expectChunkIds": ["docs/estilo-piloto.md#2"],
       "sources": [
         {
           "path": "docs/estilo-piloto.md",
-          "hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
           "text": "# Guia de estilo piloto\n\nTokens usados na landing de teste do Mariliz.\n\n## Cores\n\n| Token   | Valor   | Uso              |\n| ------- | ------- | ---------------- |\n| `--bg`  | `#0f1419` | Fundo da página |\n| `--accent` | `#33c1ba` | Destaques e eyebrow |\n| `--surface` | `#1a2332` | Cartões        |\n\n## Layout\n\n- Largura máxima do conteúdo: **42rem**\n- Grid de duas colunas a partir de **640px**\n- Raio padrão dos cartões: **12px**\n\n## Acessibilidade\n\n- Títulos de seção com `id` e `aria-labelledby`\n- Contraste alto entre texto e fundo\n- Foco visível nos links (quando forem adicionados)\n\n## Consulta sugerida\n\nPara testar busca: *\"tokens de cor accent e grid responsivo\"*.\n"
         },
         {
           "path": "docs/produto.md",
-          "hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "text": "# Produto piloto\n\nEste repositório existe só para exercitar o Mariliz Studio em um projeto\nreal pequeno, sem dependências de build.\n\n## Cobrança recorrente (texto de teste)\n\nO módulo fictício **mariliz piloto landing cobrança recorrente** descreve um\nfluxo de assinatura mensal, faturamento automático, reconciliação bancária e\ncancelamento com período de carência. O parágrafo é longo de propósito para\ngerar chunks indexáveis durante a recuperação lexical: ciclo de vida da\nassinatura, notas fiscais, chargeback, dunning e reativação após falha de\npagamento. Use esta frase como consulta no pedido de engenharia.\n\n## Escopo\n\n- Uma landing (`index.html`)\n- Estilos em `css/main.css`\n- Sem JavaScript de aplicação e sem framework\n"
+        }
+      ],
+      "expect": [
+        {
+          "filePath": "docs/estilo-piloto.md",
+          "anchor": "## Cores"
+        }
+      ]
+    },
+    {
+      "id": "metodo-por-nome-qualificado",
+      "projectId": "p-cccccccccccc",
+      "corpus": "loja",
+      "query": "o que BillingService.Charge faz com a fatura",
+      "expect": [
+        {
+          "filePath": "src/Billing/BillingService.cs",
+          "anchor": "public Invoice Charge("
+        }
+      ]
+    },
+    {
+      "id": "metodo-pascal-case",
+      "projectId": "p-cccccccccccc",
+      "corpus": "loja",
+      "query": "ChargeRecurring pula assinatura pausada",
+      "expect": [
+        {
+          "filePath": "src/Billing/BillingService.cs",
+          "anchor": "public void ChargeRecurring("
+        }
+      ]
+    },
+    {
+      "id": "identificador-curto",
+      "projectId": "p-cccccccccccc",
+      "corpus": "loja",
+      "query": "onde fica o Pix",
+      "expect": [
+        {
+          "filePath": "src/Billing/Methods/Pix.cs",
+          "anchor": "record Pix("
+        }
+      ]
+    },
+    {
+      "id": "funcao-snake-case",
+      "projectId": "p-cccccccccccc",
+      "corpus": "loja",
+      "query": "calcular_juros compostos",
+      "expect": [
+        {
+          "filePath": "tools/juros.py",
+          "anchor": "def calcular_juros("
+        }
+      ]
+    },
+    {
+      "id": "hook-typescript",
+      "projectId": "p-cccccccccccc",
+      "corpus": "loja",
+      "query": "useInvoices busca faturas do cliente",
+      "expect": [
+        {
+          "filePath": "web/src/features/invoices/use-invoices.ts",
+          "anchor": "export function useInvoices("
+        }
+      ]
+    },
+    {
+      "id": "secao-markdown-profunda",
+      "projectId": "p-cccccccccccc",
+      "corpus": "loja",
+      "query": "conciliação bancária extrato divergências",
+      "expect": [
+        {
+          "filePath": "docs/arquitetura.md",
+          "anchor": "### Conciliação bancária"
+        }
+      ]
+    },
+    {
+      "id": "requisito-por-id",
+      "projectId": "p-cccccccccccc",
+      "corpus": "loja",
+      "query": "o que diz o REQ-012",
+      "expect": [
+        {
+          "filePath": ".specs/features/dunning/spec.md",
+          "anchor": "REQ-012"
+        }
+      ]
+    },
+    {
+      "id": "chave-json",
+      "projectId": "p-cccccccccccc",
+      "corpus": "loja",
+      "query": "ConnectionStrings do banco de cobrança",
+      "expect": [
+        {
+          "filePath": "src/Api/appsettings.json",
+          "anchor": "ConnectionStrings"
+        }
+      ]
+    },
+    {
+      "id": "job-yaml",
+      "projectId": "p-cccccccccccc",
+      "corpus": "loja",
+      "query": "job publicar-imagem depende de quê",
+      "expect": [
+        {
+          "filePath": ".github/workflows/ci.yml",
+          "anchor": "publicar-imagem"
+        }
+      ]
+    },
+    {
+      "id": "termo-repetido-em-outro-arquivo",
+      "projectId": "p-cccccccccccc",
+      "corpus": "loja",
+      "query": "decisão de filas para cobrança recorrente",
+      "expect": [
+        {
+          "filePath": "docs/arquitetura.md",
+          "anchor": "ADR-007"
         }
       ]
     }
