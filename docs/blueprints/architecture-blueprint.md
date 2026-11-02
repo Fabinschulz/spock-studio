@@ -30,7 +30,7 @@ intelligence/         workflows, raciocínio e conhecimento (Python)
 contracts/            esquemas entre desktop, runtime e intelligence
 ```
 
-Quem fala com quem: a interface fala só com o host; o host fala só com o runtime (NDJSON em stdin/stdout); o runtime fala com a intelligence (HTTP em `127.0.0.1`). A intelligence não autoriza pasta, não grava o projeto e não publica evento. Os métodos do protocolo (`engine.hello`, `engine_request`) conservam o nome já publicado nos contratos.
+Quem fala com quem: a interface fala só com o host; o host fala só com o runtime (NDJSON em stdin/stdout); o runtime fala com a intelligence (HTTP em `127.0.0.1`). A intelligence não autoriza pasta, não grava o projeto e não publica evento para a interface: ela transmite eventos ao runtime durante a execução (`ai.event.v1`), e o runtime valida, numera, persiste e publica. Chamadas a modelo passam pelo proxy do runtime, que guarda a chave e o orçamento ([ADR-0001](../architecture/adr/0001-langgraph-e-contratos-v2.md)). Os métodos do protocolo (`engine.hello`, `engine_request`) conservam o nome já publicado nos contratos.
 
 | Processo | Pasta | Linguagem | Responsabilidade | Não faz |
 | --- | --- | --- | --- | --- |
@@ -38,7 +38,7 @@ Quem fala com quem: a interface fala só com o host; o host fala só com o runti
 | `desktop/host` | `desktop/host` | Rust (Tauri 2) | Janela, ciclo de vida, diálogo nativo de pasta, iniciar/encerrar o runtime, repassar mensagens | Interpretar o conteúdo das mensagens, executar comandos arbitrários |
 | `Mariliz.Runtime` | `runtime/Mariliz.Runtime` | C# (.NET 10) | Composição e transporte NDJSON dos casos de uso | UI, grafo da intelligence |
 | `Mariliz.Cli` | `runtime/Mariliz.Cli` | C# (.NET 10) | Mesmos casos de uso via linha de comando, saída humana ou `--json` | UI |
-| intelligence | `intelligence/` | Python | Workflow do pedido e índice de conhecimento, a partir do que o runtime já liberou | Autorizar, gravar o projeto, chamar modelo, falar com a interface |
+| intelligence | `intelligence/` | Python (LangGraph) | Orquestração dos agentes, recuperação de contexto, memória de execução e avaliações por modelo, a partir do que o runtime já liberou | Autorizar, gravar o projeto, executar efeitos, chamar modelo sem o proxy do runtime, falar com a interface |
 
 Regra de dependência (.NET), dentro de `runtime/`:
 
@@ -50,7 +50,7 @@ Mariliz.Cli ─────┘           ▲
                 Mariliz.Infrastructure ──HTTP──▶ intelligence/
 ```
 
-`Core` não referencia nada externo. `Application` declara portas (ex.: `IFileSystem`, `IProcessRunner`, `ISecretStore`, `IRuntimeAdapter`, `IAiRuntime`, `IConnector`). `Infrastructure` implementa, inclusive subindo `intelligence/server.py`. `Runtime` e `Cli` são composição (DI) e transporte. A pasta `intelligence/` não referencia projeto .NET. Os agentes distribuídos como conteúdo continuam em `runtime/Mariliz.Application/Assets`; não há um módulo Python de agentes.
+`Core` não referencia nada externo. `Application` declara portas (ex.: `IFileSystem`, `IProcessRunner`, `ISecretStore`, `IRuntimeAdapter`, `IAiRuntime`, `IConnector`). `Infrastructure` implementa, inclusive subindo `intelligence/server.py`. `Runtime` e `Cli` são composição (DI) e transporte. A pasta `intelligence/` não referencia projeto .NET. Os agentes distribuídos como conteúdo para o ambiente de IA da pessoa continuam em `runtime/Mariliz.Application/Assets`. Os agentes que o próprio Mariliz executa são nós do grafo em `intelligence/`; eles só propõem ações, e quem as executa depois da política e da aprovação é o runtime.
 
 ---
 
@@ -333,7 +333,8 @@ public interface IWritableTarget<TEntity>  { Task<WriteResult> WriteAsync(TEntit
 | Conteúdo | Local |
 | --- | --- |
 | Especificações, decisões, casos de regressão, evals do projeto | `.mariliz/` no repositório (versionado) |
-| Índice de busca (se houver RAG) | `.mariliz/cache/` (ignorado pelo git, reconstruível) |
+| Índice de busca (RAG) | Diretório de dados do usuário, por `projectId`, fora do repositório (reconstruível) |
+| Checkpoints de execução | Diretório de dados do usuário, `projects/<projectId>/execution/` (apagado quando a execução termina) |
 | Histórico de execuções e logs | Diretório de dados do usuário, por `projectId` |
 
 Isolamento: o motor nunca lê a memória de outro projeto numa execução. O `projectId` é derivado do caminho canônico + id gerado na primeira configuração.
