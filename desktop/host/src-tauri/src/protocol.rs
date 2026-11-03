@@ -46,7 +46,10 @@ impl HostError {
 pub fn validate_frontend_request(envelope: &Value) -> Result<(String, Value), HostError> {
     let serialized_len = envelope.to_string().len();
     if serialized_len > MAX_MESSAGE_BYTES {
-        return Err(HostError::new("MESSAGE_TOO_LARGE", "Mensagem acima do limite permitido."));
+        return Err(HostError::new(
+            "MESSAGE_TOO_LARGE",
+            "Mensagem acima do limite permitido.",
+        ));
     }
 
     let obj = envelope
@@ -54,14 +57,25 @@ pub fn validate_frontend_request(envelope: &Value) -> Result<(String, Value), Ho
         .ok_or_else(|| HostError::new("INVALID_MESSAGE", "A mensagem não é um objeto JSON."))?;
 
     if obj.get("v").and_then(Value::as_u64) != Some(PROTOCOL_VERSION) {
-        return Err(HostError::new("UNSUPPORTED_PROTOCOL", "Versão de protocolo não suportada."));
+        return Err(HostError::new(
+            "UNSUPPORTED_PROTOCOL",
+            "Versão de protocolo não suportada.",
+        ));
     }
     if obj.get("kind").and_then(Value::as_str) != Some("request") {
-        return Err(HostError::new("INVALID_MESSAGE", "A UI só pode enviar requisições."));
+        return Err(HostError::new(
+            "INVALID_MESSAGE",
+            "A UI só pode enviar requisições.",
+        ));
     }
     match obj.get("id").and_then(Value::as_str) {
         Some(id) if !id.is_empty() && id.len() <= 64 => {}
-        _ => return Err(HostError::new("INVALID_MESSAGE", "Requisição sem identificador válido.")),
+        _ => {
+            return Err(HostError::new(
+                "INVALID_MESSAGE",
+                "Requisição sem identificador válido.",
+            ))
+        }
     }
 
     let method = obj
@@ -70,12 +84,21 @@ pub fn validate_frontend_request(envelope: &Value) -> Result<(String, Value), Ho
         .ok_or_else(|| HostError::new("INVALID_MESSAGE", "Requisição sem método."))?;
 
     if !FRONTEND_METHODS.contains(&method) {
-        return Err(HostError::new("METHOD_NOT_ALLOWED", "Este método não está disponível para a interface."));
+        return Err(HostError::new(
+            "METHOD_NOT_ALLOWED",
+            "Este método não está disponível para a interface.",
+        ));
     }
 
-    let params = obj.get("params").cloned().unwrap_or_else(|| Value::Object(Default::default()));
+    let params = obj
+        .get("params")
+        .cloned()
+        .unwrap_or_else(|| Value::Object(Default::default()));
     if !params.is_object() {
-        return Err(HostError::new("INVALID_PARAMS", "Os parâmetros precisam ser um objeto."));
+        return Err(HostError::new(
+            "INVALID_PARAMS",
+            "Os parâmetros precisam ser um objeto.",
+        ));
     }
     Ok((method.to_string(), params))
 }
@@ -114,14 +137,26 @@ mod tests {
     #[test]
     fn ui_nao_pode_chamar_workspace_authorize() {
         let req = json!({"v":1,"kind":"request","id":"a","method":"workspace.authorize","params":{"path":"C:\\x"}});
-        assert_eq!(validate_frontend_request(&req).unwrap_err().code, "METHOD_NOT_ALLOWED");
+        assert_eq!(
+            validate_frontend_request(&req).unwrap_err().code,
+            "METHOD_NOT_ALLOWED"
+        );
     }
 
     #[test]
     fn ui_nao_pode_chamar_metodos_do_ciclo_de_vida_do_host() {
-        for method in ["engine.hello", "engine.shutdown", "workspace.authorize", "metodo.desconhecido"] {
+        for method in [
+            "engine.hello",
+            "engine.shutdown",
+            "workspace.authorize",
+            "metodo.desconhecido",
+        ] {
             let req = json!({"v":1,"kind":"request","id":"a","method":method});
-            assert_eq!(validate_frontend_request(&req).unwrap_err().code, "METHOD_NOT_ALLOWED", "{method}");
+            assert_eq!(
+                validate_frontend_request(&req).unwrap_err().code,
+                "METHOD_NOT_ALLOWED",
+                "{method}"
+            );
         }
     }
 
@@ -138,21 +173,40 @@ mod tests {
     #[test]
     fn params_que_nao_e_objeto_e_rejeitado() {
         let req = json!({"v":1,"kind":"request","id":"a","method":"harness.plan","params":[1]});
-        assert_eq!(validate_frontend_request(&req).unwrap_err().code, "INVALID_PARAMS");
+        assert_eq!(
+            validate_frontend_request(&req).unwrap_err().code,
+            "INVALID_PARAMS"
+        );
     }
 
     #[test]
     fn rejeita_envelopes_malformados() {
         let casos = [
             (json!([1, 2]), "INVALID_MESSAGE"),
-            (json!({"v":2,"kind":"request","id":"a","method":"x.y"}), "UNSUPPORTED_PROTOCOL"),
-            (json!({"v":1,"kind":"response","id":"a","method":"x.y"}), "INVALID_MESSAGE"),
-            (json!({"v":1,"kind":"request","method":"x.y"}), "INVALID_MESSAGE"),
-            (json!({"v":1,"kind":"request","id":"","method":"x.y"}), "INVALID_MESSAGE"),
+            (
+                json!({"v":2,"kind":"request","id":"a","method":"x.y"}),
+                "UNSUPPORTED_PROTOCOL",
+            ),
+            (
+                json!({"v":1,"kind":"response","id":"a","method":"x.y"}),
+                "INVALID_MESSAGE",
+            ),
+            (
+                json!({"v":1,"kind":"request","method":"x.y"}),
+                "INVALID_MESSAGE",
+            ),
+            (
+                json!({"v":1,"kind":"request","id":"","method":"x.y"}),
+                "INVALID_MESSAGE",
+            ),
             (json!({"v":1,"kind":"request","id":"a"}), "INVALID_MESSAGE"),
         ];
         for (envelope, code) in casos {
-            assert_eq!(validate_frontend_request(&envelope).unwrap_err().code, code, "{envelope}");
+            assert_eq!(
+                validate_frontend_request(&envelope).unwrap_err().code,
+                code,
+                "{envelope}"
+            );
         }
     }
 
@@ -160,24 +214,38 @@ mod tests {
     fn rejeita_mensagem_acima_do_limite() {
         let big = "x".repeat(MAX_MESSAGE_BYTES + 1);
         let req = json!({"v":1,"kind":"request","id":"a","method":"x.y","params":{"d":big}});
-        assert_eq!(validate_frontend_request(&req).unwrap_err().code, "MESSAGE_TOO_LARGE");
+        assert_eq!(
+            validate_frontend_request(&req).unwrap_err().code,
+            "MESSAGE_TOO_LARGE"
+        );
     }
 
     #[test]
     fn interpreta_resposta_e_evento_do_motor() {
         let resp = br#"{"v":1,"kind":"response","id":"h-1","result":{}}"#;
-        assert!(matches!(parse_engine_line(resp), Some(EngineMessage::Response { id, .. }) if id == "h-1"));
+        assert!(
+            matches!(parse_engine_line(resp), Some(EngineMessage::Response { id, .. }) if id == "h-1")
+        );
 
         let ev = br#"{"v":1,"kind":"event","runId":"r","type":"t","seq":0}"#;
-        assert!(matches!(parse_engine_line(ev), Some(EngineMessage::Event(_))));
+        assert!(matches!(
+            parse_engine_line(ev),
+            Some(EngineMessage::Event(_))
+        ));
     }
 
     #[test]
     fn descarta_linhas_fora_do_protocolo() {
         assert_eq!(parse_engine_line(b""), None);
         assert_eq!(parse_engine_line(b"texto solto"), None);
-        assert_eq!(parse_engine_line(br#"{"v":2,"kind":"response","id":"a"}"#), None);
-        assert_eq!(parse_engine_line(br#"{"v":1,"kind":"request","id":"a","method":"x.y"}"#), None);
+        assert_eq!(
+            parse_engine_line(br#"{"v":2,"kind":"response","id":"a"}"#),
+            None
+        );
+        assert_eq!(
+            parse_engine_line(br#"{"v":1,"kind":"request","id":"a","method":"x.y"}"#),
+            None
+        );
         assert_eq!(parse_engine_line(br#"{"v":1,"kind":"response"}"#), None);
     }
 }
