@@ -17,7 +17,7 @@ public class ProtocolJourneyTests
     {
         private readonly Channel<string?> _lines = Channel.CreateUnbounded<string?>();
         public void Send(JsonObject message) => _lines.Writer.TryWrite(message.ToJsonString());
-        public void Close() => _lines.Writer.TryWrite(null);
+        public new void Close() => _lines.Writer.TryWrite(null);
         public override async ValueTask<string?> ReadLineAsync(CancellationToken ct) => await _lines.Reader.ReadAsync(ct);
     }
 
