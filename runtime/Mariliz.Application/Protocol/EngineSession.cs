@@ -90,15 +90,16 @@ public sealed class EngineSession
         if (message is null)
             return Reply(ProtocolMessages.Error(null, ProtocolErrorCodes.InvalidMessage, "A mensagem não é um objeto JSON válido."));
 
-        var id = message["id"]?.GetValue<string>();
+        // O envelope vem de fora: campo com tipo errado vira erro de protocolo, nunca exceção que derruba o processo.
+        var id = ReadString(message, "id");
 
-        if (message["v"]?.GetValue<int>() != ProtocolMessages.Version)
+        if (!(message["v"] is JsonValue version && version.TryGetValue<int>(out var number) && number == ProtocolMessages.Version))
             return Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.UnsupportedProtocol, "Versão de protocolo não suportada."));
 
-        if (message["kind"]?.GetValue<string>() != "request" || id is null || message["method"] is not JsonValue methodNode)
+        var method = ReadString(message, "method");
+        if (ReadString(message, "kind") != "request" || id is null || method is null)
             return Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.InvalidMessage, "Requisição malformada."));
 
-        var method = methodNode.GetValue<string>();
         var parameters = message["params"] as JsonObject;
 
         try
@@ -117,8 +118,9 @@ public sealed class EngineSession
         {
             return Reply(ProtocolMessages.Error(id, "CANCELLED", "A operação foi cancelada."));
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or JsonException)
+        catch (Exception ex)
         {
+            // Fronteira de cada pedido: nenhuma falha de um pedido derruba a sessão (e com ela o motor).
             // O texto da exceção pode conter caminhos ou dados do projeto: só o tipo vai para o protocolo.
             return Reply(ProtocolMessages.Error(id, "INTERNAL_ERROR", $"Falha interna ({ex.GetType().Name})."));
         }
