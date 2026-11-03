@@ -1,9 +1,5 @@
 export type JourneyId =
-  | 'configure-project'
-  | 'engineering-request'
-  | 'import-requirements'
-  | 'connect-tools'
-  | 'modernize-system';
+  'configure-project' | 'engineering-request' | 'import-requirements' | 'connect-tools' | 'modernize-system';
 
 export type Journey = {
   id: JourneyId;

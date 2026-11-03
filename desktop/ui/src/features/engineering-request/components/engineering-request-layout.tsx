@@ -4,10 +4,7 @@ import type { ReactNode } from 'react';
 
 import styles from '../engineering-request-page.module.scss';
 
-const BREADCRUMB = [
-  { label: 'Início', to: pathTo('home') },
-  { label: 'Pedido de engenharia' }
-] as const;
+const BREADCRUMB = [{ label: 'Início', to: pathTo('home') }, { label: 'Pedido de engenharia' }] as const;
 
 interface EngineeringRequestLayoutProps {
   description: string;

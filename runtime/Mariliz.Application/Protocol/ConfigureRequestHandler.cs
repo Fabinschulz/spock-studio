@@ -46,7 +46,8 @@ internal sealed class ConfigureRequestHandler(ConfigureProjectService service)
 
         foreach (var (key, value) in map)
         {
-            resolutions[key] = value?.GetValue<string>() switch
+            var text = value is JsonValue node && node.TryGetValue<string>(out var resolution) ? resolution : null;
+            resolutions[key] = text switch
             {
                 "keep" => ConflictResolution.Keep,
                 "overwrite" => ConflictResolution.Overwrite,

@@ -26,9 +26,7 @@ export function EngineeringRequestPage({ client }: EngineeringRequestPageProps) 
     );
   }
 
-  return (
-    <EngineeringRequestPageWithProject client={client} projectId={selected.projectId} project={selected} />
-  );
+  return <EngineeringRequestPageWithProject client={client} projectId={selected.projectId} project={selected} />;
 }
 
 function EngineeringRequestPageWithProject({

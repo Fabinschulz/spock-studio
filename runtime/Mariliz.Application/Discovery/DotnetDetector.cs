@@ -48,7 +48,7 @@ internal static class DotnetDetector
 
         foreach (var sln in solutions.Take(3)) evidence.Insert(0, new Evidence(sln));
 
-        var version = frameworks.Count == 0 ? null : frameworks.OrderByDescending(f => f, StringComparer.OrdinalIgnoreCase).First();
+        var version = Newest(frameworks);
         if (web) notes.Add("ASP.NET Core (Microsoft.NET.Sdk.Web)");
         if (testProjects > 0) notes.Add($"{testProjects} projeto(s) de teste");
         if (version is null)
@@ -63,4 +63,32 @@ internal static class DotnetDetector
         tooling.Add(new ToolingFinding("build", "dotnet build", $"dotnet build{arg}", ev));
         if (testProjects > 0) tooling.Add(new ToolingFinding("test", "dotnet test", $"dotnet test{arg}", ev));
     }
+
+    /// <summary>
+    /// O framework mais novo da solução, comparando família e versão (texto não serve: "net9.0" &gt; "net10.0" e
+    /// "netstandard2.0" &gt; "net10.0" na ordem alfabética). O sufixo de plataforma (<c>net8.0-windows</c>) não conta.
+    /// </summary>
+    internal static string? Newest(IEnumerable<string> frameworks) =>
+        frameworks.Select(tfm => (Tfm: tfm, Rank: Rank(tfm)))
+            .Where(item => item.Rank is not null)
+            .OrderByDescending(item => item.Rank!.Value.Family)
+            .ThenByDescending(item => item.Rank!.Value.Version)
+            .Select(item => item.Tfm)
+            .FirstOrDefault();
+
+    private static (int Family, Version Version)? Rank(string tfm)
+    {
+        var name = tfm.Split('-')[0].Trim().ToLowerInvariant();
+        if (Parse(name, "netstandard") is { } standard) return (1, standard);
+        if (Parse(name, "netcoreapp") is { } core) return (2, core);
+        if (!name.StartsWith("net", StringComparison.Ordinal)) return null;
+        var digits = name[3..];
+        // .NET 5+ usa ponto (net8.0, net10.0). O .NET Framework escreve um dígito por componente (net472 = 4.7.2, net48 = 4.8).
+        if (digits.Contains('.')) return Version.TryParse(digits, out var modern) ? (3, modern) : null;
+        if (digits.Length is < 2 or > 4 || !digits.All(char.IsAsciiDigit)) return null;
+        return Version.TryParse(string.Join('.', digits.ToCharArray()), out var framework) ? (0, framework) : null;
+    }
+
+    private static Version? Parse(string name, string family) =>
+        name.StartsWith(family, StringComparison.Ordinal) && Version.TryParse(name[family.Length..], out var version) ? version : null;
 }

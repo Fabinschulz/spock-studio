@@ -76,14 +76,14 @@ public class ConfigureJourneyTests
         // Sem aprovar o comando, nada é instalado.
         var withoutCommand = new ApplyApprovals(plan.Changes.Where(c => c.Action == ChangeAction.Create).Select(c => c.Id).ToList(), [], new Dictionary<string, ConflictResolution>());
         var notInstalled = await journey.ApplyAsync(plan, withoutCommand);
-        Assert.Empty(journey.Runner.Calls.Where(c => c.Executable == "npx"));
+        Assert.DoesNotContain(journey.Runner.Calls, c => c.Executable == "npx");
         Assert.Equal("blocked", Journey.Status(notInstalled, "EV-SPEC-001"));
         Assert.Equal("completed_with_limitations", notInstalled["outcome"]!.GetValue<string>());
 
         // Com aprovação, instala, verifica e o Eval da estrutura de especificação passa com evidência.
         var plan2 = await journey.PlanAsync();
         var installed = await journey.ApplyAsync(plan2);
-        Assert.Single(journey.Runner.Calls.Where(c => c.Executable == "npx"));
+        Assert.Single(journey.Runner.Calls, c => c.Executable == "npx");
         Assert.Equal("passed", Journey.Status(installed, "EV-SPEC-001"));
         var lockText = project.Read("mariliz.lock")!;
         Assert.Contains("version: 4.0.0", lockText);
@@ -310,7 +310,7 @@ public class ConfigureJourneyTests
         var plan = await journey.PlanAsync(env: null);
 
         Assert.Contains(plan.Limitations, l => l.Code == LimitationCodes.EnvironmentNotSelected);
-        Assert.Empty(plan.Changes.Where(c => c.Action != ChangeAction.Preserve));
+        Assert.DoesNotContain(plan.Changes, c => c.Action != ChangeAction.Preserve);
     }
 
     [Fact]

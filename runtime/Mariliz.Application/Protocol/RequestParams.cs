@@ -10,7 +10,13 @@ internal readonly struct RequestParams(JsonObject? values)
     public string? OptionalStr(string name) =>
         values?[name] is JsonValue v && v.TryGetValue<string>(out var text) && !string.IsNullOrWhiteSpace(text) ? text : null;
 
-    public bool Flag(string name) => values?[name]?.GetValue<bool>() ?? false;
+    public bool Flag(string name)
+    {
+        if (values?[name] is null) return false;
+        return values[name] is JsonValue v && v.TryGetValue<bool>(out var flag)
+            ? flag
+            : throw new ParamException($"'{name}' precisa ser verdadeiro ou falso.");
+    }
 
     public int? OptionalInt(string name)
     {

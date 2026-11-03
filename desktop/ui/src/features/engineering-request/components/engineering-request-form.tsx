@@ -1,12 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Alert,
-  Button,
-  CheckboxFormField,
-  FormProvider,
-  TextFormField,
-  useFormContext
-} from '@synthra.io/ui-kit';
+import { Alert, Button, CheckboxFormField, FormProvider, TextFormField, useFormContext } from '@synthra.io/ui-kit';
 
 import { pathTo } from '@/shared/routing';
 import { useNavigate } from 'react-router';

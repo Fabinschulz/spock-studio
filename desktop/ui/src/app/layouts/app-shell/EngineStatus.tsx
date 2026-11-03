@@ -13,12 +13,20 @@ export const dotClass: Record<Tone, string | undefined> = {
 };
 
 /** Texto do estado, sempre a partir do que o host informa: nada aparece como "pronto" sem o motor ter respondido. */
-function describe(status: Status, aiRuntime: AiRuntimeStatus, hosted: boolean): { title: string; detail: string; tone: Tone } {
+function describe(
+  status: Status,
+  aiRuntime: AiRuntimeStatus,
+  hosted: boolean
+): { title: string; detail: string; tone: Tone } {
   if (!hosted) return { title: 'Prévia no navegador', detail: 'Sem motor local', tone: 'idle' };
   switch (status) {
     case 'ready':
       if (aiRuntime === 'unavailable')
-        return { title: 'Sistema local', detail: 'Motor pronto. A inteligência local não está disponível.', tone: 'ok' };
+        return {
+          title: 'Sistema local',
+          detail: 'Motor pronto. A inteligência local não está disponível.',
+          tone: 'ok'
+        };
       if (aiRuntime === 'stopped')
         return { title: 'Sistema local', detail: 'Motor pronto. A inteligência local está parada.', tone: 'ok' };
       return { title: 'Sistema local', detail: 'Pronto para usar', tone: 'ok' };

@@ -15,12 +15,20 @@ import type { RunStepProps } from './types';
 
 export function RunStep({ run, onCancel, onBack }: RunStepProps) {
   const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const failed = run.error !== null;
   const elapsed = useElapsed(run.startedAt, !failed);
 
+  // Se o pedido de cancelamento falhar, o botão volta a funcionar e a pessoa vê o motivo.
   const cancel = async () => {
     setCancelling(true);
-    await onCancel();
+    setCancelError(null);
+    try {
+      await onCancel();
+    } catch (error) {
+      setCancelError(error instanceof Error ? error.message : 'Não foi possível cancelar a execução.');
+      setCancelling(false);
+    }
   };
 
   return (
@@ -69,6 +77,8 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
       {failed ? (
         <Alert severity="error" title="Não foi possível acompanhar a execução" description={run.error} />
       ) : null}
+
+      {cancelError ? <Alert severity="error" title="Não foi possível cancelar" description={cancelError} /> : null}
 
       <PrimaryActionFooter>
         {failed ? (

@@ -2,9 +2,8 @@
 //! escolheu pelo diálogo nativo e que o motor autorizou. A UI nunca vê o caminho completo nem consegue pedir um
 //! caminho: ela recebe um id opaco, o nome e o caminho abreviado, e reabre um projeto pelo id, por um comando do host.
 
-use std::collections::hash_map::DefaultHasher;
+use std::cmp::Reverse;
 use std::fs;
-use std::hash::{Hash, Hasher};
 use std::io;
 use std::path::Path;
 
@@ -37,11 +36,22 @@ pub struct RecentProject {
 }
 
 /// Id opaco e estável para o mesmo caminho. No Windows e no macOS o caminho é comparado sem diferenciar maiúsculas.
+/// Usa FNV-1a de 64 bits: o algoritmo do `DefaultHasher` da std pode mudar entre versões do Rust, e o id fica gravado.
 pub fn project_id(path: &str) -> String {
-    let normalized = if cfg!(any(windows, target_os = "macos")) { path.to_lowercase() } else { path.to_string() };
-    let mut hasher = DefaultHasher::new();
-    normalized.hash(&mut hasher);
-    format!("r-{:016x}", hasher.finish())
+    let normalized = if cfg!(any(windows, target_os = "macos")) {
+        path.to_lowercase()
+    } else {
+        path.to_string()
+    };
+    format!("r-{:016x}", fnv1a(normalized.as_bytes()))
+}
+
+fn fnv1a(bytes: &[u8]) -> u64 {
+    const OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
+    const PRIME: u64 = 0x0000_0100_0000_01b3;
+    bytes.iter().fold(OFFSET, |hash, byte| {
+        (hash ^ u64::from(*byte)).wrapping_mul(PRIME)
+    })
 }
 
 #[derive(Debug, Default)]
@@ -52,12 +62,21 @@ pub struct RecentStore {
 impl RecentStore {
     /// Lê a lista. Arquivo ausente, ilegível ou corrompido vira lista vazia: perder o histórico não é uma falha.
     pub fn load(file: &Path) -> Self {
-        let entries = fs::read_to_string(file)
+        let mut entries = fs::read_to_string(file)
             .ok()
             .and_then(|text| serde_json::from_str::<Vec<StoredProject>>(&text).ok())
             .unwrap_or_default();
-        let mut store = Self { entries };
-        store.entries.sort_by(|a, b| b.last_opened_ms.cmp(&a.last_opened_ms));
+        entries.sort_by_key(|entry| Reverse(entry.last_opened_ms));
+        // O id é derivado do caminho: recalculado na leitura, uma lista gravada por outra versão continua coerente.
+        let mut store = Self {
+            entries: Vec::new(),
+        };
+        for mut entry in entries {
+            entry.id = project_id(&entry.path);
+            if store.entries.iter().all(|kept| kept.id != entry.id) {
+                store.entries.push(entry);
+            }
+        }
         store.entries.truncate(MAX_RECENTS);
         store
     }
@@ -113,7 +132,8 @@ mod tests {
     use super::*;
 
     fn temp_file(name: &str) -> std::path::PathBuf {
-        let dir = std::env::temp_dir().join(format!("mariliz-recents-{}-{name}", std::process::id()));
+        let dir =
+            std::env::temp_dir().join(format!("mariliz-recents-{}-{name}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         dir.join(FILE_NAME)
     }
@@ -125,7 +145,11 @@ mod tests {
         store.record("C:\\b", "b", "~\\b", 2);
         store.record("C:\\a", "a", "~\\a", 3);
 
-        let names: Vec<_> = store.list(|_| true).into_iter().map(|p| p.display_name).collect();
+        let names: Vec<_> = store
+            .list(|_| true)
+            .into_iter()
+            .map(|p| p.display_name)
+            .collect();
         assert_eq!(names, ["a", "b"]);
         assert_eq!(store.list(|_| true)[0].last_opened_ms, 3);
     }
@@ -201,6 +225,33 @@ mod tests {
         fs::write(&corrupt, "{ isto nao e json").unwrap();
         assert!(RecentStore::load(&corrupt).list(|_| true).is_empty());
         let _ = fs::remove_dir_all(corrupt.parent().unwrap());
+    }
+
+    #[test]
+    fn o_id_nao_depende_da_versao_do_rust() {
+        // Vetores conhecidos do FNV-1a de 64 bits.
+        assert_eq!(fnv1a(b""), 0xcbf2_9ce4_8422_2325);
+        assert_eq!(fnv1a(b"a"), 0xaf63_dc4c_8601_ec8c);
+        assert_eq!(project_id("a"), "r-af63dc4c8601ec8c");
+    }
+
+    #[test]
+    fn lista_gravada_com_ids_antigos_e_corrigida_na_leitura_sem_duplicar() {
+        let file = temp_file("ids-antigos");
+        fs::create_dir_all(file.parent().unwrap()).unwrap();
+        let old = r#"[
+            {"id":"r-1111111111111111","path":"C:\\a","displayName":"a","displayPath":"~","lastOpenedMs":2},
+            {"id":"r-2222222222222222","path":"C:\\a","displayName":"a","displayPath":"~","lastOpenedMs":1}
+        ]"#;
+        fs::write(&file, old).unwrap();
+
+        let store = RecentStore::load(&file);
+
+        let list = store.list(|_| true);
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].id, project_id("C:\\a"));
+        assert_eq!(list[0].last_opened_ms, 2);
+        let _ = fs::remove_dir_all(file.parent().unwrap());
     }
 
     #[test]
