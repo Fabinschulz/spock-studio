@@ -24,7 +24,7 @@ export const tauriProjectPicker: ProjectPickerPort = {
   async pick(): Promise<SelectedProject | null> {
     const { invoke } = await import('@tauri-apps/api/core');
     try {
-      return await invoke<SelectedProject | null>('pick_project_folder');
+      return selectedSchema.nullable().parse(await invoke('pick_project_folder'));
     } catch (error) {
       throw toPickError(error, 'Não foi possível selecionar a pasta.');
     }

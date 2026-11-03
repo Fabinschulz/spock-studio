@@ -149,6 +149,28 @@ describe('Execução', () => {
     expect(screen.getByText('O que aconteceu').closest('section')?.querySelectorAll('li')).toHaveLength(4);
   });
 
+  it('liga a escuta antes do primeiro retrato e avisa quando a escuta falha', async () => {
+    const order: string[] = [];
+    const client: EngineClient = {
+      async request(method, _params, schema) {
+        order.push(method);
+        return schema.parse(paused);
+      },
+      async onEvent() {
+        order.push('listen');
+        throw new Error('sem host');
+      }
+    };
+    render(
+      <AppProviders>
+        <ExecutionPage runId="run-1" client={client} />
+      </AppProviders>
+    );
+
+    expect(await screen.findByText('Não foi possível acompanhar os eventos desta execução.')).toBeInTheDocument();
+    expect(order).toEqual(['listen', 'run.snapshot']);
+  });
+
   it('não inventa evidência quando o resultado não traz nenhuma', async () => {
     const empty = clientFor({
       ...done,

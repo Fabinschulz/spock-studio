@@ -89,12 +89,35 @@ export async function waitForRun(
 
   try {
     for (;;) {
-      if (signal?.aborted) throw new EngineError('ABORTED', 'O acompanhamento foi interrompido.');
+      if (signal?.aborted) throw aborted();
       const snapshot = await api.snapshot(runId);
-      if (TERMINAL.includes(snapshot.state) && snapshot.result) return snapshot.result;
-      await new Promise((resolve) => setTimeout(resolve, pollMs));
+      if (TERMINAL.includes(snapshot.state)) {
+        // Uma execução terminada sempre traz o resultado; sem ele, esperar mais não muda nada.
+        if (snapshot.result) return snapshot.result;
+        throw new EngineError('INVALID_RESPONSE', 'A execução terminou sem resultado.');
+      }
+      await sleep(pollMs, signal);
     }
   } finally {
     unlisten();
   }
+}
+
+function aborted(): EngineError {
+  return new EngineError('ABORTED', 'O acompanhamento foi interrompido.');
+}
+
+/** Espera que termina na hora em que o acompanhamento é interrompido, sem aguardar o próximo ciclo. */
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    function onAbort() {
+      clearTimeout(timer);
+      reject(aborted());
+    }
+    signal?.addEventListener('abort', onAbort, { once: true });
+  });
 }
