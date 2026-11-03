@@ -48,11 +48,7 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
     setBusy(true);
     setError(null);
     try {
-      const next = await client.request(
-        'model.save',
-        { provider: 'openai', key: key.trim() },
-        modelStatusSchema
-      );
+      const next = await client.request('model.save', { provider: 'openai', key: key.trim() }, modelStatusSchema);
       setStatus(next);
       setKey('');
     } catch (cause) {
@@ -96,9 +92,7 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
 
         {status ? (
           <p className={styles.status}>
-            {configured
-              ? `Provedor configurado: ${providerLabel(status.provider)}.`
-              : 'Nenhuma chave configurada.'}
+            {configured ? `Provedor configurado: ${providerLabel(status.provider)}.` : 'Nenhuma chave configurada.'}
           </p>
         ) : (
           <p className={styles.status}>A carregar…</p>

@@ -46,10 +46,7 @@ function renderPage(client: EngineClient) {
         <MemoryRouter initialEntries={['/pedido']}>
           <AutoPick>
             <Routes>
-              <Route
-                path="/pedido"
-                element={<EngineeringRequestPage client={client} />}
-              />
+              <Route path="/pedido" element={<EngineeringRequestPage client={client} />} />
               <Route path="/execucao/:runId" element={<div data-testid="exec">Execução</div>} />
             </Routes>
           </AutoPick>
