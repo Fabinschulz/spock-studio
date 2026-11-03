@@ -22,6 +22,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
     private readonly string? _scriptPath;
     private readonly string? _pythonOverride;
     private readonly object _gate = new();
+    private readonly SemaphoreSlim _startup = new(1, 1);
     private Process? _process;
     private HttpClient? _http;
 
@@ -44,10 +45,28 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         return PythonCandidates().Any() ? "stopped" : "unavailable";
     }
 
+    /// <summary>
+    /// Sobe o processo se ele não responde. A subida é serializada: duas execuções que encontrassem o runtime parado
+    /// ao mesmo tempo derrubariam o processo uma da outra.
+    /// </summary>
     public async Task EnsureReadyAsync(CancellationToken ct)
     {
         if (await HealthyAsync(ct)) return;
 
+        await _startup.WaitAsync(ct);
+        try
+        {
+            if (await HealthyAsync(ct)) return;
+            await LaunchAsync(ct);
+        }
+        finally
+        {
+            _startup.Release();
+        }
+    }
+
+    private async Task LaunchAsync(CancellationToken ct)
+    {
         var script = _scriptPath;
         if (string.IsNullOrWhiteSpace(script) || !File.Exists(script))
             throw new EngineException("AI_RUNTIME_UNAVAILABLE", "O runtime de IA não está disponível nesta instalação.");
