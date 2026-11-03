@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Discovery;
 using Mariliz.Application.Execution;
@@ -31,9 +32,11 @@ public sealed class WorkflowService(
     private const string GraphId = "engineering.request";
     private const string GraphVersion = "1";
     private const int MaxGoal = 4000;
-    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(60);
     private static readonly HashSet<string> KnownAgents = new(StringComparer.Ordinal) { "architecture" };
     private static readonly HashSet<string> InputFields = new(StringComparer.Ordinal) { "goal", "impact", "requiresApproval" };
+
+    /// <summary>Prazo de cada conversa com o runtime de IA.</summary>
+    internal TimeSpan Deadline { get; init; } = TimeSpan.FromSeconds(60);
 
     private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> _approvals = new();
     private readonly ProjectDiscoverer? _discoverer = filesFactory is not null && processRunner is not null
@@ -53,7 +56,7 @@ public sealed class WorkflowService(
 
         Record(run);
         var executionId = "ex-" + Guid.NewGuid().ToString("N")[..12];
-        run.Completion = ExecuteAsync(run, executionId, request);
+        run.Start(() => ExecuteAsync(run, executionId, request));
         return run;
     }
 
@@ -96,70 +99,81 @@ public sealed class WorkflowService(
         Record(run);
         Approve(journal);
         run.SetState(RunStates.AwaitingApproval, "Aguardando aprovação");
-        run.Completion = ContinueFromCheckpointAsync(run, journal);
+        run.Start(() => ContinueFromCheckpointAsync(run, journal));
         return Task.FromResult(run);
     }
 
-    private async Task ExecuteAsync(RunHandle run, string executionId, JsonObject input)
+    private Task ExecuteAsync(RunHandle run, string executionId, JsonObject input)
     {
         var journal = BeginJournal(run, executionId);
         var filter = new AiEventFilter(executionId);
-        using var budget = CancellationTokenSource.CreateLinkedTokenSource(run.Cancellation.Token);
-        budget.CancelAfter(Deadline);
-        try
+        return GuardedAsync(run, journal, async () =>
         {
             run.SetState(RunStates.Running, "Iniciando a execução");
-            var context = await ContextAsync(run.ProjectId, budget.Token);
-            await AttachKnowledgeAsync(run.ProjectId, context, budget.Token);
-            StampExecutionRoot(context);
-            var ack = await runtime.StartAsync(StartRequest(run, executionId, input, context), Relay(run, filter), budget.Token);
+            var ack = await WithDeadlineAsync(run, async ct =>
+            {
+                var context = await ContextAsync(run.ProjectId, ct);
+                await AttachKnowledgeAsync(run.ProjectId, context, ct);
+                StampExecutionRoot(context);
+                return await runtime.StartAsync(StartRequest(run, executionId, input, context), Relay(run, filter), ct);
+            });
             EnsureAck(run, executionId, ack);
 
             if (ack.Status == "interrupted")
             {
-                OpenApproval(run, journal, ack);
-                var gate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                _approvals[run.RunId] = gate;
-                using (run.Cancellation.Token.Register(() => gate.TrySetCanceled(run.Cancellation.Token)))
-                    await gate.Task;
-                _approvals.TryRemove(run.RunId, out _);
-                Approve(journal);
-                budget.CancelAfter(Deadline);
-                ack = await runtime.ResumeAsync(ResumeRequest(run, journal), Relay(run, filter), budget.Token);
+                await WaitForApprovalAsync(run, journal, ack);
+                ack = await WithDeadlineAsync(run, ct => runtime.ResumeAsync(ResumeRequest(run, journal), Relay(run, filter), ct));
                 EnsureAck(run, executionId, ack);
             }
 
             Finish(run, journal, ack);
-        }
-        catch (OperationCanceledException) when (!run.Cancellation.IsCancellationRequested)
-        {
-            await runtime.CancelAsync(run.RunId, run.ProjectId, knowledgeRoot);
-            Fail(run, journal, "AI_RUNTIME_TIMEOUT", "O runtime de IA passou do tempo limite.");
-        }
-        catch (OperationCanceledException)
-        {
-            await Abandon(run, journal);
-        }
-        catch (EngineException ex)
-        {
-            Fail(run, journal, ex.Code, ex.Message);
-        }
-        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidOperationException)
-        {
-            Fail(run, journal, "AI_RUNTIME_UNAVAILABLE", "O runtime de IA não respondeu.");
-        }
+        });
     }
 
-    private async Task ContinueFromCheckpointAsync(RunHandle run, RunJournal journal)
+    private Task ContinueFromCheckpointAsync(RunHandle run, RunJournal journal) => GuardedAsync(run, journal, async () =>
+    {
+        run.SetState(RunStates.Running, "Retomando a execução");
+        var filter = new AiEventFilter(journal.ExecutionId!);
+        var ack = await WithDeadlineAsync(run, ct => runtime.ResumeAsync(ResumeRequest(run, journal), Relay(run, filter), ct));
+        EnsureAck(run, journal.ExecutionId!, ack);
+        Finish(run, journal, ack);
+    });
+
+    /// <summary>
+    /// A aprovação é registrada antes de ser anunciada: um <c>workflow.resume</c> que chegue logo depois do evento já a
+    /// encontra. A espera é humana e não tem prazo; só o cancelamento da execução a interrompe.
+    /// </summary>
+    private async Task WaitForApprovalAsync(RunHandle run, RunJournal journal, WorkflowAck ack)
+    {
+        var gate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _approvals[run.RunId] = gate;
+        try
+        {
+            OpenApproval(run, journal, ack);
+            using (run.Cancellation.Token.Register(() => gate.TrySetCanceled(run.Cancellation.Token)))
+                await gate.Task;
+        }
+        finally
+        {
+            _approvals.TryRemove(run.RunId, out _);
+        }
+        Approve(journal);
+    }
+
+    /// <summary>Cada conversa com o runtime tem o próprio prazo, que não conta o tempo em que a execução esperou alguém.</summary>
+    private async Task<T> WithDeadlineAsync<T>(RunHandle run, Func<CancellationToken, Task<T>> step)
     {
         using var budget = CancellationTokenSource.CreateLinkedTokenSource(run.Cancellation.Token);
         budget.CancelAfter(Deadline);
+        return await step(budget.Token);
+    }
+
+    /// <summary>Toda saída da execução passa por aqui e termina o diário: nenhum erro deixa a execução presa.</summary>
+    private async Task GuardedAsync(RunHandle run, RunJournal journal, Func<Task> body)
+    {
         try
         {
-            run.SetState(RunStates.Running, "Retomando a execução");
-            var ack = await runtime.ResumeAsync(ResumeRequest(run, journal), Relay(run, new AiEventFilter(journal.ExecutionId!)), budget.Token);
-            EnsureAck(run, journal.ExecutionId!, ack);
-            Finish(run, journal, ack);
+            await body();
         }
         catch (OperationCanceledException) when (!run.Cancellation.IsCancellationRequested)
         {
@@ -174,9 +188,18 @@ public sealed class WorkflowService(
         {
             Fail(run, journal, ex.Code, ex.Message);
         }
+        catch (JsonException)
+        {
+            Fail(run, journal, "AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+        }
         catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidOperationException)
         {
             Fail(run, journal, "AI_RUNTIME_UNAVAILABLE", "O runtime de IA não respondeu.");
+        }
+        catch (Exception ex)
+        {
+            // O texto da exceção pode ter caminhos do projeto: só o tipo vai para o diário e para a interface.
+            Fail(run, journal, "WORKFLOW_FAILED", $"Falha interna ({ex.GetType().Name}).");
         }
     }
 

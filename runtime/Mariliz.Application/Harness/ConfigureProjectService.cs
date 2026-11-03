@@ -85,7 +85,7 @@ public sealed class ConfigureProjectService(
         Func<CancellationToken, Task<Replanned>> ReplanWith(PlanOptions options) =>
             ct => _planner.ReplanAsync(projectId, root, files, options, ct);
 
-        run.Completion = Task.Run(async () =>
+        run.Start(async () =>
         {
             // O pedido de atualizar a estrutura de especificação vale uma vez: depois de aplicado, a idempotência é medida sem ele.
             var result = await _apply.ExecuteAsync(run, root, files, session, approvals,
@@ -102,7 +102,7 @@ public sealed class ConfigureProjectService(
 
         var startedAt = clock.UtcNow;
 
-        run.Completion = Task.Run(async () =>
+        run.Start(async () =>
         {
             try
             {
@@ -127,7 +127,7 @@ public sealed class ConfigureProjectService(
         var (_, files) = Open(projectId);
         var run = Start(projectId, RunKinds.Revert);
 
-        run.Completion = Task.Run(() =>
+        run.Start(() =>
         {
             try
             {

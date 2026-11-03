@@ -31,6 +31,38 @@ public sealed class RunHandle
 
     private Action<string, int, string, JsonObject> Emit { get; }
 
+    /// <summary>
+    /// Roda o corpo em segundo plano e garante que a execução termina. Os serviços tratam os erros que conhecem; uma exceção
+    /// que escapar vira <c>failed</c> com o tipo (nunca a mensagem, que pode ter caminhos), em vez de uma execução presa
+    /// que impede o projeto de começar outra.
+    /// </summary>
+    public void Start(Func<Task> body)
+    {
+        Completion = Task.Run(async () =>
+        {
+            try
+            {
+                await body();
+            }
+            catch (Exception ex) when (!RunStates.IsTerminal(State))
+            {
+                Complete(RunStates.Failed, new JsonObject
+                {
+                    ["runId"] = RunId,
+                    ["kind"] = Kind,
+                    ["outcome"] = RunStates.Failed,
+                    ["error"] = new JsonObject { ["code"] = "INTERNAL_ERROR", ["message"] = $"Falha interna ({ex.GetType().Name})." }
+                });
+            }
+        });
+    }
+
+    public void Start(Action body) => Start(() =>
+    {
+        body();
+        return Task.CompletedTask;
+    });
+
     /// <summary>Uma execução religada depois de o motor cair continua a numeração que já foi publicada.</summary>
     public void ContinueFrom(int nextSeq)
     {
