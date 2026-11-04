@@ -62,8 +62,9 @@ describe('AppShell · navegação', () => {
     const nav = screen.getByRole('navigation', { name: 'Navegação principal' });
 
     expect(within(nav).getByRole('link', { name: 'Início' })).toHaveAttribute('aria-current', 'page');
-    // "Projetos" abre a primeira etapa da jornada, onde se escolhe a pasta: sempre existe.
-    expect(within(nav).getByRole('link', { name: 'Projetos' })).toHaveAttribute('href', '/configurar');
+    expect(within(nav).getByRole('link', { name: 'Projeto' })).toHaveAttribute('href', '/projeto');
+    // "Configurar" abre a primeira etapa da jornada, onde se escolhe a pasta: sempre existe.
+    expect(within(nav).getByRole('link', { name: 'Configurar' })).toHaveAttribute('href', '/configurar');
     expect(within(nav).getByRole('link', { name: 'Configurações' })).toHaveAttribute('href', '/configuracoes');
     const catalog = within(nav).getByRole('button', { name: /Catálogo/ });
     expect(catalog).toHaveAttribute('aria-disabled', 'true');
