@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Models;
@@ -128,13 +127,8 @@ public sealed class ConfigureProjectService(
         return run;
     }
 
-    public static JsonNode? ToJson<T>(T value) => JsonSerializer.SerializeToNode(value, JournalJson.Options);
-
-    private static bool HasNothingToApply(ConfigurationPlan plan) =>
-        plan.IsEmpty
-        && plan.Commands.Count == 0
-        && plan.Changes.All(c => c.Action == ChangeAction.Preserve)
-        && plan.AiEnvironment.Length == 0;
+    /// <summary>Sem mudanças nem comandos e sem ambiente escolhido: aplicar não faria nada. Com ambiente, aplica para revalidar.</summary>
+    private static bool HasNothingToApply(ConfigurationPlan plan) => plan.IsEmpty && plan.AiEnvironment.Length == 0;
 
     private static string OutcomeOf(JsonObject result) => result["outcome"]?.GetValue<string>() ?? RunStates.Failed;
 
@@ -155,14 +149,14 @@ public sealed class ConfigureProjectService(
     private RunHandle Start(string projectId, string kind)
     {
         if (!tracker.TryStart(projectId, kind, out var run) || run is null)
-            throw new EngineException("RUN_IN_PROGRESS", "Já há uma execução em andamento neste projeto.");
+            throw EngineErrors.RunInProgress();
         return run;
     }
 
     private (string Root, IProjectFiles Files) Open(string projectId)
     {
         if (!workspace.TryGetRoot(projectId, out var root))
-            throw new EngineException("PROJECT_NOT_AUTHORIZED", "O projeto não foi autorizado. Selecione a pasta pelo diálogo do aplicativo.");
+            throw EngineErrors.ProjectNotAuthorized();
         return (root, filesFactory.Open(root));
     }
 }

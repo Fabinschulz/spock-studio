@@ -20,7 +20,8 @@ interface FolderPickerCardProps {
 
 /** Escolha da pasta: o estado da seleção (recentes, erro, ambiente sem host) vem do contexto de seleção de projeto. */
 export function FolderPickerCard({ project, analyzing, onAnalyze }: FolderPickerCardProps) {
-  const { busy, error, cancelled, recents, pick, openRecent, unavailableReason } = useProjectSelectionContext();
+  const { selected, busy, error, cancelled, recents, pick, openRecent, unavailableReason } =
+    useProjectSelectionContext();
   const onPick = () => void pick();
   const onOpenRecent = (id: string) => void openRecent(id);
   const inactive = busy || unavailableReason !== undefined;
@@ -64,7 +65,7 @@ export function FolderPickerCard({ project, analyzing, onAnalyze }: FolderPicker
         {analyzing ? <span className={styles.muted}>Analisando o projeto…</span> : null}
       </div>
 
-      <RecentProjects recents={recents} selectedName={project?.name} busy={busy} onOpen={onOpenRecent} />
+      <RecentProjects recents={recents} currentId={selected?.recentId} busy={busy} onOpen={onOpenRecent} />
     </SectionCard>
   );
 }

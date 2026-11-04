@@ -36,10 +36,9 @@ interface InlineNoticeProps {
   title?: string;
   children: ReactNode;
   className?: string;
-  onDismiss?: () => void;
 }
 
-export function InlineNotice({ tone = 'info', title, children, className, onDismiss }: InlineNoticeProps) {
+export function InlineNotice({ tone = 'info', title, children, className }: InlineNoticeProps) {
   return (
     <div className={cn(styles.notice, styles[tone], className)} role={tone === 'danger' ? 'alert' : undefined}>
       <svg
@@ -61,13 +60,6 @@ export function InlineNotice({ tone = 'info', title, children, className, onDism
         {title ? <p className={styles.title}>{title}</p> : null}
         <div className={styles.body}>{children}</div>
       </div>
-      {onDismiss ? (
-        <button type="button" className={styles.dismiss} aria-label="Dispensar aviso" onClick={onDismiss}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
-            <path d="m4 4 8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-          </svg>
-        </button>
-      ) : null}
     </div>
   );
 }

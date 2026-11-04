@@ -3,6 +3,8 @@ export type SelectedProject = {
   displayName: string;
   /** Caminho já abreviado e sanitizado pelo host; a UI nunca recebe o caminho completo. */
   displayPath: string;
+  /** Id do item correspondente na lista de recentes, quando o host o informa. É o que marca o projeto atual na lista. */
+  recentId?: string;
 };
 
 export type RecentProject = {

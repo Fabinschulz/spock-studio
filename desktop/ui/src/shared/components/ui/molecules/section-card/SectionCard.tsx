@@ -7,14 +7,13 @@ interface SectionCardProps {
   icon?: ReactNode;
   aside?: ReactNode;
   children: ReactNode;
-  tone?: 'default' | 'accent';
   className?: string;
 }
 
-export function SectionCard({ title, icon, aside, children, tone = 'default', className }: SectionCardProps) {
+export function SectionCard({ title, icon, aside, children, className }: SectionCardProps) {
   const id = useId();
   return (
-    <section className={cn(styles.card, tone === 'accent' && styles.accent, className)} aria-labelledby={id}>
+    <section className={cn(styles.card, className)} aria-labelledby={id}>
       <header className={styles.header}>
         <div className={styles.heading}>
           {icon ? (

@@ -6,6 +6,9 @@ export const paths = {
   settings: '/configuracoes'
 } as const;
 
+/** Padrão da rota de uma execução; `executionPath` monta o caminho concreto. */
+export const executionPattern = '/execucao/:runId';
+
 export type RouteName = keyof typeof paths;
 
 export function pathTo(name: RouteName): string {
@@ -13,5 +16,5 @@ export function pathTo(name: RouteName): string {
 }
 
 export function executionPath(runId: string): string {
-  return `/execucao/${encodeURIComponent(runId)}`;
+  return executionPattern.replace(':runId', encodeURIComponent(runId));
 }

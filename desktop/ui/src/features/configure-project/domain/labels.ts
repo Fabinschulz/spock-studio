@@ -127,11 +127,11 @@ export const observationTone: Record<ObservationKind, Tone> = {
 
 export const runKindLabel = { apply: 'Aplicação', revert: 'Reversão', validate: 'Validação' } as const;
 
-export const stepStatusLabel = (status: string): string =>
-  status === 'running'
-    ? 'em andamento'
-    : status === 'pending'
-      ? 'aguardando'
-      : status === 'completed'
-        ? 'concluída'
-        : status.replace(/_/g, ' ');
+const stepStatusLabels: Record<string, string> = {
+  running: 'em andamento',
+  pending: 'aguardando',
+  completed: 'concluída'
+};
+
+/** Estado de uma etapa; um estado novo do motor aparece legível (`a_b` vira `a b`), nunca some. */
+export const stepStatusLabel = (status: string): string => stepStatusLabels[status] ?? status.replace(/_/g, ' ');

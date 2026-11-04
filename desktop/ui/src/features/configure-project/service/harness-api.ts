@@ -6,14 +6,12 @@ import {
   planSchema,
   runSnapshotSchema,
   runStartedSchema,
-  runsListSchema,
   type ConfigurationPlan,
   type ConflictResolution,
   type Discovery,
   type RunEvent,
   type RunResult,
-  type RunSnapshot,
-  type RunSummary
+  type RunSnapshot
 } from '@/shared/schema';
 
 export type PlanInput = {
@@ -42,7 +40,6 @@ export type HarnessApi = {
   revert(projectId: string, runId: string): Promise<{ runId: string }>;
   snapshot(runId: string): Promise<RunSnapshot>;
   cancel(runId: string): Promise<{ cancelled: boolean }>;
-  runs(projectId: string): Promise<RunSummary[]>;
   onEvent(handler: (event: RunEvent) => void): Promise<() => void>;
 };
 
@@ -65,7 +62,6 @@ export function createHarnessApi(client: EngineClient): HarnessApi {
     revert: (projectId, runId) => client.request('harness.revert', { projectId, runId }, runStartedSchema),
     snapshot: (runId) => client.request('run.snapshot', { runId }, runSnapshotSchema),
     cancel: (runId) => client.request('run.cancel', { runId }, cancelSchema),
-    runs: async (projectId) => (await client.request('harness.runs', { projectId }, runsListSchema)).runs,
     onEvent: (handler) => client.onEvent(handler)
   };
 }

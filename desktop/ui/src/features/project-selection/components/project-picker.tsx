@@ -1,6 +1,7 @@
-import { CheckGlyph, FolderIcon } from '@/shared/components/ui';
+import { CheckGlyph, FolderIcon, InfoGlyph, LockGlyph } from '@/shared/components/ui';
 import { Button, CopyIcon } from '@synthra.io/ui-kit';
-import { useId, useState } from 'react';
+import { useCopyToClipboard } from '@/shared/hooks';
+import { useId } from 'react';
 import type { SelectedProject } from '../domain/types';
 import styles from './project-picker.module.scss';
 
@@ -15,17 +16,7 @@ export function ProjectPicker({ selected, onPick, busy, unavailableReason }: Pro
   const id = useId();
   const unavailable = unavailableReason !== undefined;
   const inactive = unavailable || busy;
-  const [copied, setCopied] = useState(false);
-
-  const copyPath = async (path: string) => {
-    try {
-      await navigator.clipboard.writeText(path);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setCopied(false);
-    }
-  };
+  const { state: copyState, copy } = useCopyToClipboard({ resetAfterMs: 2000 });
 
   return (
     <section className={styles.picker} aria-labelledby={`${id}-rotulo`}>
@@ -80,12 +71,12 @@ export function ProjectPicker({ selected, onPick, busy, unavailableReason }: Pro
                   type="button"
                   className={styles.copy}
                   aria-label="Copiar o caminho exibido"
-                  onClick={() => void copyPath(selected.displayPath)}
+                  onClick={() => void copy(selected.displayPath)}
                 >
                   <CopyIcon fontSize="small" aria-hidden="true" />
                 </button>
                 <span role="status" className="visually-hidden">
-                  {copied ? 'Caminho copiado' : ''}
+                  {copyState === 'copied' ? 'Caminho copiado' : ''}
                 </span>
               </span>
             </span>
@@ -109,10 +100,7 @@ export function ProjectPicker({ selected, onPick, busy, unavailableReason }: Pro
                 Trocar
               </button>
               <span className={styles.lockNote}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
-                  <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
-                  <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" strokeWidth="1.4" />
-                </svg>
+                <LockGlyph />
                 Arquivos permanecem no computador
               </span>
             </span>
@@ -121,21 +109,12 @@ export function ProjectPicker({ selected, onPick, busy, unavailableReason }: Pro
       </div>
 
       <p className={styles.info}>
-        <InlineNoticeGlyph />
+        <InfoGlyph />
         <span>
           Você pode trocar a pasta a qualquer momento. A análise inicial é somente de leitura e não altera seus
           arquivos.
         </span>
       </p>
     </section>
-  );
-}
-
-function InlineNoticeGlyph() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
-      <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M10 9v5M10 6.2v.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
   );
 }

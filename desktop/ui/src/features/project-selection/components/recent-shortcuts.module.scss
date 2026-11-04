@@ -66,18 +66,13 @@
 }
 
 .text {
-  display: grid;
+  display: flex;
   flex: 1;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    'name meta'
-    'path meta';
-  column-gap: var(--space-4);
+  flex-direction: column;
   min-width: 0;
 }
 
 .name {
-  grid-area: name;
   overflow: hidden;
   font-weight: var(--font-weight-medium);
   text-overflow: ellipsis;
@@ -85,7 +80,6 @@
 }
 
 .path {
-  grid-area: path;
   overflow: hidden;
   font-family: var(--font-mono);
   font-size: var(--font-size-caption);
@@ -94,9 +88,10 @@
   white-space: nowrap;
 }
 
+// O espaço entre o texto e a data é o mesmo da grade antiga: o gap do cartão mais este recuo.
 .meta {
-  grid-area: meta;
-  align-self: center;
+  flex: none;
+  margin-left: var(--space-1);
   font-size: var(--font-size-caption);
   color: var(--color-text-subtle);
   white-space: nowrap;

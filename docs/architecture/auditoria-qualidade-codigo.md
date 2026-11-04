@@ -3,7 +3,7 @@
 **Data:** 2026-11-02. **Base:** `master` em `230f8e5` (PRs #1 e #2 mergeados). **Escopo:** host Tauri/Rust, UI React/TypeScript
 (sem `src/prototype`, que é só referência visual de desenvolvimento), motor .NET 10, contratos e testes.
 
-**Estado:** Ondas 1 e 2 concluídas (seções 5 e 6). Ondas 3 e 4 pendentes.
+**Estado:** Ondas 1 a 4 concluídas (seções 5, 6 e 7).
 
 ---
 
@@ -260,4 +260,55 @@ Ficou de fora, de propósito: o `TestSupport.Journey` continua com a própria co
 | Rust (`fmt`, Clippy `-D warnings`) | limpos |
 | `cargo test` | 20 |
 | UI (`pnpm check`) | limpo; 137 testes |
+| `pnpm build` | ok |
+
+---
+
+## 7. Resultado das Ondas 3 e 4 (2026-11-03)
+
+As duas ondas foram juntas: duplicações e organização (P2) e limpeza (P3). Nenhum contrato do protocolo nem schema em
+`contracts/` mudou; os goldens continuam idênticos.
+
+| Item | O que mudou | Teste |
+| --- | --- | --- |
+| NET-P2-3 | `WorkspaceAuthorizer._authorized` é `ConcurrentDictionary` (o protocolo escreve, as execuções em segundo plano leem) | suítes existentes |
+| NET-P2-4 | `RunTracker` guarda no máximo 100 execuções terminadas; as mais antigas saem da memória (o retrato recorre ao disco). Execuções em andamento nunca saem. `WaitForAllAsync`, sem uso, foi removido | `RunTrackerTests` (poda e projeto que volta a poder começar) |
+| NET-P2-5 | `Core/Text/Ids` concentra a forma dos ids (`IsProjectId`, `IsInterruptId`); `WorkspaceAuthorizer` e `LoopbackAiRuntime` usam. `FileRunStore.Safe` fica: é uma guarda de caracteres para montar pastas, não a forma do id | suítes existentes |
+| NET-P2-7 | `ManagedScope.TopLevelDirectories` e `IsEnvironmentFile` são a fonte única das pastas gerenciadas; `EnvironmentCheck`, `LocalProjectFiles` e `SpecificationPlanner` usam | suítes existentes |
+| NET-P2-9 | `EngineErrors`: o mesmo código sempre com a mesma mensagem (`PROJECT_NOT_AUTHORIZED`, `RUN_IN_PROGRESS`, `RUN_NOT_FOUND`, `AI_RUNTIME_*`). O `RUN_NOT_FOUND` da reversão tem outra explicação e ficou próprio | suítes existentes |
+| P3 .NET | Removidos: `RunStates.Analyzing`, `OpStatus.RolledBack/Skipped/Failed`, `LimitationCodes.JudgeNotConfigured`, `ManagedLockFile.TryParse`, a sobrecarga de `PlanBuilder.New` com `bool _`, `_ = normalized`. Comentário de `PlanBuilder.Normalize` corrigido. `YamlFiles` com a configuração única do YamlDotNet; `JournalJson.Node` substitui `ConfigureProjectService.ToJson` e o `Node` privado do `ResultJson`; `HasNothingToApply` usa `ConfigurationPlan.IsEmpty` | suítes existentes |
+| UI-P2-5 | `RecentProjectButton` compartilhado pela lista da configuração e pelos atalhos do início. Defeito corrigido: "atual" era marcado pelo nome de exibição, então duas pastas com o mesmo nome apareciam as duas como atuais. O host passa a devolver `recentId` junto da seleção, e a UI compara ids | `recent-projects.test.tsx`; Rust `a_selecao_registrada_leva_o_id_do_recente_correspondente` |
+| UI-P2-6 | `use-engine-status` lê o relatório com Zod (valor desconhecido nunca vira "pronto"). Defeito corrigido: desmontar antes de a escuta ligar deixava a escuta viva para sempre | `use-engine-status.test.ts` (falha no código antigo) |
+| UI-P2-7 | `app/routes.tsx` montado a partir de `shared/routing` (`paths` e `executionPattern`) | `routes.test.tsx` |
+| UI-P2-8 | `RequiresHost` nas rotas de Execução e Configurações: no navegador, a tela explica que precisa do aplicativo e oferece a volta ao início | `routes.test.tsx` |
+| UI-P2-2 | `useCopyToClipboard({ resetAfterMs })` em `ProjectPicker` e `CommandDisplay` | suítes existentes |
+| UI-P2-9 | Props sem uso removidas (`ActionCard.highlight`, `InlineNotice.onDismiss`, `SectionCard.tone`, `PageHeader.actions/lead`, `CommandDisplay.description`), com os estilos órfãos | suítes existentes |
+| UI-P2-1 (parcial) | `useConfigureJourney`: a referência ao estado é sincronizada antes dos efeitos (`useLayoutEffect`) e uma execução nova cancela o acompanhamento da anterior. A extração de `useRunTracker` não foi feita: o hook ficou coeso o bastante com os testes de caracterização da Onda 2 | suítes existentes |
+| UI-P2-3 (parcial) | `LockGlyph` e `InfoGlyph` foram para `shared/components/ui/atoms/icons`; o `ProjectPicker` deixou de repetir os mesmos SVGs | suítes existentes |
+| P3 UI | Removidos: `HarnessApi.runs`, `runsListSchema`, `RunSummary`, `MAIN_CONTENT_ID` exportado, `clearError`, o rótulo `analyzing`, `WorkflowStartParams`. `stepStatusLabel` virou mapa; `countApprovals` calculado uma vez; chaves de `EvidenceDisclosure` não colidem com textos repetidos | suítes existentes |
+| RS-P2-2 | `engine.rs` ficou com processo e pedidos; `resources.rs` (recursos empacotados) e `status.rs` (status para a UI). `compose_status` recebe o enum `Status` | testes movidos com o código |
+| RS-P2-3 | `Recents` (estado e gravação) saiu de `lib.rs` para `recents.rs` | Rust acima |
+
+**Avaliado e mantido:**
+
+- NET-P2-8 (Python): não é divergência. O `SystemProbe` procura o Python do PATH porque o hook roda no ambiente de IA da pessoa; o `PythonRuntimeLayout` procura o interpretador do próprio Mariliz (o empacotado primeiro). São interpretadores diferentes de propósito.
+- UI-P2-4 (`InlineNotice` → `Alert`) e o resto da UI-P2-3 (registro único de ícones): mudam a aparência e precisam de aprovação visual; ficam para o redesign.
+- Os cerca de 16 tipos exportados sem importador externo são props e peças de schema dos próprios módulos; só `WorkflowStartParams` era morto.
+- `harness.runs` continua no motor e na lista do host: é parte do protocolo; só o cliente da UI, sem uso, saiu.
+- `prototype/` tem a própria cópia de copiar texto; o protótipo é descartável e fica fora.
+- NET-P2-1, NET-P2-2, NET-P2-10 e NET-P2-11 ficam para quando essas áreas mudarem (o NET-P2-11 pertence à Fase 5).
+
+**Teste intermitente:** `ProtocolJourneyTests.Jornada_completa_pelo_protocolo_com_eventos_de_progresso_e_snapshot` falhou uma vez numa
+execução completa e passou sozinho e em sete execuções completas seguidas. A causa não foi identificada; fica registrada para observação.
+
+**Gates depois das Ondas 3 e 4:**
+
+| Gate | Resultado |
+| --- | --- |
+| `dotnet build --no-incremental` | 0 avisos |
+| `dotnet test` | 360 + 2 |
+| Python | 33 |
+| Rust (`fmt`, Clippy `-D warnings`) | limpos |
+| `cargo test` | 21 |
+| UI (`pnpm check`) | limpo; 146 testes |
 | `pnpm build` | ok |

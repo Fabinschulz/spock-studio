@@ -2,6 +2,7 @@ using Mariliz.Application.Harness;
 using Mariliz.Application.Ports;
 using Mariliz.Core.Discovery;
 using Mariliz.Core.Plan;
+using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Specification;
 
@@ -91,7 +92,7 @@ internal static class SpecificationPlanner
             commands.Add(new PlannedCommand(
                 "specification-update", "Atualizar a estrutura de especificação para a versão mais recente (instalador oficial)",
                 "npx", args, [CommandEffect.Process, CommandEffect.Network, CommandEffect.WriteLocal], false,
-                [SpecificationManifest.SkillDirectory, ".agents"]));
+                [SpecificationManifest.SkillDirectory, ManagedScope.SkillsLockDirectory]));
             risks.Add("A atualização da estrutura de especificação baixa a versão mais recente da rede e substitui a pasta da skill; o resultado é validado (arquivos, hash e scripts) e, se falhar, a versão atual é restaurada.");
             return;
         }
@@ -103,7 +104,7 @@ internal static class SpecificationPlanner
             "specification-install",
             needsForce ? "Reinstalar a estrutura de especificação (sobrescreve edições locais)" : "Instalar a estrutura de especificação pelo instalador oficial",
             "npx", args, [CommandEffect.Process, CommandEffect.Network, CommandEffect.WriteLocal], needsForce,
-            [SpecificationManifest.SkillDirectory, ".agents"]));
+            [SpecificationManifest.SkillDirectory, ManagedScope.SkillsLockDirectory]));
         risks.Add("A instalação da estrutura de especificação baixa conteúdo da rede e executa o pacote npm oficial; o resultado é validado (arquivos, hash e scripts) antes de a configuração ser dada como pronta.");
     }
 }

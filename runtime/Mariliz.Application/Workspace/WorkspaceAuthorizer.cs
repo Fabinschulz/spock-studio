@@ -1,6 +1,7 @@
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
+using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Workspace;
 
@@ -11,11 +12,10 @@ namespace Mariliz.Application.Workspace;
 /// </summary>
 public sealed class WorkspaceAuthorizer
 {
-    private static readonly Regex ProjectIdPattern = new("^p-[0-9a-f]{12}$", RegexOptions.CultureInvariant);
-
     private readonly IWorkspaceFileSystem _fileSystem;
     private readonly IWorkspaceRegistry? _registry;
-    private readonly Dictionary<string, string> _authorized = new();
+    // Escrito pelo protocolo (autorização) e lido pelas execuções em segundo plano.
+    private readonly ConcurrentDictionary<string, string> _authorized = new();
 
     public WorkspaceAuthorizer(IWorkspaceFileSystem fileSystem, IWorkspaceRegistry? registry = null)
     {
@@ -25,7 +25,7 @@ public sealed class WorkspaceAuthorizer
 
         foreach (var (id, path) in registry.Load())
         {
-            if (!ProjectIdPattern.IsMatch(id)) continue;
+            if (!Ids.IsProjectId(id)) continue;
             var resolved = fileSystem.ResolveDirectory(path);
             if (resolved is null) continue;
             var trimmed = Trim(resolved);

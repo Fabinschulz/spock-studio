@@ -1,7 +1,5 @@
 using Mariliz.Application.Ports;
 using YamlDotNet.Core;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace Mariliz.Application.Harness;
 
@@ -42,34 +40,19 @@ public sealed class ManagedLockFile
         public string Sha256 { get; set; } = "";
     }
 
-    private static readonly IDeserializer Reader = new DeserializerBuilder()
-        .WithNamingConvention(CamelCaseNamingConvention.Instance)
-        .IgnoreUnmatchedProperties()
-        .Build();
-
-    private static readonly ISerializer Writer = new SerializerBuilder()
-        .WithNamingConvention(CamelCaseNamingConvention.Instance)
-        .ConfigureDefaultValuesHandling(DefaultValuesHandling.Preserve)
-        .Build();
-
     public string ToYaml()
     {
         Components = Components.OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
         ManagedFiles = ManagedFiles.OrderBy(f => f.Path, StringComparer.Ordinal).ToList();
-        return "# Gerado pelo Mariliz Studio. Não edite à mão: use a aplicação.\n" + Writer.Serialize(this);
+        return "# Gerado pelo Mariliz Studio. Não edite à mão: use a aplicação.\n" + YamlFiles.Writer.Serialize(this);
     }
 
+    /// <summary>Lock ilegível vale como ausente: o plano o recria em vez de confiar em conteúdo quebrado.</summary>
     public static ManagedLockFile? Read(IProjectFiles files)
     {
         var text = files.ReadText(FileName);
         if (text is null) return null;
-        try { return Reader.Deserialize<ManagedLockFile>(text); }
-        catch (YamlException) { return null; }
-    }
-
-    public static ManagedLockFile? TryParse(string text)
-    {
-        try { return Reader.Deserialize<ManagedLockFile>(text); }
+        try { return YamlFiles.Reader.Deserialize<ManagedLockFile>(text); }
         catch (YamlException) { return null; }
     }
 }

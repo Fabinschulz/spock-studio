@@ -1,7 +1,6 @@
-import { Checklist, SectionCard, StatusChip } from '@/shared/components/ui';
+import { Checklist, InfoGlyph, SectionCard, StatusChip } from '@/shared/components/ui';
 import type { Discovery } from '@/shared/schema';
 import { cn } from '@/shared/utils';
-import { InfoGlyph } from '../../components/glyphs';
 import styles from '../../components/panels.module.scss';
 import { aiEnvironmentNames } from '../../domain/ai-environments';
 

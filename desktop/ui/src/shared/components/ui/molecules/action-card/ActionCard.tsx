@@ -9,7 +9,6 @@ interface ActionCardProps {
   icon: ReactNode;
   onClick?: () => void;
   variant?: 'primary' | 'default';
-  highlight?: string;
   /** Quando definido o cartão fica indisponível, mas continua focável (aria-disabled) para o leitor de tela anunciar o motivo. */
   unavailableReason?: string;
 }
@@ -20,7 +19,6 @@ export function ActionCard({
   icon,
   onClick,
   variant = 'default',
-  highlight,
   unavailableReason
 }: ActionCardProps) {
   const id = useId();
@@ -56,7 +54,6 @@ export function ActionCard({
         <span id={descriptionId} className={styles.description}>
           {description}
         </span>
-        {highlight && !unavailable ? <span className={styles.highlight}>{highlight}</span> : null}
       </span>
       {unavailable ? null : (
         <span className={styles.arrow} aria-hidden="true">

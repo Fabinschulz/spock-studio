@@ -1,8 +1,8 @@
-//! Ciclo de vida do runtime .NET (sidecar) e correlação de requisições e respostas.
+//! Ciclo de vida do runtime .NET (sidecar) e correlação de requisições e respostas. Onde estão os recursos
+//! empacotados fica em `resources`; como o estado chega à UI, em `status`.
 
 use std::{
     collections::HashMap,
-    path::{Path, PathBuf},
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         Arc, Mutex,
@@ -20,55 +20,13 @@ use tokio::sync::oneshot;
 
 use crate::lock;
 use crate::protocol::{parse_engine_line, EngineMessage, HostError, PROTOCOL_VERSION};
+use crate::resources::packaged_runtime;
+use crate::status::Status;
 
 // Descoberta e plano leem o projeto e consultam ferramentas; execuções longas respondem na hora e avisam por eventos.
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(120);
 const SIDECAR: &str = "mariliz-runtime";
 const SHUTDOWN_GRACE: Duration = Duration::from_secs(10);
-
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Status {
-    Starting,
-    Ready,
-    Crashed,
-}
-
-impl Status {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Status::Starting => "starting",
-            Status::Ready => "ready",
-            Status::Crashed => "crashed",
-        }
-    }
-}
-
-/// Caminhos do interpretador e do script empacotados como recursos do instalador.
-pub fn packaged_runtime(resource_dir: &Path) -> (Option<PathBuf>, Option<PathBuf>) {
-    let script = resource_dir.join("intelligence").join("server.py");
-    let python = if cfg!(windows) {
-        resource_dir.join("python").join("python.exe")
-    } else {
-        resource_dir.join("python").join("bin").join("python3")
-    };
-    (
-        script.is_file().then_some(script),
-        python.is_file().then_some(python),
-    )
-}
-
-/// O motor e o runtime de IA são estados diferentes: a inteligência indisponível não derruba o motor.
-pub fn compose_status(lifecycle: &str, health: Option<&Value>) -> Value {
-    if lifecycle != "ready" {
-        return json!({ "engine": lifecycle, "aiRuntime": "unknown" });
-    }
-    let ai = health
-        .and_then(|value| value.get("aiRuntime"))
-        .and_then(Value::as_str)
-        .filter(|status| matches!(*status, "ready" | "stopped" | "unavailable"))
-        .unwrap_or("unavailable");
-    json!({ "engine": "ready", "aiRuntime": ai })
-}
 
 #[derive(Default)]
 struct Inner {
@@ -301,47 +259,5 @@ impl Engine {
         if let Some(child) = lock(&self.0.child).take() {
             let _ = child.kill();
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn inteligencia_indisponivel_nao_derruba_o_motor() {
-        let down = compose_status("ready", Some(&json!({ "aiRuntime": "unavailable" })));
-        assert_eq!(down["engine"], "ready");
-        assert_eq!(down["aiRuntime"], "unavailable");
-
-        let crashed = compose_status("crashed", Some(&json!({ "aiRuntime": "ready" })));
-        assert_eq!(crashed["engine"], "crashed");
-        assert_eq!(crashed["aiRuntime"], "unknown");
-
-        let unknown = compose_status("ready", Some(&json!({ "aiRuntime": "inventado" })));
-        assert_eq!(unknown["aiRuntime"], "unavailable");
-    }
-
-    #[test]
-    fn recursos_empacotados_so_existem_quando_os_arquivos_existem() {
-        let dir = std::env::temp_dir().join(format!("mariliz-res-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&dir);
-        std::fs::create_dir_all(dir.join("intelligence")).unwrap();
-        std::fs::write(dir.join("intelligence").join("server.py"), b"print('ok')").unwrap();
-        let (script, python) = packaged_runtime(&dir);
-        assert!(script.is_some());
-        assert!(python.is_none());
-
-        let python_file = if cfg!(windows) {
-            dir.join("python").join("python.exe")
-        } else {
-            dir.join("python").join("bin").join("python3")
-        };
-        std::fs::create_dir_all(python_file.parent().unwrap()).unwrap();
-        std::fs::write(&python_file, b"").unwrap();
-        let (script, python) = packaged_runtime(&dir);
-        assert!(script.is_some());
-        assert!(python.is_some());
-        let _ = std::fs::remove_dir_all(&dir);
     }
 }

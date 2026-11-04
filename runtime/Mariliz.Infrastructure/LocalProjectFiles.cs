@@ -100,7 +100,7 @@ public sealed class LocalProjectFiles : IProjectFiles
 
     public void WriteAtomic(string path, byte[] content, WriteScope scope = WriteScope.Managed)
     {
-        var (normalized, full) = ResolveForWrite(path, scope);
+        var (_, full) = ResolveForWrite(path, scope);
         Directory.CreateDirectory(Path.GetDirectoryName(full)!);
         EnsureNoReparseOnPath(full);
 
@@ -114,7 +114,6 @@ public sealed class LocalProjectFiles : IProjectFiles
         {
             if (File.Exists(temp)) File.Delete(temp);
         }
-        _ = normalized;
     }
 
     public void Delete(string path, WriteScope scope = WriteScope.Managed)
@@ -132,7 +131,7 @@ public sealed class LocalProjectFiles : IProjectFiles
         {
             if (!PathGuard.TryNormalize(current, out var normalized, out _)) return;
             var top = normalized.Split('/')[0];
-            if (top is not (".claude" or ".mariliz" or ".agents")) return;
+            if (!ManagedScope.TopLevelDirectories.Contains(top)) return;
             if (!TryResolve(normalized, out var full) || !Directory.Exists(full) || IsReparse(full)) return;
             if (Directory.EnumerateFileSystemEntries(full).Any()) return;
             Directory.Delete(full);

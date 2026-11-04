@@ -14,7 +14,7 @@ public sealed class RunQueries(RunTracker tracker, IRunStore store)
     /// </summary>
     public JsonObject Snapshot(string runId, int? sinceSeq = null)
     {
-        var run = tracker.Find(runId) ?? throw new EngineException("RUN_NOT_FOUND", "Execução não encontrada.");
+        var run = tracker.Find(runId) ?? throw EngineErrors.RunNotFound();
         var snapshot = run.Snapshot(sinceSeq);
         if (sinceSeq is not { } since || snapshot["firstSeq"]!.GetValue<int>() <= since + 1) return snapshot;
 

@@ -2,7 +2,6 @@ namespace Mariliz.Application.Execution;
 
 public static class RunStates
 {
-    public const string Analyzing = "analyzing";
     public const string AwaitingApproval = "awaiting_approval";
     public const string Running = "running";
     public const string Validating = "validating";

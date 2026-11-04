@@ -31,5 +31,5 @@ export function useStartEngineeringRequest(client: EngineClient, projectId: stri
     [client, navigate, projectId]
   );
 
-  return { submit, busy, error, clearError: () => setError(null) };
+  return { submit, busy, error };
 }

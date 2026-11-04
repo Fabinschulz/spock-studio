@@ -112,8 +112,8 @@ public sealed class CliRunner(
     {
         var projectId = Authorize(args);
         var report = await service.DiscoverAsync(projectId, ct);
-        if (_json) { WriteJson(ConfigureProjectService.ToJson(report)); return ExitOk; }
-        CliRender.Discovery(stdout, JsonSerializer.SerializeToNode(report, JournalJson.Options)!);
+        if (_json) { WriteJson(JournalJson.Node(report)); return ExitOk; }
+        CliRender.Discovery(stdout, JournalJson.Node(report)!);
         return ExitOk;
     }
 
@@ -121,7 +121,7 @@ public sealed class CliRunner(
     {
         var projectId = Authorize(args);
         var plan = await service.PlanAsync(projectId, Options(args), ct);
-        if (_json) { WriteJson(ConfigureProjectService.ToJson(plan)); return ExitOk; }
+        if (_json) { WriteJson(JournalJson.Node(plan)); return ExitOk; }
         CliRender.Plan(stdout, plan, args.Has("--diff"));
         return ExitOk;
     }

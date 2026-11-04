@@ -1,13 +1,14 @@
 using System.Diagnostics;
-using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
+using System.Net;
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json.Nodes;
-using Mariliz.Application.Protocol;
+using System.Text;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Ports;
+using Mariliz.Application.Protocol;
+using Mariliz.Core.Text;
 
 namespace Mariliz.Infrastructure;
 
@@ -70,11 +71,11 @@ public sealed class LoopbackAiRuntime : IAiRuntime
     {
         var script = _scriptPath;
         if (string.IsNullOrWhiteSpace(script) || !File.Exists(script))
-            throw new EngineException("AI_RUNTIME_UNAVAILABLE", "O runtime de IA não está disponível nesta instalação.");
+            throw EngineErrors.AiRuntimeUnavailable("O runtime de IA não está disponível nesta instalação.");
 
         var candidates = PythonCandidates().ToList();
         if (candidates.Count == 0)
-            throw new EngineException("AI_RUNTIME_UNAVAILABLE", "O runtime de IA não está disponível nesta máquina.");
+            throw EngineErrors.AiRuntimeUnavailable("O runtime de IA não está disponível nesta máquina.");
 
         foreach (var python in candidates)
         {
@@ -83,7 +84,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
             if (await TryStartAsync(python, script, ct)) return;
         }
 
-        throw new EngineException("AI_RUNTIME_UNAVAILABLE", "O runtime de IA não respondeu.");
+        throw EngineErrors.AiRuntimeUnavailable("O runtime de IA não respondeu.");
     }
 
     public async Task<IReadOnlyDictionary<string, string>> IndexedHashesAsync(string projectId, string indexRoot, CancellationToken ct)
@@ -132,7 +133,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         await EnsureReadyAsync(ct);
         HttpClient? http;
         lock (_gate) http = _http;
-        if (http is null) throw new EngineException("AI_RUNTIME_UNAVAILABLE", "O runtime de IA não está disponível nesta máquina.");
+        if (http is null) throw EngineErrors.AiRuntimeUnavailable("O runtime de IA não está disponível nesta máquina.");
 
         using var message = new HttpRequestMessage(HttpMethod.Post, path)
         {
@@ -140,7 +141,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         };
         using var response = await http.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, ct);
         if (!response.IsSuccessStatusCode || response.Content.Headers.ContentType?.MediaType != "application/x-ndjson")
-            throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+            throw EngineErrors.AiRuntimeInvalidResponse();
 
         await using var stream = await response.Content.ReadAsStreamAsync(ct);
         using var reader = new StreamReader(stream, Encoding.UTF8);
@@ -148,7 +149,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         {
             if (line.Length == 0) continue;
             if (line.Length > MaxLine || JsonNode.Parse(line) is not JsonObject item)
-                throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+                throw EngineErrors.AiRuntimeInvalidResponse();
             switch (item.Text("schema"))
             {
                 case "ai.event.v1":
@@ -157,11 +158,11 @@ public sealed class LoopbackAiRuntime : IAiRuntime
                 case "ai.ack.v2":
                     return ReadAck(item);
                 default:
-                    throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+                    throw EngineErrors.AiRuntimeInvalidResponse();
             }
         }
 
-        throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+        throw EngineErrors.AiRuntimeInvalidResponse();
     }
 
     private static WorkflowAck ReadAck(JsonObject ack)
@@ -178,11 +179,9 @@ public sealed class LoopbackAiRuntime : IAiRuntime
             ack["output"] as JsonObject ?? new JsonObject(),
             [.. warnings, .. errors],
             errors,
-            IsInterruptId(interrupt) ? interrupt : null);
+            Ids.IsInterruptId(interrupt) ? interrupt : null);
     }
 
-    private static bool IsInterruptId(string value) =>
-        value.Length == 16 && value.StartsWith("int-", StringComparison.Ordinal) && value[4..].All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f');
 
     public async Task ShutdownAsync()
     {
@@ -312,13 +311,13 @@ public sealed class LoopbackAiRuntime : IAiRuntime
     {
         HttpClient? http;
         lock (_gate) http = _http;
-        if (http is null) throw new EngineException("AI_RUNTIME_UNAVAILABLE", "O runtime de IA não está disponível nesta máquina.");
+        if (http is null) throw EngineErrors.AiRuntimeUnavailable("O runtime de IA não está disponível nesta máquina.");
 
         using var content = new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json");
         using var response = await http.PostAsync(path, content, ct);
         var text = await response.Content.ReadAsStringAsync(ct);
         if (!response.IsSuccessStatusCode || JsonNode.Parse(text) is not JsonObject ack)
-            throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+            throw EngineErrors.AiRuntimeInvalidResponse();
         return ack;
     }
 

@@ -14,5 +14,4 @@ public static class LimitationCodes
     public const string SpecificationUntested = "SPECIFICATION_UNTESTED_VERSION";
     public const string SpecificationOutdated = "SPECIFICATION_OUTDATED";
     public const string HarnessEngineerNotInvoked = "HARNESS_ENGINEER_NOT_INVOKED";
-    public const string JudgeNotConfigured = "JUDGE_NOT_CONFIGURED";
 }
