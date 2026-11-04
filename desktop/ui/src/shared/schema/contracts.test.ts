@@ -16,7 +16,7 @@ import {
   runSnapshotSchema,
   workflowStartParamsSchema,
   workflowStartResultSchema
-} from './engine';
+} from '.';
 
 /** As fixtures são geradas pelo motor real (MARILIZ_UPDATE_GOLDEN=1 dotnet test). Se o formato mudar, este teste falha. */
 describe('contrato do motor (fixtures golden)', () => {

@@ -10,10 +10,12 @@ import type { Loadable } from '../../types/journey';
 interface ProposalGuideProps {
   onReplan: () => void;
   replan: Loadable<unknown>;
+  /** Uma reversão ou validação em andamento: gerar outro plano agora tiraria a pessoa do resultado no meio dela. */
+  busy: boolean;
 }
 
 /** Próximo passo guiado: o prompt pronto para o agente e o botão para planejar de novo com a proposta dele. */
-export function ProposalGuide({ onReplan, replan }: ProposalGuideProps) {
+export function ProposalGuide({ onReplan, replan, busy }: ProposalGuideProps) {
   const { state: copyState, copy } = useCopyToClipboard();
 
   return (
@@ -36,7 +38,7 @@ export function ProposalGuide({ onReplan, replan }: ProposalGuideProps) {
         <Button variant="outlined" color="inherit" onClick={() => void copy(harnessEngineerPrompt)}>
           {copyState === 'copied' ? 'Copiado' : 'Copiar pedido'}
         </Button>
-        <Button variant="contained" onClick={onReplan} disabled={replan.status === 'loading'}>
+        <Button variant="contained" onClick={onReplan} disabled={busy || replan.status === 'loading'}>
           {replan.status === 'loading' ? 'Gerando plano…' : 'Gerar o plano de novo'}
         </Button>
       </div>

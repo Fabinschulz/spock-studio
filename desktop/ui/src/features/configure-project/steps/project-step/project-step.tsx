@@ -1,6 +1,5 @@
 import { Alert, ArrowRightIcon, Button } from '@synthra.io/ui-kit';
 
-import type { RecentProject } from '@/features/project-selection';
 import { Checklist, PrimaryActionFooter, SectionCard } from '@/shared/components/ui';
 import type { Discovery } from '@/shared/schema';
 
@@ -22,13 +21,6 @@ interface ProjectStepProps {
   /** `null` enquanto nenhuma pasta foi escolhida. */
   project: PickedProject | null;
   discovery: Loadable<Discovery>;
-  recents: readonly RecentProject[];
-  busy: boolean;
-  error: string | null;
-  cancelled: boolean;
-  unavailableReason?: string;
-  onPick: () => void;
-  onOpenRecent: (id: string) => void;
   aiEnvironment: string | null;
   onEnvironment: (id: string) => void;
   /** Começa a análise: ela nunca roda sozinha. */
@@ -39,15 +31,8 @@ interface ProjectStepProps {
 export function ProjectStep({
   project,
   discovery,
-  recents,
-  busy,
-  error,
-  cancelled,
-  unavailableReason,
   aiEnvironment,
   onEnvironment,
-  onPick,
-  onOpenRecent,
   onAnalyze,
   onContinue
 }: ProjectStepProps) {
@@ -60,18 +45,7 @@ export function ProjectStep({
 
       <div className={styles.projectWrap}>
         <div className={styles.projectGrid}>
-          <FolderPickerCard
-            project={project}
-            recents={recents}
-            busy={busy}
-            analyzing={analyzing}
-            error={error}
-            cancelled={cancelled}
-            unavailableReason={unavailableReason}
-            onPick={onPick}
-            onOpenRecent={onOpenRecent}
-            onAnalyze={onAnalyze}
-          />
+          <FolderPickerCard project={project} analyzing={analyzing} onAnalyze={onAnalyze} />
 
           <div className={styles.stack}>
             <SectionCard title="O que vamos analisar?" icon={<SpecificationGlyph size={20} />}>

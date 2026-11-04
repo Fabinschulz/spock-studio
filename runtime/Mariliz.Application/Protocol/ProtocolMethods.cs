@@ -25,7 +25,10 @@ public static class ProtocolMethods
     public const string ModelComplete = "model.complete";
 
     public static readonly IReadOnlyList<string> Configure =
-        [Discover, Plan, Apply, Validate, Revert, Runs, Snapshot, Cancel];
+        [Discover, Plan, Apply, Validate, Revert, Runs];
+
+    /// <summary>Consulta e cancelamento valem para execuções de qualquer jornada.</summary>
+    public static readonly IReadOnlyList<string> RunControl = [Snapshot, Cancel];
 
     public static readonly IReadOnlyList<string> Workflow = [WorkflowStart, WorkflowResume];
 

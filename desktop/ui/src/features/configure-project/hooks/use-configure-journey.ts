@@ -1,4 +1,4 @@
-import { EngineError } from '@/shared/api';
+import { EngineError, errorMessage } from '@/shared/api';
 import type { ConflictResolution } from '@/shared/schema';
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 import { initialJourneyState } from '../constants/initial-journey-state';
@@ -9,8 +9,7 @@ import { waitForRun, type HarnessApi } from '../service';
 import { type JourneyStepId } from '../types/journey';
 import { type RunKind } from '../types/run';
 
-const messageOf = (error: unknown) =>
-  error instanceof EngineError ? error.message : 'Algo inesperado aconteceu. Tente de novo.';
+const messageOf = (error: unknown) => errorMessage(error, 'Algo inesperado aconteceu. Tente de novo.');
 
 /** Liga o estado da jornada ao motor. Cada ação chama um caso de uso; a decisão é sempre do motor. */
 export function useConfigureJourney(api: HarnessApi, projectId: string, pollMs = 1000) {

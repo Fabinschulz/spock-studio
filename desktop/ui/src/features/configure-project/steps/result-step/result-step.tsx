@@ -1,13 +1,15 @@
 import { Alert, Button } from '@synthra.io/ui-kit';
 import { useState } from 'react';
 
+import { runOutcomeLabel } from '@/shared/utils';
+
 import { EvidenceDisclosure, PrimaryActionFooter } from '@/shared/components/ui';
 
 import styles from '../../components/panels.module.scss';
 import { StepHeader } from '../../components/step-header';
 import type { JourneyResults, Loadable } from '../../types/journey';
 import type { RunView } from '../../types/run';
-import { outcomeLabel, runKindLabel } from '../../domain/labels';
+import { runKindLabel } from '../../domain/labels';
 import { awaitingHarnessProposal, explainOutcome, outcomeSeverity } from '../../domain/run-outcome';
 import { FilesSummary } from './files-summary';
 import { ProposalGuide } from './proposal-guide';
@@ -47,7 +49,7 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
       {apply ? (
         <Alert
           severity={outcomeSeverity[apply.outcome]}
-          title={outcomeLabel[apply.outcome]}
+          title={runOutcomeLabel[apply.outcome]}
           description={
             <>
               {explainOutcome(apply)}
@@ -89,7 +91,9 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
         <EvidenceDisclosure summary={`Riscos remanescentes (${apply.risks.length})`} items={apply.risks} />
       ) : null}
 
-      {awaitingHarnessProposal(apply, revert) ? <ProposalGuide onReplan={onReplan} replan={replan} /> : null}
+      {awaitingHarnessProposal(apply, revert) ? (
+        <ProposalGuide onReplan={onReplan} replan={replan} busy={busy} />
+      ) : null}
 
       {revert ? <RevertSummary result={revert} /> : null}
 

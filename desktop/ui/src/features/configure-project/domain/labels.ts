@@ -5,7 +5,6 @@ import type {
   EvalResult,
   FileChange,
   PlannedCommand,
-  RunResult,
   StackFinding
 } from '@/shared/schema';
 
@@ -112,14 +111,6 @@ export const evalStatusTone: Record<EvalResult['status'], Tone> = {
   not_run: 'neutral'
 };
 
-export const outcomeLabel: Record<RunResult['outcome'], string> = {
-  completed: 'Concluído',
-  completed_with_limitations: 'Concluído com limitações',
-  failed: 'Falhou',
-  requires_intervention: 'Requer intervenção',
-  cancelled: 'Cancelado'
-};
-
 export const observationLabel: Record<ObservationKind, string> = {
   fact: 'Fato',
   inference: 'Inferência',
@@ -135,15 +126,6 @@ export const observationTone: Record<ObservationKind, Tone> = {
 };
 
 export const runKindLabel = { apply: 'Aplicação', revert: 'Reversão', validate: 'Validação' } as const;
-
-export const runStateLabel: Record<string, string> = {
-  running: 'Executando',
-  validating: 'Validando',
-  failed: 'Falhou'
-};
-
-export const stepStatusTone = (status: string): Tone =>
-  status === 'running' ? 'info' : status.startsWith('completed') ? 'success' : 'warning';
 
 export const stepStatusLabel = (status: string): string =>
   status === 'running'

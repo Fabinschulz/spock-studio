@@ -26,7 +26,7 @@ public class WorkflowRuntimeTests
         var tracker = new RunTracker();
         var authorizer = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
         var runtime = new LoopbackAiRuntime(scriptPath: Path.Combine(project.Root, "ausente", "server.py"));
-        var workflows = new WorkflowService(authorizer, runtime, tracker, new SystemClock());
+        var workflows = new WorkflowService(authorizer, runtime, tracker, new SystemClock(), new FileRunStore(project.DataDir), WorkflowContextBuilder.WithoutProject);
         var session = new EngineSession("test", workspace: authorizer, workflows: workflows, tracker: tracker);
 
         var projectId = Authorize(session, project.Root);
@@ -45,7 +45,7 @@ public class WorkflowRuntimeTests
         using var project = TempProject.Dotnet();
         var tracker = new RunTracker();
         var authorizer = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
-        var workflows = new WorkflowService(authorizer, new LoopbackAiRuntime(scriptPath: Path.Combine(project.Root, "ausente", "server.py")), tracker, new SystemClock());
+        var workflows = new WorkflowService(authorizer, new LoopbackAiRuntime(scriptPath: Path.Combine(project.Root, "ausente", "server.py")), tracker, new SystemClock(), new FileRunStore(project.DataDir), WorkflowContextBuilder.WithoutProject);
         var session = new EngineSession("test", workspace: authorizer, workflows: workflows, tracker: tracker);
         var projectId = Authorize(session, project.Root);
 
@@ -602,7 +602,7 @@ public class WorkflowRuntimeTests
         var authorizer = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
         var runtime = new LoopbackAiRuntime(scriptPath: Path.Combine(project.Root, "ausente", "server.py"));
         Assert.Equal("unavailable", runtime.Probe());
-        var workflows = new WorkflowService(authorizer, runtime, tracker, new SystemClock());
+        var workflows = new WorkflowService(authorizer, runtime, tracker, new SystemClock(), new FileRunStore(project.DataDir), WorkflowContextBuilder.WithoutProject);
         var session = new EngineSession("test", workspace: authorizer, workflows: workflows, tracker: tracker);
 
         var health = session.Handle(Line("runtime.health", new JsonObject())).Response;
@@ -652,8 +652,9 @@ public class WorkflowRuntimeTests
         var runner = new SystemProcessRunner();
         var configure = new ConfigureProjectService(
             authorizer, new TestFilesFactory(), runner, store, new SystemClock(), tracker);
-        var workflows = new WorkflowService(authorizer, runtime, tracker, new SystemClock(), new TestFilesFactory(), runner, project.DataDir, store);
-        var session = new EngineSession("test", workspace: authorizer, configure: configure, relay: relay, tracker: tracker, workflows: workflows);
+        var workflows = new WorkflowService(authorizer, runtime, tracker, new SystemClock(), store,
+            new WorkflowContextBuilder(authorizer, runtime, new TestFilesFactory(), runner, project.DataDir));
+        var session = new EngineSession("test", workspace: authorizer, configure: configure, relay: relay, tracker: tracker, workflows: workflows, runs: new RunQueries(tracker, store));
         wire.Running = Task.Run(() => session.RunAsync(wire.Input, wire.Output, CancellationToken.None));
         return wire;
     }

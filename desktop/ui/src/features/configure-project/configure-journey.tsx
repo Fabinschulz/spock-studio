@@ -1,5 +1,4 @@
 import { EngineeringRequestShortcut } from '@/features/engineering-request';
-import { useProjectSelectionContext } from '@/features/project-selection';
 import { useScrollToTop } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 import { useNavigate } from 'react-router';
@@ -26,7 +25,6 @@ interface ConfigureJourneyProps {
 
 export function ConfigureJourney({ api, projectId, projectName, projectPath, pollMs }: ConfigureJourneyProps) {
   const navigate = useNavigate();
-  const { busy, error, cancelled, recents, pick, openRecent, unavailableReason } = useProjectSelectionContext();
   const { state, actions } = useConfigureJourney(api, projectId, pollMs);
   const home = () => navigate(pathTo('home'));
 
@@ -57,13 +55,6 @@ export function ConfigureJourney({ api, projectId, projectName, projectPath, pol
         <ProjectStep
           project={{ name: projectName, path: projectPath }}
           discovery={state.discovery}
-          recents={recents}
-          busy={busy}
-          error={error}
-          cancelled={cancelled}
-          unavailableReason={unavailableReason}
-          onPick={() => void pick()}
-          onOpenRecent={(id) => void openRecent(id)}
           aiEnvironment={state.aiEnvironment}
           onEnvironment={actions.setEnvironment}
           onAnalyze={() => void actions.discover()}

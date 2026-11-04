@@ -161,7 +161,7 @@ public sealed class CliRunner(
     private async Task<int> FinishAsync(RunHandle run, CancellationToken ct)
     {
         // Ctrl+C cancela pelo motor, que desfaz o que já foi feito, em vez de matar o processo no meio.
-        await using var _ = ct.Register(() => service.Cancel(run.RunId));
+        await using var _ = ct.Register(run.Cancellation.Cancel);
         await run.Completion!;
 
         var result = run.Result!;

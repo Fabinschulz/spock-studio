@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { runOutcomeSchema, snapshotOf } from './run';
+
 /**
  * Contrato das respostas do motor para a jornada "Configurar projeto". Espelha o C#
  * (Mariliz.Core e Mariliz.Application) e é conferido contra as fixtures golden de contracts.
@@ -164,14 +166,6 @@ export const validationSchema = z.object({
 
 const runStep = z.object({ id: z.string(), title: z.string(), status: z.string(), detail: z.string().nullable() });
 
-export const runOutcomeSchema = z.enum([
-  'completed',
-  'completed_with_limitations',
-  'failed',
-  'requires_intervention',
-  'cancelled'
-]);
-
 export const runResultSchema = z.object({
   runId: z.string(),
   projectId: z.string(),
@@ -205,43 +199,8 @@ export const runResultSchema = z.object({
   rollbackAvailable: z.boolean().optional()
 });
 
-export const runEventSchema = z.object({
-  v: z.literal(1),
-  kind: z.literal('event'),
-  runId: z.string(),
-  type: z.string(),
-  seq: z.number(),
-  data: z.record(z.string(), z.unknown())
-});
+export const runSnapshotSchema = snapshotOf(runResultSchema);
 
-export const runSnapshotSchema = z.object({
-  runId: z.string(),
-  projectId: z.string(),
-  kind: z.string(),
-  state: z.string(),
-  lastSeq: z.number(),
-  events: z.array(z.object({ seq: z.number(), type: z.string(), data: z.record(z.string(), z.unknown()) })),
-  result: runResultSchema.nullable()
-});
-
-export const runStartedSchema = z.object({ runId: z.string() });
-
-/** Corpo de `input` em workflow.start (engineering.request.v1). Stacks vêm do contexto do motor. */
-export const workflowStartInputSchema = z.object({
-  goal: z.string().min(1),
-  impact: z.boolean().optional(),
-  requiresApproval: z.boolean().optional()
-});
-
-/** Parâmetros de workflow.start — espelha contracts/schemas/ai/workflow.start.params.schema.json */
-export const workflowStartParamsSchema = z
-  .object({
-    projectId: z.string().min(1),
-    input: workflowStartInputSchema.optional()
-  })
-  .strict();
-
-export const workflowStartResultSchema = runStartedSchema;
 export const runsListSchema = z.object({
   runs: z.array(
     z.object({
@@ -253,12 +212,6 @@ export const runsListSchema = z.object({
       reverted: z.boolean()
     })
   )
-});
-export const cancelSchema = z.object({ cancelled: z.boolean() });
-
-export const modelStatusSchema = z.object({
-  configured: z.boolean(),
-  provider: z.string()
 });
 
 /** Decisão da pessoa para um arquivo em conflito: manter o dela ou substituir (com backup). */
@@ -272,8 +225,5 @@ export type PlannedCommand = z.infer<typeof plannedCommandSchema>;
 export type ComponentDecision = z.infer<typeof componentDecisionSchema>;
 export type EvalResult = z.infer<typeof evalResultSchema>;
 export type RunResult = z.infer<typeof runResultSchema>;
-export type RunEvent = z.infer<typeof runEventSchema>;
 export type RunSnapshot = z.infer<typeof runSnapshotSchema>;
 export type RunSummary = z.infer<typeof runsListSchema>['runs'][number];
-export type WorkflowStartInput = z.infer<typeof workflowStartInputSchema>;
-export type WorkflowStartParams = z.infer<typeof workflowStartParamsSchema>;

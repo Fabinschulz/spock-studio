@@ -331,7 +331,7 @@ public class ConfigureJourneyTests
         var plan = await journey.PlanAsync();
         var run = journey.Service.StartApply(journey.ProjectId, plan.PlanId, Journey.ApproveAll(plan));
         await started.Task.WaitAsync(TimeSpan.FromSeconds(20));
-        journey.Service.Cancel(run.RunId);
+        journey.Tracker.Cancel(run.RunId);
         await run.Completion!;
 
         Assert.Equal("cancelled", run.State);

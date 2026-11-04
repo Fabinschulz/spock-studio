@@ -14,6 +14,7 @@ const paused: WorkflowSnapshot = {
   projectId: 'p-aaaaaaaaaaaa',
   kind: 'workflow',
   state: 'awaiting_approval',
+  lastSeq: 1,
   events: [{ seq: 1, type: 'agent.completed', data: { agentId: 'architecture' } }],
   result: null
 };

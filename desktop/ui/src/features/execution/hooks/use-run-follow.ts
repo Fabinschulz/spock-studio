@@ -2,7 +2,8 @@ import type { EngineClient } from '@/shared/api';
 import type { RunEvent } from '@/shared/schema';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { applyLive, fromSnapshot, isTerminal, workflowSnapshotSchema, type RunView } from '../domain/run-timeline';
+import { applyLive, fromSnapshot, isTerminal, type RunView } from '../domain/run-timeline';
+import { readSnapshot } from '../service/execution-api';
 
 /**
  * Acompanha uma execução pelos eventos reais do motor. Escuta antes de ler o retrato, para não perder o que acontecer no
@@ -22,8 +23,7 @@ export function useRunFollow(client: EngineClient, runId: string) {
 
   const refresh = useCallback(async () => {
     const current = viewRef.current;
-    const params = current ? { runId, sinceSeq: current.lastSeq } : { runId };
-    const snapshot = await client.request('run.snapshot', params, workflowSnapshotSchema);
+    const snapshot = await readSnapshot(client, runId, current?.lastSeq);
     let next = fromSnapshot(snapshot, current ?? undefined);
     for (const event of pending.current) next = applyLive(next, event).view;
     pending.current = [];

@@ -17,8 +17,6 @@ internal sealed class ConfigureRequestHandler(ConfigureProjectService service)
         ProtocolMethods.Validate => RunStarted(service.StartValidate(p.Str("projectId"))),
         ProtocolMethods.Revert => RunStarted(service.StartRevert(p.Str("projectId"), p.Str("runId"))),
         ProtocolMethods.Runs => new JsonObject { ["runs"] = ConfigureProjectService.ToJson(service.ListRuns(p.Str("projectId"))) },
-        ProtocolMethods.Snapshot => service.Snapshot(p.Str("runId"), p.OptionalInt("sinceSeq")),
-        ProtocolMethods.Cancel => new JsonObject { ["cancelled"] = service.Cancel(p.Str("runId")) },
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
     };
 

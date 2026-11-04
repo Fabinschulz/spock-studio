@@ -1,10 +1,10 @@
 import type { EngineClient } from '@/shared/api';
-import { EngineError } from '@/shared/api';
-import { modelStatusSchema } from '@/shared/schema';
 import { Button } from '@synthra.io/ui-kit';
-import { useEffect, useId, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 
+import { useModelSettings } from './hooks/use-model-settings';
 import styles from './model-settings-page.module.scss';
+import { createModelApi } from './service/model-api';
 
 const KEY_PATTERN = /^[A-Za-z0-9_-]{20,200}$/;
 
@@ -19,57 +19,18 @@ function providerLabel(provider: string): string {
 
 export function ModelSettingsPage({ client }: { client: EngineClient }) {
   const inputId = useId();
-  const [status, setStatus] = useState<{ configured: boolean; provider: string } | null>(null);
+  const api = useMemo(() => createModelApi(client), [client]);
+  const { status, busy, error, save: saveKey, clear: clearKey } = useModelSettings(api);
   const [key, setKey] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    void client
-      .request('model.status', {}, modelStatusSchema)
-      .then((next) => {
-        if (active) setStatus(next);
-      })
-      .catch((cause) => {
-        if (active) {
-          setError(cause instanceof EngineError ? cause.message : 'Não foi possível ler o estado do modelo.');
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, [client]);
 
   const canSave = KEY_PATTERN.test(key.trim());
 
   const save = async () => {
-    if (!canSave) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const next = await client.request('model.save', { provider: 'openai', key: key.trim() }, modelStatusSchema);
-      setStatus(next);
-      setKey('');
-    } catch (cause) {
-      setError(cause instanceof EngineError ? cause.message : 'Não foi possível guardar a chave.');
-    } finally {
-      setBusy(false);
-    }
+    if (canSave && (await saveKey(key.trim()))) setKey('');
   };
 
   const clear = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      const next = await client.request('model.clear', {}, modelStatusSchema);
-      setStatus(next);
-      setKey('');
-    } catch (cause) {
-      setError(cause instanceof EngineError ? cause.message : 'Não foi possível remover a chave.');
-    } finally {
-      setBusy(false);
-    }
+    if (await clearKey()) setKey('');
   };
 
   const configured = status?.configured ?? false;
