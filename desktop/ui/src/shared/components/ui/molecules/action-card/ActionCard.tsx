@@ -1,5 +1,5 @@
 import { cn } from '@/shared/utils';
-import { ArrowRightIcon } from '@synthra.io/ui-kit';
+import { ArrowRightIcon, Button } from '@synthra.io/ui-kit';
 import { useId, type ReactNode } from 'react';
 import styles from './ActionCard.module.scss';
 
@@ -27,8 +27,9 @@ export function ActionCard({
   const unavailable = unavailableReason !== undefined;
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="text"
+      color="inherit"
       className={cn(
         styles.card,
         variant === 'primary' && !unavailable && styles.primary,
@@ -60,6 +61,6 @@ export function ActionCard({
           <ArrowRightIcon fontSize="small" />
         </span>
       )}
-    </button>
+    </Button>
   );
 }

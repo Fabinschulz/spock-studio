@@ -40,15 +40,15 @@ export function FolderPickerCard({ project, analyzing, onAnalyze }: FolderPicker
         <span className={project ? styles.pathValue : styles.pathEmpty} title={project?.path}>
           {project ? project.path : 'Nenhuma pasta selecionada'}
         </span>
-        <button
-          type="button"
+        <Button
+          variant="text"
           className={styles.pathButton}
           aria-disabled={inactive || undefined}
           aria-label={project ? `Trocar a pasta do projeto ${project.name}` : 'Selecionar pasta do projeto'}
           onClick={inactive ? undefined : onPick}
         >
           <FolderIcon />
-        </button>
+        </Button>
       </div>
 
       <div className={styles.analyzeRow}>

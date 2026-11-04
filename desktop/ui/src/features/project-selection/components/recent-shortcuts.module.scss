@@ -29,7 +29,9 @@
   }
 }
 
-.card {
+button.card {
+  @include plain-button;
+
   display: flex;
   align-items: center;
   gap: var(--space-3);

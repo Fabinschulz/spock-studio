@@ -1,5 +1,7 @@
 import type { Discovery } from '@/shared/schema';
-import { ChoiceField } from '../../components/choice-field';
+import { Checkbox } from '@synthra.io/ui-kit';
+import { useId } from 'react';
+import { CheckboxField } from '../../components/choice-field';
 import { RefreshGlyph } from '../../components/glyphs';
 import styles from '../../components/panels.module.scss';
 
@@ -19,6 +21,7 @@ export function SpecificationFooter({
   onReinstall
 }: SpecificationFooterProps) {
   const needsForce = state === 'drifted' || state === 'invalid';
+  const updateHintId = useId();
 
   return (
     <div className={styles.specificationFooter}>
@@ -29,33 +32,32 @@ export function SpecificationFooter({
         </span>
       ) : null}
       {state === 'installed' ? (
-        <label className={styles.subCard}>
-          <input
-            type="checkbox"
-            checked={updateSpecification}
-            onChange={(event) => onUpdateSpecification(event.target.checked)}
-          />
+        <div className={styles.subCard}>
           <span className={styles.subCardIcon} aria-hidden="true">
             <RefreshGlyph />
           </span>
-          <strong className={styles.subCardTitle}>Buscar a versão mais recente da estrutura de especificação</strong>
-          <span className={styles.subCardText}>
-            O plano já propõe a atualização quando a versão instalada é anterior à mais recente conhecida. Marque para
-            pedir ao instalador oficial a versão mais nova disponível. Usa a rede e só executa se você aprovar o
-            comando.
-          </span>
-        </label>
+          <div className={styles.subCardBody}>
+            <Checkbox
+              label="Buscar a versão mais recente da estrutura de especificação"
+              checked={updateSpecification}
+              onChange={(_, value) => onUpdateSpecification(value)}
+              slotProps={{ input: { 'aria-describedby': updateHintId } }}
+            />
+            <span id={updateHintId} className={styles.subCardText}>
+              O plano já propõe a atualização quando a versão instalada é anterior à mais recente conhecida. Marque para
+              pedir ao instalador oficial a versão mais nova disponível. Usa a rede e só executa se você aprovar o
+              comando.
+            </span>
+          </div>
+        </div>
       ) : null}
       {needsForce ? (
-        <ChoiceField type="checkbox" checked={allowReinstall} onChange={onReinstall}>
-          <span>
-            Permitir reinstalar a estrutura de especificação
-            <br />
-            <span className={styles.muted}>
-              Sobrescreve as edições locais. Sem esta permissão, a estrutura de especificação não é alterada.
-            </span>
-          </span>
-        </ChoiceField>
+        <CheckboxField
+          checked={allowReinstall}
+          onChange={onReinstall}
+          label="Permitir reinstalar a estrutura de especificação"
+          description="Sobrescreve as edições locais. Sem esta permissão, a estrutura de especificação não é alterada."
+        />
       ) : null}
     </div>
   );
