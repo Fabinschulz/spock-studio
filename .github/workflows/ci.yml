@@ -146,3 +146,6 @@ jobs:
           name: mariliz-${{ matrix.name }}
           path: desktop/host/src-tauri/target/${{ matrix.triple }}/release/bundle/**
           if-no-files-found: error
+          # Cada instalador tem de 25 a 480 MB e cada execução gera três. Com os 90 dias padrão, a cota de
+          # armazenamento do repositório estourou e o upload passou a falhar. Três dias bastam para testar um PR.
+          retention-days: 3
