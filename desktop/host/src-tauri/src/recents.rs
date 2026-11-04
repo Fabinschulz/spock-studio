@@ -5,9 +5,14 @@
 use std::cmp::Reverse;
 use std::fs;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::sync::Mutex;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
+
+use crate::lock;
 
 pub const MAX_RECENTS: usize = 6;
 pub const FILE_NAME: &str = "recent-projects.json";
@@ -124,6 +129,59 @@ impl RecentStore {
                 available: exists(&e.path),
             })
             .collect()
+    }
+}
+
+/// Lista de projetos recentes em memória, espelhada no diretório de dados do aplicativo.
+pub struct Recents {
+    store: Mutex<RecentStore>,
+    file: PathBuf,
+}
+
+impl Recents {
+    pub fn load(file: PathBuf) -> Self {
+        Self {
+            store: Mutex::new(RecentStore::load(&file)),
+            file,
+        }
+    }
+
+    /// Registra a pasta que o motor autorizou e marca a resposta com o id do recente (`recentId`), para a UI
+    /// saber qual item da lista é o projeto atual sem receber o caminho.
+    pub fn record(&self, path: &str, authorized: &mut Value) {
+        let name = authorized
+            .get("displayName")
+            .and_then(Value::as_str)
+            .unwrap_or("Projeto")
+            .to_string();
+        let shown = authorized
+            .get("displayPath")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_string();
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_millis() as u64)
+            .unwrap_or(0);
+
+        let mut store = lock(&self.store);
+        store.record(path, &name, &shown, now);
+        // Perder o histórico não é uma falha da operação: só se registra.
+        if let Err(error) = store.save(&self.file) {
+            eprintln!("[host] não foi possível gravar os projetos recentes: {error}");
+        }
+        if let Some(fields) = authorized.as_object_mut() {
+            fields.insert("recentId".into(), Value::String(project_id(path)));
+        }
+    }
+
+    pub fn list(&self) -> Vec<RecentProject> {
+        lock(&self.store).list(|path| Path::new(path).is_dir())
+    }
+
+    /// Caminho de um recente pelo id. Só volta o que já passou pelo diálogo nativo.
+    pub fn path_of(&self, id: &str) -> Option<String> {
+        lock(&self.store).find(id).map(|entry| entry.path.clone())
     }
 }
 
@@ -262,5 +320,26 @@ mod tests {
         assert!(store.find(&project_id("C:\\a")).is_some());
         assert!(store.find(&project_id("C:\\Windows")).is_none());
         assert!(store.find("r-0000000000000000").is_none());
+    }
+
+    #[test]
+    fn a_selecao_registrada_leva_o_id_do_recente_correspondente() {
+        let file = temp_file("selecao");
+        let recents = Recents::load(file.clone());
+        let mut authorized = serde_json::json!({
+            "projectId": "p-000000000000",
+            "displayName": "app",
+            "displayPath": "~/app"
+        });
+
+        recents.record("/projetos/app", &mut authorized);
+
+        let listed = recents.list();
+        assert_eq!(authorized["recentId"], listed[0].id.as_str());
+        assert_eq!(
+            recents.path_of(&listed[0].id).as_deref(),
+            Some("/projetos/app")
+        );
+        let _ = fs::remove_dir_all(file.parent().unwrap());
     }
 }

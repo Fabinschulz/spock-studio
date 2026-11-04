@@ -1,10 +1,10 @@
 mod engine;
 mod protocol;
 mod recents;
+mod resources;
+mod status;
 
-use std::path::PathBuf;
 use std::sync::{Mutex, MutexGuard, PoisonError};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde_json::Value;
 use tauri::{AppHandle, Manager, RunEvent, State};
@@ -13,42 +13,13 @@ use tokio::sync::oneshot;
 
 use engine::Engine;
 use protocol::{validate_frontend_request, HostError};
-use recents::{project_id, RecentProject, RecentStore};
+use recents::{RecentProject, Recents};
+use status::{compose_status, Status};
 
 /// Trava um estado compartilhado. Um mutex envenenado (uma thread entrou em pânico com ele travado) não derruba o host:
 /// o estado protegido aqui é simples e continua utilizável.
 pub(crate) fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
     mutex.lock().unwrap_or_else(PoisonError::into_inner)
-}
-
-/// Lista de projetos recentes em memória, espelhada no diretório de dados do aplicativo.
-struct Recents {
-    store: Mutex<RecentStore>,
-    file: PathBuf,
-}
-
-impl Recents {
-    fn record(&self, path: &str, authorized: &Value) {
-        let name = authorized
-            .get("displayName")
-            .and_then(Value::as_str)
-            .unwrap_or("Projeto");
-        let shown = authorized
-            .get("displayPath")
-            .and_then(Value::as_str)
-            .unwrap_or("");
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map(|d| d.as_millis() as u64)
-            .unwrap_or(0);
-
-        let mut store = lock(&self.store);
-        store.record(path, name, shown, now);
-        // Perder o histórico não é uma falha da operação: só se registra.
-        if let Err(error) = store.save(&self.file) {
-            eprintln!("[host] não foi possível gravar os projetos recentes: {error}");
-        }
-    }
 }
 
 /// Repassa ao motor um pedido da UI, depois de validar o envelope e conferir a lista de métodos permitidos.
@@ -85,20 +56,20 @@ async fn pick_project_folder(
         .map_err(|_| HostError::new("PATH_NOT_ALLOWED", "A pasta escolhida não pode ser usada."))?;
     let path_text = path.to_string_lossy().to_string();
 
-    let result = engine
+    let mut result = engine
         .request(
             "workspace.authorize",
             serde_json::json!({ "path": path_text }),
         )
         .await?;
-    recents.record(&path_text, &result);
+    recents.record(&path_text, &mut result);
     Ok(Some(result))
 }
 
 /// Projetos escolhidos antes, do mais recente ao mais antigo. Sem caminho completo: só id, nome e caminho abreviado.
 #[tauri::command]
 fn list_recent_projects(recents: State<'_, Recents>) -> Vec<RecentProject> {
-    lock(&recents.store).list(|path| std::path::Path::new(path).is_dir())
+    recents.list()
 }
 
 /// Reabre um projeto da lista, pelo id. A UI não envia caminho: só o que já passou pelo diálogo nativo pode voltar.
@@ -109,19 +80,12 @@ async fn open_recent_project(
     engine: State<'_, Engine>,
     recents: State<'_, Recents>,
 ) -> Result<Value, HostError> {
-    let path = {
-        let store = lock(&recents.store);
-        store
-            .find(&id)
-            .map(|entry| entry.path.clone())
-            .ok_or_else(|| {
-                HostError::new(
-                    "RECENT_NOT_FOUND",
-                    "Este projeto não está mais na lista de recentes.",
-                )
-            })?
-    };
-    debug_assert_eq!(project_id(&path), id);
+    let path = recents.path_of(&id).ok_or_else(|| {
+        HostError::new(
+            "RECENT_NOT_FOUND",
+            "Este projeto não está mais na lista de recentes.",
+        )
+    })?;
 
     if !std::path::Path::new(&path).is_dir() {
         return Err(HostError::new(
@@ -130,24 +94,24 @@ async fn open_recent_project(
         ));
     }
 
-    let result = engine
+    let mut result = engine
         .request("workspace.authorize", serde_json::json!({ "path": path }))
         .await?;
-    recents.record(&path, &result);
+    recents.record(&path, &mut result);
     Ok(result)
 }
 
 #[tauri::command]
 async fn engine_status(engine: State<'_, Engine>) -> Result<serde_json::Value, HostError> {
-    let lifecycle = engine.status().as_str();
-    if lifecycle != "ready" {
-        return Ok(crate::engine::compose_status(lifecycle, None));
+    let lifecycle = engine.status();
+    if lifecycle != Status::Ready {
+        return Ok(compose_status(lifecycle, None));
     }
     let health = engine
         .request("runtime.health", serde_json::json!({}))
         .await
         .ok();
-    Ok(crate::engine::compose_status(lifecycle, health.as_ref()))
+    Ok(compose_status(lifecycle, health.as_ref()))
 }
 
 pub fn run() {
@@ -167,10 +131,7 @@ pub fn run() {
                 .app_data_dir()
                 .map(|dir| dir.join(recents::FILE_NAME))
                 .unwrap_or_else(|_| std::env::temp_dir().join(recents::FILE_NAME));
-            app.manage(Recents {
-                store: Mutex::new(RecentStore::load(&file)),
-                file,
-            });
+            app.manage(Recents::load(file));
 
             let engine = app.state::<Engine>().inner().clone();
             engine.boot(app.handle().clone());
