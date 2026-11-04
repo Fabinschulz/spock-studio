@@ -1,10 +1,13 @@
 import type { ThemeOptions } from '@mui/material/styles';
 
 import { brandPalette as c } from './brand-palette';
+import { RouterLinkBehavior } from './router-link';
 
 const SUBTLE_HOVER = 'rgba(160, 200, 196, 0.08)';
 
 export const components: ThemeOptions['components'] = {
+  MuiLink: { defaultProps: { component: RouterLinkBehavior } },
+  MuiButtonBase: { defaultProps: { LinkComponent: RouterLinkBehavior } },
   MuiButton: {
     defaultProps: { disableElevation: true },
     styleOverrides: {

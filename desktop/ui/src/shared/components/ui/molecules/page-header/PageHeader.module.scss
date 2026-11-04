@@ -6,32 +6,6 @@
   gap: var(--space-3);
 }
 
-.crumbs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-}
-
-.crumb:not(:last-child)::after {
-  margin-left: var(--space-2);
-  content: '›';
-  color: var(--color-text-muted);
-}
-
-.link {
-  color: var(--color-primary-text);
-  text-decoration: none;
-
-  @include hover {
-    text-decoration: underline;
-  }
-}
-
 .row {
   display: flex;
   flex-wrap: wrap;

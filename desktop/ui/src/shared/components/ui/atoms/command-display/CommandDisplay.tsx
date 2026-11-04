@@ -1,5 +1,5 @@
 import { useCopyToClipboard } from '@/shared/hooks';
-import { CopyIcon } from '@synthra.io/ui-kit';
+import { Button, CopyIcon } from '@synthra.io/ui-kit';
 
 import styles from './CommandDisplay.module.scss';
 
@@ -18,15 +18,16 @@ export function CommandDisplay({ command, kind }: CommandDisplayProps) {
       <div className={styles.body}>
         <code className={styles.code}>{command}</code>
       </div>
-      <button
-        type="button"
+      <Button
+        variant="text"
+        size="small"
         className={styles.copy}
+        startIcon={<CopyIcon fontSize="small" aria-hidden="true" />}
         onClick={() => void copyText(command)}
         aria-label={`Copiar o comando ${command}`}
       >
-        <CopyIcon fontSize="small" aria-hidden="true" />
-        <span>{copy === 'copied' ? 'Copiado' : 'Copiar'}</span>
-      </button>
+        {copy === 'copied' ? 'Copiado' : 'Copiar'}
+      </Button>
       <span role="status" className="visually-hidden">
         {copy === 'copied'
           ? 'Comando copiado.'

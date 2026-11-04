@@ -12,20 +12,6 @@ export function NodesGlyph({ size = 20 }: { size?: number }) {
   );
 }
 
-export function ChevronDownGlyph({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
-      <path
-        d="m3.5 6 4.5 4.5L12.5 6"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 export function TerminalGlyph({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">

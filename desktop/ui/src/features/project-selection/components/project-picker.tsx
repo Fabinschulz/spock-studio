@@ -67,38 +67,41 @@ export function ProjectPicker({ selected, onPick, busy, unavailableReason }: Pro
                 <span className={styles.path} title={selected.displayPath}>
                   {selected.displayPath}
                 </span>
-                <button
-                  type="button"
+                <Button
+                  variant="text"
+                  color="inherit"
                   className={styles.copy}
                   aria-label="Copiar o caminho exibido"
                   onClick={() => void copy(selected.displayPath)}
                 >
                   <CopyIcon fontSize="small" aria-hidden="true" />
-                </button>
+                </Button>
                 <span role="status" className="visually-hidden">
                   {copyState === 'copied' ? 'Caminho copiado' : ''}
                 </span>
               </span>
             </span>
             <span className={styles.aside}>
-              <button
-                type="button"
-                className={styles.change}
+              <Button
+                variant="text"
+                color="inherit"
                 aria-disabled={inactive || undefined}
                 aria-label={`Trocar a pasta do projeto ${selected.displayName}`}
+                startIcon={
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+                    <path
+                      d="M2.5 6h10M10 3l3 3-3 3M13.5 10h-10M6 7l-3 3 3 3"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                }
                 onClick={inactive ? undefined : onPick}
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
-                  <path
-                    d="M2.5 6h10M10 3l3 3-3 3M13.5 10h-10M6 7l-3 3 3 3"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
                 Trocar
-              </button>
+              </Button>
               <span className={styles.lockNote}>
                 <LockGlyph />
                 Arquivos permanecem no computador

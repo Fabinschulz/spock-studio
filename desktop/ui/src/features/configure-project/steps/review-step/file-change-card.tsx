@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { DiffView, StatusChip } from '@/shared/components/ui';
 import type { ConflictResolution, FileChange } from '@/shared/schema';
 
-import { ChoiceField } from '../../components/choice-field';
+import { CheckboxField } from '../../components/choice-field';
 import styles from '../../components/panels.module.scss';
 import { actionLabel, actionTone, componentKindLabel, originLabel } from '../../domain/labels';
 import { ConflictResolutionField } from './conflict-resolution';
@@ -35,9 +35,11 @@ export function FileChangeCard({ change, approved, resolution, onToggle, onResol
       {change.action === 'conflict' ? (
         <ConflictResolutionField change={change} resolution={resolution} onResolve={onResolve} />
       ) : (
-        <ChoiceField type="checkbox" checked={approved} onChange={onToggle}>
-          <span>{`Aprovar ${actionLabel[change.action].toLowerCase()} ${change.path}`}</span>
-        </ChoiceField>
+        <CheckboxField
+          checked={approved}
+          onChange={onToggle}
+          label={`Aprovar ${actionLabel[change.action].toLowerCase()} ${change.path}`}
+        />
       )}
 
       {change.diff ? (

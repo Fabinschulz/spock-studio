@@ -1,6 +1,7 @@
 import { Container, Logo, Wordmark } from '@/shared/components';
 import { useEngineStatus } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
+import { Button } from '@synthra.io/ui-kit';
 import { useRef, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { AppHeader } from './AppHeader';
@@ -16,9 +17,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className={styles.shell}>
-      <button type="button" className={styles.skip} onClick={() => main.current?.focus()}>
+      <Button variant="outlined" color="inherit" className={styles.skip} onClick={() => main.current?.focus()}>
         Ir para o conteúdo
-      </button>
+      </Button>
 
       <aside className={styles.rail}>
         <Link to={pathTo('home')} className={styles.brand} aria-label="Mariliz Studio, página inicial">
