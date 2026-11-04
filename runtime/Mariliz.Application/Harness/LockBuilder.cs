@@ -1,68 +1,68 @@
+using Mariliz.Application.Execution;
 using Mariliz.Core.Discovery;
 using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>Calcula o conteúdo do <c>mariliz.lock</c> a partir do que existirá no disco depois da aplicação.</summary>
+/// <summary>
+/// Conteúdo do <c>mariliz.lock</c>. O plano o prevê a partir das mudanças; a aplicação o grava a partir do que de fato
+/// aconteceu. As duas origens montam as entradas de forma diferente, mas o arquivo é escrito por uma só regra: se a
+/// previsão e a gravação divergissem, o plano seguinte mostraria uma atualização do lock que nunca termina.
+/// </summary>
 public static class LockBuilder
 {
+    /// <summary>Lock previsto pelo plano, supondo que tudo o que o plano propõe seja aplicado.</summary>
     /// <returns><c>null</c> quando o conteúdo depende da instalação da estrutura de especificação, ainda pendente.</returns>
     public static string? Build(ComposeResult composed, IReadOnlyList<FileChange> changes, ManagedLockFile? existing, SpecificationStatus specification, bool specificationPending)
     {
         if (specificationPending) return null;
 
-        var lockFile = new ManagedLockFile
-        {
-            Engine = BuildInfo.Version,
-            AiEnvironment = composed.AiEnvironment,
-            Specification = new ManagedLockFile.SpecificationSection { Version = specification.Version ?? "", ContentHash = specification.ComputedHash ?? "" }
-        };
-
-        var byPath = composed.Files.ToDictionary(f => f.Path, StringComparer.Ordinal);
-        foreach (var change in changes)
-        {
-            if (!byPath.TryGetValue(change.Path, out var desired) || change.Path == DeclaredConfig.FileName) continue;
-            if (EntryFor(change, desired, existing) is { } entry) lockFile.ManagedFiles.Add(entry);
-        }
-
-        var componentIds = lockFile.ManagedFiles.Select(f => f.Component).Distinct().ToList();
-        foreach (var id in componentIds)
-        {
-            var component = Catalog.Find(id);
-            lockFile.Components.Add(new() { Id = id, Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(), Version = ComponentVersion(id, component, specification) });
-        }
-        return lockFile.ToYaml();
+        var desired = Desired(composed);
+        var entries = changes
+            .Where(change => change.Path != DeclaredConfig.FileName && desired.ContainsKey(change.Path))
+            .Select(change => EntryFor(change, desired[change.Path], existing))
+            .OfType<ManagedLockFile.ManagedFileEntry>();
+        return Write(composed, entries, specification);
     }
 
-    internal static string BuildFromOutcomes(ComposeResult composed, IReadOnlyDictionary<string, Execution.FileOutcome> outcomes, ManagedLockFile? existing, SpecificationStatus specification)
+    /// <summary>Lock gravado depois da aplicação, a partir do resultado de cada arquivo.</summary>
+    internal static string BuildFromOutcomes(ComposeResult composed, IReadOnlyDictionary<string, FileOutcome> outcomes, ManagedLockFile? existing, SpecificationStatus specification)
     {
+        var desired = Desired(composed);
+        var written = outcomes
+            .Where(pair => pair.Key != DeclaredConfig.FileName && desired.ContainsKey(pair.Key))
+            .Select(pair => EntryFromOutcome(pair.Key, desired[pair.Key], pair.Value, existing))
+            .OfType<ManagedLockFile.ManagedFileEntry>();
+
+        // O que a aplicação já gerenciava e esta execução não tocou (remoção não aprovada) continua registrado.
+        var untouched = (existing?.ManagedFiles ?? []).Where(prior => !desired.ContainsKey(prior.Path) && !outcomes.ContainsKey(prior.Path));
+        return Write(composed, written.Concat(untouched), specification);
+    }
+
+    /// <summary>mariliz.yaml é da pessoa depois de criado: nunca entra como gerenciado (filtrado pelos chamadores).</summary>
+    private static Dictionary<string, DesiredFile> Desired(ComposeResult composed) =>
+        composed.Files.ToDictionary(f => f.Path, StringComparer.Ordinal);
+
+    private static string Write(ComposeResult composed, IEnumerable<ManagedLockFile.ManagedFileEntry> entries, SpecificationStatus specification)
+    {
+        // Só uma instalação verificada da estrutura de especificação é registrada.
+        var installed = specification.State == SpecificationState.Installed;
         var lockFile = new ManagedLockFile
         {
             Engine = BuildInfo.Version,
             AiEnvironment = composed.AiEnvironment,
             Specification = new ManagedLockFile.SpecificationSection
             {
-                Version = specification.State == SpecificationState.Installed ? specification.Version ?? "" : "",
-                ContentHash = specification.State == SpecificationState.Installed ? specification.ComputedHash ?? "" : ""
+                Version = installed ? specification.Version ?? "" : "",
+                ContentHash = installed ? specification.ComputedHash ?? "" : ""
             }
         };
-
-        var desired = composed.Files.ToDictionary(f => f.Path, StringComparer.Ordinal);
-        foreach (var (path, outcome) in outcomes)
-        {
-            // mariliz.yaml é da pessoa depois de criado: a aplicação não o registra como gerenciado.
-            if (!desired.TryGetValue(path, out var file) || path == DeclaredConfig.FileName) continue;
-            if (EntryFromOutcome(path, file, outcome, existing) is { } entry) lockFile.ManagedFiles.Add(entry);
-        }
-
-        // O que a aplicação já gerenciava e esta execução não tocou continua registrado.
-        foreach (var prior in existing?.ManagedFiles ?? [])
-            if (!desired.ContainsKey(prior.Path) && !outcomes.ContainsKey(prior.Path)) lockFile.ManagedFiles.Add(prior);
+        lockFile.ManagedFiles.AddRange(entries);
 
         foreach (var id in lockFile.ManagedFiles.Select(f => f.Component).Distinct())
         {
             var component = Catalog.Find(id);
-            lockFile.Components.Add(new() { Id = id, Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(), Version = ComponentVersion(id, component, specification) });
+            lockFile.Components.Add(new() { Id = id, Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(), Version = ComponentVersion(id, component, installed ? specification.Version : null) });
         }
         return lockFile.ToYaml();
     }
@@ -78,12 +78,12 @@ public static class LockBuilder
             _ => null
         };
 
-    private static ManagedLockFile.ManagedFileEntry? EntryFromOutcome(string path, DesiredFile desired, Execution.FileOutcome outcome, ManagedLockFile? existing) =>
+    private static ManagedLockFile.ManagedFileEntry? EntryFromOutcome(string path, DesiredFile desired, FileOutcome outcome, ManagedLockFile? existing) =>
         outcome.Kind switch
         {
-            Execution.OutcomeKind.Written or Execution.OutcomeKind.Preserved => Entry(path, desired.ComponentId, desired.Mode, outcome.Hash ?? ""),
-            Execution.OutcomeKind.Kept => Entry(path, desired.ComponentId, "kept", outcome.Hash ?? ""),
-            Execution.OutcomeKind.NotApplied => existing?.ManagedFiles.FirstOrDefault(e => e.Path == path),
+            OutcomeKind.Written or OutcomeKind.Preserved => Entry(path, desired.ComponentId, desired.Mode, outcome.Hash ?? ""),
+            OutcomeKind.Kept => Entry(path, desired.ComponentId, "kept", outcome.Hash ?? ""),
+            OutcomeKind.NotApplied => existing?.ManagedFiles.FirstOrDefault(e => e.Path == path),
             _ => null
         };
 
@@ -91,6 +91,6 @@ public static class LockBuilder
         new() { Path = path, Component = component, Mode = mode, Sha256 = hash };
 
     /// <summary>A estrutura de especificação é externa: a versão registrada é a da instalação verificada, nunca um valor fixo do catálogo.</summary>
-    private static string ComponentVersion(string id, CatalogComponent? component, SpecificationStatus specification) =>
-        id == Catalog.SpecificationStructure ? (specification.State == SpecificationState.Installed ? specification.Version ?? "" : "") : component?.Version ?? Catalog.ComponentVersion;
+    private static string ComponentVersion(string id, CatalogComponent? component, string? installedSpecification) =>
+        id == Catalog.SpecificationStructure ? installedSpecification ?? "" : component?.Version ?? Catalog.ComponentVersion;
 }
