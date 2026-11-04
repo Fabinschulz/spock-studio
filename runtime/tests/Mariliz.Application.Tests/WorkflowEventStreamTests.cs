@@ -31,7 +31,7 @@ public class WorkflowEventStreamTests
             Event(executionId, 5, "agent.completed", new JsonObject { ["status"] = "completed" }, "architecture"),
             Event(executionId, 5, "agent.completed", new JsonObject { ["status"] = "completed" }, "architecture")
         ]);
-        var workflows = new WorkflowService(authorizer, runtime, tracker, new SystemClock());
+        var workflows = new WorkflowService(authorizer, runtime, tracker, new SystemClock(), new FileRunStore(project.DataDir), WorkflowContextBuilder.WithoutProject);
 
         var run = await workflows.StartAsync(projectId, new JsonObject { ["goal"] = "descrever" }, CancellationToken.None);
         await run.Completion!;
@@ -49,7 +49,7 @@ public class WorkflowEventStreamTests
         var tracker = new RunTracker();
         var authorizer = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
         var projectId = authorizer.Authorize(project.Root).Project!.ProjectId;
-        var workflows = new WorkflowService(authorizer, new ScriptedRuntime(_ => []), tracker, new SystemClock());
+        var workflows = new WorkflowService(authorizer, new ScriptedRuntime(_ => []), tracker, new SystemClock(), new FileRunStore(project.DataDir), WorkflowContextBuilder.WithoutProject);
 
         foreach (var input in new[]
         {

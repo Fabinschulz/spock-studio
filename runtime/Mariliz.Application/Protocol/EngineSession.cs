@@ -21,6 +21,7 @@ public sealed class EngineSession
     private readonly WorkspaceAuthorizer? _workspace;
     private readonly ConfigureRequestHandler? _configure;
     private readonly WorkflowRequestHandler? _workflows;
+    private readonly RunRequestHandler? _runs;
     private readonly ModelGateway? _models;
     private readonly RunTracker? _tracker;
     private readonly SemaphoreSlim _outputGate = new(1, 1);
@@ -34,13 +35,15 @@ public sealed class EngineSession
         EventRelay? relay = null,
         RunTracker? tracker = null,
         WorkflowService? workflows = null,
-        ModelGateway? models = null)
+        ModelGateway? models = null,
+        RunQueries? runs = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
         _configure = configure is null ? null : new ConfigureRequestHandler(configure);
         _workflows = workflows is null ? null : new WorkflowRequestHandler(workflows);
         _models = models;
+        _runs = runs is null ? null : new RunRequestHandler(runs);
         _tracker = tracker;
         if (relay is not null) relay.Target = WriteEvent;
 
@@ -48,6 +51,7 @@ public sealed class EngineSession
         if (workspace is not null) offered.Add(ProtocolMethods.AuthorizeWorkspace);
         if (configure is not null) offered.AddRange(ProtocolMethods.Configure);
         if (workflows is not null) offered.AddRange(ProtocolMethods.Workflow);
+        if (runs is not null) offered.AddRange(ProtocolMethods.RunControl);
         if (models is not null) offered.AddRange(ProtocolMethods.Model);
         _capabilities = [.. offered];
     }
@@ -139,6 +143,8 @@ public sealed class EngineSession
             ProtocolMethods.ModelComplete when _models is not null => Reply(await CompleteModel(id, parameters, ct)),
             _ when _configure is not null && ProtocolMethods.Configure.Contains(method) =>
                 Reply(ProtocolMessages.Ok(id, await _configure.HandleAsync(method, new RequestParams(parameters), ct))),
+            _ when _runs is not null && ProtocolMethods.RunControl.Contains(method) =>
+                Reply(ProtocolMessages.Ok(id, _runs.Handle(method, new RequestParams(parameters)))),
             _ when _workflows is not null && ProtocolMethods.Workflow.Contains(method) =>
                 Reply(ProtocolMessages.Ok(id, await _workflows.HandleAsync(method, new RequestParams(parameters), ct))),
             _ => Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.MethodNotFound, "Método desconhecido."))

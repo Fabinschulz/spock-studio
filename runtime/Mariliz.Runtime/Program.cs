@@ -1,35 +1,20 @@
-using System.Text;
 using Mariliz.Application;
-using Mariliz.Application.Execution;
-using Mariliz.Application.Harness;
 using Mariliz.Application.Models;
-using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Workflows;
-using Mariliz.Application.Workspace;
 using Mariliz.Infrastructure;
 
 // stdout é exclusivo do protocolo; qualquer diagnóstico vai para stderr.
-var utf8 = new UTF8Encoding(false);
-Console.InputEncoding = utf8;
-Console.OutputEncoding = utf8;
+using var cts = LocalEngine.ConfigureConsole();
 
-using var cts = new CancellationTokenSource();
-Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
-
-var dataRoot = FileRunStore.DefaultDataRoot();
-var store = new FileRunStore(dataRoot);
-var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(dataRoot));
 var relay = new EventRelay();
-var tracker = new RunTracker(relay.Emit);
-var clock = new SystemClock();
-var runner = new SystemProcessRunner();
-var settings = new FileModelSettings(dataRoot);
-var models = new ModelGateway(settings, new HttpsModelTransport());
-var configure = new ConfigureProjectService(
-    workspace, new LocalProjectFilesFactory(), runner, store, clock, tracker, settings);
-var workflows = new WorkflowService(workspace, new LoopbackAiRuntime(), tracker, clock, new LocalProjectFilesFactory(), runner, dataRoot, store);
-var session = new EngineSession(BuildInfo.Version, workspace: workspace, configure: configure, relay: relay, tracker: tracker, workflows: workflows, models: models);
+var engine = LocalEngine.Create(FileRunStore.DefaultDataRoot(), relay.Emit, rememberWorkspaces: true);
+var models = new ModelGateway(engine.Settings, new HttpsModelTransport());
+var aiRuntime = new LoopbackAiRuntime();
+var workflows = new WorkflowService(engine.Workspace, aiRuntime, engine.Tracker, engine.Clock, engine.Store,
+    new WorkflowContextBuilder(engine.Workspace, aiRuntime, engine.Files, engine.Runner, engine.DataRoot));
+var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
+    tracker: engine.Tracker, workflows: workflows, models: models, runs: engine.Runs);
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

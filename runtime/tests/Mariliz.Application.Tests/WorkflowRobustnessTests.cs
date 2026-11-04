@@ -89,7 +89,7 @@ public class WorkflowRobustnessTests
     {
         var authorizer = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
         var projectId = authorizer.Authorize(project.Root).Project!.ProjectId;
-        var workflows = new WorkflowService(authorizer, runtime, tracker, new SystemClock(), store: new FileRunStore(project.DataDir))
+        var workflows = new WorkflowService(authorizer, runtime, tracker, new SystemClock(), new FileRunStore(project.DataDir), WorkflowContextBuilder.WithoutProject)
         {
             Deadline = deadline ?? TimeSpan.FromSeconds(5)
         };

@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
+using Mariliz.Application.Protocol;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Ports;
 
@@ -94,8 +95,8 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         foreach (var node in files)
         {
             if (node is not JsonObject item) continue;
-            var path = Text(item, "path");
-            var hash = Text(item, "hash");
+            var path = item.Text("path");
+            var hash = item.Text("hash");
             if (path.Length > 0 && hash.Length > 0) hashes[path] = hash;
         }
         return hashes;
@@ -105,7 +106,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         StreamWorkflowAsync("v1/workflows", request, onEvent, ct);
 
     public Task<WorkflowAck> ResumeAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct) =>
-        StreamWorkflowAsync($"v1/workflows/{Uri.EscapeDataString(Text(request, "runId"))}/resume", request, onEvent, ct);
+        StreamWorkflowAsync($"v1/workflows/{Uri.EscapeDataString(request.Text("runId"))}/resume", request, onEvent, ct);
 
     public async Task CancelAsync(string runId, string? projectId = null, string? executionRoot = null)
     {
@@ -148,7 +149,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
             if (line.Length == 0) continue;
             if (line.Length > MaxLine || JsonNode.Parse(line) is not JsonObject item)
                 throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
-            switch (Text(item, "schema"))
+            switch (item.Text("schema"))
             {
                 case "ai.event.v1":
                     onEvent(item);
@@ -167,13 +168,13 @@ public sealed class LoopbackAiRuntime : IAiRuntime
     {
         var warnings = ReadNotices(ack, "warnings");
         var errors = ReadNotices(ack, "errors");
-        var interrupt = ack["approval"] is JsonObject approval ? Text(approval, "interruptId") : "";
+        var interrupt = ack["approval"] is JsonObject approval ? approval.Text("interruptId") : "";
         return new WorkflowAck(
-            $"{Text(ack, "workflowId")}.v{Text(ack, "workflowVersion")}",
-            Text(ack, "runId"),
-            Text(ack, "projectId"),
-            Text(ack, "executionId"),
-            Text(ack, "status"),
+            $"{ack.Text("workflowId")}.v{ack.Text("workflowVersion")}",
+            ack.Text("runId"),
+            ack.Text("projectId"),
+            ack.Text("executionId"),
+            ack.Text("status"),
             ack["output"] as JsonObject ?? new JsonObject(),
             [.. warnings, .. errors],
             errors,
@@ -321,9 +322,6 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         return ack;
     }
 
-    private static string Text(JsonObject ack, string name) =>
-        ack[name] is JsonValue value && value.TryGetValue<string>(out var text) ? text : "";
-
     private static IReadOnlyList<WorkflowLimitation> ReadNotices(JsonObject ack, string name)
     {
         if (ack[name] is not JsonArray array) return [];
@@ -331,8 +329,8 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         foreach (var node in array)
         {
             if (node is not JsonObject item) continue;
-            var code = Text(item, "code");
-            if (code.Length > 0) items.Add(new WorkflowLimitation(code, Text(item, "message")));
+            var code = item.Text("code");
+            if (code.Length > 0) items.Add(new WorkflowLimitation(code, item.Text("message")));
         }
         return items;
     }
