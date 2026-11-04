@@ -15,7 +15,7 @@ import { FilesSummary } from './files-summary';
 import { ProposalGuide } from './proposal-guide';
 import { RevertConfirmModal } from './revert-confirm-modal';
 import { RevertSummary } from './revert-summary';
-import { ValidationTable } from './validation-table';
+import { ValidationList } from './validation-list';
 
 interface ResultStepProps {
   results: JourneyResults;
@@ -76,7 +76,7 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
         </div>
       ) : null}
 
-      {validation ? <ValidationTable report={validation} /> : null}
+      {validation ? <ValidationList report={validation} /> : null}
 
       {apply?.limitations && apply.limitations.length > 0 ? (
         <>
