@@ -676,3 +676,11 @@ O que mudou:
   - RRF (k=60);
   - desempate determinístico por cobertura.
   - Cada evidência informa qual lista a achou (`retriever`).
+
+**Fase 5 (Memória):** entregue. A separação já vinha das Fases 3 e 4; esta fase a travou com testes (`intelligence/tests/test_memory_isolation.py`, rodado na CI):
+
+- cada memória grava só na própria pasta: `execution/checkpoint.sqlite` e `knowledge/index.sqlite`, sob `projects/<id>/`;
+- o checkpoint some quando a execução termina e quando é cancelada;
+- a saída de um agente não altera o índice de conhecimento. Só o .NET decide as fontes; decisão de agente só entra como arquivo aprovado em `.mariliz/` ou `.specs/`;
+- nenhum SQLite guarda formato de credencial. A varredura usa os mesmos formatos do `SecretScanner` e tem um controle negativo com segredo plantado, para provar que a varredura não está quebrada;
+- NET-P2-11 resolvido sem mudar o .NET (ver `auditoria-qualidade-codigo.md`).
