@@ -3,7 +3,7 @@
 **Data:** 2026-11-02. **Base:** `master` em `230f8e5` (PRs #1 e #2 mergeados). **Escopo:** host Tauri/Rust, UI React/TypeScript
 (sem `src/prototype`, que é só referência visual de desenvolvimento), motor .NET 10, contratos e testes.
 
-**Estado:** Onda 1 concluída (seção 5). Ondas 2 a 4 pendentes.
+**Estado:** Ondas 1 e 2 concluídas (seções 5 e 6). Ondas 3 e 4 pendentes.
 
 ---
 
@@ -225,4 +225,39 @@ para confirmar que os testes novos falham com ele.
 | `cargo fmt --check`, `cargo clippy -D warnings` | limpos |
 | `cargo test` | 20 |
 | UI (`pnpm check`: typecheck, ESLint, Prettier, testes) | limpo; 122 testes |
+| `pnpm build` | ok |
+
+---
+
+## 6. Resultado da Onda 2 (2026-11-03)
+
+Antes de mexer na UI, o `configure-project`, que não tinha nenhum teste, ganhou testes de caracterização com as fixtures golden do motor: o reducer, as aprovações, os eventos de execução, o desfecho e o hook `useConfigureJourney` (fluxo completo, erros e cancelamento). Eles fixam o comportamento atual.
+
+| Item | O que mudou | Teste |
+| --- | --- | --- |
+| NET-P1-1 | O `WorkflowService` caiu de 590 para cerca de 270 linhas e ficou com o ciclo de vida (execução, aprovação, diário, término). Cada outra responsabilidade virou uma classe com um motivo de mudança: `WorkflowInput` (pedido), `WorkflowRequests` (mensagens v2), `WorkflowEvents` (vocabulário e tradução de eventos), `WorkflowResult` (saneamento do resultado e da evidência) e `WorkflowContextBuilder` (descoberta e fontes do índice) | `WorkflowResultTests` (caminho inseguro, segredo no trecho, impacto fora do vocabulário, ids de etapa) + suítes existentes |
+| NET-P1-2 | O construtor recebe `IRunStore` e `WorkflowContextBuilder` obrigatórios. A ausência de projeto ficou explícita (`WorkflowContextBuilder.WithoutProject`), em vez de quatro parâmetros opcionais que desligavam comportamento em silêncio; o `store!` sumiu | suítes existentes |
+| NET-P1-4 | O `LockBuilder` tem uma regra só para escrever o lock. A previsão (plano) e a gravação (aplicação) só diferem em como montam as entradas. Defeito corrigido: com a especificação `Drifted`, o plano previa versão e hash que a aplicação não gravava, então o plano seguinte mostraria uma atualização do lock para sempre | `LockBuilderTests` (3 estados; o caso `Drifted` reproduz a divergência antiga) |
+| NET-P1-6 | `LocalEngine` (Infrastructure) é a composição comum do motor e da CLI, com as diferenças legítimas explícitas: só o motor lembra as pastas, e cada um decide para onde vão os eventos. Defeito corrigido: a CLI montava o serviço sem as configurações de modelo e dizia "nenhum modelo configurado" mesmo com chave salva | suítes existentes |
+| NET-P1-7 | `run.snapshot` e `run.cancel` saíram do serviço de configuração para `RunQueries` + `RunRequestHandler`, válidos para execuções de qualquer jornada | `ProtocolJourneyTests`, `WorkflowRuntimeTests` |
+| NET-P2-6 (antecipado) | `JsonFields.Text` substitui os três `Text(JsonObject, string)` duplicados, que a divisão do serviço multiplicaria | — |
+| UI-P1-1 | `shared/schema/engine.ts` virou `run.ts` (comum a qualquer execução), `harness.ts`, `workflow.ts` e `model.ts`. Os 45 importadores continuam no barril, sem mudança | `contracts.test.ts` (antigo `engine.test.ts`) |
+| UI-P1-2 | Fonte única: `snapshotOf(resultado)` monta o retrato de qualquer jornada; `TERMINAL_STATES`/`isTerminalState` vêm do enum de desfecho; `runStateLabel`/`runOutcomeLabel` em `shared/utils`. Saíram três listas de estados terminais, dois schemas de retrato e dois mapas de rótulos | suítes existentes |
+| UI-P1-5 | `execution/service/execution-api.ts` e `settings/service/model-api.ts` + `useModelSettings`: as páginas só apresentam | `model-settings-page.test.tsx`, `execution-page.test.tsx` |
+| UI-P1-6 (antecipado) | `errorMessage(erro, alternativa)` em `shared/api` substitui a mesma regra repetida em quatro features; a retomada da execução passa a mostrar a mensagem do motor | — |
+| UI-P1-6 (replanejar) | "Gerar o plano de novo" fica bloqueado enquanto há reversão ou validação em andamento | `proposal-guide.test.tsx` |
+| UI-P1-7 | `FolderPickerCard` lê o contexto de seleção de projeto. Antes, sete props passavam por `ConfigureJourney` → `ProjectStep` → `FolderPickerCard`; a `ProjectChoice` repetia a desestruturação | suítes existentes |
+
+Ficou de fora, de propósito: o `TestSupport.Journey` continua com a própria composição, porque usa dublês (`InterceptingRunner`, `TestFilesFactory`) que o `LocalEngine` não deve conhecer.
+
+**Gates depois da Onda 2:**
+
+| Gate | Resultado |
+| --- | --- |
+| `dotnet build --no-incremental` | 0 avisos |
+| `dotnet test` | 358 + 2 |
+| Python | 33 |
+| Rust (`fmt`, Clippy `-D warnings`) | limpos |
+| `cargo test` | 20 |
+| UI (`pnpm check`) | limpo; 137 testes |
 | `pnpm build` | ok |
