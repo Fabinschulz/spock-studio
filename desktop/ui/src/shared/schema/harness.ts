@@ -201,6 +201,19 @@ export const runResultSchema = z.object({
 
 export const runSnapshotSchema = snapshotOf(runResultSchema);
 
+/** Uma linha da lista de execuções de um projeto (`harness.runs`). */
+export const runSummarySchema = z.object({
+  runId: z.string(),
+  kind: z.string(),
+  state: z.string(),
+  startedAt: z.string(),
+  changesApplied: z.boolean(),
+  reverted: z.boolean()
+});
+
+export const runsSchema = z.object({ runs: z.array(runSummarySchema) });
+export type RunSummary = z.infer<typeof runSummarySchema>;
+
 /** Decisão da pessoa para um arquivo em conflito: manter o dela ou substituir (com backup). */
 export type ConflictResolution = 'keep' | 'overwrite';
 

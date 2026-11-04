@@ -6,6 +6,7 @@ import Configure from './routes/configure';
 import EngineeringRequest from './routes/engineering-request';
 import Execution from './routes/execution';
 import Home from './routes/home';
+import Project from './routes/project';
 import Settings from './routes/settings';
 
 // Os caminhos vêm de `shared/routing`: a navegação e as rotas não podem divergir.
@@ -16,6 +17,14 @@ export const routes: RouteObject[] = [
     errorElement: <WindowLayoutError />,
     children: [
       { index: true, element: <Home /> },
+      {
+        path: paths.project,
+        element: (
+          <RequiresHost>
+            <Project />
+          </RequiresHost>
+        )
+      },
       { path: paths.configure, element: <Configure /> },
       { path: paths.engineeringRequest, element: <EngineeringRequest /> },
       {

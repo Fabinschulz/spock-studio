@@ -1,6 +1,7 @@
 /** Fonte única dos caminhos do aplicativo (roteador por hash, dentro do host Tauri). */
 export const paths = {
   home: '/',
+  project: '/projeto',
   configure: '/configurar',
   engineeringRequest: '/pedido',
   settings: '/configuracoes'
