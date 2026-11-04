@@ -1,4 +1,5 @@
 import { Glyph, WizardSteps } from '@/shared/components/ui';
+import { Button } from '@synthra.io/ui-kit';
 import { journeySteps } from '../../constants/journey-steps';
 import { usePanelOpen } from '../../hooks/use-panel-open';
 import { ImplementationModelBadge } from '../implementation-model-badge';
@@ -18,8 +19,9 @@ export function JourneyFrame({ step, issue, panel, live = false, children }: Jou
             <ImplementationModelBadge />
           </div>
           {hasPanel ? (
-            <button
-              type="button"
+            <Button
+              variant="text"
+              color="inherit"
               className={styles.toggle}
               aria-expanded={open}
               aria-controls="painel-contexto"
@@ -28,7 +30,7 @@ export function JourneyFrame({ step, issue, panel, live = false, children }: Jou
             >
               <Glyph name="panel-right" size={17} />
               {live && !open ? <span className={styles.pip} aria-hidden="true" /> : null}
-            </button>
+            </Button>
           ) : null}
         </header>
         <WizardSteps steps={journeySteps} currentId={step} issue={issue} />

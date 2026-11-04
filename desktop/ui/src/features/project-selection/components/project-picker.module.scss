@@ -114,24 +114,12 @@
 }
 
 .copy {
-  display: inline-flex;
   flex: none;
-  align-items: center;
-  justify-content: center;
   width: var(--target-min);
+  min-width: 0;
   height: var(--target-min);
-  border-radius: var(--radius-sm);
+  padding: 0;
   color: var(--color-text-muted);
-  cursor: pointer;
-
-  @include hover {
-    background-color: var(--color-menu-hover);
-    color: var(--color-text);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
 }
 
 .aside {
@@ -141,33 +129,6 @@
   justify-content: space-between;
   gap: var(--space-3);
   margin-left: auto;
-}
-
-.change {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: var(--control-height);
-  padding-inline: var(--space-3);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-button);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-muted);
-  cursor: pointer;
-
-  @include hover {
-    background-color: var(--color-menu-hover);
-    color: var(--color-text);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  &[aria-disabled='true'] {
-    cursor: default;
-    color: var(--color-text-subtle);
-  }
 }
 
 .lockNote {

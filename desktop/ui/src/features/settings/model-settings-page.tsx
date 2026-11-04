@@ -1,5 +1,5 @@
 import type { EngineClient } from '@/shared/api';
-import { Button } from '@synthra.io/ui-kit';
+import { Button, TextField } from '@synthra.io/ui-kit';
 import { useId, useMemo, useState } from 'react';
 
 import { useModelSettings } from './hooks/use-model-settings';
@@ -60,18 +60,18 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
         )}
 
         <div className={styles.field}>
-          <label htmlFor={inputId}>Chave de API</label>
-          <input
+          <TextField
             id={inputId}
-            className={styles.input}
+            label="Chave de API"
             type="password"
             autoComplete="off"
-            spellCheck={false}
+            fullWidth
             value={key}
             disabled={busy}
             onChange={(event) => setKey(event.target.value)}
+            helperText="Entre 20 e 200 caracteres: letras, números, hífen e sublinhado."
+            slotProps={{ htmlInput: { spellCheck: false } }}
           />
-          <p className={styles.hint}>Entre 20 e 200 caracteres: letras, números, hífen e sublinhado.</p>
         </div>
 
         {error ? (

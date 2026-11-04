@@ -46,3 +46,18 @@
 @mixin selected-border {
   border-color: var(--color-primary);
 }
+
+// Botão do Synthra usado como superfície própria (linha de lista, cartão, item de menu): tira o visual padrão do MUI
+// e deixa o estilo do componente decidir. Use com `button.classe`, para ganhar do estilo do MUI sem `!important`.
+@mixin plain-button {
+  justify-content: flex-start;
+  min-width: 0;
+  padding: 0;
+  border-radius: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  color: inherit;
+  text-align: left;
+  text-transform: none;
+}

@@ -1,6 +1,6 @@
 import { pathTo } from '@/shared/routing';
 import { cn } from '@/shared/utils';
-import { Home01Icon, LibraryIcon, ListViewRectangleIcon, SettingIcon } from '@synthra.io/ui-kit';
+import { Button, Home01Icon, LibraryIcon, ListViewRectangleIcon, SettingIcon } from '@synthra.io/ui-kit';
 import { useId, type ReactNode } from 'react';
 import { NavLink } from 'react-router';
 import styles from './AppShell.module.scss';
@@ -53,8 +53,9 @@ function NavEntry({ item }: { item: NavItem }) {
   }
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="text"
+      color="inherit"
       className={cn(styles.item, styles.unavailable)}
       aria-disabled="true"
       aria-describedby={reasonId}
@@ -68,6 +69,6 @@ function NavEntry({ item }: { item: NavItem }) {
           {item.unavailableReason}
         </span>
       </span>
-    </button>
+    </Button>
   );
 }

@@ -1,7 +1,7 @@
 import { EvidenceDisclosure, InlineNotice, StatusChip } from '@/shared/components/ui';
 import type { PlannedCommand } from '@/shared/schema';
 
-import { ChoiceField } from '../../components/choice-field';
+import { CheckboxField } from '../../components/choice-field';
 import styles from '../../components/panels.module.scss';
 import { effectLabel } from '../../domain/labels';
 
@@ -32,15 +32,12 @@ export function CommandCard({ command, approved, onToggle }: CommandCardProps) {
           podem ser restaurados.
         </InlineNotice>
       ) : null}
-      <ChoiceField type="checkbox" checked={approved} onChange={onToggle}>
-        <span>
-          Aprovar a execução deste comando
-          <br />
-          <span className={styles.muted}>
-            Desmarcado por padrão: executar programas e acessar a rede exige a sua aprovação.
-          </span>
-        </span>
-      </ChoiceField>
+      <CheckboxField
+        checked={approved}
+        onChange={onToggle}
+        label="Aprovar a execução deste comando"
+        description="Desmarcado por padrão: executar programas e acessar a rede exige a sua aprovação."
+      />
     </div>
   );
 }

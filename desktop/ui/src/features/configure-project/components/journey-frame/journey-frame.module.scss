@@ -40,6 +40,8 @@ $panel-width: 20rem;
 
 .toggle {
   position: relative;
+  min-width: 0;
+  padding: 0;
   display: inline-flex;
   flex: none;
   align-items: center;

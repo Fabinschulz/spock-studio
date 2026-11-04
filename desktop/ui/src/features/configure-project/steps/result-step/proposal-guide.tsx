@@ -1,4 +1,4 @@
-import { Button } from '@synthra.io/ui-kit';
+import { Button, TextField } from '@synthra.io/ui-kit';
 
 import { useCopyToClipboard } from '@/shared/hooks';
 
@@ -27,12 +27,14 @@ export function ProposalGuide({ onReplan, replan, busy }: ProposalGuideProps) {
         pedido abaixo e deixe que ele escreva <span className={styles.mono}>.mariliz/proposal.json</span>. O motor
         valida a proposta antes de usá-la e você revisa tudo de novo antes de aplicar.
       </span>
-      <textarea
-        className={styles.prompt}
-        readOnly
-        aria-label="Pedido para o Harness Engineer"
+      <TextField
+        label="Pedido para o Harness Engineer"
+        multiline
+        minRows={8}
+        fullWidth
         value={harnessEngineerPrompt}
-        onFocus={(event) => event.currentTarget.select()}
+        onFocus={(event) => event.target.select()}
+        slotProps={{ input: { readOnly: true }, htmlInput: { className: styles.prompt } }}
       />
       <div className={styles.actions}>
         <Button variant="outlined" color="inherit" onClick={() => void copy(harnessEngineerPrompt)}>

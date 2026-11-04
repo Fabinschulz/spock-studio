@@ -1,4 +1,5 @@
 import { FolderIcon } from '@/shared/components/ui';
+import { Button } from '@synthra.io/ui-kit';
 import { useId } from 'react';
 import type { RecentProject } from '../domain/types';
 
@@ -23,8 +24,9 @@ export function RecentProjectButton({ project, current, busy, formatDate, classe
   const inactive = busy || !project.available;
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="text"
+      color="inherit"
       className={classes.button}
       aria-disabled={inactive || undefined}
       aria-current={current ? 'true' : undefined}
@@ -43,6 +45,6 @@ export function RecentProjectButton({ project, current, busy, formatDate, classe
       <span id={reasonId} className={classes.meta}>
         {project.available ? formatDate(project.lastOpenedMs) : UNAVAILABLE}
       </span>
-    </button>
+    </Button>
   );
 }
