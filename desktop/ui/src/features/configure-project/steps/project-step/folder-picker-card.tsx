@@ -1,6 +1,6 @@
 import { Button } from '@synthra.io/ui-kit';
 
-import { RecentProjects, type RecentProject } from '@/features/project-selection';
+import { RecentProjects, useProjectSelectionContext } from '@/features/project-selection';
 import { FolderIcon, InlineNotice, SectionCard } from '@/shared/components/ui';
 
 import { TerminalGlyph } from '../../components/glyphs';
@@ -14,30 +14,15 @@ export interface PickedProject {
 
 interface FolderPickerCardProps {
   project: PickedProject | null;
-  recents: readonly RecentProject[];
-  busy: boolean;
   analyzing: boolean;
-  error: string | null;
-  cancelled: boolean;
-  /** Presente quando a escolha da pasta não existe neste ambiente (ex.: navegador sem o host desktop). */
-  unavailableReason?: string;
-  onPick: () => void;
-  onOpenRecent: (id: string) => void;
   onAnalyze: () => void;
 }
 
-export function FolderPickerCard({
-  project,
-  recents,
-  busy,
-  analyzing,
-  error,
-  cancelled,
-  unavailableReason,
-  onPick,
-  onOpenRecent,
-  onAnalyze
-}: FolderPickerCardProps) {
+/** Escolha da pasta: o estado da seleção (recentes, erro, ambiente sem host) vem do contexto de seleção de projeto. */
+export function FolderPickerCard({ project, analyzing, onAnalyze }: FolderPickerCardProps) {
+  const { busy, error, cancelled, recents, pick, openRecent, unavailableReason } = useProjectSelectionContext();
+  const onPick = () => void pick();
+  const onOpenRecent = (id: string) => void openRecent(id);
   const inactive = busy || unavailableReason !== undefined;
 
   return (

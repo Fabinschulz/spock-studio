@@ -2,6 +2,7 @@ import { EngineError, type EngineClient } from '@/shared/api';
 import {
   cancelSchema,
   discoverySchema,
+  isTerminalState,
   planSchema,
   runSnapshotSchema,
   runStartedSchema,
@@ -69,8 +70,6 @@ export function createHarnessApi(client: EngineClient): HarnessApi {
   };
 }
 
-const TERMINAL = ['completed', 'completed_with_limitations', 'failed', 'requires_intervention', 'cancelled'];
-
 export type WaitOptions = { pollMs?: number; signal?: AbortSignal };
 
 /**
@@ -91,7 +90,7 @@ export async function waitForRun(
     for (;;) {
       if (signal?.aborted) throw aborted();
       const snapshot = await api.snapshot(runId);
-      if (TERMINAL.includes(snapshot.state)) {
+      if (isTerminalState(snapshot.state)) {
         // Uma execução terminada sempre traz o resultado; sem ele, esperar mais não muda nada.
         if (snapshot.result) return snapshot.result;
         throw new EngineError('INVALID_RESPONSE', 'A execução terminou sem resultado.');

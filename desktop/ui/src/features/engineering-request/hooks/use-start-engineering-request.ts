@@ -1,5 +1,5 @@
 import type { EngineClient } from '@/shared/api';
-import { EngineError } from '@/shared/api';
+import { errorMessage } from '@/shared/api';
 import { executionPath } from '@/shared/routing';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -24,7 +24,7 @@ export function useStartEngineeringRequest(client: EngineClient, projectId: stri
         });
         navigate(executionPath(runId));
       } catch (cause) {
-        setError(cause instanceof EngineError ? cause.message : 'Não foi possível iniciar o pedido.');
+        setError(errorMessage(cause, 'Não foi possível iniciar o pedido.'));
         setBusy(false);
       }
     },

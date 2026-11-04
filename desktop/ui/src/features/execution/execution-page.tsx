@@ -1,25 +1,15 @@
-import type { EngineClient } from '@/shared/api';
+import { errorMessage, type EngineClient } from '@/shared/api';
 import { Button } from '@synthra.io/ui-kit';
 import { useState } from 'react';
-import { z } from 'zod';
+
+import { runStateLabel } from '@/shared/utils';
 
 import { describeEvent } from './domain/run-timeline';
 import styles from './execution-page.module.scss';
 import { useRunFollow } from './hooks/use-run-follow';
+import { resumeWorkflow } from './service/execution-api';
 
 export { workflowSnapshotSchema, type WorkflowSnapshot } from './domain/run-timeline';
-
-const STATE_LABEL: Record<string, string> = {
-  analyzing: 'Analisando',
-  awaiting_approval: 'Aguardando aprovação',
-  running: 'Em execução',
-  validating: 'Validando',
-  completed_with_limitations: 'Concluído com limitações',
-  completed: 'Concluído',
-  failed: 'Falhou',
-  requires_intervention: 'Requer intervenção',
-  cancelled: 'Cancelado'
-};
 
 const AREA_LABEL: Record<string, string> = {
   servico: 'Serviço',
@@ -36,14 +26,10 @@ export function ExecutionPage({ runId, client }: { runId: string; client: Engine
     setBusy(true);
     setError(null);
     try {
-      await client.request(
-        'workflow.resume',
-        { projectId: view.snapshot.projectId, runId },
-        z.object({ runId: z.string() })
-      );
+      await resumeWorkflow(client, view.snapshot.projectId, runId);
       await refresh();
-    } catch {
-      setError('Não foi possível retomar a execução.');
+    } catch (cause) {
+      setError(errorMessage(cause, 'Não foi possível retomar a execução.'));
     } finally {
       setBusy(false);
     }
@@ -53,7 +39,7 @@ export function ExecutionPage({ runId, client }: { runId: string; client: Engine
   if (!view) return <p role="status">Lendo a execução…</p>;
 
   const { snapshot } = view;
-  const stateLabel = STATE_LABEL[snapshot.state] ?? snapshot.state;
+  const stateLabel = runStateLabel(snapshot.state);
   const timeline = view.events.flatMap((event) => {
     const text = describeEvent(event);
     return text ? [{ seq: event.seq, text }] : [];

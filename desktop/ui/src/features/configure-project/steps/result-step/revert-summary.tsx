@@ -1,10 +1,11 @@
 import { Alert } from '@synthra.io/ui-kit';
 
+import { runOutcomeLabel } from '@/shared/utils';
+
 import { EvidenceDisclosure, StatusChip } from '@/shared/components/ui';
 import type { RunResult } from '@/shared/schema';
 
 import styles from '../../components/panels.module.scss';
-import { outcomeLabel } from '../../domain/labels';
 
 export function RevertSummary({ result }: { result: RunResult }) {
   return (
@@ -12,7 +13,7 @@ export function RevertSummary({ result }: { result: RunResult }) {
       <h3 className={styles.cardTitle}>
         Reversão{' '}
         <StatusChip tone={result.outcome === 'completed' ? 'success' : 'warning'}>
-          {outcomeLabel[result.outcome]}
+          {runOutcomeLabel[result.outcome]}
         </StatusChip>
       </h3>
       {result.error ? <Alert severity="error" description={`${result.error.code}: ${result.error.message}`} /> : null}

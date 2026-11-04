@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { isTerminalState, snapshotOf, type TimelineEvent } from '@/shared/schema';
+
 const evidenceSchema = z.object({
   filePath: z.string(),
   excerpt: z.string(),
@@ -13,7 +15,7 @@ const impactSchema = z.object({
   evidence: z.array(z.string())
 });
 
-const resultSchema = z.object({
+const workflowResultSchema = z.object({
   kind: z.literal('workflow'),
   summary: z.string(),
   evidence: z.array(evidenceSchema).default([]),
@@ -21,20 +23,10 @@ const resultSchema = z.object({
   impact: impactSchema.optional()
 });
 
-const timelineEventSchema = z.object({ seq: z.number(), type: z.string(), data: z.record(z.string(), z.unknown()) });
-
-export const workflowSnapshotSchema = z.object({
-  runId: z.string(),
-  projectId: z.string(),
-  kind: z.string(),
-  state: z.string(),
-  lastSeq: z.number().optional(),
-  events: z.array(timelineEventSchema).default([]),
-  result: resultSchema.nullable()
-});
+export const workflowSnapshotSchema = snapshotOf(workflowResultSchema);
 
 export type WorkflowSnapshot = z.infer<typeof workflowSnapshotSchema>;
-export type TimelineEvent = z.infer<typeof timelineEventSchema>;
+export type { TimelineEvent };
 
 /** O que a página sabe da execução: o último retrato do motor mais os eventos que chegaram depois, sem buraco nem repetição. */
 export type RunView = {
@@ -43,15 +35,11 @@ export type RunView = {
   lastSeq: number;
 };
 
-const TERMINAL = new Set(['completed', 'completed_with_limitations', 'failed', 'requires_intervention', 'cancelled']);
-
-export function isTerminal(state: string): boolean {
-  return TERMINAL.has(state);
-}
+export const isTerminal = isTerminalState;
 
 export function fromSnapshot(snapshot: WorkflowSnapshot, previous?: RunView): RunView {
   const events = mergeEvents(previous?.events ?? [], snapshot.events);
-  const lastSeq = Math.max(previous?.lastSeq ?? -1, snapshot.lastSeq ?? -1, ...events.map((event) => event.seq));
+  const lastSeq = Math.max(previous?.lastSeq ?? -1, snapshot.lastSeq, ...events.map((event) => event.seq));
   return { snapshot, events, lastSeq: Number.isFinite(lastSeq) ? lastSeq : -1 };
 }
 
