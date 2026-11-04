@@ -1,40 +1,29 @@
 import type { Discovery } from '@/shared/schema';
 import { cn } from '@/shared/utils';
-import { GitGlyph, NodeGlyph, PythonGlyph } from '../../components/glyphs';
-import styles from '../../components/panels.module.scss';
+
+import styles from './model.module.scss';
 
 type Tools = Discovery['tools'];
 
 const dependencies = (tools: Tools) => [
-  {
-    id: 'node',
-    icon: <NodeGlyph />,
-    text: tools.node ? `Node.js ${tools.node}` : 'Node.js: não encontrado',
-    ok: Boolean(tools.node)
-  },
+  { id: 'node', text: tools.node ? `Node.js ${tools.node}` : 'Node.js: não encontrado', ok: Boolean(tools.node) },
   {
     id: 'python',
-    icon: <PythonGlyph />,
     text: tools.python ? `Python ${tools.python}` : 'Python 3: não encontrado',
     ok: Boolean(tools.python)
   },
-  {
-    id: 'git',
-    icon: <GitGlyph />,
-    text: tools.git ? `Git ${tools.git}` : 'Git: não encontrado (recomendado)',
-    ok: Boolean(tools.git)
-  }
+  { id: 'git', text: tools.git ? `Git ${tools.git}` : 'Git: não encontrado (recomendado)', ok: Boolean(tools.git) }
 ];
 
 export function SpecificationDependencies({ tools }: { tools: Tools }) {
   return (
-    <ul className={styles.deps} aria-label="Dependências da estrutura de especificação">
+    <ul role="list" aria-label="Dependências da estrutura de especificação" className={styles.rows}>
       {dependencies(tools).map((dep) => (
-        <li key={dep.id} className={cn(styles.dep, !dep.ok && styles.depMissing)}>
-          <span className={styles.depIcon} aria-hidden="true">
-            {dep.icon}
-          </span>
-          {dep.text}
+        <li key={dep.id}>
+          <div className={styles.line}>
+            <span className={cn(styles.name, !dep.ok && styles.missing)}>{dep.text}</span>
+            <span className={styles.end}>{dep.ok ? 'encontrado' : 'ausente'}</span>
+          </div>
         </li>
       ))}
     </ul>
