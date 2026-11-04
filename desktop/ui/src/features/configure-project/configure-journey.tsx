@@ -55,8 +55,6 @@ export function ConfigureJourney({ api, projectId, projectName, projectPath, pol
         <ProjectStep
           project={{ name: projectName, path: projectPath }}
           discovery={state.discovery}
-          aiEnvironment={state.aiEnvironment}
-          onEnvironment={actions.setEnvironment}
           onAnalyze={() => void actions.discover()}
           onContinue={() => actions.goTo('model')}
         />

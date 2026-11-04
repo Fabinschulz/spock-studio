@@ -336,6 +336,7 @@ Decisões tomadas com a aprovação: direção A (Workbench), `#33C1BA`, **tema 
 | 5 · Jornada | feito | Barra de etapas compacta (`WizardSteps`, mesma semântica), painel de contexto recolhível (gaveta abaixo de ~62 rem de coluna), seções sem caixa (`card()` virou seção), títulos em frase |
 | 6 · Operação | feito | Linha do tempo com etapas planejadas "aguardando", frase de estado, segmentos, tempo (medido no cliente), feed e Participantes **só com fatos** (motor, proposta do Harness Engineer, juiz por modelo) |
 | 7 · Resultado | feito (Evals) | A tabela de Evals virou lista expansível (`validation-list.tsx`): uma linha por verificação com o estado em texto, critério, evidências e limites ao expandir; reprovada e bloqueada já vêm abertas. Os demais blocos da etapa (arquivos, pendências, riscos) seguem como antes; sem conferência visual no Tauri |
+| 5b · Etapa Projeto (1) | feito | Título e frase de abertura, a pasta e o botão de analisar em peça única, e o resultado da análise em linhas planas (Stack, Comandos detectados, Estado atual) no lugar dos três cartões. O seletor de ambiente de IA saiu daqui: ele já é escolhido na etapa Modelo, e o motor só o usa a partir do plano. Etapas 2 a 4 ainda no desenho anterior; sem conferência visual no Tauri |
 | 8 · Contratos | não iniciado | Depende de mudanças no .NET (ver `contratos-propostos.md`) |
 | 9 · Validação | parcial | Ver abaixo |
 
