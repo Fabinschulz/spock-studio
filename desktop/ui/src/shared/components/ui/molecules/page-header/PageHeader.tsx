@@ -11,11 +11,9 @@ interface PageHeaderProps {
   title: ReactNode;
   description?: string;
   breadcrumb?: readonly Crumb[];
-  actions?: ReactNode;
-  lead?: ReactNode;
 }
 
-export function PageHeader({ title, description, breadcrumb, actions, lead }: PageHeaderProps) {
+export function PageHeader({ title, description, breadcrumb }: PageHeaderProps) {
   return (
     <header className={styles.header}>
       {breadcrumb && breadcrumb.length > 0 ? (
@@ -35,10 +33,8 @@ export function PageHeader({ title, description, breadcrumb, actions, lead }: Pa
           </ol>
         </nav>
       ) : null}
-      {lead}
       <div className={styles.row}>
         <h1 className={styles.title}>{title}</h1>
-        {actions ? <div className={styles.actions}>{actions}</div> : null}
       </div>
       {description ? <p className={styles.description}>{description}</p> : null}
     </header>

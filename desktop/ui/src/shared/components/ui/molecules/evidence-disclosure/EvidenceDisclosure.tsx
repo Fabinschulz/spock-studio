@@ -15,8 +15,9 @@ export function EvidenceDisclosure({ summary, items, children }: EvidenceDisclos
       <div className={styles.content}>
         {children}
         <ul className={styles.list}>
-          {items.map((item) => (
-            <li key={item} className={styles.item}>
+          {/* A evidência pode repetir o mesmo texto (dois avisos iguais); a lista é estática, então a posição é a chave. */}
+          {items.map((item, index) => (
+            <li key={`${index}:${item}`} className={styles.item}>
               {item}
             </li>
           ))}

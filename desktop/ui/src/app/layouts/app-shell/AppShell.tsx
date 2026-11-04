@@ -8,7 +8,7 @@ import styles from './AppShell.module.scss';
 import { EngineStatus } from './EngineStatus';
 import { SideNav } from './SideNav';
 
-export const MAIN_CONTENT_ID = 'conteudo';
+const MAIN_CONTENT_ID = 'conteudo';
 
 export function AppShell({ children }: { children: ReactNode }) {
   const main = useRef<HTMLElement>(null);

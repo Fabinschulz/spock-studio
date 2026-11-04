@@ -91,7 +91,7 @@ export function ConfigureJourney({ api, projectId, projectName, projectPath, pol
           approvedChanges={state.approvedChanges}
           approvedCommands={state.approvedCommands}
           resolutions={state.resolutions}
-          approvalCount={countApprovals(state, state.plan.data)}
+          approvalCount={approvalCount}
           onToggleChange={actions.toggleChange}
           onToggleCommand={actions.toggleCommand}
           onResolution={actions.setResolution}

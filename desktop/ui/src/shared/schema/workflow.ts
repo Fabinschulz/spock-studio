@@ -20,4 +20,3 @@ export const workflowStartParamsSchema = z
 export const workflowStartResultSchema = runStartedSchema;
 
 export type WorkflowStartInput = z.infer<typeof workflowStartInputSchema>;
-export type WorkflowStartParams = z.infer<typeof workflowStartParamsSchema>;

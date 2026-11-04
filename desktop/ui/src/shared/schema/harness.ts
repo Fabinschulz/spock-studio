@@ -201,19 +201,6 @@ export const runResultSchema = z.object({
 
 export const runSnapshotSchema = snapshotOf(runResultSchema);
 
-export const runsListSchema = z.object({
-  runs: z.array(
-    z.object({
-      runId: z.string(),
-      kind: z.string(),
-      state: z.string(),
-      startedAt: z.string(),
-      changesApplied: z.boolean(),
-      reverted: z.boolean()
-    })
-  )
-});
-
 /** Decisão da pessoa para um arquivo em conflito: manter o dela ou substituir (com backup). */
 export type ConflictResolution = 'keep' | 'overwrite';
 
@@ -226,4 +213,3 @@ export type ComponentDecision = z.infer<typeof componentDecisionSchema>;
 export type EvalResult = z.infer<typeof evalResultSchema>;
 export type RunResult = z.infer<typeof runResultSchema>;
 export type RunSnapshot = z.infer<typeof runSnapshotSchema>;
-export type RunSummary = z.infer<typeof runsListSchema>['runs'][number];

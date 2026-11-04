@@ -1,8 +1,8 @@
-import { SectionCard } from '@/shared/components/ui';
+import { LockGlyph, SectionCard } from '@/shared/components/ui';
 import type { Discovery } from '@/shared/schema';
 import { cn } from '@/shared/utils';
 import { EnvironmentGlyph } from '../../components/environment-glyph';
-import { LockGlyph, NodesGlyph } from '../../components/glyphs';
+import { NodesGlyph } from '../../components/glyphs';
 import styles from '../../components/panels.module.scss';
 import { AI_ENVIRONMENTS, aiEnvironmentNames, isSupportedEnvironment } from '../../domain/ai-environments';
 

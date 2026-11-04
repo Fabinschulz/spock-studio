@@ -10,12 +10,6 @@
   border-color: var(--color-border-panel);
 }
 
-.accent {
-  @include selected-border;
-
-  background: var(--card-selected-bg);
-}
-
 .header {
   display: flex;
   flex-wrap: wrap;

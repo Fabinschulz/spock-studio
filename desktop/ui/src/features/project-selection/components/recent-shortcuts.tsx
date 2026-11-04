@@ -1,8 +1,17 @@
-import { FolderIcon } from '@/shared/components/ui';
 import { useId } from 'react';
 import { useProjectSelectionContext } from '../context/project-selection-context';
 import { formatRecentDateTime } from '../domain/format-recent-date';
+import { RecentProjectButton } from './recent-project-button';
 import styles from './recent-shortcuts.module.scss';
+
+const classes = {
+  button: styles.card,
+  icon: styles.icon,
+  text: styles.text,
+  name: styles.name,
+  path: styles.path,
+  meta: styles.meta
+};
 
 export function RecentShortcuts() {
   const id = useId();
@@ -15,37 +24,18 @@ export function RecentShortcuts() {
         Projetos recentes
       </h2>
       <ul className={styles.grid} role="list">
-        {recents.map((project) => {
-          const inactive = busy || !project.available;
-          const reasonId = `${id}-${project.id}-motivo`;
-          return (
-            <li key={project.id} className={styles.item}>
-              <button
-                type="button"
-                className={styles.card}
-                aria-disabled={inactive || undefined}
-                aria-current={project.displayName === selected?.displayName ? 'true' : undefined}
-                aria-describedby={reasonId}
-                onClick={inactive ? undefined : () => void openRecent(project.id)}
-              >
-                <span className={styles.icon} aria-hidden="true">
-                  <FolderIcon size={20} />
-                </span>
-                <span className={styles.text}>
-                  <span className={styles.name}>{project.displayName}</span>
-                  <span className={styles.path} title={project.displayPath}>
-                    {project.displayPath}
-                  </span>
-                  <span id={reasonId} className={styles.meta}>
-                    {project.available
-                      ? formatRecentDateTime(project.lastOpenedMs)
-                      : 'Indisponível: a pasta não existe mais ou não está acessível'}
-                  </span>
-                </span>
-              </button>
-            </li>
-          );
-        })}
+        {recents.map((project) => (
+          <li key={project.id} className={styles.item}>
+            <RecentProjectButton
+              project={project}
+              current={project.id === selected?.recentId}
+              busy={busy}
+              formatDate={formatRecentDateTime}
+              classes={classes}
+              onOpen={(recentId) => void openRecent(recentId)}
+            />
+          </li>
+        ))}
       </ul>
     </section>
   );

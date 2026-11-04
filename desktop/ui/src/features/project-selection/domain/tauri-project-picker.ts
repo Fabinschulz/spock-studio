@@ -11,7 +11,12 @@ const recentSchema = z.object({
   available: z.boolean()
 });
 
-const selectedSchema = z.object({ projectId: z.string(), displayName: z.string(), displayPath: z.string() });
+const selectedSchema = z.object({
+  projectId: z.string(),
+  displayName: z.string(),
+  displayPath: z.string(),
+  recentId: z.string().optional()
+});
 
 function toPickError(error: unknown, fallback: string): ProjectPickError {
   const code = typeof error === 'object' && error !== null && 'code' in error ? String(error.code) : 'UNKNOWN';

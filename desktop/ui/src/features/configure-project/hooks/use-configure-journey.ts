@@ -1,6 +1,6 @@
 import { EngineError, errorMessage } from '@/shared/api';
 import type { ConflictResolution } from '@/shared/schema';
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useReducer, useRef } from 'react';
 import { initialJourneyState } from '../constants/initial-journey-state';
 import { buildApplyInput } from '../domain/approvals';
 import { journeyReducer } from '../domain/journey-reducer';
@@ -16,7 +16,8 @@ export function useConfigureJourney(api: HarnessApi, projectId: string, pollMs =
   const [state, dispatch] = useReducer(journeyReducer, initialJourneyState);
   const abort = useRef<AbortController | null>(null);
   const latest = useRef(state);
-  useEffect(() => {
+  // Antes de qualquer efeito ou clique: as ações leem o estado mais recente, nunca o de um render anterior.
+  useLayoutEffect(() => {
     latest.current = state;
   }, [state]);
 
@@ -50,7 +51,10 @@ export function useConfigureJourney(api: HarnessApi, projectId: string, pollMs =
 
   const track = useCallback(
     async (kind: RunKind, start: () => Promise<{ runId: string }>) => {
-      abort.current = new AbortController();
+      // Uma execução nova substitui a anterior: o acompanhamento antigo para, senão ficaria órfão até o fim.
+      abort.current?.abort();
+      const controller = new AbortController();
+      abort.current = controller;
       const { plan, approvedCommands } = latest.current;
       const planned = kind === 'apply' && plan.status === 'ready' ? plannedApplySteps(plan.data, approvedCommands) : [];
       dispatch({ type: 'run.start', kind, at: Date.now(), planned });
@@ -59,7 +63,7 @@ export function useConfigureJourney(api: HarnessApi, projectId: string, pollMs =
         dispatch({ type: 'run.id', runId });
         const result = await waitForRun(api, runId, (event) => dispatch({ type: 'run.event', event, at: Date.now() }), {
           pollMs,
-          signal: abort.current.signal
+          signal: controller.signal
         });
         dispatch({ type: 'run.done', result });
       } catch (error) {

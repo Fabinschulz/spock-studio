@@ -14,7 +14,6 @@ export const runOutcomeLabel: Record<RunOutcome, string> = {
 };
 
 const progressLabel: Record<string, string> = {
-  analyzing: 'Analisando',
   awaiting_approval: 'Aguardando aprovação',
   running: 'Em execução',
   validating: 'Validando'
