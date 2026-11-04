@@ -8,9 +8,9 @@ import { PlanError } from '../../components/plan-error';
 import { StepHeader } from '../../components/step-header';
 import { isSupportedEnvironment } from '../../domain/ai-environments';
 import type { Loadable } from '../../types/journey';
-import { AiEnvironmentCard } from './ai-environment-card';
-import { ConfigurationSummaryCard } from './configuration-summary-card';
-import { SpecificationCard } from './specification-card';
+import { AiEnvironmentSection } from './ai-environment-section';
+import { ConfiguredItemsSection } from './configured-items-section';
+import { SpecificationSection } from './specification-section';
 
 interface ModelStepProps {
   discovery: Discovery;
@@ -46,29 +46,22 @@ export function ModelStep({
 
   return (
     <section className={styles.step}>
-      <StepHeader title="Modelo de implementação e ambiente">
+      <StepHeader title="Modelo e ambiente">
         Vamos preparar a estrutura de engenharia do seu projeto, configurando especificações, agentes, ferramentas,
         regras e validações de acordo com as necessidades identificadas. O Harness Engineer planeja a configuração no
         ambiente de IA que você escolher.
       </StepHeader>
 
-      <div className={styles.modelWrap}>
-        <div className={styles.modelGrid}>
-          <SpecificationCard
-            specification={discovery.specification}
-            tools={discovery.tools}
-            updateSpecification={updateSpecification}
-            allowReinstall={allowReinstall}
-            onUpdateSpecification={onUpdateSpecification}
-            onReinstall={onReinstall}
-          />
-          <AiEnvironmentCard detected={discovery.aiEnvironments} selected={aiEnvironment} onSelect={onEnvironment} />
-          <ConfigurationSummaryCard
-            specificationVersion={discovery.specification.version}
-            aiEnvironment={aiEnvironment}
-          />
-        </div>
-      </div>
+      <SpecificationSection
+        specification={discovery.specification}
+        tools={discovery.tools}
+        updateSpecification={updateSpecification}
+        allowReinstall={allowReinstall}
+        onUpdateSpecification={onUpdateSpecification}
+        onReinstall={onReinstall}
+      />
+      <AiEnvironmentSection detected={discovery.aiEnvironments} selected={aiEnvironment} onSelect={onEnvironment} />
+      <ConfiguredItemsSection />
 
       {showUnsupportedNotice ? (
         <InlineNotice tone="warning" title="Ambiente sem suporte nesta fase">
