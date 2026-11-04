@@ -1,33 +1,36 @@
-import { EvidenceDisclosure, SectionCard, StatusChip } from '@/shared/components/ui';
+import { EvidenceDisclosure } from '@/shared/components/ui';
 import type { Discovery } from '@/shared/schema';
 
-import styles from '../../components/panels.module.scss';
-import { confidenceLabel, confidenceTone } from '../../domain/labels';
+import { confidenceLabel } from '../../domain/labels';
+import styles from './discovery.module.scss';
 
 export function StacksSection({ stacks }: { stacks: Discovery['stacks'] }) {
   return (
-    <SectionCard title="Stack detectada">
+    <section aria-labelledby="stack-titulo" className={styles.section}>
+      <h3 id="stack-titulo" className={styles.title}>
+        Stack
+      </h3>
       {stacks.length === 0 ? (
-        <p className={styles.muted}>Nenhuma stack conhecida foi detectada pelos arquivos de configuração.</p>
+        <p className={styles.note}>Nenhuma stack conhecida foi detectada pelos arquivos de configuração.</p>
       ) : (
-        <ul className={styles.list} aria-label="Stacks detectadas">
+        <ul role="list" className={styles.rows}>
           {stacks.map((stack) => (
-            <li key={stack.id + stack.root} className={styles.stack}>
-              <div className={styles.row}>
-                <span className={styles.cardTitle}>{stack.name}</span>
-                <StatusChip tone="info">{stack.version ?? 'versão desconhecida'}</StatusChip>
-                <StatusChip tone={confidenceTone[stack.confidence]}>
-                  confiança {confidenceLabel[stack.confidence]}
-                </StatusChip>
+            <li key={stack.id + stack.root}>
+              <div className={styles.line}>
+                <span>
+                  <span className={styles.name}>{stack.name}</span>
+                  <span className={styles.meta}>
+                    {' '}
+                    {stack.version ?? 'versão desconhecida'} · em {stack.root === '' ? 'raiz do projeto' : stack.root}
+                  </span>
+                </span>
+                <span className={styles.end}>confiança {confidenceLabel[stack.confidence]}</span>
               </div>
-              <span className={styles.muted}>Em {stack.root === '' ? 'raiz do projeto' : stack.root}</span>
-              {stack.notes.length > 0 ? (
-                <div className={styles.chips}>
-                  {stack.notes.map((note) => (
-                    <StatusChip key={note}>{note}</StatusChip>
-                  ))}
+              {stack.notes.map((note) => (
+                <div key={note} className={styles.meta}>
+                  {note}
                 </div>
-              ) : null}
+              ))}
               <EvidenceDisclosure
                 summary={`Evidências (${stack.evidence.length})`}
                 items={stack.evidence.map((e) => (e.detail ? `${e.path}: ${e.detail}` : e.path))}
@@ -36,6 +39,6 @@ export function StacksSection({ stacks }: { stacks: Discovery['stacks'] }) {
           ))}
         </ul>
       )}
-    </SectionCard>
+    </section>
   );
 }

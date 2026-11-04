@@ -6,8 +6,6 @@ export function ProjectChoice() {
     <ProjectStep
       project={null}
       discovery={{ status: 'idle' }}
-      aiEnvironment={null}
-      onEnvironment={() => undefined}
       onAnalyze={() => undefined}
       onContinue={() => undefined}
     />
