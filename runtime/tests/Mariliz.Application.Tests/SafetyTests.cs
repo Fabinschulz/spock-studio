@@ -259,7 +259,7 @@ public class SafetyTests
         Assert.Contains(secretEval["evidence"]!.AsArray(), e => e!.GetValue<string>().Contains(".mcp.json:1 (github-token)"));
 
         // Nenhum valor secreto em nada que a aplicação produz ou grava.
-        var everything = string.Join("\n", ConfigureProjectService.ToJson(discovery)!.ToJsonString(), ConfigureProjectService.ToJson(plan)!.ToJsonString(), validation.ToJsonString(),
+        var everything = string.Join("\n", JournalJson.Node(discovery)!.ToJsonString(), JournalJson.Node(plan)!.ToJsonString(), validation.ToJsonString(),
             string.Join("\n", Directory.EnumerateFiles(project.DataDir, "*.json", SearchOption.AllDirectories).Select(File.ReadAllText)),
             string.Join("\n", journey.Events.Select(e => e.Data.ToJsonString())));
         Assert.DoesNotContain(Secret, everything);

@@ -37,7 +37,7 @@ public sealed class WorkflowService(
         var request = WorkflowInput.Parse(input);
 
         if (!tracker.TryStart(projectId, Kind, out var run) || run is null)
-            throw new EngineException("RUN_IN_PROGRESS", "Já há uma execução em andamento neste projeto.");
+            throw EngineErrors.RunInProgress();
 
         Record(run);
         var executionId = "ex-" + Guid.NewGuid().ToString("N")[..12];
@@ -52,7 +52,7 @@ public sealed class WorkflowService(
         var run = tracker.Find(runId);
         if (run is null) return ResumeFromJournal(projectId, runId);
         if (run.ProjectId != projectId)
-            throw new EngineException("RUN_NOT_FOUND", "Execução não encontrada.");
+            throw EngineErrors.RunNotFound();
         if (!_approvals.TryGetValue(runId, out var gate) || !gate.TrySetResult(true))
             throw new EngineException("WORKFLOW_NOT_INTERRUPTED", "Não há uma execução aguardando aprovação.");
         return Task.FromResult(run);
@@ -65,7 +65,7 @@ public sealed class WorkflowService(
     private void EnsureAuthorized(string projectId)
     {
         if (!workspace.IsAuthorized(projectId))
-            throw new EngineException("PROJECT_NOT_AUTHORIZED", "O projeto não foi autorizado. Selecione a pasta pelo diálogo do aplicativo.");
+            throw EngineErrors.ProjectNotAuthorized();
     }
 
     /// <summary>O motor caiu com a execução pausada: ela volta do diário, com a numeração de eventos que já tinha.</summary>
@@ -74,10 +74,10 @@ public sealed class WorkflowService(
         var journal = store.LoadJournal(projectId, runId);
         if (journal is null || journal.Kind != Kind || journal.State != RunStates.AwaitingApproval
             || string.IsNullOrEmpty(journal.ExecutionId) || string.IsNullOrEmpty(journal.InterruptId) || string.IsNullOrEmpty(journal.ApprovalId))
-            throw new EngineException("RUN_NOT_FOUND", "Execução não encontrada.");
+            throw EngineErrors.RunNotFound();
 
         var run = tracker.TryRehydrate(runId, projectId, Kind)
-            ?? throw new EngineException("RUN_IN_PROGRESS", "Já há uma execução em andamento neste projeto.");
+            ?? throw EngineErrors.RunInProgress();
 
         var published = store.LoadEvents(projectId, runId);
         if (published.Count > 0 && published[^1]["seq"] is JsonValue last)
@@ -150,7 +150,7 @@ public sealed class WorkflowService(
     private void OpenApproval(RunHandle run, RunJournal journal, WorkflowAck ack)
     {
         if (ack.InterruptId is null)
-            throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+            throw EngineErrors.AiRuntimeInvalidResponse();
         journal.InterruptId = ack.InterruptId;
         journal.ApprovalId = "apr-" + Convert.ToHexString(RandomNumberGenerator.GetBytes(6)).ToLowerInvariant();
         Mark(journal, RunStates.AwaitingApproval);
@@ -204,9 +204,9 @@ public sealed class WorkflowService(
     private static void EnsureAck(RunHandle run, string executionId, WorkflowAck ack)
     {
         if (ack.RunId != run.RunId || ack.ProjectId != run.ProjectId || ack.ExecutionId != executionId || ack.WorkflowId != WorkflowId)
-            throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+            throw EngineErrors.AiRuntimeInvalidResponse();
         if (ack.Status is not ("completed" or "interrupted" or "failed"))
-            throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+            throw EngineErrors.AiRuntimeInvalidResponse();
     }
 
     private void Record(RunHandle run) => run.Recorder = evt => store.AppendEvent(run.ProjectId, run.RunId, evt);
@@ -241,7 +241,7 @@ public sealed class WorkflowService(
     private void Finish(RunHandle run, RunJournal journal, WorkflowAck ack)
     {
         if (ack.Status == "interrupted")
-            throw new EngineException("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
+            throw EngineErrors.AiRuntimeInvalidResponse();
 
         var outcome = ack.Status == "failed" ? RunStates.Failed : RunStates.CompletedWithLimitations;
         journal.State = outcome;

@@ -35,10 +35,10 @@ public static class PlanBuilder
             if (entry.Mode == "kept") continue;
             if (currentHash == entry.Sha256)
                 changes.Add(New(entry.Path, kind, entry.Component, ChangeAction.Remove, "O componente foi dispensado; o arquivo gerenciado e intacto sai.",
-                    DecisionOrigins.Baseline, currentHash, null, destructive: true, null, Diff(entry.Path, Encoding.UTF8.GetString(current), ""), false));
+                    DecisionOrigins.Baseline, currentHash, null, destructive: true, null, Diff(entry.Path, Encoding.UTF8.GetString(current), "")));
             else
                 changes.Add(New(entry.Path, kind, entry.Component, ChangeAction.Conflict, "O componente foi dispensado, mas o arquivo foi editado por você.",
-                    DecisionOrigins.Baseline, currentHash, null, destructive: true, "Arquivo gerenciado editado localmente; só será removido se você decidir.", null, false));
+                    DecisionOrigins.Baseline, currentHash, null, destructive: true, "Arquivo gerenciado editado localmente; só será removido se você decidir.", null));
         }
 
         // Existente e não gerenciado: preservado, e dito no plano.
@@ -49,7 +49,7 @@ public static class PlanBuilder
             var hash = files.ReadBytes(item.Path) is { } bytes ? Hashing.Sha256(bytes) : null;
             inventoryPreserved.Add(New(item.Path, kind, "existing:" + item.Name, ChangeAction.Preserve,
                 item.Issue is null ? "Já existe no projeto e não é gerenciado pela aplicação; permanece como está." : $"Já existe no projeto; permanece como está. Aviso: {item.Issue}",
-                DecisionOrigins.Existing, hash, hash, false, null, null, false));
+                DecisionOrigins.Existing, hash, hash, false, null, null));
         }
         changes.AddRange(inventoryPreserved.OrderBy(c => c.Path, StringComparer.Ordinal));
 
@@ -73,7 +73,7 @@ public static class PlanBuilder
         if (currentBytes is null)
         {
             var reason = entry is null ? file.Reason : "Arquivo gerenciado ausente no disco; será restaurado. " + file.Reason;
-            return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Create, reason, file.Origin, null, afterHash, false, null, Diff(file.Path, null, desired), false);
+            return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Create, reason, file.Origin, null, afterHash, false, null, Diff(file.Path, null, desired));
         }
 
         var currentText = Encoding.UTF8.GetString(currentBytes);
@@ -82,23 +82,23 @@ public static class PlanBuilder
         if (file.Mode == "merge")
         {
             return Normalize(currentText) == desired
-                ? New(file.Path, file.Kind, file.ComponentId, ChangeAction.Preserve, "As chaves gerenciadas já estão como o desejado.", file.Origin, currentHash, currentHash, false, null, null, false)
-                : New(file.Path, file.Kind, file.ComponentId, ChangeAction.Update, file.Reason, file.Origin, currentHash, afterHash, false, null, Diff(file.Path, currentText, desired), false);
+                ? New(file.Path, file.Kind, file.ComponentId, ChangeAction.Preserve, "As chaves gerenciadas já estão como o desejado.", file.Origin, currentHash, currentHash, false, null, null)
+                : New(file.Path, file.Kind, file.ComponentId, ChangeAction.Update, file.Reason, file.Origin, currentHash, afterHash, false, null, Diff(file.Path, currentText, desired));
         }
 
         if (currentHash == afterHash)
-            return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Preserve, "Já está como o desejado.", file.Origin, currentHash, afterHash, false, null, null, false);
+            return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Preserve, "Já está como o desejado.", file.Origin, currentHash, afterHash, false, null, null);
 
         if (entry is { Mode: "file" } && entry.Sha256 == currentHash)
-            return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Update, "Conteúdo gerenciado desatualizado; atualizar. " + file.Reason, file.Origin, currentHash, afterHash, false, null, Diff(file.Path, currentText, desired), false);
+            return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Update, "Conteúdo gerenciado desatualizado; atualizar. " + file.Reason, file.Origin, currentHash, afterHash, false, null, Diff(file.Path, currentText, desired));
 
         if (entry is { Mode: "kept" } && entry.Sha256 == currentHash)
-            return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Preserve, "Mantido por decisão sua; a aplicação não o altera.", DecisionOrigins.Existing, currentHash, currentHash, false, null, null, false);
+            return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Preserve, "Mantido por decisão sua; a aplicação não o altera.", DecisionOrigins.Existing, currentHash, currentHash, false, null, null);
 
         var why = entry is null
             ? "Já existe um arquivo neste caminho que a aplicação não gerencia."
             : "O arquivo gerenciado foi editado depois da última aplicação.";
-        return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Conflict, file.Reason, file.Origin, currentHash, afterHash, destructive: true, why, Diff(file.Path, currentText, desired), false);
+        return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Conflict, file.Reason, file.Origin, currentHash, afterHash, destructive: true, why, Diff(file.Path, currentText, desired));
     }
 
     private static FileChange? ClassifyLock(IProjectFiles files, ManagedLockFile? existing, ComposeResult composed, DiscoveryReport report, List<FileChange> changes)
@@ -117,18 +117,18 @@ public static class PlanBuilder
             return New(ManagedLockFile.FileName, ComponentKind.Config, Catalog.ConfigDeclaration,
                 current is null ? ChangeAction.Create : ChangeAction.Update,
                 "Registro dos arquivos gerenciados e da estrutura de especificação. O conteúdo é calculado depois da instalação dela.",
-                DecisionOrigins.Baseline, currentHash, null, false, null, null, false);
+                DecisionOrigins.Baseline, currentHash, null, false, null, null);
         }
 
         var afterHash = Hashing.Sha256(Normalize(content));
         if (currentHash == afterHash)
             return New(ManagedLockFile.FileName, ComponentKind.Config, Catalog.ConfigDeclaration, ChangeAction.Preserve,
-                "O registro já está como o desejado.", DecisionOrigins.Baseline, currentHash, afterHash, false, null, null, false);
+                "O registro já está como o desejado.", DecisionOrigins.Baseline, currentHash, afterHash, false, null, null);
 
         return New(ManagedLockFile.FileName, ComponentKind.Config, Catalog.ConfigDeclaration,
             current is null ? ChangeAction.Create : ChangeAction.Update,
             "Registro dos arquivos gerenciados, das versões e da estrutura de especificação.", DecisionOrigins.Baseline, currentHash, afterHash, false, null,
-            Diff(ManagedLockFile.FileName, current, Normalize(content)), false);
+            Diff(ManagedLockFile.FileName, current, Normalize(content)));
     }
 
     private static IEnumerable<(InventoryItem Item, ComponentKind Kind)> InventoryWithKind(HarnessInventory inv)
@@ -165,12 +165,8 @@ public static class PlanBuilder
     }
 
     private static FileChange New(string path, ComponentKind kind, string componentId, ChangeAction action, string reason, string origin,
-        string? before, string? after, bool destructive, string? conflict, (string Diff, bool Truncated)? diff, bool _) =>
-        new("chg-" + Hashing.Sha256(path)[..10], kind, componentId, path, action, reason, origin, before, after, destructive, conflict, diff?.Diff, diff?.Truncated ?? false);
-
-    private static FileChange New(string path, ComponentKind kind, string componentId, ChangeAction action, string reason, string origin,
         string? before, string? after, bool destructive, string? conflict, (string Diff, bool Truncated)? diff) =>
-        New(path, kind, componentId, action, reason, origin, before, after, destructive, conflict, diff, false);
+        new("chg-" + Hashing.Sha256(path)[..10], kind, componentId, path, action, reason, origin, before, after, destructive, conflict, diff?.Diff, diff?.Truncated ?? false);
 
     /// <summary>O diff é mostrado na tela e vai no plano: linhas com formato de credencial são omitidas dos dois lados.</summary>
     private static (string Diff, bool Truncated)? Diff(string path, string? before, string after) =>
@@ -178,6 +174,6 @@ public static class PlanBuilder
             before is null ? null : Core.Policy.SecretScanner.RedactLines(Normalize(before)),
             Core.Policy.SecretScanner.RedactLines(after));
 
-    /// <summary>Fim de linha e espaço final uniformes: o hash e o diff não dependem do sistema que escreveu.</summary>
+    /// <summary>Fim de linha uniforme: o hash e o diff não dependem do sistema que escreveu.</summary>
     public static string Normalize(string text) => text.Replace("\r\n", "\n");
 }

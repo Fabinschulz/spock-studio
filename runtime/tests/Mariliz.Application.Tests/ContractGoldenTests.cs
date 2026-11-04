@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Mariliz.Application.Execution;
 using Mariliz.Application.Harness;
 using Mariliz.Application.Tests.Support;
 
@@ -67,8 +68,8 @@ public class ContractGoldenTests
             var journey = new Journey(project, Journey.FakeInstaller(project));
             var discovery = await journey.Service.DiscoverAsync(journey.ProjectId, CancellationToken.None);
             var plan = await journey.PlanAsync();
-            scenarios.Add(new("discovery", Normalize(ConfigureProjectService.ToJson(discovery)!, project, journey)));
-            scenarios.Add(new("plan", Normalize(ConfigureProjectService.ToJson(plan)!, project, journey)));
+            scenarios.Add(new("discovery", Normalize(JournalJson.Node(discovery)!, project, journey)));
+            scenarios.Add(new("plan", Normalize(JournalJson.Node(plan)!, project, journey)));
         }
 
         // Aplicação, validação e reversão completas.

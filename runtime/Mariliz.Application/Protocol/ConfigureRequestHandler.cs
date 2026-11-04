@@ -16,7 +16,7 @@ internal sealed class ConfigureRequestHandler(ConfigureProjectService service)
         ProtocolMethods.Apply => StartApply(p),
         ProtocolMethods.Validate => RunStarted(service.StartValidate(p.Str("projectId"))),
         ProtocolMethods.Revert => RunStarted(service.StartRevert(p.Str("projectId"), p.Str("runId"))),
-        ProtocolMethods.Runs => new JsonObject { ["runs"] = ConfigureProjectService.ToJson(service.ListRuns(p.Str("projectId"))) },
+        ProtocolMethods.Runs => new JsonObject { ["runs"] = JournalJson.Node(service.ListRuns(p.Str("projectId"))) },
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
     };
 
@@ -57,5 +57,5 @@ internal sealed class ConfigureRequestHandler(ConfigureProjectService service)
 
     private static JsonObject RunStarted(RunHandle run) => new() { ["runId"] = run.RunId };
 
-    private static JsonObject Json<T>(T value) => (JsonObject)ConfigureProjectService.ToJson(value)!;
+    private static JsonObject Json<T>(T value) => (JsonObject)JournalJson.Node(value)!;
 }

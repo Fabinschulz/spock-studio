@@ -3,7 +3,6 @@ using Mariliz.Application.Ports;
 using Mariliz.Core.Plan;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace Mariliz.Application.Harness;
 
@@ -37,20 +36,10 @@ public sealed class DeclaredConfig
         public List<string> Exclude { get; set; } = [];
     }
 
-    private static readonly IDeserializer Reader = new DeserializerBuilder()
-        .WithNamingConvention(CamelCaseNamingConvention.Instance)
-        .IgnoreUnmatchedProperties()
-        .Build();
-
-    private static readonly ISerializer Writer = new SerializerBuilder()
-        .WithNamingConvention(CamelCaseNamingConvention.Instance)
-        .ConfigureDefaultValuesHandling(DefaultValuesHandling.Preserve)
-        .Build();
-
     public string ToYaml() =>
         "# Declaração do Harness gerenciado pelo Mariliz Studio.\n"
         + "# Este arquivo é seu: edite à vontade. A aplicação o lê, mas não o reescreve.\n"
-        + Writer.Serialize(this);
+        + YamlFiles.Writer.Serialize(this);
 
     public static (DeclaredConfig? Config, string? Error) TryRead(IProjectFiles files)
     {
@@ -58,7 +47,7 @@ public sealed class DeclaredConfig
         if (text is null) return (null, null);
         try
         {
-            var config = Reader.Deserialize<DeclaredConfig>(text) ?? new DeclaredConfig();
+            var config = YamlFiles.Reader.Deserialize<DeclaredConfig>(text) ?? new DeclaredConfig();
             if (config.Schema != 1) return (null, $"mariliz.yaml: schema {config.Schema} não é suportado (esperado 1).");
             if (!string.Equals(config.ImplementationModel, ImplementationModels.Mariliz, StringComparison.OrdinalIgnoreCase))
                 return (null, $"mariliz.yaml: implementationModel '{config.ImplementationModel}' não é suportado; esta fase usa somente '{ImplementationModels.Mariliz}'.");

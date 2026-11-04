@@ -1,6 +1,7 @@
 using Mariliz.Application.Discovery;
 using Mariliz.Application.Harness;
 using Mariliz.Core.Evals;
+using Mariliz.Core.Policy;
 using static Mariliz.Application.Validation.EvalResults;
 
 namespace Mariliz.Application.Validation.Checks;
@@ -19,7 +20,7 @@ internal sealed class EnvironmentCheck : IEvalCheck
             return Fail(spec, $"O ambiente '{ctx.Lock.AiEnvironment}' não é suportado por esta fase.", [ManagedLockFile.FileName]);
 
         var outside = ctx.Lock.ManagedFiles
-            .Where(f => !(f.Path.StartsWith(".claude/", StringComparison.Ordinal) || f.Path.StartsWith(".mariliz/", StringComparison.Ordinal) || f.Path is DeclaredConfig.FileName or ManagedLockFile.FileName))
+            .Where(f => !ManagedScope.IsEnvironmentFile(f.Path))
             .Select(f => f.Path).ToList();
         return outside.Count == 0
             ? Pass(spec, [$"Ambiente claude-code; {ctx.Lock.ManagedFiles.Count} arquivo(s) todos em .claude/, .mariliz/ ou na raiz de configuração"])
