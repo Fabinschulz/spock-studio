@@ -296,7 +296,8 @@ As duas ondas foram juntas: duplicações e organização (P2) e limpeza (P3). N
 - Os cerca de 16 tipos exportados sem importador externo são props e peças de schema dos próprios módulos; só `WorkflowStartParams` era morto.
 - `harness.runs` continua no motor e na lista do host: é parte do protocolo; só o cliente da UI, sem uso, saiu.
 - `prototype/` tem a própria cópia de copiar texto; o protótipo é descartável e fica fora.
-- NET-P2-1, NET-P2-2, NET-P2-10 e NET-P2-11 ficam para quando essas áreas mudarem (o NET-P2-11 pertence à Fase 5).
+- NET-P2-1, NET-P2-2 e NET-P2-10 ficam para quando essas áreas mudarem.
+- NET-P2-11 resolvido na Fase 5 sem mudar o .NET: o Python acrescenta `projects/<id>/` à raiz recebida e só grava nessa subpasta, então `model.json` não é alcançável pelo índice nem pelo checkpoint. `test_memory_isolation.py` trava isso.
 
 **Teste intermitente:** `ProtocolJourneyTests.Jornada_completa_pelo_protocolo_com_eventos_de_progresso_e_snapshot` falhou uma vez numa
 execução completa e passou sozinho e em sete execuções completas seguidas. A causa não foi identificada; fica registrada para observação.
