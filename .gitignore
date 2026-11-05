@@ -17,3 +17,4 @@ desktop/host/src-tauri/resources/intelligence/**
 desktop/host/src-tauri/resources/python/**
 !desktop/host/src-tauri/resources/python/.gitkeep
 intelligence/packages/
+TestResults/

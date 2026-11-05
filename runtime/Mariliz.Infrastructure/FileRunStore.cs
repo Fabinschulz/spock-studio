@@ -54,6 +54,14 @@ public sealed class FileRunStore(string dataRoot) : IRunStore
             .Where(j => j is not null).Cast<RunJournal>().ToList();
     }
 
+    public IReadOnlyList<string> ListProjectIds()
+    {
+        var dir = Path.Combine(dataRoot, "projects");
+        if (!Directory.Exists(dir)) return [];
+        // Uma pasta com nome fora do padrão não é de um projeto do motor: fica de fora em vez de derrubar a varredura.
+        return Directory.EnumerateDirectories(dir).Select(Path.GetFileName).OfType<string>().Where(IsSafe).Order(StringComparer.Ordinal).ToList();
+    }
+
     public void SaveBackup(string projectId, string runId, string relativePath, byte[] content)
     {
         var dir = Path.Combine(RunDir(projectId, runId), "backup");
@@ -100,6 +108,7 @@ public sealed class FileRunStore(string dataRoot) : IRunStore
     private static string BackupName(string relativePath) => Hashing.Sha256(relativePath) + ".bin";
 
     /// <summary>Os ids vêm do motor, mas a pasta é montada a partir deles: só caracteres seguros passam.</summary>
-    private static string Safe(string id) =>
-        id.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_') ? id : throw new ArgumentException("Identificador inválido.");
+    private static string Safe(string id) => IsSafe(id) ? id : throw new ArgumentException("Identificador inválido.");
+
+    private static bool IsSafe(string id) => id.Length > 0 && id.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_');
 }
