@@ -13,7 +13,8 @@ namespace Mariliz.Application.Workflows;
 /// </summary>
 internal static class WorkflowResult
 {
-    public static JsonObject From(WorkflowAck ack, JournalModelUsage? usage = null, JournalJudgment? judgment = null)
+    public static JsonObject From(WorkflowAck ack, JournalModelUsage? usage = null, JournalJudgment? judgment = null,
+        IReadOnlyList<JournalAction>? actions = null)
     {
         var result = new JsonObject
         {
@@ -33,6 +34,8 @@ internal static class WorkflowResult
         // O runtime só diz que houve avaliação; a opinião do juiz sai do diário, já conferida contra o proxy.
         if (ack.Output["evaluation"] is JsonObject declared && declared.Text("verdict") == "deterministic")
             result["evaluation"] = JudgmentRecord.Evaluation(judgment);
+        // As ações são as do diário (propostas, aprovadas e executadas pelo motor), nunca as que o runtime diz ter feito.
+        if (actions is { Count: > 0 }) result["actions"] = ActionGovernance.ForResult(actions);
         // O uso vem do proxy do motor, não do que o runtime disse ter gasto.
         if (usage is not null)
             result["usage"] = new JsonObject { ["modelCalls"] = usage.Calls, ["inputTokens"] = usage.InputTokens, ["outputTokens"] = usage.OutputTokens };

@@ -12,6 +12,8 @@ public static class Ids
 
     public static bool IsInterruptId(string? value) => Is(value, "int-");
 
+    public static bool IsApprovalId(string? value) => Is(value, "apr-");
+
     public static bool Is(string? value, string prefix) =>
         value is not null
         && value.Length == prefix.Length + HexLength

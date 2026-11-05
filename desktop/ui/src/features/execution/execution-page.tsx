@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 import { runStateLabel } from '@/shared/utils';
 
-import { describeEvent } from './domain/run-timeline';
+import { describeEvent, pendingApproval } from './domain/run-timeline';
 import styles from './execution-page.module.scss';
 import { useRunFollow } from './hooks/use-run-follow';
 import { resumeWorkflow } from './service/execution-api';
@@ -20,6 +20,15 @@ const CRITERION_LABEL: Record<string, string> = {
   architecture_coherence: 'Coerência arquitetural'
 };
 
+const ACTION_STATUS_LABEL: Record<string, string> = {
+  executed: 'executada',
+  skipped: 'não aprovada, nada foi gravado',
+  conflict: 'não gravada: já existe um arquivo diferente neste caminho',
+  failed: 'não foi possível executar',
+  approved: 'aprovada, aguardando a execução',
+  proposed: 'proposta'
+};
+
 const AREA_LABEL: Record<string, string> = {
   servico: 'Serviço',
   interface: 'Interface',
@@ -29,13 +38,26 @@ const AREA_LABEL: Record<string, string> = {
 export function ExecutionPage({ runId, client }: { runId: string; client: EngineClient }) {
   const { view, error, setError, refresh } = useRunFollow(client, runId);
   const [busy, setBusy] = useState(false);
+  // Nada vem marcado: executar uma ação é uma escolha explícita de quem aprova.
+  const [chosen, setChosen] = useState<readonly string[]>([]);
 
   const approve = async () => {
     if (!view) return;
     setBusy(true);
     setError(null);
     try {
-      await resumeWorkflow(client, view.snapshot.projectId, runId);
+      const pending = pendingApproval(view.events);
+      await resumeWorkflow(
+        client,
+        view.snapshot.projectId,
+        runId,
+        pending
+          ? {
+              approvalId: pending.approvalId,
+              actionIds: chosen.filter((id) => pending.actions.some((a) => a.id === id))
+            }
+          : undefined
+      );
       await refresh();
     } catch (cause) {
       setError(errorMessage(cause, 'Não foi possível retomar a execução.'));
@@ -49,6 +71,9 @@ export function ExecutionPage({ runId, client }: { runId: string; client: Engine
 
   const { snapshot } = view;
   const stateLabel = runStateLabel(snapshot.state);
+  const pending = snapshot.state === 'awaiting_approval' ? pendingApproval(view.events) : null;
+  const toggle = (id: string) =>
+    setChosen((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
   const timeline = view.events.flatMap((event) => {
     const text = describeEvent(event);
     return text ? [{ seq: event.seq, text }] : [];
@@ -151,9 +176,55 @@ export function ExecutionPage({ runId, client }: { runId: string; client: Engine
         </section>
       ) : null}
 
+      {pending && pending.actions.length > 0 ? (
+        <section aria-labelledby="acoes-titulo">
+          <h2 id="acoes-titulo">Ações propostas</h2>
+          <p>
+            Nada é gravado no projeto sem a sua aprovação. O conteúdo é gerado pelo motor a partir do impacto já
+            validado, não pelo agente. Marque o que quer executar.
+          </p>
+          <ul className={styles.list}>
+            {pending.actions.map((action) => (
+              <li key={action.id} className={styles.row}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={chosen.includes(action.id)}
+                    onChange={() => toggle(action.id)}
+                    disabled={busy}
+                  />{' '}
+                  {action.summary}
+                </label>
+                {action.target ? <p className={styles.path}>{action.target}</p> : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {snapshot.result?.actions && snapshot.result.actions.length > 0 ? (
+        <section aria-labelledby="acoes-resultado-titulo">
+          <h2 id="acoes-resultado-titulo">Ações</h2>
+          <ul className={styles.list}>
+            {snapshot.result.actions.map((action) => (
+              <li key={action.id} className={styles.row}>
+                {action.summary}: {ACTION_STATUS_LABEL[action.status] ?? action.status}
+                {action.target ? <span className={styles.path}> {action.target}</span> : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {snapshot.state === 'awaiting_approval' ? (
         <Button type="button" onClick={() => void approve()} disabled={busy}>
-          {busy ? 'Retomando…' : 'Aprovar'}
+          {busy
+            ? 'Retomando…'
+            : pending && pending.actions.length > 0
+              ? chosen.length > 0
+                ? 'Aprovar e executar as ações marcadas'
+                : 'Aprovar sem executar ações'
+              : 'Aprovar'}
         </Button>
       ) : null}
     </section>

@@ -18,4 +18,9 @@ public sealed record WorkflowAck(
     JsonObject Output,
     IReadOnlyList<WorkflowLimitation> Limitations,
     IReadOnlyList<WorkflowLimitation> Errors,
-    string? InterruptId);
+    string? InterruptId,
+    IReadOnlyList<JsonObject>? NextActions = null)
+{
+    /// <summary>As ações que o runtime propôs. São propostas: quem decide e executa é o motor.</summary>
+    public IReadOnlyList<JsonObject> Actions => NextActions ?? [];
+}

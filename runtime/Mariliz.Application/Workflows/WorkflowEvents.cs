@@ -29,13 +29,13 @@ internal sealed class WorkflowEvents(IClock clock)
         ["at"] = Now()
     };
 
-    public void ApprovalRequired(RunHandle run, string approvalId, string executionId, JsonArray steps)
+    public void ApprovalRequired(RunHandle run, string approvalId, string executionId, JsonArray steps, JsonArray? actions = null)
     {
         run.Publish("approval.required", new JsonObject
         {
             ["approvalId"] = approvalId,
             ["executionId"] = executionId,
-            ["actions"] = new JsonArray(),
+            ["actions"] = actions ?? new JsonArray(),
             ["at"] = Now()
         });
         var paused = Status(executionId, "interrupted");

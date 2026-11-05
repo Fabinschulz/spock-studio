@@ -26,6 +26,21 @@ internal readonly struct RequestParams(JsonObject? values)
             : throw new ParamException($"'{name}' precisa ser um inteiro a partir de -1.");
     }
 
+    /// <summary>Uma lista de textos opcional. Qualquer item que não seja texto invalida o pedido.</summary>
+    public IReadOnlyList<string> StringList(string name)
+    {
+        if (values?[name] is null) return [];
+        if (values[name] is not JsonArray items) throw new ParamException($"'{name}' precisa ser uma lista de textos.");
+        var list = new List<string>();
+        foreach (var item in items)
+        {
+            if (item is not JsonValue value || !value.TryGetValue<string>(out var text) || string.IsNullOrWhiteSpace(text))
+                throw new ParamException($"'{name}' precisa ser uma lista de textos.");
+            list.Add(text);
+        }
+        return list;
+    }
+
     public JsonObject? Object(string name) => values?[name] as JsonObject;
 
     public JsonObject ObjectOrEmpty(string name)
