@@ -2,11 +2,17 @@ import { z } from 'zod';
 
 import { isTerminalState, snapshotOf, type TimelineEvent } from '@/shared/schema';
 
+/** Um trecho recuperado, com a origem que o motor conferiu: arquivo, trecho, hash do conteúdo e pontuação da busca. */
 const evidenceSchema = z.object({
   filePath: z.string(),
   excerpt: z.string(),
-  chunkId: z.string()
+  chunkId: z.string(),
+  hash: z.string().optional(),
+  score: z.number().optional()
 });
+
+/** Por que a execução falhou, como o motor registrou (`WorkflowResult.Failure`). */
+const failureSchema = z.object({ code: z.string(), message: z.string() });
 
 const impactSchema = z.object({
   schema: z.literal('engineering.impact.v1'),
@@ -34,7 +40,9 @@ const evaluationSchema = z.object({
 
 const workflowResultSchema = z.object({
   kind: z.literal('workflow'),
-  summary: z.string(),
+  // Uma execução que falhou não tem resumo: o resultado traz só `error`. Exigir o resumo fazia a página recusar o retrato inteiro.
+  summary: z.string().default(''),
+  error: failureSchema.optional(),
   evidence: z.array(evidenceSchema).default([]),
   limitations: z.array(z.object({ code: z.string(), message: z.string() })).default([]),
   impact: impactSchema.optional(),

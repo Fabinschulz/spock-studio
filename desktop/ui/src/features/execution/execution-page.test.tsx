@@ -7,7 +7,7 @@ import type { RunEvent } from '@/shared/schema';
 import { AppProviders } from '@/shared/components';
 import { expectNoA11yViolations } from '@/test/a11y';
 
-import { ExecutionPage, type WorkflowSnapshot } from './execution-page';
+import { ExecutionPage, workflowSnapshotSchema, type WorkflowSnapshot } from './execution-page';
 
 const paused: WorkflowSnapshot = {
   runId: 'run-1',
@@ -365,6 +365,146 @@ describe('Execução', () => {
 
     expect(await screen.findByRole('heading', { name: 'Ações' })).toBeInTheDocument();
     expect(screen.getByText(/já existe um arquivo diferente neste caminho/)).toBeInTheDocument();
+  });
+
+  it('mostra a falha da execução (o resultado de falha não traz resumo) e a tela passa no axe', async () => {
+    // O schema precisa aceitar o resultado de falha como o motor o envia: `parse` falha se o resumo voltar a ser obrigatório.
+    const failed = workflowSnapshotSchema.parse({
+      ...paused,
+      state: 'failed',
+      events: [
+        { seq: 0, type: 'workflow.started', data: {} },
+        { seq: 1, type: 'agent.started', data: { agentId: 'planning', agentVersion: '1' } }
+      ],
+      // Como o motor grava a falha: sem `summary`, só o código e a mensagem.
+      result: { kind: 'workflow', error: { code: 'AI_RUNTIME_UNAVAILABLE', message: 'O runtime de IA não respondeu.' } }
+    });
+    const { container } = render(
+      <AppProviders>
+        <ExecutionPage runId="run-1" client={clientFor(failed)} />
+      </AppProviders>
+    );
+
+    expect(await screen.findByText('A execução falhou')).toBeInTheDocument();
+    expect(screen.getByText('O runtime de IA não respondeu.')).toBeInTheDocument();
+    expect(screen.getByText(/Você pode iniciar o pedido de novo/)).toBeInTheDocument();
+    expect(screen.getByText('AI_RUNTIME_UNAVAILABLE')).toBeInTheDocument();
+    // A etapa que estava em andamento fica marcada como falha, não como concluída.
+    expect(screen.getByText('Planejamento').closest('li')).toHaveTextContent('Falhou');
+    await expectNoA11yViolations(container);
+  });
+
+  it('não inventa nada: sem eventos e sem resultado só há o estado', async () => {
+    const bare = clientFor({ ...paused, state: 'running', events: [], result: null });
+    render(
+      <AppProviders>
+        <ExecutionPage runId="run-1" client={bare} />
+      </AppProviders>
+    );
+
+    expect(await screen.findByText('Execução')).toBeInTheDocument();
+    for (const heading of [
+      'Etapas',
+      'O que aconteceu',
+      'Evidências',
+      'Impacto técnico',
+      'Limitações',
+      'Avaliação por modelo'
+    ]) {
+      expect(screen.queryByRole('heading', { name: heading })).not.toBeInTheDocument();
+    }
+    expect(screen.queryByText('Nenhuma evidência nesta execução.')).not.toBeInTheDocument();
+  });
+
+  it('mostra as etapas que os eventos anunciaram e os trechos com origem, mesmo antes do resultado', async () => {
+    const hash = 'a'.repeat(64);
+    const live = clientFor({
+      ...paused,
+      state: 'running',
+      events: [
+        { seq: 0, type: 'context.retrieval.started', data: {} },
+        {
+          seq: 1,
+          type: 'context.retrieved',
+          data: { chunkId: 'docs/nota.md#1', filePath: 'docs/nota.md', hash, score: 2.345 }
+        },
+        { seq: 2, type: 'agent.started', data: { agentId: 'planning', agentVersion: '1' } }
+      ],
+      result: null
+    });
+    render(
+      <AppProviders>
+        <ExecutionPage runId="run-1" client={live} />
+      </AppProviders>
+    );
+
+    expect(await screen.findByRole('heading', { name: 'Etapas' })).toBeInTheDocument();
+    expect(screen.getByText('Contexto do projeto').closest('li')).toHaveTextContent('1 trecho(s) recuperado(s)');
+    expect(screen.getByText('Planejamento').closest('li')).toHaveTextContent('Em andamento · Agente, versão 1');
+    const evidence = screen.getByText('docs/nota.md').closest('li')!;
+    expect(evidence).toHaveTextContent('Trecho docs/nota.md#1 · pontuação 2.35 · versão aaaaaaaaaaaa');
+    expect(screen.getByText('O texto de cada trecho aparece quando a execução termina.')).toBeInTheDocument();
+    // Nenhum evento de aprovação, avaliação ou fim: nada disso aparece.
+    expect(screen.queryByText('Aprovação')).not.toBeInTheDocument();
+    expect(screen.queryByText('Avaliação')).not.toBeInTheDocument();
+    expect(screen.queryByText('Resultado')).not.toBeInTheDocument();
+  });
+
+  it('com o resultado, a evidência traz a origem conferida e o risco do impacto tem texto próprio', async () => {
+    const finished = clientFor({
+      ...done,
+      events: [],
+      result: {
+        ...done.result!,
+        evidence: [
+          {
+            filePath: 'docs/nota.md',
+            excerpt: 'trecho visível',
+            chunkId: 'docs/nota.md#1',
+            hash: 'b'.repeat(64),
+            score: 1.25
+          }
+        ],
+        impact: {
+          schema: 'engineering.impact.v1',
+          areas: ['servico'],
+          risks: ['sem-stack'],
+          evidence: ['docs/nota.md#1']
+        }
+      }
+    });
+    const { container } = render(
+      <AppProviders>
+        <ExecutionPage runId="run-1" client={finished} />
+      </AppProviders>
+    );
+
+    expect(await screen.findByText('Nenhuma stack foi identificada no projeto.')).toBeInTheDocument();
+    expect(screen.getByText('docs/nota.md').closest('li')).toHaveTextContent(
+      'Trecho docs/nota.md#1 · pontuação 1.25 · versão bbbbbbbbbbbb · citado no impacto técnico'
+    );
+    await expectNoA11yViolations(container);
+  });
+
+  it('a tela completa (etapas, avaliação, ações e uso) passa no axe', async () => {
+    const full = clientFor({
+      ...proposing,
+      events: [
+        ...proposing.events,
+        { seq: 3, type: 'eval.completed', data: { evalId: 'EV-JUDGE-001', kind: 'model', outcome: 'passed' } }
+      ],
+      result: null
+    });
+    const { container } = render(
+      <AppProviders>
+        <ExecutionPage runId="run-1" client={full} />
+      </AppProviders>
+    );
+
+    expect(await screen.findByRole('checkbox', { name: /Registrar a decisão de arquitetura/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Etapas' })).toBeInTheDocument();
+    expect(screen.getByText('Aprovação').closest('li')).toHaveTextContent('Esperando a sua decisão');
+    await expectNoA11yViolations(container);
   });
 
   it('o Planejamento aparece com o nome certo na linha do tempo', async () => {
