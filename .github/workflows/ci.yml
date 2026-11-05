@@ -66,11 +66,9 @@ jobs:
             rid: win-x64
             triple: x86_64-pc-windows-msvc
             bundles: nsis
-          - name: macos-arm64
-            os: macos-latest
-            rid: osx-arm64
-            triple: aarch64-apple-darwin
-            bundles: dmg
+          # macOS fora da primeira versão (decisão de 2026-11-05): sem Mac para validar nem conta Apple Developer para assinar e
+          # notarizar. O empacotamento do Python para macOS segue no scripts/package-intelligence.py; para voltar, basta
+          # reincluir aqui o alvo aarch64-apple-darwin com `bundles: dmg` (ver ADR-0001, D2).
           - name: linux-x64
             os: ubuntu-22.04
             rid: linux-x64
@@ -156,6 +154,9 @@ jobs:
         run: dotnet test runtime/tests/Mariliz.Application.Tests --filter "FullyQualifiedName~Pacote_embarcado" --nologo --logger "trx;LogFileName=instalador.trx" --results-directory "${{ runner.temp }}/smoke"
       - name: o smoke do instalador rodou e passou
         run: python scripts/assert-test-passed.py "${{ runner.temp }}/smoke/instalador.trx" Pacote_embarcado
+      # Os instaladores não são assinados na primeira versão: o SHA-256 de cada um sai junto, para conferir o arquivo baixado.
+      - name: somas de verificação dos instaladores
+        run: python scripts/write-checksums.py desktop/host/src-tauri/target/${{ matrix.triple }}/release/bundle
       - uses: actions/upload-artifact@v4
         with:
           name: mariliz-${{ matrix.name }}

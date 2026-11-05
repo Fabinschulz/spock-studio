@@ -109,7 +109,7 @@ Sem isso, as dependências dariam 50,6 MB. No macOS o `strip` invalidaria a assi
 
 - Windows: `build-runtime.ps1 -FetchPythonEmbed` + `PackagedAiSmokeTests`, que agora executa o grafo a partir do pacote.
 - Linux: pacote montado num disco Linux (WSL Ubuntu 22.04) e grafo executado com `python3 -I` num ambiente vazio.
-- macOS: só na CI, no runner `macos-latest`. A assinatura e a notarização do interpretador ficam para a Fase 8, parte 8b. O smoke do instalador (Fase 8, parte 8a) abre o instalador de cada sistema e roda o grafo com o Python de dentro dele.
+- macOS: só na CI, no runner `macos-latest`. O macOS ficou fora da primeira versão (2026-11-05): sai da matriz da CI e a assinatura e a notarização do interpretador ficam para quando houver Mac e conta Apple Developer (ver `docs/distribuicao.md`). O smoke do instalador (Fase 8, parte 8a) abre o instalador de cada sistema e roda o grafo com o Python de dentro dele.
 - O `langsmith` entra no pacote, mesmo ocioso. O teste de rede é obrigatório.
 
 ## D4 — Provedor e limites do modelo (decidida em 2026-11-05)
