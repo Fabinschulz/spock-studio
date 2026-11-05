@@ -31,6 +31,8 @@ class Outcome:
     calls: int = 0
     input_tokens: int = 0
     output_tokens: int = 0
+    model: str = ""
+    model_version: str = ""
 
     @property
     def tokens(self) -> int:
@@ -61,6 +63,7 @@ def ask(
             outcome.code = ex.code
             return outcome
         outcome.calls += 1
+        outcome.model, outcome.model_version = reply.model, reply.model_version
         outcome.input_tokens += reply.input_tokens
         outcome.output_tokens += reply.output_tokens
         try:

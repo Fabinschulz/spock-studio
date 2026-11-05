@@ -32,7 +32,8 @@ public sealed record ChatRequest(IReadOnlyList<ChatMessage> Messages, int MaxTok
 
 public sealed record ChatTransportResult(string Text, string ModelVersion, int InputTokens, int OutputTokens);
 
-public sealed record ChatCompletion(string Text, string Model, string ModelVersion, int InputTokens, int OutputTokens);
+/// <summary><see cref="PromptHash"/> é o SHA-256 das mensagens como saíram, já sem segredos: prova do que o modelo recebeu.</summary>
+public sealed record ChatCompletion(string Text, string Model, string ModelVersion, int InputTokens, int OutputTokens, string PromptHash);
 
 /// <summary>Envio de uma conversa ao provedor, com o uso real de tokens. A implementação recusa destino fora da allowlist.</summary>
 public interface IModelChatTransport

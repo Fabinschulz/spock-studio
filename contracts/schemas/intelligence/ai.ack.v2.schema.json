@@ -38,16 +38,40 @@
           "properties": { "schema": { "const": "engineering.impact.v1" } }
         },
         "evaluation": {
-          "description": "O veredito é sempre determinístico; o juiz por modelo só registra uma opinião.",
+          "description": "O veredito é sempre determinístico; o juiz por modelo (EV-JUDGE-001) só registra uma opinião. Com judge passed ou failed, a opinião vem em 'judgment'; com not_run, não vem.",
           "type": "object",
           "required": ["schema", "verdict", "judge", "tokens"],
           "properties": {
             "schema": { "const": "engineering.evaluation.v1" },
             "verdict": { "const": "deterministic" },
             "judge": { "enum": ["not_run", "passed", "failed"] },
-            "tokens": { "type": "integer", "minimum": 0 }
+            "tokens": { "type": "integer", "minimum": 0 },
+            "judgment": {
+              "type": "object",
+              "required": ["schema", "criteriaVersion", "scores", "rationale", "evidence", "model", "modelVersion"],
+              "properties": {
+                "schema": { "const": "engineering.judgment.v1" },
+                "criteriaVersion": { "type": "string", "pattern": "^[0-9]+$" },
+                "scores": {
+                  "type": "object",
+                  "minProperties": 3,
+                  "maxProperties": 4,
+                  "propertyNames": { "enum": ["plan_quality", "context_fit", "request_fit", "architecture_coherence"] },
+                  "additionalProperties": { "type": "integer", "minimum": 1, "maximum": 5 }
+                },
+                "rationale": { "type": "string", "minLength": 1, "maxLength": 300 },
+                "evidence": { "type": "array", "maxItems": 8, "items": { "type": "string", "minLength": 1 } },
+                "model": { "type": "string", "minLength": 1, "maxLength": 100 },
+                "modelVersion": { "type": "string", "minLength": 1, "maxLength": 100 }
+              },
+              "additionalProperties": false
+            }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "allOf": [
+            { "if": { "properties": { "judge": { "enum": ["passed", "failed"] } }, "required": ["judge"] }, "then": { "required": ["judgment"] } },
+            { "if": { "properties": { "judge": { "const": "not_run" } }, "required": ["judge"] }, "then": { "not": { "required": ["judgment"] } } }
+          ]
         }
       },
       "additionalProperties": false

@@ -42,6 +42,10 @@ public sealed class RunJournal
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public JournalModelUsage? ModelUsage { get; set; }
 
+    /// <summary>A opinião do juiz por modelo, depois de conferida e ligada à chamada que o proxy viu. Não decide o resultado.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public JournalJudgment? Judgment { get; set; }
+
     [JsonIgnore]
     public bool CanBeReverted =>ChangesApplied && !RolledBack && RevertedByRunId is null;
 }

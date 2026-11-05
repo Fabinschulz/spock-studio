@@ -14,7 +14,8 @@ var models = new ModelGateway(engine.Settings, transport, chat: transport);
 using var modelAccess = new LocalModelAccess(new ModelBroker(models));
 var aiRuntime = new LoopbackAiRuntime();
 var workflows = new WorkflowService(engine.Workspace, aiRuntime, engine.Tracker, engine.Clock, engine.Store,
-    new WorkflowContextBuilder(engine.Workspace, aiRuntime, engine.Files, engine.Runner, engine.DataRoot), modelAccess);
+    new WorkflowContextBuilder(engine.Workspace, aiRuntime, engine.Files, engine.Runner, engine.DataRoot), modelAccess,
+    new FileEvalRecords(engine.DataRoot));
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: engine.Runs);
 try

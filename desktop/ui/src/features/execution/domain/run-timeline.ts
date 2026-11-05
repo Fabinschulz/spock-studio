@@ -15,12 +15,30 @@ const impactSchema = z.object({
   evidence: z.array(z.string())
 });
 
+/** A opinião do juiz por modelo (EV-JUDGE-001): notas por critério, justificativa e o modelo que a escreveu. Não é veredito. */
+const judgmentSchema = z.object({
+  criteriaVersion: z.string(),
+  scores: z.record(z.string(), z.number()),
+  rationale: z.string(),
+  evidence: z.array(z.string()).default([]),
+  model: z.string(),
+  modelVersion: z.string()
+});
+
+const evaluationSchema = z.object({
+  verdict: z.literal('deterministic'),
+  judge: z.enum(['not_run', 'passed', 'failed']),
+  tokens: z.number(),
+  judgment: judgmentSchema.optional()
+});
+
 const workflowResultSchema = z.object({
   kind: z.literal('workflow'),
   summary: z.string(),
   evidence: z.array(evidenceSchema).default([]),
   limitations: z.array(z.object({ code: z.string(), message: z.string() })).default([]),
   impact: impactSchema.optional(),
+  evaluation: evaluationSchema.optional(),
   /** Tokens gastos com o modelo, como o motor contou. Só vem em execuções que usaram modelo. */
   usage: z.object({ modelCalls: z.number(), inputTokens: z.number(), outputTokens: z.number() }).optional()
 });
@@ -91,6 +109,13 @@ export function describeEvent(event: TimelineEvent): string | null {
       return `${agent} começou`;
     case 'agent.completed':
       return `${agent} concluiu`;
+    case 'eval.started':
+      return event.data.kind === 'model' ? 'Avaliando o resultado com o juiz por modelo' : null;
+    case 'eval.completed':
+      if (event.data.kind !== 'model') return null;
+      if (event.data.outcome === 'passed') return 'Avaliação por modelo registrada: aprovada nos critérios';
+      if (event.data.outcome === 'failed') return 'Avaliação por modelo registrada: abaixo do mínimo em algum critério';
+      return 'O juiz por modelo não rodou';
     case 'approval.required':
       return 'Aprovação necessária para continuar';
     case 'workflow.interrupted':

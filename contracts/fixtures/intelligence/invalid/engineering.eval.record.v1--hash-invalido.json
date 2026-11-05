@@ -1,0 +1,25 @@
+{
+  "schema": "engineering.eval.record.v1",
+  "evalId": "EV-JUDGE-001",
+  "kind": "model",
+  "executionId": "ex-0123456789ab",
+  "runId": "run-0123456789ab",
+  "projectId": "p-0123456789ab",
+  "criteriaVersion": "1",
+  "model": "gpt-4o-mini",
+  "modelVersion": "gpt-4o-mini-2024-07-18",
+  "promptHash": "curto",
+  "outcome": "passed",
+  "scores": {
+    "plan_quality": 4,
+    "context_fit": 4,
+    "request_fit": 5
+  },
+  "rationale": "O plano é concreto e cita o módulo certo.",
+  "evidence": [
+    "docs/cobranca.md#1"
+  ],
+  "inputTokens": 812,
+  "outputTokens": 120,
+  "recordedAt": "2026-11-05T19:00:00.0000000+00:00"
+}

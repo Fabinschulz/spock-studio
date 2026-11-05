@@ -137,7 +137,8 @@
             "properties": {
               "evalId": { "type": "string", "pattern": "^[A-Z][A-Z0-9]*(-[A-Z0-9]+)+$" },
               "kind": { "enum": ["deterministic", "model"] },
-              "outcome": { "enum": ["passed", "failed", "not_run", "blocked"] }
+              "outcome": { "enum": ["passed", "failed", "not_run", "blocked"] },
+              "criteriaVersion": { "type": "string", "pattern": "^[0-9]+$" }
             },
             "additionalProperties": false
           }

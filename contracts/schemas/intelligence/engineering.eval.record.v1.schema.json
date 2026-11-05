@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/intelligence/engineering.eval.record.v1.schema.json",
+  "title": "Registro de uma avaliação por modelo (<data>/projects/<id>/evals/<executionId>.json)",
+  "description": "Escrito pelo motor, nunca pelo runtime de IA. O modelo, a versão e o hash do pedido vêm do proxy do motor; as notas e a justificativa vêm do juiz depois de validadas. O registro não tem veredito: a avaliação por modelo é uma opinião.",
+  "type": "object",
+  "required": [
+    "schema",
+    "evalId",
+    "kind",
+    "executionId",
+    "runId",
+    "projectId",
+    "criteriaVersion",
+    "model",
+    "modelVersion",
+    "promptHash",
+    "outcome",
+    "scores",
+    "rationale",
+    "evidence",
+    "inputTokens",
+    "outputTokens",
+    "recordedAt"
+  ],
+  "properties": {
+    "schema": {
+      "const": "engineering.eval.record.v1"
+    },
+    "evalId": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]*(-[A-Z0-9]+)+$"
+    },
+    "kind": {
+      "const": "model"
+    },
+    "executionId": {
+      "type": "string",
+      "pattern": "^ex-[0-9a-f]{12}$"
+    },
+    "runId": {
+      "type": "string",
+      "pattern": "^run-[0-9a-f]{12}$"
+    },
+    "projectId": {
+      "type": "string",
+      "pattern": "^p-[0-9a-f]{12}$"
+    },
+    "criteriaVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "modelVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "promptHash": {
+      "description": "SHA-256 das mensagens enviadas ao modelo, calculado pelo proxy.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "outcome": {
+      "enum": [
+        "passed",
+        "failed"
+      ]
+    },
+    "scores": {
+      "type": "object",
+      "minProperties": 3,
+      "maxProperties": 4,
+      "propertyNames": {
+        "enum": [
+          "plan_quality",
+          "context_fit",
+          "request_fit",
+          "architecture_coherence"
+        ]
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5
+      }
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "inputTokens": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "outputTokens": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "recordedAt": {
+      "type": "string",
+      "minLength": 20
+    }
+  },
+  "additionalProperties": false
+}

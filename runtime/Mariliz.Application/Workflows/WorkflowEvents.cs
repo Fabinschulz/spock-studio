@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
+using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 
@@ -14,9 +15,10 @@ internal sealed class WorkflowEvents(IClock clock)
     private static readonly HashSet<string> KnownAgents = new(StringComparer.Ordinal) { "planning", "architecture" };
 
     /// <summary>Encaminha os eventos aceitos pelo filtro para a execução.</summary>
-    public Action<JsonObject> Relay(RunHandle run, AiEventFilter filter) => evt =>
+    /// <param name="judgeCalls">As chamadas que o proxy viu até agora: só com uma chamada de juiz o evento de avaliação por modelo passa.</param>
+    public Action<JsonObject> Relay(RunHandle run, AiEventFilter filter, Func<IReadOnlyList<ModelCallRecord>>? judgeCalls = null) => evt =>
     {
-        if (filter.Accept(evt)) Translate(run, evt);
+        if (filter.Accept(evt)) Translate(run, evt, judgeCalls);
     };
 
     public JsonObject Status(string executionId, string status) => new()
@@ -41,7 +43,7 @@ internal sealed class WorkflowEvents(IClock clock)
         run.Publish("workflow.interrupted", paused);
     }
 
-    private void Translate(RunHandle run, JsonObject evt)
+    private void Translate(RunHandle run, JsonObject evt, Func<IReadOnlyList<ModelCallRecord>>? judgeCalls)
     {
         var data = (JsonObject)evt["data"]!;
         var agentId = evt.Text("agentId");
@@ -63,7 +65,38 @@ internal sealed class WorkflowEvents(IClock clock)
             case "agent.completed" when KnownAgents.Contains(agentId) && data.Text("status") == "completed":
                 run.Publish("agent.completed", new JsonObject { ["agentId"] = agentId, ["at"] = Now() });
                 break;
+            case "eval.started" when data.Text("evalId") == JournalJudgment.EvalId && data.Text("kind") == "model":
+                run.Publish("eval.started", new JsonObject { ["evalId"] = JournalJudgment.EvalId, ["kind"] = "model", ["required"] = false, ["at"] = Now() });
+                break;
+            case "eval.completed" when data.Text("evalId") == JournalJudgment.EvalId && data.Text("kind") == "model":
+                run.Publish("eval.completed", EvalCompleted(data, judgeCalls?.Invoke() ?? []));
+                break;
         }
+    }
+
+    /// <summary>
+    /// Uma avaliação por modelo só aparece como aprovada ou reprovada se o proxy viu a chamada do juiz; modelo e versão vêm do
+    /// proxy. Sem isso (ou sem a versão dos critérios), o evento diz que o juiz não rodou.
+    /// </summary>
+    private JsonObject EvalCompleted(JsonObject data, IReadOnlyList<ModelCallRecord> calls)
+    {
+        var outcome = data.Text("outcome");
+        var criteria = data.Text("criteriaVersion");
+        var call = calls.LastOrDefault(c => c.AgentId == JudgmentVerifier.JudgeAgent && c.Purpose == "judge");
+        var judged = outcome is "passed" or "failed" && call is not null && criteria.Length is > 0 and <= 9 && criteria.All(char.IsAsciiDigit);
+        var evt = new JsonObject
+        {
+            ["evalId"] = JournalJudgment.EvalId,
+            ["kind"] = "model",
+            ["required"] = false,
+            ["outcome"] = judged ? outcome : "not_run",
+            ["at"] = Now()
+        };
+        if (!judged) return evt;
+        evt["model"] = call!.Model;
+        evt["modelVersion"] = call.ModelVersion;
+        evt["criteriaVersion"] = criteria;
+        return evt;
     }
 
     private static bool IsVersion(string value) => value.Length is > 0 and <= 9 && value.All(char.IsAsciiDigit);

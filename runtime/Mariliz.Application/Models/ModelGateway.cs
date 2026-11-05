@@ -1,3 +1,6 @@
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using Mariliz.Application.Execution;
 using Mariliz.Core.Policy;
 
@@ -83,7 +86,13 @@ public sealed class ModelGateway(IModelSettings settings, IModelTransport transp
 
         var text = Redact(result.Text, key);
         if (text.Length > MaxChatText) text = text[..MaxChatText];
-        return new ChatCompletion(text, DefaultModel, result.ModelVersion, Math.Max(0, result.InputTokens), Math.Max(0, result.OutputTokens));
+        return new ChatCompletion(text, DefaultModel, result.ModelVersion, Math.Max(0, result.InputTokens), Math.Max(0, result.OutputTokens), HashOf(messages));
+    }
+
+    private static string HashOf(IReadOnlyList<ChatMessage> messages)
+    {
+        var json = JsonSerializer.Serialize(messages.Select(m => new { role = m.Role, content = m.Content }));
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json))).ToLowerInvariant();
     }
 
     private static string Redact(string text, string key)

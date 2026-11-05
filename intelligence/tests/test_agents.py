@@ -27,6 +27,11 @@ def _chunk(root: str) -> str:
     return ack["output"]["evidence"][0]["chunkId"]
 
 
+def _agent_calls(model: FakeModel) -> list[dict]:
+    """As chamadas dos agentes que escrevem (Planning e Architecture); o juiz tem testes próprios."""
+    return [call for call in model.calls if call["purpose"] != "judge"]
+
+
 def _steps(ack: dict) -> list[str]:
     return [step["id"] for step in ack["output"]["plan"]["steps"]]
 
@@ -108,7 +113,7 @@ class PlanningWithModelTests(unittest.TestCase):
 
             _, ack = _go(with_model(), model)
 
-            self.assertEqual(len(model.calls), 1, code)
+            self.assertEqual(len(_agent_calls(model)), 1, code)
             self.assertTrue({code, "PLAN_MODEL_FALLBACK"} <= _codes(ack), code)
             self.assertEqual(ack["status"], "completed", code)
 
@@ -220,7 +225,7 @@ class ArchitectureWithModelTests(unittest.TestCase):
         _, ack = _go(with_model(impact=True), model)
 
         self.assertEqual(ack["output"]["impact"]["risks"], ["sem-evidencia"])
-        self.assertEqual(len(model.calls), 3)
+        self.assertEqual(len(_agent_calls(model)), 3)
 
     def test_agente_continua_completo_mesmo_quando_o_modelo_nao_serve(self) -> None:
         model = FakeModel(plan(("a", "A")), ModelError("MODEL_UNAVAILABLE"))
