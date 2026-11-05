@@ -1,5 +1,5 @@
 import { cn } from '@/shared/utils';
-import { ArrowRightIcon, Button } from '@synthra.io/ui-kit';
+import { ArrowRightIcon, Button } from '@mariliz/ui-kit';
 import { useId, type ReactNode } from 'react';
 import styles from './ActionCard.module.scss';
 

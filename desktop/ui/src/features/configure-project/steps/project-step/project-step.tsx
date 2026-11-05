@@ -1,4 +1,4 @@
-import { Alert, ArrowRightIcon, Button } from '@synthra.io/ui-kit';
+import { Alert, ArrowRightIcon, Button } from '@mariliz/ui-kit';
 
 import { PrimaryActionFooter } from '@/shared/components/ui';
 import type { Discovery } from '@/shared/schema';

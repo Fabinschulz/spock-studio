@@ -1,4 +1,4 @@
-import { Button } from '@synthra.io/ui-kit';
+import { Button } from '@mariliz/ui-kit';
 
 import { ProjectComposer } from '@/prototype/components/project-composer';
 import { StepHeader } from '@/prototype/components/step-header';

@@ -1,6 +1,6 @@
 import { pathTo } from '@/shared/routing';
 import { cn } from '@/shared/utils';
-import { Button, Home01Icon, LibraryIcon, ListViewRectangleIcon, SettingIcon } from '@synthra.io/ui-kit';
+import { Button, Home01Icon, LibraryIcon, ListViewRectangleIcon, SettingIcon } from '@mariliz/ui-kit';
 import { useId, type ReactNode } from 'react';
 import { NavLink } from 'react-router';
 import styles from './AppShell.module.scss';

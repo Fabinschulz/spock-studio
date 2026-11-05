@@ -1,4 +1,4 @@
-import { Provider } from '@synthra.io/ui-kit';
+import { Provider } from '@mariliz/ui-kit';
 import type { ReactNode } from 'react';
 
 import { theme } from './theme';

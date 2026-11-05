@@ -1,4 +1,4 @@
-import { Alert } from '@synthra.io/ui-kit';
+import { Alert } from '@mariliz/ui-kit';
 import type { Loadable } from '../types/journey';
 
 export function PlanError({ plan }: { plan: Loadable<unknown> }) {

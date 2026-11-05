@@ -1,5 +1,5 @@
 import { errorMessage, type EngineClient } from '@/shared/api';
-import { Button } from '@synthra.io/ui-kit';
+import { Button } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
 import { runStateLabel } from '@/shared/utils';

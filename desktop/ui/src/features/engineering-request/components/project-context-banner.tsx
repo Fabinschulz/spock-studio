@@ -1,5 +1,5 @@
 import type { SelectedProject } from '@/features/project-selection';
-import { Typography } from '@synthra.io/ui-kit';
+import { Typography } from '@mariliz/ui-kit';
 
 import styles from '../engineering-request-page.module.scss';
 

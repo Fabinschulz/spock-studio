@@ -1,4 +1,4 @@
-import { Breadcrumb } from '@synthra.io/ui-kit';
+import { Breadcrumb } from '@mariliz/ui-kit';
 import type { ReactNode } from 'react';
 import styles from './PageHeader.module.scss';
 

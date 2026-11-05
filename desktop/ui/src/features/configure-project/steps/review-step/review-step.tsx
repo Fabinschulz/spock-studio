@@ -1,4 +1,4 @@
-import { Button } from '@synthra.io/ui-kit';
+import { Button } from '@mariliz/ui-kit';
 
 import { EvidenceDisclosure, PrimaryActionFooter, StatusChip } from '@/shared/components/ui';
 import type { ConfigurationPlan, ConflictResolution, FileChange } from '@/shared/schema';

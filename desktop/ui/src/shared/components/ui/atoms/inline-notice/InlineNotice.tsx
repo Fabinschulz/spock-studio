@@ -1,4 +1,4 @@
-import { Alert } from '@synthra.io/ui-kit';
+import { Alert } from '@mariliz/ui-kit';
 import type { ReactNode } from 'react';
 
 export type NoticeTone = 'info' | 'warning' | 'danger' | 'success';

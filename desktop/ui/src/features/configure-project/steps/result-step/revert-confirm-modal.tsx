@@ -1,4 +1,4 @@
-import { Button, Modal } from '@synthra.io/ui-kit';
+import { Button, Modal } from '@mariliz/ui-kit';
 
 import styles from '../../components/panels.module.scss';
 

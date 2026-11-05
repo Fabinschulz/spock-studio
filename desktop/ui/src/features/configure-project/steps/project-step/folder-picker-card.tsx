@@ -1,4 +1,4 @@
-import { Button } from '@synthra.io/ui-kit';
+import { Button } from '@mariliz/ui-kit';
 
 import { RecentProjects, useProjectSelectionContext } from '@/features/project-selection';
 import { FolderIcon, InlineNotice, SectionCard } from '@/shared/components/ui';

@@ -1,4 +1,4 @@
-import { Alert, Button } from '@synthra.io/ui-kit';
+import { Alert, Button } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
 import { runOutcomeLabel } from '@/shared/utils';
