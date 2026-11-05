@@ -24,3 +24,18 @@ public interface IModelTransport
 {
     Task<ModelTransportResult> SendAsync(Uri endpoint, string key, string prompt, int maxTokens, CancellationToken ct);
 }
+
+public sealed record ChatMessage(string Role, string Content);
+
+/// <summary>Uma conversa com o modelo. <see cref="JsonObject"/> pede ao provedor uma resposta em JSON.</summary>
+public sealed record ChatRequest(IReadOnlyList<ChatMessage> Messages, int MaxTokens, bool JsonObject);
+
+public sealed record ChatTransportResult(string Text, string ModelVersion, int InputTokens, int OutputTokens);
+
+public sealed record ChatCompletion(string Text, string Model, string ModelVersion, int InputTokens, int OutputTokens);
+
+/// <summary>Envio de uma conversa ao provedor, com o uso real de tokens. A implementação recusa destino fora da allowlist.</summary>
+public interface IModelChatTransport
+{
+    Task<ChatTransportResult> SendChatAsync(Uri endpoint, string key, string model, ChatRequest request, CancellationToken ct);
+}

@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
+using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
 
@@ -19,7 +20,8 @@ public sealed class WorkflowService(
     RunTracker tracker,
     IClock clock,
     IRunStore store,
-    WorkflowContextBuilder context)
+    WorkflowContextBuilder context,
+    IModelAccess? models = null)
 {
     public const string Kind = "workflow";
     public const string WorkflowId = WorkflowRequests.GraphId + ".v" + WorkflowRequests.GraphVersion;
@@ -35,13 +37,16 @@ public sealed class WorkflowService(
         EnsureAuthorized(projectId);
         await runtime.EnsureReadyAsync(ct);
         var request = WorkflowInput.Parse(input);
+        var useModel = WorkflowInput.WantsModel(input);
+        if (useModel && models is not { Configured: true })
+            throw new EngineException("MODEL_NOT_CONFIGURED", "Configure um modelo antes de pedir uma execução com modelo.");
 
         if (!tracker.TryStart(projectId, Kind, out var run) || run is null)
             throw EngineErrors.RunInProgress();
 
         Record(run);
         var executionId = "ex-" + Guid.NewGuid().ToString("N")[..12];
-        run.Start(() => ExecuteAsync(run, executionId, request));
+        run.Start(() => ExecuteAsync(run, executionId, request, useModel));
         return run;
     }
 
@@ -89,7 +94,7 @@ public sealed class WorkflowService(
         return Task.FromResult(run);
     }
 
-    private Task ExecuteAsync(RunHandle run, string executionId, JsonObject input)
+    private Task ExecuteAsync(RunHandle run, string executionId, JsonObject input, bool useModel)
     {
         var journal = BeginJournal(run, executionId);
         var filter = new AiEventFilter(executionId);
@@ -99,7 +104,16 @@ public sealed class WorkflowService(
             var ack = await WithDeadlineAsync(run, async ct =>
             {
                 var projectContext = await context.BuildAsync(run.ProjectId, ct);
-                return await runtime.StartAsync(WorkflowRequests.Start(run, executionId, input, projectContext), _events.Relay(run, filter), ct);
+                // O acesso ao modelo vale só para esta conversa: o que foi gasto é contado pelo motor e fica no diário.
+                var grant = useModel ? models!.Open(executionId, WorkflowRequests.ModelTokenBudget) : null;
+                try
+                {
+                    return await runtime.StartAsync(WorkflowRequests.Start(run, executionId, input, projectContext, grant), _events.Relay(run, filter), ct);
+                }
+                finally
+                {
+                    if (grant is not null) RecordModelUsage(journal, models!.Close(executionId));
+                }
             });
             EnsureAck(run, executionId, ack);
 
@@ -122,6 +136,12 @@ public sealed class WorkflowService(
         EnsureAck(run, journal.ExecutionId!, ack);
         Finish(run, journal, ack);
     });
+
+    private void RecordModelUsage(RunJournal journal, ModelUsage usage)
+    {
+        journal.ModelUsage = new JournalModelUsage { Calls = usage.Calls, InputTokens = usage.InputTokens, OutputTokens = usage.OutputTokens };
+        store.SaveJournal(journal);
+    }
 
     private JsonObject Resume(RunHandle run, RunJournal journal) => WorkflowRequests.Resume(run, journal, context.DataRoot);
 
@@ -254,7 +274,7 @@ public sealed class WorkflowService(
             Required = false
         }).ToList();
         store.SaveJournal(journal);
-        run.Complete(outcome, WorkflowResult.From(ack));
+        run.Complete(outcome, WorkflowResult.From(ack, journal.ModelUsage));
         run.Publish(ack.Status == "failed" ? "workflow.failed" : "workflow.completed", _events.Status(ack.ExecutionId, ack.Status));
     }
 
