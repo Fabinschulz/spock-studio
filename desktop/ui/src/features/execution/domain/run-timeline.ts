@@ -70,7 +70,7 @@ function mergeEvents(current: TimelineEvent[], incoming: TimelineEvent[]): Timel
   return [...bySeq.values()].sort((a, b) => a.seq - b.seq);
 }
 
-const AGENT_LABEL: Record<string, string> = { architecture: 'Arquitetura' };
+const AGENT_LABEL: Record<string, string> = { planning: 'Planejamento', architecture: 'Arquitetura' };
 
 /** Frase de cada evento que a interface mostra. Eventos internos (estado da execução) e desconhecidos ficam de fora. */
 export function describeEvent(event: TimelineEvent): string | null {

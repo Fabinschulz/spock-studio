@@ -1,0 +1,1 @@
+{"schema":"engineering.plan.v1","steps":[{"id":"ler-cobranca","title":"Ler o módulo de cobrança","evidence":["docs/cobranca.md#1"]},{"id":"propor","title":"Propor a mudança"}]}

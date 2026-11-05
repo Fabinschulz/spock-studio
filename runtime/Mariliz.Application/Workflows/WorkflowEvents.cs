@@ -11,7 +11,7 @@ namespace Mariliz.Application.Workflows;
 /// </summary>
 internal sealed class WorkflowEvents(IClock clock)
 {
-    private static readonly HashSet<string> KnownAgents = new(StringComparer.Ordinal) { "architecture" };
+    private static readonly HashSet<string> KnownAgents = new(StringComparer.Ordinal) { "planning", "architecture" };
 
     /// <summary>Encaminha os eventos aceitos pelo filtro para a execução.</summary>
     public Action<JsonObject> Relay(RunHandle run, AiEventFilter filter) => evt =>
