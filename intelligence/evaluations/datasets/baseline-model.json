@@ -1,0 +1,54 @@
+{
+  "schema": "engineering.baseline.model.v1",
+  "description": "Baseline do grafo com modelo. O modelo é falso e roteirizado: mede o que o grafo faz com cada resposta, não a qualidade de um modelo real. Cada resposta de plano pode citar o trecho recuperado com o texto '$CHUNK'.",
+  "cases": [
+    {
+      "id": "plano-valido-com-citacao",
+      "impact": false,
+      "replies": [
+        { "schema": "engineering.plan.v1", "steps": [{ "id": "ler", "title": "Ler o módulo", "evidence": ["$CHUNK"] }, { "id": "propor", "title": "Propor a mudança" }] }
+      ],
+      "steps": ["ler", "propor"],
+      "agents": ["planning"],
+      "limitations": ["EMBEDDINGS_NOT_READY", "JUDGE_NOT_RUN"],
+      "absent": ["PLAN_MODEL_FALLBACK"],
+      "calls": 1
+    },
+    {
+      "id": "plano-sem-citacao-cai-no-deterministico",
+      "impact": false,
+      "replies": [
+        { "schema": "engineering.plan.v1", "steps": [{ "id": "a", "title": "Sem citar" }] },
+        { "schema": "engineering.plan.v1", "steps": [{ "id": "a", "title": "Sem citar" }] }
+      ],
+      "steps": ["describe", "context", "evidence"],
+      "agents": ["planning"],
+      "limitations": ["MODEL_OUTPUT_INVALID", "PLAN_MODEL_FALLBACK", "JUDGE_NOT_RUN"],
+      "absent": [],
+      "calls": 2
+    },
+    {
+      "id": "plano-e-impacto-do-modelo",
+      "impact": true,
+      "replies": [
+        { "schema": "engineering.plan.v1", "steps": [{ "id": "ler", "title": "Ler o módulo", "evidence": ["$CHUNK"] }] },
+        { "schema": "engineering.impact.v1", "areas": ["servico"], "risks": [], "evidence": ["$CHUNK"] }
+      ],
+      "steps": ["ler"],
+      "agents": ["planning", "architecture"],
+      "limitations": ["JUDGE_NOT_RUN"],
+      "absent": ["PLAN_MODEL_FALLBACK", "IMPACT_MODEL_FALLBACK"],
+      "calls": 2
+    },
+    {
+      "id": "modelo-indisponivel",
+      "impact": true,
+      "replies": ["MODEL_UNAVAILABLE", "MODEL_UNAVAILABLE"],
+      "steps": ["describe", "context", "evidence", "impact"],
+      "agents": ["planning", "architecture"],
+      "limitations": ["MODEL_UNAVAILABLE", "PLAN_MODEL_FALLBACK", "IMPACT_MODEL_FALLBACK", "JUDGE_NOT_RUN"],
+      "absent": [],
+      "calls": 0
+    }
+  ]
+}

@@ -16,7 +16,14 @@
         "required": ["id", "title"],
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,31}$" },
-          "title": { "type": "string", "minLength": 1, "maxLength": 120 }
+          "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "evidence": {
+            "description": "Ids dos trechos recuperados que sustentam a etapa. Só o Planning com modelo preenche; cada id precisa ser de um trecho que a recuperação devolveu (conferido em código).",
+            "type": "array",
+            "maxItems": 8,
+            "uniqueItems": true,
+            "items": { "type": "string", "minLength": 1 }
+          }
         },
         "additionalProperties": false
       }

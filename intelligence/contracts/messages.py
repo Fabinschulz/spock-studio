@@ -19,6 +19,7 @@ _VERSION = re.compile(r"^[0-9]+$")
 _STACK = re.compile(r"^[a-z0-9][a-z0-9_-]{0,31}$")
 _HASH = re.compile(r"^[0-9a-f]{64}$")
 _LIMITS = ("maxIterations", "maxMilliseconds", "maxTokens", "maxCostUsd")
+_BROKER_URL = re.compile(r"^http://127\.0\.0\.1:[0-9]{1,5}/v1/model$")
 
 
 class ContractError(Exception):
@@ -50,6 +51,9 @@ class StartRequest:
     limits: Limits
     allowed_actions: list[str] = field(default_factory=list)
     model_allowed: bool = False
+    # Proxy de modelo do motor. Só existe quando o modelo é permitido, e o token só vale para esta execução.
+    broker_url: str = field(default="", repr=False)
+    broker_token: str = field(default="", repr=False)
 
 
 @dataclass(frozen=True)
@@ -86,6 +90,7 @@ def parse_start(payload: object) -> StartRequest:
     actions = policy.get("allowedActions")
     if not isinstance(actions, list) or not isinstance(policy.get("modelAllowed"), bool):
         raise ContractError("policy")
+    broker_url, broker_token = _broker(body.get("broker"), policy["modelAllowed"])
     return StartRequest(
         workflow_id=_match(body, "workflowId", _WORKFLOW_ID),
         workflow_version=_match(body, "workflowVersion", _VERSION),
@@ -102,6 +107,8 @@ def parse_start(payload: object) -> StartRequest:
         limits=Limits(int(limits["maxIterations"]), int(limits["maxMilliseconds"]), int(limits["maxTokens"]), float(limits["maxCostUsd"])),
         allowed_actions=[item for item in actions if isinstance(item, str)],
         model_allowed=policy["modelAllowed"],
+        broker_url=broker_url,
+        broker_token=broker_token,
     )
 
 
@@ -124,6 +131,21 @@ def parse_resume(payload: object) -> ResumeRequest:
         action_ids=[item for item in action_ids if isinstance(item, str)],
         execution_root=_text(context.get("executionRoot")),
     )
+
+
+def _broker(value: object, model_allowed: bool) -> tuple[str, str]:
+    """Com modelo permitido, o proxy é obrigatório e só aceita 127.0.0.1; sem modelo, ele não pode vir."""
+    if not model_allowed:
+        if value is not None:
+            raise ContractError("broker")
+        return "", ""
+    broker = _object(value, "broker")
+    url, token = broker.get("url"), broker.get("token")
+    if set(broker) != {"url", "token"} or not isinstance(url, str) or not _BROKER_URL.match(url):
+        raise ContractError("broker")
+    if not isinstance(token, str) or not 32 <= len(token) <= 128:
+        raise ContractError("broker")
+    return url, token
 
 
 def _source_ok(item: object) -> bool:

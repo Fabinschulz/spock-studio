@@ -24,7 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 INTELLIGENCE = ROOT / "intelligence"
 LOCK = INTELLIGENCE / "requirements.lock"
-SOURCES = ("server.py", "knowledge", "memory", "workflows", "contracts", "infrastructure")
+SOURCES = ("server.py", "agents", "knowledge", "memory", "workflows", "contracts", "infrastructure")
 MB = 1024 * 1024
 PACKAGES_BUDGET = 30 * MB
 

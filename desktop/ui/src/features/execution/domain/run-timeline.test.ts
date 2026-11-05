@@ -57,6 +57,9 @@ describe('linha do tempo da execução', () => {
     expect(describeEvent({ seq: 1, type: 'agent.completed', data: { agentId: 'architecture' } })).toBe(
       'Arquitetura concluiu'
     );
+    expect(describeEvent({ seq: 1, type: 'agent.started', data: { agentId: 'planning' } })).toBe(
+      'Planejamento começou'
+    );
     expect(describeEvent({ seq: 1, type: 'context.retrieved', data: { filePath: 'docs/a.md' } })).toBe(
       'Trecho recuperado de docs/a.md'
     );

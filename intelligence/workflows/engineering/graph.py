@@ -1,7 +1,9 @@
 """Grafo engineering.request (versão 1 do comportamento) em LangGraph.
 
-Nós determinísticos: nenhum modelo é chamado e nada é gravado no projeto. A busca usa só as fontes que o motor enviou,
-e o texto dessas fontes não entra no estado nem no checkpoint.
+Os nós são determinísticos. Só quando o motor autoriza modelo (``policy.modelAllowed``) e dá o endereço do proxy, o
+Planning e o Architecture tentam o modelo; se a saída não passar na validação ou o orçamento acabar, o resultado
+determinístico fica no lugar e uma limitação diz por quê. Nada é gravado no projeto. A busca usa só as fontes que o
+motor enviou, e o texto dessas fontes não entra no estado nem no checkpoint. O token do proxy fica só no ``Segment``.
 
 A memória de trabalho é o estado do grafo. A pausa usa ``interrupt()`` e vai para a memória de execução (checkpoint em
 SQLite, fora do índice e fora do projeto), para a retomada sobreviver a um reinício. O diário de negócio fica no motor.
@@ -20,6 +22,12 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
 
+from agents import architecture as architecture_model
+from agents import planning as planning_model
+from agents.model_client import ModelClient
+from agents.runner import Model, Outcome
+from contracts.engineering import forbidden as _forbidden
+from contracts.engineering import impact_ok as _impact_ok
 from contracts.messages import ContractError, ResumeRequest, StartRequest, parse_resume, parse_start
 from infrastructure.events import Emitter, now
 from knowledge import retrieval
@@ -30,9 +38,9 @@ WORKFLOW_ID = "engineering.request"
 WORKFLOW_VERSION = "1"
 MAX_ITERATIONS = 8
 MAX_MILLISECONDS = 2000
-MAX_TOKENS = 0
-_FORBIDDEN = {"command", "commands", "executable", "arguments", "shell", "write", "path"}
-_AREAS = {"servico", "interface", "projeto"}
+# Com modelo, uma chamada leva segundos: o tempo e os tokens sobem, mas o motor continua sendo quem define o teto.
+MAX_MILLISECONDS_MODEL = 60000
+MAX_TOKENS = 20000
 _AREA_BY_STACK = {
     "dotnet": "servico",
     "javascript": "interface",
@@ -40,8 +48,17 @@ _AREA_BY_STACK = {
     "node": "interface",
     "flutter": "interface",
 }
-_RISKS = {"sem-evidencia", "sem-stack"}
 _ARCHITECTURE = "architecture"
+_PLANNING = planning_model.AGENT_ID
+_AGENTS = {_PLANNING, _ARCHITECTURE}
+_MODEL_LIMITATIONS = {
+    "MODEL_BUDGET_EXCEEDED": "O orçamento de tokens da execução acabou.",
+    "MODEL_TIMEOUT": "O modelo não respondeu no prazo.",
+    "MODEL_UNAVAILABLE": "O modelo não está disponível.",
+    "MODEL_NOT_CONFIGURED": "Nenhum modelo está configurado.",
+    "MODEL_FORBIDDEN": "O proxy de modelo recusou a chamada.",
+    "MODEL_OUTPUT_INVALID": "O modelo respondeu fora do contrato, mesmo depois de uma nova tentativa.",
+}
 _AGENT_VERSION = "1"
 _EVALUATION = {"schema": "engineering.evaluation.v1", "verdict": "deterministic", "judge": "not_run", "tokens": 0}
 
@@ -66,6 +83,9 @@ class State(TypedDict, total=False):
     agents: list[dict]
     evaluation: dict | None
     tokens: int
+    model_calls: int
+    input_tokens: int
+    output_tokens: int
     valid: bool
     summary: str
     iterations: int
@@ -75,28 +95,42 @@ class Segment:
     """O que vale só para um trecho da execução: relógio, limites, fontes e eventos. Nada disso vai para o checkpoint."""
 
     def __init__(self, emitter: Emitter, clock: Callable[[], float] | None = None, max_iterations: int = MAX_ITERATIONS,
-                 max_milliseconds: int = MAX_MILLISECONDS, sources: list | None = None) -> None:
+                 max_milliseconds: int = MAX_MILLISECONDS, sources: list | None = None, model: Model | None = None,
+                 max_tokens: int = 0) -> None:
         self.emitter = emitter
         self.clock = clock or time.monotonic
         self.started = self.clock()
         self.max_iterations = max_iterations
         self.max_milliseconds = max_milliseconds
         self.sources = sources
+        self.model = model
+        self.max_tokens = max_tokens
 
 
-def run_start(payload: dict, clock: Callable[[], float] | None = None) -> Iterator[dict]:
+def broker_client(request: StartRequest) -> Model:
+    return ModelClient(request.broker_url, request.broker_token, request.execution_id)
+
+
+def run_start(payload: dict, clock: Callable[[], float] | None = None,
+              model_factory: Callable[[StartRequest], Model] | None = None) -> Iterator[dict]:
+    """``model_factory`` troca o cliente do proxy (os testes usam um modelo falso); o padrão fala com o proxy do motor."""
     try:
         request = parse_start(payload)
     except ContractError as ex:
         yield _rejected(payload, str(ex))
         return
     emitter = Emitter(request.execution_id)
+    model = (model_factory or broker_client)(request) if request.model_allowed else None
+    # O motor define os limites; o runtime só pode ser mais restritivo. O teto de tokens só existe com modelo.
+    ceiling = MAX_MILLISECONDS_MODEL if model else MAX_MILLISECONDS
     segment = Segment(
         emitter,
         clock,
         min(MAX_ITERATIONS, request.limits.max_iterations),
-        min(MAX_MILLISECONDS, request.limits.max_milliseconds),
+        min(ceiling, request.limits.max_milliseconds),
         request.sources,
+        model,
+        min(MAX_TOKENS, request.limits.max_tokens) if model else 0,
     )
     yield emitter.event("workflow.started")
     initial = _initial(request)
@@ -182,7 +216,8 @@ def rag_research(state: dict, segment: Segment) -> dict:
     return state
 
 
-def planning_agent(state: dict) -> dict:
+def planning_agent(state: dict, segment: Segment | None = None) -> dict:
+    """Plano determinístico sempre; com modelo autorizado, o do modelo o substitui se passar na validação."""
     steps = [{"id": "describe", "title": "Descrever o pedido"}]
     if state["stacks"]:
         steps.append({"id": "context", "title": "Considerar a stack detectada"})
@@ -191,6 +226,14 @@ def planning_agent(state: dict) -> dict:
     if state["asks_impact"]:
         steps.append({"id": "impact", "title": "Avaliar o impacto técnico"})
     state["plan"] = {"schema": "engineering.plan.v1", "steps": steps}
+
+    if segment is not None and segment.model is not None:
+        def adopt(plan: dict) -> None:
+            state["plan"] = plan
+
+        _model_step(state, segment, _PLANNING, planning_model.AGENT_VERSION,
+                    lambda can_spend: planning_model.plan(segment.model, state, can_spend), adopt,
+                    "PLAN_MODEL_FALLBACK", "O plano veio das regras determinísticas, não do modelo.")
     return state
 
 
@@ -212,7 +255,7 @@ def plan_validator(state: dict) -> dict:
 
 
 def architecture_agent(state: dict, segment: Segment | None = None) -> dict:
-    """Um agente, só quando o plano pediu impacto. Não chama modelo e não grava no projeto."""
+    """Um agente, só quando o plano pediu impacto. Determinístico; com modelo autorizado, o do modelo o substitui se passar."""
     started = time.monotonic()
     if segment:
         segment.emitter.emit("agent.started", {"agentVersion": _AGENT_VERSION}, _ARCHITECTURE)
@@ -235,11 +278,18 @@ def architecture_agent(state: dict, segment: Segment | None = None) -> dict:
             refs.append(chunk)
         if len(refs) == 8:
             break
-    duration = int((time.monotonic() - started) * 1000)
     state["impact"] = {"schema": "engineering.impact.v1", "areas": areas, "risks": risks, "evidence": refs}
-    state["agents"] = [{"agentId": _ARCHITECTURE, "agentVersion": _AGENT_VERSION, "status": "completed", "durationMs": duration, "tokens": 0}]
+    tokens = 0
+    if segment is not None and segment.model is not None:
+        def adopt(impact: dict) -> None:
+            state["impact"] = impact
+
+        tokens = _model_call(state, segment, lambda can_spend: architecture_model.assess(segment.model, state, can_spend), adopt,
+                             "IMPACT_MODEL_FALLBACK", "O impacto veio das regras determinísticas, não do modelo.")
+    duration = int((time.monotonic() - started) * 1000)
+    _record_agent(state, _ARCHITECTURE, duration, tokens)
     if segment:
-        segment.emitter.emit("agent.completed", {"status": "completed", "durationMs": duration, "tokens": 0}, _ARCHITECTURE)
+        segment.emitter.emit("agent.completed", {"status": "completed", "durationMs": duration, "tokens": tokens}, _ARCHITECTURE)
     return state
 
 
@@ -247,7 +297,7 @@ def impact_eval(state: dict) -> dict:
     if _impact_ok(state.get("impact"), state.get("evidence")):
         return state
     state["impact"] = None
-    state["agents"] = []
+    state["agents"] = [item for item in state.get("agents") or [] if item.get("agentId") != _ARCHITECTURE]
     _limit(state, "IMPACT_INVALID", "O impacto técnico não respeita o contrato.")
     return state
 
@@ -273,8 +323,7 @@ def synthesizer(state: dict) -> dict:
 
 
 def evaluation_judge(state: dict) -> dict:
-    # Orçamento de tokens é zero: o juiz não chama modelo e não vira o veredito.
-    state["tokens"] = 0
+    # O juiz não chama modelo e não vira o veredito; os tokens já gastos pelos agentes continuam contados.
     _limit(state, "JUDGE_NOT_RUN", "O juiz por modelo não é o veredito desta fase.")
     state["evaluation"] = dict(_EVALUATION)
     return state
@@ -289,7 +338,7 @@ def build(segment: Segment) -> StateGraph:
     graph.add_node("analyze_request", _budgeted(segment, request_analyzer))
     graph.add_node("build_context", _budgeted(segment, context_builder))
     graph.add_node("retrieve", _budgeted(segment, lambda state: rag_research(state, segment)))
-    graph.add_node("plan", _budgeted(segment, planning_agent))
+    graph.add_node("plan", _budgeted(segment, lambda state: planning_agent(state, segment)))
     graph.add_node("validate_plan", _budgeted(segment, plan_validator))
     graph.add_node("architecture", lambda state: architecture_agent(_copy(state), segment))
     graph.add_node("check_impact", lambda state: impact_eval(_copy(state)))
@@ -385,7 +434,7 @@ def _budgeted(segment: Segment, node: Callable[[dict], dict]) -> Callable[[dict]
             _fail(state, "LIMIT_ITERATIONS", "A execução passou do limite de etapas.")
         elif (segment.clock() - segment.started) * 1000 > segment.max_milliseconds:
             _fail(state, "LIMIT_TIME", "A execução passou do limite de tempo.")
-        elif int(state.get("tokens") or 0) > MAX_TOKENS:
+        elif int(state.get("tokens") or 0) > segment.max_tokens:
             _fail(state, "LIMIT_TOKENS", "A execução passou do limite de tokens.")
         return state
 
@@ -413,6 +462,9 @@ def _initial(request: StartRequest) -> dict:
         "agents": [],
         "evaluation": None,
         "tokens": 0,
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
         "valid": False,
         "summary": "",
         "iterations": 0,
@@ -433,12 +485,41 @@ def _copy(state: dict) -> dict:
     return copied
 
 
-def _forbidden(value: object) -> bool:
-    if isinstance(value, dict):
-        return any(key in _FORBIDDEN or _forbidden(child) for key, child in value.items())
-    if isinstance(value, list):
-        return any(_forbidden(item) for item in value)
-    return False
+def _model_call(state: dict, segment: Segment, call: Callable[[Callable[[int], bool]], Outcome],
+                adopt: Callable[[dict], None], fallback_code: str, fallback_message: str) -> int:
+    """
+    Uma tentativa com modelo: o que o modelo escreveu entra só se passou na validação; senão o resultado determinístico
+    fica e duas limitações dizem o motivo. Devolve os tokens gastos, que entram na contagem da execução.
+    """
+    spent = int(state.get("tokens") or 0)
+    outcome = call(lambda needed: spent + needed <= segment.max_tokens)
+    state["model_calls"] = int(state.get("model_calls") or 0) + outcome.calls
+    state["input_tokens"] = int(state.get("input_tokens") or 0) + outcome.input_tokens
+    state["output_tokens"] = int(state.get("output_tokens") or 0) + outcome.output_tokens
+    state["tokens"] = spent + outcome.tokens
+    if outcome.value is not None:
+        adopt(outcome.value)
+    else:
+        _limit(state, outcome.code, _MODEL_LIMITATIONS.get(outcome.code, "O modelo não pôde ser usado."))
+        _limit(state, fallback_code, fallback_message)
+    return outcome.tokens
+
+
+def _model_step(state: dict, segment: Segment, agent_id: str, version: str, call: Callable[[Callable[[int], bool]], Outcome],
+                adopt: Callable[[dict], None], fallback_code: str, fallback_message: str) -> None:
+    """Um agente só com modelo (Planning): anuncia o começo e o fim e entra na lista de agentes com os tokens gastos."""
+    started = time.monotonic()
+    segment.emitter.emit("agent.started", {"agentVersion": version}, agent_id)
+    tokens = _model_call(state, segment, call, adopt, fallback_code, fallback_message)
+    duration = int((time.monotonic() - started) * 1000)
+    _record_agent(state, agent_id, duration, tokens)
+    segment.emitter.emit("agent.completed", {"status": "completed", "durationMs": duration, "tokens": tokens}, agent_id)
+
+
+def _record_agent(state: dict, agent_id: str, duration: int, tokens: int) -> None:
+    others = [item for item in state.get("agents") or [] if item.get("agentId") != agent_id]
+    entry = {"agentId": agent_id, "agentVersion": _AGENT_VERSION, "status": "completed", "durationMs": duration, "tokens": tokens}
+    state["agents"] = [*others, entry] if agent_id == _ARCHITECTURE else [entry, *others]
 
 
 def _limit(state: dict, code: str, message: str) -> None:
@@ -455,33 +536,11 @@ def _fail(state: dict, code: str, message: str) -> dict:
     return state
 
 
-def _impact_ok(impact: object, evidence: object) -> bool:
-    if not isinstance(impact, dict) or impact.get("schema") != "engineering.impact.v1":
-        return False
-    if _forbidden(impact) or set(impact) != {"schema", "areas", "risks", "evidence"}:
-        return False
-    areas = impact.get("areas")
-    risks = impact.get("risks")
-    refs = impact.get("evidence")
-    if not isinstance(areas, list) or not areas or any(area not in _AREAS for area in areas):
-        return False
-    if not isinstance(risks, list) or any(risk not in _RISKS for risk in risks):
-        return False
-    if not isinstance(refs, list):
-        return False
-    known = set()
-    if isinstance(evidence, list):
-        for item in evidence:
-            if isinstance(item, dict) and isinstance(item.get("chunkId"), str):
-                known.add(item["chunkId"])
-    return all(isinstance(ref, str) and ref in known for ref in refs)
-
-
 def _agents_ok(agents: object) -> bool:
     if not isinstance(agents, list):
         return False
     return all(
-        isinstance(item, dict) and item.get("agentId") == _ARCHITECTURE and item.get("status") == "completed"
+        isinstance(item, dict) and item.get("agentId") in _AGENTS and item.get("status") == "completed"
         for item in agents
     )
 
@@ -515,7 +574,13 @@ def _ack(state: dict, status: str, pending: dict | None = None) -> dict:
         "errors": [item for item in limitations if failure and item["code"] == failure],
         "output": output,
         "agents": [dict(item) for item in state.get("agents") or [] if _agents_ok([item])],
-        "usage": {"modelCalls": 0, "inputTokens": 0, "outputTokens": 0, "costUsd": 0},
+        # O que o runtime contou; quem vale é o proxy do motor, que conta por conta própria. Sem custo em dinheiro (D4).
+        "usage": {
+            "modelCalls": int(state.get("model_calls") or 0),
+            "inputTokens": int(state.get("input_tokens") or 0),
+            "outputTokens": int(state.get("output_tokens") or 0),
+            "costUsd": 0,
+        },
         "nextActions": [],
     }
     if status == "interrupted" and pending:
