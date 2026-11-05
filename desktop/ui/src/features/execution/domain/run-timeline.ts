@@ -39,6 +39,18 @@ const workflowResultSchema = z.object({
   limitations: z.array(z.object({ code: z.string(), message: z.string() })).default([]),
   impact: impactSchema.optional(),
   evaluation: evaluationSchema.optional(),
+  /** O que aconteceu com cada ação proposta, como o motor registrou: executada, não aprovada (skipped), em conflito ou falha. */
+  actions: z
+    .array(
+      z.object({
+        id: z.string(),
+        kind: z.string(),
+        summary: z.string(),
+        target: z.string().optional(),
+        status: z.string()
+      })
+    )
+    .optional(),
   /** Tokens gastos com o modelo, como o motor contou. Só vem em execuções que usaram modelo. */
   usage: z.object({ modelCalls: z.number(), inputTokens: z.number(), outputTokens: z.number() }).optional()
 });
@@ -88,6 +100,32 @@ function mergeEvents(current: TimelineEvent[], incoming: TimelineEvent[]): Timel
   const bySeq = new Map<number, TimelineEvent>();
   for (const event of [...current, ...incoming]) bySeq.set(event.seq, event);
   return [...bySeq.values()].sort((a, b) => a.seq - b.seq);
+}
+
+/** O que o motor pediu para aprovar (evento `approval.required`): só o que a política mostra, nunca o conteúdo. */
+export type PendingApproval = {
+  approvalId: string;
+  actions: { id: string; kind: string; summary: string; target: string | null }[];
+};
+
+const pendingActionSchema = z.object({
+  id: z.string(),
+  kind: z.string(),
+  summary: z.string(),
+  target: z.string().optional()
+});
+
+const approvalDataSchema = z.object({ approvalId: z.string(), actions: z.array(pendingActionSchema).default([]) });
+
+/** A aprovação aberta mais recente da execução, ou `null` se o motor ainda não anunciou nenhuma. */
+export function pendingApproval(events: readonly TimelineEvent[]): PendingApproval | null {
+  const latest = [...events].reverse().find((event) => event.type === 'approval.required');
+  const parsed = latest ? approvalDataSchema.safeParse(latest.data) : null;
+  if (!parsed?.success) return null;
+  return {
+    approvalId: parsed.data.approvalId,
+    actions: parsed.data.actions.map((action) => ({ ...action, target: action.target ?? null }))
+  };
 }
 
 const AGENT_LABEL: Record<string, string> = { planning: 'Planejamento', architecture: 'Arquitetura' };

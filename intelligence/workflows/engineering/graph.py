@@ -27,7 +27,7 @@ from agents import judge as judge_model
 from agents import planning as planning_model
 from agents.model_client import ModelClient
 from agents.runner import Model, Outcome
-from contracts.engineering import CRITERIA_VERSION, JUDGE_EVAL_ID, judgment_ok, judgment_outcome
+from contracts.engineering import ACTION_FILE_WRITE, CRITERIA_VERSION, JUDGE_EVAL_ID, actions_ok, decision_action, judgment_ok, judgment_outcome
 from contracts.engineering import forbidden as _forbidden
 from contracts.engineering import impact_ok as _impact_ok
 from contracts.messages import ContractError, ResumeRequest, StartRequest, parse_resume, parse_start
@@ -85,6 +85,8 @@ class State(TypedDict, total=False):
     agents: list[dict]
     evaluation: dict | None
     judgment: dict | None
+    allowed_actions: list[str]
+    actions: list[dict]
     tokens: int
     model_calls: int
     input_tokens: int
@@ -156,6 +158,11 @@ def run_resume(payload: dict, clock: Callable[[], float] | None = None) -> Itera
     state, pending = paused
     if not request.approved:
         yield _ack(state, "interrupted", pending)
+        return
+    proposed = set(pending.get("actionIds") or [])
+    if not set(request.action_ids) <= proposed:
+        # Aprovar o que nunca foi proposto não retoma nada: a pausa continua onde estava.
+        yield _ack(_fail(dict(state), "APPROVAL_MISMATCH", "A aprovação cita ações que não foram propostas."), "failed")
         return
     segment = Segment(Emitter(request.execution_id, int(pending.get("eventSeq", 0))), clock)
     yield from _drive(segment, request.execution_root, request.project_id, request.run_id, Command(resume={"approved": True}))
@@ -305,12 +312,24 @@ def impact_eval(state: dict) -> dict:
     return state
 
 
+def propose_actions(state: dict) -> dict:
+    """
+    Proposta de ação, nunca execução: só com a política do motor permitindo ``file.write``, com pausa para aprovação e
+    com impacto já validado. O agente não escolhe o alvo nem escreve o conteúdo; o motor decide, aprova e executa.
+    """
+    state["actions"] = []
+    if (ACTION_FILE_WRITE in (state.get("allowed_actions") or []) and state["requires_approval"]
+            and _impact_ok(state.get("impact"), state.get("evidence"))):
+        state["actions"] = [decision_action(state["execution_id"], state["impact"])]
+    return state
+
+
 def approval_gate(state: dict, segment: Segment) -> dict:
     if not state["requires_approval"] or state.get("approved"):
         return state
     decision = interrupt({
         "interruptId": interrupt_id(state["execution_id"]),
-        "actionIds": [],
+        "actionIds": [action["id"] for action in state.get("actions") or []],
         "eventSeq": segment.emitter.next_seq,
     })
     state["approved"] = isinstance(decision, dict) and decision.get("approved") is True
@@ -372,7 +391,7 @@ def build(segment: Segment) -> StateGraph:
     graph.add_node("plan", _budgeted(segment, lambda state: planning_agent(state, segment)))
     graph.add_node("validate_plan", _budgeted(segment, plan_validator))
     graph.add_node("architecture", lambda state: architecture_agent(_copy(state), segment))
-    graph.add_node("check_impact", lambda state: impact_eval(_copy(state)))
+    graph.add_node("check_impact", lambda state: propose_actions(impact_eval(_copy(state))))
     graph.add_node("approval", lambda state: approval_gate(_copy(state), segment))
     graph.add_node("synthesize", lambda state: synthesizer(_copy(state)))
     graph.add_node("evaluate", lambda state: evaluation_judge(_copy(state), segment))
@@ -410,6 +429,8 @@ def checkpoint_ok(state: object, project_id: str, run_id: str) -> bool:
     if not _agents_ok(state.get("agents") or []):
         return False
     if state.get("impact") is not None and not _impact_ok(state.get("impact"), evidence):
+        return False
+    if not _actions_ok(state) or (state.get("actions") and state.get("impact") is None):
         return False
     clone = dict(state)
     clone["limitations"] = list(state["limitations"])
@@ -493,6 +514,8 @@ def _initial(request: StartRequest) -> dict:
         "impact": None,
         "agents": [],
         "evaluation": None,
+        "allowed_actions": list(request.allowed_actions),
+        "actions": [],
         "tokens": 0,
         "model_calls": 0,
         "input_tokens": 0,
@@ -613,11 +636,15 @@ def _ack(state: dict, status: str, pending: dict | None = None) -> dict:
             "outputTokens": int(state.get("output_tokens") or 0),
             "costUsd": 0,
         },
-        "nextActions": [],
+        "nextActions": [dict(item) for item in state.get("actions") or []] if _actions_ok(state) else [],
     }
     if status == "interrupted" and pending:
         ack["approval"] = {"interruptId": pending["interruptId"], "actionIds": list(pending.get("actionIds") or [])}
     return ack
+
+
+def _actions_ok(state: dict) -> bool:
+    return actions_ok(state.get("actions") or [], state.get("execution_id") or "", state.get("evidence"))
 
 
 def _public_evaluation(state: dict) -> dict | None:

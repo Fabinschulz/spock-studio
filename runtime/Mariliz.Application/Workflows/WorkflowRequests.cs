@@ -20,7 +20,8 @@ internal static class WorkflowRequests
     public const int ModelTokenBudget = 8000;
     public const int ModelMilliseconds = 60_000;
 
-    public static JsonObject Start(RunHandle run, string executionId, JsonObject input, JsonObject context, ModelGrant? model = null)
+    public static JsonObject Start(RunHandle run, string executionId, JsonObject input, JsonObject context, ModelGrant? model = null,
+        IReadOnlyList<string>? allowedActions = null)
     {
         var message = new JsonObject
         {
@@ -40,7 +41,11 @@ internal static class WorkflowRequests
                 ["maxTokens"] = model?.TokenBudget ?? 0,
                 ["maxCostUsd"] = 0
             },
-            ["policy"] = new JsonObject { ["allowedActions"] = new JsonArray(), ["modelAllowed"] = model is not null }
+            ["policy"] = new JsonObject
+            {
+                ["allowedActions"] = new JsonArray((allowedActions ?? []).Select(kind => (JsonNode)kind).ToArray()),
+                ["modelAllowed"] = model is not null
+            }
         };
         if (model is not null) message["broker"] = new JsonObject { ["url"] = model.Url, ["token"] = model.Token };
         return message;
@@ -54,7 +59,12 @@ internal static class WorkflowRequests
         ["executionId"] = journal.ExecutionId,
         ["projectId"] = run.ProjectId,
         ["interruptId"] = journal.InterruptId,
-        ["decision"] = new JsonObject { ["approvalId"] = journal.ApprovalId, ["approved"] = true, ["actionIds"] = new JsonArray() },
+        ["decision"] = new JsonObject
+        {
+            ["approvalId"] = journal.ApprovalId,
+            ["approved"] = true,
+            ["actionIds"] = new JsonArray(journal.Actions.Where(a => a.Status == JournalAction.Approved).Select(a => (JsonNode)a.Id).ToArray())
+        },
         ["context"] = new JsonObject { ["executionRoot"] = executionRoot }
     };
 }

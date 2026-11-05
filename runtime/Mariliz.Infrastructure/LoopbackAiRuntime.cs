@@ -179,7 +179,8 @@ public sealed class LoopbackAiRuntime : IAiRuntime
             ack["output"] as JsonObject ?? new JsonObject(),
             [.. warnings, .. errors],
             errors,
-            Ids.IsInterruptId(interrupt) ? interrupt : null);
+            Ids.IsInterruptId(interrupt) ? interrupt : null,
+            ack["nextActions"] is JsonArray proposals ? proposals.OfType<JsonObject>().Select(p => (JsonObject)p.DeepClone()).ToList() : []);
     }
 
 

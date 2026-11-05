@@ -31,13 +31,19 @@ const done: WorkflowSnapshot = {
   }
 };
 
-function clientFor(first: WorkflowSnapshot, second?: WorkflowSnapshot): EngineClient & { calls: string[] } {
+function clientFor(
+  first: WorkflowSnapshot,
+  second?: WorkflowSnapshot
+): EngineClient & { calls: string[]; resumes: unknown[] } {
   const calls: string[] = [];
+  const resumes: unknown[] = [];
   let reads = 0;
   return {
     calls,
-    async request(method, _params, schema) {
+    resumes,
+    async request(method, params, schema) {
       calls.push(method);
+      if (method === 'workflow.resume') resumes.push(params);
       if (method === 'run.snapshot') {
         reads += 1;
         return schema.parse(reads === 1 ? first : (second ?? first));
@@ -271,6 +277,94 @@ describe('Execução', () => {
     expect(await screen.findByText('Avaliando o resultado com o juiz por modelo')).toBeInTheDocument();
     expect(screen.getByText('O juiz por modelo não rodou')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Avaliação por modelo' })).not.toBeInTheDocument();
+  });
+
+  const proposing: WorkflowSnapshot = {
+    ...paused,
+    events: [
+      ...paused.events,
+      {
+        seq: 2,
+        type: 'approval.required',
+        data: {
+          approvalId: 'apr-0123456789ab',
+          executionId: 'ex-0123456789ab',
+          actions: [
+            {
+              id: 'act-decisao-impacto',
+              kind: 'file.write',
+              summary: 'Registrar a decisão de arquitetura',
+              target: '.mariliz/decisions/ex-0123456789ab-impacto.md'
+            }
+          ]
+        }
+      }
+    ]
+  };
+
+  it('lista as ações propostas desmarcadas e aprovar sem marcar não manda nenhuma ação ao motor', async () => {
+    const client = clientFor(proposing, done);
+    render(
+      <AppProviders>
+        <ExecutionPage runId="run-1" client={client} />
+      </AppProviders>
+    );
+
+    const action = await screen.findByRole('checkbox', { name: /Registrar a decisão de arquitetura/ });
+    expect(action).not.toBeChecked();
+    expect(screen.getByText('.mariliz/decisions/ex-0123456789ab-impacto.md')).toBeInTheDocument();
+    expect(screen.getByText(/Nada é gravado no projeto sem a sua aprovação/)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Aprovar sem executar ações' }));
+
+    expect(client.resumes).toEqual([{ projectId: 'p-aaaaaaaaaaaa', runId: 'run-1' }]);
+  });
+
+  it('marcar a ação manda o identificador da aprovação e a ação, e o botão diz o que vai acontecer', async () => {
+    const client = clientFor(proposing, done);
+    render(
+      <AppProviders>
+        <ExecutionPage runId="run-1" client={client} />
+      </AppProviders>
+    );
+
+    await userEvent.click(await screen.findByRole('checkbox', { name: /Registrar a decisão de arquitetura/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Aprovar e executar as ações marcadas' }));
+
+    expect(client.resumes).toEqual([
+      {
+        projectId: 'p-aaaaaaaaaaaa',
+        runId: 'run-1',
+        approvalId: 'apr-0123456789ab',
+        actionIds: ['act-decisao-impacto']
+      }
+    ]);
+  });
+
+  it('depois de concluir mostra o que aconteceu com cada ação, como o motor registrou', async () => {
+    const finished = clientFor({
+      ...done,
+      result: {
+        ...done.result!,
+        actions: [
+          {
+            id: 'act-decisao-impacto',
+            kind: 'file.write',
+            summary: 'Registrar a decisão de arquitetura',
+            target: '.mariliz/decisions/ex-0123456789ab-impacto.md',
+            status: 'conflict'
+          }
+        ]
+      }
+    });
+    render(
+      <AppProviders>
+        <ExecutionPage runId="run-1" client={finished} />
+      </AppProviders>
+    );
+
+    expect(await screen.findByRole('heading', { name: 'Ações' })).toBeInTheDocument();
+    expect(screen.getByText(/já existe um arquivo diferente neste caminho/)).toBeInTheDocument();
   });
 
   it('o Planejamento aparece com o nome certo na linha do tempo', async () => {

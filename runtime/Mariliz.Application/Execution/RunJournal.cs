@@ -46,6 +46,12 @@ public sealed class RunJournal
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public JournalJudgment? Judgment { get; set; }
 
+    /// <summary>As ações propostas por agentes e o hash que liga a aprovação a elas. Vazio quando nenhum agente propôs nada.</summary>
+    public List<JournalAction> Actions { get; set; } = [];
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ActionsHash { get; set; }
+
     [JsonIgnore]
     public bool CanBeReverted =>ChangesApplied && !RolledBack && RevertedByRunId is null;
 }
