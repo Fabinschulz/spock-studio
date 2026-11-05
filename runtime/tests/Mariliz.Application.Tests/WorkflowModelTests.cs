@@ -31,6 +31,8 @@ public class WorkflowModelTests
             Closed.Add(executionId);
             return new ModelUsage(2, 900, 300, 0);
         }
+
+        public IReadOnlyList<ModelCallRecord> Calls(string executionId) => [];
     }
 
     private sealed class CapturingRuntime : IAiRuntime

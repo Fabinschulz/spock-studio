@@ -11,6 +11,15 @@ import { resumeWorkflow } from './service/execution-api';
 
 export { workflowSnapshotSchema, type WorkflowSnapshot } from './domain/run-timeline';
 
+/** Nota mínima por critério (critérios versão 1); abaixo dela a opinião é "reprovada". Igual a PASSING_SCORE no motor. */
+const PASSING_SCORE = 3;
+const CRITERION_LABEL: Record<string, string> = {
+  plan_quality: 'Qualidade do plano',
+  context_fit: 'Uso do conteúdo do projeto',
+  request_fit: 'Atendimento ao pedido',
+  architecture_coherence: 'Coerência arquitetural'
+};
+
 const AREA_LABEL: Record<string, string> = {
   servico: 'Serviço',
   interface: 'Interface',
@@ -93,6 +102,33 @@ export function ExecutionPage({ runId, client }: { runId: string; client: Engine
           <p>Nenhuma evidência nesta execução.</p>
         )}
       </section>
+
+      {snapshot.result?.evaluation?.judgment ? (
+        <section aria-labelledby="avaliacao-titulo">
+          <h2 id="avaliacao-titulo">Avaliação por modelo</h2>
+          <p>
+            Uma opinião registrada por um avaliador independente. Ela não decide o resultado da execução.{' '}
+            <strong>
+              {snapshot.result.evaluation.judge === 'passed'
+                ? 'Todos os critérios alcançaram a nota mínima.'
+                : 'Algum critério ficou abaixo da nota mínima.'}
+            </strong>
+          </p>
+          <ul className={styles.list}>
+            {Object.entries(snapshot.result.evaluation.judgment.scores).map(([criterion, score]) => (
+              <li key={criterion}>
+                {CRITERION_LABEL[criterion] ?? criterion}: {score} de 5
+                {score < PASSING_SCORE ? ' (abaixo do mínimo)' : ''}
+              </li>
+            ))}
+          </ul>
+          <p>{snapshot.result.evaluation.judgment.rationale}</p>
+          <p>
+            Modelo: {snapshot.result.evaluation.judgment.model} ({snapshot.result.evaluation.judgment.modelVersion}),
+            critérios versão {snapshot.result.evaluation.judgment.criteriaVersion}.
+          </p>
+        </section>
+      ) : null}
 
       {snapshot.result?.usage ? (
         <section aria-labelledby="modelo-titulo">

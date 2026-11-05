@@ -13,7 +13,7 @@ namespace Mariliz.Application.Workflows;
 /// </summary>
 internal static class WorkflowResult
 {
-    public static JsonObject From(WorkflowAck ack, JournalModelUsage? usage = null)
+    public static JsonObject From(WorkflowAck ack, JournalModelUsage? usage = null, JournalJudgment? judgment = null)
     {
         var result = new JsonObject
         {
@@ -30,7 +30,9 @@ internal static class WorkflowResult
             }).ToArray())
         };
         if (TryImpact(ack.Output["impact"], out var impact)) result["impact"] = impact;
-        if (TryEvaluation(ack.Output["evaluation"], out var evaluation)) result["evaluation"] = evaluation;
+        // O runtime só diz que houve avaliação; a opinião do juiz sai do diário, já conferida contra o proxy.
+        if (ack.Output["evaluation"] is JsonObject declared && declared.Text("verdict") == "deterministic")
+            result["evaluation"] = JudgmentRecord.Evaluation(judgment);
         // O uso vem do proxy do motor, não do que o runtime disse ter gasto.
         if (usage is not null)
             result["usage"] = new JsonObject { ["modelCalls"] = usage.Calls, ["inputTokens"] = usage.InputTokens, ["outputTokens"] = usage.OutputTokens };
@@ -99,17 +101,6 @@ internal static class WorkflowResult
             if (node is not JsonValue value || !value.TryGetValue<string>(out var text) || !accepted(text)) return false;
             copy.Add(text);
         }
-        return true;
-    }
-
-    private static bool TryEvaluation(JsonNode? node, out JsonObject evaluation)
-    {
-        evaluation = new JsonObject();
-        if (node is not JsonObject item || item.Text("verdict") != "deterministic" || item.Text("judge") != "not_run") return false;
-        evaluation["schema"] = "engineering.evaluation.v1";
-        evaluation["verdict"] = "deterministic";
-        evaluation["judge"] = "not_run";
-        evaluation["tokens"] = 0;
         return true;
     }
 

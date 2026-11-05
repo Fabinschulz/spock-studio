@@ -21,7 +21,8 @@ public sealed class WorkflowService(
     IClock clock,
     IRunStore store,
     WorkflowContextBuilder context,
-    IModelAccess? models = null)
+    IModelAccess? models = null,
+    IEvalRecords? evalRecords = null)
 {
     public const string Kind = "workflow";
     public const string WorkflowId = WorkflowRequests.GraphId + ".v" + WorkflowRequests.GraphVersion;
@@ -108,7 +109,8 @@ public sealed class WorkflowService(
                 var grant = useModel ? models!.Open(executionId, WorkflowRequests.ModelTokenBudget) : null;
                 try
                 {
-                    return await runtime.StartAsync(WorkflowRequests.Start(run, executionId, input, projectContext, grant), _events.Relay(run, filter), ct);
+                    return await runtime.StartAsync(WorkflowRequests.Start(run, executionId, input, projectContext, grant),
+                        _events.Relay(run, filter, () => models?.Calls(executionId) ?? []), ct);
                 }
                 finally
                 {
@@ -116,6 +118,7 @@ public sealed class WorkflowService(
                 }
             });
             EnsureAck(run, executionId, ack);
+            RecordJudgment(run, journal, ack);
 
             if (ack.Status == "interrupted")
             {
@@ -136,6 +139,19 @@ public sealed class WorkflowService(
         EnsureAck(run, journal.ExecutionId!, ack);
         Finish(run, journal, ack);
     });
+
+    /// <summary>
+    /// A opinião do juiz só vale se o proxy do motor viu a chamada do juiz. Ela é gravada no diário antes da pausa (a retomada,
+    /// mesmo depois de um reinício, não depende do proxy) e no registro de avaliações, com modelo, versão e hash do pedido.
+    /// </summary>
+    private void RecordJudgment(RunHandle run, RunJournal journal, WorkflowAck ack)
+    {
+        var judgment = JudgmentVerifier.Verify(ack, models?.Calls(ack.ExecutionId) ?? []);
+        if (judgment is null) return;
+        journal.Judgment = judgment;
+        store.SaveJournal(journal);
+        evalRecords?.Save(run.ProjectId, ack.ExecutionId, JudgmentRecord.ForDisk(judgment, run.RunId, run.ProjectId, ack.ExecutionId, clock.UtcNow));
+    }
 
     private void RecordModelUsage(RunJournal journal, ModelUsage usage)
     {
@@ -273,8 +289,10 @@ public sealed class WorkflowService(
             Status = item.Code == "JUDGE_NOT_RUN" ? "not_run" : "recorded",
             Required = false
         }).ToList();
+        if (journal.Judgment is { } judged)
+            journal.Evals.Add(new EvalSummary { Id = JournalJudgment.EvalId, Status = judged.Outcome, Required = false });
         store.SaveJournal(journal);
-        run.Complete(outcome, WorkflowResult.From(ack, journal.ModelUsage));
+        run.Complete(outcome, WorkflowResult.From(ack, journal.ModelUsage, journal.Judgment));
         run.Publish(ack.Status == "failed" ? "workflow.failed" : "workflow.completed", _events.Status(ack.ExecutionId, ack.Status));
     }
 

@@ -7,10 +7,12 @@ pessoa. Ele entra só dentro de um bloco delimitado, que as instruções de sist
 
 from __future__ import annotations
 
+import json
 import re
 
 TAG = "conteudo-do-projeto"
-_TAG = re.compile(r"<(/?)" + TAG, re.IGNORECASE)
+RESULT_TAG = "resultado-a-avaliar"
+_TAG = re.compile(r"<(/?)(" + TAG + "|pedido|" + RESULT_TAG + ")", re.IGNORECASE)
 MAX_EXCERPT = 1200
 MAX_BLOCK = 12000
 MAX_GOAL = 4000
@@ -24,8 +26,8 @@ _RULES = (
 
 
 def neutralize(text: str) -> str:
-    """O delimitador dentro do texto do projeto vira um símbolo parecido que não fecha nem abre o bloco."""
-    return _TAG.sub(lambda m: "‹" + m.group(1) + TAG, text)
+    """Qualquer delimitador dentro de um texto de fora vira um símbolo parecido que não fecha nem abre um bloco."""
+    return _TAG.sub(lambda m: "‹" + m.group(1) + m.group(2).lower(), text)
 
 
 def system(task: str) -> dict:
@@ -47,6 +49,12 @@ def project_block(evidence: list[dict]) -> str:
         size += len(entry)
     body = "\n\n".join(parts) if parts else "(nenhum trecho do projeto foi recuperado)"
     return f"<{TAG}>\n{body}\n</{TAG}>"
+
+
+def result_block(plan: object, impact: object) -> str:
+    """O que o juiz avalia: plano e impacto, em JSON, num bloco delimitado. É texto escrito por outro agente, não instrução."""
+    body = json.dumps({"plan": plan, "impact": impact}, ensure_ascii=False, indent=1)
+    return f"<{RESULT_TAG}>\n{neutralize(body)}\n</{RESULT_TAG}>"
 
 
 def request_block(goal: str) -> str:

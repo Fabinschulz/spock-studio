@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using Mariliz.Application.Execution;
 
 namespace Mariliz.Application.Models;
@@ -17,6 +18,9 @@ public sealed record ModelUsage(int Calls, int InputTokens, int OutputTokens, do
     public static readonly ModelUsage None = new(0, 0, 0, 0);
 }
 
+/// <summary>Uma chamada que o proxy fez, como ele a viu: quem pediu, para quê, qual modelo respondeu e o hash do que foi enviado.</summary>
+public sealed record ModelCallRecord(string AgentId, string Purpose, string Model, string ModelVersion, string PromptHash, int InputTokens, int OutputTokens);
+
 /// <summary>Como o motor abre e fecha o acesso ao modelo de uma execução.</summary>
 public interface IModelAccess
 {
@@ -27,13 +31,16 @@ public interface IModelAccess
 
     /// <summary>Fecha o acesso e devolve o que foi gasto. Fechar duas vezes devolve o mesmo total.</summary>
     ModelUsage Close(string executionId);
+
+    /// <summary>As chamadas feitas até agora por uma execução (aberta ou já fechada), na ordem. Fonte da verdade sobre o que o modelo viu.</summary>
+    IReadOnlyList<ModelCallRecord> Calls(string executionId);
 }
 
 /// <summary>
 /// Decide cada chamada de modelo de uma execução. Um token por execução, o modelo e a chave escolhidos aqui, o orçamento
 /// de tokens cobrado antes e depois de cada chamada e o uso registrado. Sem custo em dinheiro: o teto da D4 é de tokens.
 /// </summary>
-public sealed class ModelBroker(ModelGateway gateway)
+public sealed partial class ModelBroker(ModelGateway gateway)
 {
     public const string Schema = "ai.model.request.v1";
     private static readonly HashSet<string> Purposes = new(StringComparer.Ordinal) { "classify", "plan", "architecture", "judge", "rewrite-query" };
@@ -43,6 +50,9 @@ public sealed class ModelBroker(ModelGateway gateway)
     private readonly Dictionary<string, Grant> _byToken = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Grant> _byExecution = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ModelUsage> _closed = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, IReadOnlyList<ModelCallRecord>> _closedCalls = new(StringComparer.Ordinal);
+    private readonly Queue<string> _closedOrder = new();
+    private const int RetainedClosed = 256;
 
     public bool Configured => gateway.Status().Configured;
 
@@ -56,6 +66,7 @@ public sealed class ModelBroker(ModelGateway gateway)
             _byToken[token] = grant;
             _byExecution[executionId] = grant;
             _closed.Remove(executionId);
+            _closedCalls.Remove(executionId);
         }
         return token;
     }
@@ -67,7 +78,24 @@ public sealed class ModelBroker(ModelGateway gateway)
             if (!_byExecution.Remove(executionId, out var grant))
                 return _closed.GetValueOrDefault(executionId, ModelUsage.None);
             _byToken.Remove(grant.Token);
+            _closedCalls[executionId] = grant.Records();
+            _closedOrder.Enqueue(executionId);
+            while (_closedOrder.Count > RetainedClosed)
+            {
+                var oldest = _closedOrder.Dequeue();
+                _closed.Remove(oldest);
+                _closedCalls.Remove(oldest);
+            }
             return _closed[executionId] = grant.Usage();
+        }
+    }
+
+    public IReadOnlyList<ModelCallRecord> Calls(string executionId)
+    {
+        lock (_gate)
+        {
+            if (_byExecution.TryGetValue(executionId, out var grant)) return grant.Records();
+            return _closedCalls.GetValueOrDefault(executionId, []);
         }
     }
 
@@ -75,7 +103,7 @@ public sealed class ModelBroker(ModelGateway gateway)
     {
         var grant = Find(bearer);
         if (grant is null) return new BrokerReply(401, new JsonObject { ["error"] = "unauthorized" });
-        if (!TryParse(request, out var executionId, out var chat)) return new BrokerReply(400, new JsonObject { ["error"] = "invalid_body" });
+        if (!TryParse(request, out var executionId, out var agentId, out var purpose, out var chat)) return new BrokerReply(400, new JsonObject { ["error"] = "invalid_body" });
         if (executionId != grant.ExecutionId) return Error("MODEL_FORBIDDEN");
 
         if (!grant.TryReserve(chat.MaxTokens)) return Error("MODEL_BUDGET_EXCEEDED");
@@ -95,7 +123,7 @@ public sealed class ModelBroker(ModelGateway gateway)
             throw;
         }
 
-        grant.Settle(chat.MaxTokens, completion.InputTokens, completion.OutputTokens);
+        grant.Settle(chat.MaxTokens, new ModelCallRecord(agentId, purpose, completion.Model, completion.ModelVersion, completion.PromptHash, completion.InputTokens, completion.OutputTokens));
         return new BrokerReply(200, new JsonObject
         {
             ["schema"] = "ai.model.response.v1",
@@ -129,13 +157,17 @@ public sealed class ModelBroker(ModelGateway gateway)
         ["error"] = new JsonObject { ["code"] = code }
     });
 
-    private static bool TryParse(JsonObject? body, out string executionId, out ChatRequest chat)
+    private static bool TryParse(JsonObject? body, out string executionId, out string agentId, out string purpose, out ChatRequest chat)
     {
         executionId = "";
+        agentId = "";
+        purpose = "";
         chat = new ChatRequest([], 0, false);
         if (body is null || Text(body, "schema") != Schema) return false;
         executionId = Text(body, "executionId");
-        if (executionId.Length == 0 || !Purposes.Contains(Text(body, "purpose"))) return false;
+        purpose = Text(body, "purpose");
+        agentId = Text(body, "agentId");
+        if (executionId.Length == 0 || !Purposes.Contains(purpose) || !AgentIdPattern().IsMatch(agentId)) return false;
         if (body["maxTokens"] is not JsonValue t || !t.TryGetValue<int>(out var maxTokens) || maxTokens is < 1 or > ModelGateway.MaxChatTokens) return false;
         if (body["messages"] is not JsonArray array || array.Count is < 1 or > 16) return false;
 
@@ -152,6 +184,9 @@ public sealed class ModelBroker(ModelGateway gateway)
         return true;
     }
 
+    [GeneratedRegex("^[a-z][a-z0-9-]{0,31}$")]
+    private static partial Regex AgentIdPattern();
+
     private static string Text(JsonObject node, string name) =>
         node[name] is JsonValue value && value.TryGetValue<string>(out var text) ? text : "";
 
@@ -162,7 +197,7 @@ public sealed class ModelBroker(ModelGateway gateway)
         private int _reserved;
         private int _input;
         private int _output;
-        private int _calls;
+        private readonly List<ModelCallRecord> _records = [];
 
         public string ExecutionId { get; } = executionId;
         public string Token { get; } = token;
@@ -182,20 +217,25 @@ public sealed class ModelBroker(ModelGateway gateway)
             lock (_gate) _reserved -= maxTokens;
         }
 
-        public void Settle(int maxTokens, int input, int output)
+        public void Settle(int maxTokens, ModelCallRecord record)
         {
             lock (_gate)
             {
                 _reserved -= maxTokens;
-                _input += input;
-                _output += output;
-                _calls++;
+                _input += record.InputTokens;
+                _output += record.OutputTokens;
+                _records.Add(record);
             }
         }
 
         public ModelUsage Usage()
         {
-            lock (_gate) return new ModelUsage(_calls, _input, _output, 0);
+            lock (_gate) return new ModelUsage(_records.Count, _input, _output, 0);
+        }
+
+        public IReadOnlyList<ModelCallRecord> Records()
+        {
+            lock (_gate) return [.. _records];
         }
     }
 }

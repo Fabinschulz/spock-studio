@@ -47,8 +47,11 @@ public class WorkflowModelEndToEndTests
             lock (Requests) Requests.Add(request);
             var user = request.Messages[^1].Content;
             var chunk = Regex.Match(user, @"<conteudo-do-projeto>\n\[([^\]\n]+)\]").Groups[1].Value;
+            var isJudge = request.Messages[0].Content.Contains("avaliador independente", StringComparison.Ordinal);
+            var withImpact = !user.Contains("\"impact\": null", StringComparison.Ordinal);
             var reply = Mode == "invalid"
                 ? "isto não é JSON"
+                : isJudge ? Judgment(chunk, withImpact)
                 : new JsonObject
                 {
                     ["schema"] = "engineering.plan.v1",
@@ -59,6 +62,21 @@ public class WorkflowModelEndToEndTests
                 }.ToJsonString();
             return Task.FromResult(new ChatTransportResult(reply, "gpt-4o-mini-2024-07-18", 400, 120));
         }
+    }
+
+    /// <summary>A opinião que o juiz falso escreve: notas boas, citando o trecho que ele recebeu.</summary>
+    private static string Judgment(string chunk, bool withImpact)
+    {
+        var scores = new JsonObject { ["plan_quality"] = 4, ["context_fit"] = 4, ["request_fit"] = 5 };
+        if (withImpact) scores["architecture_coherence"] = 4;
+        return new JsonObject
+        {
+            ["schema"] = "engineering.judgment.v1",
+            ["criteriaVersion"] = "1",
+            ["scores"] = scores,
+            ["rationale"] = "O plano é concreto e cita o módulo de cobrança.",
+            ["evidence"] = new JsonArray(chunk)
+        }.ToJsonString();
     }
 
     private static (WorkflowService Service, ScriptedProvider Provider, LoopbackAiRuntime Runtime, string ProjectId, TempProject Project) Build()
@@ -72,7 +90,8 @@ public class WorkflowModelEndToEndTests
         var projectId = authorizer.Authorize(project.Root).Project!.ProjectId;
         var runtime = new LoopbackAiRuntime();
         var service = new WorkflowService(authorizer, runtime, new RunTracker(), new SystemClock(), new FileRunStore(project.DataDir),
-            new WorkflowContextBuilder(authorizer, runtime, new TestFilesFactory(), new SystemProcessRunner(), project.DataDir), access);
+            new WorkflowContextBuilder(authorizer, runtime, new TestFilesFactory(), new SystemProcessRunner(), project.DataDir), access,
+            new FileEvalRecords(project.DataDir));
         return (service, provider, runtime, projectId, project);
     }
 
@@ -129,7 +148,7 @@ public class WorkflowModelEndToEndTests
             Assert.NotNull(run.Result["impact"]);
             var calls = run.Result["usage"]!["modelCalls"]!.GetValue<int>();
             Assert.Equal(provider.Requests.Count, calls);
-            Assert.InRange(calls, 3, 4);
+            Assert.InRange(calls, 4, 5);
             Assert.InRange(run.Result["usage"]!["inputTokens"]!.GetValue<int>() + run.Result["usage"]!["outputTokens"]!.GetValue<int>(), 1, WorkflowRequests.ModelTokenBudget);
         }
         finally
@@ -153,7 +172,48 @@ public class WorkflowModelEndToEndTests
             var codes = run.Result["limitations"]!.AsArray().Select(item => item!["code"]!.GetValue<string>()).ToList();
             Assert.Contains("PLAN_MODEL_FALLBACK", codes);
             Assert.Contains("MODEL_OUTPUT_INVALID", codes);
-            Assert.Equal(2, run.Result["usage"]!["modelCalls"]!.GetValue<int>());
+            // Duas tentativas do Planning e duas do juiz: o gasto de cada uma continua registrado.
+            Assert.Equal(4, run.Result["usage"]!["modelCalls"]!.GetValue<int>());
+            Assert.Equal("not_run", run.Result["evaluation"]!["judge"]!.GetValue<string>());
+        }
+        finally
+        {
+            await runtime.ShutdownAsync();
+        }
+    }
+
+    [Fact]
+    public async Task O_juiz_roda_pelo_proxy_e_o_motor_registra_a_opiniao_com_o_modelo_e_o_hash_do_que_foi_enviado()
+    {
+        var (service, provider, runtime, projectId, project) = Build();
+        using var _ = project;
+        try
+        {
+            var run = await RunAsync(service, projectId, useModel: true);
+
+            var evaluation = run.Result!["evaluation"]!;
+            Assert.Equal("deterministic", evaluation["verdict"]!.GetValue<string>());
+            Assert.Equal("passed", evaluation["judge"]!.GetValue<string>());
+            Assert.Equal(ModelGateway.DefaultModel, evaluation["judgment"]!["model"]!.GetValue<string>());
+            Assert.Equal("gpt-4o-mini-2024-07-18", evaluation["judgment"]!["modelVersion"]!.GetValue<string>());
+
+            // O registro em disco é do motor e leva o hash exato das mensagens que o juiz mandou ao provedor.
+            var executionId = run.Result["executionId"]!.GetValue<string>();
+            var path = Path.Combine(project.DataDir, "projects", projectId, "evals", executionId + ".json");
+            Assert.True(File.Exists(path));
+            var record = JsonNode.Parse(File.ReadAllText(path))!;
+            Assert.True(ContractFiles.IsValid(ContractFiles.Schema("intelligence", "engineering.eval.record.v1.schema.json"), record));
+            var judgeRequest = provider.Requests.Single(r => r.Messages[0].Content.Contains("avaliador independente", StringComparison.Ordinal));
+            var sentJson = System.Text.Json.JsonSerializer.Serialize(judgeRequest.Messages.Select(m => new { role = m.Role, content = m.Content }));
+            var expectedHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(sentJson))).ToLowerInvariant();
+            Assert.Equal(expectedHash, record["promptHash"]!.GetValue<string>());
+            Assert.Equal(400, record["inputTokens"]!.GetValue<int>());
+
+            // O juiz só vê o resultado final: nada das tentativas nem das recusas de quem escreveu.
+            Assert.DoesNotContain("A resposta foi recusada", judgeRequest.Messages[1].Content);
+
+            var types = run.Snapshot()["events"]!.AsArray().Select(e => e!["type"]!.GetValue<string>()).Where(t => t.StartsWith("eval.", StringComparison.Ordinal));
+            Assert.Equal(["eval.started", "eval.completed"], types);
         }
         finally
         {

@@ -212,6 +212,67 @@ describe('Execução', () => {
     expect(screen.queryByRole('heading', { name: 'Uso do modelo' })).not.toBeInTheDocument();
   });
 
+  it('mostra a opinião do juiz por modelo como registro, com notas, justificativa e o modelo, sem decidir o resultado', async () => {
+    const judged = clientFor({
+      ...done,
+      result: {
+        ...done.result!,
+        evaluation: {
+          verdict: 'deterministic',
+          judge: 'failed',
+          tokens: 790,
+          judgment: {
+            criteriaVersion: '1',
+            scores: { plan_quality: 2, context_fit: 4, request_fit: 5 },
+            rationale: 'O plano é genérico demais.',
+            evidence: ['docs/nota.md#1'],
+            model: 'gpt-4o-mini',
+            modelVersion: 'gpt-4o-mini-2024-07-18'
+          }
+        }
+      }
+    });
+    render(
+      <AppProviders>
+        <ExecutionPage runId="run-1" client={judged} />
+      </AppProviders>
+    );
+
+    expect(await screen.findByRole('heading', { name: 'Avaliação por modelo' })).toBeInTheDocument();
+    expect(screen.getByText(/Ela não decide o resultado da execução/)).toBeInTheDocument();
+    expect(screen.getByText('Algum critério ficou abaixo da nota mínima.')).toBeInTheDocument();
+    expect(screen.getByText('Qualidade do plano: 2 de 5 (abaixo do mínimo)')).toBeInTheDocument();
+    expect(screen.getByText('Atendimento ao pedido: 5 de 5')).toBeInTheDocument();
+    expect(screen.getByText('O plano é genérico demais.')).toBeInTheDocument();
+    expect(screen.getByText(/gpt-4o-mini-2024-07-18/)).toBeInTheDocument();
+    // O estado da execução continua o do veredito determinístico.
+    expect(screen.getByText('Concluído com limitações')).toBeInTheDocument();
+  });
+
+  it('sem opinião do juiz não há seção de avaliação, e os eventos de avaliação ganham frases', async () => {
+    const client = clientFor({
+      ...done,
+      result: {
+        ...done.result!,
+        evaluation: { verdict: 'deterministic', judge: 'not_run', tokens: 0 }
+      },
+      events: [
+        { seq: 0, type: 'eval.started', data: { evalId: 'EV-JUDGE-001', kind: 'model' } },
+        { seq: 1, type: 'eval.completed', data: { evalId: 'EV-JUDGE-001', kind: 'model', outcome: 'not_run' } },
+        { seq: 2, type: 'eval.completed', data: { evalId: 'EV-CONFIG-001', kind: 'deterministic', outcome: 'passed' } }
+      ]
+    });
+    render(
+      <AppProviders>
+        <ExecutionPage runId="run-1" client={client} />
+      </AppProviders>
+    );
+
+    expect(await screen.findByText('Avaliando o resultado com o juiz por modelo')).toBeInTheDocument();
+    expect(screen.getByText('O juiz por modelo não rodou')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Avaliação por modelo' })).not.toBeInTheDocument();
+  });
+
   it('o Planejamento aparece com o nome certo na linha do tempo', async () => {
     const client = clientFor({
       ...done,

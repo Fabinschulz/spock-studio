@@ -29,6 +29,8 @@ public sealed class LocalModelAccess(ModelBroker broker) : IModelAccess, IDispos
 
     public ModelUsage Close(string executionId) => broker.Close(executionId);
 
+    public IReadOnlyList<ModelCallRecord> Calls(string executionId) => broker.Calls(executionId);
+
     public void Dispose()
     {
         _stop.Cancel();

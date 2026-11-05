@@ -128,3 +128,75 @@ def impact_from_model(document: object, known: set[str], has_stacks: bool) -> di
     if not has_stacks and "sem-stack" not in impact["risks"]:
         raise Rejected("Nenhuma stack foi detectada: 'risks' precisa incluir 'sem-stack'.")
     return impact
+
+
+JUDGMENT_SCHEMA = "engineering.judgment.v1"
+JUDGE_EVAL_ID = "EV-JUDGE-001"
+CRITERIA_VERSION = "1"
+# Critérios da versão 1. O de coerência arquitetural só existe quando o pedido pediu impacto.
+CRITERIA = ("plan_quality", "context_fit", "request_fit")
+IMPACT_CRITERION = "architecture_coherence"
+SCORE_MIN, SCORE_MAX, PASSING_SCORE = 1, 5, 3
+MAX_RATIONALE = 300
+
+
+def judgment_outcome(scores: dict) -> str:
+    """``passed`` só se todo critério alcançou a nota mínima. É uma opinião registrada, nunca o veredito."""
+    return "passed" if all(score >= PASSING_SCORE for score in scores.values()) else "failed"
+
+
+def _scores_ok(scores: object, with_impact: bool) -> bool:
+    expected = set(CRITERIA) | ({IMPACT_CRITERION} if with_impact else set())
+    if not isinstance(scores, dict) or set(scores) != expected:
+        return False
+    return all(isinstance(v, int) and not isinstance(v, bool) and SCORE_MIN <= v <= SCORE_MAX for v in scores.values())
+
+
+def _rationale_ok(text: object) -> bool:
+    return isinstance(text, str) and 0 < len(text.strip()) <= MAX_RATIONALE and not any(ord(c) < 32 and c not in "\n\t" for c in text)
+
+
+def judgment_from_model(document: object, known: set[str], with_impact: bool) -> dict:
+    """
+    Valida a opinião do juiz. Notas inteiras de 1 a 5 em cada critério da versão, justificativa curta e, havendo trechos,
+    ao menos uma citação (só de trechos fornecidos). O juiz não escolhe critério nem escala.
+    """
+    if not isinstance(document, dict) or document.get("schema") != JUDGMENT_SCHEMA:
+        raise Rejected(f"O objeto precisa ter 'schema' ({JUDGMENT_SCHEMA}), 'criteriaVersion', 'scores', 'rationale' e 'evidence'.")
+    if set(document) != {"schema", "criteriaVersion", "scores", "rationale", "evidence"} or forbidden(document):
+        raise Rejected("Só 'schema', 'criteriaVersion', 'scores', 'rationale' e 'evidence' são permitidos.")
+    if document["criteriaVersion"] != CRITERIA_VERSION:
+        raise Rejected(f"'criteriaVersion' é '{CRITERIA_VERSION}'.")
+    if not _scores_ok(document["scores"], with_impact):
+        names = list(CRITERIA) + ([IMPACT_CRITERION] if with_impact else [])
+        raise Rejected(f"'scores' tem exatamente {names}, cada um com um número inteiro de {SCORE_MIN} a {SCORE_MAX}.")
+    if not _rationale_ok(document["rationale"]):
+        raise Rejected(f"'rationale' é um texto de até {MAX_RATIONALE} caracteres.")
+    refs = document["evidence"]
+    if not isinstance(refs, list) or len(refs) > MAX_STEP_EVIDENCE or any(not isinstance(r, str) or r not in known for r in refs):
+        raise Rejected("'evidence' só cita ids de trechos que foram fornecidos.")
+    if known and not refs:
+        raise Rejected("Há trechos do projeto: 'evidence' precisa citar ao menos um.")
+    return {
+        "schema": JUDGMENT_SCHEMA,
+        "criteriaVersion": CRITERIA_VERSION,
+        "scores": dict(document["scores"]),
+        "rationale": document["rationale"].strip(),
+        "evidence": list(dict.fromkeys(refs)),
+    }
+
+
+def judgment_ok(judgment: object, evidence: object, with_impact: bool) -> bool:
+    """A mesma conferência, para o que vem do estado (checkpoint) antes de sair no ack."""
+    if not isinstance(judgment, dict):
+        return False
+    core = ("schema", "criteriaVersion", "scores", "rationale", "evidence")
+    if set(judgment) != {*core, "model", "modelVersion"}:
+        return False
+    if not all(isinstance(judgment[key], str) and 0 < len(judgment[key]) <= 100 for key in ("model", "modelVersion")):
+        return False
+    try:
+        judgment_from_model({key: judgment[key] for key in core}, known_chunks(evidence), with_impact)
+    except Rejected:
+        return False
+    return True

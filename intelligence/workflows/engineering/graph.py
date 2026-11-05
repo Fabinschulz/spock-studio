@@ -23,9 +23,11 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
 
 from agents import architecture as architecture_model
+from agents import judge as judge_model
 from agents import planning as planning_model
 from agents.model_client import ModelClient
 from agents.runner import Model, Outcome
+from contracts.engineering import CRITERIA_VERSION, JUDGE_EVAL_ID, judgment_ok, judgment_outcome
 from contracts.engineering import forbidden as _forbidden
 from contracts.engineering import impact_ok as _impact_ok
 from contracts.messages import ContractError, ResumeRequest, StartRequest, parse_resume, parse_start
@@ -82,6 +84,7 @@ class State(TypedDict, total=False):
     impact: dict | None
     agents: list[dict]
     evaluation: dict | None
+    judgment: dict | None
     tokens: int
     model_calls: int
     input_tokens: int
@@ -322,11 +325,39 @@ def synthesizer(state: dict) -> dict:
     return state
 
 
-def evaluation_judge(state: dict) -> dict:
-    # O juiz não chama modelo e não vira o veredito; os tokens já gastos pelos agentes continuam contados.
-    _limit(state, "JUDGE_NOT_RUN", "O juiz por modelo não é o veredito desta fase.")
+def evaluation_judge(state: dict, segment: Segment | None = None) -> dict:
+    """
+    O veredito é sempre determinístico. Com modelo autorizado, um juiz independente registra uma opinião sobre o plano e o
+    impacto finais (EV-JUDGE-001); ela não volta para o plano, não muda o veredito e, se falhar, só deixa uma limitação.
+    """
     state["evaluation"] = dict(_EVALUATION)
+    state["judgment"] = None
+    judged = segment is not None and segment.model is not None and _judge_with_model(state, segment)
+    if not judged:
+        _limit(state, "JUDGE_NOT_RUN", "O juiz por modelo não é o veredito desta fase.")
     return state
+
+
+def _judge_with_model(state: dict, segment: Segment) -> bool:
+    segment.emitter.emit("eval.started", {"evalId": JUDGE_EVAL_ID, "kind": "model"})
+    outcomes: list[Outcome] = []
+
+    def call(can_spend: Callable[[int], bool]) -> Outcome:
+        outcomes.append(judge_model.judge(segment.model, state, can_spend))
+        return outcomes[-1]
+
+    def adopt(judgment: dict) -> None:
+        state["judgment"] = {**judgment, "model": outcomes[-1].model, "modelVersion": outcomes[-1].model_version}
+
+    tokens = _model_call(state, segment, call, adopt, "JUDGE_NOT_RUN", "O juiz por modelo não rodou; o veredito segue determinístico.")
+    judgment = state.get("judgment")
+    verdict = judgment_outcome(judgment["scores"]) if judgment else "not_run"
+    state["evaluation"] = {**_EVALUATION, "judge": verdict, "tokens": tokens}
+    data = {"evalId": JUDGE_EVAL_ID, "kind": "model", "outcome": verdict}
+    if judgment:
+        data["criteriaVersion"] = CRITERIA_VERSION
+    segment.emitter.emit("eval.completed", data)
+    return judgment is not None
 
 
 def interrupt_id(execution_id: str) -> str:
@@ -344,21 +375,22 @@ def build(segment: Segment) -> StateGraph:
     graph.add_node("check_impact", lambda state: impact_eval(_copy(state)))
     graph.add_node("approval", lambda state: approval_gate(_copy(state), segment))
     graph.add_node("synthesize", lambda state: synthesizer(_copy(state)))
-    graph.add_node("evaluate", lambda state: evaluation_judge(_copy(state)))
+    graph.add_node("evaluate", lambda state: evaluation_judge(_copy(state), segment))
 
     graph.add_edge(START, "analyze_request")
     for current, following in (("analyze_request", "build_context"), ("build_context", "retrieve"), ("retrieve", "plan"), ("plan", "validate_plan")):
         graph.add_conditional_edges(current, lambda state, nxt=following: END if state.get("failure") else nxt, [following, END])
     graph.add_conditional_edges(
         "validate_plan",
-        lambda state: END if state.get("failure") else ("architecture" if state["asks_impact"] else "approval"),
-        ["architecture", "approval", END],
+        lambda state: END if state.get("failure") else ("architecture" if state["asks_impact"] else "evaluate"),
+        ["architecture", "evaluate", END],
     )
     graph.add_edge("architecture", "check_impact")
-    graph.add_edge("check_impact", "approval")
+    # O juiz roda antes da pausa: quem aprova já vê a opinião, e a retomada não precisa do proxy de modelo.
+    graph.add_edge("check_impact", "evaluate")
+    graph.add_edge("evaluate", "approval")
     graph.add_edge("approval", "synthesize")
-    graph.add_edge("synthesize", "evaluate")
-    graph.add_edge("evaluate", END)
+    graph.add_edge("synthesize", END)
     return graph
 
 
@@ -558,8 +590,8 @@ def _ack(state: dict, status: str, pending: dict | None = None) -> dict:
     }
     if _impact_ok(state.get("impact"), state.get("evidence")):
         output["impact"] = state["impact"]
-    if state.get("evaluation") == _EVALUATION:
-        output["evaluation"] = dict(_EVALUATION)
+    if (evaluation := _public_evaluation(state)) is not None:
+        output["evaluation"] = evaluation
     ack = {
         "schema": "ai.ack.v2",
         "workflowId": WORKFLOW_ID,
@@ -586,6 +618,20 @@ def _ack(state: dict, status: str, pending: dict | None = None) -> dict:
     if status == "interrupted" and pending:
         ack["approval"] = {"interruptId": pending["interruptId"], "actionIds": list(pending.get("actionIds") or [])}
     return ack
+
+
+def _public_evaluation(state: dict) -> dict | None:
+    """O que sai no ack: o veredito determinístico e, só se passar na conferência, a opinião do juiz."""
+    evaluation = state.get("evaluation")
+    if not isinstance(evaluation, dict) or evaluation.get("verdict") != "deterministic":
+        return None
+    tokens = evaluation.get("tokens")
+    public = {**_EVALUATION, "tokens": tokens if isinstance(tokens, int) and not isinstance(tokens, bool) and tokens >= 0 else 0}
+    judgment = state.get("judgment")
+    if evaluation.get("judge") in ("passed", "failed") and judgment_ok(judgment, state.get("evidence"), state.get("impact") is not None)             and judgment_outcome(judgment["scores"]) == evaluation["judge"]:
+        public["judge"] = evaluation["judge"]
+        public["judgment"] = dict(judgment)
+    return public
 
 
 def _lost(request: ResumeRequest) -> dict:
