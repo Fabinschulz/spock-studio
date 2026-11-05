@@ -207,9 +207,9 @@ public sealed class EngineSession
         catch (JsonException) { return null; }
     }
 
-    private void WriteEvent(string runId, int seq, string type, JsonObject data) =>
+    private void WriteEvent(string runId, int seq, string type, JsonObject data, DateTimeOffset at) =>
         // Eventos vêm de outras threads; a escrita é serializada com as respostas.
-        WriteLineAsync(ProtocolMessages.Event(runId, seq, type, data).ToJsonString()).GetAwaiter().GetResult();
+        WriteLineAsync(ProtocolMessages.Event(runId, seq, type, data, at).ToJsonString()).GetAwaiter().GetResult();
 
     private async Task WriteLineAsync(string json)
     {

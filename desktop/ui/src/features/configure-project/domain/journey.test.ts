@@ -149,6 +149,61 @@ describe('eventos da execução', () => {
     expect(completed.feed.map((item) => item.text)).toEqual(['Iniciou: Backup', 'Iniciou: Lock', 'Concluiu: Backup']);
   });
 
+  it('run.plan troca a lista local pela do motor, na ordem dele, sem perder o que já começou', () => {
+    const started = applyRunEvent(run, event('step.started', { id: 'backup', title: 'Backup' }), 10);
+    const announced = applyRunEvent(
+      started,
+      event('run.plan', {
+        steps: [
+          { id: 'precheck', title: 'Verificar' },
+          { id: 'backup', title: 'Backup' },
+          { id: 'command:x', title: 'Instalar' },
+          { title: 'sem id' }
+        ]
+      }),
+      11
+    );
+
+    expect(announced.steps.map((step) => [step.id, step.status])).toEqual([
+      ['precheck', 'pending'],
+      ['backup', 'running'],
+      ['command:x', 'pending']
+    ]);
+    expect(announced.steps[1]?.startedAt).toBe(10);
+    // Uma lista que não diz nada não apaga o que a interface já sabia.
+    expect(applyRunEvent(announced, event('run.plan', { steps: 'nada' }), 12).steps).toBe(announced.steps);
+    expect(applyRunEvent(announced, event('run.plan', { steps: [] }), 12).steps).toBe(announced.steps);
+  });
+
+  it('eval.started e eval.completed acompanham cada verificação, na ordem em que chegam', () => {
+    const one = applyRunEvent(run, event('eval.started', { id: 'EV-1', name: 'Agentes', kind: 'deterministic' }), 1);
+    const two = applyRunEvent(one, event('eval.started', { id: 'EV-J', name: 'Juiz', kind: 'model' }), 2);
+    expect(two.evals.map((e) => [e.id, e.status])).toEqual([
+      ['EV-1', 'running'],
+      ['EV-J', 'running']
+    ]);
+
+    const done = applyRunEvent(two, event('eval.completed', { id: 'EV-1', status: 'passed' }), 3);
+    expect(done.evals[0]).toMatchObject({ name: 'Agentes', kind: 'deterministic', status: 'passed' });
+    expect(done.evals[1]).toMatchObject({ kind: 'model', status: 'running' });
+    // Resultado de um Eval que nunca foi anunciado, ou sem status, não inventa uma linha.
+    expect(applyRunEvent(done, event('eval.completed', { id: 'EV-X', status: 'passed' }), 4).evals).toHaveLength(2);
+    expect(applyRunEvent(done, event('eval.completed', { id: 'EV-J' }), 4)).toBe(done);
+  });
+
+  it('usa o instante que o motor carimbou e cai no da chegada quando o evento não o traz', () => {
+    const stamped = { ...event('step.started', { id: 'backup', title: 'Backup' }), at: '2026-11-05T12:30:00.500Z' };
+    const withStamp = applyRunEvent(run, stamped, 999);
+    expect(withStamp.steps[0]?.startedAt).toBe(Date.parse('2026-11-05T12:30:00.500Z'));
+    expect(withStamp.feed[0]?.at).toBe(Date.parse('2026-11-05T12:30:00.500Z'));
+
+    const invalid = { ...stamped, at: 'ontem' };
+    expect(applyRunEvent(run, invalid, 999).steps[0]?.startedAt).toBe(999);
+    expect(applyRunEvent(run, event('step.started', { id: 'backup', title: 'Backup' }), 999).steps[0]?.startedAt).toBe(
+      999
+    );
+  });
+
   it('arquivo aplicado entra na lista; estado acompanha run.state; evento desconhecido não muda nada', () => {
     const file = applyRunEvent(run, event('file.applied', { op: 'create', path: '.claude/agents/x.md' }), 1);
     expect(file.files).toEqual(['create .claude/agents/x.md']);

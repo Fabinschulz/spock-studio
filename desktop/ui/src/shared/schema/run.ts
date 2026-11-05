@@ -26,12 +26,15 @@ export const runEventSchema = z.object({
   runId: z.string(),
   type: z.string(),
   seq: z.number(),
+  /** Instante em que o motor publicou o evento (ISO 8601, UTC). Motores e históricos antigos não o trazem. */
+  at: z.string().optional(),
   data: z.record(z.string(), z.unknown())
 });
 
 export const timelineEventSchema = z.object({
   seq: z.number(),
   type: z.string(),
+  at: z.string().optional(),
   data: z.record(z.string(), z.unknown())
 });
 

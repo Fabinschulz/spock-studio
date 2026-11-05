@@ -6,6 +6,8 @@ internal sealed class RunJournalRecorder(RunHandle run, RunJournal journal, IRun
 {
     public void Save() => store.SaveJournal(journal);
 
+    public JournalStep BeginStep((string Id, string Title) step) => BeginStep(step.Id, step.Title);
+
     public JournalStep BeginStep(string id, string title)
     {
         var step = new JournalStep { Id = id, Title = title, Status = StepStatus.Running };

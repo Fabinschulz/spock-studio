@@ -6,6 +6,10 @@ import discovery from '@contracts/fixtures/golden/discovery.json';
 import plan from '@contracts/fixtures/golden/plan.json';
 import revertResult from '@contracts/fixtures/golden/revert-result.json';
 import validateResult from '@contracts/fixtures/golden/validate-result.json';
+import evalCompleted from '@contracts/fixtures/valid/event.eval.completed.json';
+import evalStarted from '@contracts/fixtures/valid/event.eval.started.json';
+import runPlan from '@contracts/fixtures/valid/event.run.plan.json';
+import stepStarted from '@contracts/fixtures/valid/event.step.started.json';
 import workflowStarted from '@contracts/fixtures/valid/event.workflow.started.json';
 
 import {
@@ -79,6 +83,15 @@ describe('contrato do motor (fixtures golden)', () => {
     expect(parsed.type).toBe('workflow.started');
     expect(parsed.data.workflowId).toBe('engineering.request.v1');
     expect(parsed.data.status).toBe('started');
+  });
+
+  it('eventos de etapas e de Evals: o carimbo `at` passa pelo schema e não é descartado', () => {
+    expect(runEventSchema.parse(stepStarted).at).toBe('2026-11-05T12:30:00.123Z');
+    expect(runEventSchema.parse(runPlan).data.steps).toHaveLength(6);
+    expect(runEventSchema.parse(evalStarted).data).toMatchObject({ id: 'EV-AGENT-001', kind: 'deterministic' });
+    expect(runEventSchema.parse(evalCompleted).data).toMatchObject({ id: 'EV-AGENT-001', status: 'passed' });
+    // Motor antigo: sem `at`, o evento continua válido.
+    expect(runEventSchema.parse(workflowStarted).at).toBeUndefined();
   });
 
   it('rejeita um formato inesperado em vez de aceitar em silêncio', () => {

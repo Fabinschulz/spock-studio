@@ -1,6 +1,16 @@
 # Contratos mínimos propostos entre o motor .NET e a interface
 
-Contexto: o redesign pede que a interface mostre a atividade **real** do motor. Em [proposta-de-redesign.md](proposta-de-redesign.md#9-limitações-da-arquitetura-atual) estão as lacunas; aqui, o menor contrato que resolve cada uma. **Nada disto foi implementado no motor.** O protótipo exibe estes eventos apenas no modo "Contrato proposto (demonstração)".
+Contexto: o redesign pede que a interface mostre a atividade **real** do motor. Em [proposta-de-redesign.md](proposta-de-redesign.md#9-limitações-da-arquitetura-atual) estão as lacunas; aqui, o menor contrato que resolve cada uma. **Estado:** os itens 1, 2 e 3 estão implementados (motor, `contracts` e interface); os demais seguem propostos. O protótipo exibe os propostos no modo "Contrato proposto (demonstração)".
+
+| Item | Estado |
+| --- | --- |
+| 1 · `at` | feito |
+| 2 · `run.plan` | feito (só na aplicação) |
+| 3 · `eval.started` / `eval.completed` | feito (aplicação e validação avulsa) |
+| 4 · progresso de análise e planejamento | proposto |
+| 5 · estados `analyzing` / `awaiting_approval` | proposto |
+| 6 · `agent.state` | proposto; depende de decisão de produto |
+| 7 · `kind` em `file.applied` | proposto |
 
 Regras que valem para todos:
 
@@ -17,6 +27,8 @@ Regras que valem para todos:
 
 Resolve: durações medidas no cliente na recepção (imprecisas com _polling_ e reinício da interface).
 
+**Como ficou:** `at` é um campo do **envelope** (ao lado de `seq`), não de `data`: `YYYY-MM-DDTHH:mm:ss.fffZ`, sempre em UTC. `RunHandle.Publish` lê o `IClock` uma vez por evento e usa o mesmo instante no evento enviado e no gravado (o retrato e o histórico em disco também o trazem). Opcional no schema: eventos antigos continuam válidos. A interface usa o `at` quando existe e o instante de chegada quando não.
+
 ## 2. Declaração das etapas — `run.plan`
 
 ```json
@@ -24,6 +36,8 @@ Resolve: durações medidas no cliente na recepção (imprecisas com _polling_ e
 ```
 
 Publicado **uma vez**, antes do primeiro `step.started`, com a lista ordenada das etapas que a execução fará (inclui uma etapa `command:<id>` por comando aprovado). Resolve: a interface hoje precisa conhecer a ordem e os títulos (strings em C#) para mostrar "aguardando". Fonte natural: `ApplyExecution.RunAsync` já conhece a sequência.
+
+**Como ficou:** `ApplySteps` guarda o id e o título de cada etapa num só lugar; é dele que saem o `run.plan` e os `step.started`, então o anunciado e o executado não se separam (há teste que compara as duas listas). O evento é publicado no começo de `RunAsync`, só com os comandos aprovados que pertencem ao plano. Só a aplicação o publica: validação e reversão têm uma etapa só ou nenhuma lista a anunciar.
 
 ## 3. Um evento por Eval — `eval.started` / `eval.completed`
 
@@ -33,6 +47,8 @@ Publicado **uma vez**, antes do primeiro `step.started`, com a lista ordenada da
 ```
 
 `status` ∈ `passed | failed | blocked | not_run` (os mesmos de `EvalResult`). Publicados por `EvalRunner.RunAsync` ao redor de `RunCheckAsync`. Resolve: a validação aparece como uma etapa de ~5 s e os 14 resultados chegam juntos. O `kind: "model"` (juiz) identifica o único Eval que usa um modelo.
+
+**Como ficou:** `EvalRunner` recebe um `IEvalProgress` opcional; a aplicação e a validação avulsa passam um que publica na execução. `kind` e `status` saem com os mesmos valores do resultado final (testado contra o relatório). Um Eval cancelado no meio fica só com o `eval.started`.
 
 ## 4. Progresso de análise e planejamento
 

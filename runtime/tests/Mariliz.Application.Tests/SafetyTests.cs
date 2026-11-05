@@ -137,7 +137,7 @@ public class SafetyTests
         var session = new PlanSession(journey.ProjectId, project.Root, new PlanOptions("claude-code"), plan, composed);
         var before = project.Fingerprint();
 
-        var run = new RunHandle("run-forged", journey.ProjectId, RunKinds.Apply, (_, _, _, _) => { });
+        var run = new RunHandle("run-forged", journey.ProjectId, RunKinds.Apply, (_, _, _, _, _) => { });
         var service = new ApplyService(journey.Runner, journey.Store, new SystemClock());
         var files = new LocalProjectFiles(project.Root);
         var result = await service.ExecuteAsync(run, project.Root, files, session,

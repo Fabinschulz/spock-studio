@@ -1,3 +1,4 @@
+using Mariliz.Application.Ports;
 using System.Text.Json.Nodes;
 
 namespace Mariliz.Application.Execution;
@@ -14,9 +15,14 @@ public sealed class RunTracker
     private readonly Queue<string> _order = new();
     private readonly Dictionary<string, string> _activeByProject = new();
     private readonly object _gate = new();
-    private readonly Action<string, int, string, JsonObject> _emit;
+    private readonly Action<string, int, string, JsonObject, DateTimeOffset> _emit;
+    private readonly IClock? _clock;
 
-    public RunTracker(Action<string, int, string, JsonObject>? emit = null) => _emit = emit ?? ((_, _, _, _) => { });
+    public RunTracker(Action<string, int, string, JsonObject, DateTimeOffset>? emit = null, IClock? clock = null)
+    {
+        _emit = emit ?? ((_, _, _, _, _) => { });
+        _clock = clock;
+    }
 
     /// <summary>Uma execução por projeto de cada vez: evita escritas concorrentes na mesma pasta.</summary>
     public bool TryStart(string projectId, string kind, out RunHandle? handle)
@@ -29,7 +35,7 @@ public sealed class RunTracker
                 return false;
             }
             var runId = "run-" + Guid.NewGuid().ToString("N")[..12];
-            handle = new RunHandle(runId, projectId, kind, _emit);
+            handle = new RunHandle(runId, projectId, kind, _emit, _clock);
             Track(handle);
             return true;
         }
@@ -48,7 +54,7 @@ public sealed class RunTracker
             if (_runs.ContainsKey(runId)) return null;
             if (_activeByProject.TryGetValue(projectId, out var active) && _runs.TryGetValue(active, out var current) && !RunStates.IsTerminal(current.State))
                 return null;
-            var handle = new RunHandle(runId, projectId, kind, _emit);
+            var handle = new RunHandle(runId, projectId, kind, _emit, _clock);
             Track(handle);
             return handle;
         }

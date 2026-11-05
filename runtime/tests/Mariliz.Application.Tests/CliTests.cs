@@ -26,7 +26,7 @@ public class CliTests
         {
             Project = project;
             Processes = new InterceptingRunner(intercept);
-            var tracker = new RunTracker((runId, seq, type, data) => _runner?.OnEvent(runId, seq, type, data));
+            var tracker = new RunTracker((runId, seq, type, data, at) => _runner?.OnEvent(runId, seq, type, data, at));
             _service = new ConfigureProjectService(_workspace, new TestFilesFactory(), Processes,
                 new FileRunStore(project.DataDir), new SystemClock(), tracker);
         }

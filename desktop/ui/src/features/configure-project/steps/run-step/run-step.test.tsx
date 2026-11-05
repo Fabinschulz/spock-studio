@@ -14,6 +14,7 @@ const run: RunView = {
   state: 'running',
   steps: [],
   files: [],
+  evals: [],
   feed: [],
   startedAt: Date.now(),
   error: null

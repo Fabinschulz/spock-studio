@@ -1,3 +1,4 @@
+using Mariliz.Application.Ports;
 using System.Text.Json.Nodes;
 
 namespace Mariliz.Application.Execution;
@@ -10,12 +11,15 @@ public sealed class RunHandle
     private readonly List<JsonObject> _events = [];
     private int _seq;
 
-    public RunHandle(string runId, string projectId, string kind, Action<string, int, string, JsonObject> emit)
+    private readonly IClock _clock;
+
+    public RunHandle(string runId, string projectId, string kind, Action<string, int, string, JsonObject, DateTimeOffset> emit, IClock? clock = null)
     {
         RunId = runId;
         ProjectId = projectId;
         Kind = kind;
         Emit = emit;
+        _clock = clock ?? new SystemClock();
     }
 
     public string RunId { get; }
@@ -29,7 +33,7 @@ public sealed class RunHandle
     /// <summary>Recebe cada evento publicado (<c>{seq, type, data}</c>), na ordem, para o histórico em disco.</summary>
     public Action<JsonObject>? Recorder { get; set; }
 
-    private Action<string, int, string, JsonObject> Emit { get; }
+    private Action<string, int, string, JsonObject, DateTimeOffset> Emit { get; }
 
     /// <summary>
     /// Roda o corpo em segundo plano e garante que a execução termina. Os serviços tratam os erros que conhecem; uma exceção
@@ -73,15 +77,16 @@ public sealed class RunHandle
     {
         int seq;
         JsonObject recorded;
+        var at = _clock.UtcNow;
         lock (_gate)
         {
             seq = _seq++;
-            recorded = new JsonObject { ["seq"] = seq, ["type"] = type, ["data"] = data.DeepClone() };
+            recorded = new JsonObject { ["seq"] = seq, ["type"] = type, ["at"] = EventStamp.Format(at), ["data"] = data.DeepClone() };
             _events.Add(recorded);
             if (_events.Count > Retained) _events.RemoveAt(0);
             Recorder?.Invoke((JsonObject)recorded.DeepClone());
         }
-        Emit(RunId, seq, type, data);
+        Emit(RunId, seq, type, data, at);
         return seq;
     }
 

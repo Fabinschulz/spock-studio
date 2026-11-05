@@ -14,12 +14,12 @@ namespace Mariliz.Infrastructure;
 /// </summary>
 public sealed class LocalEngine
 {
-    private LocalEngine(string dataRoot, Action<string, int, string, JsonObject> emit, bool rememberWorkspaces)
+    private LocalEngine(string dataRoot, Action<string, int, string, JsonObject, DateTimeOffset> emit, bool rememberWorkspaces)
     {
         DataRoot = dataRoot;
         Store = new FileRunStore(dataRoot);
         Workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), rememberWorkspaces ? new FileWorkspaceRegistry(dataRoot) : null);
-        Tracker = new RunTracker(emit);
+        Tracker = new RunTracker(emit, Clock);
         Settings = new FileModelSettings(dataRoot);
         Configure = new ConfigureProjectService(Workspace, Files, Runner, Store, Clock, Tracker, Settings);
         Runs = new RunQueries(Tracker, Store);
@@ -36,7 +36,7 @@ public sealed class LocalEngine
     public IProjectFilesFactory Files { get; } = new LocalProjectFilesFactory();
     public IClock Clock { get; } = new SystemClock();
 
-    public static LocalEngine Create(string dataRoot, Action<string, int, string, JsonObject> emit, bool rememberWorkspaces) =>
+    public static LocalEngine Create(string dataRoot, Action<string, int, string, JsonObject, DateTimeOffset> emit, bool rememberWorkspaces) =>
         new(dataRoot, emit, rememberWorkspaces);
 
     /// <summary>UTF-8 sem BOM no console e Ctrl+C como cancelamento, em vez de encerrar o processo no meio de uma escrita.</summary>

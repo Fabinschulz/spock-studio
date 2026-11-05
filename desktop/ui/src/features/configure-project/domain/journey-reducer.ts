@@ -54,6 +54,7 @@ export function journeyReducer(state: JourneyState, action: JourneyAction): Jour
             endedAt: null
           })),
           files: [],
+          evals: [],
           feed: [],
           startedAt: action.at ?? 0,
           error: null
