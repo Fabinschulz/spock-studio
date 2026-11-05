@@ -29,6 +29,7 @@ _PACKAGES = os.path.join(_HERE, "packages")
 if os.path.isdir(_PACKAGES):
     sys.path.insert(0, _PACKAGES)
 
+from infrastructure.parent_watch import watch_parent  # noqa: E402
 from knowledge.index import KnowledgeError, manifest  # noqa: E402
 from workflows.engineering.graph import run_cancel, run_resume, run_start  # noqa: E402
 
@@ -39,6 +40,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Servidor local da inteligência do Mariliz")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, required=True)
+    parser.add_argument(
+        "--parent-pid",
+        type=int,
+        default=0,
+        help="Processo do motor: o servidor termina quando ele deixa de existir. Sem o argumento, nada é vigiado.",
+    )
     args = parser.parse_args()
     token = os.environ.get("MARILIZ_AI_TOKEN", "")
     if args.host != "127.0.0.1":
@@ -48,6 +55,9 @@ def main() -> None:
 
     handler = make_handler(token)
     server = ThreadingHTTPServer((args.host, args.port), handler)
+    if args.parent_pid > 0:
+        # Saída imediata, sem esperar as conexões: o checkpoint do SQLite já é consistente a cada passo do grafo.
+        watch_parent(args.parent_pid, lambda: os._exit(0))
     server.serve_forever()
 
 

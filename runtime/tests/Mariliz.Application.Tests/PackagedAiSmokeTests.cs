@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Mariliz.Application.Tests.Support;
 using Mariliz.Application.Workflows;
 using Mariliz.Infrastructure;
 
@@ -7,16 +8,17 @@ namespace Mariliz.Application.Tests;
 /// <summary>
 /// Só roda no CI do instalador, com <c>MARILIZ_PACKAGED_RESOURCES</c> apontando para
 /// <c>desktop/host/src-tauri/resources</c> depois de <c>build-runtime.ps1 -FetchPythonEmbed</c> (Windows) ou de
-/// <c>scripts/package-intelligence.py bundle --python &lt;triple&gt;</c> (macOS e Linux).
+/// <c>scripts/package-intelligence.py bundle --python &lt;triple&gt;</c> (macOS e Linux). Sem a variável o teste é ignorado,
+/// e com <c>MARILIZ_REQUIRE_PACKAGED=1</c> (a CI do instalador) a falta do pacote é falha.
 /// </summary>
 public class PackagedAiSmokeTests
 {
-    [Fact]
+    [PackagedFact]
     public async Task Pacote_embarcado_sobe_o_runtime_de_ia()
     {
-        var root = Environment.GetEnvironmentVariable("MARILIZ_PACKAGED_RESOURCES");
+        var root = Environment.GetEnvironmentVariable(PackagedFactAttribute.ResourcesVariable);
         if (string.IsNullOrWhiteSpace(root))
-            return;
+            Assert.Fail($"{PackagedFactAttribute.ResourcesVariable} não está definida, mas o pacote é obrigatório nesta execução.");
 
         if (!Path.IsPathRooted(root))
         {

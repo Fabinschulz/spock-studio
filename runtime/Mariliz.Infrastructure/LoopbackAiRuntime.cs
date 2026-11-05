@@ -39,6 +39,12 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         get { lock (_gate) return _process is { HasExited: false }; }
     }
 
+    /// <summary>Identificador do processo do Python enquanto ele existe. Serve a diagnóstico e a testes que simulam uma queda.</summary>
+    public int? ProcessId
+    {
+        get { lock (_gate) return _process is { HasExited: false } p ? p.Id : null; }
+    }
+
     public string Probe()
     {
         if (IsRunning) return "ready";
@@ -244,6 +250,9 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         psi.ArgumentList.Add("127.0.0.1");
         psi.ArgumentList.Add("--port");
         psi.ArgumentList.Add(port.ToString());
+        // O Python termina sozinho se este processo morrer; sem isso, um motor finalizado à força o deixaria vivo.
+        psi.ArgumentList.Add("--parent-pid");
+        psi.ArgumentList.Add(Environment.ProcessId.ToString());
         psi.Environment["MARILIZ_AI_TOKEN"] = token;
         psi.Environment["PYTHONUNBUFFERED"] = "1";
         psi.Environment["PYTHONIOENCODING"] = "utf-8";

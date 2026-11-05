@@ -121,10 +121,15 @@ jobs:
       - name: inteligência e interpretador embarcados (demais plataformas)
         if: runner.os != 'Windows'
         run: python scripts/package-intelligence.py bundle --resources desktop/host/src-tauri/resources --python ${{ matrix.triple }}
+      # O smoke do pacote não pode passar vazio: MARILIZ_REQUIRE_PACKAGED=1 torna a falta do pacote uma falha, e o passo seguinte
+      # confere no resultado que o teste existiu, rodou e passou (um filtro sem correspondência também sairia com código 0).
       - name: runtime de IA pronto no pacote
         env:
           MARILIZ_PACKAGED_RESOURCES: ${{ github.workspace }}/desktop/host/src-tauri/resources
-        run: dotnet test runtime/Mariliz.sln --filter "FullyQualifiedName~Pacote_embarcado" --nologo
+          MARILIZ_REQUIRE_PACKAGED: '1'
+        run: dotnet test runtime/tests/Mariliz.Application.Tests --filter "FullyQualifiedName~Pacote_embarcado" --nologo --logger "trx;LogFileName=pacote.trx" --results-directory "${{ runner.temp }}/smoke"
+      - name: o smoke do pacote rodou e passou
+        run: python scripts/assert-test-passed.py "${{ runner.temp }}/smoke/pacote.trx" Pacote_embarcado
       # Formatação e lint do host valem igual nas três plataformas; rodam uma vez, no Linux.
       - name: formatação e lint do host
         if: runner.os == 'Linux'
@@ -141,6 +146,16 @@ jobs:
           # O AppImage é gerado sem FUSE nos runners hospedados.
           APPIMAGE_EXTRACT_AND_RUN: '1'
         run: pnpm tauri build --target ${{ matrix.triple }} --bundles ${{ matrix.bundles }}
+      # Smoke do instalador: abre o instalador gerado (não a pasta que a CI montou antes dele) e roda o grafo com o Python que
+      # ele leva dentro. Pega o que o Tauri faz com os recursos: arquivos omitidos, permissão de execução, links simbólicos.
+      - name: abrir o instalador
+        run: python scripts/smoke-installer.py --bundle desktop/host/src-tauri/target/${{ matrix.triple }}/release/bundle --out "${{ runner.temp }}/instalado"
+      - name: runtime de IA dentro do instalador
+        env:
+          MARILIZ_REQUIRE_PACKAGED: '1'
+        run: dotnet test runtime/tests/Mariliz.Application.Tests --filter "FullyQualifiedName~Pacote_embarcado" --nologo --logger "trx;LogFileName=instalador.trx" --results-directory "${{ runner.temp }}/smoke"
+      - name: o smoke do instalador rodou e passou
+        run: python scripts/assert-test-passed.py "${{ runner.temp }}/smoke/instalador.trx" Pacote_embarcado
       - uses: actions/upload-artifact@v4
         with:
           name: mariliz-${{ matrix.name }}

@@ -8,6 +8,9 @@ public interface IRunStore
     void SaveJournal(RunJournal journal);
     RunJournal? LoadJournal(string projectId, string runId);
     IReadOnlyList<RunJournal> ListJournals(string projectId);
+
+    /// <summary>Projetos que já têm algum diário, para varrer o que uma queda deixou pela metade.</summary>
+    IReadOnlyList<string> ListProjectIds();
     void SaveBackup(string projectId, string runId, string relativePath, byte[] content);
     byte[]? LoadBackup(string projectId, string runId, string relativePath);
 
