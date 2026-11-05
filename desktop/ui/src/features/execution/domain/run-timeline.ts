@@ -20,7 +20,9 @@ const workflowResultSchema = z.object({
   summary: z.string(),
   evidence: z.array(evidenceSchema).default([]),
   limitations: z.array(z.object({ code: z.string(), message: z.string() })).default([]),
-  impact: impactSchema.optional()
+  impact: impactSchema.optional(),
+  /** Tokens gastos com o modelo, como o motor contou. Só vem em execuções que usaram modelo. */
+  usage: z.object({ modelCalls: z.number(), inputTokens: z.number(), outputTokens: z.number() }).optional()
 });
 
 export const workflowSnapshotSchema = snapshotOf(workflowResultSchema);

@@ -4,6 +4,7 @@ import type { EngineClient } from '@/shared/api';
 import { EngineeringRequestForm } from './components/engineering-request-form';
 import { EngineeringRequestLayout } from './components/engineering-request-layout';
 import { ProjectContextBanner } from './components/project-context-banner';
+import { useModelConfigured } from './hooks/use-model-configured';
 import { useStartEngineeringRequest } from './hooks/use-start-engineering-request';
 
 interface EngineeringRequestPageProps {
@@ -39,11 +40,12 @@ function EngineeringRequestPageWithProject({
   project: SelectedProject;
 }) {
   const { submit, busy, error } = useStartEngineeringRequest(client, projectId);
+  const modelConfigured = useModelConfigured(client);
 
   return (
     <EngineeringRequestLayout description={DESCRIPTION_WITH_PROJECT}>
       <ProjectContextBanner project={project} />
-      <EngineeringRequestForm busy={busy} error={error} onSubmit={submit} />
+      <EngineeringRequestForm busy={busy} error={error} modelConfigured={modelConfigured} onSubmit={submit} />
     </EngineeringRequestLayout>
   );
 }
