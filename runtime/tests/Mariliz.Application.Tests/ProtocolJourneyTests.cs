@@ -24,7 +24,16 @@ public class ProtocolJourneyTests
     private sealed class Wire
     {
         public QueueReader Input { get; } = new();
-        public StringWriter Output { get; } = new() { NewLine = "\n" };
+        private readonly StringWriter _written = new() { NewLine = "\n" };
+
+        /// <summary>
+        /// O motor escreve de outras threads enquanto o teste lê. O invólucro sincronizado trava a si mesmo em cada escrita, e
+        /// <see cref="Messages"/> trava o mesmo objeto para ler: sem isso, o <c>ToString</c> do <c>StringBuilder</c> podia
+        /// pegar um bloco em meio a uma escrita (<c>ArgumentOutOfRangeException</c> intermitente na CI).
+        /// </summary>
+        public TextWriter Output { get; }
+
+        public Wire() => Output = TextWriter.Synchronized(_written);
         public Task Running { get; set; } = Task.CompletedTask;
         private int _id;
 
@@ -38,7 +47,7 @@ public class ProtocolJourneyTests
         public List<JsonObject> Messages()
         {
             string text;
-            lock (Output) text = Output.ToString();
+            lock (Output) text = _written.ToString();
             return text.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(l => (JsonObject)JsonNode.Parse(l)!).ToList();
         }
 
