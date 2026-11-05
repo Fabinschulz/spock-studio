@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json.Nodes;
+using Mariliz.Application.Execution;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Core.Policy;
@@ -12,7 +13,7 @@ namespace Mariliz.Application.Workflows;
 /// </summary>
 internal static class WorkflowResult
 {
-    public static JsonObject From(WorkflowAck ack)
+    public static JsonObject From(WorkflowAck ack, JournalModelUsage? usage = null)
     {
         var result = new JsonObject
         {
@@ -30,6 +31,9 @@ internal static class WorkflowResult
         };
         if (TryImpact(ack.Output["impact"], out var impact)) result["impact"] = impact;
         if (TryEvaluation(ack.Output["evaluation"], out var evaluation)) result["evaluation"] = evaluation;
+        // O uso vem do proxy do motor, não do que o runtime disse ter gasto.
+        if (usage is not null)
+            result["usage"] = new JsonObject { ["modelCalls"] = usage.Calls, ["inputTokens"] = usage.InputTokens, ["outputTokens"] = usage.OutputTokens };
         return result;
     }
 

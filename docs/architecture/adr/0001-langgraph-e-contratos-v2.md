@@ -112,6 +112,17 @@ Sem isso, as dependências dariam 50,6 MB. No macOS o `strip` invalidaria a assi
 - macOS: só na CI, no runner `macos-latest`. A assinatura e a notarização do interpretador ficam para a Fase 8.
 - O `langsmith` entra no pacote, mesmo ocioso. O teste de rede é obrigatório.
 
+## D4 — Provedor e limites do modelo (decidida em 2026-11-05)
+
+**Decisão:**
+
+- **Provedor:** só OpenAI, como hoje. O modelo padrão é `gpt-4o-mini`, escolhido pelo motor (`ModelGateway.DefaultModel`); o agente nunca escolhe modelo, provedor nem chave. Outros provedores ficam para uma decisão futura.
+- **Teto:** em **tokens** por execução, não em dinheiro. São 8.000 tokens (entrada somada à saída) e 60 s por execução com modelo, valores em `WorkflowRequests`. Cada chamada ainda tem o seu limite (`maxTokens` do pedido, até 8.192) e 30 s.
+- **Quem cobra:** o proxy do motor (`ModelBroker`), nunca o Python. Antes de cada chamada ele reserva o pior caso (`maxTokens` do pedido) e recusa com `MODEL_BUDGET_EXCEEDED` se o total passar do teto; depois acerta com o uso que o provedor informou. O modelo nem é chamado numa recusa.
+- **Dinheiro:** `costUsd` sai sempre `0`. Sem tabela de preços não há custo confiável, e uma tabela envelhece. `maxCostUsd` segue no contrato, sempre `0`, para o dia em que houver essa decisão.
+
+**Como a execução ganha acesso:** a pessoa precisa pedir (`useModel` no `input` do `workflow.start`) e ter um modelo configurado; senão o pedido é recusado com `MODEL_NOT_CONFIGURED`, e nenhuma execução abre. O padrão é **sem modelo**, porque trechos do projeto saem para o provedor. O motor abre um token por execução (`ModelGrant`), só em `127.0.0.1`, e o fecha no fim da primeira conversa com o runtime. O uso contado pelo proxy vai para o resultado (`usage`) e para o diário (`modelUsage`), e vale mais do que o que o runtime disser ter gasto.
+
 ## Estado das demais decisões da auditoria
 
 | # | Estado |
@@ -119,7 +130,7 @@ Sem isso, as dependências dariam 50,6 MB. No macOS o `strip` invalidaria a assi
 | D1 | **Decidida** por esta ADR |
 | D2 | **Decidida**: python-build-standalone (seção D2 acima) |
 | D3 | Pendente: embeddings. Recomendação: adiar até a eval de recall mostrar ganho; o `sqlite-vec` já vem com o checkpointer |
-| D4 | Pendente: provedor e limites do modelo. Bloqueia a Fase 6; a Fase 3 usa modelo falso nos testes |
+| D4 | **Decidida** (2026-11-05): só OpenAI, teto em **tokens** por execução (seção D4 abaixo) |
 | D5 | Pendente: Harness Engineer dentro ou fora do produto (reavaliar na Fase 6) |
 | D6 | **Feita**: `docs/blueprints/architecture-blueprint.md` §1 e §10 atualizados |
 | D7 | Pendente: `workspaceId` reservado como `null` no `ai.workflow.start.v2` |

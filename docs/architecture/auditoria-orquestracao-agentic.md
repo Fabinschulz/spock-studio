@@ -566,7 +566,7 @@ que modelo, quantos tokens, que aprovação. A UI lê esses dados pelo `run.snap
 | ✅ D1 | **Orçamento de tamanho do Python.** Hoje: 25 MB para o interpretador, com scripts só stdlib. LangGraph traz `langchain-core`, `langsmith`, `pydantic`/`pydantic-core`, `httpx`, `orjson` e outros | (a) aceitar o aumento, medido por plataforma; (b) LangGraph sem extras e com dependências podadas; (c) não usar LangGraph e evoluir o grafo atual | **Decidida (ADR-0001):** (a). Medido: 48 MB no disco (interpretador 21,5 + dependências em bytecode 26,6), cerca de +8 MB no instalador, importação em ~0,7 s, nenhuma conexão de rede |
 | ✅ D2 | **Python em macOS e Linux** (decidida: python-build-standalone; ADR-0001). Hoje cai no `PATH`, o que viola o critério 16 | (a) `python-build-standalone` por plataforma; (b) Python só no Windows por enquanto | (a), assinado junto com o sidecar no macOS |
 | D3 | **Embeddings** | (a) API do provedor via proxy (manda código do projeto para fora; exige consentimento explícito por projeto); (b) modelo local ONNX (dezenas a centenas de MB); (c) adiar até a eval mostrar ganho | (c) e depois (a) com consentimento; (b) só se houver exigência de rodar offline |
-| D4 | **Provedor e limites do modelo** (bloqueia a Fase 6, não a 3). Hoje: só OpenAI, 256 tokens, 10 s | provedores suportados, modelo padrão, teto de custo por execução | definir antes da Fase 6; a Fase 3 só precisa de "o proxy existe e o modelo pode ser falso nos testes" |
+| ✅ D4 | **Provedor e limites do modelo** (bloqueava a Fase 6, não a 3) | provedores suportados, modelo padrão, teto de custo por execução | **Decidida (2026-11-05, ADR-0001):** só OpenAI (`gpt-4o-mini`), teto de 8.000 tokens e 60 s por execução, cobrado pelo proxy; sem teto em dinheiro |
 | D5 | **Harness Engineer** | continuar no ambiente de IA da pessoa, ou rodar dentro do Mariliz | manter como está até a Fase 6; reavaliar com o Planning funcionando |
 | D6 | **Atualizar o blueprint.** `architecture-blueprint.md` diz "a intelligence não chama modelo" e "não há módulo Python de agentes". Este pedido muda as duas regras | aprovar a mudança | atualizar o blueprint junto com a Fase 2 |
 | D7 | **Workspace ≠ projeto?** O pedido cita `WorkspaceId`; o domínio só tem `projectId` | criar o conceito agora, ou reservar o campo | reservar o campo nulo (§5.2) |
@@ -684,3 +684,14 @@ O que mudou:
 - a saída de um agente não altera o índice de conhecimento. Só o .NET decide as fontes; decisão de agente só entra como arquivo aprovado em `.mariliz/` ou `.specs/`;
 - nenhum SQLite guarda formato de credencial. A varredura usa os mesmos formatos do `SecretScanner` e tem um controle negativo com segredo plantado, para provar que a varredura não está quebrada;
 - NET-P2-11 resolvido sem mudar o .NET (ver `auditoria-qualidade-codigo.md`).
+
+**Fase 6 (Multiagentes):** em andamento, em duas partes. D4 decidida em 2026-11-05 (ADR-0001, seção D4): só OpenAI, teto de 8.000 tokens por execução.
+
+- **6a — proxy de modelo no motor (entregue):**
+  - `ModelBroker` recebe `ai.model.request.v1` e devolve `ai.model.response.v1`. Um token por execução, só em `127.0.0.1` (`LocalModelAccess`), rota única `POST /v1/model`.
+  - O modelo e a chave são do motor. Mensagens e resposta passam pela redação de segredos.
+  - O orçamento é cobrado antes (pior caso) e depois (uso real) de cada chamada. Sem orçamento o modelo não é chamado, e uma chamada que falha devolve a reserva.
+  - A execução só usa modelo se pedir (`useModel` no `input`) e houver modelo configurado; o padrão é sem modelo. O `broker`, a política e os limites do `ai.workflow.start.v2` saem do motor, que fecha o acesso ao fim da conversa e grava o uso no resultado e no diário.
+  - Testes: 16 novos (token, contrato, orçamento, falha, redação, fechamento, HTTP real em loopback, política e uso no diário).
+- **6b — agentes com modelo no Python (a fazer):** Planning com modelo, Architecture com evidência obrigatória, orçamento no grafo, modelo falso nos testes, suíte manual com modelo real e baseline nova. O Request Analyzer por modelo só entra se a avaliação mostrar ganho, e isso não se mede sem o modelo real.
+- **Fora desta parte:** nenhum ponto da interface pede `useModel` ainda; hoje só o protocolo o aceita.

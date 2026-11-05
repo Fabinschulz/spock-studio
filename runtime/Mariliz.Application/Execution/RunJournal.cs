@@ -38,6 +38,10 @@ public sealed class RunJournal
     public List<string> Pending { get; set; } = [];
     public List<EvalSummary> Evals { get; set; } = [];
 
+    /// <summary>Tokens gastos com o modelo, como o proxy do motor contou. Só aparece quando a execução usou modelo.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public JournalModelUsage? ModelUsage { get; set; }
+
     [JsonIgnore]
     public bool CanBeReverted =>ChangesApplied && !RolledBack && RevertedByRunId is null;
 }
