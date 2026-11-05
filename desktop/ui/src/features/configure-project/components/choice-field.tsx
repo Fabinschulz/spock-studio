@@ -8,14 +8,16 @@ interface CheckboxFieldProps {
   label: string;
   /** Explicação que o leitor de tela lê junto com o rótulo. */
   description?: string;
+  /** Sem moldura: para dentro de uma linha de lista, que já tem o seu separador. */
+  plain?: boolean;
 }
 
-/** Caixa de seleção do Synthra com o rótulo curto; a explicação fica abaixo, ligada por `aria-describedby`. */
-export function CheckboxField({ checked, onChange, label, description }: CheckboxFieldProps) {
+/** Caixa de seleção do Mariliz com o rótulo curto; a explicação fica abaixo, ligada por `aria-describedby`. */
+export function CheckboxField({ checked, onChange, label, description, plain }: CheckboxFieldProps) {
   const descriptionId = useId();
 
   return (
-    <div className={styles.choice}>
+    <div className={plain ? styles.choicePlain : styles.choice}>
       <Checkbox
         label={label}
         checked={checked}
