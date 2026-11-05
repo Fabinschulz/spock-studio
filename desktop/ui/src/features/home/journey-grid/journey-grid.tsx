@@ -1,5 +1,5 @@
 import { ActionCard, FolderIcon } from '@/shared/components/ui';
-import { BookUploadIcon, SearchIcon, UpdateIcon, UserConnectionsIcon } from '@synthra.io/ui-kit';
+import { BookUploadIcon, SearchIcon, UpdateIcon, UserConnectionsIcon } from '@mariliz/ui-kit';
 import type { ReactNode } from 'react';
 import styles from './journey-grid.module.scss';
 import { journeys, type JourneyId } from './journeys';

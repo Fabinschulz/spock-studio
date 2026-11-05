@@ -1,6 +1,6 @@
 import { isTauriRuntime } from '@/shared/api';
 import { pathTo } from '@/shared/routing';
-import { Alert } from '@synthra.io/ui-kit';
+import { Alert } from '@mariliz/ui-kit';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import styles from './requires-host.module.scss';

@@ -1,5 +1,5 @@
 import { FolderIcon } from '@/shared/components/ui';
-import { Button } from '@synthra.io/ui-kit';
+import { Button } from '@mariliz/ui-kit';
 import { useId } from 'react';
 import type { RecentProject } from '../domain/types';
 

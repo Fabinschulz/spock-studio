@@ -1,5 +1,5 @@
 import type { EngineClient } from '@/shared/api';
-import { Button, TextField } from '@synthra.io/ui-kit';
+import { Button, TextField } from '@mariliz/ui-kit';
 import { useId, useMemo, useState } from 'react';
 
 import { useModelSettings } from './hooks/use-model-settings';

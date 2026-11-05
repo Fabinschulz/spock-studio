@@ -1,4 +1,4 @@
-import { Alert, Button, ReloadIcon } from '@synthra.io/ui-kit';
+import { Alert, Button, ReloadIcon } from '@mariliz/ui-kit';
 import { useEffect } from 'react';
 import styles from './error-content.module.scss';
 

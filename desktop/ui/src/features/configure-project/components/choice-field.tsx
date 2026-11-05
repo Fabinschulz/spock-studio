@@ -1,4 +1,4 @@
-import { Checkbox } from '@synthra.io/ui-kit';
+import { Checkbox } from '@mariliz/ui-kit';
 import { useId, type ReactNode } from 'react';
 import styles from './panels.module.scss';
 

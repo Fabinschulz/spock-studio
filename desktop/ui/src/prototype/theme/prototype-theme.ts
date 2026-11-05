@@ -1,4 +1,4 @@
-import { initializeTheme } from '@synthra.io/ui-kit';
+import { initializeTheme } from '@mariliz/ui-kit';
 
 const FONT = "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
 

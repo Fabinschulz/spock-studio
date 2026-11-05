@@ -1,4 +1,4 @@
-import { Button } from '@synthra.io/ui-kit';
+import { Button } from '@mariliz/ui-kit';
 import { useNavigate } from 'react-router';
 
 import { ProjectComposer } from '@/prototype/components/project-composer';

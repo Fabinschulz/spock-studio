@@ -1,5 +1,5 @@
 import { Glyph, WizardSteps } from '@/shared/components/ui';
-import { Button } from '@synthra.io/ui-kit';
+import { Button } from '@mariliz/ui-kit';
 import { journeySteps } from '../../constants/journey-steps';
 import { usePanelOpen } from '../../hooks/use-panel-open';
 import { ImplementationModelBadge } from '../implementation-model-badge';

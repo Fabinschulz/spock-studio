@@ -1,4 +1,4 @@
-import { initializeTheme } from '@synthra.io/ui-kit';
+import { initializeTheme } from '@mariliz/ui-kit';
 
 import { components } from './components';
 import { palette } from './palette';

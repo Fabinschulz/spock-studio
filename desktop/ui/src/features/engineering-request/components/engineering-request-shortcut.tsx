@@ -1,6 +1,6 @@
 import { InlineNotice } from '@/shared/components/ui';
 import { pathTo } from '@/shared/routing';
-import { Button } from '@synthra.io/ui-kit';
+import { Button } from '@mariliz/ui-kit';
 import { useNavigate } from 'react-router';
 
 import styles from './engineering-request-shortcut.module.scss';

@@ -1,7 +1,7 @@
 import { Container, Logo, Wordmark } from '@/shared/components';
 import { useEngineStatus } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
-import { Button } from '@synthra.io/ui-kit';
+import { Button } from '@mariliz/ui-kit';
 import { useRef, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { AppHeader } from './AppHeader';

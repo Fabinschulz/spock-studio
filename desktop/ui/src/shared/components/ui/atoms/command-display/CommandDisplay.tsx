@@ -1,5 +1,5 @@
 import { useCopyToClipboard } from '@/shared/hooks';
-import { Button, CopyIcon } from '@synthra.io/ui-kit';
+import { Button, CopyIcon } from '@mariliz/ui-kit';
 
 import styles from './CommandDisplay.module.scss';
 

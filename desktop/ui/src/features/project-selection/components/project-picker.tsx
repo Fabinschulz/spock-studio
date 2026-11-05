@@ -1,5 +1,5 @@
 import { CheckGlyph, FolderIcon, InfoGlyph, LockGlyph } from '@/shared/components/ui';
-import { Button, CopyIcon } from '@synthra.io/ui-kit';
+import { Button, CopyIcon } from '@mariliz/ui-kit';
 import { useCopyToClipboard } from '@/shared/hooks';
 import { useId } from 'react';
 import type { SelectedProject } from '../domain/types';

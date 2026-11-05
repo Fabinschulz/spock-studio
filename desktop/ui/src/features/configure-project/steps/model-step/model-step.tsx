@@ -1,4 +1,4 @@
-import { ArrowRightIcon, Button } from '@synthra.io/ui-kit';
+import { ArrowRightIcon, Button } from '@mariliz/ui-kit';
 
 import { InlineNotice, PrimaryActionFooter } from '@/shared/components/ui';
 import type { Discovery } from '@/shared/schema';

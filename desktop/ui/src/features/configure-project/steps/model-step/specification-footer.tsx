@@ -1,5 +1,5 @@
 import type { Discovery } from '@/shared/schema';
-import { Checkbox } from '@synthra.io/ui-kit';
+import { Checkbox } from '@mariliz/ui-kit';
 import { useId } from 'react';
 import { CheckboxField } from '../../components/choice-field';
 import { RefreshGlyph } from '../../components/glyphs';

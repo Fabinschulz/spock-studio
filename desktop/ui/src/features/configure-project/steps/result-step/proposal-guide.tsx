@@ -1,4 +1,4 @@
-import { Button, TextField } from '@synthra.io/ui-kit';
+import { Button, TextField } from '@mariliz/ui-kit';
 
 import { useCopyToClipboard } from '@/shared/hooks';
 
