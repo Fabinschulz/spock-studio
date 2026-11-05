@@ -6,7 +6,9 @@ import { runStartedSchema } from './run';
 export const workflowStartInputSchema = z.object({
   goal: z.string().min(1),
   impact: z.boolean().optional(),
-  requiresApproval: z.boolean().optional()
+  requiresApproval: z.boolean().optional(),
+  /** Pede ao motor que o Planning e o Architecture usem o modelo. O motor recusa se não houver modelo configurado. */
+  useModel: z.boolean().optional()
 });
 
 /** Parâmetros de workflow.start — espelha contracts/schemas/ai/workflow.start.params.schema.json */

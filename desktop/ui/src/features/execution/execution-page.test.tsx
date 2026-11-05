@@ -187,4 +187,46 @@ describe('Execução', () => {
     expect(await screen.findByText('Nenhuma evidência nesta execução.')).toBeInTheDocument();
     expect(screen.queryByText('Arquitetura concluiu')).not.toBeInTheDocument();
   });
+
+  it('mostra o uso do modelo, contado pelo motor, só quando a execução usou modelo', async () => {
+    const used = clientFor({
+      ...done,
+      result: { ...done.result!, usage: { modelCalls: 2, inputTokens: 900, outputTokens: 300 } }
+    });
+    const { unmount } = render(
+      <AppProviders>
+        <ExecutionPage runId="run-1" client={used} />
+      </AppProviders>
+    );
+
+    expect(await screen.findByRole('heading', { name: 'Uso do modelo' })).toBeInTheDocument();
+    expect(screen.getByText(/2 chamada\(s\) · 900 tokens de entrada · 300 de saída/)).toBeInTheDocument();
+    unmount();
+
+    render(
+      <AppProviders>
+        <ExecutionPage runId="run-1" client={clientFor(done)} />
+      </AppProviders>
+    );
+    expect(await screen.findByText('Concluído com limitações')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Uso do modelo' })).not.toBeInTheDocument();
+  });
+
+  it('o Planejamento aparece com o nome certo na linha do tempo', async () => {
+    const client = clientFor({
+      ...done,
+      events: [
+        { seq: 0, type: 'agent.started', data: { agentId: 'planning' } },
+        { seq: 1, type: 'agent.completed', data: { agentId: 'planning' } }
+      ]
+    });
+    render(
+      <AppProviders>
+        <ExecutionPage runId="run-1" client={client} />
+      </AppProviders>
+    );
+
+    expect(await screen.findByText('Planejamento começou')).toBeInTheDocument();
+    expect(screen.getByText('Planejamento concluiu')).toBeInTheDocument();
+  });
 });

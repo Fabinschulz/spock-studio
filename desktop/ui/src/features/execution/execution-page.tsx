@@ -94,6 +94,16 @@ export function ExecutionPage({ runId, client }: { runId: string; client: Engine
         )}
       </section>
 
+      {snapshot.result?.usage ? (
+        <section aria-labelledby="modelo-titulo">
+          <h2 id="modelo-titulo">Uso do modelo</h2>
+          <p>
+            {snapshot.result.usage.modelCalls} chamada(s) · {snapshot.result.usage.inputTokens} tokens de entrada ·{' '}
+            {snapshot.result.usage.outputTokens} de saída. Contado pelo motor.
+          </p>
+        </section>
+      ) : null}
+
       {snapshot.result && snapshot.result.limitations.length > 0 ? (
         <section aria-labelledby="limites-titulo">
           <h2 id="limites-titulo">Limitações</h2>

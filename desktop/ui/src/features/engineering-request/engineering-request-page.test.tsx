@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { useEffect, type ReactNode } from 'react';
@@ -21,12 +21,21 @@ function AutoPick({ children }: { children: ReactNode }) {
   return children;
 }
 
-function clientFor(runId: string): EngineClient & { calls: Array<{ method: string; params: unknown }> } {
+type Model = { configured: boolean } | 'erro';
+
+function clientFor(
+  runId: string,
+  model: Model = { configured: false }
+): EngineClient & { calls: Array<{ method: string; params: unknown }> } {
   const calls: Array<{ method: string; params: unknown }> = [];
   return {
     calls,
     async request(method, params, schema) {
       calls.push({ method, params });
+      if (method === 'model.status') {
+        if (model === 'erro') throw new Error('motor fora do ar');
+        return schema.parse({ configured: model.configured, provider: model.configured ? 'openai' : '' });
+      }
       if (method === 'workflow.start') {
         workflowStartParamsSchema.parse(params);
         return schema.parse(workflowStartResultSchema.parse({ runId }));
@@ -66,7 +75,7 @@ describe('Pedido de engenharia', () => {
     await userEvent.click(screen.getByRole('button', { name: /^Iniciar pedido$/ }));
 
     expect(await screen.findByTestId('exec')).toBeInTheDocument();
-    expect(client.calls).toEqual([
+    expect(client.calls.filter((call) => call.method === 'workflow.start')).toEqual([
       {
         method: 'workflow.start',
         params: {
@@ -75,6 +84,50 @@ describe('Pedido de engenharia', () => {
         }
       }
     ]);
+  });
+
+  it('sem modelo configurado a opção fica desligada e leva às Configurações', async () => {
+    const client = clientFor('run-eng-2', { configured: false });
+    renderPage(client);
+
+    const option = await screen.findByRole('checkbox', { name: /Usar o modelo de IA/ });
+    expect(await screen.findByText(/Nenhum modelo está configurado/)).toBeInTheDocument();
+    expect(option).toBeDisabled();
+    expect(option).not.toBeChecked();
+    expect(screen.getByRole('button', { name: 'Guardar a chave em Configurações' })).toBeInTheDocument();
+  });
+
+  it('se o motor não responde sobre o modelo, a opção também não é oferecida', async () => {
+    const client = clientFor('run-eng-3', 'erro');
+    renderPage(client);
+
+    const option = await screen.findByRole('checkbox', { name: /Usar o modelo de IA/ });
+    expect(await screen.findByText(/Nenhum modelo está configurado/)).toBeInTheDocument();
+    expect(option).toBeDisabled();
+  });
+
+  it('com modelo configurado a opção começa desmarcada, avisa o que sai do computador e só então vai no pedido', async () => {
+    const client = clientFor('run-eng-4', { configured: true });
+    renderPage(client);
+
+    const option = await screen.findByRole('checkbox', { name: /Usar o modelo de IA/ });
+    await waitFor(() => expect(option).toBeEnabled());
+    expect(option).not.toBeChecked();
+    expect(option).toHaveAccessibleDescription(
+      /enviados à OpenAI.*8\.000 tokens.*Sem marcar, nada sai do seu computador/
+    );
+    expect(screen.queryByText(/Nenhum modelo está configurado/)).not.toBeInTheDocument();
+
+    await userEvent.type(screen.getByPlaceholderText(/descrever impacto/i), 'avaliar o módulo de cobrança');
+    await userEvent.click(option);
+    await userEvent.click(screen.getByRole('button', { name: /^Iniciar pedido$/ }));
+
+    expect(await screen.findByTestId('exec')).toBeInTheDocument();
+    const start = client.calls.find((call) => call.method === 'workflow.start');
+    expect(start?.params).toEqual({
+      projectId: 'p-aaaaaaaaaaaa',
+      input: { goal: 'avaliar o módulo de cobrança', impact: true, useModel: true }
+    });
   });
 
   it('pede pasta quando ainda não há projeto autorizado', async () => {
