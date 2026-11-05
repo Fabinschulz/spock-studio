@@ -1,3 +1,4 @@
+using Mariliz.Application.Execution;
 using System.Text.Json.Nodes;
 
 namespace Mariliz.Application.Protocol;
@@ -20,8 +21,9 @@ internal static class ProtocolMessages
         ["error"] = new JsonObject { ["code"] = code, ["message"] = message }
     };
 
-    public static JsonObject Event(string runId, int seq, string type, JsonObject data) => new()
+    public static JsonObject Event(string runId, int seq, string type, JsonObject data, DateTimeOffset at) => new()
     {
-        ["v"] = Version, ["kind"] = "event", ["runId"] = runId, ["type"] = type, ["seq"] = seq, ["data"] = data.DeepClone()
+        ["v"] = Version, ["kind"] = "event", ["runId"] = runId, ["type"] = type, ["seq"] = seq,
+        ["at"] = EventStamp.Format(at), ["data"] = data.DeepClone()
     };
 }

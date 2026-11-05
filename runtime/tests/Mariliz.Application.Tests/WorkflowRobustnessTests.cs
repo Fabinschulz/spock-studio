@@ -34,7 +34,7 @@ public class WorkflowRobustnessTests
         WorkflowService? workflows = null;
         string projectId = "";
         Exception? refused = null;
-        var tracker = new RunTracker((runId, _, type, _) =>
+        var tracker = new RunTracker((runId, _, type, _, _) =>
         {
             if (type != "approval.required") return;
             try { workflows!.ResumeAsync(projectId, runId).GetAwaiter().GetResult(); }
@@ -69,7 +69,7 @@ public class WorkflowRobustnessTests
     [Fact]
     public async Task Guarda_da_execucao_conclui_como_falha_o_que_escapar_do_servico()
     {
-        var run = new RunHandle("run-1", "p-1", "validate", (_, _, _, _) => { });
+        var run = new RunHandle("run-1", "p-1", "validate", (_, _, _, _, _) => { });
         run.Start(() => throw new IOException("C:/segredo/caminho"));
         await run.Completion!;
 

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { PrimaryActionFooter } from '@/shared/components/ui';
 import { formatElapsed } from '@/shared/utils';
 
+import { RunEvalList } from '../../components/run-eval-list';
 import { RunStepRow } from '../../components/run-step-row';
 import { StepHeader } from '../../components/step-header';
 import panels from '../../components/panels.module.scss';
@@ -60,6 +61,8 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
           <RunStepRow key={step.id} step={step} />
         ))}
       </ol>
+
+      <RunEvalList evals={run.evals} />
 
       {run.files.length > 0 ? (
         <details className={panels.details}>

@@ -14,6 +14,14 @@ export interface RunStepView {
   endedAt: number | null;
 }
 
+/** Um Eval da validação, como o motor o anunciou: `running` até o resultado chegar. */
+export interface RunEvalView {
+  id: string;
+  name: string;
+  kind: string;
+  status: string;
+}
+
 export interface RunFeedItem {
   at: number;
   text: string;
@@ -25,6 +33,7 @@ export interface RunView {
   state: string;
   steps: RunStepView[];
   files: string[];
+  evals: RunEvalView[];
   feed: RunFeedItem[];
   startedAt: number;
   error: string | null;

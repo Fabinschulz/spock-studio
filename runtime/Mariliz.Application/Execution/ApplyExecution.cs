@@ -49,6 +49,9 @@ internal sealed class ApplyExecution(
     public async Task<JsonObject> RunAsync()
     {
         run.SetState(RunStates.Running);
+        // Antes da primeira etapa: quem acompanha já sabe o que vem. Só entram comandos que são do plano; a checagem
+        // de que as aprovações pertencem a ele acontece na primeira etapa.
+        run.Publish("run.plan", ApplySteps.Plan(Plan.Commands.Where(c => approvals.CommandIds.Contains(c.Id))));
 
         var commands = await CheckPreconditionsAsync();
         var decision = WritePlanner.Decide(Plan, approvals);
@@ -65,7 +68,7 @@ internal sealed class ApplyExecution(
 
     private async Task<IReadOnlyList<PlannedCommand>> CheckPreconditionsAsync()
     {
-        var step = _recorder.BeginStep("precheck", "Verificar pré-condições");
+        var step = _recorder.BeginStep(ApplySteps.Precheck);
 
         var fresh = await replan(ct);
         if (fresh.Plan.PlanId != Plan.PlanId)
@@ -80,7 +83,7 @@ internal sealed class ApplyExecution(
 
     private Dictionary<string, string> BackUp(IReadOnlyList<PlannedWrite> writes, IReadOnlyList<PlannedCommand> commands)
     {
-        var step = _recorder.BeginStep("backup", "Guardar cópia do que será alterado");
+        var step = _recorder.BeginStep(ApplySteps.Backup);
 
         var snapshot = commands.Count > 0 ? CommandEffects.Snapshot(files) : new Dictionary<string, string>();
         var pathsToBackUp = writes.Where(w => w.Op != OpKinds.Create).Select(w => w.Change.Path).Concat(snapshot.Keys);
@@ -101,7 +104,7 @@ internal sealed class ApplyExecution(
 
         foreach (var command in commands)
         {
-            var step = _recorder.BeginStep("command:" + command.Id, command.Description);
+            var step = _recorder.BeginStep(ApplySteps.Command(command));
 
             var result = await RunCommandAsync(command, before);
             EnsureSucceeded(command, result);
@@ -142,7 +145,7 @@ internal sealed class ApplyExecution(
 
     private void ApplyWrites(WriteDecision decision)
     {
-        var step = _recorder.BeginStep("write", "Aplicar as alterações aprovadas");
+        var step = _recorder.BeginStep(ApplySteps.Write);
         var contents = session.Composed.Files.ToDictionary(f => f.Path, f => PlanBuilder.Normalize(f.Content), StringComparer.Ordinal);
 
         foreach (var (change, kind) in decision.Writes)
@@ -194,7 +197,7 @@ internal sealed class ApplyExecution(
 
     private void WriteLock(IReadOnlyDictionary<string, FileOutcome> outcomes, SpecificationStatus specification)
     {
-        var step = _recorder.BeginStep("lock", "Registrar os arquivos gerenciados");
+        var step = _recorder.BeginStep(ApplySteps.Lock);
         ct.ThrowIfCancellationRequested();
 
         var content = LockBuilder.BuildFromOutcomes(session.Composed, outcomes, ManagedLockFile.Read(files), specification);
@@ -234,9 +237,9 @@ internal sealed class ApplyExecution(
     private async Task<ValidationReport> ValidateAsync()
     {
         run.SetState(RunStates.Validating);
-        var step = _recorder.BeginStep("validate", "Validar a configuração aplicada");
+        var step = _recorder.BeginStep(ApplySteps.Validate);
 
-        var report = await ValidationService.RunAsync(runner, store, files, root, run.ProjectId, replanAfterApply, ct, models);
+        var report = await ValidationService.RunAsync(runner, store, files, root, run.ProjectId, replanAfterApply, ct, models, new RunEvalProgress(run));
         journal.Evals = EvalSummary.From(report);
 
         _recorder.CompleteStep(step, StepStatus.Completed, report.Outcome.ToString());

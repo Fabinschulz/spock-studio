@@ -16,7 +16,7 @@ public class WorkflowEventStreamTests
     {
         using var project = TempProject.Dotnet();
         var published = new List<(string Type, JsonObject Data)>();
-        var tracker = new RunTracker((_, _, type, data) => { lock (published) published.Add((type, data)); });
+        var tracker = new RunTracker((_, _, type, data, _) => { lock (published) published.Add((type, data)); });
         var authorizer = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
         var projectId = authorizer.Authorize(project.Root).Project!.ProjectId;
         var runtime = new ScriptedRuntime(executionId =>

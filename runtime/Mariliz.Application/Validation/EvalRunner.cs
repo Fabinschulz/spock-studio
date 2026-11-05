@@ -16,7 +16,7 @@ public static class EvalRunner
         new RequirementsCheck(), new IdempotenceCheck(), new RegressionCheck(), new ModelJudgeCheck()
     }.ToDictionary(check => check.Id, StringComparer.Ordinal);
 
-    public static async Task<ValidationReport> RunAsync(ValidationContext ctx, CancellationToken ct)
+    public static async Task<ValidationReport> RunAsync(ValidationContext ctx, CancellationToken ct, IEvalProgress? progress = null)
     {
         var requiredByDeclaration = ctx.Declared?.Evals.Required.ToHashSet(StringComparer.Ordinal) ?? [];
         var results = new List<EvalResult>();
@@ -24,12 +24,25 @@ public static class EvalRunner
         foreach (var spec in EvalCatalog.Specs)
         {
             ct.ThrowIfCancellationRequested();
+            progress?.Started(spec.Id, spec.Name, Wire(spec.Kind));
             var result = await RunCheckAsync(spec, ctx, results, ct);
             results.Add(result with { Required = spec.Required || requiredByDeclaration.Contains(spec.Id) });
+            progress?.Completed(spec.Id, Wire(result.Status));
         }
 
         return new ValidationReport(results);
     }
+
+    // Os mesmos valores de `kind` e `status` do resultado (`EvalResult`), em minúsculas e com `_`.
+    private static string Wire(EvalKind kind) => kind == EvalKind.Model ? "model" : "deterministic";
+
+    private static string Wire(EvalStatus status) => status switch
+    {
+        EvalStatus.Passed => "passed",
+        EvalStatus.Failed => "failed",
+        EvalStatus.Blocked => "blocked",
+        _ => "not_run"
+    };
 
     private static async Task<EvalResult> RunCheckAsync(EvalSpec spec, ValidationContext ctx, IReadOnlyList<EvalResult> completed, CancellationToken ct)
     {

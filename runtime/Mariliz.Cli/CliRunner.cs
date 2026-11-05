@@ -46,7 +46,7 @@ public sealed class CliRunner(
         """;
 
     /// <summary>Progresso das execuções, em stderr (stdout fica para o resultado).</summary>
-    public void OnEvent(string runId, int seq, string type, JsonObject data)
+    public void OnEvent(string runId, int seq, string type, JsonObject data, DateTimeOffset at)
     {
         if (_json || data["id"]?.GetValue<string>() is not string id) return;
         var line = type switch

@@ -11,7 +11,7 @@ public static class ValidationService
 {
     public static async Task<ValidationReport> RunAsync(
         IProcessRunner runner, IRunStore store, IProjectFiles files, string root, string projectId,
-        Func<CancellationToken, Task<Replanned>> replan, CancellationToken ct, IModelSettings? models = null)
+        Func<CancellationToken, Task<Replanned>> replan, CancellationToken ct, IModelSettings? models = null, IEvalProgress? progress = null)
     {
         var fresh = await replan(ct);
         var (declared, declaredError) = DeclaredConfig.TryRead(files);
@@ -24,6 +24,6 @@ public static class ValidationService
         var context = new ValidationContext(files, root, fresh.Discovery, ManagedLockFile.Read(files), declared, declaredError, runner,
             async c => (await replan(c)).Plan, previous, models);
 
-        return await EvalRunner.RunAsync(context, ct);
+        return await EvalRunner.RunAsync(context, ct, progress);
     }
 }

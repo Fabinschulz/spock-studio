@@ -87,7 +87,7 @@ public sealed class ConfigureProjectService(
             {
                 run.SetState(RunStates.Validating);
                 var report = await ValidationService.RunAsync(runner, store, files, root, projectId,
-                    ct => _planner.ReplanAsync(projectId, root, files, new PlanOptions(null), ct), run.Cancellation.Token, models);
+                    ct => _planner.ReplanAsync(projectId, root, files, new PlanOptions(null), ct), run.Cancellation.Token, models, new RunEvalProgress(run));
 
                 var result = ResultJson.BuildValidation(run.RunId, projectId, report);
                 SaveValidationJournal(run, startedAt, report, result);

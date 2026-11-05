@@ -178,7 +178,7 @@ internal sealed class Journey
         Project = project;
         Runner = new InterceptingRunner(intercept);
         Store = new FileRunStore(project.DataDir);
-        Tracker = new RunTracker((_, _, type, data) => { lock (Events) Events.Add((type, data)); });
+        Tracker = new RunTracker((_, _, type, data, _) => { lock (Events) Events.Add((type, data)); });
         var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
         ProjectId = workspace.Authorize(project.Root).Project!.ProjectId;
         Service = new ConfigureProjectService(workspace, files ?? new TestFilesFactory(), Runner, Store, clock ?? new SystemClock(), Tracker);
