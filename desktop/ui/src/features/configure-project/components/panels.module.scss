@@ -200,6 +200,16 @@
   }
 }
 
+.choicePlain {
+  display: flex;
+  flex-direction: column;
+
+  // A explicação fica alinhada ao texto do rótulo, não à caixa.
+  .muted {
+    padding-left: 2.5rem;
+  }
+}
+
 .fieldset {
   display: flex;
   flex-direction: column;
