@@ -52,6 +52,8 @@ public class WorkflowRobustnessTests
     [Theory]
     [InlineData("json", "AI_RUNTIME_INVALID_RESPONSE")]
     [InlineData("argument", "WORKFLOW_FAILED")]
+    [InlineData("io", "WORKFLOW_FAILED")]
+    [InlineData("invalid-operation", "WORKFLOW_FAILED")]
     public async Task Erro_imprevisto_do_runtime_termina_a_execucao_e_libera_o_projeto(string failure, string code)
     {
         using var project = TempProject.Dotnet();
@@ -127,9 +129,13 @@ public class WorkflowRobustnessTests
     private sealed class FailingRuntime(string failure) : FakeRuntime
     {
         public override Task<WorkflowAck> StartAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct) =>
-            failure == "json"
-                ? throw new JsonException("linha quebrada com C:/segredo")
-                : throw new ArgumentException("C:/segredo/caminho");
+            failure switch
+            {
+                "json" => throw new JsonException("linha quebrada com C:/segredo"),
+                "io" => throw new IOException("C:/segredo/disco"),
+                "invalid-operation" => throw new InvalidOperationException("C:/segredo/estado"),
+                _ => throw new ArgumentException("C:/segredo/caminho")
+            };
     }
 
     private abstract class FakeRuntime : IAiRuntime
