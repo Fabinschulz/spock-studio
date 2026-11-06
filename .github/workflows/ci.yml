@@ -154,6 +154,14 @@ jobs:
         run: dotnet test runtime/tests/Mariliz.Application.Tests --filter "FullyQualifiedName~Pacote_embarcado" --nologo --logger "trx;LogFileName=instalador.trx" --results-directory "${{ runner.temp }}/smoke"
       - name: o smoke do instalador rodou e passou
         run: python scripts/assert-test-passed.py "${{ runner.temp }}/smoke/instalador.trx" Pacote_embarcado
+      # O motor que o instalador leva, falando o protocolo como o host, com o Python de dentro do instalador: execução inteira,
+      # fim ordenado e Python que não fica órfão quando o motor é finalizado à força.
+      - name: motor do instalador, ponta a ponta
+        env:
+          MARILIZ_REQUIRE_PACKAGED: '1'
+        run: dotnet test runtime/tests/Mariliz.Application.Tests --filter "FullyQualifiedName~PackagedEngineE2ETests" --nologo --logger "trx;LogFileName=motor.trx" --results-directory "${{ runner.temp }}/smoke"
+      - name: o teste do motor instalado rodou e passou
+        run: python scripts/assert-test-passed.py "${{ runner.temp }}/smoke/motor.trx" PackagedEngineE2ETests --min 2
       # Os instaladores não são assinados na primeira versão: o SHA-256 de cada um sai junto, para conferir o arquivo baixado.
       - name: somas de verificação dos instaladores
         run: python scripts/write-checksums.py desktop/host/src-tauri/target/${{ matrix.triple }}/release/bundle

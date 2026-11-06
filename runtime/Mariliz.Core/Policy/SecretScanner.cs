@@ -13,6 +13,13 @@ public static class SecretScanner
         ("aws-access-key", new Regex(@"\bAKIA[0-9A-Z]{16}\b", RegexOptions.Compiled)),
         ("github-token", new Regex(@"\bgh[pousr]_[A-Za-z0-9]{30,}\b", RegexOptions.Compiled)),
         ("slack-token", new Regex(@"\bxox[abprs]-[A-Za-z0-9-]{10,}\b", RegexOptions.Compiled)),
+        // Chaves de provedores comuns. O texto do projeto sai para o provedor de modelo e entra no índice: um formato que o
+        // scanner não conhece passa direto. Os prefixos têm tamanho mínimo para não pegar palavras com hífen (task-..., risk-...).
+        ("openai-key", new Regex(@"\bsk-(?:proj-|svcacct-|admin-)?[A-Za-z0-9_-]{32,}", RegexOptions.Compiled)),
+        ("anthropic-key", new Regex(@"\bsk-ant-[A-Za-z0-9_-]{20,}", RegexOptions.Compiled)),
+        ("google-api-key", new Regex(@"\bAIza[0-9A-Za-z_-]{35}\b", RegexOptions.Compiled)),
+        ("stripe-key", new Regex(@"\b[rs]k_(?:live|test)_[0-9A-Za-z]{16,}", RegexOptions.Compiled)),
+        ("npm-token", new Regex(@"\bnpm_[A-Za-z0-9]{36}\b", RegexOptions.Compiled)),
         ("private-key", new Regex(@"-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY", RegexOptions.Compiled)),
         ("jwt", new Regex(@"\beyJ[A-Za-z0-9_-]{8,}\.eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}", RegexOptions.Compiled)),
         ("connection-string-password", new Regex(@"(?:Server|Data Source|Host)\s*=[^\r\n]*?(?:Password|Pwd)\s*=\s*[^;\s""']{3,}", RegexOptions.Compiled | RegexOptions.IgnoreCase)),
