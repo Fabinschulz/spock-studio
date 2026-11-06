@@ -54,10 +54,6 @@ def saver(root: str, project_id: str, run_id: str) -> Iterator[SqliteSaver]:
             conn.close()
 
 
-def exists(root: str, project_id: str) -> bool:
-    return checkpoint_file(root, project_id).is_file()
-
-
 def drop(root: str, project_id: str, run_id: str) -> None:
     _check_run(run_id)
     path = checkpoint_file(root, project_id)

@@ -248,7 +248,12 @@ impl Engine {
         {
             let mut guard = lock(&self.0.child);
             let Some(child) = guard.as_mut() else { return };
-            let _ = child.write(b"{\"v\":1,\"kind\":\"request\",\"id\":\"h-shutdown\",\"method\":\"engine.shutdown\"}\n");
+            let mut line = serde_json::to_vec(&json!({
+                "v": PROTOCOL_VERSION, "kind": "request", "id": "h-shutdown", "method": "engine.shutdown"
+            }))
+            .unwrap_or_default();
+            line.push(b'\n');
+            let _ = child.write(&line);
         }
 
         let deadline = std::time::Instant::now() + SHUTDOWN_GRACE;

@@ -655,7 +655,12 @@ def _public_evaluation(state: dict) -> dict | None:
     tokens = evaluation.get("tokens")
     public = {**_EVALUATION, "tokens": tokens if isinstance(tokens, int) and not isinstance(tokens, bool) and tokens >= 0 else 0}
     judgment = state.get("judgment")
-    if evaluation.get("judge") in ("passed", "failed") and judgment_ok(judgment, state.get("evidence"), state.get("impact") is not None)             and judgment_outcome(judgment["scores"]) == evaluation["judge"]:
+    judge_accepted = (
+        evaluation.get("judge") in ("passed", "failed")
+        and judgment_ok(judgment, state.get("evidence"), state.get("impact") is not None)
+        and judgment_outcome(judgment["scores"]) == evaluation["judge"]
+    )
+    if judge_accepted:
         public["judge"] = evaluation["judge"]
         public["judgment"] = dict(judgment)
     return public

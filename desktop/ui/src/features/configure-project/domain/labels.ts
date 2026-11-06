@@ -16,12 +16,6 @@ export const confidenceLabel: Record<StackFinding['confidence'], string> = {
   low: 'baixa'
 };
 
-export const confidenceTone: Record<StackFinding['confidence'], Tone> = {
-  high: 'success',
-  medium: 'info',
-  low: 'warning'
-};
-
 export const specificationStateLabel = {
   not_installed: 'Não instalado',
   installed: 'Instalado e íntegro',
@@ -29,27 +23,12 @@ export const specificationStateLabel = {
   invalid: 'Instalação incompleta'
 } as const;
 
-export const specificationStateTone: Record<keyof typeof specificationStateLabel, Tone> = {
-  not_installed: 'neutral',
-  installed: 'success',
-  drifted: 'danger',
-  invalid: 'danger'
-};
-
 export const actionLabel: Record<FileChange['action'], string> = {
   create: 'Criar',
   update: 'Atualizar',
   preserve: 'Preservar',
   remove: 'Remover',
   conflict: 'Conflito'
-};
-
-export const actionTone: Record<FileChange['action'], Tone> = {
-  create: 'success',
-  update: 'info',
-  preserve: 'neutral',
-  remove: 'warning',
-  conflict: 'danger'
 };
 
 export const componentKindLabel: Record<ComponentDecision['kind'], string> = {
@@ -76,12 +55,6 @@ export const decisionLabel: Record<string, string> = {
   keep: 'Manter',
   skip: 'Dispensar',
   blocked: 'Bloqueado'
-};
-
-export const decisionTone: Record<string, Tone> = {
-  enable: 'success',
-  keep: 'info',
-  blocked: 'danger'
 };
 
 export const originLabel: Record<string, string> = {
@@ -116,13 +89,6 @@ export const observationLabel: Record<ObservationKind, string> = {
   inference: 'Inferência',
   hypothesis: 'Hipótese',
   unverified: 'Não verificado'
-};
-
-export const observationTone: Record<ObservationKind, Tone> = {
-  fact: 'success',
-  inference: 'info',
-  hypothesis: 'warning',
-  unverified: 'warning'
 };
 
 export const runKindLabel = { apply: 'Aplicação', revert: 'Reversão', validate: 'Validação' } as const;

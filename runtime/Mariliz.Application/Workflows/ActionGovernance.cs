@@ -1,10 +1,10 @@
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
+using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Workflows;
 
@@ -65,7 +65,7 @@ internal static partial class ActionGovernance
                 Target = target,
                 Evidence = evidence,
                 Content = content,
-                ContentSha256 = Sha256(content)
+                ContentSha256 = Hashing.Sha256(content)
             });
         }
         return accepted;
@@ -77,7 +77,7 @@ internal static partial class ActionGovernance
         var canonical = new StringBuilder();
         foreach (var action in actions.OrderBy(a => a.Id, StringComparer.Ordinal))
             canonical.Append(action.Id).Append('\n').Append(action.Kind).Append('\n').Append(action.Target).Append('\n').Append(action.ContentSha256).Append('\n');
-        return Sha256(canonical.ToString());
+        return Hashing.Sha256(canonical.ToString());
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ internal static partial class ActionGovernance
     /// pausa ou de outras ações não coincide com este.
     /// </summary>
     public static string ApprovalIdFor(string runId, string executionId, string interruptId, string actionsHash) =>
-        "apr-" + Sha256($"{runId}|{executionId}|{interruptId}|{actionsHash}")[..12];
+        "apr-" + Hashing.Sha256($"{runId}|{executionId}|{interruptId}|{actionsHash}")[..12];
 
     /// <summary>
     /// Confere uma retomada contra o diário. Se há ações, a pessoa precisa apresentar o <c>approvalId</c> que viu; só se aprova
@@ -203,6 +203,4 @@ internal static partial class ActionGovernance
         "sem-stack" => "Nenhuma stack foi detectada no projeto.",
         _ => "Risco não identificado."
     };
-
-    private static string Sha256(string text) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
 }

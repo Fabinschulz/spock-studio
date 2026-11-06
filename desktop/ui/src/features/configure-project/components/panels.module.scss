@@ -113,29 +113,6 @@
   }
 }
 
-.scrollRegion {
-  overflow-x: auto;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--font-size-sm);
-
-  th,
-  td {
-    padding: var(--space-3) var(--space-2);
-    border-bottom: var(--border-width-divider) solid var(--color-divider);
-    text-align: left;
-    vertical-align: top;
-  }
-
-  th {
-    @include eyebrow;
-    color: var(--color-text-muted);
-  }
-}
-
 // Ações dentro de um cartão ou de uma janela. As ações de navegação da etapa usam o PrimaryActionFooter.
 .actions {
   display: flex;
@@ -282,30 +259,6 @@
   }
 }
 
-// ---- Projeto selecionado
-.folderTile {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: var(--radius-sm);
-  background-color: var(--color-primary-subtle);
-  color: var(--color-primary-text);
-}
-
-// ---- Cartão da estrutura de especificação: duas colunas quando há largura
-.twoCols {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-5);
-
-  @include up(md) {
-    grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
-  }
-}
-
 // Glifo do ambiente de IA (a Synthra não traz as marcas dessas ferramentas).
 .envGlyph {
   display: inline-flex;
@@ -313,24 +266,6 @@
   align-items: center;
   justify-content: center;
   color: var(--color-primary-text);
-}
-
-// ---- Etapa Projeto: a pasta e os recentes à esquerda, o que será analisado à direita (empilha quando falta largura).
-// A largura útil é a do próprio bloco, não a da janela: o menu lateral já ocupa parte dela.
-.projectWrap,
-.modelWrap {
-  container-type: inline-size;
-}
-
-.projectGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-6);
-  align-items: stretch;
-
-  @container (min-width: 36rem) {
-    grid-template-columns: minmax(0, 65fr) minmax(0, 35fr);
-  }
 }
 
 // Campo que mostra a pasta escolhida: a escolha em si é o diálogo nativo (só ele autoriza um caminho).
@@ -388,120 +323,6 @@
   }
 }
 
-.doneLine {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--tone-success-fg);
-}
-
-// ---- Etapa Modelo: cartão da estrutura de especificação, ambientes de IA e resumo. Três colunas quando há largura; duas; ou uma.
-.modelGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-areas:
-    'specification'
-    'env'
-    'summary';
-  gap: var(--space-4);
-  align-items: stretch;
-
-  @container (min-width: 36rem) {
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-    grid-template-areas:
-      'specification specification'
-      'env summary';
-  }
-
-  @container (min-width: 62rem) {
-    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) minmax(13rem, 0.75fr);
-    grid-template-areas: 'specification env summary';
-  }
-}
-
-.areaSpecification {
-  grid-area: specification;
-}
-
-.areaEnv {
-  grid-area: env;
-}
-
-.areaSummary {
-  grid-area: summary;
-}
-
-// Lista de ambientes: cada opção é uma linha com o marcador à direita, como no modelo.
-.envItem {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  min-height: var(--control-height-lg);
-  padding: var(--space-3);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-surface-sunken);
-  cursor: pointer;
-  transition:
-    border-color var(--duration-fast),
-    background-color var(--duration-fast);
-
-  input {
-    flex: none;
-    order: 3;
-    display: grid;
-    place-content: center;
-    width: 1.25rem;
-    height: 1.25rem;
-    margin: 0 0 0 auto;
-    border: 2px solid var(--color-border-strong);
-    border-radius: 50%;
-    appearance: none;
-
-    &::after {
-      width: 0.5rem;
-      height: 0.5rem;
-      border-radius: 50%;
-      background-color: var(--color-primary);
-      content: '';
-      transform: scale(0);
-      transition: transform var(--duration-fast);
-    }
-
-    &:checked {
-      border-color: var(--color-primary);
-
-      &::after {
-        transform: scale(1);
-      }
-    }
-  }
-
-  &:has(input:checked) {
-    @include selected-border;
-
-    background-color: var(--color-primary-subtle);
-  }
-
-  &:has(input:focus-visible) {
-    @include focus-ring;
-  }
-}
-
-.envText {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-1);
-  min-width: 0;
-}
-
-@media (forced-colors: active) {
-  .envItem input::after {
-    background-color: Highlight;
-  }
-}
-
 // "Analisar projeto": à direita, abaixo do campo da pasta, com folga acima e altura de 48 px.
 .analyzeRow {
   display: flex;
@@ -511,21 +332,6 @@
   button {
     min-height: 3rem;
   }
-}
-
-// Coluna da direita: a soma dos dois cartões iguala a altura da esquerda; o último cresce e fixa o seletor na base.
-.fillCard {
-  flex: 1;
-
-  > div:last-child {
-    flex: 1;
-    justify-content: space-between;
-  }
-}
-
-// Seleção de ambiente: o que não tem suporte nesta fase fica mais apagado no texto (sem baixar o contraste abaixo do mínimo).
-.envMuted {
-  color: var(--color-text-muted);
 }
 
 // Sub-cartão dentro de um cartão (ex.: buscar a versão mais recente da estrutura de especificação).
@@ -560,27 +366,6 @@
   color: var(--color-text-muted);
 }
 
-// Nota no pé de um cartão, separada por uma divisória.
-.cardNote {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  margin: auto 0 0;
-  padding-top: var(--space-4);
-  border-top: var(--border-width-divider) solid var(--color-divider);
-  font-size: var(--font-size-caption);
-  color: var(--color-text-muted);
-
-  svg {
-    flex: none;
-    margin-top: 1px;
-  }
-}
-
-.spread {
-  justify-content: space-between;
-}
-
 // Versão instalada em destaque na cor da marca.
 .version {
   padding: 2px var(--space-3);
@@ -591,98 +376,11 @@
   color: var(--color-primary-text);
 }
 
-// Dependências: o ícone da ferramenta, o nome e a versão. "Não encontrado" é dito em texto, além da cor.
-.deps {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
 .dep {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   font-size: var(--font-size-sm);
-}
-
-.depIcon {
-  display: inline-flex;
-  flex: none;
-  color: var(--color-primary-text);
-}
-
-.depMissing .depIcon {
-  color: var(--tone-warning-fg);
-}
-
-// ---- Cartão da estrutura de especificação: ícone em destaque, título com o selo ao lado e duas colunas (texto | versão e dependências).
-.specificationCard {
-  @include card(var(--space-5));
-
-  min-width: 0;
-}
-
-.specificationGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-5);
-
-  @include up(md) {
-    grid-template-columns: auto minmax(0, 1.9fr) minmax(0, 1fr);
-  }
-}
-
-.specificationIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  color: var(--color-primary-text);
-}
-
-.specificationHeader {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
-}
-
-.specificationTitle {
-  font-size: var(--font-size-heading);
-}
-
-// Rótulos em frase (não em caixa alta), como no modelo: o do bloco principal em branco, os laterais em tom suave.
-.featuresTitle {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
-}
-
-.fieldLabel {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-muted);
-}
-
-// Descrição da estrutura em branco (texto principal), como pedido; os itens da lista já usam a cor do texto.
-.specificationDescription {
-  font-size: var(--font-size-sm);
-  color: var(--color-text);
-}
-
-// Título e itens dos recursos juntos (pouco espaço entre eles) e com texto leve, como no modelo.
-.featureGroup {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-
-  li {
-    font-weight: 300;
-  }
 }
 
 // Sub-cartões da estrutura (atualizar / reinstalar): ocupam toda a largura à direita do ícone, sob as duas colunas.
@@ -699,51 +397,4 @@
   .subCard {
     margin-top: 0;
   }
-}
-
-// ---- Ambientes de IA: linhas compactas (ícone, nome, etiquetas e o marcador à direita), como no modelo.
-.envItem {
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-3);
-  min-height: 2.75rem;
-  padding: var(--space-2) var(--space-3);
-
-  input {
-    margin-left: auto;
-
-    &:checked {
-      background-color: var(--color-primary);
-
-      &::after {
-        width: 0.3125rem;
-        height: 0.5625rem;
-        margin-top: -0.0625rem;
-        border: solid var(--color-on-primary);
-        border-width: 0 2px 2px 0;
-        border-radius: 0;
-        background: transparent;
-        transform: rotate(45deg);
-      }
-    }
-  }
-}
-
-.envName {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-}
-
-.envTag {
-  padding: 1px var(--space-2);
-  border-radius: var(--radius-pill);
-  background-color: var(--tone-info-bg);
-  color: var(--tone-info-fg);
-  font-size: var(--font-size-badge);
-  font-weight: var(--font-weight-semibold);
-  white-space: nowrap;
-}
-
-.envTagWarn {
-  background-color: var(--tone-warning-bg);
-  color: var(--tone-warning-fg);
 }
