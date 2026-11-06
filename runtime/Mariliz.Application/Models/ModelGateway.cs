@@ -1,8 +1,7 @@
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using Mariliz.Application.Execution;
 using Mariliz.Core.Policy;
+using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Models;
 
@@ -92,7 +91,7 @@ public sealed class ModelGateway(IModelSettings settings, IModelTransport transp
     private static string HashOf(IReadOnlyList<ChatMessage> messages)
     {
         var json = JsonSerializer.Serialize(messages.Select(m => new { role = m.Role, content = m.Content }));
-        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json))).ToLowerInvariant();
+        return Hashing.Sha256(json);
     }
 
     private static string Redact(string text, string key)

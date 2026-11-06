@@ -1,6 +1,4 @@
 using System.Collections.Concurrent;
-using System.Security.Cryptography;
-using System.Text;
 using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Workspace;
@@ -67,7 +65,7 @@ public sealed class WorkspaceAuthorizer
         trimmed.Length > 0 && Directory.GetParent(trimmed) is not null && Path.GetPathRoot(resolved) != resolved;
 
     private static string ProjectIdFor(string trimmed) =>
-        "p-" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Normalize(trimmed))))[..12].ToLowerInvariant();
+        "p-" + Hashing.Sha256(Normalize(trimmed))[..12];
 
     private static string Normalize(string path) =>
         OperatingSystem.IsWindows() ? path.ToUpperInvariant() : path;

@@ -1,9 +1,9 @@
-using System.Security.Cryptography;
 using System.Text;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
 using Mariliz.Core.Policy;
+using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Workflows;
 
@@ -20,7 +20,7 @@ public sealed class ProjectActionExecutor(WorkspaceAuthorizer workspace, IProjec
 
         // O conteúdo aprovado é o do hash: um diário alterado depois da aprovação não vira escrita.
         var bytes = Encoding.UTF8.GetBytes(action.Content);
-        if (Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant() != action.ContentSha256)
+        if (Hashing.Sha256(bytes) != action.ContentSha256)
             return new ActionOutcome(JournalAction.Failed);
         if (!ActionGovernance.IsDecisionTarget(action.Target)
             || !PathGuard.TryNormalize(action.Target, out var path, out _) || !ManagedScope.IsWritable(path))

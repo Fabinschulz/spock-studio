@@ -2,8 +2,9 @@
 """Servidor local da inteligência do Mariliz.
 
 Encaminha saúde, o workflow engineering.request e o índice de conhecimento.
-Não lê o projeto, não grava arquivos e não chama modelo. O runtime .NET é quem
-autoriza, aplica e publica eventos.
+Não lê o projeto nem grava nele: o que ele guarda são o índice de conhecimento e o
+checkpoint da execução (SQLite, por projeto), e as chamadas de modelo passam pelo proxy
+do runtime. O runtime .NET é quem autoriza, aplica e publica eventos.
 
 Início e retomada respondem em NDJSON (``application/x-ndjson``, chunked): um ai.event.v1 por
 linha enquanto o grafo anda e, por último, o ai.ack.v2.
