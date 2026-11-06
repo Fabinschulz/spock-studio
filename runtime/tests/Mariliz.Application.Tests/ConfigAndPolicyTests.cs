@@ -202,6 +202,30 @@ public class PolicyTests
     [InlineData("Read(./.env)")]
     public void Texto_sem_credencial_nao_e_acusado(string text) => Assert.False(SecretScanner.ContainsSecret(text));
 
+    // Valores fictícios no formato das chaves de cada provedor; montados por partes para nenhum scanner de segredos do repositório os confundir com chaves.
+    [Theory]
+    [InlineData("openai-key", "sk-proj-" + "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789")]
+    [InlineData("openai-key", "sk-" + "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGh")]
+    [InlineData("anthropic-key", "sk-ant-" + "api03-AbCdEfGhIjKlMnOpQrStUvWxYz0123")]
+    [InlineData("google-api-key", "AIza" + "SyA1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q")]
+    [InlineData("stripe-key", "sk_live_" + "AbCdEfGhIjKlMnOp1234567890")]
+    [InlineData("stripe-key", "rk_test_" + "AbCdEfGhIjKlMnOp1234567890")]
+    [InlineData("npm-token", "npm_" + "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789")]
+    public void Scanner_acha_chaves_de_provedores_comuns_em_qualquer_lugar_da_linha(string rule, string key)
+    {
+        var findings = SecretScanner.Scan($"Use {key} para chamar o serviço.");
+
+        Assert.Contains(findings, f => f.Rule == rule);
+        Assert.DoesNotContain(key, SecretScanner.RedactLines($"antes\nUse {key} aqui\ndepois"));
+    }
+
+    [Theory]
+    [InlineData("A tarefa task-management-system-with-a-very-long-identifier-name-here usa o módulo.")]
+    [InlineData("Peça: ask-me-anything-about-the-whole-project-structure-and-layout.")]
+    [InlineData("Use o pacote sk-learn ou o rk_ do sistema.")]
+    [InlineData("npm install npm_config e AIzaPrefixCurto")]
+    public void Palavras_parecidas_com_prefixo_de_chave_nao_sao_acusadas(string text) => Assert.False(SecretScanner.ContainsSecret(text));
+
     [Fact]
     public void Linhas_com_credencial_sao_omitidas_antes_de_mostrar_conteudo()
     {

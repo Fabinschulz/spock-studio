@@ -19,3 +19,16 @@ public sealed class PackagedFactAttribute : FactAttribute
 
     public static bool IsRequired => Environment.GetEnvironmentVariable(RequiredVariable) == "1";
 }
+
+/// <summary>Como <see cref="PackagedFactAttribute"/>, para os testes que rodam o motor instalado (<c>MARILIZ_PACKAGED_ENGINE</c>).</summary>
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class PackagedEngineFactAttribute : FactAttribute
+{
+    public const string EngineVariable = "MARILIZ_PACKAGED_ENGINE";
+
+    public PackagedEngineFactAttribute()
+    {
+        if (PackagedFactAttribute.IsRequired || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(EngineVariable))) return;
+        Skip = $"Sem o motor do instalador: defina {EngineVariable} (veja scripts/smoke-installer.py).";
+    }
+}

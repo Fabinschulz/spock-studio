@@ -69,6 +69,16 @@ def locate(root: Path) -> Path:
     return candidates[0]
 
 
+def locate_engine(root: Path) -> Path:
+    """O motor .NET que o instalador leva (o sidecar do Tauri, instalado como ``mariliz-runtime``)."""
+    names = {"mariliz-runtime", "mariliz-runtime.exe"}
+    found = sorted(path for path in root.rglob("*") if path.name in names and path.is_file())
+    if len(found) != 1:
+        listing = "\n".join(f"  {path}" for path in found) or "  nenhum"
+        raise SystemExit(f"Esperava um motor (mariliz-runtime) dentro do instalador em {root}; encontrei:\n{listing}")
+    return found[0]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--bundle", required=True, type=Path)
@@ -77,12 +87,16 @@ def main() -> None:
 
     if not args.bundle.is_dir():
         raise SystemExit(f"Sem a pasta do instalador: {args.bundle}.")
-    root = locate(extract(args.bundle.resolve(), args.out.resolve()))
+    extracted = extract(args.bundle.resolve(), args.out.resolve())
+    root = locate(extracted)
+    engine = locate_engine(extracted)
     print(root)
+    print(engine)
     env_file = os.environ.get("GITHUB_ENV")
     if env_file:
         with open(env_file, "a", encoding="utf-8") as handle:
             handle.write(f"MARILIZ_PACKAGED_RESOURCES={root}\n")
+            handle.write(f"MARILIZ_PACKAGED_ENGINE={engine}\n")
 
 
 if __name__ == "__main__":
