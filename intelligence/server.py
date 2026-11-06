@@ -16,7 +16,9 @@ import argparse
 import hmac
 import json
 import os
+import re
 import sys
+import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 # Telemetria de terceiros desligada antes de qualquer import do LangChain.
@@ -35,6 +37,13 @@ from knowledge.index import KnowledgeError, manifest  # noqa: E402
 from workflows.engineering.graph import run_cancel, run_resume, run_start  # noqa: E402
 
 MAX_BODY = 4_000_000
+_ACTION_ROUTE = re.compile(r"^/v1/workflows/[^/]+/(resume|cancel)$")
+
+
+def _log_failure(where: str, error: BaseException) -> None:
+    """Deixa rastro da falha sem expor dados: só o tipo e as linhas do código, nunca a mensagem (pode ter caminhos e conteúdo do projeto)."""
+    frames = "".join(traceback.format_tb(error.__traceback__))
+    print(f"[ai] falha em {where}: {type(error).__name__}\n{frames}", file=sys.stderr, flush=True)
 
 
 def main() -> None:
@@ -97,14 +106,16 @@ def make_handler(token: str):
                 if path == "/v1/workflows":
                     self._stream(run_start(payload))
                     return
-                if path.startswith("/v1/workflows/") and path.endswith("/resume"):
+                action = _ACTION_ROUTE.match(path)
+                if action and action.group(1) == "resume":
                     self._stream(run_resume(payload))
                     return
-                if path.startswith("/v1/workflows/") and path.endswith("/cancel"):
+                if action:
                     run_cancel(_text(payload.get("runId")), _text(payload.get("projectId")), _text(payload.get("executionRoot")))
                     self._send(200, {"schema": "workflow.ack.v1", "status": "cancelled"})
                     return
-            except Exception:
+            except Exception as error:
+                _log_failure(path, error)
                 self._send(500, {"error": "workflow_failed"})
                 return
             self._send(404, {"error": "not_found"})
@@ -153,8 +164,9 @@ def make_handler(token: str):
                 self.wfile.flush()
             except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
                 lines.close()
-            except Exception:
+            except Exception as error:
                 # Sem o ai.ack.v2 no fim, o motor trata a resposta como fora do contrato.
+                _log_failure("stream", error)
                 lines.close()
                 try:
                     self.wfile.write(b"0\r\n\r\n")

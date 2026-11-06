@@ -254,10 +254,6 @@ public sealed class WorkflowService(
         {
             Fail(run, journal, "AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
         }
-        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidOperationException)
-        {
-            Fail(run, journal, "AI_RUNTIME_UNAVAILABLE", "O runtime de IA não respondeu.");
-        }
         catch (Exception ex)
         {
             // O texto da exceção pode ter caminhos do projeto: só o tipo vai para o diário e para a interface.
