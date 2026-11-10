@@ -6,31 +6,29 @@ namespace Mariliz.Application.Protocol;
 /// <summary>Traduz <c>model.status</c>, <c>model.save</c>, <c>model.clear</c> e <c>model.complete</c> para o <see cref="ModelGateway"/>.</summary>
 internal sealed class ModelRequestHandler(ModelGateway models)
 {
-    public async Task<JsonObject> HandleAsync(string method, JsonObject? parameters, CancellationToken ct)
+    public async Task<JsonObject> HandleAsync(string method, JsonObject? parameters, CancellationToken ct) => method switch
     {
-        switch (method)
-        {
-            case ProtocolMethods.ModelStatus:
-                break;
-            case ProtocolMethods.ModelSave:
-                models.Save(
-                    ReadString(parameters, "provider") ?? throw Invalid(method),
-                    ReadString(parameters, "key") ?? throw Invalid(method));
-                break;
-            case ProtocolMethods.ModelClear:
-                models.Clear();
-                break;
-            case ProtocolMethods.ModelComplete:
-                var prompt = ReadString(parameters, "prompt") ?? throw Invalid(method);
-                return CompletionJson(await models.CompleteAsync(prompt, ct));
-            default:
-                throw new InvalidOperationException($"Método sem tratador: {method}.");
-        }
+        ProtocolMethods.ModelStatus => StatusJson(models.Status()),
+        ProtocolMethods.ModelSave => Save(method, parameters),
+        ProtocolMethods.ModelClear => Clear(),
+        ProtocolMethods.ModelComplete => CompletionJson(await models.CompleteAsync(RequiredString(method, parameters, "prompt"), ct)),
+        _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
+    };
 
+    private JsonObject Save(string method, JsonObject? parameters)
+    {
+        models.Save(RequiredString(method, parameters, "provider"), RequiredString(method, parameters, "key"));
         return StatusJson(models.Status());
     }
 
-    private static ParamException Invalid(string method) => new($"Parâmetros de {method} inválidos.");
+    private JsonObject Clear()
+    {
+        models.Clear();
+        return StatusJson(models.Status());
+    }
+
+    private static string RequiredString(string method, JsonObject? values, string name) =>
+        ReadString(values, name) ?? throw new ParamException($"Parâmetros de {method} inválidos.");
 
     private static string? ReadString(JsonObject? values, string name) =>
         values?[name] is JsonValue node && node.TryGetValue<string>(out var text) ? text : null;

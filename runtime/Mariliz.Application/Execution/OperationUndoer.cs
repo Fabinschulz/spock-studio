@@ -12,43 +12,31 @@ public static class OperationUndoer
         var currentBytes = files.ReadBytes(op.Path);
         var currentHash = currentBytes is null ? null : Hashing.Sha256(currentBytes);
 
-        switch (op.Op)
+        // Cada operação diz se o arquivo pode voltar (null) ou por que ele fica como está (o motivo do conflito).
+        var conflict = op.Op switch
         {
-            case OpKinds.Create:
-                if (currentHash is null)
-                {
-                    op.Status = OpStatus.Reverted;
-                    return;
-                }
-                if (currentHash != op.AfterHash)
-                {
-                    Keep(op, conflicts, "foi alterado depois da aplicação; mantido.");
-                    return;
-                }
-                files.Delete(op.Path, scope);
-                files.PruneEmptyDirectories(ProjectPath.Parent(op.Path));
-                break;
+            OpKinds.Create => UndoCreate(files, op, scope, currentHash),
+            OpKinds.Update when currentHash != op.AfterHash => Altered,
+            OpKinds.Update => RestoreBackup(store, projectId, backupRunId, files, op, scope),
+            OpKinds.Delete when currentHash is not null => "existe de novo depois da aplicação; mantido.",
+            OpKinds.Delete => RestoreBackup(store, projectId, backupRunId, files, op, scope),
+            _ => null
+        };
 
-            case OpKinds.Update:
-                if (currentHash != op.AfterHash)
-                {
-                    Keep(op, conflicts, "foi alterado depois da aplicação; mantido.");
-                    return;
-                }
-                RestoreBackup(store, projectId, backupRunId, files, op, scope, conflicts);
-                break;
+        if (conflict is null) op.Status = OpStatus.Reverted;
+        else Keep(op, conflicts, conflict);
+    }
 
-            case OpKinds.Delete:
-                if (currentHash is not null)
-                {
-                    Keep(op, conflicts, "existe de novo depois da aplicação; mantido.");
-                    return;
-                }
-                RestoreBackup(store, projectId, backupRunId, files, op, scope, conflicts);
-                break;
-        }
+    private const string Altered = "foi alterado depois da aplicação; mantido.";
 
-        if (op.Status != OpStatus.Conflict) op.Status = OpStatus.Reverted;
+    private static string? UndoCreate(IProjectFiles files, JournalOp op, WriteScope scope, string? currentHash)
+    {
+        if (currentHash is null) return null;
+        if (currentHash != op.AfterHash) return Altered;
+
+        files.Delete(op.Path, scope);
+        files.PruneEmptyDirectories(ProjectPath.Parent(op.Path));
+        return null;
     }
 
     private static void Keep(JournalOp op, List<string> conflicts, string reason)
@@ -57,17 +45,14 @@ public static class OperationUndoer
         op.Status = OpStatus.Conflict;
     }
 
-    private static void RestoreBackup(IRunStore store, string projectId, string runId, IProjectFiles files, JournalOp op, WriteScope scope, List<string> conflicts)
+    private static string? RestoreBackup(IRunStore store, string projectId, string runId, IProjectFiles files, JournalOp op, WriteScope scope)
     {
         var backup = store.LoadBackup(projectId, runId, op.Path);
-        if (backup is null)
-        {
-            Keep(op, conflicts, "o backup não está disponível.");
-            return;
-        }
+        if (backup is null) return "o backup não está disponível.";
 
         files.WriteAtomic(op.Path, backup, scope);
-        if (Hashing.Sha256(files.ReadBytes(op.Path) ?? []) != op.BeforeHash)
-            Keep(op, conflicts, "a restauração não confere com o estado anterior.");
+        return Hashing.Sha256(files.ReadBytes(op.Path) ?? []) != op.BeforeHash
+            ? "a restauração não confere com o estado anterior."
+            : null;
     }
 }

@@ -157,16 +157,10 @@ public sealed class LoopbackAiRuntime : IAiRuntime
                 if (line.Length == 0) continue;
                 if (line.Length > MaxLine || JsonNode.Parse(line) is not JsonObject item)
                     throw EngineErrors.AiRuntimeInvalidResponse();
-                switch (item.Text("schema"))
-                {
-                    case "ai.event.v1":
-                        onEvent(item);
-                        break;
-                    case "ai.ack.v2":
-                        return AiWire.ReadAck(item);
-                    default:
-                        throw EngineErrors.AiRuntimeInvalidResponse();
-                }
+                var schema = item.Text("schema");
+                if (schema is "ai.ack.v2") return AiWire.ReadAck(item);
+                if (schema is not "ai.event.v1") throw EngineErrors.AiRuntimeInvalidResponse();
+                onEvent(item);
             }
 
             throw EngineErrors.AiRuntimeInvalidResponse();
