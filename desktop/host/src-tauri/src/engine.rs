@@ -7,7 +7,7 @@ use std::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         Arc, Mutex,
     },
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use serde_json::{json, Value};
@@ -27,6 +27,9 @@ use crate::status::Status;
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(120);
 const SIDECAR: &str = "mariliz-runtime";
 const SHUTDOWN_GRACE: Duration = Duration::from_secs(10);
+// Um motor que ficou de pé por este tempo e caiu conta como uma queda nova, com direito a outra tentativa automática.
+const STABLE_UPTIME: Duration = Duration::from_secs(60);
+const MAX_QUICK_RESTARTS: u64 = 1;
 
 #[derive(Default)]
 struct Inner {
@@ -35,6 +38,7 @@ struct Inner {
     status: Mutex<Option<Status>>,
     next_id: AtomicU64,
     restarts: AtomicU64,
+    ready_since: Mutex<Option<Instant>>,
     shutting_down: AtomicBool,
     terminated: AtomicBool,
 }
@@ -49,6 +53,9 @@ impl Engine {
 
     fn set_status(&self, app: &AppHandle, status: Status) {
         *lock(&self.0.status) = Some(status);
+        if status == Status::Ready {
+            *lock(&self.0.ready_since) = Some(Instant::now());
+        }
         let _ = app.emit("engine_status", status.as_str());
     }
 
@@ -62,8 +69,17 @@ impl Engine {
                     error.message, error.code
                 );
                 engine.set_status(&app, Status::Crashed);
+                engine.discard_process();
             }
         });
+    }
+
+    /// Um motor que não completou o handshake não serve a ninguém: sem isto o processo ficaria vivo, sem dono e com o estado da UI em `crashed`.
+    fn discard_process(&self) {
+        if let Some(child) = lock(&self.0.child).take() {
+            let _ = child.kill();
+        }
+        lock(&self.0.pending).clear();
     }
 
     async fn start_and_handshake(&self, app: &AppHandle) -> Result<(), HostError> {
@@ -166,8 +182,11 @@ impl Engine {
         eprintln!("[host] o motor encerrou (código {code:?})");
         self.set_status(app, Status::Crashed);
 
-        // Uma tentativa automática; depois disso a UI mostra o diagnóstico.
-        if self.0.restarts.fetch_add(1, Ordering::SeqCst) == 0 {
+        // Uma tentativa automática por queda; depois disso a UI mostra o diagnóstico.
+        let uptime = lock(&self.0.ready_since)
+            .take()
+            .map(|since| since.elapsed());
+        if restart_allowed(&self.0.restarts, uptime) {
             self.boot(app.clone());
         }
     }
@@ -264,5 +283,36 @@ impl Engine {
         if let Some(child) = lock(&self.0.child).take() {
             let _ = child.kill();
         }
+    }
+}
+
+/// Decide se a queda merece outra subida. Quedas logo após subir esgotam as tentativas; um motor que ficou estável por
+/// `STABLE_UPTIME` zera a conta, para uma queda esporádica horas depois também ser recuperada.
+fn restart_allowed(restarts: &AtomicU64, uptime: Option<Duration>) -> bool {
+    if uptime.is_some_and(|up| up >= STABLE_UPTIME) {
+        restarts.store(0, Ordering::SeqCst);
+    }
+    restarts.fetch_add(1, Ordering::SeqCst) < MAX_QUICK_RESTARTS
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn queda_logo_apos_subir_tem_uma_tentativa_so() {
+        let restarts = AtomicU64::new(0);
+        assert!(restart_allowed(&restarts, Some(Duration::from_secs(2))));
+        assert!(!restart_allowed(&restarts, Some(Duration::from_secs(2))));
+        assert!(!restart_allowed(&restarts, None));
+    }
+
+    #[test]
+    fn motor_estavel_por_um_tempo_ganha_nova_tentativa() {
+        let restarts = AtomicU64::new(0);
+        assert!(restart_allowed(&restarts, Some(Duration::from_secs(2))));
+        assert!(!restart_allowed(&restarts, Some(Duration::from_secs(2))));
+        assert!(restart_allowed(&restarts, Some(STABLE_UPTIME)));
+        assert!(!restart_allowed(&restarts, Some(Duration::from_secs(1))));
     }
 }

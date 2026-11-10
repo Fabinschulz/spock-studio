@@ -20,6 +20,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
 {
     private const int MaxLine = 1_000_000;
     private static readonly TimeSpan StartupBudget = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan PingTimeout = TimeSpan.FromSeconds(5);
 
     private readonly string? _scriptPath;
     private readonly string? _pythonOverride;
@@ -59,12 +60,12 @@ public sealed class LoopbackAiRuntime : IAiRuntime
     /// </summary>
     public async Task EnsureReadyAsync(CancellationToken ct)
     {
-        if (await HealthyAsync(ct)) return;
+        if (await PingAsync(ct)) return;
 
         await _startup.WaitAsync(ct);
         try
         {
-            if (await HealthyAsync(ct)) return;
+            if (await PingAsync(ct)) return;
             await LaunchAsync(ct);
         }
         finally
@@ -119,7 +120,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
     {
         try
         {
-            if (!await HealthyAsync(CancellationToken.None)) return;
+            if (!await PingAsync(CancellationToken.None)) return;
             var body = new JsonObject { ["runId"] = runId };
             if (!string.IsNullOrEmpty(projectId)) body["projectId"] = projectId;
             if (!string.IsNullOrEmpty(executionRoot)) body["executionRoot"] = executionRoot;
@@ -141,35 +142,50 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         lock (_gate) http = _http;
         if (http is null) throw EngineErrors.AiRuntimeUnavailable("O runtime de IA não está disponível nesta máquina.");
 
-        using var message = new HttpRequestMessage(HttpMethod.Post, path)
+        try
         {
-            Content = new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json")
-        };
-        using var response = await http.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, ct);
-        if (!response.IsSuccessStatusCode || response.Content.Headers.ContentType?.MediaType != "application/x-ndjson")
-            throw EngineErrors.AiRuntimeInvalidResponse();
-
-        await using var stream = await response.Content.ReadAsStreamAsync(ct);
-        using var reader = new StreamReader(stream, Encoding.UTF8);
-        while (await reader.ReadLineAsync(ct) is { } line)
-        {
-            if (line.Length == 0) continue;
-            if (line.Length > MaxLine || JsonNode.Parse(line) is not JsonObject item)
-                throw EngineErrors.AiRuntimeInvalidResponse();
-            switch (item.Text("schema"))
+            using var message = new HttpRequestMessage(HttpMethod.Post, path)
             {
-                case "ai.event.v1":
-                    onEvent(item);
-                    break;
-                case "ai.ack.v2":
-                    return ReadAck(item);
-                default:
-                    throw EngineErrors.AiRuntimeInvalidResponse();
-            }
-        }
+                Content = new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json")
+            };
+            using var response = await http.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, ct);
+            if (!response.IsSuccessStatusCode || response.Content.Headers.ContentType?.MediaType != "application/x-ndjson")
+                throw EngineErrors.AiRuntimeInvalidResponse();
 
-        throw EngineErrors.AiRuntimeInvalidResponse();
+            await using var stream = await response.Content.ReadAsStreamAsync(ct);
+            using var reader = new StreamReader(stream, Encoding.UTF8);
+            while (await reader.ReadLineAsync(ct) is { } line)
+            {
+                if (line.Length == 0) continue;
+                if (line.Length > MaxLine || JsonNode.Parse(line) is not JsonObject item)
+                    throw EngineErrors.AiRuntimeInvalidResponse();
+                switch (item.Text("schema"))
+                {
+                    case "ai.event.v1":
+                        onEvent(item);
+                        break;
+                    case "ai.ack.v2":
+                        return ReadAck(item);
+                    default:
+                        throw EngineErrors.AiRuntimeInvalidResponse();
+                }
+            }
+
+            throw EngineErrors.AiRuntimeInvalidResponse();
+        }
+        catch (Exception ex) when (IsTransportFault(ex))
+        {
+            throw TransportFault(ex);
+        }
     }
+
+    /// <summary>Falha de conversa com o processo (conexão, leitura, JSON quebrado). O que o chamador vê é um código do contrato, não a exceção do .NET.</summary>
+    private static bool IsTransportFault(Exception ex) => ex is HttpRequestException or IOException or System.Text.Json.JsonException;
+
+    private static EngineException TransportFault(Exception ex) =>
+        ex is System.Text.Json.JsonException
+            ? EngineErrors.AiRuntimeInvalidResponse()
+            : EngineErrors.AiRuntimeUnavailable("O runtime de IA não respondeu.");
 
     private static WorkflowAck ReadAck(JsonObject ack)
     {
@@ -282,12 +298,13 @@ public sealed class LoopbackAiRuntime : IAiRuntime
             _http = http;
         }
 
-        if (await HealthyAsync(ct)) return true;
+        if (await WaitUntilHealthyAsync(ct)) return true;
         await ShutdownAsync();
         return false;
     }
 
-    private async Task<bool> HealthyAsync(CancellationToken ct)
+    /// <summary>Uma pergunta só: o processo existe e responde dentro de <see cref="PingTimeout"/>? Um Python travado não segura quem chama.</summary>
+    private async Task<bool> PingAsync(CancellationToken ct)
     {
         HttpClient? http;
         Process? process;
@@ -296,21 +313,37 @@ public sealed class LoopbackAiRuntime : IAiRuntime
             http = _http;
             process = _process;
         }
-        if (http is null || process is null) return false;
+        if (http is null || process is null || process.HasExited) return false;
 
-        // A primeira importação do LangGraph sem bytecode pronto leva alguns segundos (medido: 2,5 s).
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(PingTimeout);
+        try
+        {
+            using var response = await http.GetAsync("health", timeout.Token);
+            return response.IsSuccessStatusCode;
+        }
+        catch (HttpRequestException)
+        {
+            return false;
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>Espera um processo recém-lançado ficar de pé. A primeira importação do LangGraph sem bytecode pronto leva alguns segundos (medido: 2,5 s).</summary>
+    private async Task<bool> WaitUntilHealthyAsync(CancellationToken ct)
+    {
         var deadline = DateTime.UtcNow + StartupBudget;
         while (DateTime.UtcNow < deadline)
         {
             ct.ThrowIfCancellationRequested();
-            if (process.HasExited) return false;
-            try
+            if (await PingAsync(ct)) return true;
+            lock (_gate)
             {
-                using var response = await http.GetAsync("health", ct);
-                if (response.IsSuccessStatusCode) return true;
+                if (_process is null or { HasExited: true }) return false;
             }
-            catch (HttpRequestException) { }
-            catch (TaskCanceledException) when (!ct.IsCancellationRequested) { }
             await Task.Delay(100, ct);
         }
 
@@ -323,12 +356,19 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         lock (_gate) http = _http;
         if (http is null) throw EngineErrors.AiRuntimeUnavailable("O runtime de IA não está disponível nesta máquina.");
 
-        using var content = new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json");
-        using var response = await http.PostAsync(path, content, ct);
-        var text = await response.Content.ReadAsStringAsync(ct);
-        if (!response.IsSuccessStatusCode || JsonNode.Parse(text) is not JsonObject ack)
-            throw EngineErrors.AiRuntimeInvalidResponse();
-        return ack;
+        try
+        {
+            using var content = new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json");
+            using var response = await http.PostAsync(path, content, ct);
+            var text = await response.Content.ReadAsStringAsync(ct);
+            if (!response.IsSuccessStatusCode || JsonNode.Parse(text) is not JsonObject ack)
+                throw EngineErrors.AiRuntimeInvalidResponse();
+            return ack;
+        }
+        catch (Exception ex) when (IsTransportFault(ex))
+        {
+            throw TransportFault(ex);
+        }
     }
 
     private static IReadOnlyList<WorkflowLimitation> ReadNotices(JsonObject ack, string name)

@@ -187,7 +187,7 @@ public class ActionGovernanceTests
         Assert.Null(action["content"]);
 
         var journal = rig.Store.LoadJournal(rig.ProjectId, run.RunId)!;
-        Assert.Equal(approvalId, ActionGovernance.ApprovalIdFor(run.RunId, executionId, Interrupt, ActionGovernance.HashOf(journal.Actions)));
+        Assert.Equal(approvalId, ApprovalBinding.ApprovalIdFor(run.RunId, executionId, Interrupt, ApprovalBinding.HashOf(journal.Actions)));
         Assert.Equal(JournalAction.Proposed, journal.Actions.Single().Status);
         Assert.False(File.Exists(DecisionPath(rig.Project, executionId)), "propor não grava");
     }
