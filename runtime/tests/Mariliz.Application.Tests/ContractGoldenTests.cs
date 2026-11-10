@@ -138,21 +138,25 @@ public class ContractGoldenTests
         private static void Walk(JsonNode? node, string path, SortedDictionary<string, SortedSet<string>> map)
         {
             void Add(string type) { if (!map.TryGetValue(path, out var set)) map[path] = set = []; set.Add(type); }
-            switch (node)
+            Add(node switch
             {
-                case null: Add("null"); break;
-                case JsonObject o:
-                    Add("object");
-                    foreach (var (key, value) in o) Walk(value, path + "." + key, map);
-                    break;
-                case JsonArray a:
-                    Add("array");
-                    foreach (var item in a) Walk(item, path + "[]", map);
-                    break;
-                case JsonValue v:
-                    Add(v.GetValueKind() switch { JsonValueKind.String => "string", JsonValueKind.Number => "number", JsonValueKind.True or JsonValueKind.False => "boolean", _ => "other" });
-                    break;
-            }
+                null => "null",
+                JsonObject => "object",
+                JsonArray => "array",
+                JsonValue v => v.GetValueKind() switch
+                {
+                    JsonValueKind.String => "string",
+                    JsonValueKind.Number => "number",
+                    JsonValueKind.True or JsonValueKind.False => "boolean",
+                    _ => "other"
+                },
+                _ => "other"
+            });
+
+            if (node is JsonObject o)
+                foreach (var (key, value) in o) Walk(value, path + "." + key, map);
+            else if (node is JsonArray a)
+                foreach (var item in a) Walk(item, path + "[]", map);
         }
 
         public static List<string> Diff(SortedDictionary<string, SortedSet<string>> expected, SortedDictionary<string, SortedSet<string>> actual)

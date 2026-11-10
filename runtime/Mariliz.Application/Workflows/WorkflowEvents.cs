@@ -47,31 +47,30 @@ internal sealed class WorkflowEvents(IClock clock)
     {
         var data = (JsonObject)evt["data"]!;
         var agentId = evt.Text("agentId");
-        switch (evt.Text("type"))
+        var type = evt.Text("type");
+        JsonObject? payload = type switch
         {
-            case "workflow.started":
-                run.Publish("workflow.started", Status(evt.Text("executionId"), "started"));
-                break;
-            case "context.retrieval.started":
-                run.Publish("context.retrieval.started", new JsonObject { ["at"] = Now() });
-                break;
-            case "context.retrieved" when WorkflowResult.TryEvidence(data, out var evidence):
-                evidence["at"] = Now();
-                run.Publish("context.retrieved", evidence);
-                break;
-            case "agent.started" when KnownAgents.Contains(agentId) && IsVersion(data.Text("agentVersion")):
-                run.Publish("agent.started", new JsonObject { ["agentId"] = agentId, ["agentVersion"] = data.Text("agentVersion"), ["at"] = Now() });
-                break;
-            case "agent.completed" when KnownAgents.Contains(agentId) && data.Text("status") == "completed":
-                run.Publish("agent.completed", new JsonObject { ["agentId"] = agentId, ["at"] = Now() });
-                break;
-            case "eval.started" when data.Text("evalId") == JournalJudgment.EvalId && data.Text("kind") == "model":
-                run.Publish("eval.started", new JsonObject { ["evalId"] = JournalJudgment.EvalId, ["kind"] = "model", ["required"] = false, ["at"] = Now() });
-                break;
-            case "eval.completed" when data.Text("evalId") == JournalJudgment.EvalId && data.Text("kind") == "model":
-                run.Publish("eval.completed", EvalCompleted(data, judgeCalls?.Invoke() ?? []));
-                break;
-        }
+            "workflow.started" => Status(evt.Text("executionId"), "started"),
+            "context.retrieval.started" => Stamped(new JsonObject()),
+            "context.retrieved" when WorkflowResult.TryEvidence(data, out var evidence) => Stamped(evidence),
+            "agent.started" when KnownAgents.Contains(agentId) && IsVersion(data.Text("agentVersion")) =>
+                Stamped(new JsonObject { ["agentId"] = agentId, ["agentVersion"] = data.Text("agentVersion") }),
+            "agent.completed" when KnownAgents.Contains(agentId) && data.Text("status") == "completed" =>
+                Stamped(new JsonObject { ["agentId"] = agentId }),
+            "eval.started" when IsModelJudge(data) =>
+                Stamped(new JsonObject { ["evalId"] = JournalJudgment.EvalId, ["kind"] = "model", ["required"] = false }),
+            "eval.completed" when IsModelJudge(data) => EvalCompleted(data, judgeCalls?.Invoke() ?? []),
+            _ => null
+        };
+        if (payload is not null) run.Publish(type, payload);
+    }
+
+    private static bool IsModelJudge(JsonObject data) => data.Text("evalId") == JournalJudgment.EvalId && data.Text("kind") == "model";
+
+    private JsonObject Stamped(JsonObject payload)
+    {
+        payload["at"] = Now();
+        return payload;
     }
 
     /// <summary>
