@@ -6,17 +6,35 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Workflows;
 
+/// <summary>O contexto que o motor entrega ao runtime de IA para um projeto.</summary>
+public interface IWorkflowContext
+{
+    /// <summary>Pasta de dados da inteligência (índice e checkpoints); vazia sem projeto.</summary>
+    string DataRoot { get; }
+
+    Task<JsonObject> BuildAsync(string projectId, CancellationToken ct);
+}
+
+/// <summary>Sem projeto: o runtime recebe só "contexto indisponível" e não consegue pausar para aprovação.</summary>
+internal sealed class EmptyWorkflowContext : IWorkflowContext
+{
+    public string DataRoot => "";
+
+    public Task<JsonObject> BuildAsync(string projectId, CancellationToken ct) => Task.FromResult(Unavailable());
+
+    public static JsonObject Unavailable() => new() { ["available"] = false, ["stacks"] = new JsonArray() };
+}
+
 /// <summary>
 /// O contexto que o motor entrega ao runtime: stacks do projeto (descoberta) e fontes permitidas para o índice, mais a
-/// pasta de dados onde a inteligência guarda índice e checkpoints. Sem projeto (<see cref="WithoutProject"/>), o
-/// runtime recebe só "contexto indisponível" e não consegue pausar para aprovação.
+/// pasta de dados onde a inteligência guarda índice e checkpoints. Sem projeto, use <see cref="WithoutProject"/>.
 /// </summary>
-public sealed class WorkflowContextBuilder
+public sealed class WorkflowContextBuilder : IWorkflowContext
 {
-    private readonly WorkspaceAuthorizer? _workspace;
-    private readonly IAiRuntime? _runtime;
-    private readonly IProjectFilesFactory? _files;
-    private readonly ProjectDiscoverer? _discoverer;
+    private readonly WorkspaceAuthorizer _workspace;
+    private readonly IAiRuntime _runtime;
+    private readonly IProjectFilesFactory _files;
+    private readonly ProjectDiscoverer _discoverer;
 
     public WorkflowContextBuilder(
         WorkspaceAuthorizer workspace, IAiRuntime runtime, IProjectFilesFactory files, IProcessRunner runner, string dataRoot)
@@ -28,15 +46,10 @@ public sealed class WorkflowContextBuilder
         DataRoot = dataRoot;
     }
 
-    private WorkflowContextBuilder()
-    {
-    }
-
     /// <summary>Sem descoberta, sem índice e sem memória de execução.</summary>
-    public static WorkflowContextBuilder WithoutProject { get; } = new();
+    public static IWorkflowContext WithoutProject { get; } = new EmptyWorkflowContext();
 
-    /// <summary>Pasta de dados da inteligência (índice e checkpoints); vazia sem projeto.</summary>
-    public string DataRoot { get; } = "";
+    public string DataRoot { get; }
 
     public async Task<JsonObject> BuildAsync(string projectId, CancellationToken ct)
     {
@@ -48,8 +61,8 @@ public sealed class WorkflowContextBuilder
 
     private async Task<JsonObject> StacksAsync(string projectId, CancellationToken ct)
     {
-        if (_discoverer is null || _files is null || _workspace is null || !_workspace.TryGetRoot(projectId, out var root))
-            return Unavailable();
+        if (!_workspace.TryGetRoot(projectId, out var root))
+            return EmptyWorkflowContext.Unavailable();
 
         try
         {
@@ -64,13 +77,13 @@ public sealed class WorkflowContextBuilder
         catch (Exception)
         {
             // Descoberta é um extra: falhar nela não impede o pedido, só tira as stacks do contexto.
-            return Unavailable();
+            return EmptyWorkflowContext.Unavailable();
         }
     }
 
     private async Task AttachKnowledgeAsync(string projectId, JsonObject context, CancellationToken ct)
     {
-        if (_files is null || _runtime is null || _workspace is null || DataRoot.Length == 0) return;
+        if (DataRoot.Length == 0) return;
         if (!_workspace.TryGetRoot(projectId, out var root)) return;
 
         IReadOnlyDictionary<string, string> indexed;
@@ -94,6 +107,4 @@ public sealed class WorkflowContextBuilder
         context["knowledgeRoot"] = DataRoot;
         context["sources"] = sources;
     }
-
-    private static JsonObject Unavailable() => new() { ["available"] = false, ["stacks"] = new JsonArray() };
 }

@@ -22,7 +22,7 @@ public sealed class EngineSession
     private readonly ConfigureRequestHandler? _configure;
     private readonly WorkflowRequestHandler? _workflows;
     private readonly RunRequestHandler? _runs;
-    private readonly ModelGateway? _models;
+    private readonly ModelRequestHandler? _models;
     private readonly RunTracker? _tracker;
     private readonly SemaphoreSlim _outputGate = new(1, 1);
     private TextWriter? _output;
@@ -42,7 +42,7 @@ public sealed class EngineSession
         _workspace = workspace;
         _configure = configure is null ? null : new ConfigureRequestHandler(configure);
         _workflows = workflows is null ? null : new WorkflowRequestHandler(workflows);
-        _models = models;
+        _models = models is null ? null : new ModelRequestHandler(models);
         _runs = runs is null ? null : new RunRequestHandler(runs);
         _tracker = tracker;
         if (relay is not null) relay.Target = WriteEvent;
@@ -120,13 +120,13 @@ public sealed class EngineSession
         }
         catch (OperationCanceledException)
         {
-            return Reply(ProtocolMessages.Error(id, "CANCELLED", "A operação foi cancelada."));
+            return Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.Cancelled, "A operação foi cancelada."));
         }
         catch (Exception ex)
         {
             // Fronteira de cada pedido: nenhuma falha de um pedido derruba a sessão (e com ela o motor).
             // O texto da exceção pode conter caminhos ou dados do projeto: só o tipo vai para o protocolo.
-            return Reply(ProtocolMessages.Error(id, "INTERNAL_ERROR", $"Falha interna ({ex.GetType().Name})."));
+            return Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.InternalError, $"Falha interna ({ex.GetType().Name})."));
         }
     }
 
@@ -137,10 +137,8 @@ public sealed class EngineSession
             ProtocolMethods.Shutdown => (ProtocolMessages.Ok(id, new JsonObject()), true),
             ProtocolMethods.AuthorizeWorkspace when _workspace is not null => Reply(Authorize(id, parameters)),
             ProtocolMethods.RuntimeHealth when _workflows is not null => Reply(Health(id)),
-            ProtocolMethods.ModelStatus when _models is not null => Reply(ProtocolMessages.Ok(id, StatusJson(_models.Status()))),
-            ProtocolMethods.ModelSave when _models is not null => Reply(SaveModel(id, parameters)),
-            ProtocolMethods.ModelClear when _models is not null => Reply(ClearModel(id)),
-            ProtocolMethods.ModelComplete when _models is not null => Reply(await CompleteModel(id, parameters, ct)),
+            _ when _models is not null && ProtocolMethods.Model.Contains(method) =>
+                Reply(ProtocolMessages.Ok(id, await _models.HandleAsync(method, parameters, ct))),
             _ when _configure is not null && ProtocolMethods.Configure.Contains(method) =>
                 Reply(ProtocolMessages.Ok(id, await _configure.HandleAsync(method, new RequestParams(parameters), ct))),
             _ when _runs is not null && ProtocolMethods.RunControl.Contains(method) =>
@@ -157,47 +155,8 @@ public sealed class EngineSession
             ["aiRuntime"] = _workflows!.AiRuntimeStatus()
         });
 
-    private JsonObject ClearModel(string id)
-    {
-        _models!.Clear();
-        return ProtocolMessages.Ok(id, StatusJson(_models.Status()));
-    }
-
-    private JsonObject SaveModel(string id, JsonObject? parameters) =>
-        (ReadString(parameters, "provider"), ReadString(parameters, "key")) switch
-        {
-            (string provider, string key) => StoreModel(id, provider, key),
-            _ => ProtocolMessages.Error(id, ProtocolErrorCodes.InvalidParams, "Parâmetros de model.save inválidos.")
-        };
-
-    private JsonObject StoreModel(string id, string provider, string key)
-    {
-        _models!.Save(provider, key);
-        return ProtocolMessages.Ok(id, StatusJson(_models.Status()));
-    }
-
-    private async Task<JsonObject> CompleteModel(string id, JsonObject? parameters, CancellationToken ct) =>
-        ReadString(parameters, "prompt") switch
-        {
-            string prompt => ProtocolMessages.Ok(id, CompletionJson(await _models!.CompleteAsync(prompt, ct))),
-            _ => ProtocolMessages.Error(id, ProtocolErrorCodes.InvalidParams, "Parâmetros de model.complete inválidos.")
-        };
-
-    private static JsonObject CompletionJson(ModelCompletion completion) => new()
-    {
-        ["text"] = completion.Text,
-        ["tokens"] = completion.Tokens,
-        ["limitation"] = completion.Limitation
-    };
-
     private static string? ReadString(JsonObject? values, string name) =>
         values?[name] is JsonValue node && node.TryGetValue<string>(out var text) ? text : null;
-
-    private static JsonObject StatusJson(ModelStatus status) => new()
-    {
-        ["configured"] = status.Configured,
-        ["provider"] = status.Provider
-    };
 
     private static (JsonObject Response, bool Shutdown) Reply(JsonObject response) => (response, false);
 

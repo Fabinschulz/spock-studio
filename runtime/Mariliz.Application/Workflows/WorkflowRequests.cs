@@ -18,7 +18,14 @@ internal static class WorkflowRequests
     /// Sem teto em dinheiro. O tempo sobe junto, porque uma chamada de modelo leva segundos.
     /// </summary>
     public const int ModelTokenBudget = 8000;
-    public const int ModelMilliseconds = 60_000;
+
+    /// <summary>
+    /// O prazo de cada conversa com o runtime de IA. O limite de tempo que o runtime recebe vem daqui: os dois precisam
+    /// concordar, senão o motor desiste antes do que o runtime foi autorizado a gastar.
+    /// </summary>
+    public static readonly TimeSpan RuntimeDeadline = TimeSpan.FromSeconds(60);
+
+    public static int ModelMilliseconds => (int)RuntimeDeadline.TotalMilliseconds;
 
     public static JsonObject Start(RunHandle run, string executionId, JsonObject input, JsonObject context, ModelGrant? model = null,
         IReadOnlyList<string>? allowedActions = null)

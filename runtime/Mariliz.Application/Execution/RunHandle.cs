@@ -1,4 +1,5 @@
 using Mariliz.Application.Ports;
+using Mariliz.Application.Protocol;
 using System.Text.Json.Nodes;
 
 namespace Mariliz.Application.Execution;
@@ -55,7 +56,7 @@ public sealed class RunHandle
                     ["runId"] = RunId,
                     ["kind"] = Kind,
                     ["outcome"] = RunStates.Failed,
-                    ["error"] = new JsonObject { ["code"] = "INTERNAL_ERROR", ["message"] = $"Falha interna ({ex.GetType().Name})." }
+                    ["error"] = new JsonObject { ["code"] = ProtocolErrorCodes.InternalError, ["message"] = $"Falha interna ({ex.GetType().Name})." }
                 });
             }
         });
