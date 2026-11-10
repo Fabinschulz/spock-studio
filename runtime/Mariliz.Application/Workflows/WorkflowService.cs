@@ -18,7 +18,7 @@ public sealed class WorkflowService(
     RunTracker tracker,
     IClock clock,
     IRunStore store,
-    WorkflowContextBuilder context,
+    IWorkflowContext context,
     IModelAccess? models = null,
     IEvalRecords? evalRecords = null,
     IActionExecutor? actions = null)
@@ -27,7 +27,7 @@ public sealed class WorkflowService(
     public const string WorkflowId = WorkflowRequests.GraphId + ".v" + WorkflowRequests.GraphVersion;
 
     /// <summary>Prazo de cada conversa com o runtime de IA.</summary>
-    internal TimeSpan Deadline { get; init; } = TimeSpan.FromSeconds(60);
+    internal TimeSpan Deadline { get; init; } = WorkflowRequests.RuntimeDeadline;
 
     private readonly ApprovalGate _approvals = new();
     private readonly WorkflowJournal _journal = new(store, clock);

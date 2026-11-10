@@ -160,8 +160,7 @@ internal sealed class ApplyExecution(
                 AfterHash = kind == OpKinds.Delete ? null : change.AfterHash,
                 BackedUp = kind != OpKinds.Create
             };
-            journal.Ops.Add(op);
-            _recorder.Save();
+            Record(op);
 
             var path = EnsureWritable(change.Path);
             decision.Outcomes[change.Path] = kind == OpKinds.Delete ? Remove(path) : Write(path, change, contents[change.Path]);
@@ -203,8 +202,9 @@ internal sealed class ApplyExecution(
         var content = LockBuilder.BuildFromOutcomes(session.Composed, outcomes, ManagedLockFile.Read(files), specification);
         var newHash = Hashing.Sha256(Encoding.UTF8.GetBytes(content));
         var current = files.ReadBytes(ManagedLockFile.FileName);
+        var currentHash = current is null ? null : Hashing.Sha256(current);
 
-        if (current is null || Hashing.Sha256(current) != newHash)
+        if (currentHash != newHash)
         {
             if (current is not null) store.SaveBackup(run.ProjectId, run.RunId, ManagedLockFile.FileName, current);
 
@@ -212,18 +212,24 @@ internal sealed class ApplyExecution(
             {
                 Path = ManagedLockFile.FileName,
                 Op = current is null ? OpKinds.Create : OpKinds.Update,
-                BeforeHash = current is null ? null : Hashing.Sha256(current),
+                BeforeHash = currentHash,
                 AfterHash = newHash,
                 BackedUp = current is not null
             };
-            journal.Ops.Add(op);
-            _recorder.Save();
+            Record(op);
 
             files.WriteAtomic(ManagedLockFile.FileName, Encoding.UTF8.GetBytes(content));
             MarkApplied(op);
         }
 
         _recorder.CompleteStep(step);
+    }
+
+    /// <summary>A operação entra no diário antes de acontecer: se o motor cair no meio, a retomada sabe o que estava em curso.</summary>
+    private void Record(JournalOp op)
+    {
+        journal.Ops.Add(op);
+        _recorder.Save();
     }
 
     private void MarkApplied(JournalOp op)
