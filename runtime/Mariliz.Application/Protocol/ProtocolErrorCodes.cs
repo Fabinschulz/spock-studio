@@ -10,4 +10,6 @@ public static class ProtocolErrorCodes
     public const string PathNotFound = "PATH_NOT_FOUND";
     public const string PathNotAllowed = "PATH_NOT_ALLOWED";
     public const string PathNotReadable = "PATH_NOT_READABLE";
+    public const string Cancelled = "CANCELLED";
+    public const string InternalError = "INTERNAL_ERROR";
 }
