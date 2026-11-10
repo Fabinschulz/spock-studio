@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 import { isTerminalState, snapshotOf, type TimelineEvent } from '@/shared/schema';
 
+import { agentLabel } from './run-workspace';
+
 /** Um trecho recuperado, com a origem que o motor conferiu: arquivo, trecho, hash do conteúdo e pontuação da busca. */
 const evidenceSchema = z.object({
   filePath: z.string(),
@@ -136,12 +138,9 @@ export function pendingApproval(events: readonly TimelineEvent[]): PendingApprov
   };
 }
 
-const AGENT_LABEL: Record<string, string> = { planning: 'Planejamento', architecture: 'Arquitetura' };
-
 /** Frase de cada evento que a interface mostra. Eventos internos (estado da execução) e desconhecidos ficam de fora. */
 export function describeEvent(event: TimelineEvent): string | null {
-  const agent =
-    typeof event.data.agentId === 'string' ? (AGENT_LABEL[event.data.agentId] ?? event.data.agentId) : 'Agente';
+  const agent = typeof event.data.agentId === 'string' ? agentLabel(event.data.agentId) : 'Agente';
   switch (event.type) {
     case 'workflow.started':
       return 'Execução iniciada';
