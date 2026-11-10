@@ -5,7 +5,7 @@ namespace Mariliz.Application.Ports;
 public sealed record WorkflowLimitation(string Code, string Message);
 
 /// <summary>
-/// Confirmação do runtime de IA (<c>ai.ack.v2</c>). O texto livre do pedido não volta neste objeto.
+/// Confirmação do runtime de IA (<c>ai.ack.v3</c>). O texto livre do pedido não volta neste objeto.
 /// <see cref="WorkflowId"/> junta o grafo e a versão do comportamento (<c>engineering.request.v1</c>).
 /// <see cref="Limitations"/> reúne avisos e erros; <see cref="Errors"/> são só os que derrubaram a execução.
 /// </summary>
@@ -21,6 +21,6 @@ public sealed record WorkflowAck(
     string? InterruptId,
     IReadOnlyList<JsonObject>? NextActions = null)
 {
-    /// <summary>As ações que o runtime propôs. São propostas: quem decide e executa é o motor.</summary>
+    /// <summary>As intenções que o runtime propôs. Quem escolhe o alvo, decide e executa é o motor.</summary>
     public IReadOnlyList<JsonObject> Actions => NextActions ?? [];
 }

@@ -536,7 +536,7 @@ public class WorkflowRuntimeTests
         using var project = TempProject.Dotnet();
         var lines = await RawWorkflowLinesAsync(project.DataDir);
         var ack = lines[^1];
-        Assert.True(ContractFiles.IsValid(ContractFiles.Schema("intelligence", "ai.ack.v2.schema.json"), ack), ack.ToJsonString());
+        Assert.True(ContractFiles.IsValid(ContractFiles.Schema("intelligence", "ai.ack.v3.schema.json"), ack), ack.ToJsonString());
         Assert.True(ContractFiles.IsValid(ContractFiles.Schema("intelligence", "engineering.plan.v1.schema.json"), ack["output"]!["plan"]));
         Assert.True(ContractFiles.IsValid(ContractFiles.Schema("intelligence", "engineering.impact.v1.schema.json"), ack["output"]!["impact"]));
     }

@@ -1,5 +1,5 @@
 {
-  "schema": "ai.ack.v2",
+  "schema": "ai.ack.v3",
   "workflowId": "engineering.request",
   "workflowVersion": "2",
   "runId": "run-0123456789ab",
@@ -81,14 +81,18 @@
   },
   "nextActions": [
     {
-      "id": "act-1",
-      "kind": "file.write",
-      "summary": "Registrar a decisão de arquitetura",
-      "target": ".mariliz/decisions/cobranca.md",
+      "id": "act-decisao-impacto",
+      "intent": "record-decision",
       "evidence": [
         "docs/cobranca.md#1"
       ],
-      "requiresApproval": true
+      "target": ".mariliz/decisions/cobranca.md"
     }
-  ]
+  ],
+  "approval": {
+    "interruptId": "int-0123456789ab",
+    "actionIds": [
+      "act-1"
+    ]
+  }
 }

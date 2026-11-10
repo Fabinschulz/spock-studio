@@ -1,4 +1,4 @@
-"""Fase 7b: o agente só propõe ações. Quem aprova e executa é o motor, e o que não foi proposto não se aprova."""
+"""Fase 7b: o agente só propõe a intenção. Quem escolhe o alvo, aprova e executa é o motor, e o que não foi proposto não se aprova."""
 
 import json
 import tempfile
@@ -7,9 +7,9 @@ from pathlib import Path
 
 import _paths  # noqa: F401
 from support_model import SOURCE
-from test_graph import EXECUTION, _codes, _resume, _run, _start
+from test_graph import _codes, _resume, _run, _start
 
-from contracts.engineering import actions_ok, decision_action, forbidden
+from contracts.engineering import decision_intent, forbidden, intents_ok
 from workflows.engineering import graph
 
 
@@ -27,21 +27,21 @@ def _paused(tmp: str, **options) -> tuple[list[dict], dict]:
 
 
 class ActionProposalTests(unittest.TestCase):
-    def test_com_politica_pausa_e_impacto_o_agente_propoe_uma_acao_sem_conteudo_nem_comando(self) -> None:
+    def test_com_politica_pausa_e_impacto_o_agente_propoe_so_a_intencao(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             events, ack = _paused(tmp)
 
         self.assertEqual(ack["status"], "interrupted")
         (action,) = ack["nextActions"]
-        self.assertEqual(set(action), {"id", "kind", "summary", "target", "evidence", "requiresApproval"})
-        self.assertEqual(action["kind"], "file.write")
-        self.assertEqual(action["target"], f".mariliz/decisions/{EXECUTION}-impacto.md")
-        self.assertTrue(action["requiresApproval"])
+        # Sem alvo, resumo, tipo de escrita nem exigência de aprovação: isso é decisão do motor.
+        self.assertEqual(set(action), {"id", "intent", "evidence"})
+        self.assertEqual(action["intent"], "record-decision")
+        self.assertNotIn(".mariliz", json.dumps(action))
         self.assertEqual(ack["approval"]["actionIds"], [action["id"]])
         self.assertTrue(set(action["evidence"]) <= {item["chunkId"] for item in ack["output"]["evidence"]})
         self.assertNotIn("content", json.dumps(action))
         self.assertFalse(forbidden(action))
-        self.assertTrue(actions_ok([action], EXECUTION, ack["output"]["evidence"]))
+        self.assertTrue(intents_ok([action], ack["output"]["evidence"]))
 
     def test_sem_a_politica_do_motor_nenhuma_acao_e_proposta(self) -> None:
         for allowed in ((), ("command.run",), ("config.change", "external.write")):
@@ -115,27 +115,27 @@ class ApprovalBindingTests(unittest.TestCase):
             self.assertTrue(db.exists())
 
         # A validação do estado restaurado recusa cada adulteração.
-        good = decision_action(EXECUTION, {"evidence": [ack["output"]["evidence"][0]["chunkId"]]})
+        good = decision_intent({"evidence": [ack["output"]["evidence"][0]["chunkId"]]})
         evidence = ack["output"]["evidence"]
         bad = [
             {**good, "command": "rm -rf /"},
-            {**good, "kind": "command.run"},
-            {**good, "target": "src/Program.cs"},
-            {**good, "target": ".mariliz/decisions/../../src/x.md"},
+            {**good, "intent": "command.run"},
+            {**good, "intent": "file.write"},
+            {**good, "id": "act-Maiuscula"},
             {**good, "target": ".mariliz/decisions/ex-ffffffffffff-impacto.md"},
-            {**good, "requiresApproval": False},
+            {**good, "kind": "file.write", "summary": "x", "requiresApproval": True},
             {**good, "evidence": ["docs/inventado.md#9"]},
             {**good, "content": "# conteúdo escrito pelo agente"},
         ]
         for action in bad:
-            self.assertFalse(actions_ok([action], EXECUTION, evidence), str(action))
-        self.assertFalse(actions_ok([good, dict(good)], EXECUTION, evidence))
+            self.assertFalse(intents_ok([action], evidence), str(action))
+        self.assertFalse(intents_ok([good, dict(good)], evidence))
 
     def test_acao_nenhuma_gravada_no_checkpoint_em_texto_livre(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             _paused(tmp)
             blob = next(Path(tmp).rglob("checkpoint.sqlite")).read_bytes()
-        # O estado guarda só a proposta (id, alvo e resumo): sem comando e sem conteúdo de arquivo.
+        # O estado guarda só a intenção (id, tipo e evidências): sem comando e sem conteúdo de arquivo.
         self.assertIn(b"act-decisao-impacto", blob)
         self.assertNotIn(b"rm -rf", blob)
         self.assertNotIn(b'"content"', blob)

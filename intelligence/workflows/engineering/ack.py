@@ -1,8 +1,8 @@
-"""O ai.ack.v2: o que o runtime devolve ao motor no fim de cada trecho, sempre montado só com dados conferidos."""
+"""O ai.ack.v3: o que o runtime devolve ao motor no fim de cada trecho, sempre montado só com dados conferidos."""
 
 from __future__ import annotations
 
-from contracts.engineering import actions_ok, impact_ok, judgment_ok, judgment_outcome
+from contracts.engineering import impact_ok, intents_ok, judgment_ok, judgment_outcome
 from contracts.messages import ResumeRequest
 from infrastructure.events import now
 from workflows.engineering.state import (
@@ -32,7 +32,7 @@ def build_ack(state: dict, status: str, pending: dict | None = None) -> dict:
     if (evaluation := public_evaluation(state)) is not None:
         output["evaluation"] = evaluation
     ack = {
-        "schema": "ai.ack.v2",
+        "schema": "ai.ack.v3",
         "workflowId": WORKFLOW_ID,
         "workflowVersion": WORKFLOW_VERSION,
         "runId": state.get("run_id") or "",
@@ -52,7 +52,7 @@ def build_ack(state: dict, status: str, pending: dict | None = None) -> dict:
             "outputTokens": int(state.get("output_tokens") or 0),
             "costUsd": 0,
         },
-        "nextActions": [dict(item) for item in state.get("actions") or []] if state_actions_ok(state) else [],
+        "nextActions": [dict(item) for item in state.get("actions") or []] if state_intents_ok(state) else [],
     }
     if status == "interrupted" and pending:
         ack["approval"] = {"interruptId": pending["interruptId"], "actionIds": list(pending.get("actionIds") or [])}
@@ -83,8 +83,8 @@ def agents_ok(agents: object) -> bool:
     )
 
 
-def state_actions_ok(state: dict) -> bool:
-    return actions_ok(state.get("actions") or [], state.get("execution_id") or "", state.get("evidence"))
+def state_intents_ok(state: dict) -> bool:
+    return intents_ok(state.get("actions") or [], state.get("evidence"))
 
 
 def public_evaluation(state: dict) -> dict | None:

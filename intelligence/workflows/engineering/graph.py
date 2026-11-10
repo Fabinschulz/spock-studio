@@ -9,7 +9,7 @@ A memória de trabalho é o estado do grafo. A pausa usa ``interrupt()`` e vai p
 SQLite, fora do índice e fora do projeto), para a retomada sobreviver a um reinício. O diário de negócio fica no motor.
 
 Este módulo monta o grafo e conduz a execução: ``run_start`` e ``run_resume`` devolvem um iterador de eventos
-ai.event.v1 enquanto o grafo anda e, por último, o ai.ack.v2. Os nós, o estado, o orçamento, o ack e a conferência do
+ai.event.v1 enquanto o grafo anda e, por último, o ai.ack.v3. Os nós, o estado, o orçamento, o ack e a conferência do
 checkpoint têm módulos próprios nesta pasta.
 """
 

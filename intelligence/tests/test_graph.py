@@ -60,7 +60,7 @@ class GraphTests(unittest.TestCase):
         payload["projectPath"] = "C:/nao-ler"
         events, ack = _run(graph.run_start(payload))
         encoded = json.dumps([events, ack])
-        self.assertEqual(ack["schema"], "ai.ack.v2")
+        self.assertEqual(ack["schema"], "ai.ack.v3")
         self.assertEqual(ack["status"], "completed")
         self.assertNotIn("descrever o módulo de cobrança", encoded)
         self.assertNotIn("nao-ler", encoded)

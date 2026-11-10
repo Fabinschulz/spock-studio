@@ -1,11 +1,11 @@
 {
-  "schema": "ai.ack.v2",
+  "schema": "ai.ack.v3",
   "workflowId": "engineering.request",
   "workflowVersion": "2",
   "runId": "run-0123456789ab",
   "executionId": "ex-0123456789ab",
   "projectId": "p-0123456789ab",
-  "status": "completed",
+  "status": "interrupted",
   "startedAt": "2026-11-02T19:00:00.0000000+00:00",
   "completedAt": "2026-11-02T19:00:00.0000000+00:00",
   "warnings": [
@@ -52,7 +52,7 @@
     },
     "evaluation": {
       "schema": "engineering.evaluation.v1",
-      "verdict": "model",
+      "verdict": "deterministic",
       "judge": "not_run",
       "tokens": 0
     }
@@ -79,5 +79,19 @@
     "outputTokens": 0,
     "costUsd": 0
   },
-  "nextActions": []
+  "nextActions": [
+    {
+      "id": "act-decisao-impacto",
+      "intent": "record-decision",
+      "evidence": [
+        "docs/cobranca.md#1"
+      ]
+    }
+  ],
+  "approval": {
+    "interruptId": "int-0123456789ab",
+    "actionIds": [
+      "act-decisao-impacto"
+    ]
+  }
 }
