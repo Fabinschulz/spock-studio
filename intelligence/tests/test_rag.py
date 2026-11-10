@@ -47,6 +47,20 @@ class RagTests(unittest.TestCase):
             self.assertFalse(legacy.exists())
             self.assertEqual(rag.manifest(root, PROJECT_A), [{"path": "docs/a.md", "hash": "a" * 64}])
 
+    def test_consultar_nao_cria_pasta_nem_apaga_o_indice_antigo(self) -> None:
+        with tempfile.TemporaryDirectory() as root:
+            legacy = Path(root) / PROJECT_A / "index.sqlite"
+            legacy.parent.mkdir(parents=True)
+            legacy.write_bytes(b"antigo")
+
+            self.assertEqual(rag.manifest(root, PROJECT_A), [])
+            self.assertEqual(rag.lexical(root, PROJECT_A, "texto qualquer"), [])
+            self.assertEqual(rag.symbols(root, PROJECT_A, ["Conta"]), [])
+            self.assertIsNone(rag.chunk_body(root, PROJECT_A, "docs/a.md#x"))
+
+            self.assertTrue(legacy.is_file())
+            self.assertFalse((Path(root) / "projects").exists())
+
     def test_trecho_mantem_o_id_quando_outra_parte_do_arquivo_muda(self) -> None:
         before = "public sealed class Conta\n{\n    public void Debitar(decimal valor) { }\n\n    public void Creditar(decimal valor) { }\n}\n"
         after = before.replace("public void Debitar(decimal valor) { }", "public void Debitar(decimal valor)\n    {\n        Validar(valor);\n    }")

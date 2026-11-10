@@ -46,6 +46,7 @@ def manifest(index_root: str, project_id: str) -> list[dict]:
 
 def sync(index_root: str, project_id: str, sources: list) -> dict:
     path = _index_file(index_root, project_id)
+    _prepare_for_write(index_root, path)
     incoming = [_source(item) for item in sources]
     incoming = [item for item in incoming if item is not None]
     with _session(path) as conn:
@@ -223,9 +224,13 @@ def _index_file(index_root: str, project_id: str) -> Path:
     target = (root / "projects" / project_id / "knowledge").resolve()
     if target.parent.parent != root / "projects":
         raise KnowledgeError("índice inválido")
-    target.mkdir(parents=True, exist_ok=True)
-    _drop_legacy(root, project_id)
     return target / "index.sqlite"
+
+
+def _prepare_for_write(index_root: str, path: Path) -> None:
+    """Só quem grava cria a pasta do projeto e remove o índice antigo; consultar nunca mexe no disco."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    _drop_legacy(Path(index_root).resolve(), path.parent.parent.name)
 
 
 def _drop_legacy(root: Path, project_id: str) -> None:
