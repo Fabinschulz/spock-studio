@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Mariliz.Application.Ports;
 using Mariliz.Application.Tests.Support;
 using Mariliz.Application.Workflows;
 using Mariliz.Infrastructure;
@@ -59,7 +60,7 @@ public class PackagedAiSmokeTests
                 ["limits"] = new JsonObject { ["maxIterations"] = 8, ["maxMilliseconds"] = 10_000, ["maxTokens"] = 0, ["maxCostUsd"] = 0 },
                 ["policy"] = new JsonObject { ["allowedActions"] = new JsonArray(), ["modelAllowed"] = false }
             }, events.Add, CancellationToken.None);
-            Assert.Equal("completed", ack.Status);
+            Assert.Equal(AckStatus.Completed, ack.Status);
             Assert.Equal(WorkflowService.WorkflowId, ack.WorkflowId);
             Assert.Contains(events, e => e["type"]?.GetValue<string>() == "agent.completed");
         }

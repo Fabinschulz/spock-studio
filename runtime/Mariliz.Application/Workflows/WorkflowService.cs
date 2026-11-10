@@ -130,7 +130,7 @@ public sealed class WorkflowService(
             EnsureAck(run, executionId, ack);
             RecordJudgment(run, journal, ack);
 
-            if (ack.Status == "interrupted")
+            if (ack.Status == AckStatus.Interrupted)
             {
                 ReviewActions(journal, ack, allowedActions);
                 await WaitForApprovalAsync(run, journal, ack);
@@ -241,20 +241,18 @@ public sealed class WorkflowService(
     {
         if (ack.RunId != run.RunId || ack.ProjectId != run.ProjectId || ack.ExecutionId != executionId || ack.WorkflowId != WorkflowId)
             throw EngineErrors.AiRuntimeInvalidResponse();
-        if (ack.Status is not ("completed" or "interrupted" or "failed"))
-            throw EngineErrors.AiRuntimeInvalidResponse();
     }
 
     private void Record(RunHandle run) => run.Recorder = evt => store.AppendEvent(run.ProjectId, run.RunId, evt);
 
     private void Finish(RunHandle run, RunJournal journal, WorkflowAck ack)
     {
-        if (ack.Status == "interrupted")
+        if (ack.Status == AckStatus.Interrupted)
             throw EngineErrors.AiRuntimeInvalidResponse();
 
         var outcome = _journal.Conclude(journal, ack, actions);
         run.Complete(outcome, WorkflowResult.From(ack, journal.ModelUsage, journal.Judgment, journal.Actions));
-        run.Publish(ack.Status == "failed" ? "workflow.failed" : "workflow.completed", _events.Status(ack.ExecutionId, ack.Status));
+        run.Publish(ack.Status == AckStatus.Failed ? "workflow.failed" : "workflow.completed", _events.Status(ack.ExecutionId, ack.Status.ToWire()));
     }
 
     private void Fail(RunHandle run, RunJournal journal, string code, string message)

@@ -36,16 +36,16 @@ public class ActionGovernanceTests
         {
             Started = (JsonObject)request.DeepClone();
             var executionId = request["executionId"]!.GetValue<string>();
-            return Task.FromResult(Ack(request, "interrupted", Interrupt, proposals(executionId)));
+            return Task.FromResult(Ack(request, AckStatus.Interrupted, Interrupt, proposals(executionId)));
         }
 
         public Task<WorkflowAck> ResumeAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct)
         {
             Resumed = (JsonObject)request.DeepClone();
-            return Task.FromResult(Ack(request, FailOnResume ? "failed" : "completed", null, []));
+            return Task.FromResult(Ack(request, FailOnResume ? AckStatus.Failed : AckStatus.Completed, null, []));
         }
 
-        private static WorkflowAck Ack(JsonObject request, string status, string? interrupt, JsonObject[] actions)
+        private static WorkflowAck Ack(JsonObject request, AckStatus status, string? interrupt, JsonObject[] actions)
         {
             var output = new JsonObject
             {
@@ -55,7 +55,7 @@ public class ActionGovernanceTests
                 ["impact"] = new JsonObject { ["schema"] = "engineering.impact.v1", ["areas"] = new JsonArray("servico", "interface"), ["risks"] = new JsonArray(), ["evidence"] = new JsonArray(Chunk) }
             };
             return new WorkflowAck(WorkflowService.WorkflowId, request["runId"]!.GetValue<string>(), request["projectId"]!.GetValue<string>(),
-                request["executionId"]!.GetValue<string>(), status, output, [], status == "failed" ? [new WorkflowLimitation("PLAN_INVALID", "x")] : [], interrupt, actions);
+                request["executionId"]!.GetValue<string>(), status, output, [], status == AckStatus.Failed ? [new WorkflowLimitation("PLAN_INVALID", "x")] : [], interrupt, actions);
         }
     }
 

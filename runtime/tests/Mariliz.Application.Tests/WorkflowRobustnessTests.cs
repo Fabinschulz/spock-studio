@@ -108,7 +108,7 @@ public class WorkflowRobustnessTests
         }
     }
 
-    private static WorkflowAck Ack(JsonObject request, string status, string? interruptId = null) => new(
+    private static WorkflowAck Ack(JsonObject request, AckStatus status, string? interruptId = null) => new(
         WorkflowService.WorkflowId, request["runId"]!.GetValue<string>(), request["projectId"]!.GetValue<string>(),
         request["executionId"]!.GetValue<string>(), status,
         new JsonObject { ["summary"] = "", ["stacks"] = new JsonArray(), ["evidence"] = new JsonArray() }, [], [], interruptId);
@@ -117,12 +117,12 @@ public class WorkflowRobustnessTests
     private sealed class PausingRuntime : FakeRuntime
     {
         public override Task<WorkflowAck> StartAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct) =>
-            Task.FromResult(Ack(request, "interrupted", "int-0123456789ab"));
+            Task.FromResult(Ack(request, AckStatus.Interrupted, "int-0123456789ab"));
 
         public override async Task<WorkflowAck> ResumeAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct)
         {
             await Task.Delay(10, ct);
-            return Ack(request, "completed");
+            return Ack(request, AckStatus.Completed);
         }
     }
 

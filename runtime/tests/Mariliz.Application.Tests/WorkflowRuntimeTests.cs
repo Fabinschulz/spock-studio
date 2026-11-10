@@ -504,7 +504,7 @@ public class WorkflowRuntimeTests
             var raw = new List<JsonObject>();
             var paused = await runtime.StartAsync(request, raw.Add, CancellationToken.None);
             events.AddRange(raw);
-            Assert.Equal("interrupted", paused.Status);
+            Assert.Equal(AckStatus.Interrupted, paused.Status);
             var resume = new JsonObject
             {
                 ["schema"] = "ai.workflow.resume.v2",
@@ -517,7 +517,7 @@ public class WorkflowRuntimeTests
             };
             Assert.True(ContractFiles.IsValid(ContractFiles.Schema("intelligence", "ai.workflow.resume.v2.schema.json"), resume));
             var done = await runtime.ResumeAsync(resume, events.Add, CancellationToken.None);
-            Assert.Equal("completed", done.Status);
+            Assert.Equal(AckStatus.Completed, done.Status);
 
             Assert.NotEmpty(events);
             foreach (var evt in events)

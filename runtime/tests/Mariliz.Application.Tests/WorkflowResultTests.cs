@@ -66,5 +66,5 @@ public class WorkflowResultTests
     };
 
     private static WorkflowAck Ack(JsonObject output) =>
-        new(WorkflowService.WorkflowId, "run-1", "p-1", "ex-1", "completed", output, [], [], null);
+        new(WorkflowService.WorkflowId, "run-1", "p-1", "ex-1", AckStatus.Completed, output, [], [], null);
 }

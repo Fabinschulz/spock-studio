@@ -100,7 +100,7 @@ public class WorkflowEventStreamTests
             var output = new JsonObject { ["summary"] = "", ["stacks"] = new JsonArray(), ["evidence"] = new JsonArray() };
             return Task.FromResult(new WorkflowAck(
                 WorkflowService.WorkflowId, request["runId"]!.GetValue<string>(), request["projectId"]!.GetValue<string>(),
-                executionId, "completed", output, [], [], null));
+                executionId, AckStatus.Completed, output, [], [], null));
         }
     }
 }

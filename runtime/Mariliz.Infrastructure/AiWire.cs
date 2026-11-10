@@ -14,12 +14,14 @@ internal static class AiWire
         var warnings = ReadNotices(ack, "warnings");
         var errors = ReadNotices(ack, "errors");
         var interrupt = ack["approval"] is JsonObject approval ? approval.Text("interruptId") : "";
+        // Um status fora dos três é resposta fora do contrato; a conferência acontece aqui, na borda.
+        var status = AckStatusWire.Parse(ack.Text("status")) ?? throw EngineErrors.AiRuntimeInvalidResponse();
         return new WorkflowAck(
             $"{ack.Text("workflowId")}.v{ack.Text("workflowVersion")}",
             ack.Text("runId"),
             ack.Text("projectId"),
             ack.Text("executionId"),
-            ack.Text("status"),
+            status,
             ack["output"] as JsonObject ?? new JsonObject(),
             [.. warnings, .. errors],
             errors,

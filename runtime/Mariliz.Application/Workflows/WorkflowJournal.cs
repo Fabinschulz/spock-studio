@@ -55,10 +55,10 @@ internal sealed class WorkflowJournal(IRunStore store, IClock clock)
     /// </summary>
     public string Conclude(RunJournal journal, WorkflowAck ack, IActionExecutor? actions)
     {
-        if (ack.Status == "failed") ActionGovernance.SkipPending(journal);
+        if (ack.Status == AckStatus.Failed) ActionGovernance.SkipPending(journal);
         else ActionGovernance.ExecuteApproved(journal, journal.ProjectId, actions, () => store.SaveJournal(journal));
 
-        var outcome = ack.Status == "failed" ? RunStates.Failed : RunStates.CompletedWithLimitations;
+        var outcome = ack.Status == AckStatus.Failed ? RunStates.Failed : RunStates.CompletedWithLimitations;
         journal.State = outcome;
         journal.FinishedAt = clock.UtcNow;
         journal.Error = outcome == RunStates.Failed ? (ack.Errors.FirstOrDefault() ?? ack.Limitations.FirstOrDefault())?.Code : null;
