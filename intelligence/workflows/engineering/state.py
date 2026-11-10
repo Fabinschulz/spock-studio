@@ -72,6 +72,7 @@ class State(TypedDict, total=False):
     valid: bool
     summary: str
     iterations: int
+    limits: dict
 
 
 class Segment:
@@ -88,6 +89,31 @@ class Segment:
         self.sources = sources
         self.model = model
         self.max_tokens = max_tokens
+
+
+    def limits(self) -> dict:
+        """Os limites desta execução, para irem no checkpoint: a retomada continua com os que a execução começou."""
+        return {"iterations": self.max_iterations, "milliseconds": self.max_milliseconds, "tokens": self.max_tokens}
+
+
+def segment_from_state(emitter: Emitter, clock: Callable[[], float] | None, state: dict) -> Segment:
+    """
+    Um trecho novo (depois da pausa) com os limites que o checkpoint guardou. O checkpoint vem do disco: só valem inteiros
+    não negativos e nunca acima do teto do runtime. Sem eles (checkpoint de versão anterior), vale o teto com modelo.
+    """
+    saved = state.get("limits") if isinstance(state.get("limits"), dict) else {}
+
+    def bounded(name: str, ceiling: int) -> int:
+        value = saved.get(name)
+        return min(value, ceiling) if isinstance(value, int) and not isinstance(value, bool) and value >= 0 else ceiling
+
+    return Segment(
+        emitter,
+        clock,
+        bounded("iterations", MAX_ITERATIONS),
+        bounded("milliseconds", MAX_MILLISECONDS_MODEL),
+        max_tokens=bounded("tokens", MAX_TOKENS),
+    )
 
 
 def initial_state(request: StartRequest) -> dict:
