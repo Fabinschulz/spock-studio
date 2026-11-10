@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
-using System.Net.Sockets;
-using System.Net;
 using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using System.Text;
@@ -31,7 +29,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
 
     public LoopbackAiRuntime(string? scriptPath = null, string? pythonPath = null)
     {
-        _scriptPath = scriptPath ?? LocateScript();
+        _scriptPath = scriptPath ?? AiRuntimeLocator.Script();
         _pythonOverride = pythonPath;
     }
 
@@ -51,7 +49,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         if (IsRunning) return "ready";
         var script = _scriptPath;
         if (string.IsNullOrWhiteSpace(script) || !File.Exists(script)) return "unavailable";
-        return PythonCandidates().Any() ? "stopped" : "unavailable";
+        return AiRuntimeLocator.PythonCandidates(_pythonOverride).Any() ? "stopped" : "unavailable";
     }
 
     /// <summary>
@@ -80,7 +78,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         if (string.IsNullOrWhiteSpace(script) || !File.Exists(script))
             throw EngineErrors.AiRuntimeUnavailable("O runtime de IA não está disponível nesta instalação.");
 
-        var candidates = PythonCandidates().ToList();
+        var candidates = AiRuntimeLocator.PythonCandidates(_pythonOverride).ToList();
         if (candidates.Count == 0)
             throw EngineErrors.AiRuntimeUnavailable("O runtime de IA não está disponível nesta máquina.");
 
@@ -165,7 +163,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
                         onEvent(item);
                         break;
                     case "ai.ack.v2":
-                        return ReadAck(item);
+                        return AiWire.ReadAck(item);
                     default:
                         throw EngineErrors.AiRuntimeInvalidResponse();
                 }
@@ -186,25 +184,6 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         ex is System.Text.Json.JsonException
             ? EngineErrors.AiRuntimeInvalidResponse()
             : EngineErrors.AiRuntimeUnavailable("O runtime de IA não respondeu.");
-
-    private static WorkflowAck ReadAck(JsonObject ack)
-    {
-        var warnings = ReadNotices(ack, "warnings");
-        var errors = ReadNotices(ack, "errors");
-        var interrupt = ack["approval"] is JsonObject approval ? approval.Text("interruptId") : "";
-        return new WorkflowAck(
-            $"{ack.Text("workflowId")}.v{ack.Text("workflowVersion")}",
-            ack.Text("runId"),
-            ack.Text("projectId"),
-            ack.Text("executionId"),
-            ack.Text("status"),
-            ack["output"] as JsonObject ?? new JsonObject(),
-            [.. warnings, .. errors],
-            errors,
-            Ids.IsInterruptId(interrupt) ? interrupt : null,
-            ack["nextActions"] is JsonArray proposals ? proposals.OfType<JsonObject>().Select(p => (JsonObject)p.DeepClone()).ToList() : []);
-    }
-
 
     public async Task ShutdownAsync()
     {
@@ -231,24 +210,9 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         process.Dispose();
     }
 
-    internal static string? LocateScript()
-    {
-        var env = Environment.GetEnvironmentVariable("MARILIZ_AI");
-        if (!string.IsNullOrWhiteSpace(env)) return env;
-
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        for (var i = 0; i < 8 && dir is not null; i++, dir = dir.Parent)
-        {
-            var candidate = Path.Combine(dir.FullName, "intelligence", "server.py");
-            if (File.Exists(candidate)) return candidate;
-        }
-
-        return null;
-    }
-
     private async Task<bool> TryStartAsync(string python, string script, CancellationToken ct)
     {
-        var port = FreeLoopbackPort();
+        var port = LoopbackPort.Free();
         var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
         var psi = new ProcessStartInfo(python)
         {
@@ -369,34 +333,5 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         {
             throw TransportFault(ex);
         }
-    }
-
-    private static IReadOnlyList<WorkflowLimitation> ReadNotices(JsonObject ack, string name)
-    {
-        if (ack[name] is not JsonArray array) return [];
-        var items = new List<WorkflowLimitation>();
-        foreach (var node in array)
-        {
-            if (node is not JsonObject item) continue;
-            var code = item.Text("code");
-            if (code.Length > 0) items.Add(new WorkflowLimitation(code, item.Text("message")));
-        }
-        return items;
-    }
-
-    private IEnumerable<string> PythonCandidates() =>
-        PythonRuntimeLayout.Candidates(
-            AppContext.BaseDirectory,
-            _pythonOverride,
-            Environment.GetEnvironmentVariable("MARILIZ_PYTHON"),
-            Environment.GetEnvironmentVariable("PATH"));
-
-    private static int FreeLoopbackPort()
-    {
-        var listener = new TcpListener(IPAddress.Loopback, 0);
-        listener.Start();
-        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
-        listener.Stop();
-        return port;
     }
 }

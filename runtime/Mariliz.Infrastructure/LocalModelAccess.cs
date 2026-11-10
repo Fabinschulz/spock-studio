@@ -45,7 +45,7 @@ public sealed class LocalModelAccess(ModelBroker broker) : IModelAccess, IDispos
             if (_listener is not null) return _url;
             for (var attempt = 0; attempt < 5; attempt++)
             {
-                var port = FreePort();
+                var port = LoopbackPort.Free();
                 var listener = new HttpListener();
                 listener.Prefixes.Add($"http://127.0.0.1:{port}/");
                 try
@@ -64,14 +64,6 @@ public sealed class LocalModelAccess(ModelBroker broker) : IModelAccess, IDispos
             }
         }
         throw new InvalidOperationException("Não foi possível abrir o proxy de modelo em 127.0.0.1.");
-    }
-
-    private static int FreePort()
-    {
-        var probe = new TcpListener(IPAddress.Loopback, 0);
-        probe.Start();
-        try { return ((IPEndPoint)probe.LocalEndpoint).Port; }
-        finally { probe.Stop(); }
     }
 
     private async Task ServeAsync(HttpListener listener)
