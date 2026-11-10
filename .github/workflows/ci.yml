@@ -29,6 +29,9 @@ jobs:
       # propósito, regenere com MARILIZ_UPDATE_GOLDEN=1 dotnet test e revise o diff das fixtures.
       - name: testes
         run: dotnet test runtime/Mariliz.sln --nologo
+      # Versão fixa: o resultado do lint não muda sozinho. A configuração está em intelligence/pyproject.toml.
+      - name: lint da inteligência (ruff)
+        run: python -m pip install ruff==0.17.4 && python -m ruff check intelligence
       - name: inteligência (Python)
         run: python -m unittest discover -s intelligence/tests -p "test_*.py" -v
 

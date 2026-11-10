@@ -206,7 +206,7 @@ def _declarations(text: str, name_of) -> list[Chunk]:
         if header.strip():
             pieces.append(Chunk("header", "header", header, namespace, [namespace] if namespace else [], 1))
     owner = ""
-    for index, (number, kind, name) in enumerate(marks):
+    for index, (_number, kind, name) in enumerate(marks):
         end = starts[index + 1] if index + 1 < len(marks) else len(lines)
         body = "\n".join(lines[starts[index]:end])
         if kind == "toplevel":

@@ -6,10 +6,10 @@ import unittest
 from pathlib import Path
 
 import _paths  # noqa: F401
+from support_model import SOURCE
+from test_graph import EXECUTION, _codes, _resume, _run, _start
 
 from contracts.engineering import actions_ok, decision_action, forbidden
-from support_model import SOURCE
-from test_graph import EXECUTION, PROJECT, RUN, _codes, _resume, _run, _start
 from workflows.engineering import graph
 
 

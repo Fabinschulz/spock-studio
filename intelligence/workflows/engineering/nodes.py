@@ -10,15 +10,22 @@ from agents import architecture as architecture_model
 from agents import judge as judge_model
 from agents import planning as planning_model
 from agents.runner import Outcome
-from contracts.engineering import ACTION_FILE_WRITE, CRITERIA_VERSION, JUDGE_EVAL_ID, decision_action, judgment_outcome
-from contracts.engineering import forbidden, impact_ok
+from contracts.engineering import (
+    ACTION_FILE_WRITE,
+    CRITERIA_VERSION,
+    JUDGE_EVAL_ID,
+    decision_action,
+    forbidden,
+    impact_ok,
+    judgment_outcome,
+)
 from knowledge import retrieval
 from knowledge.index import KnowledgeError, sync
 from workflows.engineering.budget import CanSpend, model_call, run_agent
 from workflows.engineering.state import (
     AGENT_VERSION,
-    AREA_BY_STACK,
     ARCHITECTURE,
+    AREA_BY_STACK,
     EVALUATION,
     PLANNING,
     Segment,

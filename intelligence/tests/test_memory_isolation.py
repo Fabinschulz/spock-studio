@@ -6,9 +6,9 @@ import unittest
 from pathlib import Path
 
 import _paths  # noqa: F401
+from test_graph import PROJECT, RUN, _resume, _run, _start
 
 from knowledge import index as rag
-from test_graph import EXECUTION, PROJECT, RUN, _resume, _run, _start
 from workflows.engineering import graph
 
 # Mesmos formatos de credencial do SecretScanner do motor (Mariliz.Core/Policy/SecretScanner.cs).
