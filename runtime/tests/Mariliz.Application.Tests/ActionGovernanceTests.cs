@@ -59,15 +59,19 @@ public class ActionGovernanceTests
         }
     }
 
-    private static JsonObject Proposal(string executionId, string? target = null, string kind = "file.write", string id = "act-decisao-impacto", bool requiresApproval = true) => new()
+    /// <summary>A intenção que o runtime manda: só o id, o tipo e as evidências. Alvo, resumo e conteúdo são do motor.</summary>
+    private static JsonObject Intent(string id = "act-decisao-impacto", string intent = ActionGovernance.RecordDecision, string? chunk = Chunk) => new()
     {
         ["id"] = id,
-        ["kind"] = kind,
-        ["summary"] = "TEXTO-DO-AGENTE: registrar a decisão",
-        ["target"] = target ?? $".mariliz/decisions/{executionId}-impacto.md",
-        ["evidence"] = new JsonArray(Chunk),
-        ["requiresApproval"] = requiresApproval
+        ["intent"] = intent,
+        ["evidence"] = new JsonArray(chunk)
     };
+
+    private static JsonObject With(JsonObject intent, string key, JsonNode? value)
+    {
+        intent[key] = value;
+        return intent;
+    }
 
     private sealed class Rig : IDisposable
     {
@@ -130,7 +134,7 @@ public class ActionGovernanceTests
     public async Task A_politica_do_motor_manda_so_file_write_e_so_em_execucao_que_pausa_e_pede_impacto()
     {
         using var rig = new Rig();
-        var runtime = new ProposingRuntime(ex => [Proposal(ex)]);
+        var runtime = new ProposingRuntime(ex => [Intent()]);
         var (service, _) = rig.NewEngine(runtime);
 
         await service.StartAsync(rig.ProjectId, Pausing(), CancellationToken.None);
@@ -154,13 +158,18 @@ public class ActionGovernanceTests
         using var rig = new Rig();
         var runtime = new ProposingRuntime(ex =>
         [
-            Proposal(ex, kind: "command.run", id: "act-comando"),
-            Proposal(ex, target: "src/Program.cs", id: "act-fora"),
-            Proposal(ex, target: ".mariliz/decisions/../../src/x.md", id: "act-sobe"),
-            Proposal(ex, target: ".mariliz/decisions/ex-ffffffffffff-impacto.md", id: "act-outra"),
-            new JsonObject { ["id"] = "act-conteudo", ["kind"] = "file.write", ["summary"] = "x", ["target"] = $".mariliz/decisions/{ex}-impacto.md", ["content"] = "# escrito pelo agente", ["requiresApproval"] = true },
-            new JsonObject { ["id"] = "act-cita", ["kind"] = "file.write", ["summary"] = "x", ["target"] = $".mariliz/decisions/{ex}-impacto.md", ["evidence"] = new JsonArray("docs/inventado.md#9"), ["requiresApproval"] = true },
-            Proposal(ex, id: "ACT-maiuscula")
+            Intent(id: "act-comando", intent: "command.run"),
+            Intent(id: "act-escrita", intent: ActionGovernance.FileWrite),
+            // O agente não escolhe o alvo, o resumo nem o conteúdo: qualquer um deles descarta a intenção.
+            With(Intent(id: "act-fora"), "target", "src/Program.cs"),
+            With(Intent(id: "act-sobe"), "target", ".mariliz/decisions/../../src/x.md"),
+            With(Intent(id: "act-outra"), "target", $".mariliz/decisions/ex-ffffffffffff-impacto.md"),
+            With(Intent(id: "act-resumo"), "summary", "TEXTO-DO-AGENTE"),
+            With(Intent(id: "act-conteudo"), "content", "# escrito pelo agente"),
+            With(Intent(id: "act-comando-junto"), "command", "rm -rf /"),
+            With(Intent(id: "act-formato-antigo"), "kind", "file.write"),
+            Intent(id: "act-cita", chunk: "docs/inventado.md#9"),
+            Intent(id: "ACT-maiuscula")
         ]);
         var (service, _) = rig.NewEngine(runtime);
 
@@ -175,7 +184,7 @@ public class ActionGovernanceTests
     public async Task A_aprovacao_mostra_as_acoes_e_e_ligada_ao_hash_delas()
     {
         using var rig = new Rig();
-        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Proposal(ex)]));
+        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Intent()]));
 
         var (run, approvalId, executionId) = await PauseAsync(service, rig.ProjectId);
 
@@ -183,6 +192,8 @@ public class ActionGovernanceTests
         Assert.True(ContractFiles.IsValid(ContractFiles.Schema("ai", "approval.required.data.schema.json"), data));
         var action = data["actions"]!.AsArray().Single()!;
         Assert.Equal($".mariliz/decisions/{executionId}-impacto.md", action["target"]!.GetValue<string>());
+        Assert.Equal(ActionGovernance.FileWrite, action["kind"]!.GetValue<string>());
+        Assert.Equal("Registrar a decisão de arquitetura (áreas, riscos e evidências) em .mariliz/decisions", action["summary"]!.GetValue<string>());
         // A tela só recebe o que a política mostra (id, tipo, resumo e alvo), nunca o conteúdo.
         Assert.Null(action["content"]);
 
@@ -196,7 +207,7 @@ public class ActionGovernanceTests
     public async Task Sem_aprovar_a_acao_nada_e_gravado_e_o_runtime_recebe_a_lista_de_aprovadas_vazia()
     {
         using var rig = new Rig();
-        var runtime = new ProposingRuntime(ex => [Proposal(ex)]);
+        var runtime = new ProposingRuntime(ex => [Intent()]);
         var (service, _) = rig.NewEngine(runtime);
         var (run, _, executionId) = await PauseAsync(service, rig.ProjectId);
 
@@ -212,7 +223,7 @@ public class ActionGovernanceTests
     public async Task Aprovar_com_o_identificador_certo_executa_so_o_que_o_motor_escreveu()
     {
         using var rig = new Rig();
-        var runtime = new ProposingRuntime(ex => [Proposal(ex)]);
+        var runtime = new ProposingRuntime(ex => [Intent()]);
         var (service, _) = rig.NewEngine(runtime);
         var (run, approvalId, executionId) = await PauseAsync(service, rig.ProjectId);
 
@@ -224,8 +235,6 @@ public class ActionGovernanceTests
         Assert.Contains("# Decisão de arquitetura", written);
         Assert.Contains("- Serviço", written);
         Assert.Contains("`docs/nota.md`", written);
-        // O texto do agente nunca é o conteúdo do arquivo.
-        Assert.DoesNotContain("TEXTO-DO-AGENTE", written);
         Assert.Equal(["act-decisao-impacto"], runtime.Resumed!["decision"]!["actionIds"]!.AsArray().Select(a => a!.GetValue<string>()));
         Assert.Equal(JournalAction.Executed, run.Result!["actions"]!.AsArray().Single()!["status"]!.GetValue<string>());
         Assert.Equal(JournalAction.Executed, rig.Store.LoadJournal(rig.ProjectId, run.RunId)!.Actions.Single().Status);
@@ -235,7 +244,7 @@ public class ActionGovernanceTests
     public async Task Aprovacao_de_outra_execucao_ou_sem_identificador_nao_vale_e_a_pausa_continua()
     {
         using var rig = new Rig();
-        var runtime = new ProposingRuntime(ex => [Proposal(ex)]);
+        var runtime = new ProposingRuntime(ex => [Intent()]);
         var (service, _) = rig.NewEngine(runtime);
         var (runA, approvalA, executionA) = await PauseAsync(service, rig.ProjectId);
         runtime.Started = null;
@@ -266,7 +275,7 @@ public class ActionGovernanceTests
     public async Task Diario_alterado_depois_da_aprovacao_aberta_nao_retoma_nem_grava_mesmo_depois_de_um_reinicio()
     {
         using var rig = new Rig();
-        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Proposal(ex)]));
+        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Intent()]));
         var (run, approvalId, executionId) = await PauseAsync(service, rig.ProjectId);
 
         // O diário em disco é editado: o alvo da ação passa a ser outro arquivo do projeto.
@@ -275,7 +284,7 @@ public class ActionGovernanceTests
         rig.Store.SaveJournal(tampered);
 
         // O motor reinicia: uma instância nova, sem a execução na memória, retoma pelo diário.
-        var (restarted, _) = rig.NewEngine(new ProposingRuntime(ex => [Proposal(ex)]));
+        var (restarted, _) = rig.NewEngine(new ProposingRuntime(ex => [Intent()]));
         var refused = await Assert.ThrowsAsync<EngineException>(() => restarted.ResumeAsync(rig.ProjectId, run.RunId, new ResumeDecision(approvalId, ["act-decisao-impacto"])));
 
         Assert.Equal("APPROVAL_HASH_MISMATCH", refused.Code);
@@ -295,7 +304,7 @@ public class ActionGovernanceTests
     public async Task Depois_de_um_reinicio_a_aprovacao_correta_ainda_executa()
     {
         using var rig = new Rig();
-        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Proposal(ex)]));
+        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Intent()]));
         var (run, approvalId, executionId) = await PauseAsync(service, rig.ProjectId);
 
         var runtime = new ProposingRuntime(_ => []);
@@ -312,7 +321,7 @@ public class ActionGovernanceTests
     public async Task Retomada_repetida_nao_executa_de_novo()
     {
         using var rig = new Rig();
-        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Proposal(ex)]));
+        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Intent()]));
         var (run, approvalId, executionId) = await PauseAsync(service, rig.ProjectId);
         var decision = new ResumeDecision(approvalId, ["act-decisao-impacto"]);
         await (await service.ResumeAsync(rig.ProjectId, run.RunId, decision)).Completion!;
@@ -328,7 +337,7 @@ public class ActionGovernanceTests
     public async Task Ainda_que_a_execucao_rode_de_novo_o_que_ja_foi_executado_nao_e_repetido()
     {
         using var rig = new Rig();
-        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Proposal(ex)]));
+        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Intent()]));
         var (run, approvalId, _) = await PauseAsync(service, rig.ProjectId);
         await (await service.ResumeAsync(rig.ProjectId, run.RunId, new ResumeDecision(approvalId, ["act-decisao-impacto"]))).Completion!;
 
@@ -343,7 +352,7 @@ public class ActionGovernanceTests
     public async Task Se_a_execucao_falha_depois_da_aprovacao_nada_aprovado_e_executado()
     {
         using var rig = new Rig();
-        var runtime = new ProposingRuntime(ex => [Proposal(ex)]) { FailOnResume = true };
+        var runtime = new ProposingRuntime(ex => [Intent()]) { FailOnResume = true };
         var (service, _) = rig.NewEngine(runtime);
         var (run, approvalId, executionId) = await PauseAsync(service, rig.ProjectId);
 
@@ -359,7 +368,7 @@ public class ActionGovernanceTests
     public async Task O_executor_nunca_sobrescreve_arquivo_diferente_e_repetir_o_mesmo_conteudo_nao_muda_nada()
     {
         using var rig = new Rig();
-        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Proposal(ex)]));
+        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Intent()]));
         var (run, _, executionId) = await PauseAsync(service, rig.ProjectId);
         var action = rig.Store.LoadJournal(rig.ProjectId, run.RunId)!.Actions.Single();
         var executor = new ProjectActionExecutor(rig.Authorizer, new TestFilesFactory());
@@ -381,7 +390,7 @@ public class ActionGovernanceTests
     public async Task O_executor_recusa_alvo_fora_da_pasta_e_conteudo_que_nao_bate_com_o_hash()
     {
         using var rig = new Rig();
-        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Proposal(ex)]));
+        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Intent()]));
         var (run, _, _) = await PauseAsync(service, rig.ProjectId);
         var good = rig.Store.LoadJournal(rig.ProjectId, run.RunId)!.Actions.Single();
         var executor = new ProjectActionExecutor(rig.Authorizer, new TestFilesFactory());
@@ -413,7 +422,7 @@ public class ActionGovernanceTests
     public async Task No_protocolo_o_identificador_e_as_acoes_tem_formato_e_sem_actionIds_nada_e_aprovado()
     {
         using var rig = new Rig();
-        var runtime = new ProposingRuntime(ex => [Proposal(ex)]);
+        var runtime = new ProposingRuntime(ex => [Intent()]);
         var (service, tracker) = rig.NewEngine(runtime);
         var session = new EngineSession("test", workspace: rig.Authorizer, workflows: service, tracker: tracker);
         var (run, approvalId, executionId) = await PauseAsync(service, rig.ProjectId);

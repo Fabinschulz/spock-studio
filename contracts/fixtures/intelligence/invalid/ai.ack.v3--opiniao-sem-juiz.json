@@ -1,11 +1,11 @@
 {
-  "schema": "ai.ack.v2",
+  "schema": "ai.ack.v3",
   "workflowId": "engineering.request",
   "workflowVersion": "2",
   "runId": "run-0123456789ab",
   "executionId": "ex-0123456789ab",
   "projectId": "p-0123456789ab",
-  "status": "interrupted",
+  "status": "completed",
   "startedAt": "2026-11-02T19:00:00.0000000+00:00",
   "completedAt": "2026-11-02T19:00:00.0000000+00:00",
   "warnings": [
@@ -54,7 +54,22 @@
       "schema": "engineering.evaluation.v1",
       "verdict": "deterministic",
       "judge": "not_run",
-      "tokens": 0
+      "tokens": 412,
+      "judgment": {
+        "schema": "engineering.judgment.v1",
+        "criteriaVersion": "1",
+        "scores": {
+          "plan_quality": 4,
+          "context_fit": 4,
+          "request_fit": 5
+        },
+        "rationale": "O plano é concreto e cita o módulo certo.",
+        "evidence": [
+          "docs/cobranca.md#1"
+        ],
+        "model": "gpt-4o-mini",
+        "modelVersion": "gpt-4o-mini-2024-07-18"
+      }
     }
   },
   "agents": [
@@ -79,24 +94,5 @@
     "outputTokens": 0,
     "costUsd": 0
   },
-  "nextActions": [
-    {
-      "id": "act-1",
-      "kind": "command.run",
-      "summary": "Registrar a decisão de arquitetura",
-      "target": ".mariliz/decisions/cobranca.md",
-      "evidence": [
-        "docs/cobranca.md#1"
-      ],
-      "requiresApproval": true,
-      "commandId": "test",
-      "command": "rm -rf /"
-    }
-  ],
-  "approval": {
-    "interruptId": "int-0123456789ab",
-    "actionIds": [
-      "act-1"
-    ]
-  }
+  "nextActions": []
 }

@@ -1,11 +1,11 @@
 {
-  "schema": "ai.ack.v2",
+  "schema": "ai.ack.v3",
   "workflowId": "engineering.request",
   "workflowVersion": "2",
   "runId": "run-0123456789ab",
   "executionId": "ex-0123456789ab",
   "projectId": "p-0123456789ab",
-  "status": "interrupted",
+  "status": "failed",
   "startedAt": "2026-11-02T19:00:00.0000000+00:00",
   "completedAt": "2026-11-02T19:00:00.0000000+00:00",
   "warnings": [
@@ -79,22 +79,5 @@
     "outputTokens": 0,
     "costUsd": 0
   },
-  "nextActions": [
-    {
-      "id": "act-1",
-      "kind": "command.run",
-      "summary": "Registrar a decisão de arquitetura",
-      "target": ".mariliz/decisions/cobranca.md",
-      "evidence": [
-        "docs/cobranca.md#1"
-      ],
-      "requiresApproval": true
-    }
-  ],
-  "approval": {
-    "interruptId": "int-0123456789ab",
-    "actionIds": [
-      "act-1"
-    ]
-  }
+  "nextActions": []
 }

@@ -62,7 +62,7 @@ class ContractTests(unittest.TestCase):
                 "decision": {"approvalId": "apr-dddddddddddd", "approved": True, "actionIds": []},
                 "context": {"executionRoot": tmp},
             }))
-        ack_schema = _schema("ai.ack.v2")
+        ack_schema = _schema("ai.ack.v3")
         event_schema = _schema("ai.event.v1")
         for ack in (paused, resumed[-1]):
             self.assertTrue(set(ack_schema["required"]) <= set(ack), ack["status"])

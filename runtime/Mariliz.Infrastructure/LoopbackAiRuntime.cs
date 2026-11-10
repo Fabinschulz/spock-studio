@@ -131,7 +131,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
 
     /// <summary>
     /// Lê o NDJSON à medida que chega: cada <c>ai.event.v1</c> vai para <paramref name="onEvent"/> na hora, e a última linha
-    /// precisa ser o <c>ai.ack.v2</c>. Se o fluxo terminar sem ele, a resposta está fora do contrato.
+    /// precisa ser o <c>ai.ack.v3</c>. Se o fluxo terminar sem ele, a resposta está fora do contrato.
     /// </summary>
     private async Task<WorkflowAck> StreamWorkflowAsync(string path, JsonObject body, Action<JsonObject> onEvent, CancellationToken ct)
     {
@@ -158,7 +158,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
                 if (line.Length > MaxLine || JsonNode.Parse(line) is not JsonObject item)
                     throw EngineErrors.AiRuntimeInvalidResponse();
                 var schema = item.Text("schema");
-                if (schema is "ai.ack.v2") return AiWire.ReadAck(item);
+                if (schema is "ai.ack.v3") return AiWire.ReadAck(item);
                 if (schema is not "ai.event.v1") throw EngineErrors.AiRuntimeInvalidResponse();
                 onEvent(item);
             }

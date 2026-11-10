@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://mariliz.dev/schemas/intelligence/ai.ack.v2.schema.json",
+  "$id": "https://mariliz.dev/schemas/intelligence/ai.ack.v3.schema.json",
   "title": "Inteligência → motor: fim de uma etapa do workflow (última linha do NDJSON)",
-  "description": "nextActions são propostas. O motor aplica a política e decide se a ação precisa de aprovação, mesmo que requiresApproval venha falso. O texto livre do pedido não volta aqui.",
+  "description": "nextActions são intenções, não ações: o agente diz o quê e com que evidências, e o motor aplica a política, escolhe o alvo, escreve o conteúdo e exige a aprovação. O texto livre do pedido não volta aqui.",
   "type": "object",
   "required": ["schema", "workflowId", "workflowVersion", "runId", "executionId", "projectId", "status", "startedAt", "completedAt", "warnings", "errors", "output", "agents", "usage", "nextActions"],
   "properties": {
-    "schema": { "const": "ai.ack.v2" },
+    "schema": { "const": "ai.ack.v3" },
     "workflowId": { "type": "string", "pattern": "^[a-z]+([.][a-z]+)*$" },
     "workflowVersion": { "type": "string", "pattern": "^[0-9]+$" },
     "runId": { "type": "string", "pattern": "^run-[0-9a-f]{12}$" },
@@ -149,21 +149,15 @@
       "additionalProperties": false
     },
     "action": {
-      "description": "Proposta de efeito. Não carrega comando, executável nem conteúdo a gravar: o motor resolve commandId contra os comandos que ele mesmo descobriu.",
+      "description": "Intenção de efeito. Não carrega alvo, resumo, comando nem conteúdo a gravar: o motor deriva o que for preciso. O id só liga a pausa e a retomada à proposta.",
       "type": "object",
-      "required": ["id", "kind", "summary", "requiresApproval"],
+      "required": ["id", "intent", "evidence"],
       "properties": {
         "id": { "type": "string", "pattern": "^act-[0-9a-z-]{1,32}$" },
-        "kind": { "enum": ["file.write", "command.run", "dependency.install", "config.change", "migration.run", "external.write"] },
-        "summary": { "type": "string", "minLength": 1, "maxLength": 200 },
-        "target": { "type": "string", "minLength": 1, "maxLength": 260 },
-        "commandId": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,31}$" },
-        "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-        "requiresApproval": { "type": "boolean" }
+        "intent": { "enum": ["record-decision"] },
+        "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 } }
       },
-      "additionalProperties": false,
-      "if": { "properties": { "kind": { "const": "command.run" } } },
-      "then": { "required": ["commandId"] }
+      "additionalProperties": false
     }
   }
 }

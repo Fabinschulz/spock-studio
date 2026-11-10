@@ -203,48 +203,37 @@ def judgment_ok(judgment: object, evidence: object, with_impact: bool) -> bool:
 
 
 ACTION_FILE_WRITE = "file.write"
-DECISION_ACTION_ID = "act-decisao-impacto"
-_ACTION_ID = re.compile(r"^act-[0-9a-z-]{1,32}$")
-_DECISION_TARGET = re.compile(r"^\.mariliz/decisions/ex-[0-9a-f]{12}-impacto\.md$")
-_ACTION_KEYS = {"id", "kind", "summary", "target", "evidence", "requiresApproval"}
+INTENT_RECORD_DECISION = "record-decision"
+# Só um identificador para a pausa e a retomada se referirem à proposta; o motor valida o formato e dá o resto.
+DECISION_INTENT_ID = "act-decisao-impacto"
+_INTENT_ID = re.compile(r"^act-[0-9a-z-]{1,32}$")
+_INTENT_KEYS = {"id", "intent", "evidence"}
 
 
-def decision_action(execution_id: str, impact: dict) -> dict:
+def decision_intent(impact: dict) -> dict:
     """
-    A proposta de registrar a decisão de arquitetura em ``.mariliz/decisions/``. É só uma proposta: não carrega o conteúdo
-    do arquivo (o motor o escreve a partir do impacto já validado) nem comando. Precisa de aprovação, sempre.
+    A intenção de registrar a decisão de arquitetura, com as evidências que a sustentam. O agente só diz o quê: o alvo, o
+    resumo, o conteúdo e a exigência de aprovação são do motor. Não leva caminho, conteúdo nem comando.
     """
-    return {
-        "id": DECISION_ACTION_ID,
-        "kind": ACTION_FILE_WRITE,
-        "summary": "Registrar a decisão de arquitetura (áreas, riscos e evidências) em .mariliz/decisions",
-        "target": f".mariliz/decisions/{execution_id}-impacto.md",
-        "evidence": list(impact.get("evidence") or []),
-        "requiresApproval": True,
-    }
+    return {"id": DECISION_INTENT_ID, "intent": INTENT_RECORD_DECISION, "evidence": list(impact.get("evidence") or [])}
 
 
-def actions_ok(actions: object, execution_id: str, evidence: object) -> bool:
-    """Toda ação do estado tem só os campos do contrato, id único, alvo no lugar fixo e citações de trechos recuperados."""
-    if not isinstance(actions, list) or len(actions) > 32:
+def intents_ok(intents: object, evidence: object) -> bool:
+    """Toda intenção do estado tem só os campos do contrato, id único, um tipo conhecido e citações de trechos recuperados."""
+    if not isinstance(intents, list) or len(intents) > 32:
         return False
     known = known_chunks(evidence)
     seen: set[str] = set()
-    for action in actions:
-        if not isinstance(action, dict) or not set(action) <= _ACTION_KEYS or forbidden(action):
+    for item in intents:
+        if not isinstance(item, dict) or set(item) != _INTENT_KEYS or forbidden(item):
             return False
-        action_id, target = action.get("id"), action.get("target")
-        if not isinstance(action_id, str) or not _ACTION_ID.match(action_id) or action_id in seen:
+        intent_id = item["id"]
+        if not isinstance(intent_id, str) or not _INTENT_ID.match(intent_id) or intent_id in seen:
             return False
-        if action.get("kind") != ACTION_FILE_WRITE or action.get("requiresApproval") is not True:
+        if item["intent"] != INTENT_RECORD_DECISION:
             return False
-        if target != f".mariliz/decisions/{execution_id}-impacto.md" or not _DECISION_TARGET.match(str(target)):
-            return False
-        summary = action.get("summary")
-        if not isinstance(summary, str) or not 0 < len(summary) <= 200:
-            return False
-        refs = action.get("evidence")
+        refs = item["evidence"]
         if not isinstance(refs, list) or any(not isinstance(ref, str) or ref not in known for ref in refs):
             return False
-        seen.add(action_id)
+        seen.add(intent_id)
     return True

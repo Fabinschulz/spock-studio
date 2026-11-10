@@ -1,5 +1,5 @@
 {
-  "schema": "ai.ack.v2",
+  "schema": "ai.ack.v3",
   "workflowId": "engineering.request",
   "workflowVersion": "2",
   "runId": "run-0123456789ab",
@@ -53,8 +53,8 @@
     "evaluation": {
       "schema": "engineering.evaluation.v1",
       "verdict": "deterministic",
-      "judge": "passed",
-      "tokens": 412
+      "judge": "not_run",
+      "tokens": 0
     }
   },
   "agents": [
@@ -79,5 +79,9 @@
     "outputTokens": 0,
     "costUsd": 0
   },
-  "nextActions": []
+  "nextActions": [],
+  "approval": {
+    "interruptId": "int-0123456789ab",
+    "actionIds": []
+  }
 }

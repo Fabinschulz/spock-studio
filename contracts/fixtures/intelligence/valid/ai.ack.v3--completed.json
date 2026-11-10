@@ -1,5 +1,5 @@
 {
-  "schema": "ai.ack.v2",
+  "schema": "ai.ack.v3",
   "workflowId": "engineering.request",
   "workflowVersion": "2",
   "runId": "run-0123456789ab",
@@ -53,23 +53,8 @@
     "evaluation": {
       "schema": "engineering.evaluation.v1",
       "verdict": "deterministic",
-      "judge": "passed",
-      "tokens": 412,
-      "judgment": {
-        "schema": "engineering.judgment.v1",
-        "criteriaVersion": "1",
-        "scores": {
-          "plan_quality": 4,
-          "context_fit": 4,
-          "request_fit": 5
-        },
-        "rationale": "O plano é concreto e cita o módulo certo.",
-        "evidence": [
-          "docs/cobranca.md#1"
-        ],
-        "model": "gpt-4o-mini",
-        "modelVersion": "gpt-4o-mini-2024-07-18"
-      }
+      "judge": "not_run",
+      "tokens": 0
     }
   },
   "agents": [

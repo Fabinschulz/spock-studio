@@ -14,7 +14,7 @@ from contracts.engineering import (
     ACTION_FILE_WRITE,
     CRITERIA_VERSION,
     JUDGE_EVAL_ID,
-    decision_action,
+    decision_intent,
     forbidden,
     impact_ok,
     judgment_outcome,
@@ -180,12 +180,12 @@ def impact_eval(state: dict) -> dict:
 def propose_actions(state: dict) -> dict:
     """
     Proposta de ação, nunca execução: só com a política do motor permitindo ``file.write``, com pausa para aprovação e
-    com impacto já validado. O agente não escolhe o alvo nem escreve o conteúdo; o motor decide, aprova e executa.
+    com impacto já validado. O agente propõe só a intenção; o motor escolhe o alvo, escreve o conteúdo, aprova e executa.
     """
     state["actions"] = []
     if (ACTION_FILE_WRITE in (state.get("allowed_actions") or []) and state["requires_approval"]
             and impact_ok(state.get("impact"), state.get("evidence"))):
-        state["actions"] = [decision_action(state["execution_id"], state["impact"])]
+        state["actions"] = [decision_intent(state["impact"])]
     return state
 
 

@@ -7,7 +7,7 @@ checkpoint da execução (SQLite, por projeto), e as chamadas de modelo passam p
 do runtime. O runtime .NET é quem autoriza, aplica e publica eventos.
 
 Início e retomada respondem em NDJSON (``application/x-ndjson``, chunked): um ai.event.v1 por
-linha enquanto o grafo anda e, por último, o ai.ack.v2.
+linha enquanto o grafo anda e, por último, o ai.ack.v3.
 """
 
 from __future__ import annotations
@@ -165,7 +165,7 @@ def make_handler(token: str):
             except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
                 lines.close()
             except Exception as error:
-                # Sem o ai.ack.v2 no fim, o motor trata a resposta como fora do contrato.
+                # Sem o ai.ack.v3 no fim, o motor trata a resposta como fora do contrato.
                 _log_failure("stream", error)
                 lines.close()
                 try:

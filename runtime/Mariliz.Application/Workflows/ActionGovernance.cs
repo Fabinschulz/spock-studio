@@ -8,13 +8,22 @@ using Mariliz.Core.Text;
 namespace Mariliz.Application.Workflows;
 
 /// <summary>
-/// A governança das ações que os agentes propõem. O motor aplica a política (quais tipos, quais alvos), escreve ele mesmo o
-/// conteúdo, liga a aprovação ao hash das ações e confere cada retomada contra ela. O agente propõe; nada executa sem aprovação.
+/// A governança das ações que os agentes propõem. O agente só diz a intenção (o que quer e com que evidências); o motor aplica a
+/// política, escolhe o alvo, dá o resumo, escreve o conteúdo, liga a aprovação ao hash das ações e confere cada retomada contra ela.
+/// Nada executa sem aprovação.
 /// </summary>
 internal static partial class ActionGovernance
 {
     public const string FileWrite = "file.write";
-    private static readonly HashSet<string> ProposalKeys = new(StringComparer.Ordinal) { "id", "kind", "summary", "target", "evidence", "requiresApproval" };
+
+    /// <summary>A única intenção que o runtime pode propor hoje: registrar a decisão de arquitetura. Ela vira uma ação <c>file.write</c>.</summary>
+    public const string RecordDecision = "record-decision";
+
+    private const string DecisionSummary = "Registrar a decisão de arquitetura (áreas, riscos e evidências) em .mariliz/decisions";
+    private static readonly HashSet<string> IntentKeys = new(StringComparer.Ordinal) { "id", "intent", "evidence" };
+
+    /// <summary>O lugar fixo do registro de decisão de uma execução. Só o motor conhece este caminho.</summary>
+    public static string DecisionTargetFor(string executionId) => $".mariliz/decisions/{executionId}-impacto.md";
 
     /// <summary>
     /// A política do motor para esta execução: <c>file.write</c> só em execuções que a pessoa pediu para pausar e que pedem
@@ -34,8 +43,9 @@ internal static partial class ActionGovernance
     public static bool IsDecisionTarget(string target) => DecisionTarget().IsMatch(target);
 
     /// <summary>
-    /// Transforma as propostas do runtime nas ações que o motor aceita. O que fugir da política, do formato ou da recuperação
-    /// desta execução é descartado (nunca corrigido); <c>requiresApproval</c> do agente é ignorado: toda ação exige aprovação.
+    /// Transforma as intenções do runtime nas ações que o motor aceita. O que fugir da política, do formato ou da recuperação
+    /// desta execução é descartado (nunca corrigido). Uma intenção que traga alvo, resumo ou conteúdo próprios também é descartada:
+    /// isso é decisão do motor, e toda ação exige aprovação.
     /// </summary>
     public static List<JournalAction> Review(WorkflowAck ack, IReadOnlyList<string> allowed)
     {
@@ -43,24 +53,22 @@ internal static partial class ActionGovernance
         if (allowed.Count == 0 || ack.Output["impact"] is not JsonObject impact) return accepted;
         var known = KnownChunks(ack.Output);
 
-        foreach (var proposal in ack.Actions)
+        foreach (var intent in ack.Actions)
         {
-            if (!proposal.Select(pair => pair.Key).All(ProposalKeys.Contains)) continue;
-            var kind = proposal.Text("kind");
-            var id = proposal.Text("id");
-            var target = proposal.Text("target");
-            var summary = proposal.Text("summary");
-            if (kind != FileWrite || !allowed.Contains(kind) || !IsActionId(id) || accepted.Any(a => a.Id == id)) continue;
-            if (target != $".mariliz/decisions/{ack.ExecutionId}-impacto.md" || !IsDecisionTarget(target)) continue;
-            if (summary.Length is 0 or > 200) continue;
-            if (!TryEvidence(proposal["evidence"], known, out var evidence)) continue;
+            if (!intent.Select(pair => pair.Key).All(IntentKeys.Contains)) continue;
+            var id = intent.Text("id");
+            if (intent.Text("intent") != RecordDecision || !allowed.Contains(FileWrite)) continue;
+            if (!IsActionId(id) || accepted.Any(a => a.Id == id)) continue;
+            var target = DecisionTargetFor(ack.ExecutionId);
+            if (!IsDecisionTarget(target)) continue;
+            if (!TryEvidence(intent["evidence"], known, out var evidence)) continue;
 
             var content = DecisionRecordRenderer.Render(ack, impact, evidence, known);
             accepted.Add(new JournalAction
             {
                 Id = id,
-                Kind = kind,
-                Summary = summary,
+                Kind = FileWrite,
+                Summary = DecisionSummary,
                 Target = target,
                 Evidence = evidence,
                 Content = content,

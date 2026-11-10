@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from contracts.engineering import forbidden, impact_ok
-from workflows.engineering.ack import agents_ok, state_actions_ok
+from workflows.engineering.ack import agents_ok, state_intents_ok
 from workflows.engineering.nodes import plan_validator
 
 
@@ -24,7 +24,7 @@ def checkpoint_ok(state: object, project_id: str, run_id: str) -> bool:
         return False
     if state.get("impact") is not None and not impact_ok(state.get("impact"), evidence):
         return False
-    if not state_actions_ok(state) or (state.get("actions") and state.get("impact") is None):
+    if not state_intents_ok(state) or (state.get("actions") and state.get("impact") is None):
         return False
     clone = dict(state)
     clone["limitations"] = list(state["limitations"])
