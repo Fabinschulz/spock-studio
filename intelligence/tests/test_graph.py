@@ -5,6 +5,7 @@ from pathlib import Path
 
 import _paths  # noqa: F401
 
+from contracts.engineering import forbidden
 from workflows.engineering import graph
 
 RUN = "run-aaaaaaaaaaaa"
@@ -68,7 +69,7 @@ class GraphTests(unittest.TestCase):
         self.assertIn("RAG_NOT_READY", _codes(ack))
         self.assertIn("JUDGE_NOT_RUN", _codes(ack))
         self.assertEqual(ack["errors"], [])
-        self.assertFalse(graph._forbidden(ack["output"]["plan"]))
+        self.assertFalse(forbidden(ack["output"]["plan"]))
         self.assertEqual([event["type"] for event in events], ["workflow.started"])
 
     def test_identificador_fora_do_contrato_e_recusado_antes_de_executar(self) -> None:
@@ -172,7 +173,7 @@ class GraphTests(unittest.TestCase):
         self.assertIn("servico", done["output"]["impact"]["areas"])
         self.assertNotIn("rm -rf", encoded)
         self.assertNotIn("ignore previous", encoded)
-        self.assertFalse(graph._forbidden(done["output"]["impact"]))
+        self.assertFalse(forbidden(done["output"]["impact"]))
         self.assertEqual(done["output"]["evaluation"]["verdict"], "deterministic")
         self.assertEqual(done["output"]["evaluation"]["tokens"], 0)
 
