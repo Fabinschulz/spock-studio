@@ -1,0 +1,14 @@
+# Só configura o linter: a inteligência não é um pacote instalável. Dependências ficam em requirements.in/lock.
+[tool.ruff]
+target-version = "py312"
+line-length = 140
+extend-exclude = ["packages"]
+
+[tool.ruff.lint]
+# Erros reais (E, F), armadilhas comuns (B) e imports ordenados (I). Regras de estilo opinativo ficam de fora.
+select = ["E", "F", "B", "I"]
+# Sem formatador no projeto, o tamanho da linha não é regra: o que importa é o código, não a quebra.
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["agents", "contracts", "evaluations", "infrastructure", "knowledge", "memory", "workflows"]

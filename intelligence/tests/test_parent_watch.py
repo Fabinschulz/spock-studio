@@ -11,6 +11,7 @@ import unittest
 import urllib.request
 
 import _paths  # noqa: F401
+
 from infrastructure.parent_watch import watch_parent
 
 SERVER = os.path.join(str(_paths.ROOT), "server.py")

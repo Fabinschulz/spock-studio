@@ -6,10 +6,10 @@ import unittest
 from pathlib import Path
 
 import _paths  # noqa: F401
-
-from contracts.engineering import actions_ok, decision_action
 from support_model import SOURCE
-from test_graph import EXECUTION, PROJECT, RUN, _codes, _resume, _run, _start
+from test_graph import EXECUTION, _codes, _resume, _run, _start
+
+from contracts.engineering import actions_ok, decision_action, forbidden
 from workflows.engineering import graph
 
 
@@ -40,7 +40,7 @@ class ActionProposalTests(unittest.TestCase):
         self.assertEqual(ack["approval"]["actionIds"], [action["id"]])
         self.assertTrue(set(action["evidence"]) <= {item["chunkId"] for item in ack["output"]["evidence"]})
         self.assertNotIn("content", json.dumps(action))
-        self.assertFalse(graph._forbidden(action))
+        self.assertFalse(forbidden(action))
         self.assertTrue(actions_ok([action], EXECUTION, ack["output"]["evidence"]))
 
     def test_sem_a_politica_do_motor_nenhuma_acao_e_proposta(self) -> None:

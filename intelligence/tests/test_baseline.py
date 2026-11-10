@@ -4,9 +4,9 @@ import unittest
 from pathlib import Path
 
 import _paths  # noqa: F401
+from support_model import FakeModel, with_model
 
 from agents.model_client import ModelError
-from support_model import FakeModel, with_model
 from workflows.engineering import graph
 
 _BASELINE = Path(__file__).resolve().parents[1] / "evaluations" / "datasets" / "baseline.json"
@@ -55,7 +55,7 @@ class ModelBaselineTests(unittest.TestCase):
                 replies = [ModelError(r) if isinstance(r, str) else _fill(r, chunk) for r in case["replies"]]
                 model = FakeModel(*replies)
                 payload = with_model(tmp, impact=case["impact"])
-                ack = list(graph.run_start(payload, model_factory=lambda _request: model))[-1]
+                ack = list(graph.run_start(payload, model_factory=lambda _request, scripted=model: scripted))[-1]
 
             codes = {item["code"] for item in ack["warnings"] + ack["errors"]}
             steps = [step["id"] for step in ack["output"]["plan"]["steps"]]

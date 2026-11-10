@@ -5,9 +5,9 @@ from __future__ import annotations
 import json
 
 import _paths  # noqa: F401
+from test_graph import EXECUTION, _start
 
 from agents.model_client import ModelError, ModelReply
-from test_graph import EXECUTION, _start
 
 TOKEN = "t" * 43
 URL = "http://127.0.0.1:49152/v1/model"

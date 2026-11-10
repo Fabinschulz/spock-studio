@@ -5,12 +5,13 @@ import unittest
 from pathlib import Path
 
 import _paths  # noqa: F401
+from support_model import SOURCE, TOKEN, FakeModel, impact, plan, with_model
+from test_graph import _codes, _run, _start
 
 from agents import prompts
 from agents.model_client import ModelError
+from contracts.engineering import impact_ok
 from contracts.messages import ContractError, parse_start
-from support_model import SOURCE, TOKEN, FakeModel, impact, plan, with_model
-from test_graph import _codes, _run, _start
 from workflows.engineering import graph
 
 
@@ -216,7 +217,7 @@ class ArchitectureWithModelTests(unittest.TestCase):
                 _, ack = _go(with_model(tmp, impact=True), model)
 
                 self.assertIn("IMPACT_MODEL_FALLBACK", _codes(ack), bad)
-                self.assertTrue(graph._impact_ok(ack["output"]["impact"], ack["output"]["evidence"]), bad)
+                self.assertTrue(impact_ok(ack["output"]["impact"], ack["output"]["evidence"]), bad)
                 self.assertEqual(ack["output"]["impact"]["areas"], ["servico"], bad)
 
     def test_sem_trechos_o_modelo_precisa_declarar_a_falta_de_evidencia(self) -> None:

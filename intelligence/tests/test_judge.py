@@ -4,6 +4,9 @@ import tempfile
 import unittest
 
 import _paths  # noqa: F401
+from support_model import FakeModel, impact, plan, with_model
+from test_agents import _chunk, _codes, _go, _steps
+from test_graph import _resume, _run, _start
 
 from agents import judge as judge_model
 from agents.model_client import ModelError
@@ -14,9 +17,7 @@ from contracts.engineering import (
     judgment_ok,
     judgment_outcome,
 )
-from support_model import SOURCE, FakeModel, impact, plan, with_model
-from test_agents import _agent_calls, _chunk, _codes, _go, _steps
-from test_graph import _resume, _run, _start
+from workflows.engineering import ack as engineering_ack
 from workflows.engineering import graph
 
 
@@ -259,7 +260,7 @@ class JudgmentRulesTests(unittest.TestCase):
 
         state = {"evaluation": {"verdict": "deterministic", "judge": "passed", "tokens": 5}, "judgment": {**good, "scores": {"plan_quality": 1, "context_fit": 4, "request_fit": 4}},
                  "evidence": evidence, "impact": None}
-        public = graph._public_evaluation(state)
+        public = engineering_ack.public_evaluation(state)
         # A nota adulterada não bate com o resultado declarado: a opinião não sai.
         self.assertEqual(public["judge"], "not_run")
         self.assertNotIn("judgment", public)
