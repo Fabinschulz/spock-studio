@@ -46,7 +46,7 @@ public class WorkflowJudgmentTests
             ["evaluation"] = evaluation
         };
         if (withImpact) output["impact"] = new JsonObject { ["schema"] = "engineering.impact.v1", ["areas"] = new JsonArray("servico"), ["risks"] = new JsonArray(), ["evidence"] = new JsonArray(Chunk) };
-        return new WorkflowAck(WorkflowService.WorkflowId, "run-aaaaaaaaaaaa", "p-aaaaaaaaaaaa", "ex-aaaaaaaaaaaa", "completed", output, [], [], null);
+        return new WorkflowAck(WorkflowService.WorkflowId, "run-aaaaaaaaaaaa", "p-aaaaaaaaaaaa", "ex-aaaaaaaaaaaa", AckStatus.Completed, output, [], [], null);
     }
 
     [Fact]
@@ -156,7 +156,7 @@ public class WorkflowJudgmentTests
             var document = ack(executionId);
             var ackOutput = (JsonObject)document["output"]!.DeepClone();
             return Task.FromResult(new WorkflowAck(WorkflowService.WorkflowId, request["runId"]!.GetValue<string>(), request["projectId"]!.GetValue<string>(),
-                executionId, "completed", ackOutput, [], [], null));
+                executionId, AckStatus.Completed, ackOutput, [], [], null));
         }
 
         private static JsonObject Event(string executionId, int seq, string type, JsonObject data) => new()
