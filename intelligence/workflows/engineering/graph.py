@@ -54,8 +54,8 @@ from workflows.engineering.state import (
     Segment,
     State,
     blank_state,
-    copy_state,
     initial_state,
+    segment_from_state,
 )
 
 __all__ = [
@@ -91,6 +91,7 @@ def run_start(payload: dict, clock: Callable[[], float] | None = None,
     )
     yield emitter.event("workflow.started")
     initial = initial_state(request)
+    initial["limits"] = segment.limits()
     if request.requires_approval and not request.execution_root:
         yield failed_ack(initial, "CHECKPOINT_UNAVAILABLE", "Sem memória de execução para pausar.")
         return
@@ -116,7 +117,7 @@ def run_resume(payload: dict, clock: Callable[[], float] | None = None) -> Itera
         # Aprovar o que nunca foi proposto não retoma nada: a pausa continua onde estava.
         yield failed_ack(dict(state), "APPROVAL_MISMATCH", "A aprovação cita ações que não foram propostas.")
         return
-    segment = Segment(Emitter(request.execution_id, int(pending.get("eventSeq", 0))), clock)
+    segment = segment_from_state(Emitter(request.execution_id, int(pending.get("eventSeq", 0))), clock, state)
     yield from _drive(segment, request.execution_root, request.project_id, request.run_id, Command(resume={"approved": True}))
 
 
@@ -136,11 +137,12 @@ def build(segment: Segment) -> StateGraph:
     graph.add_node("retrieve", budgeted(segment, lambda state: rag_research(state, segment)))
     graph.add_node("plan", budgeted(segment, lambda state: planning_agent(state, segment)))
     graph.add_node("validate_plan", budgeted(segment, plan_validator))
-    graph.add_node("architecture", lambda state: architecture_agent(copy_state(state), segment))
-    graph.add_node("check_impact", lambda state: propose_actions(impact_eval(copy_state(state))))
-    graph.add_node("approval", lambda state: approval_gate(copy_state(state), segment))
-    graph.add_node("synthesize", lambda state: synthesizer(copy_state(state)))
-    graph.add_node("evaluate", lambda state: evaluation_judge(copy_state(state), segment))
+    # Depois do plano o limite de etapas não conta, mas tempo e tokens valem até o fim, inclusive depois da pausa.
+    graph.add_node("architecture", budgeted(segment, lambda state: architecture_agent(state, segment), counts_iteration=False))
+    graph.add_node("check_impact", budgeted(segment, lambda state: propose_actions(impact_eval(state)), counts_iteration=False))
+    graph.add_node("approval", budgeted(segment, lambda state: approval_gate(state, segment), counts_iteration=False))
+    graph.add_node("synthesize", budgeted(segment, synthesizer, counts_iteration=False))
+    graph.add_node("evaluate", budgeted(segment, lambda state: evaluation_judge(state, segment), counts_iteration=False))
 
     graph.add_edge(START, "analyze_request")
     for current, following in (("analyze_request", "build_context"), ("build_context", "retrieve"), ("retrieve", "plan"), ("plan", "validate_plan")):
