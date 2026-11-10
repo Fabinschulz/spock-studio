@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
@@ -31,9 +29,8 @@ public sealed class WorkflowService(
     /// <summary>Prazo de cada conversa com o runtime de IA.</summary>
     internal TimeSpan Deadline { get; init; } = TimeSpan.FromSeconds(60);
 
-    private sealed record PendingApproval(TaskCompletionSource<IReadOnlyList<string>> Gate, RunJournal Journal);
-
-    private readonly ConcurrentDictionary<string, PendingApproval> _approvals = new();
+    private readonly ApprovalGate _approvals = new();
+    private readonly WorkflowJournal _journal = new(store, clock);
     private readonly WorkflowEvents _events = new(clock);
 
     public async Task<RunHandle> StartAsync(string projectId, JsonObject input, CancellationToken ct)
@@ -67,10 +64,8 @@ public sealed class WorkflowService(
         if (run is null) return ResumeFromJournal(projectId, runId, decision);
         if (run.ProjectId != projectId)
             throw EngineErrors.RunNotFound();
-        if (!_approvals.TryGetValue(runId, out var pending))
-            throw new EngineException("WORKFLOW_NOT_INTERRUPTED", "Não há uma execução aguardando aprovação.");
-        ActionGovernance.EnsureDecision(pending.Journal, decision.ApprovalId, decision.ActionIds);
-        if (!pending.Gate.TrySetResult(decision.ActionIds))
+        var released = _approvals.TryRelease(runId, pending => ActionGovernance.EnsureDecision(pending, decision.ApprovalId, decision.ActionIds), decision.ActionIds);
+        if (!released)
             throw new EngineException("WORKFLOW_NOT_INTERRUPTED", "Não há uma execução aguardando aprovação.");
         return Task.FromResult(run);
     }
@@ -104,7 +99,7 @@ public sealed class WorkflowService(
             run.ContinueFrom(last.GetValue<int>() + 1);
         Record(run);
         ActionGovernance.ApplyDecision(journal, decision.ActionIds);
-        Approve(journal);
+        _journal.Approve(journal);
         run.SetState(RunStates.AwaitingApproval, "Aguardando aprovação");
         run.Start(() => ContinueFromCheckpointAsync(run, journal));
         return Task.FromResult(run);
@@ -112,7 +107,7 @@ public sealed class WorkflowService(
 
     private Task ExecuteAsync(RunHandle run, string executionId, JsonObject input, bool useModel, IReadOnlyList<string> allowedActions)
     {
-        var journal = BeginJournal(run, executionId);
+        var journal = _journal.Begin(run.RunId, run.ProjectId, executionId);
         var filter = new AiEventFilter(executionId);
         return GuardedAsync(run, journal, async () =>
         {
@@ -129,7 +124,7 @@ public sealed class WorkflowService(
                 }
                 finally
                 {
-                    if (grant is not null) RecordModelUsage(journal, models!.Close(executionId));
+                    if (grant is not null) _journal.RecordModelUsage(journal, models!.Close(executionId));
                 }
             });
             EnsureAck(run, executionId, ack);
@@ -164,8 +159,7 @@ public sealed class WorkflowService(
     {
         var judgment = JudgmentVerifier.Verify(ack, models?.Calls(ack.ExecutionId) ?? []);
         if (judgment is null) return;
-        journal.Judgment = judgment;
-        store.SaveJournal(journal);
+        _journal.RecordJudgment(journal, judgment);
         evalRecords?.Save(run.ProjectId, ack.ExecutionId, JudgmentRecord.ForDisk(judgment, run.RunId, run.ProjectId, ack.ExecutionId, clock.UtcNow));
     }
 
@@ -179,12 +173,6 @@ public sealed class WorkflowService(
         journal.ActionsHash = ActionGovernance.HashOf(journal.Actions);
     }
 
-    private void RecordModelUsage(RunJournal journal, ModelUsage usage)
-    {
-        journal.ModelUsage = new JournalModelUsage { Calls = usage.Calls, InputTokens = usage.InputTokens, OutputTokens = usage.OutputTokens };
-        store.SaveJournal(journal);
-    }
-
     private JsonObject Resume(RunHandle run, RunJournal journal) => WorkflowRequests.Resume(run, journal, context.DataRoot);
 
     /// <summary>
@@ -193,21 +181,9 @@ public sealed class WorkflowService(
     /// </summary>
     private async Task WaitForApprovalAsync(RunHandle run, RunJournal journal, WorkflowAck ack)
     {
-        var gate = new TaskCompletionSource<IReadOnlyList<string>>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _approvals[run.RunId] = new PendingApproval(gate, journal);
-        IReadOnlyList<string> approvedActions;
-        try
-        {
-            OpenApproval(run, journal, ack);
-            using (run.Cancellation.Token.Register(() => gate.TrySetCanceled(run.Cancellation.Token)))
-                approvedActions = await gate.Task;
-        }
-        finally
-        {
-            _approvals.TryRemove(run.RunId, out _);
-        }
+        var approvedActions = await _approvals.WaitAsync(run.RunId, journal, run.Cancellation.Token, () => OpenApproval(run, journal, ack));
         ActionGovernance.ApplyDecision(journal, approvedActions);
-        Approve(journal);
+        _journal.Approve(journal);
     }
 
     /// <summary>A pausa só vale se o runtime disse qual interrupção espera; o motor abre a aprovação e grava antes de publicar.</summary>
@@ -217,7 +193,7 @@ public sealed class WorkflowService(
             throw EngineErrors.AiRuntimeInvalidResponse();
         journal.InterruptId = ack.InterruptId;
         journal.ApprovalId = ActionGovernance.ApprovalIdFor(run.RunId, ack.ExecutionId, ack.InterruptId, journal.ActionsHash ?? ActionGovernance.HashOf(journal.Actions));
-        Mark(journal, RunStates.AwaitingApproval);
+        _journal.Mark(journal, RunStates.AwaitingApproval);
         run.SetState(RunStates.AwaitingApproval, "Aguardando aprovação");
         _events.ApprovalRequired(run, journal.ApprovalId, ack.ExecutionId, WorkflowResult.StepIds(ack.Output), ActionGovernance.ForEvent(journal.Actions));
     }
@@ -271,72 +247,25 @@ public sealed class WorkflowService(
 
     private void Record(RunHandle run) => run.Recorder = evt => store.AppendEvent(run.ProjectId, run.RunId, evt);
 
-    private RunJournal BeginJournal(RunHandle run, string executionId)
-    {
-        var journal = new RunJournal
-        {
-            RunId = run.RunId,
-            ProjectId = run.ProjectId,
-            Kind = Kind,
-            ExecutionId = executionId,
-            State = RunStates.Running,
-            StartedAt = clock.UtcNow
-        };
-        store.SaveJournal(journal);
-        return journal;
-    }
-
-    private void Mark(RunJournal journal, string state)
-    {
-        journal.State = state;
-        store.SaveJournal(journal);
-    }
-
-    private void Approve(RunJournal journal)
-    {
-        journal.ApprovedAt = clock.UtcNow;
-        store.SaveJournal(journal);
-    }
-
     private void Finish(RunHandle run, RunJournal journal, WorkflowAck ack)
     {
         if (ack.Status == "interrupted")
             throw EngineErrors.AiRuntimeInvalidResponse();
 
-        // Só o motor executa, e só o que foi aprovado: se a execução falhou, nada aprovado chega a ser executado.
-        if (ack.Status == "failed") ActionGovernance.SkipPending(journal);
-        else ActionGovernance.ExecuteApproved(journal, run.ProjectId, actions, () => store.SaveJournal(journal));
-
-        var outcome = ack.Status == "failed" ? RunStates.Failed : RunStates.CompletedWithLimitations;
-        journal.State = outcome;
-        journal.FinishedAt = clock.UtcNow;
-        journal.Error = outcome == RunStates.Failed ? (ack.Errors.FirstOrDefault() ?? ack.Limitations.FirstOrDefault())?.Code : null;
-        journal.Evals = ack.Limitations.Select(item => new EvalSummary
-        {
-            Id = item.Code,
-            Status = item.Code == "JUDGE_NOT_RUN" ? "not_run" : "recorded",
-            Required = false
-        }).ToList();
-        if (journal.Judgment is { } judged)
-            journal.Evals.Add(new EvalSummary { Id = JournalJudgment.EvalId, Status = judged.Outcome, Required = false });
-        store.SaveJournal(journal);
+        var outcome = _journal.Conclude(journal, ack, actions);
         run.Complete(outcome, WorkflowResult.From(ack, journal.ModelUsage, journal.Judgment, journal.Actions));
         run.Publish(ack.Status == "failed" ? "workflow.failed" : "workflow.completed", _events.Status(ack.ExecutionId, ack.Status));
     }
 
     private void Fail(RunHandle run, RunJournal journal, string code, string message)
     {
-        ActionGovernance.SkipPending(journal);
-        journal.State = RunStates.Failed;
-        journal.FinishedAt = clock.UtcNow;
-        journal.Error = code;
-        store.SaveJournal(journal);
+        _journal.Fail(journal, code);
         run.Complete(RunStates.Failed, WorkflowResult.Failure(code, message));
     }
 
     private async Task Abandon(RunHandle run, RunJournal journal)
     {
-        _approvals.TryRemove(run.RunId, out _);
+        _approvals.Discard(run.RunId);
         var stored = store.LoadJournal(run.ProjectId, run.RunId);
         if (stored is not null && RunStates.IsTerminal(stored.State))
         {
@@ -345,10 +274,7 @@ public sealed class WorkflowService(
         }
 
         await runtime.CancelAsync(run.RunId, run.ProjectId, context.DataRoot);
-        ActionGovernance.SkipPending(journal);
-        journal.State = RunStates.Cancelled;
-        journal.FinishedAt = clock.UtcNow;
-        store.SaveJournal(journal);
+        _journal.Cancel(journal);
         run.Complete(RunStates.Cancelled, new JsonObject { ["kind"] = Kind });
     }
 }
