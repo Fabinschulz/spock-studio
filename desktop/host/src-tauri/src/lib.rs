@@ -12,8 +12,8 @@ use tauri_plugin_dialog::DialogExt;
 use tokio::sync::oneshot;
 
 use engine::Engine;
-use protocol::{validate_frontend_request, HostError};
-use recents::{RecentProject, Recents};
+use protocol::{error_code, method, validate_frontend_request, HostError};
+use recents::{AuthorizedProject, RecentProject, Recents};
 use status::{compose_status, Status};
 
 /// Trava um estado compartilhado. Um mutex envenenado (uma thread entrou em pânico com ele travado) não derruba o host:
@@ -27,6 +27,26 @@ pub(crate) fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
 async fn engine_request(engine: State<'_, Engine>, envelope: Value) -> Result<Value, HostError> {
     let (method, params) = validate_frontend_request(&envelope)?;
     engine.request(&method, params).await
+}
+
+/// Pede ao motor que autorize a pasta e registra o projeto nos recentes. A resposta volta com o `recentId`, para a UI
+/// saber qual item da lista é o projeto atual.
+async fn authorize_and_record(
+    engine: &Engine,
+    recents: &Recents,
+    path: &str,
+) -> Result<Value, HostError> {
+    let mut authorized = engine
+        .request(
+            method::AUTHORIZE_WORKSPACE,
+            serde_json::json!({ "path": path }),
+        )
+        .await?;
+    let recent_id = recents.record(path, &AuthorizedProject::from_engine(&authorized));
+    if let Some(fields) = authorized.as_object_mut() {
+        fields.insert("recentId".into(), Value::String(recent_id));
+    }
+    Ok(authorized)
 }
 
 /// Abre o diálogo nativo de pasta no lado Rust. O caminho nunca passa pela UI: o host o entrega
@@ -45,25 +65,26 @@ async fn pick_project_folder(
             let _ = tx.send(picked);
         });
 
-    let picked = rx
-        .await
-        .map_err(|_| HostError::new("DIALOG_FAILED", "O diálogo de seleção foi interrompido."))?;
+    let picked = rx.await.map_err(|_| {
+        HostError::new(
+            error_code::DIALOG_FAILED,
+            "O diálogo de seleção foi interrompido.",
+        )
+    })?;
     let Some(picked) = picked else {
         return Ok(None);
     };
-    let path = picked
-        .into_path()
-        .map_err(|_| HostError::new("PATH_NOT_ALLOWED", "A pasta escolhida não pode ser usada."))?;
+    let path = picked.into_path().map_err(|_| {
+        HostError::new(
+            error_code::PATH_NOT_ALLOWED,
+            "A pasta escolhida não pode ser usada.",
+        )
+    })?;
     let path_text = path.to_string_lossy().to_string();
 
-    let mut result = engine
-        .request(
-            "workspace.authorize",
-            serde_json::json!({ "path": path_text }),
-        )
-        .await?;
-    recents.record(&path_text, &mut result);
-    Ok(Some(result))
+    authorize_and_record(&engine, &recents, &path_text)
+        .await
+        .map(Some)
 }
 
 /// Projetos escolhidos antes, do mais recente ao mais antigo. Sem caminho completo: só id, nome e caminho abreviado.
@@ -82,23 +103,19 @@ async fn open_recent_project(
 ) -> Result<Value, HostError> {
     let path = recents.path_of(&id).ok_or_else(|| {
         HostError::new(
-            "RECENT_NOT_FOUND",
+            error_code::RECENT_NOT_FOUND,
             "Este projeto não está mais na lista de recentes.",
         )
     })?;
 
     if !std::path::Path::new(&path).is_dir() {
         return Err(HostError::new(
-            "PATH_NOT_FOUND",
+            error_code::PATH_NOT_FOUND,
             "A pasta deste projeto não existe mais ou não está acessível.",
         ));
     }
 
-    let mut result = engine
-        .request("workspace.authorize", serde_json::json!({ "path": path }))
-        .await?;
-    recents.record(&path, &mut result);
-    Ok(result)
+    authorize_and_record(&engine, &recents, &path).await
 }
 
 #[tauri::command]
@@ -108,7 +125,7 @@ async fn engine_status(engine: State<'_, Engine>) -> Result<serde_json::Value, H
         return Ok(compose_status(lifecycle, None));
     }
     let health = engine
-        .request("runtime.health", serde_json::json!({}))
+        .request(method::RUNTIME_HEALTH, serde_json::json!({}))
         .await
         .ok();
     Ok(compose_status(lifecycle, health.as_ref()))
