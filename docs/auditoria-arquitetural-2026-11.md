@@ -117,10 +117,13 @@ Direção de dependências .NET; Core (Policy/Text/Discovery/Plan/Evals); lógic
 | 2 | NET-1, NET-5, RS-1, RS-2, PY-7 | Mergeada (#29, #30) |
 | 3 | NET-2, NET-4, NET-6, NET-7, NET-8, NET-14, NET-15, NET-21 | Mergeada (#30, #31, #32) |
 | 4 | PY-2, PY-4 (parcial), PY-5, PY-9, PY-10 | PR #33 |
-| 5 | UI-4, UI-5, UI-8, UI-9 | Neste PR |
+| 5 | UI-4, UI-5, UI-8, UI-9 | Mergeada (#34) |
+| 6a | RS-6, RS-8, UI-7, UI-12 (parcial) | Neste PR |
 
 **Decisões de escopo**
 - SC-1 (hash do CPython embed) aguarda um SHA256 confiável.
 - PY-4: aplicar o orçamento aos nós depois da pausa exige levar os limites no checkpoint ou no contrato; vai com a onda 6.
 - UI-3 (um só motor para acompanhar execuções): não feito. O fluxo de configuração obtém o resultado do snapshot e usa os eventos só para o progresso, então o risco real é de exibição; unificar com o acompanhamento da página de execução (numeração e lacunas) pede um redesenho dos dois e fica como item próprio.
 - UI-7 (tokens de design), UI-2 (`src/prototype`), NET-3 (resultados tipados), PY-1, PY-11 e PY-12: dependem de decisão de produto ou de mudança de contrato (onda 6).
+- UI-12: `state` e `status` do retrato ficaram como texto de propósito. Um estado novo do motor aparece como veio (`runStateLabel`); um `z.enum` recusaria o retrato inteiro. Feito: a lista de métodos virou `ENGINE_METHODS`/`EngineMethod`, com teste que a compara com `FRONTEND_METHODS` do host.
+- RS-9: o filtro de estados do runtime de IA no host ficou: é validação de borda, coberta por teste.
