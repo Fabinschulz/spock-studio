@@ -27,6 +27,33 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "model.complete",
 ];
 
+pub mod error_code {
+    //! Códigos de erro que o host mesmo produz. Os que vêm do motor passam como estão, por isso `HostError` guarda texto.
+    pub const DIALOG_FAILED: &str = "DIALOG_FAILED";
+    pub const ENGINE_NOT_FOUND: &str = "ENGINE_NOT_FOUND";
+    pub const ENGINE_NOT_RUNNING: &str = "ENGINE_NOT_RUNNING";
+    pub const ENGINE_START_FAILED: &str = "ENGINE_START_FAILED";
+    pub const ENGINE_STOPPED: &str = "ENGINE_STOPPED";
+    pub const ENGINE_TIMEOUT: &str = "ENGINE_TIMEOUT";
+    pub const ENGINE_WRITE_FAILED: &str = "ENGINE_WRITE_FAILED";
+    pub const INVALID_MESSAGE: &str = "INVALID_MESSAGE";
+    pub const INVALID_PARAMS: &str = "INVALID_PARAMS";
+    pub const MESSAGE_TOO_LARGE: &str = "MESSAGE_TOO_LARGE";
+    pub const METHOD_NOT_ALLOWED: &str = "METHOD_NOT_ALLOWED";
+    pub const PATH_NOT_ALLOWED: &str = "PATH_NOT_ALLOWED";
+    pub const PATH_NOT_FOUND: &str = "PATH_NOT_FOUND";
+    pub const RECENT_NOT_FOUND: &str = "RECENT_NOT_FOUND";
+    pub const UNSUPPORTED_PROTOCOL: &str = "UNSUPPORTED_PROTOCOL";
+}
+
+pub mod method {
+    //! Métodos do protocolo que o host usa por conta própria; a UI só pode pedir os de `FRONTEND_METHODS`.
+    pub const ENGINE_HELLO: &str = "engine.hello";
+    pub const ENGINE_SHUTDOWN: &str = "engine.shutdown";
+    pub const AUTHORIZE_WORKSPACE: &str = "workspace.authorize";
+    pub const RUNTIME_HEALTH: &str = "runtime.health";
+}
+
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct HostError {
     pub code: String,
@@ -42,29 +69,48 @@ impl HostError {
     }
 }
 
+/// Quantos bytes o envelope ocupa serializado, sem montar o texto: o limite vale para o que o motor receberia.
+fn serialized_len(value: &Value) -> usize {
+    struct Counter(usize);
+    impl std::io::Write for Counter {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            self.0 += buf.len();
+            Ok(buf.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+    let mut counter = Counter(0);
+    let _ = serde_json::to_writer(&mut counter, value);
+    counter.0
+}
+
 /// Valida um pedido vindo da UI e devolve `(method, params)`.
 pub fn validate_frontend_request(envelope: &Value) -> Result<(String, Value), HostError> {
-    let serialized_len = envelope.to_string().len();
-    if serialized_len > MAX_MESSAGE_BYTES {
+    if serialized_len(envelope) > MAX_MESSAGE_BYTES {
         return Err(HostError::new(
-            "MESSAGE_TOO_LARGE",
+            error_code::MESSAGE_TOO_LARGE,
             "Mensagem acima do limite permitido.",
         ));
     }
 
-    let obj = envelope
-        .as_object()
-        .ok_or_else(|| HostError::new("INVALID_MESSAGE", "A mensagem não é um objeto JSON."))?;
+    let obj = envelope.as_object().ok_or_else(|| {
+        HostError::new(
+            error_code::INVALID_MESSAGE,
+            "A mensagem não é um objeto JSON.",
+        )
+    })?;
 
     if obj.get("v").and_then(Value::as_u64) != Some(PROTOCOL_VERSION) {
         return Err(HostError::new(
-            "UNSUPPORTED_PROTOCOL",
+            error_code::UNSUPPORTED_PROTOCOL,
             "Versão de protocolo não suportada.",
         ));
     }
     if obj.get("kind").and_then(Value::as_str) != Some("request") {
         return Err(HostError::new(
-            "INVALID_MESSAGE",
+            error_code::INVALID_MESSAGE,
             "A UI só pode enviar requisições.",
         ));
     }
@@ -72,7 +118,7 @@ pub fn validate_frontend_request(envelope: &Value) -> Result<(String, Value), Ho
         Some(id) if !id.is_empty() && id.len() <= 64 => {}
         _ => {
             return Err(HostError::new(
-                "INVALID_MESSAGE",
+                error_code::INVALID_MESSAGE,
                 "Requisição sem identificador válido.",
             ))
         }
@@ -81,11 +127,11 @@ pub fn validate_frontend_request(envelope: &Value) -> Result<(String, Value), Ho
     let method = obj
         .get("method")
         .and_then(Value::as_str)
-        .ok_or_else(|| HostError::new("INVALID_MESSAGE", "Requisição sem método."))?;
+        .ok_or_else(|| HostError::new(error_code::INVALID_MESSAGE, "Requisição sem método."))?;
 
     if !FRONTEND_METHODS.contains(&method) {
         return Err(HostError::new(
-            "METHOD_NOT_ALLOWED",
+            error_code::METHOD_NOT_ALLOWED,
             "Este método não está disponível para a interface.",
         ));
     }
@@ -96,7 +142,7 @@ pub fn validate_frontend_request(envelope: &Value) -> Result<(String, Value), Ho
         .unwrap_or_else(|| Value::Object(Default::default()));
     if !params.is_object() {
         return Err(HostError::new(
-            "INVALID_PARAMS",
+            error_code::INVALID_PARAMS,
             "Os parâmetros precisam ser um objeto.",
         ));
     }

@@ -132,6 +132,29 @@ impl RecentStore {
     }
 }
 
+/// O que o host guarda do que o motor devolveu ao autorizar uma pasta: só o que a UI pode ver. É o único lugar do host que
+/// conhece o formato dessa resposta.
+pub struct AuthorizedProject {
+    display_name: String,
+    display_path: String,
+}
+
+impl AuthorizedProject {
+    pub fn from_engine(response: &Value) -> Self {
+        let text = |field: &str, fallback: &str| {
+            response
+                .get(field)
+                .and_then(Value::as_str)
+                .unwrap_or(fallback)
+                .to_string()
+        };
+        Self {
+            display_name: text("displayName", "Projeto"),
+            display_path: text("displayPath", ""),
+        }
+    }
+}
+
 /// Lista de projetos recentes em memória, espelhada no diretório de dados do aplicativo.
 pub struct Recents {
     store: Mutex<RecentStore>,
@@ -146,33 +169,21 @@ impl Recents {
         }
     }
 
-    /// Registra a pasta que o motor autorizou e marca a resposta com o id do recente (`recentId`), para a UI
-    /// saber qual item da lista é o projeto atual sem receber o caminho.
-    pub fn record(&self, path: &str, authorized: &mut Value) {
-        let name = authorized
-            .get("displayName")
-            .and_then(Value::as_str)
-            .unwrap_or("Projeto")
-            .to_string();
-        let shown = authorized
-            .get("displayPath")
-            .and_then(Value::as_str)
-            .unwrap_or("")
-            .to_string();
+    /// Registra a pasta que o motor autorizou e devolve o id do recente, para a UI saber qual item da lista é o
+    /// projeto atual sem receber o caminho.
+    pub fn record(&self, path: &str, project: &AuthorizedProject) -> String {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .map(|d| d.as_millis() as u64)
             .unwrap_or(0);
 
         let mut store = lock(&self.store);
-        store.record(path, &name, &shown, now);
+        store.record(path, &project.display_name, &project.display_path, now);
         // Perder o histórico não é uma falha da operação: só se registra.
         if let Err(error) = store.save(&self.file) {
             eprintln!("[host] não foi possível gravar os projetos recentes: {error}");
         }
-        if let Some(fields) = authorized.as_object_mut() {
-            fields.insert("recentId".into(), Value::String(project_id(path)));
-        }
+        project_id(path)
     }
 
     pub fn list(&self) -> Vec<RecentProject> {
@@ -326,16 +337,19 @@ mod tests {
     fn a_selecao_registrada_leva_o_id_do_recente_correspondente() {
         let file = temp_file("selecao");
         let recents = Recents::load(file.clone());
-        let mut authorized = serde_json::json!({
+        let authorized = serde_json::json!({
             "projectId": "p-000000000000",
             "displayName": "app",
             "displayPath": "~/app"
         });
 
-        recents.record("/projetos/app", &mut authorized);
+        let recent_id = recents.record(
+            "/projetos/app",
+            &AuthorizedProject::from_engine(&authorized),
+        );
 
         let listed = recents.list();
-        assert_eq!(authorized["recentId"], listed[0].id.as_str());
+        assert_eq!(recent_id, listed[0].id);
         assert_eq!(
             recents.path_of(&listed[0].id).as_deref(),
             Some("/projetos/app")

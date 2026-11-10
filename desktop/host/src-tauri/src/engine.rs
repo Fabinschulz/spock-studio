@@ -19,7 +19,9 @@ use tauri_plugin_shell::{
 use tokio::sync::oneshot;
 
 use crate::lock;
-use crate::protocol::{parse_engine_line, EngineMessage, HostError, PROTOCOL_VERSION};
+use crate::protocol::{
+    error_code, method, parse_engine_line, EngineMessage, HostError, PROTOCOL_VERSION,
+};
 use crate::resources::packaged_runtime;
 use crate::status::Status;
 
@@ -88,14 +90,14 @@ impl Engine {
 
         let hello = self
             .request(
-                "engine.hello",
+                method::ENGINE_HELLO,
                 json!({ "protocol": [PROTOCOL_VERSION], "hostVersion": env!("CARGO_PKG_VERSION") }),
             )
             .await?;
 
         if hello.get("protocol").and_then(Value::as_u64) != Some(PROTOCOL_VERSION) {
             return Err(HostError::new(
-                "UNSUPPORTED_PROTOCOL",
+                error_code::UNSUPPORTED_PROTOCOL,
                 "O motor não fala a versão de protocolo esperada.",
             ));
         }
@@ -114,7 +116,7 @@ impl Engine {
     fn spawn_process(&self, app: &AppHandle) -> Result<(), HostError> {
         let mut command = app.shell().sidecar(SIDECAR).map_err(|_| {
             HostError::new(
-                "ENGINE_NOT_FOUND",
+                error_code::ENGINE_NOT_FOUND,
                 "O executável do motor não foi encontrado.",
             )
         })?;
@@ -128,7 +130,10 @@ impl Engine {
             }
         }
         let (mut rx, child) = command.spawn().map_err(|_| {
-            HostError::new("ENGINE_START_FAILED", "Não foi possível iniciar o motor.")
+            HostError::new(
+                error_code::ENGINE_START_FAILED,
+                "Não foi possível iniciar o motor.",
+            )
         })?;
 
         *lock(&self.0.child) = Some(child);
@@ -201,7 +206,7 @@ impl Engine {
         }))
         .map_err(|_| {
             HostError::new(
-                "INVALID_MESSAGE",
+                error_code::INVALID_MESSAGE,
                 "Não foi possível serializar a requisição.",
             )
         })?;
@@ -212,14 +217,14 @@ impl Engine {
             let Some(child) = guard.as_mut() else {
                 lock(&self.0.pending).remove(&id);
                 return Err(HostError::new(
-                    "ENGINE_NOT_RUNNING",
+                    error_code::ENGINE_NOT_RUNNING,
                     "O motor não está em execução.",
                 ));
             };
             if child.write(&line).is_err() {
                 lock(&self.0.pending).remove(&id);
                 return Err(HostError::new(
-                    "ENGINE_WRITE_FAILED",
+                    error_code::ENGINE_WRITE_FAILED,
                     "Não foi possível falar com o motor.",
                 ));
             }
@@ -229,14 +234,14 @@ impl Engine {
             Ok(Ok(value)) => value,
             Ok(Err(_)) => {
                 return Err(HostError::new(
-                    "ENGINE_STOPPED",
+                    error_code::ENGINE_STOPPED,
                     "O motor encerrou antes de responder.",
                 ))
             }
             Err(_) => {
                 lock(&self.0.pending).remove(&id);
                 return Err(HostError::new(
-                    "ENGINE_TIMEOUT",
+                    error_code::ENGINE_TIMEOUT,
                     "O motor demorou demais para responder.",
                 ));
             }
@@ -253,10 +258,12 @@ impl Engine {
                 .unwrap_or("Falha no motor.");
             return Err(HostError::new(code, message));
         }
-        response
-            .get("result")
-            .cloned()
-            .ok_or_else(|| HostError::new("INVALID_MESSAGE", "Resposta do motor sem resultado."))
+        response.get("result").cloned().ok_or_else(|| {
+            HostError::new(
+                error_code::INVALID_MESSAGE,
+                "Resposta do motor sem resultado.",
+            )
+        })
     }
 
     /// Pede o encerramento ordenado e espera o motor terminar. Uma aplicação em andamento é cancelada e
@@ -268,7 +275,7 @@ impl Engine {
             let mut guard = lock(&self.0.child);
             let Some(child) = guard.as_mut() else { return };
             let mut line = serde_json::to_vec(&json!({
-                "v": PROTOCOL_VERSION, "kind": "request", "id": "h-shutdown", "method": "engine.shutdown"
+                "v": PROTOCOL_VERSION, "kind": "request", "id": "h-shutdown", "method": method::ENGINE_SHUTDOWN
             }))
             .unwrap_or_default();
             line.push(b'\n');

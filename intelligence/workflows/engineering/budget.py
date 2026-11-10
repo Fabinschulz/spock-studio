@@ -19,14 +19,19 @@ CanSpend = Callable[[int], bool]
 ModelCall = Callable[[CanSpend], Outcome]
 
 
-def budgeted(segment: Segment, node: Callable[[dict], dict]) -> Callable[[dict], dict]:
-    """Conta a etapa e falha a execução se ela passou do limite de etapas, de tempo ou de tokens."""
+def budgeted(segment: Segment, node: Callable[[dict], dict], counts_iteration: bool = True) -> Callable[[dict], dict]:
+    """
+    Falha a execução se, depois do nó, ela passou do limite de tempo ou de tokens, e, quando o nó conta como etapa, do
+    limite de etapas. O limite de etapas é do trecho que o motor chama de análise (o primeiro até o plano validado); os nós
+    seguintes só respondem ao tempo e aos tokens.
+    """
     def run(state: dict) -> dict:
         state = node(copy_state(state))
-        state["iterations"] = int(state.get("iterations") or 0) + 1
+        if counts_iteration:
+            state["iterations"] = int(state.get("iterations") or 0) + 1
         if state.get("failure"):
             return state
-        if state["iterations"] > segment.max_iterations:
+        if counts_iteration and state["iterations"] > segment.max_iterations:
             fail(state, "LIMIT_ITERATIONS", "A execução passou do limite de etapas.")
         elif (segment.clock() - segment.started) * 1000 > segment.max_milliseconds:
             fail(state, "LIMIT_TIME", "A execução passou do limite de tempo.")

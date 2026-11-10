@@ -16,9 +16,32 @@ export function errorMessage(error: unknown, fallback: string): string {
   return error instanceof EngineError ? error.message : fallback;
 }
 
+/**
+ * Os métodos que a interface pode pedir ao motor. É a mesma lista que o host Rust deixa passar (`FRONTEND_METHODS` em
+ * `desktop/host/src-tauri/src/protocol.rs`): um método fora dela seria recusado, então o compilador já o recusa aqui.
+ */
+export const ENGINE_METHODS = [
+  'project.discover',
+  'harness.plan',
+  'harness.apply',
+  'harness.validate',
+  'harness.revert',
+  'harness.runs',
+  'run.snapshot',
+  'run.cancel',
+  'workflow.start',
+  'workflow.resume',
+  'model.status',
+  'model.save',
+  'model.clear',
+  'model.complete'
+] as const;
+
+export type EngineMethod = (typeof ENGINE_METHODS)[number];
+
 /** Fala com o motor .NET. A única implementação real passa pelos comandos do host Tauri. */
 export type EngineClient = {
-  request<T>(method: string, params: Record<string, unknown>, schema: ZodType<T>): Promise<T>;
+  request<T>(method: EngineMethod, params: Record<string, unknown>, schema: ZodType<T>): Promise<T>;
   onEvent(handler: (event: RunEvent) => void): Promise<() => void>;
 };
 
