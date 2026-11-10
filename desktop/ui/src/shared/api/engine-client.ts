@@ -1,5 +1,5 @@
 import { runEventSchema, type RunEvent } from '@/shared/schema';
-import type { ZodType } from 'zod';
+import type { ZodError, ZodType } from 'zod';
 
 export class EngineError extends Error {
   constructor(
@@ -24,6 +24,15 @@ export type EngineClient = {
 
 let counter = 0;
 
+/**
+ * O que o motor mandou e a interface não entende é desvio de contrato: fica registrado para quem desenvolve ver onde,
+ * sem o valor recebido (pode ter conteúdo do projeto). A pessoa vê só a mensagem genérica.
+ */
+function warnContractDrift(what: string, error: ZodError) {
+  const where = error.issues.map((issue) => `${issue.path.join('.') || '(raiz)'}: ${issue.message}`);
+  console.warn(`[motor] ${what} fora do contrato`, where);
+}
+
 function toEngineError(error: unknown): EngineError {
   if (typeof error === 'object' && error !== null && 'code' in error && 'message' in error) {
     return new EngineError(String(error.code), String(error.message));
@@ -44,7 +53,10 @@ export const tauriEngineClient: EngineClient = {
     }
 
     const parsed = schema.safeParse(raw);
-    if (!parsed.success) throw new EngineError('INVALID_RESPONSE', 'O motor respondeu num formato inesperado.');
+    if (!parsed.success) {
+      warnContractDrift(`resposta de ${method}`, parsed.error);
+      throw new EngineError('INVALID_RESPONSE', 'O motor respondeu num formato inesperado.');
+    }
     return parsed.data;
   },
 
@@ -53,6 +65,7 @@ export const tauriEngineClient: EngineClient = {
     return listen<unknown>('engine_event', (event) => {
       const parsed = runEventSchema.safeParse(event.payload);
       if (parsed.success) handler(parsed.data);
+      else warnContractDrift('evento', parsed.error);
     });
   }
 };

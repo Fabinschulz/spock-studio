@@ -1,38 +1,34 @@
 import { errorMessage } from '@/shared/api';
 import type { ModelStatus } from '@/shared/schema';
-import { useCallback, useEffect, useState } from 'react';
+import { useAsyncResource } from '@/shared/hooks';
+import { useCallback, useState } from 'react';
 
 import type { ModelApi } from '../service/model-api';
 
 /** Estado da chave do modelo e as duas ações sobre ela; cada ação tem o próprio texto de falha. */
 export function useModelSettings(api: ModelApi) {
-  const [status, setStatus] = useState<ModelStatus | null>(null);
+  const load = useCallback(() => api.status(), [api]);
+  const initial = useAsyncResource(load);
+  // O que as ações devolveram vale mais que a leitura inicial.
+  const [updated, setUpdated] = useState<ModelStatus | null>(null);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let active = true;
-    api
-      .status()
-      .then((next) => {
-        if (active) setStatus(next);
-      })
-      .catch((cause: unknown) => {
-        if (active) setError(errorMessage(cause, 'Não foi possível ler o estado do modelo.'));
-      });
-    return () => {
-      active = false;
-    };
-  }, [api]);
+  const status = updated ?? (initial.status === 'ready' ? initial.value : null);
+  const error =
+    actionError ??
+    (status === null && initial.status === 'error'
+      ? errorMessage(initial.error, 'Não foi possível ler o estado do modelo.')
+      : null);
 
   const run = useCallback(async (action: () => Promise<ModelStatus>, failure: string) => {
     setBusy(true);
-    setError(null);
+    setActionError(null);
     try {
-      setStatus(await action());
+      setUpdated(await action());
       return true;
     } catch (cause) {
-      setError(errorMessage(cause, failure));
+      setActionError(errorMessage(cause, failure));
       return false;
     } finally {
       setBusy(false);

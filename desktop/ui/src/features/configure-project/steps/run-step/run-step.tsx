@@ -1,6 +1,7 @@
 import { Alert, Button } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
+import { errorMessage } from '@/shared/api';
 import { PrimaryActionFooter } from '@/shared/components/ui';
 import { formatElapsed } from '@/shared/utils';
 
@@ -27,7 +28,7 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
     try {
       await onCancel();
     } catch (error) {
-      setCancelError(error instanceof Error ? error.message : 'Não foi possível cancelar a execução.');
+      setCancelError(errorMessage(error, 'Não foi possível cancelar a execução.'));
       setCancelling(false);
     }
   };
