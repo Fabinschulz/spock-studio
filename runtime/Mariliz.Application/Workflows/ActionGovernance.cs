@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Mariliz.Application.Execution;
@@ -56,7 +55,7 @@ internal static partial class ActionGovernance
             if (summary.Length is 0 or > 200) continue;
             if (!TryEvidence(proposal["evidence"], known, out var evidence)) continue;
 
-            var content = RenderDecision(ack, impact, evidence, known);
+            var content = DecisionRecordRenderer.Render(ack, impact, evidence, known);
             accepted.Add(new JournalAction
             {
                 Id = id,
@@ -69,43 +68,6 @@ internal static partial class ActionGovernance
             });
         }
         return accepted;
-    }
-
-    /// <summary>O hash que liga a aprovação às ações: identificador, tipo, alvo e conteúdo de cada uma, em ordem fixa.</summary>
-    public static string HashOf(IEnumerable<JournalAction> actions)
-    {
-        var canonical = new StringBuilder();
-        foreach (var action in actions.OrderBy(a => a.Id, StringComparer.Ordinal))
-            canonical.Append(action.Id).Append('\n').Append(action.Kind).Append('\n').Append(action.Target).Append('\n').Append(action.ContentSha256).Append('\n');
-        return Hashing.Sha256(canonical.ToString());
-    }
-
-    /// <summary>
-    /// O identificador da aprovação nasce da execução, da pausa e do hash das ações: aprovação de outra execução, de outra
-    /// pausa ou de outras ações não coincide com este.
-    /// </summary>
-    public static string ApprovalIdFor(string runId, string executionId, string interruptId, string actionsHash) =>
-        "apr-" + Hashing.Sha256($"{runId}|{executionId}|{interruptId}|{actionsHash}")[..12];
-
-    /// <summary>
-    /// Confere uma retomada contra o diário. Se há ações, a pessoa precisa apresentar o <c>approvalId</c> que viu; só se aprova
-    /// o que foi proposto; e o diário precisa continuar com o hash e o identificador que foram gravados na pausa.
-    /// </summary>
-    public static void EnsureDecision(RunJournal journal, string? approvalId, IReadOnlyList<string> actionIds)
-    {
-        var expectedHash = HashOf(journal.Actions);
-        if (journal.ActionsHash != expectedHash
-            || journal.ApprovalId != ApprovalIdFor(journal.RunId, journal.ExecutionId ?? "", journal.InterruptId ?? "", expectedHash))
-            throw new EngineException("APPROVAL_HASH_MISMATCH", "As ações propostas mudaram depois de a aprovação ser aberta. Nada foi executado.");
-
-        // Aprovar uma ação exige o identificador da aprovação. Continuar sem aprovar nenhuma não exige: é sempre o caminho seguro,
-        // e um identificador apresentado, certo ou errado, é sempre conferido.
-        if ((actionIds.Count > 0 || approvalId is not null)
-            && !string.Equals(approvalId, journal.ApprovalId, StringComparison.Ordinal))
-            throw new EngineException("APPROVAL_MISMATCH", "Esta aprovação não é a desta execução.");
-        var proposed = journal.Actions.Select(a => a.Id).ToHashSet(StringComparer.Ordinal);
-        if (actionIds.Any(id => !proposed.Contains(id)) || actionIds.Distinct().Count() != actionIds.Count)
-            throw new EngineException("APPROVAL_ACTION_UNKNOWN", "A aprovação cita ações que não foram propostas.");
     }
 
     /// <summary>Marca o que foi aprovado; tudo o que não foi nomeado fica de fora.</summary>
@@ -172,35 +134,4 @@ internal static partial class ActionGovernance
         }
         return true;
     }
-
-    /// <summary>
-    /// O texto do registro, escrito pelo motor só com o que ele validou (áreas, riscos e trechos citados). Sem o pedido, sem texto
-    /// livre de modelo e sem data, então o mesmo impacto gera sempre o mesmo conteúdo.
-    /// </summary>
-    private static string RenderDecision(WorkflowAck ack, JsonObject impact, IReadOnlyList<string> evidence, Dictionary<string, string> known)
-    {
-        var areas = impact["areas"]?.AsArray().Select(a => a?.GetValue<string>() ?? "").Select(AreaLabel) ?? [];
-        var risks = impact["risks"]?.AsArray().Select(r => r?.GetValue<string>() ?? "").Select(RiskLabel).ToList() ?? [];
-        var text = new StringBuilder();
-        text.Append("# Decisão de arquitetura: impacto técnico\n\n");
-        text.Append($"Registro gerado a partir da execução `{ack.ExecutionId}`. Foi proposto por um agente e aprovado por uma pessoa; revise antes de versionar.\n\n");
-        text.Append("## Áreas afetadas\n\n");
-        foreach (var area in areas) text.Append("- ").Append(area).Append('\n');
-        text.Append("\n## Riscos\n\n");
-        if (risks.Count == 0) text.Append("- Nenhum risco registrado.\n");
-        foreach (var risk in risks) text.Append("- ").Append(risk).Append('\n');
-        text.Append("\n## Evidências\n\n");
-        if (evidence.Count == 0) text.Append("- Nenhuma evidência do projeto sustenta este registro.\n");
-        foreach (var chunk in evidence) text.Append($"- `{known[chunk]}` (`{chunk}`)\n");
-        return text.ToString();
-    }
-
-    private static string AreaLabel(string area) => area switch { "servico" => "Serviço", "interface" => "Interface", _ => "Projeto" };
-
-    private static string RiskLabel(string risk) => risk switch
-    {
-        "sem-evidencia" => "Nenhum trecho do projeto sustenta o impacto.",
-        "sem-stack" => "Nenhuma stack foi detectada no projeto.",
-        _ => "Risco não identificado."
-    };
 }

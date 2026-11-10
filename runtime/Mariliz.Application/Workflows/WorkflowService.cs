@@ -64,7 +64,7 @@ public sealed class WorkflowService(
         if (run is null) return ResumeFromJournal(projectId, runId, decision);
         if (run.ProjectId != projectId)
             throw EngineErrors.RunNotFound();
-        var released = _approvals.TryRelease(runId, pending => ActionGovernance.EnsureDecision(pending, decision.ApprovalId, decision.ActionIds), decision.ActionIds);
+        var released = _approvals.TryRelease(runId, pending => ApprovalBinding.EnsureDecision(pending, decision.ApprovalId, decision.ActionIds), decision.ActionIds);
         if (!released)
             throw new EngineException("WORKFLOW_NOT_INTERRUPTED", "Não há uma execução aguardando aprovação.");
         return Task.FromResult(run);
@@ -89,7 +89,7 @@ public sealed class WorkflowService(
             throw EngineErrors.RunNotFound();
 
         // Antes de religar qualquer coisa: o diário em disco precisa ainda bater com a aprovação que foi aberta.
-        ActionGovernance.EnsureDecision(journal, decision.ApprovalId, decision.ActionIds);
+        ApprovalBinding.EnsureDecision(journal, decision.ApprovalId, decision.ActionIds);
 
         var run = tracker.TryRehydrate(runId, projectId, Kind)
             ?? throw EngineErrors.RunInProgress();
@@ -170,7 +170,7 @@ public sealed class WorkflowService(
     private static void ReviewActions(RunJournal journal, WorkflowAck ack, IReadOnlyList<string> allowedActions)
     {
         journal.Actions = ActionGovernance.Review(ack, allowedActions);
-        journal.ActionsHash = ActionGovernance.HashOf(journal.Actions);
+        journal.ActionsHash = ApprovalBinding.HashOf(journal.Actions);
     }
 
     private JsonObject Resume(RunHandle run, RunJournal journal) => WorkflowRequests.Resume(run, journal, context.DataRoot);
@@ -192,7 +192,7 @@ public sealed class WorkflowService(
         if (ack.InterruptId is null)
             throw EngineErrors.AiRuntimeInvalidResponse();
         journal.InterruptId = ack.InterruptId;
-        journal.ApprovalId = ActionGovernance.ApprovalIdFor(run.RunId, ack.ExecutionId, ack.InterruptId, journal.ActionsHash ?? ActionGovernance.HashOf(journal.Actions));
+        journal.ApprovalId = ApprovalBinding.ApprovalIdFor(run.RunId, ack.ExecutionId, ack.InterruptId, journal.ActionsHash ?? ApprovalBinding.HashOf(journal.Actions));
         _journal.Mark(journal, RunStates.AwaitingApproval);
         run.SetState(RunStates.AwaitingApproval, "Aguardando aprovação");
         _events.ApprovalRequired(run, journal.ApprovalId, ack.ExecutionId, WorkflowResult.StepIds(ack.Output), ActionGovernance.ForEvent(journal.Actions));
