@@ -108,3 +108,19 @@ Ordem de dependência: a onda 6 muda contratos entre componentes e deve vir por 
 
 ## 5. Itens verificados sem problema
 Direção de dependências .NET; Core (Policy/Text/Discovery/Plan/Evals); lógica de reserva e liquidação de orçamento do ModelBroker; `FixedTimeEquals` nos tokens; protocol.rs, status.rs e resources.rs do host; ausência de `any` e `@ts-ignore` na UI; ausência de `useEffect` para estado derivado.
+
+## 6. Andamento das ondas
+
+| Onda | Itens | Estado |
+|---|---|---|
+| 1 | UI-1, UI-6, NET-16, PY-3, PY-8, RS-3 (envelope) | Mergeada (#28) |
+| 2 | NET-1, NET-5, RS-1, RS-2, PY-7 | Mergeada (#29, #30) |
+| 3 | NET-2, NET-4, NET-6, NET-7, NET-8, NET-14, NET-15, NET-21 | Mergeada (#30, #31, #32) |
+| 4 | PY-2, PY-4 (parcial), PY-5, PY-9, PY-10 | PR #33 |
+| 5 | UI-4, UI-5, UI-8, UI-9 | Neste PR |
+
+**Decisões de escopo**
+- SC-1 (hash do CPython embed) aguarda um SHA256 confiável.
+- PY-4: aplicar o orçamento aos nós depois da pausa exige levar os limites no checkpoint ou no contrato; vai com a onda 6.
+- UI-3 (um só motor para acompanhar execuções): não feito. O fluxo de configuração obtém o resultado do snapshot e usa os eventos só para o progresso, então o risco real é de exibição; unificar com o acompanhamento da página de execução (numeração e lacunas) pede um redesenho dos dois e fica como item próprio.
+- UI-7 (tokens de design), UI-2 (`src/prototype`), NET-3 (resultados tipados), PY-1, PY-11 e PY-12: dependem de decisão de produto ou de mudança de contrato (onda 6).
