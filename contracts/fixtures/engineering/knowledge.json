@@ -1,0 +1,75 @@
+{
+  "projectId": "p-000000000001",
+  "inspectedAt": "2026-11-11T12:00:00+00:00",
+  "include": [],
+  "exclude": [
+    "docs/rascunho/"
+  ],
+  "allowed": 3,
+  "files": [
+    {
+      "path": "README.md",
+      "chars": 56,
+      "state": "indexed"
+    },
+    {
+      "path": "src/App.cs",
+      "chars": 50,
+      "state": "outdated"
+    },
+    {
+      "path": "mariliz.yaml",
+      "chars": 53,
+      "state": "pending"
+    }
+  ],
+  "excluded": [
+    {
+      "reason": "secret",
+      "label": "Possível segredo no conteúdo",
+      "count": 1,
+      "examples": [
+        "src/Config.cs"
+      ]
+    },
+    {
+      "reason": "excluded",
+      "label": "Excluído em mariliz.yaml (knowledge.exclude)",
+      "count": 1,
+      "examples": [
+        "docs/rascunho/ideia.md"
+      ]
+    },
+    {
+      "reason": "gitignored",
+      "label": "Ignorado pelo .gitignore",
+      "count": 1,
+      "examples": [
+        "app.log"
+      ]
+    },
+    {
+      "reason": "blocked",
+      "label": "Binário, dependência, build ou arquivo sensível pelo nome",
+      "count": 3,
+      "examples": [
+        ".env",
+        ".gitignore",
+        "logo.png"
+      ]
+    },
+    {
+      "reason": "empty",
+      "label": "Vazio ou binário",
+      "count": 1,
+      "examples": [
+        "vazio.md"
+      ]
+    }
+  ],
+  "indexState": "read",
+  "indexed": 1,
+  "outdated": 1,
+  "pending": 1,
+  "orphaned": 0
+}

@@ -55,7 +55,8 @@ export const ENGINE_METHODS = [
   'management.evidence',
   'management.ask',
   'engineering.profile',
-  'engineering.analyze'
+  'engineering.analyze',
+  'engineering.knowledge'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

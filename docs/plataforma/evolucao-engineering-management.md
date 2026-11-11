@@ -1,6 +1,6 @@
 # Evolução para plataforma de Engenharia e Gestão
 
-**Data:** 2026-11-10, atualizado em 2026-11-11. **Estado:** Fases 1 e 2 mergeadas (PR #40); Fase 3 e marca mergeadas (PR #41); Fase 4 mergeada (PR #42); Fase 5 mergeada (PR #43); Fase 6 em andamento (perfil tecnológico entregue); Fase 7 planejada.
+**Data:** 2026-11-10, atualizado em 2026-11-11. **Estado:** Fases 1 e 2 mergeadas (PR #40); Fase 3 e marca mergeadas (PR #41); Fase 4 mergeada (PR #42); Fase 5 mergeada (PR #43); Fase 6 em andamento (perfil tecnológico mergeado no PR #44; conhecimento do projeto entregue); Fase 7 planejada.
 
 > O produto passou a se chamar **Spock Studio** (System of Programming, Organization, Code and Knowledge). Ver seção 12.
 
@@ -332,13 +332,41 @@ Observação de testes: o grupo `WorkflowRuntimeTests` (sobe o runtime Python de
 nesta máquina, cada vez num teste diferente e sempre no limite de 32 segundos; repetido, passou. Não envolve o código
 desta fase.
 
+## 10e. Fase 6, segunda entrega: conhecimento do projeto (2026-11-11)
+
+Na tela **Engenharia > Projeto**, a seção **Conhecimento do projeto** (`engineering.knowledge`,
+`ProjectKnowledgeService`) mostra o que alimenta o contexto dos agentes pelo Agentic RAG:
+
+- **Regras:** `knowledge.include` e `knowledge.exclude` de `mariliz.yaml`, ou o aviso de que não há regra declarada.
+- **Arquivos que entram:** na ordem em que o índice os recebe (documentação primeiro), com o estado de cada um no
+  índice: indexado, mudou desde a indexação ou ainda não indexado. A resposta lista até 300; os totais contam todos.
+- **Fora do conhecimento:** quantos arquivos ficaram de fora por motivo, com exemplos: possível segredo no conteúdo,
+  excluído ou fora do include em `mariliz.yaml`, ignorado pelo `.gitignore`, binário ou sensível pelo nome, vazio, ou
+  além do limite de 2.000 arquivos. Pastas de dependência e build nem são percorridas.
+- **Índice:** quantos estão indexados, desatualizados, pendentes e quantos estão no índice sem arquivo correspondente.
+
+Decisões:
+
+- **Uma seleção só.** A avaliação foi extraída para `KnowledgeSources.Evaluate`, que o workflow continua usando para
+  alimentar o índice. O que a tela mostra é o que o índice recebe. Os testes existentes de conhecimento e RAG passam
+  sem mudança.
+- **Abrir a tela não sobe o Python.** O índice só é consultado se o runtime de IA já estiver ligado; senão, a tela diz
+  que o índice não foi lido e por quê.
+- Só caminhos e tamanhos saem do motor; o conteúdo dos arquivos, não.
+
+Testes em `ProjectKnowledgeTests` (4); fixture em `contracts/fixtures/engineering/knowledge.json`.
+
+Observação de testes: na verificação, `WorkflowRobustnessTests.Aprovacao_mais_lenta_que_o_prazo_do_runtime_ainda_conclui`
+(prazo de 150 ms e espera de 600 ms) falhou em duas rodadas completas e passou isolado cinco vezes e na terceira rodada
+completa. É sensível à carga da máquina, como os de `WorkflowRuntimeTests`.
+
 ## 11. Próximas fases e dependências
 
 | Fase | Entrega | Depende de |
 | --- | --- | --- |
 | 4b. Complementos de entrega | Cycle time, histórico de acompanhamento dos riscos, impacto de mais capacidade na previsão. | Histórico de status (Jira já traz; GitHub exige a API de eventos da issue). |
 | 5b. Assistente: complementos | Histórico de perguntas, relatórios salvos, comparação entre projetos, workflow LangGraph para investigação em etapas. | Validação com modelo real. |
-| 6b. Engenharia, continuação | Gerenciamento de agentes, skills, regras, hooks e MCP; versionamento do Harness; conhecimento do projeto. | Perfil tecnológico (entregue). |
+| 6b. Engenharia, continuação | Gerenciamento de agentes, skills, regras, hooks e MCP; versionamento do Harness; acompanhamento de execuções ligado à entrega. | Perfil e conhecimento (entregues). |
 | 7. Inteligência compartilhada | Análises cruzadas autorizadas. | Fases 5 e 6. |
 
 Indicadores e previsão serão serviços determinísticos no .NET. O LangGraph entra só para explicar resultados.

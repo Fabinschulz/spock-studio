@@ -36,3 +36,25 @@ export const profileResultSchema = z.object({ profile: technologyProfileSchema.n
 
 export type TechnologyProfile = z.infer<typeof technologyProfileSchema>;
 export type ProfileChange = TechnologyProfile['history'][number];
+
+/** O conhecimento do projeto como o índice o recebe. Só caminhos e tamanhos: o conteúdo não sai do motor. */
+export const projectKnowledgeSchema = z.object({
+  projectId: z.string(),
+  inspectedAt: z.string(),
+  include: z.array(z.string()),
+  exclude: z.array(z.string()),
+  allowed: z.number(),
+  files: z.array(
+    z.object({ path: z.string(), chars: z.number(), state: z.enum(['indexed', 'outdated', 'pending', 'unknown']) })
+  ),
+  excluded: z.array(
+    z.object({ reason: z.string(), label: z.string(), count: z.number(), examples: z.array(z.string()) })
+  ),
+  indexState: z.enum(['read', 'runtimeStopped', 'runtimeUnavailable', 'failed']),
+  indexed: z.number(),
+  outdated: z.number(),
+  pending: z.number(),
+  orphaned: z.number()
+});
+
+export type ProjectKnowledge = z.infer<typeof projectKnowledgeSchema>;

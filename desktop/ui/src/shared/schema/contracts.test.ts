@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import applyFailure from '@contracts/fixtures/golden/apply-failure.json';
+import engineeringKnowledge from '@contracts/fixtures/engineering/knowledge.json';
 import engineeringProfile from '@contracts/fixtures/engineering/profile.json';
 import applyResult from '@contracts/fixtures/golden/apply-result.json';
 import discovery from '@contracts/fixtures/golden/discovery.json';
@@ -36,6 +37,7 @@ import {
   projectRisksSchema,
   planSchema,
   profileResultSchema,
+  projectKnowledgeSchema,
   runEventSchema,
   runResultSchema,
   runSnapshotSchema,
@@ -208,5 +210,15 @@ describe('contrato do perfil tecnológico (fixture do motor)', () => {
     expect(profile?.technologies[0]).toMatchObject({ id: 'nextjs', category: 'Framework web' });
     expect(profile?.harness[0]?.covered).toBe(true);
     expect(profile?.history[0]?.kind).toBe('created');
+  });
+});
+
+describe('contrato do conhecimento do projeto (fixture do motor)', () => {
+  it('arquivos com estado no índice e exclusões com motivo, sem conteúdo', () => {
+    const parsed = projectKnowledgeSchema.parse(engineeringKnowledge);
+    expect(parsed.indexState).toBe('read');
+    expect(parsed.files.map((file) => file.state)).toEqual(['indexed', 'outdated', 'pending']);
+    expect(parsed.excluded[0]?.reason).toBe('secret');
+    expect(JSON.stringify(engineeringKnowledge)).not.toContain('AKIA');
   });
 });

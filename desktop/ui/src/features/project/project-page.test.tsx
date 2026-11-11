@@ -1,3 +1,4 @@
+import knowledgeFixture from '@contracts/fixtures/engineering/knowledge.json';
 import profileFixture from '@contracts/fixtures/engineering/profile.json';
 
 import type { EngineClient } from '@/shared/api';
@@ -48,6 +49,7 @@ function clientWith(runs: unknown[], saved = true): EngineClient {
     request: vi.fn(async (method: string, _params: unknown, schema: { parse(value: unknown): unknown }) => {
       if (method === 'harness.runs') return schema.parse({ runs });
       if (method === 'engineering.profile') return schema.parse({ profile: stored });
+      if (method === 'engineering.knowledge') return schema.parse(knowledgeFixture);
       if (method === 'engineering.analyze') {
         stored = stored === null ? profileFixture.profile : refreshed;
         return schema.parse({ profile: stored });
@@ -123,6 +125,25 @@ describe('ProjectPage', () => {
     await userEvent.click(await within(profile).findByText(/Histórico de mudanças \(2\)/));
     expect(within(profile).getByText('Next.js mudou de 16.0.1 para 16.1.0.')).toBeTruthy();
     expect(within(profile).getByText('Perfil criado com 1 tecnologia.')).toBeTruthy();
+  });
+
+  it('mostra o conhecimento do projeto: o que entra, o que fica de fora e o estado no índice', async () => {
+    renderPage(clientWith([]));
+
+    const knowledge = (await screen.findByRole('heading', { name: 'Conhecimento do projeto' })).closest('section')!;
+    expect(await within(knowledge).findByText(/3 arquivos podem alimentar o contexto dos agentes/)).toBeTruthy();
+    expect(
+      within(knowledge).getByText(/No índice: 1 indexado, 1 mudou desde a indexação, 1 ainda não indexado\./)
+    ).toBeTruthy();
+    expect(within(knowledge).getByText('docs/rascunho/')).toBeTruthy();
+    const excluded = within(knowledge).getByRole('list', { name: 'Arquivos fora do conhecimento' });
+    expect(excluded).toHaveTextContent('Possível segredo no conteúdo');
+    expect(excluded).toHaveTextContent('src/Config.cs');
+
+    await userEvent.click(within(knowledge).getByText(/Arquivos que entram \(3\)/));
+    expect(within(knowledge).getByText('src/App.cs').closest('li')).toHaveTextContent(
+      'src/App.cs (mudou desde a indexação)'
+    );
   });
 
   it('sem projeto selecionado, manda escolher na tela inicial', () => {
