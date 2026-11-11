@@ -1,0 +1,51 @@
+{
+  "integrations": [
+    {
+      "id": "pint-000000000001",
+      "projectId": "p-000000000000",
+      "connectionId": "conn-000000000001",
+      "provider": "github",
+      "scope": {
+        "resource": "acme/app",
+        "resourceName": "acme/app",
+        "dataKinds": [
+          "issues",
+          "pullRequests"
+        ]
+      },
+      "policy": {
+        "feedsKnowledge": false
+      },
+      "linkedAt": "2026-11-10T12:00:00+00:00",
+      "connectionName": "GitHub da equipe",
+      "connectionStatus": "connected",
+      "checkpoint": "2026-11-02T10:00:00+00:00",
+      "syncing": false,
+      "lastSync": {
+        "id": "sync-000000000001",
+        "startedAt": "2026-11-10T12:00:00+00:00",
+        "finishedAt": "2026-11-10T12:00:00+00:00",
+        "status": "succeeded",
+        "incremental": false,
+        "pages": 1,
+        "fetched": 2,
+        "created": 2,
+        "updated": 0,
+        "unchanged": 0,
+        "error": null
+      },
+      "items": {
+        "total": 2,
+        "byKind": {
+          "issues": 1,
+          "pullRequests": 1
+        },
+        "byStatusCategory": {
+          "done": 1,
+          "todo": 1
+        },
+        "lastSyncedAt": "2026-11-10T12:00:00+00:00"
+      }
+    }
+  ]
+}

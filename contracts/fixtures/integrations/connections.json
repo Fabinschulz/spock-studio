@@ -1,0 +1,40 @@
+{
+  "connections": [
+    {
+      "id": "conn-000000000001",
+      "provider": "github",
+      "name": "GitHub da equipe",
+      "account": "octo",
+      "status": "connected",
+      "scopes": [
+        "repo",
+        "read:org"
+      ],
+      "settings": {},
+      "connectedAt": "2026-11-10T12:00:00+00:00",
+      "checkedAt": "2026-11-10T12:00:00+00:00",
+      "lastSyncAt": "2026-11-10T12:00:00+00:00",
+      "lastError": null,
+      "connectorVersion": "1.0.0",
+      "projects": 1
+    },
+    {
+      "id": "conn-000000000002",
+      "provider": "jira",
+      "name": "Jira da equipe",
+      "account": "Ana Souza",
+      "status": "connected",
+      "scopes": [],
+      "settings": {
+        "site": "https://acme.atlassian.net",
+        "email": "ana@example.com"
+      },
+      "connectedAt": "2026-11-10T12:00:00+00:00",
+      "checkedAt": "2026-11-10T12:00:00+00:00",
+      "lastSyncAt": null,
+      "lastError": null,
+      "connectorVersion": "1.0.0",
+      "projects": 0
+    }
+  ]
+}

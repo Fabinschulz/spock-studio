@@ -24,6 +24,20 @@ public static class ProtocolMethods
     public const string ModelClear = "model.clear";
     public const string ModelComplete = "model.complete";
 
+    public const string IntegrationCatalog = "integration.catalog";
+    public const string ConnectionList = "connection.list";
+    public const string ConnectionCreate = "connection.create";
+    public const string ConnectionTest = "connection.test";
+    public const string ConnectionRotate = "connection.rotate";
+    public const string ConnectionDisconnect = "connection.disconnect";
+    public const string ConnectionRemove = "connection.remove";
+    public const string IntegrationList = "integration.list";
+    public const string IntegrationLink = "integration.link";
+    public const string IntegrationConfigure = "integration.configure";
+    public const string IntegrationUnlink = "integration.unlink";
+    public const string IntegrationSync = "integration.sync";
+    public const string IntegrationHistory = "integration.history";
+
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
 
@@ -33,4 +47,11 @@ public static class ProtocolMethods
     public static readonly IReadOnlyList<string> Workflow = [WorkflowStart, WorkflowResume];
 
     public static readonly IReadOnlyList<string> Model = [ModelStatus, ModelSave, ModelClear, ModelComplete];
+
+    /// <summary>Central de integrações: conexões (<c>connection.*</c>) e o vínculo delas com um projeto (<c>integration.*</c>).</summary>
+    public static readonly IReadOnlyList<string> Integrations =
+    [
+        IntegrationCatalog, ConnectionList, ConnectionCreate, ConnectionTest, ConnectionRotate, ConnectionDisconnect, ConnectionRemove,
+        IntegrationList, IntegrationLink, IntegrationConfigure, IntegrationUnlink, IntegrationSync, IntegrationHistory
+    ];
 }

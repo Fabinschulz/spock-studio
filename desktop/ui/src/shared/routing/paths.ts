@@ -4,6 +4,8 @@ export const paths = {
   project: '/projeto',
   configure: '/configurar',
   engineeringRequest: '/pedido',
+  management: '/gestao',
+  integrations: '/integracoes',
   settings: '/configuracoes'
 } as const;
 

@@ -71,6 +71,22 @@ describe('AppShell · navegação', () => {
     expect(catalog).toHaveAccessibleDescription('Em breve');
   });
 
+  it('separa os dois ambientes do mesmo projeto e deixa as integrações fora deles', () => {
+    renderShell();
+    const nav = screen.getByRole('navigation', { name: 'Navegação principal' });
+
+    const engineering = within(nav).getByRole('list', { name: 'Engenharia' });
+    expect(within(engineering).getByRole('link', { name: 'Projeto' })).toBeInTheDocument();
+    expect(within(engineering).getByRole('link', { name: 'Configurar' })).toBeInTheDocument();
+
+    const management = within(nav).getByRole('list', { name: 'Gestão' });
+    expect(within(management).getByRole('link', { name: 'Acompanhamento' })).toHaveAttribute('href', '/gestao');
+    expect(within(management).queryByRole('link', { name: 'Configurar' })).not.toBeInTheDocument();
+
+    const platform = within(nav).getByRole('list', { name: 'Plataforma' });
+    expect(within(platform).getByRole('link', { name: 'Integrações' })).toHaveAttribute('href', '/integracoes');
+  });
+
   it('o atalho "Ir para o conteúdo" move o foco para a área principal, sem mudar a rota', async () => {
     renderShell();
 

@@ -1,0 +1,66 @@
+{
+  "vaultAvailable": true,
+  "connectors": [
+    {
+      "provider": "github",
+      "name": "GitHub",
+      "version": "1.0.0",
+      "settings": [],
+      "secret": {
+        "name": "token",
+        "label": "Token de acesso pessoal",
+        "hint": "Um token com leitura de issues e pull requests dos repositórios que você vai vincular."
+      },
+      "resource": {
+        "name": "repository",
+        "label": "Repositório",
+        "hint": "No formato dono/repositório."
+      },
+      "dataKinds": [
+        {
+          "id": "issues",
+          "label": "Issues"
+        },
+        {
+          "id": "pullRequests",
+          "label": "Pull requests"
+        }
+      ],
+      "scopesNote": "Tokens clássicos informam os escopos. Tokens de acesso refinado não informam: o alcance é o configurado no GitHub."
+    },
+    {
+      "provider": "jira",
+      "name": "Jira Cloud",
+      "version": "1.0.0",
+      "settings": [
+        {
+          "name": "site",
+          "label": "Endereço do site",
+          "hint": "Por exemplo https://sua-empresa.atlassian.net."
+        },
+        {
+          "name": "email",
+          "label": "E-mail da conta",
+          "hint": "O e-mail da conta Atlassian dona do token."
+        }
+      ],
+      "secret": {
+        "name": "token",
+        "label": "Token de API",
+        "hint": "Um token de API da conta Atlassian."
+      },
+      "resource": {
+        "name": "project",
+        "label": "Projeto do Jira",
+        "hint": "A chave do projeto, por exemplo APP."
+      },
+      "dataKinds": [
+        {
+          "id": "issues",
+          "label": "Issues"
+        }
+      ],
+      "scopesNote": "O token de API não informa escopos: o alcance é o da conta no Jira."
+    }
+  ]
+}

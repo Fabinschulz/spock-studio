@@ -1,0 +1,48 @@
+import { describe, expect, it } from 'vitest';
+
+import { githubConnection, syncedIntegration } from '@/test/fake-integration-engine';
+
+import { formatEngineDate } from './format-date';
+import { itemsSummary, kindCounts, syncCounts } from './labels';
+
+const sync = syncedIntegration.lastSync!;
+const github = {
+  provider: githubConnection.provider,
+  name: 'GitHub',
+  version: '1.0.0',
+  settings: [],
+  secret: { name: 'token', label: 'Token', hint: '' },
+  resource: { name: 'repository', label: 'Repositório', hint: '' },
+  dataKinds: [
+    { id: 'issues', label: 'Issues' },
+    { id: 'pullRequests', label: 'Pull requests' }
+  ],
+  scopesNote: ''
+};
+
+describe('rótulos da central de integrações', () => {
+  it('conta só as parcelas que existem numa sincronização', () => {
+    expect(syncCounts({ ...sync, created: 1, updated: 2, unchanged: 5 })).toBe('1 novo, 2 atualizados, 5 sem mudança');
+    expect(syncCounts({ ...sync, created: 0, updated: 1, unchanged: 0 })).toBe('1 atualizado');
+    expect(syncCounts({ ...sync, created: 0, updated: 0, unchanged: 0 })).toBe('nada novo');
+  });
+
+  it('usa o rótulo do conector para cada tipo e o próprio id quando o conector não o conhece', () => {
+    expect(kindCounts(syncedIntegration, github)).toEqual(['Issues: 1', 'Pull requests: 1']);
+    expect(kindCounts(syncedIntegration, undefined)).toEqual(['issues: 1', 'pullRequests: 1']);
+  });
+
+  it('distingue o vínculo nunca sincronizado do recorte que veio vazio', () => {
+    const empty = { total: 0, byKind: {}, byStatusCategory: {}, lastSyncedAt: null };
+    expect(itemsSummary({ ...syncedIntegration, items: empty, lastSync: null }, github)).toBe('Ainda não sincronizada');
+    expect(itemsSummary({ ...syncedIntegration, items: empty }, github)).toBe('Nenhum item no recorte');
+  });
+
+  it('escreve a data do motor para o meio de uma frase e não inventa data para texto que não é data', () => {
+    const now = new Date(2026, 10, 10, 18, 0).getTime();
+    expect(formatEngineDate(new Date(2026, 10, 10, 9, 5).toISOString(), now)).toBe('hoje às 09:05');
+    expect(formatEngineDate(new Date(2026, 10, 9, 16, 20).toISOString(), now)).toBe('ontem às 16:20');
+    expect(formatEngineDate(new Date(2026, 9, 23, 10, 15).toISOString(), now)).toBe('23/10/2026 às 10:15');
+    expect(formatEngineDate('sem data', now)).toBe('sem data');
+  });
+});

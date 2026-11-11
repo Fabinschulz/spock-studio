@@ -1,0 +1,148 @@
+import { StatusChip } from '@/shared/components';
+import type { Connection, Connector } from '@/shared/schema';
+import { Button, TextField } from '@mariliz/ui-kit';
+import { useState, type FormEvent } from 'react';
+
+import { formatEngineDate } from '../domain/format-date';
+import { CONNECTION_STATUS } from '../domain/labels';
+import styles from '../integrations-page.module.scss';
+
+interface ConnectionRowProps {
+  connection: Connection;
+  connector: Connector | undefined;
+  busy: boolean;
+  onTest: () => void;
+  /** Devolve verdadeiro quando o provedor aceitou a nova credencial. */
+  onRotate: (secret: string) => Promise<boolean>;
+  onDisconnect: () => void;
+  onRemove: () => void;
+}
+
+type Mode = 'idle' | 'rotating' | 'confirming-disconnect';
+
+export function ConnectionRow({
+  connection,
+  connector,
+  busy,
+  onTest,
+  onRotate,
+  onDisconnect,
+  onRemove
+}: ConnectionRowProps) {
+  const [mode, setMode] = useState<Mode>('idle');
+  const [secret, setSecret] = useState('');
+  const status = CONNECTION_STATUS[connection.status];
+  const connected = connection.status !== 'disconnected';
+
+  const rotate = async (event: FormEvent) => {
+    event.preventDefault();
+    if (secret.trim().length < 8) return;
+    if (await onRotate(secret.trim())) {
+      setSecret('');
+      setMode('idle');
+    }
+  };
+
+  return (
+    <li className={styles.row}>
+      <div className={styles.rowHead}>
+        <div>
+          <span className={styles.rowTitle}>{connection.name}</span>
+          <span className={styles.meta}>
+            {' '}
+            · {connector?.name ?? connection.provider} · {connection.account}
+          </span>
+        </div>
+        <StatusChip tone={status.tone}>{status.label}</StatusChip>
+      </div>
+
+      <p className={styles.meta}>
+        {connection.scopes.length > 0
+          ? `Escopos informados: ${connection.scopes.join(', ')}.`
+          : (connector?.scopesNote ?? 'O provedor não informa escopos.')}{' '}
+        Conferida {formatEngineDate(connection.checkedAt)}.{' '}
+        {connection.projects === 0
+          ? 'Nenhum projeto vinculado.'
+          : `${connection.projects} ${connection.projects === 1 ? 'vínculo' : 'vínculos'} com projetos.`}
+      </p>
+      {connection.lastError ? (
+        <p className={styles.error}>
+          {connection.lastError.message} ({formatEngineDate(connection.lastError.at)})
+        </p>
+      ) : null}
+
+      {mode === 'rotating' ? (
+        <form className={styles.form} aria-label={`Nova credencial de ${connection.name}`} onSubmit={rotate}>
+          <TextField
+            label={connector?.secret.label ?? 'Credencial'}
+            type="password"
+            autoComplete="off"
+            fullWidth
+            value={secret}
+            disabled={busy}
+            onChange={(event) => setSecret(event.target.value)}
+            helperText="A nova credencial é conferida com o provedor antes de substituir a atual."
+            slotProps={{ htmlInput: { spellCheck: false } }}
+          />
+          <div className={styles.actions}>
+            <Button type="submit" variant="contained" disabled={busy || secret.trim().length < 8}>
+              Guardar credencial
+            </Button>
+            <Button type="button" variant="outlined" disabled={busy} onClick={() => setMode('idle')}>
+              Cancelar
+            </Button>
+          </div>
+        </form>
+      ) : null}
+
+      {mode === 'confirming-disconnect' ? (
+        <div className={styles.confirm} role="group" aria-label={`Desconectar ${connection.name}`}>
+          <p>
+            A credencial será apagada deste computador. O que já foi sincronizado continua disponível, sem novas
+            leituras.
+          </p>
+          <div className={styles.actions}>
+            <Button
+              type="button"
+              variant="contained"
+              color="error"
+              disabled={busy}
+              onClick={() => {
+                setMode('idle');
+                onDisconnect();
+              }}
+            >
+              Apagar credencial
+            </Button>
+            <Button type="button" variant="outlined" disabled={busy} onClick={() => setMode('idle')}>
+              Manter
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {mode === 'idle' ? (
+        <div className={styles.actions}>
+          {connected ? (
+            <Button type="button" variant="outlined" disabled={busy} onClick={onTest}>
+              Testar
+            </Button>
+          ) : null}
+          <Button type="button" variant="outlined" disabled={busy} onClick={() => setMode('rotating')}>
+            Atualizar credencial
+          </Button>
+          {connected ? (
+            <Button type="button" variant="text" disabled={busy} onClick={() => setMode('confirming-disconnect')}>
+              Desconectar
+            </Button>
+          ) : null}
+          {connection.projects === 0 ? (
+            <Button type="button" variant="text" disabled={busy} onClick={onRemove}>
+              Remover
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+    </li>
+  );
+}

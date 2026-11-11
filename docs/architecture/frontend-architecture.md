@@ -12,6 +12,14 @@ A interface fala só do **modelo de implementação Mariliz** e da **estrutura d
 metodologias de terceiros não aparecem como escolha, rótulo ou título; o teste da etapa "Modelo e ambiente" falha se
 aparecerem. Os ids das etapas são `project`, `model`, `plan`, `review`, `run` e `result`.
 
+## Ambientes
+
+O menu lateral agrupa as telas em **Engenharia** (`project`, `configure-project`, `engineering-request`, `execution`),
+**Gestão** (`management`) e **Plataforma** (`integrations`, `settings`). Os dois ambientes leem o mesmo projeto selecionado
+(`features/project-selection`); nenhum tem cadastro próprio de projeto. `management` só consome o que `integrations`
+expõe pelo `index.ts` e não chama métodos de engenharia. Uma tela que depende do projeto é remontada com
+`key={projectId}`: dado de um projeto não aparece em outro.
+
 ## Camadas
 
 | Camada | Pasta | Regra |
