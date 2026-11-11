@@ -30,7 +30,8 @@ var management = new ManagementService(engine.Workspace, integrations, engine.Cl
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: engine.Runs, integrations: integrations,
     management: management, assistant: new ManagementAssistant(management, integrations, engine.Workspace, models, engine.Clock),
-    profiles: new TechnologyProfileService(engine.Configure, integrations, engine.Workspace, new FileTechnologyProfileStore(engine.DataRoot), engine.Clock));
+    profiles: new TechnologyProfileService(engine.Configure, integrations, engine.Workspace, new FileTechnologyProfileStore(engine.DataRoot), engine.Clock),
+    knowledge: new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock));
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

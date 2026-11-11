@@ -47,7 +47,8 @@ public sealed class EngineSession
         IntegrationHub? integrations = null,
         ManagementService? management = null,
         ManagementAssistant? assistant = null,
-        TechnologyProfileService? profiles = null)
+        TechnologyProfileService? profiles = null,
+        ProjectKnowledgeService? knowledge = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
@@ -57,7 +58,7 @@ public sealed class EngineSession
         _runs = runs is null ? null : new RunRequestHandler(runs);
         _integrations = integrations is null ? null : new IntegrationRequestHandler(integrations);
         _management = management is null ? null : new ManagementRequestHandler(management, assistant);
-        _engineering = profiles is null ? null : new EngineeringRequestHandler(profiles);
+        _engineering = profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge);
         _tracker = tracker;
         if (relay is not null) relay.Target = WriteEvent;
 

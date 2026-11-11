@@ -2,8 +2,10 @@ import type { EngineClient } from '@/shared/api';
 import {
   discoverySchema,
   profileResultSchema,
+  projectKnowledgeSchema,
   runsSchema,
   type Discovery,
+  type ProjectKnowledge,
   type RunSummary,
   type TechnologyProfile
 } from '@/shared/schema';
@@ -29,4 +31,9 @@ export async function refreshProfile(client: EngineClient, projectId: string): P
   const { profile } = await client.request('engineering.analyze', { projectId }, profileResultSchema);
   if (!profile) throw new Error('O motor não devolveu o perfil.');
   return profile;
+}
+
+/** O conhecimento do projeto como o índice o recebe; o índice só é consultado se o runtime de IA já estiver ligado. */
+export function readKnowledge(client: EngineClient, projectId: string): Promise<ProjectKnowledge> {
+  return client.request('engineering.knowledge', { projectId }, projectKnowledgeSchema);
 }
