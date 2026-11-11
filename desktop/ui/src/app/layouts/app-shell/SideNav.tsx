@@ -3,6 +3,7 @@ import { cn } from '@/shared/utils';
 import {
   Button,
   ChartBarIcon,
+  ChatIcon,
   GridIcon,
   Home01Icon,
   IntersectingArrowsIcon,
@@ -56,7 +57,14 @@ const GROUPS: NavGroup[] = [
     label: 'Gestão',
     items: [
       { id: 'portfolio', label: 'Portfólio', icon: <GridIcon fontSize="small" />, to: pathTo('portfolio') },
-      { id: 'management', label: 'Acompanhamento', icon: <ChartBarIcon fontSize="small" />, to: pathTo('management') }
+      {
+        id: 'management',
+        label: 'Acompanhamento',
+        icon: <ChartBarIcon fontSize="small" />,
+        to: pathTo('management'),
+        end: true
+      },
+      { id: 'assistant', label: 'Assistente', icon: <ChatIcon fontSize="small" />, to: pathTo('assistant') }
     ]
   },
   {

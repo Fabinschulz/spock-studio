@@ -141,3 +141,38 @@ export type ProjectForecast = z.infer<typeof projectForecastSchema>;
 export type DeliveryForecast = ProjectForecast['kinds'][number];
 export type ProjectRisks = z.infer<typeof projectRisksSchema>;
 export type ProjectRisk = ProjectRisks['risks'][number];
+
+const evidenceFactSchema = z.object({ id: z.string(), group: z.string(), text: z.string() });
+
+/** O que vai para o provedor de modelo numa pergunta, além da própria pergunta. */
+export const evidencePackSchema = z.object({
+  projectId: z.string(),
+  projectName: z.string(),
+  generatedAt: z.string(),
+  facts: z.array(evidenceFactSchema),
+  withheld: z.array(z.string())
+});
+
+const statementSchema = z.object({ text: z.string(), evidence: z.array(z.string()) });
+
+/** A resposta do assistente, já conferida pelo motor contra o pacote de evidências. */
+export const assistantAnswerSchema = z.object({
+  projectId: z.string(),
+  answeredAt: z.string(),
+  summary: z.string(),
+  observed: z.array(statementSchema),
+  calculations: z.array(statementSchema),
+  inferences: z.array(statementSchema),
+  recommendations: z.array(statementSchema),
+  unavailable: z.array(z.string()),
+  rejected: z.array(z.object({ section: z.string(), text: z.string(), reason: z.string() })),
+  evidence: z.array(evidenceFactSchema),
+  model: z.string(),
+  inputTokens: z.number(),
+  outputTokens: z.number()
+});
+
+export type EvidenceFact = z.infer<typeof evidenceFactSchema>;
+export type EvidencePack = z.infer<typeof evidencePackSchema>;
+export type AssistantAnswer = z.infer<typeof assistantAnswerSchema>;
+export type AssistantStatement = z.infer<typeof statementSchema>;

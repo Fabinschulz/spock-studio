@@ -1,6 +1,6 @@
 # Evolução para plataforma de Engenharia e Gestão
 
-**Data:** 2026-11-10, atualizado em 2026-11-11. **Estado:** Fases 1 e 2 mergeadas (PR #40); Fase 3 e marca mergeadas (PR #41); Fase 4 entregue; Fases 5 a 7 planejadas.
+**Data:** 2026-11-10, atualizado em 2026-11-11. **Estado:** Fases 1 e 2 mergeadas (PR #40); Fase 3 e marca mergeadas (PR #41); Fase 4 mergeada (PR #42); Fase 5 entregue; Fases 6 e 7 planejadas.
 
 > O produto passou a se chamar **Spock Studio** (System of Programming, Organization, Code and Knowledge). Ver seção 12.
 
@@ -262,12 +262,52 @@ Limitações: cycle time continua fora (falta a data de início do trabalho); "p
 no provedor, que muda com qualquer edição; item aberto abandonado conta como trabalho restante; a previsão não
 considera dependências, bloqueios, férias nem mudança de equipe.
 
+## 10c. Fase 5: assistente gerencial (entregue em 2026-11-11)
+
+Nova tela **Gestão > Assistente** (`/gestao/assistente`). A pessoa pergunta em linguagem natural sobre o projeto
+aberto, e a resposta vem separada como o pedido exige: dados observados, cálculos, inferências, recomendações e
+informações indisponíveis.
+
+Como funciona (`Mariliz.Application/Management/Assistant`):
+
+1. O motor monta um **pacote de evidências** (`EvidenceBuilder`) com os fatos que ele mesmo calculou: fontes e data de
+   leitura, indicadores de fluxo, previsão com confiança e fatores, riscos por regra e o que ainda não é calculado.
+   Cada fato tem um id e traz os números como o motor os calculou.
+2. O modelo recebe a pergunta e os fatos, com a instrução de usar só os fatos, citar os ids e não fazer contas novas.
+   A chamada passa pelo proxy de modelo do motor (`ModelGateway`): a chave não sai do motor.
+3. O motor **confere a resposta** (`AnswerVerifier`) antes de devolvê-la. Uma afirmação, inclusive o resumo, só passa
+   se citar ao menos um fato existente e se todo número que ela traz aparecer nos fatos citados (datas valem por
+   partes; "1,5" e "1.5" são o mesmo número). O que não passa aparece como descartado, com o motivo.
+
+Privacidade e consentimento:
+
+- Nada é enviado sem chave de modelo configurada e sem o clique em "Perguntar". Antes disso, a tela mostra exatamente
+  o que será enviado (a pergunta e a lista de fatos).
+- Não vai código, documento nem arquivo do projeto. Títulos de itens só entram quando todas as fontes do projeto
+  autorizaram servir de contexto (a política de contextualização da Fase 2); sem isso, vão só os identificadores.
+- A auditoria registra cada resposta (quantos fatos, citados, descartados, tokens e o hash do que foi enviado), sem o
+  texto da pergunta.
+
+**Decisão: sem LangGraph nesta fase.** O plano previa um workflow LangGraph. Uma pergunta hoje é uma chamada só ao
+modelo, sobre fatos que o .NET já calculou, e o pedido pede para não usar LangGraph onde não há decisões nem etapas.
+Um workflow no runtime de IA entra quando houver investigação em várias etapas (por exemplo, cruzar riscos com o
+histórico de engenharia na Fase 7). Também não há Agentic RAG aqui: os fatos vêm do motor, não de busca em
+documentos.
+
+Testes em `ManagementAssistantTests` (9), com um provedor de mentira que devolve afirmações boas e ruins de propósito;
+fixtures em `contracts/fixtures/management/assistant-evidence.json` e `assistant-answer.json`.
+
+Limitações: a verificação confere números e citações, não o sentido da frase (uma inferência mal formulada que cita o
+fato certo passa); o modelo pode dizer "indisponível" para algo que os fatos têm; não há histórico de perguntas nem
+relatórios salvos; o assistente responde sobre um projeto por vez. **Não foi testado com um modelo real:** só com o
+provedor de mentira.
+
 ## 11. Próximas fases e dependências
 
 | Fase | Entrega | Depende de |
 | --- | --- | --- |
 | 4b. Complementos de entrega | Cycle time, histórico de acompanhamento dos riscos, impacto de mais capacidade na previsão. | Histórico de status (Jira já traz; GitHub exige a API de eventos da issue). |
-| 5. Assistente gerencial | Perguntas em linguagem natural sobre métricas calculadas. | Fases 3 e 4; consumidor da política de contextualização. |
+| 5b. Assistente: complementos | Histórico de perguntas, relatórios salvos, comparação entre projetos, workflow LangGraph para investigação em etapas. | Validação com modelo real. |
 | 6. Engenharia | Perfil tecnológico persistido a partir da descoberta; gerenciamento de Harness, MCP e conhecimento. | Nenhuma das anteriores: pode andar em paralelo. |
 | 7. Inteligência compartilhada | Análises cruzadas autorizadas. | Fases 5 e 6. |
 

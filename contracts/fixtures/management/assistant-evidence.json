@@ -1,0 +1,81 @@
+{
+  "projectId": "p-000000000001",
+  "projectName": "loja",
+  "generatedAt": "2026-11-10T12:00:00+00:00",
+  "facts": [
+    {
+      "id": "today",
+      "group": "contexto",
+      "text": "Hoje é 2026-11-10. Período dos indicadores: últimas 8 semanas."
+    },
+    {
+      "id": "src.1",
+      "group": "fontes",
+      "text": "Fonte github acme/app: última sincronização concluída, dados lidos em 2026-11-10."
+    },
+    {
+      "id": "flow.issues.items",
+      "group": "indicadores",
+      "text": "Issues: 18 itens sincronizados, 2 abertos."
+    },
+    {
+      "id": "flow.issues.wip",
+      "group": "indicadores",
+      "text": "Issues em andamento agora: 1."
+    },
+    {
+      "id": "flow.issues.throughput",
+      "group": "indicadores",
+      "text": "Issues entregues por semana, da mais antiga para a mais recente: 2, 2, 2, 2, 2, 2, 2, 2; total 16, média 2 por semana. Itens novos por semana: 2, 2, 2, 3, 2, 2, 2, 3."
+    },
+    {
+      "id": "flow.issues.leadtime",
+      "group": "indicadores",
+      "text": "Lead time de Issues: mediana 2 dias, percentil 85 2 dias, sobre 16 entregas."
+    },
+    {
+      "id": "flow.issues.overdue",
+      "group": "indicadores",
+      "text": "Issues abertos com prazo vencido: 1."
+    },
+    {
+      "id": "forecast.issues",
+      "group": "previsão",
+      "text": "Previsão de Issues para 2 itens abertos, por simulação sobre 7 semanas de histórico: otimista (percentil 15) em 1 semanas, até 2026-11-17; provável (percentil 50) em 1 semanas, até 2026-11-17; conservador (percentil 85) em 1 semanas, até 2026-11-17."
+    },
+    {
+      "id": "forecast.issues.confidence",
+      "group": "previsão",
+      "text": "Confiança da previsão de Issues: média. Motivos: Histórico curto: 7 semanas."
+    },
+    {
+      "id": "risk.overdue",
+      "group": "riscos",
+      "text": "Risco detectado por regra: Itens com prazo vencido, severidade alta. 1 de 1 item aberto com prazo está vencido. O mais atrasado venceu há 9 dias. Itens: 41."
+    },
+    {
+      "id": "missing.cycleTime",
+      "group": "não calculado",
+      "text": "Cycle time não é calculado: Precisa saber quando o trabalho começou. O GitHub não informa; no Jira, o histórico de status traz nomes que mudam por site."
+    },
+    {
+      "id": "missing.blockers",
+      "group": "não calculado",
+      "text": "Bloqueios não é calculado: O bloqueio no Jira é um campo personalizado, diferente em cada site; ainda não é lido."
+    },
+    {
+      "id": "missing.scopeChange",
+      "group": "não calculado",
+      "text": "Mudança de escopo não é calculado: Precisa de um escopo de referência (sprint ou marco), que ainda não é sincronizado."
+    },
+    {
+      "id": "missing.predictability",
+      "group": "não calculado",
+      "text": "Previsibilidade não é calculado: Precisa do que foi planejado por período, que ainda não é sincronizado."
+    }
+  ],
+  "withheld": [
+    "Nenhum código, documento ou arquivo do projeto é enviado.",
+    "Títulos de itens não foram incluídos: nem todas as fontes autorizaram servir de contexto; vão só os identificadores."
+  ]
+}

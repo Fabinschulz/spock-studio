@@ -16,6 +16,7 @@ public sealed class IntegrationHub
         IAuditLog audit)
     {
         var activity = new SyncActivity();
+        Audit = audit;
         Connectors = connectors;
         Activity = activity;
         VaultAvailable = vault.Available;
@@ -30,4 +31,7 @@ public sealed class IntegrationHub
     public SyncService Sync { get; }
     public SyncActivity Activity { get; }
     public bool VaultAvailable { get; }
+
+    /// <summary>A mesma trilha de auditoria, para outros casos de uso que precisam registrar operações.</summary>
+    public IAuditLog Audit { get; }
 }

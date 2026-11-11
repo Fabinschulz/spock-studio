@@ -5,6 +5,7 @@ using Mariliz.Application.Execution;
 using Mariliz.Application.Harness;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Management;
+using Mariliz.Application.Management.Assistant;
 using Mariliz.Application.Models;
 using Mariliz.Application.Workflows;
 using Mariliz.Application.Workspace;
@@ -42,7 +43,8 @@ public sealed class EngineSession
         ModelGateway? models = null,
         RunQueries? runs = null,
         IntegrationHub? integrations = null,
-        ManagementService? management = null)
+        ManagementService? management = null,
+        ManagementAssistant? assistant = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
@@ -51,7 +53,7 @@ public sealed class EngineSession
         _models = models is null ? null : new ModelRequestHandler(models);
         _runs = runs is null ? null : new RunRequestHandler(runs);
         _integrations = integrations is null ? null : new IntegrationRequestHandler(integrations);
-        _management = management is null ? null : new ManagementRequestHandler(management);
+        _management = management is null ? null : new ManagementRequestHandler(management, assistant);
         _tracker = tracker;
         if (relay is not null) relay.Target = WriteEvent;
 
@@ -159,7 +161,7 @@ public sealed class EngineSession
             _ when _integrations is not null && ProtocolMethods.Integrations.Contains(method) =>
                 Reply(ProtocolMessages.Ok(id, await _integrations.HandleAsync(method, new RequestParams(parameters), ct))),
             _ when _management is not null && ProtocolMethods.Management.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, _management.Handle(method, new RequestParams(parameters)))),
+                Reply(ProtocolMessages.Ok(id, await _management.HandleAsync(method, new RequestParams(parameters), ct))),
             _ => Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.MethodNotFound, "Método desconhecido."))
         };
 
