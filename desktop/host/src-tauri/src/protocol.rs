@@ -41,6 +41,8 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "integration.history",
     "management.portfolio",
     "management.metrics",
+    "management.forecast",
+    "management.risks",
 ];
 
 pub mod error_code {

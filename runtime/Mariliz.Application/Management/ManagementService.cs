@@ -22,8 +22,7 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
             "Precisa saber quando o trabalho começou. O GitHub não informa; no Jira, o histórico de status traz nomes que mudam por site."),
         new("blockers", "Bloqueios", "O bloqueio no Jira é um campo personalizado, diferente em cada site; ainda não é lido."),
         new("scopeChange", "Mudança de escopo", "Precisa de um escopo de referência (sprint ou marco), que ainda não é sincronizado."),
-        new("predictability", "Previsibilidade", "Precisa do que foi planejado por período, que ainda não é sincronizado."),
-        new("forecast", "Previsão de entrega", "Fica para a próxima fase, sobre o throughput histórico, com cenários e premissas.")
+        new("predictability", "Previsibilidade", "Precisa do que foi planejado por período, que ainda não é sincronizado.")
     ];
 
     public Portfolio Portfolio()
@@ -56,8 +55,31 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
             .ToList();
 
         return new ProjectMetrics(projectId, now, period, now.AddDays(-7 * period), now,
-            metricSources.Count > 0 && metricSources.All(source => source.Complete), metricSources, kinds, NotCalculatedYet);
+            Complete(sources), metricSources, kinds, NotCalculatedYet);
     }
+
+    /// <summary>Previsão de conclusão do trabalho aberto, por tipo de dado.</summary>
+    public ProjectForecast Forecast(string projectId)
+    {
+        var now = clock.UtcNow;
+        var sources = Sources(projectId);
+        var complete = Complete(sources);
+        var kinds = ItemsByKind(sources).Select(group => ForecastCalculator.Compute(group.Key, group.Value, now, complete)).ToList();
+        return new ProjectForecast(projectId, now, ForecastCalculator.Method, complete, ForecastCalculator.Assumptions,
+            ForecastCalculator.Limitations, kinds);
+    }
+
+    /// <summary>Riscos detectados por regra fixa sobre os dados do projeto.</summary>
+    public ProjectRisks Risks(string projectId)
+    {
+        var now = clock.UtcNow;
+        var sources = Sources(projectId);
+        var byKind = ItemsByKind(sources);
+        return new ProjectRisks(projectId, now, Complete(sources), byKind.Count > 0, RiskRules.Evaluate(byKind, now), RiskRules.All);
+    }
+
+    private static bool Complete(IReadOnlyCollection<(ProjectIntegration Integration, SyncedData Data, ConnectionStatus Connection)> sources) =>
+        sources.Count > 0 && sources.All(source => PortfolioSignals.LastFinished(source.Data)?.Status == SyncStatus.Succeeded);
 
     private PortfolioProject ProjectRow(AuthorizedProject project, DateTimeOffset now)
     {

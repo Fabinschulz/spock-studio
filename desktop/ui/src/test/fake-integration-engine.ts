@@ -1,8 +1,10 @@
 import catalogFixture from '@contracts/fixtures/integrations/catalog.json';
 import connectionsFixture from '@contracts/fixtures/integrations/connections.json';
 import integrationsFixture from '@contracts/fixtures/integrations/integrations.json';
+import forecastFixture from '@contracts/fixtures/management/forecast.json';
 import metricsFixture from '@contracts/fixtures/management/metrics.json';
 import portfolioFixture from '@contracts/fixtures/management/portfolio.json';
+import risksFixture from '@contracts/fixtures/management/risks.json';
 
 import { EngineError, type EngineClient } from '@/shared/api';
 import type { Connection, ProjectIntegration, SyncExecution } from '@/shared/schema';
@@ -100,7 +102,15 @@ export function fakeIntegrationEngine(initial: { connections?: Connection[]; vau
       integrations.some((integration) => integration.projectId === params.projectId)
         ? { ...metricsFixture, projectId: params.projectId }
         : { ...metricsFixture, projectId: params.projectId, complete: false, sources: [], kinds: [] },
-    'management.portfolio': () => portfolioFixture
+    'management.portfolio': () => portfolioFixture,
+    'management.forecast': (params) =>
+      integrations.some((integration) => integration.projectId === params.projectId)
+        ? { ...forecastFixture, projectId: params.projectId }
+        : { ...forecastFixture, projectId: params.projectId, complete: false, kinds: [] },
+    'management.risks': (params) =>
+      integrations.some((integration) => integration.projectId === params.projectId)
+        ? { ...risksFixture, projectId: params.projectId }
+        : { ...risksFixture, projectId: params.projectId, complete: false, hasData: false, risks: [] }
   };
 
   const client: EngineClient = {

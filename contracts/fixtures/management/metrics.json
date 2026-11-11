@@ -139,11 +139,6 @@
       "id": "predictability",
       "label": "Previsibilidade",
       "reason": "Precisa do que foi planejado por período, que ainda não é sincronizado."
-    },
-    {
-      "id": "forecast",
-      "label": "Previsão de entrega",
-      "reason": "Fica para a próxima fase, sobre o throughput histórico, com cenários e premissas."
     }
   ]
 }

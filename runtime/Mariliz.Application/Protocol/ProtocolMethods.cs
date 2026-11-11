@@ -39,6 +39,8 @@ public static class ProtocolMethods
     public const string IntegrationHistory = "integration.history";
     public const string ManagementPortfolio = "management.portfolio";
     public const string ManagementMetrics = "management.metrics";
+    public const string ManagementForecast = "management.forecast";
+    public const string ManagementRisks = "management.risks";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -58,5 +60,5 @@ public static class ProtocolMethods
     ];
 
     /// <summary>Visão gerencial: só leitura do que já foi sincronizado.</summary>
-    public static readonly IReadOnlyList<string> Management = [ManagementPortfolio, ManagementMetrics];
+    public static readonly IReadOnlyList<string> Management = [ManagementPortfolio, ManagementMetrics, ManagementForecast, ManagementRisks];
 }

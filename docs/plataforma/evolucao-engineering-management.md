@@ -1,6 +1,6 @@
 # Evolução para plataforma de Engenharia e Gestão
 
-**Data:** 2026-11-10, atualizado em 2026-11-11. **Estado:** Fases 1 e 2 mergeadas (PR #40); Fase 3 entregue; Fases 4 a 7 planejadas.
+**Data:** 2026-11-10, atualizado em 2026-11-11. **Estado:** Fases 1 e 2 mergeadas (PR #40); Fase 3 e marca mergeadas (PR #41); Fase 4 entregue; Fases 5 a 7 planejadas.
 
 > O produto passou a se chamar **Spock Studio** (System of Programming, Organization, Code and Knowledge). Ver seção 12.
 
@@ -221,11 +221,52 @@ vistas num navegador com host simulado, em 1280 e 760 pixels de largura.
   previsão), com o motivo. A tela mostra esses itens como ausentes.
 - Testes em `ManagementTests` (10) conferem cada número à mão; fixtures em `contracts/fixtures/management`.
 
+## 10b. Fase 4: inteligência de entrega (entregue em 2026-11-11)
+
+Na tela Acompanhamento, acima dos indicadores de fluxo: **Riscos** e **Previsão de entrega**. Os dois são calculados
+no motor .NET (`ForecastCalculator`, `RiskRules`), só com os dados sincronizados e o relógio. Nenhum modelo de
+linguagem participa do cálculo.
+
+**Previsão** (`management.forecast`), por tipo de dado:
+
+- Método: simulação de Monte Carlo com 10.000 rodadas. Cada rodada sorteia, semana a semana, uma das semanas do
+  histórico (até 12) e soma as entregas até zerar o trabalho aberto. A semente vem dos próprios dados: os mesmos itens
+  no mesmo instante dão sempre a mesma previsão.
+- Cenários: otimista (percentil 15), provável (50) e conservador (85), cada um com semanas e data. A tela diz o que o
+  percentil significa ("85% das simulações terminam até esta data").
+- Sem previsão quando não há item aberto, quando os dados cobrem menos de 6 semanas, quando houve menos de 5 entregas
+  no histórico, ou quando o ritmo não conclui em 5 anos. A tela mostra o motivo, nunca uma data.
+- Confiança começa alta e cai um nível por motivo, com o motivo exposto: histórico com menos de 10 semanas; mais de um
+  terço das semanas sem entrega; variação alta (desvio maior que a média); escopo crescendo (chegadas ao menos 20%
+  acima das entregas e 3 itens a mais); fonte incompleta.
+- Premissas e o que não é considerado vêm na resposta e aparecem em "Como a previsão é calculada".
+
+**Riscos** (`management.risks`), por regra fixa, com evidências, itens (até 10), tendência quando compara períodos,
+recomendação e origem `rule`:
+
+| Regra | Condição | Severidade |
+| --- | --- | --- |
+| `overdue` | Item aberto com prazo anterior a hoje | alta com 5 ou mais, ou 20% dos itens com prazo; média com 2 |
+| `stalled-wip` | Em andamento sem atualização há mais de 14 dias | alta com 5; média com 2 |
+| `review-queue` | Pull request aberto há mais de 7 dias | alta com 5; média com 3 |
+| `scope-growth` | Últimas 4 semanas: chegadas 50% acima das entregas e 3 itens a mais | alta com o dobro e 6 a mais |
+| `throughput-drop` | Entregas das últimas 4 semanas até metade das 4 anteriores (com ao menos 4 antes) | alta quando caiu a zero |
+
+Riscos sugeridos por IA, quando existirem (Fase 5), virão com outra origem e separados destes. O histórico de
+acompanhamento de cada risco ainda não é guardado: os riscos são recalculados a cada leitura.
+
+Testes em `DeliveryIntelligenceTests` (12), com cenários e evidências conferidos à mão; fixtures em
+`contracts/fixtures/management/forecast.json` e `risks.json`.
+
+Limitações: cycle time continua fora (falta a data de início do trabalho); "parado" usa a data da última atualização
+no provedor, que muda com qualquer edição; item aberto abandonado conta como trabalho restante; a previsão não
+considera dependências, bloqueios, férias nem mudança de equipe.
+
 ## 11. Próximas fases e dependências
 
 | Fase | Entrega | Depende de |
 | --- | --- | --- |
-| 4. Inteligência de entrega | Cycle time, lead time, previsão com cenários e premissas, riscos por regra. | Histórico de status (Jira já traz; GitHub exige a API de eventos da issue). |
+| 4b. Complementos de entrega | Cycle time, histórico de acompanhamento dos riscos, impacto de mais capacidade na previsão. | Histórico de status (Jira já traz; GitHub exige a API de eventos da issue). |
 | 5. Assistente gerencial | Perguntas em linguagem natural sobre métricas calculadas. | Fases 3 e 4; consumidor da política de contextualização. |
 | 6. Engenharia | Perfil tecnológico persistido a partir da descoberta; gerenciamento de Harness, MCP e conhecimento. | Nenhuma das anteriores: pode andar em paralelo. |
 | 7. Inteligência compartilhada | Análises cruzadas autorizadas. | Fases 5 e 6. |

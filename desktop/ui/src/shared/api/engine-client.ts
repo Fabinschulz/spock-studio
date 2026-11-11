@@ -49,7 +49,9 @@ export const ENGINE_METHODS = [
   'integration.sync',
   'integration.history',
   'management.portfolio',
-  'management.metrics'
+  'management.metrics',
+  'management.forecast',
+  'management.risks'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

@@ -149,7 +149,8 @@ public class ManagementTests
         Assert.Equal(["issues", "pullRequests"], first["kinds"]!.AsArray().Select(k => k!["kind"]!.GetValue<string>()));
         Assert.Equal(1, first["kinds"]![1]!["wip"]!["value"]!.GetValue<int>());
         Assert.Equal(4, first["periodWeeks"]!.GetValue<int>());
-        Assert.Contains(first["notCalculated"]!.AsArray(), n => n!["id"]!.GetValue<string>() == "forecast");
+        Assert.Contains(first["notCalculated"]!.AsArray(), n => n!["id"]!.GetValue<string>() == "cycleTime");
+        Assert.DoesNotContain(first["notCalculated"]!.AsArray(), n => n!["id"]!.GetValue<string>() == "forecast");
     }
 
     [Fact]

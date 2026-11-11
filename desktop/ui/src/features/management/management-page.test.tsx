@@ -38,6 +38,8 @@ describe('Gestão · acompanhamento do projeto', () => {
     expect(await screen.findByText(/Não há dados de atividades: nenhuma ferramenta foi vinculada/)).toBeInTheDocument();
     expect(screen.queryByText('A fazer')).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Fontes de dados' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Previsão de entrega' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Riscos' })).not.toBeInTheDocument();
   });
 
   it('fonte vinculada e ainda não sincronizada também é ausência de dado', async () => {
@@ -80,7 +82,26 @@ describe('Gestão · acompanhamento do projeto', () => {
     expect(within(flow).queryByText('Dados incompletos')).not.toBeInTheDocument();
 
     const missing = screen.getByRole('heading', { name: 'Ainda não calculado' }).closest('section')!;
-    expect(within(missing).getByText('Previsão de entrega.')).toBeInTheDocument();
+    expect(within(missing).getByText('Cycle time.')).toBeInTheDocument();
+    expect(within(missing).queryByText('Previsão de entrega.')).not.toBeInTheDocument();
+
+    const forecast = screen.getByRole('heading', { name: 'Previsão de entrega' }).closest('section')!;
+    const issueForecast = within(forecast).getByRole('group', { name: 'Issues: 10 abertos' });
+    expect(within(issueForecast).getByText('Confiança alta')).toBeInTheDocument();
+    expect(within(issueForecast).getByText('Provável').closest('div')).toHaveTextContent('15/12/2026');
+    expect(within(issueForecast).getByText('Conservador').closest('div')).toHaveTextContent('29/12/2026');
+    expect(within(issueForecast).getByText(/85% das simulações terminam até esta data/)).toBeInTheDocument();
+    expect(within(forecast).getByRole('group', { name: 'Pull requests: 1 aberto' })).toHaveTextContent(
+      'Sem previsão. São precisas ao menos 6 semanas de histórico'
+    );
+    expect(within(forecast).getByText('Como a previsão é calculada')).toBeInTheDocument();
+
+    const risks = screen.getByRole('heading', { name: 'Riscos' }).closest('section')!;
+    const list = within(risks).getByRole('list', { name: 'Riscos detectados' });
+    const [first] = within(list).getAllByRole('listitem');
+    expect(first).toHaveTextContent('Itens com prazo vencido');
+    expect(first).toHaveTextContent('Severidade alta');
+    expect(first).toHaveTextContent('O que fazer:');
 
     await expectNoA11yViolations(container);
   });
