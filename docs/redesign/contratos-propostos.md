@@ -1,6 +1,6 @@
 # Contratos mínimos propostos entre o motor .NET e a interface
 
-Contexto: o redesign pede que a interface mostre a atividade **real** do motor. Em [proposta-de-redesign.md](proposta-de-redesign.md#9-limitações-da-arquitetura-atual) estão as lacunas; aqui, o menor contrato que resolve cada uma. **Estado:** os itens 1, 2 e 3 estão implementados (motor, `contracts` e interface); os demais seguem propostos. O protótipo exibe os propostos no modo "Contrato proposto (demonstração)".
+Contexto: o redesign pede que a interface mostre a atividade **real** do motor. Em [proposta-de-redesign.md](proposta-de-redesign.md#9-limitações-da-arquitetura-atual) estão as lacunas; aqui, o menor contrato que resolve cada uma. **Estado:** os itens 1, 2 e 3 estão implementados (motor, `contracts` e interface); os demais ficaram **fora da Fase 6** (encerrada) e seguem propostos; a interface mostra "o motor não informa" no lugar deles. O protótipo que os exibia no modo "Contrato proposto (demonstração)" foi removido (última revisão: `6e9918b`).
 
 | Item | Estado |
 | --- | --- |
@@ -95,4 +95,4 @@ Enquanto isso não existir, a interface mostra o Harness Engineer como o fato qu
 | --- | --- |
 | Interface antiga com motor novo | ignora os tipos desconhecidos |
 | Motor antigo com interface nova | cai no vocabulário atual (`EXPECTED_APPLY_STEPS` local, validação como uma etapa, sem Evals individuais), que é exatamente o modo **Contrato atual** do protótipo |
-| Fixtures | um _golden_ por evento em `contracts/fixtures`; `buildOperation` já tem testes que cobrem os dois modos (`src/prototype/domain/operation-model.test.ts`) |
+| Fixtures | um _golden_ por evento em `contracts/fixtures`; `journey.test.ts` cobre o reducer com `run.plan` e `eval.*` (lista local quando o evento não chega), e `run-step.test.tsx` e `run-eval-list.test.tsx` cobrem a apresentação |
