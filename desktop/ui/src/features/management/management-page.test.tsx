@@ -67,7 +67,20 @@ describe('Gestão · acompanhamento do projeto', () => {
     expect(within(sources).getByText('acme/app')).toBeInTheDocument();
     expect(within(sources).getByText(/GitHub · Issues: 1, Pull requests: 1 · lido/)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Ainda não calculado' })).toBeInTheDocument();
-    expect(engine.calls.every((call) => call.method.startsWith('integration.'))).toBe(true);
+    expect(engine.calls.every((call) => /^(integration|management)\./.test(call.method))).toBe(true);
+
+    const flow = screen.getByRole('heading', { name: 'Fluxo nas últimas 4 semanas' }).closest('section')!;
+    const issues = within(flow).getByRole('group', { name: 'Issues' });
+    expect(within(issues).getByText('Entregues por semana (média)').nextElementSibling).toHaveTextContent('1,5');
+    expect(within(issues).getByText('Em andamento').nextElementSibling).toHaveTextContent('1');
+    expect(within(flow).getAllByText('A fonte não informa prazo para estes itens.')).toHaveLength(2);
+    expect(
+      within(flow).getByRole('table', { name: 'Issues: itens entregues e itens novos por semana' })
+    ).toBeInTheDocument();
+    expect(within(flow).queryByText('Dados incompletos')).not.toBeInTheDocument();
+
+    const missing = screen.getByRole('heading', { name: 'Ainda não calculado' }).closest('section')!;
+    expect(within(missing).getByText('Previsão de entrega.')).toBeInTheDocument();
 
     await expectNoA11yViolations(container);
   });

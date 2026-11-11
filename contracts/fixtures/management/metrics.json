@@ -1,0 +1,149 @@
+{
+  "projectId": "p-000000000001",
+  "generatedAt": "2026-11-10T12:00:00+00:00",
+  "periodWeeks": 4,
+  "periodFrom": "2026-10-13T12:00:00+00:00",
+  "periodTo": "2026-11-10T12:00:00+00:00",
+  "complete": true,
+  "sources": [
+    {
+      "integrationId": "pint-000000000001",
+      "provider": "github",
+      "resourceName": "acme/app",
+      "lastSyncStatus": "succeeded",
+      "lastSyncedAt": "2026-11-10T12:00:00+00:00",
+      "complete": true
+    }
+  ],
+  "kinds": [
+    {
+      "kind": "issues",
+      "items": 7,
+      "open": 1,
+      "wip": {
+        "value": 1,
+        "unavailable": null
+      },
+      "throughput": {
+        "weeks": [
+          {
+            "from": "2026-10-13T12:00:00+00:00",
+            "to": "2026-10-20T12:00:00+00:00",
+            "delivered": 0,
+            "created": 0
+          },
+          {
+            "from": "2026-10-20T12:00:00+00:00",
+            "to": "2026-10-27T12:00:00+00:00",
+            "delivered": 2,
+            "created": 2
+          },
+          {
+            "from": "2026-10-27T12:00:00+00:00",
+            "to": "2026-11-03T12:00:00+00:00",
+            "delivered": 2,
+            "created": 3
+          },
+          {
+            "from": "2026-11-03T12:00:00+00:00",
+            "to": "2026-11-10T12:00:00+00:00",
+            "delivered": 2,
+            "created": 2
+          }
+        ],
+        "total": 6,
+        "weeklyAverage": 1.5,
+        "unavailable": null
+      },
+      "leadTime": {
+        "sample": 6,
+        "medianDays": 2,
+        "p85Days": 2,
+        "unavailable": null
+      },
+      "overdue": {
+        "value": null,
+        "withDueDate": 0,
+        "unavailable": "A fonte não informa prazo para estes itens."
+      }
+    },
+    {
+      "kind": "pullRequests",
+      "items": 1,
+      "open": 0,
+      "wip": {
+        "value": 0,
+        "unavailable": null
+      },
+      "throughput": {
+        "weeks": [
+          {
+            "from": "2026-10-13T12:00:00+00:00",
+            "to": "2026-10-20T12:00:00+00:00",
+            "delivered": 0,
+            "created": 0
+          },
+          {
+            "from": "2026-10-20T12:00:00+00:00",
+            "to": "2026-10-27T12:00:00+00:00",
+            "delivered": 0,
+            "created": 0
+          },
+          {
+            "from": "2026-10-27T12:00:00+00:00",
+            "to": "2026-11-03T12:00:00+00:00",
+            "delivered": 0,
+            "created": 1
+          },
+          {
+            "from": "2026-11-03T12:00:00+00:00",
+            "to": "2026-11-10T12:00:00+00:00",
+            "delivered": 1,
+            "created": 0
+          }
+        ],
+        "total": 1,
+        "weeklyAverage": 0.3,
+        "unavailable": null
+      },
+      "leadTime": {
+        "sample": 1,
+        "medianDays": null,
+        "p85Days": null,
+        "unavailable": "São precisos ao menos 5 itens entregues no período; há 1."
+      },
+      "overdue": {
+        "value": null,
+        "withDueDate": 0,
+        "unavailable": "A fonte não informa prazo para estes itens."
+      }
+    }
+  ],
+  "notCalculated": [
+    {
+      "id": "cycleTime",
+      "label": "Cycle time",
+      "reason": "Precisa saber quando o trabalho começou. O GitHub não informa; no Jira, o histórico de status traz nomes que mudam por site."
+    },
+    {
+      "id": "blockers",
+      "label": "Bloqueios",
+      "reason": "O bloqueio no Jira é um campo personalizado, diferente em cada site; ainda não é lido."
+    },
+    {
+      "id": "scopeChange",
+      "label": "Mudança de escopo",
+      "reason": "Precisa de um escopo de referência (sprint ou marco), que ainda não é sincronizado."
+    },
+    {
+      "id": "predictability",
+      "label": "Previsibilidade",
+      "reason": "Precisa do que foi planejado por período, que ainda não é sincronizado."
+    },
+    {
+      "id": "forecast",
+      "label": "Previsão de entrega",
+      "reason": "Fica para a próxima fase, sobre o throughput histórico, com cenários e premissas."
+    }
+  ]
+}

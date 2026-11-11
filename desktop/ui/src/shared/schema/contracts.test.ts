@@ -10,6 +10,8 @@ import integrationCatalog from '@contracts/fixtures/integrations/catalog.json';
 import integrationConnections from '@contracts/fixtures/integrations/connections.json';
 import integrationHistory from '@contracts/fixtures/integrations/history.json';
 import integrationList from '@contracts/fixtures/integrations/integrations.json';
+import managementMetrics from '@contracts/fixtures/management/metrics.json';
+import managementPortfolio from '@contracts/fixtures/management/portfolio.json';
 import evalCompleted from '@contracts/fixtures/valid/event.eval.completed.json';
 import evalStarted from '@contracts/fixtures/valid/event.eval.started.json';
 import runPlan from '@contracts/fixtures/valid/event.run.plan.json';
@@ -21,6 +23,8 @@ import {
   discoverySchema,
   integrationCatalogSchema,
   integrationListSchema,
+  portfolioSchema,
+  projectMetricsSchema,
   planSchema,
   runEventSchema,
   runResultSchema,
@@ -138,5 +142,19 @@ describe('contrato da central de integrações (fixtures do motor)', () => {
 
   it('histórico de sincronizações', () => {
     expect(syncHistorySchema.parse(integrationHistory).syncs[0]).toMatchObject({ status: 'succeeded', fetched: 2 });
+  });
+});
+
+describe('contrato da visão gerencial (fixtures do motor)', () => {
+  it('indicadores por tipo, com motivo quando não há valor', () => {
+    const parsed = projectMetricsSchema.parse(managementMetrics);
+    expect(parsed.kinds.map((kind) => kind.kind)).toEqual(['issues', 'pullRequests']);
+    expect(parsed.kinds[0]?.throughput.weeks).toHaveLength(parsed.periodWeeks);
+    expect(parsed.kinds[0]?.overdue).toMatchObject({ value: null, unavailable: expect.any(String) });
+  });
+
+  it('portfólio com uma linha por projeto e os pontos de atenção', () => {
+    const parsed = portfolioSchema.parse(managementPortfolio);
+    expect(parsed.projects.map((project) => project.signals.map((signal) => signal.id))).toEqual([['no-sources'], []]);
   });
 });

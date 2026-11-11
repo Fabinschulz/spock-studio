@@ -1,0 +1,46 @@
+{
+  "generatedAt": "2026-11-10T12:00:00+00:00",
+  "periodWeeks": 8,
+  "projects": [
+    {
+      "projectId": "p-000000000002",
+      "displayName": "portal",
+      "displayPath": "~",
+      "sources": 0,
+      "kinds": [],
+      "oldestReadAt": null,
+      "signals": [
+        {
+          "id": "no-sources",
+          "message": "Nenhuma ferramenta vinculada: não há dados de andamento."
+        }
+      ]
+    },
+    {
+      "projectId": "p-000000000001",
+      "displayName": "loja",
+      "displayPath": "~",
+      "sources": 1,
+      "kinds": [
+        {
+          "kind": "issues",
+          "items": 7,
+          "open": 1,
+          "inProgress": 1,
+          "deliveredInPeriod": 6,
+          "overdue": null
+        },
+        {
+          "kind": "pullRequests",
+          "items": 1,
+          "open": 0,
+          "inProgress": 0,
+          "deliveredInPeriod": 1,
+          "overdue": null
+        }
+      ],
+      "oldestReadAt": "2026-11-10T12:00:00+00:00",
+      "signals": []
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import { cn } from '@/shared/utils';
 import {
   Button,
   ChartBarIcon,
+  GridIcon,
   Home01Icon,
   IntersectingArrowsIcon,
   LibraryIcon,
@@ -54,6 +55,7 @@ const GROUPS: NavGroup[] = [
     id: 'management',
     label: 'Gestão',
     items: [
+      { id: 'portfolio', label: 'Portfólio', icon: <GridIcon fontSize="small" />, to: pathTo('portfolio') },
       { id: 'management', label: 'Acompanhamento', icon: <ChartBarIcon fontSize="small" />, to: pathTo('management') }
     ]
   },

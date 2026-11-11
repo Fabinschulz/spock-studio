@@ -81,6 +81,7 @@ describe('AppShell · navegação', () => {
 
     const management = within(nav).getByRole('list', { name: 'Gestão' });
     expect(within(management).getByRole('link', { name: 'Acompanhamento' })).toHaveAttribute('href', '/gestao');
+    expect(within(management).getByRole('link', { name: 'Portfólio' })).toHaveAttribute('href', '/portfolio');
     expect(within(management).queryByRole('link', { name: 'Configurar' })).not.toBeInTheDocument();
 
     const platform = within(nav).getByRole('list', { name: 'Plataforma' });
