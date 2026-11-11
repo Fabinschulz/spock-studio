@@ -103,7 +103,7 @@ O código está em bom estado. As fronteiras entre camadas são respeitadas em t
 Ordem de dependência: a onda 6 muda contratos entre componentes e deve vir por último. A onda 3 deve vir antes de NET-3.
 
 ## 4. Decisões que dependem do dono do produto
-- **UI-2:** finalizar a fase 6 do redesign e apagar `src/prototype`, ou isolá-lo em outro workspace? Não será apagado sem aprovação.
+- **UI-2:** (decidido) finalizar a fase 6 do redesign e apagar `src/prototype`.
 - **PY-1:** o motor .NET passa a resolver o alvo da decisão e o mapa de áreas (muda o contrato `ai.workflow.*` e as fixtures golden).
 
 ## 5. Itens verificados sem problema
@@ -121,13 +121,15 @@ Direção de dependências .NET; Core (Policy/Text/Discovery/Plan/Evals); lógic
 | 6a | RS-6, RS-8, UI-7, UI-12 (parcial) | Mergeada (#35) |
 | 6b | PY-4 (limites no checkpoint, orçamento em todos os nós) | Mergeada (#36) |
 | 6c | PY-1 (o motor escolhe o alvo da decisão; `ai.ack.v3`) | Mergeada (#37) |
-| 6d | NET-3 (parcial: `AckStatus` tipado) | Neste PR |
+| 6d | NET-3 (parcial: `AckStatus` tipado) | Mergeada (#38) |
+| 7 | UI-2 (fase 6 do redesign concluída; `src/prototype` removido) | Neste PR |
 
 **Decisões de escopo**
 - SC-1 (hash do CPython embed) aguarda um SHA256 confiável.
 - PY-4: feito na 6b. O limite de etapas ficou nos cinco nós de análise (o motor envia 8 e o grafo tem 10 nós); contar todos pede mudar o contrato.
 - UI-3 (um só motor para acompanhar execuções): não feito. O fluxo de configuração obtém o resultado do snapshot e usa os eventos só para o progresso, então o risco real é de exibição; unificar com o acompanhamento da página de execução (numeração e lacunas) pede um redesenho dos dois e fica como item próprio.
-- UI-2 (`src/prototype`) depende de decisão de produto. PY-11 e PY-12 não foram feitos: não há biblioteca de JSON Schema no runtime de IA, e a validação completa continua nos testes do motor.
+- UI-2: decidido pelo dono do produto (concluir a fase 6 e apagar o protótipo). Feito na onda 7: 239 arquivos e `prototype.html` removidos, `pnpm check` (211 testes) e `pnpm build` passam; o encerramento e o que ficou fora estão em `docs/redesign/proposta-de-redesign.md` (seção 13). A última revisão com o protótipo é o commit `6e9918b`.
+- PY-11 e PY-12 não foram feitos: não há biblioteca de JSON Schema no runtime de IA, e a validação completa continua nos testes do motor.
 - PY-1: feito na 6c. Checkpoints pausados antes dela retomam como `CHECKPOINT_LOST`.
 - NET-3: o status do ack virou o enum `AckStatus`, lido uma vez na borda (`AiWire`); uma resposta com status fora dos três continua `AI_RUNTIME_INVALID_RESPONSE`. Não feitos: `JsonObject` em `Output` e em `RunHandle.Result` (o formato é o do contrato com a UI e as fixtures golden o fixam) e null-objects para `models`, `evalRecords` e `actions` (três tipos novos para tirar cinco `?.`; esses parâmetros só são opcionais nos testes).
 - UI-12: `state` e `status` do retrato ficaram como texto de propósito. Um estado novo do motor aparece como veio (`runStateLabel`); um `z.enum` recusaria o retrato inteiro. Feito: a lista de métodos virou `ENGINE_METHODS`/`EngineMethod`, com teste que a compara com `FRONTEND_METHODS` do host.

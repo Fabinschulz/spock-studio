@@ -1,32 +1,16 @@
 # Mariliz Studio — Redesign: auditoria, proposta e protótipo
 
-> **Estado:** Fases 1 a 5 concluídas. **Nada da interface real foi substituído.** O protótipo vive em `desktop/ui/src/prototype/` e `desktop/ui/prototype.html`, fora do build de produção. A Fase 6 só começa depois da sua avaliação (seção 11).
+> **Estado:** Fases 1 a 6 concluídas (seção 13). O desenho Workbench está no aplicativo real. O protótipo visual (`desktop/ui/src/prototype/` e `prototype.html`) foi removido ao fim da Fase 6; a última revisão que o contém é o commit `6e9918b` (`git show 6e9918b:desktop/ui/src/prototype/main.tsx`). O que ficou como registro são as capturas em `screenshots/` e a análise abaixo.
 >
 > Documentos relacionados: [contratos-propostos.md](contratos-propostos.md) (eventos que o motor ainda não publica) e [ui-modernization.md](../ui-modernization.md) (desenho atual).
 
-## Como ver o protótipo
+## O protótipo (removido)
 
-```bash
-pnpm --dir desktop/ui exec vite --port 1420
-# http://localhost:1420/prototype.html
-```
+Durante as Fases 3 a 5 o desenho foi avaliado num protótipo em `desktop/ui/prototype.html`, alimentado pelas respostas _golden_ do motor (`contracts`), com o alternador "Contrato atual / Contrato proposto" para mostrar o que o motor ainda não publica. Com a Fase 6 entregue, o aplicativo real o substitui e o protótipo deixou de ser mantido: duplicava componentes e estilos sem ser testado nem publicado.
 
-Os dados são as respostas _golden_ do motor (`contracts`), validadas pelos mesmos esquemas Zod do aplicativo. A faixa amarela no topo e o selo "demonstração" lembram que nada lê, grava ou executa em projeto algum. Links diretos úteis (parâmetros existem só no protótipo):
+Para revê-lo, use a revisão `6e9918b` (por exemplo `git worktree add ../mariliz-prototipo 6e9918b`, depois `pnpm --dir desktop/ui exec vite --port 1420` e `http://localhost:1420/prototype.html`). As seções 5 a 8 descrevem o que ele mostrava.
 
-| Para ver | Endereço (depois de `prototype.html`) |
-| --- | --- |
-| Início | `#/` |
-| Workspace do projeto | `#/projeto` |
-| Análise em andamento / concluída | `#/configurar/projeto?estado=analisando` / `?estado=analisado` |
-| Modelo e ambiente / gerando plano | `#/configurar/modelo` / `?estado=gerando-plano` |
-| Plano | `#/configurar/plano` |
-| Plano com agentes (contrato proposto) | `#/configurar/plano?contrato=proposto&t=5400` |
-| Revisão | `#/configurar/revisao` |
-| Aplicação (o que o motor publica hoje) | `#/configurar/aplicacao` (reproduz sozinha) ou `?t=9500` (instante fixo) |
-| Aplicação (contrato proposto) | `#/configurar/aplicacao?contrato=proposto&t=11200` |
-| Resultado e validação | `#/configurar/resultado` |
-
-Capturas em 760×560 (mínimo do Tauri), 900×650 (tamanho inicial), 1280×800 e 1600×900: `docs/redesign/screenshots/`. As do desenho atual têm prefixo `atual-`.
+Capturas em 760×560 (mínimo do Tauri), 900×650 (tamanho inicial), 1280×800 e 1600×900: `docs/redesign/screenshots/`. As do desenho anterior têm prefixo `atual-`, as do protótipo são numeradas (`01-…`) e as do aplicativo real têm prefixo `implementado-`.
 
 ### Antes e depois, na janela inicial do Tauri (900×650)
 
@@ -340,11 +324,30 @@ Decisões tomadas com a aprovação: direção A (Workbench), `#33C1BA`, **tema 
 | 5c · Etapa Modelo (2) | feito | Título curto, e três seções planas no lugar dos três cartões: Estrutura de especificação (estado, versão, dependências em linhas com "encontrado/ausente" em texto, e as mesmas permissões de atualizar/reinstalar), Ambiente de IA (escolha em linhas) e "O que será configurado". O cartão de resumo saiu: o resumo mora no painel de contexto. Sem conferência visual no Tauri; etapas 3 e 4 ainda no desenho anterior |
 | 5d · Etapa Plano (3) | feito | A tabela de decisões virou lista: uma linha por componente com tipo, id, justificativa e a decisão em texto; origem e evidências ao expandir; componente bloqueado já vem aberto; resumo "N decisões · X habilitar · Y manter". Limitações, observações e riscos em seções planas; o aviso da proposta do Harness Engineer segue como `InlineNotice`. Sem conferência visual no Tauri; etapa 4 (Revisão) ainda no desenho anterior |
 | 5e · Etapa Revisão (4) | feito | O resumo em chips virou uma frase só com o que existe ("2 a criar · 1 conflito"). Comandos e arquivos viraram linhas planas, cada uma com a caixa de aprovação, o estado em texto (inclusive "destrutivo") e o motivo; "Ver diferenças" fica recolhido, e conflito segue sem caixa, só com a decisão manter ou substituir. O aviso "desmarcados por padrão" passou a ser da seção de comandos, e cada caixa de comando ganhou o nome do comando. A validação posterior virou seção plana. Sem conferência visual no Tauri |
-| 8 · Contratos | parcial | Entregues no motor e consumidos pela interface: `at` (1), `run.plan` (2) e `eval.started`/`eval.completed` (3). A etapa de execução usa a lista do motor quando ela chega, mostra as verificações uma a uma e mede as durações pelo carimbo do motor; com um motor antigo cai no vocabulário local. Faltam 4 (progresso de análise e planejamento), 5, 6 (depende de decisão de produto) e 7; ver `contratos-propostos.md` |
-| 9 · Validação | parcial | Ver abaixo |
+| 8 · Contratos | feito no escopo da Fase 6 | Entregues no motor e consumidos pela interface: `at` (1), `run.plan` (2) e `eval.started`/`eval.completed` (3). A etapa de execução usa a lista do motor quando ela chega, mostra as verificações uma a uma e mede as durações pelo carimbo do motor; com um motor antigo cai no vocabulário local. Os itens 4 a 7 ficam **fora da Fase 6**, de propósito (ver "Encerramento" abaixo); a interface mostra "o motor não informa" no lugar deles |
+| 9 · Validação | feito no que é automatizável | Ver "Encerramento" abaixo |
 
 **Verificação desta rodada** (`pnpm check` em `desktop/ui`): `tsc`, ESLint, Prettier e **204 testes** passam (20 novos: etapas planejadas, reducer de progresso, painel de contexto com regras "sem evento não há agente" e juiz "não executado", paridade de paleta). No aplicativo real com o host simulado pelas fixtures _golden_: axe-core com **0 violações** e auditor de contraste efetivo com **0 falhas** em Revisão, Aplicação (em andamento) e Resultado; capturas a 760×560, 900×650, 1280×800 e 1600×900 em `screenshots/implementado-*`.
 
 **Não verificado:** leitor de tela real, zoom do sistema, alto contraste do Windows, execução dentro do Tauri (as capturas são do front-end em navegador), Análise/Modelo/Plano/Revisão passaram só na inspeção visual e nos testes. As quatro etapas da jornada já estão no desenho novo; a pendência é conferi-las no Tauri.
 
 **Mudanças de comportamento a conferir:** o tema claro deixou de existir; a arte do cabeçalho do Início (`hero-banner.webp`, `hero-art.tsx`) foi removida; a faixa superior perdeu a marca e o nome (ficam no menu); "Em breve" no menu passou a ficar à direita do nome.
+
+### Encerramento da Fase 6
+
+A Fase 6 foi dada como concluída com a aprovação do usuário, que pediu para terminá-la e apagar o protótipo.
+
+**Feito nesta rodada:** `desktop/ui/src/prototype/` (239 arquivos) e `prototype.html` removidos. Nada no aplicativo os importava, nenhuma dependência era exclusiva deles e o build de produção já não os incluía. Depois da remoção, `pnpm check` (`tsc`, ESLint, Prettier e **211 testes**) e `pnpm build` passam. O protótipo já não tinha arquivos de teste; a etapa de execução, a linha do tempo e a lista de verificações do aplicativo real têm os próprios (`run-step.test.tsx`, `run-timeline.test.ts`, `run-eval-list.test.tsx`).
+
+**Fora da Fase 6, de propósito** (a seção 11 já limitava a fase ao que o motor publica hoje):
+
+| Item | Por que fica fora | O que a interface faz |
+| --- | --- | --- |
+| 4 · progresso de análise e planejamento | Exige decidir entre eventos com `runId` efêmero (4-A) e transformar as chamadas em _runs_ (4-B): mudança de protocolo no motor | Diz que o motor não informa o andamento |
+| 5 · `analyzing` / `awaiting_approval` | Depende do 4-B; a aprovação é a etapa Revisão, antes de aplicar | Não os usa |
+| 6 · `agent.state` | Decisão de produto: o motor orquestrar agentes | Participantes só com fatos |
+| 7 · `kind` em `file.applied` | Opcional; a interface já cruza `path` com `plan.changes[].kind` | Agrupa pelo cruzamento |
+
+Se um deles virar prioridade, é uma iniciativa própria (motor, `contracts`, Zod e interface juntos), partindo de `contratos-propostos.md`.
+
+**Ainda sem verificação (precisa de pessoa e do aplicativo instalado):** leitor de tela (NVDA/Narrator), zoom do sistema, alto contraste do Windows e conferência visual das etapas dentro do Tauri. A tela Projeto segue sem painel de contexto e sem link por execução (a página de execução só lê workflows).
