@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import applyFailure from '@contracts/fixtures/golden/apply-failure.json';
+import engineeringProfile from '@contracts/fixtures/engineering/profile.json';
 import applyResult from '@contracts/fixtures/golden/apply-result.json';
 import discovery from '@contracts/fixtures/golden/discovery.json';
 import plan from '@contracts/fixtures/golden/plan.json';
@@ -34,6 +35,7 @@ import {
   projectMetricsSchema,
   projectRisksSchema,
   planSchema,
+  profileResultSchema,
   runEventSchema,
   runResultSchema,
   runSnapshotSchema,
@@ -197,5 +199,14 @@ describe('contrato do assistente gerencial (fixtures do motor)', () => {
     const cited = new Set(parsed.evidence.map((fact) => fact.id));
     expect(statements.length).toBeGreaterThan(0);
     expect(statements.every((statement) => statement.evidence.every((id) => cited.has(id)))).toBe(true);
+  });
+});
+
+describe('contrato do perfil tecnológico (fixture do motor)', () => {
+  it('tecnologias com categoria e cobertura do Harness vindas do motor, e o histórico', () => {
+    const { profile } = profileResultSchema.parse(engineeringProfile);
+    expect(profile?.technologies[0]).toMatchObject({ id: 'nextjs', category: 'Framework web' });
+    expect(profile?.harness[0]?.covered).toBe(true);
+    expect(profile?.history[0]?.kind).toBe('created');
   });
 });

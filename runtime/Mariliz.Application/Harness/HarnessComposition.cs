@@ -10,7 +10,8 @@ namespace Mariliz.Application.Harness;
 internal sealed class HarnessComposition(
     DiscoveryReport report, IProjectFiles files, DeclaredConfig? declared, ProposalResult proposal, PlanOptions options)
 {
-    private static readonly string[] JavascriptStacks = ["node", "nextjs", "react", "angular"];
+    /// <summary>Stacks atendidas pela regra JavaScript/TypeScript. O perfil tecnológico lê daqui para dizer o mesmo que o plano.</summary>
+    internal static readonly string[] JavascriptStacks = ["node", "nextjs", "react", "angular"];
 
     private readonly List<Limitation> _limitations = [];
     private readonly List<Observation> _observations = [];
