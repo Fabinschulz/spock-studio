@@ -16,3 +16,21 @@ export function formatDecimal(value: number): string {
 export function formatDays(value: number): string {
   return `${formatDecimal(value)} ${value === 1 ? 'dia' : 'dias'}`;
 }
+
+const fullDate = new Intl.DateTimeFormat('pt-BR', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  timeZone: 'UTC'
+});
+
+/** "15/12/2026" a partir de uma data do motor ("2026-12-15"), sem deslocar o dia pelo fuso local. */
+export function formatDay(isoDate: string): string {
+  const ms = Date.parse(`${isoDate}T00:00:00Z`);
+  return Number.isNaN(ms) ? isoDate : fullDate.format(ms);
+}
+
+/** "1 semana", "5 semanas". */
+export function formatWeeks(value: number): string {
+  return `${value} ${value === 1 ? 'semana' : 'semanas'}`;
+}

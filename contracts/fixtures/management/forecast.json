@@ -1,0 +1,81 @@
+{
+  "projectId": "p-000000000001",
+  "generatedAt": "2026-11-10T12:00:00+00:00",
+  "method": "Simulação de Monte Carlo com 10.000 rodadas sobre o número de itens entregues por semana nas últimas semanas.",
+  "complete": true,
+  "assumptions": [
+    "O ritmo das próximas semanas se parece com o das semanas usadas no histórico.",
+    "O trabalho restante é o que está aberto hoje; nada novo entra no escopo.",
+    "Os itens restantes têm, em média, o tamanho dos que já foram entregues.",
+    "A equipe e a capacidade continuam as mesmas."
+  ],
+  "limitations": [
+    "Não considera dependências nem bloqueios entre itens.",
+    "Não considera férias, feriados nem mudança de equipe.",
+    "Item aberto que na prática foi abandonado conta como trabalho restante.",
+    "Tipos de dado são previstos separadamente: uma issue e o pull request que a fecha não são somados."
+  ],
+  "kinds": [
+    {
+      "kind": "issues",
+      "remaining": 10,
+      "historyWeeks": 12,
+      "weeklyThroughput": [
+        2,
+        3,
+        1,
+        2,
+        2,
+        3,
+        1,
+        2,
+        0,
+        2,
+        3,
+        2
+      ],
+      "trials": 10000,
+      "scenarios": [
+        {
+          "id": "optimistic",
+          "label": "Otimista",
+          "percentile": 15,
+          "weeks": 5,
+          "by": "2026-12-15"
+        },
+        {
+          "id": "likely",
+          "label": "Provável",
+          "percentile": 50,
+          "weeks": 5,
+          "by": "2026-12-15"
+        },
+        {
+          "id": "conservative",
+          "label": "Conservador",
+          "percentile": 85,
+          "weeks": 7,
+          "by": "2026-12-29"
+        }
+      ],
+      "confidence": "high",
+      "confidenceReasons": [],
+      "riskFactors": [],
+      "unavailable": null
+    },
+    {
+      "kind": "pullRequests",
+      "remaining": 1,
+      "historyWeeks": 1,
+      "weeklyThroughput": [
+        0
+      ],
+      "trials": 0,
+      "scenarios": [],
+      "confidence": null,
+      "confidenceReasons": [],
+      "riskFactors": [],
+      "unavailable": "São precisas ao menos 6 semanas de histórico; os dados cobrem 1."
+    }
+  ]
+}

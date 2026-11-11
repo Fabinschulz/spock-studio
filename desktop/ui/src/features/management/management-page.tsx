@@ -15,6 +15,8 @@ import { useCallback, useMemo } from 'react';
 import { Link } from 'react-router';
 
 import { FlowSection } from './components/flow-section';
+import { ForecastSection } from './components/forecast-section';
+import { RisksSection } from './components/risks-section';
 import { summarizeActivity } from './domain/activity-summary';
 import styles from './management-page.module.scss';
 import { createManagementApi, type ManagementApi } from './service/management-api';
@@ -50,12 +52,14 @@ function ProjectManagement({
   project: SelectedProject;
 }) {
   const load = useCallback(async () => {
-    const [catalog, integrations, metrics] = await Promise.all([
+    const [catalog, integrations, metrics, forecast, risks] = await Promise.all([
       api.catalog(),
       api.integrations(project.projectId),
-      management.metrics(project.projectId)
+      management.metrics(project.projectId),
+      management.forecast(project.projectId),
+      management.risks(project.projectId)
     ]);
-    return { connectors: catalog.connectors, integrations, metrics };
+    return { connectors: catalog.connectors, integrations, metrics, forecast, risks };
   }, [api, management, project.projectId]);
   const sources = useAsyncResource(load);
 
@@ -75,6 +79,8 @@ function ProjectManagement({
       {sources.status === 'ready' ? (
         <>
           <ActivitySection integrations={sources.value.integrations} />
+          <RisksSection risks={sources.value.risks} />
+          <ForecastSection forecast={sources.value.forecast} connectors={sources.value.connectors} />
           <FlowSection metrics={sources.value.metrics} connectors={sources.value.connectors} />
           <SourcesSection integrations={sources.value.integrations} connectors={sources.value.connectors} />
           <NotCalculatedSection metrics={sources.value.metrics} />

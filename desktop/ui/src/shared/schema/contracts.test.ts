@@ -10,8 +10,10 @@ import integrationCatalog from '@contracts/fixtures/integrations/catalog.json';
 import integrationConnections from '@contracts/fixtures/integrations/connections.json';
 import integrationHistory from '@contracts/fixtures/integrations/history.json';
 import integrationList from '@contracts/fixtures/integrations/integrations.json';
+import managementForecast from '@contracts/fixtures/management/forecast.json';
 import managementMetrics from '@contracts/fixtures/management/metrics.json';
 import managementPortfolio from '@contracts/fixtures/management/portfolio.json';
+import managementRisks from '@contracts/fixtures/management/risks.json';
 import evalCompleted from '@contracts/fixtures/valid/event.eval.completed.json';
 import evalStarted from '@contracts/fixtures/valid/event.eval.started.json';
 import runPlan from '@contracts/fixtures/valid/event.run.plan.json';
@@ -24,7 +26,9 @@ import {
   integrationCatalogSchema,
   integrationListSchema,
   portfolioSchema,
+  projectForecastSchema,
   projectMetricsSchema,
+  projectRisksSchema,
   planSchema,
   runEventSchema,
   runResultSchema,
@@ -156,5 +160,22 @@ describe('contrato da visão gerencial (fixtures do motor)', () => {
   it('portfólio com uma linha por projeto e os pontos de atenção', () => {
     const parsed = portfolioSchema.parse(managementPortfolio);
     expect(parsed.projects.map((project) => project.signals.map((signal) => signal.id))).toEqual([['no-sources'], []]);
+  });
+});
+
+describe('contrato de previsão e riscos (fixtures do motor)', () => {
+  it('previsão com três cenários, confiança e premissas; sem base, motivo e nenhum cenário', () => {
+    const parsed = projectForecastSchema.parse(managementForecast);
+    const [issues, pullRequests] = parsed.kinds;
+    expect(issues?.scenarios.map((scenario) => scenario.percentile)).toEqual([15, 50, 85]);
+    expect(issues?.confidence).not.toBeNull();
+    expect(pullRequests).toMatchObject({ scenarios: [], confidence: null, unavailable: expect.any(String) });
+    expect(parsed.assumptions.length).toBeGreaterThan(0);
+  });
+
+  it('riscos por regra, com evidências, itens e origem explícita', () => {
+    const parsed = projectRisksSchema.parse(managementRisks);
+    expect(parsed.risks.map((risk) => risk.id)).toEqual(['overdue', 'review-queue']);
+    expect(parsed.risks.every((risk) => risk.origin === 'rule' && risk.evidence.length > 0)).toBe(true);
   });
 });

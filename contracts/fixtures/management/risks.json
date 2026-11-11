@@ -1,0 +1,55 @@
+{
+  "projectId": "p-000000000001",
+  "generatedAt": "2026-11-10T12:00:00+00:00",
+  "complete": true,
+  "hasData": true,
+  "risks": [
+    {
+      "id": "overdue",
+      "title": "Itens com prazo vencido",
+      "severity": "high",
+      "rule": "Item aberto com prazo anterior a hoje.",
+      "evidence": [
+        "1 de 1 item aberto com prazo está vencido.",
+        "O mais atrasado venceu há 9 dias."
+      ],
+      "items": [
+        {
+          "kind": "issues",
+          "externalId": "A-1",
+          "title": "Item A-1"
+        }
+      ],
+      "trend": null,
+      "recommendation": "Rever com os responsáveis o prazo ou a prioridade dos itens vencidos.",
+      "origin": "rule"
+    },
+    {
+      "id": "review-queue",
+      "title": "Pull requests acumulados em revisão",
+      "severity": "low",
+      "rule": "Pull request aberto há mais de 7 dias.",
+      "evidence": [
+        "1 pull request aberto há mais de 7 dias.",
+        "O mais antigo foi aberto há 12 dias."
+      ],
+      "items": [
+        {
+          "kind": "pullRequests",
+          "externalId": "7",
+          "title": "Item 7"
+        }
+      ],
+      "trend": null,
+      "recommendation": "Reservar tempo de revisão ou fechar o que não vai seguir.",
+      "origin": "rule"
+    }
+  ],
+  "rulesEvaluated": [
+    "overdue",
+    "stalled-wip",
+    "review-queue",
+    "scope-growth",
+    "throughput-drop"
+  ]
+}
