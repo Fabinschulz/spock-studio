@@ -15,6 +15,6 @@ export function buildSummaryFacts({
     ['Modelo', 'Mariliz'],
     ['Ambiente de IA', aiEnvironment ? (aiEnvironmentNames[aiEnvironment] ?? aiEnvironment) : 'a escolher'],
     ['Plano', plan.status === 'ready' ? `${plan.data.changes.length} alterações` : 'ainda não gerado'],
-    ['Aprovados', STEPS_WITH_APPROVALS.includes(step) ? `${approvalCount}` : '—']
+    ['Aprovados', STEPS_WITH_APPROVALS.includes(step) ? `${approvalCount}` : 'não se aplica']
   ];
 }

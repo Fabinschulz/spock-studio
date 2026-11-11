@@ -24,7 +24,7 @@ export function DiscoverySummary({ discovery }: { discovery: Discovery }) {
   const { specification, inventory, git, tools } = discovery;
   const existing = Object.values(inventory)
     .flat()
-    .map((item) => (item.issue ? `${item.path} — aviso: ${item.issue}` : item.path));
+    .map((item) => (item.issue ? `${item.path} (aviso: ${item.issue})` : item.path));
 
   return (
     <section aria-labelledby="estado-titulo" className={styles.section}>

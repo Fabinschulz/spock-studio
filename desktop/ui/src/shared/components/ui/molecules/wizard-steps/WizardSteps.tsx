@@ -52,7 +52,7 @@ export function WizardSteps({ steps, currentId, issue }: WizardStepsProps) {
                 {problem === 'error' ? (
                   '!'
                 ) : problem === 'blocked' ? (
-                  '–'
+                  '×'
                 ) : state === 'done' ? (
                   <CheckGlyph />
                 ) : (

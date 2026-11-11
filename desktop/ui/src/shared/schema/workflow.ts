@@ -11,7 +11,7 @@ export const workflowStartInputSchema = z.object({
   useModel: z.boolean().optional()
 });
 
-/** Parâmetros de workflow.start — espelha contracts/schemas/ai/workflow.start.params.schema.json */
+/** Parâmetros de workflow.start; espelha contracts/schemas/ai/workflow.start.params.schema.json */
 export const workflowStartParamsSchema = z
   .object({
     projectId: z.string().min(1),

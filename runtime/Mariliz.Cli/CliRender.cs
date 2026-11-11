@@ -24,7 +24,7 @@ internal static class CliRender
         foreach (var s in stacks)
         {
             w.WriteLine($"  {Str(s, "name")} {Str(s, "version")} em '{Str(s, "root")}' (confiança {Str(s, "confidence")})");
-            foreach (var e in Items(s, "evidence")) w.WriteLine($"    evidência: {Str(e, "path")}{(Str(e, "detail") is { Length: > 0 } d ? $" — {d}" : "")}");
+            foreach (var e in Items(s, "evidence")) w.WriteLine($"    evidência: {Str(e, "path")}{(Str(e, "detail") is { Length: > 0 } d ? $": {d}" : "")}");
         }
 
         foreach (var t in Items(report, "tooling"))
@@ -50,7 +50,7 @@ internal static class CliRender
 
     public static void Plan(TextWriter w, ConfigurationPlan plan, bool showDiff)
     {
-        w.WriteLine($"Plano {plan.PlanId} — ambiente {(plan.AiEnvironment.Length == 0 ? "(não definido)" : plan.AiEnvironment)}, modelo de implementação {plan.ImplementationModel}");
+        w.WriteLine($"Plano {plan.PlanId}: ambiente {(plan.AiEnvironment.Length == 0 ? "(não definido)" : plan.AiEnvironment)}, modelo de implementação {plan.ImplementationModel}");
         w.WriteLine(plan.ProposalOrigin == "harness-engineer"
             ? "Proposta do Harness Engineer, validada pelo motor."
             : "Plano pelas regras-base (o Harness Engineer ainda não gerou .mariliz/proposal.json).");
@@ -58,7 +58,7 @@ internal static class CliRender
         w.WriteLine();
         w.WriteLine("Decisões:");
         foreach (var d in plan.Decisions)
-            w.WriteLine($"  [{d.Decision}] {d.ComponentId} — {d.Justification} (origem: {d.Origin})");
+            w.WriteLine($"  [{d.Decision}] {d.ComponentId}: {d.Justification} (origem: {d.Origin})");
 
         foreach (var l in plan.Limitations) w.WriteLine($"! {l.Message}");
 

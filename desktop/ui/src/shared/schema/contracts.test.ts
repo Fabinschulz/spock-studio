@@ -79,7 +79,7 @@ describe('contrato do motor (fixtures golden)', () => {
     expect(runSnapshotSchema.parse(snapshot).result).toBeNull();
   });
 
-  it('workflow.start — parâmetros e resultado alinhados ao contrato', () => {
+  it('workflow.start: parâmetros e resultado alinhados ao contrato', () => {
     expect(
       workflowStartParamsSchema.parse({
         projectId: 'p-000000000000',

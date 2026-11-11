@@ -65,8 +65,8 @@ An agent that judges evidence opens its output with this literal YAML, before th
 ```yaml
 confidence: HIGH | MEDIUM | LOW
 evidence:
-  - "path/to/file.ext:48 — what was read"
-  - "command — result"
+  - "path/to/file.ext:48: what was read"
+  - "command: result"
 assumptions:
   - "none"
 open_questions:
