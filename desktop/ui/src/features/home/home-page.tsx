@@ -10,6 +10,11 @@ export function HomePage() {
   const { selected, pick } = useProjectSelectionContext();
 
   const startJourney = async (id: JourneyId) => {
+    // As conexões são do computador, não de um projeto: a central abre sem exigir uma pasta.
+    if (id === 'connect-tools') {
+      navigate(pathTo('integrations'));
+      return;
+    }
     if (id !== 'configure-project' && id !== 'engineering-request') return;
     const project = selected ?? (await pick());
     if (!project) return;

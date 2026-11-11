@@ -6,6 +6,10 @@ import discovery from '@contracts/fixtures/golden/discovery.json';
 import plan from '@contracts/fixtures/golden/plan.json';
 import revertResult from '@contracts/fixtures/golden/revert-result.json';
 import validateResult from '@contracts/fixtures/golden/validate-result.json';
+import integrationCatalog from '@contracts/fixtures/integrations/catalog.json';
+import integrationConnections from '@contracts/fixtures/integrations/connections.json';
+import integrationHistory from '@contracts/fixtures/integrations/history.json';
+import integrationList from '@contracts/fixtures/integrations/integrations.json';
 import evalCompleted from '@contracts/fixtures/valid/event.eval.completed.json';
 import evalStarted from '@contracts/fixtures/valid/event.eval.started.json';
 import runPlan from '@contracts/fixtures/valid/event.run.plan.json';
@@ -13,11 +17,15 @@ import stepStarted from '@contracts/fixtures/valid/event.step.started.json';
 import workflowStarted from '@contracts/fixtures/valid/event.workflow.started.json';
 
 import {
+  connectionListSchema,
   discoverySchema,
+  integrationCatalogSchema,
+  integrationListSchema,
   planSchema,
   runEventSchema,
   runResultSchema,
   runSnapshotSchema,
+  syncHistorySchema,
   workflowStartParamsSchema,
   workflowStartResultSchema
 } from '.';
@@ -100,5 +108,35 @@ describe('contrato do motor (fixtures golden)', () => {
       discoverySchema.parse({ ...discovery, specification: { ...discovery.specification, state: 'quase' } })
     ).toThrow();
     expect(() => runResultSchema.parse({ ...applyResult, outcome: 'otimo' })).toThrow();
+  });
+});
+
+/** Geradas pelo motor real em IntegrationHubTests (MARILIZ_UPDATE_GOLDEN=1 dotnet test). */
+describe('contrato da central de integrações (fixtures do motor)', () => {
+  it('catálogo de conectores, com os campos que a interface desenha', () => {
+    const parsed = integrationCatalogSchema.parse(integrationCatalog);
+    expect(parsed.connectors.map((connector) => connector.provider)).toEqual(['github', 'jira']);
+    expect(parsed.connectors[1]?.settings.map((field) => field.name)).toEqual(['site', 'email']);
+  });
+
+  it('conexões sem nenhum campo de credencial', () => {
+    const parsed = connectionListSchema.parse(integrationConnections);
+    expect(parsed.connections[0]).toMatchObject({ provider: 'github', status: 'connected', projects: 1 });
+    expect(JSON.stringify(integrationConnections)).not.toMatch(/secret|token|password/i);
+  });
+
+  it('vínculo do projeto com recorte, política fechada e resumo do sincronizado', () => {
+    const [integration] = integrationListSchema.parse(integrationList).integrations;
+    expect(integration?.scope).toEqual({
+      resource: 'acme/app',
+      resourceName: 'acme/app',
+      dataKinds: ['issues', 'pullRequests']
+    });
+    expect(integration?.policy.feedsKnowledge).toBe(false);
+    expect(integration?.items).toMatchObject({ total: 2, byStatusCategory: { done: 1, todo: 1 } });
+  });
+
+  it('histórico de sincronizações', () => {
+    expect(syncHistorySchema.parse(integrationHistory).syncs[0]).toMatchObject({ status: 'succeeded', fetched: 2 });
   });
 });

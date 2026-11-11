@@ -29,6 +29,7 @@ A Application nunca acessa disco nem processos diretamente: usa as portas.
 | `Validation/` | Evals: `EvalRunner` roda o catálogo; cada verificação é um `IEvalCheck` em `Checks/` |
 | `Protocol/` | `EngineSession` (laço e envelope), `ConfigureRequestHandler` (casos de uso), `RequestParams`, `ProtocolMethods` |
 | `Workspace/` | Autorização de pastas |
+| `Integrations/` | Central de integrações: `ConnectionService` (credencial e ciclo de vida), `ProjectIntegrationService` (vínculo e recorte por projeto), `SyncService` (sincronização incremental), e um `IIntegrationConnector` por provedor em `Connectors/`. Portas: `ISecretVault`, `IIntegrationStore`, `ISyncedDataStore`, `IConnectorTransport`, `IAuditLog`. Ver [evolucao-engineering-management.md](../plataforma/evolucao-engineering-management.md) |
 
 ## Regras
 
@@ -47,6 +48,8 @@ A Application nunca acessa disco nem processos diretamente: usa as portas.
   pessoa aprova.
 - Um método faz uma coisa. Uma sequência de fases vira uma classe com um método por fase (`ApplyExecution`).
 - Adicionar uma verificação de validação é criar um `IEvalCheck` e uma entrada em `EvalCatalog`, sem mexer em `EvalRunner`.
+- Adicionar um provedor de integração é criar um `IIntegrationConnector` e registrá-lo em `LocalIntegrationHub`, sem mexer nos
+  serviços nem na interface (ela desenha os campos a partir do `ConnectorDescriptor`). A credencial só passa por `ISecretVault`.
 - Valores textuais repetidos viram constante (`OpKinds`, `OpSources`, `StepStatus`, `ComponentDecisions`, `ProtocolMethods`).
 - Interface só quando há mais de uma implementação (`IEvalCheck`) ou uma fronteira com o sistema (portas).
 - Comentário explica um **porquê** que o código não mostra (segurança, contrato com o instalador, protocolo). Não repete o nome

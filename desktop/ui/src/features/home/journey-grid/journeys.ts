@@ -30,8 +30,7 @@ export const journeys: readonly Journey[] = [
   {
     id: 'connect-tools',
     title: 'Conectar ferramentas',
-    description: 'Configure Jira, Azure DevOps, GitHub, MCPs e bancos de dados.',
-    unavailableReason: SOON
+    description: 'Conecte GitHub e Jira e decida o que cada projeto pode ler.'
   },
   {
     id: 'modernize-system',

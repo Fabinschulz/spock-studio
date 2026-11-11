@@ -34,7 +34,20 @@ export const ENGINE_METHODS = [
   'model.status',
   'model.save',
   'model.clear',
-  'model.complete'
+  'model.complete',
+  'integration.catalog',
+  'connection.list',
+  'connection.create',
+  'connection.test',
+  'connection.rotate',
+  'connection.disconnect',
+  'connection.remove',
+  'integration.list',
+  'integration.link',
+  'integration.configure',
+  'integration.unlink',
+  'integration.sync',
+  'integration.history'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

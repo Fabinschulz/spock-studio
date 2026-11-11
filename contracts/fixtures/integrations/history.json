@@ -1,0 +1,17 @@
+{
+  "syncs": [
+    {
+      "id": "sync-000000000001",
+      "startedAt": "2026-11-10T12:00:00+00:00",
+      "finishedAt": "2026-11-10T12:00:00+00:00",
+      "status": "succeeded",
+      "incremental": false,
+      "pages": 1,
+      "fetched": 2,
+      "created": 2,
+      "updated": 0,
+      "unchanged": 0,
+      "error": null
+    }
+  ]
+}

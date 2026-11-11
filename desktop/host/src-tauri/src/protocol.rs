@@ -7,7 +7,8 @@ use serde_json::Value;
 pub const PROTOCOL_VERSION: u64 = 1;
 pub const MAX_MESSAGE_BYTES: usize = 4 * 1024 * 1024;
 
-/// Métodos que a UI pode pedir ao motor: a jornada "Configurar projeto" e o início de um workflow.
+/// Métodos que a UI pode pedir ao motor: a jornada "Configurar projeto", o início de um workflow e a central de
+/// integrações (`connection.*`, `integration.*`).
 /// `workspace.authorize` e `engine.*` ficam de fora de propósito: o primeiro recebe um caminho e só
 /// o diálogo nativo (comando `pick_project_folder`) pode originá-lo; os demais são do ciclo de vida do host.
 pub const FRONTEND_METHODS: &[&str] = &[
@@ -25,6 +26,19 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "model.save",
     "model.clear",
     "model.complete",
+    "integration.catalog",
+    "connection.list",
+    "connection.create",
+    "connection.test",
+    "connection.rotate",
+    "connection.disconnect",
+    "connection.remove",
+    "integration.list",
+    "integration.link",
+    "integration.configure",
+    "integration.unlink",
+    "integration.sync",
+    "integration.history",
 ];
 
 pub mod error_code {

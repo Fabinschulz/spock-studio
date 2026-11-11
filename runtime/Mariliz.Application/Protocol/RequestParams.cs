@@ -18,6 +18,23 @@ internal readonly struct RequestParams(JsonObject? values)
             : throw new ParamException($"'{name}' precisa ser verdadeiro ou falso.");
     }
 
+    public bool Has(string name) => values?[name] is not null;
+
+    public bool? OptionalFlag(string name) => Has(name) ? Flag(name) : null;
+
+    /// <summary>Um objeto opcional cujos valores são todos textos (ex.: a configuração de um conector).</summary>
+    public IReadOnlyDictionary<string, string> StringMap(string name)
+    {
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var (key, node) in ObjectOrEmpty(name))
+        {
+            if (node is not JsonValue value || !value.TryGetValue<string>(out var text))
+                throw new ParamException($"'{name}' só aceita textos.");
+            map[key] = text;
+        }
+        return map;
+    }
+
     public int? OptionalInt(string name)
     {
         if (values?[name] is null) return null;

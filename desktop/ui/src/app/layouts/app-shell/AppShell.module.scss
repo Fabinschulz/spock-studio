@@ -77,6 +77,25 @@ button.skip {
   list-style: none;
 }
 
+// Os grupos separam os ambientes (Engenharia, Gestão) do que é do aplicativo todo.
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 0;
+  overflow: hidden auto;
+}
+
+.groupLabel {
+  margin: 0 0 var(--space-1);
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-badge);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
 .item {
   position: relative;
   display: flex;
@@ -312,8 +331,19 @@ button.item {
   }
 
   .itemLabel,
-  .engineTitle {
+  .engineTitle,
+  .groupLabel {
     @include visually-hidden;
+  }
+
+  // Com o menu recolhido o rótulo some; um fio mantém a separação entre os ambientes.
+  .group + .group {
+    padding-top: var(--space-3);
+    border-top: var(--border-width-divider) solid var(--color-divider);
+  }
+
+  .groups {
+    gap: var(--space-3);
   }
 
   .topbar {
