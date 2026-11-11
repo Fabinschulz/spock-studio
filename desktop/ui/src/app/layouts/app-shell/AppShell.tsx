@@ -1,4 +1,5 @@
 import { Container, Logo, Wordmark } from '@/shared/components';
+import { app } from '@/shared/config/app';
 import { useEngineStatus } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 import { Button } from '@mariliz/ui-kit';
@@ -22,7 +23,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </Button>
 
       <aside className={styles.rail}>
-        <Link to={pathTo('home')} className={styles.brand} aria-label="Mariliz Studio, página inicial">
+        <Link to={pathTo('home')} className={styles.brand} aria-label={`${app.name}, página inicial`}>
           <Logo className={styles.logo} />
           <Wordmark className={styles.wordmark} />
         </Link>

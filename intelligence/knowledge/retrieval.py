@@ -1,7 +1,7 @@
 """Recuperação híbrida: o ponto único que o grafo e a avaliação chamam.
 
-Duas listas independentes — lexical (BM25 sobre texto, títulos e símbolos quebrados em palavras) e símbolos (nomes
-declarados no código, chaves de configuração, ids de requisito) — fundidas por Reciprocal Rank Fusion. Um reordenamento
+Duas listas independentes, lexical (BM25 sobre texto, títulos e símbolos quebrados em palavras) e símbolos (nomes
+declarados no código, chaves de configuração, ids de requisito), fundidas por Reciprocal Rank Fusion. Um reordenamento
 determinístico desempata pela cobertura dos termos do pedido. Vetores entram como terceira lista quando houver
 embeddings (D3), sem mudar este contrato.
 """

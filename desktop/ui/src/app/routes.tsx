@@ -8,6 +8,7 @@ import Execution from './routes/execution';
 import Home from './routes/home';
 import Integrations from './routes/integrations';
 import Management from './routes/management';
+import Portfolio from './routes/portfolio';
 import Project from './routes/project';
 import Settings from './routes/settings';
 
@@ -29,6 +30,14 @@ export const routes: RouteObject[] = [
       },
       { path: paths.configure, element: <Configure /> },
       { path: paths.engineeringRequest, element: <EngineeringRequest /> },
+      {
+        path: paths.portfolio,
+        element: (
+          <RequiresHost>
+            <Portfolio />
+          </RequiresHost>
+        )
+      },
       {
         path: paths.management,
         element: (

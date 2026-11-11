@@ -51,6 +51,14 @@ public sealed class WorkspaceAuthorizer
 
     public bool IsAuthorized(string projectId) => _authorized.ContainsKey(projectId);
 
+    /// <summary>Os projetos autorizados, com nome e caminho abreviado. O caminho completo continua só no motor.</summary>
+    public IReadOnlyList<AuthorizedProject> Projects() =>
+        _authorized
+            .Select(pair => new AuthorizedProject(pair.Key, Path.GetFileName(pair.Value), Abbreviate(pair.Value)))
+            .OrderBy(project => project.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(project => project.ProjectId, StringComparer.Ordinal)
+            .ToList();
+
     /// <summary>Raiz absoluta de um projeto já autorizado. É a única forma de resolver um id em caminho.</summary>
     public bool TryGetRoot(string projectId, out string root)
     {

@@ -24,7 +24,7 @@ O produto passou a se chamar **Mariliz Studio**. A marca vem do projeto Mariliz 
 
 > **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
-O ícone do aplicativo usa a geometria exata do favicon em 1024 px (`desktop/host/src-tauri/icons/source/mariliz-studio.svg`); o conjunto (`.ico`, `.icns`, PNGs do Windows) é gerado por `pnpm tauri icon`. O PNG-fonte é renderizado localmente, sem ferramentas externas. O nó teal funciona como o "nó" que a Mariliz já usa nos "i" do wordmark.
+O ícone do aplicativo usa a geometria exata do favicon em 1024 px (`desktop/host/src-tauri/icons/source/spock-studio.svg`); o conjunto (`.ico`, `.icns`, PNGs do Windows) é gerado por `pnpm tauri icon`. O PNG-fonte é renderizado localmente, sem ferramentas externas. Desde 2026-11-11 a marca é a do Spock Studio: o olhar lógico (uma sobrancelha reta, a outra erguida em teal, e dois olhos) (ver `docs/plataforma/evolucao-engineering-management.md`, seção 12).
 
 > **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 

@@ -25,7 +25,7 @@ export function ProjectStep({ project, discovery, onAnalyze, onContinue }: Proje
   return (
     <section className={styles.step}>
       <StepHeader title={project ? `Analisar ${project.name}` : 'Analisar o projeto'}>
-        O Mariliz lê a estrutura do projeto para entender a stack, os comandos e o que já existe. Nada é alterado.
+        O Spock Studio lê a estrutura do projeto para entender a stack, os comandos e o que já existe. Nada é alterado.
       </StepHeader>
 
       <FolderPickerCard project={project} analyzing={analyzing} onAnalyze={onAnalyze} />

@@ -12,7 +12,7 @@ interface CheckboxFieldProps {
   plain?: boolean;
 }
 
-/** Caixa de seleção do Mariliz com o rótulo curto; a explicação fica abaixo, ligada por `aria-describedby`. */
+/** Caixa de seleção do Spock Studio com o rótulo curto; a explicação fica abaixo, ligada por `aria-describedby`. */
 export function CheckboxField({ checked, onChange, label, description, plain }: CheckboxFieldProps) {
   const descriptionId = useId();
 

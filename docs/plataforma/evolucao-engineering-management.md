@@ -1,6 +1,8 @@
 # Evolução para plataforma de Engenharia e Gestão
 
-**Data:** 2026-11-10. **Estado:** Fases 1 e 2 entregues neste ciclo; Fases 3 a 7 planejadas.
+**Data:** 2026-11-10, atualizado em 2026-11-11. **Estado:** Fases 1 e 2 mergeadas (PR #40); Fase 3 entregue; Fases 4 a 7 planejadas.
+
+> O produto passou a se chamar **Spock Studio** (System of Programming, Organization, Code and Knowledge). Ver seção 12.
 
 O Mariliz passa a ter dois ambientes sobre o mesmo projeto (Engenharia e Gestão) e uma central de integrações que
 alimenta os dois. Este documento registra o que a auditoria encontrou, o que foi construído, os contratos, as decisões e
@@ -193,11 +195,36 @@ vistas num navegador com host simulado, em 1280 e 760 pixels de largura.
 - Itens apagados no provedor não são removidos do que já foi sincronizado.
 - A sincronização não emite eventos: a interface relê a lista a cada 1,5 s enquanto houver uma em andamento.
 
-## 10. Próximas fases e dependências
+## 10. Fase 3: gestão básica (entregue em 2026-11-11)
+
+- **Portfólio** (`/portfolio`, `management.portfolio`): uma linha por projeto autorizado, com abertos, em andamento,
+  entregues em 8 semanas e prazo vencido por tipo de dado, e a leitura mais antiga. Nome e caminho abreviado vêm do motor
+  (`WorkspaceAuthorizer.Projects()`), sem depender do host. Cada linha usa só os dados do próprio projeto.
+- **Pontos de atenção por regra** (`PortfolioSignals`): nenhuma fonte; fonte nunca sincronizada; última sincronização
+  parcial ou com falha; conexão sem acesso; dados lidos há mais de 7 dias; itens abertos com prazo vencido. São condições
+  fixas, não previsão. Quem tem mais pontos aparece primeiro.
+- **Indicadores de fluxo** (`management.metrics`, tela Acompanhamento), por tipo de dado e nunca somando tipos:
+
+| Indicador | Fórmula | Base | Sem valor quando |
+| --- | --- | --- | --- |
+| Em andamento (WIP) | itens com categoria "em andamento" agora | situação atual | não há itens |
+| Entregues por semana | entregues com conclusão em cada janela de 7 dias terminando agora; média = total ÷ semanas | data de conclusão | não há itens |
+| Novos por semana | itens criados em cada janela | data de criação | não há itens |
+| Lead time | dias corridos da criação à conclusão dos entregues no período; mediana e percentil 85 pela posição ⌈p·n⌉ | criação e conclusão | menos de 5 entregues no período |
+| Prazo vencido | abertos com prazo anterior a hoje (UTC) | prazo do item | a fonte não informa prazo (GitHub) |
+
+  "Entregue" (`DeliveryRules`): concluído, com data de conclusão, sem ser issue descartada ou duplicada nem pull request
+  fechado sem merge. Janelas incluem o início e excluem o fim. Uma casa decimal, meio arredondado para cima. Período
+  padrão de 8 semanas (2 a 26). Nenhum indicador é por pessoa.
+- A resposta marca `complete: false` quando alguma fonte teve a última sincronização parcial ou com falha, e lista em
+  `notCalculated` o que foi pedido e ainda não existe (cycle time, bloqueios, mudança de escopo, previsibilidade,
+  previsão), com o motivo. A tela mostra esses itens como ausentes.
+- Testes em `ManagementTests` (10) conferem cada número à mão; fixtures em `contracts/fixtures/management`.
+
+## 11. Próximas fases e dependências
 
 | Fase | Entrega | Depende de |
 | --- | --- | --- |
-| 3. Gestão básica | Portfólio; visão por projeto com atividades, atrasos e bloqueios; indicadores determinísticos (WIP, throughput). | Sincronização real validada; decisão sobre onde vive o nome do projeto para o portfólio. |
 | 4. Inteligência de entrega | Cycle time, lead time, previsão com cenários e premissas, riscos por regra. | Histórico de status (Jira já traz; GitHub exige a API de eventos da issue). |
 | 5. Assistente gerencial | Perguntas em linguagem natural sobre métricas calculadas. | Fases 3 e 4; consumidor da política de contextualização. |
 | 6. Engenharia | Perfil tecnológico persistido a partir da descoberta; gerenciamento de Harness, MCP e conhecimento. | Nenhuma das anteriores: pode andar em paralelo. |
@@ -205,9 +232,42 @@ vistas num navegador com host simulado, em 1280 e 760 pixels de largura.
 
 Indicadores e previsão serão serviços determinísticos no .NET. O LangGraph entra só para explicar resultados.
 
-## 11. Decisões que dependem de você
+## 12. Troca de nome para Spock Studio
+
+O nome visível passou a ser **Spock Studio** (System of Programming, Organization, Code and Knowledge): nome do aplicativo e do instalador (`productName`), título da janela e da
+página, marca no menu, textos da interface ("Modelo de implementação Spock", "Motor Spock") e ícones.
+
+- **Marca, o olhar lógico:** uma sobrancelha reta, a outra erguida em teal, e dois olhos. É a expressão de curiosidade
+  cética associada ao personagem, sem rosto, orelha, franja, insígnia, saudação nem outro elemento de obra de
+  terceiros. No wordmark "spock", o braço do "k" é a mesma sobrancelha erguida em teal, e o par ícone e nome se lê como
+  uma coisa só. Fonte em `desktop/host/src-tauri/icons/source/spock-studio.svg` (o PNG de 1024 px ao lado é
+  renderizado dela); o conjunto `.ico`/`.icns`/PNGs é gerado por `pnpm tauri icon`. Foi escolhido entre cinco direções
+  (olhar lógico, S afiado, prompt cético, o símbolo "portanto" e o S em trilha de circuito).
+- **Mantido de propósito, para não quebrar quem já usa:** `identifier` do Tauri (pasta de dados do host e atualização do
+  instalador), `mariliz.yaml`, `mariliz.lock` e `.mariliz/` nos projetos, a pasta de dados do motor, o id
+  `implementationModel: mariliz`, o sidecar `mariliz-runtime`, as variáveis `MARILIZ_*`, os namespaces `Mariliz.*` e o
+  pacote `@mariliz/ui-kit` publicado no npm.
+- **Ainda com o nome antigo:** os textos que o produto grava nos projetos (agentes, regras e hook em
+  `runtime/Mariliz.Application/Assets`). Mudá-los altera o hash do Harness aplicado, e cada projeto já configurado
+  receberia uma atualização no próximo plano.
+- **Não conferido:** o instalador gerado com o nome novo. Trocar o `productName` muda a pasta de instalação; quem tem a
+  versão anterior pode ficar com as duas instaladas.
+
+### Sem travessão no código e na interface
+
+Código, interface, contratos, saída da CLI e os arquivos que o produto grava nos projetos não usam travessão (U+2014
+nem U+2013); no lugar, dois-pontos, vírgula ou parênteses. Quando um indicador não tem valor, a tela escreve "sem dado".
+`TypographyTests` percorre os arquivos versionados (fora de `docs/`) e falha se encontrar um. A documentação ainda tem
+travessões e não é coberta pelo teste.
+
+## 13. Decisões que dependem de você
 
 1. **Credencial de teste** para validar GitHub e Jira com dados reais (um repositório e um projeto de teste).
 2. **Cofre em Linux e macOS**: implementar com libsecret e Keychain, ou manter a central só no Windows por ora.
 3. **Chave de modelo**: migrar `model.json` para o mesmo cofre (muda o arquivo de quem já configurou a chave).
 4. **Identidade e papéis**: o produto continua de uma pessoa por instalação, ou passa a ter organização e login.
+5. **Textos gravados nos projetos** (`Assets/`): trocar o nome também neles, sabendo que gera atualização do Harness.
+   (A skill `harness-contract` já mudou neste ciclo, para tirar dois travessões; quem já aplicou o Harness verá a atualização.)
+6. **Identificadores internos** (`mariliz.yaml`, `.mariliz/`, pasta de dados, namespaces): manter, ou migrar com
+   compatibilidade de leitura dos nomes antigos.
+7. **Travessões na documentação**: limpar também `docs/`, se quiser a regra no projeto inteiro.

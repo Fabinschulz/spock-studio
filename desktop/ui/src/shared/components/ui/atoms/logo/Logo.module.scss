@@ -10,33 +10,46 @@
   stroke-width: 0.5;
 }
 
-.arches {
+.browFlat,
+.brow {
   fill: none;
-  stroke: var(--neutral-50);
-  stroke-width: 4.5;
+  stroke-width: 2.8;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.node {
-  fill: var(--color-primary);
+.browFlat {
+  stroke: var(--neutral-50);
 }
 
+.brow {
+  stroke: var(--color-primary);
+}
+
+.eye {
+  fill: var(--neutral-50);
+}
+
+// O "p" desce abaixo da linha de base: a altura cobre o descendente para o "spock" ter o tamanho visual do nome antigo.
 .wordmark {
   display: block;
-  height: 1.125rem;
+  height: 1.375rem;
   width: auto;
   overflow: visible;
 }
 
-.letters {
+.letters,
+.arm {
   fill: none;
-  stroke: currentColor;
   stroke-width: 4.5;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.dot {
-  fill: var(--color-primary);
+.letters {
+  stroke: currentColor;
+}
+
+.arm {
+  stroke: var(--color-primary);
 }

@@ -1,6 +1,8 @@
 import catalogFixture from '@contracts/fixtures/integrations/catalog.json';
 import connectionsFixture from '@contracts/fixtures/integrations/connections.json';
 import integrationsFixture from '@contracts/fixtures/integrations/integrations.json';
+import metricsFixture from '@contracts/fixtures/management/metrics.json';
+import portfolioFixture from '@contracts/fixtures/management/portfolio.json';
 
 import { EngineError, type EngineClient } from '@/shared/api';
 import type { Connection, ProjectIntegration, SyncExecution } from '@/shared/schema';
@@ -92,7 +94,13 @@ export function fakeIntegrationEngine(initial: { connections?: Connection[]; vau
       integrations = integrations.filter((integration) => integration.id !== params.integrationId);
       return { removed: true };
     },
-    'integration.history': () => ({ syncs: [syncedIntegration.lastSync] })
+    'integration.history': () => ({ syncs: [syncedIntegration.lastSync] }),
+    // Com fonte vinculada, os indicadores que o motor real calculou; sem fonte, a resposta vazia que ele dá.
+    'management.metrics': (params) =>
+      integrations.some((integration) => integration.projectId === params.projectId)
+        ? { ...metricsFixture, projectId: params.projectId }
+        : { ...metricsFixture, projectId: params.projectId, complete: false, sources: [], kinds: [] },
+    'management.portfolio': () => portfolioFixture
   };
 
   const client: EngineClient = {

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 32 32">
+  <!-- Spock Studio (System of Programming, Organization, Code and Knowledge): o olhar lógico.
+       Tile ink #050c0c. Uma sobrancelha reta e dois olhos em névoa #f1f7f6; a outra sobrancelha erguida em teal #33c1ba,
+       a expressão de curiosidade cética que inspira o nome. Desenho original: não retrata rosto nem personagem.
+       O PNG de 1024 px ao lado é renderizado desta geometria. -->
+  <rect width="32" height="32" rx="7" fill="#050c0c"/>
+  <path d="M5.6 13.4H13" stroke="#f1f7f6" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M18.6 13.4L24.6 8.6L26.6 9.8" fill="none" stroke="#33c1ba" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="9.3" cy="20" r="2.6" fill="#f1f7f6"/>
+  <circle cx="22.4" cy="20" r="2.6" fill="#f1f7f6"/>
+</svg>

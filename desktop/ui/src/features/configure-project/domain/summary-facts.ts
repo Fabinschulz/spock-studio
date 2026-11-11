@@ -12,9 +12,9 @@ export function buildSummaryFacts({
 }: SummaryInput): SummaryFact[] {
   return [
     ['Projeto', projectName],
-    ['Modelo', 'Mariliz'],
+    ['Modelo', 'Spock'],
     ['Ambiente de IA', aiEnvironment ? (aiEnvironmentNames[aiEnvironment] ?? aiEnvironment) : 'a escolher'],
     ['Plano', plan.status === 'ready' ? `${plan.data.changes.length} alterações` : 'ainda não gerado'],
-    ['Aprovados', STEPS_WITH_APPROVALS.includes(step) ? `${approvalCount}` : '—']
+    ['Aprovados', STEPS_WITH_APPROVALS.includes(step) ? `${approvalCount}` : 'não se aplica']
   ];
 }

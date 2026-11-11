@@ -47,7 +47,9 @@ export const ENGINE_METHODS = [
   'integration.configure',
   'integration.unlink',
   'integration.sync',
-  'integration.history'
+  'integration.history',
+  'management.portfolio',
+  'management.metrics'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

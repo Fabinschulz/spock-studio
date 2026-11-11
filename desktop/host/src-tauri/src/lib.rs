@@ -162,7 +162,7 @@ pub fn run() {
             open_recent_project
         ])
         .build(tauri::generate_context!())
-        .expect("falha ao iniciar o aplicativo Mariliz Studio")
+        .expect("falha ao iniciar o aplicativo Spock Studio")
         .run(|app, event| {
             if let RunEvent::Exit = event {
                 app.state::<Engine>().shutdown();

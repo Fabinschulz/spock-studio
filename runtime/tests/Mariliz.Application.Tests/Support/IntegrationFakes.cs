@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Web;
 using Mariliz.Application.Integrations;
+using Mariliz.Application.Management;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Workspace;
@@ -178,6 +179,8 @@ internal sealed class IntegrationHarness : IDisposable
     public FakeJira Jira { get; } = new();
     public List<TimeSpan> Delays { get; } = [];
     public IntegrationHub Hub { get; }
+    public ManagementService Management { get; }
+    public WorkspaceAuthorizer Workspace { get; }
     public EngineSession Session { get; }
     public string ProjectId { get; }
     public string OtherProjectId { get; }
@@ -185,7 +188,7 @@ internal sealed class IntegrationHarness : IDisposable
 
     public IntegrationHarness()
     {
-        var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
+        var workspace = Workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
         ProjectId = workspace.Authorize(Project.Root).Project!.ProjectId;
         OtherProjectId = workspace.Authorize(OtherProject.Root).Project!.ProjectId;
         Transport.Handler = request => request.Url.Host == "api.github.com" ? GitHub.Respond(request) : Jira.Respond(request);
@@ -197,7 +200,8 @@ internal sealed class IntegrationHarness : IDisposable
         });
         var connectors = new ConnectorRegistry([new GitHubConnector(client), new JiraConnector(client, Clock)]);
         Hub = new IntegrationHub(new FileIntegrationStore(DataDir), new FileSyncedDataStore(DataDir), Vault, connectors, workspace, Clock, Audit);
-        Session = new EngineSession("test", integrations: Hub);
+        Management = new ManagementService(workspace, Hub, Clock);
+        Session = new EngineSession("test", integrations: Hub, management: Management);
     }
 
     public Task<IntegrationConnection> ConnectGitHubAsync(string name = "GitHub da equipe") =>

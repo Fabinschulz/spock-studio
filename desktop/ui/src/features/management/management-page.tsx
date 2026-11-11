@@ -10,12 +10,14 @@ import { errorMessage, type EngineClient } from '@/shared/api';
 import { StatusChip } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
-import type { Connector, ProjectIntegration } from '@/shared/schema';
+import type { Connector, ProjectIntegration, ProjectMetrics } from '@/shared/schema';
 import { useCallback, useMemo } from 'react';
 import { Link } from 'react-router';
 
+import { FlowSection } from './components/flow-section';
 import { summarizeActivity } from './domain/activity-summary';
 import styles from './management-page.module.scss';
+import { createManagementApi, type ManagementApi } from './service/management-api';
 
 /**
  * Visão gerencial do projeto aberto. Mostra só o que foi observado nas fontes vinculadas; o que ainda não é calculado
@@ -23,6 +25,7 @@ import styles from './management-page.module.scss';
  */
 export function ManagementPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   const api = useMemo(() => createIntegrationApi(client), [client]);
+  const management = useMemo(() => createManagementApi(client), [client]);
 
   if (!project) {
     return (
@@ -34,14 +37,26 @@ export function ManagementPage({ client, project }: { client: EngineClient; proj
       </div>
     );
   }
-  return <ProjectManagement key={project.projectId} api={api} project={project} />;
+  return <ProjectManagement key={project.projectId} api={api} management={management} project={project} />;
 }
 
-function ProjectManagement({ api, project }: { api: IntegrationApi; project: SelectedProject }) {
+function ProjectManagement({
+  api,
+  management,
+  project
+}: {
+  api: IntegrationApi;
+  management: ManagementApi;
+  project: SelectedProject;
+}) {
   const load = useCallback(async () => {
-    const [catalog, integrations] = await Promise.all([api.catalog(), api.integrations(project.projectId)]);
-    return { connectors: catalog.connectors, integrations };
-  }, [api, project.projectId]);
+    const [catalog, integrations, metrics] = await Promise.all([
+      api.catalog(),
+      api.integrations(project.projectId),
+      management.metrics(project.projectId)
+    ]);
+    return { connectors: catalog.connectors, integrations, metrics };
+  }, [api, management, project.projectId]);
   const sources = useAsyncResource(load);
 
   return (
@@ -60,16 +75,9 @@ function ProjectManagement({ api, project }: { api: IntegrationApi; project: Sel
       {sources.status === 'ready' ? (
         <>
           <ActivitySection integrations={sources.value.integrations} />
+          <FlowSection metrics={sources.value.metrics} connectors={sources.value.connectors} />
           <SourcesSection integrations={sources.value.integrations} connectors={sources.value.connectors} />
-          <section aria-labelledby="ainda-nao-calculado">
-            <h2 id="ainda-nao-calculado" className={styles.section}>
-              Ainda não calculado
-            </h2>
-            <p className={styles.muted}>
-              Indicadores de fluxo, previsão de entrega e riscos não existem nesta versão, e por isso não aparecem aqui
-              com nenhum valor. As atividades sincronizadas acima são a base deles.
-            </p>
-          </section>
+          <NotCalculatedSection metrics={sources.value.metrics} />
         </>
       ) : null}
     </div>
@@ -151,6 +159,24 @@ function SourcesSection({ integrations, connectors }: { integrations: ProjectInt
       <p className={styles.muted}>
         Conexões, recortes e sincronização ficam em <Link to={pathTo('integrations')}>Integrações</Link>.
       </p>
+    </section>
+  );
+}
+
+/** O que foi pedido e ainda não é calculado, com o motivo dado pelo motor. Nenhum desses aparece com valor. */
+function NotCalculatedSection({ metrics }: { metrics: ProjectMetrics }) {
+  return (
+    <section aria-labelledby="ainda-nao-calculado">
+      <h2 id="ainda-nao-calculado" className={styles.section}>
+        Ainda não calculado
+      </h2>
+      <ul className={styles.plain}>
+        {metrics.notCalculated.map((entry) => (
+          <li key={entry.id}>
+            <span className={styles.rowTitle}>{entry.label}.</span> <span className={styles.muted}>{entry.reason}</span>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

@@ -37,6 +37,8 @@ public static class ProtocolMethods
     public const string IntegrationUnlink = "integration.unlink";
     public const string IntegrationSync = "integration.sync";
     public const string IntegrationHistory = "integration.history";
+    public const string ManagementPortfolio = "management.portfolio";
+    public const string ManagementMetrics = "management.metrics";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -54,4 +56,7 @@ public static class ProtocolMethods
         IntegrationCatalog, ConnectionList, ConnectionCreate, ConnectionTest, ConnectionRotate, ConnectionDisconnect, ConnectionRemove,
         IntegrationList, IntegrationLink, IntegrationConfigure, IntegrationUnlink, IntegrationSync, IntegrationHistory
     ];
+
+    /// <summary>Visão gerencial: só leitura do que já foi sincronizado.</summary>
+    public static readonly IReadOnlyList<string> Management = [ManagementPortfolio, ManagementMetrics];
 }

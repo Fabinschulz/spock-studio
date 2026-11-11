@@ -40,7 +40,7 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
       <header>
         <h1>Configurações</h1>
         <p className={styles.lead}>
-          Preferências locais do Mariliz Studio. Nada aqui é gravado no projeto que você autorizou.
+          Preferências locais do Spock Studio. Nada aqui é gravado no projeto que você autorizou.
         </p>
       </header>
 
