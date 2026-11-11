@@ -45,6 +45,8 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "management.risks",
     "management.evidence",
     "management.ask",
+    "engineering.profile",
+    "engineering.analyze",
 ];
 
 pub mod error_code {

@@ -43,6 +43,8 @@ public static class ProtocolMethods
     public const string ManagementRisks = "management.risks";
     public const string ManagementEvidence = "management.evidence";
     public const string ManagementAsk = "management.ask";
+    public const string EngineeringProfile = "engineering.profile";
+    public const string EngineeringAnalyze = "engineering.analyze";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -63,4 +65,7 @@ public static class ProtocolMethods
 
     /// <summary>Visão gerencial: só leitura do que já foi sincronizado.</summary>
     public static readonly IReadOnlyList<string> Management = [ManagementPortfolio, ManagementMetrics, ManagementForecast, ManagementRisks, ManagementEvidence, ManagementAsk];
+
+    /// <summary>Ambiente de Engenharia: o perfil tecnológico do projeto.</summary>
+    public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze];
 }

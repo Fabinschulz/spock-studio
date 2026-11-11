@@ -1,10 +1,12 @@
 using Mariliz.Application;
 using Mariliz.Application.Models;
 using Mariliz.Application.Protocol;
+using Mariliz.Application.Engineering;
 using Mariliz.Application.Management;
 using Mariliz.Application.Management.Assistant;
 using Mariliz.Application.Workflows;
 using Mariliz.Infrastructure;
+using Mariliz.Infrastructure.Engineering;
 using Mariliz.Infrastructure.Integrations;
 
 // stdout é exclusivo do protocolo; qualquer diagnóstico vai para stderr.
@@ -27,7 +29,8 @@ var integrations = LocalIntegrationHub.Create(engine.DataRoot, engine.Workspace,
 var management = new ManagementService(engine.Workspace, integrations, engine.Clock);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: engine.Runs, integrations: integrations,
-    management: management, assistant: new ManagementAssistant(management, integrations, engine.Workspace, models, engine.Clock));
+    management: management, assistant: new ManagementAssistant(management, integrations, engine.Workspace, models, engine.Clock),
+    profiles: new TechnologyProfileService(engine.Configure, integrations, engine.Workspace, new FileTechnologyProfileStore(engine.DataRoot), engine.Clock));
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

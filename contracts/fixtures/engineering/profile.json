@@ -1,0 +1,64 @@
+{
+  "profile": {
+    "projectId": "p-000000000001",
+    "analyzedAt": "2026-11-11T12:00:00+00:00",
+    "technologies": [
+      {
+        "id": "nextjs",
+        "name": "Next.js",
+        "category": "Framework web",
+        "versions": [
+          "16.0.1"
+        ],
+        "roots": [
+          "web"
+        ],
+        "confidence": "medium",
+        "evidence": [
+          "web/package.json"
+        ]
+      }
+    ],
+    "tooling": [
+      {
+        "kind": "package-manager",
+        "name": "pnpm",
+        "command": null
+      },
+      {
+        "kind": "build",
+        "name": "pnpm build",
+        "command": "pnpm run build"
+      },
+      {
+        "kind": "test",
+        "name": "pnpm test",
+        "command": "pnpm run test"
+      },
+      {
+        "kind": "lint",
+        "name": "pnpm lint",
+        "command": "pnpm run lint"
+      }
+    ],
+    "aiEnvironments": [],
+    "connections": [],
+    "harness": [
+      {
+        "technology": "Next.js",
+        "ruleId": "mariliz.rule.stack-javascript",
+        "covered": true,
+        "detail": "Regra da stack JavaScript e TypeScript, aplicada aos arquivos .ts, .tsx, .js e .jsx."
+      }
+    ],
+    "history": [
+      {
+        "at": "2026-11-11T12:00:00+00:00",
+        "kind": "created",
+        "subject": "Perfil",
+        "from": null,
+        "to": "1 tecnologia"
+      }
+    ]
+  }
+}

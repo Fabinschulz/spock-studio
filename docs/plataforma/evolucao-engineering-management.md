@@ -1,6 +1,6 @@
 # Evolução para plataforma de Engenharia e Gestão
 
-**Data:** 2026-11-10, atualizado em 2026-11-11. **Estado:** Fases 1 e 2 mergeadas (PR #40); Fase 3 e marca mergeadas (PR #41); Fase 4 mergeada (PR #42); Fase 5 entregue; Fases 6 e 7 planejadas.
+**Data:** 2026-11-10, atualizado em 2026-11-11. **Estado:** Fases 1 e 2 mergeadas (PR #40); Fase 3 e marca mergeadas (PR #41); Fase 4 mergeada (PR #42); Fase 5 mergeada (PR #43); Fase 6 em andamento (perfil tecnológico entregue); Fase 7 planejada.
 
 > O produto passou a se chamar **Spock Studio** (System of Programming, Organization, Code and Knowledge). Ver seção 12.
 
@@ -302,13 +302,43 @@ fato certo passa); o modelo pode dizer "indisponível" para algo que os fatos t�
 relatórios salvos; o assistente responde sobre um projeto por vez. **Não foi testado com um modelo real:** só com o
 provedor de mentira.
 
+## 10d. Fase 6, primeira entrega: perfil tecnológico (2026-11-11)
+
+Na tela **Engenharia > Projeto**, a seção "Stack e comandos" virou **Perfil tecnológico**, guardado pelo motor
+(`Mariliz.Application/Engineering`, métodos `engineering.profile` e `engineering.analyze`).
+
+- **O que o perfil reúne:** cada tecnologia uma vez, com categoria, versões declaradas e as pastas em que aparece;
+  ferramentas de build, teste, lint e integração contínua; ambientes de IA; as conexões do projeto vindas da central
+  de integrações (GitHub como repositório, Jira como gestão de trabalho); e como o Harness atende cada tecnologia.
+- **Harness contextualizado pelo perfil:** a cobertura usa a mesma decisão do plano (regra da stack .NET, regra
+  JavaScript/TypeScript para Node, Next.js, React e Angular, nenhuma regra para Flutter, com a limitação dita). As duas
+  telas não podem divergir: o perfil lê a lista de stacks do próprio `HarnessComposition`.
+- **Histórico:** cada análise compara com a anterior e registra o que entrou, saiu ou mudou de versão, além de
+  ferramentas e conexões. Análise sem mudança não cria registro. Guarda as 100 mudanças mais recentes.
+- **Persistência:** `{dataRoot}/profiles/{projectId}.json`, fora do projeto. A análise só lê o projeto; o teste confere
+  que nenhum arquivo dele muda.
+- **Primeira visita:** sem perfil salvo, a tela pede ao motor que crie o primeiro. Depois, "Atualizar perfil" roda a
+  análise de novo.
+- Categoria e cobertura por tecnologia ficam só no motor (`TechnologyCatalog`); a interface só mostra o que recebe.
+
+Testes em `TechnologyProfileTests` (5), incluindo a descoberta real num projeto temporário; fixture em
+`contracts/fixtures/engineering/profile.json`.
+
+Ainda não feito nesta fase: gerenciamento individual de agentes, skills, regras, hooks e MCP; versionamento das
+configurações do Harness; tela de conhecimento do projeto (fontes indexadas, exclusões, falhas); ligação do
+acompanhamento de execuções com os dados de entrega.
+
+Observação de testes: o grupo `WorkflowRuntimeTests` (sobe o runtime Python de verdade) falhou de forma intermitente
+nesta máquina, cada vez num teste diferente e sempre no limite de 32 segundos; repetido, passou. Não envolve o código
+desta fase.
+
 ## 11. Próximas fases e dependências
 
 | Fase | Entrega | Depende de |
 | --- | --- | --- |
 | 4b. Complementos de entrega | Cycle time, histórico de acompanhamento dos riscos, impacto de mais capacidade na previsão. | Histórico de status (Jira já traz; GitHub exige a API de eventos da issue). |
 | 5b. Assistente: complementos | Histórico de perguntas, relatórios salvos, comparação entre projetos, workflow LangGraph para investigação em etapas. | Validação com modelo real. |
-| 6. Engenharia | Perfil tecnológico persistido a partir da descoberta; gerenciamento de Harness, MCP e conhecimento. | Nenhuma das anteriores: pode andar em paralelo. |
+| 6b. Engenharia, continuação | Gerenciamento de agentes, skills, regras, hooks e MCP; versionamento do Harness; conhecimento do projeto. | Perfil tecnológico (entregue). |
 | 7. Inteligência compartilhada | Análises cruzadas autorizadas. | Fases 5 e 6. |
 
 Indicadores e previsão serão serviços determinísticos no .NET. O LangGraph entra só para explicar resultados.

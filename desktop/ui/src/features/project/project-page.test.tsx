@@ -1,5 +1,8 @@
+import profileFixture from '@contracts/fixtures/engineering/profile.json';
+
 import type { EngineClient } from '@/shared/api';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -30,11 +33,27 @@ const discovery = {
   warnings: []
 };
 
-function clientWith(runs: unknown[]): EngineClient {
+/** O perfil salvo começa vazio quando `saved` é falso: a tela precisa pedir ao motor que crie o primeiro. */
+function clientWith(runs: unknown[], saved = true): EngineClient {
+  let stored: unknown = saved ? profileFixture.profile : null;
+  const refreshed = {
+    ...profileFixture.profile,
+    analyzedAt: '2026-11-12T12:00:00+00:00',
+    history: [
+      { at: '2026-11-12T12:00:00+00:00', kind: 'changed', subject: 'Next.js', from: '16.0.1', to: '16.1.0' },
+      ...profileFixture.profile.history
+    ]
+  };
   return {
-    request: vi.fn(async (method: string, _params: unknown, schema: { parse(value: unknown): unknown }) =>
-      schema.parse(method === 'harness.runs' ? { runs } : discovery)
-    ),
+    request: vi.fn(async (method: string, _params: unknown, schema: { parse(value: unknown): unknown }) => {
+      if (method === 'harness.runs') return schema.parse({ runs });
+      if (method === 'engineering.profile') return schema.parse({ profile: stored });
+      if (method === 'engineering.analyze') {
+        stored = stored === null ? profileFixture.profile : refreshed;
+        return schema.parse({ profile: stored });
+      }
+      return schema.parse(discovery);
+    }),
     onEvent: vi.fn()
   } as unknown as EngineClient;
 }
@@ -62,8 +81,13 @@ describe('ProjectPage', () => {
 
     expect(await screen.findByText('revisor')).toBeTruthy();
     expect(screen.getByText(/não gerenciado/)).toBeTruthy();
-    expect(screen.getByText('.NET')).toBeTruthy();
-    expect(screen.getByText('dotnet test')).toBeTruthy();
+    const profile = (await screen.findByRole('heading', { name: 'Perfil tecnológico' })).closest('section')!;
+    const technologies = await within(profile).findByRole('list', { name: 'Tecnologias' });
+    expect(technologies).toHaveTextContent('Next.js');
+    expect(technologies).toHaveTextContent('Framework web');
+    expect(within(profile).getByRole('list', { name: 'Ferramentas' })).toHaveTextContent('pnpm run test');
+    expect(within(profile).getByText(/Regra da stack JavaScript e TypeScript/)).toBeTruthy();
+    expect(within(profile).getByText(/Nenhuma ferramenta externa vinculada/)).toBeTruthy();
     expect(screen.getByText('Configuração aplicada')).toBeTruthy();
     expect(screen.getByText(/alterações aplicadas/)).toBeTruthy();
     expect(client.request).toHaveBeenCalledWith('harness.runs', { projectId: project.projectId }, expect.anything());
@@ -81,6 +105,24 @@ describe('ProjectPage', () => {
     } as unknown as EngineClient;
     renderPage(client);
     expect((await screen.findByRole('alert')).textContent).toBeTruthy();
+  });
+
+  it('sem perfil salvo, pede ao motor que crie o primeiro; atualizar mostra o que mudou', async () => {
+    const client = clientWith([], false);
+    renderPage(client);
+
+    const profile = (await screen.findByRole('heading', { name: 'Perfil tecnológico' })).closest('section')!;
+    expect(await within(profile).findByRole('list', { name: 'Tecnologias' })).toHaveTextContent('Next.js');
+    expect(client.request).toHaveBeenCalledWith(
+      'engineering.analyze',
+      { projectId: project.projectId },
+      expect.anything()
+    );
+
+    await userEvent.click(within(profile).getByRole('button', { name: 'Atualizar perfil' }));
+    await userEvent.click(await within(profile).findByText(/Histórico de mudanças \(2\)/));
+    expect(within(profile).getByText('Next.js mudou de 16.0.1 para 16.1.0.')).toBeTruthy();
+    expect(within(profile).getByText('Perfil criado com 1 tecnologia.')).toBeTruthy();
   });
 
   it('sem projeto selecionado, manda escolher na tela inicial', () => {

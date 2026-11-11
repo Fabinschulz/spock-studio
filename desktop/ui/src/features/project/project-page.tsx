@@ -4,6 +4,7 @@ import { pathTo } from '@/shared/routing';
 import type { Discovery, RunSummary } from '@/shared/schema';
 import { Link } from 'react-router';
 
+import { ProfileSection } from './components/profile-section';
 import { runKindLabel, runRowText } from './domain/run-labels';
 import { useProjectOverview } from './hooks/use-project-overview';
 import styles from './project-page.module.scss';
@@ -16,8 +17,6 @@ const INVENTORY_ROWS: readonly [string, keyof Discovery['inventory']][] = [
   ['Servidores MCP', 'mcpServers'],
   ['Evals', 'evals']
 ];
-
-const TOOL_KIND_LABEL: Record<string, string> = { build: 'Build', test: 'Teste' };
 
 export function ProjectPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   if (!project) {
@@ -47,8 +46,8 @@ function ProjectContent({ client, project }: { client: EngineClient; project: Se
       {overview.status === 'error' ? <p role="alert">{overview.message}</p> : null}
       {overview.status === 'ready' ? (
         <>
+          <ProfileSection client={client} projectId={project.projectId} />
           <InventorySection discovery={overview.discovery} />
-          <StackSection discovery={overview.discovery} />
           <RunsSection runs={overview.runs} />
         </>
       ) : null}
@@ -85,45 +84,6 @@ function InventorySection({ discovery }: { discovery: Discovery }) {
     </section>
   );
 }
-
-function StackSection({ discovery }: { discovery: Discovery }) {
-  const empty = discovery.stacks.length === 0 && discovery.tooling.length === 0;
-  return (
-    <section aria-labelledby="stack">
-      <h2 id="stack" className={styles.section}>
-        Stack e comandos
-      </h2>
-      {empty ? <p>A análise não identificou stack nem comandos de build e teste.</p> : null}
-      <ul className={styles.rows}>
-        {discovery.stacks.map((stack) => (
-          <li key={`${stack.id}:${stack.root}`} className={styles.row}>
-            <span>
-              <span className={styles.rowTitle}>{stack.name}</span>
-              <span className={styles.meta}>
-                {stack.version ? ` ${stack.version}` : ''} · em {stack.root}
-              </span>
-            </span>
-            <span className={styles.end}>{CONFIDENCE[stack.confidence]}</span>
-          </li>
-        ))}
-        {discovery.tooling.map((tool) => (
-          <li key={`${tool.kind}:${tool.name}`} className={styles.row}>
-            <span>
-              <span className={styles.rowTitle}>{TOOL_KIND_LABEL[tool.kind] ?? tool.kind}</span>{' '}
-              {tool.command ? (
-                <span className={styles.mono}>{tool.command}</span>
-              ) : (
-                <span className={styles.meta}>{tool.name}</span>
-              )}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-const CONFIDENCE = { high: 'confiança alta', medium: 'confiança média', low: 'confiança baixa' } as const;
 
 function RunsSection({ runs }: { runs: RunSummary[] }) {
   return (
