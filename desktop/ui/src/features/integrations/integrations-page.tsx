@@ -23,8 +23,8 @@ export function IntegrationsPage({ client, project }: { client: EngineClient; pr
       <header>
         <h1 className={styles.title}>Integrações</h1>
         <p className={styles.lead}>
-          Conecte as ferramentas da equipe e decida, projeto a projeto, o que o Mariliz pode ler. As credenciais ficam
-          protegidas neste computador e não aparecem em nenhuma tela.
+          Conecte as ferramentas da equipe e decida, projeto a projeto, o que o Spock Studio pode ler. As credenciais
+          ficam protegidas neste computador e não aparecem em nenhuma tela.
         </p>
       </header>
 
@@ -37,8 +37,8 @@ export function IntegrationsPage({ client, project }: { client: EngineClient; pr
         <>
           {!hub.value.catalog.vaultAvailable ? (
             <InlineNotice tone="warning" title="Armazenamento protegido indisponível">
-              Neste sistema o Mariliz ainda não tem onde guardar credenciais com proteção do sistema operacional. Para
-              não gravá-las em texto puro, novas conexões ficam desativadas.
+              Neste sistema o Spock Studio ainda não tem onde guardar credenciais com proteção do sistema operacional.
+              Para não gravá-las em texto puro, novas conexões ficam desativadas.
             </InlineNotice>
           ) : null}
           <ConnectionsSection

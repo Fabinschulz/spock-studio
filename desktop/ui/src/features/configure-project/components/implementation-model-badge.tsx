@@ -13,7 +13,7 @@ export function ImplementationModelBadge() {
   return (
     <span className={styles.modelBadge}>
       <SpecificationGlyph />
-      Modelo de implementação Mariliz
+      Modelo de implementação Spock
     </span>
   );
 }

@@ -53,7 +53,7 @@ describe('AppShell · navegação', () => {
   it('a marca leva ao início e tem nome acessível, e o conteúdo fica no <main>', () => {
     renderShell();
 
-    expect(screen.getByRole('link', { name: 'Mariliz Studio, página inicial' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Spock Studio, página inicial' })).toHaveAttribute('href', '/');
     expect(within(screen.getByRole('main')).getByRole('heading', { name: 'Conteúdo' })).toBeInTheDocument();
   });
 
@@ -102,7 +102,7 @@ describe('AppShell · navegação', () => {
     await userEvent.tab();
     expect(screen.getByRole('button', { name: 'Ir para o conteúdo' })).toHaveFocus();
     await userEvent.tab();
-    expect(screen.getByRole('link', { name: /Mariliz Studio/ })).toHaveFocus();
+    expect(screen.getByRole('link', { name: /Spock Studio/ })).toHaveFocus();
     await userEvent.tab();
     expect(screen.getByRole('link', { name: 'Início' })).toHaveFocus();
   });

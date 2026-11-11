@@ -21,7 +21,7 @@ export function RequiresHost({ children }: RequiresHostProps) {
       <Alert
         severity="info"
         title="Disponível apenas no aplicativo desktop"
-        description="Esta tela depende do motor local, que só roda dentro do aplicativo Mariliz Studio."
+        description="Esta tela depende do motor local, que só roda dentro do aplicativo Spock Studio."
       />
       <Link to={pathTo('home')}>Voltar para o início</Link>
     </div>

@@ -4,7 +4,7 @@ import type { Participant, ParticipantsContext } from '../types/participant';
 import { HARNESS_ENGINEER_NOT_INVOKED } from './harness-engineer-prompt';
 import { runningStep } from './run-progress';
 
-const ENGINE = { id: 'engine', name: 'Motor Mariliz', note: ENGINE_NOTE } as const;
+const ENGINE = { id: 'engine', name: 'Motor Spock', note: ENGINE_NOTE } as const;
 
 function judgeOf(evals: readonly EvalResult[]): Participant | null {
   const judge = evals.find((e) => e.kind === 'model');

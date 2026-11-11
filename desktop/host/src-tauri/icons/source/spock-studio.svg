@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 32 32">
+  <!-- Spock Studio (System of Programming, Organization, Code and Knowledge).
+       Tile ink #050c0c. Um "S" em trilha de circuito, em névoa #f1f7f6, termina num terminal em anel que também se lê
+       como um olho; sobre ele, uma sobrancelha erguida em teal #33c1ba, o olhar lógico e curioso que dá nome ao produto.
+       Desenho original: não retrata personagem. O PNG de 1024 px ao lado é renderizado desta geometria. -->
+  <rect width="32" height="32" rx="7" fill="#050c0c"/>
+  <path d="M18.2 12H12.5L9.5 15V16.5L12.5 19.5H17.5L20.5 22.5V24L17.5 27H9.5" fill="none" stroke="#f1f7f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="20.6" cy="12" r="2.5" fill="none" stroke="#f1f7f6" stroke-width="2.2"/>
+  <path d="M16.6 7.4L22.4 4.6L24.6 5.6" fill="none" stroke="#33c1ba" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

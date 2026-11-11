@@ -2,6 +2,8 @@
 
 **Data:** 2026-11-10, atualizado em 2026-11-11. **Estado:** Fases 1 e 2 mergeadas (PR #40); Fase 3 entregue; Fases 4 a 7 planejadas.
 
+> O produto passou a se chamar **Spock Studio** (System of Programming, Organization, Code and Knowledge). Ver seção 12.
+
 O Mariliz passa a ter dois ambientes sobre o mesmo projeto (Engenharia e Gestão) e uma central de integrações que
 alimenta os dois. Este documento registra o que a auditoria encontrou, o que foi construído, os contratos, as decisões e
 o que falta. A arquitetura não mudou: Tauri hospeda, React apresenta, o motor .NET decide e persiste, o Python orquestra
@@ -230,9 +232,41 @@ vistas num navegador com host simulado, em 1280 e 760 pixels de largura.
 
 Indicadores e previsão serão serviços determinísticos no .NET. O LangGraph entra só para explicar resultados.
 
-## 12. Decisões que dependem de você
+## 12. Troca de nome para Spock Studio
+
+O nome visível passou a ser **Spock Studio** (System of Programming, Organization, Code and Knowledge): nome do aplicativo e do instalador (`productName`), título da janela e da
+página, marca no menu, textos da interface ("Modelo de implementação Spock", "Motor Spock") e ícones.
+
+- **Marca:** um "S" desenhado como trilha de circuito (programação, organização) que termina num terminal em anel; o
+  anel também se lê como um olho, e sobre ele há uma sobrancelha erguida em teal: o olhar lógico e curioso que inspira
+  o nome. É um desenho original, sem rosto, orelha, insígnia, saudação nem outro elemento de obra de terceiros. Fonte
+  em `desktop/host/src-tauri/icons/source/spock-studio.svg` (o PNG de 1024 px ao lado é renderizado dela); o conjunto
+  `.ico`/`.icns`/PNGs é gerado por `pnpm tauri icon`. No wordmark "spock", o braço do "k" é a mesma sobrancelha em teal.
+- **Mantido de propósito, para não quebrar quem já usa:** `identifier` do Tauri (pasta de dados do host e atualização do
+  instalador), `mariliz.yaml`, `mariliz.lock` e `.mariliz/` nos projetos, a pasta de dados do motor, o id
+  `implementationModel: mariliz`, o sidecar `mariliz-runtime`, as variáveis `MARILIZ_*`, os namespaces `Mariliz.*` e o
+  pacote `@mariliz/ui-kit` publicado no npm.
+- **Ainda com o nome antigo:** os textos que o produto grava nos projetos (agentes, regras e hook em
+  `runtime/Mariliz.Application/Assets`). Mudá-los altera o hash do Harness aplicado, e cada projeto já configurado
+  receberia uma atualização no próximo plano.
+- **Não conferido:** o instalador gerado com o nome novo. Trocar o `productName` muda a pasta de instalação; quem tem a
+  versão anterior pode ficar com as duas instaladas.
+
+### Sem travessão no código e na interface
+
+Código, interface, contratos, saída da CLI e os arquivos que o produto grava nos projetos não usam travessão (U+2014
+nem U+2013); no lugar, dois-pontos, vírgula ou parênteses. Quando um indicador não tem valor, a tela escreve "sem dado".
+`TypographyTests` percorre os arquivos versionados (fora de `docs/`) e falha se encontrar um. A documentação ainda tem
+travessões e não é coberta pelo teste.
+
+## 13. Decisões que dependem de você
 
 1. **Credencial de teste** para validar GitHub e Jira com dados reais (um repositório e um projeto de teste).
 2. **Cofre em Linux e macOS**: implementar com libsecret e Keychain, ou manter a central só no Windows por ora.
 3. **Chave de modelo**: migrar `model.json` para o mesmo cofre (muda o arquivo de quem já configurou a chave).
 4. **Identidade e papéis**: o produto continua de uma pessoa por instalação, ou passa a ter organização e login.
+5. **Textos gravados nos projetos** (`Assets/`): trocar o nome também neles, sabendo que gera atualização do Harness.
+   (A skill `harness-contract` já mudou neste ciclo, para tirar dois travessões; quem já aplicou o Harness verá a atualização.)
+6. **Identificadores internos** (`mariliz.yaml`, `.mariliz/`, pasta de dados, namespaces): manter, ou migrar com
+   compatibilidade de leitura dos nomes antigos.
+7. **Travessões na documentação**: limpar também `docs/`, se quiser a regra no projeto inteiro.
