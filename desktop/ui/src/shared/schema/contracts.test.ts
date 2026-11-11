@@ -10,6 +10,8 @@ import integrationCatalog from '@contracts/fixtures/integrations/catalog.json';
 import integrationConnections from '@contracts/fixtures/integrations/connections.json';
 import integrationHistory from '@contracts/fixtures/integrations/history.json';
 import integrationList from '@contracts/fixtures/integrations/integrations.json';
+import assistantAnswer from '@contracts/fixtures/management/assistant-answer.json';
+import assistantEvidence from '@contracts/fixtures/management/assistant-evidence.json';
 import managementForecast from '@contracts/fixtures/management/forecast.json';
 import managementMetrics from '@contracts/fixtures/management/metrics.json';
 import managementPortfolio from '@contracts/fixtures/management/portfolio.json';
@@ -21,8 +23,10 @@ import stepStarted from '@contracts/fixtures/valid/event.step.started.json';
 import workflowStarted from '@contracts/fixtures/valid/event.workflow.started.json';
 
 import {
+  assistantAnswerSchema,
   connectionListSchema,
   discoverySchema,
+  evidencePackSchema,
   integrationCatalogSchema,
   integrationListSchema,
   portfolioSchema,
@@ -177,5 +181,21 @@ describe('contrato de previsão e riscos (fixtures do motor)', () => {
     const parsed = projectRisksSchema.parse(managementRisks);
     expect(parsed.risks.map((risk) => risk.id)).toEqual(['overdue', 'review-queue']);
     expect(parsed.risks.every((risk) => risk.origin === 'rule' && risk.evidence.length > 0)).toBe(true);
+  });
+});
+
+describe('contrato do assistente gerencial (fixtures do motor)', () => {
+  it('pacote de evidências com ids e o que ficou de fora', () => {
+    const parsed = evidencePackSchema.parse(assistantEvidence);
+    expect(parsed.facts.some((fact) => fact.id === 'flow.issues.throughput')).toBe(true);
+    expect(parsed.withheld.join(' ')).toContain('Nenhum código');
+  });
+
+  it('resposta separada em seções, cada afirmação com fatos citados', () => {
+    const parsed = assistantAnswerSchema.parse(assistantAnswer);
+    const statements = [...parsed.observed, ...parsed.calculations, ...parsed.inferences, ...parsed.recommendations];
+    const cited = new Set(parsed.evidence.map((fact) => fact.id));
+    expect(statements.length).toBeGreaterThan(0);
+    expect(statements.every((statement) => statement.evidence.every((id) => cited.has(id)))).toBe(true);
   });
 });

@@ -51,7 +51,9 @@ export const ENGINE_METHODS = [
   'management.portfolio',
   'management.metrics',
   'management.forecast',
-  'management.risks'
+  'management.risks',
+  'management.evidence',
+  'management.ask'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

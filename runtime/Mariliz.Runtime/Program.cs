@@ -2,6 +2,7 @@ using Mariliz.Application;
 using Mariliz.Application.Models;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Management;
+using Mariliz.Application.Management.Assistant;
 using Mariliz.Application.Workflows;
 using Mariliz.Infrastructure;
 using Mariliz.Infrastructure.Integrations;
@@ -23,9 +24,10 @@ if (WorkflowRecovery.MarkInterrupted(engine.Store, engine.Clock) is > 0 and var 
     await Console.Error.WriteLineAsync($"{interrupted} execução(ões) interrompida(s) pela queda anterior foram marcadas como falha.");
 using var connectorTransport = new HttpsConnectorTransport();
 var integrations = LocalIntegrationHub.Create(engine.DataRoot, engine.Workspace, engine.Clock, connectorTransport);
+var management = new ManagementService(engine.Workspace, integrations, engine.Clock);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: engine.Runs, integrations: integrations,
-    management: new ManagementService(engine.Workspace, integrations, engine.Clock));
+    management: management, assistant: new ManagementAssistant(management, integrations, engine.Workspace, models, engine.Clock));
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

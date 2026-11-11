@@ -1,6 +1,8 @@
 import catalogFixture from '@contracts/fixtures/integrations/catalog.json';
 import connectionsFixture from '@contracts/fixtures/integrations/connections.json';
 import integrationsFixture from '@contracts/fixtures/integrations/integrations.json';
+import answerFixture from '@contracts/fixtures/management/assistant-answer.json';
+import evidenceFixture from '@contracts/fixtures/management/assistant-evidence.json';
 import forecastFixture from '@contracts/fixtures/management/forecast.json';
 import metricsFixture from '@contracts/fixtures/management/metrics.json';
 import portfolioFixture from '@contracts/fixtures/management/portfolio.json';
@@ -21,7 +23,17 @@ const NEVER_SYNCED = { total: 0, byKind: {}, byStatusCategory: {}, lastSyncedAt:
  * O motor de mentira para as telas de integração: guarda conexões e vínculos em memória e responde no formato do
  * contrato. A sincronização fica "em andamento" até a lista ser relida, como no motor real, que roda em segundo plano.
  */
-export function fakeIntegrationEngine(initial: { connections?: Connection[]; vaultAvailable?: boolean } = {}) {
+/** Respostas do assistente: a do motor real (fixture), uma com afirmações descartadas, ou um erro com código. */
+type AssistantReply = 'answer' | 'rejected' | { code: string; message: string };
+
+export function fakeIntegrationEngine(
+  initial: {
+    connections?: Connection[];
+    vaultAvailable?: boolean;
+    modelConfigured?: boolean;
+    assistant?: AssistantReply;
+  } = {}
+) {
   const calls: Call[] = [];
   let connections = [...(initial.connections ?? [])];
   let integrations: ProjectIntegration[] = [];
@@ -103,6 +115,29 @@ export function fakeIntegrationEngine(initial: { connections?: Connection[]; vau
         ? { ...metricsFixture, projectId: params.projectId }
         : { ...metricsFixture, projectId: params.projectId, complete: false, sources: [], kinds: [] },
     'management.portfolio': () => portfolioFixture,
+    'model.status': () => ({
+      configured: initial.modelConfigured ?? true,
+      provider: initial.modelConfigured === false ? '' : 'openai'
+    }),
+    'management.evidence': (params) => ({ ...evidenceFixture, projectId: params.projectId }),
+    'management.ask': (params) => {
+      const reply = initial.assistant ?? 'answer';
+      if (typeof reply === 'object') throw new EngineError(reply.code, reply.message);
+      return reply === 'answer'
+        ? { ...answerFixture, projectId: params.projectId }
+        : {
+            ...answerFixture,
+            projectId: params.projectId,
+            summary: '',
+            rejected: [
+              {
+                section: 'Cálculos',
+                text: 'A média é de 3,5 entregas.',
+                reason: 'Traz o número 3.5, que não está nos fatos citados.'
+              }
+            ]
+          };
+    },
     'management.forecast': (params) =>
       integrations.some((integration) => integration.projectId === params.projectId)
         ? { ...forecastFixture, projectId: params.projectId }

@@ -6,6 +6,7 @@ export const paths = {
   engineeringRequest: '/pedido',
   portfolio: '/portfolio',
   management: '/gestao',
+  assistant: '/gestao/assistente',
   integrations: '/integracoes',
   settings: '/configuracoes'
 } as const;
