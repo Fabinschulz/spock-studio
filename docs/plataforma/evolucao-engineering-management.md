@@ -237,11 +237,12 @@ Indicadores e previsão serão serviços determinísticos no .NET. O LangGraph e
 O nome visível passou a ser **Spock Studio** (System of Programming, Organization, Code and Knowledge): nome do aplicativo e do instalador (`productName`), título da janela e da
 página, marca no menu, textos da interface ("Modelo de implementação Spock", "Motor Spock") e ícones.
 
-- **Marca:** um "S" desenhado como trilha de circuito (programação, organização) que termina num terminal em anel; o
-  anel também se lê como um olho, e sobre ele há uma sobrancelha erguida em teal: o olhar lógico e curioso que inspira
-  o nome. É um desenho original, sem rosto, orelha, insígnia, saudação nem outro elemento de obra de terceiros. Fonte
-  em `desktop/host/src-tauri/icons/source/spock-studio.svg` (o PNG de 1024 px ao lado é renderizado dela); o conjunto
-  `.ico`/`.icns`/PNGs é gerado por `pnpm tauri icon`. No wordmark "spock", o braço do "k" é a mesma sobrancelha em teal.
+- **Marca, o olhar lógico:** uma sobrancelha reta, a outra erguida em teal, e dois olhos. É a expressão de curiosidade
+  cética associada ao personagem, sem rosto, orelha, franja, insígnia, saudação nem outro elemento de obra de
+  terceiros. No wordmark "spock", o braço do "k" é a mesma sobrancelha erguida em teal, e o par ícone e nome se lê como
+  uma coisa só. Fonte em `desktop/host/src-tauri/icons/source/spock-studio.svg` (o PNG de 1024 px ao lado é
+  renderizado dela); o conjunto `.ico`/`.icns`/PNGs é gerado por `pnpm tauri icon`. Foi escolhido entre cinco direções
+  (olhar lógico, S afiado, prompt cético, o símbolo "portanto" e o S em trilha de circuito).
 - **Mantido de propósito, para não quebrar quem já usa:** `identifier` do Tauri (pasta de dados do host e atualização do
   instalador), `mariliz.yaml`, `mariliz.lock` e `.mariliz/` nos projetos, a pasta de dados do motor, o id
   `implementationModel: mariliz`, o sidecar `mariliz-runtime`, as variáveis `MARILIZ_*`, os namespaces `Mariliz.*` e o

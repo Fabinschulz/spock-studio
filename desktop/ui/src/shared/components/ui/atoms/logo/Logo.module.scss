@@ -10,27 +10,24 @@
   stroke-width: 0.5;
 }
 
-.letter,
-.eye,
+.browFlat,
 .brow {
   fill: none;
+  stroke-width: 2.8;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.letter {
+.browFlat {
   stroke: var(--neutral-50);
-  stroke-width: 3;
-}
-
-.eye {
-  stroke: var(--neutral-50);
-  stroke-width: 2.2;
 }
 
 .brow {
   stroke: var(--color-primary);
-  stroke-width: 2.4;
+}
+
+.eye {
+  fill: var(--neutral-50);
 }
 
 // O "p" desce abaixo da linha de base: a altura cobre o descendente para o "spock" ter o tamanho visual do nome antigo.

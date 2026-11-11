@@ -7,17 +7,18 @@ interface LogoProps {
 }
 
 /**
- * Marca do Spock Studio: um "S" em trilha de circuito que termina num terminal em anel (que também se lê como um olho)
- * e, sobre ele, uma sobrancelha erguida em teal. A mesma geometria do ícone do aplicativo
- * (`desktop/host/src-tauri/icons/source/spock-studio.svg`). Decorativo.
+ * Marca do Spock Studio, o olhar lógico: uma sobrancelha reta, a outra erguida em teal, e dois olhos. A mesma geometria
+ * do ícone do aplicativo (`desktop/host/src-tauri/icons/source/spock-studio.svg`). No wordmark, o braço do "k" repete a
+ * sobrancelha erguida. Decorativo.
  */
 export function Logo({ className }: LogoProps) {
   return (
     <svg className={cn(styles.mark, className)} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
       <rect className={styles.tile} width="32" height="32" rx="7" />
-      <path className={styles.letter} d="M18.2 12H12.5L9.5 15V16.5L12.5 19.5H17.5L20.5 22.5V24L17.5 27H9.5" />
-      <circle className={styles.eye} cx="20.6" cy="12" r="2.5" />
-      <path className={styles.brow} d="M16.6 7.4L22.4 4.6L24.6 5.6" />
+      <path className={styles.browFlat} d="M5.6 13.4H13" />
+      <path className={styles.brow} d="M18.6 13.4L24.6 8.6L26.6 9.8" />
+      <circle className={styles.eye} cx="9.3" cy="20" r="2.6" />
+      <circle className={styles.eye} cx="22.4" cy="20" r="2.6" />
     </svg>
   );
 }
