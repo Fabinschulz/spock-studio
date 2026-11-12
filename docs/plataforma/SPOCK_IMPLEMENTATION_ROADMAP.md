@@ -281,7 +281,24 @@ aviso não foi conferido visualmente no navegador nesta entrega, só por testes.
 
 Limite: o resumo não foi conferido visualmente no navegador (a grade de quatro linhas é nova), só por testes.
 
-Falta nesta fase: sincronização e respostas do assistente como execuções e ligação com item de trabalho.
+**Quinta entrega da fase C (2026-11-12).** A execução ligada a um item de trabalho, na mesma branch. Falta mostrar a
+ligação em Gestão (próxima entrega).
+
+| Feito | Observação |
+| --- | --- |
+| `run.link` e `run.unlink` | A pessoa informa o número (`41` ou `#41`) ou a chave (`APP-12`, sem diferenciar maiúsculas) e o motor procura entre o que as integrações **do próprio projeto** já sincronizaram. Item não lido não se liga (`LINK_ITEM_NOT_FOUND`); o mesmo identificador em duas integrações pede a integração (`LINK_ITEM_AMBIGUOUS`); formato fora do padrão é recusado antes de procurar; até 10 itens por execução. Ligar de novo o mesmo item não muda nada nem repete a auditoria. Desligar o que não está ligado não faz nada |
+| Só a referência | A ligação guarda integração, tipo, identificador e instante, em `links.json` ao lado do diário e **fora dele**: ligar não reescreve o diário (um teste confere os bytes) e o título do item nunca é copiado para o disco. Título e situação saem dos dados sincronizados na hora de mostrar |
+| Item que saiu do recorte | A ligação continua e aparece como "fora do recorte atual da integração", sem título nem situação, em vez de inventar o que ele era |
+| Isolamento e auditoria | Projeto não autorizado, execução inexistente, id com formato estranho e execução de outro projeto são recusados; um item de outro projeto não se liga. Ligar e desligar entram na trilha de auditoria (`run.linked`, `run.unlinked`) |
+| Interface | Bloco "Itens de trabalho" no painel de detalhe: a lista com provedor, título e situação (chip), "Desligar" por item (sem confirmação: é reversível), e o campo "Ligar a um item (número ou chave)". O erro do motor aparece com a mensagem dele e o que a pessoa digitou fica no campo |
+| Contrato | Fixture `run-link.json`, `links` no detalhe, esquema Zod conferido, métodos liberados no host e no cliente. O `Program.cs` monta o catálogo com o serviço de ligações, porque só o motor com integrações o tem |
+| Testes | 21 novos no motor (17 de ligação e 4 do catálogo já contados na suíte de 602) e 6 na interface. Suítes: 602 no motor, 418 na interface, tipos, lint, formato e build limpos |
+
+Limites: o link do item não é clicável, porque abrir endereço externo dentro da janela do aplicativo muda a tela; ligar
+exige que o item já esteja sincronizado, então um item novo pede uma sincronização antes. O bloco não foi conferido no
+navegador, só por testes.
+
+Falta nesta fase: mostrar a ligação em Gestão, e sincronização e respostas do assistente como execuções.
 
 ### Fase D: gestão que explica
 

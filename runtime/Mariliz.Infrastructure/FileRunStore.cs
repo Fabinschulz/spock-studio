@@ -6,7 +6,7 @@ using Mariliz.Core.Text;
 namespace Mariliz.Infrastructure;
 
 /// <summary>Diários e backups no diretório de dados do usuário, fora do repositório do projeto.</summary>
-public sealed class FileRunStore(string dataRoot) : IRunStore
+public sealed class FileRunStore(string dataRoot) : IRunStore, IRunLinkStore
 {
     private readonly object _events = new();
 
@@ -60,6 +60,25 @@ public sealed class FileRunStore(string dataRoot) : IRunStore
         if (!Directory.Exists(dir)) return [];
         // Uma pasta com nome fora do padrão não é de um projeto do motor: fica de fora em vez de derrubar a varredura.
         return Directory.EnumerateDirectories(dir).Select(Path.GetFileName).OfType<string>().Where(IsSafe).Order(StringComparer.Ordinal).ToList();
+    }
+
+    /// <summary>As ligações da execução com itens de trabalho. Um arquivo à parte do diário: ligar não o reescreve.</summary>
+    public IReadOnlyList<RunLink> LoadLinks(string projectId, string runId)
+    {
+        var path = Path.Combine(RunDir(projectId, runId), "links.json");
+        if (!File.Exists(path)) return [];
+        try { return JsonSerializer.Deserialize<List<RunLink>>(File.ReadAllText(path), JournalJson.Options) ?? []; }
+        catch (JsonException) { return []; }
+    }
+
+    public void SaveLinks(string projectId, string runId, IReadOnlyList<RunLink> links)
+    {
+        var dir = RunDir(projectId, runId);
+        Directory.CreateDirectory(dir);
+        var path = Path.Combine(dir, "links.json");
+        var temp = path + ".tmp";
+        File.WriteAllText(temp, JsonSerializer.Serialize(links, JournalJson.Options));
+        File.Move(temp, path, overwrite: true);
     }
 
     public void SaveBackup(string projectId, string runId, string relativePath, byte[] content)

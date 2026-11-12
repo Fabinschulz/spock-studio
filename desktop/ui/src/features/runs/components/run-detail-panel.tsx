@@ -11,6 +11,7 @@ import { Link } from 'react-router';
 import { deliverySummary } from '../domain/run-summary';
 import { displayState, effectLabel, hasLiveView, nextStep, runKindLabel, stateTone } from '../domain/run-labels';
 import { readRunDetail } from '../service/runs-api';
+import { RunLinks } from './run-links';
 import styles from '../runs-page.module.scss';
 
 interface RunDetailPanelProps {
@@ -62,13 +63,13 @@ function Content({ client, run }: { client: EngineClient; run: RunItem }) {
         </p>
       ) : null}
       <ResourceView resource={detail} loading="Lendo o detalhe…" fallbackError="Não foi possível ler o detalhe.">
-        {(value) => <Body detail={value} />}
+        {(value) => <Body client={client} run={run} detail={value} />}
       </ResourceView>
     </div>
   );
 }
 
-function Body({ detail }: { detail: RunDetail }) {
+function Body({ client, run, detail }: { client: EngineClient; run: RunItem; detail: RunDetail }) {
   const nothing =
     detail.operations.length === 0 &&
     detail.steps.length === 0 &&
@@ -92,6 +93,9 @@ function Body({ detail }: { detail: RunDetail }) {
           <dt>Ficou de fora</dt>
           <dd>{summary.leftOut.length > 0 ? summary.leftOut.join(' ') : 'Nada ficou de fora.'}</dd>
         </dl>
+      </DetailBlock>
+      <DetailBlock title="Itens de trabalho">
+        <RunLinks client={client} run={run} initial={detail.links} />
       </DetailBlock>
       {detail.steps.length > 0 ? (
         <DetailBlock title="Passos">

@@ -1,7 +1,8 @@
 import runDetailFixture from '@contracts/fixtures/runs/run-detail.json';
+import runLinkFixture from '@contracts/fixtures/runs/run-link.json';
 import runListFixture from '@contracts/fixtures/runs/run-list.json';
 
-import type { EngineClient } from '@/shared/api';
+import { EngineError, type EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
 import type { RunItem } from '@/shared/schema';
 import { render, screen, waitFor, within } from '@testing-library/react';
@@ -18,7 +19,14 @@ const item = (overrides: Partial<RunItem>): RunItem => ({ ...(runListFixture.run
 type Call = { method: string; params: Record<string, unknown> };
 
 /** Um motor que responde só `run.list` e `run.detail`, e guarda tudo o que foi pedido. */
-function engine(handlers: { list?: (params: Record<string, unknown>) => unknown; detail?: () => unknown } = {}) {
+function engine(
+  handlers: {
+    list?: (params: Record<string, unknown>) => unknown;
+    detail?: () => unknown;
+    link?: (params: Record<string, unknown>) => unknown;
+    unlink?: (params: Record<string, unknown>) => unknown;
+  } = {}
+) {
   const calls: Call[] = [];
   const client = {
     request: vi.fn(
@@ -26,6 +34,8 @@ function engine(handlers: { list?: (params: Record<string, unknown>) => unknown;
         calls.push({ method, params });
         if (method === 'run.list') return schema.parse(handlers.list ? handlers.list(params) : runListFixture);
         if (method === 'run.detail') return schema.parse(handlers.detail ? handlers.detail() : runDetailFixture);
+        if (method === 'run.link') return schema.parse(handlers.link ? handlers.link(params) : runLinkFixture);
+        if (method === 'run.unlink') return schema.parse(handlers.unlink ? handlers.unlink(params) : { links: [] });
         throw new Error(`Método inesperado: ${method}`);
       }
     ),
@@ -275,5 +285,86 @@ describe('Execuções · detalhe', () => {
 
     const panel = await screen.findByRole('dialog');
     expect(await within(panel).findByRole('alert')).toBeTruthy();
+  });
+});
+
+describe('Execuções · itens de trabalho', () => {
+  const openDetail = async (harness = engine()) => {
+    renderPage(harness.client);
+    const rows = within(await screen.findByRole('list', { name: 'Execuções' })).getAllByRole('button');
+    await userEvent.click(rows[2]!);
+    const panel = await screen.findByRole('dialog');
+    await within(panel).findByText('CLAUDE.md');
+    return { ...harness, panel };
+  };
+
+  it('sem ligação diz isso, e o botão Ligar só vale com algo digitado', async () => {
+    const { panel } = await openDetail();
+
+    expect(within(panel).getByText('Nenhum item de trabalho ligado a esta execução.')).toBeTruthy();
+    expect(within(panel).getByRole('button', { name: 'Ligar' })).toBeDisabled();
+  });
+
+  it('liga pelo número, mostra o item com título e situação e limpa o campo', async () => {
+    const { panel, calls } = await openDetail();
+
+    await userEvent.type(within(panel).getByLabelText('Ligar a um item (número ou chave)'), '#41');
+    await userEvent.click(within(panel).getByRole('button', { name: 'Ligar' }));
+
+    const list = await within(panel).findByRole('list', { name: 'Itens ligados' });
+    expect(list).toHaveTextContent('#41');
+    expect(list).toHaveTextContent('Pagamento por Pix');
+    expect(list).toHaveTextContent('GitHub');
+    expect(list).toHaveTextContent('open');
+    expect(calls.find((call) => call.method === 'run.link')?.params).toEqual({
+      projectId: 'p-000000000001',
+      runId: 'run-1',
+      externalId: '#41'
+    });
+    expect(within(panel).getByLabelText('Ligar a um item (número ou chave)')).toHaveValue('');
+  });
+
+  it('o motor recusa um item que não foi sincronizado e a tela diz o motivo sem perder o que digitou', async () => {
+    const { panel } = await openDetail(
+      engine({
+        link: () => {
+          throw new EngineError(
+            'LINK_ITEM_NOT_FOUND',
+            'Nenhum item sincronizado deste projeto tem esse identificador.'
+          );
+        }
+      })
+    );
+
+    await userEvent.type(within(panel).getByLabelText('Ligar a um item (número ou chave)'), '999');
+    await userEvent.click(within(panel).getByRole('button', { name: 'Ligar' }));
+
+    expect(await within(panel).findByRole('alert')).toHaveTextContent('Nenhum item sincronizado deste projeto');
+    expect(within(panel).getByLabelText('Ligar a um item (número ou chave)')).toHaveValue('999');
+  });
+
+  it('desliga pelo botão do item, com o pedido certo', async () => {
+    const detailWithLink = { ...runDetailFixture, links: runLinkFixture.links };
+    const { panel, calls } = await openDetail(engine({ detail: () => detailWithLink }));
+
+    await userEvent.click(within(panel).getByRole('button', { name: 'Desligar o item 41' }));
+
+    await waitFor(() => expect(within(panel).queryByRole('list', { name: 'Itens ligados' })).toBeNull());
+    expect(calls.find((call) => call.method === 'run.unlink')?.params).toEqual({
+      projectId: 'p-000000000001',
+      runId: 'run-1',
+      integrationId: 'int-000000000001',
+      kind: 'issues',
+      externalId: '41'
+    });
+  });
+
+  it('um item que saiu do recorte aparece como tal, sem título nem situação', async () => {
+    const gone = { ...runLinkFixture.links[0]!, available: false, title: null, status: null, statusCategory: null };
+    const { panel } = await openDetail(engine({ detail: () => ({ ...runDetailFixture, links: [gone] }) }));
+
+    const list = within(panel).getByRole('list', { name: 'Itens ligados' });
+    expect(list).toHaveTextContent('fora do recorte atual da integração');
+    expect(list).not.toHaveTextContent('Pagamento por Pix');
   });
 });

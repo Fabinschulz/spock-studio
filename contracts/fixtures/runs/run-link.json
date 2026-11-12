@@ -1,0 +1,15 @@
+{
+  "links": [
+    {
+      "integrationId": "int-000000000001",
+      "provider": "github",
+      "kind": "issues",
+      "externalId": "41",
+      "linkedAt": "2026-11-12T12:00:00.0000000+00:00",
+      "available": true,
+      "title": "Pagamento por Pix",
+      "status": "open",
+      "statusCategory": "inProgress"
+    }
+  ]
+}

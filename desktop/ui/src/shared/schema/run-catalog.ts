@@ -82,7 +82,26 @@ export const deliverySummarySchema = z.object({
   })
 });
 
+/** Uma execução ligada a um item de trabalho. Título e situação vêm dos dados sincronizados, nunca da ligação. */
+export const runLinkSchema = z.object({
+  integrationId: z.string(),
+  /** Nulo quando a integração foi desvinculada do projeto. */
+  provider: z.string().nullable(),
+  kind: z.string(),
+  externalId: z.string(),
+  linkedAt: z.string(),
+  /** Falso quando o item saiu do recorte da integração: a ligação fica, o conteúdo some. */
+  available: z.boolean(),
+  title: z.string().nullable(),
+  status: z.string().nullable(),
+  statusCategory: z.string().nullable()
+});
+
+/** Resposta de `run.link` e `run.unlink`: as ligações da execução depois da mudança. */
+export const runLinksResultSchema = z.object({ links: z.array(runLinkSchema) });
+
 export const runDetailSchema = runItemSchema.extend({
+  links: z.array(runLinkSchema),
   summary: deliverySummarySchema,
   operations: z.array(
     z.object({
@@ -105,6 +124,7 @@ export const runDetailSchema = runItemSchema.extend({
   events: z.array(z.object({ seq: z.number(), type: z.string() }))
 });
 
+export type RunLink = z.infer<typeof runLinkSchema>;
 export type RunItem = z.infer<typeof runItemSchema>;
 export type RunList = z.infer<typeof runListSchema>;
 export type RunDetail = z.infer<typeof runDetailSchema>;

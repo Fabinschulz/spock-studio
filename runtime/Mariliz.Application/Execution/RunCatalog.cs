@@ -10,7 +10,7 @@ namespace Mariliz.Application.Execution;
 /// diários que já existem em disco. Não guarda nada novo e só lê: abrir o detalhe nunca dispara, reverte nem valida.
 /// Só projetos autorizados aparecem, e um projeto esquecido some da lista mesmo com diário em disco.
 /// </summary>
-public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, RunTracker tracker)
+public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, RunTracker tracker, RunLinkService? links = null)
 {
     public const int DefaultLimit = 25;
     public const int MaxLimit = 100;
@@ -127,6 +127,8 @@ public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, R
             ? new JsonObject { ["calls"] = usage.Calls, ["inputTokens"] = usage.InputTokens, ["outputTokens"] = usage.OutputTokens }
             : null;
         detail["summary"] = Summary(journal);
+        // Sem o serviço de ligações (sessões sem central de integrações) a execução simplesmente não tem itens ligados.
+        detail["links"] = links?.For(project.ProjectId, runId) ?? new JsonArray();
         detail["eventCount"] = events.Count;
         detail["events"] = new JsonArray(events.TakeLast(MaxDetailEvents).Select(evt => (JsonNode)new JsonObject
         {
@@ -182,6 +184,15 @@ public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, R
             }
         };
     }
+
+    public JsonObject Link(string projectId, string runId, string externalId, string? integrationId) =>
+        new() { ["links"] = Links().Link(projectId, runId, externalId, integrationId) };
+
+    public JsonObject Unlink(string projectId, string runId, string integrationId, string kind, string externalId) =>
+        new() { ["links"] = Links().Unlink(projectId, runId, integrationId, kind, externalId) };
+
+    private RunLinkService Links() =>
+        links ?? throw new EngineException("RUN_LINKS_UNAVAILABLE", "A ligação com itens de trabalho não está disponível nesta sessão do motor.");
 
     /// <summary>O projeto está autorizado: só então suas execuções podem ser vistas ou canceladas.</summary>
     public bool CanAccess(string projectId) => workspace.IsAuthorized(projectId);

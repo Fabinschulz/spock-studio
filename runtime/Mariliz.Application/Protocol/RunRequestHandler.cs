@@ -17,6 +17,9 @@ internal sealed class RunRequestHandler(RunQueries runs)
             p.OptionalInt("limit"),
             p.OptionalStr("cursor")),
         ProtocolMethods.RunDetail => runs.Catalog.Detail(p.Str("projectId"), p.Str("runId")),
+        ProtocolMethods.RunLink => runs.Catalog.Link(p.Str("projectId"), p.Str("runId"), p.Str("externalId"), p.OptionalStr("integrationId")),
+        ProtocolMethods.RunUnlink => runs.Catalog.Unlink(
+            p.Str("projectId"), p.Str("runId"), p.Str("integrationId"), p.Str("kind"), p.Str("externalId")),
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
     };
 

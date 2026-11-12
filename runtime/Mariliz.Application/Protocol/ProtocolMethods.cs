@@ -16,6 +16,8 @@ public static class ProtocolMethods
     public const string Cancel = "run.cancel";
     public const string RunList = "run.list";
     public const string RunDetail = "run.detail";
+    public const string RunLink = "run.link";
+    public const string RunUnlink = "run.unlink";
 
     public const string WorkflowStart = "workflow.start";
     public const string WorkflowResume = "workflow.resume";
@@ -55,7 +57,7 @@ public static class ProtocolMethods
         [Discover, Plan, Apply, Validate, Revert, Runs];
 
     /// <summary>Consulta e cancelamento valem para execuções de qualquer jornada.</summary>
-    public static readonly IReadOnlyList<string> RunControl = [Snapshot, Cancel, RunList, RunDetail];
+    public static readonly IReadOnlyList<string> RunControl = [Snapshot, Cancel, RunList, RunDetail, RunLink, RunUnlink];
 
     public static readonly IReadOnlyList<string> Workflow = [WorkflowStart, WorkflowResume];
 

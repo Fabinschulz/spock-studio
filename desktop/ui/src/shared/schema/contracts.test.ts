@@ -21,6 +21,7 @@ import managementMetrics from '@contracts/fixtures/management/metrics.json';
 import managementPortfolio from '@contracts/fixtures/management/portfolio.json';
 import managementRisks from '@contracts/fixtures/management/risks.json';
 import runDetail from '@contracts/fixtures/runs/run-detail.json';
+import runLink from '@contracts/fixtures/runs/run-link.json';
 import runList from '@contracts/fixtures/runs/run-list.json';
 import evalCompleted from '@contracts/fixtures/valid/event.eval.completed.json';
 import evalStarted from '@contracts/fixtures/valid/event.eval.started.json';
@@ -46,6 +47,7 @@ import {
   projectKnowledgeSchema,
   runDetailSchema,
   runEventSchema,
+  runLinksResultSchema,
   runListSchema,
   runResultSchema,
   runSnapshotSchema,
@@ -268,5 +270,18 @@ describe('contrato da central de execuções (fixtures do motor)', () => {
     expect(parsed.summary.done).toMatchObject({ created: 1, stepsCompleted: 1, stepsTotal: 1 });
     expect(parsed.summary.validated).toMatchObject({ total: 1, passed: 1, requiredNotPassed: 0 });
     expect(JSON.stringify(runDetail)).not.toContain('"content"');
+    expect(parsed.links).toEqual([]);
+  });
+
+  it('ligações com o item: título e situação do dado sincronizado, e o tipo do item', () => {
+    const parsed = runLinksResultSchema.parse(runLink);
+    expect(parsed.links[0]).toMatchObject({
+      provider: 'github',
+      kind: 'issues',
+      externalId: '41',
+      available: true,
+      title: 'Pagamento por Pix',
+      statusCategory: 'inProgress'
+    });
   });
 });
