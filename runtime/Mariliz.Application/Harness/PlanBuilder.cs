@@ -32,7 +32,8 @@ public static class PlanBuilder
             if (current is null) continue;
             var currentHash = Hashing.Sha256(current);
 
-            if (entry.Mode == "kept") continue;
+            // Mantido por decisão da pessoa, ou mesclado num arquivo dela (settings.json): nunca apagado inteiro.
+            if (entry.Mode is "kept" or "merge") continue;
             if (currentHash == entry.Sha256)
                 changes.Add(New(entry.Path, kind, entry.Component, ChangeAction.Remove, "O componente foi dispensado; o arquivo gerenciado e intacto sai.",
                     DecisionOrigins.Baseline, currentHash, null, destructive: true, null, Diff(entry.Path, Encoding.UTF8.GetString(current), "")));
@@ -88,6 +89,11 @@ public static class PlanBuilder
 
         if (currentHash == afterHash)
             return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Preserve, "Já está como o desejado.", file.Origin, currentHash, afterHash, false, null, null);
+
+        // Edições pontuais pedidas pela pessoa (a lista de exclusão em mariliz.yaml, a saída do hook do settings.json):
+        // o arquivo é dela, a mudança é só o pedido, e o plano mostra a diferença para aprovação.
+        if (file.Mode == "release" || (file.Path == DeclaredConfig.FileName && entry is null))
+            return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Update, file.Reason, file.Origin, currentHash, afterHash, false, null, Diff(file.Path, currentText, desired));
 
         if (entry is { Mode: "file" } && entry.Sha256 == currentHash)
             return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Update, "Conteúdo gerenciado desatualizado; atualizar. " + file.Reason, file.Origin, currentHash, afterHash, false, null, Diff(file.Path, currentText, desired));

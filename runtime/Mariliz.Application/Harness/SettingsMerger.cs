@@ -83,6 +83,45 @@ public static class SettingsMerger
         return (root.ToJsonString(Output) + "\n", null);
     }
 
+    /// <summary>
+    /// Tira do arquivo só o registro do hook gerenciado, quando o hook é dispensado. As regras que negam a leitura de
+    /// <c>.env</c> ficam (tirá-las abriria o acesso a segredos), e o arquivo nunca é apagado.
+    /// </summary>
+    /// <returns>O conteúdo sem o hook, ou <c>null</c> quando não há hook gerenciado ou o arquivo não pode ser lido com segurança.</returns>
+    public static string? Release(string? current)
+    {
+        if (string.IsNullOrWhiteSpace(current)) return null;
+        JsonObject root;
+        try
+        {
+            root = JsonNode.Parse(current, null, new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Disallow, AllowTrailingCommas = false }) as JsonObject
+                   ?? throw new JsonException();
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+
+        if (root["hooks"] is not JsonObject hooks || hooks["PreToolUse"] is not JsonArray preToolUse) return null;
+
+        var removed = false;
+        foreach (var group in preToolUse.OfType<JsonObject>().ToList())
+        {
+            if (group["hooks"] is not JsonArray list) continue;
+            foreach (var hook in list.OfType<JsonObject>().Where(IsOurs).ToList())
+            {
+                list.Remove(hook);
+                removed = true;
+            }
+            if (list.Count == 0) preToolUse.Remove(group);
+        }
+        if (!removed) return null;
+
+        if (preToolUse.Count == 0) hooks.Remove("PreToolUse");
+        if (hooks.Count == 0) root.Remove("hooks");
+        return root.ToJsonString(Output) + "\n";
+    }
+
     public static bool IsOurs(JsonObject hook)
     {
         if (hook["args"] is JsonArray args && args.Count > 0 && args[0] is JsonValue v && v.TryGetValue<string>(out var s))

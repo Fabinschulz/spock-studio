@@ -26,7 +26,14 @@ internal sealed class ConfigureRequestHandler(ConfigureProjectService service)
         if (environment is not null && !AiEnvironments.Known.Contains(environment))
             throw new ParamException("aiEnvironment desconhecido.");
 
-        var options = new PlanOptions(environment, p.Flag("allowSpecificationReinstall"), p.Flag("updateSpecification"));
+        var exclude = p.StrList("excludeComponents");
+        var include = p.StrList("includeComponents");
+        if (exclude.Concat(include).FirstOrDefault(id => !ComponentRequest.IsManageable(id)) is { } invalid)
+            throw new ParamException($"O componente '{invalid}' não pode ser dispensado nem voltar a ser aplicado por pedido.");
+        if (exclude.Intersect(include, StringComparer.Ordinal).Any())
+            throw new ParamException("Um componente não pode ser dispensado e voltar no mesmo pedido.");
+
+        var options = new PlanOptions(environment, p.Flag("allowSpecificationReinstall"), p.Flag("updateSpecification"), exclude, include);
         return Json(await service.PlanAsync(p.Str("projectId"), options, ct));
     }
 

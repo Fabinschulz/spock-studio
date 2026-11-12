@@ -22,6 +22,7 @@ internal sealed class HarnessComposition(
     private readonly string _proposalOrigin = proposal.Proposal is not null ? DecisionOrigins.HarnessEngineer : DecisionOrigins.Baseline;
 
     private ComponentSelector _components = null!;
+    private List<string> _exclusion = [];
 
     public ComposeResult Build()
     {
@@ -36,11 +37,13 @@ internal sealed class HarnessComposition(
             return new ComposeResult("", _proposalOrigin, [], _decisions, [], _limitations, _observations, _risks);
         }
 
+        _exclusion = ComponentRequest.Effective(declared?.Components.Exclude ?? [], options.ExcludeComponents ?? [], options.IncludeComponents ?? []);
         AddDeclarationOnce(environment);
 
         if (!AiEnvironments.Supported.Contains(environment))
             return BlockUnsupportedEnvironment(environment);
 
+        AddDeclarationEdit();
         _components = CreateComponentSelector();
         AddCoreComponents();
         AddStackRules();
@@ -102,7 +105,7 @@ internal sealed class HarnessComposition(
     {
         if (declared is not null || files.FileExists(DeclaredConfig.FileName)) return;
 
-        var config = new DeclaredConfig { Project = { Name = report.ProjectName }, AiEnvironment = environment };
+        var config = new DeclaredConfig { Project = { Name = report.ProjectName }, AiEnvironment = environment, Components = { Exclude = [.. _exclusion] } };
         _desired.Add(new(DeclaredConfig.FileName, ComponentKind.Config, Catalog.ConfigDeclaration, DecisionOrigins.Baseline,
             "Declaração do projeto: ambiente de IA e método. É seu depois de criado; a aplicação só a lê.", config.ToYaml(), "file"));
     }
@@ -119,11 +122,32 @@ internal sealed class HarnessComposition(
         return new ComposeResult(environment, _proposalOrigin, _desired, _decisions, [], _limitations, _observations, _risks);
     }
 
+    // O pedido feito na tela vira uma edição pontual de components.exclude; sem ela aprovada no plano, nada muda.
+    private void AddDeclarationEdit()
+    {
+        var declaredList = declared?.Components.Exclude ?? [];
+        if (declared is null || _exclusion.SequenceEqual(declaredList, StringComparer.Ordinal)) return;
+
+        var text = files.ReadText(DeclaredConfig.FileName);
+        var edited = text is null ? null : DeclarationEditor.WithExcluded(text, _exclusion);
+        if (edited is null)
+        {
+            _limitations.Add(new(LimitationCodes.DeclarationNotEditable,
+                "O pedido de dispensar ou voltar a aplicar componentes não entrou no plano: o trecho components.exclude de mariliz.yaml não está num formato que a aplicação edite com segurança. Edite a lista à mão e planeje de novo."));
+            _exclusion = [.. declaredList];
+            return;
+        }
+
+        _desired.Add(new(DeclaredConfig.FileName, ComponentKind.Config, Catalog.ConfigDeclaration, DecisionOrigins.Declared,
+            "Grava o seu pedido em components.exclude; o restante do arquivo fica como está.", edited, "file"));
+    }
+
     private ComponentSelector CreateComponentSelector()
     {
-        var excluded = declared?.Components.Exclude.ToHashSet(StringComparer.Ordinal) ?? [];
+        var excluded = _exclusion.ToHashSet(StringComparer.Ordinal);
+        var requested = excluded.Except(declared?.Components.Exclude ?? [], StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
         var proposed = proposal.Proposal?.Decisions.ToDictionary(d => d.Id, StringComparer.Ordinal) ?? [];
-        return new ComponentSelector(excluded, proposed, _decisions, _limitations);
+        return new ComponentSelector(excluded, requested, proposed, _decisions, _limitations);
     }
 
     private void AddCoreComponents()
@@ -185,12 +209,15 @@ internal sealed class HarnessComposition(
 
     private void AddProposedRules()
     {
-        var excluded = declared?.Components.Exclude ?? [];
-
         foreach (var rule in proposal.Proposal?.AdditionalRules ?? [])
         {
             var id = Catalog.CustomRulePrefix + rule.Id;
-            if (excluded.Contains(id)) continue;
+            if (_exclusion.Contains(id, StringComparer.Ordinal))
+            {
+                // Registrada como dispensada para que o arquivo já escrito saia pelo plano, como nos demais componentes.
+                _decisions.Add(new(ComponentKind.Rule, id, ComponentDecisions.Skip, "Excluída em mariliz.yaml (components.exclude).", DecisionOrigins.Declared, []));
+                continue;
+            }
 
             _decisions.Add(new(ComponentKind.Rule, id, ComponentDecisions.Enable, rule.Justification, DecisionOrigins.HarnessEngineer, rule.Evidence));
             _desired.Add(new($".claude/rules/mariliz-repo-{rule.Id}.md", ComponentKind.Rule, id, DecisionOrigins.HarnessEngineer,
@@ -201,7 +228,10 @@ internal sealed class HarnessComposition(
     private void AddPolicyHook()
     {
         if (!_components.Wants(Catalog.HookPolicy, true, "Controle determinístico antes de escritas e comandos: bloqueia o que a política proíbe.", []))
+        {
+            AddHookRelease();
             return;
+        }
 
         var python = report.Tools.PythonCommand;
         if (python is null)
@@ -223,6 +253,14 @@ internal sealed class HarnessComposition(
         _desired.Add(new(Catalog.PathSettings, ComponentKind.Hook, Catalog.HookPolicy, DecisionOrigins.Baseline,
             "Registra o hook e nega a leitura de arquivos .env; o restante do arquivo é preservado.", merged, "merge"));
         _risks.Add($"O hook usa o comando '{python}' em .claude/settings.json; em máquinas onde esse nome não existe ele falha sem bloquear (comportamento documentado).");
+    }
+
+    // settings.json é mesclado, nunca apagado: dispensar o hook tira só o registro dele.
+    private void AddHookRelease()
+    {
+        if (SettingsMerger.Release(files.ReadText(Catalog.PathSettings)) is not { } released) return;
+        _desired.Add(new(Catalog.PathSettings, ComponentKind.Hook, Catalog.HookPolicy, DecisionOrigins.Declared,
+            "O hook foi dispensado: sai só o registro dele; o restante do arquivo e as regras que negam a leitura de .env ficam.", released, "release"));
     }
 
     private void BlockPolicyHook(string decisionReason, string limitation)

@@ -39,9 +39,12 @@ public static class LockBuilder
         return Write(composed, written.Concat(untouched), specification);
     }
 
-    /// <summary>mariliz.yaml é da pessoa depois de criado: nunca entra como gerenciado (filtrado pelos chamadores).</summary>
+    /// <summary>
+    /// mariliz.yaml é da pessoa depois de criado: nunca entra como gerenciado (filtrado pelos chamadores). A saída do hook
+    /// do settings.json ("release") também não: depois dela o arquivo não tem mais nada gerenciado.
+    /// </summary>
     private static Dictionary<string, DesiredFile> Desired(ComposeResult composed) =>
-        composed.Files.ToDictionary(f => f.Path, StringComparer.Ordinal);
+        composed.Files.Where(f => f.Mode != "release").ToDictionary(f => f.Path, StringComparer.Ordinal);
 
     private static string Write(ComposeResult composed, IEnumerable<ManagedLockFile.ManagedFileEntry> entries, SpecificationStatus specification)
     {

@@ -6,8 +6,13 @@ namespace Mariliz.Application.Engineering;
 /// <c>outOfScope</c> (caminho fora do que o produto pode gerenciar).</param>
 public sealed record HarnessFileStatus(string Path, string Mode, string State);
 
+/// <summary>Um componente que mariliz.yaml pede para não aplicar.</summary>
+/// <param name="Manageable">Se pode voltar a ser aplicado por pedido na tela (agentes, skills, regras e o hook).</param>
+public sealed record HarnessExcludedComponent(string Id, string Label, bool Manageable);
+
 /// <summary>Um componente do Harness registrado no lock, com o estado do pior dos seus arquivos.</summary>
-public sealed record HarnessComponentStatus(string Id, string Label, string Kind, string Version, string State, IReadOnlyList<HarnessFileStatus> Files);
+/// <param name="Manageable">Se pode ser dispensado por pedido na tela (agentes, skills, regras e o hook).</param>
+public sealed record HarnessComponentStatus(string Id, string Label, string Kind, string Version, string State, bool Manageable, IReadOnlyList<HarnessFileStatus> Files);
 
 /// <summary>
 /// O Harness aplicado num projeto, lido de <c>mariliz.lock</c> e conferido contra o disco. Só leitura: mudar componentes é
@@ -26,7 +31,7 @@ public sealed record HarnessStatus(
     string? AiEnvironment,
     string? SpecificationVersion,
     IReadOnlyList<HarnessComponentStatus> Components,
-    IReadOnlyList<string> Excluded,
+    IReadOnlyList<HarnessExcludedComponent> Excluded,
     int Intact,
     int Kept,
     int Modified,

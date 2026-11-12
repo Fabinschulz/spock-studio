@@ -1,10 +1,11 @@
+import { componentRequestState, type ComponentRequestItem } from '@/features/configure-project';
 import { errorMessage, type EngineClient } from '@/shared/api';
 import { StatusChip, type Tone } from '@/shared/components';
 import { pathTo } from '@/shared/routing';
 import type { HarnessStatus } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 import styles from '../project-page.module.scss';
 import { readHarness } from '../service/project-api';
@@ -67,6 +68,11 @@ export function HarnessSection({ client, projectId }: { client: EngineClient; pr
 }
 
 function HarnessContent({ harness }: { harness: HarnessStatus }) {
+  const navigate = useNavigate();
+  // O pedido só abre o Configurar: lá vira plano, com a diferença de mariliz.yaml e dos arquivos, e espera aprovação.
+  const request = (kind: 'exclude' | 'include', { id, label }: ComponentRequestItem) =>
+    void navigate(pathTo('configure'), { state: componentRequestState({ [kind]: [{ id, label }] }) });
+
   if (!harness.applied) {
     return (
       <p className={styles.meta}>
@@ -108,7 +114,20 @@ function HarnessContent({ harness }: { harness: HarnessStatus }) {
                   · {KIND_LABEL[component.kind] ?? component.kind} · versão {component.version}
                 </span>
               </span>
-              <StatusChip tone={STATE[component.state].tone}>{STATE[component.state].label}</StatusChip>
+              <span className={styles.rowActions}>
+                <StatusChip tone={STATE[component.state].tone}>{STATE[component.state].label}</StatusChip>
+                {component.manageable ? (
+                  <Button
+                    type="button"
+                    variant="text"
+                    size="small"
+                    aria-label={`Dispensar ${component.label}`}
+                    onClick={() => request('exclude', component)}
+                  >
+                    Dispensar
+                  </Button>
+                ) : null}
+              </span>
             </div>
             {component.state !== 'intact' ? (
               <ul className={styles.fileList}>
@@ -127,10 +146,38 @@ function HarnessContent({ harness }: { harness: HarnessStatus }) {
       </ul>
 
       {harness.excluded.length > 0 ? (
-        <p className={styles.meta}>
-          Excluídos em mariliz.yaml: <span className={styles.mono}>{harness.excluded.join(', ')}</span>.
-        </p>
+        <>
+          <h3 className={styles.subsection}>Dispensados em mariliz.yaml</h3>
+          <ul className={styles.rows} aria-label="Componentes dispensados">
+            {harness.excluded.map((item) => (
+              <li key={item.id} className={styles.row}>
+                <span>
+                  <span className={styles.rowTitle}>{item.label}</span>
+                  <span className={styles.meta}>
+                    {' '}
+                    · <span className={styles.mono}>{item.id}</span>
+                  </span>
+                </span>
+                {item.manageable ? (
+                  <Button
+                    type="button"
+                    variant="text"
+                    size="small"
+                    aria-label={`Voltar a aplicar ${item.label}`}
+                    onClick={() => request('include', item)}
+                  >
+                    Voltar a aplicar
+                  </Button>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </>
       ) : null}
+      <p className={styles.meta}>
+        Dispensar ou voltar a aplicar abre o plano em Configurar: ele grava o pedido em mariliz.yaml e mostra o que sai
+        ou volta. Nada muda sem a sua aprovação, e a aplicação pode ser revertida.
+      </p>
       {harness.modified + harness.missing > 0 ? (
         <p className={styles.meta}>
           No próximo plano em <Link to={pathTo('configure')}>Configurar</Link>, o arquivo editado à mão aparece como

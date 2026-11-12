@@ -24,6 +24,8 @@ export function journeyReducer(state: JourneyState, action: JourneyAction): Jour
       return { ...state, allowSpecificationReinstall: action.value };
     case 'update.set':
       return { ...state, updateSpecification: action.value };
+    case 'request.clear':
+      return { ...state, componentRequest: { exclude: [], include: [] } };
     case 'plan.start':
       return { ...state, plan: { status: 'loading' } };
     case 'plan.ok':

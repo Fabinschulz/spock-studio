@@ -52,6 +52,21 @@ function fakeApi(overrides: Partial<HarnessApi> = {}) {
 }
 
 describe('useConfigureJourney', () => {
+  it('leva o pedido da tela Projeto em cada plano até a pessoa desfazê-lo', async () => {
+    const api = fakeApi();
+    const request = { exclude: [{ id: 'mariliz.agent.verifier', label: 'Agente verificador' }], include: [] };
+    const { result: hook } = renderHook(() => useConfigureJourney(api, 'p-1', 1, request));
+
+    await act(() => hook.current.actions.generatePlan());
+    expect(api.plan).toHaveBeenLastCalledWith(
+      expect.objectContaining({ excludeComponents: ['mariliz.agent.verifier'] })
+    );
+
+    act(() => hook.current.actions.clearComponentRequest());
+    await act(() => hook.current.actions.generatePlan());
+    expect(api.plan).toHaveBeenLastCalledWith(expect.not.objectContaining({ excludeComponents: expect.anything() }));
+  });
+
   it('descobre, planeja, aplica com as aprovações da pessoa e chega ao resultado', async () => {
     const api = fakeApi();
     const { result: hook } = renderHook(() => useConfigureJourney(api, 'p-1', 1));
