@@ -191,6 +191,9 @@ public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, R
     public JsonObject Unlink(string projectId, string runId, string integrationId, string kind, string externalId) =>
         new() { ["links"] = Links().Unlink(projectId, runId, integrationId, kind, externalId) };
 
+    /// <summary>Os itens do projeto que têm execuções ligadas. Só leitura.</summary>
+    public JsonObject Linked(string projectId) => new() { ["items"] = Links().ForProject(projectId) };
+
     private RunLinkService Links() =>
         links ?? throw new EngineException("RUN_LINKS_UNAVAILABLE", "A ligação com itens de trabalho não está disponível nesta sessão do motor.");
 

@@ -71,6 +71,23 @@ public sealed class FileRunStore(string dataRoot) : IRunStore, IRunLinkStore
         catch (JsonException) { return []; }
     }
 
+    public IReadOnlyList<(string RunId, IReadOnlyList<RunLink> Links)> ListLinked(string projectId)
+    {
+        var dir = Path.Combine(dataRoot, "projects", Safe(projectId), "runs");
+        if (!Directory.Exists(dir)) return [];
+        var result = new List<(string, IReadOnlyList<RunLink>)>();
+        foreach (var runDir in Directory.EnumerateDirectories(dir))
+        {
+            var runId = Path.GetFileName(runDir);
+            // Uma pasta com nome fora do padrão não é de uma execução do motor: fica de fora em vez de derrubar a varredura.
+            if (!IsSafe(runId) || !File.Exists(Path.Combine(runDir, "links.json"))) continue;
+            var links = LoadLinks(projectId, runId);
+            if (links.Count > 0) result.Add((runId, links));
+        }
+
+        return result;
+    }
+
     public void SaveLinks(string projectId, string runId, IReadOnlyList<RunLink> links)
     {
         var dir = RunDir(projectId, runId);

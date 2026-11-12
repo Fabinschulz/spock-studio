@@ -40,6 +40,7 @@ export function fakeIntegrationEngine(
   let connections = [...(initial.connections ?? [])];
   let integrations: ProjectIntegration[] = [];
   let sequence = 0;
+  let linkedItems: unknown[] = [];
   const nextId = (prefix: string) => `${prefix}-${String(++sequence).padStart(12, '0')}`;
 
   const finishRunningSyncs = () => {
@@ -138,6 +139,7 @@ export function fakeIntegrationEngine(
       integrations = integrations.filter((integration) => integration.id !== params.integrationId);
       return { removed: true };
     },
+    'run.linked': () => ({ items: linkedItems }),
     'integration.history': () => ({ syncs: [syncedIntegration.lastSync] }),
     // Com fonte vinculada, os indicadores que o motor real calculou; sem fonte, a resposta vazia que ele dá.
     'management.metrics': (params) =>
@@ -194,6 +196,10 @@ export function fakeIntegrationEngine(
     client,
     calls,
     /** Coloca um vínculo já sincronizado num projeto, sem passar pela tela. */
+    /** Coloca itens com execuções ligadas, como `run.linked` os devolveria. */
+    seedLinked(items: unknown[]) {
+      linkedItems = items;
+    },
     seed(projectId: string, integration: ProjectIntegration = syncedIntegration) {
       integrations = [...integrations, { ...integration, projectId }];
     }

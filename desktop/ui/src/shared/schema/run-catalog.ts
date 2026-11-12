@@ -100,6 +100,21 @@ export const runLinkSchema = z.object({
 /** Resposta de `run.link` e `run.unlink`: as ligações da execução depois da mudança. */
 export const runLinksResultSchema = z.object({ links: z.array(runLinkSchema) });
 
+/** Um item de trabalho com as execuções ligadas a ele (`run.linked`): o caminho inverso de {@link runLinkSchema}. */
+export const linkedItemSchema = z.object({
+  integrationId: z.string(),
+  provider: z.string().nullable(),
+  kind: z.string(),
+  externalId: z.string(),
+  available: z.boolean(),
+  title: z.string().nullable(),
+  status: z.string().nullable(),
+  statusCategory: z.string().nullable(),
+  runs: z.array(z.object({ runId: z.string(), kind: z.string(), state: z.string(), startedAt: z.string() }))
+});
+
+export const linkedItemsResultSchema = z.object({ items: z.array(linkedItemSchema) });
+
 export const runDetailSchema = runItemSchema.extend({
   links: z.array(runLinkSchema),
   summary: deliverySummarySchema,
@@ -124,6 +139,8 @@ export const runDetailSchema = runItemSchema.extend({
   events: z.array(z.object({ seq: z.number(), type: z.string() }))
 });
 
+export type LinkedItemsResult = z.infer<typeof linkedItemsResultSchema>;
+export type LinkedItem = z.infer<typeof linkedItemSchema>;
 export type RunLink = z.infer<typeof runLinkSchema>;
 export type RunItem = z.infer<typeof runItemSchema>;
 export type RunList = z.infer<typeof runListSchema>;

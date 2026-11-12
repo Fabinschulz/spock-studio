@@ -298,7 +298,20 @@ Limites: o link do item não é clicável, porque abrir endereço externo dentro
 exige que o item já esteja sincronizado, então um item novo pede uma sincronização antes. O bloco não foi conferido no
 navegador, só por testes.
 
-Falta nesta fase: mostrar a ligação em Gestão, e sincronização e respostas do assistente como execuções.
+**Sexta entrega da fase C (2026-11-12).** A ligação aparece em Gestão, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| `run.linked` | O caminho inverso de `run.link`: cada item do projeto que tem execuções ligadas, com título e situação lidos dos dados sincronizados e as execuções (tipo, estado, início) da mais recente para a mais antiga; os itens, do ligado há menos tempo ao mais antigo. Só abre o diário das execuções que têm ligação (a varredura procura `links.json`, não lê todos os diários). Projeto não autorizado é recusado; um projeto não enxerga as ligações do outro |
+| Seção em Acompanhamento | "Execuções ligadas a itens", depois dos Riscos: o item (`#41`, título, provedor, situação em chip) e a lista das execuções ligadas a ele. Só aparece se o projeto tem fonte vinculada; sem ligação, diz como ligar e aponta para Execuções. Um item que saiu do recorte aparece como "fora do recorte atual da integração" |
+| Leitura independente | A seção lê por conta própria: se `run.linked` falhar, o resto do Acompanhamento continua e só ela mostra o erro |
+| Contrato | Fixture `run-linked.json`, esquema Zod conferido, método liberado no host e no cliente |
+| Testes | 5 novos no motor e 5 na interface. Suítes: 607 no motor, 423 na interface, tipos, lint, formato e build limpos. Numa rodada com a máquina carregada, 2 testes da interface estouraram os 5 s e passaram na repetição |
+
+Limites: as execuções da lista não abrem direto pelo item (o detalhe vive no painel de Execuções e ainda não tem
+endereço próprio); a seção não foi conferida no navegador, só por testes.
+
+Falta nesta fase: sincronização e respostas do assistente como execuções.
 
 ### Fase D: gestão que explica
 

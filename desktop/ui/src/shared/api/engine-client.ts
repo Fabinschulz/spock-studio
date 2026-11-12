@@ -33,6 +33,7 @@ export const ENGINE_METHODS = [
   'run.detail',
   'run.link',
   'run.unlink',
+  'run.linked',
   'workflow.start',
   'workflow.resume',
   'model.status',

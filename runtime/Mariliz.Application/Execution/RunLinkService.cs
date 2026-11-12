@@ -17,6 +17,9 @@ public sealed record RunLink(string IntegrationId, string Kind, string ExternalI
 public interface IRunLinkStore
 {
     IReadOnlyList<RunLink> LoadLinks(string projectId, string runId);
+
+    /// <summary>Só as execuções do projeto que têm alguma ligação, sem abrir os diários das outras.</summary>
+    IReadOnlyList<(string RunId, IReadOnlyList<RunLink> Links)> ListLinked(string projectId);
     void SaveLinks(string projectId, string runId, IReadOnlyList<RunLink> links);
 }
 
@@ -125,6 +128,61 @@ public sealed partial class RunLinkService(
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// O caminho inverso: cada item do projeto que tem execuções ligadas, com as execuções (tipo, estado e início), do item
+    /// ligado mais recentemente ao mais antigo. Só abre o diário das execuções que têm ligação.
+    /// </summary>
+    public JsonArray ForProject(string projectId)
+    {
+        if (!workspace.IsAuthorized(projectId)) throw EngineErrors.ProjectNotAuthorized();
+
+        var integrations = hub.Projects.List(projectId).ToDictionary(item => item.Id);
+        var byItem = new Dictionary<(string IntegrationId, string Kind, string ExternalId), List<(RunJournal Journal, DateTimeOffset LinkedAt)>>();
+        foreach (var (runId, linked) in links.ListLinked(projectId))
+        {
+            var journal = runs.LoadJournal(projectId, runId);
+            if (journal is null) continue;
+            foreach (var link in linked)
+            {
+                var key = (link.IntegrationId, link.Kind, link.ExternalId.ToUpperInvariant());
+                if (!byItem.TryGetValue(key, out var list)) byItem[key] = list = [];
+                list.Add((journal, link.LinkedAt));
+            }
+        }
+
+        var items = new JsonArray();
+        foreach (var ((integrationId, kind, upperId), executions) in byItem.OrderByDescending(pair => pair.Value.Max(run => run.LinkedAt)))
+        {
+            integrations.TryGetValue(integrationId, out var integration);
+            var stored = integration is null
+                ? null
+                : hub.Projects.Data(integration).Items.Values.FirstOrDefault(value =>
+                    value.Item.Kind == kind && string.Equals(value.Item.ExternalId, upperId, StringComparison.OrdinalIgnoreCase));
+            items.Add(new JsonObject
+            {
+                ["integrationId"] = integrationId,
+                ["provider"] = integration?.Provider,
+                ["kind"] = kind,
+                ["externalId"] = stored?.Item.ExternalId ?? upperId,
+                ["available"] = stored is not null,
+                ["title"] = stored?.Item.Title,
+                ["status"] = stored?.Item.Status,
+                ["statusCategory"] = stored?.Item.StatusCategory,
+                ["runs"] = new JsonArray(executions
+                    .OrderByDescending(run => run.Journal.StartedAt)
+                    .Select(run => (JsonNode)new JsonObject
+                    {
+                        ["runId"] = run.Journal.RunId,
+                        ["kind"] = run.Journal.Kind,
+                        ["state"] = run.Journal.State,
+                        ["startedAt"] = run.Journal.StartedAt.ToString("O", CultureInfo.InvariantCulture)
+                    }).ToArray())
+            });
+        }
+
+        return items;
     }
 
     private void RequireRun(string projectId, string runId)

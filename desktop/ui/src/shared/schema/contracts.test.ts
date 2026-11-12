@@ -22,6 +22,7 @@ import managementPortfolio from '@contracts/fixtures/management/portfolio.json';
 import managementRisks from '@contracts/fixtures/management/risks.json';
 import runDetail from '@contracts/fixtures/runs/run-detail.json';
 import runLink from '@contracts/fixtures/runs/run-link.json';
+import runLinked from '@contracts/fixtures/runs/run-linked.json';
 import runList from '@contracts/fixtures/runs/run-list.json';
 import evalCompleted from '@contracts/fixtures/valid/event.eval.completed.json';
 import evalStarted from '@contracts/fixtures/valid/event.eval.started.json';
@@ -46,6 +47,7 @@ import {
   profileResultSchema,
   projectKnowledgeSchema,
   runDetailSchema,
+  linkedItemsResultSchema,
   runEventSchema,
   runLinksResultSchema,
   runListSchema,
@@ -271,6 +273,13 @@ describe('contrato da central de execuções (fixtures do motor)', () => {
     expect(parsed.summary.validated).toMatchObject({ total: 1, passed: 1, requiredNotPassed: 0 });
     expect(JSON.stringify(runDetail)).not.toContain('"content"');
     expect(parsed.links).toEqual([]);
+  });
+
+  it('caminho inverso: o item com as execuções ligadas a ele, da mais recente para a mais antiga', () => {
+    const parsed = linkedItemsResultSchema.parse(runLinked);
+    expect(parsed.items[0]).toMatchObject({ externalId: '41', title: 'Pagamento por Pix', available: true });
+    expect(parsed.items[0]?.runs.map((run) => run.runId)).toEqual(['run-2', 'run-1']);
+    expect(parsed.items[0]?.runs[0]).toMatchObject({ kind: 'workflow', state: 'failed' });
   });
 
   it('ligações com o item: título e situação do dado sincronizado, e o tipo do item', () => {

@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "integrationId": "int-000000000001",
+      "provider": "github",
+      "kind": "issues",
+      "externalId": "41",
+      "available": true,
+      "title": "Pagamento por Pix",
+      "status": "open",
+      "statusCategory": "inProgress",
+      "runs": [
+        {
+          "runId": "run-2",
+          "kind": "workflow",
+          "state": "failed",
+          "startedAt": "2026-11-12T12:10:00.0000000+00:00"
+        },
+        {
+          "runId": "run-1",
+          "kind": "apply",
+          "state": "completed",
+          "startedAt": "2026-11-12T12:00:00.0000000+00:00"
+        }
+      ]
+    }
+  ]
+}

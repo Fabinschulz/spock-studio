@@ -24,6 +24,7 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "run.detail",
     "run.link",
     "run.unlink",
+    "run.linked",
     "workflow.start",
     "workflow.resume",
     "model.status",

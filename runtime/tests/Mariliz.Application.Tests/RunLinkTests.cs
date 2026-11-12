@@ -36,10 +36,10 @@ public class RunLinkTests : IDisposable
 
     private string ProjectId => _harness.ProjectId;
 
-    private void Save(string runId, string? projectId = null) =>
+    private void Save(string runId, string? projectId = null, int minutes = 0, string kind = RunKinds.Apply, string state = RunStates.Completed) =>
         _store.SaveJournal(new RunJournal
         {
-            RunId = runId, ProjectId = projectId ?? ProjectId, Kind = RunKinds.Apply, State = RunStates.Completed, StartedAt = Now
+            RunId = runId, ProjectId = projectId ?? ProjectId, Kind = kind, State = state, StartedAt = Now.AddMinutes(minutes)
         });
 
     private static WorkItem Item(string kind, string id, string title, string status = "open", string category = StatusCategories.InProgress) =>
@@ -271,12 +271,91 @@ public class RunLinkTests : IDisposable
         Assert.Equal("LINK_ITEM_NOT_FOUND", Code(response));
     }
 
+    private JsonArray Linked(string? projectId = null)
+    {
+        var response = Call("run.linked", new JsonObject { ["projectId"] = projectId ?? ProjectId });
+        return response["result"]!["items"]!.AsArray();
+    }
+
+    [Fact]
+    public async Task O_caminho_inverso_traz_cada_item_com_as_execucoes_ligadas_a_ele()
+    {
+        await SeedGitHubAsync(Item(DataKinds.Issues, "41", "Pagamento por Pix", "open"), Item(DataKinds.Issues, "42", "Boleto", "closed", StatusCategories.Done));
+        Save("run-2", minutes: 10, kind: RunKinds.Workflow, state: RunStates.Failed);
+        Save("run-3", minutes: 20);
+        _harness.Clock.UtcNow = Now;
+        Link("41", "run-1");
+        Link("41", "run-2");
+        _harness.Clock.UtcNow = Now.AddHours(1);
+        Link("42", "run-3");
+
+        var items = Linked();
+
+        Assert.Equal(["42", "41"], items.Select(item => item!["externalId"]!.GetValue<string>()).ToArray());
+        Assert.Equal("Boleto", items[0]!["title"]!.GetValue<string>());
+        Assert.Equal("done", items[0]!["statusCategory"]!.GetValue<string>());
+        var runs = items[1]!["runs"]!.AsArray();
+        Assert.Equal(["run-2", "run-1"], runs.Select(run => run!["runId"]!.GetValue<string>()).ToArray());
+        Assert.Equal("workflow", runs[0]!["kind"]!.GetValue<string>());
+        Assert.Equal("failed", runs[0]!["state"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task O_caminho_inverso_e_vazio_sem_ligacoes_e_nao_mistura_projetos()
+    {
+        await SeedGitHubAsync(Item(DataKinds.Issues, "41", "x"));
+        Assert.Empty(Linked());
+
+        Link("41");
+
+        Assert.Single(Linked());
+        Assert.Empty(Linked(_harness.OtherProjectId));
+    }
+
+    [Fact]
+    public async Task O_caminho_inverso_marca_o_item_que_saiu_do_recorte_como_indisponivel()
+    {
+        var github = await SeedGitHubAsync(Item(DataKinds.Issues, "41", "x"));
+        Link("41");
+        SeedData(github);
+
+        var item = Linked()[0]!;
+
+        Assert.False(item["available"]!.GetValue<bool>());
+        Assert.Null(item["title"]);
+        Assert.Equal("41", item["externalId"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void O_caminho_inverso_de_projeto_nao_autorizado_e_recusado()
+    {
+        var response = Call("run.linked", new JsonObject { ["projectId"] = "p-desconhecido01" });
+
+        Assert.Equal("PROJECT_NOT_AUTHORIZED", Code(response));
+    }
+
+    [Fact]
+    public async Task Fixture_de_contrato_dos_itens_com_execucoes_ligadas()
+    {
+        await SeedGitHubAsync(Item(DataKinds.Issues, "41", "Pagamento por Pix", "open", StatusCategories.InProgress));
+        Save("run-2", minutes: 10, kind: RunKinds.Workflow, state: RunStates.Failed);
+        Link("41", "run-1");
+        Link("41", "run-2");
+
+        Golden("run-linked.json", Call("run.linked", new JsonObject { ["projectId"] = ProjectId })["result"]!);
+    }
+
     [Fact]
     public async Task Fixture_de_contrato_do_resultado_de_ligar()
     {
         await SeedGitHubAsync(Item(DataKinds.Issues, "41", "Pagamento por Pix", "open", StatusCategories.InProgress));
         var result = Link("41")["result"]!;
 
+        Golden("run-link.json", result);
+    }
+
+    private static void Golden(string file, JsonNode result)
+    {
         var text = result.ToJsonString(new System.Text.Json.JsonSerializerOptions
         {
             WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
@@ -284,7 +363,7 @@ public class RunLinkTests : IDisposable
         text = Regex.Replace(text, "\"integrationId\": \"[^\"]*\"", "\"integrationId\": \"int-000000000001\"");
         text = Regex.Replace(text, "\"linkedAt\": \"[^\"]*\"", "\"linkedAt\": \"2026-11-12T12:00:00.0000000+00:00\"");
 
-        var path = ContractFiles.Path_("fixtures", "runs", "run-link.json");
+        var path = ContractFiles.Path_("fixtures", "runs", file);
         if (Environment.GetEnvironmentVariable("MARILIZ_UPDATE_GOLDEN") == "1" || !File.Exists(path))
         {
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
@@ -293,6 +372,6 @@ public class RunLinkTests : IDisposable
         }
 
         Assert.True(text == File.ReadAllText(path).ReplaceLineEndings("\n").TrimEnd(),
-            "run-link.json: a resposta mudou. Se foi deliberado, regenere com MARILIZ_UPDATE_GOLDEN=1 e ajuste o Zod da interface.");
+            $"{file}: a resposta mudou. Se foi deliberado, regenere com MARILIZ_UPDATE_GOLDEN=1 e ajuste o Zod da interface.");
     }
 }
