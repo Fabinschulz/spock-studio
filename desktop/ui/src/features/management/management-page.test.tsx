@@ -6,6 +6,7 @@ import type { SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
 import { expectNoA11yViolations } from '@/test/a11y';
+import linkedFixture from '@contracts/fixtures/runs/run-linked.json';
 import { fakeIntegrationEngine, syncedIntegration } from '@/test/fake-integration-engine';
 
 import { summarizeActivity } from './domain/activity-summary';
@@ -69,7 +70,7 @@ describe('Gestão · acompanhamento do projeto', () => {
     expect(within(sources).getByText('acme/app')).toBeInTheDocument();
     expect(within(sources).getByText(/GitHub · Issues: 1, Pull requests: 1 · lido/)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Ainda não calculado' })).toBeInTheDocument();
-    expect(engine.calls.every((call) => /^(integration|management)\./.test(call.method))).toBe(true);
+    expect(engine.calls.every((call) => /^(integration|management|run)\./.test(call.method))).toBe(true);
 
     const flow = screen.getByRole('heading', { name: 'Fluxo nas últimas 4 semanas' }).closest('section')!;
     const issues = within(flow).getByRole('group', { name: 'Issues' });
@@ -134,5 +135,62 @@ describe('summarizeActivity', () => {
 
   it('sem fontes não há total nem data', () => {
     expect(summarizeActivity([])).toEqual({ total: 0, byCategory: [], oldestReadAt: null });
+  });
+});
+
+describe('Gestão · execuções ligadas a itens', () => {
+  it('sem fonte vinculada a seção nem aparece', async () => {
+    const engine = fakeIntegrationEngine();
+    renderPage(engine.client, loja);
+
+    await screen.findByText(/Não há dados de atividades/);
+
+    expect(screen.queryByRole('heading', { name: 'Execuções ligadas a itens' })).not.toBeInTheDocument();
+    expect(engine.calls.some((call) => call.method === 'run.linked')).toBe(false);
+  });
+
+  it('com fonte e sem ligação diz como ligar, apontando para Execuções', async () => {
+    const engine = fakeIntegrationEngine();
+    engine.seed(loja.projectId);
+    renderPage(engine.client, loja);
+
+    const section = (await screen.findByRole('heading', { name: 'Execuções ligadas a itens' })).closest('section')!;
+
+    expect(
+      await within(section).findByText(/Nenhuma execução foi ligada a um item deste projeto ainda/)
+    ).toBeInTheDocument();
+    expect(within(section).getByRole('link', { name: 'Execuções' })).toHaveAttribute('href', '/execucoes');
+  });
+
+  it('mostra o item com título e situação e as execuções ligadas a ele', async () => {
+    const engine = fakeIntegrationEngine();
+    engine.seed(loja.projectId);
+    engine.seedLinked(linkedFixture.items);
+    renderPage(engine.client, loja);
+
+    const section = (await screen.findByRole('heading', { name: 'Execuções ligadas a itens' })).closest('section')!;
+
+    const items = await within(section).findByRole('list', { name: 'Itens com execuções ligadas' });
+    expect(items).toHaveTextContent('#41');
+    expect(items).toHaveTextContent('Pagamento por Pix');
+    expect(items).toHaveTextContent('GitHub');
+    const runs = within(items).getByRole('list', { name: 'Execuções ligadas ao item 41' });
+    expect(runs.children).toHaveLength(2);
+    expect(runs.children[0]).toHaveTextContent('Workflow · Falhou');
+    expect(runs.children[1]).toHaveTextContent('Configuração aplicada · Concluído');
+  });
+
+  it('um item que saiu do recorte aparece sem título', async () => {
+    const engine = fakeIntegrationEngine();
+    engine.seed(loja.projectId);
+    engine.seedLinked([
+      { ...linkedFixture.items[0]!, available: false, title: null, status: null, statusCategory: null }
+    ]);
+    renderPage(engine.client, loja);
+
+    const section = (await screen.findByRole('heading', { name: 'Execuções ligadas a itens' })).closest('section')!;
+
+    expect(await within(section).findByText('fora do recorte atual da integração')).toBeInTheDocument();
+    expect(section).not.toHaveTextContent('Pagamento por Pix');
   });
 });

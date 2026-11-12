@@ -1,3 +1,5 @@
+import { useRunActivity } from '@/features/runs';
+import { tauriEngineClient } from '@/shared/api';
 import { Container, Logo, Wordmark } from '@/shared/components';
 import { app } from '@/shared/config/app';
 import { ContentAreaProvider, useEngineStatus, useScrollToTop } from '@/shared/hooks';
@@ -18,6 +20,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const engine = useEngineStatus();
   const environment = useEnvironment();
   const { pathname } = useLocation();
+  // Ao trocar de tela o indicador relê: uma aprovação pode ter chegado enquanto a pessoa olhava outra coisa.
+  const runActivity = useRunActivity(tauriEngineClient, engine.status === 'ready', pathname);
 
   // Trocar de tela começa no topo e leva o foco para o conteúdo: o <main> é quem rola, e o foco não pode ficar num
   // item de menu que já não representa o que está na tela.
@@ -34,7 +38,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Logo className={styles.logo} />
           <Wordmark className={styles.wordmark} />
         </Link>
-        <SideNav environment={environment} />
+        <SideNav environment={environment} runActivity={runActivity} />
         <EngineStatus {...engine} />
         <p className={styles.version}>
           <span className="visually-hidden">Versão </span>v{app.version}

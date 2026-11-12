@@ -2,6 +2,7 @@ using Mariliz.Application;
 using Mariliz.Application.Models;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Engineering;
+using Mariliz.Application.Execution;
 using Mariliz.Application.Management;
 using Mariliz.Application.Management.Assistant;
 using Mariliz.Application.Workflows;
@@ -25,11 +26,14 @@ var workflows = new WorkflowService(engine.Workspace, aiRuntime, engine.Tracker,
 if (WorkflowRecovery.MarkInterrupted(engine.Store, engine.Clock) is > 0 and var interrupted)
     await Console.Error.WriteLineAsync($"{interrupted} execução(ões) interrompida(s) pela queda anterior foram marcadas como falha.");
 using var connectorTransport = new HttpsConnectorTransport();
-var integrations = LocalIntegrationHub.Create(engine.DataRoot, engine.Workspace, engine.Clock, connectorTransport);
+var integrations = LocalIntegrationHub.Create(engine.DataRoot, engine.Workspace, engine.Clock, connectorTransport, relay.Emit);
 var management = new ManagementService(engine.Workspace, integrations, engine.Clock);
+// A central de execuções com a ligação a itens de trabalho: só o motor com integrações a tem.
+var runs = new RunQueries(engine.Tracker, engine.Store,
+    new RunCatalog(engine.Store, engine.Workspace, engine.Tracker, new RunLinkService(engine.Store, engine.Store, integrations, engine.Workspace, engine.Clock)));
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
-    tracker: engine.Tracker, workflows: workflows, models: models, runs: engine.Runs, integrations: integrations,
-    management: management, assistant: new ManagementAssistant(management, integrations, engine.Workspace, models, engine.Clock),
+    tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
+    management: management, assistant: new ManagementAssistant(management, integrations, engine.Workspace, models, engine.Clock, engine.Store),
     profiles: new TechnologyProfileService(engine.Configure, integrations, engine.Workspace, new FileTechnologyProfileStore(engine.DataRoot), engine.Clock),
     knowledge: new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock),
     harness: new HarnessStatusService(engine.Workspace, engine.Files, engine.Clock),

@@ -1,0 +1,78 @@
+{
+  "runId": "run-1",
+  "projectId": "p-000000000001",
+  "projectName": "app",
+  "kind": "apply",
+  "state": "completed",
+  "startedAt": "2026-11-12T09:00:00.0000000+00:00",
+  "finishedAt": "2026-11-12T09:00:00.0000000+00:00",
+  "live": false,
+  "changesApplied": true,
+  "reverted": false,
+  "canRevert": true,
+  "revertsRunId": null,
+  "error": null,
+  "operations": [
+    {
+      "path": "CLAUDE.md",
+      "op": "create",
+      "source": "write",
+      "status": "applied",
+      "note": null
+    }
+  ],
+  "pending": [],
+  "notApplied": [],
+  "tokens": null,
+  "steps": [
+    {
+      "id": "apply",
+      "title": "Aplicar",
+      "status": "completed",
+      "detail": null
+    }
+  ],
+  "evals": [
+    {
+      "id": "e1",
+      "status": "Passed",
+      "required": true
+    }
+  ],
+  "actions": [],
+  "model": null,
+  "summary": {
+    "done": {
+      "created": 1,
+      "updated": 0,
+      "removed": 0,
+      "reverted": 0,
+      "stepsCompleted": 1,
+      "stepsTotal": 1,
+      "actionsExecuted": 0,
+      "actionsTotal": 0
+    },
+    "validated": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "blocked": 0,
+      "notRun": 0,
+      "requiredNotPassed": 0
+    },
+    "leftOut": {
+      "notApplied": 0,
+      "pending": 0,
+      "conflicts": 0,
+      "actionsNotExecuted": 0
+    }
+  },
+  "links": [],
+  "eventCount": 1,
+  "events": [
+    {
+      "seq": 1,
+      "type": "run.started"
+    }
+  ]
+}

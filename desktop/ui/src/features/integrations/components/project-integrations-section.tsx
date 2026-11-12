@@ -14,7 +14,11 @@ import type { IntegrationApi } from '../service/integration-api';
 import { IntegrationRow } from './integration-row';
 import { LinkForm } from './link-form';
 
-const SYNC_POLL_MS = 1500;
+/**
+ * Enquanto uma sincronização anda, o motor avisa por evento e a lista se atualiza na hora. Esta leitura periódica é só a
+ * rede de segurança, para um aviso perdido (a janela foi suspensa, por exemplo) não deixar a tela presa em "Sincronizando".
+ */
+const SYNC_FALLBACK_POLL_MS = 15_000;
 
 interface ProjectIntegrationsSectionProps {
   api: IntegrationApi;
@@ -59,12 +63,32 @@ function ProjectIntegrations({
   const { busy, error, notice, run } = useAction(reload);
   const [linking, setLinking] = useState<string | null>(null);
 
-  // O motor sincroniza em segundo plano e não avisa por evento: enquanto houver uma em andamento, a lista é relida.
+  // O motor avisa cada passo da sincronização: a lista é relida quando ela começa, avança ou termina neste projeto.
+  useEffect(() => {
+    let stop: (() => void) | undefined;
+    let active = true;
+    api
+      .onSyncEvent((event) => {
+        if (event.data.projectId === projectId) reload();
+      })
+      .then(
+        (unlisten) => {
+          if (active) stop = unlisten;
+          else unlisten();
+        },
+        () => undefined
+      );
+    return () => {
+      active = false;
+      stop?.();
+    };
+  }, [api, projectId, reload]);
+
   const integrations = list.value;
   const syncing = integrations?.some((integration) => integration.syncing) ?? false;
   useEffect(() => {
     if (!syncing) return;
-    const timer = setTimeout(reload, SYNC_POLL_MS);
+    const timer = setTimeout(reload, SYNC_FALLBACK_POLL_MS);
     return () => clearTimeout(timer);
   }, [syncing, integrations, reload]);
 

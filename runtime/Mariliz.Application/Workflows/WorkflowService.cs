@@ -23,7 +23,7 @@ public sealed class WorkflowService(
     IEvalRecords? evalRecords = null,
     IActionExecutor? actions = null)
 {
-    public const string Kind = "workflow";
+    public const string Kind = RunKinds.Workflow;
     public const string WorkflowId = WorkflowRequests.GraphId + ".v" + WorkflowRequests.GraphVersion;
 
     /// <summary>Prazo de cada conversa com o runtime de IA.</summary>

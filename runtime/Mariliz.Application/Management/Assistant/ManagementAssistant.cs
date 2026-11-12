@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
@@ -18,7 +19,8 @@ public sealed class ManagementAssistant(
     IntegrationHub hub,
     WorkspaceAuthorizer workspace,
     ModelGateway models,
-    IClock clock)
+    IClock clock,
+    IRunStore? runs = null)
 {
     public const int MinQuestion = 3;
     public const int MaxQuestion = 500;
@@ -48,11 +50,32 @@ public sealed class ManagementAssistant(
             management.Forecast(projectId), management.Risks(projectId));
     }
 
+    /// <summary>
+    /// Responde e deixa o registro na central de execuções. A pergunta inválida é recusada antes e não vira execução; uma
+    /// pergunta que o modelo não conseguiu responder vira uma execução que falhou, com o código do motivo.
+    /// </summary>
     public async Task<AssistantAnswer> AskAsync(string projectId, string question, CancellationToken ct)
     {
         var cleanQuestion = question.Trim();
         if (cleanQuestion.Length is < MinQuestion or > MaxQuestion)
             throw new ParamException($"A pergunta precisa ter entre {MinQuestion} e {MaxQuestion} caracteres.");
+
+        var startedAt = clock.UtcNow;
+        try
+        {
+            var answer = await AnswerAsync(projectId, cleanQuestion, ct);
+            RecordRun(projectId, startedAt, answer, error: null);
+            return answer;
+        }
+        catch (EngineException ex)
+        {
+            RecordRun(projectId, startedAt, answer: null, ex.Code);
+            throw;
+        }
+    }
+
+    private async Task<AssistantAnswer> AnswerAsync(string projectId, string cleanQuestion, CancellationToken ct)
+    {
 
         var pack = Evidence(projectId);
         var facts = string.Join("\n", pack.Facts.Select(fact => $"[{fact.Id}] {fact.Text}"));
@@ -92,5 +115,54 @@ public sealed class ManagementAssistant(
             completion.ModelVersion,
             completion.InputTokens,
             completion.OutputTokens);
+    }
+
+    /// <summary>
+    /// O diário de uma pergunta: contagens e o código do erro, **nunca o texto da pergunta nem o da resposta** (o diário não
+    /// guarda texto de pedido). Não passa pelo rastreador: uma pergunta não escreve no projeto e não pode bloquear a execução
+    /// que estiver andando nele. Só projeto autorizado tem diário, e uma falha ao gravar nunca atrapalha a resposta.
+    /// </summary>
+    private void RecordRun(string projectId, DateTimeOffset startedAt, AssistantAnswer? answer, string? error)
+    {
+        if (runs is null || !workspace.IsAuthorized(projectId)) return;
+
+        var journal = new RunJournal
+        {
+            RunId = "ask-" + Guid.NewGuid().ToString("N")[..12],
+            ProjectId = projectId,
+            Kind = RunKinds.Assistant,
+            StartedAt = startedAt,
+            FinishedAt = clock.UtcNow
+        };
+        if (answer is null)
+        {
+            journal.State = RunStates.Failed;
+            journal.Error = error;
+        }
+        else
+        {
+            var accepted = answer.Observed.Count + answer.Calculations.Count + answer.Inferences.Count + answer.Recommendations.Count;
+            journal.State = answer.Rejected.Count > 0 ? RunStates.CompletedWithLimitations : RunStates.Completed;
+            journal.Steps.Add(new JournalStep { Id = "answer", Title = "Resposta escrita pelo modelo", Status = StepStatus.Completed });
+            journal.Steps.Add(new JournalStep
+            {
+                Id = "verify",
+                Title = "Conferência do motor",
+                Status = StepStatus.Completed,
+                Detail = $"{accepted} afirmações aceitas, {answer.Rejected.Count} descartadas, {answer.Evidence.Count} fatos citados"
+            });
+            if (answer.Rejected.Count > 0)
+                journal.Pending.Add($"{answer.Rejected.Count} afirmações do modelo foram descartadas pela conferência do motor.");
+            journal.ModelUsage = new JournalModelUsage { Calls = 1, InputTokens = answer.InputTokens, OutputTokens = answer.OutputTokens };
+        }
+
+        try
+        {
+            runs.SaveJournal(journal);
+        }
+        catch (IOException)
+        {
+            // A resposta já foi dada; o registro é só histórico.
+        }
     }
 }

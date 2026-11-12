@@ -237,8 +237,9 @@ describe('Integrações · vínculo com o projeto', () => {
     expect(await within(row).findByText('Sincronizando')).toBeInTheDocument();
     expect(within(row).getByRole('button', { name: 'Sincronizar' })).toBeDisabled();
 
-    // A lista é relida sozinha até a sincronização terminar.
+    // O motor avisa quando a sincronização termina e a lista é relida na hora, sem esperar a leitura de segurança.
     await waitFor(() => expect(within(row).getByText('Concluída')).toBeInTheDocument(), { timeout: 5000 });
+    expect(engine.calls.filter((call) => call.method === 'integration.list').length).toBeLessThan(6);
     expect(
       within(row).getByText(/Issues: 1 · Pull requests: 1 · lido .* · última sincronização: 2 novos/)
     ).toBeInTheDocument();
@@ -280,5 +281,83 @@ describe('Integrações · vínculo com o projeto', () => {
     await userEvent.click(within(confirm).getByRole('button', { name: 'Desvincular e apagar' }));
 
     expect(await screen.findByText('Nenhuma conexão vinculada a este projeto.')).toBeInTheDocument();
+  });
+});
+
+describe('Integrações · avisos de sincronização', () => {
+  const syncData = (projectId: string) => ({
+    projectId,
+    integrationId: 'int-000000000001',
+    status: 'running',
+    incremental: false,
+    pages: 1,
+    fetched: 2,
+    created: 2,
+    updated: 0,
+    unchanged: 0,
+    error: null
+  });
+
+  const openWithLink = async () => {
+    const engine = fakeIntegrationEngine({ connections: [githubConnection] });
+    engine.seed(loja.projectId);
+    render(page(engine.client, loja));
+    await screen.findByText('acme/app');
+    const listCalls = () => engine.calls.filter((call) => call.method === 'integration.list').length;
+    return { engine, listCalls };
+  };
+
+  it('um aviso de sincronização deste projeto faz a lista ser relida na hora', async () => {
+    const { engine, listCalls } = await openWithLink();
+    const before = listCalls();
+
+    engine.emit('sync.progress', 'sync-000000000001', syncData(loja.projectId));
+
+    await waitFor(() => expect(listCalls()).toBe(before + 1));
+  });
+
+  it('um aviso de outro projeto não relê nada', async () => {
+    const { engine, listCalls } = await openWithLink();
+    const before = listCalls();
+
+    engine.emit('sync.progress', 'sync-000000000002', syncData(portal.projectId));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(listCalls()).toBe(before);
+  });
+
+  it('um aviso fora do formato é ignorado, sem derrubar a tela', async () => {
+    const { engine, listCalls } = await openWithLink();
+    const before = listCalls();
+
+    engine.emit('sync.progress', 'sync-000000000003', { projectId: loja.projectId });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(listCalls()).toBe(before);
+    expect(screen.getByText('acme/app')).toBeInTheDocument();
+  });
+
+  it('avisos de outros assuntos não relêem a lista', async () => {
+    const { engine, listCalls } = await openWithLink();
+    const before = listCalls();
+
+    engine.emit('run.progress', 'run-1', syncData(loja.projectId));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(listCalls()).toBe(before);
+  });
+
+  it('para de ouvir quando a tela sai', async () => {
+    const engine = fakeIntegrationEngine({ connections: [githubConnection] });
+    engine.seed(loja.projectId);
+    const { unmount } = render(page(engine.client, loja));
+    await screen.findByText('acme/app');
+    const before = engine.calls.filter((call) => call.method === 'integration.list').length;
+
+    unmount();
+    engine.emit('sync.progress', 'sync-000000000004', syncData(loja.projectId));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(engine.calls.filter((call) => call.method === 'integration.list').length).toBe(before);
   });
 });

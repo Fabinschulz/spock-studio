@@ -20,6 +20,10 @@ import managementForecast from '@contracts/fixtures/management/forecast.json';
 import managementMetrics from '@contracts/fixtures/management/metrics.json';
 import managementPortfolio from '@contracts/fixtures/management/portfolio.json';
 import managementRisks from '@contracts/fixtures/management/risks.json';
+import runDetail from '@contracts/fixtures/runs/run-detail.json';
+import runLink from '@contracts/fixtures/runs/run-link.json';
+import runLinked from '@contracts/fixtures/runs/run-linked.json';
+import runList from '@contracts/fixtures/runs/run-list.json';
 import evalCompleted from '@contracts/fixtures/valid/event.eval.completed.json';
 import evalStarted from '@contracts/fixtures/valid/event.eval.started.json';
 import runPlan from '@contracts/fixtures/valid/event.run.plan.json';
@@ -42,7 +46,11 @@ import {
   planSchema,
   profileResultSchema,
   projectKnowledgeSchema,
+  runDetailSchema,
+  linkedItemsResultSchema,
   runEventSchema,
+  runLinksResultSchema,
+  runListSchema,
   runResultSchema,
   runSnapshotSchema,
   syncHistorySchema,
@@ -241,5 +249,48 @@ describe('contrato das revisões do Harness (fixture do motor)', () => {
     const parsed = harnessRevisionsSchema.parse(engineeringRevisions);
     expect(parsed.revisions.map((revision) => revision.number)).toEqual([3, 2, 1]);
     expect(parsed.revisions[0]).toMatchObject({ kind: 'revert', revertsRunId: parsed.revisions[1]?.runId });
+  });
+});
+
+describe('contrato da central de execuções (fixtures do motor)', () => {
+  it('lista da mais recente para a mais antiga, com o projeto e o estado de cada execução', () => {
+    const parsed = runListSchema.parse(runList);
+    expect(parsed.runs.map((run) => run.runId)).toEqual(['run-3', 'run-2', 'run-1']);
+    expect(parsed.runs[0]).toMatchObject({ kind: 'workflow', state: 'awaiting_approval', live: false });
+    expect(parsed.runs[1]?.error).toBe('O runtime de IA não respondeu.');
+    expect(parsed.runs[2]).toMatchObject({ canRevert: true, operations: 1 });
+    expect(parsed.summary).toEqual({ total: 3, running: 0, awaitingApproval: 1 });
+    expect(parsed.nextCursor).toBeNull();
+  });
+
+  it('detalhe com operações, passos e verificações, sem conteúdo gravável', () => {
+    const parsed = runDetailSchema.parse(runDetail);
+    expect(parsed.operations[0]).toMatchObject({ path: 'CLAUDE.md', status: 'applied' });
+    expect(parsed.steps[0]).toMatchObject({ title: 'Aplicar', status: 'completed' });
+    expect(parsed.evals[0]).toMatchObject({ id: 'e1', required: true });
+    expect(parsed.eventCount).toBe(1);
+    expect(parsed.summary.done).toMatchObject({ created: 1, stepsCompleted: 1, stepsTotal: 1 });
+    expect(parsed.summary.validated).toMatchObject({ total: 1, passed: 1, requiredNotPassed: 0 });
+    expect(JSON.stringify(runDetail)).not.toContain('"content"');
+    expect(parsed.links).toEqual([]);
+  });
+
+  it('caminho inverso: o item com as execuções ligadas a ele, da mais recente para a mais antiga', () => {
+    const parsed = linkedItemsResultSchema.parse(runLinked);
+    expect(parsed.items[0]).toMatchObject({ externalId: '41', title: 'Pagamento por Pix', available: true });
+    expect(parsed.items[0]?.runs.map((run) => run.runId)).toEqual(['run-2', 'run-1']);
+    expect(parsed.items[0]?.runs[0]).toMatchObject({ kind: 'workflow', state: 'failed' });
+  });
+
+  it('ligações com o item: título e situação do dado sincronizado, e o tipo do item', () => {
+    const parsed = runLinksResultSchema.parse(runLink);
+    expect(parsed.links[0]).toMatchObject({
+      provider: 'github',
+      kind: 'issues',
+      externalId: '41',
+      available: true,
+      title: 'Pagamento por Pix',
+      statusCategory: 'inProgress'
+    });
   });
 });

@@ -7,10 +7,13 @@ import {
   integrationResultSchema,
   removedSchema,
   syncHistorySchema,
+  syncEventDataSchema,
   syncResultSchema,
+  SYNC_EVENT_TYPES,
   type Connection,
   type IntegrationCatalog,
   type ProjectIntegration,
+  type SyncEvent,
   type SyncExecution
 } from '@/shared/schema';
 
@@ -33,6 +36,8 @@ export type IntegrationApi = {
   unlink(projectId: string, integrationId: string): Promise<void>;
   sync(projectId: string, integrationId: string): Promise<SyncExecution>;
   history(projectId: string, integrationId: string): Promise<SyncExecution[]>;
+  /** Avisos de sincronização do motor, para a tela não precisar perguntar de tempos em tempos. Devolve como parar de ouvir. */
+  onSyncEvent(handler: (event: SyncEvent) => void): Promise<() => void>;
 };
 
 export function createIntegrationApi(client: EngineClient): IntegrationApi {
@@ -61,6 +66,14 @@ export function createIntegrationApi(client: EngineClient): IntegrationApi {
     sync: (projectId, integrationId) =>
       client.request('integration.sync', { projectId, integrationId }, syncResultSchema).then((r) => r.sync),
     history: (projectId, integrationId) =>
-      client.request('integration.history', { projectId, integrationId }, syncHistorySchema).then((r) => r.syncs)
+      client.request('integration.history', { projectId, integrationId }, syncHistorySchema).then((r) => r.syncs),
+    onSyncEvent: (handler) =>
+      client.onEvent((event) => {
+        const type = SYNC_EVENT_TYPES.find((known) => known === event.type);
+        if (!type) return;
+        // Um aviso fora do formato é desvio de contrato: ignorado, e a leitura de fallback da tela cobre o que ele traria.
+        const data = syncEventDataSchema.safeParse(event.data);
+        if (data.success) handler({ type, syncId: event.runId, data: data.data });
+      })
   };
 }

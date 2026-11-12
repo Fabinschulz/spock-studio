@@ -2,6 +2,7 @@ import type { EngineClient } from '@/shared/api';
 import {
   assistantAnswerSchema,
   evidencePackSchema,
+  linkedItemsResultSchema,
   modelStatusSchema,
   portfolioSchema,
   projectForecastSchema,
@@ -9,6 +10,7 @@ import {
   projectRisksSchema,
   type AssistantAnswer,
   type EvidencePack,
+  type LinkedItemsResult,
   type ModelStatus,
   type Portfolio,
   type ProjectForecast,
@@ -24,6 +26,8 @@ export type ManagementApi = {
   risks(projectId: string): Promise<ProjectRisks>;
   modelStatus(): Promise<ModelStatus>;
   evidence(projectId: string): Promise<EvidencePack>;
+  /** Os itens do projeto que têm execuções ligadas. Só leitura; as ligações se fazem no detalhe da execução. */
+  linkedRuns(projectId: string): Promise<LinkedItemsResult>;
   ask(projectId: string, question: string): Promise<AssistantAnswer>;
 };
 
@@ -35,6 +39,7 @@ export function createManagementApi(client: EngineClient): ManagementApi {
     forecast: (projectId) => client.request('management.forecast', { projectId }, projectForecastSchema),
     risks: (projectId) => client.request('management.risks', { projectId }, projectRisksSchema),
     modelStatus: () => client.request('model.status', {}, modelStatusSchema),
+    linkedRuns: (projectId) => client.request('run.linked', { projectId }, linkedItemsResultSchema),
     evidence: (projectId) => client.request('management.evidence', { projectId }, evidencePackSchema),
     ask: (projectId, question) => client.request('management.ask', { projectId, question }, assistantAnswerSchema)
   };

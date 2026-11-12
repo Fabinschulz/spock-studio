@@ -221,6 +221,139 @@ Entrega 2 da ordem aprovada.
 - **Risco:** o volume de diários em projetos antigos. A listagem pagina no motor e lê só o cabeçalho de cada diário.
 - **Pronto quando:** qualquer execução passada pode ser reaberta pela interface, e uma falha mostra o próximo passo.
 
+**Estado da fase C (2026-11-12).** Primeira entrega feita na branch `feat/fase-c-execucoes`, sem commit até o dono pedir.
+Motor, host e contrato; a tela é a próxima entrega.
+
+| Feito | Observação |
+| --- | --- |
+| `run.list` | Lista as execuções de um projeto, ou de todos os autorizados, da mais recente para a mais antiga. Filtra por tipo (`apply`, `validate`, `revert`, `workflow`) e por estado, pagina por cursor opaco (horário e id, que desempata execuções no mesmo instante) e limita a página a 100. Devolve também um resumo (total, andando, esperando aprovação) que ignora os filtros, para o indicador do menu |
+| `run.detail` | Operações, passos, verificações, ações propostas (sem o conteúdo que seria gravado), uso de modelo, contagem de eventos e os últimos 200 com número e tipo. O conteúdo de cada evento continua sendo do `run.snapshot` |
+| Só leitura | Nada novo em disco e nada disparado: um teste confere que abrir o detalhe e listar não mudam nenhum arquivo |
+| Só projetos autorizados | Um projeto esquecido some da lista, mesmo com diário em disco, e o detalhe dele é recusado com `PROJECT_NOT_AUTHORIZED`. Um `runId` com formato estranho (`../x`, `a/b`) volta como `RUN_NOT_FOUND`, não como falha interna |
+| `live` | Distingue "andando neste processo agora" de "running" no diário depois de uma queda, para a tela não mostrar como ativa uma execução que ninguém executa |
+| Contrato | Fixtures `contracts/fixtures/runs/run-list.json` e `run-detail.json` geradas pelo motor, esquema Zod `run-catalog.ts` conferido contra elas, métodos liberados no host (Rust) e no cliente, com o teste que compara as duas listas |
+| Testes | 14 novos no motor (577 no total, 6 ignorados de propósito) e 377 na interface, mais tipos, lint, formato e build limpos |
+
+Limite do desenho: a listagem lê o diário inteiro de cada execução e só então monta o resumo, **não só o cabeçalho** como
+o risco desta fase previa. Com poucos diários isso é barato; em projetos com milhares de execuções será preciso um
+índice ou ler só o início do arquivo. Fica registrado como medição pendente, não resolvido.
+
+**Segunda entrega da fase C (2026-11-12).** A tela Execuções, só interface, na mesma branch. Primeiro uso do `Drawer`.
+
+| Feito | Observação |
+| --- | --- |
+| Tela Execuções em `/execucoes` | Item "Execuções" em Plataforma, sempre visível nos dois ambientes. Lista com projeto, tipo, estado (com `StatusChip`, forma além da cor) e data; filtros por projeto, tipo e estado; "Carregar mais" com o cursor do motor; resumo "N em andamento, N aguardando aprovação". Trocar um filtro descarta as páginas carregadas, e uma página que chega depois da troca não é gravada |
+| Escopo do projeto | Sem projeto aberto, só "todos". Com projeto aberto, um seletor alterna entre todos e só aquele, em vez de uma tela separada para Engenharia: uma rota só, sem repetir a lista |
+| Detalhe no `Drawer` | Painel à direita com estado, motivo, passos, o que mudou, verificações, ações propostas por agentes, o que ficou de fora, pendências, modelo e eventos. Só lê: um teste confere que só `run.list` e `run.detail` são chamados |
+| Uma falha mostra o próximo passo | Por estado: falhou sem nada aplicado, falhou com parte aplicada (aponta o Configurar para reverter), requer intervenção, concluída com limitações, aguardando aprovação e interrompida |
+| Interrompida | Um diário "em execução" sem execução viva (o aplicativo foi fechado) aparece como **Interrompida**, em aviso, e não como ativa |
+| Acompanhamento ao vivo | O link "Abrir o acompanhamento" só aparece para quem anda agora ou espera aprovação; as demais já terminaram e ficam no detalhe, porque `run.snapshot` só existe para execuções que o processo conhece |
+| Contrato tolerante | `kind` e `state` são texto no Zod, não enum: um tipo ou estado novo do motor aparece como veio e não derruba a lista |
+| `Drawer` conferido | Esc fecha, o botão "Fechar o detalhe" fecha, o foco entra no painel e volta para a linha que o abriu, e o tema escuro está correto. Conferido nos testes e no navegador, em 1280 e 760 px, com clique real |
+| Testes | 393 na interface (16 novos da tela), mais tipos, lint, formato e build limpos. Prévia visual com host simulado e dados de fixture; nada foi conferido no Tauri empacotado |
+
+Limites: o tema claro não foi conferido no `Drawer` (a prévia ficou escura nas duas tentativas), os rótulos de operação
+e de estado de passo cobrem o que o motor emite hoje e um valor novo aparece como veio, e o indicador de execução
+andando no menu continua pendente.
+
+**Terceira entrega da fase C (2026-11-12).** Fecha a lacuna do `run.snapshot` e o indicador no menu, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| `run.snapshot` e `run.cancel` conferem o projeto | Antes bastava o `runId`: qualquer um acessava a execução de qualquer projeto. Agora a execução de um projeto não autorizado é "não encontrada" no retrato e não é cancelada (`cancelled: false`), e o pedido pode trazer `projectId`, que precisa bater com o da execução. O parâmetro é opcional: a tela de acompanhamento só conhece o `runId` e segue funcionando. Sem a central ligada (sessões de teste) o comportamento antigo se mantém |
+| Indicador no menu | O item Execuções ganha um aviso ao lado do nome: o número de execuções **aguardando aprovação** em tom de atenção, ou, sem nenhuma, o de **em andamento**. O nome acessível do link diz os dois ("Execuções, 1 aguardando aprovação, 2 em andamento") |
+| Como lê | `run.list` com `limit: 1`, só pelo resumo. Relê ao ligar, a cada 20 s, ao trocar de tela, e não pergunta com a aba escondida. Uma leitura que falha deixa o último valor; sem motor pronto não há indicador, em vez de um número velho |
+| Testes | 18 no catálogo (4 novos: retrato e cancelamento com e sem projeto, projeto errado, projeto não autorizado), 11 novos na interface (hook, menu e descrição do aviso). Suites: 581 no motor, 404 na interface, tipos, lint, formato e build limpos |
+
+Limite: cada leitura do indicador faz o motor ler os diários de todos os projetos, o mesmo custo da lista. Com a
+cadência de 20 s é aceitável hoje; com milhares de execuções pede o índice já registrado como medição pendente. O
+aviso não foi conferido visualmente no navegador nesta entrega, só por testes.
+
+**Quarta entrega da fase C (2026-11-12).** O resumo de entrega no topo do detalhe da execução, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| `summary` em `run.detail` | Contagens do diário, sem interpretação: **feito** (arquivos criados, atualizados, removidos e revertidos; passos concluídos; ações de agentes executadas), **validado** (verificações que passaram, falharam, ficaram bloqueadas ou não rodaram, e quantas obrigatórias não passaram) e **ficou de fora** (alterações não aplicadas, arquivos em conflito, ações não executadas, pendências) |
+| Seção "Resumo da entrega" | Primeira seção do painel, em quatro linhas: Pedido, Feito, Validado, Ficou de fora. Sem nenhuma verificação registrada, diz isso em vez de mostrar zero, que pareceria falha; sem nada de fora, diz "Nada ficou de fora." |
+| O "Pedido" não traz o texto da pessoa | Tentei gravar o pedido no diário do workflow e **desfiz**: dois testes de segurança existentes provam que o diário nunca guarda o texto do pedido (ele fica só no checkpoint do runtime), e um terceiro que um projeto não enxerga o conteúdo do outro. O "Pedido" diz o que o tipo de execução faz ("Aplicar a configuração do Harness no projeto"). Mostrar o texto exigiria decidir antes onde ele pode ser guardado |
+| Concordância | Os testes do domínio pegaram "passouram" e "1 de 3 passos concluídos"; as frases agora concordam com o número |
+| Testes | 20 no catálogo, 9 do domínio do resumo e o painel conferido com o resumo da fixture. Suítes: 583 no motor, 412 na interface, tipos, lint, formato e build limpos |
+
+Limite: o resumo não foi conferido visualmente no navegador (a grade de quatro linhas é nova), só por testes.
+
+**Quinta entrega da fase C (2026-11-12).** A execução ligada a um item de trabalho, na mesma branch. Falta mostrar a
+ligação em Gestão (próxima entrega).
+
+| Feito | Observação |
+| --- | --- |
+| `run.link` e `run.unlink` | A pessoa informa o número (`41` ou `#41`) ou a chave (`APP-12`, sem diferenciar maiúsculas) e o motor procura entre o que as integrações **do próprio projeto** já sincronizaram. Item não lido não se liga (`LINK_ITEM_NOT_FOUND`); o mesmo identificador em duas integrações pede a integração (`LINK_ITEM_AMBIGUOUS`); formato fora do padrão é recusado antes de procurar; até 10 itens por execução. Ligar de novo o mesmo item não muda nada nem repete a auditoria. Desligar o que não está ligado não faz nada |
+| Só a referência | A ligação guarda integração, tipo, identificador e instante, em `links.json` ao lado do diário e **fora dele**: ligar não reescreve o diário (um teste confere os bytes) e o título do item nunca é copiado para o disco. Título e situação saem dos dados sincronizados na hora de mostrar |
+| Item que saiu do recorte | A ligação continua e aparece como "fora do recorte atual da integração", sem título nem situação, em vez de inventar o que ele era |
+| Isolamento e auditoria | Projeto não autorizado, execução inexistente, id com formato estranho e execução de outro projeto são recusados; um item de outro projeto não se liga. Ligar e desligar entram na trilha de auditoria (`run.linked`, `run.unlinked`) |
+| Interface | Bloco "Itens de trabalho" no painel de detalhe: a lista com provedor, título e situação (chip), "Desligar" por item (sem confirmação: é reversível), e o campo "Ligar a um item (número ou chave)". O erro do motor aparece com a mensagem dele e o que a pessoa digitou fica no campo |
+| Contrato | Fixture `run-link.json`, `links` no detalhe, esquema Zod conferido, métodos liberados no host e no cliente. O `Program.cs` monta o catálogo com o serviço de ligações, porque só o motor com integrações o tem |
+| Testes | 21 novos no motor (17 de ligação e 4 do catálogo já contados na suíte de 602) e 6 na interface. Suítes: 602 no motor, 418 na interface, tipos, lint, formato e build limpos |
+
+Limites: o link do item não é clicável, porque abrir endereço externo dentro da janela do aplicativo muda a tela; ligar
+exige que o item já esteja sincronizado, então um item novo pede uma sincronização antes. O bloco não foi conferido no
+navegador, só por testes.
+
+**Sexta entrega da fase C (2026-11-12).** A ligação aparece em Gestão, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| `run.linked` | O caminho inverso de `run.link`: cada item do projeto que tem execuções ligadas, com título e situação lidos dos dados sincronizados e as execuções (tipo, estado, início) da mais recente para a mais antiga; os itens, do ligado há menos tempo ao mais antigo. Só abre o diário das execuções que têm ligação (a varredura procura `links.json`, não lê todos os diários). Projeto não autorizado é recusado; um projeto não enxerga as ligações do outro |
+| Seção em Acompanhamento | "Execuções ligadas a itens", depois dos Riscos: o item (`#41`, título, provedor, situação em chip) e a lista das execuções ligadas a ele. Só aparece se o projeto tem fonte vinculada; sem ligação, diz como ligar e aponta para Execuções. Um item que saiu do recorte aparece como "fora do recorte atual da integração" |
+| Leitura independente | A seção lê por conta própria: se `run.linked` falhar, o resto do Acompanhamento continua e só ela mostra o erro |
+| Contrato | Fixture `run-linked.json`, esquema Zod conferido, método liberado no host e no cliente |
+| Testes | 5 novos no motor e 5 na interface. Suítes: 607 no motor, 423 na interface, tipos, lint, formato e build limpos. Numa rodada com a máquina carregada, 2 testes da interface estouraram os 5 s e passaram na repetição |
+
+Limites: as execuções da lista não abrem direto pelo item (o detalhe vive no painel de Execuções e ainda não tem
+endereço próprio); a seção não foi conferida no navegador, só por testes.
+
+**Sétima entrega da fase C (2026-11-12).** A sincronização avisa por evento, na mesma branch. Acaba a releitura a cada
+1,5 s, mas a sincronização **não virou uma execução na lista** (veja o limite).
+
+| Feito | Observação |
+| --- | --- |
+| Eventos `sync.started`, `sync.progress`, `sync.finished` | O `runId` do evento é o id da sincronização, com `seq` crescente a partir de 1. Um aviso ao começar, um a cada página gravada e um ao terminar, este **depois** de a conexão e o histórico estarem atualizados (um teste olha o estado no instante do aviso) e de a integração estar livre para a próxima |
+| Só estado e contagens | Projeto, integração, estado, páginas e contagens de itens (trazidos, novos, alterados, iguais) e o código do erro. Nenhum item, título, endereço ou credencial sai por evento; um teste confere |
+| Aviso que falha não derruba | Se a saída do motor fecha no meio, a sincronização termina, grava e libera a integração do mesmo jeito |
+| Interface | A lista de vínculos se relê quando chega um aviso **deste projeto**; avisos de outro projeto, de outros assuntos ou fora do formato são ignorados; para de ouvir ao sair da tela. A leitura periódica caiu de 1,5 s para 15 s e só roda enquanto há sincronização em andamento: é a rede de segurança para um aviso perdido, não o mecanismo |
+| Contrato | `syncEventDataSchema` na interface, conferido pelo teste da tela com o aviso no formato do motor. O host repassa qualquer evento do motor, então nada mudou em Rust |
+| Testes | 6 novos no motor e 5 na interface. Suítes: 613 no motor, 428 na interface, tipos, lint, formato e build limpos |
+
+Limite: a sincronização **não aparece em `run.list`** nem tem diário. O desenho dela é outro: uma execução do motor tem
+no máximo uma por projeto de cada vez (para não escrever duas vezes na mesma pasta), e uma sincronização não escreve no
+projeto. Colocá-la na lista pede um tipo de execução sem essa exclusividade e a decisão de onde guardar o histórico, que
+hoje já está em `integration.history` (50 sincronizações por integração). Fica como decisão do dono. Também não foi
+conferido no aplicativo empacotado que o evento chega do motor real à tela: só a emissão (testes do motor) e a escuta
+(testes da interface), cada uma com seu dublê.
+
+**Oitava entrega da fase C (2026-11-12).** As perguntas ao assistente viram execuções, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| Tipo de execução `assistant` | Cada pergunta respondida grava um diário (`ask-…`) no mesmo armazenamento das demais, e por isso aparece sozinha em `run.list`, no filtro de tipo ("Pergunta ao assistente") e no detalhe. A auditoria `management.assistant_answered` continua como estava |
+| Só contagens, nunca texto | O diário traz os passos "Resposta escrita pelo modelo" e "Conferência do motor" (afirmações aceitas e descartadas, fatos citados) e o uso de tokens. **Nem a pergunta nem a resposta entram**: um teste confere que o texto de ambas, e a chave, não estão no arquivo, pela mesma regra de que o diário não guarda texto de pedido |
+| Estados | Resposta sem nada descartado: concluída. Afirmações descartadas pela conferência: **concluída com limitações**, com a pendência dita. Modelo sem configurar, fora do contrato ou fora do prazo: **falhou**, com o código do motivo, e o painel diz "A pergunta não foi respondida" e o que fazer, sem falar de alterações |
+| Não bloqueia nada | Não passa pelo rastreador (uma pergunta não escreve no projeto), então não impede nem é impedida por uma execução andando no mesmo projeto; um teste confere |
+| O que não vira execução | Pergunta curta ou longa demais (é erro de entrada) e projeto não autorizado, que nem cria pasta |
+| Falha ao gravar | Uma falha de disco ao gravar o registro nunca atrapalha a resposta |
+| Testes | 7 novos no motor e 2 na interface. Suítes: 620 no motor, 430 na interface, tipos, lint, formato e build limpos |
+
+Limites: o registro nasce **depois** da resposta, então uma pergunta que ainda espera o modelo não aparece como
+"em andamento"; e o texto da pergunta não fica no histórico, de propósito, o que torna a lista menos informativa do que
+a do Kaivor.
+
+**Estado da fase C (2026-11-12): oito entregas.** Da tabela original: listagem com filtro e paginação, tela com detalhe
+em painel, resumo de entrega, ligação com item de trabalho (e sua leitura em Gestão), indicador no menu, `run.snapshot`
+conferindo o projeto, sincronização com eventos e respostas do assistente como execução estão feitos. **Pendente de decisão
+sua:** colocar a sincronização na lista de execuções (hoje ela só avisa por evento e guarda o histórico em
+`integration.history`). Medição pendente: a listagem lê o diário inteiro de cada execução. Não conferido no aplicativo
+empacotado nem no navegador: o indicador do menu, o resumo de entrega, o bloco de itens, a seção em Gestão e os eventos
+de sincronização; o tema claro do `Drawer`.
+
 ### Fase D: gestão que explica
 
 Entregas 3 e 4 da ordem aprovada, mais marcos e relatórios.

@@ -15,6 +15,7 @@ import { useCallback, useMemo } from 'react';
 import { Link } from 'react-router';
 
 import { FlowSection } from './components/flow-section';
+import { LinkedRunsSection } from './components/linked-runs-section';
 import { ForecastSection } from './components/forecast-section';
 import { RisksSection } from './components/risks-section';
 import { summarizeActivity } from './domain/activity-summary';
@@ -74,6 +75,9 @@ function ProjectManagement({
           <>
             <ActivitySection integrations={value.integrations} />
             <RisksSection risks={value.risks} />
+            {value.integrations.length > 0 ? (
+              <LinkedRunsSection management={management} projectId={project.projectId} />
+            ) : null}
             <ForecastSection forecast={value.forecast} connectors={value.connectors} />
             <FlowSection metrics={value.metrics} connectors={value.connectors} />
             <SourcesSection integrations={value.integrations} connectors={value.connectors} />

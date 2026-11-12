@@ -5,4 +5,6 @@ public static class RunKinds
     public const string Apply = "apply";
     public const string Revert = "revert";
     public const string Validate = "validate";
+    public const string Workflow = "workflow";
+    public const string Assistant = "assistant";
 }

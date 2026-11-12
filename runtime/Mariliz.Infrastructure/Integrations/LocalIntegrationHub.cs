@@ -7,13 +7,15 @@ namespace Mariliz.Infrastructure.Integrations;
 /// <summary>A central de integrações sobre o disco local e a rede real. Os conectores desta versão são registrados aqui.</summary>
 public static class LocalIntegrationHub
 {
-    public static IntegrationHub Create(string dataRoot, WorkspaceAuthorizer workspace, IClock clock, IConnectorTransport transport)
+    public static IntegrationHub Create(
+        string dataRoot, WorkspaceAuthorizer workspace, IClock clock, IConnectorTransport transport,
+        Action<string, int, string, System.Text.Json.Nodes.JsonObject, DateTimeOffset>? emit = null)
     {
         var client = new ConnectorClient(transport, clock);
         var connectors = new ConnectorRegistry([new GitHubConnector(client), new JiraConnector(client, clock)]);
         return new IntegrationHub(
             new FileIntegrationStore(dataRoot), new FileSyncedDataStore(dataRoot), SecretVault(dataRoot), connectors, workspace, clock,
-            new FileAuditLog(dataRoot, clock));
+            new FileAuditLog(dataRoot, clock), emit);
     }
 
     public static ISecretVault SecretVault(string dataRoot) =>
