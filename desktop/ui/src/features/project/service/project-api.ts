@@ -1,10 +1,12 @@
 import type { EngineClient } from '@/shared/api';
 import {
   discoverySchema,
+  harnessStatusSchema,
   profileResultSchema,
   projectKnowledgeSchema,
   runsSchema,
   type Discovery,
+  type HarnessStatus,
   type ProjectKnowledge,
   type RunSummary,
   type TechnologyProfile
@@ -36,4 +38,9 @@ export async function refreshProfile(client: EngineClient, projectId: string): P
 /** O conhecimento do projeto como o índice o recebe; o índice só é consultado se o runtime de IA já estiver ligado. */
 export function readKnowledge(client: EngineClient, projectId: string): Promise<ProjectKnowledge> {
   return client.request('engineering.knowledge', { projectId }, projectKnowledgeSchema);
+}
+
+/** O Harness aplicado, conferido contra o disco. Só leitura. */
+export function readHarness(client: EngineClient, projectId: string): Promise<HarnessStatus> {
+  return client.request('engineering.harness', { projectId }, harnessStatusSchema);
 }

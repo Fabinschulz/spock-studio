@@ -360,13 +360,39 @@ Observação de testes: na verificação, `WorkflowRobustnessTests.Aprovacao_mai
 (prazo de 150 ms e espera de 600 ms) falhou em duas rodadas completas e passou isolado cinco vezes e na terceira rodada
 completa. É sensível à carga da máquina, como os de `WorkflowRuntimeTests`.
 
+## 10f. Fase 6, terceira entrega: estado do Harness (2026-11-11)
+
+Na tela **Engenharia > Projeto**, a seção **Harness aplicado** (`engineering.harness`, `HarnessStatusService`) lê
+`mariliz.lock` e confere cada componente contra o disco:
+
+- **Íntegro:** o arquivo está como o Spock Studio escreveu (mesmo hash). Em `settings.json`, que é mesclado, basta o
+  hook gerenciado continuar registrado.
+- **Sua versão, mantida:** num conflito anterior a pessoa escolheu manter a própria versão; o lock guarda o hash dela.
+  Se ela editar de novo, o estado passa a modificado.
+- **Modificado à mão**, **arquivo ausente** e **fora do escopo gerenciado** (caminho que o produto não pode escrever).
+- O estado do componente é o pior dos seus arquivos; a lista põe os problemas primeiro e mostra os arquivos afetados.
+- Componentes excluídos em `mariliz.yaml` aparecem à parte. Sem lock, a tela diz que o Harness ainda não foi aplicado;
+  lock ilegível, que o próximo plano o recria.
+
+Decisões:
+
+- **Só leitura.** Mudar componentes continua pela jornada Configurar, que planeja, mostra a diferença, pede aprovação e
+  permite reverter. Conferido em `PlanBuilder`: arquivo gerenciado editado vira conflito com diff (destrutivo, exige
+  decisão); arquivo ausente é recriado; versão mantida com o mesmo hash é preservada. O texto da tela diz exatamente
+  isso.
+- **A mesma regra da validação.** Hash para arquivos inteiros, presença do hook para o `settings.json`, os mesmos
+  `PathGuard` e `ManagedScope`.
+- Os totais (íntegros, mantidos, modificados, ausentes) somam o número de componentes.
+
+Testes em `HarnessStatusTests` (5); fixture em `contracts/fixtures/engineering/harness.json`.
+
 ## 11. Próximas fases e dependências
 
 | Fase | Entrega | Depende de |
 | --- | --- | --- |
 | 4b. Complementos de entrega | Cycle time, histórico de acompanhamento dos riscos, impacto de mais capacidade na previsão. | Histórico de status (Jira já traz; GitHub exige a API de eventos da issue). |
 | 5b. Assistente: complementos | Histórico de perguntas, relatórios salvos, comparação entre projetos, workflow LangGraph para investigação em etapas. | Validação com modelo real. |
-| 6b. Engenharia, continuação | Gerenciamento de agentes, skills, regras, hooks e MCP; versionamento do Harness; acompanhamento de execuções ligado à entrega. | Perfil e conhecimento (entregues). |
+| 6b. Engenharia, continuação | Gerenciamento de agentes, skills, regras, hooks e MCP por componente; versionamento do Harness; acompanhamento de execuções ligado à entrega. | Perfil, conhecimento e estado do Harness (entregues). |
 | 7. Inteligência compartilhada | Análises cruzadas autorizadas. | Fases 5 e 6. |
 
 Indicadores e previsão serão serviços determinísticos no .NET. O LangGraph entra só para explicar resultados.

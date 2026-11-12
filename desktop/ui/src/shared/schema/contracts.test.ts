@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import applyFailure from '@contracts/fixtures/golden/apply-failure.json';
+import engineeringHarness from '@contracts/fixtures/engineering/harness.json';
 import engineeringKnowledge from '@contracts/fixtures/engineering/knowledge.json';
 import engineeringProfile from '@contracts/fixtures/engineering/profile.json';
 import applyResult from '@contracts/fixtures/golden/apply-result.json';
@@ -29,6 +30,7 @@ import {
   connectionListSchema,
   discoverySchema,
   evidencePackSchema,
+  harnessStatusSchema,
   integrationCatalogSchema,
   integrationListSchema,
   portfolioSchema,
@@ -220,5 +222,14 @@ describe('contrato do conhecimento do projeto (fixture do motor)', () => {
     expect(parsed.files.map((file) => file.state)).toEqual(['indexed', 'outdated', 'pending']);
     expect(parsed.excluded[0]?.reason).toBe('secret');
     expect(JSON.stringify(engineeringKnowledge)).not.toContain('AKIA');
+  });
+});
+
+describe('contrato do estado do Harness (fixture do motor)', () => {
+  it('componentes do lock com o estado conferido no disco', () => {
+    const parsed = harnessStatusSchema.parse(engineeringHarness);
+    expect(parsed.applied).toBe(true);
+    expect(parsed.components[0]).toMatchObject({ id: 'mariliz.agent.code-reviewer', state: 'modified' });
+    expect(parsed.intact + parsed.kept + parsed.modified + parsed.missing).toBe(parsed.components.length);
   });
 });

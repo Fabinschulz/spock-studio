@@ -1,3 +1,4 @@
+import harnessFixture from '@contracts/fixtures/engineering/harness.json';
 import knowledgeFixture from '@contracts/fixtures/engineering/knowledge.json';
 import profileFixture from '@contracts/fixtures/engineering/profile.json';
 
@@ -50,6 +51,7 @@ function clientWith(runs: unknown[], saved = true): EngineClient {
       if (method === 'harness.runs') return schema.parse({ runs });
       if (method === 'engineering.profile') return schema.parse({ profile: stored });
       if (method === 'engineering.knowledge') return schema.parse(knowledgeFixture);
+      if (method === 'engineering.harness') return schema.parse(harnessFixture);
       if (method === 'engineering.analyze') {
         stored = stored === null ? profileFixture.profile : refreshed;
         return schema.parse({ profile: stored });
@@ -144,6 +146,19 @@ describe('ProjectPage', () => {
     expect(within(knowledge).getByText('src/App.cs').closest('li')).toHaveTextContent(
       'src/App.cs (mudou desde a indexação)'
     );
+  });
+
+  it('mostra o Harness aplicado e aponta o componente modificado à mão, com o arquivo', async () => {
+    renderPage(clientWith([]));
+
+    const harness = (await screen.findByRole('heading', { name: 'Harness aplicado' })).closest('section')!;
+    expect(await within(harness).findByText(/8 componentes: 7 íntegros, 1 modificado à mão, 0 ausentes/)).toBeTruthy();
+    const list = within(harness).getByRole('list', { name: 'Componentes do Harness' });
+    const first = within(list).getAllByRole('listitem')[0]!;
+    expect(first).toHaveTextContent('Agente revisor de código');
+    expect(first).toHaveTextContent('Modificado à mão');
+    expect(first).toHaveTextContent('.claude/agents/code-reviewer.md');
+    expect(within(harness).getByText(/Nada é aplicado sem aprovação/)).toBeTruthy();
   });
 
   it('sem projeto selecionado, manda escolher na tela inicial', () => {
