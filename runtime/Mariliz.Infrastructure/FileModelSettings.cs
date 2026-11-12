@@ -1,13 +1,15 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.RegularExpressions;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Models;
 
 namespace Mariliz.Infrastructure;
 
-/// <summary>Uma chave de provedor em <c>{dataRoot}/model.json</c>. Fora do projeto, do índice e do journal.</summary>
-public sealed partial class FileModelSettings(string dataRoot) : IModelSettings
+/// <summary>
+/// Uma chave de provedor em <c>{dataRoot}/model.json</c>, em texto puro. Fora do projeto, do índice e do journal. É o
+/// armazenamento de onde não há cofre e de onde a chave é migrada; onde há cofre, quem manda é <see cref="LocalModelSettings"/>.
+/// </summary>
+public sealed class FileModelSettings(string dataRoot) : IModelSettings
 {
     private readonly object _gate = new();
     private string FilePath => Path.Combine(dataRoot, "model.json");
@@ -19,10 +21,7 @@ public sealed partial class FileModelSettings(string dataRoot) : IModelSettings
 
     public void Save(string provider, string key)
     {
-        if (!string.Equals(provider, ModelGateway.Provider, StringComparison.Ordinal))
-            throw new EngineException("MODEL_PROVIDER_DENIED", "O provedor não está disponível.");
-        if (string.IsNullOrWhiteSpace(key) || !KeyPattern().IsMatch(key))
-            throw new EngineException("MODEL_KEY_REJECTED", "A chave não tem o formato esperado.");
+        ModelKeyRules.Validate(provider, key);
 
         lock (_gate)
         {
@@ -66,7 +65,7 @@ public sealed partial class FileModelSettings(string dataRoot) : IModelSettings
             if (JsonNode.Parse(File.ReadAllText(FilePath)) is not JsonObject document) return null;
             if (document["provider"] is not JsonValue providerNode || !providerNode.TryGetValue<string>(out var provider)) return null;
             if (document["key"] is not JsonValue keyNode || !keyNode.TryGetValue<string>(out var key)) return null;
-            if (!string.Equals(provider, ModelGateway.Provider, StringComparison.Ordinal) || !KeyPattern().IsMatch(key)) return null;
+            if (!string.Equals(provider, ModelGateway.Provider, StringComparison.Ordinal) || !ModelKeyRules.IsValidKey(key)) return null;
             return (provider, key);
         }
         catch (Exception ex) when (ex is JsonException or IOException)
@@ -74,7 +73,4 @@ public sealed partial class FileModelSettings(string dataRoot) : IModelSettings
             return null;
         }
     }
-
-    [GeneratedRegex("^[A-Za-z0-9_-]{20,200}$")]
-    private static partial Regex KeyPattern();
 }

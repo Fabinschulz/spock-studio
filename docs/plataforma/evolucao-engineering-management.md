@@ -30,8 +30,9 @@ agentes.
 
 Dois achados que afetam o plano:
 
-- A chave de modelo é gravada em texto puro em `{dataRoot}/model.json`. A central de integrações não repete isso
-  (seção 5); migrar a chave de modelo para o cofre é uma pendência (seção 8).
+- A chave de modelo era gravada em texto puro em `{dataRoot}/model.json`. Onde há cofre ela agora vai para o mesmo
+  cofre das conexões, e quem já tinha o arquivo é migrado na primeira leitura (fase A, 2026-11-12). Sem cofre (Linux e
+  macOS) o arquivo continua sendo o armazenamento.
 - Não existe identidade de usuário. Sem ela, perfis como Gestor ou Desenvolvedor seriam só rótulos (seção 6).
 
 ## 2. Arquitetura funcional
@@ -488,7 +489,8 @@ travessões e não é coberta pelo teste.
 
 1. **Credencial de teste** para validar GitHub e Jira com dados reais (um repositório e um projeto de teste).
 2. **Cofre em Linux e macOS**: implementar com libsecret e Keychain, ou manter a central só no Windows por ora.
-3. **Chave de modelo**: migrar `model.json` para o mesmo cofre (muda o arquivo de quem já configurou a chave).
+3. **Chave de modelo**: migrar `model.json` para o mesmo cofre. *Feito na fase A, com migração automática que só apaga
+   o arquivo depois de conferir a chave no cofre; sem cofre o arquivo permanece.*
 4. **Identidade e papéis**: o produto continua de uma pessoa por instalação, ou passa a ter organização e login.
 5. **Textos gravados nos projetos** (`Assets/`): trocar o nome também neles, sabendo que gera atualização do Harness.
    (A skill `harness-contract` já mudou neste ciclo, para tirar dois travessões; quem já aplicou o Harness verá a atualização.)

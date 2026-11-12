@@ -37,7 +37,7 @@ public sealed class ConnectionService(IIntegrationStore store, ISecretVault vaul
         var probe = await connector.ProbeAsync(new ConnectorAccess(normalized, cleanSecret), ct);
         var now = clock.UtcNow;
         var connection = new IntegrationConnection(
-            "conn-" + Guid.NewGuid().ToString("N")[..12], provider, cleanName, probe.Account, ConnectionStatus.Connected, probe.Scopes,
+            NewConnectionId(), provider, cleanName, probe.Account, ConnectionStatus.Connected, probe.Scopes,
             normalized, now, now, LastSyncAt: null, LastError: null, connector.Descriptor.Version);
 
         lock (_gate)
@@ -47,6 +47,15 @@ public sealed class ConnectionService(IIntegrationStore store, ISecretVault vaul
         }
         Audit("connection.created", connection);
         return connection;
+    }
+
+    /// <summary>Um identificador novo, nunca um dos reservados para segredos do próprio aplicativo.</summary>
+    private static string NewConnectionId()
+    {
+        string id;
+        do id = "conn-" + Guid.NewGuid().ToString("N")[..12];
+        while (id == ReservedSecretIds.ModelKey);
+        return id;
     }
 
     /// <summary>Confere a credencial com o provedor. Uma recusa não é exceção: fica registrada na conexão, que é o que a pessoa consulta.</summary>
