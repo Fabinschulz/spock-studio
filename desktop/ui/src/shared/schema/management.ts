@@ -109,6 +109,20 @@ const forecastScenarioSchema = z.object({
 
 export const confidenceSchema = z.enum(['low', 'medium', 'high']);
 
+/** A previsão de um trabalho aberto (um tipo de dado ou um marco). Sem base, vem sem cenários e com o motivo. */
+export const deliveryForecastSchema = z.object({
+  kind: z.string(),
+  remaining: z.number(),
+  historyWeeks: z.number(),
+  weeklyThroughput: z.array(z.number()),
+  trials: z.number(),
+  scenarios: z.array(forecastScenarioSchema),
+  confidence: confidenceSchema.nullable(),
+  confidenceReasons: z.array(z.string()),
+  riskFactors: z.array(z.string()),
+  unavailable: z.string().nullable()
+});
+
 /** Previsão de conclusão calculada pelo motor (Monte Carlo sobre o throughput). Sem base, vem sem cenários e com o motivo. */
 export const projectForecastSchema = z.object({
   projectId: z.string(),
@@ -117,20 +131,7 @@ export const projectForecastSchema = z.object({
   complete: z.boolean(),
   assumptions: z.array(z.string()),
   limitations: z.array(z.string()),
-  kinds: z.array(
-    z.object({
-      kind: z.string(),
-      remaining: z.number(),
-      historyWeeks: z.number(),
-      weeklyThroughput: z.array(z.number()),
-      trials: z.number(),
-      scenarios: z.array(forecastScenarioSchema),
-      confidence: confidenceSchema.nullable(),
-      confidenceReasons: z.array(z.string()),
-      riskFactors: z.array(z.string()),
-      unavailable: z.string().nullable()
-    })
-  )
+  kinds: z.array(deliveryForecastSchema)
 });
 
 export const riskSeveritySchema = z.enum(['low', 'medium', 'high']);
@@ -157,6 +158,37 @@ export const projectRisksSchema = z.object({
   rulesEvaluated: z.array(z.string())
 });
 
+/** O andamento de um marco (milestone do GitHub ou versão de correção do Jira) dentro de um tipo de dado. */
+export const milestoneProgressSchema = z.object({
+  kind: z.string(),
+  name: z.string(),
+  dueDate: z.string().nullable(),
+  items: z.number(),
+  delivered: z.number(),
+  /** Concluídos que não contam como entrega: descartados, duplicados, pull request fechado sem merge. */
+  closedWithoutDelivery: z.number(),
+  open: z.number(),
+  /** done, on_track, at_risk, behind, overdue, no_forecast ou no_due_date. Um valor novo aparece como veio. */
+  outlook: z.string(),
+  outlookReason: z.string(),
+  forecast: deliveryForecastSchema
+});
+
+/** Marcos de um projeto (`management.milestones`): andamento, prazo e previsão do que falta em cada um. */
+export const projectMilestonesSchema = z.object({
+  projectId: z.string(),
+  generatedAt: z.string(),
+  complete: z.boolean(),
+  milestones: z.array(milestoneProgressSchema),
+  /** Marcos que ficaram fora da lista por passar do limite. */
+  omitted: z.number(),
+  unassigned: z.array(z.object({ kind: z.string(), items: z.number(), open: z.number() })),
+  assumptions: z.array(z.string()),
+  limitations: z.array(z.string())
+});
+
+export type MilestoneProgress = z.infer<typeof milestoneProgressSchema>;
+export type ProjectMilestones = z.infer<typeof projectMilestonesSchema>;
 export type ProjectForecast = z.infer<typeof projectForecastSchema>;
 export type DeliveryForecast = ProjectForecast['kinds'][number];
 export type ProjectRisks = z.infer<typeof projectRisksSchema>;

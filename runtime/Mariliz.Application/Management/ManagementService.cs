@@ -18,7 +18,7 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
     /// <summary>Pedidos no pedido de gestão que esta versão não calcula. Ficam na resposta para a interface dizer que faltam.</summary>
     public static readonly IReadOnlyList<NotCalculated> NotCalculatedYet =
     [
-        new("scopeChange", "Mudança de escopo", "Precisa de um escopo de referência (sprint ou marco), que ainda não é sincronizado."),
+        new("scopeChange", "Mudança de escopo", "Precisa comparar o escopo do marco no começo e agora, e o histórico do escopo ainda não é guardado."),
         new("predictability", "Previsibilidade", "Precisa do que foi planejado por período, que ainda não é sincronizado.")
     ];
 
@@ -64,6 +64,28 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
         var kinds = ItemsByKind(sources).Select(group => ForecastCalculator.Compute(group.Key, group.Value, now, complete)).ToList();
         return new ProjectForecast(projectId, now, ForecastCalculator.Method, complete, ForecastCalculator.Assumptions,
             ForecastCalculator.Limitations, kinds);
+    }
+
+    /// <summary>O andamento e a previsão de cada marco do projeto. Marcos com trabalho aberto vêm primeiro, pelo prazo.</summary>
+    public ProjectMilestones Milestones(string projectId)
+    {
+        var now = clock.UtcNow;
+        var sources = Sources(projectId);
+        var complete = Complete(sources);
+        var byKind = ItemsByKind(sources)
+            .Select(group => (Kind: group.Key, Result: MilestoneCalculator.Compute(group.Key, group.Value, now, complete)))
+            .ToList();
+
+        var ordered = byKind.SelectMany(entry => entry.Result.Milestones)
+            .OrderBy(milestone => milestone.Open == 0)
+            .ThenBy(milestone => milestone.DueDate is null)
+            .ThenBy(milestone => milestone.DueDate)
+            .ThenBy(milestone => milestone.Name, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(milestone => milestone.Kind, StringComparer.Ordinal)
+            .ToList();
+        return new ProjectMilestones(projectId, now, complete, ordered.Take(MilestoneCalculator.MaxMilestones).ToList(),
+            Math.Max(0, ordered.Count - MilestoneCalculator.MaxMilestones), byKind.Select(entry => entry.Result.Unassigned).ToList(),
+            MilestoneCalculator.Assumptions, MilestoneCalculator.Limitations);
     }
 
     /// <summary>Riscos detectados por regra fixa sobre os dados do projeto.</summary>

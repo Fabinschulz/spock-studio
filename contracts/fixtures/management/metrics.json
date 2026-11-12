@@ -153,7 +153,7 @@
     {
       "id": "scopeChange",
       "label": "Mudança de escopo",
-      "reason": "Precisa de um escopo de referência (sprint ou marco), que ainda não é sincronizado."
+      "reason": "Precisa comparar o escopo do marco no começo e agora, e o histórico do escopo ainda não é guardado."
     },
     {
       "id": "predictability",

@@ -16,7 +16,7 @@ public sealed partial class JiraConnector(ConnectorClient client, IClock clock) 
     public const string SiteSetting = "site";
     public const string EmailSetting = "email";
 
-    private const string Fields = "summary,status,issuetype,assignee,labels,created,updated,resolutiondate,duedate,parent,issuelinks";
+    private const string Fields = "summary,status,issuetype,assignee,labels,created,updated,resolutiondate,duedate,parent,issuelinks,fixVersions";
 
     public ConnectorDescriptor Descriptor { get; } = new(
         IntegrationProviders.Jira,
@@ -124,7 +124,8 @@ public sealed partial class JiraConnector(ConnectorClient client, IClock clock) 
             Parent: ConnectorJson.Text(fields["parent"]?["key"]),
             Url: $"{site}/browse/{key}",
             Transitions: Transitions(issue),
-            BlockedBy: BlockedBy(fields));
+            BlockedBy: BlockedBy(fields),
+            Milestones: Milestones(fields));
     }
 
     /// <summary>
@@ -143,6 +144,20 @@ public sealed partial class JiraConnector(ConnectorClient client, IClock clock) 
             .Where(blocker => ConnectorJson.Text(blocker?["fields"]?["status"]?["statusCategory"]?["key"]) != "done")
             .Select(blocker => ConnectorJson.Text(blocker?["key"]))
             .OfType<string>()
+            .ToList();
+    }
+
+    /// <summary>
+    /// As versões de correção (fix versions) do item, com a data de lançamento quando a versão tem uma. Sem o campo, devolve
+    /// <c>null</c> (não lido); com o campo vazio, lista vazia (o item não tem versão).
+    /// </summary>
+    private static List<WorkItemMilestone>? Milestones(JsonObject fields)
+    {
+        if (fields["fixVersions"] is not JsonArray versions) return null;
+        return ConnectorJson.Objects(versions)
+            .Select(version => (Name: ConnectorJson.Text(version["name"]), Due: ConnectorJson.Day(version["releaseDate"])))
+            .Where(version => !string.IsNullOrEmpty(version.Name))
+            .Select(version => new WorkItemMilestone(version.Name!, version.Due))
             .ToList();
     }
 

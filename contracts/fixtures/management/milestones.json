@@ -1,0 +1,142 @@
+{
+  "projectId": "p-000000000001",
+  "generatedAt": "2026-11-12T12:00:00+00:00",
+  "complete": true,
+  "milestones": [
+    {
+      "kind": "issues",
+      "name": "v1.0",
+      "dueDate": "2026-12-12",
+      "items": 10,
+      "delivered": 4,
+      "closedWithoutDelivery": 0,
+      "open": 6,
+      "outlook": "on_track",
+      "outlookReason": "Até o cenário conservador (85% das simulações) termina antes do prazo.",
+      "forecast": {
+        "kind": "issues",
+        "remaining": 6,
+        "historyWeeks": 12,
+        "weeklyThroughput": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "trials": 10000,
+        "scenarios": [
+          {
+            "id": "optimistic",
+            "label": "Otimista",
+            "percentile": 15,
+            "weeks": 3,
+            "by": "2026-12-03"
+          },
+          {
+            "id": "likely",
+            "label": "Provável",
+            "percentile": 50,
+            "weeks": 3,
+            "by": "2026-12-03"
+          },
+          {
+            "id": "conservative",
+            "label": "Conservador",
+            "percentile": 85,
+            "weeks": 3,
+            "by": "2026-12-03"
+          }
+        ],
+        "confidence": "high",
+        "confidenceReasons": [],
+        "riskFactors": [],
+        "unavailable": null
+      }
+    },
+    {
+      "kind": "issues",
+      "name": "v2.0",
+      "dueDate": null,
+      "items": 1,
+      "delivered": 0,
+      "closedWithoutDelivery": 0,
+      "open": 1,
+      "outlook": "no_due_date",
+      "outlookReason": "O marco não tem prazo no provedor; a previsão está nos cenários.",
+      "forecast": {
+        "kind": "issues",
+        "remaining": 1,
+        "historyWeeks": 12,
+        "weeklyThroughput": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "trials": 10000,
+        "scenarios": [
+          {
+            "id": "optimistic",
+            "label": "Otimista",
+            "percentile": 15,
+            "weeks": 1,
+            "by": "2026-11-19"
+          },
+          {
+            "id": "likely",
+            "label": "Provável",
+            "percentile": 50,
+            "weeks": 1,
+            "by": "2026-11-19"
+          },
+          {
+            "id": "conservative",
+            "label": "Conservador",
+            "percentile": 85,
+            "weeks": 1,
+            "by": "2026-11-19"
+          }
+        ],
+        "confidence": "high",
+        "confidenceReasons": [],
+        "riskFactors": [],
+        "unavailable": null
+      }
+    }
+  ],
+  "omitted": 0,
+  "unassigned": [
+    {
+      "kind": "issues",
+      "items": 21,
+      "open": 1
+    }
+  ],
+  "assumptions": [
+    "O ritmo é o do tipo de dado inteiro, não o do marco: o marco sozinho teria poucas entregas para servir de histórico.",
+    "O trabalho restante é o que está aberto no marco hoje; nada novo entra nele.",
+    "A equipe trabalha nos itens do marco, e não em outros itens do projeto, no mesmo ritmo de sempre."
+  ],
+  "limitations": [
+    "Não considera a ordem em que os itens serão feitos nem as dependências entre eles.",
+    "O prazo é o que o provedor guarda no marco (data do milestone, data de lançamento da versão); sem ele não há comparação.",
+    "Um item com mais de uma versão de correção no Jira conta em cada uma delas.",
+    "O mesmo nome de marco em tipos de dado diferentes aparece separado, como nas demais visões."
+  ]
+}

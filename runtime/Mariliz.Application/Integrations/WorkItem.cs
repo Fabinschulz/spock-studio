@@ -9,6 +9,10 @@ namespace Mariliz.Application.Integrations;
 /// <param name="Status">O status como o provedor escreve.</param>
 /// <param name="StatusCategory">Um dos <see cref="StatusCategories"/>.</param>
 /// <param name="Transitions">Mudanças de status, quando o provedor as entrega junto com o item.</param>
+/// <param name="Milestones">
+/// Os marcos do item (milestone do GitHub, versões de correção do Jira). Lista vazia quer dizer "sem marco"; <c>null</c>, que o
+/// item foi sincronizado antes de os marcos serem lidos.
+/// </param>
 /// <param name="BlockedBy">
 /// Identificadores dos itens ainda abertos que bloqueiam este, pelos vínculos de bloqueio que o provedor entrega. Lista vazia
 /// quer dizer "o vínculo foi lido e não há"; <c>null</c> quer dizer "não foi lido" (o provedor não tem vínculos, ou o item foi
@@ -30,4 +34,5 @@ public sealed record WorkItem(
     string? Parent,
     string Url,
     IReadOnlyList<WorkItemTransition> Transitions,
-    IReadOnlyList<string>? BlockedBy = null);
+    IReadOnlyList<string>? BlockedBy = null,
+    IReadOnlyList<WorkItemMilestone>? Milestones = null);

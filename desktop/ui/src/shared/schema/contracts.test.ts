@@ -19,6 +19,7 @@ import assistantEvidence from '@contracts/fixtures/management/assistant-evidence
 import managementForecast from '@contracts/fixtures/management/forecast.json';
 import managementMetrics from '@contracts/fixtures/management/metrics.json';
 import managementPortfolio from '@contracts/fixtures/management/portfolio.json';
+import managementMilestones from '@contracts/fixtures/management/milestones.json';
 import managementRisks from '@contracts/fixtures/management/risks.json';
 import runDetail from '@contracts/fixtures/runs/run-detail.json';
 import runLink from '@contracts/fixtures/runs/run-link.json';
@@ -41,6 +42,7 @@ import {
   integrationListSchema,
   portfolioSchema,
   projectForecastSchema,
+  projectMilestonesSchema,
   projectMetricsSchema,
   projectRisksSchema,
   planSchema,
@@ -294,5 +296,27 @@ describe('contrato da central de execuções (fixtures do motor)', () => {
       title: 'Pagamento por Pix',
       statusCategory: 'inProgress'
     });
+  });
+});
+
+describe('contrato dos marcos (fixture do motor)', () => {
+  it('andamento, prazo, situação e previsão de cada marco, com o que está sem marco', () => {
+    const parsed = projectMilestonesSchema.parse(managementMilestones);
+    const v1 = parsed.milestones.find((milestone) => milestone.name === 'v1.0');
+    expect(v1).toMatchObject({
+      kind: 'issues',
+      dueDate: '2026-12-12',
+      items: 10,
+      delivered: 4,
+      open: 6,
+      outlook: 'on_track'
+    });
+    expect(v1?.forecast.scenarios.map((scenario) => scenario.by)).toEqual(['2026-12-03', '2026-12-03', '2026-12-03']);
+    expect(parsed.milestones.find((milestone) => milestone.name === 'v2.0')).toMatchObject({
+      dueDate: null,
+      outlook: 'no_due_date'
+    });
+    expect(parsed.unassigned).toEqual([{ kind: 'issues', items: 21, open: 1 }]);
+    expect(parsed.assumptions.length).toBeGreaterThan(0);
   });
 });

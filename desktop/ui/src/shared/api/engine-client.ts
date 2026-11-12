@@ -57,6 +57,7 @@ export const ENGINE_METHODS = [
   'management.metrics',
   'management.forecast',
   'management.risks',
+  'management.milestones',
   'management.evidence',
   'management.ask',
   'engineering.profile',

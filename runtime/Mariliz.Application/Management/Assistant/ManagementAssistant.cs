@@ -47,7 +47,7 @@ public sealed class ManagementAssistant(
         var integrations = hub.Projects.List(projectId);
         var name = workspace.Projects().FirstOrDefault(project => project.ProjectId == projectId)?.DisplayName ?? projectId;
         return EvidenceBuilder.Build(projectId, name, clock.UtcNow, integrations, management.Metrics(projectId, null),
-            management.Forecast(projectId), management.Risks(projectId));
+            management.Forecast(projectId), management.Risks(projectId), management.Milestones(projectId));
     }
 
     /// <summary>

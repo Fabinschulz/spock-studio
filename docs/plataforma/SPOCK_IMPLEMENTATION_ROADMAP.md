@@ -409,7 +409,26 @@ site que usa o campo "Impediment"/"Flagged" ou um tipo de vínculo próprio apar
 lido, o que é diferente de dizer que não há bloqueio. Não calculei há quanto tempo cada item está bloqueado: o provedor
 não informa quando o vínculo ou o rótulo foi posto, e usar a data de atualização inventaria um número.
 
-Falta nesta fase: marcos, histórico de cada risco, registro de decisão gerencial, relatório do período, componentes de
+**Terceira entrega da fase D (2026-11-12).** Os **marcos**, com previsão por marco, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| O que é um marco | O **milestone** do GitHub (issue e pull request) e a **versão de correção** do Jira (`fixVersions`). O item guarda o nome e o prazo do marco no provedor (a data do milestone em UTC, a data de lançamento da versão). Lista vazia é "sem marco"; nulo é "sincronizado antes de os marcos serem lidos" e conta como sem marco |
+| Andamento | Por marco e por tipo de dado: itens, entregues, **concluídos sem entrega** (descartados, duplicados, pull request fechado sem merge, sem data de conclusão) e abertos. O percentual usa como base os itens menos os concluídos sem entrega. Item com duas versões no Jira conta nas duas; o nome agrupa sem diferenciar maiúsculas; o prazo é o mais cedo entre os itens que o informam. Os itens sem marco aparecem contados, por tipo |
+| Previsão | O mesmo método da previsão do projeto (simulação sobre o ritmo semanal), com o **trabalho restante só do marco** e o **ritmo do tipo de dado inteiro**: o marco sozinho teria poucas entregas para servir de histórico. As premissas e os limites vão na resposta e na tela |
+| Situação | `done` (tudo concluído, mesmo com prazo passado), `overdue` (prazo passou e há item aberto, haja previsão ou não), `no_forecast` (com o motivo da previsão), `no_due_date`, `on_track` (o cenário **conservador**, 85% das simulações, cabe no prazo), `at_risk` (o provável cabe, o conservador não) e `behind` (nem o provável cabe). Prazo igual à data prevista conta como cabendo |
+| Onde aparece | Método `management.milestones`; seção "Marcos" no Acompanhamento, depois da previsão, com o prazo, o chip de situação, "N de M itens entregues, N abertos", os três cenários e a explicação do método atrás de "Como a previsão do marco é calculada"; só aparece com fonte vinculada. Um fato por marco no pacote do assistente, com a situação e o motivo. A lista para em 20 marcos e diz quantos ficaram de fora, os com trabalho aberto primeiro, pelo prazo |
+| Conferido à mão | Ritmo de 2 entregas por semana em 12 semanas e 6 itens abertos no marco: toda simulação termina em 3 semanas, **03/12/2026** (12/11 mais 21 dias). Com prazo em 12/12 e em 03/12 o marco está no prazo, com prazo em 02/12 está atrasado em relação ao prazo; as três situações do meio (em risco) foram conferidas com previsões construídas, porque o sorteio da simulação não se calcula à mão |
+| Efeito colateral | Os marcos entram no conteúdo gravado de cada item: na primeira sincronização depois desta versão os itens aparecem como "alterados" uma vez (junto com o efeito dos bloqueios). Sem perda nem duplicação |
+| Testes | 22 novos no motor (andamento, situação, serviço e protocolo, isolamento entre projetos, o fato do assistente, leitura do GitHub e do Jira) e 18 na interface; fixture `milestones.json` do motor real. Suítes: 676 no motor, 453 na interface, tipos, lint, formato e build limpos. Numa rodada com a máquina carregada três testes do runtime Python falharam por tempo e passaram isolados |
+
+Limites: nada foi validado com um Jira ou GitHub reais. Não há previsão por **ordem** de trabalho: o método assume que o
+time só trabalha nos itens do marco, o que costuma ser otimista quando há outros itens em andamento. O prazo é o do
+provedor: sem ele não há comparação, e um milestone do GitHub sem data aparece como "sem prazo". O sprint do Jira não é
+lido, só a versão de correção. A mudança de escopo por marco segue em "Ainda não calculado": pede guardar o escopo ao
+longo do tempo, que o produto ainda não faz.
+
+Falta nesta fase: histórico de cada risco, registro de decisão gerencial, relatório do período, componentes de
 indicador e faixa de previsão, histórico de perguntas do assistente.
 
 ### Fase E: catálogo do Harness

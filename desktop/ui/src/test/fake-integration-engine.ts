@@ -6,6 +6,7 @@ import evidenceFixture from '@contracts/fixtures/management/assistant-evidence.j
 import forecastFixture from '@contracts/fixtures/management/forecast.json';
 import metricsFixture from '@contracts/fixtures/management/metrics.json';
 import portfolioFixture from '@contracts/fixtures/management/portfolio.json';
+import milestonesFixture from '@contracts/fixtures/management/milestones.json';
 import risksFixture from '@contracts/fixtures/management/risks.json';
 
 import { EngineError, type EngineClient } from '@/shared/api';
@@ -192,6 +193,11 @@ export function fakeIntegrationEngine(
             ]
           };
     },
+    // Com fonte vinculada, os marcos que o motor real calculou; sem fonte, a resposta vazia que ele dá.
+    'management.milestones': (params) =>
+      integrations.some((integration) => integration.projectId === params.projectId)
+        ? { ...milestonesFixture, projectId: params.projectId }
+        : { ...milestonesFixture, projectId: params.projectId, complete: false, milestones: [], unassigned: [] },
     'management.forecast': (params) =>
       integrations.some((integration) => integration.projectId === params.projectId)
         ? { ...forecastFixture, projectId: params.projectId }

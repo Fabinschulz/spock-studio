@@ -151,6 +151,37 @@ describe('summarizeActivity', () => {
   });
 });
 
+describe('Gestão · marcos', () => {
+  it('sem fonte vinculada a seção nem aparece', async () => {
+    const engine = fakeIntegrationEngine();
+    renderPage(engine.client, loja);
+
+    await screen.findByText(/Não há dados de atividades/);
+
+    expect(screen.queryByRole('heading', { name: 'Marcos' })).not.toBeInTheDocument();
+    expect(engine.calls.some((call) => call.method === 'management.milestones')).toBe(false);
+  });
+
+  it('com fonte mostra cada marco com o andamento, o prazo e a previsão do que falta', async () => {
+    const engine = fakeIntegrationEngine();
+    engine.seed(loja.projectId);
+    renderPage(engine.client, loja);
+
+    const section = (await screen.findByRole('heading', { name: 'Marcos' })).closest('section')!;
+    const list = await within(section).findByRole('list', { name: 'Marcos do projeto' });
+
+    const v1 = within(list).getByText('v1.0').closest('li')!;
+    expect(v1).toHaveTextContent('Issues · prazo 12/12/2026');
+    expect(v1).toHaveTextContent('No prazo');
+    expect(v1).toHaveTextContent('4 de 10 itens entregues, 6 abertos');
+    expect(v1).toHaveTextContent(
+      'Previsão do que falta: Otimista 03/12/2026 · Provável 03/12/2026 · Conservador 03/12/2026'
+    );
+    expect(within(list).getByText('v2.0').closest('li')).toHaveTextContent('Sem prazo');
+    expect(section).toHaveTextContent('Sem marco: Issues: 21 (1 abertos).');
+  });
+});
+
 describe('Gestão · execuções ligadas a itens', () => {
   it('sem fonte vinculada a seção nem aparece', async () => {
     const engine = fakeIntegrationEngine();

@@ -66,7 +66,7 @@
     {
       "id": "missing.scopeChange",
       "group": "não calculado",
-      "text": "Mudança de escopo não é calculado: Precisa de um escopo de referência (sprint ou marco), que ainda não é sincronizado."
+      "text": "Mudança de escopo não é calculado: Precisa comparar o escopo do marco no começo e agora, e o histórico do escopo ainda não é guardado."
     },
     {
       "id": "missing.predictability",
