@@ -29,6 +29,8 @@ export const ENGINE_METHODS = [
   'harness.runs',
   'run.snapshot',
   'run.cancel',
+  'run.list',
+  'run.detail',
   'workflow.start',
   'workflow.resume',
   'model.status',

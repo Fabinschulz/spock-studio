@@ -23,7 +23,7 @@ public sealed class LocalEngine
         Tracker = new RunTracker(emit, Clock);
         Settings = new LocalModelSettings(dataRoot, LocalIntegrationHub.SecretVault(dataRoot));
         Configure = new ConfigureProjectService(Workspace, Files, Runner, Store, Clock, Tracker, Settings);
-        Runs = new RunQueries(Tracker, Store);
+        Runs = new RunQueries(Tracker, Store, new RunCatalog(Store, Workspace, Tracker));
     }
 
     public string DataRoot { get; }

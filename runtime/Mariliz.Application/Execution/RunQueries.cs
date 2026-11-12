@@ -6,7 +6,7 @@ namespace Mariliz.Application.Execution;
 /// Consulta e cancelamento de qualquer execução (aplicação, validação, reversão ou workflow), independentes da jornada
 /// que a iniciou.
 /// </summary>
-public sealed class RunQueries(RunTracker tracker, IRunStore store)
+public sealed class RunQueries(RunTracker tracker, IRunStore store, RunCatalog? catalog = null)
 {
     /// <summary>
     /// Com <paramref name="sinceSeq"/>, devolve todos os eventos depois desse número: os que a memória já descartou vêm do
@@ -27,4 +27,8 @@ public sealed class RunQueries(RunTracker tracker, IRunStore store)
     }
 
     public bool Cancel(string runId) => tracker.Cancel(runId);
+
+    /// <summary>A central de execuções. Sem catálogo (sessões de teste sem projetos autorizados) ela não existe.</summary>
+    public RunCatalog Catalog =>
+        catalog ?? throw new EngineException("RUN_CATALOG_UNAVAILABLE", "A central de execuções não está disponível nesta sessão do motor.");
 }

@@ -20,6 +20,8 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "harness.runs",
     "run.snapshot",
     "run.cancel",
+    "run.list",
+    "run.detail",
     "workflow.start",
     "workflow.resume",
     "model.status",

@@ -221,6 +221,27 @@ Entrega 2 da ordem aprovada.
 - **Risco:** o volume de diários em projetos antigos. A listagem pagina no motor e lê só o cabeçalho de cada diário.
 - **Pronto quando:** qualquer execução passada pode ser reaberta pela interface, e uma falha mostra o próximo passo.
 
+**Estado da fase C (2026-11-12).** Primeira entrega feita na branch `feat/fase-c-execucoes`, sem commit até o dono pedir.
+Motor, host e contrato; a tela é a próxima entrega.
+
+| Feito | Observação |
+| --- | --- |
+| `run.list` | Lista as execuções de um projeto, ou de todos os autorizados, da mais recente para a mais antiga. Filtra por tipo (`apply`, `validate`, `revert`, `workflow`) e por estado, pagina por cursor opaco (horário e id, que desempata execuções no mesmo instante) e limita a página a 100. Devolve também um resumo (total, andando, esperando aprovação) que ignora os filtros, para o indicador do menu |
+| `run.detail` | Operações, passos, verificações, ações propostas (sem o conteúdo que seria gravado), uso de modelo, contagem de eventos e os últimos 200 com número e tipo. O conteúdo de cada evento continua sendo do `run.snapshot` |
+| Só leitura | Nada novo em disco e nada disparado: um teste confere que abrir o detalhe e listar não mudam nenhum arquivo |
+| Só projetos autorizados | Um projeto esquecido some da lista, mesmo com diário em disco, e o detalhe dele é recusado com `PROJECT_NOT_AUTHORIZED`. Um `runId` com formato estranho (`../x`, `a/b`) volta como `RUN_NOT_FOUND`, não como falha interna |
+| `live` | Distingue "andando neste processo agora" de "running" no diário depois de uma queda, para a tela não mostrar como ativa uma execução que ninguém executa |
+| Contrato | Fixtures `contracts/fixtures/runs/run-list.json` e `run-detail.json` geradas pelo motor, esquema Zod `run-catalog.ts` conferido contra elas, métodos liberados no host (Rust) e no cliente, com o teste que compara as duas listas |
+| Testes | 14 novos no motor (577 no total, 6 ignorados de propósito) e 377 na interface, mais tipos, lint, formato e build limpos |
+
+Limite do desenho: a listagem lê o diário inteiro de cada execução e só então monta o resumo, **não só o cabeçalho** como
+o risco desta fase previa. Com poucos diários isso é barato; em projetos com milhares de execuções será preciso um
+índice ou ler só o início do arquivo. Fica registrado como medição pendente, não resolvido.
+
+Falta nesta fase: a tela Execuções (lista, filtros e detalhe num painel sobre o `Drawer`), sincronização e respostas do
+assistente como execuções, resumo de entrega, ligação com item de trabalho, indicador no menu e `run.snapshot`
+conferindo o projeto.
+
 ### Fase D: gestão que explica
 
 Entregas 3 e 4 da ordem aprovada, mais marcos e relatórios.
