@@ -1,6 +1,6 @@
 import { formatEngineDate } from '@/features/integrations';
 import { errorMessage, type EngineClient } from '@/shared/api';
-import { StatusChip } from '@/shared/components';
+import { StatusChip, PageSection, LoadingState, ErrorState } from '@/shared/components';
 import type { HarnessRevision, HarnessRevisions } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 import { useEffect, useState } from 'react';
@@ -64,16 +64,13 @@ export function RevisionsSection({ client, projectId }: { client: EngineClient; 
   }, [client, projectId]);
 
   return (
-    <section aria-labelledby="revisoes">
-      <h2 id="revisoes" className={styles.section}>
-        Revisões do Harness
-      </h2>
-      {state.status === 'loading' ? <p role="status">Lendo as revisões…</p> : null}
-      {state.status === 'error' ? <p role="alert">{state.message}</p> : null}
+    <PageSection title="Revisões do Harness">
+      {state.status === 'loading' ? <LoadingState>Lendo as revisões…</LoadingState> : null}
+      {state.status === 'error' ? <ErrorState>{state.message}</ErrorState> : null}
       {state.status === 'ready' ? (
         <RevisionList data={state.data} showAll={showAll} onShowAll={() => setShowAll(true)} />
       ) : null}
-    </section>
+    </PageSection>
   );
 }
 

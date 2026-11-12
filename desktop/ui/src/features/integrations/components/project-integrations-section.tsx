@@ -8,6 +8,7 @@ import { Link } from 'react-router';
 
 import { useAction } from '../hooks/use-action';
 import { useReloadable } from '../hooks/use-reloadable';
+import { PageSection, LoadingState, ErrorState } from '@/shared/components';
 import styles from '../integrations-page.module.scss';
 import type { IntegrationApi } from '../service/integration-api';
 import { IntegrationRow } from './integration-row';
@@ -26,10 +27,7 @@ interface ProjectIntegrationsSectionProps {
 
 export function ProjectIntegrationsSection({ project, ...rest }: ProjectIntegrationsSectionProps) {
   return (
-    <section aria-labelledby="neste-projeto">
-      <h2 id="neste-projeto" className={styles.section}>
-        {project ? `Neste projeto: ${project.displayName}` : 'Neste projeto'}
-      </h2>
+    <PageSection title={project ? `Neste projeto: ${project.displayName}` : 'Neste projeto'}>
       {project ? (
         // A chave remonta a lista ao trocar de projeto: nenhum vínculo de um projeto aparece, nem por um instante, em outro.
         <ProjectIntegrations key={project.projectId} project={project} {...rest} />
@@ -39,7 +37,7 @@ export function ProjectIntegrationsSection({ project, ...rest }: ProjectIntegrat
           conexões a ela.
         </p>
       )}
-    </section>
+    </PageSection>
   );
 }
 
@@ -70,9 +68,13 @@ function ProjectIntegrations({
     return () => clearTimeout(timer);
   }, [syncing, integrations, reload]);
 
-  if (!list.settled) return <p role="status">Lendo os vínculos do projeto…</p>;
+  if (!list.settled) return <LoadingState>Lendo os vínculos do projeto…</LoadingState>;
   if (integrations === null)
-    return <p role="alert">{errorMessage(list.error, 'Não foi possível ler os vínculos do projeto.')}</p>;
+    return (
+      <ErrorState onRetry={reloadList}>
+        {errorMessage(list.error, 'Não foi possível ler os vínculos do projeto.')}
+      </ErrorState>
+    );
 
   const linkable = connections.filter((connection) => connection.status === 'connected');
   const linkingConnection = linkable.find((connection) => connection.id === linking);
@@ -105,11 +107,7 @@ function ProjectIntegrations({
         ))}
       </ul>
 
-      {error ? (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
-      ) : null}
+      {error ? <ErrorState>{error}</ErrorState> : null}
 
       {linkingConnection && linkingConnector ? (
         <LinkForm

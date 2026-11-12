@@ -1,4 +1,4 @@
-import { InlineNotice } from '@/shared/components';
+import { InlineNotice, PageSection } from '@/shared/components';
 import type { Connector, KindFlow, ProjectMetrics } from '@/shared/schema';
 import { useId } from 'react';
 
@@ -17,10 +17,7 @@ export function FlowSection({ metrics, connectors }: FlowSectionProps) {
     connectors.flatMap((connector) => connector.dataKinds).find((entry) => entry.id === kind)?.label ?? kind;
 
   return (
-    <section aria-labelledby="fluxo">
-      <h2 id="fluxo" className={styles.section}>
-        Fluxo nas últimas {metrics.periodWeeks} semanas
-      </h2>
+    <PageSection title={`Fluxo nas últimas ${metrics.periodWeeks} semanas`}>
       {!metrics.complete ? (
         <InlineNotice tone="warning" title="Dados incompletos">
           Ao menos uma fonte teve a última sincronização parcial ou com falha. Os números abaixo valem para o que
@@ -34,7 +31,7 @@ export function FlowSection({ metrics, connectors }: FlowSectionProps) {
         Entregue é o item concluído com data de conclusão; issue descartada ou duplicada e pull request fechado sem
         merge não contam. Lead time são os dias corridos da criação à conclusão. Tipos diferentes não são somados.
       </p>
-    </section>
+    </PageSection>
   );
 }
 

@@ -6,8 +6,8 @@ import {
   type IntegrationApi
 } from '@/features/integrations';
 import type { SelectedProject } from '@/features/project-selection';
-import { errorMessage, type EngineClient } from '@/shared/api';
-import { StatusChip } from '@/shared/components';
+import type { EngineClient } from '@/shared/api';
+import { StatusChip, EmptyState, NoProjectState, Page, PageSection, ResourceView } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 import type { Connector, ProjectIntegration, ProjectMetrics } from '@/shared/schema';
@@ -31,12 +31,9 @@ export function ManagementPage({ client, project }: { client: EngineClient; proj
 
   if (!project) {
     return (
-      <div className={styles.page}>
-        <h1 className={styles.title}>Acompanhamento</h1>
-        <p>
-          Nenhum projeto selecionado. Escolha uma pasta na <Link to={pathTo('home')}>tela inicial</Link>.
-        </p>
-      </div>
+      <Page title="Acompanhamento">
+        <NoProjectState />
+      </Page>
     );
   }
   return <ProjectManagement key={project.projectId} api={api} management={management} project={project} />;
@@ -64,29 +61,27 @@ function ProjectManagement({
   const sources = useAsyncResource(load);
 
   return (
-    <div className={styles.page}>
-      <header>
-        <h1 className={styles.title}>Acompanhamento</h1>
-        <p className={styles.lead}>
-          {project.displayName} · o andamento do projeto, a partir do que foi lido das ferramentas vinculadas a ele.
-        </p>
-      </header>
-
-      {sources.status === 'loading' ? <p role="status">Lendo as fontes do projeto…</p> : null}
-      {sources.status === 'error' ? (
-        <p role="alert">{errorMessage(sources.error, 'Não foi possível ler as fontes do projeto.')}</p>
-      ) : null}
-      {sources.status === 'ready' ? (
-        <>
-          <ActivitySection integrations={sources.value.integrations} />
-          <RisksSection risks={sources.value.risks} />
-          <ForecastSection forecast={sources.value.forecast} connectors={sources.value.connectors} />
-          <FlowSection metrics={sources.value.metrics} connectors={sources.value.connectors} />
-          <SourcesSection integrations={sources.value.integrations} connectors={sources.value.connectors} />
-          <NotCalculatedSection metrics={sources.value.metrics} />
-        </>
-      ) : null}
-    </div>
+    <Page
+      title="Acompanhamento"
+      description={`${project.displayName} · o andamento do projeto, a partir do que foi lido das ferramentas vinculadas a ele.`}
+    >
+      <ResourceView
+        resource={sources}
+        loading="Lendo as fontes do projeto…"
+        fallbackError="Não foi possível ler as fontes do projeto."
+      >
+        {(value) => (
+          <>
+            <ActivitySection integrations={value.integrations} />
+            <RisksSection risks={value.risks} />
+            <ForecastSection forecast={value.forecast} connectors={value.connectors} />
+            <FlowSection metrics={value.metrics} connectors={value.connectors} />
+            <SourcesSection integrations={value.integrations} connectors={value.connectors} />
+            <NotCalculatedSection metrics={value.metrics} />
+          </>
+        )}
+      </ResourceView>
+    </Page>
   );
 }
 
@@ -94,20 +89,17 @@ function ActivitySection({ integrations }: { integrations: ProjectIntegration[] 
   const summary = summarizeActivity(integrations);
 
   return (
-    <section aria-labelledby="atividades">
-      <h2 id="atividades" className={styles.section}>
-        Atividades
-      </h2>
+    <PageSection title="Atividades">
       {integrations.length === 0 ? (
-        <p>
+        <EmptyState>
           Não há dados de atividades: nenhuma ferramenta foi vinculada a este projeto. Vincule uma em{' '}
           <Link to={pathTo('integrations')}>Integrações</Link>.
-        </p>
+        </EmptyState>
       ) : summary.total === 0 ? (
-        <p>
+        <EmptyState>
           Não há dados de atividades: as fontes vinculadas ainda não trouxeram nenhum item. Sincronize em{' '}
           <Link to={pathTo('integrations')}>Integrações</Link>.
-        </p>
+        </EmptyState>
       ) : (
         <>
           <dl className={styles.figures}>
@@ -126,7 +118,7 @@ function ActivitySection({ integrations }: { integrations: ProjectIntegration[] 
           </p>
         </>
       )}
-    </section>
+    </PageSection>
   );
 }
 
@@ -134,10 +126,7 @@ function SourcesSection({ integrations, connectors }: { integrations: ProjectInt
   if (integrations.length === 0) return null;
 
   return (
-    <section aria-labelledby="fontes">
-      <h2 id="fontes" className={styles.section}>
-        Fontes de dados
-      </h2>
+    <PageSection title="Fontes de dados">
       <ul className={styles.rows}>
         {integrations.map((integration) => {
           const connector = connectors.find((entry) => entry.provider === integration.provider);
@@ -165,17 +154,14 @@ function SourcesSection({ integrations, connectors }: { integrations: ProjectInt
       <p className={styles.muted}>
         Conexões, recortes e sincronização ficam em <Link to={pathTo('integrations')}>Integrações</Link>.
       </p>
-    </section>
+    </PageSection>
   );
 }
 
 /** O que foi pedido e ainda não é calculado, com o motivo dado pelo motor. Nenhum desses aparece com valor. */
 function NotCalculatedSection({ metrics }: { metrics: ProjectMetrics }) {
   return (
-    <section aria-labelledby="ainda-nao-calculado">
-      <h2 id="ainda-nao-calculado" className={styles.section}>
-        Ainda não calculado
-      </h2>
+    <PageSection title="Ainda não calculado">
       <ul className={styles.plain}>
         {metrics.notCalculated.map((entry) => (
           <li key={entry.id}>
@@ -183,6 +169,6 @@ function NotCalculatedSection({ metrics }: { metrics: ProjectMetrics }) {
           </li>
         ))}
       </ul>
-    </section>
+    </PageSection>
   );
 }

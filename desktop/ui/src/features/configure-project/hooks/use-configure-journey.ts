@@ -2,33 +2,54 @@ import { EngineError, errorMessage } from '@/shared/api';
 import type { ConflictResolution } from '@/shared/schema';
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef } from 'react';
 import { initialJourneyState } from '../constants/initial-journey-state';
-import { EMPTY_COMPONENT_REQUEST, type ComponentRequest } from '../domain/component-request';
+import type { JourneyStore } from '../context/journey-store';
+import { EMPTY_COMPONENT_REQUEST, hasComponentRequest, type ComponentRequest } from '../domain/component-request';
 import { buildApplyInput } from '../domain/approvals';
 import { journeyReducer } from '../domain/journey-reducer';
+import { restorableJourney } from '../domain/restore-journey';
 import { plannedApplySteps } from '../domain/planned-steps';
 import { waitForRun, type HarnessApi } from '../service';
-import { type JourneyStepId } from '../types/journey';
+import { type JourneyState, type JourneyStepId } from '../types/journey';
 import { type RunKind } from '../types/run';
 
 const messageOf = (error: unknown) => errorMessage(error, 'Algo inesperado aconteceu. Tente de novo.');
 
-/** Liga o estado da jornada ao motor. Cada ação chama um caso de uso; a decisão é sempre do motor. */
+/**
+ * Onde a jornada começa. Um pedido novo da tela Projeto é uma ação explícita da pessoa: começa limpo, sem misturar com o
+ * que ficou guardado. Sem pedido, retoma o que a pessoa deixou ao sair, se ainda der para retomar.
+ */
+function startingState(request: ComponentRequest, projectId: string, store: JourneyStore | null): JourneyState {
+  const fresh: JourneyState = { ...initialJourneyState, componentRequest: request };
+  if (hasComponentRequest(request)) return fresh;
+  const saved = store?.read(projectId);
+  return (saved && restorableJourney(saved)) ?? fresh;
+}
+
+/**
+ * Liga o estado da jornada ao motor. Cada ação chama um caso de uso; a decisão é sempre do motor. Com `store`, a jornada
+ * sobrevive a sair da tela e voltar.
+ */
 export function useConfigureJourney(
   api: HarnessApi,
   projectId: string,
   pollMs = 1000,
-  componentRequest: ComponentRequest = EMPTY_COMPONENT_REQUEST
+  componentRequest: ComponentRequest = EMPTY_COMPONENT_REQUEST,
+  store: JourneyStore | null = null
 ) {
-  const [state, dispatch] = useReducer(journeyReducer, componentRequest, (request) => ({
-    ...initialJourneyState,
-    componentRequest: request
-  }));
+  const [state, dispatch] = useReducer(journeyReducer, componentRequest, (request) =>
+    startingState(request, projectId, store)
+  );
   const abort = useRef<AbortController | null>(null);
   const latest = useRef(state);
   // Antes de qualquer efeito ou clique: as ações leem o estado mais recente, nunca o de um render anterior.
   useLayoutEffect(() => {
     latest.current = state;
   }, [state]);
+
+  // Cada mudança fica guardada; o que não dá para retomar é filtrado na volta (`restorableJourney`), não aqui.
+  useEffect(() => {
+    store?.write(projectId, state);
+  }, [store, projectId, state]);
 
   const discover = useCallback(async () => {
     dispatch({ type: 'discover.start' });

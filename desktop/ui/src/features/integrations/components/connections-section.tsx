@@ -3,6 +3,7 @@ import { Button } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
 import { useAction } from '../hooks/use-action';
+import { PageSection, EmptyState, ErrorState } from '@/shared/components';
 import styles from '../integrations-page.module.scss';
 import type { IntegrationApi } from '../service/integration-api';
 import { ConnectionForm } from './connection-form';
@@ -21,16 +22,11 @@ export function ConnectionsSection({ api, catalog, connections, onChanged }: Con
   const addingConnector = catalog.connectors.find((connector) => connector.provider === adding);
 
   return (
-    <section aria-labelledby="conexoes">
-      <h2 id="conexoes" className={styles.section}>
-        Conexões
-      </h2>
-      <p className={styles.sectionLead}>
-        Uma conexão é a credencial de uma conta numa ferramenta. Ela sozinha não dá acesso a dado nenhum: cada projeto
-        escolhe o que pode ler.
-      </p>
-
-      {connections.length === 0 ? <p>Nenhuma conexão ainda.</p> : null}
+    <PageSection
+      title="Conexões"
+      description="Uma conexão é a credencial de uma conta numa ferramenta. Ela sozinha não dá acesso a dado nenhum: cada projeto escolhe o que pode ler."
+    >
+      {connections.length === 0 ? <EmptyState>Nenhuma conexão ainda.</EmptyState> : null}
       <ul className={styles.rows}>
         {connections.map((connection) => (
           <ConnectionRow
@@ -48,11 +44,7 @@ export function ConnectionsSection({ api, catalog, connections, onChanged }: Con
         ))}
       </ul>
 
-      {error ? (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
-      ) : null}
+      {error ? <ErrorState>{error}</ErrorState> : null}
 
       {addingConnector ? (
         <ConnectionForm
@@ -81,6 +73,6 @@ export function ConnectionsSection({ api, catalog, connections, onChanged }: Con
           ))}
         </div>
       )}
-    </section>
+    </PageSection>
   );
 }

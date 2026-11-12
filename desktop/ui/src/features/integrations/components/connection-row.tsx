@@ -86,7 +86,7 @@ export function ConnectionRow({
           />
           <div className={styles.actions}>
             <Button type="submit" variant="contained" disabled={busy || secret.trim().length < 8}>
-              Guardar credencial
+              Salvar credencial
             </Button>
             <Button type="button" variant="outlined" disabled={busy} onClick={() => setMode('idle')}>
               Cancelar

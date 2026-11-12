@@ -1,7 +1,7 @@
 import { formatEngineDate } from '@/features/integrations';
 import { useProjectSelectionContext } from '@/features/project-selection';
-import { errorMessage, type EngineClient } from '@/shared/api';
-import { StatusChip } from '@/shared/components';
+import type { EngineClient } from '@/shared/api';
+import { StatusChip, EmptyState, Page, ResourceView } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 import type { PortfolioProject } from '@/shared/schema';
@@ -31,48 +31,41 @@ export function PortfolioPage({ client }: { client: EngineClient }) {
   }
 
   return (
-    <div className={styles.page}>
-      <header>
-        <h1 className={styles.title}>Portfólio</h1>
-        <p className={styles.lead}>
-          Os projetos abertos neste computador e o que as ferramentas vinculadas a cada um mostram. Quem pede atenção
-          aparece primeiro.
-        </p>
-      </header>
-
-      {portfolio.status === 'loading' ? <p role="status">Lendo o portfólio…</p> : null}
-      {portfolio.status === 'error' ? (
-        <p role="alert">{errorMessage(portfolio.error, 'Não foi possível ler o portfólio.')}</p>
-      ) : null}
-      {portfolio.status === 'ready' ? (
-        portfolio.value.projects.length === 0 ? (
-          <p>
-            Nenhum projeto aberto ainda. Escolha uma pasta na <Link to={pathTo('home')}>tela inicial</Link>.
-          </p>
-        ) : (
-          <>
-            <ul className={styles.rows} aria-label="Projetos">
-              {portfolio.value.projects.map((project) => (
-                <ProjectRow
-                  key={project.projectId}
-                  project={project}
-                  weeks={portfolio.value.periodWeeks}
-                  action={resolveOpenAction(project, selected, recents)}
-                  busy={busy}
-                  onOpen={(recentId) => void open(recentId)}
-                />
-              ))}
-            </ul>
-            {portfolio.value.projects.some((project) => !resolveOpenAction(project, selected, recents)) ? (
-              <p className={styles.muted}>
-                Um projeto sem o botão de abrir não está entre os recentes. Escolha a pasta dele na{' '}
-                <Link to={pathTo('home')}>tela inicial</Link>.
-              </p>
-            ) : null}
-          </>
-        )
-      ) : null}
-    </div>
+    <Page
+      title="Portfólio"
+      description="Os projetos abertos neste computador e o que as ferramentas vinculadas a cada um mostram. Quem pede atenção aparece primeiro."
+    >
+      <ResourceView resource={portfolio} loading="Lendo o portfólio…" fallbackError="Não foi possível ler o portfólio.">
+        {(value) =>
+          value.projects.length === 0 ? (
+            <EmptyState>
+              Nenhum projeto aberto ainda. Escolha uma pasta na <Link to={pathTo('home')}>tela inicial</Link>.
+            </EmptyState>
+          ) : (
+            <>
+              <ul className={styles.rows} aria-label="Projetos">
+                {value.projects.map((project) => (
+                  <ProjectRow
+                    key={project.projectId}
+                    project={project}
+                    weeks={value.periodWeeks}
+                    action={resolveOpenAction(project, selected, recents)}
+                    busy={busy}
+                    onOpen={(recentId) => void open(recentId)}
+                  />
+                ))}
+              </ul>
+              {value.projects.some((project) => !resolveOpenAction(project, selected, recents)) ? (
+                <p className={styles.muted}>
+                  Um projeto sem o botão de abrir não está entre os recentes. Escolha a pasta dele na{' '}
+                  <Link to={pathTo('home')}>tela inicial</Link>.
+                </p>
+              ) : null}
+            </>
+          )
+        }
+      </ResourceView>
+    </Page>
   );
 }
 

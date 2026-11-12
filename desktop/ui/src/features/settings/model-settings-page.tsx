@@ -2,6 +2,8 @@ import type { EngineClient } from '@/shared/api';
 import { Button, TextField } from '@mariliz/ui-kit';
 import { useId, useMemo, useState } from 'react';
 
+import { Page } from '@/shared/components';
+
 import { useModelSettings } from './hooks/use-model-settings';
 import styles from './model-settings-page.module.scss';
 import { createModelApi } from './service/model-api';
@@ -36,14 +38,10 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
   const configured = status?.configured ?? false;
 
   return (
-    <div className={styles.page}>
-      <header>
-        <h1>Configurações</h1>
-        <p className={styles.lead}>
-          Preferências locais do Spock Studio. Nada aqui é gravado no projeto que você autorizou.
-        </p>
-      </header>
-
+    <Page
+      title="Configurações"
+      description="Preferências locais do Spock Studio. Nada aqui é gravado no projeto que você autorizou."
+    >
       <section className={styles.panel} aria-labelledby="model-settings-heading">
         <h2 id="model-settings-heading">Chave de modelo</h2>
         <p className={styles.hint}>
@@ -56,7 +54,7 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
             {configured ? `Provedor configurado: ${providerLabel(status.provider)}.` : 'Nenhuma chave configurada.'}
           </p>
         ) : (
-          <p className={styles.status}>A carregar…</p>
+          <p className={styles.status}>Carregando…</p>
         )}
 
         <div className={styles.field}>
@@ -82,7 +80,7 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
 
         <div className={styles.actions}>
           <Button type="button" disabled={busy || !canSave} onClick={() => void save()}>
-            Guardar chave
+            Salvar chave
           </Button>
           {configured ? (
             <Button type="button" variant="outlined" disabled={busy} onClick={() => void clear()}>
@@ -91,6 +89,6 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
           ) : null}
         </div>
       </section>
-    </div>
+    </Page>
   );
 }

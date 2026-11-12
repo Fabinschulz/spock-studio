@@ -114,16 +114,27 @@ aberto agora casa por id; os demais casam por nome e caminho abreviado, e só qu
 projeto fora dos seis recentes continua abrindo só pela tela inicial (a tela diz isso). Resolver de vez pede o host
 guardar o `projectId` junto do recente, o que é mudança em Rust e fica como decisão separada.
 
+**Segunda entrega da fase B (2026-11-12).** Também só interface, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| Componentes de página compartilhados | `Page`, `PageSection`, `LoadingState`, `ErrorState` (com "Tentar de novo" quando a leitura pode ser refeita), `EmptyState`, `NoProjectState` e `ResourceView`, em `shared/components/ui/molecules`, sobre o ui-kit. 13 testes, inclusive de acessibilidade |
+| Telas migradas | Portfólio, Acompanhamento, Assistente, Integrações, Projeto e Configurações, com as nove seções de Gestão, Integrações e Projeto. Acabaram as classes `.page`, `.title`, `.lead`, `.section` e `.sectionHead` copiadas em quatro módulos de estilo, e os cerca de vinte parágrafos de "lendo" e de erro escritos à mão nessas telas |
+| Jornada Configurar preservada ao sair | Guardada por projeto, só na memória, e retomada ao voltar (`JourneyStoreProvider`, `restorableJourney`). Não se retoma uma execução em andamento (o acompanhamento morre com a tela) nem uma leitura ou plano "carregando" (voltam a "ainda não pedido"). O plano velho é seguro: o motor replaneja ao aplicar e recusa com `STALE_PLAN` se o projeto mudou. Concluir ou cancelar limpa. Um pedido novo vindo da tela Projeto começa do zero |
+| Português do Brasil | "Guardar chave", "Guardar credencial", "Guardar a chave em Configurações" e "A carregar" viraram "Salvar" e "Carregando" |
+| Testes | 326 na interface, mais tipos, lint, formato e build limpos. Prévia visual conferida (Acompanhamento, Integrações, jornada saindo para Gestão e voltando com o plano de 13 alterações e sem novo `harness.plan`) |
+
+Decisão visível ao dono: a página de Configurações passou da largura de 36rem para os 46rem das demais, por uniformidade.
+
 Ainda falta nesta fase:
 
 | Pendente | Observação |
 | --- | --- |
-| Componentes de página, seção, linha, vazio, carregando, erro, retorno de ação e divulgação | É o que sustenta a migração das telas e a central de execuções (fase C) |
-| Painel de detalhe e confirmação sobre o `Drawer` do ui-kit | Conferir foco, Esc e tema escuro do `Drawer` antes de adotar |
-| Visão geral por ambiente | Hoje o alternador leva a Projeto e a Acompanhamento |
-| Migração das telas para os componentes novos | Uma tela por vez |
-| Português do Brasil em tudo | "Guardar" e "A carregar" ainda existem em Configurações, Integrações e Pedido |
-| Estado da jornada preservado ao sair da rota | Trocar de ambiente no meio do Configurar ainda perde o plano |
+| Painel de detalhe e confirmação sobre o `Drawer` do ui-kit | O `Drawer` já traz título, Esc, clique fora e botão fechar. Entra junto com a central de execuções (fase C), que é a primeira tela a precisar dele, para não ficar componente sem uso |
+| Visão geral por ambiente | Hoje o alternador leva a Projeto e a Acompanhamento. A tela Projeto ainda é um relatório longo; repartir em Visão geral, Harness e Conhecimento é a decisão 5 da seção 6 |
+| Telas fora desta migração | Execução do workflow, Pedido de engenharia, Início e as etapas da jornada ainda têm cabeçalho e seções próprios |
+| Linha de lista e divulgação (`<details>`) como componentes | Os `<details>` de onze arquivos continuam com estilos distintos |
+| Retorno de ação com confirmação de sucesso e confirmação destrutiva única | "Remover" conexão ainda não pede confirmação |
 | Nome de exibição do projeto editável | Pede método novo no motor |
 
 ### Fase C: central de execuções ligada à entrega

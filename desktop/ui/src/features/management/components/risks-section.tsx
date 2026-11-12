@@ -1,4 +1,4 @@
-import { StatusChip } from '@/shared/components';
+import { StatusChip, PageSection } from '@/shared/components';
 import type { ProjectRisk, ProjectRisks } from '@/shared/schema';
 
 import { SEVERITY_LABEL } from '../domain/delivery-labels';
@@ -9,10 +9,7 @@ export function RisksSection({ risks }: { risks: ProjectRisks }) {
   if (!risks.hasData) return null;
 
   return (
-    <section aria-labelledby="riscos">
-      <h2 id="riscos" className={styles.section}>
-        Riscos
-      </h2>
+    <PageSection title="Riscos">
       {risks.risks.length === 0 ? (
         <p>Nenhuma das {risks.rulesEvaluated.length} regras de risco disparou com os dados sincronizados.</p>
       ) : (
@@ -26,7 +23,7 @@ export function RisksSection({ risks }: { risks: ProjectRisks }) {
         Detectados por regras fixas sobre os dados sincronizados: são contagens, não previsão nem opinião.
         {risks.complete ? '' : ' Ao menos uma fonte está incompleta, então podem faltar riscos.'}
       </p>
-    </section>
+    </PageSection>
   );
 }
 

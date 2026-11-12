@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router';
 import { ComponentRequestNotice } from './components/component-request-notice';
 import { ContextPanel } from './components/context-panel';
 import { JourneyFrame } from './components/journey-frame';
+import { useJourneyStore } from './context/journey-store';
 import { countApprovals } from './domain/approvals';
 import { hasComponentRequest, type ComponentRequest } from './domain/component-request';
 import { stepIssue } from './domain/step-issue';
@@ -36,8 +37,13 @@ export function ConfigureJourney({
   componentRequest
 }: ConfigureJourneyProps) {
   const navigate = useNavigate();
-  const { state, actions } = useConfigureJourney(api, projectId, pollMs, componentRequest);
-  const home = () => navigate(pathTo('home'));
+  const store = useJourneyStore();
+  const { state, actions } = useConfigureJourney(api, projectId, pollMs, componentRequest, store);
+  // Concluir ou cancelar encerra a jornada: a próxima visita ao Configurar começa limpa.
+  const home = () => {
+    store?.clear(projectId);
+    navigate(pathTo('home'));
+  };
 
   useScrollToTop(state.step);
 

@@ -1,3 +1,4 @@
+import { JourneyStoreProvider } from '@/features/configure-project';
 import { ProjectSelectionProvider } from '@/features/project-selection';
 import { AppProviders } from '@/shared/components';
 import '@/shared/styles/index.scss';
@@ -11,7 +12,9 @@ export function Root() {
   return (
     <AppProviders>
       <ProjectSelectionProvider restoreLast>
-        <RouterProvider router={router} />
+        <JourneyStoreProvider>
+          <RouterProvider router={router} />
+        </JourneyStoreProvider>
       </ProjectSelectionProvider>
     </AppProviders>
   );

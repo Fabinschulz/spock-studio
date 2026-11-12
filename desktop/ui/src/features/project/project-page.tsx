@@ -1,8 +1,6 @@
 import { formatRecentDateTime, type SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
-import { pathTo } from '@/shared/routing';
 import type { Discovery, RunSummary } from '@/shared/schema';
-import { Link } from 'react-router';
 
 import { HarnessSection } from './components/harness-section';
 import { KnowledgeSection } from './components/knowledge-section';
@@ -10,6 +8,7 @@ import { ProfileSection } from './components/profile-section';
 import { RevisionsSection } from './components/revisions-section';
 import { runKindLabel, runRowText } from './domain/run-labels';
 import { useProjectOverview } from './hooks/use-project-overview';
+import { EmptyState, ErrorState, LoadingState, NoProjectState, Page, PageSection } from '@/shared/components';
 import styles from './project-page.module.scss';
 
 const INVENTORY_ROWS: readonly [string, keyof Discovery['inventory']][] = [
@@ -24,12 +23,9 @@ const INVENTORY_ROWS: readonly [string, keyof Discovery['inventory']][] = [
 export function ProjectPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   if (!project) {
     return (
-      <div className={styles.page}>
-        <h1 className={styles.title}>Projeto</h1>
-        <p>
-          Nenhum projeto selecionado. Escolha uma pasta na <Link to={pathTo('home')}>tela inicial</Link>.
-        </p>
-      </div>
+      <Page title="Projeto">
+        <NoProjectState />
+      </Page>
     );
   }
   return <ProjectContent key={project.projectId} client={client} project={project} />;
@@ -39,14 +35,9 @@ function ProjectContent({ client, project }: { client: EngineClient; project: Se
   const overview = useProjectOverview(client, project.projectId);
 
   return (
-    <div className={styles.page}>
-      <header>
-        <h1 className={styles.title}>{project.displayName}</h1>
-        <p className={styles.path}>{project.displayPath}</p>
-      </header>
-
-      {overview.status === 'loading' ? <p role="status">Lendo o projeto…</p> : null}
-      {overview.status === 'error' ? <p role="alert">{overview.message}</p> : null}
+    <Page title={project.displayName} description={<span className={styles.path}>{project.displayPath}</span>}>
+      {overview.status === 'loading' ? <LoadingState>Lendo o projeto…</LoadingState> : null}
+      {overview.status === 'error' ? <ErrorState>{overview.message}</ErrorState> : null}
       {overview.status === 'ready' ? (
         <>
           <ProfileSection client={client} projectId={project.projectId} />
@@ -57,16 +48,13 @@ function ProjectContent({ client, project }: { client: EngineClient; project: Se
           <RunsSection runs={overview.runs} />
         </>
       ) : null}
-    </div>
+    </Page>
   );
 }
 
 function InventorySection({ discovery }: { discovery: Discovery }) {
   return (
-    <section aria-labelledby="inventario">
-      <h2 id="inventario" className={styles.section}>
-        O que já existe
-      </h2>
+    <PageSection title="O que já existe">
       <ul className={styles.rows}>
         {INVENTORY_ROWS.map(([label, key]) => {
           const items = discovery.inventory[key];
@@ -87,17 +75,14 @@ function InventorySection({ discovery }: { discovery: Discovery }) {
           );
         })}
       </ul>
-    </section>
+    </PageSection>
   );
 }
 
 function RunsSection({ runs }: { runs: RunSummary[] }) {
   return (
-    <section aria-labelledby="execucoes">
-      <h2 id="execucoes" className={styles.section}>
-        Execuções
-      </h2>
-      {runs.length === 0 ? <p>Nenhuma execução neste projeto ainda.</p> : null}
+    <PageSection title="Execuções">
+      {runs.length === 0 ? <EmptyState>Nenhuma execução neste projeto ainda.</EmptyState> : null}
       <ul className={styles.rows}>
         {runs.map((run) => (
           <li key={run.runId} className={styles.row}>
@@ -109,7 +94,7 @@ function RunsSection({ runs }: { runs: RunSummary[] }) {
           </li>
         ))}
       </ul>
-    </section>
+    </PageSection>
   );
 }
 
