@@ -117,7 +117,9 @@ public class HarnessStatusTests
         project.Write(ManagedLockFile.FileName, "isto: [não é yaml válido");
         var broken = Inspect(session, projectId);
 
-        Assert.Equal(["mariliz.agent.verifier"], withExclusion["excluded"]!.AsArray().Select(x => x!.GetValue<string>()));
+        var excluded = Assert.Single(withExclusion["excluded"]!.AsArray())!;
+        Assert.Equal(("mariliz.agent.verifier", "Agente verificador", true),
+            (excluded["id"]!.GetValue<string>(), excluded["label"]!.GetValue<string>(), excluded["manageable"]!.GetValue<bool>()));
         Assert.True(broken["applied"]!.GetValue<bool>());
         Assert.False(broken["lockReadable"]!.GetValue<bool>());
         Assert.Empty(broken["components"]!.AsArray());

@@ -386,13 +386,45 @@ Decisões:
 
 Testes em `HarnessStatusTests` (5); fixture em `contracts/fixtures/engineering/harness.json`.
 
+## 10g. Fase 6, quarta entrega: dispensar e voltar a aplicar componentes (2026-11-11)
+
+Na seção **Harness aplicado**, cada agente, skill, regra (inclusive as do projeto) e o hook têm **Dispensar**; os
+componentes dispensados em `mariliz.yaml` aparecem numa lista com **Voltar a aplicar**. A estrutura de especificação e a
+declaração ficam de fora (`ComponentRequest.IsManageable`).
+
+O botão não muda nada sozinho. Ele abre o Configurar com o pedido (estado da rota), que aparece no topo da jornada com
+**Desfazer pedido** e vai junto em cada plano (`harness.plan`, parâmetros `excludeComponents` e `includeComponents`).
+O plano então mostra:
+
+- **`mariliz.yaml`:** atualização com a diferença, só na lista `components.exclude` (`DeclarationEditor`). Comentários,
+  ordem e o resto do arquivo ficam como estão; se o trecho não estiver num formato reconhecido, ou se o resultado não ler
+  exatamente como o esperado, o pedido não entra e o plano diz para editar à mão.
+- **O que sai:** os arquivos gerenciados e intactos do componente, como remoção; os editados à mão, como conflito.
+- **O que volta:** os arquivos do componente, como criação.
+
+Aplicar exige aprovação, como sempre, e a execução pode ser revertida (o `mariliz.yaml` volta junto). Depois de aplicado,
+o próximo plano sem pedido não muda nada: a decisão está em `mariliz.yaml`.
+
+Decisões:
+
+- **`mariliz.yaml` continua da pessoa.** A única edição é pontual, na lista de exclusão, a pedido dela e aprovada no
+  plano. Uma lista guardada só no aplicativo dividiria a fonte da verdade com o arquivo versionado no repositório.
+- **Dispensar o hook nunca apaga o `settings.json`.** Antes, excluir o hook em `mariliz.yaml` planejava remover o arquivo
+  inteiro, junto com o que a pessoa tinha nele. Agora sai só o registro do hook (`SettingsMerger.Release`); as regras que
+  negam a leitura de `.env` ficam, e um arquivo mesclado nunca entra como remoção.
+- **Regras do projeto dispensadas saem do disco.** Antes, uma regra proposta pelo Harness Engineer e excluída deixava de
+  ser gerada, mas o arquivo já escrito ficava; agora ela é registrada como dispensada e sai pelo plano, como as demais.
+
+Testes em `ComponentRequestTests` (8): editor, pedido pelo plano, volta, reversão, hook e `settings.json`. O estado do
+Harness passou a dizer, por componente, se ele pode ser dispensado (`manageable`), e os dispensados vêm com o nome.
+
 ## 11. Próximas fases e dependências
 
 | Fase | Entrega | Depende de |
 | --- | --- | --- |
 | 4b. Complementos de entrega | Cycle time, histórico de acompanhamento dos riscos, impacto de mais capacidade na previsão. | Histórico de status (Jira já traz; GitHub exige a API de eventos da issue). |
 | 5b. Assistente: complementos | Histórico de perguntas, relatórios salvos, comparação entre projetos, workflow LangGraph para investigação em etapas. | Validação com modelo real. |
-| 6b. Engenharia, continuação | Gerenciamento de agentes, skills, regras, hooks e MCP por componente; versionamento do Harness; acompanhamento de execuções ligado à entrega. | Perfil, conhecimento e estado do Harness (entregues). |
+| 6b. Engenharia, continuação | MCP; versionamento do Harness; acompanhamento de execuções ligado à entrega. | Perfil, conhecimento, estado do Harness e dispensa de componentes (entregues). |
 | 7. Inteligência compartilhada | Análises cruzadas autorizadas. | Fases 5 e 6. |
 
 Indicadores e previsão serão serviços determinísticos no .NET. O LangGraph entra só para explicar resultados.

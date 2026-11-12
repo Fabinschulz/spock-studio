@@ -20,6 +20,9 @@ export type PlanInput = {
   allowSpecificationReinstall?: boolean;
   /** Pede ao instalador oficial a versão mais recente da estrutura de especificação, mesmo que a instalada já seja a mais recente conhecida. */
   updateSpecification?: boolean;
+  /** Pedido da tela Projeto: o motor grava em mariliz.yaml (components.exclude) como mudança do plano. */
+  excludeComponents?: string[];
+  includeComponents?: string[];
 };
 
 export type ApplyInput = {
@@ -46,14 +49,23 @@ export type HarnessApi = {
 export function createHarnessApi(client: EngineClient): HarnessApi {
   return {
     discover: (projectId) => client.request('project.discover', { projectId }, discoverySchema),
-    plan: ({ projectId, aiEnvironment, allowSpecificationReinstall, updateSpecification }) =>
+    plan: ({
+      projectId,
+      aiEnvironment,
+      allowSpecificationReinstall,
+      updateSpecification,
+      excludeComponents,
+      includeComponents
+    }) =>
       client.request(
         'harness.plan',
         {
           projectId,
           ...(aiEnvironment ? { aiEnvironment } : {}),
           ...(allowSpecificationReinstall ? { allowSpecificationReinstall: true } : {}),
-          ...(updateSpecification ? { updateSpecification: true } : {})
+          ...(updateSpecification ? { updateSpecification: true } : {}),
+          ...(excludeComponents?.length ? { excludeComponents } : {}),
+          ...(includeComponents?.length ? { includeComponents } : {})
         },
         planSchema
       ),

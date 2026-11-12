@@ -1,3 +1,4 @@
+import { EMPTY_COMPONENT_REQUEST } from '../domain/component-request';
 import type { JourneyState } from '../types/journey';
 
 export const initialJourneyState: JourneyState = {
@@ -6,6 +7,7 @@ export const initialJourneyState: JourneyState = {
   aiEnvironment: null,
   allowSpecificationReinstall: false,
   updateSpecification: false,
+  componentRequest: EMPTY_COMPONENT_REQUEST,
   plan: { status: 'idle' },
   approvedChanges: [],
   approvedCommands: [],

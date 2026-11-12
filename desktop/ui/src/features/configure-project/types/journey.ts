@@ -1,4 +1,5 @@
 import type { ConfigurationPlan, ConflictResolution, Discovery, RunEvent, RunResult } from '@/shared/schema';
+import type { ComponentRequest } from '../domain/component-request';
 import type { PlannedStep, RunKind, RunView } from './run';
 
 export type JourneyStepId = 'project' | 'model' | 'plan' | 'review' | 'run' | 'result';
@@ -18,6 +19,8 @@ export interface JourneyState {
   aiEnvironment: string | null;
   allowSpecificationReinstall: boolean;
   updateSpecification: boolean;
+  /** Pedido vindo da tela Projeto: dispensar componentes ou voltar a aplicá-los. Vai junto em cada plano. */
+  componentRequest: ComponentRequest;
   plan: Loadable<ConfigurationPlan>;
   approvedChanges: string[];
   approvedCommands: string[];
@@ -33,6 +36,7 @@ export type JourneyAction =
   | { type: 'environment.set'; id: string }
   | { type: 'reinstall.set'; value: boolean }
   | { type: 'update.set'; value: boolean }
+  | { type: 'request.clear' }
   | { type: 'plan.start' }
   | { type: 'plan.ok'; plan: ConfigurationPlan }
   | { type: 'plan.error'; message: string }

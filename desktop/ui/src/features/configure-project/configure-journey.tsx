@@ -2,9 +2,11 @@ import { EngineeringRequestShortcut } from '@/features/engineering-request';
 import { useScrollToTop } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 import { useNavigate } from 'react-router';
+import { ComponentRequestNotice } from './components/component-request-notice';
 import { ContextPanel } from './components/context-panel';
 import { JourneyFrame } from './components/journey-frame';
 import { countApprovals } from './domain/approvals';
+import { hasComponentRequest, type ComponentRequest } from './domain/component-request';
 import { stepIssue } from './domain/step-issue';
 import { useConfigureJourney } from './hooks/use-configure-journey';
 import type { HarnessApi } from './service';
@@ -21,11 +23,20 @@ interface ConfigureJourneyProps {
   projectName: string;
   projectPath: string;
   pollMs?: number;
+  /** Pedido vindo da tela Projeto (dispensar ou voltar a aplicar componentes). */
+  componentRequest?: ComponentRequest;
 }
 
-export function ConfigureJourney({ api, projectId, projectName, projectPath, pollMs }: ConfigureJourneyProps) {
+export function ConfigureJourney({
+  api,
+  projectId,
+  projectName,
+  projectPath,
+  pollMs,
+  componentRequest
+}: ConfigureJourneyProps) {
   const navigate = useNavigate();
-  const { state, actions } = useConfigureJourney(api, projectId, pollMs);
+  const { state, actions } = useConfigureJourney(api, projectId, pollMs, componentRequest);
   const home = () => navigate(pathTo('home'));
 
   useScrollToTop(state.step);
@@ -51,6 +62,9 @@ export function ConfigureJourney({ api, projectId, projectName, projectPath, pol
       }
     >
       <EngineeringRequestShortcut />
+      {hasComponentRequest(state.componentRequest) && ['project', 'model', 'plan'].includes(state.step) ? (
+        <ComponentRequestNotice request={state.componentRequest} onClear={actions.clearComponentRequest} />
+      ) : null}
       {state.step === 'project' ? (
         <ProjectStep
           project={{ name: projectName, path: projectPath }}

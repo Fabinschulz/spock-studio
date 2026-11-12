@@ -5,7 +5,7 @@ import profileFixture from '@contracts/fixtures/engineering/profile.json';
 import type { EngineClient } from '@/shared/api';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter, useLocation } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ProjectPage } from './project-page';
@@ -62,10 +62,17 @@ function clientWith(runs: unknown[], saved = true): EngineClient {
   } as unknown as EngineClient;
 }
 
+/** Mostra para onde a página navegou e com que estado. */
+function LocationProbe() {
+  const location = useLocation();
+  return <output aria-label="rota">{`${location.pathname} ${JSON.stringify(location.state)}`}</output>;
+}
+
 const renderPage = (client: EngineClient, selected: typeof project | null = project) =>
   render(
     <MemoryRouter>
       <ProjectPage client={client} project={selected} />
+      <LocationProbe />
     </MemoryRouter>
   );
 
@@ -159,6 +166,23 @@ describe('ProjectPage', () => {
     expect(first).toHaveTextContent('Modificado à mão');
     expect(first).toHaveTextContent('.claude/agents/code-reviewer.md');
     expect(within(harness).getByText(/Nada é aplicado sem aprovação/)).toBeTruthy();
+  });
+
+  it('dispensar um componente abre o Configurar com o pedido, sem mudar nada antes do plano', async () => {
+    const client = clientWith([]);
+    renderPage(client);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Dispensar Agente revisor de código' }));
+
+    const route = screen.getByRole('status', { name: 'rota' }).textContent ?? '';
+    expect(route.startsWith('/configurar ')).toBe(true);
+    expect(JSON.parse(route.slice('/configurar '.length))).toEqual({
+      componentRequest: {
+        exclude: [{ id: 'mariliz.agent.code-reviewer', label: 'Agente revisor de código' }],
+        include: []
+      }
+    });
+    expect(client.request).not.toHaveBeenCalledWith('harness.plan', expect.anything(), expect.anything());
   });
 
   it('sem projeto selecionado, manda escolher na tela inicial', () => {

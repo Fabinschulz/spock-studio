@@ -77,10 +77,11 @@ export const harnessStatusSchema = z.object({
       kind: z.string(),
       version: z.string(),
       state: harnessStateSchema,
+      manageable: z.boolean(),
       files: z.array(z.object({ path: z.string(), mode: z.string(), state: harnessStateSchema }))
     })
   ),
-  excluded: z.array(z.string()),
+  excluded: z.array(z.object({ id: z.string(), label: z.string(), manageable: z.boolean() })),
   intact: z.number(),
   kept: z.number(),
   modified: z.number(),

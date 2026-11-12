@@ -2,6 +2,7 @@ import { EngineError, errorMessage } from '@/shared/api';
 import type { ConflictResolution } from '@/shared/schema';
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef } from 'react';
 import { initialJourneyState } from '../constants/initial-journey-state';
+import { EMPTY_COMPONENT_REQUEST, type ComponentRequest } from '../domain/component-request';
 import { buildApplyInput } from '../domain/approvals';
 import { journeyReducer } from '../domain/journey-reducer';
 import { plannedApplySteps } from '../domain/planned-steps';
@@ -12,8 +13,16 @@ import { type RunKind } from '../types/run';
 const messageOf = (error: unknown) => errorMessage(error, 'Algo inesperado aconteceu. Tente de novo.');
 
 /** Liga o estado da jornada ao motor. Cada ação chama um caso de uso; a decisão é sempre do motor. */
-export function useConfigureJourney(api: HarnessApi, projectId: string, pollMs = 1000) {
-  const [state, dispatch] = useReducer(journeyReducer, initialJourneyState);
+export function useConfigureJourney(
+  api: HarnessApi,
+  projectId: string,
+  pollMs = 1000,
+  componentRequest: ComponentRequest = EMPTY_COMPONENT_REQUEST
+) {
+  const [state, dispatch] = useReducer(journeyReducer, componentRequest, (request) => ({
+    ...initialJourneyState,
+    componentRequest: request
+  }));
   const abort = useRef<AbortController | null>(null);
   const latest = useRef(state);
   // Antes de qualquer efeito ou clique: as ações leem o estado mais recente, nunca o de um render anterior.
@@ -34,14 +43,21 @@ export function useConfigureJourney(api: HarnessApi, projectId: string, pollMs =
   useEffect(() => () => abort.current?.abort(), []);
 
   const generatePlan = useCallback(async () => {
-    const { aiEnvironment, allowSpecificationReinstall, updateSpecification } = latest.current;
+    const {
+      aiEnvironment,
+      allowSpecificationReinstall,
+      updateSpecification,
+      componentRequest: request
+    } = latest.current;
     dispatch({ type: 'plan.start' });
     try {
       const plan = await api.plan({
         projectId,
         ...(aiEnvironment ? { aiEnvironment } : {}),
         allowSpecificationReinstall: allowSpecificationReinstall,
-        updateSpecification
+        updateSpecification,
+        ...(request.exclude.length > 0 ? { excludeComponents: request.exclude.map((item) => item.id) } : {}),
+        ...(request.include.length > 0 ? { includeComponents: request.include.map((item) => item.id) } : {})
       });
       dispatch({ type: 'plan.ok', plan });
     } catch (error) {
@@ -105,6 +121,7 @@ export function useConfigureJourney(api: HarnessApi, projectId: string, pollMs =
       setEnvironment: (id: string) => dispatch({ type: 'environment.set', id }),
       setReinstall: (value: boolean) => dispatch({ type: 'reinstall.set', value }),
       setUpdateSpecification: (value: boolean) => dispatch({ type: 'update.set', value }),
+      clearComponentRequest: () => dispatch({ type: 'request.clear' }),
       toggleChange: (id: string) => dispatch({ type: 'change.toggle', id }),
       toggleCommand: (id: string) => dispatch({ type: 'command.toggle', id }),
       setResolution: (id: string, value: ConflictResolution) => dispatch({ type: 'resolution.set', id, value })

@@ -34,7 +34,9 @@ public sealed class HarnessStatusService(WorkspaceAuthorizer workspace, IProject
     {
         if (!workspace.TryGetRoot(projectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
         var project = files.Open(root);
-        var excluded = DeclaredConfig.TryRead(project).Config?.Components.Exclude ?? [];
+        var excluded = (DeclaredConfig.TryRead(project).Config?.Components?.Exclude ?? [])
+            .Select(id => new HarnessExcludedComponent(id, Label(id), ComponentRequest.IsManageable(id)))
+            .ToList();
         var now = clock.UtcNow;
 
         var lockExists = project.FileExists(ManagedLockFile.FileName);
@@ -52,7 +54,8 @@ public sealed class HarnessStatusService(WorkspaceAuthorizer workspace, IProject
             {
                 var componentFiles = filesByComponent.GetValueOrDefault(component.Id) ?? [];
                 var state = componentFiles.Count == 0 ? "intact" : componentFiles.MaxBy(file => Array.IndexOf(Severity, file.State))!.State;
-                return new HarnessComponentStatus(component.Id, Label(component.Id), component.Kind, component.Version, state, componentFiles);
+                return new HarnessComponentStatus(component.Id, Label(component.Id), component.Kind, component.Version, state,
+                    ComponentRequest.IsManageable(component.Id), componentFiles);
             })
             .OrderByDescending(component => Array.IndexOf(Severity, component.State))
             .ThenBy(component => component.Label, StringComparer.Ordinal)

@@ -13,6 +13,7 @@
       "kind": "agent",
       "version": "0.1.0",
       "state": "modified",
+      "manageable": true,
       "files": [
         {
           "path": ".claude/agents/code-reviewer.md",
@@ -27,6 +28,7 @@
       "kind": "agent",
       "version": "0.1.0",
       "state": "intact",
+      "manageable": true,
       "files": [
         {
           "path": ".claude/agents/harness-engineer.md",
@@ -46,6 +48,7 @@
       "kind": "agent",
       "version": "0.1.0",
       "state": "intact",
+      "manageable": true,
       "files": [
         {
           "path": ".claude/agents/verifier.md",
@@ -60,6 +63,7 @@
       "kind": "rule",
       "version": "0.1.0",
       "state": "intact",
+      "manageable": true,
       "files": [
         {
           "path": ".claude/rules/mariliz-repo.md",
@@ -74,6 +78,7 @@
       "kind": "hook",
       "version": "0.1.0",
       "state": "intact",
+      "manageable": true,
       "files": [
         {
           "path": ".claude/hooks/mariliz-policy.py",
@@ -93,6 +98,7 @@
       "kind": "rule",
       "version": "0.1.0",
       "state": "intact",
+      "manageable": true,
       "files": [
         {
           "path": ".claude/rules/mariliz-stack-dotnet.md",
@@ -107,6 +113,7 @@
       "kind": "rule",
       "version": "0.1.0",
       "state": "intact",
+      "manageable": true,
       "files": [
         {
           "path": ".claude/rules/mariliz-general.md",
@@ -121,6 +128,7 @@
       "kind": "skill",
       "version": "0.1.0",
       "state": "intact",
+      "manageable": true,
       "files": [
         {
           "path": ".claude/skills/harness-contract/SKILL.md",

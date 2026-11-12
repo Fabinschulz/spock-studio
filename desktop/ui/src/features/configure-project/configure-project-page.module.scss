@@ -3,3 +3,19 @@
   flex-direction: column;
   gap: var(--space-5);
 }
+
+.requestNotice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 8px);
+
+  p {
+    flex: 1 1 24rem;
+    margin: 0;
+  }
+}

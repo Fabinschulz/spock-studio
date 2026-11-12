@@ -6,8 +6,10 @@ namespace Mariliz.Application.Harness;
 /// Decide se um componente entra no plano e registra a decisão. Precedência: o que a pessoa excluiu em mariliz.yaml,
 /// depois a proposta validada do Harness Engineer, depois as regras-base.
 /// </summary>
+/// <param name="requested">Os excluídos que vêm do pedido feito na tela, ainda não gravados em mariliz.yaml.</param>
 internal sealed class ComponentSelector(
     IReadOnlySet<string> userExcluded,
+    IReadOnlySet<string> requested,
     IReadOnlyDictionary<string, ProposalDecision> proposed,
     List<ComponentDecision> decisions,
     List<Limitation> limitations)
@@ -17,7 +19,9 @@ internal sealed class ComponentSelector(
         var kind = Catalog.Find(id)!.Kind;
 
         if (userExcluded.Contains(id))
-            return Record(kind, id, ComponentDecisions.Skip, "Excluído em mariliz.yaml (components.exclude).", DecisionOrigins.Declared, []);
+            return Record(kind, id, ComponentDecisions.Skip, requested.Contains(id)
+                ? "Dispensado a seu pedido; o plano grava isto em mariliz.yaml (components.exclude)."
+                : "Excluído em mariliz.yaml (components.exclude).", DecisionOrigins.Declared, []);
 
         proposed.TryGetValue(id, out var proposal);
 

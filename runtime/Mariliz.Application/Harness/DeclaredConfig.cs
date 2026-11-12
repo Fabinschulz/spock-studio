@@ -8,7 +8,8 @@ namespace Mariliz.Application.Harness;
 
 /// <summary>
 /// <c>mariliz.yaml</c>: o que a pessoa declara. É criado uma vez e passa a ser dela; a aplicação o lê como
-/// entrada do planejamento (a declaração vale mais que a inferência) e nunca o reescreve.
+/// entrada do planejamento (a declaração vale mais que a inferência) e nunca o reescreve. A única edição é pontual,
+/// na lista <c>components.exclude</c>, quando a pessoa pede na tela e aprova no plano (ver <see cref="DeclarationEditor"/>).
 /// </summary>
 public sealed class DeclaredConfig
 {
