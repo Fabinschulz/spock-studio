@@ -6,7 +6,7 @@ import { z } from 'zod';
  */
 
 /** Os tipos de execução que o motor reconhece, na ordem em que a tela os oferece. */
-export const RUN_KINDS = ['apply', 'validate', 'revert', 'workflow'] as const;
+export const RUN_KINDS = ['apply', 'validate', 'revert', 'workflow', 'assistant'] as const;
 
 /** Os estados de uma execução, os mesmos de `RunStates` no motor. */
 export const RUN_STATES = [

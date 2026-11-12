@@ -6,6 +6,7 @@ using Mariliz.Application.Management.Assistant;
 using Mariliz.Application.Models;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Tests.Support;
+using Mariliz.Infrastructure;
 using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
@@ -56,6 +57,7 @@ public class ManagementAssistantTests
         public IntegrationHarness Harness { get; } = new();
         public ScriptedChat Chat { get; } = new();
         public ManagementAssistant Assistant { get; }
+        public FileRunStore Store { get; }
         public EngineSession Session { get; }
         public ProjectIntegration Integration { get; private set; } = null!;
 
@@ -63,8 +65,9 @@ public class ManagementAssistantTests
         {
             Harness.Clock.UtcNow = Now;
             var management = new ManagementService(Harness.Workspace, Harness.Hub, Harness.Clock);
+            Store = new FileRunStore(Harness.DataDir);
             Assistant = new ManagementAssistant(management, Harness.Hub, Harness.Workspace,
-                new ModelGateway(new Settings(configured), new NoTransport(), chat: Chat), Harness.Clock);
+                new ModelGateway(new Settings(configured), new NoTransport(), chat: Chat), Harness.Clock, Store);
             Session = new EngineSession("test", integrations: Harness.Hub, management: management, assistant: Assistant);
         }
 
@@ -249,5 +252,121 @@ public class ManagementAssistantTests
             Assert.True(text == File.ReadAllText(path).ReplaceLineEndings("\n").TrimEnd(),
                 $"{name}: a resposta mudou. Se foi deliberado, regenere com MARILIZ_UPDATE_GOLDEN=1 e ajuste o Zod da interface.");
         }
+    }
+
+    // ------------------------------------------------------------------ Registro na central de execuções
+
+    private const string ValidReply =
+        "{\"summary\":{\"text\":\"Há 1 item vencido.\",\"evidence\":[\"flow.issues.overdue\"]},\"observed\":[{\"text\":\"Há 1 item com prazo vencido.\",\"evidence\":[\"flow.issues.overdue\"]}],"
+        + "\"calculations\":[],\"inferences\":[],\"recommendations\":[],\"unavailable\":[]}";
+
+    private static RunJournal OnlyJournal(Setup s) => Assert.Single(s.Store.ListJournals(s.Harness.ProjectId));
+
+    [Fact]
+    public async Task Cada_pergunta_respondida_vira_uma_execucao_do_assistente_so_com_contagens()
+    {
+        using var s = new Setup();
+        await s.SeedAsync();
+        s.Chat.Reply = ValidReply;
+
+        await s.Assistant.AskAsync(s.Harness.ProjectId, "Quais entregas estão comprometidas?", CancellationToken.None);
+
+        var journal = OnlyJournal(s);
+        Assert.Equal(RunKinds.Assistant, journal.Kind);
+        Assert.Equal(RunStates.Completed, journal.State);
+        Assert.StartsWith("ask-", journal.RunId);
+        Assert.Equal(1, journal.ModelUsage!.Calls);
+        Assert.Equal(900, journal.ModelUsage.InputTokens);
+        Assert.Equal(300, journal.ModelUsage.OutputTokens);
+        Assert.Equal(["answer", "verify"], journal.Steps.Select(step => step.Id));
+        Assert.Contains("1 afirmações aceitas, 0 descartadas, 1 fatos citados", journal.Steps[1].Detail);
+        Assert.NotNull(journal.FinishedAt);
+        Assert.False(journal.ChangesApplied);
+    }
+
+    [Fact]
+    public async Task O_diario_da_pergunta_nunca_guarda_o_texto_da_pergunta_nem_o_da_resposta()
+    {
+        using var s = new Setup();
+        await s.SeedAsync();
+        s.Chat.Reply = ValidReply;
+
+        await s.Assistant.AskAsync(s.Harness.ProjectId, "Quais entregas estão comprometidas?", CancellationToken.None);
+
+        var journalText = File.ReadAllText(Path.Combine(s.Harness.DataDir, "projects", s.Harness.ProjectId, "runs", OnlyJournal(s).RunId, "journal.json"));
+        Assert.DoesNotContain("comprometidas", journalText);
+        Assert.DoesNotContain("prazo vencido", journalText);
+        Assert.DoesNotContain(Key, journalText);
+    }
+
+    [Fact]
+    public async Task Afirmacao_descartada_pela_conferencia_deixa_a_execucao_concluida_com_limitacoes()
+    {
+        using var s = new Setup();
+        await s.SeedAsync();
+        s.Chat.Reply = "{\"summary\":\"O projeto termina em 3 meses.\",\"observed\":[],\"calculations\":[],\"inferences\":[],\"recommendations\":[],\"unavailable\":[]}";
+
+        await s.Assistant.AskAsync(s.Harness.ProjectId, "Quando termina?", CancellationToken.None);
+
+        var journal = OnlyJournal(s);
+        Assert.Equal(RunStates.CompletedWithLimitations, journal.State);
+        Assert.Single(journal.Pending);
+    }
+
+    [Fact]
+    public async Task Pergunta_que_o_modelo_nao_responde_vira_execucao_que_falhou_com_o_codigo()
+    {
+        using var s = new Setup();
+        await s.SeedAsync();
+        s.Chat.Reply = "isto não é json";
+
+        await Assert.ThrowsAsync<EngineException>(() => s.Assistant.AskAsync(s.Harness.ProjectId, "Qual o risco?", CancellationToken.None));
+
+        var journal = OnlyJournal(s);
+        Assert.Equal(RunStates.Failed, journal.State);
+        Assert.Equal("MODEL_INVALID_RESPONSE", journal.Error);
+        Assert.Null(journal.ModelUsage);
+    }
+
+    [Fact]
+    public async Task Sem_modelo_configurado_a_falha_tambem_fica_registrada()
+    {
+        using var s = new Setup(configured: false);
+        await s.SeedAsync();
+
+        await Assert.ThrowsAsync<EngineException>(() => s.Assistant.AskAsync(s.Harness.ProjectId, "Qual o risco?", CancellationToken.None));
+
+        Assert.Equal("MODEL_NOT_CONFIGURED", OnlyJournal(s).Error);
+    }
+
+    [Fact]
+    public async Task Pergunta_invalida_e_projeto_nao_autorizado_nao_viram_execucao()
+    {
+        using var s = new Setup();
+        await s.SeedAsync();
+
+        await Assert.ThrowsAnyAsync<Exception>(() => s.Assistant.AskAsync(s.Harness.ProjectId, "?", CancellationToken.None));
+        await Assert.ThrowsAsync<EngineException>(() => s.Assistant.AskAsync("p-desconhecido01", "Qual o risco?", CancellationToken.None));
+
+        Assert.Empty(s.Store.ListJournals(s.Harness.ProjectId));
+        Assert.False(Directory.Exists(Path.Combine(s.Harness.DataDir, "projects", "p-desconhecido01")));
+    }
+
+    [Fact]
+    public async Task A_pergunta_aparece_na_lista_de_execucoes_e_nao_bloqueia_uma_execucao_andando_no_projeto()
+    {
+        using var s = new Setup();
+        await s.SeedAsync();
+        s.Chat.Reply = ValidReply;
+        var tracker = new RunTracker();
+        Assert.True(tracker.TryStart(s.Harness.ProjectId, RunKinds.Apply, out _));
+
+        await s.Assistant.AskAsync(s.Harness.ProjectId, "Qual o risco?", CancellationToken.None);
+
+        var listed = new RunCatalog(s.Store, s.Harness.Workspace, tracker).List(s.Harness.ProjectId, [RunKinds.Assistant], [], null, null);
+        var run = Assert.Single(listed["runs"]!.AsArray())!;
+        Assert.Equal("assistant", run["kind"]!.GetValue<string>());
+        Assert.Equal("completed", run["state"]!.GetValue<string>());
+        Assert.Equal(1200, run["tokens"]!.GetValue<int>());
     }
 }

@@ -6,7 +6,8 @@ const KIND_LABEL: Record<string, string> = {
   apply: 'Configuração aplicada',
   validate: 'Validação',
   revert: 'Reversão',
-  workflow: 'Workflow'
+  workflow: 'Workflow',
+  assistant: 'Pergunta ao assistente'
 };
 
 /** Um tipo novo do motor aparece como veio, nunca some. */
@@ -62,6 +63,8 @@ export function effectLabel(run: Pick<RunItem, 'kind' | 'changesApplied' | 'reve
 export function nextStep(run: RunItem): string {
   if (isInterrupted(run))
     return 'O aplicativo foi fechado no meio desta execução. Confira o que ela mudou abaixo e execute de novo se precisar.';
+  if (run.kind === 'assistant' && run.state === 'failed')
+    return 'A pergunta não foi respondida. Veja o motivo abaixo, confira o modelo em Configurações e pergunte de novo no Assistente.';
   switch (run.state) {
     case 'failed':
       return run.canRevert

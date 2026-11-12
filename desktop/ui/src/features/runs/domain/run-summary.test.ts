@@ -48,6 +48,7 @@ describe('resumo de entrega', () => {
     expect(deliverySummary(detail({}, 'validate')).request).toBe(
       'Validar o projeto contra as verificações do Harness.'
     );
+    expect(deliverySummary(detail({}, 'assistant')).request).toBe('Pergunta ao assistente gerencial sobre o projeto.');
     expect(deliverySummary(detail({}, 'algo-novo')).request).toBe('Execução do Spock Studio.');
   });
 

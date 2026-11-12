@@ -8,6 +8,8 @@ describe('rótulos das execuções', () => {
   it('tipo desconhecido aparece como veio', () => {
     expect(runKindLabel('apply')).toBe('Configuração aplicada');
     expect(runKindLabel('novo-tipo')).toBe('novo-tipo');
+    expect(runKindLabel('workflow')).toBe('Workflow');
+    expect(runKindLabel('assistant')).toBe('Pergunta ao assistente');
   });
 
   it('só diz o que a execução deixou no projeto quando é verdade', () => {

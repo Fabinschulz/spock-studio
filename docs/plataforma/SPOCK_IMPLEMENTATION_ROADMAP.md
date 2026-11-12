@@ -330,7 +330,29 @@ hoje já está em `integration.history` (50 sincronizações por integração). 
 conferido no aplicativo empacotado que o evento chega do motor real à tela: só a emissão (testes do motor) e a escuta
 (testes da interface), cada uma com seu dublê.
 
-Falta nesta fase: respostas do assistente como execuções, e a decisão sobre a sincronização na lista de execuções.
+**Oitava entrega da fase C (2026-11-12).** As perguntas ao assistente viram execuções, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| Tipo de execução `assistant` | Cada pergunta respondida grava um diário (`ask-…`) no mesmo armazenamento das demais, e por isso aparece sozinha em `run.list`, no filtro de tipo ("Pergunta ao assistente") e no detalhe. A auditoria `management.assistant_answered` continua como estava |
+| Só contagens, nunca texto | O diário traz os passos "Resposta escrita pelo modelo" e "Conferência do motor" (afirmações aceitas e descartadas, fatos citados) e o uso de tokens. **Nem a pergunta nem a resposta entram**: um teste confere que o texto de ambas, e a chave, não estão no arquivo, pela mesma regra de que o diário não guarda texto de pedido |
+| Estados | Resposta sem nada descartado: concluída. Afirmações descartadas pela conferência: **concluída com limitações**, com a pendência dita. Modelo sem configurar, fora do contrato ou fora do prazo: **falhou**, com o código do motivo, e o painel diz "A pergunta não foi respondida" e o que fazer, sem falar de alterações |
+| Não bloqueia nada | Não passa pelo rastreador (uma pergunta não escreve no projeto), então não impede nem é impedida por uma execução andando no mesmo projeto; um teste confere |
+| O que não vira execução | Pergunta curta ou longa demais (é erro de entrada) e projeto não autorizado, que nem cria pasta |
+| Falha ao gravar | Uma falha de disco ao gravar o registro nunca atrapalha a resposta |
+| Testes | 7 novos no motor e 2 na interface. Suítes: 620 no motor, 430 na interface, tipos, lint, formato e build limpos |
+
+Limites: o registro nasce **depois** da resposta, então uma pergunta que ainda espera o modelo não aparece como
+"em andamento"; e o texto da pergunta não fica no histórico, de propósito, o que torna a lista menos informativa do que
+a do Kaivor.
+
+**Estado da fase C (2026-11-12): oito entregas.** Da tabela original: listagem com filtro e paginação, tela com detalhe
+em painel, resumo de entrega, ligação com item de trabalho (e sua leitura em Gestão), indicador no menu, `run.snapshot`
+conferindo o projeto, sincronização com eventos e respostas do assistente como execução estão feitos. **Pendente de decisão
+sua:** colocar a sincronização na lista de execuções (hoje ela só avisa por evento e guarda o histórico em
+`integration.history`). Medição pendente: a listagem lê o diário inteiro de cada execução. Não conferido no aplicativo
+empacotado nem no navegador: o indicador do menu, o resumo de entrega, o bloco de itens, a seção em Gestão e os eventos
+de sincronização; o tema claro do `Drawer`.
 
 ### Fase D: gestão que explica
 

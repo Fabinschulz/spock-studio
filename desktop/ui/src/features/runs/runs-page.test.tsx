@@ -253,6 +253,37 @@ describe('Execuções · detalhe', () => {
     expect(within(panel).getByText(/nada foi aplicado/)).toBeTruthy();
   });
 
+  it('uma pergunta ao assistente que falhou diz como tentar de novo, sem falar de alterações', async () => {
+    const asked = item({
+      runId: 'ask-1',
+      kind: 'assistant',
+      state: 'failed',
+      error: 'MODEL_NOT_CONFIGURED',
+      canRevert: false
+    });
+    const harness = engine({ list: () => ({ ...runListFixture, runs: [asked] }) });
+    renderPage(harness.client);
+    const rows = within(await screen.findByRole('list', { name: 'Execuções' })).getAllByRole('button');
+    expect(rows[0]).toHaveTextContent('Pergunta ao assistente');
+
+    await userEvent.click(rows[0]!);
+
+    const panel = await screen.findByRole('dialog');
+    expect(within(panel).getByText(/A pergunta não foi respondida/)).toBeTruthy();
+    expect(within(panel).getByText('MODEL_NOT_CONFIGURED')).toBeTruthy();
+    expect(within(panel).queryByText(/nada foi aplicado/)).toBeNull();
+  });
+
+  it('o filtro de tipo oferece a pergunta ao assistente', async () => {
+    const { client, calls } = engine();
+    renderPage(client);
+    await screen.findByRole('list', { name: 'Execuções' });
+
+    await userEvent.selectOptions(screen.getByLabelText('Tipo'), 'assistant');
+
+    await waitFor(() => expect(listCalls(calls).at(-1)?.params).toMatchObject({ kinds: ['assistant'] }));
+  });
+
   it('só oferece o acompanhamento de quem anda agora ou espera aprovação', async () => {
     const harness = engine();
     renderPage(harness.client);

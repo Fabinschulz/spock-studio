@@ -4,7 +4,9 @@ import { runStateLabel } from '@/shared/utils';
 const KIND_LABEL: Record<string, string> = {
   apply: 'Configuração aplicada',
   validate: 'Validação',
-  revert: 'Reversão'
+  revert: 'Reversão',
+  workflow: 'Workflow',
+  assistant: 'Pergunta ao assistente'
 };
 
 /** Um tipo novo do motor aparece como veio, nunca some. */
