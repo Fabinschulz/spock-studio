@@ -73,6 +73,29 @@ gerencial com modelo real. Além disso, a chave de modelo está em texto puro.
 - **Pronto quando:** as três validações estiverem escritas com o resultado, inclusive o que falhou, e nenhum segredo
   estiver em texto puro.
 
+**Estado da fase A (2026-11-12).**
+
+- **Feito: chave de modelo no cofre.** Onde há cofre (Windows, DPAPI do usuário), a chave vai para o mesmo cofre das
+  conexões, sob um identificador reservado que o serviço de conexões nunca gera. Quem tinha `model.json` é migrado na
+  primeira leitura, e o arquivo só some depois de o cofre devolver exatamente a mesma chave: qualquer falha do cofre
+  deixa o arquivo e a chave continua valendo. Sem cofre (Linux e macOS) o comportamento antigo se mantém, e a central já
+  avisa que ali o cofre não existe. Provado por 17 testes, dois deles com a DPAPI real (nenhum arquivo contém a chave).
+- **Pronto para rodar, sem resultado ainda: as três validações reais.** `LiveValidationTests` fala com GitHub, Jira e
+  OpenAI de verdade, só quando a pessoa define as variáveis no próprio terminal; sem elas os testes aparecem como
+  ignorados, nunca como aprovados. Cada um confere consistência da contagem, idempotência da segunda sincronização,
+  isolamento ao recorte vinculado e ausência da credencial em qualquer arquivo, e imprime um relatório só com contagens.
+- **Falta do dono:** as credenciais de teste (itens 1 e 2 da seção 7) e rodar o comando abaixo. Até o relatório voltar, o
+  conector do Jira e o assistente com modelo real continuam como **não comprovados**.
+
+```powershell
+# Defina no terminal, nunca no chat. Basta definir os grupos que quiser validar.
+$env:MARILIZ_LIVE_GITHUB_TOKEN = "..."; $env:MARILIZ_LIVE_GITHUB_REPO = "dono/repositorio"
+$env:MARILIZ_LIVE_JIRA_SITE = "https://equipe.atlassian.net"; $env:MARILIZ_LIVE_JIRA_EMAIL = "..."
+$env:MARILIZ_LIVE_JIRA_TOKEN = "..."; $env:MARILIZ_LIVE_JIRA_PROJECT = "CHAVE"
+$env:MARILIZ_LIVE_OPENAI_KEY = "..."
+dotnet test runtime/tests/Mariliz.Application.Tests --filter "FullyQualifiedName~LiveValidationTests" --logger "console;verbosity=detailed"
+```
+
 ### Fase B: fundações de interface e shell
 
 **Por que agora.** Toda tela nova das fases seguintes precisa de página, seção, linha, estados e painel de detalhe.
