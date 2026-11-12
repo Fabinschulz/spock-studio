@@ -120,7 +120,7 @@ Portfólio, indicadores, previsão e riscos são determinísticos no .NET. Só `
 | Transporte | Implementado | Só GET, só HTTPS, sem seguir redirecionamento; Jira restrito a `*.atlassian.net`. |
 | Sincronização | Implementado | Sob demanda, incremental, 50 páginas por execução, retomada por página, sem eventos (a interface relê a cada 1,5 s). |
 | Auditoria de integrações | Implementado | `FileAuditLog.cs`, `{dataRoot}/audit.ndjson`. |
-| Provedor de IA como conexão | Inexistente | A chave de modelo fica fora da central, em texto puro em `{dataRoot}/model.json`. |
+| Provedor de IA como conexão | Inexistente | A chave de modelo fica fora da central. Desde a fase A ela vai para o cofre (DPAPI no Windows) e `model.json` só existe onde não há cofre. |
 | MCP, bancos, APIs HTTP, Azure DevOps, GitLab como conexão | Inexistente | Ponto de extensão: `IIntegrationConnector`. |
 | Escrita em provedor | Inexistente | Decisão registrada: só leitura. |
 | Validação com serviço real | Inexistente | Sincronização real do GitHub e todo o conector do Jira nunca foram validados. |
