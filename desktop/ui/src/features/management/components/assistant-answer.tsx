@@ -2,6 +2,7 @@ import type { AssistantAnswer, AssistantStatement } from '@/shared/schema';
 import { useId } from 'react';
 
 import { ANSWER_SECTIONS } from '../domain/assistant';
+import { Disclosure } from '@/shared/components';
 import styles from '../management-page.module.scss';
 
 /**
@@ -42,12 +43,16 @@ export function AssistantAnswerView({ answer }: { answer: AssistantAnswer }) {
       ) : null}
 
       {answer.rejected.length > 0 ? (
-        <details className={styles.method}>
-          <summary>
-            {answer.rejected.length === 1
-              ? '1 afirmação descartada pela verificação'
-              : `${answer.rejected.length} afirmações descartadas pela verificação`}
-          </summary>
+        <Disclosure
+          className={styles.method}
+          summary={
+            <>
+              {answer.rejected.length === 1
+                ? '1 afirmação descartada pela verificação'
+                : `${answer.rejected.length} afirmações descartadas pela verificação`}
+            </>
+          }
+        >
           <ul>
             {answer.rejected.map((item) => (
               <li key={`${item.section}:${item.text}`}>
@@ -55,7 +60,7 @@ export function AssistantAnswerView({ answer }: { answer: AssistantAnswer }) {
               </li>
             ))}
           </ul>
-        </details>
+        </Disclosure>
       ) : null}
 
       <p className={styles.ruleNote}>
@@ -86,16 +91,18 @@ function AnswerSection({ label, hint, statements, facts }: AnswerSectionProps) {
         {statements.map((statement) => (
           <li key={statement.text}>
             {statement.text}
-            <details className={styles.sources}>
-              <summary>
-                {statement.evidence.length === 1 ? '1 fato citado' : `${statement.evidence.length} fatos citados`}
-              </summary>
+            <Disclosure
+              className={styles.sources}
+              summary={
+                <>{statement.evidence.length === 1 ? '1 fato citado' : `${statement.evidence.length} fatos citados`}</>
+              }
+            >
               <ul>
                 {statement.evidence.map((id) => (
                   <li key={id}>{facts.get(id) ?? id}</li>
                 ))}
               </ul>
-            </details>
+            </Disclosure>
           </li>
         ))}
       </ul>

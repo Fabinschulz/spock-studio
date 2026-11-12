@@ -1,6 +1,6 @@
 import { formatEngineDate } from '@/features/integrations';
 import { errorMessage, type EngineClient } from '@/shared/api';
-import { StatusChip, PageSection, LoadingState, ErrorState } from '@/shared/components';
+import { StatusChip, PageSection, LoadingState, ErrorState, Disclosure } from '@/shared/components';
 import type { HarnessRevision, HarnessRevisions } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 import { useEffect, useState } from 'react';
@@ -123,8 +123,7 @@ function RevisionList({
                 </StatusChip>
               ) : null}
             </div>
-            <details className={styles.fileList}>
-              <summary>{summaryOf(revision)}</summary>
+            <Disclosure className={styles.fileList} summary={<>{summaryOf(revision)}</>}>
               <ul>
                 {revision.components
                   .flatMap((component) => [
@@ -138,7 +137,7 @@ function RevisionList({
                     </li>
                   ))}
               </ul>
-            </details>
+            </Disclosure>
           </li>
         ))}
       </ul>

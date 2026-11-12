@@ -44,6 +44,7 @@ describe('Integrações · conexões', () => {
     expect(within(row).getByText(/Escopos informados: repo, read:org/)).toBeInTheDocument();
     expect(screen.queryByRole('form', { name: 'Nova conexão com GitHub' })).not.toBeInTheDocument();
     expect(container.innerHTML).not.toContain(token);
+    expect(screen.getByText('GitHub da equipe conectada como octo.')).toBeInTheDocument();
     expect(engine.calls.find((call) => call.method === 'connection.create')?.params).toMatchObject({
       provider: 'github',
       secret: token
@@ -96,6 +97,9 @@ describe('Integrações · conexões', () => {
 
     await waitFor(() => expect(screen.queryByText('GitHub da equipe')).not.toBeInTheDocument());
     expect(removed().map((call) => call.params)).toEqual([{ connectionId: githubConnection.id }]);
+    expect(
+      screen.getByText('GitHub da equipe removida: a credencial foi apagada deste computador.')
+    ).toBeInTheDocument();
   });
 
   it('desconectar pede confirmação e só apaga a credencial depois de confirmada', async () => {
@@ -113,6 +117,45 @@ describe('Integrações · conexões', () => {
 
     expect(await within(row).findByText('Sem credencial')).toBeInTheDocument();
     expect(disconnected().map((call) => call.params)).toEqual([{ connectionId: githubConnection.id }]);
+    expect(
+      screen.getByText('GitHub da equipe desconectada: a credencial foi apagada deste computador.')
+    ).toBeInTheDocument();
+  });
+
+  it('testar só confirma quando o provedor aceitou a credencial', async () => {
+    const engine = fakeIntegrationEngine({ connections: [githubConnection] });
+    render(page(engine.client, null));
+    const row = (await screen.findByText('GitHub da equipe')).closest('li')!;
+
+    await userEvent.click(within(row).getByRole('button', { name: 'Testar' }));
+
+    expect(await screen.findByText('GitHub da equipe: o provedor aceitou a credencial.')).toBeInTheDocument();
+  });
+
+  it('testar não confirma nada quando o provedor recusa: a recusa aparece na conexão, não como sucesso', async () => {
+    const engine = fakeIntegrationEngine({ connections: [githubConnection], testRefused: true });
+    render(page(engine.client, null));
+    const row = (await screen.findByText('GitHub da equipe')).closest('li')!;
+
+    await userEvent.click(within(row).getByRole('button', { name: 'Testar' }));
+
+    expect(await within(row).findByText(/O provedor recusou a credencial\./)).toBeInTheDocument();
+    expect(engine.calls.some((call) => call.method === 'connection.test')).toBe(true);
+    expect(screen.queryByText(/aceitou a credencial/)).not.toBeInTheDocument();
+  });
+
+  it('a mensagem de sucesso anterior some quando a próxima ação começa', async () => {
+    const engine = fakeIntegrationEngine({ connections: [githubConnection] });
+    render(page(engine.client, null));
+    const row = (await screen.findByText('GitHub da equipe')).closest('li')!;
+    await userEvent.click(within(row).getByRole('button', { name: 'Testar' }));
+    expect(await screen.findByText(/o provedor aceitou a credencial/)).toBeInTheDocument();
+
+    await userEvent.click(within(row).getByRole('button', { name: 'Desconectar' }));
+    await userEvent.click(within(row).getByRole('button', { name: 'Apagar credencial' }));
+
+    expect(await screen.findByText(/desconectada: a credencial foi apagada/)).toBeInTheDocument();
+    expect(screen.queryByText(/o provedor aceitou a credencial/)).not.toBeInTheDocument();
   });
 });
 
@@ -139,6 +182,7 @@ describe('Integrações · vínculo com o projeto', () => {
 
     const row = (await screen.findByText('acme/app')).closest('li')!;
     expect(within(row).getByText(/Ainda não sincronizada/)).toBeInTheDocument();
+    expect(screen.getByText('acme/app vinculado a este projeto. Sincronize para trazer os dados.')).toBeInTheDocument();
     expect(engine.calls.find((call) => call.method === 'integration.link')?.params).toEqual({
       projectId: loja.projectId,
       connectionId: githubConnection.id,

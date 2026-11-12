@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Disclosure } from '../disclosure';
 import styles from './EvidenceDisclosure.module.scss';
 
 interface EvidenceDisclosureProps {
@@ -10,9 +11,8 @@ interface EvidenceDisclosureProps {
 export function EvidenceDisclosure({ summary, items, children }: EvidenceDisclosureProps) {
   if (items.length === 0 && !children) return null;
   return (
-    <details className={styles.details}>
-      <summary className={styles.summary}>{summary}</summary>
-      <div className={styles.content}>
+    <Disclosure summary={summary}>
+      <div className={styles.stack}>
         {children}
         <ul className={styles.list}>
           {/* A evidência pode repetir o mesmo texto (dois avisos iguais); a lista é estática, então a posição é a chave. */}
@@ -23,6 +23,6 @@ export function EvidenceDisclosure({ summary, items, children }: EvidenceDisclos
           ))}
         </ul>
       </div>
-    </details>
+    </Disclosure>
   );
 }

@@ -1,3 +1,4 @@
+import { PageSection } from '@/shared/components/ui';
 import { Checkbox } from '@mariliz/ui-kit';
 
 import type { PendingApproval } from '../domain/run-timeline';
@@ -19,8 +20,7 @@ export function ProposedActions({
   onToggle: (id: string) => void;
 }) {
   return (
-    <section aria-labelledby="acoes-titulo">
-      <h2 id="acoes-titulo">Ações propostas</h2>
+    <PageSection title="Ações propostas">
       <p>
         Nada é gravado no projeto sem a sua aprovação. O conteúdo é gerado pelo motor a partir do impacto já validado,
         não pelo agente. Marque o que quer executar.
@@ -38,6 +38,6 @@ export function ProposedActions({
           </li>
         ))}
       </ul>
-    </section>
+    </PageSection>
   );
 }

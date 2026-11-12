@@ -3,7 +3,7 @@ import type { ProjectKnowledge } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 import { useCallback, useEffect, useState } from 'react';
 
-import { PageSection, LoadingState, ErrorState } from '@/shared/components';
+import { PageSection, LoadingState, ErrorState, Disclosure } from '@/shared/components';
 import styles from '../project-page.module.scss';
 import { readKnowledge } from '../service/project-api';
 
@@ -121,11 +121,10 @@ function KnowledgeContent({ knowledge }: { knowledge: ProjectKnowledge }) {
         </ul>
       )}
 
-      <details className={styles.history}>
-        <summary>
-          Arquivos que entram ({knowledge.files.length < knowledge.allowed ? `${knowledge.files.length} de ` : ''}
-          {knowledge.allowed})
-        </summary>
+      <Disclosure
+        className={styles.history}
+        summary={`Arquivos que entram (${knowledge.files.length < knowledge.allowed ? `${knowledge.files.length} de ` : ''}${knowledge.allowed})`}
+      >
         <ul>
           {knowledge.files.map((file) => (
             <li key={file.path}>
@@ -136,7 +135,7 @@ function KnowledgeContent({ knowledge }: { knowledge: ProjectKnowledge }) {
             </li>
           ))}
         </ul>
-      </details>
+      </Disclosure>
     </>
   );
 }

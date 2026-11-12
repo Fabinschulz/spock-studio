@@ -206,11 +206,6 @@
   margin-top: var(--space-3);
   color: var(--color-text-muted);
 
-  summary {
-    cursor: pointer;
-    color: var(--color-text);
-  }
-
   ul {
     margin: 0 0 var(--space-2);
     padding-left: var(--space-4);
@@ -290,10 +285,6 @@
 .sources {
   font-size: 0.8125rem;
   color: var(--color-text-subtle);
-
-  summary {
-    cursor: pointer;
-  }
 
   ul {
     margin: var(--space-1) 0 0;

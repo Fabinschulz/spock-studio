@@ -13,6 +13,18 @@ export function LoadingState({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Uma ação que deu certo, dita perto de onde foi feita. Só se escreve quando o motor confirmou o efeito: sucesso nunca é
+ * presumido a partir de a chamada não ter falhado.
+ */
+export function SuccessState({ children }: { children: ReactNode }) {
+  return (
+    <p role="status" className={styles.success}>
+      {children}
+    </p>
+  );
+}
+
 interface ErrorStateProps {
   children: ReactNode;
   /** Quando a leitura pode ser refeita, oferece "Tentar de novo" ao lado do erro. */

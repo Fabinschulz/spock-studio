@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 
 import { CONFIDENCE_LABEL, changeText, toolKindLabel } from '../domain/profile-labels';
-import { PageSection, LoadingState, ErrorState } from '@/shared/components';
+import { PageSection, LoadingState, ErrorState, Disclosure } from '@/shared/components';
 import styles from '../project-page.module.scss';
 import { readProfile, refreshProfile } from '../service/project-api';
 
@@ -142,8 +142,7 @@ function ProfileContent({ profile }: { profile: TechnologyProfile }) {
         ))}
       </ul>
 
-      <details className={styles.history}>
-        <summary>Histórico de mudanças ({profile.history.length})</summary>
+      <Disclosure className={styles.history} summary={<>Histórico de mudanças ({profile.history.length})</>}>
         <ul>
           {profile.history.slice(0, HISTORY_SHOWN).map((change, index) => (
             <li key={`${change.at}:${index}`}>
@@ -151,7 +150,7 @@ function ProfileContent({ profile }: { profile: TechnologyProfile }) {
             </li>
           ))}
         </ul>
-      </details>
+      </Disclosure>
     </>
   );
 }

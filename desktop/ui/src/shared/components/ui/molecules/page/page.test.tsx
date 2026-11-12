@@ -8,7 +8,8 @@ import type { Resource } from '@/shared/hooks';
 import { expectNoA11yViolations } from '@/test/a11y';
 
 import { AppProviders } from '../../../providers';
-import { EmptyState, ErrorState, LoadingState, NoProjectState } from '../page-state';
+import { Disclosure } from '../disclosure';
+import { EmptyState, ErrorState, LoadingState, NoProjectState, SuccessState } from '../page-state';
 import { PageSection } from '../page-section';
 import { ResourceView } from '../resource-view';
 import { Page } from './Page';
@@ -94,6 +95,13 @@ describe('Estados de página', () => {
     expect(retry).toHaveBeenCalledTimes(1);
   });
 
+  it('sucesso é uma região de estado, não um alerta', () => {
+    renderInApp(<SuccessState>Conexão salva.</SuccessState>);
+
+    expect(screen.getByRole('status')).toHaveTextContent('Conexão salva.');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('vazio não é alerta nem carregando', () => {
     renderInApp(<EmptyState>Nenhum item ainda.</EmptyState>);
 
@@ -118,6 +126,53 @@ describe('Estados de página', () => {
           <NoProjectState />
         </PageSection>
       </Page>
+    );
+
+    await expectNoA11yViolations(container);
+  });
+});
+
+describe('Disclosure', () => {
+  it('começa fechado, abre e fecha com o clique no título e é o <details> do navegador', async () => {
+    renderInApp(
+      <Disclosure summary="Como é calculado">
+        <p>a conta</p>
+      </Disclosure>
+    );
+    const summary = screen.getByText('Como é calculado');
+    const details = summary.closest('details')!;
+
+    expect(details).not.toHaveAttribute('open');
+    await userEvent.click(summary);
+    expect(details).toHaveAttribute('open');
+    expect(within(details).getByText('a conta')).toBeInTheDocument();
+    await userEvent.click(summary);
+    expect(details).not.toHaveAttribute('open');
+  });
+
+  it('abre já quando pedido, e aceita texto formatado no título', () => {
+    renderInApp(
+      <Disclosure summary={<>Arquivos ({3})</>} defaultOpen>
+        <p>lista</p>
+      </Disclosure>
+    );
+
+    expect(screen.getByText('Arquivos (3)').closest('details')).toHaveAttribute('open');
+  });
+
+  it('o título recebe o foco do teclado; ativá-lo é do navegador, que abre o <details> com Enter e espaço', async () => {
+    renderInApp(<Disclosure summary="Detalhes">conteúdo</Disclosure>);
+
+    await userEvent.tab();
+
+    expect(screen.getByText('Detalhes')).toHaveFocus();
+  });
+
+  it('não tem violações estruturais de acessibilidade', async () => {
+    const { container } = renderInApp(
+      <Disclosure summary="Detalhes técnicos" defaultOpen>
+        <p>conteúdo</p>
+      </Disclosure>
     );
 
     await expectNoA11yViolations(container);

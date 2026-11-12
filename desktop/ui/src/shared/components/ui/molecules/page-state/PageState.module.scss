@@ -7,6 +7,11 @@
   color: var(--color-text-muted);
 }
 
+.success {
+  margin: 0;
+  color: var(--color-success);
+}
+
 .error {
   display: flex;
   flex-wrap: wrap;

@@ -1,5 +1,6 @@
 export * from './action-card';
 export * from './diff-view';
+export * from './disclosure';
 export * from './evidence-disclosure';
 export * from './page';
 export * from './page-header';

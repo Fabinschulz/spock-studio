@@ -137,14 +137,25 @@ Decisão visível ao dono: a página de Configurações passou da largura de 36r
 
 Gestão não ganhou uma "Visão geral" separada: o Acompanhamento já é a visão geral do projeto nesse ambiente, e uma tela nova só repetiria o conteúdo. O alternador de ambiente continua levando a ele.
 
+**Quarta entrega da fase B (2026-11-12).** Também só interface, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| Execução do workflow e Pedido de engenharia na `Page` | A Execução trocou o `<h1>` e as nove seções avulsas por `Page` e `PageSection`, e o Pedido de engenharia passou a usar `Page` (com a trilha que já tinha). O Pedido passou de 36rem para os 46rem das demais |
+| `Disclosure` | Um componente para o "ver detalhes": o `<details>` do navegador com o mesmo visual (triângulo, foco, alvo mínimo, cor de ação). Substitui sete `<details>` de texto (assistente, resposta do assistente, previsão, conhecimento, perfil e revisões) e passou a ser a base do `EvidenceDisclosure` |
+| Confirmação de sucesso das ações de conexão | `SuccessState` e uma mensagem opcional em `useAction`, escrita a partir do resultado: conectar, atualizar credencial, desconectar, remover, vincular e desvincular. **Testar** só confirma quando o motor devolve a conexão como "conectada": `connection.test` não falha quando o provedor recusa, só marca a conexão com erro, e um "deu certo" ali seria falso. A mensagem some quando a próxima ação começa |
+| Testes | 343 na interface, mais tipos, lint, formato e build limpos. Prévia visual da mensagem de sucesso, do `Disclosure` aberto e fechado e do Pedido de engenharia |
+
+Limites desta entrega: a mensagem de sucesso aparece no fim da seção, como os erros, e não dentro da linha da conexão que foi testada. Os quatro `<details>` de linha de lista da jornada Configurar (decisões, validação, arquivos, execução) têm sumário com layout próprio e ficaram como estão. O teste de teclado do `Disclosure` só prova o foco: o jsdom não ativa um `<summary>` com Enter, os navegadores ativam.
+
 Ainda falta nesta fase:
 
 | Pendente | Observação |
 | --- | --- |
 | Painel de detalhe e confirmação sobre o `Drawer` do ui-kit | O `Drawer` já traz título, Esc, clique fora e botão fechar. Entra junto com a central de execuções (fase C), que é a primeira tela a precisar dele, para não ficar componente sem uso |
-| Telas fora desta migração | Execução do workflow, Pedido de engenharia, Início e as etapas da jornada ainda têm cabeçalho e seções próprios |
-| Linha de lista e divulgação (`<details>`) como componentes | Os `<details>` de onze arquivos continuam com estilos distintos |
-| Retorno de ação com confirmação de sucesso | Testar uma conexão, salvar a chave e sincronizar não confirmam o sucesso além da mudança do dado; a confirmação destrutiva continua feita na linha, em cada tela, e não por um componente único |
+| Início e etapas da jornada Configurar | Têm desenho e moldura próprios (lançador e jornada); migrar para `Page` não ganha consistência e arrisca o que é a parte mais acabada do produto |
+| Mensagem de sucesso dentro da linha | Hoje fica no fim da seção; levar para a linha da conexão pede que `useAction` saiba qual linha agiu |
+| Confirmação destrutiva como componente | Continua feita na linha, em cada tela (desconectar, remover, desvincular) |
 | Nome de exibição do projeto editável | Pede método novo no motor |
 
 ### Fase C: central de execuções ligada à entrega

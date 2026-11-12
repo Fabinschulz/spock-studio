@@ -1,4 +1,4 @@
-import { StatusChip, PageSection } from '@/shared/components';
+import { StatusChip, PageSection, Disclosure } from '@/shared/components';
 import type { Connector, DeliveryForecast, ProjectForecast } from '@/shared/schema';
 import { useId } from 'react';
 
@@ -25,8 +25,7 @@ export function ForecastSection({ forecast, connectors }: ForecastSectionProps) 
       {forecast.kinds.map((kind) => (
         <KindForecast key={kind.kind} forecast={kind} label={label(kind.kind)} />
       ))}
-      <details className={styles.method}>
-        <summary>Como a previsão é calculada</summary>
+      <Disclosure className={styles.method} summary="Como a previsão é calculada">
         <p>{forecast.method}</p>
         <p className={styles.methodHeading}>Premissas</p>
         <ul>
@@ -40,7 +39,7 @@ export function ForecastSection({ forecast, connectors }: ForecastSectionProps) 
             <li key={text}>{text}</li>
           ))}
         </ul>
-      </details>
+      </Disclosure>
     </PageSection>
   );
 }

@@ -1,3 +1,5 @@
+import { PageSection } from '@/shared/components/ui';
+
 import type { WorkflowSnapshot } from '../domain/run-timeline';
 import styles from './workspace.module.scss';
 
@@ -17,8 +19,7 @@ export function EvaluationSection({ evaluation }: { evaluation: Evaluation }) {
   const judgment = evaluation.judgment;
   if (!judgment) return null;
   return (
-    <section aria-labelledby="avaliacao-titulo">
-      <h2 id="avaliacao-titulo">Avaliação por modelo</h2>
+    <PageSection title="Avaliação por modelo">
       <p>
         Uma opinião registrada por um avaliador independente. Ela não decide o resultado da execução.{' '}
         <strong>
@@ -38,6 +39,6 @@ export function EvaluationSection({ evaluation }: { evaluation: Evaluation }) {
       <p>
         Modelo: {judgment.model} ({judgment.modelVersion}), critérios versão {judgment.criteriaVersion}.
       </p>
-    </section>
+    </PageSection>
   );
 }

@@ -8,7 +8,7 @@ import { Link } from 'react-router';
 
 import { useAction } from '../hooks/use-action';
 import { useReloadable } from '../hooks/use-reloadable';
-import { PageSection, LoadingState, ErrorState } from '@/shared/components';
+import { ErrorState, LoadingState, PageSection, SuccessState } from '@/shared/components';
 import styles from '../integrations-page.module.scss';
 import type { IntegrationApi } from '../service/integration-api';
 import { IntegrationRow } from './integration-row';
@@ -56,7 +56,7 @@ function ProjectIntegrations({
     reloadList();
     onChanged();
   }, [reloadList, onChanged]);
-  const { busy, error, run } = useAction(reload);
+  const { busy, error, notice, run } = useAction(reload);
   const [linking, setLinking] = useState<string | null>(null);
 
   // O motor sincroniza em segundo plano e não avisa por evento: enquanto houver uma em andamento, a lista é relida.
@@ -101,12 +101,19 @@ function ProjectIntegrations({
                 'Não foi possível mudar o recorte.'
               )
             }
-            onUnlink={() => void run(() => api.unlink(projectId, integration.id), 'Não foi possível desvincular.')}
+            onUnlink={() =>
+              void run(
+                () => api.unlink(projectId, integration.id),
+                'Não foi possível desvincular.',
+                () => `Vínculo com ${integration.scope.resourceName} removido.`
+              )
+            }
             loadHistory={() => api.history(projectId, integration.id)}
           />
         ))}
       </ul>
 
+      {notice ? <SuccessState>{notice}</SuccessState> : null}
       {error ? <ErrorState>{error}</ErrorState> : null}
 
       {linkingConnection && linkingConnector ? (
@@ -119,7 +126,8 @@ function ProjectIntegrations({
           onSubmit={(resource, dataKinds) =>
             void run(
               () => api.link({ projectId, connectionId: linkingConnection.id, resource, dataKinds }),
-              'Não foi possível vincular.'
+              'Não foi possível vincular.',
+              (linked) => `${linked.scope.resourceName} vinculado a este projeto. Sincronize para trazer os dados.`
             ).then((ok) => {
               if (ok) setLinking(null);
             })

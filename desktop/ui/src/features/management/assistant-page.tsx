@@ -1,6 +1,6 @@
 import type { SelectedProject } from '@/features/project-selection';
 import { EngineError, errorMessage, type EngineClient } from '@/shared/api';
-import { InlineNotice, ErrorState, LoadingState, NoProjectState, Page } from '@/shared/components';
+import { InlineNotice, ErrorState, LoadingState, NoProjectState, Page, Disclosure } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 import type { AssistantAnswer } from '@/shared/schema';
@@ -113,10 +113,12 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
             </div>
           </form>
 
-          <details className={styles.method}>
-            <summary>
-              O que será enviado ao provedor de modelo: a pergunta e {context.value.evidence.facts.length} fatos
-            </summary>
+          <Disclosure
+            className={styles.method}
+            summary={
+              <>O que será enviado ao provedor de modelo: a pergunta e {context.value.evidence.facts.length} fatos</>
+            }
+          >
             <ul>
               {context.value.evidence.withheld.map((text) => (
                 <li key={text}>{text}</li>
@@ -127,7 +129,7 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
                 <li key={fact.id}>{fact.text}</li>
               ))}
             </ul>
-          </details>
+          </Disclosure>
 
           {error ? (
             <p className={styles.errorText} role="alert">
