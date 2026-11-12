@@ -18,7 +18,7 @@ public static class FlowCalculator
         var open = items.Count(DeliveryRules.IsOpen);
         if (items.Count == 0)
             return new KindFlow(kind, 0, 0, new CountMetric(null, NoItems), new ThroughputMetric([], null, null, NoItems),
-                new LeadTimeMetric(0, null, null, NoItems), new OverdueMetric(null, 0, NoItems));
+                new LeadTimeMetric(0, null, null, NoItems), new CycleTimeMetric(0, 0, null, null, NoItems), new OverdueMetric(null, 0, NoItems));
 
         return new KindFlow(
             kind,
@@ -27,6 +27,7 @@ public static class FlowCalculator
             new CountMetric(items.Count(DeliveryRules.IsInProgress), null),
             Throughput(items, now, weeks),
             LeadTime(items, now.AddDays(-7 * weeks), now),
+            CycleTime(items, now.AddDays(-7 * weeks), now),
             Overdue(items, now));
     }
 
@@ -64,6 +65,53 @@ public static class FlowCalculator
 
         return new LeadTimeMetric(days.Count, Round(Percentile(days, 0.5)), Round(Percentile(days, 0.85)), null);
     }
+
+    public const string NoStartInformation =
+        "A fonte não informa quando o trabalho começou: sem histórico de status, não há como saber a data de início.";
+
+    /// <summary>
+    /// Dias corridos do início à conclusão, dos itens entregues no período. O <b>início</b> é a primeira mudança de status
+    /// para um status que está na categoria "em andamento"; item sem uma mudança assim fica de fora e é contado em
+    /// <c>Excluded</c>. A categoria de um nome de status vem dos próprios itens: um nome só é classificado se todos os itens
+    /// que estão nele agora concordam na categoria. Por isso um status por onde só passaram itens já concluídos e
+    /// que nenhum item ocupa hoje não é reconhecido, e um nome com categorias conflitantes também não.
+    /// </summary>
+    private static CycleTimeMetric CycleTime(IReadOnlyCollection<WorkItem> items, DateTimeOffset from, DateTimeOffset to)
+    {
+        if (items.All(item => item.Transitions.Count == 0))
+            return new CycleTimeMetric(0, 0, null, null, NoStartInformation);
+
+        var categories = StatusCategoriesByName(items);
+        var delivered = items.Where(item => DeliveryRules.IsDelivered(item) && Within(item.ClosedAt!.Value, from, to)).ToList();
+        var days = new List<double>();
+        foreach (var item in delivered)
+        {
+            if (StartOf(item, categories) is { } start)
+                days.Add(Math.Max(0, (item.ClosedAt!.Value - start).TotalDays));
+        }
+
+        days.Sort();
+        var excluded = delivered.Count - days.Count;
+        if (days.Count < MinLeadTimeSample)
+            return new CycleTimeMetric(days.Count, excluded, null, null,
+                $"São precisos ao menos {MinLeadTimeSample} itens entregues com início conhecido no período; há {days.Count}"
+                + (excluded > 0 ? $" ({excluded} sem início conhecido)." : "."));
+
+        return new CycleTimeMetric(days.Count, excluded, Round(Percentile(days, 0.5)), Round(Percentile(days, 0.85)), null);
+    }
+
+    private static DateTimeOffset? StartOf(WorkItem item, IReadOnlyDictionary<string, string> categories) =>
+        item.Transitions
+            .Where(transition => categories.GetValueOrDefault(transition.To) == StatusCategories.InProgress)
+            .Select(transition => (DateTimeOffset?)transition.At)
+            .Min();
+
+    /// <summary>Nome do status para a categoria dos itens que estão nele; ignora nomes cujos itens discordam.</summary>
+    private static Dictionary<string, string> StatusCategoriesByName(IReadOnlyCollection<WorkItem> items) =>
+        items.Where(item => item.Status.Length > 0)
+            .GroupBy(item => item.Status, StringComparer.OrdinalIgnoreCase)
+            .Where(group => group.Select(item => item.StatusCategory).Distinct().Count() == 1)
+            .ToDictionary(group => group.Key, group => group.First().StatusCategory, StringComparer.OrdinalIgnoreCase);
 
     private static OverdueMetric Overdue(IReadOnlyCollection<WorkItem> items, DateTimeOffset now)
     {

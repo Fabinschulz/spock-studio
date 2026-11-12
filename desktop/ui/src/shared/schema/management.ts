@@ -24,6 +24,15 @@ export const kindFlowSchema = z.object({
     p85Days: z.number().nullable(),
     unavailable: z.string().nullable()
   }),
+  /** Do início do trabalho (primeira entrada em andamento no histórico de status) à conclusão. */
+  cycleTime: z.object({
+    sample: z.number(),
+    /** Itens entregues no período que ficaram de fora por não ter início conhecido. */
+    excluded: z.number(),
+    medianDays: z.number().nullable(),
+    p85Days: z.number().nullable(),
+    unavailable: z.string().nullable()
+  }),
   overdue: z.object({ value: z.number().nullable(), withDueDate: z.number(), unavailable: z.string().nullable() })
 });
 

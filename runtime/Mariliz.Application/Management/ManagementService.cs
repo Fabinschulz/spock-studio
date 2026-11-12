@@ -18,8 +18,6 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
     /// <summary>Pedidos no pedido de gestão que esta versão não calcula. Ficam na resposta para a interface dizer que faltam.</summary>
     public static readonly IReadOnlyList<NotCalculated> NotCalculatedYet =
     [
-        new("cycleTime", "Cycle time",
-            "Precisa saber quando o trabalho começou. O GitHub não informa; no Jira, o histórico de status traz nomes que mudam por site."),
         new("blockers", "Bloqueios", "O bloqueio no Jira é um campo personalizado, diferente em cada site; ainda não é lido."),
         new("scopeChange", "Mudança de escopo", "Precisa de um escopo de referência (sprint ou marco), que ainda não é sincronizado."),
         new("predictability", "Previsibilidade", "Precisa do que foi planejado por período, que ainda não é sincronizado.")

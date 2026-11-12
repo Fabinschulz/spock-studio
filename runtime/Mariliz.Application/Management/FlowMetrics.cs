@@ -13,6 +13,13 @@ public sealed record ThroughputMetric(IReadOnlyList<WeekWindow> Weeks, int? Tota
 /// <param name="Sample">Quantos itens entregues no período entraram no cálculo.</param>
 public sealed record LeadTimeMetric(int Sample, double? MedianDays, double? P85Days, string? Unavailable);
 
+/// <summary>
+/// Dias corridos do início do trabalho à conclusão, dos itens entregues no período que têm início conhecido.
+/// </summary>
+/// <param name="Sample">Itens entregues com início conhecido: a base do cálculo.</param>
+/// <param name="Excluded">Itens entregues no período que ficaram de fora por não ter início conhecido.</param>
+public sealed record CycleTimeMetric(int Sample, int Excluded, double? MedianDays, double? P85Days, string? Unavailable);
+
 /// <param name="WithDueDate">Quantos itens abertos têm prazo informado: a base do indicador.</param>
 public sealed record OverdueMetric(int? Value, int WithDueDate, string? Unavailable);
 
@@ -24,6 +31,7 @@ public sealed record KindFlow(
     CountMetric Wip,
     ThroughputMetric Throughput,
     LeadTimeMetric LeadTime,
+    CycleTimeMetric CycleTime,
     OverdueMetric Overdue);
 
 /// <param name="Complete">Falso quando a última sincronização terminou parcial ou com falha, ou nunca houve uma.</param>

@@ -61,6 +61,11 @@ public static class EvidenceBuilder
             ? new($"{id}.leadtime", "indicadores", $"Lead time de {label}: sem valor ({leadMissing})")
             : new($"{id}.leadtime", "indicadores",
                 $"Lead time de {label}: mediana {Number(flow.LeadTime.MedianDays!.Value)} dias, percentil 85 {Number(flow.LeadTime.P85Days!.Value)} dias, sobre {flow.LeadTime.Sample} entregas.");
+        yield return flow.CycleTime.Unavailable is { } cycleMissing
+            ? new($"{id}.cycletime", "indicadores", $"Cycle time de {label}: sem valor ({cycleMissing})")
+            : new($"{id}.cycletime", "indicadores",
+                $"Cycle time de {label}: mediana {Number(flow.CycleTime.MedianDays!.Value)} dias, percentil 85 {Number(flow.CycleTime.P85Days!.Value)} dias, "
+                + $"sobre {flow.CycleTime.Sample} entregas com início conhecido ({flow.CycleTime.Excluded} sem início conhecido).");
         yield return Metric($"{id}.overdue", $"{label} abertos com prazo vencido", flow.Overdue.Value?.ToString(CultureInfo.InvariantCulture), flow.Overdue.Unavailable);
     }
 

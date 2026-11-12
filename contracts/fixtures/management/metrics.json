@@ -61,6 +61,13 @@
         "p85Days": 2,
         "unavailable": null
       },
+      "cycleTime": {
+        "sample": 6,
+        "excluded": 0,
+        "medianDays": 3,
+        "p85Days": 6,
+        "unavailable": null
+      },
       "overdue": {
         "value": null,
         "withDueDate": 0,
@@ -112,6 +119,13 @@
         "p85Days": null,
         "unavailable": "São precisos ao menos 5 itens entregues no período; há 1."
       },
+      "cycleTime": {
+        "sample": 0,
+        "excluded": 0,
+        "medianDays": null,
+        "p85Days": null,
+        "unavailable": "A fonte não informa quando o trabalho começou: sem histórico de status, não há como saber a data de início."
+      },
       "overdue": {
         "value": null,
         "withDueDate": 0,
@@ -120,11 +134,6 @@
     }
   ],
   "notCalculated": [
-    {
-      "id": "cycleTime",
-      "label": "Cycle time",
-      "reason": "Precisa saber quando o trabalho começou. O GitHub não informa; no Jira, o histórico de status traz nomes que mudam por site."
-    },
     {
       "id": "blockers",
       "label": "Bloqueios",

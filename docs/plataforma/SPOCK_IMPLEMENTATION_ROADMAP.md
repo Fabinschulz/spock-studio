@@ -374,6 +374,26 @@ Entregas 3 e 4 da ordem aprovada, mais marcos e relatórios.
 - **Pronto quando:** cada indicador novo tem fórmula, teste conferido à mão e fixture; a tela mostra de onde veio cada
   número.
 
+**Estado da fase D (2026-11-12).** Primeira entrega feita na branch `feat/fase-d-gestao-explica` (criada da `master`),
+sem commit até o dono pedir: o **cycle time**.
+
+| Feito | Observação |
+| --- | --- |
+| Fórmula | Dias corridos do **início** à conclusão, dos itens entregues no período (a mesma população do lead time). O início é a **primeira mudança de status para um status da categoria "em andamento"**; reabertura posterior não muda o início. Mediana e percentil 85 pelo mesmo método do lead time (posição ⌈p·n⌉, valor observado), mínimo de 5 itens |
+| De onde vem a categoria do status | O histórico do Jira traz só nomes ("Em revisão"), que mudam por site. O nome é classificado pelos **itens que estão nele agora**: só vale se todos concordam na categoria. Efeitos ditos na descrição do código: um status que nenhum item ocupa hoje não é reconhecido, e um nome com categorias conflitantes também não. Em ambos os casos o item **sai do cálculo e é contado** |
+| "Sem dado" com motivo | Fonte sem nenhum histórico de status (o GitHub): "A fonte não informa quando o trabalho começou". Amostra pequena: diz quantos há e quantos ficaram de fora ("há 3 (2 sem início conhecido)"). Nunca um zero |
+| Onde aparece | `cycleTime` em cada tipo de dado de `management.metrics` (amostra, excluídos, mediana, P85); fato `cycletime` no pacote do assistente, com número e motivo; figura "Cycle time mediano" na seção de fluxo, com "85% em até N dias" e "N itens sem início conhecido"; o item saiu da lista "Ainda não calculado" (Bloqueios, Mudança de escopo e Previsibilidade continuam nela) |
+| Conferido à mão | Os testes trazem as contas na descrição: ciclos de 1, 2, 3, 4, 5, 6 e 10 dias dão mediana 4 e P85 6; com reabertura e várias entradas vale a primeira; direto de "A fazer" para "Concluído" sai e é contado; nome sem diferenciar maiúsculas; nome conflitante; só o que foi entregue no período. A fixture `metrics.json` do motor real mostra mediana 3 e P85 6 num cenário que calculei antes de gerar |
+| Testes | 10 novos de cálculo, 4 na tela de fluxo e ajustes nos de Gestão e do assistente. Suítes: 630 no motor, 434 na interface, tipos, lint, formato e build limpos |
+
+Limites: **o GitHub continua "sem dado"**. A API de eventos da issue pediria uma chamada por item e foge do teto de
+chamadas da sincronização; não foi feita. Nada disto foi validado com um Jira real (a fase A segue sem a validação real),
+então o formato do histórico foi lido do que o conector já grava e dos testes com dublê. O percentil 85 pela posição, e
+não interpolado, arredonda para um valor observado, como no lead time.
+
+Falta nesta fase: bloqueios, marcos, histórico de cada risco, registro de decisão gerencial, relatório do período,
+componentes de indicador e faixa de previsão, histórico de perguntas do assistente.
+
 ### Fase E: catálogo do Harness
 
 Entrega 5 da ordem aprovada.

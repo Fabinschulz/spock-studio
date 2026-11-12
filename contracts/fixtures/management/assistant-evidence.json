@@ -34,6 +34,11 @@
       "text": "Lead time de Issues: mediana 2 dias, percentil 85 2 dias, sobre 16 entregas."
     },
     {
+      "id": "flow.issues.cycletime",
+      "group": "indicadores",
+      "text": "Cycle time de Issues: sem valor (A fonte não informa quando o trabalho começou: sem histórico de status, não há como saber a data de início.)"
+    },
+    {
       "id": "flow.issues.overdue",
       "group": "indicadores",
       "text": "Issues abertos com prazo vencido: 1."
@@ -52,11 +57,6 @@
       "id": "risk.overdue",
       "group": "riscos",
       "text": "Risco detectado por regra: Itens com prazo vencido, severidade alta. 1 de 1 item aberto com prazo está vencido. O mais atrasado venceu há 9 dias. Itens: 41."
-    },
-    {
-      "id": "missing.cycleTime",
-      "group": "não calculado",
-      "text": "Cycle time não é calculado: Precisa saber quando o trabalho começou. O GitHub não informa; no Jira, o histórico de status traz nomes que mudam por site."
     },
     {
       "id": "missing.blockers",

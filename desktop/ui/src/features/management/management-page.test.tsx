@@ -76,6 +76,12 @@ describe('Gestão · acompanhamento do projeto', () => {
     const issues = within(flow).getByRole('group', { name: 'Issues' });
     expect(within(issues).getByText('Entregues por semana (média)').nextElementSibling).toHaveTextContent('1,5');
     expect(within(issues).getByText('Em andamento').nextElementSibling).toHaveTextContent('1');
+    // Os itens do cenário têm histórico de status: cada um levou n dias em andamento, mediana 3 e percentil 85 em 6.
+    expect(within(issues).getByText('Cycle time mediano').nextElementSibling).toHaveTextContent('3');
+    expect(within(issues).getByText('Cycle time mediano').closest('div')).toHaveTextContent('85% em até 6');
+    // O pull request não traz histórico de status: o motivo aparece no lugar do número.
+    const pulls = within(flow).getByRole('group', { name: 'Pull requests' });
+    expect(within(pulls).getByText(/A fonte não informa quando o trabalho começou/)).toBeInTheDocument();
     expect(within(flow).getAllByText('A fonte não informa prazo para estes itens.')).toHaveLength(2);
     expect(
       within(flow).getByRole('table', { name: 'Issues: itens entregues e itens novos por semana' })
@@ -83,7 +89,8 @@ describe('Gestão · acompanhamento do projeto', () => {
     expect(within(flow).queryByText('Dados incompletos')).not.toBeInTheDocument();
 
     const missing = screen.getByRole('heading', { name: 'Ainda não calculado' }).closest('section')!;
-    expect(within(missing).getByText('Cycle time.')).toBeInTheDocument();
+    expect(within(missing).getByText('Bloqueios.')).toBeInTheDocument();
+    expect(within(missing).queryByText('Cycle time.')).not.toBeInTheDocument();
     expect(within(missing).queryByText('Previsão de entrega.')).not.toBeInTheDocument();
 
     const forecast = screen.getByRole('heading', { name: 'Previsão de entrega' }).closest('section')!;
