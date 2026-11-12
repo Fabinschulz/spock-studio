@@ -8,6 +8,7 @@ import { Drawer } from '@mariliz/ui-kit';
 import { useCallback, type ReactNode } from 'react';
 import { Link } from 'react-router';
 
+import { deliverySummary } from '../domain/run-summary';
 import { displayState, effectLabel, hasLiveView, nextStep, runKindLabel, stateTone } from '../domain/run-labels';
 import { readRunDetail } from '../service/runs-api';
 import styles from '../runs-page.module.scss';
@@ -76,8 +77,22 @@ function Body({ detail }: { detail: RunDetail }) {
     detail.notApplied.length === 0 &&
     detail.pending.length === 0;
 
+  const summary = deliverySummary(detail);
+
   return (
     <>
+      <DetailBlock title="Resumo da entrega">
+        <dl className={styles.summary}>
+          <dt>Pedido</dt>
+          <dd>{summary.request}</dd>
+          <dt>Feito</dt>
+          <dd>{summary.done.join(' ')}</dd>
+          <dt>Validado</dt>
+          <dd>{summary.validated}</dd>
+          <dt>Ficou de fora</dt>
+          <dd>{summary.leftOut.length > 0 ? summary.leftOut.join(' ') : 'Nada ficou de fora.'}</dd>
+        </dl>
+      </DetailBlock>
       {detail.steps.length > 0 ? (
         <DetailBlock title="Passos">
           <ul className={styles.plain}>

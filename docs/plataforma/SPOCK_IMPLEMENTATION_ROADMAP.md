@@ -269,8 +269,19 @@ Limite: cada leitura do indicador faz o motor ler os diários de todos os projet
 cadência de 20 s é aceitável hoje; com milhares de execuções pede o índice já registrado como medição pendente. O
 aviso não foi conferido visualmente no navegador nesta entrega, só por testes.
 
-Falta nesta fase: sincronização e respostas do assistente como execuções, resumo de entrega no topo da execução e
-ligação com item de trabalho.
+**Quarta entrega da fase C (2026-11-12).** O resumo de entrega no topo do detalhe da execução, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| `summary` em `run.detail` | Contagens do diário, sem interpretação: **feito** (arquivos criados, atualizados, removidos e revertidos; passos concluídos; ações de agentes executadas), **validado** (verificações que passaram, falharam, ficaram bloqueadas ou não rodaram, e quantas obrigatórias não passaram) e **ficou de fora** (alterações não aplicadas, arquivos em conflito, ações não executadas, pendências) |
+| Seção "Resumo da entrega" | Primeira seção do painel, em quatro linhas: Pedido, Feito, Validado, Ficou de fora. Sem nenhuma verificação registrada, diz isso em vez de mostrar zero, que pareceria falha; sem nada de fora, diz "Nada ficou de fora." |
+| O "Pedido" não traz o texto da pessoa | Tentei gravar o pedido no diário do workflow e **desfiz**: dois testes de segurança existentes provam que o diário nunca guarda o texto do pedido (ele fica só no checkpoint do runtime), e um terceiro que um projeto não enxerga o conteúdo do outro. O "Pedido" diz o que o tipo de execução faz ("Aplicar a configuração do Harness no projeto"). Mostrar o texto exigiria decidir antes onde ele pode ser guardado |
+| Concordância | Os testes do domínio pegaram "passouram" e "1 de 3 passos concluídos"; as frases agora concordam com o número |
+| Testes | 20 no catálogo, 9 do domínio do resumo e o painel conferido com o resumo da fixture. Suítes: 583 no motor, 412 na interface, tipos, lint, formato e build limpos |
+
+Limite: o resumo não foi conferido visualmente no navegador (a grade de quatro linhas é nova), só por testes.
+
+Falta nesta fase: sincronização e respostas do assistente como execuções e ligação com item de trabalho.
 
 ### Fase D: gestão que explica
 

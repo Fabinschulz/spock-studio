@@ -195,6 +195,10 @@ describe('Execuções · detalhe', () => {
     expect(await within(panel).findByText('CLAUDE.md')).toBeTruthy();
     expect(within(panel).getByText('Aplicar')).toBeTruthy();
     expect(within(panel).getByText(/obrigatória/)).toBeTruthy();
+    expect(within(panel).getByRole('heading', { name: 'Resumo da entrega' })).toBeTruthy();
+    expect(within(panel).getByText('Criou 1 arquivo. 1 passo concluído de 1.')).toBeTruthy();
+    expect(within(panel).getByText('1 de 1 verificação passou.')).toBeTruthy();
+    expect(within(panel).getByText('Nada ficou de fora.')).toBeTruthy();
     expect(calls.find((call) => call.method === 'run.detail')?.params).toEqual({
       projectId: 'p-000000000001',
       runId: 'run-1'

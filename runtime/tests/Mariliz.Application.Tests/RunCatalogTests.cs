@@ -252,6 +252,70 @@ public class RunCatalogTests : IDisposable
         Assert.Equal("PROJECT_NOT_AUTHORIZED", response["error"]!["code"]!.GetValue<string>());
     }
 
+    private JsonObject Summary(string runId) =>
+        Call("run.detail", new JsonObject { ["projectId"] = One, ["runId"] = runId })["result"]!["summary"]!.AsObject();
+
+    [Fact]
+    public void O_resumo_conta_o_que_foi_feito_validado_e_o_que_ficou_de_fora()
+    {
+        Save(One, "run-a", 1, RunKinds.Apply, RunStates.CompletedWithLimitations, journal =>
+        {
+            journal.Ops.Add(new JournalOp { Path = "a", Op = OpKinds.Create, Status = OpStatus.Applied });
+            journal.Ops.Add(new JournalOp { Path = "b", Op = OpKinds.Create, Status = OpStatus.Applied });
+            journal.Ops.Add(new JournalOp { Path = "c", Op = OpKinds.Update, Status = OpStatus.Applied });
+            journal.Ops.Add(new JournalOp { Path = "d", Op = OpKinds.Delete, Status = OpStatus.Applied });
+            journal.Ops.Add(new JournalOp { Path = "e", Op = OpKinds.Update, Status = OpStatus.Reverted });
+            journal.Ops.Add(new JournalOp { Path = "f", Op = OpKinds.Update, Status = OpStatus.Conflict });
+            journal.Steps.Add(new JournalStep { Id = "1", Title = "x", Status = StepStatus.Completed });
+            journal.Steps.Add(new JournalStep { Id = "2", Title = "y", Status = StepStatus.CompletedWithConflicts });
+            journal.Steps.Add(new JournalStep { Id = "3", Title = "z", Status = StepStatus.Pending });
+            journal.Evals.Add(new EvalSummary { Id = "e1", Status = "Passed", Required = true });
+            journal.Evals.Add(new EvalSummary { Id = "e2", Status = "Failed", Required = true });
+            journal.Evals.Add(new EvalSummary { Id = "e3", Status = "NotRun", Required = false });
+            journal.Evals.Add(new EvalSummary { Id = "e4", Status = "recorded", Required = false });
+            journal.NotApplied.Add("g");
+            journal.Pending.Add("h");
+            journal.Pending.Add("i");
+            journal.Actions.Add(new JournalAction { Id = "a1", Status = JournalAction.Executed });
+            journal.Actions.Add(new JournalAction { Id = "a2", Status = JournalAction.Skipped });
+        });
+
+        var summary = Summary("run-a");
+
+        var done = summary["done"]!;
+        Assert.Equal(2, done["created"]!.GetValue<int>());
+        Assert.Equal(1, done["updated"]!.GetValue<int>());
+        Assert.Equal(1, done["removed"]!.GetValue<int>());
+        Assert.Equal(1, done["reverted"]!.GetValue<int>());
+        Assert.Equal(2, done["stepsCompleted"]!.GetValue<int>());
+        Assert.Equal(3, done["stepsTotal"]!.GetValue<int>());
+        Assert.Equal(1, done["actionsExecuted"]!.GetValue<int>());
+        Assert.Equal(2, done["actionsTotal"]!.GetValue<int>());
+
+        var validated = summary["validated"]!;
+        Assert.Equal(4, validated["total"]!.GetValue<int>());
+        Assert.Equal(1, validated["passed"]!.GetValue<int>());
+        Assert.Equal(1, validated["failed"]!.GetValue<int>());
+        Assert.Equal(1, validated["notRun"]!.GetValue<int>());
+        Assert.Equal(1, validated["requiredNotPassed"]!.GetValue<int>());
+
+        var leftOut = summary["leftOut"]!;
+        Assert.Equal(1, leftOut["notApplied"]!.GetValue<int>());
+        Assert.Equal(2, leftOut["pending"]!.GetValue<int>());
+        Assert.Equal(1, leftOut["conflicts"]!.GetValue<int>());
+        Assert.Equal(1, leftOut["actionsNotExecuted"]!.GetValue<int>());
+    }
+
+    [Fact]
+    public void Sem_verificacoes_registradas_validado_nao_existe_em_vez_de_zero()
+    {
+        Save(One, "run-a", 1);
+
+        var summary = Summary("run-a");
+
+        Assert.Null(summary["validated"]);
+    }
+
     [Fact]
     public void O_retrato_de_uma_execucao_de_projeto_autorizado_continua_funcionando_com_e_sem_o_projeto_no_pedido()
     {

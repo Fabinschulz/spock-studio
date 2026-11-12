@@ -51,7 +51,39 @@ export const runListSchema = z.object({
   summary: z.object({ total: z.number(), running: z.number(), awaitingApproval: z.number() })
 });
 
+/** O resumo de entrega: contagens do diário, sem interpretação. A interface as transforma em frases. */
+export const deliverySummarySchema = z.object({
+  done: z.object({
+    created: z.number(),
+    updated: z.number(),
+    removed: z.number(),
+    reverted: z.number(),
+    stepsCompleted: z.number(),
+    stepsTotal: z.number(),
+    actionsExecuted: z.number(),
+    actionsTotal: z.number()
+  }),
+  /** Nulo quando a execução não registrou nenhuma verificação. */
+  validated: z
+    .object({
+      total: z.number(),
+      passed: z.number(),
+      failed: z.number(),
+      blocked: z.number(),
+      notRun: z.number(),
+      requiredNotPassed: z.number()
+    })
+    .nullable(),
+  leftOut: z.object({
+    notApplied: z.number(),
+    pending: z.number(),
+    conflicts: z.number(),
+    actionsNotExecuted: z.number()
+  })
+});
+
 export const runDetailSchema = runItemSchema.extend({
+  summary: deliverySummarySchema,
   operations: z.array(
     z.object({
       path: z.string(),

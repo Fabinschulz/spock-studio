@@ -41,6 +41,32 @@
   ],
   "actions": [],
   "model": null,
+  "summary": {
+    "done": {
+      "created": 1,
+      "updated": 0,
+      "removed": 0,
+      "reverted": 0,
+      "stepsCompleted": 1,
+      "stepsTotal": 1,
+      "actionsExecuted": 0,
+      "actionsTotal": 0
+    },
+    "validated": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "blocked": 0,
+      "notRun": 0,
+      "requiredNotPassed": 0
+    },
+    "leftOut": {
+      "notApplied": 0,
+      "pending": 0,
+      "conflicts": 0,
+      "actionsNotExecuted": 0
+    }
+  },
   "eventCount": 1,
   "events": [
     {

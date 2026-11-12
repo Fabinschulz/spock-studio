@@ -265,6 +265,8 @@ describe('contrato da central de execuções (fixtures do motor)', () => {
     expect(parsed.steps[0]).toMatchObject({ title: 'Aplicar', status: 'completed' });
     expect(parsed.evals[0]).toMatchObject({ id: 'e1', required: true });
     expect(parsed.eventCount).toBe(1);
+    expect(parsed.summary.done).toMatchObject({ created: 1, stepsCompleted: 1, stepsTotal: 1 });
+    expect(parsed.summary.validated).toMatchObject({ total: 1, passed: 1, requiredNotPassed: 0 });
     expect(JSON.stringify(runDetail)).not.toContain('"content"');
   });
 });

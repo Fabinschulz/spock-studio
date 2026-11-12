@@ -126,6 +126,7 @@ public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, R
         detail["model"] = journal.ModelUsage is { } usage
             ? new JsonObject { ["calls"] = usage.Calls, ["inputTokens"] = usage.InputTokens, ["outputTokens"] = usage.OutputTokens }
             : null;
+        detail["summary"] = Summary(journal);
         detail["eventCount"] = events.Count;
         detail["events"] = new JsonArray(events.TakeLast(MaxDetailEvents).Select(evt => (JsonNode)new JsonObject
         {
@@ -133,6 +134,53 @@ public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, R
             ["type"] = evt["type"]?.DeepClone()
         }).ToArray());
         return detail;
+    }
+
+    /// <summary>
+    /// O resumo de entrega no topo da execução: o que foi feito, o que foi validado e o que ficou de fora. O texto do pedido
+    /// não entra: o diário nunca o guarda (ele fica só no checkpoint do runtime), e a interface diz o que o tipo de execução faz. São
+    /// contagens do diário, sem interpretação: a interface as transforma em frases.
+    /// </summary>
+    private static JsonObject Summary(RunJournal journal)
+    {
+        int Applied(string op) => journal.Ops.Count(item => item.Op == op && item.Status == OpStatus.Applied);
+        int Evals(params string[] statuses) =>
+            journal.Evals.Count(item => statuses.Contains(item.Status, StringComparer.OrdinalIgnoreCase));
+
+        return new JsonObject
+        {
+            ["done"] = new JsonObject
+            {
+                ["created"] = Applied(OpKinds.Create),
+                ["updated"] = Applied(OpKinds.Update),
+                ["removed"] = Applied(OpKinds.Delete),
+                ["reverted"] = journal.Ops.Count(item => item.Status == OpStatus.Reverted),
+                ["stepsCompleted"] = journal.Steps.Count(step => step.Status is StepStatus.Completed or StepStatus.CompletedWithConflicts),
+                ["stepsTotal"] = journal.Steps.Count,
+                ["actionsExecuted"] = journal.Actions.Count(action => action.Status == JournalAction.Executed),
+                ["actionsTotal"] = journal.Actions.Count
+            },
+            // Sem nenhuma verificação registrada, "validado" não existe: a interface diz isso, em vez de um zero que pareceria falha.
+            ["validated"] = journal.Evals.Count == 0
+                ? null
+                : new JsonObject
+                {
+                    ["total"] = journal.Evals.Count,
+                    ["passed"] = Evals("Passed"),
+                    ["failed"] = Evals("Failed"),
+                    ["blocked"] = Evals("Blocked"),
+                    ["notRun"] = Evals("NotRun", "not_run"),
+                    ["requiredNotPassed"] = journal.Evals.Count(item => item.Required && !string.Equals(item.Status, "Passed", StringComparison.OrdinalIgnoreCase))
+                },
+            ["leftOut"] = new JsonObject
+            {
+                ["notApplied"] = journal.NotApplied.Count,
+                ["pending"] = journal.Pending.Count,
+                ["conflicts"] = journal.Ops.Count(item => item.Status == OpStatus.Conflict),
+                ["actionsNotExecuted"] = journal.Actions.Count(action =>
+                    action.Status is JournalAction.Skipped or JournalAction.Conflict or JournalAction.Failed)
+            }
+        };
     }
 
     /// <summary>O projeto está autorizado: só então suas execuções podem ser vistas ou canceladas.</summary>
