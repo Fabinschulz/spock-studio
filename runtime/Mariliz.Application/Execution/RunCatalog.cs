@@ -135,6 +135,9 @@ public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, R
         return detail;
     }
 
+    /// <summary>O projeto está autorizado: só então suas execuções podem ser vistas ou canceladas.</summary>
+    public bool CanAccess(string projectId) => workspace.IsAuthorized(projectId);
+
     private AuthorizedProject Require(string projectId) =>
         workspace.Projects().FirstOrDefault(project => project.ProjectId == projectId) ?? throw EngineErrors.ProjectNotAuthorized();
 

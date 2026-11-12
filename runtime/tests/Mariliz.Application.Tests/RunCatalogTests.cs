@@ -253,6 +253,55 @@ public class RunCatalogTests : IDisposable
     }
 
     [Fact]
+    public void O_retrato_de_uma_execucao_de_projeto_autorizado_continua_funcionando_com_e_sem_o_projeto_no_pedido()
+    {
+        Assert.True(_tracker.TryStart(One, RunKinds.Apply, out var handle));
+
+        var without = Call("run.snapshot", new JsonObject { ["runId"] = handle!.RunId });
+        var matching = Call("run.snapshot", new JsonObject { ["runId"] = handle.RunId, ["projectId"] = One });
+
+        Assert.Equal(handle.RunId, without["result"]!["runId"]!.GetValue<string>());
+        Assert.Equal(handle.RunId, matching["result"]!["runId"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void O_retrato_com_outro_projeto_no_pedido_e_nao_encontrado()
+    {
+        Assert.True(_tracker.TryStart(One, RunKinds.Apply, out var handle));
+
+        var response = Call("run.snapshot", new JsonObject { ["runId"] = handle!.RunId, ["projectId"] = Two });
+
+        Assert.Equal("RUN_NOT_FOUND", response["error"]!["code"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void Execucao_de_projeto_nao_autorizado_nao_tem_retrato_nem_cancelamento()
+    {
+        Assert.True(_tracker.TryStart("p-esquecido0001", RunKinds.Apply, out var handle));
+
+        var snapshot = Call("run.snapshot", new JsonObject { ["runId"] = handle!.RunId });
+        var cancel = Call("run.cancel", new JsonObject { ["runId"] = handle.RunId });
+
+        Assert.Equal("RUN_NOT_FOUND", snapshot["error"]!["code"]!.GetValue<string>());
+        Assert.False(cancel["result"]!["cancelled"]!.GetValue<bool>());
+        Assert.False(handle.Cancellation.IsCancellationRequested);
+    }
+
+    [Fact]
+    public void O_cancelamento_com_outro_projeto_no_pedido_nao_cancela_e_com_o_certo_cancela()
+    {
+        Assert.True(_tracker.TryStart(One, RunKinds.Apply, out var handle));
+
+        var wrong = Call("run.cancel", new JsonObject { ["runId"] = handle!.RunId, ["projectId"] = Two });
+        Assert.False(wrong["result"]!["cancelled"]!.GetValue<bool>());
+        Assert.False(handle.Cancellation.IsCancellationRequested);
+
+        var right = Call("run.cancel", new JsonObject { ["runId"] = handle.RunId, ["projectId"] = One });
+        Assert.True(right["result"]!["cancelled"]!.GetValue<bool>());
+        Assert.True(handle.Cancellation.IsCancellationRequested);
+    }
+
+    [Fact]
     public void Fixtures_de_contrato_da_lista_e_do_detalhe()
     {
         Save(One, "run-1", 1, RunKinds.Apply, shape: journal =>

@@ -8,8 +8,8 @@ internal sealed class RunRequestHandler(RunQueries runs)
 {
     public JsonObject Handle(string method, RequestParams p) => method switch
     {
-        ProtocolMethods.Snapshot => runs.Snapshot(p.Str("runId"), p.OptionalInt("sinceSeq")),
-        ProtocolMethods.Cancel => new JsonObject { ["cancelled"] = runs.Cancel(p.Str("runId")) },
+        ProtocolMethods.Snapshot => runs.Snapshot(p.Str("runId"), p.OptionalInt("sinceSeq"), p.OptionalStr("projectId")),
+        ProtocolMethods.Cancel => new JsonObject { ["cancelled"] = runs.Cancel(p.Str("runId"), p.OptionalStr("projectId")) },
         ProtocolMethods.RunList => runs.Catalog.List(
             p.OptionalStr("projectId"),
             Known(p.StringList("kinds"), RunCatalog.Kinds, "kinds"),

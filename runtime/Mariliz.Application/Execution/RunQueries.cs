@@ -12,9 +12,12 @@ public sealed class RunQueries(RunTracker tracker, IRunStore store, RunCatalog? 
     /// Com <paramref name="sinceSeq"/>, devolve todos os eventos depois desse número: os que a memória já descartou vêm do
     /// histórico em disco, para a interface recuperar o que perdeu numa reconexão.
     /// </summary>
-    public JsonObject Snapshot(string runId, int? sinceSeq = null)
+    public JsonObject Snapshot(string runId, int? sinceSeq = null, string? projectId = null)
     {
-        var run = tracker.Find(runId) ?? throw EngineErrors.RunNotFound();
+        var run = tracker.Find(runId);
+        // Uma execução de outro projeto, ou de um projeto que não está autorizado, é "não encontrada": o motor não confirma
+        // que ela existe para quem não deveria vê-la.
+        if (run is null || !Visible(run.ProjectId, projectId)) throw EngineErrors.RunNotFound();
         var snapshot = run.Snapshot(sinceSeq);
         if (sinceSeq is not { } since || snapshot["firstSeq"]!.GetValue<int>() <= since + 1) return snapshot;
 
@@ -26,7 +29,15 @@ public sealed class RunQueries(RunTracker tracker, IRunStore store, RunCatalog? 
         return snapshot;
     }
 
-    public bool Cancel(string runId) => tracker.Cancel(runId);
+    public bool Cancel(string runId, string? projectId = null) =>
+        tracker.Find(runId) is { } run && !Visible(run.ProjectId, projectId) ? false : tracker.Cancel(runId);
+
+    /// <summary>
+    /// Quem pede pode dizer de que projeto é a execução (<paramref name="expectedProjectId"/>); se disser, tem de bater.
+    /// Com a central de execuções ligada, o projeto também precisa estar autorizado.
+    /// </summary>
+    private bool Visible(string runProjectId, string? expectedProjectId) =>
+        (expectedProjectId is null || expectedProjectId == runProjectId) && (catalog?.CanAccess(runProjectId) ?? true);
 
     /// <summary>A central de execuções. Sem catálogo (sessões de teste sem projetos autorizados) ela não existe.</summary>
     public RunCatalog Catalog =>

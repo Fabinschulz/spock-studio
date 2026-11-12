@@ -25,6 +25,17 @@ export function listRuns(client: EngineClient, filters: RunFilters, cursor: stri
   );
 }
 
+export interface RunActivity {
+  running: number;
+  awaitingApproval: number;
+}
+
+/** O resumo do motor, pedindo uma execução só: o que anda e o que espera aprovação, para o indicador do menu. */
+export async function readRunActivity(client: EngineClient): Promise<RunActivity> {
+  const { summary } = await client.request('run.list', { limit: 1 }, runListSchema);
+  return { running: summary.running, awaitingApproval: summary.awaitingApproval };
+}
+
 /** Só leitura: abrir o detalhe nunca dispara, reverte nem valida nada. */
 export function readRunDetail(client: EngineClient, projectId: string, runId: string): Promise<RunDetail> {
   return client.request('run.detail', { projectId, runId }, runDetailSchema);

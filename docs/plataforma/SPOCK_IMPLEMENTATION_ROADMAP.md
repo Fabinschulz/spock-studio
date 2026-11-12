@@ -256,8 +256,21 @@ Limites: o tema claro não foi conferido no `Drawer` (a prévia ficou escura nas
 e de estado de passo cobrem o que o motor emite hoje e um valor novo aparece como veio, e o indicador de execução
 andando no menu continua pendente.
 
-Falta nesta fase: sincronização e respostas do assistente como execuções, resumo de entrega no topo, ligação com item de
-trabalho, indicador no menu e `run.snapshot` conferindo o projeto.
+**Terceira entrega da fase C (2026-11-12).** Fecha a lacuna do `run.snapshot` e o indicador no menu, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| `run.snapshot` e `run.cancel` conferem o projeto | Antes bastava o `runId`: qualquer um acessava a execução de qualquer projeto. Agora a execução de um projeto não autorizado é "não encontrada" no retrato e não é cancelada (`cancelled: false`), e o pedido pode trazer `projectId`, que precisa bater com o da execução. O parâmetro é opcional: a tela de acompanhamento só conhece o `runId` e segue funcionando. Sem a central ligada (sessões de teste) o comportamento antigo se mantém |
+| Indicador no menu | O item Execuções ganha um aviso ao lado do nome: o número de execuções **aguardando aprovação** em tom de atenção, ou, sem nenhuma, o de **em andamento**. O nome acessível do link diz os dois ("Execuções, 1 aguardando aprovação, 2 em andamento") |
+| Como lê | `run.list` com `limit: 1`, só pelo resumo. Relê ao ligar, a cada 20 s, ao trocar de tela, e não pergunta com a aba escondida. Uma leitura que falha deixa o último valor; sem motor pronto não há indicador, em vez de um número velho |
+| Testes | 18 no catálogo (4 novos: retrato e cancelamento com e sem projeto, projeto errado, projeto não autorizado), 11 novos na interface (hook, menu e descrição do aviso). Suites: 581 no motor, 404 na interface, tipos, lint, formato e build limpos |
+
+Limite: cada leitura do indicador faz o motor ler os diários de todos os projetos, o mesmo custo da lista. Com a
+cadência de 20 s é aceitável hoje; com milhares de execuções pede o índice já registrado como medição pendente. O
+aviso não foi conferido visualmente no navegador nesta entrega, só por testes.
+
+Falta nesta fase: sincronização e respostas do assistente como execuções, resumo de entrega no topo da execução e
+ligação com item de trabalho.
 
 ### Fase D: gestão que explica
 

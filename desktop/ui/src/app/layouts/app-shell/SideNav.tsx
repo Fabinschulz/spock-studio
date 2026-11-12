@@ -1,3 +1,4 @@
+import type { RunActivity } from '@/features/runs';
 import { pathTo } from '@/shared/routing';
 import { cn } from '@/shared/utils';
 import {
@@ -29,6 +30,8 @@ interface NavItem {
   to?: string;
   end?: boolean;
   unavailableReason?: string;
+  /** O que está acontecendo no item, para um aviso ao lado do nome (por exemplo, execuções andando). */
+  activity?: { label: string; text: string; tone: 'warning' | 'info' };
 }
 
 /** Um ambiente do produto. Sem rótulo, o grupo é do aplicativo como um todo. */
@@ -110,8 +113,14 @@ const ENVIRONMENT_GROUP: Record<Environment, NavGroup> = {
 };
 
 /** O menu mostra só o ambiente atual, mais o que é do aplicativo todo. */
-export function SideNav({ environment }: { environment: Environment }) {
-  const groups = [APP_GROUP, ENVIRONMENT_GROUP[environment], PLATFORM_GROUP];
+export function SideNav({
+  environment,
+  runActivity = null
+}: {
+  environment: Environment;
+  runActivity?: RunActivity | null;
+}) {
+  const groups = [APP_GROUP, ENVIRONMENT_GROUP[environment], withRunActivity(PLATFORM_GROUP, runActivity)];
 
   return (
     <nav aria-label="Navegação principal" className={styles.groups}>
@@ -120,6 +129,32 @@ export function SideNav({ environment }: { environment: Environment }) {
       ))}
     </nav>
   );
+}
+
+/**
+ * O que espera a pessoa vem antes do que só está andando: com aprovação pendente o aviso mostra esse número, em tom de
+ * atenção; senão, o de execuções em andamento. O nome acessível do link diz os dois.
+ */
+export function describeRunActivity(activity: RunActivity | null): NavItem['activity'] {
+  if (!activity) return undefined;
+  const { running, awaitingApproval } = activity;
+  if (running === 0 && awaitingApproval === 0) return undefined;
+
+  const label = [
+    awaitingApproval > 0 ? `${awaitingApproval} aguardando aprovação` : null,
+    running > 0 ? `${running} em andamento` : null
+  ]
+    .filter(Boolean)
+    .join(', ');
+  return awaitingApproval > 0
+    ? { text: String(awaitingApproval), label, tone: 'warning' }
+    : { text: String(running), label, tone: 'info' };
+}
+
+function withRunActivity(group: NavGroup, runActivity: RunActivity | null): NavGroup {
+  const activity = describeRunActivity(runActivity);
+  if (!activity) return group;
+  return { ...group, items: group.items.map((item) => (item.id === 'runs' ? { ...item, activity } : item)) };
 }
 
 function NavGroupList({ group }: { group: NavGroup }) {
@@ -154,6 +189,12 @@ function NavEntry({ item }: { item: NavItem }) {
         </span>
         <span className={styles.itemText}>
           <span className={styles.itemLabel}>{item.label}</span>
+          {item.activity ? (
+            <span className={cn(styles.activity, styles[item.activity.tone])}>
+              <span aria-hidden="true">{item.activity.text}</span>
+              <span className="visually-hidden">, {item.activity.label}</span>
+            </span>
+          ) : null}
         </span>
       </NavLink>
     );

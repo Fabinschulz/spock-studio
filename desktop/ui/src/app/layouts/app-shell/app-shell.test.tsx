@@ -8,6 +8,7 @@ import { AppProviders } from '@/shared/components';
 import { expectNoA11yViolations } from '@/test/a11y';
 
 import { AppShell } from './AppShell';
+import { describeRunActivity } from './SideNav';
 
 const invoke = vi.fn();
 const listen = vi.fn();
@@ -305,5 +306,72 @@ describe('AppShell · estado do motor', () => {
     await waitFor(() => expect(invoke).toHaveBeenCalled());
     expect(screen.getByRole('status')).toHaveTextContent('Verificando o motor');
     expect(screen.getByRole('status')).not.toHaveTextContent('Pronto para usar');
+  });
+});
+
+describe('AppShell · execuções no menu', () => {
+  const host = (summary: { running: number; awaitingApproval: number } | 'falha') => {
+    (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {};
+    invoke.mockImplementation(async (command: string) => {
+      if (command === 'engine_status') return 'ready';
+      if (summary === 'falha') throw { code: 'ENGINE_STOPPED', message: 'motor parado' };
+      return { runs: [], nextCursor: null, summary: { total: 3, ...summary } };
+    });
+  };
+
+  it('avisa o que espera aprovação e o que está andando, e o nome do link diz os dois', async () => {
+    host({ running: 2, awaitingApproval: 1 });
+    renderShell();
+
+    const link = await within(navigation()).findByRole('link', {
+      name: /Execuções.*1 aguardando aprovação, 2 em andamento/
+    });
+    expect(link).toHaveAttribute('href', '/execucoes');
+  });
+
+  it('sem aprovação pendente mostra só o que anda', async () => {
+    host({ running: 3, awaitingApproval: 0 });
+    renderShell();
+
+    expect(await within(navigation()).findByRole('link', { name: /Execuções.*3 em andamento/ })).toBeInTheDocument();
+  });
+
+  it('sem nada andando o link fica só com o nome', async () => {
+    host({ running: 0, awaitingApproval: 0 });
+    renderShell();
+
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith('engine_request', expect.anything()));
+    expect(within(navigation()).getByRole('link', { name: 'Execuções' })).toBeInTheDocument();
+  });
+
+  it('se a leitura falha o menu segue sem aviso e sem erro na tela', async () => {
+    host('falha');
+    renderShell();
+
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith('engine_request', expect.anything()));
+    expect(within(navigation()).getByRole('link', { name: 'Execuções' })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('fora do aplicativo não há motor para perguntar', () => {
+    renderShell();
+
+    expect(invoke).not.toHaveBeenCalled();
+    expect(within(navigation()).getByRole('link', { name: 'Execuções' })).toBeInTheDocument();
+  });
+
+  it('a descrição do aviso prefere a aprovação pendente e some quando não há nada', () => {
+    expect(describeRunActivity(null)).toBeUndefined();
+    expect(describeRunActivity({ running: 0, awaitingApproval: 0 })).toBeUndefined();
+    expect(describeRunActivity({ running: 2, awaitingApproval: 1 })).toEqual({
+      text: '1',
+      label: '1 aguardando aprovação, 2 em andamento',
+      tone: 'warning'
+    });
+    expect(describeRunActivity({ running: 2, awaitingApproval: 0 })).toEqual({
+      text: '2',
+      label: '2 em andamento',
+      tone: 'info'
+    });
   });
 });
