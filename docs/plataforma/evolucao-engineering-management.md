@@ -418,13 +418,40 @@ Decisões:
 Testes em `ComponentRequestTests` (8): editor, pedido pelo plano, volta, reversão, hook e `settings.json`. O estado do
 Harness passou a dizer, por componente, se ele pode ser dispensado (`manageable`), e os dispensados vêm com o nome.
 
+## 10h. Fase 6, quinta entrega: revisões do Harness (2026-11-11)
+
+Na tela **Engenharia > Projeto**, a seção **Revisões do Harness** (`engineering.revisions`, `HarnessRevisionService`)
+numera cada aplicação ou reversão que mudou arquivos no projeto, da mais recente para a mais antiga:
+
+- **O que mudou, por componente:** "Agente revisor de código: removeu 1 arquivo; Declaração do projeto
+  (mariliz.yaml): atualizou 1 arquivo", com a lista de arquivos ao abrir a revisão. O `mariliz.lock` não entra: ele
+  muda em toda aplicação e não é componente.
+- **Ligações:** a reversão diz qual revisão desfez, e a revisão desfeita diz em qual foi revertida. Aplicação que
+  falhou e foi desfeita na hora aparece como tal.
+- **Versão do produto:** quando o lock atual foi gravado por outra versão do Spock Studio, a seção diz as duas e que o
+  próximo plano em Configurar mostra o que atualizar.
+
+Decisões:
+
+- **A fonte é o diário das execuções**, o mesmo que permite reverter. Nada novo é gravado; a numeração é a ordem das
+  execuções que mudaram arquivos. Validações e aplicações que não mudaram nada não viram revisão.
+- **A reversão não tem operações próprias no diário:** ela marca as da aplicação como revertidas. O efeito dela é o
+  inverso dessas operações (o que a aplicação criou, a reversão removeu).
+- **Sem comparação de versão de componente com o catálogo.** Todos os componentes têm a mesma versão de catálogo, e o
+  conteúdo pode mudar sem a versão mudar (a skill `harness-contract` mudou assim neste ciclo). Uma indicação "há
+  atualização" por versão seria enganosa; o plano já compara o conteúdo arquivo a arquivo.
+- Os nomes dos componentes passaram para `HarnessLabels`, compartilhado com o estado do Harness.
+
+Testes em `HarnessRevisionTests` (3): sem execuções; aplicar, dispensar e reverter como três revisões; fixture em
+`contracts/fixtures/engineering/revisions.json`.
+
 ## 11. Próximas fases e dependências
 
 | Fase | Entrega | Depende de |
 | --- | --- | --- |
 | 4b. Complementos de entrega | Cycle time, histórico de acompanhamento dos riscos, impacto de mais capacidade na previsão. | Histórico de status (Jira já traz; GitHub exige a API de eventos da issue). |
 | 5b. Assistente: complementos | Histórico de perguntas, relatórios salvos, comparação entre projetos, workflow LangGraph para investigação em etapas. | Validação com modelo real. |
-| 6b. Engenharia, continuação | MCP; versionamento do Harness; acompanhamento de execuções ligado à entrega. | Perfil, conhecimento, estado do Harness e dispensa de componentes (entregues). |
+| 6b. Engenharia, continuação | Acompanhamento de execuções ligado à entrega; MCP (opcional). | Perfil, conhecimento, estado, dispensa e revisões do Harness (entregues). |
 | 7. Inteligência compartilhada | Análises cruzadas autorizadas. | Fases 5 e 6. |
 
 Indicadores e previsão serão serviços determinísticos no .NET. O LangGraph entra só para explicar resultados.

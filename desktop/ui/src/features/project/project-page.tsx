@@ -7,6 +7,7 @@ import { Link } from 'react-router';
 import { HarnessSection } from './components/harness-section';
 import { KnowledgeSection } from './components/knowledge-section';
 import { ProfileSection } from './components/profile-section';
+import { RevisionsSection } from './components/revisions-section';
 import { runKindLabel, runRowText } from './domain/run-labels';
 import { useProjectOverview } from './hooks/use-project-overview';
 import styles from './project-page.module.scss';
@@ -50,6 +51,7 @@ function ProjectContent({ client, project }: { client: EngineClient; project: Se
         <>
           <ProfileSection client={client} projectId={project.projectId} />
           <HarnessSection client={client} projectId={project.projectId} />
+          <RevisionsSection client={client} projectId={project.projectId} />
           <InventorySection discovery={overview.discovery} />
           <KnowledgeSection client={client} projectId={project.projectId} />
           <RunsSection runs={overview.runs} />

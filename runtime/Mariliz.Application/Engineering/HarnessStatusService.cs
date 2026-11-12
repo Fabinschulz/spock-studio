@@ -15,27 +15,12 @@ public sealed class HarnessStatusService(WorkspaceAuthorizer workspace, IProject
 {
     private static readonly string[] Severity = ["intact", "kept", "modified", "outOfScope", "missing"];
 
-    private static readonly Dictionary<string, string> Labels = new(StringComparer.Ordinal)
-    {
-        [Catalog.AgentHarnessEngineer] = "Agente Harness Engineer",
-        [Catalog.AgentCodeReviewer] = "Agente revisor de código",
-        [Catalog.AgentVerifier] = "Agente verificador",
-        [Catalog.SkillHarnessContract] = "Skill do contrato de evidências",
-        [Catalog.RuleGeneral] = "Regras gerais",
-        [Catalog.RuleStackDotnet] = "Regras da stack .NET",
-        [Catalog.RuleStackJavascript] = "Regras da stack JavaScript e TypeScript",
-        [Catalog.RuleRepoCommands] = "Comandos do repositório",
-        [Catalog.HookPolicy] = "Hook de política",
-        [Catalog.SpecificationStructure] = "Estrutura de especificação",
-        [Catalog.ConfigDeclaration] = "Declaração do projeto (mariliz.yaml)"
-    };
-
     public HarnessStatus Inspect(string projectId)
     {
         if (!workspace.TryGetRoot(projectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
         var project = files.Open(root);
         var excluded = (DeclaredConfig.TryRead(project).Config?.Components?.Exclude ?? [])
-            .Select(id => new HarnessExcludedComponent(id, Label(id), ComponentRequest.IsManageable(id)))
+            .Select(id => new HarnessExcludedComponent(id, HarnessLabels.Of(id), ComponentRequest.IsManageable(id)))
             .ToList();
         var now = clock.UtcNow;
 
@@ -54,7 +39,7 @@ public sealed class HarnessStatusService(WorkspaceAuthorizer workspace, IProject
             {
                 var componentFiles = filesByComponent.GetValueOrDefault(component.Id) ?? [];
                 var state = componentFiles.Count == 0 ? "intact" : componentFiles.MaxBy(file => Array.IndexOf(Severity, file.State))!.State;
-                return new HarnessComponentStatus(component.Id, Label(component.Id), component.Kind, component.Version, state,
+                return new HarnessComponentStatus(component.Id, HarnessLabels.Of(component.Id), component.Kind, component.Version, state,
                     ComponentRequest.IsManageable(component.Id), componentFiles);
             })
             .OrderByDescending(component => Array.IndexOf(Severity, component.State))
@@ -96,11 +81,6 @@ public sealed class HarnessStatusService(WorkspaceAuthorizer workspace, IProject
         var unchanged = Hashing.Sha256(bytes) == entry.Sha256;
         return new HarnessFileStatus(path, entry.Mode, !unchanged ? "modified" : entry.Mode == "kept" ? "kept" : "intact");
     }
-
-    private static string Label(string id) =>
-        Labels.TryGetValue(id, out var label) ? label
-        : id.StartsWith(Catalog.CustomRulePrefix, StringComparison.Ordinal) ? $"Regra do projeto: {id[Catalog.CustomRulePrefix.Length..]}"
-        : id;
 
     private static string? NullIfEmpty(string value) => value.Length == 0 ? null : value;
 }

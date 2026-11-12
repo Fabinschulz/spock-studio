@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import applyFailure from '@contracts/fixtures/golden/apply-failure.json';
 import engineeringHarness from '@contracts/fixtures/engineering/harness.json';
 import engineeringKnowledge from '@contracts/fixtures/engineering/knowledge.json';
+import engineeringRevisions from '@contracts/fixtures/engineering/revisions.json';
 import engineeringProfile from '@contracts/fixtures/engineering/profile.json';
 import applyResult from '@contracts/fixtures/golden/apply-result.json';
 import discovery from '@contracts/fixtures/golden/discovery.json';
@@ -30,6 +31,7 @@ import {
   connectionListSchema,
   discoverySchema,
   evidencePackSchema,
+  harnessRevisionsSchema,
   harnessStatusSchema,
   integrationCatalogSchema,
   integrationListSchema,
@@ -231,5 +233,13 @@ describe('contrato do estado do Harness (fixture do motor)', () => {
     expect(parsed.applied).toBe(true);
     expect(parsed.components[0]).toMatchObject({ id: 'mariliz.agent.code-reviewer', state: 'modified' });
     expect(parsed.intact + parsed.kept + parsed.modified + parsed.missing).toBe(parsed.components.length);
+  });
+});
+
+describe('contrato das revisões do Harness (fixture do motor)', () => {
+  it('revisões numeradas, da mais recente para a mais antiga, com a reversão ligada à aplicação', () => {
+    const parsed = harnessRevisionsSchema.parse(engineeringRevisions);
+    expect(parsed.revisions.map((revision) => revision.number)).toEqual([3, 2, 1]);
+    expect(parsed.revisions[0]).toMatchObject({ kind: 'revert', revertsRunId: parsed.revisions[1]?.runId });
   });
 });
