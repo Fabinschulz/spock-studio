@@ -26,7 +26,7 @@ var workflows = new WorkflowService(engine.Workspace, aiRuntime, engine.Tracker,
 if (WorkflowRecovery.MarkInterrupted(engine.Store, engine.Clock) is > 0 and var interrupted)
     await Console.Error.WriteLineAsync($"{interrupted} execução(ões) interrompida(s) pela queda anterior foram marcadas como falha.");
 using var connectorTransport = new HttpsConnectorTransport();
-var integrations = LocalIntegrationHub.Create(engine.DataRoot, engine.Workspace, engine.Clock, connectorTransport);
+var integrations = LocalIntegrationHub.Create(engine.DataRoot, engine.Workspace, engine.Clock, connectorTransport, relay.Emit);
 var management = new ManagementService(engine.Workspace, integrations, engine.Clock);
 // A central de execuções com a ligação a itens de trabalho: só o motor com integrações a tem.
 var runs = new RunQueries(engine.Tracker, engine.Store,

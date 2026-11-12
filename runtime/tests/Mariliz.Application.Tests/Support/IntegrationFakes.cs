@@ -178,6 +178,13 @@ internal sealed class IntegrationHarness : IDisposable
     public FakeGitHub GitHub { get; } = new();
     public FakeJira Jira { get; } = new();
     public List<TimeSpan> Delays { get; } = [];
+    public List<(string RunId, int Seq, string Type, JsonObject Data)> Events { get; } = [];
+
+    /// <summary>Se definido, faz o aviso de cada evento falhar, como uma saída do motor que fechou.</summary>
+    public Exception? EmitFailure { get; set; }
+
+    /// <summary>Chamado no instante de cada aviso, antes de ele ser guardado: deixa o teste olhar o estado naquele momento.</summary>
+    public Action<string>? OnEvent { get; set; }
     public IntegrationHub Hub { get; }
     public ManagementService Management { get; }
     public WorkspaceAuthorizer Workspace { get; }
@@ -199,7 +206,13 @@ internal sealed class IntegrationHarness : IDisposable
             return Task.CompletedTask;
         });
         var connectors = new ConnectorRegistry([new GitHubConnector(client), new JiraConnector(client, Clock)]);
-        Hub = new IntegrationHub(new FileIntegrationStore(DataDir), new FileSyncedDataStore(DataDir), Vault, connectors, workspace, Clock, Audit);
+        Hub = new IntegrationHub(new FileIntegrationStore(DataDir), new FileSyncedDataStore(DataDir), Vault, connectors, workspace, Clock, Audit,
+            (runId, seq, type, data, _) =>
+            {
+                if (EmitFailure is not null) throw EmitFailure;
+                OnEvent?.Invoke(type);
+                lock (Events) Events.Add((runId, seq, type, data));
+            });
         Management = new ManagementService(workspace, Hub, Clock);
         Session = new EngineSession("test", integrations: Hub, management: Management);
     }

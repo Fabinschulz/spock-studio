@@ -13,7 +13,8 @@ public sealed class IntegrationHub
         ConnectorRegistry connectors,
         WorkspaceAuthorizer workspace,
         IClock clock,
-        IAuditLog audit)
+        IAuditLog audit,
+        Action<string, int, string, System.Text.Json.Nodes.JsonObject, DateTimeOffset>? emit = null)
     {
         var activity = new SyncActivity();
         Audit = audit;
@@ -22,7 +23,7 @@ public sealed class IntegrationHub
         VaultAvailable = vault.Available;
         Connections = new ConnectionService(store, vault, connectors, clock, audit);
         Projects = new ProjectIntegrationService(store, data, Connections, connectors, workspace, activity, clock, audit);
-        Sync = new SyncService(Projects, Connections, connectors, data, activity, clock, audit);
+        Sync = new SyncService(Projects, Connections, connectors, data, activity, clock, audit, emit);
     }
 
     public ConnectorRegistry Connectors { get; }

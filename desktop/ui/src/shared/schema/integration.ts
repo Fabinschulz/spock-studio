@@ -82,6 +82,31 @@ export const projectIntegrationSchema = z.object({
 
 export const integrationListSchema = z.object({ integrations: z.array(projectIntegrationSchema) });
 export const integrationResultSchema = z.object({ integration: projectIntegrationSchema });
+/**
+ * O que o motor avisa de uma sincronização (`sync.started`, `sync.progress`, `sync.finished`): só estado e contagens, nunca
+ * itens, títulos ou credenciais. O `runId` do aviso é o id da sincronização.
+ */
+export const syncEventDataSchema = z.object({
+  projectId: z.string(),
+  integrationId: z.string(),
+  status: z.string(),
+  incremental: z.boolean(),
+  pages: z.number(),
+  fetched: z.number(),
+  created: z.number(),
+  updated: z.number(),
+  unchanged: z.number(),
+  error: z.string().nullable()
+});
+
+export const SYNC_EVENT_TYPES = ['sync.started', 'sync.progress', 'sync.finished'] as const;
+
+export type SyncEvent = {
+  type: (typeof SYNC_EVENT_TYPES)[number];
+  syncId: string;
+  data: z.infer<typeof syncEventDataSchema>;
+};
+
 export const syncResultSchema = z.object({ sync: syncExecutionSchema });
 export const syncHistorySchema = z.object({ syncs: z.array(syncExecutionSchema) });
 

@@ -16,8 +16,14 @@ public sealed class SyncService(
     ISyncedDataStore data,
     SyncActivity activity,
     IClock clock,
-    IAuditLog audit)
+    IAuditLog audit,
+    Action<string, int, string, JsonObject, DateTimeOffset>? emit = null)
 {
+    /// <summary>Os eventos de uma sincronização. O <c>runId</c> do evento é o id da sincronização.</summary>
+    public const string StartedEvent = "sync.started";
+    public const string ProgressEvent = "sync.progress";
+    public const string FinishedEvent = "sync.finished";
+
     /// <summary>Teto de páginas por execução: limita as chamadas que um pedido pode disparar no provedor.</summary>
     public const int MaxPages = 50;
 
@@ -86,6 +92,8 @@ public sealed class SyncService(
     private async Task<SyncExecution> RunAsync(ProjectIntegration integration, SyncExecution execution, CancellationToken ct)
     {
         var synced = data.Read(integration.ProjectId, integration.Id);
+        var seq = 0;
+        Publish(integration, execution, StartedEvent, ++seq);
         try
         {
             var connection = connections.Require(integration.ConnectionId);
@@ -98,6 +106,7 @@ public sealed class SyncService(
                 var page = await connector.FetchPageAsync(access, integration.Scope, cursor, ct);
                 execution = Apply(integration.Scope, page, synced, execution);
                 data.Write(integration.ProjectId, integration.Id, synced);
+                Publish(integration, execution, ProgressEvent, ++seq);
 
                 if (page.Next is null)
                 {
@@ -145,7 +154,38 @@ public sealed class SyncService(
         }
         connections.RecordSync(integration.ConnectionId, execution.FinishedAt!.Value, execution.Error);
         Audit(integration, execution);
+        // Por último: quem ouve o fim da sincronização já encontra a conexão e a trilha atualizadas.
+        Publish(integration, execution, FinishedEvent, ++seq);
         return execution;
+    }
+
+    /// <summary>
+    /// Avisa quem acompanha, sem esperar que perguntem. Só contagens e estado: nenhum item, título ou credencial sai por aqui.
+    /// Um aviso que falha (a saída do motor fechou, por exemplo) nunca derruba a sincronização que ele descreve.
+    /// </summary>
+    private void Publish(ProjectIntegration integration, SyncExecution execution, string type, int seq)
+    {
+        if (emit is null) return;
+        try
+        {
+            emit(execution.Id, seq, type, new JsonObject
+            {
+                ["projectId"] = integration.ProjectId,
+                ["integrationId"] = integration.Id,
+                ["status"] = IntegrationJson.Node(execution.Status),
+                ["incremental"] = execution.Incremental,
+                ["pages"] = execution.Pages,
+                ["fetched"] = execution.Fetched,
+                ["created"] = execution.Created,
+                ["updated"] = execution.Updated,
+                ["unchanged"] = execution.Unchanged,
+                ["error"] = execution.Error?.Code
+            }, clock.UtcNow);
+        }
+        catch (Exception ex) when (ex is IOException or ObjectDisposedException or InvalidOperationException)
+        {
+            // A sincronização já foi gravada; o aviso é só cortesia.
+        }
     }
 
     /// <summary>Grava uma página. O que o conector devolver fora do recorte é descartado aqui também: o recorte não depende do conector.</summary>

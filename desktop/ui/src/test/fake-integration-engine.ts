@@ -9,7 +9,7 @@ import portfolioFixture from '@contracts/fixtures/management/portfolio.json';
 import risksFixture from '@contracts/fixtures/management/risks.json';
 
 import { EngineError, type EngineClient } from '@/shared/api';
-import type { Connection, ProjectIntegration, SyncExecution } from '@/shared/schema';
+import type { Connection, ProjectIntegration, RunEvent, SyncExecution } from '@/shared/schema';
 
 type Call = { method: string; params: Record<string, unknown> };
 
@@ -41,6 +41,12 @@ export function fakeIntegrationEngine(
   let integrations: ProjectIntegration[] = [];
   let sequence = 0;
   let linkedItems: unknown[] = [];
+  const listeners = new Set<(event: RunEvent) => void>();
+  let eventSeq = 0;
+  const publish = (type: string, runId: string, data: Record<string, unknown>) => {
+    const event: RunEvent = { v: 1, kind: 'event', runId, type, seq: ++eventSeq, data };
+    for (const listener of listeners) listener(event);
+  };
   const nextId = (prefix: string) => `${prefix}-${String(++sequence).padStart(12, '0')}`;
 
   const finishRunningSyncs = () => {
@@ -133,6 +139,22 @@ export function fakeIntegrationEngine(
         integration.id === params.integrationId ? { ...integration, syncing: true } : integration
       );
       const sync: SyncExecution = { ...syncedIntegration.lastSync!, status: 'running', finishedAt: null };
+      // Como o motor real: a sincronização anda em segundo plano e avisa quando termina, sem esperar ser perguntado.
+      setTimeout(() => {
+        const done = syncedIntegration.lastSync!;
+        publish('sync.finished', sync.id, {
+          projectId: params.projectId,
+          integrationId: params.integrationId,
+          status: 'succeeded',
+          incremental: false,
+          pages: done.pages,
+          fetched: done.fetched,
+          created: done.created,
+          updated: done.updated,
+          unchanged: done.unchanged,
+          error: null
+        });
+      }, 300);
       return { sync };
     },
     'integration.unlink': (params) => {
@@ -187,8 +209,11 @@ export function fakeIntegrationEngine(
       if (!handler) throw new Error(`Método sem resposta no dublê: ${method}`);
       return schema.parse(handler(params));
     },
-    async onEvent() {
-      return () => undefined;
+    async onEvent(handler) {
+      listeners.add(handler);
+      return () => {
+        listeners.delete(handler);
+      };
     }
   };
 
@@ -200,6 +225,8 @@ export function fakeIntegrationEngine(
     seedLinked(items: unknown[]) {
       linkedItems = items;
     },
+    /** Publica um aviso do motor, como se ele o tivesse enviado. */
+    emit: publish,
     seed(projectId: string, integration: ProjectIntegration = syncedIntegration) {
       integrations = [...integrations, { ...integration, projectId }];
     }

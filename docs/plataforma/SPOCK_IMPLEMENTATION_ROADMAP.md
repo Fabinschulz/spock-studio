@@ -311,7 +311,26 @@ navegador, só por testes.
 Limites: as execuções da lista não abrem direto pelo item (o detalhe vive no painel de Execuções e ainda não tem
 endereço próprio); a seção não foi conferida no navegador, só por testes.
 
-Falta nesta fase: sincronização e respostas do assistente como execuções.
+**Sétima entrega da fase C (2026-11-12).** A sincronização avisa por evento, na mesma branch. Acaba a releitura a cada
+1,5 s, mas a sincronização **não virou uma execução na lista** (veja o limite).
+
+| Feito | Observação |
+| --- | --- |
+| Eventos `sync.started`, `sync.progress`, `sync.finished` | O `runId` do evento é o id da sincronização, com `seq` crescente a partir de 1. Um aviso ao começar, um a cada página gravada e um ao terminar, este **depois** de a conexão e o histórico estarem atualizados (um teste olha o estado no instante do aviso) e de a integração estar livre para a próxima |
+| Só estado e contagens | Projeto, integração, estado, páginas e contagens de itens (trazidos, novos, alterados, iguais) e o código do erro. Nenhum item, título, endereço ou credencial sai por evento; um teste confere |
+| Aviso que falha não derruba | Se a saída do motor fecha no meio, a sincronização termina, grava e libera a integração do mesmo jeito |
+| Interface | A lista de vínculos se relê quando chega um aviso **deste projeto**; avisos de outro projeto, de outros assuntos ou fora do formato são ignorados; para de ouvir ao sair da tela. A leitura periódica caiu de 1,5 s para 15 s e só roda enquanto há sincronização em andamento: é a rede de segurança para um aviso perdido, não o mecanismo |
+| Contrato | `syncEventDataSchema` na interface, conferido pelo teste da tela com o aviso no formato do motor. O host repassa qualquer evento do motor, então nada mudou em Rust |
+| Testes | 6 novos no motor e 5 na interface. Suítes: 613 no motor, 428 na interface, tipos, lint, formato e build limpos |
+
+Limite: a sincronização **não aparece em `run.list`** nem tem diário. O desenho dela é outro: uma execução do motor tem
+no máximo uma por projeto de cada vez (para não escrever duas vezes na mesma pasta), e uma sincronização não escreve no
+projeto. Colocá-la na lista pede um tipo de execução sem essa exclusividade e a decisão de onde guardar o histórico, que
+hoje já está em `integration.history` (50 sincronizações por integração). Fica como decisão do dono. Também não foi
+conferido no aplicativo empacotado que o evento chega do motor real à tela: só a emissão (testes do motor) e a escuta
+(testes da interface), cada uma com seu dublê.
+
+Falta nesta fase: respostas do assistente como execuções, e a decisão sobre a sincronização na lista de execuções.
 
 ### Fase D: gestão que explica
 
