@@ -188,6 +188,15 @@
   gap: var(--space-3);
 }
 
+.portfolioEnd {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
 .kindLabel {
   color: var(--color-text);
 }

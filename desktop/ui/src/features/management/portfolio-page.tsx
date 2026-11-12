@@ -1,12 +1,15 @@
 import { formatEngineDate } from '@/features/integrations';
+import { useProjectSelectionContext } from '@/features/project-selection';
 import { errorMessage, type EngineClient } from '@/shared/api';
 import { StatusChip } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 import type { PortfolioProject } from '@/shared/schema';
+import { Button } from '@mariliz/ui-kit';
 import { useCallback, useMemo } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
+import { resolveOpenAction, type OpenAction } from './domain/open-project';
 import styles from './management-page.module.scss';
 import { createManagementApi } from './service/management-api';
 
@@ -20,6 +23,12 @@ export function PortfolioPage({ client }: { client: EngineClient }) {
   const api = useMemo(() => createManagementApi(client), [client]);
   const load = useCallback(() => api.portfolio(), [api]);
   const portfolio = useAsyncResource(load);
+  const { selected, recents, busy, openRecent } = useProjectSelectionContext();
+  const navigate = useNavigate();
+
+  async function open(recentId: string) {
+    if (await openRecent(recentId)) navigate(pathTo('management'));
+  }
 
   return (
     <div className={styles.page}>
@@ -44,13 +53,22 @@ export function PortfolioPage({ client }: { client: EngineClient }) {
           <>
             <ul className={styles.rows} aria-label="Projetos">
               {portfolio.value.projects.map((project) => (
-                <ProjectRow key={project.projectId} project={project} weeks={portfolio.value.periodWeeks} />
+                <ProjectRow
+                  key={project.projectId}
+                  project={project}
+                  weeks={portfolio.value.periodWeeks}
+                  action={resolveOpenAction(project, selected, recents)}
+                  busy={busy}
+                  onOpen={(recentId) => void open(recentId)}
+                />
               ))}
             </ul>
-            <p className={styles.muted}>
-              Para ver os indicadores de um projeto, abra-o na tela inicial e vá em{' '}
-              <Link to={pathTo('management')}>Acompanhamento</Link>.
-            </p>
+            {portfolio.value.projects.some((project) => !resolveOpenAction(project, selected, recents)) ? (
+              <p className={styles.muted}>
+                Um projeto sem o botão de abrir não está entre os recentes. Escolha a pasta dele na{' '}
+                <Link to={pathTo('home')}>tela inicial</Link>.
+              </p>
+            ) : null}
           </>
         )
       ) : null}
@@ -58,7 +76,15 @@ export function PortfolioPage({ client }: { client: EngineClient }) {
   );
 }
 
-function ProjectRow({ project, weeks }: { project: PortfolioProject; weeks: number }) {
+interface ProjectRowProps {
+  project: PortfolioProject;
+  weeks: number;
+  action: OpenAction;
+  busy: boolean;
+  onOpen: (recentId: string) => void;
+}
+
+function ProjectRow({ project, weeks, action, busy, onOpen }: ProjectRowProps) {
   return (
     <li className={styles.portfolioRow}>
       <div className={styles.portfolioHead}>
@@ -66,7 +92,29 @@ function ProjectRow({ project, weeks }: { project: PortfolioProject; weeks: numb
           <span className={styles.rowTitle}>{project.displayName}</span>
           <span className={styles.muted}> · {project.displayPath}</span>
         </span>
-        {project.signals.length === 0 ? <StatusChip tone="success">Sem pontos de atenção</StatusChip> : null}
+        <span className={styles.portfolioEnd}>
+          {project.signals.length === 0 ? <StatusChip tone="success">Sem pontos de atenção</StatusChip> : null}
+          {action?.kind === 'current' ? (
+            <>
+              <StatusChip tone="info">Aberto agora</StatusChip>
+              <Link to={pathTo('management')} aria-label={`Ver acompanhamento de ${project.displayName}`}>
+                Ver acompanhamento
+              </Link>
+            </>
+          ) : null}
+          {action?.kind === 'recent' ? (
+            <Button
+              type="button"
+              variant="outlined"
+              size="small"
+              aria-label={`Abrir projeto ${project.displayName}`}
+              aria-disabled={busy || undefined}
+              onClick={busy ? undefined : () => onOpen(action.recentId)}
+            >
+              Abrir projeto
+            </Button>
+          ) : null}
+        </span>
       </div>
 
       {project.kinds.map((kind) => (

@@ -10,7 +10,7 @@ const router = createHashRouter(routes);
 export function Root() {
   return (
     <AppProviders>
-      <ProjectSelectionProvider>
+      <ProjectSelectionProvider restoreLast>
         <RouterProvider router={router} />
       </ProjectSelectionProvider>
     </AppProviders>

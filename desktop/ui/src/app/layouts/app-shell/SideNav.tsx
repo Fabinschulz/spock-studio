@@ -1,6 +1,7 @@
 import { pathTo } from '@/shared/routing';
 import { cn } from '@/shared/utils';
 import {
+  BriefcaseIcon,
   Button,
   ChartBarIcon,
   ChatIcon,
@@ -14,6 +15,7 @@ import {
 import { useId, type ReactNode } from 'react';
 import { NavLink } from 'react-router';
 import styles from './AppShell.module.scss';
+import type { Environment } from './environment';
 
 interface NavItem {
   id: string;
@@ -32,60 +34,64 @@ interface NavGroup {
   items: NavItem[];
 }
 
-// Engenharia e Gestão são visões do mesmo projeto; Integrações alimenta as duas e por isso não pertence a nenhuma.
-const GROUPS: NavGroup[] = [
-  {
-    id: 'app',
-    items: [{ id: 'home', label: 'Início', icon: <Home01Icon fontSize="small" />, to: pathTo('home'), end: true }]
-  },
-  {
-    id: 'engineering',
-    label: 'Engenharia',
-    items: [
-      { id: 'project', label: 'Projeto', icon: <ListViewRectangleIcon fontSize="small" />, to: pathTo('project') },
-      {
-        id: 'configure',
-        label: 'Configurar',
-        icon: <ListViewRectangleIcon fontSize="small" />,
-        to: pathTo('configure')
-      },
-      { id: 'catalog', label: 'Catálogo', icon: <LibraryIcon fontSize="small" />, unavailableReason: 'Em breve' }
-    ]
-  },
-  {
-    id: 'management',
-    label: 'Gestão',
-    items: [
-      { id: 'portfolio', label: 'Portfólio', icon: <GridIcon fontSize="small" />, to: pathTo('portfolio') },
-      {
-        id: 'management',
-        label: 'Acompanhamento',
-        icon: <ChartBarIcon fontSize="small" />,
-        to: pathTo('management'),
-        end: true
-      },
-      { id: 'assistant', label: 'Assistente', icon: <ChatIcon fontSize="small" />, to: pathTo('assistant') }
-    ]
-  },
-  {
-    id: 'platform',
-    label: 'Plataforma',
-    items: [
-      {
-        id: 'integrations',
-        label: 'Integrações',
-        icon: <IntersectingArrowsIcon fontSize="small" />,
-        to: pathTo('integrations')
-      },
-      { id: 'settings', label: 'Configurações', icon: <SettingIcon fontSize="small" />, to: pathTo('settings') }
-    ]
-  }
-];
+const APP_GROUP: NavGroup = {
+  id: 'app',
+  items: [{ id: 'home', label: 'Início', icon: <Home01Icon fontSize="small" />, to: pathTo('home'), end: true }]
+};
 
-export function SideNav() {
+const ENGINEERING_GROUP: NavGroup = {
+  id: 'engineering',
+  label: 'Engenharia',
+  items: [
+    { id: 'project', label: 'Projeto', icon: <BriefcaseIcon fontSize="small" />, to: pathTo('project') },
+    { id: 'configure', label: 'Configurar', icon: <ListViewRectangleIcon fontSize="small" />, to: pathTo('configure') },
+    { id: 'catalog', label: 'Catálogo', icon: <LibraryIcon fontSize="small" />, unavailableReason: 'Em breve' }
+  ]
+};
+
+const MANAGEMENT_GROUP: NavGroup = {
+  id: 'management',
+  label: 'Gestão',
+  items: [
+    { id: 'portfolio', label: 'Portfólio', icon: <GridIcon fontSize="small" />, to: pathTo('portfolio') },
+    {
+      id: 'management',
+      label: 'Acompanhamento',
+      icon: <ChartBarIcon fontSize="small" />,
+      to: pathTo('management'),
+      end: true
+    },
+    { id: 'assistant', label: 'Assistente', icon: <ChatIcon fontSize="small" />, to: pathTo('assistant') }
+  ]
+};
+
+// Integrações alimenta os dois ambientes e por isso não pertence a nenhum: aparece sempre.
+const PLATFORM_GROUP: NavGroup = {
+  id: 'platform',
+  label: 'Plataforma',
+  items: [
+    {
+      id: 'integrations',
+      label: 'Integrações',
+      icon: <IntersectingArrowsIcon fontSize="small" />,
+      to: pathTo('integrations')
+    },
+    { id: 'settings', label: 'Configurações', icon: <SettingIcon fontSize="small" />, to: pathTo('settings') }
+  ]
+};
+
+const ENVIRONMENT_GROUP: Record<Environment, NavGroup> = {
+  engineering: ENGINEERING_GROUP,
+  management: MANAGEMENT_GROUP
+};
+
+/** O menu mostra só o ambiente atual, mais o que é do aplicativo todo. */
+export function SideNav({ environment }: { environment: Environment }) {
+  const groups = [APP_GROUP, ENVIRONMENT_GROUP[environment], PLATFORM_GROUP];
+
   return (
     <nav aria-label="Navegação principal" className={styles.groups}>
-      {GROUPS.map((group) => (
+      {groups.map((group) => (
         <NavGroupList key={group.id} group={group} />
       ))}
     </nav>
