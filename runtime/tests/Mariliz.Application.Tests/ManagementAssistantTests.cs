@@ -114,8 +114,12 @@ public class ManagementAssistantTests
         Assert.Contains("[flow.issues.wip] Issues em andamento agora: 1.", text);
         Assert.Contains("[risk.overdue]", text);
         Assert.Contains("[forecast.issues]", text);
-        Assert.Contains("[missing.blockers]", text);
+        Assert.Contains("[missing.scopeChange]", text);
         Assert.DoesNotContain("[missing.cycleTime]", text);
+        Assert.DoesNotContain("[missing.blockers]", text);
+        // Itens bloqueados vão ao assistente com a base do número: o que foi lido e o que não foi.
+        Assert.Contains("[flow.issues.blocked] Issues abertos bloqueados: 0 (0 por vínculo, 0 por rótulo). Base:", text);
+        Assert.Contains("não foram lidos nesta fonte", text);
         // Sem histórico de status (GitHub), o cycle time vai para o assistente como "sem valor" e com o motivo, não como zero.
         Assert.Contains("[flow.issues.cycletime] Cycle time de Issues: sem valor (A fonte não informa quando o trabalho começou", text);
         Assert.DoesNotContain("Pagamento por Pix", text);

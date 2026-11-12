@@ -16,6 +16,13 @@ const withIssuesCycle = (cycle: Partial<ProjectMetrics['kinds'][number]['cycleTi
   )
 });
 
+const withIssuesBlocked = (blocked: Partial<ProjectMetrics['kinds'][number]['blocked']>): ProjectMetrics => ({
+  ...metrics,
+  kinds: metrics.kinds.map((flow) =>
+    flow.kind === 'issues' ? { ...flow, blocked: { ...flow.blocked, ...blocked } } : flow
+  )
+});
+
 const renderFlow = (value: ProjectMetrics) =>
   render(
     <AppProviders>
@@ -72,5 +79,49 @@ describe('Fluxo · cycle time', () => {
 
     expect(screen.getByText(/Cycle time são os dias corridos do início do trabalho à conclusão/)).toBeInTheDocument();
     expect(screen.getByText(/só o\s+Jira informa/)).toBeInTheDocument();
+  });
+});
+
+describe('Fluxo · bloqueados', () => {
+  it('conta por vínculo e por rótulo e diz o que foi lido', () => {
+    renderFlow(
+      withIssuesBlocked({
+        value: 3,
+        viaLink: 2,
+        viaLabel: 2,
+        linksRead: 10,
+        basis: 'Vínculos lidos em 10 de 12 itens; um tipo de vínculo diferente do padrão "Blocks" não é lido.',
+        unavailable: null
+      })
+    );
+
+    const figure = within(issuesGroup()).getByText('Bloqueados').closest('div')!;
+    expect(figure).toHaveTextContent('3');
+    expect(figure).toHaveTextContent('2 por vínculo, 2 por rótulo');
+    expect(figure).toHaveTextContent('Vínculos lidos em 10 de 12 itens');
+  });
+
+  it('com zero bloqueados mostra o zero e ainda diz o que foi lido', () => {
+    renderFlow(
+      withIssuesBlocked({
+        value: 0,
+        viaLink: 0,
+        viaLabel: 0,
+        linksRead: 0,
+        basis: 'Os vínculos de bloqueio não foram lidos nesta fonte.',
+        unavailable: null
+      })
+    );
+
+    const figure = within(issuesGroup()).getByText('Bloqueados').closest('div')!;
+    expect(figure).toHaveTextContent('0');
+    expect(figure).toHaveTextContent('Os vínculos de bloqueio não foram lidos nesta fonte.');
+  });
+
+  it('sem itens mostra o motivo em vez de um número', () => {
+    renderFlow(withIssuesBlocked({ value: null, unavailable: 'Ainda não há itens sincronizados deste tipo.' }));
+
+    const figure = within(issuesGroup()).getByText('Bloqueados').closest('div')!;
+    expect(figure).toHaveTextContent('Ainda não há itens sincronizados deste tipo.');
   });
 });

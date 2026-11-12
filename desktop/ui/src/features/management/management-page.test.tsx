@@ -76,6 +76,11 @@ describe('Gestão · acompanhamento do projeto', () => {
     const issues = within(flow).getByRole('group', { name: 'Issues' });
     expect(within(issues).getByText('Entregues por semana (média)').nextElementSibling).toHaveTextContent('1,5');
     expect(within(issues).getByText('Em andamento').nextElementSibling).toHaveTextContent('1');
+    // O item 7 está marcado como bloqueado: conta por rótulo, e a base diz que os vínculos não foram lidos nesta fonte.
+    const blocked = within(issues).getByText('Bloqueados').closest('div')!;
+    expect(blocked).toHaveTextContent('1');
+    expect(blocked).toHaveTextContent('1 por rótulo');
+    expect(blocked).toHaveTextContent('não foram lidos nesta fonte');
     // Os itens do cenário têm histórico de status: cada um levou n dias em andamento, mediana 3 e percentil 85 em 6.
     expect(within(issues).getByText('Cycle time mediano').nextElementSibling).toHaveTextContent('3');
     expect(within(issues).getByText('Cycle time mediano').closest('div')).toHaveTextContent('85% em até 6');
@@ -89,14 +94,15 @@ describe('Gestão · acompanhamento do projeto', () => {
     expect(within(flow).queryByText('Dados incompletos')).not.toBeInTheDocument();
 
     const missing = screen.getByRole('heading', { name: 'Ainda não calculado' }).closest('section')!;
-    expect(within(missing).getByText('Bloqueios.')).toBeInTheDocument();
+    expect(within(missing).getByText('Mudança de escopo.')).toBeInTheDocument();
+    expect(within(missing).queryByText('Bloqueios.')).not.toBeInTheDocument();
     expect(within(missing).queryByText('Cycle time.')).not.toBeInTheDocument();
     expect(within(missing).queryByText('Previsão de entrega.')).not.toBeInTheDocument();
 
     const forecast = screen.getByRole('heading', { name: 'Previsão de entrega' }).closest('section')!;
-    const issueForecast = within(forecast).getByRole('group', { name: 'Issues: 10 abertos' });
+    const issueForecast = within(forecast).getByRole('group', { name: 'Issues: 11 abertos' });
     expect(within(issueForecast).getByText('Confiança alta')).toBeInTheDocument();
-    expect(within(issueForecast).getByText('Provável').closest('div')).toHaveTextContent('15/12/2026');
+    expect(within(issueForecast).getByText('Provável').closest('div')).toHaveTextContent('22/12/2026');
     expect(within(issueForecast).getByText('Conservador').closest('div')).toHaveTextContent('29/12/2026');
     expect(within(issueForecast).getByText(/85% das simulações terminam até esta data/)).toBeInTheDocument();
     expect(within(forecast).getByRole('group', { name: 'Pull requests: 1 aberto' })).toHaveTextContent(

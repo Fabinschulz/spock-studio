@@ -33,6 +33,17 @@ export const kindFlowSchema = z.object({
     p85Days: z.number().nullable(),
     unavailable: z.string().nullable()
   }),
+  /** Itens abertos bloqueados por rótulo ("blocked", "bloqueado") ou por vínculo de bloqueio do Jira. */
+  blocked: z.object({
+    value: z.number().nullable(),
+    viaLink: z.number(),
+    viaLabel: z.number(),
+    /** Itens com os vínculos lidos: sem isso, "nenhum bloqueio por vínculo" não quer dizer nada. */
+    linksRead: z.number(),
+    /** O que foi lido, por extenso. */
+    basis: z.string(),
+    unavailable: z.string().nullable()
+  }),
   overdue: z.object({ value: z.number().nullable(), withDueDate: z.number(), unavailable: z.string().nullable() })
 });
 

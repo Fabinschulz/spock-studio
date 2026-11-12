@@ -391,8 +391,26 @@ chamadas da sincronização; não foi feita. Nada disto foi validado com um Jira
 então o formato do histórico foi lido do que o conector já grava e dos testes com dublê. O percentil 85 pela posição, e
 não interpolado, arredonda para um valor observado, como no lead time.
 
-Falta nesta fase: bloqueios, marcos, histórico de cada risco, registro de decisão gerencial, relatório do período,
-componentes de indicador e faixa de previsão, histórico de perguntas do assistente.
+**Segunda entrega da fase D (2026-11-12).** Os **bloqueios**, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| Definição | Um item **aberto** está bloqueado se tem o rótulo `blocked`, `bloqueado` ou `bloqueada` (sem diferenciar maiúsculas) **ou** um vínculo "is blocked by" para um item que ainda não foi concluído. Item concluído nunca conta, mesmo com o rótulo |
+| Jira | O conector passou a pedir `issuelinks`. Lê o vínculo padrão `Blocks`: no JSON, o vínculo com `inwardIssue` é a relação "is blocked by" deste item com o outro; com `outwardIssue` o item é o que bloqueia e não está bloqueado. Um tipo de vínculo renomeado ainda conta se a descrição de entrada for "is blocked by"; qualquer outro tipo (Relates, Duplicates) não é bloqueio. O bloqueador já concluído não bloqueia |
+| "Não lido" não é "nenhum" | `BlockedBy` no item é lista vazia quando o vínculo foi lido e não há, e **nulo quando não foi lido** (GitHub, ou dado sincronizado antes). O indicador traz `linksRead` e uma `basis` por extenso: "Vínculos lidos em 10 de 12 itens" ou "Os vínculos de bloqueio não foram lidos nesta fonte". O número só vale para o que a fonte permitiu ler |
+| GitHub | Só o rótulo: o GitHub não tem vínculo de bloqueio. O "marcador acordado" ficou fixo nos três rótulos acima; torná-lo configurável por projeto é uma decisão pendente |
+| Onde aparece | `blocked` por tipo de dado em `management.metrics` (total, por vínculo, por rótulo, lidos e base); fato `blocked` no pacote do assistente, com a base; figura "Bloqueados" na seção de fluxo, com "N por vínculo, N por rótulo" e o que foi lido; **novo risco `blocked`** ("Itens bloqueados"), por regra: 1 item é baixo, 2 a 4 médio, 5 ou mais alto, com os itens do mais antigo ao mais novo (até 10). Saiu de "Ainda não calculado" |
+| Conferido à mão | O teste conta A (rótulo), B (vínculo), C (os dois), D (concluído com rótulo, não conta), E (vínculo lido sem bloqueio) e F (nada lido): 3 bloqueados, 2 por vínculo, 2 por rótulo, 3 com vínculo lido |
+| Efeito colateral | `BlockedBy` entra no hash de cada item: na primeira sincronização depois desta versão, **todos os itens do Jira aparecem como "alterados"** uma vez (o conteúdo gravado mudou). Não perde dado nem duplica |
+| Testes | 26 novos no motor (cálculo, risco, leitura do Jira com sete formatos de vínculo, GitHub só com rótulo) e 3 na tela de fluxo; fixtures regeneradas, com um item bloqueado por vínculo no cenário de riscos (a previsão mudou junto: 11 itens abertos, provável em 22/12/2026). Suítes: 656 no motor, 437 na interface, tipos, lint, formato e build limpos |
+
+Limites: nada foi validado com um Jira real, e os campos de bloqueio variam por site. Só o vínculo padrão é lido, e um
+site que usa o campo "Impediment"/"Flagged" ou um tipo de vínculo próprio aparece com "0" e com a base dizendo o que foi
+lido, o que é diferente de dizer que não há bloqueio. Não calculei há quanto tempo cada item está bloqueado: o provedor
+não informa quando o vínculo ou o rótulo foi posto, e usar a data de atualização inventaria um número.
+
+Falta nesta fase: marcos, histórico de cada risco, registro de decisão gerencial, relatório do período, componentes de
+indicador e faixa de previsão, histórico de perguntas do assistente.
 
 ### Fase E: catálogo do Harness
 

@@ -68,6 +68,14 @@
         "p85Days": 6,
         "unavailable": null
       },
+      "blocked": {
+        "value": 1,
+        "viaLink": 0,
+        "viaLabel": 1,
+        "linksRead": 0,
+        "basis": "Rótulo \"blocked\" ou \"bloqueado\" e vínculo \"is blocked by\" do Jira com item ainda aberto. Os vínculos de bloqueio não foram lidos nesta fonte (só o Jira os informa; sincronize de novo se ele já está vinculado).",
+        "unavailable": null
+      },
       "overdue": {
         "value": null,
         "withDueDate": 0,
@@ -126,6 +134,14 @@
         "p85Days": null,
         "unavailable": "A fonte não informa quando o trabalho começou: sem histórico de status, não há como saber a data de início."
       },
+      "blocked": {
+        "value": 0,
+        "viaLink": 0,
+        "viaLabel": 0,
+        "linksRead": 0,
+        "basis": "Rótulo \"blocked\" ou \"bloqueado\" e vínculo \"is blocked by\" do Jira com item ainda aberto. Os vínculos de bloqueio não foram lidos nesta fonte (só o Jira os informa; sincronize de novo se ele já está vinculado).",
+        "unavailable": null
+      },
       "overdue": {
         "value": null,
         "withDueDate": 0,
@@ -134,11 +150,6 @@
     }
   ],
   "notCalculated": [
-    {
-      "id": "blockers",
-      "label": "Bloqueios",
-      "reason": "O bloqueio no Jira é um campo personalizado, diferente em cada site; ainda não é lido."
-    },
     {
       "id": "scopeChange",
       "label": "Mudança de escopo",

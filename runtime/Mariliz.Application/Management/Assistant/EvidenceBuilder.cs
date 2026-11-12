@@ -66,6 +66,10 @@ public static class EvidenceBuilder
             : new($"{id}.cycletime", "indicadores",
                 $"Cycle time de {label}: mediana {Number(flow.CycleTime.MedianDays!.Value)} dias, percentil 85 {Number(flow.CycleTime.P85Days!.Value)} dias, "
                 + $"sobre {flow.CycleTime.Sample} entregas com início conhecido ({flow.CycleTime.Excluded} sem início conhecido).");
+        yield return flow.Blocked.Unavailable is { } blockedMissing
+            ? new($"{id}.blocked", "indicadores", $"{label} bloqueados: sem valor ({blockedMissing})")
+            : new($"{id}.blocked", "indicadores",
+                $"{label} abertos bloqueados: {flow.Blocked.Value} ({flow.Blocked.ViaLink} por vínculo, {flow.Blocked.ViaLabel} por rótulo). Base: {flow.Blocked.Basis}");
         yield return Metric($"{id}.overdue", $"{label} abertos com prazo vencido", flow.Overdue.Value?.ToString(CultureInfo.InvariantCulture), flow.Overdue.Unavailable);
     }
 

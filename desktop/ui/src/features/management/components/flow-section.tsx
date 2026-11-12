@@ -48,6 +48,16 @@ function cycleTimeNote(cycle: KindFlow['cycleTime']): string | undefined {
   return parts.length > 0 ? parts.join(' · ') : undefined;
 }
 
+/** Quantos por vínculo e quantos por rótulo, e o que foi lido: o número só vale para o que a fonte permitiu ler. */
+function blockedNote(blocked: KindFlow['blocked']): string | undefined {
+  if (blocked.value === null) return undefined;
+  const how = [
+    blocked.viaLink > 0 ? `${blocked.viaLink} por vínculo` : null,
+    blocked.viaLabel > 0 ? `${blocked.viaLabel} por rótulo` : null
+  ].filter((part): part is string => part !== null);
+  return [how.join(', '), blocked.basis].filter((part) => part.length > 0).join('. ');
+}
+
 function KindFlowBlock({ flow, label }: { flow: KindFlow; label: string }) {
   const titleId = useId();
   const peak = Math.max(1, ...flow.throughput.weeks.map((week) => Math.max(week.delivered, week.created)));
@@ -75,6 +85,12 @@ function KindFlowBlock({ flow, label }: { flow: KindFlow; label: string }) {
           value={flow.cycleTime.medianDays === null ? null : formatDays(flow.cycleTime.medianDays)}
           note={cycleTimeNote(flow.cycleTime)}
           unavailable={flow.cycleTime.unavailable}
+        />
+        <Figure
+          label="Bloqueados"
+          value={flow.blocked.value}
+          note={blockedNote(flow.blocked)}
+          unavailable={flow.blocked.unavailable}
         />
         <Figure label="Prazo vencido" value={flow.overdue.value} unavailable={flow.overdue.unavailable} />
       </dl>

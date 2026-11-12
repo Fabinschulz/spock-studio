@@ -195,7 +195,9 @@ describe('contrato de previsão e riscos (fixtures do motor)', () => {
 
   it('riscos por regra, com evidências, itens e origem explícita', () => {
     const parsed = projectRisksSchema.parse(managementRisks);
-    expect(parsed.risks.map((risk) => risk.id)).toEqual(['overdue', 'review-queue']);
+    expect(parsed.risks.map((risk) => risk.id)).toEqual(['overdue', 'blocked', 'review-queue']);
+    expect(parsed.risks[1]).toMatchObject({ severity: 'low', items: [{ externalId: 'A-2' }] });
+    expect(parsed.rulesEvaluated).toContain('blocked');
     expect(parsed.risks.every((risk) => risk.origin === 'rule' && risk.evidence.length > 0)).toBe(true);
   });
 });

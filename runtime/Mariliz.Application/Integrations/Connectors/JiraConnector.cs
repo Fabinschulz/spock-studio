@@ -16,7 +16,7 @@ public sealed partial class JiraConnector(ConnectorClient client, IClock clock) 
     public const string SiteSetting = "site";
     public const string EmailSetting = "email";
 
-    private const string Fields = "summary,status,issuetype,assignee,labels,created,updated,resolutiondate,duedate,parent";
+    private const string Fields = "summary,status,issuetype,assignee,labels,created,updated,resolutiondate,duedate,parent,issuelinks";
 
     public ConnectorDescriptor Descriptor { get; } = new(
         IntegrationProviders.Jira,
@@ -123,8 +123,32 @@ public sealed partial class JiraConnector(ConnectorClient client, IClock clock) 
             DueDate: ConnectorJson.Day(fields["duedate"]),
             Parent: ConnectorJson.Text(fields["parent"]?["key"]),
             Url: $"{site}/browse/{key}",
-            Transitions: Transitions(issue));
+            Transitions: Transitions(issue),
+            BlockedBy: BlockedBy(fields));
     }
+
+    /// <summary>
+    /// Os itens ainda abertos que bloqueiam este, pelo vínculo padrão "Blocks" ("is blocked by"). No JSON do Jira, quando o
+    /// vínculo aparece com <c>inwardIssue</c> a relação deste item com o outro é a descrição de entrada ("is blocked by"). Um
+    /// site que renomeou o tipo de vínculo não é lido, e isso não vira "sem bloqueio": os campos de bloqueio são diferentes
+    /// em cada site, então só o padrão é lido e o indicador diz o que foi lido. Sem o campo, devolve <c>null</c> (não lido).
+    /// </summary>
+    private static List<string>? BlockedBy(JsonObject fields)
+    {
+        if (fields["issuelinks"] is not JsonArray links) return null;
+
+        return ConnectorJson.Objects(links)
+            .Where(link => link["inwardIssue"] is JsonObject && IsBlocksLink(link["type"] as JsonObject))
+            .Select(link => link["inwardIssue"] as JsonObject)
+            .Where(blocker => ConnectorJson.Text(blocker?["fields"]?["status"]?["statusCategory"]?["key"]) != "done")
+            .Select(blocker => ConnectorJson.Text(blocker?["key"]))
+            .OfType<string>()
+            .ToList();
+    }
+
+    private static bool IsBlocksLink(JsonObject? type) =>
+        string.Equals(ConnectorJson.Text(type?["name"]), "Blocks", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(ConnectorJson.Text(type?["inward"]), "is blocked by", StringComparison.OrdinalIgnoreCase);
 
     private static List<WorkItemTransition> Transitions(JsonObject issue) =>
         ConnectorJson.Objects(issue["changelog"]?["histories"])

@@ -22,9 +22,10 @@ public class ManagementTests
         string kind = DataKinds.Issues,
         string? status = null,
         DateOnly? due = null,
-        IReadOnlyList<WorkItemTransition>? transitions = null) =>
+        IReadOnlyList<WorkItemTransition>? transitions = null,
+        IReadOnlyList<string>? labels = null) =>
         new(kind, id, "Item " + id, kind == DataKinds.Issues ? "Issue" : "Pull request",
-            status ?? (category == StatusCategories.Done ? "completed" : "open"), category, ["dev"], [], created,
+            status ?? (category == StatusCategories.Done ? "completed" : "open"), category, ["dev"], labels ?? [], created,
             closed ?? created, closed, due, null, "https://example.test/" + id, transitions ?? []);
 
     private static async Task<ProjectIntegration> Seed(IntegrationHarness h, IEnumerable<WorkItem> items, SyncStatus last = SyncStatus.Succeeded)
@@ -121,7 +122,7 @@ public class ManagementTests
     {
         var flow = FlowCalculator.Compute(DataKinds.Issues, [], Now, 8);
 
-        Assert.All(new[] { flow.Wip.Unavailable, flow.Throughput.Unavailable, flow.LeadTime.Unavailable, flow.CycleTime.Unavailable, flow.Overdue.Unavailable },
+        Assert.All(new[] { flow.Wip.Unavailable, flow.Throughput.Unavailable, flow.LeadTime.Unavailable, flow.CycleTime.Unavailable, flow.Blocked.Unavailable, flow.Overdue.Unavailable },
             reason => Assert.Equal(FlowCalculator.NoItems, reason));
         Assert.Null(flow.Wip.Value);
         Assert.Null(flow.Throughput.Total);
@@ -150,8 +151,9 @@ public class ManagementTests
         Assert.Equal(["issues", "pullRequests"], first["kinds"]!.AsArray().Select(k => k!["kind"]!.GetValue<string>()));
         Assert.Equal(1, first["kinds"]![1]!["wip"]!["value"]!.GetValue<int>());
         Assert.Equal(4, first["periodWeeks"]!.GetValue<int>());
-        Assert.Contains(first["notCalculated"]!.AsArray(), n => n!["id"]!.GetValue<string>() == "blockers");
+        Assert.Contains(first["notCalculated"]!.AsArray(), n => n!["id"]!.GetValue<string>() == "scopeChange");
         Assert.DoesNotContain(first["notCalculated"]!.AsArray(), n => n!["id"]!.GetValue<string>() == "cycleTime");
+        Assert.DoesNotContain(first["notCalculated"]!.AsArray(), n => n!["id"]!.GetValue<string>() == "blockers");
         Assert.DoesNotContain(first["notCalculated"]!.AsArray(), n => n!["id"]!.GetValue<string>() == "forecast");
     }
 
@@ -225,7 +227,8 @@ public class ManagementTests
             // Cada item levou n dias em andamento (de "open" a "completed"): cycle time mediano 3, percentil 85 6.
             .Select(n => Item($"{n}", StatusCategories.Done, Now.AddDays(-3 * n - 2), Now.AddDays(-3 * n), transitions:
                 [new WorkItemTransition(Now.AddDays(-3 * n - n), "new", "open"), new WorkItemTransition(Now.AddDays(-3 * n), "open", "completed")]))
-            .Append(Item("7", StatusCategories.InProgress, Now.AddDays(-4)))
+            // O item 7 está em andamento e marcado como bloqueado: aparece nos indicadores e como risco.
+            .Append(Item("7", StatusCategories.InProgress, Now.AddDays(-4), labels: ["blocked"]))
             .Append(Item("8", StatusCategories.Done, Now.AddDays(-9), Now.AddDays(-1), DataKinds.PullRequests, "merged")));
 
         var scenarios = new Dictionary<string, JsonNode>

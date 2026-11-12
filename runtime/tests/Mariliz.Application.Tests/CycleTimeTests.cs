@@ -168,6 +168,6 @@ public class CycleTimeTests
     public void O_cycle_time_deixou_de_constar_como_nao_calculado()
     {
         Assert.DoesNotContain(ManagementService.NotCalculatedYet, item => item.Id == "cycleTime");
-        Assert.Contains(ManagementService.NotCalculatedYet, item => item.Id == "blockers");
+        Assert.Contains(ManagementService.NotCalculatedYet, item => item.Id == "scopeChange");
     }
 }

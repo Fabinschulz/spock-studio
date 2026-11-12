@@ -18,7 +18,8 @@ public static class FlowCalculator
         var open = items.Count(DeliveryRules.IsOpen);
         if (items.Count == 0)
             return new KindFlow(kind, 0, 0, new CountMetric(null, NoItems), new ThroughputMetric([], null, null, NoItems),
-                new LeadTimeMetric(0, null, null, NoItems), new CycleTimeMetric(0, 0, null, null, NoItems), new OverdueMetric(null, 0, NoItems));
+                new LeadTimeMetric(0, null, null, NoItems), new CycleTimeMetric(0, 0, null, null, NoItems), new BlockedMetric(null, 0, 0, 0, BlockedBasis(0, 0), NoItems),
+                new OverdueMetric(null, 0, NoItems));
 
         return new KindFlow(
             kind,
@@ -28,6 +29,7 @@ public static class FlowCalculator
             Throughput(items, now, weeks),
             LeadTime(items, now.AddDays(-7 * weeks), now),
             CycleTime(items, now.AddDays(-7 * weeks), now),
+            Blocked(items),
             Overdue(items, now));
     }
 
@@ -112,6 +114,25 @@ public static class FlowCalculator
             .GroupBy(item => item.Status, StringComparer.OrdinalIgnoreCase)
             .Where(group => group.Select(item => item.StatusCategory).Distinct().Count() == 1)
             .ToDictionary(group => group.Key, group => group.First().StatusCategory, StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Itens abertos bloqueados: com o rótulo de bloqueio ou com vínculo "is blocked by" para um item ainda aberto (só o Jira
+    /// os informa). O que cada fonte permitiu ler vai em <c>Basis</c>.
+    /// </summary>
+    private static BlockedMetric Blocked(IReadOnlyCollection<WorkItem> items)
+    {
+        var linksRead = items.Count(item => item.BlockedBy is not null);
+        var blocked = items.Count(DeliveryRules.IsBlocked);
+        return new BlockedMetric(blocked, items.Count(DeliveryRules.IsBlockedByLink), items.Count(DeliveryRules.IsBlockedByLabel),
+            linksRead, BlockedBasis(linksRead, items.Count), null);
+    }
+
+    /// <summary>O rótulo vale sempre; os vínculos só onde foram lidos, e isso é dito.</summary>
+    public static string BlockedBasis(int linksRead, int items) =>
+        "Rótulo \"blocked\" ou \"bloqueado\" e vínculo \"is blocked by\" do Jira com item ainda aberto. "
+        + (linksRead == 0
+            ? "Os vínculos de bloqueio não foram lidos nesta fonte (só o Jira os informa; sincronize de novo se ele já está vinculado)."
+            : $"Vínculos lidos em {linksRead} de {items} itens; um tipo de vínculo diferente do padrão \"Blocks\" não é lido.");
 
     private static OverdueMetric Overdue(IReadOnlyCollection<WorkItem> items, DateTimeOffset now)
     {

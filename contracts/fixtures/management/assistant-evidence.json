@@ -39,6 +39,11 @@
       "text": "Cycle time de Issues: sem valor (A fonte não informa quando o trabalho começou: sem histórico de status, não há como saber a data de início.)"
     },
     {
+      "id": "flow.issues.blocked",
+      "group": "indicadores",
+      "text": "Issues abertos bloqueados: 0 (0 por vínculo, 0 por rótulo). Base: Rótulo \"blocked\" ou \"bloqueado\" e vínculo \"is blocked by\" do Jira com item ainda aberto. Os vínculos de bloqueio não foram lidos nesta fonte (só o Jira os informa; sincronize de novo se ele já está vinculado)."
+    },
+    {
       "id": "flow.issues.overdue",
       "group": "indicadores",
       "text": "Issues abertos com prazo vencido: 1."
@@ -57,11 +62,6 @@
       "id": "risk.overdue",
       "group": "riscos",
       "text": "Risco detectado por regra: Itens com prazo vencido, severidade alta. 1 de 1 item aberto com prazo está vencido. O mais atrasado venceu há 9 dias. Itens: 41."
-    },
-    {
-      "id": "missing.blockers",
-      "group": "não calculado",
-      "text": "Bloqueios não é calculado: O bloqueio no Jira é um campo personalizado, diferente em cada site; ainda não é lido."
     },
     {
       "id": "missing.scopeChange",

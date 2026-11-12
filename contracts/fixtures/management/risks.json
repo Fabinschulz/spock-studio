@@ -25,6 +25,25 @@
       "origin": "rule"
     },
     {
+      "id": "blocked",
+      "title": "Itens bloqueados",
+      "severity": "low",
+      "rule": "Item aberto com o rótulo \"blocked\" ou \"bloqueado\", ou com vínculo \"is blocked by\" para um item que ainda não foi concluído.",
+      "evidence": [
+        "1 item aberto está bloqueado: 1 por vínculo e 0 por rótulo (um item pode ter os dois)."
+      ],
+      "items": [
+        {
+          "kind": "issues",
+          "externalId": "A-2",
+          "title": "Item A-2"
+        }
+      ],
+      "trend": null,
+      "recommendation": "Descobrir o que destrava cada item, ou replanejá-lo.",
+      "origin": "rule"
+    },
+    {
       "id": "review-queue",
       "title": "Pull requests acumulados em revisão",
       "severity": "low",
@@ -47,6 +66,7 @@
   ],
   "rulesEvaluated": [
     "overdue",
+    "blocked",
     "stalled-wip",
     "review-queue",
     "scope-growth",
