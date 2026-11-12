@@ -27,8 +27,9 @@ export const runItemSchema = z.object({
   runId: z.string(),
   projectId: z.string(),
   projectName: z.string(),
-  kind: z.enum(RUN_KINDS),
-  state: z.enum(RUN_STATES),
+  // Texto, não enum: um tipo ou estado novo do motor aparece como veio e não derruba a lista inteira.
+  kind: z.string(),
+  state: z.string(),
   startedAt: z.string(),
   finishedAt: z.string().nullable(),
   /** Andando neste processo agora. Um diário "running" sem isso foi interrompido por uma queda. */

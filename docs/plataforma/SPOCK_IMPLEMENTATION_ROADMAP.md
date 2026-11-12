@@ -238,9 +238,26 @@ Limite do desenho: a listagem lê o diário inteiro de cada execução e só ent
 o risco desta fase previa. Com poucos diários isso é barato; em projetos com milhares de execuções será preciso um
 índice ou ler só o início do arquivo. Fica registrado como medição pendente, não resolvido.
 
-Falta nesta fase: a tela Execuções (lista, filtros e detalhe num painel sobre o `Drawer`), sincronização e respostas do
-assistente como execuções, resumo de entrega, ligação com item de trabalho, indicador no menu e `run.snapshot`
-conferindo o projeto.
+**Segunda entrega da fase C (2026-11-12).** A tela Execuções, só interface, na mesma branch. Primeiro uso do `Drawer`.
+
+| Feito | Observação |
+| --- | --- |
+| Tela Execuções em `/execucoes` | Item "Execuções" em Plataforma, sempre visível nos dois ambientes. Lista com projeto, tipo, estado (com `StatusChip`, forma além da cor) e data; filtros por projeto, tipo e estado; "Carregar mais" com o cursor do motor; resumo "N em andamento, N aguardando aprovação". Trocar um filtro descarta as páginas carregadas, e uma página que chega depois da troca não é gravada |
+| Escopo do projeto | Sem projeto aberto, só "todos". Com projeto aberto, um seletor alterna entre todos e só aquele, em vez de uma tela separada para Engenharia: uma rota só, sem repetir a lista |
+| Detalhe no `Drawer` | Painel à direita com estado, motivo, passos, o que mudou, verificações, ações propostas por agentes, o que ficou de fora, pendências, modelo e eventos. Só lê: um teste confere que só `run.list` e `run.detail` são chamados |
+| Uma falha mostra o próximo passo | Por estado: falhou sem nada aplicado, falhou com parte aplicada (aponta o Configurar para reverter), requer intervenção, concluída com limitações, aguardando aprovação e interrompida |
+| Interrompida | Um diário "em execução" sem execução viva (o aplicativo foi fechado) aparece como **Interrompida**, em aviso, e não como ativa |
+| Acompanhamento ao vivo | O link "Abrir o acompanhamento" só aparece para quem anda agora ou espera aprovação; as demais já terminaram e ficam no detalhe, porque `run.snapshot` só existe para execuções que o processo conhece |
+| Contrato tolerante | `kind` e `state` são texto no Zod, não enum: um tipo ou estado novo do motor aparece como veio e não derruba a lista |
+| `Drawer` conferido | Esc fecha, o botão "Fechar o detalhe" fecha, o foco entra no painel e volta para a linha que o abriu, e o tema escuro está correto. Conferido nos testes e no navegador, em 1280 e 760 px, com clique real |
+| Testes | 393 na interface (16 novos da tela), mais tipos, lint, formato e build limpos. Prévia visual com host simulado e dados de fixture; nada foi conferido no Tauri empacotado |
+
+Limites: o tema claro não foi conferido no `Drawer` (a prévia ficou escura nas duas tentativas), os rótulos de operação
+e de estado de passo cobrem o que o motor emite hoje e um valor novo aparece como veio, e o indicador de execução
+andando no menu continua pendente.
+
+Falta nesta fase: sincronização e respostas do assistente como execuções, resumo de entrega no topo, ligação com item de
+trabalho, indicador no menu e `run.snapshot` conferindo o projeto.
 
 ### Fase D: gestão que explica
 

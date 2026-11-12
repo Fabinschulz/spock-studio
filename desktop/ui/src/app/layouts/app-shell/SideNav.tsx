@@ -12,6 +12,7 @@ import {
   IntersectingArrowsIcon,
   LibraryIcon,
   ListViewRectangleIcon,
+  PlayIcon,
   SettingIcon,
   ShieldCheckIcon
 } from '@mariliz/ui-kit';
@@ -92,6 +93,7 @@ const PLATFORM_GROUP: NavGroup = {
   id: 'platform',
   label: 'Plataforma',
   items: [
+    { id: 'runs', label: 'Execuções', icon: <PlayIcon fontSize="small" />, to: pathTo('runs') },
     {
       id: 'integrations',
       label: 'Integrações',
