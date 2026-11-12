@@ -70,7 +70,7 @@ describe('AppShell · navegação', () => {
     const nav = navigation();
 
     expect(within(nav).getByRole('link', { name: 'Início' })).toHaveAttribute('aria-current', 'page');
-    expect(within(nav).getByRole('link', { name: 'Projeto' })).toHaveAttribute('href', '/projeto');
+    expect(within(nav).getByRole('link', { name: 'Visão geral' })).toHaveAttribute('href', '/projeto');
     // "Configurar" abre a primeira etapa da jornada, onde se escolhe a pasta: sempre existe.
     expect(within(nav).getByRole('link', { name: 'Configurar' })).toHaveAttribute('href', '/configurar');
     expect(within(nav).getByRole('link', { name: 'Configurações' })).toHaveAttribute('href', '/configuracoes');
@@ -84,8 +84,14 @@ describe('AppShell · navegação', () => {
     const nav = navigation();
 
     const engineering = within(nav).getByRole('list', { name: 'Engenharia' });
-    expect(within(engineering).getByRole('link', { name: 'Projeto' })).toBeInTheDocument();
-    expect(within(engineering).getByRole('link', { name: 'Configurar' })).toBeInTheDocument();
+    expect(within(engineering).getByRole('link', { name: 'Visão geral' })).toHaveAttribute('href', '/projeto');
+    expect(within(engineering).getByRole('link', { name: 'Harness' })).toHaveAttribute('href', '/projeto/harness');
+    expect(within(engineering).getByRole('link', { name: 'Conhecimento' })).toHaveAttribute(
+      'href',
+      '/projeto/conhecimento'
+    );
+    expect(within(engineering).getByRole('link', { name: 'Configurar' })).toHaveAttribute('href', '/configurar');
+    expect(within(engineering).getByRole('link', { name: 'Pedido de engenharia' })).toHaveAttribute('href', '/pedido');
     expect(within(nav).queryByRole('list', { name: 'Gestão' })).not.toBeInTheDocument();
 
     const platform = within(nav).getByRole('list', { name: 'Plataforma' });
@@ -105,13 +111,24 @@ describe('AppShell · navegação', () => {
     expect(within(nav).getByRole('list', { name: 'Plataforma' })).toBeInTheDocument();
   });
 
-  it('Projeto e Configurar não repetem o mesmo ícone', () => {
+  it('nenhum item do menu repete o ícone de outro', () => {
     renderShell();
     const nav = navigation();
 
-    const icon = (name: string) => within(nav).getByRole('link', { name }).querySelector('svg')?.innerHTML;
-    expect(icon('Projeto')).toBeTruthy();
-    expect(icon('Projeto')).not.toBe(icon('Configurar'));
+    const icons = within(nav)
+      .getAllByRole('link')
+      .map((link) => link.querySelector('svg')?.innerHTML);
+    expect(icons.every(Boolean)).toBe(true);
+    expect(new Set(icons).size).toBe(icons.length);
+  });
+
+  it('a Visão geral só fica marcada em /projeto, não nas telas que ficam abaixo dele', () => {
+    renderShell('/projeto/harness');
+    const nav = navigation();
+
+    expect(within(nav).getByRole('link', { name: 'Harness' })).toHaveAttribute('aria-current', 'page');
+    expect(within(nav).getByRole('link', { name: 'Visão geral' })).not.toHaveAttribute('aria-current');
+    expect(within(nav).getByRole('list', { name: 'Engenharia' })).toBeInTheDocument();
   });
 
   it('o atalho "Ir para o conteúdo" move o foco para a área principal, sem mudar a rota', async () => {

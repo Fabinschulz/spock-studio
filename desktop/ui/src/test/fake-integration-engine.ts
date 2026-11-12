@@ -72,6 +72,17 @@ export function fakeIntegrationEngine(
       connections = [...connections, connection];
       return { connection };
     },
+    'connection.disconnect': (params) => {
+      const connection = connections.find((entry) => entry.id === params.connectionId);
+      if (!connection) throw new EngineError('CONNECTION_NOT_FOUND', 'Conexão não encontrada.');
+      const updated: Connection = { ...connection, status: 'disconnected', scopes: [] };
+      connections = connections.map((entry) => (entry.id === updated.id ? updated : entry));
+      return { connection: updated };
+    },
+    'connection.remove': (params) => {
+      connections = connections.filter((entry) => entry.id !== params.connectionId);
+      return { removed: true };
+    },
     'integration.list': (params) => {
       const listed = integrations.filter((integration) => integration.projectId === params.projectId);
       finishRunningSyncs();

@@ -1,6 +1,8 @@
 import { pathTo } from '@/shared/routing';
 import { cn } from '@/shared/utils';
 import {
+  AssignmentIcon,
+  BookOpenIcon,
   BriefcaseIcon,
   Button,
   ChartBarIcon,
@@ -10,7 +12,8 @@ import {
   IntersectingArrowsIcon,
   LibraryIcon,
   ListViewRectangleIcon,
-  SettingIcon
+  SettingIcon,
+  ShieldCheckIcon
 } from '@mariliz/ui-kit';
 import { useId, type ReactNode } from 'react';
 import { NavLink } from 'react-router';
@@ -43,8 +46,27 @@ const ENGINEERING_GROUP: NavGroup = {
   id: 'engineering',
   label: 'Engenharia',
   items: [
-    { id: 'project', label: 'Projeto', icon: <BriefcaseIcon fontSize="small" />, to: pathTo('project') },
+    {
+      id: 'project',
+      label: 'Visão geral',
+      icon: <BriefcaseIcon fontSize="small" />,
+      to: pathTo('project'),
+      end: true
+    },
+    { id: 'harness', label: 'Harness', icon: <ShieldCheckIcon fontSize="small" />, to: pathTo('projectHarness') },
+    {
+      id: 'knowledge',
+      label: 'Conhecimento',
+      icon: <BookOpenIcon fontSize="small" />,
+      to: pathTo('projectKnowledge')
+    },
     { id: 'configure', label: 'Configurar', icon: <ListViewRectangleIcon fontSize="small" />, to: pathTo('configure') },
+    {
+      id: 'request',
+      label: 'Pedido de engenharia',
+      icon: <AssignmentIcon fontSize="small" />,
+      to: pathTo('engineeringRequest')
+    },
     { id: 'catalog', label: 'Catálogo', icon: <LibraryIcon fontSize="small" />, unavailableReason: 'Em breve' }
   ]
 };

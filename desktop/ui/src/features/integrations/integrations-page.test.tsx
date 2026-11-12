@@ -72,6 +72,48 @@ describe('Integrações · conexões', () => {
     expect(screen.getByRole('button', { name: 'Conectar GitHub' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Conectar Jira Cloud' })).toBeDisabled();
   });
+
+  it('remover pede confirmação, diz o que acontece e só apaga depois de confirmada', async () => {
+    const engine = fakeIntegrationEngine({ connections: [{ ...githubConnection, projects: 0 }] });
+    const { container } = render(page(engine.client, null));
+    const row = (await screen.findByText('GitHub da equipe')).closest('li')!;
+    const removed = () => engine.calls.filter((call) => call.method === 'connection.remove');
+
+    await userEvent.click(within(row).getByRole('button', { name: 'Remover' }));
+
+    const confirm = within(row).getByRole('group', { name: 'Remover GitHub da equipe' });
+    expect(confirm).toHaveTextContent(/a credencial é apagada deste computador/);
+    expect(confirm).toHaveTextContent(/conectar outra vez, com uma credencial nova/);
+    expect(removed()).toHaveLength(0);
+    await expectNoA11yViolations(container);
+
+    await userEvent.click(within(confirm).getByRole('button', { name: 'Manter' }));
+    expect(within(row).queryByRole('group', { name: 'Remover GitHub da equipe' })).not.toBeInTheDocument();
+    expect(removed()).toHaveLength(0);
+
+    await userEvent.click(within(row).getByRole('button', { name: 'Remover' }));
+    await userEvent.click(within(row).getByRole('button', { name: 'Remover conexão' }));
+
+    await waitFor(() => expect(screen.queryByText('GitHub da equipe')).not.toBeInTheDocument());
+    expect(removed().map((call) => call.params)).toEqual([{ connectionId: githubConnection.id }]);
+  });
+
+  it('desconectar pede confirmação e só apaga a credencial depois de confirmada', async () => {
+    const engine = fakeIntegrationEngine({ connections: [githubConnection] });
+    render(page(engine.client, null));
+    const row = (await screen.findByText('GitHub da equipe')).closest('li')!;
+    const disconnected = () => engine.calls.filter((call) => call.method === 'connection.disconnect');
+
+    await userEvent.click(within(row).getByRole('button', { name: 'Desconectar' }));
+
+    expect(within(row).getByRole('group', { name: 'Desconectar GitHub da equipe' })).toBeInTheDocument();
+    expect(disconnected()).toHaveLength(0);
+
+    await userEvent.click(within(row).getByRole('button', { name: 'Apagar credencial' }));
+
+    expect(await within(row).findByText('Sem credencial')).toBeInTheDocument();
+    expect(disconnected().map((call) => call.params)).toEqual([{ connectionId: githubConnection.id }]);
+  });
 });
 
 describe('Integrações · vínculo com o projeto', () => {

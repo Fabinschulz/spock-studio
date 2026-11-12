@@ -18,7 +18,7 @@ interface ConnectionRowProps {
   onRemove: () => void;
 }
 
-type Mode = 'idle' | 'rotating' | 'confirming-disconnect';
+type Mode = 'idle' | 'rotating' | 'confirming-disconnect' | 'confirming-remove';
 
 export function ConnectionRow({
   connection,
@@ -121,6 +121,32 @@ export function ConnectionRow({
         </div>
       ) : null}
 
+      {mode === 'confirming-remove' ? (
+        <div className={styles.confirm} role="group" aria-label={`Remover ${connection.name}`}>
+          <p>
+            A conexão sai da lista e a credencial é apagada deste computador. Para usá-la de novo, será preciso conectar
+            outra vez, com uma credencial nova.
+          </p>
+          <div className={styles.actions}>
+            <Button
+              type="button"
+              variant="contained"
+              color="error"
+              disabled={busy}
+              onClick={() => {
+                setMode('idle');
+                onRemove();
+              }}
+            >
+              Remover conexão
+            </Button>
+            <Button type="button" variant="outlined" disabled={busy} onClick={() => setMode('idle')}>
+              Manter
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
       {mode === 'idle' ? (
         <div className={styles.actions}>
           {connected ? (
@@ -137,7 +163,7 @@ export function ConnectionRow({
             </Button>
           ) : null}
           {connection.projects === 0 ? (
-            <Button type="button" variant="text" disabled={busy} onClick={onRemove}>
+            <Button type="button" variant="text" disabled={busy} onClick={() => setMode('confirming-remove')}>
               Remover
             </Button>
           ) : null}

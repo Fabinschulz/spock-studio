@@ -1,14 +1,14 @@
 import { formatRecentDateTime, type SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
+import { EmptyState, ErrorState, LoadingState, Page, PageSection } from '@/shared/components';
+import { pathTo } from '@/shared/routing';
 import type { Discovery, RunSummary } from '@/shared/schema';
+import { Link } from 'react-router';
 
-import { HarnessSection } from './components/harness-section';
-import { KnowledgeSection } from './components/knowledge-section';
 import { ProfileSection } from './components/profile-section';
-import { RevisionsSection } from './components/revisions-section';
 import { runKindLabel, runRowText } from './domain/run-labels';
 import { useProjectOverview } from './hooks/use-project-overview';
-import { EmptyState, ErrorState, LoadingState, NoProjectState, Page, PageSection } from '@/shared/components';
+import { ProjectPageFrame } from './project-page-frame';
 import styles from './project-page.module.scss';
 
 const INVENTORY_ROWS: readonly [string, keyof Discovery['inventory']][] = [
@@ -20,18 +20,19 @@ const INVENTORY_ROWS: readonly [string, keyof Discovery['inventory']][] = [
   ['Evals', 'evals']
 ];
 
+/**
+ * A visão geral do projeto na Engenharia: o que ele usa, o que já existe de configuração de IA e o que foi executado.
+ * O Harness aplicado e o conhecimento têm tela própria, para esta não virar um relatório sem fim.
+ */
 export function ProjectPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
-  if (!project) {
-    return (
-      <Page title="Projeto">
-        <NoProjectState />
-      </Page>
-    );
-  }
-  return <ProjectContent key={project.projectId} client={client} project={project} />;
+  return (
+    <ProjectPageFrame project={project} title="Visão geral">
+      {(selected) => <ProjectOverview client={client} project={selected} />}
+    </ProjectPageFrame>
+  );
 }
 
-function ProjectContent({ client, project }: { client: EngineClient; project: SelectedProject }) {
+function ProjectOverview({ client, project }: { client: EngineClient; project: SelectedProject }) {
   const overview = useProjectOverview(client, project.projectId);
 
   return (
@@ -41,14 +42,37 @@ function ProjectContent({ client, project }: { client: EngineClient; project: Se
       {overview.status === 'ready' ? (
         <>
           <ProfileSection client={client} projectId={project.projectId} />
-          <HarnessSection client={client} projectId={project.projectId} />
-          <RevisionsSection client={client} projectId={project.projectId} />
           <InventorySection discovery={overview.discovery} />
-          <KnowledgeSection client={client} projectId={project.projectId} />
           <RunsSection runs={overview.runs} />
         </>
       ) : null}
+      <MoreSection />
     </Page>
+  );
+}
+
+/** Para onde ir a partir da visão geral. O menu tem os mesmos destinos; aqui eles vêm com uma frase do que há lá. */
+function MoreSection() {
+  return (
+    <PageSection title="Mais sobre o projeto">
+      <ul className={styles.rows}>
+        <li className={styles.row}>
+          <span>
+            <Link to={pathTo('projectHarness')}>Harness</Link>
+            <span className={styles.meta}>
+              {' '}
+              · o que foi aplicado no projeto, conferido contra o disco, e as revisões
+            </span>
+          </span>
+        </li>
+        <li className={styles.row}>
+          <span>
+            <Link to={pathTo('projectKnowledge')}>Conhecimento</Link>
+            <span className={styles.meta}> · o que os agentes podem ler do projeto e o que fica de fora</span>
+          </span>
+        </li>
+      </ul>
+    </PageSection>
   );
 }
 

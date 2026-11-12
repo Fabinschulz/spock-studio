@@ -9,6 +9,8 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useLocation } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
+import { HarnessPage } from './harness-page';
+import { KnowledgePage } from './knowledge-page';
 import { ProjectPage } from './project-page';
 
 const project = { projectId: 'p-aaaaaaaaaaaa', displayName: 'Loja', displayPath: '~\\Loja' };
@@ -70,15 +72,19 @@ function LocationProbe() {
   return <output aria-label="rota">{`${location.pathname} ${JSON.stringify(location.state)}`}</output>;
 }
 
-const renderPage = (client: EngineClient, selected: typeof project | null = project) =>
+const renderPage = (
+  client: EngineClient,
+  selected: typeof project | null = project,
+  Screen: typeof ProjectPage = ProjectPage
+) =>
   render(
     <MemoryRouter>
-      <ProjectPage client={client} project={selected} />
+      <Screen client={client} project={selected} />
       <LocationProbe />
     </MemoryRouter>
   );
 
-describe('ProjectPage', () => {
+describe('Projeto · visão geral', () => {
   it('mostra o inventário, a stack e as execuções reais do projeto', async () => {
     const client = clientWith([
       {
@@ -138,8 +144,27 @@ describe('ProjectPage', () => {
     expect(within(profile).getByText('Perfil criado com 1 tecnologia.')).toBeTruthy();
   });
 
-  it('mostra o conhecimento do projeto: o que entra, o que fica de fora e o estado no índice', async () => {
+  it('não repete o Harness, as revisões nem o conhecimento: cada um tem a sua tela, e a visão geral aponta para elas', async () => {
     renderPage(clientWith([]));
+
+    await screen.findByRole('heading', { name: 'Perfil tecnológico' });
+    expect(screen.queryByRole('heading', { name: 'Harness aplicado' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Revisões do Harness' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Conhecimento do projeto' })).toBeNull();
+    const more = screen.getByRole('region', { name: 'Mais sobre o projeto' });
+    expect(within(more).getByRole('link', { name: 'Harness' })).toHaveAttribute('href', '/projeto/harness');
+    expect(within(more).getByRole('link', { name: 'Conhecimento' })).toHaveAttribute('href', '/projeto/conhecimento');
+  });
+
+  it('sem projeto selecionado, manda escolher na tela inicial', () => {
+    renderPage(clientWith([]), null);
+    expect(screen.getByText(/Nenhum projeto selecionado/)).toBeTruthy();
+  });
+});
+
+describe('Projeto · conhecimento', () => {
+  it('mostra o conhecimento do projeto: o que entra, o que fica de fora e o estado no índice', async () => {
+    renderPage(clientWith([]), project, KnowledgePage);
 
     const knowledge = (await screen.findByRole('heading', { name: 'Conhecimento do projeto' })).closest('section')!;
     expect(await within(knowledge).findByText(/3 arquivos podem alimentar o contexto dos agentes/)).toBeTruthy();
@@ -157,8 +182,15 @@ describe('ProjectPage', () => {
     );
   });
 
+  it('sem projeto selecionado, manda escolher na tela inicial', () => {
+    renderPage(clientWith([]), null, KnowledgePage);
+    expect(screen.getByText(/Nenhum projeto selecionado/)).toBeTruthy();
+  });
+});
+
+describe('Projeto · Harness', () => {
   it('mostra o Harness aplicado e aponta o componente modificado à mão, com o arquivo', async () => {
-    renderPage(clientWith([]));
+    renderPage(clientWith([]), project, HarnessPage);
 
     const harness = (await screen.findByRole('heading', { name: 'Harness aplicado' })).closest('section')!;
     expect(await within(harness).findByText(/8 componentes: 7 íntegros, 1 modificado à mão, 0 ausentes/)).toBeTruthy();
@@ -172,7 +204,7 @@ describe('ProjectPage', () => {
 
   it('dispensar um componente abre o Configurar com o pedido, sem mudar nada antes do plano', async () => {
     const client = clientWith([]);
-    renderPage(client);
+    renderPage(client, project, HarnessPage);
 
     await userEvent.click(await screen.findByRole('button', { name: 'Dispensar Agente revisor de código' }));
 
@@ -188,7 +220,7 @@ describe('ProjectPage', () => {
   });
 
   it('lista as revisões do Harness, com a reversão ligada à revisão que ela desfez', async () => {
-    renderPage(clientWith([]));
+    renderPage(clientWith([]), project, HarnessPage);
 
     const list = await screen.findByRole('list', { name: 'Revisões do Harness' });
     const [revert, dispense, first] = within(list)
@@ -202,8 +234,16 @@ describe('ProjectPage', () => {
     expect(first).toHaveTextContent('Revisão 1');
   });
 
+  it('não traz o inventário nem o conhecimento: só o que foi aplicado e como mudou', async () => {
+    renderPage(clientWith([]), project, HarnessPage);
+
+    await screen.findByRole('heading', { name: 'Harness aplicado' });
+    expect(screen.queryByRole('heading', { name: 'Conhecimento do projeto' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'O que já existe' })).toBeNull();
+  });
+
   it('sem projeto selecionado, manda escolher na tela inicial', () => {
-    renderPage(clientWith([]), null);
+    renderPage(clientWith([]), null, HarnessPage);
     expect(screen.getByText(/Nenhum projeto selecionado/)).toBeTruthy();
   });
 });

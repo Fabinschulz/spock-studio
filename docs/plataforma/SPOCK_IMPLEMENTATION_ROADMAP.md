@@ -126,15 +126,25 @@ guardar o `projectId` junto do recente, o que é mudança em Rust e fica como de
 
 Decisão visível ao dono: a página de Configurações passou da largura de 36rem para os 46rem das demais, por uniformidade.
 
+**Terceira entrega da fase B (2026-11-12).** Também só interface, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| Tela Projeto repartida em três | `/projeto` é a **Visão geral** (perfil tecnológico, o que já existe, execuções e atalhos), `/projeto/harness` traz o Harness aplicado e as revisões, `/projeto/conhecimento` traz o conhecimento. A tela deixa de ser um relatório de seis seções empilhadas. Decisão 5 da seção 6 |
+| Menu de Engenharia | Visão geral, Harness, Conhecimento, Configurar, Pedido de engenharia e Catálogo (em breve), cada um com ícone próprio. O Pedido de engenharia, que não tinha lugar no menu, passou a ter. "Visão geral" só fica marcada em `/projeto`, não nas telas abaixo dele |
+| Remover conexão pede confirmação | No mesmo padrão de "Desconectar": diz que a conexão sai da lista, que a credencial é apagada deste computador e que usá-la de novo exige conectar com credencial nova (é o que o motor faz em `ConnectionService.Remove`). Desconectar e remover passaram a ter teste, que antes não existia |
+| Testes | 335 na interface, mais tipos, lint, formato e build limpos. Prévia visual conferida nas três telas e no menu |
+
+Gestão não ganhou uma "Visão geral" separada: o Acompanhamento já é a visão geral do projeto nesse ambiente, e uma tela nova só repetiria o conteúdo. O alternador de ambiente continua levando a ele.
+
 Ainda falta nesta fase:
 
 | Pendente | Observação |
 | --- | --- |
 | Painel de detalhe e confirmação sobre o `Drawer` do ui-kit | O `Drawer` já traz título, Esc, clique fora e botão fechar. Entra junto com a central de execuções (fase C), que é a primeira tela a precisar dele, para não ficar componente sem uso |
-| Visão geral por ambiente | Hoje o alternador leva a Projeto e a Acompanhamento. A tela Projeto ainda é um relatório longo; repartir em Visão geral, Harness e Conhecimento é a decisão 5 da seção 6 |
 | Telas fora desta migração | Execução do workflow, Pedido de engenharia, Início e as etapas da jornada ainda têm cabeçalho e seções próprios |
 | Linha de lista e divulgação (`<details>`) como componentes | Os `<details>` de onze arquivos continuam com estilos distintos |
-| Retorno de ação com confirmação de sucesso e confirmação destrutiva única | "Remover" conexão ainda não pede confirmação |
+| Retorno de ação com confirmação de sucesso | Testar uma conexão, salvar a chave e sincronizar não confirmam o sucesso além da mudança do dado; a confirmação destrutiva continua feita na linha, em cada tela, e não por um componente único |
 | Nome de exibição do projeto editável | Pede método novo no motor |
 
 ### Fase C: central de execuções ligada à entrega

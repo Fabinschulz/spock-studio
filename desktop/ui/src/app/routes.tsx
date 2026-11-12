@@ -11,6 +11,8 @@ import Integrations from './routes/integrations';
 import Management from './routes/management';
 import Portfolio from './routes/portfolio';
 import Project from './routes/project';
+import ProjectHarness from './routes/project-harness';
+import ProjectKnowledge from './routes/project-knowledge';
 import Settings from './routes/settings';
 
 // Os caminhos vêm de `shared/routing`: a navegação e as rotas não podem divergir.
@@ -26,6 +28,22 @@ export const routes: RouteObject[] = [
         element: (
           <RequiresHost>
             <Project />
+          </RequiresHost>
+        )
+      },
+      {
+        path: paths.projectHarness,
+        element: (
+          <RequiresHost>
+            <ProjectHarness />
+          </RequiresHost>
+        )
+      },
+      {
+        path: paths.projectKnowledge,
+        element: (
+          <RequiresHost>
+            <ProjectKnowledge />
           </RequiresHost>
         )
       },

@@ -2,6 +2,8 @@
 export const paths = {
   home: '/',
   project: '/projeto',
+  projectHarness: '/projeto/harness',
+  projectKnowledge: '/projeto/conhecimento',
   configure: '/configurar',
   engineeringRequest: '/pedido',
   portfolio: '/portfolio',

@@ -7,6 +7,8 @@ import { ENVIRONMENTS, environmentOf } from './environment';
 describe('ambientes · a que ambiente uma tela pertence', () => {
   it.each([
     [paths.project, 'engineering'],
+    [paths.projectHarness, 'engineering'],
+    [paths.projectKnowledge, 'engineering'],
     [paths.configure, 'engineering'],
     [paths.engineeringRequest, 'engineering'],
     [executionPath('run-000000000000'), 'engineering'],
