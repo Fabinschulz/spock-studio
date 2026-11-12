@@ -4,6 +4,7 @@ using Mariliz.Application.Execution;
 using Mariliz.Application.Harness;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
+using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Infrastructure;
 
@@ -20,7 +21,7 @@ public sealed class LocalEngine
         Store = new FileRunStore(dataRoot);
         Workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), rememberWorkspaces ? new FileWorkspaceRegistry(dataRoot) : null);
         Tracker = new RunTracker(emit, Clock);
-        Settings = new FileModelSettings(dataRoot);
+        Settings = new LocalModelSettings(dataRoot, LocalIntegrationHub.SecretVault(dataRoot));
         Configure = new ConfigureProjectService(Workspace, Files, Runner, Store, Clock, Tracker, Settings);
         Runs = new RunQueries(Tracker, Store);
     }
@@ -29,7 +30,7 @@ public sealed class LocalEngine
     public FileRunStore Store { get; }
     public WorkspaceAuthorizer Workspace { get; }
     public RunTracker Tracker { get; }
-    public FileModelSettings Settings { get; }
+    public LocalModelSettings Settings { get; }
     public ConfigureProjectService Configure { get; }
     public RunQueries Runs { get; }
     public IProcessRunner Runner { get; } = new SystemProcessRunner();
