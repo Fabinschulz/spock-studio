@@ -1,4 +1,4 @@
-import { StatusChip } from '@/shared/components';
+import { ConfirmAction, StatusChip } from '@/shared/components';
 import type { Connector, ProjectIntegration, SyncExecution } from '@/shared/schema';
 import { Button, Checkbox } from '@mariliz/ui-kit';
 import { useId, useState } from 'react';
@@ -136,20 +136,16 @@ export function IntegrationRow({
         {panel === 'history' ? <SyncHistory key={`${lastSync?.id}:${lastSync?.status}`} load={loadHistory} /> : null}
 
         {panel === 'confirming-unlink' ? (
-          <div className={styles.confirm} role="group" aria-label={`Desvincular ${scope.resourceName}`}>
-            <p>
-              O vínculo e {items.total === 1 ? 'o item sincronizado' : `os ${items.total} itens sincronizados`} por ele
-              serão apagados deste computador. Nada muda no provedor.
-            </p>
-            <div className={styles.actions}>
-              <Button type="button" variant="contained" color="error" disabled={busy} onClick={onUnlink}>
-                Desvincular e apagar
-              </Button>
-              <Button type="button" variant="outlined" disabled={busy} onClick={() => setPanel('none')}>
-                Manter
-              </Button>
-            </div>
-          </div>
+          <ConfirmAction
+            label={`Desvincular ${scope.resourceName}`}
+            confirmLabel="Desvincular e apagar"
+            busy={busy}
+            onConfirm={onUnlink}
+            onCancel={() => setPanel('none')}
+          >
+            O vínculo e {items.total === 1 ? 'o item sincronizado' : `os ${items.total} itens sincronizados`} por ele
+            serão apagados deste computador. Nada muda no provedor.
+          </ConfirmAction>
         ) : null}
       </div>
     </li>

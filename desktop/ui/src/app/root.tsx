@@ -1,3 +1,4 @@
+import { JourneyStoreProvider } from '@/features/configure-project';
 import { ProjectSelectionProvider } from '@/features/project-selection';
 import { AppProviders } from '@/shared/components';
 import '@/shared/styles/index.scss';
@@ -10,8 +11,10 @@ const router = createHashRouter(routes);
 export function Root() {
   return (
     <AppProviders>
-      <ProjectSelectionProvider>
-        <RouterProvider router={router} />
+      <ProjectSelectionProvider restoreLast>
+        <JourneyStoreProvider>
+          <RouterProvider router={router} />
+        </JourneyStoreProvider>
       </ProjectSelectionProvider>
     </AppProviders>
   );

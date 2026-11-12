@@ -5,8 +5,10 @@ import { useNavigate } from 'react-router';
 import { ComponentRequestNotice } from './components/component-request-notice';
 import { ContextPanel } from './components/context-panel';
 import { JourneyFrame } from './components/journey-frame';
+import { useJourneyStore } from './context/journey-store';
 import { countApprovals } from './domain/approvals';
 import { hasComponentRequest, type ComponentRequest } from './domain/component-request';
+import { canReopenEarlierSteps } from './domain/step-navigation';
 import { stepIssue } from './domain/step-issue';
 import { useConfigureJourney } from './hooks/use-configure-journey';
 import type { HarnessApi } from './service';
@@ -36,19 +38,27 @@ export function ConfigureJourney({
   componentRequest
 }: ConfigureJourneyProps) {
   const navigate = useNavigate();
-  const { state, actions } = useConfigureJourney(api, projectId, pollMs, componentRequest);
-  const home = () => navigate(pathTo('home'));
+  const store = useJourneyStore();
+  const { state, actions } = useConfigureJourney(api, projectId, pollMs, componentRequest, store);
+  // Concluir ou cancelar encerra a jornada: a próxima visita ao Configurar começa limpa.
+  const home = () => {
+    store?.clear(projectId);
+    navigate(pathTo('home'));
+  };
 
-  useScrollToTop(state.step);
+  useScrollToTop(state.step, { focus: true });
 
   const approvalCount = state.plan.status === 'ready' ? countApprovals(state, state.plan.data) : 0;
   const live = state.run !== null && state.run.error === null;
+  // Voltar pelo stepper só antes de aplicar: durante e depois da aplicação o plano já foi usado, e reabri-lo levaria a
+  // aprovar de novo um plano que o motor recusaria por estar velho (STALE_PLAN).
 
   return (
     <JourneyFrame
       step={state.step}
       issue={stepIssue(state)}
       live={live}
+      onSelectStep={canReopenEarlierSteps(state.step) ? actions.goTo : undefined}
       panel={
         <ContextPanel
           step={state.step}

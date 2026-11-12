@@ -1,6 +1,6 @@
 import type { SelectedProject } from '@/features/project-selection';
 import { EngineError, errorMessage, type EngineClient } from '@/shared/api';
-import { InlineNotice } from '@/shared/components';
+import { InlineNotice, ErrorState, LoadingState, NoProjectState, Page, Disclosure } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 import type { AssistantAnswer } from '@/shared/schema';
@@ -22,12 +22,9 @@ export function AssistantPage({ client, project }: { client: EngineClient; proje
 
   if (!project) {
     return (
-      <div className={styles.page}>
-        <h1 className={styles.title}>Assistente</h1>
-        <p>
-          Nenhum projeto selecionado. Escolha uma pasta na <Link to={pathTo('home')}>tela inicial</Link>.
-        </p>
-      </div>
+      <Page title="Assistente">
+        <NoProjectState />
+      </Page>
     );
   }
   return <ProjectAssistant key={project.projectId} api={api} project={project} />;
@@ -66,18 +63,13 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
   };
 
   return (
-    <div className={styles.page}>
-      <header>
-        <h1 className={styles.title}>Assistente</h1>
-        <p className={styles.lead}>
-          {project.displayName} · pergunte sobre andamento, riscos e previsão. A resposta separa o que foi observado, o
-          que foi calculado, o que é interpretação e o que não está disponível.
-        </p>
-      </header>
-
-      {context.status === 'loading' ? <p role="status">Preparando os fatos do projeto…</p> : null}
+    <Page
+      title="Assistente"
+      description={`${project.displayName} · pergunte sobre andamento, riscos e previsão. A resposta separa o que foi observado, o que foi calculado, o que é interpretação e o que não está disponível.`}
+    >
+      {context.status === 'loading' ? <LoadingState>Preparando os fatos do projeto…</LoadingState> : null}
       {context.status === 'error' ? (
-        <p role="alert">{errorMessage(context.error, 'Não foi possível ler os fatos do projeto.')}</p>
+        <ErrorState>{errorMessage(context.error, 'Não foi possível ler os fatos do projeto.')}</ErrorState>
       ) : null}
 
       {context.status === 'ready' ? (
@@ -121,10 +113,12 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
             </div>
           </form>
 
-          <details className={styles.method}>
-            <summary>
-              O que será enviado ao provedor de modelo: a pergunta e {context.value.evidence.facts.length} fatos
-            </summary>
+          <Disclosure
+            className={styles.method}
+            summary={
+              <>O que será enviado ao provedor de modelo: a pergunta e {context.value.evidence.facts.length} fatos</>
+            }
+          >
             <ul>
               {context.value.evidence.withheld.map((text) => (
                 <li key={text}>{text}</li>
@@ -135,7 +129,7 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
                 <li key={fact.id}>{fact.text}</li>
               ))}
             </ul>
-          </details>
+          </Disclosure>
 
           {error ? (
             <p className={styles.errorText} role="alert">
@@ -148,10 +142,10 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
               ) : null}
             </p>
           ) : null}
-          {busy ? <p role="status">O modelo está escrevendo a resposta…</p> : null}
+          {busy ? <LoadingState>O modelo está escrevendo a resposta…</LoadingState> : null}
           {answer ? <AssistantAnswerView answer={answer} /> : null}
         </>
       ) : null}
-    </div>
+    </Page>
   );
 }

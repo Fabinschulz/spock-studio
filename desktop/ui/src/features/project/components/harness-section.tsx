@@ -1,6 +1,6 @@
 import { componentRequestState, type ComponentRequestItem } from '@/features/configure-project';
 import { errorMessage, type EngineClient } from '@/shared/api';
-import { StatusChip, type Tone } from '@/shared/components';
+import { StatusChip, type Tone, PageSection, LoadingState, ErrorState } from '@/shared/components';
 import { pathTo } from '@/shared/routing';
 import type { HarnessStatus } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
@@ -49,21 +49,20 @@ export function HarnessSection({ client, projectId }: { client: EngineClient; pr
   }, [client, projectId, tick]);
 
   return (
-    <section aria-labelledby="harness">
-      <div className={styles.sectionHead}>
-        <h2 id="harness" className={styles.section}>
-          Harness aplicado
-        </h2>
-        {state.status !== 'loading' ? (
+    <PageSection
+      title="Harness aplicado"
+      action={
+        state.status !== 'loading' ? (
           <Button type="button" variant="outlined" size="small" onClick={reload}>
             Conferir de novo
           </Button>
-        ) : null}
-      </div>
-      {state.status === 'loading' ? <p role="status">Conferindo o Harness…</p> : null}
-      {state.status === 'error' ? <p role="alert">{state.message}</p> : null}
+        ) : null
+      }
+    >
+      {state.status === 'loading' ? <LoadingState>Conferindo o Harness…</LoadingState> : null}
+      {state.status === 'error' ? <ErrorState onRetry={reload}>{state.message}</ErrorState> : null}
       {state.status === 'ready' ? <HarnessContent harness={state.harness} /> : null}
-    </section>
+    </PageSection>
   );
 }
 

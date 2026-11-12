@@ -3,6 +3,7 @@ import type { ProjectKnowledge } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 import { useCallback, useEffect, useState } from 'react';
 
+import { PageSection, LoadingState, ErrorState, Disclosure } from '@/shared/components';
 import styles from '../project-page.module.scss';
 import { readKnowledge } from '../service/project-api';
 
@@ -52,21 +53,20 @@ export function KnowledgeSection({ client, projectId }: { client: EngineClient; 
   }, [client, projectId, tick]);
 
   return (
-    <section aria-labelledby="conhecimento">
-      <div className={styles.sectionHead}>
-        <h2 id="conhecimento" className={styles.section}>
-          Conhecimento do projeto
-        </h2>
-        {state.status !== 'loading' ? (
+    <PageSection
+      title="Conhecimento do projeto"
+      action={
+        state.status !== 'loading' ? (
           <Button type="button" variant="outlined" size="small" onClick={reload}>
             Ler de novo
           </Button>
-        ) : null}
-      </div>
-      {state.status === 'loading' ? <p role="status">Lendo as fontes de conhecimento…</p> : null}
-      {state.status === 'error' ? <p role="alert">{state.message}</p> : null}
+        ) : null
+      }
+    >
+      {state.status === 'loading' ? <LoadingState>Lendo as fontes de conhecimento…</LoadingState> : null}
+      {state.status === 'error' ? <ErrorState onRetry={reload}>{state.message}</ErrorState> : null}
       {state.status === 'ready' ? <KnowledgeContent knowledge={state.knowledge} /> : null}
-    </section>
+    </PageSection>
   );
 }
 
@@ -121,11 +121,10 @@ function KnowledgeContent({ knowledge }: { knowledge: ProjectKnowledge }) {
         </ul>
       )}
 
-      <details className={styles.history}>
-        <summary>
-          Arquivos que entram ({knowledge.files.length < knowledge.allowed ? `${knowledge.files.length} de ` : ''}
-          {knowledge.allowed})
-        </summary>
+      <Disclosure
+        className={styles.history}
+        summary={`Arquivos que entram (${knowledge.files.length < knowledge.allowed ? `${knowledge.files.length} de ` : ''}${knowledge.allowed})`}
+      >
         <ul>
           {knowledge.files.map((file) => (
             <li key={file.path}>
@@ -136,7 +135,7 @@ function KnowledgeContent({ knowledge }: { knowledge: ProjectKnowledge }) {
             </li>
           ))}
         </ul>
-      </details>
+      </Disclosure>
     </>
   );
 }

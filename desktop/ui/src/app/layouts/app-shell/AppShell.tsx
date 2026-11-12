@@ -1,13 +1,14 @@
 import { Container, Logo, Wordmark } from '@/shared/components';
 import { app } from '@/shared/config/app';
-import { useEngineStatus } from '@/shared/hooks';
+import { ContentAreaProvider, useEngineStatus, useScrollToTop } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 import { Button } from '@mariliz/ui-kit';
 import { useRef, type ReactNode } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { AppHeader } from './AppHeader';
 import styles from './AppShell.module.scss';
 import { EngineStatus } from './EngineStatus';
+import { useEnvironment } from './use-environment';
 import { SideNav } from './SideNav';
 
 const MAIN_CONTENT_ID = 'conteudo';
@@ -15,6 +16,12 @@ const MAIN_CONTENT_ID = 'conteudo';
 export function AppShell({ children }: { children: ReactNode }) {
   const main = useRef<HTMLElement>(null);
   const engine = useEngineStatus();
+  const environment = useEnvironment();
+  const { pathname } = useLocation();
+
+  // Trocar de tela começa no topo e leva o foco para o conteúdo: o <main> é quem rola, e o foco não pode ficar num
+  // item de menu que já não representa o que está na tela.
+  useScrollToTop(pathname, { focus: true, container: main });
 
   return (
     <div className={styles.shell}>
@@ -27,14 +34,19 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Logo className={styles.logo} />
           <Wordmark className={styles.wordmark} />
         </Link>
-        <SideNav />
+        <SideNav environment={environment} />
         <EngineStatus {...engine} />
+        <p className={styles.version}>
+          <span className="visually-hidden">Versão </span>v{app.version}
+        </p>
       </aside>
 
       <div className={styles.column}>
-        <AppHeader engine={engine} />
+        <AppHeader environment={environment} />
         <main id={MAIN_CONTENT_ID} ref={main} tabIndex={-1} className={styles.main}>
-          <Container>{children}</Container>
+          <ContentAreaProvider value={main}>
+            <Container>{children}</Container>
+          </ContentAreaProvider>
         </main>
       </div>
     </div>

@@ -1,12 +1,11 @@
 import type { SelectedProject } from '@/features/project-selection';
 import { errorMessage, type EngineClient } from '@/shared/api';
-import { InlineNotice } from '@/shared/components';
+import { ErrorState, InlineNotice, LoadingState, Page } from '@/shared/components';
 import { useCallback, useMemo } from 'react';
 
 import { ConnectionsSection } from './components/connections-section';
 import { ProjectIntegrationsSection } from './components/project-integrations-section';
 import { useReloadable } from './hooks/use-reloadable';
-import styles from './integrations-page.module.scss';
 import { createIntegrationApi } from './service/integration-api';
 
 /** Central de integrações: as conexões do computador e, para o projeto aberto, o que ele pode ler de cada uma. */
@@ -19,18 +18,13 @@ export function IntegrationsPage({ client, project }: { client: EngineClient; pr
   const hub = useReloadable(load);
 
   return (
-    <div className={styles.page}>
-      <header>
-        <h1 className={styles.title}>Integrações</h1>
-        <p className={styles.lead}>
-          Conecte as ferramentas da equipe e decida, projeto a projeto, o que o Spock Studio pode ler. As credenciais
-          ficam protegidas neste computador e não aparecem em nenhuma tela.
-        </p>
-      </header>
-
-      {!hub.settled ? <p role="status">Lendo as integrações…</p> : null}
+    <Page
+      title="Integrações"
+      description="Conecte as ferramentas da equipe e decida, projeto a projeto, o que o Spock Studio pode ler. As credenciais ficam protegidas neste computador e não aparecem em nenhuma tela."
+    >
+      {!hub.settled ? <LoadingState>Lendo as integrações…</LoadingState> : null}
       {hub.settled && hub.value === null ? (
-        <p role="alert">{errorMessage(hub.error, 'Não foi possível ler as integrações.')}</p>
+        <ErrorState onRetry={hub.reload}>{errorMessage(hub.error, 'Não foi possível ler as integrações.')}</ErrorState>
       ) : null}
 
       {hub.value ? (
@@ -56,6 +50,6 @@ export function IntegrationsPage({ client, project }: { client: EngineClient; pr
           />
         </>
       ) : null}
-    </div>
+    </Page>
   );
 }

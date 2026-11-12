@@ -1,4 +1,4 @@
-import { StatusChip } from '@/shared/components';
+import { StatusChip, PageSection, Disclosure } from '@/shared/components';
 import type { Connector, DeliveryForecast, ProjectForecast } from '@/shared/schema';
 import { useId } from 'react';
 
@@ -21,15 +21,11 @@ export function ForecastSection({ forecast, connectors }: ForecastSectionProps) 
     connectors.flatMap((connector) => connector.dataKinds).find((entry) => entry.id === kind)?.label ?? kind;
 
   return (
-    <section aria-labelledby="previsao">
-      <h2 id="previsao" className={styles.section}>
-        Previsão de entrega
-      </h2>
+    <PageSection title="Previsão de entrega">
       {forecast.kinds.map((kind) => (
         <KindForecast key={kind.kind} forecast={kind} label={label(kind.kind)} />
       ))}
-      <details className={styles.method}>
-        <summary>Como a previsão é calculada</summary>
+      <Disclosure className={styles.method} summary="Como a previsão é calculada">
         <p>{forecast.method}</p>
         <p className={styles.methodHeading}>Premissas</p>
         <ul>
@@ -43,8 +39,8 @@ export function ForecastSection({ forecast, connectors }: ForecastSectionProps) 
             <li key={text}>{text}</li>
           ))}
         </ul>
-      </details>
-    </section>
+      </Disclosure>
+    </PageSection>
   );
 }
 

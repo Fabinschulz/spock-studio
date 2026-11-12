@@ -6,5 +6,6 @@ export {
 export { formatRecentDate, formatRecentDateTime } from './domain/format-recent-date';
 export { ProjectPickError, type ProjectPickerPort, type RecentProject, type SelectedProject } from './domain/types';
 export { ProjectSelection } from './project-selection';
+export { ProjectSwitcher } from './components/project-switcher';
 export { RecentProjects } from './components/recent-projects';
 export { RecentShortcuts } from './components/recent-shortcuts';

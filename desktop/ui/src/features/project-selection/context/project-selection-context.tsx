@@ -24,13 +24,21 @@ const Context = createContext<ProjectSelectionValue | null>(null);
 interface ProjectSelectionProviderProps {
   picker?: ProjectPickerPort;
   unavailableReason?: string;
+  /** Reabre o último projeto ao abrir o aplicativo. Só o aplicativo real liga isto. */
+  restoreLast?: boolean;
   children: ReactNode;
 }
 
-export function ProjectSelectionProvider({ picker, unavailableReason, children }: ProjectSelectionProviderProps) {
+export function ProjectSelectionProvider({
+  picker,
+  unavailableReason,
+  restoreLast,
+  children
+}: ProjectSelectionProviderProps) {
   const reason = unavailableReason ?? (picker || isTauriRuntime() ? undefined : HOST_UNAVAILABLE);
   const { selected, busy, error, cancelled, recents, pick, openRecent } = useProjectSelection(
-    picker ?? tauriProjectPicker
+    picker ?? tauriProjectPicker,
+    { restoreLast }
   );
 
   const value = useMemo<ProjectSelectionValue>(

@@ -9,7 +9,7 @@ export interface Crumb {
 
 interface PageHeaderProps {
   title: ReactNode;
-  description?: string;
+  description?: ReactNode;
   breadcrumb?: readonly Crumb[];
 }
 

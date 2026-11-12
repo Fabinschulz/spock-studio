@@ -1,4 +1,4 @@
-import { StatusChip } from '@/shared/components';
+import { ConfirmAction, StatusChip, SuccessState } from '@/shared/components';
 import type { Connection, Connector } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
 import { useState, type FormEvent } from 'react';
@@ -11,6 +11,8 @@ interface ConnectionRowProps {
   connection: Connection;
   connector: Connector | undefined;
   busy: boolean;
+  /** O que deu certo na última ação desta conexão, dito na própria linha. */
+  notice?: string | null;
   onTest: () => void;
   /** Devolve verdadeiro quando o provedor aceitou a nova credencial. */
   onRotate: (secret: string) => Promise<boolean>;
@@ -18,12 +20,13 @@ interface ConnectionRowProps {
   onRemove: () => void;
 }
 
-type Mode = 'idle' | 'rotating' | 'confirming-disconnect';
+type Mode = 'idle' | 'rotating' | 'confirming-disconnect' | 'confirming-remove';
 
 export function ConnectionRow({
   connection,
   connector,
   busy,
+  notice,
   onTest,
   onRotate,
   onDisconnect,
@@ -86,7 +89,7 @@ export function ConnectionRow({
           />
           <div className={styles.actions}>
             <Button type="submit" variant="contained" disabled={busy || secret.trim().length < 8}>
-              Guardar credencial
+              Salvar credencial
             </Button>
             <Button type="button" variant="outlined" disabled={busy} onClick={() => setMode('idle')}>
               Cancelar
@@ -96,29 +99,34 @@ export function ConnectionRow({
       ) : null}
 
       {mode === 'confirming-disconnect' ? (
-        <div className={styles.confirm} role="group" aria-label={`Desconectar ${connection.name}`}>
-          <p>
-            A credencial será apagada deste computador. O que já foi sincronizado continua disponível, sem novas
-            leituras.
-          </p>
-          <div className={styles.actions}>
-            <Button
-              type="button"
-              variant="contained"
-              color="error"
-              disabled={busy}
-              onClick={() => {
-                setMode('idle');
-                onDisconnect();
-              }}
-            >
-              Apagar credencial
-            </Button>
-            <Button type="button" variant="outlined" disabled={busy} onClick={() => setMode('idle')}>
-              Manter
-            </Button>
-          </div>
-        </div>
+        <ConfirmAction
+          label={`Desconectar ${connection.name}`}
+          confirmLabel="Apagar credencial"
+          busy={busy}
+          onConfirm={() => {
+            setMode('idle');
+            onDisconnect();
+          }}
+          onCancel={() => setMode('idle')}
+        >
+          A credencial será apagada deste computador. O que já foi sincronizado continua disponível, sem novas leituras.
+        </ConfirmAction>
+      ) : null}
+
+      {mode === 'confirming-remove' ? (
+        <ConfirmAction
+          label={`Remover ${connection.name}`}
+          confirmLabel="Remover conexão"
+          busy={busy}
+          onConfirm={() => {
+            setMode('idle');
+            onRemove();
+          }}
+          onCancel={() => setMode('idle')}
+        >
+          A conexão sai da lista e a credencial é apagada deste computador. Para usá-la de novo, será preciso conectar
+          outra vez, com uma credencial nova.
+        </ConfirmAction>
       ) : null}
 
       {mode === 'idle' ? (
@@ -137,12 +145,14 @@ export function ConnectionRow({
             </Button>
           ) : null}
           {connection.projects === 0 ? (
-            <Button type="button" variant="text" disabled={busy} onClick={onRemove}>
+            <Button type="button" variant="text" disabled={busy} onClick={() => setMode('confirming-remove')}>
               Remover
             </Button>
           ) : null}
         </div>
       ) : null}
+
+      {notice ? <SuccessState>{notice}</SuccessState> : null}
     </li>
   );
 }

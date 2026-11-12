@@ -62,6 +62,29 @@
   white-space: nowrap;
 }
 
+// Etapa concluída que dá para reabrir: o mesmo desenho da que só informa, com a área de clique no marcador e no rótulo.
+.target {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  @include hover {
+    color: var(--color-text);
+  }
+
+  &:focus-visible {
+    @include focus-ring(2px);
+  }
+}
+
 .current {
   color: var(--color-text);
 

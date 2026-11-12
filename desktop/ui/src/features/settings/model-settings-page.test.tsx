@@ -47,7 +47,7 @@ describe('Configurações · chave de modelo', () => {
 
     const field = screen.getByLabelText('Chave de API');
     await userEvent.type(field, testKey);
-    await userEvent.click(screen.getByRole('button', { name: 'Guardar chave' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar chave' }));
 
     await waitFor(() => expect(screen.getByText(/Provedor configurado: OpenAI/)).toBeInTheDocument());
     expect(field).toHaveValue('');

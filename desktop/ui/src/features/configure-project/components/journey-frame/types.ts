@@ -9,5 +9,7 @@ export interface JourneyFrameProps {
   issue?: StepIssue;
   panel?: ReactNode;
   live?: boolean;
+  /** Volta a uma etapa já concluída pelo stepper. Ausente quando voltar não faz sentido (execução em andamento ou concluída). */
+  onSelectStep?: (step: JourneyStepId) => void;
   children: ReactNode;
 }

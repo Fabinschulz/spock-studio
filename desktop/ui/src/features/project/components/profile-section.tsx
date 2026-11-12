@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 
 import { CONFIDENCE_LABEL, changeText, toolKindLabel } from '../domain/profile-labels';
+import { PageSection, LoadingState, ErrorState, Disclosure } from '@/shared/components';
 import styles from '../project-page.module.scss';
 import { readProfile, refreshProfile } from '../service/project-api';
 
@@ -54,22 +55,21 @@ export function ProfileSection({ client, projectId }: { client: EngineClient; pr
   };
 
   return (
-    <section aria-labelledby="perfil">
-      <div className={styles.sectionHead}>
-        <h2 id="perfil" className={styles.section}>
-          Perfil tecnológico
-        </h2>
-        {state.status === 'ready' ? (
+    <PageSection
+      title="Perfil tecnológico"
+      action={
+        state.status === 'ready' ? (
           <Button type="button" variant="outlined" size="small" disabled={busy} onClick={() => void refresh()}>
             {busy ? 'Atualizando…' : 'Atualizar perfil'}
           </Button>
-        ) : null}
-      </div>
-      {state.status === 'loading' ? <p role="status">Montando o perfil do projeto…</p> : null}
-      {state.status === 'error' ? <p role="alert">{state.message}</p> : null}
-      {refreshError ? <p role="alert">{refreshError}</p> : null}
+        ) : null
+      }
+    >
+      {state.status === 'loading' ? <LoadingState>Montando o perfil do projeto…</LoadingState> : null}
+      {state.status === 'error' ? <ErrorState>{state.message}</ErrorState> : null}
+      {refreshError ? <ErrorState>{refreshError}</ErrorState> : null}
       {state.status === 'ready' ? <ProfileContent profile={state.profile} /> : null}
-    </section>
+    </PageSection>
   );
 }
 
@@ -142,8 +142,7 @@ function ProfileContent({ profile }: { profile: TechnologyProfile }) {
         ))}
       </ul>
 
-      <details className={styles.history}>
-        <summary>Histórico de mudanças ({profile.history.length})</summary>
+      <Disclosure className={styles.history} summary={<>Histórico de mudanças ({profile.history.length})</>}>
         <ul>
           {profile.history.slice(0, HISTORY_SHOWN).map((change, index) => (
             <li key={`${change.at}:${index}`}>
@@ -151,7 +150,7 @@ function ProfileContent({ profile }: { profile: TechnologyProfile }) {
             </li>
           ))}
         </ul>
-      </details>
+      </Disclosure>
     </>
   );
 }

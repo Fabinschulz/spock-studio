@@ -1,3 +1,4 @@
+export { ContentAreaProvider, useContentArea } from './content-area';
 export { useAsyncResource, type Resource } from './use-async-resource';
 export { useCopyToClipboard, type CopyState } from './use-copy-to-clipboard';
 export { useEngineStatus, type AiRuntimeStatus, type EngineStatus } from './use-engine-status';

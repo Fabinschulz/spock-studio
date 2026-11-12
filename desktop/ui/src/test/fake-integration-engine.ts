@@ -32,6 +32,8 @@ export function fakeIntegrationEngine(
     vaultAvailable?: boolean;
     modelConfigured?: boolean;
     assistant?: AssistantReply;
+    /** O provedor recusa a credencial ao testar. O motor real não falha: marca a conexão com erro. */
+    testRefused?: boolean;
   } = {}
 ) {
   const calls: Call[] = [];
@@ -71,6 +73,34 @@ export function fakeIntegrationEngine(
       };
       connections = [...connections, connection];
       return { connection };
+    },
+    'connection.test': (params) => {
+      const connection = connections.find((entry) => entry.id === params.connectionId);
+      if (!connection) throw new EngineError('CONNECTION_NOT_FOUND', 'Conexão não encontrada.');
+      const tested: Connection = initial.testRefused
+        ? {
+            ...connection,
+            status: 'error',
+            lastError: {
+              code: 'INTEGRATION_AUTH_FAILED',
+              message: 'O provedor recusou a credencial.',
+              at: '2026-11-12T12:00:00+00:00'
+            }
+          }
+        : { ...connection, status: 'connected', lastError: null };
+      connections = connections.map((entry) => (entry.id === tested.id ? tested : entry));
+      return { connection: tested };
+    },
+    'connection.disconnect': (params) => {
+      const connection = connections.find((entry) => entry.id === params.connectionId);
+      if (!connection) throw new EngineError('CONNECTION_NOT_FOUND', 'Conexão não encontrada.');
+      const updated: Connection = { ...connection, status: 'disconnected', scopes: [] };
+      connections = connections.map((entry) => (entry.id === updated.id ? updated : entry));
+      return { connection: updated };
+    },
+    'connection.remove': (params) => {
+      connections = connections.filter((entry) => entry.id !== params.connectionId);
+      return { removed: true };
     },
     'integration.list': (params) => {
       const listed = integrations.filter((integration) => integration.projectId === params.projectId);

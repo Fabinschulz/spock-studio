@@ -41,7 +41,7 @@ function ModelOption({ configured }: { configured: boolean | null }) {
         <p className={styles.note}>
           Nenhum modelo está configurado.{' '}
           <Button type="button" variant="text" onClick={() => navigate(pathTo('settings'))}>
-            Guardar a chave em Configurações
+            Salvar a chave em Configurações
           </Button>
         </p>
       ) : null}

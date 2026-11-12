@@ -8,6 +8,7 @@ import { Link } from 'react-router';
 
 import { useAction } from '../hooks/use-action';
 import { useReloadable } from '../hooks/use-reloadable';
+import { ErrorState, LoadingState, PageSection, SuccessState } from '@/shared/components';
 import styles from '../integrations-page.module.scss';
 import type { IntegrationApi } from '../service/integration-api';
 import { IntegrationRow } from './integration-row';
@@ -26,10 +27,7 @@ interface ProjectIntegrationsSectionProps {
 
 export function ProjectIntegrationsSection({ project, ...rest }: ProjectIntegrationsSectionProps) {
   return (
-    <section aria-labelledby="neste-projeto">
-      <h2 id="neste-projeto" className={styles.section}>
-        {project ? `Neste projeto: ${project.displayName}` : 'Neste projeto'}
-      </h2>
+    <PageSection title={project ? `Neste projeto: ${project.displayName}` : 'Neste projeto'}>
       {project ? (
         // A chave remonta a lista ao trocar de projeto: nenhum vínculo de um projeto aparece, nem por um instante, em outro.
         <ProjectIntegrations key={project.projectId} project={project} {...rest} />
@@ -39,7 +37,7 @@ export function ProjectIntegrationsSection({ project, ...rest }: ProjectIntegrat
           conexões a ela.
         </p>
       )}
-    </section>
+    </PageSection>
   );
 }
 
@@ -58,7 +56,7 @@ function ProjectIntegrations({
     reloadList();
     onChanged();
   }, [reloadList, onChanged]);
-  const { busy, error, run } = useAction(reload);
+  const { busy, error, notice, run } = useAction(reload);
   const [linking, setLinking] = useState<string | null>(null);
 
   // O motor sincroniza em segundo plano e não avisa por evento: enquanto houver uma em andamento, a lista é relida.
@@ -70,9 +68,13 @@ function ProjectIntegrations({
     return () => clearTimeout(timer);
   }, [syncing, integrations, reload]);
 
-  if (!list.settled) return <p role="status">Lendo os vínculos do projeto…</p>;
+  if (!list.settled) return <LoadingState>Lendo os vínculos do projeto…</LoadingState>;
   if (integrations === null)
-    return <p role="alert">{errorMessage(list.error, 'Não foi possível ler os vínculos do projeto.')}</p>;
+    return (
+      <ErrorState onRetry={reloadList}>
+        {errorMessage(list.error, 'Não foi possível ler os vínculos do projeto.')}
+      </ErrorState>
+    );
 
   const linkable = connections.filter((connection) => connection.status === 'connected');
   const linkingConnection = linkable.find((connection) => connection.id === linking);
@@ -99,17 +101,18 @@ function ProjectIntegrations({
                 'Não foi possível mudar o recorte.'
               )
             }
-            onUnlink={() => void run(() => api.unlink(projectId, integration.id), 'Não foi possível desvincular.')}
+            onUnlink={() =>
+              void run(() => api.unlink(projectId, integration.id), 'Não foi possível desvincular.', {
+                success: () => `Vínculo com ${integration.scope.resourceName} removido.`
+              })
+            }
             loadHistory={() => api.history(projectId, integration.id)}
           />
         ))}
       </ul>
 
-      {error ? (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
-      ) : null}
+      {notice ? <SuccessState>{notice.text}</SuccessState> : null}
+      {error ? <ErrorState>{error}</ErrorState> : null}
 
       {linkingConnection && linkingConnector ? (
         <LinkForm
@@ -121,7 +124,11 @@ function ProjectIntegrations({
           onSubmit={(resource, dataKinds) =>
             void run(
               () => api.link({ projectId, connectionId: linkingConnection.id, resource, dataKinds }),
-              'Não foi possível vincular.'
+              'Não foi possível vincular.',
+              {
+                success: (linked) =>
+                  `${linked.scope.resourceName} vinculado a este projeto. Sincronize para trazer os dados.`
+              }
             ).then((ok) => {
               if (ok) setLinking(null);
             })

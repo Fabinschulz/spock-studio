@@ -94,7 +94,7 @@ describe('Pedido de engenharia', () => {
     expect(await screen.findByText(/Nenhum modelo está configurado/)).toBeInTheDocument();
     expect(option).toBeDisabled();
     expect(option).not.toBeChecked();
-    expect(screen.getByRole('button', { name: 'Guardar a chave em Configurações' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Salvar a chave em Configurações' })).toBeInTheDocument();
   });
 
   it('se o motor não responde sobre o modelo, a opção também não é oferecida', async () => {
