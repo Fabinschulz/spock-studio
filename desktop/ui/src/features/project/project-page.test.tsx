@@ -1,5 +1,6 @@
 import harnessFixture from '@contracts/fixtures/engineering/harness.json';
 import knowledgeFixture from '@contracts/fixtures/engineering/knowledge.json';
+import revisionsFixture from '@contracts/fixtures/engineering/revisions.json';
 import profileFixture from '@contracts/fixtures/engineering/profile.json';
 
 import type { EngineClient } from '@/shared/api';
@@ -52,6 +53,7 @@ function clientWith(runs: unknown[], saved = true): EngineClient {
       if (method === 'engineering.profile') return schema.parse({ profile: stored });
       if (method === 'engineering.knowledge') return schema.parse(knowledgeFixture);
       if (method === 'engineering.harness') return schema.parse(harnessFixture);
+      if (method === 'engineering.revisions') return schema.parse(revisionsFixture);
       if (method === 'engineering.analyze') {
         stored = stored === null ? profileFixture.profile : refreshed;
         return schema.parse({ profile: stored });
@@ -183,6 +185,21 @@ describe('ProjectPage', () => {
       }
     });
     expect(client.request).not.toHaveBeenCalledWith('harness.plan', expect.anything(), expect.anything());
+  });
+
+  it('lista as revisões do Harness, com a reversão ligada à revisão que ela desfez', async () => {
+    renderPage(clientWith([]));
+
+    const list = await screen.findByRole('list', { name: 'Revisões do Harness' });
+    const [revert, dispense, first] = within(list)
+      .getAllByRole('listitem')
+      .filter((item) => item.parentElement === list);
+    expect(revert).toHaveTextContent('Revisão 3');
+    expect(revert).toHaveTextContent('reversão da revisão 2');
+    expect(revert).toHaveTextContent('Agente revisor de código: criou 1 arquivo');
+    expect(dispense).toHaveTextContent('Revertida na revisão 3');
+    expect(dispense).toHaveTextContent('Agente revisor de código: removeu 1 arquivo');
+    expect(first).toHaveTextContent('Revisão 1');
   });
 
   it('sem projeto selecionado, manda escolher na tela inicial', () => {

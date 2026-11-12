@@ -5,11 +5,12 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Application.Protocol;
 
-/// <summary>Traduz <c>engineering.*</c> para o perfil tecnológico, o conhecimento e o estado do Harness do projeto.</summary>
+/// <summary>Traduz <c>engineering.*</c> para o perfil tecnológico, o conhecimento, o estado e as revisões do Harness do projeto.</summary>
 internal sealed class EngineeringRequestHandler(
     TechnologyProfileService profiles,
     ProjectKnowledgeService? knowledge,
-    HarnessStatusService? harness)
+    HarnessStatusService? harness,
+    HarnessRevisionService? revisions)
 {
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
@@ -20,6 +21,7 @@ internal sealed class EngineeringRequestHandler(
         },
         ProtocolMethods.EngineeringKnowledge => IntegrationJson.Node(await Knowledge().InspectAsync(p.Str("projectId"), ct))!.AsObject(),
         ProtocolMethods.EngineeringHarness => IntegrationJson.Node(Harness().Inspect(p.Str("projectId")))!.AsObject(),
+        ProtocolMethods.EngineeringRevisions => IntegrationJson.Node(Revisions().Read(p.Str("projectId")))!.AsObject(),
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
     };
 
@@ -29,4 +31,7 @@ internal sealed class EngineeringRequestHandler(
 
     private HarnessStatusService Harness() =>
         harness ?? throw new EngineException("HARNESS_STATUS_UNAVAILABLE", "O estado do Harness não está disponível nesta sessão do motor.");
+
+    private HarnessRevisionService Revisions() =>
+        revisions ?? throw new EngineException("HARNESS_REVISIONS_UNAVAILABLE", "As revisões do Harness não estão disponíveis nesta sessão do motor.");
 }

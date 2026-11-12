@@ -89,3 +89,34 @@ export const harnessStatusSchema = z.object({
 });
 
 export type HarnessStatus = z.infer<typeof harnessStatusSchema>;
+
+/** Uma revisão do Harness: aplicação ou reversão que mudou arquivos, com o que mudou por componente. */
+export const harnessRevisionSchema = z.object({
+  number: z.number(),
+  runId: z.string(),
+  kind: z.enum(['apply', 'revert']),
+  at: z.string(),
+  state: z.string(),
+  rolledBack: z.boolean(),
+  revertedByRunId: z.string().nullable(),
+  revertsRunId: z.string().nullable(),
+  components: z.array(
+    z.object({
+      id: z.string(),
+      label: z.string(),
+      created: z.array(z.string()),
+      updated: z.array(z.string()),
+      removed: z.array(z.string())
+    })
+  )
+});
+
+export const harnessRevisionsSchema = z.object({
+  projectId: z.string(),
+  appliedByEngine: z.string().nullable(),
+  currentEngine: z.string(),
+  revisions: z.array(harnessRevisionSchema)
+});
+
+export type HarnessRevision = z.infer<typeof harnessRevisionSchema>;
+export type HarnessRevisions = z.infer<typeof harnessRevisionsSchema>;

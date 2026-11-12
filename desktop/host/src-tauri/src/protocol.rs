@@ -49,6 +49,7 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "engineering.analyze",
     "engineering.knowledge",
     "engineering.harness",
+    "engineering.revisions",
 ];
 
 pub mod error_code {
