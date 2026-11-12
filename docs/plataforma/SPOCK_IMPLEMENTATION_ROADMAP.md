@@ -428,8 +428,27 @@ provedor: sem ele não há comparação, e um milestone do GitHub sem data apare
 lido, só a versão de correção. A mudança de escopo por marco segue em "Ainda não calculado": pede guardar o escopo ao
 longo do tempo, que o produto ainda não faz.
 
-Falta nesta fase: histórico de cada risco, registro de decisão gerencial, relatório do período, componentes de
-indicador e faixa de previsão, histórico de perguntas do assistente.
+**Quarta entrega da fase D (2026-11-12).** O **histórico de cada risco**, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| O que é guardado | Um registro do estado das regras de risco: para cada risco, identificador, título, gravidade e os **identificadores** dos itens citados. Nunca o título do item nem conteúdo do provedor (um teste confere). Um arquivo por projeto, `projects/{projeto}/risk-history.json`, com o identificador conferido contra o formato do motor. Arquivo ilegível vale como "sem histórico" e é recomeçado. Fica com os 200 registros mais recentes |
+| Quando se registra | Quando uma sincronização **termina com sucesso e todas as fontes do projeto estão completas**. Uma leitura parcial ou falha faria um risco parecer resolvido só porque os dados não chegaram, então nesses casos não se registra. Sem dados lidos, também não. Ler `management.risks` continua sem gravar nada |
+| Só quando muda | Estado igual ao último registro só confirma (`CheckedAt` avança); estado diferente vira registro novo. Os itens citados em outra ordem não contam como mudança |
+| Trajetória | Para cada risco que já apareceu: apareceu, subiu, baixou, mudou os itens (entraram e saíram) e foi resolvido, do mais antigo ao mais recente. Um risco que já estava no **primeiro** registro é "observado", não "apareceu": o motor não sabe desde quando ele existia. Ativos primeiro, do mais grave ao mais leve; resolvidos depois, do mais recente. Até 30 trajetórias, com a conta do que ficou de fora |
+| Onde aparece | `management.riskhistory`; seção "Histórico dos riscos" no Acompanhamento, logo depois dos Riscos (só com fonte vinculada): quantos registros, desde quando, conferido pela última vez, o chip ativo ou resolvido, "visto pela primeira vez" e a trajetória atrás de um `Disclosure`. Sem registro nenhum, diz quando o primeiro será feito. A **base** do motor vai na resposta e na tela: o que aconteceu antes do primeiro registro, ou entre sincronizações, não é conhecido |
+| Ouvinte do fim da sincronização | `SyncService.Finished`: roda na linha da sincronização, depois de tudo gravado e antes do aviso `sync.finished`. Um ouvinte que falha **não** desfaz a sincronização: o tipo do erro (nunca a mensagem) vai para a trilha de auditoria como `integration.sync_listener_failed` |
+| Conferido à mão | A trajetória de cinco registros (A média, A sobe e ganha o item 3, perde o 2, some e volta mais leve; B aparece e some) dá para A: observado, subiu, mudou os itens, resolvido, apareceu, e para B: apareceu, resolvido, com as datas dos registros certos |
+| Testes | 24 novos no motor (trajetórias, registro, serviço, sincronização, arquivo, protocolo) e 15 na interface; fixture `risk-history.json` do motor real, com um cenário de três registros em que dois riscos aparecem, mudam e se resolvem. Suítes: 701 no motor, 467 na interface, tipos, lint, formato e build limpos. Em rodadas com a máquina carregada alguns testes que sobem o runtime Python ou usam o prazo de 5 s falharam por tempo e passaram isolados |
+
+Limites: **o histórico começa no primeiro registro depois desta versão**; o que já estava no projeto aparece como
+"observado". A ligação do `Program.cs` (assinar `Finished` para registrar) não tem teste próprio: os testes assinam o
+mesmo evento do mesmo jeito, mas a linha de composição do motor real não foi exercida. Os registros só são feitos quando
+uma sincronização termina, não por tempo: um projeto que não sincroniza não ganha registro. Nada foi validado com um
+Jira ou GitHub reais.
+
+Falta nesta fase: registro de decisão gerencial, relatório do período, componentes de indicador e faixa de previsão,
+histórico de perguntas do assistente.
 
 ### Fase E: catálogo do Harness
 

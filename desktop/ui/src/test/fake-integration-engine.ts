@@ -7,6 +7,7 @@ import forecastFixture from '@contracts/fixtures/management/forecast.json';
 import metricsFixture from '@contracts/fixtures/management/metrics.json';
 import portfolioFixture from '@contracts/fixtures/management/portfolio.json';
 import milestonesFixture from '@contracts/fixtures/management/milestones.json';
+import riskHistoryFixture from '@contracts/fixtures/management/risk-history.json';
 import risksFixture from '@contracts/fixtures/management/risks.json';
 
 import { EngineError, type EngineClient } from '@/shared/api';
@@ -198,6 +199,19 @@ export function fakeIntegrationEngine(
       integrations.some((integration) => integration.projectId === params.projectId)
         ? { ...milestonesFixture, projectId: params.projectId }
         : { ...milestonesFixture, projectId: params.projectId, complete: false, milestones: [], unassigned: [] },
+    // Sem fonte, o histórico vazio que o motor dá: nenhum registro.
+    'management.riskhistory': (params) =>
+      integrations.some((integration) => integration.projectId === params.projectId)
+        ? { ...riskHistoryFixture, projectId: params.projectId }
+        : {
+            ...riskHistoryFixture,
+            projectId: params.projectId,
+            since: null,
+            lastCheckedAt: null,
+            snapshots: 0,
+            trails: [],
+            omitted: 0
+          },
     'management.forecast': (params) =>
       integrations.some((integration) => integration.projectId === params.projectId)
         ? { ...forecastFixture, projectId: params.projectId }

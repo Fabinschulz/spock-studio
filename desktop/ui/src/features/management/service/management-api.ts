@@ -4,6 +4,7 @@ import {
   evidencePackSchema,
   linkedItemsResultSchema,
   projectMilestonesSchema,
+  projectRiskHistorySchema,
   modelStatusSchema,
   portfolioSchema,
   projectForecastSchema,
@@ -13,6 +14,7 @@ import {
   type EvidencePack,
   type LinkedItemsResult,
   type ProjectMilestones,
+  type ProjectRiskHistory,
   type ModelStatus,
   type Portfolio,
   type ProjectForecast,
@@ -26,6 +28,8 @@ export type ManagementApi = {
   metrics(projectId: string, weeks?: number): Promise<ProjectMetrics>;
   forecast(projectId: string): Promise<ProjectForecast>;
   risks(projectId: string): Promise<ProjectRisks>;
+  /** A trajetória de cada risco, a partir dos registros que o motor faz a cada sincronização completa. */
+  riskHistory(projectId: string): Promise<ProjectRiskHistory>;
   /** Andamento, prazo e previsão do que falta em cada marco (milestone do GitHub, versão do Jira). */
   milestones(projectId: string): Promise<ProjectMilestones>;
   modelStatus(): Promise<ModelStatus>;
@@ -42,6 +46,7 @@ export function createManagementApi(client: EngineClient): ManagementApi {
       client.request('management.metrics', weeks ? { projectId, weeks } : { projectId }, projectMetricsSchema),
     forecast: (projectId) => client.request('management.forecast', { projectId }, projectForecastSchema),
     milestones: (projectId) => client.request('management.milestones', { projectId }, projectMilestonesSchema),
+    riskHistory: (projectId) => client.request('management.riskhistory', { projectId }, projectRiskHistorySchema),
     risks: (projectId) => client.request('management.risks', { projectId }, projectRisksSchema),
     modelStatus: () => client.request('model.status', {}, modelStatusSchema),
     linkedRuns: (projectId) => client.request('run.linked', { projectId }, linkedItemsResultSchema),

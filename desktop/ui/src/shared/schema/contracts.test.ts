@@ -20,6 +20,7 @@ import managementForecast from '@contracts/fixtures/management/forecast.json';
 import managementMetrics from '@contracts/fixtures/management/metrics.json';
 import managementPortfolio from '@contracts/fixtures/management/portfolio.json';
 import managementMilestones from '@contracts/fixtures/management/milestones.json';
+import managementRiskHistory from '@contracts/fixtures/management/risk-history.json';
 import managementRisks from '@contracts/fixtures/management/risks.json';
 import runDetail from '@contracts/fixtures/runs/run-detail.json';
 import runLink from '@contracts/fixtures/runs/run-link.json';
@@ -43,6 +44,7 @@ import {
   portfolioSchema,
   projectForecastSchema,
   projectMilestonesSchema,
+  projectRiskHistorySchema,
   projectMetricsSchema,
   projectRisksSchema,
   planSchema,
@@ -318,5 +320,21 @@ describe('contrato dos marcos (fixture do motor)', () => {
     });
     expect(parsed.unassigned).toEqual([{ kind: 'issues', items: 21, open: 1 }]);
     expect(parsed.assumptions.length).toBeGreaterThan(0);
+  });
+});
+
+describe('contrato do histórico de riscos (fixture do motor)', () => {
+  it('a trajetória de cada risco, do que está ativo ao já resolvido', () => {
+    const parsed = projectRiskHistorySchema.parse(managementRiskHistory);
+    expect(parsed.snapshots).toBe(3);
+    expect(parsed.trails.map((trail) => [trail.id, trail.active])).toEqual([
+      ['blocked', true],
+      ['stalled-wip', true],
+      ['overdue', false],
+      ['scope-growth:issues', false]
+    ]);
+    const blocked = parsed.trails.find((trail) => trail.id === 'blocked');
+    expect(blocked?.changes.map((change) => change.kind)).toEqual(['observed', 'raised', 'lowered']);
+    expect(parsed.basis).toContain('antes do primeiro registro');
   });
 });

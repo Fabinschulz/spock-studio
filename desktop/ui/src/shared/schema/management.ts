@@ -187,6 +187,42 @@ export const projectMilestonesSchema = z.object({
   limitations: z.array(z.string())
 });
 
+/** Uma mudança na trajetória de um risco. `kind`: observed, appeared, raised, lowered, items_changed ou resolved. */
+export const riskChangeSchema = z.object({
+  at: z.string(),
+  kind: z.string(),
+  from: z.string().nullable(),
+  to: z.string().nullable(),
+  itemsAdded: z.array(z.string()),
+  itemsRemoved: z.array(z.string())
+});
+
+export const riskTrailSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  active: z.boolean(),
+  currentSeverity: z.string().nullable(),
+  firstSeenAt: z.string(),
+  resolvedAt: z.string().nullable(),
+  changes: z.array(riskChangeSchema)
+});
+
+/** O histórico dos riscos (`management.riskhistory`): a trajetória de cada risco a partir dos registros do motor. */
+export const projectRiskHistorySchema = z.object({
+  projectId: z.string(),
+  generatedAt: z.string(),
+  /** Quando foi feito o primeiro registro; antes disso não há histórico. */
+  since: z.string().nullable(),
+  lastCheckedAt: z.string().nullable(),
+  snapshots: z.number(),
+  trails: z.array(riskTrailSchema),
+  omitted: z.number(),
+  basis: z.string()
+});
+
+export type RiskChange = z.infer<typeof riskChangeSchema>;
+export type RiskTrail = z.infer<typeof riskTrailSchema>;
+export type ProjectRiskHistory = z.infer<typeof projectRiskHistorySchema>;
 export type MilestoneProgress = z.infer<typeof milestoneProgressSchema>;
 export type ProjectMilestones = z.infer<typeof projectMilestonesSchema>;
 export type ProjectForecast = z.infer<typeof projectForecastSchema>;

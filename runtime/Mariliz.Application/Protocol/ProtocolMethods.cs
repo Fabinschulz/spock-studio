@@ -47,6 +47,7 @@ public static class ProtocolMethods
     public const string ManagementForecast = "management.forecast";
     public const string ManagementRisks = "management.risks";
     public const string ManagementMilestones = "management.milestones";
+    public const string ManagementRiskHistory = "management.riskhistory";
     public const string ManagementEvidence = "management.evidence";
     public const string ManagementAsk = "management.ask";
     public const string EngineeringProfile = "engineering.profile";
@@ -73,7 +74,7 @@ public static class ProtocolMethods
     ];
 
     /// <summary>Visão gerencial: só leitura do que já foi sincronizado.</summary>
-    public static readonly IReadOnlyList<string> Management = [ManagementPortfolio, ManagementMetrics, ManagementForecast, ManagementRisks, ManagementMilestones, ManagementEvidence, ManagementAsk];
+    public static readonly IReadOnlyList<string> Management = [ManagementPortfolio, ManagementMetrics, ManagementForecast, ManagementRisks, ManagementRiskHistory, ManagementMilestones, ManagementEvidence, ManagementAsk];
 
     /// <summary>Ambiente de Engenharia: perfil tecnológico, conhecimento, estado e revisões do Harness do projeto.</summary>
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions];

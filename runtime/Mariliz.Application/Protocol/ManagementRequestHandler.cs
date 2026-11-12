@@ -16,6 +16,7 @@ internal sealed class ManagementRequestHandler(ManagementService service, Manage
         ProtocolMethods.ManagementPortfolio => IntegrationJson.Node(service.Portfolio())!.AsObject(),
         ProtocolMethods.ManagementMetrics => IntegrationJson.Node(service.Metrics(p.Str("projectId"), p.OptionalInt("weeks")))!.AsObject(),
         ProtocolMethods.ManagementForecast => IntegrationJson.Node(service.Forecast(p.Str("projectId")))!.AsObject(),
+        ProtocolMethods.ManagementRiskHistory => IntegrationJson.Node(service.RiskHistory(p.Str("projectId")))!.AsObject(),
         ProtocolMethods.ManagementMilestones => IntegrationJson.Node(service.Milestones(p.Str("projectId")))!.AsObject(),
         ProtocolMethods.ManagementRisks => IntegrationJson.Node(service.Risks(p.Str("projectId")))!.AsObject(),
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")

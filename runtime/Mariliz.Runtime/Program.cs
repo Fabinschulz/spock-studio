@@ -3,6 +3,7 @@ using Mariliz.Application.Models;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Engineering;
 using Mariliz.Application.Execution;
+using Mariliz.Application.Integrations;
 using Mariliz.Application.Management;
 using Mariliz.Application.Management.Assistant;
 using Mariliz.Application.Workflows;
@@ -27,7 +28,12 @@ if (WorkflowRecovery.MarkInterrupted(engine.Store, engine.Clock) is > 0 and var 
     await Console.Error.WriteLineAsync($"{interrupted} execução(ões) interrompida(s) pela queda anterior foram marcadas como falha.");
 using var connectorTransport = new HttpsConnectorTransport();
 var integrations = LocalIntegrationHub.Create(engine.DataRoot, engine.Workspace, engine.Clock, connectorTransport, relay.Emit);
-var management = new ManagementService(engine.Workspace, integrations, engine.Clock);
+var management = new ManagementService(engine.Workspace, integrations, engine.Clock, new FileRiskHistoryStore(engine.DataRoot));
+// O histórico de risco ganha um registro quando uma sincronização termina com tudo completo.
+integrations.Sync.Finished += (integration, run) =>
+{
+    if (run.Status is SyncStatus.Succeeded) management.CaptureRisks(integration.ProjectId);
+};
 // A central de execuções com a ligação a itens de trabalho: só o motor com integrações a tem.
 var runs = new RunQueries(engine.Tracker, engine.Store,
     new RunCatalog(engine.Store, engine.Workspace, engine.Tracker, new RunLinkService(engine.Store, engine.Store, integrations, engine.Workspace, engine.Clock)));

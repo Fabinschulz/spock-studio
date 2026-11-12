@@ -1,0 +1,139 @@
+{
+  "projectId": "p-000000000001",
+  "generatedAt": "2026-11-16T10:00:00+00:00",
+  "since": "2026-11-01T10:00:00+00:00",
+  "lastCheckedAt": "2026-11-15T10:00:00+00:00",
+  "snapshots": 3,
+  "trails": [
+    {
+      "id": "blocked",
+      "title": "Itens bloqueados",
+      "active": true,
+      "currentSeverity": "low",
+      "firstSeenAt": "2026-11-01T10:00:00+00:00",
+      "resolvedAt": null,
+      "changes": [
+        {
+          "at": "2026-11-01T10:00:00+00:00",
+          "kind": "observed",
+          "from": null,
+          "to": "low",
+          "itemsAdded": [
+            "1"
+          ],
+          "itemsRemoved": []
+        },
+        {
+          "at": "2026-11-08T10:00:00+00:00",
+          "kind": "raised",
+          "from": "low",
+          "to": "medium",
+          "itemsAdded": [
+            "2"
+          ],
+          "itemsRemoved": []
+        },
+        {
+          "at": "2026-11-15T10:00:00+00:00",
+          "kind": "lowered",
+          "from": "medium",
+          "to": "low",
+          "itemsAdded": [],
+          "itemsRemoved": [
+            "1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stalled-wip",
+      "title": "Trabalho em andamento parado",
+      "active": true,
+      "currentSeverity": "low",
+      "firstSeenAt": "2026-11-15T10:00:00+00:00",
+      "resolvedAt": null,
+      "changes": [
+        {
+          "at": "2026-11-15T10:00:00+00:00",
+          "kind": "appeared",
+          "from": null,
+          "to": "low",
+          "itemsAdded": [
+            "2"
+          ],
+          "itemsRemoved": []
+        }
+      ]
+    },
+    {
+      "id": "overdue",
+      "title": "Itens com prazo vencido",
+      "active": false,
+      "currentSeverity": null,
+      "firstSeenAt": "2026-11-01T10:00:00+00:00",
+      "resolvedAt": "2026-11-15T10:00:00+00:00",
+      "changes": [
+        {
+          "at": "2026-11-01T10:00:00+00:00",
+          "kind": "observed",
+          "from": null,
+          "to": "high",
+          "itemsAdded": [
+            "2"
+          ],
+          "itemsRemoved": []
+        },
+        {
+          "at": "2026-11-08T10:00:00+00:00",
+          "kind": "items_changed",
+          "from": null,
+          "to": "high",
+          "itemsAdded": [
+            "3"
+          ],
+          "itemsRemoved": [
+            "2"
+          ]
+        },
+        {
+          "at": "2026-11-15T10:00:00+00:00",
+          "kind": "resolved",
+          "from": "high",
+          "to": null,
+          "itemsAdded": [],
+          "itemsRemoved": [
+            "3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scope-growth:issues",
+      "title": "Escopo crescendo mais rápido do que as entregas",
+      "active": false,
+      "currentSeverity": null,
+      "firstSeenAt": "2026-11-08T10:00:00+00:00",
+      "resolvedAt": "2026-11-15T10:00:00+00:00",
+      "changes": [
+        {
+          "at": "2026-11-08T10:00:00+00:00",
+          "kind": "appeared",
+          "from": null,
+          "to": "medium",
+          "itemsAdded": [],
+          "itemsRemoved": []
+        },
+        {
+          "at": "2026-11-15T10:00:00+00:00",
+          "kind": "resolved",
+          "from": "medium",
+          "to": null,
+          "itemsAdded": [],
+          "itemsRemoved": []
+        }
+      ]
+    }
+  ],
+  "omitted": 0,
+  "basis": "Cada registro é feito quando uma sincronização termina com todas as fontes completas, e só se grava um novo quando algo mudou. O que aconteceu antes do primeiro registro, ou entre sincronizações, não é conhecido."
+}

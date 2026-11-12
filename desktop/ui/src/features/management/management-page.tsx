@@ -18,6 +18,7 @@ import { FlowSection } from './components/flow-section';
 import { LinkedRunsSection } from './components/linked-runs-section';
 import { MilestonesSection } from './components/milestones-section';
 import { ForecastSection } from './components/forecast-section';
+import { RiskHistorySection } from './components/risk-history-section';
 import { RisksSection } from './components/risks-section';
 import { summarizeActivity } from './domain/activity-summary';
 import styles from './management-page.module.scss';
@@ -76,6 +77,9 @@ function ProjectManagement({
           <>
             <ActivitySection integrations={value.integrations} />
             <RisksSection risks={value.risks} />
+            {value.integrations.length > 0 ? (
+              <RiskHistorySection management={management} projectId={project.projectId} />
+            ) : null}
             {value.integrations.length > 0 ? (
               <LinkedRunsSection management={management} projectId={project.projectId} />
             ) : null}
