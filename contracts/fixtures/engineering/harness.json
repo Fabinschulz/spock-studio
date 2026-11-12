@@ -1,0 +1,138 @@
+{
+  "projectId": "p-000000000001",
+  "inspectedAt": "2026-11-11T12:00:00+00:00",
+  "applied": true,
+  "lockReadable": true,
+  "engine": "0.0.0",
+  "aiEnvironment": "claude-code",
+  "specificationVersion": "4.0.0",
+  "components": [
+    {
+      "id": "mariliz.agent.code-reviewer",
+      "label": "Agente revisor de código",
+      "kind": "agent",
+      "version": "0.1.0",
+      "state": "modified",
+      "files": [
+        {
+          "path": ".claude/agents/code-reviewer.md",
+          "mode": "file",
+          "state": "modified"
+        }
+      ]
+    },
+    {
+      "id": "mariliz.agent.harness-engineer",
+      "label": "Agente Harness Engineer",
+      "kind": "agent",
+      "version": "0.1.0",
+      "state": "intact",
+      "files": [
+        {
+          "path": ".claude/agents/harness-engineer.md",
+          "mode": "file",
+          "state": "intact"
+        },
+        {
+          "path": ".mariliz/schemas/harness-proposal.v1.schema.json",
+          "mode": "file",
+          "state": "intact"
+        }
+      ]
+    },
+    {
+      "id": "mariliz.agent.verifier",
+      "label": "Agente verificador",
+      "kind": "agent",
+      "version": "0.1.0",
+      "state": "intact",
+      "files": [
+        {
+          "path": ".claude/agents/verifier.md",
+          "mode": "file",
+          "state": "intact"
+        }
+      ]
+    },
+    {
+      "id": "mariliz.rule.repo-commands",
+      "label": "Comandos do repositório",
+      "kind": "rule",
+      "version": "0.1.0",
+      "state": "intact",
+      "files": [
+        {
+          "path": ".claude/rules/mariliz-repo.md",
+          "mode": "file",
+          "state": "intact"
+        }
+      ]
+    },
+    {
+      "id": "mariliz.hook.policy",
+      "label": "Hook de política",
+      "kind": "hook",
+      "version": "0.1.0",
+      "state": "intact",
+      "files": [
+        {
+          "path": ".claude/hooks/mariliz-policy.py",
+          "mode": "file",
+          "state": "intact"
+        },
+        {
+          "path": ".claude/settings.json",
+          "mode": "merge",
+          "state": "intact"
+        }
+      ]
+    },
+    {
+      "id": "mariliz.rule.stack-dotnet",
+      "label": "Regras da stack .NET",
+      "kind": "rule",
+      "version": "0.1.0",
+      "state": "intact",
+      "files": [
+        {
+          "path": ".claude/rules/mariliz-stack-dotnet.md",
+          "mode": "file",
+          "state": "intact"
+        }
+      ]
+    },
+    {
+      "id": "mariliz.rule.general",
+      "label": "Regras gerais",
+      "kind": "rule",
+      "version": "0.1.0",
+      "state": "intact",
+      "files": [
+        {
+          "path": ".claude/rules/mariliz-general.md",
+          "mode": "file",
+          "state": "intact"
+        }
+      ]
+    },
+    {
+      "id": "mariliz.skill.harness-contract",
+      "label": "Skill do contrato de evidências",
+      "kind": "skill",
+      "version": "0.1.0",
+      "state": "intact",
+      "files": [
+        {
+          "path": ".claude/skills/harness-contract/SKILL.md",
+          "mode": "file",
+          "state": "intact"
+        }
+      ]
+    }
+  ],
+  "excluded": [],
+  "intact": 7,
+  "kept": 0,
+  "modified": 1,
+  "missing": 0
+}

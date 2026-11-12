@@ -46,6 +46,7 @@ public static class ProtocolMethods
     public const string EngineeringProfile = "engineering.profile";
     public const string EngineeringAnalyze = "engineering.analyze";
     public const string EngineeringKnowledge = "engineering.knowledge";
+    public const string EngineeringHarness = "engineering.harness";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -67,6 +68,6 @@ public static class ProtocolMethods
     /// <summary>Visão gerencial: só leitura do que já foi sincronizado.</summary>
     public static readonly IReadOnlyList<string> Management = [ManagementPortfolio, ManagementMetrics, ManagementForecast, ManagementRisks, ManagementEvidence, ManagementAsk];
 
-    /// <summary>Ambiente de Engenharia: perfil tecnológico e conhecimento do projeto.</summary>
-    public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge];
+    /// <summary>Ambiente de Engenharia: perfil tecnológico, conhecimento e estado do Harness do projeto.</summary>
+    public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness];
 }

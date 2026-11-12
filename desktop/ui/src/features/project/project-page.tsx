@@ -4,6 +4,7 @@ import { pathTo } from '@/shared/routing';
 import type { Discovery, RunSummary } from '@/shared/schema';
 import { Link } from 'react-router';
 
+import { HarnessSection } from './components/harness-section';
 import { KnowledgeSection } from './components/knowledge-section';
 import { ProfileSection } from './components/profile-section';
 import { runKindLabel, runRowText } from './domain/run-labels';
@@ -48,6 +49,7 @@ function ProjectContent({ client, project }: { client: EngineClient; project: Se
       {overview.status === 'ready' ? (
         <>
           <ProfileSection client={client} projectId={project.projectId} />
+          <HarnessSection client={client} projectId={project.projectId} />
           <InventorySection discovery={overview.discovery} />
           <KnowledgeSection client={client} projectId={project.projectId} />
           <RunsSection runs={overview.runs} />

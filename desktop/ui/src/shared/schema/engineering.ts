@@ -58,3 +58,33 @@ export const projectKnowledgeSchema = z.object({
 });
 
 export type ProjectKnowledge = z.infer<typeof projectKnowledgeSchema>;
+
+const harnessStateSchema = z.enum(['intact', 'kept', 'modified', 'outOfScope', 'missing']);
+
+/** O Harness aplicado, lido de mariliz.lock e conferido contra o disco pelo motor. */
+export const harnessStatusSchema = z.object({
+  projectId: z.string(),
+  inspectedAt: z.string(),
+  applied: z.boolean(),
+  lockReadable: z.boolean(),
+  engine: z.string().nullable(),
+  aiEnvironment: z.string().nullable(),
+  specificationVersion: z.string().nullable(),
+  components: z.array(
+    z.object({
+      id: z.string(),
+      label: z.string(),
+      kind: z.string(),
+      version: z.string(),
+      state: harnessStateSchema,
+      files: z.array(z.object({ path: z.string(), mode: z.string(), state: harnessStateSchema }))
+    })
+  ),
+  excluded: z.array(z.string()),
+  intact: z.number(),
+  kept: z.number(),
+  modified: z.number(),
+  missing: z.number()
+});
+
+export type HarnessStatus = z.infer<typeof harnessStatusSchema>;
