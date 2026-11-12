@@ -102,18 +102,16 @@ function ProjectIntegrations({
               )
             }
             onUnlink={() =>
-              void run(
-                () => api.unlink(projectId, integration.id),
-                'Não foi possível desvincular.',
-                () => `Vínculo com ${integration.scope.resourceName} removido.`
-              )
+              void run(() => api.unlink(projectId, integration.id), 'Não foi possível desvincular.', {
+                success: () => `Vínculo com ${integration.scope.resourceName} removido.`
+              })
             }
             loadHistory={() => api.history(projectId, integration.id)}
           />
         ))}
       </ul>
 
-      {notice ? <SuccessState>{notice}</SuccessState> : null}
+      {notice ? <SuccessState>{notice.text}</SuccessState> : null}
       {error ? <ErrorState>{error}</ErrorState> : null}
 
       {linkingConnection && linkingConnector ? (
@@ -127,7 +125,10 @@ function ProjectIntegrations({
             void run(
               () => api.link({ projectId, connectionId: linkingConnection.id, resource, dataKinds }),
               'Não foi possível vincular.',
-              (linked) => `${linked.scope.resourceName} vinculado a este projeto. Sincronize para trazer os dados.`
+              {
+                success: (linked) =>
+                  `${linked.scope.resourceName} vinculado a este projeto. Sincronize para trazer os dados.`
+              }
             ).then((ok) => {
               if (ok) setLinking(null);
             })

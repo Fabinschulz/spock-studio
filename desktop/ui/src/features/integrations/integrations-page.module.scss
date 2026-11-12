@@ -76,15 +76,6 @@
   }
 }
 
-.confirm {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border-left: 2px solid var(--tone-danger-fg);
-  background-color: var(--tone-danger-bg);
-}
-
 .history {
   display: flex;
   flex-direction: column;

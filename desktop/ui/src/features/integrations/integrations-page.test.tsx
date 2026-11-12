@@ -97,9 +97,11 @@ describe('Integrações · conexões', () => {
 
     await waitFor(() => expect(screen.queryByText('GitHub da equipe')).not.toBeInTheDocument());
     expect(removed().map((call) => call.params)).toEqual([{ connectionId: githubConnection.id }]);
+    // A linha já não existe: a mensagem fica na seção, em vez de sumir com ela.
     expect(
       screen.getByText('GitHub da equipe removida: a credencial foi apagada deste computador.')
     ).toBeInTheDocument();
+    expect(row).not.toBeInTheDocument();
   });
 
   it('desconectar pede confirmação e só apaga a credencial depois de confirmada', async () => {
@@ -118,8 +120,48 @@ describe('Integrações · conexões', () => {
     expect(await within(row).findByText('Sem credencial')).toBeInTheDocument();
     expect(disconnected().map((call) => call.params)).toEqual([{ connectionId: githubConnection.id }]);
     expect(
-      screen.getByText('GitHub da equipe desconectada: a credencial foi apagada deste computador.')
+      within(row).getByText('GitHub da equipe desconectada: a credencial foi apagada deste computador.')
     ).toBeInTheDocument();
+  });
+
+  it('a confirmação leva o foco à opção segura e o Esc desiste sem apagar nada', async () => {
+    const engine = fakeIntegrationEngine({ connections: [{ ...githubConnection, projects: 0 }] });
+    render(page(engine.client, null));
+    const row = (await screen.findByText('GitHub da equipe')).closest('li')!;
+
+    await userEvent.click(within(row).getByRole('button', { name: 'Remover' }));
+
+    // O botão "Remover" saiu da tela: sem isto o foco cairia no vazio.
+    expect(within(row).getByRole('button', { name: 'Manter' })).toHaveFocus();
+    await userEvent.keyboard('{Escape}');
+
+    expect(within(row).queryByRole('group', { name: 'Remover GitHub da equipe' })).not.toBeInTheDocument();
+    expect(engine.calls.some((call) => call.method === 'connection.remove')).toBe(false);
+  });
+
+  it('a mensagem de uma ação de conexão fica na linha que agiu, não na de outra', async () => {
+    const jira = { ...githubConnection, id: 'conn-jira', name: 'Jira da equipe', provider: 'jira' };
+    const engine = fakeIntegrationEngine({ connections: [githubConnection, jira] });
+    render(page(engine.client, null));
+    const github = (await screen.findByText('GitHub da equipe')).closest('li')!;
+    const other = screen.getByText('Jira da equipe').closest('li')!;
+
+    await userEvent.click(within(github).getByRole('button', { name: 'Testar' }));
+
+    expect(await within(github).findByText(/o provedor aceitou a credencial/)).toBeInTheDocument();
+    expect(within(other).queryByText(/o provedor aceitou a credencial/)).not.toBeInTheDocument();
+  });
+
+  it('conectar não é de uma linha: a mensagem fica na seção', async () => {
+    const engine = fakeIntegrationEngine();
+    render(page(engine.client, null));
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Conectar GitHub' }));
+    await userEvent.type(screen.getByLabelText('Token de acesso pessoal'), token);
+    await userEvent.click(screen.getByRole('button', { name: 'Conectar' }));
+
+    const notice = await screen.findByText('GitHub conectada como octo.');
+    expect(notice.closest('li')).toBeNull();
   });
 
   it('testar só confirma quando o provedor aceitou a credencial', async () => {
@@ -129,7 +171,8 @@ describe('Integrações · conexões', () => {
 
     await userEvent.click(within(row).getByRole('button', { name: 'Testar' }));
 
-    expect(await screen.findByText('GitHub da equipe: o provedor aceitou a credencial.')).toBeInTheDocument();
+    // A mensagem cai na linha da conexão que foi testada, não no fim da seção.
+    expect(await within(row).findByText('GitHub da equipe: o provedor aceitou a credencial.')).toBeInTheDocument();
   });
 
   it('testar não confirma nada quando o provedor recusa: a recusa aparece na conexão, não como sucesso', async () => {

@@ -160,14 +160,23 @@ Limites desta entrega: a mensagem de sucesso aparece no fim da seção, como os 
 
 Limite: o teste do hook simula `scrollTo` (o jsdom não o implementa em elementos); a rolagem real foi medida no navegador, não no teste.
 
+**Sexta entrega da fase B (2026-11-12).** Também só interface, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| `ConfirmAction` | A confirmação de uma ação que apaga algo, num componente só: grupo com o nome do que se confirma, a frase do que acontece, botão de perigo e "Manter". Substitui as três cópias (desconectar, remover e desvincular). O foco vai para a opção segura ao aparecer e o Esc desiste |
+| Foco que não cai no vazio | Ao clicar em "Remover" ou "Desconectar", o botão clicado saía da tela e o foco ia para o nada, o que desorienta quem usa teclado. Agora o foco vai para "Manter", e Enter ali nunca apaga nada |
+| Mensagem de sucesso na linha | `useAction` passa a dizer a que linha a mensagem pertence (`target`). Testar, atualizar credencial e desconectar mostram o sucesso na linha da conexão que agiu. Remover (a linha some) e conectar (não é de uma linha) mostram na seção |
+| Testes | 375 na interface, mais tipos, lint, formato e build limpos. Cobrem o foco e o Esc da confirmação, e a mensagem na linha certa e não na de outra conexão |
+
+Limite: esta entrega foi conferida por testes, não por prévia visual.
+
 Ainda falta nesta fase:
 
 | Pendente | Observação |
 | --- | --- |
 | Painel de detalhe e confirmação sobre o `Drawer` do ui-kit | O `Drawer` já traz título, Esc, clique fora e botão fechar. Entra junto com a central de execuções (fase C), que é a primeira tela a precisar dele, para não ficar componente sem uso |
 | Início e etapas da jornada Configurar | Têm desenho e moldura próprios (lançador e jornada); migrar para `Page` não ganha consistência e arrisca o que é a parte mais acabada do produto |
-| Mensagem de sucesso dentro da linha | Hoje fica no fim da seção; levar para a linha da conexão pede que `useAction` saiba qual linha agiu |
-| Confirmação destrutiva como componente | Continua feita na linha, em cada tela (desconectar, remover, desvincular) |
 | Nome de exibição do projeto editável | Pede método novo no motor |
 
 ### Fase C: central de execuções ligada à entrega

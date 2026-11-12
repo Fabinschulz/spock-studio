@@ -1,4 +1,5 @@
 export * from './action-card';
+export * from './confirm-action';
 export * from './diff-view';
 export * from './disclosure';
 export * from './evidence-disclosure';
