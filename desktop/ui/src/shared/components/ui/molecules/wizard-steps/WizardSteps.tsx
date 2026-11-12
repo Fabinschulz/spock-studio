@@ -16,6 +16,11 @@ interface WizardStepsProps {
   steps: readonly WizardStep[];
   currentId: string;
   issue?: StepIssue;
+  /**
+   * Quando informado, as etapas já concluídas viram botões que voltam a elas. As futuras nunca são controles: não se
+   * pula o que ainda não foi feito. Sem isto, a lista só informa o progresso.
+   */
+  onSelect?: (id: string) => void;
 }
 
 type State = 'done' | 'current' | 'upcoming';
@@ -32,7 +37,7 @@ const spoken: Record<State | StepIssue['kind'], string> = {
  * Progresso da jornada. O estado de cada etapa é dito em texto e por forma (✓, número, !), nunca só por cor.
  * Em janelas estreitas os rótulos somem do desenho e entra o resumo "Etapa N de M"; para o leitor de tela a lista é a mesma.
  */
-export function WizardSteps({ steps, currentId, issue }: WizardStepsProps) {
+export function WizardSteps({ steps, currentId, issue, onSelect }: WizardStepsProps) {
   const currentIndex = steps.findIndex((s) => s.id === currentId);
   const current = steps[currentIndex];
 
@@ -42,12 +47,8 @@ export function WizardSteps({ steps, currentId, issue }: WizardStepsProps) {
         {steps.map((step, index) => {
           const state: State = index < currentIndex ? 'done' : index === currentIndex ? 'current' : 'upcoming';
           const problem = issue?.stepId === step.id ? issue.kind : null;
-          return (
-            <li
-              key={step.id}
-              className={cn(styles.step, styles[state], problem && styles[problem])}
-              aria-current={state === 'current' ? 'step' : undefined}
-            >
+          const content = (
+            <>
               <span className={styles.marker} aria-hidden="true">
                 {problem === 'error' ? (
                   '!'
@@ -63,6 +64,26 @@ export function WizardSteps({ steps, currentId, issue }: WizardStepsProps) {
                 {step.label}
                 <span className="visually-hidden">{spoken[problem ?? state]}</span>
               </span>
+            </>
+          );
+          return (
+            <li
+              key={step.id}
+              className={cn(styles.step, styles[state], problem && styles[problem])}
+              aria-current={state === 'current' ? 'step' : undefined}
+            >
+              {onSelect && state === 'done' ? (
+                <button
+                  type="button"
+                  className={styles.target}
+                  aria-label={`Voltar para a etapa ${step.label}`}
+                  onClick={() => onSelect(step.id)}
+                >
+                  {content}
+                </button>
+              ) : (
+                content
+              )}
             </li>
           );
         })}

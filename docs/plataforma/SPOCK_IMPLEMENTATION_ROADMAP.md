@@ -148,6 +148,18 @@ Gestão não ganhou uma "Visão geral" separada: o Acompanhamento já é a visã
 
 Limites desta entrega: a mensagem de sucesso aparece no fim da seção, como os erros, e não dentro da linha da conexão que foi testada. Os quatro `<details>` de linha de lista da jornada Configurar (decisões, validação, arquivos, execução) têm sumário com layout próprio e ficaram como estão. O teste de teclado do `Disclosure` só prova o foco: o jsdom não ativa um `<summary>` com Enter, os navegadores ativam.
 
+**Quinta entrega da fase B (2026-11-12).** Também só interface, na mesma branch. Fecha itens de navegação e foco da lista de problemas.
+
+| Feito | Observação |
+| --- | --- |
+| Rolagem ao trocar de tela e de etapa | Era um defeito: o shell tem a altura da janela, quem rola é o `<main>`, e o hook rolava o documento, que nunca rola. Medido no navegador: com o `<main>` rolado em 400 px e o documento em 0, trocar de tela agora leva o `<main>` a 0. A área que rola vem de um contexto (`ContentAreaProvider`), e o shell passa o seu `<main>` |
+| Foco ao trocar de tela e de etapa | O foco vai para o `<main>` depois de trocar de tela ou de etapa, e não na primeira renderização. Antes ficava num botão ou item de menu que já não representava o que estava na tela. O teste compara com a chave anterior, e não com "é a primeira vez", para valer também quando o React remonta o efeito |
+| Stepper da jornada navegável | As etapas concluídas viram botões ("Voltar para a etapa X"); a atual e as futuras nunca são controles. Só antes de aplicar (`canReopenEarlierSteps`): durante e depois da aplicação o plano já foi usado, e reabri-lo levaria a aprovar de novo um plano que o motor recusaria com `STALE_PLAN` |
+| Esc no painel de contexto | Abrir o painel pelo botão leva o foco a ele, e o Esc o fecha devolvendo o foco ao botão. O painel que já nasce aberto em janela larga não toma o foco. Sem levar o foco ao abrir, o Esc não teria a quem se dirigir, porque o painel só tem texto: foi uma falha da minha primeira versão, achada ao revisar e testada com a tecla real |
+| Testes | 365 na interface, mais tipos, lint, formato e build limpos. Conferido no navegador: rolagem e foco ao trocar de tela, voltar pelo stepper e abrir e fechar o painel com Esc |
+
+Limite: o teste do hook simula `scrollTo` (o jsdom não o implementa em elementos); a rolagem real foi medida no navegador, não no teste.
+
 Ainda falta nesta fase:
 
 | Pendente | Observação |

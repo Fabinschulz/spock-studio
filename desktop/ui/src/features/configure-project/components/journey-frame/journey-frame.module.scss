@@ -83,6 +83,11 @@ $panel-width: 20rem;
   overflow-y: auto;
   border-left: var(--border-width-divider) solid var(--color-divider);
   background-color: var(--color-background);
+
+  // O foco chega ao painel por código (ao abri-lo); ele não é um controle e não precisa de contorno, como o <main>.
+  &:focus {
+    outline: none;
+  }
 }
 
 .panelBody {

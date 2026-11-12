@@ -131,6 +131,19 @@ describe('AppShell · navegação', () => {
     expect(within(nav).getByRole('list', { name: 'Engenharia' })).toBeInTheDocument();
   });
 
+  it('trocar de tela volta o conteúdo ao topo e leva o foco para ele; ao abrir, não mexe no foco', async () => {
+    renderShell();
+    const main = screen.getByRole('main');
+    main.scrollTo = vi.fn();
+    expect(main).not.toHaveFocus();
+
+    await userEvent.click(within(navigation()).getByRole('link', { name: 'Harness' }));
+
+    expect(screen.getByTestId('where')).toHaveTextContent('/projeto/harness');
+    expect(main.scrollTo).toHaveBeenCalledWith({ top: 0 });
+    expect(main).toHaveFocus();
+  });
+
   it('o atalho "Ir para o conteúdo" move o foco para a área principal, sem mudar a rota', async () => {
     renderShell();
 

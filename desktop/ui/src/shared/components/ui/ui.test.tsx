@@ -52,6 +52,26 @@ describe('WizardSteps', () => {
     expect(item()).toHaveTextContent('Método e ambiente (bloqueada)');
   });
 
+  it('com onSelect, só as etapas concluídas viram botões que voltam a elas', async () => {
+    const onSelect = vi.fn();
+    render(<WizardSteps steps={steps} currentId="c" onSelect={onSelect} />);
+
+    const buttons = screen.getAllByRole('button');
+    expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
+      'Voltar para a etapa Projeto',
+      'Voltar para a etapa Método e ambiente'
+    ]);
+    await userEvent.click(buttons[0]!);
+
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith('a');
+  });
+
+  it('na primeira etapa não há para onde voltar, mesmo com onSelect', () => {
+    render(<WizardSteps steps={steps} currentId="a" onSelect={() => undefined} />);
+
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
   it('não oferece navegação: etapas futuras não são controles', () => {
     render(<WizardSteps steps={steps} currentId="a" />);
 

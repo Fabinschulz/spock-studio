@@ -7,5 +7,6 @@ const fitsBesideContent = () => typeof window.matchMedia === 'function' && windo
 export function usePanelOpen() {
   const [open, setOpen] = useState(fitsBesideContent);
   const toggle = useCallback(() => setOpen((value) => !value), []);
-  return { open, toggle };
+  const close = useCallback(() => setOpen(false), []);
+  return { open, toggle, close };
 }
