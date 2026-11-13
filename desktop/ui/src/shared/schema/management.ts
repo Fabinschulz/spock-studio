@@ -24,6 +24,26 @@ export const kindFlowSchema = z.object({
     p85Days: z.number().nullable(),
     unavailable: z.string().nullable()
   }),
+  /** Do início do trabalho (primeira entrada em andamento no histórico de status) à conclusão. */
+  cycleTime: z.object({
+    sample: z.number(),
+    /** Itens entregues no período que ficaram de fora por não ter início conhecido. */
+    excluded: z.number(),
+    medianDays: z.number().nullable(),
+    p85Days: z.number().nullable(),
+    unavailable: z.string().nullable()
+  }),
+  /** Itens abertos bloqueados por rótulo ("blocked", "bloqueado") ou por vínculo de bloqueio do Jira. */
+  blocked: z.object({
+    value: z.number().nullable(),
+    viaLink: z.number(),
+    viaLabel: z.number(),
+    /** Itens com os vínculos lidos: sem isso, "nenhum bloqueio por vínculo" não quer dizer nada. */
+    linksRead: z.number(),
+    /** O que foi lido, por extenso. */
+    basis: z.string(),
+    unavailable: z.string().nullable()
+  }),
   overdue: z.object({ value: z.number().nullable(), withDueDate: z.number(), unavailable: z.string().nullable() })
 });
 
@@ -89,6 +109,20 @@ const forecastScenarioSchema = z.object({
 
 export const confidenceSchema = z.enum(['low', 'medium', 'high']);
 
+/** A previsão de um trabalho aberto (um tipo de dado ou um marco). Sem base, vem sem cenários e com o motivo. */
+export const deliveryForecastSchema = z.object({
+  kind: z.string(),
+  remaining: z.number(),
+  historyWeeks: z.number(),
+  weeklyThroughput: z.array(z.number()),
+  trials: z.number(),
+  scenarios: z.array(forecastScenarioSchema),
+  confidence: confidenceSchema.nullable(),
+  confidenceReasons: z.array(z.string()),
+  riskFactors: z.array(z.string()),
+  unavailable: z.string().nullable()
+});
+
 /** Previsão de conclusão calculada pelo motor (Monte Carlo sobre o throughput). Sem base, vem sem cenários e com o motivo. */
 export const projectForecastSchema = z.object({
   projectId: z.string(),
@@ -97,20 +131,7 @@ export const projectForecastSchema = z.object({
   complete: z.boolean(),
   assumptions: z.array(z.string()),
   limitations: z.array(z.string()),
-  kinds: z.array(
-    z.object({
-      kind: z.string(),
-      remaining: z.number(),
-      historyWeeks: z.number(),
-      weeklyThroughput: z.array(z.number()),
-      trials: z.number(),
-      scenarios: z.array(forecastScenarioSchema),
-      confidence: confidenceSchema.nullable(),
-      confidenceReasons: z.array(z.string()),
-      riskFactors: z.array(z.string()),
-      unavailable: z.string().nullable()
-    })
-  )
+  kinds: z.array(deliveryForecastSchema)
 });
 
 export const riskSeveritySchema = z.enum(['low', 'medium', 'high']);
@@ -137,6 +158,111 @@ export const projectRisksSchema = z.object({
   rulesEvaluated: z.array(z.string())
 });
 
+/** O andamento de um marco (milestone do GitHub ou versão de correção do Jira) dentro de um tipo de dado. */
+export const milestoneProgressSchema = z.object({
+  kind: z.string(),
+  name: z.string(),
+  dueDate: z.string().nullable(),
+  items: z.number(),
+  delivered: z.number(),
+  /** Concluídos que não contam como entrega: descartados, duplicados, pull request fechado sem merge. */
+  closedWithoutDelivery: z.number(),
+  open: z.number(),
+  /** done, on_track, at_risk, behind, overdue, no_forecast ou no_due_date. Um valor novo aparece como veio. */
+  outlook: z.string(),
+  outlookReason: z.string(),
+  forecast: deliveryForecastSchema
+});
+
+/** Marcos de um projeto (`management.milestones`): andamento, prazo e previsão do que falta em cada um. */
+export const projectMilestonesSchema = z.object({
+  projectId: z.string(),
+  generatedAt: z.string(),
+  complete: z.boolean(),
+  milestones: z.array(milestoneProgressSchema),
+  /** Marcos que ficaram fora da lista por passar do limite. */
+  omitted: z.number(),
+  unassigned: z.array(z.object({ kind: z.string(), items: z.number(), open: z.number() })),
+  assumptions: z.array(z.string()),
+  limitations: z.array(z.string())
+});
+
+/** Uma mudança na trajetória de um risco. `kind`: observed, appeared, raised, lowered, items_changed ou resolved. */
+export const riskChangeSchema = z.object({
+  at: z.string(),
+  kind: z.string(),
+  from: z.string().nullable(),
+  to: z.string().nullable(),
+  itemsAdded: z.array(z.string()),
+  itemsRemoved: z.array(z.string())
+});
+
+export const riskTrailSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  active: z.boolean(),
+  currentSeverity: z.string().nullable(),
+  firstSeenAt: z.string(),
+  resolvedAt: z.string().nullable(),
+  changes: z.array(riskChangeSchema)
+});
+
+/** O histórico dos riscos (`management.riskhistory`): a trajetória de cada risco a partir dos registros do motor. */
+export const projectRiskHistorySchema = z.object({
+  projectId: z.string(),
+  generatedAt: z.string(),
+  /** Quando foi feito o primeiro registro; antes disso não há histórico. */
+  since: z.string().nullable(),
+  lastCheckedAt: z.string().nullable(),
+  snapshots: z.number(),
+  trails: z.array(riskTrailSchema),
+  omitted: z.number(),
+  basis: z.string()
+});
+
+/** Uma decisão registrada no período, sem os fatos do dia. */
+export const reportDecisionSchema = z.object({
+  id: z.string(),
+  recordedAt: z.string(),
+  title: z.string(),
+  decision: z.string(),
+  runs: z.number(),
+  facts: z.number()
+});
+
+/** Uma mudança de risco que aconteceu dentro do período, com o risco a que pertence. */
+export const reportRiskChangeSchema = z.object({ riskId: z.string(), title: z.string(), change: riskChangeSchema });
+
+/** Quantas execuções de um tipo estão num estado, entre as que começaram no período. */
+export const reportRunsSchema = z.object({ kind: z.string(), state: z.string(), count: z.number() });
+
+/**
+ * O relatório de um período (`management.report`): indicadores, previsão, riscos, marcos, decisões e execuções, todos do motor.
+ * Nenhum texto é escrito por modelo.
+ */
+export const projectReportSchema = z.object({
+  projectId: z.string(),
+  projectName: z.string(),
+  generatedAt: z.string(),
+  weeks: z.number(),
+  periodFrom: z.string(),
+  periodTo: z.string(),
+  metrics: projectMetricsSchema,
+  forecast: projectForecastSchema,
+  risks: projectRisksSchema,
+  riskChanges: z.array(reportRiskChangeSchema),
+  milestones: projectMilestonesSchema,
+  decisions: z.array(reportDecisionSchema),
+  runs: z.array(reportRunsSchema),
+  basis: z.string()
+});
+
+export type ProjectReport = z.infer<typeof projectReportSchema>;
+export type RiskChange = z.infer<typeof riskChangeSchema>;
+export type RiskTrail = z.infer<typeof riskTrailSchema>;
+export type ProjectRiskHistory = z.infer<typeof projectRiskHistorySchema>;
+export type MilestoneProgress = z.infer<typeof milestoneProgressSchema>;
+export type ProjectMilestones = z.infer<typeof projectMilestonesSchema>;
 export type ProjectForecast = z.infer<typeof projectForecastSchema>;
 export type DeliveryForecast = ProjectForecast['kinds'][number];
 export type ProjectRisks = z.infer<typeof projectRisksSchema>;

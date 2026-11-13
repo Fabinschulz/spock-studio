@@ -29,10 +29,33 @@ export function FlowSection({ metrics, connectors }: FlowSectionProps) {
       ))}
       <p className={styles.muted}>
         Entregue é o item concluído com data de conclusão; issue descartada ou duplicada e pull request fechado sem
-        merge não contam. Lead time são os dias corridos da criação à conclusão. Tipos diferentes não são somados.
+        merge não contam. Lead time são os dias corridos da criação à conclusão. Cycle time são os dias corridos do
+        início do trabalho à conclusão: o início é a primeira vez que o item entrou em andamento no histórico de status,
+        que só o Jira informa. Tipos diferentes não são somados.
       </p>
     </PageSection>
   );
+}
+
+/** O percentil 85 e, se houve, quantos itens ficaram de fora por não ter início conhecido. */
+function cycleTimeNote(cycle: KindFlow['cycleTime']): string | undefined {
+  const parts = [
+    cycle.p85Days === null ? null : `85% em até ${formatDays(cycle.p85Days)}`,
+    cycle.excluded > 0 && cycle.p85Days !== null
+      ? `${cycle.excluded} ${cycle.excluded === 1 ? 'item sem início conhecido' : 'itens sem início conhecido'}`
+      : null
+  ].filter((part): part is string => part !== null);
+  return parts.length > 0 ? parts.join(' · ') : undefined;
+}
+
+/** Quantos por vínculo e quantos por rótulo, e o que foi lido: o número só vale para o que a fonte permitiu ler. */
+function blockedNote(blocked: KindFlow['blocked']): string | undefined {
+  if (blocked.value === null) return undefined;
+  const how = [
+    blocked.viaLink > 0 ? `${blocked.viaLink} por vínculo` : null,
+    blocked.viaLabel > 0 ? `${blocked.viaLabel} por rótulo` : null
+  ].filter((part): part is string => part !== null);
+  return [how.join(', '), blocked.basis].filter((part) => part.length > 0).join('. ');
 }
 
 function KindFlowBlock({ flow, label }: { flow: KindFlow; label: string }) {
@@ -56,6 +79,18 @@ function KindFlowBlock({ flow, label }: { flow: KindFlow; label: string }) {
           value={flow.leadTime.medianDays === null ? null : formatDays(flow.leadTime.medianDays)}
           note={flow.leadTime.p85Days === null ? undefined : `85% em até ${formatDays(flow.leadTime.p85Days)}`}
           unavailable={flow.leadTime.unavailable}
+        />
+        <Figure
+          label="Cycle time mediano"
+          value={flow.cycleTime.medianDays === null ? null : formatDays(flow.cycleTime.medianDays)}
+          note={cycleTimeNote(flow.cycleTime)}
+          unavailable={flow.cycleTime.unavailable}
+        />
+        <Figure
+          label="Bloqueados"
+          value={flow.blocked.value}
+          note={blockedNote(flow.blocked)}
+          unavailable={flow.blocked.unavailable}
         />
         <Figure label="Prazo vencido" value={flow.overdue.value} unavailable={flow.overdue.unavailable} />
       </dl>

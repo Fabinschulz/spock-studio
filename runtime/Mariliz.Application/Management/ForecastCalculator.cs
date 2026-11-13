@@ -45,9 +45,17 @@ public static class ForecastCalculator
         ("conservative", "Conservador", 85)
     ];
 
-    public static DeliveryForecast Compute(string kind, IReadOnlyCollection<WorkItem> items, DateTimeOffset now, bool sourcesComplete)
+    public static DeliveryForecast Compute(string kind, IReadOnlyCollection<WorkItem> items, DateTimeOffset now, bool sourcesComplete) =>
+        Compute(kind, items, items, now, sourcesComplete);
+
+    /// <summary>
+    /// O ritmo vem de <paramref name="items"/> (o tipo de dado inteiro) e o trabalho restante de <paramref name="scope"/> (por exemplo,
+    /// os itens de um marco).
+    /// </summary>
+    public static DeliveryForecast Compute(
+        string kind, IReadOnlyCollection<WorkItem> items, IReadOnlyCollection<WorkItem> scope, DateTimeOffset now, bool sourcesComplete)
     {
-        var remaining = items.Count(DeliveryRules.IsOpen);
+        var remaining = scope.Count(DeliveryRules.IsOpen);
         var historyWeeks = Math.Min(MaxHistoryWeeks, WeeklyHistory.Covered(items, now));
         var history = historyWeeks == 0 ? [] : WeeklyHistory.Delivered(items, now, historyWeeks);
 

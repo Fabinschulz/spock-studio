@@ -14,6 +14,7 @@ import {
   LibraryIcon,
   ListViewRectangleIcon,
   PlayIcon,
+  ReportIcon,
   SettingIcon,
   ShieldCheckIcon
 } from '@mariliz/ui-kit';
@@ -87,7 +88,8 @@ const MANAGEMENT_GROUP: NavGroup = {
       to: pathTo('management'),
       end: true
     },
-    { id: 'assistant', label: 'Assistente', icon: <ChatIcon fontSize="small" />, to: pathTo('assistant') }
+    { id: 'assistant', label: 'Assistente', icon: <ChatIcon fontSize="small" />, to: pathTo('assistant') },
+    { id: 'report', label: 'Relatório', icon: <ReportIcon fontSize="small" />, to: pathTo('report') }
   ]
 };
 

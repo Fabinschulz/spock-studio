@@ -1,3 +1,4 @@
+using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
@@ -9,7 +10,7 @@ namespace Mariliz.Application.Management;
 /// A visão gerencial: portfólio e indicadores de um projeto. Só lê o que já foi sincronizado; não chama provedor, não
 /// grava nada e não usa modelo de linguagem. O cálculo é do <see cref="FlowCalculator"/>.
 /// </summary>
-public sealed class ManagementService(WorkspaceAuthorizer workspace, IntegrationHub hub, IClock clock)
+public sealed class ManagementService(WorkspaceAuthorizer workspace, IntegrationHub hub, IClock clock, IRiskHistoryStore? riskHistory = null)
 {
     public const int DefaultWeeks = 8;
     public const int MinWeeks = 2;
@@ -18,10 +19,7 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
     /// <summary>Pedidos no pedido de gestão que esta versão não calcula. Ficam na resposta para a interface dizer que faltam.</summary>
     public static readonly IReadOnlyList<NotCalculated> NotCalculatedYet =
     [
-        new("cycleTime", "Cycle time",
-            "Precisa saber quando o trabalho começou. O GitHub não informa; no Jira, o histórico de status traz nomes que mudam por site."),
-        new("blockers", "Bloqueios", "O bloqueio no Jira é um campo personalizado, diferente em cada site; ainda não é lido."),
-        new("scopeChange", "Mudança de escopo", "Precisa de um escopo de referência (sprint ou marco), que ainda não é sincronizado."),
+        new("scopeChange", "Mudança de escopo", "Precisa comparar o escopo do marco no começo e agora, e o histórico do escopo ainda não é guardado."),
         new("predictability", "Previsibilidade", "Precisa do que foi planejado por período, que ainda não é sincronizado.")
     ];
 
@@ -69,6 +67,28 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
             ForecastCalculator.Limitations, kinds);
     }
 
+    /// <summary>O andamento e a previsão de cada marco do projeto. Marcos com trabalho aberto vêm primeiro, pelo prazo.</summary>
+    public ProjectMilestones Milestones(string projectId)
+    {
+        var now = clock.UtcNow;
+        var sources = Sources(projectId);
+        var complete = Complete(sources);
+        var byKind = ItemsByKind(sources)
+            .Select(group => (Kind: group.Key, Result: MilestoneCalculator.Compute(group.Key, group.Value, now, complete)))
+            .ToList();
+
+        var ordered = byKind.SelectMany(entry => entry.Result.Milestones)
+            .OrderBy(milestone => milestone.Open == 0)
+            .ThenBy(milestone => milestone.DueDate is null)
+            .ThenBy(milestone => milestone.DueDate)
+            .ThenBy(milestone => milestone.Name, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(milestone => milestone.Kind, StringComparer.Ordinal)
+            .ToList();
+        return new ProjectMilestones(projectId, now, complete, ordered.Take(MilestoneCalculator.MaxMilestones).ToList(),
+            Math.Max(0, ordered.Count - MilestoneCalculator.MaxMilestones), byKind.Select(entry => entry.Result.Unassigned).ToList(),
+            MilestoneCalculator.Assumptions, MilestoneCalculator.Limitations);
+    }
+
     /// <summary>Riscos detectados por regra fixa sobre os dados do projeto.</summary>
     public ProjectRisks Risks(string projectId)
     {
@@ -76,6 +96,37 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
         var sources = Sources(projectId);
         var byKind = ItemsByKind(sources);
         return new ProjectRisks(projectId, now, Complete(sources), byKind.Count > 0, RiskRules.Evaluate(byKind, now), RiskRules.All);
+    }
+
+    /// <summary>
+    /// Registra o estado atual dos riscos, para o histórico. É a única operação desta classe que grava, e só o histórico: não
+    /// chama provedor. Só registra com dados lidos e com todas as fontes completas: uma leitura parcial faria um risco
+    /// parecer resolvido quando só faltou chegar. Devolve se gravou ou só confirmou o estado.
+    /// </summary>
+    public bool CaptureRisks(string projectId)
+    {
+        if (riskHistory is null) return false;
+        var sources = Sources(projectId);
+        if (!Complete(sources)) return false;
+        var byKind = ItemsByKind(sources);
+        if (byKind.Count == 0) return false;
+
+        var now = clock.UtcNow;
+        var current = RiskHistoryBuilder.Entries(RiskRules.Evaluate(byKind, now));
+        lock (riskHistory)
+        {
+            var existing = riskHistory.Load(projectId);
+            var changed = existing.Count == 0 || !RiskHistoryBuilder.Same(existing[^1].Risks, current);
+            riskHistory.Save(projectId, RiskHistoryBuilder.Append(existing, current, now));
+            return changed;
+        }
+    }
+
+    /// <summary>A trajetória de cada risco que já apareceu. Só leitura: sem registros, a lista vem vazia e a base diz desde quando.</summary>
+    public ProjectRiskHistory RiskHistory(string projectId)
+    {
+        if (!workspace.IsAuthorized(projectId)) throw EngineErrors.ProjectNotAuthorized();
+        return RiskHistoryBuilder.Build(projectId, clock.UtcNow, riskHistory?.Load(projectId) ?? []);
     }
 
     private static bool Complete(IReadOnlyCollection<(ProjectIntegration Integration, SyncedData Data, ConnectionStatus Connection)> sources) =>

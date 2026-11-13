@@ -18,7 +18,7 @@
   "kinds": [
     {
       "kind": "issues",
-      "remaining": 10,
+      "remaining": 11,
       "historyWeeks": 12,
       "weeklyThroughput": [
         2,
@@ -47,8 +47,8 @@
           "id": "likely",
           "label": "Provável",
           "percentile": 50,
-          "weeks": 5,
-          "by": "2026-12-15"
+          "weeks": 6,
+          "by": "2026-12-22"
         },
         {
           "id": "conservative",

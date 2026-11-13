@@ -93,7 +93,16 @@ public sealed partial class GitHubConnector(ConnectorClient client) : IIntegrati
             DueDate: null,
             Parent: null,
             Url: ConnectorJson.Text(entry["html_url"]) ?? "",
-            Transitions: []);
+            Transitions: [],
+            Milestones: MilestonesOf(entry));
+    }
+
+    /// <summary>O milestone da issue ou do pull request, com a data de entrega que o GitHub guarda nele (a data, em UTC).</summary>
+    private static List<WorkItemMilestone> MilestonesOf(JsonObject entry)
+    {
+        if (entry["milestone"] is not JsonObject milestone || ConnectorJson.Text(milestone["title"]) is not { Length: > 0 } name) return [];
+        var due = ConnectorJson.Date(milestone["due_on"]);
+        return [new WorkItemMilestone(name, due is null ? null : DateOnly.FromDateTime(due.Value.UtcDateTime))];
     }
 
     private static string StatusOf(JsonObject entry, JsonObject? pullRequest, bool open)

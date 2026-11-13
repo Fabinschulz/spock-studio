@@ -21,10 +21,11 @@ public class DeliveryIntelligenceTests
         DateTimeOffset? closed = null,
         string kind = DataKinds.Issues,
         DateOnly? due = null,
-        DateTimeOffset? updated = null) =>
+        DateTimeOffset? updated = null,
+        IReadOnlyList<string>? blockedBy = null) =>
         new(kind, id, "Item " + id, kind == DataKinds.Issues ? "Issue" : "Pull request",
             category == StatusCategories.Done ? (kind == DataKinds.PullRequests ? "merged" : "completed") : "open", category, [],
-            [], created, updated ?? closed ?? created, closed, due, null, "https://example.test/" + id, []);
+            [], created, updated ?? closed ?? created, closed, due, null, "https://example.test/" + id, [], blockedBy);
 
     /// <summary>Entregas por semana (da mais antiga para a mais recente, terminando agora) e itens abertos criados antes do histórico.</summary>
     private static List<WorkItem> History(int[] deliveredPerWeek, int open, string kind = DataKinds.Issues)
@@ -215,6 +216,8 @@ public class DeliveryIntelligenceTests
         var items = History([2, 3, 1, 2, 2, 3, 1, 2, 0, 2, 3, 2], open: 9);
         items.Add(Item("A-1", StatusCategories.Todo, Now.AddDays(-30), due: new DateOnly(2026, 11, 1)));
         items.Add(Item("7", StatusCategories.InProgress, Now.AddDays(-12), kind: DataKinds.PullRequests));
+        // Bloqueado pelo vínculo "is blocked by" do Jira com A-1, que segue aberto: aparece como risco.
+        items.Add(Item("A-2", StatusCategories.InProgress, Now.AddDays(-5), blockedBy: ["A-1"]));
         using var h = await Seeded(items);
 
         var scenarios = new Dictionary<string, JsonNode>

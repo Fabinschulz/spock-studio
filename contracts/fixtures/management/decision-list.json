@@ -1,0 +1,26 @@
+{
+  "decisions": [
+    {
+      "id": "dec-000000000001",
+      "recordedAt": "2026-11-12T12:00:00+00:00",
+      "title": "Adiar a release",
+      "decision": "Adiar a release 1.0 em uma semana.",
+      "rationale": "Três itens bloqueados.",
+      "runs": [
+        {
+          "runId": "run-1",
+          "kind": "apply",
+          "state": "completed",
+          "startedAt": "2026-11-12T10:00:00+00:00"
+        },
+        {
+          "runId": "run-2",
+          "kind": "workflow",
+          "state": "completed_with_limitations",
+          "startedAt": "2026-11-12T10:00:00+00:00"
+        }
+      ],
+      "factCount": 2
+    }
+  ]
+}

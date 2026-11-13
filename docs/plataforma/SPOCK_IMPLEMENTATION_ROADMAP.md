@@ -374,6 +374,118 @@ Entregas 3 e 4 da ordem aprovada, mais marcos e relatórios.
 - **Pronto quando:** cada indicador novo tem fórmula, teste conferido à mão e fixture; a tela mostra de onde veio cada
   número.
 
+**Estado da fase D (2026-11-12).** Primeira entrega feita na branch `feat/fase-d-gestao-explica` (criada da `master`),
+sem commit até o dono pedir: o **cycle time**.
+
+| Feito | Observação |
+| --- | --- |
+| Fórmula | Dias corridos do **início** à conclusão, dos itens entregues no período (a mesma população do lead time). O início é a **primeira mudança de status para um status da categoria "em andamento"**; reabertura posterior não muda o início. Mediana e percentil 85 pelo mesmo método do lead time (posição ⌈p·n⌉, valor observado), mínimo de 5 itens |
+| De onde vem a categoria do status | O histórico do Jira traz só nomes ("Em revisão"), que mudam por site. O nome é classificado pelos **itens que estão nele agora**: só vale se todos concordam na categoria. Efeitos ditos na descrição do código: um status que nenhum item ocupa hoje não é reconhecido, e um nome com categorias conflitantes também não. Em ambos os casos o item **sai do cálculo e é contado** |
+| "Sem dado" com motivo | Fonte sem nenhum histórico de status (o GitHub): "A fonte não informa quando o trabalho começou". Amostra pequena: diz quantos há e quantos ficaram de fora ("há 3 (2 sem início conhecido)"). Nunca um zero |
+| Onde aparece | `cycleTime` em cada tipo de dado de `management.metrics` (amostra, excluídos, mediana, P85); fato `cycletime` no pacote do assistente, com número e motivo; figura "Cycle time mediano" na seção de fluxo, com "85% em até N dias" e "N itens sem início conhecido"; o item saiu da lista "Ainda não calculado" (Bloqueios, Mudança de escopo e Previsibilidade continuam nela) |
+| Conferido à mão | Os testes trazem as contas na descrição: ciclos de 1, 2, 3, 4, 5, 6 e 10 dias dão mediana 4 e P85 6; com reabertura e várias entradas vale a primeira; direto de "A fazer" para "Concluído" sai e é contado; nome sem diferenciar maiúsculas; nome conflitante; só o que foi entregue no período. A fixture `metrics.json` do motor real mostra mediana 3 e P85 6 num cenário que calculei antes de gerar |
+| Testes | 10 novos de cálculo, 4 na tela de fluxo e ajustes nos de Gestão e do assistente. Suítes: 630 no motor, 434 na interface, tipos, lint, formato e build limpos |
+
+Limites: **o GitHub continua "sem dado"**. A API de eventos da issue pediria uma chamada por item e foge do teto de
+chamadas da sincronização; não foi feita. Nada disto foi validado com um Jira real (a fase A segue sem a validação real),
+então o formato do histórico foi lido do que o conector já grava e dos testes com dublê. O percentil 85 pela posição, e
+não interpolado, arredonda para um valor observado, como no lead time.
+
+**Segunda entrega da fase D (2026-11-12).** Os **bloqueios**, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| Definição | Um item **aberto** está bloqueado se tem o rótulo `blocked`, `bloqueado` ou `bloqueada` (sem diferenciar maiúsculas) **ou** um vínculo "is blocked by" para um item que ainda não foi concluído. Item concluído nunca conta, mesmo com o rótulo |
+| Jira | O conector passou a pedir `issuelinks`. Lê o vínculo padrão `Blocks`: no JSON, o vínculo com `inwardIssue` é a relação "is blocked by" deste item com o outro; com `outwardIssue` o item é o que bloqueia e não está bloqueado. Um tipo de vínculo renomeado ainda conta se a descrição de entrada for "is blocked by"; qualquer outro tipo (Relates, Duplicates) não é bloqueio. O bloqueador já concluído não bloqueia |
+| "Não lido" não é "nenhum" | `BlockedBy` no item é lista vazia quando o vínculo foi lido e não há, e **nulo quando não foi lido** (GitHub, ou dado sincronizado antes). O indicador traz `linksRead` e uma `basis` por extenso: "Vínculos lidos em 10 de 12 itens" ou "Os vínculos de bloqueio não foram lidos nesta fonte". O número só vale para o que a fonte permitiu ler |
+| GitHub | Só o rótulo: o GitHub não tem vínculo de bloqueio. O "marcador acordado" ficou fixo nos três rótulos acima; torná-lo configurável por projeto é uma decisão pendente |
+| Onde aparece | `blocked` por tipo de dado em `management.metrics` (total, por vínculo, por rótulo, lidos e base); fato `blocked` no pacote do assistente, com a base; figura "Bloqueados" na seção de fluxo, com "N por vínculo, N por rótulo" e o que foi lido; **novo risco `blocked`** ("Itens bloqueados"), por regra: 1 item é baixo, 2 a 4 médio, 5 ou mais alto, com os itens do mais antigo ao mais novo (até 10). Saiu de "Ainda não calculado" |
+| Conferido à mão | O teste conta A (rótulo), B (vínculo), C (os dois), D (concluído com rótulo, não conta), E (vínculo lido sem bloqueio) e F (nada lido): 3 bloqueados, 2 por vínculo, 2 por rótulo, 3 com vínculo lido |
+| Efeito colateral | `BlockedBy` entra no hash de cada item: na primeira sincronização depois desta versão, **todos os itens do Jira aparecem como "alterados"** uma vez (o conteúdo gravado mudou). Não perde dado nem duplica |
+| Testes | 26 novos no motor (cálculo, risco, leitura do Jira com sete formatos de vínculo, GitHub só com rótulo) e 3 na tela de fluxo; fixtures regeneradas, com um item bloqueado por vínculo no cenário de riscos (a previsão mudou junto: 11 itens abertos, provável em 22/12/2026). Suítes: 656 no motor, 437 na interface, tipos, lint, formato e build limpos |
+
+Limites: nada foi validado com um Jira real, e os campos de bloqueio variam por site. Só o vínculo padrão é lido, e um
+site que usa o campo "Impediment"/"Flagged" ou um tipo de vínculo próprio aparece com "0" e com a base dizendo o que foi
+lido, o que é diferente de dizer que não há bloqueio. Não calculei há quanto tempo cada item está bloqueado: o provedor
+não informa quando o vínculo ou o rótulo foi posto, e usar a data de atualização inventaria um número.
+
+**Terceira entrega da fase D (2026-11-12).** Os **marcos**, com previsão por marco, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| O que é um marco | O **milestone** do GitHub (issue e pull request) e a **versão de correção** do Jira (`fixVersions`). O item guarda o nome e o prazo do marco no provedor (a data do milestone em UTC, a data de lançamento da versão). Lista vazia é "sem marco"; nulo é "sincronizado antes de os marcos serem lidos" e conta como sem marco |
+| Andamento | Por marco e por tipo de dado: itens, entregues, **concluídos sem entrega** (descartados, duplicados, pull request fechado sem merge, sem data de conclusão) e abertos. O percentual usa como base os itens menos os concluídos sem entrega. Item com duas versões no Jira conta nas duas; o nome agrupa sem diferenciar maiúsculas; o prazo é o mais cedo entre os itens que o informam. Os itens sem marco aparecem contados, por tipo |
+| Previsão | O mesmo método da previsão do projeto (simulação sobre o ritmo semanal), com o **trabalho restante só do marco** e o **ritmo do tipo de dado inteiro**: o marco sozinho teria poucas entregas para servir de histórico. As premissas e os limites vão na resposta e na tela |
+| Situação | `done` (tudo concluído, mesmo com prazo passado), `overdue` (prazo passou e há item aberto, haja previsão ou não), `no_forecast` (com o motivo da previsão), `no_due_date`, `on_track` (o cenário **conservador**, 85% das simulações, cabe no prazo), `at_risk` (o provável cabe, o conservador não) e `behind` (nem o provável cabe). Prazo igual à data prevista conta como cabendo |
+| Onde aparece | Método `management.milestones`; seção "Marcos" no Acompanhamento, depois da previsão, com o prazo, o chip de situação, "N de M itens entregues, N abertos", os três cenários e a explicação do método atrás de "Como a previsão do marco é calculada"; só aparece com fonte vinculada. Um fato por marco no pacote do assistente, com a situação e o motivo. A lista para em 20 marcos e diz quantos ficaram de fora, os com trabalho aberto primeiro, pelo prazo |
+| Conferido à mão | Ritmo de 2 entregas por semana em 12 semanas e 6 itens abertos no marco: toda simulação termina em 3 semanas, **03/12/2026** (12/11 mais 21 dias). Com prazo em 12/12 e em 03/12 o marco está no prazo, com prazo em 02/12 está atrasado em relação ao prazo; as três situações do meio (em risco) foram conferidas com previsões construídas, porque o sorteio da simulação não se calcula à mão |
+| Efeito colateral | Os marcos entram no conteúdo gravado de cada item: na primeira sincronização depois desta versão os itens aparecem como "alterados" uma vez (junto com o efeito dos bloqueios). Sem perda nem duplicação |
+| Testes | 22 novos no motor (andamento, situação, serviço e protocolo, isolamento entre projetos, o fato do assistente, leitura do GitHub e do Jira) e 18 na interface; fixture `milestones.json` do motor real. Suítes: 676 no motor, 453 na interface, tipos, lint, formato e build limpos. Numa rodada com a máquina carregada três testes do runtime Python falharam por tempo e passaram isolados |
+
+Limites: nada foi validado com um Jira ou GitHub reais. Não há previsão por **ordem** de trabalho: o método assume que o
+time só trabalha nos itens do marco, o que costuma ser otimista quando há outros itens em andamento. O prazo é o do
+provedor: sem ele não há comparação, e um milestone do GitHub sem data aparece como "sem prazo". O sprint do Jira não é
+lido, só a versão de correção. A mudança de escopo por marco segue em "Ainda não calculado": pede guardar o escopo ao
+longo do tempo, que o produto ainda não faz.
+
+**Quarta entrega da fase D (2026-11-12).** O **histórico de cada risco**, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| O que é guardado | Um registro do estado das regras de risco: para cada risco, identificador, título, gravidade e os **identificadores** dos itens citados. Nunca o título do item nem conteúdo do provedor (um teste confere). Um arquivo por projeto, `projects/{projeto}/risk-history.json`, com o identificador conferido contra o formato do motor. Arquivo ilegível vale como "sem histórico" e é recomeçado. Fica com os 200 registros mais recentes |
+| Quando se registra | Quando uma sincronização **termina com sucesso e todas as fontes do projeto estão completas**. Uma leitura parcial ou falha faria um risco parecer resolvido só porque os dados não chegaram, então nesses casos não se registra. Sem dados lidos, também não. Ler `management.risks` continua sem gravar nada |
+| Só quando muda | Estado igual ao último registro só confirma (`CheckedAt` avança); estado diferente vira registro novo. Os itens citados em outra ordem não contam como mudança |
+| Trajetória | Para cada risco que já apareceu: apareceu, subiu, baixou, mudou os itens (entraram e saíram) e foi resolvido, do mais antigo ao mais recente. Um risco que já estava no **primeiro** registro é "observado", não "apareceu": o motor não sabe desde quando ele existia. Ativos primeiro, do mais grave ao mais leve; resolvidos depois, do mais recente. Até 30 trajetórias, com a conta do que ficou de fora |
+| Onde aparece | `management.riskhistory`; seção "Histórico dos riscos" no Acompanhamento, logo depois dos Riscos (só com fonte vinculada): quantos registros, desde quando, conferido pela última vez, o chip ativo ou resolvido, "visto pela primeira vez" e a trajetória atrás de um `Disclosure`. Sem registro nenhum, diz quando o primeiro será feito. A **base** do motor vai na resposta e na tela: o que aconteceu antes do primeiro registro, ou entre sincronizações, não é conhecido |
+| Ouvinte do fim da sincronização | `SyncService.Finished`: roda na linha da sincronização, depois de tudo gravado e antes do aviso `sync.finished`. Um ouvinte que falha **não** desfaz a sincronização: o tipo do erro (nunca a mensagem) vai para a trilha de auditoria como `integration.sync_listener_failed` |
+| Conferido à mão | A trajetória de cinco registros (A média, A sobe e ganha o item 3, perde o 2, some e volta mais leve; B aparece e some) dá para A: observado, subiu, mudou os itens, resolvido, apareceu, e para B: apareceu, resolvido, com as datas dos registros certos |
+| Testes | 24 novos no motor (trajetórias, registro, serviço, sincronização, arquivo, protocolo) e 15 na interface; fixture `risk-history.json` do motor real, com um cenário de três registros em que dois riscos aparecem, mudam e se resolvem. Suítes: 701 no motor, 467 na interface, tipos, lint, formato e build limpos. Em rodadas com a máquina carregada alguns testes que sobem o runtime Python ou usam o prazo de 5 s falharam por tempo e passaram isolados |
+
+Limites: **o histórico começa no primeiro registro depois desta versão**; o que já estava no projeto aparece como
+"observado". A ligação do `Program.cs` (assinar `Finished` para registrar) não tem teste próprio: os testes assinam o
+mesmo evento do mesmo jeito, mas a linha de composição do motor real não foi exercida. Os registros só são feitos quando
+uma sincronização termina, não por tempo: um projeto que não sincroniza não ganha registro. Nada foi validado com um
+Jira ou GitHub reais.
+
+**Quinta entrega da fase D (2026-11-12).** O **registro de decisão gerencial**, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| O que é uma decisão | Título (até 120 caracteres), o que foi decidido (até 1000), o porquê (opcional, até 2000), as execuções relacionadas (até 10) e, guardados pelo motor, os **fatos do dia** e o que ficou de fora do pacote. Identificador `dec-…`, um arquivo por decisão em `projects/{projeto}/decisions`, até 500 por projeto |
+| Os fatos vêm do motor | O pedido não tem campo de fatos (um teste manda um e vê que ele é ignorado): o motor monta o pacote de evidências **naquele instante**, o mesmo que iria ao assistente, e o guarda com a decisão. Reabrir a decisão meses depois mostra o que valia no dia, mesmo que os números de hoje sejam outros (um teste confere) |
+| Execuções relacionadas | Cada uma precisa existir no projeto; uma inexistente, de outro projeto ou com id estranho recusa o registro **inteiro** e não grava nada. Guarda identificador, tipo, estado e início como estavam no dia |
+| Segredos | O texto da pessoa passa pela mesma redação de segredos do resto do motor: uma chave colada por engano (testadas uma da AWS e uma do GitHub) não fica no arquivo, e a resposta traz `redacted` para a interface avisar. A trilha de auditoria leva números e identificadores, nunca o título nem o texto |
+| Sem editar nem apagar | A decisão é a trilha de por que se decidiu: o protocolo só oferece registrar, listar e abrir (`decision.record`, `decision.list`, `decision.get`), e um teste confere que `decision.update` e `decision.delete` não existem. Quem precisar remover uma decisão tem de apagar o arquivo da pasta de dados; fica como pendência decidir se o produto deve oferecer isso |
+| Isolamento | Projeto não autorizado é recusado; um projeto não vê nem abre a decisão do outro; id forjado (`../x`) é "não encontrada"; arquivo ilegível fica fora da lista sem derrubar as outras |
+| Onde aparece | Seção "Decisões" no Acompanhamento, depois dos marcos e do histórico de riscos e antes das fontes. O botão "Registrar uma decisão" abre o formulário (título, decisão, porquê e as dez execuções mais recentes para marcar); o formulário diz que ela não se edita nem se apaga e que os fatos de hoje ficam guardados. A lista mostra título, data, decisão, porquê e as execuções; "Ver os fatos do dia (N)" busca a decisão sob demanda e mostra os fatos e o que ficou de fora. Um erro do motor aparece com o motivo, sem perder o que foi digitado |
+| Testes | 28 novos no motor (registro, fatos, execuções, validação, segredos, auditoria, limite, lista, isolamento, arquivo, protocolo) e 14 na interface (com 3 fixtures do motor real: registro, lista e abertura). Suítes: 730 no motor, 481 na interface, tipos, lint, formato e build limpos |
+
+Limites: nenhum fato da fase inclui o título dos itens a menos que todas as fontes autorizem (é a regra do pacote), mas
+**o que está no pacote fica no disco desta máquina com a decisão**, como já ficaria no do assistente; vale saber antes de
+registrar. O formulário não relaciona itens de trabalho nem riscos (só execuções), e o seletor mostra apenas as dez
+execuções mais recentes do projeto. A ligação do `Program.cs` não tem teste próprio da composição, e a tela não foi
+conferida no navegador, só por testes. Não há identidade de usuário, então a decisão não diz quem a registrou.
+
+**Sexta entrega da fase D (2026-11-12).** O **relatório do período**, na mesma branch, **sem o texto de IA**.
+
+| Feito | Observação |
+| --- | --- |
+| O que traz | `management.report` com a largura do período em semanas (2 a 26, padrão 4, terminando agora): os **indicadores** do período (`management.metrics`), a **previsão**, os **riscos** de agora, as **mudanças de risco** que aconteceram dentro do período (da mais recente, até 50), os **marcos**, as **decisões** registradas no período (título e decisão, sem os fatos do dia) e as **execuções** que começaram no período, contadas por tipo e estado |
+| Só compõe | Cada parte é a mesma resposta dos métodos que já existem, recortada pelo período: nada é calculado de novo e nada é gravado (um teste compara os arquivos da pasta de dados antes e depois). O período pedido vale para os indicadores; a previsão, os riscos e os marcos são sempre "de agora" |
+| Honestidade | A resposta traz a `basis`: "nenhum texto foi escrito por modelo de linguagem", o histórico de riscos só existe desde o primeiro registro, as execuções são as que começaram no período. Um projeto não vê o que é do outro e o não autorizado é recusado |
+| Tela | Rota `/gestao/relatorio` e item "Relatório" no menu de Gestão. Escolhe-se o período (2, 4, 8 ou 12 semanas) e a tela **reaproveita as seções do Acompanhamento** (fluxo, previsão, riscos, marcos), mais as mudanças de risco, as decisões e as execuções do período |
+| Levar para fora | "Copiar como texto" copia o relatório em Markdown, escrito só com o que o motor devolveu: um indicador sem base sai como "sem valor (motivo)", nunca zero; uma fonte incompleta é avisada no texto; seção vazia diz que está vazia. Se a cópia falhar, a tela diz como seguir |
+| Conferido | O teste de período usa datas calculadas à mão (decisão há 10 dias entra em 4 semanas, a de 40 dias só em 8; execução há 60 dias fica fora até de 8 semanas). O cenário da fixture traz cycle time mediano 3 e percentil 85 em 6, um marco em risco (o provável cabe no prazo, o conservador não) e um risco de bloqueio |
+| Testes | 13 novos no motor e 15 na interface (página e Markdown); fixture `report.json` do motor real. Os testes do Markdown pegaram um "1 abertos" que estava errado e foi corrigido. Suítes: 743 no motor, 496 na interface, tipos, lint, formato e build limpos |
+
+Limites: **falta o resumo escrito por IA** que a tabela do roadmap previa ("texto de IA passa pelo verificador"): esta
+entrega é só o relatório de fatos. O assistente já existe com verificador, e um resumo do período pelo mesmo caminho é
+a próxima peça possível; não foi feito para não misturar texto de modelo com o que o motor calcula. O relatório não foi
+conferido no navegador, só por testes, e não há impressão nem arquivo: só "Copiar como texto".
+
+Falta nesta fase: componentes de indicador e faixa de previsão (visuais), histórico de perguntas do assistente, e o
+resumo do período por IA, se for desejado.
+
 ### Fase E: catálogo do Harness
 
 Entrega 5 da ordem aprovada.

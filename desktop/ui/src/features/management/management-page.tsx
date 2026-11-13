@@ -16,7 +16,10 @@ import { Link } from 'react-router';
 
 import { FlowSection } from './components/flow-section';
 import { LinkedRunsSection } from './components/linked-runs-section';
+import { MilestonesSection } from './components/milestones-section';
+import { DecisionsSection } from './components/decisions-section';
 import { ForecastSection } from './components/forecast-section';
+import { RiskHistorySection } from './components/risk-history-section';
 import { RisksSection } from './components/risks-section';
 import { summarizeActivity } from './domain/activity-summary';
 import styles from './management-page.module.scss';
@@ -76,10 +79,17 @@ function ProjectManagement({
             <ActivitySection integrations={value.integrations} />
             <RisksSection risks={value.risks} />
             {value.integrations.length > 0 ? (
+              <RiskHistorySection management={management} projectId={project.projectId} />
+            ) : null}
+            {value.integrations.length > 0 ? (
               <LinkedRunsSection management={management} projectId={project.projectId} />
             ) : null}
             <ForecastSection forecast={value.forecast} connectors={value.connectors} />
+            {value.integrations.length > 0 ? (
+              <MilestonesSection management={management} projectId={project.projectId} />
+            ) : null}
             <FlowSection metrics={value.metrics} connectors={value.connectors} />
+            <DecisionsSection management={management} projectId={project.projectId} />
             <SourcesSection integrations={value.integrations} connectors={value.connectors} />
             <NotCalculatedSection metrics={value.metrics} />
           </>

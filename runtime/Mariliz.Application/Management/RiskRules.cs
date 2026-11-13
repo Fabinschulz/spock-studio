@@ -15,13 +15,14 @@ public static class RiskRules
     public const int CompareWeeks = 4;
 
     public static readonly IReadOnlyList<string> All =
-        ["overdue", "stalled-wip", "review-queue", "scope-growth", "throughput-drop"];
+        ["overdue", "blocked", "stalled-wip", "review-queue", "scope-growth", "throughput-drop"];
 
     public static List<ProjectRisk> Evaluate(IReadOnlyList<KeyValuePair<string, List<WorkItem>>> byKind, DateTimeOffset now)
     {
         var all = byKind.SelectMany(group => group.Value).ToList();
         var risks = new List<ProjectRisk>();
         Add(risks, Overdue(all, now));
+        Add(risks, Blocked(all));
         Add(risks, Stalled(all, now));
         Add(risks, ReviewQueue(all, now));
         foreach (var (kind, items) in byKind)
@@ -48,6 +49,24 @@ public static class RiskRules
             Items(overdue),
             null,
             "Rever com os responsáveis o prazo ou a prioridade dos itens vencidos.",
+            Origin);
+    }
+
+    private static ProjectRisk? Blocked(List<WorkItem> items)
+    {
+        var blocked = items.Where(DeliveryRules.IsBlocked).OrderBy(item => item.CreatedAt).ToList();
+        if (blocked.Count == 0) return null;
+        var byLink = blocked.Count(DeliveryRules.IsBlockedByLink);
+        var byLabel = blocked.Count(DeliveryRules.IsBlockedByLabel);
+        return new ProjectRisk(
+            "blocked",
+            "Itens bloqueados",
+            blocked.Count >= 5 ? RiskSeverity.High : blocked.Count >= 2 ? RiskSeverity.Medium : RiskSeverity.Low,
+            "Item aberto com o rótulo \"blocked\" ou \"bloqueado\", ou com vínculo \"is blocked by\" para um item que ainda não foi concluído.",
+            [$"{Count(blocked.Count, "item aberto está bloqueado", "itens abertos estão bloqueados")}: {byLink} por vínculo e {byLabel} por rótulo (um item pode ter os dois)."],
+            Items(blocked),
+            null,
+            "Descobrir o que destrava cada item, ou replanejá-lo.",
             Origin);
     }
 

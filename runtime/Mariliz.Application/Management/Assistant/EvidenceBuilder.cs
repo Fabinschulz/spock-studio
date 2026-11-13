@@ -17,7 +17,8 @@ public static class EvidenceBuilder
         IReadOnlyList<ProjectIntegration> integrations,
         ProjectMetrics metrics,
         ProjectForecast forecast,
-        ProjectRisks risks)
+        ProjectRisks risks,
+        ProjectMilestones milestones)
     {
         var titlesAllowed = integrations.Count > 0 && integrations.All(integration => integration.Policy.FeedsKnowledge);
         var facts = new List<EvidenceFact>
@@ -33,6 +34,7 @@ public static class EvidenceBuilder
 
         foreach (var flow in metrics.Kinds) facts.AddRange(Flow(flow));
         foreach (var kind in forecast.Kinds) facts.AddRange(Forecast(kind));
+        facts.AddRange(Milestones(milestones));
         facts.AddRange(Risks(risks, titlesAllowed));
         foreach (var missing in metrics.NotCalculated)
             facts.Add(new($"missing.{missing.Id}", "não calculado", $"{missing.Label} não é calculado: {missing.Reason}"));
@@ -61,7 +63,46 @@ public static class EvidenceBuilder
             ? new($"{id}.leadtime", "indicadores", $"Lead time de {label}: sem valor ({leadMissing})")
             : new($"{id}.leadtime", "indicadores",
                 $"Lead time de {label}: mediana {Number(flow.LeadTime.MedianDays!.Value)} dias, percentil 85 {Number(flow.LeadTime.P85Days!.Value)} dias, sobre {flow.LeadTime.Sample} entregas.");
+        yield return flow.CycleTime.Unavailable is { } cycleMissing
+            ? new($"{id}.cycletime", "indicadores", $"Cycle time de {label}: sem valor ({cycleMissing})")
+            : new($"{id}.cycletime", "indicadores",
+                $"Cycle time de {label}: mediana {Number(flow.CycleTime.MedianDays!.Value)} dias, percentil 85 {Number(flow.CycleTime.P85Days!.Value)} dias, "
+                + $"sobre {flow.CycleTime.Sample} entregas com início conhecido ({flow.CycleTime.Excluded} sem início conhecido).");
+        yield return flow.Blocked.Unavailable is { } blockedMissing
+            ? new($"{id}.blocked", "indicadores", $"{label} bloqueados: sem valor ({blockedMissing})")
+            : new($"{id}.blocked", "indicadores",
+                $"{label} abertos bloqueados: {flow.Blocked.Value} ({flow.Blocked.ViaLink} por vínculo, {flow.Blocked.ViaLabel} por rótulo). Base: {flow.Blocked.Basis}");
         yield return Metric($"{id}.overdue", $"{label} abertos com prazo vencido", flow.Overdue.Value?.ToString(CultureInfo.InvariantCulture), flow.Overdue.Unavailable);
+    }
+
+    private static readonly Dictionary<string, string> OutlookText = new()
+    {
+        [MilestoneOutlook.Done] = "concluído",
+        [MilestoneOutlook.Overdue] = "prazo vencido com itens abertos",
+        [MilestoneOutlook.NoForecast] = "sem previsão",
+        [MilestoneOutlook.NoDueDate] = "sem prazo no provedor",
+        [MilestoneOutlook.OnTrack] = "no prazo",
+        [MilestoneOutlook.AtRisk] = "em risco",
+        [MilestoneOutlook.Behind] = "atrasado em relação ao prazo"
+    };
+
+    /// <summary>Um fato por marco, com o andamento, o prazo, a previsão e a situação que o motor deu.</summary>
+    private static IEnumerable<EvidenceFact> Milestones(ProjectMilestones milestones)
+    {
+        foreach (var (milestone, index) in milestones.Milestones.Select((milestone, index) => (milestone, index + 1)))
+        {
+            var label = KindLabel(milestone.Kind);
+            var due = milestone.DueDate is { } day ? $"prazo {day:yyyy-MM-dd}" : "sem prazo";
+            var scenarios = milestone.Forecast.Scenarios.Count == 0
+                ? "sem previsão"
+                : string.Join(", ", milestone.Forecast.Scenarios.Select(scenario => $"{scenario.Label.ToLowerInvariant()} até {scenario.By:yyyy-MM-dd}"));
+            yield return new($"milestone.{index}", "marcos",
+                $"Marco \"{milestone.Name}\" ({label}): {milestone.Delivered} entregues de {milestone.Items} itens, {milestone.Open} abertos, "
+                + $"{milestone.ClosedWithoutDelivery} concluídos sem entrega; {due}; previsão: {scenarios}; situação: {OutlookText[milestone.Outlook]} ({milestone.OutlookReason})");
+        }
+
+        if (milestones.Omitted > 0)
+            yield return new("milestone.omitted", "marcos", $"Há mais {milestones.Omitted} marcos que não foram listados.");
     }
 
     private static IEnumerable<EvidenceFact> Forecast(DeliveryForecast forecast)

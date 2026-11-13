@@ -70,12 +70,23 @@ describe('Gestão · acompanhamento do projeto', () => {
     expect(within(sources).getByText('acme/app')).toBeInTheDocument();
     expect(within(sources).getByText(/GitHub · Issues: 1, Pull requests: 1 · lido/)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Ainda não calculado' })).toBeInTheDocument();
-    expect(engine.calls.every((call) => /^(integration|management|run)\./.test(call.method))).toBe(true);
+    expect(engine.calls.every((call) => /^(integration|management|run|decision)\./.test(call.method))).toBe(true);
 
     const flow = screen.getByRole('heading', { name: 'Fluxo nas últimas 4 semanas' }).closest('section')!;
     const issues = within(flow).getByRole('group', { name: 'Issues' });
     expect(within(issues).getByText('Entregues por semana (média)').nextElementSibling).toHaveTextContent('1,5');
     expect(within(issues).getByText('Em andamento').nextElementSibling).toHaveTextContent('1');
+    // O item 7 está marcado como bloqueado: conta por rótulo, e a base diz que os vínculos não foram lidos nesta fonte.
+    const blocked = within(issues).getByText('Bloqueados').closest('div')!;
+    expect(blocked).toHaveTextContent('1');
+    expect(blocked).toHaveTextContent('1 por rótulo');
+    expect(blocked).toHaveTextContent('não foram lidos nesta fonte');
+    // Os itens do cenário têm histórico de status: cada um levou n dias em andamento, mediana 3 e percentil 85 em 6.
+    expect(within(issues).getByText('Cycle time mediano').nextElementSibling).toHaveTextContent('3');
+    expect(within(issues).getByText('Cycle time mediano').closest('div')).toHaveTextContent('85% em até 6');
+    // O pull request não traz histórico de status: o motivo aparece no lugar do número.
+    const pulls = within(flow).getByRole('group', { name: 'Pull requests' });
+    expect(within(pulls).getByText(/A fonte não informa quando o trabalho começou/)).toBeInTheDocument();
     expect(within(flow).getAllByText('A fonte não informa prazo para estes itens.')).toHaveLength(2);
     expect(
       within(flow).getByRole('table', { name: 'Issues: itens entregues e itens novos por semana' })
@@ -83,13 +94,15 @@ describe('Gestão · acompanhamento do projeto', () => {
     expect(within(flow).queryByText('Dados incompletos')).not.toBeInTheDocument();
 
     const missing = screen.getByRole('heading', { name: 'Ainda não calculado' }).closest('section')!;
-    expect(within(missing).getByText('Cycle time.')).toBeInTheDocument();
+    expect(within(missing).getByText('Mudança de escopo.')).toBeInTheDocument();
+    expect(within(missing).queryByText('Bloqueios.')).not.toBeInTheDocument();
+    expect(within(missing).queryByText('Cycle time.')).not.toBeInTheDocument();
     expect(within(missing).queryByText('Previsão de entrega.')).not.toBeInTheDocument();
 
     const forecast = screen.getByRole('heading', { name: 'Previsão de entrega' }).closest('section')!;
-    const issueForecast = within(forecast).getByRole('group', { name: 'Issues: 10 abertos' });
+    const issueForecast = within(forecast).getByRole('group', { name: 'Issues: 11 abertos' });
     expect(within(issueForecast).getByText('Confiança alta')).toBeInTheDocument();
-    expect(within(issueForecast).getByText('Provável').closest('div')).toHaveTextContent('15/12/2026');
+    expect(within(issueForecast).getByText('Provável').closest('div')).toHaveTextContent('22/12/2026');
     expect(within(issueForecast).getByText('Conservador').closest('div')).toHaveTextContent('29/12/2026');
     expect(within(issueForecast).getByText(/85% das simulações terminam até esta data/)).toBeInTheDocument();
     expect(within(forecast).getByRole('group', { name: 'Pull requests: 1 aberto' })).toHaveTextContent(
@@ -135,6 +148,37 @@ describe('summarizeActivity', () => {
 
   it('sem fontes não há total nem data', () => {
     expect(summarizeActivity([])).toEqual({ total: 0, byCategory: [], oldestReadAt: null });
+  });
+});
+
+describe('Gestão · marcos', () => {
+  it('sem fonte vinculada a seção nem aparece', async () => {
+    const engine = fakeIntegrationEngine();
+    renderPage(engine.client, loja);
+
+    await screen.findByText(/Não há dados de atividades/);
+
+    expect(screen.queryByRole('heading', { name: 'Marcos' })).not.toBeInTheDocument();
+    expect(engine.calls.some((call) => call.method === 'management.milestones')).toBe(false);
+  });
+
+  it('com fonte mostra cada marco com o andamento, o prazo e a previsão do que falta', async () => {
+    const engine = fakeIntegrationEngine();
+    engine.seed(loja.projectId);
+    renderPage(engine.client, loja);
+
+    const section = (await screen.findByRole('heading', { name: 'Marcos' })).closest('section')!;
+    const list = await within(section).findByRole('list', { name: 'Marcos do projeto' });
+
+    const v1 = within(list).getByText('v1.0').closest('li')!;
+    expect(v1).toHaveTextContent('Issues · prazo 12/12/2026');
+    expect(v1).toHaveTextContent('No prazo');
+    expect(v1).toHaveTextContent('4 de 10 itens entregues, 6 abertos');
+    expect(v1).toHaveTextContent(
+      'Previsão do que falta: Otimista 03/12/2026 · Provável 03/12/2026 · Conservador 03/12/2026'
+    );
+    expect(within(list).getByText('v2.0').closest('li')).toHaveTextContent('Sem prazo');
+    expect(section).toHaveTextContent('Sem marco: Issues: 21 (1 abertos).');
   });
 });
 

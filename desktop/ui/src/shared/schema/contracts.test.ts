@@ -19,6 +19,12 @@ import assistantEvidence from '@contracts/fixtures/management/assistant-evidence
 import managementForecast from '@contracts/fixtures/management/forecast.json';
 import managementMetrics from '@contracts/fixtures/management/metrics.json';
 import managementPortfolio from '@contracts/fixtures/management/portfolio.json';
+import decisionGet from '@contracts/fixtures/management/decision-get.json';
+import decisionList from '@contracts/fixtures/management/decision-list.json';
+import decisionRecord from '@contracts/fixtures/management/decision-record.json';
+import managementMilestones from '@contracts/fixtures/management/milestones.json';
+import managementReport from '@contracts/fixtures/management/report.json';
+import managementRiskHistory from '@contracts/fixtures/management/risk-history.json';
 import managementRisks from '@contracts/fixtures/management/risks.json';
 import runDetail from '@contracts/fixtures/runs/run-detail.json';
 import runLink from '@contracts/fixtures/runs/run-link.json';
@@ -41,6 +47,12 @@ import {
   integrationListSchema,
   portfolioSchema,
   projectForecastSchema,
+  decisionGetSchema,
+  decisionListSchema,
+  decisionRecordResultSchema,
+  projectMilestonesSchema,
+  projectReportSchema,
+  projectRiskHistorySchema,
   projectMetricsSchema,
   projectRisksSchema,
   planSchema,
@@ -195,7 +207,9 @@ describe('contrato de previsão e riscos (fixtures do motor)', () => {
 
   it('riscos por regra, com evidências, itens e origem explícita', () => {
     const parsed = projectRisksSchema.parse(managementRisks);
-    expect(parsed.risks.map((risk) => risk.id)).toEqual(['overdue', 'review-queue']);
+    expect(parsed.risks.map((risk) => risk.id)).toEqual(['overdue', 'blocked', 'review-queue']);
+    expect(parsed.risks[1]).toMatchObject({ severity: 'low', items: [{ externalId: 'A-2' }] });
+    expect(parsed.rulesEvaluated).toContain('blocked');
     expect(parsed.risks.every((risk) => risk.origin === 'rule' && risk.evidence.length > 0)).toBe(true);
   });
 });
@@ -292,5 +306,79 @@ describe('contrato da central de execuções (fixtures do motor)', () => {
       title: 'Pagamento por Pix',
       statusCategory: 'inProgress'
     });
+  });
+});
+
+describe('contrato dos marcos (fixture do motor)', () => {
+  it('andamento, prazo, situação e previsão de cada marco, com o que está sem marco', () => {
+    const parsed = projectMilestonesSchema.parse(managementMilestones);
+    const v1 = parsed.milestones.find((milestone) => milestone.name === 'v1.0');
+    expect(v1).toMatchObject({
+      kind: 'issues',
+      dueDate: '2026-12-12',
+      items: 10,
+      delivered: 4,
+      open: 6,
+      outlook: 'on_track'
+    });
+    expect(v1?.forecast.scenarios.map((scenario) => scenario.by)).toEqual(['2026-12-03', '2026-12-03', '2026-12-03']);
+    expect(parsed.milestones.find((milestone) => milestone.name === 'v2.0')).toMatchObject({
+      dueDate: null,
+      outlook: 'no_due_date'
+    });
+    expect(parsed.unassigned).toEqual([{ kind: 'issues', items: 21, open: 1 }]);
+    expect(parsed.assumptions.length).toBeGreaterThan(0);
+  });
+});
+
+describe('contrato do histórico de riscos (fixture do motor)', () => {
+  it('a trajetória de cada risco, do que está ativo ao já resolvido', () => {
+    const parsed = projectRiskHistorySchema.parse(managementRiskHistory);
+    expect(parsed.snapshots).toBe(3);
+    expect(parsed.trails.map((trail) => [trail.id, trail.active])).toEqual([
+      ['blocked', true],
+      ['stalled-wip', true],
+      ['overdue', false],
+      ['scope-growth:issues', false]
+    ]);
+    const blocked = parsed.trails.find((trail) => trail.id === 'blocked');
+    expect(blocked?.changes.map((change) => change.kind)).toEqual(['observed', 'raised', 'lowered']);
+    expect(parsed.basis).toContain('antes do primeiro registro');
+  });
+});
+
+describe('contrato das decisões gerenciais (fixtures do motor)', () => {
+  it('o registro devolve a decisão completa com os fatos do dia e se houve redação', () => {
+    const parsed = decisionRecordResultSchema.parse(decisionRecord);
+    expect(parsed.redacted).toBe(false);
+    expect(parsed.decision).toMatchObject({ title: 'Adiar a release', rationale: 'Três itens bloqueados.' });
+    expect(parsed.decision.facts.map((fact) => fact.id)).toEqual(['flow.issues.items', 'risk.overdue']);
+    expect(parsed.decision.runs.map((run) => run.runId)).toEqual(['run-1', 'run-2']);
+  });
+
+  it('a lista traz a contagem de fatos e não os fatos', () => {
+    const parsed = decisionListSchema.parse(decisionList);
+    expect(parsed.decisions[0]).toMatchObject({ factCount: 2 });
+    expect(JSON.stringify(decisionList)).not.toContain('"facts"');
+  });
+
+  it('abrir uma decisão devolve os fatos e o que ficou de fora', () => {
+    const parsed = decisionGetSchema.parse(decisionGet);
+    expect(parsed.decision.facts).toHaveLength(2);
+    expect(parsed.decision.withheld).toEqual(['Nenhum código é enviado.']);
+  });
+});
+
+describe('contrato do relatório do período (fixture do motor)', () => {
+  it('junta indicadores, previsão, riscos, marcos, decisões e execuções do mesmo período', () => {
+    const parsed = projectReportSchema.parse(managementReport);
+    expect(parsed.weeks).toBe(4);
+    expect(parsed.metrics.periodWeeks).toBe(4);
+    expect(parsed.decisions.map((decision) => decision.title)).toEqual(['Adiar a release']);
+    expect(parsed.runs.map((run) => `${run.kind}/${run.state}=${run.count}`)).toEqual([
+      'apply/completed=1',
+      'workflow/failed=1'
+    ]);
+    expect(parsed.basis).toContain('nenhum texto foi escrito por modelo de linguagem');
   });
 });

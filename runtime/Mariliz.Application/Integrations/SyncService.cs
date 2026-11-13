@@ -19,6 +19,12 @@ public sealed class SyncService(
     IAuditLog audit,
     Action<string, int, string, JsonObject, DateTimeOffset>? emit = null)
 {
+    /// <summary>
+    /// Avisa, no fim de cada sincronização, qual integração e como terminou. Quem ouve (por exemplo, o registro de risco) roda na
+    /// mesma linha da sincronização, depois de tudo gravado, e uma falha dele nunca desfaz nem atrapalha a sincronização.
+    /// </summary>
+    public event Action<ProjectIntegration, SyncExecution>? Finished;
+
     /// <summary>Os eventos de uma sincronização. O <c>runId</c> do evento é o id da sincronização.</summary>
     public const string StartedEvent = "sync.started";
     public const string ProgressEvent = "sync.progress";
@@ -155,8 +161,25 @@ public sealed class SyncService(
         connections.RecordSync(integration.ConnectionId, execution.FinishedAt!.Value, execution.Error);
         Audit(integration, execution);
         // Por último: quem ouve o fim da sincronização já encontra a conexão e a trilha atualizadas.
+        NotifyFinished(integration, execution);
         Publish(integration, execution, FinishedEvent, ++seq);
         return execution;
+    }
+
+    private void NotifyFinished(ProjectIntegration integration, SyncExecution execution)
+    {
+        foreach (var handler in (Finished?.GetInvocationList() ?? []).Cast<Action<ProjectIntegration, SyncExecution>>())
+        {
+            try
+            {
+                handler(integration, execution);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // Um ouvinte com defeito não pode transformar uma sincronização gravada em falha: o tipo fica na trilha.
+                audit.Record("integration.sync_listener_failed", new JsonObject { ["integrationId"] = integration.Id, ["error"] = ex.GetType().Name });
+            }
+        }
     }
 
     /// <summary>
