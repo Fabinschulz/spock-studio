@@ -139,6 +139,11 @@ def hypothesize(state: dict, run: Run) -> dict:
     return state
 
 
+def _rounds_needed(wanted: list[str], searches: list[str]) -> int:
+    """Buscar na memória e reunir grupos são duas rodadas (o grafo faz `retrieve` e depois `gather`), uma só se pedir apenas um deles."""
+    return bool(searches) + bool(wanted)
+
+
 def decide(state: dict, run: Run) -> dict:
     """Reunir mais ou concluir. Concluir quando nada mais foi pedido, no teto de rodadas ou quando o orçamento não cobre outra volta."""
     segment = run.segment
@@ -151,7 +156,7 @@ def decide(state: dict, run: Run) -> dict:
         reason = "A investigação falhou."
     elif not wanted and not searches:
         reason = "Os fatos reunidos bastam: nada mais foi pedido."
-    elif state["round"] >= MAX_ROUNDS:
+    elif state["round"] + _rounds_needed(wanted, searches) > MAX_ROUNDS:
         reason = f"Teto de {MAX_ROUNDS} rodadas."
     elif int(state.get("iterations") or 0) + 3 > segment.max_iterations:
         reason = "Não restam etapas para outra rodada."

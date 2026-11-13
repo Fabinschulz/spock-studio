@@ -25,8 +25,13 @@ public sealed partial class HttpsModelTransport : IModelTransport, IModelChatTra
     public HttpsModelTransport(HttpMessageHandler? handler = null)
     {
         _http = handler is null ? new HttpClient() : new HttpClient(handler, disposeHandler: false);
-        _http.Timeout = TimeSpan.FromSeconds(15);
+        // O prazo é de quem chama (o ModelGateway põe um em cada operação: prova 10 s, conversa 30 s). Um prazo próprio aqui, menor que
+        // o da conversa, a cortaria antes da hora.
+        _http.Timeout = Timeout.InfiniteTimeSpan;
     }
+
+    /// <summary>Só para os testes: o transporte não impõe prazo próprio.</summary>
+    internal TimeSpan RequestTimeout => _http.Timeout;
 
     public async Task<ModelTransportResult> SendAsync(Uri endpoint, string key, string prompt, int maxTokens, CancellationToken ct)
     {

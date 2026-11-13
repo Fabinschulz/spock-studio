@@ -229,8 +229,11 @@ def _index_file(index_root: str, project_id: str) -> Path:
 
 def _prepare_for_write(index_root: str, path: Path) -> None:
     """Só quem grava cria a pasta do projeto e remove o índice antigo; consultar nunca mexe no disco."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    _drop_legacy(Path(index_root).resolve(), path.parent.parent.name)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        _drop_legacy(Path(index_root).resolve(), path.parent.parent.name)
+    except OSError as ex:
+        raise KnowledgeError("índice indisponível") from ex
 
 
 def _drop_legacy(root: Path, project_id: str) -> None:
@@ -256,14 +259,18 @@ def _guard(path: Path) -> threading.Lock:
 
 @contextmanager
 def _session(path: Path):
-    with _guard(path):
-        conn = sqlite3.connect(path)
-        try:
-            _ensure(conn)
-            yield conn
-            conn.commit()
-        finally:
-            conn.close()
+    """Abre o índice. Falha de disco ou de SQLite (arquivo corrompido, banco travado) sai como `KnowledgeError`, que quem consulta sabe degradar."""
+    try:
+        with _guard(path):
+            conn = sqlite3.connect(path)
+            try:
+                _ensure(conn)
+                yield conn
+                conn.commit()
+            finally:
+                conn.close()
+    except (sqlite3.Error, OSError) as ex:
+        raise KnowledgeError("índice indisponível") from ex
 
 
 def _ensure(conn: sqlite3.Connection) -> None:

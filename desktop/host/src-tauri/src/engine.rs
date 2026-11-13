@@ -27,6 +27,18 @@ use crate::status::Status;
 
 // Descoberta e plano leem o projeto e consultam ferramentas; execuções longas respondem na hora e avisam por eventos.
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(120);
+// A investigação de gestão conversa com o modelo por até 150 s no motor (o runtime de IA recebe 120 s). O host espera mais que o
+// motor: se cortasse antes, a UI mostraria ENGINE_TIMEOUT enquanto o motor ainda termina e grava a resposta.
+const INVESTIGATION_TIMEOUT: Duration = Duration::from_secs(180);
+const INVESTIGATION_METHOD: &str = "management.investigate";
+
+fn request_timeout(method: &str) -> Duration {
+    if method == INVESTIGATION_METHOD {
+        INVESTIGATION_TIMEOUT
+    } else {
+        REQUEST_TIMEOUT
+    }
+}
 const SIDECAR: &str = "mariliz-runtime";
 const SHUTDOWN_GRACE: Duration = Duration::from_secs(10);
 // Um motor que ficou de pé por este tempo e caiu conta como uma queda nova, com direito a outra tentativa automática.
@@ -230,7 +242,7 @@ impl Engine {
             }
         }
 
-        let response = match tokio::time::timeout(REQUEST_TIMEOUT, rx).await {
+        let response = match tokio::time::timeout(request_timeout(method), rx).await {
             Ok(Ok(value)) => value,
             Ok(Err(_)) => {
                 return Err(HostError::new(
@@ -305,6 +317,14 @@ fn restart_allowed(restarts: &AtomicU64, uptime: Option<Duration>) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_investigacao_espera_mais_que_o_prazo_do_motor_e_o_resto_o_prazo_comum() {
+        // O motor dá 150 s à investigação (InvestigationService.Deadline): o host nunca pode desistir antes dele.
+        assert!(request_timeout("management.investigate") > Duration::from_secs(150));
+        assert_eq!(request_timeout("management.ask"), REQUEST_TIMEOUT);
+        assert_eq!(request_timeout("run.snapshot"), REQUEST_TIMEOUT);
+    }
 
     #[test]
     fn queda_logo_apos_subir_tem_uma_tentativa_so() {

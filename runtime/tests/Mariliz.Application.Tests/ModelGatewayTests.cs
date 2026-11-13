@@ -102,6 +102,15 @@ public class ModelGatewayTests
         Assert.DoesNotContain(Key, allowed.Body);
     }
 
+    [Fact]
+    public void Transporte_nao_impoe_prazo_proprio_o_da_conversa_e_do_ModelGateway()
+    {
+        // Um prazo de 15 s aqui cortava a conversa (30 s no gateway) antes da hora, e respostas longas viravam MODEL_TIMEOUT.
+        using var transport = new HttpsModelTransport(new RecordingHandler());
+
+        Assert.Equal(Timeout.InfiniteTimeSpan, transport.RequestTimeout);
+    }
+
     private static string Line(string method, JsonObject parameters) =>
         new JsonObject { ["v"] = 1, ["kind"] = "request", ["id"] = "t", ["method"] = method, ["params"] = parameters }.ToJsonString();
 
