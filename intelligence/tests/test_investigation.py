@@ -13,9 +13,11 @@ from contracts.investigation import (
     Fact,
     conclusion_from_model,
     hypotheses_from_model,
+    parse_groups,
     parse_investigation,
 )
 from contracts.messages import ContractError
+from evaluations.management import fact_groups, groups_for
 from knowledge.index import _index_file
 from workflows.investigation import graph
 from workflows.investigation.nodes import focus
@@ -42,12 +44,13 @@ FACTS = [
 
 def _payload(question: str = "Por que a vazão caiu?", *, model: bool = True, facts: list[dict] | None = None, **limits) -> dict:
     payload = {
-        "schema": "ai.investigation.start.v1",
+        "schema": "ai.investigation.start.v2",
         "investigationId": INVESTIGATION,
         "executionId": EXECUTION,
         "projectId": PROJECT,
         "question": question,
         "facts": FACTS if facts is None else facts,
+        "groups": groups_for(FACTS if facts is None else facts),
         "policy": {"modelAllowed": model},
         "limits": {"maxIterations": 12, "maxMilliseconds": 150000, "maxTokens": 30000, **limits},
     }
@@ -85,17 +88,45 @@ def _conclusion(**overrides) -> dict:
 
 class FocusTests(unittest.TestCase):
     groups = ["contexto", "fontes", "indicadores", "previsão", "riscos", "execuções", "mudanças", "marcos"]
+    catalog = parse_groups(fact_groups())
 
     def test_a_base_entra_sempre_e_a_pergunta_escolhe_o_resto(self) -> None:
-        self.assertEqual(focus("Por que a vazão caiu?", self.groups), ["contexto", "fontes", "indicadores"])
-        self.assertEqual(focus("Quando o marco termina?", self.groups), ["contexto", "fontes", "previsão", "marcos"])
-        self.assertEqual(focus("Alguma execução falhou?", self.groups), ["contexto", "fontes", "execuções"])
+        self.assertEqual(focus("Por que a vazão caiu?", self.groups, self.catalog), ["contexto", "fontes", "indicadores"])
+        self.assertEqual(focus("Quando o marco termina?", self.groups, self.catalog), ["contexto", "fontes", "previsão", "marcos"])
+        self.assertEqual(focus("Alguma execução falhou?", self.groups, self.catalog), ["contexto", "fontes", "execuções"])
 
     def test_sem_palavra_reconhecida_olha_fluxo_e_riscos(self) -> None:
-        self.assertEqual(focus("como estamos?", self.groups), ["contexto", "fontes", "indicadores", "riscos"])
+        self.assertEqual(focus("como estamos?", self.groups, self.catalog), ["contexto", "fontes", "indicadores", "riscos"])
 
     def test_so_olha_grupos_que_existem(self) -> None:
-        self.assertEqual(focus("Por que a vazão caiu?", ["contexto", "riscos"]), ["contexto", "riscos"])
+        self.assertEqual(focus("Por que a vazão caiu?", ["contexto", "riscos"], self.catalog), ["contexto", "riscos"])
+
+
+class GroupContractTests(unittest.TestCase):
+    def test_o_runtime_nao_conhece_nomes_de_grupo_os_papeis_vem_do_motor(self) -> None:
+        # Um grupo que o motor renomear continua funcionando: o papel e as palavras vêm junto, no pedido.
+        renamed = [{"name": "sinais de risco", "roles": ["default", "sign"], "keywords": ["risco"]},
+                   {"name": "agora", "roles": ["base"], "keywords": []}]
+
+        self.assertEqual(focus("qual o risco?", ["agora", "sinais de risco"], parse_groups(renamed)), ["agora", "sinais de risco"])
+        self.assertEqual(focus("como estamos?", ["agora", "sinais de risco"], parse_groups(renamed)), ["agora", "sinais de risco"])
+
+    def test_grupo_de_fato_sem_descritor_ou_papel_desconhecido_e_recusado(self) -> None:
+        sem_descritor = _payload()
+        sem_descritor["groups"] = [group for group in sem_descritor["groups"] if group["name"] != "riscos"]
+        papel_novo = _payload()
+        papel_novo["groups"][0]["roles"] = ["principal"]
+
+        for payload in (sem_descritor, papel_novo):
+            with self.assertRaises(ContractError):
+                parse_investigation(payload)
+
+    def test_sem_modelo_os_sinais_sao_os_grupos_de_papel_sign(self) -> None:
+        _events, ack = _go(_payload("Algum risco ou execução que falhou?", model=False))
+
+        cited = {fact_id for item in ack["answer"]["observed"] for fact_id in item["evidence"]}
+        self.assertTrue(cited)
+        self.assertTrue(all(fact_id.startswith(("risk.", "run.")) for fact_id in cited))
 
 
 class ContractTests(unittest.TestCase):

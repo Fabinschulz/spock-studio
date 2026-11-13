@@ -9,7 +9,7 @@ namespace Mariliz.Application.Ports;
 public interface IInvestigationRuntime
 {
     /// <summary>
-    /// Envia um <c>ai.investigation.start.v1</c>. Cada <c>ai.event.v1</c> chega em <paramref name="onEvent"/> enquanto o grafo anda
+    /// Envia um <c>ai.investigation.start.v2</c>. Cada <c>ai.event.v1</c> chega em <paramref name="onEvent"/> enquanto o grafo anda
     /// e o <c>ai.investigation.ack.v1</c> final é devolvido como veio: quem chama confere antes de confiar.
     /// </summary>
     Task<JsonObject> InvestigateAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct);

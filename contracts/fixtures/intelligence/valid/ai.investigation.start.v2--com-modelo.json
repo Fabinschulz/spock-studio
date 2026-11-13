@@ -1,5 +1,5 @@
 {
-  "schema": "ai.investigation.start.v1",
+  "schema": "ai.investigation.start.v2",
   "investigationId": "inv-aaaaaaaaaaaa",
   "executionId": "ex-bbbbbbbbbbbb",
   "projectId": "p-cccccccccccc",
@@ -51,6 +51,103 @@
       "text": "Marco 1.0: 12 abertos, 30 fechados."
     }
   ],
+  "groups": [
+    {
+      "name": "contexto",
+      "roles": [
+        "base"
+      ],
+      "keywords": []
+    },
+    {
+      "name": "fontes",
+      "roles": [
+        "base"
+      ],
+      "keywords": [
+        "sincroniz",
+        "fonte",
+        "dados",
+        "atualizad"
+      ]
+    },
+    {
+      "name": "indicadores",
+      "roles": [
+        "default"
+      ],
+      "keywords": [
+        "vazao",
+        "throughput",
+        "entreg",
+        "lead time",
+        "cycle",
+        "fluxo",
+        "andamento",
+        "wip",
+        "caiu",
+        "queda",
+        "ritmo",
+        "velocidade",
+        "lento",
+        "devagar"
+      ]
+    },
+    {
+      "name": "riscos",
+      "roles": [
+        "default",
+        "sign"
+      ],
+      "keywords": [
+        "risco",
+        "bloque",
+        "parad",
+        "atras",
+        "vencid",
+        "problema",
+        "gargalo"
+      ]
+    },
+    {
+      "name": "marcos",
+      "roles": [],
+      "keywords": [
+        "marco",
+        "release",
+        "versao",
+        "milestone"
+      ]
+    },
+    {
+      "name": "execuções",
+      "roles": [
+        "sign"
+      ],
+      "keywords": [
+        "execucao",
+        "execucoes",
+        "falha",
+        "falhou",
+        "erro",
+        "agente",
+        "agentes",
+        "pipeline"
+      ]
+    },
+    {
+      "name": "mudanças",
+      "roles": [],
+      "keywords": [
+        "mudou",
+        "mudanca",
+        "alteracao",
+        "desde",
+        "passou a",
+        "depois de"
+      ]
+    }
+  ],
   "policy": {
     "modelAllowed": true
   },
@@ -62,6 +159,5 @@
   "broker": {
     "url": "http://127.0.0.1:49152/v1/model",
     "token": "ttttttttttttttttttttttttttttttttttttttttttt"
-  },
-  "projectPath": "C:/projeto"
+  }
 }

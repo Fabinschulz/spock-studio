@@ -1,10 +1,19 @@
 {
-  "schema": "ai.investigation.start.v1",
+  "schema": "ai.investigation.start.v2",
   "investigationId": "inv-aaaaaaaaaaaa",
   "executionId": "ex-bbbbbbbbbbbb",
   "projectId": "p-cccccccccccc",
   "question": "Por que a vazão caiu?",
   "facts": [],
+  "groups": [
+    {
+      "name": "contexto",
+      "roles": [
+        "base"
+      ],
+      "keywords": []
+    }
+  ],
   "policy": {
     "modelAllowed": true
   },

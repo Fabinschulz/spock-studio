@@ -11,6 +11,7 @@ from pathlib import Path
 import _paths  # noqa: F401
 from support_model import FakeModel
 
+from contracts.investigation import parse_groups
 from evaluations import management as evals
 from workflows.investigation.nodes import focus
 
@@ -46,7 +47,7 @@ class DatasetTests(unittest.TestCase):
             groups = {evals.plain(fact["group"]) for fact in DOCUMENT["scenarios"][case["scenario"]]}
             self.assertLessEqual(set(case["mustCite"]), ids, case["id"])
             self.assertLessEqual({evals.plain(group) for group in case["focus"]}, groups, case["id"])
-            looked = {evals.plain(group) for group in focus(case["question"], [fact["group"] for fact in DOCUMENT["scenarios"][case["scenario"]]])}
+            looked = {evals.plain(group) for group in focus(case["question"], [fact["group"] for fact in DOCUMENT["scenarios"][case["scenario"]]], parse_groups(evals.fact_groups()))}
             self.assertLessEqual({evals.plain(group) for group in case["focus"]}, looked, case["id"])
 
     def test_ha_perguntas_com_resposta_e_sem_resposta_nos_fatos(self) -> None:

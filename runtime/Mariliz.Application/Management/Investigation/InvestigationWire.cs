@@ -21,7 +21,7 @@ internal static partial class InvestigationWire
 
     public static JsonObject Request(string investigationId, string executionId, string projectId, string question, EvidencePack pack) => new()
     {
-        ["schema"] = "ai.investigation.start.v1",
+        ["schema"] = "ai.investigation.start.v2",
         ["investigationId"] = investigationId,
         ["executionId"] = executionId,
         ["projectId"] = projectId,
@@ -31,6 +31,12 @@ internal static partial class InvestigationWire
             ["id"] = fact.Id,
             ["group"] = fact.Group,
             ["text"] = fact.Text
+        }).ToArray()),
+        ["groups"] = new JsonArray(FactGroups.For(pack.Facts).Select(group => (JsonNode)new JsonObject
+        {
+            ["name"] = group.Name,
+            ["roles"] = new JsonArray(group.Roles.Select(role => (JsonNode)role).ToArray()),
+            ["keywords"] = new JsonArray(group.Keywords.Select(keyword => (JsonNode)keyword).ToArray())
         }).ToArray()),
         ["policy"] = new JsonObject { ["modelAllowed"] = false },
         ["limits"] = new JsonObject { ["maxIterations"] = 12, ["maxMilliseconds"] = InvestigationService.RuntimeBudgetMilliseconds, ["maxTokens"] = 0 }

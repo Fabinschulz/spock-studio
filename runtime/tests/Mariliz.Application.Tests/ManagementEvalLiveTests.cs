@@ -48,14 +48,16 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
                 var testCase = item!.AsObject();
                 var executionId = "ex-" + Guid.NewGuid().ToString("N")[..12];
                 var grant = access.Open(executionId, InvestigationService.TokenBudget);
+                var facts = scenarios[testCase["scenario"]!.GetValue<string>()]!.DeepClone().AsArray();
                 var request = new JsonObject
                 {
-                    ["schema"] = "ai.investigation.start.v1",
+                    ["schema"] = "ai.investigation.start.v2",
                     ["investigationId"] = "inv-" + Guid.NewGuid().ToString("N")[..12],
                     ["executionId"] = executionId,
                     ["projectId"] = "p-" + Guid.NewGuid().ToString("N")[..12],
                     ["question"] = testCase["question"]!.GetValue<string>(),
-                    ["facts"] = scenarios[testCase["scenario"]!.GetValue<string>()]!.DeepClone(),
+                    ["facts"] = facts,
+                    ["groups"] = GroupsFor(facts),
                     ["policy"] = new JsonObject { ["modelAllowed"] = true },
                     ["limits"] = new JsonObject { ["maxIterations"] = 12, ["maxMilliseconds"] = 150_000, ["maxTokens"] = InvestigationService.TokenBudget },
                     ["broker"] = new JsonObject { ["url"] = grant.Url, ["token"] = grant.Token }
@@ -179,5 +181,16 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
             value = key;
             return true;
         }
+    }
+
+    private static JsonArray GroupsFor(JsonArray facts)
+    {
+        var present = facts.Select(fact => fact!["group"]!.GetValue<string>()).ToHashSet(StringComparer.Ordinal);
+        return new JsonArray(Mariliz.Application.Management.Assistant.FactGroups.All.Where(group => present.Contains(group.Name)).Select(group => (JsonNode)new JsonObject
+        {
+            ["name"] = group.Name,
+            ["roles"] = new JsonArray(group.Roles.Select(role => (JsonNode)role).ToArray()),
+            ["keywords"] = new JsonArray(group.Keywords.Select(keyword => (JsonNode)keyword).ToArray())
+        }).ToArray());
     }
 }

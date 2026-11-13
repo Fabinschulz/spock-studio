@@ -34,6 +34,17 @@ if __name__ == "__main__":  # pragma: no cover - uso como script
 from workflows.investigation.nodes import plain  # noqa: E402
 
 _DATASET = Path(__file__).resolve().parent / "datasets" / "management.json"
+# Os grupos de fatos são do motor; a avaliação lê a mesma cópia que o teste do motor confere contra o catálogo dele.
+_GROUPS = Path(__file__).resolve().parents[2] / "contracts" / "fixtures" / "management" / "fact-groups.json"
+
+
+def fact_groups() -> list[dict]:
+    return json.loads(_GROUPS.read_text(encoding="utf-8"))
+
+
+def groups_for(facts: list[dict]) -> list[dict]:
+    present = {fact["group"] for fact in facts}
+    return [group for group in fact_groups() if group["name"] in present]
 _NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
 _CLAIM_SECTIONS = ("observed", "calculations", "inferences", "recommendations")
 _METRICS = ("framing", "grounding", "coverage", "abstention")
@@ -143,14 +154,15 @@ def score_dataset(document: dict[str, Any], acks: dict[str, dict]) -> dict[str, 
 
 
 def request_for(document: dict[str, Any], case: dict, with_model: bool) -> dict:
-    """O ``ai.investigation.start.v1`` de um caso: a pergunta e os fatos do cenário. Com modelo, o proxy é o do motor (aqui, um endereço de teste)."""
+    """O ``ai.investigation.start.v2`` de um caso: a pergunta e os fatos do cenário. Com modelo, o proxy é o do motor (aqui, um endereço de teste)."""
     payload: dict[str, Any] = {
-        "schema": "ai.investigation.start.v1",
+        "schema": "ai.investigation.start.v2",
         "investigationId": "inv-eeeeeeeeeeee",
         "executionId": "ex-eeeeeeeeeeee",
         "projectId": "p-eeeeeeeeeeee",
         "question": case["question"],
         "facts": document["scenarios"][case["scenario"]],
+        "groups": groups_for(document["scenarios"][case["scenario"]]),
         "policy": {"modelAllowed": with_model},
         "limits": {"maxIterations": 12, "maxMilliseconds": 150000, "maxTokens": 40000},
     }

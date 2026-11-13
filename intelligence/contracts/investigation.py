@@ -1,4 +1,4 @@
-"""O contrato da investigação gerencial (``ai.investigation.start.v1`` e ``ai.investigation.ack.v1``).
+"""O contrato da investigação gerencial (``ai.investigation.start.v2`` e ``ai.investigation.ack.v1``).
 
 O motor manda a pergunta e os fatos que ele mesmo calculou; a inteligência cruza esses fatos em etapas e devolve uma
 resposta cujas afirmações citam ids de fatos. Aqui ficam a leitura do pedido e as validações do que o modelo escreve.
@@ -49,6 +49,20 @@ class Fact:
     text: str
 
 
+GROUP_ROLES = frozenset({"base", "default", "sign"})
+MAX_GROUPS = 30
+MAX_KEYWORDS = 40
+
+
+@dataclass(frozen=True)
+class FactGroup:
+    """Um grupo de fatos como o motor o descreve: o runtime não conhece nomes de grupo."""
+
+    name: str
+    roles: frozenset[str]
+    keywords: tuple[str, ...]
+
+
 @dataclass(frozen=True)
 class Memory:
     """A memória do projeto para as buscas: um índice só dela (``root``) e os documentos que o motor autorizou a entrar nele."""
@@ -71,6 +85,7 @@ class InvestigationRequest:
     broker_url: str = field(default="", repr=False)
     broker_token: str = field(default="", repr=False)
     memory: Memory | None = None
+    catalog: tuple[FactGroup, ...] = ()
 
     @property
     def groups(self) -> list[str]:
@@ -80,7 +95,7 @@ class InvestigationRequest:
 
 def parse_investigation(payload: object) -> InvestigationRequest:
     body = _object(payload, "mensagem")
-    if body.get("schema") != "ai.investigation.start.v1":
+    if body.get("schema") != "ai.investigation.start.v2":
         raise ContractError("schema")
     policy = _object(body.get("policy"), "policy")
     limits = _object(body.get("limits"), "limits")
@@ -92,12 +107,13 @@ def parse_investigation(payload: object) -> InvestigationRequest:
     if not isinstance(question, str) or not MIN_QUESTION <= len(question.strip()) <= MAX_QUESTION:
         raise ContractError("question")
     broker_url, broker_token = _broker(body.get("broker"), policy["modelAllowed"])
+    facts = _facts(body.get("facts"))
     return InvestigationRequest(
         investigation_id=_match(body, "investigationId", INVESTIGATION_ID),
         execution_id=_match(body, "executionId", _EXECUTION_ID),
         project_id=_match(body, "projectId", _PROJECT_ID),
         question=question.strip(),
-        facts=_facts(body.get("facts")),
+        facts=facts,
         max_iterations=limits["maxIterations"],
         max_milliseconds=limits["maxMilliseconds"],
         max_tokens=limits["maxTokens"],
@@ -105,7 +121,30 @@ def parse_investigation(payload: object) -> InvestigationRequest:
         broker_url=broker_url,
         broker_token=broker_token,
         memory=_memory(body.get("memory")),
+        catalog=parse_groups(body.get("groups"), facts),
     )
+
+
+def parse_groups(value: object, facts: list[Fact] | None = None) -> tuple[FactGroup, ...]:
+    """Os descritores dos grupos. Todo grupo dos fatos precisa estar descrito: sem isso, o laço não sabe por onde começar."""
+    if not isinstance(value, list) or not 1 <= len(value) <= MAX_GROUPS:
+        raise ContractError("groups")
+    groups: list[FactGroup] = []
+    for item in value:
+        if not isinstance(item, dict):
+            raise ContractError("groups")
+        name, roles, keywords = item.get("name"), item.get("roles"), item.get("keywords")
+        if not isinstance(name, str) or not 0 < len(name) <= MAX_GROUP or any(group.name == name for group in groups):
+            raise ContractError("groups")
+        if not isinstance(roles, list) or not all(isinstance(role, str) and role in GROUP_ROLES for role in roles) or len(set(roles)) != len(roles):
+            raise ContractError("groups")
+        if not isinstance(keywords, list) or len(keywords) > MAX_KEYWORDS or not all(isinstance(word, str) and 0 < len(word) <= MAX_GROUP for word in keywords):
+            raise ContractError("groups")
+        groups.append(FactGroup(name, frozenset(roles), tuple(keywords)))
+    described = {group.name for group in groups}
+    if any(fact.group not in described for fact in facts or []):
+        raise ContractError("groups")
+    return tuple(groups)
 
 
 def _memory(value: object) -> Memory | None:

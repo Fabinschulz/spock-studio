@@ -262,7 +262,7 @@ public class ProjectInvestigationTests
         await s.Service.InvestigateAsync(s.Harness.ProjectId, "  " + Question + "  ", CancellationToken.None);
 
         var seen = s.Runtime.Seen!;
-        Assert.Equal("ai.investigation.start.v1", seen["schema"]!.GetValue<string>());
+        Assert.Equal("ai.investigation.start.v2", seen["schema"]!.GetValue<string>());
         Assert.Matches(@"^inv-[0-9a-f]{12}$", seen["investigationId"]!.GetValue<string>());
         Assert.Matches(@"^ex-[0-9a-f]{12}$", seen["executionId"]!.GetValue<string>());
         Assert.Equal(Question, seen["question"]!.GetValue<string>());

@@ -25,17 +25,17 @@ internal sealed class InvestigationFacts(IRunStore? runs, ProjectTimelineService
             .ToList();
         if (recent.Count == 0)
         {
-            yield return new("runs.summary", "execuções", $"Nenhuma execução do projeto nos últimos {WindowDays} dias.");
+            yield return new("runs.summary", FactGroups.Runs, $"Nenhuma execução do projeto nos últimos {WindowDays} dias.");
             yield break;
         }
 
         var failed = recent.Where(journal => journal.State == RunStates.Failed).ToList();
         var limited = recent.Count(journal => journal.State == RunStates.CompletedWithLimitations);
         var reverted = recent.Count(journal => journal.RevertedByRunId is not null || journal.RolledBack);
-        yield return new("runs.summary", "execuções",
+        yield return new("runs.summary", FactGroups.Runs,
             $"Execuções do projeto nos últimos {WindowDays} dias: {recent.Count} ({KindCounts(recent)}); {Count(failed.Count, "falhou", "falharam")}, {Count(limited, "terminou com limitações", "terminaram com limitações")}, {Count(reverted, "foi revertida ou desfeita", "foram revertidas ou desfeitas")}.");
         if (failed.Count > 0)
-            yield return new("runs.failed", "execuções", $"Execuções que falharam nos últimos {WindowDays} dias, por tipo: {KindCounts(failed)}.");
+            yield return new("runs.failed", FactGroups.Runs, $"Execuções que falharam nos últimos {WindowDays} dias, por tipo: {KindCounts(failed)}.");
     }
 
     private IEnumerable<EvidenceFact> ChangeFacts(string projectId)
@@ -49,16 +49,16 @@ internal sealed class InvestigationFacts(IRunStore? runs, ProjectTimelineService
         var truncated = page.NextBefore is not null && page.Events.Count > 0 && page.Events[^1].At >= since;
         if (inWindow.Count == 0)
         {
-            yield return new("changes.summary", "mudanças", $"Nenhuma mudança registrada no projeto nos últimos {WindowDays} dias.");
+            yield return new("changes.summary", FactGroups.Changes, $"Nenhuma mudança registrada no projeto nos últimos {WindowDays} dias.");
             yield break;
         }
 
         var counts = inWindow.GroupBy(item => item.Kind).OrderBy(group => TimelineKinds.All.Select(kind => kind.Id).ToList().IndexOf(group.Key))
             .Select(group => $"{group.Count()} {Label(group.Key, group.Count())}");
-        yield return new("changes.summary", "mudanças",
+        yield return new("changes.summary", FactGroups.Changes,
             $"Mudanças no projeto nos últimos {WindowDays} dias{(truncated ? " (ao menos)" : "")}: {string.Join(", ", counts)}.");
         var problems = inWindow.Count(item => item.Level == "problem");
-        if (problems > 0) yield return new("changes.problems", "mudanças", $"Dessas mudanças, {problems} aconteceram com problema.");
+        if (problems > 0) yield return new("changes.problems", FactGroups.Changes, $"Dessas mudanças, {problems} aconteceram com problema.");
     }
 
     private static string Count(int value, string one, string many) => $"{value} {(value == 1 ? one : many)}";
