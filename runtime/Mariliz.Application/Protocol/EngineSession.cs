@@ -19,7 +19,8 @@ namespace Mariliz.Application.Protocol;
 /// <summary>
 /// Laço do protocolo NDJSON v1: uma mensagem JSON por linha. Só escreve respostas e eventos no <c>output</c>;
 /// diagnósticos são de quem hospeda a sessão (stderr). Execuções longas respondem com o <c>runId</c> e avisam o
-/// progresso por eventos, então o laço nunca fica preso esperando uma delas.
+/// progresso por eventos; pedidos que esperam rede ou modelo (<see cref="ProtocolMethods.Slow"/>) rodam fora do laço e respondem
+/// quando terminam. Assim o laço nunca fica preso esperando um deles.
 /// </summary>
 public sealed class EngineSession
 {
@@ -98,25 +99,50 @@ public sealed class EngineSession
     public async Task RunAsync(TextReader input, TextWriter output, CancellationToken ct)
     {
         _output = output;
+        // Os pedidos longos rodam fora do laço; só o laço mexe nesta lista.
+        var inFlight = new List<Task>();
+        using var inFlightCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         try
         {
             while (!ct.IsCancellationRequested)
             {
                 var line = await input.ReadLineAsync(ct);
-                if (line is null) return;
+                if (line is null)
+                {
+                    // A entrada fechou: os pedidos que ainda esperam o modelo ou a rede (cada um com o seu prazo) são respondidos.
+                    await Task.WhenAll(inFlight);
+                    return;
+                }
 
                 // Alguns escritores de stdin (ex.: PowerShell 5.1) prefixam a primeira linha com um BOM UTF-8.
-                line = line.TrimStart('﻿');
+                line = line.TrimStart('\uFEFF');
                 if (string.IsNullOrWhiteSpace(line)) continue;
+                inFlight.RemoveAll(task => task.IsCompleted);
 
-                var (response, shutdown) = await HandleAsync(line, ct);
+                var (request, error) = ParseRequest(line);
+                if (request is null)
+                {
+                    await WriteLineAsync(error!.ToJsonString());
+                    continue;
+                }
+
+                if (ProtocolMethods.Slow.Contains(request.Method))
+                {
+                    inFlight.Add(RespondAsync(request, inFlightCts.Token));
+                    continue;
+                }
+
+                var (response, shutdown) = await ExecuteAsync(request, ct);
                 await WriteLineAsync(response.ToJsonString());
                 if (shutdown) return;
             }
         }
         finally
         {
-            // Sem a interface (ou ao encerrar), nenhuma execução fica rodando: o que está no meio é desfeito.
+            // Ao encerrar, o que ainda espera o modelo ou a rede é cancelado, e depois nenhuma execução fica rodando.
+            await inFlightCts.CancelAsync();
+            try { await Task.WhenAll(inFlight).WaitAsync(TimeSpan.FromSeconds(10)); }
+            catch (Exception ex) when (ex is TimeoutException or OperationCanceledException) { }
             if (_tracker is not null) await _tracker.CancelAllAndWaitAsync(TimeSpan.FromSeconds(15));
             if (_workflows is not null) await _workflows.ShutdownAsync();
             if (_integrations is not null) await _integrations.ShutdownAsync();
@@ -127,46 +153,68 @@ public sealed class EngineSession
 
     internal async Task<(JsonObject Response, bool Shutdown)> HandleAsync(string line, CancellationToken ct)
     {
+        var (request, error) = ParseRequest(line);
+        return request is null ? Reply(error!) : await ExecuteAsync(request, ct);
+    }
+
+    private sealed record Request(string Id, string Method, JsonObject? Params);
+
+    /// <summary>O envelope vem de fora: campo com tipo errado vira erro de protocolo, nunca exceção que derruba o processo.</summary>
+    private static (Request? Request, JsonObject? Error) ParseRequest(string line)
+    {
         if (Encoding.UTF8.GetByteCount(line) > ProtocolMessages.MaxMessageBytes)
-            return Reply(ProtocolMessages.Error(null, ProtocolErrorCodes.MessageTooLarge, "Mensagem acima do limite permitido."));
+            return (null, ProtocolMessages.Error(null, ProtocolErrorCodes.MessageTooLarge, "Mensagem acima do limite permitido."));
 
         var message = ParseObject(line);
         if (message is null)
-            return Reply(ProtocolMessages.Error(null, ProtocolErrorCodes.InvalidMessage, "A mensagem não é um objeto JSON válido."));
+            return (null, ProtocolMessages.Error(null, ProtocolErrorCodes.InvalidMessage, "A mensagem não é um objeto JSON válido."));
 
-        // O envelope vem de fora: campo com tipo errado vira erro de protocolo, nunca exceção que derruba o processo.
         var id = ReadString(message, "id");
 
         if (!(message["v"] is JsonValue version && version.TryGetValue<int>(out var number) && number == ProtocolMessages.Version))
-            return Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.UnsupportedProtocol, "Versão de protocolo não suportada."));
+            return (null, ProtocolMessages.Error(id, ProtocolErrorCodes.UnsupportedProtocol, "Versão de protocolo não suportada."));
 
         var method = ReadString(message, "method");
         if (ReadString(message, "kind") != "request" || id is null || method is null)
-            return Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.InvalidMessage, "Requisição malformada."));
+            return (null, ProtocolMessages.Error(id, ProtocolErrorCodes.InvalidMessage, "Requisição malformada."));
 
-        var parameters = message["params"] as JsonObject;
+        return (new Request(id, method, message["params"] as JsonObject), null);
+    }
 
+    private async Task<(JsonObject Response, bool Shutdown)> ExecuteAsync(Request request, CancellationToken ct)
+    {
         try
         {
-            return await DispatchAsync(id, method, parameters, ct);
+            return await DispatchAsync(request.Id, request.Method, request.Params, ct);
         }
         catch (ParamException ex)
         {
-            return Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.InvalidParams, ex.Message));
+            return Reply(ProtocolMessages.Error(request.Id, ProtocolErrorCodes.InvalidParams, ex.Message));
         }
         catch (EngineException ex)
         {
-            return Reply(ProtocolMessages.Error(id, ex.Code, ex.Message));
+            return Reply(ProtocolMessages.Error(request.Id, ex.Code, ex.Message));
         }
         catch (OperationCanceledException)
         {
-            return Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.Cancelled, "A operação foi cancelada."));
+            return Reply(ProtocolMessages.Error(request.Id, ProtocolErrorCodes.Cancelled, "A operação foi cancelada."));
         }
         catch (Exception ex)
         {
             // Fronteira de cada pedido: nenhuma falha de um pedido derruba a sessão (e com ela o motor).
             // O texto da exceção pode conter caminhos ou dados do projeto: só o tipo vai para o protocolo.
-            return Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.InternalError, $"Falha interna ({ex.GetType().Name})."));
+            return Reply(ProtocolMessages.Error(request.Id, ProtocolErrorCodes.InternalError, $"Falha interna ({ex.GetType().Name})."));
+        }
+    }
+
+    /// <summary>Um pedido longo: roda e escreve a própria resposta quando termina (a escrita é serializada com as demais).</summary>
+    private async Task RespondAsync(Request request, CancellationToken ct)
+    {
+        var (response, _) = await ExecuteAsync(request, ct);
+        try { await WriteLineAsync(response.ToJsonString()); }
+        catch (Exception ex) when (ex is IOException or ObjectDisposedException)
+        {
+            // A saída já fechou (a interface foi embora): não há para quem responder.
         }
     }
 

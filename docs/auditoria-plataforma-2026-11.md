@@ -144,7 +144,8 @@ Ordem: 7a primeiro (são defeitos, não estilo). 7c antes de 7d (muda o dispatch
 |---|---|---|
 | 7a | CT-N1, PY-N1, NET-M11, NET-M1 (parcial), NET-E4 + RS-N1, NET-E14 | Neste PR |
 | 7b | NET-E2, NET-E3, NET-E5 (permissão), NET-E11 | Neste PR (empilhado sobre a 7a) |
-| 7c–7g | — | Não iniciadas |
+| 7c | NET-E1 (NET-E8 adiado) | Neste PR (empilhado sobre a 7b) |
+| 7d–7g | — | Não iniciadas |
 
 **Decisões de escopo da 7a**
 - CT-N1: quando a volta pede grupos e busca juntos e só cabe uma rodada, a investigação **para** e registra `INVESTIGATION_STOPPED` (em vez de escolher um dos dois pedidos). Teste compara o ack com os `maximum` do schema. O `Math.Clamp` do .NET em `InvestigationService` continua (defesa na borda, NET-M2 trata do ack tipado).
@@ -162,3 +163,12 @@ Ordem: 7a primeiro (são defeitos, não estilo). 7c antes de 7d (muda o dispatch
 - NET-E11: `Reconciled` pergunta quem está rodando antes de ler o arquivo (antes, uma sincronização que terminava no meio tinha o desfecho e os itens sobrescritos por `SYNC_INTERRUPTED`); o pós-processamento (resumo da conexão, trilha, ouvintes) falha isolado e o aviso `sync.finished` sai sempre. Resta uma janela teórica (outra sincronização começar entre as duas leituras), que só existe se os handlers rodarem em paralelo: reavaliar na 7c.
 - **Não feito:** NET-E16 (`FileAuditLog.ReadAll` carrega o arquivo todo sob o gate de escrita; precisa ler só o rabo e manter a numeração por linha). Fica para a 7d/7g.
 - Gates da 7b: .NET 1077 passam (12 ignorados), 0 avisos. Rust, Python e UI não foram tocados.
+
+**Decisões de escopo da 7c**
+- NET-E1: `ProtocolMethods.Slow` lista os 11 métodos que esperam rede ou modelo (`model.save/test/complete`, `connection.create/test/rotate/reach`, `integration.link`, `management.ask/investigate/portfolioask`). O laço da `EngineSession` os despacha como tarefa e cada um escreve a própria resposta (a escrita já era serializada por `_outputGate`). Os demais métodos seguem **em ordem**, como antes.
+- Encerramento: `engine.shutdown` (ou cancelamento do processo) cancela os pedidos longos em voo e espera até 10 s; o fim da entrada (EOF) **espera** por eles e os responde, como o motor fazia quando tudo era serial (um cliente por pipe não perde resposta).
+- Mudança de comportamento: dois pedidos longos podem rodar ao mesmo tempo (por exemplo duas perguntas ao assistente). Os serviços já tinham gates, porque a sincronização em segundo plano os usava em paralelo; não achei estado compartilhado sem proteção, mas é a primeira coisa a olhar se aparecer defeito intermitente.
+- NET-E11 (janela teórica em `Reconciled`): `integration.sync` e `integration.history` **não** são lentos e continuam no laço serial; a janela segue fechada.
+- **NET-E8 adiado de propósito:** unificar os handlers numa interface (`IRequestHandler`) é P2, de risco médio, e nenhum handler novo está previsto; o ganho é só de manutenção. Resolvido o P1 (E1), a decisão fica para a 7d, se o dono quiser.
+- Testes: `ProtocolConcurrencyTests` (4). Dois falhavam com o laço serial (`engine.hello` não era respondido durante `model.test`; `engine.shutdown` não era lido); dois caracterizam o que não pode mudar (ordem dos pedidos curtos e espera no EOF). Rodados 8 vezes seguidas, sem flakiness.
+- Gates da 7c: .NET 1081 passam (12 ignorados), 0 avisos. Rust, Python e UI não foram tocados.

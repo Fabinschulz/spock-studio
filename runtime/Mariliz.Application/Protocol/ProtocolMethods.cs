@@ -92,6 +92,17 @@ public static class ProtocolMethods
     /// <summary>Visão gerencial: só leitura do que já foi sincronizado.</summary>
     public static readonly IReadOnlyList<string> Management = [ManagementPortfolio, ManagementMetrics, ManagementForecast, ManagementRisks, ManagementRiskHistory, ManagementMilestones, ManagementReport, ManagementEvidence, ManagementAsk, ManagementInvestigate, ManagementPortfolioEvidence, ManagementPortfolioAsk];
 
+    /// <summary>
+    /// Os pedidos que esperam rede ou modelo (até dezenas de segundos). O laço da sessão os despacha sem esperar por eles: enquanto
+    /// um roda, o motor segue respondendo e consegue cancelar uma execução, aprovar ou encerrar. Os demais são curtos e seguem em ordem.
+    /// </summary>
+    public static readonly IReadOnlySet<string> Slow = new HashSet<string>(StringComparer.Ordinal)
+    {
+        ModelSave, ModelComplete, ModelTest,
+        ConnectionCreate, ConnectionTest, ConnectionRotate, ConnectionReach, IntegrationLink,
+        ManagementAsk, ManagementInvestigate, ManagementPortfolioAsk
+    };
+
     /// <summary>Decisões gerenciais: registrar com os fatos do momento, listar e abrir. Sem editar nem apagar.</summary>
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
 
