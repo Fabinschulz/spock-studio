@@ -1,19 +1,18 @@
 # Spock Studio: proposta de evolução de produto
 
-**Data:** 2026-11-12. Documento 4 da análise de referência. Base: `KAIVOR_PRODUCT_ANALYSIS.md`,
-`MARILIZ_CURRENT_STATE.md` e `KAIVOR_SPOCK_COMPARISON.md`.
+**Data:** 2026-11-12. Documento 4 da análise de referência. Base: `MARILIZ_CURRENT_STATE.md`.
 
 Este documento é proposta. Nada aqui foi implementado, e nada deve ser implementado sem decisão do dono do produto. A
 ordem de construção está em `SPOCK_IMPLEMENTATION_ROADMAP.md`; a forma visual, em `SPOCK_DESIGN_DIRECTION.md`.
 
 ## 1. Tese
 
-O Kaivor e o Spock resolvem problemas diferentes. O Kaivor executa trabalho a partir de uma conversa. O Spock governa a
-engenharia assistida por IA de um projeto e mostra a quem gere o que está acontecendo, com dados reais.
+O Spock governa a engenharia assistida por IA de um projeto e mostra a quem gere o que está acontecendo, com dados
+reais.
 
 O que o Spock tem de melhor (motor que decide, plano com diff, gestão calculada, resposta verificada) já está pronto.
-O que falta é o que o Kaivor faz bem: **dar forma de produto a isso**. Contexto sempre visível, um lugar para ver o que
-aconteceu, padrões de tela consistentes, um hub que explica o que cada conexão alcança.
+O que falta é **dar forma de produto a isso**. Contexto sempre visível, um lugar para ver o que aconteceu, padrões de
+tela consistentes, um hub que explica o que cada conexão alcança.
 
 Por isso a evolução proposta tem três movimentos, nesta ordem:
 
@@ -22,25 +21,25 @@ Por isso a evolução proposta tem três movimentos, nesta ordem:
    consumidor, sincronização no mesmo modelo de execução.
 3. **Ligar os dois ambientes.** Execução ligada à entrega, decisões com evidência técnica, conhecimento compartilhado.
 
-Não há um quarto movimento de "ampliar para onde o Kaivor está". Construtor de automações, editor visual, cliente de
+Não há um quarto movimento de ampliar o escopo. Construtor de automações, editor visual, cliente de
 banco, cliente HTTP e conversa livre ficam fora (seção 9).
 
 ## 2. Princípios de produto para o próximo ciclo
 
-Extraídos do que funciona no Kaivor e do que já é regra no Spock.
+Extraídos de produtos de referência e do que já é regra no Spock.
 
 | # | Princípio | Origem |
 | --- | --- | --- |
-| 1 | O projeto ativo e o ambiente estão sempre visíveis. | Kaivor (contexto no campo de mensagem); lacuna do Spock |
-| 2 | Conectar não é autorizar. Cada conexão diz o que alcança, em qual projeto e se alimenta os agentes. | Kaivor (regra de produto); Spock (modelo de domínio) |
-| 3 | Toda operação tem uma execução, e toda execução pode ser reaberta. | Kaivor (central); Spock (diários) |
-| 4 | Inspecionar nunca reexecuta. | Kaivor |
+| 1 | O projeto ativo e o ambiente estão sempre visíveis. | Lacuna do Spock |
+| 2 | Conectar não é autorizar. Cada conexão diz o que alcança, em qual projeto e se alimenta os agentes. | Spock (modelo de domínio) |
+| 3 | Toda operação tem uma execução, e toda execução pode ser reaberta. | Spock (diários) |
+| 4 | Inspecionar nunca reexecuta. | Princípio de produto |
 | 5 | A IA propõe; o motor decide; a pessoa aprova o plano exato. | Spock (já é regra) |
-| 6 | Nunca afirmar sucesso que não foi observado. Operação interrompida tem estado próprio. | Kaivor ("resultado incerto"); Spock ("sem dado") |
-| 7 | Linguagem de tarefa na frente; nome técnico dentro de "Detalhes técnicos". | Kaivor |
-| 8 | Não usar IA onde há regra. Não usar LangGraph onde não há estado, roteamento ou pausa humana. | Spock (já é regra); Kaivor (automação sem IA) |
+| 6 | Nunca afirmar sucesso que não foi observado. Operação interrompida tem estado próprio. | Spock ("sem dado") |
+| 7 | Linguagem de tarefa na frente; nome técnico dentro de "Detalhes técnicos". | Princípio de produto |
+| 8 | Não usar IA onde há regra. Não usar LangGraph onde não há estado, roteamento ou pausa humana. | Spock (já é regra) |
 | 9 | Toda resposta de IA distingue fato, cálculo, inferência e recomendação, com evidência. | Spock (diferencial) |
-| 10 | Um só modelo para cada conceito. Não criar um segundo motor, um segundo cadastro ou um segundo vocabulário. | Lição do Kaivor (quatro motores, três formatos de concessão) |
+| 10 | Um só modelo para cada conceito. Não criar um segundo motor, um segundo cadastro ou um segundo vocabulário. | Lição de produto |
 
 ## 3. Navegação e organização dos ambientes
 
@@ -139,8 +138,8 @@ A proposta: uma ficha por componente, montada pelo motor a partir do próprio at
 
 Decisões embutidas:
 
-- **Sem editor livre de agente.** Personalização continua pelo `mariliz.yaml` e pela proposta, aplicada pelo plano. O
-  Kaivor tem editor e não tem versionamento nem reversão; o Spock mantém o que tem de melhor.
+- **Sem editor livre de agente.** Personalização continua pelo `mariliz.yaml` e pela proposta, aplicada pelo plano. Um
+  editor sem versionamento nem reversão perderia o que o Spock tem de melhor.
 - **A ficha é um dado do motor**, com fixture de contrato, não um texto escrito na interface.
 - **Vale para todos os tipos** (agente, skill, regra, hook, MCP), com os campos que se aplicam.
 
@@ -172,7 +171,7 @@ Trazer a execução para dentro (decisão D5 do ADR) continua em aberto e não �
 
 ## 5. Management Workspace
 
-O Kaivor não oferece gestão de projetos. Aqui a referência serve só para padrões de apresentação. As funcionalidades
+As referências externas servem só para padrões de apresentação. As funcionalidades
 vêm da visão do próprio Spock e da ordem já aprovada.
 
 | Área | Hoje | Evolução proposta | Prior. |
@@ -322,14 +321,14 @@ regra é a do projeto: o que um ambiente vê é o que o outro também pode ver, 
 
 | Fora | Motivo |
 | --- | --- |
-| Construtor de automações | O Spock não é plataforma de automação. No Kaivor são quatro motores e a interface não alcança o que o motor sabe fazer. |
-| Editor visual de fluxo | O Spock tem um grafo fixo de dez nós. No Kaivor o canvas custou uma spec de 44 KB e segue com pendências de teste. A linha do tempo já responde "onde está" e "o que falhou". |
-| Database Studio e HTTP Client | Competem com ferramentas especializadas. O Database Studio do Kaivor é um produto inteiro (114 specs). |
+| Construtor de automações | O Spock não é plataforma de automação. |
+| Editor visual de fluxo | O Spock tem um grafo fixo de dez nós. A linha do tempo já responde "onde está" e "o que falhou". |
+| Database Studio e HTTP Client | Competem com ferramentas especializadas; cada um é um produto inteiro. |
 | Conversa livre como centro | O centro do Spock é o projeto. O assistente continua sendo pergunta com evidência. |
 | Memória aprendida | Custo alto, valor incerto, risco de guardar dado indevido. |
 | Catálogo amplo de conectores | Dois conectores comprovados antes de qualquer outro. |
 | Aplicativo web | Quebra o local-first. |
-| Editor livre de agente | Sem versionamento e reversão, como no Kaivor, perde-se o que o Spock tem de melhor. |
+| Editor livre de agente | Sem versionamento e reversão, perde-se o que o Spock tem de melhor. |
 | Custo em dinheiro | O motor não conhece o preço; mostrar seria estimativa apresentada como fato. |
 | Indicador por pessoa | Decisão já tomada. |
 
@@ -356,7 +355,7 @@ Três nós sustentam quase tudo: os componentes de página, a validação com da
 
 | Risco | Efeito | Como reduzir |
 | --- | --- | --- |
-| Ampliar antes de validar | Repetir o Kaivor: muito implementado, pouco comprovado | Validação real como primeira fase; nada novo sobre conector não comprovado |
+| Ampliar antes de validar | Muito implementado, pouco comprovado | Validação real como primeira fase; nada novo sobre conector não comprovado |
 | Dois ambientes virarem dois produtos | Navegação, componentes e conceitos duplicados | Um shell, uma central, um histórico, um conjunto de componentes |
 | Catálogo do Harness virar editor | Perda do ciclo plano, diff, aprovação, reversão | Ficha só de leitura; mudança sempre pela jornada |
 | Gestão com dado defasado | Decisão sobre número velho | Data da leitura sempre visível; sinal de dado defasado; agenda de sincronização |

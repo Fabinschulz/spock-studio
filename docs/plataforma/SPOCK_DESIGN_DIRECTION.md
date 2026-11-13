@@ -50,12 +50,12 @@ do que reutilizar, evoluir e criar.
 
 ## 3. Referências de UX/UI
 
-O Kaivor foi estudado como referência de experiência (ver `KAIVOR_PRODUCT_ANALYSIS.md`, seção 13). O que se aproveita
-são princípios de uso. Marca, paleta, ícones, cena de fundo, textos e composições do Kaivor não são reproduzidos.
+Produtos de referência foram estudados quanto à experiência. O que se aproveita são princípios de uso. Marca, paleta,
+ícones, cena de fundo, textos e composições de terceiros não são reproduzidos.
 
 ### 3.1 Princípios aproveitados
 
-| # | Princípio | Onde foi observado no Kaivor | Aplicação no Spock |
+| # | Princípio | Onde foi observado | Aplicação no Spock |
 | --- | --- | --- | --- |
 | 1 | Contexto sempre visível | Projeto, branch, modelo e acesso no campo de mensagem | Projeto e ambiente no topo do shell |
 | 2 | Navegação em níveis | Poucos itens fixos, ferramentas fixáveis, busca | Itens do ambiente, Plataforma comum, busca |
@@ -72,15 +72,9 @@ são princípios de uso. Marca, paleta, ícones, cena de fundo, textos e composi
 | 13 | Atividade da IA como resumo recolhível | Linha de atividade por resposta | Resumo de uma linha no topo da execução |
 | 14 | Honestidade de medição | "Estimativa; não representa cobrança" | Já é prática: "sem dado", confiança com motivo |
 
-Telas e fluxos de onde vieram: shell e conversa (`.impeccable/review/chat-1440-dark.png` no repositório do Kaivor),
-rail expandido (`projects-dark.png`), divisão de conteúdo (`file-split-dark.png`), configurações como modo
-(`settings-completion/`), página de conexões (`ConnectionsHome`), central de execuções
-(`src/features/executions/`), painel de tarefas (`src/features/autonomy/tasks-panel.tsx`), e a prévia de produto do
-site (abas Bot, Tarefas, Rotinas, Conexões, Notas). As capturas não foram copiadas para este repositório.
-
 ### 3.2 O que não se aproveita
 
-| Do Kaivor | Por quê |
+| Da referência | Por quê |
 | --- | --- |
 | Neutros sem acento cromático | O teal é identidade do Spock |
 | Temas claro e escuro | Decisão de tema escuro único |
@@ -90,13 +84,13 @@ site (abas Bot, Tarefas, Rotinas, Conexões, Notas). As capturas não foram copi
 | Kanban de execuções | Entra como filtro por estado na central, não como quadro |
 | Canvas de diagrama | Fora do escopo |
 
-### 3.3 O que evitar, aprendido com os problemas do Kaivor
+### 3.3 O que evitar, aprendido com produtos de referência
 
 - Três gerações visuais convivendo: uma mudança de direção precisa terminar antes de outra começar.
 - Cinco famílias de ícones apesar da norma.
-- Estilos em cascata de compatibilidade (62 folhas, 752 `!important`): regra antiga escondeu controle primário.
-- Vários nomes para o mesmo conceito (Rotinas, Tarefas, Cortex, Automações).
-- Capacidades pré-selecionadas em massa (181 caixas marcadas).
+- Estilos em cascata de compatibilidade com `!important`: regra antiga escondeu controle primário.
+- Vários nomes para o mesmo conceito.
+- Capacidades pré-selecionadas em massa.
 - Expor o modelo interno antes de a pessoa concluir uma tarefa útil.
 
 ## 4. Hierarquia de navegação
@@ -391,5 +385,5 @@ Lista de conferência por tela, antes de dar como pronta:
 - Nenhuma tela do Spock foi renderizada para este documento; a avaliação vem do código e da documentação.
 - O comportamento real dos componentes do ui-kit ainda não usados (`Drawer`, `TabBar`, `DataTable`, `Menu`) não foi
   testado: é preciso conferir foco, Esc e tema escuro antes de adotá-los.
-- O Kaivor não foi executado; os princípios vêm de código, specs, capturas do repositório dele e do site público.
-- Nenhum teste com usuário foi feito, nem aqui nem no Kaivor.
+- Os princípios vêm de produtos de referência estudados por leitura, não por uso.
+- Nenhum teste com usuário foi feito.
