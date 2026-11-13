@@ -827,3 +827,21 @@ conversa livre como centro, memória aprendida, aplicativo web.
 - Não transforma todas as oportunidades em tarefas: 17 itens ficam para depois e 7 ficam de fora.
 - Não estima prazo em dias. O tamanho é relativo (pequeno, médio, grande) porque depende de decisões da seção 6.
 - Não altera nada: nenhum código, contrato, entidade ou tela foi modificado nesta análise.
+
+**Segunda entrega da fase G: trilha de auditoria única por projeto.** Ainda sem IA, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| `audit.read` | Só leitura, sem armazenamento novo: junta o **arquivo de auditoria** (`audit.ndjson`, só acrescenta) e o **diário das execuções** do projeto, da entrada mais recente à mais antiga. Cada entrada tem id estável, instante, categoria, título e detalhe em português, a **origem** (`audit` ou `journal`) e a referência exata: a execução do diário (`runId`) ou a linha do arquivo (`auditLine`, que nunca muda de lugar) |
+| O que entra | Vínculo, recorte e política de uma fonte (com "de fechada para aberta" e o recurso pelo nome), desvínculo, leituras concluídas, falha de ouvinte, decisão registrada, conexão criada, credencial atualizada, desconectada e removida; do diário, aplicação e reversão do Harness, desfeita na hora, ações de agente aprovadas e executadas, uso de modelo. Validações e execuções sem efeito ficam de fora |
+| Categorias | Acesso a fontes, contexto de IA, conexões, leituras, decisões, mudanças no projeto, uso de modelo. A contagem de cada uma vem inteira, sem olhar o filtro |
+| O que nunca aparece | Credencial, texto de pedido, título ou identificador de item, texto e justificativa de decisão. A trilha diz **o que mudou e quando, não quem**: o produto ainda não tem identidade de pessoa, e a tela diz isso |
+| Fonte que falha | Aparece como indisponível, sem o motivo, e a outra segue. Uma linha ilegível do arquivo é pulada; a leitura traz no máximo as 100 mil mais recentes, com a numeração do arquivo inteiro |
+| Filtro e página | Por categoria; página pelo instante (`before`), com empates na fronteira na mesma página |
+| Tela | Item "Auditoria" no grupo Plataforma, rota `/auditoria`: filtros por categoria com a contagem, lista com a origem de cada entrada ("Diário da execução ..." com "Ver execução", ou "Arquivo de auditoria, linha N"), "Ver mais antigas", aviso de fonte indisponível |
+| Hook compartilhado | `usePagedRead` (em `shared/hooks`): leitura por páginas com "ver mais", que descarta a página que chega depois de o projeto ou o filtro mudar. A linha do tempo passou a usá-lo |
+| Testes | 23 no motor (fixture `audit/audit.json`), 11 de tela, 4 do hook e 4 de contrato. Suítes: 988 aprovados e 9 ignorados no motor; 606 na interface; build ok |
+
+Limites: o arquivo de auditoria hoje só registra integrações, decisões e conexões; mudanças de perfil e de revisão do Harness
+aparecem pelo diário, não pelo arquivo. Como não há identidade de pessoa, "quem" fica para quando houver. Nada disto foi
+conferido no navegador, só por testes.

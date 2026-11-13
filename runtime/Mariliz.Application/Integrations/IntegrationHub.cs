@@ -49,4 +49,7 @@ public sealed class IntegrationHub
 
     /// <summary>A mesma trilha de auditoria, para outros casos de uso que precisam registrar operações.</summary>
     public IAuditLog Audit { get; }
+
+    /// <summary>A mesma trilha, para leitura, quando a implementação a oferece. Nulo se não oferece.</summary>
+    public IAuditReader? AuditReader => Audit as IAuditReader;
 }

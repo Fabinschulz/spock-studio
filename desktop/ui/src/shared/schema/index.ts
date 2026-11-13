@@ -1,3 +1,4 @@
+export * from './audit';
 export * from './decision';
 export * from './engineering';
 export * from './harness';

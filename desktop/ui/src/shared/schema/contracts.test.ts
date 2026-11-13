@@ -1,3 +1,4 @@
+import auditFixture from '@contracts/fixtures/audit/audit.json';
 import timelineFixture from '@contracts/fixtures/timeline/timeline.json';
 import { describe, expect, it } from 'vitest';
 
@@ -72,6 +73,7 @@ import {
   planSchema,
   profileResultSchema,
   projectKnowledgeSchema,
+  projectAuditTrailSchema,
   projectTimelineSchema,
   runDetailSchema,
   linkedItemsResultSchema,
@@ -616,5 +618,44 @@ describe('contrato da linha do tempo do projeto (fixture do motor)', () => {
 
   it('o texto não carrega identificador de item nem credencial', () => {
     expect(JSON.stringify(timelineFixture)).not.toMatch(/acme\/app#|ghp_/);
+  });
+});
+
+describe('contrato da trilha de auditoria do projeto (fixture do motor)', () => {
+  it('traz entradas do arquivo e do diário, da mais recente à mais antiga, e as fontes com a contagem', () => {
+    const parsed = projectAuditTrailSchema.parse(auditFixture);
+    expect([...new Set(parsed.entries.map((entry) => entry.source))].sort()).toEqual(['audit', 'journal']);
+    const instants = parsed.entries.map((entry) => entry.at);
+    expect([...instants].sort().reverse()).toEqual(instants);
+    expect(parsed.sources.map((source) => source.source).sort()).toEqual(['audit', 'journal']);
+    expect(parsed.sources.every((source) => source.available)).toBe(true);
+    expect(parsed.nextBefore).toBeNull();
+  });
+
+  it('cada entrada tem id único e exatamente uma referência: execução do diário ou linha do arquivo', () => {
+    const parsed = projectAuditTrailSchema.parse(auditFixture);
+    expect(new Set(parsed.entries.map((entry) => entry.id)).size).toBe(parsed.entries.length);
+    for (const entry of parsed.entries) {
+      if (entry.source === 'journal') {
+        expect(entry.runId).not.toBeNull();
+        expect(entry.auditLine).toBeNull();
+      } else {
+        expect(entry.auditLine).not.toBeNull();
+        expect(entry.runId).toBeNull();
+      }
+    }
+  });
+
+  it('a contagem de cada categoria bate com as entradas e toda entrada tem categoria conhecida', () => {
+    const parsed = projectAuditTrailSchema.parse(auditFixture);
+    const known = new Set(parsed.categories.map((category) => category.id));
+    for (const category of parsed.categories) {
+      expect(parsed.entries.filter((entry) => entry.category === category.id)).toHaveLength(category.count);
+    }
+    expect(parsed.entries.every((entry) => known.has(entry.category))).toBe(true);
+  });
+
+  it('o texto não carrega credencial, texto de pedido nem identificador de item', () => {
+    expect(JSON.stringify(auditFixture)).not.toMatch(/acme\/app#|ghp_|sk-/);
   });
 });

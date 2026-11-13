@@ -25,10 +25,22 @@ internal sealed class MemoryVault : ISecretVault
     public void Remove(string connectionId) => Secrets.Remove(connectionId);
 }
 
-internal sealed class MemoryAudit : IAuditLog
+internal sealed class MemoryAudit : IAuditLog, IAuditReader
 {
+    private readonly List<AuditRecord> _records = [];
+
     public List<(string Action, string Detail)> Entries { get; } = [];
-    public void Record(string action, JsonObject detail) => Entries.Add((action, detail.ToJsonString()));
+
+    /// <summary>A hora de cada registro. O harness liga ao relógio de teste; sem isso, é a hora de verdade.</summary>
+    public Func<DateTimeOffset> Now { get; set; } = () => DateTimeOffset.UtcNow;
+
+    public void Record(string action, JsonObject detail)
+    {
+        Entries.Add((action, detail.ToJsonString()));
+        _records.Add(new AuditRecord(_records.Count + 1, Now(), action, detail.DeepClone().AsObject()));
+    }
+
+    public IReadOnlyList<AuditRecord> ReadAll() => [.. _records];
 }
 
 internal sealed class FakeConnectorTransport : IConnectorTransport
@@ -195,6 +207,7 @@ internal sealed class IntegrationHarness : IDisposable
 
     public IntegrationHarness()
     {
+        Audit.Now = () => Clock.UtcNow;
         var workspace = Workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
         ProjectId = workspace.Authorize(Project.Root).Project!.ProjectId;
         OtherProjectId = workspace.Authorize(OtherProject.Root).Project!.ProjectId;
