@@ -489,6 +489,9 @@ describe('contrato da conexão do modelo (fixtures do motor)', () => {
     });
     expect(parsed.model).not.toBe('');
     expect(parsed.checkedAt).not.toBeNull();
+    expect(parsed.providerName).toBe('OpenAI');
+    expect(parsed.available.map((provider) => provider.id)).toEqual(['openai', 'anthropic']);
+    expect(parsed.available.every((provider) => provider.model.length > 0)).toBe(true);
   });
 
   it('o estado com erro traz o código e o motivo da recusa', () => {
@@ -500,5 +503,6 @@ describe('contrato da conexão do modelo (fixtures do motor)', () => {
 
   it('nenhuma resposta carrega a chave', () => {
     expect(JSON.stringify([modelConnection, modelConnectionError])).not.toMatch(/sk-/);
+    expect(JSON.stringify([modelConnection, modelConnectionError])).not.toMatch(/https:/);
   });
 });

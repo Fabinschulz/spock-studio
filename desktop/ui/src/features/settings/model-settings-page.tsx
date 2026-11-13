@@ -11,15 +11,6 @@ import { createModelApi } from './service/model-api';
 
 const KEY_PATTERN = /^[A-Za-z0-9_-]{20,200}$/;
 
-const PROVIDER_LABEL: Record<string, string> = {
-  openai: 'OpenAI'
-};
-
-function providerLabel(provider: string): string {
-  if (!provider) return '';
-  return PROVIDER_LABEL[provider] ?? provider;
-}
-
 const STATE: Record<string, { label: string; tone: Tone }> = {
   none: { label: 'Sem chave', tone: 'neutral' },
   untested: { label: 'Ainda não conferida', tone: 'neutral' },
@@ -37,14 +28,23 @@ function protectionText(protection: string | null): string | null {
 
 export function ModelSettingsPage({ client }: { client: EngineClient }) {
   const inputId = useId();
+  const providerId = useId();
   const api = useMemo(() => createModelApi(client), [client]);
   const { connection, busy, error, notice, save: saveKey, test, clear: clearKey } = useModelSettings(api);
   const [key, setKey] = useState('');
+  const [chosen, setChosen] = useState<string | null>(null);
 
   const canSave = KEY_PATTERN.test(key.trim());
+  const providers = connection?.available ?? [];
+  // O provedor escolhido na tela; sem escolha, o da chave guardada e, sem chave, o primeiro da lista.
+  const provider = providers.find((entry) => entry.id === (chosen ?? connection?.provider)) ?? providers[0];
+  const switching = connection?.configured === true && provider !== undefined && provider.id !== connection.provider;
 
   const save = async () => {
-    if (canSave && (await saveKey(key.trim()))) setKey('');
+    if (canSave && provider && (await saveKey(provider.id, key.trim()))) {
+      setKey('');
+      setChosen(null);
+    }
   };
 
   const clear = async () => {
@@ -66,6 +66,37 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
         </p>
 
         {connection ? <ConnectionState connection={connection} /> : <p className={styles.status}>Carregando…</p>}
+
+        {providers.length > 0 ? (
+          <div className={styles.field}>
+            <label htmlFor={providerId}>Provedor</label>
+            <select
+              id={providerId}
+              className={styles.select}
+              value={provider?.id ?? ''}
+              disabled={busy}
+              onChange={(event) => setChosen(event.target.value)}
+            >
+              {providers.map((entry) => (
+                <option key={entry.id} value={entry.id}>
+                  {entry.name}
+                </option>
+              ))}
+            </select>
+            {provider ? (
+              <p className={styles.hint}>
+                Com {provider.name}, as conversas dos agentes usam o modelo{' '}
+                <span className={styles.mono}>{provider.model}</span>.
+              </p>
+            ) : null}
+            {switching ? (
+              <p className={styles.hint}>
+                Trocar de provedor substitui a chave de {connection.providerName}: só uma chave fica ativa. Se o novo
+                provedor recusar a chave, a atual continua valendo.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className={styles.field}>
           <TextField
@@ -122,8 +153,7 @@ function ConnectionState({ connection }: { connection: ModelConnection }) {
   return (
     <div className={styles.state}>
       <p className={styles.status}>
-        Provedor configurado: {providerLabel(connection.provider)}{' '}
-        <StatusChip tone={state.tone}>{state.label}</StatusChip>
+        Provedor configurado: {connection.providerName} <StatusChip tone={state.tone}>{state.label}</StatusChip>
       </p>
       <p className={styles.hint}>
         Modelo das conversas dos agentes: <span className={styles.mono}>{connection.model}</span>.

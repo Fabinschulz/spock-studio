@@ -1,6 +1,6 @@
 import connectedFixture from '@contracts/fixtures/models/connection.json';
 import failedFixture from '@contracts/fixtures/models/connection-error.json';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
@@ -18,11 +18,13 @@ const failed = modelConnectionSchema.parse(failedFixture);
 const none: ModelConnection = {
   configured: false,
   provider: '',
-  model: connected.model,
+  providerName: '',
+  model: '',
   status: 'none',
   protection: null,
   checkedAt: null,
-  lastError: null
+  lastError: null,
+  available: connected.available
 };
 
 type Behavior = {
@@ -36,9 +38,9 @@ type Behavior = {
 function client(
   initial: ModelConnection,
   behavior: Behavior = {}
-): EngineClient & { calls: string[]; saved: string[] } {
+): EngineClient & { calls: string[]; saved: { provider: string; key: string }[] } {
   const calls: string[] = [];
-  const saved: string[] = [];
+  const saved: { provider: string; key: string }[] = [];
   let state = initial;
   return {
     calls,
@@ -48,8 +50,10 @@ function client(
       if (method === 'model.connection') return schema.parse(state);
       if (method === 'model.save') {
         if (behavior.refuseSave) throw new EngineError('MODEL_AUTH_FAILED', 'O provedor recusou a chave.');
-        saved.push(String((params as { key: string }).key));
-        state = { ...connected };
+        const { provider, key } = params as { provider: string; key: string };
+        saved.push({ provider, key });
+        const chosen = connected.available.find((entry) => entry.id === provider)!;
+        state = { ...connected, provider, providerName: chosen.name, model: chosen.model };
         return schema.parse({ configured: true, provider: 'openai' });
       }
       if (method === 'model.test') {
@@ -92,7 +96,7 @@ describe('Configurações · provedor de IA', () => {
     expect(field).toHaveValue('');
     expect(container.textContent).not.toContain(testKey);
     expect(api.calls).toEqual(['model.connection', 'model.save', 'model.connection']);
-    expect(api.saved).toEqual([testKey]);
+    expect(api.saved).toEqual([{ provider: 'openai', key: testKey }]);
 
     await expectNoA11yViolations(container);
   });
@@ -120,7 +124,7 @@ describe('Configurações · provedor de IA', () => {
     renderPage(client(connected));
 
     expect(await screen.findByText('Conectado')).toBeInTheDocument();
-    expect(screen.getByText('gpt-4o-mini')).toBeInTheDocument();
+    expect(screen.getByText(/Modelo das conversas dos agentes:/)).toHaveTextContent('gpt-4o-mini');
     expect(screen.getByText(/Conferida .*/)).toBeInTheDocument();
   });
 
@@ -183,6 +187,62 @@ describe('Configurações · provedor de IA', () => {
     expect(api.calls).toContain('model.clear');
   });
 
+  it('oferece os provedores do motor, começa pelo primeiro sem chave e diz o modelo de cada um', async () => {
+    renderPage(client(none));
+
+    const select = await screen.findByLabelText('Provedor');
+
+    expect(
+      within(select)
+        .getAllByRole('option')
+        .map((option) => option.textContent)
+    ).toEqual(['OpenAI', 'Anthropic']);
+    expect(select).toHaveValue('openai');
+    expect(screen.getByText(/Com OpenAI, as conversas dos agentes usam o modelo/)).toBeInTheDocument();
+    await userEvent.selectOptions(select, 'anthropic');
+    expect(screen.getByText(/Com Anthropic, as conversas dos agentes usam o modelo/)).toBeInTheDocument();
+    expect(screen.getByText('claude-haiku-5-5')).toBeInTheDocument();
+  });
+
+  it('guarda a chave no provedor escolhido e passa a mostrar esse provedor', async () => {
+    const api = client(none);
+    renderPage(api);
+
+    await userEvent.selectOptions(await screen.findByLabelText('Provedor'), 'anthropic');
+    await userEvent.type(screen.getByLabelText('Chave de API'), testKey);
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar chave' }));
+
+    expect(await screen.findByText(/Provedor configurado: Anthropic/)).toBeInTheDocument();
+    expect(api.saved).toEqual([{ provider: 'anthropic', key: testKey }]);
+    expect(screen.getByLabelText('Provedor')).toHaveValue('anthropic');
+  });
+
+  it('trocar de provedor avisa que a chave atual é substituída e que ela fica se o novo recusar', async () => {
+    renderPage(client(connected));
+
+    const select = await screen.findByLabelText('Provedor');
+    expect(select).toHaveValue('openai');
+    expect(screen.queryByText(/Trocar de provedor substitui a chave/)).not.toBeInTheDocument();
+
+    await userEvent.selectOptions(select, 'anthropic');
+
+    expect(
+      screen.getByText(/Trocar de provedor substitui a chave de OpenAI: só uma chave fica ativa/)
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Se o novo provedor recusar a chave, a atual continua valendo/)).toBeInTheDocument();
+  });
+
+  it('se o novo provedor recusa, continua mostrando o provedor de antes', async () => {
+    renderPage(client(connected, { refuseSave: true }));
+
+    await userEvent.selectOptions(await screen.findByLabelText('Provedor'), 'anthropic');
+    await userEvent.type(screen.getByLabelText('Chave de API'), testKey);
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar chave' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('O provedor recusou a chave.');
+    expect(screen.getByText(/Provedor configurado: OpenAI/)).toBeInTheDocument();
+  });
+
   it('trocar a chave guarda a nova e mantém o estado conectado', async () => {
     const api = client(connected);
     renderPage(api);
@@ -191,6 +251,6 @@ describe('Configurações · provedor de IA', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Salvar chave' }));
 
     expect(await screen.findByText('Chave guardada: o provedor a aceitou.')).toBeInTheDocument();
-    expect(api.saved).toEqual([testKey]);
+    expect(api.saved).toEqual([{ provider: 'openai', key: testKey }]);
   });
 });

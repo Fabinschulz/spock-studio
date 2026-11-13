@@ -1,9 +1,22 @@
 {
   "configured": true,
   "provider": "openai",
+  "providerName": "OpenAI",
   "model": "gpt-4o-mini",
   "status": "connected",
   "protection": "file",
   "checkedAt": "2026-11-10T12:00:00+00:00",
-  "lastError": null
+  "lastError": null,
+  "available": [
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "model": "gpt-4o-mini"
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic",
+      "model": "claude-haiku-5-5"
+    }
+  ]
 }

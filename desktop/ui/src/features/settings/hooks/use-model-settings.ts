@@ -47,10 +47,10 @@ export function useModelSettings(api: ModelApi) {
   );
 
   const save = useCallback(
-    (key: string) =>
+    (provider: string, key: string) =>
       run(
         async () => {
-          await api.save(key);
+          await api.save(provider, key);
           return api.connection();
         },
         'Não foi possível guardar a chave.',

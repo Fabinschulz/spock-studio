@@ -1,6 +1,7 @@
 {
   "configured": true,
   "provider": "openai",
+  "providerName": "OpenAI",
   "model": "gpt-4o-mini",
   "status": "error",
   "protection": "file",
@@ -9,5 +10,17 @@
     "code": "MODEL_AUTH_FAILED",
     "message": "O provedor recusou a chave.",
     "at": "2026-11-10T12:00:00+00:00"
-  }
+  },
+  "available": [
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "model": "gpt-4o-mini"
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic",
+      "model": "claude-haiku-5-5"
+    }
+  ]
 }

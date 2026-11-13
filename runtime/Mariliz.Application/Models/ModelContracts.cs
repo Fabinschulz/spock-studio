@@ -31,18 +31,20 @@ public interface IModelCheckStore
 }
 
 /// <summary>
-/// O provedor de modelo como uma conexão: se há chave, onde ela está guardada, qual modelo as conversas usam e o que a última
-/// conferência com o provedor encontrou. <see cref="Status"/>: <c>none</c> (sem chave), <c>untested</c> (nunca conferida),
+/// O provedor de modelo como uma conexão: se há chave, de qual provedor, onde ela está guardada, qual modelo as conversas usam e o
+/// que a última conferência com o provedor encontrou. <see cref="Available"/> são os provedores que esta versão sabe chamar. <see cref="Status"/>: <c>none</c> (sem chave), <c>untested</c> (nunca conferida),
 /// <c>connected</c> ou <c>error</c>. Nunca inclui a chave.
 /// </summary>
 public sealed record ModelConnection(
     bool Configured,
     string Provider,
+    string ProviderName,
     string Model,
     string Status,
     string? Protection,
     DateTimeOffset? CheckedAt,
-    ModelCheckError? LastError);
+    ModelCheckError? LastError,
+    IReadOnlyList<ModelProviderInfo> Available);
 
 /// <summary>Chave de um provedor, só no diretório de dados do motor.</summary>
 public interface IModelSettings

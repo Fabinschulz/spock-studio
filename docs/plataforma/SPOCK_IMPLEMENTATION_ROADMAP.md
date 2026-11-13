@@ -576,10 +576,10 @@ abriu `.claude/` entende cada componente" não foi testado com uma pessoa) e as 
   mudança é por conexão e por projeto; o proxy continua redigindo segredos; a auditoria registra.
 - **Pronto quando:** um teste prova que dado de uma fonte não autorizada nunca chega ao índice nem ao provedor.
 
-**Estado da fase F (2026-11-12).** Duas entregas na branch `feat/fase-f-integracoes` (criada da `master` depois do merge
-da fase E, PR #54): o **resumo por conexão** com o **vocabulário de impacto** (7f781fa) e o **provedor de IA como conexão**
-(ainda sem commit). Restam o segundo provedor, o modelo por finalidade, a política de contextualização consumida pelo
-índice e o cofre em Linux e macOS.
+**Estado da fase F (2026-11-12).** Três entregas na branch `feat/fase-f-integracoes` (criada da `master` depois do merge
+da fase E, PR #54): o **resumo por conexão** com o **vocabulário de impacto** (7f781fa), o **provedor de IA como conexão**
+(91ef677) e o **segundo provedor** (ainda sem commit). Restam o modelo por finalidade, a política de contextualização
+consumida pelo índice e o cofre em Linux e macOS.
 
 | Feito | Observação |
 | --- | --- |
@@ -614,6 +614,25 @@ uma chamada curta ao provedor, a cada clique. Onde não há cofre (Linux e macOS
 fechar essa lacuna é a entrega "cofre em Linux e macOS". O provedor ainda é um só (OpenAI), e o modelo é fixo
 (`gpt-4o-mini`); o segundo provedor e o modelo por finalidade são as próximas entregas. Esta é a conexão de IA vista pelo
 motor: ela **não aparece na lista de conexões da central de integrações**, que continua só com GitHub e Jira.
+
+**Segundo provedor de IA (3ª entrega).** A Anthropic entra ao lado da OpenAI, sem mexer em quem consome o modelo: os agentes,
+o juiz e o assistente continuam falando só com o `ModelGateway`, que passa a escolher o provedor da chave guardada.
+
+| Feito | Observação |
+| --- | --- |
+| Uma lista de provedores | `ModelProviders` é a única fonte de provedor, endereço e modelo: OpenAI (`api.openai.com`, `gpt-4o-mini`) e Anthropic (`api.anthropic.com/v1/messages`, `claude-haiku-5-5`). O endereço continua em lista permitida: o transporte só aceita um endereço cujo esquema, servidor e caminho batam com um provedor da lista, e recusa o resto **antes de a chave sair** (testes com subdomínio enganoso, `http`, caminho diferente e o caminho de um provedor no servidor do outro) |
+| Um formato por provedor, escolhido pelo endereço | A Anthropic recebe a chave em `x-api-key` com `anthropic-version`, as instruções de sistema à parte e só as funções `user` e `assistant` nas mensagens; a OpenAI segue com `Bearer`. A Anthropic não tem modo JSON: o pedido vai na instrução e uma cerca de código em volta da resposta é tirada na volta. Os tokens vêm de `input_tokens` e `output_tokens`. Os códigos de recusa (401, 403, 429) e a regra de não repetir o corpo valem para os dois |
+| O provedor é o da chave guardada | O gateway lê o provedor de quem tem a chave e usa o endereço e o modelo dele na pergunta de conferência, no teste, nas conversas dos agentes e no `ChatCompletion.Model`. Quem já tinha chave antes da escolha continua na OpenAI |
+| Onde o provedor é lembrado | No cofre fica só o segredo; o nome do provedor (que não é segredo) fica em `model-provider.json` ao lado. No arquivo sem cofre, ele já está dentro de `model.json`. Na migração do arquivo antigo para o cofre, o provedor vai junto. Arquivo de provedor ilegível vale OpenAI. Se o cofre falhar ao guardar, o arquivo de provedor **volta ao que era**, para a chave antiga não ficar com o provedor de outra (teste) |
+| Trocar de provedor | Uma chave ativa por vez: guardar a de outro provedor a substitui, depois de o novo provedor aceitá-la. Se ele recusa, **o provedor e a chave de antes continuam valendo** (teste). O contrato de `model.save` passou a aceitar `openai` e `anthropic` |
+| Tela | Um seletor "Provedor" com a lista que o motor devolve em `model.connection` (`available`) e o modelo de cada um; quem guarda a chave escolhe o provedor; ao trocar, a tela avisa que a chave atual é substituída e que ela fica se o novo recusar. O nome do provedor vem do motor, não de uma tabela da tela |
+| Testes | 32 no motor (lista e endereços, formato de cada provedor, JSON na Anthropic, só-instruções, códigos de recusa, endereço fora da lista, gateway por provedor, troca recusada, migração, falha do cofre, contrato) e 4 de tela; o teste de contrato do modelo passou a conferir `providerName`, `available` e a ausência de endereços; as fixtures `models/*.json` ganharam esses campos. Suítes: 850 no motor (6 ignorados de propósito) e 553 na interface, tipos, lint, formato e build limpos. Dois testes da interface estouraram o prazo de 5 s sob carga na suíte inteira e passam isolados, como já acontecia |
+
+Limites: **o formato da Anthropic e o nome do modelo (`claude-haiku-5-5`) foram escritos contra a documentação e não foram
+conferidos com uma chave real**: a conferência real continua dependendo das variáveis `MARILIZ_LIVE_*`. Os testes usam
+manipuladores HTTP que devolvem o formato esperado. Só uma chave fica ativa por vez, então não há como usar dois provedores
+ao mesmo tempo nem escolher o modelo por finalidade: é a próxima entrega, e vai exigir guardar uma chave por provedor. O
+modelo de cada provedor é fixo no código.
 
 Correção de passagem: o teste de tipografia (`Nenhum_arquivo_de_codigo_ou_interface_tem_travessao`) só examina arquivos
 rastreados pelo git, então um travessão num teste novo só aparece depois do commit. Um estava em `AgentPolicyTests.cs`

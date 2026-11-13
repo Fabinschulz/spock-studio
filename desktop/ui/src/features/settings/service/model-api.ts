@@ -7,7 +7,7 @@ export type ModelApi = {
   /** O provedor como uma conexão: se há chave, onde está guardada e o que a última conferência encontrou. */
   connection(): Promise<ModelConnection>;
   /** Guarda a chave só depois de o provedor aceitá-la; se ele recusar, nada é gravado. */
-  save(key: string): Promise<ModelStatus>;
+  save(provider: string, key: string): Promise<ModelStatus>;
   /** Confere a chave guardada com o provedor. Uma recusa vem no estado, não como falha. */
   test(): Promise<ModelConnection>;
   clear(): Promise<ModelStatus>;
@@ -17,7 +17,7 @@ export function createModelApi(client: EngineClient): ModelApi {
   return {
     status: () => client.request('model.status', {}, modelStatusSchema),
     connection: () => client.request('model.connection', {}, modelConnectionSchema),
-    save: (key) => client.request('model.save', { provider: 'openai', key }, modelStatusSchema),
+    save: (provider, key) => client.request('model.save', { provider, key }, modelStatusSchema),
     test: () => client.request('model.test', {}, modelConnectionSchema),
     clear: () => client.request('model.clear', {}, modelStatusSchema)
   };
