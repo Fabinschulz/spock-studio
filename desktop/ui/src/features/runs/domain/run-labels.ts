@@ -5,20 +5,12 @@ import { runKindLabel, runStateLabel } from '@/shared/utils';
 export const KIND_OPTIONS = RUN_KINDS.map((kind) => ({ value: kind, label: runKindLabel(kind) }));
 export const STATE_OPTIONS = RUN_STATES.map((state) => ({ value: state, label: runStateLabel(state) }));
 
-/**
- * "Andando" no diário não basta: depois de uma queda o diário continua dizendo isso e ninguém executa. O motor diz
- * em `live` se algo está rodando agora; sem isso, a execução foi interrompida.
- */
-export function isInterrupted(run: Pick<RunItem, 'state' | 'live'>): boolean {
-  return (run.state === 'running' || run.state === 'validating') && !run.live;
+export function displayState(run: Pick<RunItem, 'state' | 'interrupted'>): string {
+  return run.interrupted ? 'Interrompida' : runStateLabel(run.state);
 }
 
-export function displayState(run: Pick<RunItem, 'state' | 'live'>): string {
-  return isInterrupted(run) ? 'Interrompida' : runStateLabel(run.state);
-}
-
-export function stateTone(run: Pick<RunItem, 'state' | 'live'>): Tone {
-  if (isInterrupted(run)) return 'warning';
+export function stateTone(run: Pick<RunItem, 'state' | 'interrupted'>): Tone {
+  if (run.interrupted) return 'warning';
   switch (run.state) {
     case 'completed':
       return 'success';
@@ -38,7 +30,7 @@ export function stateTone(run: Pick<RunItem, 'state' | 'live'>): Tone {
 
 /** É orientação, não ação: nada aqui dispara nada. Vazio quando a execução terminou bem ou ainda está andando. */
 export function nextStep(run: RunItem): string {
-  if (isInterrupted(run))
+  if (run.interrupted)
     return 'O aplicativo foi fechado no meio desta execução. Confira o que ela mudou abaixo e execute de novo se precisar.';
   if (run.kind === 'assistant' && run.state === 'failed')
     return 'A pergunta não foi respondida. Veja o motivo abaixo, confira o modelo em Configurações e pergunte de novo no Assistente.';

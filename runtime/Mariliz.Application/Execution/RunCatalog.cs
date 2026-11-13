@@ -195,8 +195,8 @@ public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, R
         ["state"] = journal.State,
         ["startedAt"] = journal.StartedAt.ToString("O", CultureInfo.InvariantCulture),
         ["finishedAt"] = journal.FinishedAt?.ToString("O", CultureInfo.InvariantCulture),
-        // Andando neste processo agora, e não só "running" no diário: uma queda deixa o diário assim sem ninguém executando.
-        ["live"] = tracker.Find(journal.RunId) is { } handle && !RunStates.IsTerminal(handle.State),
+        ["live"] = IsLive(journal),
+        ["interrupted"] = journal.State is RunStates.Running or RunStates.Validating && !IsLive(journal),
         ["changesApplied"] = journal.ChangesApplied && !journal.RolledBack,
         ["reverted"] = journal.RevertedByRunId is not null,
         ["canRevert"] = journal.CanBeReverted,
@@ -207,6 +207,9 @@ public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, R
         ["notApplied"] = journal.NotApplied.Count,
         ["tokens"] = journal.ModelUsage is { } usage ? usage.InputTokens + usage.OutputTokens : null
     };
+
+    // Andando neste processo agora, e não só "running" no diário: depois de uma queda o diário continua assim sem ninguém executando.
+    private bool IsLive(RunJournal journal) => tracker.Find(journal.RunId) is { } handle && !RunStates.IsTerminal(handle.State);
 
     private static string? Clip(string? text) =>
         string.IsNullOrWhiteSpace(text) ? null : text.Length <= MaxErrorText ? text : text[..MaxErrorText];

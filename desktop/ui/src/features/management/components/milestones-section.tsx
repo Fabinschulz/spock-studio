@@ -81,7 +81,6 @@ export function MilestonesBody({ value }: { value: ProjectMilestones }) {
 
 function MilestoneRow({ milestone }: { milestone: MilestoneProgress }) {
   const outlook = OUTLOOK[milestone.outlook] ?? { label: milestone.outlook, tone: 'neutral' as const };
-  const counted = milestone.items - milestone.closedWithoutDelivery;
 
   return (
     <li className={styles.portfolioRow}>
@@ -97,7 +96,7 @@ function MilestoneRow({ milestone }: { milestone: MilestoneProgress }) {
         <StatusChip tone={outlook.tone}>{outlook.label}</StatusChip>
       </div>
       <p className={styles.muted}>
-        {milestone.delivered} de {plural(counted, 'item', 'itens')} entregues,{' '}
+        {milestone.delivered} de {plural(milestone.counted, 'item', 'itens')} entregues,{' '}
         {plural(milestone.open, 'aberto', 'abertos')}
         {milestone.closedWithoutDelivery > 0
           ? `; ${plural(milestone.closedWithoutDelivery, 'concluído sem entrega', 'concluídos sem entrega')}`

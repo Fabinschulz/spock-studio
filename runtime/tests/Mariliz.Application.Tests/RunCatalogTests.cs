@@ -170,10 +170,12 @@ public class RunCatalogTests : IDisposable
         Assert.True(_tracker.TryStart(One, RunKinds.Apply, out var handle));
         Save(One, handle!.RunId, 2, state: RunStates.Running);
 
-        var runs = List(new JsonObject())["runs"]!.AsArray().ToDictionary(run => run!["runId"]!.GetValue<string>(), run => run!["live"]!.GetValue<bool>());
+        var runs = List(new JsonObject())["runs"]!.AsArray().ToDictionary(run => run!["runId"]!.GetValue<string>(), run => run!.AsObject());
 
-        Assert.False(runs["run-queda"]);
-        Assert.True(runs[handle.RunId]);
+        Assert.False(runs["run-queda"]["live"]!.GetValue<bool>());
+        Assert.True(runs["run-queda"]["interrupted"]!.GetValue<bool>());
+        Assert.True(runs[handle.RunId]["live"]!.GetValue<bool>());
+        Assert.False(runs[handle.RunId]["interrupted"]!.GetValue<bool>());
     }
 
     [Fact]

@@ -288,7 +288,8 @@
           ],
           "riskFactors": [],
           "unavailable": null
-        }
+        },
+        "counted": 5
       }
     ],
     "omitted": 0,

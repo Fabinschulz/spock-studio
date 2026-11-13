@@ -164,6 +164,7 @@ export const milestoneProgressSchema = z.object({
   delivered: z.number(),
   /** Concluídos que não contam como entrega: descartados, duplicados, pull request fechado sem merge. */
   closedWithoutDelivery: z.number(),
+  counted: z.number(),
   open: z.number(),
   /** done, on_track, at_risk, behind, overdue, no_forecast ou no_due_date. Um valor novo aparece como veio. */
   outlook: z.string(),

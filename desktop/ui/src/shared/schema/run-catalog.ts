@@ -31,6 +31,7 @@ export const runItemSchema = z.object({
   finishedAt: z.string().nullable(),
   /** Andando neste processo agora. Um diário "running" sem isso foi interrompido por uma queda. */
   live: z.boolean(),
+  interrupted: z.boolean(),
   changesApplied: z.boolean(),
   reverted: z.boolean(),
   canRevert: z.boolean(),
