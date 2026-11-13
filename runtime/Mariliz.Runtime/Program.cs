@@ -6,6 +6,7 @@ using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Management;
 using Mariliz.Application.Management.Assistant;
+using Mariliz.Application.Management.Investigation;
 using Mariliz.Application.Audit;
 using Mariliz.Application.Timeline;
 using Mariliz.Application.Workflows;
@@ -49,6 +50,8 @@ var harnessRevisions = new HarnessRevisionService(engine.Workspace, engine.Files
 var timeline = new ProjectTimelineService(engine.Workspace, engine.Clock, engine.Store, harnessRevisions, profiles, decisions, management, integrations);
 // A trilha de auditoria só lê o arquivo de auditoria e o diário das execuções: nada é copiado para um terceiro lugar.
 var audit = new ProjectAuditService(engine.Workspace, engine.Clock, engine.Store, integrations.AuditReader, integrations);
+// A investigação cruza os fatos do assistente com os de execuções e de mudanças num workflow do runtime de IA, e o motor confere a resposta.
+var investigation = new InvestigationService(assistant, integrations, engine.Workspace, aiRuntime, engine.Clock, engine.Store, modelAccess, timeline);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
     management: management, assistant: assistant,
@@ -57,7 +60,7 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     knowledge: new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge),
     harness: new HarnessStatusService(engine.Workspace, engine.Files, engine.Clock),
     revisions: harnessRevisions,
-    mcp: new McpInventoryService(engine.Workspace, engine.Files), timeline: timeline, audit: audit);
+    mcp: new McpInventoryService(engine.Workspace, engine.Files), timeline: timeline, audit: audit, investigation: investigation);
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

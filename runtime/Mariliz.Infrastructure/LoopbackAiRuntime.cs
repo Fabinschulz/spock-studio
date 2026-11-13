@@ -14,7 +14,7 @@ namespace Mariliz.Infrastructure;
 /// Sobe <c>intelligence/server.py</c> em <c>127.0.0.1</c> com porta efêmera e token de sessão.
 /// A entrada padrão do filho fica fechada, para não herdar o canal do protocolo.
 /// </summary>
-public sealed class LoopbackAiRuntime : IAiRuntime
+public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime
 {
     private const int MaxLine = 1_000_000;
     private static readonly TimeSpan StartupBudget = TimeSpan.FromSeconds(20);
@@ -108,11 +108,14 @@ public sealed class LoopbackAiRuntime : IAiRuntime
         return hashes;
     }
 
-    public Task<WorkflowAck> StartAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct) =>
-        StreamWorkflowAsync("v1/workflows", request, onEvent, ct);
+    public async Task<WorkflowAck> StartAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct) =>
+        AiWire.ReadAck(await StreamAsync("v1/workflows", request, onEvent, "ai.ack.v3", ct));
 
-    public Task<WorkflowAck> ResumeAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct) =>
-        StreamWorkflowAsync($"v1/workflows/{Uri.EscapeDataString(request.Text("runId"))}/resume", request, onEvent, ct);
+    public async Task<WorkflowAck> ResumeAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct) =>
+        AiWire.ReadAck(await StreamAsync($"v1/workflows/{Uri.EscapeDataString(request.Text("runId"))}/resume", request, onEvent, "ai.ack.v3", ct));
+
+    public Task<JsonObject> InvestigateAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct) =>
+        StreamAsync("v1/investigations", request, onEvent, "ai.investigation.ack.v1", ct);
 
     public async Task CancelAsync(string runId, string? projectId = null, string? executionRoot = null)
     {
@@ -131,9 +134,9 @@ public sealed class LoopbackAiRuntime : IAiRuntime
 
     /// <summary>
     /// Lê o NDJSON à medida que chega: cada <c>ai.event.v1</c> vai para <paramref name="onEvent"/> na hora, e a última linha
-    /// precisa ser o <c>ai.ack.v3</c>. Se o fluxo terminar sem ele, a resposta está fora do contrato.
+    /// precisa ser o ack do schema esperado. Se o fluxo terminar sem ele, a resposta está fora do contrato.
     /// </summary>
-    private async Task<WorkflowAck> StreamWorkflowAsync(string path, JsonObject body, Action<JsonObject> onEvent, CancellationToken ct)
+    private async Task<JsonObject> StreamAsync(string path, JsonObject body, Action<JsonObject> onEvent, string ackSchema, CancellationToken ct)
     {
         await EnsureReadyAsync(ct);
         HttpClient? http;
@@ -158,7 +161,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime
                 if (line.Length > MaxLine || JsonNode.Parse(line) is not JsonObject item)
                     throw EngineErrors.AiRuntimeInvalidResponse();
                 var schema = item.Text("schema");
-                if (schema is "ai.ack.v3") return AiWire.ReadAck(item);
+                if (schema == ackSchema) return item;
                 if (schema is not "ai.event.v1") throw EngineErrors.AiRuntimeInvalidResponse();
                 onEvent(item);
             }

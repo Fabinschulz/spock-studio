@@ -2,6 +2,7 @@ import catalogFixture from '@contracts/fixtures/integrations/catalog.json';
 import connectionsFixture from '@contracts/fixtures/integrations/connections.json';
 import integrationsFixture from '@contracts/fixtures/integrations/integrations.json';
 import answerFixture from '@contracts/fixtures/management/assistant-answer.json';
+import investigationFixture from '@contracts/fixtures/management/investigation.json';
 import evidenceFixture from '@contracts/fixtures/management/assistant-evidence.json';
 import forecastFixture from '@contracts/fixtures/management/forecast.json';
 import metricsFixture from '@contracts/fixtures/management/metrics.json';
@@ -207,6 +208,10 @@ export function fakeIntegrationEngine(
       provider: initial.modelConfigured === false ? '' : 'openai'
     }),
     'management.evidence': (params) => ({ ...evidenceFixture, projectId: params.projectId }),
+    'management.investigate': (params) => ({
+      ...investigationFixture,
+      answer: { ...investigationFixture.answer, projectId: params.projectId }
+    }),
     'management.ask': (params) => {
       const reply = initial.assistant ?? 'answer';
       if (typeof reply === 'object') throw new EngineError(reply.code, reply.message);

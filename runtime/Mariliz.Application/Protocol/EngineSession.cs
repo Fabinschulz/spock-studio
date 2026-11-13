@@ -8,6 +8,7 @@ using Mariliz.Application.Harness;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Management;
 using Mariliz.Application.Management.Assistant;
+using Mariliz.Application.Management.Investigation;
 using Mariliz.Application.Models;
 using Mariliz.Application.Timeline;
 using Mariliz.Application.Workflows;
@@ -60,7 +61,8 @@ public sealed class EngineSession
         DecisionService? decisions = null,
         ReportService? reports = null,
         ProjectTimelineService? timeline = null,
-        ProjectAuditService? audit = null)
+        ProjectAuditService? audit = null,
+        InvestigationService? investigation = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
@@ -69,7 +71,7 @@ public sealed class EngineSession
         _models = models is null ? null : new ModelRequestHandler(models);
         _runs = runs is null ? null : new RunRequestHandler(runs);
         _integrations = integrations is null ? null : new IntegrationRequestHandler(integrations);
-        _management = management is null ? null : new ManagementRequestHandler(management, assistant, reports);
+        _management = management is null ? null : new ManagementRequestHandler(management, assistant, reports, investigation);
         _decisions = decisions is null ? null : new DecisionRequestHandler(decisions);
         _timeline = timeline is null ? null : new TimelineRequestHandler(timeline);
         _audit = audit is null ? null : new AuditRequestHandler(audit);

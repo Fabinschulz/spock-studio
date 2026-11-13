@@ -846,7 +846,7 @@ Limites: o arquivo de auditoria hoje só registra integrações, decisões e con
 aparecem pelo diário, não pelo arquivo. Como não há identidade de pessoa, "quem" fica para quando houver. Nada disto foi
 conferido no navegador, só por testes.
 
-**Terceira entrega da fase G: o workflow de investigação (lado Python).** O segundo grafo do runtime de IA, `management.investigation`, com contrato e testes. **Ainda não está ligado ao motor nem à interface**: nada o chama, e por isso a investigação ainda não pode ser feita pela tela.
+**Terceira entrega da fase G: o workflow de investigação (lado Python).** O segundo grafo do runtime de IA, `management.investigation`, com contrato e testes. Esta entrega não ligava o grafo ao motor nem à interface; a quarta entrega, abaixo, liga.
 
 | Feito | Observação |
 | --- | --- |
@@ -860,3 +860,18 @@ conferido no navegador, só por testes.
 | Testes | 26 novos em Python (enquadramento, laço, teto, orçamento, citação, sem modelo, caminho sem texto, injeção) e 1 do servidor; 135 no total. No motor, o caso `investigate` no mapeamento de finalidades e as 16 fixtures contra os schemas |
 
 Falta para a investigação existir de ponta a ponta: o motor chamar o runtime (`InvestigationService`: montar os fatos, incluindo os de **execuções e mudanças** que o assistente ainda não tem, conferir com o `AnswerVerifier`, gravar o diário com o caminho), o método do protocolo, a tela com o caminho reaberto na central, e **a validação com modelo real**, que nunca aconteceu: o comportamento do laço (o que o modelo pede, se para no teto) só foi provado com modelo falso.
+
+**Quarta entrega da fase G: a investigação de ponta a ponta (motor e tela).** A pergunta "por que a vazão caiu?" agora pode ser investigada em etapas pela tela do Assistente.
+
+| Feito | Observação |
+| --- | --- |
+| `management.investigate` | `InvestigationService` no motor: monta os fatos (os do assistente mais dois grupos novos, **execuções** e **mudanças**, dos últimos 28 dias), manda ao runtime (`IInvestigationRuntime`, `POST /v1/investigations`), **confere** o resultado e grava o diário. Sem projeto autorizado ou com pergunta fora de 3 a 500 caracteres, recusa antes de chamar o runtime e sem criar execução |
+| Fatos de execução e de mudança | `runs.summary` e `runs.failed` vêm do diário (tipos e contagens: quantas falharam, terminaram com limitações, foram revertidas; perguntas ao assistente e investigações ficam de fora, porque não são entrega); `changes.summary` e `changes.problems` vêm da linha do tempo (revisões do Harness, perfil, decisões, risco, sincronizações). Só contagens e tipos: nunca título de item, texto de decisão nem texto de erro |
+| Conferência no motor | A resposta passa pelo mesmo `AnswerVerifier` do assistente, mas **só contra os fatos que a investigação consultou**: citar um fato que existe e que ela nunca olhou não passa. Número que os fatos citados não têm é descartado. O caminho só fala de etapas e fatos que existem (o resto é descartado) e o código de falha do runtime só vale no formato esperado |
+| Uso de modelo | Vem do proxy do motor, não do que o runtime diz: teto de 24 mil tokens, acesso aberto só para esta investigação e sempre fechado, inclusive no prazo estourado (150 s) |
+| Sem chave de modelo | A investigação ainda roda: lista os sinais como o motor os calculou e diz que o modelo não escreveu a análise. O botão "Perguntar" continua exigindo a chave |
+| Central de execuções | Tipo novo `investigation` ("Investigação de gestão"): o diário traz o caminho como etapas, cada uma com os **ids** dos fatos consultados, a conferência do motor e as limitações. Nunca a pergunta, as hipóteses nem a resposta |
+| Tela | No Assistente, a caixa "Investigar em etapas" troca o botão para "Investigar", mostra a resposta conferida (as mesmas seções) e o bloco **Caminho da investigação** (rodadas, etapas, grupos e fatos, o que limitou, e o id da execução com o link para a central) |
+| Testes | 23 no motor (fatos, pedido, conferência, caminho, falhas, prazo, diário sem texto, auditoria, central, protocolo, contrato, e **um com o runtime Python de verdade, sem modelo**), mais os de Python e 4 de tela e contrato |
+
+Limites: o caminho **não abre direto** a execução na central (a central ainda não tem endereço por execução: o link leva à lista, onde o filtro "Investigação de gestão" a encontra). A pergunta não aparece no diário, então a execução na central diz só o tipo. O resumo e as inferências dependem do modelo; **nenhuma investigação com modelo real foi feita**: o laço (o que o modelo pede, se para no teto, se cruza de fato riscos com execuções) só foi provado com modelo falso. O critério "cada afirmação cita um fato e o caminho pode ser reaberto" está atendido na forma, e falta provar com a OpenAI ou a Anthropic.

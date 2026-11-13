@@ -18,7 +18,8 @@ const DEFAULT_REQUEST: Record<string, string> = {
   validate: 'Validar o projeto contra as verificações do Harness.',
   revert: 'Reverter uma aplicação anterior do Harness.',
   workflow: 'Pedido de engenharia.',
-  assistant: 'Pergunta ao assistente gerencial sobre o projeto.'
+  assistant: 'Pergunta ao assistente gerencial sobre o projeto.',
+  investigation: 'Investigação de gestão em etapas sobre o projeto.'
 };
 
 /**

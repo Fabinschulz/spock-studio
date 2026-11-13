@@ -175,6 +175,7 @@ public sealed class ProjectTimelineService(
         RunKinds.Validate => "Validação do Harness",
         RunKinds.Workflow => "Pedido de engenharia",
         RunKinds.Assistant => "Pergunta ao assistente gerencial",
+        RunKinds.Investigation => "Investigação de gestão",
         RunKinds.Apply => "Aplicação do Harness",
         RunKinds.Revert => "Reversão do Harness",
         _ => "Execução"

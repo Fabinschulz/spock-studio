@@ -12,6 +12,7 @@ import {
   projectRiskHistorySchema,
   modelStatusSchema,
   portfolioSchema,
+  projectInvestigationSchema,
   projectForecastSchema,
   projectMetricsSchema,
   projectRisksSchema,
@@ -26,6 +27,7 @@ import {
   type ProjectRiskHistory,
   type ModelStatus,
   type Portfolio,
+  type ProjectInvestigation,
   type ProjectForecast,
   type ProjectMetrics,
   type ProjectRisks
@@ -62,6 +64,8 @@ export type ManagementApi = {
   /** Os itens do projeto que têm execuções ligadas. Só leitura; as ligações se fazem no detalhe da execução. */
   linkedRuns(projectId: string): Promise<LinkedItemsResult>;
   ask(projectId: string, question: string): Promise<AssistantAnswer>;
+  /** A pergunta investigada em etapas: o motor cruza riscos, execuções e mudanças e confere a resposta. Funciona sem chave de modelo, só com os sinais. */
+  investigate(projectId: string, question: string): Promise<ProjectInvestigation>;
 };
 
 export function createManagementApi(client: EngineClient): ManagementApi {
@@ -89,6 +93,8 @@ export function createManagementApi(client: EngineClient): ManagementApi {
     modelStatus: () => client.request('model.status', {}, modelStatusSchema),
     linkedRuns: (projectId) => client.request('run.linked', { projectId }, linkedItemsResultSchema),
     evidence: (projectId) => client.request('management.evidence', { projectId }, evidencePackSchema),
-    ask: (projectId, question) => client.request('management.ask', { projectId, question }, assistantAnswerSchema)
+    ask: (projectId, question) => client.request('management.ask', { projectId, question }, assistantAnswerSchema),
+    investigate: (projectId, question) =>
+      client.request('management.investigate', { projectId, question }, projectInvestigationSchema)
   };
 }

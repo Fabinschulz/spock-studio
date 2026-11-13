@@ -55,6 +55,7 @@ public static class ProtocolMethods
     public const string ManagementReport = "management.report";
     public const string ManagementEvidence = "management.evidence";
     public const string ManagementAsk = "management.ask";
+    public const string ManagementInvestigate = "management.investigate";
     public const string DecisionRecord = "decision.record";
     public const string DecisionList = "decision.list";
     public const string DecisionGet = "decision.get";
@@ -87,7 +88,7 @@ public static class ProtocolMethods
     ];
 
     /// <summary>Visão gerencial: só leitura do que já foi sincronizado.</summary>
-    public static readonly IReadOnlyList<string> Management = [ManagementPortfolio, ManagementMetrics, ManagementForecast, ManagementRisks, ManagementRiskHistory, ManagementMilestones, ManagementReport, ManagementEvidence, ManagementAsk];
+    public static readonly IReadOnlyList<string> Management = [ManagementPortfolio, ManagementMetrics, ManagementForecast, ManagementRisks, ManagementRiskHistory, ManagementMilestones, ManagementReport, ManagementEvidence, ManagementAsk, ManagementInvestigate];
 
     /// <summary>Decisões gerenciais: registrar com os fatos do momento, listar e abrir. Sem editar nem apagar.</summary>
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];

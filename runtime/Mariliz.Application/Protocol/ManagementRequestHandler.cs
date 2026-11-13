@@ -3,16 +3,18 @@ using Mariliz.Application.Integrations;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Management;
 using Mariliz.Application.Management.Assistant;
+using Mariliz.Application.Management.Investigation;
 
 namespace Mariliz.Application.Protocol;
 
 /// <summary>Traduz <c>management.*</c> para o <see cref="ManagementService"/>.</summary>
-internal sealed class ManagementRequestHandler(ManagementService service, ManagementAssistant? assistant, ReportService? report = null)
+internal sealed class ManagementRequestHandler(ManagementService service, ManagementAssistant? assistant, ReportService? report = null, InvestigationService? investigation = null)
 {
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
         ProtocolMethods.ManagementEvidence => IntegrationJson.Node(Assistant().Evidence(p.Str("projectId")))!.AsObject(),
         ProtocolMethods.ManagementAsk => IntegrationJson.Node(await Assistant().AskAsync(p.Str("projectId"), p.Str("question"), ct))!.AsObject(),
+        ProtocolMethods.ManagementInvestigate => IntegrationJson.Node(await Investigation().InvestigateAsync(p.Str("projectId"), p.Str("question"), ct))!.AsObject(),
         ProtocolMethods.ManagementPortfolio => IntegrationJson.Node(service.Portfolio())!.AsObject(),
         ProtocolMethods.ManagementMetrics => IntegrationJson.Node(service.Metrics(p.Str("projectId"), p.OptionalInt("weeks")))!.AsObject(),
         ProtocolMethods.ManagementForecast => IntegrationJson.Node(service.Forecast(p.Str("projectId")))!.AsObject(),
@@ -26,6 +28,10 @@ internal sealed class ManagementRequestHandler(ManagementService service, Manage
     /// <summary>Sem o serviço de relatório (CLI, testes de outras áreas), o relatório não existe; os demais métodos seguem.</summary>
     private ReportService Report() =>
         report ?? throw new EngineException("REPORT_UNAVAILABLE", "O relatório não está disponível nesta sessão do motor.");
+
+    /// <summary>Sem o runtime de IA (CLI, testes de outras áreas), a investigação não existe; os demais métodos seguem.</summary>
+    private InvestigationService Investigation() =>
+        investigation ?? throw new EngineException("INVESTIGATION_UNAVAILABLE", "A investigação não está disponível nesta sessão do motor.");
 
     /// <summary>Sem proxy de modelo (CLI, testes de outras áreas), o assistente não existe; os demais métodos seguem.</summary>
     private ManagementAssistant Assistant() =>

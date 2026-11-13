@@ -19,7 +19,7 @@ MAX_ROUNDS = 3
 MAX_GATHERED = 120
 MAX_DETERMINISTIC_SIGNS = 6
 # Os grupos que dão o chão da resposta (a data de hoje, o período, a frescura dos dados) entram sempre.
-BASE_GROUPS = ("contexto", "fontes")
+BASE_GROUPS = ("contexto", "fontes", "nao calculado")
 FALLBACK_GROUPS = ("indicadores", "riscos")
 # Grupos cujos fatos são sinais de atenção: sem modelo, a resposta os lista como foram calculados.
 SIGN_GROUPS = ("riscos", "execucoes")

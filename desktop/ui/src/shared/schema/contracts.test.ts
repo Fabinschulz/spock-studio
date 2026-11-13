@@ -1,4 +1,5 @@
 import auditFixture from '@contracts/fixtures/audit/audit.json';
+import investigationFixture from '@contracts/fixtures/management/investigation.json';
 import timelineFixture from '@contracts/fixtures/timeline/timeline.json';
 import { describe, expect, it } from 'vitest';
 
@@ -74,6 +75,7 @@ import {
   profileResultSchema,
   projectKnowledgeSchema,
   projectAuditTrailSchema,
+  projectInvestigationSchema,
   projectTimelineSchema,
   runDetailSchema,
   linkedItemsResultSchema,
@@ -657,5 +659,30 @@ describe('contrato da trilha de auditoria do projeto (fixture do motor)', () => 
 
   it('o texto não carrega credencial, texto de pedido nem identificador de item', () => {
     expect(JSON.stringify(auditFixture)).not.toMatch(/acme\/app#|ghp_|sk-/);
+  });
+});
+
+describe('contrato da investigação de gestão (fixture do motor)', () => {
+  it('traz a resposta conferida, o caminho percorrido e o que limitou a investigação', () => {
+    const parsed = projectInvestigationSchema.parse(investigationFixture);
+    expect(parsed.path.map((step) => step.id)).toEqual(['frame', 'gather', 'conclude']);
+    expect(parsed.rounds).toBe(1);
+    expect(parsed.usedModel).toBe(true);
+    expect(parsed.limitations.map((item) => item.code)).toEqual(['INVESTIGATION_STOPPED']);
+    expect(parsed.runId).toBe(parsed.investigationId);
+  });
+
+  it('cada afirmação cita fatos que a própria resposta traz e o caminho só tem ids, nunca texto', () => {
+    const parsed = projectInvestigationSchema.parse(investigationFixture);
+    const cited = new Set(parsed.answer.evidence.map((fact) => fact.id));
+    for (const statement of [...parsed.answer.observed, ...parsed.answer.inferences]) {
+      expect(statement.evidence.length).toBeGreaterThan(0);
+      for (const id of statement.evidence) expect(cited.has(id)).toBe(true);
+    }
+    for (const step of parsed.path) for (const id of step.facts) expect(id).toMatch(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/);
+  });
+
+  it('não carrega pergunta, credencial nem título de item', () => {
+    expect(JSON.stringify(investigationFixture)).not.toMatch(/SEGREDO|ghp_|sk-|Titulo secreto/);
   });
 });

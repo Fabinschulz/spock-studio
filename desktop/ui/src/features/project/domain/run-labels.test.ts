@@ -10,6 +10,7 @@ describe('rótulos das execuções', () => {
     expect(runKindLabel('novo-tipo')).toBe('novo-tipo');
     expect(runKindLabel('workflow')).toBe('Workflow');
     expect(runKindLabel('assistant')).toBe('Pergunta ao assistente');
+    expect(runKindLabel('investigation')).toBe('Investigação de gestão');
   });
 
   it('só diz o que a execução deixou no projeto quando é verdade', () => {

@@ -211,6 +211,21 @@
   color: var(--color-text-muted);
 }
 
+.path {
+  margin: 0;
+  padding: 0 0 0 var(--space-4);
+
+  li + li {
+    margin-top: var(--space-2);
+  }
+}
+
+.hint {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
 .field {
   display: flex;
   flex-direction: column;

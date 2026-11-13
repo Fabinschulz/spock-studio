@@ -1,0 +1,97 @@
+{
+  "investigationId": "inv-000000000001",
+  "runId": "inv-000000000001",
+  "answeredAt": "2026-11-10T12:00:00+00:00",
+  "rounds": 1,
+  "usedModel": true,
+  "answer": {
+    "projectId": "p-000000000001",
+    "answeredAt": "2026-11-10T12:00:00+00:00",
+    "summary": "Há 2 itens abertos.",
+    "observed": [
+      {
+        "text": "Issues: 18 itens sincronizados, 2 abertos.",
+        "evidence": [
+          "flow.issues.items"
+        ]
+      }
+    ],
+    "calculations": [],
+    "inferences": [
+      {
+        "text": "O prazo vencido pode estar atrasando a vazão.",
+        "evidence": [
+          "risk.overdue"
+        ]
+      }
+    ],
+    "recommendations": [],
+    "unavailable": [
+      "Os fatos não dizem o motivo."
+    ],
+    "rejected": [
+      {
+        "section": "Investigação",
+        "text": "Sem citação.",
+        "reason": "Não cita nenhum fato consultado na investigação."
+      }
+    ],
+    "evidence": [
+      {
+        "id": "flow.issues.items",
+        "group": "indicadores",
+        "text": "Issues: 18 itens sincronizados, 2 abertos."
+      },
+      {
+        "id": "risk.overdue",
+        "group": "riscos",
+        "text": "Risco detectado por regra: Itens com prazo vencido, severidade alta. 1 de 1 item aberto com prazo está vencido. O mais atrasado venceu há 9 dias. Itens: 41."
+      }
+    ],
+    "model": "gpt-4o-mini-2024-07-18",
+    "inputTokens": 2400,
+    "outputTokens": 600
+  },
+  "path": [
+    {
+      "id": "frame",
+      "title": "Pergunta enquadrada",
+      "detail": "Começa por: contexto, indicadores.",
+      "round": 0,
+      "groups": [
+        "contexto",
+        "indicadores"
+      ],
+      "facts": []
+    },
+    {
+      "id": "gather",
+      "title": "Fatos reunidos (rodada 1)",
+      "detail": "Grupos: contexto, indicadores.",
+      "round": 1,
+      "groups": [
+        "contexto",
+        "indicadores"
+      ],
+      "facts": [
+        "today",
+        "flow.issues.items",
+        "risk.overdue"
+      ]
+    },
+    {
+      "id": "conclude",
+      "title": "Conclusão",
+      "detail": "Escrita pelo modelo, a conferir pelo motor.",
+      "round": 0,
+      "groups": [],
+      "facts": []
+    }
+  ],
+  "limitations": [
+    {
+      "code": "INVESTIGATION_STOPPED",
+      "message": "A investigação parou antes de olhar: riscos."
+    }
+  ]
+}

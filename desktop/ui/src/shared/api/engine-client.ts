@@ -66,6 +66,7 @@ export const ENGINE_METHODS = [
   'management.milestones',
   'management.evidence',
   'management.ask',
+  'management.investigate',
   'decision.record',
   'decision.list',
   'decision.get',
