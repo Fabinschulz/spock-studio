@@ -21,6 +21,12 @@ public sealed record KnowledgeExternalSource(
     int Pending,
     int Outdated);
 
+/// <summary>
+/// As decisões gerenciais registradas no projeto como memória do índice (<see cref="Management.DecisionMemory"/>). Só contagens:
+/// o texto das decisões não sai do motor por esta resposta.
+/// </summary>
+public sealed record KnowledgeMemory(int Documents, int Indexed, int Pending, int Outdated);
+
 /// <summary>Um motivo pelo qual arquivos ficaram fora do conhecimento, com quantos e alguns exemplos.</summary>
 public sealed record KnowledgeExclusion(string Reason, string Label, int Count, IReadOnlyList<string> Examples);
 
@@ -43,4 +49,5 @@ public sealed record ProjectKnowledge(
     int Outdated,
     int Pending,
     int Orphaned,
-    IReadOnlyList<KnowledgeExternalSource> External);
+    IReadOnlyList<KnowledgeExternalSource> External,
+    KnowledgeMemory Memory);

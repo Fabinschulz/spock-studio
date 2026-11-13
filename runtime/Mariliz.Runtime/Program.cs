@@ -27,8 +27,11 @@ var aiRuntime = new LoopbackAiRuntime();
 // As integrações vêm antes dos workflows: o que um projeto autorizou como contexto entra no índice do workflow.
 using var connectorTransport = new HttpsConnectorTransport();
 var integrations = LocalIntegrationHub.Create(engine.DataRoot, engine.Workspace, engine.Clock, connectorTransport, relay.Emit);
+// As decisões registradas viram memória do índice: o store vem antes dos workflows, que montam o contexto.
+var decisionStore = new FileDecisionStore(engine.DataRoot);
+var decisionMemory = new DecisionMemory(engine.Workspace, decisionStore);
 var workflows = new WorkflowService(engine.Workspace, aiRuntime, engine.Tracker, engine.Clock, engine.Store,
-    new WorkflowContextBuilder(engine.Workspace, aiRuntime, engine.Files, engine.Runner, engine.DataRoot, integrations.ExternalKnowledge), modelAccess,
+    new WorkflowContextBuilder(engine.Workspace, aiRuntime, engine.Files, engine.Runner, engine.DataRoot, integrations.ExternalKnowledge, decisionMemory), modelAccess,
     new FileEvalRecords(engine.DataRoot), new ProjectActionExecutor(engine.Workspace, engine.Files));
 // Uma execução que a queda anterior deixou "em andamento" não vai terminar: vira falha antes de qualquer pedido.
 if (WorkflowRecovery.MarkInterrupted(engine.Store, engine.Clock) is > 0 and var interrupted)
@@ -43,7 +46,7 @@ integrations.Sync.Finished += (integration, run) =>
 var runs = new RunQueries(engine.Tracker, engine.Store,
     new RunCatalog(engine.Store, engine.Workspace, engine.Tracker, new RunLinkService(engine.Store, engine.Store, integrations, engine.Workspace, engine.Clock)));
 var assistant = new ManagementAssistant(management, integrations, engine.Workspace, models, engine.Clock, engine.Store);
-var decisions = new DecisionService(engine.Workspace, new FileDecisionStore(engine.DataRoot), engine.Store, assistant.Evidence, integrations.Audit, engine.Clock);
+var decisions = new DecisionService(engine.Workspace, decisionStore, engine.Store, assistant.Evidence, integrations.Audit, engine.Clock);
 var profiles = new TechnologyProfileService(engine.Configure, integrations, engine.Workspace, new FileTechnologyProfileStore(engine.DataRoot), engine.Clock);
 var harnessRevisions = new HarnessRevisionService(engine.Workspace, engine.Files, engine.Store);
 // A linha do tempo só lê o que cada área já guarda: revisões, perfil, execuções, decisões, riscos e sincronizações.
@@ -57,7 +60,7 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     management: management, assistant: assistant,
     decisions: decisions, reports: new ReportService(engine.Workspace, management, decisions, engine.Store, engine.Clock),
     profiles: profiles,
-    knowledge: new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge),
+    knowledge: new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge, decisionMemory),
     harness: new HarnessStatusService(engine.Workspace, engine.Files, engine.Clock),
     revisions: harnessRevisions,
     mcp: new McpInventoryService(engine.Workspace, engine.Files), timeline: timeline, audit: audit, investigation: investigation);

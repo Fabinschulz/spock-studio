@@ -72,5 +72,11 @@
   "outdated": 1,
   "pending": 1,
   "orphaned": 0,
-  "external": []
+  "external": [],
+  "memory": {
+    "documents": 0,
+    "indexed": 0,
+    "pending": 0,
+    "outdated": 0
+  }
 }

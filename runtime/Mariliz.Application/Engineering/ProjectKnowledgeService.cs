@@ -1,5 +1,6 @@
 using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
+using Mariliz.Application.Management;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workflows;
 using Mariliz.Application.Workspace;
@@ -17,7 +18,8 @@ public sealed class ProjectKnowledgeService(
     IAiRuntime runtime,
     string indexRoot,
     IClock clock,
-    ExternalKnowledge? external = null)
+    ExternalKnowledge? external = null,
+    DecisionMemory? memory = null)
 {
     /// <summary>Quantos arquivos a resposta lista; os totais contam todos.</summary>
     public const int MaxListed = 300;
@@ -56,7 +58,10 @@ public sealed class ProjectKnowledgeService(
         var states = allowed.Select(file => State(file.Path, file.Hash)).ToList();
         // Os textos de fontes externas autorizadas também são fonte do índice: não contam como órfãos.
         var externalDocuments = external?.Documents(projectId) ?? [];
-        var sourcePaths = allowed.Select(file => file.Path).Concat(externalDocuments.Select(document => document.Path)).ToHashSet(StringComparer.Ordinal);
+        // As decisões registradas também são fonte do índice: contam como memória, não como órfãs.
+        var memoryDocuments = memory?.Documents(projectId) ?? [];
+        var sourcePaths = allowed.Select(file => file.Path).Concat(externalDocuments.Select(document => document.Path)).Concat(memoryDocuments.Select(document => document.Path)).ToHashSet(StringComparer.Ordinal);
+        var memoryStates = memoryDocuments.Select(document => State(document.Path, document.Hash)).ToList();
         var excluded = Reasons
             .Select(reason => (reason, matches: evaluated.Where(file => file.Reason == reason.Reason).Select(file => file.Path).ToList()))
             .Where(group => group.matches.Count > 0)
@@ -76,7 +81,8 @@ public sealed class ProjectKnowledgeService(
             states.Count(state => state == "outdated"),
             states.Count(state => state == "pending"),
             indexed is null ? 0 : indexed.Keys.Count(path => !sourcePaths.Contains(path)),
-            ExternalSources(projectId, externalDocuments, State));
+            ExternalSources(projectId, externalDocuments, State),
+            new KnowledgeMemory(memoryDocuments.Count, memoryStates.Count(item => item == "indexed"), memoryStates.Count(item => item == "pending"), memoryStates.Count(item => item == "outdated")));
     }
 
     private IReadOnlyList<KnowledgeExternalSource> ExternalSources(

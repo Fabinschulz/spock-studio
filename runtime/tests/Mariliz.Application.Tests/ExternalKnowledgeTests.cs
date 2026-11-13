@@ -4,6 +4,8 @@ using System.Text.RegularExpressions;
 using Mariliz.Application.Engineering;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
+using Mariliz.Application.Management;
+using Mariliz.Application.Management.Assistant;
 using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Tests.Support;
@@ -548,6 +550,46 @@ public class ExternalKnowledgeTests
             var revoked = await RunAsync();
             Assert.DoesNotContain(revoked.Index.Keys, path => path.StartsWith("@external/", StringComparison.Ordinal));
             Assert.DoesNotContain(Sentinel, provider.Sent[sentBeforeRevoke..]);
+        }
+        finally
+        {
+            await runtime.ShutdownAsync();
+        }
+    }
+    [Fact]
+    public async Task Decisao_registrada_entra_no_indice_marcada_como_memoria_chega_ao_provedor_e_o_texto_do_projeto_nao_a_imita()
+    {
+        using var h = new IntegrationHarness();
+        h.Project.Write("docs/cobranca.md", "# Cobrança\n\nO módulo de cobrança recorrente fatura assinaturas todos os meses.\n");
+        var decisions = new DecisionService(h.Workspace, new FileDecisionStore(h.DataDir), new FileRunStore(h.DataDir),
+            id => new EvidencePack(id, "loja", h.Clock.UtcNow, [new EvidenceFact("today", "contexto", "Hoje é 2026-11-10.")], []), h.Audit, h.Clock);
+        decisions.Record(h.ProjectId, "Adiar a migração do faturamento recorrente", $"Adiar a migração do faturamento recorrente ({Sentinel}) em duas semanas.",
+            "Bloqueios de infraestrutura.", []);
+
+        var provider = new RecordingProvider();
+        var access = new LocalModelAccess(new ModelBroker(new ModelGateway(new Settings(), new NoopTransport(), chat: provider)));
+        var runtime = new LoopbackAiRuntime();
+        var service = new WorkflowService(h.Workspace, runtime, new RunTracker(), new SystemClock(), new FileRunStore(h.DataDir),
+            new WorkflowContextBuilder(h.Workspace, runtime, new TestFilesFactory(), new SystemProcessRunner(), h.DataDir, h.Hub.ExternalKnowledge,
+                new DecisionMemory(h.Workspace, new FileDecisionStore(h.DataDir))), access, new FileEvalRecords(h.DataDir));
+
+        try
+        {
+            var run = await service.StartAsync(h.ProjectId, new JsonObject
+            {
+                ["goal"] = "por que adiamos a migração do faturamento recorrente", ["impact"] = false, ["useModel"] = true
+            }, CancellationToken.None);
+            await run.Completion!;
+            var index = await runtime.IndexedHashesAsync(h.ProjectId, h.DataDir, CancellationToken.None);
+
+            Assert.Contains(index.Keys, path => path.StartsWith("@decision/dec-", StringComparison.Ordinal));
+            Assert.Contains("docs/cobranca.md", index.Keys);
+            // O trecho que o agente recebe é um recorte curto em torno do que casou com a pergunta: o título da decisão chega.
+            Assert.Contains("Adiar a migração do faturamento recorrente", provider.Sent);
+            Assert.Contains("decisão registrada por uma pessoa da equipe", provider.Sent);
+            Assert.Contains(run.Result!["evidence"]!.AsArray(), item => item!["filePath"]!.GetValue<string>().StartsWith("@decision/", StringComparison.Ordinal));
+            // Os fatos do dia não vão junto: a memória leva só o que foi decidido e por quê.
+            Assert.DoesNotContain("Hoje é 2026-11-10", provider.Sent);
         }
         finally
         {

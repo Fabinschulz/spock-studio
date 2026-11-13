@@ -1,5 +1,6 @@
 using Mariliz.Application.Harness;
 using Mariliz.Application.Integrations;
+using Mariliz.Application.Management;
 using Mariliz.Application.Ports;
 using Mariliz.Core.Policy;
 using Mariliz.Core.Text;
@@ -65,7 +66,9 @@ internal static class KnowledgeSources
     /// Dado sincronizado que o projeto autorizou como contexto (<see cref="ExternalKnowledge"/>). Entra depois dos arquivos e pela
     /// mesma regra de envio: só o que mudou e cabe no orçamento desta execução leva o texto.
     /// </param>
-    public static IReadOnlyList<Source> Select(IProjectFiles files, IReadOnlyDictionary<string, string> indexed, IEnumerable<ExternalDocument>? external = null)
+    /// <param name="memory">As decisões gerenciais registradas no projeto (<see cref="DecisionMemory"/>), pela mesma regra de envio.</param>
+    public static IReadOnlyList<Source> Select(IProjectFiles files, IReadOnlyDictionary<string, string> indexed, IEnumerable<ExternalDocument>? external = null,
+        IEnumerable<MemoryDocument>? memory = null)
     {
         var selected = new List<Source>();
         var budget = MaxTextChars;
@@ -80,6 +83,7 @@ internal static class KnowledgeSources
 
         foreach (var file in Evaluate(files).Where(file => file.Reason == Exclusion.None)) Add(file.Path, file.Hash!, file.Text!);
         foreach (var document in external ?? []) Add(document.Path, document.Hash, document.Text);
+        foreach (var document in memory ?? []) Add(document.Path, document.Hash, document.Text);
         return selected;
     }
 
@@ -130,7 +134,7 @@ internal static class KnowledgeSources
     {
         if (string.IsNullOrWhiteSpace(path) || path.Contains('\\') || path.Split('/').Contains("..")) return Exclusion.Blocked;
         // O prefixo das fontes externas é só do motor: um arquivo do projeto com esse nome não se passa por dado de terceiros.
-        if (path.StartsWith(ExternalKnowledge.Prefix, StringComparison.Ordinal)) return Exclusion.Blocked;
+        if (path.StartsWith(ExternalKnowledge.Prefix, StringComparison.Ordinal) || path.StartsWith(DecisionMemory.Prefix, StringComparison.Ordinal)) return Exclusion.Blocked;
         var name = path.Split('/')[^1];
         if (BlockedNames.Contains(name) || BlockedExtensions.Contains(System.IO.Path.GetExtension(name)) || BlockedPatterns.Matches(path))
             return Exclusion.Blocked;

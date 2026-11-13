@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Mariliz.Application.Discovery;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
+using Mariliz.Application.Management;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
 
@@ -37,13 +38,16 @@ public sealed class WorkflowContextBuilder : IWorkflowContext
     private readonly IProjectFilesFactory _files;
     private readonly ProjectDiscoverer _discoverer;
     private readonly ExternalKnowledge? _external;
+    private readonly DecisionMemory? _memory;
 
     /// <param name="external">Os itens sincronizados que o projeto autorizou como contexto. Sem isto, o índice só recebe arquivos do projeto.</param>
+    /// <param name="memory">As decisões gerenciais registradas no projeto, como memória do índice.</param>
     public WorkflowContextBuilder(
         WorkspaceAuthorizer workspace, IAiRuntime runtime, IProjectFilesFactory files, IProcessRunner runner, string dataRoot,
-        ExternalKnowledge? external = null)
+        ExternalKnowledge? external = null, DecisionMemory? memory = null)
     {
         _external = external;
+        _memory = memory;
         _workspace = workspace;
         _runtime = runtime;
         _files = files;
@@ -103,7 +107,7 @@ public sealed class WorkflowContextBuilder : IWorkflowContext
         }
 
         var sources = new JsonArray();
-        foreach (var source in KnowledgeSources.Select(_files.Open(root), indexed, _external?.Documents(projectId)))
+        foreach (var source in KnowledgeSources.Select(_files.Open(root), indexed, _external?.Documents(projectId), _memory?.Documents(projectId)))
         {
             var item = new JsonObject { ["path"] = source.Path, ["hash"] = source.Hash };
             if (source.Text is not null) item["text"] = source.Text;
