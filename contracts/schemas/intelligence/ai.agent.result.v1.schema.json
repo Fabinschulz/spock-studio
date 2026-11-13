@@ -23,7 +23,7 @@
     "warnings": { "type": "array", "items": { "$ref": "#/$defs/notice" } },
     "errors": { "type": "array", "items": { "$ref": "#/$defs/notice" } },
     "nextActions": {
-      "description": "Mesmo formato de ai.ack.v2#/$defs/action.",
+      "description": "Mesmo formato de ai.ack.v3#/$defs/action.",
       "type": "array",
       "maxItems": 32,
       "items": { "type": "object", "required": ["id", "kind", "summary", "requiresApproval"] }

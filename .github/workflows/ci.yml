@@ -137,10 +137,10 @@ jobs:
         working-directory: desktop/host/src-tauri
         run: |
           cargo fmt --check
-          cargo clippy --all-targets --all-features -- -D warnings
+          cargo clippy --locked --all-targets --all-features -- -D warnings
       - name: testes do host
         working-directory: desktop/host/src-tauri
-        run: cargo test
+        run: cargo test --locked
       - name: instalador
         working-directory: desktop/host
         env:

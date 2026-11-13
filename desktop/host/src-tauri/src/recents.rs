@@ -59,7 +59,7 @@ fn fnv1a(bytes: &[u8]) -> u64 {
     })
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct RecentStore {
     entries: Vec<StoredProject>,
 }
@@ -187,7 +187,13 @@ impl Recents {
     }
 
     pub fn list(&self) -> Vec<RecentProject> {
-        lock(&self.store).list(|path| Path::new(path).is_dir())
+        self.list_with(|path| Path::new(path).is_dir())
+    }
+
+    /// Copia a lista sob o lock e confere as pastas depois dele: um caminho de rede lento não trava quem registra um projeto.
+    fn list_with(&self, exists: impl Fn(&str) -> bool) -> Vec<RecentProject> {
+        let snapshot = lock(&self.store).clone();
+        snapshot.list(exists)
     }
 
     /// Caminho de um recente pelo id. Só volta o que já passou pelo diálogo nativo.
@@ -205,6 +211,28 @@ mod tests {
             std::env::temp_dir().join(format!("mariliz-recents-{}-{name}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         dir.join(FILE_NAME)
+    }
+
+    #[test]
+    fn listar_nao_segura_o_lock_enquanto_confere_as_pastas() {
+        // A conferência pode ser lenta (pasta de rede desconectada): quem grava um recente não pode esperar por ela.
+        let recents = Recents::load(temp_file("lock-livre"));
+        recents.record(
+            "C:\\a",
+            &AuthorizedProject {
+                display_name: "a".into(),
+                display_path: "~\\a".into(),
+            },
+        );
+        let livre = std::cell::Cell::new(false);
+
+        let lista = recents.list_with(|_| {
+            livre.set(recents.store.try_lock().is_ok());
+            true
+        });
+
+        assert_eq!(lista.len(), 1);
+        assert!(livre.get());
     }
 
     #[test]

@@ -142,13 +142,13 @@ Ordem: 7a primeiro (são defeitos, não estilo). 7c antes de 7d (muda o dispatch
 
 | Onda | Itens | Estado |
 |---|---|---|
-| 7a | CT-N1, PY-N1, NET-M11, NET-M1 (parcial), NET-E4 + RS-N1, NET-E14 | Neste PR |
-| 7b | NET-E2, NET-E3, NET-E5 (permissão), NET-E11 | Mergeada na branch empilhada (#58); chega ao `master` pelo #60 |
-| 7c | NET-E1 (NET-E8 adiado) | Mergeada na branch empilhada (#59); chega ao `master` pelo #60 |
-| 7d | NET-M2, NET-M4 (parcial), NET-E7 (parcial) | Neste PR (empilhado sobre o #60) |
-| 7e | UI-N1, UI-N4 (parcial), UI-N9 (tokens), UI-N14 (parcial) | Neste PR (parte do topo da pilha: 7b/7c/7d) |
-| 7f | UI-N8 (controles nativos → Synthra, menos os radios) | Neste PR (parte do topo da pilha: 7b/7c/7d/7e) |
-| 7g | — | Não iniciada |
+| 7a | CT-N1, PY-N1, NET-M11, NET-M1 (parcial), NET-E4 + RS-N1, NET-E14 | Mergeada (#57) |
+| 7b | NET-E2, NET-E3, NET-E5 (permissão), NET-E11 | Mergeada (#58, chegou ao `master` pelo #60) |
+| 7c | NET-E1 (NET-E8 adiado) | Mergeada (#59, chegou ao `master` pelo #60) |
+| 7d | NET-M2, NET-M4 (parcial), NET-E7 (parcial) | Mergeada (#61) |
+| 7e | UI-N1, UI-N4 (parcial), UI-N9 (tokens), UI-N14 (parcial) | Mergeada (#62) |
+| 7f | UI-N8 (controles nativos → Synthra, menos os radios) | Mergeada (#63) |
+| 7g | PY-N5, PY-N3, CT-N2 (descrições), SC-N1 (`--locked`), RS-N2, RS-N3 (comentário) | Neste PR |
 
 **Decisões de escopo da 7a**
 - CT-N1: quando a volta pede grupos e busca juntos e só cabe uma rodada, a investigação **para** e registra `INVESTIGATION_STOPPED` (em vez de escolher um dos dois pedidos). Teste compara o ack com os `maximum` do schema. O `Math.Clamp` do .NET em `InvestigationService` continua (defesa na borda, NET-M2 trata do ack tipado).
@@ -202,3 +202,29 @@ Ordem: 7a primeiro (são defeitos, não estilo). 7c antes de 7d (muda o dispatch
 - Testes: `src/test/choose-option.ts` (`chooseOption`, `optionsOf`) substitui `userEvent.selectOptions`. 17 chamadas de `selectOptions` e 10 asserções de `toHaveValue`/lista de opções foram reescritas para o que a pessoa vê (texto do combobox e das opções). Os testes de decisões e os de acessibilidade (axe) passaram sem mudança.
 - **Não verificado:** a aparência no app real (tema escuro, largura mínima dos filtros) e leitor de tela com o combobox do MUI. Telas para olhar: Execuções (filtros e "Ligar a um item"), Relatório (período), Configurações (provedor e modelo por finalidade, agora com o rótulo flutuante no lugar do título em negrito) e o formulário de decisões.
 - Gates da 7f: `pnpm check` (tsc, eslint, prettier, 621 testes em 65 arquivos) e `pnpm build` passam. .NET, Rust e Python não foram tocados.
+
+**Decisões de escopo da 7g** (só o que é verificável aqui e não depende de decisão do dono)
+- PY-N5: o bloco de fatos do pedido ao modelo cortava os últimos fatos em silêncio, e o modelo ainda podia citá-los (a lista de ids conhecidos tinha todos). Agora `fit()` decide o que cabe, o agente só conhece (e só aceita citar) o que o modelo viu, e os nós registram `INVESTIGATION_FACTS_TRUNCATED` (código por padrão, não enum: sem mudança de contrato). Teste: o fato cortado não aparece nos pedidos, citá-lo vai para `rejected` e o ack sai `completed_with_limitations`.
+- PY-N3: `retrieval.search` abria uma conexão por trecho candidato (até ~40, cada uma com DDL e commit). `index.chunk_bodies` lê todos numa sessão (o teste conta as sessões: ≤ 3 contra 13 antes). O corpo continua fora do contrato dos trechos.
+- RS-N2: `list_recent_projects` passou a `#[tauri::command(async)]` (comando síncrono roda na thread principal no Tauri 2), a conferência de pastas roda fora do mutex (a lista é copiada sob o lock) e `open_recent_project` confere a pasta em `spawn_blocking`. Teste: o lock está livre enquanto as pastas são conferidas (falhava antes). `record` continua gravando sob o lock de propósito, para a ordem das gravações não se inverter.
+- RS-N3 (parcial): só o comentário de `FRONTEND_METHODS`. **Não feito:** o `params.cloned()` (até 4 MB): mudar a assinatura de `validate_frontend_request` mexe em todos os testes por um ganho que só aparece em pedidos enormes.
+- CT-N2 (parcial): as descrições de `ai.event.v1` e `ai.agent.result.v1` apontam para `ai.ack.v3` (que tem o `$defs/action`). Os ADRs antigos em `docs/architecture` seguem falando de `ai.ack.v2` por serem históricos. **Não feito:** decidir o destino de `ai.agent.result.v1` (sem produtor nem consumidor) e alinhar a regra de `question` entre schema e Python.
+- SC-N1 (parcial): `--locked` no `clippy` e no `cargo test` do CI (o `Cargo.lock` já está versionado; passa local). **Não feito:** fixar a versão do toolchain Rust, mover o clippy para antes do job do instalador, e testes Python em Windows: precisam do CI com orçamento para serem validados, e não dá para provar aqui.
+- **Não feitos, por serem decisão do dono ou de risco maior:** PY-N4 (vocabulário de grupos de fatos no Python: muda o contrato com o motor), PY-N2 (lock do checkpoint cobre o grafo inteiro: precisa de teste de concorrência e desenho), PY-N6..N9 (campos mortos, imports entre pacotes, dicts sem tipo) e SC-N2.
+- Gates da 7g: Python 173 testes e ruff limpo; Rust `fmt`, `clippy --locked -D warnings` e 25 testes com `--locked`; .NET build sem avisos e 169 testes de contrato/protocolo; UI 62 testes de schema. O `dotnet test` completo e o `pnpm check` não foram refeitos: nenhum código .NET ou UI mudou nesta onda.
+
+## 8. Fechamento da auditoria (2026-11-13)
+
+Ondas 7a–7g entregues (#57, #60, #61, #62, #63 e a 7g). O que sobra, por quem decide:
+
+| Dono | Item | Por que está parado |
+|---|---|---|
+| Dono do produto | NET-E5: manter ou não o fallback de chave do modelo em texto puro | decisão de produto; só a permissão do arquivo foi tratada |
+| Dono do produto | NET-M8: limiar canônico de risco e previsão (20% × 50%) | muda os números que a tela mostra |
+| Dono do produto | NET-M10 / UI-N10: remover `model.complete` | superfície sem uso, mas é contrato |
+| Dono do produto | `PortfolioAssistant` grava o mesmo `ModelUsage` em cada projeto | parece defeito de contabilidade; decidir como dividir o uso |
+| Dono do produto | PY-N4, UI-N11/N12: papel dos grupos de fatos, `counted`, Markdown do relatório | mudam o contrato entre componentes |
+| Dono do produto | UI-N8: Radio no Synthra | o ui-kit não tem; os 2 radios seguem nativos |
+| Desenho à parte | os outros 7 hooks de leitura da UI (UI-N1), UI-N2/N3/N5/N6/N7 | semântica própria; cada um pede desenho |
+| Desenho à parte | NET-E6 (`IntegrationHub`), NET-M12, NET-E9, NET-E8, NET-E16, PY-N2 | refatorações de risco médio sem defeito em aberto |
+| CI com orçamento | SC-N1 (toolchain fixo, ordem dos jobs, Python no Windows) | não dá para validar sem rodar a CI |

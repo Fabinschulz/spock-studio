@@ -30,8 +30,9 @@ def search(index_root: str, project_id: str, query: str, limit: int = 5) -> list
             if source == "lexical":
                 entry["hit"] = hit
     terms = index.query_terms(query)
-    for entry in fused.values():
-        body = index.chunk_body(index_root, project_id, entry["hit"]["chunkId"]) or ""
+    bodies = index.chunk_bodies(index_root, project_id, list(fused))
+    for chunk_id, entry in fused.items():
+        body = bodies.get(chunk_id, "")
         entry["score"] += _coverage(f"{entry['hit'].get('heading', '')} {body}", terms)
     ranked = sorted(fused.values(), key=lambda entry: (-entry["score"], entry["hit"]["chunkId"]))
     results = []

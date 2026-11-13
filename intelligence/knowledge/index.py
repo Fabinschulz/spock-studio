@@ -145,6 +145,22 @@ def chunk_body(index_root: str, project_id: str, chunk_id: str) -> str | None:
     return row[0] if row else None
 
 
+def chunk_bodies(index_root: str, project_id: str, chunk_ids: list[str]) -> dict[str, str]:
+    """O corpo de vários trechos numa sessão só (a busca precisa de todos os candidatos; uma conexão por trecho era o N+1)."""
+    ids = list(dict.fromkeys(chunk_ids))
+    path = _index_file(index_root, project_id)
+    if not ids or not path.exists():
+        return {}
+    bodies: dict[str, str] = {}
+    with _session(path) as conn:
+        for start in range(0, len(ids), 500):
+            batch = ids[start : start + 500]
+            marks = ",".join("?" * len(batch))
+            for chunk_id, body in conn.execute(f"SELECT chunk_id, body FROM chunks WHERE chunk_id IN ({marks})", batch):
+                bodies[chunk_id] = body
+    return bodies
+
+
 def query_terms(query: str) -> list[str]:
     tokens: list[str] = []
     for token in _TOKEN.findall(query or ""):
