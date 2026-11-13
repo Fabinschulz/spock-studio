@@ -7,6 +7,7 @@ import type { SelectedProject } from '@/features/project-selection';
 import { EngineError, type EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
 import { fakeIntegrationEngine } from '@/test/fake-integration-engine';
+import { chooseOption } from '@/test/choose-option';
 
 import { ReportPage } from './report-page';
 
@@ -60,7 +61,7 @@ describe('Relatório', () => {
     renderPage(engine.client);
     await screen.findByRole('heading', { name: 'Decisões do período' });
 
-    await userEvent.selectOptions(screen.getByLabelText('Largura do período'), '12');
+    await chooseOption('Largura do período', 'Últimas 12 semanas');
 
     await waitFor(() =>
       expect(reportCalls(engine.calls).at(-1)?.params).toEqual({ projectId: loja.projectId, weeks: 12 })

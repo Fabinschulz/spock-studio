@@ -1,8 +1,8 @@
 import { errorMessage, type EngineClient } from '@/shared/api';
 import { ErrorState, StatusChip, type Tone } from '@/shared/components';
 import type { RunItem, RunLink } from '@/shared/schema';
-import { Button } from '@mariliz/ui-kit';
-import { useId, useState, type FormEvent } from 'react';
+import { Button, TextField } from '@mariliz/ui-kit';
+import { useState, type FormEvent } from 'react';
 
 import { linkRun, unlinkRun } from '../service/runs-api';
 import styles from '../runs-page.module.scss';
@@ -24,7 +24,6 @@ export function RunLinks({ client, run, initial }: { client: EngineClient; run: 
   const [identifier, setIdentifier] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const inputId = useId();
 
   const perform = async (action: () => Promise<RunLink[]>, failure: string): Promise<boolean> => {
     setBusy(true);
@@ -88,18 +87,16 @@ export function RunLinks({ client, run, initial }: { client: EngineClient; run: 
         </ul>
       )}
       <form className={styles.linkForm} onSubmit={(event) => void submit(event)}>
-        <label htmlFor={inputId} className={styles.label}>
-          Ligar a um item (número ou chave)
-        </label>
         <div className={styles.linkInput}>
-          <input
-            id={inputId}
-            className={styles.select}
+          <TextField
+            label="Ligar a um item (número ou chave)"
+            size="small"
+            fullWidth
             value={identifier}
             onChange={(event) => setIdentifier(event.target.value)}
             placeholder="Por exemplo 123 ou APP-12"
             autoComplete="off"
-            spellCheck={false}
+            slotProps={{ htmlInput: { spellCheck: false } }}
           />
           <Button type="submit" variant="outlined" disabled={busy || identifier.trim() === ''}>
             Ligar

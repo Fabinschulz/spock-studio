@@ -2,7 +2,7 @@ import { formatEngineDate } from '@/features/integrations';
 import type { EngineClient } from '@/shared/api';
 import { Page, StatusChip, SuccessState, type Tone } from '@/shared/components';
 import type { ModelConnection, ModelPurpose } from '@/shared/schema';
-import { Button, TextField } from '@mariliz/ui-kit';
+import { Button, SelectField, TextField } from '@mariliz/ui-kit';
 import { useId, useMemo, useState } from 'react';
 
 import { useModelSettings } from './hooks/use-model-settings';
@@ -28,7 +28,6 @@ function protectionText(protection: string | null): string | null {
 
 export function ModelSettingsPage({ client }: { client: EngineClient }) {
   const inputId = useId();
-  const providerId = useId();
   const api = useMemo(() => createModelApi(client), [client]);
   const { connection, busy, error, notice, save: saveKey, test, choose, clear: clearKey } = useModelSettings(api);
   const [key, setKey] = useState('');
@@ -69,20 +68,15 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
 
         {providers.length > 0 ? (
           <div className={styles.field}>
-            <label htmlFor={providerId}>Provedor</label>
-            <select
-              id={providerId}
-              className={styles.select}
+            <SelectField
+              label="Provedor"
+              size="small"
+              fullWidth
               value={provider?.id ?? ''}
               disabled={busy}
-              onChange={(event) => setChosen(event.target.value)}
-            >
-              {providers.map((entry) => (
-                <option key={entry.id} value={entry.id}>
-                  {entry.name}
-                </option>
-              ))}
-            </select>
+              onChange={(event) => setChosen(String(event.target.value))}
+              options={providers.map((entry) => ({ label: entry.name, value: entry.id }))}
+            />
             {provider ? (
               <p className={styles.hint}>
                 Com {provider.name}, as conversas dos agentes usam o modelo{' '}
@@ -178,28 +172,23 @@ function PurposeRow({
   busy: boolean;
   onChoose: (model: string | null) => void;
 }) {
-  const id = useId();
   const models = connection.available.find((entry) => entry.id === connection.provider)?.models ?? [];
   const defaultModel = connection.model;
   return (
     <li className={styles.purpose}>
-      <label htmlFor={id} className={styles.purposeTitle}>
-        {purpose.label}
-      </label>
-      <p className={styles.hint}>{purpose.description}</p>
-      <select
-        id={id}
-        className={styles.select}
+      <SelectField
+        label={purpose.label}
+        size="small"
+        fullWidth
         value={purpose.model}
         disabled={busy}
-        onChange={(event) => onChoose(event.target.value === defaultModel ? null : event.target.value)}
-      >
-        {models.map((option) => (
-          <option key={option.id} value={option.id}>
-            {option.id === defaultModel ? `${option.name} (padrão)` : option.name}
-          </option>
-        ))}
-      </select>
+        onChange={(event) => onChoose(String(event.target.value) === defaultModel ? null : String(event.target.value))}
+        options={models.map((option) => ({
+          label: option.id === defaultModel ? `${option.name} (padrão)` : option.name,
+          value: option.id
+        }))}
+      />
+      <p className={styles.hint}>{purpose.description}</p>
     </li>
   );
 }

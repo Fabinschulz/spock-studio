@@ -5,6 +5,7 @@ import runListFixture from '@contracts/fixtures/runs/run-list.json';
 import { EngineError, type EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
 import type { RunItem } from '@/shared/schema';
+import { chooseOption } from '@/test/choose-option';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
@@ -86,10 +87,10 @@ describe('Execuções', () => {
     renderPage(client);
     await screen.findByRole('list', { name: 'Execuções' });
 
-    await userEvent.selectOptions(screen.getByLabelText('Tipo'), 'workflow');
+    await chooseOption('Tipo', 'Workflow');
     await waitFor(() => expect(listCalls(calls).at(-1)?.params).toMatchObject({ kinds: ['workflow'] }));
 
-    await userEvent.selectOptions(screen.getByLabelText('Estado'), 'failed');
+    await chooseOption('Estado', 'Falhou');
     await waitFor(() =>
       expect(listCalls(calls).at(-1)?.params).toMatchObject({ kinds: ['workflow'], states: ['failed'] })
     );
@@ -103,7 +104,7 @@ describe('Execuções', () => {
     renderPage(client);
     await screen.findByRole('list', { name: 'Execuções' });
 
-    await userEvent.selectOptions(screen.getByLabelText('Tipo'), 'validate');
+    await chooseOption('Tipo', 'Validação');
 
     expect(await screen.findByText('Nenhuma execução combina com esses filtros.')).toBeTruthy();
   });
@@ -113,7 +114,7 @@ describe('Execuções', () => {
     const { unmount } = renderPage(withProject.client);
     await screen.findByRole('list', { name: 'Execuções' });
 
-    await userEvent.selectOptions(screen.getByLabelText('Projeto'), 'one');
+    await chooseOption('Projeto', /^Só /);
     await waitFor(() =>
       expect(listCalls(withProject.calls).at(-1)?.params).toMatchObject({ projectId: project.projectId })
     );
@@ -146,7 +147,7 @@ describe('Execuções', () => {
     renderPage(client);
     await userEvent.click(await screen.findByRole('button', { name: 'Carregar mais' }));
 
-    await userEvent.selectOptions(screen.getByLabelText('Tipo'), 'apply');
+    await chooseOption('Tipo', 'Configuração aplicada');
 
     await waitFor(() => expect(listCalls(calls).at(-1)?.params).not.toHaveProperty('cursor'));
     expect(listCalls(calls).at(-1)?.params).toMatchObject({ kinds: ['apply'] });
@@ -279,7 +280,7 @@ describe('Execuções · detalhe', () => {
     renderPage(client);
     await screen.findByRole('list', { name: 'Execuções' });
 
-    await userEvent.selectOptions(screen.getByLabelText('Tipo'), 'assistant');
+    await chooseOption('Tipo', 'Pergunta ao assistente');
 
     await waitFor(() => expect(listCalls(calls).at(-1)?.params).toMatchObject({ kinds: ['assistant'] }));
   });

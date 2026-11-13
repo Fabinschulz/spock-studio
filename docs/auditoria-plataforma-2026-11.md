@@ -147,7 +147,8 @@ Ordem: 7a primeiro (são defeitos, não estilo). 7c antes de 7d (muda o dispatch
 | 7c | NET-E1 (NET-E8 adiado) | Mergeada na branch empilhada (#59); chega ao `master` pelo #60 |
 | 7d | NET-M2, NET-M4 (parcial), NET-E7 (parcial) | Neste PR (empilhado sobre o #60) |
 | 7e | UI-N1, UI-N4 (parcial), UI-N9 (tokens), UI-N14 (parcial) | Neste PR (parte do topo da pilha: 7b/7c/7d) |
-| 7f–7g | — | Não iniciadas |
+| 7f | UI-N8 (controles nativos → Synthra, menos os radios) | Neste PR (parte do topo da pilha: 7b/7c/7d/7e) |
+| 7g | — | Não iniciada |
 
 **Decisões de escopo da 7a**
 - CT-N1: quando a volta pede grupos e busca juntos e só cabe uma rodada, a investigação **para** e registra `INVESTIGATION_STOPPED` (em vez de escolher um dos dois pedidos). Teste compara o ack com os `maximum` do schema. O `Math.Clamp` do .NET em `InvestigationService` continua (defesa na borda, NET-M2 trata do ack tipado).
@@ -193,3 +194,11 @@ Ordem: 7a primeiro (são defeitos, não estilo). 7c antes de 7d (muda o dispatch
 - UI-N14 (parcial): removidos `Checklist` e `CommandDisplay` (componentes, SCSS e testes; só os testes os usavam), `connectorName` e o alias `isTerminal`. `workflowStartParamsSchema` **fica**: só os testes o usam, mas é a guarda de contrato do que a UI envia. Não feito: o ramo "indisponível" de `NavEntry` e os tipos sem uso.
 - **Não feitos (fora da 7e):** UI-N2 (cascata de requisições), UI-N3 (leitura que escreve), UI-N5 (formatadores de data/plural), UI-N6 (Timeline e Audit), UI-N7 (formulário de pergunta), UI-N10 (`model.complete`: aguarda decisão do dono), UI-N11/N12 (regra no TS: muda contrato), UI-N8 (Synthra, é a 7f).
 - Gates da 7e: `pnpm check` (tsc, eslint, prettier, 621 testes em 65 arquivos) e `pnpm build` passam. .NET, Rust e Python não foram tocados.
+
+**Decisões de escopo da 7f** (UI-N8)
+- Migrados para o Synthra: 6 `<select>` → `SelectField` (3 filtros de Execuções, período do Relatório, provedor e modelo por finalidade em Configurações), 3 `<input>`/`<textarea>` do formulário de decisões e o campo "Ligar a um item" de Execuções → `TextField` (os `<textarea>` com `multiline`), 1 checkbox → `Checkbox`. Cada controle perdeu o `<label>` e o SCSS próprio (`.select`, `.input`, `.field`, `.label`, `.purposeTitle`), o que também fecha parte do UI-N9 (SCSS morto).
+- **Os 2 radios (`choice-field`, `ai-environment-section`) ficam nativos:** o `@mariliz/ui-kit` não tem Radio. Se o dono quiser, o caminho é pedir um Radio ao Synthra, não escrever um aqui.
+- O `SelectField` é um MUI `Select` (combobox com lista), não um `<select>` nativo: muda o jeito de interagir (lista em popover) e, por isso, **a mudança visual e de comportamento precisa de aprovação do dono**. Valor "sem filtro" virou o texto `all` (um valor vazio num `Select` deixa o rótulo por cima do texto).
+- Testes: `src/test/choose-option.ts` (`chooseOption`, `optionsOf`) substitui `userEvent.selectOptions`. 17 chamadas de `selectOptions` e 10 asserções de `toHaveValue`/lista de opções foram reescritas para o que a pessoa vê (texto do combobox e das opções). Os testes de decisões e os de acessibilidade (axe) passaram sem mudança.
+- **Não verificado:** a aparência no app real (tema escuro, largura mínima dos filtros) e leitor de tela com o combobox do MUI. Telas para olhar: Execuções (filtros e "Ligar a um item"), Relatório (período), Configurações (provedor e modelo por finalidade, agora com o rótulo flutuante no lugar do título em negrito) e o formulário de decisões.
+- Gates da 7f: `pnpm check` (tsc, eslint, prettier, 621 testes em 65 arquivos) e `pnpm build` passam. .NET, Rust e Python não foram tocados.
