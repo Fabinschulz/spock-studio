@@ -338,6 +338,43 @@ public class PortfolioAssistantTests
         Assert.Contains("\"projects\":2", audit.Detail, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task O_diario_de_cada_projeto_diz_que_a_pergunta_cobriu_varios_projetos_e_que_o_uso_e_o_da_pergunta_inteira()
+    {
+        using var s = new Setup();
+        await s.SeedAsync();
+        s.Chat.Reply = Reply("Sem resumo numérico.", ("Issues: 18 itens sincronizados, 2 abertos.", ["p1.flow.issues.items"]));
+
+        await s.Portfolio.AskAsync(Question, null, CancellationToken.None);
+
+        // O mesmo uso aparece nos dois diários (cada projeto mostra o custo real da pergunta que o envolveu); o passo explica isso.
+        var usages = new List<int>();
+        foreach (var projectId in new[] { s.A, s.B })
+        {
+            var journal = Assert.Single(s.Store.ListJournals(projectId));
+            var step = Assert.Single(journal.Steps, item => item.Id == "portfolio");
+            Assert.Equal("Pergunta ao portfólio", step.Title);
+            Assert.Contains("cobriu 2 projetos", step.Detail, StringComparison.Ordinal);
+            Assert.Contains("uso de modelo", step.Detail, StringComparison.Ordinal);
+            Assert.Contains("pergunta inteira", step.Detail, StringComparison.Ordinal);
+            usages.Add(journal.ModelUsage!.InputTokens + journal.ModelUsage.OutputTokens);
+        }
+        Assert.Equal(usages[0], usages[1]);
+    }
+
+    [Fact]
+    public async Task Uma_pergunta_so_sobre_um_projeto_nao_ganha_o_passo_do_portfolio()
+    {
+        using var s = new Setup();
+        await s.SeedAsync();
+        s.Chat.Reply = Reply("Sem resumo numérico.", ("Issues: 4 itens sincronizados, 1 abertos.", ["p1.flow.issues.items"]));
+
+        await s.Portfolio.AskAsync(Question, [s.B], CancellationToken.None);
+
+        var journal = Assert.Single(s.Store.ListJournals(s.B));
+        Assert.DoesNotContain(journal.Steps, item => item.Id == "portfolio");
+    }
+
     // ------------------------------------------------------------------ Protocolo e contrato
 
     [Fact]

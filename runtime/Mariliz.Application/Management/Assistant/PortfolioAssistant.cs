@@ -113,7 +113,7 @@ public sealed class PortfolioAssistant(
         try
         {
             var answer = await AnswerAsync(clean, evidence, ct);
-            foreach (var project in evidence.Projects) assistant.RecordRun(project.ProjectId, startedAt, answer, error: null);
+            foreach (var project in evidence.Projects) assistant.RecordRun(project.ProjectId, startedAt, answer, error: null, coveredProjects: evidence.Projects.Count);
             return new PortfolioAnswer(evidence.Projects, answer);
         }
         catch (EngineException ex)
