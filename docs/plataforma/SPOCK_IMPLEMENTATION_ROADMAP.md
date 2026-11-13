@@ -55,7 +55,7 @@ A e B podem andar em paralelo. C e E dependem só de B. D pede A e B. G fecha o 
 
 ### Fase A: validar o que existe
 
-**Por que primeiro.** A lição mais clara do Kaivor é o custo de acumular funcionalidade "implementada, validação real
+**Por que primeiro.** A lição mais clara é o custo de acumular funcionalidade "implementada, validação real
 pendente". O Spock tem hoje três pontos assim: sincronização real do GitHub, todo o conector do Jira e o assistente
 gerencial com modelo real. Além disso, a chave de modelo está em texto puro.
 
@@ -343,8 +343,7 @@ conferido no aplicativo empacotado que o evento chega do motor real à tela: só
 | Testes | 7 novos no motor e 2 na interface. Suítes: 620 no motor, 430 na interface, tipos, lint, formato e build limpos |
 
 Limites: o registro nasce **depois** da resposta, então uma pergunta que ainda espera o modelo não aparece como
-"em andamento"; e o texto da pergunta não fica no histórico, de propósito, o que torna a lista menos informativa do que
-a do Kaivor.
+"em andamento"; e o texto da pergunta não fica no histórico, de propósito, o que torna a lista menos informativa do que poderia ser.
 
 **Estado da fase C (2026-11-12): oito entregas.** Da tabela original: listagem com filtro e paginação, tela com detalhe
 em painel, resumo de entrega, ligação com item de trabalho (e sua leitura em Gestão), indicador no menu, `run.snapshot`

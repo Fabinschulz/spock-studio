@@ -4,8 +4,8 @@
 **Método:** leitura de código e documentação. Nenhum build, teste ou execução do aplicativo foi feito para este
 documento; números de suíte citados vêm de `docs/plataforma/evolucao-engineering-management.md`.
 
-Este é o documento 2 da análise de referência do Kaivor. Ele registra o que o Spock Studio já faz, o que está parcial e
-o que não existe, para que a comparação (`KAIVOR_SPOCK_COMPARISON.md`) não proponha recriar o que já está pronto.
+Este é o documento 2 da análise de referência. Ele registra o que o Spock Studio já faz, o que está parcial e o que
+não existe, para que as propostas não recriem o que já está pronto.
 
 Legenda de situação: **Implementado**, **Parcial** (com o que falta), **Inexistente**.
 
