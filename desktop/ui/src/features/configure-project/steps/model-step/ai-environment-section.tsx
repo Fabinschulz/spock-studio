@@ -1,3 +1,4 @@
+import { Radio } from '@/shared/components';
 import type { Discovery } from '@/shared/schema';
 
 import { EnvironmentGlyph } from '../../components/environment-glyph';
@@ -29,19 +30,21 @@ export function AiEnvironmentSection({ detected, selected, onSelect }: AiEnviron
             const tags = [detectedIds.has(id) ? 'detectado' : '', supported ? '' : 'sem suporte nesta fase'];
             return (
               <li key={id}>
-                <label className={styles.choice} data-checked={selected === id} aria-disabled={!supported || undefined}>
-                  <input
-                    type="radio"
-                    name="ai-environment"
-                    value={id}
-                    checked={selected === id}
-                    onChange={() => onSelect(id)}
-                  />
-                  <EnvironmentGlyph id={id} />
-                  <span className={styles.name}>{aiEnvironmentNames[id]}</span>
-                  {supported ? <span className="visually-hidden">configuração suportada</span> : null}
-                  <span className={styles.end}>{tags.filter(Boolean).join(' · ')}</span>
-                </label>
+                <Radio
+                  name="ai-environment"
+                  value={id}
+                  checked={selected === id}
+                  onChange={() => onSelect(id)}
+                  labelProps={{ className: styles.choice, 'aria-disabled': !supported || undefined }}
+                  label={
+                    <>
+                      <EnvironmentGlyph id={id} />
+                      <span className={styles.name}>{aiEnvironmentNames[id]}</span>
+                      {supported ? <span className="visually-hidden">configuração suportada</span> : null}
+                      <span className={styles.end}>{tags.filter(Boolean).join(' · ')}</span>
+                    </>
+                  }
+                />
               </li>
             );
           })}
