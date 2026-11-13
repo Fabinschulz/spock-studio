@@ -13,6 +13,12 @@ internal sealed class HarnessComposition(
     /// <summary>Stacks atendidas pela regra JavaScript/TypeScript. O perfil tecnológico lê daqui para dizer o mesmo que o plano.</summary>
     internal static readonly string[] JavascriptStacks = ["node", "nextjs", "react", "angular"];
 
+    /// <summary>A stack que a regra JavaScript/TypeScript atende. O plano, a validação e o perfil usam esta mesma pergunta.</summary>
+    internal static bool IsJavascriptStack(StackFinding stack) => JavascriptStacks.Contains(stack.Id);
+
+    /// <summary>Um comando de build, teste, lint ou verificação de tipos que o projeto declara: o que a regra de comandos do repositório lista.</summary>
+    internal static bool IsRepositoryCommand(ToolingFinding tool) => tool.Command is not null && tool.Kind is "build" or "test" or "lint" or "typecheck";
+
     private readonly List<Limitation> _limitations = [];
     private readonly List<Observation> _observations = [];
     private readonly List<string> _risks = [];
@@ -179,7 +185,7 @@ internal sealed class HarnessComposition(
     private void AddStackRules()
     {
         var dotnet = report.Stacks.Where(s => s.Id == "dotnet").ToList();
-        var javascript = report.Stacks.Where(s => JavascriptStacks.Contains(s.Id)).ToList();
+        var javascript = report.Stacks.Where(IsJavascriptStack).ToList();
 
         if (_components.Wants(Catalog.RuleStackDotnet, dotnet.Count > 0, "Stack .NET detectada.", EvidencePaths(dotnet), "Nenhuma stack .NET detectada."))
             _desired.Add(new(Catalog.PathRuleDotnet, ComponentKind.Rule, Catalog.RuleStackDotnet, DecisionOrigins.Baseline, "Regras da stack .NET.",
@@ -199,7 +205,7 @@ internal sealed class HarnessComposition(
 
     private void AddRepositoryCommands()
     {
-        var commands = report.Tooling.Where(t => t.Command is not null && t.Kind is "build" or "test" or "lint" or "typecheck").ToList();
+        var commands = report.Tooling.Where(IsRepositoryCommand).ToList();
         var evidence = commands.SelectMany(t => t.Evidence.Take(1).Select(e => e.Path)).Distinct().ToList();
 
         if (_components.Wants(Catalog.RuleRepoCommands, commands.Count > 0, "Comandos de build, teste e lint detectados nos arquivos do projeto.", evidence, "Nenhum comando de build ou teste foi detectado."))

@@ -107,10 +107,7 @@ public sealed class PortfolioAssistant(
 
     public async Task<PortfolioAnswer> AskAsync(string question, IReadOnlyList<string>? projectIds, CancellationToken ct)
     {
-        var clean = question.Trim();
-        if (clean.Length is < ManagementAssistant.MinQuestion or > ManagementAssistant.MaxQuestion)
-            throw new ParamException($"A pergunta precisa ter entre {ManagementAssistant.MinQuestion} e {ManagementAssistant.MaxQuestion} caracteres.");
-
+        var clean = ManagementAssistant.CleanQuestion(question);
         var evidence = Evidence(projectIds);
         var startedAt = clock.UtcNow;
         try
@@ -147,20 +144,7 @@ public sealed class PortfolioAssistant(
             ["promptHash"] = completion.PromptHash
         });
 
-        return new AssistantAnswer(
-            "portfolio",
-            clock.UtcNow,
-            verified.Summary,
-            verified.Sections["observed"],
-            verified.Sections["calculations"],
-            verified.Sections["inferences"],
-            verified.Sections["recommendations"],
-            verified.Unavailable,
-            verified.Rejected,
-            evidence.Facts.Where(fact => verified.Cited.Contains(fact.Id)).ToList(),
-            completion.ModelVersion,
-            completion.InputTokens,
-            completion.OutputTokens);
+        return verified.ToAnswer("portfolio", clock.UtcNow, evidence.Facts, completion.ModelVersion, completion.InputTokens, completion.OutputTokens);
     }
 
     /// <summary>Os fatos agrupados por projeto, para o modelo saber de quem é cada id.</summary>
