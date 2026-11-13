@@ -36,6 +36,7 @@ public static class ProtocolMethods
     public const string ConnectionRotate = "connection.rotate";
     public const string ConnectionDisconnect = "connection.disconnect";
     public const string ConnectionRemove = "connection.remove";
+    public const string ConnectionReach = "connection.reach";
     public const string IntegrationList = "integration.list";
     public const string IntegrationLink = "integration.link";
     public const string IntegrationConfigure = "integration.configure";
@@ -76,7 +77,7 @@ public static class ProtocolMethods
     /// <summary>Central de integrações: conexões (<c>connection.*</c>) e o vínculo delas com um projeto (<c>integration.*</c>).</summary>
     public static readonly IReadOnlyList<string> Integrations =
     [
-        IntegrationCatalog, ConnectionList, ConnectionCreate, ConnectionTest, ConnectionRotate, ConnectionDisconnect, ConnectionRemove,
+        IntegrationCatalog, ConnectionList, ConnectionCreate, ConnectionTest, ConnectionRotate, ConnectionDisconnect, ConnectionRemove, ConnectionReach,
         IntegrationList, IntegrationLink, IntegrationConfigure, IntegrationUnlink, IntegrationSync, IntegrationHistory
     ];
 

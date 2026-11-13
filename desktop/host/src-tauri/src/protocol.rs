@@ -38,6 +38,7 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "connection.rotate",
     "connection.disconnect",
     "connection.remove",
+    "connection.reach",
     "integration.list",
     "integration.link",
     "integration.configure",

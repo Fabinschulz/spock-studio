@@ -145,7 +145,7 @@ public class AgentPolicyTests : IDisposable
         var texts = policy.Rules.Select(rule => rule.Plain).Concat(policy.Limits).Concat(policy.Watches).ToList();
 
         Assert.All(texts, text => Assert.False(string.IsNullOrWhiteSpace(text)));
-        Assert.All(texts, text => Assert.DoesNotContain("—", text));
+        Assert.All(texts, text => Assert.DoesNotContain("\u2014", text));
         Assert.Equal(AgentPolicyService.HookRules().Select(rule => (rule.Decision, rule.Scope)), policy.Rules.Select(rule => (rule.Decision, rule.Scope)));
         Assert.Equal(Catalog.PathHookScript, policy.Script);
         Assert.NotEmpty(policy.Limits);

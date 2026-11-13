@@ -1,4 +1,4 @@
-import type { Connection, IntegrationCatalog } from '@/shared/schema';
+import type { Connection, ConnectionReach, IntegrationCatalog } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
@@ -13,10 +13,12 @@ interface ConnectionsSectionProps {
   api: IntegrationApi;
   catalog: IntegrationCatalog;
   connections: Connection[];
+  /** Nulo quando o motor não conseguiu ler o resumo das conexões. */
+  reach: ConnectionReach[] | null;
   onChanged: () => void;
 }
 
-export function ConnectionsSection({ api, catalog, connections, onChanged }: ConnectionsSectionProps) {
+export function ConnectionsSection({ api, catalog, connections, reach, onChanged }: ConnectionsSectionProps) {
   const { busy, error, notice, run } = useAction(onChanged);
   const [adding, setAdding] = useState<string | null>(null);
   const addingConnector = catalog.connectors.find((connector) => connector.provider === adding);
@@ -36,6 +38,7 @@ export function ConnectionsSection({ api, catalog, connections, onChanged }: Con
             key={connection.id}
             connection={connection}
             connector={catalog.connectors.find((connector) => connector.provider === connection.provider)}
+            reach={reach === null ? null : (reach.find((entry) => entry.connectionId === connection.id) ?? null)}
             busy={busy}
             notice={notice?.target === connection.id ? notice.text : null}
             onTest={() =>

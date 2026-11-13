@@ -12,8 +12,13 @@ import { createIntegrationApi } from './service/integration-api';
 export function IntegrationsPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   const api = useMemo(() => createIntegrationApi(client), [client]);
   const load = useCallback(async () => {
-    const [catalog, connections] = await Promise.all([api.catalog(), api.connections()]);
-    return { catalog, connections };
+    // O resumo é um complemento: se ele falhar, a central continua inteira e cada conexão diz que não conseguiu mostrá-lo.
+    const [catalog, connections, reach] = await Promise.all([
+      api.catalog(),
+      api.connections(),
+      api.reach().catch(() => null)
+    ]);
+    return { catalog, connections, reach };
   }, [api]);
   const hub = useReloadable(load);
 
@@ -39,6 +44,7 @@ export function IntegrationsPage({ client, project }: { client: EngineClient; pr
             api={api}
             catalog={hub.value.catalog}
             connections={hub.value.connections}
+            reach={hub.value.reach}
             onChanged={hub.reload}
           />
           <ProjectIntegrationsSection

@@ -17,6 +17,7 @@ import integrationCatalog from '@contracts/fixtures/integrations/catalog.json';
 import integrationConnections from '@contracts/fixtures/integrations/connections.json';
 import integrationHistory from '@contracts/fixtures/integrations/history.json';
 import integrationList from '@contracts/fixtures/integrations/integrations.json';
+import integrationReach from '@contracts/fixtures/integrations/reach.json';
 import assistantAnswer from '@contracts/fixtures/management/assistant-answer.json';
 import assistantEvidence from '@contracts/fixtures/management/assistant-evidence.json';
 import managementForecast from '@contracts/fixtures/management/forecast.json';
@@ -42,6 +43,7 @@ import workflowStarted from '@contracts/fixtures/valid/event.workflow.started.js
 import {
   assistantAnswerSchema,
   connectionListSchema,
+  connectionReachListSchema,
   discoverySchema,
   evidencePackSchema,
   harnessCatalogSchema,
@@ -449,5 +451,25 @@ describe('contrato da política dos agentes (fixture do motor)', () => {
 
   it('nenhuma regra tem texto vazio', () => {
     expect(agentPolicySchema.parse(engineeringPolicy).rules.every((rule) => rule.plain.length > 0)).toBe(true);
+  });
+});
+
+describe('contrato do resumo por conexão (fixture do motor)', () => {
+  it('cada conexão traz o impacto e os projetos que a usam, com o recorte e a política', () => {
+    const parsed = connectionReachListSchema.parse(integrationReach);
+    expect(parsed.connections.map((entry) => entry.impact)).toEqual(['read', 'read']);
+    const used = parsed.connections[0]!;
+    expect(used.projects).toHaveLength(1);
+    expect(used.projects[0]).toMatchObject({ resource: 'acme/app', feedsKnowledge: false });
+    expect(used.projects[0]!.dataKinds.map((kind) => kind.label)).toEqual(['Issues', 'Pull requests']);
+    expect(parsed.connections[1]!.projects).toEqual([]);
+  });
+
+  it('todo conector do catálogo declara o impacto e a fixture não carrega credencial nem caminho', () => {
+    expect(integrationCatalogSchema.parse(integrationCatalog).connectors.map((connector) => connector.impact)).toEqual([
+      'read',
+      'read'
+    ]);
+    expect(JSON.stringify(integrationReach)).not.toMatch(/ghp_|[A-Z]:\\|\/Users\//);
   });
 });

@@ -19,6 +19,7 @@ internal sealed class IntegrationRequestHandler(IntegrationHub hub)
         ProtocolMethods.ConnectionRotate => Connection(await hub.Connections.RotateAsync(p.Str("connectionId"), p.Str("secret"), ct)),
         ProtocolMethods.ConnectionDisconnect => Connection(hub.Connections.Disconnect(p.Str("connectionId"))),
         ProtocolMethods.ConnectionRemove => Removed(() => hub.Connections.Remove(p.Str("connectionId"))),
+        ProtocolMethods.ConnectionReach => new JsonObject { ["connections"] = Array(hub.Reach.List().Select(reach => IntegrationJson.Node(reach))) },
         ProtocolMethods.IntegrationList => new JsonObject
         {
             ["integrations"] = Array(hub.Projects.List(p.Str("projectId")).Select(IntegrationJsonOf))

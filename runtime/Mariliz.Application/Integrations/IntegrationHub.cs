@@ -23,12 +23,14 @@ public sealed class IntegrationHub
         VaultAvailable = vault.Available;
         Connections = new ConnectionService(store, vault, connectors, clock, audit);
         Projects = new ProjectIntegrationService(store, data, Connections, connectors, workspace, activity, clock, audit);
+        Reach = new ConnectionReachService(store, connectors, workspace);
         Sync = new SyncService(Projects, Connections, connectors, data, activity, clock, audit, emit);
     }
 
     public ConnectorRegistry Connectors { get; }
     public ConnectionService Connections { get; }
     public ProjectIntegrationService Projects { get; }
+    public ConnectionReachService Reach { get; }
     public SyncService Sync { get; }
     public SyncActivity Activity { get; }
     public bool VaultAvailable { get; }

@@ -576,6 +576,28 @@ abriu `.claude/` entende cada componente" não foi testado com uma pessoa) e as 
   mudança é por conexão e por projeto; o proxy continua redigindo segredos; a auditoria registra.
 - **Pronto quando:** um teste prova que dado de uma fonte não autorizada nunca chega ao índice nem ao provedor.
 
+**Estado da fase F (2026-11-12).** Primeira entrega na branch `feat/fase-f-integracoes` (criada da `master` depois do
+merge da fase E, PR #54): o **resumo por conexão** e o **vocabulário de impacto**. Restam o provedor de IA como tipo de
+conexão, o segundo provedor, o modelo por finalidade, a política de contextualização consumida pelo índice e o cofre em
+Linux e macOS.
+
+| Feito | Observação |
+| --- | --- |
+| `connection.reach` | Só leitura. Para cada conexão: em quais projetos é usada (nome, recurso), o recorte de dados de cada vínculo (com o rótulo do conector), se o vínculo autoriza servir de contexto e o impacto do conector. Junta o que o motor já guarda (conexões, vínculos, projetos autorizados); nada vai ao provedor. Projeto que não está autorizado neste computador vem sem nome, e a tela não inventa um. A resposta não carrega credencial nem caminho de pasta (teste) |
+| Quatro perguntas na tela | Cada conexão ganhou "O que esta conexão alcança", num `Disclosure` na própria linha: com qual conta entra e se funciona, em quais projetos é usada e com qual recurso, o que se lê de lá e o que o conector pode fazer, e se os agentes de IA podem usar os dados como contexto. É a seção 6.2 de `SPOCK_PRODUCT_EVOLUTION.md` |
+| A resposta sobre contexto diz o que é enviado | "Não": ao provedor de IA vão só números, datas e identificadores de itens, nunca títulos. "Sim": títulos de itens citados em riscos entram no que o assistente envia, e só quando todas as fontes do projeto autorizam. É o que `EvidenceBuilder` faz hoje; a tela diz também que o índice de conhecimento dos agentes de engenharia **ainda não usa** dado sincronizado e que a decisão é de cada projeto, começando em "Não" |
+| Vocabulário de impacto | `ConnectorDescriptor.Impact` (`read`, `write`) e `unknown` para uma conexão cujo conector não existe mais. Todo conector do catálogo declara `read`. Um teste prende isso à estrutura: `IConnectorTransport` só tem `GetAsync` e `ConnectorRequest` só tem `Url` e `Headers`, então uma escrita não cabe no contrato sem quebrar o teste. A tela escreve "Leitura: o Spock Studio só lê do GitHub. Não cria, altera nem apaga nada lá."; um valor que ela não conhece não vira "só lê" |
+| Se o resumo falha | A central continua inteira, e cada conexão diz que não conseguiu mostrar o resumo, em vez de um resumo vazio que pareceria verdade |
+| Testes | 9 no motor (impacto, política que nasce fechada, isolamento entre conexões, projeto sem nome, conector que sumiu, resposta sem credencial) mais a fixture `reach.json` no teste golden das integrações, e 12 na interface (9 da tela, 1 de rótulos e 2 de contrato); os testes antigos da página passaram a buscar o vínculo dentro da seção do projeto, porque o resumo também cita o repositório. Suítes: 791 no motor, 537 na interface, tipos, lint, formato e build limpos |
+
+Limites: o texto sobre o que "Sim" envia descreve o consumidor de hoje (o assistente gerencial). Quando a política passar a
+alimentar o índice, esse texto e o teste que o prende precisam mudar na mesma entrega. O resumo lista os projetos de todas as
+conexões deste computador, sem filtrar pelo projeto aberto. A tela não foi conferida no navegador, só por testes.
+
+Correção de passagem: o teste de tipografia (`Nenhum_arquivo_de_codigo_ou_interface_tem_travessao`) só examina arquivos
+rastreados pelo git, então um travessão num teste novo só aparece depois do commit. Um estava em `AgentPolicyTests.cs`
+(fase E, já na `master`) e foi trocado por escape.
+
 ### Fase G: inteligência compartilhada
 
 Entrega 6 da ordem aprovada e fase 7 do documento da plataforma.

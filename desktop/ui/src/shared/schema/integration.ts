@@ -11,7 +11,9 @@ export const connectorSchema = z.object({
   secret: connectorFieldSchema,
   resource: connectorFieldSchema,
   dataKinds: z.array(z.object({ id: z.string(), label: z.string() })),
-  scopesNote: z.string()
+  scopesNote: z.string(),
+  /** O que o conector pode fazer no provedor: `read` (só lê) ou `write` (altera dados). */
+  impact: z.string()
 });
 
 export const integrationCatalogSchema = z.object({
@@ -80,6 +82,26 @@ export const projectIntegrationSchema = z.object({
   })
 });
 
+/** Um projeto que usa a conexão. `projectName` é nulo quando o projeto não está autorizado neste computador. */
+export const reachProjectSchema = z.object({
+  projectId: z.string(),
+  projectName: z.string().nullable(),
+  resource: z.string(),
+  resourceName: z.string(),
+  dataKinds: z.array(z.object({ id: z.string(), label: z.string() })),
+  feedsKnowledge: z.boolean(),
+  linkedAt: z.string()
+});
+
+/** O que uma conexão alcança: onde é usada, o que se lê de lá e o que o conector pode fazer (`read`, `write` ou `unknown`). */
+export const connectionReachSchema = z.object({
+  connectionId: z.string(),
+  impact: z.string(),
+  projects: z.array(reachProjectSchema)
+});
+
+export const connectionReachListSchema = z.object({ connections: z.array(connectionReachSchema) });
+
 export const integrationListSchema = z.object({ integrations: z.array(projectIntegrationSchema) });
 export const integrationResultSchema = z.object({ integration: projectIntegrationSchema });
 /**
@@ -110,6 +132,8 @@ export type SyncEvent = {
 export const syncResultSchema = z.object({ sync: syncExecutionSchema });
 export const syncHistorySchema = z.object({ syncs: z.array(syncExecutionSchema) });
 
+export type ConnectionReach = z.infer<typeof connectionReachSchema>;
+export type ReachProject = z.infer<typeof reachProjectSchema>;
 export type Connector = z.infer<typeof connectorSchema>;
 export type IntegrationCatalog = z.infer<typeof integrationCatalogSchema>;
 export type Connection = z.infer<typeof connectionSchema>;

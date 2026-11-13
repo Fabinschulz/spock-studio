@@ -47,6 +47,7 @@ export const ENGINE_METHODS = [
   'connection.rotate',
   'connection.disconnect',
   'connection.remove',
+  'connection.reach',
   'integration.list',
   'integration.link',
   'integration.configure',
