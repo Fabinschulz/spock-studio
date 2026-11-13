@@ -16,7 +16,8 @@ public sealed class ModelGateway(
     TimeSpan? timeout = null,
     IModelChatTransport? chat = null,
     IModelCheckStore? checks = null,
-    IClock? clock = null)
+    IClock? clock = null,
+    IModelPreferences? preferences = null)
 {
     /// <summary>O provedor de quem já tinha uma chave antes de haver escolha. Quem decide o provedor de hoje é <see cref="ModelProviders"/>.</summary>
     public const string Provider = "openai";
@@ -52,6 +53,7 @@ public sealed class ModelGateway(
     {
         settings.Clear();
         checks?.Clear();
+        preferences?.Clear();
     }
 
     /// <summary>O provedor como uma conexão: se há chave, onde está guardada e o que a última conferência encontrou.</summary>
@@ -59,11 +61,11 @@ public sealed class ModelGateway(
     {
         var status = settings.Status();
         var available = ModelProviders.Available();
-        if (!status.Configured) return new ModelConnection(false, "", "", "", "none", null, null, null, available);
+        if (!status.Configured) return new ModelConnection(false, "", "", "", "none", null, null, null, available, []);
 
         var provider = Active(status);
         var check = checks?.Read();
-        return new ModelConnection(true, provider.Id, provider.Name, provider.DefaultModel, check?.Status ?? "untested", settings.Protection(), check?.CheckedAt, check?.Error, available);
+        return new ModelConnection(true, provider.Id, provider.Name, provider.DefaultModel, check?.Status ?? "untested", settings.Protection(), check?.CheckedAt, check?.Error, available, Purposes(provider));
     }
 
     /// <summary>
@@ -75,9 +77,47 @@ public sealed class ModelGateway(
         settings.Validate(provider, key);
         await ProbeAsync(ModelProviders.Find(provider) ?? throw new EngineException("MODEL_PROVIDER_DENIED", "O provedor não está disponível."), key, ct);
 
+        var previous = settings.Status();
         settings.Save(provider, key);
+        // Os modelos escolhidos eram os de outro provedor: trocar de provedor volta cada finalidade ao padrão do novo.
+        if (previous.Configured && previous.Provider != provider) preferences?.Clear();
         checks?.Write(new ModelCheck("connected", Now, null));
         return Connection();
+    }
+
+    /// <summary>
+    /// Escolhe o modelo de uma finalidade entre os do provedor da chave guardada; nulo volta ao padrão. Um modelo fora da lista
+    /// do provedor é recusado: a lista é o que o motor sabe chamar, e o agente nunca escolhe.
+    /// </summary>
+    public ModelConnection SetPurposeModel(string purpose, string? model)
+    {
+        if (ModelPurposes.Find(purpose) is null) throw new EngineException("MODEL_PURPOSE_UNKNOWN", "A finalidade não existe.");
+        var status = settings.Status();
+        if (!status.Configured) throw new EngineException("MODEL_NOT_CONFIGURED", "Nenhuma chave está configurada.");
+
+        var provider = Active(status);
+        if (model is not null && provider.Models.All(option => option.Id != model))
+            throw new EngineException("MODEL_CHOICE_DENIED", "Esse modelo não está disponível neste provedor.");
+
+        preferences?.Write(purpose, model is null || model == provider.DefaultModel ? null : model);
+        return Connection();
+    }
+
+    /// <summary>O modelo de cada finalidade no provedor dado. Uma escolha que não pertence ao provedor (de um provedor anterior) vale como não escolhida.</summary>
+    private List<ModelPurposeState> Purposes(ModelProvider provider)
+    {
+        var chosen = preferences?.Read() ?? new Dictionary<string, string>();
+        return ModelPurposes.All.Select(purpose =>
+        {
+            var model = ModelFor(provider, purpose.Id, chosen);
+            return new ModelPurposeState(purpose.Id, purpose.Label, purpose.Description, model, model == provider.DefaultModel);
+        }).ToList();
+    }
+
+    private string ModelFor(ModelProvider provider, string purpose, IReadOnlyDictionary<string, string>? chosen = null)
+    {
+        chosen ??= preferences?.Read() ?? new Dictionary<string, string>();
+        return chosen.TryGetValue(purpose, out var model) && provider.Models.Any(option => option.Id == model) ? model : provider.DefaultModel;
     }
 
     /// <summary>
@@ -152,12 +192,13 @@ public sealed class ModelGateway(
     /// Conversa de um agente. As mensagens saem sem a chave nem formato de segredo, e a resposta volta pela mesma redação.
     /// Falha com <see cref="EngineException"/> (<c>MODEL_NOT_CONFIGURED</c>, <c>MODEL_TIMEOUT</c>); quem cobra o orçamento é o chamador.
     /// </summary>
-    public async Task<ChatCompletion> ChatAsync(ChatRequest request, CancellationToken ct)
+    public async Task<ChatCompletion> ChatAsync(ChatRequest request, CancellationToken ct, string purpose = ModelPurposes.Workflow)
     {
         if (chat is null || !settings.TryGetKey(out var key))
             throw new EngineException("MODEL_NOT_CONFIGURED", "Nenhum modelo está configurado.");
 
         var provider = Active(settings.Status());
+        var model = ModelFor(provider, purpose);
         var messages = request.Messages.Select(m => m with { Content = Redact(m.Content, key) }).ToList();
         var bounded = request with { Messages = messages, MaxTokens = Math.Clamp(request.MaxTokens, 1, MaxChatTokens) };
 
@@ -166,7 +207,7 @@ public sealed class ModelGateway(
         ChatTransportResult result;
         try
         {
-            result = await chat.SendChatAsync(provider.Endpoint, key, provider.DefaultModel, bounded, budget.Token);
+            result = await chat.SendChatAsync(provider.Endpoint, key, model, bounded, budget.Token);
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
@@ -175,7 +216,7 @@ public sealed class ModelGateway(
 
         var text = Redact(result.Text, key);
         if (text.Length > MaxChatText) text = text[..MaxChatText];
-        return new ChatCompletion(text, provider.DefaultModel, result.ModelVersion, Math.Max(0, result.InputTokens), Math.Max(0, result.OutputTokens), HashOf(messages));
+        return new ChatCompletion(text, model, result.ModelVersion, Math.Max(0, result.InputTokens), Math.Max(0, result.OutputTokens), HashOf(messages));
     }
 
     private static string HashOf(IReadOnlyList<ChatMessage> messages)

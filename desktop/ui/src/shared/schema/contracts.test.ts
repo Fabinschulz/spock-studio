@@ -19,6 +19,7 @@ import integrationHistory from '@contracts/fixtures/integrations/history.json';
 import integrationList from '@contracts/fixtures/integrations/integrations.json';
 import integrationReach from '@contracts/fixtures/integrations/reach.json';
 import modelConnectionError from '@contracts/fixtures/models/connection-error.json';
+import modelConnectionPurposes from '@contracts/fixtures/models/connection-purposes.json';
 import modelConnection from '@contracts/fixtures/models/connection.json';
 import assistantAnswer from '@contracts/fixtures/management/assistant-answer.json';
 import assistantEvidence from '@contracts/fixtures/management/assistant-evidence.json';
@@ -501,8 +502,29 @@ describe('contrato da conexão do modelo (fixtures do motor)', () => {
     expect(parsed.lastError?.message).not.toBe('');
   });
 
+  it('cada finalidade diz o modelo de hoje, e sem escolha é o padrão do provedor', () => {
+    const parsed = modelConnectionSchema.parse(modelConnection);
+    expect(parsed.purposes.map((purpose) => purpose.id)).toEqual(['assistant', 'judge', 'workflow']);
+    expect(parsed.purposes.every((purpose) => purpose.isDefault && purpose.model === parsed.model)).toBe(true);
+    expect(parsed.purposes.every((purpose) => purpose.label.length > 0 && purpose.description.length > 0)).toBe(true);
+    const offered = parsed.available.find((provider) => provider.id === parsed.provider)!;
+    expect(offered.models.map((option) => option.id)).toContain(parsed.model);
+  });
+
+  it('uma escolha aparece só na finalidade escolhida e é um modelo que o provedor oferece', () => {
+    const parsed = modelConnectionSchema.parse(modelConnectionPurposes);
+    const judge = parsed.purposes.find((purpose) => purpose.id === 'judge')!;
+    expect(judge).toMatchObject({ model: 'claude-opus-5-5', isDefault: false });
+    expect(parsed.purposes.filter((purpose) => purpose.isDefault).map((purpose) => purpose.id)).toEqual([
+      'assistant',
+      'workflow'
+    ]);
+    const offered = parsed.available.find((provider) => provider.id === parsed.provider)!;
+    expect(offered.models.map((option) => option.id)).toContain(judge.model);
+  });
+
   it('nenhuma resposta carrega a chave', () => {
-    expect(JSON.stringify([modelConnection, modelConnectionError])).not.toMatch(/sk-/);
+    expect(JSON.stringify([modelConnection, modelConnectionError, modelConnectionPurposes])).not.toMatch(/sk-/);
     expect(JSON.stringify([modelConnection, modelConnectionError])).not.toMatch(/https:/);
   });
 });

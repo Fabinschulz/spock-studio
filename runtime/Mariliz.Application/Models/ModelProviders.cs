@@ -1,21 +1,27 @@
 namespace Mariliz.Application.Models;
 
+/// <summary>Um modelo que a pessoa pode escolher num provedor.</summary>
+public sealed record ModelOption(string Id, string Name);
+
 /// <summary>
 /// Um provedor de modelo que o Spock Studio sabe chamar. O endereço é fixo e conhecido: o transporte só fala com os endereços
 /// desta lista, então uma chave nunca é enviada para um destino que a pessoa ou um agente tenha escolhido.
 /// </summary>
-/// <param name="DefaultModel">O modelo das conversas dos agentes. O agente não o escolhe.</param>
-public sealed record ModelProvider(string Id, string Name, Uri Endpoint, string DefaultModel);
+/// <param name="DefaultModel">O modelo de toda finalidade em que a pessoa não escolheu outro. O agente nunca o escolhe.</param>
+/// <param name="Models">Os modelos que a pessoa pode escolher, por finalidade. O padrão é um deles.</param>
+public sealed record ModelProvider(string Id, string Name, Uri Endpoint, string DefaultModel, IReadOnlyList<ModelOption> Models);
 
 /// <summary>Como a interface lista um provedor: sem o endereço, que não é assunto de tela.</summary>
-public sealed record ModelProviderInfo(string Id, string Name, string Model);
+public sealed record ModelProviderInfo(string Id, string Name, string Model, IReadOnlyList<ModelOption> Models);
 
 /// <summary>Os provedores disponíveis nesta versão. É a única lista: validação de provedor, destino permitido e modelo saem daqui.</summary>
 public static class ModelProviders
 {
-    public static readonly ModelProvider OpenAi = new("openai", "OpenAI", new Uri("https://api.openai.com/v1/chat/completions"), "gpt-4o-mini");
+    public static readonly ModelProvider OpenAi = new("openai", "OpenAI", new Uri("https://api.openai.com/v1/chat/completions"), "gpt-4o-mini",
+        [new ModelOption("gpt-4o-mini", "GPT-4o mini"), new ModelOption("gpt-4o", "GPT-4o")]);
 
-    public static readonly ModelProvider Anthropic = new("anthropic", "Anthropic", new Uri("https://api.anthropic.com/v1/messages"), "claude-haiku-5-5");
+    public static readonly ModelProvider Anthropic = new("anthropic", "Anthropic", new Uri("https://api.anthropic.com/v1/messages"), "claude-haiku-5-5",
+        [new ModelOption("claude-haiku-5-5", "Claude Haiku 5.5"), new ModelOption("claude-sonnet-5-5", "Claude Sonnet 5.5"), new ModelOption("claude-opus-5-5", "Claude Opus 5.5")]);
 
     public static IReadOnlyList<ModelProvider> All { get; } = [OpenAi, Anthropic];
 
@@ -31,5 +37,5 @@ public static class ModelProviders
         && string.Equals(endpoint.AbsolutePath, provider.Endpoint.AbsolutePath, StringComparison.Ordinal));
 
     public static IReadOnlyList<ModelProviderInfo> Available() =>
-        All.Select(provider => new ModelProviderInfo(provider.Id, provider.Name, provider.DefaultModel)).ToList();
+        All.Select(provider => new ModelProviderInfo(provider.Id, provider.Name, provider.DefaultModel, provider.Models)).ToList();
 }

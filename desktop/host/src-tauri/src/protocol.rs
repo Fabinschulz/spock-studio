@@ -33,6 +33,7 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "model.complete",
     "model.connection",
     "model.test",
+    "model.purpose",
     "integration.catalog",
     "connection.list",
     "connection.create",

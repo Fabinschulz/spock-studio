@@ -12,6 +12,7 @@ internal sealed class ModelRequestHandler(ModelGateway models)
         ProtocolMethods.ModelStatus => StatusJson(models.Status()),
         ProtocolMethods.ModelSave => await Save(method, parameters, ct),
         ProtocolMethods.ModelConnection => ConnectionJson(models.Connection()),
+        ProtocolMethods.ModelPurpose => ConnectionJson(models.SetPurposeModel(RequiredString(method, parameters, "purpose"), ReadString(parameters, "model"))),
         ProtocolMethods.ModelTest => ConnectionJson(await models.TestAsync(ct)),
         ProtocolMethods.ModelClear => Clear(),
         ProtocolMethods.ModelComplete => CompletionJson(await models.CompleteAsync(RequiredString(method, parameters, "prompt"), ct)),

@@ -70,6 +70,16 @@ export function useModelSettings(api: ModelApi) {
     [api, run]
   );
 
+  const choose = useCallback(
+    (purpose: string, model: string | null, label: string) =>
+      run(
+        () => api.setPurpose(purpose, model),
+        'Não foi possível trocar o modelo.',
+        () => `Modelo de ${label.toLowerCase()} atualizado.`
+      ),
+    [api, run]
+  );
+
   const clear = useCallback(
     () =>
       run(
@@ -83,5 +93,5 @@ export function useModelSettings(api: ModelApi) {
     [api, run]
   );
 
-  return { connection, busy, error, notice, save, test, clear };
+  return { connection, busy, error, notice, save, test, choose, clear };
 }

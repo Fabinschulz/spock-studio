@@ -576,10 +576,10 @@ abriu `.claude/` entende cada componente" não foi testado com uma pessoa) e as 
   mudança é por conexão e por projeto; o proxy continua redigindo segredos; a auditoria registra.
 - **Pronto quando:** um teste prova que dado de uma fonte não autorizada nunca chega ao índice nem ao provedor.
 
-**Estado da fase F (2026-11-12).** Três entregas na branch `feat/fase-f-integracoes` (criada da `master` depois do merge
+**Estado da fase F (2026-11-13).** Quatro entregas na branch `feat/fase-f-integracoes` (criada da `master` depois do merge
 da fase E, PR #54): o **resumo por conexão** com o **vocabulário de impacto** (7f781fa), o **provedor de IA como conexão**
-(91ef677) e o **segundo provedor** (ainda sem commit). Restam o modelo por finalidade, a política de contextualização
-consumida pelo índice e o cofre em Linux e macOS.
+(91ef677), o **segundo provedor** (2806b54) e o **modelo por finalidade** (ainda sem commit). Restam a política de
+contextualização consumida pelo índice e o cofre em Linux e macOS.
 
 | Feito | Observação |
 | --- | --- |
@@ -633,6 +633,27 @@ conferidos com uma chave real**: a conferência real continua dependendo das var
 manipuladores HTTP que devolvem o formato esperado. Só uma chave fica ativa por vez, então não há como usar dois provedores
 ao mesmo tempo nem escolher o modelo por finalidade: é a próxima entrega, e vai exigir guardar uma chave por provedor. O
 modelo de cada provedor é fixo no código.
+
+**Modelo por finalidade (4ª entrega).** A pessoa escolhe, entre os modelos do provedor da chave, qual responde ao assistente,
+ao juiz e aos fluxos de engenharia. Quem escolhe é sempre ela: o runtime de IA declara a finalidade da chamada, nunca o
+modelo.
+
+| Feito | Observação |
+| --- | --- |
+| Três finalidades | `ModelPurposes`: **assistente gerencial**, **juiz** e **fluxos de engenharia**, cada uma com nome e descrição em português que dizem o que ela faz. O runtime já declarava a finalidade em termos de agente (`classify`, `plan`, `architecture`, `judge`, `rewrite-query`); o motor a traduz: só o juiz tem finalidade própria, o resto é fluxo de engenharia. O assistente gerencial chama o gateway com a sua |
+| Uma lista de modelos por provedor | `ModelProvider.Models`: OpenAI (`gpt-4o-mini`, `gpt-4o`) e Anthropic (`claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5`). O padrão de cada provedor é um deles e vale para toda finalidade sem escolha. Um modelo fora da lista do provedor é **recusado** (`MODEL_CHOICE_DENIED`), e o pedido do runtime não carrega modelo: um campo `model` num pedido de agente não é lido (teste) |
+| `model.purpose` | Escolhe o modelo de uma finalidade (ou, sem `model`, volta ao padrão). Escolher o próprio padrão também apaga a escolha. Exige chave configurada. `model.connection` passou a devolver `purposes` (uma por finalidade, com o modelo de hoje e se é o padrão) e cada provedor com seus `models` |
+| Onde fica | `model-purposes.json` no diretório de dados, só nomes de modelo, nunca a chave. Escolha de outro provedor que sobrou no arquivo vale como não escolhida; arquivo ilegível vale tudo no padrão. **Trocar de provedor volta cada finalidade ao padrão do novo**, e remover a chave apaga as escolhas; reconectar o mesmo provedor mantém |
+| O modelo que respondeu fica registrado | `ChatCompletion.Model` e o registro de cada chamada do broker (`ModelCallRecord`) já traziam o modelo; agora trazem o da finalidade (teste confere finalidade e modelo por chamada do juiz e do plano) |
+| Tela | Em Configurações, uma seção "Modelo por finalidade", só com chave: uma linha por finalidade, com a descrição e a lista de modelos do provedor ativo, o padrão marcado. Trocar vale na hora, com aviso. A tela diz que um modelo maior costuma responder melhor, custar mais e demorar mais, que o teto de tokens de cada execução continua o mesmo e que nenhum agente escolhe o modelo |
+| Testes | 24 no motor mais 1 no assistente gerencial (finalidades, tradução do runtime, lista de cada provedor, escolher e voltar ao padrão, recusas, cada finalidade no seu modelo na Anthropic, juiz e plano pelo broker, agente que não escolhe, troca de provedor, arquivo ilegível, remoção da chave, protocolo e fixture `connection-purposes.json`) e 7 de tela mais 2 de contrato |
+
+Limites: **os nomes de modelo (`gpt-4o`, `claude-sonnet-5-5`, `claude-opus-5-5`) não foram conferidos com chave real**: um
+nome que o provedor não aceita só aparece como erro na primeira chamada, e a conferência real depende de `MARILIZ_LIVE_*`.
+A escolha é **entre os modelos de um provedor só**: o provedor continua um por vez, então "o juiz num provedor e os fluxos
+em outro" não existe. Isso pede uma chave por provedor e é a decisão seguinte, se fizer falta. Não há preço por token nem
+orçamento por modelo: o teto continua em tokens. Os modelos de cada provedor são uma lista no código; modelo novo exige uma
+versão nova.
 
 Correção de passagem: o teste de tipografia (`Nenhum_arquivo_de_codigo_ou_interface_tem_travessao`) só examina arquivos
 rastreados pelo git, então um travessão num teste novo só aparece depois do commit. Um estava em `AgentPolicyTests.cs`

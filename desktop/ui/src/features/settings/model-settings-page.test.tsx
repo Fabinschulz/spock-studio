@@ -24,7 +24,8 @@ const none: ModelConnection = {
   protection: null,
   checkedAt: null,
   lastError: null,
-  available: connected.available
+  available: connected.available,
+  purposes: []
 };
 
 type Behavior = {
@@ -32,19 +33,27 @@ type Behavior = {
   refuseSave?: boolean;
   /** O estado que o teste devolve. Sem isto, o provedor aceita. */
   testResult?: ModelConnection;
+  /** Se o motor recusa a escolha de modelo. */
+  refusePurpose?: boolean;
 };
 
 /** O motor de mentira do provedor de IA: guarda o estado em memória e responde no formato do contrato. */
 function client(
   initial: ModelConnection,
   behavior: Behavior = {}
-): EngineClient & { calls: string[]; saved: { provider: string; key: string }[] } {
+): EngineClient & {
+  calls: string[];
+  saved: { provider: string; key: string }[];
+  purposeCalls: Record<string, unknown>[];
+} {
   const calls: string[] = [];
   const saved: { provider: string; key: string }[] = [];
+  const purposeCalls: Record<string, unknown>[] = [];
   let state = initial;
   return {
     calls,
     saved,
+    purposeCalls,
     async request(method, params, schema) {
       calls.push(method);
       if (method === 'model.connection') return schema.parse(state);
@@ -53,8 +62,30 @@ function client(
         const { provider, key } = params as { provider: string; key: string };
         saved.push({ provider, key });
         const chosen = connected.available.find((entry) => entry.id === provider)!;
-        state = { ...connected, provider, providerName: chosen.name, model: chosen.model };
+        // Trocar de provedor volta cada finalidade ao padrão do novo.
+        state = {
+          ...connected,
+          provider,
+          providerName: chosen.name,
+          model: chosen.model,
+          purposes: connected.purposes.map((entry) => ({ ...entry, model: chosen.model, isDefault: true }))
+        };
         return schema.parse({ configured: true, provider: 'openai' });
+      }
+      if (method === 'model.purpose') {
+        if (behavior.refusePurpose)
+          throw new EngineError('MODEL_CHOICE_DENIED', 'Esse modelo não está disponível neste provedor.');
+        const { purpose, model } = params as { purpose: string; model?: string };
+        purposeCalls.push(params as Record<string, unknown>);
+        state = {
+          ...state,
+          purposes: state.purposes.map((entry) =>
+            entry.id === purpose
+              ? { ...entry, model: model ?? state.model, isDefault: model === undefined || model === state.model }
+              : entry
+          )
+        };
+        return schema.parse(state);
       }
       if (method === 'model.test') {
         state = behavior.testResult ?? { ...state, status: 'connected', lastError: null };
@@ -241,6 +272,93 @@ describe('Configurações · provedor de IA', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('O provedor recusou a chave.');
     expect(screen.getByText(/Provedor configurado: OpenAI/)).toBeInTheDocument();
+  });
+
+  describe('modelo por finalidade', () => {
+    const rowOf = async (label: string) => (await screen.findByLabelText(label)) as HTMLSelectElement;
+
+    it('mostra uma linha por finalidade, com o modelo de hoje e o padrão marcado', async () => {
+      renderPage(client(connected));
+
+      const judge = await rowOf('Juiz');
+
+      expect(screen.getByText('Modelo por finalidade')).toBeInTheDocument();
+      expect(judge).toHaveValue('gpt-4o-mini');
+      expect(
+        within(judge)
+          .getAllByRole('option')
+          .map((option) => option.textContent)
+      ).toEqual(['GPT-4o mini (padrão)', 'GPT-4o']);
+      expect(await rowOf('Assistente gerencial')).toBeInTheDocument();
+      expect(await rowOf('Fluxos de engenharia')).toBeInTheDocument();
+      expect(screen.getByText(/Dá uma segunda opinião sobre o resultado de uma execução/)).toBeInTheDocument();
+    });
+
+    it('escolher um modelo manda a finalidade e o modelo, avisa e mostra a escolha', async () => {
+      const api = client(connected);
+      renderPage(api);
+
+      await userEvent.selectOptions(await rowOf('Juiz'), 'gpt-4o');
+
+      expect(await screen.findByText('Modelo de juiz atualizado.')).toBeInTheDocument();
+      expect(api.purposeCalls).toEqual([{ purpose: 'judge', model: 'gpt-4o' }]);
+      expect(await rowOf('Juiz')).toHaveValue('gpt-4o');
+      expect(await rowOf('Assistente gerencial')).toHaveValue('gpt-4o-mini');
+    });
+
+    it('escolher o padrão volta a finalidade ao padrão sem mandar modelo', async () => {
+      const api = client(connected);
+      renderPage(api);
+      await userEvent.selectOptions(await rowOf('Juiz'), 'gpt-4o');
+      await screen.findByText('Modelo de juiz atualizado.');
+
+      await userEvent.selectOptions(await rowOf('Juiz'), 'gpt-4o-mini');
+
+      await waitFor(() => expect(api.purposeCalls).toHaveLength(2));
+      expect(api.purposeCalls[1]).toEqual({ purpose: 'judge' });
+      expect(await rowOf('Juiz')).toHaveValue('gpt-4o-mini');
+    });
+
+    it('diz que a escolha é da pessoa e que o teto de tokens não muda', async () => {
+      renderPage(client(connected));
+
+      expect(await screen.findByText(/nenhum agente escolhe o modelo: a escolha é sua/)).toBeInTheDocument();
+      expect(screen.getByText(/O teto de tokens de cada execução continua o mesmo/)).toBeInTheDocument();
+    });
+
+    it('sem chave a seção não aparece', async () => {
+      renderPage(client(none));
+
+      await screen.findByText('Nenhuma chave configurada.');
+
+      expect(screen.queryByText('Modelo por finalidade')).not.toBeInTheDocument();
+    });
+
+    it('se o motor recusa a escolha, mostra o motivo e mantém o modelo de antes', async () => {
+      renderPage(client(connected, { refusePurpose: true }));
+
+      await userEvent.selectOptions(await rowOf('Juiz'), 'gpt-4o');
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Esse modelo não está disponível neste provedor.');
+      expect(await rowOf('Juiz')).toHaveValue('gpt-4o-mini');
+    });
+
+    it('trocar de provedor mostra os modelos do novo, cada finalidade no padrão dele', async () => {
+      renderPage(client(connected));
+      await userEvent.selectOptions(await screen.findByLabelText('Provedor'), 'anthropic');
+      await userEvent.type(screen.getByLabelText('Chave de API'), testKey);
+      await userEvent.click(screen.getByRole('button', { name: 'Salvar chave' }));
+
+      await screen.findByText(/Provedor configurado: Anthropic/);
+      const judge = await rowOf('Juiz');
+
+      expect(
+        within(judge)
+          .getAllByRole('option')
+          .map((option) => option.textContent)
+      ).toEqual(['Claude Haiku 5.5 (padrão)', 'Claude Sonnet 5.5', 'Claude Opus 5.5']);
+      expect(judge).toHaveValue('claude-haiku-5-5');
+    });
   });
 
   it('trocar a chave guarda a nova e mantém o estado conectado', async () => {

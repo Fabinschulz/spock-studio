@@ -11,12 +11,59 @@
     {
       "id": "openai",
       "name": "OpenAI",
-      "model": "gpt-4o-mini"
+      "model": "gpt-4o-mini",
+      "models": [
+        {
+          "id": "gpt-4o-mini",
+          "name": "GPT-4o mini"
+        },
+        {
+          "id": "gpt-4o",
+          "name": "GPT-4o"
+        }
+      ]
     },
     {
       "id": "anthropic",
       "name": "Anthropic",
-      "model": "claude-haiku-5-5"
+      "model": "claude-haiku-5-5",
+      "models": [
+        {
+          "id": "claude-haiku-5-5",
+          "name": "Claude Haiku 5.5"
+        },
+        {
+          "id": "claude-sonnet-5-5",
+          "name": "Claude Sonnet 5.5"
+        },
+        {
+          "id": "claude-opus-5-5",
+          "name": "Claude Opus 5.5"
+        }
+      ]
+    }
+  ],
+  "purposes": [
+    {
+      "id": "assistant",
+      "label": "Assistente gerencial",
+      "description": "Responde perguntas sobre os indicadores do portfólio, só com os fatos que o motor calculou.",
+      "model": "gpt-4o-mini",
+      "isDefault": true
+    },
+    {
+      "id": "judge",
+      "label": "Juiz",
+      "description": "Dá uma segunda opinião sobre o resultado de uma execução. Não decide sozinho: quem decide é a verificação do motor.",
+      "model": "gpt-4o-mini",
+      "isDefault": true
+    },
+    {
+      "id": "workflow",
+      "label": "Fluxos de engenharia",
+      "description": "Classifica o pedido, planeja, desenha a arquitetura e reformula buscas nos fluxos de engenharia.",
+      "model": "gpt-4o-mini",
+      "isDefault": true
     }
   ]
 }

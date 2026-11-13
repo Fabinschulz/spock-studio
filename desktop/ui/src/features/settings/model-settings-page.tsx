@@ -1,7 +1,7 @@
 import { formatEngineDate } from '@/features/integrations';
 import type { EngineClient } from '@/shared/api';
 import { Page, StatusChip, SuccessState, type Tone } from '@/shared/components';
-import type { ModelConnection } from '@/shared/schema';
+import type { ModelConnection, ModelPurpose } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
 import { useId, useMemo, useState } from 'react';
 
@@ -30,7 +30,7 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
   const inputId = useId();
   const providerId = useId();
   const api = useMemo(() => createModelApi(client), [client]);
-  const { connection, busy, error, notice, save: saveKey, test, clear: clearKey } = useModelSettings(api);
+  const { connection, busy, error, notice, save: saveKey, test, choose, clear: clearKey } = useModelSettings(api);
   const [key, setKey] = useState('');
   const [chosen, setChosen] = useState<string | null>(null);
 
@@ -141,7 +141,66 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
           </p>
         ) : null}
       </section>
+
+      {connection?.configured ? (
+        <section className={styles.panel} aria-labelledby="model-purposes-heading">
+          <h2 id="model-purposes-heading">Modelo por finalidade</h2>
+          <p className={styles.hint}>
+            Cada tarefa pode usar um modelo diferente do provedor configurado. Um modelo maior costuma responder melhor,
+            custa mais e demora mais. O teto de tokens de cada execução continua o mesmo, e nenhum agente escolhe o
+            modelo: a escolha é sua.
+          </p>
+          <ul className={styles.purposes}>
+            {connection.purposes.map((purpose) => (
+              <PurposeRow
+                key={purpose.id}
+                purpose={purpose}
+                connection={connection}
+                busy={busy}
+                onChoose={(model) => void choose(purpose.id, model, purpose.label)}
+              />
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </Page>
+  );
+}
+
+function PurposeRow({
+  purpose,
+  connection,
+  busy,
+  onChoose
+}: {
+  purpose: ModelPurpose;
+  connection: ModelConnection;
+  busy: boolean;
+  onChoose: (model: string | null) => void;
+}) {
+  const id = useId();
+  const models = connection.available.find((entry) => entry.id === connection.provider)?.models ?? [];
+  const defaultModel = connection.model;
+  return (
+    <li className={styles.purpose}>
+      <label htmlFor={id} className={styles.purposeTitle}>
+        {purpose.label}
+      </label>
+      <p className={styles.hint}>{purpose.description}</p>
+      <select
+        id={id}
+        className={styles.select}
+        value={purpose.model}
+        disabled={busy}
+        onChange={(event) => onChoose(event.target.value === defaultModel ? null : event.target.value)}
+      >
+        {models.map((option) => (
+          <option key={option.id} value={option.id}>
+            {option.id === defaultModel ? `${option.name} (padrão)` : option.name}
+          </option>
+        ))}
+      </select>
+    </li>
   );
 }
 

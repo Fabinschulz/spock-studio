@@ -110,7 +110,7 @@ public sealed partial class ModelBroker(ModelGateway gateway)
         ChatCompletion completion;
         try
         {
-            completion = await gateway.ChatAsync(chat, ct);
+            completion = await gateway.ChatAsync(chat, ct, ModelPurposes.ForBrokerPurpose(purpose));
         }
         catch (EngineException ex)
         {

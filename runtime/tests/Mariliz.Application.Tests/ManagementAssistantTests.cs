@@ -37,10 +37,12 @@ public class ManagementAssistantTests
         public string Reply { get; set; } = "{}";
         public ChatRequest? Seen { get; private set; }
         public string SeenKey { get; private set; } = "";
+        public string SeenModel { get; private set; } = "";
 
         public Task<ChatTransportResult> SendChatAsync(Uri endpoint, string key, string model, ChatRequest request, CancellationToken ct)
         {
             Seen = request;
+            SeenModel = model;
             SeenKey = key;
             return Task.FromResult(new ChatTransportResult(Reply, "gpt-4o-mini-2024-07-18", 900, 300));
         }
@@ -61,13 +63,13 @@ public class ManagementAssistantTests
         public EngineSession Session { get; }
         public ProjectIntegration Integration { get; private set; } = null!;
 
-        public Setup(bool configured = true)
+        public Setup(bool configured = true, IModelPreferences? preferences = null)
         {
             Harness.Clock.UtcNow = Now;
             var management = new ManagementService(Harness.Workspace, Harness.Hub, Harness.Clock);
             Store = new FileRunStore(Harness.DataDir);
             Assistant = new ManagementAssistant(management, Harness.Hub, Harness.Workspace,
-                new ModelGateway(new Settings(configured), new NoTransport(), chat: Chat), Harness.Clock, Store);
+                new ModelGateway(new Settings(configured), new NoTransport(), chat: Chat, preferences: preferences), Harness.Clock, Store);
             Session = new EngineSession("test", integrations: Harness.Hub, management: management, assistant: Assistant);
         }
 
@@ -131,6 +133,21 @@ public class ManagementAssistantTests
     }
 
     // ------------------------------------------------------------------ Pergunta e verificação
+
+    [Fact]
+    public async Task A_pergunta_usa_o_modelo_escolhido_para_o_assistente_e_sem_escolha_o_padrao()
+    {
+        using var chosen = new Setup(preferences: new MemoryPreferences((ModelPurposes.Assistant, "gpt-4o"), (ModelPurposes.Judge, "gpt-4o-mini")));
+        await chosen.SeedAsync();
+        using var plain = new Setup();
+        await plain.SeedAsync();
+
+        await chosen.Assistant.AskAsync(chosen.Harness.ProjectId, "Quais entregas estão comprometidas?", CancellationToken.None);
+        await plain.Assistant.AskAsync(plain.Harness.ProjectId, "Quais entregas estão comprometidas?", CancellationToken.None);
+
+        Assert.Equal("gpt-4o", chosen.Chat.SeenModel);
+        Assert.Equal(ModelGateway.DefaultModel, plain.Chat.SeenModel);
+    }
 
     [Fact]
     public async Task Resposta_passa_pela_verificacao_que_descarta_fato_inexistente_e_numero_inventado()

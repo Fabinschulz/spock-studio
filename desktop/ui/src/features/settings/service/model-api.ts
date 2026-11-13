@@ -10,6 +10,8 @@ export type ModelApi = {
   save(provider: string, key: string): Promise<ModelStatus>;
   /** Confere a chave guardada com o provedor. Uma recusa vem no estado, não como falha. */
   test(): Promise<ModelConnection>;
+  /** Escolhe o modelo de uma finalidade entre os do provedor da chave; nulo volta ao padrão. */
+  setPurpose(purpose: string, model: string | null): Promise<ModelConnection>;
   clear(): Promise<ModelStatus>;
 };
 
@@ -19,6 +21,8 @@ export function createModelApi(client: EngineClient): ModelApi {
     connection: () => client.request('model.connection', {}, modelConnectionSchema),
     save: (provider, key) => client.request('model.save', { provider, key }, modelStatusSchema),
     test: () => client.request('model.test', {}, modelConnectionSchema),
+    setPurpose: (purpose, model) =>
+      client.request('model.purpose', model === null ? { purpose } : { purpose, model }, modelConnectionSchema),
     clear: () => client.request('model.clear', {}, modelStatusSchema)
   };
 }

@@ -44,7 +44,11 @@ public sealed record ModelConnection(
     string? Protection,
     DateTimeOffset? CheckedAt,
     ModelCheckError? LastError,
-    IReadOnlyList<ModelProviderInfo> Available);
+    IReadOnlyList<ModelProviderInfo> Available,
+    IReadOnlyList<ModelPurposeState> Purposes);
+
+/// <summary>O modelo de uma finalidade hoje: o escolhido pela pessoa ou, sem escolha, o padrão do provedor (<see cref="IsDefault"/>).</summary>
+public sealed record ModelPurposeState(string Id, string Label, string Description, string Model, bool IsDefault);
 
 /// <summary>Chave de um provedor, só no diretório de dados do motor.</summary>
 public interface IModelSettings
