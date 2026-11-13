@@ -29,6 +29,7 @@ public sealed class EngineSession
     private readonly ModelRequestHandler? _models;
     private readonly IntegrationRequestHandler? _integrations;
     private readonly ManagementRequestHandler? _management;
+    private readonly DecisionRequestHandler? _decisions;
     private readonly EngineeringRequestHandler? _engineering;
     private readonly RunTracker? _tracker;
     private readonly SemaphoreSlim _outputGate = new(1, 1);
@@ -50,7 +51,8 @@ public sealed class EngineSession
         TechnologyProfileService? profiles = null,
         ProjectKnowledgeService? knowledge = null,
         HarnessStatusService? harness = null,
-        HarnessRevisionService? revisions = null)
+        HarnessRevisionService? revisions = null,
+        DecisionService? decisions = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
@@ -60,6 +62,7 @@ public sealed class EngineSession
         _runs = runs is null ? null : new RunRequestHandler(runs);
         _integrations = integrations is null ? null : new IntegrationRequestHandler(integrations);
         _management = management is null ? null : new ManagementRequestHandler(management, assistant);
+        _decisions = decisions is null ? null : new DecisionRequestHandler(decisions);
         _engineering = profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions);
         _tracker = tracker;
         if (relay is not null) relay.Target = WriteEvent;
@@ -72,6 +75,7 @@ public sealed class EngineSession
         if (models is not null) offered.AddRange(ProtocolMethods.Model);
         if (integrations is not null) offered.AddRange(ProtocolMethods.Integrations);
         if (management is not null) offered.AddRange(ProtocolMethods.Management);
+        if (decisions is not null) offered.AddRange(ProtocolMethods.Decision);
         if (profiles is not null) offered.AddRange(ProtocolMethods.Engineering);
         _capabilities = [.. offered];
     }
@@ -170,6 +174,8 @@ public sealed class EngineSession
                 Reply(ProtocolMessages.Ok(id, await _integrations.HandleAsync(method, new RequestParams(parameters), ct))),
             _ when _management is not null && ProtocolMethods.Management.Contains(method) =>
                 Reply(ProtocolMessages.Ok(id, await _management.HandleAsync(method, new RequestParams(parameters), ct))),
+            _ when _decisions is not null && ProtocolMethods.Decision.Contains(method) =>
+                Reply(ProtocolMessages.Ok(id, _decisions.Handle(method, new RequestParams(parameters)))),
             _ when _engineering is not null && ProtocolMethods.Engineering.Contains(method) =>
                 Reply(ProtocolMessages.Ok(id, await _engineering.HandleAsync(method, new RequestParams(parameters), ct))),
             _ => Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.MethodNotFound, "Método desconhecido."))

@@ -70,7 +70,7 @@ describe('Gestão · acompanhamento do projeto', () => {
     expect(within(sources).getByText('acme/app')).toBeInTheDocument();
     expect(within(sources).getByText(/GitHub · Issues: 1, Pull requests: 1 · lido/)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Ainda não calculado' })).toBeInTheDocument();
-    expect(engine.calls.every((call) => /^(integration|management|run)\./.test(call.method))).toBe(true);
+    expect(engine.calls.every((call) => /^(integration|management|run|decision)\./.test(call.method))).toBe(true);
 
     const flow = screen.getByRole('heading', { name: 'Fluxo nas últimas 4 semanas' }).closest('section')!;
     const issues = within(flow).getByRole('group', { name: 'Issues' });

@@ -37,9 +37,11 @@ integrations.Sync.Finished += (integration, run) =>
 // A central de execuções com a ligação a itens de trabalho: só o motor com integrações a tem.
 var runs = new RunQueries(engine.Tracker, engine.Store,
     new RunCatalog(engine.Store, engine.Workspace, engine.Tracker, new RunLinkService(engine.Store, engine.Store, integrations, engine.Workspace, engine.Clock)));
+var assistant = new ManagementAssistant(management, integrations, engine.Workspace, models, engine.Clock, engine.Store);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
-    management: management, assistant: new ManagementAssistant(management, integrations, engine.Workspace, models, engine.Clock, engine.Store),
+    management: management, assistant: assistant,
+    decisions: new DecisionService(engine.Workspace, new FileDecisionStore(engine.DataRoot), engine.Store, assistant.Evidence, integrations.Audit, engine.Clock),
     profiles: new TechnologyProfileService(engine.Configure, integrations, engine.Workspace, new FileTechnologyProfileStore(engine.DataRoot), engine.Clock),
     knowledge: new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock),
     harness: new HarnessStatusService(engine.Workspace, engine.Files, engine.Clock),

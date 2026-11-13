@@ -447,8 +447,27 @@ mesmo evento do mesmo jeito, mas a linha de composição do motor real não foi 
 uma sincronização termina, não por tempo: um projeto que não sincroniza não ganha registro. Nada foi validado com um
 Jira ou GitHub reais.
 
-Falta nesta fase: registro de decisão gerencial, relatório do período, componentes de indicador e faixa de previsão,
-histórico de perguntas do assistente.
+**Quinta entrega da fase D (2026-11-12).** O **registro de decisão gerencial**, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| O que é uma decisão | Título (até 120 caracteres), o que foi decidido (até 1000), o porquê (opcional, até 2000), as execuções relacionadas (até 10) e, guardados pelo motor, os **fatos do dia** e o que ficou de fora do pacote. Identificador `dec-…`, um arquivo por decisão em `projects/{projeto}/decisions`, até 500 por projeto |
+| Os fatos vêm do motor | O pedido não tem campo de fatos (um teste manda um e vê que ele é ignorado): o motor monta o pacote de evidências **naquele instante**, o mesmo que iria ao assistente, e o guarda com a decisão. Reabrir a decisão meses depois mostra o que valia no dia, mesmo que os números de hoje sejam outros (um teste confere) |
+| Execuções relacionadas | Cada uma precisa existir no projeto; uma inexistente, de outro projeto ou com id estranho recusa o registro **inteiro** e não grava nada. Guarda identificador, tipo, estado e início como estavam no dia |
+| Segredos | O texto da pessoa passa pela mesma redação de segredos do resto do motor: uma chave colada por engano (testadas uma da AWS e uma do GitHub) não fica no arquivo, e a resposta traz `redacted` para a interface avisar. A trilha de auditoria leva números e identificadores, nunca o título nem o texto |
+| Sem editar nem apagar | A decisão é a trilha de por que se decidiu: o protocolo só oferece registrar, listar e abrir (`decision.record`, `decision.list`, `decision.get`), e um teste confere que `decision.update` e `decision.delete` não existem. Quem precisar remover uma decisão tem de apagar o arquivo da pasta de dados; fica como pendência decidir se o produto deve oferecer isso |
+| Isolamento | Projeto não autorizado é recusado; um projeto não vê nem abre a decisão do outro; id forjado (`../x`) é "não encontrada"; arquivo ilegível fica fora da lista sem derrubar as outras |
+| Onde aparece | Seção "Decisões" no Acompanhamento, depois dos marcos e do histórico de riscos e antes das fontes. O botão "Registrar uma decisão" abre o formulário (título, decisão, porquê e as dez execuções mais recentes para marcar); o formulário diz que ela não se edita nem se apaga e que os fatos de hoje ficam guardados. A lista mostra título, data, decisão, porquê e as execuções; "Ver os fatos do dia (N)" busca a decisão sob demanda e mostra os fatos e o que ficou de fora. Um erro do motor aparece com o motivo, sem perder o que foi digitado |
+| Testes | 28 novos no motor (registro, fatos, execuções, validação, segredos, auditoria, limite, lista, isolamento, arquivo, protocolo) e 14 na interface (com 3 fixtures do motor real: registro, lista e abertura). Suítes: 730 no motor, 481 na interface, tipos, lint, formato e build limpos |
+
+Limites: nenhum fato da fase inclui o título dos itens a menos que todas as fontes autorizem (é a regra do pacote), mas
+**o que está no pacote fica no disco desta máquina com a decisão**, como já ficaria no do assistente; vale saber antes de
+registrar. O formulário não relaciona itens de trabalho nem riscos (só execuções), e o seletor mostra apenas as dez
+execuções mais recentes do projeto. A ligação do `Program.cs` não tem teste próprio da composição, e a tela não foi
+conferida no navegador, só por testes. Não há identidade de usuário, então a decisão não diz quem a registrou.
+
+Falta nesta fase: relatório do período, componentes de indicador e faixa de previsão, histórico de perguntas do
+assistente.
 
 ### Fase E: catálogo do Harness
 

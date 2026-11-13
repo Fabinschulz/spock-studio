@@ -19,6 +19,9 @@ import assistantEvidence from '@contracts/fixtures/management/assistant-evidence
 import managementForecast from '@contracts/fixtures/management/forecast.json';
 import managementMetrics from '@contracts/fixtures/management/metrics.json';
 import managementPortfolio from '@contracts/fixtures/management/portfolio.json';
+import decisionGet from '@contracts/fixtures/management/decision-get.json';
+import decisionList from '@contracts/fixtures/management/decision-list.json';
+import decisionRecord from '@contracts/fixtures/management/decision-record.json';
 import managementMilestones from '@contracts/fixtures/management/milestones.json';
 import managementRiskHistory from '@contracts/fixtures/management/risk-history.json';
 import managementRisks from '@contracts/fixtures/management/risks.json';
@@ -43,6 +46,9 @@ import {
   integrationListSchema,
   portfolioSchema,
   projectForecastSchema,
+  decisionGetSchema,
+  decisionListSchema,
+  decisionRecordResultSchema,
   projectMilestonesSchema,
   projectRiskHistorySchema,
   projectMetricsSchema,
@@ -336,5 +342,27 @@ describe('contrato do histórico de riscos (fixture do motor)', () => {
     const blocked = parsed.trails.find((trail) => trail.id === 'blocked');
     expect(blocked?.changes.map((change) => change.kind)).toEqual(['observed', 'raised', 'lowered']);
     expect(parsed.basis).toContain('antes do primeiro registro');
+  });
+});
+
+describe('contrato das decisões gerenciais (fixtures do motor)', () => {
+  it('o registro devolve a decisão completa com os fatos do dia e se houve redação', () => {
+    const parsed = decisionRecordResultSchema.parse(decisionRecord);
+    expect(parsed.redacted).toBe(false);
+    expect(parsed.decision).toMatchObject({ title: 'Adiar a release', rationale: 'Três itens bloqueados.' });
+    expect(parsed.decision.facts.map((fact) => fact.id)).toEqual(['flow.issues.items', 'risk.overdue']);
+    expect(parsed.decision.runs.map((run) => run.runId)).toEqual(['run-1', 'run-2']);
+  });
+
+  it('a lista traz a contagem de fatos e não os fatos', () => {
+    const parsed = decisionListSchema.parse(decisionList);
+    expect(parsed.decisions[0]).toMatchObject({ factCount: 2 });
+    expect(JSON.stringify(decisionList)).not.toContain('"facts"');
+  });
+
+  it('abrir uma decisão devolve os fatos e o que ficou de fora', () => {
+    const parsed = decisionGetSchema.parse(decisionGet);
+    expect(parsed.decision.facts).toHaveLength(2);
+    expect(parsed.decision.withheld).toEqual(['Nenhum código é enviado.']);
   });
 });
