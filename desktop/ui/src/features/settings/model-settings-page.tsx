@@ -22,7 +22,7 @@ const STATE: Record<string, { label: string; tone: Tone }> = {
 function protectionText(protection: string | null): string | null {
   if (protection === 'vault') return 'Guardada com a proteção do sistema operacional.';
   if (protection === 'file')
-    return 'Guardada em arquivo neste computador, sem a proteção do sistema: este sistema ainda não tem cofre.';
+    return 'Guardada em arquivo neste computador, sem a proteção do sistema: não há cofre disponível aqui. A tela de Integrações diz o que falta.';
   return null;
 }
 

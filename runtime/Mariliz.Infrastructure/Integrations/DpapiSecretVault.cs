@@ -17,6 +17,8 @@ public sealed class DpapiSecretVault(string dataRoot) : ISecretVault
 
     public bool Available => true;
 
+    public string Name => "Proteção do usuário do Windows (DPAPI)";
+
     public void Store(string connectionId, string secret) =>
         AtomicFile.Write(
             IntegrationPaths.Secret(dataRoot, connectionId),

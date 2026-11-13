@@ -81,6 +81,27 @@ describe('Integrações · conexões', () => {
     expect(screen.getByRole('button', { name: 'Conectar Jira Cloud' })).toBeDisabled();
   });
 
+  it('sem cofre, mostra o que falta neste sistema, como o motor diz', async () => {
+    const hint =
+      'Instale o pacote libsecret-tools (o comando secret-tool) e um serviço de chaves, como o GNOME Keyring ou o KWallet, e reinicie o Spock Studio.';
+    const engine = fakeIntegrationEngine({ vaultAvailable: false, vaultHint: hint });
+    render(page(engine.client, null));
+
+    const notice = (await screen.findByText('Armazenamento protegido indisponível')).closest('div')!.parentElement!;
+
+    expect(notice).toHaveTextContent('não encontrou um cofre do sistema');
+    expect(notice).toHaveTextContent(hint);
+    expect(screen.queryByText(/Cofre das credenciais:/)).not.toBeInTheDocument();
+  });
+
+  it('com cofre, diz qual é, sem aviso de falta', async () => {
+    const engine = fakeIntegrationEngine();
+    render(page(engine.client, null));
+
+    expect(await screen.findByText('Cofre das credenciais: cofre do sistema.')).toBeInTheDocument();
+    expect(screen.queryByText('Armazenamento protegido indisponível')).not.toBeInTheDocument();
+  });
+
   it('remover pede confirmação, diz o que acontece e só apaga depois de confirmada', async () => {
     const engine = fakeIntegrationEngine({ connections: [{ ...githubConnection, projects: 0 }] });
     const { container } = render(page(engine.client, null));

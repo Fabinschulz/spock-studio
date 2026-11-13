@@ -173,7 +173,7 @@ describe('Configurações · provedor de IA', () => {
     vault.unmount();
 
     renderPage(client({ ...connected, protection: 'file' }));
-    expect(await screen.findByText(/sem a proteção do sistema: este sistema ainda não tem cofre/)).toBeInTheDocument();
+    expect(await screen.findByText(/sem a proteção do sistema: não há cofre disponível aqui/)).toBeInTheDocument();
   });
 
   it('conferir com o provedor confirma quando ele aceita', async () => {

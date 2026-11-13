@@ -9,10 +9,10 @@ namespace Mariliz.Infrastructure;
 
 /// <summary>
 /// A chave do provedor de modelo, guardada no mesmo cofre das credenciais das integrações (no Windows, a DPAPI do usuário
-/// atual) e não mais em texto puro.
+/// atual; no macOS, o Chaveiro; no Linux, o serviço de segredos) e não mais em texto puro.
 ///
-/// Onde não há cofre (hoje Linux e macOS), a chave continua em <c>{dataRoot}/model.json</c>, como antes: recusar guardá-la
-/// quebraria quem já usa, e a central de integrações já deixa claro que ali o cofre ainda não existe.
+/// Onde não há cofre (um Linux sem serviço de chaves, por exemplo), a chave continua em <c>{dataRoot}/model.json</c>, como
+/// antes: recusar guardá-la quebraria quem já usa, e a central de integrações diz o que falta no sistema.
 ///
 /// Quem já tinha uma chave em <c>model.json</c> é migrado sozinho, na primeira leitura. O arquivo antigo só some depois de
 /// o cofre devolver exatamente a mesma chave: perder a chave não é um custo aceitável, e qualquer falha do cofre deixa o

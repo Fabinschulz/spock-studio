@@ -18,6 +18,10 @@ export const connectorSchema = z.object({
 
 export const integrationCatalogSchema = z.object({
   vaultAvailable: z.boolean(),
+  /** Como o cofre do sistema se chama para a pessoa (Windows, Chaveiro do macOS, serviço de segredos do Linux). */
+  vaultName: z.string(),
+  /** Sem cofre, o que falta e o que fazer neste sistema. Nulo se o cofre está disponível. */
+  vaultHint: z.string().nullable(),
   connectors: z.array(connectorSchema)
 });
 

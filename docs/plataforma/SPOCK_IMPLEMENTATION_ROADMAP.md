@@ -576,10 +576,11 @@ abriu `.claude/` entende cada componente" não foi testado com uma pessoa) e as 
   mudança é por conexão e por projeto; o proxy continua redigindo segredos; a auditoria registra.
 - **Pronto quando:** um teste prova que dado de uma fonte não autorizada nunca chega ao índice nem ao provedor.
 
-**Estado da fase F (2026-11-13).** Cinco entregas na branch `feat/fase-f-integracoes` (criada da `master` depois do merge
+**Estado da fase F (2026-11-13).** Seis entregas na branch `feat/fase-f-integracoes` (criada da `master` depois do merge
 da fase E, PR #54): o **resumo por conexão** com o **vocabulário de impacto** (7f781fa), o **provedor de IA como conexão**
-(91ef677), o **segundo provedor** (2806b54), o **modelo por finalidade** (f595f61) e a **política consumida pelo índice**
-(ainda sem commit). Resta só o cofre em Linux e macOS, e o critério "pronto quando" da fase tem teste.
+(91ef677), o **segundo provedor** (2806b54), o **modelo por finalidade** (f595f61), a **política consumida pelo índice**
+(f5d566b) e o **cofre em Linux e macOS** (ainda sem commit). Com a sexta, a tabela da fase está inteira e o critério "pronto
+quando" tem teste.
 
 | Feito | Observação |
 | --- | --- |
@@ -610,8 +611,8 @@ de Configurações passou de "Chave de modelo" a "Provedor de IA".
 
 Limites: **a conferência real com a OpenAI continua pendente**, porque depende de uma chave do usuário rodando nas variáveis
 `MARILIZ_LIVE_*`; os testes usam transporte falso e um manipulador HTTP com os códigos 401, 403, 429 e 500. Conferir custa
-uma chamada curta ao provedor, a cada clique. Onde não há cofre (Linux e macOS) a chave segue em arquivo, e a tela diz isso:
-fechar essa lacuna é a entrega "cofre em Linux e macOS". O provedor ainda é um só (OpenAI), e o modelo é fixo
+uma chamada curta ao provedor, a cada clique. Onde não há cofre a chave segue em arquivo, e a tela diz isso
+(a 6ª entrega trouxe o cofre ao Linux e ao macOS). O provedor ainda era um só (OpenAI), e o modelo é fixo
 (`gpt-4o-mini`); o segundo provedor e o modelo por finalidade são as próximas entregas. Esta é a conexão de IA vista pelo
 motor: ela **não aparece na lista de conexões da central de integrações**, que continua só com GitHub e Jira.
 
@@ -677,6 +678,28 @@ trabalho (issues, pull requests): descrição e comentários não são lidos pel
 A busca é lexical, então um item só é recuperado se o pedido compartilhar palavras com ele. O índice de um projeto que tinha
 itens e fechou a política os mantém até a próxima execução de um pedido de engenharia, e a tela diz isso. Não conferi o efeito
 na qualidade das respostas com um modelo real.
+
+**Cofre em Linux e macOS (6ª entrega).** Até aqui só o Windows tinha cofre (DPAPI): no Linux e no macOS a central recusava
+criar conexões e a chave do modelo ficava em arquivo. Agora cada sistema usa o cofre dele, pelo comando que ele já traz.
+
+| Feito | Observação |
+| --- | --- |
+| Um cofre por sistema | `SecretVaults.For(plataforma, ...)`: DPAPI no Windows, **Chaveiro (Keychain) no macOS** pelo `/usr/bin/security` (caminho completo, para um programa de mesmo nome em outra pasta do PATH não tomar o lugar) e **serviço de segredos do Linux** (GNOME Keyring, KWallet e outros que falam Secret Service) pelo `secret-tool` do libsecret. Qualquer outro sistema segue sem cofre |
+| O segredo nunca vai em argumento | Argumentos de processo aparecem para qualquer usuário da máquina. No Linux o valor vai pela entrada padrão do `secret-tool`. O `security` só aceita a senha como argumento de `-w`, então a gravação usa o **modo interativo** (`security -i`): o comando, com o valor, vai pela entrada padrão. Testes percorrem todos os argumentos de todas as chamadas e provam que nem o segredo nem o seu base64 aparecem |
+| Valor em base64, identificador com formato fixo | O segredo é guardado em base64, para aspas, cifrão, crase, barra, quebra de linha e acento não serem interpretados pelo comando (teste com um segredo desses). O identificador que vai aos argumentos só pode ser `conn-` mais doze hexadecimais: nada vira opção ou outro comando. **Um teste achou um defeito aqui**: o `$` da expressão regular do .NET aceita uma quebra de linha no fim, e no macOS ela abriria uma segunda linha de comando na entrada do `security -i`; o fim passou a ser `\z` |
+| Só vale o que volta igual | O `security -i` não devolve erro quando o comando interno falha, então toda gravação é conferida lendo de volta, como na chave do modelo; se não voltou igual, falha sem repetir o segredo |
+| "Disponível" quer dizer que responde | O cofre pergunta uma vez, sem gravar nada: o comando existe **e** o cofre responde (no macOS, `find` sai com 44 quando não há o item; no Linux, `lookup` sai com 1 em silêncio, e com 1 e mensagem quando não há serviço de chaves). Sem isso, não grava em texto puro: a central recusa criar conexão, como antes |
+| O motivo aparece na tela | `integration.catalog` passou a trazer `vaultName` e `vaultHint`. Sem cofre, a tela diz o que falta neste sistema: instalar o `libsecret-tools` e um serviço de chaves, iniciar o GNOME Keyring ou o KWallet, desbloquear o chaveiro de início de sessão. Com cofre, diz qual é |
+| A chave do modelo acompanha | Onde há cofre, a chave do modelo vai para ele pela migração que já existia, e o arquivo `model.json` some depois de o cofre devolver a mesma chave. A tela de Configurações deixou de dizer "este sistema ainda não tem cofre" e manda para Integrações, que diz o que falta |
+| Testes | 51 no motor, com um **contrato único** que roda contra os dois cofres (segredo feio, substituir, remover, ler o que não existe, identificadores inválidos, valor ilegível, comando que mente, comando que falha, comando ausente, prazo, cofre recusado, pergunta uma vez só) e contra dublês fiéis do `security` e do `secret-tool`; seleção por sistema; chave do modelo e central com o cofre do Linux; e 3 testes **com o cofre real do sistema**, que só rodam com `MARILIZ_LIVE_VAULT=1` no macOS ou no Linux e aparecem como ignorados no resto. 4 de tela e 1 de contrato. Suítes: 573 na interface |
+
+Limites: **nada disto foi executado num macOS ou num Linux de verdade**: o desenvolvimento e os testes rodaram no Windows, com
+dublês dos dois comandos. O que os dublês supõem sobre o `security` (modo interativo, código 44) e o `secret-tool` (códigos e
+mensagens) vem da documentação e da prática, e só os três testes com `MARILIZ_LIVE_VAULT=1` provam que está certo: **rodar
+esses testes num Mac e num Linux com sessão gráfica é o que falta**. No Linux, um servidor sem serviço de chaves continua sem
+cofre, e a tela diz o que instalar. O `secret-tool` é achado pelo PATH. O valor aparece em base64 no Keychain Access e no
+Seahorse (é o preço de não depender do que o comando faz com aspas e quebras de linha). No macOS, o primeiro acesso pode abrir
+uma janela do sistema pedindo permissão; se for negada ou demorar além de 20 segundos, o cofre fica indisponível.
 
 Correção de passagem: o teste de tipografia (`Nenhum_arquivo_de_codigo_ou_interface_tem_travessao`) só examina arquivos
 rastreados pelo git, então um travessão num teste novo só aparece depois do commit. Um estava em `AgentPolicyTests.cs`
@@ -757,10 +780,10 @@ conversa livre como centro, memória aprendida, aplicativo web.
 | 4 | Aprovar o shell com seletor de projeto e alternador de ambiente | Fase B |
 | 5 | A tela Projeto pode ser repartida em Visão geral, Harness e Conhecimento | Fases B e E |
 | 6 | As fases A e B entram antes da ordem aprovada, ou a ordem segue como está. **Decidido em 2026-11-12: A e B antes.** | Resolvida |
-| 7 | Segundo provedor de IA: qual | Fase F |
+| 7 | Segundo provedor de IA: qual. **Entrou a Anthropic (entrega 3 da fase F), por escolha de implementação: confirmar com o dono.** | Fase F |
 | 8 | Dado sincronizado pode alimentar o conhecimento dos agentes, com a política por conexão | Fases F e G |
 | 9 | Componentes novos ficam no aplicativo, ou o ui-kit volta a receber mudanças | Fase B |
-| 10 | Cofre em Linux e macOS agora ou depois | Fase F |
+| 10 | Cofre em Linux e macOS agora ou depois. **Feito na fase F (entrega 6), ainda sem validação em máquina real.** | Fase F |
 
 ## 7. Riscos do roadmap
 

@@ -459,6 +459,22 @@ describe('contrato da política dos agentes (fixture do motor)', () => {
   });
 });
 
+describe('contrato do cofre no catálogo de integrações (fixture do motor)', () => {
+  it('o catálogo diz se há cofre, como ele se chama e, sem cofre, o que falta', () => {
+    const parsed = integrationCatalogSchema.parse(integrationCatalog);
+    expect(parsed.vaultAvailable).toBe(true);
+    expect(parsed.vaultName.length).toBeGreaterThan(0);
+    expect(parsed.vaultHint).toBeNull();
+    expect(
+      integrationCatalogSchema.parse({
+        ...integrationCatalog,
+        vaultAvailable: false,
+        vaultHint: 'Instale o libsecret-tools.'
+      }).vaultHint
+    ).toBe('Instale o libsecret-tools.');
+  });
+});
+
 describe('contrato do resumo por conexão (fixture do motor)', () => {
   it('cada conexão traz o impacto e os projetos que a usam, com o recorte e a política', () => {
     const parsed = connectionReachListSchema.parse(integrationReach);

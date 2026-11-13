@@ -21,6 +21,8 @@ public sealed class IntegrationHub
         Connectors = connectors;
         Activity = activity;
         VaultAvailable = vault.Available;
+        VaultName = vault.Name;
+        VaultHint = vault.Available ? null : vault.UnavailableHint;
         Connections = new ConnectionService(store, vault, connectors, clock, audit);
         Projects = new ProjectIntegrationService(store, data, Connections, connectors, workspace, activity, clock, audit);
         Reach = new ConnectionReachService(store, connectors, workspace);
@@ -38,6 +40,12 @@ public sealed class IntegrationHub
     public SyncService Sync { get; }
     public SyncActivity Activity { get; }
     public bool VaultAvailable { get; }
+
+    /// <summary>Como o cofre se chama para a pessoa.</summary>
+    public string VaultName { get; }
+
+    /// <summary>Quando o cofre não está disponível, o que falta e o que fazer. Nulo se está disponível.</summary>
+    public string? VaultHint { get; }
 
     /// <summary>A mesma trilha de auditoria, para outros casos de uso que precisam registrar operações.</summary>
     public IAuditLog Audit { get; }

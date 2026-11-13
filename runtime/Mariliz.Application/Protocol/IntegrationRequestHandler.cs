@@ -45,6 +45,8 @@ internal sealed class IntegrationRequestHandler(IntegrationHub hub)
     private JsonObject Catalog() => new()
     {
         ["vaultAvailable"] = hub.VaultAvailable,
+        ["vaultName"] = hub.VaultName,
+        ["vaultHint"] = hub.VaultHint,
         ["connectors"] = Array(hub.Connectors.Catalog().Select(d => IntegrationJson.Node(d)))
     };
 

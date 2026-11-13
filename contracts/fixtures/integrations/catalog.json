@@ -1,5 +1,7 @@
 {
   "vaultAvailable": true,
+  "vaultName": "cofre do sistema",
+  "vaultHint": null,
   "connectors": [
     {
       "provider": "github",

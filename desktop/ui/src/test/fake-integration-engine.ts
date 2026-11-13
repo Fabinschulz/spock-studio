@@ -33,6 +33,8 @@ export function fakeIntegrationEngine(
   initial: {
     connections?: Connection[];
     vaultAvailable?: boolean;
+    /** O que falta quando não há cofre, como o motor diz neste sistema. */
+    vaultHint?: string;
     modelConfigured?: boolean;
     assistant?: AssistantReply;
     /** O provedor recusa a credencial ao testar. O motor real não falha: marca a conexão com erro. */
@@ -69,7 +71,11 @@ export function fakeIntegrationEngine(
   };
 
   const handlers: Record<string, (params: Record<string, unknown>) => unknown> = {
-    'integration.catalog': () => ({ ...catalogFixture, vaultAvailable: initial.vaultAvailable ?? true }),
+    'integration.catalog': () => ({
+      ...catalogFixture,
+      vaultAvailable: initial.vaultAvailable ?? true,
+      vaultHint: initial.vaultAvailable === false ? (initial.vaultHint ?? null) : null
+    }),
     'connection.list': () => ({ connections }),
     'connection.reach': () => {
       if (initial.reach === 'fails') throw new EngineError('REACH_UNAVAILABLE', 'O resumo não está disponível.');

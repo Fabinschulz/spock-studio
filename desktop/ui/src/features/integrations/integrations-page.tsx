@@ -6,6 +6,7 @@ import { useCallback, useMemo } from 'react';
 import { ConnectionsSection } from './components/connections-section';
 import { ProjectIntegrationsSection } from './components/project-integrations-section';
 import { useReloadable } from './hooks/use-reloadable';
+import styles from './integrations-page.module.scss';
 import { createIntegrationApi } from './service/integration-api';
 
 /** Central de integrações: as conexões do computador e, para o projeto aberto, o que ele pode ler de cada uma. */
@@ -36,10 +37,13 @@ export function IntegrationsPage({ client, project }: { client: EngineClient; pr
         <>
           {!hub.value.catalog.vaultAvailable ? (
             <InlineNotice tone="warning" title="Armazenamento protegido indisponível">
-              Neste sistema o Spock Studio ainda não tem onde guardar credenciais com proteção do sistema operacional.
-              Para não gravá-las em texto puro, novas conexões ficam desativadas.
+              O Spock Studio não encontrou um cofre do sistema para guardar credenciais com proteção. Para não gravá-las
+              em texto puro, novas conexões ficam desativadas.
+              {hub.value.catalog.vaultHint ? ` ${hub.value.catalog.vaultHint}` : ''}
             </InlineNotice>
-          ) : null}
+          ) : (
+            <p className={styles.hint}>Cofre das credenciais: {hub.value.catalog.vaultName}.</p>
+          )}
           <ConnectionsSection
             api={api}
             catalog={hub.value.catalog}
