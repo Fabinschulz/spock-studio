@@ -4,15 +4,18 @@ import type { EngineClient } from '@/shared/api';
 import { EmptyState, ErrorState, LoadingState, Page, PageSection, StatusChip } from '@/shared/components';
 import type { RunItem } from '@/shared/schema';
 import { runEffectLabel, runKindLabel } from '@/shared/utils';
-import { Button } from '@mariliz/ui-kit';
-import { useId, useState, type ReactNode } from 'react';
+import { Button, SelectField } from '@mariliz/ui-kit';
+import { useState } from 'react';
 
 import { RunDetailPanel } from './components/run-detail-panel';
 import { displayState, KIND_OPTIONS, STATE_OPTIONS, stateTone } from './domain/run-labels';
 import { useRunList } from './hooks/use-run-list';
 import styles from './runs-page.module.scss';
 
-const ALL = '';
+/** "Sem filtro". Não pode ser texto vazio: num Select, o valor vazio deixa o rótulo por cima do texto. */
+const ALL = 'all';
+
+const FILTER_SX = { minWidth: '12rem' };
 
 /**
  * A central de execuções: toda execução passada ou em andamento, de qualquer jornada, com filtro por projeto, tipo e
@@ -31,8 +34,8 @@ export function RunsPage({ client, project }: { client: EngineClient; project: S
     reload
   } = useRunList(client, {
     projectId: scoped ? project.projectId : null,
-    kind: kind || null,
-    state: state || null
+    kind: kind === ALL ? null : kind,
+    state: state === ALL ? null : state
   });
 
   return (
@@ -48,49 +51,34 @@ export function RunsPage({ client, project }: { client: EngineClient; project: S
       <PageSection title="Filtros">
         <div className={styles.filters}>
           {project ? (
-            <Field label="Projeto">
-              {(id) => (
-                <select
-                  id={id}
-                  className={styles.select}
-                  value={onlyProject ? 'one' : 'all'}
-                  onChange={(event) => setOnlyProject(event.target.value === 'one')}
-                >
-                  <option value="all">Todos os projetos</option>
-                  <option value="one">Só {project.displayName}</option>
-                </select>
-              )}
-            </Field>
+            <SelectField
+              label="Projeto"
+              size="small"
+              sx={FILTER_SX}
+              value={onlyProject ? 'one' : 'all'}
+              onChange={(event) => setOnlyProject(event.target.value === 'one')}
+              options={[
+                { label: 'Todos os projetos', value: 'all' },
+                { label: `Só ${project.displayName}`, value: 'one' }
+              ]}
+            />
           ) : null}
-          <Field label="Tipo">
-            {(id) => (
-              <select id={id} className={styles.select} value={kind} onChange={(event) => setKind(event.target.value)}>
-                <option value={ALL}>Todos os tipos</option>
-                {KIND_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            )}
-          </Field>
-          <Field label="Estado">
-            {(id) => (
-              <select
-                id={id}
-                className={styles.select}
-                value={state}
-                onChange={(event) => setState(event.target.value)}
-              >
-                <option value={ALL}>Todos os estados</option>
-                {STATE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            )}
-          </Field>
+          <SelectField
+            label="Tipo"
+            size="small"
+            sx={FILTER_SX}
+            value={kind}
+            onChange={(event) => setKind(String(event.target.value))}
+            options={[{ label: 'Todos os tipos', value: ALL }, ...KIND_OPTIONS]}
+          />
+          <SelectField
+            label="Estado"
+            size="small"
+            sx={FILTER_SX}
+            value={state}
+            onChange={(event) => setState(String(event.target.value))}
+            options={[{ label: 'Todos os estados', value: ALL }, ...STATE_OPTIONS]}
+          />
         </div>
       </PageSection>
 
@@ -138,18 +126,6 @@ export function RunsPage({ client, project }: { client: EngineClient; project: S
 
       <RunDetailPanel client={client} run={opened} onClose={() => setOpened(null)} />
     </Page>
-  );
-}
-
-function Field({ label, children }: { label: string; children: (id: string) => ReactNode }) {
-  const id = useId();
-  return (
-    <div className={styles.field}>
-      <label htmlFor={id} className={styles.label}>
-        {label}
-      </label>
-      {children(id)}
-    </div>
   );
 }
 

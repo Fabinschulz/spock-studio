@@ -4,8 +4,8 @@ import { EmptyState, ErrorState, InlineNotice, PageSection, ResourceView, Status
 import { useAsyncResource } from '@/shared/hooks';
 import { DECISION_LIMITS, type DecisionSummary, type ManagementDecision, type RunItem } from '@/shared/schema';
 import { runKindLabel, runStateLabel } from '@/shared/utils';
-import { Button } from '@mariliz/ui-kit';
-import { useCallback, useId, useState, type FormEvent } from 'react';
+import { Button, Checkbox, TextField } from '@mariliz/ui-kit';
+import { useCallback, useState, type FormEvent } from 'react';
 
 import styles from '../management-page.module.scss';
 import type { ManagementApi } from '../service/management-api';
@@ -82,7 +82,6 @@ function DecisionForm({
   projectId: string;
   onRecorded: (redacted: boolean) => void;
 }) {
-  const ids = { title: useId(), decision: useId(), rationale: useId() };
   const [title, setTitle] = useState('');
   const [decision, setDecision] = useState('');
   const [rationale, setRationale] = useState('');
@@ -115,38 +114,31 @@ function DecisionForm({
 
   return (
     <form className={styles.decisionForm} onSubmit={(event) => void submit(event)} aria-label="Nova decisão">
-      <div className={styles.field}>
-        <label htmlFor={ids.title}>Título</label>
-        <input
-          id={ids.title}
-          className={styles.input}
-          value={title}
-          maxLength={DECISION_LIMITS.title}
-          onChange={(event) => setTitle(event.target.value)}
-        />
-      </div>
-      <div className={styles.field}>
-        <label htmlFor={ids.decision}>O que foi decidido</label>
-        <textarea
-          id={ids.decision}
-          className={styles.input}
-          rows={3}
-          value={decision}
-          maxLength={DECISION_LIMITS.decision}
-          onChange={(event) => setDecision(event.target.value)}
-        />
-      </div>
-      <div className={styles.field}>
-        <label htmlFor={ids.rationale}>Por quê (opcional)</label>
-        <textarea
-          id={ids.rationale}
-          className={styles.input}
-          rows={3}
-          value={rationale}
-          maxLength={DECISION_LIMITS.rationale}
-          onChange={(event) => setRationale(event.target.value)}
-        />
-      </div>
+      <TextField
+        label="Título"
+        fullWidth
+        value={title}
+        onChange={(event) => setTitle(event.target.value)}
+        slotProps={{ htmlInput: { maxLength: DECISION_LIMITS.title } }}
+      />
+      <TextField
+        label="O que foi decidido"
+        fullWidth
+        multiline
+        minRows={3}
+        value={decision}
+        onChange={(event) => setDecision(event.target.value)}
+        slotProps={{ htmlInput: { maxLength: DECISION_LIMITS.decision } }}
+      />
+      <TextField
+        label="Por quê (opcional)"
+        fullWidth
+        multiline
+        minRows={3}
+        value={rationale}
+        onChange={(event) => setRationale(event.target.value)}
+        slotProps={{ htmlInput: { maxLength: DECISION_LIMITS.rationale } }}
+      />
       <fieldset className={styles.runPicker}>
         <legend>Execuções relacionadas (até {DECISION_LIMITS.runs})</legend>
         <ResourceView resource={runs} loading="Lendo as execuções…" fallbackError="Não foi possível ler as execuções.">
@@ -181,13 +173,13 @@ function DecisionForm({
 }
 
 function RunOption({ run, checked, onToggle }: { run: RunItem; checked: boolean; onToggle: () => void }) {
-  const id = useId();
   return (
     <div className={styles.runOption}>
-      <input id={id} type="checkbox" checked={checked} onChange={onToggle} />
-      <label htmlFor={id}>
-        {runKindLabel(run.kind)} · {runStateLabel(run.state)} · {formatEngineDate(run.startedAt)}
-      </label>
+      <Checkbox
+        checked={checked}
+        onChange={onToggle}
+        label={`${runKindLabel(run.kind)} · ${runStateLabel(run.state)} · ${formatEngineDate(run.startedAt)}`}
+      />
     </div>
   );
 }

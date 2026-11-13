@@ -1,6 +1,6 @@
 import connectedFixture from '@contracts/fixtures/models/connection.json';
 import failedFixture from '@contracts/fixtures/models/connection-error.json';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
@@ -8,6 +8,7 @@ import { EngineError, type EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
 import { modelConnectionSchema, type ModelConnection } from '@/shared/schema';
 import { expectNoA11yViolations } from '@/test/a11y';
+import { chooseOption, optionsOf } from '@/test/choose-option';
 
 import { ModelSettingsPage } from './model-settings-page';
 
@@ -221,16 +222,12 @@ describe('Configurações · provedor de IA', () => {
   it('oferece os provedores do motor, começa pelo primeiro sem chave e diz o modelo de cada um', async () => {
     renderPage(client(none));
 
-    const select = await screen.findByLabelText('Provedor');
+    const select = await screen.findByRole('combobox', { name: 'Provedor' });
 
-    expect(
-      within(select)
-        .getAllByRole('option')
-        .map((option) => option.textContent)
-    ).toEqual(['OpenAI', 'Anthropic']);
-    expect(select).toHaveValue('openai');
+    expect(await optionsOf(select)).toEqual(['OpenAI', 'Anthropic']);
+    expect(select).toHaveTextContent('OpenAI');
     expect(screen.getByText(/Com OpenAI, as conversas dos agentes usam o modelo/)).toBeInTheDocument();
-    await userEvent.selectOptions(select, 'anthropic');
+    await chooseOption(select, 'Anthropic');
     expect(screen.getByText(/Com Anthropic, as conversas dos agentes usam o modelo/)).toBeInTheDocument();
     expect(screen.getByText('claude-haiku-5-5')).toBeInTheDocument();
   });
@@ -239,23 +236,23 @@ describe('Configurações · provedor de IA', () => {
     const api = client(none);
     renderPage(api);
 
-    await userEvent.selectOptions(await screen.findByLabelText('Provedor'), 'anthropic');
+    await chooseOption(await screen.findByRole('combobox', { name: 'Provedor' }), 'Anthropic');
     await userEvent.type(screen.getByLabelText('Chave de API'), testKey);
     await userEvent.click(screen.getByRole('button', { name: 'Salvar chave' }));
 
     expect(await screen.findByText(/Provedor configurado: Anthropic/)).toBeInTheDocument();
     expect(api.saved).toEqual([{ provider: 'anthropic', key: testKey }]);
-    expect(screen.getByLabelText('Provedor')).toHaveValue('anthropic');
+    expect(screen.getByRole('combobox', { name: 'Provedor' })).toHaveTextContent('Anthropic');
   });
 
   it('trocar de provedor avisa que a chave atual é substituída e que ela fica se o novo recusar', async () => {
     renderPage(client(connected));
 
-    const select = await screen.findByLabelText('Provedor');
-    expect(select).toHaveValue('openai');
+    const select = await screen.findByRole('combobox', { name: 'Provedor' });
+    expect(select).toHaveTextContent('OpenAI');
     expect(screen.queryByText(/Trocar de provedor substitui a chave/)).not.toBeInTheDocument();
 
-    await userEvent.selectOptions(select, 'anthropic');
+    await chooseOption(select, 'Anthropic');
 
     expect(
       screen.getByText(/Trocar de provedor substitui a chave de OpenAI: só uma chave fica ativa/)
@@ -266,7 +263,7 @@ describe('Configurações · provedor de IA', () => {
   it('se o novo provedor recusa, continua mostrando o provedor de antes', async () => {
     renderPage(client(connected, { refuseSave: true }));
 
-    await userEvent.selectOptions(await screen.findByLabelText('Provedor'), 'anthropic');
+    await chooseOption(await screen.findByRole('combobox', { name: 'Provedor' }), 'Anthropic');
     await userEvent.type(screen.getByLabelText('Chave de API'), testKey);
     await userEvent.click(screen.getByRole('button', { name: 'Salvar chave' }));
 
@@ -275,7 +272,7 @@ describe('Configurações · provedor de IA', () => {
   });
 
   describe('modelo por finalidade', () => {
-    const rowOf = async (label: string) => (await screen.findByLabelText(label)) as HTMLSelectElement;
+    const rowOf = async (label: string) => await screen.findByRole('combobox', { name: label });
 
     it('mostra uma linha por finalidade, com o modelo de hoje e o padrão marcado', async () => {
       renderPage(client(connected));
@@ -283,12 +280,8 @@ describe('Configurações · provedor de IA', () => {
       const judge = await rowOf('Juiz');
 
       expect(screen.getByText('Modelo por finalidade')).toBeInTheDocument();
-      expect(judge).toHaveValue('gpt-4o-mini');
-      expect(
-        within(judge)
-          .getAllByRole('option')
-          .map((option) => option.textContent)
-      ).toEqual(['GPT-4o mini (padrão)', 'GPT-4o']);
+      expect(judge).toHaveTextContent('GPT-4o mini (padrão)');
+      expect(await optionsOf(judge)).toEqual(['GPT-4o mini (padrão)', 'GPT-4o']);
       expect(await rowOf('Assistente gerencial')).toBeInTheDocument();
       expect(await rowOf('Fluxos de engenharia')).toBeInTheDocument();
       expect(screen.getByText(/Dá uma segunda opinião sobre o resultado de uma execução/)).toBeInTheDocument();
@@ -298,25 +291,25 @@ describe('Configurações · provedor de IA', () => {
       const api = client(connected);
       renderPage(api);
 
-      await userEvent.selectOptions(await rowOf('Juiz'), 'gpt-4o');
+      await chooseOption(await rowOf('Juiz'), /^GPT-4o$/);
 
       expect(await screen.findByText('Modelo de juiz atualizado.')).toBeInTheDocument();
       expect(api.purposeCalls).toEqual([{ purpose: 'judge', model: 'gpt-4o' }]);
-      expect(await rowOf('Juiz')).toHaveValue('gpt-4o');
-      expect(await rowOf('Assistente gerencial')).toHaveValue('gpt-4o-mini');
+      expect(await rowOf('Juiz')).toHaveTextContent(/^GPT-4o$/);
+      expect(await rowOf('Assistente gerencial')).toHaveTextContent('GPT-4o mini (padrão)');
     });
 
     it('escolher o padrão volta a finalidade ao padrão sem mandar modelo', async () => {
       const api = client(connected);
       renderPage(api);
-      await userEvent.selectOptions(await rowOf('Juiz'), 'gpt-4o');
+      await chooseOption(await rowOf('Juiz'), /^GPT-4o$/);
       await screen.findByText('Modelo de juiz atualizado.');
 
-      await userEvent.selectOptions(await rowOf('Juiz'), 'gpt-4o-mini');
+      await chooseOption(await rowOf('Juiz'), 'GPT-4o mini (padrão)');
 
       await waitFor(() => expect(api.purposeCalls).toHaveLength(2));
       expect(api.purposeCalls[1]).toEqual({ purpose: 'judge' });
-      expect(await rowOf('Juiz')).toHaveValue('gpt-4o-mini');
+      expect(await rowOf('Juiz')).toHaveTextContent('GPT-4o mini (padrão)');
     });
 
     it('diz que a escolha é da pessoa e que o teto de tokens não muda', async () => {
@@ -337,27 +330,23 @@ describe('Configurações · provedor de IA', () => {
     it('se o motor recusa a escolha, mostra o motivo e mantém o modelo de antes', async () => {
       renderPage(client(connected, { refusePurpose: true }));
 
-      await userEvent.selectOptions(await rowOf('Juiz'), 'gpt-4o');
+      await chooseOption(await rowOf('Juiz'), /^GPT-4o$/);
 
       expect(await screen.findByRole('alert')).toHaveTextContent('Esse modelo não está disponível neste provedor.');
-      expect(await rowOf('Juiz')).toHaveValue('gpt-4o-mini');
+      expect(await rowOf('Juiz')).toHaveTextContent('GPT-4o mini (padrão)');
     });
 
     it('trocar de provedor mostra os modelos do novo, cada finalidade no padrão dele', async () => {
       renderPage(client(connected));
-      await userEvent.selectOptions(await screen.findByLabelText('Provedor'), 'anthropic');
+      await chooseOption(await screen.findByRole('combobox', { name: 'Provedor' }), 'Anthropic');
       await userEvent.type(screen.getByLabelText('Chave de API'), testKey);
       await userEvent.click(screen.getByRole('button', { name: 'Salvar chave' }));
 
       await screen.findByText(/Provedor configurado: Anthropic/);
       const judge = await rowOf('Juiz');
 
-      expect(
-        within(judge)
-          .getAllByRole('option')
-          .map((option) => option.textContent)
-      ).toEqual(['Claude Haiku 5.5 (padrão)', 'Claude Sonnet 5.5', 'Claude Opus 5.5']);
-      expect(judge).toHaveValue('claude-haiku-5-5');
+      expect(await optionsOf(judge)).toEqual(['Claude Haiku 5.5 (padrão)', 'Claude Sonnet 5.5', 'Claude Opus 5.5']);
+      expect(judge).toHaveTextContent('Claude Haiku 5.5 (padrão)');
     });
   });
 

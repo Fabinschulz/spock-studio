@@ -5,8 +5,8 @@ import { EmptyState, NoProjectState, Page, PageSection, ResourceView } from '@/s
 import { useAsyncResource, useCopyToClipboard } from '@/shared/hooks';
 import type { Connector, ProjectReport } from '@/shared/schema';
 import { runKindLabel, runStateLabel } from '@/shared/utils';
-import { Button } from '@mariliz/ui-kit';
-import { useCallback, useId, useMemo, useState } from 'react';
+import { Button, SelectField } from '@mariliz/ui-kit';
+import { useCallback, useMemo, useState } from 'react';
 
 import { MilestonesBody } from './components/milestones-section';
 import { ForecastSection } from './components/forecast-section';
@@ -48,7 +48,6 @@ function ProjectReportView({
   management: ManagementApi;
   project: SelectedProject;
 }) {
-  const periodId = useId();
   const [weeks, setWeeks] = useState<number>(4);
   const load = useCallback(async () => {
     const [catalog, report] = await Promise.all([integrations.catalog(), management.report(project.projectId, weeks)]);
@@ -62,21 +61,14 @@ function ProjectReportView({
       description={`${project.displayName} · o que aconteceu no período, a partir do que o motor leu e registrou.`}
     >
       <PageSection title="Período">
-        <div className={styles.field}>
-          <label htmlFor={periodId}>Largura do período</label>
-          <select
-            id={periodId}
-            className={styles.input}
-            value={weeks}
-            onChange={(event) => setWeeks(Number(event.target.value))}
-          >
-            {PERIODS.map((value) => (
-              <option key={value} value={value}>
-                Últimas {value} semanas
-              </option>
-            ))}
-          </select>
-        </div>
+        <SelectField
+          label="Largura do período"
+          size="small"
+          sx={{ minWidth: '14rem' }}
+          value={weeks}
+          onChange={(event) => setWeeks(Number(event.target.value))}
+          options={PERIODS.map((value) => ({ label: `Últimas ${value} semanas`, value }))}
+        />
       </PageSection>
       <ResourceView
         resource={content}
