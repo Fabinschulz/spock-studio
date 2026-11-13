@@ -58,23 +58,32 @@ _CONCLUSION_TASK = (
 )
 
 
-def facts_block(facts: list[Fact]) -> str:
-    """Os fatos reunidos, cada um com o seu id citável, dentro do bloco delimitado. O texto pode trazer título de item escrito por terceiros."""
-    parts: list[str] = []
+def _entry(fact: Fact) -> str:
+    return f"[{fact.id}] ({fact.group}) {prompts.neutralize(fact.text)}"
+
+
+def fit(facts: list[Fact]) -> tuple[list[Fact], int]:
+    """Os fatos que cabem no bloco do pedido, na ordem em que chegaram, e quantos ficaram de fora (os últimos)."""
+    kept: list[Fact] = []
     size = 0
     for fact in facts:
-        entry = f"[{fact.id}] ({fact.group}) {prompts.neutralize(fact.text)}"
-        if size + len(entry) > prompts.MAX_BLOCK:
+        size += len(_entry(fact))
+        if size > prompts.MAX_BLOCK:
             break
-        parts.append(entry)
-        size += len(entry)
+        kept.append(fact)
+    return kept, len(facts) - len(kept)
+
+
+def facts_block(facts: list[Fact]) -> str:
+    """Os fatos que cabem, cada um com o seu id citável, dentro do bloco delimitado. O texto pode trazer título de item escrito por terceiros."""
+    parts = [_entry(fact) for fact in fit(facts)[0]]
     body = "\n".join(parts) if parts else "(nenhum fato reunido)"
     return f"<{prompts.TAG}>\n{body}\n</{prompts.TAG}>"
 
 
 def hypothesize(model: Model, question: str, gathered: list[Fact], groups: list[str], consulted: list[str], can_spend,
                 can_search: bool = False, searched: tuple[str, ...] = ()) -> Outcome:
-    known = {fact.id for fact in gathered}
+    known = {fact.id for fact in fit(gathered)[0]}
     pending = [group for group in groups if group not in consulted]
     user = (
         f"{prompts.request_block(question)}\n\nGrupos já consultados: {', '.join(consulted) or 'nenhum'}.\n"
@@ -93,7 +102,7 @@ def hypothesize(model: Model, question: str, gathered: list[Fact], groups: list[
 
 
 def conclude(model: Model, question: str, gathered: list[Fact], hypotheses: list[dict], can_spend) -> Outcome:
-    known = {fact.id for fact in gathered}
+    known = {fact.id for fact in fit(gathered)[0]}
     considered = "\n".join(f"- {item['text']}" for item in hypotheses) or "(nenhuma)"
     user = f"{prompts.request_block(question)}\n\nHipóteses consideradas:\n{prompts.neutralize(considered)}\n\n{facts_block(gathered)}"
     return ask(

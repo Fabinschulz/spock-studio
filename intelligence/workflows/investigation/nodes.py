@@ -110,6 +110,7 @@ def hypothesize(state: dict, run: Run) -> dict:
         return state
     facts = run.facts
     gathered = [facts[fact_id] for fact_id in state["gathered"]]
+    _warn_if_facts_do_not_fit(state, gathered)
 
     state["searches"] = []
     searched = tuple(state.get("searched") or [])
@@ -225,6 +226,13 @@ def _asked(groups: list[str], searches: int) -> str:
     return " e ".join(parts)
 
 
+def _warn_if_facts_do_not_fit(state: dict, gathered: list[Fact]) -> None:
+    """Fato reunido que passa do limite do pedido o modelo não vê (e não pode citar): isso vira limitação, nunca silêncio."""
+    hidden = agent.fit(gathered)[1]
+    if hidden:
+        limit(state, "INVESTIGATION_FACTS_TRUNCATED", f"Ficaram de fora da análise, por não caberem no pedido ao modelo: {_count(hidden, 'fato reunido', 'fatos reunidos')}.")
+
+
 def conclude(state: dict, run: Run) -> dict:
     facts = run.facts
     gathered = [facts[fact_id] for fact_id in state["gathered"]]
@@ -232,6 +240,8 @@ def conclude(state: dict, run: Run) -> dict:
     state["answer"] = None
     written = False
     if run.segment.model is not None:
+        _warn_if_facts_do_not_fit(state, gathered)
+
         def adopt(outcome) -> None:
             nonlocal written
             written = True

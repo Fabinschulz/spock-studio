@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://mariliz.dev/schemas/intelligence/ai.event.v1.schema.json",
   "title": "Inteligência → motor: um evento durante a execução (uma linha NDJSON)",
-  "description": "O motor descarta duplicatas por eventId, atribui o seq público, persiste e republica. Estados terminais e interrupções vêm só do ai.ack.v2, nunca de um evento.",
+  "description": "O motor descarta duplicatas por eventId, atribui o seq público, persiste e republica. Estados terminais e interrupções vêm só do ai.ack.v3, nunca de um evento.",
   "type": "object",
   "required": ["schema", "eventId", "executionId", "localSeq", "type", "at", "data"],
   "properties": {

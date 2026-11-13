@@ -213,6 +213,30 @@ class InvestigationTests(unittest.TestCase):
         self.assertIn("INVESTIGATION_STOPPED", {item["code"] for item in ack["limitations"]})
         self.assertEqual(ack["status"], "completed_with_limitations")
 
+    def test_fato_que_nao_cabe_no_pedido_vira_limitacao_e_o_modelo_nao_pode_cita_lo(self) -> None:
+        # Os últimos fatos reunidos passam do limite do bloco: o modelo não os vê, então também não pode citá-los.
+        big = [{"id": f"src.big{n}", "group": "fontes", "text": "x" * 700} for n in range(20)]
+        fake = FakeModel(
+            _hypotheses([("H", ["flow.throughput"])]),
+            _conclusion(observed=[{"text": "Um fato que o modelo nunca viu.", "evidence": ["src.big19"]}]),
+        )
+
+        _events, ack = _go(_payload(facts=FACTS + big), fake)
+
+        self.assertIn("INVESTIGATION_FACTS_TRUNCATED", {item["code"] for item in ack["limitations"]})
+        self.assertNotIn("src.big19", fake.calls[0]["messages"][1]["content"])
+        self.assertNotIn("src.big19", fake.calls[-1]["messages"][1]["content"])
+        self.assertEqual(ack["answer"]["observed"], [])
+        self.assertEqual([item["reason"] for item in ack["rejected"]], ["no_valid_evidence"])
+        self.assertEqual(ack["status"], "completed_with_limitations")
+
+    def test_com_poucos_fatos_nada_e_cortado_nem_avisado(self) -> None:
+        fake = FakeModel(_hypotheses([("H", ["flow.throughput"])]), _conclusion())
+
+        _events, ack = _go(_payload(), fake)
+
+        self.assertNotIn("INVESTIGATION_FACTS_TRUNCATED", {item["code"] for item in ack["limitations"]})
+
     def test_nao_olha_de_novo_o_que_ja_viu(self) -> None:
         fake = FakeModel(_hypotheses([("H", ["flow.throughput"])], needs=["indicadores", "contexto"]), _conclusion())
 

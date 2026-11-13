@@ -7,8 +7,9 @@ use serde_json::Value;
 pub const PROTOCOL_VERSION: u64 = 1;
 pub const MAX_MESSAGE_BYTES: usize = 4 * 1024 * 1024;
 
-/// Métodos que a UI pode pedir ao motor: a jornada "Configurar projeto", o início de um workflow e a central de
-/// integrações (`connection.*`, `integration.*`) e a visão gerencial (`management.*`, só leitura).
+/// Métodos que a UI pode pedir ao motor: tudo o que a interface usa, por área (jornada de configuração, execuções, workflow,
+/// modelo, integrações, gestão, decisões, Engenharia, linha do tempo e auditoria). Mudou um método no motor
+/// (`ProtocolMethods.cs`)? Esta lista e `engine-client.ts` mudam juntas; `engine-methods.test.ts` confere a UI contra ela.
 /// `workspace.authorize` e `engine.*` ficam de fora de propósito: o primeiro recebe um caminho e só
 /// o diálogo nativo (comando `pick_project_folder`) pode originá-lo; os demais são do ciclo de vida do host.
 pub const FRONTEND_METHODS: &[&str] = &[

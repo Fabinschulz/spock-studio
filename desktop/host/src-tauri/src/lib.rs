@@ -88,7 +88,8 @@ async fn pick_project_folder(
 }
 
 /// Projetos escolhidos antes, do mais recente ao mais antigo. Sem caminho completo: só id, nome e caminho abreviado.
-#[tauri::command]
+/// `async`: um comando síncrono roda na thread principal, e conferir as pastas pode demorar (caminho de rede desconectado).
+#[tauri::command(async)]
 fn list_recent_projects(recents: State<'_, Recents>) -> Vec<RecentProject> {
     recents.list()
 }
@@ -108,7 +109,12 @@ async fn open_recent_project(
         )
     })?;
 
-    if !std::path::Path::new(&path).is_dir() {
+    let to_check = path.clone();
+    let exists =
+        tauri::async_runtime::spawn_blocking(move || std::path::Path::new(&to_check).is_dir())
+            .await
+            .unwrap_or(false);
+    if !exists {
         return Err(HostError::new(
             error_code::PATH_NOT_FOUND,
             "A pasta deste projeto não existe mais ou não está acessível.",

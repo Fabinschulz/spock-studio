@@ -1,6 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import _paths  # noqa: F401
 
@@ -156,6 +157,38 @@ class RagTests(unittest.TestCase):
         self.assertEqual(req[0]["filePath"], "docs/spec.md")
         self.assertEqual(retrieval.identifiers("o que BillingService.Charge faz com calcular_juros e useInvoices"),
                          ["BillingService.Charge", "calcular_juros", "useInvoices"])
+
+    def test_uma_busca_nao_abre_uma_conexao_por_trecho_candidato(self) -> None:
+        documents = [
+            {"path": f"docs/nota{n}.md", "hash": f"{n:x}" * 64 if n < 16 else "f" * 64, "text": f"cobranca do cliente numero {n} fica registrada aqui"}
+            for n in range(12)
+        ]
+        with tempfile.TemporaryDirectory() as root:
+            rag.sync(root, PROJECT_A, documents)
+            opened: list[int] = []
+            original = rag._session
+
+            def counting(path):
+                opened.append(1)
+                return original(path)
+
+            with mock.patch.object(rag, "_session", counting):
+                found = retrieval.search(root, PROJECT_A, "cobranca do cliente", limit=5)
+
+        self.assertEqual(len(found), 5)
+        # lexical + simbolos + os corpos de todos os candidatos de uma vez; nunca uma sessao por candidato
+        self.assertLessEqual(len(opened), 3)
+
+    def test_chunk_bodies_devolve_o_corpo_de_cada_id_pedido_e_ignora_o_que_nao_existe(self) -> None:
+        with tempfile.TemporaryDirectory() as root:
+            rag.sync(root, PROJECT_A, [{"path": "docs/a.md", "hash": "a" * 64, "text": "alfa mariliz exclusivo neste arquivo longo"}])
+            chunk_id = rag.search(root, PROJECT_A, "alfa mariliz")[0]["chunkId"]
+
+            bodies = rag.chunk_bodies(root, PROJECT_A, [chunk_id, "docs/x.md#nao-existe"])
+
+            self.assertEqual(list(bodies), [chunk_id])
+            self.assertIn("alfa mariliz", bodies[chunk_id])
+            self.assertEqual(rag.chunk_bodies(root, PROJECT_A, []), {})
 
     def test_recusa_caminho_de_segredo_e_projeto_invalido(self) -> None:
         with tempfile.TemporaryDirectory() as root:
