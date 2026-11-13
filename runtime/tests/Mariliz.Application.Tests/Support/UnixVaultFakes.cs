@@ -3,22 +3,18 @@ using Mariliz.Application.Ports;
 
 namespace Mariliz.Application.Tests.Support;
 
-/// <summary>Um cofre de sistema de mentira: guarda em memória, registra cada chamada ao comando e deixa o teste quebrar o comando de propósito.</summary>
 public abstract class FakeVaultCommand : IProcessRunner
 {
     public Dictionary<string, string> Items { get; } = [];
     public List<ProcessSpec> Calls { get; } = [];
 
-    /// <summary>O comando não existe na máquina.</summary>
     public bool NotInstalled { get; set; }
 
-    /// <summary>O comando demora além do prazo.</summary>
     public bool TimesOut { get; set; }
 
-    /// <summary>O comando diz que gravou e não grava (o <c>security -i</c> do macOS faz isso quando o comando interno falha).</summary>
+    // O security -i do macOS faz isso quando o comando interno falha.
     public bool DropsWrites { get; set; }
 
-    /// <summary>O comando de gravar sai com erro.</summary>
     public bool FailsWrites { get; set; }
 
     public Task<ProcessResult> RunAsync(ProcessSpec spec, CancellationToken ct)
@@ -33,16 +29,16 @@ public abstract class FakeVaultCommand : IProcessRunner
 
     protected static ProcessResult Ok(string stdout = "") => new(0, stdout, "", false, false);
 
-    /// <summary>Tudo o que o teste vê em argumentos e entrada de todas as chamadas, junto: para provar que um valor nunca esteve em nenhum dos dois, exceto onde deveria.</summary>
+    // Para provar que um valor nunca esteve em argumento nem entrada, exceto onde deveria.
     public string AllArguments() => string.Join("\n", Calls.SelectMany(call => call.Arguments));
 
     public string AllInput() => string.Join("\n", Calls.Select(call => call.StandardInput ?? ""));
 }
 
-/// <summary>O <c>/usr/bin/security</c> do macOS: <c>-i</c> lê comandos da entrada; <c>find</c> sai com 44 quando não há item.</summary>
+// -i lê comandos da entrada; find sai com 44 quando não há item.
 public sealed class FakeSecurity : FakeVaultCommand
 {
-    /// <summary>O chaveiro está trancado ou o acesso foi negado: todo comando sai com este código.</summary>
+    // Chaveiro trancado ou acesso negado.
     public int? DeniedWith { get; set; }
 
     protected override ProcessResult Handle(ProcessSpec spec)
@@ -85,10 +81,10 @@ public sealed class FakeSecurity : FakeVaultCommand
     }
 }
 
-/// <summary>O <c>secret-tool</c> do libsecret: <c>lookup</c> sai com 1 e sem mensagem quando não há item, e com 1 e mensagem quando não há serviço.</summary>
+// lookup sai com 1 e sem mensagem quando não há item, e com 1 e mensagem quando não há serviço.
 public sealed class FakeSecretTool : FakeVaultCommand
 {
-    /// <summary>Não há serviço de chaves na sessão (servidor, sem D-Bus): todo comando sai com 1 e uma mensagem de erro.</summary>
+    // Servidor, sem D-Bus.
     public bool ServiceDown { get; set; }
 
     protected override ProcessResult Handle(ProcessSpec spec)

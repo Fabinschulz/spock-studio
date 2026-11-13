@@ -10,10 +10,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Inventário de MCP: o que o <c>.mcp.json</c> do projeto declara, o que cada servidor roda e onde há credencial escrita no
-/// arquivo. O valor encontrado nunca pode sair: nem na resposta, nem no que a tela mostra.
-/// </summary>
+// O valor de credencial encontrado nunca pode sair: nem na resposta, nem no que a tela mostra.
 public class McpInventoryTests
 {
     // Valores de teste com formato de credencial, sem valor real.
@@ -27,7 +24,7 @@ public class McpInventoryTests
         return new McpInventoryService(workspace, new TestFilesFactory()).Read(projectId);
     }
 
-    /// <summary>Troca os marcadores pelos valores de teste: assim o JSON não precisa de interpolação.</summary>
+    // Assim o JSON não precisa de interpolação.
     private static string Fill(string json) => json.Replace("@GH@", GithubToken).Replace("@UNK@", UnknownFormat);
 
     private static McpInventory Read(string mcpJson)

@@ -5,11 +5,7 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Management.Investigation;
 
-/// <summary>
-/// O diário da investigação: o caminho como etapas (com os ids dos fatos consultados), contagens e o código do erro, <b>nunca o
-/// texto da pergunta, das hipóteses nem da resposta</b>. Não passa pelo rastreador: uma investigação só lê. Só projeto autorizado
-/// tem diário, e uma falha ao gravar nunca atrapalha a resposta.
-/// </summary>
+// Nunca guarda o texto da pergunta, das hipóteses nem da resposta. Não passa pelo rastreador porque uma investigação só lê; uma falha ao gravar nunca atrapalha a resposta.
 internal sealed class InvestigationJournal(IRunStore? runs, WorkspaceAuthorizer workspace, IClock clock)
 {
     public void Save(string projectId, string investigationId, string executionId, DateTimeOffset startedAt, ProjectInvestigation? result, string? error, ModelUsage? usage)

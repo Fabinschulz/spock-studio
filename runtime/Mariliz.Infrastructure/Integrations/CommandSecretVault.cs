@@ -22,12 +22,11 @@ public abstract partial class CommandSecretVault(IProcessRunner runner) : ISecre
 {
     protected static readonly TimeSpan Timeout = TimeSpan.FromSeconds(20);
 
-    /// <summary>O nome do serviço sob o qual as credenciais ficam no cofre do sistema.</summary>
     protected const string Service = "Spock Studio";
 
     private (bool Available, string? Hint)? _probed;
 
-    /// <summary>Um identificador que nunca é gravado: só serve para perguntar ao cofre se ele responde.</summary>
+    // Nunca é gravado: só serve para perguntar ao cofre se ele responde.
     protected const string ProbeId = "conn-000000000000";
 
     public abstract string Name { get; }
@@ -36,13 +35,11 @@ public abstract partial class CommandSecretVault(IProcessRunner runner) : ISecre
 
     public string? UnavailableHint => Probe().Hint;
 
-    /// <summary>Confere se o comando existe e se o cofre responde. Roda uma vez; o motor reinicia para tentar de novo.</summary>
+    // Roda uma vez; o motor reinicia para tentar de novo.
     protected abstract (bool Available, string? Hint) ProbeCore();
 
-    /// <summary>Grava o valor já codificado. Falha com <see cref="EngineException"/>.</summary>
     protected abstract void StoreCore(string id, string encoded);
 
-    /// <summary>O valor guardado (ainda codificado), ou nulo se não há.</summary>
     protected abstract string? ReadCore(string id);
 
     protected abstract void RemoveCore(string id);
@@ -80,7 +77,7 @@ public abstract partial class CommandSecretVault(IProcessRunner runner) : ISecre
         if (ValidId(connectionId)) RemoveCore(connectionId);
     }
 
-    /// <summary>Roda o comando sem shell e espera o fim. O cofre é síncrono e curto: não há contexto de sincronização a travar.</summary>
+    // O cofre é síncrono e curto: não há contexto de sincronização a travar.
     protected ProcessResult Run(string executable, IReadOnlyList<string> arguments, string? standardInput = null) =>
         runner.RunAsync(new ProcessSpec(executable, arguments, Environment.CurrentDirectory, Timeout, standardInput), CancellationToken.None)
             .GetAwaiter().GetResult();

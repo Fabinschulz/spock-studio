@@ -1,6 +1,6 @@
 namespace Mariliz.Application.Validation;
 
-/// <summary>Quem acompanha os Evals um a um. Só o que o motor observou: o início de cada verificação e o seu resultado.</summary>
+// Só o que o motor observou.
 public interface IEvalProgress
 {
     void Started(string id, string name, string kind);

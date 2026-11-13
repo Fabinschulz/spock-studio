@@ -4,10 +4,7 @@ using Mariliz.Application.Ports;
 
 namespace Mariliz.Application.Workflows;
 
-/// <summary>
-/// Cada mudança do diário de uma execução e o seu salvamento: um lugar só decide o que o diário diz em cada estado.
-/// Não conhece o runtime de IA nem o <see cref="RunHandle"/>; quem orquestra é o <see cref="WorkflowService"/>.
-/// </summary>
+// Não conhece o runtime de IA nem o RunHandle; quem orquestra é o WorkflowService.
 internal sealed class WorkflowJournal(IRunStore store, IClock clock)
 {
     public RunJournal Begin(string runId, string projectId, string executionId)
@@ -49,10 +46,7 @@ internal sealed class WorkflowJournal(IRunStore store, IClock clock)
         store.SaveJournal(journal);
     }
 
-    /// <summary>
-    /// Fecha o diário com o que o runtime respondeu. Só o motor executa, e só o que foi aprovado: se a execução falhou,
-    /// nada aprovado chega a ser executado. Devolve o estado final.
-    /// </summary>
+    // Se a execução falhou, nada aprovado chega a ser executado.
     public string Conclude(RunJournal journal, WorkflowAck ack, IActionExecutor? actions)
     {
         if (ack.Status == AckStatus.Failed) ActionGovernance.SkipPending(journal);

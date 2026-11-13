@@ -3,20 +3,14 @@ using Mariliz.Application.Execution;
 
 namespace Mariliz.Application.Workflows;
 
-/// <summary>
-/// A espera pela aprovação humana: execuções pausadas, e a decisão que as libera. A espera não tem prazo; só o
-/// cancelamento da execução a interrompe.
-/// </summary>
+// A espera não tem prazo; só o cancelamento da execução a interrompe.
 internal sealed class ApprovalGate
 {
     private sealed record Pending(TaskCompletionSource<IReadOnlyList<string>> Gate, RunJournal Journal);
 
     private readonly ConcurrentDictionary<string, Pending> _pending = new();
 
-    /// <summary>
-    /// Registra a espera, chama <paramref name="announce"/> e aguarda a decisão. O registro vem antes do anúncio: um
-    /// <c>workflow.resume</c> que chegue logo depois do evento já encontra a aprovação.
-    /// </summary>
+    // O registro vem antes do anúncio: um workflow.resume que chegue logo depois do evento já encontra a aprovação.
     public async Task<IReadOnlyList<string>> WaitAsync(string runId, RunJournal journal, CancellationToken cancellation, Action announce)
     {
         var gate = new TaskCompletionSource<IReadOnlyList<string>>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -33,10 +27,7 @@ internal sealed class ApprovalGate
         }
     }
 
-    /// <summary>
-    /// Libera a espera com a decisão, depois de <paramref name="verify"/> conferi-la contra o diário da aprovação aberta
-    /// (pode lançar). Falso quando não há execução aguardando.
-    /// </summary>
+    // verify pode lançar. Falso quando não há execução aguardando.
     public bool TryRelease(string runId, Action<RunJournal> verify, IReadOnlyList<string> approvedActions)
     {
         if (!_pending.TryGetValue(runId, out var pending)) return false;

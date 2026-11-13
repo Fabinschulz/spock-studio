@@ -4,11 +4,7 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Management;
 
-/// <summary>
-/// Previsão de entrega por simulação de Monte Carlo sobre o throughput semanal observado: cada simulação sorteia,
-/// semana a semana, uma das semanas do histórico até zerar o trabalho aberto. A semente vem dos próprios dados, então
-/// os mesmos itens no mesmo instante dão sempre a mesma previsão. Nenhum modelo de linguagem participa do cálculo.
-/// </summary>
+// A semente vem dos próprios dados: os mesmos itens no mesmo instante dão sempre a mesma previsão. Nenhum modelo de linguagem participa do cálculo.
 public static class ForecastCalculator
 {
     public const int Trials = 10_000;
@@ -117,7 +113,6 @@ public static class ForecastCalculator
         return int.Parse(Hashing.Sha256(text)[..7], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
     }
 
-    /// <summary>Começa alta e cai um nível por motivo encontrado, até baixa. Cada motivo vai junto da resposta.</summary>
     private static (ForecastConfidence, List<string>) Confidence(int[] history, int[] created, int historyWeeks, bool sourcesComplete)
     {
         var reasons = new List<string>();

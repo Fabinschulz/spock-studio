@@ -7,26 +7,19 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Execution;
 
-/// <summary>
-/// Uma execução ligada a um item de trabalho (issue, pull request ou história) que já foi sincronizado. Guarda só a
-/// referência, nunca o conteúdo do item: título e situação saem dos dados sincronizados na hora de mostrar.
-/// </summary>
+// Guarda só a referência, nunca o conteúdo do item: título e situação saem dos dados sincronizados na hora de mostrar.
 public sealed record RunLink(string IntegrationId, string Kind, string ExternalId, DateTimeOffset LinkedAt);
 
-/// <summary>Onde as ligações de uma execução ficam, ao lado do diário e fora dele: ligar não reescreve o diário.</summary>
+// Ao lado do diário e fora dele: ligar não reescreve o diário.
 public interface IRunLinkStore
 {
     IReadOnlyList<RunLink> LoadLinks(string projectId, string runId);
 
-    /// <summary>Só as execuções do projeto que têm alguma ligação, sem abrir os diários das outras.</summary>
     IReadOnlyList<(string RunId, IReadOnlyList<RunLink> Links)> ListLinked(string projectId);
     void SaveLinks(string projectId, string runId, IReadOnlyList<RunLink> links);
 }
 
-/// <summary>
-/// Liga e desliga execuções de itens de trabalho. A pessoa informa o identificador (o número no GitHub, a chave no Jira) e o
-/// motor o procura entre o que as integrações do projeto já sincronizaram: um item que não foi lido não pode ser ligado.
-/// </summary>
+// Um item que as integrações do projeto não sincronizaram não pode ser ligado.
 public sealed partial class RunLinkService(
     IRunStore runs, IRunLinkStore links, IntegrationHub hub, WorkspaceAuthorizer workspace, IClock clock)
 {
@@ -34,10 +27,7 @@ public sealed partial class RunLinkService(
     public const int MaxIdentifierLength = 64;
     private readonly object _gate = new();
 
-    /// <summary>
-    /// Liga a execução ao item. <paramref name="integrationId"/> só é preciso quando mais de uma integração do projeto tem um
-    /// item com o mesmo identificador. Ligar de novo o mesmo item não muda nada.
-    /// </summary>
+    // integrationId só é preciso quando mais de uma integração do projeto tem um item com o mesmo identificador.
     public JsonArray Link(string projectId, string runId, string externalId, string? integrationId)
     {
         RequireRun(projectId, runId);
@@ -75,7 +65,6 @@ public sealed partial class RunLinkService(
         return For(projectId, runId);
     }
 
-    /// <summary>Desliga a execução do item. Desligar o que não está ligado não faz nada.</summary>
     public JsonArray Unlink(string projectId, string runId, string integrationId, string kind, string externalId)
     {
         RequireRun(projectId, runId);
@@ -99,10 +88,7 @@ public sealed partial class RunLinkService(
         return For(projectId, runId);
     }
 
-    /// <summary>
-    /// As ligações da execução, com título e situação lidos agora dos dados sincronizados. Se o item saiu do recorte da
-    /// integração, a ligação continua e aparece como indisponível, sem inventar o que ele era.
-    /// </summary>
+    // Se o item saiu do recorte da integração, a ligação continua e aparece como indisponível, sem inventar o que ele era.
     public JsonArray For(string projectId, string runId)
     {
         var integrations = hub.Projects.List(projectId).ToDictionary(item => item.Id);
@@ -130,10 +116,7 @@ public sealed partial class RunLinkService(
         return result;
     }
 
-    /// <summary>
-    /// O caminho inverso: cada item do projeto que tem execuções ligadas, com as execuções (tipo, estado e início), do item
-    /// ligado mais recentemente ao mais antigo. Só abre o diário das execuções que têm ligação.
-    /// </summary>
+    // Só abre o diário das execuções que têm ligação.
     public JsonArray ForProject(string projectId)
     {
         if (!workspace.IsAuthorized(projectId)) throw EngineErrors.ProjectNotAuthorized();

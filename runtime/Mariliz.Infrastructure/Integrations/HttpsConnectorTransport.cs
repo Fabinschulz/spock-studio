@@ -2,10 +2,7 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Infrastructure.Integrations;
 
-/// <summary>
-/// GET por HTTPS para os provedores. Não segue redirecionamento (a credencial só vai ao endereço que o conector montou) e
-/// lê no máximo <see cref="MaxBodyBytes"/> de resposta.
-/// </summary>
+// Não segue redirecionamento: a credencial só vai ao endereço que o conector montou.
 public sealed class HttpsConnectorTransport : IConnectorTransport, IDisposable
 {
     public const int MaxBodyBytes = 16 * 1024 * 1024;

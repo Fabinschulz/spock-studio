@@ -6,7 +6,6 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Infrastructure;
 
-/// <summary>Leitura do <c>ai.ack.v3</c> que o runtime de IA devolve: o que sai do JSON da conversa e entra no vocabulário do motor.</summary>
 internal static class AiWire
 {
     public static WorkflowAck ReadAck(JsonObject ack)

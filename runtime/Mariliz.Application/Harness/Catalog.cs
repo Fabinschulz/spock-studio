@@ -2,7 +2,7 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>Os componentes que a aplicação sabe gerar. A proposta do Harness Engineer só pode escolher entre eles.</summary>
+// A proposta do Harness Engineer só pode escolher entre estes componentes.
 public static class Catalog
 {
     public const string ComponentVersion = "0.1.0";
@@ -38,14 +38,12 @@ public static class Catalog
 
     public static CatalogComponent? Find(string id) => Components.FirstOrDefault(c => c.Id == id);
 
-    /// <summary>Ids que a proposta do Harness Engineer pode citar.</summary>
     public static readonly IReadOnlyList<string> Proposable =
     [
         AgentHarnessEngineer, AgentCodeReviewer, AgentVerifier, SkillHarnessContract,
         RuleGeneral, RuleStackDotnet, RuleStackJavascript, RuleRepoCommands
     ];
 
-    // Caminhos dos arquivos de cada componente.
     public const string PathHarnessEngineer = ".claude/agents/harness-engineer.md";
     public const string PathProposalSchema = ".mariliz/schemas/harness-proposal.v1.schema.json";
     public const string PathProposal = ".mariliz/proposal.json";

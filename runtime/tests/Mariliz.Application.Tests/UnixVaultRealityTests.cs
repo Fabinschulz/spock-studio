@@ -5,12 +5,7 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Teste com o cofre de verdade do sistema (o Chaveiro do macOS ou o serviço de segredos do Linux). Os dublês dos outros testes
-/// provam as regras do código; só este prova que os comandos reais se comportam como os dublês supõem. Mexe no cofre da pessoa,
-/// então só roda quando ela pede, com <c>MARILIZ_LIVE_VAULT=1</c> (a mesma convenção dos outros testes com serviço real), e
-/// apaga o que criou. Fora do macOS e do Linux, e sem o pedido, aparece como <b>ignorado</b>, nunca como aprovado.
-/// </summary>
+// Os dublês provam as regras do código; só este prova que os comandos reais se comportam como os dublês supõem. Mexe no cofre da pessoa, então só roda com MARILIZ_LIVE_VAULT=1 e apaga o que criou; fora disso aparece como ignorado, nunca como aprovado.
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class UnixVaultFactAttribute : FactAttribute
 {

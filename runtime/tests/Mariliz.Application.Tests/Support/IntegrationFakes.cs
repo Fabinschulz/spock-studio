@@ -31,10 +31,10 @@ internal sealed class MemoryAudit : IAuditLog, IAuditReader
 
     public List<(string Action, string Detail)> Entries { get; } = [];
 
-    /// <summary>A hora de cada registro. O harness liga ao relógio de teste; sem isso, é a hora de verdade.</summary>
+    // O harness liga ao relógio de teste; sem isso, é a hora de verdade.
     public Func<DateTimeOffset> Now { get; set; } = () => DateTimeOffset.UtcNow;
 
-    /// <summary>Se definido, o registro dessa ação falha, como um disco que recusa gravar.</summary>
+    // Como um disco que recusa gravar.
     public string? FailOnAction { get; set; }
 
     public void Record(string action, JsonObject detail)
@@ -65,7 +65,6 @@ internal sealed class FakeConnectorTransport : IConnectorTransport
         new(200, Headers(headers), body.ToJsonString());
 }
 
-/// <summary>Um GitHub de mentira com a forma da API real: credencial, repositório único, paginação e filtro por data.</summary>
 internal sealed class FakeGitHub
 {
     public const string Token = "ghp_token-de-teste-0001";
@@ -121,7 +120,6 @@ internal sealed class FakeGitHub
     };
 }
 
-/// <summary>Um Jira Cloud de mentira: autenticação Basic, um projeto, busca por JQL com token de continuação.</summary>
 internal sealed class FakeJira
 {
     public const string Site = "https://acme.atlassian.net";
@@ -182,7 +180,6 @@ internal sealed class FakeJira
     };
 }
 
-/// <summary>A central de integrações sobre arquivos reais numa pasta temporária, com rede, cofre, relógio e esperas sob controle do teste.</summary>
 internal sealed class IntegrationHarness : IDisposable
 {
     public TempProject Project { get; } = TempProject.Dotnet();
@@ -196,10 +193,10 @@ internal sealed class IntegrationHarness : IDisposable
     public List<TimeSpan> Delays { get; } = [];
     public List<(string RunId, int Seq, string Type, JsonObject Data)> Events { get; } = [];
 
-    /// <summary>Se definido, faz o aviso de cada evento falhar, como uma saída do motor que fechou.</summary>
+    // Como uma saída do motor que fechou.
     public Exception? EmitFailure { get; set; }
 
-    /// <summary>Chamado no instante de cada aviso, antes de ele ser guardado: deixa o teste olhar o estado naquele momento.</summary>
+    // Antes de o aviso ser guardado: deixa o teste olhar o estado naquele momento.
     public Action<string>? OnEvent { get; set; }
     public IntegrationHub Hub { get; }
     public ManagementService Management { get; }
@@ -254,7 +251,7 @@ internal sealed class IntegrationHarness : IDisposable
     public JsonObject Request(string method, JsonObject parameters) =>
         Session.Handle(new JsonObject { ["v"] = 1, ["kind"] = "request", ["id"] = "t", ["method"] = method, ["params"] = parameters }.ToJsonString()).Response;
 
-    /// <summary>Tudo o que o motor gravou no diretório de dados, para provar que a credencial não está em arquivo nenhum.</summary>
+    // Para provar que a credencial não está em arquivo nenhum.
     public string EverythingOnDisk() =>
         string.Join("\n", Directory.EnumerateFiles(DataDir, "*", SearchOption.AllDirectories).Select(File.ReadAllText));
 

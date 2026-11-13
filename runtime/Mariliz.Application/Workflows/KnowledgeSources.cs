@@ -7,13 +7,7 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Workflows;
 
-/// <summary>
-/// Fontes que podem ir para o índice. Segredo, binário, dependência, pasta de build, o que o <c>.gitignore</c> ignora e o
-/// que <c>mariliz.yaml</c> exclui ficam de fora. Todo arquivo permitido vai com hash; o texto só vai quando mudou e cabe no
-/// orçamento desta execução: o resto entra nas próximas, então o índice converge sem reenviar o projeto inteiro.
-/// A mesma avaliação alimenta a tela de conhecimento do projeto (<see cref="Evaluate"/>): o que ela mostra é o que o
-/// índice recebe.
-/// </summary>
+// O texto só vai quando mudou e cabe no orçamento desta execução: o resto entra nas próximas, então o índice converge sem reenviar o projeto inteiro. A tela de conhecimento usa a mesma avaliação, então o que ela mostra é o que o índice recebe.
 internal static class KnowledgeSources
 {
     public const int MaxFiles = 2_000;
@@ -39,7 +33,6 @@ internal static class KnowledgeSources
 
     public sealed record Source(string Path, string Hash, string? Text);
 
-    /// <summary>Por que um arquivo ficou fora do índice. <see cref="None"/> é o arquivo que entra.</summary>
     public enum Exclusion
     {
         None,
@@ -52,21 +45,14 @@ internal static class KnowledgeSources
         Secret
     }
 
-    /// <summary>A avaliação de um arquivo. <see cref="Text"/> e <see cref="Hash"/> só existem para o que entra.</summary>
     public sealed record Evaluated(string Path, Exclusion Reason, string? Text, string? Hash);
 
-    /// <summary>As regras declaradas em <c>mariliz.yaml</c> (<c>knowledge.include</c> e <c>knowledge.exclude</c>).</summary>
     public static (IReadOnlyList<string> Include, IReadOnlyList<string> Exclude) DeclaredRules(IProjectFiles files)
     {
         var declared = DeclaredConfig.TryRead(files).Config?.Knowledge;
         return (declared?.Include ?? [], declared?.Exclude ?? []);
     }
 
-    /// <param name="external">
-    /// Dado sincronizado que o projeto autorizou como contexto (<see cref="ExternalKnowledge"/>). Entra depois dos arquivos e pela
-    /// mesma regra de envio: só o que mudou e cabe no orçamento desta execução leva o texto.
-    /// </param>
-    /// <param name="memory">As decisões gerenciais registradas no projeto (<see cref="DecisionMemory"/>), pela mesma regra de envio.</param>
     public static IReadOnlyList<Source> Select(IProjectFiles files, IReadOnlyDictionary<string, string> indexed, IEnumerable<ExternalDocument>? external = null,
         IEnumerable<MemoryDocument>? memory = null)
     {
@@ -87,10 +73,7 @@ internal static class KnowledgeSources
         return selected;
     }
 
-    /// <summary>
-    /// Avalia cada arquivo do projeto na ordem em que o índice os recebe (documentação primeiro). Lê o texto só do que
-    /// passou pelas regras de caminho, e só guarda o texto do que entra.
-    /// </summary>
+    // Na ordem em que o índice recebe (documentação primeiro). Só lê o texto do que passou pelas regras de caminho.
     public static IEnumerable<Evaluated> Evaluate(IProjectFiles files)
     {
         var ignored = IgnorePatterns.Parse((files.ReadText(".gitignore") ?? "").Split('\n'));

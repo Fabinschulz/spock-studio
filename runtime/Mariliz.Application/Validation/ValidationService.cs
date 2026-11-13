@@ -6,7 +6,6 @@ using Mariliz.Core.Evals;
 
 namespace Mariliz.Application.Validation;
 
-/// <summary>Validação usada ao fim da aplicação e pela validação avulsa.</summary>
 public static class ValidationService
 {
     public static async Task<ValidationReport> RunAsync(

@@ -5,10 +5,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Achados da primeira execução do instalador oficial da estrutura de especificação de verdade: ele instala no package.json mais próximo
-/// (possivelmente fora do projeto), a versão atual é a 4.0.0, e a saída dele precisa chegar à pessoa.
-/// </summary>
+// Achados da primeira execução do instalador oficial de verdade: ele instala no package.json mais próximo (possivelmente fora do projeto), a versão atual é a 4.0.0, e a saída dele precisa chegar à pessoa.
 public class SpecificationInstallerRealityTests
 {
     [Fact]

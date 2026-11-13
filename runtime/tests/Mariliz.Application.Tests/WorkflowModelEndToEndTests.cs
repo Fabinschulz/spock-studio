@@ -10,10 +10,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// A cadeia inteira da Fase 6, sem rede: o grafo Python de verdade chama o proxy do motor em 127.0.0.1, o proxy cobra o
-/// orçamento e fala com um transporte falso. O que se confere é o que cruza as duas metades.
-/// </summary>
+// Sem rede: o grafo Python de verdade chama o proxy do motor em 127.0.0.1, e o proxy fala com um transporte falso.
 public class WorkflowModelEndToEndTests
 {
     private const string Key = "sk-test-chave-e2e-5d10";
@@ -36,7 +33,6 @@ public class WorkflowModelEndToEndTests
             Task.FromResult(new ModelTransportResult("", 0));
     }
 
-    /// <summary>Faz o papel do provedor: lê o trecho que o agente recebeu e escreve um plano que o cita.</summary>
     private sealed class ScriptedProvider : IModelChatTransport
     {
         public List<ChatRequest> Requests { get; } = [];
@@ -64,7 +60,6 @@ public class WorkflowModelEndToEndTests
         }
     }
 
-    /// <summary>A opinião que o juiz falso escreve: notas boas, citando o trecho que ele recebeu.</summary>
     private static string Judgment(string chunk, bool withImpact)
     {
         var scores = new JsonObject { ["plan_quality"] = 4, ["context_fit"] = 4, ["request_fit"] = 5 };

@@ -8,7 +8,6 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>A jornada completa em projetos sintéticos: descobrir, planejar, aplicar, validar e reverter.</summary>
 public class ConfigureJourneyTests
 {
     private static async Task<(TempProject Project, Journey Journey, ConfigurationPlan Plan, JsonObject Result)> Configured(bool specificationInstalled = true, bool next = false)

@@ -8,25 +8,17 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Management.Assistant;
 
-/// <summary>Um projeto que entra na pergunta ao portfólio. <see cref="Alias"/> (<c>p1</c>, <c>p2</c>...) prefixa os ids dos fatos dele.</summary>
 public sealed record PortfolioEvidenceProject(string Alias, string ProjectId, string Name, int Facts);
 
-/// <summary>O que vai ao provedor numa pergunta ao portfólio, antes do envio: os projetos escolhidos e os fatos de cada um.</summary>
 public sealed record PortfolioEvidence(
     DateTimeOffset GeneratedAt,
     IReadOnlyList<PortfolioEvidenceProject> Projects,
     IReadOnlyList<EvidenceFact> Facts,
     IReadOnlyList<string> Withheld);
 
-/// <summary>A resposta sobre o portfólio: os projetos que ela cobre (para ler os ids dos fatos) e a resposta, conferida pelo motor.</summary>
 public sealed record PortfolioAnswer(IReadOnlyList<PortfolioEvidenceProject> Projects, AssistantAnswer Answer);
 
-/// <summary>
-/// O assistente sobre o portfólio: uma pergunta que cruza vários projetos. Cada projeto entra com o **pacote que o assistente dele
-/// montaria**, então a política de cada um vale por inteiro (título de item só entra quando todas as fontes **daquele** projeto
-/// autorizaram servir de contexto). A pessoa escolhe quais projetos entram, e a tela mostra o que vai antes do envio. A resposta passa
-/// pelo mesmo conferente do assistente: número que os fatos citados não têm é descartado, então somar ou comparar por conta própria não passa.
-/// </summary>
+// Cada projeto entra com o pacote que o assistente dele montaria, então a política de cada um vale por inteiro. O conferente descarta número que os fatos citados não têm: somar ou comparar por conta própria não passa.
 public sealed class PortfolioAssistant(
     ManagementAssistant assistant,
     WorkspaceAuthorizer workspace,
@@ -58,10 +50,7 @@ public sealed class PortfolioAssistant(
          "inferences": [...], "recommendations": [...], "unavailable": [{"text": "..."}]}
         """;
 
-    /// <summary>
-    /// O pacote da pergunta. Sem <paramref name="projectIds"/>, todos os projetos abertos entram (até <see cref="MaxProjects"/>); com
-    /// ele, só os escolhidos, e um que não está aberto neste computador é recusado, não ignorado em silêncio.
-    /// </summary>
+    // Um projeto pedido que não está aberto neste computador é recusado, não ignorado em silêncio.
     public PortfolioEvidence Evidence(IReadOnlyList<string>? projectIds)
     {
         var open = workspace.Projects();
@@ -147,7 +136,6 @@ public sealed class PortfolioAssistant(
         return verified.ToAnswer("portfolio", clock.UtcNow, evidence.Facts, completion.ModelVersion, completion.InputTokens, completion.OutputTokens);
     }
 
-    /// <summary>Os fatos agrupados por projeto, para o modelo saber de quem é cada id.</summary>
     private static string Facts(PortfolioEvidence evidence)
     {
         var lines = new List<string>();
@@ -170,7 +158,6 @@ public sealed class PortfolioAssistant(
         return ids.Select(id => open.FirstOrDefault(project => project.ProjectId == id) ?? throw EngineErrors.ProjectNotAuthorized()).ToList();
     }
 
-    /// <summary>O nome como pasta: sem quebra de linha nem caractere de controle, e curto.</summary>
     private static string Clean(string name)
     {
         var flat = new string(name.Where(ch => !char.IsControl(ch)).ToArray()).Trim();

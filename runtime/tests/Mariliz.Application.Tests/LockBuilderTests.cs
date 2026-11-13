@@ -5,7 +5,7 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>O lock previsto pelo plano é o mesmo que a aplicação grava; senão o plano seguinte nunca fica limpo.</summary>
+// Senão o plano seguinte nunca fica limpo.
 public class LockBuilderTests
 {
     private const string Path = ".claude/rules/mariliz-general.md";

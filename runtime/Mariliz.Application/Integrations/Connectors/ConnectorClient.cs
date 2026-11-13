@@ -3,11 +3,7 @@ using Mariliz.Application.Ports;
 
 namespace Mariliz.Application.Integrations;
 
-/// <summary>
-/// As regras de convivência com um provedor, iguais para todo conector: só HTTPS, poucas tentativas com espera crescente em
-/// falha passageira, e respeito ao limite de chamadas que o provedor anuncia. Uma espera longa não segura a sincronização:
-/// vira erro com a hora em que dá para tentar de novo.
-/// </summary>
+// Uma espera longa não segura a sincronização: vira erro com a hora em que dá para tentar de novo.
 public sealed class ConnectorClient(IConnectorTransport transport, IClock clock, Func<TimeSpan, CancellationToken, Task>? delay = null)
 {
     public const int MaxAttempts = 4;
@@ -55,10 +51,7 @@ public sealed class ConnectorClient(IConnectorTransport transport, IClock clock,
     /// <summary>1 s, 2 s, 4 s.</summary>
     internal static TimeSpan Backoff(int attempt) => TimeSpan.FromSeconds(Math.Pow(2, attempt - 1));
 
-    /// <summary>
-    /// Quanto esperar quando a resposta é um limite de chamadas; nulo quando não é. 429 sempre é limite; 403 só quando o
-    /// provedor diz que a cota acabou ou manda esperar (um 403 comum é falta de permissão e não adianta repetir).
-    /// </summary>
+    // 429 sempre é limite; 403 só quando o provedor diz que a cota acabou ou manda esperar (um 403 comum é falta de permissão e não adianta repetir).
     private TimeSpan? RateLimitWait(ConnectorResponse response)
     {
         var retryAfter = Seconds(response, "retry-after");

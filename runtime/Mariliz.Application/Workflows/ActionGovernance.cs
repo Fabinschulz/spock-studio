@@ -7,28 +7,21 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Workflows;
 
-/// <summary>
-/// A governança das ações que os agentes propõem. O agente só diz a intenção (o que quer e com que evidências); o motor aplica a
-/// política, escolhe o alvo, dá o resumo, escreve o conteúdo, liga a aprovação ao hash das ações e confere cada retomada contra ela.
-/// Nada executa sem aprovação.
-/// </summary>
+// O agente só diz a intenção; o motor aplica a política, escolhe o alvo, escreve o conteúdo e liga a aprovação ao hash das ações. Nada executa sem aprovação.
 internal static partial class ActionGovernance
 {
     public const string FileWrite = "file.write";
 
-    /// <summary>A única intenção que o runtime pode propor hoje: registrar a decisão de arquitetura. Ela vira uma ação <c>file.write</c>.</summary>
+    // A única intenção que o runtime pode propor hoje. Vira uma ação file.write.
     public const string RecordDecision = "record-decision";
 
     private const string DecisionSummary = "Registrar a decisão de arquitetura (áreas, riscos e evidências) em .mariliz/decisions";
     private static readonly HashSet<string> IntentKeys = new(StringComparer.Ordinal) { "id", "intent", "evidence" };
 
-    /// <summary>O lugar fixo do registro de decisão de uma execução. Só o motor conhece este caminho.</summary>
+    // Só o motor conhece este caminho.
     public static string DecisionTargetFor(string executionId) => $".mariliz/decisions/{executionId}-impacto.md";
 
-    /// <summary>
-    /// A política do motor para esta execução: <c>file.write</c> só em execuções que a pessoa pediu para pausar e que pedem
-    /// impacto. Aprovar é a decisão sobre as ações propostas, então sem pausa não há onde aprovar.
-    /// </summary>
+    // Aprovar é a decisão sobre as ações propostas: sem pausa não há onde aprovar, então file.write só em execuções pausáveis que pedem impacto.
     public static IReadOnlyList<string> AllowedKinds(JsonObject input) =>
         input["requiresApproval"]?.GetValue<bool>() == true && input["impact"]?.GetValue<bool>() == true ? [FileWrite] : [];
 
@@ -42,11 +35,7 @@ internal static partial class ActionGovernance
 
     public static bool IsDecisionTarget(string target) => DecisionTarget().IsMatch(target);
 
-    /// <summary>
-    /// Transforma as intenções do runtime nas ações que o motor aceita. O que fugir da política, do formato ou da recuperação
-    /// desta execução é descartado (nunca corrigido). Uma intenção que traga alvo, resumo ou conteúdo próprios também é descartada:
-    /// isso é decisão do motor, e toda ação exige aprovação.
-    /// </summary>
+    // O que fugir da política, do formato ou da recuperação desta execução é descartado, nunca corrigido. Intenção com alvo, resumo ou conteúdo próprios também: isso é decisão do motor.
     public static List<JournalAction> Review(WorkflowAck ack, IReadOnlyList<string> allowed)
     {
         var accepted = new List<JournalAction>();
@@ -78,14 +67,13 @@ internal static partial class ActionGovernance
         return accepted;
     }
 
-    /// <summary>Marca o que foi aprovado; tudo o que não foi nomeado fica de fora.</summary>
     public static void ApplyDecision(RunJournal journal, IReadOnlyList<string> actionIds)
     {
         foreach (var action in journal.Actions)
             action.Status = actionIds.Contains(action.Id) ? JournalAction.Approved : JournalAction.Skipped;
     }
 
-    /// <summary>Executa só o que está aprovado e ainda não foi executado: uma retomada repetida nunca grava duas vezes.</summary>
+    // Uma retomada repetida nunca grava duas vezes.
     public static void ExecuteApproved(RunJournal journal, string projectId, IActionExecutor? executor, Action saved)
     {
         foreach (var action in journal.Actions.Where(a => a.Status == JournalAction.Approved))
@@ -95,7 +83,6 @@ internal static partial class ActionGovernance
         }
     }
 
-    /// <summary>Quando a execução falha depois da aprovação, nada aprovado chega a executar.</summary>
     public static void SkipPending(RunJournal journal)
     {
         foreach (var action in journal.Actions.Where(a => a.Status is JournalAction.Approved or JournalAction.Proposed))

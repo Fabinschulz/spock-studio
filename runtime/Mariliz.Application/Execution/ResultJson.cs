@@ -5,7 +5,7 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Execution;
 
-/// <summary>Monta o relatório final a partir do que aconteceu, nunca do que se esperava que acontecesse.</summary>
+// A partir do que aconteceu, nunca do que se esperava que acontecesse.
 internal static class ResultJson
 {
     public static JsonObject Build(RunJournal journal, ValidationReport report, ConfigurationPlan plan,

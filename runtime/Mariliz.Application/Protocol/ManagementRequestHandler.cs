@@ -7,7 +7,6 @@ using Mariliz.Application.Management.Investigation;
 
 namespace Mariliz.Application.Protocol;
 
-/// <summary>Traduz <c>management.*</c> para o <see cref="ManagementService"/>.</summary>
 internal sealed class ManagementRequestHandler(ManagementService service, ManagementAssistant? assistant, ReportService? report = null, InvestigationService? investigation = null,
     PortfolioAssistant? portfolioAssistant = null)
 {
@@ -28,19 +27,15 @@ internal sealed class ManagementRequestHandler(ManagementService service, Manage
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
     };
 
-    /// <summary>Sem o serviço de relatório (CLI, testes de outras áreas), o relatório não existe; os demais métodos seguem.</summary>
     private ReportService Report() =>
         report ?? throw new EngineException("REPORT_UNAVAILABLE", "O relatório não está disponível nesta sessão do motor.");
 
-    /// <summary>Sem proxy de modelo (CLI, testes de outras áreas), o assistente do portfólio não existe; os demais métodos seguem.</summary>
     private PortfolioAssistant Portfolio() =>
         portfolioAssistant ?? throw new EngineException("MODEL_NOT_CONFIGURED", "O assistente não está disponível nesta sessão do motor.");
 
-    /// <summary>Sem o runtime de IA (CLI, testes de outras áreas), a investigação não existe; os demais métodos seguem.</summary>
     private InvestigationService Investigation() =>
         investigation ?? throw new EngineException("INVESTIGATION_UNAVAILABLE", "A investigação não está disponível nesta sessão do motor.");
 
-    /// <summary>Sem proxy de modelo (CLI, testes de outras áreas), o assistente não existe; os demais métodos seguem.</summary>
     private ManagementAssistant Assistant() =>
         assistant ?? throw new EngineException("MODEL_NOT_CONFIGURED", "O assistente não está disponível nesta sessão do motor.");
 }

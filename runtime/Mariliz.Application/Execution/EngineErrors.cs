@@ -1,6 +1,6 @@
 namespace Mariliz.Application.Execution;
 
-/// <summary>Erros que mais de um caso de uso devolve: o mesmo código sempre com a mesma explicação para a pessoa.</summary>
+// O mesmo código sempre com a mesma explicação para a pessoa.
 public static class EngineErrors
 {
     public static EngineException ProjectNotAuthorized() =>

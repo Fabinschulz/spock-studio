@@ -9,7 +9,6 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>Revisões do Harness: cada aplicação ou reversão que mudou arquivos, numerada e agrupada por componente.</summary>
 public class HarnessRevisionTests
 {
     private static (EngineSession Session, string ProjectId) Session(Journey journey)

@@ -3,10 +3,7 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Infrastructure.Integrations;
 
-/// <summary>
-/// Conexões e vínculos em <c>{dataRoot}/integrations/connections.json</c>. O arquivo não tem credencial: ela fica no cofre.
-/// A gravação troca o arquivo inteiro de uma vez. Um arquivo travado falha (não vira lista vazia); um corrompido vai para `.corrupt-*`.
-/// </summary>
+// A credencial fica no cofre. Um arquivo travado falha (não vira lista vazia); um corrompido vai para .corrupt-*.
 public sealed class FileIntegrationStore(string dataRoot) : IIntegrationStore
 {
     private readonly object _gate = new();

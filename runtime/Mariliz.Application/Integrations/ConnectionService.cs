@@ -4,10 +4,7 @@ using Mariliz.Application.Ports;
 
 namespace Mariliz.Application.Integrations;
 
-/// <summary>
-/// Ciclo de vida das conexões: conectar, testar, trocar a credencial, desconectar e remover. Uma conexão só é gravada depois
-/// que o provedor aceita a credencial, e a credencial só existe no cofre.
-/// </summary>
+// Uma conexão só é gravada depois que o provedor aceita a credencial, e a credencial só existe no cofre.
 public sealed class ConnectionService(IIntegrationStore store, ISecretVault vault, ConnectorRegistry connectors, IClock clock, IAuditLog audit)
 {
     public const int MaxConnections = 32;
@@ -17,7 +14,7 @@ public sealed class ConnectionService(IIntegrationStore store, ISecretVault vaul
 
     public IReadOnlyList<IntegrationConnection> List() => store.Connections();
 
-    /// <summary>Em quantos vínculos de projeto a conexão é usada. Enquanto for maior que zero, ela não pode ser removida.</summary>
+    // Enquanto for maior que zero, a conexão não pode ser removida.
     public int ProjectsUsing(string connectionId) => store.Integrations().Count(i => i.ConnectionId == connectionId);
 
     public IntegrationConnection Require(string connectionId) =>
@@ -49,7 +46,7 @@ public sealed class ConnectionService(IIntegrationStore store, ISecretVault vaul
         return connection;
     }
 
-    /// <summary>Um identificador novo, nunca um dos reservados para segredos do próprio aplicativo.</summary>
+    // Nunca um dos identificadores reservados para segredos do próprio aplicativo.
     private static string NewConnectionId()
     {
         string id;
@@ -58,7 +55,7 @@ public sealed class ConnectionService(IIntegrationStore store, ISecretVault vaul
         return id;
     }
 
-    /// <summary>Confere a credencial com o provedor. Uma recusa não é exceção: fica registrada na conexão, que é o que a pessoa consulta.</summary>
+    // Uma recusa não é exceção: fica registrada na conexão, que é o que a pessoa consulta.
     public async Task<IntegrationConnection> TestAsync(string connectionId, CancellationToken ct)
     {
         var connection = Require(connectionId);
@@ -80,7 +77,7 @@ public sealed class ConnectionService(IIntegrationStore store, ISecretVault vaul
         }
     }
 
-    /// <summary>Troca a credencial. A nova é conferida antes: se o provedor a recusar, a antiga continua valendo.</summary>
+    // A nova credencial é conferida antes: se o provedor a recusar, a antiga continua valendo.
     public async Task<IntegrationConnection> RotateAsync(string connectionId, string secret, CancellationToken ct)
     {
         if (!vault.Available) throw IntegrationErrors.VaultUnavailable();
@@ -101,7 +98,7 @@ public sealed class ConnectionService(IIntegrationStore store, ISecretVault vaul
         return updated;
     }
 
-    /// <summary>Apaga a credencial e mantém o registro. O que já foi sincronizado continua disponível, com a data da leitura.</summary>
+    // Mantém o registro: o que já foi sincronizado continua disponível, com a data da leitura.
     public IntegrationConnection Disconnect(string connectionId)
     {
         IntegrationConnection updated;
@@ -128,7 +125,7 @@ public sealed class ConnectionService(IIntegrationStore store, ISecretVault vaul
         Audit("connection.removed", connection);
     }
 
-    /// <summary>A credencial sai do cofre só aqui, para quem vai chamar o provedor.</summary>
+    // A credencial sai do cofre só aqui.
     internal ConnectorAccess AccessFor(IntegrationConnection connection)
     {
         if (connection.Status == ConnectionStatus.Disconnected || !vault.TryRead(connection.Id, out var secret))
@@ -136,7 +133,7 @@ public sealed class ConnectionService(IIntegrationStore store, ISecretVault vaul
         return new ConnectorAccess(connection.Settings, secret);
     }
 
-    /// <summary>Resultado de uma sincronização na conexão que a fez. Credencial recusada muda o status; outras falhas só ficam anotadas.</summary>
+    // Credencial recusada muda o status; outras falhas só ficam anotadas.
     internal void RecordSync(string connectionId, DateTimeOffset at, IntegrationError? error)
     {
         if (store.Connections().All(c => c.Id != connectionId)) return;

@@ -6,7 +6,6 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Audit;
 
-/// <summary>O que uma entrada da trilha de auditoria muda ou registra.</summary>
 public static class AuditCategories
 {
     public const string Access = "access";
@@ -29,26 +28,22 @@ public static class AuditCategories
     ];
 }
 
-/// <summary>Onde a entrada está guardada: no diário de uma execução (<c>journal</c>) ou no arquivo de auditoria (<c>audit</c>).</summary>
 public static class AuditSources
 {
     public const string Journal = "journal";
     public const string Audit = "audit";
 }
 
-/// <summary>
-/// Uma entrada da trilha de auditoria. <see cref="RunId"/> aponta o diário (a execução); <see cref="AuditLine"/> aponta a linha
-/// do arquivo de auditoria, que só cresce (a linha nunca muda de lugar). Uma entrada tem uma das duas referências.
-/// </summary>
+// A linha do arquivo de auditoria nunca muda de lugar (o arquivo só cresce). Uma entrada tem uma das duas referências.
 public sealed record AuditEntry(
     string Id, DateTimeOffset At, string Category, string Title, string Detail, string Source, string? RunId, int? AuditLine);
 
 public sealed record AuditSource(string Source, string Label, int Count, bool Available);
 
-/// <summary>Uma categoria e quantas entradas ela tem na trilha inteira, sem olhar o filtro.</summary>
+// A contagem é da trilha inteira, sem olhar o filtro.
 public sealed record AuditCategory(string Id, string Label, int Count);
 
-/// <param name="NextBefore">Passe como <c>before</c> para a página seguinte (entradas mais antigas). Nulo no fim.</param>
+/// <param name="NextBefore">Passe como <c>before</c> para a página seguinte. Nulo no fim.</param>
 public sealed record ProjectAuditTrail(
     string ProjectId,
     DateTimeOffset GeneratedAt,
@@ -57,13 +52,7 @@ public sealed record ProjectAuditTrail(
     IReadOnlyList<AuditSource> Sources,
     IReadOnlyList<AuditCategory> Categories);
 
-/// <summary>
-/// A trilha de auditoria de um projeto: o que mudou o que o Spock Studio pode acessar ou fazer nele, e quando. Junta duas trilhas
-/// que já existiam, sem copiar nada para um terceiro lugar: o <b>arquivo de auditoria</b> (vínculos, recortes, política de
-/// contexto, sincronizações, decisões, conexões) e o <b>diário</b> das execuções (o que foi aplicado, as ações de agentes que
-/// foram aprovadas e executadas e o uso de modelo). Cada entrada diz de onde veio. Só leitura; nunca mostra credencial, texto de
-/// pedido, título de item nem o texto de uma decisão. Não diz <i>quem</i>: o produto ainda não tem identidade de pessoa.
-/// </summary>
+// Junta o arquivo de auditoria e o diário das execuções sem copiar nada para um terceiro lugar. Nunca mostra credencial, texto de pedido, título de item nem o texto de uma decisão. Não diz quem: o produto ainda não tem identidade de pessoa.
 public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock clock, IRunStore store, IAuditReader? audit = null, IntegrationHub? integrations = null)
 {
     public const int DefaultLimit = 50;
@@ -112,8 +101,6 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
             sources.Add(new AuditSource(source, label, 0, false));
         }
     }
-
-    // ------------------------------------------------------------------ O arquivo de auditoria
 
     private IReadOnlyList<AuditEntry> FromAuditFile(string projectId)
     {
@@ -216,8 +203,6 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
         }
     }
 
-    // ------------------------------------------------------------------ O diário das execuções
-
     private IReadOnlyList<AuditEntry> FromJournals(string projectId)
     {
         var result = new List<AuditEntry>();
@@ -253,8 +238,6 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
         return result;
     }
 
-    // ------------------------------------------------------------------ Texto
-
     private static string Policy(bool feeds) => feeds ? "aberta" : "fechada";
 
     private static string KindsText(JsonObject d) =>
@@ -280,7 +263,6 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
 
     private static string Text(JsonObject d, string name) => d[name] is JsonValue value && value.TryGetValue<string>(out var text) ? text : "";
 
-    /// <summary>Texto que veio de fora (nome de conexão, recurso, resumo de ação) numa linha só, sem caractere de controle e com tamanho limitado.</summary>
     private static string Clean(string text)
     {
         var flat = string.Join(' ', new string(text.Select(ch => char.IsControl(ch) ? ' ' : ch).ToArray()).Split(' ', StringSplitOptions.RemoveEmptyEntries));

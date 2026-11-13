@@ -4,10 +4,8 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Workflows;
 
-/// <summary>Liga a aprovação às ações propostas por hash e confere cada retomada contra o diário da pausa.</summary>
 internal static class ApprovalBinding
 {
-    /// <summary>O hash que liga a aprovação às ações: identificador, tipo, alvo e conteúdo de cada uma, em ordem fixa.</summary>
     public static string HashOf(IEnumerable<JournalAction> actions)
     {
         var canonical = new StringBuilder();
@@ -16,17 +14,10 @@ internal static class ApprovalBinding
         return Hashing.Sha256(canonical.ToString());
     }
 
-    /// <summary>
-    /// O identificador da aprovação nasce da execução, da pausa e do hash das ações: aprovação de outra execução, de outra
-    /// pausa ou de outras ações não coincide com este.
-    /// </summary>
+    // Aprovação de outra execução, de outra pausa ou de outras ações não coincide com este identificador.
     public static string ApprovalIdFor(string runId, string executionId, string interruptId, string actionsHash) =>
         "apr-" + Hashing.Sha256($"{runId}|{executionId}|{interruptId}|{actionsHash}")[..12];
 
-    /// <summary>
-    /// Confere uma retomada contra o diário. Se há ações, a pessoa precisa apresentar o <c>approvalId</c> que viu; só se aprova
-    /// o que foi proposto; e o diário precisa continuar com o hash e o identificador que foram gravados na pausa.
-    /// </summary>
     public static void EnsureDecision(RunJournal journal, string? approvalId, IReadOnlyList<string> actionIds)
     {
         var expectedHash = HashOf(journal.Actions);

@@ -1,9 +1,6 @@
 namespace Mariliz.Application.Execution;
 
-/// <summary>
-/// A opinião do juiz por modelo (EV-JUDGE-001) já conferida pelo motor: o formato, a escala, as citações e a chamada ao
-/// modelo que o proxy viu. É um registro, nunca um veredito: o resultado da execução segue determinístico.
-/// </summary>
+// É um registro, nunca um veredito: o resultado da execução segue determinístico.
 public sealed class JournalJudgment
 {
     public const string EvalId = "EV-JUDGE-001";

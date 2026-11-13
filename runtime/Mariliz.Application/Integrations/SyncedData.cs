@@ -3,15 +3,12 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Integrations;
 
-/// <summary>
-/// O que uma integração de projeto já leu: os itens, o ponto de retomada e o histórico de sincronizações. Um arquivo por
-/// integração, dentro da pasta de dados do projeto dela: dados de projetos diferentes nunca compartilham arquivo.
-/// </summary>
+// Um arquivo por integração, dentro da pasta de dados do projeto dela: dados de projetos diferentes nunca compartilham arquivo.
 public sealed class SyncedData
 {
     public const int MaxHistory = 50;
 
-    /// <summary>A maior data de atualização já gravada. A próxima sincronização pede ao provedor só o que mudou desde então.</summary>
+    // A próxima sincronização pede ao provedor só o que mudou desde então.
     public DateTimeOffset? Checkpoint { get; set; }
 
     public Dictionary<string, StoredWorkItem> Items { get; set; } = new(StringComparer.Ordinal);
@@ -19,10 +16,7 @@ public sealed class SyncedData
     /// <summary>Mais recente primeiro.</summary>
     public List<SyncExecution> History { get; set; } = [];
 
-    /// <summary>
-    /// Grava um item pela identidade no provedor (tipo e identificador). Repetir a mesma leitura não duplica nem altera nada:
-    /// o item só muda quando o conteúdo mudou.
-    /// </summary>
+    // Repetir a mesma leitura não duplica nem altera nada: o item só muda quando o conteúdo mudou.
     public UpsertOutcome Upsert(WorkItem item, DateTimeOffset at)
     {
         var key = KeyOf(item);
@@ -38,7 +32,6 @@ public sealed class SyncedData
         return changed ? UpsertOutcome.Updated : UpsertOutcome.Unchanged;
     }
 
-    /// <summary>Apaga o que ficou fora do recorte. Devolve quantos itens saíram.</summary>
     public int RemoveKindsOutside(IReadOnlyList<string> kinds)
     {
         var outside = Items.Where(pair => !kinds.Contains(pair.Value.Item.Kind)).Select(pair => pair.Key).ToList();
@@ -46,7 +39,6 @@ public sealed class SyncedData
         return outside.Count;
     }
 
-    /// <summary>Insere ou substitui uma execução pelo id e mantém só as <see cref="MaxHistory"/> mais recentes.</summary>
     public void Record(SyncExecution execution)
     {
         var index = History.FindIndex(e => e.Id == execution.Id);

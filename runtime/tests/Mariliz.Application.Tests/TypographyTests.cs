@@ -1,10 +1,6 @@
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// O projeto não usa travessão (U+2014 nem U+2013) em código, interface, contratos nem nos arquivos que grava nos
-/// projetos dos usuários. Pontuação comum (dois-pontos, vírgula, parênteses) diz o mesmo. A documentação em <c>docs/</c>
-/// fica de fora. Só os arquivos versionados contam: cópias geradas (pacote do instalador, build) não entram.
-/// </summary>
+// Pontuação comum (dois-pontos, vírgula, parênteses) diz o mesmo. A documentação em docs/ fica de fora, e só os arquivos versionados contam.
 public class TypographyTests
 {
     private static readonly string[] Extensions =

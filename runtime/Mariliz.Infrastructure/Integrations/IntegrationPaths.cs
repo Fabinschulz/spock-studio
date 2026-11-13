@@ -3,10 +3,7 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Infrastructure.Integrations;
 
-/// <summary>
-/// Onde as integrações ficam no diretório de dados. Os identificadores viram nome de pasta e de arquivo, então só passam os
-/// que têm a forma gerada pelo motor: um id forjado não consegue apontar para fora da pasta.
-/// </summary>
+// Os identificadores viram nome de pasta e de arquivo, então só passam os que têm a forma gerada pelo motor: um id forjado não consegue apontar para fora da pasta.
 internal static class IntegrationPaths
 {
     public static string Root(string dataRoot) => Path.Combine(dataRoot, "integrations");

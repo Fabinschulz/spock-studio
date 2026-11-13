@@ -11,10 +11,6 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Relatório do período: junta o que o motor já calcula (indicadores, previsão, riscos, marcos) com o que aconteceu no período
-/// (mudanças de risco, decisões, execuções). Só recorta pelo período e compõe: não calcula nada novo nem grava.
-/// </summary>
 public class ReportTests : IDisposable
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 12, 12, 0, 0, TimeSpan.Zero);
@@ -84,8 +80,6 @@ public class ReportTests : IDisposable
         data.Record(new SyncExecution("sync-0000000000aa", Now, Now, SyncStatus.Succeeded, false, 1, data.Items.Count, data.Items.Count, 0, 0, null));
         new FileSyncedDataStore(_harness.DataDir).Write(ProjectId, integration.Id, data);
     }
-
-    // ------------------------------------------------------------------ Período
 
     [Fact]
     public void So_entram_as_decisoes_e_execucoes_do_periodo_conferido_a_mao()
@@ -173,8 +167,6 @@ public class ReportTests : IDisposable
         Assert.Equal("INVALID_PARAMS", Code(Report(weeks)));
     }
 
-    // ------------------------------------------------------------------ Isolamento e honestidade
-
     [Fact]
     public void Projeto_nao_autorizado_e_recusado_e_um_projeto_nao_ve_o_que_e_do_outro()
     {
@@ -226,8 +218,6 @@ public class ReportTests : IDisposable
         Assert.DoesNotContain("Issues: 7 itens.", text);
         Assert.DoesNotContain("\"facts\":[", text);
     }
-
-    // ------------------------------------------------------------------ Contrato
 
     [Fact]
     public async Task Fixture_de_contrato_do_relatorio()

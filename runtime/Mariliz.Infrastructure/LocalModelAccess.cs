@@ -7,10 +7,7 @@ using Mariliz.Application.Models;
 
 namespace Mariliz.Infrastructure;
 
-/// <summary>
-/// O acesso ao modelo das execuções: um <see cref="ModelBroker"/> e o servidor HTTP que o expõe só em 127.0.0.1. O servidor
-/// sobe na primeira execução que pede modelo e responde a uma rota (<c>POST /v1/model</c>) com token por execução.
-/// </summary>
+// O servidor só escuta em 127.0.0.1, sobe na primeira execução que pede modelo e exige token por execução.
 public sealed class LocalModelAccess(ModelBroker broker) : IModelAccess, IDisposable
 {
     private const int MaxBody = 1_000_000;

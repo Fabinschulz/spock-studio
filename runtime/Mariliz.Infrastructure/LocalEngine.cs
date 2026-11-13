@@ -8,11 +8,7 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Infrastructure;
 
-/// <summary>
-/// Composição dos casos de uso sobre o disco local, comum ao motor (sidecar) e à CLI. As diferenças entre os dois ficam
-/// explícitas no <see cref="Create"/>: só o motor lembra as pastas autorizadas (na CLI a pasta passada já é a
-/// autorização) e cada um decide para onde vão os eventos.
-/// </summary>
+// Só o motor lembra as pastas autorizadas (na CLI a pasta passada já é a autorização) e cada um decide para onde vão os eventos.
 public sealed class LocalEngine
 {
     private LocalEngine(string dataRoot, Action<string, int, string, JsonObject, DateTimeOffset> emit, bool rememberWorkspaces)
@@ -40,7 +36,7 @@ public sealed class LocalEngine
     public static LocalEngine Create(string dataRoot, Action<string, int, string, JsonObject, DateTimeOffset> emit, bool rememberWorkspaces) =>
         new(dataRoot, emit, rememberWorkspaces);
 
-    /// <summary>UTF-8 sem BOM no console e Ctrl+C como cancelamento, em vez de encerrar o processo no meio de uma escrita.</summary>
+    // Ctrl+C como cancelamento, em vez de encerrar o processo no meio de uma escrita.
     public static CancellationTokenSource ConfigureConsole()
     {
         var utf8 = new UTF8Encoding(false);

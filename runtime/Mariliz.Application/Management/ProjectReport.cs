@@ -5,22 +5,13 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Management;
 
-/// <summary>Uma decisão registrada no período, sem os fatos do dia (que ficam na própria decisão).</summary>
 public sealed record ReportDecision(string Id, DateTimeOffset RecordedAt, string Title, string Decision, int Runs, int Facts);
 
-/// <summary>Uma mudança na trajetória de um risco que aconteceu dentro do período.</summary>
 public sealed record ReportRiskChange(string RiskId, string Title, RiskChange Change);
 
-/// <summary>Quantas execuções de um tipo terminaram (ou estão) num estado, entre as que começaram no período.</summary>
 public sealed record ReportRuns(string Kind, string State, int Count);
 
-/// <summary>
-/// O relatório de um período: indicadores, previsão, riscos (agora e o que mudou no período), marcos, decisões e execuções.
-/// Só fatos do motor, calculados sobre o que foi sincronizado e registrado: nenhum texto foi escrito por modelo.
-/// </summary>
-/// <param name="Weeks">A largura do período, em semanas, terminando em <see cref="GeneratedAt"/>.</param>
-/// <param name="RiskChanges">As mudanças de risco do período, da mais recente para a mais antiga. Só existem desde o primeiro registro do histórico.</param>
-/// <param name="Basis">De onde vem cada parte e o que ela não cobre.</param>
+// Só fatos do motor sobre o que foi sincronizado e registrado: nenhum texto foi escrito por modelo. As mudanças de risco só existem desde o primeiro registro do histórico.
 public sealed record ProjectReport(
     string ProjectId,
     string ProjectName,
@@ -37,10 +28,7 @@ public sealed record ProjectReport(
     IReadOnlyList<ReportRuns> Runs,
     string Basis);
 
-/// <summary>
-/// Monta o relatório do período juntando o que o motor já calcula. Não calcula nada novo e não grava: cada parte é a mesma
-/// resposta dos métodos de Gestão, decisões e execuções, recortada pelo período.
-/// </summary>
+// Não calcula nada novo e não grava: cada parte é a resposta dos métodos de Gestão, decisões e execuções, recortada pelo período.
 public sealed class ReportService(
     WorkspaceAuthorizer workspace, ManagementService management, DecisionService decisions, IRunStore runs, IClock clock)
 {

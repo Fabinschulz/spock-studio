@@ -9,16 +9,12 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Fase 7b: o agente só propõe. Estas provas tentam o que um agente (ou um cliente, ou um diário adulterado) faria para
-/// executar sem aprovação, e conferem que nada é gravado no projeto.
-/// </summary>
+// Estas provas tentam o que um agente (ou um cliente, ou um diário adulterado) faria para executar sem aprovação, e conferem que nada é gravado no projeto.
 public class ActionGovernanceTests
 {
     private const string Chunk = "docs/nota.md#1";
     private const string Interrupt = "int-0123456789ab";
 
-    /// <summary>Runtime que pausa propondo o que o teste mandar e, retomado, conclui (ou falha).</summary>
     private sealed class ProposingRuntime(Func<string, JsonObject[]> proposals) : IAiRuntime
     {
         public JsonObject? Started;
@@ -59,7 +55,7 @@ public class ActionGovernanceTests
         }
     }
 
-    /// <summary>A intenção que o runtime manda: só o id, o tipo e as evidências. Alvo, resumo e conteúdo são do motor.</summary>
+    // Alvo, resumo e conteúdo são do motor.
     private static JsonObject Intent(string id = "act-decisao-impacto", string intent = ActionGovernance.RecordDecision, string? chunk = Chunk) => new()
     {
         ["id"] = id,

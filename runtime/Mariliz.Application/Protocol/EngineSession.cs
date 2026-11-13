@@ -16,12 +16,7 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Protocol;
 
-/// <summary>
-/// Laço do protocolo NDJSON v1: uma mensagem JSON por linha. Só escreve respostas e eventos no <c>output</c>;
-/// diagnósticos são de quem hospeda a sessão (stderr). Execuções longas respondem com o <c>runId</c> e avisam o
-/// progresso por eventos; pedidos que esperam rede ou modelo (<see cref="ProtocolMethods.Slow"/>) rodam fora do laço e respondem
-/// quando terminam. Assim o laço nunca fica preso esperando um deles.
-/// </summary>
+// Pedidos que esperam rede ou modelo (ProtocolMethods.Slow) rodam fora do laço e respondem quando terminam, para o laço nunca ficar preso. Diagnósticos são de quem hospeda a sessão (stderr).
 public sealed class EngineSession
 {
     private readonly string _engineVersion;
@@ -159,7 +154,7 @@ public sealed class EngineSession
 
     private sealed record Request(string Id, string Method, JsonObject? Params);
 
-    /// <summary>O envelope vem de fora: campo com tipo errado vira erro de protocolo, nunca exceção que derruba o processo.</summary>
+    // O envelope vem de fora: campo com tipo errado vira erro de protocolo, nunca exceção que derruba o processo.
     private static (Request? Request, JsonObject? Error) ParseRequest(string line)
     {
         if (Encoding.UTF8.GetByteCount(line) > ProtocolMessages.MaxMessageBytes)
@@ -207,7 +202,7 @@ public sealed class EngineSession
         }
     }
 
-    /// <summary>Um pedido longo: roda e escreve a própria resposta quando termina (a escrita é serializada com as demais).</summary>
+    // A escrita da resposta é serializada com as demais.
     private async Task RespondAsync(Request request, CancellationToken ct)
     {
         var (response, _) = await ExecuteAsync(request, ct);

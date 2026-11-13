@@ -9,10 +9,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Catálogo do Harness: a ficha de cada componente (o que faz, quando age, o que lê, o que pode alterar, de onde veio). As
-/// fichas são texto escrito à mão, então os testes as prendem ao que o motor de fato grava e ao que cada ativo declara.
-/// </summary>
+// As fichas são texto escrito à mão, então os testes as prendem ao que o motor de fato grava e ao que cada ativo declara.
 public class HarnessCatalogTests
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 11, 12, 0, 0, TimeSpan.Zero);
@@ -24,8 +21,6 @@ public class HarnessCatalogTests
         [Catalog.AgentVerifier] = "agents/verifier.md",
         [Catalog.SkillHarnessContract] = "skills/harness-contract/SKILL.md"
     };
-
-    // ------------------------------------------------------------------ As fichas
 
     [Fact]
     public void Todo_componente_do_catalogo_tem_ficha_e_toda_ficha_e_de_um_componente()
@@ -100,8 +95,6 @@ public class HarnessCatalogTests
         Assert.False(byId[Catalog.ConfigDeclaration].Manageable);
     }
 
-    // ------------------------------------------------------------------ As fichas contra o que o motor grava
-
     private static async Task<TempProject> Applied()
     {
         var project = TempProject.Dotnet();
@@ -147,8 +140,6 @@ public class HarnessCatalogTests
         Assert.False(File.Exists(Path.Combine(project.Root, ".claude", "catalog")));
         Assert.DoesNotContain("components.json", everything);
     }
-
-    // ------------------------------------------------------------------ O catálogo num projeto
 
     [Fact]
     public void Sem_projeto_o_catalogo_traz_so_as_fichas_sem_estado()
@@ -231,8 +222,6 @@ public class HarnessCatalogTests
         Assert.Equal(projectId, Call(new JsonObject { ["projectId"] = projectId })["result"]!["projectId"]!.GetValue<string>());
         Assert.Equal("PROJECT_NOT_AUTHORIZED", Call(new JsonObject { ["projectId"] = "p-desconhecido01" })["error"]!["code"]!.GetValue<string>());
     }
-
-    // ------------------------------------------------------------------ Contrato
 
     [Fact]
     public async Task Fixture_de_contrato_do_catalogo()

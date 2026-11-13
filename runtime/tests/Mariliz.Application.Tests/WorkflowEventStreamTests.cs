@@ -8,7 +8,6 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>O motor só republica o que é desta execução, uma vez e em ordem, e não deixa o runtime ditar o vocabulário da interface.</summary>
 public class WorkflowEventStreamTests
 {
     [Fact]
@@ -82,7 +81,6 @@ public class WorkflowEventStreamTests
         return evt;
     }
 
-    /// <summary>Runtime falso: repete os eventos dados e conclui com o ack mínimo.</summary>
     private sealed class ScriptedRuntime(Func<string, JsonObject[]> script) : IAiRuntime
     {
         public Task EnsureReadyAsync(CancellationToken ct) => Task.CompletedTask;

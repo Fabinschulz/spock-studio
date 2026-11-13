@@ -2,7 +2,6 @@ using Mariliz.Application.Harness;
 
 namespace Mariliz.Application.Engineering;
 
-/// <summary>O nome de cada componente do Harness como as telas de Engenharia o mostram.</summary>
 public static class HarnessLabels
 {
     private static readonly Dictionary<string, string> Labels = new(StringComparer.Ordinal)

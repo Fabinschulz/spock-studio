@@ -8,7 +8,6 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>Estado do Harness aplicado: o lock conferido contra o disco, componente por componente.</summary>
 public class HarnessStatusTests
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 11, 12, 0, 0, TimeSpan.Zero);

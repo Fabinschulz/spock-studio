@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace Mariliz.Application.Discovery;
 
-/// <summary>Leitura mínima de frontmatter YAML de arquivos Markdown (campos de primeiro nível, valores escalares).</summary>
+// Leitura mínima: campos de primeiro nível, valores escalares.
 public static class FrontmatterReader
 {
     public static Dictionary<string, string>? Read(string markdown)

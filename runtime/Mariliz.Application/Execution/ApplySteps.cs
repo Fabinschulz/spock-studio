@@ -3,10 +3,7 @@ using System.Text.Json.Nodes;
 
 namespace Mariliz.Application.Execution;
 
-/// <summary>
-/// As etapas de uma aplicação, na ordem em que <see cref="ApplyExecution"/> as executa. Um só lugar para o id e o título:
-/// o que <c>run.plan</c> anuncia é o que <c>step.started</c> depois publica.
-/// </summary>
+// Um só lugar para o id e o título: o que run.plan anuncia é o que step.started depois publica.
 internal static class ApplySteps
 {
     public static readonly (string Id, string Title) Precheck = ("precheck", "Verificar pré-condições");
@@ -17,7 +14,6 @@ internal static class ApplySteps
 
     public static (string Id, string Title) Command(PlannedCommand command) => ("command:" + command.Id, command.Description);
 
-    /// <summary>A lista ordenada de <c>run.plan</c>: uma etapa por comando aprovado, entre a cópia e a escrita.</summary>
     public static JsonObject Plan(IEnumerable<PlannedCommand> approvedCommands)
     {
         var steps = new List<(string Id, string Title)> { Precheck, Backup };

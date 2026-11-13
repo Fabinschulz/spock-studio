@@ -4,10 +4,7 @@ using Mariliz.Application.Models;
 
 namespace Mariliz.Infrastructure;
 
-/// <summary>
-/// O modelo escolhido para cada finalidade, em <c>{dataRoot}/model-purposes.json</c>. É só preferência (nome de modelo): a chave
-/// nunca passa por aqui. Arquivo ausente ou ilegível quer dizer "tudo no padrão".
-/// </summary>
+// A chave nunca passa por aqui. Arquivo ausente ou ilegível quer dizer "tudo no padrão".
 public sealed class FileModelPreferences(string dataRoot) : IModelPreferences
 {
     private readonly object _gate = new();

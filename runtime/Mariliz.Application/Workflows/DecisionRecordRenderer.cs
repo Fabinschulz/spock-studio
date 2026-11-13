@@ -4,13 +4,9 @@ using Mariliz.Application.Ports;
 
 namespace Mariliz.Application.Workflows;
 
-/// <summary>O texto do registro de decisão que o motor grava no projeto.</summary>
 internal static class DecisionRecordRenderer
 {
-    /// <summary>
-    /// O texto do registro, escrito pelo motor só com o que ele validou (áreas, riscos e trechos citados). Sem o pedido, sem texto
-    /// livre de modelo e sem data, então o mesmo impacto gera sempre o mesmo conteúdo.
-    /// </summary>
+    // Sem o pedido, sem texto livre de modelo e sem data: o mesmo impacto gera sempre o mesmo conteúdo.
     public static string Render(WorkflowAck ack, JsonObject impact, IReadOnlyList<string> evidence, Dictionary<string, string> known)
     {
         var areas = impact["areas"]?.AsArray().Select(a => a?.GetValue<string>() ?? "").Select(AreaLabel) ?? [];

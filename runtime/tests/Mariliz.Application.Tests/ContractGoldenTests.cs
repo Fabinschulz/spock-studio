@@ -6,17 +6,11 @@ using Mariliz.Application.Tests.Support;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Contrato entre o motor (C#) e a interface (TypeScript). A proposta tem JSON Schema; o restante tem fixtures
-/// "golden" geradas pelo motor real. O formato é conferido aqui; o Zod da interface é conferido contra as mesmas
-/// fixtures. Para regenerar depois de uma mudança deliberada: MARILIZ_UPDATE_GOLDEN=1 dotnet test.
-/// </summary>
+// O Zod da interface é conferido contra as mesmas fixtures. Para regenerar depois de uma mudança deliberada: MARILIZ_UPDATE_GOLDEN=1 dotnet test.
 public class ContractGoldenTests
 {
     private static string GoldenPath(string name) => ContractFiles.Path_("fixtures", "golden", name + ".json");
     private static readonly bool Update = Environment.GetEnvironmentVariable("MARILIZ_UPDATE_GOLDEN") == "1";
-
-    // ------------------------------------------------------------------ Proposta: schema e leitor concordam
 
     private static readonly string ProposalSchemaPath = Path.Combine(ContractFiles.Root, "runtime", "Mariliz.Application", "Assets", "schemas", "harness-proposal.v1.schema.json");
 
@@ -52,8 +46,6 @@ public class ContractGoldenTests
         Assert.Equal(Catalog.Proposable.Order().ToList(), enumIds);
     }
 
-    // ------------------------------------------------------------------ Golden: formato das respostas do motor
-
     private sealed record Scenario(string Name, JsonNode Json);
 
     private static async Task<List<Scenario>> BuildScenarios()
@@ -72,7 +64,6 @@ public class ContractGoldenTests
             scenarios.Add(new("plan", Normalize(JournalJson.Node(plan)!, project, journey)));
         }
 
-        // Aplicação, validação e reversão completas.
         using (var project = TempProject.Dotnet())
         {
             SpecificationFixture.Install(project);
@@ -86,7 +77,6 @@ public class ContractGoldenTests
             scenarios.Add(new("revert-result", Normalize(revert, project, journey)));
         }
 
-        // Falha: erro tipado.
         using (var project = TempProject.Dotnet())
         {
             var journey = new Journey(project, (spec, _) => Task.FromResult<Mariliz.Application.Ports.ProcessResult?>(spec.Executable == "npx" ? new Mariliz.Application.Ports.ProcessResult(1, "", "x", false, false) : null));
@@ -96,7 +86,7 @@ public class ContractGoldenTests
         return scenarios;
     }
 
-    /// <summary>Remove o que muda a cada máquina ou execução (ids, nome da pasta temporária, versões das ferramentas).</summary>
+    // Remove o que muda a cada máquina ou execução (ids, nome da pasta temporária, versões das ferramentas).
     private static JsonNode Normalize(JsonNode node, TempProject project, Journey journey)
     {
         var text = node.ToJsonString(new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
@@ -125,7 +115,7 @@ public class ContractGoldenTests
         }
     }
 
-    /// <summary>Assinatura de formato: chaves e tipos, ignorando valores, para tolerar dados que variam.</summary>
+    // Chaves e tipos, ignorando valores, para tolerar dados que variam.
     private static class Shape
     {
         public static SortedDictionary<string, SortedSet<string>> Of(JsonNode? node)

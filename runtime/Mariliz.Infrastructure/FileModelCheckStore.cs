@@ -3,10 +3,7 @@ using Mariliz.Application.Models;
 
 namespace Mariliz.Infrastructure;
 
-/// <summary>
-/// O resultado da última conferência da chave do modelo, em <c>{dataRoot}/model-check.json</c>. É só estado (se o provedor aceitou,
-/// quando, e o motivo de uma recusa): a chave nunca passa por aqui. Arquivo ausente ou ilegível quer dizer "nunca conferida".
-/// </summary>
+// A chave nunca passa por aqui. Arquivo ausente ou ilegível quer dizer "nunca conferida".
 public sealed class FileModelCheckStore(string dataRoot) : IModelCheckStore
 {
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web);

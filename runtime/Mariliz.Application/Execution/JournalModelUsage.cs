@@ -1,6 +1,6 @@
 namespace Mariliz.Application.Execution;
 
-/// <summary>Uso do modelo numa execução: chamadas e tokens, contados pelo proxy do motor. Sem custo em dinheiro (D4).</summary>
+// Sem custo em dinheiro (D4).
 public sealed class JournalModelUsage
 {
     public int Calls { get; set; }

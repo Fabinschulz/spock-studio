@@ -5,10 +5,7 @@ using Mariliz.Application.Timeline;
 
 namespace Mariliz.Application.Management.Investigation;
 
-/// <summary>
-/// Os fatos que a investigação soma aos do assistente: o que aconteceu nas execuções do projeto e o que mudou nele, nos últimos
-/// <see cref="WindowDays"/> dias. Só contagens e rótulos: nenhum título de item nem texto da pergunta entra aqui.
-/// </summary>
+// Só contagens e rótulos: nenhum título de item nem texto da pergunta entra aqui.
 internal sealed class InvestigationFacts(IRunStore? runs, ProjectTimelineService? timeline, IClock clock)
 {
     public const int WindowDays = 28;

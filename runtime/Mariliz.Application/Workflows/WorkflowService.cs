@@ -7,11 +7,7 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Workflows;
 
-/// <summary>
-/// Ciclo de vida do grafo <c>engineering.request.v1</c>: autoriza, inicia, espera a aprovação humana, retoma e termina,
-/// mantendo o diário de cada execução. O pedido, as mensagens para o runtime, os eventos, o resultado e o contexto do
-/// projeto têm classes próprias nesta pasta. O runtime de IA não grava no projeto.
-/// </summary>
+// O runtime de IA não grava no projeto.
 public sealed class WorkflowService(
     WorkspaceAuthorizer workspace,
     IAiRuntime runtime,
@@ -26,7 +22,6 @@ public sealed class WorkflowService(
     public const string Kind = RunKinds.Workflow;
     public const string WorkflowId = WorkflowRequests.GraphId + ".v" + WorkflowRequests.GraphVersion;
 
-    /// <summary>Prazo de cada conversa com o runtime de IA.</summary>
     internal TimeSpan Deadline { get; init; } = WorkflowRequests.RuntimeDeadline;
 
     private readonly ApprovalGate _approvals = new();
@@ -51,10 +46,7 @@ public sealed class WorkflowService(
         return run;
     }
 
-    /// <summary>
-    /// Retoma uma execução pausada. A decisão é conferida contra a aprovação que o motor abriu (identificador, hash das ações e
-    /// lista do que foi proposto) antes de qualquer coisa mudar; sem <paramref name="decision"/>, nenhuma ação é aprovada.
-    /// </summary>
+    // A decisão é conferida contra a aprovação aberta antes de qualquer coisa mudar; sem decisão, nenhuma ação é aprovada.
     public Task<RunHandle> ResumeAsync(string projectId, string runId, ResumeDecision? decision = null)
     {
         EnsureAuthorized(projectId);
@@ -80,7 +72,7 @@ public sealed class WorkflowService(
             throw EngineErrors.ProjectNotAuthorized();
     }
 
-    /// <summary>O motor caiu com a execução pausada: ela volta do diário, com a numeração de eventos que já tinha.</summary>
+    // O motor caiu com a execução pausada: ela volta do diário, com a numeração de eventos que já tinha.
     private Task<RunHandle> ResumeFromJournal(string projectId, string runId, ResumeDecision decision)
     {
         var journal = store.LoadJournal(projectId, runId);
@@ -151,10 +143,7 @@ public sealed class WorkflowService(
         Finish(run, journal, ack);
     });
 
-    /// <summary>
-    /// A opinião do juiz só vale se o proxy do motor viu a chamada do juiz. Ela é gravada no diário antes da pausa (a retomada,
-    /// mesmo depois de um reinício, não depende do proxy) e no registro de avaliações, com modelo, versão e hash do pedido.
-    /// </summary>
+    // Gravada no diário antes da pausa: a retomada, mesmo depois de um reinício, não depende do proxy.
     private void RecordJudgment(RunHandle run, RunJournal journal, WorkflowAck ack)
     {
         var judgment = JudgmentVerifier.Verify(ack, models?.Calls(ack.ExecutionId) ?? []);
@@ -163,10 +152,6 @@ public sealed class WorkflowService(
         evalRecords?.Save(run.ProjectId, ack.ExecutionId, JudgmentRecord.ForDisk(judgment, run.RunId, run.ProjectId, ack.ExecutionId, clock.UtcNow));
     }
 
-    /// <summary>
-    /// As propostas do runtime passam pela política do motor antes de qualquer pessoa as ver: o que não é permitido some, e o
-    /// conteúdo de cada ação aceita é escrito aqui e ligado por hash à aprovação.
-    /// </summary>
     private static void ReviewActions(RunJournal journal, WorkflowAck ack, IReadOnlyList<string> allowedActions)
     {
         journal.Actions = ActionGovernance.Review(ack, allowedActions);
@@ -175,10 +160,6 @@ public sealed class WorkflowService(
 
     private JsonObject Resume(RunHandle run, RunJournal journal) => WorkflowRequests.Resume(run, journal, context.DataRoot);
 
-    /// <summary>
-    /// A aprovação é registrada antes de ser anunciada: um <c>workflow.resume</c> que chegue logo depois do evento já a
-    /// encontra. A espera é humana e não tem prazo; só o cancelamento da execução a interrompe.
-    /// </summary>
     private async Task WaitForApprovalAsync(RunHandle run, RunJournal journal, WorkflowAck ack)
     {
         var approvedActions = await _approvals.WaitAsync(run.RunId, journal, run.Cancellation.Token, () => OpenApproval(run, journal, ack));
@@ -186,7 +167,7 @@ public sealed class WorkflowService(
         _journal.Approve(journal);
     }
 
-    /// <summary>A pausa só vale se o runtime disse qual interrupção espera; o motor abre a aprovação e grava antes de publicar.</summary>
+    // A pausa só vale se o runtime disse qual interrupção espera; o motor grava antes de publicar.
     private void OpenApproval(RunHandle run, RunJournal journal, WorkflowAck ack)
     {
         if (ack.InterruptId is null)
@@ -198,7 +179,7 @@ public sealed class WorkflowService(
         _events.ApprovalRequired(run, journal.ApprovalId, ack.ExecutionId, WorkflowResult.StepIds(ack.Output), ActionGovernance.ForEvent(journal.Actions));
     }
 
-    /// <summary>Cada conversa com o runtime tem o próprio prazo, que não conta o tempo em que a execução esperou alguém.</summary>
+    // O prazo não conta o tempo em que a execução esperou alguém.
     private async Task<T> WithDeadlineAsync<T>(RunHandle run, Func<CancellationToken, Task<T>> step)
     {
         using var budget = CancellationTokenSource.CreateLinkedTokenSource(run.Cancellation.Token);
@@ -206,7 +187,7 @@ public sealed class WorkflowService(
         return await step(budget.Token);
     }
 
-    /// <summary>Toda saída da execução passa por aqui e termina o diário: nenhum erro deixa a execução presa.</summary>
+    // Nenhum erro deixa a execução presa.
     private async Task GuardedAsync(RunHandle run, RunJournal journal, Func<Task> body)
     {
         try

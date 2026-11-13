@@ -2,7 +2,7 @@ using Mariliz.Application.Execution;
 
 namespace Mariliz.Application.Integrations;
 
-/// <summary>Erros das integrações: o mesmo código sempre com a mesma explicação, sem texto vindo do provedor.</summary>
+// Sem texto vindo do provedor.
 public static class IntegrationErrors
 {
     public const string Prefix = "INTEGRATION_";

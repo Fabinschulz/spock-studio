@@ -12,10 +12,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// O runtime Python oco confirma o início da execução. O evento sai no mesmo envelope que o host
-/// reencaminha como <c>engine_event</c> e que a UI já aceita.
-/// </summary>
+// O evento sai no mesmo envelope que o host reencaminha como engine_event e que a UI já aceita.
 public class WorkflowRuntimeTests
 {
     [Fact]
@@ -541,7 +538,7 @@ public class WorkflowRuntimeTests
         Assert.True(ContractFiles.IsValid(ContractFiles.Schema("intelligence", "engineering.impact.v1.schema.json"), ack["output"]!["impact"]));
     }
 
-    /// <summary>Fala HTTP direto com o servidor da inteligência, sem o adaptador, para conferir as linhas como saem.</summary>
+    // Sem o adaptador, para conferir as linhas como saem.
     private static async Task<List<JsonObject>> RawWorkflowLinesAsync(string dataDir)
     {
         var script = Path.Combine(ContractFiles.Root, "intelligence", "server.py");

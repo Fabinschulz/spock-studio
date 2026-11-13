@@ -4,10 +4,7 @@ using Mariliz.Application.Models;
 
 namespace Mariliz.Application.Workflows;
 
-/// <summary>
-/// Mensagens do motor para o runtime de IA (<c>ai.workflow.start.v2</c> e <c>ai.workflow.resume.v2</c>). Limites e
-/// política são decisões do motor; o runtime só pode ser mais restritivo.
-/// </summary>
+// Limites e política são decisões do motor; o runtime só pode ser mais restritivo.
 internal static class WorkflowRequests
 {
     public const string GraphId = "engineering.request";
@@ -19,10 +16,7 @@ internal static class WorkflowRequests
     /// </summary>
     public const int ModelTokenBudget = 8000;
 
-    /// <summary>
-    /// O prazo de cada conversa com o runtime de IA. O limite de tempo que o runtime recebe vem daqui: os dois precisam
-    /// concordar, senão o motor desiste antes do que o runtime foi autorizado a gastar.
-    /// </summary>
+    // O limite de tempo que o runtime recebe vem daqui: os dois precisam concordar, senão o motor desiste antes do que o runtime foi autorizado a gastar.
     public static readonly TimeSpan RuntimeDeadline = TimeSpan.FromSeconds(60);
 
     public static int ModelMilliseconds => (int)RuntimeDeadline.TotalMilliseconds;
@@ -58,7 +52,6 @@ internal static class WorkflowRequests
         return message;
     }
 
-    /// <summary>Retomada com a aprovação que o motor já gravou no diário.</summary>
     public static JsonObject Resume(RunHandle run, RunJournal journal, string executionRoot) => new()
     {
         ["schema"] = "ai.workflow.resume.v2",

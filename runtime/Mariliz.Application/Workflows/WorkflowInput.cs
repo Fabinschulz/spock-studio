@@ -4,17 +4,13 @@ using Mariliz.Application.Protocol;
 
 namespace Mariliz.Application.Workflows;
 
-/// <summary>O pedido entra só com os campos do contrato; o objetivo é obrigatório e limitado.</summary>
 internal static class WorkflowInput
 {
     public const int MaxGoal = 4000;
     private static readonly HashSet<string> Fields = new(StringComparer.Ordinal) { "goal", "impact", "requiresApproval", UseModel };
     private static readonly string[] Flags = ["impact", "requiresApproval"];
 
-    /// <summary>
-    /// Decisão do motor, não do runtime de IA: só vale se a pessoa a pediu e há modelo configurado. Fica de fora da mensagem
-    /// que vai ao runtime (o contrato do pedido não a tem); ele a recebe como política e proxy.
-    /// </summary>
+    // Decisão do motor, não do runtime de IA: fica de fora da mensagem ao runtime (o contrato do pedido não a tem); ele a recebe como política e proxy.
     public const string UseModel = "useModel";
 
     public static bool WantsModel(JsonObject input)

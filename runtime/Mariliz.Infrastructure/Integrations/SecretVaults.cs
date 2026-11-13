@@ -3,7 +3,6 @@ using Mariliz.Application.Ports;
 
 namespace Mariliz.Infrastructure.Integrations;
 
-/// <summary>Os sistemas em que o Spock Studio sabe guardar credenciais.</summary>
 public enum VaultPlatform
 {
     Windows,
@@ -12,7 +11,7 @@ public enum VaultPlatform
     Other
 }
 
-/// <summary>Escolhe o cofre do sistema. É uma função e não um <c>if</c> espalhado para o teste conferir cada sistema sem rodar nele.</summary>
+// Uma função e não um if espalhado, para o teste conferir cada sistema sem rodar nele.
 public static class SecretVaults
 {
     public static VaultPlatform CurrentPlatform() =>

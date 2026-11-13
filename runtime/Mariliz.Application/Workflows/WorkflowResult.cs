@@ -7,10 +7,7 @@ using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Workflows;
 
-/// <summary>
-/// O que do runtime de IA chega à interface e ao diário. Nada passa por cópia direta: cada campo é conferido contra o
-/// contrato e reconstruído, então texto livre, caminho absoluto ou segredo no trecho recuperado ficam de fora.
-/// </summary>
+// Nada passa por cópia direta: cada campo é conferido contra o contrato e reconstruído, então texto livre, caminho absoluto ou segredo ficam de fora.
 internal static class WorkflowResult
 {
     public static JsonObject From(WorkflowAck ack, JournalModelUsage? usage = null, JournalJudgment? judgment = null,
@@ -48,7 +45,6 @@ internal static class WorkflowResult
         ["error"] = new JsonObject { ["code"] = code, ["message"] = message }
     };
 
-    /// <summary>Ids das etapas do plano, para a interface mostrar onde o grafo parou.</summary>
     public static JsonArray StepIds(JsonObject output)
     {
         var ids = new JsonArray();
@@ -61,7 +57,6 @@ internal static class WorkflowResult
         return ids;
     }
 
-    /// <summary>Proveniência de um trecho recuperado: caminho relativo seguro, chunk, hash e pontuação.</summary>
     public static bool TryEvidence(JsonObject item, out JsonObject data)
     {
         data = new JsonObject();
@@ -95,7 +90,7 @@ internal static class WorkflowResult
         return true;
     }
 
-    /// <summary>Copia uma lista de textos só se todos forem aceitos; um item fora do contrato invalida a lista.</summary>
+    // Um item fora do contrato invalida a lista inteira.
     private static bool TryCopy(JsonArray source, Func<string, bool> accepted, out JsonArray copy)
     {
         copy = new JsonArray();

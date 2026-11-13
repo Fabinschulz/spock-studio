@@ -3,7 +3,6 @@ using Mariliz.Application.Protocol;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>Mensagem malformada vira erro de protocolo; nunca derruba a sessão (e com ela o motor).</summary>
 public class ProtocolRobustnessTests
 {
     [Theory]

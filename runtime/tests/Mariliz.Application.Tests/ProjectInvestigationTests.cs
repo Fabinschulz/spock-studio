@@ -15,10 +15,7 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// A investigação de gestão no motor: os fatos que vão ao runtime, o que volta e como é conferido, e o diário. O runtime é um
-/// dublê que devolve o resultado escrito no teste, com afirmações boas e ruins de propósito.
-/// </summary>
+// O runtime é um dublê que devolve o resultado escrito no teste, com afirmações boas e ruins de propósito.
 public class ProjectInvestigationTests
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 10, 12, 0, 0, TimeSpan.Zero);
@@ -191,8 +188,6 @@ public class ProjectInvestigationTests
         ["usage"] = new JsonObject { ["modelCalls"] = 2, ["inputTokens"] = 100, ["outputTokens"] = 50, ["tokens"] = 150 }
     };
 
-    // ------------------------------------------------------------------ Fatos
-
     [Fact]
     public async Task O_pacote_traz_os_fatos_do_assistente_e_os_de_execucoes_e_de_mudancas()
     {
@@ -249,8 +244,6 @@ public class ProjectInvestigationTests
         });
         Assert.Equal(facts.Count, facts.Select(node => node!["id"]!.GetValue<string>()).Distinct().Count());
     }
-
-    // ------------------------------------------------------------------ O pedido
 
     [Fact]
     public async Task Com_modelo_configurado_o_pedido_leva_o_proxy_e_o_teto_de_tokens_e_o_acesso_fecha()
@@ -318,8 +311,6 @@ public class ProjectInvestigationTests
         Assert.Equal("PROJECT_NOT_AUTHORIZED", ex.Code);
         Assert.Equal(0, s.Runtime.Calls);
     }
-
-    // ------------------------------------------------------------------ A conferência
 
     [Fact]
     public async Task A_resposta_boa_passa_com_as_citacoes_e_o_uso_vem_do_proxy_do_motor()
@@ -471,8 +462,6 @@ public class ProjectInvestigationTests
         Assert.Single(s.Models.Closed);
     }
 
-    // ------------------------------------------------------------------ O diário
-
     [Fact]
     public async Task O_diario_guarda_o_caminho_com_os_ids_dos_fatos_e_o_uso_e_nunca_o_texto_da_pergunta()
     {
@@ -529,8 +518,6 @@ public class ProjectInvestigationTests
         var detail = catalog.Detail(s.Harness.ProjectId, result.RunId);
         Assert.Equal(["frame-0", "gather1-1", "conclude-2", "verify"], detail["steps"]!.AsArray().Select(step => step!["id"]!.GetValue<string>()));
     }
-
-    // ------------------------------------------------------------------ A memória e o laço
 
     private static JsonArray Retrieved(params (string Id, string Path)[] items) =>
         new(items.Select(item => (JsonNode)new JsonObject { ["id"] = item.Id, ["path"] = item.Path, ["chunkId"] = item.Path + "#h:x" }).ToArray());
@@ -702,8 +689,6 @@ public class ProjectInvestigationTests
         Assert.Equal(4, result.Rounds);
     }
 
-    // ------------------------------------------------------------------ Com o runtime de verdade
-
     [Fact]
     public async Task Com_o_runtime_python_de_verdade_e_sem_modelo_lista_os_sinais_e_o_motor_confere()
     {
@@ -752,7 +737,7 @@ public class ProjectInvestigationTests
             Task.FromResult(new ModelTransportResult("", 0));
     }
 
-    /// <summary>O provedor roteirizado: uma resposta por chamada, na ordem, e guarda o que recebeu.</summary>
+    // Uma resposta por chamada, na ordem, e guarda o que recebeu.
     private sealed class ScriptedProvider(params string[] replies) : IModelChatTransport
     {
         private readonly Queue<string> _replies = new(replies);
@@ -827,8 +812,6 @@ public class ProjectInvestigationTests
         }
     }
 
-    // ------------------------------------------------------------------ Contrato
-
     [Fact]
     public async Task A_resposta_do_protocolo_segue_o_contrato_que_a_interface_le()
     {
@@ -857,8 +840,6 @@ public class ProjectInvestigationTests
         Assert.True(text == File.ReadAllText(path).ReplaceLineEndings("\n").TrimEnd(),
             "investigation.json: a resposta mudou. Se foi deliberado, regenere com MARILIZ_UPDATE_GOLDEN=1 e ajuste o Zod da interface.");
     }
-
-    // ------------------------------------------------------------------ Protocolo
 
     [Fact]
     public async Task O_metodo_do_protocolo_devolve_o_resultado_e_so_existe_com_o_runtime()

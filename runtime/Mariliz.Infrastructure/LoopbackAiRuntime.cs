@@ -10,10 +10,7 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Infrastructure;
 
-/// <summary>
-/// Sobe <c>intelligence/server.py</c> em <c>127.0.0.1</c> com porta efêmera e token de sessão.
-/// A entrada padrão do filho fica fechada, para não herdar o canal do protocolo.
-/// </summary>
+// A entrada padrão do filho fica fechada, para não herdar o canal do protocolo.
 public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime
 {
     private const int MaxLine = 1_000_000;
@@ -38,7 +35,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime
         get { lock (_gate) return _process is { HasExited: false }; }
     }
 
-    /// <summary>Identificador do processo do Python enquanto ele existe. Serve a diagnóstico e a testes que simulam uma queda.</summary>
+    // Serve a diagnóstico e a testes que simulam uma queda.
     public int? ProcessId
     {
         get { lock (_gate) return _process is { HasExited: false } p ? p.Id : null; }
@@ -52,10 +49,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime
         return AiRuntimeLocator.PythonCandidates(_pythonOverride).Any() ? "stopped" : "unavailable";
     }
 
-    /// <summary>
-    /// Sobe o processo se ele não responde. A subida é serializada: duas execuções que encontrassem o runtime parado
-    /// ao mesmo tempo derrubariam o processo uma da outra.
-    /// </summary>
+    // A subida é serializada: duas execuções que encontrassem o runtime parado ao mesmo tempo derrubariam o processo uma da outra.
     public async Task EnsureReadyAsync(CancellationToken ct)
     {
         if (await PingAsync(ct)) return;
@@ -132,10 +126,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime
         }
     }
 
-    /// <summary>
-    /// Lê o NDJSON à medida que chega: cada <c>ai.event.v1</c> vai para <paramref name="onEvent"/> na hora, e a última linha
-    /// precisa ser o ack do schema esperado. Se o fluxo terminar sem ele, a resposta está fora do contrato.
-    /// </summary>
+    // A última linha precisa ser o ack do schema esperado; se o fluxo terminar sem ele, a resposta está fora do contrato.
     private async Task<JsonObject> StreamAsync(string path, JsonObject body, Action<JsonObject> onEvent, string ackSchema, CancellationToken ct)
     {
         await EnsureReadyAsync(ct);
@@ -174,7 +165,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime
         }
     }
 
-    /// <summary>Falha de conversa com o processo (conexão, leitura, JSON quebrado). O que o chamador vê é um código do contrato, não a exceção do .NET.</summary>
+    // O chamador vê um código do contrato, não a exceção do .NET.
     private static bool IsTransportFault(Exception ex) => ex is HttpRequestException or IOException or System.Text.Json.JsonException;
 
     private static EngineException TransportFault(Exception ex) =>
@@ -264,7 +255,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime
         return false;
     }
 
-    /// <summary>Uma pergunta só: o processo existe e responde dentro de <see cref="PingTimeout"/>? Um Python travado não segura quem chama.</summary>
+    // Um Python travado não segura quem chama.
     private async Task<bool> PingAsync(CancellationToken ct)
     {
         HttpClient? http;
@@ -293,7 +284,7 @@ public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime
         }
     }
 
-    /// <summary>Espera um processo recém-lançado ficar de pé. A primeira importação do LangGraph sem bytecode pronto leva alguns segundos (medido: 2,5 s).</summary>
+    // A primeira importação do LangGraph sem bytecode pronto leva alguns segundos (medido: 2,5 s).
     private async Task<bool> WaitUntilHealthyAsync(CancellationToken ct)
     {
         var deadline = DateTime.UtcNow + StartupBudget;

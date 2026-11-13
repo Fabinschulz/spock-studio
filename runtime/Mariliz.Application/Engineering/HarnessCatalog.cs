@@ -4,17 +4,10 @@ using Mariliz.Application.Harness;
 
 namespace Mariliz.Application.Engineering;
 
-/// <summary>Uma ferramenta que o agente pode usar, com o que isso quer dizer em palavras simples.</summary>
 public sealed record HarnessTool(string Name, string Plain);
 
-/// <summary>
-/// A ficha de um componente do Harness: o que faz, quando age, o que lê, o que pode alterar e de onde veio. É texto escrito
-/// à mão junto do ativo (<c>Assets/catalog/components.json</c>) e fica <b>fora</b> dos arquivos que vão para o projeto: mudar uma
-/// ficha não muda o hash do Harness aplicado em ninguém.
-/// </summary>
-/// <param name="Tools">Só para agentes: as ferramentas declaradas no próprio arquivo do agente, lidas do ativo e não digitadas à mão.</param>
-/// <param name="Files">Onde o componente escreve no projeto.</param>
-/// <param name="Manageable">Se pode ser dispensado e reaplicado pela jornada Configurar.</param>
+// Texto escrito à mão junto do ativo (Assets/catalog/components.json) e fora dos arquivos que vão para o projeto: mudar uma ficha não muda o hash do Harness aplicado em ninguém.
+/// <param name="Tools">Lidas do próprio arquivo do agente, não digitadas à mão.</param>
 public sealed record ComponentSheet(
     string Id,
     string Kind,
@@ -29,19 +22,11 @@ public sealed record ComponentSheet(
     IReadOnlyList<string> Files,
     bool Manageable);
 
-/// <summary>
-/// Um componente do catálogo no projeto aberto. <see cref="Presence"/>: <c>applied</c> (está no lock), <c>excluded</c>
-/// (<c>mariliz.yaml</c> pede para não aplicar) ou <c>not_applied</c>. <see cref="State"/> é o estado do pior dos arquivos
-/// (<c>intact</c>, <c>kept</c>, <c>modified</c>, <c>missing</c>, <c>outOfScope</c>) e só existe se o componente está no lock; num
-/// componente excluído, indica que os arquivos ainda estão no projeto até a próxima aplicação.
-/// </summary>
+// Presence: applied (está no lock), excluded (mariliz.yaml pede para não aplicar) ou not_applied. State é o do pior dos arquivos e só existe com o componente no lock; num excluído, indica que os arquivos ainda estão no projeto até a próxima aplicação.
 public sealed record CatalogEntry(ComponentSheet Sheet, string? Presence, string? State);
 
-/// <param name="ProjectId">Nulo no catálogo geral, sem projeto.</param>
-/// <param name="Applied">Se o projeto já tem o Harness aplicado (existe lock). Nulo sem projeto.</param>
 public sealed record HarnessCatalog(string? ProjectId, bool? Applied, IReadOnlyList<CatalogEntry> Entries);
 
-/// <summary>Lê as fichas dos componentes e as junta, se houver projeto, ao que está aplicado nele.</summary>
 public sealed class HarnessCatalogService(HarnessStatusService? status)
 {
     public const string SheetsAsset = "catalog/components.json";
@@ -60,10 +45,8 @@ public sealed class HarnessCatalogService(HarnessStatusService? status)
 
     private const string UnknownTool = "uma ferramenta que o Spock Studio ainda não descreve";
 
-    /// <summary>O que uma ferramenta do Claude Code quer dizer, em palavras simples.</summary>
     public static string PlainOf(string tool) => ToolPlain.GetValueOrDefault(tool, UnknownTool);
 
-    /// <summary>O arquivo do agente de onde as ferramentas são lidas.</summary>
     private static readonly Dictionary<string, string> AgentAssets = new(StringComparer.Ordinal)
     {
         [Catalog.AgentHarnessEngineer] = "agents/harness-engineer.md",
@@ -88,7 +71,6 @@ public sealed class HarnessCatalogService(HarnessStatusService? status)
 
     private static readonly Lazy<IReadOnlyList<ComponentSheet>> Sheets = new(LoadSheets);
 
-    /// <summary>As fichas de todos os componentes do catálogo, na ordem do catálogo.</summary>
     public static IReadOnlyList<ComponentSheet> AllSheets => Sheets.Value;
 
     public HarnessCatalog Read(string? projectId)
@@ -158,7 +140,6 @@ public sealed class HarnessCatalogService(HarnessStatusService? status)
         }).ToList();
     }
 
-    /// <summary>As ferramentas declaradas no cabeçalho do agente (<c>tools: Read, Grep</c>), lidas do próprio ativo.</summary>
     private static List<HarnessTool> ToolsOf(string id)
     {
         if (!AgentAssets.TryGetValue(id, out var asset)) return [];

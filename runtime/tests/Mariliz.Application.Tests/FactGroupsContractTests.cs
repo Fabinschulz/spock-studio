@@ -4,10 +4,7 @@ using Mariliz.Application.Tests.Support;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// O catálogo de grupos de fatos é do motor; a fixture <c>contracts/fixtures/management/fact-groups.json</c> é a cópia que os
-/// testes e a avaliação do runtime de IA leem. Os dois não podem divergir.
-/// </summary>
+// A fixture contracts/fixtures/management/fact-groups.json é a cópia que os testes e a avaliação do runtime de IA leem; os dois não podem divergir.
 public class FactGroupsContractTests
 {
     private static JsonArray Catalog() => new(FactGroups.All.Select(group => (JsonNode)new JsonObject

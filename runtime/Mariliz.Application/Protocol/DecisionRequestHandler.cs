@@ -4,7 +4,6 @@ using Mariliz.Application.Management;
 
 namespace Mariliz.Application.Protocol;
 
-/// <summary>Traduz <c>decision.*</c> para o <see cref="DecisionService"/>.</summary>
 internal sealed class DecisionRequestHandler(DecisionService service)
 {
     public JsonObject Handle(string method, RequestParams p) => method switch

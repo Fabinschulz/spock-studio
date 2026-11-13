@@ -5,10 +5,7 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Infrastructure.Integrations;
 
-/// <summary>
-/// Credenciais cifradas pela DPAPI do Windows para o usuário atual, em <c>{dataRoot}/integrations/secrets</c>. O arquivo só
-/// abre na mesma conta do Windows: copiado para outra máquina ou lido por outro usuário, não revela a credencial.
-/// </summary>
+// O arquivo só abre na mesma conta do Windows: copiado para outra máquina ou lido por outro usuário, não revela a credencial.
 [SupportedOSPlatform("windows")]
 public sealed class DpapiSecretVault(string dataRoot) : ISecretVault
 {

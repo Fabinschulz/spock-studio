@@ -19,9 +19,6 @@ public sealed record ValidationContext(
     IReadOnlyList<EvalSummary> PreviousEvals,
     IModelSettings? Models = null)
 {
-    /// <summary>
-    /// Arquivos que a aplicação gerou. Os mesclados e "kept" ficam no lock para a decisão não se perder,
-    /// mas não são avaliados: as regras de conformidade valem para o que geramos.
-    /// </summary>
+    // Os mesclados e "kept" ficam no lock para a decisão não se perder, mas não são avaliados: as regras de conformidade valem para o que geramos.
     public IEnumerable<ManagedLockFile.ManagedFileEntry> OwnedFiles() => Lock?.ManagedFiles.Where(f => f.Mode != "kept") ?? [];
 }

@@ -4,11 +4,7 @@ using System.Text.Json.Nodes;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>
-/// Mescla no <c>.claude/settings.json</c> só o que a aplicação gerencia: um hook PreToolUse (reconhecido pelo
-/// caminho do script) e quatro regras de leitura negada. Todo o resto do arquivo é preservado como está.
-/// Formato conforme a documentação oficial do Claude Code (hooks e permissions).
-/// </summary>
+// Todo o resto do arquivo é preservado como está. Formato conforme a documentação oficial do Claude Code (hooks e permissions).
 public static class SettingsMerger
 {
     public const string HookMatcher = "Bash|Write|Edit|MultiEdit|NotebookEdit";
@@ -31,7 +27,6 @@ public static class SettingsMerger
         ["timeout"] = 10
     };
 
-    /// <summary>Devolve o conteúdo desejado, ou o erro quando o arquivo atual não pode ser mesclado com segurança.</summary>
     public static (string? Content, string? Error) Merge(string? current, string pythonCommand)
     {
         JsonObject root;
@@ -83,11 +78,7 @@ public static class SettingsMerger
         return (root.ToJsonString(Output) + "\n", null);
     }
 
-    /// <summary>
-    /// Tira do arquivo só o registro do hook gerenciado, quando o hook é dispensado. As regras que negam a leitura de
-    /// <c>.env</c> ficam (tirá-las abriria o acesso a segredos), e o arquivo nunca é apagado.
-    /// </summary>
-    /// <returns>O conteúdo sem o hook, ou <c>null</c> quando não há hook gerenciado ou o arquivo não pode ser lido com segurança.</returns>
+    // As regras que negam a leitura de .env ficam (tirá-las abriria o acesso a segredos), e o arquivo nunca é apagado.
     public static string? Release(string? current)
     {
         if (string.IsNullOrWhiteSpace(current)) return null;

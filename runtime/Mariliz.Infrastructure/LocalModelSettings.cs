@@ -7,26 +7,14 @@ using Mariliz.Application.Models;
 
 namespace Mariliz.Infrastructure;
 
-/// <summary>
-/// A chave do provedor de modelo, guardada no mesmo cofre das credenciais das integrações (no Windows, a DPAPI do usuário
-/// atual; no macOS, o Chaveiro; no Linux, o serviço de segredos) e não mais em texto puro.
-///
-/// Onde não há cofre (um Linux sem serviço de chaves, por exemplo), a chave continua em <c>{dataRoot}/model.json</c>, como
-/// antes: recusar guardá-la quebraria quem já usa, e a central de integrações diz o que falta no sistema. É decisão do dono do
-/// produto (2026-11-13), com as duas mitigações já feitas: o arquivo nasce legível só pelo dono (0600 no Linux e no macOS) e a
-/// tela de Configurações diz que a chave está "sem a proteção do sistema". As conexões de integração, ao contrário, recusam
-/// guardar sem cofre. Mudar isso (recusar, ou pedir confirmação na tela) é uma onda própria, com contrato, tela e testes.
-///
-/// Quem já tinha uma chave em <c>model.json</c> é migrado sozinho, na primeira leitura. O arquivo antigo só some depois de
-/// o cofre devolver exatamente a mesma chave: perder a chave não é um custo aceitável, e qualquer falha do cofre deixa o
-/// arquivo onde está e a chave continua valendo.
-/// </summary>
+// Onde não há cofre, a chave continua em {dataRoot}/model.json: decisão do dono do produto (2026-11-13), com o arquivo legível só pelo dono (0600 no Linux e no macOS) e a tela dizendo que a chave está "sem a proteção do sistema". As conexões de integração, ao contrário, recusam guardar sem cofre.
+// Na migração, o arquivo antigo só some depois de o cofre devolver exatamente a mesma chave: perder a chave não é um custo aceitável.
 public sealed class LocalModelSettings(string dataRoot, ISecretVault vault) : IModelSettings
 {
     private readonly object _gate = new();
     private readonly FileModelSettings _legacy = new(dataRoot);
 
-    /// <summary>Qual provedor é o da chave do cofre. O cofre guarda só o segredo; o nome do provedor não é segredo e fica ao lado.</summary>
+    // O cofre guarda só o segredo; o nome do provedor não é segredo e fica ao lado.
     private string ProviderPath => Path.Combine(dataRoot, "model-provider.json");
 
     public ModelStatus Status()
@@ -102,7 +90,7 @@ public sealed class LocalModelSettings(string dataRoot, ISecretVault vault) : IM
         }
     }
 
-    /// <summary>O provedor da chave que está valendo. Uma chave de antes da escolha de provedor é da OpenAI.</summary>
+    // Uma chave de antes da escolha de provedor é da OpenAI.
     private string ActiveProvider()
     {
         if (vault.Available && vault.TryRead(ReservedSecretIds.ModelKey, out var stored) && ModelKeyRules.IsValidKey(stored))
@@ -132,7 +120,7 @@ public sealed class LocalModelSettings(string dataRoot, ISecretVault vault) : IM
         File.Move(temp, ProviderPath, overwrite: true);
     }
 
-    /// <summary>Volta o arquivo do provedor ao que era; nulo apaga.</summary>
+    // Nulo apaga.
     private void RestoreProvider(string? provider)
     {
         try
@@ -157,7 +145,6 @@ public sealed class LocalModelSettings(string dataRoot, ISecretVault vault) : IM
         return _legacy.TryGetKey(out key);
     }
 
-    /// <summary>Passa a chave de <c>model.json</c> para o cofre, se houver cofre e houver arquivo.</summary>
     private void Migrate()
     {
         if (!vault.Available || !_legacy.TryGetKey(out var legacyKey)) return;

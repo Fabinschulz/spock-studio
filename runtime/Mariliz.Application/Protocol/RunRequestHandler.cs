@@ -3,7 +3,6 @@ using Mariliz.Application.Execution;
 
 namespace Mariliz.Application.Protocol;
 
-/// <summary>Traduz <c>run.*</c>: retrato, cancelamento, listagem e detalhe, válidos para execuções de qualquer jornada.</summary>
 internal sealed class RunRequestHandler(RunQueries runs)
 {
     public JsonObject Handle(string method, RequestParams p) => method switch

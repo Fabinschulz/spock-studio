@@ -5,7 +5,7 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Infrastructure;
 
-/// <summary>Lista de pastas autorizadas no diretório de dados, nunca dentro do projeto.</summary>
+// Nunca dentro do projeto.
 public sealed class FileWorkspaceRegistry(string dataRoot) : IWorkspaceRegistry
 {
     private readonly object _gate = new();

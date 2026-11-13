@@ -4,7 +4,6 @@ using Mariliz.Application.Models;
 
 namespace Mariliz.Application.Protocol;
 
-/// <summary>Traduz <c>model.status</c>, <c>model.save</c>, <c>model.clear</c> e <c>model.complete</c> para o <see cref="ModelGateway"/>.</summary>
 internal sealed class ModelRequestHandler(ModelGateway models)
 {
     public async Task<JsonObject> HandleAsync(string method, JsonObject? parameters, CancellationToken ct) => method switch
@@ -19,7 +18,6 @@ internal sealed class ModelRequestHandler(ModelGateway models)
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
     };
 
-    /// <summary>Guarda a chave só depois de o provedor aceitá-la; a resposta continua sendo o estado público de sempre.</summary>
     private async Task<JsonObject> Save(string method, JsonObject? parameters, CancellationToken ct)
     {
         await models.ConnectAsync(RequiredString(method, parameters, "provider"), RequiredString(method, parameters, "key"), ct);

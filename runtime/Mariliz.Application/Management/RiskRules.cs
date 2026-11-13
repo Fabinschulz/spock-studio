@@ -2,10 +2,7 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Application.Management;
 
-/// <summary>
-/// As regras de risco. Cada uma diz a condição em <see cref="ProjectRisk.Rule"/>, mostra os números que a dispararam e
-/// os itens envolvidos. Nada aqui é probabilidade nem opinião: é contagem sobre o que foi sincronizado.
-/// </summary>
+// Nada aqui é probabilidade nem opinião: é contagem sobre o que foi sincronizado.
 public static class RiskRules
 {
     public const int MaxItems = 10;

@@ -8,15 +8,7 @@ using Xunit.Abstractions;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// As evals de gestão com modelo real: cada pergunta do dataset <c>intelligence/evaluations/datasets/management.json</c> roda pelo
-/// workflow de investigação de verdade (runtime Python, proxy de modelo do motor e provedor real), e os resultados vão para um arquivo.
-/// Quem pontua é o pontuador Python, que não depende de quem escreveu a resposta:
-/// <code>python intelligence/evaluations/management.py score &lt;arquivo&gt;</code>
-/// Só roda se a pessoa definiu a chave do provedor no próprio terminal (<see cref="LiveFactAttribute"/>); sem ela aparece como
-/// ignorado e nada toca a rede. A chave não passa por arquivo, conversa nem relatório: o arquivo de resultados traz só texto de resposta
-/// sobre fatos sintéticos do dataset, e o teste confere que a chave não está nele. Defina <c>MARILIZ_LIVE_EVAL_OUT</c> para escolher a pasta.
-/// </summary>
+// Quem pontua é o pontuador Python, que não depende de quem escreveu a resposta: python intelligence/evaluations/management.py score <arquivo>. Só roda com a chave do provedor definida no terminal (LiveFactAttribute); a chave não passa por arquivo, conversa nem relatório, e o teste confere que ela não está no arquivo de resultados. MARILIZ_LIVE_EVAL_OUT escolhe a pasta.
 public class ManagementEvalLiveTests(ITestOutputHelper output)
 {
     private const string OpenAiKey = "MARILIZ_LIVE_OPENAI_KEY";
@@ -29,7 +21,7 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
     [LiveFact(AnthropicKey)]
     public Task Evals_de_gestao_com_a_Anthropic() => RunAsync(ModelProviders.Anthropic.Id, Env(AnthropicKey));
 
-    /// <summary>Roda o dataset pelo motor e grava os resultados. <paramref name="chat"/> troca o provedor (os testes sem rede usam um roteirizado).</summary>
+    // chat troca o provedor (os testes sem rede usam um roteirizado).
     private async Task<string> RunAsync(string provider, string key, IModelChatTransport? chat = null)
     {
         var dataset = JsonNode.Parse(File.ReadAllText(DatasetPath()))!.AsObject();
@@ -96,15 +88,13 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
         return file;
     }
 
-    // ------------------------------------------------------------------ O mesmo caminho, sem rede
-
     private sealed class NoopTransport : IModelTransport
     {
         public Task<ModelTransportResult> SendAsync(Uri endpoint, string key, string prompt, int maxTokens, CancellationToken ct) =>
             Task.FromResult(new ModelTransportResult("", 0));
     }
 
-    /// <summary>O provedor roteirizado: cada pergunta do dataset recebe, na ordem, as respostas de referência do próprio caso.</summary>
+    // Cada pergunta do dataset recebe, na ordem, as respostas de referência do próprio caso.
     private sealed class ReferenceProvider(JsonArray cases) : IModelChatTransport
     {
         private readonly Dictionary<string, Queue<string>> _replies = cases.OfType<JsonObject>().ToDictionary(
@@ -158,7 +148,7 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
 
     private static string Env(string name) => Environment.GetEnvironmentVariable(name)!.Trim();
 
-    /// <summary>O dataset mora ao lado do runtime Python: sobe a partir da pasta dos testes até achar a pasta <c>intelligence</c>.</summary>
+    // O dataset mora ao lado do runtime Python.
     private static string DatasetPath()
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
@@ -169,7 +159,7 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
         throw new FileNotFoundException("O dataset das evals de gestão não foi encontrado a partir da pasta dos testes.");
     }
 
-    /// <summary>A chave só existe na memória deste teste: nada de cofre nem de arquivo.</summary>
+    // A chave só existe na memória deste teste: nada de cofre nem de arquivo.
     private sealed class EnvSettings(string provider, string key) : IModelSettings
     {
         public ModelStatus Status() => new(true, provider);

@@ -3,7 +3,6 @@ using Mariliz.Application.Execution;
 
 namespace Mariliz.Application.Workflows;
 
-/// <summary>O registro em disco (<c>engineering.eval.record.v1</c>) e o bloco <c>evaluation</c> do resultado, a partir da opinião conferida.</summary>
 internal static class JudgmentRecord
 {
     public static JsonObject ForDisk(JournalJudgment judgment, string runId, string projectId, string executionId, DateTimeOffset at) => new()
@@ -27,7 +26,7 @@ internal static class JudgmentRecord
         ["recordedAt"] = at.ToString("O")
     };
 
-    /// <summary>O veredito segue determinístico; a opinião do juiz, quando houve, vai ao lado, nunca no lugar.</summary>
+    // O veredito segue determinístico; a opinião do juiz vai ao lado, nunca no lugar.
     public static JsonObject Evaluation(JournalJudgment? judgment)
     {
         var evaluation = new JsonObject

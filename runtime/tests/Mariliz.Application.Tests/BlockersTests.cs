@@ -5,10 +5,7 @@ using Mariliz.Application.Tests.Support;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Itens bloqueados: o rótulo "blocked" ou "bloqueado", ou o vínculo "is blocked by" do Jira com um item ainda aberto. Só conta
-/// o item aberto, e o que cada fonte permitiu ler é dito. As contas abaixo foram feitas à mão.
-/// </summary>
+// As contas abaixo foram feitas à mão.
 public class BlockersTests
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 12, 12, 0, 0, TimeSpan.Zero);
@@ -22,8 +19,6 @@ public class BlockersTests
 
     private static BlockedMetric Blocked(params WorkItem[] items) =>
         FlowCalculator.Compute(DataKinds.Issues, items, Now, 8).Blocked;
-
-    // ------------------------------------------------------------------ Cálculo
 
     [Fact]
     public void Conta_o_item_aberto_bloqueado_por_rotulo_por_vinculo_ou_pelos_dois_conferido_a_mao()
@@ -96,8 +91,6 @@ public class BlockersTests
         Assert.Contains(ManagementService.NotCalculatedYet, item => item.Id == "scopeChange");
     }
 
-    // ------------------------------------------------------------------ Risco
-
     private static ProjectRisk? Risk(params WorkItem[] items) =>
         RiskRules.Evaluate([new KeyValuePair<string, List<WorkItem>>(DataKinds.Issues, items.ToList())], Now)
             .FirstOrDefault(risk => risk.Id == "blocked");
@@ -147,8 +140,6 @@ public class BlockersTests
     {
         Assert.Contains("blocked", RiskRules.All);
     }
-
-    // ------------------------------------------------------------------ Leitura do Jira
 
     private static JsonObject Link(string typeName, string inward, string direction, string key, string category) => new()
     {

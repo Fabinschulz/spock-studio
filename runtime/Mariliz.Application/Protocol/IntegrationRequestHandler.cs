@@ -3,10 +3,7 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Application.Protocol;
 
-/// <summary>
-/// Traduz <c>connection.*</c> e <c>integration.*</c> para a <see cref="IntegrationHub"/>. A credencial entra em
-/// <c>connection.create</c> e <c>connection.rotate</c> e nunca volta: nenhuma resposta daqui a contém.
-/// </summary>
+// A credencial entra em connection.create e connection.rotate e nunca volta: nenhuma resposta daqui a contém.
 internal sealed class IntegrationRequestHandler(IntegrationHub hub)
 {
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
@@ -61,7 +58,6 @@ internal sealed class IntegrationRequestHandler(IntegrationHub hub)
 
     private JsonObject Integration(ProjectIntegration integration) => new() { ["integration"] = IntegrationJsonOf(integration) };
 
-    /// <summary>O vínculo como a interface o mostra: com o estado da conexão e o resumo do que já foi sincronizado.</summary>
     private JsonNode? IntegrationJsonOf(ProjectIntegration integration)
     {
         var connection = hub.Connections.List().FirstOrDefault(c => c.Id == integration.ConnectionId);

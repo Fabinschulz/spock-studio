@@ -6,18 +6,12 @@ using Mariliz.Application.Protocol;
 
 namespace Mariliz.Application.Management.Investigation;
 
-/// <summary>
-/// O contrato <c>ai.investigation.*</c> do lado do motor: monta o pedido que vai ao runtime de IA e lê o que volta, campo a campo.
-/// O que volta é texto de fora: cada trecho é limitado e filtrado aqui, e só depois o <see cref="InvestigationService"/> o confere
-/// contra os fatos. Funções puras; mudar o contrato mexe só neste arquivo.
-/// </summary>
+// O que volta é texto de fora: cada trecho é limitado e filtrado aqui antes de o InvestigationService conferi-lo contra os fatos.
 internal static partial class InvestigationWire
 {
     private const int MaxText = 400;
     private const int MaxRetrieved = 24;
     private static readonly string[] StepIds = ["frame", "gather", "hypothesize", "decide", "retrieve", "conclude"];
-
-    // ------------------------------------------------------------------ O pedido
 
     public static JsonObject Request(string investigationId, string executionId, string projectId, string question, EvidencePack pack) => new()
     {
@@ -53,15 +47,8 @@ internal static partial class InvestigationWire
         }).ToArray())
     };
 
-    /// <summary>O fato cabe no contrato: id no formato aceito, grupo e texto não vazios.</summary>
     public static bool Sendable(EvidenceFact fact) => FactId().IsMatch(fact.Id) && fact.Group.Length > 0 && fact.Text.Length > 0;
 
-    // ------------------------------------------------------------------ O ack
-
-    /// <summary>
-    /// Confere o envelope do ack e devolve a resposta bruta. Falha com o erro de protocolo (<c>AI_RUNTIME_INVALID_RESPONSE</c>) quando
-    /// o ack não é o desta investigação, ou com o desfecho que o runtime informou (<c>rejected</c>, <c>failed</c>).
-    /// </summary>
     public static JsonObject ReadAnswer(JsonObject ack, string investigationId)
     {
         if (ack["schema"]?.GetValue<string>() != "ai.investigation.ack.v1" || ack.Text("investigationId") != investigationId)
@@ -101,7 +88,6 @@ internal static partial class InvestigationWire
         return facts;
     }
 
-    /// <summary>O caminho percorrido: só etapas conhecidas, e dos fatos só os ids que existem.</summary>
     public static List<InvestigationStep> Path(JsonNode? node, HashSet<string> known)
     {
         var steps = new List<InvestigationStep>();

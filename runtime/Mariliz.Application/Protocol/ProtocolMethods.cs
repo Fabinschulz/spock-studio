@@ -75,27 +75,21 @@ public static class ProtocolMethods
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
 
-    /// <summary>Consulta e cancelamento valem para execuções de qualquer jornada.</summary>
     public static readonly IReadOnlyList<string> RunControl = [Snapshot, Cancel, RunList, RunDetail, RunLink, RunUnlink, RunLinked];
 
     public static readonly IReadOnlyList<string> Workflow = [WorkflowStart, WorkflowResume];
 
     public static readonly IReadOnlyList<string> Model = [ModelStatus, ModelSave, ModelClear, ModelComplete, ModelConnection, ModelTest, ModelPurpose];
 
-    /// <summary>Central de integrações: conexões (<c>connection.*</c>) e o vínculo delas com um projeto (<c>integration.*</c>).</summary>
     public static readonly IReadOnlyList<string> Integrations =
     [
         IntegrationCatalog, ConnectionList, ConnectionCreate, ConnectionTest, ConnectionRotate, ConnectionDisconnect, ConnectionRemove, ConnectionReach,
         IntegrationList, IntegrationLink, IntegrationConfigure, IntegrationUnlink, IntegrationSync, IntegrationHistory
     ];
 
-    /// <summary>Visão gerencial: só leitura do que já foi sincronizado.</summary>
     public static readonly IReadOnlyList<string> Management = [ManagementPortfolio, ManagementMetrics, ManagementForecast, ManagementRisks, ManagementRiskHistory, ManagementMilestones, ManagementReport, ManagementEvidence, ManagementAsk, ManagementInvestigate, ManagementPortfolioEvidence, ManagementPortfolioAsk];
 
-    /// <summary>
-    /// Os pedidos que esperam rede ou modelo (até dezenas de segundos). O laço da sessão os despacha sem esperar por eles: enquanto
-    /// um roda, o motor segue respondendo e consegue cancelar uma execução, aprovar ou encerrar. Os demais são curtos e seguem em ordem.
-    /// </summary>
+    // O laço da sessão despacha estes pedidos sem esperar por eles: enquanto um roda, o motor segue respondendo e consegue cancelar, aprovar ou encerrar.
     public static readonly IReadOnlySet<string> Slow = new HashSet<string>(StringComparer.Ordinal)
     {
         ModelSave, ModelComplete, ModelTest,
@@ -103,15 +97,11 @@ public static class ProtocolMethods
         ManagementAsk, ManagementInvestigate, ManagementPortfolioAsk
     };
 
-    /// <summary>Decisões gerenciais: registrar com os fatos do momento, listar e abrir. Sem editar nem apagar.</summary>
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
 
-    /// <summary>A linha do tempo do projeto: só leitura, junta o que cada área já guarda.</summary>
     public static readonly IReadOnlyList<string> Timeline = [TimelineRead];
 
-    /// <summary>A trilha de auditoria do projeto: só leitura, junta o arquivo de auditoria e o diário das execuções.</summary>
     public static readonly IReadOnlyList<string> Audit = [AuditRead];
 
-    /// <summary>Ambiente de Engenharia: perfil tecnológico, conhecimento, estado e revisões do Harness do projeto.</summary>
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }

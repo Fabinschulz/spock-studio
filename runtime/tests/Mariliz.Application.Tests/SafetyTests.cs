@@ -157,8 +157,6 @@ public class SafetyTests
         return plans.Find(plan.PlanId)!.Composed;
     }
 
-    // ------------------------------------------------------------------ Evals: aprovado, reprovado, bloqueado
-
     private static async Task<(TempProject, Journey)> Applied()
     {
         var project = TempProject.Dotnet();
@@ -236,8 +234,6 @@ public class SafetyTests
 
         Assert.Equal("failed", Journey.Status(result, "EV-REF-001"));
     }
-
-    // ------------------------------------------------------------------ Segredos
 
     private const string Secret = "ghp_1234567890abcdefghijklmnopqrstuvwxyz12";
 

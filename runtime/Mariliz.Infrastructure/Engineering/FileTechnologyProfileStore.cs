@@ -7,10 +7,7 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Infrastructure.Engineering;
 
-/// <summary>
-/// Um arquivo por projeto em <c>{dataRoot}/profiles/{projectId}.json</c>. O id vira nome de arquivo, então só passa o
-/// que tem a forma gerada pelo motor. Arquivo ilegível conta como perfil ainda não criado.
-/// </summary>
+// O id vira nome de arquivo, então só passa o que tem a forma gerada pelo motor. Arquivo ilegível conta como perfil ainda não criado.
 public sealed class FileTechnologyProfileStore(string dataRoot) : ITechnologyProfileStore
 {
     private readonly object _gate = new();

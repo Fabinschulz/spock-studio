@@ -16,11 +16,7 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// A linha do tempo do projeto é uma projeção: junta o que cada área já guarda e não grava nada. Os testes montam um projeto com
-/// um acontecimento de cada fonte, em dias diferentes, e conferem ordem, filtro, página, fonte que falha, o que nunca aparece
-/// no texto e o que o protocolo aceita.
-/// </summary>
+// Um acontecimento de cada fonte, em dias diferentes.
 public class ProjectTimelineTests
 {
     private static readonly DateTimeOffset Day1 = new(2026, 11, 1, 12, 0, 0, TimeSpan.Zero);
@@ -66,7 +62,6 @@ public class ProjectTimelineTests
 
     private static JournalOp Op(string path, string op) => new() { Path = path, Op = op, Status = OpStatus.Applied };
 
-    /// <summary>Um acontecimento de cada fonte, cada um num dia.</summary>
     private static async Task<World> Populated()
     {
         var w = new World();
@@ -119,8 +114,6 @@ public class ProjectTimelineTests
     }
 
     private static IReadOnlyList<TimelineEvent> Events(ProjectTimeline timeline, string kind) => timeline.Events.Where(item => item.Kind == kind).ToList();
-
-    // ------------------------------------------------------------------ Juntar e ordenar
 
     [Fact]
     public async Task Cada_fonte_traz_os_seus_acontecimentos_do_mais_novo_ao_mais_antigo()
@@ -233,8 +226,6 @@ public class ProjectTimelineTests
         Assert.Equal("ok", sync.Level);
     }
 
-    // ------------------------------------------------------------------ Filtro e página
-
     [Fact]
     public async Task O_filtro_por_tipo_mostra_so_aquele_tipo_mas_a_contagem_das_fontes_continua_inteira()
     {
@@ -304,8 +295,6 @@ public class ProjectTimelineTests
         Assert.True(service.Read(w.H.ProjectId, [], 10_000, null).Events.Count <= ProjectTimelineService.MaxLimit);
     }
 
-    // ------------------------------------------------------------------ Fontes que faltam ou falham
-
     private sealed class BrokenDecisions : IDecisionStore
     {
         public IReadOnlyList<ManagementDecision> List(string projectId) => throw new EngineException("DECISION_STORE_BROKEN", "disco com defeito: C:\\segredo\\caminho");
@@ -336,8 +325,6 @@ public class ProjectTimelineTests
         Assert.DoesNotContain(timeline.Sources, source => source.Kind is "harness" or "sync" or "risk");
         Assert.Contains(Events(timeline, "run"), item => item.RefId == "ex-000000000001");
     }
-
-    // ------------------------------------------------------------------ Isolamento e leitura
 
     [Fact]
     public async Task Projeto_nao_autorizado_e_recusado_e_o_de_outro_projeto_nao_aparece()
@@ -378,8 +365,6 @@ public class ProjectTimelineTests
         Assert.DoesNotContain("\u2014", text);
         Assert.DoesNotContain(FakeGitHub.Token, text);
     }
-
-    // ------------------------------------------------------------------ Protocolo e contrato
 
     private static JsonObject Call(EngineSession session, JsonObject parameters) =>
         session.Handle(new JsonObject { ["v"] = 1, ["kind"] = "request", ["id"] = "t", ["method"] = "timeline.read", ["params"] = parameters }.ToJsonString()).Response;

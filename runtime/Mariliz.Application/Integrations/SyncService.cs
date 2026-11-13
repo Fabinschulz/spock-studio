@@ -5,10 +5,7 @@ using Mariliz.Application.Ports;
 
 namespace Mariliz.Application.Integrations;
 
-/// <summary>
-/// Sincroniza o recorte de uma integração, em segundo plano. Só roda quando a pessoa pede: não há sondagem automática.
-/// Cada página gravada avança o ponto de retomada, então uma falha no meio não perde o que já chegou nem repete o trabalho.
-/// </summary>
+// Só roda quando a pessoa pede: não há sondagem automática. Cada página gravada avança o ponto de retomada, então uma falha no meio não perde o que já chegou nem repete o trabalho.
 public sealed class SyncService(
     ProjectIntegrationService integrations,
     ConnectionService connections,
@@ -19,24 +16,20 @@ public sealed class SyncService(
     IAuditLog audit,
     Action<string, int, string, JsonObject, DateTimeOffset>? emit = null)
 {
-    /// <summary>
-    /// Avisa, no fim de cada sincronização, qual integração e como terminou. Quem ouve (por exemplo, o registro de risco) roda na
-    /// mesma linha da sincronização, depois de tudo gravado, e uma falha dele nunca desfaz nem atrapalha a sincronização.
-    /// </summary>
+    // Quem ouve roda na mesma linha da sincronização, depois de tudo gravado, e uma falha dele nunca desfaz nem atrapalha a sincronização.
     public event Action<ProjectIntegration, SyncExecution>? Finished;
 
-    /// <summary>Os eventos de uma sincronização. O <c>runId</c> do evento é o id da sincronização.</summary>
+    // O runId do evento é o id da sincronização.
     public const string StartedEvent = "sync.started";
     public const string ProgressEvent = "sync.progress";
     public const string FinishedEvent = "sync.finished";
 
-    /// <summary>Teto de páginas por execução: limita as chamadas que um pedido pode disparar no provedor.</summary>
+    // Limita as chamadas que um pedido pode disparar no provedor.
     public const int MaxPages = 50;
 
     private readonly CancellationTokenSource _shutdown = new();
     private readonly ConcurrentDictionary<string, Task> _tasks = new(StringComparer.Ordinal);
 
-    /// <summary>Começa uma sincronização e devolve na hora. Se já há uma em andamento na integração, devolve essa.</summary>
     public SyncExecution Start(string projectId, string integrationId)
     {
         var integration = integrations.Require(projectId, integrationId);
@@ -50,7 +43,7 @@ public sealed class SyncService(
         return execution;
     }
 
-    /// <summary>A mesma sincronização, até o fim. É o que os testes usam para não depender de tempo.</summary>
+    // Para os testes não dependerem de tempo.
     internal async Task<SyncExecution> RunToEndAsync(string projectId, string integrationId, CancellationToken ct)
     {
         var integration = integrations.Require(projectId, integrationId);
@@ -72,7 +65,6 @@ public sealed class SyncService(
         catch (Exception ex) when (ex is TimeoutException or OperationCanceledException) { }
     }
 
-    /// <summary>Reserva a integração para uma execução nova; se outra já a reservou, devolve a que está em andamento.</summary>
     private (SyncExecution Execution, bool Started) Begin(ProjectIntegration integration)
     {
         var synced = Reconciled(integration);
@@ -163,10 +155,7 @@ public sealed class SyncService(
         return execution;
     }
 
-    /// <summary>
-    /// O que vem depois de a sincronização estar gravada: o resumo na conexão, a trilha e quem ouve o fim. Uma falha aqui (um arquivo
-    /// travado, por exemplo) não desfaz a sincronização e não pode calar o aviso de fim: sem ele a interface espera para sempre.
-    /// </summary>
+    // Uma falha aqui (um arquivo travado, por exemplo) não desfaz a sincronização e não pode calar o aviso de fim: sem ele a interface espera para sempre.
     private void FinishBookkeeping(ProjectIntegration integration, SyncExecution execution)
     {
         try
@@ -198,10 +187,7 @@ public sealed class SyncService(
         }
     }
 
-    /// <summary>
-    /// Avisa quem acompanha, sem esperar que perguntem. Só contagens e estado: nenhum item, título ou credencial sai por aqui.
-    /// Um aviso que falha (a saída do motor fechou, por exemplo) nunca derruba a sincronização que ele descreve.
-    /// </summary>
+    // Só contagens e estado: nenhum item, título ou credencial sai por aqui. Um aviso que falha (a saída do motor fechou, por exemplo) nunca derruba a sincronização.
     private void Publish(ProjectIntegration integration, SyncExecution execution, string type, int seq)
     {
         if (emit is null) return;
@@ -227,7 +213,7 @@ public sealed class SyncService(
         }
     }
 
-    /// <summary>Grava uma página. O que o conector devolver fora do recorte é descartado aqui também: o recorte não depende do conector.</summary>
+    // O que o conector devolver fora do recorte é descartado aqui também: o recorte não depende do conector.
     private SyncExecution Apply(DataScope scope, SyncPage page, SyncedData synced, SyncExecution execution)
     {
         var now = clock.UtcNow;
@@ -255,10 +241,7 @@ public sealed class SyncService(
         return execution;
     }
 
-    /// <summary>
-    /// Uma execução que ficou "em andamento" sem ninguém a rodando foi cortada por uma queda do motor: vira falha, e o ponto
-    /// de retomada já gravado continua valendo para a próxima.
-    /// </summary>
+    // Uma execução "em andamento" sem ninguém a rodando foi cortada por uma queda do motor: vira falha, e o ponto de retomada já gravado continua valendo.
     private SyncedData Reconciled(ProjectIntegration integration)
     {
         // Quem está rodando é perguntado ANTES de ler o arquivo: se a sincronização terminar no meio, o arquivo já traz o desfecho dela.

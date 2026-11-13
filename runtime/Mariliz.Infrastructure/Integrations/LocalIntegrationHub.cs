@@ -4,7 +4,7 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Infrastructure.Integrations;
 
-/// <summary>A central de integrações sobre o disco local e a rede real. Os conectores desta versão são registrados aqui.</summary>
+// Os conectores desta versão são registrados aqui.
 public static class LocalIntegrationHub
 {
     public static IntegrationHub Create(
@@ -18,6 +18,5 @@ public static class LocalIntegrationHub
             new FileAuditLog(dataRoot, clock), emit);
     }
 
-    /// <summary>O cofre do sistema em que o motor está rodando: DPAPI no Windows, Chaveiro no macOS, serviço de segredos no Linux.</summary>
     public static ISecretVault SecretVault(string dataRoot) => SecretVaults.For(SecretVaults.CurrentPlatform(), dataRoot, new SystemProcessRunner());
 }

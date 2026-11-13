@@ -9,7 +9,6 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>O motor decide se a execução usa modelo: só quando pedido, só com modelo configurado, e o uso fica no resultado.</summary>
 public class WorkflowModelTests
 {
     private sealed class FakeAccess(bool configured = true) : IModelAccess

@@ -6,10 +6,7 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Visão gerencial: indicadores de fluxo e portfólio. Os itens são gravados direto nos dados sincronizados, com datas
-/// relativas ao relógio do teste, para que cada número esperado possa ser conferido à mão.
-/// </summary>
+// Datas relativas ao relógio do teste, para que cada número esperado possa ser conferido à mão.
 public class ManagementTests
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 10, 12, 0, 0, TimeSpan.Zero);
@@ -39,8 +36,6 @@ public class ManagementTests
         store.Write(h.ProjectId, integration.Id, data);
         return integration;
     }
-
-    // ------------------------------------------------------------------ Cálculo
 
     [Fact]
     public void Throughput_conta_entregas_por_janela_de_7_dias_terminando_agora()
@@ -129,8 +124,6 @@ public class ManagementTests
         Assert.Empty(flow.Throughput.Weeks);
     }
 
-    // ------------------------------------------------------------------ Indicadores do projeto
-
     [Fact]
     public async Task Indicadores_separam_os_tipos_marcam_fonte_incompleta_e_se_repetem_com_os_mesmos_dados()
     {
@@ -173,8 +166,6 @@ public class ManagementTests
         await Task.CompletedTask;
     }
 
-    // ------------------------------------------------------------------ Portfólio
-
     [Fact]
     public async Task Portfolio_lista_cada_projeto_so_com_os_proprios_dados_e_aponta_o_que_pede_atencao()
     {
@@ -215,8 +206,6 @@ public class ManagementTests
         Assert.Equal("Dados lidos há 10 dias.", mine.Signals[1].Message);
         Assert.Equal("1 item aberto com prazo vencido.", mine.Signals[2].Message);
     }
-
-    // ------------------------------------------------------------------ Contrato com a interface
 
     [Fact]
     public async Task Respostas_da_gestao_conferem_com_as_fixtures_do_contrato()

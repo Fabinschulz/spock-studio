@@ -3,10 +3,7 @@ using Mariliz.Application.Protocol;
 
 namespace Mariliz.Application.Workflows;
 
-/// <summary>
-/// Porta de entrada dos <c>ai.event.v1</c> de uma execução: só passa o que é desta execução, uma vez e em ordem.
-/// Um evento repetido (mesmo <c>eventId</c>) ou atrasado (<c>localSeq</c> que já passou) é descartado.
-/// </summary>
+// Evento repetido (mesmo eventId) ou atrasado (localSeq que já passou) é descartado.
 internal sealed class AiEventFilter(string executionId)
 {
     private readonly HashSet<string> _seen = new(StringComparer.Ordinal);

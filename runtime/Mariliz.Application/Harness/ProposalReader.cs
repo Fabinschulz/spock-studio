@@ -6,10 +6,7 @@ using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>
-/// Lê <c>.mariliz/proposal.json</c>, escrito pelo agente Harness Engineer, e o trata como dado não confiável:
-/// só passa o que cabe no schema. Permissões, hooks, comandos e MCPs não têm lugar na proposta.
-/// </summary>
+// Escrito por agente: dado não confiável, só passa o que cabe no schema. Permissões, hooks, comandos e MCPs não têm lugar na proposta.
 public static class ProposalReader
 {
     private static readonly string[] ForbiddenKeys = ["hooks", "permissions", "commands", "command", "mcpServers", "mcp", "tools", "install", "settings"];

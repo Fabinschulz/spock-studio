@@ -11,10 +11,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests.Support;
 
-/// <summary>
-/// Arquivos reais do projeto, mas com o "package.json mais próximo acima da raiz" sob controle do teste. Sem isso, o resultado
-/// dependeria de haver (ou não) um package.json em alguma pasta acima da pasta temporária do computador que roda os testes.
-/// </summary>
+// Sem controlar o package.json acima da raiz, o resultado dependeria do computador que roda os testes.
 internal sealed class TestFiles(IProjectFiles inner, string? ancestorWithPackageJson) : IProjectFiles
 {
     public string RootName => inner.RootName;
@@ -34,7 +31,7 @@ internal sealed class TestFilesFactory(string? ancestorWithPackageJson = null) :
     public IProjectFiles Open(string authorizedRoot) => new TestFiles(new LocalProjectFiles(authorizedRoot), ancestorWithPackageJson);
 }
 
-/// <summary>Projeto sintético em pasta temporária. Nada aqui é cópia de projeto de cliente.</summary>
+// Nada aqui é cópia de projeto de cliente.
 internal sealed class TempProject : IDisposable
 {
     public string Root { get; } = Directory.CreateTempSubdirectory("mariliz-proj-").FullName;
@@ -58,7 +55,6 @@ internal sealed class TempProject : IDisposable
 
     public string? Hash(string relative) => Read(relative) is { } t ? Hashing.Sha256(t.Replace("\r\n", "\n")) : null;
 
-    /// <summary>Hash de todos os arquivos do projeto, para provar que nada mudou.</summary>
     public string Fingerprint()
     {
         var sb = new StringBuilder();
@@ -108,10 +104,10 @@ internal sealed class TempProject : IDisposable
     }
 }
 
-/// <summary>Skill estrutura de especificação sintética (instalador simulado): mesmos nomes de arquivo e hash que o instalador real calcula.</summary>
+// Mesmos nomes de arquivo e hash que o instalador real calcula.
 internal static class SpecificationFixture
 {
-    /// <summary>Arquivos que a 4.0.0 real removeu em relação à 3.3.0 e os que ela acrescentou (observado na instalação oficial).</summary>
+    // Observado na instalação oficial.
     private static readonly string[] RemovedIn4 = ["references/code-analysis.md", "references/context-limits.md", "scripts/validate_state.py"];
 
     public static void Install(TempProject project, string version = "4.0.0")
@@ -147,7 +143,7 @@ internal static class SpecificationFixture
     }
 }
 
-/// <summary>Executa processos reais, exceto os interceptados. O instalador (npx) é sempre um dublê de teste.</summary>
+// O instalador (npx) é sempre um dublê de teste.
 internal sealed class InterceptingRunner(Func<ProcessSpec, CancellationToken, Task<ProcessResult?>>? intercept = null) : IProcessRunner
 {
     private readonly SystemProcessRunner _real = new();
@@ -162,7 +158,6 @@ internal sealed class InterceptingRunner(Func<ProcessSpec, CancellationToken, Ta
     }
 }
 
-/// <summary>Toda a aplicação ligada para um projeto, como o motor faz.</summary>
 internal sealed class Journey
 {
     public ConfigureProjectService Service { get; }

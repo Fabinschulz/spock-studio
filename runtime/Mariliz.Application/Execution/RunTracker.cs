@@ -3,10 +3,7 @@ using System.Text.Json.Nodes;
 
 namespace Mariliz.Application.Execution;
 
-/// <summary>
-/// Execuções do processo. As terminadas ficam em memória para o retrato e a interface; além de
-/// <see cref="RetainedFinished"/>, as mais antigas saem (o diário e os eventos continuam em disco).
-/// </summary>
+// O diário e os eventos das execuções descartadas da memória continuam em disco.
 public sealed class RunTracker
 {
     internal const int RetainedFinished = 100;
@@ -24,7 +21,7 @@ public sealed class RunTracker
         _clock = clock;
     }
 
-    /// <summary>Uma execução por projeto de cada vez: evita escritas concorrentes na mesma pasta.</summary>
+    // Evita escritas concorrentes na mesma pasta.
     public bool TryStart(string projectId, string kind, out RunHandle? handle)
     {
         lock (_gate)
@@ -46,7 +43,6 @@ public sealed class RunTracker
         lock (_gate) return _runs.GetValueOrDefault(runId);
     }
 
-    /// <summary>Religa uma execução que só existe no diário, com o mesmo id, depois que o processo caiu.</summary>
     public RunHandle? TryRehydrate(string runId, string projectId, string kind)
     {
         lock (_gate)
@@ -68,7 +64,6 @@ public sealed class RunTracker
         return true;
     }
 
-    /// <summary>Ao encerrar, pede o cancelamento de tudo o que está rodando e espera o desfazer terminar.</summary>
     public async Task CancelAllAndWaitAsync(TimeSpan timeout)
     {
         List<RunHandle> running;
@@ -87,7 +82,6 @@ public sealed class RunTracker
         Prune();
     }
 
-    /// <summary>Descarta as terminadas mais antigas além do limite; uma execução em andamento nunca sai.</summary>
     private void Prune()
     {
         var finished = _runs.Values.Count(run => RunStates.IsTerminal(run.State));

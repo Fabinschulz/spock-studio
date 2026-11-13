@@ -1,6 +1,5 @@
 namespace Mariliz.Core.Discovery;
 
-/// <summary>O que o projeto já tem de agentes, skills, hooks, regras, MCPs e evals.</summary>
 public sealed record HarnessInventory(
     IReadOnlyList<InventoryItem> Agents,
     IReadOnlyList<InventoryItem> Skills,

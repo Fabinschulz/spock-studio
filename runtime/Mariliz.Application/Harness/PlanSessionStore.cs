@@ -2,11 +2,7 @@ using Mariliz.Application.Execution;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>
-/// Guarda os últimos planos gerados para que a aplicação use exatamente o plano que a pessoa revisou. Ao passar da
-/// capacidade, sai o plano gerado há mais tempo: a ordem é explícita (o <c>Dictionary</c> reaproveita posições liberadas
-/// e não garante a ordem de inserção).
-/// </summary>
+// A aplicação usa exatamente o plano que a pessoa revisou. A ordem de saída é explícita: o Dictionary reaproveita posições liberadas e não garante a ordem de inserção.
 internal sealed class PlanSessionStore
 {
     private const int Capacity = 20;

@@ -2,18 +2,11 @@ using System.Globalization;
 
 namespace Mariliz.Application.Management;
 
-/// <summary>Um risco como estava num registro: só identificador, título, gravidade e os itens citados (identificadores).</summary>
 public sealed record RiskSnapshotEntry(string Id, string Title, string Severity, IReadOnlyList<string> Items);
 
-/// <summary>
-/// O que as regras de risco achavam do projeto num instante. Só entra um registro novo quando algo mudou; se nada mudou,
-/// só <see cref="CheckedAt"/> avança. Sem título de item nem conteúdo do provedor: só identificadores.
-/// </summary>
-/// <param name="At">Quando este estado foi visto pela primeira vez.</param>
-/// <param name="CheckedAt">A última vez em que ele foi confirmado.</param>
+// Só entra um registro novo quando algo mudou; se nada mudou, só CheckedAt avança. Sem título de item nem conteúdo do provedor.
 public sealed record RiskSnapshot(DateTimeOffset At, DateTimeOffset CheckedAt, IReadOnlyList<RiskSnapshotEntry> Risks);
 
-/// <summary>Onde os registros de risco de um projeto ficam. Um arquivo por projeto: registros de projetos diferentes não se misturam.</summary>
 public interface IRiskHistoryStore
 {
     IReadOnlyList<RiskSnapshot> Load(string projectId);
@@ -32,13 +25,9 @@ public static class RiskChangeKinds
     public const string Resolved = "resolved";
 }
 
-/// <param name="Kind">Um de <see cref="RiskChangeKinds"/>.</param>
-/// <param name="From">A gravidade antes, quando mudou.</param>
-/// <param name="To">A gravidade depois, quando há risco.</param>
 public sealed record RiskChange(
     DateTimeOffset At, string Kind, string? From, string? To, IReadOnlyList<string> ItemsAdded, IReadOnlyList<string> ItemsRemoved);
 
-/// <summary>A trajetória de um risco: quando apareceu, como mudou e se já foi resolvido. Do mais antigo ao mais recente.</summary>
 public sealed record RiskTrail(
     string Id,
     string Title,
@@ -48,9 +37,6 @@ public sealed record RiskTrail(
     DateTimeOffset? ResolvedAt,
     IReadOnlyList<RiskChange> Changes);
 
-/// <param name="Since">Quando o primeiro registro foi feito; antes disso não há histórico, só o que as regras dizem hoje.</param>
-/// <param name="Snapshots">Quantos registros existem.</param>
-/// <param name="LastCheckedAt">A última vez que o estado foi conferido e registrado.</param>
 public sealed record ProjectRiskHistory(
     string ProjectId,
     DateTimeOffset GeneratedAt,
@@ -61,7 +47,6 @@ public sealed record ProjectRiskHistory(
     int Omitted,
     string Basis);
 
-/// <summary>Monta os registros e as trajetórias. Funções puras: os mesmos registros dão sempre a mesma resposta.</summary>
 public static class RiskHistoryBuilder
 {
     public const int MaxSnapshots = 200;
@@ -79,23 +64,17 @@ public static class RiskHistoryBuilder
     /// </summary>
     private static int Rank(string severity) => Ranks.GetValueOrDefault(severity, -1);
 
-    /// <summary>O estado atual das regras como um registro, para comparar com o último e guardar.</summary>
     public static IReadOnlyList<RiskSnapshotEntry> Entries(IEnumerable<ProjectRisk> risks) =>
         risks.OrderBy(risk => risk.Id, StringComparer.Ordinal)
             .Select(risk => new RiskSnapshotEntry(risk.Id, risk.Title, risk.Severity.ToString().ToLowerInvariant(),
                 risk.Items.Select(item => item.ExternalId).Order(StringComparer.Ordinal).ToList()))
             .ToList();
 
-    /// <summary>Mesmos riscos, mesmas gravidades e mesmos itens.</summary>
     public static bool Same(IReadOnlyList<RiskSnapshotEntry> a, IReadOnlyList<RiskSnapshotEntry> b) =>
         a.Count == b.Count && a.Zip(b).All(pair =>
             pair.First.Id == pair.Second.Id && pair.First.Severity == pair.Second.Severity
             && pair.First.Items.SequenceEqual(pair.Second.Items, StringComparer.Ordinal));
 
-    /// <summary>
-    /// Acrescenta o estado atual: igual ao último, só confirma; diferente, vira um registro novo. Mantém os
-    /// <see cref="MaxSnapshots"/> mais recentes.
-    /// </summary>
     public static List<RiskSnapshot> Append(IReadOnlyList<RiskSnapshot> snapshots, IReadOnlyList<RiskSnapshotEntry> current, DateTimeOffset now)
     {
         var list = snapshots.ToList();

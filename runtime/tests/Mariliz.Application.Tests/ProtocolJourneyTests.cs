@@ -10,7 +10,6 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>A mesma jornada que a interface faz, mas por mensagens do protocolo, com os eventos de progresso.</summary>
 public class ProtocolJourneyTests
 {
     private sealed class QueueReader : TextReader
@@ -26,11 +25,7 @@ public class ProtocolJourneyTests
         public QueueReader Input { get; } = new();
         private readonly StringWriter _written = new() { NewLine = "\n" };
 
-        /// <summary>
-        /// O motor escreve de outras threads enquanto o teste lê. O invólucro sincronizado trava a si mesmo em cada escrita, e
-        /// <see cref="Messages"/> trava o mesmo objeto para ler: sem isso, o <c>ToString</c> do <c>StringBuilder</c> podia
-        /// pegar um bloco em meio a uma escrita (<c>ArgumentOutOfRangeException</c> intermitente na CI).
-        /// </summary>
+        // O motor escreve de outras threads enquanto o teste lê: sem travar o mesmo objeto na leitura, o ToString do StringBuilder podia pegar um bloco em meio a uma escrita (ArgumentOutOfRangeException intermitente na CI).
         public TextWriter Output { get; }
 
         public Wire() => Output = TextWriter.Synchronized(_written);

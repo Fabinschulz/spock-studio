@@ -11,10 +11,6 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// O provedor de modelo como uma conexão: a chave só é guardada depois de o provedor aceitá-la, pode ser conferida a qualquer
-/// momento, e o estado diz se funciona e onde ela está guardada. Nada disso mostra a chave.
-/// </summary>
 public class ModelConnectionTests
 {
     private const string Key = "sk-test-chave-fase-f-7c2d41";
@@ -27,7 +23,7 @@ public class ModelConnectionTests
         public string SeenPrompt { get; private set; } = "";
         public int SeenMaxTokens { get; private set; }
 
-        /// <summary>O que o provedor faz com cada chamada. Padrão: aceita.</summary>
+        // Padrão: aceita.
         public Func<string, CancellationToken, Task>? Behavior { get; set; }
 
         public async Task<ModelTransportResult> SendAsync(Uri endpoint, string key, string prompt, int maxTokens, CancellationToken ct)
@@ -59,7 +55,7 @@ public class ModelConnectionTests
             Gateway = New(timeout);
         }
 
-        /// <summary>Um motor novo sobre o mesmo diretório de dados, como depois de reiniciar o aplicativo.</summary>
+        // Como depois de reiniciar o aplicativo.
         public ModelGateway New(TimeSpan? timeout = null) =>
             new(new FileModelSettings(DataDir), Transport, timeout, checks: new FileModelCheckStore(DataDir), clock: Clock);
 
@@ -67,8 +63,6 @@ public class ModelConnectionTests
     }
 
     private static string Serialized(ModelConnection connection) => JsonSerializer.Serialize(connection, IntegrationJson.Options);
-
-    // ------------------------------------------------------------------ Sem chave
 
     [Fact]
     public async Task Sem_chave_a_conexao_diz_que_nao_ha_nada_e_testar_nao_inventa_estado()
@@ -84,8 +78,6 @@ public class ModelConnectionTests
         Assert.Equal("MODEL_NOT_CONFIGURED", error.Code);
         Assert.Equal(0, s.Transport.Calls);
     }
-
-    // ------------------------------------------------------------------ Conectar
 
     [Fact]
     public async Task Conectar_confere_com_o_provedor_antes_de_guardar_e_depois_diz_que_funciona()
@@ -188,8 +180,6 @@ public class ModelConnectionTests
         Assert.False(File.Exists(Path.Combine(s.DataDir, "model.json")));
     }
 
-    // ------------------------------------------------------------------ Testar
-
     [Fact]
     public async Task Testar_registra_a_recusa_na_conexao_sem_lancar_e_uma_conferencia_boa_limpa_o_erro()
     {
@@ -240,8 +230,6 @@ public class ModelConnectionTests
 
         Assert.Equal(("error", "MODEL_TIMEOUT"), (connection.Status, connection.LastError!.Code));
     }
-
-    // ------------------------------------------------------------------ Estado
 
     [Fact]
     public async Task Chave_que_ja_existia_aparece_como_nunca_conferida_ate_ser_testada()
@@ -295,8 +283,6 @@ public class ModelConnectionTests
         Assert.DoesNotContain(Key, File.ReadAllText(Path.Combine(s.DataDir, "model-check.json")));
     }
 
-    // ------------------------------------------------------------------ Onde a chave está
-
     [Fact]
     public void Com_cofre_a_chave_diz_que_esta_no_cofre_e_sem_cofre_diz_que_esta_em_arquivo()
     {
@@ -314,8 +300,6 @@ public class ModelConnectionTests
         new FileModelSettings(project.DataDir).Save("openai", Key);
         Assert.Equal(ModelKeyProtection.File, local.Protection());
     }
-
-    // ------------------------------------------------------------------ O transporte
 
     private sealed class StatusHandler(HttpStatusCode status, string body) : HttpMessageHandler
     {
@@ -340,8 +324,6 @@ public class ModelConnectionTests
         Assert.Equal((code, code), (simple.Code, chat.Code));
         Assert.DoesNotContain(Key, simple.Message + chat.Message);
     }
-
-    // ------------------------------------------------------------------ Protocolo e contrato
 
     private static JsonObject Call(EngineSession session, string method, JsonObject? parameters = null) =>
         session.Handle(new JsonObject { ["v"] = 1, ["kind"] = "request", ["id"] = "t", ["method"] = method, ["params"] = parameters ?? new JsonObject() }.ToJsonString()).Response;

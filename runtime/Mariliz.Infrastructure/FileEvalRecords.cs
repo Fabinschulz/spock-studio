@@ -3,7 +3,7 @@ using Mariliz.Application.Ports;
 
 namespace Mariliz.Infrastructure;
 
-/// <summary>Um arquivo por execução em <c>&lt;dados&gt;/projects/&lt;id&gt;/evals/&lt;executionId&gt;.json</c>, fora do repositório do projeto.</summary>
+// Fora do repositório do projeto.
 public sealed class FileEvalRecords(string dataRoot) : IEvalRecords
 {
     public void Save(string projectId, string executionId, JsonObject record)

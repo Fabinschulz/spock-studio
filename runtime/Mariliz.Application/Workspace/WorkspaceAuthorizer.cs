@@ -3,11 +3,7 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Workspace;
 
-/// <summary>
-/// Registra as pastas que o usuário escolheu no diálogo nativo. É a única origem de caminhos
-/// que o motor aceita; qualquer outro caminho fica fora da lista autorizada.
-/// Se houver um registro, a autorização sobrevive ao reinício do processo e continua fora da interface.
-/// </summary>
+// O diálogo nativo é a única origem de caminhos que o motor aceita.
 public sealed class WorkspaceAuthorizer
 {
     private readonly IWorkspaceFileSystem _fileSystem;
@@ -51,7 +47,7 @@ public sealed class WorkspaceAuthorizer
 
     public bool IsAuthorized(string projectId) => _authorized.ContainsKey(projectId);
 
-    /// <summary>Os projetos autorizados, com nome e caminho abreviado. O caminho completo continua só no motor.</summary>
+    // O caminho completo continua só no motor.
     public IReadOnlyList<AuthorizedProject> Projects() =>
         _authorized
             .Select(pair => new AuthorizedProject(pair.Key, Path.GetFileName(pair.Value), Abbreviate(pair.Value)))
@@ -59,7 +55,7 @@ public sealed class WorkspaceAuthorizer
             .ThenBy(project => project.ProjectId, StringComparer.Ordinal)
             .ToList();
 
-    /// <summary>Raiz absoluta de um projeto já autorizado. É a única forma de resolver um id em caminho.</summary>
+    // É a única forma de resolver um id em caminho.
     public bool TryGetRoot(string projectId, out string root)
     {
         var found = _authorized.TryGetValue(projectId, out var value);
@@ -78,7 +74,6 @@ public sealed class WorkspaceAuthorizer
     private static string Normalize(string path) =>
         OperatingSystem.IsWindows() ? path.ToUpperInvariant() : path;
 
-    /// <summary>Troca a pasta do usuário por <c>~</c> e mantém só o início e os dois últimos níveis.</summary>
     internal string Abbreviate(string path)
     {
         var sep = Path.DirectorySeparatorChar;

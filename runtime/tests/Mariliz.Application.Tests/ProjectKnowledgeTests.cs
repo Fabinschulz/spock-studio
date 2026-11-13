@@ -8,10 +8,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Visão do conhecimento do projeto: o que entra no índice, o que fica de fora e por quê, e o estado do índice. O runtime
-/// de IA é um dublê que diz se está ligado e devolve o manifesto do índice.
-/// </summary>
+// O runtime de IA é um dublê que diz se está ligado e devolve o manifesto do índice.
 public class ProjectKnowledgeTests
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 11, 12, 0, 0, TimeSpan.Zero);

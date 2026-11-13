@@ -3,7 +3,7 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>Leitura e escrita de <c>mariliz.yaml</c> e <c>mariliz.lock</c>: o mesmo formato (camelCase, campos extras ignorados).</summary>
+// Campos extras ignorados.
 internal static class YamlFiles
 {
     public static readonly IDeserializer Reader = new DeserializerBuilder()

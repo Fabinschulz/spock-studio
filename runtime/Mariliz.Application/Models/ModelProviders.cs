@@ -1,20 +1,15 @@
 namespace Mariliz.Application.Models;
 
-/// <summary>Um modelo que a pessoa pode escolher num provedor.</summary>
 public sealed record ModelOption(string Id, string Name);
 
-/// <summary>
-/// Um provedor de modelo que o Spock Studio sabe chamar. O endereço é fixo e conhecido: o transporte só fala com os endereços
-/// desta lista, então uma chave nunca é enviada para um destino que a pessoa ou um agente tenha escolhido.
-/// </summary>
-/// <param name="DefaultModel">O modelo de toda finalidade em que a pessoa não escolheu outro. O agente nunca o escolhe.</param>
-/// <param name="Models">Os modelos que a pessoa pode escolher, por finalidade. O padrão é um deles.</param>
+// O transporte só fala com os endereços desta lista, então uma chave nunca é enviada para um destino que a pessoa ou um agente tenha escolhido.
+/// <param name="DefaultModel">O agente nunca o escolhe.</param>
 public sealed record ModelProvider(string Id, string Name, Uri Endpoint, string DefaultModel, IReadOnlyList<ModelOption> Models);
 
-/// <summary>Como a interface lista um provedor: sem o endereço, que não é assunto de tela.</summary>
+// Sem o endereço, que não é assunto de tela.
 public sealed record ModelProviderInfo(string Id, string Name, string Model, IReadOnlyList<ModelOption> Models);
 
-/// <summary>Os provedores disponíveis nesta versão. É a única lista: validação de provedor, destino permitido e modelo saem daqui.</summary>
+// É a única lista: validação de provedor, destino permitido e modelo saem daqui.
 public static class ModelProviders
 {
     public static readonly ModelProvider OpenAi = new("openai", "OpenAI", new Uri("https://api.openai.com/v1/chat/completions"), "gpt-4o-mini",
@@ -25,12 +20,12 @@ public static class ModelProviders
 
     public static IReadOnlyList<ModelProvider> All { get; } = [OpenAi, Anthropic];
 
-    /// <summary>O provedor de quem já tinha uma chave antes de haver escolha: só havia a OpenAI.</summary>
+    // Antes de haver escolha só havia a OpenAI.
     public static ModelProvider Default => OpenAi;
 
     public static ModelProvider? Find(string? id) => All.FirstOrDefault(provider => string.Equals(provider.Id, id, StringComparison.Ordinal));
 
-    /// <summary>O provedor dono de um endereço, ou nulo se o endereço não está na lista. Esquema, servidor e caminho precisam bater.</summary>
+    // Esquema, servidor e caminho precisam bater.
     public static ModelProvider? ByEndpoint(Uri endpoint) => All.FirstOrDefault(provider =>
         string.Equals(endpoint.Scheme, "https", StringComparison.OrdinalIgnoreCase)
         && string.Equals(endpoint.Host, provider.Endpoint.Host, StringComparison.OrdinalIgnoreCase)

@@ -11,7 +11,6 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>Perfil tecnológico: montagem a partir da descoberta, histórico entre análises e o fluxo pelo protocolo.</summary>
 public class TechnologyProfileTests
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 11, 12, 0, 0, TimeSpan.Zero);
@@ -86,8 +85,6 @@ public class TechnologyProfileTests
 
         Assert.Single(again.History);
     }
-
-    // ------------------------------------------------------------------ Pelo protocolo, com descoberta real
 
     private sealed class Setup : IDisposable
     {

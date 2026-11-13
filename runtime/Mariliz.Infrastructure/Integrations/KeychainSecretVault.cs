@@ -4,16 +4,8 @@ using Mariliz.Application.Ports;
 
 namespace Mariliz.Infrastructure.Integrations;
 
-/// <summary>
-/// Credenciais no Chaveiro (Keychain) do macOS, pelo comando <c>/usr/bin/security</c> do próprio sistema, no caminho completo
-/// para um programa de mesmo nome em outra pasta do PATH não tomar o lugar dele.
-/// <para>
-/// O <c>security</c> só aceita a senha como argumento de <c>-w</c>, e argumentos de processo aparecem para qualquer usuário. Por
-/// isso a gravação usa o modo interativo (<c>security -i</c>): o comando, com o valor, vai pela entrada padrão e nunca aparece na
-/// lista de processos. Esse modo não devolve erro quando um comando falha, então <see cref="CommandSecretVault.Store"/> confere
-/// lendo de volta.
-/// </para>
-/// </summary>
+// Caminho completo do security para um programa de mesmo nome em outra pasta do PATH não tomar o lugar dele.
+// O security só aceita a senha como argumento de -w, visível a qualquer usuário; por isso a gravação usa o modo interativo (security -i) pela entrada padrão. Esse modo não devolve erro quando um comando falha, então CommandSecretVault.Store confere lendo de volta.
 public sealed class KeychainSecretVault(IProcessRunner runner) : CommandSecretVault(runner)
 {
     public const string Executable = "/usr/bin/security";

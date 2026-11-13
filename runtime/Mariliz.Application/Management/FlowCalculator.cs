@@ -2,10 +2,7 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Application.Management;
 
-/// <summary>
-/// Indicadores de fluxo de um tipo de dado, calculados só com os itens sincronizados e o relógio. Mesmos itens e mesmo
-/// instante dão sempre o mesmo resultado. Nenhum indicador é por pessoa.
-/// </summary>
+// Mesmos itens e mesmo instante dão sempre o mesmo resultado. Nenhum indicador é por pessoa.
 public static class FlowCalculator
 {
     /// <summary>Abaixo disso, mediana e percentil de lead time variam demais para serem lidos como tendência.</summary>
@@ -33,7 +30,6 @@ public static class FlowCalculator
             Overdue(items, now));
     }
 
-    /// <summary>Janelas de 7 dias terminando agora, da mais antiga para a mais recente. A data que conta é a de conclusão.</summary>
     private static ThroughputMetric Throughput(IReadOnlyCollection<WorkItem> items, DateTimeOffset now, int weeks)
     {
         var windows = Enumerable.Range(0, weeks)
@@ -52,7 +48,6 @@ public static class FlowCalculator
         return new ThroughputMetric(windows, total, Round((double)total / weeks), null);
     }
 
-    /// <summary>Dias corridos entre a criação e a conclusão, dos itens entregues no período. Mediana e percentil 85 por posição.</summary>
     private static LeadTimeMetric LeadTime(IReadOnlyCollection<WorkItem> items, DateTimeOffset from, DateTimeOffset to)
     {
         var days = items
@@ -71,13 +66,7 @@ public static class FlowCalculator
     public const string NoStartInformation =
         "A fonte não informa quando o trabalho começou: sem histórico de status, não há como saber a data de início.";
 
-    /// <summary>
-    /// Dias corridos do início à conclusão, dos itens entregues no período. O <b>início</b> é a primeira mudança de status
-    /// para um status que está na categoria "em andamento"; item sem uma mudança assim fica de fora e é contado em
-    /// <c>Excluded</c>. A categoria de um nome de status vem dos próprios itens: um nome só é classificado se todos os itens
-    /// que estão nele agora concordam na categoria. Por isso um status por onde só passaram itens já concluídos e
-    /// que nenhum item ocupa hoje não é reconhecido, e um nome com categorias conflitantes também não.
-    /// </summary>
+    // O início é a primeira mudança para um status da categoria "em andamento". A categoria de um nome vem dos itens que estão nele agora e só vale se todos concordam, então um status por onde só passaram itens concluídos, ou com categorias conflitantes, não é reconhecido.
     private static CycleTimeMetric CycleTime(IReadOnlyCollection<WorkItem> items, DateTimeOffset from, DateTimeOffset to)
     {
         if (items.All(item => item.Transitions.Count == 0))
@@ -108,17 +97,13 @@ public static class FlowCalculator
             .Select(transition => (DateTimeOffset?)transition.At)
             .Min();
 
-    /// <summary>Nome do status para a categoria dos itens que estão nele; ignora nomes cujos itens discordam.</summary>
     private static Dictionary<string, string> StatusCategoriesByName(IReadOnlyCollection<WorkItem> items) =>
         items.Where(item => item.Status.Length > 0)
             .GroupBy(item => item.Status, StringComparer.OrdinalIgnoreCase)
             .Where(group => group.Select(item => item.StatusCategory).Distinct().Count() == 1)
             .ToDictionary(group => group.Key, group => group.First().StatusCategory, StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>
-    /// Itens abertos bloqueados: com o rótulo de bloqueio ou com vínculo "is blocked by" para um item ainda aberto (só o Jira
-    /// os informa). O que cada fonte permitiu ler vai em <c>Basis</c>.
-    /// </summary>
+    // O vínculo "is blocked by" só o Jira informa.
     private static BlockedMetric Blocked(IReadOnlyCollection<WorkItem> items)
     {
         var linksRead = items.Count(item => item.BlockedBy is not null);
@@ -127,7 +112,6 @@ public static class FlowCalculator
             linksRead, BlockedBasis(linksRead, items.Count), null);
     }
 
-    /// <summary>O rótulo vale sempre; os vínculos só onde foram lidos, e isso é dito.</summary>
     public static string BlockedBasis(int linksRead, int items) =>
         "Rótulo \"blocked\" ou \"bloqueado\" e vínculo \"is blocked by\" do Jira com item ainda aberto. "
         + (linksRead == 0

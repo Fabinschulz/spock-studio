@@ -7,10 +7,7 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Engineering;
 
-/// <summary>
-/// Monta o histórico de revisões do Harness a partir dos diários de aplicação e reversão. Só lê: os diários continuam
-/// sendo a base da reversão, e nada aqui os altera.
-/// </summary>
+// Só lê: os diários continuam sendo a base da reversão.
 public sealed partial class HarnessRevisionService(WorkspaceAuthorizer workspace, IProjectFilesFactory files, IRunStore store)
 {
     private const string OtherFiles = "other";
@@ -62,10 +59,7 @@ public sealed partial class HarnessRevisionService(WorkspaceAuthorizer workspace
         return new HarnessRevisions(projectId, string.IsNullOrEmpty(engine) ? null : engine, BuildInfo.Version, revisions);
     }
 
-    /// <summary>
-    /// Os arquivos que a execução mudou. A aplicação guarda as operações no próprio diário; a reversão marca as da aplicação
-    /// como revertidas, então o efeito dela é o inverso dessas operações.
-    /// </summary>
+    // A reversão marca as operações da aplicação como revertidas, então o efeito dela é o inverso dessas operações.
     private static List<(string Path, string Op)> Changes(RunJournal journal, IReadOnlyDictionary<string, RunJournal> byRunId)
     {
         if (journal.Kind == RunKinds.Apply)

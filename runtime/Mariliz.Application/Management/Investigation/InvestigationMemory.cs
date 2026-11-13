@@ -3,11 +3,7 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Application.Management.Investigation;
 
-/// <summary>
-/// A memória do projeto para as buscas do laço: as decisões registradas e os itens sincronizados que o projeto autorizou como
-/// contexto, os mesmos que o índice de engenharia recebe. Arquivo do projeto nunca entra. O que passa do teto fica de fora, e as
-/// decisões (mais recentes primeiro) vêm antes dos itens.
-/// </summary>
+// Arquivo do projeto nunca entra; as decisões (mais recentes primeiro) vêm antes dos itens.
 internal sealed class InvestigationMemory(DecisionMemory? memory, IntegrationHub hub, string? indexRoot)
 {
     private const int MaxDocuments = 1200;
@@ -31,7 +27,6 @@ internal sealed class InvestigationMemory(DecisionMemory? memory, IntegrationHub
         return documents;
     }
 
-    /// <summary>O bloco <c>memory</c> do pedido, ou nulo quando não há onde indexar ou nada a indexar.</summary>
     public JsonObject? Request(IReadOnlyList<MemoryDocument> documents)
     {
         if (indexRoot is null || documents.Count == 0) return null;

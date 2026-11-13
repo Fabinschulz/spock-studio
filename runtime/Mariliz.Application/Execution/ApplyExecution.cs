@@ -13,10 +13,7 @@ using System.Text;
 
 namespace Mariliz.Application.Execution;
 
-/// <summary>
-/// Uma aplicação em andamento, na ordem: pré-condições, backup, instalador, escritas, lock e validação.
-/// <see cref="Applied"/> acumula o que já foi gravado, para o chamador poder desfazer se algo falhar.
-/// </summary>
+// Applied acumula o que já foi gravado, para o chamador poder desfazer se algo falhar.
 internal sealed class ApplyExecution(
     IProcessRunner runner,
     IRunStore store,

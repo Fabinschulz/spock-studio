@@ -1,6 +1,6 @@
 namespace Mariliz.Core.Discovery;
 
-/// <summary>Tecnologia detectada por arquivos de configuração, nunca pelo nome de uma pasta.</summary>
+// Detectada por arquivos de configuração, nunca pelo nome de uma pasta.
 public sealed record StackFinding(
     string Id,
     string Name,

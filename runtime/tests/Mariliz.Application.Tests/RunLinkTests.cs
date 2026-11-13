@@ -9,10 +9,6 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Execuções ligadas a itens de trabalho. O que mais importa: só se liga o que já foi sincronizado no próprio projeto, a
-/// ligação guarda a referência e não o conteúdo, e ligar não reescreve o diário da execução.
-/// </summary>
 public class RunLinkTests : IDisposable
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 12, 12, 0, 0, TimeSpan.Zero);
@@ -45,7 +41,7 @@ public class RunLinkTests : IDisposable
     private static WorkItem Item(string kind, string id, string title, string status = "open", string category = StatusCategories.InProgress) =>
         new(kind, id, title, "Issue", status, category, [], [], Now.AddDays(-5), Now, null, null, null, "https://example.test/" + id, []);
 
-    /// <summary>Uma integração GitHub com itens já "sincronizados", escritos direto no disco como nos outros testes.</summary>
+    // Itens escritos direto no disco, como nos outros testes.
     private async Task<ProjectIntegration> SeedGitHubAsync(params WorkItem[] items)
     {
         _github = await _harness.LinkGitHubAsync();

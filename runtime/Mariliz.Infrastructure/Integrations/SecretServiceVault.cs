@@ -3,14 +3,7 @@ using Mariliz.Application.Ports;
 
 namespace Mariliz.Infrastructure.Integrations;
 
-/// <summary>
-/// Credenciais no serviço de segredos do Linux (o GNOME Keyring, o KWallet e outros que falam o protocolo Secret Service), pelo
-/// comando <c>secret-tool</c> do libsecret. O valor vai pela entrada padrão do comando, nunca em argumento.
-/// <para>
-/// Num servidor ou numa sessão sem serviço de chaves o comando existe mas não tem com quem falar: o cofre diz que não está
-/// disponível, e a tela explica o que instalar ou iniciar, em vez de gravar a credencial em texto puro.
-/// </para>
-/// </summary>
+// O valor vai pela entrada padrão do comando, nunca em argumento. Sem serviço de chaves, o cofre diz que não está disponível em vez de gravar a credencial em texto puro.
 public sealed class SecretServiceVault(IProcessRunner runner) : CommandSecretVault(runner)
 {
     public const string Executable = "secret-tool";

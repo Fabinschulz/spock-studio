@@ -9,7 +9,6 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>Uma execução sempre termina, a aprovação humana não tem prazo e uma retomada imediata encontra a aprovação aberta.</summary>
 public class WorkflowRobustnessTests
 {
     [Fact]
@@ -113,7 +112,7 @@ public class WorkflowRobustnessTests
         request["executionId"]!.GetValue<string>(), status,
         new JsonObject { ["summary"] = "", ["stacks"] = new JsonArray(), ["evidence"] = new JsonArray() }, [], [], interruptId);
 
-    /// <summary>Pausa no início e conclui na retomada, respeitando o cancelamento como o runtime real.</summary>
+    // Respeita o cancelamento como o runtime real.
     private sealed class PausingRuntime : FakeRuntime
     {
         public override Task<WorkflowAck> StartAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct) =>

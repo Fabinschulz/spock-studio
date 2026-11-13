@@ -4,10 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace Mariliz.Application.Integrations;
 
-/// <summary>
-/// Leitura de um repositório do GitHub pela API REST. Issues e pull requests saem do mesmo endpoint (para a API, todo pull
-/// request é uma issue), então uma página serve aos dois tipos e o recorte decide o que fica.
-/// </summary>
+// Para a API, todo pull request é uma issue: uma página serve aos dois tipos e o recorte decide o que fica.
 public sealed partial class GitHubConnector(ConnectorClient client) : IIntegrationConnector
 {
     public const string ApiVersion = "2026-03-10";
@@ -97,7 +94,6 @@ public sealed partial class GitHubConnector(ConnectorClient client) : IIntegrati
             Milestones: MilestonesOf(entry));
     }
 
-    /// <summary>O milestone da issue ou do pull request, com a data de entrega que o GitHub guarda nele (a data, em UTC).</summary>
     private static List<WorkItemMilestone> MilestonesOf(JsonObject entry)
     {
         if (entry["milestone"] is not JsonObject milestone || ConnectorJson.Text(milestone["title"]) is not { Length: > 0 } name) return [];

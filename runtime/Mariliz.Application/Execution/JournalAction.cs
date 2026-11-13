@@ -1,9 +1,6 @@
 namespace Mariliz.Application.Execution;
 
-/// <summary>
-/// Uma ação que um agente propôs e o motor governa. O agente só propõe (tipo, alvo e resumo); o conteúdo é do motor e fica aqui,
-/// ligado por hash à aprovação: o que se executa é exatamente o que foi mostrado e aprovado.
-/// </summary>
+// O conteúdo é do motor e fica ligado por hash à aprovação: o que se executa é exatamente o que foi mostrado e aprovado.
 public sealed class JournalAction
 {
     public const string Proposed = "proposed";
@@ -19,7 +16,7 @@ public sealed class JournalAction
     public string Target { get; set; } = "";
     public List<string> Evidence { get; set; } = [];
 
-    /// <summary>O que será gravado, escrito pelo motor a partir do que ele validou. Nunca vem do agente.</summary>
+    // Nunca vem do agente.
     public string Content { get; set; } = "";
 
     public string ContentSha256 { get; set; } = "";

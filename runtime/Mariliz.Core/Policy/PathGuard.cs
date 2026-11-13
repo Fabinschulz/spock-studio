@@ -1,12 +1,8 @@
 namespace Mariliz.Core.Policy;
 
-/// <summary>
-/// Caminhos de projeto são sempre relativos à raiz autorizada, com '/'. Qualquer coisa que escape
-/// da raiz ou toque áreas que a aplicação não gerencia é recusada antes de chegar ao disco.
-/// </summary>
+// Qualquer coisa que escape da raiz ou toque áreas que a aplicação não gerencia é recusada antes de chegar ao disco.
 public static class PathGuard
 {
-    /// <summary>Normaliza para o formato relativo com '/'. Falha em caminho absoluto, com '..' ou inválido.</summary>
     public static bool TryNormalize(string? path, out string normalized, out string? error)
     {
         normalized = "";

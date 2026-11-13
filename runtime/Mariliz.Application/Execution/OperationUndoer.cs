@@ -3,7 +3,7 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Execution;
 
-/// <summary>Desfaz uma operação só se o arquivo ainda está como a aplicação o deixou.</summary>
+// Só se o arquivo ainda está como a aplicação o deixou.
 public static class OperationUndoer
 {
     public static void Undo(IRunStore store, string projectId, string backupRunId, IProjectFiles files, JournalOp op, List<string> conflicts)

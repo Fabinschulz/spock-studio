@@ -5,10 +5,7 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Integrations;
 
-/// <summary>
-/// Liga conexões a projetos. É aqui que o isolamento é decidido: toda leitura e toda mudança partem do projeto autorizado,
-/// e uma integração só é encontrada pelo projeto dono dela.
-/// </summary>
+// É aqui que o isolamento é decidido: toda leitura e toda mudança partem do projeto autorizado, e uma integração só é encontrada pelo projeto dono dela.
 public sealed class ProjectIntegrationService(
     IIntegrationStore store,
     ISyncedDataStore data,
@@ -27,7 +24,7 @@ public sealed class ProjectIntegrationService(
         return store.Integrations().Where(i => i.ProjectId == projectId).ToList();
     }
 
-    /// <summary>A integração de um projeto. De outro projeto, ela simplesmente não existe.</summary>
+    // De outro projeto, a integração simplesmente não existe.
     public ProjectIntegration Require(string projectId, string integrationId)
     {
         EnsureAuthorized(projectId);
@@ -37,7 +34,7 @@ public sealed class ProjectIntegrationService(
 
     public SyncedData Data(ProjectIntegration integration) => data.Read(integration.ProjectId, integration.Id);
 
-    /// <summary>Vincula um recurso da conexão ao projeto, depois de conferir com o provedor que a credencial o alcança.</summary>
+    // Confere com o provedor que a credencial alcança o recurso antes de vincular.
     public async Task<ProjectIntegration> LinkAsync(
         string projectId, string connectionId, string resource, IReadOnlyList<string> dataKinds, CancellationToken ct)
     {
@@ -61,7 +58,7 @@ public sealed class ProjectIntegrationService(
         return integration;
     }
 
-    /// <summary>Muda o recorte ou a política. O dado que ficou fora do novo recorte é apagado na hora.</summary>
+    // O dado que ficou fora do novo recorte é apagado na hora.
     public ProjectIntegration Configure(string projectId, string integrationId, IReadOnlyList<string>? dataKinds, bool? feedsKnowledge)
     {
         var integration = Require(projectId, integrationId);
@@ -83,7 +80,6 @@ public sealed class ProjectIntegrationService(
         return updated;
     }
 
-    /// <summary>Desfaz o vínculo e apaga o que foi sincronizado por ele.</summary>
     public void Unlink(string projectId, string integrationId)
     {
         var integration = Require(projectId, integrationId);

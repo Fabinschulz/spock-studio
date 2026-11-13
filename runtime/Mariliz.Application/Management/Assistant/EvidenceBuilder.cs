@@ -3,11 +3,7 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Application.Management.Assistant;
 
-/// <summary>
-/// Escreve os fatos que o assistente pode citar, a partir dos indicadores, da previsão e dos riscos já calculados. Os
-/// textos levam os números como o motor os calculou, para que a verificação depois consiga conferir cada um.
-/// Títulos de itens só entram quando todas as fontes do projeto autorizaram servir de contexto.
-/// </summary>
+// Os textos levam os números como o motor os calculou, para a verificação conseguir conferir cada um. Títulos de itens só entram quando todas as fontes do projeto autorizaram servir de contexto.
 public static class EvidenceBuilder
 {
     public static EvidencePack Build(
@@ -86,7 +82,6 @@ public static class EvidenceBuilder
         [MilestoneOutlook.Behind] = "atrasado em relação ao prazo"
     };
 
-    /// <summary>Um fato por marco, com o andamento, o prazo, a previsão e a situação que o motor deu.</summary>
     private static IEnumerable<EvidenceFact> Milestones(ProjectMilestones milestones)
     {
         foreach (var (milestone, index) in milestones.Milestones.Select((milestone, index) => (milestone, index + 1)))

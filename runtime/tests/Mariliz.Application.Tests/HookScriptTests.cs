@@ -6,7 +6,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>O script do hook é código que roda na máquina da pessoa: cada decisão é testada como ela é entregue.</summary>
+// O script do hook é código que roda na máquina da pessoa: cada decisão é testada como ela é entregue.
 public class HookScriptTests : IDisposable
 {
     private readonly TempProject _project = new();

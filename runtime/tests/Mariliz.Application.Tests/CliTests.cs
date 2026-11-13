@@ -9,7 +9,6 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>A CLI usa o mesmo serviço da interface; estes testes provam as aprovações explícitas e o relato honesto.</summary>
 public class CliTests
 {
     private sealed class CliHarness : IDisposable

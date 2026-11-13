@@ -3,11 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace Mariliz.Core.Policy;
 
-/// <summary>
-/// Padrões no estilo do <c>.gitignore</c> sobre caminhos relativos com <c>/</c>: <c>*</c>, <c>**</c>, <c>?</c>, <c>[...]</c>,
-/// <c>/</c> no início (ancora na raiz) e no fim (só pasta). Um padrão sem <c>/</c> vale em qualquer nível, e uma pasta
-/// casada leva tudo o que está dentro dela. Negação (<c>!</c>) é ignorada de propósito: na dúvida, o arquivo fica de fora.
-/// </summary>
+// Negação (!) é ignorada de propósito: na dúvida, o arquivo fica de fora.
 public sealed class IgnorePatterns
 {
     private readonly List<Regex> _rules = [];
@@ -31,7 +27,6 @@ public sealed class IgnorePatterns
 
     public bool IsEmpty => _rules.Count == 0;
 
-    /// <summary>Verdadeiro se o arquivo, ou alguma pasta acima dele, casa com um padrão.</summary>
     public bool Matches(string path)
     {
         foreach (var rule in _rules)

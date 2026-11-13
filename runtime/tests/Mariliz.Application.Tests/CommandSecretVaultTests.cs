@@ -10,17 +10,12 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// O cofre do macOS e o do Linux seguem as mesmas regras, então um contrato só roda contra os dois: o segredo nunca vai em
-/// argumento, só vale o que volta igual, o identificador tem formato fixo e a falta de cofre tem motivo. Os comandos do sistema
-/// são dublês fiéis (<see cref="FakeSecurity"/> e <see cref="FakeSecretTool"/>); os testes de verdade, com o cofre do sistema,
-/// estão em <see cref="UnixVaultRealityTests"/> e só rodam quando a pessoa pede.
-/// </summary>
+// Os comandos do sistema são dublês fiéis (FakeSecurity e FakeSecretTool); os testes com o cofre do sistema de verdade estão em UnixVaultRealityTests e só rodam quando a pessoa pede.
 public abstract class CommandVaultContract
 {
     protected const string Id = "conn-0123456789ab";
 
-    /// <summary>Um segredo que quebraria qualquer comando que o interpretasse: aspas, cifrão, crase, barra, quebra de linha, acento.</summary>
+    // Quebraria qualquer comando que o interpretasse: aspas, cifrão, crase, barra, quebra de linha, acento.
     protected const string Nasty = "ghp_a b\"c'd$e`f\\g\nlinha2 ção ✓ -w x";
 
     protected abstract FakeVaultCommand Command { get; }
@@ -294,7 +289,6 @@ public class SecretVaultSelectionTests
     }
 }
 
-/// <summary>A central e a chave do modelo com um cofre de comando: o cofre muda de sistema, o resto não.</summary>
 public class CommandVaultIntegrationTests
 {
     private const string Key = "sk-test-chave-do-cofre-unix-1234";

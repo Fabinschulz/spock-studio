@@ -2,10 +2,7 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Infrastructure.Integrations;
 
-/// <summary>
-/// Sistemas sem cofre implementado (nem Windows, nem macOS, nem Linux). Em vez de gravar a credencial em texto puro, a central
-/// recusa criar conexões e diz por quê.
-/// </summary>
+// Em vez de gravar a credencial em texto puro, a central recusa criar conexões e diz por quê.
 public sealed class UnavailableSecretVault : ISecretVault
 {
     public bool Available => false;

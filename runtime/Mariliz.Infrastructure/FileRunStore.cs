@@ -7,7 +7,7 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Infrastructure;
 
-/// <summary>Diários e backups no diretório de dados do usuário, fora do repositório do projeto.</summary>
+// Fora do repositório do projeto.
 public sealed class FileRunStore(string dataRoot) : IRunStore, IRunLinkStore
 {
     private readonly object _events = new();
@@ -64,7 +64,7 @@ public sealed class FileRunStore(string dataRoot) : IRunStore, IRunLinkStore
         return Directory.EnumerateDirectories(dir).Select(Path.GetFileName).OfType<string>().Where(IsSafe).Order(StringComparer.Ordinal).ToList();
     }
 
-    /// <summary>As ligações da execução com itens de trabalho. Um arquivo à parte do diário: ligar não o reescreve.</summary>
+    // Arquivo à parte do diário: ligar não o reescreve.
     public IReadOnlyList<RunLink> LoadLinks(string projectId, string runId)
     {
         var path = Path.Combine(RunDir(projectId, runId), "links.json");
@@ -142,12 +142,12 @@ public sealed class FileRunStore(string dataRoot) : IRunStore, IRunLinkStore
         return events;
     }
 
-    /// <summary>Um gate por arquivo: ler e trocar o mesmo arquivo ao mesmo tempo (o Windows recusa a troca sob leitura) não acontece.</summary>
+    // Um gate por arquivo: o Windows recusa trocar um arquivo sob leitura.
     private object Gate(string path) => _gates.GetOrAdd(path, _ => new object());
 
     private static string BackupName(string relativePath) => Hashing.Sha256(relativePath) + ".bin";
 
-    /// <summary>Os ids vêm do motor, mas a pasta é montada a partir deles: só caracteres seguros passam.</summary>
+    // Os ids vêm do motor, mas a pasta é montada a partir deles: só caracteres seguros passam.
     private static string Safe(string id) => IsSafe(id) ? id : throw new ArgumentException("Identificador inválido.");
 
     private static bool IsSafe(string id) => id.Length > 0 && id.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_');

@@ -2,7 +2,7 @@ using System.Text.Json.Nodes;
 
 namespace Mariliz.Application.Protocol;
 
-/// <summary>Liga os eventos das execuções ao fluxo de saída da sessão, que só existe depois de a sessão ser criada.</summary>
+// O fluxo de saída só existe depois de a sessão ser criada.
 public sealed class EventRelay
 {
     public Action<string, int, string, JsonObject, DateTimeOffset>? Target { get; set; }

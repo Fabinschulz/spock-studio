@@ -8,7 +8,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>A cadeia inteira da governança, com o grafo Python de verdade: a proposta nasce no runtime, o motor a governa e executa.</summary>
+// Com o grafo Python de verdade.
 public class ActionGovernanceEndToEndTests
 {
     private static (WorkflowService Service, LoopbackAiRuntime Runtime, string ProjectId, TempProject Project, FileRunStore Store) Build()

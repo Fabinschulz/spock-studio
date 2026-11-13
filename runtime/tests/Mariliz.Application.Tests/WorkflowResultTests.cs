@@ -4,7 +4,6 @@ using Mariliz.Application.Workflows;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>Do runtime de IA só chega à interface o que confere com o contrato: caminho relativo seguro, trecho sem segredo, impacto conhecido.</summary>
 public class WorkflowResultTests
 {
     private static readonly string Hash = new('a', 64);

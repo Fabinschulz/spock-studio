@@ -6,10 +6,7 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Previsão de entrega e riscos por regra. Os históricos são montados semana a semana para que cada cenário e cada
-/// risco esperado possa ser conferido à mão.
-/// </summary>
+// Os históricos são montados semana a semana para que cada cenário e cada risco esperado possa ser conferido à mão.
 public class DeliveryIntelligenceTests
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 10, 12, 0, 0, TimeSpan.Zero);
@@ -41,8 +38,6 @@ public class DeliveryIntelligenceTests
         for (var n = 0; n < open; n++) items.Add(Item($"o{n}", StatusCategories.Todo, Now.AddDays(-120), kind: kind));
         return items;
     }
-
-    // ------------------------------------------------------------------ Previsão
 
     [Fact]
     public void Ritmo_constante_da_a_mesma_data_nos_tres_cenarios_e_confianca_alta()
@@ -121,8 +116,6 @@ public class DeliveryIntelligenceTests
         Assert.Equal("No ritmo observado, parte relevante das simulações não conclui em 5 anos.", forecast.Unavailable);
         Assert.Empty(forecast.Scenarios);
     }
-
-    // ------------------------------------------------------------------ Riscos
 
     private static List<KeyValuePair<string, List<WorkItem>>> ByKind(IEnumerable<WorkItem> items) =>
         items.GroupBy(i => i.Kind).Select(g => new KeyValuePair<string, List<WorkItem>>(g.Key, g.ToList())).ToList();
@@ -215,8 +208,6 @@ public class DeliveryIntelligenceTests
 
         Assert.Empty(RiskRules.Evaluate(ByKind(items), Now));
     }
-
-    // ------------------------------------------------------------------ Protocolo e contrato
 
     private static async Task<IntegrationHarness> Seeded(IEnumerable<WorkItem> items)
     {

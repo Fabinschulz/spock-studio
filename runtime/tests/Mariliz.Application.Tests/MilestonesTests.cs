@@ -6,11 +6,7 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Marcos (milestone do GitHub, versão de correção do Jira): andamento e previsão do que falta em cada um. O ritmo é o do
-/// tipo de dado inteiro, constante de 2 entregas por semana nas contas abaixo, o que torna a previsão exata e conferível à mão:
-/// com 6 itens abertos, toda simulação termina em 3 semanas.
-/// </summary>
+// O ritmo é o do tipo de dado inteiro, constante de 2 entregas por semana nas contas abaixo, o que torna a previsão exata e conferível à mão.
 public class MilestonesTests
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 12, 12, 0, 0, TimeSpan.Zero);
@@ -41,8 +37,6 @@ public class MilestonesTests
 
     private static List<MilestoneProgress> Compute(IEnumerable<WorkItem> items) =>
         MilestoneCalculator.Compute(DataKinds.Issues, items.ToList(), Now, sourcesComplete: true).Milestones;
-
-    // ------------------------------------------------------------------ Andamento
 
     [Fact]
     public void Conta_itens_entregues_abertos_e_concluidos_sem_entrega_de_cada_marco()
@@ -96,8 +90,6 @@ public class MilestonesTests
 
         Assert.Equal(new DateOnly(2026, 12, 10), Assert.Single(Compute(items)).DueDate);
     }
-
-    // ------------------------------------------------------------------ Previsão e situação
 
     [Fact]
     public void A_previsao_do_marco_usa_o_ritmo_do_tipo_todo_e_so_o_que_esta_aberto_nele_conferido_a_mao()
@@ -182,8 +174,6 @@ public class MilestonesTests
         Assert.Equal(MilestoneOutlook.OnTrack, MilestoneCalculator.Outlook(due, 6, Forecast(new DateOnly(2026, 12, 1), new DateOnly(2026, 12, 10)), Today).Outlook);
         Assert.Equal(MilestoneOutlook.Behind, MilestoneCalculator.Outlook(due, 6, Forecast(new DateOnly(2026, 12, 11), new DateOnly(2026, 12, 30)), Today).Outlook);
     }
-
-    // ------------------------------------------------------------------ Serviço e protocolo
 
     private static async Task<(IntegrationHarness Harness, ProjectIntegration Integration)> Seed(IEnumerable<WorkItem> items)
     {
@@ -288,8 +278,6 @@ public class MilestonesTests
         Assert.True(text == File.ReadAllText(path).ReplaceLineEndings("\n").TrimEnd(),
             "milestones: a resposta mudou. Se foi deliberado, regenere com MARILIZ_UPDATE_GOLDEN=1 e ajuste o Zod da interface.");
     }
-
-    // ------------------------------------------------------------------ Leitura dos provedores
 
     [Fact]
     public async Task O_github_traz_o_milestone_com_a_data_de_entrega_em_utc()
