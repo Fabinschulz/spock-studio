@@ -1,4 +1,5 @@
 import harnessFixture from '@contracts/fixtures/engineering/harness.json';
+import knowledgeExternalFixture from '@contracts/fixtures/engineering/knowledge-external.json';
 import knowledgeFixture from '@contracts/fixtures/engineering/knowledge.json';
 import revisionsFixture from '@contracts/fixtures/engineering/revisions.json';
 import profileFixture from '@contracts/fixtures/engineering/profile.json';
@@ -39,7 +40,7 @@ const discovery = {
 };
 
 /** O perfil salvo começa vazio quando `saved` é falso: a tela precisa pedir ao motor que crie o primeiro. */
-function clientWith(runs: unknown[], saved = true): EngineClient {
+function clientWith(runs: unknown[], saved = true, knowledge: unknown = knowledgeFixture): EngineClient {
   let stored: unknown = saved ? profileFixture.profile : null;
   const refreshed = {
     ...profileFixture.profile,
@@ -53,7 +54,7 @@ function clientWith(runs: unknown[], saved = true): EngineClient {
     request: vi.fn(async (method: string, _params: unknown, schema: { parse(value: unknown): unknown }) => {
       if (method === 'harness.runs') return schema.parse({ runs });
       if (method === 'engineering.profile') return schema.parse({ profile: stored });
-      if (method === 'engineering.knowledge') return schema.parse(knowledgeFixture);
+      if (method === 'engineering.knowledge') return schema.parse(knowledge);
       if (method === 'engineering.harness') return schema.parse(harnessFixture);
       if (method === 'engineering.revisions') return schema.parse(revisionsFixture);
       if (method === 'engineering.analyze') {
@@ -180,6 +181,76 @@ describe('Projeto · conhecimento', () => {
     expect(within(knowledge).getByText('src/App.cs').closest('li')).toHaveTextContent(
       'src/App.cs (mudou desde a indexação)'
     );
+  });
+
+  describe('fontes externas', () => {
+    const withExternal = (external: unknown = knowledgeExternalFixture.external) => ({ ...knowledgeFixture, external });
+    const openSection = async (knowledge: unknown) => {
+      renderPage(clientWith([], true, knowledge), project, KnowledgePage);
+      return (await screen.findByRole('heading', { name: 'Conhecimento do projeto' })).closest('section')!;
+    };
+
+    it('sem ferramenta vinculada, diz que nada entra e manda para as integrações', async () => {
+      const section = await openSection(knowledgeFixture);
+
+      expect(await within(section).findByText(/Nenhuma ferramenta vinculada a este projeto/)).toBeTruthy();
+      expect(within(section).getByRole('link', { name: 'Integrações' })).toHaveAttribute('href', '/integracoes');
+      expect(within(section).queryByRole('list', { name: 'Fontes externas' })).toBeNull();
+    });
+
+    it('mostra cada fonte, a autorizada com o que entra e a fechada com a garantia de que nada vai', async () => {
+      const section = await openSection(withExternal());
+
+      const list = await within(section).findByRole('list', { name: 'Fontes externas' });
+      const [authorized, closed] = within(list).getAllByRole('listitem');
+      expect(authorized).toHaveTextContent('GitHub acme/app');
+      expect(authorized).toHaveTextContent('Autorizada como contexto');
+      expect(authorized).toHaveTextContent('1 de 1 item entram no índice');
+      expect(authorized).toHaveTextContent('1 ainda não indexado');
+      expect(closed).toHaveTextContent('Não autorizada');
+      expect(closed).toHaveTextContent('1 item sincronizado, nenhum entra no índice nem vai ao provedor de IA');
+      expect(closed).toHaveTextContent('A decisão é do vínculo, em Integrações');
+    });
+
+    it('explica o que passa a ser enviado quando uma fonte é autorizada, e o que nunca vai', async () => {
+      const section = await openSection(withExternal());
+
+      await userEvent.click(
+        await within(section).findByText('O que passa a ser enviado quando uma fonte é autorizada')
+      );
+
+      expect(within(section).getByText(/De cada item vão a chave, o título, o tipo, a situação/)).toBeTruthy();
+      expect(
+        within(section).getByText(/Não vão os responsáveis, descrições, comentários, endereços nem credenciais/)
+      ).toBeTruthy();
+      expect(within(section).getByText(/marcado como fonte externa/)).toBeTruthy();
+      expect(within(section).getByText(/nenhuma instrução o elimina/)).toBeTruthy();
+      expect(
+        within(section).getByText(/Retirar a autorização apaga os itens do índice na próxima execução/)
+      ).toBeTruthy();
+    });
+
+    it('item que ficou de fora é contado e o motivo é dito', async () => {
+      const [first, ...rest] = knowledgeExternalFixture.external;
+      const section = await openSection(
+        withExternal([{ ...first!, items: 4, documents: 2, withheld: 2, indexed: 2, pending: 0 }, ...rest])
+      );
+
+      const list = await within(section).findByRole('list', { name: 'Fontes externas' });
+
+      expect(within(list).getAllByRole('listitem')[0]).toHaveTextContent('2 de 4 itens entram no índice');
+      expect(within(list).getAllByRole('listitem')[0]).toHaveTextContent(
+        '2 ficaram de fora (acima do limite ou com possível segredo no texto)'
+      );
+    });
+
+    it('a tela traz só contagens e rótulos, nunca o texto de um item', async () => {
+      const section = await openSection(withExternal());
+
+      await within(section).findByRole('list', { name: 'Fontes externas' });
+
+      expect(section.textContent).not.toMatch(/Item da fonte/);
+    });
   });
 
   it('sem projeto selecionado, manda escolher na tela inicial', () => {

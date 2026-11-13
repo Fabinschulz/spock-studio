@@ -1,0 +1,36 @@
+{
+  "external": [
+    {
+      "integrationId": "pint-000000000001",
+      "providerName": "GitHub",
+      "resourceName": "acme/app",
+      "authorized": true,
+      "dataKinds": [
+        "Issues",
+        "Pull requests"
+      ],
+      "items": 1,
+      "documents": 1,
+      "withheld": 0,
+      "indexed": 0,
+      "pending": 1,
+      "outdated": 0
+    },
+    {
+      "integrationId": "pint-000000000002",
+      "providerName": "GitHub",
+      "resourceName": "acme/app",
+      "authorized": false,
+      "dataKinds": [
+        "Issues",
+        "Pull requests"
+      ],
+      "items": 1,
+      "documents": 0,
+      "withheld": 0,
+      "indexed": 0,
+      "pending": 0,
+      "outdated": 0
+    }
+  ]
+}

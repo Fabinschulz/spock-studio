@@ -480,12 +480,13 @@ public class IntegrationHubTests
             ["catalog"] = h.Request("integration.catalog", new JsonObject())["result"]!,
             ["connections"] = h.Request("connection.list", new JsonObject())["result"]!,
             ["integrations"] = h.Request("integration.list", new JsonObject { ["projectId"] = h.ProjectId })["result"]!,
+            ["reach"] = h.Request("connection.reach", new JsonObject())["result"]!,
             ["history"] = h.Request("integration.history", scope)["result"]!
         };
 
         foreach (var (name, result) in scenarios)
         {
-            var actual = Normalize(result, h.ProjectId);
+            var actual = Normalize(result, h.ProjectId).Replace(Path.GetFileName(h.Project.Root), "loja");
             var path = ContractFiles.Path_("fixtures", "integrations", name + ".json");
             if (Update || !File.Exists(path))
             {

@@ -19,6 +19,16 @@ public sealed class FileModelSettings(string dataRoot) : IModelSettings
         lock (_gate) return Read() is { } stored ? new ModelStatus(true, stored.Provider) : new ModelStatus(false, "");
     }
 
+    public void Validate(string provider, string key) => ModelKeyRules.Validate(provider, key);
+
+    /// <summary>O provedor da chave que está no arquivo, ou nulo sem chave legível.</summary>
+    public string? StoredProvider()
+    {
+        lock (_gate) return Read() is { } stored ? stored.Provider : null;
+    }
+
+    public string? Protection() => TryGetKey(out _) ? ModelKeyProtection.File : null;
+
     public void Save(string provider, string key)
     {
         ModelKeyRules.Validate(provider, key);
@@ -65,7 +75,7 @@ public sealed class FileModelSettings(string dataRoot) : IModelSettings
             if (JsonNode.Parse(File.ReadAllText(FilePath)) is not JsonObject document) return null;
             if (document["provider"] is not JsonValue providerNode || !providerNode.TryGetValue<string>(out var provider)) return null;
             if (document["key"] is not JsonValue keyNode || !keyNode.TryGetValue<string>(out var key)) return null;
-            if (!string.Equals(provider, ModelGateway.Provider, StringComparison.Ordinal) || !ModelKeyRules.IsValidKey(key)) return null;
+            if (ModelProviders.Find(provider) is null || !ModelKeyRules.IsValidKey(key)) return null;
             return (provider, key);
         }
         catch (Exception ex) when (ex is JsonException or IOException)

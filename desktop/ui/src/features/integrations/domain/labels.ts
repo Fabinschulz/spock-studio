@@ -21,6 +21,13 @@ export const STATUS_CATEGORY_LABEL: Record<string, string> = {
   done: 'Concluídas'
 };
 
+/** O que a conexão pode fazer no provedor, dito sem rodeio. Um valor que a tela não conhece não vira "só lê". */
+export function impactText(impact: string, provider: string): string {
+  if (impact === 'read') return `Leitura: o Spock Studio só lê do ${provider}. Não cria, altera nem apaga nada lá.`;
+  if (impact === 'write') return `Altera dados: o Spock Studio pode alterar dados no ${provider}.`;
+  return 'Esta versão do Spock Studio não reconhece o conector desta conexão, então não afirma o que ela pode fazer.';
+}
+
 export function connectorName(connectors: Connector[], provider: string): string {
   return connectors.find((connector) => connector.provider === provider)?.name ?? provider;
 }

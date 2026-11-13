@@ -1,6 +1,7 @@
 import type { EngineClient } from '@/shared/api';
 import {
   connectionListSchema,
+  connectionReachListSchema,
   connectionResultSchema,
   integrationCatalogSchema,
   integrationListSchema,
@@ -11,6 +12,7 @@ import {
   syncResultSchema,
   SYNC_EVENT_TYPES,
   type Connection,
+  type ConnectionReach,
   type IntegrationCatalog,
   type ProjectIntegration,
   type SyncEvent,
@@ -25,6 +27,8 @@ export type ScopeChange = { projectId: string; integrationId: string; dataKinds?
 export type IntegrationApi = {
   catalog(): Promise<IntegrationCatalog>;
   connections(): Promise<Connection[]>;
+  /** Onde cada conexão é usada, o que se lê de lá e o que o conector pode fazer. Só leitura. */
+  reach(): Promise<ConnectionReach[]>;
   connect(input: NewConnection): Promise<Connection>;
   test(connectionId: string): Promise<Connection>;
   rotate(connectionId: string, secret: string): Promise<Connection>;
@@ -47,6 +51,7 @@ export function createIntegrationApi(client: EngineClient): IntegrationApi {
   return {
     catalog: () => client.request('integration.catalog', {}, integrationCatalogSchema),
     connections: () => client.request('connection.list', {}, connectionListSchema).then((r) => r.connections),
+    reach: () => client.request('connection.reach', {}, connectionReachListSchema).then((r) => r.connections),
     connect: (input) => client.request('connection.create', input, connectionResultSchema).then((r) => r.connection),
     test: (connectionId) => connection('connection.test', connectionId),
     rotate: (connectionId, secret) =>

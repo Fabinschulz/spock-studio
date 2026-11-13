@@ -18,6 +18,6 @@ public static class LocalIntegrationHub
             new FileAuditLog(dataRoot, clock), emit);
     }
 
-    public static ISecretVault SecretVault(string dataRoot) =>
-        OperatingSystem.IsWindows() ? new DpapiSecretVault(dataRoot) : new UnavailableSecretVault();
+    /// <summary>O cofre do sistema em que o motor está rodando: DPAPI no Windows, Chaveiro no macOS, serviço de segredos no Linux.</summary>
+    public static ISecretVault SecretVault(string dataRoot) => SecretVaults.For(SecretVaults.CurrentPlatform(), dataRoot, new SystemProcessRunner());
 }

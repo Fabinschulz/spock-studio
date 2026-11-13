@@ -37,6 +37,25 @@ export const profileResultSchema = z.object({ profile: technologyProfileSchema.n
 export type TechnologyProfile = z.infer<typeof technologyProfileSchema>;
 export type ProfileChange = TechnologyProfile['history'][number];
 
+/**
+ * Uma fonte externa (itens sincronizados de uma ferramenta) e o que dela vai ao índice. Sem `authorized`, nada vai e
+ * `documents` é zero. Só contagens e rótulos: o texto dos itens não sai do motor.
+ */
+export const knowledgeExternalSourceSchema = z.object({
+  integrationId: z.string(),
+  providerName: z.string(),
+  resourceName: z.string(),
+  authorized: z.boolean(),
+  dataKinds: z.array(z.string()),
+  items: z.number(),
+  documents: z.number(),
+  /** Itens autorizados que ficaram de fora: acima do limite ou com possível segredo no texto. */
+  withheld: z.number(),
+  indexed: z.number(),
+  pending: z.number(),
+  outdated: z.number()
+});
+
 /** O conhecimento do projeto como o índice o recebe. Só caminhos e tamanhos: o conteúdo não sai do motor. */
 export const projectKnowledgeSchema = z.object({
   projectId: z.string(),
@@ -54,9 +73,12 @@ export const projectKnowledgeSchema = z.object({
   indexed: z.number(),
   outdated: z.number(),
   pending: z.number(),
-  orphaned: z.number()
+  orphaned: z.number(),
+  /** Os itens sincronizados que o projeto autorizou (ou não) como contexto dos agentes. */
+  external: z.array(knowledgeExternalSourceSchema)
 });
 
+export type KnowledgeExternalSource = z.infer<typeof knowledgeExternalSourceSchema>;
 export type ProjectKnowledge = z.infer<typeof projectKnowledgeSchema>;
 
 const harnessStateSchema = z.enum(['intact', 'kept', 'modified', 'outOfScope', 'missing']);

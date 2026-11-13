@@ -4,7 +4,7 @@
   "type": "object",
   "required": ["provider", "key"],
   "properties": {
-    "provider": { "const": "openai" },
+    "provider": { "enum": ["openai", "anthropic"] },
     "key": { "type": "string", "pattern": "^[A-Za-z0-9_-]{20,200}$" }
   },
   "additionalProperties": false

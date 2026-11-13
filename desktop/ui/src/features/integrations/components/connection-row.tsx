@@ -1,15 +1,18 @@
 import { ConfirmAction, StatusChip, SuccessState } from '@/shared/components';
-import type { Connection, Connector } from '@/shared/schema';
+import type { Connection, ConnectionReach, Connector } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
 import { useState, type FormEvent } from 'react';
 
 import { formatEngineDate } from '../domain/format-date';
 import { CONNECTION_STATUS } from '../domain/labels';
 import styles from '../integrations-page.module.scss';
+import { ConnectionReachSummary } from './connection-reach';
 
 interface ConnectionRowProps {
   connection: Connection;
   connector: Connector | undefined;
+  /** O que a conexão alcança; nulo quando o motor não conseguiu dizer. */
+  reach: ConnectionReach | null;
   busy: boolean;
   /** O que deu certo na última ação desta conexão, dito na própria linha. */
   notice?: string | null;
@@ -25,6 +28,7 @@ type Mode = 'idle' | 'rotating' | 'confirming-disconnect' | 'confirming-remove';
 export function ConnectionRow({
   connection,
   connector,
+  reach,
   busy,
   notice,
   onTest,
@@ -68,6 +72,7 @@ export function ConnectionRow({
           ? 'Nenhum projeto vinculado.'
           : `${connection.projects} ${connection.projects === 1 ? 'vínculo' : 'vínculos'} com projetos.`}
       </p>
+      <ConnectionReachSummary connection={connection} connector={connector} reach={reach} />
       {connection.lastError ? (
         <p className={styles.error}>
           {connection.lastError.message} ({formatEngineDate(connection.lastError.at)})

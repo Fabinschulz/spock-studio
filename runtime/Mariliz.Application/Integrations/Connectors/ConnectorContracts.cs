@@ -29,6 +29,7 @@ public sealed record ConnectorDataKind(string Id, string Label);
 /// O que a interface precisa para oferecer um conector sem conhecer o provedor: campos de conexão, o que é um recurso e os
 /// tipos de dado que ele sabe ler.
 /// </summary>
+/// <param name="Impact">O que o conector pode fazer no provedor: <see cref="ImpactKinds.Read"/> (só lê) ou <see cref="ImpactKinds.Write"/> (altera dados).</param>
 public sealed record ConnectorDescriptor(
     string Provider,
     string Name,
@@ -37,4 +38,5 @@ public sealed record ConnectorDescriptor(
     ConnectorField Secret,
     ConnectorField Resource,
     IReadOnlyList<ConnectorDataKind> DataKinds,
-    string ScopesNote);
+    string ScopesNote,
+    string Impact = ImpactKinds.Read);

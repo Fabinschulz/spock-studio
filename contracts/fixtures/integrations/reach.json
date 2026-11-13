@@ -1,0 +1,33 @@
+{
+  "connections": [
+    {
+      "connectionId": "conn-000000000001",
+      "impact": "read",
+      "projects": [
+        {
+          "projectId": "p-000000000000",
+          "projectName": "loja",
+          "resource": "acme/app",
+          "resourceName": "acme/app",
+          "dataKinds": [
+            {
+              "id": "issues",
+              "label": "Issues"
+            },
+            {
+              "id": "pullRequests",
+              "label": "Pull requests"
+            }
+          ],
+          "feedsKnowledge": false,
+          "linkedAt": "2026-11-10T12:00:00+00:00"
+        }
+      ]
+    },
+    {
+      "connectionId": "conn-000000000002",
+      "impact": "read",
+      "projects": []
+    }
+  ]
+}

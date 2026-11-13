@@ -1,17 +1,28 @@
 import type { EngineClient } from '@/shared/api';
-import { modelStatusSchema, type ModelStatus } from '@/shared/schema';
+import { modelConnectionSchema, modelStatusSchema, type ModelConnection, type ModelStatus } from '@/shared/schema';
 
 /** Chave do modelo, como o motor expõe. A chave vai para o motor e nunca volta. */
 export type ModelApi = {
   status(): Promise<ModelStatus>;
-  save(key: string): Promise<ModelStatus>;
+  /** O provedor como uma conexão: se há chave, onde está guardada e o que a última conferência encontrou. */
+  connection(): Promise<ModelConnection>;
+  /** Guarda a chave só depois de o provedor aceitá-la; se ele recusar, nada é gravado. */
+  save(provider: string, key: string): Promise<ModelStatus>;
+  /** Confere a chave guardada com o provedor. Uma recusa vem no estado, não como falha. */
+  test(): Promise<ModelConnection>;
+  /** Escolhe o modelo de uma finalidade entre os do provedor da chave; nulo volta ao padrão. */
+  setPurpose(purpose: string, model: string | null): Promise<ModelConnection>;
   clear(): Promise<ModelStatus>;
 };
 
 export function createModelApi(client: EngineClient): ModelApi {
   return {
     status: () => client.request('model.status', {}, modelStatusSchema),
-    save: (key) => client.request('model.save', { provider: 'openai', key }, modelStatusSchema),
+    connection: () => client.request('model.connection', {}, modelConnectionSchema),
+    save: (provider, key) => client.request('model.save', { provider, key }, modelStatusSchema),
+    test: () => client.request('model.test', {}, modelConnectionSchema),
+    setPurpose: (purpose, model) =>
+      client.request('model.purpose', model === null ? { purpose } : { purpose, model }, modelConnectionSchema),
     clear: () => client.request('model.clear', {}, modelStatusSchema)
   };
 }

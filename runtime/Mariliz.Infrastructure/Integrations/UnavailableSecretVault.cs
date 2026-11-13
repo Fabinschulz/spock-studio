@@ -3,12 +3,16 @@ using Mariliz.Application.Integrations;
 namespace Mariliz.Infrastructure.Integrations;
 
 /// <summary>
-/// Sistemas sem cofre implementado (hoje Linux e macOS). Em vez de gravar a credencial em texto puro, a central recusa criar
-/// conexões e diz por quê.
+/// Sistemas sem cofre implementado (nem Windows, nem macOS, nem Linux). Em vez de gravar a credencial em texto puro, a central
+/// recusa criar conexões e diz por quê.
 /// </summary>
 public sealed class UnavailableSecretVault : ISecretVault
 {
     public bool Available => false;
+
+    public string Name => "nenhum";
+
+    public string? UnavailableHint => "Este sistema operacional não tem cofre implementado: o Spock Studio guarda credenciais no Windows, no macOS e no Linux.";
 
     public void Store(string connectionId, string secret) => throw IntegrationErrors.VaultUnavailable();
 

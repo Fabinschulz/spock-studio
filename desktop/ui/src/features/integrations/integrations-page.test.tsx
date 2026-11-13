@@ -1,3 +1,4 @@
+import reachFixture from '@contracts/fixtures/integrations/reach.json';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
@@ -6,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 import type { SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
+import { connectionReachListSchema, type ConnectionReach } from '@/shared/schema';
 import { expectNoA11yViolations } from '@/test/a11y';
 import { fakeIntegrationEngine, githubConnection } from '@/test/fake-integration-engine';
 
@@ -14,6 +16,11 @@ import { IntegrationsPage } from './integrations-page';
 const loja: SelectedProject = { projectId: 'p-aaaaaaaaaaaa', displayName: 'Loja', displayPath: '~\\Loja' };
 const portal: SelectedProject = { projectId: 'p-bbbbbbbbbbbb', displayName: 'Portal', displayPath: '~\\Portal' };
 const token = 'ghp_token-digitado-na-tela-0001';
+const reachFromEngine = connectionReachListSchema.parse(reachFixture).connections;
+
+// O resumo de cada conexão também cita o repositório. Estas buscas ficam na seção do projeto, onde mora o vínculo.
+const projectRegion = async () => within(await screen.findByRole('region', { name: /^Neste projeto/ }));
+const linkedRow = async () => (await (await projectRegion()).findByText('acme/app')).closest('li')!;
 
 const page = (client: EngineClient, project: SelectedProject | null) => (
   <AppProviders>
@@ -39,7 +46,7 @@ describe('Integrações · conexões', () => {
     await userEvent.click(within(form).getByRole('button', { name: 'Conectar' }));
 
     const row = (await screen.findByText('GitHub da equipe')).closest('li')!;
-    expect(within(row).getByText(/octo/)).toBeInTheDocument();
+    expect(within(row).getByText(/GitHub · octo/)).toBeInTheDocument();
     expect(within(row).getByText('Conectada')).toBeInTheDocument();
     expect(within(row).getByText(/Escopos informados: repo, read:org/)).toBeInTheDocument();
     expect(screen.queryByRole('form', { name: 'Nova conexão com GitHub' })).not.toBeInTheDocument();
@@ -72,6 +79,27 @@ describe('Integrações · conexões', () => {
     expect(await screen.findByText('Armazenamento protegido indisponível')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Conectar GitHub' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Conectar Jira Cloud' })).toBeDisabled();
+  });
+
+  it('sem cofre, mostra o que falta neste sistema, como o motor diz', async () => {
+    const hint =
+      'Instale o pacote libsecret-tools (o comando secret-tool) e um serviço de chaves, como o GNOME Keyring ou o KWallet, e reinicie o Spock Studio.';
+    const engine = fakeIntegrationEngine({ vaultAvailable: false, vaultHint: hint });
+    render(page(engine.client, null));
+
+    const notice = (await screen.findByText('Armazenamento protegido indisponível')).closest('div')!.parentElement!;
+
+    expect(notice).toHaveTextContent('não encontrou um cofre do sistema');
+    expect(notice).toHaveTextContent(hint);
+    expect(screen.queryByText(/Cofre das credenciais:/)).not.toBeInTheDocument();
+  });
+
+  it('com cofre, diz qual é, sem aviso de falta', async () => {
+    const engine = fakeIntegrationEngine();
+    render(page(engine.client, null));
+
+    expect(await screen.findByText('Cofre das credenciais: cofre do sistema.')).toBeInTheDocument();
+    expect(screen.queryByText('Armazenamento protegido indisponível')).not.toBeInTheDocument();
   });
 
   it('remover pede confirmação, diz o que acontece e só apaga depois de confirmada', async () => {
@@ -223,7 +251,7 @@ describe('Integrações · vínculo com o projeto', () => {
     await userEvent.click(within(form).getByLabelText('Pull requests'));
     await userEvent.click(within(form).getByRole('button', { name: 'Vincular' }));
 
-    const row = (await screen.findByText('acme/app')).closest('li')!;
+    const row = await linkedRow();
     expect(within(row).getByText(/Ainda não sincronizada/)).toBeInTheDocument();
     expect(screen.getByText('acme/app vinculado a este projeto. Sincronize para trazer os dados.')).toBeInTheDocument();
     expect(engine.calls.find((call) => call.method === 'integration.link')?.params).toEqual({
@@ -254,11 +282,11 @@ describe('Integrações · vínculo com o projeto', () => {
     const engine = fakeIntegrationEngine({ connections: [githubConnection] });
     engine.seed(loja.projectId);
     const { rerender } = render(page(engine.client, loja));
-    expect(await screen.findByText('acme/app')).toBeInTheDocument();
+    expect(await linkedRow()).toBeInTheDocument();
 
     rerender(page(engine.client, portal));
 
-    expect(screen.queryByText('acme/app')).not.toBeInTheDocument();
+    expect((await projectRegion()).queryByText('acme/app')).not.toBeInTheDocument();
     expect(await screen.findByText('Nenhuma conexão vinculada a este projeto.')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Neste projeto: Portal' })).toBeInTheDocument();
     expect(
@@ -270,7 +298,7 @@ describe('Integrações · vínculo com o projeto', () => {
     const engine = fakeIntegrationEngine({ connections: [githubConnection] });
     engine.seed(loja.projectId);
     render(page(engine.client, loja));
-    const row = (await screen.findByText('acme/app')).closest('li')!;
+    const row = await linkedRow();
 
     await userEvent.click(within(row).getByRole('button', { name: 'Desvincular' }));
 
@@ -302,7 +330,7 @@ describe('Integrações · avisos de sincronização', () => {
     const engine = fakeIntegrationEngine({ connections: [githubConnection] });
     engine.seed(loja.projectId);
     render(page(engine.client, loja));
-    await screen.findByText('acme/app');
+    await linkedRow();
     const listCalls = () => engine.calls.filter((call) => call.method === 'integration.list').length;
     return { engine, listCalls };
   };
@@ -334,7 +362,7 @@ describe('Integrações · avisos de sincronização', () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     expect(listCalls()).toBe(before);
-    expect(screen.getByText('acme/app')).toBeInTheDocument();
+    expect(await linkedRow()).toBeInTheDocument();
   });
 
   it('avisos de outros assuntos não relêem a lista', async () => {
@@ -351,7 +379,7 @@ describe('Integrações · avisos de sincronização', () => {
     const engine = fakeIntegrationEngine({ connections: [githubConnection] });
     engine.seed(loja.projectId);
     const { unmount } = render(page(engine.client, loja));
-    await screen.findByText('acme/app');
+    await linkedRow();
     const before = engine.calls.filter((call) => call.method === 'integration.list').length;
 
     unmount();
@@ -359,5 +387,136 @@ describe('Integrações · avisos de sincronização', () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     expect(engine.calls.filter((call) => call.method === 'integration.list').length).toBe(before);
+  });
+});
+
+describe('Integrações · o que a conexão alcança', () => {
+  const rowOf = async () => (await screen.findByText('GitHub da equipe')).closest('li')!;
+  const answerTo = (row: HTMLElement, question: string) => within(row).getByText(question).nextElementSibling!;
+  const withProject = (change: Partial<ConnectionReach['projects'][number]>): ConnectionReach[] => [
+    { ...reachFromEngine[0]!, projects: [{ ...reachFromEngine[0]!.projects[0]!, ...change }] }
+  ];
+  const ACCOUNT = 'Com qual conta o Spock Studio entra, e ela está funcionando?';
+  const PROJECTS = 'Em quais projetos esta conexão é usada, e com qual recurso?';
+  const READS = 'O que o Spock Studio lê de lá, e o que pode fazer?';
+  const CONTEXT = 'Os agentes de IA podem usar esses dados como contexto?';
+
+  it('responde as quatro perguntas com o que o motor disse', async () => {
+    const engine = fakeIntegrationEngine({ connections: [githubConnection], reach: reachFromEngine });
+    render(page(engine.client, null));
+
+    const row = await rowOf();
+    expect(answerTo(row, ACCOUNT)).toHaveTextContent('octo · Conectada');
+    expect(answerTo(row, PROJECTS)).toHaveTextContent('loja: acme/app');
+    expect(answerTo(row, READS)).toHaveTextContent('acme/app: Issues, Pull requests');
+    expect(answerTo(row, READS)).toHaveTextContent(
+      'Leitura: o Spock Studio só lê do GitHub. Não cria, altera nem apaga nada lá.'
+    );
+    expect(answerTo(row, CONTEXT)).toHaveTextContent(
+      'acme/app: Não. Nenhum item entra no índice dos agentes de engenharia, e ao assistente gerencial vão só números, datas e identificadores de itens, nunca os títulos.'
+    );
+    expect(engine.calls.some((call) => call.method === 'connection.reach')).toBe(true);
+  });
+
+  it('quando o projeto autorizou, diz o que passa a ser enviado ao provedor de IA', async () => {
+    const engine = fakeIntegrationEngine({
+      connections: [githubConnection],
+      reach: withProject({ feedsKnowledge: true })
+    });
+    render(page(engine.client, null));
+
+    const answer = answerTo(await rowOf(), CONTEXT);
+
+    expect(answer).toHaveTextContent('acme/app: Sim.');
+    expect(answer).toHaveTextContent('Os itens entram no índice dos agentes de engenharia');
+    expect(answer).toHaveTextContent('sem responsáveis');
+    expect(answer).toHaveTextContent('marcados como fonte externa');
+    expect(answer).toHaveTextContent(
+      'Títulos de itens citados em riscos também entram no que o assistente gerencial envia'
+    );
+    expect(answer).toHaveTextContent('só quando todas as fontes do projeto autorizam');
+  });
+
+  it('diz que a decisão é de cada projeto, começa em "Não" e vale para o assistente e para o índice dos agentes', async () => {
+    const engine = fakeIntegrationEngine({ connections: [githubConnection], reach: reachFromEngine });
+    render(page(engine.client, null));
+
+    const answer = answerTo(await rowOf(), CONTEXT);
+
+    expect(answer).toHaveTextContent(
+      'Vale para o assistente gerencial e para o índice de conhecimento dos agentes de engenharia'
+    );
+    expect(answer).not.toHaveTextContent('ainda não usa dado sincronizado');
+    expect(answer).toHaveTextContent('começa em "Não"');
+  });
+
+  it('conexão sem projeto diz que não há dado dela em projeto nenhum', async () => {
+    const engine = fakeIntegrationEngine({ connections: [{ ...githubConnection, projects: 0 }] });
+    render(page(engine.client, null));
+
+    const row = await rowOf();
+
+    expect(answerTo(row, PROJECTS)).toHaveTextContent('Em nenhum projeto ainda.');
+    expect(answerTo(row, CONTEXT)).toHaveTextContent('Não há dado desta conexão em nenhum projeto.');
+  });
+
+  it('projeto que não está aberto neste computador aparece sem nome inventado', async () => {
+    const engine = fakeIntegrationEngine({
+      connections: [githubConnection],
+      reach: withProject({ projectName: null })
+    });
+    render(page(engine.client, null));
+
+    expect(answerTo(await rowOf(), PROJECTS)).toHaveTextContent(
+      'Projeto que não está aberto neste computador: acme/app'
+    );
+  });
+
+  it('impacto que a tela não conhece não vira "só lê"', async () => {
+    const engine = fakeIntegrationEngine({
+      connections: [githubConnection],
+      reach: [{ ...reachFromEngine[0]!, impact: 'unknown' }]
+    });
+    render(page(engine.client, null));
+
+    const text = answerTo(await rowOf(), READS);
+
+    expect(text).toHaveTextContent('não reconhece o conector desta conexão');
+    expect(text).not.toHaveTextContent('Leitura');
+  });
+
+  it('se só o resumo falha, a central continua inteira e a conexão diz que não conseguiu mostrá-lo', async () => {
+    const engine = fakeIntegrationEngine({ connections: [githubConnection], reach: 'fails' });
+    render(page(engine.client, null));
+
+    const row = await rowOf();
+
+    expect(within(row).getByText('O resumo do que esta conexão alcança não pôde ser lido agora.')).toBeInTheDocument();
+    expect(within(row).getByRole('button', { name: 'Testar' })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('vincular um recurso aparece no resumo da conexão depois de reler', async () => {
+    const engine = fakeIntegrationEngine({ connections: [githubConnection] });
+    render(page(engine.client, loja));
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Vincular GitHub da equipe' }));
+    const form = screen.getByRole('form', { name: 'Vincular GitHub da equipe a este projeto' });
+    await userEvent.type(within(form).getByLabelText('Repositório'), 'acme/app');
+    await userEvent.click(within(form).getByRole('button', { name: 'Vincular' }));
+
+    await waitFor(() =>
+      expect(answerTo(screen.getByText('GitHub da equipe').closest('li')!, PROJECTS)).toHaveTextContent(
+        'Loja: acme/app'
+      )
+    );
+  });
+
+  it('não tem violações de acessibilidade', async () => {
+    const engine = fakeIntegrationEngine({ connections: [githubConnection], reach: reachFromEngine });
+    const { container } = render(page(engine.client, null));
+    await rowOf();
+
+    await expectNoA11yViolations(container);
   });
 });

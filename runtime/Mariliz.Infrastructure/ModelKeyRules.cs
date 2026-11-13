@@ -10,7 +10,7 @@ internal static partial class ModelKeyRules
     /// <summary>Recusa provedor fora da lista e chave fora do formato, sem nunca repetir a chave na mensagem.</summary>
     public static void Validate(string provider, string key)
     {
-        if (!string.Equals(provider, ModelGateway.Provider, StringComparison.Ordinal))
+        if (ModelProviders.Find(provider) is null)
             throw new EngineException("MODEL_PROVIDER_DENIED", "O provedor não está disponível.");
         if (string.IsNullOrWhiteSpace(key) || !IsValidKey(key))
             throw new EngineException("MODEL_KEY_REJECTED", "A chave não tem o formato esperado.");

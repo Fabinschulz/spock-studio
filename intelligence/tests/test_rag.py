@@ -26,6 +26,21 @@ class RagTests(unittest.TestCase):
             self.assertEqual(rag.search(root, PROJECT_A, "alfa mariliz"), [])
             self.assertEqual(rag.search(root, PROJECT_A, "estoque catalogo")[0]["filePath"], "docs/b.md")
 
+    def test_fonte_externa_entra_e_sai_do_indice_junto_com_a_autorizacao(self) -> None:
+        external = "@external/github/pint-000000000001/issues/42.md"
+        text = "# 42: Corrigir a cobranca\n\nFonte externa: dado de terceiros.\nSituacao: aberto\n"
+        with tempfile.TemporaryDirectory() as root:
+            rag.sync(root, PROJECT_A, [{"path": external, "hash": "c" * 64, "text": text}])
+            found = rag.search(root, PROJECT_A, "cobranca")
+            self.assertEqual(found[0]["filePath"], external)
+            self.assertTrue(found[0]["chunkId"].startswith("@external/"))
+
+            # A autorizacao foi retirada: o motor deixa de mandar a fonte e o indice a apaga.
+            revoked = rag.sync(root, PROJECT_A, [{"path": "docs/a.md", "hash": "a" * 64, "text": "texto longo o bastante"}])
+            self.assertEqual(revoked["removed"], 1)
+            self.assertEqual(rag.search(root, PROJECT_A, "cobranca"), [])
+            self.assertNotIn(external, [entry["path"] for entry in rag.manifest(root, PROJECT_A)])
+
     def test_dois_projetos_nao_compartilham_trechos(self) -> None:
         with tempfile.TemporaryDirectory() as root:
             rag.sync(root, PROJECT_A, [{"path": "docs/nota.md", "hash": "a" * 64, "text": f"O identificador {TOKEN} fica somente neste projeto."}])

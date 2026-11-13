@@ -1,5 +1,7 @@
 {
   "vaultAvailable": true,
+  "vaultName": "cofre do sistema",
+  "vaultHint": null,
   "connectors": [
     {
       "provider": "github",
@@ -26,7 +28,8 @@
           "label": "Pull requests"
         }
       ],
-      "scopesNote": "Tokens clássicos informam os escopos. Tokens de acesso refinado não informam: o alcance é o configurado no GitHub."
+      "scopesNote": "Tokens clássicos informam os escopos. Tokens de acesso refinado não informam: o alcance é o configurado no GitHub.",
+      "impact": "read"
     },
     {
       "provider": "jira",
@@ -60,7 +63,8 @@
           "label": "Issues"
         }
       ],
-      "scopesNote": "O token de API não informa escopos: o alcance é o da conta no Jira."
+      "scopesNote": "O token de API não informa escopos: o alcance é o da conta no Jira.",
+      "impact": "read"
     }
   ]
 }

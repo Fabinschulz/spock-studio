@@ -12,7 +12,7 @@ import riskHistoryFixture from '@contracts/fixtures/management/risk-history.json
 import risksFixture from '@contracts/fixtures/management/risks.json';
 
 import { EngineError, type EngineClient } from '@/shared/api';
-import type { Connection, ProjectIntegration, RunEvent, SyncExecution } from '@/shared/schema';
+import type { Connection, ConnectionReach, ProjectIntegration, RunEvent, SyncExecution } from '@/shared/schema';
 
 type Call = { method: string; params: Record<string, unknown> };
 
@@ -33,10 +33,14 @@ export function fakeIntegrationEngine(
   initial: {
     connections?: Connection[];
     vaultAvailable?: boolean;
+    /** O que falta quando não há cofre, como o motor diz neste sistema. */
+    vaultHint?: string;
     modelConfigured?: boolean;
     assistant?: AssistantReply;
     /** O provedor recusa a credencial ao testar. O motor real não falha: marca a conexão com erro. */
     testRefused?: boolean;
+    /** O resumo das conexões: o que o teste quer que o motor diga, ou `fails` para o motor não conseguir. Sem isto, é derivado do que está em memória. */
+    reach?: ConnectionReach[] | 'fails';
   } = {}
 ) {
   const calls: Call[] = [];
@@ -67,8 +71,34 @@ export function fakeIntegrationEngine(
   };
 
   const handlers: Record<string, (params: Record<string, unknown>) => unknown> = {
-    'integration.catalog': () => ({ ...catalogFixture, vaultAvailable: initial.vaultAvailable ?? true }),
+    'integration.catalog': () => ({
+      ...catalogFixture,
+      vaultAvailable: initial.vaultAvailable ?? true,
+      vaultHint: initial.vaultAvailable === false ? (initial.vaultHint ?? null) : null
+    }),
     'connection.list': () => ({ connections }),
+    'connection.reach': () => {
+      if (initial.reach === 'fails') throw new EngineError('REACH_UNAVAILABLE', 'O resumo não está disponível.');
+      if (initial.reach) return { connections: initial.reach };
+      const kindLabels: Record<string, string> = { issues: 'Issues', pullRequests: 'Pull requests' };
+      return {
+        connections: connections.map((connection) => ({
+          connectionId: connection.id,
+          impact: 'read',
+          projects: integrations
+            .filter((integration) => integration.connectionId === connection.id)
+            .map((integration) => ({
+              projectId: integration.projectId,
+              projectName: 'Loja',
+              resource: integration.scope.resource,
+              resourceName: integration.scope.resourceName,
+              dataKinds: integration.scope.dataKinds.map((id) => ({ id, label: kindLabels[id] ?? id })),
+              feedsKnowledge: integration.policy.feedsKnowledge,
+              linkedAt: integration.linkedAt
+            }))
+        }))
+      };
+    },
     'connection.create': (params) => {
       if (params.secret === 'token-recusado') {
         throw new EngineError('INTEGRATION_AUTH_FAILED', 'O provedor recusou a credencial.');

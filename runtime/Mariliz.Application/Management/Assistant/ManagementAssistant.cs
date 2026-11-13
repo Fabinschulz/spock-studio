@@ -87,7 +87,7 @@ public sealed class ManagementAssistant(
             MaxAnswerTokens,
             JsonObject: true);
 
-        var completion = await models.ChatAsync(request, ct);
+        var completion = await models.ChatAsync(request, ct, ModelPurposes.Assistant);
         var verified = AnswerVerifier.Verify(completion.Text, pack);
 
         hub.Audit.Record("management.assistant_answered", new JsonObject

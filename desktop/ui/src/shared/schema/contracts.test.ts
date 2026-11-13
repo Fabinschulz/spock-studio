@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import applyFailure from '@contracts/fixtures/golden/apply-failure.json';
 import engineeringCatalog from '@contracts/fixtures/engineering/catalog.json';
 import engineeringHarness from '@contracts/fixtures/engineering/harness.json';
+import engineeringKnowledgeExternal from '@contracts/fixtures/engineering/knowledge-external.json';
 import engineeringMcp from '@contracts/fixtures/engineering/mcp.json';
 import engineeringPolicy from '@contracts/fixtures/engineering/policy.json';
 import engineeringKnowledge from '@contracts/fixtures/engineering/knowledge.json';
@@ -17,6 +18,10 @@ import integrationCatalog from '@contracts/fixtures/integrations/catalog.json';
 import integrationConnections from '@contracts/fixtures/integrations/connections.json';
 import integrationHistory from '@contracts/fixtures/integrations/history.json';
 import integrationList from '@contracts/fixtures/integrations/integrations.json';
+import integrationReach from '@contracts/fixtures/integrations/reach.json';
+import modelConnectionError from '@contracts/fixtures/models/connection-error.json';
+import modelConnectionPurposes from '@contracts/fixtures/models/connection-purposes.json';
+import modelConnection from '@contracts/fixtures/models/connection.json';
 import assistantAnswer from '@contracts/fixtures/management/assistant-answer.json';
 import assistantEvidence from '@contracts/fixtures/management/assistant-evidence.json';
 import managementForecast from '@contracts/fixtures/management/forecast.json';
@@ -42,9 +47,11 @@ import workflowStarted from '@contracts/fixtures/valid/event.workflow.started.js
 import {
   assistantAnswerSchema,
   connectionListSchema,
+  connectionReachListSchema,
   discoverySchema,
   evidencePackSchema,
   harnessCatalogSchema,
+  modelConnectionSchema,
   mcpInventorySchema,
   agentPolicySchema,
   harnessRevisionsSchema,
@@ -449,5 +456,123 @@ describe('contrato da política dos agentes (fixture do motor)', () => {
 
   it('nenhuma regra tem texto vazio', () => {
     expect(agentPolicySchema.parse(engineeringPolicy).rules.every((rule) => rule.plain.length > 0)).toBe(true);
+  });
+});
+
+describe('contrato do cofre no catálogo de integrações (fixture do motor)', () => {
+  it('o catálogo diz se há cofre, como ele se chama e, sem cofre, o que falta', () => {
+    const parsed = integrationCatalogSchema.parse(integrationCatalog);
+    expect(parsed.vaultAvailable).toBe(true);
+    expect(parsed.vaultName.length).toBeGreaterThan(0);
+    expect(parsed.vaultHint).toBeNull();
+    expect(
+      integrationCatalogSchema.parse({
+        ...integrationCatalog,
+        vaultAvailable: false,
+        vaultHint: 'Instale o libsecret-tools.'
+      }).vaultHint
+    ).toBe('Instale o libsecret-tools.');
+  });
+});
+
+describe('contrato do resumo por conexão (fixture do motor)', () => {
+  it('cada conexão traz o impacto e os projetos que a usam, com o recorte e a política', () => {
+    const parsed = connectionReachListSchema.parse(integrationReach);
+    expect(parsed.connections.map((entry) => entry.impact)).toEqual(['read', 'read']);
+    const used = parsed.connections[0]!;
+    expect(used.projects).toHaveLength(1);
+    expect(used.projects[0]).toMatchObject({ resource: 'acme/app', feedsKnowledge: false });
+    expect(used.projects[0]!.dataKinds.map((kind) => kind.label)).toEqual(['Issues', 'Pull requests']);
+    expect(parsed.connections[1]!.projects).toEqual([]);
+  });
+
+  it('todo conector do catálogo declara o impacto e a fixture não carrega credencial nem caminho', () => {
+    expect(integrationCatalogSchema.parse(integrationCatalog).connectors.map((connector) => connector.impact)).toEqual([
+      'read',
+      'read'
+    ]);
+    expect(JSON.stringify(integrationReach)).not.toMatch(/ghp_|[A-Z]:\\|\/Users\//);
+  });
+});
+
+describe('contrato da conexão do modelo (fixtures do motor)', () => {
+  it('o estado conectado diz o provedor, o modelo, onde a chave está e quando foi conferida', () => {
+    const parsed = modelConnectionSchema.parse(modelConnection);
+    expect(parsed).toMatchObject({
+      configured: true,
+      provider: 'openai',
+      status: 'connected',
+      protection: 'file',
+      lastError: null
+    });
+    expect(parsed.model).not.toBe('');
+    expect(parsed.checkedAt).not.toBeNull();
+    expect(parsed.providerName).toBe('OpenAI');
+    expect(parsed.available.map((provider) => provider.id)).toEqual(['openai', 'anthropic']);
+    expect(parsed.available.every((provider) => provider.model.length > 0)).toBe(true);
+  });
+
+  it('o estado com erro traz o código e o motivo da recusa', () => {
+    const parsed = modelConnectionSchema.parse(modelConnectionError);
+    expect(parsed.status).toBe('error');
+    expect(parsed.lastError).toMatchObject({ code: 'MODEL_AUTH_FAILED' });
+    expect(parsed.lastError?.message).not.toBe('');
+  });
+
+  it('cada finalidade diz o modelo de hoje, e sem escolha é o padrão do provedor', () => {
+    const parsed = modelConnectionSchema.parse(modelConnection);
+    expect(parsed.purposes.map((purpose) => purpose.id)).toEqual(['assistant', 'judge', 'workflow']);
+    expect(parsed.purposes.every((purpose) => purpose.isDefault && purpose.model === parsed.model)).toBe(true);
+    expect(parsed.purposes.every((purpose) => purpose.label.length > 0 && purpose.description.length > 0)).toBe(true);
+    const offered = parsed.available.find((provider) => provider.id === parsed.provider)!;
+    expect(offered.models.map((option) => option.id)).toContain(parsed.model);
+  });
+
+  it('uma escolha aparece só na finalidade escolhida e é um modelo que o provedor oferece', () => {
+    const parsed = modelConnectionSchema.parse(modelConnectionPurposes);
+    const judge = parsed.purposes.find((purpose) => purpose.id === 'judge')!;
+    expect(judge).toMatchObject({ model: 'claude-opus-5-5', isDefault: false });
+    expect(parsed.purposes.filter((purpose) => purpose.isDefault).map((purpose) => purpose.id)).toEqual([
+      'assistant',
+      'workflow'
+    ]);
+    const offered = parsed.available.find((provider) => provider.id === parsed.provider)!;
+    expect(offered.models.map((option) => option.id)).toContain(judge.model);
+  });
+
+  it('nenhuma resposta carrega a chave', () => {
+    expect(JSON.stringify([modelConnection, modelConnectionError, modelConnectionPurposes])).not.toMatch(/sk-/);
+    expect(JSON.stringify([modelConnection, modelConnectionError])).not.toMatch(/https:/);
+  });
+});
+
+describe('contrato das fontes externas do conhecimento (fixture do motor)', () => {
+  it('cada fonte diz se está autorizada e quantos itens dela entram no índice', () => {
+    const { external } = {
+      external: projectKnowledgeSchema.shape.external.parse(engineeringKnowledgeExternal.external)
+    };
+    expect(external.map((source) => source.authorized)).toEqual([true, false]);
+    expect(external[0]).toMatchObject({
+      providerName: 'GitHub',
+      resourceName: 'acme/app',
+      items: 1,
+      documents: 1,
+      withheld: 0
+    });
+    expect(external[1]).toMatchObject({ items: 1, documents: 0 });
+    expect(new Set(external.map((source) => source.integrationId)).size).toBe(2);
+  });
+
+  it('uma fonte não autorizada nunca tem documento no índice', () => {
+    const { external } = {
+      external: projectKnowledgeSchema.shape.external.parse(engineeringKnowledgeExternal.external)
+    };
+    expect(
+      external.filter((source) => !source.authorized).every((source) => source.documents === 0 && source.indexed === 0)
+    ).toBe(true);
+  });
+
+  it('o conhecimento sem fonte externa traz a lista vazia', () => {
+    expect(projectKnowledgeSchema.parse(engineeringKnowledge).external).toEqual([]);
   });
 });

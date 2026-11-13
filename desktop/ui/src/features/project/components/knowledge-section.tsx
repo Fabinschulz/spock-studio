@@ -1,9 +1,11 @@
 import { errorMessage, type EngineClient } from '@/shared/api';
-import type { ProjectKnowledge } from '@/shared/schema';
+import { pathTo } from '@/shared/routing';
+import type { KnowledgeExternalSource, ProjectKnowledge } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router';
 
-import { PageSection, LoadingState, ErrorState, Disclosure } from '@/shared/components';
+import { PageSection, LoadingState, ErrorState, Disclosure, StatusChip } from '@/shared/components';
 import styles from '../project-page.module.scss';
 import { readKnowledge } from '../service/project-api';
 
@@ -121,6 +123,8 @@ function KnowledgeContent({ knowledge }: { knowledge: ProjectKnowledge }) {
         </ul>
       )}
 
+      <ExternalSources sources={knowledge.external} />
+
       <Disclosure
         className={styles.history}
         summary={`Arquivos que entram (${knowledge.files.length < knowledge.allowed ? `${knowledge.files.length} de ` : ''}${knowledge.allowed})`}
@@ -138,6 +142,84 @@ function KnowledgeContent({ knowledge }: { knowledge: ProjectKnowledge }) {
       </Disclosure>
     </>
   );
+}
+
+/**
+ * Os itens sincronizados de GitHub ou Jira como fonte do índice. Nascem fechados: sincronizar não autoriza alimentar o
+ * conhecimento, e a decisão é de cada vínculo, na central de integrações.
+ */
+function ExternalSources({ sources }: { sources: KnowledgeExternalSource[] }) {
+  return (
+    <>
+      <h3 className={styles.subsection}>Fontes externas (itens sincronizados)</h3>
+      {sources.length === 0 ? (
+        <p className={styles.meta}>
+          Nenhuma ferramenta vinculada a este projeto. Itens do GitHub ou do Jira só entram aqui se você vincular a
+          ferramenta em <Link to={pathTo('integrations')}>Integrações</Link> e autorizar.
+        </p>
+      ) : (
+        <>
+          <ul className={styles.rows} aria-label="Fontes externas">
+            {sources.map((source) => (
+              <li key={source.integrationId} className={styles.row}>
+                <span>
+                  <span className={styles.rowTitle}>
+                    {source.providerName} {source.resourceName}
+                  </span>
+                  <span className={styles.meta}> · {source.dataKinds.join(', ')}</span>
+                  <span className={source.authorized ? styles.meta : styles.warning}>
+                    {' · '}
+                    {externalDetail(source)}
+                  </span>
+                </span>
+                <StatusChip tone={source.authorized ? 'success' : 'neutral'}>
+                  {source.authorized ? 'Autorizada como contexto' : 'Não autorizada'}
+                </StatusChip>
+              </li>
+            ))}
+          </ul>
+          <Disclosure className={styles.history} summary="O que passa a ser enviado quando uma fonte é autorizada">
+            <ul className={styles.plainList}>
+              <li>
+                De cada item vão a chave, o título, o tipo, a situação, os rótulos, as datas, o item pai, os marcos e os
+                bloqueios.
+              </li>
+              <li>Não vão os responsáveis, descrições, comentários, endereços nem credenciais.</li>
+              <li>
+                Quando um agente recupera um trecho, ele chega ao provedor de IA marcado como fonte externa, dentro do
+                bloco de conteúdo, e o motor tira do texto qualquer linha com formato de segredo antes de enviar. Um
+                item com possível segredo no título nem entra no índice.
+              </li>
+              <li>
+                O título é escrito por terceiros: o agente é instruído a tratá-lo só como fato, e isso reduz o risco,
+                mas nenhuma instrução o elimina.
+              </li>
+              <li>Retirar a autorização apaga os itens do índice na próxima execução, que deixa de enviá-los.</li>
+            </ul>
+          </Disclosure>
+        </>
+      )}
+    </>
+  );
+}
+
+/** O que a fonte faz hoje: sem autorização nada vai; com ela, quantos itens entram e como está cada um no índice. */
+function externalDetail(source: KnowledgeExternalSource): string {
+  if (!source.authorized) {
+    return `${count(source.items, 'item sincronizado', 'itens sincronizados')}, nenhum entra no índice nem vai ao provedor de IA. A decisão é do vínculo, em Integrações.`;
+  }
+  const parts = [
+    `${source.documents} de ${count(source.items, 'item', 'itens')} entram no índice`,
+    count(source.indexed, 'indexado', 'indexados'),
+    count(source.outdated, 'mudou desde a indexação', 'mudaram desde a indexação'),
+    count(source.pending, 'ainda não indexado', 'ainda não indexados')
+  ];
+  if (source.withheld > 0) {
+    parts.push(
+      `${count(source.withheld, 'ficou de fora', 'ficaram de fora')} (acima do limite ou com possível segredo no texto)`
+    );
+  }
+  return `${parts.join(', ')}.`;
 }
 
 function count(value: number, one: string, many: string): string {
