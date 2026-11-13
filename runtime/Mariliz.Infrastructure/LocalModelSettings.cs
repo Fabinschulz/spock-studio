@@ -12,7 +12,10 @@ namespace Mariliz.Infrastructure;
 /// atual; no macOS, o Chaveiro; no Linux, o serviço de segredos) e não mais em texto puro.
 ///
 /// Onde não há cofre (um Linux sem serviço de chaves, por exemplo), a chave continua em <c>{dataRoot}/model.json</c>, como
-/// antes: recusar guardá-la quebraria quem já usa, e a central de integrações diz o que falta no sistema.
+/// antes: recusar guardá-la quebraria quem já usa, e a central de integrações diz o que falta no sistema. É decisão do dono do
+/// produto (2026-11-13), com as duas mitigações já feitas: o arquivo nasce legível só pelo dono (0600 no Linux e no macOS) e a
+/// tela de Configurações diz que a chave está "sem a proteção do sistema". As conexões de integração, ao contrário, recusam
+/// guardar sem cofre. Mudar isso (recusar, ou pedir confirmação na tela) é uma onda própria, com contrato, tela e testes.
 ///
 /// Quem já tinha uma chave em <c>model.json</c> é migrado sozinho, na primeira leitura. O arquivo antigo só some depois de
 /// o cofre devolver exatamente a mesma chave: perder a chave não é um custo aceitável, e qualquer falha do cofre deixa o

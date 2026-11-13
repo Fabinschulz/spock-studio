@@ -127,7 +127,7 @@ public static class ForecastCalculator
         var mean = history.Average();
         var deviation = Math.Sqrt(history.Average(count => Math.Pow(count - mean, 2)));
         if (mean > 0 && deviation / mean > 1.0) reasons.Add("O número de entregas varia muito de uma semana para outra.");
-        if (ScopeGrowing(created.Sum(), history.Sum())) reasons.Add("Chegaram mais itens do que saíram no período: o escopo está crescendo.");
+        if (TrendRules.ScopeGrowing(created.Sum(), history.Sum(), TrendRules.ScopeWatchRatio)) reasons.Add("Chegaram mais itens do que saíram no período: o escopo está crescendo.");
         if (!sourcesComplete) reasons.Add("Ao menos uma fonte teve a última sincronização incompleta.");
 
         var level = Math.Max(0, (int)ForecastConfidence.High - reasons.Count);
@@ -139,18 +139,15 @@ public static class ForecastCalculator
         var factors = new List<string>();
         var arrivals = created.Sum();
         var deliveries = history.Sum();
-        if (ScopeGrowing(arrivals, deliveries))
+        if (TrendRules.ScopeGrowing(arrivals, deliveries, TrendRules.ScopeWatchRatio))
             factors.Add($"Nas últimas {history.Length} semanas chegaram {arrivals} itens e saíram {deliveries}; se continuar assim, a data se afasta.");
         var half = history.Length / 2;
         var before = history.Take(half).Sum();
         var after = history.Skip(history.Length - half).Sum();
-        if (half > 0 && before >= 4 && after * 2 <= before)
+        if (half > 0 && TrendRules.ThroughputDropped(before, after))
             factors.Add($"O ritmo caiu: {before} entregas na primeira metade do histórico e {after} na segunda.");
         return factors;
     }
-
-    /// <summary>Chegadas ao menos 20% acima das entregas e com 3 itens de diferença: abaixo disso é oscilação normal.</summary>
-    private static bool ScopeGrowing(int arrivals, int deliveries) => arrivals - deliveries >= 3 && arrivals >= deliveries * 1.2;
 
     private static DeliveryForecast Unavailable(string kind, int remaining, int historyWeeks, int[] history, string reason) =>
         new(kind, remaining, historyWeeks, history, 0, [], null, [], [], reason);

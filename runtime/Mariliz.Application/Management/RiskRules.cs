@@ -110,7 +110,7 @@ public static class RiskRules
     {
         var created = WeeklyHistory.Created(items, now, CompareWeeks).Sum();
         var delivered = WeeklyHistory.Delivered(items, now, CompareWeeks).Sum();
-        if (created - delivered < 3 || created < delivered * 1.5) return null;
+        if (!TrendRules.ScopeGrowing(created, delivered, TrendRules.ScopeRiskRatio)) return null;
         return new ProjectRisk(
             $"scope-growth:{kind}",
             "Escopo crescendo mais rápido do que as entregas",
@@ -128,7 +128,7 @@ public static class RiskRules
         var history = WeeklyHistory.Delivered(items, now, CompareWeeks * 2);
         var before = history.Take(CompareWeeks).Sum();
         var after = history.Skip(CompareWeeks).Sum();
-        if (before < 4 || after * 2 > before) return null;
+        if (!TrendRules.ThroughputDropped(before, after)) return null;
         return new ProjectRisk(
             $"throughput-drop:{kind}",
             "Queda no ritmo de entrega",
