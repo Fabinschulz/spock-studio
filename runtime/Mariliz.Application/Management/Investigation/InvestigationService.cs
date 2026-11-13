@@ -61,6 +61,12 @@ public sealed partial class InvestigationService(
     private const int MaxRetrieved = 24;
     private static readonly string[] StepIds = ["frame", "gather", "hypothesize", "decide", "retrieve", "conclude"];
 
+    /// <summary>
+    /// O tempo que o runtime de IA recebe. Termina antes do <see cref="Deadline"/> de propósito: o runtime conclui com a limitação de
+    /// tempo (e a resposta que já tem), em vez de o motor cortar a conversa. O host espera ainda mais (engine.rs).
+    /// </summary>
+    public const int RuntimeBudgetMilliseconds = 120_000;
+
     /// <summary>Prazo da conversa com o runtime: até quatro chamadas de modelo, cada uma com o seu prazo.</summary>
     internal TimeSpan Deadline { get; init; } = TimeSpan.FromSeconds(150);
 
@@ -273,7 +279,7 @@ public sealed partial class InvestigationService(
             ["text"] = fact.Text
         }).ToArray()),
         ["policy"] = new JsonObject { ["modelAllowed"] = false },
-        ["limits"] = new JsonObject { ["maxIterations"] = 12, ["maxMilliseconds"] = 150_000, ["maxTokens"] = 0 }
+        ["limits"] = new JsonObject { ["maxIterations"] = 12, ["maxMilliseconds"] = RuntimeBudgetMilliseconds, ["maxTokens"] = 0 }
     };
 
     /// <summary>

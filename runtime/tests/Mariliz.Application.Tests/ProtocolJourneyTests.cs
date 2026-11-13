@@ -72,7 +72,7 @@ public class ProtocolJourneyTests
         var authorizer = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
         var store = new FileRunStore(project.DataDir);
         var configure = new ConfigureProjectService(authorizer, new TestFilesFactory(), new SystemProcessRunner(), store, new SystemClock(), tracker);
-        var session = new EngineSession("test", workspace: authorizer, configure: configure, relay: relay, tracker: tracker, runs: new RunQueries(tracker, store));
+        var session = new EngineSession("test", workspace: authorizer, configure: configure, relay: relay, tracker: tracker, runs: new RunQueries(tracker, store, new RunCatalog(store, authorizer, tracker)));
         wire.Running = Task.Run(() => session.RunAsync(wire.Input, wire.Output, CancellationToken.None));
         return wire;
     }
@@ -170,7 +170,7 @@ public class ProtocolJourneyTests
         var authorizer = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
         var store = new FileRunStore(project.DataDir);
         var configure = new ConfigureProjectService(authorizer, new TestFilesFactory(), runner, store, new SystemClock(), tracker);
-        var session = new EngineSession("test", workspace: authorizer, configure: configure, relay: relay, tracker: tracker, runs: new RunQueries(tracker, store));
+        var session = new EngineSession("test", workspace: authorizer, configure: configure, relay: relay, tracker: tracker, runs: new RunQueries(tracker, store, new RunCatalog(store, authorizer, tracker)));
         wire.Running = Task.Run(() => session.RunAsync(wire.Input, wire.Output, CancellationToken.None));
 
         var projectId = wire.Request("workspace.authorize", new JsonObject { ["path"] = project.Root })["result"]!["projectId"]!.GetValue<string>();

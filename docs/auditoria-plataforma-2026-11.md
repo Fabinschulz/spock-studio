@@ -140,7 +140,16 @@ Ordem: 7a primeiro (são defeitos, não estilo). 7c antes de 7d (muda o dispatch
 
 ## 7. Andamento
 
-| Onda | Estado |
-|---|---|
-| 7a | Em andamento |
-| 7b–7g | Não iniciadas |
+| Onda | Itens | Estado |
+|---|---|---|
+| 7a | CT-N1, PY-N1, NET-M11, NET-M1 (parcial), NET-E4 + RS-N1, NET-E14 | Neste PR |
+| 7b–7g | — | Não iniciadas |
+
+**Decisões de escopo da 7a**
+- CT-N1: quando a volta pede grupos e busca juntos e só cabe uma rodada, a investigação **para** e registra `INVESTIGATION_STOPPED` (em vez de escolher um dos dois pedidos). Teste compara o ack com os `maximum` do schema. O `Math.Clamp` do .NET em `InvestigationService` continua (defesa na borda, NET-M2 trata do ack tipado).
+- PY-N1: `sqlite3.Error` e `OSError` viram `KnowledgeError` em `_session` e `_prepare_for_write`. **Não feito:** recriar o índice corrompido (ele é reconstruível). Hoje um índice corrompido degrada para a limitação "memória indisponível" em todo run do projeto até ser apagado.
+- NET-M11: gravidade desconhecida fica abaixo da escala (`-1`) e o texto do registro é mostrado como veio. Não virou enum (NET-E13 segue aberto).
+- NET-M1: só transparência (o aviso "N fatos ficaram de fora por passarem do limite" entra em `withheld`). **Não feito:** priorizar riscos antes de marcos quando o corte acontece; `Withheld.Skip(1)` segue.
+- NET-E4 + RS-N1: hierarquia **120 s (runtime de IA, `RuntimeBudgetMilliseconds`) < 150 s (prazo do motor) < 180 s (host, só `management.investigate`)**. O transporte do modelo deixa de ter prazo próprio (o `ModelGateway` já põe um em cada operação). Os outros métodos seguem com 120 s no host.
+- NET-E14: `RunQueries` exige o `RunCatalog`; a checagem de autorização não é mais opcional. Três testes passaram a construir o catálogo.
+- Gates da onda: .NET 1066 passam (11 ignorados), 0 avisos; Rust fmt/clippy limpos e 24 testes; Python 169 testes e ruff limpo. UI não foi tocada.

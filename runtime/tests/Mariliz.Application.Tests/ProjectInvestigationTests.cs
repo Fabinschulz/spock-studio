@@ -268,6 +268,9 @@ public class ProjectInvestigationTests
         Assert.Equal(Question, seen["question"]!.GetValue<string>());
         Assert.True(seen["policy"]!["modelAllowed"]!.GetValue<bool>());
         Assert.Equal(InvestigationService.TokenBudget, seen["limits"]!["maxTokens"]!.GetValue<int>());
+        // O runtime de IA termina por tempo antes de o motor cortar a conversa (e o host espera mais que o motor).
+        Assert.Equal(InvestigationService.RuntimeBudgetMilliseconds, seen["limits"]!["maxMilliseconds"]!.GetValue<int>());
+        Assert.True(TimeSpan.FromMilliseconds(InvestigationService.RuntimeBudgetMilliseconds) < s.Service.Deadline);
         Assert.Equal("http://127.0.0.1:49152/v1/model", seen["broker"]!["url"]!.GetValue<string>());
         Assert.Equal(s.Models.Opened, s.Models.Closed);
         Assert.Equal(seen["executionId"]!.GetValue<string>(), Assert.Single(s.Models.Closed));

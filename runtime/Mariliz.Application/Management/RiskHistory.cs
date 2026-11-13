@@ -71,7 +71,13 @@ public static class RiskHistoryBuilder
         "Cada registro é feito quando uma sincronização termina com todas as fontes completas, e só se grava um novo quando algo "
         + "mudou. O que aconteceu antes do primeiro registro, ou entre sincronizações, não é conhecido.";
 
-    private static readonly Dictionary<string, int> Rank = new(StringComparer.Ordinal) { ["low"] = 0, ["medium"] = 1, ["high"] = 2 };
+    private static readonly Dictionary<string, int> Ranks = new(StringComparer.Ordinal) { ["low"] = 0, ["medium"] = 1, ["high"] = 2 };
+
+    /// <summary>
+    /// Posição na escala de gravidade. O registro vem do disco: uma gravidade que o motor não conhece (arquivo antigo ou editado)
+    /// fica abaixo da escala, em vez de derrubar o histórico inteiro.
+    /// </summary>
+    private static int Rank(string severity) => Ranks.GetValueOrDefault(severity, -1);
 
     /// <summary>O estado atual das regras como um registro, para comparar com o último e guardar.</summary>
     public static IReadOnlyList<RiskSnapshotEntry> Entries(IEnumerable<ProjectRisk> risks) =>
@@ -109,7 +115,7 @@ public static class RiskHistoryBuilder
 
         var sorted = trails
             .OrderByDescending(trail => trail.Active)
-            .ThenByDescending(trail => trail.Active ? Rank[trail.CurrentSeverity!] : -1)
+            .ThenByDescending(trail => trail.Active ? Rank(trail.CurrentSeverity!) : -1)
             .ThenByDescending(trail => trail.ResolvedAt)
             .ThenBy(trail => trail.Id, StringComparer.Ordinal)
             .ToList();
@@ -143,7 +149,7 @@ public static class RiskHistoryBuilder
                 }
                 else if (current.Severity != previous.Severity)
                 {
-                    changes.Add(new RiskChange(snapshot.At, Rank[current.Severity] > Rank[previous.Severity] ? RiskChangeKinds.Raised : RiskChangeKinds.Lowered,
+                    changes.Add(new RiskChange(snapshot.At, Rank(current.Severity) > Rank(previous.Severity) ? RiskChangeKinds.Raised : RiskChangeKinds.Lowered,
                         previous.Severity, current.Severity, current.Items.Except(previous.Items).ToList(), previous.Items.Except(current.Items).ToList()));
                 }
                 else if (!current.Items.SequenceEqual(previous.Items, StringComparer.Ordinal))

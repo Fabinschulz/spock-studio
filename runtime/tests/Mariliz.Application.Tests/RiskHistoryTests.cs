@@ -73,6 +73,21 @@ public class RiskHistoryTests
     }
 
     [Fact]
+    public void Gravidade_desconhecida_de_um_registro_antigo_ou_editado_nao_derruba_o_historico()
+    {
+        var history = RiskHistoryBuilder.Build("p-000000000001", At(9),
+        [
+            Snapshot(0, Risk("A", "high"), Risk("B", "low")),
+            Snapshot(1, Risk("A", "critical"), Risk("B", "low"))   // "critical" não existe na escala do motor
+        ]);
+
+        var a = history.Trails.Single(trail => trail.Id == "A");
+        Assert.Equal(["B", "A"], history.Trails.Select(trail => trail.Id));   // sem posição na escala, A fica depois de B ("low")
+        Assert.Equal("critical", a.CurrentSeverity);                          // o texto do registro é mostrado como veio
+        Assert.Equal(("high", "critical"), (a.Changes[1].From, a.Changes[1].To));
+    }
+
+    [Fact]
     public void Ativos_vem_primeiro_do_mais_grave_ao_mais_leve_e_resolvidos_depois_do_mais_recente()
     {
         var history = RiskHistoryBuilder.Build("p-000000000001", At(9),

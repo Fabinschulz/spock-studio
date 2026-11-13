@@ -654,7 +654,7 @@ public class WorkflowRuntimeTests
             authorizer, new TestFilesFactory(), runner, store, new SystemClock(), tracker);
         var workflows = new WorkflowService(authorizer, runtime, tracker, new SystemClock(), store,
             new WorkflowContextBuilder(authorizer, runtime, new TestFilesFactory(), runner, project.DataDir));
-        var session = new EngineSession("test", workspace: authorizer, configure: configure, relay: relay, tracker: tracker, workflows: workflows, runs: new RunQueries(tracker, store));
+        var session = new EngineSession("test", workspace: authorizer, configure: configure, relay: relay, tracker: tracker, workflows: workflows, runs: new RunQueries(tracker, store, new RunCatalog(store, authorizer, tracker)));
         wire.Running = Task.Run(() => session.RunAsync(wire.Input, wire.Output, CancellationToken.None));
         return wire;
     }

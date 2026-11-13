@@ -65,14 +65,17 @@ public class PortfolioAssistantTests
         public string B { get; private set; } = "";
         public ProjectIntegration IntegrationB { get; private set; } = null!;
 
-        public Setup(bool configured = true)
+        public Setup(bool configured = true, int? factsPerProject = null)
         {
             Harness.Clock.UtcNow = Now;
             var management = new ManagementService(Harness.Workspace, Harness.Hub, Harness.Clock);
             Store = new FileRunStore(Harness.DataDir);
             var gateway = new ModelGateway(new Settings(configured), new NoTransport(), chat: Chat);
             var assistant = new ManagementAssistant(management, Harness.Hub, Harness.Workspace, gateway, Harness.Clock, Store);
-            Portfolio = new PortfolioAssistant(assistant, Harness.Workspace, gateway, Harness.Hub, Harness.Clock);
+            Portfolio = new PortfolioAssistant(assistant, Harness.Workspace, gateway, Harness.Hub, Harness.Clock)
+            {
+                FactsPerProject = factsPerProject ?? PortfolioAssistant.MaxFactsPerProject
+            };
             Session = new EngineSession("test", integrations: Harness.Hub, management: management, assistant: assistant, portfolioAssistant: Portfolio);
         }
 
@@ -159,6 +162,33 @@ public class PortfolioAssistantTests
         Assert.StartsWith($"Projeto {a}: ", facts[$"{a}.name"].Text);
         Assert.Equal(evidence.Projects.Sum(project => project.Facts) + 1, evidence.Facts.Count);
         Assert.Equal(evidence.Facts.Count, evidence.Facts.Select(fact => fact.Id).Distinct().Count());
+    }
+
+    [Fact]
+    public async Task Fato_cortado_pelo_limite_por_projeto_aparece_nos_avisos_em_vez_de_sumir_em_silencio()
+    {
+        using var s = new Setup(factsPerProject: 5);
+        await s.SeedAsync();
+
+        var evidence = s.Portfolio.Evidence(null);
+
+        Assert.All(evidence.Projects, project => Assert.Equal(5, project.Facts));
+        foreach (var project in evidence.Projects)
+        {
+            var line = Assert.Single(evidence.Withheld, item => item.StartsWith(project.Name + ": ", StringComparison.Ordinal) && item.Contains("ficaram de fora por passarem do limite de 5", StringComparison.Ordinal));
+            Assert.Matches(@": \d+ fatos ficaram de fora", line);
+        }
+    }
+
+    [Fact]
+    public async Task Dentro_do_limite_por_projeto_nenhum_aviso_de_corte_aparece()
+    {
+        using var s = new Setup();
+        await s.SeedAsync();
+
+        var evidence = s.Portfolio.Evidence(null);
+
+        Assert.DoesNotContain(evidence.Withheld, line => line.Contains("passarem do limite", StringComparison.Ordinal));
     }
 
     [Fact]

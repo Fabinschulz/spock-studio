@@ -38,6 +38,9 @@ public sealed class PortfolioAssistant(
     public const int MaxFactsPerProject = 40;
     public const int MaxAnswerTokens = 1500;
 
+    /// <summary>Quantos fatos cada projeto manda. Só os testes mudam o valor.</summary>
+    internal int FactsPerProject { get; init; } = MaxFactsPerProject;
+
     private const string Instructions = """
         Você é o assistente gerencial do Spock Studio e responde sobre vários projetos ao mesmo tempo. Responda em português do Brasil, com frases curtas e diretas.
         Os fatos vêm separados por projeto (p1, p2...), cada um com um id entre colchetes. Use SOMENTE esses fatos. Não use conhecimento externo.
@@ -74,6 +77,7 @@ public sealed class PortfolioAssistant(
             var pack = assistant.Evidence(project.ProjectId);
             var name = Clean(project.DisplayName);
             var own = new List<EvidenceFact> { new($"{alias}.name", "projeto", $"Projeto {alias}: {name}.") };
+            var dropped = 0;
             foreach (var fact in pack.Facts)
             {
                 // A data de hoje é a mesma para todos: entra uma vez.
@@ -82,13 +86,19 @@ public sealed class PortfolioAssistant(
                     if (facts.All(item => item.Id != "today")) facts.Add(fact);
                     continue;
                 }
-                if (own.Count >= MaxFactsPerProject) break;
+                if (own.Count >= FactsPerProject)
+                {
+                    dropped++;
+                    continue;
+                }
                 own.Add(fact with { Id = $"{alias}.{fact.Id}" });
             }
             facts.AddRange(own);
             projects.Add(new PortfolioEvidenceProject(alias, project.ProjectId, name, own.Count));
             // O primeiro aviso é geral; os seguintes dizem o que a política DESTE projeto deixou de fora.
             withheld.AddRange(pack.Withheld.Skip(1).Select(line => $"{name}: {line}"));
+            if (dropped > 0)
+                withheld.Add($"{name}: {dropped} fatos ficaram de fora por passarem do limite de {FactsPerProject} fatos por projeto.");
         }
         if ((projectIds is null || projectIds.Count == 0) && open.Count > MaxProjects)
             withheld.Add($"Só os {MaxProjects} primeiros projetos entram: escolha quais, se quiser outros.");
