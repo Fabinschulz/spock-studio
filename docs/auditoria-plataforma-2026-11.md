@@ -219,8 +219,8 @@ Ondas 7a–7g entregues (#57, #60, #61, #62, #63 e a 7g). O que sobra, por quem 
 
 | Dono | Item | Por que está parado |
 |---|---|---|
-| Dono do produto | NET-E5: manter ou não o fallback de chave do modelo em texto puro | decisão de produto; só a permissão do arquivo foi tratada |
-| Dono do produto | NET-M8: limiar canônico de risco e previsão (20% × 50%) | muda os números que a tela mostra |
+| ~~Dono do produto~~ | ~~NET-E5: manter ou não o fallback de chave do modelo em texto puro~~ | **Decidido (2026-11-13): manter o fallback**, com permissão 0600 e o aviso da tela. Registrado em `LocalModelSettings` |
+| ~~Dono do produto~~ | ~~NET-M8: limiar canônico de risco e previsão (20% × 50%)~~ | **Decidido (2026-11-13): dois níveis nomeados.** 20% é atenção (previsão), 50% é risco (lista); constantes e fórmulas em `TrendRules`; nenhum número da tela mudou |
 | Dono do produto | NET-M10 / UI-N10: remover `model.complete` | superfície sem uso, mas é contrato |
 | Dono do produto | `PortfolioAssistant` grava o mesmo `ModelUsage` em cada projeto | parece defeito de contabilidade; decidir como dividir o uso |
 | Dono do produto | PY-N4, UI-N11/N12: papel dos grupos de fatos, `counted`, Markdown do relatório | mudam o contrato entre componentes |
@@ -228,3 +228,7 @@ Ondas 7a–7g entregues (#57, #60, #61, #62, #63 e a 7g). O que sobra, por quem 
 | Desenho à parte | os outros 7 hooks de leitura da UI (UI-N1), UI-N2/N3/N5/N6/N7 | semântica própria; cada um pede desenho |
 | Desenho à parte | NET-E6 (`IntegrationHub`), NET-M12, NET-E9, NET-E8, NET-E16, PY-N2 | refatorações de risco médio sem defeito em aberto |
 | CI com orçamento | SC-N1 (toolchain fixo, ordem dos jobs, Python no Windows) | não dá para validar sem rodar a CI |
+
+### Decisões do dono tomadas depois do fechamento (2026-11-13)
+- **NET-E5 — manter o fallback de chave sem cofre.** Nada mudou no comportamento: `model.json` com permissão 0600 (onda 7b) e o aviso "sem a proteção do sistema" que a tela já mostrava. A decisão ficou escrita no comentário de `LocalModelSettings`. Recusar sem cofre, ou pedir confirmação na tela, seguem possíveis como uma onda própria (contrato, tela e testes).
+- **NET-M8 — dois níveis nomeados, de propósito.** O nível de atenção (chegadas 20% acima das entregas, janela de 6 a 12 semanas) baixa a confiança da previsão e lista o fator em "Fatores que podem atrasar"; o nível de risco (50%, últimas 4 semanas) é o que entra na lista de riscos. `TrendRules` guarda as constantes e as duas fórmulas (`ScopeGrowing`, `ThroughputDropped`) que a previsão e `RiskRules` antes escreviam cada uma por conta própria; a queda de ritmo é a mesma conta nos dois lugares (só a janela muda). **Nenhum número da tela mudou.** Dois testes novos de fronteira e um de caracterização (a previsão avisa com +25% e a lista de riscos fica quieta) travam o comportamento. O texto da tela já separava os dois conceitos ("Fatores que podem atrasar" × "Riscos"), então nenhum texto foi alterado; `riskFactors` é nome de campo do contrato e ficou.

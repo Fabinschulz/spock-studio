@@ -171,6 +171,44 @@ public class DeliveryIntelligenceTests
     }
 
     [Fact]
+    public void Escopo_crescendo_tem_dois_niveis_de_proposito_a_previsao_avisa_antes_e_a_lista_de_riscos_so_quando_e_forte()
+    {
+        // 12 semanas: 24 entregas e 30 chegadas (+25%): passa do nível de atenção da previsão (20%), mas não do de risco (50%).
+        // As 6 chegadas a mais são de 5 a 6 semanas atrás, fora das últimas 4 semanas que a regra de risco compara.
+        var items = History(Enumerable.Repeat(2, 12).ToArray(), open: 10);
+        for (var n = 0; n < 6; n++) items.Add(Item($"novo{n}", StatusCategories.Todo, Now.AddDays(-35 - n)));
+
+        var forecast = ForecastCalculator.Compute(DataKinds.Issues, items, Now, sourcesComplete: true);
+        var risks = RiskRules.Evaluate(ByKind(items), Now);
+
+        Assert.Contains(forecast.RiskFactors, factor => factor.Contains("chegaram 30 itens e saíram 24"));
+        Assert.Contains("Chegaram mais itens do que saíram no período: o escopo está crescendo.", forecast.ConfidenceReasons);
+        Assert.DoesNotContain(risks, risk => risk.Id.StartsWith("scope-growth", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData(12, 10, false, false)]   // diferença de 2 itens: oscilação normal nos dois níveis
+    [InlineData(13, 10, true, false)]    // +30%: atenção, ainda não é risco
+    [InlineData(14, 10, true, false)]    // +40%
+    [InlineData(15, 10, true, true)]     // +50%: risco
+    [InlineData(5, 0, true, true)]       // nada entregue e chegando itens: os dois níveis
+    [InlineData(2, 0, false, false)]     // pouco demais para dizer alguma coisa
+    public void Os_dois_niveis_de_escopo_crescendo_ficam_num_lugar_so(int arrivals, int deliveries, bool watch, bool risk)
+    {
+        Assert.Equal(watch, TrendRules.ScopeGrowing(arrivals, deliveries, TrendRules.ScopeWatchRatio));
+        Assert.Equal(risk, TrendRules.ScopeGrowing(arrivals, deliveries, TrendRules.ScopeRiskRatio));
+        Assert.True(TrendRules.ScopeWatchRatio < TrendRules.ScopeRiskRatio);
+    }
+
+    [Theory]
+    [InlineData(4, 2, true)]    // exatamente a metade
+    [InlineData(8, 4, true)]
+    [InlineData(4, 3, false)]
+    [InlineData(3, 0, false)]   // antes poucas entregas: não há de onde cair
+    public void Queda_de_ritmo_e_a_metade_ou_menos_com_ao_menos_quatro_entregas_antes(int before, int after, bool dropped) =>
+        Assert.Equal(dropped, TrendRules.ThroughputDropped(before, after));
+
+    [Fact]
     public void Dados_saudaveis_nao_geram_risco()
     {
         var items = History(Enumerable.Repeat(2, 8).ToArray(), open: 3);
