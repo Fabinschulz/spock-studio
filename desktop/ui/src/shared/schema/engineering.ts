@@ -118,5 +118,83 @@ export const harnessRevisionsSchema = z.object({
   revisions: z.array(harnessRevisionSchema)
 });
 
+/** Uma ferramenta que o agente pode usar, com o que isso quer dizer em palavras simples. */
+export const harnessToolSchema = z.object({ name: z.string(), plain: z.string() });
+
+/** A ficha de um componente do Harness: o que faz, quando age, o que lê, o que pode alterar e de onde veio. */
+export const componentSheetSchema = z.object({
+  id: z.string(),
+  kind: z.string(),
+  title: z.string(),
+  version: z.string(),
+  whatItDoes: z.string(),
+  whenItActs: z.string(),
+  reads: z.array(z.string()),
+  canChange: z.array(z.string()),
+  /** Só agentes: as ferramentas que o próprio arquivo do agente declara. */
+  tools: z.array(harnessToolSchema),
+  origin: z.string(),
+  files: z.array(z.string()),
+  manageable: z.boolean()
+});
+
+/**
+ * Um componente do catálogo num projeto. `presence`: applied, excluded ou not_applied (nulo sem projeto). `state` é o estado do
+ * pior dos arquivos e só existe se o componente está no lock; num excluído, quer dizer que os arquivos ainda estão lá.
+ */
+export const catalogEntrySchema = z.object({
+  sheet: componentSheetSchema,
+  presence: z.string().nullable(),
+  state: z.string().nullable()
+});
+
+/** O catálogo do Harness (`engineering.catalog`), com ou sem projeto. */
+export const harnessCatalogSchema = z.object({
+  projectId: z.string().nullable(),
+  applied: z.boolean().nullable(),
+  entries: z.array(catalogEntrySchema)
+});
+
+/** Uma variável de ambiente do servidor. `referenced`: o valor vem do ambiente (`${NOME}`), não está escrito no arquivo. */
+export const mcpEnvVarSchema = z.object({ name: z.string(), referenced: z.boolean() });
+
+/** Onde há uma credencial escrita no arquivo (`env.NOME`, `args[2]`, `headers.NOME`, `url`). O valor nunca vem do motor. */
+export const mcpLiteralSecretSchema = z.object({ where: z.string(), why: z.string() });
+
+/** Um servidor MCP do `.mcp.json`. `runs`: o programa (stdio) ou só o servidor (http e sse). */
+export const mcpServerSchema = z.object({
+  name: z.string(),
+  transport: z.string(),
+  runs: z.string(),
+  env: z.array(mcpEnvVarSchema),
+  literalSecrets: z.array(mcpLiteralSecretSchema)
+});
+
+/** O inventário de MCP de um projeto (`engineering.mcp`). `readable` é falso se o `.mcp.json` existe mas não é um JSON válido. */
+export const mcpInventorySchema = z.object({
+  projectId: z.string(),
+  present: z.boolean(),
+  readable: z.boolean(),
+  servers: z.array(mcpServerSchema)
+});
+
+/** Uma regra do hook de política, em palavras simples. `decision`: deny (bloqueia), ask (pergunta antes) ou allow (libera uma exceção). */
+export const policyRuleSchema = z.object({ decision: z.string(), scope: z.string(), plain: z.string() });
+
+/** A política dos agentes (`engineering.policy`): as regras vêm do script do hook, o texto é em português simples. */
+export const agentPolicySchema = z.object({
+  script: z.string(),
+  watches: z.array(z.string()),
+  rules: z.array(policyRuleSchema),
+  limits: z.array(z.string())
+});
+
+export type AgentPolicy = z.infer<typeof agentPolicySchema>;
+export type PolicyRule = z.infer<typeof policyRuleSchema>;
+export type McpServer = z.infer<typeof mcpServerSchema>;
+export type McpInventory = z.infer<typeof mcpInventorySchema>;
+export type ComponentSheet = z.infer<typeof componentSheetSchema>;
+export type CatalogEntry = z.infer<typeof catalogEntrySchema>;
+export type HarnessCatalog = z.infer<typeof harnessCatalogSchema>;
 export type HarnessRevision = z.infer<typeof harnessRevisionSchema>;
 export type HarnessRevisions = z.infer<typeof harnessRevisionsSchema>;

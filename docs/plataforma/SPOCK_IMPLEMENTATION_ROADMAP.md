@@ -503,6 +503,62 @@ Entrega 5 da ordem aprovada.
   fora do arquivo que é gravado no projeto.
 - **Pronto quando:** uma pessoa que nunca abriu `.claude/` consegue dizer o que cada componente faz no projeto dela.
 
+**Estado da fase E (2026-11-12).** Três entregas na branch `feat/fase-e-catalogo` (criada da `master`): a **ficha por
+componente** com a tela **Catálogo** (96eb622), o **inventário de MCP com alerta de segredo literal** (57d4513) e a
+**política dos agentes em linguagem simples** (ainda sem commit). Com isso a tabela da fase está inteira: a tela Harness
+com Estado e Revisões e a tela Conhecimento separada já tinham sido entregues na fase B.
+
+| Feito | Observação |
+| --- | --- |
+| Ficha por componente | Para cada um dos 11 componentes do catálogo: **o que faz**, **quando age**, **o que lê**, **o que pode alterar**, **de onde veio** e **onde fica no projeto**, em português simples. Os textos moram em `Assets/catalog/components.json`, embutido no motor mas **fora dos arquivos que vão para o projeto**: mudar uma ficha não muda o hash do Harness aplicado de ninguém (um teste confere que nenhum texto de ficha aparece em nenhum arquivo de um projeto com o Harness aplicado) |
+| Ferramentas do agente | Lidas do cabeçalho do próprio arquivo do agente (`tools: Read, Grep, ...`), cada uma com o que quer dizer ("ler arquivos", "rodar comandos no terminal"). Não são digitadas na ficha, então não envelhecem quando o agente muda |
+| A ficha presa à realidade | Os testes impedem a ficha de mentir: todo componente do catálogo tem ficha e vice-versa; nenhum campo vazio nem travessão; o que a ficha diz que o agente altera confere com as ferramentas que ele declara (sem `Write` a ficha tem de dizer "Nada"; com `Write`, "Escreve um único arquivo"); "adaptado de" só aparece quando o próprio ativo diz que é adaptado; e os arquivos que cada ficha cita são os que o Harness aplicado registrou no lock |
+| `engineering.catalog` | Sem projeto, o catálogo geral só com as fichas; com projeto, também o que está **aplicado**, **dispensado** em `mariliz.yaml` ou **não aplicado** nele, e o estado do pior arquivo (íntegro, modificado à mão, ausente...). Um componente dispensado cujos arquivos ainda estão no projeto continua "dispensado", com o aviso de que saem na próxima aplicação. Uma regra escrita para o projeto (proposta pelo Harness Engineer) aparece com uma ficha genérica |
+| Tela | `/projeto/catalogo`, e o item "Catálogo" do menu de Engenharia deixou de ser "Em breve". Os componentes vêm agrupados (agentes, skills, regras, hooks, ciclo de especificação, declaração do projeto), cada um com a frase do que faz e os detalhes atrás de um `Disclosure`. Diz que não há editor: mudar é pela jornada Configurar |
+| Só leitura | Ler o catálogo não escreve nada no projeto (um teste compara o conteúdo antes e depois). Projeto não autorizado é recusado |
+| Testes | 15 novos no motor e 12 na interface; fixture `catalog.json` do motor real. O estado dos arquivos agora tem um só lugar de rótulos (`harness-state.ts`), usado pela tela de estado e pelo catálogo. Suítes: 758 no motor, 509 na interface, tipos, lint, formato e build limpos |
+
+Limites: **o critério "uma pessoa que nunca abriu `.claude/` consegue dizer o que cada componente faz" não foi testado com
+uma pessoa**; os textos foram escritos e conferidos contra os ativos, mas ninguém de fora os leu. A tela não foi conferida
+no navegador, só por testes. A ficha do hook descreve o comportamento de forma geral ("bloqueia ou pede confirmação"); a
+lista do que ele bloqueia, em linguagem simples, é a entrega "política dos agentes". Nada na ficha é traduzido por modelo.
+
+**Inventário de MCP (2ª entrega).** Método `engineering.mcp` (só leitura, projeto autorizado) e uma seção "Servidores MCP do
+projeto" no fim do Catálogo, só quando há projeto aberto.
+
+| Feito | Observação |
+| --- | --- |
+| O que cada servidor é | Nome, transporte (programa local, servidor remoto, SSE ou não identificado), **o que roda** (só o nome do programa, ou só o servidor da URL, sem caminho, consulta nem usuário e senha) e as variáveis de ambiente, cada uma marcada como "vem do ambiente" (`${NOME}`) ou "valor escrito no arquivo" |
+| Alerta de segredo literal | Aponta **onde** há credencial escrita (`env.NOME`, `args[2]`, `headers.NOME`, `url`) e por quê, por dois critérios: o formato conhecido (o mesmo scanner da validação) e o **nome** (`..._TOKEN`, `Authorization`, `api_key`...) com valor literal, o que pega formatos que o scanner não conhece. `Bearer ${TOKEN}` e `${TOKEN}` não são alerta. A tela manda trocar por referência ao ambiente e **revogar** a credencial, porque ela já esteve num arquivo do projeto |
+| O valor nunca sai | Nem na resposta, nem na fixture, nem na tela: o motor devolve só o lugar e o motivo. Os testes procuram o valor no JSON serializado em cada caso (variável, cabeçalho, argumento, consulta da URL, senha na URL) |
+| Só o `.mcp.json` do projeto | Servidores da conta pessoal da pessoa (configuração do usuário no Claude Code) não aparecem, e a tela diz isso. O Spock Studio não grava `.mcp.json` (fora do escopo de escrita), então não há como o inventário e o plano divergirem |
+| Falhas isoladas | Arquivo ausente, JSON inválido (aviso na tela) e arquivo sem `mcpServers` têm cada um a sua mensagem. Se só o inventário falha, o catálogo continua na tela com o motivo ao lado |
+| Testes | 15 no motor (incluindo recusa de projeto não autorizado e leitura sem escrita) e 8 na interface; fixture `mcp.json` do motor real, conferida por esquema |
+
+Limites: a detecção por nome pode apontar valor que não é segredo (`TOKEN_URL` com uma URL pública, por exemplo) e não
+enxerga segredo num campo sem nome revelador nem formato conhecido; o aviso diz "parece", não "é". `${NOME:-padrão}` conta
+como referência mesmo que o padrão seja um valor literal. A tela não foi conferida no navegador, só por testes.
+
+**Política dos agentes (3ª entrega).** Método `engineering.policy` (sem projeto, só leitura) e uma seção "O que o hook de
+política faz" no Catálogo, entre os grupos de componentes e o inventário de MCP.
+
+| Feito | Observação |
+| --- | --- |
+| As regras vêm do script, o texto vem à parte | O motor **lê o próprio `mariliz-policy.py`** para saber o que bloqueia, o que pergunta e o que libera (gravação fora do projeto, arquivos de segredo, arquivos do Harness, as exceções `.mariliz/proposal.json` e `.specs/`, 8 comandos bloqueados e 4 que pedem confirmação). Só o texto em português mora em `Assets/catalog/policy.json`, fora dos arquivos que vão para o projeto. **O hook não foi alterado**: o hash do Harness aplicado de ninguém muda |
+| Três respostas | "Bloqueia", "Pergunta a você antes" e "Libera, como exceção", cada uma com a lista em palavras simples. Uma decisão nova do script aparece depois das conhecidas, com o nome que veio |
+| O que o hook vigia | Lido de onde o Spock Studio registra o hook (`Bash`, `Write`, `Edit`, `MultiEdit` e `NotebookEdit`) e traduzido ferramenta a ferramenta, a mesma tabela usada nas fichas dos agentes |
+| O que não garante | Quatro limites ditos sem rodeio: compara texto de comando e não é barreira de segurança; só vê o que passa pelo Claude Code; só vale onde o hook está aplicado e registrado; se o script falhar por dentro, não bloqueia nada e a validação avisa |
+| O texto preso ao hook | Os testes impedem a política de mentir: toda regra do script tem texto e todo texto tem regra; os arquivos protegidos e as exceções que o script lista aparecem no texto; e, para cada regra, o teste **roda o hook real** (Python) com um exemplo e confere que "bloqueia", "pergunta" ou "libera" é o que ele responde. Um script sem um dos blocos impede a leitura, em vez de mostrar política incompleta |
+| Testes | 11 no motor e 8 na interface (mais 2 de contrato); fixture `policy.json` do motor real. Suítes: 784 no motor, 525 na interface, tipos, lint, formato e build limpos |
+
+Limites: o texto das regras de comando descreve o **padrão** (por exemplo `rm -rf` com `/`, `~` ou `.`), não cada variação
+que a expressão regular aceita, e o exemplo de cada regra é um só. Uma regra nova no script sem texto simples não aparece
+meio pronta: o motor se recusa a montar a política e os testes falham. A leitura do script é por texto (blocos
+`DENY_COMMANDS`, `ASK_COMMANDS`, `ALLOWED_WRITES`, as chamadas `answer(...)`): uma reorganização grande do script exige
+ajustar o leitor, e o teste avisa. A tela não foi conferida no navegador, só por testes.
+
+**Fase E: todas as entregas feitas.** Pendências que continuam valendo: ninguém de fora leu as fichas (o critério "quem nunca
+abriu `.claude/` entende cada componente" não foi testado com uma pessoa) e as telas da fase não foram abertas no navegador.
 ### Fase F: hub de integrações, nível 2
 
 | Entrega | Camada | Observação |

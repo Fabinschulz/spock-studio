@@ -23,7 +23,7 @@ import { NavLink } from 'react-router';
 import styles from './AppShell.module.scss';
 import type { Environment } from './environment';
 
-interface NavItem {
+export interface NavItem {
   id: string;
   label: string;
   icon: ReactNode;
@@ -72,7 +72,7 @@ const ENGINEERING_GROUP: NavGroup = {
       icon: <AssignmentIcon fontSize="small" />,
       to: pathTo('engineeringRequest')
     },
-    { id: 'catalog', label: 'Catálogo', icon: <LibraryIcon fontSize="small" />, unavailableReason: 'Em breve' }
+    { id: 'catalog', label: 'Catálogo', icon: <LibraryIcon fontSize="small" />, to: pathTo('projectCatalog') }
   ]
 };
 
@@ -180,7 +180,7 @@ function NavGroupList({ group }: { group: NavGroup }) {
   );
 }
 
-function NavEntry({ item }: { item: NavItem }) {
+export function NavEntry({ item }: { item: NavItem }) {
   const reasonId = useId();
 
   if (item.to && !item.unavailableReason) {

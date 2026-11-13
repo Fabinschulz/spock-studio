@@ -52,6 +52,7 @@ public sealed class EngineSession
         ProjectKnowledgeService? knowledge = null,
         HarnessStatusService? harness = null,
         HarnessRevisionService? revisions = null,
+        McpInventoryService? mcp = null,
         DecisionService? decisions = null,
         ReportService? reports = null)
     {
@@ -64,7 +65,7 @@ public sealed class EngineSession
         _integrations = integrations is null ? null : new IntegrationRequestHandler(integrations);
         _management = management is null ? null : new ManagementRequestHandler(management, assistant, reports);
         _decisions = decisions is null ? null : new DecisionRequestHandler(decisions);
-        _engineering = profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions);
+        _engineering = profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions, mcp);
         _tracker = tracker;
         if (relay is not null) relay.Target = WriteEvent;
 

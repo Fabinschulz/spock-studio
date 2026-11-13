@@ -1,24 +1,17 @@
 import { componentRequestState, type ComponentRequestItem } from '@/features/configure-project';
 import { errorMessage, type EngineClient } from '@/shared/api';
-import { StatusChip, type Tone, PageSection, LoadingState, ErrorState } from '@/shared/components';
+import { StatusChip, PageSection, LoadingState, ErrorState } from '@/shared/components';
 import { pathTo } from '@/shared/routing';
 import type { HarnessStatus } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
+import { HARNESS_STATE } from '../domain/harness-state';
 import styles from '../project-page.module.scss';
 import { readHarness } from '../service/project-api';
 
-type ComponentState = HarnessStatus['components'][number]['state'];
-
-const STATE: Record<ComponentState, { label: string; tone: Tone }> = {
-  intact: { label: 'Íntegro', tone: 'success' },
-  kept: { label: 'Sua versão, mantida', tone: 'neutral' },
-  modified: { label: 'Modificado à mão', tone: 'warning' },
-  outOfScope: { label: 'Fora do escopo gerenciado', tone: 'danger' },
-  missing: { label: 'Arquivo ausente', tone: 'danger' }
-};
+const STATE = HARNESS_STATE;
 
 const KIND_LABEL: Record<string, string> = { agent: 'agente', skill: 'skill', rule: 'regra', hook: 'hook' };
 
