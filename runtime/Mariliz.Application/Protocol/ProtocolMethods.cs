@@ -66,6 +66,7 @@ public static class ProtocolMethods
     public const string EngineeringMcp = "engineering.mcp";
     public const string EngineeringPolicy = "engineering.policy";
     public const string EngineeringCatalog = "engineering.catalog";
+    public const string TimelineRead = "timeline.read";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -89,6 +90,9 @@ public static class ProtocolMethods
 
     /// <summary>Decisões gerenciais: registrar com os fatos do momento, listar e abrir. Sem editar nem apagar.</summary>
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
+
+    /// <summary>A linha do tempo do projeto: só leitura, junta o que cada área já guarda.</summary>
+    public static readonly IReadOnlyList<string> Timeline = [TimelineRead];
 
     /// <summary>Ambiente de Engenharia: perfil tecnológico, conhecimento, estado e revisões do Harness do projeto.</summary>
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];

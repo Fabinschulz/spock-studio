@@ -725,6 +725,29 @@ Entrega 6 da ordem aprovada e fase 7 do documento da plataforma.
 - **Pronto quando:** uma pergunta como "por que a vazão caiu?" devolve uma resposta em que cada afirmação cita um fato,
   e o caminho da investigação pode ser reaberto na central.
 
+**Estado da fase G (2026-11-13).** Primeira entrega na branch `feat/fase-g-inteligencia` (criada da `master` com a fase F
+mergeada, PR #55): a **linha do tempo do projeto**, sem IA. Faltam a trilha de auditoria única, o workflow de investigação, o
+laço do RAG, as decisões como memória, as evals de gestão e o assistente sobre o portfólio.
+
+| Feito | Observação |
+| --- | --- |
+| `timeline.read` | Só leitura, sem armazenamento novo: **projeta** o que cada área já guarda. Seis fontes: revisões do Harness, mudanças do perfil, execuções, decisões gerenciais, mudanças de risco e sincronizações concluídas, do acontecimento mais recente ao mais antigo. Cada um tem id estável, instante, tipo, nível (`ok`, `attention`, `problem`, `info`), título e detalhe em português e, quando há onde ver mais, a execução ou a decisão |
+| Nada aparece duas vezes | Uma aplicação ou reversão que mudou arquivos é uma **revisão do Harness** (com o que mudou e os componentes) e não também uma execução; uma que não mudou nada (por exemplo, uma aplicação que falhou) aparece como execução. Sem o serviço de revisões numa sessão, todas aparecem como execuções |
+| O que nunca aparece | Texto de pedido ou de pergunta (o diário nunca o guarda), título ou identificador de item de trabalho (o risco só conta quantos itens entraram e saíram), texto da decisão e justificativa (só o título e quantos fatos do momento ela guardou), credencial. Testes percorrem o JSON inteiro atrás de cada um desses |
+| Fonte que falha | Uma fonte que dá erro aparece como **indisponível**, com a contagem zerada, e as outras seguem; o motivo detalhado não sai do motor (teste com um caminho no texto do erro). Um serviço que a sessão não tem faz a fonte simplesmente não existir |
+| Filtro e página | Filtro por tipo (as contagens das fontes continuam inteiras); página pelo instante (`before`), e **acontecimentos com o mesmo instante na fronteira ficam na mesma página**, para um empate não fazer um sumir entre duas páginas (teste percorre tudo em páginas de 3 e compara com a leitura inteira). Limite entre 1 e 200 |
+| Isolamento | Projeto não autorizado é recusado; o diário de outro projeto não entra; a leitura não grava nada (teste compara o disco antes e depois) |
+| Tela | Item "Linha do tempo" no grupo Plataforma, rota `/linha-do-tempo`: filtros por tipo com a contagem, a lista com o nível dito em palavra (a cor reforça, nunca é a única pista), "Ver execução" e "Ver em Acompanhamento", "Ver mais antigos", aviso de fonte indisponível, e estados diferentes para "nada aconteceu" e "filtro sem resultado" |
+| Testes | 20 no motor (cada fonte, ordem, revisão contra execução, plural, filtro, página e empate, limites, fonte que falha, fonte ausente, isolamento, leitura sem escrita, protocolo, fixture `timeline/timeline.json`) e 11 de tela mais 3 de contrato. Suítes: 587 na interface |
+
+Limites: **é uma projeção sem trilha única**: cada fonte tem a sua noção de tempo (fim da execução, registro da decisão,
+instante do registro de risco), e a "trilha de auditoria única por projeto" da fase continua sendo a próxima entrega. Os
+registros de decisão de engenharia que o workflow grava em `.mariliz/decisions/` aparecem só como a execução que os gravou,
+não como decisão. O histórico de risco só existe a partir do primeiro registro (o primeiro aparece como "já estava ativo").
+A lista de sincronizações vem do histórico que cada vínculo guarda (no máximo as 50 mais recentes por vínculo). Nada disto
+foi conferido no navegador, só por testes.
+
+
 ## 4. Como a ordem aprovada aparece aqui
 
 | Ordem aprovada em 2026-11-11 | Fase |

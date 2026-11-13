@@ -1,3 +1,4 @@
+import timelineFixture from '@contracts/fixtures/timeline/timeline.json';
 import { describe, expect, it } from 'vitest';
 
 import applyFailure from '@contracts/fixtures/golden/apply-failure.json';
@@ -71,6 +72,7 @@ import {
   planSchema,
   profileResultSchema,
   projectKnowledgeSchema,
+  projectTimelineSchema,
   runDetailSchema,
   linkedItemsResultSchema,
   runEventSchema,
@@ -574,5 +576,45 @@ describe('contrato das fontes externas do conhecimento (fixture do motor)', () =
 
   it('o conhecimento sem fonte externa traz a lista vazia', () => {
     expect(projectKnowledgeSchema.parse(engineeringKnowledge).external).toEqual([]);
+  });
+});
+
+describe('contrato da linha do tempo do projeto (fixture do motor)', () => {
+  it('traz um acontecimento de cada fonte, do mais recente ao mais antigo, e as fontes com a contagem', () => {
+    const parsed = projectTimelineSchema.parse(timelineFixture);
+    expect([...new Set(parsed.events.map((event) => event.kind))].sort()).toEqual([
+      'decision',
+      'harness',
+      'profile',
+      'risk',
+      'run',
+      'sync'
+    ]);
+    expect(parsed.events.map((event) => event.at)).toEqual(
+      [...parsed.events.map((event) => event.at)].sort().reverse()
+    );
+    expect(parsed.sources.map((source) => [source.kind, source.count])).toEqual(
+      expect.arrayContaining([
+        ['risk', 3],
+        ['profile', 3],
+        ['harness', 1]
+      ])
+    );
+    expect(parsed.sources.every((source) => source.available)).toBe(true);
+    expect(parsed.nextBefore).toBeNull();
+  });
+
+  it('cada acontecimento tem id único e só execução e decisão têm destino', () => {
+    const parsed = projectTimelineSchema.parse(timelineFixture);
+    expect(new Set(parsed.events.map((event) => event.id)).size).toBe(parsed.events.length);
+    for (const event of parsed.events) {
+      expect(['ok', 'attention', 'problem', 'info']).toContain(event.level);
+      expect(event.refType === null).toBe(event.refId === null);
+      if (event.refType !== null) expect(['run', 'decision']).toContain(event.refType);
+    }
+  });
+
+  it('o texto não carrega identificador de item nem credencial', () => {
+    expect(JSON.stringify(timelineFixture)).not.toMatch(/acme\/app#|ghp_/);
   });
 });

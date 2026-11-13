@@ -6,6 +6,7 @@ using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Management;
 using Mariliz.Application.Management.Assistant;
+using Mariliz.Application.Timeline;
 using Mariliz.Application.Workflows;
 using Mariliz.Infrastructure;
 using Mariliz.Infrastructure.Engineering;
@@ -41,15 +42,19 @@ var runs = new RunQueries(engine.Tracker, engine.Store,
     new RunCatalog(engine.Store, engine.Workspace, engine.Tracker, new RunLinkService(engine.Store, engine.Store, integrations, engine.Workspace, engine.Clock)));
 var assistant = new ManagementAssistant(management, integrations, engine.Workspace, models, engine.Clock, engine.Store);
 var decisions = new DecisionService(engine.Workspace, new FileDecisionStore(engine.DataRoot), engine.Store, assistant.Evidence, integrations.Audit, engine.Clock);
+var profiles = new TechnologyProfileService(engine.Configure, integrations, engine.Workspace, new FileTechnologyProfileStore(engine.DataRoot), engine.Clock);
+var harnessRevisions = new HarnessRevisionService(engine.Workspace, engine.Files, engine.Store);
+// A linha do tempo só lê o que cada área já guarda: revisões, perfil, execuções, decisões, riscos e sincronizações.
+var timeline = new ProjectTimelineService(engine.Workspace, engine.Clock, engine.Store, harnessRevisions, profiles, decisions, management, integrations);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
     management: management, assistant: assistant,
     decisions: decisions, reports: new ReportService(engine.Workspace, management, decisions, engine.Store, engine.Clock),
-    profiles: new TechnologyProfileService(engine.Configure, integrations, engine.Workspace, new FileTechnologyProfileStore(engine.DataRoot), engine.Clock),
+    profiles: profiles,
     knowledge: new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge),
     harness: new HarnessStatusService(engine.Workspace, engine.Files, engine.Clock),
-    revisions: new HarnessRevisionService(engine.Workspace, engine.Files, engine.Store),
-    mcp: new McpInventoryService(engine.Workspace, engine.Files));
+    revisions: harnessRevisions,
+    mcp: new McpInventoryService(engine.Workspace, engine.Files), timeline: timeline);
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

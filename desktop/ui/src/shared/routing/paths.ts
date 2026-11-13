@@ -12,6 +12,7 @@ export const paths = {
   assistant: '/gestao/assistente',
   report: '/gestao/relatorio',
   runs: '/execucoes',
+  timeline: '/linha-do-tempo',
   integrations: '/integracoes',
   settings: '/configuracoes'
 } as const;

@@ -13,6 +13,7 @@ import Portfolio from './routes/portfolio';
 import Project from './routes/project';
 import Report from './routes/report';
 import ProjectCatalog from './routes/project-catalog';
+import Timeline from './routes/timeline';
 import ProjectHarness from './routes/project-harness';
 import ProjectKnowledge from './routes/project-knowledge';
 import Runs from './routes/runs';
@@ -55,6 +56,14 @@ export const routes: RouteObject[] = [
         element: (
           <RequiresHost>
             <ProjectKnowledge />
+          </RequiresHost>
+        )
+      },
+      {
+        path: paths.timeline,
+        element: (
+          <RequiresHost>
+            <Timeline />
           </RequiresHost>
         )
       },

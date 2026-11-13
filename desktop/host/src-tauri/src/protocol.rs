@@ -66,6 +66,7 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "engineering.harness",
     "engineering.revisions",
     "engineering.catalog",
+    "timeline.read",
     "engineering.mcp",
     "engineering.policy",
 ];
