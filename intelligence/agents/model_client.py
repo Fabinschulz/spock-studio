@@ -18,7 +18,7 @@ URL = re.compile(r"^http://127\.0\.0\.1:[0-9]{1,5}/v1/model$")
 _CODES = {"MODEL_NOT_CONFIGURED", "MODEL_BUDGET_EXCEEDED", "MODEL_TIMEOUT", "MODEL_UNAVAILABLE", "MODEL_FORBIDDEN"}
 _MAX_RESPONSE = 256_000
 _AGENT = re.compile(r"^[a-z][a-z0-9-]{0,31}$")
-_PURPOSES = {"classify", "plan", "architecture", "judge", "rewrite-query"}
+_PURPOSES = {"classify", "plan", "architecture", "judge", "rewrite-query", "investigate"}
 
 
 class ModelError(Exception):

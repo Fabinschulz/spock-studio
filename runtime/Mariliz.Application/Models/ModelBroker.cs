@@ -43,7 +43,7 @@ public interface IModelAccess
 public sealed partial class ModelBroker(ModelGateway gateway)
 {
     public const string Schema = "ai.model.request.v1";
-    private static readonly HashSet<string> Purposes = new(StringComparer.Ordinal) { "classify", "plan", "architecture", "judge", "rewrite-query" };
+    private static readonly HashSet<string> Purposes = new(StringComparer.Ordinal) { "classify", "plan", "architecture", "judge", "rewrite-query", "investigate" };
     private static readonly HashSet<string> Roles = new(StringComparer.Ordinal) { "system", "user", "assistant" };
 
     private readonly object _gate = new();

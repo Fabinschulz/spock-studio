@@ -845,3 +845,18 @@ conversa livre como centro, memória aprendida, aplicativo web.
 Limites: o arquivo de auditoria hoje só registra integrações, decisões e conexões; mudanças de perfil e de revisão do Harness
 aparecem pelo diário, não pelo arquivo. Como não há identidade de pessoa, "quem" fica para quando houver. Nada disto foi
 conferido no navegador, só por testes.
+
+**Terceira entrega da fase G: o workflow de investigação (lado Python).** O segundo grafo do runtime de IA, `management.investigation`, com contrato e testes. **Ainda não está ligado ao motor nem à interface**: nada o chama, e por isso a investigação ainda não pode ser feita pela tela.
+
+| Feito | Observação |
+| --- | --- |
+| Grafo em LangGraph | Cinco etapas: **enquadrar** a pergunta (por onde olhar, pelas palavras dela; fluxo e riscos se nenhuma for reconhecida), **reunir** fatos dos grupos escolhidos, **levantar hipóteses** (modelo), **decidir** (reunir mais ou concluir) e **concluir** (modelo). O laço é a decisão: se o modelo pede fatos de outro grupo (riscos, execuções, mudanças), o grafo volta a reunir. Teto de 3 rodadas; para antes se o orçamento de tokens ou de etapas não cobre outra volta. Não olha de novo um grupo já consultado |
+| Fatos do motor, conferência do motor | O pedido traz a pergunta e os fatos que o motor calculou, cada um com id e grupo. O modelo só cruza esses fatos. Uma hipótese ou afirmação só vale citando fatos **que já foram reunidos**: citar um id que o modelo nunca viu não passa (hipótese vira nova tentativa; afirmação vai para "descartadas" com o motivo). A conferência dos **números** continua no motor (`AnswerVerifier`), como no assistente |
+| Sem modelo | A investigação ainda roda: reúne os fatos e lista os sinais de risco e de execução exatamente como o motor os calculou, cada um citando o próprio fato, com a limitação dita. Falha do modelo numa etapa cai nas regras e diz por quê |
+| O caminho | O resultado traz as etapas percorridas, os grupos e os **ids** dos fatos consultados, as limitações e o uso de modelo. **Nunca** texto de fato, de hipótese nem a pergunta (teste procura os três). É o que o motor vai guardar no diário para o caminho poder ser reaberto na central |
+| Segurança | Texto de fato (pode trazer título de item escrito por terceiros) vai num bloco delimitado, com o delimitador neutralizado; o token do proxy não aparece em evento nem no resultado |
+| Contrato | `ai.investigation.start.v1` e `ai.investigation.ack.v1` em `contracts/schemas/intelligence`, com 6 fixtures válidas geradas pelo próprio grafo e 10 inválidas (caminho com texto livre, afirmação sem evidência, proxy fora do loopback...). Nova finalidade `investigate` no proxy de modelo (cliente Python, proxy do motor e schema), que o motor traduz para a finalidade **assistente gerencial** |
+| Rota | `POST /v1/investigations` no servidor local, em NDJSON, terminando no ack |
+| Testes | 26 novos em Python (enquadramento, laço, teto, orçamento, citação, sem modelo, caminho sem texto, injeção) e 1 do servidor; 135 no total. No motor, o caso `investigate` no mapeamento de finalidades e as 16 fixtures contra os schemas |
+
+Falta para a investigação existir de ponta a ponta: o motor chamar o runtime (`InvestigationService`: montar os fatos, incluindo os de **execuções e mudanças** que o assistente ainda não tem, conferir com o `AnswerVerifier`, gravar o diário com o caminho), o método do protocolo, a tela com o caminho reaberto na central, e **a validação com modelo real**, que nunca aconteceu: o comportamento do laço (o que o modelo pede, se para no teto) só foi provado com modelo falso.

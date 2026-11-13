@@ -1,0 +1,20 @@
+{
+  "schema": "ai.investigation.start.v1",
+  "investigationId": "inv-aaaaaaaaaaaa",
+  "executionId": "ex-bbbbbbbbbbbb",
+  "projectId": "p-cccccccccccc",
+  "question": "Por que a vazão caiu?",
+  "facts": [],
+  "policy": {
+    "modelAllowed": true
+  },
+  "limits": {
+    "maxIterations": 12,
+    "maxMilliseconds": 150000,
+    "maxTokens": 30000
+  },
+  "broker": {
+    "url": "http://127.0.0.1:49152/v1/model",
+    "token": "ttttttttttttttttttttttttttttttttttttttttttt"
+  }
+}

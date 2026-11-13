@@ -51,7 +51,7 @@
     {
       "id": "assistant",
       "label": "Assistente gerencial",
-      "description": "Responde perguntas sobre os indicadores do portfólio, só com os fatos que o motor calculou.",
+      "description": "Responde perguntas sobre os indicadores do portfólio e investiga, em etapas, o que explica um resultado, só com os fatos que o motor calculou.",
       "model": "gpt-4o-mini",
       "isDefault": true
     },

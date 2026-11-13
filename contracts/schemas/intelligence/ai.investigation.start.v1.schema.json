@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/intelligence/ai.investigation.start.v1.schema.json",
+  "title": "Motor → inteligência: iniciar uma investigação de gestão",
+  "description": "A pergunta e os fatos que o motor mesmo calculou, cada um com um id citável. O motor decide se o modelo é permitido e dá o proxy; o runtime não lê o projeto. Sem modelo, o proxy não pode vir.",
+  "type": "object",
+  "required": ["schema", "investigationId", "executionId", "projectId", "question", "facts", "policy", "limits"],
+  "properties": {
+    "schema": { "const": "ai.investigation.start.v1" },
+    "investigationId": { "type": "string", "pattern": "^inv-[0-9a-f]{12}$" },
+    "executionId": { "type": "string", "pattern": "^ex-[0-9a-f]{12}$" },
+    "projectId": { "type": "string", "pattern": "^p-[0-9a-f]{12}$" },
+    "question": { "type": "string", "minLength": 3, "maxLength": 500 },
+    "facts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 300,
+      "items": {
+        "type": "object",
+        "required": ["id", "group", "text"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$" },
+          "group": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "text": { "type": "string", "minLength": 1, "maxLength": 1200 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "policy": {
+      "type": "object",
+      "required": ["modelAllowed"],
+      "properties": { "modelAllowed": { "type": "boolean" } },
+      "additionalProperties": false
+    },
+    "limits": {
+      "type": "object",
+      "required": ["maxIterations", "maxMilliseconds", "maxTokens"],
+      "properties": {
+        "maxIterations": { "type": "integer", "minimum": 0 },
+        "maxMilliseconds": { "type": "integer", "minimum": 0 },
+        "maxTokens": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "broker": {
+      "type": "object",
+      "required": ["url", "token"],
+      "properties": {
+        "url": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]{1,5}/v1/model$" },
+        "token": { "type": "string", "minLength": 32, "maxLength": 128 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

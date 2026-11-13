@@ -1,0 +1,152 @@
+{
+  "schema": "ai.investigation.ack.v1",
+  "investigationId": "inv-aaaaaaaaaaaa",
+  "executionId": "ex-bbbbbbbbbbbb",
+  "projectId": "p-cccccccccccc",
+  "status": "completed",
+  "answer": {
+    "summary": {
+      "text": "A vazão caiu e há 3 itens bloqueados.",
+      "evidence": [
+        "flow.throughput",
+        "risk.blocked"
+      ]
+    },
+    "observed": [
+      {
+        "text": "Os 3 itens abertos bloqueados.",
+        "evidence": [
+          "risk.blocked"
+        ]
+      }
+    ],
+    "calculations": [],
+    "inferences": [
+      {
+        "text": "Os 9 itens em andamento podem indicar sobrecarga.",
+        "evidence": [
+          "flow.wip"
+        ]
+      }
+    ],
+    "recommendations": [],
+    "unavailable": [
+      {
+        "text": "Os fatos não dizem o motivo dos bloqueios."
+      }
+    ]
+  },
+  "rejected": [
+    {
+      "text": "Sem citação válida.",
+      "reason": "no_valid_evidence"
+    }
+  ],
+  "path": [
+    {
+      "id": "frame",
+      "title": "Pergunta enquadrada",
+      "detail": "Começa por: contexto, fontes, indicadores.",
+      "round": 0,
+      "groups": [
+        "contexto",
+        "fontes",
+        "indicadores"
+      ],
+      "facts": [],
+      "texto": "a pergunta do usuario"
+    },
+    {
+      "id": "gather",
+      "title": "Fatos reunidos (rodada 1)",
+      "detail": "Grupos: contexto, fontes, indicadores; 4 fatos.",
+      "round": 1,
+      "groups": [
+        "contexto",
+        "fontes",
+        "indicadores"
+      ],
+      "facts": [
+        "today",
+        "src.1",
+        "flow.throughput",
+        "flow.wip"
+      ]
+    },
+    {
+      "id": "hypothesize",
+      "title": "Hipóteses (rodada 1)",
+      "detail": "1 hipótese; pede: riscos, execuções.",
+      "round": 1,
+      "groups": [],
+      "facts": []
+    },
+    {
+      "id": "decide",
+      "title": "Decisão: reunir mais fatos",
+      "detail": "Pede: riscos, execuções.",
+      "round": 1,
+      "groups": [
+        "riscos",
+        "execuções"
+      ],
+      "facts": []
+    },
+    {
+      "id": "gather",
+      "title": "Fatos reunidos (rodada 2)",
+      "detail": "Grupos: riscos, execuções; 3 fatos.",
+      "round": 2,
+      "groups": [
+        "riscos",
+        "execuções"
+      ],
+      "facts": [
+        "risk.blocked",
+        "risk.aging",
+        "run.failed"
+      ]
+    },
+    {
+      "id": "hypothesize",
+      "title": "Hipóteses (rodada 2)",
+      "detail": "1 hipótese; não pede mais fatos.",
+      "round": 2,
+      "groups": [],
+      "facts": []
+    },
+    {
+      "id": "decide",
+      "title": "Decisão: concluir",
+      "detail": "Os fatos reunidos bastam: nenhum outro grupo foi pedido.",
+      "round": 2,
+      "groups": [],
+      "facts": []
+    },
+    {
+      "id": "conclude",
+      "title": "Conclusão",
+      "detail": "Escrita pelo modelo, a conferir pelo motor.",
+      "round": 0,
+      "groups": [],
+      "facts": []
+    }
+  ],
+  "consulted": [
+    "today",
+    "src.1",
+    "flow.throughput",
+    "flow.wip",
+    "risk.blocked",
+    "risk.aging",
+    "run.failed"
+  ],
+  "limitations": [],
+  "rounds": 2,
+  "usage": {
+    "modelCalls": 3,
+    "inputTokens": 300,
+    "outputTokens": 150,
+    "tokens": 450
+  }
+}

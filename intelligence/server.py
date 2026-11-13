@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Servidor local da inteligência do Mariliz.
 
-Encaminha saúde, o workflow engineering.request e o índice de conhecimento.
+Encaminha saúde, o workflow engineering.request, a investigação de gestão (management.investigation) e o índice de
+conhecimento.
 Não lê o projeto nem grava nele: o que ele guarda são o índice de conhecimento e o
 checkpoint da execução (SQLite, por projeto), e as chamadas de modelo passam pelo proxy
 do runtime. O runtime .NET é quem autoriza, aplica e publica eventos.
@@ -35,6 +36,7 @@ if os.path.isdir(_PACKAGES):
 from infrastructure.parent_watch import watch_parent  # noqa: E402
 from knowledge.index import KnowledgeError, manifest  # noqa: E402
 from workflows.engineering.graph import run_cancel, run_resume, run_start  # noqa: E402
+from workflows.investigation.graph import run_investigation  # noqa: E402
 
 MAX_BODY = 4_000_000
 _ACTION_ROUTE = re.compile(r"^/v1/workflows/[^/]+/(resume|cancel)$")
@@ -105,6 +107,9 @@ def make_handler(token: str):
                     return
                 if path == "/v1/workflows":
                     self._stream(run_start(payload))
+                    return
+                if path == "/v1/investigations":
+                    self._stream(run_investigation(payload))
                     return
                 action = _ACTION_ROUTE.match(path)
                 if action and action.group(1) == "resume":

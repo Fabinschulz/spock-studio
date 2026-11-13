@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/intelligence/ai.investigation.ack.v1.schema.json",
+  "title": "Inteligência → motor: o resultado de uma investigação de gestão (última linha NDJSON)",
+  "description": "A resposta candidata, o que o grafo descartou, o caminho percorrido (etapas, grupos e ids de fatos consultados, nunca texto de fato, de hipótese nem a pergunta) e o uso de modelo. O motor confere os números da resposta antes de devolvê-la e guarda o caminho no diário.",
+  "type": "object",
+  "required": ["schema", "investigationId", "status"],
+  "properties": {
+    "schema": { "const": "ai.investigation.ack.v1" },
+    "investigationId": { "type": "string", "pattern": "^(inv-[0-9a-f]{12})?$" },
+    "executionId": { "type": "string", "pattern": "^ex-[0-9a-f]{12}$" },
+    "projectId": { "type": "string", "pattern": "^p-[0-9a-f]{12}$" },
+    "status": { "enum": ["completed", "completed_with_limitations", "failed", "rejected"] },
+    "failure": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{0,63}$" },
+    "field": { "type": "string", "maxLength": 32 },
+    "answer": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["summary", "observed", "calculations", "inferences", "recommendations", "unavailable"],
+          "properties": {
+            "summary": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/claim" }] },
+            "observed": { "type": "array", "maxItems": 6, "items": { "$ref": "#/$defs/claim" } },
+            "calculations": { "type": "array", "maxItems": 6, "items": { "$ref": "#/$defs/claim" } },
+            "inferences": { "type": "array", "maxItems": 6, "items": { "$ref": "#/$defs/claim" } },
+            "recommendations": { "type": "array", "maxItems": 6, "items": { "$ref": "#/$defs/claim" } },
+            "unavailable": {
+              "type": "array",
+              "maxItems": 6,
+              "items": {
+                "type": "object",
+                "required": ["text"],
+                "properties": { "text": { "type": "string", "maxLength": 400 } },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "rejected": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["text", "reason"],
+        "properties": {
+          "text": { "type": "string", "maxLength": 400 },
+          "reason": { "enum": ["no_valid_evidence", "malformed", "too_many"] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "path": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "detail", "round", "groups", "facts"],
+        "properties": {
+          "id": { "enum": ["frame", "gather", "hypothesize", "decide", "conclude"] },
+          "title": { "type": "string", "maxLength": 120 },
+          "detail": { "type": "string", "maxLength": 400 },
+          "round": { "type": "integer", "minimum": 0, "maximum": 3 },
+          "groups": { "type": "array", "items": { "type": "string", "maxLength": 40 } },
+          "facts": { "type": "array", "items": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "consulted": { "type": "array", "items": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$" } },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{0,63}$" },
+          "message": { "type": "string", "maxLength": 400 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "rounds": { "type": "integer", "minimum": 0, "maximum": 3 },
+    "usage": {
+      "type": "object",
+      "required": ["modelCalls", "inputTokens", "outputTokens", "tokens"],
+      "properties": {
+        "modelCalls": { "type": "integer", "minimum": 0 },
+        "inputTokens": { "type": "integer", "minimum": 0 },
+        "outputTokens": { "type": "integer", "minimum": 0 },
+        "tokens": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "enum": ["failed", "rejected"] } } },
+      "then": { "required": ["failure"] }
+    },
+    {
+      "if": { "properties": { "status": { "enum": ["completed", "completed_with_limitations"] } } },
+      "then": { "required": ["executionId", "projectId", "answer", "rejected", "path", "consulted", "limitations", "rounds", "usage"] }
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "claim": {
+      "type": "object",
+      "required": ["text", "evidence"],
+      "properties": {
+        "text": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "evidence": { "type": "array", "items": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$" } }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -88,6 +88,7 @@ public class ModelPurposesTests
     [InlineData("plan", "workflow")]
     [InlineData("architecture", "workflow")]
     [InlineData("rewrite-query", "workflow")]
+    [InlineData("investigate", "assistant")]
     [InlineData("qualquer-outra", "workflow")]
     public void O_runtime_declara_o_agente_e_o_motor_traduz_para_a_finalidade(string brokerPurpose, string expected)
     {
