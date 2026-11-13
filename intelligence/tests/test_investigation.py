@@ -3,6 +3,7 @@
 import json
 import tempfile
 import unittest
+from pathlib import Path
 
 import _paths  # noqa: F401
 from support_model import TOKEN, URL, FakeModel
@@ -15,10 +16,12 @@ from contracts.investigation import (
     parse_investigation,
 )
 from contracts.messages import ContractError
+from knowledge.index import _index_file
 from workflows.investigation import graph
 from workflows.investigation.nodes import focus
 
 MEMORY_ROOT_PREFIX = "inv-memory-"
+ACK_SCHEMA = Path(__file__).resolve().parents[2] / "contracts" / "schemas" / "intelligence" / "ai.investigation.ack.v1.schema.json"
 
 INVESTIGATION = "inv-aaaaaaaaaaaa"
 EXECUTION = "ex-bbbbbbbbbbbb"
@@ -488,6 +491,37 @@ class MemoryLoopTests(unittest.TestCase):
         )
         self.assertIn("risk.blocked", ack["consulted"])
         self.assertEqual(ack["rounds"], 3)
+
+    def test_o_teto_de_rodadas_vale_quando_a_ultima_volta_pede_grupos_e_busca_juntos(self) -> None:
+        # Na rodada 3, grupos + busca valem duas rodadas (busca, depois reunir): 5 passaria do teto do contrato (4).
+        with tempfile.TemporaryDirectory() as root:
+            fake = FakeModel(
+                _hypotheses([("H", ["flow.throughput"])], needs=["riscos"]),
+                _hypotheses([("H", ["risk.blocked"])], needs=["execuções"]),
+                _searching("adiar migração", needs=["mudanças"], evidence=["run.failed"]),
+                _conclusion(),
+            )
+
+            _events, ack = _go(_with_memory(root), fake)
+
+        schema = json.loads(ACK_SCHEMA.read_text(encoding="utf-8"))
+        self.assertLessEqual(ack["rounds"], schema["properties"]["rounds"]["maximum"])
+        self.assertLessEqual(max(step["round"] for step in ack["path"]), 4)
+        self.assertNotIn("retrieve", [step["id"] for step in ack["path"]])
+        self.assertIn("INVESTIGATION_STOPPED", {item["code"] for item in ack["limitations"]})
+
+    def test_indice_corrompido_degrada_para_limitacao_e_a_investigacao_termina_com_ack(self) -> None:
+        with tempfile.TemporaryDirectory() as root:
+            index = _index_file(root, PROJECT)
+            index.parent.mkdir(parents=True, exist_ok=True)
+            index.write_bytes(b"isto nao e um banco sqlite " * 80)
+            fake = FakeModel(_searching("adiar migração"), _hypotheses([("H", ["flow.throughput"])]), _conclusion())
+
+            _events, ack = _go(_with_memory(root), fake)
+
+        self.assertEqual(ack["status"], "completed_with_limitations")
+        self.assertIn("INVESTIGATION_MEMORY_UNAVAILABLE", {item["code"] for item in ack["limitations"]})
+        self.assertEqual(ack["retrieved"], [])
 
     def test_a_memoria_revogada_some_na_investigacao_seguinte(self) -> None:
         with tempfile.TemporaryDirectory() as root:
