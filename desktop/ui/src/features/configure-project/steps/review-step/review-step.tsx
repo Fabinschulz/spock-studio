@@ -28,7 +28,6 @@ const applyLabel = (approvalCount: number) =>
     ? 'Nada aprovado para aplicar'
     : `Aplicar configuração (${approvalCount} aprovado${approvalCount === 1 ? '' : 's'})`;
 
-/** "2 a criar · 1 a atualizar · 1 conflito": só o que existe, na ordem em que o plano é lido. */
 export function changesSummary(changes: readonly FileChange[]): string {
   const count = (action: FileChange['action']) => changes.filter((change) => change.action === action).length;
   const conflicts = count('conflict');

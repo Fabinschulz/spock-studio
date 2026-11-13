@@ -24,7 +24,6 @@
   }
 }
 
-// Título de seção: em frase, semibold e discreto. A hierarquia vem de tamanho e peso, não de caixa alta.
 @mixin eyebrow {
   font-size: var(--font-size-sm);
   line-height: var(--line-height-caption);
@@ -32,8 +31,7 @@
   letter-spacing: 0;
 }
 
-// Seção: sem caixa. Só uma linha fina acima e espaço; a estrutura vem da tipografia e do espaçamento, não de bordas.
-// (O nome `card` foi mantido para não tocar todos os usos de uma vez.)
+// Sem caixa: só uma linha fina acima e espaço. O nome `card` ficou para não tocar todos os usos de uma vez.
 @mixin card($padding: var(--space-4)) {
   padding: $padding 0 0;
   border: 0;
@@ -42,7 +40,6 @@
   background-color: transparent;
 }
 
-// Item selecionado (escolhas em lista): contorno e fundo na cor da marca, sem brilho.
 @mixin selected-border {
   border-color: var(--color-primary);
 }

@@ -12,10 +12,7 @@ import type { ManagementApi } from '../service/management-api';
 
 const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
-/**
- * As decisões gerenciais do projeto: o que se decidiu e por quê, com os fatos que o motor tinha naquele dia e as execuções
- * relacionadas. Cada decisão guarda os fatos do momento, não os de hoje, e não se edita nem se apaga.
- */
+/** Cada decisão guarda os fatos do momento, não os de hoje, e não se edita nem se apaga. */
 export function DecisionsSection({ management, projectId }: { management: ManagementApi; projectId: string }) {
   const [version, setVersion] = useState(0);
   const [formOpen, setFormOpen] = useState(false);

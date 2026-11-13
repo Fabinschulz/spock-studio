@@ -7,17 +7,14 @@ import { useCallback } from 'react';
 import styles from '../project-page.module.scss';
 import { readPolicy } from '../service/project-api';
 
-/** As três respostas do hook, na ordem do que mais importa. Uma decisão nova do script aparece depois, como veio. */
+/** Uma decisão nova do script aparece depois, como veio. */
 const DECISIONS: { decision: string; title: string }[] = [
   { decision: 'deny', title: 'Bloqueia' },
   { decision: 'ask', title: 'Pergunta a você antes' },
   { decision: 'allow', title: 'Libera, como exceção' }
 ];
 
-/**
- * O que o hook de política faz, em palavras simples. As regras são lidas do próprio script do hook e só o texto é escrito à
- * mão, preso a elas por testes. Não depende de projeto: é o hook que o Spock Studio aplica.
- */
+/** As regras são lidas do próprio script do hook e só o texto é escrito à mão, preso a elas por testes. */
 export function PolicySection({ client }: { client: EngineClient }) {
   const load = useCallback(() => readPolicy(client), [client]);
   const policy = useAsyncResource(load);
@@ -31,7 +28,6 @@ export function PolicySection({ client }: { client: EngineClient }) {
   );
 }
 
-/** "a, b e c": uma lista em português corrido. */
 function listed(items: string[]): string {
   return items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} e ${items.at(-1)}`;
 }

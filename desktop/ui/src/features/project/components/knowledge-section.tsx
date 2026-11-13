@@ -26,10 +26,7 @@ const INDEX_STATE_TEXT: Record<Exclude<ProjectKnowledge['indexState'], 'read'>, 
 type State =
   { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; knowledge: ProjectKnowledge };
 
-/**
- * O conhecimento do projeto como o índice do Agentic RAG o recebe: regras, arquivos que entram, o que ficou de fora e
- * por quê, e o estado do índice. Só caminhos e tamanhos; o conteúdo dos arquivos não sai do motor.
- */
+/** Só caminhos e tamanhos: o conteúdo dos arquivos não sai do motor. */
 export function KnowledgeSection({ client, projectId }: { client: EngineClient; projectId: string }) {
   const [state, setState] = useState<State>({ status: 'loading' });
   const [tick, setTick] = useState(0);
@@ -147,8 +144,8 @@ function KnowledgeContent({ knowledge }: { knowledge: ProjectKnowledge }) {
 }
 
 /**
- * Os itens sincronizados de GitHub ou Jira como fonte do índice. Nascem fechados: sincronizar não autoriza alimentar o
- * conhecimento, e a decisão é de cada vínculo, na central de integrações.
+ * Nascem fechados: sincronizar não autoriza alimentar o conhecimento, e a decisão é de cada vínculo, na central de
+ * integrações.
  */
 function ExternalSources({ sources }: { sources: KnowledgeExternalSource[] }) {
   return (
@@ -205,10 +202,7 @@ function ExternalSources({ sources }: { sources: KnowledgeExternalSource[] }) {
   );
 }
 
-/**
- * As decisões gerenciais registradas no projeto como memória: um agente pode achar "já decidimos isso antes". É texto que você
- * escreveu, então não depende da política de uma integração; o que vai e o que não vai está dito aqui.
- */
+/** É texto que você escreveu, então não depende da política de uma integração. */
 function DecisionMemorySection({ memory }: { memory: KnowledgeMemory }) {
   return (
     <>
@@ -250,7 +244,6 @@ function DecisionMemorySection({ memory }: { memory: KnowledgeMemory }) {
   );
 }
 
-/** O que a fonte faz hoje: sem autorização nada vai; com ela, quantos itens entram e como está cada um no índice. */
 function externalDetail(source: KnowledgeExternalSource): string {
   if (!source.authorized) {
     return `${count(source.items, 'item sincronizado', 'itens sincronizados')}, nenhum entra no índice nem vai ao provedor de IA. A decisão é do vínculo, em Integrações.`;
@@ -273,7 +266,6 @@ function count(value: number, one: string, many: string): string {
   return `${value} ${value === 1 ? one : many}`;
 }
 
-/** "No índice: 1 indexado, 2 mudaram desde a indexação, 1 ainda não indexado." */
 function indexSummary(knowledge: ProjectKnowledge): string {
   const parts = [
     count(knowledge.indexed, 'indexado', 'indexados'),

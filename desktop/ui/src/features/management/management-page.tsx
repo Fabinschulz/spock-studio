@@ -25,10 +25,7 @@ import { summarizeActivity } from './domain/activity-summary';
 import styles from './management-page.module.scss';
 import { createManagementApi, type ManagementApi } from './service/management-api';
 
-/**
- * Visão gerencial do projeto aberto. Mostra só o que foi observado nas fontes vinculadas; o que ainda não é calculado
- * aparece dito como ausente, nunca como zero.
- */
+/** O que ainda não é calculado aparece dito como ausente, nunca como zero. */
 export function ManagementPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   const api = useMemo(() => createIntegrationApi(client), [client]);
   const management = useMemo(() => createManagementApi(client), [client]);
@@ -172,7 +169,7 @@ function SourcesSection({ integrations, connectors }: { integrations: ProjectInt
   );
 }
 
-/** O que foi pedido e ainda não é calculado, com o motivo dado pelo motor. Nenhum desses aparece com valor. */
+/** Nenhum desses aparece com valor. */
 function NotCalculatedSection({ metrics }: { metrics: ProjectMetrics }) {
   return (
     <PageSection title="Ainda não calculado">

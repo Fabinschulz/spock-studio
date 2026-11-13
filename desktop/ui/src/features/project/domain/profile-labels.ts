@@ -15,7 +15,6 @@ export function toolKindLabel(kind: string): string {
   return TOOL_KIND_LABEL[kind] ?? kind;
 }
 
-/** Uma mudança do histórico como frase: "Next.js entrou (^16.0.1)", ".NET mudou de net8.0 para net10.0". */
 export function changeText(change: ProfileChange): string {
   switch (change.kind) {
     case 'created':

@@ -17,15 +17,12 @@ import styles from '../runs-page.module.scss';
 
 interface RunDetailPanelProps {
   client: EngineClient;
-  /** A execução aberta. `null` fecha o painel. */
+  /** `null` fecha o painel. */
   run: RunItem | null;
   onClose: () => void;
 }
 
-/**
- * O detalhe de uma execução num painel ao lado da lista. Só lê: nada aqui dispara, reverte nem valida; essas ações
- * continuam sendo explícitas nas jornadas que as têm.
- */
+/** Só lê: nada aqui dispara, reverte nem valida; essas ações continuam sendo explícitas nas jornadas que as têm. */
 export function RunDetailPanel({ client, run, onClose }: RunDetailPanelProps) {
   return (
     <Drawer

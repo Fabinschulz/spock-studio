@@ -22,10 +22,7 @@ function remember(environment: Environment): void {
   }
 }
 
-/**
- * O ambiente da tela atual. Nas telas que não pertencem a um ambiente (Início, Integrações, Configurações), vale o último
- * em que a pessoa esteve, que também fica guardado para a próxima vez que o aplicativo abrir.
- */
+/** Nas telas que não pertencem a um ambiente vale o último em que a pessoa esteve, guardado para a próxima abertura. */
 export function useEnvironment(): Environment {
   const { pathname } = useLocation();
   const fromRoute = environmentOf(pathname);

@@ -8,7 +8,6 @@ type Report = NonNullable<RunResult['validation']>;
 
 const EVAL_STATUSES: readonly EvalResult['status'][] = ['passed', 'failed', 'blocked', 'not_run'];
 
-/** "3 de 14 aprovados · 1 reprovado": só os estados que existem, para a frase não listar zeros. */
 export function validationSummary(results: readonly EvalResult[]): string {
   const count = (status: EvalResult['status']) => results.filter((result) => result.status === status).length;
   const rest = EVAL_STATUSES.filter((status) => status !== 'passed' && count(status) > 0).map(

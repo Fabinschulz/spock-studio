@@ -25,10 +25,7 @@ function startingState(request: ComponentRequest, projectId: string, store: Jour
   return (saved && restorableJourney(saved)) ?? fresh;
 }
 
-/**
- * Liga o estado da jornada ao motor. Cada ação chama um caso de uso; a decisão é sempre do motor. Com `store`, a jornada
- * sobrevive a sair da tela e voltar.
- */
+/** A decisão é sempre do motor; com `store`, a jornada sobrevive a sair da tela e voltar. */
 export function useConfigureJourney(
   api: HarnessApi,
   projectId: string,

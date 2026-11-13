@@ -11,10 +11,7 @@ export type ActivitySummary = {
   oldestReadAt: string | null;
 };
 
-/**
- * Soma o que já foi sincronizado das fontes do projeto. É só contagem do que o motor observou: nenhum indicador é
- * derivado aqui, e fonte sem sincronização não entra como zero atividade.
- */
+/** Só contagem do que o motor observou: nenhum indicador é derivado aqui, e fonte sem sincronização não entra como zero atividade. */
 export function summarizeActivity(integrations: ProjectIntegration[]): ActivitySummary {
   const totals = new Map<string, number>();
   for (const integration of integrations) {

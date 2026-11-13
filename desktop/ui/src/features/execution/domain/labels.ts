@@ -1,6 +1,5 @@
 import type { Tone } from '@/shared/components/ui';
 
-/** O que aconteceu com cada ação proposta, em frase para quem lê o resultado. */
 export const ACTION_STATUS_LABEL: Record<string, string> = {
   executed: 'executada',
   skipped: 'não aprovada, nada foi gravado',

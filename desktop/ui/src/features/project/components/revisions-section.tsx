@@ -14,7 +14,6 @@ type State = { status: 'loading' } | { status: 'error'; message: string } | { st
 
 const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
-/** O que a revisão fez num componente, em uma frase: "criou 1 arquivo, removeu 2". */
 function changeText({ created, updated, removed }: HarnessRevision['components'][number]): string {
   return [
     created.length > 0 ? `criou ${plural(created.length, 'arquivo', 'arquivos')}` : null,
@@ -25,7 +24,6 @@ function changeText({ created, updated, removed }: HarnessRevision['components']
     .join(', ');
 }
 
-/** Até três componentes, um por um; acima disso, os totais (os arquivos ficam no detalhe). */
 function summaryOf(revision: HarnessRevision): string {
   const { components } = revision;
   if (components.length <= 3)
@@ -40,10 +38,7 @@ function summaryOf(revision: HarnessRevision): string {
   return `${components.length} componentes: ${changeText(total)}`;
 }
 
-/**
- * Revisões do Harness: cada aplicação ou reversão que mudou arquivos no projeto, numerada, com o que mudou em cada
- * componente. Vem dos diários das execuções; reverter continua sendo pelo Configurar.
- */
+/** Vem dos diários das execuções; reverter continua sendo pelo Configurar. */
 export function RevisionsSection({ client, projectId }: { client: EngineClient; projectId: string }) {
   const [state, setState] = useState<State>({ status: 'loading' });
   const [showAll, setShowAll] = useState(false);

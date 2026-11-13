@@ -1,9 +1,6 @@
 import { z } from 'zod';
 
-/**
- * Uma entrada da trilha de auditoria (`audit.read`). `source` diz onde ela está guardada: `journal` (o diário de uma execução,
- * com `runId`) ou `audit` (o arquivo de auditoria, com `auditLine`). Uma entrada tem uma das duas referências.
- */
+/** Uma entrada tem uma das duas referências: `runId` (source `journal`) ou `auditLine` (source `audit`). */
 export const projectAuditEntrySchema = z.object({
   id: z.string(),
   at: z.string(),
@@ -22,10 +19,9 @@ export const projectAuditSourceSchema = z.object({
   available: z.boolean()
 });
 
-/** Uma categoria e quantas entradas ela tem na trilha inteira, sem olhar o filtro. */
+/** A contagem é da trilha inteira, sem olhar o filtro. */
 export const projectAuditCategorySchema = z.object({ id: z.string(), label: z.string(), count: z.number() });
 
-/** A trilha de auditoria do projeto, da entrada mais recente à mais antiga. `nextBefore` é o corte da página seguinte. */
 export const projectAuditTrailSchema = z.object({
   projectId: z.string(),
   generatedAt: z.string(),

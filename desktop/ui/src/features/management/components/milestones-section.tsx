@@ -21,10 +21,7 @@ const KIND_LABEL: Record<string, string> = { issues: 'Issues', pullRequests: 'Pu
 
 const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
-/**
- * Os marcos do projeto (milestone do GitHub, versão de correção do Jira): quanto já foi entregue, o prazo que o provedor
- * guarda e a previsão do que falta. A previsão usa o ritmo do tipo de dado inteiro; as premissas ficam à vista.
- */
+/** A previsão usa o ritmo do tipo de dado inteiro; as premissas ficam à vista. */
 export function MilestonesSection({ management, projectId }: { management: ManagementApi; projectId: string }) {
   const load = useCallback(() => management.milestones(projectId), [management, projectId]);
   const milestones = useAsyncResource(load);

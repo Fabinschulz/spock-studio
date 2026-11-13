@@ -34,7 +34,6 @@ export type ApplyInput = {
   resolutions: Record<string, ConflictResolution>;
 };
 
-/** Os casos de uso da jornada, como o motor os expõe. A interface só chama isto; nenhuma regra mora aqui. */
 export type HarnessApi = {
   discover(projectId: string): Promise<Discovery>;
   plan(input: PlanInput): Promise<ConfigurationPlan>;

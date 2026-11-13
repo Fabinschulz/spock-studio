@@ -1,7 +1,6 @@
 import { errorMessage } from '@/shared/api';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-/** Uma página lida: os itens, o corte da página seguinte (nulo no fim) e o que a leitura traz além da lista (contagens, por exemplo). */
 export interface PagedPage<T, E> {
   items: T[];
   next: string | null;
@@ -16,9 +15,8 @@ export type PagedState<T, E> =
 type Ready<T, E> = Extract<PagedState<T, E>, { status: 'ready' }>;
 
 /**
- * Uma lista lida por páginas, com "ver mais". Cada leitura é guardada junto com a função `read` que a pediu: trocar `read` (o
- * projeto ou um filtro mudou) volta a "lendo", e uma página que chega depois da troca não é gravada, para nunca aparecer sob um
- * filtro novo. Quem chama estabiliza `read` com `useCallback`. Uma página nova junta ao que já havia sem repetir itens.
+ * Cada leitura é guardada junto com a função `read` que a pediu: uma página que chega depois da troca não é gravada,
+ * para nunca aparecer sob um filtro novo. Quem chama estabiliza `read` com `useCallback`.
  */
 export function usePagedRead<T, E>(
   read: (before: string | null) => Promise<PagedPage<T, E>>,

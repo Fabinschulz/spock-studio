@@ -15,7 +15,7 @@ function pathsOf(id: string): readonly string[] {
   }
 }
 
-/** Marcas redesenhadas em traço simples: a Synthra não traz os logotipos oficiais. Decorativas. */
+/** Traço simples: a Synthra não traz os logotipos oficiais. */
 export function EnvironmentGlyph({ id }: { id: string }) {
   return (
     <span className={styles.envGlyph} aria-hidden="true">

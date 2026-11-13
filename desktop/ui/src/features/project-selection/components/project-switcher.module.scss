@@ -33,7 +33,6 @@ button.trigger {
     background-color: var(--color-active);
   }
 
-  // Sem projeto, o botão pede uma ação em vez de fingir que há um nome.
   &.empty {
     color: var(--color-text-muted);
   }
@@ -185,7 +184,6 @@ button.recent {
   white-space: nowrap;
 }
 
-// O aviso de pasta indisponível é uma frase longa: vai para baixo do nome, alinhada a ele, em vez de espremê-lo.
 button.recent[aria-disabled='true'] .recentMeta {
   flex-basis: 100%;
   padding-left: calc(1.25rem + var(--space-3));

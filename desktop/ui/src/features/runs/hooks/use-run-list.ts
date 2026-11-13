@@ -21,8 +21,8 @@ type Ready = Extract<RunListState, { status: 'ready' }>;
 const LOADING: RunListState = { status: 'loading' };
 
 /**
- * A lista de execuções com "Carregar mais". Cada leitura é guardada com a chave dos filtros que a pediu: trocar um filtro
- * volta a "lendo", e uma página que chega depois da troca não é gravada, para nunca aparecer sob um filtro novo.
+ * Cada leitura é guardada com a chave dos filtros que a pediu: uma página que chega depois da troca de filtro não é
+ * gravada, para nunca aparecer sob um filtro novo.
  */
 export function useRunList(client: EngineClient, filters: RunFilters) {
   const { projectId, kind, state } = filters;

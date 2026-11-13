@@ -199,7 +199,6 @@ describe('Integrações · conexões', () => {
 
     await userEvent.click(within(row).getByRole('button', { name: 'Testar' }));
 
-    // A mensagem cai na linha da conexão que foi testada, não no fim da seção.
     expect(await within(row).findByText('GitHub da equipe: o provedor aceitou a credencial.')).toBeInTheDocument();
   });
 

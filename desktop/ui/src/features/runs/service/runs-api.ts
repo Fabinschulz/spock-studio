@@ -17,7 +17,7 @@ export interface RunFilters {
   state: string | null;
 }
 
-/** Uma página da central de execuções. `cursor` é o que a página anterior devolveu; sem ele, a primeira. */
+/** `cursor` é o que a página anterior devolveu; sem ele, vem a primeira. */
 export function listRuns(client: EngineClient, filters: RunFilters, cursor: string | null): Promise<RunList> {
   return client.request(
     'run.list',
@@ -37,13 +37,13 @@ export interface RunActivity {
   awaitingApproval: number;
 }
 
-/** O resumo do motor, pedindo uma execução só: o que anda e o que espera aprovação, para o indicador do menu. */
+/** Pede uma execução só: o que interessa é o resumo, para o indicador do menu. */
 export async function readRunActivity(client: EngineClient): Promise<RunActivity> {
   const { summary } = await client.request('run.list', { limit: 1 }, runListSchema);
   return { running: summary.running, awaitingApproval: summary.awaitingApproval };
 }
 
-/** Liga a execução a um item já sincronizado do projeto, pelo número ou pela chave. Devolve as ligações depois da mudança. */
+/** Só liga itens já sincronizados do projeto. Devolve as ligações depois da mudança. */
 export async function linkRun(
   client: EngineClient,
   projectId: string,
@@ -68,7 +68,6 @@ export async function unlinkRun(
   return links;
 }
 
-/** Só leitura: abrir o detalhe nunca dispara, reverte nem valida nada. */
 export function readRunDetail(client: EngineClient, projectId: string, runId: string): Promise<RunDetail> {
   return client.request('run.detail', { projectId, runId }, runDetailSchema);
 }

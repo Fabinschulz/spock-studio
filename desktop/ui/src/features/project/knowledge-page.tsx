@@ -5,7 +5,6 @@ import { Page } from '@/shared/components';
 import { KnowledgeSection } from './components/knowledge-section';
 import { ProjectPageFrame } from './project-page-frame';
 
-/** O que os agentes podem ler do projeto, o que fica de fora e por quê, e o estado de cada arquivo no índice. */
 export function KnowledgePage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   return (
     <ProjectPageFrame project={project} title="Conhecimento">

@@ -1,4 +1,3 @@
-/** Fonte única dos caminhos do aplicativo (roteador por hash, dentro do host Tauri). */
 export const paths = {
   home: '/',
   project: '/projeto',
@@ -18,7 +17,6 @@ export const paths = {
   settings: '/configuracoes'
 } as const;
 
-/** Padrão da rota de uma execução; `executionPath` monta o caminho concreto. */
 export const executionPattern = '/execucao/:runId';
 
 export type RouteName = keyof typeof paths;

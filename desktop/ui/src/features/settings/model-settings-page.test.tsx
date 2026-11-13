@@ -30,15 +30,12 @@ const none: ModelConnection = {
 };
 
 type Behavior = {
-  /** Se o provedor recusa a chave ao guardar. */
   refuseSave?: boolean;
-  /** O estado que o teste devolve. Sem isto, o provedor aceita. */
+  /** Sem isto, o provedor aceita. */
   testResult?: ModelConnection;
-  /** Se o motor recusa a escolha de modelo. */
   refusePurpose?: boolean;
 };
 
-/** O motor de mentira do provedor de IA: guarda o estado em memória e responde no formato do contrato. */
 function client(
   initial: ModelConnection,
   behavior: Behavior = {}

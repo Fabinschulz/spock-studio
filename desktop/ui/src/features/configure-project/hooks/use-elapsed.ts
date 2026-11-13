@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 
-/** Tempo desde `startedAt`, medido no cliente enquanto `active`. */
 export function useElapsed(startedAt: number, active: boolean): number {
   const [now, setNow] = useState(startedAt);
 

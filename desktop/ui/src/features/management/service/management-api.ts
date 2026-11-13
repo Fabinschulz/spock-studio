@@ -37,19 +37,17 @@ import {
   type ProjectRisks
 } from '@/shared/schema';
 
-/** A visão gerencial do motor: só leitura do que já foi sincronizado. */
 export type ManagementApi = {
   portfolio(): Promise<Portfolio>;
   metrics(projectId: string, weeks?: number): Promise<ProjectMetrics>;
   forecast(projectId: string): Promise<ProjectForecast>;
   risks(projectId: string): Promise<ProjectRisks>;
-  /** O relatório de um período (em semanas), montado pelo motor com o que ele já calcula e registra. */
   report(projectId: string, weeks: number): Promise<ProjectReport>;
   /** As decisões gerenciais registradas no projeto, da mais recente para a mais antiga, sem os fatos do dia. */
   decisions(projectId: string): Promise<DecisionSummary[]>;
   /** Uma decisão com os fatos que o motor tinha no dia em que ela foi registrada. */
   decision(projectId: string, decisionId: string): Promise<ManagementDecision>;
-  /** Registra a decisão. O motor guarda com ela os fatos de agora; `redacted` diz se algum trecho foi substituído por parecer um segredo. */
+  /** O motor guarda com ela os fatos de agora; `redacted` diz se algum trecho foi substituído por parecer um segredo. */
   recordDecision(input: {
     projectId: string;
     title: string;
@@ -57,22 +55,18 @@ export type ManagementApi = {
     rationale: string;
     runIds: string[];
   }): Promise<{ decision: ManagementDecision; redacted: boolean }>;
-  /** As execuções mais recentes do projeto, para escolher as relacionadas a uma decisão. */
   recentRuns(projectId: string): Promise<RunItem[]>;
-  /** A trajetória de cada risco, a partir dos registros que o motor faz a cada sincronização completa. */
   riskHistory(projectId: string): Promise<ProjectRiskHistory>;
-  /** Andamento, prazo e previsão do que falta em cada marco (milestone do GitHub, versão do Jira). */
   milestones(projectId: string): Promise<ProjectMilestones>;
   modelStatus(): Promise<ModelStatus>;
   evidence(projectId: string): Promise<EvidencePack>;
-  /** Os itens do projeto que têm execuções ligadas. Só leitura; as ligações se fazem no detalhe da execução. */
+  /** Só leitura; as ligações se fazem no detalhe da execução. */
   linkedRuns(projectId: string): Promise<LinkedItemsResult>;
   ask(projectId: string, question: string): Promise<AssistantAnswer>;
-  /** A pergunta investigada em etapas: o motor cruza riscos, execuções e mudanças e confere a resposta. Funciona sem chave de modelo, só com os sinais. */
+  /** Funciona sem chave de modelo, só com os sinais. */
   investigate(projectId: string, question: string): Promise<ProjectInvestigation>;
-  /** O que vai ao provedor numa pergunta ao portfólio: os projetos escolhidos e os fatos de cada um, com a política de cada projeto. */
   portfolioEvidence(projectIds: string[]): Promise<PortfolioEvidence>;
-  /** Uma pergunta que cruza os projetos escolhidos. O motor confere a resposta; somar ou comparar números por conta própria não passa. */
+  /** O motor confere a resposta; somar ou comparar números por conta própria não passa. */
   askPortfolio(question: string, projectIds: string[]): Promise<PortfolioAnswer>;
 };
 

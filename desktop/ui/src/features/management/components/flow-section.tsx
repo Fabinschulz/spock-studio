@@ -10,7 +10,7 @@ interface FlowSectionProps {
   connectors: Connector[];
 }
 
-/** Indicadores de fluxo por tipo de dado. Cada número diz de onde vem; o que não tem base aparece com o motivo. */
+/** Cada número diz de onde vem; o que não tem base aparece com o motivo. */
 export function FlowSection({ metrics, connectors }: FlowSectionProps) {
   if (metrics.kinds.length === 0) return null;
   const label = (kind: string) =>
@@ -37,7 +37,6 @@ export function FlowSection({ metrics, connectors }: FlowSectionProps) {
   );
 }
 
-/** O percentil 85 e, se houve, quantos itens ficaram de fora por não ter início conhecido. */
 function cycleTimeNote(cycle: KindFlow['cycleTime']): string | undefined {
   const parts = [
     cycle.p85Days === null ? null : `85% em até ${formatDays(cycle.p85Days)}`,
@@ -48,7 +47,7 @@ function cycleTimeNote(cycle: KindFlow['cycleTime']): string | undefined {
   return parts.length > 0 ? parts.join(' · ') : undefined;
 }
 
-/** Quantos por vínculo e quantos por rótulo, e o que foi lido: o número só vale para o que a fonte permitiu ler. */
+/** O número só vale para o que a fonte permitiu ler. */
 function blockedNote(blocked: KindFlow['blocked']): string | undefined {
   if (blocked.value === null) return undefined;
   const how = [
@@ -127,12 +126,10 @@ function KindFlowBlock({ flow, label }: { flow: KindFlow; label: string }) {
 interface FigureProps {
   label: string;
   value: number | string | null;
-  /** Complemento do valor (ex.: o percentil 85 do lead time). */
   note?: string;
   unavailable: string | null;
 }
 
-/** Sem valor, o lugar do número diz "sem dado", alinhado aos demais, e o motivo vai em nota abaixo do rótulo. */
 function Figure({ label, value, note, unavailable }: FigureProps) {
   const detail = value === null ? (unavailable ?? 'Sem dado.') : note;
   return (

@@ -1,17 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 
 export type Reloadable<T> = {
-  /** O último valor lido. Continua na tela enquanto uma releitura está em andamento. */
+  /** Continua na tela enquanto uma releitura está em andamento. */
   value: T | null;
   error: unknown;
   settled: boolean;
   reload: () => void;
 };
 
-/**
- * Uma leitura que pode ser refeita sem esvaziar a tela. Quem troca de assunto (outro projeto) remonta o componente com
- * `key`: o valor guardado é sempre do mesmo `load`.
- */
+/** Quem troca de assunto (outro projeto) remonta o componente com `key`: o valor guardado é sempre do mesmo `load`. */
 export function useReloadable<T>(load: () => Promise<T>): Reloadable<T> {
   const [state, setState] = useState<{ value: T | null; error: unknown; settled: boolean }>({
     value: null,

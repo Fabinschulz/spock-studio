@@ -25,7 +25,6 @@ interface ProjectIntegrationsSectionProps {
   project: SelectedProject | null;
   catalog: IntegrationCatalog;
   connections: Connection[];
-  /** Vínculos e sincronizações mudam o que a lista de conexões mostra (uso, última leitura). */
   onChanged: () => void;
 }
 
@@ -63,7 +62,6 @@ function ProjectIntegrations({
   const { busy, error, notice, run } = useAction(reload);
   const [linking, setLinking] = useState<string | null>(null);
 
-  // O motor avisa cada passo da sincronização: a lista é relida quando ela começa, avança ou termina neste projeto.
   useEffect(() => {
     let stop: (() => void) | undefined;
     let active = true;

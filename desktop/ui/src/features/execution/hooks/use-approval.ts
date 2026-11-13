@@ -4,10 +4,7 @@ import { useState } from 'react';
 import { pendingApproval, type RunView } from '../domain/run-timeline';
 import { resumeWorkflow } from '../service/execution-api';
 
-/**
- * A decisão de quem aprova: quais ações marcar e retomar a execução. Nada vem marcado, porque executar uma ação é uma
- * escolha explícita. Só entram na decisão as ações que o motor realmente propôs.
- */
+/** Nada vem marcado, porque executar uma ação é uma escolha explícita; só entram na decisão as ações que o motor propôs. */
 export function useApproval(
   client: EngineClient,
   runId: string,

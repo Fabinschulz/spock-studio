@@ -10,11 +10,7 @@ interface DisclosureProps {
   children: ReactNode;
 }
 
-/**
- * O "ver detalhes" do produto: o que a pessoa lê quando quer, atrás de um título que diz o que há ali. É o `<details>` do
- * navegador, então teclado, leitor de tela e "aberto ou fechado" já funcionam sem código; o componente só dá a todos o
- * mesmo visual, em vez de cada tela refazer o seu.
- */
+/** É o `<details>` do navegador: teclado, leitor de tela e "aberto ou fechado" já funcionam sem código. */
 export function Disclosure({ summary, defaultOpen, className, children }: DisclosureProps) {
   return (
     <details className={cn(styles.details, className)} open={defaultOpen || undefined}>

@@ -3,7 +3,7 @@ import { projectAuditTrailSchema, type ProjectAuditTrail } from '@/shared/schema
 
 export const PAGE_SIZE = 30;
 
-/** Uma página da trilha de auditoria. `before` é o que a página anterior devolveu; sem ele, a primeira. Só leitura. */
+/** `before` é o corte que a página anterior devolveu; sem ele, vem a primeira. */
 export function readAudit(
   client: EngineClient,
   projectId: string,

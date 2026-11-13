@@ -4,7 +4,6 @@ import styles from './error-content.module.scss';
 
 export interface ErrorContentProps {
   error: unknown;
-  /** Identifica o boundary que capturou, para o diagnóstico. */
   source: string;
 }
 

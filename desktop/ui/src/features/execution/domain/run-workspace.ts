@@ -18,7 +18,6 @@ export type StageView = {
 const AGENT_LABEL: Record<string, string> = { planning: 'Planejamento', architecture: 'Arquitetura' };
 const AGENT_ORDER = ['planning', 'architecture'] as const;
 
-/** Nome mostrado de um agente; um agente que o motor passou a publicar e a tela ainda não conhece aparece pelo id. */
 export function agentLabel(agentId: string): string {
   return AGENT_LABEL[agentId] ?? agentId;
 }
@@ -121,7 +120,6 @@ const OUTCOME_GLYPH: Record<string, GlyphState> = {
   cancelled: 'skipped'
 };
 
-/** Trecho recuperado como a tela o mostra: o que o motor publicou, sem inventar resumo nem origem. */
 export type EvidenceView = {
   chunkId: string;
   filePath: string;
@@ -129,7 +127,6 @@ export type EvidenceView = {
   score: number | null;
   /** Primeiros caracteres do hash do conteúdo, para reconhecer a versão do arquivo. */
   hash: string | null;
-  /** O impacto técnico cita este trecho. */
   citedByImpact: boolean;
 };
 
@@ -178,7 +175,7 @@ export function deriveEvidence(
   });
 }
 
-/** Motivo e o que fazer, por código de falha do motor. O texto do motor continua sendo mostrado junto. */
+/** O texto do motor continua sendo mostrado junto. */
 const FAILURE_HINT: Record<string, string> = {
   AI_RUNTIME_UNAVAILABLE: 'O runtime de IA parou ou não respondeu. Você pode iniciar o pedido de novo.',
   AI_RUNTIME_TIMEOUT: 'O runtime de IA passou do tempo limite. Você pode iniciar o pedido de novo.',
@@ -190,7 +187,6 @@ export function failureHint(code: string): string | null {
   return FAILURE_HINT[code] ?? null;
 }
 
-/** Riscos do impacto técnico, por código. */
 const RISK_LABEL: Record<string, string> = {
   'sem-evidencia': 'Sem trechos do projeto que sustentem a análise.',
   'sem-stack': 'Nenhuma stack foi identificada no projeto.'

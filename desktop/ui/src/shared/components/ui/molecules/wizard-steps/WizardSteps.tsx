@@ -16,10 +16,7 @@ interface WizardStepsProps {
   steps: readonly WizardStep[];
   currentId: string;
   issue?: StepIssue;
-  /**
-   * Quando informado, as etapas já concluídas viram botões que voltam a elas. As futuras nunca são controles: não se
-   * pula o que ainda não foi feito. Sem isto, a lista só informa o progresso.
-   */
+  /** As etapas futuras nunca são controles: não se pula o que ainda não foi feito. */
   onSelect?: (id: string) => void;
 }
 
@@ -34,8 +31,8 @@ const spoken: Record<State | StepIssue['kind'], string> = {
 };
 
 /**
- * Progresso da jornada. O estado de cada etapa é dito em texto e por forma (✓, número, !), nunca só por cor.
- * Em janelas estreitas os rótulos somem do desenho e entra o resumo "Etapa N de M"; para o leitor de tela a lista é a mesma.
+ * O estado de cada etapa é dito em texto e por forma (✓, número, !), nunca só por cor. Em janelas estreitas os rótulos
+ * somem do desenho e entra "Etapa N de M"; para o leitor de tela a lista é a mesma.
  */
 export function WizardSteps({ steps, currentId, issue, onSelect }: WizardStepsProps) {
   const currentIndex = steps.findIndex((s) => s.id === currentId);

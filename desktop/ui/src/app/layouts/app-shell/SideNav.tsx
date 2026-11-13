@@ -33,11 +33,10 @@ export interface NavItem {
   to?: string;
   end?: boolean;
   unavailableReason?: string;
-  /** O que está acontecendo no item, para um aviso ao lado do nome (por exemplo, execuções andando). */
   activity?: { label: string; text: string; tone: 'warning' | 'info' };
 }
 
-/** Um ambiente do produto. Sem rótulo, o grupo é do aplicativo como um todo. */
+/** Sem rótulo, o grupo é do aplicativo como um todo. */
 interface NavGroup {
   id: string;
   label?: string;
@@ -118,7 +117,6 @@ const ENVIRONMENT_GROUP: Record<Environment, NavGroup> = {
   management: MANAGEMENT_GROUP
 };
 
-/** O menu mostra só o ambiente atual, mais o que é do aplicativo todo. */
 export function SideNav({
   environment,
   runActivity = null

@@ -11,7 +11,7 @@ interface CommandRowProps {
   onToggle: () => void;
 }
 
-/** Uma linha por comando: o que executa, o que toca e a aprovação. Desmarcado por padrão (o aviso fica na seção). */
+/** Desmarcado por padrão: o aviso fica na seção. */
 export function CommandRow({ command, approved, onToggle }: CommandRowProps) {
   return (
     <li>

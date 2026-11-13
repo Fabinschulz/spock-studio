@@ -3,16 +3,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 export type Resource<T> = (
   { status: 'loading' } | { status: 'error'; error: unknown } | { status: 'ready'; value: T }
 ) & {
-  /** Refaz a leitura. Só existe em leituras que sabem se refazer (`useAsyncResource`): é o que dá o "Tentar de novo" ao `ResourceView`. */
+  /** Só existe em leituras que sabem se refazer: é o que dá o "Tentar de novo" ao `ResourceView`. */
   reload?: () => void;
 };
 
 const LOADING = { status: 'loading' } as const;
 
 /**
- * Lê algo uma vez por `load` e guarda o desfecho. Quem chama estabiliza `load` (useCallback ou useMemo): trocá-lo
- * descarta a leitura que ainda estava em andamento e volta a `loading`, sem mostrar o resultado da leitura anterior.
- * `reload` refaz a leitura (volta a `loading`); o resultado só muda de identidade quando a leitura muda.
+ * Quem chama estabiliza `load` (useCallback ou useMemo): trocá-lo descarta a leitura em andamento e volta a `loading`,
+ * sem mostrar o resultado da anterior.
  */
 export function useAsyncResource<T>(load: () => Promise<T>): Resource<T> {
   const [attempt, setAttempt] = useState(0);

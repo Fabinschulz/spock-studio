@@ -5,7 +5,6 @@ import { useCallback, useState } from 'react';
 
 import type { ModelApi } from '../service/model-api';
 
-/** O provedor de modelo como conexão e as três ações sobre ele; cada ação tem o próprio texto de falha e de sucesso. */
 export function useModelSettings(api: ModelApi) {
   const load = useCallback(() => api.connection(), [api]);
   const initial = useAsyncResource(load);

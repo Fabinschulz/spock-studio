@@ -7,7 +7,7 @@ import { useCallback } from 'react';
 import styles from '../project-page.module.scss';
 import { readMcp } from '../service/project-api';
 
-/** Como cada tipo de servidor se conecta, em palavras simples. Um tipo novo aparece como veio. */
+/** Um tipo novo aparece como veio. */
 const TRANSPORT: Record<string, { label: string; runs: string }> = {
   stdio: { label: 'Programa local', runs: 'Roda na sua máquina o programa' },
   http: { label: 'Servidor remoto', runs: 'Conecta no servidor' },
@@ -16,8 +16,8 @@ const TRANSPORT: Record<string, { label: string; runs: string }> = {
 };
 
 /**
- * Os servidores MCP que o `.mcp.json` do projeto declara. Só leitura: o Spock Studio não grava esse arquivo, e o motor nunca
- * devolve valores de variáveis, argumentos ou cabeçalhos, só onde há uma credencial escrita no arquivo.
+ * Só leitura: o Spock Studio não grava esse arquivo, e o motor nunca devolve valores de variáveis, argumentos ou
+ * cabeçalhos, só onde há uma credencial escrita no arquivo.
  */
 export function McpSection({ client, projectId }: { client: EngineClient; projectId: string }) {
   const load = useCallback(() => readMcp(client, projectId), [client, projectId]);

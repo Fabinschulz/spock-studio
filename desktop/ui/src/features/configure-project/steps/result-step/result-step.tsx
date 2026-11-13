@@ -19,12 +19,10 @@ import { ValidationList } from './validation-list';
 
 interface ResultStepProps {
   results: JourneyResults;
-  /** Reversão ou validação em andamento. */
   run: RunView | null;
   onRevert: (runId: string) => void;
   onValidate: () => void;
   onDone: () => void;
-  /** Gera o plano de novo, agora com a proposta do Harness Engineer (se a pessoa a escreveu). */
   onReplan: () => void;
   /** Estado do plano gerado a partir daqui; o erro dele precisa aparecer nesta etapa. */
   replan: Loadable<unknown>;

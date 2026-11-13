@@ -9,10 +9,7 @@ interface RequiresHostProps {
   children: ReactNode;
 }
 
-/**
- * Telas que só funcionam com o motor local. No navegador (prévia), em vez de um erro genérico na primeira chamada,
- * diz o motivo e oferece o caminho de volta.
- */
+/** No navegador (prévia), em vez de um erro genérico na primeira chamada, diz o motivo e oferece o caminho de volta. */
 export function RequiresHost({ children }: RequiresHostProps) {
   if (isTauriRuntime()) return children;
 

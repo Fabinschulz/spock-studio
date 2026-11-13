@@ -3,10 +3,7 @@ import type { EngineClient } from '@/shared/api';
 import { useAsyncResource } from '@/shared/hooks';
 import { useCallback, useMemo } from 'react';
 
-/**
- * Há modelo configurado? `null` enquanto o motor não respondeu. Uma falha ao perguntar conta como "não": o pedido com modelo
- * só se oferece quando o motor disse que pode.
- */
+/** Uma falha ao perguntar conta como "não": o pedido com modelo só se oferece quando o motor disse que pode. */
 export function useModelConfigured(client: EngineClient): boolean | null {
   const api = useMemo(() => createModelApi(client), [client]);
   const load = useCallback(() => api.status(), [api]);

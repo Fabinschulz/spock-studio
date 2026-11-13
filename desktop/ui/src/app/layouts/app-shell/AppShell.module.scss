@@ -77,7 +77,6 @@ button.skip {
   list-style: none;
 }
 
-// Os grupos separam os ambientes (Engenharia, Gestão) do que é do aplicativo todo.
 .groups {
   display: flex;
   flex-direction: column;
@@ -156,7 +155,6 @@ button.skip {
   }
 }
 
-// O item indisponível é um `Button` do Synthra; o resto do visual vem de `.item`.
 button.item {
   @include plain-button;
 
@@ -297,7 +295,7 @@ button.item {
   border-bottom: var(--border-width-divider) solid var(--color-divider);
 }
 
-// Engenharia e Gestão: o ambiente atual se marca por forma (fundo e filete), não só por cor.
+// O ambiente atual se marca por forma (fundo e filete), não só por cor.
 .environments {
   display: flex;
   align-items: center;
@@ -380,7 +378,6 @@ button.item {
     @include visually-hidden;
   }
 
-  // Com o menu recolhido o rótulo some; um fio mantém a separação entre os ambientes.
   .group + .group {
     padding-top: var(--space-3);
     border-top: var(--border-width-divider) solid var(--color-divider);

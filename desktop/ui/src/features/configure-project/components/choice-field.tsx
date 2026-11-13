@@ -13,7 +13,6 @@ interface CheckboxFieldProps {
   plain?: boolean;
 }
 
-/** Caixa de seleção do Spock Studio com o rótulo curto; a explicação fica abaixo, ligada por `aria-describedby`. */
 export function CheckboxField({ checked, onChange, label, description, plain }: CheckboxFieldProps) {
   const descriptionId = useId();
 
@@ -41,7 +40,6 @@ interface RadioFieldProps {
   children: ReactNode;
 }
 
-/** Opção da jornada, com a moldura do campo: o botão vem do átomo `Radio` (o Synthra não tem um). */
 export function RadioField({ name, checked, onChange, children }: RadioFieldProps) {
   return (
     <Radio

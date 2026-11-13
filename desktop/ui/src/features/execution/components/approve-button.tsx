@@ -1,6 +1,5 @@
 import { Button } from '@mariliz/ui-kit';
 
-/** O texto diz o que a aprovação vai fazer: executar o que foi marcado, ou só seguir sem gravar nada. */
 export function ApproveButton({
   busy,
   hasActions,

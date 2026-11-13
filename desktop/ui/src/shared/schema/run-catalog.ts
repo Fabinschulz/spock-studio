@@ -1,11 +1,8 @@
 import { z } from 'zod';
 
-/**
- * Contrato da central de execuções (`run.list` e `run.detail`). Espelha `RunCatalog` no motor e é conferido contra as
- * fixtures de `contracts/fixtures/runs`. Lê só diários: nada aqui dispara, reverte ou valida.
- */
+/** Espelha `RunCatalog` no motor e é conferido contra as fixtures de `contracts/fixtures/runs`. */
 
-/** Os tipos de execução que o motor reconhece, na ordem em que a tela os oferece. */
+/** Na ordem em que a tela os oferece. */
 export const RUN_KINDS = ['apply', 'validate', 'revert', 'workflow', 'assistant', 'investigation'] as const;
 
 /** Os estados de uma execução, os mesmos de `RunStates` no motor. */
@@ -51,7 +48,7 @@ export const runListSchema = z.object({
   summary: z.object({ total: z.number(), running: z.number(), awaitingApproval: z.number() })
 });
 
-/** O resumo de entrega: contagens do diário, sem interpretação. A interface as transforma em frases. */
+/** Contagens do diário, sem interpretação: a interface as transforma em frases. */
 export const deliverySummarySchema = z.object({
   done: z.object({
     created: z.number(),
@@ -82,7 +79,7 @@ export const deliverySummarySchema = z.object({
   })
 });
 
-/** Uma execução ligada a um item de trabalho. Título e situação vêm dos dados sincronizados, nunca da ligação. */
+/** Título e situação vêm dos dados sincronizados, nunca da ligação. */
 export const runLinkSchema = z.object({
   integrationId: z.string(),
   /** Nulo quando a integração foi desvinculada do projeto. */
@@ -97,10 +94,8 @@ export const runLinkSchema = z.object({
   statusCategory: z.string().nullable()
 });
 
-/** Resposta de `run.link` e `run.unlink`: as ligações da execução depois da mudança. */
 export const runLinksResultSchema = z.object({ links: z.array(runLinkSchema) });
 
-/** Um item de trabalho com as execuções ligadas a ele (`run.linked`): o caminho inverso de {@link runLinkSchema}. */
 export const linkedItemSchema = z.object({
   integrationId: z.string(),
   provider: z.string().nullable(),

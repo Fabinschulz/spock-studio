@@ -18,7 +18,6 @@ interface RecentProjectButtonProps {
   onOpen: (id: string) => void;
 }
 
-/** Um projeto recente: o mesmo comportamento na lista da configuração e nos atalhos do início. */
 export function RecentProjectButton({ project, current, busy, formatDate, classes, onOpen }: RecentProjectButtonProps) {
   const reasonId = useId();
   const inactive = busy || !project.available;

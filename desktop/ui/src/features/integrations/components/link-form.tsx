@@ -12,7 +12,6 @@ interface LinkFormProps {
   onCancel: () => void;
 }
 
-/** O recorte de um projeto numa conexão: um recurso e os tipos de dado que podem ser lidos dele. */
 export function LinkForm({ connection, connector, busy, onSubmit, onCancel }: LinkFormProps) {
   const [resource, setResource] = useState('');
   const [kinds, setKinds] = useState<string[]>(connector.dataKinds.map((kind) => kind.id));

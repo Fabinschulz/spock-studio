@@ -12,7 +12,7 @@ interface ConnectionFormProps {
   onCancel: () => void;
 }
 
-/** Os campos vêm do conector: a interface não sabe o que cada provedor pede. A credencial só existe neste estado, até o envio. */
+/** Os campos vêm do conector. A credencial só existe neste estado, até o envio. */
 export function ConnectionForm({ connector, busy, onSubmit, onCancel }: ConnectionFormProps) {
   const [name, setName] = useState(connector.name);
   const [settings, setSettings] = useState<Record<string, string>>({});

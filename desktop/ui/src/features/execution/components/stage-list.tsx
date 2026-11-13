@@ -12,10 +12,7 @@ const GLYPH_TEXT = {
   skipped: 'Não concluída'
 } as const;
 
-/**
- * As etapas do grafo que o motor já anunciou, na ordem em que o grafo as percorre. O estado de cada uma está no texto
- * (o ícone sozinho não carrega o significado) e o nome acessível do ícone repete o que o texto diz.
- */
+/** O estado de cada etapa está no texto (o ícone sozinho não carrega o significado) e o nome acessível do ícone repete o texto. */
 export function StageList({ stages, outcome }: { stages: readonly StageView[]; outcome: string }) {
   return (
     <ol className={styles.stages}>

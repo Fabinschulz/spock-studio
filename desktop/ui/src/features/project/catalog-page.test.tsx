@@ -182,7 +182,6 @@ describe('Catálogo do Harness', () => {
 
     expect(await card('Regra do projeto: pagamentos')).toBeInTheDocument();
     const titles = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent);
-    // O inventário de MCP vem por último, depois de todos os grupos de componentes.
     expect(titles.at(-1)).toBe('Servidores MCP do projeto');
     expect(titles.at(-3)).toBe('regra-nova');
   });

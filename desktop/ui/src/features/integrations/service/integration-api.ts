@@ -23,11 +23,10 @@ export type NewConnection = { provider: string; name: string; settings: Record<s
 export type NewLink = { projectId: string; connectionId: string; resource: string; dataKinds: string[] };
 export type ScopeChange = { projectId: string; integrationId: string; dataKinds?: string[]; feedsKnowledge?: boolean };
 
-/** A central de integrações, como o motor a expõe. A credencial vai para o motor e nunca volta. */
+/** A credencial vai para o motor e nunca volta. */
 export type IntegrationApi = {
   catalog(): Promise<IntegrationCatalog>;
   connections(): Promise<Connection[]>;
-  /** Onde cada conexão é usada, o que se lê de lá e o que o conector pode fazer. Só leitura. */
   reach(): Promise<ConnectionReach[]>;
   connect(input: NewConnection): Promise<Connection>;
   test(connectionId: string): Promise<Connection>;
@@ -40,7 +39,7 @@ export type IntegrationApi = {
   unlink(projectId: string, integrationId: string): Promise<void>;
   sync(projectId: string, integrationId: string): Promise<SyncExecution>;
   history(projectId: string, integrationId: string): Promise<SyncExecution[]>;
-  /** Avisos de sincronização do motor, para a tela não precisar perguntar de tempos em tempos. Devolve como parar de ouvir. */
+  /** Devolve como parar de ouvir. */
   onSyncEvent(handler: (event: SyncEvent) => void): Promise<() => void>;
 };
 

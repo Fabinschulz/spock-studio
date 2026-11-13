@@ -1,7 +1,7 @@
 import type { RecentProject, SelectedProject } from '@/features/project-selection';
 import type { PortfolioProject } from '@/shared/schema';
 
-/** O que a linha do portfólio pode fazer pelo projeto. `null`: a interface não tem como abri-lo daqui. */
+/** `null`: a interface não tem como abrir o projeto daqui. */
 export type OpenAction = { kind: 'current' } | { kind: 'recent'; recentId: string } | null;
 
 /**

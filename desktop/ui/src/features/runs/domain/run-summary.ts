@@ -1,13 +1,10 @@
 import type { RunDetail } from '@/shared/schema';
 
 export interface DeliverySummary {
-  /** O que a execução se propôs a fazer, numa frase, pelo tipo. */
   request: string;
-  /** O que foi feito, uma frase por assunto; nunca vazio. */
+  /** Nunca vazio. */
   done: string[];
-  /** O que foi validado, numa frase. */
   validated: string;
-  /** O que ficou de fora, uma frase por assunto; vazio quando nada ficou. */
   leftOut: string[];
 }
 
@@ -23,8 +20,8 @@ const DEFAULT_REQUEST: Record<string, string> = {
 };
 
 /**
- * O pedido, pelo tipo de execução. O texto que a pessoa escreveu não aparece de propósito: o diário nunca o guarda (ele fica
- * só no checkpoint do runtime), e a tela não deve prometer o que o motor não registra.
+ * O texto que a pessoa escreveu não aparece de propósito: o diário nunca o guarda (ele fica só no checkpoint do
+ * runtime), e a tela não deve prometer o que o motor não registra.
  */
 function requestOf(detail: RunDetail): string {
   return DEFAULT_REQUEST[detail.kind] ?? 'Execução do Spock Studio.';
@@ -79,10 +76,7 @@ function leftOutOf({ leftOut }: RunDetail['summary']): string[] {
   ].filter((part): part is string => part !== null);
 }
 
-/**
- * O resumo de entrega do topo da execução, em frases: o pedido, o que foi feito, o que foi validado e o que ficou de fora.
- * Vem só das contagens do diário; nada aqui interpreta o resultado nem promete mais do que o motor registrou.
- */
+/** Vem só das contagens do diário; nada aqui interpreta o resultado nem promete mais do que o motor registrou. */
 export function deliverySummary(detail: RunDetail): DeliverySummary {
   return {
     request: requestOf(detail),

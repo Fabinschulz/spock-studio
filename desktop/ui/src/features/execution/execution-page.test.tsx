@@ -389,7 +389,6 @@ describe('Execução', () => {
     expect(screen.getByText('O runtime de IA não respondeu.')).toBeInTheDocument();
     expect(screen.getByText(/Você pode iniciar o pedido de novo/)).toBeInTheDocument();
     expect(screen.getByText('AI_RUNTIME_UNAVAILABLE')).toBeInTheDocument();
-    // A etapa que estava em andamento fica marcada como falha, não como concluída.
     expect(screen.getByText('Planejamento').closest('li')).toHaveTextContent('Falhou');
     await expectNoA11yViolations(container);
   });

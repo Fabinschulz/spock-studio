@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export type CopyState = 'idle' | 'copied' | 'failed';
 
 interface CopyOptions {
-  /** Volta a `idle` depois desse tempo, para o aviso de "copiado" não ficar para sempre. */
   resetAfterMs?: number;
 }
 

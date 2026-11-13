@@ -10,7 +10,7 @@ export type ProjectOverview =
   | { status: 'error'; message: string }
   | { status: 'ready'; discovery: Discovery; runs: RunSummary[] };
 
-/** Lê a análise e as execuções do projeto. Trocar de projeto descarta a leitura que ainda estava em andamento. */
+/** Trocar de projeto descarta a leitura que ainda estava em andamento. */
 export function useProjectOverview(client: EngineClient, projectId: string): ProjectOverview {
   const load = useCallback(async () => {
     const [discovery, runs] = await Promise.all([readDiscovery(client, projectId), readRuns(client, projectId)]);

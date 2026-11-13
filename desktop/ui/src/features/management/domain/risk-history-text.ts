@@ -9,7 +9,6 @@ const severity = (value: string | null): string =>
 
 const ids = (list: string[]) => list.map((id) => `#${id}`).join(', ');
 
-/** O que mudou nos itens citados, em uma frase: "entraram #3; saíram #2". Vazio quando nada mudou nos itens. */
 function itemsText(change: RiskChange): string {
   return [
     change.itemsAdded.length > 0 ? `entraram ${ids(change.itemsAdded)}` : null,
@@ -19,10 +18,7 @@ function itemsText(change: RiskChange): string {
     .join('; ');
 }
 
-/**
- * Uma mudança na trajetória de um risco, em uma frase. Um tipo novo do motor aparece como veio, em vez de sumir.
- * "Já estava ativo" diz o que se sabe: o primeiro registro não revela desde quando o risco existia.
- */
+/** "Já estava ativo" diz o que se sabe: o primeiro registro não revela desde quando o risco existia. */
 export function describeRiskChange(change: RiskChange): string {
   const items = itemsText(change);
   switch (change.kind) {

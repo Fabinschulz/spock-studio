@@ -15,7 +15,6 @@ const classes = {
 
 interface RecentProjectsProps {
   recents: readonly RecentProject[];
-  /** Id do recente que corresponde ao projeto aberto. */
   currentId?: string;
   busy?: boolean;
   onOpen: (id: string) => void;

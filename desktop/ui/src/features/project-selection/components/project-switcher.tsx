@@ -19,9 +19,8 @@ const recentClasses = {
 };
 
 /**
- * O projeto aberto, sempre à vista no topo, e a troca de projeto sem voltar ao início. É um painel de disclosure (não um
- * menu de comandos): cada projeto é um botão comum, então o teclado e o leitor de tela usam o que já conhecem.
- * Esc e clique fora fecham, e o foco volta ao botão que abriu.
+ * Painel de disclosure (não um menu de comandos): cada projeto é um botão comum, então o teclado e o leitor de tela
+ * usam o que já conhecem. Esc e clique fora fecham, e o foco volta ao botão que abriu.
  */
 export function ProjectSwitcher() {
   const panelId = useId();

@@ -11,7 +11,6 @@ export class EngineError extends Error {
   }
 }
 
-/** Mensagem para a pessoa: a do motor quando ele explica o erro; senão, o texto de quem chamou. */
 export function errorMessage(error: unknown, fallback: string): string {
   return error instanceof EngineError ? error.message : fallback;
 }
@@ -86,7 +85,6 @@ export const ENGINE_METHODS = [
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];
 
-/** Fala com o motor .NET. A única implementação real passa pelos comandos do host Tauri. */
 export type EngineClient = {
   request<T>(method: EngineMethod, params: Record<string, unknown>, schema: ZodType<T>): Promise<T>;
   onEvent(handler: (event: RunEvent) => void): Promise<() => void>;

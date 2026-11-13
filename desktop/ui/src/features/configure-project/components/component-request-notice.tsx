@@ -5,7 +5,6 @@ import styles from '../configure-project-page.module.scss';
 
 const names = (items: ComponentRequest['exclude']) => items.map((item) => item.label).join(', ');
 
-/** Mostra o pedido vindo da tela Projeto enquanto ele ainda não virou plano aplicado, com a opção de desfazê-lo. */
 export function ComponentRequestNotice({ request, onClear }: { request: ComponentRequest; onClear: () => void }) {
   return (
     <aside className={styles.requestNotice} aria-label="Pedido da tela Projeto">

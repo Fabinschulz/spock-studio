@@ -21,7 +21,6 @@ function BreakableId({ id }: { id: string }) {
   ));
 }
 
-/** "12 decisões · 8 habilitar · 3 manter": só as que existem, na ordem em que o motor as nomeia. */
 export function decisionsSummary(decisions: readonly Decision[]): string {
   const counts = new Map<string, number>();
   for (const { decision } of decisions) counts.set(decision, (counts.get(decision) ?? 0) + 1);

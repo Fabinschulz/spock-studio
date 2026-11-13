@@ -3,9 +3,8 @@ import { z } from 'zod';
 import { runOutcomeSchema, snapshotOf } from './run';
 
 /**
- * Contrato das respostas do motor para a jornada "Configurar projeto". Espelha o C#
- * (Mariliz.Core e Mariliz.Application) e é conferido contra as fixtures golden de contracts.
- * A interface valida toda resposta antes de usá-la: um formato inesperado vira erro, não tela quebrada.
+ * Espelha o C# (Mariliz.Core e Mariliz.Application) e é conferido contra as fixtures golden de contracts. A interface
+ * valida toda resposta antes de usá-la: um formato inesperado vira erro, não tela quebrada.
  */
 
 const confidence = z.enum(['high', 'medium', 'low']);
@@ -201,7 +200,6 @@ export const runResultSchema = z.object({
 
 export const runSnapshotSchema = snapshotOf(runResultSchema);
 
-/** Uma linha da lista de execuções de um projeto (`harness.runs`). */
 export const runSummarySchema = z.object({
   runId: z.string(),
   kind: z.string(),
@@ -214,7 +212,6 @@ export const runSummarySchema = z.object({
 export const runsSchema = z.object({ runs: z.array(runSummarySchema) });
 export type RunSummary = z.infer<typeof runSummarySchema>;
 
-/** Decisão da pessoa para um arquivo em conflito: manter o dela ou substituir (com backup). */
 export type ConflictResolution = 'keep' | 'overwrite';
 
 export type Discovery = z.infer<typeof discoverySchema>;

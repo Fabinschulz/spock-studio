@@ -1,10 +1,7 @@
 import type { EvidenceView } from '../domain/run-workspace';
 import styles from './workspace.module.scss';
 
-/**
- * Cada trecho com a origem que o motor conferiu: arquivo, trecho (chunk), versão do conteúdo (hash) e pontuação da busca.
- * O texto do trecho só existe no resultado final; antes dele a lista mostra a origem sem o texto.
- */
+/** O texto do trecho só existe no resultado final; antes dele a lista mostra a origem sem o texto. */
 export function EvidenceList({ items }: { items: readonly EvidenceView[] }) {
   return (
     <ul className={styles.list}>

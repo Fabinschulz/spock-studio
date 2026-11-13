@@ -1,10 +1,5 @@
 import { z } from 'zod';
 
-/**
- * O que vale para qualquer execução do motor (aplicação, validação, reversão ou workflow): eventos, retrato e estados
- * terminais. Cada jornada encaixa o próprio resultado no retrato com {@link snapshotOf}.
- */
-
 export const runOutcomeSchema = z.enum([
   'completed',
   'completed_with_limitations',
@@ -13,7 +8,6 @@ export const runOutcomeSchema = z.enum([
   'cancelled'
 ]);
 
-/** Estados em que a execução não muda mais: fonte única para quem espera ou acompanha uma execução. */
 export const TERMINAL_STATES: readonly string[] = runOutcomeSchema.options;
 
 export function isTerminalState(state: string): boolean {
@@ -47,7 +41,6 @@ const snapshotBase = z.object({
   events: z.array(timelineEventSchema)
 });
 
-/** Retrato de uma execução (`run.snapshot`) com o resultado da jornada que a iniciou. */
 export function snapshotOf<T extends z.ZodType>(result: T) {
   return snapshotBase.extend({ result: result.nullable() });
 }

@@ -20,15 +20,12 @@ const day = (iso: string) => formatDay(iso.slice(0, 10));
 const severity = (value: string) =>
   value in SEVERITY_LABEL ? SEVERITY_LABEL[value as keyof typeof SEVERITY_LABEL].label : value;
 
-/** "valor" ou "sem valor (motivo)": um indicador sem base nunca vira zero no texto. */
+/** Um indicador sem base nunca vira zero no texto. */
 function value(text: string | null, unavailable: string | null): string {
   return text !== null ? text : `sem valor (${unavailable ?? 'sem base'})`;
 }
 
-/**
- * O relatório como texto Markdown, para colar num documento ou numa conversa. É o mesmo conteúdo da tela, escrito só a
- * partir do que o motor devolveu: nenhum número é calculado aqui e nenhum trecho é escrito por modelo.
- */
+/** Escrito só a partir do que o motor devolveu: nenhum número é calculado aqui e nenhum trecho é escrito por modelo. */
 export function reportToMarkdown(report: ProjectReport, kindLabel: (kind: string) => string): string {
   const lines: string[] = [
     `# Relatório do período: ${report.projectName}`,

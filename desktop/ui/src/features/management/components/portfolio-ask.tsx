@@ -12,10 +12,7 @@ import styles from '../management-page.module.scss';
 import type { ManagementApi } from '../service/management-api';
 import { AssistantAnswerView } from './assistant-answer';
 
-/**
- * Uma pergunta que cruza os projetos escolhidos. A pessoa escolhe quais entram, vê o que vai ao provedor antes de perguntar e a
- * política de cada projeto vale por inteiro: título de item só entra no projeto cujas fontes autorizaram. O motor confere a resposta.
- */
+/** A política de cada projeto vale por inteiro: título de item só entra no projeto cujas fontes autorizaram. */
 export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: PortfolioProject[] }) {
   const [chosen, setChosen] = useState<string[]>(() => projects.map((project) => project.projectId));
   const [question, setQuestion] = useState('');

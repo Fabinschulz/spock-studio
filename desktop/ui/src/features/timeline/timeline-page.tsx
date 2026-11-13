@@ -20,7 +20,7 @@ import { Link } from 'react-router';
 import { useTimeline } from './hooks/use-timeline';
 import styles from './timeline-page.module.scss';
 
-/** O nome de cada tipo no acontecimento. Um tipo que a tela não conhece aparece com o nome que veio. */
+/** Um tipo que a tela não conhece aparece com o nome que veio. */
 const KIND_LABEL: Record<string, string> = {
   harness: 'Harness',
   profile: 'Perfil',
@@ -30,17 +30,14 @@ const KIND_LABEL: Record<string, string> = {
   sync: 'Sincronização'
 };
 
-/** O nível do acontecimento: a cor reforça, mas a palavra diz (nunca só a cor). `info` não leva aviso. */
+/** A cor reforça, mas a palavra diz (nunca só a cor). `info` não leva aviso. */
 const LEVEL: Record<string, { label: string; tone: Tone } | undefined> = {
   ok: { label: 'Deu certo', tone: 'success' },
   attention: { label: 'Atenção', tone: 'warning' },
   problem: { label: 'Problema', tone: 'danger' }
 };
 
-/**
- * A linha do tempo do projeto: revisões do Harness, mudanças do perfil, execuções, decisões, mudanças de risco e sincronizações,
- * do mais recente ao mais antigo. É só leitura: cada área continua guardando o que é dela, e a linha do tempo só junta.
- */
+/** Só leitura: cada área continua guardando o que é dela, e a linha do tempo só junta. */
 export function TimelinePage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   if (!project) {
     return (

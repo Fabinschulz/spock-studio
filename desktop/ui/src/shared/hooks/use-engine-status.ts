@@ -5,7 +5,7 @@ import { z } from 'zod';
 /** Estado real do motor .NET, como o host o informa (comando e evento `engine_status`). */
 export type EngineStatus = 'unknown' | 'starting' | 'ready' | 'crashed';
 
-/** Runtime de IA, separado do motor. Indisponível não significa que o motor caiu. */
+/** Indisponível não significa que o motor caiu. */
 export type AiRuntimeStatus = 'unknown' | 'ready' | 'stopped' | 'unavailable';
 
 export interface EngineReport {
@@ -28,16 +28,12 @@ const reportSchema = z.union([
 
 const UNKNOWN: EngineReport = { status: 'unknown', aiRuntime: 'unknown' };
 
-/** Aceita o texto antigo do host e o relatório `{ engine, aiRuntime }`. Qualquer outra coisa é estado desconhecido. */
 export const parseEngineReport = (value: unknown): EngineReport => {
   const parsed = reportSchema.safeParse(value);
   return parsed.success ? parsed.data : UNKNOWN;
 };
 
-/**
- * Acompanha o estado do motor. Fora do aplicativo desktop não há motor: o estado fica `unknown` e `hosted` é falso,
- * para a tela dizer isso em vez de fingir que o sistema está pronto.
- */
+/** Fora do aplicativo desktop não há motor: `hosted` é falso, para a tela dizer isso em vez de fingir que está pronto. */
 export function useEngineStatus(): EngineReport & { hosted: boolean } {
   const hosted = isTauriRuntime();
   const [status, setStatus] = useState<EngineStatus>('unknown');
