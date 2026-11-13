@@ -1,0 +1,7 @@
+{
+  "schema": "ai.investigation.ack.v1",
+  "investigationId": "inv-aaaaaaaaaaaa",
+  "status": "rejected",
+  "failure": "CONTRACT_INVALID",
+  "field": "question"
+}

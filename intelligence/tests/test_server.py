@@ -56,6 +56,22 @@ class ServerTests(unittest.TestCase):
         resume.assert_not_called()
         cancel.assert_called_once()
 
+    def test_a_investigacao_responde_em_ndjson_e_termina_no_ack(self) -> None:
+        from test_investigation import _payload
+
+        request = urllib.request.Request(
+            self.base + "/v1/investigations", data=json.dumps(_payload(model=False)).encode("utf-8"), method="POST"
+        )
+        request.add_header("Authorization", "Bearer " + TOKEN)
+        with urllib.request.urlopen(request, timeout=10) as response:
+            self.assertEqual(response.headers["Content-Type"], "application/x-ndjson; charset=utf-8")
+            lines = [json.loads(line) for line in response.read().decode("utf-8").splitlines() if line]
+
+        self.assertEqual(lines[0]["type"], "workflow.started")
+        self.assertEqual(lines[-1]["schema"], "ai.investigation.ack.v1")
+        self.assertEqual(lines[-1]["status"], "completed_with_limitations")
+        self.assertEqual(self.call("/v1/investigations", {"schema": "x"})[0], 200)
+
     def test_falha_do_grafo_deixa_rastro_sem_a_mensagem_da_excecao(self) -> None:
         captured = io.StringIO()
         with mock.patch.object(server, "run_cancel", side_effect=RuntimeError("C:/segredo/caminho")):

@@ -725,6 +725,29 @@ Entrega 6 da ordem aprovada e fase 7 do documento da plataforma.
 - **Pronto quando:** uma pergunta como "por que a vazão caiu?" devolve uma resposta em que cada afirmação cita um fato,
   e o caminho da investigação pode ser reaberto na central.
 
+**Estado da fase G (2026-11-13).** Primeira entrega na branch `feat/fase-g-inteligencia` (criada da `master` com a fase F
+mergeada, PR #55): a **linha do tempo do projeto**, sem IA. Faltam a trilha de auditoria única, o workflow de investigação, o
+laço do RAG, as decisões como memória, as evals de gestão e o assistente sobre o portfólio.
+
+| Feito | Observação |
+| --- | --- |
+| `timeline.read` | Só leitura, sem armazenamento novo: **projeta** o que cada área já guarda. Seis fontes: revisões do Harness, mudanças do perfil, execuções, decisões gerenciais, mudanças de risco e sincronizações concluídas, do acontecimento mais recente ao mais antigo. Cada um tem id estável, instante, tipo, nível (`ok`, `attention`, `problem`, `info`), título e detalhe em português e, quando há onde ver mais, a execução ou a decisão |
+| Nada aparece duas vezes | Uma aplicação ou reversão que mudou arquivos é uma **revisão do Harness** (com o que mudou e os componentes) e não também uma execução; uma que não mudou nada (por exemplo, uma aplicação que falhou) aparece como execução. Sem o serviço de revisões numa sessão, todas aparecem como execuções |
+| O que nunca aparece | Texto de pedido ou de pergunta (o diário nunca o guarda), título ou identificador de item de trabalho (o risco só conta quantos itens entraram e saíram), texto da decisão e justificativa (só o título e quantos fatos do momento ela guardou), credencial. Testes percorrem o JSON inteiro atrás de cada um desses |
+| Fonte que falha | Uma fonte que dá erro aparece como **indisponível**, com a contagem zerada, e as outras seguem; o motivo detalhado não sai do motor (teste com um caminho no texto do erro). Um serviço que a sessão não tem faz a fonte simplesmente não existir |
+| Filtro e página | Filtro por tipo (as contagens das fontes continuam inteiras); página pelo instante (`before`), e **acontecimentos com o mesmo instante na fronteira ficam na mesma página**, para um empate não fazer um sumir entre duas páginas (teste percorre tudo em páginas de 3 e compara com a leitura inteira). Limite entre 1 e 200 |
+| Isolamento | Projeto não autorizado é recusado; o diário de outro projeto não entra; a leitura não grava nada (teste compara o disco antes e depois) |
+| Tela | Item "Linha do tempo" no grupo Plataforma, rota `/linha-do-tempo`: filtros por tipo com a contagem, a lista com o nível dito em palavra (a cor reforça, nunca é a única pista), "Ver execução" e "Ver em Acompanhamento", "Ver mais antigos", aviso de fonte indisponível, e estados diferentes para "nada aconteceu" e "filtro sem resultado" |
+| Testes | 20 no motor (cada fonte, ordem, revisão contra execução, plural, filtro, página e empate, limites, fonte que falha, fonte ausente, isolamento, leitura sem escrita, protocolo, fixture `timeline/timeline.json`) e 11 de tela mais 3 de contrato. Suítes: 587 na interface |
+
+Limites: **é uma projeção sem trilha única**: cada fonte tem a sua noção de tempo (fim da execução, registro da decisão,
+instante do registro de risco), e a "trilha de auditoria única por projeto" da fase continua sendo a próxima entrega. Os
+registros de decisão de engenharia que o workflow grava em `.mariliz/decisions/` aparecem só como a execução que os gravou,
+não como decisão. O histórico de risco só existe a partir do primeiro registro (o primeiro aparece como "já estava ativo").
+A lista de sincronizações vem do histórico que cada vínculo guarda (no máximo as 50 mais recentes por vínculo). Nada disto
+foi conferido no navegador, só por testes.
+
+
 ## 4. Como a ordem aprovada aparece aqui
 
 | Ordem aprovada em 2026-11-11 | Fase |
@@ -804,3 +827,118 @@ conversa livre como centro, memória aprendida, aplicativo web.
 - Não transforma todas as oportunidades em tarefas: 17 itens ficam para depois e 7 ficam de fora.
 - Não estima prazo em dias. O tamanho é relativo (pequeno, médio, grande) porque depende de decisões da seção 6.
 - Não altera nada: nenhum código, contrato, entidade ou tela foi modificado nesta análise.
+
+**Segunda entrega da fase G: trilha de auditoria única por projeto.** Ainda sem IA, na mesma branch.
+
+| Feito | Observação |
+| --- | --- |
+| `audit.read` | Só leitura, sem armazenamento novo: junta o **arquivo de auditoria** (`audit.ndjson`, só acrescenta) e o **diário das execuções** do projeto, da entrada mais recente à mais antiga. Cada entrada tem id estável, instante, categoria, título e detalhe em português, a **origem** (`audit` ou `journal`) e a referência exata: a execução do diário (`runId`) ou a linha do arquivo (`auditLine`, que nunca muda de lugar) |
+| O que entra | Vínculo, recorte e política de uma fonte (com "de fechada para aberta" e o recurso pelo nome), desvínculo, leituras concluídas, falha de ouvinte, decisão registrada, conexão criada, credencial atualizada, desconectada e removida; do diário, aplicação e reversão do Harness, desfeita na hora, ações de agente aprovadas e executadas, uso de modelo. Validações e execuções sem efeito ficam de fora |
+| Categorias | Acesso a fontes, contexto de IA, conexões, leituras, decisões, mudanças no projeto, uso de modelo. A contagem de cada uma vem inteira, sem olhar o filtro |
+| O que nunca aparece | Credencial, texto de pedido, título ou identificador de item, texto e justificativa de decisão. A trilha diz **o que mudou e quando, não quem**: o produto ainda não tem identidade de pessoa, e a tela diz isso |
+| Fonte que falha | Aparece como indisponível, sem o motivo, e a outra segue. Uma linha ilegível do arquivo é pulada; a leitura traz no máximo as 100 mil mais recentes, com a numeração do arquivo inteiro |
+| Filtro e página | Por categoria; página pelo instante (`before`), com empates na fronteira na mesma página |
+| Tela | Item "Auditoria" no grupo Plataforma, rota `/auditoria`: filtros por categoria com a contagem, lista com a origem de cada entrada ("Diário da execução ..." com "Ver execução", ou "Arquivo de auditoria, linha N"), "Ver mais antigas", aviso de fonte indisponível |
+| Hook compartilhado | `usePagedRead` (em `shared/hooks`): leitura por páginas com "ver mais", que descarta a página que chega depois de o projeto ou o filtro mudar. A linha do tempo passou a usá-lo |
+| Testes | 23 no motor (fixture `audit/audit.json`), 11 de tela, 4 do hook e 4 de contrato. Suítes: 988 aprovados e 9 ignorados no motor; 606 na interface; build ok |
+
+Limites: o arquivo de auditoria hoje só registra integrações, decisões e conexões; mudanças de perfil e de revisão do Harness
+aparecem pelo diário, não pelo arquivo. Como não há identidade de pessoa, "quem" fica para quando houver. Nada disto foi
+conferido no navegador, só por testes.
+
+**Terceira entrega da fase G: o workflow de investigação (lado Python).** O segundo grafo do runtime de IA, `management.investigation`, com contrato e testes. Esta entrega não ligava o grafo ao motor nem à interface; a quarta entrega, abaixo, liga.
+
+| Feito | Observação |
+| --- | --- |
+| Grafo em LangGraph | Cinco etapas: **enquadrar** a pergunta (por onde olhar, pelas palavras dela; fluxo e riscos se nenhuma for reconhecida), **reunir** fatos dos grupos escolhidos, **levantar hipóteses** (modelo), **decidir** (reunir mais ou concluir) e **concluir** (modelo). O laço é a decisão: se o modelo pede fatos de outro grupo (riscos, execuções, mudanças), o grafo volta a reunir. Teto de 3 rodadas; para antes se o orçamento de tokens ou de etapas não cobre outra volta. Não olha de novo um grupo já consultado |
+| Fatos do motor, conferência do motor | O pedido traz a pergunta e os fatos que o motor calculou, cada um com id e grupo. O modelo só cruza esses fatos. Uma hipótese ou afirmação só vale citando fatos **que já foram reunidos**: citar um id que o modelo nunca viu não passa (hipótese vira nova tentativa; afirmação vai para "descartadas" com o motivo). A conferência dos **números** continua no motor (`AnswerVerifier`), como no assistente |
+| Sem modelo | A investigação ainda roda: reúne os fatos e lista os sinais de risco e de execução exatamente como o motor os calculou, cada um citando o próprio fato, com a limitação dita. Falha do modelo numa etapa cai nas regras e diz por quê |
+| O caminho | O resultado traz as etapas percorridas, os grupos e os **ids** dos fatos consultados, as limitações e o uso de modelo. **Nunca** texto de fato, de hipótese nem a pergunta (teste procura os três). É o que o motor vai guardar no diário para o caminho poder ser reaberto na central |
+| Segurança | Texto de fato (pode trazer título de item escrito por terceiros) vai num bloco delimitado, com o delimitador neutralizado; o token do proxy não aparece em evento nem no resultado |
+| Contrato | `ai.investigation.start.v1` e `ai.investigation.ack.v1` em `contracts/schemas/intelligence`, com 6 fixtures válidas geradas pelo próprio grafo e 10 inválidas (caminho com texto livre, afirmação sem evidência, proxy fora do loopback...). Nova finalidade `investigate` no proxy de modelo (cliente Python, proxy do motor e schema), que o motor traduz para a finalidade **assistente gerencial** |
+| Rota | `POST /v1/investigations` no servidor local, em NDJSON, terminando no ack |
+| Testes | 26 novos em Python (enquadramento, laço, teto, orçamento, citação, sem modelo, caminho sem texto, injeção) e 1 do servidor; 135 no total. No motor, o caso `investigate` no mapeamento de finalidades e as 16 fixtures contra os schemas |
+
+Falta para a investigação existir de ponta a ponta: o motor chamar o runtime (`InvestigationService`: montar os fatos, incluindo os de **execuções e mudanças** que o assistente ainda não tem, conferir com o `AnswerVerifier`, gravar o diário com o caminho), o método do protocolo, a tela com o caminho reaberto na central, e **a validação com modelo real**, que nunca aconteceu: o comportamento do laço (o que o modelo pede, se para no teto) só foi provado com modelo falso.
+
+**Quarta entrega da fase G: a investigação de ponta a ponta (motor e tela).** A pergunta "por que a vazão caiu?" agora pode ser investigada em etapas pela tela do Assistente.
+
+| Feito | Observação |
+| --- | --- |
+| `management.investigate` | `InvestigationService` no motor: monta os fatos (os do assistente mais dois grupos novos, **execuções** e **mudanças**, dos últimos 28 dias), manda ao runtime (`IInvestigationRuntime`, `POST /v1/investigations`), **confere** o resultado e grava o diário. Sem projeto autorizado ou com pergunta fora de 3 a 500 caracteres, recusa antes de chamar o runtime e sem criar execução |
+| Fatos de execução e de mudança | `runs.summary` e `runs.failed` vêm do diário (tipos e contagens: quantas falharam, terminaram com limitações, foram revertidas; perguntas ao assistente e investigações ficam de fora, porque não são entrega); `changes.summary` e `changes.problems` vêm da linha do tempo (revisões do Harness, perfil, decisões, risco, sincronizações). Só contagens e tipos: nunca título de item, texto de decisão nem texto de erro |
+| Conferência no motor | A resposta passa pelo mesmo `AnswerVerifier` do assistente, mas **só contra os fatos que a investigação consultou**: citar um fato que existe e que ela nunca olhou não passa. Número que os fatos citados não têm é descartado. O caminho só fala de etapas e fatos que existem (o resto é descartado) e o código de falha do runtime só vale no formato esperado |
+| Uso de modelo | Vem do proxy do motor, não do que o runtime diz: teto de 24 mil tokens, acesso aberto só para esta investigação e sempre fechado, inclusive no prazo estourado (150 s) |
+| Sem chave de modelo | A investigação ainda roda: lista os sinais como o motor os calculou e diz que o modelo não escreveu a análise. O botão "Perguntar" continua exigindo a chave |
+| Central de execuções | Tipo novo `investigation` ("Investigação de gestão"): o diário traz o caminho como etapas, cada uma com os **ids** dos fatos consultados, a conferência do motor e as limitações. Nunca a pergunta, as hipóteses nem a resposta |
+| Tela | No Assistente, a caixa "Investigar em etapas" troca o botão para "Investigar", mostra a resposta conferida (as mesmas seções) e o bloco **Caminho da investigação** (rodadas, etapas, grupos e fatos, o que limitou, e o id da execução com o link para a central) |
+| Testes | 23 no motor (fatos, pedido, conferência, caminho, falhas, prazo, diário sem texto, auditoria, central, protocolo, contrato, e **um com o runtime Python de verdade, sem modelo**), mais os de Python e 4 de tela e contrato |
+
+Limites: o caminho **não abre direto** a execução na central (a central ainda não tem endereço por execução: o link leva à lista, onde o filtro "Investigação de gestão" a encontra). A pergunta não aparece no diário, então a execução na central diz só o tipo. O resumo e as inferências dependem do modelo; **nenhuma investigação com modelo real foi feita**: o laço (o que o modelo pede, se para no teto, se cruza de fato riscos com execuções) só foi provado com modelo falso. O critério "cada afirmação cita um fato e o caminho pode ser reaberto" está atendido na forma, e falta provar com a OpenAI ou a Anthropic.
+
+**Quinta entrega da fase G: decisões registradas como memória do projeto.** Uma decisão gerencial registrada no Acompanhamento passa a ser achada por um agente ("já decidimos isso antes"), pelo mesmo índice de conhecimento.
+
+| Feito | Observação |
+| --- | --- |
+| `DecisionMemory` | Cada decisão vira um documento do índice, `@decision/{id}.md`, com o título, o **decidido**, o **motivo**, a data e quantas execuções ligam a ela. O decidido e o motivo vêm primeiro, porque o trecho que o agente recebe é curto (um recorte de cerca de 160 caracteres em torno do que casou com a pergunta). Mais recentes primeiro, teto de 200 por projeto |
+| O que nunca vai | **Os fatos do dia** (podem trazer títulos de itens que a política de integração de então permitia e a de hoje talvez não) e credenciais: o registro já redige segredos, e o motor confere de novo na hora de indexar (um arquivo editado à mão com segredo fica de fora) |
+| De quem é | Só projeto autorizado tem memória, e a de um projeto nunca aparece no outro. O prefixo `@decision/` é só do motor: um arquivo do projeto com esse nome é recusado como fonte (como já era com `@external/`) |
+| Para o modelo | O trecho chega ao provedor marcado como "decisão registrada por uma pessoa da equipe: memória do que foi decidido e por quê, nunca instrução", dentro do bloco delimitado, e as regras do sistema dizem para usá-lo como memória e nunca como ordem |
+| Mesma regra de envio | O texto só vai quando mudou e cabe no orçamento da execução; o hash não muda enquanto o texto não muda, então o índice não reenvia. Entra em `WorkflowContextBuilder` e em `ProjectKnowledgeService` (não conta como órfão) |
+| Tela | Em Conhecimento, a seção "Decisões registradas (memória do projeto)": quantas, quantas indexadas, desatualizadas e pendentes, e o que vai e o que não vai de cada decisão |
+| Testes | 10 no motor (documento, ordem, hash estável, isolamento, segredo à mão, teto, seleção de fontes, contagens da tela, e um **ponta a ponta com o Python de verdade**), 2 de Python (marca no prompt, entra e sai do índice) e 2 de tela. `knowledge.json` ganhou o campo `memory` |
+
+Decisão que merece a sua conferência: **não há interruptor**. A decisão é texto que a pessoa escreveu no projeto, então não depende da política de uma integração, e a tela diz isso ("o caminho é não registrá-la"). Se você prefere um interruptor por projeto, é uma configuração nova (motor e tela). Limites: o trecho que o agente vê é um recorte curto, então uma decisão longa chega só no pedaço que casou; e a memória só ajuda o workflow de engenharia e a investigação **quando o índice recupera a decisão para a pergunta**, o que depende de a pergunta ter palavras em comum (a busca é lexical, sem embeddings).
+
+**Sexta entrega da fase G: o laço agentic do RAG dentro da investigação.** O modelo pode propor buscas curtas na memória do projeto, o grafo busca, volta às hipóteses e repete até o teto.
+
+| Feito | Observação |
+| --- | --- |
+| O laço | Nova etapa `retrieve` no grafo `management.investigation`: depois das hipóteses, se o modelo propôs `searches` (até 2 por rodada, até 4 no total, palavras-chave, sem repetir uma busca já feita), o grafo as executa e **volta às hipóteses**, com os trechos como fatos novos. Uma rodada é um olhar (reunir fatos do motor **ou** buscar na memória), com teto de **4 rodadas** e o mesmo corte por orçamento de etapas e de tokens. Pedir grupos de fatos e buscar na mesma rodada faz as duas olhadas |
+| O que é a memória | Só as **decisões registradas** e os **itens sincronizados que o projeto autorizou** (a mesma regra do índice de engenharia), num **índice à parte** (`investigation-index`). Arquivo do projeto nunca vai por aqui: o contrato só aceita os prefixos `@decision/` e `@external/`. O motor manda os documentos a cada investigação, então uma decisão ou uma autorização retirada some do índice na investigação seguinte |
+| O trecho vira fato | Cada trecho encontrado ganha um id citável (`memory.N`) e entra no pedido ao modelo dito como "decisão registrada pela equipe" ou "item sincronizado, escrito por terceiros", dentro do bloco delimitado. O modelo só vê o recorte curto que a busca devolve |
+| Conferência no motor | O runtime devolve só o id e o **caminho** de cada trecho. O motor **escreve o texto do fato** com o documento que ele mesmo mandou e descarta o trecho cujo caminho não mandou ou cujo id é inventado. A afirmação que cita `memory.N` passa pelo mesmo `AnswerVerifier`: número que o documento não tem é descartado |
+| Privacidade do caminho | A consulta é texto do modelo, derivado da pergunta: **não vai ao caminho nem ao diário**, só quantas buscas e quantos trechos. O teto de tokens da investigação subiu de 24 para 30 mil (até cinco chamadas) |
+| Contrato | `ai.investigation.start.v1` ganha `memory`; `ai.investigation.ack.v1` ganha `retrieved` e a etapa `retrieve` (rodadas até 4). 8 fixtures válidas e 13 inválidas no total |
+| Testes | 12 novos em Python (contrato da memória, buscas, o laço completo, item externo hostil, sem memória o pedido nem oferece a busca, tetos, consulta fora do caminho, revogação, isolamento entre projetos) e 7 no motor, entre eles **um com o Python de verdade e um modelo roteirizado**, que percorre frame, gather, hypothesize, decide, retrieve, hypothesize, decide, conclude e confere a citação |
+
+Limites: o laço só foi provado com modelo **falso ou roteirizado**; se o modelo real propõe boas buscas, se para no teto e se a memória ajuda de fato a resposta, isso depende de rodar com a OpenAI ou a Anthropic. A busca é lexical (sem embeddings): a pergunta precisa de palavras em comum com a decisão. O trecho recuperado é um recorte de cerca de 160 caracteres. A memória de **itens externos** só tem texto se a política da integração estiver aberta.
+
+**Sétima entrega da fase G: evals de gestão.** Dez perguntas reais de gestão com um pontuador que não depende de quem escreveu a resposta, e um caminho para rodá-las com modelo real.
+
+| Feito | Observação |
+| --- | --- |
+| Dataset `management.eval.v1` | `intelligence/evaluations/datasets/management.json`: três cenários de fatos do motor (queda de vazão, projeto saudável, projeto sem dados) e dez perguntas: "Por que a vazão caiu?", "Quais são os principais riscos agora?", "O marco 1.0 termina no prazo?", "Por que as execuções falharam?", "O que mudou...?", "Onde está o gargalo do fluxo?", "O ritmo de entrega está estável?", e três que **os fatos não respondem** (cycle time não calculado, "adicionar mais pessoas resolveria o atraso?", projeto sem ferramenta vinculada). Cada caso diz por onde a investigação deve começar, quais fatos uma boa resposta cita e se a pergunta é respondível |
+| Quatro métricas | **Enquadramento** (o primeiro olhar cobre os grupos que a pergunta pede), **ancoragem** (cada afirmação cita fatos que a investigação consultou e só traz números que eles têm, a mesma regra do conferente do motor), **cobertura** (cita os fatos essenciais) e **abstenção** (sem o que a pergunta pede nos fatos, diz que está indisponível e não inventa cálculo, inferência nem recomendação). Investigação que falhou, ou caso sem resultado, pontua zero no que depende da resposta |
+| Mínimos | No dataset: enquadramento 1,0, ancoragem 0,95, cobertura 0,6, abstenção 1,0. Uma rodada que fica abaixo de qualquer um não passa |
+| O pontuador pega o erro | Controles negativos plantam cada defeito (número inventado, afirmação sem citação, fato que existe mas não foi consultado, fato essencial ausente, inferência inventada onde os fatos não têm, "indisponível" omitido, lugar errado, falha) e conferem que a nota certa cai. A resposta de **referência** de cada caso pontua 1,0 em tudo; **sem modelo** o enquadramento, a ancoragem e a abstenção valem 1,0 e a cobertura fica abaixo do mínimo (o que o modelo acrescenta) |
+| Com modelo real | `ManagementEvalLiveTests` (motor) roda cada pergunta pelo workflow de verdade (runtime Python, proxy do motor, provedor real) e grava `management-eval-{provedor}.json`; o pontuador o avalia: `python intelligence/evaluations/management.py score <arquivo>` (sai com 0 se passou, 1 se não). Só roda com `MARILIZ_LIVE_OPENAI_KEY` ou `MARILIZ_LIVE_ANTHROPIC_KEY` no **seu** terminal; sem elas aparece como ignorado. A chave não vai a arquivo, conversa nem relatório (o teste confere que não está no arquivo de resultados). `MARILIZ_LIVE_EVAL_OUT` escolhe a pasta |
+| Testes | 18 em Python (dataset, números, referência, sem modelo, nove controles negativos, o pontuador de arquivo) e 1 no motor que percorre **todo o caminho sem rede**: o harness roda as dez perguntas com um provedor roteirizado pelo runtime Python de verdade, grava o arquivo e o pontuador Python o aprova |
+
+Limites: a rodada com modelo real **nunca foi feita**, então os mínimos (em especial a ancoragem 0,95 e a cobertura 0,6) são hipóteses a calibrar com o primeiro resultado. O dataset é sintético: os cenários imitam o texto dos fatos do motor, mas não saem de um projeto real. Dez perguntas medem comportamento, não dão significância estatística; a nota por caso (e não só a média) é o que se olha. A abstenção mede só o que o pontuador consegue ver (seções vazias e "indisponível"), não o sentido da frase.
+
+Para rodar com modelo real, no seu terminal:
+
+```
+$env:MARILIZ_LIVE_OPENAI_KEY = "sua-chave"
+dotnet test runtime/tests/Mariliz.Application.Tests --filter "FullyQualifiedName~Evals_de_gestao_com_a_OpenAI" --logger "console;verbosity=detailed"
+python intelligence/evaluations/management.py score "<arquivo que o teste imprimiu>"
+```
+
+**Oitava entrega da fase G: o assistente sobre o portfólio.** Com ela, a tabela da fase G está inteira. Uma pergunta que cruza vários projetos, respeitando a política de cada um.
+
+| Feito | Observação |
+| --- | --- |
+| `management.portfolioask` e `management.portfolioevidence` | `PortfolioAssistant` no motor: a pessoa **escolhe quais projetos** entram (sem escolha, todos os abertos, até 10; um que não está aberto é recusado, não ignorado em silêncio) e o pacote mostra, **antes do envio**, os projetos e os fatos de cada um |
+| A política de cada projeto vale por inteiro | Cada projeto entra com o pacote que o assistente **dele** montaria: título de item só vai do projeto cujas fontes autorizaram servir de contexto, e o aviso do que ficou de fora leva o nome do projeto. Um projeto fechado não ganha título por estar na mesma pergunta que um aberto (teste com os dois lado a lado) |
+| Ids por projeto | Os fatos viram `p1.flow...`, `p2.risk...`, com um fato `pN.name` por projeto; a data de hoje entra uma vez. Os fatos chegam ao modelo agrupados por projeto, e o nome do projeto é sanitizado (sem quebra de linha nem caractere de controle). Teto de 40 fatos por projeto |
+| Conferência | A resposta passa pelo mesmo `AnswerVerifier` do assistente. A instrução proíbe somar, tirar média ou calcular diferença **entre projetos**, e o conferente faz valer: "os dois somam 22 itens" é descartado porque 22 não está nos fatos citados (teste). Para citar o nome de um projeto, a resposta cita o `pN.name` |
+| Diário e auditoria | Cada projeto incluído ganha o diário da pergunta (kind `assistant`, só contagens e tokens, ou o código da falha), e a auditoria registra `management.portfolio_answered` com contagens e o hash do pedido. **Nunca** o texto da pergunta |
+| Tela | Na tela Portfólio, a seção "Perguntar sobre o portfólio": caixas dos projetos (todos marcados), a pergunta, "O que será enviado ao provedor de modelo" (se muda ao marcar e desmarcar), a resposta conferida e "Projetos nesta resposta: p1 = ..., p2 = ...". Sem chave de modelo, avisa e não deixa perguntar; sem projeto marcado, não deixa perguntar |
+| Testes | 11 no motor (pacote por projeto, política por projeto, escolha e recusa, nome sanitizado, o que o provedor recebe, resposta boa e soma descartada, pergunta inválida, sem modelo com diário de falha em cada projeto, diário sem texto, protocolo, e contrato com as fixtures `portfolio-evidence.json` e `portfolio-answer.json`), 5 de tela e 2 de contrato |
+
+Limites: **nunca foi perguntado a um modelo real**; a qualidade da comparação entre projetos (se o modelo cita os dois fatos em vez de somar) só se vê com a OpenAI ou a Anthropic. A pergunta cruza **números de projetos diferentes na mesma chamada ao provedor**: quem escolhe os projetos é a pessoa, mas não há política por projeto que proíba enviá-lo junto com outro (a política existente é a de contexto das fontes). Não há ainda histórico das perguntas ao portfólio nem eval própria dele (o dataset de gestão é de um projeto só).
+
+### Fase G: balanço
+
+As oito entregas da tabela da fase estão no código e testadas: linha do tempo, trilha de auditoria, workflow de investigação, laço do RAG, decisões como memória, evals de gestão e assistente do portfólio (mais o caminho da investigação reaberto na central). **O "pronto quando" está atendido na forma e não provado**: a pergunta "por que a vazão caiu?" devolve uma resposta em que cada afirmação cita um fato e o caminho fica no diário, mas isso só foi exercitado com modelo falso ou roteirizado. Falta, e depende de você: rodar a investigação e as evals com a OpenAI e com a Anthropic (as duas nunca foram validadas com chave real), calibrar os mínimos das evals com o primeiro resultado e conferir as telas novas no navegador.

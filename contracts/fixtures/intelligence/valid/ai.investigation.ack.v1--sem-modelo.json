@@ -1,0 +1,119 @@
+{
+  "schema": "ai.investigation.ack.v1",
+  "investigationId": "inv-aaaaaaaaaaaa",
+  "executionId": "ex-bbbbbbbbbbbb",
+  "projectId": "p-cccccccccccc",
+  "status": "completed_with_limitations",
+  "answer": {
+    "summary": {
+      "text": "Sem o modelo, esta investigação só reuniu os fatos e listou os sinais de atenção.",
+      "evidence": [
+        "risk.blocked"
+      ]
+    },
+    "observed": [
+      {
+        "text": "Risco médio: 3 itens abertos bloqueados.",
+        "evidence": [
+          "risk.blocked"
+        ]
+      },
+      {
+        "text": "Risco baixo: 2 itens parados há mais de 14 dias.",
+        "evidence": [
+          "risk.aging"
+        ]
+      }
+    ],
+    "calculations": [],
+    "inferences": [],
+    "recommendations": [],
+    "unavailable": [
+      {
+        "text": "A análise que cruza os fatos depende do modelo e não foi escrita."
+      }
+    ]
+  },
+  "rejected": [],
+  "path": [
+    {
+      "id": "frame",
+      "title": "Pergunta enquadrada",
+      "detail": "Começa por: contexto, fontes, indicadores, riscos.",
+      "round": 0,
+      "groups": [
+        "contexto",
+        "fontes",
+        "indicadores",
+        "riscos"
+      ],
+      "facts": []
+    },
+    {
+      "id": "gather",
+      "title": "Fatos reunidos (rodada 1)",
+      "detail": "Grupos: contexto, fontes, indicadores, riscos; 6 fatos.",
+      "round": 1,
+      "groups": [
+        "contexto",
+        "fontes",
+        "indicadores",
+        "riscos"
+      ],
+      "facts": [
+        "today",
+        "src.1",
+        "flow.throughput",
+        "flow.wip",
+        "risk.blocked",
+        "risk.aging"
+      ]
+    },
+    {
+      "id": "hypothesize",
+      "title": "Hipóteses (rodada 1)",
+      "detail": "Sem modelo: etapa não executada.",
+      "round": 1,
+      "groups": [],
+      "facts": []
+    },
+    {
+      "id": "decide",
+      "title": "Decisão: concluir",
+      "detail": "Sem modelo, não há o que cruzar a mais.",
+      "round": 1,
+      "groups": [],
+      "facts": []
+    },
+    {
+      "id": "conclude",
+      "title": "Conclusão",
+      "detail": "Montada pelas regras: só os sinais reunidos, sem texto do modelo.",
+      "round": 0,
+      "groups": [],
+      "facts": []
+    }
+  ],
+  "consulted": [
+    "today",
+    "src.1",
+    "flow.throughput",
+    "flow.wip",
+    "risk.blocked",
+    "risk.aging"
+  ],
+  "retrieved": [],
+  "limitations": [
+    {
+      "code": "INVESTIGATION_NO_MODEL",
+      "message": "Sem modelo autorizado, a investigação só reuniu os fatos e listou os sinais."
+    }
+  ],
+  "rounds": 1,
+  "usage": {
+    "modelCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "tokens": 0
+  }
+}

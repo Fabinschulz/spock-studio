@@ -55,6 +55,9 @@ public static class ProtocolMethods
     public const string ManagementReport = "management.report";
     public const string ManagementEvidence = "management.evidence";
     public const string ManagementAsk = "management.ask";
+    public const string ManagementInvestigate = "management.investigate";
+    public const string ManagementPortfolioEvidence = "management.portfolioevidence";
+    public const string ManagementPortfolioAsk = "management.portfolioask";
     public const string DecisionRecord = "decision.record";
     public const string DecisionList = "decision.list";
     public const string DecisionGet = "decision.get";
@@ -66,6 +69,8 @@ public static class ProtocolMethods
     public const string EngineeringMcp = "engineering.mcp";
     public const string EngineeringPolicy = "engineering.policy";
     public const string EngineeringCatalog = "engineering.catalog";
+    public const string TimelineRead = "timeline.read";
+    public const string AuditRead = "audit.read";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -85,10 +90,16 @@ public static class ProtocolMethods
     ];
 
     /// <summary>Visão gerencial: só leitura do que já foi sincronizado.</summary>
-    public static readonly IReadOnlyList<string> Management = [ManagementPortfolio, ManagementMetrics, ManagementForecast, ManagementRisks, ManagementRiskHistory, ManagementMilestones, ManagementReport, ManagementEvidence, ManagementAsk];
+    public static readonly IReadOnlyList<string> Management = [ManagementPortfolio, ManagementMetrics, ManagementForecast, ManagementRisks, ManagementRiskHistory, ManagementMilestones, ManagementReport, ManagementEvidence, ManagementAsk, ManagementInvestigate, ManagementPortfolioEvidence, ManagementPortfolioAsk];
 
     /// <summary>Decisões gerenciais: registrar com os fatos do momento, listar e abrir. Sem editar nem apagar.</summary>
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
+
+    /// <summary>A linha do tempo do projeto: só leitura, junta o que cada área já guarda.</summary>
+    public static readonly IReadOnlyList<string> Timeline = [TimelineRead];
+
+    /// <summary>A trilha de auditoria do projeto: só leitura, junta o arquivo de auditoria e o diário das execuções.</summary>
+    public static readonly IReadOnlyList<string> Audit = [AuditRead];
 
     /// <summary>Ambiente de Engenharia: perfil tecnológico, conhecimento, estado e revisões do Harness do projeto.</summary>
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];

@@ -1,13 +1,16 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Mariliz.Application.Audit;
 using Mariliz.Application.Engineering;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Harness;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Management;
 using Mariliz.Application.Management.Assistant;
+using Mariliz.Application.Management.Investigation;
 using Mariliz.Application.Models;
+using Mariliz.Application.Timeline;
 using Mariliz.Application.Workflows;
 using Mariliz.Application.Workspace;
 
@@ -30,6 +33,8 @@ public sealed class EngineSession
     private readonly IntegrationRequestHandler? _integrations;
     private readonly ManagementRequestHandler? _management;
     private readonly DecisionRequestHandler? _decisions;
+    private readonly TimelineRequestHandler? _timeline;
+    private readonly AuditRequestHandler? _audit;
     private readonly EngineeringRequestHandler? _engineering;
     private readonly RunTracker? _tracker;
     private readonly SemaphoreSlim _outputGate = new(1, 1);
@@ -54,7 +59,11 @@ public sealed class EngineSession
         HarnessRevisionService? revisions = null,
         McpInventoryService? mcp = null,
         DecisionService? decisions = null,
-        ReportService? reports = null)
+        ReportService? reports = null,
+        ProjectTimelineService? timeline = null,
+        ProjectAuditService? audit = null,
+        InvestigationService? investigation = null,
+        PortfolioAssistant? portfolioAssistant = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
@@ -63,8 +72,10 @@ public sealed class EngineSession
         _models = models is null ? null : new ModelRequestHandler(models);
         _runs = runs is null ? null : new RunRequestHandler(runs);
         _integrations = integrations is null ? null : new IntegrationRequestHandler(integrations);
-        _management = management is null ? null : new ManagementRequestHandler(management, assistant, reports);
+        _management = management is null ? null : new ManagementRequestHandler(management, assistant, reports, investigation, portfolioAssistant);
         _decisions = decisions is null ? null : new DecisionRequestHandler(decisions);
+        _timeline = timeline is null ? null : new TimelineRequestHandler(timeline);
+        _audit = audit is null ? null : new AuditRequestHandler(audit);
         _engineering = profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions, mcp);
         _tracker = tracker;
         if (relay is not null) relay.Target = WriteEvent;
@@ -78,6 +89,8 @@ public sealed class EngineSession
         if (integrations is not null) offered.AddRange(ProtocolMethods.Integrations);
         if (management is not null) offered.AddRange(ProtocolMethods.Management);
         if (decisions is not null) offered.AddRange(ProtocolMethods.Decision);
+        if (timeline is not null) offered.AddRange(ProtocolMethods.Timeline);
+        if (audit is not null) offered.AddRange(ProtocolMethods.Audit);
         if (profiles is not null) offered.AddRange(ProtocolMethods.Engineering);
         _capabilities = [.. offered];
     }
@@ -178,6 +191,10 @@ public sealed class EngineSession
                 Reply(ProtocolMessages.Ok(id, await _management.HandleAsync(method, new RequestParams(parameters), ct))),
             _ when _decisions is not null && ProtocolMethods.Decision.Contains(method) =>
                 Reply(ProtocolMessages.Ok(id, _decisions.Handle(method, new RequestParams(parameters)))),
+            _ when _audit is not null && ProtocolMethods.Audit.Contains(method) =>
+                Reply(ProtocolMessages.Ok(id, _audit.Handle(method, new RequestParams(parameters)))),
+            _ when _timeline is not null && ProtocolMethods.Timeline.Contains(method) =>
+                Reply(ProtocolMessages.Ok(id, _timeline.Handle(method, new RequestParams(parameters)))),
             _ when _engineering is not null && ProtocolMethods.Engineering.Contains(method) =>
                 Reply(ProtocolMessages.Ok(id, await _engineering.HandleAsync(method, new RequestParams(parameters), ct))),
             _ => Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.MethodNotFound, "Método desconhecido."))

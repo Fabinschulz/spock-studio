@@ -57,6 +57,14 @@ export const knowledgeExternalSourceSchema = z.object({
 });
 
 /** O conhecimento do projeto como o índice o recebe. Só caminhos e tamanhos: o conteúdo não sai do motor. */
+/** As decisões gerenciais registradas no projeto como memória do índice. Só contagens: o texto não sai do motor por esta resposta. */
+export const knowledgeMemorySchema = z.object({
+  documents: z.number(),
+  indexed: z.number(),
+  pending: z.number(),
+  outdated: z.number()
+});
+
 export const projectKnowledgeSchema = z.object({
   projectId: z.string(),
   inspectedAt: z.string(),
@@ -75,9 +83,12 @@ export const projectKnowledgeSchema = z.object({
   pending: z.number(),
   orphaned: z.number(),
   /** Os itens sincronizados que o projeto autorizou (ou não) como contexto dos agentes. */
-  external: z.array(knowledgeExternalSourceSchema)
+  external: z.array(knowledgeExternalSourceSchema),
+  /** As decisões gerenciais registradas, que também viram memória do índice. */
+  memory: knowledgeMemorySchema
 });
 
+export type KnowledgeMemory = z.infer<typeof knowledgeMemorySchema>;
 export type KnowledgeExternalSource = z.infer<typeof knowledgeExternalSourceSchema>;
 export type ProjectKnowledge = z.infer<typeof projectKnowledgeSchema>;
 

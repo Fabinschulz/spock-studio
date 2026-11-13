@@ -1,0 +1,155 @@
+{
+  "projectId": "p-000000000001",
+  "generatedAt": "2026-11-10T12:00:00+00:00",
+  "events": [
+    {
+      "id": "decision:dec-000000000001",
+      "at": "2026-11-09T12:00:00+00:00",
+      "kind": "decision",
+      "level": "info",
+      "title": "Decisão: Adiar o marco em duas semanas",
+      "detail": "Registrada com 1 fato do momento.",
+      "refType": "decision",
+      "refId": "dec-000000000001"
+    },
+    {
+      "id": "risk:stalled:639297360000000000:resolved",
+      "at": "2026-11-08T12:00:00+00:00",
+      "kind": "risk",
+      "level": "ok",
+      "title": "Risco \"Itens parados\": deixou de existir",
+      "detail": "2 itens saíram.",
+      "refType": null,
+      "refId": null
+    },
+    {
+      "id": "risk:stalled:639296496000000000:raised",
+      "at": "2026-11-07T12:00:00+00:00",
+      "kind": "risk",
+      "level": "attention",
+      "title": "Risco \"Itens parados\": subiu de gravidade baixa para média",
+      "detail": "1 item entrou.",
+      "refType": null,
+      "refId": null
+    },
+    {
+      "id": "risk:stalled:639295632000000000:observed",
+      "at": "2026-11-06T12:00:00+00:00",
+      "kind": "risk",
+      "level": "info",
+      "title": "Risco \"Itens parados\": já estava ativo no primeiro registro, com gravidade baixa",
+      "detail": "1 item entrou.",
+      "refType": null,
+      "refId": null
+    },
+    {
+      "id": "sync:sync-000000000001",
+      "at": "2026-11-05T12:00:00+00:00",
+      "kind": "sync",
+      "level": "ok",
+      "title": "Sincronização de GitHub acme/app",
+      "detail": "Concluída; 1 novo, 0 atualizados, 0 sem mudança.",
+      "refType": null,
+      "refId": null
+    },
+    {
+      "id": "profile:639293904000000000:added:Vitest",
+      "at": "2026-11-04T12:00:00+00:00",
+      "kind": "profile",
+      "level": "info",
+      "title": "Vitest entrou no perfil (3.2.0)",
+      "detail": "",
+      "refType": null,
+      "refId": null
+    },
+    {
+      "id": "profile:639293904000000000:changed:Next.js",
+      "at": "2026-11-04T12:00:00+00:00",
+      "kind": "profile",
+      "level": "info",
+      "title": "Next.js mudou de 16.0.1 para 16.1.0",
+      "detail": "",
+      "refType": null,
+      "refId": null
+    },
+    {
+      "id": "profile:639293904000000000:removed:Jest",
+      "at": "2026-11-04T12:00:00+00:00",
+      "kind": "profile",
+      "level": "info",
+      "title": "Jest saiu do perfil",
+      "detail": "",
+      "refType": null,
+      "refId": null
+    },
+    {
+      "id": "run:ex-000000000003",
+      "at": "2026-11-03T12:02:00+00:00",
+      "kind": "run",
+      "level": "problem",
+      "title": "Pedido de engenharia",
+      "detail": "Falhou.",
+      "refType": "run",
+      "refId": "ex-000000000003"
+    },
+    {
+      "id": "run:ex-000000000002",
+      "at": "2026-11-02T12:02:00+00:00",
+      "kind": "run",
+      "level": "attention",
+      "title": "Validação do Harness",
+      "detail": "Concluída com limitações; 2 de 3 verificações passaram.",
+      "refType": "run",
+      "refId": "ex-000000000002"
+    },
+    {
+      "id": "harness:ex-000000000001",
+      "at": "2026-11-01T12:02:00+00:00",
+      "kind": "harness",
+      "level": "ok",
+      "title": "Revisão 1 do Harness",
+      "detail": "2 arquivos criados. Componentes: Agente revisor de código, Outros arquivos.",
+      "refType": "run",
+      "refId": "ex-000000000001"
+    }
+  ],
+  "nextBefore": null,
+  "sources": [
+    {
+      "kind": "harness",
+      "label": "Revisões do Harness",
+      "count": 1,
+      "available": true
+    },
+    {
+      "kind": "profile",
+      "label": "Mudanças do perfil",
+      "count": 3,
+      "available": true
+    },
+    {
+      "kind": "run",
+      "label": "Execuções",
+      "count": 2,
+      "available": true
+    },
+    {
+      "kind": "decision",
+      "label": "Decisões",
+      "count": 1,
+      "available": true
+    },
+    {
+      "kind": "risk",
+      "label": "Riscos",
+      "count": 3,
+      "available": true
+    },
+    {
+      "kind": "sync",
+      "label": "Sincronizações",
+      "count": 1,
+      "available": true
+    }
+  ]
+}

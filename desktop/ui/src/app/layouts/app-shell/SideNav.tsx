@@ -6,8 +6,10 @@ import {
   BookOpenIcon,
   BriefcaseIcon,
   Button,
+  CalendarIcon,
   ChartBarIcon,
   ChatIcon,
+  ComplianceIcon,
   GridIcon,
   Home01Icon,
   IntersectingArrowsIcon,
@@ -99,6 +101,8 @@ const PLATFORM_GROUP: NavGroup = {
   label: 'Plataforma',
   items: [
     { id: 'runs', label: 'Execuções', icon: <PlayIcon fontSize="small" />, to: pathTo('runs') },
+    { id: 'timeline', label: 'Linha do tempo', icon: <CalendarIcon fontSize="small" />, to: pathTo('timeline') },
+    { id: 'audit', label: 'Auditoria', icon: <ComplianceIcon fontSize="small" />, to: pathTo('audit') },
     {
       id: 'integrations',
       label: 'Integrações',

@@ -1,0 +1,46 @@
+{
+  "projects": [
+    {
+      "alias": "p1",
+      "projectId": "p-000000000001",
+      "name": "Loja",
+      "facts": 14
+    },
+    {
+      "alias": "p2",
+      "projectId": "p-000000000002",
+      "name": "Painel",
+      "facts": 13
+    }
+  ],
+  "answer": {
+    "projectId": "portfolio",
+    "answeredAt": "2026-11-10T12:00:00+00:00",
+    "summary": "Sem resumo numérico.",
+    "observed": [
+      {
+        "text": "Issues: 18 itens sincronizados, 2 abertos.",
+        "evidence": [
+          "p1.flow.issues.items"
+        ]
+      }
+    ],
+    "calculations": [],
+    "inferences": [],
+    "recommendations": [],
+    "unavailable": [
+      "Os fatos não dizem a causa."
+    ],
+    "rejected": [],
+    "evidence": [
+      {
+        "id": "p1.flow.issues.items",
+        "group": "indicadores",
+        "text": "Issues: 18 itens sincronizados, 2 abertos."
+      }
+    ],
+    "model": "gpt-4o-mini-2024-07-18",
+    "inputTokens": 900,
+    "outputTokens": 300
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "schema": "ai.investigation.ack.v1",
+  "investigationId": "inv-aaaaaaaaaaaa",
+  "executionId": "ex-bbbbbbbbbbbb",
+  "projectId": "p-cccccccccccc",
+  "status": "failed",
+  "answer": null,
+  "rejected": [],
+  "path": [
+    {
+      "id": "frame",
+      "title": "Pergunta enquadrada",
+      "detail": "Começa por: contexto, fontes, indicadores.",
+      "round": 0,
+      "groups": [
+        "contexto",
+        "fontes",
+        "indicadores"
+      ],
+      "facts": []
+    },
+    {
+      "id": "gather",
+      "title": "Fatos reunidos (rodada 1)",
+      "detail": "Grupos: contexto, fontes, indicadores; 4 fatos.",
+      "round": 1,
+      "groups": [
+        "contexto",
+        "fontes",
+        "indicadores"
+      ],
+      "facts": [
+        "today",
+        "src.1",
+        "flow.throughput",
+        "flow.wip"
+      ]
+    },
+    {
+      "id": "hypothesize",
+      "title": "Hipóteses (rodada 1)",
+      "detail": "1 hipótese; não pede mais fatos.",
+      "round": 1,
+      "groups": [],
+      "facts": []
+    }
+  ],
+  "consulted": [
+    "today",
+    "src.1",
+    "flow.throughput",
+    "flow.wip"
+  ],
+  "retrieved": [],
+  "limitations": [
+    {
+      "code": "LIMIT_ITERATIONS",
+      "message": "A execução passou do limite de etapas."
+    }
+  ],
+  "rounds": 1,
+  "usage": {
+    "modelCalls": 1,
+    "inputTokens": 100,
+    "outputTokens": 50,
+    "tokens": 150
+  }
+}

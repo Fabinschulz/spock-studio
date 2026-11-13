@@ -1,3 +1,4 @@
+export * from './audit';
 export * from './decision';
 export * from './engineering';
 export * from './harness';
@@ -6,4 +7,5 @@ export * from './management';
 export * from './model';
 export * from './run';
 export * from './run-catalog';
+export * from './timeline';
 export * from './workflow';

@@ -1,6 +1,6 @@
 import { errorMessage, type EngineClient } from '@/shared/api';
 import { pathTo } from '@/shared/routing';
-import type { KnowledgeExternalSource, ProjectKnowledge } from '@/shared/schema';
+import type { KnowledgeExternalSource, KnowledgeMemory, ProjectKnowledge } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router';
@@ -125,6 +125,8 @@ function KnowledgeContent({ knowledge }: { knowledge: ProjectKnowledge }) {
 
       <ExternalSources sources={knowledge.external} />
 
+      <DecisionMemorySection memory={knowledge.memory} />
+
       <Disclosure
         className={styles.history}
         summary={`Arquivos que entram (${knowledge.files.length < knowledge.allowed ? `${knowledge.files.length} de ` : ''}${knowledge.allowed})`}
@@ -199,6 +201,51 @@ function ExternalSources({ sources }: { sources: KnowledgeExternalSource[] }) {
           </Disclosure>
         </>
       )}
+    </>
+  );
+}
+
+/**
+ * As decisões gerenciais registradas no projeto como memória: um agente pode achar "já decidimos isso antes". É texto que você
+ * escreveu, então não depende da política de uma integração; o que vai e o que não vai está dito aqui.
+ */
+function DecisionMemorySection({ memory }: { memory: KnowledgeMemory }) {
+  return (
+    <>
+      <h3 className={styles.subsection}>Decisões registradas (memória do projeto)</h3>
+      {memory.documents === 0 ? (
+        <p className={styles.meta}>
+          Nenhuma decisão registrada neste projeto. As decisões que você registrar em{' '}
+          <Link to={pathTo('management')}>Acompanhamento</Link> passam a servir de memória para os agentes.
+        </p>
+      ) : (
+        <p className={styles.meta}>
+          {count(memory.documents, 'decisão', 'decisões')} no índice ·{' '}
+          {[
+            count(memory.indexed, 'indexada', 'indexadas'),
+            count(memory.outdated, 'mudou desde a indexação', 'mudaram desde a indexação'),
+            count(memory.pending, 'ainda não indexada', 'ainda não indexadas')
+          ].join(', ')}
+          .
+        </p>
+      )}
+      <Disclosure className={styles.history} summary="O que vai de cada decisão e o que não vai">
+        <ul className={styles.plainList}>
+          <li>Vão o título, a data, o que foi decidido, o motivo e quantas execuções ligam à decisão.</li>
+          <li>
+            Não vão os fatos do dia (podem trazer títulos de itens que a política de integração de hoje talvez não
+            permita) nem credenciais: o motor já tira do texto o que parece segredo ao registrar.
+          </li>
+          <li>
+            Quando um agente recupera uma decisão, ela chega ao provedor de IA marcada como decisão registrada, dentro
+            do bloco de conteúdo, e vale como memória, nunca como ordem.
+          </li>
+          <li>
+            Não há interruptor por decisão: o texto é seu e vive no projeto. Se uma decisão não deve servir de memória,
+            o caminho é não registrá-la.
+          </li>
+        </ul>
+      </Disclosure>
     </>
   );
 }

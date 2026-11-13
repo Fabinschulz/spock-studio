@@ -298,6 +298,60 @@ export const assistantAnswerSchema = z.object({
   outputTokens: z.number()
 });
 
+/** Uma etapa do caminho da investigação: só nomes de grupo e ids de fatos, nunca texto de fato, de hipótese nem a pergunta. */
+export const investigationStepSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  detail: z.string(),
+  round: z.number(),
+  groups: z.array(z.string()),
+  facts: z.array(z.string())
+});
+
+export const investigationLimitationSchema = z.object({ code: z.string(), message: z.string() });
+
+/**
+ * A investigação em etapas (`management.investigate`): a resposta, conferida pelo motor só contra os fatos que a investigação de
+ * fato consultou, mais o caminho percorrido. `runId` é a execução dela na central, onde o caminho pode ser reaberto.
+ */
+export const projectInvestigationSchema = z.object({
+  investigationId: z.string(),
+  runId: z.string(),
+  answeredAt: z.string(),
+  rounds: z.number(),
+  usedModel: z.boolean(),
+  answer: assistantAnswerSchema,
+  path: z.array(investigationStepSchema),
+  limitations: z.array(investigationLimitationSchema)
+});
+
+export type InvestigationStep = z.infer<typeof investigationStepSchema>;
+export type ProjectInvestigation = z.infer<typeof projectInvestigationSchema>;
+/** Um projeto que entra na pergunta ao portfólio. `alias` (p1, p2...) prefixa os ids dos fatos dele. */
+export const portfolioEvidenceProjectSchema = z.object({
+  alias: z.string(),
+  projectId: z.string(),
+  name: z.string(),
+  facts: z.number()
+});
+
+/** O que vai ao provedor numa pergunta ao portfólio, antes do envio. */
+export const portfolioEvidenceSchema = z.object({
+  generatedAt: z.string(),
+  projects: z.array(portfolioEvidenceProjectSchema),
+  facts: z.array(evidenceFactSchema),
+  withheld: z.array(z.string())
+});
+
+/** A resposta sobre o portfólio: os projetos que ela cobre e a resposta, já conferida pelo motor. */
+export const portfolioAnswerSchema = z.object({
+  projects: z.array(portfolioEvidenceProjectSchema),
+  answer: assistantAnswerSchema
+});
+
+export type PortfolioEvidenceProject = z.infer<typeof portfolioEvidenceProjectSchema>;
+export type PortfolioEvidence = z.infer<typeof portfolioEvidenceSchema>;
+export type PortfolioAnswer = z.infer<typeof portfolioAnswerSchema>;
 export type EvidenceFact = z.infer<typeof evidenceFactSchema>;
 export type EvidencePack = z.infer<typeof evidencePackSchema>;
 export type AssistantAnswer = z.infer<typeof assistantAnswerSchema>;

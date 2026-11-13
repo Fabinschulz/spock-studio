@@ -122,7 +122,7 @@ public sealed class ManagementAssistant(
     /// guarda texto de pedido). Não passa pelo rastreador: uma pergunta não escreve no projeto e não pode bloquear a execução
     /// que estiver andando nele. Só projeto autorizado tem diário, e uma falha ao gravar nunca atrapalha a resposta.
     /// </summary>
-    private void RecordRun(string projectId, DateTimeOffset startedAt, AssistantAnswer? answer, string? error)
+    internal void RecordRun(string projectId, DateTimeOffset startedAt, AssistantAnswer? answer, string? error)
     {
         if (runs is null || !workspace.IsAuthorized(projectId)) return;
 

@@ -183,6 +183,36 @@ describe('Projeto · conhecimento', () => {
     );
   });
 
+  describe('decisões como memória', () => {
+    const openSection = async (knowledge: unknown) => {
+      renderPage(clientWith([], true, knowledge), project, KnowledgePage);
+      return (await screen.findByRole('heading', { name: 'Conhecimento do projeto' })).closest('section')!;
+    };
+
+    it('sem decisão registrada, diz isso e manda para o Acompanhamento', async () => {
+      const section = await openSection(knowledgeFixture);
+
+      expect(await within(section).findByText(/Nenhuma decisão registrada neste projeto/)).toBeTruthy();
+      expect(within(section).getByRole('link', { name: 'Acompanhamento' })).toHaveAttribute('href', '/gestao');
+    });
+
+    it('com decisões, conta por estado e explica o que vai e o que nunca vai', async () => {
+      const section = await openSection({
+        ...knowledgeFixture,
+        memory: { documents: 3, indexed: 1, outdated: 1, pending: 1 }
+      });
+
+      expect(await within(section).findByText(/3 decisões no índice/)).toHaveTextContent(
+        '1 indexada, 1 mudou desde a indexação, 1 ainda não indexada'
+      );
+      await userEvent.click(within(section).getByText('O que vai de cada decisão e o que não vai'));
+      expect(within(section).getByText(/Vão o título, a data, o que foi decidido, o motivo/)).toBeTruthy();
+      expect(within(section).getByText(/Não vão os fatos do dia/)).toBeTruthy();
+      expect(within(section).getByText(/nunca como ordem/)).toBeTruthy();
+      expect(within(section).getByText(/Não há interruptor por decisão/)).toBeTruthy();
+    });
+  });
+
   describe('fontes externas', () => {
     const withExternal = (external: unknown = knowledgeExternalFixture.external) => ({ ...knowledgeFixture, external });
     const openSection = async (knowledge: unknown) => {

@@ -6,7 +6,8 @@ const KIND_LABEL: Record<string, string> = {
   validate: 'Validação',
   revert: 'Reversão',
   workflow: 'Workflow',
-  assistant: 'Pergunta ao assistente'
+  assistant: 'Pergunta ao assistente',
+  investigation: 'Investigação de gestão'
 };
 
 /** Um tipo novo do motor aparece como veio, nunca some. */

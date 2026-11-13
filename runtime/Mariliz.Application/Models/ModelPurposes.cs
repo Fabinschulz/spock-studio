@@ -15,7 +15,7 @@ public static class ModelPurposes
 
     public static IReadOnlyList<ModelPurpose> All { get; } =
     [
-        new(Assistant, "Assistente gerencial", "Responde perguntas sobre os indicadores do portfólio, só com os fatos que o motor calculou."),
+        new(Assistant, "Assistente gerencial", "Responde perguntas sobre os indicadores do portfólio e investiga, em etapas, o que explica um resultado, só com os fatos que o motor calculou."),
         new(Judge, "Juiz", "Dá uma segunda opinião sobre o resultado de uma execução. Não decide sozinho: quem decide é a verificação do motor."),
         new(Workflow, "Fluxos de engenharia", "Classifica o pedido, planeja, desenha a arquitetura e reformula buscas nos fluxos de engenharia.")
     ];
@@ -24,9 +24,14 @@ public static class ModelPurposes
 
     /// <summary>
     /// A finalidade de uma chamada do runtime de IA, que declara a sua em termos de agente (<c>classify</c>, <c>plan</c>,
-    /// <c>architecture</c>, <c>judge</c>, <c>rewrite-query</c>). Só o juiz tem finalidade própria; o resto é fluxo de engenharia.
+    /// <c>architecture</c>, <c>judge</c>, <c>rewrite-query</c>, <c>investigate</c>). O juiz e a investigação de gestão têm finalidade própria; o resto é fluxo de engenharia.
     /// </summary>
-    public static string ForBrokerPurpose(string brokerPurpose) => brokerPurpose == "judge" ? Judge : Workflow;
+    public static string ForBrokerPurpose(string brokerPurpose) => brokerPurpose switch
+    {
+        "judge" => Judge,
+        "investigate" => Assistant,
+        _ => Workflow
+    };
 }
 
 /// <summary>O modelo que a pessoa escolheu para cada finalidade, só no diretório de dados do motor. Sem escolha, vale o padrão do provedor.</summary>

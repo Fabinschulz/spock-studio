@@ -1,3 +1,8 @@
+import auditFixture from '@contracts/fixtures/audit/audit.json';
+import investigationFixture from '@contracts/fixtures/management/investigation.json';
+import portfolioAnswerFixture from '@contracts/fixtures/management/portfolio-answer.json';
+import portfolioEvidenceFixture from '@contracts/fixtures/management/portfolio-evidence.json';
+import timelineFixture from '@contracts/fixtures/timeline/timeline.json';
 import { describe, expect, it } from 'vitest';
 
 import applyFailure from '@contracts/fixtures/golden/apply-failure.json';
@@ -71,6 +76,11 @@ import {
   planSchema,
   profileResultSchema,
   projectKnowledgeSchema,
+  portfolioAnswerSchema,
+  portfolioEvidenceSchema,
+  projectAuditTrailSchema,
+  projectInvestigationSchema,
+  projectTimelineSchema,
   runDetailSchema,
   linkedItemsResultSchema,
   runEventSchema,
@@ -574,5 +584,134 @@ describe('contrato das fontes externas do conhecimento (fixture do motor)', () =
 
   it('o conhecimento sem fonte externa traz a lista vazia', () => {
     expect(projectKnowledgeSchema.parse(engineeringKnowledge).external).toEqual([]);
+  });
+});
+
+describe('contrato da linha do tempo do projeto (fixture do motor)', () => {
+  it('traz um acontecimento de cada fonte, do mais recente ao mais antigo, e as fontes com a contagem', () => {
+    const parsed = projectTimelineSchema.parse(timelineFixture);
+    expect([...new Set(parsed.events.map((event) => event.kind))].sort()).toEqual([
+      'decision',
+      'harness',
+      'profile',
+      'risk',
+      'run',
+      'sync'
+    ]);
+    expect(parsed.events.map((event) => event.at)).toEqual(
+      [...parsed.events.map((event) => event.at)].sort().reverse()
+    );
+    expect(parsed.sources.map((source) => [source.kind, source.count])).toEqual(
+      expect.arrayContaining([
+        ['risk', 3],
+        ['profile', 3],
+        ['harness', 1]
+      ])
+    );
+    expect(parsed.sources.every((source) => source.available)).toBe(true);
+    expect(parsed.nextBefore).toBeNull();
+  });
+
+  it('cada acontecimento tem id único e só execução e decisão têm destino', () => {
+    const parsed = projectTimelineSchema.parse(timelineFixture);
+    expect(new Set(parsed.events.map((event) => event.id)).size).toBe(parsed.events.length);
+    for (const event of parsed.events) {
+      expect(['ok', 'attention', 'problem', 'info']).toContain(event.level);
+      expect(event.refType === null).toBe(event.refId === null);
+      if (event.refType !== null) expect(['run', 'decision']).toContain(event.refType);
+    }
+  });
+
+  it('o texto não carrega identificador de item nem credencial', () => {
+    expect(JSON.stringify(timelineFixture)).not.toMatch(/acme\/app#|ghp_/);
+  });
+});
+
+describe('contrato da trilha de auditoria do projeto (fixture do motor)', () => {
+  it('traz entradas do arquivo e do diário, da mais recente à mais antiga, e as fontes com a contagem', () => {
+    const parsed = projectAuditTrailSchema.parse(auditFixture);
+    expect([...new Set(parsed.entries.map((entry) => entry.source))].sort()).toEqual(['audit', 'journal']);
+    const instants = parsed.entries.map((entry) => entry.at);
+    expect([...instants].sort().reverse()).toEqual(instants);
+    expect(parsed.sources.map((source) => source.source).sort()).toEqual(['audit', 'journal']);
+    expect(parsed.sources.every((source) => source.available)).toBe(true);
+    expect(parsed.nextBefore).toBeNull();
+  });
+
+  it('cada entrada tem id único e exatamente uma referência: execução do diário ou linha do arquivo', () => {
+    const parsed = projectAuditTrailSchema.parse(auditFixture);
+    expect(new Set(parsed.entries.map((entry) => entry.id)).size).toBe(parsed.entries.length);
+    for (const entry of parsed.entries) {
+      if (entry.source === 'journal') {
+        expect(entry.runId).not.toBeNull();
+        expect(entry.auditLine).toBeNull();
+      } else {
+        expect(entry.auditLine).not.toBeNull();
+        expect(entry.runId).toBeNull();
+      }
+    }
+  });
+
+  it('a contagem de cada categoria bate com as entradas e toda entrada tem categoria conhecida', () => {
+    const parsed = projectAuditTrailSchema.parse(auditFixture);
+    const known = new Set(parsed.categories.map((category) => category.id));
+    for (const category of parsed.categories) {
+      expect(parsed.entries.filter((entry) => entry.category === category.id)).toHaveLength(category.count);
+    }
+    expect(parsed.entries.every((entry) => known.has(entry.category))).toBe(true);
+  });
+
+  it('o texto não carrega credencial, texto de pedido nem identificador de item', () => {
+    expect(JSON.stringify(auditFixture)).not.toMatch(/acme\/app#|ghp_|sk-/);
+  });
+});
+
+describe('contrato da investigação de gestão (fixture do motor)', () => {
+  it('traz a resposta conferida, o caminho percorrido e o que limitou a investigação', () => {
+    const parsed = projectInvestigationSchema.parse(investigationFixture);
+    expect(parsed.path.map((step) => step.id)).toEqual(['frame', 'gather', 'conclude']);
+    expect(parsed.rounds).toBe(1);
+    expect(parsed.usedModel).toBe(true);
+    expect(parsed.limitations.map((item) => item.code)).toEqual(['INVESTIGATION_STOPPED']);
+    expect(parsed.runId).toBe(parsed.investigationId);
+  });
+
+  it('cada afirmação cita fatos que a própria resposta traz e o caminho só tem ids, nunca texto', () => {
+    const parsed = projectInvestigationSchema.parse(investigationFixture);
+    const cited = new Set(parsed.answer.evidence.map((fact) => fact.id));
+    for (const statement of [...parsed.answer.observed, ...parsed.answer.inferences]) {
+      expect(statement.evidence.length).toBeGreaterThan(0);
+      for (const id of statement.evidence) expect(cited.has(id)).toBe(true);
+    }
+    for (const step of parsed.path) for (const id of step.facts) expect(id).toMatch(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/);
+  });
+
+  it('não carrega pergunta, credencial nem título de item', () => {
+    expect(JSON.stringify(investigationFixture)).not.toMatch(/SEGREDO|ghp_|sk-|Titulo secreto/);
+  });
+});
+
+describe('contrato do assistente do portfólio (fixtures do motor)', () => {
+  it('o pacote traz os projetos escolhidos com alias e os fatos de cada um prefixados por ele', () => {
+    const parsed = portfolioEvidenceSchema.parse(portfolioEvidenceFixture);
+    expect(parsed.projects.map((project) => project.alias)).toEqual(['p1', 'p2']);
+    for (const project of parsed.projects) {
+      const own = parsed.facts.filter((fact) => fact.id.startsWith(`${project.alias}.`));
+      expect(own).toHaveLength(project.facts);
+      expect(own[0]!.id).toBe(`${project.alias}.name`);
+    }
+    expect(parsed.facts.filter((fact) => fact.id === 'today')).toHaveLength(1);
+    expect(new Set(parsed.facts.map((fact) => fact.id)).size).toBe(parsed.facts.length);
+  });
+
+  it('a resposta cita só fatos de projetos que ela cobre e o texto não carrega a pergunta nem título de item fechado', () => {
+    const parsed = portfolioAnswerSchema.parse(portfolioAnswerFixture);
+    const aliases = new Set(parsed.projects.map((project) => `${project.alias}.`));
+    for (const fact of parsed.answer.evidence)
+      expect([...aliases].some((alias) => fact.id.startsWith(alias))).toBe(true);
+    expect(parsed.answer.projectId).toBe('portfolio');
+    expect(JSON.stringify([portfolioAnswerFixture, portfolioEvidenceFixture])).not.toMatch(
+      /SEGREDO|Titulo secreto|ghp_|sk-/
+    );
   });
 });

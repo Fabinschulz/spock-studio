@@ -1,0 +1,208 @@
+{
+  "projectId": "p-000000000001",
+  "generatedAt": "2026-11-11T12:00:00+00:00",
+  "entries": [
+    {
+      "id": "audit:10",
+      "at": "2026-11-10T12:00:00+00:00",
+      "category": "access",
+      "title": "Fonte desvinculada do projeto: acme/app",
+      "detail": "O que estava sincronizado dela foi apagado deste computador.",
+      "source": "audit",
+      "runId": null,
+      "auditLine": 10
+    },
+    {
+      "id": "audit:9",
+      "at": "2026-11-08T12:00:00+00:00",
+      "category": "credential",
+      "title": "Credencial atualizada: GitHub da equipe",
+      "detail": "A nova credencial foi conferida com o provedor antes de substituir a antiga.",
+      "source": "audit",
+      "runId": null,
+      "auditLine": 9
+    },
+    {
+      "id": "audit:8",
+      "at": "2026-11-07T12:00:00+00:00",
+      "category": "decision",
+      "title": "Decisão gerencial registrada",
+      "detail": "1 fato do momento e 0 execuções relacionadas.",
+      "source": "audit",
+      "runId": null,
+      "auditLine": 8
+    },
+    {
+      "id": "audit:7",
+      "at": "2026-11-06T12:00:00+00:00",
+      "category": "access",
+      "title": "Recorte e política de acme/app salvos sem mudança",
+      "detail": "Dados lidos: issues. Política de contexto de IA: aberta.",
+      "source": "audit",
+      "runId": null,
+      "auditLine": 7
+    },
+    {
+      "id": "audit:6k",
+      "at": "2026-11-05T12:00:00+00:00",
+      "category": "access",
+      "title": "Recorte de acme/app alterado: de issues, pull requests para issues",
+      "detail": "O que saiu do recorte foi apagado do que já estava sincronizado.",
+      "source": "audit",
+      "runId": null,
+      "auditLine": 6
+    },
+    {
+      "id": "audit:5p",
+      "at": "2026-11-04T12:00:00+00:00",
+      "category": "context",
+      "title": "Política de contexto de IA de acme/app: de fechada para aberta",
+      "detail": "Os itens sincronizados passam a poder virar contexto dos agentes.",
+      "source": "audit",
+      "runId": null,
+      "auditLine": 5
+    },
+    {
+      "id": "journal:ex-000000000004m",
+      "at": "2026-11-04T09:02:00+00:00",
+      "category": "model",
+      "title": "Uso de modelo de IA",
+      "detail": "3 chamadas ao provedor, 1500 tokens (1200 de entrada, 300 de saída).",
+      "source": "journal",
+      "runId": "ex-000000000004",
+      "auditLine": null
+    },
+    {
+      "id": "journal:ex-000000000004x0",
+      "at": "2026-11-04T09:02:00+00:00",
+      "category": "change",
+      "title": "Ação de agente executada: Registrar a decisão de arquitetura",
+      "detail": "Destino: .mariliz/decisions/ex-000000000004-impacto.md.",
+      "source": "journal",
+      "runId": "ex-000000000004",
+      "auditLine": null
+    },
+    {
+      "id": "journal:ex-000000000004a",
+      "at": "2026-11-04T09:01:00+00:00",
+      "category": "change",
+      "title": "Ações propostas por agentes aprovadas",
+      "detail": "2 ações no conjunto aprovado; 1 executada.",
+      "source": "journal",
+      "runId": "ex-000000000004",
+      "auditLine": null
+    },
+    {
+      "id": "audit:4",
+      "at": "2026-11-03T12:00:00+00:00",
+      "category": "read",
+      "title": "Leitura de acme/app",
+      "detail": "Concluída; 2 itens lidos.",
+      "source": "audit",
+      "runId": null,
+      "auditLine": 4
+    },
+    {
+      "id": "journal:ex-000000000003",
+      "at": "2026-11-03T09:02:00+00:00",
+      "category": "change",
+      "title": "Aplicação do Harness desfeita na hora",
+      "detail": "1 arquivo gravado, e tudo foi desfeito porque a aplicação falhou no meio.",
+      "source": "journal",
+      "runId": "ex-000000000003",
+      "auditLine": null
+    },
+    {
+      "id": "audit:3",
+      "at": "2026-11-02T12:00:00+00:00",
+      "category": "access",
+      "title": "Fonte vinculada ao projeto: acme/app",
+      "detail": "Dados lidos: issues, pull requests. Política de contexto de IA: fechada.",
+      "source": "audit",
+      "runId": null,
+      "auditLine": 3
+    },
+    {
+      "id": "journal:ex-000000000002",
+      "at": "2026-11-02T09:02:00+00:00",
+      "category": "change",
+      "title": "Aplicação do Harness revertida",
+      "detail": "1 arquivo restaurado ao que era antes.",
+      "source": "journal",
+      "runId": "ex-000000000002",
+      "auditLine": null
+    },
+    {
+      "id": "audit:1",
+      "at": "2026-11-01T12:00:00+00:00",
+      "category": "credential",
+      "title": "Conexão criada: GitHub da equipe",
+      "detail": "Provedor: github. Conexão usada por este projeto.",
+      "source": "audit",
+      "runId": null,
+      "auditLine": 1
+    },
+    {
+      "id": "journal:ex-000000000001",
+      "at": "2026-11-01T09:02:00+00:00",
+      "category": "change",
+      "title": "Harness aplicado ao projeto",
+      "detail": "2 arquivos gravados.",
+      "source": "journal",
+      "runId": "ex-000000000001",
+      "auditLine": null
+    }
+  ],
+  "nextBefore": null,
+  "sources": [
+    {
+      "source": "audit",
+      "label": "Arquivo de auditoria",
+      "count": 9,
+      "available": true
+    },
+    {
+      "source": "journal",
+      "label": "Diário das execuções",
+      "count": 6,
+      "available": true
+    }
+  ],
+  "categories": [
+    {
+      "id": "access",
+      "label": "Acesso a fontes",
+      "count": 4
+    },
+    {
+      "id": "context",
+      "label": "Contexto de IA",
+      "count": 1
+    },
+    {
+      "id": "credential",
+      "label": "Conexões",
+      "count": 2
+    },
+    {
+      "id": "read",
+      "label": "Leituras de fontes",
+      "count": 1
+    },
+    {
+      "id": "decision",
+      "label": "Decisões",
+      "count": 1
+    },
+    {
+      "id": "change",
+      "label": "Mudanças no projeto",
+      "count": 5
+    },
+    {
+      "id": "model",
+      "label": "Uso de modelo",
+      "count": 1
+    }
+  ]
+}

@@ -7,7 +7,8 @@ const KIND_LABEL: Record<string, string> = {
   validate: 'Validação',
   revert: 'Reversão',
   workflow: 'Workflow',
-  assistant: 'Pergunta ao assistente'
+  assistant: 'Pergunta ao assistente',
+  investigation: 'Investigação de gestão'
 };
 
 /** Um tipo novo do motor aparece como veio, nunca some. */
@@ -65,6 +66,8 @@ export function nextStep(run: RunItem): string {
     return 'O aplicativo foi fechado no meio desta execução. Confira o que ela mudou abaixo e execute de novo se precisar.';
   if (run.kind === 'assistant' && run.state === 'failed')
     return 'A pergunta não foi respondida. Veja o motivo abaixo, confira o modelo em Configurações e pergunte de novo no Assistente.';
+  if (run.kind === 'investigation' && run.state === 'failed')
+    return 'A investigação não terminou. Veja o motivo abaixo e investigue de novo no Assistente.';
   switch (run.state) {
     case 'failed':
       return run.canRevert

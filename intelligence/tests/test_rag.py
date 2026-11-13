@@ -41,6 +41,22 @@ class RagTests(unittest.TestCase):
             self.assertEqual(rag.search(root, PROJECT_A, "cobranca"), [])
             self.assertNotIn(external, [entry["path"] for entry in rag.manifest(root, PROJECT_A)])
 
+    def test_decisao_registrada_e_achada_pela_pergunta_e_sai_do_indice_quando_o_motor_deixa_de_manda_la(self) -> None:
+        decision = "@decision/dec-000000000001.md"
+        text = "# Decisão registrada: Adiar o marco\n\nDecidido: adiar o marco da migracao em duas semanas.\nMotivo: bloqueios de infraestrutura.\n"
+        with tempfile.TemporaryDirectory() as root:
+            rag.sync(root, PROJECT_A, [{"path": decision, "hash": "d" * 64, "text": text}])
+            found = rag.search(root, PROJECT_A, "adiar migracao infraestrutura")
+            self.assertEqual(found[0]["filePath"], decision)
+            self.assertTrue(found[0]["chunkId"].startswith("@decision/"))
+
+            # Outro projeto nunca enxerga a decisao deste.
+            self.assertEqual(rag.search(root, PROJECT_B, "adiar migracao infraestrutura"), [])
+
+            gone = rag.sync(root, PROJECT_A, [{"path": "docs/a.md", "hash": "a" * 64, "text": "texto longo o bastante"}])
+            self.assertEqual(gone["removed"], 1)
+            self.assertEqual(rag.search(root, PROJECT_A, "adiar migracao"), [])
+
     def test_dois_projetos_nao_compartilham_trechos(self) -> None:
         with tempfile.TemporaryDirectory() as root:
             rag.sync(root, PROJECT_A, [{"path": "docs/nota.md", "hash": "a" * 64, "text": f"O identificador {TOKEN} fica somente neste projeto."}])

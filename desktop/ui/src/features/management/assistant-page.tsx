@@ -3,12 +3,13 @@ import { EngineError, errorMessage, type EngineClient } from '@/shared/api';
 import { InlineNotice, ErrorState, LoadingState, NoProjectState, Page, Disclosure } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
-import type { AssistantAnswer } from '@/shared/schema';
-import { Button, TextField } from '@mariliz/ui-kit';
+import type { AssistantAnswer, ProjectInvestigation } from '@/shared/schema';
+import { Button, Checkbox, TextField } from '@mariliz/ui-kit';
 import { useCallback, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
 
 import { AssistantAnswerView } from './components/assistant-answer';
+import { InvestigationPath } from './components/investigation-path';
 import { MAX_QUESTION, MIN_QUESTION, SUGGESTED_QUESTIONS } from './domain/assistant';
 import styles from './management-page.module.scss';
 import { createManagementApi, type ManagementApi } from './service/management-api';
@@ -40,6 +41,8 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ message: string; needsKey: boolean } | null>(null);
   const [answer, setAnswer] = useState<AssistantAnswer | null>(null);
+  const [investigation, setInvestigation] = useState<ProjectInvestigation | null>(null);
+  const [steps, setSteps] = useState(false);
 
   const trimmed = question.trim();
   const valid = trimmed.length >= MIN_QUESTION && trimmed.length <= MAX_QUESTION;
@@ -50,9 +53,17 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
     setBusy(true);
     setError(null);
     try {
-      setAnswer(await api.ask(project.projectId, trimmed));
+      if (steps) {
+        const result = await api.investigate(project.projectId, trimmed);
+        setInvestigation(result);
+        setAnswer(result.answer);
+      } else {
+        setInvestigation(null);
+        setAnswer(await api.ask(project.projectId, trimmed));
+      }
     } catch (cause) {
       setAnswer(null);
+      setInvestigation(null);
       setError({
         message: errorMessage(cause, 'Não foi possível obter a resposta.'),
         needsKey: cause instanceof EngineError && cause.code === 'MODEL_NOT_CONFIGURED'
@@ -76,8 +87,8 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
         <>
           {!context.value.configured ? (
             <InlineNotice tone="warning" title="Nenhuma chave de modelo configurada">
-              O assistente usa um modelo de linguagem para escrever a explicação. Configure a chave em{' '}
-              <Link to={pathTo('settings')}>Configurações</Link>.
+              O assistente usa um modelo de linguagem para escrever a explicação (sem ele, só a investigação em etapas
+              roda, e lista os sinais). Configure a chave em <Link to={pathTo('settings')}>Configurações</Link>.
             </InlineNotice>
           ) : null}
 
@@ -93,9 +104,19 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
               helperText={`Entre ${MIN_QUESTION} e ${MAX_QUESTION} caracteres.`}
             />
             <div className={styles.actions}>
-              <Button type="submit" variant="contained" disabled={busy || !valid || !context.value.configured}>
-                {busy ? 'Perguntando…' : 'Perguntar'}
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={busy || !valid || (!steps && !context.value.configured)}
+              >
+                {busy ? (steps ? 'Investigando…' : 'Perguntando…') : steps ? 'Investigar' : 'Perguntar'}
               </Button>
+              <Checkbox
+                label="Investigar em etapas"
+                checked={steps}
+                disabled={busy}
+                onChange={(_, checked) => setSteps(checked)}
+              />
             </div>
             <div className={styles.suggestions} role="group" aria-label="Sugestões de pergunta">
               {SUGGESTED_QUESTIONS.map((text) => (
@@ -142,8 +163,13 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
               ) : null}
             </p>
           ) : null}
-          {busy ? <LoadingState>O modelo está escrevendo a resposta…</LoadingState> : null}
+          {busy ? (
+            <LoadingState>
+              {steps ? 'Cruzando riscos, execuções e mudanças…' : 'O modelo está escrevendo a resposta…'}
+            </LoadingState>
+          ) : null}
           {answer ? <AssistantAnswerView answer={answer} /> : null}
+          {investigation ? <InvestigationPath investigation={investigation} /> : null}
         </>
       ) : null}
     </Page>

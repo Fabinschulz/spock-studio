@@ -1,0 +1,65 @@
+{
+  "schema": "ai.investigation.start.v1",
+  "investigationId": "inv-aaaaaaaaaaaa",
+  "executionId": "ex-bbbbbbbbbbbb",
+  "projectId": "p-cccccccccccc",
+  "facts": [
+    {
+      "id": "today",
+      "group": "contexto",
+      "text": "Hoje é 2026-11-10. Período dos indicadores: últimas 8 semanas."
+    },
+    {
+      "id": "src.1",
+      "group": "fontes",
+      "text": "Fonte github acme/app: última sincronização concluída, dados lidos em 2026-11-10."
+    },
+    {
+      "id": "flow.throughput",
+      "group": "indicadores",
+      "text": "Entregas por semana: 4, 4, 3, 1; média 3 por semana."
+    },
+    {
+      "id": "flow.wip",
+      "group": "indicadores",
+      "text": "Itens em andamento agora: 9."
+    },
+    {
+      "id": "risk.blocked",
+      "group": "riscos",
+      "text": "Risco médio: 3 itens abertos bloqueados."
+    },
+    {
+      "id": "risk.aging",
+      "group": "riscos",
+      "text": "Risco baixo: 2 itens parados há mais de 14 dias."
+    },
+    {
+      "id": "run.failed",
+      "group": "execuções",
+      "text": "Execuções do projeto nas últimas 4 semanas: 5, 2 falharam."
+    },
+    {
+      "id": "change.profile",
+      "group": "mudanças",
+      "text": "O perfil tecnológico mudou 1 vez nas últimas 4 semanas."
+    },
+    {
+      "id": "mile.1",
+      "group": "marcos",
+      "text": "Marco 1.0: 12 abertos, 30 fechados."
+    }
+  ],
+  "policy": {
+    "modelAllowed": true
+  },
+  "limits": {
+    "maxIterations": 12,
+    "maxMilliseconds": 150000,
+    "maxTokens": 30000
+  },
+  "broker": {
+    "url": "http://127.0.0.1:49152/v1/model",
+    "token": "ttttttttttttttttttttttttttttttttttttttttttt"
+  }
+}

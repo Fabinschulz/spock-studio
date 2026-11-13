@@ -82,6 +82,47 @@ describe('Gestão · assistente', () => {
     expect(answer).toHaveTextContent('Traz o número 3.5, que não está nos fatos citados.');
   });
 
+  it('"Investigar em etapas" chama a investigação, mostra a resposta conferida e o caminho, com o link da central', async () => {
+    const engine = fakeIntegrationEngine();
+    const { container } = renderPage(engine.client);
+
+    await userEvent.type(await screen.findByLabelText('Sua pergunta'), 'Por que a vazão caiu?');
+    expect(screen.getByRole('button', { name: 'Perguntar' })).toBeEnabled();
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Investigar em etapas' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Investigar' }));
+
+    const answer = (await screen.findByRole('heading', { name: 'Resposta' })).closest('section')!;
+    expect(within(answer).getByText('Há 2 itens abertos.')).toBeInTheDocument();
+    expect(answer).toHaveTextContent('Não cita nenhum fato consultado na investigação.');
+    expect(engine.calls.some((call) => call.method === 'management.ask')).toBe(false);
+    expect(engine.calls.find((call) => call.method === 'management.investigate')?.params).toEqual({
+      projectId: loja.projectId,
+      question: 'Por que a vazão caiu?'
+    });
+
+    const path = screen.getByRole('region', { name: 'Caminho da investigação' });
+    expect(path).toHaveTextContent('Caminho da investigação: 1 rodada, 3 etapas');
+    expect(path).toHaveTextContent('Pergunta enquadrada');
+    expect(path).toHaveTextContent('Fatos: today, flow.issues.items, risk.overdue.');
+    expect(within(path).getByRole('list', { name: 'O que limitou a investigação' })).toHaveTextContent(
+      'A investigação parou antes de olhar: riscos.'
+    );
+    expect(within(path).getByRole('link', { name: 'central de execuções' })).toHaveAttribute('href', '/execucoes');
+
+    await expectNoA11yViolations(container);
+  });
+
+  it('a investigação roda sem chave de modelo, e perguntar normalmente continua travado', async () => {
+    const engine = fakeIntegrationEngine({ modelConfigured: false });
+    renderPage(engine.client);
+
+    await userEvent.type(await screen.findByLabelText('Sua pergunta'), 'Quais os riscos?');
+    expect(screen.getByRole('button', { name: 'Perguntar' })).toBeDisabled();
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Investigar em etapas' }));
+
+    expect(screen.getByRole('button', { name: 'Investigar' })).toBeEnabled();
+  });
+
   it('erro do modelo aparece com o motivo, e falta de chave leva a Configurações', async () => {
     const engine = fakeIntegrationEngine({
       assistant: { code: 'MODEL_NOT_CONFIGURED', message: 'Nenhum modelo está configurado.' }
