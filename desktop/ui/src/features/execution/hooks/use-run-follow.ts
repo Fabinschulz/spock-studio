@@ -1,8 +1,8 @@
 import type { EngineClient } from '@/shared/api';
-import type { RunEvent } from '@/shared/schema';
+import { isTerminalState, type RunEvent } from '@/shared/schema';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { applyLive, fromSnapshot, isTerminal, type RunView } from '../domain/run-timeline';
+import { applyLive, fromSnapshot, type RunView } from '../domain/run-timeline';
 import { readSnapshot } from '../service/execution-api';
 
 /**
@@ -62,7 +62,7 @@ export function useRunFollow(client: EngineClient, runId: string) {
       }
       if (outcome.view !== current) commit(outcome.view);
       // O resultado só vem no retrato: ao terminar, a página busca o que falta.
-      if (item.type === 'run.completed' || (item.type === 'run.state' && isTerminal(outcome.view.snapshot.state)))
+      if (item.type === 'run.completed' || (item.type === 'run.state' && isTerminalState(outcome.view.snapshot.state)))
         catchUp();
     };
 

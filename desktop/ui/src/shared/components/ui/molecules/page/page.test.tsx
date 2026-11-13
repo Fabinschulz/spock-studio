@@ -207,6 +207,33 @@ describe('ResourceView', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('O provedor recusou a credencial.');
   });
 
+  it('falhou numa leitura que sabe se refazer: oferece "Tentar de novo" sem a tela passar onRetry', async () => {
+    const reload = vi.fn();
+    renderInApp(
+      <ResourceView
+        resource={{ status: 'error', error: new Error('x'), reload }}
+        loading="Lendo…"
+        fallbackError="Falhou."
+      >
+        {() => <p>pronto</p>}
+      </ResourceView>
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /tentar de novo/i }));
+
+    expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  it('falhou sem como refazer: não mostra botão', () => {
+    renderInApp(
+      <ResourceView resource={{ status: 'error', error: new Error('x') }} loading="Lendo…" fallbackError="Falhou.">
+        {() => <p>pronto</p>}
+      </ResourceView>
+    );
+
+    expect(screen.queryByRole('button', { name: /tentar de novo/i })).not.toBeInTheDocument();
+  });
+
   it('falhou sem explicação: mostra o texto de quem chamou, nunca o erro cru', () => {
     view({ status: 'error', error: new Error('stack trace interno') });
 

@@ -3,11 +3,12 @@ import type { SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 import { EmptyState, ErrorState, LoadingState, Page, PageSection, StatusChip } from '@/shared/components';
 import type { RunItem } from '@/shared/schema';
+import { runEffectLabel, runKindLabel } from '@/shared/utils';
 import { Button } from '@mariliz/ui-kit';
 import { useId, useState, type ReactNode } from 'react';
 
 import { RunDetailPanel } from './components/run-detail-panel';
-import { displayState, effectLabel, KIND_OPTIONS, runKindLabel, STATE_OPTIONS, stateTone } from './domain/run-labels';
+import { displayState, KIND_OPTIONS, STATE_OPTIONS, stateTone } from './domain/run-labels';
 import { useRunList } from './hooks/use-run-list';
 import styles from './runs-page.module.scss';
 
@@ -153,7 +154,7 @@ function Field({ label, children }: { label: string; children: (id: string) => R
 }
 
 function RunRow({ run, showProject, onOpen }: { run: RunItem; showProject: boolean; onOpen: () => void }) {
-  const effect = effectLabel(run);
+  const effect = runEffectLabel(run);
   return (
     <button type="button" className={styles.row} onClick={onOpen} aria-haspopup="dialog">
       <span className={styles.rowMain}>

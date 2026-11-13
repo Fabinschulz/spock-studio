@@ -9,6 +9,7 @@ interface ResourceViewProps<T> {
   loading: string;
   /** O que dizer se a falha não vier explicada pelo motor. */
   fallbackError: string;
+  /** Sem isto, vale o `reload` da própria leitura (se ela tiver um). */
   onRetry?: () => void;
   children: (value: T) => ReactNode;
 }
@@ -17,7 +18,7 @@ interface ResourceViewProps<T> {
 export function ResourceView<T>({ resource, loading, fallbackError, onRetry, children }: ResourceViewProps<T>) {
   if (resource.status === 'loading') return <LoadingState>{loading}</LoadingState>;
   if (resource.status === 'error') {
-    return <ErrorState onRetry={onRetry}>{errorMessage(resource.error, fallbackError)}</ErrorState>;
+    return <ErrorState onRetry={onRetry ?? resource.reload}>{errorMessage(resource.error, fallbackError)}</ErrorState>;
   }
   return <>{children(resource.value)}</>;
 }

@@ -1,20 +1,6 @@
 import type { Tone } from '@/shared/components';
 import { RUN_KINDS, RUN_STATES, type RunItem } from '@/shared/schema';
-import { runStateLabel } from '@/shared/utils';
-
-const KIND_LABEL: Record<string, string> = {
-  apply: 'Configuração aplicada',
-  validate: 'Validação',
-  revert: 'Reversão',
-  workflow: 'Workflow',
-  assistant: 'Pergunta ao assistente',
-  investigation: 'Investigação de gestão'
-};
-
-/** Um tipo novo do motor aparece como veio, nunca some. */
-export function runKindLabel(kind: string): string {
-  return KIND_LABEL[kind] ?? kind;
-}
+import { runKindLabel, runStateLabel } from '@/shared/utils';
 
 export const KIND_OPTIONS = RUN_KINDS.map((kind) => ({ value: kind, label: runKindLabel(kind) }));
 export const STATE_OPTIONS = RUN_STATES.map((state) => ({ value: state, label: runStateLabel(state) }));
@@ -48,13 +34,6 @@ export function stateTone(run: Pick<RunItem, 'state' | 'live'>): Tone {
     default:
       return 'neutral';
   }
-}
-
-/** Frase curta do que a execução deixou no projeto; vazia quando não há o que dizer. */
-export function effectLabel(run: Pick<RunItem, 'kind' | 'changesApplied' | 'reverted'>): string {
-  if (run.reverted) return 'revertida depois';
-  if (run.kind === 'apply' && run.changesApplied) return 'alterações aplicadas';
-  return '';
 }
 
 /**

@@ -11,8 +11,6 @@ import { PageHeader } from './molecules/page-header';
 import { PrimaryActionFooter } from './molecules/primary-action-footer';
 import { SectionCard } from './molecules/section-card';
 import { WizardSteps } from './molecules/wizard-steps';
-import { Checklist } from './atoms/checklist';
-import { CommandDisplay } from './atoms/command-display';
 import { InlineNotice } from './atoms/inline-notice';
 
 const steps = [
@@ -156,54 +154,6 @@ describe('InlineNotice', () => {
   });
 });
 
-describe('CommandDisplay', () => {
-  it('mostra o comando exato, o tipo e copia para a área de transferência sem executar nada', async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
-    render(<CommandDisplay command="dotnet build App.sln" kind="Build" />);
-
-    expect(screen.getByText('dotnet build App.sln')).toBeInTheDocument();
-    expect(screen.getByText('Build')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: 'Copiar o comando dotnet build App.sln' }));
-
-    expect(writeText).toHaveBeenCalledWith('dotnet build App.sln');
-    expect(await screen.findByText('Comando copiado.')).toBeInTheDocument();
-  });
-
-  it('se a cópia falhar, diz como copiar à mão', async () => {
-    Object.defineProperty(navigator, 'clipboard', {
-      value: { writeText: vi.fn().mockRejectedValue(new Error('negado')) },
-      configurable: true
-    });
-    render(<CommandDisplay command="npm test" />);
-
-    await userEvent.click(screen.getByRole('button', { name: /Copiar o comando npm test/ }));
-
-    expect(await screen.findByText(/Não foi possível copiar/)).toBeInTheDocument();
-  });
-});
-
-describe('Checklist', () => {
-  it('o estado de cada item também é dito em texto: a marca e a cor só reforçam', () => {
-    render(
-      <Checklist
-        label="Dependências"
-        items={[
-          { text: 'Node.js 25' },
-          { text: 'Python 3: não encontrado', state: 'warn' },
-          { text: 'Git', state: 'neutral' }
-        ]}
-      />
-    );
-
-    const items = within(screen.getByRole('list', { name: 'Dependências' })).getAllByRole('listitem');
-    expect(items[0]).toHaveTextContent('Node.js 25');
-    expect(items[0]).not.toHaveTextContent('(atenção)');
-    expect(items[1]).toHaveTextContent('Python 3: não encontrado (atenção)');
-    expect(items[2]).toHaveTextContent('Git');
-  });
-});
-
 describe('EvidenceDisclosure', () => {
   it('é alcançável por Tab e abre ao ativar, mostrando as evidências', async () => {
     render(<EvidenceDisclosure summary="Evidências (2)" items={['a.csproj', 'App.sln']} />);
@@ -238,7 +188,6 @@ describe('acessibilidade estrutural (axe)', () => {
         <h2>Título da etapa</h2>
         <SectionCard title="Cartão">
           <InlineNotice tone="warning">Aviso</InlineNotice>
-          <CommandDisplay command="dotnet test" kind="Teste" />
           <EvidenceDisclosure summary="Evidências (1)" items={['x']} />
         </SectionCard>
         <ActionCard title="Ativa" description="Descrição." icon={<span />} onClick={() => undefined} />

@@ -3,10 +3,11 @@ import type { EngineClient } from '@/shared/api';
 import { EmptyState, ErrorState, LoadingState, Page, PageSection } from '@/shared/components';
 import { pathTo } from '@/shared/routing';
 import type { Discovery, RunSummary } from '@/shared/schema';
+import { runKindLabel } from '@/shared/utils';
 import { Link } from 'react-router';
 
 import { ProfileSection } from './components/profile-section';
-import { runKindLabel, runRowText } from './domain/run-labels';
+import { runRowText } from './domain/run-labels';
 import { useProjectOverview } from './hooks/use-project-overview';
 import { ProjectPageFrame } from './project-page-frame';
 import styles from './project-page.module.scss';
