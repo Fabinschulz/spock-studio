@@ -1,10 +1,9 @@
 import { formatEngineDate } from '@/features/integrations';
-import { runKindLabel } from '@/features/runs';
 import { errorMessage } from '@/shared/api';
 import { EmptyState, ErrorState, InlineNotice, PageSection, ResourceView, StatusChip } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import { DECISION_LIMITS, type DecisionSummary, type ManagementDecision, type RunItem } from '@/shared/schema';
-import { runStateLabel } from '@/shared/utils';
+import { runKindLabel, runStateLabel } from '@/shared/utils';
 import { Button } from '@mariliz/ui-kit';
 import { useCallback, useId, useState, type FormEvent } from 'react';
 

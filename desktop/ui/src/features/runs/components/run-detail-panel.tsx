@@ -4,12 +4,13 @@ import { InlineNotice, ResourceView, StatusChip } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import { executionPath } from '@/shared/routing';
 import type { RunDetail, RunItem } from '@/shared/schema';
+import { runEffectLabel, runKindLabel } from '@/shared/utils';
 import { Drawer } from '@mariliz/ui-kit';
 import { useCallback, type ReactNode } from 'react';
 import { Link } from 'react-router';
 
 import { deliverySummary } from '../domain/run-summary';
-import { displayState, effectLabel, hasLiveView, nextStep, runKindLabel, stateTone } from '../domain/run-labels';
+import { displayState, hasLiveView, nextStep, stateTone } from '../domain/run-labels';
 import { readRunDetail } from '../service/runs-api';
 import { RunLinks } from './run-links';
 import styles from '../runs-page.module.scss';
@@ -49,7 +50,7 @@ function Content({ client, run }: { client: EngineClient; run: RunItem }) {
     <div className={styles.detail}>
       <p className={styles.detailState}>
         <StatusChip tone={stateTone(run)}>{displayState(run)}</StatusChip>
-        {effectLabel(run) ? <span className={styles.meta}> {effectLabel(run)}</span> : null}
+        {runEffectLabel(run) ? <span className={styles.meta}> {runEffectLabel(run)}</span> : null}
       </p>
       {guidance ? <InlineNotice tone={run.state === 'failed' ? 'danger' : 'warning'}>{guidance}</InlineNotice> : null}
       {run.error ? (

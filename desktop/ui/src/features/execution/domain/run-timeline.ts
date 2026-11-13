@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { isTerminalState, snapshotOf, type TimelineEvent } from '@/shared/schema';
+import { snapshotOf, type TimelineEvent } from '@/shared/schema';
 
 import { agentLabel } from './run-workspace';
 
@@ -76,8 +76,6 @@ export type RunView = {
   events: TimelineEvent[];
   lastSeq: number;
 };
-
-export const isTerminal = isTerminalState;
 
 export function fromSnapshot(snapshot: WorkflowSnapshot, previous?: RunView): RunView {
   const events = mergeEvents(previous?.events ?? [], snapshot.events);

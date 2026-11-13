@@ -1,6 +1,5 @@
-import { runKindLabel } from '@/features/runs';
 import type { ProjectReport } from '@/shared/schema';
-import { runStateLabel } from '@/shared/utils';
+import { runKindLabel, runStateLabel } from '@/shared/utils';
 
 import { SEVERITY_LABEL } from './delivery-labels';
 import { formatDay, formatDays, formatDecimal } from './format';

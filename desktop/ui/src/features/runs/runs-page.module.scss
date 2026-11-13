@@ -59,7 +59,7 @@
   border-radius: var(--radius-sm, 6px);
 
   &:hover {
-    background: var(--color-surface-muted, rgb(0 0 0 / 4%));
+    background: var(--color-menu-hover);
   }
 
   &:focus-visible {

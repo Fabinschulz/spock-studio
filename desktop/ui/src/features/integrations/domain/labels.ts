@@ -28,10 +28,6 @@ export function impactText(impact: string, provider: string): string {
   return 'Esta versão do Spock Studio não reconhece o conector desta conexão, então não afirma o que ela pode fazer.';
 }
 
-export function connectorName(connectors: Connector[], provider: string): string {
-  return connectors.find((connector) => connector.provider === provider)?.name ?? provider;
-}
-
 export function dataKindLabel(connector: Connector | undefined, kind: string): string {
   return connector?.dataKinds.find((entry) => entry.id === kind)?.label ?? kind;
 }
