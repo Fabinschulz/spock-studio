@@ -18,6 +18,8 @@ import integrationConnections from '@contracts/fixtures/integrations/connections
 import integrationHistory from '@contracts/fixtures/integrations/history.json';
 import integrationList from '@contracts/fixtures/integrations/integrations.json';
 import integrationReach from '@contracts/fixtures/integrations/reach.json';
+import modelConnectionError from '@contracts/fixtures/models/connection-error.json';
+import modelConnection from '@contracts/fixtures/models/connection.json';
 import assistantAnswer from '@contracts/fixtures/management/assistant-answer.json';
 import assistantEvidence from '@contracts/fixtures/management/assistant-evidence.json';
 import managementForecast from '@contracts/fixtures/management/forecast.json';
@@ -47,6 +49,7 @@ import {
   discoverySchema,
   evidencePackSchema,
   harnessCatalogSchema,
+  modelConnectionSchema,
   mcpInventorySchema,
   agentPolicySchema,
   harnessRevisionsSchema,
@@ -471,5 +474,31 @@ describe('contrato do resumo por conexão (fixture do motor)', () => {
       'read'
     ]);
     expect(JSON.stringify(integrationReach)).not.toMatch(/ghp_|[A-Z]:\\|\/Users\//);
+  });
+});
+
+describe('contrato da conexão do modelo (fixtures do motor)', () => {
+  it('o estado conectado diz o provedor, o modelo, onde a chave está e quando foi conferida', () => {
+    const parsed = modelConnectionSchema.parse(modelConnection);
+    expect(parsed).toMatchObject({
+      configured: true,
+      provider: 'openai',
+      status: 'connected',
+      protection: 'file',
+      lastError: null
+    });
+    expect(parsed.model).not.toBe('');
+    expect(parsed.checkedAt).not.toBeNull();
+  });
+
+  it('o estado com erro traz o código e o motivo da recusa', () => {
+    const parsed = modelConnectionSchema.parse(modelConnectionError);
+    expect(parsed.status).toBe('error');
+    expect(parsed.lastError).toMatchObject({ code: 'MODEL_AUTH_FAILED' });
+    expect(parsed.lastError?.message).not.toBe('');
+  });
+
+  it('nenhuma resposta carrega a chave', () => {
+    expect(JSON.stringify([modelConnection, modelConnectionError])).not.toMatch(/sk-/);
   });
 });

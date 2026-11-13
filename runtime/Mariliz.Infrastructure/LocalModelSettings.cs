@@ -30,6 +30,18 @@ public sealed class LocalModelSettings(string dataRoot, ISecretVault vault) : IM
         }
     }
 
+    public void Validate(string provider, string key) => ModelKeyRules.Validate(provider, key);
+
+    public string? Protection()
+    {
+        lock (_gate)
+        {
+            Migrate();
+            if (vault.Available && vault.TryRead(ReservedSecretIds.ModelKey, out var stored) && ModelKeyRules.IsValidKey(stored)) return ModelKeyProtection.Vault;
+            return _legacy.TryGetKey(out _) ? ModelKeyProtection.File : null;
+        }
+    }
+
     public void Save(string provider, string key)
     {
         ModelKeyRules.Validate(provider, key);

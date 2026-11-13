@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Mariliz.Application.Execution;
+using Mariliz.Application.Ports;
 using Mariliz.Core.Policy;
 using Mariliz.Core.Text;
 
@@ -9,7 +10,13 @@ namespace Mariliz.Application.Models;
 /// Proxy de modelo no motor. A chave não sai daqui para o runtime de IA, o journal ou a resposta.
 /// Uma conclusão do modelo não é veredito: quem decide continua sendo a verificação determinística.
 /// </summary>
-public sealed class ModelGateway(IModelSettings settings, IModelTransport transport, TimeSpan? timeout = null, IModelChatTransport? chat = null)
+public sealed class ModelGateway(
+    IModelSettings settings,
+    IModelTransport transport,
+    TimeSpan? timeout = null,
+    IModelChatTransport? chat = null,
+    IModelCheckStore? checks = null,
+    IClock? clock = null)
 {
     public const string Provider = "openai";
     public const int MaxTokens = 256;
@@ -25,11 +32,86 @@ public sealed class ModelGateway(IModelSettings settings, IModelTransport transp
     private static readonly TimeSpan ChatTimeout = TimeSpan.FromSeconds(30);
     private readonly TimeSpan _timeout = timeout ?? TimeSpan.FromSeconds(10);
 
+    /// <summary>A pergunta curta que confere a chave: o provedor só precisa aceitá-la, a resposta não é usada.</summary>
+    public const string ProbePrompt = "Responda apenas: ok";
+
+    public const int ProbeMaxTokens = 8;
+
+    private DateTimeOffset Now => clock?.UtcNow ?? DateTimeOffset.UtcNow;
+
     public ModelStatus Status() => settings.Status();
 
-    public void Save(string provider, string key) => settings.Save(provider, key);
+    public void Save(string provider, string key)
+    {
+        settings.Save(provider, key);
+        checks?.Clear();
+    }
 
-    public void Clear() => settings.Clear();
+    public void Clear()
+    {
+        settings.Clear();
+        checks?.Clear();
+    }
+
+    /// <summary>O provedor como uma conexão: se há chave, onde está guardada e o que a última conferência encontrou.</summary>
+    public ModelConnection Connection()
+    {
+        var status = settings.Status();
+        if (!status.Configured) return new ModelConnection(false, "", DefaultModel, "none", null, null, null);
+
+        var check = checks?.Read();
+        return new ModelConnection(true, status.Provider, DefaultModel, check?.Status ?? "untested", settings.Protection(), check?.CheckedAt, check?.Error);
+    }
+
+    /// <summary>
+    /// Guarda a chave só depois de o provedor a aceitar, como numa conexão de integração: formato conferido, uma pergunta curta ao
+    /// provedor e só então o cofre. Se o provedor recusar (ou não responder), nada é gravado e a chave que já valia continua valendo.
+    /// </summary>
+    public async Task<ModelConnection> ConnectAsync(string provider, string key, CancellationToken ct)
+    {
+        settings.Validate(provider, key);
+        await ProbeAsync(key, ct);
+
+        settings.Save(provider, key);
+        checks?.Write(new ModelCheck("connected", Now, null));
+        return Connection();
+    }
+
+    /// <summary>
+    /// Confere a chave guardada com o provedor. Uma recusa não é exceção: fica registrada na conexão, que é o que a pessoa
+    /// consulta. Sem chave, falha com <c>MODEL_NOT_CONFIGURED</c>.
+    /// </summary>
+    public async Task<ModelConnection> TestAsync(CancellationToken ct)
+    {
+        if (!settings.TryGetKey(out var key))
+            throw new EngineException("MODEL_NOT_CONFIGURED", "Nenhuma chave está configurada.");
+
+        try
+        {
+            await ProbeAsync(key, ct);
+            checks?.Write(new ModelCheck("connected", Now, null));
+        }
+        catch (EngineException ex) when (ex.Code is "MODEL_AUTH_FAILED" or "MODEL_RATE_LIMITED" or "MODEL_UNAVAILABLE" or "MODEL_TIMEOUT" or "MODEL_INVALID_RESPONSE")
+        {
+            checks?.Write(new ModelCheck("error", Now, new ModelCheckError(ex.Code, ex.Message, Now)));
+        }
+
+        return Connection();
+    }
+
+    private async Task ProbeAsync(string key, CancellationToken ct)
+    {
+        using var budget = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        budget.CancelAfter(_timeout);
+        try
+        {
+            await transport.SendAsync(Endpoint, key, ProbePrompt, ProbeMaxTokens, budget.Token);
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            throw new EngineException("MODEL_TIMEOUT", "O modelo não respondeu no prazo.");
+        }
+    }
 
     public async Task<ModelCompletion> CompleteAsync(string prompt, CancellationToken ct)
     {

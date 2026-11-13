@@ -28,6 +28,8 @@ public static class ProtocolMethods
     public const string ModelSave = "model.save";
     public const string ModelClear = "model.clear";
     public const string ModelComplete = "model.complete";
+    public const string ModelConnection = "model.connection";
+    public const string ModelTest = "model.test";
 
     public const string IntegrationCatalog = "integration.catalog";
     public const string ConnectionList = "connection.list";
@@ -72,7 +74,7 @@ public static class ProtocolMethods
 
     public static readonly IReadOnlyList<string> Workflow = [WorkflowStart, WorkflowResume];
 
-    public static readonly IReadOnlyList<string> Model = [ModelStatus, ModelSave, ModelClear, ModelComplete];
+    public static readonly IReadOnlyList<string> Model = [ModelStatus, ModelSave, ModelClear, ModelComplete, ModelConnection, ModelTest];
 
     /// <summary>Central de integrações: conexões (<c>connection.*</c>) e o vínculo delas com um projeto (<c>integration.*</c>).</summary>
     public static readonly IReadOnlyList<string> Integrations =

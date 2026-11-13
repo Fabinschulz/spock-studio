@@ -19,6 +19,10 @@ public sealed class FileModelSettings(string dataRoot) : IModelSettings
         lock (_gate) return Read() is { } stored ? new ModelStatus(true, stored.Provider) : new ModelStatus(false, "");
     }
 
+    public void Validate(string provider, string key) => ModelKeyRules.Validate(provider, key);
+
+    public string? Protection() => TryGetKey(out _) ? ModelKeyProtection.File : null;
+
     public void Save(string provider, string key)
     {
         ModelKeyRules.Validate(provider, key);

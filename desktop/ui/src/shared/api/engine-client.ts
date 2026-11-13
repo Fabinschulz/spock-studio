@@ -40,6 +40,8 @@ export const ENGINE_METHODS = [
   'model.save',
   'model.clear',
   'model.complete',
+  'model.connection',
+  'model.test',
   'integration.catalog',
   'connection.list',
   'connection.create',

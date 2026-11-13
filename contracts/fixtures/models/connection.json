@@ -1,0 +1,9 @@
+{
+  "configured": true,
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "status": "connected",
+  "protection": "file",
+  "checkedAt": "2026-11-10T12:00:00+00:00",
+  "lastError": null
+}

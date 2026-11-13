@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text;
@@ -38,6 +39,7 @@ public sealed class HttpsModelTransport : IModelTransport, IModelChatTransport, 
         {
             using var response = await _http.SendAsync(request, ct);
             var body = await response.Content.ReadAsStringAsync(ct);
+            ThrowIfRefused(response.StatusCode);
             if (!response.IsSuccessStatusCode || JsonNode.Parse(body) is not JsonObject document)
                 throw new EngineException("MODEL_INVALID_RESPONSE", "O modelo respondeu fora do contrato.");
 
@@ -71,6 +73,7 @@ public sealed class HttpsModelTransport : IModelTransport, IModelChatTransport, 
         {
             using var response = await _http.SendAsync(request, ct);
             var text = await response.Content.ReadAsStringAsync(ct);
+            ThrowIfRefused(response.StatusCode);
             if (!response.IsSuccessStatusCode || JsonNode.Parse(text) is not JsonObject document)
                 throw new EngineException("MODEL_INVALID_RESPONSE", "O modelo respondeu fora do contrato.");
 
@@ -84,6 +87,18 @@ public sealed class HttpsModelTransport : IModelTransport, IModelChatTransport, 
         {
             throw new EngineException("MODEL_UNAVAILABLE", "O modelo não pôde ser contactado.");
         }
+    }
+
+    /// <summary>
+    /// O que a pessoa precisa saber de uma recusa do provedor: a chave não vale, ou vale mas o uso está limitado agora. O corpo da
+    /// resposta não é repetido: ele pode citar a chave.
+    /// </summary>
+    private static void ThrowIfRefused(HttpStatusCode status)
+    {
+        if (status is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            throw new EngineException("MODEL_AUTH_FAILED", "O provedor recusou a chave.");
+        if (status == HttpStatusCode.TooManyRequests)
+            throw new EngineException("MODEL_RATE_LIMITED", "O provedor limitou o uso desta chave agora. Tente de novo em instantes.");
     }
 
     private static void EnsureAllowed(Uri endpoint)

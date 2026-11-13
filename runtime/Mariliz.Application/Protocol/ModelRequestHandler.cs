@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Mariliz.Application.Integrations;
 using Mariliz.Application.Models;
 
 namespace Mariliz.Application.Protocol;
@@ -9,15 +10,18 @@ internal sealed class ModelRequestHandler(ModelGateway models)
     public async Task<JsonObject> HandleAsync(string method, JsonObject? parameters, CancellationToken ct) => method switch
     {
         ProtocolMethods.ModelStatus => StatusJson(models.Status()),
-        ProtocolMethods.ModelSave => Save(method, parameters),
+        ProtocolMethods.ModelSave => await Save(method, parameters, ct),
+        ProtocolMethods.ModelConnection => ConnectionJson(models.Connection()),
+        ProtocolMethods.ModelTest => ConnectionJson(await models.TestAsync(ct)),
         ProtocolMethods.ModelClear => Clear(),
         ProtocolMethods.ModelComplete => CompletionJson(await models.CompleteAsync(RequiredString(method, parameters, "prompt"), ct)),
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
     };
 
-    private JsonObject Save(string method, JsonObject? parameters)
+    /// <summary>Guarda a chave só depois de o provedor aceitá-la; a resposta continua sendo o estado público de sempre.</summary>
+    private async Task<JsonObject> Save(string method, JsonObject? parameters, CancellationToken ct)
     {
-        models.Save(RequiredString(method, parameters, "provider"), RequiredString(method, parameters, "key"));
+        await models.ConnectAsync(RequiredString(method, parameters, "provider"), RequiredString(method, parameters, "key"), ct);
         return StatusJson(models.Status());
     }
 
@@ -38,6 +42,8 @@ internal sealed class ModelRequestHandler(ModelGateway models)
         ["configured"] = status.Configured,
         ["provider"] = status.Provider
     };
+
+    private static JsonObject ConnectionJson(ModelConnection connection) => IntegrationJson.Node(connection)!.AsObject();
 
     private static JsonObject CompletionJson(ModelCompletion completion) => new()
     {

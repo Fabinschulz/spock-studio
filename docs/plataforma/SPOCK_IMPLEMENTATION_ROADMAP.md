@@ -576,10 +576,10 @@ abriu `.claude/` entende cada componente" não foi testado com uma pessoa) e as 
   mudança é por conexão e por projeto; o proxy continua redigindo segredos; a auditoria registra.
 - **Pronto quando:** um teste prova que dado de uma fonte não autorizada nunca chega ao índice nem ao provedor.
 
-**Estado da fase F (2026-11-12).** Primeira entrega na branch `feat/fase-f-integracoes` (criada da `master` depois do
-merge da fase E, PR #54): o **resumo por conexão** e o **vocabulário de impacto**. Restam o provedor de IA como tipo de
-conexão, o segundo provedor, o modelo por finalidade, a política de contextualização consumida pelo índice e o cofre em
-Linux e macOS.
+**Estado da fase F (2026-11-12).** Duas entregas na branch `feat/fase-f-integracoes` (criada da `master` depois do merge
+da fase E, PR #54): o **resumo por conexão** com o **vocabulário de impacto** (7f781fa) e o **provedor de IA como conexão**
+(ainda sem commit). Restam o segundo provedor, o modelo por finalidade, a política de contextualização consumida pelo
+índice e o cofre em Linux e macOS.
 
 | Feito | Observação |
 | --- | --- |
@@ -593,6 +593,27 @@ Linux e macOS.
 Limites: o texto sobre o que "Sim" envia descreve o consumidor de hoje (o assistente gerencial). Quando a política passar a
 alimentar o índice, esse texto e o teste que o prende precisam mudar na mesma entrega. O resumo lista os projetos de todas as
 conexões deste computador, sem filtrar pelo projeto aberto. A tela não foi conferida no navegador, só por testes.
+
+**Provedor de IA como conexão (2ª entrega).** A chave do modelo já estava no cofre (fase A); faltavam o teste, o estado e a
+troca com a mesma disciplina das conexões de integração. Dois métodos novos (`model.connection`, `model.test`) e a tela
+de Configurações passou de "Chave de modelo" a "Provedor de IA".
+
+| Feito | Observação |
+| --- | --- |
+| Só guarda o que o provedor aceita | `model.save` agora confere o formato, faz uma pergunta curta ao provedor (`Responda apenas: ok`, 8 tokens, sem dado do projeto) e só então grava no cofre. Se o provedor recusa, não responde no prazo ou limita o uso, **nada é gravado e a chave que já valia continua valendo** (teste). Chave fora do formato ou provedor desconhecido nem chega ao provedor. A resposta de `model.save` continua sendo o estado público de sempre, conforme o esquema do contrato (`additionalProperties: false`) |
+| Estado da conexão | `model.connection` devolve se há chave, o provedor, o modelo das conversas, `status` (`none`, `untested`, `connected`, `error`), **onde a chave está guardada** (`vault` ou `file`) e o resultado da última conferência (quando, e código e motivo de uma recusa). Uma chave que já existia aparece como "ainda não conferida" até ser testada: o estado não finge |
+| Testar | `model.test` confere a chave guardada. Como nas conexões, uma recusa **não é exceção**: fica registrada no estado, e só um "conectado" é sucesso. Cada motivo guarda o próprio código: chave recusada, uso limitado, provedor fora do ar, resposta fora do contrato, prazo |
+| Erros do provedor que antes eram o mesmo | O transporte passa a distinguir 401 e 403 (`MODEL_AUTH_FAILED`) e 429 (`MODEL_RATE_LIMITED`) de qualquer outra falha, sem repetir o corpo da resposta (que pode citar a chave; teste). Os agentes continuam recebendo `MODEL_UNAVAILABLE` no `ModelBroker`: nada muda para eles |
+| Estado fora do cofre | O resultado da conferência fica em `model-check.json` no diretório de dados: só estado, nunca a chave. Salvar ou remover a chave apaga o estado; arquivo ausente ou corrompido vale "nunca conferida" |
+| Tela | Chip "Conectado", "Com erro", "Ainda não conferida" ou "Sem chave"; modelo; quando foi conferida; onde a chave está ("com a proteção do sistema operacional" ou "em arquivo neste computador, sem a proteção do sistema: este sistema ainda não tem cofre"); botão "Conferir com o provedor", que diz que envia uma pergunta curta e nenhum dado do projeto; avisos de que a chave é conferida antes de ser guardada e de que, se o provedor recusar, a atual continua valendo |
+| Testes | 25 no motor (ordem de gravação, recusa, troca, formato, prazo, cancelamento, cada motivo de falha, persistência, chave ausente do estado e do arquivo, proteção, transporte, protocolo e fixtures `models/connection.json` e `connection-error.json`) e 14 na interface (11 da tela e 3 de contrato). Suítes: 817 no motor e 549 na interface, tipos, lint, formato e build limpos |
+
+Limites: **a conferência real com a OpenAI continua pendente**, porque depende de uma chave do usuário rodando nas variáveis
+`MARILIZ_LIVE_*`; os testes usam transporte falso e um manipulador HTTP com os códigos 401, 403, 429 e 500. Conferir custa
+uma chamada curta ao provedor, a cada clique. Onde não há cofre (Linux e macOS) a chave segue em arquivo, e a tela diz isso:
+fechar essa lacuna é a entrega "cofre em Linux e macOS". O provedor ainda é um só (OpenAI), e o modelo é fixo
+(`gpt-4o-mini`); o segundo provedor e o modelo por finalidade são as próximas entregas. Esta é a conexão de IA vista pelo
+motor: ela **não aparece na lista de conexões da central de integrações**, que continua só com GitHub e Jira.
 
 Correção de passagem: o teste de tipografia (`Nenhum_arquivo_de_codigo_ou_interface_tem_travessao`) só examina arquivos
 rastreados pelo git, então um travessão num teste novo só aparece depois do commit. Um estava em `AgentPolicyTests.cs`
