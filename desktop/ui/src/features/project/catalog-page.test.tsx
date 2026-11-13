@@ -1,5 +1,6 @@
 import catalogFixture from '@contracts/fixtures/engineering/catalog.json';
 import mcpFixture from '@contracts/fixtures/engineering/mcp.json';
+import policyFixture from '@contracts/fixtures/engineering/policy.json';
 import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
@@ -7,7 +8,14 @@ import { describe, expect, it, vi } from 'vitest';
 import type { EngineClient } from '@/shared/api';
 import { EngineError } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
-import { harnessCatalogSchema, mcpInventorySchema, type HarnessCatalog, type McpInventory } from '@/shared/schema';
+import {
+  agentPolicySchema,
+  harnessCatalogSchema,
+  mcpInventorySchema,
+  type AgentPolicy,
+  type HarnessCatalog,
+  type McpInventory
+} from '@/shared/schema';
 import { expectNoA11yViolations } from '@/test/a11y';
 
 import { CatalogPage } from './catalog-page';
@@ -15,11 +23,16 @@ import { CatalogPage } from './catalog-page';
 const project = { projectId: 'p-000000000001', displayName: 'Loja', displayPath: '~\\Loja' };
 const parsed = harnessCatalogSchema.parse(catalogFixture);
 const parsedMcp = mcpInventorySchema.parse(mcpFixture);
+const parsedPolicy = agentPolicySchema.parse(policyFixture);
 
-/** O catálogo e o inventário de MCP são dois pedidos: cada um responde (ou falha) por conta própria. */
-function clientWith(catalog: HarnessCatalog | Error, mcp: McpInventory | Error = parsedMcp) {
+/** O catálogo, a política e o inventário de MCP são três pedidos: cada um responde (ou falha) por conta própria. */
+function clientWith(
+  catalog: HarnessCatalog | Error,
+  mcp: McpInventory | Error = parsedMcp,
+  policy: AgentPolicy | Error = parsedPolicy
+) {
   const request = vi.fn(async (method: string, _params: unknown, schema: { parse(value: unknown): unknown }) => {
-    const answer = method === 'engineering.mcp' ? mcp : catalog;
+    const answer = method === 'engineering.mcp' ? mcp : method === 'engineering.policy' ? policy : catalog;
     if (answer instanceof Error) throw answer;
     return schema.parse(answer);
   });
@@ -74,6 +87,7 @@ describe('Catálogo do Harness', () => {
       'Hooks',
       'Ciclo de especificação',
       'Declaração do projeto',
+      'O que o hook de política faz',
       'Servidores MCP do projeto'
     ]);
   });
@@ -170,13 +184,68 @@ describe('Catálogo do Harness', () => {
     const titles = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent);
     // O inventário de MCP vem por último, depois de todos os grupos de componentes.
     expect(titles.at(-1)).toBe('Servidores MCP do projeto');
-    expect(titles.at(-2)).toBe('regra-nova');
+    expect(titles.at(-3)).toBe('regra-nova');
   });
 
   it('se o motor recusa mostra o motivo', async () => {
     renderPage(clientWith(new EngineError('PROJECT_NOT_AUTHORIZED', 'O projeto não foi autorizado.')).client);
 
     expect(await screen.findByRole('alert')).toHaveTextContent('O projeto não foi autorizado.');
+  });
+
+  describe('política do hook', () => {
+    it('mostra o que bloqueia, o que pergunta e o que libera, em palavras simples', async () => {
+      renderPage(clientWith(parsed).client);
+
+      const blocks = await screen.findByRole('list', { name: 'Bloqueia' });
+      expect(blocks).toHaveTextContent('Formatar um disco (mkfs).');
+      expect(blocks).toHaveTextContent('Forçar o envio (git push --force) para main ou master.');
+      expect(screen.getByRole('list', { name: 'Pergunta a você antes' })).toHaveTextContent('git reset --hard');
+      expect(screen.getByRole('list', { name: 'Libera, como exceção' })).toHaveTextContent('.mariliz/proposal.json');
+    });
+
+    it('diz o que o hook vigia e que ele só lê', async () => {
+      renderPage(clientWith(parsed).client);
+
+      const intro = await screen.findByText(/confere o que o Claude Code vai fazer, antes de acontecer/);
+      expect(intro).toHaveTextContent(
+        'rodar comandos no terminal, gravar arquivos, editar arquivos e editar cadernos de notebook.'
+      );
+      expect(intro).toHaveTextContent('Ele só lê');
+    });
+
+    it('diz o que a política não garante', async () => {
+      renderPage(clientWith(parsed).client);
+
+      const limits = await screen.findByRole('list', { name: 'Limites da política' });
+      expect(limits).toHaveTextContent('não uma barreira de segurança');
+      expect(limits).toHaveTextContent('não passa pelo hook');
+    });
+
+    it('a política aparece também sem projeto aberto', async () => {
+      renderPage(clientWith({ ...parsed, projectId: null, applied: null }).client, null);
+
+      expect(await screen.findByRole('list', { name: 'Bloqueia' })).toBeInTheDocument();
+    });
+
+    it('uma decisão nova do script aparece depois das conhecidas, com o nome que veio', async () => {
+      const extra: AgentPolicy = {
+        ...parsedPolicy,
+        rules: [...parsedPolicy.rules, { decision: 'log', scope: 'command', plain: 'Registrar o comando.' }]
+      };
+      renderPage(clientWith(parsed, parsedMcp, extra).client);
+
+      expect(await screen.findByRole('list', { name: 'log' })).toHaveTextContent('Registrar o comando.');
+    });
+
+    it('se só a política falha, o catálogo continua na tela com o motivo ao lado', async () => {
+      renderPage(
+        clientWith(parsed, parsedMcp, new EngineError('POLICY_UNAVAILABLE', 'A política não está disponível.')).client
+      );
+
+      expect(await screen.findByRole('heading', { name: 'Agente verificador' })).toBeInTheDocument();
+      expect(await screen.findByRole('alert')).toHaveTextContent('A política não está disponível.');
+    });
   });
 
   describe('servidores MCP do projeto', () => {
@@ -196,7 +265,10 @@ describe('Catálogo do Harness', () => {
       const general = clientWith({ ...parsed, projectId: null, applied: null });
       renderPage(general.client, null);
       await screen.findByRole('heading', { name: 'Agente verificador' });
-      expect(general.request.mock.calls.map((call) => call[0])).toEqual(['engineering.catalog']);
+      expect(general.request.mock.calls.map((call) => call[0]).sort()).toEqual([
+        'engineering.catalog',
+        'engineering.policy'
+      ]);
       expect(screen.queryByText('Servidores MCP do projeto')).toBeNull();
     });
 

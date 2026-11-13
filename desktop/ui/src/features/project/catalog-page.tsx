@@ -8,6 +8,7 @@ import { useCallback } from 'react';
 import { Link } from 'react-router';
 
 import { McpSection } from './components/mcp-section';
+import { PolicySection } from './components/policy-section';
 import { HARNESS_STATE } from './domain/harness-state';
 import styles from './project-page.module.scss';
 import { readCatalog } from './service/project-api';
@@ -47,6 +48,7 @@ function CatalogView({ client, project }: { client: EngineClient; project: Selec
       <ResourceView resource={catalog} loading="Lendo o catálogo…" fallbackError="Não foi possível ler o catálogo.">
         {(value) => <CatalogBody catalog={value} projectOpen={project !== null} />}
       </ResourceView>
+      <PolicySection client={client} />
       {project ? <McpSection client={client} projectId={project.projectId} /> : null}
     </Page>
   );

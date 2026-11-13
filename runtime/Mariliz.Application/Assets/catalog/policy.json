@@ -1,0 +1,78 @@
+{
+  "rules": [
+    {
+      "source": "writing outside the project folder is not allowed.",
+      "plain": "Gravar arquivos fora da pasta do projeto."
+    },
+    {
+      "source": "writing to a file that normally holds secrets is not allowed (",
+      "plain": "Gravar em arquivos que costumam guardar segredos: .env (menos .env.example), chaves e certificados (.pem, .pfx, .p12, .key), chaves SSH e arquivos credentials ou secrets em JSON, YAML ou TOML."
+    },
+    {
+      "source": "this file belongs to the managed harness. Change it through Mariliz so it stays reviewable and reversible.",
+      "plain": "Mexer nos arquivos do Harness (.claude/, .agents/, mariliz.yaml, mariliz.lock e .mcp.json). O Claude Code pergunta antes, para a mudança passar pelo Spock Studio, que mostra a diferença e permite reverter."
+    },
+    {
+      "source": ".mariliz/proposal.json",
+      "plain": "Gravar a proposta do Harness Engineer em .mariliz/proposal.json."
+    },
+    {
+      "source": ".specs/",
+      "plain": "Gravar os arquivos de especificação das funcionalidades, em .specs/."
+    },
+    {
+      "source": "recursive delete of a root, home or working directory",
+      "plain": "Apagar de forma recursiva a raiz do disco, a pasta do usuário ou a pasta de trabalho (rm -rf com /, ~ ou .)."
+    },
+    {
+      "source": "piping a download into a shell",
+      "plain": "Baixar um script e jogá-lo direto num shell (curl ou wget com | bash)."
+    },
+    {
+      "source": "piping a download into an interpreter",
+      "plain": "Baixar um programa e jogá-lo direto no Python (curl ou wget com | python)."
+    },
+    {
+      "source": "formatting a filesystem",
+      "plain": "Formatar um disco (mkfs)."
+    },
+    {
+      "source": "writing directly to a device",
+      "plain": "Gravar direto num dispositivo de disco (dd com of=/dev/...)."
+    },
+    {
+      "source": "recursive world-writable permissions on /",
+      "plain": "Liberar a escrita para todos, em tudo a partir da raiz (chmod -R 777 /)."
+    },
+    {
+      "source": "fork bomb",
+      "plain": "Rodar uma fork bomb, que trava a máquina."
+    },
+    {
+      "source": "force push to main or master",
+      "plain": "Forçar o envio (git push --force) para main ou master."
+    },
+    {
+      "source": "force push",
+      "plain": "Forçar o envio (git push --force) para qualquer outro branch."
+    },
+    {
+      "source": "git reset --hard discards local work",
+      "plain": "git reset --hard, que descarta o trabalho local ainda não salvo."
+    },
+    {
+      "source": "git clean deletes untracked files",
+      "plain": "git clean com força, que apaga arquivos que o git não acompanha."
+    },
+    {
+      "source": "reading an environment file that may hold secrets",
+      "plain": "Ler um arquivo .env (menos .env.example) com cat, grep, sed e comandos parecidos, porque ele pode guardar segredos."
+    }
+  ],
+  "limits": [
+    "É uma proteção, não uma barreira de segurança: o hook compara o texto do comando, então uma forma de escrever o mesmo comando que ele não conhece passa.",
+    "Só vê o que passa pelas ferramentas do Claude Code listadas acima. Um comando que você mesmo digita no seu terminal não passa pelo hook.",
+    "Só vale onde o hook está aplicado e registrado em .claude/settings.json: veja o estado dele no grupo Hooks.",
+    "Se o script falhar por dentro, ele não bloqueia nada. A validação do Spock Studio avisa quando a proteção está ausente."
+  ]
+}

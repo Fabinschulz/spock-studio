@@ -178,6 +178,19 @@ export const mcpInventorySchema = z.object({
   servers: z.array(mcpServerSchema)
 });
 
+/** Uma regra do hook de política, em palavras simples. `decision`: deny (bloqueia), ask (pergunta antes) ou allow (libera uma exceção). */
+export const policyRuleSchema = z.object({ decision: z.string(), scope: z.string(), plain: z.string() });
+
+/** A política dos agentes (`engineering.policy`): as regras vêm do script do hook, o texto é em português simples. */
+export const agentPolicySchema = z.object({
+  script: z.string(),
+  watches: z.array(z.string()),
+  rules: z.array(policyRuleSchema),
+  limits: z.array(z.string())
+});
+
+export type AgentPolicy = z.infer<typeof agentPolicySchema>;
+export type PolicyRule = z.infer<typeof policyRuleSchema>;
 export type McpServer = z.infer<typeof mcpServerSchema>;
 export type McpInventory = z.infer<typeof mcpInventorySchema>;
 export type ComponentSheet = z.infer<typeof componentSheetSchema>;

@@ -54,8 +54,14 @@ public sealed class HarnessCatalogService(HarnessStatusService? status)
         ["Bash"] = "rodar comandos no terminal",
         ["Write"] = "gravar arquivos",
         ["Edit"] = "editar arquivos",
-        ["MultiEdit"] = "editar arquivos"
+        ["MultiEdit"] = "editar arquivos",
+        ["NotebookEdit"] = "editar cadernos de notebook"
     };
+
+    private const string UnknownTool = "uma ferramenta que o Spock Studio ainda não descreve";
+
+    /// <summary>O que uma ferramenta do Claude Code quer dizer, em palavras simples.</summary>
+    public static string PlainOf(string tool) => ToolPlain.GetValueOrDefault(tool, UnknownTool);
 
     /// <summary>O arquivo do agente de onde as ferramentas são lidas.</summary>
     private static readonly Dictionary<string, string> AgentAssets = new(StringComparer.Ordinal)
@@ -159,7 +165,7 @@ public sealed class HarnessCatalogService(HarnessStatusService? status)
         var match = Regex.Match(Harness.AssetLoader.Read(asset), @"^tools:\s*(?<tools>.+)$", RegexOptions.Multiline);
         if (!match.Success) return [];
         return match.Groups["tools"].Value.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .Select(name => new HarnessTool(name, ToolPlain.GetValueOrDefault(name, "uma ferramenta que o Spock Studio ainda não descreve"))).ToList();
+            .Select(name => new HarnessTool(name, PlainOf(name))).ToList();
     }
 
     private static string Text(JsonElement sheet, string name) => sheet.GetProperty(name).GetString()!;

@@ -63,6 +63,7 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "engineering.revisions",
     "engineering.catalog",
     "engineering.mcp",
+    "engineering.policy",
 ];
 
 pub mod error_code {

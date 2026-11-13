@@ -503,10 +503,10 @@ Entrega 5 da ordem aprovada.
   fora do arquivo que é gravado no projeto.
 - **Pronto quando:** uma pessoa que nunca abriu `.claude/` consegue dizer o que cada componente faz no projeto dela.
 
-**Estado da fase E (2026-11-12).** Duas entregas feitas na branch `feat/fase-e-catalogo` (criada da `master`): a **ficha
-por componente** com a tela **Catálogo** (commitada) e o **inventário de MCP com alerta de segredo literal** (ainda sem
-commit). Da tabela da fase, a tela Harness com Estado e Revisões e a tela Conhecimento separada já tinham sido entregues
-na fase B; falta a política dos agentes em linguagem simples.
+**Estado da fase E (2026-11-12).** Três entregas na branch `feat/fase-e-catalogo` (criada da `master`): a **ficha por
+componente** com a tela **Catálogo** (96eb622), o **inventário de MCP com alerta de segredo literal** (57d4513) e a
+**política dos agentes em linguagem simples** (ainda sem commit). Com isso a tabela da fase está inteira: a tela Harness
+com Estado e Revisões e a tela Conhecimento separada já tinham sido entregues na fase B.
 
 | Feito | Observação |
 | --- | --- |
@@ -539,7 +539,26 @@ Limites: a detecção por nome pode apontar valor que não é segredo (`TOKEN_UR
 enxerga segredo num campo sem nome revelador nem formato conhecido; o aviso diz "parece", não "é". `${NOME:-padrão}` conta
 como referência mesmo que o padrão seja um valor literal. A tela não foi conferida no navegador, só por testes.
 
-Falta nesta fase: a política dos agentes em linguagem simples, a partir do hook.
+**Política dos agentes (3ª entrega).** Método `engineering.policy` (sem projeto, só leitura) e uma seção "O que o hook de
+política faz" no Catálogo, entre os grupos de componentes e o inventário de MCP.
+
+| Feito | Observação |
+| --- | --- |
+| As regras vêm do script, o texto vem à parte | O motor **lê o próprio `mariliz-policy.py`** para saber o que bloqueia, o que pergunta e o que libera (gravação fora do projeto, arquivos de segredo, arquivos do Harness, as exceções `.mariliz/proposal.json` e `.specs/`, 8 comandos bloqueados e 4 que pedem confirmação). Só o texto em português mora em `Assets/catalog/policy.json`, fora dos arquivos que vão para o projeto. **O hook não foi alterado**: o hash do Harness aplicado de ninguém muda |
+| Três respostas | "Bloqueia", "Pergunta a você antes" e "Libera, como exceção", cada uma com a lista em palavras simples. Uma decisão nova do script aparece depois das conhecidas, com o nome que veio |
+| O que o hook vigia | Lido de onde o Spock Studio registra o hook (`Bash`, `Write`, `Edit`, `MultiEdit` e `NotebookEdit`) e traduzido ferramenta a ferramenta, a mesma tabela usada nas fichas dos agentes |
+| O que não garante | Quatro limites ditos sem rodeio: compara texto de comando e não é barreira de segurança; só vê o que passa pelo Claude Code; só vale onde o hook está aplicado e registrado; se o script falhar por dentro, não bloqueia nada e a validação avisa |
+| O texto preso ao hook | Os testes impedem a política de mentir: toda regra do script tem texto e todo texto tem regra; os arquivos protegidos e as exceções que o script lista aparecem no texto; e, para cada regra, o teste **roda o hook real** (Python) com um exemplo e confere que "bloqueia", "pergunta" ou "libera" é o que ele responde. Um script sem um dos blocos impede a leitura, em vez de mostrar política incompleta |
+| Testes | 11 no motor e 8 na interface (mais 2 de contrato); fixture `policy.json` do motor real. Suítes: 784 no motor, 525 na interface, tipos, lint, formato e build limpos |
+
+Limites: o texto das regras de comando descreve o **padrão** (por exemplo `rm -rf` com `/`, `~` ou `.`), não cada variação
+que a expressão regular aceita, e o exemplo de cada regra é um só. Uma regra nova no script sem texto simples não aparece
+meio pronta: o motor se recusa a montar a política e os testes falham. A leitura do script é por texto (blocos
+`DENY_COMMANDS`, `ASK_COMMANDS`, `ALLOWED_WRITES`, as chamadas `answer(...)`): uma reorganização grande do script exige
+ajustar o leitor, e o teste avisa. A tela não foi conferida no navegador, só por testes.
+
+**Fase E: todas as entregas feitas.** Pendências que continuam valendo: ninguém de fora leu as fichas (o critério "quem nunca
+abriu `.claude/` entende cada componente" não foi testado com uma pessoa) e as telas da fase não foram abertas no navegador.
 ### Fase F: hub de integrações, nível 2
 
 | Entrega | Camada | Observação |

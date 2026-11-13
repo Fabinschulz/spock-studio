@@ -1,5 +1,6 @@
 import type { EngineClient } from '@/shared/api';
 import {
+  agentPolicySchema,
   discoverySchema,
   harnessCatalogSchema,
   harnessRevisionsSchema,
@@ -8,6 +9,7 @@ import {
   profileResultSchema,
   projectKnowledgeSchema,
   runsSchema,
+  type AgentPolicy,
   type Discovery,
   type HarnessCatalog,
   type HarnessRevisions,
@@ -49,6 +51,11 @@ export function readKnowledge(client: EngineClient, projectId: string): Promise<
 /** O Harness aplicado, conferido contra o disco. Só leitura. */
 export function readHarness(client: EngineClient, projectId: string): Promise<HarnessStatus> {
   return client.request('engineering.harness', { projectId }, harnessStatusSchema);
+}
+
+/** O que o hook de política bloqueia, pergunta e libera, em palavras simples. Não depende de projeto. */
+export function readPolicy(client: EngineClient): Promise<AgentPolicy> {
+  return client.request('engineering.policy', {}, agentPolicySchema);
 }
 
 /** Os servidores MCP que o `.mcp.json` do projeto declara, e onde há credencial escrita no arquivo. Só leitura. */

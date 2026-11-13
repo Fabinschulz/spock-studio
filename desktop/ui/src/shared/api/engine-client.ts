@@ -71,7 +71,8 @@ export const ENGINE_METHODS = [
   'engineering.harness',
   'engineering.revisions',
   'engineering.catalog',
-  'engineering.mcp'
+  'engineering.mcp',
+  'engineering.policy'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

@@ -4,6 +4,7 @@ import applyFailure from '@contracts/fixtures/golden/apply-failure.json';
 import engineeringCatalog from '@contracts/fixtures/engineering/catalog.json';
 import engineeringHarness from '@contracts/fixtures/engineering/harness.json';
 import engineeringMcp from '@contracts/fixtures/engineering/mcp.json';
+import engineeringPolicy from '@contracts/fixtures/engineering/policy.json';
 import engineeringKnowledge from '@contracts/fixtures/engineering/knowledge.json';
 import engineeringRevisions from '@contracts/fixtures/engineering/revisions.json';
 import engineeringProfile from '@contracts/fixtures/engineering/profile.json';
@@ -45,6 +46,7 @@ import {
   evidencePackSchema,
   harnessCatalogSchema,
   mcpInventorySchema,
+  agentPolicySchema,
   harnessRevisionsSchema,
   harnessStatusSchema,
   integrationCatalogSchema,
@@ -431,5 +433,21 @@ describe('contrato do inventário de MCP (fixture do motor)', () => {
 
   it('a resposta não carrega valor de credencial', () => {
     expect(JSON.stringify(engineeringMcp)).not.toMatch(/ghp_|Bearer /);
+  });
+});
+
+describe('contrato da política dos agentes (fixture do motor)', () => {
+  it('traz o hook, o que ele vigia, as regras com a decisão e os limites', () => {
+    const parsed = agentPolicySchema.parse(engineeringPolicy);
+    expect(parsed.script).toBe('.claude/hooks/mariliz-policy.py');
+    expect(parsed.watches).toContain('rodar comandos no terminal');
+    expect(parsed.limits.length).toBeGreaterThan(0);
+    const count = (decision: string) => parsed.rules.filter((rule) => rule.decision === decision).length;
+    expect([count('deny'), count('ask'), count('allow')]).toEqual([10, 5, 2]);
+    expect(parsed.rules.every((rule) => ['command', 'write'].includes(rule.scope))).toBe(true);
+  });
+
+  it('nenhuma regra tem texto vazio', () => {
+    expect(agentPolicySchema.parse(engineeringPolicy).rules.every((rule) => rule.plain.length > 0)).toBe(true);
   });
 });
