@@ -466,8 +466,25 @@ registrar. O formulário não relaciona itens de trabalho nem riscos (só execu�
 execuções mais recentes do projeto. A ligação do `Program.cs` não tem teste próprio da composição, e a tela não foi
 conferida no navegador, só por testes. Não há identidade de usuário, então a decisão não diz quem a registrou.
 
-Falta nesta fase: relatório do período, componentes de indicador e faixa de previsão, histórico de perguntas do
-assistente.
+**Sexta entrega da fase D (2026-11-12).** O **relatório do período**, na mesma branch, **sem o texto de IA**.
+
+| Feito | Observação |
+| --- | --- |
+| O que traz | `management.report` com a largura do período em semanas (2 a 26, padrão 4, terminando agora): os **indicadores** do período (`management.metrics`), a **previsão**, os **riscos** de agora, as **mudanças de risco** que aconteceram dentro do período (da mais recente, até 50), os **marcos**, as **decisões** registradas no período (título e decisão, sem os fatos do dia) e as **execuções** que começaram no período, contadas por tipo e estado |
+| Só compõe | Cada parte é a mesma resposta dos métodos que já existem, recortada pelo período: nada é calculado de novo e nada é gravado (um teste compara os arquivos da pasta de dados antes e depois). O período pedido vale para os indicadores; a previsão, os riscos e os marcos são sempre "de agora" |
+| Honestidade | A resposta traz a `basis`: "nenhum texto foi escrito por modelo de linguagem", o histórico de riscos só existe desde o primeiro registro, as execuções são as que começaram no período. Um projeto não vê o que é do outro e o não autorizado é recusado |
+| Tela | Rota `/gestao/relatorio` e item "Relatório" no menu de Gestão. Escolhe-se o período (2, 4, 8 ou 12 semanas) e a tela **reaproveita as seções do Acompanhamento** (fluxo, previsão, riscos, marcos), mais as mudanças de risco, as decisões e as execuções do período |
+| Levar para fora | "Copiar como texto" copia o relatório em Markdown, escrito só com o que o motor devolveu: um indicador sem base sai como "sem valor (motivo)", nunca zero; uma fonte incompleta é avisada no texto; seção vazia diz que está vazia. Se a cópia falhar, a tela diz como seguir |
+| Conferido | O teste de período usa datas calculadas à mão (decisão há 10 dias entra em 4 semanas, a de 40 dias só em 8; execução há 60 dias fica fora até de 8 semanas). O cenário da fixture traz cycle time mediano 3 e percentil 85 em 6, um marco em risco (o provável cabe no prazo, o conservador não) e um risco de bloqueio |
+| Testes | 13 novos no motor e 15 na interface (página e Markdown); fixture `report.json` do motor real. Os testes do Markdown pegaram um "1 abertos" que estava errado e foi corrigido. Suítes: 743 no motor, 496 na interface, tipos, lint, formato e build limpos |
+
+Limites: **falta o resumo escrito por IA** que a tabela do roadmap previa ("texto de IA passa pelo verificador"): esta
+entrega é só o relatório de fatos. O assistente já existe com verificador, e um resumo do período pelo mesmo caminho é
+a próxima peça possível; não foi feito para não misturar texto de modelo com o que o motor calcula. O relatório não foi
+conferido no navegador, só por testes, e não há impressão nem arquivo: só "Copiar como texto".
+
+Falta nesta fase: componentes de indicador e faixa de previsão (visuais), histórico de perguntas do assistente, e o
+resumo do período por IA, se for desejado.
 
 ### Fase E: catálogo do Harness
 

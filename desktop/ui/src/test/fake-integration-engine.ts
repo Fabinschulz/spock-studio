@@ -7,6 +7,7 @@ import forecastFixture from '@contracts/fixtures/management/forecast.json';
 import metricsFixture from '@contracts/fixtures/management/metrics.json';
 import portfolioFixture from '@contracts/fixtures/management/portfolio.json';
 import milestonesFixture from '@contracts/fixtures/management/milestones.json';
+import reportFixture from '@contracts/fixtures/management/report.json';
 import riskHistoryFixture from '@contracts/fixtures/management/risk-history.json';
 import risksFixture from '@contracts/fixtures/management/risks.json';
 
@@ -214,6 +215,7 @@ export function fakeIntegrationEngine(
           },
     // Sem decisões registradas: a lista vazia que o motor dá.
     'decision.list': () => ({ decisions: [] }),
+    'management.report': (params) => ({ ...reportFixture, projectId: params.projectId, weeks: params.weeks }),
     'management.forecast': (params) =>
       integrations.some((integration) => integration.projectId === params.projectId)
         ? { ...forecastFixture, projectId: params.projectId }

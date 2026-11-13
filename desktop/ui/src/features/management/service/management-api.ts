@@ -8,6 +8,7 @@ import {
   linkedItemsResultSchema,
   runListSchema,
   projectMilestonesSchema,
+  projectReportSchema,
   projectRiskHistorySchema,
   modelStatusSchema,
   portfolioSchema,
@@ -21,6 +22,7 @@ import {
   type ManagementDecision,
   type RunItem,
   type ProjectMilestones,
+  type ProjectReport,
   type ProjectRiskHistory,
   type ModelStatus,
   type Portfolio,
@@ -35,6 +37,8 @@ export type ManagementApi = {
   metrics(projectId: string, weeks?: number): Promise<ProjectMetrics>;
   forecast(projectId: string): Promise<ProjectForecast>;
   risks(projectId: string): Promise<ProjectRisks>;
+  /** O relatório de um período (em semanas), montado pelo motor com o que ele já calcula e registra. */
+  report(projectId: string, weeks: number): Promise<ProjectReport>;
   /** As decisões gerenciais registradas no projeto, da mais recente para a mais antiga, sem os fatos do dia. */
   decisions(projectId: string): Promise<DecisionSummary[]>;
   /** Uma decisão com os fatos que o motor tinha no dia em que ela foi registrada. */
@@ -80,6 +84,7 @@ export function createManagementApi(client: EngineClient): ManagementApi {
       ),
     recentRuns: (projectId) =>
       client.request('run.list', { projectId, limit: 10 }, runListSchema).then((result) => result.runs),
+    report: (projectId, weeks) => client.request('management.report', { projectId, weeks }, projectReportSchema),
     risks: (projectId) => client.request('management.risks', { projectId }, projectRisksSchema),
     modelStatus: () => client.request('model.status', {}, modelStatusSchema),
     linkedRuns: (projectId) => client.request('run.linked', { projectId }, linkedItemsResultSchema),

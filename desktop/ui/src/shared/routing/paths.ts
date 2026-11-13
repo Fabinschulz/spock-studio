@@ -9,6 +9,7 @@ export const paths = {
   portfolio: '/portfolio',
   management: '/gestao',
   assistant: '/gestao/assistente',
+  report: '/gestao/relatorio',
   runs: '/execucoes',
   integrations: '/integracoes',
   settings: '/configuracoes'

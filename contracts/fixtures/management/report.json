@@ -1,0 +1,337 @@
+{
+  "projectId": "p-000000000001",
+  "projectName": "loja",
+  "generatedAt": "2026-11-12T12:00:00+00:00",
+  "weeks": 4,
+  "periodFrom": "2026-10-15T12:00:00+00:00",
+  "periodTo": "2026-11-12T12:00:00+00:00",
+  "metrics": {
+    "projectId": "p-000000000001",
+    "generatedAt": "2026-11-12T12:00:00+00:00",
+    "periodWeeks": 4,
+    "periodFrom": "2026-10-15T12:00:00+00:00",
+    "periodTo": "2026-11-12T12:00:00+00:00",
+    "complete": true,
+    "sources": [
+      {
+        "integrationId": "pint-000000000001",
+        "provider": "github",
+        "resourceName": "acme/app",
+        "lastSyncStatus": "succeeded",
+        "lastSyncedAt": "2026-11-12T12:00:00+00:00",
+        "complete": true
+      }
+    ],
+    "kinds": [
+      {
+        "kind": "issues",
+        "items": 7,
+        "open": 1,
+        "wip": {
+          "value": 1,
+          "unavailable": null
+        },
+        "throughput": {
+          "weeks": [
+            {
+              "from": "2026-10-15T12:00:00+00:00",
+              "to": "2026-10-22T12:00:00+00:00",
+              "delivered": 0,
+              "created": 0
+            },
+            {
+              "from": "2026-10-22T12:00:00+00:00",
+              "to": "2026-10-29T12:00:00+00:00",
+              "delivered": 2,
+              "created": 0
+            },
+            {
+              "from": "2026-10-29T12:00:00+00:00",
+              "to": "2026-11-05T12:00:00+00:00",
+              "delivered": 2,
+              "created": 0
+            },
+            {
+              "from": "2026-11-05T12:00:00+00:00",
+              "to": "2026-11-12T12:00:00+00:00",
+              "delivered": 2,
+              "created": 1
+            }
+          ],
+          "total": 6,
+          "weeklyAverage": 1.5,
+          "unavailable": null
+        },
+        "leadTime": {
+          "sample": 6,
+          "medianDays": 88,
+          "p85Days": 97,
+          "unavailable": null
+        },
+        "cycleTime": {
+          "sample": 6,
+          "excluded": 0,
+          "medianDays": 3,
+          "p85Days": 6,
+          "unavailable": null
+        },
+        "blocked": {
+          "value": 1,
+          "viaLink": 0,
+          "viaLabel": 1,
+          "linksRead": 0,
+          "basis": "Rótulo \"blocked\" ou \"bloqueado\" e vínculo \"is blocked by\" do Jira com item ainda aberto. Os vínculos de bloqueio não foram lidos nesta fonte (só o Jira os informa; sincronize de novo se ele já está vinculado).",
+          "unavailable": null
+        },
+        "overdue": {
+          "value": null,
+          "withDueDate": 0,
+          "unavailable": "A fonte não informa prazo para estes itens."
+        }
+      }
+    ],
+    "notCalculated": [
+      {
+        "id": "scopeChange",
+        "label": "Mudança de escopo",
+        "reason": "Precisa comparar o escopo do marco no começo e agora, e o histórico do escopo ainda não é guardado."
+      },
+      {
+        "id": "predictability",
+        "label": "Previsibilidade",
+        "reason": "Precisa do que foi planejado por período, que ainda não é sincronizado."
+      }
+    ]
+  },
+  "forecast": {
+    "projectId": "p-000000000001",
+    "generatedAt": "2026-11-12T12:00:00+00:00",
+    "method": "Simulação de Monte Carlo com 10.000 rodadas sobre o número de itens entregues por semana nas últimas semanas.",
+    "complete": true,
+    "assumptions": [
+      "O ritmo das próximas semanas se parece com o das semanas usadas no histórico.",
+      "O trabalho restante é o que está aberto hoje; nada novo entra no escopo.",
+      "Os itens restantes têm, em média, o tamanho dos que já foram entregues.",
+      "A equipe e a capacidade continuam as mesmas."
+    ],
+    "limitations": [
+      "Não considera dependências nem bloqueios entre itens.",
+      "Não considera férias, feriados nem mudança de equipe.",
+      "Item aberto que na prática foi abandonado conta como trabalho restante.",
+      "Tipos de dado são previstos separadamente: uma issue e o pull request que a fecha não são somados."
+    ],
+    "kinds": [
+      {
+        "kind": "issues",
+        "remaining": 1,
+        "historyWeeks": 12,
+        "weeklyThroughput": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          2,
+          2
+        ],
+        "trials": 10000,
+        "scenarios": [
+          {
+            "id": "optimistic",
+            "label": "Otimista",
+            "percentile": 15,
+            "weeks": 1,
+            "by": "2026-11-19"
+          },
+          {
+            "id": "likely",
+            "label": "Provável",
+            "percentile": 50,
+            "weeks": 3,
+            "by": "2026-12-03"
+          },
+          {
+            "id": "conservative",
+            "label": "Conservador",
+            "percentile": 85,
+            "weeks": 7,
+            "by": "2026-12-31"
+          }
+        ],
+        "confidence": "low",
+        "confidenceReasons": [
+          "9 de 12 semanas sem nenhuma entrega.",
+          "O número de entregas varia muito de uma semana para outra."
+        ],
+        "riskFactors": [],
+        "unavailable": null
+      }
+    ]
+  },
+  "risks": {
+    "projectId": "p-000000000001",
+    "generatedAt": "2026-11-12T12:00:00+00:00",
+    "complete": true,
+    "hasData": true,
+    "risks": [
+      {
+        "id": "blocked",
+        "title": "Itens bloqueados",
+        "severity": "low",
+        "rule": "Item aberto com o rótulo \"blocked\" ou \"bloqueado\", ou com vínculo \"is blocked by\" para um item que ainda não foi concluído.",
+        "evidence": [
+          "1 item aberto está bloqueado: 0 por vínculo e 1 por rótulo (um item pode ter os dois)."
+        ],
+        "items": [
+          {
+            "kind": "issues",
+            "externalId": "7",
+            "title": "Item 7"
+          }
+        ],
+        "trend": null,
+        "recommendation": "Descobrir o que destrava cada item, ou replanejá-lo.",
+        "origin": "rule"
+      }
+    ],
+    "rulesEvaluated": [
+      "overdue",
+      "blocked",
+      "stalled-wip",
+      "review-queue",
+      "scope-growth",
+      "throughput-drop"
+    ]
+  },
+  "riskChanges": [
+    {
+      "riskId": "blocked",
+      "title": "Itens bloqueados",
+      "change": {
+        "at": "2026-11-12T12:00:00+00:00",
+        "kind": "observed",
+        "from": null,
+        "to": "low",
+        "itemsAdded": [
+          "7"
+        ],
+        "itemsRemoved": []
+      }
+    }
+  ],
+  "milestones": {
+    "projectId": "p-000000000001",
+    "generatedAt": "2026-11-12T12:00:00+00:00",
+    "complete": true,
+    "milestones": [
+      {
+        "kind": "issues",
+        "name": "v1.0",
+        "dueDate": "2026-12-12",
+        "items": 5,
+        "delivered": 4,
+        "closedWithoutDelivery": 0,
+        "open": 1,
+        "outlook": "at_risk",
+        "outlookReason": "O cenário provável cabe no prazo, mas o conservador não.",
+        "forecast": {
+          "kind": "issues",
+          "remaining": 1,
+          "historyWeeks": 12,
+          "weeklyThroughput": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            2,
+            2
+          ],
+          "trials": 10000,
+          "scenarios": [
+            {
+              "id": "optimistic",
+              "label": "Otimista",
+              "percentile": 15,
+              "weeks": 1,
+              "by": "2026-11-19"
+            },
+            {
+              "id": "likely",
+              "label": "Provável",
+              "percentile": 50,
+              "weeks": 3,
+              "by": "2026-12-03"
+            },
+            {
+              "id": "conservative",
+              "label": "Conservador",
+              "percentile": 85,
+              "weeks": 7,
+              "by": "2026-12-31"
+            }
+          ],
+          "confidence": "low",
+          "confidenceReasons": [
+            "9 de 12 semanas sem nenhuma entrega.",
+            "O número de entregas varia muito de uma semana para outra."
+          ],
+          "riskFactors": [],
+          "unavailable": null
+        }
+      }
+    ],
+    "omitted": 0,
+    "unassigned": [
+      {
+        "kind": "issues",
+        "items": 2,
+        "open": 0
+      }
+    ],
+    "assumptions": [
+      "O ritmo é o do tipo de dado inteiro, não o do marco: o marco sozinho teria poucas entregas para servir de histórico.",
+      "O trabalho restante é o que está aberto no marco hoje; nada novo entra nele.",
+      "A equipe trabalha nos itens do marco, e não em outros itens do projeto, no mesmo ritmo de sempre."
+    ],
+    "limitations": [
+      "Não considera a ordem em que os itens serão feitos nem as dependências entre eles.",
+      "O prazo é o que o provedor guarda no marco (data do milestone, data de lançamento da versão); sem ele não há comparação.",
+      "Um item com mais de uma versão de correção no Jira conta em cada uma delas.",
+      "O mesmo nome de marco em tipos de dado diferentes aparece separado, como nas demais visões."
+    ]
+  },
+  "decisions": [
+    {
+      "id": "dec-000000000001",
+      "recordedAt": "2026-11-02T12:00:00+00:00",
+      "title": "Adiar a release",
+      "decision": "Decisão de Adiar a release",
+      "runs": 0,
+      "facts": 1
+    }
+  ],
+  "runs": [
+    {
+      "kind": "apply",
+      "state": "completed",
+      "count": 1
+    },
+    {
+      "kind": "workflow",
+      "state": "failed",
+      "count": 1
+    }
+  ],
+  "basis": "Todos os números e textos deste relatório vêm do motor, calculados sobre o que foi sincronizado e registrado; nenhum texto foi escrito por modelo de linguagem. O histórico de riscos só existe desde o primeiro registro, e as execuções são as que começaram no período."
+}

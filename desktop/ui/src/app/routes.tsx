@@ -11,6 +11,7 @@ import Integrations from './routes/integrations';
 import Management from './routes/management';
 import Portfolio from './routes/portfolio';
 import Project from './routes/project';
+import Report from './routes/report';
 import ProjectHarness from './routes/project-harness';
 import ProjectKnowledge from './routes/project-knowledge';
 import Runs from './routes/runs';
@@ -63,6 +64,14 @@ export const routes: RouteObject[] = [
         element: (
           <RequiresHost>
             <Assistant />
+          </RequiresHost>
+        )
+      },
+      {
+        path: paths.report,
+        element: (
+          <RequiresHost>
+            <Report />
           </RequiresHost>
         )
       },

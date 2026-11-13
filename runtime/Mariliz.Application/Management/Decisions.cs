@@ -116,6 +116,14 @@ public sealed class DecisionService(
             }).ToArray());
     }
 
+    /// <summary>As decisões registradas entre <paramref name="from"/> e <paramref name="to"/>, da mais recente para a mais antiga.</summary>
+    public IReadOnlyList<ManagementDecision> Recorded(string projectId, DateTimeOffset from, DateTimeOffset to)
+    {
+        if (!workspace.IsAuthorized(projectId)) throw EngineErrors.ProjectNotAuthorized();
+        return store.List(projectId).Where(item => item.RecordedAt >= from && item.RecordedAt <= to)
+            .OrderByDescending(item => item.RecordedAt).ToList();
+    }
+
     public ManagementDecision Get(string projectId, string decisionId)
     {
         if (!workspace.IsAuthorized(projectId)) throw EngineErrors.ProjectNotAuthorized();

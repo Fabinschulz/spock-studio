@@ -23,6 +23,7 @@ import decisionGet from '@contracts/fixtures/management/decision-get.json';
 import decisionList from '@contracts/fixtures/management/decision-list.json';
 import decisionRecord from '@contracts/fixtures/management/decision-record.json';
 import managementMilestones from '@contracts/fixtures/management/milestones.json';
+import managementReport from '@contracts/fixtures/management/report.json';
 import managementRiskHistory from '@contracts/fixtures/management/risk-history.json';
 import managementRisks from '@contracts/fixtures/management/risks.json';
 import runDetail from '@contracts/fixtures/runs/run-detail.json';
@@ -50,6 +51,7 @@ import {
   decisionListSchema,
   decisionRecordResultSchema,
   projectMilestonesSchema,
+  projectReportSchema,
   projectRiskHistorySchema,
   projectMetricsSchema,
   projectRisksSchema,
@@ -364,5 +366,19 @@ describe('contrato das decisões gerenciais (fixtures do motor)', () => {
     const parsed = decisionGetSchema.parse(decisionGet);
     expect(parsed.decision.facts).toHaveLength(2);
     expect(parsed.decision.withheld).toEqual(['Nenhum código é enviado.']);
+  });
+});
+
+describe('contrato do relatório do período (fixture do motor)', () => {
+  it('junta indicadores, previsão, riscos, marcos, decisões e execuções do mesmo período', () => {
+    const parsed = projectReportSchema.parse(managementReport);
+    expect(parsed.weeks).toBe(4);
+    expect(parsed.metrics.periodWeeks).toBe(4);
+    expect(parsed.decisions.map((decision) => decision.title)).toEqual(['Adiar a release']);
+    expect(parsed.runs.map((run) => `${run.kind}/${run.state}=${run.count}`)).toEqual([
+      'apply/completed=1',
+      'workflow/failed=1'
+    ]);
+    expect(parsed.basis).toContain('nenhum texto foi escrito por modelo de linguagem');
   });
 });

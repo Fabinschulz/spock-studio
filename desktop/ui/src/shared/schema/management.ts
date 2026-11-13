@@ -220,6 +220,44 @@ export const projectRiskHistorySchema = z.object({
   basis: z.string()
 });
 
+/** Uma decisão registrada no período, sem os fatos do dia. */
+export const reportDecisionSchema = z.object({
+  id: z.string(),
+  recordedAt: z.string(),
+  title: z.string(),
+  decision: z.string(),
+  runs: z.number(),
+  facts: z.number()
+});
+
+/** Uma mudança de risco que aconteceu dentro do período, com o risco a que pertence. */
+export const reportRiskChangeSchema = z.object({ riskId: z.string(), title: z.string(), change: riskChangeSchema });
+
+/** Quantas execuções de um tipo estão num estado, entre as que começaram no período. */
+export const reportRunsSchema = z.object({ kind: z.string(), state: z.string(), count: z.number() });
+
+/**
+ * O relatório de um período (`management.report`): indicadores, previsão, riscos, marcos, decisões e execuções, todos do motor.
+ * Nenhum texto é escrito por modelo.
+ */
+export const projectReportSchema = z.object({
+  projectId: z.string(),
+  projectName: z.string(),
+  generatedAt: z.string(),
+  weeks: z.number(),
+  periodFrom: z.string(),
+  periodTo: z.string(),
+  metrics: projectMetricsSchema,
+  forecast: projectForecastSchema,
+  risks: projectRisksSchema,
+  riskChanges: z.array(reportRiskChangeSchema),
+  milestones: projectMilestonesSchema,
+  decisions: z.array(reportDecisionSchema),
+  runs: z.array(reportRunsSchema),
+  basis: z.string()
+});
+
+export type ProjectReport = z.infer<typeof projectReportSchema>;
 export type RiskChange = z.infer<typeof riskChangeSchema>;
 export type RiskTrail = z.infer<typeof riskTrailSchema>;
 export type ProjectRiskHistory = z.infer<typeof projectRiskHistorySchema>;

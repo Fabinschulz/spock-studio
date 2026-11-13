@@ -58,6 +58,7 @@ export const ENGINE_METHODS = [
   'management.forecast',
   'management.risks',
   'management.riskhistory',
+  'management.report',
   'management.milestones',
   'management.evidence',
   'management.ask',

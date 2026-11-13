@@ -52,7 +52,8 @@ public sealed class EngineSession
         ProjectKnowledgeService? knowledge = null,
         HarnessStatusService? harness = null,
         HarnessRevisionService? revisions = null,
-        DecisionService? decisions = null)
+        DecisionService? decisions = null,
+        ReportService? reports = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
@@ -61,7 +62,7 @@ public sealed class EngineSession
         _models = models is null ? null : new ModelRequestHandler(models);
         _runs = runs is null ? null : new RunRequestHandler(runs);
         _integrations = integrations is null ? null : new IntegrationRequestHandler(integrations);
-        _management = management is null ? null : new ManagementRequestHandler(management, assistant);
+        _management = management is null ? null : new ManagementRequestHandler(management, assistant, reports);
         _decisions = decisions is null ? null : new DecisionRequestHandler(decisions);
         _engineering = profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions);
         _tracker = tracker;

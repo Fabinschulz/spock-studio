@@ -38,7 +38,7 @@ export function MilestonesSection({ management, projectId }: { management: Manag
   );
 }
 
-function MilestonesBody({ value }: { value: ProjectMilestones }) {
+export function MilestonesBody({ value }: { value: ProjectMilestones }) {
   const unassigned = value.unassigned.filter((entry) => entry.items > 0);
 
   if (value.milestones.length === 0)
