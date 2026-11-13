@@ -503,10 +503,10 @@ Entrega 5 da ordem aprovada.
   fora do arquivo que é gravado no projeto.
 - **Pronto quando:** uma pessoa que nunca abriu `.claude/` consegue dizer o que cada componente faz no projeto dela.
 
-**Estado da fase E (2026-11-12).** Primeira entrega feita na branch `feat/fase-e-catalogo` (criada da `master`), sem commit
-até o dono pedir: a **ficha por componente** e a tela **Catálogo**. Da tabela da fase, a tela Harness com Estado e
-Revisões e a tela Conhecimento separada já tinham sido entregues na fase B; faltam o inventário de MCP e a política dos
-agentes em linguagem simples.
+**Estado da fase E (2026-11-12).** Duas entregas feitas na branch `feat/fase-e-catalogo` (criada da `master`): a **ficha
+por componente** com a tela **Catálogo** (commitada) e o **inventário de MCP com alerta de segredo literal** (ainda sem
+commit). Da tabela da fase, a tela Harness com Estado e Revisões e a tela Conhecimento separada já tinham sido entregues
+na fase B; falta a política dos agentes em linguagem simples.
 
 | Feito | Observação |
 | --- | --- |
@@ -523,7 +523,23 @@ uma pessoa**; os textos foram escritos e conferidos contra os ativos, mas ningu�
 no navegador, só por testes. A ficha do hook descreve o comportamento de forma geral ("bloqueia ou pede confirmação"); a
 lista do que ele bloqueia, em linguagem simples, é a entrega "política dos agentes". Nada na ficha é traduzido por modelo.
 
-Falta nesta fase: inventário de MCP com alerta de segredo literal e a política dos agentes em linguagem simples.
+**Inventário de MCP (2ª entrega).** Método `engineering.mcp` (só leitura, projeto autorizado) e uma seção "Servidores MCP do
+projeto" no fim do Catálogo, só quando há projeto aberto.
+
+| Feito | Observação |
+| --- | --- |
+| O que cada servidor é | Nome, transporte (programa local, servidor remoto, SSE ou não identificado), **o que roda** (só o nome do programa, ou só o servidor da URL, sem caminho, consulta nem usuário e senha) e as variáveis de ambiente, cada uma marcada como "vem do ambiente" (`${NOME}`) ou "valor escrito no arquivo" |
+| Alerta de segredo literal | Aponta **onde** há credencial escrita (`env.NOME`, `args[2]`, `headers.NOME`, `url`) e por quê, por dois critérios: o formato conhecido (o mesmo scanner da validação) e o **nome** (`..._TOKEN`, `Authorization`, `api_key`...) com valor literal, o que pega formatos que o scanner não conhece. `Bearer ${TOKEN}` e `${TOKEN}` não são alerta. A tela manda trocar por referência ao ambiente e **revogar** a credencial, porque ela já esteve num arquivo do projeto |
+| O valor nunca sai | Nem na resposta, nem na fixture, nem na tela: o motor devolve só o lugar e o motivo. Os testes procuram o valor no JSON serializado em cada caso (variável, cabeçalho, argumento, consulta da URL, senha na URL) |
+| Só o `.mcp.json` do projeto | Servidores da conta pessoal da pessoa (configuração do usuário no Claude Code) não aparecem, e a tela diz isso. O Spock Studio não grava `.mcp.json` (fora do escopo de escrita), então não há como o inventário e o plano divergirem |
+| Falhas isoladas | Arquivo ausente, JSON inválido (aviso na tela) e arquivo sem `mcpServers` têm cada um a sua mensagem. Se só o inventário falha, o catálogo continua na tela com o motivo ao lado |
+| Testes | 15 no motor (incluindo recusa de projeto não autorizado e leitura sem escrita) e 8 na interface; fixture `mcp.json` do motor real, conferida por esquema |
+
+Limites: a detecção por nome pode apontar valor que não é segredo (`TOKEN_URL` com uma URL pública, por exemplo) e não
+enxerga segredo num campo sem nome revelador nem formato conhecido; o aviso diz "parece", não "é". `${NOME:-padrão}` conta
+como referência mesmo que o padrão seja um valor literal. A tela não foi conferida no navegador, só por testes.
+
+Falta nesta fase: a política dos agentes em linguagem simples, a partir do hook.
 ### Fase F: hub de integrações, nível 2
 
 | Entrega | Camada | Observação |

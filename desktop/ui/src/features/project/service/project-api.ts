@@ -4,6 +4,7 @@ import {
   harnessCatalogSchema,
   harnessRevisionsSchema,
   harnessStatusSchema,
+  mcpInventorySchema,
   profileResultSchema,
   projectKnowledgeSchema,
   runsSchema,
@@ -11,6 +12,7 @@ import {
   type HarnessCatalog,
   type HarnessRevisions,
   type HarnessStatus,
+  type McpInventory,
   type ProjectKnowledge,
   type RunSummary,
   type TechnologyProfile
@@ -47,6 +49,11 @@ export function readKnowledge(client: EngineClient, projectId: string): Promise<
 /** O Harness aplicado, conferido contra o disco. Só leitura. */
 export function readHarness(client: EngineClient, projectId: string): Promise<HarnessStatus> {
   return client.request('engineering.harness', { projectId }, harnessStatusSchema);
+}
+
+/** Os servidores MCP que o `.mcp.json` do projeto declara, e onde há credencial escrita no arquivo. Só leitura. */
+export function readMcp(client: EngineClient, projectId: string): Promise<McpInventory> {
+  return client.request('engineering.mcp', { projectId }, mcpInventorySchema);
 }
 
 /** O catálogo do Harness. Sem projeto, só as fichas; com projeto, também o que está aplicado nele. Só leitura. */

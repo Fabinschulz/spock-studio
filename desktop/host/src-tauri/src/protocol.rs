@@ -62,6 +62,7 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "engineering.harness",
     "engineering.revisions",
     "engineering.catalog",
+    "engineering.mcp",
 ];
 
 pub mod error_code {

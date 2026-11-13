@@ -59,6 +59,7 @@ public static class ProtocolMethods
     public const string EngineeringKnowledge = "engineering.knowledge";
     public const string EngineeringHarness = "engineering.harness";
     public const string EngineeringRevisions = "engineering.revisions";
+    public const string EngineeringMcp = "engineering.mcp";
     public const string EngineeringCatalog = "engineering.catalog";
 
     public static readonly IReadOnlyList<string> Configure =
@@ -85,5 +86,5 @@ public static class ProtocolMethods
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
 
     /// <summary>Ambiente de Engenharia: perfil tecnológico, conhecimento, estado e revisões do Harness do projeto.</summary>
-    public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog];
+    public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp];
 }

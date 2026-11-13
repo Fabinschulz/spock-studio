@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import applyFailure from '@contracts/fixtures/golden/apply-failure.json';
 import engineeringCatalog from '@contracts/fixtures/engineering/catalog.json';
 import engineeringHarness from '@contracts/fixtures/engineering/harness.json';
+import engineeringMcp from '@contracts/fixtures/engineering/mcp.json';
 import engineeringKnowledge from '@contracts/fixtures/engineering/knowledge.json';
 import engineeringRevisions from '@contracts/fixtures/engineering/revisions.json';
 import engineeringProfile from '@contracts/fixtures/engineering/profile.json';
@@ -43,6 +44,7 @@ import {
   discoverySchema,
   evidencePackSchema,
   harnessCatalogSchema,
+  mcpInventorySchema,
   harnessRevisionsSchema,
   harnessStatusSchema,
   integrationCatalogSchema,
@@ -410,5 +412,24 @@ describe('contrato do catálogo do Harness (fixture do motor)', () => {
       expect(sheet.canChange.length).toBeGreaterThan(0);
       expect(sheet.files.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('contrato do inventário de MCP (fixture do motor)', () => {
+  it('cada servidor traz o transporte, o que roda e as variáveis, com o estado da credencial', () => {
+    const parsed = mcpInventorySchema.parse(engineeringMcp);
+    expect(parsed).toMatchObject({ present: true, readable: true });
+    const github = parsed.servers.find((server) => server.name === 'github');
+    expect(github).toMatchObject({ transport: 'stdio', runs: 'npx' });
+    expect(github?.literalSecrets.map((secret) => secret.where)).toEqual(['env.GITHUB_TOKEN']);
+    expect(parsed.servers.find((server) => server.name === 'docs')).toMatchObject({
+      transport: 'http',
+      runs: 'mcp.exemplo.com',
+      literalSecrets: []
+    });
+  });
+
+  it('a resposta não carrega valor de credencial', () => {
+    expect(JSON.stringify(engineeringMcp)).not.toMatch(/ghp_|Bearer /);
   });
 });

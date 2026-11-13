@@ -1,4 +1,5 @@
 import catalogFixture from '@contracts/fixtures/engineering/catalog.json';
+import mcpFixture from '@contracts/fixtures/engineering/mcp.json';
 import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
@@ -6,18 +7,21 @@ import { describe, expect, it, vi } from 'vitest';
 import type { EngineClient } from '@/shared/api';
 import { EngineError } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
-import { harnessCatalogSchema, type HarnessCatalog } from '@/shared/schema';
+import { harnessCatalogSchema, mcpInventorySchema, type HarnessCatalog, type McpInventory } from '@/shared/schema';
 import { expectNoA11yViolations } from '@/test/a11y';
 
 import { CatalogPage } from './catalog-page';
 
 const project = { projectId: 'p-000000000001', displayName: 'Loja', displayPath: '~\\Loja' };
 const parsed = harnessCatalogSchema.parse(catalogFixture);
+const parsedMcp = mcpInventorySchema.parse(mcpFixture);
 
-function clientWith(catalog: HarnessCatalog | Error) {
-  const request = vi.fn(async (_method: string, _params: unknown, schema: { parse(value: unknown): unknown }) => {
-    if (catalog instanceof Error) throw catalog;
-    return schema.parse(catalog);
+/** O catálogo e o inventário de MCP são dois pedidos: cada um responde (ou falha) por conta própria. */
+function clientWith(catalog: HarnessCatalog | Error, mcp: McpInventory | Error = parsedMcp) {
+  const request = vi.fn(async (method: string, _params: unknown, schema: { parse(value: unknown): unknown }) => {
+    const answer = method === 'engineering.mcp' ? mcp : catalog;
+    if (answer instanceof Error) throw answer;
+    return schema.parse(answer);
   });
   return { client: { request, onEvent: vi.fn() } as unknown as EngineClient, request };
 }
@@ -63,7 +67,15 @@ describe('Catálogo do Harness', () => {
     await screen.findByRole('heading', { name: 'Agentes' });
 
     const titles = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent);
-    expect(titles).toEqual(['Agentes', 'Skills', 'Regras', 'Hooks', 'Ciclo de especificação', 'Declaração do projeto']);
+    expect(titles).toEqual([
+      'Agentes',
+      'Skills',
+      'Regras',
+      'Hooks',
+      'Ciclo de especificação',
+      'Declaração do projeto',
+      'Servidores MCP do projeto'
+    ]);
   });
 
   it('cada componente diz o que faz, e os detalhes trazem quando age, o que lê, o que altera e de onde veio', async () => {
@@ -156,13 +168,88 @@ describe('Catálogo do Harness', () => {
 
     expect(await card('Regra do projeto: pagamentos')).toBeInTheDocument();
     const titles = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent);
-    expect(titles.at(-1)).toBe('regra-nova');
+    // O inventário de MCP vem por último, depois de todos os grupos de componentes.
+    expect(titles.at(-1)).toBe('Servidores MCP do projeto');
+    expect(titles.at(-2)).toBe('regra-nova');
   });
 
   it('se o motor recusa mostra o motivo', async () => {
     renderPage(clientWith(new EngineError('PROJECT_NOT_AUTHORIZED', 'O projeto não foi autorizado.')).client);
 
     expect(await screen.findByRole('alert')).toHaveTextContent('O projeto não foi autorizado.');
+  });
+
+  describe('servidores MCP do projeto', () => {
+    const server = async (name: string) => (await screen.findByRole('heading', { name })).closest('li')!;
+
+    it('pede o inventário do projeto aberto e não pede nada sem projeto', async () => {
+      const withProject = clientWith(parsed);
+      const { unmount } = renderPage(withProject.client);
+      await screen.findByRole('heading', { name: 'github' });
+      expect(withProject.request).toHaveBeenCalledWith(
+        'engineering.mcp',
+        { projectId: project.projectId },
+        expect.anything()
+      );
+      unmount();
+
+      const general = clientWith({ ...parsed, projectId: null, applied: null });
+      renderPage(general.client, null);
+      await screen.findByRole('heading', { name: 'Agente verificador' });
+      expect(general.request.mock.calls.map((call) => call[0])).toEqual(['engineering.catalog']);
+      expect(screen.queryByText('Servidores MCP do projeto')).toBeNull();
+    });
+
+    it('mostra o que cada servidor roda, em palavras simples, e de onde vem cada variável', async () => {
+      renderPage(clientWith(parsed).client);
+
+      const github = await server('github');
+      expect(github).toHaveTextContent('Programa local');
+      expect(github).toHaveTextContent('Roda na sua máquina o programa npx');
+      expect(within(github).getByText('LOG_LEVEL').parentElement).toHaveTextContent('valor escrito no arquivo');
+
+      const docs = await server('docs');
+      expect(docs).toHaveTextContent('Servidor remoto');
+      expect(docs).toHaveTextContent('Conecta no servidor mcp.exemplo.com');
+      expect(within(docs).queryByText('Credencial escrita no arquivo')).toBeNull();
+    });
+
+    it('avisa de credencial escrita no arquivo, diz onde e o que fazer, sem mostrar valor algum', async () => {
+      const { container } = renderPage(clientWith(parsed).client);
+
+      const github = await server('github');
+      expect(within(github).getByText('Credencial escrita no arquivo')).toBeInTheDocument();
+      expect(within(github).getAllByText('env.GITHUB_TOKEN').length).toBeGreaterThan(0);
+      expect(github).toHaveTextContent('revogue a credencial atual');
+      expect(screen.getByText(/1 com credencial escrita no arquivo/)).toBeInTheDocument();
+      expect(container.textContent).not.toMatch(/ghp_/);
+    });
+
+    it('sem credencial escrita diz que não há nenhuma', async () => {
+      const clean: McpInventory = {
+        ...parsedMcp,
+        servers: parsedMcp.servers.map((item) => ({ ...item, literalSecrets: [] }))
+      };
+      renderPage(clientWith(parsed, clean).client);
+
+      expect(await screen.findByText(/nenhuma credencial escrita no arquivo/)).toBeInTheDocument();
+    });
+
+    it('projeto sem .mcp.json e arquivo inválido têm cada um a sua mensagem', async () => {
+      const none = renderPage(clientWith(parsed, { ...parsedMcp, present: false, servers: [] }).client);
+      expect(await screen.findByText(/não tem \.mcp\.json: nenhum servidor MCP declarado/)).toBeInTheDocument();
+      none.unmount();
+
+      renderPage(clientWith(parsed, { ...parsedMcp, readable: false, servers: [] }).client);
+      expect(await screen.findByRole('alert')).toHaveTextContent('não é um JSON válido');
+    });
+
+    it('se só o inventário falha, o catálogo continua na tela com o motivo ao lado', async () => {
+      renderPage(clientWith(parsed, new EngineError('PROJECT_NOT_AUTHORIZED', 'O projeto não foi autorizado.')).client);
+
+      expect(await screen.findByRole('heading', { name: 'Agente verificador' })).toBeInTheDocument();
+      expect(await screen.findByRole('alert')).toHaveTextContent('O projeto não foi autorizado.');
+    });
   });
 
   it('não tem violações de acessibilidade', async () => {

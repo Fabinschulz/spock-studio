@@ -46,7 +46,8 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     profiles: new TechnologyProfileService(engine.Configure, integrations, engine.Workspace, new FileTechnologyProfileStore(engine.DataRoot), engine.Clock),
     knowledge: new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock),
     harness: new HarnessStatusService(engine.Workspace, engine.Files, engine.Clock),
-    revisions: new HarnessRevisionService(engine.Workspace, engine.Files, engine.Store));
+    revisions: new HarnessRevisionService(engine.Workspace, engine.Files, engine.Store),
+    mcp: new McpInventoryService(engine.Workspace, engine.Files));
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

@@ -155,6 +155,31 @@ export const harnessCatalogSchema = z.object({
   entries: z.array(catalogEntrySchema)
 });
 
+/** Uma variável de ambiente do servidor. `referenced`: o valor vem do ambiente (`${NOME}`), não está escrito no arquivo. */
+export const mcpEnvVarSchema = z.object({ name: z.string(), referenced: z.boolean() });
+
+/** Onde há uma credencial escrita no arquivo (`env.NOME`, `args[2]`, `headers.NOME`, `url`). O valor nunca vem do motor. */
+export const mcpLiteralSecretSchema = z.object({ where: z.string(), why: z.string() });
+
+/** Um servidor MCP do `.mcp.json`. `runs`: o programa (stdio) ou só o servidor (http e sse). */
+export const mcpServerSchema = z.object({
+  name: z.string(),
+  transport: z.string(),
+  runs: z.string(),
+  env: z.array(mcpEnvVarSchema),
+  literalSecrets: z.array(mcpLiteralSecretSchema)
+});
+
+/** O inventário de MCP de um projeto (`engineering.mcp`). `readable` é falso se o `.mcp.json` existe mas não é um JSON válido. */
+export const mcpInventorySchema = z.object({
+  projectId: z.string(),
+  present: z.boolean(),
+  readable: z.boolean(),
+  servers: z.array(mcpServerSchema)
+});
+
+export type McpServer = z.infer<typeof mcpServerSchema>;
+export type McpInventory = z.infer<typeof mcpInventorySchema>;
 export type ComponentSheet = z.infer<typeof componentSheetSchema>;
 export type CatalogEntry = z.infer<typeof catalogEntrySchema>;
 export type HarnessCatalog = z.infer<typeof harnessCatalogSchema>;

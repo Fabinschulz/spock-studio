@@ -45,7 +45,7 @@ public class HarnessCatalogTests
         {
             var texts = new[] { sheet.Title, sheet.WhatItDoes, sheet.WhenItActs, sheet.Origin }.Concat(sheet.Reads).Concat(sheet.CanChange).ToList();
             Assert.All(texts, text => Assert.False(string.IsNullOrWhiteSpace(text), $"{sheet.Id} tem um campo vazio."));
-            Assert.All(texts, text => Assert.DoesNotContain("—", text));
+            Assert.All(texts, text => Assert.DoesNotContain("\u2014", text));
             Assert.NotEmpty(sheet.Reads);
             Assert.NotEmpty(sheet.CanChange);
             Assert.NotEmpty(sheet.Files);
