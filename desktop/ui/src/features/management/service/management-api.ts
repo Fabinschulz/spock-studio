@@ -11,6 +11,8 @@ import {
   projectReportSchema,
   projectRiskHistorySchema,
   modelStatusSchema,
+  portfolioAnswerSchema,
+  portfolioEvidenceSchema,
   portfolioSchema,
   projectInvestigationSchema,
   projectForecastSchema,
@@ -27,6 +29,8 @@ import {
   type ProjectRiskHistory,
   type ModelStatus,
   type Portfolio,
+  type PortfolioAnswer,
+  type PortfolioEvidence,
   type ProjectInvestigation,
   type ProjectForecast,
   type ProjectMetrics,
@@ -66,6 +70,10 @@ export type ManagementApi = {
   ask(projectId: string, question: string): Promise<AssistantAnswer>;
   /** A pergunta investigada em etapas: o motor cruza riscos, execuções e mudanças e confere a resposta. Funciona sem chave de modelo, só com os sinais. */
   investigate(projectId: string, question: string): Promise<ProjectInvestigation>;
+  /** O que vai ao provedor numa pergunta ao portfólio: os projetos escolhidos e os fatos de cada um, com a política de cada projeto. */
+  portfolioEvidence(projectIds: string[]): Promise<PortfolioEvidence>;
+  /** Uma pergunta que cruza os projetos escolhidos. O motor confere a resposta; somar ou comparar números por conta própria não passa. */
+  askPortfolio(question: string, projectIds: string[]): Promise<PortfolioAnswer>;
 };
 
 export function createManagementApi(client: EngineClient): ManagementApi {
@@ -94,6 +102,10 @@ export function createManagementApi(client: EngineClient): ManagementApi {
     linkedRuns: (projectId) => client.request('run.linked', { projectId }, linkedItemsResultSchema),
     evidence: (projectId) => client.request('management.evidence', { projectId }, evidencePackSchema),
     ask: (projectId, question) => client.request('management.ask', { projectId, question }, assistantAnswerSchema),
+    portfolioEvidence: (projectIds) =>
+      client.request('management.portfolioevidence', { projectIds }, portfolioEvidenceSchema),
+    askPortfolio: (question, projectIds) =>
+      client.request('management.portfolioask', { question, projectIds }, portfolioAnswerSchema),
     investigate: (projectId, question) =>
       client.request('management.investigate', { projectId, question }, projectInvestigationSchema)
   };

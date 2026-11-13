@@ -8,13 +8,16 @@ using Mariliz.Application.Management.Investigation;
 namespace Mariliz.Application.Protocol;
 
 /// <summary>Traduz <c>management.*</c> para o <see cref="ManagementService"/>.</summary>
-internal sealed class ManagementRequestHandler(ManagementService service, ManagementAssistant? assistant, ReportService? report = null, InvestigationService? investigation = null)
+internal sealed class ManagementRequestHandler(ManagementService service, ManagementAssistant? assistant, ReportService? report = null, InvestigationService? investigation = null,
+    PortfolioAssistant? portfolioAssistant = null)
 {
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
         ProtocolMethods.ManagementEvidence => IntegrationJson.Node(Assistant().Evidence(p.Str("projectId")))!.AsObject(),
         ProtocolMethods.ManagementAsk => IntegrationJson.Node(await Assistant().AskAsync(p.Str("projectId"), p.Str("question"), ct))!.AsObject(),
         ProtocolMethods.ManagementInvestigate => IntegrationJson.Node(await Investigation().InvestigateAsync(p.Str("projectId"), p.Str("question"), ct))!.AsObject(),
+        ProtocolMethods.ManagementPortfolioEvidence => IntegrationJson.Node(Portfolio().Evidence(p.StringList("projectIds")))!.AsObject(),
+        ProtocolMethods.ManagementPortfolioAsk => IntegrationJson.Node(await Portfolio().AskAsync(p.Str("question"), p.StringList("projectIds"), ct))!.AsObject(),
         ProtocolMethods.ManagementPortfolio => IntegrationJson.Node(service.Portfolio())!.AsObject(),
         ProtocolMethods.ManagementMetrics => IntegrationJson.Node(service.Metrics(p.Str("projectId"), p.OptionalInt("weeks")))!.AsObject(),
         ProtocolMethods.ManagementForecast => IntegrationJson.Node(service.Forecast(p.Str("projectId")))!.AsObject(),
@@ -28,6 +31,10 @@ internal sealed class ManagementRequestHandler(ManagementService service, Manage
     /// <summary>Sem o serviço de relatório (CLI, testes de outras áreas), o relatório não existe; os demais métodos seguem.</summary>
     private ReportService Report() =>
         report ?? throw new EngineException("REPORT_UNAVAILABLE", "O relatório não está disponível nesta sessão do motor.");
+
+    /// <summary>Sem proxy de modelo (CLI, testes de outras áreas), o assistente do portfólio não existe; os demais métodos seguem.</summary>
+    private PortfolioAssistant Portfolio() =>
+        portfolioAssistant ?? throw new EngineException("MODEL_NOT_CONFIGURED", "O assistente não está disponível nesta sessão do motor.");
 
     /// <summary>Sem o runtime de IA (CLI, testes de outras áreas), a investigação não existe; os demais métodos seguem.</summary>
     private InvestigationService Investigation() =>

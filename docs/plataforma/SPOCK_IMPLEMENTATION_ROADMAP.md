@@ -924,3 +924,21 @@ $env:MARILIZ_LIVE_OPENAI_KEY = "sua-chave"
 dotnet test runtime/tests/Mariliz.Application.Tests --filter "FullyQualifiedName~Evals_de_gestao_com_a_OpenAI" --logger "console;verbosity=detailed"
 python intelligence/evaluations/management.py score "<arquivo que o teste imprimiu>"
 ```
+
+**Oitava entrega da fase G: o assistente sobre o portfólio.** Com ela, a tabela da fase G está inteira. Uma pergunta que cruza vários projetos, respeitando a política de cada um.
+
+| Feito | Observação |
+| --- | --- |
+| `management.portfolioask` e `management.portfolioevidence` | `PortfolioAssistant` no motor: a pessoa **escolhe quais projetos** entram (sem escolha, todos os abertos, até 10; um que não está aberto é recusado, não ignorado em silêncio) e o pacote mostra, **antes do envio**, os projetos e os fatos de cada um |
+| A política de cada projeto vale por inteiro | Cada projeto entra com o pacote que o assistente **dele** montaria: título de item só vai do projeto cujas fontes autorizaram servir de contexto, e o aviso do que ficou de fora leva o nome do projeto. Um projeto fechado não ganha título por estar na mesma pergunta que um aberto (teste com os dois lado a lado) |
+| Ids por projeto | Os fatos viram `p1.flow...`, `p2.risk...`, com um fato `pN.name` por projeto; a data de hoje entra uma vez. Os fatos chegam ao modelo agrupados por projeto, e o nome do projeto é sanitizado (sem quebra de linha nem caractere de controle). Teto de 40 fatos por projeto |
+| Conferência | A resposta passa pelo mesmo `AnswerVerifier` do assistente. A instrução proíbe somar, tirar média ou calcular diferença **entre projetos**, e o conferente faz valer: "os dois somam 22 itens" é descartado porque 22 não está nos fatos citados (teste). Para citar o nome de um projeto, a resposta cita o `pN.name` |
+| Diário e auditoria | Cada projeto incluído ganha o diário da pergunta (kind `assistant`, só contagens e tokens, ou o código da falha), e a auditoria registra `management.portfolio_answered` com contagens e o hash do pedido. **Nunca** o texto da pergunta |
+| Tela | Na tela Portfólio, a seção "Perguntar sobre o portfólio": caixas dos projetos (todos marcados), a pergunta, "O que será enviado ao provedor de modelo" (se muda ao marcar e desmarcar), a resposta conferida e "Projetos nesta resposta: p1 = ..., p2 = ...". Sem chave de modelo, avisa e não deixa perguntar; sem projeto marcado, não deixa perguntar |
+| Testes | 11 no motor (pacote por projeto, política por projeto, escolha e recusa, nome sanitizado, o que o provedor recebe, resposta boa e soma descartada, pergunta inválida, sem modelo com diário de falha em cada projeto, diário sem texto, protocolo, e contrato com as fixtures `portfolio-evidence.json` e `portfolio-answer.json`), 5 de tela e 2 de contrato |
+
+Limites: **nunca foi perguntado a um modelo real**; a qualidade da comparação entre projetos (se o modelo cita os dois fatos em vez de somar) só se vê com a OpenAI ou a Anthropic. A pergunta cruza **números de projetos diferentes na mesma chamada ao provedor**: quem escolhe os projetos é a pessoa, mas não há política por projeto que proíba enviá-lo junto com outro (a política existente é a de contexto das fontes). Não há ainda histórico das perguntas ao portfólio nem eval própria dele (o dataset de gestão é de um projeto só).
+
+### Fase G: balanço
+
+As oito entregas da tabela da fase estão no código e testadas: linha do tempo, trilha de auditoria, workflow de investigação, laço do RAG, decisões como memória, evals de gestão e assistente do portfólio (mais o caminho da investigação reaberto na central). **O "pronto quando" está atendido na forma e não provado**: a pergunta "por que a vazão caiu?" devolve uma resposta em que cada afirmação cita um fato e o caminho fica no diário, mas isso só foi exercitado com modelo falso ou roteirizado. Falta, e depende de você: rodar a investigação e as evals com a OpenAI e com a Anthropic (as duas nunca foram validadas com chave real), calibrar os mínimos das evals com o primeiro resultado e conferir as telas novas no navegador.

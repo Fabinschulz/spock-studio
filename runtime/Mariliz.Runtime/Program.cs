@@ -56,6 +56,8 @@ var audit = new ProjectAuditService(engine.Workspace, engine.Clock, engine.Store
 // A investigação cruza os fatos do assistente com os de execuções e de mudanças num workflow do runtime de IA, e o motor confere a resposta.
 var investigation = new InvestigationService(assistant, integrations, engine.Workspace, aiRuntime, engine.Clock, engine.Store, modelAccess, timeline,
     decisionMemory, Path.Combine(engine.DataRoot, "investigation-index"));
+// O assistente do portfólio junta o pacote de cada projeto escolhido, com a política de cada um, e o motor confere a resposta.
+var portfolioAssistant = new PortfolioAssistant(assistant, engine.Workspace, models, integrations, engine.Clock);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
     management: management, assistant: assistant,
@@ -64,7 +66,7 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     knowledge: new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge, decisionMemory),
     harness: new HarnessStatusService(engine.Workspace, engine.Files, engine.Clock),
     revisions: harnessRevisions,
-    mcp: new McpInventoryService(engine.Workspace, engine.Files), timeline: timeline, audit: audit, investigation: investigation);
+    mcp: new McpInventoryService(engine.Workspace, engine.Files), timeline: timeline, audit: audit, investigation: investigation, portfolioAssistant: portfolioAssistant);
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

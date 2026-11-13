@@ -58,6 +58,8 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "management.evidence",
     "management.ask",
     "management.investigate",
+    "management.portfolioevidence",
+    "management.portfolioask",
     "decision.record",
     "decision.list",
     "decision.get",

@@ -1,0 +1,164 @@
+{
+  "generatedAt": "2026-11-10T12:00:00+00:00",
+  "projects": [
+    {
+      "alias": "p1",
+      "projectId": "p-000000000001",
+      "name": "Loja",
+      "facts": 14
+    },
+    {
+      "alias": "p2",
+      "projectId": "p-000000000002",
+      "name": "Painel",
+      "facts": 13
+    }
+  ],
+  "facts": [
+    {
+      "id": "today",
+      "group": "contexto",
+      "text": "Hoje é 2026-11-10. Período dos indicadores: últimas 8 semanas."
+    },
+    {
+      "id": "p1.name",
+      "group": "projeto",
+      "text": "Projeto p1: Loja."
+    },
+    {
+      "id": "p1.src.1",
+      "group": "fontes",
+      "text": "Fonte github acme/app: última sincronização concluída, dados lidos em 2026-11-10."
+    },
+    {
+      "id": "p1.flow.issues.items",
+      "group": "indicadores",
+      "text": "Issues: 18 itens sincronizados, 2 abertos."
+    },
+    {
+      "id": "p1.flow.issues.wip",
+      "group": "indicadores",
+      "text": "Issues em andamento agora: 1."
+    },
+    {
+      "id": "p1.flow.issues.throughput",
+      "group": "indicadores",
+      "text": "Issues entregues por semana, da mais antiga para a mais recente: 2, 2, 2, 2, 2, 2, 2, 2; total 16, média 2 por semana. Itens novos por semana: 2, 2, 2, 3, 2, 2, 2, 3."
+    },
+    {
+      "id": "p1.flow.issues.leadtime",
+      "group": "indicadores",
+      "text": "Lead time de Issues: mediana 2 dias, percentil 85 2 dias, sobre 16 entregas."
+    },
+    {
+      "id": "p1.flow.issues.cycletime",
+      "group": "indicadores",
+      "text": "Cycle time de Issues: sem valor (A fonte não informa quando o trabalho começou: sem histórico de status, não há como saber a data de início.)"
+    },
+    {
+      "id": "p1.flow.issues.blocked",
+      "group": "indicadores",
+      "text": "Issues abertos bloqueados: 0 (0 por vínculo, 0 por rótulo). Base: Rótulo \"blocked\" ou \"bloqueado\" e vínculo \"is blocked by\" do Jira com item ainda aberto. Os vínculos de bloqueio não foram lidos nesta fonte (só o Jira os informa; sincronize de novo se ele já está vinculado)."
+    },
+    {
+      "id": "p1.flow.issues.overdue",
+      "group": "indicadores",
+      "text": "Issues abertos com prazo vencido: 1."
+    },
+    {
+      "id": "p1.forecast.issues",
+      "group": "previsão",
+      "text": "Previsão de Issues para 2 itens abertos, por simulação sobre 7 semanas de histórico: otimista (percentil 15) em 1 semanas, até 2026-11-17; provável (percentil 50) em 1 semanas, até 2026-11-17; conservador (percentil 85) em 1 semanas, até 2026-11-17."
+    },
+    {
+      "id": "p1.forecast.issues.confidence",
+      "group": "previsão",
+      "text": "Confiança da previsão de Issues: média. Motivos: Histórico curto: 7 semanas."
+    },
+    {
+      "id": "p1.risk.overdue",
+      "group": "riscos",
+      "text": "Risco detectado por regra: Itens com prazo vencido, severidade alta. 1 de 1 item aberto com prazo está vencido. O mais atrasado venceu há 9 dias. Itens: 41."
+    },
+    {
+      "id": "p1.missing.scopeChange",
+      "group": "não calculado",
+      "text": "Mudança de escopo não é calculado: Precisa comparar o escopo do marco no começo e agora, e o histórico do escopo ainda não é guardado."
+    },
+    {
+      "id": "p1.missing.predictability",
+      "group": "não calculado",
+      "text": "Previsibilidade não é calculado: Precisa do que foi planejado por período, que ainda não é sincronizado."
+    },
+    {
+      "id": "p2.name",
+      "group": "projeto",
+      "text": "Projeto p2: Painel."
+    },
+    {
+      "id": "p2.src.1",
+      "group": "fontes",
+      "text": "Fonte github acme/app: última sincronização concluída, dados lidos em 2026-11-10."
+    },
+    {
+      "id": "p2.flow.issues.items",
+      "group": "indicadores",
+      "text": "Issues: 4 itens sincronizados, 1 abertos."
+    },
+    {
+      "id": "p2.flow.issues.wip",
+      "group": "indicadores",
+      "text": "Issues em andamento agora: 0."
+    },
+    {
+      "id": "p2.flow.issues.throughput",
+      "group": "indicadores",
+      "text": "Issues entregues por semana, da mais antiga para a mais recente: 0, 0, 0, 0, 0, 0, 3, 0; total 3, média 0.4 por semana. Itens novos por semana: 0, 0, 1, 0, 0, 3, 0, 0."
+    },
+    {
+      "id": "p2.flow.issues.leadtime",
+      "group": "indicadores",
+      "text": "Lead time de Issues: sem valor (São precisos ao menos 5 itens entregues no período; há 3.)"
+    },
+    {
+      "id": "p2.flow.issues.cycletime",
+      "group": "indicadores",
+      "text": "Cycle time de Issues: sem valor (A fonte não informa quando o trabalho começou: sem histórico de status, não há como saber a data de início.)"
+    },
+    {
+      "id": "p2.flow.issues.blocked",
+      "group": "indicadores",
+      "text": "Issues abertos bloqueados: 0 (0 por vínculo, 0 por rótulo). Base: Rótulo \"blocked\" ou \"bloqueado\" e vínculo \"is blocked by\" do Jira com item ainda aberto. Os vínculos de bloqueio não foram lidos nesta fonte (só o Jira os informa; sincronize de novo se ele já está vinculado)."
+    },
+    {
+      "id": "p2.flow.issues.overdue",
+      "group": "indicadores",
+      "text": "Issues abertos com prazo vencido: 1."
+    },
+    {
+      "id": "p2.forecast.issues",
+      "group": "previsão",
+      "text": "Previsão de Issues: indisponível. São precisas ao menos 6 semanas de histórico; os dados cobrem 5."
+    },
+    {
+      "id": "p2.risk.overdue",
+      "group": "riscos",
+      "text": "Risco detectado por regra: Itens com prazo vencido, severidade alta. 1 de 1 item aberto com prazo está vencido. O mais atrasado venceu há 21 dias. Itens: 77."
+    },
+    {
+      "id": "p2.missing.scopeChange",
+      "group": "não calculado",
+      "text": "Mudança de escopo não é calculado: Precisa comparar o escopo do marco no começo e agora, e o histórico do escopo ainda não é guardado."
+    },
+    {
+      "id": "p2.missing.predictability",
+      "group": "não calculado",
+      "text": "Previsibilidade não é calculado: Precisa do que foi planejado por período, que ainda não é sincronizado."
+    }
+  ],
+  "withheld": [
+    "Nenhum código, documento ou arquivo de nenhum projeto é enviado.",
+    "Loja: Títulos de itens não foram incluídos: nem todas as fontes autorizaram servir de contexto; vão só os identificadores.",
+    "Painel: Títulos de itens não foram incluídos: nem todas as fontes autorizaram servir de contexto; vão só os identificadores."
+  ]
+}

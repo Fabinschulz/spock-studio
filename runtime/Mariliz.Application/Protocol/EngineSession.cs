@@ -62,7 +62,8 @@ public sealed class EngineSession
         ReportService? reports = null,
         ProjectTimelineService? timeline = null,
         ProjectAuditService? audit = null,
-        InvestigationService? investigation = null)
+        InvestigationService? investigation = null,
+        PortfolioAssistant? portfolioAssistant = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
@@ -71,7 +72,7 @@ public sealed class EngineSession
         _models = models is null ? null : new ModelRequestHandler(models);
         _runs = runs is null ? null : new RunRequestHandler(runs);
         _integrations = integrations is null ? null : new IntegrationRequestHandler(integrations);
-        _management = management is null ? null : new ManagementRequestHandler(management, assistant, reports, investigation);
+        _management = management is null ? null : new ManagementRequestHandler(management, assistant, reports, investigation, portfolioAssistant);
         _decisions = decisions is null ? null : new DecisionRequestHandler(decisions);
         _timeline = timeline is null ? null : new TimelineRequestHandler(timeline);
         _audit = audit is null ? null : new AuditRequestHandler(audit);

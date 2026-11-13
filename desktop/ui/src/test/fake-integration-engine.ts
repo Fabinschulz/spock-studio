@@ -3,6 +3,8 @@ import connectionsFixture from '@contracts/fixtures/integrations/connections.jso
 import integrationsFixture from '@contracts/fixtures/integrations/integrations.json';
 import answerFixture from '@contracts/fixtures/management/assistant-answer.json';
 import investigationFixture from '@contracts/fixtures/management/investigation.json';
+import portfolioAnswerFixture from '@contracts/fixtures/management/portfolio-answer.json';
+import portfolioEvidenceFixture from '@contracts/fixtures/management/portfolio-evidence.json';
 import evidenceFixture from '@contracts/fixtures/management/assistant-evidence.json';
 import forecastFixture from '@contracts/fixtures/management/forecast.json';
 import metricsFixture from '@contracts/fixtures/management/metrics.json';
@@ -208,6 +210,14 @@ export function fakeIntegrationEngine(
       provider: initial.modelConfigured === false ? '' : 'openai'
     }),
     'management.evidence': (params) => ({ ...evidenceFixture, projectId: params.projectId }),
+    'management.portfolioevidence': (params) => {
+      const chosen = (params.projectIds as string[] | undefined) ?? [];
+      const projects = portfolioEvidenceFixture.projects.filter(
+        (project) => chosen.includes(project.projectId) || chosen.length === 0
+      );
+      return { ...portfolioEvidenceFixture, projects };
+    },
+    'management.portfolioask': () => portfolioAnswerFixture,
     'management.investigate': (params) => ({
       ...investigationFixture,
       answer: { ...investigationFixture.answer, projectId: params.projectId }

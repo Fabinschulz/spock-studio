@@ -1,5 +1,7 @@
 import auditFixture from '@contracts/fixtures/audit/audit.json';
 import investigationFixture from '@contracts/fixtures/management/investigation.json';
+import portfolioAnswerFixture from '@contracts/fixtures/management/portfolio-answer.json';
+import portfolioEvidenceFixture from '@contracts/fixtures/management/portfolio-evidence.json';
 import timelineFixture from '@contracts/fixtures/timeline/timeline.json';
 import { describe, expect, it } from 'vitest';
 
@@ -74,6 +76,8 @@ import {
   planSchema,
   profileResultSchema,
   projectKnowledgeSchema,
+  portfolioAnswerSchema,
+  portfolioEvidenceSchema,
   projectAuditTrailSchema,
   projectInvestigationSchema,
   projectTimelineSchema,
@@ -684,5 +688,30 @@ describe('contrato da investigação de gestão (fixture do motor)', () => {
 
   it('não carrega pergunta, credencial nem título de item', () => {
     expect(JSON.stringify(investigationFixture)).not.toMatch(/SEGREDO|ghp_|sk-|Titulo secreto/);
+  });
+});
+
+describe('contrato do assistente do portfólio (fixtures do motor)', () => {
+  it('o pacote traz os projetos escolhidos com alias e os fatos de cada um prefixados por ele', () => {
+    const parsed = portfolioEvidenceSchema.parse(portfolioEvidenceFixture);
+    expect(parsed.projects.map((project) => project.alias)).toEqual(['p1', 'p2']);
+    for (const project of parsed.projects) {
+      const own = parsed.facts.filter((fact) => fact.id.startsWith(`${project.alias}.`));
+      expect(own).toHaveLength(project.facts);
+      expect(own[0]!.id).toBe(`${project.alias}.name`);
+    }
+    expect(parsed.facts.filter((fact) => fact.id === 'today')).toHaveLength(1);
+    expect(new Set(parsed.facts.map((fact) => fact.id)).size).toBe(parsed.facts.length);
+  });
+
+  it('a resposta cita só fatos de projetos que ela cobre e o texto não carrega a pergunta nem título de item fechado', () => {
+    const parsed = portfolioAnswerSchema.parse(portfolioAnswerFixture);
+    const aliases = new Set(parsed.projects.map((project) => `${project.alias}.`));
+    for (const fact of parsed.answer.evidence)
+      expect([...aliases].some((alias) => fact.id.startsWith(alias))).toBe(true);
+    expect(parsed.answer.projectId).toBe('portfolio');
+    expect(JSON.stringify([portfolioAnswerFixture, portfolioEvidenceFixture])).not.toMatch(
+      /SEGREDO|Titulo secreto|ghp_|sk-/
+    );
   });
 });
