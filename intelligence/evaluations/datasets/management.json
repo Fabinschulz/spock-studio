@@ -1,0 +1,746 @@
+{
+  "schema": "management.eval.v1",
+  "description": "Evals de gestão: perguntas reais de gestão sobre cenários de fatos do motor. Mede o enquadramento, a ancoragem (cada afirmação cita fatos que a investigação consultou e só traz números que eles têm), a cobertura dos fatos essenciais e a abstenção (o que os fatos não têm vira 'indisponível', sem inferência, cálculo nem recomendação inventados). Cada caso traz a resposta de referência roteirizada: com ela o pipeline tem de pontuar 1,0; com um modelo real o resultado precisa ficar acima dos mínimos.",
+  "minimums": {
+    "framing": 1.0,
+    "grounding": 0.95,
+    "coverage": 0.6,
+    "abstention": 1.0
+  },
+  "scenarios": {
+    "queda-de-vazao": [
+      {
+        "id": "today",
+        "group": "contexto",
+        "text": "Hoje é 2026-11-10. Período dos indicadores: últimas 8 semanas."
+      },
+      {
+        "id": "src.1",
+        "group": "fontes",
+        "text": "Fonte github acme/app: última sincronização concluída, dados lidos em 2026-11-10."
+      },
+      {
+        "id": "flow.issues.items",
+        "group": "indicadores",
+        "text": "Issues: 40 itens sincronizados, 14 abertos."
+      },
+      {
+        "id": "flow.issues.wip",
+        "group": "indicadores",
+        "text": "Issues em andamento agora: 11."
+      },
+      {
+        "id": "flow.issues.throughput",
+        "group": "indicadores",
+        "text": "Issues entregues por semana, da mais antiga para a mais recente: 5, 5, 4, 5, 4, 2, 1, 1; total 27, média 3,38 por semana. Itens novos por semana: 4, 5, 4, 5, 5, 5, 4, 5."
+      },
+      {
+        "id": "flow.issues.leadtime",
+        "group": "indicadores",
+        "text": "Lead time de Issues: mediana 6 dias, percentil 85 14 dias, sobre 27 entregas."
+      },
+      {
+        "id": "flow.issues.blocked",
+        "group": "indicadores",
+        "text": "Issues abertos bloqueados: 4 (3 por vínculo, 1 por rótulo)."
+      },
+      {
+        "id": "flow.issues.overdue",
+        "group": "indicadores",
+        "text": "Issues abertos com prazo vencido: 3."
+      },
+      {
+        "id": "forecast.issues",
+        "group": "previsão",
+        "text": "Previsão de Issues para 14 itens abertos, por simulação sobre 8 semanas de histórico: otimista (percentil 15) em 3 semanas, até 2026-12-01; provável (percentil 50) em 5 semanas, até 2026-12-15; conservador (percentil 85) em 9 semanas, até 2027-01-12."
+      },
+      {
+        "id": "forecast.issues.confidence",
+        "group": "previsão",
+        "text": "Confiança da previsão de Issues: baixa. Motivos: Ritmo recente muito diferente da média."
+      },
+      {
+        "id": "milestone.1",
+        "group": "marcos",
+        "text": "Marco 1.0: 14 abertos, 26 fechados, prazo 2026-12-10; previsão provável 2026-12-15."
+      },
+      {
+        "id": "risk.blocked",
+        "group": "riscos",
+        "text": "Risco detectado por regra: Itens bloqueados, severidade alta. 4 itens abertos estão bloqueados. Itens: 12, 15, 21, 30."
+      },
+      {
+        "id": "risk.aging",
+        "group": "riscos",
+        "text": "Risco detectado por regra: Itens parados, severidade média. 3 itens abertos sem atualização há mais de 14 dias. Itens: 12, 21, 33."
+      },
+      {
+        "id": "runs.summary",
+        "group": "execuções",
+        "text": "Execuções do projeto nos últimos 28 dias: 6 (3 pedidos de engenharia, 2 validações, 1 aplicação do Harness); 2 falharam, 1 terminou com limitações, 0 foram revertidas ou desfeitas."
+      },
+      {
+        "id": "runs.failed",
+        "group": "execuções",
+        "text": "Execuções que falharam nos últimos 28 dias, por tipo: 2 pedidos de engenharia."
+      },
+      {
+        "id": "changes.summary",
+        "group": "mudanças",
+        "text": "Mudanças no projeto nos últimos 28 dias: 1 revisão do Harness, 1 mudança do perfil, 2 mudanças de risco, 3 sincronizações."
+      },
+      {
+        "id": "missing.cycleTime",
+        "group": "não calculado",
+        "text": "Cycle time não é calculado: A fonte não informa quando o trabalho começou."
+      },
+      {
+        "id": "missing.capacity",
+        "group": "não calculado",
+        "text": "Capacidade da equipe não é calculada: a fonte não informa quem trabalha em cada item."
+      }
+    ],
+    "saudavel": [
+      {
+        "id": "today",
+        "group": "contexto",
+        "text": "Hoje é 2026-11-10. Período dos indicadores: últimas 8 semanas."
+      },
+      {
+        "id": "src.1",
+        "group": "fontes",
+        "text": "Fonte github acme/app: última sincronização concluída, dados lidos em 2026-11-10."
+      },
+      {
+        "id": "flow.issues.items",
+        "group": "indicadores",
+        "text": "Issues: 52 itens sincronizados, 6 abertos."
+      },
+      {
+        "id": "flow.issues.wip",
+        "group": "indicadores",
+        "text": "Issues em andamento agora: 5."
+      },
+      {
+        "id": "flow.issues.throughput",
+        "group": "indicadores",
+        "text": "Issues entregues por semana, da mais antiga para a mais recente: 4, 5, 4, 5, 4, 5, 4, 5; total 36, média 4,5 por semana. Itens novos por semana: 4, 5, 4, 5, 4, 5, 4, 5."
+      },
+      {
+        "id": "flow.issues.blocked",
+        "group": "indicadores",
+        "text": "Issues abertos bloqueados: 0 (0 por vínculo, 0 por rótulo)."
+      },
+      {
+        "id": "runs.summary",
+        "group": "execuções",
+        "text": "Execuções do projeto nos últimos 28 dias: 4 (3 validações, 1 aplicação do Harness); 0 falharam, 0 terminaram com limitações, 0 foram revertidas ou desfeitas."
+      },
+      {
+        "id": "missing.cycleTime",
+        "group": "não calculado",
+        "text": "Cycle time não é calculado: A fonte não informa quando o trabalho começou."
+      }
+    ],
+    "sem-dados": [
+      {
+        "id": "today",
+        "group": "contexto",
+        "text": "Hoje é 2026-11-10. Período dos indicadores: últimas 8 semanas."
+      },
+      {
+        "id": "src.none",
+        "group": "fontes",
+        "text": "Nenhuma ferramenta vinculada ao projeto."
+      },
+      {
+        "id": "missing.throughput",
+        "group": "não calculado",
+        "text": "Vazão não é calculada: nenhuma fonte vinculada ao projeto."
+      }
+    ]
+  },
+  "cases": [
+    {
+      "id": "queda-de-vazao",
+      "scenario": "queda-de-vazao",
+      "question": "Por que a vazão caiu?",
+      "focus": [
+        "indicadores"
+      ],
+      "mustCite": [
+        "flow.issues.throughput",
+        "risk.blocked"
+      ],
+      "unanswerable": false,
+      "reference": [
+        {
+          "schema": "management.hypotheses.v1",
+          "hypotheses": [
+            {
+              "text": "A vazão caiu de 5 para 1 por semana.",
+              "evidence": [
+                "flow.issues.throughput"
+              ]
+            }
+          ],
+          "needs": [
+            "riscos",
+            "execuções"
+          ],
+          "searches": []
+        },
+        {
+          "schema": "management.hypotheses.v1",
+          "hypotheses": [
+            {
+              "text": "Itens bloqueados podem estar segurando a vazão.",
+              "evidence": [
+                "risk.blocked",
+                "runs.failed"
+              ]
+            }
+          ],
+          "needs": [],
+          "searches": []
+        },
+        {
+          "schema": "management.conclusion.v1",
+          "summary": {
+            "text": "A vazão caiu de 5 para 1 por semana enquanto 4 itens abertos estão bloqueados.",
+            "evidence": [
+              "flow.issues.throughput",
+              "risk.blocked"
+            ]
+          },
+          "observed": [
+            {
+              "text": "Issues entregues por semana: 5, 5, 4, 5, 4, 2, 1, 1.",
+              "evidence": [
+                "flow.issues.throughput"
+              ]
+            },
+            {
+              "text": "4 itens abertos estão bloqueados.",
+              "evidence": [
+                "risk.blocked"
+              ]
+            }
+          ],
+          "calculations": [
+            {
+              "text": "A média é de 3,38 entregas por semana.",
+              "evidence": [
+                "flow.issues.throughput"
+              ]
+            }
+          ],
+          "inferences": [
+            {
+              "text": "Os 4 itens bloqueados podem explicar a queda da vazão.",
+              "evidence": [
+                "risk.blocked",
+                "flow.issues.throughput"
+              ]
+            }
+          ],
+          "recommendations": [
+            {
+              "text": "Desbloquear os 4 itens abertos.",
+              "evidence": [
+                "risk.blocked"
+              ]
+            }
+          ],
+          "unavailable": []
+        }
+      ]
+    },
+    {
+      "id": "riscos-principais",
+      "scenario": "queda-de-vazao",
+      "question": "Quais são os principais riscos agora?",
+      "focus": [
+        "riscos"
+      ],
+      "mustCite": [
+        "risk.blocked",
+        "risk.aging"
+      ],
+      "unanswerable": false,
+      "reference": [
+        {
+          "schema": "management.hypotheses.v1",
+          "hypotheses": [
+            {
+              "text": "Há itens bloqueados e itens parados.",
+              "evidence": [
+                "risk.blocked",
+                "risk.aging"
+              ]
+            }
+          ],
+          "needs": [],
+          "searches": []
+        },
+        {
+          "schema": "management.conclusion.v1",
+          "summary": {
+            "text": "Há 4 itens bloqueados e 3 itens parados.",
+            "evidence": [
+              "risk.blocked",
+              "risk.aging"
+            ]
+          },
+          "observed": [
+            {
+              "text": "4 itens abertos estão bloqueados.",
+              "evidence": [
+                "risk.blocked"
+              ]
+            },
+            {
+              "text": "3 itens abertos estão sem atualização há mais de 14 dias.",
+              "evidence": [
+                "risk.aging"
+              ]
+            }
+          ],
+          "calculations": [],
+          "inferences": [],
+          "recommendations": [
+            {
+              "text": "Revisar primeiro os itens 12 e 21, que aparecem nos dois riscos.",
+              "evidence": [
+                "risk.blocked",
+                "risk.aging"
+              ]
+            }
+          ],
+          "unavailable": []
+        }
+      ]
+    },
+    {
+      "id": "prazo-do-marco",
+      "scenario": "queda-de-vazao",
+      "question": "O marco 1.0 termina no prazo?",
+      "focus": [
+        "previsão",
+        "marcos"
+      ],
+      "mustCite": [
+        "milestone.1",
+        "forecast.issues"
+      ],
+      "unanswerable": false,
+      "reference": [
+        {
+          "schema": "management.hypotheses.v1",
+          "hypotheses": [
+            {
+              "text": "A previsão provável passa do prazo do marco.",
+              "evidence": [
+                "milestone.1",
+                "forecast.issues"
+              ]
+            }
+          ],
+          "needs": [],
+          "searches": []
+        },
+        {
+          "schema": "management.conclusion.v1",
+          "summary": {
+            "text": "O marco 1.0 tem prazo em 2026-12-10, mas a previsão provável é 2026-12-15.",
+            "evidence": [
+              "milestone.1",
+              "forecast.issues"
+            ]
+          },
+          "observed": [
+            {
+              "text": "O marco 1.0 tem 14 itens abertos e 26 fechados.",
+              "evidence": [
+                "milestone.1"
+              ]
+            }
+          ],
+          "calculations": [
+            {
+              "text": "A previsão provável é para 2026-12-15, em 5 semanas.",
+              "evidence": [
+                "forecast.issues"
+              ]
+            }
+          ],
+          "inferences": [
+            {
+              "text": "O marco pode atrasar alguns dias.",
+              "evidence": [
+                "milestone.1",
+                "forecast.issues"
+              ]
+            }
+          ],
+          "recommendations": [],
+          "unavailable": []
+        }
+      ]
+    },
+    {
+      "id": "execucoes-que-falharam",
+      "scenario": "queda-de-vazao",
+      "question": "Por que as execuções falharam?",
+      "focus": [
+        "execuções"
+      ],
+      "mustCite": [
+        "runs.failed"
+      ],
+      "unanswerable": true,
+      "reference": [
+        {
+          "schema": "management.hypotheses.v1",
+          "hypotheses": [
+            {
+              "text": "Duas execuções falharam.",
+              "evidence": [
+                "runs.failed"
+              ]
+            }
+          ],
+          "needs": [],
+          "searches": []
+        },
+        {
+          "schema": "management.conclusion.v1",
+          "summary": {
+            "text": "Nos últimos 28 dias, 2 execuções falharam, ambas pedidos de engenharia.",
+            "evidence": [
+              "runs.failed",
+              "runs.summary"
+            ]
+          },
+          "observed": [
+            {
+              "text": "2 pedidos de engenharia falharam nos últimos 28 dias.",
+              "evidence": [
+                "runs.failed"
+              ]
+            }
+          ],
+          "calculations": [],
+          "inferences": [],
+          "recommendations": [],
+          "unavailable": [
+            {
+              "text": "Os fatos não dizem o motivo de cada falha."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "o-que-mudou",
+      "scenario": "queda-de-vazao",
+      "question": "O que mudou no projeto nas últimas semanas?",
+      "focus": [
+        "mudanças"
+      ],
+      "mustCite": [
+        "changes.summary"
+      ],
+      "unanswerable": false,
+      "reference": [
+        {
+          "schema": "management.hypotheses.v1",
+          "hypotheses": [
+            {
+              "text": "Houve mudanças de Harness, perfil e risco.",
+              "evidence": [
+                "changes.summary"
+              ]
+            }
+          ],
+          "needs": [],
+          "searches": []
+        },
+        {
+          "schema": "management.conclusion.v1",
+          "summary": {
+            "text": "Houve 1 revisão do Harness, 1 mudança do perfil, 2 mudanças de risco e 3 sincronizações em 28 dias.",
+            "evidence": [
+              "changes.summary"
+            ]
+          },
+          "observed": [
+            {
+              "text": "Em 28 dias houve 1 mudança do perfil e 2 mudanças de risco.",
+              "evidence": [
+                "changes.summary"
+              ]
+            }
+          ],
+          "calculations": [],
+          "inferences": [],
+          "recommendations": [],
+          "unavailable": []
+        }
+      ]
+    },
+    {
+      "id": "gargalo-do-fluxo",
+      "scenario": "queda-de-vazao",
+      "question": "Onde está o gargalo do fluxo?",
+      "focus": [
+        "indicadores",
+        "riscos"
+      ],
+      "mustCite": [
+        "flow.issues.wip",
+        "risk.blocked"
+      ],
+      "unanswerable": false,
+      "reference": [
+        {
+          "schema": "management.hypotheses.v1",
+          "hypotheses": [
+            {
+              "text": "Muito trabalho em andamento e itens bloqueados.",
+              "evidence": [
+                "flow.issues.wip",
+                "risk.blocked"
+              ]
+            }
+          ],
+          "needs": [],
+          "searches": []
+        },
+        {
+          "schema": "management.conclusion.v1",
+          "summary": {
+            "text": "Há 11 issues em andamento e 4 itens bloqueados.",
+            "evidence": [
+              "flow.issues.wip",
+              "risk.blocked"
+            ]
+          },
+          "observed": [
+            {
+              "text": "Issues em andamento agora: 11.",
+              "evidence": [
+                "flow.issues.wip"
+              ]
+            },
+            {
+              "text": "4 itens abertos estão bloqueados.",
+              "evidence": [
+                "risk.blocked"
+              ]
+            }
+          ],
+          "calculations": [],
+          "inferences": [
+            {
+              "text": "O excesso de itens em andamento pode indicar gargalo no desbloqueio.",
+              "evidence": [
+                "flow.issues.wip",
+                "risk.blocked"
+              ]
+            }
+          ],
+          "recommendations": [],
+          "unavailable": []
+        }
+      ]
+    },
+    {
+      "id": "cycle-time-nao-calculado",
+      "scenario": "queda-de-vazao",
+      "question": "Qual é o cycle time?",
+      "focus": [
+        "indicadores"
+      ],
+      "mustCite": [],
+      "unanswerable": true,
+      "reference": [
+        {
+          "schema": "management.hypotheses.v1",
+          "hypotheses": [
+            {
+              "text": "O cycle time não aparece nos fatos.",
+              "evidence": [
+                "missing.cycleTime"
+              ]
+            }
+          ],
+          "needs": [],
+          "searches": []
+        },
+        {
+          "schema": "management.conclusion.v1",
+          "summary": {
+            "text": "O cycle time não é calculado para esta fonte.",
+            "evidence": [
+              "missing.cycleTime"
+            ]
+          },
+          "observed": [],
+          "calculations": [],
+          "inferences": [],
+          "recommendations": [],
+          "unavailable": [
+            {
+              "text": "O cycle time não está disponível: a fonte não informa quando o trabalho começou."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mais-gente-resolve",
+      "scenario": "queda-de-vazao",
+      "question": "Adicionar mais pessoas resolveria o atraso?",
+      "focus": [
+        "previsão",
+        "riscos"
+      ],
+      "mustCite": [],
+      "unanswerable": true,
+      "reference": [
+        {
+          "schema": "management.hypotheses.v1",
+          "hypotheses": [
+            {
+              "text": "Os fatos não trazem capacidade.",
+              "evidence": [
+                "missing.capacity"
+              ]
+            }
+          ],
+          "needs": [],
+          "searches": []
+        },
+        {
+          "schema": "management.conclusion.v1",
+          "summary": {
+            "text": "Os fatos não trazem dados de capacidade da equipe.",
+            "evidence": [
+              "missing.capacity"
+            ]
+          },
+          "observed": [],
+          "calculations": [],
+          "inferences": [],
+          "recommendations": [],
+          "unavailable": [
+            {
+              "text": "Não há como estimar o efeito de mais pessoas: a capacidade da equipe não é calculada."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ritmo-estavel",
+      "scenario": "saudavel",
+      "question": "O ritmo de entrega está estável?",
+      "focus": [
+        "indicadores"
+      ],
+      "mustCite": [
+        "flow.issues.throughput"
+      ],
+      "unanswerable": false,
+      "reference": [
+        {
+          "schema": "management.hypotheses.v1",
+          "hypotheses": [
+            {
+              "text": "O ritmo está estável.",
+              "evidence": [
+                "flow.issues.throughput"
+              ]
+            }
+          ],
+          "needs": [],
+          "searches": []
+        },
+        {
+          "schema": "management.conclusion.v1",
+          "summary": {
+            "text": "O ritmo é estável: média de 4,5 entregas por semana.",
+            "evidence": [
+              "flow.issues.throughput"
+            ]
+          },
+          "observed": [
+            {
+              "text": "Issues entregues por semana: 4, 5, 4, 5, 4, 5, 4, 5.",
+              "evidence": [
+                "flow.issues.throughput"
+              ]
+            }
+          ],
+          "calculations": [
+            {
+              "text": "A média é de 4,5 entregas por semana.",
+              "evidence": [
+                "flow.issues.throughput"
+              ]
+            }
+          ],
+          "inferences": [],
+          "recommendations": [],
+          "unavailable": []
+        }
+      ]
+    },
+    {
+      "id": "projeto-sem-dados",
+      "scenario": "sem-dados",
+      "question": "Como está o fluxo de entrega?",
+      "focus": [
+        "contexto",
+        "fontes",
+        "não calculado"
+      ],
+      "mustCite": [],
+      "unanswerable": true,
+      "reference": [
+        {
+          "schema": "management.hypotheses.v1",
+          "hypotheses": [
+            {
+              "text": "Não há fonte vinculada.",
+              "evidence": [
+                "src.none"
+              ]
+            }
+          ],
+          "needs": [],
+          "searches": []
+        },
+        {
+          "schema": "management.conclusion.v1",
+          "summary": {
+            "text": "Não há fonte vinculada, então não há como descrever o fluxo.",
+            "evidence": [
+              "src.none"
+            ]
+          },
+          "observed": [],
+          "calculations": [],
+          "inferences": [],
+          "recommendations": [],
+          "unavailable": [
+            {
+              "text": "Sem ferramenta vinculada ao projeto, nenhum indicador de fluxo é calculado."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

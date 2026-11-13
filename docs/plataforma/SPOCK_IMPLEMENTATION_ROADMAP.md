@@ -903,3 +903,24 @@ Decisão que merece a sua conferência: **não há interruptor**. A decisão é 
 | Testes | 12 novos em Python (contrato da memória, buscas, o laço completo, item externo hostil, sem memória o pedido nem oferece a busca, tetos, consulta fora do caminho, revogação, isolamento entre projetos) e 7 no motor, entre eles **um com o Python de verdade e um modelo roteirizado**, que percorre frame, gather, hypothesize, decide, retrieve, hypothesize, decide, conclude e confere a citação |
 
 Limites: o laço só foi provado com modelo **falso ou roteirizado**; se o modelo real propõe boas buscas, se para no teto e se a memória ajuda de fato a resposta, isso depende de rodar com a OpenAI ou a Anthropic. A busca é lexical (sem embeddings): a pergunta precisa de palavras em comum com a decisão. O trecho recuperado é um recorte de cerca de 160 caracteres. A memória de **itens externos** só tem texto se a política da integração estiver aberta.
+
+**Sétima entrega da fase G: evals de gestão.** Dez perguntas reais de gestão com um pontuador que não depende de quem escreveu a resposta, e um caminho para rodá-las com modelo real.
+
+| Feito | Observação |
+| --- | --- |
+| Dataset `management.eval.v1` | `intelligence/evaluations/datasets/management.json`: três cenários de fatos do motor (queda de vazão, projeto saudável, projeto sem dados) e dez perguntas: "Por que a vazão caiu?", "Quais são os principais riscos agora?", "O marco 1.0 termina no prazo?", "Por que as execuções falharam?", "O que mudou...?", "Onde está o gargalo do fluxo?", "O ritmo de entrega está estável?", e três que **os fatos não respondem** (cycle time não calculado, "adicionar mais pessoas resolveria o atraso?", projeto sem ferramenta vinculada). Cada caso diz por onde a investigação deve começar, quais fatos uma boa resposta cita e se a pergunta é respondível |
+| Quatro métricas | **Enquadramento** (o primeiro olhar cobre os grupos que a pergunta pede), **ancoragem** (cada afirmação cita fatos que a investigação consultou e só traz números que eles têm, a mesma regra do conferente do motor), **cobertura** (cita os fatos essenciais) e **abstenção** (sem o que a pergunta pede nos fatos, diz que está indisponível e não inventa cálculo, inferência nem recomendação). Investigação que falhou, ou caso sem resultado, pontua zero no que depende da resposta |
+| Mínimos | No dataset: enquadramento 1,0, ancoragem 0,95, cobertura 0,6, abstenção 1,0. Uma rodada que fica abaixo de qualquer um não passa |
+| O pontuador pega o erro | Controles negativos plantam cada defeito (número inventado, afirmação sem citação, fato que existe mas não foi consultado, fato essencial ausente, inferência inventada onde os fatos não têm, "indisponível" omitido, lugar errado, falha) e conferem que a nota certa cai. A resposta de **referência** de cada caso pontua 1,0 em tudo; **sem modelo** o enquadramento, a ancoragem e a abstenção valem 1,0 e a cobertura fica abaixo do mínimo (o que o modelo acrescenta) |
+| Com modelo real | `ManagementEvalLiveTests` (motor) roda cada pergunta pelo workflow de verdade (runtime Python, proxy do motor, provedor real) e grava `management-eval-{provedor}.json`; o pontuador o avalia: `python intelligence/evaluations/management.py score <arquivo>` (sai com 0 se passou, 1 se não). Só roda com `MARILIZ_LIVE_OPENAI_KEY` ou `MARILIZ_LIVE_ANTHROPIC_KEY` no **seu** terminal; sem elas aparece como ignorado. A chave não vai a arquivo, conversa nem relatório (o teste confere que não está no arquivo de resultados). `MARILIZ_LIVE_EVAL_OUT` escolhe a pasta |
+| Testes | 18 em Python (dataset, números, referência, sem modelo, nove controles negativos, o pontuador de arquivo) e 1 no motor que percorre **todo o caminho sem rede**: o harness roda as dez perguntas com um provedor roteirizado pelo runtime Python de verdade, grava o arquivo e o pontuador Python o aprova |
+
+Limites: a rodada com modelo real **nunca foi feita**, então os mínimos (em especial a ancoragem 0,95 e a cobertura 0,6) são hipóteses a calibrar com o primeiro resultado. O dataset é sintético: os cenários imitam o texto dos fatos do motor, mas não saem de um projeto real. Dez perguntas medem comportamento, não dão significância estatística; a nota por caso (e não só a média) é o que se olha. A abstenção mede só o que o pontuador consegue ver (seções vazias e "indisponível"), não o sentido da frase.
+
+Para rodar com modelo real, no seu terminal:
+
+```
+$env:MARILIZ_LIVE_OPENAI_KEY = "sua-chave"
+dotnet test runtime/tests/Mariliz.Application.Tests --filter "FullyQualifiedName~Evals_de_gestao_com_a_OpenAI" --logger "console;verbosity=detailed"
+python intelligence/evaluations/management.py score "<arquivo que o teste imprimiu>"
+```
