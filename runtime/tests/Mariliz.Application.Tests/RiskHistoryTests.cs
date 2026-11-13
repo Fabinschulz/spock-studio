@@ -324,6 +324,72 @@ public class RiskHistoryTests
         Assert.Equal("sync.finished", h.Events.Last().Type);
     }
 
+    [Fact]
+    public async Task Falha_ao_registrar_o_fim_da_sincronizacao_nao_deixa_a_interface_sem_o_aviso_de_fim()
+    {
+        using var h = new IntegrationHarness();
+        h.GitHub.Issues.Add(FakeGitHub.Issue(1, "2026-10-30T10:00:00Z"));
+        var link = await h.LinkGitHubAsync(DataKinds.Issues);
+        h.Audit.FailOnAction = "integration.synced";
+
+        // O desfecho já foi gravado: a falha no registro de trilha não pode desfazê-lo nem silenciar o aviso.
+        var run = await h.SyncAsync(link);
+
+        Assert.Equal(SyncStatus.Succeeded, run.Status);
+        Assert.False(h.Hub.Activity.IsRunning(link.Id));
+        Assert.Equal("sync.finished", h.Events.Last().Type);
+        var failed = Assert.Single(h.Audit.Entries, entry => entry.Action == "integration.sync_bookkeeping_failed");
+        Assert.Contains("IOException", failed.Detail);
+    }
+
+    private sealed class FinishesDuringReadStore(ISyncedDataStore inner, Action afterRead) : ISyncedDataStore
+    {
+        private bool _fired;
+
+        public SyncedData Read(string projectId, string integrationId)
+        {
+            var snapshot = inner.Read(projectId, integrationId);
+            if (!_fired)
+            {
+                _fired = true;
+                afterRead();
+            }
+            return snapshot;
+        }
+
+        public void Write(string projectId, string integrationId, SyncedData data) => inner.Write(projectId, integrationId, data);
+        public void Delete(string projectId, string integrationId) => inner.Delete(projectId, integrationId);
+    }
+
+    [Fact]
+    public async Task Uma_sincronizacao_que_termina_enquanto_o_historico_e_lido_nao_vira_interrompida()
+    {
+        using var h = new IntegrationHarness();
+        var link = await h.LinkGitHubAsync(DataKinds.Issues);
+        var disk = new FileSyncedDataStore(h.DataDir);
+        var running = new SyncExecution("sync-0000000000aa", h.Clock.UtcNow, null, SyncStatus.Running, false, 0, 0, 0, 0, 0, null);
+        var seed = new SyncedData();
+        seed.Record(running);
+        disk.Write(link.ProjectId, link.Id, seed);
+        Assert.True(h.Hub.Activity.TryBegin(link.Id, running.Id));
+
+        // Entre ler o arquivo e perguntar quem está rodando, a sincronização termina: grava o desfecho e libera a integração.
+        var racing = new FinishesDuringReadStore(disk, () =>
+        {
+            var done = disk.Read(link.ProjectId, link.Id);
+            done.Record(running with { Status = SyncStatus.Succeeded, FinishedAt = h.Clock.UtcNow, Fetched = 1, Created = 1, Pages = 1 });
+            disk.Write(link.ProjectId, link.Id, done);
+            h.Hub.Activity.End(link.Id);
+        });
+        var sync = new SyncService(h.Hub.Projects, h.Hub.Connections, h.Hub.Connectors, racing, h.Hub.Activity, h.Clock, h.Audit);
+
+        sync.History(link.ProjectId, link.Id);
+
+        var final = Assert.Single(disk.Read(link.ProjectId, link.Id).History);
+        Assert.Equal(SyncStatus.Succeeded, final.Status);
+        Assert.Null(final.Error);
+    }
+
     // ------------------------------------------------------------------ Arquivo
 
     [Fact]

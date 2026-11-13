@@ -17,17 +17,8 @@ public sealed class FileSyncedDataStore(string dataRoot) : ISyncedDataStore
         var path = IntegrationPaths.SyncedData(dataRoot, projectId, integrationId);
         lock (Gate(path))
         {
-            if (!File.Exists(path)) return new SyncedData();
-            try
-            {
-                return JsonSerializer.Deserialize<SyncedData>(File.ReadAllText(path), IntegrationJson.Options) is { Items: not null, History: not null } data
-                    ? data
-                    : new SyncedData();
-            }
-            catch (Exception ex) when (ex is JsonException or IOException)
-            {
-                return new SyncedData();
-            }
+            return AtomicFile.ReadJson<SyncedData>(path, IntegrationJson.Options, data => data is { Items: not null, History: not null })
+                ?? new SyncedData();
         }
     }
 

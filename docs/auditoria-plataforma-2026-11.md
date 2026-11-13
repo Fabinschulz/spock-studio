@@ -143,7 +143,8 @@ Ordem: 7a primeiro (são defeitos, não estilo). 7c antes de 7d (muda o dispatch
 | Onda | Itens | Estado |
 |---|---|---|
 | 7a | CT-N1, PY-N1, NET-M11, NET-M1 (parcial), NET-E4 + RS-N1, NET-E14 | Neste PR |
-| 7b–7g | — | Não iniciadas |
+| 7b | NET-E2, NET-E3, NET-E5 (permissão), NET-E11 | Neste PR (empilhado sobre a 7a) |
+| 7c–7g | — | Não iniciadas |
 
 **Decisões de escopo da 7a**
 - CT-N1: quando a volta pede grupos e busca juntos e só cabe uma rodada, a investigação **para** e registra `INVESTIGATION_STOPPED` (em vez de escolher um dos dois pedidos). Teste compara o ack com os `maximum` do schema. O `Math.Clamp` do .NET em `InvestigationService` continua (defesa na borda, NET-M2 trata do ack tipado).
@@ -153,3 +154,11 @@ Ordem: 7a primeiro (são defeitos, não estilo). 7c antes de 7d (muda o dispatch
 - NET-E4 + RS-N1: hierarquia **120 s (runtime de IA, `RuntimeBudgetMilliseconds`) < 150 s (prazo do motor) < 180 s (host, só `management.investigate`)**. O transporte do modelo deixa de ter prazo próprio (o `ModelGateway` já põe um em cada operação). Os outros métodos seguem com 120 s no host.
 - NET-E14: `RunQueries` exige o `RunCatalog`; a checagem de autorização não é mais opcional. Três testes passaram a construir o catálogo.
 - Gates da onda: .NET 1066 passam (11 ignorados), 0 avisos; Rust fmt/clippy limpos e 24 testes; Python 169 testes e ruff limpo. UI não foi tocada.
+
+**Decisões de escopo da 7b**
+- NET-E2: `AtomicFile.ReadJson` é o ponto único de leitura dos stores de conexões, dados sincronizados, histórico de risco (e o registro de workspaces, que usa `AtomicFile.Quarantine`). `IOException` (arquivo travado) **sobe**; JSON inválido ou fora da forma vai para `<arquivo>.corrupt-<data>` e conta como vazio. Consequência visível: uma trava passageira agora aparece como "Falha interna (IOException)" em vez de lista vazia; repetir resolve e nada é apagado.
+- NET-E3: `FileRunStore` ganhou um gate por arquivo (mesmo padrão dos outros stores) e escreve por `AtomicFile`. O teste de leitura/escrita simultânea do diário **falhou no código antigo** no Windows.
+- NET-E5: só a **permissão** (`model.json` nasce 0600 no Linux/macOS). O fallback em texto puro continua: é decisão do dono (seção 6). O teste é `[UnixFact]` e **não rodou aqui** (Windows): fica ignorado, e a CI em Linux/macOS é quem o executa.
+- NET-E11: `Reconciled` pergunta quem está rodando antes de ler o arquivo (antes, uma sincronização que terminava no meio tinha o desfecho e os itens sobrescritos por `SYNC_INTERRUPTED`); o pós-processamento (resumo da conexão, trilha, ouvintes) falha isolado e o aviso `sync.finished` sai sempre. Resta uma janela teórica (outra sincronização começar entre as duas leituras), que só existe se os handlers rodarem em paralelo: reavaliar na 7c.
+- **Não feito:** NET-E16 (`FileAuditLog.ReadAll` carrega o arquivo todo sob o gate de escrita; precisa ler só o rabo e manter a numeração por linha). Fica para a 7d/7g.
+- Gates da 7b: .NET 1077 passam (12 ignorados), 0 avisos. Rust, Python e UI não foram tocados.

@@ -158,12 +158,28 @@ public sealed class SyncService(
             // Mesmo que o disco falhe ao gravar o desfecho, a integração não fica presa como "sincronizando".
             activity.End(integration.Id);
         }
-        connections.RecordSync(integration.ConnectionId, execution.FinishedAt!.Value, execution.Error);
-        Audit(integration, execution);
-        // Por último: quem ouve o fim da sincronização já encontra a conexão e a trilha atualizadas.
-        NotifyFinished(integration, execution);
+        FinishBookkeeping(integration, execution);
         Publish(integration, execution, FinishedEvent, ++seq);
         return execution;
+    }
+
+    /// <summary>
+    /// O que vem depois de a sincronização estar gravada: o resumo na conexão, a trilha e quem ouve o fim. Uma falha aqui (um arquivo
+    /// travado, por exemplo) não desfaz a sincronização e não pode calar o aviso de fim: sem ele a interface espera para sempre.
+    /// </summary>
+    private void FinishBookkeeping(ProjectIntegration integration, SyncExecution execution)
+    {
+        try
+        {
+            connections.RecordSync(integration.ConnectionId, execution.FinishedAt!.Value, execution.Error);
+            Audit(integration, execution);
+            // Por último: quem ouve o fim da sincronização já encontra a conexão e a trilha atualizadas.
+            NotifyFinished(integration, execution);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            audit.Record("integration.sync_bookkeeping_failed", new JsonObject { ["integrationId"] = integration.Id, ["error"] = ex.GetType().Name });
+        }
     }
 
     private void NotifyFinished(ProjectIntegration integration, SyncExecution execution)
@@ -245,8 +261,10 @@ public sealed class SyncService(
     /// </summary>
     private SyncedData Reconciled(ProjectIntegration integration)
     {
-        var synced = data.Read(integration.ProjectId, integration.Id);
+        // Quem está rodando é perguntado ANTES de ler o arquivo: se a sincronização terminar no meio, o arquivo já traz o desfecho dela.
+        // Na ordem inversa, o "em andamento" lido antes de terminar pareceria abandonado e a gravação apagaria o resultado.
         var running = activity.RunningSync(integration.Id);
+        var synced = data.Read(integration.ProjectId, integration.Id);
         var stale = synced.History.Where(e => e.Status == SyncStatus.Running && e.Id != running).ToList();
         if (stale.Count == 0) return synced;
 

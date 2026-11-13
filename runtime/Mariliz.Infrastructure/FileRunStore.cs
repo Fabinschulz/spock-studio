@@ -1,7 +1,9 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
 using Mariliz.Core.Text;
+using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Infrastructure;
 
@@ -9,6 +11,7 @@ namespace Mariliz.Infrastructure;
 public sealed class FileRunStore(string dataRoot) : IRunStore, IRunLinkStore
 {
     private readonly object _events = new();
+    private readonly ConcurrentDictionary<string, object> _gates = new(StringComparer.Ordinal);
 
     public static string DefaultDataRoot()
     {
@@ -29,20 +32,19 @@ public sealed class FileRunStore(string dataRoot) : IRunStore, IRunLinkStore
 
     public void SaveJournal(RunJournal journal)
     {
-        var dir = RunDir(journal.ProjectId, journal.RunId);
-        Directory.CreateDirectory(dir);
-        var path = Path.Combine(dir, "journal.json");
-        var temp = path + ".tmp";
-        File.WriteAllText(temp, JsonSerializer.Serialize(journal, JournalJson.Options));
-        File.Move(temp, path, overwrite: true);
+        var path = Path.Combine(RunDir(journal.ProjectId, journal.RunId), "journal.json");
+        lock (Gate(path)) AtomicFile.Write(path, JsonSerializer.Serialize(journal, JournalJson.Options));
     }
 
     public RunJournal? LoadJournal(string projectId, string runId)
     {
         var path = Path.Combine(RunDir(projectId, runId), "journal.json");
-        if (!File.Exists(path)) return null;
-        try { return JsonSerializer.Deserialize<RunJournal>(File.ReadAllText(path), JournalJson.Options); }
-        catch (JsonException) { return null; }
+        lock (Gate(path))
+        {
+            if (!File.Exists(path)) return null;
+            try { return JsonSerializer.Deserialize<RunJournal>(File.ReadAllText(path), JournalJson.Options); }
+            catch (JsonException) { return null; }
+        }
     }
 
     public IReadOnlyList<RunJournal> ListJournals(string projectId)
@@ -66,9 +68,12 @@ public sealed class FileRunStore(string dataRoot) : IRunStore, IRunLinkStore
     public IReadOnlyList<RunLink> LoadLinks(string projectId, string runId)
     {
         var path = Path.Combine(RunDir(projectId, runId), "links.json");
-        if (!File.Exists(path)) return [];
-        try { return JsonSerializer.Deserialize<List<RunLink>>(File.ReadAllText(path), JournalJson.Options) ?? []; }
-        catch (JsonException) { return []; }
+        lock (Gate(path))
+        {
+            if (!File.Exists(path)) return [];
+            try { return JsonSerializer.Deserialize<List<RunLink>>(File.ReadAllText(path), JournalJson.Options) ?? []; }
+            catch (JsonException) { return []; }
+        }
     }
 
     public IReadOnlyList<(string RunId, IReadOnlyList<RunLink> Links)> ListLinked(string projectId)
@@ -90,12 +95,8 @@ public sealed class FileRunStore(string dataRoot) : IRunStore, IRunLinkStore
 
     public void SaveLinks(string projectId, string runId, IReadOnlyList<RunLink> links)
     {
-        var dir = RunDir(projectId, runId);
-        Directory.CreateDirectory(dir);
-        var path = Path.Combine(dir, "links.json");
-        var temp = path + ".tmp";
-        File.WriteAllText(temp, JsonSerializer.Serialize(links, JournalJson.Options));
-        File.Move(temp, path, overwrite: true);
+        var path = Path.Combine(RunDir(projectId, runId), "links.json");
+        lock (Gate(path)) AtomicFile.Write(path, JsonSerializer.Serialize(links, JournalJson.Options));
     }
 
     public void SaveBackup(string projectId, string runId, string relativePath, byte[] content)
@@ -140,6 +141,9 @@ public sealed class FileRunStore(string dataRoot) : IRunStore, IRunLinkStore
         }
         return events;
     }
+
+    /// <summary>Um gate por arquivo: ler e trocar o mesmo arquivo ao mesmo tempo (o Windows recusa a troca sob leitura) não acontece.</summary>
+    private object Gate(string path) => _gates.GetOrAdd(path, _ => new object());
 
     private static string BackupName(string relativePath) => Hashing.Sha256(relativePath) + ".bin";
 

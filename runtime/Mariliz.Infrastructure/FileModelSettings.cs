@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
@@ -37,9 +38,21 @@ public sealed class FileModelSettings(string dataRoot) : IModelSettings
         {
             Directory.CreateDirectory(dataRoot);
             var temp = FilePath + ".tmp";
-            File.WriteAllText(temp, new JsonObject { ["provider"] = provider, ["key"] = key }.ToJsonString());
+            // A chave está em texto puro: no Linux e no macOS só o dono lê (a máscara padrão deixaria 0644). No Windows o modo é ignorado.
+            File.Delete(temp);
+            using (var stream = new FileStream(temp, OwnerOnlyNewFile()))
+            {
+                stream.Write(new UTF8Encoding(false).GetBytes(new JsonObject { ["provider"] = provider, ["key"] = key }.ToJsonString()));
+            }
             File.Move(temp, FilePath, overwrite: true);
         }
+    }
+
+    private static FileStreamOptions OwnerOnlyNewFile()
+    {
+        var options = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write };
+        if (!OperatingSystem.IsWindows()) options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+        return options;
     }
 
     public void Clear()
