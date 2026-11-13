@@ -18,6 +18,8 @@ _EXECUTION_ID = re.compile(r"^ex-[0-9a-f]{12}$")
 _PROJECT_ID = re.compile(r"^p-[0-9a-f]{12}$")
 _FACT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$")
 _LIMITS = ("maxIterations", "maxMilliseconds", "maxTokens")
+_MEMORY_PATH = re.compile(r"^@(decision|external)/[A-Za-z0-9._:/-]{1,200}$")
+_HASH = re.compile(r"^[0-9a-f]{64}$")
 
 MIN_QUESTION = 3
 MAX_QUESTION = 500
@@ -28,6 +30,11 @@ MAX_CLAIM = 400
 MAX_PER_SECTION = 6
 MAX_HYPOTHESES = 4
 MAX_NEEDS = 4
+MAX_QUERY = 120
+MAX_SEARCHES_PER_ROUND = 2
+MAX_SEARCHES = 4
+MAX_MEMORY_DOCUMENTS = 1200
+MAX_MEMORY_TEXT = 4000
 
 SECTIONS = ("observed", "calculations", "inferences", "recommendations")
 INVESTIGATION_SCHEMA = "ai.investigation.ack.v1"
@@ -43,6 +50,14 @@ class Fact:
 
 
 @dataclass(frozen=True)
+class Memory:
+    """A memória do projeto para as buscas: um índice só dela (``root``) e os documentos que o motor autorizou a entrar nele."""
+
+    root: str
+    documents: list[dict]
+
+
+@dataclass(frozen=True)
 class InvestigationRequest:
     investigation_id: str
     execution_id: str
@@ -55,6 +70,7 @@ class InvestigationRequest:
     model_allowed: bool = False
     broker_url: str = field(default="", repr=False)
     broker_token: str = field(default="", repr=False)
+    memory: Memory | None = None
 
     @property
     def groups(self) -> list[str]:
@@ -88,7 +104,36 @@ def parse_investigation(payload: object) -> InvestigationRequest:
         model_allowed=policy["modelAllowed"],
         broker_url=broker_url,
         broker_token=broker_token,
+        memory=_memory(body.get("memory")),
     )
+
+
+def _memory(value: object) -> Memory | None:
+    """
+    A memória é opcional. Só entram decisões registradas e itens externos que o motor autorizou (os dois prefixos reservados),
+    num índice à parte do de engenharia: arquivo do projeto nunca passa por aqui.
+    """
+    if value is None:
+        return None
+    body = _object(value, "memory")
+    root, documents = body.get("root"), body.get("documents")
+    if not isinstance(root, str) or not 0 < len(root) <= 500 or "\0" in root:
+        raise ContractError("memory")
+    if not isinstance(documents, list) or len(documents) > MAX_MEMORY_DOCUMENTS:
+        raise ContractError("memory")
+    accepted: list[dict] = []
+    seen: set[str] = set()
+    for item in documents:
+        if not isinstance(item, dict):
+            raise ContractError("memory")
+        path, digest, text = item.get("path"), item.get("hash"), item.get("text")
+        if not isinstance(path, str) or not _MEMORY_PATH.match(path) or ".." in path.split("/") or path in seen:
+            raise ContractError("memory")
+        if not isinstance(digest, str) or not _HASH.match(digest) or not isinstance(text, str) or not 0 < len(text) <= MAX_MEMORY_TEXT:
+            raise ContractError("memory")
+        seen.add(path)
+        accepted.append({"path": path, "hash": digest, "text": text})
+    return Memory(root, accepted)
 
 
 def _facts(value: object) -> list[Fact]:
@@ -109,11 +154,12 @@ def _facts(value: object) -> list[Fact]:
     return facts
 
 
-def hypotheses_from_model(document: dict, known: set[str], groups: set[str]) -> dict:
+def hypotheses_from_model(document: dict, known: set[str], groups: set[str], can_search: bool = False, searched: tuple[str, ...] = ()) -> dict:
     """
     As hipóteses de uma rodada. Cada uma precisa citar fatos que já foram reunidos (citar um id que o modelo não viu é
     inventar). ``needs`` são os grupos de fatos que ele quer ver a seguir; o que não é um grupo conhecido é descartado
-    sem recusar a resposta, porque um pedido a mais não é um fato inventado.
+    sem recusar a resposta, porque um pedido a mais não é um fato inventado. ``searches`` são buscas curtas na memória do projeto
+    (só valem quando há memória): até duas por rodada, sem repetir uma já feita.
     """
     raw = document.get("hypotheses")
     if not isinstance(raw, list) or len(raw) > MAX_HYPOTHESES:
@@ -128,7 +174,22 @@ def hypotheses_from_model(document: dict, known: set[str], groups: set[str]) -> 
     if not isinstance(needs, list):
         raise Rejected("'needs' precisa ser uma lista de nomes de grupos de fatos.")
     wanted = [name for name in dict.fromkeys(needs) if isinstance(name, str) and name in groups][:MAX_NEEDS]
-    return {"schema": HYPOTHESES_SCHEMA, "hypotheses": hypotheses, "needs": wanted}
+    return {"schema": HYPOTHESES_SCHEMA, "hypotheses": hypotheses, "needs": wanted, "searches": _searches(document.get("searches"), can_search, searched)}
+
+
+def _searches(value: object, can_search: bool, searched: tuple[str, ...]) -> list[str]:
+    """Buscas curtas, sem repetir uma já feita. Sem memória, ou fora da forma, viram nada: pedir uma busca a mais não derruba a resposta."""
+    if not can_search or not isinstance(value, list):
+        return []
+    done = {query.casefold() for query in searched}
+    queries: list[str] = []
+    for item in value:
+        if not isinstance(item, str):
+            continue
+        query = " ".join(item.split())[:MAX_QUERY]
+        if len(query) >= 3 and query.casefold() not in done and query.casefold() not in {q.casefold() for q in queries}:
+            queries.append(query)
+    return queries[:MAX_SEARCHES_PER_ROUND]
 
 
 def conclusion_from_model(document: dict, known: set[str]) -> dict:

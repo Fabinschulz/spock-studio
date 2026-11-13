@@ -76,15 +76,15 @@
     {
       "id": "hypothesize",
       "title": "Hipóteses (rodada 1)",
-      "detail": "1 hipótese; pede: riscos, execuções.",
+      "detail": "1 hipótese; pede: fatos de riscos, execuções.",
       "round": 1,
       "groups": [],
       "facts": []
     },
     {
       "id": "decide",
-      "title": "Decisão: reunir mais fatos",
-      "detail": "Pede: riscos, execuções.",
+      "title": "Decisão: olhar mais",
+      "detail": "Pede: fatos de riscos, execuções.",
       "round": 1,
       "groups": [
         "riscos",
@@ -118,7 +118,7 @@
     {
       "id": "decide",
       "title": "Decisão: concluir",
-      "detail": "Os fatos reunidos bastam: nenhum outro grupo foi pedido.",
+      "detail": "Os fatos reunidos bastam: nada mais foi pedido.",
       "round": 2,
       "groups": [],
       "facts": []
@@ -141,6 +141,7 @@
     "risk.aging",
     "run.failed"
   ],
+  "retrieved": [],
   "limitations": [],
   "rounds": 2,
   "usage": {

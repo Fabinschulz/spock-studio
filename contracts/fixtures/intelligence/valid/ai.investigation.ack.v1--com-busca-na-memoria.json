@@ -1,0 +1,145 @@
+{
+  "schema": "ai.investigation.ack.v1",
+  "investigationId": "inv-aaaaaaaaaaaa",
+  "executionId": "ex-bbbbbbbbbbbb",
+  "projectId": "p-cccccccccccc",
+  "status": "completed",
+  "answer": {
+    "summary": {
+      "text": "A queda tem relação com um adiamento decidido.",
+      "evidence": [
+        "flow.throughput",
+        "memory.1"
+      ]
+    },
+    "observed": [
+      {
+        "text": "A equipe decidiu adiar a migração.",
+        "evidence": [
+          "memory.1"
+        ]
+      }
+    ],
+    "calculations": [],
+    "inferences": [
+      {
+        "text": "Os 9 itens em andamento podem indicar sobrecarga.",
+        "evidence": [
+          "flow.wip"
+        ]
+      }
+    ],
+    "recommendations": [],
+    "unavailable": [
+      {
+        "text": "Os fatos não dizem o motivo dos bloqueios."
+      }
+    ]
+  },
+  "rejected": [],
+  "path": [
+    {
+      "id": "frame",
+      "title": "Pergunta enquadrada",
+      "detail": "Começa por: contexto, fontes, indicadores.",
+      "round": 0,
+      "groups": [
+        "contexto",
+        "fontes",
+        "indicadores"
+      ],
+      "facts": []
+    },
+    {
+      "id": "gather",
+      "title": "Fatos reunidos (rodada 1)",
+      "detail": "Grupos: contexto, fontes, indicadores; 4 fatos.",
+      "round": 1,
+      "groups": [
+        "contexto",
+        "fontes",
+        "indicadores"
+      ],
+      "facts": [
+        "today",
+        "src.1",
+        "flow.throughput",
+        "flow.wip"
+      ]
+    },
+    {
+      "id": "hypothesize",
+      "title": "Hipóteses (rodada 1)",
+      "detail": "1 hipótese; pede: 1 busca na memória.",
+      "round": 1,
+      "groups": [],
+      "facts": []
+    },
+    {
+      "id": "decide",
+      "title": "Decisão: olhar mais",
+      "detail": "Pede: 1 busca na memória.",
+      "round": 1,
+      "groups": [],
+      "facts": []
+    },
+    {
+      "id": "retrieve",
+      "title": "Memória do projeto consultada (rodada 2)",
+      "detail": "1 busca; 1 trecho.",
+      "round": 2,
+      "groups": [
+        "memória"
+      ],
+      "facts": [
+        "memory.1"
+      ]
+    },
+    {
+      "id": "hypothesize",
+      "title": "Hipóteses (rodada 2)",
+      "detail": "1 hipótese; não pede mais fatos.",
+      "round": 2,
+      "groups": [],
+      "facts": []
+    },
+    {
+      "id": "decide",
+      "title": "Decisão: concluir",
+      "detail": "Os fatos reunidos bastam: nada mais foi pedido.",
+      "round": 2,
+      "groups": [],
+      "facts": []
+    },
+    {
+      "id": "conclude",
+      "title": "Conclusão",
+      "detail": "Escrita pelo modelo, a conferir pelo motor.",
+      "round": 0,
+      "groups": [],
+      "facts": []
+    }
+  ],
+  "consulted": [
+    "today",
+    "src.1",
+    "flow.throughput",
+    "flow.wip",
+    "memory.1"
+  ],
+  "retrieved": [
+    {
+      "id": "memory.1",
+      "path": "@decision/dec-000000000001.md",
+      "chunkId": "@decision/dec-000000000001.md#h:decisao-registrada-adiar-a-migracao-do-faturamento"
+    }
+  ],
+  "limitations": [],
+  "rounds": 2,
+  "usage": {
+    "modelCalls": 3,
+    "inputTokens": 300,
+    "outputTokens": 150,
+    "tokens": 450
+  }
+}

@@ -7,15 +7,21 @@ registra como caminho da investigação. Texto de fato e texto de hipótese não
 from __future__ import annotations
 
 import unicodedata
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable
 
 from agents import investigation as agent
-from contracts.investigation import Fact, InvestigationRequest
+from agents import prompts
+from contracts.investigation import MAX_SEARCHES, Fact, InvestigationRequest
+from knowledge import retrieval
+from knowledge.index import KnowledgeError, sync
 from workflows.engineering.budget import model_call
 from workflows.engineering.state import Segment, limit
 
-MAX_ROUNDS = 3
+# Uma rodada é um olhar: reunir fatos do motor ou buscar na memória do projeto.
+MAX_ROUNDS = 4
+MAX_HITS = 3
+MEMORY_GROUP = "memória"
 MAX_GATHERED = 120
 MAX_DETERMINISTIC_SIGNS = 6
 # Os grupos que dão o chão da resposta (a data de hoje, o período, a frescura dos dados) entram sempre.
@@ -44,10 +50,17 @@ class Run:
 
     request: InvestigationRequest
     segment: Segment
+    # Os trechos que as buscas trouxeram viram fatos citáveis (``memory.N``); o motor confere cada um contra o documento dele.
+    found: dict[str, Fact] = field(default_factory=dict)
+    synced: bool = False
 
     @property
     def facts(self) -> dict[str, Fact]:
-        return {fact.id: fact for fact in self.request.facts}
+        return {**{fact.id: fact for fact in self.request.facts}, **self.found}
+
+    @property
+    def can_search(self) -> bool:
+        return self.request.memory is not None and bool(self.request.memory.documents)
 
 
 def plain(text: str) -> str:
@@ -98,23 +111,30 @@ def hypothesize(state: dict, run: Run) -> dict:
     facts = run.facts
     gathered = [facts[fact_id] for fact_id in state["gathered"]]
 
+    state["searches"] = []
+    searched = tuple(state.get("searched") or [])
+    can_search = run.can_search and len(searched) < MAX_SEARCHES
+
     def adopt(outcome) -> None:
         state["hypotheses"] = outcome.value["hypotheses"]
         state["needs"] = outcome.value["needs"]
+        state["searches"] = outcome.value["searches"][: MAX_SEARCHES - len(searched)]
 
     def work() -> int:
         return model_call(
             state, run.segment,
-            lambda can_spend: agent.hypothesize(run.segment.model, run.request.question, gathered, run.request.groups, state["consulted"], can_spend),
+            lambda can_spend: agent.hypothesize(
+                run.segment.model, run.request.question, gathered, run.request.groups, state["consulted"], can_spend, can_search, searched),
             adopt, "INVESTIGATION_HYPOTHESES_FALLBACK", "As hipóteses não vieram do modelo.",
         )
 
     _agent_call(state, run.segment, work)
     count = len(state.get("hypotheses") or [])
     asks = state["needs"]
+    asked = _asked(asks, len(state["searches"]))
     _step(
         state, "hypothesize", f"Hipóteses (rodada {state['round']})",
-        _count(count, "hipótese", "hipóteses") + (f"; pede: {', '.join(asks)}." if asks else "; não pede mais fatos."), round=state["round"],
+        _count(count, "hipótese", "hipóteses") + (f"; pede: {asked}." if asked else "; não pede mais fatos."), round=state["round"],
     )
     return state
 
@@ -124,12 +144,13 @@ def decide(state: dict, run: Run) -> dict:
     segment = run.segment
     present = {fact.group for fact in run.request.facts}
     wanted = [group for group in state.get("needs") or [] if group not in (state.get("consulted") or []) and group in present]
+    searches = list(state.get("searches") or [])
     if segment.model is None:
         reason = "Sem modelo, não há o que cruzar a mais."
     elif state.get("failure"):
         reason = "A investigação falhou."
-    elif not wanted:
-        reason = "Os fatos reunidos bastam: nenhum outro grupo foi pedido."
+    elif not wanted and not searches:
+        reason = "Os fatos reunidos bastam: nada mais foi pedido."
     elif state["round"] >= MAX_ROUNDS:
         reason = f"Teto de {MAX_ROUNDS} rodadas."
     elif int(state.get("iterations") or 0) + 3 > segment.max_iterations:
@@ -138,13 +159,65 @@ def decide(state: dict, run: Run) -> dict:
         reason = "O orçamento de tokens não cobre outra rodada."
     else:
         state["next_groups"] = wanted
-        _step(state, "decide", "Decisão: reunir mais fatos", f"Pede: {', '.join(wanted)}.", round=state["round"], groups=wanted)
+        _step(state, "decide", "Decisão: olhar mais", f"Pede: {_asked(wanted, len(searches))}.", round=state["round"], groups=wanted)
         return state
     state["next_groups"] = []
-    if wanted and segment.model is not None:
-        limit(state, "INVESTIGATION_STOPPED", f"A investigação parou antes de olhar: {', '.join(wanted)}. {reason}")
+    state["searches"] = []
+    if (wanted or searches) and segment.model is not None:
+        limit(state, "INVESTIGATION_STOPPED", f"A investigação parou antes de olhar: {_asked(wanted, len(searches))}. {reason}")
     _step(state, "decide", "Decisão: concluir", reason, round=state["round"])
     return state
+
+
+def retrieve(state: dict, run: Run) -> dict:
+    """
+    Busca na memória do projeto (o laço do RAG): cada consulta que o modelo propôs vira trechos, e cada trecho vira um fato
+    citável. A consulta em si não vai para o caminho (é texto do modelo, derivado da pergunta): só quantas foram.
+    """
+    done = list(state.get("searched") or [])
+    queries = [query for query in state.get("searches") or [] if query][: MAX_SEARCHES - len(done)]
+    state["searches"] = []
+    memory = run.request.memory
+    added: list[str] = []
+    retrieved = list(state.get("retrieved") or [])
+    if memory is not None and queries:
+        try:
+            if not run.synced:
+                sync(memory.root, run.request.project_id, memory.documents)
+                run.synced = True
+            for query in queries:
+                for hit in retrieval.search(memory.root, run.request.project_id, query, MAX_HITS):
+                    if any(item["chunkId"] == hit["chunkId"] for item in retrieved):
+                        continue
+                    fact_id = f"memory.{len(retrieved) + 1}"
+                    retrieved.append({"id": fact_id, "path": hit["filePath"], "chunkId": hit["chunkId"]})
+                    run.found[fact_id] = Fact(fact_id, MEMORY_GROUP, _memory_text(hit))
+                    added.append(fact_id)
+        except KnowledgeError:
+            limit(state, "INVESTIGATION_MEMORY_UNAVAILABLE", "A memória do projeto não pôde ser consultada.")
+    state["retrieved"] = retrieved
+    state["searched"] = [*done, *queries]
+    state["gathered"] = [*(state.get("gathered") or []), *added]
+    if MEMORY_GROUP not in (state.get("consulted") or []):
+        state["consulted"] = [*(state.get("consulted") or []), MEMORY_GROUP]
+    state["round"] = int(state.get("round") or 0) + 1
+    _step(
+        state, "retrieve", f"Memória do projeto consultada (rodada {state['round']})",
+        f"{_count(len(queries), 'busca', 'buscas')}; {_count(len(added), 'trecho', 'trechos')}.", round=state["round"], groups=[MEMORY_GROUP], facts=added,
+    )
+    return state
+
+
+def _memory_text(hit: dict) -> str:
+    """O trecho como fato, com a natureza do documento dita: um item sincronizado é escrito por terceiros."""
+    external = str(hit.get("filePath", "")).startswith(prompts.EXTERNAL_PREFIX)
+    label = "item sincronizado, escrito por terceiros" if external else "decisão registrada pela equipe"
+    return f"Memória do projeto ({label}): {' '.join(str(hit.get('excerpt', '')).split())}"[:400]
+
+
+def _asked(groups: list[str], searches: int) -> str:
+    parts = ([f"fatos de {', '.join(groups)}"] if groups else []) + ([_count(searches, "busca na memória", "buscas na memória")] if searches else [])
+    return " e ".join(parts)
 
 
 def conclude(state: dict, run: Run) -> dict:
@@ -213,4 +286,4 @@ def _agent_call(state: dict, segment: Segment, work: Callable[[], int]) -> None:
     )
 
 
-__all__ = ["BASE_GROUPS", "KEYWORDS", "MAX_ROUNDS", "NO_MODEL", "Run", "conclude", "decide", "focus", "frame", "gather", "hypothesize", "plain"]
+__all__ = ["BASE_GROUPS", "KEYWORDS", "MAX_ROUNDS", "NO_MODEL", "Run", "conclude", "decide", "focus", "frame", "gather", "hypothesize", "plain", "retrieve"]

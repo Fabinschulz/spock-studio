@@ -35,7 +35,7 @@ MAX_ITERATIONS = 12
 MAX_MILLISECONDS = 5000
 # Até quatro chamadas de modelo (três rodadas de hipóteses e a conclusão): o motor define o teto, o runtime só restringe.
 MAX_MILLISECONDS_MODEL = 150000
-MAX_TOKENS = 30000
+MAX_TOKENS = 40000
 
 __all__ = ["WORKFLOW_ID", "WORKFLOW_VERSION", "build", "run_investigation"]
 
@@ -53,6 +53,9 @@ class State(TypedDict, total=False):
     hypotheses: list[dict]
     needs: list[str]
     next_groups: list[str]
+    searches: list[str]
+    searched: list[str]
+    retrieved: list[dict]
     path: list[dict]
     answer: dict | None
     rejected: list[dict]
@@ -103,6 +106,7 @@ def build(run: nodes.Run) -> StateGraph:
     graph.add_node("frame", budgeted(segment, lambda state: nodes.frame(state, run)))
     graph.add_node("gather", budgeted(segment, lambda state: nodes.gather(state, run)))
     graph.add_node("hypothesize", budgeted(segment, lambda state: nodes.hypothesize(state, run)))
+    graph.add_node("retrieve", budgeted(segment, lambda state: nodes.retrieve(state, run)))
     graph.add_node("decide", budgeted(segment, lambda state: nodes.decide(state, run), counts_iteration=False))
     graph.add_node("conclude", budgeted(segment, lambda state: nodes.conclude(state, run)))
 
@@ -113,8 +117,12 @@ def build(run: nodes.Run) -> StateGraph:
     # O laço: pedir mais fatos volta a reunir. O teto de rodadas e o orçamento estão em ``decide``, não aqui.
     graph.add_conditional_edges(
         "decide",
-        lambda state: END if state.get("failure") else ("gather" if state.get("next_groups") else "conclude"),
-        ["gather", "conclude", END],
+        lambda state: END if state.get("failure") else ("retrieve" if state.get("searches") else "gather" if state.get("next_groups") else "conclude"),
+        ["retrieve", "gather", "conclude", END],
+    )
+    # Depois de buscar na memória, ainda pode haver grupos de fatos pedidos; senão o modelo lê o que veio e decide de novo.
+    graph.add_conditional_edges(
+        "retrieve", lambda state: END if state.get("failure") else ("gather" if state.get("next_groups") else "hypothesize"), ["gather", "hypothesize", END]
     )
     graph.add_edge("conclude", END)
     return graph
@@ -132,6 +140,9 @@ def _initial(request: InvestigationRequest) -> dict:
         "hypotheses": [],
         "needs": [],
         "next_groups": [],
+        "searches": [],
+        "searched": [],
+        "retrieved": [],
         "path": [],
         "rejected": [],
         "limitations": [],
@@ -164,6 +175,7 @@ def _ack(request: InvestigationRequest, state: dict) -> dict:
         "rejected": list(state.get("rejected") or []) if answer else [],
         "path": list(state.get("path") or []),
         "consulted": list(state.get("gathered") or []),
+        "retrieved": list(state.get("retrieved") or []),
         "limitations": list(state.get("limitations") or []),
         "rounds": int(state.get("round") or 0),
         "usage": {

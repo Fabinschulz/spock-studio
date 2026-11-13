@@ -102,6 +102,7 @@
     "risk.blocked",
     "risk.aging"
   ],
+  "retrieved": [],
   "limitations": [
     {
       "code": "INVESTIGATION_NO_MODEL",

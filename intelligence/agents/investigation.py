@@ -14,6 +14,7 @@ from contracts.investigation import (
     HYPOTHESES_SCHEMA,
     MAX_HYPOTHESES,
     MAX_NEEDS,
+    MAX_SEARCHES_PER_ROUND,
     Fact,
     conclusion_from_model,
     hypotheses_from_model,
@@ -33,6 +34,14 @@ _HYPOTHESES_TASK = (
     f'{{"schema":"{HYPOTHESES_SCHEMA}","hypotheses":[{{"text":"hipótese em uma frase, em linguagem de hipótese","evidence":["id"]}}],'
     '"needs":["grupo"]}. '
     "Em 'evidence' cite só ids que aparecem nos fatos. Uma hipótese sem fato que a sustente não entra."
+)
+
+# Só entra no pedido quando o motor mandou memória do projeto (decisões registradas e itens autorizados).
+_SEARCH_TASK = (
+    " Há também a memória do projeto: decisões registradas pela equipe e itens sincronizados. Se saber o que a equipe já decidiu "
+    f"ou o que dizem os itens ajudaria, proponha em 'searches' até {MAX_SEARCHES_PER_ROUND} buscas curtas, de palavras-chave "
+    "(sem frases inteiras e sem repetir uma busca já feita). O resultado volta como fatos com id 'memory.N', que você pode citar. "
+    'Acrescente ao JSON: "searches":["palavras-chave"]. Sem necessidade, deixe a lista vazia.'
 )
 
 _CONCLUSION_TASK = (
@@ -63,7 +72,8 @@ def facts_block(facts: list[Fact]) -> str:
     return f"<{prompts.TAG}>\n{body}\n</{prompts.TAG}>"
 
 
-def hypothesize(model: Model, question: str, gathered: list[Fact], groups: list[str], consulted: list[str], can_spend) -> Outcome:
+def hypothesize(model: Model, question: str, gathered: list[Fact], groups: list[str], consulted: list[str], can_spend,
+                can_search: bool = False, searched: tuple[str, ...] = ()) -> Outcome:
     known = {fact.id for fact in gathered}
     pending = [group for group in groups if group not in consulted]
     user = (
@@ -74,10 +84,10 @@ def hypothesize(model: Model, question: str, gathered: list[Fact], groups: list[
         model,
         agent_id=AGENT_ID,
         purpose=PURPOSE,
-        messages=[prompts.system(_HYPOTHESES_TASK), {"role": "user", "content": user}],
+        messages=[prompts.system(_HYPOTHESES_TASK + (_SEARCH_TASK if can_search else "")), {"role": "user", "content": user}],
         max_tokens=MAX_OUTPUT_TOKENS,
         response_schema=HYPOTHESES_SCHEMA,
-        parse=lambda document: hypotheses_from_model(document, known, set(groups)),
+        parse=lambda document: hypotheses_from_model(document, known, set(groups), can_search, searched),
         can_spend=can_spend,
     )
 

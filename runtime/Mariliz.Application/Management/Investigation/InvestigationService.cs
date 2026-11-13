@@ -45,15 +45,21 @@ public sealed partial class InvestigationService(
     IClock clock,
     IRunStore? runs = null,
     IModelAccess? models = null,
-    ProjectTimelineService? timeline = null)
+    ProjectTimelineService? timeline = null,
+    DecisionMemory? memory = null,
+    string? indexRoot = null)
 {
     /// <summary>Teto de tokens de uma investigação com modelo: até quatro chamadas (três rodadas de hipóteses e a conclusão).</summary>
-    public const int TokenBudget = 24_000;
+    public const int TokenBudget = 30_000;
 
     public const int WindowDays = 28;
     private const int MaxFacts = 300;
     private const int MaxText = 400;
-    private static readonly string[] StepIds = ["frame", "gather", "hypothesize", "decide", "conclude"];
+    private const int MaxMemoryDocuments = 1200;
+    private const int MaxMemoryChars = 1_000_000;
+    private const int MaxMemoryText = 4000;
+    private const int MaxRetrieved = 24;
+    private static readonly string[] StepIds = ["frame", "gather", "hypothesize", "decide", "retrieve", "conclude"];
 
     /// <summary>Prazo da conversa com o runtime: até quatro chamadas de modelo, cada uma com o seu prazo.</summary>
     internal TimeSpan Deadline { get; init; } = TimeSpan.FromSeconds(150);
@@ -73,6 +79,8 @@ public sealed partial class InvestigationService(
         {
             var pack = Pack(projectId);
             var request = Request(investigationId, executionId, projectId, cleanQuestion, pack);
+            var documents = MemoryDocuments(projectId);
+            if (indexRoot is not null && documents.Count > 0) request["memory"] = MemoryRequest(documents);
             var grant = models is { Configured: true } ? models.Open(executionId, TokenBudget) : null;
             request["policy"]!["modelAllowed"] = grant is not null;
             request["limits"]!["maxTokens"] = grant is null ? 0 : TokenBudget;
@@ -94,7 +102,7 @@ public sealed partial class InvestigationService(
                 if (grant is not null) usage = models!.Close(executionId);
             }
 
-            var result = Verify(ack, pack, investigationId, grant is not null, usage, models?.Calls(executionId));
+            var result = Verify(ack, pack, investigationId, grant is not null, usage, models?.Calls(executionId), documents);
             hub.Audit.Record("management.investigation_answered", new JsonObject
             {
                 ["projectId"] = projectId,
@@ -127,6 +135,43 @@ public sealed partial class InvestigationService(
         var withheld = basePack.Withheld.ToList();
         if (sendable.Count < facts.Count) withheld.Add($"{facts.Count - sendable.Count} fatos ficaram de fora por não caberem no contrato da investigação.");
         return basePack with { Facts = sendable, Withheld = withheld };
+    }
+
+    /// <summary>
+    /// A memória do projeto para as buscas do laço: as decisões registradas e os itens sincronizados que o projeto autorizou como
+    /// contexto, os mesmos que o índice de engenharia recebe. Arquivo do projeto nunca entra. O que passa do teto fica de fora, e as
+    /// decisões (mais recentes primeiro) vêm antes dos itens.
+    /// </summary>
+    private IReadOnlyList<MemoryDocument> MemoryDocuments(string projectId)
+    {
+        var documents = new List<MemoryDocument>();
+        var chars = 0;
+        var candidates = (memory?.Documents(projectId) ?? [])
+            .Concat((hub.ExternalKnowledge?.Documents(projectId) ?? []).Select(item => new MemoryDocument(item.Path, item.Hash, item.Text)));
+        foreach (var document in candidates)
+        {
+            var text = Clip(document.Text, MaxMemoryText);
+            if (documents.Count >= MaxMemoryDocuments || chars + text.Length > MaxMemoryChars) break;
+            if (text.Length == 0) continue;
+            documents.Add(document with { Text = text });
+            chars += text.Length;
+        }
+        return documents;
+    }
+
+    private JsonObject MemoryRequest(IReadOnlyList<MemoryDocument> documents)
+    {
+        Directory.CreateDirectory(indexRoot!);
+        return new JsonObject
+        {
+            ["root"] = indexRoot,
+            ["documents"] = new JsonArray(documents.Select(document => (JsonNode)new JsonObject
+            {
+                ["path"] = document.Path,
+                ["hash"] = document.Hash,
+                ["text"] = document.Text
+            }).ToArray())
+        };
     }
 
     private static bool Sendable(EvidenceFact fact) =>
@@ -236,7 +281,8 @@ public sealed partial class InvestigationService(
     /// <see cref="AnswerVerifier"/> contra **os fatos consultados**, não contra o pacote inteiro: citar um fato que a investigação
     /// nunca olhou não passa, mesmo que ele exista.
     /// </summary>
-    private ProjectInvestigation Verify(JsonObject ack, EvidencePack pack, string investigationId, bool usedModel, ModelUsage? usage, IReadOnlyList<ModelCallRecord>? calls)
+    private ProjectInvestigation Verify(JsonObject ack, EvidencePack pack, string investigationId, bool usedModel, ModelUsage? usage, IReadOnlyList<ModelCallRecord>? calls,
+        IReadOnlyList<MemoryDocument> documents)
     {
         if (ack["schema"]?.GetValue<string>() != "ai.investigation.ack.v1" || ack.Text("investigationId") != investigationId)
             throw EngineErrors.AiRuntimeInvalidResponse();
@@ -253,6 +299,10 @@ public sealed partial class InvestigationService(
         }
         if (ack["answer"] is not JsonObject answer) throw EngineErrors.AiRuntimeInvalidResponse();
 
+        // Os trechos da memória viram fatos escritos aqui, com o texto do documento que o motor mesmo mandou: o que o runtime
+        // diz de cada trecho vale só pelo id e pelo caminho, e um caminho que o motor não mandou não vira fato.
+        var memoryFacts = Retrieved(ack["retrieved"], documents);
+        pack = pack with { Facts = [.. pack.Facts, .. memoryFacts] };
         var known = pack.Facts.Select(fact => fact.Id).ToHashSet(StringComparer.Ordinal);
         var consulted = Strings(ack["consulted"]).Where(known.Contains).Distinct(StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
         var path = Path(ack["path"], known);
@@ -263,7 +313,7 @@ public sealed partial class InvestigationService(
             .Concat(Rejected(ack["rejected"]))
             .ToList();
         var limitations = Limitations(ack["limitations"]);
-        var rounds = Math.Clamp(ack["rounds"] is JsonValue value && value.TryGetValue<int>(out var number) ? number : path.Count(step => step.Id == "gather"), 0, 3);
+        var rounds = Math.Clamp(ack["rounds"] is JsonValue value && value.TryGetValue<int>(out var number) ? number : path.Count(step => step.Id is "gather" or "retrieve"), 0, 4);
 
         var answerOut = new AssistantAnswer(
             pack.ProjectId,
@@ -282,6 +332,23 @@ public sealed partial class InvestigationService(
         return new ProjectInvestigation(investigationId, investigationId, clock.UtcNow, rounds, usedModel, answerOut, path, limitations);
     }
 
+    private static IReadOnlyList<EvidenceFact> Retrieved(JsonNode? node, IReadOnlyList<MemoryDocument> documents)
+    {
+        var facts = new List<EvidenceFact>();
+        if (node is not JsonArray array) return facts;
+        var byPath = documents.ToDictionary(document => document.Path, StringComparer.Ordinal);
+        foreach (var item in array.OfType<JsonObject>().Take(MaxRetrieved))
+        {
+            var id = item.Text("id");
+            if (!MemoryFactId().IsMatch(id) || facts.Any(fact => fact.Id == id) || !byPath.TryGetValue(item.Text("path"), out var document)) continue;
+            var kind = document.Path.StartsWith(DecisionMemory.Prefix, StringComparison.Ordinal)
+                ? "decisão registrada pela equipe"
+                : "item sincronizado, escrito por terceiros";
+            facts.Add(new EvidenceFact(id, "memória", Clip($"Memória do projeto ({kind}): {document.Text.ReplaceLineEndings(" ")}", 1200)));
+        }
+        return facts;
+    }
+
     private static List<InvestigationStep> Path(JsonNode? node, HashSet<string> known)
     {
         var steps = new List<InvestigationStep>();
@@ -290,7 +357,7 @@ public sealed partial class InvestigationService(
         {
             var id = item.Text("id");
             if (!StepIds.Contains(id)) continue;
-            var round = item["round"] is JsonValue value && value.TryGetValue<int>(out var number) ? Math.Clamp(number, 0, 3) : 0;
+            var round = item["round"] is JsonValue value && value.TryGetValue<int>(out var number) ? Math.Clamp(number, 0, 4) : 0;
             steps.Add(new InvestigationStep(
                 id, Clip(item.Text("title"), 120), Clip(item.Text("detail"), MaxText), round,
                 Strings(item["groups"]).Select(group => Clip(group, 40)).Take(12).ToList(),
@@ -405,4 +472,7 @@ public sealed partial class InvestigationService(
 
     [GeneratedRegex(@"^[A-Z][A-Z0-9_]{0,63}\z")]
     private static partial Regex CodePattern();
+
+    [GeneratedRegex(@"^memory\.[0-9]{1,3}\z")]
+    private static partial Regex MemoryFactId();
 }

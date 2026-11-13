@@ -54,7 +54,8 @@ var timeline = new ProjectTimelineService(engine.Workspace, engine.Clock, engine
 // A trilha de auditoria só lê o arquivo de auditoria e o diário das execuções: nada é copiado para um terceiro lugar.
 var audit = new ProjectAuditService(engine.Workspace, engine.Clock, engine.Store, integrations.AuditReader, integrations);
 // A investigação cruza os fatos do assistente com os de execuções e de mudanças num workflow do runtime de IA, e o motor confere a resposta.
-var investigation = new InvestigationService(assistant, integrations, engine.Workspace, aiRuntime, engine.Clock, engine.Store, modelAccess, timeline);
+var investigation = new InvestigationService(assistant, integrations, engine.Workspace, aiRuntime, engine.Clock, engine.Store, modelAccess, timeline,
+    decisionMemory, Path.Combine(engine.DataRoot, "investigation-index"));
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
     management: management, assistant: assistant,

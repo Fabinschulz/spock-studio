@@ -69,10 +69,11 @@ public class ProjectInvestigationTests
         public FakeModelAccess Models { get; }
         public FileRunStore Store { get; }
         public InvestigationService Service { get; }
+        public DecisionService Decisions { get; }
         public EngineSession Session { get; }
         public ProjectIntegration Integration { get; private set; } = null!;
 
-        public Setup(bool modelConfigured = true, bool withRuntime = true, IInvestigationRuntime? runtime = null)
+        public Setup(bool modelConfigured = true, bool withRuntime = true, IInvestigationRuntime? runtime = null, string? indexRoot = null, IModelAccess? modelAccess = null)
         {
             Harness.Clock.UtcNow = Now;
             Models = new FakeModelAccess(modelConfigured);
@@ -80,7 +81,11 @@ public class ProjectInvestigationTests
             var management = new ManagementService(Harness.Workspace, Harness.Hub, Harness.Clock);
             var assistant = new ManagementAssistant(management, Harness.Hub, Harness.Workspace, new ModelGateway(new NoSettings(), new NoTransport()), Harness.Clock, Store);
             var timeline = new ProjectTimelineService(Harness.Workspace, Harness.Clock, Store, management: management, integrations: Harness.Hub);
-            Service = new InvestigationService(assistant, Harness.Hub, Harness.Workspace, runtime ?? Runtime, Harness.Clock, Store, Models, timeline);
+            var decisionStore = new FileDecisionStore(Harness.DataDir);
+            Decisions = new DecisionService(Harness.Workspace, decisionStore, Store,
+                id => new EvidencePack(id, "loja", Harness.Clock.UtcNow, [new EvidenceFact("today", "contexto", "Hoje é 2026-11-10.")], []), Harness.Audit, Harness.Clock);
+            Service = new InvestigationService(assistant, Harness.Hub, Harness.Workspace, runtime ?? Runtime, Harness.Clock, Store, modelAccess ?? Models, timeline,
+                new DecisionMemory(Harness.Workspace, decisionStore), indexRoot);
             Session = new EngineSession("test", integrations: Harness.Hub, management: management, assistant: assistant,
                 investigation: withRuntime ? Service : null);
         }
@@ -99,6 +104,12 @@ public class ProjectInvestigationTests
             data.Upsert(Item("42", StatusCategories.InProgress, Now.AddDays(-5)), Now);
             data.Record(new SyncExecution("sync-0000000000aa", Now.AddDays(-1), Now.AddDays(-1), SyncStatus.Succeeded, false, 1, data.Items.Count, data.Items.Count, 0, 0, null));
             new FileSyncedDataStore(Harness.DataDir).Write(Harness.ProjectId, Integration.Id, data);
+        }
+
+        public ManagementDecision RecordDecision(string title, string decision, string? rationale = null)
+        {
+            Harness.Clock.UtcNow = Harness.Clock.UtcNow.AddMinutes(1);
+            return Decisions.Record(Harness.ProjectId, title, decision, rationale, []).Decision;
         }
 
         public void Journal(string runId, string kind, string state, double daysAgo) =>
@@ -163,7 +174,7 @@ public class ProjectInvestigationTests
     };
 
     private static JsonObject Ack(JsonObject request, JsonObject? answer = null, string status = "completed", JsonArray? consulted = null, JsonArray? path = null,
-        JsonArray? limitations = null, JsonArray? rejected = null) => new()
+        JsonArray? limitations = null, JsonArray? rejected = null, JsonArray? retrieved = null) => new()
     {
         ["schema"] = "ai.investigation.ack.v1",
         ["investigationId"] = request["investigationId"]!.GetValue<string>(),
@@ -174,6 +185,7 @@ public class ProjectInvestigationTests
         ["rejected"] = rejected ?? new JsonArray(),
         ["path"] = path ?? GoodPath("today", "flow.issues.items", "risk.overdue"),
         ["consulted"] = consulted ?? new JsonArray("today", "flow.issues.items", "risk.overdue"),
+        ["retrieved"] = retrieved ?? new JsonArray(),
         ["limitations"] = limitations ?? new JsonArray(),
         ["rounds"] = 1,
         ["usage"] = new JsonObject { ["modelCalls"] = 2, ["inputTokens"] = 100, ["outputTokens"] = 50, ["tokens"] = 150 }
@@ -515,6 +527,178 @@ public class ProjectInvestigationTests
         Assert.Equal(["frame-0", "gather1-1", "conclude-2", "verify"], detail["steps"]!.AsArray().Select(step => step!["id"]!.GetValue<string>()));
     }
 
+    // ------------------------------------------------------------------ A memória e o laço
+
+    private static JsonArray Retrieved(params (string Id, string Path)[] items) =>
+        new(items.Select(item => (JsonNode)new JsonObject { ["id"] = item.Id, ["path"] = item.Path, ["chunkId"] = item.Path + "#h:x" }).ToArray());
+
+    [Fact]
+    public async Task O_pedido_leva_a_memoria_so_com_decisoes_e_itens_autorizados_e_num_indice_a_parte()
+    {
+        var index = Path.Combine(Path.GetTempPath(), "inv-memory-" + Guid.NewGuid().ToString("N")[..8]);
+        try
+        {
+            using var s = new Setup(indexRoot: index);
+            await s.SeedAsync();
+            s.Harness.Project.Write("docs/cobranca.md", "# Cobrança\n\nTexto de um arquivo do projeto.\n");
+            var decision = s.RecordDecision("Adiar o marco", "Adiar o marco da migração.", "Bloqueios.");
+            s.Runtime.Reply = request => Ack(request);
+
+            await s.Service.InvestigateAsync(s.Harness.ProjectId, Question, CancellationToken.None);
+
+            var memory = s.Runtime.Seen!["memory"]!;
+            Assert.Equal(index, memory["root"]!.GetValue<string>());
+            var paths = memory["documents"]!.AsArray().Select(item => item!["path"]!.GetValue<string>()).ToList();
+            Assert.Equal([$"@decision/{decision.Id}.md"], paths);
+            Assert.Contains("Decidido: Adiar o marco da migração.", memory["documents"]![0]!["text"]!.GetValue<string>());
+            // Arquivo do projeto nunca vai pela memória, e o índice é outro que o de engenharia.
+            Assert.DoesNotContain("Texto de um arquivo do projeto", memory.ToJsonString(), StringComparison.Ordinal);
+            Assert.True(Directory.Exists(index));
+        }
+        finally
+        {
+            if (Directory.Exists(index)) Directory.Delete(index, true);
+        }
+    }
+
+    [Fact]
+    public async Task Sem_decisao_nem_item_autorizado_ou_sem_indice_o_pedido_nao_leva_memoria()
+    {
+        var index = Path.Combine(Path.GetTempPath(), "inv-memory-" + Guid.NewGuid().ToString("N")[..8]);
+        try
+        {
+            using var empty = new Setup(indexRoot: index);
+            await empty.SeedAsync();
+            empty.Runtime.Reply = request => Ack(request);
+            await empty.Service.InvestigateAsync(empty.Harness.ProjectId, Question, CancellationToken.None);
+
+            using var noIndex = new Setup();
+            await noIndex.SeedAsync();
+            noIndex.RecordDecision("Adiar", "Adiar.");
+            noIndex.Runtime.Reply = request => Ack(request);
+            await noIndex.Service.InvestigateAsync(noIndex.Harness.ProjectId, Question, CancellationToken.None);
+
+            Assert.Null(empty.Runtime.Seen!["memory"]);
+            Assert.Null(noIndex.Runtime.Seen!["memory"]);
+            Assert.False(Directory.Exists(index));
+        }
+        finally
+        {
+            if (Directory.Exists(index)) Directory.Delete(index, true);
+        }
+    }
+
+    [Fact]
+    public async Task O_trecho_da_memoria_vira_fato_com_o_texto_do_documento_do_motor_e_a_afirmacao_que_o_cita_passa()
+    {
+        var index = Path.Combine(Path.GetTempPath(), "inv-memory-" + Guid.NewGuid().ToString("N")[..8]);
+        try
+        {
+            using var s = new Setup(indexRoot: index);
+            await s.SeedAsync();
+            var decision = s.RecordDecision("Adiar o marco", "Adiar o marco da migração em 2 semanas.", "Bloqueios.");
+            var path = $"@decision/{decision.Id}.md";
+            var answer = GoodAnswer();
+            answer["observed"] = Claims(Claim("A equipe decidiu adiar o marco em 2 semanas.", "memory.1"));
+            s.Runtime.Reply = request => Ack(request, answer, retrieved: Retrieved(("memory.1", path)),
+                consulted: new JsonArray("today", "flow.issues.items", "risk.overdue", "memory.1"),
+                path: GoodPath("today", "memory.1"));
+
+            var result = await s.Service.InvestigateAsync(s.Harness.ProjectId, Question, CancellationToken.None);
+
+            var fact = Assert.Single(result.Answer.Evidence, item => item.Id == "memory.1");
+            Assert.Equal("memória", fact.Group);
+            Assert.StartsWith("Memória do projeto (decisão registrada pela equipe): # Decisão registrada: Adiar o marco", fact.Text);
+            Assert.Contains("Decidido: Adiar o marco da migração em 2 semanas.", fact.Text);
+            Assert.Equal(["memory.1"], Assert.Single(result.Answer.Observed).Evidence);
+            Assert.Contains("memory.1", result.Path[1].Facts);
+        }
+        finally
+        {
+            if (Directory.Exists(index)) Directory.Delete(index, true);
+        }
+    }
+
+    [Fact]
+    public async Task Numero_que_o_documento_da_memoria_nao_tem_e_descartado_como_em_qualquer_fato()
+    {
+        var index = Path.Combine(Path.GetTempPath(), "inv-memory-" + Guid.NewGuid().ToString("N")[..8]);
+        try
+        {
+            using var s = new Setup(indexRoot: index);
+            await s.SeedAsync();
+            var decision = s.RecordDecision("Adiar o marco", "Adiar o marco da migração em 2 semanas.");
+            var answer = GoodAnswer();
+            answer["observed"] = Claims(Claim("A equipe decidiu adiar o marco em 9 semanas.", "memory.1"));
+            answer["summary"] = Claim("Há uma decisão sobre o marco.", "memory.1");
+            answer["inferences"] = new JsonArray();
+            s.Runtime.Reply = request => Ack(request, answer, retrieved: Retrieved(("memory.1", $"@decision/{decision.Id}.md")),
+                consulted: new JsonArray("memory.1"), path: GoodPath("memory.1"));
+
+            var result = await s.Service.InvestigateAsync(s.Harness.ProjectId, Question, CancellationToken.None);
+
+            Assert.Empty(result.Answer.Observed);
+            Assert.Contains("9", Assert.Single(result.Answer.Rejected).Reason);
+        }
+        finally
+        {
+            if (Directory.Exists(index)) Directory.Delete(index, true);
+        }
+    }
+
+    [Fact]
+    public async Task Trecho_de_um_documento_que_o_motor_nao_mandou_ou_com_id_inventado_nao_vira_fato()
+    {
+        var index = Path.Combine(Path.GetTempPath(), "inv-memory-" + Guid.NewGuid().ToString("N")[..8]);
+        try
+        {
+            using var s = new Setup(indexRoot: index);
+            await s.SeedAsync();
+            s.RecordDecision("Adiar o marco", "Adiar o marco da migração em 2 semanas.");
+            var answer = GoodAnswer();
+            answer["observed"] = Claims(Claim("Item inventado.", "memory.1"), Claim("Outro inventado.", "livre"));
+            answer["summary"] = Claim("Resumo sem fato valido.", "today");
+            answer["inferences"] = new JsonArray();
+            s.Runtime.Reply = request => Ack(request, answer,
+                retrieved: Retrieved(("memory.1", "@decision/dec-ffffffffffff.md"), ("livre", "@decision/dec-000000000000.md")),
+                consulted: new JsonArray("memory.1", "livre"), path: GoodPath("memory.1", "livre"));
+
+            var result = await s.Service.InvestigateAsync(s.Harness.ProjectId, Question, CancellationToken.None);
+
+            Assert.Empty(result.Answer.Observed);
+            Assert.Equal(2, result.Answer.Rejected.Count);
+            Assert.DoesNotContain(result.Path.SelectMany(step => step.Facts), id => id is "memory.1" or "livre");
+        }
+        finally
+        {
+            if (Directory.Exists(index)) Directory.Delete(index, true);
+        }
+    }
+
+    [Fact]
+    public async Task O_caminho_aceita_a_etapa_de_busca_na_memoria()
+    {
+        using var s = new Setup();
+        await s.SeedAsync();
+        var path = GoodPath("today");
+        path.Insert(2, new JsonObject
+        {
+            ["id"] = "retrieve", ["title"] = "Memória do projeto consultada (rodada 2)", ["detail"] = "1 busca; 0 trechos.", ["round"] = 4,
+            ["groups"] = new JsonArray("memória"), ["facts"] = new JsonArray()
+        });
+        s.Runtime.Reply = request =>
+        {
+            var ack = Ack(request, path: path);
+            ack["rounds"] = 4;
+            return ack;
+        };
+
+        var result = await s.Service.InvestigateAsync(s.Harness.ProjectId, Question, CancellationToken.None);
+
+        Assert.Equal(["frame", "gather", "retrieve", "conclude"], result.Path.Select(step => step.Id));
+        Assert.Equal(4, result.Rounds);
+    }
+
     // ------------------------------------------------------------------ Com o runtime de verdade
 
     [Fact]
@@ -544,6 +728,99 @@ public class ProjectInvestigationTests
         finally
         {
             await python.ShutdownAsync();
+        }
+    }
+
+    private sealed class ConfiguredSettings : IModelSettings
+    {
+        public ModelStatus Status() => new(true, "openai");
+        public void Save(string provider, string key) { }
+        public void Clear() { }
+        public bool TryGetKey(out string key)
+        {
+            key = "sk-test-chave-investigacao-91c2";
+            return true;
+        }
+    }
+
+    private sealed class NoopTransport : IModelTransport
+    {
+        public Task<ModelTransportResult> SendAsync(Uri endpoint, string key, string prompt, int maxTokens, CancellationToken ct) =>
+            Task.FromResult(new ModelTransportResult("", 0));
+    }
+
+    /// <summary>O provedor roteirizado: uma resposta por chamada, na ordem, e guarda o que recebeu.</summary>
+    private sealed class ScriptedProvider(params string[] replies) : IModelChatTransport
+    {
+        private readonly Queue<string> _replies = new(replies);
+        public List<string> Seen { get; } = [];
+
+        public Task<ChatTransportResult> SendChatAsync(Uri endpoint, string key, string model, ChatRequest request, CancellationToken ct)
+        {
+            lock (Seen) Seen.Add(string.Join("\n", request.Messages.Select(message => message.Content)));
+            var reply = _replies.Count > 0 ? _replies.Dequeue() : "{}";
+            return Task.FromResult(new ChatTransportResult(reply, "gpt-4o-mini-2024-07-18", 400, 100));
+        }
+    }
+
+    [Fact]
+    public async Task Com_o_runtime_python_e_um_modelo_roteirizado_o_laco_busca_na_memoria_e_o_motor_confere_a_citacao()
+    {
+        var index = Path.Combine(Path.GetTempPath(), "inv-memory-" + Guid.NewGuid().ToString("N")[..8]);
+        var python = new LoopbackAiRuntime();
+        try
+        {
+            var provider = new ScriptedProvider(
+                new JsonObject
+                {
+                    ["schema"] = "management.hypotheses.v1",
+                    ["hypotheses"] = new JsonArray(Claim("A vazão pode estar ligada a um adiamento.", "flow.issues.items")),
+                    ["needs"] = new JsonArray(),
+                    ["searches"] = new JsonArray("adiar migração faturamento")
+                }.ToJsonString(),
+                new JsonObject
+                {
+                    ["schema"] = "management.hypotheses.v1",
+                    ["hypotheses"] = new JsonArray(Claim("Já foi decidido adiar a migração.", "memory.1")),
+                    ["needs"] = new JsonArray(),
+                    ["searches"] = new JsonArray()
+                }.ToJsonString(),
+                new JsonObject
+                {
+                    ["schema"] = "management.conclusion.v1",
+                    ["summary"] = Claim("A equipe já decidiu adiar a migração.", "memory.1"),
+                    ["observed"] = Claims(Claim("Decidido: adiar a migração do faturamento em duas semanas.", "memory.1")),
+                    ["calculations"] = new JsonArray(),
+                    ["inferences"] = new JsonArray(),
+                    ["recommendations"] = new JsonArray(),
+                    ["unavailable"] = new JsonArray()
+                }.ToJsonString());
+            var access = new LocalModelAccess(new ModelBroker(new ModelGateway(new ConfiguredSettings(), new NoopTransport(), chat: provider)));
+            using var s = new Setup(runtime: python, indexRoot: index, modelAccess: access);
+            await s.SeedAsync();
+            s.RecordDecision("Adiar a migração do faturamento", "Adiar a migração do faturamento em duas semanas.", "Bloqueios de infraestrutura.");
+
+            var result = await s.Service.InvestigateAsync(s.Harness.ProjectId, "Por que a vazão caiu depois da migração?", CancellationToken.None);
+
+            Assert.True(result.UsedModel);
+            Assert.Equal(["frame", "gather", "hypothesize", "decide", "retrieve", "hypothesize", "decide", "conclude"], result.Path.Select(step => step.Id));
+            var fact = Assert.Single(result.Answer.Evidence, item => item.Id == "memory.1");
+            Assert.Contains("Adiar a migração do faturamento em duas semanas.", fact.Text);
+            Assert.Equal(["memory.1"], Assert.Single(result.Answer.Observed).Evidence);
+            Assert.Empty(result.Answer.Rejected);
+            Assert.Equal(3, provider.Seen.Count);
+            Assert.Contains("[memory.1]", provider.Seen[1]);
+            Assert.DoesNotContain("memory.1", provider.Seen[0].Split("<conteudo-do-projeto>")[1]);
+            // A consulta é texto do modelo: não vai para o diário.
+            var journal = s.Store.LoadJournal(s.Harness.ProjectId, result.RunId)!;
+            Assert.DoesNotContain("adiar migração faturamento", System.Text.Json.JsonSerializer.Serialize(journal), StringComparison.Ordinal);
+            Assert.Equal(3, journal.ModelUsage!.Calls);
+            Assert.NotEmpty(Directory.GetFiles(index, "*", SearchOption.AllDirectories));
+        }
+        finally
+        {
+            await python.ShutdownAsync();
+            if (Directory.Exists(index)) Directory.Delete(index, true);
         }
     }
 
