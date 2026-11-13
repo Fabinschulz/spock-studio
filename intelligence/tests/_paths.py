@@ -1,5 +1,3 @@
-"""Coloca a inteligência e as dependências instaladas (scripts/package-intelligence.py dev) no caminho dos testes."""
-
 import os
 import sys
 from pathlib import Path

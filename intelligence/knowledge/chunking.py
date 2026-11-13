@@ -1,8 +1,5 @@
-"""Divisão estrutural das fontes em trechos.
-
-Nada de corte por quantidade fixa de caracteres: Markdown por seção (com o caminho de títulos), Python pela AST, C# e
-TypeScript/JavaScript por declaração, JSON e YAML por chave, especificações também guardam os ids de requisito. Cada
-trecho tem uma âncora estável (``path#tipo:nome``): mudar outra parte do arquivo não troca o id do trecho.
+"""Nada de corte por quantidade fixa de caracteres. Cada trecho tem uma âncora estável (``path#tipo:nome``): mudar outra
+parte do arquivo não troca o id do trecho.
 """
 
 from __future__ import annotations
@@ -184,7 +181,7 @@ def _ts_name(line: str) -> tuple[str, str] | None:
 
 
 def _declarations(text: str, name_of) -> list[Chunk]:
-    """Um trecho por declaração. Comentários de documentação e atributos logo acima vão junto com a declaração."""
+    """Comentários de documentação e atributos logo acima vão junto com a declaração."""
     lines = text.split("\n")
     namespace = ""
     marks: list[tuple[int, str, str]] = []

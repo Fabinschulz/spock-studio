@@ -1,6 +1,5 @@
-//! Projetos recentes. A lista mora no host, no diretório de dados do aplicativo, e só recebe pastas que a pessoa
-//! escolheu pelo diálogo nativo e que o motor autorizou. A UI nunca vê o caminho completo nem consegue pedir um
-//! caminho: ela recebe um id opaco, o nome e o caminho abreviado, e reabre um projeto pelo id, por um comando do host.
+//! Só recebe pastas escolhidas pelo diálogo nativo e autorizadas pelo motor. A UI nunca vê o caminho completo nem
+//! consegue pedir um: recebe um id opaco, o nome e o caminho abreviado, e reabre um projeto pelo id.
 
 use std::cmp::Reverse;
 use std::fs;
@@ -17,7 +16,7 @@ use crate::lock;
 pub const MAX_RECENTS: usize = 6;
 pub const FILE_NAME: &str = "recent-projects.json";
 
-/// O que fica no disco. `path` nunca sai do host.
+/// `path` nunca sai do host.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct StoredProject {
@@ -28,7 +27,6 @@ pub struct StoredProject {
     pub last_opened_ms: u64,
 }
 
-/// O que a UI recebe: sem o caminho completo.
 #[derive(Debug, Clone, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct RecentProject {
@@ -36,12 +34,11 @@ pub struct RecentProject {
     pub display_name: String,
     pub display_path: String,
     pub last_opened_ms: u64,
-    /// Falso quando a pasta não existe mais ou não está acessível.
     pub available: bool,
 }
 
-/// Id opaco e estável para o mesmo caminho. No Windows e no macOS o caminho é comparado sem diferenciar maiúsculas.
-/// Usa FNV-1a de 64 bits: o algoritmo do `DefaultHasher` da std pode mudar entre versões do Rust, e o id fica gravado.
+/// No Windows e no macOS o caminho é comparado sem diferenciar maiúsculas. FNV-1a de 64 bits porque o algoritmo do
+/// `DefaultHasher` da std pode mudar entre versões do Rust, e o id fica gravado.
 pub fn project_id(path: &str) -> String {
     let normalized = if cfg!(any(windows, target_os = "macos")) {
         path.to_lowercase()
@@ -65,7 +62,7 @@ pub struct RecentStore {
 }
 
 impl RecentStore {
-    /// Lê a lista. Arquivo ausente, ilegível ou corrompido vira lista vazia: perder o histórico não é uma falha.
+    /// Arquivo ausente, ilegível ou corrompido vira lista vazia: perder o histórico não é uma falha.
     pub fn load(file: &Path) -> Self {
         let mut entries = fs::read_to_string(file)
             .ok()
@@ -96,7 +93,6 @@ impl RecentStore {
         fs::rename(&tmp, file)
     }
 
-    /// Registra a abertura: o projeto vai para o topo, sem duplicar, e a lista respeita o limite.
     pub fn record(&mut self, path: &str, display_name: &str, display_path: &str, now_ms: u64) {
         let id = project_id(path);
         self.entries.retain(|e| e.id != id);
@@ -117,7 +113,7 @@ impl RecentStore {
         self.entries.iter().find(|e| e.id == id)
     }
 
-    /// Visão para a UI. `exists` diz se a pasta ainda está lá; o caminho completo é só entregue a essa função.
+    /// O caminho completo só é entregue a `exists`.
     pub fn list(&self, exists: impl Fn(&str) -> bool) -> Vec<RecentProject> {
         self.entries
             .iter()
@@ -132,8 +128,8 @@ impl RecentStore {
     }
 }
 
-/// O que o host guarda do que o motor devolveu ao autorizar uma pasta: só o que a UI pode ver. É o único lugar do host que
-/// conhece o formato dessa resposta.
+/// Só o que a UI pode ver da resposta do motor ao autorizar uma pasta. É o único lugar do host que conhece o formato
+/// dessa resposta.
 pub struct AuthorizedProject {
     display_name: String,
     display_path: String,
@@ -155,7 +151,6 @@ impl AuthorizedProject {
     }
 }
 
-/// Lista de projetos recentes em memória, espelhada no diretório de dados do aplicativo.
 pub struct Recents {
     store: Mutex<RecentStore>,
     file: PathBuf,
@@ -169,8 +164,7 @@ impl Recents {
         }
     }
 
-    /// Registra a pasta que o motor autorizou e devolve o id do recente, para a UI saber qual item da lista é o
-    /// projeto atual sem receber o caminho.
+    /// Devolve o id do recente para a UI saber qual item da lista é o projeto atual sem receber o caminho.
     pub fn record(&self, path: &str, project: &AuthorizedProject) -> String {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -196,7 +190,7 @@ impl Recents {
         snapshot.list(exists)
     }
 
-    /// Caminho de um recente pelo id. Só volta o que já passou pelo diálogo nativo.
+    /// Só volta o que já passou pelo diálogo nativo.
     pub fn path_of(&self, id: &str) -> Option<String> {
         lock(&self.store).find(id).map(|entry| entry.path.clone())
     }

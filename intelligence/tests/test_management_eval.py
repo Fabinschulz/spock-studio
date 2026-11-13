@@ -1,5 +1,3 @@
-"""Evals de gestão: a referência pontua 1,0, os controles negativos derrubam a nota e o pontuador de arquivo funciona."""
-
 import contextlib
 import copy
 import io

@@ -1,4 +1,4 @@
-"""O ai.ack.v3: o que o runtime devolve ao motor no fim de cada trecho, sempre montado só com dados conferidos."""
+"""O ack sai sempre montado só com dados conferidos."""
 
 from __future__ import annotations
 
@@ -45,7 +45,7 @@ def build_ack(state: dict, status: str, pending: dict | None = None) -> dict:
         "errors": [item for item in limitations if failure and item["code"] == failure],
         "output": output,
         "agents": [dict(item) for item in state.get("agents") or [] if agents_ok([item])],
-        # O que o runtime contou; quem vale é o proxy do motor, que conta por conta própria. Sem custo em dinheiro (D4).
+        # O que o runtime contou; quem vale é o proxy do motor, que conta por conta própria. Sem custo em dinheiro.
         "usage": {
             "modelCalls": int(state.get("model_calls") or 0),
             "inputTokens": int(state.get("input_tokens") or 0),
@@ -88,7 +88,7 @@ def state_intents_ok(state: dict) -> bool:
 
 
 def public_evaluation(state: dict) -> dict | None:
-    """O que sai no ack: o veredito determinístico e, só se passar na conferência, a opinião do juiz."""
+    """A opinião do juiz só sai se passar na conferência; o veredito é sempre o determinístico."""
     evaluation = state.get("evaluation")
     if not isinstance(evaluation, dict) or evaluation.get("verdict") != "deterministic":
         return None

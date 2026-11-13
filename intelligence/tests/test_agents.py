@@ -1,5 +1,3 @@
-"""Fase 6: o Planning e o Architecture com modelo. O modelo é sempre falso; o que se prova é o que o grafo faz com a resposta."""
-
 import tempfile
 import unittest
 from pathlib import Path
@@ -20,7 +18,6 @@ def _go(payload: dict, model: FakeModel | None) -> tuple[list[dict], dict]:
 
 
 def _chunk(root: str) -> str:
-    """O id do trecho que a recuperação devolve para o pedido de teste (o mesmo que o modelo pode citar)."""
     payload = _start(root)
     payload["context"]["knowledgeRoot"] = root
     payload["context"]["sources"] = [dict(SOURCE)]
@@ -29,7 +26,7 @@ def _chunk(root: str) -> str:
 
 
 def _agent_calls(model: FakeModel) -> list[dict]:
-    """As chamadas dos agentes que escrevem (Planning e Architecture); o juiz tem testes próprios."""
+    """O juiz fica de fora: tem testes próprios."""
     return [call for call in model.calls if call["purpose"] != "judge"]
 
 

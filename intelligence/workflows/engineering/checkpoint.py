@@ -1,5 +1,3 @@
-"""Conferência do checkpoint: ele vem do disco e só volta se ainda for o que a pausa gravou."""
-
 from __future__ import annotations
 
 from contracts.engineering import forbidden, impact_ok

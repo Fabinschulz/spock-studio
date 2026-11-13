@@ -1,5 +1,5 @@
-//! Validação do envelope do protocolo v1. O host só confere a forma da mensagem; o conteúdo
-//! (`params`, `result`, `data`) é validado pelo motor (C#) e pela UI (TypeScript).
+//! O host só confere a forma do envelope; o conteúdo (`params`, `result`, `data`) é validado pelo motor (C#) e pela
+//! UI (TypeScript).
 
 use serde::Serialize;
 use serde_json::Value;
@@ -7,11 +7,10 @@ use serde_json::Value;
 pub const PROTOCOL_VERSION: u64 = 1;
 pub const MAX_MESSAGE_BYTES: usize = 4 * 1024 * 1024;
 
-/// Métodos que a UI pode pedir ao motor: tudo o que a interface usa, por área (jornada de configuração, execuções, workflow,
-/// modelo, integrações, gestão, decisões, Engenharia, linha do tempo e auditoria). Mudou um método no motor
-/// (`ProtocolMethods.cs`)? Esta lista e `engine-client.ts` mudam juntas; `engine-methods.test.ts` confere a UI contra ela.
-/// `workspace.authorize` e `engine.*` ficam de fora de propósito: o primeiro recebe um caminho e só
-/// o diálogo nativo (comando `pick_project_folder`) pode originá-lo; os demais são do ciclo de vida do host.
+/// Mudou um método no motor (`ProtocolMethods.cs`)? Esta lista e `engine-client.ts` mudam juntas;
+/// `engine-methods.test.ts` confere a UI contra ela. `workspace.authorize` e `engine.*` ficam de fora de propósito: o
+/// primeiro recebe um caminho e só o diálogo nativo (comando `pick_project_folder`) pode originá-lo; os demais são do
+/// ciclo de vida do host.
 pub const FRONTEND_METHODS: &[&str] = &[
     "project.discover",
     "harness.plan",
@@ -77,7 +76,7 @@ pub const FRONTEND_METHODS: &[&str] = &[
 ];
 
 pub mod error_code {
-    //! Códigos de erro que o host mesmo produz. Os que vêm do motor passam como estão, por isso `HostError` guarda texto.
+    //! Os códigos que vêm do motor passam como estão, por isso `HostError` guarda texto.
     pub const DIALOG_FAILED: &str = "DIALOG_FAILED";
     pub const ENGINE_NOT_FOUND: &str = "ENGINE_NOT_FOUND";
     pub const ENGINE_NOT_RUNNING: &str = "ENGINE_NOT_RUNNING";
@@ -96,7 +95,6 @@ pub mod error_code {
 }
 
 pub mod method {
-    //! Métodos do protocolo que o host usa por conta própria; a UI só pode pedir os de `FRONTEND_METHODS`.
     pub const ENGINE_HELLO: &str = "engine.hello";
     pub const ENGINE_SHUTDOWN: &str = "engine.shutdown";
     pub const AUTHORIZE_WORKSPACE: &str = "workspace.authorize";
@@ -118,7 +116,7 @@ impl HostError {
     }
 }
 
-/// Quantos bytes o envelope ocupa serializado, sem montar o texto: o limite vale para o que o motor receberia.
+/// Sem montar o texto: o limite vale para o que o motor receberia.
 fn serialized_len(value: &Value) -> usize {
     struct Counter(usize);
     impl std::io::Write for Counter {
@@ -135,7 +133,6 @@ fn serialized_len(value: &Value) -> usize {
     counter.0
 }
 
-/// Valida um pedido vindo da UI e devolve `(method, params)`.
 pub fn validate_frontend_request(envelope: &Value) -> Result<(String, Value), HostError> {
     if serialized_len(envelope) > MAX_MESSAGE_BYTES {
         return Err(HostError::new(
@@ -204,7 +201,6 @@ pub enum EngineMessage {
     Event(Value),
 }
 
-/// Interpreta uma linha do stdout do motor. Linhas fora do protocolo são descartadas.
 pub fn parse_engine_line(line: &[u8]) -> Option<EngineMessage> {
     if line.is_empty() || line.len() > MAX_MESSAGE_BYTES {
         return None;

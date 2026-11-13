@@ -1,11 +1,5 @@
-"""Índice de conhecimento por projeto.
-
-O motor envia só os textos que já passou pela política. Este módulo grava o índice fora do projeto, um SQLite por
-projectId em ``<raiz>/projects/<projectId>/knowledge/index.sqlite``, e não chama modelo nem embeddings.
-
-Cada documento guarda hash, versão, linguagem e módulo; cada trecho guarda âncora estável, tipo, título e símbolos. A
-indexação é incremental: só documentos com hash novo são reprocessados e os que sumiram da lista do motor são removidos.
-O índice é reconstruível: se o esquema mudar, ele é apagado e o motor reenvia os textos.
+"""O índice fica fora do projeto e não chama modelo nem embeddings. É reconstruível: se o esquema mudar, ele é apagado e o
+motor reenvia os textos.
 """
 
 from __future__ import annotations
@@ -146,7 +140,7 @@ def chunk_body(index_root: str, project_id: str, chunk_id: str) -> str | None:
 
 
 def chunk_bodies(index_root: str, project_id: str, chunk_ids: list[str]) -> dict[str, str]:
-    """O corpo de vários trechos numa sessão só (a busca precisa de todos os candidatos; uma conexão por trecho era o N+1)."""
+    """Numa sessão só: a busca precisa de todos os candidatos, e uma conexão por trecho era o N+1."""
     ids = list(dict.fromkeys(chunk_ids))
     path = _index_file(index_root, project_id)
     if not ids or not path.exists():
@@ -275,7 +269,7 @@ def _guard(path: Path) -> threading.Lock:
 
 @contextmanager
 def _session(path: Path):
-    """Abre o índice. Falha de disco ou de SQLite (arquivo corrompido, banco travado) sai como `KnowledgeError`, que quem consulta sabe degradar."""
+    """Falha de disco ou de SQLite (arquivo corrompido, banco travado) sai como `KnowledgeError`, que quem consulta sabe degradar."""
     try:
         with _guard(path):
             conn = sqlite3.connect(path)

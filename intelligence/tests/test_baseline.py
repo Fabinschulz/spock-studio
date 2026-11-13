@@ -44,8 +44,6 @@ _BASELINE_MODEL = _BASELINE.with_name("baseline-model.json")
 
 
 class ModelBaselineTests(unittest.TestCase):
-    """O grafo com modelo (falso e roteirizado) continua igual à baseline: planos, agentes, limitações e chamadas."""
-
     def test_o_grafo_com_modelo_continua_igual_a_baseline(self) -> None:
         document = json.loads(_BASELINE_MODEL.read_text(encoding="utf-8"))
         self.assertEqual(document["schema"], "engineering.baseline.model.v1")
@@ -70,7 +68,6 @@ class ModelBaselineTests(unittest.TestCase):
 
 
 def _fill(value: object, chunk: str) -> object:
-    """Troca o marcador '$CHUNK' pelo id real do trecho recuperado, em qualquer nível."""
     if isinstance(value, str):
         return chunk if value == "$CHUNK" else value
     if isinstance(value, list):

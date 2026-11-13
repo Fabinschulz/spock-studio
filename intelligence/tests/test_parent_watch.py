@@ -1,5 +1,3 @@
-"""O Python não fica órfão: termina quando o motor que o iniciou deixa de existir."""
-
 import json
 import os
 import socket

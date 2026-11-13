@@ -1,5 +1,3 @@
-"""Fase 5: cada memória grava só no seu lugar, o checkpoint some ao fim da execução e nenhum SQLite guarda segredo."""
-
 import re
 import tempfile
 import unittest
@@ -19,7 +17,6 @@ _SECRET_PATTERNS = [
     re.compile(rb"-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY"),
     re.compile(rb"\beyJ[A-Za-z0-9_-]{8,}\.eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}"),
     re.compile(rb"\b[a-z][a-z0-9+.-]*://[^/\s:@]+:[^/\s@]{3,}@[^/\s]+", re.IGNORECASE),
-    # Chaves de provedores comuns (Fase 10): openai, anthropic, google, stripe e npm.
     re.compile(rb"\bsk-(?:proj-|svcacct-|admin-)?[A-Za-z0-9_-]{32,}"),
     re.compile(rb"\bsk-ant-[A-Za-z0-9_-]{20,}"),
     re.compile(rb"\bAIza[0-9A-Za-z_-]{35}\b"),

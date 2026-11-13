@@ -1,8 +1,4 @@
-"""Os nós do grafo management.investigation. Cada um recebe o estado, devolve o estado e não conhece a ordem dos outros.
-
-Os fatos e o modelo vêm de ``Run``, não do estado: o estado guarda só ids, nomes de grupo e contagens, e é o que o motor
-registra como caminho da investigação. Texto de fato e texto de hipótese não entram no caminho.
-"""
+"""O estado guarda só ids, nomes de grupo e contagens: é o que o motor registra como caminho da investigação."""
 
 from __future__ import annotations
 
@@ -28,8 +24,6 @@ NO_MODEL = "INVESTIGATION_NO_MODEL"
 
 @dataclass
 class Run:
-    """O que vale só para esta investigação: os fatos do motor, o trecho de execução e o modelo."""
-
     request: InvestigationRequest
     segment: Segment
     # Os trechos que as buscas trouxeram viram fatos citáveis (``memory.N``); o motor confere cada um contra o documento dele.
@@ -46,12 +40,10 @@ class Run:
 
 
 def plain(text: str) -> str:
-    """Minúsculas e sem acento, para comparar nomes de grupo e palavras da pergunta."""
     return "".join(ch for ch in unicodedata.normalize("NFKD", text.lower()) if not unicodedata.combining(ch))
 
 
 def focus(question: str, groups: list[str], catalog: tuple[FactGroup, ...]) -> list[str]:
-    """Por onde começar: os grupos de base mais os que as palavras da pergunta indicam; sem palavra reconhecida, os de papel ``default``."""
     asked = plain(question)
     described = [group for group in catalog if group.name in groups]
     base = [group.name for group in described if "base" in group.roles]
@@ -128,7 +120,6 @@ def _rounds_needed(wanted: list[str], searches: list[str]) -> int:
 
 
 def decide(state: dict, run: Run) -> dict:
-    """Reunir mais ou concluir. Concluir quando nada mais foi pedido, no teto de rodadas ou quando o orçamento não cobre outra volta."""
     segment = run.segment
     present = {fact.group for fact in run.request.facts}
     wanted = [group for group in state.get("needs") or [] if group not in (state.get("consulted") or []) and group in present]
@@ -158,10 +149,7 @@ def decide(state: dict, run: Run) -> dict:
 
 
 def retrieve(state: dict, run: Run) -> dict:
-    """
-    Busca na memória do projeto (o laço do RAG): cada consulta que o modelo propôs vira trechos, e cada trecho vira um fato
-    citável. A consulta em si não vai para o caminho (é texto do modelo, derivado da pergunta): só quantas foram.
-    """
+    """A consulta em si não vai para o caminho (é texto do modelo, derivado da pergunta): só quantas foram."""
     done = list(state.get("searched") or [])
     queries = [query for query in state.get("searches") or [] if query][: MAX_SEARCHES - len(done)]
     state["searches"] = []
@@ -197,7 +185,7 @@ def retrieve(state: dict, run: Run) -> dict:
 
 
 def _memory_text(hit: dict) -> str:
-    """O trecho como fato, com a natureza do documento dita: um item sincronizado é escrito por terceiros."""
+    """Um item sincronizado é escrito por terceiros: a natureza do documento vai dita no fato."""
     external = str(hit.get("filePath", "")).startswith(prompts.EXTERNAL_PREFIX)
     label = "item sincronizado, escrito por terceiros" if external else "decisão registrada pela equipe"
     return f"Memória do projeto ({label}): {' '.join(str(hit.get('excerpt', '')).split())}"[:400]
@@ -274,7 +262,6 @@ def _step(state: dict, step_id: str, title: str, detail: str, *, round: int = 0,
 
 
 def _agent_call(state: dict, segment: Segment, work: Callable[[], int]) -> None:
-    """Anuncia o começo e o fim de uma chamada do agente; cada rodada é um par de eventos."""
     started = segment.clock()
     segment.emitter.emit("agent.started", {"agentVersion": agent.AGENT_VERSION}, agent.AGENT_ID)
     tokens = work()

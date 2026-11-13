@@ -1,5 +1,3 @@
-//! Estado do motor como a UI o recebe: o ciclo de vida do processo e, com ele pronto, o do runtime de IA.
-
 use serde_json::{json, Value};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

@@ -1,9 +1,4 @@
-"""O contrato da investigação gerencial (``ai.investigation.start.v2`` e ``ai.investigation.ack.v1``).
-
-O motor manda a pergunta e os fatos que ele mesmo calculou; a inteligência cruza esses fatos em etapas e devolve uma
-resposta cujas afirmações citam ids de fatos. Aqui ficam a leitura do pedido e as validações do que o modelo escreve.
-A conferência dos números continua sendo do motor: este módulo só garante forma e citação.
-"""
+"""A conferência dos números da resposta continua sendo do motor: aqui só se garantem forma e citação."""
 
 from __future__ import annotations
 
@@ -56,7 +51,7 @@ MAX_KEYWORDS = 40
 
 @dataclass(frozen=True)
 class FactGroup:
-    """Um grupo de fatos como o motor o descreve: o runtime não conhece nomes de grupo."""
+    """O runtime não conhece nomes de grupo: o motor os descreve."""
 
     name: str
     roles: frozenset[str]
@@ -65,8 +60,6 @@ class FactGroup:
 
 @dataclass(frozen=True)
 class Memory:
-    """A memória do projeto para as buscas: um índice só dela (``root``) e os documentos que o motor autorizou a entrar nele."""
-
     root: str
     documents: list[dict]
 
@@ -89,7 +82,6 @@ class InvestigationRequest:
 
     @property
     def groups(self) -> list[str]:
-        """Os grupos de fatos, na ordem em que aparecem."""
         return list(dict.fromkeys(fact.group for fact in self.facts))
 
 
@@ -126,7 +118,7 @@ def parse_investigation(payload: object) -> InvestigationRequest:
 
 
 def parse_groups(value: object, facts: list[Fact] | None = None) -> tuple[FactGroup, ...]:
-    """Os descritores dos grupos. Todo grupo dos fatos precisa estar descrito: sem isso, o laço não sabe por onde começar."""
+    """Todo grupo dos fatos precisa estar descrito: sem isso, o laço não sabe por onde começar."""
     if not isinstance(value, list) or not 1 <= len(value) <= MAX_GROUPS:
         raise ContractError("groups")
     groups: list[FactGroup] = []
@@ -149,8 +141,8 @@ def parse_groups(value: object, facts: list[Fact] | None = None) -> tuple[FactGr
 
 def _memory(value: object) -> Memory | None:
     """
-    A memória é opcional. Só entram decisões registradas e itens externos que o motor autorizou (os dois prefixos reservados),
-    num índice à parte do de engenharia: arquivo do projeto nunca passa por aqui.
+    Só entram decisões registradas e itens externos autorizados pelo motor, num índice à parte do de engenharia: arquivo do
+    projeto nunca passa por aqui.
     """
     if value is None:
         return None
@@ -195,10 +187,8 @@ def _facts(value: object) -> list[Fact]:
 
 def hypotheses_from_model(document: dict, known: set[str], groups: set[str], can_search: bool = False, searched: tuple[str, ...] = ()) -> dict:
     """
-    As hipóteses de uma rodada. Cada uma precisa citar fatos que já foram reunidos (citar um id que o modelo não viu é
-    inventar). ``needs`` são os grupos de fatos que ele quer ver a seguir; o que não é um grupo conhecido é descartado
-    sem recusar a resposta, porque um pedido a mais não é um fato inventado. ``searches`` são buscas curtas na memória do projeto
-    (só valem quando há memória): até duas por rodada, sem repetir uma já feita.
+    Citar um id que o modelo não viu é inventar. Um ``needs`` desconhecido é descartado sem recusar a resposta, porque um
+    pedido a mais não é um fato inventado.
     """
     raw = document.get("hypotheses")
     if not isinstance(raw, list) or len(raw) > MAX_HYPOTHESES:
@@ -217,7 +207,7 @@ def hypotheses_from_model(document: dict, known: set[str], groups: set[str], can
 
 
 def _searches(value: object, can_search: bool, searched: tuple[str, ...]) -> list[str]:
-    """Buscas curtas, sem repetir uma já feita. Sem memória, ou fora da forma, viram nada: pedir uma busca a mais não derruba a resposta."""
+    """Pedir uma busca a mais não derruba a resposta: sem memória, ou fora da forma, vira nada."""
     if not can_search or not isinstance(value, list):
         return []
     done = {query.casefold() for query in searched}
@@ -233,8 +223,8 @@ def _searches(value: object, can_search: bool, searched: tuple[str, ...]) -> lis
 
 def conclusion_from_model(document: dict, known: set[str]) -> dict:
     """
-    A resposta final. A forma é estrita (resumo com texto, seções em lista). Uma afirmação sem citação válida não derruba a
-    resposta: ela sai das seções e aparece em ``rejected`` com o motivo, como faz a conferência do motor.
+    Uma afirmação sem citação válida não derruba a resposta: sai das seções e aparece em ``rejected`` com o motivo, como faz a
+    conferência do motor.
     """
     summary = document.get("summary")
     if not isinstance(summary, dict) or not isinstance(summary.get("text"), str) or not summary["text"].strip():
@@ -272,7 +262,6 @@ def conclusion_from_model(document: dict, known: set[str]) -> dict:
 
 
 def _claim(item: object, known: set[str]) -> dict | None:
-    """Uma afirmação com os ids que existem. Sem texto, não é afirmação; ids que não existem são tirados."""
     if not isinstance(item, dict):
         return None
     text = _clip(item.get("text"))

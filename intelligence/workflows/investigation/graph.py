@@ -1,12 +1,6 @@
-"""Grafo management.investigation (versão 1) em LangGraph: a investigação de gestão em etapas.
-
-É o segundo grafo do runtime, e só existe porque aqui há etapas e uma decisão no meio: enquadrar a pergunta, reunir fatos,
-levantar hipóteses, decidir se faltam fatos de outro grupo (riscos, execuções, mudanças) e voltar a reunir, com teto de
-rodadas, até concluir. Uma pergunta simples continua sendo uma chamada só, no assistente gerencial do motor.
-
-Os fatos são do motor e o texto deles não vai para o estado. Nada é gravado no projeto e não há pausa nem checkpoint: o
-caminho percorrido (etapas, grupos e ids de fatos consultados) volta no ack e é o motor quem o guarda e confere a resposta.
-O token do proxy fica só no cliente de modelo.
+"""Só existe como grafo porque há etapas e uma decisão no meio; uma pergunta simples continua sendo uma chamada só, no
+assistente gerencial do motor. Não há pausa nem checkpoint: o caminho percorrido volta no ack e é o motor quem o guarda e
+confere a resposta. O texto dos fatos não vai para o estado, e o token do proxy fica só no cliente de modelo.
 """
 
 from __future__ import annotations
@@ -41,7 +35,7 @@ __all__ = ["WORKFLOW_ID", "WORKFLOW_VERSION", "build", "run_investigation"]
 
 
 class State(TypedDict, total=False):
-    """A memória de trabalho: ids, nomes de grupo e contagens. Texto de fato e de hipótese não é o que o caminho guarda."""
+    """Texto de fato e de hipótese não entra: o estado é o caminho que o motor registra."""
 
     investigation_id: str
     project_id: str
@@ -71,7 +65,6 @@ class State(TypedDict, total=False):
 
 def run_investigation(payload: dict, clock: Callable[[], float] | None = None,
                       model_factory: Callable[[InvestigationRequest], Model] | None = None) -> Iterator[dict]:
-    """``model_factory`` troca o cliente do proxy (os testes usam um modelo falso). Devolve eventos e, por último, o ack."""
     try:
         request = parse_investigation(payload)
     except ContractError as ex:
@@ -114,13 +107,12 @@ def build(run: nodes.Run) -> StateGraph:
     graph.add_conditional_edges("frame", lambda state: END if state.get("failure") else "gather", ["gather", END])
     graph.add_conditional_edges("gather", lambda state: END if state.get("failure") else "hypothesize", ["hypothesize", END])
     graph.add_conditional_edges("hypothesize", lambda state: END if state.get("failure") else "decide", ["decide", END])
-    # O laço: pedir mais fatos volta a reunir. O teto de rodadas e o orçamento estão em ``decide``, não aqui.
+    # O teto de rodadas e o orçamento estão em ``decide``, não aqui.
     graph.add_conditional_edges(
         "decide",
         lambda state: END if state.get("failure") else ("retrieve" if state.get("searches") else "gather" if state.get("next_groups") else "conclude"),
         ["retrieve", "gather", "conclude", END],
     )
-    # Depois de buscar na memória, ainda pode haver grupos de fatos pedidos; senão o modelo lê o que veio e decide de novo.
     graph.add_conditional_edges(
         "retrieve", lambda state: END if state.get("failure") else ("gather" if state.get("next_groups") else "hypothesize"), ["gather", "hypothesize", END]
     )
@@ -191,7 +183,6 @@ def _ack(request: InvestigationRequest, state: dict) -> dict:
 
 
 def _rejected(payload: object, reason: str) -> dict:
-    """Um pedido fora do contrato não vira execução: devolve um ack recusado, só com o campo que não passou."""
     raw = payload.get("investigationId") if isinstance(payload, dict) else None
     identifier = raw if isinstance(raw, str) and INVESTIGATION_ID.match(raw) else ""
     return {"schema": INVESTIGATION_SCHEMA, "investigationId": identifier, "status": "rejected", "failure": "CONTRACT_INVALID", "field": reason}

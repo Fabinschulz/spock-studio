@@ -1,5 +1,3 @@
-"""Fase 7: o juiz por modelo. Uma opinião registrada, independente de quem escreveu o resultado e que nunca decide nada."""
-
 import tempfile
 import unittest
 

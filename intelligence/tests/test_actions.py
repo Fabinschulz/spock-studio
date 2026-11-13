@@ -1,5 +1,3 @@
-"""Fase 7b: o agente só propõe a intenção. Quem escolhe o alvo, aprova e executa é o motor, e o que não foi proposto não se aprova."""
-
 import json
 import tempfile
 import unittest
@@ -114,7 +112,6 @@ class ApprovalBindingTests(unittest.TestCase):
             db = next(Path(tmp).rglob("checkpoint.sqlite"))
             self.assertTrue(db.exists())
 
-        # A validação do estado restaurado recusa cada adulteração.
         good = decision_intent({"evidence": [ack["output"]["evidence"][0]["chunkId"]]})
         evidence = ack["output"]["evidence"]
         bad = [

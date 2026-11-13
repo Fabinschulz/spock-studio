@@ -1,7 +1,5 @@
-"""Leitura das mensagens do motor (contracts/schemas/intelligence).
-
-A validação completa por JSON Schema roda nos testes do motor. Aqui fica o que a inteligência precisa recusar antes de
-executar: identificadores, campos obrigatórios e limites. Texto livre do pedido só entra em ``goal``.
+"""A validação completa por JSON Schema roda nos testes do motor; aqui fica só o que a inteligência precisa recusar antes de
+executar. Texto livre do pedido só entra em ``goal``.
 """
 
 from __future__ import annotations

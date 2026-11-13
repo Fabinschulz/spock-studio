@@ -1,5 +1,3 @@
-"""A investigação de gestão (management.investigation). O modelo é sempre falso: o que se prova é o que o grafo faz com ele."""
-
 import json
 import tempfile
 import unittest

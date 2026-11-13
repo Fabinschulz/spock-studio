@@ -1,8 +1,5 @@
-//! Recursos que o instalador empacota junto do host.
-
 use std::path::{Path, PathBuf};
 
-/// Caminhos do interpretador e do script empacotados como recursos do instalador.
 pub fn packaged_runtime(resource_dir: &Path) -> (Option<PathBuf>, Option<PathBuf>) {
     let script = resource_dir.join("intelligence").join("server.py");
     let python = if cfg!(windows) {

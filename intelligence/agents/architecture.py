@@ -1,10 +1,3 @@
-"""Architecture Agent com modelo: áreas afetadas e riscos, com evidência obrigatória.
-
-Só roda quando o pedido pede impacto. A saída é ``engineering.impact.v1`` e passa em ``impact_from_model``: áreas e riscos
-do vocabulário fechado, citação só de trechos recuperados, citação obrigatória quando houve trechos e o risco
-``sem-evidencia`` obrigatório quando não houve. Se não valer, o grafo fica com o impacto determinístico.
-"""
-
 from __future__ import annotations
 
 from agents import prompts

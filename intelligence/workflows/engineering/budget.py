@@ -1,5 +1,3 @@
-"""Orçamento e agentes: limites por etapa, a tentativa com modelo e o registro de cada agente."""
-
 from __future__ import annotations
 
 from typing import Callable
@@ -21,9 +19,8 @@ ModelCall = Callable[[CanSpend], Outcome]
 
 def budgeted(segment: Segment, node: Callable[[dict], dict], counts_iteration: bool = True) -> Callable[[dict], dict]:
     """
-    Falha a execução se, depois do nó, ela passou do limite de tempo ou de tokens, e, quando o nó conta como etapa, do
-    limite de etapas. O limite de etapas é do trecho que o motor chama de análise (o primeiro até o plano validado); os nós
-    seguintes só respondem ao tempo e aos tokens.
+    O limite de etapas é do trecho que o motor chama de análise (o primeiro até o plano validado); os nós seguintes só
+    respondem ao tempo e aos tokens.
     """
     def run(state: dict) -> dict:
         state = node(copy_state(state))
@@ -44,11 +41,7 @@ def budgeted(segment: Segment, node: Callable[[dict], dict], counts_iteration: b
 
 def model_call(state: dict, segment: Segment, call: ModelCall, adopt: Callable[[Outcome], None],
                fallback_code: str, fallback_message: str) -> int:
-    """
-    Uma tentativa com modelo: o que o modelo escreveu entra só se passou na validação (``adopt`` recebe o resultado);
-    senão o resultado determinístico fica e duas limitações dizem o motivo. Devolve os tokens gastos, que entram na
-    contagem da execução.
-    """
+    """O que o modelo escreveu entra só se passou na validação; senão o resultado determinístico fica e duas limitações dizem o motivo."""
     spent = int(state.get("tokens") or 0)
     outcome = call(lambda needed: spent + needed <= segment.max_tokens)
     state["model_calls"] = int(state.get("model_calls") or 0) + outcome.calls
@@ -64,7 +57,6 @@ def model_call(state: dict, segment: Segment, call: ModelCall, adopt: Callable[[
 
 
 def run_agent(state: dict, segment: Segment | None, agent_id: str, version: str, work: Callable[[], int]) -> None:
-    """Um agente: anuncia o começo e o fim e entra na lista de agentes com os tokens que ``work`` gastou."""
     clock = segment.clock if segment else None
     started = clock() if clock else 0.0
     if segment:
