@@ -29,8 +29,8 @@ internal sealed class RequirementsCheck : IEvalCheck
         Need(Catalog.RuleGeneral, Catalog.PathRuleGeneral, "regras gerais exigidas");
         Need(Catalog.AgentHarnessEngineer, Catalog.PathHarnessEngineer, "o Harness Engineer planeja a configuração");
         if (ctx.Discovery.Stacks.Any(s => s.Id == "dotnet")) Need(Catalog.RuleStackDotnet, Catalog.PathRuleDotnet, "stack .NET detectada");
-        if (ctx.Discovery.Stacks.Any(s => s.Id is "node" or "nextjs" or "react" or "angular")) Need(Catalog.RuleStackJavascript, Catalog.PathRuleJavascript, "stack JavaScript/TypeScript detectada");
-        if (ctx.Discovery.Tooling.Any(t => t.Command is not null && t.Kind is "build" or "test" or "lint" or "typecheck")) Need(Catalog.RuleRepoCommands, Catalog.PathRuleRepo, "comandos do repositório detectados");
+        if (ctx.Discovery.Stacks.Any(HarnessComposition.IsJavascriptStack)) Need(Catalog.RuleStackJavascript, Catalog.PathRuleJavascript, "stack JavaScript/TypeScript detectada");
+        if (ctx.Discovery.Tooling.Any(HarnessComposition.IsRepositoryCommand)) Need(Catalog.RuleRepoCommands, Catalog.PathRuleRepo, "comandos do repositório detectados");
         if (ctx.Discovery.Tools.PythonCommand is not null) Need(Catalog.HookPolicy, Catalog.PathHookScript, "Python disponível: o hook de política é exigido");
 
         // A estrutura de especificação é verificada pelo EV-SPEC-001 (bloqueado quando não instalado); contá-lo aqui duplicaria a falha.

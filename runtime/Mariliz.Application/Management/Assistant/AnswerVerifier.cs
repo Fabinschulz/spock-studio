@@ -29,7 +29,29 @@ public static partial class AnswerVerifier
         IReadOnlyDictionary<string, List<AssistantStatement>> Sections,
         List<string> Unavailable,
         List<RejectedStatement> Rejected,
-        HashSet<string> Cited);
+        HashSet<string> Cited)
+    {
+        /// <summary>
+        /// A resposta que a pessoa vê: as quatro seções já conferidas e, como evidência, só os fatos de <paramref name="facts"/> que
+        /// foram citados. <paramref name="rejected"/> substitui os descartados quando quem chama soma os seus.
+        /// </summary>
+        public AssistantAnswer ToAnswer(
+            string projectId, DateTimeOffset answeredAt, IEnumerable<EvidenceFact> facts, string model, int inputTokens, int outputTokens,
+            IReadOnlyList<RejectedStatement>? rejected = null) => new(
+            projectId,
+            answeredAt,
+            Summary,
+            Sections["observed"],
+            Sections["calculations"],
+            Sections["inferences"],
+            Sections["recommendations"],
+            Unavailable,
+            rejected ?? Rejected,
+            facts.Where(fact => Cited.Contains(fact.Id)).ToList(),
+            model,
+            inputTokens,
+            outputTokens);
+    }
 
     public static Verified Verify(string modelText, EvidencePack pack)
     {

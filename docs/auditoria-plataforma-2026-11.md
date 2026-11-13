@@ -143,9 +143,10 @@ Ordem: 7a primeiro (são defeitos, não estilo). 7c antes de 7d (muda o dispatch
 | Onda | Itens | Estado |
 |---|---|---|
 | 7a | CT-N1, PY-N1, NET-M11, NET-M1 (parcial), NET-E4 + RS-N1, NET-E14 | Neste PR |
-| 7b | NET-E2, NET-E3, NET-E5 (permissão), NET-E11 | Neste PR (empilhado sobre a 7a) |
-| 7c | NET-E1 (NET-E8 adiado) | Neste PR (empilhado sobre a 7b) |
-| 7d–7g | — | Não iniciadas |
+| 7b | NET-E2, NET-E3, NET-E5 (permissão), NET-E11 | Mergeada na branch empilhada (#58); chega ao `master` pelo #60 |
+| 7c | NET-E1 (NET-E8 adiado) | Mergeada na branch empilhada (#59); chega ao `master` pelo #60 |
+| 7d | NET-M2, NET-M4 (parcial), NET-E7 (parcial) | Neste PR (empilhado sobre o #60) |
+| 7e–7g | — | Não iniciadas |
 
 **Decisões de escopo da 7a**
 - CT-N1: quando a volta pede grupos e busca juntos e só cabe uma rodada, a investigação **para** e registra `INVESTIGATION_STOPPED` (em vez de escolher um dos dois pedidos). Teste compara o ack com os `maximum` do schema. O `Math.Clamp` do .NET em `InvestigationService` continua (defesa na borda, NET-M2 trata do ack tipado).
@@ -172,3 +173,14 @@ Ordem: 7a primeiro (são defeitos, não estilo). 7c antes de 7d (muda o dispatch
 - **NET-E8 adiado de propósito:** unificar os handlers numa interface (`IRequestHandler`) é P2, de risco médio, e nenhum handler novo está previsto; o ganho é só de manutenção. Resolvido o P1 (E1), a decisão fica para a 7d, se o dono quiser.
 - Testes: `ProtocolConcurrencyTests` (4). Dois falhavam com o laço serial (`engine.hello` não era respondido durante `model.test`; `engine.shutdown` não era lido); dois caracterizam o que não pode mudar (ordem dos pedidos curtos e espera no EOF). Rodados 8 vezes seguidas, sem flakiness.
 - Gates da 7c: .NET 1081 passam (12 ignorados), 0 avisos. Rust, Python e UI não foram tocados.
+
+**Decisões de escopo da 7d** (só o que é SRP puro; o que depende do dono ficou de fora)
+- NET-M2: `InvestigationService` (478 → 203 linhas) só orquestra. Saíram: `InvestigationWire` (monta o pedido `ai.investigation.start.v1` e lê o ack, funções puras), `InvestigationFacts` (fatos de execuções e mudanças), `InvestigationMemory` (seleção dos documentos da memória) e `InvestigationJournal` (diário). O construtor público não mudou (testes e `Program.cs` intactos); os colaboradores internos são criados nele. Refatoração pura, protegida pelos 879 testes de `ProjectInvestigationTests` e pelos de contrato; nenhum teste novo.
+- NET-M4 (parcial): `AnswerVerifier.Verified.ToAnswer(...)` substitui as 3 montagens de `AssistantAnswer` com 13 argumentos; `ManagementAssistant.CleanQuestion` substitui as 3 validações do tamanho da pergunta. **Não feito:** o diário de pergunta (`RecordRun`) e o de investigação continuam separados (diferem mais do que parecem), as duas `Instructions` dos assistentes, e `PortfolioAssistant` gravar o mesmo `ModelUsage` em cada projeto (o uso aparece N vezes em `run.list` e na auditoria: parece defeito de contabilidade; precisa decidir se cada projeto registra a parte dele).
+- NET-E7 (parcial): `HarnessComposition.IsJavascriptStack` e `IsRepositoryCommand` são a pergunta única do plano e da validação (`RequirementsCheck` tinha a lista de stacks copiada em literal). `TechnologyCatalog` já usava a fonte única. **Não feito:** o inverso caminho → componente (`HarnessRevisionService.ComponentByPath`) continua à mão; derivá-lo do `Catalog` mexe na revisão do Harness.
+- **Não feitos nesta onda, por dependerem de decisão do dono ou de risco maior:** NET-M8 (limiar canônico de risco), NET-M10 (remover `model.complete`), NET-E6 (`IntegrationHub` como service locator, 8 consumidores), NET-M12 (um só estilo de erro), NET-E9 (`RunCatalog`), NET-E8 (handlers).
+- Gates da 7d: .NET 1094 passam (12 ignorados), 0 avisos. Rust, Python e UI não foram tocados.
+
+**Incidente de fim de linha (corrigido)**: os scripts Python que usei para editar arquivos nas ondas 7a–7c gravaram CRLF em 11 arquivos que eram LF (e em 3 novos); o repositório inteiro é LF (934 arquivos conferidos). Isso inflou os diffs (`HarnessComposition.cs` aparecia com 280/274 linhas por uma mudança de 8) e o #57 já levou parte do ruído ao `master`. O #60 normaliza tudo sem mudar conteúdo (`git diff --ignore-space-at-eol` vazio). Daqui em diante: edição por `Edit`/`Write` ou por script que lê e grava bytes; depois de cada onda, comparar o estilo de fim de linha com a base.
+
+**Atenção ao empilhar PRs**: ao mergear uma pilha, o PR de cima vai para a branch de baixo, não para o `master`, se a de baixo já foi mergeada. Foi o que aconteceu com o #58 e o #59. Mergear de baixo para cima e esperar o GitHub trocar a base do seguinte antes de mergear, ou abrir cada PR contra o `master`.

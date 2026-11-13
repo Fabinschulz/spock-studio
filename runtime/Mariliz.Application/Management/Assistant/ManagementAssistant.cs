@@ -42,6 +42,15 @@ public sealed class ManagementAssistant(
          "inferences": [...], "recommendations": [...], "unavailable": [{"text": "..."}]}
         """;
 
+    /// <summary>A pergunta sem espaços nas pontas; recusa a que não tem entre <see cref="MinQuestion"/> e <see cref="MaxQuestion"/> caracteres.</summary>
+    public static string CleanQuestion(string question)
+    {
+        var clean = question.Trim();
+        if (clean.Length is < MinQuestion or > MaxQuestion)
+            throw new ParamException($"A pergunta precisa ter entre {MinQuestion} e {MaxQuestion} caracteres.");
+        return clean;
+    }
+
     public EvidencePack Evidence(string projectId)
     {
         var integrations = hub.Projects.List(projectId);
@@ -56,10 +65,7 @@ public sealed class ManagementAssistant(
     /// </summary>
     public async Task<AssistantAnswer> AskAsync(string projectId, string question, CancellationToken ct)
     {
-        var cleanQuestion = question.Trim();
-        if (cleanQuestion.Length is < MinQuestion or > MaxQuestion)
-            throw new ParamException($"A pergunta precisa ter entre {MinQuestion} e {MaxQuestion} caracteres.");
-
+        var cleanQuestion = CleanQuestion(question);
         var startedAt = clock.UtcNow;
         try
         {
@@ -101,20 +107,7 @@ public sealed class ManagementAssistant(
             ["promptHash"] = completion.PromptHash
         });
 
-        return new AssistantAnswer(
-            projectId,
-            clock.UtcNow,
-            verified.Summary,
-            verified.Sections["observed"],
-            verified.Sections["calculations"],
-            verified.Sections["inferences"],
-            verified.Sections["recommendations"],
-            verified.Unavailable,
-            verified.Rejected,
-            pack.Facts.Where(fact => verified.Cited.Contains(fact.Id)).ToList(),
-            completion.ModelVersion,
-            completion.InputTokens,
-            completion.OutputTokens);
+        return verified.ToAnswer(projectId, clock.UtcNow, pack.Facts, completion.ModelVersion, completion.InputTokens, completion.OutputTokens);
     }
 
     /// <summary>
