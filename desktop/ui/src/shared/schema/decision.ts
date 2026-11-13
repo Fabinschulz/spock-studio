@@ -1,9 +1,6 @@
 import { z } from 'zod';
 
-/**
- * Contrato das decisões gerenciais (`decision.record`, `decision.list` e `decision.get`). Uma decisão guarda o que foi decidido
- * e por quê, os fatos que o motor tinha no instante do registro e as execuções relacionadas. Não se edita nem se apaga.
- */
+/** Uma decisão guarda os fatos que o motor tinha no instante do registro; não se edita nem se apaga. */
 
 /** Uma execução ligada à decisão, como era quando a decisão foi registrada. */
 export const decisionRunSchema = z.object({
@@ -13,7 +10,6 @@ export const decisionRunSchema = z.object({
   startedAt: z.string()
 });
 
-/** Um fato do pacote de evidências no instante da decisão, com o texto que o motor escreveu. */
 export const decisionFactSchema = z.object({ id: z.string(), group: z.string(), text: z.string() });
 
 export const managementDecisionSchema = z.object({
@@ -29,7 +25,7 @@ export const managementDecisionSchema = z.object({
   withheld: z.array(z.string())
 });
 
-/** A decisão na lista: sem os fatos, só quantos são; eles vêm em `decision.get`. */
+/** Sem os fatos, só quantos são; eles vêm em `decision.get`. */
 export const decisionSummarySchema = z.object({
   id: z.string(),
   recordedAt: z.string(),

@@ -25,18 +25,14 @@ export const syncedIntegration = integrationsFixture.integrations[0] as ProjectI
 
 const NEVER_SYNCED = { total: 0, byKind: {}, byStatusCategory: {}, lastSyncedAt: null };
 
-/**
- * O motor de mentira para as telas de integração: guarda conexões e vínculos em memória e responde no formato do
- * contrato. A sincronização fica "em andamento" até a lista ser relida, como no motor real, que roda em segundo plano.
- */
 /** Respostas do assistente: a do motor real (fixture), uma com afirmações descartadas, ou um erro com código. */
 type AssistantReply = 'answer' | 'rejected' | { code: string; message: string };
 
+/** A sincronização fica "em andamento" até a lista ser relida, como no motor real, que roda em segundo plano. */
 export function fakeIntegrationEngine(
   initial: {
     connections?: Connection[];
     vaultAvailable?: boolean;
-    /** O que falta quando não há cofre, como o motor diz neste sistema. */
     vaultHint?: string;
     modelConfigured?: boolean;
     assistant?: AssistantReply;
@@ -289,13 +285,13 @@ export function fakeIntegrationEngine(
   return {
     client,
     calls,
-    /** Coloca um vínculo já sincronizado num projeto, sem passar pela tela. */
     /** Coloca itens com execuções ligadas, como `run.linked` os devolveria. */
     seedLinked(items: unknown[]) {
       linkedItems = items;
     },
     /** Publica um aviso do motor, como se ele o tivesse enviado. */
     emit: publish,
+    /** Coloca um vínculo já sincronizado num projeto, sem passar pela tela. */
     seed(projectId: string, integration: ProjectIntegration = syncedIntegration) {
       integrations = [...integrations, { ...integration, projectId }];
     }

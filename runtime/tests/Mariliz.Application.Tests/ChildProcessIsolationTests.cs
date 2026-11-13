@@ -4,10 +4,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Achado no aplicativo instalado: um filho sem entrada própria herdava a entrada do motor, que ali é o canal do protocolo
-/// com o host. Um script que lê a entrada ficava esperando o limite de tempo e podia engolir mensagens do protocolo.
-/// </summary>
+// Achado no aplicativo instalado: um filho sem entrada própria herdava a entrada do motor, que ali é o canal do protocolo com o host.
 public class ChildProcessIsolationTests
 {
     [Fact]

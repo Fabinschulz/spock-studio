@@ -9,18 +9,13 @@ using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Management;
 
-/// <summary>Uma execução ligada a uma decisão, como era quando a decisão foi registrada. Só identificador, tipo, estado e início.</summary>
+// Retrato da execução no instante do registro, não o estado atual.
 public sealed record DecisionRun(string RunId, string Kind, string State, DateTimeOffset StartedAt);
 
-/// <summary>Um fato do pacote de evidências no instante da decisão, com o texto exatamente como o motor o escreveu.</summary>
+// O texto exatamente como o motor o escreveu no instante da decisão.
 public sealed record DecisionFact(string Id, string Group, string Text);
 
-/// <summary>
-/// Uma decisão gerencial registrada pela pessoa: o que foi decidido e por quê, com os fatos que o motor tinha naquele instante
-/// e as execuções relacionadas. Não se edita nem se apaga: é a trilha de por que se decidiu o que se decidiu.
-/// </summary>
-/// <param name="Facts">Os fatos do pacote de evidências no instante do registro (o que valia nesse dia, não o que vale hoje).</param>
-/// <param name="Withheld">O que ficou de fora do pacote de propósito, como no pacote que vai ao assistente.</param>
+// Não se edita nem se apaga: é a trilha de por que se decidiu o que se decidiu.
 public sealed record ManagementDecision(
     string Id,
     string ProjectId,
@@ -32,7 +27,6 @@ public sealed record ManagementDecision(
     IReadOnlyList<DecisionFact> Facts,
     IReadOnlyList<string> Withheld);
 
-/// <summary>Onde as decisões de um projeto ficam. Um arquivo por decisão, na pasta do projeto: decisões de projetos diferentes não se misturam.</summary>
 public interface IDecisionStore
 {
     IReadOnlyList<ManagementDecision> List(string projectId);
@@ -40,10 +34,7 @@ public interface IDecisionStore
     void Save(ManagementDecision decision);
 }
 
-/// <summary>
-/// Registra e lê decisões gerenciais. O texto é da pessoa e passa pela mesma redação de segredos de tudo o que o motor guarda:
-/// uma chave colada por engano não fica gravada, e a resposta diz que houve redação. Os fatos vêm do motor, nunca do pedido.
-/// </summary>
+// O texto da pessoa passa pela redação de segredos; os fatos vêm do motor, nunca do pedido.
 public sealed class DecisionService(
     WorkspaceAuthorizer workspace,
     IDecisionStore store,
@@ -58,10 +49,6 @@ public sealed class DecisionService(
     public const int MaxRuns = 10;
     public const int MaxPerProject = 500;
 
-    /// <summary>
-    /// Registra a decisão com os fatos de agora e as execuções informadas. Devolve o registro completo e se algum trecho foi
-    /// redigido por parecer um segredo.
-    /// </summary>
     public (ManagementDecision Decision, bool Redacted) Record(
         string projectId, string title, string decision, string? rationale, IReadOnlyList<string> runIds)
     {
@@ -99,7 +86,6 @@ public sealed class DecisionService(
         return (record, redacted);
     }
 
-    /// <summary>As decisões do projeto, da mais recente para a mais antiga, sem os fatos (que vão em <see cref="Get"/>).</summary>
     public JsonArray List(string projectId)
     {
         if (!workspace.IsAuthorized(projectId)) throw EngineErrors.ProjectNotAuthorized();
@@ -116,7 +102,6 @@ public sealed class DecisionService(
             }).ToArray());
     }
 
-    /// <summary>As decisões registradas entre <paramref name="from"/> e <paramref name="to"/>, da mais recente para a mais antiga.</summary>
     public IReadOnlyList<ManagementDecision> Recorded(string projectId, DateTimeOffset from, DateTimeOffset to)
     {
         if (!workspace.IsAuthorized(projectId)) throw EngineErrors.ProjectNotAuthorized();

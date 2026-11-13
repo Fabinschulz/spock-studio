@@ -6,14 +6,9 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Central de integrações: conexão, vínculo com o projeto, recorte e sincronização. Os provedores são dublês com a forma
-/// da API real; nenhuma chamada sai para a rede.
-/// </summary>
+// Os provedores são dublês com a forma da API real; nenhuma chamada sai para a rede.
 public class IntegrationHubTests
 {
-    // ------------------------------------------------------------------ Conexão e credencial
-
     [Fact]
     public async Task Conexao_so_e_gravada_depois_que_o_provedor_aceita_e_a_credencial_fica_so_no_cofre()
     {
@@ -113,8 +108,6 @@ public class IntegrationHubTests
         Assert.Equal("CONNECTION_IN_USE", Assert.Throws<EngineException>(() => h.Hub.Connections.Remove(integration.ConnectionId)).Code);
     }
 
-    // ------------------------------------------------------------------ Vínculo, recorte e isolamento
-
     [Fact]
     public async Task Vinculo_exige_projeto_autorizado_recurso_alcancavel_e_tipos_que_o_conector_oferece()
     {
@@ -213,8 +206,6 @@ public class IntegrationHubTests
         h.Hub.Connections.Remove(integration.ConnectionId);
         Assert.Empty(h.Hub.Connections.List());
     }
-
-    // ------------------------------------------------------------------ Sincronização
 
     [Fact]
     public async Task Sincronizar_de_novo_nao_duplica_e_so_pede_o_que_mudou()
@@ -341,8 +332,6 @@ public class IntegrationHubTests
         Assert.NotNull(finished.FinishedAt);
     }
 
-    // ------------------------------------------------------------------ Limite de chamadas
-
     [Fact]
     public async Task Limite_de_chamadas_curto_espera_e_segue_e_longo_vira_erro_com_a_hora()
     {
@@ -376,8 +365,6 @@ public class IntegrationHubTests
         await Assert.ThrowsAsync<EngineException>(() =>
             client.GetAsync(new ConnectorRequest(new Uri("http://api.github.com/user"), new Dictionary<string, string>()), CancellationToken.None));
     }
-
-    // ------------------------------------------------------------------ Jira
 
     [Fact]
     public async Task Jira_so_aceita_site_atlassian_e_le_issues_com_historico_de_status()
@@ -414,8 +401,6 @@ public class IntegrationHubTests
         Assert.Equal(("A fazer", "Em andamento", DateTimeOffset.Parse("2026-10-05T13:00:00Z")), (transition.From, transition.To, transition.At));
         Assert.DoesNotContain(FakeJira.Token, h.EverythingOnDisk());
     }
-
-    // ------------------------------------------------------------------ Armazenamento
 
     [Fact]
     public void Cofre_do_windows_guarda_cifrado_e_devolve_a_mesma_credencial()
@@ -456,14 +441,9 @@ public class IntegrationHubTests
         Assert.Throws<EngineException>(() => store.Write("../..", "pint-000000000000", new SyncedData()));
     }
 
-    // ------------------------------------------------------------------ Contrato com a interface
-
     private static readonly bool Update = Environment.GetEnvironmentVariable("MARILIZ_UPDATE_GOLDEN") == "1";
 
-    /// <summary>
-    /// As respostas que a interface lê, geradas pelo motor com relógio fixo e ids normalizados. O Zod da interface é conferido
-    /// contra os mesmos arquivos. Para regenerar depois de uma mudança deliberada: MARILIZ_UPDATE_GOLDEN=1 dotnet test.
-    /// </summary>
+    // O Zod da interface é conferido contra os mesmos arquivos. Para regenerar depois de uma mudança deliberada: MARILIZ_UPDATE_GOLDEN=1 dotnet test.
     [Fact]
     public async Task Respostas_da_central_conferem_com_as_fixtures_do_contrato()
     {

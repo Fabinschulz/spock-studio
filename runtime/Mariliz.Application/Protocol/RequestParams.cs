@@ -22,7 +22,6 @@ internal readonly struct RequestParams(JsonObject? values)
 
     public bool? OptionalFlag(string name) => Has(name) ? Flag(name) : null;
 
-    /// <summary>Um objeto opcional cujos valores são todos textos (ex.: a configuração de um conector).</summary>
     public IReadOnlyDictionary<string, string> StringMap(string name)
     {
         var map = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -43,7 +42,7 @@ internal readonly struct RequestParams(JsonObject? values)
             : throw new ParamException($"'{name}' precisa ser um inteiro a partir de -1.");
     }
 
-    /// <summary>Uma lista de textos opcional. Qualquer item que não seja texto invalida o pedido.</summary>
+    // Qualquer item que não seja texto invalida o pedido.
     public IReadOnlyList<string> StringList(string name)
     {
         if (values?[name] is null) return [];

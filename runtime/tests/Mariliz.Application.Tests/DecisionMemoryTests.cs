@@ -13,10 +13,6 @@ using System.Text.Json.Nodes;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// As decisões gerenciais como memória do índice: o que vai (título, data, o decidido, o motivo, quantas execuções), o que nunca vai
-/// (os fatos do dia), de quem é (só do projeto autorizado e só do próprio projeto) e que nenhum arquivo se passa por uma decisão.
-/// </summary>
 public class DecisionMemoryTests
 {
     private sealed class Setup : IDisposable
@@ -137,8 +133,6 @@ public class DecisionMemoryTests
         Assert.Equal($"@decision/{all[^1].Id}.md", documents[0].Path);
         Assert.DoesNotContain(documents, document => document.Path == $"@decision/{all[0].Id}.md");
     }
-
-    // ------------------------------------------------------------------ O índice
 
     [Fact]
     public void A_selecao_de_fontes_leva_o_texto_so_do_que_mudou_e_o_prefixo_de_decisao_e_so_do_motor()

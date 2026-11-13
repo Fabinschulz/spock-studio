@@ -12,6 +12,5 @@ public static class JournalJson
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower) }
     };
 
-    /// <summary>Qualquer objeto do motor no mesmo formato do diário: é assim que ele sai no protocolo e na CLI.</summary>
     public static JsonNode? Node<T>(T value) => JsonSerializer.SerializeToNode(value, Options);
 }

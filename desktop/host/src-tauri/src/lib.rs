@@ -16,21 +16,19 @@ use protocol::{error_code, method, validate_frontend_request, HostError};
 use recents::{AuthorizedProject, RecentProject, Recents};
 use status::{compose_status, Status};
 
-/// Trava um estado compartilhado. Um mutex envenenado (uma thread entrou em pânico com ele travado) não derruba o host:
-/// o estado protegido aqui é simples e continua utilizável.
+/// Um mutex envenenado (uma thread entrou em pânico com ele travado) não derruba o host: o estado protegido aqui é
+/// simples e continua utilizável.
 pub(crate) fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
     mutex.lock().unwrap_or_else(PoisonError::into_inner)
 }
 
-/// Repassa ao motor um pedido da UI, depois de validar o envelope e conferir a lista de métodos permitidos.
 #[tauri::command]
 async fn engine_request(engine: State<'_, Engine>, envelope: Value) -> Result<Value, HostError> {
     let (method, params) = validate_frontend_request(&envelope)?;
     engine.request(&method, params).await
 }
 
-/// Pede ao motor que autorize a pasta e registra o projeto nos recentes. A resposta volta com o `recentId`, para a UI
-/// saber qual item da lista é o projeto atual.
+/// O `recentId` volta na resposta para a UI saber qual item da lista é o projeto atual.
 async fn authorize_and_record(
     engine: &Engine,
     recents: &Recents,
@@ -49,8 +47,8 @@ async fn authorize_and_record(
     Ok(authorized)
 }
 
-/// Abre o diálogo nativo de pasta no lado Rust. O caminho nunca passa pela UI: o host o entrega
-/// ao motor, que o autoriza, e a UI recebe só o nome e o caminho abreviado.
+/// O caminho nunca passa pela UI: o host o entrega ao motor, que o autoriza, e a UI recebe só o nome e o caminho
+/// abreviado.
 #[tauri::command]
 async fn pick_project_folder(
     app: AppHandle,
@@ -87,15 +85,14 @@ async fn pick_project_folder(
         .map(Some)
 }
 
-/// Projetos escolhidos antes, do mais recente ao mais antigo. Sem caminho completo: só id, nome e caminho abreviado.
 /// `async`: um comando síncrono roda na thread principal, e conferir as pastas pode demorar (caminho de rede desconectado).
 #[tauri::command(async)]
 fn list_recent_projects(recents: State<'_, Recents>) -> Vec<RecentProject> {
     recents.list()
 }
 
-/// Reabre um projeto da lista, pelo id. A UI não envia caminho: só o que já passou pelo diálogo nativo pode voltar.
-/// O motor autoriza o caminho de novo, com as mesmas regras de uma escolha nova.
+/// A UI não envia caminho: só o que já passou pelo diálogo nativo pode voltar, e o motor o autoriza de novo com as
+/// mesmas regras de uma escolha nova.
 #[tauri::command]
 async fn open_recent_project(
     id: String,

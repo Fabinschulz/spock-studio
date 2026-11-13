@@ -2,10 +2,7 @@ using Mariliz.Core.Evals;
 
 namespace Mariliz.Application.Validation.Checks;
 
-/// <summary>
-/// O juiz consulta se há modelo. Sem modelo, não roda. Com modelo, também não aprova sozinho:
-/// o resultado da configuração continua nas verificações determinísticas.
-/// </summary>
+// Com modelo, também não aprova sozinho: o resultado da configuração continua nas verificações determinísticas.
 internal sealed class ModelJudgeCheck : IEvalCheck
 {
     public string Id => EvalIds.Judge;

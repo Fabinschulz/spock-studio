@@ -5,7 +5,6 @@ using Mariliz.Application.Tests.Support;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>Os eventos que descrevem a execução: o carimbo de tempo, a lista de etapas e um evento por Eval.</summary>
 public class RunEventContractTests
 {
     private sealed class FixedClock(DateTimeOffset now) : IClock

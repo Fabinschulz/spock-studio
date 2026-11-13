@@ -23,10 +23,8 @@ public static class TrendRules
     /// <summary>Entregas mínimas antes da queda para ela valer como queda (com menos, não há de onde cair).</summary>
     public const int MinDeliveriesBeforeDrop = 4;
 
-    /// <summary>Chegadas superam as entregas em ao menos <paramref name="ratio"/> e em <see cref="MinScopeGap"/> itens.</summary>
     public static bool ScopeGrowing(int arrivals, int deliveries, double ratio) =>
         arrivals - deliveries >= MinScopeGap && arrivals >= deliveries * ratio;
 
-    /// <summary>As entregas depois são no máximo metade das de antes, e antes houve ao menos <see cref="MinDeliveriesBeforeDrop"/>.</summary>
     public static bool ThroughputDropped(int before, int after) => before >= MinDeliveriesBeforeDrop && after * 2 <= before;
 }

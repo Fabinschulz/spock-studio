@@ -3,10 +3,7 @@ import { Link } from 'react-router';
 import styles from './AppShell.module.scss';
 import { ENVIRONMENTS, type Environment } from './environment';
 
-/**
- * Engenharia e Gestão: dois ambientes do mesmo projeto. Trocar de ambiente não troca de projeto. São links, porque
- * trocar leva a outra tela; o ambiente atual vem marcado por `aria-current` e por forma, não só por cor.
- */
+/** São links porque trocar leva a outra tela; o ambiente atual vem marcado por `aria-current` e por forma, não só por cor. */
 export function EnvironmentSwitch({ environment }: { environment: Environment }) {
   return (
     <nav aria-label="Ambiente" className={styles.environments}>

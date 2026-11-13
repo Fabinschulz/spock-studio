@@ -16,10 +16,6 @@ interface PageProps {
   children?: ReactNode;
 }
 
-/**
- * O esqueleto de toda tela: cabeçalho (título, contexto, trilha) e o conteúdo em coluna, com o mesmo espaçamento. As
- * telas deixam de repetir `.page`, `.title` e `.lead` e passam a compor `Page` com `PageSection`.
- */
 export function Page({ title, description, breadcrumb, width = 'text', children }: PageProps) {
   return (
     <div className={cn(styles.page, width === 'wide' && styles.wide)}>

@@ -5,16 +5,12 @@ using Mariliz.Application.Ports;
 
 namespace Mariliz.Infrastructure;
 
-/// <summary>Executa processos sem shell: executável e argumentos ficam separados, então nada é interpretado como comando.</summary>
+// Sem shell: executável e argumentos ficam separados, então nada é interpretado como comando.
 public sealed class SystemProcessRunner : IProcessRunner
 {
     private const int MaxOutputChars = 1_000_000;
 
-    /// <summary>
-    /// A entrada padrão do processo filho é <b>sempre</b> redirecionada. Sem isso ele herdaria a entrada do próprio motor,
-    /// que no aplicativo é o canal do protocolo com o host: um script que leia a entrada ficaria esperando (e poderia
-    /// engolir mensagens do protocolo). Sem <see cref="ProcessSpec.StandardInput"/>, o filho recebe uma entrada vazia e fechada.
-    /// </summary>
+    // A entrada padrão do filho é sempre redirecionada: herdada, seria o canal do protocolo com o host, e um script que a lesse ficaria esperando (e poderia engolir mensagens do protocolo).
     public static ProcessStartInfo BuildStartInfo(ProcessSpec spec)
     {
         var psi = new ProcessStartInfo(Executable(spec.Executable))

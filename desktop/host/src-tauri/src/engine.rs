@@ -1,6 +1,3 @@
-//! Ciclo de vida do runtime .NET (sidecar) e correlação de requisições e respostas. Onde estão os recursos
-//! empacotados fica em `resources`; como o estado chega à UI, em `status`.
-
 use std::{
     collections::HashMap,
     sync::{
@@ -73,7 +70,6 @@ impl Engine {
         let _ = app.emit("engine_status", status.as_str());
     }
 
-    /// Inicia o motor e faz o handshake. Falhas viram o estado `crashed`; a UI mostra o diagnóstico.
     pub fn boot(&self, app: AppHandle) {
         let engine = self.clone();
         tauri::async_runtime::spawn(async move {
@@ -88,7 +84,7 @@ impl Engine {
         });
     }
 
-    /// Um motor que não completou o handshake não serve a ninguém: sem isto o processo ficaria vivo, sem dono e com o estado da UI em `crashed`.
+    /// Sem isto, um motor que não completou o handshake ficaria vivo, sem dono e com o estado da UI em `crashed`.
     fn discard_process(&self) {
         if let Some(child) = lock(&self.0.child).take() {
             let _ = child.kill();
@@ -199,7 +195,6 @@ impl Engine {
         eprintln!("[host] o motor encerrou (código {code:?})");
         self.set_status(app, Status::Crashed);
 
-        // Uma tentativa automática por queda; depois disso a UI mostra o diagnóstico.
         let uptime = lock(&self.0.ready_since)
             .take()
             .map(|since| since.elapsed());
@@ -278,8 +273,8 @@ impl Engine {
         })
     }
 
-    /// Pede o encerramento ordenado e espera o motor terminar. Uma aplicação em andamento é cancelada e
-    /// desfeita pelo motor antes de ele sair; só depois do prazo o processo é finalizado à força.
+    /// Uma aplicação em andamento é cancelada e desfeita pelo motor antes de ele sair; só depois do prazo o processo é
+    /// finalizado à força.
     pub fn shutdown(&self) {
         self.0.shutting_down.store(true, Ordering::SeqCst);
         self.0.terminated.store(false, Ordering::SeqCst);
@@ -305,8 +300,8 @@ impl Engine {
     }
 }
 
-/// Decide se a queda merece outra subida. Quedas logo após subir esgotam as tentativas; um motor que ficou estável por
-/// `STABLE_UPTIME` zera a conta, para uma queda esporádica horas depois também ser recuperada.
+/// Um motor que ficou estável por `STABLE_UPTIME` zera a conta, para uma queda esporádica horas depois também ser
+/// recuperada.
 fn restart_allowed(restarts: &AtomicU64, uptime: Option<Duration>) -> bool {
     if uptime.is_some_and(|up| up >= STABLE_UPTIME) {
         restarts.store(0, Ordering::SeqCst);

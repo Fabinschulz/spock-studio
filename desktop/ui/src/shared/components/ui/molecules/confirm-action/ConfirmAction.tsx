@@ -3,12 +3,9 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import styles from './ConfirmAction.module.scss';
 
 interface ConfirmActionProps {
-  /** O nome do grupo: o que está sendo confirmado ("Remover GitHub da equipe"). */
   label: string;
-  /** O que acontece e, quando ajuda, o que não muda. É a frase que a pessoa lê antes de decidir. */
   children: ReactNode;
   confirmLabel: string;
-  /** O texto de desistir. Padrão: "Manter". */
   cancelLabel?: string;
   busy?: boolean;
   onConfirm: () => void;
@@ -16,11 +13,8 @@ interface ConfirmActionProps {
 }
 
 /**
- * A confirmação de uma ação que apaga algo, feita na própria linha: diz o que vai acontecer e pede o "sim" com um botão
- * de perigo, ao lado da opção de desistir.
- *
- * O foco vai para a opção segura ao aparecer, porque o botão que abriu a confirmação sai da tela e o foco cairia no vazio;
- * e o Esc desiste. Quem usa o teclado confirma só de propósito: Enter na primeira opção focada nunca apaga nada.
+ * O foco vai para a opção segura ao aparecer, porque o botão que abriu a confirmação sai da tela e o foco cairia no
+ * vazio; e o Esc desiste. Enter na primeira opção focada nunca apaga nada.
  */
 export function ConfirmAction({
   label,

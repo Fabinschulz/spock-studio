@@ -9,7 +9,6 @@
   list-style: none;
 }
 
-// Linhas separadas por um fio, sem cartão: a lista é o conteúdo.
 .row {
   display: flex;
   flex-direction: column;
@@ -86,7 +85,6 @@
   color: var(--color-text-muted);
 }
 
-// As quatro perguntas de uma conexão: cada pergunta é longa, então a resposta vem embaixo e não numa segunda coluna.
 .reach {
   display: flex;
   flex-direction: column;

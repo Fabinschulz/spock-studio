@@ -4,7 +4,6 @@ import type { ProjectRisk, ProjectRisks } from '@/shared/schema';
 import { SEVERITY_LABEL } from '../domain/delivery-labels';
 import styles from '../management-page.module.scss';
 
-/** Riscos detectados por regra fixa, do mais grave ao mais leve, cada um com as evidências e o que fazer. */
 export function RisksSection({ risks }: { risks: ProjectRisks }) {
   if (!risks.hasData) return null;
 

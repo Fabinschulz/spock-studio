@@ -1,4 +1,3 @@
-/** Cadeado (nada sai do computador) e informação: os mesmos traços em todas as telas. */
 export function LockGlyph({ size = 16 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">

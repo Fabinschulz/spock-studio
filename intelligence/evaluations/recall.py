@@ -1,6 +1,4 @@
-"""Recall@k e MRR da recuperação de contexto (rag.recall.v2).
-
-Cada expectativa é um arquivo e um trecho que o chunk recuperado precisa conter, então o formato do chunkId pode mudar
+"""Cada expectativa é um arquivo e um trecho que o chunk recuperado precisa conter, então o formato do chunkId pode mudar
 sem invalidar o dataset. ``baseline`` guarda o último resultado aceito: uma mudança na recuperação não pode piorar.
 """
 

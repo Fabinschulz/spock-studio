@@ -5,7 +5,6 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Application.Protocol;
 
-/// <summary>Traduz <c>engineering.*</c> para o perfil tecnológico, o conhecimento, o estado e as revisões do Harness do projeto.</summary>
 internal sealed class EngineeringRequestHandler(
     TechnologyProfileService profiles,
     ProjectKnowledgeService? knowledge,
@@ -29,7 +28,6 @@ internal sealed class EngineeringRequestHandler(
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
     };
 
-    /// <summary>Sem runtime de IA na sessão (CLI, testes de outras áreas), a visão de conhecimento não existe.</summary>
     private ProjectKnowledgeService Knowledge() =>
         knowledge ?? throw new EngineException("KNOWLEDGE_UNAVAILABLE", "A visão de conhecimento não está disponível nesta sessão do motor.");
 

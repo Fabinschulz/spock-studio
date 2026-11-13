@@ -14,7 +14,6 @@ export interface RunStepView {
   endedAt: number | null;
 }
 
-/** Um Eval da validação, como o motor o anunciou: `running` até o resultado chegar. */
 export interface RunEvalView {
   id: string;
   name: string;

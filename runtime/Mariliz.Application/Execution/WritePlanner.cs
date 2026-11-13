@@ -3,7 +3,6 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Execution;
 
-/// <summary>Transforma o plano e as aprovações em operações de arquivo. O arquivo de lock é tratado à parte.</summary>
 internal static class WritePlanner
 {
     public static WriteDecision Decide(ConfigurationPlan plan, ApplyApprovals approvals)

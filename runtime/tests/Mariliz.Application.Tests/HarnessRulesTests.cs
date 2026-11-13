@@ -3,10 +3,7 @@ using Mariliz.Core.Discovery;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// O plano e a validação (<c>RequirementsCheck</c>) fazem as mesmas perguntas sobre a descoberta: "esta stack é JavaScript?" e "este
-/// é um comando do repositório?". As duas vêm do mesmo lugar, então uma stack nova não entra no plano e fica fora da validação.
-/// </summary>
+// Uma stack nova não pode entrar no plano e ficar fora da validação.
 public class HarnessRulesTests
 {
     private static StackFinding Stack(string id) => new(id, id, "", null, Confidence.High, [], []);

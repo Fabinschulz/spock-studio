@@ -14,7 +14,6 @@ interface FileChangeRowProps {
   onResolve: (value: ConflictResolution) => void;
 }
 
-/** Uma linha por arquivo: a aprovação e o estado na própria linha; motivo e diferenças ficam ao alcance, sem cartão. */
 export function FileChangeRow({ change, approved, resolution, onToggle, onResolve }: FileChangeRowProps) {
   const isConflict = change.action === 'conflict';
   const state =

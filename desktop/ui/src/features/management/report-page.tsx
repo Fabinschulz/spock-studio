@@ -19,10 +19,7 @@ import { createManagementApi, type ManagementApi } from './service/management-ap
 
 const PERIODS = [2, 4, 8, 12] as const;
 
-/**
- * O relatório do período: indicadores, previsão, riscos, marcos, decisões e execuções, num texto só que se pode copiar.
- * Tudo vem do motor; nenhuma frase é escrita por modelo.
- */
+/** Tudo vem do motor; nenhuma frase é escrita por modelo. */
 export function ReportPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   const integrations = useMemo(() => createIntegrationApi(client), [client]);
   const management = useMemo(() => createManagementApi(client), [client]);

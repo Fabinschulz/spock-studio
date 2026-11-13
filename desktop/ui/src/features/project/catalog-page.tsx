@@ -13,7 +13,7 @@ import { HARNESS_STATE } from './domain/harness-state';
 import styles from './project-page.module.scss';
 import { readCatalog } from './service/project-api';
 
-/** A ordem e o nome de cada grupo de componentes. Um tipo novo do motor aparece depois, com o nome que veio. */
+/** Um tipo novo do motor aparece depois, com o nome que veio. */
 const GROUPS: { kind: string; title: string }[] = [
   { kind: 'agent', title: 'Agentes' },
   { kind: 'skill', title: 'Skills' },
@@ -23,10 +23,7 @@ const GROUPS: { kind: string; title: string }[] = [
   { kind: 'config', title: 'Declaração do projeto' }
 ];
 
-/**
- * O catálogo do Harness: para cada componente, o que faz, quando age, o que lê, o que pode alterar e de onde veio. Com um
- * projeto aberto, mostra também o que está aplicado nele. Só leitura: mudar é pela jornada Configurar.
- */
+/** Só leitura: mudar é pela jornada Configurar. */
 export function CatalogPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   // A chave remonta a tela ao trocar de projeto: nada de um projeto aparece, nem por um instante, em outro.
   return <CatalogView key={project?.projectId ?? 'sem-projeto'} client={client} project={project} />;

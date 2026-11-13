@@ -7,11 +7,7 @@ using System.Text;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>
-/// Compara o estado atual com o desejado e produz o plano. A comparação é de três vias: a base (o que a
-/// aplicação escreveu da última vez, conforme o lock), o disco (o que está lá agora) e o desejado.
-/// Um arquivo que a pessoa editou, ou que a aplicação não gerencia, nunca é sobrescrito sem decisão dela.
-/// </summary>
+// Comparação de três vias: a base (o que a aplicação escreveu da última vez, conforme o lock), o disco e o desejado. Um arquivo que a pessoa editou, ou que a aplicação não gerencia, nunca é sobrescrito sem decisão dela.
 public static class PlanBuilder
 {
     public static ConfigurationPlan Build(
@@ -42,7 +38,6 @@ public static class PlanBuilder
                     DecisionOrigins.Baseline, currentHash, null, destructive: true, "Arquivo gerenciado editado localmente; só será removido se você decidir.", null));
         }
 
-        // Existente e não gerenciado: preservado, e dito no plano.
         var inventoryPreserved = new List<FileChange>();
         foreach (var (item, kind) in InventoryWithKind(report.Inventory))
         {
@@ -146,7 +141,7 @@ public static class PlanBuilder
         foreach (var i in inv.Evals) yield return (i, ComponentKind.Eval);
     }
 
-    /// <summary>O que a validação executa depois de aplicar, dito antes para a pessoa aprovar sabendo.</summary>
+    // Dito antes para a pessoa aprovar sabendo.
     private static IReadOnlyList<string> PlannedValidations(DiscoveryReport report)
     {
         var python = report.Tools.PythonCommand ?? "python";
@@ -174,12 +169,12 @@ public static class PlanBuilder
         string? before, string? after, bool destructive, string? conflict, (string Diff, bool Truncated)? diff) =>
         new("chg-" + Hashing.Sha256(path)[..10], kind, componentId, path, action, reason, origin, before, after, destructive, conflict, diff?.Diff, diff?.Truncated ?? false);
 
-    /// <summary>O diff é mostrado na tela e vai no plano: linhas com formato de credencial são omitidas dos dois lados.</summary>
+    // Linhas com formato de credencial são omitidas dos dois lados.
     private static (string Diff, bool Truncated)? Diff(string path, string? before, string after) =>
         UnifiedDiff.Create(path,
             before is null ? null : Core.Policy.SecretScanner.RedactLines(Normalize(before)),
             Core.Policy.SecretScanner.RedactLines(after));
 
-    /// <summary>Fim de linha uniforme: o hash e o diff não dependem do sistema que escreveu.</summary>
+    // O hash e o diff não dependem do sistema que escreveu.
     public static string Normalize(string text) => text.Replace("\r\n", "\n");
 }

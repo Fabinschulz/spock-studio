@@ -1,10 +1,6 @@
 import { FormControlLabel, Radio } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
-/**
- * Mesmo desenho do `Checkbox` do Synthra (rótulo do MUI com o controle ao lado), com as cores do tema do app. O rótulo é
- * flexível porque pode trazer mais que texto (ícone, nome e etiquetas na escolha do ambiente de IA).
- */
 export const StyledFormControlLabel = styled(FormControlLabel)(({ theme }) => ({
   marginLeft: 0,
   marginRight: 0,

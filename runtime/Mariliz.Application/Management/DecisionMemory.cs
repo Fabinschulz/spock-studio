@@ -6,25 +6,13 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Management;
 
-/// <summary>Um texto de decisão registrada, pronto para o índice de conhecimento. O caminho começa por <see cref="DecisionMemory.Prefix"/>.</summary>
 public sealed record MemoryDocument(string Path, string Hash, string Text);
 
-/// <summary>
-/// As decisões gerenciais registradas no projeto, vistas como memória do índice de conhecimento: o que se decidiu e por quê, para um
-/// agente (a pergunta de engenharia, a investigação) poder encontrar "já decidimos isso antes" em vez de repetir a discussão.
-/// <para>
-/// É texto que a própria pessoa escreveu no projeto, já passado pela redação de segredos no registro; não é dado de terceiros, então
-/// não depende da política de uma integração. Mesmo assim leva só o que serve de memória: título, data, o que foi decidido, o motivo e
-/// quantas execuções ligam à decisão. <b>Não leva os fatos do dia</b>: eles podem trazer títulos de itens que a política de então
-/// permitia e a de hoje talvez não permita. Só projeto autorizado tem memória, e o prefixo é só do motor: nenhum arquivo do
-/// projeto consegue se passar por uma decisão.
-/// </para>
-/// </summary>
+// Não leva os fatos do dia: podem trazer títulos de itens que a política de então permitia e a de hoje talvez não. O prefixo é só do motor: nenhum arquivo do projeto se passa por uma decisão.
 public sealed class DecisionMemory(WorkspaceAuthorizer workspace, IDecisionStore store)
 {
     public const string Prefix = "@decision/";
 
-    /// <summary>Teto de documentos por projeto: as decisões mais recentes entram primeiro.</summary>
     public const int MaxDocuments = 200;
 
     public IReadOnlyList<MemoryDocument> Documents(string projectId)
@@ -44,7 +32,6 @@ public sealed class DecisionMemory(WorkspaceAuthorizer workspace, IDecisionStore
 
     internal static string Render(ManagementDecision decision)
     {
-        // O que o agente recebe de cada trecho é curto: o decidido e o motivo vêm primeiro, o aviso de natureza do registro por último.
         var lines = new List<string>
         {
             $"# Decisão registrada: {decision.Title}",

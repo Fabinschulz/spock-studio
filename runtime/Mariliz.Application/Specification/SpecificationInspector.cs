@@ -6,7 +6,6 @@ using YamlDotNet.Serialization;
 
 namespace Mariliz.Application.Specification;
 
-/// <summary>Confere se a estrutura de especificação está instalada e íntegra: arquivos, versão e hash registrado pelo instalador.</summary>
 public static class SpecificationInspector
 {
     public static SpecificationStatus Inspect(IProjectFiles files)

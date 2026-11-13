@@ -1,5 +1,3 @@
-"""O servidor local: autenticação, rotas exatas e falhas que deixam rastro sem expor dados."""
-
 from __future__ import annotations
 
 import contextlib

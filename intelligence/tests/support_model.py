@@ -1,5 +1,3 @@
-"""Modelo falso e montagem de execuções com modelo, para os testes dos agentes (Fase 6). Nada aqui fala com a rede."""
-
 from __future__ import annotations
 
 import json
@@ -35,7 +33,6 @@ class FakeModel:
 
 
 def with_model(root: str = "", *, max_tokens: int = 8000, sources: bool = True, **input_fields) -> dict:
-    """Um ``ai.workflow.start.v2`` com modelo permitido, o proxy do motor e, por padrão, um trecho para recuperar."""
     payload = _start(root, **input_fields)
     payload["limits"] = {"maxIterations": 8, "maxMilliseconds": 60000, "maxTokens": max_tokens, "maxCostUsd": 0}
     payload["policy"] = {"allowedActions": [], "modelAllowed": True}

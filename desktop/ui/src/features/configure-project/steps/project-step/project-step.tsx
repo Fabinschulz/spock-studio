@@ -10,7 +10,6 @@ import { DiscoveryDetails } from './discovery-details';
 import { FolderPickerCard, type PickedProject } from './folder-picker-card';
 
 interface ProjectStepProps {
-  /** `null` enquanto nenhuma pasta foi escolhida. */
   project: PickedProject | null;
   discovery: Loadable<Discovery>;
   /** Começa a análise: ela nunca roda sozinha. */

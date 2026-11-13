@@ -7,10 +7,7 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Cli;
 
-/// <summary>
-/// A jornada "Configurar projeto" na linha de comando. Chama o mesmo <see cref="ConfigureProjectService"/> da interface:
-/// nenhuma regra mora aqui. Aprovações são sempre explícitas (flags) e, sem <c>--yes</c>, pedem confirmação.
-/// </summary>
+// Nenhuma regra mora aqui. Aprovações são sempre explícitas (flags) e, sem --yes, pedem confirmação.
 public sealed class CliRunner(
     ConfigureProjectService service,
     WorkspaceAuthorizer workspace,
@@ -22,7 +19,7 @@ public sealed class CliRunner(
     public const int ExitOk = 0;
     public const int ExitFailed = 1;
     public const int ExitUsage = 2;
-    /// <summary>Concluído, mas com itens que não puderam ser verificados: não é sucesso pleno.</summary>
+    // Concluído, mas com itens que não puderam ser verificados.
     public const int ExitLimited = 10;
 
     private static readonly JsonSerializerOptions Pretty = new(JournalJson.Options) { WriteIndented = true };
@@ -45,7 +42,7 @@ public sealed class CliRunner(
         'specification-update' (aprove com --approve-command specification-update). --update-specification força a busca de uma versão ainda mais nova.
         """;
 
-    /// <summary>Progresso das execuções, em stderr (stdout fica para o resultado).</summary>
+    // Em stderr: stdout fica para o resultado.
     public void OnEvent(string runId, int seq, string type, JsonObject data, DateTimeOffset at)
     {
         if (_json || data["id"]?.GetValue<string>() is not string id) return;

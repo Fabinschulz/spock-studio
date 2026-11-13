@@ -5,10 +5,7 @@ import { ANSWER_SECTIONS } from '../domain/assistant';
 import { Disclosure } from '@/shared/components';
 import styles from '../management-page.module.scss';
 
-/**
- * A resposta conferida, separada como o pedido exige. Cada afirmação mostra os fatos que cita; o que a verificação
- * descartou continua visível, com o motivo, para que nada suma sem explicação.
- */
+/** O que a verificação descartou continua visível, com o motivo, para que nada suma sem explicação. */
 export function AssistantAnswerView({ answer }: { answer: AssistantAnswer }) {
   const facts = new Map(answer.evidence.map((fact) => [fact.id, fact.text]));
 

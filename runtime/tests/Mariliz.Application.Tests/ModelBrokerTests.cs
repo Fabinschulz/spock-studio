@@ -9,7 +9,6 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>O proxy de modelo do motor: token por execução, orçamento de tokens, redação de segredos e uso contado.</summary>
 public class ModelBrokerTests
 {
     private const string ExecutionId = "ex-0123456789ab";

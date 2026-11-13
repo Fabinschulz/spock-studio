@@ -1,16 +1,7 @@
-"""Grafo engineering.request (versão 1 do comportamento) em LangGraph.
-
-Os nós são determinísticos. Só quando o motor autoriza modelo (``policy.modelAllowed``) e dá o endereço do proxy, o
-Planning e o Architecture tentam o modelo; se a saída não passar na validação ou o orçamento acabar, o resultado
-determinístico fica no lugar e uma limitação diz por quê. Nada é gravado no projeto. A busca usa só as fontes que o
-motor enviou, e o texto dessas fontes não entra no estado nem no checkpoint. O token do proxy fica só no ``Segment``.
-
-A memória de trabalho é o estado do grafo. A pausa usa ``interrupt()`` e vai para a memória de execução (checkpoint em
-SQLite, fora do índice e fora do projeto), para a retomada sobreviver a um reinício. O diário de negócio fica no motor.
-
-Este módulo monta o grafo e conduz a execução: ``run_start`` e ``run_resume`` devolvem um iterador de eventos
-ai.event.v1 enquanto o grafo anda e, por último, o ai.ack.v3. Os nós, o estado, o orçamento, o ack e a conferência do
-checkpoint têm módulos próprios nesta pasta.
+"""Só com ``policy.modelAllowed`` e o endereço do proxy o Planning e o Architecture tentam o modelo; se a saída não passar
+na validação ou o orçamento acabar, o resultado determinístico fica e uma limitação diz por quê. O texto das fontes não
+entra no estado nem no checkpoint, e o token do proxy fica só no ``Segment``. A pausa vai para o checkpoint em SQLite,
+fora do projeto, para a retomada sobreviver a um reinício.
 """
 
 from __future__ import annotations
@@ -70,7 +61,6 @@ def broker_client(request: StartRequest) -> Model:
 
 def run_start(payload: dict, clock: Callable[[], float] | None = None,
               model_factory: Callable[[StartRequest], Model] | None = None) -> Iterator[dict]:
-    """``model_factory`` troca o cliente do proxy (os testes usam um modelo falso); o padrão fala com o proxy do motor."""
     try:
         request = parse_start(payload)
     except ContractError as ex:

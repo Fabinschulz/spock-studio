@@ -1,14 +1,6 @@
 #!/usr/bin/env python3
-"""Servidor local da inteligência do Mariliz.
-
-Encaminha saúde, o workflow engineering.request, a investigação de gestão (management.investigation) e o índice de
-conhecimento.
-Não lê o projeto nem grava nele: o que ele guarda são o índice de conhecimento e o
-checkpoint da execução (SQLite, por projeto), e as chamadas de modelo passam pelo proxy
-do runtime. O runtime .NET é quem autoriza, aplica e publica eventos.
-
-Início e retomada respondem em NDJSON (``application/x-ndjson``, chunked): um ai.event.v1 por
-linha enquanto o grafo anda e, por último, o ai.ack.v3.
+"""Não lê o projeto nem grava nele; as chamadas de modelo passam pelo proxy do runtime, e o runtime .NET é quem autoriza,
+aplica e publica eventos.
 """
 
 from __future__ import annotations
@@ -43,7 +35,7 @@ _ACTION_ROUTE = re.compile(r"^/v1/workflows/[^/]+/(resume|cancel)$")
 
 
 def _log_failure(where: str, error: BaseException) -> None:
-    """Deixa rastro da falha sem expor dados: só o tipo e as linhas do código, nunca a mensagem (pode ter caminhos e conteúdo do projeto)."""
+    """Só o tipo e as linhas do código, nunca a mensagem: ela pode ter caminhos e conteúdo do projeto."""
     frames = "".join(traceback.format_tb(error.__traceback__))
     print(f"[ai] falha em {where}: {type(error).__name__}\n{frames}", file=sys.stderr, flush=True)
 

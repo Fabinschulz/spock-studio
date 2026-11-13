@@ -21,10 +21,7 @@ const INVENTORY_ROWS: readonly [string, keyof Discovery['inventory']][] = [
   ['Evals', 'evals']
 ];
 
-/**
- * A visão geral do projeto na Engenharia: o que ele usa, o que já existe de configuração de IA e o que foi executado.
- * O Harness aplicado e o conhecimento têm tela própria, para esta não virar um relatório sem fim.
- */
+/** O Harness aplicado e o conhecimento têm tela própria, para esta não virar um relatório sem fim. */
 export function ProjectPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   return (
     <ProjectPageFrame project={project} title="Visão geral">
@@ -52,7 +49,6 @@ function ProjectOverview({ client, project }: { client: EngineClient; project: S
   );
 }
 
-/** Para onde ir a partir da visão geral. O menu tem os mesmos destinos; aqui eles vêm com uma frase do que há lá. */
 function MoreSection() {
   return (
     <PageSection title="Mais sobre o projeto">

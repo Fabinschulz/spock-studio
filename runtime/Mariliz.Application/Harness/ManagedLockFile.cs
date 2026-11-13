@@ -3,10 +3,7 @@ using YamlDotNet.Core;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>
-/// <c>mariliz.lock</c>: o que a aplicação gerencia, com o hash do que escreveu. Sem datas, para que repetir
-/// o fluxo produza exatamente o mesmo arquivo.
-/// </summary>
+// Sem datas, para que repetir o fluxo produza exatamente o mesmo arquivo.
 public sealed class ManagedLockFile
 {
     public const string FileName = "mariliz.lock";
@@ -31,7 +28,6 @@ public sealed class ManagedLockFile
         public string Version { get; set; } = "";
     }
 
-    /// <summary>Modo <c>file</c>: a aplicação é dona do arquivo inteiro (hash conferido). Modo <c>merge</c>: só de chaves dele.</summary>
     public sealed class ManagedFileEntry
     {
         public string Path { get; set; } = "";
@@ -47,7 +43,7 @@ public sealed class ManagedLockFile
         return "# Gerado pelo Mariliz Studio. Não edite à mão: use a aplicação.\n" + YamlFiles.Writer.Serialize(this);
     }
 
-    /// <summary>Lock ilegível vale como ausente: o plano o recria em vez de confiar em conteúdo quebrado.</summary>
+    // Lock ilegível vale como ausente: o plano o recria em vez de confiar em conteúdo quebrado.
     public static ManagedLockFile? Read(IProjectFiles files)
     {
         var text = files.ReadText(FileName);

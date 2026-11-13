@@ -4,10 +4,6 @@ using Mariliz.Application.Tests.Support;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// A sincronização avisa o que acontece, sem esperar que perguntem: começou, avançou uma página, terminou. Só contagens
-/// e estado saem nos avisos, e um aviso que falha nunca derruba a sincronização.
-/// </summary>
 public class SyncEventsTests
 {
     private static void Seed(IntegrationHarness h, int items)

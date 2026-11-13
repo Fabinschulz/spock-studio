@@ -11,10 +11,7 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Assistente gerencial: o que vai para o provedor de modelo e como a resposta é conferida. O provedor é um dublê que
-/// devolve um texto escrito no teste, com afirmações boas e ruins de propósito.
-/// </summary>
+// O provedor é um dublê que devolve um texto escrito no teste, com afirmações boas e ruins de propósito.
 public class ManagementAssistantTests
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 10, 12, 0, 0, TimeSpan.Zero);
@@ -99,8 +96,6 @@ public class ManagementAssistantTests
         new(DataKinds.Issues, id, title ?? "Item " + id, "Issue", category == StatusCategories.Done ? "completed" : "open", category, [], [],
             created, closed ?? created, closed, due, null, "https://example.test/" + id, []);
 
-    // ------------------------------------------------------------------ Pacote de evidências
-
     [Fact]
     public async Task Pacote_traz_os_numeros_calculados_e_so_inclui_titulos_quando_todas_as_fontes_autorizam()
     {
@@ -131,8 +126,6 @@ public class ManagementAssistantTests
         Assert.DoesNotContain(s.Harness.Project.Root, text);
         Assert.DoesNotContain(FakeGitHub.Token, text);
     }
-
-    // ------------------------------------------------------------------ Pergunta e verificação
 
     [Fact]
     public async Task A_pergunta_usa_o_modelo_escolhido_para_o_assistente_e_sem_escolha_o_padrao()
@@ -236,8 +229,6 @@ public class ManagementAssistantTests
         Assert.DoesNotContain(Key, invalid.ToJsonString() + noModel.ToJsonString());
     }
 
-    // ------------------------------------------------------------------ Contrato com a interface
-
     [Fact]
     public async Task Respostas_do_assistente_conferem_com_as_fixtures_do_contrato()
     {
@@ -277,8 +268,6 @@ public class ManagementAssistantTests
                 $"{name}: a resposta mudou. Se foi deliberado, regenere com MARILIZ_UPDATE_GOLDEN=1 e ajuste o Zod da interface.");
         }
     }
-
-    // ------------------------------------------------------------------ Registro na central de execuções
 
     private const string ValidReply =
         "{\"summary\":{\"text\":\"Há 1 item vencido.\",\"evidence\":[\"flow.issues.overdue\"]},\"observed\":[{\"text\":\"Há 1 item com prazo vencido.\",\"evidence\":[\"flow.issues.overdue\"]}],"

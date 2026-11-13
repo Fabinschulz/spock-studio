@@ -14,11 +14,7 @@ const CATEGORY_TONE: Record<string, Tone> = { done: 'success', inProgress: 'info
 const providerLabel = (provider: string | null) =>
   provider ? (PROVIDER_LABEL[provider] ?? provider) : 'Integração removida';
 
-/**
- * Os itens de trabalho (issue, pull request ou história) a que a execução está ligada, e o campo para ligar mais um. A
- * pessoa informa o número ou a chave; o motor só liga o que já foi sincronizado neste projeto. Ligar e desligar mexem só
- * na ligação: o diário da execução não muda.
- */
+/** O motor só liga o que já foi sincronizado neste projeto; ligar e desligar mexem só na ligação, não no diário. */
 export function RunLinks({ client, run, initial }: { client: EngineClient; run: RunItem; initial: RunLink[] }) {
   const [links, setLinks] = useState(initial);
   const [identifier, setIdentifier] = useState('');

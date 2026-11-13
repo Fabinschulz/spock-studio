@@ -1,10 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-/**
- * Escolhe uma opção num `SelectField` do Synthra (um combobox com lista, não um `<select>` nativo): abre pelo nome do campo e
- * clica na opção pelo texto que a pessoa vê.
- */
+/** O `SelectField` do Synthra é um combobox com lista, não um `<select>` nativo. */
 export async function chooseOption(field: string | HTMLElement, option: string | RegExp) {
   const combobox = typeof field === 'string' ? screen.getByRole('combobox', { name: field }) : field;
   await userEvent.click(combobox);

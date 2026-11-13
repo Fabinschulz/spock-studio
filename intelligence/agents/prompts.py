@@ -1,8 +1,5 @@
-"""Montagem dos pedidos ao modelo.
-
-O texto do projeto (trechos recuperados, caminhos, nomes) é dado não confiável: pode conter instruções escritas por qualquer
-pessoa. Ele entra só dentro de um bloco delimitado, que as instruções de sistema declaram como conteúdo, e o delimitador
-é neutralizado no próprio texto para ninguém fechar o bloco por dentro.
+"""O texto do projeto é dado não confiável: entra só num bloco delimitado, que as instruções de sistema declaram como
+conteúdo, e o delimitador é neutralizado no próprio texto para ninguém fechar o bloco por dentro.
 """
 
 from __future__ import annotations
@@ -38,7 +35,6 @@ _RULES = (
 
 
 def neutralize(text: str) -> str:
-    """Qualquer delimitador dentro de um texto de fora vira um símbolo parecido que não fecha nem abre um bloco."""
     return _TAG.sub(lambda m: "‹" + m.group(1) + m.group(2).lower(), text)
 
 
@@ -47,7 +43,6 @@ def system(task: str) -> dict:
 
 
 def project_block(evidence: list[dict]) -> str:
-    """Os trechos recuperados, cada um com o seu id citável, dentro do bloco delimitado e dentro do limite de tamanho."""
     parts: list[str] = []
     size = 0
     for item in evidence:
@@ -71,7 +66,7 @@ def project_block(evidence: list[dict]) -> str:
 
 
 def result_block(plan: object, impact: object) -> str:
-    """O que o juiz avalia: plano e impacto, em JSON, num bloco delimitado. É texto escrito por outro agente, não instrução."""
+    """Texto escrito por outro agente: vai delimitado, como conteúdo, não como instrução."""
     body = json.dumps({"plan": plan, "impact": impact}, ensure_ascii=False, indent=1)
     return f"<{RESULT_TAG}>\n{neutralize(body)}\n</{RESULT_TAG}>"
 

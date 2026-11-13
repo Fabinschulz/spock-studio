@@ -14,14 +14,14 @@ export const SYNC_STATUS: Record<SyncExecution['status'], { label: string; tone:
   failed: { label: 'Falhou', tone: 'danger' }
 };
 
-/** Categorias de situação na ordem do fluxo. O que o motor mandar fora desta lista aparece com o próprio nome. */
+/** O que o motor mandar fora desta lista aparece com o próprio nome. */
 export const STATUS_CATEGORY_LABEL: Record<string, string> = {
   todo: 'A fazer',
   inProgress: 'Em andamento',
   done: 'Concluídas'
 };
 
-/** O que a conexão pode fazer no provedor, dito sem rodeio. Um valor que a tela não conhece não vira "só lê". */
+/** Um valor que a tela não conhece não vira "só lê". */
 export function impactText(impact: string, provider: string): string {
   if (impact === 'read') return `Leitura: o Spock Studio só lê do ${provider}. Não cria, altera nem apaga nada lá.`;
   if (impact === 'write') return `Altera dados: o Spock Studio pode alterar dados no ${provider}.`;
@@ -32,7 +32,6 @@ export function dataKindLabel(connector: Connector | undefined, kind: string): s
   return connector?.dataKinds.find((entry) => entry.id === kind)?.label ?? kind;
 }
 
-/** "3 criados, 1 atualizado, 5 sem mudança": só as parcelas que existem. */
 export function syncCounts(sync: SyncExecution): string {
   const parts = [
     sync.created > 0 ? `${sync.created} ${sync.created === 1 ? 'novo' : 'novos'}` : null,
@@ -42,7 +41,6 @@ export function syncCounts(sync: SyncExecution): string {
   return parts.length > 0 ? parts.join(', ') : 'nada novo';
 }
 
-/** O que dizer do recorte antes da primeira sincronização e depois dela. */
 export function itemsSummary(integration: ProjectIntegration, connector: Connector | undefined): string {
   if (integration.items.total === 0) {
     return integration.lastSync ? 'Nenhum item no recorte' : 'Ainda não sincronizada';
@@ -50,7 +48,7 @@ export function itemsSummary(integration: ProjectIntegration, connector: Connect
   return kindCounts(integration, connector).join(' · ');
 }
 
-/** "Issues: 96", "Pull requests: 52": o rótulo é o do conector, sem tentar flexionar um nome que vem de fora. */
+/** O rótulo é o do conector, sem tentar flexionar um nome que vem de fora. */
 export function kindCounts(integration: ProjectIntegration, connector: Connector | undefined): string[] {
   return Object.entries(integration.items.byKind).map(([kind, count]) => `${dataKindLabel(connector, kind)}: ${count}`);
 }

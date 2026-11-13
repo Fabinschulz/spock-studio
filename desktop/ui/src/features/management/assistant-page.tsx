@@ -15,8 +15,8 @@ import styles from './management-page.module.scss';
 import { createManagementApi, type ManagementApi } from './service/management-api';
 
 /**
- * Perguntas sobre o projeto em linguagem natural. Os números vêm do motor; o modelo só explica, e a resposta é
- * conferida antes de aparecer. Nada vai para o provedor sem chave configurada e sem o clique em "Perguntar".
+ * Os números vêm do motor; o modelo só explica, e a resposta é conferida antes de aparecer. Nada vai para o provedor
+ * sem chave configurada e sem o clique em "Perguntar".
  */
 export function AssistantPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   const api = useMemo(() => createManagementApi(client), [client]);

@@ -5,11 +5,7 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Execution;
 
-/// <summary>
-/// A central de execuções: lista e abre qualquer execução passada ou em andamento, de qualquer jornada, a partir dos
-/// diários que já existem em disco. Não guarda nada novo e só lê: abrir o detalhe nunca dispara, reverte nem valida.
-/// Só projetos autorizados aparecem, e um projeto esquecido some da lista mesmo com diário em disco.
-/// </summary>
+// Só lê: abrir o detalhe nunca dispara, reverte nem valida. Um projeto esquecido some da lista mesmo com diário em disco.
 public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, RunTracker tracker, RunLinkService? links = null)
 {
     public const int DefaultLimit = 25;
@@ -25,11 +21,7 @@ public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, R
         RunStates.CompletedWithLimitations, RunStates.Failed, RunStates.RequiresIntervention, RunStates.Cancelled
     ];
 
-    /// <summary>
-    /// As execuções do projeto (ou de todos os autorizados), da mais recente para a mais antiga. A página é pedida com o
-    /// <paramref name="cursor"/> que a anterior devolveu. <c>summary</c> conta o que está andando e o que espera
-    /// aprovação em todo o recorte de projeto, sem olhar os filtros, para o indicador do menu.
-    /// </summary>
+    // summary conta o que está andando e o que espera aprovação em todo o recorte de projeto, sem olhar os filtros, para o indicador do menu.
     public JsonObject List(string? projectId, IReadOnlyList<string> kinds, IReadOnlyList<string> states, int? limit, string? cursor)
     {
         var page = Math.Clamp(limit ?? DefaultLimit, 1, MaxLimit);
@@ -70,10 +62,7 @@ public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, R
         };
     }
 
-    /// <summary>
-    /// Tudo o que o diário diz de uma execução, sem o conteúdo que seria gravado (esse fica no diário e na aprovação).
-    /// Os eventos são só os últimos, com tipo e número: o conteúdo de cada um é do <c>run.snapshot</c>.
-    /// </summary>
+    // Sem o conteúdo que seria gravado (esse fica no diário e na aprovação).
     public JsonObject Detail(string projectId, string runId)
     {
         var project = Require(projectId);
@@ -138,11 +127,7 @@ public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, R
         return detail;
     }
 
-    /// <summary>
-    /// O resumo de entrega no topo da execução: o que foi feito, o que foi validado e o que ficou de fora. O texto do pedido
-    /// não entra: o diário nunca o guarda (ele fica só no checkpoint do runtime), e a interface diz o que o tipo de execução faz. São
-    /// contagens do diário, sem interpretação: a interface as transforma em frases.
-    /// </summary>
+    // O texto do pedido não entra: o diário nunca o guarda (ele fica só no checkpoint do runtime). São contagens, sem interpretação: a interface as transforma em frases.
     private static JsonObject Summary(RunJournal journal)
     {
         int Applied(string op) => journal.Ops.Count(item => item.Op == op && item.Status == OpStatus.Applied);
@@ -191,13 +176,11 @@ public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, R
     public JsonObject Unlink(string projectId, string runId, string integrationId, string kind, string externalId) =>
         new() { ["links"] = Links().Unlink(projectId, runId, integrationId, kind, externalId) };
 
-    /// <summary>Os itens do projeto que têm execuções ligadas. Só leitura.</summary>
     public JsonObject Linked(string projectId) => new() { ["items"] = Links().ForProject(projectId) };
 
     private RunLinkService Links() =>
         links ?? throw new EngineException("RUN_LINKS_UNAVAILABLE", "A ligação com itens de trabalho não está disponível nesta sessão do motor.");
 
-    /// <summary>O projeto está autorizado: só então suas execuções podem ser vistas ou canceladas.</summary>
     public bool CanAccess(string projectId) => workspace.IsAuthorized(projectId);
 
     private AuthorizedProject Require(string projectId) =>
@@ -247,7 +230,6 @@ public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, R
         throw new ParamException("'cursor' não é um cursor válido.");
     }
 
-    /// <summary>Vem depois do cursor na ordem da lista (do mais novo ao mais antigo, com o id desempatando).</summary>
     private static bool Precedes(RunJournal journal, (long Ticks, string RunId) position) =>
         journal.StartedAt.UtcTicks < position.Ticks
         || (journal.StartedAt.UtcTicks == position.Ticks && string.CompareOrdinal(journal.RunId, position.RunId) < 0);

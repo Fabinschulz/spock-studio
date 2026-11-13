@@ -36,10 +36,7 @@ export function stateTone(run: Pick<RunItem, 'state' | 'live'>): Tone {
   }
 }
 
-/**
- * O próximo passo de uma execução que não terminou bem, dito em uma frase. É orientação, não ação: nada aqui dispara
- * nada. Vazio quando a execução terminou bem ou ainda está andando.
- */
+/** É orientação, não ação: nada aqui dispara nada. Vazio quando a execução terminou bem ou ainda está andando. */
 export function nextStep(run: RunItem): string {
   if (isInterrupted(run))
     return 'O aplicativo foi fechado no meio desta execução. Confira o que ela mudou abaixo e execute de novo se precisar.';

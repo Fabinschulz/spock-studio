@@ -25,7 +25,6 @@ const MESSAGES = {
 
 const idOf = (entry: ProjectAuditEntry) => entry.id;
 
-/** A trilha de auditoria com "Ver mais antigas": a leitura por páginas é a de `usePagedRead`; aqui só estão o projeto e as categorias escolhidas. */
 export function useAudit(client: EngineClient, projectId: string, categories: string[]) {
   const key = categories.join(',');
   const read = useCallback(

@@ -4,7 +4,6 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>Um Python vivo mas travado não pode segurar quem pergunta pela saúde: o cancelamento volta logo e a próxima execução troca o processo.</summary>
 public class AiRuntimeHealthTests
 {
     // Servidor de mentira: responde /health até o arquivo-sinal existir; a partir daí cada processo trava para sempre.

@@ -5,11 +5,7 @@ namespace Mariliz.Infrastructure.Integrations;
 
 internal static class AtomicFile
 {
-    /// <summary>
-    /// Lê um documento JSON. Sem arquivo, devolve nulo. Um arquivo que não se consegue abrir (travado por outro processo) é uma
-    /// falha passageira: a <see cref="IOException"/> sobe, porque tratá-lo como vazio faria a próxima gravação apagar o que está lá.
-    /// Um conteúdo que não é JSON, ou não tem a forma esperada, é posto de lado como <c>.corrupt-*</c> (nada se perde) e conta como vazio.
-    /// </summary>
+    // Arquivo travado é falha passageira: a IOException sobe, porque tratá-lo como vazio faria a próxima gravação apagar o que está lá. Conteúdo inválido vai para .corrupt-* (nada se perde) e conta como vazio.
     public static T? ReadJson<T>(string path, JsonSerializerOptions options, Func<T, bool>? isValid = null) where T : class
     {
         if (!File.Exists(path)) return null;
@@ -27,11 +23,11 @@ internal static class AtomicFile
         return null;
     }
 
-    /// <summary>Tira o arquivo do caminho sem apagá-lo: quem precisar do conteúdo antigo o encontra ao lado.</summary>
+    // Quem precisar do conteúdo antigo o encontra ao lado.
     public static void Quarantine(string path) =>
         File.Move(path, $"{path}.corrupt-{DateTime.UtcNow:yyyyMMddHHmmssfff}", overwrite: true);
 
-    /// <summary>Escreve num temporário e troca: quem lê nunca encontra o arquivo pela metade.</summary>
+    // Quem lê nunca encontra o arquivo pela metade.
     public static void Write(string path, string content) => Write(path, new UTF8Encoding(false).GetBytes(content));
 
     public static void Write(string path, byte[] content)

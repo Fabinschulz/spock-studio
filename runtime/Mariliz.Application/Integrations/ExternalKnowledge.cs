@@ -7,15 +7,8 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Integrations;
 
-/// <summary>Um texto de dado sincronizado, pronto para o índice de conhecimento. O caminho começa por <see cref="ExternalKnowledge.Prefix"/>.</summary>
 public sealed record ExternalDocument(string Path, string Hash, string Text, string IntegrationId);
 
-/// <summary>
-/// Uma fonte externa de um projeto e o que dela vai ao índice. <see cref="Authorized"/> é a política do vínculo
-/// (<see cref="ContextualizationPolicy.FeedsKnowledge"/>): sem ela, <see cref="Documents"/> é sempre zero.
-/// </summary>
-/// <param name="Items">Quantos itens sincronizados estão no recorte do vínculo, autorizado ou não.</param>
-/// <param name="Documents">Quantos viram texto no índice. Zero sem autorização.</param>
 /// <param name="Withheld">Itens que a política autorizou mas que ficaram de fora: acima do limite ou com possível segredo no texto.</param>
 public sealed record ExternalSource(
     string IntegrationId,
@@ -28,29 +21,19 @@ public sealed record ExternalSource(
     int Documents,
     int Withheld);
 
-/// <summary>
-/// Os itens sincronizados que o projeto autorizou como contexto, vistos como fontes do índice de conhecimento. É o segundo
-/// portão do caminho de um dado externo até um agente (recorte, <b>política</b>, proxy de modelo): só um vínculo com
-/// <see cref="ContextualizationPolicy.FeedsKnowledge"/> ligado entrega texto; a política nasce fechada e a mudança é por vínculo.
-/// Os documentos não carregam responsáveis, descrição, comentários nem endereço: só o que serve de fato sobre o trabalho.
-/// </summary>
+// Segundo portão do caminho de um dado externo até um agente (recorte, política, proxy de modelo). Os documentos não carregam responsáveis, descrição, comentários nem endereço.
 public sealed partial class ExternalKnowledge(IIntegrationStore store, ISyncedDataStore data, ConnectorRegistry connectors, WorkspaceAuthorizer workspace)
 {
-    /// <summary>
-    /// Começa todo caminho de fonte externa no índice. Nenhum arquivo do projeto pode ter este prefixo (ele é recusado como
-    /// fonte de arquivo), então um arquivo não consegue se passar por dado de terceiros nem o contrário.
-    /// </summary>
+    // Nenhum arquivo do projeto pode ter este prefixo, então um arquivo não consegue se passar por dado de terceiros nem o contrário.
     public const string Prefix = "@external/";
 
-    /// <summary>Teto de documentos externos por projeto. Os itens atualizados mais recentemente entram primeiro.</summary>
+    // Os itens atualizados mais recentemente entram primeiro.
     public const int MaxDocuments = 1_000;
 
     public const int MaxTitleChars = 300;
 
-    /// <summary>Os textos que o índice recebe: só de vínculos do projeto com a política aberta, e só do que está no recorte.</summary>
     public IReadOnlyList<ExternalDocument> Documents(string projectId) => Build(projectId).Documents;
 
-    /// <summary>Cada fonte externa do projeto, autorizada ou não, com o que dela entra no índice.</summary>
     public IReadOnlyList<ExternalSource> Sources(string projectId) => Build(projectId).Sources;
 
     private (List<ExternalDocument> Documents, List<ExternalSource> Sources) Build(string projectId)
@@ -117,10 +100,7 @@ public sealed partial class ExternalKnowledge(IIntegrationStore store, ISyncedDa
         return (documents, sources);
     }
 
-    /// <summary>
-    /// <c>@external/{provedor}/{vínculo}/{tipo}/{id}.md</c>. O vínculo é um identificador do motor, não o nome do recurso: o
-    /// caminho não carrega nome de repositório nem de projeto de ninguém.
-    /// </summary>
+    // O vínculo é um identificador do motor, não o nome do recurso: o caminho não carrega nome de repositório nem de projeto de ninguém.
     private static string PathOf(ProjectIntegration integration, WorkItem item) =>
         $"{Prefix}{integration.Provider}/{integration.Id}/{item.Kind}/{SafeName(item.ExternalId)}.md";
 
@@ -163,7 +143,6 @@ public sealed partial class ExternalKnowledge(IIntegrationStore store, ISyncedDa
 
     private static string Day(DateTimeOffset at) => at.UtcDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
-    /// <summary>Texto de fora numa linha só: sem quebra de linha nem caractere de controle, sem espaço repetido e com tamanho limitado.</summary>
     private static string Clean(string? text, int max)
     {
         var flat = Whitespace().Replace(Control().Replace(text ?? "", " "), " ").Trim();

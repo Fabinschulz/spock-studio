@@ -3,9 +3,8 @@ import { ProjectPickError, type ProjectPickerPort, type RecentProject, type Sele
 
 export interface ProjectSelectionOptions {
   /**
-   * Ao abrir o aplicativo, reabre o projeto mais recente da lista do host, se a pasta ainda estiver acessível. O host
-   * ordena os recentes do mais novo ao mais antigo, então o primeiro é o último que a pessoa abriu. Falhar aqui nunca
-   * mostra erro: a pessoa só vê o aplicativo sem projeto aberto, como antes.
+   * O host ordena os recentes do mais novo ao mais antigo, então o primeiro é o último aberto. Falhar aqui nunca mostra
+   * erro: a pessoa só vê o aplicativo sem projeto aberto.
    */
   restoreLast?: boolean;
 }

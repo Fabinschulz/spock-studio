@@ -2,11 +2,7 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Application.Management;
 
-/// <summary>
-/// Andamento e previsão por marco. A previsão é a mesma do restante da Gestão (simulação sobre o ritmo semanal observado), mas
-/// o trabalho restante é só o que está aberto no marco. O ritmo vem do tipo de dado inteiro: o marco sozinho teria poucas
-/// entregas para servir de histórico.
-/// </summary>
+// O ritmo vem do tipo de dado inteiro: o marco sozinho teria poucas entregas para servir de histórico.
 public static class MilestoneCalculator
 {
     public const int MaxMilestones = 20;
@@ -26,7 +22,6 @@ public static class MilestoneCalculator
         "O mesmo nome de marco em tipos de dado diferentes aparece separado, como nas demais visões."
     ];
 
-    /// <summary>Marcos de um tipo de dado e os itens que não têm marco. Mesmos itens e mesmo instante dão o mesmo resultado.</summary>
     public static (List<MilestoneProgress> Milestones, UnassignedItems Unassigned) Compute(
         string kind, IReadOnlyCollection<WorkItem> items, DateTimeOffset now, bool sourcesComplete)
     {

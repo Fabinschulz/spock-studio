@@ -1,5 +1,3 @@
-"""O cliente do proxy de modelo, contra um servidor de teste em 127.0.0.1: formato do pedido, erros e o que nunca vaza."""
-
 import json
 import os
 import threading
@@ -18,8 +16,6 @@ OK = {"schema": "ai.model.response.v1", "status": "ok", "text": "{}", "model": "
 
 
 class _Proxy:
-    """Um proxy de teste: guarda o que recebeu e responde o que o teste mandou."""
-
     def __init__(self, status: int = 200, body: object = OK, delay: float = 0.0) -> None:
         self.status, self.body, self.delay = status, body, delay
         self.seen: list[dict] = []

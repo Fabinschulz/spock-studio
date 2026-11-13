@@ -18,7 +18,6 @@ interface FolderPickerCardProps {
   onAnalyze: () => void;
 }
 
-/** Escolha da pasta: o estado da seleção (recentes, erro, ambiente sem host) vem do contexto de seleção de projeto. */
 export function FolderPickerCard({ project, analyzing, onAnalyze }: FolderPickerCardProps) {
   const { selected, busy, error, cancelled, recents, pick, openRecent, unavailableReason } =
     useProjectSelectionContext();

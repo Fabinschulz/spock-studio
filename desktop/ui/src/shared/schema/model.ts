@@ -5,15 +5,8 @@ export const modelStatusSchema = z.object({
   provider: z.string()
 });
 
-/** O que a última conferência da chave com o provedor encontrou. */
 const modelCheckErrorSchema = z.object({ code: z.string(), message: z.string(), at: z.string() });
 
-/**
- * O provedor de modelo como uma conexão (`model.connection`, `model.test`). `status`: none, untested, connected ou error.
- * `protection`: vault (cofre do sistema) ou file (arquivo neste computador); nulo sem chave. Nunca traz a chave.
- */
-/** Um provedor que esta versão sabe chamar, com o modelo que as conversas dos agentes usam nele. */
-/** Um modelo que a pessoa pode escolher num provedor. */
 export const modelOptionSchema = z.object({ id: z.string(), name: z.string() });
 
 export const modelProviderSchema = z.object({
@@ -33,6 +26,10 @@ export const modelPurposeSchema = z.object({
   isDefault: z.boolean()
 });
 
+/**
+ * `status`: none, untested, connected ou error. `protection`: vault (cofre do sistema) ou file (arquivo neste
+ * computador); nulo sem chave. Nunca traz a chave.
+ */
 export const modelConnectionSchema = z.object({
   configured: z.boolean(),
   provider: z.string(),

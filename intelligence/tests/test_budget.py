@@ -1,5 +1,3 @@
-"""Orçamento da execução: os limites acompanham o checkpoint e valem para os nós depois do plano."""
-
 from __future__ import annotations
 
 import tempfile

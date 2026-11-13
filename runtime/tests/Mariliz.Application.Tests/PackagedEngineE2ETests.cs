@@ -5,12 +5,7 @@ using Mariliz.Application.Tests.Support;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// O motor .NET que o instalador leva, falando o protocolo como o host do Tauri fala, com o Python que o instalador leva:
-/// a execução inteira (autorizar, iniciar, pausar, aprovar, gravar o registro, concluir) e o fim ordenado. É o mais perto do app
-/// instalado que dá para chegar sem a janela. Só roda na CI do instalador, com <c>MARILIZ_PACKAGED_ENGINE</c> e
-/// <c>MARILIZ_PACKAGED_RESOURCES</c> apontando para o instalador aberto por <c>scripts/smoke-installer.py</c>.
-/// </summary>
+// O mais perto do app instalado que dá para chegar sem a janela. Só roda na CI do instalador, com MARILIZ_PACKAGED_ENGINE e MARILIZ_PACKAGED_RESOURCES apontando para o instalador aberto por scripts/smoke-installer.py.
 public class PackagedEngineE2ETests
 {
     private sealed class Engine : IDisposable
@@ -86,7 +81,7 @@ public class PackagedEngineE2ETests
         }
     }
 
-    /// <summary>Processos que estão rodando o interpretador empacotado. Pelo caminho do executável, não pelo nome: só o do instalador conta.</summary>
+    // Pelo caminho do executável, não pelo nome: só o do instalador conta.
     private static List<int> PythonProcesses(string pythonPath) =>
         Process.GetProcesses().Where(p =>
         {

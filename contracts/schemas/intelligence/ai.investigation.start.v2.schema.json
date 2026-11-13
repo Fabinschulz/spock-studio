@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://mariliz.dev/schemas/intelligence/ai.investigation.start.v1.schema.json",
+  "$id": "https://mariliz.dev/schemas/intelligence/ai.investigation.start.v2.schema.json",
   "title": "Motor → inteligência: iniciar uma investigação de gestão",
   "description": "A pergunta e os fatos que o motor mesmo calculou, cada um com um id citável. O motor decide se o modelo é permitido e dá o proxy; o runtime não lê o projeto. Sem modelo, o proxy não pode vir.",
   "type": "object",
@@ -11,12 +11,13 @@
     "projectId",
     "question",
     "facts",
+    "groups",
     "policy",
     "limits"
   ],
   "properties": {
     "schema": {
-      "const": "ai.investigation.start.v1"
+      "const": "ai.investigation.start.v2"
     },
     "investigationId": {
       "type": "string",
@@ -63,6 +64,48 @@
           }
         },
         "additionalProperties": false
+      }
+    },
+    "groups": {
+      "description": "Um descritor por grupo de fato presente: nome, papéis e as palavras (sem acento, minúsculas) que apontam para ele. O runtime não conhece nomes de grupo.",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 30,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "roles",
+          "keywords"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "roles": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "base",
+                "default",
+                "sign"
+              ]
+            }
+          },
+          "keywords": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            }
+          }
+        }
       }
     },
     "policy": {

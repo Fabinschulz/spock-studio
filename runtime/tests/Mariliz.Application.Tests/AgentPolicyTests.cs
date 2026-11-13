@@ -12,11 +12,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Política dos agentes em linguagem simples. As regras são lidas do script do hook e o texto é escrito à mão, então os testes
-/// prendem um ao outro: cada regra tem texto, cada texto tem regra, e a decisão que o texto promete é a que o hook, rodando de
-/// verdade, toma.
-/// </summary>
+// As regras são lidas do script do hook e o texto é escrito à mão, então os testes prendem um ao outro: cada regra tem texto, cada texto tem regra, e a decisão que o texto promete é a que o hook, rodando de verdade, toma.
 public class AgentPolicyTests : IDisposable
 {
     private readonly TempProject _project = new();
@@ -52,7 +48,6 @@ public class AgentPolicyTests : IDisposable
             : JsonDocument.Parse(result.StandardOutput).RootElement.GetProperty("hookSpecificOutput").GetProperty("permissionDecision").GetString();
     }
 
-    /// <summary>Um exemplo real de entrada para cada regra do hook: o comando ou o caminho que a aciona.</summary>
     private Dictionary<string, (string Scope, string Input)> Examples() => new(StringComparer.Ordinal)
     {
         ["writing outside the project folder is not allowed."] = ("write", Path.Combine(Path.GetDirectoryName(_project.Root)!, "fora-do-projeto", "a.txt")),
@@ -79,8 +74,6 @@ public class AgentPolicyTests : IDisposable
         using var document = JsonDocument.Parse(AssetLoader.Read(AgentPolicyService.PolicyAsset));
         return document.RootElement.GetProperty("rules").EnumerateArray().Select(item => item.Clone()).ToArray();
     }
-
-    // ------------------------------------------------------------------ O texto preso ao script
 
     [Fact]
     public void Toda_regra_do_hook_tem_texto_simples_e_todo_texto_simples_e_de_uma_regra()
@@ -136,8 +129,6 @@ public class AgentPolicyTests : IDisposable
             Assert.Contains(policy.Rules, rule => rule.Decision == "allow" && rule.Plain.Contains(allowed.Source, StringComparison.Ordinal));
     }
 
-    // ------------------------------------------------------------------ O que a pessoa lê
-
     [Fact]
     public void Nenhum_texto_tem_campo_vazio_nem_travessao_e_a_ordem_segue_o_script()
     {
@@ -174,8 +165,6 @@ public class AgentPolicyTests : IDisposable
 
         Assert.Equal(AgentPolicyService.ExtractRules(script.Replace("\r\n", "\n")), AgentPolicyService.ExtractRules(script.Replace("\r\n", "\n").Replace("\n", "\r\n")));
     }
-
-    // ------------------------------------------------------------------ Fora do projeto, só leitura, contrato
 
     [Fact]
     public async Task O_texto_simples_nao_vai_para_o_projeto()

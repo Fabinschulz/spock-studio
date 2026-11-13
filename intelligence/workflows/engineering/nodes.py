@@ -1,5 +1,3 @@
-"""Os nós do grafo engineering.request. Cada um recebe o estado, devolve o estado e não conhece a ordem dos outros."""
-
 from __future__ import annotations
 
 import hashlib
@@ -92,7 +90,6 @@ def _limit_retrieval(state: dict, stats: dict, hits: list[dict]) -> None:
 
 
 def planning_agent(state: dict, segment: Segment | None = None) -> dict:
-    """Plano determinístico sempre; com modelo autorizado, o do modelo o substitui se passar na validação."""
     steps = [{"id": "describe", "title": "Descrever o pedido"}]
     if state["stacks"]:
         steps.append({"id": "context", "title": "Considerar a stack detectada"})
@@ -131,7 +128,6 @@ def plan_validator(state: dict) -> dict:
 
 
 def architecture_agent(state: dict, segment: Segment | None = None) -> dict:
-    """Um agente, só quando o plano pediu impacto. Determinístico; com modelo autorizado, o do modelo o substitui se passar."""
     def work() -> int:
         state["impact"] = _deterministic_impact(state)
         if segment is None or segment.model is None:
@@ -179,8 +175,8 @@ def impact_eval(state: dict) -> dict:
 
 def propose_actions(state: dict) -> dict:
     """
-    Proposta de ação, nunca execução: só com a política do motor permitindo ``file.write``, com pausa para aprovação e
-    com impacto já validado. O agente propõe só a intenção; o motor escolhe o alvo, escreve o conteúdo, aprova e executa.
+    Proposta, nunca execução: só com ``file.write`` permitido pela política, pausa para aprovação e impacto já validado. O
+    agente propõe só a intenção; o motor escolhe o alvo, escreve o conteúdo, aprova e executa.
     """
     state["actions"] = []
     if (ACTION_FILE_WRITE in (state.get("allowed_actions") or []) and state["requires_approval"]
@@ -211,8 +207,8 @@ def synthesizer(state: dict) -> dict:
 
 def evaluation_judge(state: dict, segment: Segment | None = None) -> dict:
     """
-    O veredito é sempre determinístico. Com modelo autorizado, um juiz independente registra uma opinião sobre o plano e o
-    impacto finais (EV-JUDGE-001); ela não volta para o plano, não muda o veredito e, se falhar, só deixa uma limitação.
+    O veredito é sempre determinístico. A opinião do juiz não volta para o plano nem muda o veredito e, se falhar, só deixa
+    uma limitação.
     """
     state["evaluation"] = dict(EVALUATION)
     state["judgment"] = None

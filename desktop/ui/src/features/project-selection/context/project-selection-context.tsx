@@ -11,10 +11,9 @@ export interface ProjectSelectionValue {
   error: string | null;
   /** A pessoa fechou o diálogo sem escolher. Volta a falso na próxima tentativa. */
   cancelled: boolean;
-  /** Abre o diálogo nativo. Devolve a pasta escolhida, ou `null` se a pessoa cancelou ou houve erro. */
+  /** `null` se a pessoa cancelou ou houve erro. */
   pick: () => Promise<SelectedProject | null>;
   recents: RecentProject[];
-  /** Seleciona um recente pelo id. Devolve a pasta, ou `null` se não foi possível. */
   openRecent: (id: string) => Promise<SelectedProject | null>;
   unavailableReason?: string;
 }
@@ -24,7 +23,7 @@ const Context = createContext<ProjectSelectionValue | null>(null);
 interface ProjectSelectionProviderProps {
   picker?: ProjectPickerPort;
   unavailableReason?: string;
-  /** Reabre o último projeto ao abrir o aplicativo. Só o aplicativo real liga isto. */
+  /** Só o aplicativo real liga isto. */
   restoreLast?: boolean;
   children: ReactNode;
 }

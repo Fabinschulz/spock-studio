@@ -6,10 +6,7 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Infrastructure.Integrations;
 
-/// <summary>
-/// As decisões gerenciais de um projeto, um arquivo por decisão em <c>projects/{projeto}/decisions</c>. Os identificadores viram
-/// nome de pasta e de arquivo, então só passam os que têm a forma gerada pelo motor. Um arquivo ilegível fica de fora da lista.
-/// </summary>
+// Os identificadores viram nome de pasta e de arquivo, então só passam os que têm a forma gerada pelo motor. Um arquivo ilegível fica de fora da lista.
 public sealed class FileDecisionStore(string dataRoot) : IDecisionStore
 {
     private readonly object _gate = new();

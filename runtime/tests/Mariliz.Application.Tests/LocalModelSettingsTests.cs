@@ -11,11 +11,7 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// A chave do provedor de modelo no cofre, e a migração de quem já a tinha em <c>model.json</c> em texto puro. O que mais
-/// importa: a chave nunca se perde (o arquivo antigo só some depois de o cofre devolver a mesma chave) e nunca fica em
-/// texto puro onde há cofre.
-/// </summary>
+// O que mais importa: a chave nunca se perde (o arquivo antigo só some depois de o cofre devolver a mesma chave) e nunca fica em texto puro onde há cofre.
 public class LocalModelSettingsTests
 {
     private const string Key = "sk-test-cofre-fase-a-7c1d9e";
@@ -256,7 +252,7 @@ public class LocalModelSettingsTests
         Assert.All(files, file => Assert.DoesNotContain(Key, Encoding.UTF8.GetString(File.ReadAllBytes(file))));
     }
 
-    /// <summary>Um cofre que aceita guardar e não devolve nada: a promessa não cumprida que a migração precisa notar.</summary>
+    // A promessa não cumprida que a migração precisa notar.
     private sealed class ForgetfulVault : ISecretVault
     {
         public bool Available => true;
@@ -276,7 +272,7 @@ public class LocalModelSettingsTests
         }
     }
 
-    /// <summary>Um cofre que falha ao escrever, como um disco cheio ou uma DPAPI que recusa.</summary>
+    // Como um disco cheio ou uma DPAPI que recusa.
     private sealed class ThrowingVault : ISecretVault
     {
         public bool Available => true;

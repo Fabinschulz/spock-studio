@@ -1,9 +1,6 @@
 namespace Mariliz.Core.Text;
 
-/// <summary>
-/// Forma dos identificadores que o motor gera: prefixo e 12 dígitos hexadecimais minúsculos (<c>p-</c> projeto,
-/// <c>run-</c> execução, <c>ex-</c> execução no runtime de IA, <c>int-</c> interrupção, <c>apr-</c> aprovação).
-/// </summary>
+// Prefixo e 12 dígitos hexadecimais minúsculos (p- projeto, run- execução, ex- execução no runtime de IA, int- interrupção, apr- aprovação).
 public static class Ids
 {
     public const int HexLength = 12;

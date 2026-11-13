@@ -11,10 +11,7 @@ interface ForecastSectionProps {
   connectors: Connector[];
 }
 
-/**
- * Quando o trabalho aberto deve terminar, em três cenários. A data vem sempre com a confiança, a base usada e as
- * premissas; sem base suficiente, a seção diz que não há previsão em vez de mostrar uma data.
- */
+/** Sem base suficiente, a seção diz que não há previsão em vez de mostrar uma data. */
 export function ForecastSection({ forecast, connectors }: ForecastSectionProps) {
   if (forecast.kinds.length === 0) return null;
   const label = (kind: string) =>

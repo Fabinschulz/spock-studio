@@ -12,12 +12,7 @@ using Xunit.Abstractions;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Validação com dado real: os conectores e o assistente falando com GitHub, Jira e OpenAI de verdade. Cada teste só roda
-/// se a pessoa definiu as variáveis de ambiente dele (<see cref="LiveFactAttribute"/>); sem elas aparece como ignorado, e
-/// nada aqui toca a rede por padrão. As credenciais nunca passam pelo código-fonte, pela conversa ou pelo relatório: o
-/// relatório impresso traz só contagens, estados e a prova de que nenhum segredo foi parar em disco.
-/// </summary>
+// Cada teste só roda se a pessoa definiu as variáveis de ambiente dele (LiveFactAttribute); sem elas aparece como ignorado. As credenciais nunca passam pelo código-fonte, pela conversa ou pelo relatório: o relatório traz só contagens, estados e a prova de que nenhum segredo foi parar em disco.
 public class LiveValidationTests(ITestOutputHelper output)
 {
     [LiveFact(LiveWorld.GitHubToken, LiveWorld.GitHubRepository)]
@@ -175,7 +170,7 @@ public class LiveValidationTests(ITestOutputHelper output)
         Assert.Equal(run.Fetched, run.Created + run.Updated + run.Unchanged);
     }
 
-    /// <summary>Uma central de integrações sobre a rede e o cofre reais, numa pasta temporária que some ao fim.</summary>
+    // Numa pasta temporária que some ao fim.
     private sealed class LiveWorld : IDisposable
     {
         public const string GitHubToken = "MARILIZ_LIVE_GITHUB_TOKEN";
@@ -203,7 +198,7 @@ public class LiveValidationTests(ITestOutputHelper output)
         public string ProjectId { get; }
         public string DataDir => _project.DataDir;
 
-        /// <summary>A credencial não pode estar em texto puro em nenhum arquivo do motor nem do projeto, auditoria inclusa.</summary>
+        // Nem em texto puro em nenhum arquivo do motor nem do projeto, auditoria inclusa.
         public void AssertNoSecretOnDisk(string secret)
         {
             foreach (var file in Directory.EnumerateFiles(DataDir, "*", SearchOption.AllDirectories)
@@ -219,10 +214,7 @@ public class LiveValidationTests(ITestOutputHelper output)
     }
 }
 
-/// <summary>
-/// Teste que fala com um serviço de verdade. Só roda quando todas as variáveis de ambiente pedidas estão definidas; senão
-/// aparece como <b>ignorado</b>, nunca como aprovado: um verde que não testou nada é pior que um aviso.
-/// </summary>
+// Sem as variáveis pedidas aparece como ignorado, nunca como aprovado: um verde que não testou nada é pior que um aviso.
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class LiveFactAttribute : FactAttribute
 {

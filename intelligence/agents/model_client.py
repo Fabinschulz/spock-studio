@@ -1,8 +1,5 @@
-"""Cliente do proxy de modelo do motor (``ai.model.request.v1`` e ``ai.model.response.v1``).
-
-O runtime não tem chave, provedor nem modelo: só o endereço do proxy (sempre 127.0.0.1) e um token que vale para uma
-execução. O motor decide o modelo, cobra o orçamento de tokens, redige segredos e conta o uso. O token nunca entra em
-estado, checkpoint, evento, log ou mensagem de erro.
+"""O runtime não tem chave, provedor nem modelo: só o endereço do proxy (sempre 127.0.0.1) e um token que vale para uma
+execução. O token nunca entra em estado, checkpoint, evento, log ou mensagem de erro.
 """
 
 from __future__ import annotations
@@ -22,7 +19,7 @@ _PURPOSES = {"classify", "plan", "architecture", "judge", "rewrite-query", "inve
 
 
 class ModelError(Exception):
-    """A chamada não deu resposta utilizável. ``code`` é um dos códigos do contrato; nunca carrega texto do modelo."""
+    """``code`` é um dos códigos do contrato; nunca carrega texto do modelo."""
 
     def __init__(self, code: str) -> None:
         super().__init__(code)

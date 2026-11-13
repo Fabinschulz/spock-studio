@@ -12,7 +12,7 @@ export const dotClass: Record<Tone, string | undefined> = {
   idle: styles.dotIdle
 };
 
-/** Texto do estado, sempre a partir do que o host informa: nada aparece como "pronto" sem o motor ter respondido. */
+/** Nada aparece como "pronto" sem o motor ter respondido. */
 function describe(
   status: Status,
   aiRuntime: AiRuntimeStatus,

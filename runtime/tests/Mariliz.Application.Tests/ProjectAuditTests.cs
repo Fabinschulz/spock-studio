@@ -14,11 +14,7 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// A trilha de auditoria do projeto junta o arquivo de auditoria e o diário das execuções. Os testes usam eventos reais do hub
-/// (vínculo, recorte, política, leitura, decisão, credencial, desvínculo) e diários montados à mão, e conferem o que cada
-/// entrada diz, de onde vem, o que nunca aparece e que a trilha não escreve nada.
-/// </summary>
+// Os testes usam eventos reais do hub e diários montados à mão.
 public class ProjectAuditTests
 {
     private const string DecisionText = "Adiar o marco porque o ritmo caiu depois da mudança.";
@@ -48,7 +44,6 @@ public class ProjectAuditTests
         public void Dispose() => H.Dispose();
     }
 
-    /// <summary>Uma vida inteira de um vínculo, dia a dia, mais diários de execução.</summary>
     private static async Task<World> Lived()
     {
         var w = new World();
@@ -104,8 +99,6 @@ public class ProjectAuditTests
     }
 
     private static IReadOnlyList<AuditEntry> Of(ProjectAuditTrail trail, string category) => trail.Entries.Where(entry => entry.Category == category).ToList();
-
-    // ------------------------------------------------------------------ O arquivo de auditoria
 
     [Fact]
     public async Task O_vinculo_a_politica_o_recorte_a_leitura_a_decisao_e_o_desvinculo_viram_entradas_com_a_linha_do_arquivo()
@@ -187,8 +180,6 @@ public class ProjectAuditTests
         Assert.DoesNotContain("Justificativa longa", everything);
     }
 
-    // ------------------------------------------------------------------ O diário
-
     [Fact]
     public async Task O_diario_traz_a_aplicacao_a_reversao_e_a_aplicacao_desfeita_na_hora_com_a_execucao()
     {
@@ -238,8 +229,6 @@ public class ProjectAuditTests
 
         Assert.DoesNotContain(trail.Entries, entry => entry.RunId == "ex-0000000000a1");
     }
-
-    // ------------------------------------------------------------------ Referências, filtro, página
 
     [Fact]
     public async Task Toda_entrada_tem_exatamente_uma_referencia_e_um_id_unico_e_a_ordem_e_do_mais_novo_ao_mais_antigo()
@@ -320,8 +309,6 @@ public class ProjectAuditTests
         Assert.Equal(firstIndex + tied.Count(), page.Entries.Count);
     }
 
-    // ------------------------------------------------------------------ Isolamento, falhas e leitura
-
     [Fact]
     public async Task Projeto_nao_autorizado_e_recusado_e_o_dado_de_outro_projeto_nao_entra()
     {
@@ -398,8 +385,6 @@ public class ProjectAuditTests
         Assert.DoesNotContain("\u2014", text);
     }
 
-    // ------------------------------------------------------------------ A linha é a do arquivo de verdade
-
     [Fact]
     public void A_linha_citada_e_a_linha_do_arquivo_mesmo_com_uma_linha_ilegivel_no_meio()
     {
@@ -423,8 +408,6 @@ public class ProjectAuditTests
         Assert.Contains("integration.unlinked", lines[unlinked.AuditLine!.Value - 1]);
         Assert.Equal(1, trail.Entries.Single(entry => entry.Title.StartsWith("Fonte vinculada", StringComparison.Ordinal)).AuditLine);
     }
-
-    // ------------------------------------------------------------------ Protocolo e contrato
 
     private static JsonObject Call(EngineSession session, JsonObject parameters) =>
         session.Handle(new JsonObject { ["v"] = 1, ["kind"] = "request", ["id"] = "t", ["method"] = "audit.read", ["params"] = parameters }.ToJsonString()).Response;

@@ -1,9 +1,4 @@
-"""O agente de investigação de entrega: duas chamadas com modelo, a das hipóteses e a da conclusão.
-
-Os fatos são do motor (calculados por ele, cada um com um id citável). O modelo só cruza esses fatos: não faz conta nova,
-não usa conhecimento de fora e cita os ids que sustentam cada afirmação. Os dois pedidos têm validação própria; a
-conferência dos números da resposta final continua no motor.
-"""
+"""Os fatos são calculados pelo motor: o modelo só os cruza e cita, sem conta nova nem conhecimento de fora."""
 
 from __future__ import annotations
 
@@ -63,7 +58,6 @@ def _entry(fact: Fact) -> str:
 
 
 def fit(facts: list[Fact]) -> tuple[list[Fact], int]:
-    """Os fatos que cabem no bloco do pedido, na ordem em que chegaram, e quantos ficaram de fora (os últimos)."""
     kept: list[Fact] = []
     size = 0
     for fact in facts:
@@ -75,7 +69,7 @@ def fit(facts: list[Fact]) -> tuple[list[Fact], int]:
 
 
 def facts_block(facts: list[Fact]) -> str:
-    """Os fatos que cabem, cada um com o seu id citável, dentro do bloco delimitado. O texto pode trazer título de item escrito por terceiros."""
+    """O texto pode trazer título de item escrito por terceiros."""
     parts = [_entry(fact) for fact in fit(facts)[0]]
     body = "\n".join(parts) if parts else "(nenhum fato reunido)"
     return f"<{prompts.TAG}>\n{body}\n</{prompts.TAG}>"

@@ -3,7 +3,7 @@ import { projectTimelineSchema, type ProjectTimeline } from '@/shared/schema';
 
 export const PAGE_SIZE = 30;
 
-/** Uma página da linha do tempo. `before` é o que a página anterior devolveu; sem ele, a primeira. Só leitura. */
+/** `before` é o corte que a página anterior devolveu; sem ele, vem a primeira. */
 export function readTimeline(
   client: EngineClient,
   projectId: string,

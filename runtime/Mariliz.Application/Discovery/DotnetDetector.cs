@@ -64,10 +64,7 @@ internal static class DotnetDetector
         if (testProjects > 0) tooling.Add(new ToolingFinding("test", "dotnet test", $"dotnet test{arg}", ev));
     }
 
-    /// <summary>
-    /// O framework mais novo da solução, comparando família e versão (texto não serve: "net9.0" &gt; "net10.0" e
-    /// "netstandard2.0" &gt; "net10.0" na ordem alfabética). O sufixo de plataforma (<c>net8.0-windows</c>) não conta.
-    /// </summary>
+    // Comparar como texto falha: "net9.0" > "net10.0" e "netstandard2.0" > "net10.0" na ordem alfabética. O sufixo de plataforma (net8.0-windows) não conta.
     internal static string? Newest(IEnumerable<string> frameworks) =>
         frameworks.Select(tfm => (Tfm: tfm, Rank: Rank(tfm)))
             .Where(item => item.Rank is not null)

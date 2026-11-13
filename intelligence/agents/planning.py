@@ -1,10 +1,3 @@
-"""Planning Agent: o primeiro agente com modelo.
-
-Escreve o plano ``engineering.plan.v1`` a partir do pedido, das stacks detectadas e dos trechos recuperados. A saída só
-vale se passar em ``plan_from_model`` (formato, ids únicos, sem comando nem caminho, citação só de trechos fornecidos e,
-havendo trechos, ao menos uma citação). Se não valer, o grafo fica com o plano determinístico.
-"""
-
 from __future__ import annotations
 
 from agents import prompts

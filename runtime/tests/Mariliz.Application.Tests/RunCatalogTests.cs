@@ -8,11 +8,6 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// A central de execuções: lista com filtro e paginação e detalhe de qualquer execução, lidos dos diários que já existem.
-/// Tudo passa pelo protocolo, como a interface chama. O que mais importa: só projetos autorizados aparecem, a paginação
-/// não repete nem pula, e abrir o detalhe não escreve nada.
-/// </summary>
 public class RunCatalogTests : IDisposable
 {
     private static readonly DateTimeOffset Base = new(2026, 11, 12, 9, 0, 0, TimeSpan.Zero);

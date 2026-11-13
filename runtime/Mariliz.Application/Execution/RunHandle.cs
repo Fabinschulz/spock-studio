@@ -4,7 +4,6 @@ using System.Text.Json.Nodes;
 
 namespace Mariliz.Application.Execution;
 
-/// <summary>Uma execução em andamento ou concluída, com eventos e cancelamento.</summary>
 public sealed class RunHandle
 {
     private const int Retained = 500;
@@ -31,16 +30,11 @@ public sealed class RunHandle
     public CancellationTokenSource Cancellation { get; } = new();
     public Task? Completion { get; set; }
 
-    /// <summary>Recebe cada evento publicado (<c>{seq, type, data}</c>), na ordem, para o histórico em disco.</summary>
     public Action<JsonObject>? Recorder { get; set; }
 
     private Action<string, int, string, JsonObject, DateTimeOffset> Emit { get; }
 
-    /// <summary>
-    /// Roda o corpo em segundo plano e garante que a execução termina. Os serviços tratam os erros que conhecem; uma exceção
-    /// que escapar vira <c>failed</c> com o tipo (nunca a mensagem, que pode ter caminhos), em vez de uma execução presa
-    /// que impede o projeto de começar outra.
-    /// </summary>
+    // Uma exceção que escapar vira failed com o tipo (nunca a mensagem, que pode ter caminhos), em vez de uma execução presa que impede o projeto de começar outra.
     public void Start(Func<Task> body)
     {
         Completion = Task.Run(async () =>
@@ -68,7 +62,7 @@ public sealed class RunHandle
         return Task.CompletedTask;
     });
 
-    /// <summary>Uma execução religada depois de o motor cair continua a numeração que já foi publicada.</summary>
+    // Uma execução religada depois de o motor cair continua a numeração que já foi publicada.
     public void ContinueFrom(int nextSeq)
     {
         lock (_gate) _seq = Math.Max(_seq, nextSeq);
@@ -103,10 +97,7 @@ public sealed class RunHandle
         Publish("run.completed", new JsonObject { ["state"] = state });
     }
 
-    /// <summary>
-    /// Sem <paramref name="sinceSeq"/>, os 100 eventos mais recentes. Com ele, todos os retidos depois desse número;
-    /// <c>firstSeq</c> diz onde a memória começa, para quem precisar buscar o resto no histórico.
-    /// </summary>
+    // firstSeq diz onde a memória começa, para quem precisar buscar o resto no histórico.
     public JsonObject Snapshot(int? sinceSeq = null)
     {
         lock (_gate)

@@ -8,10 +8,7 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Histórico de cada risco: o que as regras achavam do projeto em cada sincronização completa, e a trajetória de cada risco
-/// (apareceu, subiu, mudou de itens, foi resolvido). As trajetórias abaixo foram conferidas à mão.
-/// </summary>
+// As trajetórias abaixo foram conferidas à mão.
 public class RiskHistoryTests
 {
     private static readonly DateTimeOffset T0 = new(2026, 11, 1, 10, 0, 0, TimeSpan.Zero);
@@ -21,8 +18,6 @@ public class RiskHistoryTests
     private static RiskSnapshotEntry Risk(string id, string severity, params string[] items) => new(id, "Título " + id, severity, items);
 
     private static RiskSnapshot Snapshot(int day, params RiskSnapshotEntry[] risks) => new(At(day), At(day), risks);
-
-    // ------------------------------------------------------------------ Trajetórias
 
     [Fact]
     public void A_trajetoria_conta_o_que_mudou_em_cada_registro_conferido_a_mao()
@@ -121,8 +116,6 @@ public class RiskHistoryTests
         Assert.Equal((RiskHistoryBuilder.MaxTrails, 5), (history.Trails.Count, history.Omitted));
     }
 
-    // ------------------------------------------------------------------ Registro
-
     [Fact]
     public void Estado_igual_ao_ultimo_so_confirma_e_estado_diferente_vira_registro_novo()
     {
@@ -164,8 +157,6 @@ public class RiskHistoryTests
         Assert.Equal(RiskHistoryBuilder.MaxSnapshots, list.Count);
         Assert.Equal(At(5), list[0].At);
     }
-
-    // ------------------------------------------------------------------ Serviço e sincronização
 
     private sealed class MemoryStore : IRiskHistoryStore
     {
@@ -390,8 +381,6 @@ public class RiskHistoryTests
         Assert.Null(final.Error);
     }
 
-    // ------------------------------------------------------------------ Arquivo
-
     [Fact]
     public void O_arquivo_guarda_e_devolve_os_registros_e_um_arquivo_ilegivel_vale_como_sem_historico()
     {
@@ -419,8 +408,6 @@ public class RiskHistoryTests
         Assert.Throws<EngineException>(() => store.Load(projectId));
         Assert.Throws<EngineException>(() => store.Save(projectId, []));
     }
-
-    // ------------------------------------------------------------------ Protocolo e contrato
 
     private static JsonObject Call(IntegrationHarness h, ManagementService service, string projectId)
     {

@@ -4,7 +4,6 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>Dispensar um componente ou trazê-lo de volta pela tela: vira edição de mariliz.yaml no plano, com aprovação.</summary>
 public sealed class ComponentRequestTests
 {
     private const string Declaration = """

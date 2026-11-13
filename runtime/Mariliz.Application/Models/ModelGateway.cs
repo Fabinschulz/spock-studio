@@ -6,10 +6,7 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Models;
 
-/// <summary>
-/// Proxy de modelo no motor. A chave não sai daqui para o runtime de IA, o journal ou a resposta.
-/// Uma conclusão do modelo não é veredito: quem decide continua sendo a verificação determinística.
-/// </summary>
+// A chave não sai daqui para o runtime de IA, o journal ou a resposta. Uma conclusão do modelo não é veredito: quem decide continua sendo a verificação determinística.
 public sealed class ModelGateway(
     IModelSettings settings,
     IModelTransport transport,
@@ -19,14 +16,13 @@ public sealed class ModelGateway(
     IClock? clock = null,
     IModelPreferences? preferences = null)
 {
-    /// <summary>O provedor de quem já tinha uma chave antes de haver escolha. Quem decide o provedor de hoje é <see cref="ModelProviders"/>.</summary>
+    // O provedor de quem já tinha uma chave antes de haver escolha. Quem decide o provedor de hoje é ModelProviders.
     public const string Provider = "openai";
     public const int MaxTokens = 256;
 
-    /// <summary>Modelo padrão da OpenAI, o provedor padrão. Cada provedor tem o seu em <see cref="ModelProviders"/>; o agente não o escolhe.</summary>
+    // O agente não escolhe o modelo.
     public const string DefaultModel = "gpt-4o-mini";
 
-    /// <summary>Teto de saída por chamada de um agente e de texto na resposta.</summary>
     public const int MaxChatTokens = 8192;
     public const int MaxChatText = 64000;
     public static readonly Uri Endpoint = ModelProviders.OpenAi.Endpoint;
@@ -34,7 +30,7 @@ public sealed class ModelGateway(
     private static readonly TimeSpan ChatTimeout = TimeSpan.FromSeconds(30);
     private readonly TimeSpan _timeout = timeout ?? TimeSpan.FromSeconds(10);
 
-    /// <summary>A pergunta curta que confere a chave: o provedor só precisa aceitá-la, a resposta não é usada.</summary>
+    // O provedor só precisa aceitá-la; a resposta não é usada.
     public const string ProbePrompt = "Responda apenas: ok";
 
     public const int ProbeMaxTokens = 8;
@@ -56,7 +52,6 @@ public sealed class ModelGateway(
         preferences?.Clear();
     }
 
-    /// <summary>O provedor como uma conexão: se há chave, onde está guardada e o que a última conferência encontrou.</summary>
     public ModelConnection Connection()
     {
         var status = settings.Status();
@@ -68,10 +63,7 @@ public sealed class ModelGateway(
         return new ModelConnection(true, provider.Id, provider.Name, provider.DefaultModel, check?.Status ?? "untested", settings.Protection(), check?.CheckedAt, check?.Error, available, Purposes(provider));
     }
 
-    /// <summary>
-    /// Guarda a chave só depois de o provedor a aceitar, como numa conexão de integração: formato conferido, uma pergunta curta ao
-    /// provedor e só então o cofre. Se o provedor recusar (ou não responder), nada é gravado e a chave que já valia continua valendo.
-    /// </summary>
+    // Formato conferido, uma pergunta curta ao provedor e só então o cofre: se o provedor recusar (ou não responder), nada é gravado e a chave que já valia continua valendo.
     public async Task<ModelConnection> ConnectAsync(string provider, string key, CancellationToken ct)
     {
         settings.Validate(provider, key);
@@ -85,10 +77,7 @@ public sealed class ModelGateway(
         return Connection();
     }
 
-    /// <summary>
-    /// Escolhe o modelo de uma finalidade entre os do provedor da chave guardada; nulo volta ao padrão. Um modelo fora da lista
-    /// do provedor é recusado: a lista é o que o motor sabe chamar, e o agente nunca escolhe.
-    /// </summary>
+    // Modelo fora da lista do provedor é recusado: a lista é o que o motor sabe chamar, e o agente nunca escolhe.
     public ModelConnection SetPurposeModel(string purpose, string? model)
     {
         if (ModelPurposes.Find(purpose) is null) throw new EngineException("MODEL_PURPOSE_UNKNOWN", "A finalidade não existe.");
@@ -103,7 +92,7 @@ public sealed class ModelGateway(
         return Connection();
     }
 
-    /// <summary>O modelo de cada finalidade no provedor dado. Uma escolha que não pertence ao provedor (de um provedor anterior) vale como não escolhida.</summary>
+    // Uma escolha que não pertence ao provedor (de um provedor anterior) vale como não escolhida.
     private List<ModelPurposeState> Purposes(ModelProvider provider)
     {
         var chosen = preferences?.Read() ?? new Dictionary<string, string>();
@@ -120,10 +109,7 @@ public sealed class ModelGateway(
         return chosen.TryGetValue(purpose, out var model) && provider.Models.Any(option => option.Id == model) ? model : provider.DefaultModel;
     }
 
-    /// <summary>
-    /// Confere a chave guardada com o provedor. Uma recusa não é exceção: fica registrada na conexão, que é o que a pessoa
-    /// consulta. Sem chave, falha com <c>MODEL_NOT_CONFIGURED</c>.
-    /// </summary>
+    // Uma recusa não é exceção: fica registrada na conexão, que é o que a pessoa consulta.
     public async Task<ModelConnection> TestAsync(CancellationToken ct)
     {
         if (!settings.TryGetKey(out var key))
@@ -142,7 +128,7 @@ public sealed class ModelGateway(
         return Connection();
     }
 
-    /// <summary>O provedor da chave guardada. Uma chave de antes da escolha de provedor é da OpenAI.</summary>
+    // Uma chave de antes da escolha de provedor é da OpenAI.
     private static ModelProvider Active(ModelStatus status) => ModelProviders.Find(status.Provider) ?? ModelProviders.Default;
 
     private async Task ProbeAsync(ModelProvider provider, string key, CancellationToken ct)
@@ -188,10 +174,7 @@ public sealed class ModelGateway(
         return new ModelCompletion(text, tokens, "");
     }
 
-    /// <summary>
-    /// Conversa de um agente. As mensagens saem sem a chave nem formato de segredo, e a resposta volta pela mesma redação.
-    /// Falha com <see cref="EngineException"/> (<c>MODEL_NOT_CONFIGURED</c>, <c>MODEL_TIMEOUT</c>); quem cobra o orçamento é o chamador.
-    /// </summary>
+    // As mensagens saem sem a chave nem formato de segredo, e a resposta volta pela mesma redação. Quem cobra o orçamento é o chamador.
     public async Task<ChatCompletion> ChatAsync(ChatRequest request, CancellationToken ct, string purpose = ModelPurposes.Workflow)
     {
         if (chat is null || !settings.TryGetKey(out var key))

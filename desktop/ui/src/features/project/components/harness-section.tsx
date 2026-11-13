@@ -18,8 +18,8 @@ const KIND_LABEL: Record<string, string> = { agent: 'agente', skill: 'skill', ru
 type State = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; harness: HarnessStatus };
 
 /**
- * O Harness aplicado, conferido contra o disco componente por componente. Só leitura: mudar componentes é pela jornada
- * Configurar, que planeja, mostra a diferença, pede aprovação e permite reverter.
+ * Só leitura: mudar componentes é pela jornada Configurar, que planeja, mostra a diferença, pede aprovação e permite
+ * reverter.
  */
 export function HarnessSection({ client, projectId }: { client: EngineClient; projectId: string }) {
   const [state, setState] = useState<State>({ status: 'loading' });

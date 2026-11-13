@@ -6,17 +6,15 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>Uma composição do Harness em andamento: cada método acrescenta uma parte do estado desejado.</summary>
 internal sealed class HarnessComposition(
     DiscoveryReport report, IProjectFiles files, DeclaredConfig? declared, ProposalResult proposal, PlanOptions options)
 {
-    /// <summary>Stacks atendidas pela regra JavaScript/TypeScript. O perfil tecnológico lê daqui para dizer o mesmo que o plano.</summary>
+    // O perfil tecnológico lê daqui para dizer o mesmo que o plano.
     internal static readonly string[] JavascriptStacks = ["node", "nextjs", "react", "angular"];
 
-    /// <summary>A stack que a regra JavaScript/TypeScript atende. O plano, a validação e o perfil usam esta mesma pergunta.</summary>
+    // O plano, a validação e o perfil usam esta mesma pergunta.
     internal static bool IsJavascriptStack(StackFinding stack) => JavascriptStacks.Contains(stack.Id);
 
-    /// <summary>Um comando de build, teste, lint ou verificação de tipos que o projeto declara: o que a regra de comandos do repositório lista.</summary>
     internal static bool IsRepositoryCommand(ToolingFinding tool) => tool.Command is not null && tool.Kind is "build" or "test" or "lint" or "typecheck";
 
     private readonly List<Limitation> _limitations = [];

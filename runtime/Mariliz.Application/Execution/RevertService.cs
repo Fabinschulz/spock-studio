@@ -4,10 +4,7 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Execution;
 
-/// <summary>
-/// Desfaz uma aplicação a partir do diário e dos backups. Uma edição posterior da pessoa nunca é sobrescrita:
-/// vira um conflito dito no resultado.
-/// </summary>
+// Uma edição posterior da pessoa nunca é sobrescrita: vira um conflito dito no resultado.
 public sealed class RevertService(IRunStore store, IClock clock)
 {
     public JsonObject Execute(RunHandle run, IProjectFiles files, string targetRunId, CancellationToken ct)

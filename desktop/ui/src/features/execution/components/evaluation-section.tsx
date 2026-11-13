@@ -14,7 +14,7 @@ const CRITERION_LABEL: Record<string, string> = {
 
 type Evaluation = NonNullable<NonNullable<WorkflowSnapshot['result']>['evaluation']>;
 
-/** A opinião do juiz por modelo, como o motor a registrou. É um registro: não decide o resultado da execução. */
+/** É um registro: a opinião do juiz não decide o resultado da execução. */
 export function EvaluationSection({ evaluation }: { evaluation: Evaluation }) {
   const judgment = evaluation.judgment;
   if (!judgment) return null;

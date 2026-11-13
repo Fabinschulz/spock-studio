@@ -6,16 +6,12 @@ using Mariliz.Application.Protocol;
 
 namespace Mariliz.Application.Workflows;
 
-/// <summary>
-/// Vocabulário de eventos do workflow para a interface. Os eventos do runtime de IA passam pelo filtro (uma vez, em ordem,
-/// desta execução) e são traduzidos aqui; o que não tem tradução segura fica de fora. O carimbo de tempo é do motor.
-/// </summary>
+// O que não tem tradução segura fica de fora. O carimbo de tempo é do motor.
 internal sealed class WorkflowEvents(IClock clock)
 {
     private static readonly HashSet<string> KnownAgents = new(StringComparer.Ordinal) { "planning", "architecture" };
 
-    /// <summary>Encaminha os eventos aceitos pelo filtro para a execução.</summary>
-    /// <param name="judgeCalls">As chamadas que o proxy viu até agora: só com uma chamada de juiz o evento de avaliação por modelo passa.</param>
+    /// <param name="judgeCalls">Só com uma chamada de juiz vista pelo proxy o evento de avaliação por modelo passa.</param>
     public Action<JsonObject> Relay(RunHandle run, AiEventFilter filter, Func<IReadOnlyList<ModelCallRecord>>? judgeCalls = null) => evt =>
     {
         if (filter.Accept(evt)) Translate(run, evt, judgeCalls);
@@ -73,10 +69,7 @@ internal sealed class WorkflowEvents(IClock clock)
         return payload;
     }
 
-    /// <summary>
-    /// Uma avaliação por modelo só aparece como aprovada ou reprovada se o proxy viu a chamada do juiz; modelo e versão vêm do
-    /// proxy. Sem isso (ou sem a versão dos critérios), o evento diz que o juiz não rodou.
-    /// </summary>
+    // Modelo e versão vêm do proxy; sem a chamada do juiz (ou sem a versão dos critérios), o evento diz que o juiz não rodou.
     private JsonObject EvalCompleted(JsonObject data, IReadOnlyList<ModelCallRecord> calls)
     {
         var outcome = data.Text("outcome");

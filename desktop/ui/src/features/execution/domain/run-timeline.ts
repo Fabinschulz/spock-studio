@@ -4,7 +4,6 @@ import { snapshotOf, type TimelineEvent } from '@/shared/schema';
 
 import { agentLabel } from './run-workspace';
 
-/** Um trecho recuperado, com a origem que o motor conferiu: arquivo, trecho, hash do conteúdo e pontuação da busca. */
 const evidenceSchema = z.object({
   filePath: z.string(),
   excerpt: z.string(),
@@ -13,7 +12,6 @@ const evidenceSchema = z.object({
   score: z.number().optional()
 });
 
-/** Por que a execução falhou, como o motor registrou (`WorkflowResult.Failure`). */
 const failureSchema = z.object({ code: z.string(), message: z.string() });
 
 const impactSchema = z.object({
@@ -23,7 +21,7 @@ const impactSchema = z.object({
   evidence: z.array(z.string())
 });
 
-/** A opinião do juiz por modelo (EV-JUDGE-001): notas por critério, justificativa e o modelo que a escreveu. Não é veredito. */
+/** A opinião do juiz por modelo (EV-JUDGE-001) não é veredito. */
 const judgmentSchema = z.object({
   criteriaVersion: z.string(),
   scores: z.record(z.string(), z.number()),
@@ -49,7 +47,6 @@ const workflowResultSchema = z.object({
   limitations: z.array(z.object({ code: z.string(), message: z.string() })).default([]),
   impact: impactSchema.optional(),
   evaluation: evaluationSchema.optional(),
-  /** O que aconteceu com cada ação proposta, como o motor registrou: executada, não aprovada (skipped), em conflito ou falha. */
   actions: z
     .array(
       z.object({
@@ -61,7 +58,7 @@ const workflowResultSchema = z.object({
       })
     )
     .optional(),
-  /** Tokens gastos com o modelo, como o motor contou. Só vem em execuções que usaram modelo. */
+  /** Só vem em execuções que usaram modelo. */
   usage: z.object({ modelCalls: z.number(), inputTokens: z.number(), outputTokens: z.number() }).optional()
 });
 
@@ -70,7 +67,6 @@ export const workflowSnapshotSchema = snapshotOf(workflowResultSchema);
 export type WorkflowSnapshot = z.infer<typeof workflowSnapshotSchema>;
 export type { TimelineEvent };
 
-/** O que a página sabe da execução: o último retrato do motor mais os eventos que chegaram depois, sem buraco nem repetição. */
 export type RunView = {
   snapshot: WorkflowSnapshot;
   events: TimelineEvent[];
@@ -110,7 +106,7 @@ function mergeEvents(current: TimelineEvent[], incoming: TimelineEvent[]): Timel
   return [...bySeq.values()].sort((a, b) => a.seq - b.seq);
 }
 
-/** O que o motor pediu para aprovar (evento `approval.required`): só o que a política mostra, nunca o conteúdo. */
+/** Só o que a política mostra, nunca o conteúdo da ação. */
 export type PendingApproval = {
   approvalId: string;
   actions: { id: string; kind: string; summary: string; target: string | null }[];
@@ -125,7 +121,6 @@ const pendingActionSchema = z.object({
 
 const approvalDataSchema = z.object({ approvalId: z.string(), actions: z.array(pendingActionSchema).default([]) });
 
-/** A aprovação aberta mais recente da execução, ou `null` se o motor ainda não anunciou nenhuma. */
 export function pendingApproval(events: readonly TimelineEvent[]): PendingApproval | null {
   const latest = [...events].reverse().find((event) => event.type === 'approval.required');
   const parsed = latest ? approvalDataSchema.safeParse(latest.data) : null;
@@ -136,7 +131,7 @@ export function pendingApproval(events: readonly TimelineEvent[]): PendingApprov
   };
 }
 
-/** Frase de cada evento que a interface mostra. Eventos internos (estado da execução) e desconhecidos ficam de fora. */
+/** Eventos internos (estado da execução) e desconhecidos ficam de fora. */
 export function describeEvent(event: TimelineEvent): string | null {
   const agent = typeof event.data.agentId === 'string' ? agentLabel(event.data.agentId) : 'Agente';
   switch (event.type) {

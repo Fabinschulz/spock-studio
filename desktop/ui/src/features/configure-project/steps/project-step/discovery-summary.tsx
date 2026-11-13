@@ -19,7 +19,6 @@ function harnessText(inventory: Discovery['inventory']): string {
   return `${inventory.agents.length} agente(s), ${inventory.skills.length} skill(s), ${inventory.rules.length} regra(s), ${inventory.hooks.length} hook(s), ${inventory.mcpServers.length} servidor(es) MCP, ${inventory.evals.length} arquivo(s) de eval`;
 }
 
-/** O estado de partida do projeto: o que já existe e em que condições a aplicação vai acontecer. */
 export function DiscoverySummary({ discovery }: { discovery: Discovery }) {
   const { specification, inventory, git, tools } = discovery;
   const existing = Object.values(inventory)

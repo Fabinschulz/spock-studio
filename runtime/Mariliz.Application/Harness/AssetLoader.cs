@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>Conteúdo embutido no motor (ativos originais ou adaptados de fonte autorizada, MIT).</summary>
+// Ativos originais ou adaptados de fonte autorizada (MIT).
 public static class AssetLoader
 {
     private static readonly Assembly Assembly = typeof(AssetLoader).Assembly;

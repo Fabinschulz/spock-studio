@@ -7,11 +7,7 @@ using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Workflows;
 
-/// <summary>
-/// Confere a opinião do juiz por modelo antes de o motor a registrar. O runtime de IA afirma; quem vale é o proxy: sem uma
-/// chamada de juiz que o proxy viu, a opinião não existe. Modelo, versão, hash do pedido e tokens vêm do proxy; notas,
-/// justificativa e citações vêm do runtime depois de validadas. Qualquer falha devolve <c>null</c>, nunca uma opinião parcial.
-/// </summary>
+// O runtime de IA afirma; quem vale é o proxy: sem uma chamada de juiz que o proxy viu, a opinião não existe. Modelo, versão, hash do pedido e tokens vêm do proxy. Qualquer falha devolve null, nunca uma opinião parcial.
 internal static class JudgmentVerifier
 {
     public const string JudgeAgent = "judge";
@@ -70,7 +66,7 @@ internal static class JudgmentVerifier
         return true;
     }
 
-    /// <summary>Só trechos que a recuperação desta execução devolveu: citar outro é inventar proveniência.</summary>
+    // Citar trecho que a recuperação desta execução não devolveu é inventar proveniência.
     private static bool TryEvidence(JsonNode? node, JsonObject output, out List<string> evidence)
     {
         evidence = [];

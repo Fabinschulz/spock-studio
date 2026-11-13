@@ -1,6 +1,6 @@
 namespace Mariliz.Infrastructure;
 
-/// <summary>Onde estão o servidor da inteligência e o Python que o executa. Lê as variáveis de ambiente <c>MARILIZ_AI</c>, <c>MARILIZ_PYTHON</c> e <c>PATH</c>.</summary>
+// Lê as variáveis de ambiente MARILIZ_AI, MARILIZ_PYTHON e PATH.
 internal static class AiRuntimeLocator
 {
     internal static string? Script()

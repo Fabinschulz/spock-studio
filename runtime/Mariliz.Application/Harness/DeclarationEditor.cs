@@ -2,11 +2,7 @@ using YamlDotNet.Core;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>
-/// Edita só a lista <c>components.exclude</c> de <c>mariliz.yaml</c>, linha a linha, sem reescrever o arquivo: comentários,
-/// ordem e o restante ficam como a pessoa deixou. Se o trecho não estiver num formato reconhecido, ou se o resultado não
-/// ler exatamente como o esperado, não edita e devolve <c>null</c>.
-/// </summary>
+// Edita linha a linha, sem reescrever o arquivo: comentários, ordem e o restante ficam como a pessoa deixou. Formato não reconhecido, ou resultado que não lê exatamente como o esperado, não edita e devolve null.
 public static class DeclarationEditor
 {
     public static string? WithExcluded(string text, IReadOnlyList<string> exclude)

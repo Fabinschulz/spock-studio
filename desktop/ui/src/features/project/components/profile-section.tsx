@@ -16,10 +16,7 @@ const HISTORY_SHOWN = 10;
 type State =
   { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; profile: TechnologyProfile };
 
-/**
- * O perfil tecnológico salvo pelo motor. Na primeira visita o motor cria o perfil (a análise só lê o projeto); depois,
- * "Atualizar perfil" roda a análise de novo e o histórico mostra o que mudou.
- */
+/** Na primeira visita o motor cria o perfil (a análise só lê o projeto). */
 export function ProfileSection({ client, projectId }: { client: EngineClient; projectId: string }) {
   const [state, setState] = useState<State>({ status: 'loading' });
   const [busy, setBusy] = useState(false);

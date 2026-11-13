@@ -2,7 +2,6 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Application.Management;
 
-/// <summary>As regras dos pontos de atenção do portfólio. Uma regra nova é uma entrada aqui, com a condição e o texto.</summary>
 public static class PortfolioSignals
 {
     /// <summary>Dados mais antigos que isso deixam de descrever o andamento atual.</summary>

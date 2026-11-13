@@ -13,10 +13,7 @@ import type { ManagementApi } from '../service/management-api';
 const PROVIDER_LABEL: Record<string, string> = { github: 'GitHub', jira: 'Jira' };
 const CATEGORY_TONE: Record<string, Tone> = { done: 'success', inProgress: 'info', todo: 'neutral' };
 
-/**
- * Os itens de trabalho que têm execuções ligadas a eles: a ponte entre o que se entregou e o que foi pedido. As ligações
- * são feitas no detalhe de cada execução; aqui só se lê.
- */
+/** As ligações são feitas no detalhe de cada execução; aqui só se lê. */
 export function LinkedRunsSection({ management, projectId }: { management: ManagementApi; projectId: string }) {
   const load = useCallback(() => management.linkedRuns(projectId), [management, projectId]);
   const linked = useAsyncResource(load);

@@ -8,7 +8,6 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>Preferências em memória, para os testes que não precisam de arquivo.</summary>
 internal sealed class MemoryPreferences(params (string Purpose, string Model)[] initial) : IModelPreferences
 {
     private readonly Dictionary<string, string> _choices = initial.ToDictionary(pair => pair.Purpose, pair => pair.Model);
@@ -24,10 +23,7 @@ internal sealed class MemoryPreferences(params (string Purpose, string Model)[] 
     public void Clear() => _choices.Clear();
 }
 
-/// <summary>
-/// O modelo por finalidade: a pessoa escolhe, entre os modelos do provedor da chave, qual responde ao assistente, ao juiz e aos
-/// fluxos de engenharia. Quem escolhe é sempre a pessoa: o agente declara a finalidade, nunca o modelo.
-/// </summary>
+// Quem escolhe é sempre a pessoa: o agente declara a finalidade, nunca o modelo.
 public class ModelPurposesTests
 {
     private const string OpenAiKey = "sk-test-openai-fase-f-7c2d41";
@@ -56,7 +52,7 @@ public class ModelPurposesTests
 
         public Setup() => Gateway = New();
 
-        /// <summary>Um motor novo sobre o mesmo diretório de dados, como depois de reiniciar o aplicativo.</summary>
+        // Como depois de reiniciar o aplicativo.
         public ModelGateway New() => new(new FileModelSettings(DataDir), Transport, chat: Transport,
             checks: new FileModelCheckStore(DataDir), preferences: new FileModelPreferences(DataDir));
 
@@ -66,8 +62,6 @@ public class ModelPurposesTests
     private static readonly ChatRequest Chat = new([new ChatMessage("user", "oi")], 32, false);
 
     private static string ModelOf(ModelConnection connection, string purpose) => connection.Purposes.Single(item => item.Id == purpose).Model;
-
-    // ------------------------------------------------------------------ As finalidades e os modelos
 
     [Fact]
     public void As_finalidades_sao_tres_com_nome_e_descricao_sem_travessao()
@@ -106,8 +100,6 @@ public class ModelPurposesTests
         });
         Assert.True(ModelProviders.Anthropic.Models.Count > 1);
     }
-
-    // ------------------------------------------------------------------ Escolher
 
     [Fact]
     public async Task Sem_escolha_toda_finalidade_usa_o_padrao_do_provedor()
@@ -180,8 +172,6 @@ public class ModelPurposesTests
         Assert.False(File.Exists(Path.Combine(s.DataDir, "model-purposes.json")));
     }
 
-    // ------------------------------------------------------------------ Quem usa
-
     [Fact]
     public async Task Cada_finalidade_chama_o_modelo_que_a_pessoa_escolheu_para_ela()
     {
@@ -253,8 +243,6 @@ public class ModelPurposesTests
         Assert.Empty(s.Transport.Chats);
     }
 
-    // ------------------------------------------------------------------ Provedor e arquivo
-
     [Fact]
     public async Task Trocar_de_provedor_volta_cada_finalidade_ao_padrao_do_novo_e_reconectar_o_mesmo_mantem()
     {
@@ -311,8 +299,6 @@ public class ModelPurposesTests
         Assert.False(File.Exists(Path.Combine(s.DataDir, "model-purposes.json")));
         Assert.Empty(s.Gateway.Connection().Purposes);
     }
-
-    // ------------------------------------------------------------------ Protocolo e contrato
 
     private static JsonObject Call(EngineSession session, string method, JsonObject? parameters = null) =>
         session.Handle(new JsonObject { ["v"] = 1, ["kind"] = "request", ["id"] = "t", ["method"] = method, ["params"] = parameters ?? new JsonObject() }.ToJsonString()).Response;

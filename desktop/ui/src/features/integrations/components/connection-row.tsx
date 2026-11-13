@@ -11,10 +11,9 @@ import { ConnectionReachSummary } from './connection-reach';
 interface ConnectionRowProps {
   connection: Connection;
   connector: Connector | undefined;
-  /** O que a conexão alcança; nulo quando o motor não conseguiu dizer. */
+  /** Nulo quando o motor não conseguiu dizer. */
   reach: ConnectionReach | null;
   busy: boolean;
-  /** O que deu certo na última ação desta conexão, dito na própria linha. */
   notice?: string | null;
   onTest: () => void;
   /** Devolve verdadeiro quando o provedor aceitou a nova credencial. */

@@ -9,10 +9,6 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// O resumo por conexão: onde é usada, o que se lê, o que pode fazer e se alimenta IA. É só leitura do que o motor já guarda, e
-/// uma conexão ativa nunca concede nada por si: o recorte e a política de cada vínculo é que valem.
-/// </summary>
 public class ConnectionReachTests
 {
     private static ConnectionReach ReachOf(IntegrationHarness h, string connectionId) => h.Hub.Reach.List().Single(reach => reach.ConnectionId == connectionId);

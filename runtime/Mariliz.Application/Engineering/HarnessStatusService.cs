@@ -7,10 +7,7 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Engineering;
 
-/// <summary>
-/// Confere o Harness aplicado contra o disco, com a mesma regra da verificação do lock na validação: arquivo inteiro pelo
-/// hash; <c>settings.json</c> (modo merge) pela presença do hook gerenciado. Não escreve nada.
-/// </summary>
+// Mesma regra da verificação do lock na validação: arquivo inteiro pelo hash; settings.json (modo merge) pela presença do hook gerenciado.
 public sealed class HarnessStatusService(WorkspaceAuthorizer workspace, IProjectFilesFactory files, IClock clock)
 {
     private static readonly string[] Severity = ["intact", "kept", "modified", "outOfScope", "missing"];

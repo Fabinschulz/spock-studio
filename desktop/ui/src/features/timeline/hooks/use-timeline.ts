@@ -24,7 +24,6 @@ const MESSAGES = {
 
 const idOf = (event: ProjectTimelineEvent) => event.id;
 
-/** A linha do tempo com "Ver mais antigos": a leitura por páginas é a de `usePagedRead`; aqui só estão o projeto e os tipos escolhidos. */
 export function useTimeline(client: EngineClient, projectId: string, kinds: string[]) {
   const kindsKey = kinds.join(',');
   const read = useCallback(

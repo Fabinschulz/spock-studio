@@ -4,14 +4,9 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>
-/// Conteúdo do <c>mariliz.lock</c>. O plano o prevê a partir das mudanças; a aplicação o grava a partir do que de fato
-/// aconteceu. As duas origens montam as entradas de forma diferente, mas o arquivo é escrito por uma só regra: se a
-/// previsão e a gravação divergissem, o plano seguinte mostraria uma atualização do lock que nunca termina.
-/// </summary>
+// O plano o prevê e a aplicação o grava a partir do que aconteceu, mas o arquivo é escrito por uma só regra: se a previsão e a gravação divergissem, o plano seguinte mostraria uma atualização do lock que nunca termina.
 public static class LockBuilder
 {
-    /// <summary>Lock previsto pelo plano, supondo que tudo o que o plano propõe seja aplicado.</summary>
     /// <returns><c>null</c> quando o conteúdo depende da instalação da estrutura de especificação, ainda pendente.</returns>
     public static string? Build(ComposeResult composed, IReadOnlyList<FileChange> changes, ManagedLockFile? existing, SpecificationStatus specification, bool specificationPending)
     {
@@ -25,7 +20,6 @@ public static class LockBuilder
         return Write(composed, entries, specification);
     }
 
-    /// <summary>Lock gravado depois da aplicação, a partir do resultado de cada arquivo.</summary>
     internal static string BuildFromOutcomes(ComposeResult composed, IReadOnlyDictionary<string, FileOutcome> outcomes, ManagedLockFile? existing, SpecificationStatus specification)
     {
         var desired = Desired(composed);
@@ -39,10 +33,7 @@ public static class LockBuilder
         return Write(composed, written.Concat(untouched), specification);
     }
 
-    /// <summary>
-    /// mariliz.yaml é da pessoa depois de criado: nunca entra como gerenciado (filtrado pelos chamadores). A saída do hook
-    /// do settings.json ("release") também não: depois dela o arquivo não tem mais nada gerenciado.
-    /// </summary>
+    // mariliz.yaml é da pessoa depois de criado: nunca entra como gerenciado. A saída do hook do settings.json ("release") também não: depois dela o arquivo não tem mais nada gerenciado.
     private static Dictionary<string, DesiredFile> Desired(ComposeResult composed) =>
         composed.Files.Where(f => f.Mode != "release").ToDictionary(f => f.Path, StringComparer.Ordinal);
 
@@ -93,7 +84,7 @@ public static class LockBuilder
     private static ManagedLockFile.ManagedFileEntry Entry(string path, string component, string mode, string hash) =>
         new() { Path = path, Component = component, Mode = mode, Sha256 = hash };
 
-    /// <summary>A estrutura de especificação é externa: a versão registrada é a da instalação verificada, nunca um valor fixo do catálogo.</summary>
+    // A estrutura de especificação é externa: a versão é a da instalação verificada, nunca um valor fixo do catálogo.
     private static string ComponentVersion(string id, CatalogComponent? component, string? installedSpecification) =>
         id == Catalog.SpecificationStructure ? installedSpecification ?? "" : component?.Version ?? Catalog.ComponentVersion;
 }

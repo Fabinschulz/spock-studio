@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import styles from './PageState.module.scss';
 
-/** Uma leitura em andamento. É uma região de estado: o leitor de tela anuncia sem tirar o foco de onde a pessoa está. */
+/** Região de estado: o leitor de tela anuncia sem tirar o foco de onde a pessoa está. */
 export function LoadingState({ children }: { children: ReactNode }) {
   return (
     <p role="status" className={styles.loading}>
@@ -13,10 +13,7 @@ export function LoadingState({ children }: { children: ReactNode }) {
   );
 }
 
-/**
- * Uma ação que deu certo, dita perto de onde foi feita. Só se escreve quando o motor confirmou o efeito: sucesso nunca é
- * presumido a partir de a chamada não ter falhado.
- */
+/** Só se escreve quando o motor confirmou o efeito: sucesso nunca é presumido a partir de a chamada não ter falhado. */
 export function SuccessState({ children }: { children: ReactNode }) {
   return (
     <p role="status" className={styles.success}>
@@ -27,11 +24,9 @@ export function SuccessState({ children }: { children: ReactNode }) {
 
 interface ErrorStateProps {
   children: ReactNode;
-  /** Quando a leitura pode ser refeita, oferece "Tentar de novo" ao lado do erro. */
   onRetry?: () => void;
 }
 
-/** Uma falha, dita perto de onde aconteceu. O texto vem do motor quando ele explica o erro. */
 export function ErrorState({ children, onRetry }: ErrorStateProps) {
   return (
     <div role="alert" className={styles.error}>
@@ -45,15 +40,11 @@ export function ErrorState({ children, onRetry }: ErrorStateProps) {
   );
 }
 
-/**
- * Nada para mostrar ainda, com o motivo e, quando existe, o próximo passo. Não é erro e não é "carregando": dizer qual
- * dos três é o que evita a pessoa esperar por algo que não vem.
- */
+/** Não é erro e não é "carregando": dizer qual dos três é o que evita a pessoa esperar por algo que não vem. */
 export function EmptyState({ children }: { children: ReactNode }) {
   return <p className={styles.empty}>{children}</p>;
 }
 
-/** A tela precisa de um projeto aberto. Diz onde escolher, em vez de ficar em branco. */
 export function NoProjectState() {
   return (
     <EmptyState>

@@ -1,5 +1,5 @@
 {
-  "schema": "ai.investigation.start.v1",
+  "schema": "ai.investigation.start.v2",
   "investigationId": "inv-aaaaaaaaaaaa",
   "executionId": "ex-bbbbbbbbbbbb",
   "projectId": "p-cccccccccccc",
@@ -51,6 +51,103 @@
       "text": "Marco 1.0: 12 abertos, 30 fechados."
     }
   ],
+  "groups": [
+    {
+      "name": "contexto",
+      "roles": [
+        "base"
+      ],
+      "keywords": []
+    },
+    {
+      "name": "fontes",
+      "roles": [
+        "base"
+      ],
+      "keywords": [
+        "sincroniz",
+        "fonte",
+        "dados",
+        "atualizad"
+      ]
+    },
+    {
+      "name": "indicadores",
+      "roles": [
+        "default"
+      ],
+      "keywords": [
+        "vazao",
+        "throughput",
+        "entreg",
+        "lead time",
+        "cycle",
+        "fluxo",
+        "andamento",
+        "wip",
+        "caiu",
+        "queda",
+        "ritmo",
+        "velocidade",
+        "lento",
+        "devagar"
+      ]
+    },
+    {
+      "name": "riscos",
+      "roles": [
+        "default",
+        "sign"
+      ],
+      "keywords": [
+        "risco",
+        "bloque",
+        "parad",
+        "atras",
+        "vencid",
+        "problema",
+        "gargalo"
+      ]
+    },
+    {
+      "name": "marcos",
+      "roles": [],
+      "keywords": [
+        "marco",
+        "release",
+        "versao",
+        "milestone"
+      ]
+    },
+    {
+      "name": "execuções",
+      "roles": [
+        "sign"
+      ],
+      "keywords": [
+        "execucao",
+        "execucoes",
+        "falha",
+        "falhou",
+        "erro",
+        "agente",
+        "agentes",
+        "pipeline"
+      ]
+    },
+    {
+      "name": "mudanças",
+      "roles": [],
+      "keywords": [
+        "mudou",
+        "mudanca",
+        "alteracao",
+        "desde",
+        "passou a",
+        "depois de"
+      ]
+    }
+  ],
   "policy": {
     "modelAllowed": true
   },
@@ -63,19 +160,5 @@
     "url": "http://127.0.0.1:49152/v1/model",
     "token": "ttttttttttttttttttttttttttttttttttttttttttt"
   },
-  "memory": {
-    "root": "C:/dados/investigation-index",
-    "documents": [
-      {
-        "path": "docs/cobranca.md",
-        "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1",
-        "text": "# Decisão registrada: Adiar a migração do faturamento\nDecidido: adiar a migração do faturamento em duas semanas.\nMotivo: bloqueios de infraestrutura.\n"
-      },
-      {
-        "path": "@external/github/pint-000000000001/issues/42.md",
-        "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2",
-        "text": "# 42: Corrigir cobrança duplicada\nFonte externa: dado de terceiros.\nSituação: aberto\n"
-      }
-    ]
-  }
+  "projectPath": "C:/projeto"
 }

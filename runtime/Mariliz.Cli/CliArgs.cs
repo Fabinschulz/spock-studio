@@ -1,6 +1,6 @@
 namespace Mariliz.Cli;
 
-/// <summary>Argumentos da linha de comando: um comando, uma pasta e opções conhecidas. Opção desconhecida é erro, nunca ignorada.</summary>
+// Opção desconhecida é erro, nunca ignorada.
 public sealed class CliArgs
 {
     private static readonly HashSet<string> Flags =

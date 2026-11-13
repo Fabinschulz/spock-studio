@@ -1,6 +1,6 @@
 namespace Mariliz.Application.Integrations;
 
-/// <summary>Conexões e integrações de projeto, no diretório de dados do motor. Nunca dentro de um projeto.</summary>
+// Nunca dentro de um projeto.
 public interface IIntegrationStore
 {
     IReadOnlyList<IntegrationConnection> Connections();

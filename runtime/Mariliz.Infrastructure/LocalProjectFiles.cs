@@ -4,10 +4,7 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Infrastructure;
 
-/// <summary>
-/// Arquivos de um projeto autorizado. Nenhum caminho sai da raiz: são normalizados, comparados com a raiz
-/// canônica e recusados se passarem por um link simbólico. Escrita só no escopo pedido.
-/// </summary>
+// Nenhum caminho sai da raiz: são normalizados, comparados com a raiz canônica e recusados se passarem por um link simbólico.
 public sealed class LocalProjectFiles : IProjectFiles
 {
     private const long MaxReadBytes = 8 * 1024 * 1024;

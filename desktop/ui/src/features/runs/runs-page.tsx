@@ -17,10 +17,7 @@ const ALL = 'all';
 
 const FILTER_SX = { minWidth: '12rem' };
 
-/**
- * A central de execuções: toda execução passada ou em andamento, de qualquer jornada, com filtro por projeto, tipo e
- * estado, e o detalhe num painel ao lado. É leitura: abrir uma execução nunca dispara, reverte nem valida nada.
- */
+/** É leitura: abrir uma execução nunca dispara, reverte nem valida nada. */
 export function RunsPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   const [onlyProject, setOnlyProject] = useState(false);
   const [kind, setKind] = useState(ALL);

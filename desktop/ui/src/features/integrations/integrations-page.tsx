@@ -9,7 +9,6 @@ import { useReloadable } from './hooks/use-reloadable';
 import styles from './integrations-page.module.scss';
 import { createIntegrationApi } from './service/integration-api';
 
-/** Central de integrações: as conexões do computador e, para o projeto aberto, o que ele pode ler de cada uma. */
 export function IntegrationsPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   const api = useMemo(() => createIntegrationApi(client), [client]);
   const load = useCallback(async () => {

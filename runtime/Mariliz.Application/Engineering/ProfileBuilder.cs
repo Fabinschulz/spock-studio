@@ -3,7 +3,6 @@ using Mariliz.Core.Discovery;
 
 namespace Mariliz.Application.Engineering;
 
-/// <summary>Monta o perfil a partir de uma descoberta e das integrações do projeto, e compara com o perfil anterior.</summary>
 public static class ProfileBuilder
 {
     public const int MaxHistory = 100;
@@ -57,7 +56,6 @@ public static class ProfileBuilder
         return profile with { History = history };
     }
 
-    /// <summary>O que mudou entre duas análises: tecnologias, versões, ferramentas e conexões. A mais recente vem primeiro.</summary>
     internal static List<ProfileChange> Diff(TechnologyProfile before, TechnologyProfile after, DateTimeOffset now)
     {
         var changes = new List<ProfileChange>();

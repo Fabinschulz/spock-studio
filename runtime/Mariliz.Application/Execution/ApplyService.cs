@@ -4,10 +4,7 @@ using Mariliz.Application.Ports;
 
 namespace Mariliz.Application.Execution;
 
-/// <summary>
-/// Aplica somente o que foi aprovado. Se algo falha ou a pessoa cancela no meio, tudo o que já foi aplicado é
-/// desfeito. Nada é escrito fora do escopo gerenciado.
-/// </summary>
+// Se algo falha ou a pessoa cancela no meio, tudo o que já foi aplicado é desfeito.
 public sealed class ApplyService(IProcessRunner runner, IRunStore store, IClock clock, IModelSettings? models = null)
 {
     public async Task<JsonObject> ExecuteAsync(

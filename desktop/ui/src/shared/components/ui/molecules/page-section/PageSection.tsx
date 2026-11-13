@@ -4,18 +4,13 @@ import styles from './PageSection.module.scss';
 
 interface PageSectionProps {
   title: ReactNode;
-  /** Uma frase sob o título. */
   description?: ReactNode;
-  /** Ação da seção (por exemplo, "Atualizar"), alinhada ao título. */
   action?: ReactNode;
   className?: string;
   children?: ReactNode;
 }
 
-/**
- * Uma região da página com título. O nome acessível da região é o título, ligado por um id que o componente mesmo
- * cria: ninguém digita `aria-labelledby` à mão nem corre o risco de repetir um id.
- */
+/** O nome acessível da região é o título, ligado por um id que o componente cria: ninguém repete um id à mão. */
 export function PageSection({ title, description, action, className, children }: PageSectionProps) {
   const titleId = useId();
 

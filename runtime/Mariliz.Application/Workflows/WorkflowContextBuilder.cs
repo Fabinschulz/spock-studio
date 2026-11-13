@@ -8,16 +8,14 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Workflows;
 
-/// <summary>O contexto que o motor entrega ao runtime de IA para um projeto.</summary>
 public interface IWorkflowContext
 {
-    /// <summary>Pasta de dados da inteligência (índice e checkpoints); vazia sem projeto.</summary>
     string DataRoot { get; }
 
     Task<JsonObject> BuildAsync(string projectId, CancellationToken ct);
 }
 
-/// <summary>Sem projeto: o runtime recebe só "contexto indisponível" e não consegue pausar para aprovação.</summary>
+// Sem projeto, o runtime recebe só "contexto indisponível" e não consegue pausar para aprovação.
 internal sealed class EmptyWorkflowContext : IWorkflowContext
 {
     public string DataRoot => "";
@@ -27,10 +25,6 @@ internal sealed class EmptyWorkflowContext : IWorkflowContext
     public static JsonObject Unavailable() => new() { ["available"] = false, ["stacks"] = new JsonArray() };
 }
 
-/// <summary>
-/// O contexto que o motor entrega ao runtime: stacks do projeto (descoberta) e fontes permitidas para o índice, mais a
-/// pasta de dados onde a inteligência guarda índice e checkpoints. Sem projeto, use <see cref="WithoutProject"/>.
-/// </summary>
 public sealed class WorkflowContextBuilder : IWorkflowContext
 {
     private readonly WorkspaceAuthorizer _workspace;
@@ -40,8 +34,6 @@ public sealed class WorkflowContextBuilder : IWorkflowContext
     private readonly ExternalKnowledge? _external;
     private readonly DecisionMemory? _memory;
 
-    /// <param name="external">Os itens sincronizados que o projeto autorizou como contexto. Sem isto, o índice só recebe arquivos do projeto.</param>
-    /// <param name="memory">As decisões gerenciais registradas no projeto, como memória do índice.</param>
     public WorkflowContextBuilder(
         WorkspaceAuthorizer workspace, IAiRuntime runtime, IProjectFilesFactory files, IProcessRunner runner, string dataRoot,
         ExternalKnowledge? external = null, DecisionMemory? memory = null)
@@ -55,7 +47,6 @@ public sealed class WorkflowContextBuilder : IWorkflowContext
         DataRoot = dataRoot;
     }
 
-    /// <summary>Sem descoberta, sem índice e sem memória de execução.</summary>
     public static IWorkflowContext WithoutProject { get; } = new EmptyWorkflowContext();
 
     public string DataRoot { get; }

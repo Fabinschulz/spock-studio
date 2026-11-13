@@ -3,7 +3,7 @@ export type SelectedProject = {
   displayName: string;
   /** Caminho já abreviado e sanitizado pelo host; a UI nunca recebe o caminho completo. */
   displayPath: string;
-  /** Id do item correspondente na lista de recentes, quando o host o informa. É o que marca o projeto atual na lista. */
+  /** Quando o host o informa; é o que marca o projeto atual na lista. */
   recentId?: string;
 };
 
@@ -20,9 +20,9 @@ export type RecentProject = {
 export type ProjectPickerPort = {
   /** `null` quando o usuário cancela o diálogo. Lança `ProjectPickError` nos demais casos. */
   pick(): Promise<SelectedProject | null>;
-  /** Projetos já escolhidos pelo diálogo nativo, do mais recente ao mais antigo. Ausente quando não há host. */
+  /** Do mais recente ao mais antigo. Ausente quando não há host. */
   recents?(): Promise<RecentProject[]>;
-  /** Reabre um recente pelo id. A UI não envia caminho: o host só reabre o que está na sua lista. */
+  /** A UI não envia caminho: o host só reabre o que está na sua lista. */
   openRecent?(id: string): Promise<SelectedProject>;
 };
 

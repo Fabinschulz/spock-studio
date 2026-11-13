@@ -3,10 +3,7 @@ using Mariliz.Application.Management;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Cycle time: dias corridos do início do trabalho à conclusão. O início é a primeira mudança de status para um status da
-/// categoria "em andamento"; a categoria de cada nome vem dos itens que estão nele. As contas abaixo foram feitas à mão.
-/// </summary>
+// As contas abaixo foram feitas à mão.
 public class CycleTimeTests
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 12, 12, 0, 0, TimeSpan.Zero);
@@ -24,7 +21,7 @@ public class CycleTimeTests
             (closed.AddDays(-cycleDays), "To Do", started), (closed, started, "Done"));
     }
 
-    /// <summary>Itens abertos que ensinam ao cálculo a categoria de cada nome de status do fluxo.</summary>
+    // Itens abertos que ensinam ao cálculo a categoria de cada nome de status do fluxo.
     private static IEnumerable<WorkItem> Vocabulary() =>
     [
         Item("o1", "To Do", StatusCategories.Todo),

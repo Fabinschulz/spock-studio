@@ -6,7 +6,6 @@ import { HarnessSection } from './components/harness-section';
 import { RevisionsSection } from './components/revisions-section';
 import { ProjectPageFrame } from './project-page-frame';
 
-/** O Harness aplicado no projeto, conferido contra o disco, e a história de cada mudança que ele teve. */
 export function HarnessPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   return (
     <ProjectPageFrame project={project} title="Harness">

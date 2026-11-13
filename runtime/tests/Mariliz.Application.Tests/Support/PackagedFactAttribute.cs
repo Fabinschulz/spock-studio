@@ -1,10 +1,6 @@
 namespace Mariliz.Application.Tests.Support;
 
-/// <summary>
-/// Teste que só faz sentido com o pacote do instalador montado. Fora da CI ele aparece como <b>ignorado</b>, nunca como aprovado:
-/// um verde que não testou nada é pior que um aviso. Na CI do instalador a variável <see cref="RequiredVariable"/> o torna
-/// obrigatório, e a ausência do pacote vira falha.
-/// </summary>
+// Fora da CI aparece como ignorado, nunca como aprovado: um verde que não testou nada é pior que um aviso.
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class PackagedFactAttribute : FactAttribute
 {
@@ -20,7 +16,6 @@ public sealed class PackagedFactAttribute : FactAttribute
     public static bool IsRequired => Environment.GetEnvironmentVariable(RequiredVariable) == "1";
 }
 
-/// <summary>Como <see cref="PackagedFactAttribute"/>, para os testes que rodam o motor instalado (<c>MARILIZ_PACKAGED_ENGINE</c>).</summary>
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class PackagedEngineFactAttribute : FactAttribute
 {

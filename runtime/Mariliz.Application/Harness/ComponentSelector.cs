@@ -2,11 +2,8 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>
-/// Decide se um componente entra no plano e registra a decisão. Precedência: o que a pessoa excluiu em mariliz.yaml,
-/// depois a proposta validada do Harness Engineer, depois as regras-base.
-/// </summary>
-/// <param name="requested">Os excluídos que vêm do pedido feito na tela, ainda não gravados em mariliz.yaml.</param>
+// Precedência: o que a pessoa excluiu em mariliz.yaml, depois a proposta validada do Harness Engineer, depois as regras-base.
+/// <param name="requested">Ainda não gravados em mariliz.yaml.</param>
 internal sealed class ComponentSelector(
     IReadOnlySet<string> userExcluded,
     IReadOnlySet<string> requested,

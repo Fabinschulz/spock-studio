@@ -8,11 +8,7 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Os arquivos do motor falham de dois jeitos: o conteúdo está corrompido, ou o arquivo está travado por outro processo (antivírus,
-/// indexador). O segundo é passageiro e <b>não pode</b> virar "vazio": a próxima gravação reescreveria o arquivo inteiro e apagaria
-/// o que estava lá. O primeiro vai para <c>.corrupt-*</c>, sem perder o conteúdo.
-/// </summary>
+// Arquivo travado (antivírus, indexador) é passageiro e não pode virar "vazio": a próxima gravação reescreveria o arquivo inteiro e apagaria o que estava lá. Conteúdo corrompido vai para .corrupt-*, sem perder nada.
 public class FileStoreResilienceTests : IDisposable
 {
     private readonly string _dir = Directory.CreateTempSubdirectory("mariliz-store-").FullName;
@@ -23,8 +19,6 @@ public class FileStoreResilienceTests : IDisposable
     private static FileStream Lock(string path) => new(path, FileMode.Open, FileAccess.Read, FileShare.None);
 
     private string[] Quarantined(string name, string? root = null) => Directory.GetFiles(root ?? _dir, name + ".corrupt-*", SearchOption.AllDirectories);
-
-    // ------------------------------------------------------------------ AtomicFile.ReadJson
 
     [Fact]
     public void Sem_arquivo_devolve_nulo_e_com_conteudo_valido_devolve_o_documento()
@@ -65,8 +59,6 @@ public class FileStoreResilienceTests : IDisposable
         Assert.Empty(Quarantined("locked.json"));
         Assert.Equal([1], AtomicFile.ReadJson<List<int>>(path, Json));
     }
-
-    // ------------------------------------------------------------------ Os stores
 
     [Fact]
     public async Task Conexoes_com_o_arquivo_travado_falham_em_vez_de_aparecer_vazias_e_nada_se_perde()
@@ -152,8 +144,6 @@ public class FileStoreResilienceTests : IDisposable
         Assert.Equal(["p-000000000002"], registry.Load().Keys);
     }
 
-    // ------------------------------------------------------------------ Diário de execução
-
     [Fact]
     public async Task Gravar_e_ler_o_diario_ao_mesmo_tempo_nunca_falha_nem_devolve_pela_metade()
     {
@@ -183,8 +173,6 @@ public class FileStoreResilienceTests : IDisposable
 
         await Task.WhenAll(writer, reader);
     }
-
-    // ------------------------------------------------------------------ Chave do modelo
 
     [UnixFact]
     [System.Runtime.Versioning.UnsupportedOSPlatform("windows")]

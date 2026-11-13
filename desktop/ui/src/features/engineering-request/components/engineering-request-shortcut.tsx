@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router';
 
 import styles from './engineering-request-shortcut.module.scss';
 
-/** Atalho na jornada Configurar projeto: não substitui o fluxo de harness. */
 export function EngineeringRequestShortcut() {
   const navigate = useNavigate();
 

@@ -9,16 +9,10 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Mais de um provedor de modelo: a lista é a única fonte de destinos permitidos, cada provedor fala o seu formato, o provedor
-/// de hoje é o da chave guardada, e trocar de provedor nunca deixa uma chave com o provedor de outra.
-/// </summary>
 public class ModelProvidersTests
 {
     private const string OpenAiKey = "sk-test-openai-fase-f-7c2d41";
     private const string AnthropicKey = "sk-ant-test-anthropic-fase-f-91ab_x";
-
-    // ------------------------------------------------------------------ A lista
 
     [Fact]
     public void A_lista_tem_os_dois_provedores_com_endereco_https_proprio_e_modelo()
@@ -56,8 +50,6 @@ public class ModelProvidersTests
         Assert.Equal(["openai", "anthropic"], ModelProviders.Available().Select(provider => provider.Id));
         Assert.DoesNotContain("https", System.Text.Json.JsonSerializer.Serialize(ModelProviders.Available()));
     }
-
-    // ------------------------------------------------------------------ O transporte
 
     private sealed class RecordingHandler(string responseJson, HttpStatusCode status = HttpStatusCode.OK) : HttpMessageHandler
     {
@@ -190,8 +182,6 @@ public class ModelProvidersTests
         Assert.Null(handler.Request);
     }
 
-    // ------------------------------------------------------------------ O gateway escolhe o provedor da chave
-
     private sealed class Capture : IModelTransport, IModelChatTransport
     {
         public List<(Uri Endpoint, string Key, string? Model)> Seen { get; } = [];
@@ -305,8 +295,6 @@ public class ModelProvidersTests
         Assert.Equal(("MODEL_PROVIDER_DENIED", "MODEL_KEY_REJECTED"), (denied.Code, rejected.Code));
     }
 
-    // ------------------------------------------------------------------ Onde o provedor é lembrado
-
     private sealed class FailingVault : Mariliz.Application.Integrations.ISecretVault
     {
         public bool Available => true;
@@ -391,8 +379,6 @@ public class ModelProvidersTests
         Assert.Equal(new ModelStatus(true, "anthropic"), settings.Status());
         Assert.Equal(ModelKeyProtection.File, settings.Protection());
     }
-
-    // ------------------------------------------------------------------ Contrato
 
     [Fact]
     public async Task O_metodo_de_conexao_traz_a_lista_de_provedores_e_nenhum_endereco_nem_chave()

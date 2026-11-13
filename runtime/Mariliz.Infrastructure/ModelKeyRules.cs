@@ -4,10 +4,9 @@ using Mariliz.Application.Models;
 
 namespace Mariliz.Infrastructure;
 
-/// <summary>O que vale para uma chave de provedor, em qualquer lugar onde ela seja guardada.</summary>
 internal static partial class ModelKeyRules
 {
-    /// <summary>Recusa provedor fora da lista e chave fora do formato, sem nunca repetir a chave na mensagem.</summary>
+    // Nunca repete a chave na mensagem.
     public static void Validate(string provider, string key)
     {
         if (ModelProviders.Find(provider) is null)

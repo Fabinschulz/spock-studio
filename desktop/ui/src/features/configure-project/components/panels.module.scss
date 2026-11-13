@@ -1,7 +1,5 @@
 @use '@/shared/styles/abstracts' as *;
 
-// Estilos comuns às etapas da jornada.
-
 .step {
   display: flex;
   flex-direction: column;
@@ -89,7 +87,6 @@
   }
 }
 
-// Coluna principal + resumo lateral (etapa do modelo). Empilha quando falta largura.
 .split {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -107,13 +104,11 @@
   gap: var(--space-4);
   min-width: 0;
 
-  // Listas de definição (resumo): sem o recuo padrão do navegador.
   dd {
     margin: 0;
   }
 }
 
-// Ações dentro de um cartão ou de uma janela. As ações de navegação da etapa usam o PrimaryActionFooter.
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -171,7 +166,6 @@
     background-color: var(--color-primary-subtle);
   }
 
-  // A explicação fica alinhada ao texto do rótulo, não à caixa.
   .muted {
     padding-left: 2.5rem;
   }
@@ -181,7 +175,6 @@
   display: flex;
   flex-direction: column;
 
-  // A explicação fica alinhada ao texto do rótulo, não à caixa.
   .muted {
     padding-left: 2.5rem;
   }
@@ -236,14 +229,12 @@
   }
 }
 
-// Texto pronto para copiar (somente leitura, selecionável e focável pelo teclado).
 .prompt {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   line-height: 1.5;
 }
 
-// ---- Selo do modelo de implementação no cabeçalho
 .modelBadge {
   position: relative;
   display: inline-flex;
@@ -259,7 +250,6 @@
   }
 }
 
-// Glifo do ambiente de IA (a Synthra não traz as marcas dessas ferramentas).
 .envGlyph {
   display: inline-flex;
   flex: none;
@@ -268,7 +258,7 @@
   color: var(--color-primary-text);
 }
 
-// Campo que mostra a pasta escolhida: a escolha em si é o diálogo nativo (só ele autoriza um caminho).
+// A escolha da pasta é o diálogo nativo: só ele autoriza um caminho.
 .pathField {
   display: flex;
   align-items: stretch;
@@ -323,7 +313,6 @@
   }
 }
 
-// "Analisar projeto": à direita, abaixo do campo da pasta, com folga acima e altura de 48 px.
 .analyzeRow {
   display: flex;
   justify-content: flex-end;
@@ -334,7 +323,6 @@
   }
 }
 
-// Sub-cartão dentro de um cartão (ex.: buscar a versão mais recente da estrutura de especificação).
 .subCard {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -366,7 +354,6 @@
   color: var(--color-text-muted);
 }
 
-// Versão instalada em destaque na cor da marca.
 .version {
   padding: 2px var(--space-3);
   border: var(--border-width) solid color-mix(in srgb, var(--color-primary) 55%, transparent);
@@ -383,7 +370,6 @@
   font-size: var(--font-size-sm);
 }
 
-// Sub-cartões da estrutura (atualizar / reinstalar): ocupam toda a largura à direita do ícone, sob as duas colunas.
 .specificationFooter {
   display: flex;
   flex-direction: column;

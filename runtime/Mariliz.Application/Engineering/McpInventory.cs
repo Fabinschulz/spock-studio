@@ -7,20 +7,13 @@ using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Engineering;
 
-/// <summary>
-/// Uma variável de ambiente que o servidor recebe. <see cref="Referenced"/>: o valor vem do ambiente (<c>${NOME}</c>), não está
-/// escrito no arquivo. O valor nunca sai do motor.
-/// </summary>
+// O valor nunca sai do motor.
 public sealed record McpEnvVar(string Name, bool Referenced);
 
-/// <summary>
-/// Um valor que parece uma credencial escrita no próprio arquivo. <see cref="Where"/> diz onde (<c>env.GITHUB_TOKEN</c>,
-/// <c>args[2]</c>, <c>headers.Authorization</c>, <c>url</c>); o valor encontrado nunca é devolvido.
-/// </summary>
+// O valor encontrado nunca é devolvido.
 public sealed record McpLiteralSecret(string Where, string Why);
 
-/// <param name="Transport"><c>stdio</c> (um programa na máquina), <c>http</c>, <c>sse</c> ou <c>unknown</c>.</param>
-/// <param name="Runs">Para <c>stdio</c>, o nome do programa; para <c>http</c> e <c>sse</c>, só o servidor (sem caminho, sem consulta, sem usuário e senha).</param>
+/// <param name="Runs">Para <c>http</c> e <c>sse</c>, só o servidor (sem caminho, sem consulta, sem usuário e senha).</param>
 public sealed record McpServerEntry(
     string Name,
     string Transport,
@@ -28,14 +21,9 @@ public sealed record McpServerEntry(
     IReadOnlyList<McpEnvVar> Env,
     IReadOnlyList<McpLiteralSecret> LiteralSecrets);
 
-/// <param name="Present">Se o projeto tem <c>.mcp.json</c>.</param>
-/// <param name="Readable">Falso se o arquivo existe mas não é um JSON válido.</param>
 public sealed record McpInventory(string ProjectId, bool Present, bool Readable, IReadOnlyList<McpServerEntry> Servers);
 
-/// <summary>
-/// Lê os servidores MCP que o projeto declara em <c>.mcp.json</c> e diz o que cada um roda e se há credencial escrita no
-/// arquivo. Só leitura: o Spock Studio não grava <c>.mcp.json</c>, e nenhum valor de variável, argumento ou cabeçalho sai daqui.
-/// </summary>
+// Só leitura: o Spock Studio não grava .mcp.json, e nenhum valor de variável, argumento ou cabeçalho sai daqui.
 public sealed partial class McpInventoryService(WorkspaceAuthorizer workspace, IProjectFilesFactory files)
 {
     public const string FileName = ".mcp.json";
@@ -108,14 +96,13 @@ public sealed partial class McpInventoryService(WorkspaceAuthorizer workspace, I
         return new McpServerEntry(name, transport, runs, env, secrets);
     }
 
-    /// <summary>Valor com formato conhecido de credencial, em qualquer campo.</summary>
     private static void Check(string where, string value, List<McpLiteralSecret> secrets)
     {
         var finding = SecretScanner.Scan(value).FirstOrDefault();
         if (finding is not null) Add(secrets, new McpLiteralSecret(where, $"Formato de credencial conhecido ({finding.Rule})."));
     }
 
-    /// <summary>Num par nome e valor, o nome também conta: <c>GITHUB_TOKEN</c> com um valor escrito é uma credencial, qualquer que seja o formato.</summary>
+    // O nome também conta: GITHUB_TOKEN com um valor escrito é uma credencial, qualquer que seja o formato.
     private static void CheckNamed(string where, string key, string value, List<McpLiteralSecret> secrets)
     {
         Check(where, value, secrets);
@@ -128,7 +115,6 @@ public sealed partial class McpInventoryService(WorkspaceAuthorizer workspace, I
         if (secrets.All(existing => existing.Where != secret.Where)) secrets.Add(secret);
     }
 
-    /// <summary>O valor só aponta para variáveis de ambiente (<c>${TOKEN}</c>, <c>Bearer ${TOKEN}</c>): nada de literal sobra.</summary>
     private static bool IsReference(string value)
     {
         if (!Reference().IsMatch(value)) return false;
@@ -144,7 +130,7 @@ public sealed partial class McpInventoryService(WorkspaceAuthorizer workspace, I
         return name.Length == 0 ? "sem programa declarado" : name;
     }
 
-    /// <summary>Só o servidor: caminho, consulta e usuário com senha podem carregar credencial e ficam de fora.</summary>
+    // Caminho, consulta e usuário com senha podem carregar credencial e ficam de fora.
     private static string Host(string? url)
     {
         if (url is null) return "sem endereço declarado";

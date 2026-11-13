@@ -4,7 +4,6 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>Monta o conteúdo dos arquivos que a aplicação escreve a partir do que foi detectado.</summary>
 internal static class RuleContent
 {
     internal static DesiredFile Asset(string path, ComponentKind kind, string componentId, string asset, string reason) =>

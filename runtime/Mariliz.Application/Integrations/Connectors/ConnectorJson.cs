@@ -4,10 +4,9 @@ using System.Text.Json.Nodes;
 
 namespace Mariliz.Application.Integrations;
 
-/// <summary>Leitura defensiva da resposta de um provedor: o que vem de fora nunca derruba a sincronização com exceção de tipo.</summary>
+// O que vem de fora nunca derruba a sincronização com exceção de tipo.
 internal static class ConnectorJson
 {
-    /// <summary>Traduz o status HTTP em erro do produto e devolve o corpo como JSON.</summary>
     public static JsonNode Parse(ConnectorResponse response)
     {
         switch (response.Status)

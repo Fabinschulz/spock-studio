@@ -3,10 +3,7 @@ using Mariliz.Core.Evals;
 
 namespace Mariliz.Application.Validation;
 
-/// <summary>
-/// Roda os Evals do catálogo, na ordem. Verificações determinísticas decidem tudo o que podem; evidências citam
-/// caminhos, códigos e contagens, nunca valores de segredos.
-/// </summary>
+// Evidências citam caminhos, códigos e contagens, nunca valores de segredos.
 public static class EvalRunner
 {
     private static readonly IReadOnlyDictionary<string, IEvalCheck> Checks = new IEvalCheck[]

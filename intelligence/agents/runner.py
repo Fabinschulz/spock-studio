@@ -1,9 +1,3 @@
-"""O ciclo comum dos agentes com modelo: pedir, validar, pedir de novo uma vez e, se nada servir, desistir.
-
-Quem chama decide o que fazer com a desistência (os dois agentes caem na regra determinística). Aqui só se conta o que
-foi gasto e se explica, com um código, por que não deu certo.
-"""
-
 from __future__ import annotations
 
 import json
@@ -24,7 +18,7 @@ class Model(Protocol):
 
 @dataclass
 class Outcome:
-    """``value`` é a saída validada, ou ``None`` com o ``code`` do motivo. O uso conta mesmo quando a saída foi recusada."""
+    """O uso conta mesmo quando a saída foi recusada."""
 
     value: dict | None = None
     code: str = ""

@@ -9,10 +9,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// A opinião do juiz por modelo (Fase 7) é do runtime de IA, mas só vale para o motor se o proxy viu a chamada. Aqui o runtime
-/// é um dublê que afirma coisas, para provar o que o motor aceita, o que descarta e o que registra.
-/// </summary>
+// O runtime é um dublê que afirma coisas, para provar o que o motor aceita, o que descarta e o que registra.
 public class WorkflowJudgmentTests
 {
     private const string Chunk = "docs/nota.md#1";
@@ -137,7 +134,6 @@ public class WorkflowJudgmentTests
         public void Save(string projectId, string executionId, JsonObject record) => Saved.Add((projectId, executionId, record));
     }
 
-    /// <summary>Runtime que anuncia a avaliação por modelo e conclui com o ack que o teste mandou.</summary>
     private sealed class JudgingRuntime(string outcome, Func<string, JsonObject> ack) : IAiRuntime
     {
         public Task EnsureReadyAsync(CancellationToken ct) => Task.CompletedTask;

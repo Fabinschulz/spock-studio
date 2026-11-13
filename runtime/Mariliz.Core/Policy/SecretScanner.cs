@@ -2,10 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace Mariliz.Core.Policy;
 
-/// <summary>
-/// Procura formatos conhecidos de credenciais. Devolve só a regra e a linha: o valor encontrado
-/// nunca sai desta classe, então não pode vazar para log, relatório ou resultado de Eval.
-/// </summary>
+// Devolve só a regra e a linha: o valor encontrado nunca sai desta classe, então não pode vazar para log, relatório ou resultado de Eval.
 public static class SecretScanner
 {
     private static readonly (string Rule, Regex Pattern)[] Rules =
@@ -45,7 +42,7 @@ public static class SecretScanner
 
     public const string RedactedLine = "[linha omitida: possível segredo]";
 
-    /// <summary>Troca por um marcador cada linha com formato de credencial. Usado antes de mostrar conteúdo de arquivo.</summary>
+    // Usado antes de mostrar conteúdo de arquivo.
     public static string RedactLines(string content)
     {
         var lines = content.Split('\n');

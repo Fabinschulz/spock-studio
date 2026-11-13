@@ -19,7 +19,6 @@ export interface JourneyState {
   aiEnvironment: string | null;
   allowSpecificationReinstall: boolean;
   updateSpecification: boolean;
-  /** Pedido vindo da tela Projeto: dispensar componentes ou voltar a aplicá-los. Vai junto em cada plano. */
   componentRequest: ComponentRequest;
   plan: Loadable<ConfigurationPlan>;
   approvedChanges: string[];

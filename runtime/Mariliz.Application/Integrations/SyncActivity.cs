@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 
 namespace Mariliz.Application.Integrations;
 
-/// <summary>Quais integrações estão sincronizando agora. Garante uma sincronização por integração e segura mudanças de recorte no meio de uma.</summary>
 public sealed class SyncActivity
 {
     private readonly ConcurrentDictionary<string, string> _running = new(StringComparer.Ordinal);

@@ -7,10 +7,7 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Engineering;
 
-/// <summary>
-/// O perfil tecnológico de cada projeto. Atualizar roda a descoberta (só leitura no projeto), junta as integrações e
-/// registra o que mudou desde a análise anterior. Nada é escrito dentro do projeto.
-/// </summary>
+// Nada é escrito dentro do projeto.
 public sealed class TechnologyProfileService(
     ConfigureProjectService configure,
     IntegrationHub hub,

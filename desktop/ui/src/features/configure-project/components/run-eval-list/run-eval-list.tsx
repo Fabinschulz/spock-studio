@@ -8,7 +8,7 @@ import type { RunEvalListProps } from './types';
 const statusText = (status: string) =>
   status === 'running' ? 'em andamento' : (evalStatusLabel[status as keyof typeof evalStatusLabel] ?? status);
 
-/** Uma linha por verificação, na ordem em que o motor as roda. Só aparece o que o motor anunciou. */
+/** Só aparece o que o motor anunciou. */
 export function RunEvalList({ evals }: RunEvalListProps) {
   if (evals.length === 0) return null;
 

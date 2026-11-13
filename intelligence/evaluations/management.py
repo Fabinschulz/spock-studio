@@ -1,17 +1,6 @@
-"""Evals de gestão (management.eval.v1): perguntas reais de gestão sobre cenários de fatos do motor.
-
-Mede o que importa numa investigação, sem depender de quem escreveu a resposta (modelo falso, roteirizado ou real):
-
-- ``framing``: o primeiro olhar da investigação cobre os grupos de fatos que a pergunta pede;
-- ``grounding``: cada afirmação cita fatos que a investigação de fato consultou e só traz números que esses fatos têm (a mesma
-  regra do conferente do motor);
-- ``coverage``: a resposta cita os fatos essenciais do caso;
-- ``abstention``: quando os fatos não têm o que a pergunta pede, a resposta diz que está indisponível e não inventa cálculo,
-  inferência nem recomendação.
-
-Uma investigação que falhou pontua zero em tudo o que depende da resposta. Os mínimos ficam no dataset. Para pontuar uma rodada com
-modelo real, o teste ``ManagementEvalLiveTests`` (motor) grava os resultados e ``python intelligence/evaluations/management.py score``
-os pontua: veja o roadmap.
+"""Uma investigação que falhou pontua zero em tudo o que depende da resposta; os mínimos ficam no dataset. Para pontuar uma
+rodada com modelo real, o teste ``ManagementEvalLiveTests`` (motor) grava os resultados e
+``python intelligence/evaluations/management.py score`` os pontua.
 """
 
 from __future__ import annotations
@@ -34,6 +23,17 @@ if __name__ == "__main__":  # pragma: no cover - uso como script
 from workflows.investigation.nodes import plain  # noqa: E402
 
 _DATASET = Path(__file__).resolve().parent / "datasets" / "management.json"
+# Os grupos de fatos são do motor; a avaliação lê a mesma cópia que o teste do motor confere contra o catálogo dele.
+_GROUPS = Path(__file__).resolve().parents[2] / "contracts" / "fixtures" / "management" / "fact-groups.json"
+
+
+def fact_groups() -> list[dict]:
+    return json.loads(_GROUPS.read_text(encoding="utf-8"))
+
+
+def groups_for(facts: list[dict]) -> list[dict]:
+    present = {fact["group"] for fact in facts}
+    return [group for group in fact_groups() if group["name"] in present]
 _NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
 _CLAIM_SECTIONS = ("observed", "calculations", "inferences", "recommendations")
 _METRICS = ("framing", "grounding", "coverage", "abstention")
@@ -63,7 +63,6 @@ def numbers(text: str) -> set[str]:
 
 
 def claims_of(answer: dict | None) -> list[dict]:
-    """O resumo e cada afirmação das seções, na ordem em que aparecem."""
     if not isinstance(answer, dict):
         return []
     items = [answer["summary"]] if isinstance(answer.get("summary"), dict) else []
@@ -128,7 +127,7 @@ def score_case(case: dict, scenario: list[dict], ack: dict | None) -> dict[str, 
 
 
 def score_dataset(document: dict[str, Any], acks: dict[str, dict]) -> dict[str, Any]:
-    """Pontua cada caso (um ack por id; o que falta pontua como investigação que falhou) e confere os mínimos do dataset."""
+    """Um id sem ack pontua como investigação que falhou."""
     results = [score_case(case, document["scenarios"][case["scenario"]], acks.get(case["id"])) for case in document["cases"]]
     means: dict[str, float | None] = {}
     for metric in _METRICS:
@@ -143,14 +142,14 @@ def score_dataset(document: dict[str, Any], acks: dict[str, dict]) -> dict[str, 
 
 
 def request_for(document: dict[str, Any], case: dict, with_model: bool) -> dict:
-    """O ``ai.investigation.start.v1`` de um caso: a pergunta e os fatos do cenário. Com modelo, o proxy é o do motor (aqui, um endereço de teste)."""
     payload: dict[str, Any] = {
-        "schema": "ai.investigation.start.v1",
+        "schema": "ai.investigation.start.v2",
         "investigationId": "inv-eeeeeeeeeeee",
         "executionId": "ex-eeeeeeeeeeee",
         "projectId": "p-eeeeeeeeeeee",
         "question": case["question"],
         "facts": document["scenarios"][case["scenario"]],
+        "groups": groups_for(document["scenarios"][case["scenario"]]),
         "policy": {"modelAllowed": with_model},
         "limits": {"maxIterations": 12, "maxMilliseconds": 150000, "maxTokens": 40000},
     }
@@ -160,10 +159,6 @@ def request_for(document: dict[str, Any], case: dict, with_model: bool) -> dict:
 
 
 def run_dataset(document: dict[str, Any] | None = None, model_for: Callable[[dict], Any] | None = None) -> dict[str, dict]:
-    """
-    Roda a investigação de cada caso. ``model_for(case)`` devolve o modelo daquele caso (um falso roteirizado nos testes); sem ele, a
-    investigação roda sem modelo. Devolve um ack por id de caso.
-    """
     from workflows.investigation import graph
 
     doc = document or load_dataset()

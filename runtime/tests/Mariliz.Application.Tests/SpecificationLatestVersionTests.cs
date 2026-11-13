@@ -5,12 +5,11 @@ using Mariliz.Application.Tests.Support;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>O produto sempre leva o projeto para a versão mais recente da estrutura de especificação, sem consultar a rede no plano.</summary>
 public class SpecificationLatestVersionTests
 {
     private const string SkillDir = ".claude/skills/tlc-spec-driven";
 
-    /// <summary>O instalador oficial substitui a pasta da skill inteira: arquivos abolidos somem, edições locais voltam ao original.</summary>
+    // Como o instalador oficial: substitui a pasta da skill inteira, então arquivos abolidos somem e edições locais voltam ao original.
     private static Func<ProcessSpec, CancellationToken, Task<ProcessResult?>> InstallerThatInstalls(TempProject project, string version) => (spec, _) =>
     {
         if (spec.Executable != "npx") return Task.FromResult<ProcessResult?>(null);

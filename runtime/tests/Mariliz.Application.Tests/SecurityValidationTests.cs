@@ -11,10 +11,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Validação de segurança da Fase 10, de ponta a ponta: o grafo Python de verdade, o proxy do motor, o diário e o disco. Cada teste
-/// parte de um ataque ou de um vazamento possível e confere o que existe no fim, não o que o código pretende fazer.
-/// </summary>
+// De ponta a ponta: o grafo Python de verdade, o proxy do motor, o diário e o disco. Cada teste confere o que existe no fim, não o que o código pretende fazer.
 public class SecurityValidationTests
 {
     private const string Key = "sk-test-chave-e2e-5d10";
@@ -46,10 +43,7 @@ public class SecurityValidationTests
             Task.FromResult(new ModelTransportResult("", 0));
     }
 
-    /// <summary>
-    /// Um provedor que obedece ao documento do projeto: devolve o que o texto injetado pediu (comando, ação, caminho fora do
-    /// projeto). O que se confere é que o motor não executa nada disso, mesmo com o modelo "convencido".
-    /// </summary>
+    // Obedece ao documento do projeto: devolve o que o texto injetado pediu. O que se confere é que o motor não executa nada disso, mesmo com o modelo "convencido".
     private sealed class ObedientProvider : IModelChatTransport
     {
         public List<ChatRequest> Requests { get; } = [];
@@ -140,7 +134,7 @@ public class SecurityValidationTests
     private static IEnumerable<string> FilesUnder(string root) =>
         Directory.Exists(root) ? Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories) : [];
 
-    /// <summary>Procura os valores em todo arquivo (texto ou binário, como o SQLite do índice e do checkpoint) e devolve onde achou.</summary>
+    // Texto ou binário, como o SQLite do índice e do checkpoint.
     private static List<string> Leaks(IEnumerable<string> roots, IEnumerable<string> needles, string? source = null)
     {
         var found = new List<string>();
@@ -262,10 +256,7 @@ public class SecurityValidationTests
         }
     }
 
-    /// <summary>
-    /// Cada documento tem só uma credencial, no formato de um provedor comum. O arquivo inteiro sai das fontes quando o
-    /// scanner reconhece o formato; se ele não reconhecer, o texto vai para o índice e para o provedor de modelo.
-    /// </summary>
+    // Se o scanner não reconhecer o formato, o texto vai para o índice e para o provedor de modelo.
     [Theory]
     [InlineData("sk-proj-" + "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789")]
     [InlineData("sk-ant-" + "api03-AbCdEfGhIjKlMnOpQrStUvWxYz0123")]

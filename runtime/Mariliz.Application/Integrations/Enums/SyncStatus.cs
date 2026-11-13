@@ -5,7 +5,7 @@ public enum SyncStatus
     Running,
     Succeeded,
 
-    /// <summary>Parou no teto de páginas por execução. O ponto de retomada ficou gravado: a próxima continua dali.</summary>
+    // O ponto de retomada ficou gravado: a próxima continua dali.
     Partial,
     Failed
 }

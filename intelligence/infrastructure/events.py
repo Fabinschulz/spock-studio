@@ -1,8 +1,4 @@
-"""Eventos ai.event.v1 de uma execução.
-
-Os nós chamam ``emit`` e o evento sai no fluxo ``custom`` do LangGraph no mesmo instante. A numeração continua depois de
-uma pausa porque o primeiro número da retomada vem do checkpoint.
-"""
+"""A numeração continua depois de uma pausa porque o primeiro número da retomada vem do checkpoint."""
 
 from __future__ import annotations
 
@@ -39,7 +35,6 @@ class Emitter:
         return event
 
     def emit(self, type_: str, data: dict | None = None, agent_id: str | None = None) -> None:
-        """Dentro de um nó: o evento vai para o fluxo do grafo. Fora dele, para o escritor dado na construção."""
         event = self.event(type_, data, agent_id)
         writer = self._writer or get_stream_writer()
         writer(event)

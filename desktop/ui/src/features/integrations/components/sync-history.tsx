@@ -7,7 +7,6 @@ import { formatEngineDate } from '../domain/format-date';
 import { SYNC_STATUS, syncCounts } from '../domain/labels';
 import styles from '../integrations-page.module.scss';
 
-/** As últimas sincronizações de um vínculo. Só é montado quando a pessoa abre o histórico. */
 export function SyncHistory({ load }: { load: () => Promise<SyncExecution[]> }) {
   const history = useAsyncResource(load);
 

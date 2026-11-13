@@ -67,7 +67,6 @@ function clientWith(runs: unknown[], saved = true, knowledge: unknown = knowledg
   } as unknown as EngineClient;
 }
 
-/** Mostra para onde a página navegou e com que estado. */
 function LocationProbe() {
   const location = useLocation();
   return <output aria-label="rota">{`${location.pathname} ${JSON.stringify(location.state)}`}</output>;

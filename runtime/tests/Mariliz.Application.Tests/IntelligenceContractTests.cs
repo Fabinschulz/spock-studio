@@ -1,9 +1,6 @@
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Contratos v2 entre o motor e a inteligência e os dados dos eventos novos da interface. Cada fixture se chama
-/// <c>&lt;schema&gt;--&lt;caso&gt;.json</c> e é conferida contra <c>contracts/schemas/&lt;pasta&gt;/&lt;schema&gt;.schema.json</c>.
-/// </summary>
+// Cada fixture se chama <schema>--<caso>.json e é conferida contra contracts/schemas/<pasta>/<schema>.schema.json.
 public class IntelligenceContractTests
 {
     private static readonly string[] Folders = ["intelligence", "ai"];

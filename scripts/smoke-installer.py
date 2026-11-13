@@ -60,7 +60,6 @@ def extract(bundle: Path, out: Path) -> Path:
 
 
 def locate(root: Path) -> Path:
-    """A pasta que tem ``intelligence/server.py`` e ``python``, onde quer que o instalador a tenha posto."""
     candidates = sorted({path.parent.parent for path in root.rglob("server.py") if path.parent.name == "intelligence"})
     candidates = [path for path in candidates if (path / SCRIPT).is_file() and (path / "python").is_dir()]
     if len(candidates) != 1:

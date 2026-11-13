@@ -6,10 +6,8 @@ using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Specification;
 
-/// <summary>Decide o que fazer com a estrutura de especificação: manter, instalar, atualizar ou bloquear.</summary>
 internal static class SpecificationPlanner
 {
-    /// <summary>Motivo pelo qual o instalador oficial não pode rodar com segurança; <c>Decision</c> é a frase da decisão, <c>Reason</c> a da limitação.</summary>
     private sealed record InstallerBlock(string Decision, string Reason);
 
     private static InstallerBlock? InstallerBlocker(DiscoveryReport report, IProjectFiles files)

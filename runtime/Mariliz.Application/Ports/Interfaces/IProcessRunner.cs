@@ -1,6 +1,6 @@
 namespace Mariliz.Application.Ports;
 
-/// <summary>Executa processos sem shell: executável e argumentos separados, nunca uma linha de comando.</summary>
+// Sem shell: executável e argumentos separados, nunca uma linha de comando.
 public interface IProcessRunner
 {
     Task<ProcessResult> RunAsync(ProcessSpec spec, CancellationToken ct);

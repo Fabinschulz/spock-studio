@@ -2,12 +2,12 @@ import { z } from 'zod';
 
 import { runStartedSchema } from './run';
 
-/** Corpo de `input` em workflow.start (engineering.request.v1). Stacks vêm do contexto do motor. */
+/** Stacks vêm do contexto do motor. */
 export const workflowStartInputSchema = z.object({
   goal: z.string().min(1),
   impact: z.boolean().optional(),
   requiresApproval: z.boolean().optional(),
-  /** Pede ao motor que o Planning e o Architecture usem o modelo. O motor recusa se não houver modelo configurado. */
+  /** O motor recusa se não houver modelo configurado. */
   useModel: z.boolean().optional()
 });
 

@@ -12,11 +12,7 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// O assistente sobre o portfólio: cada projeto entra com o pacote que o assistente dele montaria (a política de cada um vale por
-/// inteiro), a pessoa escolhe quais entram, e a resposta passa pelo mesmo conferente. O provedor é um dublê com respostas escritas
-/// no teste, com afirmações boas e ruins de propósito.
-/// </summary>
+// O provedor é um dublê com respostas escritas no teste, com afirmações boas e ruins de propósito.
 public class PortfolioAssistantTests
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 10, 12, 0, 0, TimeSpan.Zero);
@@ -60,7 +56,7 @@ public class PortfolioAssistantTests
         public FileRunStore Store { get; }
         public EngineSession Session { get; }
         public ProjectIntegration IntegrationA { get; private set; } = null!;
-        /// <summary>Os projetos na ordem em que o portfólio os lista (p1 e p2): o nome da pasta temporária é sorteado, a ordem é que decide quem é quem.</summary>
+        // O nome da pasta temporária é sorteado: a ordem do portfólio é que decide quem é quem.
         public string A { get; private set; } = "";
         public string B { get; private set; } = "";
         public ProjectIntegration IntegrationB { get; private set; } = null!;
@@ -79,10 +75,7 @@ public class PortfolioAssistantTests
             Session = new EngineSession("test", integrations: Harness.Hub, management: management, assistant: assistant, portfolioAssistant: Portfolio);
         }
 
-        /// <summary>
-        /// O projeto A tem 18 itens (16 entregues, um vencido com título e um em andamento) e o B tem 3 itens entregues e um aberto
-        /// vencido com outro título. Cada um com a sua fonte e a sua política (nascem fechadas).
-        /// </summary>
+        // A tem 18 itens (16 entregues, um vencido com título e um em andamento) e B tem 3 entregues e um aberto vencido com outro título. Cada um com a sua fonte e a sua política (nascem fechadas).
         public async Task SeedAsync()
         {
             var ordered = Harness.Workspace.Projects();
@@ -140,8 +133,6 @@ public class PortfolioAssistantTests
     }.ToJsonString();
 
     private static string AliasOf(PortfolioEvidence evidence, string projectId) => evidence.Projects.Single(project => project.ProjectId == projectId).Alias;
-
-    // ------------------------------------------------------------------ O pacote
 
     [Fact]
     public async Task Cada_projeto_entra_com_os_proprios_fatos_prefixados_pelo_alias_e_a_data_de_hoje_entra_uma_vez()
@@ -238,8 +229,6 @@ public class PortfolioAssistantTests
         Assert.All(evidence.Projects, project => Assert.DoesNotContain(project.Name, ch => char.IsControl(ch)));
         Assert.All(evidence.Facts.Where(fact => fact.Id.EndsWith(".name", StringComparison.Ordinal)), fact => Assert.DoesNotContain('\n', fact.Text));
     }
-
-    // ------------------------------------------------------------------ A pergunta
 
     [Fact]
     public async Task O_provedor_recebe_os_fatos_separados_por_projeto_e_a_pergunta()
@@ -374,8 +363,6 @@ public class PortfolioAssistantTests
         var journal = Assert.Single(s.Store.ListJournals(s.B));
         Assert.DoesNotContain(journal.Steps, item => item.Id == "portfolio");
     }
-
-    // ------------------------------------------------------------------ Protocolo e contrato
 
     [Fact]
     public async Task Os_metodos_do_protocolo_devolvem_o_pacote_e_a_resposta_e_recusam_parametro_invalido()

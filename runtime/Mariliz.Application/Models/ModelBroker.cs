@@ -6,40 +6,34 @@ using Mariliz.Application.Execution;
 
 namespace Mariliz.Application.Models;
 
-/// <summary>Resposta do proxy: o código HTTP e o corpo (<c>ai.model.response.v1</c> ou um erro simples).</summary>
 public sealed record BrokerReply(int HttpStatus, JsonObject Body);
 
-/// <summary>O que o runtime de IA recebe para falar com o proxy desta execução. O token não é a chave do provedor.</summary>
+// O token não é a chave do provedor.
 public sealed record ModelGrant(string Url, string Token, int TokenBudget);
 
-/// <summary>Tokens gastos por uma execução, como o proxy contou (não como o runtime informou).</summary>
+// Como o proxy contou, não como o runtime informou.
 public sealed record ModelUsage(int Calls, int InputTokens, int OutputTokens, double CostUsd)
 {
     public static readonly ModelUsage None = new(0, 0, 0, 0);
 }
 
-/// <summary>Uma chamada que o proxy fez, como ele a viu: quem pediu, para quê, qual modelo respondeu e o hash do que foi enviado.</summary>
 public sealed record ModelCallRecord(string AgentId, string Purpose, string Model, string ModelVersion, string PromptHash, int InputTokens, int OutputTokens);
 
-/// <summary>Como o motor abre e fecha o acesso ao modelo de uma execução.</summary>
 public interface IModelAccess
 {
     bool Configured { get; }
 
-    /// <summary>Abre o acesso de uma execução, com um teto de tokens. O endereço só existe em 127.0.0.1.</summary>
+    // O endereço só existe em 127.0.0.1.
     ModelGrant Open(string executionId, int tokenBudget);
 
-    /// <summary>Fecha o acesso e devolve o que foi gasto. Fechar duas vezes devolve o mesmo total.</summary>
+    // Fechar duas vezes devolve o mesmo total.
     ModelUsage Close(string executionId);
 
-    /// <summary>As chamadas feitas até agora por uma execução (aberta ou já fechada), na ordem. Fonte da verdade sobre o que o modelo viu.</summary>
+    // Fonte da verdade sobre o que o modelo viu.
     IReadOnlyList<ModelCallRecord> Calls(string executionId);
 }
 
-/// <summary>
-/// Decide cada chamada de modelo de uma execução. Um token por execução, o modelo e a chave escolhidos aqui, o orçamento
-/// de tokens cobrado antes e depois de cada chamada e o uso registrado. Sem custo em dinheiro: o teto da D4 é de tokens.
-/// </summary>
+// O orçamento de tokens é cobrado antes e depois de cada chamada. Sem custo em dinheiro: o teto da D4 é de tokens.
 public sealed partial class ModelBroker(ModelGateway gateway)
 {
     public const string Schema = "ai.model.request.v1";
@@ -56,7 +50,6 @@ public sealed partial class ModelBroker(ModelGateway gateway)
 
     public bool Configured => gateway.Status().Configured;
 
-    /// <summary>Abre o acesso de uma execução e devolve o token que só vale para ela.</summary>
     public string Open(string executionId, int tokenBudget)
     {
         var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(33)).Replace('+', '-').Replace('/', '_');
@@ -190,7 +183,7 @@ public sealed partial class ModelBroker(ModelGateway gateway)
     private static string Text(JsonObject node, string name) =>
         node[name] is JsonValue value && value.TryGetValue<string>(out var text) ? text : "";
 
-    /// <summary>O orçamento de uma execução. Reserva o pior caso antes da chamada e acerta com o uso real depois.</summary>
+    // Reserva o pior caso antes da chamada e acerta com o uso real depois.
     private sealed class Grant(string executionId, int budget, string token)
     {
         private readonly object _gate = new();

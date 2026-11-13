@@ -10,15 +10,11 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Management.Investigation;
 
-/// <summary>Uma etapa do caminho da investigação. Só nomes de grupo e ids de fatos: nunca texto de fato, de hipótese nem a pergunta.</summary>
+// Só nomes de grupo e ids de fatos: nunca texto de fato, de hipótese nem a pergunta.
 public sealed record InvestigationStep(string Id, string Title, string Detail, int Round, IReadOnlyList<string> Groups, IReadOnlyList<string> Facts);
 
 public sealed record InvestigationLimitation(string Code, string Message);
 
-/// <summary>
-/// O resultado de uma investigação: a resposta já conferida pelo motor (a mesma forma do assistente), o caminho percorrido e o que
-/// limitou a investigação. <see cref="RunId"/> abre o diário dela na central de execuções.
-/// </summary>
 public sealed record ProjectInvestigation(
     string InvestigationId,
     string RunId,
@@ -29,17 +25,7 @@ public sealed record ProjectInvestigation(
     IReadOnlyList<InvestigationStep> Path,
     IReadOnlyList<InvestigationLimitation> Limitations);
 
-/// <summary>
-/// A investigação de gestão em etapas: o motor reúne os fatos (os do assistente mais os de execuções e de mudanças), o runtime de
-/// IA os cruza num workflow com laço e o motor **confere a resposta** antes de devolvê-la, só contra os fatos que a investigação
-/// de fato consultou. O caminho fica no diário, na central de execuções. Sem modelo configurado, a investigação ainda roda e
-/// lista os sinais, dizendo que o modelo não escreveu a análise.
-/// </summary>
-/// <remarks>
-/// Aqui fica só a orquestração: validar, reunir, conversar com o runtime, conferir, auditar e registrar. O contrato com o runtime
-/// está em <see cref="InvestigationWire"/>, os fatos de execuções e mudanças em <see cref="InvestigationFacts"/>, a memória em
-/// <see cref="InvestigationMemory"/> e o diário em <see cref="InvestigationJournal"/>.
-/// </remarks>
+// Sem modelo configurado, a investigação ainda roda e lista os sinais, dizendo que o modelo não escreveu a análise.
 public sealed class InvestigationService
 {
     /// <summary>Teto de tokens de uma investigação com modelo: até quatro chamadas (três rodadas de hipóteses e a conclusão).</summary>
@@ -147,7 +133,6 @@ public sealed class InvestigationService
         }
     }
 
-    /// <summary>Os fatos do assistente, mais os de execuções e de mudanças dos últimos <see cref="WindowDays"/> dias, só os que o runtime consegue citar.</summary>
     public EvidencePack Pack(string projectId)
     {
         var basePack = _assistant.Evidence(projectId);
@@ -161,11 +146,7 @@ public sealed class InvestigationService
         return basePack with { Facts = sendable, Withheld = withheld };
     }
 
-    /// <summary>
-    /// O que volta do runtime é conferido antes de valer. O caminho só fala de fatos que existem; a resposta é conferida pelo
-    /// <see cref="AnswerVerifier"/> contra **os fatos consultados**, não contra o pacote inteiro: citar um fato que a investigação
-    /// nunca olhou não passa, mesmo que ele exista.
-    /// </summary>
+    // A resposta é conferida contra os fatos consultados, não contra o pacote inteiro: citar um fato que a investigação nunca olhou não passa.
     private ProjectInvestigation Verify(JsonObject ack, EvidencePack pack, string investigationId, bool usedModel, ModelUsage? usage, IReadOnlyList<ModelCallRecord>? calls,
         IReadOnlyList<MemoryDocument> documents)
     {

@@ -7,10 +7,6 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Um pedido que espera rede ou modelo (testar a chave, investigar) não pode prender o laço do protocolo: enquanto ele espera,
-/// o motor continua respondendo e consegue encerrar. Os pedidos curtos seguem em ordem.
-/// </summary>
 public class ProtocolConcurrencyTests
 {
     private const string Key = "sk-test-chave-concorrencia-0001";
@@ -24,7 +20,7 @@ public class ProtocolConcurrencyTests
         public override async ValueTask<string?> ReadLineAsync(CancellationToken ct) => await _lines.Reader.ReadAsync(ct);
     }
 
-    /// <summary>Guarda cada linha escrita e deixa o teste esperar por uma resposta sem sondar o relógio.</summary>
+    // Deixa o teste esperar por uma resposta sem sondar o relógio.
     private sealed class SignalWriter : StringWriter
     {
         private readonly Channel<string> _lines = Channel.CreateUnbounded<string>();
@@ -41,7 +37,7 @@ public class ProtocolConcurrencyTests
         }
     }
 
-    /// <summary>Um provedor que só responde quando o teste manda (ou quando o pedido é cancelado).</summary>
+    // Só responde quando o teste manda (ou quando o pedido é cancelado).
     private sealed class HeldTransport : IModelTransport
     {
         private readonly TaskCompletionSource _started = new(TaskCreationOptions.RunContinuationsAsynchronously);

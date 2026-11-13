@@ -6,12 +6,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Só roda no CI do instalador, com <c>MARILIZ_PACKAGED_RESOURCES</c> apontando para
-/// <c>desktop/host/src-tauri/resources</c> depois de <c>build-runtime.ps1 -FetchPythonEmbed</c> (Windows) ou de
-/// <c>scripts/package-intelligence.py bundle --python &lt;triple&gt;</c> (macOS e Linux). Sem a variável o teste é ignorado,
-/// e com <c>MARILIZ_REQUIRE_PACKAGED=1</c> (a CI do instalador) a falta do pacote é falha.
-/// </summary>
+// Só roda no CI do instalador, com MARILIZ_PACKAGED_RESOURCES apontando para desktop/host/src-tauri/resources depois de build-runtime.ps1 -FetchPythonEmbed (Windows) ou de scripts/package-intelligence.py bundle --python <triple> (macOS e Linux). Com MARILIZ_REQUIRE_PACKAGED=1 a falta do pacote é falha.
 public class PackagedAiSmokeTests
 {
     [PackagedFact]

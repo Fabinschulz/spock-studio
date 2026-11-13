@@ -2,7 +2,6 @@ using Mariliz.Application.Ports;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>O status do ack é um conjunto fechado: os três valores do contrato ida e volta, e nada além deles.</summary>
 public class AckStatusTests
 {
     [Theory]

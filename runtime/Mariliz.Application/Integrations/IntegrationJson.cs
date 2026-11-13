@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Mariliz.Application.Integrations;
 
-/// <summary>O mesmo formato no disco e no protocolo: camelCase, enums como texto, datas ISO 8601.</summary>
+// O mesmo formato no disco e no protocolo.
 public static class IntegrationJson
 {
     public static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)

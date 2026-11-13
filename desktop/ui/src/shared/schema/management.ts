@@ -40,14 +40,12 @@ export const kindFlowSchema = z.object({
     viaLabel: z.number(),
     /** Itens com os vínculos lidos: sem isso, "nenhum bloqueio por vínculo" não quer dizer nada. */
     linksRead: z.number(),
-    /** O que foi lido, por extenso. */
     basis: z.string(),
     unavailable: z.string().nullable()
   }),
   overdue: z.object({ value: z.number().nullable(), withDueDate: z.number(), unavailable: z.string().nullable() })
 });
 
-/** Indicadores de um projeto, calculados pelo motor a partir do que foi sincronizado. */
 export const projectMetricsSchema = z.object({
   projectId: z.string(),
   generatedAt: z.string(),
@@ -109,7 +107,7 @@ const forecastScenarioSchema = z.object({
 
 export const confidenceSchema = z.enum(['low', 'medium', 'high']);
 
-/** A previsão de um trabalho aberto (um tipo de dado ou um marco). Sem base, vem sem cenários e com o motivo. */
+/** Sem base, vem sem cenários e com o motivo. */
 export const deliveryForecastSchema = z.object({
   kind: z.string(),
   remaining: z.number(),
@@ -123,7 +121,7 @@ export const deliveryForecastSchema = z.object({
   unavailable: z.string().nullable()
 });
 
-/** Previsão de conclusão calculada pelo motor (Monte Carlo sobre o throughput). Sem base, vem sem cenários e com o motivo. */
+/** Monte Carlo sobre o throughput. Sem base, vem sem cenários e com o motivo. */
 export const projectForecastSchema = z.object({
   projectId: z.string(),
   generatedAt: z.string(),
@@ -136,7 +134,7 @@ export const projectForecastSchema = z.object({
 
 export const riskSeveritySchema = z.enum(['low', 'medium', 'high']);
 
-/** Riscos detectados por regra fixa. A origem fica explícita para nunca misturar com sugestão de IA. */
+/** A origem fica explícita para nunca misturar com sugestão de IA. */
 export const projectRisksSchema = z.object({
   projectId: z.string(),
   generatedAt: z.string(),
@@ -158,7 +156,6 @@ export const projectRisksSchema = z.object({
   rulesEvaluated: z.array(z.string())
 });
 
-/** O andamento de um marco (milestone do GitHub ou versão de correção do Jira) dentro de um tipo de dado. */
 export const milestoneProgressSchema = z.object({
   kind: z.string(),
   name: z.string(),
@@ -174,7 +171,6 @@ export const milestoneProgressSchema = z.object({
   forecast: deliveryForecastSchema
 });
 
-/** Marcos de um projeto (`management.milestones`): andamento, prazo e previsão do que falta em cada um. */
 export const projectMilestonesSchema = z.object({
   projectId: z.string(),
   generatedAt: z.string(),
@@ -207,7 +203,6 @@ export const riskTrailSchema = z.object({
   changes: z.array(riskChangeSchema)
 });
 
-/** O histórico dos riscos (`management.riskhistory`): a trajetória de cada risco a partir dos registros do motor. */
 export const projectRiskHistorySchema = z.object({
   projectId: z.string(),
   generatedAt: z.string(),
@@ -220,7 +215,6 @@ export const projectRiskHistorySchema = z.object({
   basis: z.string()
 });
 
-/** Uma decisão registrada no período, sem os fatos do dia. */
 export const reportDecisionSchema = z.object({
   id: z.string(),
   recordedAt: z.string(),
@@ -230,16 +224,12 @@ export const reportDecisionSchema = z.object({
   facts: z.number()
 });
 
-/** Uma mudança de risco que aconteceu dentro do período, com o risco a que pertence. */
 export const reportRiskChangeSchema = z.object({ riskId: z.string(), title: z.string(), change: riskChangeSchema });
 
 /** Quantas execuções de um tipo estão num estado, entre as que começaram no período. */
 export const reportRunsSchema = z.object({ kind: z.string(), state: z.string(), count: z.number() });
 
-/**
- * O relatório de um período (`management.report`): indicadores, previsão, riscos, marcos, decisões e execuções, todos do motor.
- * Nenhum texto é escrito por modelo.
- */
+/** Nenhum texto é escrito por modelo. */
 export const projectReportSchema = z.object({
   projectId: z.string(),
   projectName: z.string(),
@@ -281,7 +271,6 @@ export const evidencePackSchema = z.object({
 
 const statementSchema = z.object({ text: z.string(), evidence: z.array(z.string()) });
 
-/** A resposta do assistente, já conferida pelo motor contra o pacote de evidências. */
 export const assistantAnswerSchema = z.object({
   projectId: z.string(),
   answeredAt: z.string(),
@@ -311,8 +300,8 @@ export const investigationStepSchema = z.object({
 export const investigationLimitationSchema = z.object({ code: z.string(), message: z.string() });
 
 /**
- * A investigação em etapas (`management.investigate`): a resposta, conferida pelo motor só contra os fatos que a investigação de
- * fato consultou, mais o caminho percorrido. `runId` é a execução dela na central, onde o caminho pode ser reaberto.
+ * Conferida pelo motor só contra os fatos que a investigação consultou. `runId` é a execução dela na central, onde o
+ * caminho pode ser reaberto.
  */
 export const projectInvestigationSchema = z.object({
   investigationId: z.string(),
@@ -335,7 +324,6 @@ export const portfolioEvidenceProjectSchema = z.object({
   facts: z.number()
 });
 
-/** O que vai ao provedor numa pergunta ao portfólio, antes do envio. */
 export const portfolioEvidenceSchema = z.object({
   generatedAt: z.string(),
   projects: z.array(portfolioEvidenceProjectSchema),
@@ -343,7 +331,6 @@ export const portfolioEvidenceSchema = z.object({
   withheld: z.array(z.string())
 });
 
-/** A resposta sobre o portfólio: os projetos que ela cobre e a resposta, já conferida pelo motor. */
 export const portfolioAnswerSchema = z.object({
   projects: z.array(portfolioEvidenceProjectSchema),
   answer: assistantAnswerSchema

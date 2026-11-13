@@ -1,9 +1,3 @@
-"""O estado do grafo engineering.request e o que vale só para um trecho da execução.
-
-``State`` é a memória de trabalho e vai para o checkpoint; ``Segment`` (relógio, limites, fontes, modelo e eventos) não
-vai. Os helpers de limitação e de falha vivem aqui porque todo nó os usa.
-"""
-
 from __future__ import annotations
 
 import time
@@ -76,7 +70,7 @@ class State(TypedDict, total=False):
 
 
 class Segment:
-    """O que vale só para um trecho da execução: relógio, limites, fontes e eventos. Nada disso vai para o checkpoint."""
+    """Nada disso vai para o checkpoint."""
 
     def __init__(self, emitter: Emitter, clock: Callable[[], float] | None = None, max_iterations: int = MAX_ITERATIONS,
                  max_milliseconds: int = MAX_MILLISECONDS, sources: list | None = None, model: Model | None = None,
@@ -92,14 +86,14 @@ class Segment:
 
 
     def limits(self) -> dict:
-        """Os limites desta execução, para irem no checkpoint: a retomada continua com os que a execução começou."""
+        """A retomada continua com os limites com que a execução começou."""
         return {"iterations": self.max_iterations, "milliseconds": self.max_milliseconds, "tokens": self.max_tokens}
 
 
 def segment_from_state(emitter: Emitter, clock: Callable[[], float] | None, state: dict) -> Segment:
     """
-    Um trecho novo (depois da pausa) com os limites que o checkpoint guardou. O checkpoint vem do disco: só valem inteiros
-    não negativos e nunca acima do teto do runtime. Sem eles (checkpoint de versão anterior), vale o teto com modelo.
+    O checkpoint vem do disco: só valem inteiros não negativos e nunca acima do teto do runtime. Sem eles (checkpoint de
+    versão anterior), vale o teto com modelo.
     """
     saved = state.get("limits") if isinstance(state.get("limits"), dict) else {}
 
@@ -149,7 +143,6 @@ def initial_state(request: StartRequest) -> dict:
 
 
 def blank_state(project_id: str, run_id: str, execution_id: str) -> dict:
-    """Um estado vazio para devolver uma falha antes de o grafo existir (contrato rejeitado, checkpoint perdido)."""
     return {
         "run_id": run_id, "project_id": project_id, "execution_id": execution_id, "started_at": now(), "stacks": [],
         "evidence": [], "retrieval_attempted": False, "limitations": [], "failure": "", "plan": None, "impact": None,

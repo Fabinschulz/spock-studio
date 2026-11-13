@@ -14,7 +14,6 @@ interface ProposalGuideProps {
   busy: boolean;
 }
 
-/** Próximo passo guiado: o prompt pronto para o agente e o botão para planejar de novo com a proposta dele. */
 export function ProposalGuide({ onReplan, replan, busy }: ProposalGuideProps) {
   const { state: copyState, copy } = useCopyToClipboard();
 

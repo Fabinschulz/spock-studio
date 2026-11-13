@@ -25,7 +25,6 @@ interface ConfigureJourneyProps {
   projectName: string;
   projectPath: string;
   pollMs?: number;
-  /** Pedido vindo da tela Projeto (dispensar ou voltar a aplicar componentes). */
   componentRequest?: ComponentRequest;
 }
 
@@ -50,8 +49,6 @@ export function ConfigureJourney({
 
   const approvalCount = state.plan.status === 'ready' ? countApprovals(state, state.plan.data) : 0;
   const live = state.run !== null && state.run.error === null;
-  // Voltar pelo stepper só antes de aplicar: durante e depois da aplicação o plano já foi usado, e reabri-lo levaria a
-  // aprovar de novo um plano que o motor recusaria por estar velho (STALE_PLAN).
 
   return (
     <JourneyFrame

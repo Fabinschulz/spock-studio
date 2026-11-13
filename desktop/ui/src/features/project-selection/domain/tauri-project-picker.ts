@@ -24,7 +24,7 @@ function toPickError(error: unknown, fallback: string): ProjectPickError {
   return new ProjectPickError(code, message);
 }
 
-/** Chama os comandos do host Tauri. O diálogo nativo abre no lado Rust e o caminho nunca passa pela UI. */
+/** O diálogo nativo abre no lado Rust e o caminho nunca passa pela UI. */
 export const tauriProjectPicker: ProjectPickerPort = {
   async pick(): Promise<SelectedProject | null> {
     const { invoke } = await import('@tauri-apps/api/core');

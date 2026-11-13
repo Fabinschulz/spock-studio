@@ -24,10 +24,10 @@ var models = new ModelGateway(engine.Settings, transport, chat: transport, check
     preferences: new FileModelPreferences(engine.DataRoot));
 using var modelAccess = new LocalModelAccess(new ModelBroker(models));
 var aiRuntime = new LoopbackAiRuntime();
-// As integrações vêm antes dos workflows: o que um projeto autorizou como contexto entra no índice do workflow.
+// Antes dos workflows: o que um projeto autorizou como contexto entra no índice do workflow.
 using var connectorTransport = new HttpsConnectorTransport();
 var integrations = LocalIntegrationHub.Create(engine.DataRoot, engine.Workspace, engine.Clock, connectorTransport, relay.Emit);
-// As decisões registradas viram memória do índice: o store vem antes dos workflows, que montam o contexto.
+// Antes dos workflows, que montam o contexto com as decisões como memória do índice.
 var decisionStore = new FileDecisionStore(engine.DataRoot);
 var decisionMemory = new DecisionMemory(engine.Workspace, decisionStore);
 var workflows = new WorkflowService(engine.Workspace, aiRuntime, engine.Tracker, engine.Clock, engine.Store,
@@ -37,26 +37,20 @@ var workflows = new WorkflowService(engine.Workspace, aiRuntime, engine.Tracker,
 if (WorkflowRecovery.MarkInterrupted(engine.Store, engine.Clock) is > 0 and var interrupted)
     await Console.Error.WriteLineAsync($"{interrupted} execução(ões) interrompida(s) pela queda anterior foram marcadas como falha.");
 var management = new ManagementService(engine.Workspace, integrations, engine.Clock, new FileRiskHistoryStore(engine.DataRoot));
-// O histórico de risco ganha um registro quando uma sincronização termina com tudo completo.
 integrations.Sync.Finished += (integration, run) =>
 {
     if (run.Status is SyncStatus.Succeeded) management.CaptureRisks(integration.ProjectId);
 };
-// A central de execuções com a ligação a itens de trabalho: só o motor com integrações a tem.
 var runs = new RunQueries(engine.Tracker, engine.Store,
     new RunCatalog(engine.Store, engine.Workspace, engine.Tracker, new RunLinkService(engine.Store, engine.Store, integrations, engine.Workspace, engine.Clock)));
 var assistant = new ManagementAssistant(management, integrations, engine.Workspace, models, engine.Clock, engine.Store);
 var decisions = new DecisionService(engine.Workspace, decisionStore, engine.Store, assistant.Evidence, integrations.Audit, engine.Clock);
 var profiles = new TechnologyProfileService(engine.Configure, integrations, engine.Workspace, new FileTechnologyProfileStore(engine.DataRoot), engine.Clock);
 var harnessRevisions = new HarnessRevisionService(engine.Workspace, engine.Files, engine.Store);
-// A linha do tempo só lê o que cada área já guarda: revisões, perfil, execuções, decisões, riscos e sincronizações.
 var timeline = new ProjectTimelineService(engine.Workspace, engine.Clock, engine.Store, harnessRevisions, profiles, decisions, management, integrations);
-// A trilha de auditoria só lê o arquivo de auditoria e o diário das execuções: nada é copiado para um terceiro lugar.
 var audit = new ProjectAuditService(engine.Workspace, engine.Clock, engine.Store, integrations.AuditReader, integrations);
-// A investigação cruza os fatos do assistente com os de execuções e de mudanças num workflow do runtime de IA, e o motor confere a resposta.
 var investigation = new InvestigationService(assistant, integrations, engine.Workspace, aiRuntime, engine.Clock, engine.Store, modelAccess, timeline,
     decisionMemory, Path.Combine(engine.DataRoot, "investigation-index"));
-// O assistente do portfólio junta o pacote de cada projeto escolhido, com a política de cada um, e o motor confere a resposta.
 var portfolioAssistant = new PortfolioAssistant(assistant, engine.Workspace, models, integrations, engine.Clock);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,

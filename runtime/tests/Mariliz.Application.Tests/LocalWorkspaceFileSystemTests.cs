@@ -3,7 +3,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>Cobre a implementação real da porta, que os testes com sistema de arquivos falso não alcançam.</summary>
+// Os testes com sistema de arquivos falso não alcançam a implementação real.
 public class LocalWorkspaceFileSystemTests : IDisposable
 {
     private readonly string _temp = Directory.CreateTempSubdirectory("mariliz-ws-").FullName;

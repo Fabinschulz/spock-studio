@@ -4,7 +4,7 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Cli;
 
-/// <summary>Texto para quem lê no terminal. O estado de cada item vem do motor; aqui só se formata.</summary>
+// O estado de cada item vem do motor; aqui só se formata.
 internal static class CliRender
 {
     private static string Str(JsonNode? n, string key) => n?[key]?.GetValue<string>() ?? "";

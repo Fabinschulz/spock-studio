@@ -1,8 +1,5 @@
-"""Juiz por modelo (Eval ``EV-JUDGE-001``): uma opinião registrada sobre o plano e o impacto, nunca o veredito.
-
-É independente do que avalia: conversa própria, instruções próprias, e só vê o resultado final (plano, impacto, pedido e
-trechos), nunca as tentativas, os erros nem o raciocínio do Planning e do Architecture. O que escreve não volta para o
-plano nem para o impacto, e o veredito da execução segue determinístico.
+"""Independente do que avalia: só vê o resultado final, nunca as tentativas nem o raciocínio dos agentes, e a opinião
+nunca muda o plano, o impacto nem o veredito.
 """
 
 from __future__ import annotations
@@ -48,7 +45,6 @@ def messages(goal: str, evidence: list[dict], plan: object, impact: object) -> l
 
 
 def judge(model: Model, state: dict, can_spend) -> Outcome:
-    """Só recebe o resultado final do estado. Os critérios dependem de o pedido ter pedido impacto."""
     known = known_chunks(state.get("evidence"))
     with_impact = state.get("impact") is not None
 

@@ -9,7 +9,6 @@
   color: var(--color-text-muted);
 }
 
-// Os números em linha, sem cartões: o que importa é a leitura lado a lado.
 .figures {
   display: flex;
   flex-wrap: wrap;
@@ -75,7 +74,6 @@
   list-style: none;
 }
 
-// Um bloco por tipo de dado, separado por um fio: o mesmo ritmo das listas.
 .kind {
   display: flex;
   flex-direction: column;
@@ -194,7 +192,6 @@
   color: var(--color-text);
 }
 
-// Pontos de atenção: um traço na cor de aviso, sem caixa.
 .signals {
   display: flex;
   flex-direction: column;

@@ -9,10 +9,8 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>O Python cai no meio de uma execução: a execução falha com clareza, nada fica pela metade e a próxima sobe um processo novo.</summary>
 public class AiRuntimeRestartTests
 {
-    /// <summary>Repassa tudo ao runtime de verdade e, no primeiro evento de cada início, mata o processo do Python.</summary>
     private sealed class KillsOnFirstEvent(LoopbackAiRuntime inner) : IAiRuntime
     {
         public int Kills { get; private set; }
@@ -113,7 +111,7 @@ public class AiRuntimeRestartTests
         using var project = new TempProject();
         var recorded = Path.Combine(project.DataDir, "argv.txt");
         var script = Path.Combine(project.DataDir, "server.py");
-        // Um servidor de mentira: grava como foi chamado e sai, o que basta para o motor desistir sem esperar a saúde.
+        // Grava como foi chamado e sai, o que basta para o motor desistir sem esperar a saúde.
         File.WriteAllText(script, $"import sys\nopen({System.Text.Json.JsonSerializer.Serialize(recorded)}, 'w').write(' '.join(sys.argv[1:]))\n");
         var python = PythonRuntimeLayout.Candidates(AppContext.BaseDirectory, null, null, Environment.GetEnvironmentVariable("PATH")).First();
         var runtime = new LoopbackAiRuntime(scriptPath: script, pythonPath: python);

@@ -5,10 +5,7 @@ import { Link } from 'react-router';
 
 import styles from '../management-page.module.scss';
 
-/**
- * O caminho que a investigação percorreu: as etapas, os grupos de fatos que olhou e os ids dos fatos consultados. Não mostra
- * texto de hipótese nem a pergunta (o motor não os guarda). O mesmo caminho fica no diário, na central de execuções.
- */
+/** Não mostra texto de hipótese nem a pergunta: o motor não os guarda. */
 export function InvestigationPath({ investigation }: { investigation: ProjectInvestigation }) {
   const rounds = investigation.rounds;
   return (

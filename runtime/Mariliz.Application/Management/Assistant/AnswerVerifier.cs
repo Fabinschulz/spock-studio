@@ -6,11 +6,7 @@ using Mariliz.Application.Execution;
 
 namespace Mariliz.Application.Management.Assistant;
 
-/// <summary>
-/// Confere a resposta do modelo contra o pacote de evidências antes de ela chegar à pessoa. Uma afirmação só passa se
-/// citar ao menos um fato existente e se todo número que ela traz aparecer nos fatos citados. O que não passa vai para
-/// a lista de descartados, com o motivo: o modelo explica, não inventa.
-/// </summary>
+// Uma afirmação só passa se citar um fato existente e todo número dela aparecer nos fatos citados: o modelo explica, não inventa.
 public static partial class AnswerVerifier
 {
     public const int MaxStatements = 6;
@@ -31,10 +27,7 @@ public static partial class AnswerVerifier
         List<RejectedStatement> Rejected,
         HashSet<string> Cited)
     {
-        /// <summary>
-        /// A resposta que a pessoa vê: as quatro seções já conferidas e, como evidência, só os fatos de <paramref name="facts"/> que
-        /// foram citados. <paramref name="rejected"/> substitui os descartados quando quem chama soma os seus.
-        /// </summary>
+        // rejected substitui os descartados quando quem chama soma os seus.
         public AssistantAnswer ToAnswer(
             string projectId, DateTimeOffset answeredAt, IEnumerable<EvidenceFact> facts, string model, int inputTokens, int outputTokens,
             IReadOnlyList<RejectedStatement>? rejected = null) => new(
@@ -105,7 +98,7 @@ public static partial class AnswerVerifier
         return new Verified(summary, sections, unavailable, rejected, cited);
     }
 
-    /// <summary>O primeiro número do texto que não aparece em nenhum dos fatos, ou nulo. Datas valem por partes (dia, mês, ano).</summary>
+    // Datas valem por partes (dia, mês, ano).
     internal static string? UnsupportedNumber(string text, IEnumerable<string> factTexts)
     {
         var known = factTexts.SelectMany(Numbers).ToHashSet(StringComparer.Ordinal);

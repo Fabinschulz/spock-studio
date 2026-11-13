@@ -4,7 +4,6 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Execution;
 
-/// <summary>Registra no diário o que o instalador da estrutura de especificação gravou, para poder desfazer.</summary>
 internal static class CommandEffects
 {
     private static readonly string[] WatchedDirectories = [ManagedScope.SpecificationDirectory, ManagedScope.SkillsLockDirectory];

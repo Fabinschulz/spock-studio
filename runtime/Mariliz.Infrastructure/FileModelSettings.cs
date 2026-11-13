@@ -6,10 +6,7 @@ using Mariliz.Application.Models;
 
 namespace Mariliz.Infrastructure;
 
-/// <summary>
-/// Uma chave de provedor em <c>{dataRoot}/model.json</c>, em texto puro. Fora do projeto, do índice e do journal. É o
-/// armazenamento de onde não há cofre e de onde a chave é migrada; onde há cofre, quem manda é <see cref="LocalModelSettings"/>.
-/// </summary>
+// Texto puro: é o armazenamento de onde não há cofre e de onde a chave é migrada; onde há cofre, quem manda é LocalModelSettings.
 public sealed class FileModelSettings(string dataRoot) : IModelSettings
 {
     private readonly object _gate = new();
@@ -22,7 +19,6 @@ public sealed class FileModelSettings(string dataRoot) : IModelSettings
 
     public void Validate(string provider, string key) => ModelKeyRules.Validate(provider, key);
 
-    /// <summary>O provedor da chave que está no arquivo, ou nulo sem chave legível.</summary>
     public string? StoredProvider()
     {
         lock (_gate) return Read() is { } stored ? stored.Provider : null;

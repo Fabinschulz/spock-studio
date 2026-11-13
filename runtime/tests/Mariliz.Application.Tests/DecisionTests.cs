@@ -10,10 +10,6 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Registro de decisão gerencial: o que se decidiu e por quê, com os fatos que o motor tinha naquele instante e as execuções
-/// relacionadas. Os fatos vêm do motor, o texto passa pela redação de segredos, e a decisão não se edita nem se apaga.
-/// </summary>
 public class DecisionTests : IDisposable
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 12, 12, 0, 0, TimeSpan.Zero);
@@ -55,8 +51,6 @@ public class DecisionTests : IDisposable
         });
 
     private static string Code(JsonObject response) => response["error"]!["code"]!.GetValue<string>();
-
-    // ------------------------------------------------------------------ Registro
 
     [Fact]
     public void Registra_o_texto_aparado_com_o_instante_e_os_fatos_do_motor_naquele_momento()
@@ -138,8 +132,6 @@ public class DecisionTests : IDisposable
         Assert.Empty(Assert.IsType<JsonArray>(_service.List(ProjectId)));
     }
 
-    // ------------------------------------------------------------------ Validação e segredos
-
     [Theory]
     [InlineData("", "Seguir.")]
     [InlineData("   ", "Seguir.")]
@@ -206,8 +198,6 @@ public class DecisionTests : IDisposable
         public void Save(ManagementDecision decision) => throw new InvalidOperationException("Não devia gravar.");
     }
 
-    // ------------------------------------------------------------------ Lista e abertura
-
     [Fact]
     public void A_lista_vem_da_mais_recente_para_a_mais_antiga_sem_os_fatos_mas_com_a_contagem()
     {
@@ -251,8 +241,6 @@ public class DecisionTests : IDisposable
         Assert.Equal("METHOD_NOT_FOUND", Code(Call("decision.update", new JsonObject { ["projectId"] = ProjectId })));
     }
 
-    // ------------------------------------------------------------------ Arquivo
-
     [Fact]
     public void Um_arquivo_ilegivel_fica_fora_da_lista_sem_derrubar_as_outras()
     {
@@ -272,8 +260,6 @@ public class DecisionTests : IDisposable
     {
         Assert.Throws<EngineException>(() => _store.Get(projectId, decisionId));
     }
-
-    // ------------------------------------------------------------------ Contrato
 
     [Fact]
     public void Fixtures_de_contrato_do_registro_da_lista_e_da_abertura()

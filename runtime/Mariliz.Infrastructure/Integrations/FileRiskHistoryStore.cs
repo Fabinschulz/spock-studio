@@ -7,10 +7,7 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Infrastructure.Integrations;
 
-/// <summary>
-/// Os registros de risco de um projeto, num arquivo dentro da pasta de dados dele. O identificador do projeto vira nome de
-/// pasta, então só passa o que tem a forma gerada pelo motor. Um arquivo corrompido vai para `.corrupt-*` e o histórico recomeça; um travado falha em vez de virar "sem histórico".
-/// </summary>
+// O id vira nome de pasta, então só passa o que tem a forma gerada pelo motor. Um arquivo corrompido vai para .corrupt-* e o histórico recomeça; um travado falha em vez de virar "sem histórico".
 public sealed class FileRiskHistoryStore(string dataRoot) : IRiskHistoryStore
 {
     private readonly ConcurrentDictionary<string, object> _gates = new(StringComparer.Ordinal);

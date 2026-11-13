@@ -13,10 +13,7 @@ import { journeyReducer } from './journey-reducer';
 import { applyRunEvent } from './run-events';
 import { awaitingHarnessProposal, explainOutcome, outcomeSeverity } from './run-outcome';
 
-/**
- * Caracterização da jornada "Configurar projeto" com as fixtures geradas pelo motor real. Fixa o comportamento atual
- * antes das refatorações da Onda 2: se um destes testes mudar, o comportamento mudou.
- */
+/** Caracterização com as fixtures geradas pelo motor real: se um destes testes mudar, o comportamento mudou. */
 const discovery = discoverySchema.parse(discoveryFixture);
 const plan = planSchema.parse(planFixture);
 const conflictId = plan.changes.find((change) => change.action === 'conflict')!.id;

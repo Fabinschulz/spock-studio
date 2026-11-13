@@ -9,10 +9,7 @@ interface ProjectPageFrameProps {
   children: (project: SelectedProject) => ReactNode;
 }
 
-/**
- * O que as telas do projeto têm em comum: sem projeto aberto, dizem onde escolher um; com projeto, remontam ao trocar de
- * projeto, para nada de um aparecer, nem por um instante, no outro.
- */
+/** Com projeto, remonta ao trocar de projeto, para nada de um aparecer, nem por um instante, no outro. */
 export function ProjectPageFrame({ project, title, children }: ProjectPageFrameProps) {
   if (!project) {
     return (

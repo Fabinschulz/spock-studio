@@ -1,7 +1,5 @@
-"""Regras dos formatos que o grafo produz (engineering.plan.v1 e engineering.impact.v1).
-
-Ficam aqui, e não no grafo, porque o grafo e os agentes com modelo validam a mesma saída: o que o modelo escreve só vira
-plano ou impacto se passar por estas funções, e as chaves de comando, caminho e escrita nunca passam.
+"""O grafo e os agentes com modelo validam a mesma saída: o que o modelo escreve só vira plano ou impacto se passar por
+estas funções, e as chaves de comando, caminho e escrita nunca passam.
 """
 
 from __future__ import annotations
@@ -21,7 +19,6 @@ STEP_ID = re.compile(r"^[a-z][a-z0-9-]{0,31}$")
 
 
 def forbidden(value: object) -> bool:
-    """Qualquer chave de comando, caminho ou escrita, em qualquer nível, invalida a saída."""
     if isinstance(value, dict):
         return any(key in FORBIDDEN or forbidden(child) for key, child in value.items())
     if isinstance(value, list):
@@ -58,14 +55,10 @@ def impact_ok(impact: object, evidence: object) -> bool:
 
 
 class Rejected(Exception):
-    """A saída do modelo não respeita o contrato. A mensagem é nossa (nunca texto do modelo) e pode voltar a ele."""
+    """A mensagem é nossa (nunca texto do modelo) e pode voltar a ele."""
 
 
 def plan_from_model(document: object, known: set[str]) -> dict:
-    """
-    Valida o plano que o modelo escreveu e devolve a versão normalizada. Cada passo pode citar trechos recuperados
-    (``evidence``); se houve recuperação, ao menos um passo precisa citar um. Citar o que não foi recuperado é recusado.
-    """
     if not isinstance(document, dict) or document.get("schema") != PLAN_SCHEMA or set(document) != {"schema", "steps"}:
         raise Rejected(f"O objeto precisa ter só 'schema' ({PLAN_SCHEMA}) e 'steps'.")
     steps = document.get("steps")
@@ -104,10 +97,7 @@ def plan_from_model(document: object, known: set[str]) -> dict:
 
 
 def impact_from_model(document: object, known: set[str], has_stacks: bool) -> dict:
-    """
-    Valida o impacto escrito pelo modelo. Com trechos recuperados, a citação é obrigatória; sem eles, o risco
-    ``sem-evidencia`` é obrigatório (o modelo não pode afirmar impacto sem base e esconder isso).
-    """
+    """Sem trechos recuperados, o risco ``sem-evidencia`` é obrigatório: o modelo não pode afirmar impacto sem base e esconder isso."""
     if not isinstance(document, dict) or document.get("schema") != IMPACT_SCHEMA:
         raise Rejected(f"O objeto precisa ter 'schema' ({IMPACT_SCHEMA}), 'areas', 'risks' e 'evidence'.")
     impact = {key: document.get(key) for key in ("schema", "areas", "risks", "evidence")}
@@ -133,7 +123,6 @@ def impact_from_model(document: object, known: set[str], has_stacks: bool) -> di
 JUDGMENT_SCHEMA = "engineering.judgment.v1"
 JUDGE_EVAL_ID = "EV-JUDGE-001"
 CRITERIA_VERSION = "1"
-# Critérios da versão 1. O de coerência arquitetural só existe quando o pedido pediu impacto.
 CRITERIA = ("plan_quality", "context_fit", "request_fit")
 IMPACT_CRITERION = "architecture_coherence"
 SCORE_MIN, SCORE_MAX, PASSING_SCORE = 1, 5, 3
@@ -141,7 +130,7 @@ MAX_RATIONALE = 300
 
 
 def judgment_outcome(scores: dict) -> str:
-    """``passed`` só se todo critério alcançou a nota mínima. É uma opinião registrada, nunca o veredito."""
+    """É uma opinião registrada, nunca o veredito."""
     return "passed" if all(score >= PASSING_SCORE for score in scores.values()) else "failed"
 
 
@@ -157,10 +146,6 @@ def _rationale_ok(text: object) -> bool:
 
 
 def judgment_from_model(document: object, known: set[str], with_impact: bool) -> dict:
-    """
-    Valida a opinião do juiz. Notas inteiras de 1 a 5 em cada critério da versão, justificativa curta e, havendo trechos,
-    ao menos uma citação (só de trechos fornecidos). O juiz não escolhe critério nem escala.
-    """
     if not isinstance(document, dict) or document.get("schema") != JUDGMENT_SCHEMA:
         raise Rejected(f"O objeto precisa ter 'schema' ({JUDGMENT_SCHEMA}), 'criteriaVersion', 'scores', 'rationale' e 'evidence'.")
     if set(document) != {"schema", "criteriaVersion", "scores", "rationale", "evidence"} or forbidden(document):
@@ -187,7 +172,7 @@ def judgment_from_model(document: object, known: set[str], with_impact: bool) ->
 
 
 def judgment_ok(judgment: object, evidence: object, with_impact: bool) -> bool:
-    """A mesma conferência, para o que vem do estado (checkpoint) antes de sair no ack."""
+    """O estado vem do checkpoint (disco): passa pela mesma conferência antes de sair no ack."""
     if not isinstance(judgment, dict):
         return False
     core = ("schema", "criteriaVersion", "scores", "rationale", "evidence")
@@ -211,15 +196,11 @@ _INTENT_KEYS = {"id", "intent", "evidence"}
 
 
 def decision_intent(impact: dict) -> dict:
-    """
-    A intenção de registrar a decisão de arquitetura, com as evidências que a sustentam. O agente só diz o quê: o alvo, o
-    resumo, o conteúdo e a exigência de aprovação são do motor. Não leva caminho, conteúdo nem comando.
-    """
+    """O agente só diz o quê: o alvo, o resumo, o conteúdo e a exigência de aprovação são do motor."""
     return {"id": DECISION_INTENT_ID, "intent": INTENT_RECORD_DECISION, "evidence": list(impact.get("evidence") or [])}
 
 
 def intents_ok(intents: object, evidence: object) -> bool:
-    """Toda intenção do estado tem só os campos do contrato, id único, um tipo conhecido e citações de trechos recuperados."""
     if not isinstance(intents, list) or len(intents) > 32:
         return False
     known = known_chunks(evidence)

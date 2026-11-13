@@ -6,7 +6,6 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Protocol;
 
-/// <summary>Traduz as requisições da jornada "Configurar projeto" em chamadas ao <see cref="ConfigureProjectService"/>.</summary>
 internal sealed class ConfigureRequestHandler(ConfigureProjectService service)
 {
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch

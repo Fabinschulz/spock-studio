@@ -2,7 +2,7 @@ using System.Text;
 
 namespace Mariliz.Core.Text;
 
-/// <summary>Diff unificado simples (LCS por linhas), suficiente para revisar arquivos de configuração.</summary>
+// LCS por linhas, suficiente para revisar arquivos de configuração.
 public static class UnifiedDiff
 {
     private const int MaxLines = 1500;

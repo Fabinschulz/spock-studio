@@ -5,7 +5,6 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Protocol;
 
-/// <summary>Traduz <c>workflow.start</c> e <c>workflow.resume</c> para o <see cref="WorkflowService"/>.</summary>
 internal sealed class WorkflowRequestHandler(WorkflowService service)
 {
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
@@ -15,10 +14,7 @@ internal sealed class WorkflowRequestHandler(WorkflowService service)
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
     };
 
-    /// <summary>
-    /// A decisão da pessoa: o <c>approvalId</c> que ela viu e as ações que aprova. Sem <c>actionIds</c>, nenhuma ação é aprovada
-    /// (aprovar é sempre explícito).
-    /// </summary>
+    // Sem actionIds, nenhuma ação é aprovada: aprovar é sempre explícito.
     private static ResumeDecision Decision(RequestParams p)
     {
         var approvalId = p.OptionalStr("approvalId");

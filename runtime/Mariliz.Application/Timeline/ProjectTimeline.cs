@@ -8,7 +8,6 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Timeline;
 
-/// <summary>De onde vem cada tipo de acontecimento da linha do tempo.</summary>
 public static class TimelineKinds
 {
     public const string Harness = "harness";
@@ -29,25 +28,17 @@ public static class TimelineKinds
     ];
 }
 
-/// <summary>
-/// Um acontecimento do projeto. <see cref="Level"/>: <c>ok</c> (deu certo ou foi resolvido), <c>attention</c>, <c>problem</c> ou
-/// <c>info</c>. <see cref="RefType"/> e <see cref="RefId"/> apontam para onde ver mais (<c>run</c> ou <c>decision</c>); sem
-/// destino, ambos são nulos. O texto é do motor, escrito sem título de item nem conteúdo de provedor.
-/// </summary>
+// Level: ok, attention, problem ou info. RefType: run ou decision; sem destino, RefType e RefId são nulos. O texto é do motor, sem título de item nem conteúdo de provedor.
 public sealed record TimelineEvent(string Id, DateTimeOffset At, string Kind, string Level, string Title, string Detail, string? RefType, string? RefId);
 
-/// <summary>Uma fonte da linha do tempo e o que ela trouxe. <see cref="Available"/> é falso quando a fonte falhou: as outras seguem.</summary>
+// Available é falso quando a fonte falhou: as outras seguem.
 public sealed record TimelineSource(string Kind, string Label, int Count, bool Available);
 
-/// <param name="NextBefore">Passe este instante como <c>before</c> para a página seguinte (acontecimentos mais antigos). Nulo no fim.</param>
+/// <param name="NextBefore">Passe este instante como <c>before</c> para a página seguinte. Nulo no fim.</param>
 public sealed record ProjectTimeline(
     string ProjectId, DateTimeOffset GeneratedAt, IReadOnlyList<TimelineEvent> Events, DateTimeOffset? NextBefore, IReadOnlyList<TimelineSource> Sources);
 
-/// <summary>
-/// A linha do tempo do projeto: revisões do Harness, mudanças do perfil, execuções, decisões, mudanças de risco e sincronizações,
-/// na ordem em que aconteceram. <b>É uma projeção</b>: lê o que cada área já guarda e não grava nada. Uma fonte que falha não derruba
-/// as outras: ela aparece como indisponível. Sem serviço numa sessão (por exemplo, sem integrações), a fonte simplesmente não existe.
-/// </summary>
+// É uma projeção: lê o que cada área já guarda e não grava nada. Uma fonte que falha aparece como indisponível sem derrubar as outras.
 public sealed class ProjectTimelineService(
     WorkspaceAuthorizer workspace,
     IClock clock,
@@ -95,7 +86,7 @@ public sealed class ProjectTimelineService(
         return new ProjectTimeline(projectId, clock.UtcNow, events, next, sources);
     }
 
-    /// <summary>Lê uma fonte. Uma falha vira "indisponível" naquela fonte e nada mais: o motivo detalhado não sai do motor.</summary>
+    // O motivo detalhado da falha não sai do motor.
     private static void Collect(string kind, Func<IReadOnlyList<TimelineEvent>>? read, List<TimelineEvent> all, List<TimelineSource> sources)
     {
         if (read is null) return;
@@ -241,7 +232,7 @@ public sealed class ProjectTimelineService(
         _ => value ?? "desconhecida"
     };
 
-    /// <summary>Só a contagem: o histórico de risco guarda identificadores de itens, e a linha do tempo não precisa deles.</summary>
+    // O histórico de risco guarda identificadores de itens, e a linha do tempo não precisa deles.
     private static string ItemsText(RiskChange change)
     {
         var parts = new List<string>();

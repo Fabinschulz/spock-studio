@@ -9,7 +9,6 @@ import { readComponentRequest } from './domain/component-request';
 import { createHarnessApi, type HarnessApi } from './service';
 
 interface ConfigureProjectPageProps {
-  /** Padrão: o motor real, pelo host Tauri. Os testes injetam um dublê. */
   api?: HarnessApi;
   pollMs?: number;
 }

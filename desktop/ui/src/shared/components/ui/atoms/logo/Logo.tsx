@@ -6,11 +6,7 @@ interface LogoProps {
   className?: string;
 }
 
-/**
- * Marca do Spock Studio, o olhar lógico: uma sobrancelha reta, a outra erguida em teal, e dois olhos. A mesma geometria
- * do ícone do aplicativo (`desktop/host/src-tauri/icons/source/spock-studio.svg`). No wordmark, o braço do "k" repete a
- * sobrancelha erguida. Decorativo.
- */
+/** A mesma geometria do ícone do aplicativo (`desktop/host/src-tauri/icons/source/spock-studio.svg`). Decorativo. */
 export function Logo({ className }: LogoProps) {
   return (
     <svg className={cn(styles.mark, className)} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
@@ -23,7 +19,6 @@ export function Logo({ className }: LogoProps) {
   );
 }
 
-/** Wordmark "spock" monolinha; o braço do "k" é a sobrancelha erguida da marca, em teal. Decorativo. */
 export function Wordmark({ className }: LogoProps) {
   return (
     <svg className={cn(styles.wordmark, className)} viewBox="-2.5 -2.5 123 42" aria-hidden="true" focusable="false">

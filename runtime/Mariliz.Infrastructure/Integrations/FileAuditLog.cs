@@ -6,10 +6,10 @@ using Mariliz.Application.Ports;
 
 namespace Mariliz.Infrastructure.Integrations;
 
-/// <summary>Uma linha JSON por operação em <c>{dataRoot}/audit.ndjson</c>. O arquivo só cresce; nada nele é reescrito.</summary>
+// O arquivo só cresce; nada nele é reescrito.
 public sealed class FileAuditLog(string dataRoot, IClock clock) : IAuditLog, IAuditReader
 {
-    /// <summary>Quantas linhas, no máximo, uma leitura traz (as mais recentes). A numeração é a do arquivo inteiro.</summary>
+    // A numeração é a do arquivo inteiro.
     public const int MaxLines = 100_000;
 
     private readonly object _gate = new();

@@ -6,17 +6,14 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Management;
 
-/// <summary>
-/// A visão gerencial: portfólio e indicadores de um projeto. Só lê o que já foi sincronizado; não chama provedor, não
-/// grava nada e não usa modelo de linguagem. O cálculo é do <see cref="FlowCalculator"/>.
-/// </summary>
+// Só lê o que já foi sincronizado: não chama provedor, não grava nada e não usa modelo de linguagem.
 public sealed class ManagementService(WorkspaceAuthorizer workspace, IntegrationHub hub, IClock clock, IRiskHistoryStore? riskHistory = null)
 {
     public const int DefaultWeeks = 8;
     public const int MinWeeks = 2;
     public const int MaxWeeks = 26;
 
-    /// <summary>Pedidos no pedido de gestão que esta versão não calcula. Ficam na resposta para a interface dizer que faltam.</summary>
+    // Ficam na resposta para a interface dizer que faltam.
     public static readonly IReadOnlyList<NotCalculated> NotCalculatedYet =
     [
         new("scopeChange", "Mudança de escopo", "Precisa comparar o escopo do marco no começo e agora, e o histórico do escopo ainda não é guardado."),
@@ -27,7 +24,6 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
     {
         var now = clock.UtcNow;
         var projects = workspace.Projects().Select(project => ProjectRow(project, now)).ToList();
-        // Quem tem mais pontos de atenção aparece primeiro; empate fica em ordem alfabética.
         var ordered = projects.OrderByDescending(p => p.Signals.Count).ThenBy(p => p.DisplayName, StringComparer.OrdinalIgnoreCase).ToList();
         return new Portfolio(now, DefaultWeeks, ordered);
     }
@@ -56,7 +52,6 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
             Complete(sources), metricSources, kinds, NotCalculatedYet);
     }
 
-    /// <summary>Previsão de conclusão do trabalho aberto, por tipo de dado.</summary>
     public ProjectForecast Forecast(string projectId)
     {
         var now = clock.UtcNow;
@@ -67,7 +62,6 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
             ForecastCalculator.Limitations, kinds);
     }
 
-    /// <summary>O andamento e a previsão de cada marco do projeto. Marcos com trabalho aberto vêm primeiro, pelo prazo.</summary>
     public ProjectMilestones Milestones(string projectId)
     {
         var now = clock.UtcNow;
@@ -89,7 +83,6 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
             MilestoneCalculator.Assumptions, MilestoneCalculator.Limitations);
     }
 
-    /// <summary>Riscos detectados por regra fixa sobre os dados do projeto.</summary>
     public ProjectRisks Risks(string projectId)
     {
         var now = clock.UtcNow;
@@ -98,11 +91,7 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
         return new ProjectRisks(projectId, now, Complete(sources), byKind.Count > 0, RiskRules.Evaluate(byKind, now), RiskRules.All);
     }
 
-    /// <summary>
-    /// Registra o estado atual dos riscos, para o histórico. É a única operação desta classe que grava, e só o histórico: não
-    /// chama provedor. Só registra com dados lidos e com todas as fontes completas: uma leitura parcial faria um risco
-    /// parecer resolvido quando só faltou chegar. Devolve se gravou ou só confirmou o estado.
-    /// </summary>
+    // Só registra com todas as fontes completas: uma leitura parcial faria um risco parecer resolvido quando só faltou chegar.
     public bool CaptureRisks(string projectId)
     {
         if (riskHistory is null) return false;
@@ -122,7 +111,6 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
         }
     }
 
-    /// <summary>A trajetória de cada risco que já apareceu. Só leitura: sem registros, a lista vem vazia e a base diz desde quando.</summary>
     public ProjectRiskHistory RiskHistory(string projectId)
     {
         if (!workspace.IsAuthorized(projectId)) throw EngineErrors.ProjectNotAuthorized();
@@ -166,7 +154,6 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
             .ToList();
     }
 
-    /// <summary>Itens de todas as fontes do projeto, separados por tipo, na ordem fixa dos tipos conhecidos.</summary>
     private static List<KeyValuePair<string, List<WorkItem>>> ItemsByKind(
         IEnumerable<(ProjectIntegration Integration, SyncedData Data, ConnectionStatus Connection)> sources) =>
         sources

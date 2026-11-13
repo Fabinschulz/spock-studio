@@ -1,8 +1,4 @@
-"""Os nós do grafo management.investigation. Cada um recebe o estado, devolve o estado e não conhece a ordem dos outros.
-
-Os fatos e o modelo vêm de ``Run``, não do estado: o estado guarda só ids, nomes de grupo e contagens, e é o que o motor
-registra como caminho da investigação. Texto de fato e texto de hipótese não entram no caminho.
-"""
+"""O estado guarda só ids, nomes de grupo e contagens: é o que o motor registra como caminho da investigação."""
 
 from __future__ import annotations
 
@@ -12,7 +8,7 @@ from typing import Callable
 
 from agents import investigation as agent
 from agents import prompts
-from contracts.investigation import MAX_SEARCHES, Fact, InvestigationRequest
+from contracts.investigation import MAX_SEARCHES, Fact, FactGroup, InvestigationRequest
 from knowledge import retrieval
 from knowledge.index import KnowledgeError, sync
 from workflows.engineering.budget import model_call
@@ -24,30 +20,10 @@ MAX_HITS = 3
 MEMORY_GROUP = "memória"
 MAX_GATHERED = 120
 MAX_DETERMINISTIC_SIGNS = 6
-# Os grupos que dão o chão da resposta (a data de hoje, o período, a frescura dos dados) entram sempre.
-BASE_GROUPS = ("contexto", "fontes", "nao calculado")
-FALLBACK_GROUPS = ("indicadores", "riscos")
-# Grupos cujos fatos são sinais de atenção: sem modelo, a resposta os lista como foram calculados.
-SIGN_GROUPS = ("riscos", "execucoes")
 NO_MODEL = "INVESTIGATION_NO_MODEL"
-
-# Para onde olhar primeiro, pelas palavras da pergunta (sem acento, em minúsculas). Só escolhe por onde começar:
-# o que mais for preciso o modelo pede, e o laço tem teto.
-KEYWORDS: dict[str, tuple[str, ...]] = {
-    "indicadores": ("vazao", "throughput", "entreg", "lead time", "cycle", "fluxo", "andamento", "wip", "caiu", "queda", "ritmo", "velocidade", "lento", "devagar"),
-    "previsao": ("previsao", "prazo", "quando", "terminar", "estimativa", "atras"),
-    "riscos": ("risco", "bloque", "parad", "atras", "vencid", "problema", "gargalo"),
-    "marcos": ("marco", "release", "versao", "milestone"),
-    "execucoes": ("execucao", "execucoes", "falha", "falhou", "erro", "agente", "agentes", "pipeline"),
-    "mudancas": ("mudou", "mudanca", "alteracao", "desde", "passou a", "depois de"),
-    "fontes": ("sincroniz", "fonte", "dados", "atualizad"),
-}
-
 
 @dataclass
 class Run:
-    """O que vale só para esta investigação: os fatos do motor, o trecho de execução e o modelo."""
-
     request: InvestigationRequest
     segment: Segment
     # Os trechos que as buscas trouxeram viram fatos citáveis (``memory.N``); o motor confere cada um contra o documento dele.
@@ -64,23 +40,21 @@ class Run:
 
 
 def plain(text: str) -> str:
-    """Minúsculas e sem acento, para comparar nomes de grupo e palavras da pergunta."""
     return "".join(ch for ch in unicodedata.normalize("NFKD", text.lower()) if not unicodedata.combining(ch))
 
 
-def focus(question: str, groups: list[str]) -> list[str]:
-    """Por onde começar: os grupos de base mais os que as palavras da pergunta indicam; sem palavra reconhecida, fluxo e riscos."""
+def focus(question: str, groups: list[str], catalog: tuple[FactGroup, ...]) -> list[str]:
     asked = plain(question)
-    by_plain = {plain(group): group for group in groups}
-    base = [by_plain[name] for name in BASE_GROUPS if name in by_plain]
-    matched = [by_plain[name] for name, stems in KEYWORDS.items() if name in by_plain and name not in BASE_GROUPS and any(stem in asked for stem in stems)]
+    described = [group for group in catalog if group.name in groups]
+    base = [group.name for group in described if "base" in group.roles]
+    matched = [group.name for group in described if group.name not in base and any(word in asked for word in group.keywords)]
     if not matched:
-        matched = [by_plain[name] for name in FALLBACK_GROUPS if name in by_plain] or [group for group in groups if group not in base][:2]
+        matched = [group.name for group in described if "default" in group.roles and group.name not in base] or [group for group in groups if group not in base][:2]
     return list(dict.fromkeys([*base, *matched]))
 
 
 def frame(state: dict, run: Run) -> dict:
-    groups = focus(run.request.question, run.request.groups)
+    groups = focus(run.request.question, run.request.groups, run.request.catalog)
     state["next_groups"] = groups
     _step(state, "frame", "Pergunta enquadrada", f"Começa por: {', '.join(groups)}.", groups=groups)
     return state
@@ -146,7 +120,6 @@ def _rounds_needed(wanted: list[str], searches: list[str]) -> int:
 
 
 def decide(state: dict, run: Run) -> dict:
-    """Reunir mais ou concluir. Concluir quando nada mais foi pedido, no teto de rodadas ou quando o orçamento não cobre outra volta."""
     segment = run.segment
     present = {fact.group for fact in run.request.facts}
     wanted = [group for group in state.get("needs") or [] if group not in (state.get("consulted") or []) and group in present]
@@ -176,10 +149,7 @@ def decide(state: dict, run: Run) -> dict:
 
 
 def retrieve(state: dict, run: Run) -> dict:
-    """
-    Busca na memória do projeto (o laço do RAG): cada consulta que o modelo propôs vira trechos, e cada trecho vira um fato
-    citável. A consulta em si não vai para o caminho (é texto do modelo, derivado da pergunta): só quantas foram.
-    """
+    """A consulta em si não vai para o caminho (é texto do modelo, derivado da pergunta): só quantas foram."""
     done = list(state.get("searched") or [])
     queries = [query for query in state.get("searches") or [] if query][: MAX_SEARCHES - len(done)]
     state["searches"] = []
@@ -215,7 +185,7 @@ def retrieve(state: dict, run: Run) -> dict:
 
 
 def _memory_text(hit: dict) -> str:
-    """O trecho como fato, com a natureza do documento dita: um item sincronizado é escrito por terceiros."""
+    """Um item sincronizado é escrito por terceiros: a natureza do documento vai dita no fato."""
     external = str(hit.get("filePath", "")).startswith(prompts.EXTERNAL_PREFIX)
     label = "item sincronizado, escrito por terceiros" if external else "decisão registrada pela equipe"
     return f"Memória do projeto ({label}): {' '.join(str(hit.get('excerpt', '')).split())}"[:400]
@@ -257,7 +227,7 @@ def conclude(state: dict, run: Run) -> dict:
 
         _agent_call(state, run.segment, work)
     if not written:
-        state["answer"] = _signs_only(gathered)
+        state["answer"] = _signs_only(gathered, {group.name for group in run.request.catalog if "sign" in group.roles})
     _step(
         state, "conclude", "Conclusão",
         "Escrita pelo modelo, a conferir pelo motor." if written else "Montada pelas regras: só os sinais reunidos, sem texto do modelo.",
@@ -266,9 +236,9 @@ def conclude(state: dict, run: Run) -> dict:
     return state
 
 
-def _signs_only(gathered: list[Fact]) -> dict:
+def _signs_only(gathered: list[Fact], sign_groups: set[str]) -> dict:
     """Sem texto do modelo: os sinais de risco e de execução como o motor os calculou, cada um citando o próprio fato."""
-    signs = [fact for fact in gathered if plain(fact.group) in SIGN_GROUPS][:MAX_DETERMINISTIC_SIGNS]
+    signs = [fact for fact in gathered if fact.group in sign_groups][:MAX_DETERMINISTIC_SIGNS]
     cite = [signs[0].id] if signs else [gathered[0].id] if gathered else []
     return {
         "summary": {"text": "Sem o modelo, esta investigação só reuniu os fatos e listou os sinais de atenção.", "evidence": cite},
@@ -292,7 +262,6 @@ def _step(state: dict, step_id: str, title: str, detail: str, *, round: int = 0,
 
 
 def _agent_call(state: dict, segment: Segment, work: Callable[[], int]) -> None:
-    """Anuncia o começo e o fim de uma chamada do agente; cada rodada é um par de eventos."""
     started = segment.clock()
     segment.emitter.emit("agent.started", {"agentVersion": agent.AGENT_VERSION}, agent.AGENT_ID)
     tokens = work()
@@ -301,4 +270,4 @@ def _agent_call(state: dict, segment: Segment, work: Callable[[], int]) -> None:
     )
 
 
-__all__ = ["BASE_GROUPS", "KEYWORDS", "MAX_ROUNDS", "NO_MODEL", "Run", "conclude", "decide", "focus", "frame", "gather", "hypothesize", "plain", "retrieve"]
+__all__ = ["MAX_ROUNDS", "NO_MODEL", "Run", "conclude", "decide", "focus", "frame", "gather", "hypothesize", "plain", "retrieve"]

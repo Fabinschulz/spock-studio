@@ -16,10 +16,7 @@ import { createManagementApi } from './service/management-api';
 
 const KIND_LABEL: Record<string, string> = { issues: 'Issues', pullRequests: 'Pull requests' };
 
-/**
- * Todos os projetos autorizados neste computador, lado a lado. Cada linha usa só os dados do próprio projeto; os pontos
- * de atenção saem de regras fixas do motor, não de previsão.
- */
+/** Os pontos de atenção saem de regras fixas do motor, não de previsão. */
 export function PortfolioPage({ client }: { client: EngineClient }) {
   const api = useMemo(() => createManagementApi(client), [client]);
   const load = useCallback(() => api.portfolio(), [api]);

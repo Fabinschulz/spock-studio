@@ -6,11 +6,7 @@ using YamlDotNet.Serialization;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>
-/// <c>mariliz.yaml</c>: o que a pessoa declara. É criado uma vez e passa a ser dela; a aplicação o lê como
-/// entrada do planejamento (a declaração vale mais que a inferência) e nunca o reescreve. A única edição é pontual,
-/// na lista <c>components.exclude</c>, quando a pessoa pede na tela e aprova no plano (ver <see cref="DeclarationEditor"/>).
-/// </summary>
+// É criado uma vez e passa a ser da pessoa: a declaração vale mais que a inferência e a aplicação nunca o reescreve. A única edição é pontual, em components.exclude, quando a pessoa pede na tela e aprova no plano.
 public sealed class DeclaredConfig
 {
     public const string FileName = "mariliz.yaml";
@@ -22,7 +18,7 @@ public sealed class DeclaredConfig
     public ComponentsSection Components { get; set; } = new();
     public EvalsSection Evals { get; set; } = new();
 
-    /// <summary>Fontes do índice de contexto. Opcional e nunca escrito pela aplicação: só existe se a pessoa declarar.</summary>
+    // Nunca escrito pela aplicação: só existe se a pessoa declarar.
     [YamlMember(DefaultValuesHandling = DefaultValuesHandling.OmitNull)]
     public KnowledgeSection? Knowledge { get; set; }
 
@@ -30,7 +26,7 @@ public sealed class DeclaredConfig
     public sealed class ComponentsSection { public List<string> Exclude { get; set; } = []; }
     public sealed class EvalsSection { public List<string> Required { get; set; } = []; }
 
-    /// <summary>Padrões no estilo do .gitignore. Com <c>include</c>, só entra o que casar; <c>exclude</c> sempre tira.</summary>
+    // Com include, só entra o que casar; exclude sempre tira.
     public sealed class KnowledgeSection
     {
         public List<string> Include { get; set; } = [];

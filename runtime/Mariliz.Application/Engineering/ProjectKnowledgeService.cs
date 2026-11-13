@@ -7,11 +7,7 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Engineering;
 
-/// <summary>
-/// Mostra o conhecimento do projeto. A seleção é a mesma que o workflow usa para alimentar o índice
-/// (<see cref="KnowledgeSources"/>). O índice só é consultado se o runtime de IA já estiver ligado: abrir a tela não sobe
-/// o processo Python.
-/// </summary>
+// O índice só é consultado se o runtime de IA já estiver ligado: abrir a tela não sobe o processo Python.
 public sealed class ProjectKnowledgeService(
     WorkspaceAuthorizer workspace,
     IProjectFilesFactory files,
@@ -21,7 +17,7 @@ public sealed class ProjectKnowledgeService(
     ExternalKnowledge? external = null,
     DecisionMemory? memory = null)
 {
-    /// <summary>Quantos arquivos a resposta lista; os totais contam todos.</summary>
+    // Os totais contam todos.
     public const int MaxListed = 300;
     public const int MaxExamples = 8;
 
@@ -41,7 +37,7 @@ public sealed class ProjectKnowledgeService(
         if (!workspace.TryGetRoot(projectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
         var project = files.Open(root);
         var (include, exclude) = KnowledgeSources.DeclaredRules(project);
-        // Uma passada só: guarda caminho, motivo, hash e tamanho, e descarta o texto de cada arquivo logo depois de medir.
+        // Descarta o texto de cada arquivo logo depois de medir.
         var evaluated = KnowledgeSources.Evaluate(project)
             .Select(file => (file.Path, file.Reason, file.Hash, Chars: file.Text?.Length ?? 0))
             .ToList();

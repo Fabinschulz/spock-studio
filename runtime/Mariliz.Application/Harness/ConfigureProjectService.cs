@@ -9,10 +9,7 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>
-/// A jornada "Configurar projeto" como casos de uso: descobrir, planejar, aplicar, validar e reverter.
-/// UI e CLI chamam esta mesma classe; nenhuma regra mora na interface.
-/// </summary>
+// UI e CLI chamam esta mesma classe; nenhuma regra mora na interface.
 public sealed class ConfigureProjectService(
     WorkspaceAuthorizer workspace,
     IProjectFilesFactory filesFactory,
@@ -127,7 +124,7 @@ public sealed class ConfigureProjectService(
         return run;
     }
 
-    /// <summary>Sem mudanças nem comandos e sem ambiente escolhido: aplicar não faria nada. Com ambiente, aplica para revalidar.</summary>
+    // Com ambiente escolhido, aplica para revalidar.
     private static bool HasNothingToApply(ConfigurationPlan plan) => plan.IsEmpty && plan.AiEnvironment.Length == 0;
 
     private static string OutcomeOf(JsonObject result) => result["outcome"]?.GetValue<string>() ?? RunStates.Failed;

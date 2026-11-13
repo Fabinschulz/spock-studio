@@ -4,10 +4,7 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Infrastructure.Integrations;
 
-/// <summary>
-/// Um arquivo por integração em <c>{dataRoot}/integrations/data/{projectId}/{integrationId}.json</c>. A pasta do projeto é a
-/// fronteira física do isolamento: não existe leitura que atravesse projetos.
-/// </summary>
+// A pasta do projeto é a fronteira física do isolamento: não existe leitura que atravesse projetos.
 public sealed class FileSyncedDataStore(string dataRoot) : ISyncedDataStore
 {
     private readonly ConcurrentDictionary<string, object> _gates = new(StringComparer.Ordinal);

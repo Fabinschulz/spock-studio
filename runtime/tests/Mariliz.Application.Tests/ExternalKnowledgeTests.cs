@@ -15,11 +15,6 @@ using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Application.Tests;
 
-/// <summary>
-/// Dado sincronizado como contexto de agentes. A política de cada vínculo nasce fechada e é o portão: sem ela, nada de uma
-/// fonte externa chega ao índice nem ao provedor de modelo. Com ela, chega só o que serve de fato sobre o trabalho, marcado como
-/// dado de terceiros, e sai de novo quando a autorização é retirada.
-/// </summary>
 public class ExternalKnowledgeTests
 {
     private const string Sentinel = "Zebraquantica";
@@ -31,7 +26,7 @@ public class ExternalKnowledgeTests
         return issue;
     }
 
-    /// <summary>Uma conexão GitHub nova, vinculada ao projeto, com o que o provedor falso tem agora já sincronizado. A política segue fechada.</summary>
+    // A política segue fechada.
     private static async Task<ProjectIntegration> LinkedAsync(IntegrationHarness h, string connectionName = "GitHub da equipe", string? projectId = null, params string[] kinds)
     {
         var connection = await h.ConnectGitHubAsync(connectionName);
@@ -45,8 +40,6 @@ public class ExternalKnowledgeTests
 
     private static void Authorize(IntegrationHarness h, ProjectIntegration integration, bool allowed = true, string? projectId = null) =>
         h.Hub.Projects.Configure(projectId ?? h.ProjectId, integration.Id, null, allowed);
-
-    // ------------------------------------------------------------------ A política é o portão
 
     [Fact]
     public async Task Com_a_politica_fechada_nada_da_fonte_chega_ao_indice_mas_ela_aparece_como_nao_autorizada()
@@ -173,8 +166,6 @@ public class ExternalKnowledgeTests
         Assert.Empty(nobody.Sources(h.ProjectId));
     }
 
-    // ------------------------------------------------------------------ O recorte continua valendo
-
     [Fact]
     public async Task So_os_tipos_do_recorte_viram_documento()
     {
@@ -192,8 +183,6 @@ public class ExternalKnowledgeTests
         Assert.Contains("Tipo: issue", documents[0].Text);
         Assert.Contains("/issues/", documents[0].Path);
     }
-
-    // ------------------------------------------------------------------ O que o texto pode conter
 
     [Fact]
     public async Task Item_com_possivel_segredo_no_titulo_fica_de_fora_e_e_contado()
@@ -299,8 +288,6 @@ public class ExternalKnowledgeTests
         Assert.NotEqual(first.Hash, changed.Hash);
     }
 
-    // ------------------------------------------------------------------ A seleção do índice
-
     [Fact]
     public void Arquivo_do_projeto_com_o_prefixo_externo_e_recusado_como_fonte_de_arquivo()
     {
@@ -347,8 +334,6 @@ public class ExternalKnowledgeTests
             KnowledgeSources.Select(files, new Dictionary<string, string>()).Select(source => source.Path),
             KnowledgeSources.Select(files, new Dictionary<string, string>(), []).Select(source => source.Path));
     }
-
-    // ------------------------------------------------------------------ A tela de conhecimento
 
     private sealed class FakeRuntime(IReadOnlyDictionary<string, string> manifest) : IAiRuntime
     {
@@ -449,8 +434,6 @@ public class ExternalKnowledgeTests
             "knowledge-external: a resposta mudou. Se foi deliberado, regenere com MARILIZ_UPDATE_GOLDEN=1 e ajuste o Zod da interface.");
     }
 
-    // ------------------------------------------------------------------ De ponta a ponta: índice e provedor
-
     private sealed class Settings : IModelSettings
     {
         public ModelStatus Status() => new(true, "openai");
@@ -469,7 +452,7 @@ public class ExternalKnowledgeTests
             Task.FromResult(new ModelTransportResult("", 0));
     }
 
-    /// <summary>O provedor: guarda tudo o que recebe e responde com um plano que cita o primeiro trecho.</summary>
+    // Responde com um plano que cita o primeiro trecho.
     private sealed class RecordingProvider : IModelChatTransport
     {
         private readonly List<string> _sent = [];

@@ -5,10 +5,7 @@ using Mariliz.Core.Discovery;
 
 namespace Mariliz.Application.Discovery;
 
-/// <summary>
-/// Análise somente de leitura: stack, ferramentas, ambiente de IA e Harness existente.
-/// Cada conclusão carrega a evidência (arquivo e valor lido). Versão desconhecida é dita como tal.
-/// </summary>
+// Somente leitura. Cada conclusão carrega a evidência (arquivo e valor lido); versão desconhecida é dita como tal.
 public sealed class ProjectDiscoverer(IProcessRunner processRunner)
 {
     private readonly SystemProbe _probe = new(processRunner);

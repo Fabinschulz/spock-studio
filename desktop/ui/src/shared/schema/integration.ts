@@ -29,7 +29,7 @@ const integrationErrorSchema = z.object({ code: z.string(), message: z.string(),
 
 export const connectionStatusSchema = z.enum(['connected', 'error', 'disconnected']);
 
-/** Uma conexão como o motor a expõe. A credencial nunca faz parte da resposta. */
+/** A credencial nunca faz parte da resposta. */
 export const connectionSchema = z.object({
   id: z.string(),
   provider: z.string(),
@@ -64,7 +64,6 @@ export const syncExecutionSchema = z.object({
   error: integrationErrorSchema.nullable()
 });
 
-/** O vínculo de uma conexão com um projeto: recorte, política e o resumo do que já foi sincronizado. */
 export const projectIntegrationSchema = z.object({
   id: z.string(),
   projectId: z.string(),
@@ -86,7 +85,7 @@ export const projectIntegrationSchema = z.object({
   })
 });
 
-/** Um projeto que usa a conexão. `projectName` é nulo quando o projeto não está autorizado neste computador. */
+/** `projectName` é nulo quando o projeto não está autorizado neste computador. */
 export const reachProjectSchema = z.object({
   projectId: z.string(),
   projectName: z.string().nullable(),
@@ -97,7 +96,6 @@ export const reachProjectSchema = z.object({
   linkedAt: z.string()
 });
 
-/** O que uma conexão alcança: onde é usada, o que se lê de lá e o que o conector pode fazer (`read`, `write` ou `unknown`). */
 export const connectionReachSchema = z.object({
   connectionId: z.string(),
   impact: z.string(),
@@ -108,10 +106,7 @@ export const connectionReachListSchema = z.object({ connections: z.array(connect
 
 export const integrationListSchema = z.object({ integrations: z.array(projectIntegrationSchema) });
 export const integrationResultSchema = z.object({ integration: projectIntegrationSchema });
-/**
- * O que o motor avisa de uma sincronização (`sync.started`, `sync.progress`, `sync.finished`): só estado e contagens, nunca
- * itens, títulos ou credenciais. O `runId` do aviso é o id da sincronização.
- */
+/** Só estado e contagens, nunca itens, títulos ou credenciais. O `runId` do aviso é o id da sincronização. */
 export const syncEventDataSchema = z.object({
   projectId: z.string(),
   integrationId: z.string(),

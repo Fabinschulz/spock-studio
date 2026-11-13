@@ -19,10 +19,6 @@ import { Link } from 'react-router';
 import styles from './audit-page.module.scss';
 import { useAudit } from './hooks/use-audit';
 
-/**
- * A trilha de auditoria do projeto: o que mudou o que o Spock Studio pode acessar ou fazer nele, e quando, do mais recente ao
- * mais antigo. Junta o arquivo de auditoria e o diário das execuções e diz de onde veio cada entrada. Só leitura.
- */
 export function AuditPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   if (!project) {
     return (
@@ -123,7 +119,6 @@ function AuditView({ client, projectId }: { client: EngineClient; projectId: str
   );
 }
 
-/** O nome da categoria como o motor o escreve; uma que a tela não encontra aparece com o próprio id. */
 function labelOf(categories: { id: string; label: string }[], id: string): string {
   return categories.find((category) => category.id === id)?.label ?? id;
 }

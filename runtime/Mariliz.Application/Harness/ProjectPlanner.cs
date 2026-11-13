@@ -5,7 +5,6 @@ using Mariliz.Core.Discovery;
 
 namespace Mariliz.Application.Harness;
 
-/// <summary>Descobre o projeto e calcula o plano a partir do que existe no disco naquele momento.</summary>
 internal sealed class ProjectPlanner(IProcessRunner runner)
 {
     private readonly ProjectDiscoverer _discoverer = new(runner);

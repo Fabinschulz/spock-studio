@@ -11,10 +11,7 @@ import type { ManagementApi } from '../service/management-api';
 
 const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
-/**
- * A trajetória de cada risco: quando foi visto, como mudou e se já foi resolvido. Vem dos registros que o motor faz a cada
- * sincronização completa, então só existe a partir do primeiro registro; a base diz isso.
- */
+/** Vem dos registros que o motor faz a cada sincronização completa, então só existe a partir do primeiro registro. */
 export function RiskHistorySection({ management, projectId }: { management: ManagementApi; projectId: string }) {
   const load = useCallback(() => management.riskHistory(projectId), [management, projectId]);
   const history = useAsyncResource(load);

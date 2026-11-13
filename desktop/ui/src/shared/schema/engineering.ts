@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-/** O perfil tecnológico do projeto, como o motor o guarda. Categoria e cobertura do Harness vêm prontas do motor. */
+/** Categoria e cobertura do Harness vêm prontas do motor. */
 export const technologyProfileSchema = z.object({
   projectId: z.string(),
   analyzedAt: z.string(),
@@ -37,10 +37,7 @@ export const profileResultSchema = z.object({ profile: technologyProfileSchema.n
 export type TechnologyProfile = z.infer<typeof technologyProfileSchema>;
 export type ProfileChange = TechnologyProfile['history'][number];
 
-/**
- * Uma fonte externa (itens sincronizados de uma ferramenta) e o que dela vai ao índice. Sem `authorized`, nada vai e
- * `documents` é zero. Só contagens e rótulos: o texto dos itens não sai do motor.
- */
+/** Sem `authorized`, nada vai e `documents` é zero. Só contagens e rótulos: o texto dos itens não sai do motor. */
 export const knowledgeExternalSourceSchema = z.object({
   integrationId: z.string(),
   providerName: z.string(),
@@ -56,8 +53,7 @@ export const knowledgeExternalSourceSchema = z.object({
   outdated: z.number()
 });
 
-/** O conhecimento do projeto como o índice o recebe. Só caminhos e tamanhos: o conteúdo não sai do motor. */
-/** As decisões gerenciais registradas no projeto como memória do índice. Só contagens: o texto não sai do motor por esta resposta. */
+/** Só contagens: o texto das decisões não sai do motor por esta resposta. */
 export const knowledgeMemorySchema = z.object({
   documents: z.number(),
   indexed: z.number(),
@@ -65,6 +61,7 @@ export const knowledgeMemorySchema = z.object({
   outdated: z.number()
 });
 
+/** Só caminhos e tamanhos: o conteúdo não sai do motor. */
 export const projectKnowledgeSchema = z.object({
   projectId: z.string(),
   inspectedAt: z.string(),
@@ -82,9 +79,7 @@ export const projectKnowledgeSchema = z.object({
   outdated: z.number(),
   pending: z.number(),
   orphaned: z.number(),
-  /** Os itens sincronizados que o projeto autorizou (ou não) como contexto dos agentes. */
   external: z.array(knowledgeExternalSourceSchema),
-  /** As decisões gerenciais registradas, que também viram memória do índice. */
   memory: knowledgeMemorySchema
 });
 
@@ -94,7 +89,6 @@ export type ProjectKnowledge = z.infer<typeof projectKnowledgeSchema>;
 
 const harnessStateSchema = z.enum(['intact', 'kept', 'modified', 'outOfScope', 'missing']);
 
-/** O Harness aplicado, lido de mariliz.lock e conferido contra o disco pelo motor. */
 export const harnessStatusSchema = z.object({
   projectId: z.string(),
   inspectedAt: z.string(),
@@ -123,7 +117,6 @@ export const harnessStatusSchema = z.object({
 
 export type HarnessStatus = z.infer<typeof harnessStatusSchema>;
 
-/** Uma revisão do Harness: aplicação ou reversão que mudou arquivos, com o que mudou por componente. */
 export const harnessRevisionSchema = z.object({
   number: z.number(),
   runId: z.string(),
@@ -151,10 +144,8 @@ export const harnessRevisionsSchema = z.object({
   revisions: z.array(harnessRevisionSchema)
 });
 
-/** Uma ferramenta que o agente pode usar, com o que isso quer dizer em palavras simples. */
 export const harnessToolSchema = z.object({ name: z.string(), plain: z.string() });
 
-/** A ficha de um componente do Harness: o que faz, quando age, o que lê, o que pode alterar e de onde veio. */
 export const componentSheetSchema = z.object({
   id: z.string(),
   kind: z.string(),
@@ -172,8 +163,8 @@ export const componentSheetSchema = z.object({
 });
 
 /**
- * Um componente do catálogo num projeto. `presence`: applied, excluded ou not_applied (nulo sem projeto). `state` é o estado do
- * pior dos arquivos e só existe se o componente está no lock; num excluído, quer dizer que os arquivos ainda estão lá.
+ * `presence` é nulo sem projeto. `state` é o do pior dos arquivos e só existe se o componente está no lock; num excluído,
+ * quer dizer que os arquivos ainda estão lá.
  */
 export const catalogEntrySchema = z.object({
   sheet: componentSheetSchema,
@@ -181,7 +172,6 @@ export const catalogEntrySchema = z.object({
   state: z.string().nullable()
 });
 
-/** O catálogo do Harness (`engineering.catalog`), com ou sem projeto. */
 export const harnessCatalogSchema = z.object({
   projectId: z.string().nullable(),
   applied: z.boolean().nullable(),
@@ -203,7 +193,7 @@ export const mcpServerSchema = z.object({
   literalSecrets: z.array(mcpLiteralSecretSchema)
 });
 
-/** O inventário de MCP de um projeto (`engineering.mcp`). `readable` é falso se o `.mcp.json` existe mas não é um JSON válido. */
+/** `readable` é falso se o `.mcp.json` existe mas não é um JSON válido. */
 export const mcpInventorySchema = z.object({
   projectId: z.string(),
   present: z.boolean(),
@@ -214,7 +204,6 @@ export const mcpInventorySchema = z.object({
 /** Uma regra do hook de política, em palavras simples. `decision`: deny (bloqueia), ask (pergunta antes) ou allow (libera uma exceção). */
 export const policyRuleSchema = z.object({ decision: z.string(), scope: z.string(), plain: z.string() });
 
-/** A política dos agentes (`engineering.policy`): as regras vêm do script do hook, o texto é em português simples. */
 export const agentPolicySchema = z.object({
   script: z.string(),
   watches: z.array(z.string()),

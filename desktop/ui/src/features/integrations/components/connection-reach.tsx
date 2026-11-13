@@ -7,10 +7,6 @@ import styles from '../integrations-page.module.scss';
 /** Quando o projeto não está autorizado neste computador, o motor não conhece o nome: a tela diz isso, em vez de inventar um. */
 const UNKNOWN_PROJECT = 'Projeto que não está aberto neste computador';
 
-/**
- * As quatro perguntas de uma conexão, em linguagem simples: com qual conta entra, em quais projetos é usada, o que se lê de lá
- * e se os agentes de IA podem usar esses dados como contexto. Só leitura: o que muda, muda no vínculo do projeto.
- */
 export function ConnectionReachSummary({
   connection,
   connector,

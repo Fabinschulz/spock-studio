@@ -8,12 +8,7 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Management.Assistant;
 
-/// <summary>
-/// O assistente gerencial. O motor reúne os fatos já calculados (indicadores, previsão, riscos), o modelo escreve a
-/// explicação separando observado, cálculo, inferência e recomendação, e o motor confere a resposta antes de devolvê-la.
-/// Uma pergunta é uma chamada só, pelo proxy de modelo do motor: a chave não sai daqui. Investigações em várias etapas,
-/// quando existirem, são trabalho para um workflow no runtime de IA.
-/// </summary>
+// Uma pergunta é uma chamada só, pelo proxy de modelo do motor: a chave não sai daqui.
 public sealed class ManagementAssistant(
     ManagementService management,
     IntegrationHub hub,
@@ -42,7 +37,6 @@ public sealed class ManagementAssistant(
          "inferences": [...], "recommendations": [...], "unavailable": [{"text": "..."}]}
         """;
 
-    /// <summary>A pergunta sem espaços nas pontas; recusa a que não tem entre <see cref="MinQuestion"/> e <see cref="MaxQuestion"/> caracteres.</summary>
     public static string CleanQuestion(string question)
     {
         var clean = question.Trim();
@@ -59,10 +53,7 @@ public sealed class ManagementAssistant(
             management.Forecast(projectId), management.Risks(projectId), management.Milestones(projectId));
     }
 
-    /// <summary>
-    /// Responde e deixa o registro na central de execuções. A pergunta inválida é recusada antes e não vira execução; uma
-    /// pergunta que o modelo não conseguiu responder vira uma execução que falhou, com o código do motivo.
-    /// </summary>
+    // A pergunta inválida é recusada antes e não vira execução; a que o modelo não conseguiu responder vira uma execução que falhou, com o código do motivo.
     public async Task<AssistantAnswer> AskAsync(string projectId, string question, CancellationToken ct)
     {
         var cleanQuestion = CleanQuestion(question);
@@ -110,11 +101,7 @@ public sealed class ManagementAssistant(
         return verified.ToAnswer(projectId, clock.UtcNow, pack.Facts, completion.ModelVersion, completion.InputTokens, completion.OutputTokens);
     }
 
-    /// <summary>
-    /// O diário de uma pergunta: contagens e o código do erro, **nunca o texto da pergunta nem o da resposta** (o diário não
-    /// guarda texto de pedido). Não passa pelo rastreador: uma pergunta não escreve no projeto e não pode bloquear a execução
-    /// que estiver andando nele. Só projeto autorizado tem diário, e uma falha ao gravar nunca atrapalha a resposta.
-    /// </summary>
+    // Nunca guarda o texto da pergunta nem o da resposta. Não passa pelo rastreador: uma pergunta não escreve no projeto e não pode bloquear a execução que estiver andando nele. Uma falha ao gravar nunca atrapalha a resposta.
     internal void RecordRun(string projectId, DateTimeOffset startedAt, AssistantAnswer? answer, string? error, int coveredProjects = 1)
     {
         if (runs is null || !workspace.IsAuthorized(projectId)) return;

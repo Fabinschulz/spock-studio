@@ -17,8 +17,8 @@ function kindOf(line: string): LineKind {
 }
 
 /**
- * Diff unificado. Cada linha conserva o prefixo (+, -, espaço), então o significado não depende de cor.
- * O conteúdo vem do motor já com linhas de possível segredo omitidas.
+ * Cada linha conserva o prefixo (+, -, espaço), então o significado não depende de cor. O motor já omite as linhas de
+ * possível segredo.
  */
 export function DiffView({ diff, label }: DiffViewProps) {
   const lines = diff.replace(/\r\n/g, '\n').replace(/\n$/, '').split('\n');

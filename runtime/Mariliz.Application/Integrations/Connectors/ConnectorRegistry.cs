@@ -1,6 +1,6 @@
 namespace Mariliz.Application.Integrations;
 
-/// <summary>Os conectores disponíveis nesta versão. É a única lista: catálogo e validação de provedor saem daqui.</summary>
+// É a única lista: catálogo e validação de provedor saem daqui.
 public sealed class ConnectorRegistry(IEnumerable<IIntegrationConnector> connectors)
 {
     private readonly Dictionary<string, IIntegrationConnector> _byProvider =

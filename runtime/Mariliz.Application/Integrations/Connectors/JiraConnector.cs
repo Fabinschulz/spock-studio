@@ -6,10 +6,7 @@ using Mariliz.Application.Ports;
 
 namespace Mariliz.Application.Integrations;
 
-/// <summary>
-/// Leitura de um projeto do Jira Cloud pela API REST v3, com e-mail e token de API da conta. O site precisa ser um endereço
-/// <c>*.atlassian.net</c>: a credencial nunca é enviada a outro domínio. Jira Server e Data Center não são atendidos.
-/// </summary>
+// O site precisa ser *.atlassian.net: a credencial nunca é enviada a outro domínio. Jira Server e Data Center não são atendidos.
 public sealed partial class JiraConnector(ConnectorClient client, IClock clock) : IIntegrationConnector
 {
     public const int PageSize = 100;
@@ -128,12 +125,7 @@ public sealed partial class JiraConnector(ConnectorClient client, IClock clock) 
             Milestones: Milestones(fields));
     }
 
-    /// <summary>
-    /// Os itens ainda abertos que bloqueiam este, pelo vínculo padrão "Blocks" ("is blocked by"). No JSON do Jira, quando o
-    /// vínculo aparece com <c>inwardIssue</c> a relação deste item com o outro é a descrição de entrada ("is blocked by"). Um
-    /// site que renomeou o tipo de vínculo não é lido, e isso não vira "sem bloqueio": os campos de bloqueio são diferentes
-    /// em cada site, então só o padrão é lido e o indicador diz o que foi lido. Sem o campo, devolve <c>null</c> (não lido).
-    /// </summary>
+    // Com inwardIssue, a relação deste item com o outro é a descrição de entrada ("is blocked by"). Só o tipo padrão "Blocks" é lido porque os campos de bloqueio mudam em cada site; um site que o renomeou não vira "sem bloqueio". Sem o campo, devolve null (não lido).
     private static List<string>? BlockedBy(JsonObject fields)
     {
         if (fields["issuelinks"] is not JsonArray links) return null;
@@ -147,10 +139,7 @@ public sealed partial class JiraConnector(ConnectorClient client, IClock clock) 
             .ToList();
     }
 
-    /// <summary>
-    /// As versões de correção (fix versions) do item, com a data de lançamento quando a versão tem uma. Sem o campo, devolve
-    /// <c>null</c> (não lido); com o campo vazio, lista vazia (o item não tem versão).
-    /// </summary>
+    // Sem o campo, devolve null (não lido); com o campo vazio, lista vazia (o item não tem versão).
     private static List<WorkItemMilestone>? Milestones(JsonObject fields)
     {
         if (fields["fixVersions"] is not JsonArray versions) return null;

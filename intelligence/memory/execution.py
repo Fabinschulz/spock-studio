@@ -1,9 +1,4 @@
-"""Memória de execução: checkpoints do LangGraph, separados do índice de conhecimento.
-
-Um SQLite por projeto em ``<raiz>/projects/<projectId>/execution/checkpoint.sqlite``, fora da pasta do projeto. Cada
-execução é um ``thread_id`` (o runId). O arquivo some quando não resta execução pausada nele. O diário de negócio
-continua no motor.
-"""
+"""Um SQLite por projeto, fora da pasta do projeto. O arquivo some quando não resta execução pausada nele."""
 
 from __future__ import annotations
 
