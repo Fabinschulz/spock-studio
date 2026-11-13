@@ -115,7 +115,7 @@ public sealed class ManagementAssistant(
     /// guarda texto de pedido). Não passa pelo rastreador: uma pergunta não escreve no projeto e não pode bloquear a execução
     /// que estiver andando nele. Só projeto autorizado tem diário, e uma falha ao gravar nunca atrapalha a resposta.
     /// </summary>
-    internal void RecordRun(string projectId, DateTimeOffset startedAt, AssistantAnswer? answer, string? error)
+    internal void RecordRun(string projectId, DateTimeOffset startedAt, AssistantAnswer? answer, string? error, int coveredProjects = 1)
     {
         if (runs is null || !workspace.IsAuthorized(projectId)) return;
 
@@ -136,6 +136,16 @@ public sealed class ManagementAssistant(
         {
             var accepted = answer.Observed.Count + answer.Calculations.Count + answer.Inferences.Count + answer.Recommendations.Count;
             journal.State = answer.Rejected.Count > 0 ? RunStates.CompletedWithLimitations : RunStates.Completed;
+            // Uma pergunta ao portfólio grava o mesmo uso no diário de cada projeto que ela cobriu: cada um mostra o custo real da
+            // pergunta que o envolveu, e este passo diz isso, para ninguém somar entre projetos e achar que custou várias vezes.
+            if (coveredProjects > 1)
+                journal.Steps.Add(new JournalStep
+                {
+                    Id = "portfolio",
+                    Title = "Pergunta ao portfólio",
+                    Status = StepStatus.Completed,
+                    Detail = $"A pergunta cobriu {coveredProjects} projetos. O uso de modelo abaixo é o da pergunta inteira, repetido no diário de cada projeto."
+                });
             journal.Steps.Add(new JournalStep { Id = "answer", Title = "Resposta escrita pelo modelo", Status = StepStatus.Completed });
             journal.Steps.Add(new JournalStep
             {
