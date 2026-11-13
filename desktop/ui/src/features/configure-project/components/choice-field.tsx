@@ -1,3 +1,4 @@
+import { Radio } from '@/shared/components';
 import { Checkbox } from '@mariliz/ui-kit';
 import { useId, type ReactNode } from 'react';
 import styles from './panels.module.scss';
@@ -40,12 +41,15 @@ interface RadioFieldProps {
   children: ReactNode;
 }
 
-/** O Synthra não tem botão de opção: fica o `input` nativo, que já é acessível, com o estilo do campo. */
+/** Opção da jornada, com a moldura do campo: o botão vem do átomo `Radio` (o Synthra não tem um). */
 export function RadioField({ name, checked, onChange, children }: RadioFieldProps) {
   return (
-    <label className={styles.field}>
-      <input type="radio" name={name} checked={checked} onChange={onChange} />
-      {children}
-    </label>
+    <Radio
+      name={name}
+      checked={checked}
+      onChange={onChange}
+      label={children}
+      labelProps={{ className: styles.field }}
+    />
   );
 }
