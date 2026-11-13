@@ -5,7 +5,7 @@ namespace Mariliz.Infrastructure.Integrations;
 
 /// <summary>
 /// Conexões e vínculos em <c>{dataRoot}/integrations/connections.json</c>. O arquivo não tem credencial: ela fica no cofre.
-/// Um arquivo ilegível conta como vazio, e a gravação troca o arquivo inteiro de uma vez.
+/// A gravação troca o arquivo inteiro de uma vez. Um arquivo travado falha (não vira lista vazia); um corrompido vai para `.corrupt-*`.
 /// </summary>
 public sealed class FileIntegrationStore(string dataRoot) : IIntegrationStore
 {
@@ -39,19 +39,9 @@ public sealed class FileIntegrationStore(string dataRoot) : IIntegrationStore
         lock (_gate) AtomicFile.Write(FilePath, JsonSerializer.Serialize(change(Read()), IntegrationJson.Options));
     }
 
-    private Document Read()
-    {
-        if (!File.Exists(FilePath)) return Document.Empty;
-        try
-        {
-            var document = JsonSerializer.Deserialize<Document>(File.ReadAllText(FilePath), IntegrationJson.Options);
-            return document is { Connections: not null, Integrations: not null } ? document : Document.Empty;
-        }
-        catch (Exception ex) when (ex is JsonException or IOException)
-        {
-            return Document.Empty;
-        }
-    }
+    private Document Read() =>
+        AtomicFile.ReadJson<Document>(FilePath, IntegrationJson.Options, document => document is { Connections: not null, Integrations: not null })
+        ?? Document.Empty;
 
     private static List<T> Upsert<T>(List<T> items, T item, Func<T, bool> same)
     {

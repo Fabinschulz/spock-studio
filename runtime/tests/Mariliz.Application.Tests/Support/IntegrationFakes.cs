@@ -34,8 +34,12 @@ internal sealed class MemoryAudit : IAuditLog, IAuditReader
     /// <summary>A hora de cada registro. O harness liga ao relógio de teste; sem isso, é a hora de verdade.</summary>
     public Func<DateTimeOffset> Now { get; set; } = () => DateTimeOffset.UtcNow;
 
+    /// <summary>Se definido, o registro dessa ação falha, como um disco que recusa gravar.</summary>
+    public string? FailOnAction { get; set; }
+
     public void Record(string action, JsonObject detail)
     {
+        if (action == FailOnAction) throw new IOException("disco recusou");
         Entries.Add((action, detail.ToJsonString()));
         _records.Add(new AuditRecord(_records.Count + 1, Now(), action, detail.DeepClone().AsObject()));
     }
