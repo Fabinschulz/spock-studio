@@ -12,6 +12,7 @@ import Management from './routes/management';
 import Portfolio from './routes/portfolio';
 import Project from './routes/project';
 import Report from './routes/report';
+import ProjectCatalog from './routes/project-catalog';
 import ProjectHarness from './routes/project-harness';
 import ProjectKnowledge from './routes/project-knowledge';
 import Runs from './routes/runs';
@@ -38,6 +39,14 @@ export const routes: RouteObject[] = [
         element: (
           <RequiresHost>
             <ProjectHarness />
+          </RequiresHost>
+        )
+      },
+      {
+        path: paths.projectCatalog,
+        element: (
+          <RequiresHost>
+            <ProjectCatalog />
           </RequiresHost>
         )
       },

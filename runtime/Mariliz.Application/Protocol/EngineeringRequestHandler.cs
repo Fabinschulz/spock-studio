@@ -21,6 +21,7 @@ internal sealed class EngineeringRequestHandler(
         },
         ProtocolMethods.EngineeringKnowledge => IntegrationJson.Node(await Knowledge().InspectAsync(p.Str("projectId"), ct))!.AsObject(),
         ProtocolMethods.EngineeringHarness => IntegrationJson.Node(Harness().Inspect(p.Str("projectId")))!.AsObject(),
+        ProtocolMethods.EngineeringCatalog => IntegrationJson.Node(new HarnessCatalogService(harness).Read(p.OptionalStr("projectId")))!.AsObject(),
         ProtocolMethods.EngineeringRevisions => IntegrationJson.Node(Revisions().Read(p.Str("projectId")))!.AsObject(),
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
     };

@@ -503,6 +503,27 @@ Entrega 5 da ordem aprovada.
   fora do arquivo que é gravado no projeto.
 - **Pronto quando:** uma pessoa que nunca abriu `.claude/` consegue dizer o que cada componente faz no projeto dela.
 
+**Estado da fase E (2026-11-12).** Primeira entrega feita na branch `feat/fase-e-catalogo` (criada da `master`), sem commit
+até o dono pedir: a **ficha por componente** e a tela **Catálogo**. Da tabela da fase, a tela Harness com Estado e
+Revisões e a tela Conhecimento separada já tinham sido entregues na fase B; faltam o inventário de MCP e a política dos
+agentes em linguagem simples.
+
+| Feito | Observação |
+| --- | --- |
+| Ficha por componente | Para cada um dos 11 componentes do catálogo: **o que faz**, **quando age**, **o que lê**, **o que pode alterar**, **de onde veio** e **onde fica no projeto**, em português simples. Os textos moram em `Assets/catalog/components.json`, embutido no motor mas **fora dos arquivos que vão para o projeto**: mudar uma ficha não muda o hash do Harness aplicado de ninguém (um teste confere que nenhum texto de ficha aparece em nenhum arquivo de um projeto com o Harness aplicado) |
+| Ferramentas do agente | Lidas do cabeçalho do próprio arquivo do agente (`tools: Read, Grep, ...`), cada uma com o que quer dizer ("ler arquivos", "rodar comandos no terminal"). Não são digitadas na ficha, então não envelhecem quando o agente muda |
+| A ficha presa à realidade | Os testes impedem a ficha de mentir: todo componente do catálogo tem ficha e vice-versa; nenhum campo vazio nem travessão; o que a ficha diz que o agente altera confere com as ferramentas que ele declara (sem `Write` a ficha tem de dizer "Nada"; com `Write`, "Escreve um único arquivo"); "adaptado de" só aparece quando o próprio ativo diz que é adaptado; e os arquivos que cada ficha cita são os que o Harness aplicado registrou no lock |
+| `engineering.catalog` | Sem projeto, o catálogo geral só com as fichas; com projeto, também o que está **aplicado**, **dispensado** em `mariliz.yaml` ou **não aplicado** nele, e o estado do pior arquivo (íntegro, modificado à mão, ausente...). Um componente dispensado cujos arquivos ainda estão no projeto continua "dispensado", com o aviso de que saem na próxima aplicação. Uma regra escrita para o projeto (proposta pelo Harness Engineer) aparece com uma ficha genérica |
+| Tela | `/projeto/catalogo`, e o item "Catálogo" do menu de Engenharia deixou de ser "Em breve". Os componentes vêm agrupados (agentes, skills, regras, hooks, ciclo de especificação, declaração do projeto), cada um com a frase do que faz e os detalhes atrás de um `Disclosure`. Diz que não há editor: mudar é pela jornada Configurar |
+| Só leitura | Ler o catálogo não escreve nada no projeto (um teste compara o conteúdo antes e depois). Projeto não autorizado é recusado |
+| Testes | 15 novos no motor e 12 na interface; fixture `catalog.json` do motor real. O estado dos arquivos agora tem um só lugar de rótulos (`harness-state.ts`), usado pela tela de estado e pelo catálogo. Suítes: 758 no motor, 509 na interface, tipos, lint, formato e build limpos |
+
+Limites: **o critério "uma pessoa que nunca abriu `.claude/` consegue dizer o que cada componente faz" não foi testado com
+uma pessoa**; os textos foram escritos e conferidos contra os ativos, mas ninguém de fora os leu. A tela não foi conferida
+no navegador, só por testes. A ficha do hook descreve o comportamento de forma geral ("bloqueia ou pede confirmação"); a
+lista do que ele bloqueia, em linguagem simples, é a entrega "política dos agentes". Nada na ficha é traduzido por modelo.
+
+Falta nesta fase: inventário de MCP com alerta de segredo literal e a política dos agentes em linguagem simples.
 ### Fase F: hub de integrações, nível 2
 
 | Entrega | Camada | Observação |

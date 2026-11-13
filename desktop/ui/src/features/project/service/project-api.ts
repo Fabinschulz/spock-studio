@@ -1,12 +1,14 @@
 import type { EngineClient } from '@/shared/api';
 import {
   discoverySchema,
+  harnessCatalogSchema,
   harnessRevisionsSchema,
   harnessStatusSchema,
   profileResultSchema,
   projectKnowledgeSchema,
   runsSchema,
   type Discovery,
+  type HarnessCatalog,
   type HarnessRevisions,
   type HarnessStatus,
   type ProjectKnowledge,
@@ -45,6 +47,11 @@ export function readKnowledge(client: EngineClient, projectId: string): Promise<
 /** O Harness aplicado, conferido contra o disco. Só leitura. */
 export function readHarness(client: EngineClient, projectId: string): Promise<HarnessStatus> {
   return client.request('engineering.harness', { projectId }, harnessStatusSchema);
+}
+
+/** O catálogo do Harness. Sem projeto, só as fichas; com projeto, também o que está aplicado nele. Só leitura. */
+export function readCatalog(client: EngineClient, projectId: string | null): Promise<HarnessCatalog> {
+  return client.request('engineering.catalog', projectId === null ? {} : { projectId }, harnessCatalogSchema);
 }
 
 /** As revisões do Harness, montadas dos diários de aplicação e reversão. Só leitura. */

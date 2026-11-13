@@ -118,5 +118,45 @@ export const harnessRevisionsSchema = z.object({
   revisions: z.array(harnessRevisionSchema)
 });
 
+/** Uma ferramenta que o agente pode usar, com o que isso quer dizer em palavras simples. */
+export const harnessToolSchema = z.object({ name: z.string(), plain: z.string() });
+
+/** A ficha de um componente do Harness: o que faz, quando age, o que lê, o que pode alterar e de onde veio. */
+export const componentSheetSchema = z.object({
+  id: z.string(),
+  kind: z.string(),
+  title: z.string(),
+  version: z.string(),
+  whatItDoes: z.string(),
+  whenItActs: z.string(),
+  reads: z.array(z.string()),
+  canChange: z.array(z.string()),
+  /** Só agentes: as ferramentas que o próprio arquivo do agente declara. */
+  tools: z.array(harnessToolSchema),
+  origin: z.string(),
+  files: z.array(z.string()),
+  manageable: z.boolean()
+});
+
+/**
+ * Um componente do catálogo num projeto. `presence`: applied, excluded ou not_applied (nulo sem projeto). `state` é o estado do
+ * pior dos arquivos e só existe se o componente está no lock; num excluído, quer dizer que os arquivos ainda estão lá.
+ */
+export const catalogEntrySchema = z.object({
+  sheet: componentSheetSchema,
+  presence: z.string().nullable(),
+  state: z.string().nullable()
+});
+
+/** O catálogo do Harness (`engineering.catalog`), com ou sem projeto. */
+export const harnessCatalogSchema = z.object({
+  projectId: z.string().nullable(),
+  applied: z.boolean().nullable(),
+  entries: z.array(catalogEntrySchema)
+});
+
+export type ComponentSheet = z.infer<typeof componentSheetSchema>;
+export type CatalogEntry = z.infer<typeof catalogEntrySchema>;
+export type HarnessCatalog = z.infer<typeof harnessCatalogSchema>;
 export type HarnessRevision = z.infer<typeof harnessRevisionSchema>;
 export type HarnessRevisions = z.infer<typeof harnessRevisionsSchema>;

@@ -4,6 +4,7 @@ export const paths = {
   project: '/projeto',
   projectHarness: '/projeto/harness',
   projectKnowledge: '/projeto/conhecimento',
+  projectCatalog: '/projeto/catalogo',
   configure: '/configurar',
   engineeringRequest: '/pedido',
   portfolio: '/portfolio',

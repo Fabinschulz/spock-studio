@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "components": [
+    {
+      "id": "mariliz.agent.harness-engineer",
+      "whatItDoes": "Lê o seu projeto e escreve uma proposta de como montar o Harness: quais agentes, skills e regras fazem sentido e por quê. Só recomenda. Quem valida a proposta, mostra a diferença e aplica é o Spock Studio, com a sua aprovação.",
+      "whenItActs": "Quando você configura ou revisa o Harness pela jornada Configurar.",
+      "reads": ["Os arquivos do projeto", "Os agentes, skills, regras, hooks e a configuração de MCP que já existem"],
+      "canChange": ["Escreve um único arquivo: .mariliz/proposal.json, a proposta. Não altera código nem os arquivos do Harness."],
+      "origin": "Escrito pelo Spock Studio."
+    },
+    {
+      "id": "mariliz.agent.code-reviewer",
+      "whatItDoes": "Revisa uma mudança de código e devolve achados com arquivo, linha, impacto e a correção sugerida, separando o que bloqueia a integração do que é só sugestão.",
+      "whenItActs": "Quando você pede uma revisão antes de integrar uma mudança.",
+      "reads": ["A mudança a revisar", "As regras em .claude/rules/ e o CLAUDE.md do projeto", "A skill do contrato de evidência"],
+      "canChange": ["Nada. Só lê o projeto e roda comandos de leitura; a correção é descrita, não aplicada."],
+      "origin": "Adaptado do exemplo de referência de github.com/Fabinschulz/harness-engineering (licença MIT)."
+    },
+    {
+      "id": "mariliz.agent.verifier",
+      "whatItDoes": "Confere, de forma independente, se uma funcionalidade pronta cumpre os critérios de aceite da especificação, com evidência para cada afirmação, e registra o resultado.",
+      "whenItActs": "Depois da última tarefa de uma funcionalidade, na fase Validar do ciclo de especificação.",
+      "reads": ["A especificação da funcionalidade (spec.md)", "O código da funcionalidade", "A saída dos comandos que ele mesmo roda"],
+      "canChange": ["Escreve um único arquivo: .specs/features/<funcionalidade>/validation.md, com o resultado. Não altera código."],
+      "origin": "Escrito pelo Spock Studio."
+    },
+    {
+      "id": "mariliz.skill.harness-contract",
+      "whatItDoes": "Define como os agentes dizem o que sabem: o que vale como prova, como classificar cada afirmação (fato, inferência, suposição ou desconhecido) e a escala de confiança.",
+      "whenItActs": "Quando um agente precisa declarar confiança, citar evidência ou resolver um conflito entre fontes.",
+      "reads": ["Nenhum arquivo do projeto: é um texto de referência que os agentes leem"],
+      "canChange": ["Nada. É só texto de orientação."],
+      "origin": "Adaptado dos padrões de github.com/Fabinschulz/harness-engineering (licença MIT)."
+    },
+    {
+      "id": "mariliz.rule.general",
+      "whatItDoes": "Regras de método, limites entre camadas, testes, tratamento de erros, segurança e de quando uma tarefa está concluída.",
+      "whenItActs": "Sempre: o Claude Code carrega estas regras nas sessões deste projeto.",
+      "reads": ["Nenhum arquivo do projeto: são instruções para o agente"],
+      "canChange": ["Nada. É só orientação; quem age é o agente, seguindo o que está escrito."],
+      "origin": "Escrito pelo Spock Studio."
+    },
+    {
+      "id": "mariliz.rule.stack-dotnet",
+      "whatItDoes": "Regras de estrutura, injeção de dependência, código assíncrono e testes para projetos .NET.",
+      "whenItActs": "Quando o agente trabalha em arquivos .NET do projeto: as regras só valem para esses caminhos.",
+      "reads": ["Nenhum arquivo do projeto: são instruções para o agente"],
+      "canChange": ["Nada. É só orientação."],
+      "origin": "Escrito pelo Spock Studio; os caminhos a que vale vêm da stack detectada no seu projeto."
+    },
+    {
+      "id": "mariliz.rule.stack-javascript",
+      "whatItDoes": "Regras de camadas, módulos, tipos e testes para projetos JavaScript e TypeScript.",
+      "whenItActs": "Quando o agente trabalha em arquivos JavaScript ou TypeScript do projeto: as regras só valem para esses caminhos.",
+      "reads": ["Nenhum arquivo do projeto: são instruções para o agente"],
+      "canChange": ["Nada. É só orientação."],
+      "origin": "Escrito pelo Spock Studio; os caminhos a que vale vêm da stack detectada no seu projeto."
+    },
+    {
+      "id": "mariliz.rule.repo-commands",
+      "whatItDoes": "Lista os comandos reais de build, teste e lint do seu repositório, cada um com o arquivo de onde foi detectado, para o agente saber como compilar e testar.",
+      "whenItActs": "Sempre: o agente lê esta lista para escolher que comando rodar.",
+      "reads": ["Nenhum arquivo do projeto na hora: a lista foi montada quando o Harness foi aplicado"],
+      "canChange": ["Nada. É só orientação."],
+      "origin": "Gerado a partir dos arquivos do seu projeto; não é um texto fixo do aplicativo."
+    },
+    {
+      "id": "mariliz.hook.policy",
+      "whatItDoes": "Confere cada escrita de arquivo e cada comando do agente antes de acontecer e bloqueia ou pede confirmação conforme a política do Spock Studio. É uma proteção que confere o texto do pedido, não uma barreira de segurança.",
+      "whenItActs": "Antes de toda escrita de arquivo e de todo comando que o agente tenta usar.",
+      "reads": ["O pedido da ferramenta: qual arquivo ou qual comando o agente quer usar"],
+      "canChange": ["Nada. Só responde \"bloquear\" ou \"pedir confirmação\"; não escreve arquivos nem usa a rede. É registrado em .claude/settings.json."],
+      "origin": "Escrito pelo Spock Studio; usa só a biblioteca padrão do Python."
+    },
+    {
+      "id": "mariliz.specification.structure",
+      "whatItDoes": "A estrutura de pastas e arquivos do ciclo de especificação (Especificar, Projetar, Tarefas, Executar e Validar), onde ficam as especificações e as decisões de cada funcionalidade.",
+      "whenItActs": "Quando você segue o ciclo de especificação para uma funcionalidade.",
+      "reads": ["As especificações e decisões que já estão no projeto"],
+      "canChange": ["Cria a pasta .specs/ e a skill do ciclo. O conteúdo de cada funcionalidade é escrito pelos agentes durante o ciclo."],
+      "origin": "Instalada por um pacote externo, com a versão conferida pelo Spock Studio; não vem junto do aplicativo."
+    },
+    {
+      "id": "mariliz.config.declaration",
+      "whatItDoes": "Dois arquivos: mariliz.yaml, onde o projeto declara o que quer (por exemplo, componentes a não aplicar), e mariliz.lock, o registro do que foi aplicado, com o hash de cada arquivo.",
+      "whenItActs": "A cada plano, validação e conferência do estado do Harness.",
+      "reads": ["O próprio mariliz.yaml e mariliz.lock"],
+      "canChange": ["O Spock Studio atualiza o lock a cada aplicação ou reversão. O yaml muda quando você dispensa ou volta a aplicar um componente."],
+      "origin": "Escrito pelo Spock Studio."
+    }
+  ]
+}

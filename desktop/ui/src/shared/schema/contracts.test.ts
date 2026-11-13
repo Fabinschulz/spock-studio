@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import applyFailure from '@contracts/fixtures/golden/apply-failure.json';
+import engineeringCatalog from '@contracts/fixtures/engineering/catalog.json';
 import engineeringHarness from '@contracts/fixtures/engineering/harness.json';
 import engineeringKnowledge from '@contracts/fixtures/engineering/knowledge.json';
 import engineeringRevisions from '@contracts/fixtures/engineering/revisions.json';
@@ -41,6 +42,7 @@ import {
   connectionListSchema,
   discoverySchema,
   evidencePackSchema,
+  harnessCatalogSchema,
   harnessRevisionsSchema,
   harnessStatusSchema,
   integrationCatalogSchema,
@@ -380,5 +382,33 @@ describe('contrato do relatório do período (fixture do motor)', () => {
       'workflow/failed=1'
     ]);
     expect(parsed.basis).toContain('nenhum texto foi escrito por modelo de linguagem');
+  });
+});
+
+describe('contrato do catálogo do Harness (fixture do motor)', () => {
+  it('uma ficha por componente, com o estado de cada um no projeto', () => {
+    const parsed = harnessCatalogSchema.parse(engineeringCatalog);
+    expect(parsed.applied).toBe(true);
+    expect(parsed.entries).toHaveLength(11);
+    const byId = new Map(parsed.entries.map((entry) => [entry.sheet.id, entry]));
+    expect(byId.get('mariliz.agent.verifier')).toMatchObject({ presence: 'excluded', state: 'intact' });
+    expect(byId.get('mariliz.rule.stack-javascript')).toMatchObject({ presence: 'not_applied', state: null });
+    expect(byId.get('mariliz.agent.code-reviewer')?.sheet.tools.map((tool) => tool.name)).toEqual([
+      'Read',
+      'Grep',
+      'Glob',
+      'Bash'
+    ]);
+  });
+
+  it('nenhuma ficha tem campo vazio', () => {
+    const parsed = harnessCatalogSchema.parse(engineeringCatalog);
+    for (const { sheet } of parsed.entries) {
+      expect(sheet.whatItDoes).not.toBe('');
+      expect(sheet.whenItActs).not.toBe('');
+      expect(sheet.reads.length).toBeGreaterThan(0);
+      expect(sheet.canChange.length).toBeGreaterThan(0);
+      expect(sheet.files.length).toBeGreaterThan(0);
+    }
   });
 });

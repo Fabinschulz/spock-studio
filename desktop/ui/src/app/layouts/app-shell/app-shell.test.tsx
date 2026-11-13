@@ -8,7 +8,7 @@ import { AppProviders } from '@/shared/components';
 import { expectNoA11yViolations } from '@/test/a11y';
 
 import { AppShell } from './AppShell';
-import { describeRunActivity } from './SideNav';
+import { NavEntry, describeRunActivity } from './SideNav';
 
 const invoke = vi.fn();
 const listen = vi.fn();
@@ -66,7 +66,7 @@ describe('AppShell · navegação', () => {
     expect(within(screen.getByRole('main')).getByRole('heading', { name: 'Conteúdo' })).toBeInTheDocument();
   });
 
-  it('marca a página atual e deixa indisponível o que ainda não existe, com o motivo dito', () => {
+  it('marca a página atual e leva cada item do menu ao seu destino', () => {
     renderShell();
     const nav = navigation();
 
@@ -75,9 +75,7 @@ describe('AppShell · navegação', () => {
     // "Configurar" abre a primeira etapa da jornada, onde se escolhe a pasta: sempre existe.
     expect(within(nav).getByRole('link', { name: 'Configurar' })).toHaveAttribute('href', '/configurar');
     expect(within(nav).getByRole('link', { name: 'Configurações' })).toHaveAttribute('href', '/configuracoes');
-    const catalog = within(nav).getByRole('button', { name: /Catálogo/ });
-    expect(catalog).toHaveAttribute('aria-disabled', 'true');
-    expect(catalog).toHaveAccessibleDescription('Em breve');
+    expect(within(nav).getByRole('link', { name: 'Catálogo' })).toHaveAttribute('href', '/projeto/catalogo');
   });
 
   it('mostra só o ambiente atual no menu e deixa as integrações fora dos dois', () => {
@@ -373,5 +371,19 @@ describe('AppShell · execuções no menu', () => {
       label: '2 em andamento',
       tone: 'info'
     });
+  });
+});
+
+describe('AppShell · item indisponível', () => {
+  it('um item sem destino aparece desativado e diz o motivo', () => {
+    render(
+      <MemoryRouter>
+        <NavEntry item={{ id: 'novo', label: 'Novidade', icon: <span />, unavailableReason: 'Em breve' }} />
+      </MemoryRouter>
+    );
+
+    const item = screen.getByRole('button', { name: /Novidade/ });
+    expect(item).toHaveAttribute('aria-disabled', 'true');
+    expect(item).toHaveAccessibleDescription('Em breve');
   });
 });
