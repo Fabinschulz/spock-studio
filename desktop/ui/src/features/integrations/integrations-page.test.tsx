@@ -392,7 +392,7 @@ describe('Integrações · o que a conexão alcança', () => {
       'Leitura: o Spock Studio só lê do GitHub. Não cria, altera nem apaga nada lá.'
     );
     expect(answerTo(row, CONTEXT)).toHaveTextContent(
-      'acme/app: Não. Ao provedor de IA vão só números, datas e identificadores de itens, nunca os títulos.'
+      'acme/app: Não. Nenhum item entra no índice dos agentes de engenharia, e ao assistente gerencial vão só números, datas e identificadores de itens, nunca os títulos.'
     );
     expect(engine.calls.some((call) => call.method === 'connection.reach')).toBe(true);
   });
@@ -407,21 +407,25 @@ describe('Integrações · o que a conexão alcança', () => {
     const answer = answerTo(await rowOf(), CONTEXT);
 
     expect(answer).toHaveTextContent('acme/app: Sim.');
+    expect(answer).toHaveTextContent('Os itens entram no índice dos agentes de engenharia');
+    expect(answer).toHaveTextContent('sem responsáveis');
+    expect(answer).toHaveTextContent('marcados como fonte externa');
     expect(answer).toHaveTextContent(
-      'Títulos de itens citados em riscos entram no que o assistente envia ao provedor de IA'
+      'Títulos de itens citados em riscos também entram no que o assistente gerencial envia'
     );
     expect(answer).toHaveTextContent('só quando todas as fontes do projeto autorizam');
   });
 
-  it('diz que o índice dos agentes de engenharia ainda não usa dado sincronizado e que a decisão é de cada projeto', async () => {
+  it('diz que a decisão é de cada projeto, começa em "Não" e vale para o assistente e para o índice dos agentes', async () => {
     const engine = fakeIntegrationEngine({ connections: [githubConnection], reach: reachFromEngine });
     render(page(engine.client, null));
 
     const answer = answerTo(await rowOf(), CONTEXT);
 
     expect(answer).toHaveTextContent(
-      'O índice de conhecimento dos agentes de engenharia ainda não usa dado sincronizado'
+      'Vale para o assistente gerencial e para o índice de conhecimento dos agentes de engenharia'
     );
+    expect(answer).not.toHaveTextContent('ainda não usa dado sincronizado');
     expect(answer).toHaveTextContent('começa em "Não"');
   });
 

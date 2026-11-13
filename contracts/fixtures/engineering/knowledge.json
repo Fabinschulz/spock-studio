@@ -71,5 +71,6 @@
   "indexed": 1,
   "outdated": 1,
   "pending": 1,
-  "orphaned": 0
+  "orphaned": 0,
+  "external": []
 }

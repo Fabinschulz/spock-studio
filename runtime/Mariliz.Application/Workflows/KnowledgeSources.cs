@@ -1,4 +1,5 @@
 using Mariliz.Application.Harness;
+using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
 using Mariliz.Core.Policy;
 using Mariliz.Core.Text;
@@ -60,17 +61,25 @@ internal static class KnowledgeSources
         return (declared?.Include ?? [], declared?.Exclude ?? []);
     }
 
-    public static IReadOnlyList<Source> Select(IProjectFiles files, IReadOnlyDictionary<string, string> indexed)
+    /// <param name="external">
+    /// Dado sincronizado que o projeto autorizou como contexto (<see cref="ExternalKnowledge"/>). Entra depois dos arquivos e pela
+    /// mesma regra de envio: só o que mudou e cabe no orçamento desta execução leva o texto.
+    /// </param>
+    public static IReadOnlyList<Source> Select(IProjectFiles files, IReadOnlyDictionary<string, string> indexed, IEnumerable<ExternalDocument>? external = null)
     {
         var selected = new List<Source>();
         var budget = MaxTextChars;
-        foreach (var file in Evaluate(files).Where(file => file.Reason == Exclusion.None))
+
+        void Add(string path, string hash, string text)
         {
-            var changed = !indexed.TryGetValue(file.Path, out var previous) || previous != file.Hash;
-            var send = changed && file.Text!.Length <= budget;
-            if (send) budget -= file.Text!.Length;
-            selected.Add(new Source(file.Path, file.Hash!, send ? file.Text : null));
+            var changed = !indexed.TryGetValue(path, out var previous) || previous != hash;
+            var send = changed && text.Length <= budget;
+            if (send) budget -= text.Length;
+            selected.Add(new Source(path, hash, send ? text : null));
         }
+
+        foreach (var file in Evaluate(files).Where(file => file.Reason == Exclusion.None)) Add(file.Path, file.Hash!, file.Text!);
+        foreach (var document in external ?? []) Add(document.Path, document.Hash, document.Text);
         return selected;
     }
 
@@ -120,6 +129,8 @@ internal static class KnowledgeSources
     private static Exclusion ByPath(string path, IgnorePatterns ignored, IgnorePatterns include, IgnorePatterns exclude)
     {
         if (string.IsNullOrWhiteSpace(path) || path.Contains('\\') || path.Split('/').Contains("..")) return Exclusion.Blocked;
+        // O prefixo das fontes externas é só do motor: um arquivo do projeto com esse nome não se passa por dado de terceiros.
+        if (path.StartsWith(ExternalKnowledge.Prefix, StringComparison.Ordinal)) return Exclusion.Blocked;
         var name = path.Split('/')[^1];
         if (BlockedNames.Contains(name) || BlockedExtensions.Contains(System.IO.Path.GetExtension(name)) || BlockedPatterns.Matches(path))
             return Exclusion.Blocked;

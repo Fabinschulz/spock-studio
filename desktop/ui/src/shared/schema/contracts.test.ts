@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import applyFailure from '@contracts/fixtures/golden/apply-failure.json';
 import engineeringCatalog from '@contracts/fixtures/engineering/catalog.json';
 import engineeringHarness from '@contracts/fixtures/engineering/harness.json';
+import engineeringKnowledgeExternal from '@contracts/fixtures/engineering/knowledge-external.json';
 import engineeringMcp from '@contracts/fixtures/engineering/mcp.json';
 import engineeringPolicy from '@contracts/fixtures/engineering/policy.json';
 import engineeringKnowledge from '@contracts/fixtures/engineering/knowledge.json';
@@ -526,5 +527,36 @@ describe('contrato da conexão do modelo (fixtures do motor)', () => {
   it('nenhuma resposta carrega a chave', () => {
     expect(JSON.stringify([modelConnection, modelConnectionError, modelConnectionPurposes])).not.toMatch(/sk-/);
     expect(JSON.stringify([modelConnection, modelConnectionError])).not.toMatch(/https:/);
+  });
+});
+
+describe('contrato das fontes externas do conhecimento (fixture do motor)', () => {
+  it('cada fonte diz se está autorizada e quantos itens dela entram no índice', () => {
+    const { external } = {
+      external: projectKnowledgeSchema.shape.external.parse(engineeringKnowledgeExternal.external)
+    };
+    expect(external.map((source) => source.authorized)).toEqual([true, false]);
+    expect(external[0]).toMatchObject({
+      providerName: 'GitHub',
+      resourceName: 'acme/app',
+      items: 1,
+      documents: 1,
+      withheld: 0
+    });
+    expect(external[1]).toMatchObject({ items: 1, documents: 0 });
+    expect(new Set(external.map((source) => source.integrationId)).size).toBe(2);
+  });
+
+  it('uma fonte não autorizada nunca tem documento no índice', () => {
+    const { external } = {
+      external: projectKnowledgeSchema.shape.external.parse(engineeringKnowledgeExternal.external)
+    };
+    expect(
+      external.filter((source) => !source.authorized).every((source) => source.documents === 0 && source.indexed === 0)
+    ).toBe(true);
+  });
+
+  it('o conhecimento sem fonte externa traz a lista vazia', () => {
+    expect(projectKnowledgeSchema.parse(engineeringKnowledge).external).toEqual([]);
   });
 });

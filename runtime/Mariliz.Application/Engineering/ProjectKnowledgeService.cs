@@ -1,4 +1,5 @@
 using Mariliz.Application.Execution;
+using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workflows;
 using Mariliz.Application.Workspace;
@@ -15,7 +16,8 @@ public sealed class ProjectKnowledgeService(
     IProjectFilesFactory files,
     IAiRuntime runtime,
     string indexRoot,
-    IClock clock)
+    IClock clock,
+    ExternalKnowledge? external = null)
 {
     /// <summary>Quantos arquivos a resposta lista; os totais contam todos.</summary>
     public const int MaxListed = 300;
@@ -52,7 +54,9 @@ public sealed class ProjectKnowledgeService(
         var listed = allowed.Take(MaxListed).Select(file => new KnowledgeFile(file.Path, file.Chars, State(file.Path, file.Hash))).ToList();
 
         var states = allowed.Select(file => State(file.Path, file.Hash)).ToList();
-        var sourcePaths = allowed.Select(file => file.Path).ToHashSet(StringComparer.Ordinal);
+        // Os textos de fontes externas autorizadas também são fonte do índice: não contam como órfãos.
+        var externalDocuments = external?.Documents(projectId) ?? [];
+        var sourcePaths = allowed.Select(file => file.Path).Concat(externalDocuments.Select(document => document.Path)).ToHashSet(StringComparer.Ordinal);
         var excluded = Reasons
             .Select(reason => (reason, matches: evaluated.Where(file => file.Reason == reason.Reason).Select(file => file.Path).ToList()))
             .Where(group => group.matches.Count > 0)
@@ -71,8 +75,20 @@ public sealed class ProjectKnowledgeService(
             states.Count(state => state == "indexed"),
             states.Count(state => state == "outdated"),
             states.Count(state => state == "pending"),
-            indexed is null ? 0 : indexed.Keys.Count(path => !sourcePaths.Contains(path)));
+            indexed is null ? 0 : indexed.Keys.Count(path => !sourcePaths.Contains(path)),
+            ExternalSources(projectId, externalDocuments, State));
     }
+
+    private IReadOnlyList<KnowledgeExternalSource> ExternalSources(
+        string projectId, IReadOnlyList<ExternalDocument> documents, Func<string, string?, string> state) =>
+        (external?.Sources(projectId) ?? []).Select(source =>
+        {
+            var states = documents.Where(document => document.IntegrationId == source.IntegrationId).Select(document => state(document.Path, document.Hash)).ToList();
+            return new KnowledgeExternalSource(
+                source.IntegrationId, source.ProviderName, source.ResourceName, source.Authorized, source.DataKinds,
+                source.Items, source.Documents, source.Withheld,
+                states.Count(item => item == "indexed"), states.Count(item => item == "pending"), states.Count(item => item == "outdated"));
+        }).ToList();
 
     private async Task<(string State, IReadOnlyDictionary<string, string>? Indexed)> ReadIndexAsync(string projectId, CancellationToken ct)
     {

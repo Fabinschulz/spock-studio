@@ -24,6 +24,7 @@ public sealed class IntegrationHub
         Connections = new ConnectionService(store, vault, connectors, clock, audit);
         Projects = new ProjectIntegrationService(store, data, Connections, connectors, workspace, activity, clock, audit);
         Reach = new ConnectionReachService(store, connectors, workspace);
+        ExternalKnowledge = new ExternalKnowledge(store, data, connectors, workspace);
         Sync = new SyncService(Projects, Connections, connectors, data, activity, clock, audit, emit);
     }
 
@@ -31,6 +32,9 @@ public sealed class IntegrationHub
     public ConnectionService Connections { get; }
     public ProjectIntegrationService Projects { get; }
     public ConnectionReachService Reach { get; }
+
+    /// <summary>Os itens sincronizados que cada projeto autorizou como contexto de agentes, como fontes do índice de conhecimento.</summary>
+    public ExternalKnowledge ExternalKnowledge { get; }
     public SyncService Sync { get; }
     public SyncActivity Activity { get; }
     public bool VaultAvailable { get; }

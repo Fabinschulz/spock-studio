@@ -77,8 +77,8 @@ export function ConnectionReachSummary({
             </ul>
           )}
           <p className={styles.hint}>
-            Isso vale hoje para o assistente gerencial. O índice de conhecimento dos agentes de engenharia ainda não usa
-            dado sincronizado. A decisão é de cada projeto, no vínculo dele, e começa em &quot;Não&quot;.
+            A decisão é de cada projeto, no vínculo dele, e começa em &quot;Não&quot;. Vale para o assistente gerencial
+            e para o índice de conhecimento dos agentes de engenharia.
           </p>
         </dd>
       </dl>
@@ -87,7 +87,7 @@ export function ConnectionReachSummary({
 }
 
 const CONTEXT_YES =
-  'Títulos de itens citados em riscos entram no que o assistente envia ao provedor de IA, mas só quando todas as fontes do projeto autorizam.';
+  'Os itens entram no índice dos agentes de engenharia (chave, título, tipo, situação, rótulos, datas e marcos, sem responsáveis) e vão ao provedor de IA, marcados como fonte externa, quando um agente os recupera. Títulos de itens citados em riscos também entram no que o assistente gerencial envia, mas só quando todas as fontes do projeto autorizam.';
 
 const CONTEXT_NO =
-  'Ao provedor de IA vão só números, datas e identificadores de itens, nunca os títulos. Nenhum código ou documento do projeto é enviado.';
+  'Nenhum item entra no índice dos agentes de engenharia, e ao assistente gerencial vão só números, datas e identificadores de itens, nunca os títulos.';
