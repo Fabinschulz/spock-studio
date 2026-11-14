@@ -93,8 +93,11 @@ $env:MARILIZ_LIVE_GITHUB_TOKEN = "..."; $env:MARILIZ_LIVE_GITHUB_REPO = "dono/re
 $env:MARILIZ_LIVE_JIRA_SITE = "https://equipe.atlassian.net"; $env:MARILIZ_LIVE_JIRA_EMAIL = "..."
 $env:MARILIZ_LIVE_JIRA_TOKEN = "..."; $env:MARILIZ_LIVE_JIRA_PROJECT = "CHAVE"
 $env:MARILIZ_LIVE_OPENAI_KEY = "..."
-dotnet test runtime/tests/Mariliz.Application.Tests --filter "FullyQualifiedName~LiveValidationTests" --logger "console;verbosity=detailed"
+python scripts/live-validation.py
 ```
+
+O passo a passo, os outros grupos (evals de gestão e fase A) e a tabela de resultados estão em
+[`docs/validacao-real.md`](../validacao-real.md).
 
 ### Fase B: fundações de interface e shell
 

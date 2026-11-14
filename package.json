@@ -8,6 +8,8 @@
     "ui:build": "pnpm --filter @mariliz/desktop-ui build",
     "ui:test": "pnpm --filter @mariliz/desktop-ui test",
     "ui:typecheck": "pnpm --filter @mariliz/desktop-ui typecheck",
-    "ui:lint": "pnpm --filter @mariliz/desktop-ui lint"
+    "ui:lint": "pnpm --filter @mariliz/desktop-ui lint",
+    "verify": "python scripts/verify.py",
+    "validate:live": "python scripts/live-validation.py"
   }
 }

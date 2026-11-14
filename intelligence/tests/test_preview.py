@@ -5,7 +5,7 @@ import unittest
 import _paths  # noqa: F401
 
 from agents import planning, prompts
-from contracts.messages import ContractError, PREVIEW_SCHEMA, parse_preview
+from contracts.messages import PREVIEW_SCHEMA, ContractError, parse_preview
 from knowledge import retrieval
 from workflows.engineering.preview import PREVIEW_ACK, preview
 

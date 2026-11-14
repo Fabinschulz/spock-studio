@@ -11,15 +11,13 @@ namespace Mariliz.Application.Tests;
 // Quem pontua é o pontuador Python, que não depende de quem escreveu a resposta: python intelligence/evaluations/management.py score <arquivo>. Só roda com a chave do provedor definida no terminal (LiveFactAttribute); a chave não passa por arquivo, conversa nem relatório, e o teste confere que ela não está no arquivo de resultados. MARILIZ_LIVE_EVAL_OUT escolhe a pasta.
 public class ManagementEvalLiveTests(ITestOutputHelper output)
 {
-    private const string OpenAiKey = "MARILIZ_LIVE_OPENAI_KEY";
-    private const string AnthropicKey = "MARILIZ_LIVE_ANTHROPIC_KEY";
     private const string OutputFolder = "MARILIZ_LIVE_EVAL_OUT";
 
-    [LiveFact(OpenAiKey)]
-    public Task Evals_de_gestao_com_a_OpenAI() => RunAsync(ModelProviders.OpenAi.Id, Env(OpenAiKey));
+    [LiveFact(LiveKeys.OpenAi)]
+    public Task Evals_de_gestao_com_a_OpenAI() => RunAsync(ModelProviders.OpenAi.Id, LiveKeys.Read(LiveKeys.OpenAi));
 
-    [LiveFact(AnthropicKey)]
-    public Task Evals_de_gestao_com_a_Anthropic() => RunAsync(ModelProviders.Anthropic.Id, Env(AnthropicKey));
+    [LiveFact(LiveKeys.Anthropic)]
+    public Task Evals_de_gestao_com_a_Anthropic() => RunAsync(ModelProviders.Anthropic.Id, LiveKeys.Read(LiveKeys.Anthropic));
 
     // chat troca o provedor (os testes sem rede usam um roteirizado).
     private async Task<string> RunAsync(string provider, string key, IModelChatTransport? chat = null)
@@ -27,7 +25,7 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
         var dataset = JsonNode.Parse(File.ReadAllText(DatasetPath()))!.AsObject();
         var scenarios = dataset["scenarios"]!.AsObject();
         using var network = chat is null ? new HttpsModelTransport() : null;
-        var gateway = new ModelGateway(new EnvSettings(provider, key), network ?? (IModelTransport)new NoopTransport(), timeout: TimeSpan.FromSeconds(60), chat: chat ?? network);
+        var gateway = new ModelGateway(new EnvModelSettings(provider, key), network ?? (IModelTransport)new NoopTransport(), timeout: TimeSpan.FromSeconds(60), chat: chat ?? network);
         using var access = new LocalModelAccess(new ModelBroker(gateway));
         var python = new LoopbackAiRuntime();
         var acks = new JsonObject();
@@ -146,8 +144,6 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
         }
     }
 
-    private static string Env(string name) => Environment.GetEnvironmentVariable(name)!.Trim();
-
     // O dataset mora ao lado do runtime Python.
     private static string DatasetPath()
     {
@@ -157,20 +153,6 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
             if (File.Exists(candidate)) return candidate;
         }
         throw new FileNotFoundException("O dataset das evals de gestão não foi encontrado a partir da pasta dos testes.");
-    }
-
-    // A chave só existe na memória deste teste: nada de cofre nem de arquivo.
-    private sealed class EnvSettings(string provider, string key) : IModelSettings
-    {
-        public ModelStatus Status() => new(true, provider);
-        public void Save(string providerId, string value) { }
-        public void Clear() { }
-
-        public bool TryGetKey(out string value)
-        {
-            value = key;
-            return true;
-        }
     }
 
     private static JsonArray GroupsFor(JsonArray facts)

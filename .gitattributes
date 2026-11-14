@@ -1,0 +1,8 @@
+# LF em todo arquivo de texto, em qualquer sistema: trocas por script e diffs nao misturam CRLF.
+* text=auto eol=lf
+
+*.png binary
+*.ico binary
+*.icns binary
+*.zip binary
+*.exe binary
