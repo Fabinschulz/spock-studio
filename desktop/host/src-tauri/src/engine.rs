@@ -15,6 +15,7 @@ use tauri_plugin_shell::{
 };
 use tokio::sync::oneshot;
 
+use crate::diagnostic_log::{record, Source};
 use crate::lock;
 use crate::protocol::{
     error_code, method, parse_engine_line, EngineMessage, HostError, PROTOCOL_VERSION,
@@ -74,9 +75,10 @@ impl Engine {
         let engine = self.clone();
         tauri::async_runtime::spawn(async move {
             if let Err(error) = engine.start_and_handshake(&app).await {
-                eprintln!(
-                    "[host] motor indisponível: {} ({})",
-                    error.message, error.code
+                record(
+                    &app,
+                    Source::Host,
+                    &format!("motor indisponível: {} ({})", error.message, error.code),
                 );
                 engine.set_status(&app, Status::Crashed);
                 engine.discard_process();
@@ -109,13 +111,14 @@ impl Engine {
                 "O motor não fala a versão de protocolo esperada.",
             ));
         }
-        eprintln!(
-            "[host] motor pronto (protocolo {}, versão {})",
-            PROTOCOL_VERSION,
-            hello
-                .get("engineVersion")
-                .and_then(Value::as_str)
-                .unwrap_or("?")
+        let version = hello
+            .get("engineVersion")
+            .and_then(Value::as_str)
+            .unwrap_or("?");
+        record(
+            app,
+            Source::Host,
+            &format!("motor pronto (protocolo {PROTOCOL_VERSION}, versão {version})"),
         );
         self.set_status(app, Status::Ready);
         Ok(())
@@ -153,11 +156,17 @@ impl Engine {
                 match event {
                     CommandEvent::Stdout(line) => engine.on_stdout(&app, &line),
                     CommandEvent::Stderr(line) => {
-                        eprintln!("[motor] {}", String::from_utf8_lossy(&line).trim_end());
+                        record(
+                            &app,
+                            Source::Motor,
+                            String::from_utf8_lossy(&line).trim_end(),
+                        );
                     }
-                    CommandEvent::Error(error) => {
-                        eprintln!("[host] erro no processo do motor: {error}")
-                    }
+                    CommandEvent::Error(error) => record(
+                        &app,
+                        Source::Host,
+                        &format!("erro no processo do motor: {error}"),
+                    ),
                     CommandEvent::Terminated(payload) => {
                         engine.on_terminated(&app, payload.code);
                         break;
@@ -179,7 +188,7 @@ impl Engine {
             Some(EngineMessage::Event(value)) => {
                 let _ = app.emit("engine_event", value);
             }
-            None => eprintln!("[host] linha descartada do stdout do motor"),
+            None => record(app, Source::Host, "linha descartada do stdout do motor"),
         }
     }
 
@@ -192,7 +201,11 @@ impl Engine {
         if self.0.shutting_down.load(Ordering::SeqCst) {
             return;
         }
-        eprintln!("[host] o motor encerrou (código {code:?})");
+        record(
+            app,
+            Source::Host,
+            &format!("o motor encerrou (código {code:?})"),
+        );
         self.set_status(app, Status::Crashed);
 
         let uptime = lock(&self.0.ready_since)

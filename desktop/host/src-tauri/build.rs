@@ -7,6 +7,7 @@ fn main() {
         "engine_status",
         "list_recent_projects",
         "open_recent_project",
+        "diagnostic_log",
     ]);
 
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(manifest))

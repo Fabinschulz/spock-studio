@@ -41,4 +41,13 @@ describe('formatDiagnostics', () => {
       ])
     ).toBe('Aplicativo: Spock Studio v1.2.3\nMotor local: Pronto');
   });
+
+  it('acrescenta o registro recente depois das informações, com a hora em UTC', () => {
+    const text = formatDiagnostics(
+      [{ label: 'Motor local', value: 'Pronto' }],
+      [{ atMs: Date.UTC(2026, 10, 13, 22, 0, 0), source: 'motor', message: 'falhou', count: 2 }]
+    );
+
+    expect(text).toBe('Motor local: Pronto\n\nRegistro recente:\n2026-11-13T22:00:00.000Z [motor] falhou (×2)');
+  });
 });

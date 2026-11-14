@@ -1,3 +1,4 @@
+mod diagnostic_log;
 mod engine;
 mod protocol;
 mod recents;
@@ -11,6 +12,7 @@ use tauri::{AppHandle, Manager, RunEvent, State};
 use tauri_plugin_dialog::DialogExt;
 use tokio::sync::oneshot;
 
+use diagnostic_log::{DiagnosticLog, LogEntry};
 use engine::Engine;
 use protocol::{error_code, method, validate_frontend_request, HostError};
 use recents::{AuthorizedProject, RecentProject, Recents};
@@ -134,6 +136,11 @@ async fn engine_status(engine: State<'_, Engine>) -> Result<serde_json::Value, H
     Ok(compose_status(lifecycle, health.as_ref()))
 }
 
+#[tauri::command]
+fn diagnostic_log(log: State<'_, DiagnosticLog>) -> Vec<LogEntry> {
+    log.snapshot()
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
@@ -145,6 +152,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
         .manage(Engine::default())
+        .manage(DiagnosticLog::default())
         .setup(|app| {
             let file = app
                 .path()
@@ -162,7 +170,8 @@ pub fn run() {
             pick_project_folder,
             engine_status,
             list_recent_projects,
-            open_recent_project
+            open_recent_project,
+            diagnostic_log
         ])
         .build(tauri::generate_context!())
         .expect("falha ao iniciar o aplicativo Spock Studio")

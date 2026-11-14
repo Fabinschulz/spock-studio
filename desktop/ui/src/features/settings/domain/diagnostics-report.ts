@@ -1,5 +1,7 @@
 import type { EngineReport } from '@/shared/hooks';
 
+import { formatLogLine, type LogLine } from './diagnostic-log';
+
 export interface DiagnosticsLine {
   label: string;
   value: string;
@@ -37,6 +39,7 @@ export function buildDiagnostics({ appName, version, userAgent, engine }: Diagno
   ];
 }
 
-export function formatDiagnostics(lines: readonly DiagnosticsLine[]): string {
-  return lines.map(({ label, value }) => `${label}: ${value}`).join('\n');
+export function formatDiagnostics(lines: readonly DiagnosticsLine[], log: readonly LogLine[] = []): string {
+  const report = lines.map(({ label, value }) => `${label}: ${value}`).join('\n');
+  return log.length === 0 ? report : `${report}\n\nRegistro recente:\n${log.map(formatLogLine).join('\n')}`;
 }

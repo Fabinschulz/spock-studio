@@ -1,13 +1,17 @@
 import { Page, PageSection } from '@/shared/components';
 import { app } from '@/shared/config/app';
-import { useCopyToClipboard, useEngineStatus, type CopyState } from '@/shared/hooks';
+import { useAsyncResource, useCopyToClipboard, useEngineStatus, type CopyState } from '@/shared/hooks';
 import { Button } from '@mariliz/ui-kit';
+import { useCallback } from 'react';
 
+import { DiagnosticLogSection } from './components/diagnostic-log-section';
 import styles from './diagnostics-page.module.scss';
+import { collapseRepeats } from './domain/diagnostic-log';
 import { buildDiagnostics, formatDiagnostics } from './domain/diagnostics-report';
+import { readDiagnosticLog } from './service/diagnostic-log-api';
 
 const COPY_FEEDBACK: Record<CopyState, string> = {
-  idle: 'O texto copiado traz as mesmas linhas desta tela.',
+  idle: 'O texto copiado traz as linhas desta tela e o registro recente.',
   copied: 'Informações copiadas.',
   failed: 'Não foi possível copiar. Selecione o texto da tela e copie à mão.'
 };
@@ -15,7 +19,13 @@ const COPY_FEEDBACK: Record<CopyState, string> = {
 export function DiagnosticsPage() {
   const engine = useEngineStatus();
   const { state, copy } = useCopyToClipboard({ resetAfterMs: 4000 });
+  const readLog = useCallback(
+    async () => (engine.hosted ? collapseRepeats(await readDiagnosticLog()) : []),
+    [engine.hosted]
+  );
+  const log = useAsyncResource(readLog);
   const lines = buildDiagnostics({ appName: app.name, version: app.version, userAgent: navigator.userAgent, engine });
+  const report = () => formatDiagnostics(lines, log.status === 'ready' ? log.value : []);
 
   return (
     <Page
@@ -25,7 +35,7 @@ export function DiagnosticsPage() {
       <PageSection
         title="Este computador"
         action={
-          <Button variant="outlined" onClick={() => void copy(formatDiagnostics(lines))}>
+          <Button variant="outlined" onClick={() => void copy(report())}>
             Copiar informações
           </Button>
         }
@@ -42,6 +52,8 @@ export function DiagnosticsPage() {
           {COPY_FEEDBACK[state]}
         </p>
       </PageSection>
+
+      <DiagnosticLogSection log={log} hosted={engine.hosted} />
     </Page>
   );
 }
