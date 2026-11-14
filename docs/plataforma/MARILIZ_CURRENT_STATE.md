@@ -43,7 +43,7 @@ Projetos .NET: `Mariliz.Core` (modelos e políticas puras), `Mariliz.Application
 | Descoberta e Harness | `project.discover`, `harness.plan`, `harness.apply`, `harness.validate`, `harness.revert`, `harness.runs` | Descoberta, plano com diff, aplicação aprovada, validação por evals, reversão, diários. |
 | Execuções | `run.snapshot`, `run.cancel` | Retrato com `sinceSeq` e cancelamento. |
 | Workflow | `workflow.start`, `workflow.resume` | Pedido de engenharia e retomada da pausa de aprovação. |
-| Modelo | `model.status`, `model.save`, `model.clear`, `model.complete` | Chave do provedor e conclusão simples. |
+| Modelo | `model.status`, `model.save`, `model.clear`, `model.connection`, `model.test`, `model.purpose` | Chave do provedor, conferência da conexão e modelo por finalidade. |
 | Integrações | `integration.catalog`, `connection.{list,create,test,rotate,disconnect,remove}`, `integration.{list,link,configure,unlink,sync,history}` | Conexões, vínculo com projeto, recorte, política, sincronização. |
 | Gestão | `management.{portfolio,metrics,forecast,risks,evidence,ask}` | Portfólio, indicadores, previsão, riscos, assistente. |
 | Engenharia | `engineering.{profile,analyze,knowledge,harness,revisions}` | Perfil tecnológico, conhecimento, estado e revisões do Harness. |

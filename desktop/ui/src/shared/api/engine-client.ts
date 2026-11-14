@@ -38,7 +38,6 @@ export const ENGINE_METHODS = [
   'model.status',
   'model.save',
   'model.clear',
-  'model.complete',
   'model.connection',
   'model.test',
   'model.purpose',

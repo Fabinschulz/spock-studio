@@ -18,7 +18,6 @@ public sealed class ModelGateway(
 {
     // O provedor de quem já tinha uma chave antes de haver escolha. Quem decide o provedor de hoje é ModelProviders.
     public const string Provider = "openai";
-    public const int MaxTokens = 256;
 
     // O agente não escolhe o modelo.
     public const string DefaultModel = "gpt-4o-mini";
@@ -143,35 +142,6 @@ public sealed class ModelGateway(
         {
             throw new EngineException("MODEL_TIMEOUT", "O modelo não respondeu no prazo.");
         }
-    }
-
-    public async Task<ModelCompletion> CompleteAsync(string prompt, CancellationToken ct)
-    {
-        if (!settings.TryGetKey(out var key))
-            return new ModelCompletion("", 0, "MODEL_NOT_CONFIGURED");
-
-        var provider = Active(settings.Status());
-        prompt = Redact(prompt, key).Trim();
-        if (prompt.Length == 0)
-            return new ModelCompletion("", 0, "MODEL_PROMPT_EMPTY");
-        if (prompt.Length > 4000) prompt = prompt[..4000];
-
-        using var budget = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        budget.CancelAfter(_timeout);
-        ModelTransportResult result;
-        try
-        {
-            result = await transport.SendAsync(provider.Endpoint, key, prompt, MaxTokens, budget.Token);
-        }
-        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
-        {
-            throw new EngineException("MODEL_TIMEOUT", "O modelo não respondeu no prazo.");
-        }
-
-        var text = Redact(result.Text, key);
-        if (text.Length > 4000) text = text[..4000];
-        var tokens = Math.Clamp(result.Tokens, 0, MaxTokens);
-        return new ModelCompletion(text, tokens, "");
     }
 
     // As mensagens saem sem a chave nem formato de segredo, e a resposta volta pela mesma redação. Quem cobra o orçamento é o chamador.

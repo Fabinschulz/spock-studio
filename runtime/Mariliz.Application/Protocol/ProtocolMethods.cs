@@ -27,7 +27,6 @@ public static class ProtocolMethods
     public const string ModelStatus = "model.status";
     public const string ModelSave = "model.save";
     public const string ModelClear = "model.clear";
-    public const string ModelComplete = "model.complete";
     public const string ModelConnection = "model.connection";
     public const string ModelTest = "model.test";
     public const string ModelPurpose = "model.purpose";
@@ -79,7 +78,7 @@ public static class ProtocolMethods
 
     public static readonly IReadOnlyList<string> Workflow = [WorkflowStart, WorkflowResume];
 
-    public static readonly IReadOnlyList<string> Model = [ModelStatus, ModelSave, ModelClear, ModelComplete, ModelConnection, ModelTest, ModelPurpose];
+    public static readonly IReadOnlyList<string> Model = [ModelStatus, ModelSave, ModelClear, ModelConnection, ModelTest, ModelPurpose];
 
     public static readonly IReadOnlyList<string> Integrations =
     [
@@ -92,7 +91,7 @@ public static class ProtocolMethods
     // O laço da sessão despacha estes pedidos sem esperar por eles: enquanto um roda, o motor segue respondendo e consegue cancelar, aprovar ou encerrar.
     public static readonly IReadOnlySet<string> Slow = new HashSet<string>(StringComparer.Ordinal)
     {
-        ModelSave, ModelComplete, ModelTest,
+        ModelSave, ModelTest,
         ConnectionCreate, ConnectionTest, ConnectionRotate, ConnectionReach, IntegrationLink,
         ManagementAsk, ManagementInvestigate, ManagementPortfolioAsk
     };
