@@ -1,0 +1,79 @@
+{
+  "stage": "specification",
+  "artifact": {
+    "title": "Pedidos da loja",
+    "problem": "O lojista não sabe onde está cada pedido. O cliente pergunta por telefone.",
+    "users": [
+      "Lojista",
+      "Cliente"
+    ],
+    "goals": [
+      "Menos ligações de clientes"
+    ],
+    "requirements": [
+      {
+        "id": "REQ-01",
+        "text": "Quando um pedido for criado, o sistema deve registrá-lo como recebido.",
+        "priority": "must"
+      },
+      {
+        "id": "REQ-02",
+        "text": "Quando o pedido sair para entrega, o sistema deve avisar o cliente.",
+        "priority": "must"
+      },
+      {
+        "id": "REQ-03",
+        "text": "O sistema deve mostrar ao lojista os pedidos do dia.",
+        "priority": "could"
+      }
+    ],
+    "nonFunctional": [
+      {
+        "id": "NFR-01",
+        "text": "O sistema deve responder em até dois segundos."
+      }
+    ],
+    "outOfScope": [
+      "Pagamento"
+    ],
+    "openQuestions": [
+      "O aviso é por e-mail ou mensagem?"
+    ]
+  },
+  "checks": [
+    {
+      "id": "shape",
+      "label": "Tem título, problema, usuários, objetivos e de 3 a 30 requisitos",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "ids",
+      "label": "Cada requisito tem um id único no formato REQ-01 (e NFR-01 para os não funcionais)",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "shall",
+      "label": "Cada requisito diz o que o sistema deve fazer",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "priority",
+      "label": "Cada requisito tem prioridade (must, should ou could) e ao menos um é must",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "secrets",
+      "label": "Não traz nada com formato de credencial",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "valid": true,
+  "attempts": 1,
+  "inputTokens": 800,
+  "outputTokens": 400
+}

@@ -87,7 +87,10 @@ export const ENGINE_METHODS = [
   'context.review',
   'security.scan',
   'security.plan',
-  'security.fix'
+  'security.fix',
+  'idea.draft',
+  'idea.plan',
+  'idea.save'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

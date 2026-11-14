@@ -3,6 +3,8 @@ import aiToolsFixture from '@contracts/fixtures/aitools/list.json';
 import auditFixture from '@contracts/fixtures/audit/audit.json';
 import contextReviewFixture from '@contracts/fixtures/context/review.json';
 import ideConnectionFixture from '@contracts/fixtures/ide/connection.json';
+import ideaDraftFixture from '@contracts/fixtures/idea/draft.json';
+import ideaPlanFixture from '@contracts/fixtures/idea/plan.json';
 import investigationFixture from '@contracts/fixtures/management/investigation.json';
 import portfolioAnswerFixture from '@contracts/fixtures/management/portfolio-answer.json';
 import portfolioEvidenceFixture from '@contracts/fixtures/management/portfolio-evidence.json';
@@ -88,6 +90,9 @@ import {
   contextReviewSchema,
   securityPlanSchema,
   securityReportSchema,
+  ideaDraftSchema,
+  ideaPlanSchema,
+  ideaSpecificationView,
   projectKnowledgeSchema,
   portfolioAnswerSchema,
   portfolioEvidenceSchema,
@@ -679,6 +684,28 @@ describe('contrato do resultado de um agente (fixture do motor)', () => {
       error: null,
       answer: 'Resposta do agente.'
     });
+  });
+});
+
+describe('contrato da ideia ao projeto (fixtures do motor)', () => {
+  it('a etapa traz o que o modelo escreveu e cada verificação do motor', () => {
+    const parsed = ideaDraftSchema.parse(ideaDraftFixture);
+
+    expect(parsed).toMatchObject({ stage: 'specification', valid: true, attempts: 1 });
+    expect(parsed.checks.map((check) => check.id)).toEqual(['shape', 'ids', 'shall', 'priority', 'secrets']);
+    expect(ideaSpecificationView.parse(parsed.artifact).requirements.map((item) => item.id)).toEqual([
+      'REQ-01',
+      'REQ-02',
+      'REQ-03'
+    ]);
+  });
+
+  it('o plano grava só os três documentos em .mariliz/arquitetura', () => {
+    expect(ideaPlanSchema.parse(ideaPlanFixture).changes.map((change) => change.path)).toEqual([
+      '.mariliz/arquitetura/especificacao.md',
+      '.mariliz/arquitetura/arquitetura.md',
+      '.mariliz/arquitetura/backlog.md'
+    ]);
   });
 });
 

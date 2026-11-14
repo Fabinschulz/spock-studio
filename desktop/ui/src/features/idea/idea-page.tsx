@@ -1,0 +1,138 @@
+import type { SelectedProject } from '@/features/project-selection';
+import type { EngineClient } from '@/shared/api';
+import { ErrorState, LoadingState, NoProjectState, Page } from '@/shared/components';
+import { pathTo } from '@/shared/routing';
+import { IDEA_STAGES, type IdeaStage } from '@/shared/schema';
+import { Button, TextField } from '@mariliz/ui-kit';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router';
+
+import { SavePanel } from './components/save-panel';
+import { STAGE_LABELS, StageCard } from './components/stage-card';
+import { nextStage, useIdeaFlow } from './hooks/use-idea-flow';
+import styles from './idea-page.module.scss';
+import { createIdeaApi, type IdeaApi } from './service/idea-api';
+
+export const MIN_IDEA = 20;
+export const MAX_IDEA = 4000;
+
+const BUSY_LABEL = {
+  drafting: 'O modelo está escrevendo e o motor confere a etapa…',
+  planning: 'Montando os documentos…',
+  saving: 'Gravando os documentos…',
+  reverting: 'Desfazendo a gravação…'
+} as const;
+
+export function IdeaPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
+  const api = useMemo(() => createIdeaApi(client), [client]);
+  if (!project) {
+    return (
+      <Page title="Da ideia ao projeto">
+        <NoProjectState />
+      </Page>
+    );
+  }
+  return <ProjectIdea key={project.projectId} api={api} project={project} />;
+}
+
+function ProjectIdea({ api, project }: { api: IdeaApi; project: SelectedProject }) {
+  const flow = useIdeaFlow(api, project.projectId);
+  const { approved, drafts, busy, error } = flow.state;
+  const [idea, setIdea] = useState('');
+  const next = nextStage(approved);
+  const started = Boolean(drafts.specification);
+  const ideaReady = idea.trim().length >= MIN_IDEA;
+  const generate = (stage: IdeaStage) =>
+    void flow.draft(stage, stage === 'specification' ? { idea: idea.trim() } : approved);
+
+  return (
+    <Page
+      title="Da ideia ao projeto"
+      description={`Descreva uma ideia e o Spock monta a especificação, a arquitetura e o backlog de ${project.displayName}, uma etapa por vez. O modelo escreve, o motor confere cada etapa e você aprova antes de seguir.`}
+    >
+      <div className={styles.form}>
+        <TextField
+          label="Sua ideia"
+          multiline
+          minRows={4}
+          fullWidth
+          value={idea}
+          disabled={approved.specification !== undefined || busy !== null}
+          onChange={(event) => setIdea(event.target.value)}
+          helperText={`De ${MIN_IDEA} a ${MAX_IDEA.toLocaleString('pt-BR')} caracteres: o problema, quem usa e o que precisa acontecer.`}
+          slotProps={{ htmlInput: { maxLength: MAX_IDEA } }}
+        />
+        <p className={styles.note}>
+          Cada etapa usa o modelo configurado em <Link to={pathTo('settingsAi')}>Minha IA</Link> e aparece em Execuções
+          com os tokens gastos.
+        </p>
+        <div className={styles.actions}>
+          {started ? null : (
+            <Button
+              type="button"
+              variant="contained"
+              disabled={!ideaReady || busy !== null}
+              onClick={() => generate('specification')}
+            >
+              Gerar especificação
+            </Button>
+          )}
+          {started ? (
+            <Button
+              type="button"
+              variant="outlined"
+              color="inherit"
+              disabled={busy !== null}
+              onClick={() => {
+                flow.restart();
+                setIdea('');
+              }}
+            >
+              Começar de novo
+            </Button>
+          ) : null}
+        </div>
+      </div>
+
+      {IDEA_STAGES.map((stage, index) => {
+        const draft = drafts[stage];
+        if (!draft) return null;
+        return (
+          <StageCard
+            key={stage}
+            index={index + 1}
+            draft={draft}
+            approved={approved[stage] !== undefined}
+            busy={busy !== null}
+            onApprove={() => flow.approve(stage)}
+            onRetry={() => generate(stage)}
+          />
+        );
+      })}
+
+      {next && next !== 'specification' && !drafts[next] && busy === null ? (
+        <div className={styles.actions}>
+          <Button type="button" variant="contained" onClick={() => generate(next)}>
+            Gerar {STAGE_LABELS[next].toLowerCase()}
+          </Button>
+        </div>
+      ) : null}
+
+      {busy ? <LoadingState>{BUSY_LABEL[busy]}</LoadingState> : null}
+      {error ? <ErrorState>{error}</ErrorState> : null}
+
+      {next === null ? (
+        <SavePanel
+          plan={flow.state.plan}
+          saved={flow.state.saved}
+          reverted={flow.state.reverted}
+          busy={busy !== null}
+          onReview={() => void flow.review()}
+          onSave={(plan) => void flow.save(plan)}
+          onCancel={flow.cancelReview}
+          onRevert={(saved) => void flow.revert(saved)}
+        />
+      ) : null}
+    </Page>
+  );
+}

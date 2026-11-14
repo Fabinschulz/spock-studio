@@ -5,6 +5,7 @@ export * from './context';
 export * from './decision';
 export * from './engineering';
 export * from './harness';
+export * from './idea';
 export * from './ide';
 export * from './integration';
 export * from './management';

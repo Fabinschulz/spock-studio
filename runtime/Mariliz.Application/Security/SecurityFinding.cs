@@ -1,3 +1,5 @@
+using Mariliz.Application.Execution;
+
 namespace Mariliz.Application.Security;
 
 public static class FindingKinds
@@ -28,7 +30,5 @@ public sealed record SecurityFinding(
 // Nunca leva o valor encontrado: só onde está e que tipo de credencial parece ser.
 public sealed record SecurityReport(string ProjectId, DateTimeOffset ScannedAt, int FilesScanned, bool Truncated, IReadOnlyList<SecurityFinding> Findings);
 
-public sealed record SecurityChange(string Path, string Op, string Diff, bool Truncated, string? BeforeHash, string AfterHash);
-
 /// <param name="Manual">Achados que o plano não corrige: a pessoa resolve, seguindo a orientação de cada um.</param>
-public sealed record SecurityPlan(string PlanId, string ProjectId, IReadOnlyList<SecurityChange> Changes, IReadOnlyList<string> FindingIds, int Manual);
+public sealed record SecurityPlan(string PlanId, string ProjectId, IReadOnlyList<ReviewedChange> Changes, IReadOnlyList<string> FindingIds, int Manual);

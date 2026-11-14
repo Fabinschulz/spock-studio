@@ -78,6 +78,9 @@ public static class ProtocolMethods
     public const string SecurityScan = "security.scan";
     public const string SecurityPlan = "security.plan";
     public const string SecurityFix = "security.fix";
+    public const string IdeaDraft = "idea.draft";
+    public const string IdeaPlan = "idea.plan";
+    public const string IdeaSave = "idea.save";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -104,7 +107,8 @@ public static class ProtocolMethods
         ManagementAsk, ManagementInvestigate, ManagementPortfolioAsk,
         AiToolList, ContextReview,
         // Os três leem o projeto inteiro antes de responder.
-        SecurityScan, SecurityPlan, SecurityFix
+        SecurityScan, SecurityPlan, SecurityFix,
+        IdeaDraft
     };
 
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
@@ -122,6 +126,8 @@ public static class ProtocolMethods
     public static readonly IReadOnlyList<string> Context = [ContextReview];
 
     public static readonly IReadOnlyList<string> Security = [SecurityScan, SecurityPlan, SecurityFix];
+
+    public static readonly IReadOnlyList<string> Idea = [IdeaDraft, IdeaPlan, IdeaSave];
 
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }
