@@ -1,21 +1,12 @@
-import { Disclosure, EmptyState, PageSection, ResourceView, StatusChip, type Tone } from '@/shared/components';
+import { Disclosure, EmptyState, PageSection, ResourceView, StatusChip } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import type { MilestoneProgress, ProjectMilestones } from '@/shared/schema';
 import { useCallback } from 'react';
 
+import { milestoneOutlookLabel } from '../domain/delivery-labels';
 import { formatDay } from '../domain/format';
 import styles from '../management-page.module.scss';
 import type { ManagementApi } from '../service/management-api';
-
-const OUTLOOK: Record<string, { label: string; tone: Tone }> = {
-  done: { label: 'Concluído', tone: 'success' },
-  on_track: { label: 'No prazo', tone: 'success' },
-  at_risk: { label: 'Em risco', tone: 'warning' },
-  behind: { label: 'Atrasado em relação ao prazo', tone: 'danger' },
-  overdue: { label: 'Prazo vencido', tone: 'danger' },
-  no_forecast: { label: 'Sem previsão', tone: 'neutral' },
-  no_due_date: { label: 'Sem prazo', tone: 'neutral' }
-};
 
 const KIND_LABEL: Record<string, string> = { issues: 'Issues', pullRequests: 'Pull requests' };
 
@@ -80,7 +71,7 @@ export function MilestonesBody({ value }: { value: ProjectMilestones }) {
 }
 
 function MilestoneRow({ milestone }: { milestone: MilestoneProgress }) {
-  const outlook = OUTLOOK[milestone.outlook] ?? { label: milestone.outlook, tone: 'neutral' as const };
+  const outlook = milestoneOutlookLabel(milestone.outlook);
 
   return (
     <li className={styles.portfolioRow}>

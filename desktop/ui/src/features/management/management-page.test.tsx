@@ -114,7 +114,7 @@ describe('Gestão · acompanhamento do projeto', () => {
     const list = within(risks).getByRole('list', { name: 'Riscos detectados' });
     const [first] = within(list).getAllByRole('listitem');
     expect(first).toHaveTextContent('Itens com prazo vencido');
-    expect(first).toHaveTextContent('Severidade alta');
+    expect(first).toHaveTextContent('Gravidade alta');
     expect(first).toHaveTextContent('O que fazer:');
 
     await expectNoA11yViolations(container);

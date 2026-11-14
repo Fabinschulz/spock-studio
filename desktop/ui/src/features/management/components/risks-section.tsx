@@ -1,7 +1,7 @@
 import { StatusChip, PageSection } from '@/shared/components';
 import type { ProjectRisk, ProjectRisks } from '@/shared/schema';
 
-import { SEVERITY_LABEL } from '../domain/delivery-labels';
+import { severityLabel } from '../domain/delivery-labels';
 import styles from '../management-page.module.scss';
 
 export function RisksSection({ risks }: { risks: ProjectRisks }) {
@@ -27,13 +27,13 @@ export function RisksSection({ risks }: { risks: ProjectRisks }) {
 }
 
 function RiskRow({ risk }: { risk: ProjectRisk }) {
-  const severity = SEVERITY_LABEL[risk.severity];
+  const severity = severityLabel(risk.severity);
 
   return (
     <li className={styles.portfolioRow}>
       <div className={styles.portfolioHead}>
         <span className={styles.rowTitle}>{risk.title}</span>
-        <StatusChip tone={severity.tone}>Severidade {severity.label}</StatusChip>
+        <StatusChip tone={severity.tone}>Gravidade {severity.label}</StatusChip>
       </div>
       {risk.evidence.map((line) => (
         <p key={line} className={styles.muted}>
