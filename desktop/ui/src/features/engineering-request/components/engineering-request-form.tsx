@@ -34,8 +34,9 @@ function ModelOption({ configured }: { configured: boolean | null }) {
         slotProps={{ input: { 'aria-describedby': descriptionId } }}
       />
       <p id={descriptionId} className={styles.note}>
-        Se marcado, o pedido e os trechos do projeto recuperados para ele são enviados à OpenAI, com segredos removidos
-        antes. O gasto é limitado a 8.000 tokens e o motor o contabiliza. Sem marcar, nada sai do seu computador.
+        Se marcado, o pedido e os trechos do projeto recuperados para ele são enviados ao provedor do modelo configurado
+        em Minha IA, com segredos removidos antes. O gasto é limitado a 8.000 tokens e o motor o contabiliza. Sem
+        marcar, nada sai do seu computador.
       </p>
       {configured === false ? (
         <p className={styles.note}>
@@ -82,6 +83,7 @@ export function EngineeringRequestForm({ busy, error, modelConfigured, onSubmit 
         minRows={4}
         fullWidth
         required
+        helperText="O pedido começa quando o objetivo estiver descrito."
       />
 
       <div className={styles.options}>

@@ -17,6 +17,12 @@ interface ProjectStepProps {
   onContinue: () => void;
 }
 
+function continueHint(project: PickedProject | null, status: Loadable<Discovery>['status']): string | null {
+  if (project === null) return 'Escolha a pasta do projeto para continuar.';
+  if (status === 'ready' || status === 'loading') return null;
+  return 'Analise o projeto para continuar.';
+}
+
 export function ProjectStep({ project, discovery, onAnalyze, onContinue }: ProjectStepProps) {
   const analyzing = discovery.status === 'loading';
   const ready = project !== null && discovery.status === 'ready';
@@ -37,7 +43,7 @@ export function ProjectStep({ project, discovery, onAnalyze, onContinue }: Proje
 
       {ready ? <DiscoveryDetails discovery={discovery.data} /> : null}
 
-      <PrimaryActionFooter>
+      <PrimaryActionFooter hint={continueHint(project, discovery.status)}>
         <Button variant="contained" onClick={onContinue} disabled={!ready} endIcon={<ArrowRightIcon />}>
           Próximo
         </Button>

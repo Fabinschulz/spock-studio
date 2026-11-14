@@ -84,7 +84,9 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
 
       {cancelError ? <Alert severity="error" title="Não foi possível cancelar" description={cancelError} /> : null}
 
-      <PrimaryActionFooter>
+      <PrimaryActionFooter
+        hint={!failed && run.runId === null ? 'O cancelamento fica disponível quando a execução começar.' : null}
+      >
         {failed ? (
           <Button variant="outlined" color="inherit" onClick={onBack}>
             Voltar à revisão

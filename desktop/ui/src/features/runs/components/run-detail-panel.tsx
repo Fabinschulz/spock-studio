@@ -4,7 +4,7 @@ import { InlineNotice, ResourceView, StatusChip } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import { executionPath } from '@/shared/routing';
 import type { RunDetail, RunItem } from '@/shared/schema';
-import { runEffectLabel, runKindLabel } from '@/shared/utils';
+import { actionStatusLabel, evalStatusLabel, runEffectLabel, runKindLabel } from '@/shared/utils';
 import { Drawer } from '@mariliz/ui-kit';
 import { useCallback, type ReactNode } from 'react';
 import { Link } from 'react-router';
@@ -132,7 +132,7 @@ function Body({ client, run, detail }: { client: EngineClient; run: RunItem; det
                 <span className={styles.mono}>{evaluation.id}</span>
                 <span className={styles.meta}>
                   {' '}
-                  · {evaluation.status}
+                  · {evalStatusLabel(evaluation.status)}
                   {evaluation.required ? ' (obrigatória)' : ''}
                 </span>
               </li>
@@ -148,7 +148,7 @@ function Body({ client, run, detail }: { client: EngineClient; run: RunItem; det
                 <span className={styles.itemTitle}>{action.summary}</span>
                 <span className={styles.meta}>
                   {' '}
-                  · {action.target} · {action.status}
+                  · {action.target} · {actionStatusLabel(action.status)}
                 </span>
               </li>
             ))}

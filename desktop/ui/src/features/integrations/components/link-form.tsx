@@ -47,6 +47,9 @@ export function LinkForm({ connection, connector, busy, onSubmit, onCancel }: Li
           />
         ))}
       </fieldset>
+      {complete ? null : (
+        <p className={styles.hint}>Para vincular, informe o recurso e marque pelo menos um tipo de dado.</p>
+      )}
       <div className={styles.actions}>
         <Button type="submit" variant="contained" disabled={busy || !complete}>
           Vincular

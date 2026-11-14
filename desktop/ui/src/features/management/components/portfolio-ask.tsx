@@ -68,6 +68,9 @@ export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: 
           <Link to={pathTo('settings')}>Configurações</Link>.
         </InlineNotice>
       ) : null}
+      {status.status === 'error' ? (
+        <ErrorState>{errorMessage(status.error, 'Não foi possível verificar a chave do modelo.')}</ErrorState>
+      ) : null}
 
       <form aria-label="Pergunta ao portfólio" onSubmit={(event) => void ask(event)}>
         <fieldset className={styles.chooser}>
@@ -81,6 +84,7 @@ export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: 
               onChange={() => toggle(project.projectId)}
             />
           ))}
+          {chosen.length === 0 ? <p className={styles.muted}>Escolha pelo menos um projeto para perguntar.</p> : null}
         </fieldset>
         <TextField
           label="Sua pergunta sobre o portfólio"
