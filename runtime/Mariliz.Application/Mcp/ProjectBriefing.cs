@@ -36,7 +36,7 @@ internal static class ProjectBriefing
 
     private static string Tooling(TechnologyProfile profile) =>
         string.Join("\n", profile.Tooling
-            .Select(tool => tool.Command is null ? $"- {tool.Kind}: {tool.Name}" : $"- {tool.Kind}: {tool.Name} — `{tool.Command}`")
+            .Select(tool => tool.Command is null ? $"- {tool.Kind}: {tool.Name}" : $"- {tool.Kind}: {tool.Name}, comando `{tool.Command}`")
             .Prepend("## Comandos do projeto"));
 
     private static string Harness(HarnessStatus? harness)

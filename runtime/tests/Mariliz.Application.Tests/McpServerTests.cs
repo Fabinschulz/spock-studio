@@ -155,7 +155,7 @@ public sealed class McpServerTests : IDisposable
 
         Assert.False(failed);
         Assert.Contains("- .NET 10.0 (backend) em src, confiança alta", text);
-        Assert.Contains("- test: dotnet — `dotnet test`", text);
+        Assert.Contains("- test: dotnet, comando `dotnet test`", text);
         Assert.Contains("## Harness\nAplicado", text);
         Assert.Contains("íntegros", text);
         Assert.Contains("## Decisões (5 mais recentes de 7; o resto em decisions)", text);
