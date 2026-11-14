@@ -3,7 +3,7 @@ import { tauriEngineClient } from '@/shared/api';
 import { Container, Logo, PageTrailProvider, Wordmark } from '@/shared/components';
 import { app } from '@/shared/config/app';
 import { ContentAreaProvider, useEngineStatus, useScrollToTop } from '@/shared/hooks';
-import { pathTo } from '@/shared/routing';
+import { isWithin, pathTo, paths } from '@/shared/routing';
 import { Button } from '@mariliz/ui-kit';
 import { useMemo, useRef, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
@@ -11,6 +11,7 @@ import { AppHeader } from './AppHeader';
 import styles from './AppShell.module.scss';
 import { EngineStatus } from './EngineStatus';
 import { useEnvironment } from './use-environment';
+import { SettingsNav } from './SettingsNav';
 import { SideNav } from './SideNav';
 import { trailOf } from './trail';
 
@@ -40,7 +41,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Logo className={styles.logo} />
           <Wordmark className={styles.wordmark} />
         </Link>
-        <SideNav environment={environment} runActivity={runActivity} />
+        {isWithin(pathname, paths.settings) ? (
+          <SettingsNav environment={environment} />
+        ) : (
+          <SideNav environment={environment} runActivity={runActivity} />
+        )}
         <EngineStatus {...engine} />
         <p className={styles.version}>
           <span className="visually-hidden">Versão </span>v{app.version}

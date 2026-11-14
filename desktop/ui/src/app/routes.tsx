@@ -1,6 +1,6 @@
 import { RequiresHost } from '@/shared/components';
 import { executionPattern, paths } from '@/shared/routing';
-import type { RouteObject } from 'react-router';
+import { Navigate, type RouteObject } from 'react-router';
 import { WindowLayout, WindowLayoutError } from './layouts/window-layout';
 import Assistant from './routes/assistant';
 import Configure from './routes/configure';
@@ -18,7 +18,8 @@ import Audit from './routes/audit';
 import ProjectHarness from './routes/project-harness';
 import ProjectKnowledge from './routes/project-knowledge';
 import Runs from './routes/runs';
-import Settings from './routes/settings';
+import SettingsAi from './routes/settings-ai';
+import SettingsDiagnostics from './routes/settings-diagnostics';
 
 // Os caminhos vêm de `shared/routing`: a navegação e as rotas não podem divergir.
 export const routes: RouteObject[] = [
@@ -126,14 +127,16 @@ export const routes: RouteObject[] = [
           </RequiresHost>
         )
       },
+      { path: paths.settings, element: <Navigate to={paths.settingsAi} replace /> },
       {
-        path: paths.settings,
+        path: paths.settingsAi,
         element: (
           <RequiresHost>
-            <Settings />
+            <SettingsAi />
           </RequiresHost>
         )
       },
+      { path: paths.settingsDiagnostics, element: <SettingsDiagnostics /> },
       {
         path: executionPattern,
         element: (

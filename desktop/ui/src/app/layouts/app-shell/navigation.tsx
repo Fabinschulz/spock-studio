@@ -9,6 +9,8 @@ import {
   ComplianceIcon,
   GridIcon,
   Home01Icon,
+  IdeaIcon,
+  InfoIcon,
   IntersectingArrowsIcon,
   LibraryIcon,
   ListViewRectangleIcon,
@@ -103,6 +105,20 @@ export const PLATFORM_GROUP: NavGroup = {
       to: pathTo('integrations')
     },
     { id: 'settings', label: 'Configurações', icon: <SettingIcon fontSize="small" />, to: pathTo('settings') }
+  ]
+};
+
+export const SETTINGS_GROUP: NavGroup = {
+  id: 'settings',
+  label: 'Configurações',
+  items: [
+    { id: 'settings-ai', label: 'Minha IA', icon: <IdeaIcon fontSize="small" />, to: pathTo('settingsAi') },
+    {
+      id: 'settings-diagnostics',
+      label: 'Diagnóstico',
+      icon: <InfoIcon fontSize="small" />,
+      to: pathTo('settingsDiagnostics')
+    }
   ]
 };
 

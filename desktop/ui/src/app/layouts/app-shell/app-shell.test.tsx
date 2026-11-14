@@ -9,7 +9,8 @@ import { AppProviders, Page } from '@/shared/components';
 import { expectNoA11yViolations } from '@/test/a11y';
 
 import { AppShell } from './AppShell';
-import { NavEntry, describeRunActivity } from './SideNav';
+import { NavEntry } from './NavGroupList';
+import { describeRunActivity } from './SideNav';
 
 const invoke = vi.fn();
 const listen = vi.fn();
@@ -168,6 +169,35 @@ describe('AppShell · navegação', () => {
     const { container } = renderShell();
 
     await expectNoA11yViolations(container);
+  });
+});
+
+describe('AppShell · configurações', () => {
+  it('em Configurações o menu troca pelas seções e deixa voltar ao ambiente', () => {
+    renderShell('/configuracoes/ia');
+
+    const settings = screen.getByRole('navigation', { name: 'Configurações' });
+    expect(within(settings).getByRole('link', { name: 'Minha IA' })).toHaveAttribute('aria-current', 'page');
+    expect(within(settings).getByRole('link', { name: 'Diagnóstico' })).toHaveAttribute(
+      'href',
+      '/configuracoes/diagnostico'
+    );
+    expect(within(settings).getByRole('link', { name: 'Voltar para Engenharia' })).toHaveAttribute('href', '/projeto');
+    expect(screen.queryByRole('navigation', { name: 'Navegação principal' })).not.toBeInTheDocument();
+  });
+
+  it('o retorno leva ao ambiente em que a pessoa estava', () => {
+    window.localStorage.setItem('spock.environment', 'management');
+    renderShell('/configuracoes/diagnostico');
+
+    expect(screen.getByRole('link', { name: 'Voltar para Gestão' })).toHaveAttribute('href', '/gestao');
+  });
+
+  it('nas outras telas o menu principal segue no lugar', () => {
+    renderShell('/projeto');
+
+    expect(navigation()).toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: 'Configurações' })).not.toBeInTheDocument();
   });
 });
 

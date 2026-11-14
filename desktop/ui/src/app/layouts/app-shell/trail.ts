@@ -1,16 +1,17 @@
 import type { Crumb } from '@/shared/components';
 import { executionPattern, paths } from '@/shared/routing';
 
-import { ENGINEERING_GROUP, MANAGEMENT_GROUP, PLATFORM_GROUP, type NavGroup } from './navigation';
+import { ENGINEERING_GROUP, MANAGEMENT_GROUP, PLATFORM_GROUP, SETTINGS_GROUP, type NavGroup } from './navigation';
 
 const EXECUTION_PREFIX = executionPattern.split('/:')[0] ?? '';
 
-const GROUPS: readonly NavGroup[] = [ENGINEERING_GROUP, MANAGEMENT_GROUP, PLATFORM_GROUP];
+const GROUPS: readonly NavGroup[] = [ENGINEERING_GROUP, MANAGEMENT_GROUP, PLATFORM_GROUP, SETTINGS_GROUP];
 
 // A Plataforma não tem tela própria: o nome dela na trilha é só texto.
 const GROUP_HOME: Record<string, string> = {
   [ENGINEERING_GROUP.id]: paths.project,
-  [MANAGEMENT_GROUP.id]: paths.management
+  [MANAGEMENT_GROUP.id]: paths.management,
+  [SETTINGS_GROUP.id]: paths.settingsAi
 };
 
 function groupCrumb(group: NavGroup): Crumb {

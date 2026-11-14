@@ -16,6 +16,13 @@ describe('trailOf', () => {
     expect(trailOf('/integracoes')).toEqual([{ label: 'Plataforma' }, { label: 'Integrações' }]);
   });
 
+  it('as Configurações têm trilha própria, que leva à primeira seção', () => {
+    expect(trailOf('/configuracoes/diagnostico')).toEqual([
+      { label: 'Configurações', to: '/configuracoes/ia' },
+      { label: 'Diagnóstico' }
+    ]);
+  });
+
   it('a execução passa pela lista de execuções', () => {
     expect(trailOf('/execucao/run-1')).toEqual([
       { label: 'Engenharia', to: '/projeto' },

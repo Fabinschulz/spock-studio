@@ -54,8 +54,8 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
 
   return (
     <Page
-      title="Configurações"
-      description="Preferências locais do Spock Studio. Nada aqui é gravado no projeto que você autorizou."
+      title="Minha IA"
+      description="O provedor e o modelo que o Spock Studio usa. Nada aqui é gravado no projeto que você autorizou."
     >
       <section className={styles.panel} aria-labelledby="model-settings-heading">
         <h2 id="model-settings-heading">Provedor de IA</h2>
