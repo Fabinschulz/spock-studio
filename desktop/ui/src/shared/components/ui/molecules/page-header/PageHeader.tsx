@@ -1,6 +1,6 @@
-import { Breadcrumb } from '@mariliz/ui-kit';
 import type { ReactNode } from 'react';
 import styles from './PageHeader.module.scss';
+import { TrailNav } from './trail-nav';
 
 export interface Crumb {
   label: string;
@@ -17,12 +17,7 @@ interface PageHeaderProps {
 export function PageHeader({ title, description, breadcrumb, actions }: PageHeaderProps) {
   return (
     <header className={styles.header}>
-      {breadcrumb && breadcrumb.length > 0 ? (
-        <Breadcrumb
-          aria-label="Trilha de navegação"
-          links={breadcrumb.map((crumb) => ({ url: crumb.to ?? '', title: crumb.label }))}
-        />
-      ) : null}
+      <TrailNav trail={breadcrumb ?? []} />
       <div className={styles.row}>
         <h1 className={styles.title}>{title}</h1>
         {actions ? <div className={styles.actions}>{actions}</div> : null}

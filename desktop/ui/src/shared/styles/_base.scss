@@ -4,6 +4,14 @@
   @include focus-ring;
 }
 
+// Link no meio do texto: a cor da marca, visitado ou não. `:where` zera a especificidade para que menus e botões que
+// são links mantenham o próprio estilo.
+:where(a) {
+  color: var(--color-primary-text);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
 .visually-hidden {
   @include visually-hidden;
 }

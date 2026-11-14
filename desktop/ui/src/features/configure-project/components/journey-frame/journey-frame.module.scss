@@ -15,7 +15,7 @@ $panel-width: 20rem;
   gap: var(--space-5);
   min-width: 0;
   max-width: 50rem;
-  padding: var(--space-5) var(--space-5) 0;
+  padding: 0 var(--space-5);
 }
 
 .bar {
@@ -31,13 +31,6 @@ $panel-width: 20rem;
   align-items: baseline;
   gap: var(--space-1) var(--space-4);
   min-width: 0;
-}
-
-.title {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0;
-  color: var(--color-text-muted);
 }
 
 .toggle {
