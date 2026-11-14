@@ -13,7 +13,7 @@ import { Link, useLocation } from 'react-router';
 import { AppHeader } from './AppHeader';
 import styles from './AppShell.module.scss';
 import { BOTTOM_PANEL_ID, BottomPanel } from './bottom-panel/BottomPanel';
-import { useBottomPanel } from './bottom-panel/use-bottom-panel';
+import { useBottomPanel, type PanelTab } from './bottom-panel/use-bottom-panel';
 import { CommandPalette } from './command-palette/CommandPalette';
 import { useCommandPalette } from './command-palette/use-command-palette';
 import { RailCollapsedProvider } from './rail-context';
@@ -49,6 +49,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     panel.close();
   };
 
+  // Pedir o terminal (atalho ou botão) leva o foco para ele; o painel que reabre sozinho ao iniciar, não.
+  const [terminalRequests, setTerminalRequests] = useState(0);
+  const openTerminal = () => {
+    panel.show('terminal');
+    setTerminalRequests((value) => value + 1);
+  };
+  const togglePanelTab = (tab: PanelTab) => {
+    if (tab === 'terminal' && !(panel.open && panel.tab === 'terminal')) openTerminal();
+    else panel.toggleTab(tab);
+  };
+
   useShortcuts({
     palette: palette.toggle,
     rail: rail.canToggle ? rail.toggle : undefined,
@@ -56,7 +67,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       if (panel.open) closePanel();
       else panel.show(panel.tab);
     },
-    terminal: () => panel.show('terminal'),
+    terminal: openTerminal,
     shortcuts: () => setSheetOpen((value) => !value)
   });
   // Ao trocar de tela o indicador relê: uma aprovação pode ter chegado enquanto a pessoa olhava outra coisa.
@@ -103,12 +114,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           onSelectTab={panel.selectTab}
           onResize={panel.resize}
           onClose={closePanel}
-          terminal={<TerminalPanel hosted={engine.hosted} active={panel.open && panel.tab === 'terminal'} />}
+          terminal={<TerminalPanel hosted={engine.hosted} focusRequest={terminalRequests} />}
           output={<OutputLog hosted={engine.hosted} active={panel.open && panel.tab === 'output'} />}
         />
       </div>
 
-      <StatusBar engine={engine} panel={panel} onPanelTab={panel.toggleTab} onShortcuts={showSheet} />
+      <StatusBar engine={engine} panel={panel} onPanelTab={togglePanelTab} onShortcuts={showSheet} />
 
       <CommandPalette open={palette.open} onClose={palette.hide} />
       <ShortcutSheet open={sheetOpen} onClose={hideSheet} />

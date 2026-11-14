@@ -569,6 +569,19 @@ describe('AppShell · painel inferior', () => {
     expect(screen.getByRole('main')).toHaveFocus();
   });
 
+  it('o atalho chega mesmo quando quem tem o foco interrompe a propagação, como o terminal faz', async () => {
+    renderShell();
+    await userEvent.keyboard('{Control>}j{/Control}');
+    const tab = within(panel()).getByRole('tab', { name: 'Terminal' });
+    tab.addEventListener('keydown', (event) => event.stopPropagation());
+    tab.focus();
+
+    await userEvent.keyboard('{Control>}j{/Control}');
+
+    expect(screen.queryByRole('region', { name: 'Painel inferior' })).not.toBeInTheDocument();
+    expect(screen.getByRole('main')).toHaveFocus();
+  });
+
   it('lembra que estava aberto na próxima vez que o aplicativo abre', async () => {
     const { unmount } = renderShell();
     await userEvent.keyboard('{Control>}j{/Control}');

@@ -51,6 +51,8 @@ export function useTerminalSession(api: TerminalApi, recentId: string, container
 
     api
       .open(recentId, { cols: view.cols, rows: view.rows }, (event) => {
+        // Uma sessão descartada ainda avisa quando termina; o aviso não pode mudar o estado da sessão que a substituiu.
+        if (disposed) return;
         if (event.kind === 'output') {
           view.write(event.data);
           return;
