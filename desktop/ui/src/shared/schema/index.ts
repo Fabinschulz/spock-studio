@@ -1,6 +1,7 @@
 export * from './agent';
 export * from './ai-tool';
 export * from './audit';
+export * from './context';
 export * from './decision';
 export * from './engineering';
 export * from './harness';

@@ -83,7 +83,8 @@ export const ENGINE_METHODS = [
   'audit.read',
   'aitool.list',
   'agent.run',
-  'ide.connection'
+  'ide.connection',
+  'context.review'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

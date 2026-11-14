@@ -42,13 +42,15 @@ def system(task: str) -> dict:
     return {"role": "system", "content": f"{task}\n\n{_RULES}"}
 
 
-def project_block(evidence: list[dict]) -> str:
-    parts: list[str] = []
+def entries(evidence: list[dict]) -> list[dict]:
+    """Cada trecho como entra no bloco, na ordem. O primeiro que não cabe fecha o bloco: ele e os seguintes ficam de fora."""
+    result: list[dict] = []
     size = 0
+    closed = False
     for item in evidence:
         if not isinstance(item, dict) or not isinstance(item.get("chunkId"), str):
             continue
-        excerpt = str(item.get("excerpt", ""))[:MAX_EXCERPT]
+        raw = str(item.get("excerpt", ""))
         chunk_id = item["chunkId"]
         if chunk_id.startswith(EXTERNAL_PREFIX):
             mark = f"({EXTERNAL_NOTE})\n"
@@ -56,11 +58,16 @@ def project_block(evidence: list[dict]) -> str:
             mark = f"({DECISION_NOTE})\n"
         else:
             mark = ""
-        entry = f"[{neutralize(chunk_id)}]\n{mark}{neutralize(excerpt)}"
-        if size + len(entry) > MAX_BLOCK:
-            break
-        parts.append(entry)
-        size += len(entry)
+        text = f"[{neutralize(chunk_id)}]\n{mark}{neutralize(raw[:MAX_EXCERPT])}"
+        closed = closed or size + len(text) > MAX_BLOCK
+        if not closed:
+            size += len(text)
+        result.append({"chunkId": chunk_id, "text": text, "truncated": len(raw) > MAX_EXCERPT, "included": not closed})
+    return result
+
+
+def project_block(evidence: list[dict]) -> str:
+    parts = [entry["text"] for entry in entries(evidence) if entry["included"]]
     body = "\n\n".join(parts) if parts else "(nenhum trecho do projeto foi recuperado)"
     return f"<{TAG}>\n{body}\n</{TAG}>"
 

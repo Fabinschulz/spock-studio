@@ -26,8 +26,10 @@ if os.path.isdir(_PACKAGES):
     sys.path.insert(0, _PACKAGES)
 
 from infrastructure.parent_watch import watch_parent  # noqa: E402
+from contracts.messages import ContractError, parse_preview  # noqa: E402
 from knowledge.index import KnowledgeError, manifest  # noqa: E402
 from workflows.engineering.graph import run_cancel, run_resume, run_start  # noqa: E402
+from workflows.engineering.preview import preview  # noqa: E402
 from workflows.investigation.graph import run_investigation  # noqa: E402
 
 MAX_BODY = 4_000_000
@@ -96,6 +98,14 @@ def make_handler(token: str):
                     except KnowledgeError:
                         files = []
                     self._send(200, {"files": files})
+                    return
+                if path == "/v1/context/preview":
+                    try:
+                        self._send(200, preview(parse_preview(payload)))
+                    except ContractError:
+                        self._send(400, {"error": "invalid_request"})
+                    except KnowledgeError:
+                        self._send(503, {"error": "knowledge_unavailable"})
                     return
                 if path == "/v1/workflows":
                     self._stream(run_start(payload))

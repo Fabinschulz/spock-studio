@@ -11,7 +11,7 @@ using Mariliz.Core.Text;
 namespace Mariliz.Infrastructure;
 
 // A entrada padrão do filho fica fechada, para não herdar o canal do protocolo.
-public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime
+public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime, IContextPreviewRuntime
 {
     private const int MaxLine = 1_000_000;
     private static readonly TimeSpan StartupBudget = TimeSpan.FromSeconds(20);
@@ -107,6 +107,12 @@ public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime
 
     public async Task<WorkflowAck> ResumeAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct) =>
         AiWire.ReadAck(await StreamAsync($"v1/workflows/{Uri.EscapeDataString(request.Text("runId"))}/resume", request, onEvent, "ai.ack.v3", ct));
+
+    public async Task<JsonObject> PreviewContextAsync(JsonObject request, CancellationToken ct)
+    {
+        await EnsureReadyAsync(ct);
+        return await PostAsync("v1/context/preview", request, ct);
+    }
 
     public Task<JsonObject> InvestigateAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct) =>
         StreamAsync("v1/investigations", request, onEvent, "ai.investigation.ack.v1", ct);

@@ -19,6 +19,8 @@ interface EngineeringRequestFormProps {
   /** Há modelo configurado? `null` até o motor responder. */
   modelConfigured: boolean | null;
   onSubmit: (values: EngineeringRequestFormValues) => Promise<void>;
+  reviewing: boolean;
+  onReview: (goal: string) => void;
 }
 
 /** O que a pessoa precisa saber antes de marcar: o que sai do computador, para onde, e o que o motor faz para limitar. */
@@ -51,9 +53,17 @@ function ModelOption({ configured }: { configured: boolean | null }) {
   );
 }
 
-function FormActions({ busy }: { busy: boolean }) {
+function FormActions({
+  busy,
+  reviewing,
+  onReview
+}: {
+  busy: boolean;
+  reviewing: boolean;
+  onReview: (goal: string) => void;
+}) {
   const navigate = useNavigate();
-  const { submitting, isValid } = useFormContext();
+  const { submitting, isValid, getValues } = useFormContext();
 
   const disabled = busy || submitting || !isValid;
 
@@ -62,6 +72,15 @@ function FormActions({ busy }: { busy: boolean }) {
       <Button type="submit" disabled={disabled}>
         {busy || submitting ? 'Iniciando…' : 'Iniciar pedido'}
       </Button>
+      <Button
+        type="button"
+        variant="outlined"
+        color="inherit"
+        disabled={disabled || reviewing}
+        onClick={() => onReview(String(getValues('goal')).trim())}
+      >
+        {reviewing ? 'Revisando…' : 'Revisar contexto'}
+      </Button>
       <Button type="button" variant="outlined" color="inherit" onClick={() => navigate(pathTo('configure'))}>
         Configurar projeto
       </Button>
@@ -69,7 +88,14 @@ function FormActions({ busy }: { busy: boolean }) {
   );
 }
 
-export function EngineeringRequestForm({ busy, error, modelConfigured, onSubmit }: EngineeringRequestFormProps) {
+export function EngineeringRequestForm({
+  busy,
+  error,
+  modelConfigured,
+  onSubmit,
+  reviewing,
+  onReview
+}: EngineeringRequestFormProps) {
   return (
     <FormProvider<EngineeringRequestFormValues>
       defaultValues={engineeringRequestFormDefaults}
@@ -95,7 +121,7 @@ export function EngineeringRequestForm({ busy, error, modelConfigured, onSubmit 
 
       {error ? <Alert severity="error" title="Não foi possível iniciar" description={error} /> : null}
 
-      <FormActions busy={busy} />
+      <FormActions busy={busy} reviewing={reviewing} onReview={onReview} />
     </FormProvider>
   );
 }

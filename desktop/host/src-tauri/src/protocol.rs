@@ -76,6 +76,7 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "aitool.list",
     "agent.run",
     "ide.connection",
+    "context.review",
 ];
 
 pub mod error_code {
