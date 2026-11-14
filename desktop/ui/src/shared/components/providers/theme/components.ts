@@ -26,5 +26,17 @@ export const components: ThemeOptions['components'] = {
       })
     }
   },
-  MuiPaper: { styleOverrides: { root: { backgroundImage: 'none' } } }
+  MuiPaper: { styleOverrides: { root: { backgroundImage: 'none' } } },
+  MuiTooltip: {
+    styleOverrides: {
+      tooltip: {
+        padding: '4px 8px',
+        border: `1px solid ${c.line}`,
+        backgroundColor: c.raised,
+        color: c.text,
+        fontSize: '0.75rem',
+        fontWeight: 500
+      }
+    }
+  }
 };

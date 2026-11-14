@@ -4,6 +4,7 @@ import { Container, Logo, PageTrailProvider, Wordmark } from '@/shared/component
 import { app } from '@/shared/config/app';
 import { ContentAreaProvider, useEngineStatus, useScrollToTop } from '@/shared/hooks';
 import { isWithin, pathTo, paths } from '@/shared/routing';
+import { cn } from '@/shared/utils';
 import { Button } from '@mariliz/ui-kit';
 import { useMemo, useRef, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
@@ -12,10 +13,13 @@ import styles from './AppShell.module.scss';
 import { CommandPalette } from './command-palette/CommandPalette';
 import { useCommandPalette } from './command-palette/use-command-palette';
 import { EngineStatus } from './EngineStatus';
-import { useEnvironment } from './use-environment';
+import { RailCollapsedProvider } from './rail-context';
+import { RailToggle } from './RailToggle';
 import { SettingsNav } from './SettingsNav';
 import { SideNav } from './SideNav';
 import { trailOf } from './trail';
+import { useEnvironment } from './use-environment';
+import { useRail } from './use-rail';
 
 const MAIN_CONTENT_ID = 'conteudo';
 
@@ -26,6 +30,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const trail = useMemo(() => trailOf(pathname), [pathname]);
   const palette = useCommandPalette();
+  const rail = useRail();
   // Ao trocar de tela o indicador relê: uma aprovação pode ter chegado enquanto a pessoa olhava outra coisa.
   const runActivity = useRunActivity(tauriEngineClient, engine.status === 'ready', pathname);
 
@@ -34,7 +39,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   useScrollToTop(pathname, { focus: true, container: main });
 
   return (
-    <div className={styles.shell}>
+    <div className={cn(styles.shell, rail.collapsed && styles.collapsed)}>
       <Button variant="outlined" color="inherit" className={styles.skip} onClick={() => main.current?.focus()}>
         Ir para o conteúdo
       </Button>
@@ -44,15 +49,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Logo className={styles.logo} />
           <Wordmark className={styles.wordmark} />
         </Link>
-        {isWithin(pathname, paths.settings) ? (
-          <SettingsNav environment={environment} />
-        ) : (
-          <SideNav environment={environment} runActivity={runActivity} />
-        )}
-        <EngineStatus {...engine} />
-        <p className={styles.version}>
-          <span className="visually-hidden">Versão </span>v{app.version}
-        </p>
+        <RailCollapsedProvider value={rail.collapsed}>
+          {isWithin(pathname, paths.settings) ? (
+            <SettingsNav environment={environment} />
+          ) : (
+            <SideNav environment={environment} runActivity={runActivity} />
+          )}
+          {rail.canToggle ? <RailToggle collapsed={rail.collapsed} onToggle={rail.toggle} /> : null}
+        </RailCollapsedProvider>
       </aside>
 
       <div className={styles.column}>
@@ -65,6 +69,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           </ContentAreaProvider>
         </main>
       </div>
+
+      <footer className={styles.statusbar}>
+        <EngineStatus {...engine} />
+        <p className={styles.version}>
+          <span className="visually-hidden">Versão </span>v{app.version}
+        </p>
+      </footer>
 
       <CommandPalette open={palette.open} onClose={palette.hide} />
     </div>

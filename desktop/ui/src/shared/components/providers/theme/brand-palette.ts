@@ -5,6 +5,7 @@ export const brandPalette = {
   onPrimary: '#06201f',
   background: '#151515',
   surface: '#1b1b1b',
+  raised: '#232323',
   text: '#ececec',
   textMuted: '#a0a0a0',
   line: 'rgba(255, 255, 255, 0.08)',

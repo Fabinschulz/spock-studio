@@ -21,6 +21,7 @@ describe('brandPalette × _tokens.scss', () => {
     ['teal300', 'cyan-300'],
     ['background', 'charcoal-950'],
     ['surface', 'charcoal-900'],
+    ['raised', 'charcoal-800'],
     ['text', 'ash-50'],
     ['textMuted', 'ash-300'],
     ['borderStrong', 'charcoal-400'],
