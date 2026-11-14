@@ -28,10 +28,10 @@ export function FlowSection({ metrics, connectors }: FlowSectionProps) {
         <KindFlowBlock key={flow.kind} flow={flow} label={label(flow.kind)} />
       ))}
       <p className={styles.muted}>
-        Entregue é o item concluído com data de conclusão; issue descartada ou duplicada e pull request fechado sem
-        merge não contam. Lead time são os dias corridos da criação à conclusão. Cycle time são os dias corridos do
-        início do trabalho à conclusão: o início é a primeira vez que o item entrou em andamento no histórico de status,
-        que só o Jira informa. Tipos diferentes não são somados.
+        Entregue é o item concluído com data de conclusão; tarefa descartada ou duplicada e pull request fechado sem ser
+        incorporado não contam. O tempo total são os dias corridos da criação à conclusão (lead time). O tempo de
+        trabalho são os dias corridos do início do trabalho à conclusão (cycle time): o início é a primeira vez que o
+        item entrou em andamento no histórico de status, que só o Jira informa. Tipos diferentes não são somados.
       </p>
     </PageSection>
   );
@@ -74,13 +74,13 @@ function KindFlowBlock({ flow, label }: { flow: KindFlow; label: string }) {
           unavailable={flow.throughput.unavailable}
         />
         <Figure
-          label="Lead time mediano"
+          label="Tempo total, da criação à entrega (mediana)"
           value={flow.leadTime.medianDays === null ? null : formatDays(flow.leadTime.medianDays)}
           note={flow.leadTime.p85Days === null ? undefined : `85% em até ${formatDays(flow.leadTime.p85Days)}`}
           unavailable={flow.leadTime.unavailable}
         />
         <Figure
-          label="Cycle time mediano"
+          label="Tempo de trabalho, do início à entrega (mediana)"
           value={flow.cycleTime.medianDays === null ? null : formatDays(flow.cycleTime.medianDays)}
           note={cycleTimeNote(flow.cycleTime)}
           unavailable={flow.cycleTime.unavailable}

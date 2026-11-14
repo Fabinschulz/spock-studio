@@ -1,6 +1,6 @@
 import connectedFixture from '@contracts/fixtures/models/connection.json';
 import failedFixture from '@contracts/fixtures/models/connection-error.json';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
@@ -210,6 +210,10 @@ describe('Configurações · provedor de IA', () => {
     renderPage(api);
 
     await userEvent.click(await screen.findByRole('button', { name: 'Remover chave' }));
+    const confirm = screen.getByRole('group', { name: 'Remover a chave' });
+    expect(confirm).toHaveTextContent('o Assistente, a pergunta ao portfólio');
+    expect(api.calls).not.toContain('model.clear');
+    await userEvent.click(within(confirm).getByRole('button', { name: 'Remover chave' }));
 
     await waitFor(() => expect(screen.getByText('Nenhuma chave configurada.')).toBeInTheDocument());
     expect(screen.getByText('Chave removida deste computador.')).toBeInTheDocument();

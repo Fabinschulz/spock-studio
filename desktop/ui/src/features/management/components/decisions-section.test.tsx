@@ -63,7 +63,7 @@ describe('Decisões · lista', () => {
     expect(list).toHaveTextContent('Adiar a release 1.0 em uma semana.');
     expect(list).toHaveTextContent('Por quê: Três itens bloqueados.');
     expect(list).toHaveTextContent(
-      '2 execuções relacionadas: Configuração aplicada (Concluído), Workflow (Concluído com limitações)'
+      '2 execuções relacionadas: Configuração aplicada (Concluído), Pedido de engenharia (Concluído com limitações)'
     );
   });
 
@@ -148,7 +148,7 @@ describe('Decisões · registro', () => {
     await userEvent.type(within(form).getByRole('textbox', { name: 'Título' }), 'Adiar a release');
     await userEvent.type(within(form).getByRole('textbox', { name: 'O que foi decidido' }), 'Adiar em uma semana.');
     await userEvent.type(within(form).getByLabelText('Por quê (opcional)'), 'Itens bloqueados.');
-    await userEvent.click(await within(form).findByRole('checkbox', { name: /Workflow · Falhou/ }));
+    await userEvent.click(await within(form).findByRole('checkbox', { name: /Pedido de engenharia · Falhou/ }));
     await userEvent.click(within(form).getByRole('button', { name: 'Registrar decisão' }));
 
     await waitFor(() =>

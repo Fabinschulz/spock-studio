@@ -189,6 +189,21 @@ export function fakeIntegrationEngine(
       }, 300);
       return { sync };
     },
+    'integration.configure': (params) => {
+      integrations = integrations.map((integration) =>
+        integration.id === params.integrationId
+          ? {
+              ...integration,
+              scope: { ...integration.scope, dataKinds: (params.dataKinds as string[]) ?? integration.scope.dataKinds },
+              policy: {
+                ...integration.policy,
+                feedsKnowledge: (params.feedsKnowledge as boolean) ?? integration.policy.feedsKnowledge
+              }
+            }
+          : integration
+      );
+      return { integration: integrations.find((integration) => integration.id === params.integrationId) };
+    },
     'integration.unlink': (params) => {
       integrations = integrations.filter((integration) => integration.id !== params.integrationId);
       return { removed: true };

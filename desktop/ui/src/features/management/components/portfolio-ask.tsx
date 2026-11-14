@@ -69,7 +69,9 @@ export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: 
         </InlineNotice>
       ) : null}
       {status.status === 'error' ? (
-        <ErrorState>{errorMessage(status.error, 'Não foi possível verificar a chave do modelo.')}</ErrorState>
+        <ErrorState onRetry={status.reload}>
+          {errorMessage(status.error, 'Não foi possível verificar a chave do modelo.')}
+        </ErrorState>
       ) : null}
 
       <form aria-label="Pergunta ao portfólio" onSubmit={(event) => void ask(event)}>
@@ -131,7 +133,9 @@ export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: 
         </Disclosure>
       ) : null}
       {preview.status === 'error' ? (
-        <ErrorState>{errorMessage(preview.error, 'Não foi possível montar o pacote.')}</ErrorState>
+        <ErrorState onRetry={preview.reload}>
+          {errorMessage(preview.error, 'Não foi possível montar o que será enviado.')}
+        </ErrorState>
       ) : null}
 
       {error ? (

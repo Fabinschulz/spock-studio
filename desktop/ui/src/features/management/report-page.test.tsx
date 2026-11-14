@@ -53,7 +53,9 @@ describe('Relatório', () => {
     ])
       expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
     expect(screen.getByRole('list', { name: 'Decisões do período' })).toHaveTextContent('Adiar a release');
-    expect(screen.getByRole('list', { name: 'Execuções do período' })).toHaveTextContent('Workflow, falhou: 1');
+    expect(screen.getByRole('list', { name: 'Execuções do período' })).toHaveTextContent(
+      'Pedido de engenharia, falhou: 1'
+    );
   });
 
   it('trocar o período pede o relatório de novo com as semanas escolhidas', async () => {

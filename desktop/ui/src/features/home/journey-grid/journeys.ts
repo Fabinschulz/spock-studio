@@ -1,5 +1,10 @@
 export type JourneyId =
-  'configure-project' | 'engineering-request' | 'import-requirements' | 'connect-tools' | 'modernize-system';
+  | 'configure-project'
+  | 'engineering-request'
+  | 'follow-projects'
+  | 'import-requirements'
+  | 'connect-tools'
+  | 'modernize-system';
 
 export type Journey = {
   id: JourneyId;
@@ -14,12 +19,17 @@ export const journeys: readonly Journey[] = [
   {
     id: 'configure-project',
     title: 'Configurar projeto',
-    description: 'Analisa o repositório e configura o Harness.'
+    description: 'Lê a pasta do projeto e prepara as regras e os assistentes de IA dele.'
   },
   {
     id: 'engineering-request',
     title: 'Pedido de engenharia',
-    description: 'Analisa objetivo, evidências e impacto sem alterar o repositório.'
+    description: 'Descreva o que quer mudar e veja o impacto antes de mexer em qualquer arquivo.'
+  },
+  {
+    id: 'follow-projects',
+    title: 'Acompanhar projetos',
+    description: 'Veja prazos, riscos e entregas de todos os projetos, sem precisar abrir código.'
   },
   {
     id: 'import-requirements',

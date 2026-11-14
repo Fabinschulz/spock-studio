@@ -265,7 +265,17 @@ describe('AppShell · topo', () => {
 
     expect(within(environments).getByRole('link', { name: 'Engenharia' })).toHaveAttribute('aria-current', 'true');
     expect(within(environments).getByRole('link', { name: 'Gestão' })).not.toHaveAttribute('aria-current');
-    expect(within(environments).getByRole('link', { name: 'Gestão' })).toHaveAttribute('href', '/gestao');
+    // Sem projeto aberto, a Gestão abre no Portfólio: o Acompanhamento ficaria vazio.
+    expect(within(environments).getByRole('link', { name: 'Gestão' })).toHaveAttribute('href', '/portfolio');
+  });
+
+  it('com projeto aberto, a Gestão abre no Acompanhamento dele', async () => {
+    renderShell();
+    await userEvent.click(screen.getByRole('button', { name: 'escolher' }));
+    const header = screen.getByRole('banner');
+    await within(header).findByRole('button', { name: 'Projeto: EmpregaNetAPI' });
+
+    expect(within(header).getByRole('link', { name: 'Gestão' })).toHaveAttribute('href', '/gestao');
   });
 
   it('trocar de ambiente leva à tela dele, troca o menu e não troca o projeto', async () => {

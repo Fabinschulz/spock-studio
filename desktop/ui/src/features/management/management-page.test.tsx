@@ -82,8 +82,12 @@ describe('Gestão · acompanhamento do projeto', () => {
     expect(blocked).toHaveTextContent('1 por rótulo');
     expect(blocked).toHaveTextContent('não foram lidos nesta fonte');
     // Os itens do cenário têm histórico de status: cada um levou n dias em andamento, mediana 3 e percentil 85 em 6.
-    expect(within(issues).getByText('Cycle time mediano').nextElementSibling).toHaveTextContent('3');
-    expect(within(issues).getByText('Cycle time mediano').closest('div')).toHaveTextContent('85% em até 6');
+    expect(
+      within(issues).getByText('Tempo de trabalho, do início à entrega (mediana)').nextElementSibling
+    ).toHaveTextContent('3');
+    expect(
+      within(issues).getByText('Tempo de trabalho, do início à entrega (mediana)').closest('div')
+    ).toHaveTextContent('85% em até 6');
     // O pull request não traz histórico de status: o motivo aparece no lugar do número.
     const pulls = within(flow).getByRole('group', { name: 'Pull requests' });
     expect(within(pulls).getByText(/A fonte não informa quando o trabalho começou/)).toBeInTheDocument();
@@ -220,7 +224,7 @@ describe('Gestão · execuções ligadas a itens', () => {
     expect(items).toHaveTextContent('GitHub');
     const runs = within(items).getByRole('list', { name: 'Execuções ligadas ao item 41' });
     expect(runs.children).toHaveLength(2);
-    expect(runs.children[0]).toHaveTextContent('Workflow · Falhou');
+    expect(runs.children[0]).toHaveTextContent('Pedido de engenharia · Falhou');
     expect(runs.children[1]).toHaveTextContent('Configuração aplicada · Concluído');
   });
 

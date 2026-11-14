@@ -32,6 +32,7 @@ describe('Etapa de execução', () => {
     );
 
     await userEvent.click(screen.getByRole('button', { name: 'Cancelar e desfazer' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Parar e desfazer' }));
 
     expect(await screen.findByText('O motor demorou demais para responder.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancelar e desfazer' })).toBeEnabled();
@@ -45,7 +46,26 @@ describe('Etapa de execução', () => {
     );
 
     await userEvent.click(screen.getByRole('button', { name: 'Cancelar e desfazer' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Parar e desfazer' }));
 
     expect(await screen.findByRole('button', { name: 'Cancelando…' })).toBeDisabled();
+  });
+
+  it('pede confirmação antes de parar, e desistir não cancela nada', async () => {
+    const onCancel = vi.fn();
+    render(
+      <AppProviders>
+        <RunStep run={run} onCancel={onCancel} onBack={() => undefined} />
+      </AppProviders>
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar e desfazer' }));
+    expect(screen.getByRole('group', { name: 'Parar e desfazer' })).toHaveTextContent(
+      'o que ela já gravou no projeto é desfeito'
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Continuar a execução' }));
+
+    expect(onCancel).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Cancelar e desfazer' })).toHaveFocus();
   });
 });

@@ -1,13 +1,6 @@
-import styles from './model.module.scss';
+import { Term } from '@/shared/components/ui';
 
-const CONFIGURED_ITEMS = [
-  'Agentes: Harness Engineer, revisor de código e verificador',
-  'Skill: contrato de evidência',
-  'Hook: política de segurança antes de escritas e comandos',
-  'Regras gerais, da stack e dos comandos do repositório',
-  'Evals: verificações da configuração aplicada',
-  'Tools e MCPs: nenhum é instalado nesta jornada'
-];
+import styles from './model.module.scss';
 
 export function ConfiguredItemsSection() {
   return (
@@ -19,9 +12,22 @@ export function ConfiguredItemsSection() {
         Nada é gravado antes da revisão: a configuração só é aplicada depois da sua aprovação.
       </p>
       <ul role="list" className={styles.rows}>
-        {CONFIGURED_ITEMS.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
+        <li>
+          Três <Term id="agent">agentes</Term>: o engenheiro do Harness, um revisor de código e um verificador.
+        </li>
+        <li>
+          Uma <Term id="skill" /> que ensina os agentes a mostrar as evidências do que afirmam.
+        </li>
+        <li>
+          Um <Term id="hook" /> de segurança que pede permissão antes de gravar arquivos ou rodar comandos.
+        </li>
+        <li>Regras gerais, das tecnologias e dos comandos do projeto.</li>
+        <li>
+          <Term id="eval">Evals</Term>, os testes que conferem a configuração depois de aplicada.
+        </li>
+        <li>
+          Nenhuma conexão <Term id="mcp" /> é instalada nesta jornada.
+        </li>
       </ul>
     </section>
   );

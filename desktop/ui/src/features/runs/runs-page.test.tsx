@@ -65,7 +65,7 @@ describe('Execuções', () => {
     const rows = within(list).getAllByRole('button');
 
     expect(rows).toHaveLength(3);
-    expect(rows[0]).toHaveTextContent('Workflow');
+    expect(rows[0]).toHaveTextContent('Pedido de engenharia');
     expect(rows[0]).toHaveTextContent('Aguardando aprovação');
     expect(rows[1]).toHaveTextContent('Falhou');
     expect(rows[2]).toHaveTextContent('Configuração aplicada');
@@ -87,7 +87,7 @@ describe('Execuções', () => {
     renderPage(client);
     await screen.findByRole('list', { name: 'Execuções' });
 
-    await chooseOption('Tipo', 'Workflow');
+    await chooseOption('Tipo', 'Pedido de engenharia');
     await waitFor(() => expect(listCalls(calls).at(-1)?.params).toMatchObject({ kinds: ['workflow'] }));
 
     await chooseOption('Estado', 'Falhou');
@@ -302,16 +302,13 @@ describe('Execuções · detalhe', () => {
 
     await userEvent.click(rows[0]!);
     const waiting = await screen.findByRole('dialog');
-    expect(within(waiting).getByRole('link', { name: 'Abrir o acompanhamento' })).toHaveAttribute(
-      'href',
-      '/execucao/run-3'
-    );
+    expect(within(waiting).getByRole('link', { name: 'Abrir a execução' })).toHaveAttribute('href', '/execucao/run-3');
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
 
     await userEvent.click(rows[2]!);
     const finished = await screen.findByRole('dialog');
-    expect(within(finished).queryByRole('link', { name: 'Abrir o acompanhamento' })).toBeNull();
+    expect(within(finished).queryByRole('link', { name: 'Abrir a execução' })).toBeNull();
   });
 
   it('um detalhe que não carrega diz o que houve sem fechar o painel', async () => {

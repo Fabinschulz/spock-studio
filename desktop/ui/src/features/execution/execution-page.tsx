@@ -1,6 +1,8 @@
 import type { EngineClient } from '@/shared/api';
 import { ErrorState, LoadingState, Page, PageSection, StatusChip } from '@/shared/components/ui';
+import { pathTo } from '@/shared/routing';
 import { runStateLabel } from '@/shared/utils';
+import { Link } from 'react-router';
 
 import { ApproveButton } from './components/approve-button';
 import { EvaluationSection } from './components/evaluation-section';
@@ -24,13 +26,16 @@ import { useRunFollow } from './hooks/use-run-follow';
 export { workflowSnapshotSchema, type WorkflowSnapshot } from './domain/run-timeline';
 
 export function ExecutionPage({ runId, client }: { runId: string; client: EngineClient }) {
-  const { view, error, setError, refresh } = useRunFollow(client, runId);
+  const { view, error, setError, refresh, retry } = useRunFollow(client, runId);
   const { busy, chosen, toggle, approve } = useApproval(client, runId, view, refresh, setError);
 
   if (error && !view) {
     return (
       <Page title="Execução">
-        <ErrorState>{error}</ErrorState>
+        <ErrorState onRetry={retry}>{error}</ErrorState>
+        <p>
+          <Link to={pathTo('runs')}>Voltar para Execuções</Link>
+        </p>
       </Page>
     );
   }
@@ -62,7 +67,7 @@ export function ExecutionPage({ runId, client }: { runId: string; client: Engine
         Estado: <StatusChip tone={STATE_TONE[snapshot.state] ?? 'neutral'}>{stateLabel}</StatusChip>
       </p>
       {result?.summary ? <p>{result.summary}</p> : null}
-      {error ? <ErrorState>{error}</ErrorState> : null}
+      {error ? <ErrorState onRetry={retry}>{error}</ErrorState> : null}
 
       {result?.error ? <FailureNotice error={result.error} /> : null}
 

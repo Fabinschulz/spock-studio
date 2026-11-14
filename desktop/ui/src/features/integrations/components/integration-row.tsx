@@ -20,6 +20,14 @@ interface IntegrationRowProps {
 }
 
 type Panel = 'none' | 'scope' | 'history' | 'confirming-unlink';
+type DataKind = Connector['dataKinds'][number];
+
+function removalText(count: number, label: string): string {
+  if (count === 0) return `Ainda não há itens de ${label} sincronizados; o projeto só deixa de ler esse tipo.`;
+  const removed =
+    count === 1 ? '1 item já sincronizado será apagado' : `${count} itens já sincronizados serão apagados`;
+  return `${removed} deste computador (${label}). Nada muda no provedor.`;
+}
 
 export function IntegrationRow({
   integration,
@@ -31,6 +39,7 @@ export function IntegrationRow({
   loadHistory
 }: IntegrationRowProps) {
   const [panel, setPanel] = useState<Panel>('none');
+  const [removing, setRemoving] = useState<DataKind | null>(null);
   const panelId = useId();
   const { scope, policy, lastSync, syncing, items } = integration;
   const usable = integration.connectionStatus === 'connected';
@@ -110,27 +119,35 @@ export function IntegrationRow({
                   checked={enabled}
                   disabled={enabled && scope.dataKinds.length === 1}
                   onChange={(_, checked) =>
-                    onConfigure({
-                      dataKinds: checked
-                        ? [...scope.dataKinds, kind.id]
-                        : scope.dataKinds.filter((id) => id !== kind.id)
-                    })
+                    checked ? onConfigure({ dataKinds: [...scope.dataKinds, kind.id] }) : setRemoving(kind)
                   }
                 />
               );
             })}
-            <p className={styles.hint}>
-              Desmarcar um tipo apaga na hora os itens desse tipo já sincronizados. Pelo menos um tipo fica marcado:
-              para não ler mais nada, desvincule.
-            </p>
+            {removing ? (
+              <ConfirmAction
+                label={`Parar de ler ${removing.label}`}
+                confirmLabel="Parar de ler e apagar"
+                busy={busy}
+                onConfirm={() => {
+                  onConfigure({ dataKinds: scope.dataKinds.filter((id) => id !== removing.id) });
+                  setRemoving(null);
+                }}
+                onCancel={() => setRemoving(null)}
+              >
+                {removalText(items.byKind[removing.id] ?? 0, removing.label)}
+              </ConfirmAction>
+            ) : null}
+            <p className={styles.hint}>Pelo menos um tipo fica marcado: para não ler mais nada, desvincule.</p>
             <Checkbox
               label="Permitir que estes dados sirvam de contexto para os agentes"
               checked={policy.feedsKnowledge}
               onChange={(_, checked) => onConfigure({ feedsKnowledge: checked })}
             />
             <p className={styles.hint}>
-              Desligado, o que foi sincronizado fica só nas visões de acompanhamento. Nesta versão nenhum agente consome
-              dados sincronizados; a permissão fica registrada para quando consumir.
+              Ligado, os itens entram no índice do projeto e podem chegar ao provedor de IA quando um agente ou o
+              assistente os usa, marcados como fonte externa e sem segredos. Desligado, ficam só nas visões de
+              acompanhamento. O detalhe do que vai está em Conhecimento.
             </p>
           </fieldset>
         ) : null}

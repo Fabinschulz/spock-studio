@@ -54,7 +54,9 @@ describe('Gestão · assistente', () => {
     expect(screen.getByLabelText('Sua pergunta')).toHaveValue('Quais são os principais riscos agora?');
     await userEvent.click(screen.getByRole('button', { name: 'Perguntar' }));
 
-    const answer = (await screen.findByRole('heading', { name: 'Resposta' })).closest('section')!;
+    const heading = await screen.findByRole('heading', { name: 'Resposta' });
+    expect(heading).toHaveFocus();
+    const answer = heading.closest('section')!;
     expect(within(answer).getByText('Há 1 item vencido e a média é de 2 entregas por semana.')).toBeInTheDocument();
     const observed = within(answer).getByRole('group', { name: /Dados observados/ });
     expect(observed).toHaveTextContent('Há 1 item com prazo vencido.');

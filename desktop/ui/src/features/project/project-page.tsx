@@ -13,12 +13,12 @@ import { ProjectPageFrame } from './project-page-frame';
 import styles from './project-page.module.scss';
 
 const INVENTORY_ROWS: readonly [string, keyof Discovery['inventory']][] = [
-  ['Agentes', 'agents'],
-  ['Skills', 'skills'],
+  ['Agentes (assistentes de IA)', 'agents'],
+  ['Skills (instruções prontas)', 'skills'],
   ['Regras', 'rules'],
-  ['Hooks', 'hooks'],
-  ['Servidores MCP', 'mcpServers'],
-  ['Evals', 'evals']
+  ['Hooks (checagens automáticas)', 'hooks'],
+  ['Servidores MCP (conexões com ferramentas)', 'mcpServers'],
+  ['Evals (testes automáticos)', 'evals']
 ];
 
 /** O Harness aplicado e o conhecimento têm tela própria, para esta não virar um relatório sem fim. */
@@ -36,7 +36,7 @@ function ProjectOverview({ client, project }: { client: EngineClient; project: S
   return (
     <Page title={project.displayName} description={<span className={styles.path}>{project.displayPath}</span>}>
       {overview.status === 'loading' ? <LoadingState>Lendo o projeto…</LoadingState> : null}
-      {overview.status === 'error' ? <ErrorState>{overview.message}</ErrorState> : null}
+      {overview.status === 'error' ? <ErrorState onRetry={overview.retry}>{overview.message}</ErrorState> : null}
       {overview.status === 'ready' ? (
         <>
           <ProfileSection client={client} projectId={project.projectId} />

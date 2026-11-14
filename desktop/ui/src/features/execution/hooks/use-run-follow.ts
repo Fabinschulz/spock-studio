@@ -34,7 +34,7 @@ export function useRunFollow(client: EngineClient, runId: string) {
     if (catchingUp.current) return;
     catchingUp.current = true;
     refresh()
-      .catch(() => setError('Alguns eventos não chegaram. Recarregue a execução.'))
+      .catch(() => setError('Alguns eventos não chegaram. Tente de novo para reler a execução.'))
       .finally(() => {
         catchingUp.current = false;
       });
@@ -92,5 +92,10 @@ export function useRunFollow(client: EngineClient, runId: string) {
     };
   }, [catchUp, client, commit, refresh, runId]);
 
-  return { view, error, setError, refresh };
+  const retry = useCallback(() => {
+    setError(null);
+    refresh().catch(() => setError('Não foi possível ler esta execução.'));
+  }, [refresh]);
+
+  return { view, error, setError, refresh, retry };
 }

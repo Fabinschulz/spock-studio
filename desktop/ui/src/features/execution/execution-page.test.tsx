@@ -1,5 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
 import type { EngineClient } from '@/shared/api';
@@ -56,6 +57,38 @@ function clientFor(
     }
   };
 }
+
+describe('Execução · leitura que falha', () => {
+  it('oferece tentar de novo e o caminho de volta, e a nova tentativa recupera a página', async () => {
+    let reads = 0;
+    const client: EngineClient = {
+      async request(method, _params, schema) {
+        if (method !== 'run.snapshot') throw new Error(method);
+        reads += 1;
+        if (reads === 1) throw new Error('motor ocupado');
+        return schema.parse(paused);
+      },
+      async onEvent() {
+        return () => undefined;
+      }
+    };
+    render(
+      <AppProviders>
+        <MemoryRouter>
+          <ExecutionPage runId="run-1" client={client} />
+        </MemoryRouter>
+      </AppProviders>
+    );
+
+    expect(await screen.findByText('Não foi possível ler esta execução.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Voltar para Execuções' })).toHaveAttribute('href', '/execucoes');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Tentar de novo' }));
+
+    expect(await screen.findByText('Aguardando aprovação')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+});
 
 describe('Execução', () => {
   it('mostra o agente que de fato concluiu e pede aprovação', async () => {

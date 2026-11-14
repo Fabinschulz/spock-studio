@@ -1,6 +1,7 @@
 import { Button } from '@mariliz/ui-kit';
+import { useState } from 'react';
 
-import { EvidenceDisclosure, PrimaryActionFooter } from '@/shared/components/ui';
+import { ConfirmAction, EvidenceDisclosure, PrimaryActionFooter } from '@/shared/components/ui';
 import type { ConfigurationPlan, ConflictResolution, FileChange } from '@/shared/schema';
 
 import panels from '../../components/panels.module.scss';
@@ -57,6 +58,7 @@ export function ReviewStep({
 }: ReviewStepProps) {
   const actionable = plan.changes.filter((change) => change.action !== 'preserve');
   const preserved = plan.changes.filter((change) => change.action === 'preserve');
+  const [discarding, setDiscarding] = useState(false);
 
   return (
     <section className={panels.step}>
@@ -128,11 +130,23 @@ export function ReviewStep({
         </section>
       ) : null}
 
+      {discarding ? (
+        <ConfirmAction
+          label="Descartar o plano"
+          confirmLabel="Descartar o plano"
+          cancelLabel="Continuar revisando"
+          onConfirm={onCancel}
+          onCancel={() => setDiscarding(false)}
+        >
+          O plano, as aprovações e as escolhas de conflito desta revisão serão descartados. Nada foi gravado no projeto.
+        </ConfirmAction>
+      ) : null}
+
       <PrimaryActionFooter>
         <Button variant="outlined" color="inherit" onClick={onBack}>
           Voltar
         </Button>
-        <Button variant="outlined" color="inherit" onClick={onCancel}>
+        <Button variant="outlined" color="inherit" onClick={() => setDiscarding(true)}>
           Cancelar sem aplicar
         </Button>
         <Button variant="contained" onClick={onApply} disabled={approvalCount === 0}>
