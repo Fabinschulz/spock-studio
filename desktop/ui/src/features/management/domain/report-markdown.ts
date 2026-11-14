@@ -67,7 +67,7 @@ export function reportToMarkdown(report: ProjectReport, kindLabel: (kind: string
   for (const milestone of report.milestones.milestones) {
     const due = milestone.dueDate ? `prazo ${formatDay(milestone.dueDate)}` : 'sem prazo';
     lines.push(
-      `- ${milestone.name} (${kindLabel(milestone.kind)}, ${due}): ${milestone.delivered} de ${milestone.items - milestone.closedWithoutDelivery} entregues, ` +
+      `- ${milestone.name} (${kindLabel(milestone.kind)}, ${due}): ${milestone.delivered} de ${milestone.counted} entregues, ` +
         `${milestone.open} ${milestone.open === 1 ? 'aberto' : 'abertos'}. Situação: ${MILESTONE_OUTLOOK[milestone.outlook] ?? milestone.outlook}.`
     );
   }

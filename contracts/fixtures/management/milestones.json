@@ -59,7 +59,8 @@
         "confidenceReasons": [],
         "riskFactors": [],
         "unavailable": null
-      }
+      },
+      "counted": 10
     },
     {
       "kind": "issues",
@@ -117,7 +118,8 @@
         "confidenceReasons": [],
         "riskFactors": [],
         "unavailable": null
-      }
+      },
+      "counted": 1
     }
   ],
   "omitted": 0,

@@ -21,7 +21,11 @@ public sealed record MilestoneProgress(
     int Open,
     string Outlook,
     string OutlookReason,
-    DeliveryForecast Forecast);
+    DeliveryForecast Forecast)
+{
+    // O que conta como entrega é regra do motor: a interface mostra este número, não o recalcula.
+    public int Counted => Items - ClosedWithoutDelivery;
+}
 
 public sealed record UnassignedItems(string Kind, int Items, int Open);
 

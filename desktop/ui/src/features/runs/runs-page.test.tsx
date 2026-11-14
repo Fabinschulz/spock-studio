@@ -175,8 +175,8 @@ describe('Execuções', () => {
       list: () => ({
         ...runListFixture,
         runs: [
-          item({ runId: 'run-9', state: 'running', live: false }),
-          item({ runId: 'run-8', state: 'running', live: true })
+          item({ runId: 'run-9', state: 'running', live: false, interrupted: true }),
+          item({ runId: 'run-8', state: 'running', live: true, interrupted: false })
         ]
       })
     });

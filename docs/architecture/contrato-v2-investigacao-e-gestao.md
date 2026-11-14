@@ -11,12 +11,13 @@ Em todos os três casos, outra camada repetia uma regra do motor .NET, e renomea
 - `contracts/fixtures/management/fact-groups.json` é a cópia do catálogo que os testes e a avaliação da inteligência leem. `FactGroupsContractTests` garante que é igual ao catálogo do motor.
 - Comportamento preservado: a ordem do catálogo é a ordem em que o laço olhava os grupos antes. Os testes de foco e o dataset de avaliação passam sem mudança de expectativa.
 
-## Fase 2: o motor diz o que hoje a UI deriva (UI-N11) — a fazer
+## Fase 2: o motor diz o que a UI derivava (UI-N11) — feita
 
-Campos aditivos (sem quebrar quem já lê):
-- `counted` em cada marco de `management.milestones` e do relatório: hoje a UI calcula `items - closedWithoutDelivery`, e o que conta como entrega é regra do motor.
-- `interrupted` em cada item de `run.list`/`run.detail`: hoje a UI deriva de `state` + `live`.
-- O resumo de atividade que a UI soma por categoria entre integrações fica para avaliar junto: duas integrações no mesmo recurso podem contar em dobro, e isso é regra de dados do motor.
+Campos aditivos (quem já lê continua funcionando):
+- `counted` em cada marco (`management.milestones` e o relatório): propriedade de `MilestoneProgress` (`Items - ClosedWithoutDelivery`). A tela e o Markdown leem o número em vez de recalculá-lo.
+- `interrupted` em cada item de `run.list`/`run.detail`: `running`/`validating` no diário sem ninguém executando agora. A UI deixou de derivar de `state` + `live`.
+- Fixtures golden regeneradas (`milestones.json`, `report.json`, `run-list.json`, `run-detail.json`); o diff delas só tem os campos novos.
+- Ficou de fora, de propósito: o resumo de atividade que a UI soma por categoria entre integrações. Tirar a soma da UI pede decidir antes como contar duas integrações apontando para o mesmo recurso (hoje contam duas vezes); sem essa regra, mover a soma para o motor só mudaria o lugar do problema.
 
 ## Fase 3: um só vocabulário para tela e Markdown do relatório (UI-N12) — a fazer, só na UI
 
