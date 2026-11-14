@@ -74,6 +74,7 @@ public static class ProtocolMethods
     public const string AiToolList = "aitool.list";
     public const string AgentRun = "agent.run";
     public const string IdeConnection = "ide.connection";
+    public const string ContextReview = "context.review";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -98,7 +99,7 @@ public static class ProtocolMethods
         ModelSave, ModelTest,
         ConnectionCreate, ConnectionTest, ConnectionRotate, ConnectionReach, IntegrationLink,
         ManagementAsk, ManagementInvestigate, ManagementPortfolioAsk,
-        AiToolList
+        AiToolList, ContextReview
     };
 
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
@@ -112,6 +113,8 @@ public static class ProtocolMethods
     public static readonly IReadOnlyList<string> Agent = [AgentRun];
 
     public static readonly IReadOnlyList<string> Ide = [IdeConnection];
+
+    public static readonly IReadOnlyList<string> Context = [ContextReview];
 
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }

@@ -1,13 +1,15 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import reviewFixture from '@contracts/fixtures/context/review.json';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { useEffect, type ReactNode } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 
-import type { EngineClient } from '@/shared/api';
+import { EngineError, type EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
 import { ProjectSelectionProvider, useProjectSelectionContext } from '@/features/project-selection';
 import { workflowStartParamsSchema, workflowStartResultSchema } from '@/shared/schema';
+import { expectNoA11yViolations } from '@/test/a11y';
 
 import { EngineeringRequestPage } from './engineering-request-page';
 
@@ -25,7 +27,8 @@ type Model = { configured: boolean } | 'erro';
 
 function clientFor(
   runId: string,
-  model: Model = { configured: false }
+  model: Model = { configured: false },
+  review: object | Error = reviewFixture
 ): EngineClient & { calls: Array<{ method: string; params: unknown }> } {
   const calls: Array<{ method: string; params: unknown }> = [];
   return {
@@ -35,6 +38,10 @@ function clientFor(
       if (method === 'model.status') {
         if (model === 'erro') throw new Error('motor fora do ar');
         return schema.parse({ configured: model.configured, provider: model.configured ? 'openai' : '' });
+      }
+      if (method === 'context.review') {
+        if (review instanceof Error) throw review;
+        return schema.parse(review);
       }
       if (method === 'workflow.start') {
         workflowStartParamsSchema.parse(params);
@@ -128,6 +135,65 @@ describe('Pedido de engenharia', () => {
       projectId: 'p-aaaaaaaaaaaa',
       input: { goal: 'avaliar o módulo de cobrança', impact: true, useModel: true }
     });
+  });
+
+  it('revisa o contexto antes de iniciar: tokens por etapa, orçamento e o que ficou de fora', async () => {
+    const client = clientFor('run-eng-5');
+    const { container } = renderPage(client);
+
+    await userEvent.type(await screen.findByPlaceholderText(/descrever impacto/i), '  Corrigir o frete  ');
+    await userEvent.click(screen.getByRole('button', { name: 'Revisar contexto' }));
+
+    const panel = await screen.findByRole('region', { name: 'Contexto do pedido' });
+    expect(client.calls.find((call) => call.method === 'context.review')?.params).toEqual({
+      projectId: 'p-aaaaaaaaaaaa',
+      goal: 'Corrigir o frete'
+    });
+    expect(within(panel).getByText('Cabe no orçamento')).toBeInTheDocument();
+    expect(panel).toHaveTextContent('No pior caso, a execução usa 2.850 de 8.000 tokens');
+    expect(within(panel).getByText(/Nenhum modelo configurado/)).toBeInTheDocument();
+    expect(panel).toHaveTextContent('Planejamento: 411 de entrada e até 1.024 de resposta');
+    expect(panel).toHaveTextContent('Trechos do projeto: 200');
+    expect(panel).toHaveTextContent('src/frete.cs · 200 tokens');
+    expect(panel).toHaveTextContent('Não couberam no bloco de trechos: src/carrinho.cs');
+    expect(panel).toHaveTextContent('1 arquivo ainda não foi indexado');
+    expect(client.calls.some((call) => call.method === 'workflow.start')).toBe(false);
+    await expectNoA11yViolations(container);
+  });
+
+  it('avisa quando uma etapa passa do orçamento e conta exato com modelo da OpenAI', async () => {
+    const over = {
+      ...reviewFixture,
+      model: { configured: true, provider: 'openai', model: 'gpt-4o-mini' },
+      counting: { exact: true, method: 'Contagem exata com o tokenizador do gpt-4o-mini.' },
+      plannedTokens: 9100,
+      calls: reviewFixture.calls.map((call, index) => ({ ...call, withinBudget: index === 0 }))
+    };
+    renderPage(clientFor('run-eng-6', { configured: true }, over));
+
+    await userEvent.type(await screen.findByPlaceholderText(/descrever impacto/i), 'frete');
+    await userEvent.click(screen.getByRole('button', { name: 'Revisar contexto' }));
+
+    const panel = await screen.findByRole('region', { name: 'Contexto do pedido' });
+    expect(within(panel).getByText('Passa do orçamento')).toBeInTheDocument();
+    expect(panel).toHaveTextContent('Contagem exata para gpt-4o-mini.');
+    expect(within(panel).getAllByText(/Esta etapa passa do orçamento/)).toHaveLength(1);
+  });
+
+  it('se a revisão falha, diz o motivo sem impedir o pedido', async () => {
+    renderPage(
+      clientFor(
+        'run-eng-7',
+        { configured: false },
+        new EngineError('AI_RUNTIME_UNAVAILABLE', 'O runtime de IA não está disponível.')
+      )
+    );
+
+    await userEvent.type(await screen.findByPlaceholderText(/descrever impacto/i), 'frete');
+    await userEvent.click(screen.getByRole('button', { name: 'Revisar contexto' }));
+
+    expect(await screen.findByText(/O runtime de IA não está disponível/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Iniciar pedido$/ })).toBeEnabled();
   });
 
   it('pede pasta quando ainda não há projeto autorizado', async () => {

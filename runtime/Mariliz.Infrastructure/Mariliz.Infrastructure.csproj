@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <!-- DPAPI: o cofre das credenciais de integração no Windows. -->
+    <PackageReference Include="Microsoft.ML.Tokenizers" Version="3.0.0" />
+    <PackageReference Include="Microsoft.ML.Tokenizers.Data.O200kBase" Version="3.0.0" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.11" />
   </ItemGroup>
 

@@ -10,6 +10,7 @@ using Mariliz.Application.Management.Assistant;
 using Mariliz.Application.Management.Investigation;
 using Mariliz.Application.Mcp;
 using Mariliz.Application.Audit;
+using Mariliz.Application.Context;
 using Mariliz.Runtime;
 using Mariliz.Application.Timeline;
 using Mariliz.Application.Workflows;
@@ -35,8 +36,8 @@ var integrations = LocalIntegrationHub.Create(engine.DataRoot, engine.Workspace,
 // Antes dos workflows, que montam o contexto com as decisões como memória do índice.
 var decisionStore = new FileDecisionStore(engine.DataRoot);
 var decisionMemory = new DecisionMemory(engine.Workspace, decisionStore);
-var workflows = new WorkflowService(engine.Workspace, aiRuntime, engine.Tracker, engine.Clock, engine.Store,
-    new WorkflowContextBuilder(engine.Workspace, aiRuntime, engine.Files, engine.Runner, engine.DataRoot, integrations.ExternalKnowledge, decisionMemory), modelAccess,
+var workflowContext = new WorkflowContextBuilder(engine.Workspace, aiRuntime, engine.Files, engine.Runner, engine.DataRoot, integrations.ExternalKnowledge, decisionMemory);
+var workflows = new WorkflowService(engine.Workspace, aiRuntime, engine.Tracker, engine.Clock, engine.Store, workflowContext, modelAccess,
     new FileEvalRecords(engine.DataRoot), new ProjectActionExecutor(engine.Workspace, engine.Files));
 // Uma execução que a queda anterior deixou "em andamento" não vai terminar: vira falha antes de qualquer pedido.
 if (WorkflowRecovery.MarkInterrupted(engine.Store, engine.Clock) is > 0 and var interrupted)
@@ -57,18 +58,20 @@ var audit = new ProjectAuditService(engine.Workspace, engine.Clock, engine.Store
 var investigation = new InvestigationService(assistant, integrations, engine.Workspace, aiRuntime, engine.Clock, engine.Store, modelAccess, timeline,
     decisionMemory, Path.Combine(engine.DataRoot, "investigation-index"));
 var portfolioAssistant = new PortfolioAssistant(assistant, engine.Workspace, models, integrations, engine.Clock);
+var knowledge = new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge, decisionMemory);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
     management: management, assistant: assistant,
     decisions: decisions, reports: new ReportService(engine.Workspace, management, decisions, engine.Store, engine.Clock),
     profiles: profiles,
-    knowledge: new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge, decisionMemory),
+    knowledge: knowledge,
     harness: new HarnessStatusService(engine.Workspace, engine.Files, engine.Clock),
     revisions: harnessRevisions,
     mcp: new McpInventoryService(engine.Workspace, engine.Files), timeline: timeline, audit: audit, investigation: investigation, portfolioAssistant: portfolioAssistant,
     aiTools: new AiToolService(ExecutableLocator.FromEnvironment(), engine.Runner),
     agents: new AgentRunService(ExecutableLocator.FromEnvironment(), engine.Runner, engine.Workspace, engine.Tracker, engine.Store, engine.Clock),
-    ide: new IdeConnection(Environment.ProcessPath));
+    ide: new IdeConnection(Environment.ProcessPath),
+    contextReview: new ContextReviewService(engine.Workspace, workflowContext, aiRuntime, new TiktokenTokenizers(), models, knowledge));
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

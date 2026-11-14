@@ -1,9 +1,11 @@
 import { ProjectSelection, useProjectSelectionContext, type SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 
+import { ContextReviewPanel } from './components/context-review-panel';
 import { EngineeringRequestForm } from './components/engineering-request-form';
 import { EngineeringRequestLayout } from './components/engineering-request-layout';
 import { ProjectContextBanner } from './components/project-context-banner';
+import { useContextReview } from './hooks/use-context-review';
 import { useModelConfigured } from './hooks/use-model-configured';
 import { useStartEngineeringRequest } from './hooks/use-start-engineering-request';
 
@@ -41,11 +43,20 @@ function EngineeringRequestPageWithProject({
 }) {
   const { submit, busy, error } = useStartEngineeringRequest(client, projectId);
   const modelConfigured = useModelConfigured(client);
+  const context = useContextReview(client, projectId);
 
   return (
     <EngineeringRequestLayout description={DESCRIPTION_WITH_PROJECT}>
       <ProjectContextBanner project={project} />
-      <EngineeringRequestForm busy={busy} error={error} modelConfigured={modelConfigured} onSubmit={submit} />
+      <EngineeringRequestForm
+        busy={busy}
+        error={error}
+        modelConfigured={modelConfigured}
+        onSubmit={submit}
+        reviewing={context.state.status === 'loading'}
+        onReview={(goal) => void context.review(goal)}
+      />
+      <ContextReviewPanel state={context.state} />
     </EngineeringRequestLayout>
   );
 }

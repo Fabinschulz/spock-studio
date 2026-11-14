@@ -54,6 +54,18 @@ class StartRequest:
     broker_token: str = field(default="", repr=False)
 
 
+PREVIEW_SCHEMA = "ai.context.preview.v1"
+
+
+@dataclass(frozen=True)
+class PreviewRequest:
+    project_id: str
+    goal: str
+    stacks: list[str]
+    knowledge_root: str
+    sources: list[dict]
+
+
 @dataclass(frozen=True)
 class ResumeRequest:
     run_id: str
@@ -76,15 +88,11 @@ def parse_start(payload: object) -> StartRequest:
     limits = _object(body.get("limits"), "limits")
     if any(not isinstance(limits.get(name), (int, float)) or isinstance(limits.get(name), bool) or limits[name] < 0 for name in _LIMITS):
         raise ContractError("limits")
-    goal = incoming.get("goal")
-    if not isinstance(goal, str) or not 0 < len(goal) <= 4000:
-        raise ContractError("goal")
-    stacks = context.get("stacks")
-    if not isinstance(stacks, list) or len(stacks) > 8 or any(not isinstance(item, str) or not _STACK.match(item) for item in stacks):
-        raise ContractError("stacks")
+    goal = _goal(incoming.get("goal"))
+    stacks = _stacks(context.get("stacks"))
     sources = context.get("sources")
-    if sources is not None and (not isinstance(sources, list) or any(not _source_ok(item) for item in sources)):
-        raise ContractError("sources")
+    if sources is not None:
+        sources = _sources(sources)
     actions = policy.get("allowedActions")
     if not isinstance(actions, list) or not isinstance(policy.get("modelAllowed"), bool):
         raise ContractError("policy")
@@ -98,7 +106,7 @@ def parse_start(payload: object) -> StartRequest:
         goal=goal,
         impact=incoming.get("impact") is True,
         requires_approval=incoming.get("requiresApproval") is True,
-        stacks=list(dict.fromkeys(stacks)),
+        stacks=stacks,
         knowledge_root=_text(context.get("knowledgeRoot")),
         execution_root=_text(context.get("executionRoot")),
         sources=sources,
@@ -107,6 +115,23 @@ def parse_start(payload: object) -> StartRequest:
         model_allowed=policy["modelAllowed"],
         broker_url=broker_url,
         broker_token=broker_token,
+    )
+
+
+def parse_preview(payload: object) -> PreviewRequest:
+    body = _object(payload, "mensagem")
+    if body.get("schema") != PREVIEW_SCHEMA:
+        raise ContractError("schema")
+    context = _object(body.get("context"), "context")
+    knowledge_root = _text(context.get("knowledgeRoot"))
+    if not knowledge_root:
+        raise ContractError("knowledgeRoot")
+    return PreviewRequest(
+        project_id=_match(body, "projectId", PROJECT_ID),
+        goal=_goal(body.get("goal")),
+        stacks=_stacks(context.get("stacks")),
+        knowledge_root=knowledge_root,
+        sources=_sources(context.get("sources")),
     )
 
 
@@ -144,6 +169,24 @@ def _broker(value: object, model_allowed: bool) -> tuple[str, str]:
     if not isinstance(token, str) or not 32 <= len(token) <= 128:
         raise ContractError("broker")
     return url, token
+
+
+def _goal(value: object) -> str:
+    if not isinstance(value, str) or not 0 < len(value) <= 4000:
+        raise ContractError("goal")
+    return value
+
+
+def _stacks(value: object) -> list[str]:
+    if not isinstance(value, list) or len(value) > 8 or any(not isinstance(item, str) or not _STACK.match(item) for item in value):
+        raise ContractError("stacks")
+    return list(dict.fromkeys(value))
+
+
+def _sources(value: object) -> list[dict]:
+    if not isinstance(value, list) or any(not _source_ok(item) for item in value):
+        raise ContractError("sources")
+    return value
 
 
 def _source_ok(item: object) -> bool:

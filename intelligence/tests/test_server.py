@@ -70,6 +70,21 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(lines[-1]["status"], "completed_with_limitations")
         self.assertEqual(self.call("/v1/investigations", {"schema": "x"})[0], 200)
 
+    def test_previa_de_contexto_responde_json_e_recusa_pedido_invalido(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as root:
+            body = {
+                "schema": "ai.context.preview.v1",
+                "projectId": "p-aaaaaaaaaaaa",
+                "goal": "frete",
+                "context": {"stacks": [], "knowledgeRoot": root, "sources": []},
+            }
+            status, result = self.call("/v1/context/preview", body)
+            self.assertEqual(status, 200)
+            self.assertEqual(result["schema"], "ai.context.preview.ack.v1")
+            self.assertEqual(self.call("/v1/context/preview", {**body, "goal": ""}), (400, {"error": "invalid_request"}))
+
     def test_falha_do_grafo_deixa_rastro_sem_a_mensagem_da_excecao(self) -> None:
         captured = io.StringIO()
         with mock.patch.object(server, "run_cancel", side_effect=RuntimeError("C:/segredo/caminho")):

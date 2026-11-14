@@ -1,6 +1,7 @@
 import agentResultFixture from '@contracts/fixtures/agents/run-result.json';
 import aiToolsFixture from '@contracts/fixtures/aitools/list.json';
 import auditFixture from '@contracts/fixtures/audit/audit.json';
+import contextReviewFixture from '@contracts/fixtures/context/review.json';
 import ideConnectionFixture from '@contracts/fixtures/ide/connection.json';
 import investigationFixture from '@contracts/fixtures/management/investigation.json';
 import portfolioAnswerFixture from '@contracts/fixtures/management/portfolio-answer.json';
@@ -82,6 +83,7 @@ import {
   aiToolListSchema,
   agentRunResultSchema,
   ideConnectionSchema,
+  contextReviewSchema,
   projectKnowledgeSchema,
   portfolioAnswerSchema,
   portfolioEvidenceSchema,
@@ -673,6 +675,22 @@ describe('contrato do resultado de um agente (fixture do motor)', () => {
       error: null,
       answer: 'Resposta do agente.'
     });
+  });
+});
+
+describe('contrato da revisão de contexto (fixture do motor)', () => {
+  it('traz tokens por etapa e por trecho, o orçamento e o que ficou de fora, sem texto do projeto', () => {
+    const parsed = contextReviewSchema.parse(contextReviewFixture);
+
+    expect(parsed.calls.map((call) => call.agentId)).toEqual(['planning', 'architecture']);
+    expect(parsed.calls[0]?.sections.reduce((total, section) => total + section.tokens, 0)).toBe(
+      parsed.calls[0]?.inputTokens
+    );
+    expect(parsed.plannedTokens).toBe(
+      parsed.calls.reduce((total, call) => total + call.inputTokens + call.outputTokens, 0)
+    );
+    expect(parsed.leftOut).toMatchObject({ cutBySize: 1, truncated: 1, pending: 1 });
+    expect(JSON.stringify(contextReviewFixture)).not.toMatch(/TEXTO-DO-PROJETO/);
   });
 });
 
