@@ -26,6 +26,7 @@ import integrationHistory from '@contracts/fixtures/integrations/history.json';
 import integrationList from '@contracts/fixtures/integrations/integrations.json';
 import integrationReach from '@contracts/fixtures/integrations/reach.json';
 import modelConnectionError from '@contracts/fixtures/models/connection-error.json';
+import modelConnectionMulti from '@contracts/fixtures/models/connection-multi.json';
 import modelConnectionPurposes from '@contracts/fixtures/models/connection-purposes.json';
 import modelConnection from '@contracts/fixtures/models/connection.json';
 import assistantAnswer from '@contracts/fixtures/management/assistant-answer.json';
@@ -508,56 +509,85 @@ describe('contrato do resumo por conexão (fixture do motor)', () => {
 });
 
 describe('contrato da conexão do modelo (fixtures do motor)', () => {
-  it('o estado conectado diz o provedor, o modelo, onde a chave está e quando foi conferida', () => {
+  const providerOf = (parsed: ReturnType<typeof modelConnectionSchema.parse>, id: string) =>
+    parsed.providers.find((provider) => provider.id === id)!;
+
+  it('o estado conectado diz o provedor padrão, o modelo, onde a chave está e quando foi conferida', () => {
     const parsed = modelConnectionSchema.parse(modelConnection);
-    expect(parsed).toMatchObject({
+    const openai = providerOf(parsed, 'openai');
+    expect(parsed).toMatchObject({ configured: true, provider: 'openai' });
+    expect(openai).toMatchObject({
+      name: 'OpenAI',
       configured: true,
-      provider: 'openai',
+      isDefault: true,
       status: 'connected',
       protection: 'file',
       lastError: null
     });
-    expect(parsed.model).not.toBe('');
-    expect(parsed.checkedAt).not.toBeNull();
-    expect(parsed.providerName).toBe('OpenAI');
-    expect(parsed.available.map((provider) => provider.id)).toEqual(['openai', 'anthropic', 'google']);
-    expect(parsed.available.every((provider) => provider.model.length > 0)).toBe(true);
+    expect(openai.model).not.toBe('');
+    expect(openai.checkedAt).not.toBeNull();
+    expect(parsed.providers.map((provider) => provider.id)).toEqual(['openai', 'anthropic', 'google']);
+    expect(parsed.providers.every((provider) => provider.model.length > 0)).toBe(true);
   });
 
-  it('o estado com erro traz o código e o motivo da recusa', () => {
-    const parsed = modelConnectionSchema.parse(modelConnectionError);
-    expect(parsed.status).toBe('error');
-    expect(parsed.lastError).toMatchObject({ code: 'MODEL_AUTH_FAILED' });
-    expect(parsed.lastError?.message).not.toBe('');
-  });
-
-  it('cada finalidade diz o modelo de hoje, e sem escolha é o padrão do provedor', () => {
+  it('um provedor sem chave diz "none" e não traz proteção nem conferência', () => {
     const parsed = modelConnectionSchema.parse(modelConnection);
-    expect(parsed.purposes.map((purpose) => purpose.id)).toEqual(['assistant', 'judge', 'workflow']);
-    expect(parsed.purposes.every((purpose) => purpose.isDefault && purpose.model === parsed.model)).toBe(true);
-    expect(parsed.purposes.every((purpose) => purpose.label.length > 0 && purpose.description.length > 0)).toBe(true);
-    const offered = parsed.available.find((provider) => provider.id === parsed.provider)!;
-    expect(offered.models.map((option) => option.id)).toContain(parsed.model);
+    const without = parsed.providers.filter((provider) => !provider.configured);
+    expect(without.map((provider) => provider.id)).toEqual(['anthropic', 'google']);
+    expect(without.every((provider) => provider.status === 'none' && provider.protection === null)).toBe(true);
+    expect(without.every((provider) => !provider.isDefault && provider.checkedAt === null)).toBe(true);
   });
 
-  it('uma escolha aparece só na finalidade escolhida e é um modelo que o provedor oferece', () => {
+  it('o estado com erro traz o código e o motivo da recusa, no provedor que recusou', () => {
+    const parsed = modelConnectionSchema.parse(modelConnectionError);
+    const refused = providerOf(parsed, parsed.provider);
+    expect(refused.status).toBe('error');
+    expect(refused.lastError).toMatchObject({ code: 'MODEL_AUTH_FAILED' });
+    expect(refused.lastError?.message).not.toBe('');
+  });
+
+  it('cada finalidade diz o provedor e o modelo de hoje, e sem escolha é o padrão do provedor padrão', () => {
+    const parsed = modelConnectionSchema.parse(modelConnection);
+    const fallback = providerOf(parsed, parsed.provider);
+    expect(parsed.purposes.map((purpose) => purpose.id)).toEqual(['assistant', 'judge', 'workflow']);
+    expect(
+      parsed.purposes.every(
+        (purpose) => purpose.isDefault && purpose.model === fallback.model && purpose.provider === fallback.id
+      )
+    ).toBe(true);
+    expect(parsed.purposes.every((purpose) => purpose.label.length > 0 && purpose.description.length > 0)).toBe(true);
+    expect(fallback.models.map((option) => option.id)).toContain(fallback.model);
+  });
+
+  it('uma escolha aparece só na finalidade escolhida e é um modelo que o provedor dela oferece', () => {
     const parsed = modelConnectionSchema.parse(modelConnectionPurposes);
     const judge = parsed.purposes.find((purpose) => purpose.id === 'judge')!;
-    expect(judge).toMatchObject({ model: 'claude-opus-5-5', isDefault: false });
+    expect(judge).toMatchObject({ model: 'claude-opus-5-5', provider: 'anthropic', isDefault: false });
     expect(parsed.purposes.filter((purpose) => purpose.isDefault).map((purpose) => purpose.id)).toEqual([
       'assistant',
       'workflow'
     ]);
-    const offered = parsed.available.find((provider) => provider.id === parsed.provider)!;
-    expect(offered.models.map((option) => option.id)).toContain(judge.model);
+    expect(providerOf(parsed, judge.provider).models.map((option) => option.id)).toContain(judge.model);
   });
 
-  it('nenhuma resposta carrega a chave', () => {
-    expect(JSON.stringify([modelConnection, modelConnectionError, modelConnectionPurposes])).not.toMatch(/sk-/);
-    expect(JSON.stringify([modelConnection, modelConnectionError])).not.toMatch(/https:/);
+  it('com vários provedores, cada um tem o seu estado e as finalidades podem ser de provedores diferentes', () => {
+    const parsed = modelConnectionSchema.parse(modelConnectionMulti);
+    expect(parsed.providers.filter((provider) => provider.configured).map((provider) => provider.id)).toEqual([
+      'openai',
+      'anthropic'
+    ]);
+    expect(providerOf(parsed, 'openai')).toMatchObject({ isDefault: true, status: 'connected' });
+    expect(providerOf(parsed, 'anthropic')).toMatchObject({ isDefault: false, status: 'error' });
+    expect(providerOf(parsed, 'anthropic').lastError).toMatchObject({ code: 'MODEL_AUTH_FAILED' });
+    expect(new Set(parsed.purposes.map((purpose) => purpose.provider))).toEqual(new Set(['openai', 'anthropic']));
+  });
+
+  it('nenhuma resposta carrega a chave nem endereço', () => {
+    const all = [modelConnection, modelConnectionError, modelConnectionPurposes, modelConnectionMulti];
+    expect(JSON.stringify(all)).not.toMatch(/sk-/);
+    expect(JSON.stringify(all)).not.toMatch(/https:/);
   });
 });
-
 describe('contrato das fontes externas do conhecimento (fixture do motor)', () => {
   it('cada fonte diz se está autorizada e quantos itens dela entram no índice', () => {
     const { external } = {

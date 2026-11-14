@@ -1,16 +1,16 @@
 {
   "configured": true,
   "provider": "openai",
-  "providerName": "OpenAI",
-  "model": "gpt-4o-mini",
-  "status": "connected",
-  "protection": "file",
-  "checkedAt": "2026-11-10T12:00:00+00:00",
-  "lastError": null,
-  "available": [
+  "providers": [
     {
       "id": "openai",
       "name": "OpenAI",
+      "configured": true,
+      "isDefault": true,
+      "status": "connected",
+      "protection": "file",
+      "checkedAt": "2026-11-10T12:00:00+00:00",
+      "lastError": null,
       "model": "gpt-4o-mini",
       "models": [
         {
@@ -26,6 +26,12 @@
     {
       "id": "anthropic",
       "name": "Anthropic",
+      "configured": false,
+      "isDefault": false,
+      "status": "none",
+      "protection": null,
+      "checkedAt": null,
+      "lastError": null,
       "model": "claude-haiku-5-5",
       "models": [
         {
@@ -45,6 +51,12 @@
     {
       "id": "google",
       "name": "Google Gemini",
+      "configured": false,
+      "isDefault": false,
+      "status": "none",
+      "protection": null,
+      "checkedAt": null,
+      "lastError": null,
       "model": "gemini-2.5-flash",
       "models": [
         {
@@ -63,6 +75,7 @@
       "id": "assistant",
       "label": "Assistente gerencial",
       "description": "Responde perguntas sobre os indicadores do portfólio e investiga, em etapas, o que explica um resultado, só com os fatos que o motor calculou.",
+      "provider": "openai",
       "model": "gpt-4o-mini",
       "isDefault": true
     },
@@ -70,6 +83,7 @@
       "id": "judge",
       "label": "Juiz",
       "description": "Dá uma segunda opinião sobre o resultado de uma execução. Não decide sozinho: quem decide é a verificação do motor.",
+      "provider": "openai",
       "model": "gpt-4o-mini",
       "isDefault": true
     },
@@ -77,6 +91,7 @@
       "id": "workflow",
       "label": "Fluxos de engenharia",
       "description": "Classifica o pedido, planeja, desenha a arquitetura e reformula buscas nos fluxos de engenharia.",
+      "provider": "openai",
       "model": "gpt-4o-mini",
       "isDefault": true
     }

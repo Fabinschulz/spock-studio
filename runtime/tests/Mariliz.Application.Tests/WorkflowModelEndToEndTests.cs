@@ -189,7 +189,7 @@ public class WorkflowModelEndToEndTests
             var evaluation = run.Result!["evaluation"]!;
             Assert.Equal("deterministic", evaluation["verdict"]!.GetValue<string>());
             Assert.Equal("passed", evaluation["judge"]!.GetValue<string>());
-            Assert.Equal(ModelGateway.DefaultModel, evaluation["judgment"]!["model"]!.GetValue<string>());
+            Assert.Equal(ModelProviders.OpenAi.DefaultModel, evaluation["judgment"]!["model"]!.GetValue<string>());
             Assert.Equal("gpt-4o-mini-2024-07-18", evaluation["judgment"]!["modelVersion"]!.GetValue<string>());
 
             // O registro em disco é do motor e leva o hash exato das mensagens que o juiz mandou ao provedor.

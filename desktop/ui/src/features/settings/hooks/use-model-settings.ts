@@ -46,25 +46,28 @@ export function useModelSettings(api: ModelApi) {
   );
 
   const save = useCallback(
-    (provider: string, key: string) =>
+    (provider: string, name: string, key: string) =>
       run(
         async () => {
           await api.save(provider, key);
           return api.connection();
         },
         'Não foi possível guardar a chave.',
-        () => 'Chave guardada: o provedor a aceitou.'
+        () => `Chave de ${name} guardada: o provedor a aceitou.`
       ),
     [api, run]
   );
 
   const test = useCallback(
-    () =>
+    (provider: string, name: string) =>
       run(
-        () => api.test(),
+        () => api.test(provider),
         'Não foi possível conferir a chave.',
         // Uma recusa vem no estado, não como falha: só um "conectado" é sucesso.
-        (next) => (next.status === 'connected' ? 'O provedor aceitou a chave.' : null)
+        (next) =>
+          next.providers.find((entry) => entry.id === provider)?.status === 'connected'
+            ? `${name} aceitou a chave.`
+            : null
       ),
     [api, run]
   );
@@ -79,18 +82,25 @@ export function useModelSettings(api: ModelApi) {
     [api, run]
   );
 
-  const clear = useCallback(
-    () =>
+  const remove = useCallback(
+    (provider: string, name: string) =>
       run(
-        async () => {
-          await api.clear();
-          return api.connection();
-        },
+        () => api.remove(provider),
         'Não foi possível remover a chave.',
-        () => 'Chave removida deste computador.'
+        () => `Chave de ${name} removida deste computador.`
       ),
     [api, run]
   );
 
-  return { connection, busy, error, notice, save, test, choose, clear };
+  const setDefault = useCallback(
+    (provider: string, name: string) =>
+      run(
+        () => api.setDefault(provider),
+        'Não foi possível trocar o provedor padrão.',
+        () => `${name} é o provedor padrão.`
+      ),
+    [api, run]
+  );
+
+  return { connection, busy, error, notice, save, test, choose, remove, setDefault };
 }

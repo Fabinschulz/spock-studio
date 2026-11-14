@@ -6,9 +6,6 @@ public sealed record ModelOption(string Id, string Name);
 /// <param name="DefaultModel">O agente nunca o escolhe.</param>
 public sealed record ModelProvider(string Id, string Name, Uri Endpoint, string DefaultModel, IReadOnlyList<ModelOption> Models);
 
-// Sem o endereço, que não é assunto de tela.
-public sealed record ModelProviderInfo(string Id, string Name, string Model, IReadOnlyList<ModelOption> Models);
-
 // É a única lista: validação de provedor, destino permitido e modelo saem daqui.
 public static class ModelProviders
 {
@@ -35,6 +32,6 @@ public static class ModelProviders
         && string.Equals(endpoint.Host, provider.Endpoint.Host, StringComparison.OrdinalIgnoreCase)
         && string.Equals(endpoint.AbsolutePath, provider.Endpoint.AbsolutePath, StringComparison.Ordinal));
 
-    public static IReadOnlyList<ModelProviderInfo> Available() =>
-        All.Select(provider => new ModelProviderInfo(provider.Id, provider.Name, provider.DefaultModel, provider.Models)).ToList();
+    // O identificador de um modelo é de um provedor só: é por ele que se sabe com quem falar.
+    public static ModelProvider? ByModel(string? model) => All.FirstOrDefault(provider => provider.Models.Any(option => option.Id == model));
 }

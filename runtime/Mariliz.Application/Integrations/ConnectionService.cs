@@ -51,7 +51,7 @@ public sealed class ConnectionService(IIntegrationStore store, ISecretVault vaul
     {
         string id;
         do id = "conn-" + Guid.NewGuid().ToString("N")[..12];
-        while (id == ReservedSecretIds.ModelKey);
+        while (ReservedSecretIds.IsReserved(id));
         return id;
     }
 

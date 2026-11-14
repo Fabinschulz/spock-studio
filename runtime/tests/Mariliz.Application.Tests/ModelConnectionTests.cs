@@ -71,10 +71,10 @@ public class ModelConnectionTests
 
         var connection = s.Gateway.Connection();
 
-        Assert.Equal(("none", false, "", null), (connection.Status, connection.Configured, connection.Provider, connection.Protection));
-        Assert.Equal(("", ""), (connection.Model, connection.ProviderName));
-        Assert.Equal(["openai", "anthropic", "google"], connection.Available.Select(provider => provider.Id));
-        var error = await Assert.ThrowsAsync<EngineException>(() => s.Gateway.TestAsync(CancellationToken.None));
+        Assert.Equal((false, ""), (connection.Configured, connection.Provider));
+        Assert.All(connection.Providers, provider => Assert.Equal(("none", false, null), (provider.Status, provider.Configured, provider.Protection)));
+        Assert.Equal(["openai", "anthropic", "google"], connection.Providers.Select(provider => provider.Id));
+        var error = await Assert.ThrowsAsync<EngineException>(() => s.Gateway.TestAsync(null, CancellationToken.None));
         Assert.Equal("MODEL_NOT_CONFIGURED", error.Code);
         Assert.Equal(0, s.Transport.Calls);
     }
@@ -88,9 +88,10 @@ public class ModelConnectionTests
 
         Assert.Equal(1, s.Transport.Calls);
         Assert.Equal((Key, ModelGateway.ProbePrompt, ModelGateway.ProbeMaxTokens), (s.Transport.SeenKey, s.Transport.SeenPrompt, s.Transport.SeenMaxTokens));
-        Assert.Equal(("connected", true, "openai", ModelKeyProtection.File), (connection.Status, connection.Configured, connection.Provider, connection.Protection));
-        Assert.Equal(s.Clock.UtcNow, connection.CheckedAt);
-        Assert.Null(connection.LastError);
+        var openai = connection.Of("openai");
+        Assert.Equal(("connected", true, "openai", ModelKeyProtection.File), (openai.Status, connection.Configured, connection.Provider, openai.Protection));
+        Assert.Equal(s.Clock.UtcNow, openai.CheckedAt);
+        Assert.Null(openai.LastError);
         Assert.True(new FileModelSettings(s.DataDir).TryGetKey(out var stored));
         Assert.Equal(Key, stored);
     }
@@ -106,8 +107,8 @@ public class ModelConnectionTests
         Assert.Equal("MODEL_AUTH_FAILED", error.Code);
         Assert.DoesNotContain(Key, error.Message);
         Assert.False(File.Exists(Path.Combine(s.DataDir, "model.json")));
-        Assert.False(File.Exists(Path.Combine(s.DataDir, "model-check.json")));
-        Assert.Equal("none", s.Gateway.Connection().Status);
+        Assert.False(File.Exists(Path.Combine(s.DataDir, "model-checks.json")));
+        Assert.All(s.Gateway.Connection().Providers, provider => Assert.Equal("none", provider.Status));
     }
 
     [Fact]
@@ -123,8 +124,8 @@ public class ModelConnectionTests
         Assert.True(new FileModelSettings(s.DataDir).TryGetKey(out var stored));
         Assert.Equal(Key, stored);
         var connection = s.Gateway.Connection();
-        Assert.Equal("connected", connection.Status);
-        Assert.Equal(new DateTimeOffset(2026, 11, 10, 12, 0, 0, TimeSpan.Zero), connection.CheckedAt);
+        Assert.Equal("connected", connection.Default().Status);
+        Assert.Equal(new DateTimeOffset(2026, 11, 10, 12, 0, 0, TimeSpan.Zero), connection.Default().CheckedAt);
     }
 
     [Fact]
@@ -138,7 +139,7 @@ public class ModelConnectionTests
 
         Assert.True(new FileModelSettings(s.DataDir).TryGetKey(out var stored));
         Assert.Equal(OtherKey, stored);
-        Assert.Equal(s.Clock.UtcNow, connection.CheckedAt);
+        Assert.Equal(s.Clock.UtcNow, connection.Default().CheckedAt);
     }
 
     [Fact]
@@ -188,20 +189,20 @@ public class ModelConnectionTests
         s.Clock.UtcNow = s.Clock.UtcNow.AddHours(2);
         s.Transport.Refuse();
 
-        var refused = await s.Gateway.TestAsync(CancellationToken.None);
+        var refused = await s.Gateway.TestAsync(null, CancellationToken.None);
 
-        Assert.Equal("error", refused.Status);
-        Assert.Equal(("MODEL_AUTH_FAILED", "O provedor recusou a chave."), (refused.LastError!.Code, refused.LastError.Message));
-        Assert.Equal(s.Clock.UtcNow, refused.CheckedAt);
+        Assert.Equal("error", refused.Default().Status);
+        Assert.Equal(("MODEL_AUTH_FAILED", "O provedor recusou a chave."), (refused.Default().LastError!.Code, refused.Default().LastError!.Message));
+        Assert.Equal(s.Clock.UtcNow, refused.Default().CheckedAt);
         Assert.True(refused.Configured);
 
         s.Transport.Accept();
         s.Clock.UtcNow = s.Clock.UtcNow.AddHours(1);
-        var accepted = await s.Gateway.TestAsync(CancellationToken.None);
+        var accepted = await s.Gateway.TestAsync(null, CancellationToken.None);
 
-        Assert.Equal("connected", accepted.Status);
-        Assert.Null(accepted.LastError);
-        Assert.Equal(s.Clock.UtcNow, accepted.CheckedAt);
+        Assert.Equal("connected", accepted.Default().Status);
+        Assert.Null(accepted.Default().LastError);
+        Assert.Equal(s.Clock.UtcNow, accepted.Default().CheckedAt);
     }
 
     [Theory]
@@ -214,21 +215,21 @@ public class ModelConnectionTests
         await s.Gateway.ConnectAsync("openai", Key, CancellationToken.None);
         s.Transport.Refuse(code, "motivo");
 
-        var connection = await s.Gateway.TestAsync(CancellationToken.None);
+        var connection = await s.Gateway.TestAsync(null, CancellationToken.None);
 
-        Assert.Equal(("error", code), (connection.Status, connection.LastError!.Code));
+        Assert.Equal(("error", code), (connection.Default().Status, connection.Default().LastError!.Code));
     }
 
     [Fact]
     public async Task Testar_com_prazo_estourado_registra_timeout()
     {
         using var s = new Setup(TimeSpan.FromMilliseconds(30));
-        s.Gateway.Save("openai", Key);
+        new FileModelSettings(s.DataDir).Save("openai", Key);
         s.Transport.Behavior = async (_, ct) => await Task.Delay(TimeSpan.FromSeconds(5), ct);
 
-        var connection = await s.Gateway.TestAsync(CancellationToken.None);
+        var connection = await s.Gateway.TestAsync(null, CancellationToken.None);
 
-        Assert.Equal(("error", "MODEL_TIMEOUT"), (connection.Status, connection.LastError!.Code));
+        Assert.Equal(("error", "MODEL_TIMEOUT"), (connection.Default().Status, connection.Default().LastError!.Code));
     }
 
     [Fact]
@@ -237,34 +238,31 @@ public class ModelConnectionTests
         using var s = new Setup();
         new FileModelSettings(s.DataDir).Save("openai", Key);
 
-        Assert.Equal("untested", s.Gateway.Connection().Status);
-        Assert.Equal("connected", (await s.Gateway.TestAsync(CancellationToken.None)).Status);
+        Assert.Equal("untested", s.Gateway.Connection().Default().Status);
+        Assert.Equal("connected", (await s.Gateway.TestAsync(null, CancellationToken.None)).Default().Status);
     }
 
     [Fact]
-    public async Task O_estado_sobrevive_a_reiniciar_e_salvar_ou_remover_a_chave_o_apaga()
+    public async Task O_estado_sobrevive_a_reiniciar_e_remover_a_chave_o_apaga()
     {
         using var s = new Setup();
         await s.Gateway.ConnectAsync("openai", Key, CancellationToken.None);
-        Assert.Equal("connected", s.New().Connection().Status);
+        Assert.Equal("connected", s.New().Connection().Default().Status);
 
-        s.Gateway.Save("openai", OtherKey);
-        Assert.Equal("untested", s.New().Connection().Status);
+        s.Gateway.Remove("openai");
 
-        await s.Gateway.TestAsync(CancellationToken.None);
-        s.Gateway.Clear();
-        Assert.Equal("none", s.New().Connection().Status);
-        Assert.False(File.Exists(Path.Combine(s.DataDir, "model-check.json")));
+        Assert.All(s.New().Connection().Providers, provider => Assert.Equal("none", provider.Status));
+        Assert.False(File.Exists(Path.Combine(s.DataDir, "model-checks.json")));
     }
 
     [Fact]
     public async Task Arquivo_de_estado_corrompido_conta_como_nunca_conferida()
     {
         using var s = new Setup();
-        s.Gateway.Save("openai", Key);
-        File.WriteAllText(Path.Combine(s.DataDir, "model-check.json"), "{ nao e json");
+        new FileModelSettings(s.DataDir).Save("openai", Key);
+        File.WriteAllText(Path.Combine(s.DataDir, "model-checks.json"), "{ nao e json");
 
-        Assert.Equal("untested", s.Gateway.Connection().Status);
+        Assert.Equal("untested", s.Gateway.Connection().Default().Status);
         await Task.CompletedTask;
     }
 
@@ -277,10 +275,10 @@ public class ModelConnectionTests
         s.Transport.Accept();
         await s.Gateway.ConnectAsync("openai", Key, CancellationToken.None);
         s.Transport.Refuse();
-        var failed = await s.Gateway.TestAsync(CancellationToken.None);
+        var failed = await s.Gateway.TestAsync(null, CancellationToken.None);
 
         Assert.DoesNotContain(Key, Serialized(failed));
-        Assert.DoesNotContain(Key, File.ReadAllText(Path.Combine(s.DataDir, "model-check.json")));
+        Assert.DoesNotContain(Key, File.ReadAllText(Path.Combine(s.DataDir, "model-checks.json")));
     }
 
     [Fact]
@@ -317,9 +315,9 @@ public class ModelConnectionTests
         // O corpo de uma recusa pode citar a chave: ele nunca vai para a mensagem.
         using var transport = new HttpsModelTransport(new StatusHandler(status, "{\"error\":{\"message\":\"chave " + Key + " invalida\"}}"));
 
-        var simple = await Assert.ThrowsAsync<EngineException>(() => transport.SendAsync(ModelGateway.Endpoint, Key, "oi", 8, CancellationToken.None));
+        var simple = await Assert.ThrowsAsync<EngineException>(() => transport.SendAsync(ModelProviders.OpenAi.Endpoint, Key, "oi", 8, CancellationToken.None));
         var chat = await Assert.ThrowsAsync<EngineException>(() =>
-            transport.SendChatAsync(ModelGateway.Endpoint, Key, ModelGateway.DefaultModel, new ChatRequest([new ChatMessage("user", "oi")], 8, false), CancellationToken.None));
+            transport.SendChatAsync(ModelProviders.OpenAi.Endpoint, Key, ModelProviders.OpenAi.DefaultModel, new ChatRequest([new ChatMessage("user", "oi")], 8, false), CancellationToken.None));
 
         Assert.Equal((code, code), (simple.Code, chat.Code));
         Assert.DoesNotContain(Key, simple.Message + chat.Message);
@@ -347,6 +345,9 @@ public class ModelConnectionTests
         Assert.DoesNotContain(Key, saved.ToJsonString());
     }
 
+    private static string StatusOf(JsonObject response, string provider) =>
+        response["result"]!["providers"]!.AsArray().Single(entry => entry!["id"]!.GetValue<string>() == provider)!["status"]!.GetValue<string>();
+
     [Fact]
     public async Task Os_metodos_de_conexao_e_teste_respondem_e_nao_trazem_a_chave()
     {
@@ -354,16 +355,17 @@ public class ModelConnectionTests
         var session = new EngineSession("test", models: s.Gateway);
 
         var none = Call(session, "model.connection");
-        Assert.Equal("none", none["result"]!["status"]!.GetValue<string>());
+        Assert.False(none["result"]!["configured"]!.GetValue<bool>());
+        Assert.All(none["result"]!["providers"]!.AsArray(), provider => Assert.Equal("none", provider!["status"]!.GetValue<string>()));
 
         var noKey = Call(session, "model.test");
         Assert.Equal("MODEL_NOT_CONFIGURED", noKey["error"]!["code"]!.GetValue<string>());
 
-        s.Gateway.Save("openai", Key);
+        new FileModelSettings(s.DataDir).Save("openai", Key);
         var tested = Call(session, "model.test");
-        Assert.Equal("connected", tested["result"]!["status"]!.GetValue<string>());
+        Assert.Equal("connected", StatusOf(tested, "openai"));
         Assert.DoesNotContain(Key, tested.ToJsonString());
-        Assert.Equal("connected", Call(session, "model.connection")["result"]!["status"]!.GetValue<string>());
+        Assert.Equal("connected", StatusOf(Call(session, "model.connection"), "openai"));
         await Task.CompletedTask;
     }
 
@@ -374,7 +376,7 @@ public class ModelConnectionTests
         await s.Gateway.ConnectAsync("openai", Key, CancellationToken.None);
         var connected = s.Gateway.Connection();
         s.Transport.Refuse();
-        var failed = await s.Gateway.TestAsync(CancellationToken.None);
+        var failed = await s.Gateway.TestAsync(null, CancellationToken.None);
 
         foreach (var (name, connection) in new[] { ("connection", connected), ("connection-error", failed) })
         {

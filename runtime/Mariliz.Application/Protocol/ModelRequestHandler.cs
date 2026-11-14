@@ -12,20 +12,15 @@ internal sealed class ModelRequestHandler(ModelGateway models)
         ProtocolMethods.ModelSave => await Save(method, parameters, ct),
         ProtocolMethods.ModelConnection => ConnectionJson(models.Connection()),
         ProtocolMethods.ModelPurpose => ConnectionJson(models.SetPurposeModel(RequiredString(method, parameters, "purpose"), ReadString(parameters, "model"))),
-        ProtocolMethods.ModelTest => ConnectionJson(await models.TestAsync(ct)),
-        ProtocolMethods.ModelClear => Clear(),
+        ProtocolMethods.ModelTest => ConnectionJson(await models.TestAsync(ReadString(parameters, "provider"), ct)),
+        ProtocolMethods.ModelRemove => ConnectionJson(models.Remove(RequiredString(method, parameters, "provider"))),
+        ProtocolMethods.ModelDefault => ConnectionJson(models.SetDefaultProvider(RequiredString(method, parameters, "provider"))),
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
     };
 
     private async Task<JsonObject> Save(string method, JsonObject? parameters, CancellationToken ct)
     {
         await models.ConnectAsync(RequiredString(method, parameters, "provider"), RequiredString(method, parameters, "key"), ct);
-        return StatusJson(models.Status());
-    }
-
-    private JsonObject Clear()
-    {
-        models.Clear();
         return StatusJson(models.Status());
     }
 

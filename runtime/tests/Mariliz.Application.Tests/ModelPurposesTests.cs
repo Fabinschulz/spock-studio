@@ -244,7 +244,7 @@ public class ModelPurposesTests
     }
 
     [Fact]
-    public async Task Trocar_de_provedor_volta_cada_finalidade_ao_padrao_do_novo_e_reconectar_o_mesmo_mantem()
+    public async Task Com_uma_chave_so_trocar_de_provedor_faz_a_finalidade_seguir_o_novo_e_reconectar_o_antigo_revive_a_escolha()
     {
         using var s = new Setup();
         await s.Gateway.ConnectAsync("openai", OpenAiKey, CancellationToken.None);
@@ -256,7 +256,10 @@ public class ModelPurposesTests
         var switched = await s.Gateway.ConnectAsync("anthropic", AnthropicKey, CancellationToken.None);
 
         Assert.All(switched.Purposes, item => Assert.Equal((ModelProviders.Anthropic.DefaultModel, true), (item.Model, item.IsDefault)));
-        Assert.False(File.Exists(Path.Combine(s.DataDir, "model-purposes.json")));
+        Assert.True(File.Exists(Path.Combine(s.DataDir, "model-purposes.json")));
+
+        await s.Gateway.ConnectAsync("openai", OpenAiKey, CancellationToken.None);
+        Assert.Equal("gpt-4o", ModelOf(s.Gateway.Connection(), "judge"));
     }
 
     [Fact]
@@ -294,7 +297,7 @@ public class ModelPurposesTests
         await s.Gateway.ConnectAsync("openai", OpenAiKey, CancellationToken.None);
         s.Gateway.SetPurposeModel("judge", "gpt-4o");
 
-        s.Gateway.Clear();
+        s.Gateway.Remove("openai");
 
         Assert.False(File.Exists(Path.Combine(s.DataDir, "model-purposes.json")));
         Assert.Empty(s.Gateway.Connection().Purposes);

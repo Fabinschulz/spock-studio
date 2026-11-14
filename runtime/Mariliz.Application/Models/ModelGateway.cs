@@ -16,15 +16,8 @@ public sealed class ModelGateway(
     IClock? clock = null,
     IModelPreferences? preferences = null)
 {
-    // O provedor de quem já tinha uma chave antes de haver escolha. Quem decide o provedor de hoje é ModelProviders.
-    public const string Provider = "openai";
-
-    // O agente não escolhe o modelo.
-    public const string DefaultModel = "gpt-4o-mini";
-
     public const int MaxChatTokens = 8192;
     public const int MaxChatText = 64000;
-    public static readonly Uri Endpoint = ModelProviders.OpenAi.Endpoint;
 
     private static readonly TimeSpan ChatTimeout = TimeSpan.FromSeconds(30);
     private readonly TimeSpan _timeout = timeout ?? TimeSpan.FromSeconds(10);
@@ -38,97 +31,124 @@ public sealed class ModelGateway(
 
     public ModelStatus Status() => settings.Status();
 
-    public void Save(string provider, string key)
-    {
-        settings.Save(provider, key);
-        checks?.Clear();
-    }
-
-    public void Clear()
-    {
-        settings.Clear();
-        checks?.Clear();
-        preferences?.Clear();
-    }
-
     public ModelConnection Connection()
     {
-        var status = settings.Status();
-        var available = ModelProviders.Available();
-        if (!status.Configured) return new ModelConnection(false, "", "", "", "none", null, null, null, available, []);
+        var configured = settings.Providers();
+        var fallback = Default(configured);
+        var providers = ModelProviders.All.Select(provider => ProviderState(provider, configured.Contains(provider.Id), provider == fallback)).ToList();
+        return new ModelConnection(configured.Count > 0, fallback?.Id ?? "", providers, fallback is null ? [] : Purposes(configured, fallback));
+    }
 
-        var provider = Active(status);
-        var check = checks?.Read();
-        return new ModelConnection(true, provider.Id, provider.Name, provider.DefaultModel, check?.Status ?? "untested", settings.Protection(), check?.CheckedAt, check?.Error, available, Purposes(provider));
+    private ProviderConnection ProviderState(ModelProvider provider, bool configured, bool isDefault)
+    {
+        var check = configured ? checks?.Read(provider.Id) : null;
+        var status = !configured ? "none" : check?.Status ?? "untested";
+        return new ProviderConnection(provider.Id, provider.Name, configured, isDefault, status, configured ? settings.Protection(provider.Id) : null,
+            check?.CheckedAt, check?.Error, provider.DefaultModel, provider.Models);
     }
 
     // Formato conferido, uma pergunta curta ao provedor e só então o cofre: se o provedor recusar (ou não responder), nada é gravado e a chave que já valia continua valendo.
     public async Task<ModelConnection> ConnectAsync(string provider, string key, CancellationToken ct)
     {
         settings.Validate(provider, key);
-        await ProbeAsync(ModelProviders.Find(provider) ?? throw new EngineException("MODEL_PROVIDER_DENIED", "O provedor não está disponível."), key, ct);
+        await ProbeAsync(Find(provider), key, ct);
 
-        var previous = settings.Status();
         settings.Save(provider, key);
-        // Os modelos escolhidos eram os de outro provedor: trocar de provedor volta cada finalidade ao padrão do novo.
-        if (previous.Configured && previous.Provider != provider) preferences?.Clear();
-        checks?.Write(new ModelCheck("connected", Now, null));
+        checks?.Write(provider, new ModelCheck("connected", Now, null));
         return Connection();
     }
 
-    // Modelo fora da lista do provedor é recusado: a lista é o que o motor sabe chamar, e o agente nunca escolhe.
+    // As escolhas de modelo que eram dele deixam de valer, e o provedor padrão passa para outro que ainda tenha chave.
+    public ModelConnection Remove(string provider)
+    {
+        Find(provider);
+        settings.Remove(provider);
+        checks?.Clear(provider);
+        DropChoicesOf(provider);
+        return Connection();
+    }
+
+    public ModelConnection SetDefaultProvider(string provider)
+    {
+        Find(provider);
+        if (!settings.Providers().Contains(provider)) throw NotConfigured(provider);
+
+        settings.SetDefault(provider);
+        return Connection();
+    }
+
+    // Modelo de um provedor sem chave é recusado: a lista é o que o motor sabe chamar, e o agente nunca escolhe.
     public ModelConnection SetPurposeModel(string purpose, string? model)
     {
         if (ModelPurposes.Find(purpose) is null) throw new EngineException("MODEL_PURPOSE_UNKNOWN", "A finalidade não existe.");
-        var status = settings.Status();
-        if (!status.Configured) throw new EngineException("MODEL_NOT_CONFIGURED", "Nenhuma chave está configurada.");
+        var configured = settings.Providers();
+        if (configured.Count == 0) throw new EngineException("MODEL_NOT_CONFIGURED", "Nenhuma chave está configurada.");
 
-        var provider = Active(status);
-        if (model is not null && provider.Models.All(option => option.Id != model))
-            throw new EngineException("MODEL_CHOICE_DENIED", "Esse modelo não está disponível neste provedor.");
+        if (model is not null && (ModelProviders.ByModel(model) is not { } owner || !configured.Contains(owner.Id)))
+            throw new EngineException("MODEL_CHOICE_DENIED", "Esse modelo não está disponível: o provedor dele não tem chave.");
 
-        preferences?.Write(purpose, model is null || model == provider.DefaultModel ? null : model);
+        // Escolher o próprio modelo padrão é voltar ao padrão: a finalidade segue o provedor padrão se ele mudar.
+        preferences?.Write(purpose, model == Default(configured)?.DefaultModel ? null : model);
         return Connection();
     }
 
-    // Uma escolha que não pertence ao provedor (de um provedor anterior) vale como não escolhida.
-    private List<ModelPurposeState> Purposes(ModelProvider provider)
+    // Uma recusa não é exceção: fica registrada na conexão, que é o que a pessoa consulta. Sem provedor, testa o padrão.
+    public async Task<ModelConnection> TestAsync(string? provider, CancellationToken ct)
     {
-        var chosen = preferences?.Read() ?? new Dictionary<string, string>();
-        return ModelPurposes.All.Select(purpose =>
-        {
-            var model = ModelFor(provider, purpose.Id, chosen);
-            return new ModelPurposeState(purpose.Id, purpose.Label, purpose.Description, model, model == provider.DefaultModel);
-        }).ToList();
-    }
-
-    private string ModelFor(ModelProvider provider, string purpose, IReadOnlyDictionary<string, string>? chosen = null)
-    {
-        chosen ??= preferences?.Read() ?? new Dictionary<string, string>();
-        return chosen.TryGetValue(purpose, out var model) && provider.Models.Any(option => option.Id == model) ? model : provider.DefaultModel;
-    }
-
-    // Uma recusa não é exceção: fica registrada na conexão, que é o que a pessoa consulta.
-    public async Task<ModelConnection> TestAsync(CancellationToken ct)
-    {
-        if (!settings.TryGetKey(out var key))
-            throw new EngineException("MODEL_NOT_CONFIGURED", "Nenhuma chave está configurada.");
+        var target = provider is null ? Default(settings.Providers()) ?? throw NotConfigured(null) : Find(provider);
+        if (!settings.TryGetKey(target.Id, out var key)) throw NotConfigured(target.Id);
 
         try
         {
-            await ProbeAsync(Active(settings.Status()), key, ct);
-            checks?.Write(new ModelCheck("connected", Now, null));
+            await ProbeAsync(target, key, ct);
+            checks?.Write(target.Id, new ModelCheck("connected", Now, null));
         }
         catch (EngineException ex) when (ex.Code is "MODEL_AUTH_FAILED" or "MODEL_RATE_LIMITED" or "MODEL_UNAVAILABLE" or "MODEL_TIMEOUT" or "MODEL_INVALID_RESPONSE")
         {
-            checks?.Write(new ModelCheck("error", Now, new ModelCheckError(ex.Code, ex.Message, Now)));
+            checks?.Write(target.Id, new ModelCheck("error", Now, new ModelCheckError(ex.Code, ex.Message, Now)));
         }
 
         return Connection();
     }
 
-    // Uma chave de antes da escolha de provedor é da OpenAI.
-    private static ModelProvider Active(ModelStatus status) => ModelProviders.Find(status.Provider) ?? ModelProviders.Default;
+    // Uma chave de antes da escolha de provedor é da OpenAI; sem o provedor guardado, vale o primeiro que tiver chave.
+    private ModelProvider? Default(IReadOnlyList<string> configured)
+    {
+        if (configured.Count == 0) return null;
+        var stored = settings.Status().Provider;
+        var chosen = configured.Contains(stored) ? stored : configured[0];
+        return ModelProviders.Find(chosen);
+    }
+
+    private static ModelProvider Find(string provider) =>
+        ModelProviders.Find(provider) ?? throw new EngineException("MODEL_PROVIDER_DENIED", "O provedor não está disponível.");
+
+    private static EngineException NotConfigured(string? provider) =>
+        new("MODEL_NOT_CONFIGURED", provider is null ? "Nenhuma chave está configurada." : "Este provedor não tem chave configurada.");
+
+    // Uma escolha vale se o provedor do modelo tem chave; senão a finalidade segue o padrão.
+    private (ModelProvider Provider, string Model, bool Chosen)? Resolve(string purpose, IReadOnlyList<string> configured)
+    {
+        var chosen = preferences?.Read();
+        if (chosen is not null && chosen.TryGetValue(purpose, out var model) && ModelProviders.ByModel(model) is { } owner && configured.Contains(owner.Id))
+            return (owner, model, true);
+
+        return Default(configured) is { } fallback ? (fallback, fallback.DefaultModel, false) : null;
+    }
+
+    private List<ModelPurposeState> Purposes(IReadOnlyList<string> configured, ModelProvider fallback) =>
+        ModelPurposes.All.Select(purpose =>
+        {
+            var (provider, model, chosen) = Resolve(purpose.Id, configured) ?? (fallback, fallback.DefaultModel, false);
+            return new ModelPurposeState(purpose.Id, purpose.Label, purpose.Description, provider.Id, model, !chosen);
+        }).ToList();
+
+    private void DropChoicesOf(string provider)
+    {
+        if (preferences is null) return;
+        var dropped = preferences.Read().Where(choice => ModelProviders.ByModel(choice.Value)?.Id == provider).Select(choice => choice.Key).ToList();
+        foreach (var purpose in dropped) preferences.Write(purpose, null);
+    }
 
     private async Task ProbeAsync(ModelProvider provider, string key, CancellationToken ct)
     {
@@ -147,11 +167,11 @@ public sealed class ModelGateway(
     // As mensagens saem sem a chave nem formato de segredo, e a resposta volta pela mesma redação. Quem cobra o orçamento é o chamador.
     public async Task<ChatCompletion> ChatAsync(ChatRequest request, CancellationToken ct, string purpose = ModelPurposes.Workflow)
     {
-        if (chat is null || !settings.TryGetKey(out var key))
+        var choice = Resolve(purpose, settings.Providers());
+        if (chat is null || choice is null || !settings.TryGetKey(choice.Value.Provider.Id, out var key))
             throw new EngineException("MODEL_NOT_CONFIGURED", "Nenhum modelo está configurado.");
 
-        var provider = Active(settings.Status());
-        var model = ModelFor(provider, purpose);
+        var (provider, model, _) = choice.Value;
         var messages = request.Messages.Select(m => m with { Content = Redact(m.Content, key) }).ToList();
         var bounded = request with { Messages = messages, MaxTokens = Math.Clamp(request.MaxTokens, 1, MaxChatTokens) };
 

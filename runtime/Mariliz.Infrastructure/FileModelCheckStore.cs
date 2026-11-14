@@ -8,43 +8,57 @@ public sealed class FileModelCheckStore(string dataRoot) : IModelCheckStore
 {
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web);
     private readonly object _gate = new();
-    private string FilePath => Path.Combine(dataRoot, "model-check.json");
+    private string FilePath => Path.Combine(dataRoot, "model-checks.json");
 
-    public ModelCheck? Read()
+    public ModelCheck? Read(string provider)
+    {
+        lock (_gate) return ReadAll().GetValueOrDefault(provider);
+    }
+
+    public void Write(string provider, ModelCheck check)
     {
         lock (_gate)
         {
-            if (!File.Exists(FilePath)) return null;
-            try
-            {
-                var check = JsonSerializer.Deserialize<ModelCheck>(File.ReadAllText(FilePath), Options);
-                return check is { Status: "connected" or "error" } ? check : null;
-            }
-            catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
-            {
-                return null;
-            }
+            var all = ReadAll();
+            all[provider] = check;
+            Save(all);
         }
     }
 
-    public void Write(ModelCheck check)
+    public void Clear(string provider)
     {
         lock (_gate)
         {
-            Directory.CreateDirectory(dataRoot);
-            var temp = FilePath + ".tmp";
-            File.WriteAllText(temp, JsonSerializer.Serialize(check, Options));
-            File.Move(temp, FilePath, overwrite: true);
+            var all = ReadAll();
+            if (all.Remove(provider)) Save(all);
         }
     }
 
-    public void Clear()
+    private Dictionary<string, ModelCheck> ReadAll()
     {
-        lock (_gate)
+        if (!File.Exists(FilePath)) return [];
+        try
+        {
+            var stored = JsonSerializer.Deserialize<Dictionary<string, ModelCheck>>(File.ReadAllText(FilePath), Options) ?? [];
+            return stored.Where(entry => entry.Value is { Status: "connected" or "error" }).ToDictionary(entry => entry.Key, entry => entry.Value, StringComparer.Ordinal);
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            return [];
+        }
+    }
+
+    private void Save(Dictionary<string, ModelCheck> all)
+    {
+        if (all.Count == 0)
         {
             if (File.Exists(FilePath)) File.Delete(FilePath);
-            var temp = FilePath + ".tmp";
-            if (File.Exists(temp)) File.Delete(temp);
+            return;
         }
+
+        Directory.CreateDirectory(dataRoot);
+        var temp = FilePath + ".tmp";
+        File.WriteAllText(temp, JsonSerializer.Serialize(all, Options));
+        File.Move(temp, FilePath, overwrite: true);
     }
 }

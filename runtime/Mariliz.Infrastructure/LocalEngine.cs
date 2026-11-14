@@ -17,7 +17,7 @@ public sealed class LocalEngine
         Store = new FileRunStore(dataRoot);
         Workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), rememberWorkspaces ? new FileWorkspaceRegistry(dataRoot) : null);
         Tracker = new RunTracker(emit, Clock);
-        Settings = new LocalModelSettings(dataRoot, LocalIntegrationHub.SecretVault(dataRoot));
+        Settings = new ModelKeyring(dataRoot, LocalIntegrationHub.SecretVault(dataRoot));
         Configure = new ConfigureProjectService(Workspace, Files, Runner, Store, Clock, Tracker, Settings);
         Runs = new RunQueries(Tracker, Store, new RunCatalog(Store, Workspace, Tracker));
     }
@@ -26,7 +26,7 @@ public sealed class LocalEngine
     public FileRunStore Store { get; }
     public WorkspaceAuthorizer Workspace { get; }
     public RunTracker Tracker { get; }
-    public LocalModelSettings Settings { get; }
+    public ModelKeyring Settings { get; }
     public ConfigureProjectService Configure { get; }
     public RunQueries Runs { get; }
     public IProcessRunner Runner { get; } = new SystemProcessRunner();

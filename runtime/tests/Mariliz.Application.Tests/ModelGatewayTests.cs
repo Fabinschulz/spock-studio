@@ -41,7 +41,7 @@ public class ModelGatewayTests
 
         Assert.Equal(Key, transport.SeenKey);
         Assert.Equal(ModelGateway.ProbePrompt, transport.SeenPrompt);
-        Assert.Equal(ModelGateway.Endpoint, transport.SeenEndpoint);
+        Assert.Equal(ModelProviders.OpenAi.Endpoint, transport.SeenEndpoint);
 
         var tested = session.Handle(Line("model.test", new JsonObject())).Response;
         Assert.True(tested["result"]!["configured"]!.GetValue<bool>());
@@ -53,7 +53,7 @@ public class ModelGatewayTests
         Assert.Contains("[omitido]", reply.Text);
         Assert.DoesNotContain(Key, reply.Text);
 
-        var cleared = session.Handle(Line("model.clear", new JsonObject())).Response;
+        var cleared = session.Handle(Line("model.remove", new JsonObject { ["provider"] = "openai" })).Response;
         Assert.False(cleared["result"]!["configured"]!.GetValue<bool>());
         Assert.False(File.Exists(Path.Combine(project.DataDir, "model.json")));
         Assert.Equal(before, project.Fingerprint());
@@ -64,8 +64,9 @@ public class ModelGatewayTests
     {
         using var project = TempProject.Dotnet();
         var transport = new FakeTransport { Delay = TimeSpan.FromSeconds(5) };
-        var gateway = new ModelGateway(new FileModelSettings(project.DataDir), transport, TimeSpan.FromMilliseconds(30));
-        gateway.Save("openai", Key);
+        var settings = new FileModelSettings(project.DataDir);
+        var gateway = new ModelGateway(settings, transport, TimeSpan.FromMilliseconds(30));
+        settings.Save("openai", Key);
         var session = new EngineSession("test", models: gateway);
 
         var response = session.Handle(Line("model.save", new JsonObject { ["provider"] = "openai", ["key"] = Key })).Response;
@@ -98,7 +99,7 @@ public class ModelGatewayTests
 
         var allowed = new RecordingHandler();
         using var live = new HttpsModelTransport(allowed);
-        var result = await live.SendAsync(ModelGateway.Endpoint, Key, "oi", 32, CancellationToken.None);
+        var result = await live.SendAsync(ModelProviders.OpenAi.Endpoint, Key, "oi", 32, CancellationToken.None);
         Assert.Equal("resposta", result.Text);
         Assert.Equal("Bearer " + Key, allowed.Authorization);
         Assert.DoesNotContain(Key, allowed.Body);

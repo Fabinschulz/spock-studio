@@ -109,7 +109,7 @@ public class LiveValidationTests(ITestOutputHelper output)
         Assert.True(world.Hub.VaultAvailable, "Sem cofre neste sistema a chave ficaria em texto puro: rode no Windows.");
 
         var settings = new LocalModelSettings(world.DataDir, LocalIntegrationHub.SecretVault(world.DataDir));
-        settings.Save(ModelGateway.Provider, key);
+        settings.Save(ModelProviders.OpenAi.Id, key);
         world.AssertNoSecretOnDisk(key);
         Assert.False(File.Exists(Path.Combine(world.DataDir, "model.json")));
         Report("Modelo: chave", "no cofre", "nenhum arquivo contém a chave");

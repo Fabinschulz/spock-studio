@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
+using Mariliz.Application.Integrations;
 using Mariliz.Application.Models;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Tests.Support;
@@ -48,12 +49,22 @@ public class ModelProvidersTests
     }
 
     [Fact]
-    public void Provedor_desconhecido_nao_existe_e_a_lista_para_a_tela_nao_traz_endereco()
+    public void Provedor_desconhecido_nao_existe()
     {
         Assert.Null(ModelProviders.Find("outro"));
         Assert.Null(ModelProviders.Find(null));
-        Assert.Equal(["openai", "anthropic", "google"], ModelProviders.Available().Select(provider => provider.Id));
-        Assert.DoesNotContain("https", System.Text.Json.JsonSerializer.Serialize(ModelProviders.Available()));
+    }
+
+    [Fact]
+    public void Cada_modelo_pertence_a_um_provedor_so_e_cada_provedor_tem_o_seu_lugar_no_cofre()
+    {
+        var models = ModelProviders.All.SelectMany(provider => provider.Models.Select(option => option.Id)).ToList();
+
+        Assert.Equal(models.Count, models.Distinct().Count());
+        Assert.All(ModelProviders.All, provider => Assert.Equal(provider.Id, ModelProviders.ByModel(provider.DefaultModel)?.Id));
+        Assert.Null(ModelProviders.ByModel("modelo-que-nao-existe"));
+        Assert.Equal(ModelProviders.All.Count, ModelProviders.All.Select(provider => ReservedSecretIds.ModelKeyOf(provider.Id)).Distinct().Count());
+        Assert.All(ModelProviders.All, provider => Assert.True(ReservedSecretIds.IsReserved(ReservedSecretIds.ModelKeyOf(provider.Id))));
     }
 
     private static string AnthropicReply(string text, int input = 11, int output = 7) =>
@@ -206,8 +217,9 @@ public class ModelProvidersTests
         var connection = await gateway.ConnectAsync("anthropic", AnthropicKey, CancellationToken.None);
 
         Assert.Equal(ModelProviders.Anthropic.Endpoint, capture.Seen.Single().Endpoint);
-        Assert.Equal(("anthropic", "Anthropic", ModelProviders.Anthropic.DefaultModel, "connected"), (connection.Provider, connection.ProviderName, connection.Model, connection.Status));
-        Assert.Equal(["openai", "anthropic", "google"], connection.Available.Select(provider => provider.Id));
+        var anthropic = connection.Of("anthropic");
+        Assert.Equal(("anthropic", "Anthropic", ModelProviders.Anthropic.DefaultModel, "connected"), (connection.Provider, anthropic.Name, anthropic.Model, anthropic.Status));
+        Assert.Equal(["openai", "anthropic", "google"], connection.Providers.Select(provider => provider.Id));
     }
 
     [Fact]
@@ -235,7 +247,7 @@ public class ModelProvidersTests
         File.WriteAllText(Path.Combine(project.DataDir, "model.json"), new JsonObject { ["provider"] = "openai", ["key"] = OpenAiKey }.ToJsonString());
         var capture = new Capture();
 
-        var connection = await Gateway(project, capture).TestAsync(CancellationToken.None);
+        var connection = await Gateway(project, capture).TestAsync(null, CancellationToken.None);
 
         Assert.Equal("openai", connection.Provider);
         Assert.Equal(ModelProviders.OpenAi.Endpoint, capture.Seen.Single().Endpoint);
@@ -387,7 +399,7 @@ public class ModelProvidersTests
 
         var result = response["result"]!;
         Assert.Equal("anthropic", result["provider"]!.GetValue<string>());
-        Assert.Equal(["openai", "anthropic", "google"], result["available"]!.AsArray().Select(item => item!["id"]!.GetValue<string>()));
+        Assert.Equal(["openai", "anthropic", "google"], result["providers"]!.AsArray().Select(item => item!["id"]!.GetValue<string>()));
         Assert.DoesNotContain("https://", response.ToJsonString());
         Assert.DoesNotContain(AnthropicKey, response.ToJsonString());
     }
