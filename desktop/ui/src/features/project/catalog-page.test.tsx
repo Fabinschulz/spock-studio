@@ -77,14 +77,14 @@ describe('Catálogo do Harness', () => {
   it('agrupa os componentes por tipo, na ordem do produto', async () => {
     renderPage(clientWith(parsed).client);
 
-    await screen.findByRole('heading', { name: 'Agentes' });
+    await screen.findByRole('heading', { name: 'Agentes (assistentes de IA)' });
 
     const titles = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent);
     expect(titles).toEqual([
-      'Agentes',
-      'Skills',
+      'Agentes (assistentes de IA)',
+      'Skills (instruções prontas)',
       'Regras',
-      'Hooks',
+      'Hooks (checagens automáticas)',
       'Ciclo de especificação',
       'Declaração do projeto',
       'O que o hook de política faz',
@@ -325,7 +325,7 @@ describe('Catálogo do Harness', () => {
 
   it('não tem violações de acessibilidade', async () => {
     const { container } = renderPage(clientWith(parsed).client);
-    await screen.findByRole('heading', { name: 'Agentes' });
+    await screen.findByRole('heading', { name: 'Agentes (assistentes de IA)' });
 
     await expectNoA11yViolations(container);
   });

@@ -1,0 +1,18 @@
+@use '@/shared/styles/abstracts' as *;
+
+.term {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--color-text-subtle);
+  text-underline-offset: 0.2em;
+  cursor: help;
+
+  &:focus-visible {
+    @include focus-ring(2px);
+  }
+}

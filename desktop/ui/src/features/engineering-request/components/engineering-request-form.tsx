@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Alert, Button, CheckboxFormField, FormProvider, TextFormField, useFormContext } from '@mariliz/ui-kit';
 
+import { Term } from '@/shared/components';
 import { pathTo } from '@/shared/routing';
 import { useId } from 'react';
 import { useNavigate } from 'react-router';
@@ -35,8 +36,8 @@ function ModelOption({ configured }: { configured: boolean | null }) {
       />
       <p id={descriptionId} className={styles.note}>
         Se marcado, o pedido e os trechos do projeto recuperados para ele são enviados ao provedor do modelo configurado
-        em Minha IA, com segredos removidos antes. O gasto é limitado a 8.000 tokens e o motor o contabiliza. Sem
-        marcar, nada sai do seu computador.
+        em Minha IA, com segredos removidos antes. O gasto é limitado a <Term id="token">8.000 tokens</Term> e o Spock
+        Studio o contabiliza. Sem marcar, nada sai do seu computador.
       </p>
       {configured === false ? (
         <p className={styles.note}>

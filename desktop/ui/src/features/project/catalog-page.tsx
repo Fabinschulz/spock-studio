@@ -15,10 +15,10 @@ import { readCatalog } from './service/project-api';
 
 /** Um tipo novo do motor aparece depois, com o nome que veio. */
 const GROUPS: { kind: string; title: string }[] = [
-  { kind: 'agent', title: 'Agentes' },
-  { kind: 'skill', title: 'Skills' },
+  { kind: 'agent', title: 'Agentes (assistentes de IA)' },
+  { kind: 'skill', title: 'Skills (instruções prontas)' },
   { kind: 'rule', title: 'Regras' },
-  { kind: 'hook', title: 'Hooks' },
+  { kind: 'hook', title: 'Hooks (checagens automáticas)' },
   { kind: 'specification', title: 'Ciclo de especificação' },
   { kind: 'config', title: 'Declaração do projeto' }
 ];

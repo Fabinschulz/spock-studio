@@ -1,6 +1,6 @@
 import { formatEngineDate } from '@/features/integrations';
 import type { EngineClient } from '@/shared/api';
-import { Page, StatusChip, SuccessState, type Tone } from '@/shared/components';
+import { LoadingState, Page, StatusChip, SuccessState, Term, type Tone } from '@/shared/components';
 import type { ModelConnection, ModelPurpose } from '@/shared/schema';
 import { Button, SelectField, TextField } from '@mariliz/ui-kit';
 import { useId, useMemo, useState } from 'react';
@@ -55,16 +55,22 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
   return (
     <Page
       title="Minha IA"
-      description="O provedor e o modelo que o Spock Studio usa. Nada aqui é gravado no projeto que você autorizou."
+      description={
+        <>
+          O <Term id="provider" /> e o <Term id="model" /> que o Spock Studio usa. Nada aqui é gravado no projeto que
+          você autorizou.
+        </>
+      }
     >
       <section className={styles.panel} aria-labelledby="model-settings-heading">
         <h2 id="model-settings-heading">Provedor de IA</h2>
         <p className={styles.hint}>
-          A chave fica só neste computador, fora do projeto. Ela nunca aparece no índice do projeto, nos registros das
-          execuções nem no diagnóstico. Nas validações, a avaliação do modelo nunca decide o resultado sozinha.
+          A <Term id="apiKey" /> fica só neste computador, fora do projeto. Ela nunca aparece no índice do projeto, nos
+          registros das execuções nem no diagnóstico. Nas validações, a avaliação do modelo nunca decide o resultado
+          sozinha.
         </p>
 
-        {connection ? <ConnectionState connection={connection} /> : <p className={styles.status}>Carregando…</p>}
+        {connection ? <ConnectionState connection={connection} /> : <LoadingState>Lendo a configuração…</LoadingState>}
 
         {providers.length > 0 ? (
           <div className={styles.field}>
