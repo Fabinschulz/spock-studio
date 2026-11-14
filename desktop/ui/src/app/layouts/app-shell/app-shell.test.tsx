@@ -507,6 +507,95 @@ describe('AppShell · menu recolhível', () => {
   });
 });
 
+describe('AppShell · painel inferior', () => {
+  const panel = () => screen.getByRole('region', { name: 'Painel inferior' });
+  const statusbar = () => screen.getByRole('contentinfo');
+
+  it('Ctrl+J abre o painel; a Saída fora do aplicativo diz que não há motor', async () => {
+    renderShell();
+    expect(screen.queryByRole('region', { name: 'Painel inferior' })).not.toBeInTheDocument();
+
+    await userEvent.keyboard('{Control>}j{/Control}');
+    await userEvent.click(within(panel()).getByRole('tab', { name: 'Saída' }));
+
+    expect(within(panel()).getByRole('tab', { name: 'Saída' })).toHaveAttribute('aria-selected', 'true');
+    expect(within(panel()).getByText('Sem motor local, não há saída nesta prévia.')).toBeInTheDocument();
+  });
+
+  it('o atalho do terminal abre na aba Terminal, que explica onde ele roda', async () => {
+    renderShell();
+
+    await userEvent.keyboard('{Control>}`{/Control}');
+
+    expect(within(panel()).getByRole('tab', { name: 'Terminal' })).toHaveAttribute('aria-selected', 'true');
+    expect(within(panel()).getByText('O terminal roda só no aplicativo desktop.')).toBeInTheDocument();
+    expect(within(statusbar()).getByRole('button', { name: 'Terminal' })).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('o botão da barra de status alterna a aba e fecha quando ela já está à vista', async () => {
+    renderShell();
+    const output = within(statusbar()).getByRole('button', { name: 'Saída' });
+
+    await userEvent.click(output);
+    expect(panel()).toBeVisible();
+    await userEvent.click(output);
+
+    expect(screen.queryByRole('region', { name: 'Painel inferior' })).not.toBeInTheDocument();
+    expect(output).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('setas trocam de aba e a divisória ajusta a altura pelo teclado', async () => {
+    renderShell();
+    await userEvent.keyboard('{Control>}`{/Control}');
+    within(panel()).getByRole('tab', { name: 'Terminal' }).focus();
+
+    await userEvent.keyboard('{ArrowRight}');
+    expect(within(panel()).getByRole('tab', { name: 'Saída' })).toHaveFocus();
+
+    const divider = within(panel()).getByRole('separator', { name: 'Altura do painel inferior' });
+    const before = Number(divider.getAttribute('aria-valuenow'));
+    divider.focus();
+    await userEvent.keyboard('{ArrowUp}');
+    expect(Number(divider.getAttribute('aria-valuenow'))).toBeGreaterThan(before);
+  });
+
+  it('fechar com o foco dentro do painel devolve o foco ao conteúdo', async () => {
+    renderShell();
+    await userEvent.keyboard('{Control>}j{/Control}');
+    within(panel()).getByRole('tab', { name: 'Terminal' }).focus();
+
+    await userEvent.keyboard('{Control>}j{/Control}');
+
+    expect(screen.getByRole('main')).toHaveFocus();
+  });
+
+  it('lembra que estava aberto na próxima vez que o aplicativo abre', async () => {
+    const { unmount } = renderShell();
+    await userEvent.keyboard('{Control>}j{/Control}');
+    unmount();
+
+    renderShell();
+
+    expect(panel()).toBeVisible();
+  });
+
+  it('Ctrl+/ mostra os atalhos de teclado', async () => {
+    renderShell();
+
+    await userEvent.keyboard('{Control>}/{/Control}');
+
+    const sheet = await screen.findByRole('dialog', { name: 'Atalhos de teclado' });
+    expect(within(sheet).getByText(/Abrir o terminal do projeto/)).toBeInTheDocument();
+  });
+
+  it('não tem violações estruturais de acessibilidade com o painel aberto', async () => {
+    const { container } = renderShell();
+    await userEvent.keyboard('{Control>}j{/Control}');
+
+    await expectNoA11yViolations(container);
+  });
+});
+
 describe('AppShell · item indisponível', () => {
   it('um item sem destino aparece desativado e diz o motivo', () => {
     render(

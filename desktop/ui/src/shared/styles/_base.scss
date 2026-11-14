@@ -15,3 +15,8 @@
 .visually-hidden {
   @include visually-hidden;
 }
+
+// `hidden` esconde de verdade: sem isto, um `display: flex` de componente venceria o estilo padrão do navegador.
+[hidden] {
+  display: none !important;
+}

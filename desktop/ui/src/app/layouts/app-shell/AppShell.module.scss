@@ -375,6 +375,39 @@ button.item {
   color: var(--color-text-subtle);
 }
 
+.statusActions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+button.statusButton {
+  @include plain-button;
+
+  padding: 2px var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+
+  @include hover {
+    background-color: var(--color-menu-hover);
+    color: var(--color-text);
+  }
+
+  &:focus-visible {
+    @include focus-ring(-2px);
+  }
+}
+
+button.statusButtonActive {
+  color: var(--color-text);
+  box-shadow: inset 0 -2px 0 var(--color-primary);
+}
+
 .main {
   position: relative;
   flex: 1;
