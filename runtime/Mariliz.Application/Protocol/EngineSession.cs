@@ -33,6 +33,7 @@ public sealed class EngineSession
     private readonly TimelineRequestHandler? _timeline;
     private readonly AuditRequestHandler? _audit;
     private readonly AiToolRequestHandler? _aiTools;
+    private readonly AgentRequestHandler? _agents;
     private readonly EngineeringRequestHandler? _engineering;
     private readonly RunTracker? _tracker;
     private readonly SemaphoreSlim _outputGate = new(1, 1);
@@ -62,7 +63,8 @@ public sealed class EngineSession
         ProjectAuditService? audit = null,
         InvestigationService? investigation = null,
         PortfolioAssistant? portfolioAssistant = null,
-        AiToolService? aiTools = null)
+        AiToolService? aiTools = null,
+        AgentRunService? agents = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
@@ -76,6 +78,7 @@ public sealed class EngineSession
         _timeline = timeline is null ? null : new TimelineRequestHandler(timeline);
         _audit = audit is null ? null : new AuditRequestHandler(audit);
         _aiTools = aiTools is null ? null : new AiToolRequestHandler(aiTools);
+        _agents = agents is null ? null : new AgentRequestHandler(agents);
         _engineering = profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions, mcp);
         _tracker = tracker;
         if (relay is not null) relay.Target = WriteEvent;
@@ -92,6 +95,7 @@ public sealed class EngineSession
         if (timeline is not null) offered.AddRange(ProtocolMethods.Timeline);
         if (audit is not null) offered.AddRange(ProtocolMethods.Audit);
         if (aiTools is not null) offered.AddRange(ProtocolMethods.AiTool);
+        if (agents is not null) offered.AddRange(ProtocolMethods.Agent);
         if (profiles is not null) offered.AddRange(ProtocolMethods.Engineering);
         _capabilities = [.. offered];
     }
@@ -243,6 +247,8 @@ public sealed class EngineSession
                 Reply(ProtocolMessages.Ok(id, _audit.Handle(method, new RequestParams(parameters)))),
             _ when _aiTools is not null && ProtocolMethods.AiTool.Contains(method) =>
                 Reply(ProtocolMessages.Ok(id, await _aiTools.HandleAsync(method, ct))),
+            _ when _agents is not null && ProtocolMethods.Agent.Contains(method) =>
+                Reply(ProtocolMessages.Ok(id, _agents.Handle(method, new RequestParams(parameters)))),
             _ when _timeline is not null && ProtocolMethods.Timeline.Contains(method) =>
                 Reply(ProtocolMessages.Ok(id, _timeline.Handle(method, new RequestParams(parameters)))),
             _ when _engineering is not null && ProtocolMethods.Engineering.Contains(method) =>

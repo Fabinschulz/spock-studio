@@ -2,6 +2,7 @@ import { RequiresHost } from '@/shared/components';
 import { executionPattern, paths } from '@/shared/routing';
 import { Navigate, type RouteObject } from 'react-router';
 import { WindowLayout, WindowLayoutError } from './layouts/window-layout';
+import Agents from './routes/agents';
 import Assistant from './routes/assistant';
 import Configure from './routes/configure';
 import EngineeringRequest from './routes/engineering-request';
@@ -79,6 +80,14 @@ export const routes: RouteObject[] = [
       },
       { path: paths.configure, element: <Configure /> },
       { path: paths.engineeringRequest, element: <EngineeringRequest /> },
+      {
+        path: paths.agents,
+        element: (
+          <RequiresHost>
+            <Agents />
+          </RequiresHost>
+        )
+      },
       {
         path: paths.portfolio,
         element: (

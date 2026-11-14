@@ -74,6 +74,7 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "engineering.mcp",
     "engineering.policy",
     "aitool.list",
+    "agent.run",
 ];
 
 pub mod error_code {

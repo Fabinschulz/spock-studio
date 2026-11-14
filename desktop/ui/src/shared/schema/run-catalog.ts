@@ -3,7 +3,7 @@ import { z } from 'zod';
 /** Espelha `RunCatalog` no motor e é conferido contra as fixtures de `contracts/fixtures/runs`. */
 
 /** Na ordem em que a tela os oferece. */
-export const RUN_KINDS = ['apply', 'validate', 'revert', 'workflow', 'assistant', 'investigation'] as const;
+export const RUN_KINDS = ['apply', 'validate', 'revert', 'workflow', 'agent', 'assistant', 'investigation'] as const;
 
 /** Os estados de uma execução, os mesmos de `RunStates` no motor. */
 export const RUN_STATES = [

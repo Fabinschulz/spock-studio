@@ -20,7 +20,7 @@ export const DEFAULT_ENVIRONMENT: Environment = 'engineering';
 const EXECUTION_PREFIX = executionPattern.split('/:')[0] ?? '';
 
 const OWNED: Record<Environment, readonly string[]> = {
-  engineering: [paths.project, paths.configure, paths.engineeringRequest, EXECUTION_PREFIX],
+  engineering: [paths.project, paths.configure, paths.engineeringRequest, paths.agents, EXECUTION_PREFIX],
   management: [paths.portfolio, paths.management]
 };
 

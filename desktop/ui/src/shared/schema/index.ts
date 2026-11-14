@@ -1,3 +1,4 @@
+export * from './agent';
 export * from './ai-tool';
 export * from './audit';
 export * from './decision';

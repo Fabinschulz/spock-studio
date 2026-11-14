@@ -62,7 +62,8 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     harness: new HarnessStatusService(engine.Workspace, engine.Files, engine.Clock),
     revisions: harnessRevisions,
     mcp: new McpInventoryService(engine.Workspace, engine.Files), timeline: timeline, audit: audit, investigation: investigation, portfolioAssistant: portfolioAssistant,
-    aiTools: new AiToolService(ExecutableLocator.FromEnvironment(), engine.Runner));
+    aiTools: new AiToolService(ExecutableLocator.FromEnvironment(), engine.Runner),
+    agents: new AgentRunService(ExecutableLocator.FromEnvironment(), engine.Runner, engine.Workspace, engine.Tracker, engine.Store, engine.Clock));
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

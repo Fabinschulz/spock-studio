@@ -43,8 +43,8 @@ public sealed class SystemProcessRunner : IProcessRunner
         {
             var stdout = new StringBuilder();
             var stderr = new StringBuilder();
-            process.OutputDataReceived += (_, e) => Append(stdout, e.Data);
-            process.ErrorDataReceived += (_, e) => Append(stderr, e.Data);
+            process.OutputDataReceived += (_, e) => Receive(stdout, e.Data, spec.OnOutputLine);
+            process.ErrorDataReceived += (_, e) => Receive(stderr, e.Data, spec.OnOutputLine);
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
@@ -95,9 +95,10 @@ public sealed class SystemProcessRunner : IProcessRunner
         return script;
     }
 
-    private static void Append(StringBuilder sb, string? line)
+    private static void Receive(StringBuilder sb, string? line, Action<string>? onLine)
     {
-        if (line is null || sb.Length > MaxOutputChars) return;
-        sb.AppendLine(line);
+        if (line is null) return;
+        onLine?.Invoke(line);
+        if (sb.Length <= MaxOutputChars) sb.AppendLine(line);
     }
 }

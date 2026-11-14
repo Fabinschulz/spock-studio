@@ -13,6 +13,7 @@ import {
   InfoIcon,
   IntersectingArrowsIcon,
   LibraryIcon,
+  LightIcon,
   ListViewRectangleIcon,
   PlayIcon,
   ReportIcon,
@@ -69,6 +70,7 @@ export const ENGINEERING_GROUP: NavGroup = {
       icon: <AssignmentIcon fontSize="small" />,
       to: pathTo('engineeringRequest')
     },
+    { id: 'agents', label: 'Agentes de IA', icon: <LightIcon fontSize="small" />, to: pathTo('agents') },
     { id: 'catalog', label: 'Catálogo', icon: <LibraryIcon fontSize="small" />, to: pathTo('projectCatalog') }
   ]
 };

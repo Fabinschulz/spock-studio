@@ -124,7 +124,8 @@ public class ModelKeyringTests
         var noVault = Keyring(other, new MemoryVault { Available = false });
         noVault.Save("openai", OpenAiKey);
         noVault.Save("anthropic", AnthropicKey);
-        Assert.Equal([ModelKeyProtection.File, ModelKeyProtection.File], [noVault.Protection("openai"), noVault.Protection("anthropic")]);
+        Assert.Equal(ModelKeyProtection.File, noVault.Protection("openai"));
+        Assert.Equal(ModelKeyProtection.File, noVault.Protection("anthropic"));
         Assert.Equal(["openai", "anthropic"], noVault.Providers());
     }
 
