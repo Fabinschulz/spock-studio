@@ -109,6 +109,16 @@ describe('Execuções', () => {
     expect(await screen.findByText('Nenhuma execução combina com esses filtros.')).toBeTruthy();
   });
 
+  it('na primeira vez, sem filtro, explica de onde as execuções vêm', async () => {
+    const { client } = engine({
+      list: () => ({ runs: [], nextCursor: null, summary: runListFixture.summary })
+    });
+    renderPage(client);
+
+    expect(await screen.findByText(/Nenhuma execução ainda/)).toBeTruthy();
+    expect(screen.queryByText(/combina com esses filtros/)).toBeNull();
+  });
+
   it('só oferece o escopo do projeto quando há um projeto aberto, e o usa no pedido', async () => {
     const withProject = engine();
     const { unmount } = renderPage(withProject.client);
