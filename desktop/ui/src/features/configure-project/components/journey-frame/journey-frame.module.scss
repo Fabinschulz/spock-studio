@@ -1,3 +1,5 @@
+@use '@/shared/styles/abstracts' as *;
+
 $panel-width: 20rem;
 
 .workbench {
@@ -11,9 +13,11 @@ $panel-width: 20rem;
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  width: 100%;
   min-width: 0;
-  max-width: 50rem;
-  padding: var(--space-5) var(--space-5) 0;
+  max-width: var(--page-width);
+  margin-inline: auto;
+  padding: 0 var(--space-5);
 }
 
 .bar {
@@ -29,13 +33,6 @@ $panel-width: 20rem;
   align-items: baseline;
   gap: var(--space-1) var(--space-4);
   min-width: 0;
-}
-
-.title {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0;
-  color: var(--color-text-muted);
 }
 
 .toggle {
@@ -114,9 +111,10 @@ $panel-width: 20rem;
       z-index: 5;
       justify-self: end;
       width: min(#{$panel-width}, 100%);
-      background-color: var(--color-surface);
       box-shadow: var(--shadow-raised);
       animation: drawer var(--duration-base) var(--ease);
+
+      @include overlay-surface;
     }
   }
 }

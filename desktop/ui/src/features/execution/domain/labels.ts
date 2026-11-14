@@ -1,14 +1,5 @@
 import type { Tone } from '@/shared/components/ui';
 
-export const ACTION_STATUS_LABEL: Record<string, string> = {
-  executed: 'executada',
-  skipped: 'não aprovada, nada foi gravado',
-  conflict: 'não gravada: já existe um arquivo diferente neste caminho',
-  failed: 'não foi possível executar',
-  approved: 'aprovada, aguardando a execução',
-  proposed: 'proposta'
-};
-
 export const AREA_LABEL: Record<string, string> = {
   servico: 'Serviço',
   interface: 'Interface',

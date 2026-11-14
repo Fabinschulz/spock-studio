@@ -51,11 +51,7 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
           description={
             <>
               {explainOutcome(apply)}
-              {apply.error ? (
-                <div className={styles.mono}>
-                  {apply.error.code}: {apply.error.message}
-                </div>
-              ) : null}
+              {apply.error ? <div>{apply.error.message}</div> : null}
             </>
           }
         />

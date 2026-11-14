@@ -1,9 +1,13 @@
 import type { ThemeOptions } from '@mui/material/styles';
 
-import { brandPalette as c } from './brand-palette';
+import { brandPalette as c, overlay, veil } from './brand-palette';
 import { RouterLinkBehavior } from './router-link';
 
-const SUBTLE_HOVER = 'rgba(160, 200, 196, 0.08)';
+const overlaySurface = {
+  backgroundColor: overlay.background,
+  backdropFilter: overlay.backdrop,
+  '@media (prefers-reduced-transparency: reduce)': { backgroundColor: c.raised, backdropFilter: 'none' }
+};
 
 export const components: ThemeOptions['components'] = {
   MuiLink: { defaultProps: { component: RouterLinkBehavior } },
@@ -18,15 +22,29 @@ export const components: ThemeOptions['components'] = {
           ownerState.variant === 'outlined' && {
             borderColor: c.borderStrong,
             color: c.text,
-            '&:hover': { borderColor: c.textMuted, backgroundColor: SUBTLE_HOVER }
+            '&:hover': { borderColor: c.textMuted, backgroundColor: veil.hover }
           }),
         ...(ownerState.color === 'inherit' &&
           ownerState.variant === 'text' && {
             color: c.textMuted,
-            '&:hover': { backgroundColor: SUBTLE_HOVER, color: c.text }
+            '&:hover': { backgroundColor: veil.hover, color: c.text }
           })
       })
     }
   },
-  MuiPaper: { styleOverrides: { root: { backgroundImage: 'none' } } }
+  MuiPaper: { styleOverrides: { root: { backgroundImage: 'none' } } },
+  MuiDialog: { styleOverrides: { paper: overlaySurface } },
+  MuiPopover: { styleOverrides: { paper: overlaySurface } },
+  MuiTooltip: {
+    styleOverrides: {
+      tooltip: {
+        ...overlaySurface,
+        padding: '4px 8px',
+        border: `1px solid ${c.line}`,
+        color: c.text,
+        fontSize: '0.75rem',
+        fontWeight: 500
+      }
+    }
+  }
 };

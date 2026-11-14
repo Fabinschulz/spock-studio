@@ -18,9 +18,9 @@ const FILE_STATE_LABEL: Record<ProjectKnowledge['files'][number]['state'], strin
 
 const INDEX_STATE_TEXT: Record<Exclude<ProjectKnowledge['indexState'], 'read'>, string> = {
   runtimeStopped:
-    'O runtime de IA não está ligado, então o índice não foi consultado. Ele liga na próxima execução de um pedido de engenharia.',
-  runtimeUnavailable: 'O runtime de IA não está disponível nesta instalação; não há índice para consultar.',
-  failed: 'O runtime de IA não respondeu à consulta do índice. Tente ler de novo.'
+    'A inteligência local não está ligada, então o índice não foi consultado. Ela liga na próxima execução de um pedido de engenharia.',
+  runtimeUnavailable: 'A inteligência local não está disponível nesta instalação; não há índice para consultar.',
+  failed: 'A inteligência local não respondeu à consulta do índice. Tente ler de novo.'
 };
 
 type State =

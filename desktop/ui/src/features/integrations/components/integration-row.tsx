@@ -66,7 +66,7 @@ export function IntegrationRow({
       {!usable ? (
         <p className={styles.meta}>
           A conexão está {CONNECTION_STATUS[integration.connectionStatus].label.toLowerCase()}: os dados acima são da
-          última leitura.
+          última leitura. Para voltar a sincronizar, resolva a conexão {integration.connectionName} em Conexões.
         </p>
       ) : null}
 
@@ -108,7 +108,6 @@ export function IntegrationRow({
                   key={kind.id}
                   label={kind.label}
                   checked={enabled}
-                  // O recorte nunca fica vazio: para não ler mais nada, o caminho é desvincular.
                   disabled={enabled && scope.dataKinds.length === 1}
                   onChange={(_, checked) =>
                     onConfigure({
@@ -120,7 +119,10 @@ export function IntegrationRow({
                 />
               );
             })}
-            <p className={styles.hint}>Desmarcar um tipo apaga na hora os itens desse tipo já sincronizados.</p>
+            <p className={styles.hint}>
+              Desmarcar um tipo apaga na hora os itens desse tipo já sincronizados. Pelo menos um tipo fica marcado:
+              para não ler mais nada, desvincule.
+            </p>
             <Checkbox
               label="Permitir que estes dados sirvam de contexto para os agentes"
               checked={policy.feedsKnowledge}

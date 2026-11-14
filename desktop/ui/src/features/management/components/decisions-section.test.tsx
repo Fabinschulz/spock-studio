@@ -130,13 +130,13 @@ describe('Decisões · registro', () => {
     const submit = within(form).getByRole('button', { name: 'Registrar decisão' });
     expect(submit).toBeDisabled();
 
-    await userEvent.type(within(form).getByLabelText('Título'), 'Adiar');
+    await userEvent.type(within(form).getByRole('textbox', { name: 'Título' }), 'Adiar');
     expect(submit).toBeDisabled();
-    await userEvent.type(within(form).getByLabelText('O que foi decidido'), 'Adiar a release.');
+    await userEvent.type(within(form).getByRole('textbox', { name: 'O que foi decidido' }), 'Adiar a release.');
 
     expect(submit).toBeEnabled();
-    expect(within(form).getByLabelText('Título')).toHaveAttribute('maxlength', '120');
-    expect(within(form).getByLabelText('O que foi decidido')).toHaveAttribute('maxlength', '1000');
+    expect(within(form).getByRole('textbox', { name: 'Título' })).toHaveAttribute('maxlength', '120');
+    expect(within(form).getByRole('textbox', { name: 'O que foi decidido' })).toHaveAttribute('maxlength', '1000');
     expect(within(form).getByLabelText('Por quê (opcional)')).toHaveAttribute('maxlength', '2000');
   });
 
@@ -145,8 +145,8 @@ describe('Decisões · registro', () => {
     renderSection(management);
     const form = await openForm();
 
-    await userEvent.type(within(form).getByLabelText('Título'), 'Adiar a release');
-    await userEvent.type(within(form).getByLabelText('O que foi decidido'), 'Adiar em uma semana.');
+    await userEvent.type(within(form).getByRole('textbox', { name: 'Título' }), 'Adiar a release');
+    await userEvent.type(within(form).getByRole('textbox', { name: 'O que foi decidido' }), 'Adiar em uma semana.');
     await userEvent.type(within(form).getByLabelText('Por quê (opcional)'), 'Itens bloqueados.');
     await userEvent.click(await within(form).findByRole('checkbox', { name: /Workflow · Falhou/ }));
     await userEvent.click(within(form).getByRole('button', { name: 'Registrar decisão' }));
@@ -170,8 +170,8 @@ describe('Decisões · registro', () => {
     const { management } = api({ recordDecision: vi.fn(async () => ({ decision: full, redacted: true })) });
     renderSection(management);
     const form = await openForm();
-    await userEvent.type(within(form).getByLabelText('Título'), 'Chave');
-    await userEvent.type(within(form).getByLabelText('O que foi decidido'), 'Usar a chave X.');
+    await userEvent.type(within(form).getByRole('textbox', { name: 'Título' }), 'Chave');
+    await userEvent.type(within(form).getByRole('textbox', { name: 'O que foi decidido' }), 'Usar a chave X.');
 
     await userEvent.click(within(form).getByRole('button', { name: 'Registrar decisão' }));
 
@@ -188,16 +188,16 @@ describe('Decisões · registro', () => {
     });
     renderSection(management);
     const form = await openForm();
-    await userEvent.type(within(form).getByLabelText('Título'), 'Adiar');
-    await userEvent.type(within(form).getByLabelText('O que foi decidido'), 'Adiar em uma semana.');
+    await userEvent.type(within(form).getByRole('textbox', { name: 'Título' }), 'Adiar');
+    await userEvent.type(within(form).getByRole('textbox', { name: 'O que foi decidido' }), 'Adiar em uma semana.');
 
     await userEvent.click(within(form).getByRole('button', { name: 'Registrar decisão' }));
 
     expect(await within(form).findByRole('alert')).toHaveTextContent(
       'Uma das execuções informadas não existe neste projeto.'
     );
-    expect(within(form).getByLabelText('Título')).toHaveValue('Adiar');
-    expect(within(form).getByLabelText('O que foi decidido')).toHaveValue('Adiar em uma semana.');
+    expect(within(form).getByRole('textbox', { name: 'Título' })).toHaveValue('Adiar');
+    expect(within(form).getByRole('textbox', { name: 'O que foi decidido' })).toHaveValue('Adiar em uma semana.');
   });
 
   it('um projeto sem execuções diz isso no lugar da lista de execuções', async () => {

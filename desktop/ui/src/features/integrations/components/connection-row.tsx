@@ -88,7 +88,7 @@ export function ConnectionRow({
             value={secret}
             disabled={busy}
             onChange={(event) => setSecret(event.target.value)}
-            helperText="A nova credencial é conferida com o provedor antes de substituir a atual."
+            helperText="Pelo menos 8 caracteres. A nova credencial é conferida com o provedor antes de substituir a atual."
             slotProps={{ htmlInput: { spellCheck: false } }}
           />
           <div className={styles.actions}>

@@ -114,6 +114,7 @@ function DecisionForm({
       <TextField
         label="Título"
         fullWidth
+        required
         value={title}
         onChange={(event) => setTitle(event.target.value)}
         slotProps={{ htmlInput: { maxLength: DECISION_LIMITS.title } }}
@@ -121,6 +122,7 @@ function DecisionForm({
       <TextField
         label="O que foi decidido"
         fullWidth
+        required
         multiline
         minRows={3}
         value={decision}

@@ -114,7 +114,7 @@ describe('Pedido de engenharia', () => {
     await waitFor(() => expect(option).toBeEnabled());
     expect(option).not.toBeChecked();
     expect(option).toHaveAccessibleDescription(
-      /enviados à OpenAI.*8\.000 tokens.*Sem marcar, nada sai do seu computador/
+      /enviados ao provedor do modelo configurado em Minha IA.*8\.000 tokens.*Sem marcar, nada sai do seu computador/
     );
     expect(screen.queryByText(/Nenhum modelo está configurado/)).not.toBeInTheDocument();
 

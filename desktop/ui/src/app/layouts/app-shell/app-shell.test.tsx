@@ -322,12 +322,13 @@ describe('AppShell · topo', () => {
     );
   });
 
-  it('o estado do motor aparece uma vez só, no rodapé do menu, junto da versão do pacote', () => {
+  it('o estado do motor aparece uma vez só, na barra de status, junto da versão do pacote', () => {
     renderShell();
 
-    const rail = screen.getByRole('complementary');
-    expect(within(rail).getByRole('status')).toHaveTextContent('Prévia no navegador');
-    expect(within(rail).getByText(/^v\d+\.\d+\.\d+/)).toBeInTheDocument();
+    const statusbar = screen.getByRole('contentinfo');
+    expect(within(statusbar).getByRole('status')).toHaveTextContent('Prévia no navegador');
+    expect(within(statusbar).getByText(/^v\d+\.\d+\.\d+/)).toBeInTheDocument();
+    expect(within(screen.getByRole('complementary')).queryByRole('status')).not.toBeInTheDocument();
     const header = screen.getByRole('banner');
     expect(within(header).queryByText('Online')).not.toBeInTheDocument();
     expect(within(header).queryByText(/^v\d+\.\d+\.\d+/)).not.toBeInTheDocument();
@@ -450,6 +451,49 @@ describe('AppShell · execuções no menu', () => {
       label: '2 em andamento',
       tone: 'info'
     });
+  });
+});
+
+describe('AppShell · menu recolhível', () => {
+  it('recolhe e expande o menu sem tirar o nome dos itens', async () => {
+    renderShell();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Recolher menu' }));
+
+    expect(screen.getByRole('button', { name: 'Expandir menu' })).toBeInTheDocument();
+    expect(within(navigation()).getByRole('link', { name: 'Harness' })).toHaveAttribute('href', '/projeto/harness');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Expandir menu' }));
+    expect(screen.getByRole('button', { name: 'Recolher menu' })).toBeInTheDocument();
+  });
+
+  it('lembra a escolha na próxima vez que o aplicativo abre', async () => {
+    const { unmount } = renderShell();
+    await userEvent.click(screen.getByRole('button', { name: 'Recolher menu' }));
+    unmount();
+
+    renderShell();
+
+    expect(screen.getByRole('button', { name: 'Expandir menu' })).toBeInTheDocument();
+  });
+
+  it('recolhido, mostra o nome do item como dica, sem trocar o nome acessível', async () => {
+    window.localStorage.setItem('spock.rail', 'collapsed');
+    renderShell();
+    const harness = within(navigation()).getByRole('link', { name: 'Harness' });
+
+    await userEvent.hover(harness);
+
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Harness');
+    expect(harness).toHaveAccessibleName('Harness');
+  });
+
+  it('expandido, não há dica: o nome já está na tela', async () => {
+    renderShell();
+
+    await userEvent.hover(within(navigation()).getByRole('link', { name: 'Harness' }));
+
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 });
 

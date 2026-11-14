@@ -60,8 +60,8 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
       <section className={styles.panel} aria-labelledby="model-settings-heading">
         <h2 id="model-settings-heading">Provedor de IA</h2>
         <p className={styles.hint}>
-          A chave fica só neste computador, fora do projeto. Ela não entra no índice, no journal, nos logs nem nas
-          respostas do protocolo. O juiz por modelo não decide sozinho o resultado.
+          A chave fica só neste computador, fora do projeto. Ela nunca aparece no índice do projeto, nos registros das
+          execuções nem no diagnóstico. Nas validações, a avaliação do modelo nunca decide o resultado sozinha.
         </p>
 
         {connection ? <ConnectionState connection={connection} /> : <p className={styles.status}>Carregando…</p>}

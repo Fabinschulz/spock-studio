@@ -40,7 +40,7 @@ export async function refreshProfile(client: EngineClient, projectId: string): P
   return profile;
 }
 
-/** O índice só é consultado se o runtime de IA já estiver ligado. */
+/** O índice só é consultado se a inteligência local já estiver ligada. */
 export function readKnowledge(client: EngineClient, projectId: string): Promise<ProjectKnowledge> {
   return client.request('engineering.knowledge', { projectId }, projectKnowledgeSchema);
 }

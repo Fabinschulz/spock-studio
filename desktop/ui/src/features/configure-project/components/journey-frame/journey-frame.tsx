@@ -1,4 +1,4 @@
-import { Glyph, WizardSteps } from '@/shared/components/ui';
+import { Glyph, TrailNav, usePageTrail, WizardSteps } from '@/shared/components/ui';
 import { Button } from '@mariliz/ui-kit';
 import { useEffect, useRef } from 'react';
 import { journeySteps } from '../../constants/journey-steps';
@@ -10,6 +10,7 @@ import type { JourneyFrameProps } from './types';
 
 export function JourneyFrame({ step, issue, panel, live = false, onSelectStep, children }: JourneyFrameProps) {
   const { open, toggle, close } = usePanelOpen();
+  const trail = usePageTrail();
   const toggleButton = useRef<HTMLButtonElement>(null);
   const panelElement = useRef<HTMLElement>(null);
   const hasPanel = panel !== undefined;
@@ -45,9 +46,11 @@ export function JourneyFrame({ step, issue, panel, live = false, onSelectStep, c
       <div className={styles.content}>
         <header className={styles.bar}>
           <div className={styles.heading}>
-            <h1 className={styles.title}>Configurar projeto</h1>
+            <TrailNav trail={trail} />
             <ImplementationModelBadge />
           </div>
+          {/* O título visível é o da etapa; o da tela fica na trilha, e o h1 o anuncia a quem usa leitor de tela. */}
+          <h1 className="visually-hidden">Configurar projeto</h1>
           {hasPanel ? (
             <Button
               ref={toggleButton}

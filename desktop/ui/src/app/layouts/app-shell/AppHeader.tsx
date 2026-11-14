@@ -6,7 +6,7 @@ import { PALETTE_SHORTCUT_LABEL } from './command-palette/use-palette-shortcut';
 import type { Environment } from './environment';
 import { EnvironmentSwitch } from './EnvironmentSwitch';
 
-/** O estado do motor fica só no rodapé do menu, para não aparecer duas vezes. */
+/** O estado do motor fica só na barra de status, para não aparecer duas vezes. */
 export function AppHeader({ environment, onSearch }: { environment: Environment; onSearch: () => void }) {
   return (
     <header className={styles.topbar}>

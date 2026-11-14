@@ -58,3 +58,15 @@
   text-align: left;
   text-transform: none;
 }
+
+// Camada que flutua sobre o conteúdo: translúcida e desfocada, para que o contexto de trás continue perceptível sem
+// competir com a leitura. Quem pede menos transparência ao sistema recebe a superfície opaca.
+@mixin overlay-surface {
+  background-color: var(--color-overlay);
+  backdrop-filter: var(--backdrop-overlay);
+
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: var(--color-surface-raised);
+    backdrop-filter: none;
+  }
+}

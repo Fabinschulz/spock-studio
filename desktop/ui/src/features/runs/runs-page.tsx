@@ -96,7 +96,7 @@ export function RunsPage({ client, project }: { client: EngineClient; project: S
             ) : null}
             {list.runs.length === 0 ? (
               <EmptyState>
-                {kind || state || scoped
+                {kind !== ALL || state !== ALL || scoped
                   ? 'Nenhuma execução combina com esses filtros.'
                   : 'Nenhuma execução ainda. Elas aparecem aqui assim que você aplicar ou executar algo.'}
               </EmptyState>

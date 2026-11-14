@@ -177,9 +177,9 @@ export function deriveEvidence(
 
 /** O texto do motor continua sendo mostrado junto. */
 const FAILURE_HINT: Record<string, string> = {
-  AI_RUNTIME_UNAVAILABLE: 'O runtime de IA parou ou não respondeu. Você pode iniciar o pedido de novo.',
-  AI_RUNTIME_TIMEOUT: 'O runtime de IA passou do tempo limite. Você pode iniciar o pedido de novo.',
-  AI_RUNTIME_INVALID_RESPONSE: 'O runtime de IA respondeu fora do contrato esperado.',
+  AI_RUNTIME_UNAVAILABLE: 'A inteligência local parou ou não respondeu. Você pode iniciar o pedido de novo.',
+  AI_RUNTIME_TIMEOUT: 'A inteligência local passou do tempo limite. Você pode iniciar o pedido de novo.',
+  AI_RUNTIME_INVALID_RESPONSE: 'A inteligência local respondeu num formato inesperado.',
   WORKFLOW_FAILED: 'O motor encontrou uma falha interna ao conduzir a execução.'
 };
 

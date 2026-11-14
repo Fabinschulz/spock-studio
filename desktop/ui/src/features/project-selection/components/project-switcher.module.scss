@@ -69,8 +69,9 @@ button.trigger {
   padding: var(--space-3);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
-  background-color: var(--color-surface-raised);
   box-shadow: var(--shadow-raised);
+
+  @include overlay-surface;
 }
 
 .label {

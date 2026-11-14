@@ -121,31 +121,31 @@ Justificativa em uma frase: o Mariliz é uma ferramenta de **configurar, aprovar
 
 ### 4.1 Conceito: AI Engineering Workspace
 
-Superfícies quase pretas, quase sem caixas. A **marca aparece onde há significado**: ação principal, foco, item atual do menu, etapa atual e **atividade viva** (arco girando, segmento "respirando"). Nada brilha sem estar fazendo algo.
+Superfícies de carvão neutro, sem tinta de cor, quase sem caixas. A **marca aparece onde há significado**: ação principal, foco, item atual do menu, etapa atual e **atividade viva** (arco girando, segmento "respirando"). Nada brilha sem estar fazendo algo.
 
-### 4.2 Paleta (`src/prototype/styles/tokens.scss`)
+### 4.2 Paleta (`desktop/ui/src/shared/styles/_tokens.scss`)
 
 | Papel | Token | Valor | Uso |
 | --- | --- | --- | --- |
-| Fundo | `--mz-bg` | `#0A0F10` | área de trabalho |
-| Menu | `--mz-bg-rail` | `#070B0C` | menu lateral |
-| Superfície | `--mz-surface` | `#0F1617` | gaveta, avisos, campo do projeto |
-| Hover / ativo | `--mz-surface-hover/active` | `#141D1F` / `#1A2528` | linhas, item atual |
-| Linhas | `--mz-line-subtle/line` | `rgb(160 200 196 / .08/.14)` | separadores |
-| Borda de controle | `--mz-line-control` | `#5F7A7A` | campos, botões de contorno (≥ 3:1) |
-| Texto | `--mz-text` · `-2` · `-3` | `#E8F0EF` · `#A5B5B4` · `#7F9190` | principal · secundário · terciário |
-| **Marca** | `--mz-accent` | **`#33C1BA`** | botão primário, foco, atividade |
-| Marca (texto) | `--mz-accent-text` | `#4FD3CC` | texto/ícone teal |
-| Sucesso · alerta · erro | `--mz-success/warning/danger` | `#7BD88F` · `#E9B44C` · `#F2766E` | sempre com ícone e texto |
-| Processando | `--mz-working` | = marca | "a inteligência está agindo" |
+| Fundo | `--color-background` | `#151515` | área de trabalho |
+| Menu | `--color-sidebar` | `#101010` | menu lateral, superfície rebaixada |
+| Superfície | `--color-surface` | `#1B1B1B` | gaveta, avisos, campo do projeto |
+| Hover / ativo | `--color-active` | `#232323` | linhas, item atual |
+| Linhas | `--color-divider` · `--color-border` | `rgb(255 255 255 / .06/.08)` | separadores |
+| Borda de controle | `--color-border-strong` | `#737373` | campos, botões de contorno (≥ 3:1) |
+| Texto | `--color-text` · `-muted` · `-subtle` | `#ECECEC` · `#A0A0A0` · `#8A8A8A` | principal · secundário · terciário |
+| **Marca** | `--color-primary` | **`#33C1BA`** | botão primário, foco, atividade |
+| Marca (texto) | `--color-primary-text` | `#4FD3CC` | texto/ícone teal |
+| Sucesso · alerta · erro | `--tone-*-fg` | `#7BD88F` · `#E9B44C` · `#F2766E` | sempre com ícone e texto |
+| Processando | `--color-working` | = marca (texto) | "a inteligência está agindo" |
 
-**Contraste validado por script** (todos os pares nas cinco superfícies): texto principal ≥ 15,8:1; secundário ≥ 8:1 em `surface`; terciário ≥ 5,5:1; marca como texto ≥ 10:1; marca como ícone/borda ≥ 8:1; borda de controle 3,4–4,3:1; estados semânticos ≥ 6,6:1; texto sobre o botão primário 7,6:1.
+**Contraste validado por teste** (`shared/styles` lê os tokens e exige WCAG AA em todas as superfícies): texto ≥ 4,5:1, bordas de controle e ícones ≥ 3:1.
 
 > **Decisão sua (pergunta 1):** o desenho atual usa o ciano `#00F2DA` (documento "design system Mariliz AI Engineering"). Esta proposta usa `#33C1BA`, que é a cor de marca citada no pedido e a do site, e retira o neon. Isso **substitui** uma decisão anterior; só implementarei com sua confirmação.
 
 ### 4.3 Tipografia
 
-**Inter** (já empacotada; nenhuma dependência nova) + mono do sistema para caminhos e ids.
+**Fonte do sistema** (Segoe UI Variable no Windows, San Francisco no macOS; nada a baixar) + mono do sistema para caminhos e ids. Controles com 34 px de altura.
 
 | Papel | Tamanho / peso | Uso |
 | --- | --- | --- |

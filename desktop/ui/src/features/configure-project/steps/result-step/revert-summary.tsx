@@ -16,7 +16,7 @@ export function RevertSummary({ result }: { result: RunResult }) {
           {runOutcomeLabel[result.outcome]}
         </StatusChip>
       </h3>
-      {result.error ? <Alert severity="error" description={`${result.error.code}: ${result.error.message}`} /> : null}
+      {result.error ? <Alert severity="error" description={result.error.message} /> : null}
       <span className={styles.muted}>
         {result.verified
           ? 'Conferido: os arquivos restaurados voltaram ao estado anterior.'

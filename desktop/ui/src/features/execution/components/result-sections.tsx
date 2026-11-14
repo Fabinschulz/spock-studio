@@ -1,6 +1,7 @@
 import { InlineNotice, PageSection } from '@/shared/components/ui';
+import { actionStatusLabel } from '@/shared/utils';
 
-import { ACTION_STATUS_LABEL, AREA_LABEL } from '../domain/labels';
+import { AREA_LABEL } from '../domain/labels';
 import { failureHint, riskLabel } from '../domain/run-workspace';
 import type { WorkflowSnapshot } from '../domain/run-timeline';
 import styles from './workspace.module.scss';
@@ -85,7 +86,7 @@ export function ActionOutcomes({ actions }: { actions: NonNullable<Result['actio
       <ul className={styles.list}>
         {actions.map((action) => (
           <li key={action.id} className={styles.row}>
-            {action.summary}: {ACTION_STATUS_LABEL[action.status] ?? action.status}
+            {action.summary}: {actionStatusLabel(action.status)}
             {action.target ? <span className={styles.path}> {action.target}</span> : null}
           </li>
         ))}

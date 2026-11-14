@@ -1,18 +1,19 @@
 @use '@/shared/styles/abstracts' as *;
 
-$rail-wide: 15rem;
-$rail-narrow: 3.5rem;
-$collapse-below: 54rem; // 864px: a janela de referência (900px) mantém o menu aberto.
+$rail-wide: 14.5rem;
+$rail-narrow: 3.75rem;
 
 .shell {
   display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   grid-template-columns: $rail-wide minmax(0, 1fr);
   height: 100vh;
   background-color: var(--color-background);
+  transition: grid-template-columns var(--duration-base) var(--ease);
+}
 
-  @media (max-width: calc(#{$collapse-below} - 0.02px)) {
-    grid-template-columns: $rail-narrow minmax(0, 1fr);
-  }
+.collapsed {
+  grid-template-columns: $rail-narrow minmax(0, 1fr);
 }
 
 button.skip {
@@ -125,7 +126,8 @@ button.skip {
   }
 }
 
-.active {
+// O item atual se marca pelo estado que o NavLink já anuncia: a dica do menu estreito reescreve o className do link.
+.item[aria-current='page'] {
   background-color: var(--color-active);
   color: var(--color-text);
 
@@ -230,12 +232,24 @@ button.item {
   white-space: nowrap;
 }
 
+.statusbar {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 1.75rem;
+  padding: 0 var(--space-4);
+  border-top: var(--border-width-divider) solid var(--color-divider);
+  background-color: var(--color-sidebar);
+  font-size: var(--font-size-xs);
+}
+
 .engine {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: 0 var(--space-3);
-  font-size: var(--font-size-xs);
+  gap: var(--space-2);
+  min-width: 0;
 }
 
 @mixin glow($color) {
@@ -268,8 +282,9 @@ button.item {
 
 .engineText {
   display: flex;
-  flex-direction: column;
+  gap: var(--space-2);
   min-width: 0;
+  white-space: nowrap;
 }
 
 .engineTitle {
@@ -278,6 +293,8 @@ button.item {
 }
 
 .engineDetail {
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--color-text-subtle);
 }
 
@@ -353,9 +370,8 @@ button.item {
 }
 
 .version {
+  flex: none;
   margin: 0;
-  padding: 0 var(--space-3);
-  font-size: var(--font-size-xs);
   color: var(--color-text-subtle);
 }
 
@@ -372,16 +388,17 @@ button.item {
   }
 }
 
-@media (max-width: calc(#{$collapse-below} - 0.02px)) {
+// Menu estreito: só os ícones; o nome de cada item continua sendo o nome acessível e aparece como dica ao lado.
+.collapsed {
   .rail {
     align-items: center;
     padding-inline: var(--space-2);
   }
 
   .wordmark,
+  .itemLabel,
   .itemReason,
-  .version,
-  .engineDetail {
+  .groupLabel {
     @include visually-hidden;
   }
 
@@ -389,10 +406,8 @@ button.item {
     padding: 0;
   }
 
-  .itemLabel,
-  .engineTitle,
-  .groupLabel {
-    @include visually-hidden;
+  .groups {
+    gap: var(--space-3);
   }
 
   .group + .group {
@@ -400,20 +415,8 @@ button.item {
     border-top: var(--border-width-divider) solid var(--color-divider);
   }
 
-  .groups {
-    gap: var(--space-3);
-  }
-
-  .topbar {
-    padding-inline: var(--space-4);
-  }
-
   .item {
     justify-content: center;
-    padding-inline: 0;
-  }
-
-  .engine {
     padding-inline: 0;
   }
 }

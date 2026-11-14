@@ -62,6 +62,11 @@ export function ConnectionForm({ connector, busy, onSubmit, onCancel }: Connecti
         slotProps={{ htmlInput: { spellCheck: false } }}
       />
       <p className={styles.hint}>{connector.scopesNote}</p>
+      {complete ? null : (
+        <p className={styles.hint}>
+          Para conectar, preencha todos os campos; a credencial tem pelo menos 8 caracteres.
+        </p>
+      )}
       <div className={styles.actions}>
         <Button type="submit" variant="contained" disabled={busy || !complete}>
           Conectar
