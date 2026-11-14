@@ -1,6 +1,6 @@
 import { formatEngineDate } from '@/features/integrations';
 import type { EngineClient } from '@/shared/api';
-import { LoadingState, Page, StatusChip, SuccessState, Term, type Tone } from '@/shared/components';
+import { ConfirmAction, LoadingState, Page, StatusChip, SuccessState, Term, type Tone } from '@/shared/components';
 import type { ModelConnection, ModelPurpose } from '@/shared/schema';
 import { Button, SelectField, TextField } from '@mariliz/ui-kit';
 import { useId, useMemo, useState } from 'react';
@@ -32,6 +32,7 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
   const { connection, busy, error, notice, save: saveKey, test, choose, clear: clearKey } = useModelSettings(api);
   const [key, setKey] = useState('');
   const [chosen, setChosen] = useState<string | null>(null);
+  const [removing, setRemoving] = useState(false);
 
   const canSave = KEY_PATTERN.test(key.trim());
   const providers = connection?.available ?? [];
@@ -130,11 +131,26 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
             </Button>
           ) : null}
           {configured ? (
-            <Button type="button" variant="outlined" disabled={busy} onClick={() => void clear()}>
+            <Button type="button" variant="outlined" disabled={busy || removing} onClick={() => setRemoving(true)}>
               Remover chave
             </Button>
           ) : null}
         </div>
+        {removing ? (
+          <ConfirmAction
+            label="Remover a chave"
+            confirmLabel="Remover chave"
+            busy={busy}
+            onConfirm={() => {
+              setRemoving(false);
+              void clear();
+            }}
+            onCancel={() => setRemoving(false)}
+          >
+            Sem a chave, o Assistente, a pergunta ao portfólio e o uso do modelo nos pedidos de engenharia param de
+            funcionar até você salvar outra.
+          </ConfirmAction>
+        ) : null}
         {configured ? (
           <p className={styles.hint}>
             Conferir envia ao provedor uma pergunta curta (&quot;Responda apenas: ok&quot;), sem dado do projeto.

@@ -51,6 +51,20 @@ describe('ReviewStep', () => {
     expect(changesSummary([])).toBe('Nenhuma alteração no plano');
   });
 
+  it('cancelar pede confirmação antes de descartar o plano e as aprovações', async () => {
+    const onCancel = vi.fn();
+    renderStep(plan([change({})]), { onCancel });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar sem aplicar' }));
+    expect(onCancel).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('button', { name: 'Continuar revisando' }));
+    expect(onCancel).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar sem aplicar' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Descartar o plano' }));
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
   it('cada arquivo é uma linha com a aprovação, o estado em texto e o motivo', async () => {
     const onToggleChange = vi.fn();
     renderStep(plan([change({})]), { onToggleChange });

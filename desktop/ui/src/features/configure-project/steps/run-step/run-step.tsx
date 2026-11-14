@@ -2,7 +2,7 @@ import { Alert, Button } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
 import { errorMessage } from '@/shared/api';
-import { PrimaryActionFooter } from '@/shared/components/ui';
+import { ConfirmAction, PrimaryActionFooter } from '@/shared/components/ui';
 import { formatElapsed } from '@/shared/utils';
 
 import { RunEvalList } from '../../components/run-eval-list';
@@ -16,6 +16,7 @@ import styles from './run-step.module.scss';
 import type { RunStepProps } from './types';
 
 export function RunStep({ run, onCancel, onBack }: RunStepProps) {
+  const [confirming, setConfirming] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const failed = run.error !== null;
@@ -23,6 +24,7 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
 
   // Se o pedido de cancelamento falhar, o botão volta a funcionar e a pessoa vê o motivo.
   const cancel = async () => {
+    setConfirming(false);
     setCancelling(true);
     setCancelError(null);
     try {
@@ -84,6 +86,18 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
 
       {cancelError ? <Alert severity="error" title="Não foi possível cancelar" description={cancelError} /> : null}
 
+      {confirming ? (
+        <ConfirmAction
+          label="Parar e desfazer"
+          confirmLabel="Parar e desfazer"
+          cancelLabel="Continuar a execução"
+          onConfirm={() => void cancel()}
+          onCancel={() => setConfirming(false)}
+        >
+          A execução para e o que ela já gravou no projeto é desfeito.
+        </ConfirmAction>
+      ) : null}
+
       <PrimaryActionFooter
         hint={!failed && run.runId === null ? 'O cancelamento fica disponível quando a execução começar.' : null}
       >
@@ -92,7 +106,12 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
             Voltar à revisão
           </Button>
         ) : (
-          <Button variant="outlined" color="inherit" disabled={cancelling || run.runId === null} onClick={cancel}>
+          <Button
+            variant="outlined"
+            color="inherit"
+            disabled={cancelling || confirming || run.runId === null}
+            onClick={() => setConfirming(true)}
+          >
             {cancelling ? 'Cancelando…' : 'Cancelar e desfazer'}
           </Button>
         )}
