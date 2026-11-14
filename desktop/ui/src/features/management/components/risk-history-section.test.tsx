@@ -48,6 +48,17 @@ describe('Histórico dos riscos', () => {
     expect(within(await trail('Itens com prazo vencido')).getByText(/^Resolvido(?!:)/)).toBeInTheDocument();
   });
 
+  it('uma gravidade nova do motor num risco ativo aparece como veio, sem virar "Resolvido"', async () => {
+    renderWith({
+      ...base,
+      trails: base.trails.map((item) =>
+        item.title === 'Itens bloqueados' ? { ...item, currentSeverity: 'critica' } : item
+      )
+    });
+
+    expect(within(await trail('Itens bloqueados')).getByText('Ativo, gravidade critica')).toBeInTheDocument();
+  });
+
   it('a trajetória, atrás de "Trajetória", conta cada mudança em ordem', async () => {
     renderWith(base);
 

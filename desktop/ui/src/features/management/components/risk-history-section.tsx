@@ -4,7 +4,7 @@ import { useAsyncResource } from '@/shared/hooks';
 import type { ProjectRiskHistory, RiskTrail } from '@/shared/schema';
 import { useCallback } from 'react';
 
-import { SEVERITY_LABEL } from '../domain/delivery-labels';
+import { severityLabel } from '../domain/delivery-labels';
 import { describeRiskChange } from '../domain/risk-history-text';
 import styles from '../management-page.module.scss';
 import type { ManagementApi } from '../service/management-api';
@@ -64,8 +64,7 @@ function HistoryBody({ value }: { value: ProjectRiskHistory }) {
 }
 
 function TrailRow({ trail }: { trail: RiskTrail }) {
-  const current =
-    trail.currentSeverity !== null ? SEVERITY_LABEL[trail.currentSeverity as keyof typeof SEVERITY_LABEL] : null;
+  const current = trail.currentSeverity !== null ? severityLabel(trail.currentSeverity) : null;
 
   return (
     <li className={styles.portfolioRow}>

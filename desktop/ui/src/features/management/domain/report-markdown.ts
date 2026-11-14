@@ -1,24 +1,11 @@
 import type { ProjectReport } from '@/shared/schema';
 import { runKindLabel, runStateLabel } from '@/shared/utils';
 
-import { SEVERITY_LABEL } from './delivery-labels';
+import { milestoneOutlookLabel, severityLabel } from './delivery-labels';
 import { formatDay, formatDays, formatDecimal } from './format';
 import { describeRiskChange } from './risk-history-text';
 
-const MILESTONE_OUTLOOK: Record<string, string> = {
-  done: 'concluído',
-  on_track: 'no prazo',
-  at_risk: 'em risco',
-  behind: 'atrasado em relação ao prazo',
-  overdue: 'prazo vencido',
-  no_forecast: 'sem previsão',
-  no_due_date: 'sem prazo'
-};
-
 const day = (iso: string) => formatDay(iso.slice(0, 10));
-
-const severity = (value: string) =>
-  value in SEVERITY_LABEL ? SEVERITY_LABEL[value as keyof typeof SEVERITY_LABEL].label : value;
 
 /** Um indicador sem base nunca vira zero no texto. */
 function value(text: string | null, unavailable: string | null): string {
@@ -68,14 +55,14 @@ export function reportToMarkdown(report: ProjectReport, kindLabel: (kind: string
     const due = milestone.dueDate ? `prazo ${formatDay(milestone.dueDate)}` : 'sem prazo';
     lines.push(
       `- ${milestone.name} (${kindLabel(milestone.kind)}, ${due}): ${milestone.delivered} de ${milestone.counted} entregues, ` +
-        `${milestone.open} ${milestone.open === 1 ? 'aberto' : 'abertos'}. Situação: ${MILESTONE_OUTLOOK[milestone.outlook] ?? milestone.outlook}.`
+        `${milestone.open} ${milestone.open === 1 ? 'aberto' : 'abertos'}. Situação: ${milestoneOutlookLabel(milestone.outlook).label.toLowerCase()}.`
     );
   }
 
   lines.push('', '## Riscos agora');
   if (report.risks.risks.length === 0) lines.push('', 'Nenhuma regra de risco disparou.');
   for (const risk of report.risks.risks) {
-    lines.push(`- ${risk.title} (gravidade ${severity(risk.severity)}): ${risk.evidence.join(' ')}`);
+    lines.push(`- ${risk.title} (gravidade ${severityLabel(risk.severity).label}): ${risk.evidence.join(' ')}`);
   }
 
   lines.push('', '## Mudanças de risco no período');

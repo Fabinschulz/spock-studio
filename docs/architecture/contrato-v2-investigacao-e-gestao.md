@@ -19,6 +19,10 @@ Campos aditivos (quem já lê continua funcionando):
 - Fixtures golden regeneradas (`milestones.json`, `report.json`, `run-list.json`, `run-detail.json`); o diff delas só tem os campos novos.
 - Ficou de fora, de propósito: o resumo de atividade que a UI soma por categoria entre integrações. Tirar a soma da UI pede decidir antes como contar duas integrações apontando para o mesmo recurso (hoje contam duas vezes); sem essa regra, mover a soma para o motor só mudaria o lugar do problema.
 
-## Fase 3: um só vocabulário para tela e Markdown do relatório (UI-N12) — a fazer, só na UI
+## Fase 3: um só vocabulário para tela e Markdown do relatório (UI-N12) — feita, só na UI
 
 O Markdown do relatório **é apresentação** e continua na UI: levá-lo ao motor inverteria a divisão de responsabilidades (o motor é dono das regras e dos números; a UI, de como eles aparecem). A duplicação se resolve dentro da UI: os rótulos de situação dos marcos e de gravidade que a tela e o `report-markdown.ts` repetem passam a vir de um módulo só.
+
+- `features/management/domain/delivery-labels.ts` é a única fonte: `milestoneOutlookLabel` e `severityLabel` devolvem rótulo e tom; um valor que o motor passe a mandar aparece como veio, em tom neutro. O Markdown usa o mesmo rótulo em minúsculas.
+- Corrigido no caminho: um risco ativo com gravidade desconhecida aparecia como "Resolvido" no histórico; agora aparece como "Ativo, gravidade <valor>".
+- A tela de riscos dizia "Severidade" e o resto da UI "gravidade"; ficou "Gravidade" em todo lugar.

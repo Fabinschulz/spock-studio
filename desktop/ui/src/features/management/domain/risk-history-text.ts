@@ -1,11 +1,8 @@
 import type { RiskChange } from '@/shared/schema';
 
-import { SEVERITY_LABEL } from './delivery-labels';
+import { severityLabel } from './delivery-labels';
 
-const severity = (value: string | null): string =>
-  value !== null && value in SEVERITY_LABEL
-    ? SEVERITY_LABEL[value as keyof typeof SEVERITY_LABEL].label
-    : (value ?? '');
+const severity = (value: string | null): string => (value === null ? '' : severityLabel(value).label);
 
 const ids = (list: string[]) => list.map((id) => `#${id}`).join(', ');
 
