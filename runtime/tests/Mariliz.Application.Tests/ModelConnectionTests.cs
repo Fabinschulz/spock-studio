@@ -73,7 +73,7 @@ public class ModelConnectionTests
 
         Assert.Equal(("none", false, "", null), (connection.Status, connection.Configured, connection.Provider, connection.Protection));
         Assert.Equal(("", ""), (connection.Model, connection.ProviderName));
-        Assert.Equal(["openai", "anthropic"], connection.Available.Select(provider => provider.Id));
+        Assert.Equal(["openai", "anthropic", "google"], connection.Available.Select(provider => provider.Id));
         var error = await Assert.ThrowsAsync<EngineException>(() => s.Gateway.TestAsync(CancellationToken.None));
         Assert.Equal("MODEL_NOT_CONFIGURED", error.Code);
         Assert.Equal(0, s.Transport.Calls);

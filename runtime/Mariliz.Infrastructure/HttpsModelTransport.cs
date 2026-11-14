@@ -1,21 +1,17 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Models;
+using Mariliz.Infrastructure.ModelFormats;
 
 namespace Mariliz.Infrastructure;
 
-// A chave vai no cabeçalho e não entra na mensagem de erro. O formato (OpenAI: chat completions; Anthropic: messages) é escolhido pelo endereço, nunca pelo chamador.
+// A chave vai no cabeçalho e não entra na mensagem de erro. O formato é escolhido pelo provedor do endereço, nunca pelo chamador.
 public sealed partial class HttpsModelTransport : IModelTransport, IModelChatTransport, IDisposable
 {
-    public const string AnthropicVersion = "2023-06-01";
-
-    private const string JsonInstruction = "Responda somente com um objeto JSON válido, sem nenhum texto antes ou depois.";
-
     private readonly HttpClient _http;
 
     public HttpsModelTransport(HttpMessageHandler? handler = null)
@@ -42,99 +38,29 @@ public sealed partial class HttpsModelTransport : IModelTransport, IModelChatTra
         return new ChatTransportResult(reply.Text, reply.Version.Length > 0 ? reply.Version : model, reply.InputTokens, reply.OutputTokens);
     }
 
-    private sealed record Reply(string Text, string Version, int InputTokens, int OutputTokens, int TotalTokens);
-
-    private async Task<Reply> ExchangeAsync(
+    private async Task<ModelReply> ExchangeAsync(
         ModelProvider provider, string key, string model, IReadOnlyList<ChatMessage> messages, int maxTokens, bool jsonObject, CancellationToken ct)
     {
-        var anthropic = provider.Id == ModelProviders.Anthropic.Id;
-        using var request = new HttpRequestMessage(HttpMethod.Post, provider.Endpoint);
-        if (anthropic)
-        {
-            request.Headers.Add("x-api-key", key);
-            request.Headers.Add("anthropic-version", AnthropicVersion);
-        }
-        else
-        {
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
-        }
-
-        var body = anthropic ? AnthropicBody(model, messages, maxTokens, jsonObject) : OpenAiBody(model, messages, maxTokens, jsonObject);
-        request.Content = new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json");
+        var format = ModelFormatRegistry.For(provider);
+        using var request = new HttpRequestMessage(HttpMethod.Post, format.Url(provider, model));
+        format.Authenticate(request, key);
+        request.Content = new StringContent(format.Body(model, messages, maxTokens, jsonObject).ToJsonString(), Encoding.UTF8, "application/json");
 
         try
         {
             using var response = await _http.SendAsync(request, ct);
             var text = await response.Content.ReadAsStringAsync(ct);
-            ThrowIfRefused(response.StatusCode);
+            ThrowIfRefused(format, response.StatusCode, text);
             if (!response.IsSuccessStatusCode || JsonNode.Parse(text) is not JsonObject document)
                 throw new EngineException("MODEL_INVALID_RESPONSE", "O modelo respondeu fora do contrato.");
 
-            var reply = anthropic ? ReadAnthropic(document) : ReadOpenAi(document);
+            var reply = format.Read(document);
             return jsonObject ? reply with { Text = StripFence(reply.Text) } : reply;
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or InvalidOperationException or FormatException)
         {
             throw new EngineException("MODEL_UNAVAILABLE", "O modelo não pôde ser contactado.");
         }
-    }
-
-    private static JsonObject OpenAiBody(string model, IReadOnlyList<ChatMessage> messages, int maxTokens, bool jsonObject)
-    {
-        var body = new JsonObject
-        {
-            ["model"] = model,
-            ["max_tokens"] = maxTokens,
-            ["messages"] = new JsonArray(messages.Select(m => (JsonNode)new JsonObject { ["role"] = m.Role, ["content"] = m.Content }).ToArray())
-        };
-        if (jsonObject) body["response_format"] = new JsonObject { ["type"] = "json_object" };
-        return body;
-    }
-
-    // A Anthropic leva as instruções de sistema à parte e não tem modo de resposta em JSON: o pedido vai na instrução, e a cerca de código em volta da resposta é tirada na volta.
-    private static JsonObject AnthropicBody(string model, IReadOnlyList<ChatMessage> messages, int maxTokens, bool jsonObject)
-    {
-        var system = messages.Where(m => m.Role == "system").Select(m => m.Content).ToList();
-        if (jsonObject) system.Add(JsonInstruction);
-
-        var conversation = messages.Where(m => m.Role != "system").ToList();
-        var onlyInstructions = conversation.Count == 0;
-        // Uma conversa só de instruções ainda precisa de uma mensagem do usuário: a instrução vira o pedido.
-        if (onlyInstructions) conversation.Add(new ChatMessage("user", system.Count > 0 ? string.Join("\n\n", system) : "Continue."));
-
-        var body = new JsonObject
-        {
-            ["model"] = model,
-            ["max_tokens"] = maxTokens,
-            ["messages"] = new JsonArray(conversation.Select(m => (JsonNode)new JsonObject
-            {
-                ["role"] = m.Role == "assistant" ? "assistant" : "user",
-                ["content"] = m.Content
-            }).ToArray())
-        };
-        if (system.Count > 0 && !onlyInstructions) body["system"] = string.Join("\n\n", system);
-        return body;
-    }
-
-    private static Reply ReadOpenAi(JsonObject document)
-    {
-        var content = document["choices"]?[0]?["message"]?["content"]?.GetValue<string>() ?? "";
-        var version = document["model"]?.GetValue<string>() ?? "";
-        var input = document["usage"]?["prompt_tokens"]?.GetValue<int>() ?? 0;
-        var output = document["usage"]?["completion_tokens"]?.GetValue<int>() ?? 0;
-        var total = document["usage"]?["total_tokens"]?.GetValue<int>() ?? input + output;
-        return new Reply(content, version, input, output, total);
-    }
-
-    private static Reply ReadAnthropic(JsonObject document)
-    {
-        var content = document["content"] is JsonArray blocks
-            ? string.Concat(blocks.OfType<JsonObject>().Where(b => b["type"]?.GetValue<string>() == "text").Select(b => b["text"]?.GetValue<string>() ?? ""))
-            : "";
-        var version = document["model"]?.GetValue<string>() ?? "";
-        var input = document["usage"]?["input_tokens"]?.GetValue<int>() ?? 0;
-        var output = document["usage"]?["output_tokens"]?.GetValue<int>() ?? 0;
-        return new Reply(content, version, input, output, input + output);
     }
 
     // Um modelo às vezes põe uma cerca de código em volta do JSON.
@@ -148,9 +74,9 @@ public sealed partial class HttpsModelTransport : IModelTransport, IModelChatTra
     private static partial Regex Fence();
 
     // O corpo da resposta não é repetido: ele pode citar a chave.
-    private static void ThrowIfRefused(HttpStatusCode status)
+    private static void ThrowIfRefused(IModelFormat format, HttpStatusCode status, string body)
     {
-        if (status is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+        if (format.RefusesKey(status, body))
             throw new EngineException("MODEL_AUTH_FAILED", "O provedor recusou a chave.");
         if (status == HttpStatusCode.TooManyRequests)
             throw new EngineException("MODEL_RATE_LIMITED", "O provedor limitou o uso desta chave agora. Tente de novo em instantes.");

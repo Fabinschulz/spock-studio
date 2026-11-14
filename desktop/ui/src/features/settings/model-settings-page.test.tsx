@@ -231,12 +231,15 @@ describe('Configurações · provedor de IA', () => {
 
     const select = await screen.findByRole('combobox', { name: 'Provedor' });
 
-    expect(await optionsOf(select)).toEqual(['OpenAI', 'Anthropic']);
+    expect(await optionsOf(select)).toEqual(['OpenAI', 'Anthropic', 'Google Gemini']);
     expect(select).toHaveTextContent('OpenAI');
     expect(screen.getByText(/Com OpenAI, as conversas dos agentes usam o modelo/)).toBeInTheDocument();
     await chooseOption(select, 'Anthropic');
     expect(screen.getByText(/Com Anthropic, as conversas dos agentes usam o modelo/)).toBeInTheDocument();
     expect(screen.getByText('claude-haiku-5-5')).toBeInTheDocument();
+    await chooseOption(select, 'Google Gemini');
+    expect(screen.getByText(/Com Google Gemini, as conversas dos agentes usam o modelo/)).toBeInTheDocument();
+    expect(screen.getByText('gemini-2.5-flash')).toBeInTheDocument();
   });
 
   it('guarda a chave no provedor escolhido e passa a mostrar esse provedor', async () => {

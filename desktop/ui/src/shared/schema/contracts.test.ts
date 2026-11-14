@@ -520,7 +520,7 @@ describe('contrato da conexão do modelo (fixtures do motor)', () => {
     expect(parsed.model).not.toBe('');
     expect(parsed.checkedAt).not.toBeNull();
     expect(parsed.providerName).toBe('OpenAI');
-    expect(parsed.available.map((provider) => provider.id)).toEqual(['openai', 'anthropic']);
+    expect(parsed.available.map((provider) => provider.id)).toEqual(['openai', 'anthropic', 'google']);
     expect(parsed.available.every((provider) => provider.model.length > 0)).toBe(true);
   });
 

@@ -6,6 +6,7 @@ using Mariliz.Application.Models;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Tests.Support;
 using Mariliz.Infrastructure;
+using Mariliz.Infrastructure.ModelFormats;
 
 namespace Mariliz.Application.Tests;
 
@@ -13,18 +14,19 @@ public class ModelProvidersTests
 {
     private const string OpenAiKey = "sk-test-openai-fase-f-7c2d41";
     private const string AnthropicKey = "sk-ant-test-anthropic-fase-f-91ab_x";
+    private const string GoogleKey = "AIzaSyTestGoogleFaseI1-3f9c_x2ab7d41";
 
     [Fact]
-    public void A_lista_tem_os_dois_provedores_com_endereco_https_proprio_e_modelo()
+    public void A_lista_tem_os_tres_provedores_com_endereco_https_proprio_e_modelo()
     {
-        Assert.Equal(["openai", "anthropic"], ModelProviders.All.Select(provider => provider.Id));
+        Assert.Equal(["openai", "anthropic", "google"], ModelProviders.All.Select(provider => provider.Id));
         Assert.All(ModelProviders.All, provider =>
         {
             Assert.Equal("https", provider.Endpoint.Scheme);
             Assert.NotEmpty(provider.DefaultModel);
             Assert.NotEmpty(provider.Name);
         });
-        Assert.Equal(2, ModelProviders.All.Select(provider => provider.Endpoint.Host).Distinct().Count());
+        Assert.Equal(3, ModelProviders.All.Select(provider => provider.Endpoint.Host).Distinct().Count());
         Assert.Equal("openai", ModelProviders.Default.Id);
     }
 
@@ -37,6 +39,9 @@ public class ModelProvidersTests
     [InlineData("https://api.anthropic.com.evil.example/v1/messages", null)]
     [InlineData("https://evil.example/v1/messages", null)]
     [InlineData("https://api.openai.com/v1/messages", null)]
+    [InlineData("https://generativelanguage.googleapis.com/v1beta/models", "google")]
+    [InlineData("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent", null)]
+    [InlineData("https://generativelanguage.googleapis.com.evil.example/v1beta/models", null)]
     public void O_endereco_so_vale_se_esquema_servidor_e_caminho_batem_com_um_provedor(string endpoint, string? expected)
     {
         Assert.Equal(expected, ModelProviders.ByEndpoint(new Uri(endpoint))?.Id);
@@ -47,21 +52,8 @@ public class ModelProvidersTests
     {
         Assert.Null(ModelProviders.Find("outro"));
         Assert.Null(ModelProviders.Find(null));
-        Assert.Equal(["openai", "anthropic"], ModelProviders.Available().Select(provider => provider.Id));
+        Assert.Equal(["openai", "anthropic", "google"], ModelProviders.Available().Select(provider => provider.Id));
         Assert.DoesNotContain("https", System.Text.Json.JsonSerializer.Serialize(ModelProviders.Available()));
-    }
-
-    private sealed class RecordingHandler(string responseJson, HttpStatusCode status = HttpStatusCode.OK) : HttpMessageHandler
-    {
-        public HttpRequestMessage? Request { get; private set; }
-        public JsonObject Body { get; private set; } = [];
-
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            Request = request;
-            Body = JsonNode.Parse(await request.Content!.ReadAsStringAsync(cancellationToken))!.AsObject();
-            return new HttpResponseMessage(status) { Content = new StringContent(responseJson, Encoding.UTF8, "application/json") };
-        }
     }
 
     private static string AnthropicReply(string text, int input = 11, int output = 7) =>
@@ -86,7 +78,7 @@ public class ModelProvidersTests
             CancellationToken.None);
 
         Assert.Equal(AnthropicKey, handler.Request!.Headers.GetValues("x-api-key").Single());
-        Assert.Equal(HttpsModelTransport.AnthropicVersion, handler.Request.Headers.GetValues("anthropic-version").Single());
+        Assert.Equal(AnthropicFormat.Version, handler.Request.Headers.GetValues("anthropic-version").Single());
         Assert.Null(handler.Request.Headers.Authorization);
         Assert.DoesNotContain(AnthropicKey, handler.Body.ToJsonString());
         Assert.Equal(ModelProviders.Anthropic.DefaultModel, handler.Body["model"]!.GetValue<string>());
@@ -215,7 +207,7 @@ public class ModelProvidersTests
 
         Assert.Equal(ModelProviders.Anthropic.Endpoint, capture.Seen.Single().Endpoint);
         Assert.Equal(("anthropic", "Anthropic", ModelProviders.Anthropic.DefaultModel, "connected"), (connection.Provider, connection.ProviderName, connection.Model, connection.Status));
-        Assert.Equal(["openai", "anthropic"], connection.Available.Select(provider => provider.Id));
+        Assert.Equal(["openai", "anthropic", "google"], connection.Available.Select(provider => provider.Id));
     }
 
     [Fact]
@@ -280,6 +272,7 @@ public class ModelProvidersTests
         var schema = ContractFiles.Schema("protocol", "methods", "model.save.params.schema.json");
         Assert.True(ContractFiles.IsValid(schema, new JsonObject { ["provider"] = "anthropic", ["key"] = AnthropicKey }));
         Assert.True(ContractFiles.IsValid(schema, new JsonObject { ["provider"] = "openai", ["key"] = OpenAiKey }));
+        Assert.True(ContractFiles.IsValid(schema, new JsonObject { ["provider"] = "google", ["key"] = GoogleKey }));
         Assert.False(ContractFiles.IsValid(schema, new JsonObject { ["provider"] = "outro", ["key"] = AnthropicKey }));
     }
 
@@ -394,7 +387,7 @@ public class ModelProvidersTests
 
         var result = response["result"]!;
         Assert.Equal("anthropic", result["provider"]!.GetValue<string>());
-        Assert.Equal(["openai", "anthropic"], result["available"]!.AsArray().Select(item => item!["id"]!.GetValue<string>()));
+        Assert.Equal(["openai", "anthropic", "google"], result["available"]!.AsArray().Select(item => item!["id"]!.GetValue<string>()));
         Assert.DoesNotContain("https://", response.ToJsonString());
         Assert.DoesNotContain(AnthropicKey, response.ToJsonString());
     }
