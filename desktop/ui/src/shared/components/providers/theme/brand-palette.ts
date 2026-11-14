@@ -3,12 +3,21 @@ export const brandPalette = {
   teal400: '#33c1ba',
   teal300: '#4fd3cc',
   onPrimary: '#06201f',
-  background: '#0a0f10',
-  surface: '#0f1617',
-  text: '#e8f0ef',
-  textMuted: '#a5b5b4',
-  line: 'rgba(160, 200, 196, 0.14)',
-  borderStrong: '#5f7a7a',
+  background: '#151515',
+  surface: '#1b1b1b',
+  text: '#ececec',
+  textMuted: '#a0a0a0',
+  line: 'rgba(255, 255, 255, 0.08)',
+  borderStrong: '#737373',
   error: '#f2766e',
   success: '#7bd88f'
+} as const;
+
+// Véus translúcidos sobre qualquer superfície: o realce de hover e de seleção é neutro, sem tinta de cor.
+export const veil = {
+  hover: 'rgba(255, 255, 255, 0.06)',
+  selected: 'rgba(255, 255, 255, 0.1)',
+  disabledFill: 'rgba(255, 255, 255, 0.08)',
+  disabledText: 'rgba(236, 236, 236, 0.38)',
+  activeIcon: 'rgba(236, 236, 236, 0.56)'
 } as const;

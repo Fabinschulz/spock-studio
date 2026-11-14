@@ -1,4 +1,5 @@
 // Tokens do Workbench (tema escuro único): primitivos → semânticos. Os componentes usam só os semânticos.
+// Superfícies e texto são neutros, sem tinta de cor; o teal é só a assinatura da marca (marca, item ativo, ação primária, foco).
 
 :root {
   color-scheme: dark;
@@ -8,48 +9,44 @@
   --neutral-50: #f1f7f6;
   --neutral-975: #050c0c; // tinta da marca
 
-  --navy-975: #070b0c; // menu lateral, superfície rebaixada
-  --navy-950: #0a0f10; // fundo da aplicação
-  --navy-900: #0f1617; // avisos
-  --navy-850: #0f1617; // superfície
-  --navy-800: #141d1f; // hover
-  --navy-750: #1a2528; // selo, item ativo
-  --navy-400: #5f7a7a; // borda de controles (≥ 3:1 sobre as superfícies)
+  --charcoal-975: #101010; // menu lateral, superfície rebaixada
+  --charcoal-950: #151515; // fundo da aplicação
+  --charcoal-900: #1b1b1b; // superfície, avisos
+  --charcoal-800: #232323; // hover, item ativo
+  --charcoal-750: #2c2c2c; // selo
+  --charcoal-400: #737373; // borda de controles (≥ 3:1 sobre as superfícies)
   --cyan-300: #4fd3cc; // hover e texto na cor da marca
   --cyan-400: #33c1ba; // marca
   --cyan-500: #4fd3cc; // foco
-  --ice-50: #e8f0ef;
-  --ice-200: #a5b5b4;
-  --ice-300: #a5b5b4;
-  --ice-350: #a5b5b4;
-  --ice-500: #7f9190;
-  --slate-400: #a5b5b4;
+  --ash-50: #ececec;
+  --ash-300: #a0a0a0;
+  --ash-500: #8a8a8a;
   --mint-400: #7bd88f; // sucesso
 
-  --color-background: var(--navy-950);
-  --color-surface: var(--navy-850);
-  --color-surface-raised: var(--navy-800);
-  --color-surface-sunken: var(--navy-975);
-  --color-sidebar: var(--navy-975);
-  --color-notice: var(--navy-900);
-  --color-active: var(--navy-800);
-  --color-card-hover: var(--navy-800);
-  --color-card-selected: var(--navy-800);
-  --color-card-selected-start: var(--navy-800);
-  --color-card-selected-text: var(--ice-200);
-  --color-menu-hover: var(--navy-800);
+  --color-background: var(--charcoal-950);
+  --color-surface: var(--charcoal-900);
+  --color-surface-raised: var(--charcoal-800);
+  --color-surface-sunken: var(--charcoal-975);
+  --color-sidebar: var(--charcoal-975);
+  --color-notice: var(--charcoal-900);
+  --color-active: var(--charcoal-800);
+  --color-card-hover: var(--charcoal-800);
+  --color-card-selected: var(--charcoal-800);
+  --color-card-selected-start: var(--charcoal-800);
+  --color-card-selected-text: var(--ash-300);
+  --color-menu-hover: var(--charcoal-800);
 
-  --color-border: rgb(160 200 196 / 0.14);
-  --color-border-panel: rgb(160 200 196 / 0.14);
-  --color-border-field: rgb(160 200 196 / 0.14);
-  --color-divider: rgb(160 200 196 / 0.1);
-  --color-hairline: rgb(160 200 196 / 0.14);
-  --color-border-strong: var(--navy-400);
+  --color-border: rgb(255 255 255 / 0.08);
+  --color-border-panel: rgb(255 255 255 / 0.08);
+  --color-border-field: rgb(255 255 255 / 0.1);
+  --color-divider: rgb(255 255 255 / 0.06);
+  --color-hairline: rgb(255 255 255 / 0.08);
+  --color-border-strong: var(--charcoal-400);
 
-  --color-text: var(--ice-50);
-  --color-text-muted: var(--ice-300);
-  --color-text-menu: var(--ice-350);
-  --color-text-subtle: var(--ice-500);
+  --color-text: var(--ash-50);
+  --color-text-muted: var(--ash-300);
+  --color-text-menu: var(--ash-300);
+  --color-text-subtle: var(--ash-500);
 
   --color-primary: var(--cyan-400);
   --color-primary-subtle: rgb(51 193 186 / 0.12);
@@ -71,11 +68,11 @@
   --tone-danger-bg: #2a2221;
   --tone-info-fg: #8cc8f0;
   --tone-info-bg: #14262f;
-  --tone-neutral-fg: var(--slate-400);
-  --tone-neutral-bg: var(--navy-750);
+  --tone-neutral-fg: var(--ash-300);
+  --tone-neutral-bg: var(--charcoal-750);
 
-  --color-badge-bg: var(--navy-750);
-  --color-badge-fg: var(--slate-400);
+  --color-badge-bg: var(--charcoal-750);
+  --color-badge-fg: var(--ash-300);
 
   --shadow-raised: 0 12px 32px -8px rgb(0 0 0 / 0.6);
 

@@ -1,6 +1,6 @@
 import { alpha } from '@mui/material/styles';
 
-import { brandPalette as c } from './brand-palette';
+import { brandPalette as c, veil } from './brand-palette';
 
 export const palette = {
   primary: { light: c.teal300, main: c.teal400, dark: c.teal300, contrastText: c.onPrimary },
@@ -18,11 +18,11 @@ export const palette = {
     darkest: c.teal400
   },
   action: {
-    hover: alpha(c.teal400, 0.08),
-    selected: alpha(c.teal400, 0.12),
+    hover: veil.hover,
+    selected: veil.selected,
     focus: alpha(c.teal400, 0.16),
-    disabledBackground: 'rgba(160, 200, 196, 0.12)',
-    disabled: 'rgba(232, 240, 239, 0.38)',
-    active: alpha(c.teal400, 0.56)
+    disabledBackground: veil.disabledFill,
+    disabled: veil.disabledText,
+    active: veil.activeIcon
   }
 };

@@ -18,11 +18,11 @@ describe('brandPalette × _tokens.scss', () => {
   it.each([
     ['teal400', 'cyan-400'],
     ['teal300', 'cyan-300'],
-    ['background', 'navy-950'],
-    ['surface', 'navy-850'],
-    ['text', 'ice-50'],
-    ['textMuted', 'ice-300'],
-    ['borderStrong', 'navy-400'],
+    ['background', 'charcoal-950'],
+    ['surface', 'charcoal-900'],
+    ['text', 'ash-50'],
+    ['textMuted', 'ash-300'],
+    ['borderStrong', 'charcoal-400'],
     ['success', 'mint-400']
   ] as const)('%s coincide com --%s', (key, token) => {
     expect(brandPalette[key]).toBe(declared(token));
