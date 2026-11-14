@@ -25,8 +25,8 @@ _PACKAGES = os.path.join(_HERE, "packages")
 if os.path.isdir(_PACKAGES):
     sys.path.insert(0, _PACKAGES)
 
-from infrastructure.parent_watch import watch_parent  # noqa: E402
 from contracts.messages import ContractError, parse_preview  # noqa: E402
+from infrastructure.parent_watch import watch_parent  # noqa: E402
 from knowledge.index import KnowledgeError, manifest  # noqa: E402
 from workflows.engineering.graph import run_cancel, run_resume, run_start  # noqa: E402
 from workflows.engineering.preview import preview  # noqa: E402
