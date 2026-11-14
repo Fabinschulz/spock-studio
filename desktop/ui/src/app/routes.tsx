@@ -10,6 +10,7 @@ import Execution from './routes/execution';
 import Home from './routes/home';
 import Integrations from './routes/integrations';
 import Management from './routes/management';
+import Security from './routes/security';
 import Portfolio from './routes/portfolio';
 import Project from './routes/project';
 import Report from './routes/report';
@@ -85,6 +86,14 @@ export const routes: RouteObject[] = [
         element: (
           <RequiresHost>
             <Agents />
+          </RequiresHost>
+        )
+      },
+      {
+        path: paths.security,
+        element: (
+          <RequiresHost>
+            <Security />
           </RequiresHost>
         )
       },

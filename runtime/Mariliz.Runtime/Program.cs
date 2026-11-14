@@ -11,6 +11,7 @@ using Mariliz.Application.Management.Investigation;
 using Mariliz.Application.Mcp;
 using Mariliz.Application.Audit;
 using Mariliz.Application.Context;
+using Mariliz.Application.Security;
 using Mariliz.Runtime;
 using Mariliz.Application.Timeline;
 using Mariliz.Application.Workflows;
@@ -71,7 +72,8 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     aiTools: new AiToolService(ExecutableLocator.FromEnvironment(), engine.Runner),
     agents: new AgentRunService(ExecutableLocator.FromEnvironment(), engine.Runner, engine.Workspace, engine.Tracker, engine.Store, engine.Clock),
     ide: new IdeConnection(Environment.ProcessPath),
-    contextReview: new ContextReviewService(engine.Workspace, workflowContext, aiRuntime, new TiktokenTokenizers(), models, knowledge));
+    contextReview: new ContextReviewService(engine.Workspace, workflowContext, aiRuntime, new TiktokenTokenizers(), models, knowledge),
+    security: new SecurityService(engine.Workspace, engine.Files, engine.Store, engine.Clock, engine.Tracker));
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

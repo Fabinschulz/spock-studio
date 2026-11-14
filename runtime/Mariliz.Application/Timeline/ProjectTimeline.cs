@@ -170,6 +170,7 @@ public sealed class ProjectTimelineService(
         RunKinds.Apply => "Aplicação do Harness",
         RunKinds.Revert => "Reversão do Harness",
         RunKinds.Agent => "Pedido a um agente de IA",
+        RunKinds.Security => "Correção de segurança",
         _ => "Execução"
     };
 

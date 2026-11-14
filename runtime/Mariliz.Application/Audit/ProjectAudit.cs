@@ -212,11 +212,14 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
             AuditEntry Entry(string suffix, DateTimeOffset when, string category, string title, string detail) =>
                 new($"journal:{journal.RunId}{suffix}", when, category, title, detail, AuditSources.Journal, journal.RunId, null);
 
-            if (journal.Kind is RunKinds.Apply or RunKinds.Revert)
+            if (journal.Kind is RunKinds.Apply or RunKinds.Revert or RunKinds.Security)
             {
                 var applied = journal.Ops.Count(op => op.Status == OpStatus.Applied);
                 var reverted = journal.Ops.Count(op => op.Status == OpStatus.Reverted);
-                if (journal.Kind == RunKinds.Apply && applied > 0)
+                if (journal.Kind == RunKinds.Security && applied > 0)
+                    result.Add(Entry("", at, AuditCategories.Change, "Correção de segurança aplicada",
+                        $"{Count(applied, "arquivo gravado", "arquivos gravados")} depois da aprovação."));
+                else if (journal.Kind == RunKinds.Apply && applied > 0)
                     result.Add(Entry("", at, AuditCategories.Change, journal.RolledBack ? "Aplicação do Harness desfeita na hora" : "Harness aplicado ao projeto",
                         $"{Count(applied, "arquivo gravado", "arquivos gravados")}{(journal.RolledBack ? ", e tudo foi desfeito porque a aplicação falhou no meio" : "")}."));
                 else if (journal.Kind == RunKinds.Revert && reverted > 0)

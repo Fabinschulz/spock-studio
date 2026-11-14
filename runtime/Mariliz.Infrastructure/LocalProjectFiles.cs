@@ -151,7 +151,12 @@ public sealed class LocalProjectFiles : IProjectFiles
         if (!PathGuard.TryNormalize(path, out var normalized, out var error))
             throw new UnauthorizedAccessException(error ?? "Caminho inválido.");
 
-        var allowed = scope == WriteScope.Managed ? ManagedScope.IsWritable(normalized) : ManagedScope.IsSpecificationOwned(normalized);
+        var allowed = scope switch
+        {
+            WriteScope.SpecificationRestore => ManagedScope.IsSpecificationOwned(normalized),
+            WriteScope.SecurityFix => ManagedScope.IsSecurityFixWritable(normalized),
+            _ => ManagedScope.IsWritable(normalized)
+        };
         if (!allowed) throw new UnauthorizedAccessException($"O caminho '{normalized}' está fora do escopo de escrita.");
         if (!TryResolve(normalized, out var full)) throw new UnauthorizedAccessException("O caminho sai da pasta do projeto.");
         return (normalized, full);

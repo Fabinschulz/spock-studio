@@ -1,0 +1,85 @@
+{
+  "projectId": "p-000000000001",
+  "scannedAt": "2026-11-14T12:00:00+00:00",
+  "filesScanned": 6,
+  "truncated": false,
+  "findings": [
+    {
+      "id": "2e7498261ad2",
+      "kind": "ai-permission",
+      "severity": "high",
+      "path": ".claude/settings.json",
+      "line": null,
+      "rule": "bypass-permissions",
+      "title": "O Claude Code está configurado para pular todas as confirmações",
+      "advice": "Nesse modo ele grava arquivos e roda comandos sem perguntar. A correção remove o modo, e o Claude Code volta a pedir confirmação.",
+      "fixable": true
+    },
+    {
+      "id": "057b848bb90d",
+      "kind": "ai-permission",
+      "severity": "high",
+      "path": ".codex/config.toml",
+      "line": null,
+      "rule": "codex-full-access",
+      "title": "O Codex roda sem sandbox",
+      "advice": "Com danger-full-access ele pode ler e gravar fora do projeto. Troque sandbox_mode para \"workspace-write\" neste arquivo.",
+      "fixable": false
+    },
+    {
+      "id": "34681bb90325",
+      "kind": "unprotected-file",
+      "severity": "high",
+      "path": ".env",
+      "line": null,
+      "rule": "unprotected-file",
+      "title": "Arquivo sensível fora do .gitignore",
+      "advice": "Se ele for para o repositório, quem tiver acesso lê o conteúdo. A correção acrescenta o caminho ao .gitignore. Se o arquivo já foi enviado, tire-o do git com git rm --cached e troque as credenciais que ele guarda.",
+      "fixable": true
+    },
+    {
+      "id": "c277153411ff",
+      "kind": "secret",
+      "severity": "high",
+      "path": "src/config.ts",
+      "line": 2,
+      "rule": "github-token",
+      "title": "Possível credencial: token do GitHub",
+      "advice": "Troque a credencial no serviço de origem, porque ela pode já ter sido copiada, e passe a ler o valor de uma variável de ambiente ou de um cofre. O Spock não mostra o valor nem altera código.",
+      "fixable": false
+    },
+    {
+      "id": "dfb7d1487649",
+      "kind": "ai-permission",
+      "severity": "medium",
+      "path": ".claude/settings.json",
+      "line": null,
+      "rule": "broad-bash",
+      "title": "O Claude Code pode rodar qualquer comando sem perguntar",
+      "advice": "A permissão Bash sem restrição libera todo comando no terminal. A correção a remove; libere só o que precisa, como Bash(npm test).",
+      "fixable": true
+    },
+    {
+      "id": "1a963581bffb",
+      "kind": "ai-permission",
+      "severity": "medium",
+      "path": ".codex/config.toml",
+      "line": null,
+      "rule": "codex-no-approval",
+      "title": "O Codex nunca pede aprovação",
+      "advice": "Com approval_policy = \"never\" ele executa sem perguntar. Troque para \"on-request\" neste arquivo.",
+      "fixable": false
+    },
+    {
+      "id": "92cfc5c8358a",
+      "kind": "unprotected-file",
+      "severity": "medium",
+      "path": "certs/ca.pem",
+      "line": null,
+      "rule": "unprotected-file",
+      "title": "Arquivo sensível fora do .gitignore",
+      "advice": "Se ele for para o repositório, quem tiver acesso lê o conteúdo. A correção acrescenta o caminho ao .gitignore. Se o arquivo já foi enviado, tire-o do git com git rm --cached e troque as credenciais que ele guarda.",
+      "fixable": true
+    }
+  ]
+}

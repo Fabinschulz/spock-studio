@@ -6,4 +6,5 @@ public static class StepStatus
     public const string Running = "running";
     public const string Completed = "completed";
     public const string CompletedWithConflicts = "completed_with_conflicts";
+    public const string Failed = "failed";
 }
