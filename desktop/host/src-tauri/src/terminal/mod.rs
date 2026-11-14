@@ -11,8 +11,8 @@ use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::path::Path;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::mpsc::{self, Receiver};
 use std::sync::{Arc, Mutex};
-use std::thread::JoinHandle;
 use std::time::Duration;
 
 use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
@@ -28,6 +28,8 @@ pub const MAX_SESSIONS: usize = 4;
 pub const MAX_WRITE_BYTES: usize = 64 * 1024;
 const READ_CHUNK: usize = 8 * 1024;
 const EXIT_POLL: Duration = Duration::from_millis(150);
+const LAST_OUTPUT_GRACE: Duration = Duration::from_secs(3);
+const CURSOR_REPLY: &[u8] = b"\x1b[1;1R";
 
 #[derive(Clone, Serialize)]
 #[serde(tag = "kind", rename_all = "camelCase")]
@@ -157,13 +159,14 @@ impl Terminals {
         })
     }
 
-    /// Espera o shell sair sem segurar o lock (fechar precisa dele), fecha o pty para a leitura terminar e só então avisa
-    /// a tela: o aviso de saída nunca chega antes da última linha.
+    /// Espera o shell sair sem segurar o lock (fechar precisa dele), fecha o pty e espera a última linha antes de avisar
+    /// a tela. Nada aqui pode prender a vaga para sempre: o pty fecha numa thread à parte e a espera pela leitura tem
+    /// limite.
     fn watch_exit(
         &self,
         session_id: String,
         session: Arc<Session>,
-        reading: JoinHandle<()>,
+        reading: Receiver<()>,
         sink: Arc<dyn TerminalSink>,
     ) {
         let sessions = Arc::clone(&self.sessions);
@@ -176,8 +179,10 @@ impl Terminals {
                 }
                 std::thread::sleep(EXIT_POLL);
             };
-            lock(&session.master).take();
-            let _ = reading.join();
+            release_console(&session);
+            let master = lock(&session.master).take();
+            std::thread::spawn(move || drop(master));
+            let _ = reading.recv_timeout(LAST_OUTPUT_GRACE);
             lock(&sessions).remove(&session_id);
             sink.event(TerminalEvent::Exit { code });
             let exit =
@@ -244,7 +249,9 @@ impl Terminals {
 }
 
 /// A leitura bloqueia, então roda numa thread própria até o pty fechar.
-fn read_output(mut reader: Box<dyn Read + Send>, sink: Arc<dyn TerminalSink>) -> JoinHandle<()> {
+/// Avisa pelo canal quando a leitura termina (ou cai), para quem espera ter um limite.
+fn read_output(mut reader: Box<dyn Read + Send>, sink: Arc<dyn TerminalSink>) -> Receiver<()> {
+    let (finished, done) = mpsc::channel();
     std::thread::spawn(move || {
         let mut decoder = utf8::Utf8Stream::default();
         let mut buffer = [0u8; READ_CHUNK];
@@ -257,7 +264,19 @@ fn read_output(mut reader: Box<dyn Read + Send>, sink: Arc<dyn TerminalSink>) ->
                 break;
             }
         }
-    })
+        let _ = finished.send(());
+    });
+    done
+}
+
+/// O ConPTY pergunta a posição do cursor ao iniciar e espera a resposta do terminal da tela. Se a tela fechou antes de
+/// responder, o console fica preso nessa espera e não fecha; a resposta o solta. Com o shell já encerrado, ela não
+/// chega a programa nenhum.
+fn release_console(session: &Session) {
+    if cfg!(windows) {
+        let mut writer = lock(&session.writer);
+        let _ = writer.write_all(CURSOR_REPLY).and_then(|()| writer.flush());
+    }
 }
 
 /// O shell pode ter iniciado servidores e observadores: encerrar só ele deixaria esses processos órfãos.
@@ -362,6 +381,31 @@ mod tests {
             notes.contains("aberto") && notes.contains("encerrado"),
             "{notes}"
         );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn fechar_logo_ao_abrir_libera_a_vaga_mesmo_sem_a_tela_ter_respondido_ao_cursor() {
+        // Acontece ao trocar de projeto enquanto o shell inicia: a tela some antes de responder ao ConPTY.
+        let dir = std::env::temp_dir().join(format!("spock-terminal-cedo-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let terminals = Terminals::default();
+        let sink = Arc::new(Collected::default());
+
+        let opened = terminals.open(&dir, 80, 24, sink.clone()).unwrap();
+        terminals.close(&opened.session_id).unwrap();
+
+        assert!(
+            eventually(|| lock(&sink.exit).is_some()),
+            "a sessão não terminou"
+        );
+        assert!(
+            lock(&terminals.sessions).is_empty(),
+            "a vaga continuou ocupada"
+        );
+        assert!(lock(&sink.notes)
+            .iter()
+            .any(|note| note.contains("encerrado")));
         let _ = std::fs::remove_dir_all(&dir);
     }
 
