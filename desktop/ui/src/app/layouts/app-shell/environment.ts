@@ -26,6 +26,7 @@ const OWNED: Record<Environment, readonly string[]> = {
     paths.engineeringRequest,
     paths.agents,
     paths.security,
+    paths.idea,
     EXECUTION_PREFIX
   ],
   management: [paths.portfolio, paths.management]

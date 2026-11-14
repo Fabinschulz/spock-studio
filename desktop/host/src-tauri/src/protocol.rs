@@ -80,6 +80,9 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "security.scan",
     "security.plan",
     "security.fix",
+    "idea.draft",
+    "idea.plan",
+    "idea.save",
 ];
 
 pub mod error_code {

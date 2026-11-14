@@ -1,6 +1,7 @@
 import { pathTo } from '@/shared/routing';
 import {
   AssignmentIcon,
+  BoardIcon,
   BookOpenIcon,
   BriefcaseIcon,
   CalendarIcon,
@@ -72,6 +73,7 @@ export const ENGINEERING_GROUP: NavGroup = {
       to: pathTo('engineeringRequest')
     },
     { id: 'agents', label: 'Agentes de IA', icon: <LightIcon fontSize="small" />, to: pathTo('agents') },
+    { id: 'idea', label: 'Da ideia ao projeto', icon: <BoardIcon fontSize="small" />, to: pathTo('idea') },
     { id: 'security', label: 'Segurança', icon: <ShieldAlertIcon fontSize="small" />, to: pathTo('security') },
     { id: 'catalog', label: 'Catálogo', icon: <LibraryIcon fontSize="small" />, to: pathTo('projectCatalog') }
   ]

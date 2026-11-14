@@ -10,7 +10,8 @@ public static class RunKinds
     public const string Investigation = "investigation";
     public const string Agent = "agent";
     public const string Security = "security";
+    public const string Idea = "idea";
 
     // Só execuções que gravam no projeto com backup podem ser desfeitas.
-    public static bool IsRevertible(string kind) => kind is Apply or Security;
+    public static bool IsRevertible(string kind) => kind is Apply or Security or Idea;
 }

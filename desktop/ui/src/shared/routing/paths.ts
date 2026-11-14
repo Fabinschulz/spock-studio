@@ -8,6 +8,7 @@ export const paths = {
   engineeringRequest: '/pedido',
   agents: '/agentes',
   security: '/seguranca',
+  idea: '/ideia',
   portfolio: '/portfolio',
   management: '/gestao',
   assistant: '/gestao/assistente',

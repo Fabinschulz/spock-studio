@@ -10,6 +10,7 @@ export const RUN_KINDS = [
   'workflow',
   'agent',
   'security',
+  'idea',
   'assistant',
   'investigation'
 ] as const;

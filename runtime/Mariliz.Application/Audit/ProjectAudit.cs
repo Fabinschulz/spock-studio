@@ -212,11 +212,14 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
             AuditEntry Entry(string suffix, DateTimeOffset when, string category, string title, string detail) =>
                 new($"journal:{journal.RunId}{suffix}", when, category, title, detail, AuditSources.Journal, journal.RunId, null);
 
-            if (journal.Kind is RunKinds.Apply or RunKinds.Revert or RunKinds.Security)
+            if (journal.Kind is RunKinds.Apply or RunKinds.Revert or RunKinds.Security or RunKinds.Idea)
             {
                 var applied = journal.Ops.Count(op => op.Status == OpStatus.Applied);
                 var reverted = journal.Ops.Count(op => op.Status == OpStatus.Reverted);
-                if (journal.Kind == RunKinds.Security && applied > 0)
+                if (journal.Kind == RunKinds.Idea && applied > 0)
+                    result.Add(Entry("", at, AuditCategories.Change, "Documentos da ideia gravados",
+                        $"{Count(applied, "arquivo gravado", "arquivos gravados")} em .mariliz/arquitetura depois da aprovação."));
+                else if (journal.Kind == RunKinds.Security && applied > 0)
                     result.Add(Entry("", at, AuditCategories.Change, "Correção de segurança aplicada",
                         $"{Count(applied, "arquivo gravado", "arquivos gravados")} depois da aprovação."));
                 else if (journal.Kind == RunKinds.Apply && applied > 0)
