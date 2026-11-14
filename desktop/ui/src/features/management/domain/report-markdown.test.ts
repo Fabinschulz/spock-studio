@@ -22,7 +22,7 @@ describe('relatório em Markdown', () => {
 
     expect(text).toContain('### Issues');
     expect(text).toContain('- Entregues por semana (média): 1,5');
-    expect(text).toContain('- Cycle time mediano: 3 dias');
+    expect(text).toContain('- Tempo de trabalho, do início à entrega (mediana): 3 dias');
     expect(text).toMatch(/- Bloqueados: 1\b/);
     // Sem histórico de status o cycle time vem com o motivo, e não como zero.
     const noHistory = {
@@ -41,7 +41,7 @@ describe('relatório em Markdown', () => {
       }
     };
     expect(reportToMarkdown(noHistory, label)).toContain(
-      '- Cycle time mediano: sem valor (A fonte não informa quando o trabalho começou.)'
+      '- Tempo de trabalho, do início à entrega (mediana): sem valor (A fonte não informa quando o trabalho começou.)'
     );
   });
 
@@ -62,7 +62,7 @@ describe('relatório em Markdown', () => {
     expect(text).toContain('Adiar a release. Decisão de Adiar a release');
     expect(text).toContain('- v1.0 (Issues, prazo 12/12/2026): 4 de 5 entregues, 1 aberto. Situação: em risco.');
     expect(text).toContain('- Configuração aplicada, concluído: 1');
-    expect(text).toContain('- Workflow, falhou: 1');
+    expect(text).toContain('- Pedido de engenharia, falhou: 1');
   });
 
   it('seção vazia diz que está vazia em vez de sumir', () => {

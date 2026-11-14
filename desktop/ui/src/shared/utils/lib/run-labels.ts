@@ -2,7 +2,7 @@ const KIND_LABEL: Record<string, string> = {
   apply: 'Configuração aplicada',
   validate: 'Validação',
   revert: 'Reversão',
-  workflow: 'Workflow',
+  workflow: 'Pedido de engenharia',
   assistant: 'Pergunta ao assistente',
   investigation: 'Investigação de gestão'
 };

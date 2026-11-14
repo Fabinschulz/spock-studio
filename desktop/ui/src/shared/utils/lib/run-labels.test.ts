@@ -6,7 +6,7 @@ describe('rótulos das execuções', () => {
   it('tipo desconhecido aparece como veio', () => {
     expect(runKindLabel('apply')).toBe('Configuração aplicada');
     expect(runKindLabel('novo-tipo')).toBe('novo-tipo');
-    expect(runKindLabel('workflow')).toBe('Workflow');
+    expect(runKindLabel('workflow')).toBe('Pedido de engenharia');
     expect(runKindLabel('assistant')).toBe('Pergunta ao assistente');
     expect(runKindLabel('investigation')).toBe('Investigação de gestão');
   });

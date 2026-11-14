@@ -57,7 +57,7 @@ function Content({ client, run }: { client: EngineClient; run: RunItem }) {
       ) : null}
       {hasLiveView(run) ? (
         <p>
-          <Link to={executionPath(run.runId)}>Abrir o acompanhamento</Link>
+          <Link to={executionPath(run.runId)}>Abrir a execução</Link>
         </p>
       ) : null}
       <ResourceView resource={detail} loading="Lendo o detalhe…" fallbackError="Não foi possível ler o detalhe.">

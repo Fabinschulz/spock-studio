@@ -30,8 +30,8 @@ export function reportToMarkdown(report: ProjectReport, kindLabel: (kind: string
       '',
       `### ${kindLabel(flow.kind)}`,
       `- Entregues por semana (média): ${value(flow.throughput.weeklyAverage === null ? null : formatDecimal(flow.throughput.weeklyAverage), flow.throughput.unavailable)}`,
-      `- Lead time mediano: ${value(flow.leadTime.medianDays === null ? null : formatDays(flow.leadTime.medianDays), flow.leadTime.unavailable)}`,
-      `- Cycle time mediano: ${value(flow.cycleTime.medianDays === null ? null : formatDays(flow.cycleTime.medianDays), flow.cycleTime.unavailable)}`,
+      `- Tempo total, da criação à entrega (mediana): ${value(flow.leadTime.medianDays === null ? null : formatDays(flow.leadTime.medianDays), flow.leadTime.unavailable)}`,
+      `- Tempo de trabalho, do início à entrega (mediana): ${value(flow.cycleTime.medianDays === null ? null : formatDays(flow.cycleTime.medianDays), flow.cycleTime.unavailable)}`,
       `- Em andamento: ${value(flow.wip.value === null ? null : String(flow.wip.value), flow.wip.unavailable)}`,
       `- Bloqueados: ${value(flow.blocked.value === null ? null : String(flow.blocked.value), flow.blocked.unavailable)}`,
       `- Prazo vencido: ${value(flow.overdue.value === null ? null : String(flow.overdue.value), flow.overdue.unavailable)}`
