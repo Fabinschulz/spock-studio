@@ -3,8 +3,6 @@ namespace Mariliz.Application.Models;
 // Nunca inclui a chave.
 public sealed record ModelStatus(bool Configured, string Provider);
 
-public sealed record ModelCompletion(string Text, int Tokens, string Limitation);
-
 public sealed record ModelTransportResult(string Text, int Tokens);
 
 public static class ModelKeyProtection

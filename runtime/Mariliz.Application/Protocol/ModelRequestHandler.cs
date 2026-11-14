@@ -14,7 +14,6 @@ internal sealed class ModelRequestHandler(ModelGateway models)
         ProtocolMethods.ModelPurpose => ConnectionJson(models.SetPurposeModel(RequiredString(method, parameters, "purpose"), ReadString(parameters, "model"))),
         ProtocolMethods.ModelTest => ConnectionJson(await models.TestAsync(ct)),
         ProtocolMethods.ModelClear => Clear(),
-        ProtocolMethods.ModelComplete => CompletionJson(await models.CompleteAsync(RequiredString(method, parameters, "prompt"), ct)),
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
     };
 
@@ -43,11 +42,4 @@ internal sealed class ModelRequestHandler(ModelGateway models)
     };
 
     private static JsonObject ConnectionJson(ModelConnection connection) => IntegrationJson.Node(connection)!.AsObject();
-
-    private static JsonObject CompletionJson(ModelCompletion completion) => new()
-    {
-        ["text"] = completion.Text,
-        ["tokens"] = completion.Tokens,
-        ["limitation"] = completion.Limitation
-    };
 }

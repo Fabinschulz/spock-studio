@@ -116,9 +116,9 @@ public class LiveValidationTests(ITestOutputHelper output)
 
         using var transport = new HttpsModelTransport();
         var gateway = new ModelGateway(settings, transport, timeout: TimeSpan.FromSeconds(30), chat: transport);
-        var completion = await gateway.CompleteAsync("Responda apenas com a palavra: ok", CancellationToken.None);
-        Report("Modelo: completar", completion.Limitation.Length == 0 ? "respondeu" : completion.Limitation, $"tokens: {completion.Tokens}");
-        Assert.Equal("", completion.Limitation);
+        var completion = await gateway.ChatAsync(
+            new ChatRequest([new ChatMessage("user", "Responda apenas com a palavra: ok")], 16, false), CancellationToken.None);
+        Report("Modelo: conversa", "respondeu", $"tokens: {completion.InputTokens + completion.OutputTokens}");
         Assert.False(string.IsNullOrWhiteSpace(completion.Text));
         Assert.DoesNotContain(key, completion.Text);
 

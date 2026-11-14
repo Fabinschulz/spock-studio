@@ -30,7 +30,6 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "model.status",
     "model.save",
     "model.clear",
-    "model.complete",
     "model.connection",
     "model.test",
     "model.purpose",

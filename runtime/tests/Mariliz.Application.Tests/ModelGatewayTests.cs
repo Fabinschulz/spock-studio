@@ -18,12 +18,13 @@ public class ModelGatewayTests
     {
         using var project = TempProject.Dotnet();
         var before = project.Fingerprint();
-        var transport = new FakeTransport { Reply = "eco " + Key, Tokens = 9999 };
-        var gateway = new ModelGateway(new FileModelSettings(project.DataDir), transport, TimeSpan.FromMilliseconds(50));
+        var transport = new FakeTransport();
+        var chat = new FakeChat { Reply = "eco " + Key };
+        var gateway = new ModelGateway(new FileModelSettings(project.DataDir), transport, TimeSpan.FromMilliseconds(50), chat);
         var session = new EngineSession("test", models: gateway);
 
-        var missing = session.Handle(Line("model.complete", new JsonObject { ["prompt"] = "descrever" })).Response;
-        Assert.Equal("MODEL_NOT_CONFIGURED", missing["result"]!["limitation"]!.GetValue<string>());
+        var missing = session.Handle(Line("model.test", new JsonObject())).Response;
+        Assert.Equal("MODEL_NOT_CONFIGURED", missing["error"]!["code"]!.GetValue<string>());
         Assert.Equal(0, transport.Calls);
 
         var denied = session.Handle(Line("model.save", new JsonObject { ["provider"] = "outro", ["key"] = Key })).Response;
@@ -38,26 +39,28 @@ public class ModelGatewayTests
         Assert.False(File.Exists(Path.Combine(project.Root, "model.json")));
         Assert.Contains(Key, File.ReadAllText(Path.Combine(project.DataDir, "model.json")));
 
-        var done = session.Handle(Line("model.complete", new JsonObject { ["prompt"] = "usar " + Key + " no texto" })).Response;
-        Assert.True(ContractFiles.IsValid(ContractFiles.Schema("protocol", "methods", "model.complete.result.schema.json"), done["result"]));
-        Assert.DoesNotContain(Key, done.ToJsonString());
-        Assert.DoesNotContain(Key, transport.SeenPrompt);
         Assert.Equal(Key, transport.SeenKey);
-        Assert.Equal(ModelGateway.MaxTokens, transport.SeenMaxTokens);
+        Assert.Equal(ModelGateway.ProbePrompt, transport.SeenPrompt);
         Assert.Equal(ModelGateway.Endpoint, transport.SeenEndpoint);
-        Assert.Contains("[omitido]", done["result"]!["text"]!.GetValue<string>());
-        Assert.Equal(ModelGateway.MaxTokens, done["result"]!["tokens"]!.GetValue<int>());
-        Assert.Equal("", done["result"]!["limitation"]!.GetValue<string>());
+
+        var tested = session.Handle(Line("model.test", new JsonObject())).Response;
+        Assert.True(tested["result"]!["configured"]!.GetValue<bool>());
+        Assert.DoesNotContain(Key, tested.ToJsonString());
+
+        var reply = await gateway.ChatAsync(new ChatRequest([new ChatMessage("user", "usar " + Key + " no texto")], 64, false), CancellationToken.None);
+        Assert.DoesNotContain(Key, chat.SeenContent);
+        Assert.Equal(Key, chat.SeenKey);
+        Assert.Contains("[omitido]", reply.Text);
+        Assert.DoesNotContain(Key, reply.Text);
 
         var cleared = session.Handle(Line("model.clear", new JsonObject())).Response;
         Assert.False(cleared["result"]!["configured"]!.GetValue<bool>());
         Assert.False(File.Exists(Path.Combine(project.DataDir, "model.json")));
         Assert.Equal(before, project.Fingerprint());
-        await Task.CompletedTask;
     }
 
     [Fact]
-    public async Task Prazo_estourado_nao_revela_a_chave()
+    public void Prazo_estourado_nao_revela_a_chave()
     {
         using var project = TempProject.Dotnet();
         var transport = new FakeTransport { Delay = TimeSpan.FromSeconds(5) };
@@ -65,10 +68,9 @@ public class ModelGatewayTests
         gateway.Save("openai", Key);
         var session = new EngineSession("test", models: gateway);
 
-        var response = session.Handle(Line("model.complete", new JsonObject { ["prompt"] = "descrever" })).Response;
+        var response = session.Handle(Line("model.save", new JsonObject { ["provider"] = "openai", ["key"] = Key })).Response;
         Assert.Equal("MODEL_TIMEOUT", response["error"]!["code"]!.GetValue<string>());
         Assert.DoesNotContain(Key, response.ToJsonString());
-        await Task.CompletedTask;
     }
 
     [Fact]
@@ -119,10 +121,7 @@ public class ModelGatewayTests
         public int Calls { get; private set; }
         public string SeenPrompt { get; private set; } = "";
         public string SeenKey { get; private set; } = "";
-        public int SeenMaxTokens { get; private set; }
         public Uri? SeenEndpoint { get; private set; }
-        public string Reply { get; init; } = "ok";
-        public int Tokens { get; init; } = 3;
         public TimeSpan Delay { get; init; }
 
         public async Task<ModelTransportResult> SendAsync(Uri endpoint, string key, string prompt, int maxTokens, CancellationToken ct)
@@ -131,9 +130,22 @@ public class ModelGatewayTests
             SeenEndpoint = endpoint;
             SeenKey = key;
             SeenPrompt = prompt;
-            SeenMaxTokens = maxTokens;
             if (Delay > TimeSpan.Zero) await Task.Delay(Delay, ct);
-            return new ModelTransportResult(Reply, Tokens);
+            return new ModelTransportResult("ok", 3);
+        }
+    }
+
+    private sealed class FakeChat : IModelChatTransport
+    {
+        public string SeenKey { get; private set; } = "";
+        public string SeenContent { get; private set; } = "";
+        public string Reply { get; init; } = "ok";
+
+        public Task<ChatTransportResult> SendChatAsync(Uri endpoint, string key, string model, ChatRequest request, CancellationToken ct)
+        {
+            SeenKey = key;
+            SeenContent = string.Join("\n", request.Messages.Select(message => message.Content));
+            return Task.FromResult(new ChatTransportResult(Reply, model, 5, 3));
         }
     }
 
