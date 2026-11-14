@@ -68,7 +68,7 @@ public sealed partial class HarnessRevisionService(WorkspaceAuthorizer workspace
                 .Select(op => (op.Path, op.Op))
                 .ToList();
 
-        if (journal.RevertsRunId is null || !byRunId.TryGetValue(journal.RevertsRunId, out var target)) return [];
+        if (journal.RevertsRunId is null || !byRunId.TryGetValue(journal.RevertsRunId, out var target) || target.Kind != RunKinds.Apply) return [];
         return target.Ops
             .Where(op => op.Status == OpStatus.Reverted && op.Path != ManagedLockFile.FileName)
             .Select(op => (op.Path, Inverse(op.Op)))

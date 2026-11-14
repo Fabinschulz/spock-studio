@@ -24,6 +24,12 @@ public static class ManagedScope
         return IsEnvironmentFile(normalizedPath);
     }
 
+    public const string GitIgnore = ".gitignore";
+
+    // Uma correção de segurança aprovada pode tocar o .gitignore da raiz; fora do ambiente gerenciado, só ele.
+    public static bool IsSecurityFixWritable(string normalizedPath) =>
+        normalizedPath.Equals(GitIgnore, StringComparison.Ordinal) || IsWritable(normalizedPath);
+
     // Só o instalador oficial escreve estes arquivos.
     public static bool IsSpecificationOwned(string normalizedPath) =>
         normalizedPath.Equals(SpecificationDirectory, StringComparison.Ordinal)

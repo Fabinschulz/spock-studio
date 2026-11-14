@@ -11,5 +11,6 @@ export * from './management';
 export * from './model';
 export * from './run';
 export * from './run-catalog';
+export * from './security';
 export * from './timeline';
 export * from './workflow';

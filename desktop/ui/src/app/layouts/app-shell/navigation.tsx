@@ -18,6 +18,7 @@ import {
   PlayIcon,
   ReportIcon,
   SettingIcon,
+  ShieldAlertIcon,
   ShieldCheckIcon
 } from '@mariliz/ui-kit';
 import type { ReactNode } from 'react';
@@ -71,6 +72,7 @@ export const ENGINEERING_GROUP: NavGroup = {
       to: pathTo('engineeringRequest')
     },
     { id: 'agents', label: 'Agentes de IA', icon: <LightIcon fontSize="small" />, to: pathTo('agents') },
+    { id: 'security', label: 'Segurança', icon: <ShieldAlertIcon fontSize="small" />, to: pathTo('security') },
     { id: 'catalog', label: 'Catálogo', icon: <LibraryIcon fontSize="small" />, to: pathTo('projectCatalog') }
   ]
 };

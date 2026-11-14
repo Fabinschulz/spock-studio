@@ -8,7 +8,12 @@ public static class OperationUndoer
 {
     public static void Undo(IRunStore store, string projectId, string backupRunId, IProjectFiles files, JournalOp op, List<string> conflicts)
     {
-        var scope = op.Source == OpSources.Command ? WriteScope.SpecificationRestore : WriteScope.Managed;
+        var scope = op.Source switch
+        {
+            OpSources.Command => WriteScope.SpecificationRestore,
+            OpSources.Security => WriteScope.SecurityFix,
+            _ => WriteScope.Managed
+        };
         var currentBytes = files.ReadBytes(op.Path);
         var currentHash = currentBytes is null ? null : Hashing.Sha256(currentBytes);
 

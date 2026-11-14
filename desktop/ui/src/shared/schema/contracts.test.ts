@@ -6,6 +6,8 @@ import ideConnectionFixture from '@contracts/fixtures/ide/connection.json';
 import investigationFixture from '@contracts/fixtures/management/investigation.json';
 import portfolioAnswerFixture from '@contracts/fixtures/management/portfolio-answer.json';
 import portfolioEvidenceFixture from '@contracts/fixtures/management/portfolio-evidence.json';
+import securityPlanFixture from '@contracts/fixtures/security/plan.json';
+import securityScanFixture from '@contracts/fixtures/security/scan.json';
 import timelineFixture from '@contracts/fixtures/timeline/timeline.json';
 import { describe, expect, it } from 'vitest';
 
@@ -84,6 +86,8 @@ import {
   agentRunResultSchema,
   ideConnectionSchema,
   contextReviewSchema,
+  securityPlanSchema,
+  securityReportSchema,
   projectKnowledgeSchema,
   portfolioAnswerSchema,
   portfolioEvidenceSchema,
@@ -675,6 +679,30 @@ describe('contrato do resultado de um agente (fixture do motor)', () => {
       error: null,
       answer: 'Resposta do agente.'
     });
+  });
+});
+
+describe('contrato da segurança (fixtures do motor)', () => {
+  it('a varredura traz cada tipo de achado e nunca o valor encontrado', () => {
+    const parsed = securityReportSchema.parse(securityScanFixture);
+
+    expect(new Set(parsed.findings.map((finding) => finding.kind))).toEqual(
+      new Set(['secret', 'unprotected-file', 'ai-permission'])
+    );
+    expect(parsed.findings.find((finding) => finding.kind === 'secret')).toMatchObject({
+      path: 'src/config.ts',
+      line: 2
+    });
+    expect(JSON.stringify(securityScanFixture)).not.toMatch(/ghp_/);
+  });
+
+  it('o plano traz a diferença de cada arquivo e os achados que corrige', () => {
+    const parsed = securityPlanSchema.parse(securityPlanFixture);
+    const ids = new Set(securityReportSchema.parse(securityScanFixture).findings.map((finding) => finding.id));
+
+    expect(parsed.changes.map((change) => change.path)).toEqual(['.gitignore', '.claude/settings.json']);
+    expect(parsed.findingIds.every((id) => ids.has(id))).toBe(true);
+    expect(parsed.findingIds.length + parsed.manual).toBe(ids.size);
   });
 });
 

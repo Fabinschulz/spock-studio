@@ -48,15 +48,15 @@ public sealed class RevertService(IRunStore store, IClock clock)
         var target = store.LoadJournal(projectId, targetRunId)
                      ?? throw new EngineException("RUN_NOT_FOUND", "A execução a reverter não foi encontrada.");
 
-        if (target.Kind != RunKinds.Apply)
-            throw new EngineException("NOT_REVERTIBLE", "Só execuções de aplicação podem ser revertidas.");
+        if (!RunKinds.IsRevertible(target.Kind))
+            throw new EngineException("NOT_REVERTIBLE", "Só execuções de aplicação e correções de segurança podem ser revertidas.");
         if (target.RevertedByRunId is not null)
             throw new EngineException("ALREADY_REVERTED", "Esta execução já foi revertida.");
         if (!target.ChangesApplied || target.RolledBack)
             throw new EngineException("NOTHING_TO_REVERT", "Esta execução não deixou alterações para reverter.");
 
         var hasLaterApply = store.ListJournals(projectId)
-            .Any(j => j.Kind == RunKinds.Apply && j.StartedAt > target.StartedAt && j.CanBeReverted);
+            .Any(j => RunKinds.IsRevertible(j.Kind) && j.StartedAt > target.StartedAt && j.CanBeReverted);
         if (hasLaterApply)
             throw new EngineException("NOT_LATEST_RUN", "Há uma aplicação mais recente; reverta primeiro a mais recente.");
 

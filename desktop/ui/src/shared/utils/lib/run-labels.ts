@@ -4,6 +4,7 @@ const KIND_LABEL: Record<string, string> = {
   revert: 'Reversão',
   workflow: 'Pedido de engenharia',
   agent: 'Pedido a um agente de IA',
+  security: 'Correção de segurança',
   assistant: 'Pergunta ao assistente',
   investigation: 'Investigação de gestão'
 };

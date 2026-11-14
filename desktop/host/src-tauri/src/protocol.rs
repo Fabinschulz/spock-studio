@@ -77,6 +77,9 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "agent.run",
     "ide.connection",
     "context.review",
+    "security.scan",
+    "security.plan",
+    "security.fix",
 ];
 
 pub mod error_code {

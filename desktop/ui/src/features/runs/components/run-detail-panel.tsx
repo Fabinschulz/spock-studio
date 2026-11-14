@@ -204,7 +204,8 @@ const STEP_STATUS: Record<string, string> = {
   pending: 'pendente',
   running: 'em andamento',
   completed: 'concluído',
-  completed_with_conflicts: 'concluído com conflitos'
+  completed_with_conflicts: 'concluído com conflitos',
+  failed: 'falhou'
 };
 
 function stepStatus(status: string): string {
