@@ -8,4 +8,5 @@ public static class RunKinds
     public const string Workflow = "workflow";
     public const string Assistant = "assistant";
     public const string Investigation = "investigation";
+    public const string Agent = "agent";
 }

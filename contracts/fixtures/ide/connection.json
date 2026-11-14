@@ -1,0 +1,23 @@
+{
+  "command": "C:\\Spock\\mariliz-runtime.exe",
+  "args": [
+    "mcp"
+  ],
+  "tools": [
+    {
+      "name": "list_projects",
+      "title": "Projetos abertos no Spock",
+      "description": "Lista os projetos que a pessoa abriu no Spock Studio e marca o da pasta atual. Só eles têm contexto disponível."
+    },
+    {
+      "name": "project_briefing",
+      "title": "Resumo do projeto",
+      "description": "Resumo compacto do projeto: tecnologias e versões, comandos de build e teste, estado do Harness e decisões recentes. Use antes de planejar uma mudança."
+    },
+    {
+      "name": "decisions",
+      "title": "Decisões registradas",
+      "description": "Decisões que a equipe registrou no Spock, das mais recentes para as mais antigas, com o que se decidiu e por quê. Filtre por texto com 'query'."
+    }
+  ]
+}

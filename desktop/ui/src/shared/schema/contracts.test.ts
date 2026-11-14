@@ -1,5 +1,7 @@
+import agentResultFixture from '@contracts/fixtures/agents/run-result.json';
 import aiToolsFixture from '@contracts/fixtures/aitools/list.json';
 import auditFixture from '@contracts/fixtures/audit/audit.json';
+import ideConnectionFixture from '@contracts/fixtures/ide/connection.json';
 import investigationFixture from '@contracts/fixtures/management/investigation.json';
 import portfolioAnswerFixture from '@contracts/fixtures/management/portfolio-answer.json';
 import portfolioEvidenceFixture from '@contracts/fixtures/management/portfolio-evidence.json';
@@ -78,6 +80,8 @@ import {
   planSchema,
   profileResultSchema,
   aiToolListSchema,
+  agentRunResultSchema,
+  ideConnectionSchema,
   projectKnowledgeSchema,
   portfolioAnswerSchema,
   portfolioEvidenceSchema,
@@ -656,6 +660,29 @@ describe('contrato da linha do tempo do projeto (fixture do motor)', () => {
 
   it('o texto não carrega identificador de item nem credencial', () => {
     expect(JSON.stringify(timelineFixture)).not.toMatch(/acme\/app#|ghp_/);
+  });
+});
+
+describe('contrato do resultado de um agente (fixture do motor)', () => {
+  it('traz a ferramenta, o código de saída e a resposta', () => {
+    expect(agentRunResultSchema.parse(agentResultFixture)).toEqual({
+      kind: 'agent',
+      tool: 'claude-code',
+      toolName: 'Claude Code',
+      exitCode: 0,
+      error: null,
+      answer: 'Resposta do agente.'
+    });
+  });
+});
+
+describe('contrato da ligação com a IDE (fixture do motor)', () => {
+  it('traz o executável do motor, o argumento do servidor MCP e as ferramentas de leitura', () => {
+    const parsed = ideConnectionSchema.parse(ideConnectionFixture);
+
+    expect(parsed.args).toEqual(['mcp']);
+    expect(parsed.command).toMatch(/mariliz-runtime\.exe$/);
+    expect(parsed.tools.map((tool) => tool.name)).toEqual(['list_projects', 'project_briefing', 'decisions']);
   });
 });
 

@@ -13,7 +13,7 @@ public sealed class RunCatalog(IRunStore store, WorkspaceAuthorizer workspace, R
     private const int MaxErrorText = 240;
     private const int MaxDetailEvents = 200;
 
-    public static readonly IReadOnlyList<string> Kinds = [RunKinds.Apply, RunKinds.Revert, RunKinds.Validate, RunKinds.Workflow, RunKinds.Assistant, RunKinds.Investigation];
+    public static readonly IReadOnlyList<string> Kinds = [RunKinds.Apply, RunKinds.Revert, RunKinds.Validate, RunKinds.Workflow, RunKinds.Assistant, RunKinds.Investigation, RunKinds.Agent];
 
     public static readonly IReadOnlyList<string> States =
     [

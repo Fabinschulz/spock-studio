@@ -1,0 +1,8 @@
+{
+  "kind": "agent",
+  "tool": "claude-code",
+  "toolName": "Claude Code",
+  "exitCode": 0,
+  "error": null,
+  "answer": "Resposta do agente."
+}

@@ -6,6 +6,7 @@ export const paths = {
   projectCatalog: '/projeto/catalogo',
   configure: '/configurar',
   engineeringRequest: '/pedido',
+  agents: '/agentes',
   portfolio: '/portfolio',
   management: '/gestao',
   assistant: '/gestao/assistente',
