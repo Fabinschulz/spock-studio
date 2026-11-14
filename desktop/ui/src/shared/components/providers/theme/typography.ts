@@ -1,4 +1,5 @@
-const FONT_SANS = "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
+// Fonte de verdade: --font-sans em shared/styles/_tokens.scss (brand-palette.test.ts falha se divergirem).
+const FONT_SANS = "system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, Arial, sans-serif";
 
 const VARIANTS = [
   'h1',

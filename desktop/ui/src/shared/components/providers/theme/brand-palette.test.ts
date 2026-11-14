@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { brandPalette } from './brand-palette';
+import { typography } from './typography';
 
 const tokens = readFileSync(resolve(process.cwd(), 'src/shared/styles/_tokens.scss'), 'utf8');
 
@@ -31,5 +32,9 @@ describe('brandPalette × _tokens.scss', () => {
   it('cor de texto sobre o primário e erro coincidem com os tokens semânticos', () => {
     expect(brandPalette.onPrimary).toBe(declared('color-on-primary'));
     expect(brandPalette.error).toBe(declared('color-error'));
+  });
+
+  it('a fonte do tema coincide com --font-sans', () => {
+    expect(typography.fontFamily.toLowerCase()).toBe(declared('font-sans'));
   });
 });

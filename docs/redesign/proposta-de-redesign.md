@@ -145,7 +145,7 @@ Superfícies de carvão neutro, sem tinta de cor, quase sem caixas. A **marca ap
 
 ### 4.3 Tipografia
 
-**Inter** (já empacotada; nenhuma dependência nova) + mono do sistema para caminhos e ids.
+**Fonte do sistema** (Segoe UI Variable no Windows, San Francisco no macOS; nada a baixar) + mono do sistema para caminhos e ids. Controles com 34 px de altura.
 
 | Papel | Tamanho / peso | Uso |
 | --- | --- | --- |
