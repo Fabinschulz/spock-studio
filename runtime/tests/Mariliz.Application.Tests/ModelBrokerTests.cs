@@ -128,7 +128,7 @@ public class ModelBrokerTests
 
         Assert.Equal(200, reply.HttpStatus);
         Assert.Equal("ok", reply.Body["status"]!.GetValue<string>());
-        Assert.Equal(ModelGateway.DefaultModel, chat.SeenModel);
+        Assert.Equal(ModelProviders.OpenAi.DefaultModel, chat.SeenModel);
         Assert.True(chat.SeenJsonObject);
         Assert.Equal("gpt-4o-mini-2024-07-18", reply.Body["modelVersion"]!.GetValue<string>());
         Assert.Equal(812, reply.Body["inputTokens"]!.GetValue<int>());

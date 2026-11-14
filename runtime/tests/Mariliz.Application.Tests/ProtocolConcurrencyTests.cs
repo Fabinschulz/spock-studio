@@ -63,8 +63,9 @@ public class ProtocolConcurrencyTests
 
         public Rig()
         {
-            var gateway = new ModelGateway(new FileModelSettings(_project.DataDir), Transport);
-            gateway.Save("openai", Key);
+            var settings = new FileModelSettings(_project.DataDir);
+            var gateway = new ModelGateway(settings, Transport);
+            settings.Save("openai", Key);
             var session = new EngineSession("test", models: gateway);
             Running = Task.Run(() => session.RunAsync(Input, Output, CancellationToken.None));
         }

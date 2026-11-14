@@ -139,7 +139,7 @@ public class ManagementAssistantTests
         await plain.Assistant.AskAsync(plain.Harness.ProjectId, "Quais entregas estão comprometidas?", CancellationToken.None);
 
         Assert.Equal("gpt-4o", chosen.Chat.SeenModel);
-        Assert.Equal(ModelGateway.DefaultModel, plain.Chat.SeenModel);
+        Assert.Equal(ModelProviders.OpenAi.DefaultModel, plain.Chat.SeenModel);
     }
 
     [Fact]

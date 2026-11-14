@@ -37,7 +37,8 @@ export const ENGINE_METHODS = [
   'workflow.resume',
   'model.status',
   'model.save',
-  'model.clear',
+  'model.remove',
+  'model.default',
   'model.connection',
   'model.test',
   'model.purpose',
@@ -79,7 +80,8 @@ export const ENGINE_METHODS = [
   'engineering.mcp',
   'engineering.policy',
   'timeline.read',
-  'audit.read'
+  'audit.read',
+  'aitool.list'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

@@ -9,8 +9,9 @@ namespace Mariliz.Infrastructure;
 
 // Onde não há cofre, a chave continua em {dataRoot}/model.json: decisão do dono do produto (2026-11-13), com o arquivo legível só pelo dono (0600 no Linux e no macOS) e a tela dizendo que a chave está "sem a proteção do sistema". As conexões de integração, ao contrário, recusam guardar sem cofre.
 // Na migração, o arquivo antigo só some depois de o cofre devolver exatamente a mesma chave: perder a chave não é um custo aceitável.
-public sealed class LocalModelSettings(string dataRoot, ISecretVault vault) : IModelSettings
+public sealed class LocalModelSettings(string dataRoot, ISecretVault vault, string secretId = ReservedSecretIds.ModelKey) : IModelSettings
 {
+    private readonly string _secretId = secretId;
     private readonly object _gate = new();
     private readonly FileModelSettings _legacy = new(dataRoot);
 
@@ -33,7 +34,7 @@ public sealed class LocalModelSettings(string dataRoot, ISecretVault vault) : IM
         lock (_gate)
         {
             Migrate();
-            if (vault.Available && vault.TryRead(ReservedSecretIds.ModelKey, out var stored) && ModelKeyRules.IsValidKey(stored)) return ModelKeyProtection.Vault;
+            if (vault.Available && vault.TryRead(_secretId, out var stored) && ModelKeyRules.IsValidKey(stored)) return ModelKeyProtection.Vault;
             return _legacy.TryGetKey(out _) ? ModelKeyProtection.File : null;
         }
     }
@@ -56,9 +57,9 @@ public sealed class LocalModelSettings(string dataRoot, ISecretVault vault) : IM
             try
             {
                 WriteProvider(provider);
-                vault.Store(ReservedSecretIds.ModelKey, key);
+                vault.Store(_secretId, key);
                 // Só se dá a chave por guardada quando o cofre a devolve igual; senão ela ficaria só na promessa.
-                if (!vault.TryRead(ReservedSecretIds.ModelKey, out var stored) || stored != key) throw StoreFailed();
+                if (!vault.TryRead(_secretId, out var stored) || stored != key) throw StoreFailed();
             }
             catch (Exception ex) when (ex is IOException or CryptographicException or UnauthorizedAccessException or EngineException)
             {
@@ -75,7 +76,7 @@ public sealed class LocalModelSettings(string dataRoot, ISecretVault vault) : IM
     {
         lock (_gate)
         {
-            vault.Remove(ReservedSecretIds.ModelKey);
+            vault.Remove(_secretId);
             _legacy.Clear();
             RestoreProvider(null);
         }
@@ -93,7 +94,7 @@ public sealed class LocalModelSettings(string dataRoot, ISecretVault vault) : IM
     // Uma chave de antes da escolha de provedor é da OpenAI.
     private string ActiveProvider()
     {
-        if (vault.Available && vault.TryRead(ReservedSecretIds.ModelKey, out var stored) && ModelKeyRules.IsValidKey(stored))
+        if (vault.Available && vault.TryRead(_secretId, out var stored) && ModelKeyRules.IsValidKey(stored))
             return ReadProvider() ?? ModelProviders.Default.Id;
         return _legacy.StoredProvider() ?? ModelProviders.Default.Id;
     }
@@ -136,7 +137,7 @@ public sealed class LocalModelSettings(string dataRoot, ISecretVault vault) : IM
 
     private bool TryRead(out string key)
     {
-        if (vault.Available && vault.TryRead(ReservedSecretIds.ModelKey, out var stored) && ModelKeyRules.IsValidKey(stored))
+        if (vault.Available && vault.TryRead(_secretId, out var stored) && ModelKeyRules.IsValidKey(stored))
         {
             key = stored;
             return true;
@@ -151,11 +152,11 @@ public sealed class LocalModelSettings(string dataRoot, ISecretVault vault) : IM
 
         try
         {
-            if (!vault.TryRead(ReservedSecretIds.ModelKey, out var stored))
+            if (!vault.TryRead(_secretId, out var stored))
             {
                 WriteProvider(_legacy.StoredProvider() ?? ModelProviders.Default.Id);
-                vault.Store(ReservedSecretIds.ModelKey, legacyKey);
-                vault.TryRead(ReservedSecretIds.ModelKey, out stored);
+                vault.Store(_secretId, legacyKey);
+                vault.TryRead(_secretId, out stored);
             }
 
             // O arquivo só some quando o cofre tem a mesma chave. Com outra chave no cofre, o arquivo fica: não cabe a este

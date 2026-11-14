@@ -26,7 +26,8 @@ public static class ProtocolMethods
 
     public const string ModelStatus = "model.status";
     public const string ModelSave = "model.save";
-    public const string ModelClear = "model.clear";
+    public const string ModelRemove = "model.remove";
+    public const string ModelDefault = "model.default";
     public const string ModelConnection = "model.connection";
     public const string ModelTest = "model.test";
     public const string ModelPurpose = "model.purpose";
@@ -70,6 +71,7 @@ public static class ProtocolMethods
     public const string EngineeringCatalog = "engineering.catalog";
     public const string TimelineRead = "timeline.read";
     public const string AuditRead = "audit.read";
+    public const string AiToolList = "aitool.list";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -78,7 +80,7 @@ public static class ProtocolMethods
 
     public static readonly IReadOnlyList<string> Workflow = [WorkflowStart, WorkflowResume];
 
-    public static readonly IReadOnlyList<string> Model = [ModelStatus, ModelSave, ModelClear, ModelConnection, ModelTest, ModelPurpose];
+    public static readonly IReadOnlyList<string> Model = [ModelStatus, ModelSave, ModelRemove, ModelDefault, ModelConnection, ModelTest, ModelPurpose];
 
     public static readonly IReadOnlyList<string> Integrations =
     [
@@ -93,7 +95,8 @@ public static class ProtocolMethods
     {
         ModelSave, ModelTest,
         ConnectionCreate, ConnectionTest, ConnectionRotate, ConnectionReach, IntegrationLink,
-        ManagementAsk, ManagementInvestigate, ManagementPortfolioAsk
+        ManagementAsk, ManagementInvestigate, ManagementPortfolioAsk,
+        AiToolList
     };
 
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
@@ -101,6 +104,8 @@ public static class ProtocolMethods
     public static readonly IReadOnlyList<string> Timeline = [TimelineRead];
 
     public static readonly IReadOnlyList<string> Audit = [AuditRead];
+
+    public static readonly IReadOnlyList<string> AiTool = [AiToolList];
 
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }

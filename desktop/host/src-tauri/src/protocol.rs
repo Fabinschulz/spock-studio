@@ -29,7 +29,8 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "workflow.resume",
     "model.status",
     "model.save",
-    "model.clear",
+    "model.remove",
+    "model.default",
     "model.connection",
     "model.test",
     "model.purpose",
@@ -72,6 +73,7 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "audit.read",
     "engineering.mcp",
     "engineering.policy",
+    "aitool.list",
 ];
 
 pub mod error_code {
