@@ -42,6 +42,10 @@ Cada instalador é aberto (`scripts/smoke-installer.py`) e o grafo roda com o Py
 obrigatório na CI e conferido no `.trx`). Validado até agora: o NSIS real no Windows, a extração do `.deb` com caminho com espaço no
 WSL e o vigia de processo no Linux. O GitHub Actions do repositório está sem orçamento, então o resto só roda quando isso for resolvido.
 
+Enquanto isso, `python scripts/verify.py` (ou `pnpm verify`) roda na sua máquina os gates da CI que não dependem do
+instalador: motor, inteligência, interface e host. `python scripts/verify.py --install-hook` instala um `pre-push` que
+roda o mesmo script.
+
 ## Para voltar ao macOS
 
 1. Reincluir `aarch64-apple-darwin` (`bundles: dmg`) na matriz do `ci.yml`.
