@@ -4,10 +4,12 @@ mod protocol;
 mod recents;
 mod resources;
 mod status;
+mod terminal;
 
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
 use serde_json::Value;
+use tauri::ipc::Channel;
 use tauri::{AppHandle, Manager, RunEvent, State};
 use tauri_plugin_dialog::DialogExt;
 use tokio::sync::oneshot;
@@ -17,6 +19,7 @@ use engine::Engine;
 use protocol::{error_code, method, validate_frontend_request, HostError};
 use recents::{AuthorizedProject, RecentProject, Recents};
 use status::{compose_status, Status};
+use terminal::{ChannelSink, TerminalEvent, TerminalOpened, Terminals};
 
 /// Um mutex envenenado (uma thread entrou em pânico com ele travado) não derruba o host: o estado protegido aqui é
 /// simples e continua utilizável.
@@ -141,6 +144,58 @@ fn diagnostic_log(log: State<'_, DiagnosticLog>) -> Vec<LogEntry> {
     log.snapshot()
 }
 
+/// Como em `open_recent_project`, a UI manda o id do recente e o host resolve a pasta: o terminal só abre num projeto
+/// que passou pelo diálogo nativo.
+#[tauri::command(async)]
+fn terminal_open(
+    app: AppHandle,
+    recent_id: String,
+    cols: u16,
+    rows: u16,
+    on_event: Channel<TerminalEvent>,
+    recents: State<'_, Recents>,
+    terminals: State<'_, Terminals>,
+) -> Result<TerminalOpened, HostError> {
+    let path = recents.path_of(&recent_id).ok_or_else(|| {
+        HostError::new(
+            error_code::RECENT_NOT_FOUND,
+            "Abra o projeto de novo para usar o terminal.",
+        )
+    })?;
+    let dir = std::path::PathBuf::from(path);
+    if !dir.is_dir() {
+        return Err(HostError::new(
+            error_code::PATH_NOT_FOUND,
+            "A pasta deste projeto não existe mais ou não está acessível.",
+        ));
+    }
+    terminals.open(&dir, cols, rows, ChannelSink::new(on_event, app))
+}
+
+#[tauri::command]
+fn terminal_write(
+    session_id: String,
+    data: String,
+    terminals: State<'_, Terminals>,
+) -> Result<(), HostError> {
+    terminals.write(&session_id, &data)
+}
+
+#[tauri::command]
+fn terminal_resize(
+    session_id: String,
+    cols: u16,
+    rows: u16,
+    terminals: State<'_, Terminals>,
+) -> Result<(), HostError> {
+    terminals.resize(&session_id, cols, rows)
+}
+
+#[tauri::command]
+fn terminal_close(session_id: String, terminals: State<'_, Terminals>) -> Result<(), HostError> {
+    terminals.close(&session_id)
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
@@ -153,6 +208,7 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .manage(Engine::default())
         .manage(DiagnosticLog::default())
+        .manage(Terminals::default())
         .setup(|app| {
             let file = app
                 .path()
@@ -171,12 +227,17 @@ pub fn run() {
             engine_status,
             list_recent_projects,
             open_recent_project,
-            diagnostic_log
+            diagnostic_log,
+            terminal_open,
+            terminal_write,
+            terminal_resize,
+            terminal_close
         ])
         .build(tauri::generate_context!())
         .expect("falha ao iniciar o aplicativo Spock Studio")
         .run(|app, event| {
             if let RunEvent::Exit = event {
+                app.state::<Terminals>().close_all();
                 app.state::<Engine>().shutdown();
             }
         });

@@ -2,7 +2,7 @@ import { ProjectSwitcher } from '@/features/project-selection';
 import { Button, SearchIcon } from '@mariliz/ui-kit';
 
 import styles from './AppShell.module.scss';
-import { PALETTE_SHORTCUT_LABEL } from './command-palette/use-palette-shortcut';
+import { shortcutLabel } from './shortcuts/shortcuts';
 import type { Environment } from './environment';
 import { EnvironmentSwitch } from './EnvironmentSwitch';
 
@@ -21,7 +21,7 @@ export function AppHeader({ environment, onSearch }: { environment: Environment;
         onClick={onSearch}
       >
         Buscar
-        <kbd className={styles.shortcut}>{PALETTE_SHORTCUT_LABEL}</kbd>
+        <kbd className={styles.shortcut}>{shortcutLabel('palette')}</kbd>
       </Button>
     </header>
   );

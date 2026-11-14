@@ -9,7 +9,7 @@ const SHOWN = 50;
 
 const timeOf = (atMs: number) => new Date(atMs).toLocaleTimeString('pt-BR');
 
-function LogList({ lines }: { lines: readonly LogLine[] }) {
+export function LogList({ lines }: { lines: readonly LogLine[] }) {
   if (lines.length === 0) return <EmptyState>Nenhuma linha ainda.</EmptyState>;
 
   return (

@@ -3,6 +3,7 @@ export {
   EngineError,
   errorMessage,
   tauriEngineClient,
+  toEngineError,
   type EngineClient,
   type EngineMethod
 } from './engine-client';

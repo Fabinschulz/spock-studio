@@ -100,7 +100,8 @@ function warnContractDrift(what: string, error: ZodError) {
   console.warn(`[motor] ${what} fora do contrato`, where);
 }
 
-function toEngineError(error: unknown): EngineError {
+/** O host responde erro como `{ code, message }`; o resto vira uma falha genérica de comunicação. */
+export function toEngineError(error: unknown): EngineError {
   if (typeof error === 'object' && error !== null && 'code' in error && 'message' in error) {
     return new EngineError(String(error.code), String(error.message));
   }
