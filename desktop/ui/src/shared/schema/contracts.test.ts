@@ -1,3 +1,4 @@
+import aiToolsFixture from '@contracts/fixtures/aitools/list.json';
 import auditFixture from '@contracts/fixtures/audit/audit.json';
 import investigationFixture from '@contracts/fixtures/management/investigation.json';
 import portfolioAnswerFixture from '@contracts/fixtures/management/portfolio-answer.json';
@@ -75,6 +76,7 @@ import {
   projectRisksSchema,
   planSchema,
   profileResultSchema,
+  aiToolListSchema,
   projectKnowledgeSchema,
   portfolioAnswerSchema,
   portfolioEvidenceSchema,
@@ -624,6 +626,20 @@ describe('contrato da linha do tempo do projeto (fixture do motor)', () => {
 
   it('o texto não carrega identificador de item nem credencial', () => {
     expect(JSON.stringify(timelineFixture)).not.toMatch(/acme\/app#|ghp_/);
+  });
+});
+
+describe('contrato da lista de ferramentas de IA (fixture do motor)', () => {
+  it('traz uma entrada por ferramenta, com a versão nula quando ela não a informou', () => {
+    const parsed = aiToolListSchema.parse(aiToolsFixture);
+
+    expect(parsed.tools.map((tool) => tool.id)).toEqual(['claude-code', 'cursor', 'codex', 'gemini']);
+    expect(parsed.tools.find((tool) => tool.id === 'codex')).toMatchObject({ installed: true, version: null });
+    expect(parsed.tools.filter((tool) => tool.harnessSupport).map((tool) => tool.id)).toEqual(['claude-code']);
+  });
+
+  it('não traz o caminho do executável', () => {
+    expect(JSON.stringify(aiToolsFixture)).not.toMatch(/[\\/]tools[\\/]|\.cmd|\.exe/);
   });
 });
 

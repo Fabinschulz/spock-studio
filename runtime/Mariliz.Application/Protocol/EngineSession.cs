@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Mariliz.Application.AiTools;
 using Mariliz.Application.Audit;
 using Mariliz.Application.Engineering;
 using Mariliz.Application.Execution;
@@ -31,6 +32,7 @@ public sealed class EngineSession
     private readonly DecisionRequestHandler? _decisions;
     private readonly TimelineRequestHandler? _timeline;
     private readonly AuditRequestHandler? _audit;
+    private readonly AiToolRequestHandler? _aiTools;
     private readonly EngineeringRequestHandler? _engineering;
     private readonly RunTracker? _tracker;
     private readonly SemaphoreSlim _outputGate = new(1, 1);
@@ -59,7 +61,8 @@ public sealed class EngineSession
         ProjectTimelineService? timeline = null,
         ProjectAuditService? audit = null,
         InvestigationService? investigation = null,
-        PortfolioAssistant? portfolioAssistant = null)
+        PortfolioAssistant? portfolioAssistant = null,
+        AiToolService? aiTools = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
@@ -72,6 +75,7 @@ public sealed class EngineSession
         _decisions = decisions is null ? null : new DecisionRequestHandler(decisions);
         _timeline = timeline is null ? null : new TimelineRequestHandler(timeline);
         _audit = audit is null ? null : new AuditRequestHandler(audit);
+        _aiTools = aiTools is null ? null : new AiToolRequestHandler(aiTools);
         _engineering = profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions, mcp);
         _tracker = tracker;
         if (relay is not null) relay.Target = WriteEvent;
@@ -87,6 +91,7 @@ public sealed class EngineSession
         if (decisions is not null) offered.AddRange(ProtocolMethods.Decision);
         if (timeline is not null) offered.AddRange(ProtocolMethods.Timeline);
         if (audit is not null) offered.AddRange(ProtocolMethods.Audit);
+        if (aiTools is not null) offered.AddRange(ProtocolMethods.AiTool);
         if (profiles is not null) offered.AddRange(ProtocolMethods.Engineering);
         _capabilities = [.. offered];
     }
@@ -236,6 +241,8 @@ public sealed class EngineSession
                 Reply(ProtocolMessages.Ok(id, _decisions.Handle(method, new RequestParams(parameters)))),
             _ when _audit is not null && ProtocolMethods.Audit.Contains(method) =>
                 Reply(ProtocolMessages.Ok(id, _audit.Handle(method, new RequestParams(parameters)))),
+            _ when _aiTools is not null && ProtocolMethods.AiTool.Contains(method) =>
+                Reply(ProtocolMessages.Ok(id, await _aiTools.HandleAsync(method, ct))),
             _ when _timeline is not null && ProtocolMethods.Timeline.Contains(method) =>
                 Reply(ProtocolMessages.Ok(id, _timeline.Handle(method, new RequestParams(parameters)))),
             _ when _engineering is not null && ProtocolMethods.Engineering.Contains(method) =>

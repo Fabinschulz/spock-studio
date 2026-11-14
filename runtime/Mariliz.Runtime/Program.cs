@@ -1,4 +1,5 @@
 using Mariliz.Application;
+using Mariliz.Application.AiTools;
 using Mariliz.Application.Models;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Engineering;
@@ -60,7 +61,8 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     knowledge: new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge, decisionMemory),
     harness: new HarnessStatusService(engine.Workspace, engine.Files, engine.Clock),
     revisions: harnessRevisions,
-    mcp: new McpInventoryService(engine.Workspace, engine.Files), timeline: timeline, audit: audit, investigation: investigation, portfolioAssistant: portfolioAssistant);
+    mcp: new McpInventoryService(engine.Workspace, engine.Files), timeline: timeline, audit: audit, investigation: investigation, portfolioAssistant: portfolioAssistant,
+    aiTools: new AiToolService(ExecutableLocator.FromEnvironment(), engine.Runner));
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

@@ -72,6 +72,7 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "audit.read",
     "engineering.mcp",
     "engineering.policy",
+    "aitool.list",
 ];
 
 pub mod error_code {

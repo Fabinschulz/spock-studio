@@ -70,6 +70,7 @@ public static class ProtocolMethods
     public const string EngineeringCatalog = "engineering.catalog";
     public const string TimelineRead = "timeline.read";
     public const string AuditRead = "audit.read";
+    public const string AiToolList = "aitool.list";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -93,7 +94,8 @@ public static class ProtocolMethods
     {
         ModelSave, ModelTest,
         ConnectionCreate, ConnectionTest, ConnectionRotate, ConnectionReach, IntegrationLink,
-        ManagementAsk, ManagementInvestigate, ManagementPortfolioAsk
+        ManagementAsk, ManagementInvestigate, ManagementPortfolioAsk,
+        AiToolList
     };
 
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
@@ -101,6 +103,8 @@ public static class ProtocolMethods
     public static readonly IReadOnlyList<string> Timeline = [TimelineRead];
 
     public static readonly IReadOnlyList<string> Audit = [AuditRead];
+
+    public static readonly IReadOnlyList<string> AiTool = [AiToolList];
 
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }

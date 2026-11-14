@@ -1,0 +1,36 @@
+{
+  "tools": [
+    {
+      "id": "claude-code",
+      "name": "Claude Code",
+      "binary": "claude",
+      "installed": true,
+      "version": "2.0.5",
+      "harnessSupport": true
+    },
+    {
+      "id": "cursor",
+      "name": "Cursor Agent",
+      "binary": "cursor-agent",
+      "installed": false,
+      "version": null,
+      "harnessSupport": false
+    },
+    {
+      "id": "codex",
+      "name": "Codex CLI",
+      "binary": "codex",
+      "installed": true,
+      "version": null,
+      "harnessSupport": false
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini CLI",
+      "binary": "gemini",
+      "installed": true,
+      "version": "0.9.0",
+      "harnessSupport": false
+    }
+  ]
+}

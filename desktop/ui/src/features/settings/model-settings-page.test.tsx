@@ -1,3 +1,4 @@
+import aiToolsFixture from '@contracts/fixtures/aitools/list.json';
 import connectedFixture from '@contracts/fixtures/models/connection.json';
 import failedFixture from '@contracts/fixtures/models/connection-error.json';
 import { render, screen, waitFor, within } from '@testing-library/react';
@@ -93,6 +94,7 @@ function client(
         state = none;
         return schema.parse({ configured: false, provider: '' });
       }
+      if (method === 'aitool.list') return schema.parse(aiToolsFixture);
       throw new Error(`${method} ${JSON.stringify(params)}`);
     },
     async onEvent() {
@@ -124,7 +126,11 @@ describe('Configurações · provedor de IA', () => {
     expect(screen.getByText('Chave guardada: o provedor a aceitou.')).toBeInTheDocument();
     expect(field).toHaveValue('');
     expect(container.textContent).not.toContain(testKey);
-    expect(api.calls).toEqual(['model.connection', 'model.save', 'model.connection']);
+    expect(api.calls.filter((call) => call.startsWith('model.'))).toEqual([
+      'model.connection',
+      'model.save',
+      'model.connection'
+    ]);
     expect(api.saved).toEqual([{ provider: 'openai', key: testKey }]);
 
     await expectNoA11yViolations(container);

@@ -5,6 +5,7 @@ import type { ModelConnection, ModelPurpose } from '@/shared/schema';
 import { Button, SelectField, TextField } from '@mariliz/ui-kit';
 import { useId, useMemo, useState } from 'react';
 
+import { AiToolsSection } from './components/ai-tools-section';
 import { useModelSettings } from './hooks/use-model-settings';
 import styles from './model-settings-page.module.scss';
 import { createModelApi } from './service/model-api';
@@ -179,6 +180,8 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
           </ul>
         </section>
       ) : null}
+
+      <AiToolsSection client={client} />
     </Page>
   );
 }

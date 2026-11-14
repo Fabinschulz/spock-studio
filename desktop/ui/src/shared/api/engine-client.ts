@@ -79,7 +79,8 @@ export const ENGINE_METHODS = [
   'engineering.mcp',
   'engineering.policy',
   'timeline.read',
-  'audit.read'
+  'audit.read',
+  'aitool.list'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];
