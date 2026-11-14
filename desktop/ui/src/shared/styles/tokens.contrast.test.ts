@@ -156,6 +156,19 @@ for (const [themeName, scope] of [['escuro', dark]] as const) {
       expect(ratio('color-primary-text', 'color-card-selected-start')).toBeGreaterThanOrEqual(4.5);
     });
 
+    // O vidro deixa passar 20% do que está atrás: o pior caso é a superfície mais clara que ele pode cobrir.
+    it.each(['color-background', 'color-surface', 'color-surface-raised'])(
+      'camada flutuante sobre %s: texto, secundário, marca, borda e foco',
+      (behind) => {
+        const glass = over(color('color-overlay'), color(behind));
+        expect(contrast(color('color-text'), glass)).toBeGreaterThanOrEqual(7);
+        expect(contrast(color('color-text-muted'), glass)).toBeGreaterThanOrEqual(4.5);
+        expect(contrast(color('color-primary-text'), glass)).toBeGreaterThanOrEqual(4.5);
+        expect(contrast(color('color-border-strong'), glass)).toBeGreaterThanOrEqual(3);
+        expect(contrast(color('color-focus'), glass)).toBeGreaterThanOrEqual(3);
+      }
+    );
+
     it('indicador da etapa atual (cor primária) contra o fundo ≥ 3:1', () => {
       expect(ratio('color-primary', 'color-background')).toBeGreaterThanOrEqual(3);
     });

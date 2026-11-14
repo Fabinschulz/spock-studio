@@ -27,6 +27,7 @@
   --color-surface: var(--charcoal-900);
   --color-surface-raised: var(--charcoal-800);
   --color-surface-sunken: var(--charcoal-975);
+  --color-overlay: rgb(22 23 27 / 0.8); // menus, diálogos, dicas e gavetas sobre o conteúdo, sempre com desfoque
   --color-sidebar: var(--charcoal-975);
   --color-notice: var(--charcoal-900);
   --color-active: var(--charcoal-800);
@@ -75,6 +76,7 @@
   --color-badge-fg: var(--ash-300);
 
   --shadow-raised: 0 12px 32px -8px rgb(0 0 0 / 0.6);
+  --backdrop-overlay: blur(18px);
 
   --font-mono: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
   // Fonte do sistema: nítida em 13px no Windows (Segoe UI Variable) e sem arquivo para baixar.

@@ -1,3 +1,5 @@
+@use '@/shared/styles/abstracts' as *;
+
 $panel-width: 20rem;
 
 .workbench {
@@ -114,9 +116,10 @@ $panel-width: 20rem;
       z-index: 5;
       justify-self: end;
       width: min(#{$panel-width}, 100%);
-      background-color: var(--color-surface);
       box-shadow: var(--shadow-raised);
       animation: drawer var(--duration-base) var(--ease);
+
+      @include overlay-surface;
     }
   }
 }

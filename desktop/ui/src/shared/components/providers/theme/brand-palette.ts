@@ -14,6 +14,12 @@ export const brandPalette = {
   success: '#7bd88f'
 } as const;
 
+// Camada flutuante (diálogo, menu, dica): o mesmo vidro de --color-overlay e --backdrop-overlay.
+export const overlay = {
+  background: 'rgb(22 23 27 / 0.8)',
+  backdrop: 'blur(18px)'
+} as const;
+
 // Véus translúcidos sobre qualquer superfície: o realce de hover e de seleção é neutro, sem tinta de cor.
 export const veil = {
   hover: 'rgba(255, 255, 255, 0.06)',
