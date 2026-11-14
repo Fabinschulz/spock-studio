@@ -277,6 +277,32 @@ describe('Integrações · vínculo com o projeto', () => {
     await expectNoA11yViolations(container);
   });
 
+  it('desmarcar um tipo de dado pede confirmação, diz quanto será apagado e só então muda o recorte', async () => {
+    const engine = fakeIntegrationEngine({ connections: [githubConnection] });
+    engine.seed(loja.projectId);
+    render(page(engine.client, loja));
+    const row = await linkedRow();
+    await userEvent.click(within(row).getByRole('button', { name: 'Ajustar recorte' }));
+    const pullRequests = within(row).getByRole('checkbox', { name: 'Pull requests' });
+
+    await userEvent.click(pullRequests);
+    const confirm = within(row).getByRole('group', { name: 'Parar de ler Pull requests' });
+    expect(confirm).toHaveTextContent('1 item já sincronizado será apagado deste computador');
+    expect(engine.calls.some((call) => call.method === 'integration.configure')).toBe(false);
+
+    await userEvent.click(within(confirm).getByRole('button', { name: 'Manter' }));
+    expect(pullRequests).toHaveFocus();
+    expect(pullRequests).toBeChecked();
+
+    await userEvent.click(pullRequests);
+    await userEvent.click(within(row).getByRole('button', { name: 'Parar de ler e apagar' }));
+    await waitFor(() =>
+      expect(engine.calls.find((call) => call.method === 'integration.configure')?.params).toMatchObject({
+        dataKinds: ['issues']
+      })
+    );
+  });
+
   it('o vínculo de um projeto não aparece quando outro projeto está aberto', async () => {
     const engine = fakeIntegrationEngine({ connections: [githubConnection] });
     engine.seed(loja.projectId);

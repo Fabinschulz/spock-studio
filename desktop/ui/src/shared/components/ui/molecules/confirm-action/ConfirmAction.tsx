@@ -13,8 +13,8 @@ interface ConfirmActionProps {
 }
 
 /**
- * O foco vai para a opção segura ao aparecer, porque o botão que abriu a confirmação sai da tela e o foco cairia no
- * vazio; e o Esc desiste. Enter na primeira opção focada nunca apaga nada.
+ * O foco vai para a opção segura ao aparecer e o Esc desiste: Enter na primeira opção focada nunca apaga nada. Ao fechar,
+ * o foco volta para quem abriu a confirmação, se ele ainda estiver na tela; senão cairia no início da página.
  */
 export function ConfirmAction({
   label,
@@ -29,7 +29,11 @@ export function ConfirmAction({
   const cancel = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    const opener = document.activeElement;
     cancel.current?.focus();
+    return () => {
+      if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
+    };
   }, []);
 
   // O ouvinte vai no elemento, e não como `onKeyDown` do <div>, que não é um controle: o Esc sobe dos botões de dentro.
