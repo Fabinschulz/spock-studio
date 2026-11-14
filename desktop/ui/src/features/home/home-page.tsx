@@ -5,14 +5,20 @@ import { Hero } from './hero';
 import styles from './home-page.module.scss';
 import { JourneyGrid, type JourneyId } from './journey-grid';
 
+// Conexões são do computador e o portfólio cobre todos os projetos: as duas abrem sem exigir uma pasta.
+const WITHOUT_PROJECT: Partial<Record<JourneyId, Parameters<typeof pathTo>[0]>> = {
+  'connect-tools': 'integrations',
+  'follow-projects': 'portfolio'
+};
+
 export function HomePage() {
   const navigate = useNavigate();
   const { selected, pick } = useProjectSelectionContext();
 
   const startJourney = async (id: JourneyId) => {
-    // As conexões são do computador, não de um projeto: a central abre sem exigir uma pasta.
-    if (id === 'connect-tools') {
-      navigate(pathTo('integrations'));
+    const route = WITHOUT_PROJECT[id];
+    if (route) {
+      navigate(pathTo(route));
       return;
     }
     if (id !== 'configure-project' && id !== 'engineering-request') return;

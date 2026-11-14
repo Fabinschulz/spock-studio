@@ -1,5 +1,5 @@
 import { ActionCard, FolderIcon } from '@/shared/components/ui';
-import { BookUploadIcon, SearchIcon, UpdateIcon, UserConnectionsIcon } from '@mariliz/ui-kit';
+import { BookUploadIcon, ChartBarIcon, SearchIcon, UpdateIcon, UserConnectionsIcon } from '@mariliz/ui-kit';
 import type { ReactNode } from 'react';
 import styles from './journey-grid.module.scss';
 import { journeys, type JourneyId } from './journeys';
@@ -7,6 +7,7 @@ import { journeys, type JourneyId } from './journeys';
 const icons: Record<JourneyId, ReactNode> = {
   'configure-project': <FolderIcon />,
   'engineering-request': <SearchIcon />,
+  'follow-projects': <ChartBarIcon />,
   'import-requirements': <BookUploadIcon />,
   'connect-tools': <UserConnectionsIcon />,
   'modernize-system': <UpdateIcon />
