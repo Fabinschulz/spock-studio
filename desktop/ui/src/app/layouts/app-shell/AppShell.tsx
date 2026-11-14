@@ -1,17 +1,18 @@
 import { useRunActivity } from '@/features/runs';
 import { tauriEngineClient } from '@/shared/api';
-import { Container, Logo, Wordmark } from '@/shared/components';
+import { Container, Logo, PageTrailProvider, Wordmark } from '@/shared/components';
 import { app } from '@/shared/config/app';
 import { ContentAreaProvider, useEngineStatus, useScrollToTop } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 import { Button } from '@mariliz/ui-kit';
-import { useRef, type ReactNode } from 'react';
+import { useMemo, useRef, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
 import { AppHeader } from './AppHeader';
 import styles from './AppShell.module.scss';
 import { EngineStatus } from './EngineStatus';
 import { useEnvironment } from './use-environment';
 import { SideNav } from './SideNav';
+import { trailOf } from './trail';
 
 const MAIN_CONTENT_ID = 'conteudo';
 
@@ -20,6 +21,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const engine = useEngineStatus();
   const environment = useEnvironment();
   const { pathname } = useLocation();
+  const trail = useMemo(() => trailOf(pathname), [pathname]);
   // Ao trocar de tela o indicador relê: uma aprovação pode ter chegado enquanto a pessoa olhava outra coisa.
   const runActivity = useRunActivity(tauriEngineClient, engine.status === 'ready', pathname);
 
@@ -49,7 +51,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <AppHeader environment={environment} />
         <main id={MAIN_CONTENT_ID} ref={main} tabIndex={-1} className={styles.main}>
           <ContentAreaProvider value={main}>
-            <Container>{children}</Container>
+            <PageTrailProvider value={trail}>
+              <Container>{children}</Container>
+            </PageTrailProvider>
           </ContentAreaProvider>
         </main>
       </div>

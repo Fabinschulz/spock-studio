@@ -1,10 +1,11 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
 import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ProjectSelectionProvider, useProjectSelectionContext } from '@/features/project-selection';
-import { AppProviders } from '@/shared/components';
+import { AppProviders, Page } from '@/shared/components';
 import { expectNoA11yViolations } from '@/test/a11y';
 
 import { AppShell } from './AppShell';
@@ -30,7 +31,7 @@ function Where() {
   return <p data-testid="where">{useLocation().pathname}</p>;
 }
 
-function renderShell(route = '/') {
+function renderShell(route = '/', page?: ReactNode) {
   return render(
     <AppProviders>
       <ProjectSelectionProvider picker={{ pick: vi.fn().mockResolvedValue(project) }}>
@@ -39,6 +40,7 @@ function renderShell(route = '/') {
             <Pick />
             <Where />
             <h1>Conteúdo</h1>
+            {page}
           </AppShell>
         </MemoryRouter>
       </ProjectSelectionProvider>
@@ -166,6 +168,22 @@ describe('AppShell · navegação', () => {
     const { container } = renderShell();
 
     await expectNoA11yViolations(container);
+  });
+});
+
+describe('AppShell · trilha', () => {
+  it('a página mostra onde está: o grupo, que leva à tela dele, e o nome da tela', () => {
+    renderShell('/projeto/harness', <Page title="Harness" />);
+
+    const trail = within(screen.getByRole('main')).getByRole('navigation', { name: 'Trilha de navegação' });
+    expect(within(trail).getByRole('link', { name: 'Engenharia' })).toHaveAttribute('href', '/projeto');
+    expect(within(trail).getByText('Harness')).toBeInTheDocument();
+  });
+
+  it('o início não tem trilha', () => {
+    renderShell('/', <Page title="Início" />);
+
+    expect(screen.queryByRole('navigation', { name: 'Trilha de navegação' })).not.toBeInTheDocument();
   });
 });
 

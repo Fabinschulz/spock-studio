@@ -9,6 +9,7 @@ import { expectNoA11yViolations } from '@/test/a11y';
 
 import { AppProviders } from '../../../providers';
 import { Disclosure } from '../disclosure';
+import { PageTrailProvider } from '../page-header';
 import { EmptyState, ErrorState, LoadingState, NoProjectState, SuccessState } from '../page-state';
 import { PageSection } from '../page-section';
 import { ResourceView } from '../resource-view';
@@ -39,6 +40,41 @@ describe('Page', () => {
     renderInApp(<Page title="loja" description={<code>~\loja</code>} />);
 
     expect(screen.getByText('~\\loja').tagName).toBe('CODE');
+  });
+
+  it('mostra a trilha que o shell fornece', () => {
+    renderInApp(
+      <PageTrailProvider value={[{ label: 'Engenharia', to: '/projeto' }, { label: 'Harness' }]}>
+        <Page title="Harness" />
+      </PageTrailProvider>
+    );
+
+    const trail = screen.getByRole('navigation', { name: 'Trilha de navegação' });
+    expect(within(trail).getByRole('link', { name: 'Engenharia' })).toHaveAttribute('href', '/projeto');
+    expect(within(trail).getByText('Harness')).toBeInTheDocument();
+  });
+
+  it('a trilha própria da página vale mais que a do shell', () => {
+    renderInApp(
+      <PageTrailProvider value={[{ label: 'Do shell' }]}>
+        <Page title="Tela" breadcrumb={[{ label: 'Própria' }]} />
+      </PageTrailProvider>
+    );
+
+    expect(screen.getByText('Própria')).toBeInTheDocument();
+    expect(screen.queryByText('Do shell')).not.toBeInTheDocument();
+  });
+
+  it('sem trilha não desenha a navegação', () => {
+    renderInApp(<Page title="Início" />);
+
+    expect(screen.queryByRole('navigation', { name: 'Trilha de navegação' })).not.toBeInTheDocument();
+  });
+
+  it('põe as ações ao lado do título', () => {
+    renderInApp(<Page title="Execuções" actions={<button type="button">Atualizar</button>} />);
+
+    expect(screen.getByRole('button', { name: 'Atualizar' })).toBeInTheDocument();
   });
 });
 
