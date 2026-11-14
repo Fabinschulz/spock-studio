@@ -4,6 +4,7 @@ export * from './audit';
 export * from './decision';
 export * from './engineering';
 export * from './harness';
+export * from './ide';
 export * from './integration';
 export * from './management';
 export * from './model';

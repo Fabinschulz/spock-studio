@@ -3,8 +3,10 @@ import {
   agentSnapshotSchema,
   aiToolListSchema,
   cancelSchema,
+  ideConnectionSchema,
   runStartedSchema,
   type AiTool,
+  type IdeConnection,
   type RunEvent
 } from '@/shared/schema';
 import type { z } from 'zod';
@@ -17,6 +19,7 @@ export interface AgentApi {
   snapshot(runId: string): Promise<AgentSnapshot>;
   cancel(runId: string): Promise<void>;
   onEvent(handler: (event: RunEvent) => void): Promise<() => void>;
+  ideConnection(): Promise<IdeConnection>;
 }
 
 export function createAgentApi(client: EngineClient): AgentApi {
@@ -28,6 +31,7 @@ export function createAgentApi(client: EngineClient): AgentApi {
     cancel: async (runId) => {
       await client.request('run.cancel', { runId }, cancelSchema);
     },
-    onEvent: (handler) => client.onEvent(handler)
+    onEvent: (handler) => client.onEvent(handler),
+    ideConnection: () => client.request('ide.connection', {}, ideConnectionSchema)
   };
 }

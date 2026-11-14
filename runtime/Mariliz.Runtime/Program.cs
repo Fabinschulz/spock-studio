@@ -8,7 +8,9 @@ using Mariliz.Application.Integrations;
 using Mariliz.Application.Management;
 using Mariliz.Application.Management.Assistant;
 using Mariliz.Application.Management.Investigation;
+using Mariliz.Application.Mcp;
 using Mariliz.Application.Audit;
+using Mariliz.Runtime;
 using Mariliz.Application.Timeline;
 using Mariliz.Application.Workflows;
 using Mariliz.Infrastructure;
@@ -17,6 +19,8 @@ using Mariliz.Infrastructure.Integrations;
 
 // stdout é exclusivo do protocolo; qualquer diagnóstico vai para stderr.
 using var cts = LocalEngine.ConfigureConsole();
+
+if (args is [IdeConnection.ServerArgument]) return await McpEntry.RunAsync(cts.Token);
 
 var relay = new EventRelay();
 var engine = LocalEngine.Create(FileRunStore.DefaultDataRoot(), relay.Emit, rememberWorkspaces: true);
@@ -63,7 +67,8 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     revisions: harnessRevisions,
     mcp: new McpInventoryService(engine.Workspace, engine.Files), timeline: timeline, audit: audit, investigation: investigation, portfolioAssistant: portfolioAssistant,
     aiTools: new AiToolService(ExecutableLocator.FromEnvironment(), engine.Runner),
-    agents: new AgentRunService(ExecutableLocator.FromEnvironment(), engine.Runner, engine.Workspace, engine.Tracker, engine.Store, engine.Clock));
+    agents: new AgentRunService(ExecutableLocator.FromEnvironment(), engine.Runner, engine.Workspace, engine.Tracker, engine.Store, engine.Clock),
+    ide: new IdeConnection(Environment.ProcessPath));
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

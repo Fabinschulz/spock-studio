@@ -73,6 +73,7 @@ public static class ProtocolMethods
     public const string AuditRead = "audit.read";
     public const string AiToolList = "aitool.list";
     public const string AgentRun = "agent.run";
+    public const string IdeConnection = "ide.connection";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -109,6 +110,8 @@ public static class ProtocolMethods
     public static readonly IReadOnlyList<string> AiTool = [AiToolList];
 
     public static readonly IReadOnlyList<string> Agent = [AgentRun];
+
+    public static readonly IReadOnlyList<string> Ide = [IdeConnection];
 
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }

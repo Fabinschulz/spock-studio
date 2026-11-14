@@ -1,7 +1,7 @@
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
@@ -17,8 +17,18 @@ const TOOLS = [
   { id: 'codex', name: 'Codex CLI', binary: 'codex', installed: false, version: null, harnessSupport: false }
 ];
 
+const ENGINE = 'C:\\Program Files\\Spock\\mariliz-runtime.exe';
+
+const IDE = {
+  command: ENGINE,
+  args: ['mcp'],
+  tools: [{ name: 'project_briefing', title: 'Resumo do projeto', description: 'Tecnologias, comandos e decisões.' }]
+};
+
 /** Um motor que inicia a execução e deixa o teste emitir as linhas e o fim, na ordem do motor real. */
-function fakeEngine(options: { tools?: typeof TOOLS; error?: string | null } = {}) {
+function fakeEngine(
+  options: { tools?: typeof TOOLS; error?: string | null; ide?: typeof IDE | { command: null } } = {}
+) {
   const calls: { method: string; params: Record<string, unknown> }[] = [];
   let emit: (event: RunEvent) => void = () => undefined;
   let finished = false;
@@ -49,7 +59,8 @@ function fakeEngine(options: { tools?: typeof TOOLS; error?: string | null } = {
         'aitool.list': { tools: options.tools ?? TOOLS },
         'agent.run': { runId: 'run-1' },
         'run.snapshot': snapshot(),
-        'run.cancel': { cancelled: true }
+        'run.cancel': { cancelled: true },
+        'ide.connection': { ...IDE, ...options.ide }
       };
       return schema.parse(reply[method]);
     },
@@ -71,18 +82,19 @@ function fakeEngine(options: { tools?: typeof TOOLS; error?: string | null } = {
   };
 }
 
-function renderPage(client: EngineClient) {
+function renderPage(client: EngineClient, project: typeof loja | null = loja) {
   return render(
     <AppProviders>
       <MemoryRouter>
-        <AgentsPage client={client} project={loja} />
+        <AgentsPage client={client} project={project} />
       </MemoryRouter>
     </AppProviders>
   );
 }
 
 async function ask(text = 'O que este projeto faz?') {
-  await userEvent.click(await screen.findByRole('radio', { name: /Claude Code/ }));
+  const group = await screen.findByRole('group', { name: 'Ferramenta' });
+  await userEvent.click(await within(group).findByRole('radio', { name: /Claude Code/ }));
   await userEvent.type(screen.getByLabelText(/O que você quer saber/), text);
   await userEvent.click(screen.getByRole('button', { name: 'Pedir ao agente' }));
 }
@@ -140,6 +152,39 @@ describe('Agentes de IA', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Cancelar' }));
 
     expect(engine.calls.some((call) => call.method === 'run.cancel' && call.params.runId === 'run-1')).toBe(true);
+  });
+
+  it('mostra como ligar o Spock em cada ferramenta e copia o passo', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    const { container } = renderPage(fakeEngine().client);
+
+    const section = await screen.findByRole('region', { name: 'O Spock dentro da sua ferramenta' });
+    const snippet = await within(section).findByLabelText('Configuração para Claude Code');
+    expect(snippet).toHaveTextContent(`claude mcp add --scope user spock -- "${ENGINE}" mcp`);
+    expect(within(section).getByText('Resumo do projeto')).toBeInTheDocument();
+
+    await userEvent.click(within(section).getByRole('radio', { name: 'Cursor' }));
+    const cursor = within(section).getByLabelText('Configuração para Cursor');
+    expect(JSON.parse(cursor.textContent ?? '')).toEqual({ mcpServers: { spock: { command: ENGINE, args: ['mcp'] } } });
+
+    await userEvent.click(within(section).getByRole('button', { name: 'Copiar' }));
+    expect(writeText).toHaveBeenCalledWith(cursor.textContent);
+    expect(within(section).getByRole('button', { name: 'Copiado' })).toBeInTheDocument();
+    await expectNoA11yViolations(container);
+  });
+
+  it('o passo a passo da IDE aparece mesmo sem projeto aberto', async () => {
+    renderPage(fakeEngine().client, null);
+
+    expect(await screen.findByLabelText('Configuração para Claude Code')).toBeInTheDocument();
+  });
+
+  it('sem saber onde o motor está, não inventa um caminho', async () => {
+    renderPage(fakeEngine({ ide: { command: null } }).client);
+
+    expect(await screen.findByText(/não conseguiu descobrir onde está instalado/)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Configuração para/)).not.toBeInTheDocument();
   });
 
   it('sem ferramenta instalada, diz o que fazer', async () => {
