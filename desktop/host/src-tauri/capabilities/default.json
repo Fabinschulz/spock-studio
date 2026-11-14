@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Permissões mínimas da janela principal: só os seis comandos do host e a escuta de eventos do motor.",
+  "description": "Permissões mínimas da janela principal: os comandos do host, o terminal do projeto e a escuta de eventos do motor.",
   "windows": ["main"],
   "permissions": [
     "allow-engine-request",
@@ -10,6 +10,10 @@
     "allow-list-recent-projects",
     "allow-open-recent-project",
     "allow-diagnostic-log",
+    "allow-terminal-open",
+    "allow-terminal-write",
+    "allow-terminal-resize",
+    "allow-terminal-close",
     "core:event:allow-listen",
     "core:event:allow-unlisten"
   ]

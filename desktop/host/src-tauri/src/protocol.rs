@@ -90,6 +90,9 @@ pub mod error_code {
     pub const PATH_NOT_ALLOWED: &str = "PATH_NOT_ALLOWED";
     pub const PATH_NOT_FOUND: &str = "PATH_NOT_FOUND";
     pub const RECENT_NOT_FOUND: &str = "RECENT_NOT_FOUND";
+    pub const TERMINAL_FAILED: &str = "TERMINAL_FAILED";
+    pub const TERMINAL_LIMIT: &str = "TERMINAL_LIMIT";
+    pub const TERMINAL_NOT_FOUND: &str = "TERMINAL_NOT_FOUND";
     pub const UNSUPPORTED_PROTOCOL: &str = "UNSUPPORTED_PROTOCOL";
 }
 

@@ -8,6 +8,10 @@ fn main() {
         "list_recent_projects",
         "open_recent_project",
         "diagnostic_log",
+        "terminal_open",
+        "terminal_write",
+        "terminal_resize",
+        "terminal_close",
     ]);
 
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(manifest))
