@@ -1,10 +1,13 @@
+// A coluna fica no centro da área de trabalho: com a janela maximizada, não sobra um vazio de um lado só.
 .page {
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
-  max-width: 46rem;
+  width: 100%;
+  max-width: var(--page-width);
+  margin-inline: auto;
 }
 
 .wide {
-  max-width: none;
+  max-width: var(--page-width-wide);
 }
