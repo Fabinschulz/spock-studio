@@ -9,6 +9,8 @@ import { useMemo, useRef, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
 import { AppHeader } from './AppHeader';
 import styles from './AppShell.module.scss';
+import { CommandPalette } from './command-palette/CommandPalette';
+import { useCommandPalette } from './command-palette/use-command-palette';
 import { EngineStatus } from './EngineStatus';
 import { useEnvironment } from './use-environment';
 import { SettingsNav } from './SettingsNav';
@@ -23,6 +25,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const environment = useEnvironment();
   const { pathname } = useLocation();
   const trail = useMemo(() => trailOf(pathname), [pathname]);
+  const palette = useCommandPalette();
   // Ao trocar de tela o indicador relê: uma aprovação pode ter chegado enquanto a pessoa olhava outra coisa.
   const runActivity = useRunActivity(tauriEngineClient, engine.status === 'ready', pathname);
 
@@ -53,7 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <div className={styles.column}>
-        <AppHeader environment={environment} />
+        <AppHeader environment={environment} onSearch={palette.show} />
         <main id={MAIN_CONTENT_ID} ref={main} tabIndex={-1} className={styles.main}>
           <ContentAreaProvider value={main}>
             <PageTrailProvider value={trail}>
@@ -62,6 +65,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           </ContentAreaProvider>
         </main>
       </div>
+
+      <CommandPalette open={palette.open} onClose={palette.hide} />
     </div>
   );
 }

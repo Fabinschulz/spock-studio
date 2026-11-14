@@ -172,6 +172,37 @@ describe('AppShell · navegação', () => {
   });
 });
 
+describe('AppShell · busca', () => {
+  it('o botão do topo abre a paleta, que se fecha com Esc', async () => {
+    renderShell();
+
+    await userEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: /Buscar/ }));
+    expect(screen.getByRole('combobox', { name: 'Tela ou projeto' })).toBeInTheDocument();
+
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('combobox')).not.toBeInTheDocument());
+  });
+
+  it('Ctrl+K abre e fecha a paleta de qualquer tela', async () => {
+    renderShell('/gestao');
+
+    await userEvent.keyboard('{Control>}k{/Control}');
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+
+    await userEvent.keyboard('{Control>}k{/Control}');
+    await waitFor(() => expect(screen.queryByRole('combobox')).not.toBeInTheDocument());
+  });
+
+  it('escolher uma tela leva a ela', async () => {
+    renderShell();
+
+    await userEvent.keyboard('{Control>}k{/Control}');
+    await userEvent.type(screen.getByRole('combobox'), 'relatorio{Enter}');
+
+    expect(screen.getByTestId('where')).toHaveTextContent('/gestao/relatorio');
+  });
+});
+
 describe('AppShell · configurações', () => {
   it('em Configurações o menu troca pelas seções e deixa voltar ao ambiente', () => {
     renderShell('/configuracoes/ia');
