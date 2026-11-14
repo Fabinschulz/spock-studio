@@ -11,7 +11,9 @@ internal sealed class ComponentSelector(
     List<ComponentDecision> decisions,
     List<Limitation> limitations)
 {
-    public bool Wants(string id, bool applicable, string baselineReason, IReadOnlyList<string> baselineEvidence, string? notApplicableReason = null)
+    /// <param name="origin">De onde vem a decisão quando nem a pessoa nem a proposta decidiram.</param>
+    public bool Wants(string id, bool applicable, string baselineReason, IReadOnlyList<string> baselineEvidence, string? notApplicableReason = null,
+        string origin = DecisionOrigins.Baseline)
     {
         var kind = Catalog.Find(id)!.Kind;
 
@@ -33,7 +35,7 @@ internal sealed class ComponentSelector(
         if (proposal is not null)
             return Record(kind, id, proposal.Decision, proposal.Justification, DecisionOrigins.HarnessEngineer, proposal.Evidence);
 
-        return Record(kind, id, ComponentDecisions.Enable, baselineReason, DecisionOrigins.Baseline, baselineEvidence);
+        return Record(kind, id, ComponentDecisions.Enable, baselineReason, origin, baselineEvidence);
     }
 
     private bool Record(ComponentKind kind, string id, string decision, string justification, string origin, IReadOnlyList<string> evidence)

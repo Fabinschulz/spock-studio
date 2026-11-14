@@ -15,6 +15,7 @@ public static class Catalog
     public const string RuleStackDotnet = "mariliz.rule.stack-dotnet";
     public const string RuleStackJavascript = "mariliz.rule.stack-javascript";
     public const string RuleRepoCommands = "mariliz.rule.repo-commands";
+    public const string RuleArchitecture = "mariliz.rule.architecture";
     public const string HookPolicy = "mariliz.hook.policy";
     public const string SpecificationStructure = "mariliz.specification.structure";
     public const string ConfigDeclaration = "mariliz.config.declaration";
@@ -30,6 +31,7 @@ public static class Catalog
         new(RuleStackDotnet, ComponentKind.Rule, ComponentVersion, "Regras .NET"),
         new(RuleStackJavascript, ComponentKind.Rule, ComponentVersion, "Regras JavaScript e TypeScript"),
         new(RuleRepoCommands, ComponentKind.Rule, ComponentVersion, "Comandos do repositório"),
+        new(RuleArchitecture, ComponentKind.Rule, ComponentVersion, "Documentos de arquitetura"),
         new(HookPolicy, ComponentKind.Hook, ComponentVersion, "Hook de política"),
         // Externo: a versão real vem da instalação verificada (ver LockBuilder), não do catálogo.
         new(SpecificationStructure, ComponentKind.Specification, "", "Estrutura de especificação"),
@@ -54,6 +56,7 @@ public static class Catalog
     public const string PathRuleDotnet = ".claude/rules/mariliz-stack-dotnet.md";
     public const string PathRuleJavascript = ".claude/rules/mariliz-stack-javascript.md";
     public const string PathRuleRepo = ".claude/rules/mariliz-repo.md";
+    public const string PathRuleArchitecture = ".claude/rules/mariliz-architecture.md";
     public const string PathHookScript = ".claude/hooks/mariliz-policy.py";
     public const string PathSettings = ".claude/settings.json";
 }

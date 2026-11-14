@@ -1,4 +1,5 @@
 using Mariliz.Application.Discovery;
+using Mariliz.Application.Ideas;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Specification;
 using Mariliz.Core.Discovery;
@@ -26,6 +27,7 @@ internal sealed class HarnessComposition(
     private readonly string _proposalOrigin = proposal.Proposal is not null ? DecisionOrigins.HarnessEngineer : DecisionOrigins.Baseline;
 
     private ComponentSelector _components = null!;
+    private readonly ArchitectureDocuments _architecture = ArchitectureDocuments.Read(files);
     private List<string> _exclusion = [];
 
     public ComposeResult Build()
@@ -51,6 +53,7 @@ internal sealed class HarnessComposition(
         _components = CreateComponentSelector();
         AddCoreComponents();
         AddStackRules();
+        AddArchitectureRule();
         AddRepositoryCommands();
         AddProposedRules();
         AddPolicyHook();
@@ -182,20 +185,52 @@ internal sealed class HarnessComposition(
 
     private void AddStackRules()
     {
-        var dotnet = report.Stacks.Where(s => s.Id == "dotnet").ToList();
-        var javascript = report.Stacks.Where(IsJavascriptStack).ToList();
-
-        if (_components.Wants(Catalog.RuleStackDotnet, dotnet.Count > 0, "Stack .NET detectada.", EvidencePaths(dotnet), "Nenhuma stack .NET detectada."))
-            _desired.Add(new(Catalog.PathRuleDotnet, ComponentKind.Rule, Catalog.RuleStackDotnet, DecisionOrigins.Baseline, "Regras da stack .NET.",
-                RuleContent.ForStack("rules/stack-dotnet.md", dotnet, ["**/*.cs", "**/*.csproj"]), "file"));
-
-        if (_components.Wants(Catalog.RuleStackJavascript, javascript.Count > 0, "Stack JavaScript/TypeScript detectada.", EvidencePaths(javascript), "Nenhuma stack JavaScript/TypeScript detectada."))
-            _desired.Add(new(Catalog.PathRuleJavascript, ComponentKind.Rule, Catalog.RuleStackJavascript, DecisionOrigins.Baseline, "Regras da stack JavaScript e TypeScript.",
-                RuleContent.ForStack("rules/stack-javascript.md", javascript, ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]), "file"));
+        AddStackRule(Catalog.RuleStackDotnet, Catalog.PathRuleDotnet, "rules/stack-dotnet.md", ["**/*.cs", "**/*.csproj"], ".NET",
+            id => id == "dotnet");
+        AddStackRule(Catalog.RuleStackJavascript, Catalog.PathRuleJavascript, "rules/stack-javascript.md", ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+            "JavaScript/TypeScript", id => JavascriptStacks.Contains(id));
 
         foreach (var flutter in report.Stacks.Where(s => s.Id == "flutter"))
             _limitations.Add(new(LimitationCodes.NoRuleProfile,
                 $"Flutter foi detectado em '{(flutter.Root.Length == 0 ? "." : flutter.Root)}', mas ainda não há perfil de regras para ele; nenhuma regra de stack foi gerada."));
+
+        var withoutProfile = _architecture.Stack
+            .Where(item => item.Language && item.StackId is null or "flutter" && !report.Stacks.Any(stack => stack.Id == item.StackId))
+            .ToList();
+        foreach (var item in withoutProfile)
+            _limitations.Add(new(LimitationCodes.NoRuleProfile,
+                $"A arquitetura aprovada planeja {Describe(item)}, mas ainda não há perfil de regras para essa stack; nenhuma regra de stack foi gerada."));
+
+        var other = _architecture.Stack.Where(item => !item.Language).Select(Describe).ToList();
+        if (other.Count > 0)
+            _observations.Add(new("fact", $"Da arquitetura aprovada, sem regra de stack: {string.Join(", ", other)}.", [IdeaDocuments.ArchitectureFile]));
+    }
+
+    private static string Describe(PlannedStack item) => item.Area.Length == 0 ? item.Choice : $"{item.Choice} ({item.Area})";
+
+    // O que a descoberta achou no código vale mais; a arquitetura só completa uma família que o projeto ainda não tem.
+    private void AddStackRule(string component, string path, string asset, string[] globs, string name, Func<string, bool> family)
+    {
+        var detected = report.Stacks.Where(stack => family(stack.Id)).ToList();
+        var planned = _architecture.PlannedOnly(report.Stacks, family);
+        var stacks = detected.Count > 0 ? detected : planned;
+        var origin = detected.Count > 0 ? DecisionOrigins.Baseline : DecisionOrigins.Architecture;
+        var reason = detected.Count > 0
+            ? $"Stack {name} detectada."
+            : $"Stack {name} planejada na arquitetura aprovada ({string.Join(", ", planned.Select(stack => stack.Name))}); ainda sem arquivos no projeto.";
+        List<string> evidence = detected.Count > 0 ? EvidencePaths(detected) : [IdeaDocuments.ArchitectureFile];
+
+        if (_components.Wants(component, stacks.Count > 0, reason, evidence, $"Nenhuma stack {name} detectada nem planejada na arquitetura.", origin))
+            _desired.Add(new(path, ComponentKind.Rule, component, origin, $"Regras da stack {name}.", RuleContent.ForStack(asset, stacks, globs), "file"));
+    }
+
+    private void AddArchitectureRule()
+    {
+        if (_components.Wants(Catalog.RuleArchitecture, _architecture.Exists,
+                "Documentos aprovados em Da ideia ao projeto: o agente segue a especificação, a arquitetura e o backlog.",
+                [.. _architecture.Present], "Nenhum documento de arquitetura em .mariliz/arquitetura.", DecisionOrigins.Architecture))
+            _desired.Add(new(Catalog.PathRuleArchitecture, ComponentKind.Rule, Catalog.RuleArchitecture, DecisionOrigins.Architecture,
+                "Pede ao agente que siga os documentos aprovados e cite os ids deles.", RuleContent.ForArchitecture(_architecture.Present), "file"));
     }
 
     private static List<string> EvidencePaths(IEnumerable<StackFinding> stacks) =>

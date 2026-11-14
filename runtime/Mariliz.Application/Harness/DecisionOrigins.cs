@@ -6,4 +6,5 @@ public static class DecisionOrigins
     public const string HarnessEngineer = "harness-engineer";
     public const string Declared = "mariliz.yaml";
     public const string Existing = "existing";
+    public const string Architecture = "architecture";
 }

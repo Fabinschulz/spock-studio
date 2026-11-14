@@ -1,4 +1,5 @@
 using System.Text;
+using Mariliz.Application.Ideas;
 using Mariliz.Core.Discovery;
 using Mariliz.Core.Plan;
 
@@ -19,6 +20,30 @@ internal static class RuleContent
         var detail = string.Join(", ", stacks.Select(s => $"{s.Name} {s.Version ?? "(version unknown)"} at {(s.Root.Length == 0 ? "." : s.Root)}"));
         return AssetLoader.Read(asset).Replace("{{paths}}", paths.ToString().TrimEnd('\n')).Replace("{{detail}}", detail);
     }
+
+    internal static string ForArchitecture(IReadOnlyList<string> documents)
+    {
+        var sb = new StringBuilder();
+        sb.Append("# Project architecture documents\n\n");
+        sb.Append("Managed by Spock Studio. The person approved these documents step by step; they are the source of truth for\n");
+        sb.Append("what to build. Read the ones that matter before you plan, implement or review a change.\n\n");
+        foreach (var path in documents)
+            sb.Append("- `").Append(path).Append("`: ").Append(DocumentPurpose(path)).Append('\n');
+        sb.Append("\n## How to use them\n\n");
+        sb.Append("- Cite the ids you work on (`REQ-..`, `CMP-..`, `US-..`) in plans, commits and reviews.\n");
+        sb.Append("- A story is done when every acceptance criterion in the backlog is checked by a test or by a verification you ran.\n");
+        sb.Append("- Do not add requirements, components or technologies the documents do not have. If the code needs a change in\n");
+        sb.Append("  them, say so and ask; the person edits the documents, not the agent.\n");
+        sb.Append("- When the code and a document disagree, report it as a finding instead of choosing one silently.\n");
+        return sb.ToString();
+    }
+
+    private static string DocumentPurpose(string path) => path switch
+    {
+        IdeaDocuments.SpecificationFile => "requirements (`REQ-..`, `NFR-..`), scope and open questions.",
+        IdeaDocuments.ArchitectureFile => "style, components (`CMP-..`) and the requirements each one serves, stack, data, risks and decisions.",
+        _ => "epics and stories (`US-..`) with acceptance criteria, in the order they unblock each other."
+    };
 
     internal static string ForRepository(IReadOnlyList<ToolingFinding> commands)
     {

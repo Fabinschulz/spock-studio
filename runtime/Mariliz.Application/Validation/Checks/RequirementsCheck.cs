@@ -28,8 +28,14 @@ internal sealed class RequirementsCheck : IEvalCheck
 
         Need(Catalog.RuleGeneral, Catalog.PathRuleGeneral, "regras gerais exigidas");
         Need(Catalog.AgentHarnessEngineer, Catalog.PathHarnessEngineer, "o Harness Engineer planeja a configuração");
-        if (ctx.Discovery.Stacks.Any(s => s.Id == "dotnet")) Need(Catalog.RuleStackDotnet, Catalog.PathRuleDotnet, "stack .NET detectada");
-        if (ctx.Discovery.Stacks.Any(HarnessComposition.IsJavascriptStack)) Need(Catalog.RuleStackJavascript, Catalog.PathRuleJavascript, "stack JavaScript/TypeScript detectada");
+        // As mesmas perguntas do plano: stack detectada ou, sem ela, planejada na arquitetura aprovada.
+        var architecture = ArchitectureDocuments.Read(ctx.Files);
+        if (ctx.Discovery.Stacks.Any(s => s.Id == "dotnet") || architecture.PlannedOnly(ctx.Discovery.Stacks, id => id == "dotnet").Count > 0)
+            Need(Catalog.RuleStackDotnet, Catalog.PathRuleDotnet, "stack .NET detectada ou planejada na arquitetura");
+        if (ctx.Discovery.Stacks.Any(HarnessComposition.IsJavascriptStack)
+            || architecture.PlannedOnly(ctx.Discovery.Stacks, id => HarnessComposition.JavascriptStacks.Contains(id)).Count > 0)
+            Need(Catalog.RuleStackJavascript, Catalog.PathRuleJavascript, "stack JavaScript/TypeScript detectada ou planejada na arquitetura");
+        if (architecture.Exists) Need(Catalog.RuleArchitecture, Catalog.PathRuleArchitecture, "documentos de arquitetura em .mariliz/arquitetura");
         if (ctx.Discovery.Tooling.Any(HarnessComposition.IsRepositoryCommand)) Need(Catalog.RuleRepoCommands, Catalog.PathRuleRepo, "comandos do repositório detectados");
         if (ctx.Discovery.Tools.PythonCommand is not null) Need(Catalog.HookPolicy, Catalog.PathHookScript, "Python disponível: o hook de política é exigido");
 

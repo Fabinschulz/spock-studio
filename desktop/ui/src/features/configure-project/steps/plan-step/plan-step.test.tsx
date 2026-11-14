@@ -50,6 +50,30 @@ describe('PlanStep', () => {
     expect(screen.getByText('regra-base 12')).toBeTruthy();
   });
 
+  it('regra que vem da arquitetura aprovada diz de onde veio e aponta o documento', async () => {
+    render(
+      <PlanStep
+        plan={plan([
+          decision({
+            componentId: 'mariliz.rule.stack-dotnet',
+            kind: 'rule',
+            origin: 'architecture',
+            justification:
+              'Stack .NET planejada na arquitetura aprovada (ASP.NET Core 9); ainda sem arquivos no projeto.',
+            evidence: ['.mariliz/arquitetura/arquitetura.md']
+          })
+        ])}
+        onBack={vi.fn()}
+        onContinue={vi.fn()}
+      />
+    );
+
+    await userEvent.click(screen.getByText('Regra'));
+
+    expect(screen.getByText('Origem: Arquitetura aprovada (.mariliz/arquitetura)')).toBeTruthy();
+    expect(screen.getByText('.mariliz/arquitetura/arquitetura.md')).toBeTruthy();
+  });
+
   it('componente bloqueado já vem aberto', () => {
     const { container } = render(
       <PlanStep

@@ -23,6 +23,7 @@ public sealed partial class HarnessRevisionService(WorkspaceAuthorizer workspace
         [Catalog.PathRuleDotnet] = Catalog.RuleStackDotnet,
         [Catalog.PathRuleJavascript] = Catalog.RuleStackJavascript,
         [Catalog.PathRuleRepo] = Catalog.RuleRepoCommands,
+        [Catalog.PathRuleArchitecture] = Catalog.RuleArchitecture,
         [Catalog.PathHookScript] = Catalog.HookPolicy,
         [Catalog.PathSettings] = Catalog.HookPolicy,
         [DeclaredConfig.FileName] = Catalog.ConfigDeclaration

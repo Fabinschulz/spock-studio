@@ -64,6 +64,7 @@ public sealed class HarnessCatalogService(HarnessStatusService? status)
         [Catalog.RuleStackDotnet] = [Catalog.PathRuleDotnet],
         [Catalog.RuleStackJavascript] = [Catalog.PathRuleJavascript],
         [Catalog.RuleRepoCommands] = [Catalog.PathRuleRepo],
+        [Catalog.RuleArchitecture] = [Catalog.PathRuleArchitecture],
         [Catalog.HookPolicy] = [Catalog.PathHookScript, Catalog.PathSettings],
         [Catalog.SpecificationStructure] = [".specs/"],
         [Catalog.ConfigDeclaration] = ["mariliz.yaml", "mariliz.lock"]

@@ -66,6 +66,18 @@
       "origin": "Gerado a partir dos arquivos do seu projeto; não é um texto fixo do aplicativo."
     },
     {
+      "id": "mariliz.rule.architecture",
+      "whatItDoes": "Aponta para a especificação, a arquitetura e o backlog que você aprovou em Da ideia ao projeto, e pede ao agente que siga esses documentos e cite os ids (REQ, CMP, US) no que fizer.",
+      "whenItActs": "Sempre: o Claude Code carrega esta regra nas sessões deste projeto.",
+      "reads": [
+        "Os documentos em .mariliz/arquitetura, quando o agente vai implementar ou revisar algo"
+      ],
+      "canChange": [
+        "Nada. É só orientação."
+      ],
+      "origin": "Gerado a partir dos documentos de .mariliz/arquitetura que existem no seu projeto."
+    },
+    {
       "id": "mariliz.hook.policy",
       "whatItDoes": "Confere cada escrita de arquivo e cada comando do agente antes de acontecer e bloqueia ou pede confirmação conforme a política do Spock Studio. É uma proteção que confere o texto do pedido, não uma barreira de segurança.",
       "whenItActs": "Antes de toda escrita de arquivo e de todo comando que o agente tenta usar.",
