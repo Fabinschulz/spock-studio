@@ -428,10 +428,11 @@ describe('contrato do catálogo do Harness (fixture do motor)', () => {
   it('uma ficha por componente, com o estado de cada um no projeto', () => {
     const parsed = harnessCatalogSchema.parse(engineeringCatalog);
     expect(parsed.applied).toBe(true);
-    expect(parsed.entries).toHaveLength(11);
+    expect(parsed.entries).toHaveLength(12);
     const byId = new Map(parsed.entries.map((entry) => [entry.sheet.id, entry]));
     expect(byId.get('mariliz.agent.verifier')).toMatchObject({ presence: 'excluded', state: 'intact' });
     expect(byId.get('mariliz.rule.stack-javascript')).toMatchObject({ presence: 'not_applied', state: null });
+    expect(byId.get('mariliz.rule.architecture')).toMatchObject({ presence: 'not_applied', state: null });
     expect(byId.get('mariliz.agent.code-reviewer')?.sheet.tools.map((tool) => tool.name)).toEqual([
       'Read',
       'Grep',

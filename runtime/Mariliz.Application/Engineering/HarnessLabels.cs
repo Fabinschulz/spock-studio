@@ -14,6 +14,7 @@ public static class HarnessLabels
         [Catalog.RuleStackDotnet] = "Regras da stack .NET",
         [Catalog.RuleStackJavascript] = "Regras da stack JavaScript e TypeScript",
         [Catalog.RuleRepoCommands] = "Comandos do repositório",
+        [Catalog.RuleArchitecture] = "Documentos de arquitetura",
         [Catalog.HookPolicy] = "Hook de política",
         [Catalog.SpecificationStructure] = "Estrutura de especificação",
         [Catalog.ConfigDeclaration] = "Declaração do projeto (mariliz.yaml)"
