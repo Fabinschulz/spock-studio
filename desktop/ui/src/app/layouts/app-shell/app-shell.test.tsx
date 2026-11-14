@@ -1,14 +1,16 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
 import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ProjectSelectionProvider, useProjectSelectionContext } from '@/features/project-selection';
-import { AppProviders } from '@/shared/components';
+import { AppProviders, Page } from '@/shared/components';
 import { expectNoA11yViolations } from '@/test/a11y';
 
 import { AppShell } from './AppShell';
-import { NavEntry, describeRunActivity } from './SideNav';
+import { NavEntry } from './NavGroupList';
+import { describeRunActivity } from './SideNav';
 
 const invoke = vi.fn();
 const listen = vi.fn();
@@ -30,7 +32,7 @@ function Where() {
   return <p data-testid="where">{useLocation().pathname}</p>;
 }
 
-function renderShell(route = '/') {
+function renderShell(route = '/', page?: ReactNode) {
   return render(
     <AppProviders>
       <ProjectSelectionProvider picker={{ pick: vi.fn().mockResolvedValue(project) }}>
@@ -39,6 +41,7 @@ function renderShell(route = '/') {
             <Pick />
             <Where />
             <h1>Conteúdo</h1>
+            {page}
           </AppShell>
         </MemoryRouter>
       </ProjectSelectionProvider>
@@ -166,6 +169,82 @@ describe('AppShell · navegação', () => {
     const { container } = renderShell();
 
     await expectNoA11yViolations(container);
+  });
+});
+
+describe('AppShell · busca', () => {
+  it('o botão do topo abre a paleta, que se fecha com Esc', async () => {
+    renderShell();
+
+    await userEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: /Buscar/ }));
+    expect(screen.getByRole('combobox', { name: 'Tela ou projeto' })).toBeInTheDocument();
+
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('combobox')).not.toBeInTheDocument());
+  });
+
+  it('Ctrl+K abre e fecha a paleta de qualquer tela', async () => {
+    renderShell('/gestao');
+
+    await userEvent.keyboard('{Control>}k{/Control}');
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+
+    await userEvent.keyboard('{Control>}k{/Control}');
+    await waitFor(() => expect(screen.queryByRole('combobox')).not.toBeInTheDocument());
+  });
+
+  it('escolher uma tela leva a ela', async () => {
+    renderShell();
+
+    await userEvent.keyboard('{Control>}k{/Control}');
+    await userEvent.type(screen.getByRole('combobox'), 'relatorio{Enter}');
+
+    expect(screen.getByTestId('where')).toHaveTextContent('/gestao/relatorio');
+  });
+});
+
+describe('AppShell · configurações', () => {
+  it('em Configurações o menu troca pelas seções e deixa voltar ao ambiente', () => {
+    renderShell('/configuracoes/ia');
+
+    const settings = screen.getByRole('navigation', { name: 'Configurações' });
+    expect(within(settings).getByRole('link', { name: 'Minha IA' })).toHaveAttribute('aria-current', 'page');
+    expect(within(settings).getByRole('link', { name: 'Diagnóstico' })).toHaveAttribute(
+      'href',
+      '/configuracoes/diagnostico'
+    );
+    expect(within(settings).getByRole('link', { name: 'Voltar para Engenharia' })).toHaveAttribute('href', '/projeto');
+    expect(screen.queryByRole('navigation', { name: 'Navegação principal' })).not.toBeInTheDocument();
+  });
+
+  it('o retorno leva ao ambiente em que a pessoa estava', () => {
+    window.localStorage.setItem('spock.environment', 'management');
+    renderShell('/configuracoes/diagnostico');
+
+    expect(screen.getByRole('link', { name: 'Voltar para Gestão' })).toHaveAttribute('href', '/gestao');
+  });
+
+  it('nas outras telas o menu principal segue no lugar', () => {
+    renderShell('/projeto');
+
+    expect(navigation()).toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: 'Configurações' })).not.toBeInTheDocument();
+  });
+});
+
+describe('AppShell · trilha', () => {
+  it('a página mostra onde está: o grupo, que leva à tela dele, e o nome da tela', () => {
+    renderShell('/projeto/harness', <Page title="Harness" />);
+
+    const trail = within(screen.getByRole('main')).getByRole('navigation', { name: 'Trilha de navegação' });
+    expect(within(trail).getByRole('link', { name: 'Engenharia' })).toHaveAttribute('href', '/projeto');
+    expect(within(trail).getByText('Harness')).toBeInTheDocument();
+  });
+
+  it('o início não tem trilha', () => {
+    renderShell('/', <Page title="Início" />);
+
+    expect(screen.queryByRole('navigation', { name: 'Trilha de navegação' })).not.toBeInTheDocument();
   });
 });
 

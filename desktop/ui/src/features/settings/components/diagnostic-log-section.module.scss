@@ -1,0 +1,25 @@
+.log {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--font-size-xs);
+}
+
+.line {
+  display: grid;
+  grid-template-columns: 5.5rem 3rem minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.time,
+.source {
+  color: var(--color-text-muted);
+}
+
+.message {
+  overflow-wrap: anywhere;
+}

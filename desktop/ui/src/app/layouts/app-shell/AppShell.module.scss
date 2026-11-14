@@ -145,6 +145,11 @@ button.skip {
   }
 }
 
+.back {
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+}
+
 .unavailable {
   cursor: default;
   color: var(--color-text-subtle);
@@ -293,6 +298,18 @@ button.item {
   min-height: 3rem;
   padding: 0 var(--space-4);
   border-bottom: var(--border-width-divider) solid var(--color-divider);
+}
+
+.search {
+  margin-left: auto;
+  gap: var(--space-2);
+}
+
+.shortcut {
+  margin-left: var(--space-2);
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
 }
 
 // O ambiente atual se marca por forma (fundo e filete), não só por cor.

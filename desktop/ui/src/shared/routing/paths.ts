@@ -14,7 +14,9 @@ export const paths = {
   timeline: '/linha-do-tempo',
   audit: '/auditoria',
   integrations: '/integracoes',
-  settings: '/configuracoes'
+  settings: '/configuracoes',
+  settingsAi: '/configuracoes/ia',
+  settingsDiagnostics: '/configuracoes/diagnostico'
 } as const;
 
 export const executionPattern = '/execucao/:runId';
@@ -23,6 +25,11 @@ export type RouteName = keyof typeof paths;
 
 export function pathTo(name: RouteName): string {
   return paths[name];
+}
+
+/** O prefixo vale também para tudo abaixo dele: `/gestao` cobre `/gestao/assistente`. */
+export function isWithin(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
 }
 
 export function executionPath(runId: string): string {

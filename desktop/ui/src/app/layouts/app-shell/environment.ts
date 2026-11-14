@@ -1,4 +1,4 @@
-import { executionPattern, paths } from '@/shared/routing';
+import { executionPattern, isWithin, paths } from '@/shared/routing';
 
 /** Uma visão, não uma permissão: o aplicativo não tem identidade de usuário, então nada aqui restringe o que se pode abrir. */
 export type Environment = 'engineering' | 'management';
@@ -19,7 +19,6 @@ export const DEFAULT_ENVIRONMENT: Environment = 'engineering';
 // A execução tem rota própria (`/execucao/:runId`) e pertence à Engenharia: o prefixo sai do mesmo padrão das rotas.
 const EXECUTION_PREFIX = executionPattern.split('/:')[0] ?? '';
 
-/** Um caminho vale também para tudo abaixo dele (`/gestao` cobre `/gestao/assistente`). */
 const OWNED: Record<Environment, readonly string[]> = {
   engineering: [paths.project, paths.configure, paths.engineeringRequest, EXECUTION_PREFIX],
   management: [paths.portfolio, paths.management]
@@ -28,10 +27,7 @@ const OWNED: Record<Environment, readonly string[]> = {
 /** `null` nas telas comuns (Início, Integrações, Configurações): nelas o shell mantém o ambiente em que a pessoa estava. */
 export function environmentOf(pathname: string): Environment | null {
   for (const entry of ENVIRONMENTS) {
-    const owned = OWNED[entry.id].some(
-      (prefix) => prefix !== '' && (pathname === prefix || pathname.startsWith(`${prefix}/`))
-    );
-    if (owned) return entry.id;
+    if (OWNED[entry.id].some((prefix) => prefix !== '' && isWithin(pathname, prefix))) return entry.id;
   }
   return null;
 }
