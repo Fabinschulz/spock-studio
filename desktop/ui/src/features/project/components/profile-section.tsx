@@ -21,6 +21,12 @@ export function ProfileSection({ client, projectId }: { client: EngineClient; pr
   const [state, setState] = useState<State>({ status: 'loading' });
   const [busy, setBusy] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+
+  const retry = () => {
+    setState({ status: 'loading' });
+    setAttempt((current) => current + 1);
+  };
 
   useEffect(() => {
     let active = true;
@@ -37,7 +43,7 @@ export function ProfileSection({ client, projectId }: { client: EngineClient; pr
     return () => {
       active = false;
     };
-  }, [client, projectId]);
+  }, [client, projectId, attempt]);
 
   const refresh = async () => {
     setBusy(true);
@@ -63,8 +69,8 @@ export function ProfileSection({ client, projectId }: { client: EngineClient; pr
       }
     >
       {state.status === 'loading' ? <LoadingState>Montando o perfil do projeto…</LoadingState> : null}
-      {state.status === 'error' ? <ErrorState>{state.message}</ErrorState> : null}
-      {refreshError ? <ErrorState>{refreshError}</ErrorState> : null}
+      {state.status === 'error' ? <ErrorState onRetry={retry}>{state.message}</ErrorState> : null}
+      {refreshError ? <ErrorState onRetry={() => void refresh()}>{refreshError}</ErrorState> : null}
       {state.status === 'ready' ? <ProfileContent profile={state.profile} /> : null}
     </PageSection>
   );

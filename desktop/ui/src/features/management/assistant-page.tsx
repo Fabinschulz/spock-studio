@@ -80,7 +80,9 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
     >
       {context.status === 'loading' ? <LoadingState>Preparando os fatos do projeto…</LoadingState> : null}
       {context.status === 'error' ? (
-        <ErrorState>{errorMessage(context.error, 'Não foi possível ler os fatos do projeto.')}</ErrorState>
+        <ErrorState onRetry={context.reload}>
+          {errorMessage(context.error, 'Não foi possível ler os fatos do projeto.')}
+        </ErrorState>
       ) : null}
 
       {context.status === 'ready' ? (

@@ -1,16 +1,15 @@
 import { formatEngineDate } from '@/features/integrations';
-import { errorMessage, type EngineClient } from '@/shared/api';
-import { StatusChip, PageSection, LoadingState, ErrorState, Disclosure } from '@/shared/components';
+import type { EngineClient } from '@/shared/api';
+import { Disclosure, PageSection, ResourceView, StatusChip } from '@/shared/components';
+import { useAsyncResource } from '@/shared/hooks';
 import type { HarnessRevision, HarnessRevisions } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import styles from '../project-page.module.scss';
 import { readRevisions } from '../service/project-api';
 
 const VISIBLE = 5;
-
-type State = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; data: HarnessRevisions };
 
 const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
@@ -40,31 +39,15 @@ function summaryOf(revision: HarnessRevision): string {
 
 /** Vem dos diários das execuções; reverter continua sendo pelo Configurar. */
 export function RevisionsSection({ client, projectId }: { client: EngineClient; projectId: string }) {
-  const [state, setState] = useState<State>({ status: 'loading' });
+  const load = useCallback(() => readRevisions(client, projectId), [client, projectId]);
+  const revisions = useAsyncResource(load);
   const [showAll, setShowAll] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    readRevisions(client, projectId).then(
-      (data) => {
-        if (active) setState({ status: 'ready', data });
-      },
-      (error: unknown) => {
-        if (active) setState({ status: 'error', message: errorMessage(error, 'Não foi possível ler as revisões.') });
-      }
-    );
-    return () => {
-      active = false;
-    };
-  }, [client, projectId]);
 
   return (
     <PageSection title="Revisões do Harness">
-      {state.status === 'loading' ? <LoadingState>Lendo as revisões…</LoadingState> : null}
-      {state.status === 'error' ? <ErrorState>{state.message}</ErrorState> : null}
-      {state.status === 'ready' ? (
-        <RevisionList data={state.data} showAll={showAll} onShowAll={() => setShowAll(true)} />
-      ) : null}
+      <ResourceView resource={revisions} loading="Lendo as revisões…" fallbackError="Não foi possível ler as revisões.">
+        {(data) => <RevisionList data={data} showAll={showAll} onShowAll={() => setShowAll(true)} />}
+      </ResourceView>
     </PageSection>
   );
 }

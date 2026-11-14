@@ -7,7 +7,7 @@ import { readDiscovery, readRuns } from '../service/project-api';
 
 export type ProjectOverview =
   | { status: 'loading' }
-  | { status: 'error'; message: string }
+  | { status: 'error'; message: string; retry?: () => void }
   | { status: 'ready'; discovery: Discovery; runs: RunSummary[] };
 
 /** Trocar de projeto descarta a leitura que ainda estava em andamento. */
@@ -22,7 +22,11 @@ export function useProjectOverview(client: EngineClient, projectId: string): Pro
     case 'ready':
       return { status: 'ready', ...resource.value };
     case 'error':
-      return { status: 'error', message: errorMessage(resource.error, 'Não foi possível ler o projeto.') };
+      return {
+        status: 'error',
+        message: errorMessage(resource.error, 'Não foi possível ler o projeto.'),
+        retry: resource.reload
+      };
     default:
       return { status: 'loading' };
   }

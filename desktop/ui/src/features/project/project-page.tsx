@@ -36,7 +36,7 @@ function ProjectOverview({ client, project }: { client: EngineClient; project: S
   return (
     <Page title={project.displayName} description={<span className={styles.path}>{project.displayPath}</span>}>
       {overview.status === 'loading' ? <LoadingState>Lendo o projeto…</LoadingState> : null}
-      {overview.status === 'error' ? <ErrorState>{overview.message}</ErrorState> : null}
+      {overview.status === 'error' ? <ErrorState onRetry={overview.retry}>{overview.message}</ErrorState> : null}
       {overview.status === 'ready' ? (
         <>
           <ProfileSection client={client} projectId={project.projectId} />
