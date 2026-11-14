@@ -1,17 +1,26 @@
 import type { AssistantAnswer, AssistantStatement } from '@/shared/schema';
-import { useId } from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 import { ANSWER_SECTIONS } from '../domain/assistant';
 import { Disclosure } from '@/shared/components';
 import styles from '../management-page.module.scss';
 
-/** O que a verificação descartou continua visível, com o motivo, para que nada suma sem explicação. */
+/**
+ * O que a verificação descartou continua visível, com o motivo, para que nada suma sem explicação. A resposta nova leva o
+ * foco ao título: quem usa leitor de tela fica sabendo que ela chegou, e a leitura começa por ela.
+ */
 export function AssistantAnswerView({ answer }: { answer: AssistantAnswer }) {
   const facts = new Map(answer.evidence.map((fact) => [fact.id, fact.text]));
+  const titleId = useId();
+  const title = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    title.current?.focus();
+  }, [answer]);
 
   return (
-    <section aria-labelledby="resposta" className={styles.answer}>
-      <h2 id="resposta" className={styles.section}>
+    <section aria-labelledby={titleId} className={styles.answer}>
+      <h2 id={titleId} ref={title} tabIndex={-1} className={styles.section}>
         Resposta
       </h2>
       {answer.summary ? <p className={styles.summary}>{answer.summary}</p> : null}
