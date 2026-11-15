@@ -27,6 +27,9 @@ public interface IIacRuntime
 
     // force-unlock de uma trava pelo id que a própria ferramenta informou. Só com confirmação da pessoa.
     Task<string?> UnlockAsync(IacStateSpec spec, string lockId, CancellationToken ct);
+
+    // plan -refresh-only: compara o state com a nuvem sem planejar mudança nenhuma e sem gravar o state.
+    Task<IacDriftRun> DriftAsync(IacPlanSpec spec, CancellationToken ct);
 }
 
 public interface IIacRuntimeFactory
@@ -131,6 +134,12 @@ public sealed record IacApplyRequest(
 
 public sealed record IacResourceChange(string Address, string Type, string Action);
 
+// O que mudou fora do OpenTofu/Terraform desde o último apply. Change: changed (alterado) ou deleted (apagado). Attributes são
+// só nomes de atributo; os valores, de antes e de agora, nunca saem do arquivo de plano.
+public sealed record IacDriftedResource(string Address, string Type, string Change, IReadOnlyList<string> Attributes);
+
+public sealed record IacDriftRun(bool Succeeded, IReadOnlyList<IacDriftedResource> Drifted, string? Error, string? Backend = null);
+
 // Só endereços, tipos e ações: valores de atributo nunca saem do arquivo de plano.
 public sealed record IacPlanSummary(
     int Create,
@@ -154,7 +163,8 @@ public enum IacOperationKind
 {
     Validate,
     Plan,
-    Apply
+    Apply,
+    Drift
 }
 
 public enum IacOperationStatus
@@ -196,6 +206,7 @@ public sealed record IacOperation(
     IacStateMode? StateMode = null,
     string? LocalStatePath = null,
     string? LocalStateHash = null,
-    string? LockId = null);
+    string? LockId = null,
+    IReadOnlyList<IacDriftedResource>? Drift = null);
 
 public sealed record IacProjectLayout(string ProjectId, string? Root, IReadOnlyList<string> Folders);

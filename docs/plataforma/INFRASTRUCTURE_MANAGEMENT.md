@@ -92,7 +92,7 @@ fica com o jurídico da empresa, que negocia à parte; o Spock só informa a lic
 | 3 | Aprovação vinculada ao plano (id, hashes, prazo, plano mais recente, ferramenta), confirmações a mais para destruição, achados graves e produção, apply só do arquivo aprovado, verificação por plano seguinte limpo, state e outputs não sensíveis, `iac_history` no MCP | **Implementada**; validada com o OpenTofu real (aplicar, verificar, destruir com confirmação, bloqueio de state local) |
 | 4 | State: onde vive o state de cada raiz e os riscos (state no git, sem trava, sem criptografia, dividido), backend recomendado pela nuvem do projeto, bootstrap do bucket no modelo para AWS, Azure e Google (diff revisado, execução reversível), state local devolvido ao projeto com conflito, isolamento entre projetos, consulta do state, force-unlock com confirmação, `iac_state` no MCP | **Implementada**; bootstraps validados com o OpenTofu e os providers reais, state local devolvido num apply real ([TERRAFORM_STATE_MANAGEMENT.md](TERRAFORM_STATE_MANAGEMENT.md)) |
 | 5 | Geração: da necessidade ao desenho (IA opcional, fatos da conta pela conexão), checagens determinísticas, `.tf` da AWS no modelo por modelos fixos (raiz e módulos SNS, CloudWatch, SQS, ECR, Secrets Manager, IAM, ALB, ECS Fargate e RDS), o que é cobrado sem preço inventado, diff revisado e execução reversível; leitura de VPCs e subnets pela conexão; `iac_blueprint_check` no MCP | **Implementada**; arquivos gerados validados com `fmt` e `validate` do OpenTofu e o provider AWS real ([TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md), seção 5) |
-| 6 | Drift e custos | Depois: custo só com fonte real (preços públicos do provedor) e marcado como estimativa |
+| 6 | Drift e custos: `plan -refresh-only` sobre a cópia com recursos alterados ou apagados por fora (só nomes de atributo), histórico e trilha, `iac_drift_summary` no MCP; estimativa mensal do desenho com os preços públicos da AWS pela conexão (`aws.pricing`), itens por uso fora do total, premissas e item sem preço único deixado sem valor | **Implementada**; drift validado com o OpenTofu real (recurso apagado por fora apontado, state intocado); preços conferidos contra a lista pública da AWS, consulta pela conexão não rodada numa conta real ([TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md), seção 6) |
 
 Priorização dos recursos por provedor: primeiro o que o modelo de referência já cobre na AWS (SQS, SNS, CloudWatch,
 ECR, Secrets Manager, IAM, ALB, ECS Fargate e o bucket de state). Azure e Google entram pelo mesmo modelo, começando por
@@ -103,13 +103,16 @@ grupo de recursos/projeto, rede e o equivalente de contêiner gerenciado (Contai
 - **Ciclo de uma mudança**: Descoberta → Arquitetura → Configuração → Validação → Plano → Aprovação → Aplicação →
   Verificação, cada etapa marcada como "Só analisa", "Prepara a mudança" ou "Muda a nuvem"; as oito estão disponíveis.
 - **Gerar infraestrutura**: necessidade para a IA (opcional), conta, região e perfil pela conexão AWS vinculada, VPC e
-  subnets lidas da conta, componentes, revisão do diff com o que é cobrado e gravação no projeto.
-- **State**, **Validar e planejar** e a aprovação do plano, como nas entregas 2 a 4.
+  subnets lidas da conta, componentes, revisão do diff com o que é cobrado, estimativa de custo pela conexão e gravação
+  no projeto.
+- **Validar, planejar e verificar drift**: o drift aparece no histórico como "Com drift" ou "Sem drift", com cada
+  recurso alterado ou apagado por fora.
+- **State** e a aprovação do plano, como nas entregas 2 a 4.
 - **Dependência Terraform**: estado, mensagem, consentimento, proposta verificável, instalações com origem e verificação.
 - **Projeto**: o que os `.tf` exigem, a versão usada (automática ou fixada) e a escolha.
 - **Provedores**: quantas conexões cloud existem e quantas estão conectadas, com o link para Conexões cloud.
 
-Ainda não aparecem: lista de projetos de infraestrutura com ambientes e alertas de drift.
+Ainda não aparecem: lista de projetos de infraestrutura com ambientes e verificação de drift agendada.
 
 ## 7. Como adicionar um provedor
 
@@ -125,4 +128,6 @@ Ainda não aparecem: lista de projetos de infraestrutura com ambientes e alertas
 - macOS e Linux implementados e não rodados em máquina real.
 - Geração só para AWS e só com os componentes do modelo (serviço em contêiner, RDS, filas); Azure e Google têm o
   bootstrap do state, ainda não a geração.
-- Sem custo estimado (só a lista do que é cobrado) e sem drift.
+- Custo estimado só para o desenho da geração (AWS); um plano qualquer ainda não tem custo. A consulta de preços pela
+  conexão não foi rodada numa conta real.
+- Drift só por pedido da pessoa (sem agendamento) e só o que está no state: recursos criados fora do state não aparecem.

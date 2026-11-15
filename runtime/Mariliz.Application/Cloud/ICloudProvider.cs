@@ -25,6 +25,14 @@ public interface ICloudPermissionTester
     Task<IReadOnlyDictionary<string, bool>> TestPermissionsAsync(CloudSettings settings, IReadOnlyList<string> permissions, CancellationToken ct);
 }
 
+// Para o provedor com lista pública de preços consultável pela conexão (a AWS, pela Price List Query API). Os preços são os
+// públicos sob demanda, iguais para qualquer conta: a conexão só autentica a consulta.
+public interface ICloudPriceSource
+{
+    // Uma cotação por consulta, na mesma ordem; UsdPerUnit null quando a lista não tem um preço único para ela.
+    Task<IReadOnlyList<CloudPriceQuote>> PricesAsync(CloudSettings settings, IReadOnlyList<CloudPriceQuery> queries, CancellationToken ct);
+}
+
 // Nunca dentro de um projeto.
 public interface ICloudStore
 {

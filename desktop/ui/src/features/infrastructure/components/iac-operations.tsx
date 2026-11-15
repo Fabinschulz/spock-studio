@@ -3,7 +3,7 @@ import { formatEngineDate, useAction, useReloadable } from '@/features/integrati
 import type { SelectedProject } from '@/features/project-selection';
 import { errorMessage, type EngineClient } from '@/shared/api';
 import { ConfirmAction, ErrorState, LoadingState, Radio, StatusChip, SuccessState } from '@/shared/components';
-import type { IacOperation } from '@/shared/schema';
+import type { IacDriftedResource, IacOperation } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
 import { Fragment, useCallback, useMemo, useState, type ReactNode } from 'react';
 
@@ -74,19 +74,30 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
       })
       .then(() => setShown(null));
 
+  const target = {
+    projectId,
+    folder: chosenFolder,
+    ...(workspace.trim() ? { workspace: workspace.trim() } : {}),
+    ...(connectionId ? { connectionId } : {})
+  };
+
   const plan = () =>
     void action
-      .run(
-        () =>
-          api.plan({
-            projectId,
-            folder: chosenFolder,
-            ...(workspace.trim() ? { workspace: workspace.trim() } : {}),
-            ...(connectionId ? { connectionId } : {})
-          }),
-        'O plano não rodou.',
-        { success: (operation) => (operation.status === 'succeeded' ? 'Plano gerado e guardado.' : 'O plano falhou.') }
-      )
+      .run(() => api.plan(target), 'O plano não rodou.', {
+        success: (operation) => (operation.status === 'succeeded' ? 'Plano gerado e guardado.' : 'O plano falhou.')
+      })
+      .then(() => setShown(null));
+
+  const drift = () =>
+    void action
+      .run(() => api.drift(target), 'A verificação de drift não rodou.', {
+        success: (operation) =>
+          operation.status !== 'succeeded'
+            ? 'A verificação de drift falhou.'
+            : operation.drift && operation.drift.length > 0
+              ? `Drift em ${operation.drift.length} recurso(s).`
+              : 'Sem drift: a nuvem está como o state registra.'
+      })
       .then(() => setShown(null));
 
   const apply = (
@@ -141,8 +152,8 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
   return (
     <div className={styles.panel}>
       <p className={styles.hint}>
-        Validar e planejar não mudam a nuvem nem o projeto: rodam numa cópia da configuração na pasta do Spock. Só
-        aplicar muda a nuvem, e só com a sua aprovação daquele plano.
+        Validar, planejar e verificar drift não mudam a nuvem, o state nem o projeto: rodam numa cópia da configuração
+        na pasta do Spock. Só aplicar muda a nuvem, e só com a sua aprovação daquele plano.
       </p>
 
       <fieldset className={styles.choices}>
@@ -199,6 +210,9 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
         <Button type="button" disabled={!ready || action.busy} onClick={plan}>
           Gerar plano
         </Button>
+        <Button type="button" variant="outlined" disabled={!ready || action.busy} onClick={drift}>
+          Verificar drift
+        </Button>
       </div>
       {!ready ? <p className={styles.hint}>Instale ou escolha a ferramenta acima para validar e planejar.</p> : null}
       {action.busy ? <LoadingState>Rodando… o init pode baixar providers na primeira vez.</LoadingState> : null}
@@ -246,9 +260,16 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
   );
 }
 
-const KIND_LABEL: Record<IacOperation['kind'], string> = { validate: 'Validação', plan: 'Plano', apply: 'Aplicação' };
+const KIND_LABEL: Record<IacOperation['kind'], string> = {
+  validate: 'Validação',
+  plan: 'Plano',
+  apply: 'Aplicação',
+  drift: 'Verificação de drift'
+};
 
 function outcome(operation: IacOperation): { label: string; tone: 'success' | 'warning' | 'danger' } {
+  if (operation.kind === 'drift' && operation.status === 'succeeded')
+    return operation.hasChanges ? { label: 'Com drift', tone: 'warning' } : { label: 'Sem drift', tone: 'success' };
   if (operation.kind === 'apply') {
     if (operation.apply?.verified) return { label: 'Aplicado e verificado', tone: 'success' };
     if (operation.apply?.applied) return { label: 'Aplicado com divergência', tone: 'warning' };
@@ -318,6 +339,7 @@ function OperationResult({
         <p className={styles.hint}>O Spock não aplica este plano: {operation.applyBlocker}</p>
       ) : null}
       {operation.apply ? <ApplyResult run={operation.apply} /> : null}
+      {operation.drift ? <DriftResult drift={operation.drift} /> : null}
 
       {operation.validation ? (
         <ul className={styles.rows} aria-label="Pastas validadas">
@@ -382,6 +404,29 @@ function OperationResult({
       ) : null}
       {approval}
     </section>
+  );
+}
+
+function DriftResult({ drift }: { drift: IacDriftedResource[] }) {
+  if (drift.length === 0) return <p>Sem drift: a nuvem está como o state registra.</p>;
+  return (
+    <>
+      <ul className={styles.impacts} aria-label="Drift encontrado">
+        {drift.map((item) => (
+          <li key={item.address}>
+            <StatusChip tone={item.change === 'deleted' ? 'danger' : 'warning'}>
+              {item.change === 'deleted' ? 'Apagado por fora' : 'Alterado por fora'}
+            </StatusChip>{' '}
+            <code>{item.address}</code>
+            {item.attributes.length > 0 ? ` (${item.attributes.join(', ')})` : ''}
+          </li>
+        ))}
+      </ul>
+      <p className={styles.hint}>
+        Para voltar ao que o código declara, gere um plano e aprove. Para manter a mudança, atualize o código para
+        declará-la. O Spock não grava o drift no state.
+      </p>
+    </>
   );
 }
 

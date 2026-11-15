@@ -9,6 +9,8 @@ import iacLayoutFixture from '@contracts/fixtures/iac/layout.json';
 import iacOfferFixture from '@contracts/fixtures/iac/offer.json';
 import iacArchitectDraftFixture from '@contracts/fixtures/iac/architect-draft.json';
 import iacBootstrapFixture from '@contracts/fixtures/iac/bootstrap-plan.json';
+import iacCostEstimateFixture from '@contracts/fixtures/iac/cost-estimate.json';
+import iacDriftFixture from '@contracts/fixtures/iac/drift-operation.json';
 import iacGeneratePlanFixture from '@contracts/fixtures/iac/generate-plan.json';
 import iacOperationsFixture from '@contracts/fixtures/iac/operations.json';
 import iacStateResourcesFixture from '@contracts/fixtures/iac/state-resources.json';
@@ -78,7 +80,9 @@ import {
   cloudReadResultSchema,
   iacArchitectDraftSchema,
   iacBootstrapPlanSchema,
+  iacCostEstimateSchema,
   iacGeneratePlanSchema,
+  iacOperationResultSchema,
   iacLayoutSchema,
   iacStateReadSchema,
   iacStateReportSchema,
@@ -970,5 +974,16 @@ describe('contrato do assistente do portfólio (fixtures do motor)', () => {
     expect(generated.changes.map((change) => change.path)).toContain('infra/modules/sqs/resource.tf');
     expect(generated.checks.every((check) => check.passed)).toBe(true);
     expect(generated.costs.length).toBeGreaterThan(0);
+  });
+
+  it('aceita a verificação de drift só com nomes de atributo e a estimativa marcada como tal', () => {
+    const drift = iacOperationResultSchema.parse(iacDriftFixture).operation;
+    expect(drift.kind).toBe('drift');
+    expect(drift.drift?.map((item) => item.change)).toEqual(['changed', 'deleted']);
+    const estimate = iacCostEstimateSchema.parse(iacCostEstimateFixture).estimate;
+    expect(estimate.currency).toBe('USD');
+    expect(estimate.monthlyFixed).toBe(117.27);
+    expect(estimate.usageBased.every((line) => line.monthly === null)).toBe(true);
+    expect(estimate.assumptions.join(' ')).toMatch(/free tier/);
   });
 });
