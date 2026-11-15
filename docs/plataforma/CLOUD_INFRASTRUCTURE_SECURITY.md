@@ -36,7 +36,7 @@ depois de uma recusa.
 - **Trilha**: instalação, recusa, adoção, versão do projeto, remoção, planos, aprovações e applies na `audit.ndjson`,
   com ids e contagens, nunca valores.
 
-## 3. Análise de segurança do plano (entrega 2)
+## 3. Análise de segurança do plano (entrega 2, implementada em `IacPlanReader`)
 
 Checagens determinísticas sobre `show -json`, avisando antes da aprovação:
 
@@ -49,11 +49,14 @@ Checagens determinísticas sobre `show -json`, avisando antes da aprovação:
 
 Os achados não bloqueiam sozinhos: aparecem na aprovação, e os graves pedem confirmação extra.
 
-## 4. O que já está implementado (entrega 1)
+## 4. O que já está implementado (entregas 1 e 2)
 
-- OpenTofu (gratuito, MPL 2.0) como padrão; Terraform só por escolha explícita.
+- OpenTofu (gratuito, MPL 2.0) como padrão; Terraform liberado por escolha explícita (licença com o jurídico).
 - Instalação só com autorização, ligada à proposta (`offerId`), recusa respeitada.
 - Assinatura e checksum conferidos; zip só com o binário extraído; nada fora da pasta do Spock.
 - Hash conferido antes de usar; binário externo só depois de adotado.
-- Métodos `iac.*` só para a interface; MCP com `terraform_status` só de leitura.
+- Métodos `iac.*` só para a interface; MCP com `iac_status` só de leitura.
 - Caminhos da máquina abreviados (`~`) antes de chegar à interface.
+- Validar e planejar sobre uma cópia da configuração: o projeto nunca é tocado; state local copiado só para o plano e apagado em seguida.
+- Políticas antes de rodar: pasta descoberta, workspace com nome válido e só selecionado, conexão vinculada, uma operação por vez.
+- Achados de segurança do plano (seção 3) já calculados: destruição, substituição, entrada aberta para a internet, IAM com curinga, ECR com tag mutável, banco público, S3 sem bloqueio público, NSG e firewall abertos, bucket público no Google.

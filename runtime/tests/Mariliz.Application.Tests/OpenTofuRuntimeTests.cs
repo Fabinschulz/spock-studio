@@ -4,15 +4,15 @@ using Mariliz.Application.Ports;
 using Mariliz.Application.Tests.Support;
 using Mariliz.Application.Workspace;
 using Mariliz.Infrastructure;
-using Mariliz.Infrastructure.Terraform;
+using Mariliz.Infrastructure.Iac;
 
 namespace Mariliz.Application.Tests;
 
 // O OpenTofu é o padrão: gratuito (MPL 2.0). Servidores falsos no formato do get.opentofu.org e das releases do GitHub,
-// com o redirecionamento para a CDN; a instalação real está em TerraformLiveTests.
-public sealed class OpenTofuDependencyTests : IDisposable
+// com o redirecionamento para a CDN; a instalação real está em IacRuntimeLiveTests.
+public sealed class OpenTofuRuntimeTests : IDisposable
 {
-    private static readonly TerraformPlatform Windows = new("windows", "amd64");
+    private static readonly IacPlatform Windows = new("windows", "amd64");
 
     private readonly TempProject _project = TempProject.Dotnet();
     private readonly MemoryAudit _audit = new();
@@ -23,7 +23,7 @@ public sealed class OpenTofuDependencyTests : IDisposable
     private readonly FakeHashiCorp _hashi = new();
     private readonly string _projectId;
 
-    public OpenTofuDependencyTests() => _projectId = Workspace().Authorize(_project.Root).Project!.ProjectId;
+    public OpenTofuRuntimeTests() => _projectId = Workspace().Authorize(_project.Root).Project!.ProjectId;
 
     public void Dispose()
     {
@@ -34,10 +34,10 @@ public sealed class OpenTofuDependencyTests : IDisposable
 
     private WorkspaceAuthorizer Workspace() => new(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(_project.DataDir));
 
-    private TerraformDependencyService Service() =>
+    private IacRuntimeService Service() =>
         new([new OpenTofuToolchain(_project.DataDir, new NoExternal(), _tofu, Windows, _tofuKey.Keyring()),
                 new HashiCorpTerraformToolchain(_project.DataDir, new NoExternal(), _hashi, Windows, _hashiKey.Keyring())],
-            new FileTerraformSettingsStore(_project.DataDir), new TerraformConfigReader(), new InterceptingRunner(), Workspace(), _clock, _audit);
+            new FileIacSettingsStore(_project.DataDir), new IacConfigReader(), new InterceptingRunner(), Workspace(), _clock, _audit);
 
     private void PublishTofu(string version) => _tofu.Publish(version, Windows.Key, FakeHashiCorp.Zip(("tofu.exe", $"tofu {version}"), ("LICENSE", "MPL")), _tofuKey);
 
@@ -47,8 +47,8 @@ public sealed class OpenTofuDependencyTests : IDisposable
     public void Assinatura_real_do_OpenTofu_e_aceita_com_a_chave_embutida()
     {
         var keyring = OpenPgpKeyring.FromArmored(File.ReadAllText(Path.Combine(ContractFiles.Root,
-            "runtime", "Mariliz.Infrastructure", "Terraform", "opentofu-release-key.asc")));
-        var fixtures = Path.Combine(ContractFiles.Root, "runtime", "tests", "Mariliz.Application.Tests", "Fixtures", "terraform");
+            "runtime", "Mariliz.Infrastructure", "Iac", "opentofu-release-key.asc")));
+        var fixtures = Path.Combine(ContractFiles.Root, "runtime", "tests", "Mariliz.Application.Tests", "Fixtures", "iac");
         var sums = File.ReadAllBytes(Path.Combine(fixtures, "tofu_1.13.9_SHA256SUMS"));
         var signature = File.ReadAllBytes(Path.Combine(fixtures, "tofu_1.13.9_SHA256SUMS.gpgsig"));
 
@@ -92,7 +92,7 @@ public sealed class OpenTofuDependencyTests : IDisposable
         Assert.Equal("tofu 1.13.9", File.ReadAllText(installed.Path));
         Assert.False(File.Exists(Path.Combine(Path.GetDirectoryName(installed.Path)!, "LICENSE")));
         Assert.Contains(_tofu.Requested, url => url.StartsWith(FakeOpenTofu.Cdn, StringComparison.Ordinal));
-        Assert.Contains(_audit.Entries, e => e.Action == "iac.terraform.installed" && e.Detail.Contains("\"engine\":\"openTofu\""));
+        Assert.Contains(_audit.Entries, e => e.Action == "iac.runtime.installed" && e.Detail.Contains("\"engine\":\"openTofu\""));
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public sealed class OpenTofuDependencyTests : IDisposable
         }
 
         var automatic = await service.StatusAsync(_projectId, CancellationToken.None);
-        var pinned = await service.PinAsync(_projectId, "1.17.2", TerraformSource.Managed, IacEngine.Terraform, CancellationToken.None);
+        var pinned = await service.PinAsync(_projectId, "1.17.2", IacRuntimeSource.Managed, IacEngine.Terraform, CancellationToken.None);
         var wrongEngine = await Assert.ThrowsAsync<EngineException>(() =>
             service.PinAsync(_projectId, "1.17.2", null, IacEngine.OpenTofu, CancellationToken.None));
 

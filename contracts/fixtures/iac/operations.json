@@ -1,0 +1,85 @@
+{
+  "operations": [
+    {
+      "id": "iac-844b5dacda4e",
+      "projectId": "p-0123456789ab",
+      "kind": "plan",
+      "status": "succeeded",
+      "engine": "openTofu",
+      "version": "1.13.9",
+      "root": "infra",
+      "folder": "infra",
+      "workspace": "default",
+      "connectionId": null,
+      "configHash": "c56e7821c78ea31c8afbd36d1c1413b3a9213365e6ac5f44c5c7a1167d84f02e",
+      "startedAt": "2026-11-15T14:52:15.6253037+00:00",
+      "finishedAt": "2026-11-15T14:52:15.9398125+00:00",
+      "requestedBy": "person",
+      "validation": null,
+      "planId": "442908caca45bc92",
+      "hasChanges": true,
+      "summary": {
+        "create": 2,
+        "update": 0,
+        "replace": 0,
+        "delete": 0,
+        "read": 0,
+        "unchanged": 0,
+        "changes": [
+          {
+            "address": "terraform_data.fila",
+            "type": "terraform_data",
+            "action": "create"
+          },
+          {
+            "address": "module.rede.terraform_data.rede",
+            "type": "terraform_data",
+            "action": "create"
+          }
+        ],
+        "outputsChanged": [
+          "fila"
+        ]
+      },
+      "findings": [],
+      "error": null
+    },
+    {
+      "id": "iac-19f57800902c",
+      "projectId": "p-0123456789ab",
+      "kind": "validate",
+      "status": "succeeded",
+      "engine": "openTofu",
+      "version": "1.13.9",
+      "root": "infra",
+      "folder": null,
+      "workspace": null,
+      "connectionId": null,
+      "configHash": "c56e7821c78ea31c8afbd36d1c1413b3a9213365e6ac5f44c5c7a1167d84f02e",
+      "startedAt": "2026-11-15T14:52:13.5450398+00:00",
+      "finishedAt": "2026-11-15T14:52:15.2727896+00:00",
+      "requestedBy": "person",
+      "validation": [
+        {
+          "folder": "infra",
+          "valid": true,
+          "formatted": true,
+          "diagnostics": [],
+          "error": null
+        },
+        {
+          "folder": "infra/modules/rede",
+          "valid": true,
+          "formatted": true,
+          "diagnostics": [],
+          "error": null
+        }
+      ],
+      "planId": null,
+      "hasChanges": null,
+      "summary": null,
+      "findings": null,
+      "error": null
+    }
+  ]
+}

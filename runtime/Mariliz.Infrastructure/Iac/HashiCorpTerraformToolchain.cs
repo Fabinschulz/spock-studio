@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 using Mariliz.Application.Iac;
 using Mariliz.Application.Ports;
 
-namespace Mariliz.Infrastructure.Terraform;
+namespace Mariliz.Infrastructure.Iac;
 
 // O Terraform da HashiCorp, só de releases.hashicorp.com e sem redirecionamento. BUSL 1.1: gratuito para a própria
 // infraestrutura; oferecer o Terraform como serviço a terceiros pede revisão da licença.
@@ -12,10 +12,10 @@ public sealed class HashiCorpTerraformToolchain : OfficialReleaseToolchain
     public const string ReleasesApi = "https://api.releases.hashicorp.com/v1/releases/terraform";
     public const string DownloadHost = "releases.hashicorp.com";
 
-    private static readonly Lazy<OpenPgpKeyring> Keyring = new(() => EmbeddedKeyring("Mariliz.Infrastructure.Terraform.hashicorp-release-key.asc"));
+    private static readonly Lazy<OpenPgpKeyring> Keyring = new(() => EmbeddedKeyring("Mariliz.Infrastructure.Iac.hashicorp-release-key.asc"));
 
     public HashiCorpTerraformToolchain(string dataRoot, IExecutableLocator locator, HttpMessageHandler? handler = null,
-        TerraformPlatform? platform = null, OpenPgpKeyring? keyring = null)
+        IacPlatform? platform = null, OpenPgpKeyring? keyring = null)
         : base(dataRoot, "terraform", locator, keyring ?? Keyring.Value, handler, platform)
     {
     }
@@ -28,20 +28,20 @@ public sealed class HashiCorpTerraformToolchain : OfficialReleaseToolchain
 
     protected override string BinaryBaseName => "terraform";
 
-    public override async Task<IReadOnlyList<TerraformRelease>> ReleasesAsync(CancellationToken ct)
+    public override async Task<IReadOnlyList<IacRelease>> ReleasesAsync(CancellationToken ct)
     {
         if (Platform is null) return [];
         // A API devolve no máximo 20 por página, da mais nova para a mais velha; versões antigas vêm por ReleaseAsync.
         var json = await GetSmallAsync(new Uri($"{ReleasesApi}?limit=20"), MaxListingBytes, ct);
         return (JsonNode.Parse(Encoding.UTF8.GetString(json)) as JsonArray ?? [])
             .Select(node => ToRelease(node as JsonObject))
-            .OfType<TerraformRelease>()
+            .OfType<IacRelease>()
             .ToList();
     }
 
-    public override async Task<TerraformRelease?> ReleaseAsync(string version, CancellationToken ct)
+    public override async Task<IacRelease?> ReleaseAsync(string version, CancellationToken ct)
     {
-        if (Platform is null || TerraformVersion.TryParse(version) is null) return null;
+        if (Platform is null || IacVersion.TryParse(version) is null) return null;
         try
         {
             var json = await GetSmallAsync(new Uri($"{ReleasesApi}/{Uri.EscapeDataString(version)}"), MaxListingBytes, ct);
@@ -59,7 +59,7 @@ public sealed class HashiCorpTerraformToolchain : OfficialReleaseToolchain
         && string.Equals(uri.Host, DownloadHost, StringComparison.OrdinalIgnoreCase)
         && uri.AbsolutePath.StartsWith($"/terraform/{version}/", StringComparison.Ordinal);
 
-    private TerraformRelease? ToRelease(JsonObject? node)
+    private IacRelease? ToRelease(JsonObject? node)
     {
         if (node is null || Platform is null) return null;
         var version = node["version"]?.GetValue<string>();
@@ -76,7 +76,7 @@ public sealed class HashiCorpTerraformToolchain : OfficialReleaseToolchain
         if (!Official(archive, version) || !Official(sums, version) || !Official(signature, version)) return null;
         DateTimeOffset? published = DateTimeOffset.TryParse(node["timestamp_created"]?.GetValue<string>(), out var at) ? at : null;
         var changelog = node["url_changelog"]?.GetValue<string>();
-        return new TerraformRelease(IacEngine.Terraform, version, published, archive, sums, signature,
+        return new IacRelease(IacEngine.Terraform, version, published, archive, sums, signature,
             changelog is not null && changelog.StartsWith("https://", StringComparison.Ordinal) ? changelog : null);
     }
 }

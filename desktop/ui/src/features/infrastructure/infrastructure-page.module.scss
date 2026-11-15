@@ -122,3 +122,12 @@ ul.facts {
   color: var(--color-text-muted);
   font-size: 0.75rem;
 }
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}

@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
-using Mariliz.Infrastructure.Terraform;
+using Mariliz.Infrastructure.Iac;
 
 namespace Mariliz.Application.Tests.Support;
 

@@ -1,26 +1,26 @@
 import { formatEngineDate } from '@/features/integrations';
 import { ConfirmAction, StatusChip } from '@/shared/components';
-import type { IacEngine, TerraformOffer, TerraformStatus } from '@/shared/schema';
+import type { IacEngine, IacRuntimeOffer, IacRuntimeStatus } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
 import styles from '../infrastructure-page.module.scss';
-import { ENGINE_NAME, INSTALL_EXPLANATION, TERRAFORM_STATE, installationName, sourceLabel } from '../domain/labels';
+import { ENGINE_NAME, INSTALL_EXPLANATION, RUNTIME_STATE, installationName, sourceLabel } from '../domain/labels';
 
 interface TerraformPanelProps {
-  status: TerraformStatus;
-  offer: TerraformOffer | null;
+  status: IacRuntimeStatus;
+  offer: IacRuntimeOffer | null;
   busy: boolean;
   onRequestOffer: (engine?: IacEngine) => void;
   onDiscardOffer: () => void;
-  onInstall: (offer: TerraformOffer) => void;
+  onInstall: (offer: IacRuntimeOffer) => void;
   onDecline: () => void;
   onAdopt: (engine: IacEngine, version: string) => void;
   onRemove: (engine: IacEngine, version: string) => void;
 }
 
 /** A ferramenta de IaC: o que há na máquina e as decisões que só a pessoa toma (instalar, usar a externa, remover). */
-export function TerraformPanel({
+export function RuntimePanel({
   status,
   offer,
   busy,
@@ -32,7 +32,7 @@ export function TerraformPanel({
   onRemove
 }: TerraformPanelProps) {
   const [removing, setRemoving] = useState<string | null>(null);
-  const state = TERRAFORM_STATE[status.state];
+  const state = RUNTIME_STATE[status.state];
   const waiting = status.installations.find(
     (installation) => installation.source === 'external' && installation.compatible && !installation.adopted
   );
@@ -150,7 +150,7 @@ function OfferReview({
   onInstall,
   onCancel
 }: {
-  offer: TerraformOffer;
+  offer: IacRuntimeOffer;
   busy: boolean;
   onInstall: () => void;
   onCancel: () => void;

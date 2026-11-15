@@ -82,7 +82,8 @@ public sealed class EngineSession
         SecurityService? security = null,
         IdeaArchitectService? ideas = null,
         CloudHub? cloud = null,
-        TerraformDependencyService? terraform = null)
+        IacRuntimeService? terraform = null,
+        IacOperationService? iacOperations = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
@@ -102,7 +103,7 @@ public sealed class EngineSession
         _security = security is null ? null : new SecurityRequestHandler(security);
         _ideas = ideas is null ? null : new IdeaRequestHandler(ideas);
         _cloud = cloud is null ? null : new CloudRequestHandler(cloud);
-        _iac = terraform is null ? null : new IacRequestHandler(terraform);
+        _iac = terraform is null || iacOperations is null ? null : new IacRequestHandler(terraform, iacOperations);
         _engineering = profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions, mcp);
         _tracker = tracker;
         if (relay is not null) relay.Target = WriteEvent;
@@ -125,7 +126,7 @@ public sealed class EngineSession
         if (security is not null) offered.AddRange(ProtocolMethods.Security);
         if (ideas is not null) offered.AddRange(ProtocolMethods.Idea);
         if (cloud is not null) offered.AddRange(ProtocolMethods.Cloud);
-        if (terraform is not null) offered.AddRange(ProtocolMethods.Iac);
+        if (_iac is not null) offered.AddRange(ProtocolMethods.Iac);
         if (profiles is not null) offered.AddRange(ProtocolMethods.Engineering);
         _capabilities = [.. offered];
     }

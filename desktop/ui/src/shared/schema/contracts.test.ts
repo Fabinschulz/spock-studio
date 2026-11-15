@@ -5,7 +5,9 @@ import cloudCatalogFixture from '@contracts/fixtures/cloud/catalog.json';
 import cloudConnectionsFixture from '@contracts/fixtures/cloud/connections.json';
 import cloudLinksFixture from '@contracts/fixtures/cloud/links.json';
 import cloudReadFixture from '@contracts/fixtures/cloud/read.json';
+import iacLayoutFixture from '@contracts/fixtures/iac/layout.json';
 import iacOfferFixture from '@contracts/fixtures/iac/offer.json';
+import iacOperationsFixture from '@contracts/fixtures/iac/operations.json';
 import iacStatusFixture from '@contracts/fixtures/iac/status.json';
 import contextReviewFixture from '@contracts/fixtures/context/review.json';
 import ideConnectionFixture from '@contracts/fixtures/ide/connection.json';
@@ -69,8 +71,10 @@ import {
   cloudConnectionListSchema,
   cloudLinkListSchema,
   cloudReadResultSchema,
-  terraformOfferResultSchema,
-  terraformStatusResultSchema,
+  iacLayoutSchema,
+  iacOperationListSchema,
+  iacRuntimeOfferResultSchema,
+  iacRuntimeStatusResultSchema,
   assistantAnswerSchema,
   connectionListSchema,
   connectionReachListSchema,
@@ -901,15 +905,25 @@ describe('contrato do assistente do portfólio (fixtures do motor)', () => {
   });
 
   it('iac: estado sem caminho completo e proposta do OpenTofu só da fonte oficial', () => {
-    const status = terraformStatusResultSchema.parse(iacStatusFixture).terraform;
+    const status = iacRuntimeStatusResultSchema.parse(iacStatusFixture).runtime;
     expect(status.state).toBe('ready');
     for (const installation of status.installations) expect(installation.path.startsWith('~')).toBe(true);
     expect(status.project?.requirements[0]?.constraint).toBe('>= 1.11');
-    const offer = terraformOfferResultSchema.parse(iacOfferFixture).offer;
+    const offer = iacRuntimeOfferResultSchema.parse(iacOfferFixture).offer;
     expect(status.installations.map((installation) => installation.engine)).toEqual(['openTofu', 'terraform']);
     expect(offer.engine).toBe('openTofu');
     for (const url of [offer.archiveUrl, offer.shasumsUrl, offer.signatureUrl])
       expect(url.startsWith(`https://github.com/opentofu/opentofu/releases/download/v${offer.version}/`)).toBe(true);
     expect(offer.signingKey).toBe('E3E6E43D84CB852EADB0051D0C0AF313E5FD9F80');
+  });
+
+  it('iac: operações reais de validate e plan, sem valores de atributo', () => {
+    expect(iacLayoutSchema.parse(iacLayoutFixture).layout.root).toBe('infra');
+    const [plan, validation] = iacOperationListSchema.parse(iacOperationsFixture).operations;
+    expect(plan?.kind).toBe('plan');
+    expect(plan?.summary?.create).toBe(2);
+    expect(plan?.planId).toHaveLength(16);
+    expect(validation?.validation?.map((folder) => folder.folder)).toEqual(['infra', 'infra/modules/rede']);
+    expect(JSON.stringify(iacOperationsFixture)).not.toMatch(/fila-dev|10\.0\.0\.0/);
   });
 });

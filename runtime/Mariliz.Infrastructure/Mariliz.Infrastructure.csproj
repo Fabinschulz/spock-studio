@@ -13,8 +13,8 @@
 
   <ItemGroup>
     <!-- Chaves públicas com que a HashiCorp e o OpenTofu assinam as listas de checksums. -->
-    <EmbeddedResource Include="Terraform\hashicorp-release-key.asc" LogicalName="Mariliz.Infrastructure.Terraform.hashicorp-release-key.asc" />
-    <EmbeddedResource Include="Terraform\opentofu-release-key.asc" LogicalName="Mariliz.Infrastructure.Terraform.opentofu-release-key.asc" />
+    <EmbeddedResource Include="Iac\hashicorp-release-key.asc" LogicalName="Mariliz.Infrastructure.Iac.hashicorp-release-key.asc" />
+    <EmbeddedResource Include="Iac\opentofu-release-key.asc" LogicalName="Mariliz.Infrastructure.Iac.opentofu-release-key.asc" />
   </ItemGroup>
 
   <ItemGroup>

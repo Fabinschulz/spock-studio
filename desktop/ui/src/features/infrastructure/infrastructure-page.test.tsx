@@ -1,7 +1,10 @@
 import connectionsFixture from '@contracts/fixtures/cloud/connections.json';
+import linksFixture from '@contracts/fixtures/cloud/links.json';
+import layoutFixture from '@contracts/fixtures/iac/layout.json';
 import offerFixture from '@contracts/fixtures/iac/offer.json';
+import operationsFixture from '@contracts/fixtures/iac/operations.json';
 import statusFixture from '@contracts/fixtures/iac/status.json';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
@@ -13,7 +16,7 @@ import { expectNoA11yViolations } from '@/test/a11y';
 import { InfrastructurePage } from './infrastructure-page';
 
 const demo = { projectId: 'p-0123456789ab', displayName: 'loja-api', displayPath: '~\\loja-api' };
-const ready = statusFixture.terraform;
+const ready = statusFixture.runtime;
 const missing = {
   ...ready,
   state: 'missing',
@@ -30,8 +33,8 @@ function fakeEngine(initial: Record<string, unknown> = missing) {
   const client: EngineClient = {
     async request(method, params, schema) {
       calls.push({ method, params: params as Record<string, unknown> });
-      if (method === 'iac.terraform.install') current = ready;
-      if (method === 'iac.terraform.decline')
+      if (method === 'iac.runtime.install') current = ready;
+      if (method === 'iac.runtime.decline')
         current = {
           ...missing,
           state: 'declined',
@@ -39,12 +42,17 @@ function fakeEngine(initial: Record<string, unknown> = missing) {
           message: 'Instalação recusada.'
         };
       const reply: Record<string, unknown> = {
-        'iac.terraform.status': { terraform: current },
-        'iac.terraform.install': { terraform: current },
-        'iac.terraform.decline': { terraform: current },
-        'iac.terraform.pin': { terraform: current },
-        'iac.terraform.offer': offerFixture,
-        'cloud.list': connectionsFixture
+        'iac.runtime.status': { runtime: current },
+        'iac.runtime.install': { runtime: current },
+        'iac.runtime.decline': { runtime: current },
+        'iac.runtime.pin': { runtime: current },
+        'iac.runtime.offer': offerFixture,
+        'iac.layout': layoutFixture,
+        'iac.operations': operationsFixture,
+        'iac.validate': { operation: operationsFixture.operations[1] },
+        'iac.plan': { operation: operationsFixture.operations[0] },
+        'cloud.list': connectionsFixture,
+        'cloud.links': { links: linksFixture.links.map((link) => ({ ...link, projectId: demo.projectId })) }
       };
       return schema.parse(reply[method]);
     },
@@ -76,8 +84,8 @@ describe('Infraestrutura', () => {
     expect(screen.getByText(/OpenTofu nesta máquina: ferramenta gratuita e de código aberto/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Autorizar instalação' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Não instalar agora' })).toBeInTheDocument();
-    expect(methods(engine.calls)).not.toContain('iac.terraform.offer');
-    expect(methods(engine.calls)).not.toContain('iac.terraform.install');
+    expect(methods(engine.calls)).not.toContain('iac.runtime.offer');
+    expect(methods(engine.calls)).not.toContain('iac.runtime.install');
     await expectNoA11yViolations(container);
   });
 
@@ -89,15 +97,15 @@ describe('Infraestrutura', () => {
     expect(await screen.findByText(offerFixture.offer.archiveUrl)).toBeInTheDocument();
     expect(screen.getByText(/assinada por quem publica o OpenTofu/)).toBeInTheDocument();
     expect(screen.getByText(offerFixture.offer.license)).toBeInTheDocument();
-    expect(engine.calls.find((call) => call.method === 'iac.terraform.offer')?.params).not.toHaveProperty('engine');
-    expect(methods(engine.calls)).not.toContain('iac.terraform.install');
+    expect(engine.calls.find((call) => call.method === 'iac.runtime.offer')?.params).not.toHaveProperty('engine');
+    expect(methods(engine.calls)).not.toContain('iac.runtime.install');
 
     await userEvent.click(screen.getByRole('button', { name: `Instalar OpenTofu ${offerFixture.offer.version}` }));
 
     expect(
       await screen.findByText(`OpenTofu ${offerFixture.offer.version} instalado e verificado.`)
     ).toBeInTheDocument();
-    expect(engine.calls.find((call) => call.method === 'iac.terraform.install')?.params).toEqual({
+    expect(engine.calls.find((call) => call.method === 'iac.runtime.install')?.params).toEqual({
       offerId: offerFixture.offer.offerId,
       version: offerFixture.offer.version,
       engine: 'openTofu'
@@ -110,7 +118,7 @@ describe('Infraestrutura', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Prefiro o Terraform da HashiCorp' }));
 
-    expect(engine.calls.find((call) => call.method === 'iac.terraform.offer')?.params).toMatchObject({
+    expect(engine.calls.find((call) => call.method === 'iac.runtime.offer')?.params).toMatchObject({
       engine: 'terraform'
     });
   });
@@ -123,7 +131,7 @@ describe('Infraestrutura', () => {
 
     expect(await screen.findByText(/nada será instalado/)).toBeInTheDocument();
     expect(screen.getByText('Instalação recusada')).toBeInTheDocument();
-    expect(methods(engine.calls)).not.toContain('iac.terraform.offer');
+    expect(methods(engine.calls)).not.toContain('iac.runtime.offer');
   });
 
   it('mostra o que o projeto exige, usa o OpenTofu por padrão e fixa a ferramenta escolhida', async () => {
@@ -136,7 +144,7 @@ describe('Infraestrutura', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Fixar Terraform 1.16.5 (externo)' }));
 
-    expect(engine.calls.find((call) => call.method === 'iac.terraform.pin')?.params).toEqual({
+    expect(engine.calls.find((call) => call.method === 'iac.runtime.pin')?.params).toEqual({
       projectId: demo.projectId,
       engine: 'terraform',
       version: '1.16.5',
@@ -149,7 +157,47 @@ describe('Infraestrutura', () => {
 
     expect(await screen.findByRole('list', { name: 'Ciclo de uma mudança de infraestrutura' })).toBeInTheDocument();
     expect(screen.getAllByText('Só analisa')).toHaveLength(6);
+    expect(screen.getAllByText('Disponível')).toHaveLength(3);
     expect(screen.getAllByText('Muda a nuvem')).toHaveLength(1);
     expect(screen.getByText('Prepara a mudança')).toBeInTheDocument();
+  });
+
+  it('validar e planejar mostram o resultado e passam pasta, ambiente e conexão escolhidos', async () => {
+    const engine = fakeEngine(ready);
+    renderPage(engine.client);
+
+    expect(await screen.findByText(/não mudam a nuvem nem o projeto/)).toBeInTheDocument();
+    const plan = operationsFixture.operations[0]!;
+    const summary = await screen.findByLabelText('Resumo do plano');
+    expect(within(summary).getByText(`Criar ${plan.summary!.create}`)).toBeInTheDocument();
+    expect(screen.getByText('module.rede.terraform_data.rede')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('radio', { name: 'infra/modules/rede' }));
+    await userEvent.type(screen.getByLabelText(/Ambiente/), 'dev');
+    const connection = connectionsFixture.connections.find((c) => c.id === linksFixture.links[0]!.connectionId)!;
+    await userEvent.click(screen.getByRole('radio', { name: `Conexão ${connection.name} (${connection.provider})` }));
+    await userEvent.click(screen.getByRole('button', { name: 'Gerar plano' }));
+
+    expect(await screen.findByText('Plano gerado e guardado.')).toBeInTheDocument();
+    expect(engine.calls.find((call) => call.method === 'iac.plan')?.params).toEqual({
+      projectId: demo.projectId,
+      folder: 'infra/modules/rede',
+      workspace: 'dev',
+      connectionId: connection.id
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Validar' }));
+    expect(await screen.findByText('Configuração válida e formatada.')).toBeInTheDocument();
+    expect(methods(engine.calls)).not.toContain('iac.apply');
+  });
+
+  it('sem ferramenta pronta, validar e planejar ficam desligados', async () => {
+    renderPage(fakeEngine().client);
+
+    expect(
+      await screen.findByText('Instale ou escolha a ferramenta acima para validar e planejar.')
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Validar' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Gerar plano' })).toBeDisabled();
   });
 });
