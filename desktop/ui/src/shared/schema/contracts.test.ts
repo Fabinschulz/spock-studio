@@ -755,6 +755,7 @@ describe('contrato da ligação com a IDE (fixture do motor)', () => {
     const parsed = ideConnectionSchema.parse(ideConnectionFixture);
 
     expect(parsed.args).toEqual(['mcp']);
+    expect(parsed.projectArgument).toBe('--project');
     expect(parsed.command).toMatch(/mariliz-runtime\.exe$/);
     expect(parsed.tools.map((tool) => tool.name)).toEqual([
       'list_projects',

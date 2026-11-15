@@ -9,6 +9,7 @@ import type { RunEvent } from '@/shared/schema';
 import { expectNoA11yViolations } from '@/test/a11y';
 
 import { AgentsPage } from './agents-page';
+import { scopedServerName } from './domain/ide-setup';
 
 const loja = { projectId: 'p-1', displayName: 'Loja', displayPath: '~\\Loja' };
 
@@ -27,7 +28,11 @@ const IDE = {
 
 /** Um motor que inicia a execução e deixa o teste emitir as linhas e o fim, na ordem do motor real. */
 function fakeEngine(
-  options: { tools?: typeof TOOLS; error?: string | null; ide?: typeof IDE | { command: null } } = {}
+  options: {
+    tools?: typeof TOOLS;
+    error?: string | null;
+    ide?: (typeof IDE & { projectArgument?: string }) | { command: null };
+  } = {}
 ) {
   const calls: { method: string; params: Record<string, unknown> }[] = [];
   let emit: (event: RunEvent) => void = () => undefined;
@@ -172,6 +177,33 @@ describe('Agentes de IA', () => {
     expect(writeText).toHaveBeenCalledWith(cursor.textContent);
     expect(within(section).getByRole('button', { name: 'Copiado' })).toBeInTheDocument();
     await expectNoA11yViolations(container);
+  });
+
+  // Validação real M3: com um projeto aberto, a conexão sugerida lê só ele.
+  it('com projeto aberto, a configuração lê só ele e dá para escolher todos', async () => {
+    renderPage(fakeEngine({ ide: { ...IDE, projectArgument: '--project' } }).client);
+
+    const section = await screen.findByRole('region', { name: 'O Spock dentro da sua ferramenta' });
+    const reach = within(section).getByRole('group', { name: 'O que ela pode ler' });
+    expect(within(reach).getByRole('radio', { name: `Só ${loja.displayName}` })).toBeChecked();
+    const scoped = within(section).getByLabelText('Configuração para Claude Code');
+    expect(scoped).toHaveTextContent(
+      `claude mcp add --scope user ${scopedServerName(loja)} -- "${ENGINE}" mcp --project ${loja.projectId}`
+    );
+    expect(within(section).getByText(new RegExp(`que só enxergam ${loja.displayName}`))).toBeInTheDocument();
+
+    await userEvent.click(within(reach).getByRole('radio', { name: 'Todos os projetos abertos no Spock' }));
+    expect(within(section).getByLabelText('Configuração para Claude Code')).toHaveTextContent(
+      `claude mcp add --scope user spock -- "${ENGINE}" mcp`
+    );
+    expect(within(section).getByLabelText('Configuração para Claude Code')).not.toHaveTextContent('--project');
+  });
+
+  it('o nome do servidor restrito sai do nome do projeto, sem acento nem espaço', () => {
+    expect(scopedServerName({ projectId: 'p-aaaaaaaaaaaa', displayName: 'Gestão de Loja' })).toBe(
+      'spock-gestao-de-loja'
+    );
+    expect(scopedServerName({ projectId: 'p-aaaaaaaaaaaa', displayName: '***' })).toBe('spock-p-aaaaaaaaaaaa');
   });
 
   it('o passo a passo da IDE aparece mesmo sem projeto aberto', async () => {

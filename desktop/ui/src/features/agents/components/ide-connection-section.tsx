@@ -1,14 +1,15 @@
+import type { SelectedProject } from '@/features/project-selection';
 import { InlineNotice, PageSection, Radio, ResourceView } from '@/shared/components';
 import { useAsyncResource, useCopyToClipboard } from '@/shared/hooks';
 import type { IdeConnection } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 import { useCallback, useState } from 'react';
 
-import { ideSetups } from '../domain/ide-setup';
+import { ideSetups, SERVER_NAME, scopedServerName } from '../domain/ide-setup';
 import type { AgentApi } from '../service/agent-api';
 import styles from './ide-connection-section.module.scss';
 
-export function IdeConnectionSection({ api }: { api: AgentApi }) {
+export function IdeConnectionSection({ api, project = null }: { api: AgentApi; project?: SelectedProject | null }) {
   const connection = useAsyncResource(useCallback(() => api.ideConnection(), [api]));
   return (
     <PageSection
@@ -22,7 +23,7 @@ export function IdeConnectionSection({ api }: { api: AgentApi }) {
       >
         {(value) =>
           value.command ? (
-            <Setup connection={value} command={value.command} />
+            <Setup connection={value} command={value.command} project={project} />
           ) : (
             <InlineNotice tone="warning" title="Passo a passo indisponível">
               O motor não conseguiu descobrir onde está instalado. Reinstale o Spock e volte a esta tela.
@@ -34,14 +35,51 @@ export function IdeConnectionSection({ api }: { api: AgentApi }) {
   );
 }
 
-function Setup({ connection, command }: { connection: IdeConnection; command: string }) {
-  const setups = ideSetups(command, connection.args);
+type Reach = 'project' | 'all';
+
+function Setup({
+  connection,
+  command,
+  project
+}: {
+  connection: IdeConnection;
+  command: string;
+  project: SelectedProject | null;
+}) {
+  // Com um projeto aberto, o padrão é a conexão ler só ele: é o menor acesso que resolve o trabalho de hoje.
+  const scopable = project !== null && connection.projectArgument !== undefined;
+  const [reach, setReach] = useState<Reach>(scopable ? 'project' : 'all');
+  const scoped = scopable && reach === 'project';
+  const args = scoped ? [...connection.args, connection.projectArgument!, project!.projectId] : connection.args;
+  const serverName = scoped ? scopedServerName(project!) : SERVER_NAME;
+
+  const setups = ideSetups(command, args, serverName);
   const [chosen, setChosen] = useState(setups[0]!.id);
   const setup = setups.find((item) => item.id === chosen) ?? setups[0]!;
   const { state, copy } = useCopyToClipboard({ resetAfterMs: 3000 });
 
   return (
     <div className={styles.setup}>
+      {scopable ? (
+        <fieldset className={styles.choice}>
+          <legend>O que ela pode ler</legend>
+          <Radio
+            name="ide-reach"
+            value="project"
+            checked={reach === 'project'}
+            onChange={() => setReach('project')}
+            label={`Só ${project!.displayName}`}
+          />
+          <Radio
+            name="ide-reach"
+            value="all"
+            checked={reach === 'all'}
+            onChange={() => setReach('all')}
+            label="Todos os projetos abertos no Spock"
+          />
+        </fieldset>
+      ) : null}
+
       <fieldset className={styles.choice}>
         <legend>Sua ferramenta</legend>
         {setups.map((item) => (
@@ -69,7 +107,8 @@ function Setup({ connection, command }: { connection: IdeConnection; command: st
         </span>
       </div>
       <p className={styles.how}>
-        Depois, reinicie {setup.name}. Ela passa a mostrar o servidor “spock” com estas ferramentas:
+        Depois, reinicie {setup.name}. Ela passa a mostrar o servidor “{serverName}” com estas ferramentas
+        {scoped ? `, que só enxergam ${project!.displayName}` : ''}:
       </p>
       <ul className={styles.tools}>
         {connection.tools.map((tool) => (

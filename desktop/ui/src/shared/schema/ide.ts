@@ -4,6 +4,8 @@ import { z } from 'zod';
 export const ideConnectionSchema = z.object({
   command: z.string().nullable(),
   args: z.array(z.string()),
+  /** Repetido por projeto depois de `args`: a conexão passa a ler só esses. Ausente em motor anterior ao escopo. */
+  projectArgument: z.string().optional(),
   tools: z.array(z.object({ name: z.string(), title: z.string(), description: z.string() }))
 });
 
