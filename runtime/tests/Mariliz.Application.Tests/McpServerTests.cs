@@ -75,6 +75,19 @@ public sealed class McpServerTests : IDisposable
         Assert.NotNull(Raw(server, "\uFEFF" + """{"jsonrpc":"2.0","id":1,"method":"ping"}""")!["result"]);
     }
 
+    // Revalidação 2026-11-15: o PowerShell abre a entrada com o BOM numa linha sozinha, que virava erro de JSON.
+    [Fact]
+    public async Task Linha_so_com_o_bom_e_ignorada_como_linha_vazia()
+    {
+        var output = new StringWriter();
+
+        await Server().RunAsync(new StringReader("﻿\n" + """{"jsonrpc":"2.0","id":7,"method":"ping"}""" + "\n"), output, CancellationToken.None);
+
+        var lines = output.ToString().Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        Assert.Single(lines);
+        Assert.Equal(7, JsonNode.Parse(lines[0])!["id"]!.GetValue<int>());
+    }
+
     [Fact]
     public void Oferece_so_ferramentas_de_leitura()
     {

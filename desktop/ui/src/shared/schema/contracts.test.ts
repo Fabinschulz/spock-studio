@@ -1,6 +1,10 @@
 import agentResultFixture from '@contracts/fixtures/agents/run-result.json';
 import aiToolsFixture from '@contracts/fixtures/aitools/list.json';
 import auditFixture from '@contracts/fixtures/audit/audit.json';
+import cloudCatalogFixture from '@contracts/fixtures/cloud/catalog.json';
+import cloudConnectionsFixture from '@contracts/fixtures/cloud/connections.json';
+import cloudLinksFixture from '@contracts/fixtures/cloud/links.json';
+import cloudReadFixture from '@contracts/fixtures/cloud/read.json';
 import contextReviewFixture from '@contracts/fixtures/context/review.json';
 import ideConnectionFixture from '@contracts/fixtures/ide/connection.json';
 import ideaDraftFixture from '@contracts/fixtures/idea/draft.json';
@@ -59,6 +63,10 @@ import stepStarted from '@contracts/fixtures/valid/event.step.started.json';
 import workflowStarted from '@contracts/fixtures/valid/event.workflow.started.json';
 
 import {
+  cloudCatalogSchema,
+  cloudConnectionListSchema,
+  cloudLinkListSchema,
+  cloudReadResultSchema,
   assistantAnswerSchema,
   connectionListSchema,
   connectionReachListSchema,
@@ -866,5 +874,25 @@ describe('contrato do assistente do portfólio (fixtures do motor)', () => {
     expect(JSON.stringify([portfolioAnswerFixture, portfolioEvidenceFixture])).not.toMatch(
       /SEGREDO|Titulo secreto|ghp_|sk-/
     );
+  });
+
+  it('cloud: catálogo só de leitura, conexões sem credencial e leitura com as colunas da capacidade', () => {
+    const catalog = cloudCatalogSchema.parse(cloudCatalogFixture);
+    expect(catalog.providers.map((provider) => provider.provider).sort()).toEqual(['aws', 'azure', 'gcp']);
+    for (const provider of catalog.providers)
+      for (const capability of provider.capabilities) {
+        expect(capability.impact).toBe('read');
+        expect(capability.id.startsWith(`${provider.provider}.`)).toBe(true);
+      }
+    const connections = cloudConnectionListSchema.parse(cloudConnectionsFixture);
+    expect(connections.connections.map((connection) => connection.status)).toEqual([
+      'connected',
+      'notAuthenticated',
+      'expired'
+    ]);
+    expect(JSON.stringify(cloudConnectionsFixture)).not.toMatch(/secret|password|accessKey|aws_secret/i);
+    expect(cloudLinkListSchema.parse(cloudLinksFixture).links[0]?.agentAccess).toBe(true);
+    const read = cloudReadResultSchema.parse(cloudReadFixture).result;
+    for (const row of read.rows) expect(row).toHaveLength(read.columns.length);
   });
 });

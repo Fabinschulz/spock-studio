@@ -3,6 +3,7 @@ using Mariliz.Application.Mcp;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
 using Mariliz.Infrastructure;
+using Mariliz.Infrastructure.Cloud;
 using Mariliz.Infrastructure.Engineering;
 using Mariliz.Infrastructure.Integrations;
 
@@ -26,10 +27,20 @@ internal static class McpEntry
 
         var dataRoot = FileRunStore.DefaultDataRoot();
         var clock = new SystemClock();
+        // Não derruba: o projeto pode ser aberto no Spock depois, e o registro é relido a cada chamada.
+        if (options.Scope is { } scope)
+        {
+            var known = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(dataRoot)).Projects().Select(p => p.ProjectId).ToHashSet();
+            foreach (var missing in scope.Where(id => !known.Contains(id)).Order(StringComparer.Ordinal))
+                Console.Error.WriteLine($"Aviso: o projeto {missing} de --project não está aberto no Spock; as ferramentas vão recusá-lo até que esteja.");
+        }
         // Um Python só deste processo, subido na primeira busca: o do aplicativo tem token próprio e pode nem estar aberto.
         var runtime = new LoopbackAiRuntime();
+        Func<WorkspaceAuthorizer> workspaces = () => new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(dataRoot));
+        var audit = new FileAuditLog(dataRoot, clock);
+        var cloud = new CloudMcpTools(LocalCloudHub.Create(dataRoot, workspaces(), clock, audit), workspaces, Environment.CurrentDirectory, options.Scope);
         var tools = new ProjectContextTools(
-            () => new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(dataRoot)),
+            workspaces,
             new LocalProjectFilesFactory(),
             clock,
             new FileTechnologyProfileStore(dataRoot),
@@ -37,11 +48,11 @@ internal static class McpEntry
             Environment.CurrentDirectory,
             runtime,
             dataRoot,
-            new FileAuditLog(dataRoot, clock),
+            audit,
             options.Scope);
         try
         {
-            await new McpServer(BuildInfo.Version, tools.Tools()).RunAsync(Console.In, Console.Out, ct);
+            await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. cloud.Tools()]).RunAsync(Console.In, Console.Out, ct);
         }
         catch (OperationCanceledException)
         {

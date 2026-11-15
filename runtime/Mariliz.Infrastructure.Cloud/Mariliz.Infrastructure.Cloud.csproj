@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- O único projeto com SDK de cloud: aplicação e domínio só conhecem a porta ICloudProvider. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Mariliz.Application\Mariliz.Application.csproj" />
+    <ProjectReference Include="..\Mariliz.Infrastructure\Mariliz.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- AWS: STS para a identidade, SSO e SSOOIDC para perfis do IAM Identity Center, e os serviços lidos. -->
+    <PackageReference Include="AWSSDK.SecurityToken" Version="4.1.0" />
+    <PackageReference Include="AWSSDK.SSO" Version="4.1.0" />
+    <PackageReference Include="AWSSDK.SSOOIDC" Version="4.1.0" />
+    <PackageReference Include="AWSSDK.EC2" Version="4.1.2" />
+    <PackageReference Include="AWSSDK.S3" Version="4.1.0" />
+    <PackageReference Include="AWSSDK.ECS" Version="4.1.0" />
+    <PackageReference Include="AWSSDK.ECR" Version="4.1.0" />
+    <PackageReference Include="AWSSDK.RDS" Version="4.1.0" />
+    <PackageReference Include="AWSSDK.Lambda" Version="4.1.1" />
+    <PackageReference Include="AWSSDK.CloudFormation" Version="4.1.1" />
+    <PackageReference Include="AWSSDK.CloudWatch" Version="4.1.1" />
+    <!-- Azure: cadeia oficial de credenciais do Entra ID e o Azure Resource Manager. -->
+    <PackageReference Include="Azure.Identity" Version="1.21.0" />
+    <PackageReference Include="Azure.ResourceManager" Version="1.14.0" />
+    <!-- Google: Application Default Credentials e as APIs REST oficiais (sem gRPC). -->
+    <PackageReference Include="Google.Apis.Auth" Version="1.78.0" />
+    <PackageReference Include="Google.Apis.CloudResourceManager.v3" Version="1.78.0.4328" />
+    <PackageReference Include="Google.Apis.Compute.v1" Version="1.78.0.4327" />
+    <PackageReference Include="Google.Apis.Storage.v1" Version="1.78.0.4299" />
+    <PackageReference Include="Google.Apis.ServiceUsage.v1" Version="1.78.0.4281" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Mariliz.Application.Tests" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

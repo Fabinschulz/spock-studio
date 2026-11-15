@@ -1,0 +1,827 @@
+{
+  "providers": [
+    {
+      "provider": "aws",
+      "name": "Amazon Web Services",
+      "version": "1.0.0",
+      "mechanisms": [
+        {
+          "id": "profile",
+          "label": "Perfil do AWS CLI",
+          "description": "Um perfil de ~/.aws/config: chaves, IAM Identity Center (SSO), processo externo ou papel assumido. Para SSO, rode antes aws sso login --profile <perfil>.",
+          "fields": [
+            {
+              "name": "profile",
+              "label": "Perfil",
+              "hint": "Nome do perfil em ~/.aws/config, por exemplo dev.",
+              "required": true
+            },
+            {
+              "name": "region",
+              "label": "Região padrão",
+              "hint": "Por exemplo sa-east-1. As leituras por região usam esta quando o pedido não diz outra.",
+              "required": true
+            }
+          ]
+        },
+        {
+          "id": "default",
+          "label": "Cadeia padrão do SDK",
+          "description": "Variáveis de ambiente, AWS_PROFILE, perfil default, SSO, web identity ou o papel da máquina, na ordem oficial do AWS SDK.",
+          "fields": [
+            {
+              "name": "region",
+              "label": "Região padrão",
+              "hint": "Por exemplo sa-east-1. As leituras por região usam esta quando o pedido não diz outra.",
+              "required": true
+            }
+          ]
+        },
+        {
+          "id": "assume-role",
+          "label": "Assumir um papel (AssumeRole)",
+          "description": "Credenciais temporárias de 15 minutos de um papel IAM, a partir de um perfil ou da cadeia padrão.",
+          "fields": [
+            {
+              "name": "roleArn",
+              "label": "Role ARN",
+              "hint": "arn:aws:iam::<conta>:role/<nome>.",
+              "required": true
+            },
+            {
+              "name": "sourceProfile",
+              "label": "Perfil de origem",
+              "hint": "Opcional. Sem ele, vale a cadeia padrão.",
+              "required": false
+            },
+            {
+              "name": "region",
+              "label": "Região padrão",
+              "hint": "Por exemplo sa-east-1. As leituras por região usam esta quando o pedido não diz outra.",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "capabilities": [
+        {
+          "id": "aws.regions",
+          "title": "Regiões",
+          "description": "Regiões da conta e se estão habilitadas.",
+          "service": "EC2",
+          "permissions": [
+            "ec2:DescribeRegions"
+          ],
+          "region": "none",
+          "columns": [
+            {
+              "id": "region",
+              "label": "Região"
+            },
+            {
+              "id": "optIn",
+              "label": "Habilitação"
+            },
+            {
+              "id": "endpoint",
+              "label": "Endpoint"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "aws.ec2.instances",
+          "title": "Instâncias EC2",
+          "description": "Máquinas virtuais da região, com estado e tipo.",
+          "service": "EC2",
+          "permissions": [
+            "ec2:DescribeInstances"
+          ],
+          "region": "required",
+          "columns": [
+            {
+              "id": "id",
+              "label": "Id"
+            },
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "type",
+              "label": "Tipo"
+            },
+            {
+              "id": "state",
+              "label": "Estado"
+            },
+            {
+              "id": "zone",
+              "label": "Zona"
+            },
+            {
+              "id": "privateIp",
+              "label": "IP privado"
+            },
+            {
+              "id": "launchedAt",
+              "label": "Iniciada em"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "aws.ecs.clusters",
+          "title": "Clusters ECS",
+          "description": "Clusters de contêineres da região, com tarefas e serviços.",
+          "service": "ECS",
+          "permissions": [
+            "ecs:ListClusters",
+            "ecs:DescribeClusters"
+          ],
+          "region": "required",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "status",
+              "label": "Estado"
+            },
+            {
+              "id": "runningTasks",
+              "label": "Tarefas em execução"
+            },
+            {
+              "id": "services",
+              "label": "Serviços ativos"
+            },
+            {
+              "id": "instances",
+              "label": "Instâncias registradas"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "aws.ecr.repositories",
+          "title": "Repositórios ECR",
+          "description": "Registros de imagens de contêiner da região.",
+          "service": "ECR",
+          "permissions": [
+            "ecr:DescribeRepositories"
+          ],
+          "region": "required",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "uri",
+              "label": "URI"
+            },
+            {
+              "id": "createdAt",
+              "label": "Criado em"
+            },
+            {
+              "id": "tagMutability",
+              "label": "Tags"
+            },
+            {
+              "id": "scanOnPush",
+              "label": "Varredura no push"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "aws.rds.instances",
+          "title": "Bancos RDS",
+          "description": "Instâncias de banco de dados gerenciado da região.",
+          "service": "RDS",
+          "permissions": [
+            "rds:DescribeDBInstances"
+          ],
+          "region": "required",
+          "columns": [
+            {
+              "id": "id",
+              "label": "Id"
+            },
+            {
+              "id": "engine",
+              "label": "Motor"
+            },
+            {
+              "id": "version",
+              "label": "Versão"
+            },
+            {
+              "id": "class",
+              "label": "Classe"
+            },
+            {
+              "id": "status",
+              "label": "Estado"
+            },
+            {
+              "id": "multiAz",
+              "label": "Multi-AZ"
+            },
+            {
+              "id": "zone",
+              "label": "Zona"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "aws.s3.buckets",
+          "title": "Buckets S3",
+          "description": "Buckets da conta, com a região de cada um quando a AWS informa.",
+          "service": "S3",
+          "permissions": [
+            "s3:ListAllMyBuckets"
+          ],
+          "region": "none",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "createdAt",
+              "label": "Criado em"
+            },
+            {
+              "id": "region",
+              "label": "Região"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "aws.lambda.functions",
+          "title": "Funções Lambda",
+          "description": "Funções da região, com runtime, memória e tempo limite.",
+          "service": "Lambda",
+          "permissions": [
+            "lambda:ListFunctions"
+          ],
+          "region": "required",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "runtime",
+              "label": "Runtime"
+            },
+            {
+              "id": "memoryMb",
+              "label": "Memória (MB)"
+            },
+            {
+              "id": "timeoutS",
+              "label": "Tempo limite (s)"
+            },
+            {
+              "id": "modifiedAt",
+              "label": "Alterada em"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "aws.cloudformation.stacks",
+          "title": "Pilhas CloudFormation",
+          "description": "Pilhas de infraestrutura da região, com estado e desvio.",
+          "service": "CloudFormation",
+          "permissions": [
+            "cloudformation:DescribeStacks"
+          ],
+          "region": "required",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "status",
+              "label": "Estado"
+            },
+            {
+              "id": "createdAt",
+              "label": "Criada em"
+            },
+            {
+              "id": "updatedAt",
+              "label": "Atualizada em"
+            },
+            {
+              "id": "drift",
+              "label": "Desvio"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "aws.cloudwatch.alarms",
+          "title": "Alarmes CloudWatch",
+          "description": "Alarmes de métrica da região e o estado atual de cada um.",
+          "service": "CloudWatch",
+          "permissions": [
+            "cloudwatch:DescribeAlarms"
+          ],
+          "region": "required",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "state",
+              "label": "Estado"
+            },
+            {
+              "id": "metric",
+              "label": "Métrica"
+            },
+            {
+              "id": "namespace",
+              "label": "Namespace"
+            },
+            {
+              "id": "changedAt",
+              "label": "Mudou em"
+            }
+          ],
+          "impact": "read"
+        }
+      ],
+      "identityNote": "Conta e ARN vêm do STS GetCallerIdentity, que não exige permissão."
+    },
+    {
+      "provider": "gcp",
+      "name": "Google Cloud",
+      "version": "1.0.0",
+      "mechanisms": [
+        {
+          "id": "adc",
+          "label": "Application Default Credentials",
+          "description": "A cadeia oficial do Google: GOOGLE_APPLICATION_CREDENTIALS, o login de gcloud auth application-default login, workload identity e os metadados da máquina.",
+          "fields": [
+            {
+              "name": "projectId",
+              "label": "Projeto",
+              "hint": "Id do projeto do Google Cloud, por exemplo minha-empresa-dev.",
+              "required": true
+            },
+            {
+              "name": "region",
+              "label": "Região (filtro)",
+              "hint": "Opcional, por exemplo southamerica-east1. Só filtra as leituras que aceitam região.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "service-account-file",
+          "label": "Arquivo de chave de service account",
+          "description": "Uma chave JSON que já existe no disco. Prefira ADC ou workload identity: chave de longa duração é o mecanismo menos seguro.",
+          "fields": [
+            {
+              "name": "keyFile",
+              "label": "Arquivo da chave",
+              "hint": "Caminho absoluto do .json da service account.",
+              "required": true
+            },
+            {
+              "name": "projectId",
+              "label": "Projeto",
+              "hint": "Id do projeto do Google Cloud, por exemplo minha-empresa-dev.",
+              "required": true
+            },
+            {
+              "name": "region",
+              "label": "Região (filtro)",
+              "hint": "Opcional, por exemplo southamerica-east1. Só filtra as leituras que aceitam região.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "capabilities": [
+        {
+          "id": "gcp.projects",
+          "title": "Projetos",
+          "description": "Projetos que a identidade enxerga.",
+          "service": "Resource Manager",
+          "permissions": [
+            "resourcemanager.projects.get"
+          ],
+          "region": "none",
+          "columns": [
+            {
+              "id": "id",
+              "label": "Id"
+            },
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "state",
+              "label": "Estado"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "gcp.services",
+          "title": "APIs habilitadas",
+          "description": "APIs e serviços habilitados no projeto.",
+          "service": "Service Usage",
+          "permissions": [
+            "serviceusage.services.list"
+          ],
+          "region": "none",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Serviço"
+            },
+            {
+              "id": "title",
+              "label": "Nome"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "gcp.regions",
+          "title": "Regiões",
+          "description": "Regiões do Compute Engine no projeto.",
+          "service": "Compute Engine",
+          "permissions": [
+            "compute.regions.list"
+          ],
+          "region": "none",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Região"
+            },
+            {
+              "id": "status",
+              "label": "Estado"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "gcp.compute.instances",
+          "title": "Instâncias do Compute Engine",
+          "description": "VMs do projeto, de todas as zonas ou só das zonas da região pedida.",
+          "service": "Compute Engine",
+          "permissions": [
+            "compute.instances.list"
+          ],
+          "region": "filter",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "zone",
+              "label": "Zona"
+            },
+            {
+              "id": "machineType",
+              "label": "Tipo"
+            },
+            {
+              "id": "status",
+              "label": "Estado"
+            },
+            {
+              "id": "internalIp",
+              "label": "IP interno"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "gcp.storage.buckets",
+          "title": "Buckets do Cloud Storage",
+          "description": "Buckets do projeto.",
+          "service": "Cloud Storage",
+          "permissions": [
+            "storage.buckets.list"
+          ],
+          "region": "none",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "location",
+              "label": "Local"
+            },
+            {
+              "id": "storageClass",
+              "label": "Classe"
+            },
+            {
+              "id": "createdAt",
+              "label": "Criado em"
+            }
+          ],
+          "impact": "read"
+        }
+      ],
+      "identityNote": "Quem é vem da conta da service account ou do tokeninfo do Google; o projeto, do Resource Manager."
+    },
+    {
+      "provider": "azure",
+      "name": "Microsoft Azure",
+      "version": "1.0.0",
+      "mechanisms": [
+        {
+          "id": "azure-cli",
+          "label": "Login do Azure CLI",
+          "description": "A conta do az login desta máquina (AzureCliCredential).",
+          "fields": [
+            {
+              "name": "tenantId",
+              "label": "Tenant",
+              "hint": "Opcional. GUID ou domínio do tenant do Microsoft Entra ID. Sem ele, vale o da credencial.",
+              "required": false
+            },
+            {
+              "name": "subscriptionId",
+              "label": "Subscription",
+              "hint": "Opcional. GUID da subscription. Sem ele, vale a padrão da identidade.",
+              "required": false
+            },
+            {
+              "name": "region",
+              "label": "Região (filtro)",
+              "hint": "Opcional, por exemplo brazilsouth. Só filtra as leituras que aceitam região.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "default",
+          "label": "Cadeia padrão do Azure.Identity",
+          "description": "DefaultAzureCredential: variáveis de ambiente (service principal), workload identity, identidade gerenciada, Visual Studio, Azure CLI, Azure PowerShell e Azure Developer CLI, nessa ordem. Sem navegador.",
+          "fields": [
+            {
+              "name": "tenantId",
+              "label": "Tenant",
+              "hint": "Opcional. GUID ou domínio do tenant do Microsoft Entra ID. Sem ele, vale o da credencial.",
+              "required": false
+            },
+            {
+              "name": "subscriptionId",
+              "label": "Subscription",
+              "hint": "Opcional. GUID da subscription. Sem ele, vale a padrão da identidade.",
+              "required": false
+            },
+            {
+              "name": "region",
+              "label": "Região (filtro)",
+              "hint": "Opcional, por exemplo brazilsouth. Só filtra as leituras que aceitam região.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "capabilities": [
+        {
+          "id": "azure.subscriptions",
+          "title": "Subscriptions",
+          "description": "Subscriptions que a identidade enxerga.",
+          "service": "Resource Manager",
+          "permissions": [
+            "Microsoft.Resources/subscriptions/read"
+          ],
+          "region": "none",
+          "columns": [
+            {
+              "id": "id",
+              "label": "Id"
+            },
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "state",
+              "label": "Estado"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "azure.resource_groups",
+          "title": "Grupos de recursos",
+          "description": "Grupos de recursos da subscription.",
+          "service": "Resource Manager",
+          "permissions": [
+            "Microsoft.Resources/subscriptions/resourceGroups/read"
+          ],
+          "region": "filter",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "location",
+              "label": "Região"
+            },
+            {
+              "id": "state",
+              "label": "Provisionamento"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "azure.virtual_machines",
+          "title": "Máquinas virtuais",
+          "description": "VMs da subscription.",
+          "service": "Compute",
+          "permissions": [
+            "Microsoft.Compute/virtualMachines/read"
+          ],
+          "region": "filter",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "resourceGroup",
+              "label": "Grupo de recursos"
+            },
+            {
+              "id": "location",
+              "label": "Região"
+            },
+            {
+              "id": "sku",
+              "label": "SKU"
+            },
+            {
+              "id": "kind",
+              "label": "Tipo"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "azure.storage_accounts",
+          "title": "Contas de armazenamento",
+          "description": "Contas de Storage da subscription.",
+          "service": "Storage",
+          "permissions": [
+            "Microsoft.Storage/storageAccounts/read"
+          ],
+          "region": "filter",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "resourceGroup",
+              "label": "Grupo de recursos"
+            },
+            {
+              "id": "location",
+              "label": "Região"
+            },
+            {
+              "id": "sku",
+              "label": "SKU"
+            },
+            {
+              "id": "kind",
+              "label": "Tipo"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "azure.web_apps",
+          "title": "App Service",
+          "description": "Web apps e function apps da subscription.",
+          "service": "App Service",
+          "permissions": [
+            "Microsoft.Web/sites/read"
+          ],
+          "region": "filter",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "resourceGroup",
+              "label": "Grupo de recursos"
+            },
+            {
+              "id": "location",
+              "label": "Região"
+            },
+            {
+              "id": "sku",
+              "label": "SKU"
+            },
+            {
+              "id": "kind",
+              "label": "Tipo"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "azure.aks_clusters",
+          "title": "Clusters AKS",
+          "description": "Clusters Kubernetes gerenciados da subscription.",
+          "service": "AKS",
+          "permissions": [
+            "Microsoft.ContainerService/managedClusters/read"
+          ],
+          "region": "filter",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "resourceGroup",
+              "label": "Grupo de recursos"
+            },
+            {
+              "id": "location",
+              "label": "Região"
+            },
+            {
+              "id": "sku",
+              "label": "SKU"
+            },
+            {
+              "id": "kind",
+              "label": "Tipo"
+            }
+          ],
+          "impact": "read"
+        },
+        {
+          "id": "azure.sql_servers",
+          "title": "Servidores SQL",
+          "description": "Servidores do Azure SQL da subscription.",
+          "service": "SQL",
+          "permissions": [
+            "Microsoft.Sql/servers/read"
+          ],
+          "region": "filter",
+          "columns": [
+            {
+              "id": "name",
+              "label": "Nome"
+            },
+            {
+              "id": "resourceGroup",
+              "label": "Grupo de recursos"
+            },
+            {
+              "id": "location",
+              "label": "Região"
+            },
+            {
+              "id": "sku",
+              "label": "SKU"
+            },
+            {
+              "id": "kind",
+              "label": "Tipo"
+            }
+          ],
+          "impact": "read"
+        }
+      ],
+      "identityNote": "Tenant e quem é vêm do token do Entra ID; a subscription, do Resource Manager."
+    }
+  ]
+}

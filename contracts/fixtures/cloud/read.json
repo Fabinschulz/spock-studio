@@ -1,0 +1,43 @@
+{
+  "result": {
+    "connectionId": "cloud-00cedffc75fa",
+    "connectionName": "AWS dev (SSO)",
+    "provider": "aws",
+    "account": "123456789012",
+    "capability": "aws.regions",
+    "region": null,
+    "columns": [
+      {
+        "id": "region",
+        "label": "Região"
+      },
+      {
+        "id": "optIn",
+        "label": "Habilitação"
+      },
+      {
+        "id": "endpoint",
+        "label": "Endpoint"
+      }
+    ],
+    "rows": [
+      [
+        "af-south-1",
+        "not-opted-in",
+        "ec2.af-south-1.amazonaws.com"
+      ],
+      [
+        "ap-east-1",
+        "not-opted-in",
+        "ec2.ap-east-1.amazonaws.com"
+      ],
+      [
+        "ap-east-2",
+        "not-opted-in",
+        "ec2.ap-east-2.amazonaws.com"
+      ]
+    ],
+    "truncated": true,
+    "readAt": "2026-11-15T04:49:05.4368967+00:00"
+  }
+}

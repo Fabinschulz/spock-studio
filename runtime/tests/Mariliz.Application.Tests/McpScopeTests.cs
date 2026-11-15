@@ -116,6 +116,24 @@ public sealed class McpScopeTests : IDisposable
         Assert.Contains(Workspace().Projects().Single(project => project.ProjectId == loja).DisplayName, own);
     }
 
+    // Revalidação 2026-11-15: o Claude Desktop não abre numa pasta de projeto, e com --project de um só o briefing falhava.
+    [Fact]
+    public void Fora_de_qualquer_projeto_o_escopo_de_um_so_vale_sem_o_argumento()
+    {
+        var (loja, folha) = Authorize();
+
+        var (single, singleFailed) = Call(Server(new HashSet<string> { loja }), "project_briefing");
+        var (two, twoFailed) = Call(Server(new HashSet<string> { loja, folha }), "project_briefing");
+        var (open, openFailed) = Call(Server(null), "project_briefing");
+
+        Assert.False(singleFailed);
+        Assert.Contains(Workspace().Projects().Single(project => project.ProjectId == loja).DisplayName, single);
+        Assert.True(twoFailed);
+        Assert.Contains("Informe 'project'", two);
+        Assert.True(openFailed);
+        Assert.Contains("Informe 'project'", open);
+    }
+
     [Fact]
     public void A_descricao_para_a_ide_diz_o_argumento_do_escopo()
     {

@@ -2,7 +2,8 @@ using System.Text.Json.Nodes;
 
 namespace Mariliz.Application.Mcp;
 
-public sealed record McpToolInfo(string Name, string Title, string Description, JsonObject InputSchema);
+/// <param name="OpenWorld">Fala com sistema externo (a cloud); o contexto local do Spock não.</param>
+public sealed record McpToolInfo(string Name, string Title, string Description, JsonObject InputSchema, bool OpenWorld = false);
 
 /// <param name="Client">O nome que a IDE deu de si no initialize; é o que ela diz, não uma identidade conferida.</param>
 public sealed record McpCall(JsonObject Arguments, string? Client, CancellationToken Ct);
