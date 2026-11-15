@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import sys
 
 from langgraph.types import interrupt
 
@@ -57,7 +58,10 @@ def rag_research(state: dict, segment: Segment) -> dict:
     try:
         stats = sync(root, state["project_id"], segment.sources)
         hits = retrieval.search(root, state["project_id"], state["goal"])
-    except KnowledgeError:
+    except KnowledgeError as ex:
+        # A causa vai para o diagnóstico do host pelo stderr; a mensagem do SQLite fica de fora porque pode trazer caminho.
+        cause = type(ex.__cause__).__name__ if ex.__cause__ else type(ex).__name__
+        print(f"[ai] índice indisponível na recuperação: {cause}", file=sys.stderr, flush=True)
         limit(state, "RAG_NOT_READY", _RAG_NOT_READY)
         return state
     state["retrieval_attempted"] = True
@@ -201,7 +205,8 @@ def synthesizer(state: dict) -> dict:
     count = len(state["plan"]["steps"]) if isinstance(state.get("plan"), dict) else 0
     detected = len(state["stacks"])
     found = len(state["evidence"])
-    state["summary"] = f"{count} etapa(s). Stacks detectadas: {detected}. Trechos: {found}. Nenhuma alteração no projeto."
+    # O workflow não grava no projeto; o que muda vem das ações aprovadas, gravadas pelo motor depois deste resumo.
+    state["summary"] = f"{count} etapa(s). Stacks detectadas: {detected}. Trechos: {found}."
     return state
 
 

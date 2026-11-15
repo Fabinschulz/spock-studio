@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
+using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Tests.Support;
@@ -25,7 +26,14 @@ public class ActionGovernanceTests
         public string Probe() => "ready";
         public Task<IReadOnlyDictionary<string, string>> IndexedHashesAsync(string projectId, string indexRoot, CancellationToken ct) =>
             Task.FromResult<IReadOnlyDictionary<string, string>>(new Dictionary<string, string>());
-        public Task CancelAsync(string runId, string? projectId = null, string? executionRoot = null) => Task.CompletedTask;
+        public List<string> Cancelled { get; } = [];
+
+        public Task CancelAsync(string runId, string? projectId = null, string? executionRoot = null)
+        {
+            Cancelled.Add(runId);
+            return Task.CompletedTask;
+        }
+
         public Task ShutdownAsync() => Task.CompletedTask;
 
         public Task<WorkflowAck> StartAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct)
@@ -229,7 +237,9 @@ public class ActionGovernanceTests
         Assert.True(File.Exists(path));
         var written = File.ReadAllText(path);
         Assert.Contains("# Decisão de arquitetura", written);
-        Assert.Contains("- Serviço", written);
+        // Sem modelo, as áreas não são inventadas a partir das stacks (validação real M4).
+        Assert.Contains("- Não classificadas: sem o modelo", written);
+        Assert.DoesNotContain("- Serviço", written);
         Assert.Contains("`docs/nota.md`", written);
         Assert.Equal(["act-decisao-impacto"], runtime.Resumed!["decision"]!["actionIds"]!.AsArray().Select(a => a!.GetValue<string>()));
         Assert.Equal(JournalAction.Executed, run.Result!["actions"]!.AsArray().Single()!["status"]!.GetValue<string>());
@@ -311,6 +321,118 @@ public class ActionGovernanceTests
         Assert.True(File.Exists(DecisionPath(rig.Project, executionId)));
         Assert.Equal(["act-decisao-impacto"], runtime.Resumed!["decision"]!["actionIds"]!.AsArray().Select(a => a!.GetValue<string>()));
         Assert.Single(rig.Executor.Executed);
+    }
+
+    // Validação real A2: fechar o aplicativo com uma aprovação aberta cancelava a execução, e a retomada dizia que ela não existia.
+    [Fact]
+    public async Task Encerrar_o_motor_com_aprovacao_pendente_deixa_retomar_no_proximo()
+    {
+        using var rig = new Rig();
+        var first = new ProposingRuntime(ex => [Intent()]);
+        var (service, tracker) = rig.NewEngine(first);
+        var (run, approvalId, executionId) = await PauseAsync(service, rig.ProjectId);
+
+        await tracker.CancelAllAndWaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.True(run.Completion!.IsCompleted);
+        Assert.Equal(RunStates.AwaitingApproval, rig.Store.LoadJournal(rig.ProjectId, run.RunId)!.State);
+        Assert.Empty(first.Cancelled);
+        Assert.Empty(rig.Executor.Executed);
+
+        var (restarted, _) = rig.NewEngine(new ProposingRuntime(_ => []));
+        await (await restarted.ResumeAsync(rig.ProjectId, run.RunId, new ResumeDecision(approvalId, ["act-decisao-impacto"]))).Completion!;
+
+        Assert.True(File.Exists(DecisionPath(rig.Project, executionId)));
+        Assert.Single(rig.Executor.Executed);
+    }
+
+    [Fact]
+    public async Task Cancelar_pela_pessoa_uma_aprovacao_pendente_continua_cancelando()
+    {
+        using var rig = new Rig();
+        var runtime = new ProposingRuntime(ex => [Intent()]);
+        var (service, tracker) = rig.NewEngine(runtime);
+        var (run, approvalId, _) = await PauseAsync(service, rig.ProjectId);
+
+        Assert.True(tracker.Cancel(run.RunId));
+        await run.Completion!;
+
+        Assert.Equal(RunStates.Cancelled, rig.Store.LoadJournal(rig.ProjectId, run.RunId)!.State);
+        Assert.Equal([run.RunId], runtime.Cancelled);
+        var (restarted, _) = rig.NewEngine(new ProposingRuntime(_ => []));
+        var refused = await Assert.ThrowsAsync<EngineException>(() => restarted.ResumeAsync(rig.ProjectId, run.RunId, new ResumeDecision(approvalId, ["act-decisao-impacto"])));
+        Assert.Equal("RUN_NOT_RESUMABLE", refused.Code);
+    }
+
+    private static WorkflowAck ImpactAck(params WorkflowLimitation[] limitations) => new(
+        WorkflowService.WorkflowId, "run-aaaaaaaaaaaa", "p-aaaaaaaaaaaa", "ex-aaaaaaaaaaaa", AckStatus.Interrupted,
+        new JsonObject
+        {
+            ["evidence"] = new JsonArray(new JsonObject { ["chunkId"] = Chunk, ["filePath"] = "docs/nota.md", ["hash"] = new string('b', 64), ["score"] = 1.0, ["excerpt"] = "x" }),
+            ["impact"] = new JsonObject { ["schema"] = "engineering.impact.v1", ["areas"] = new JsonArray("servico"), ["risks"] = new JsonArray(), ["evidence"] = new JsonArray(Chunk) }
+        },
+        limitations, [], "int-aaaaaaaaaaaa", [Intent()]);
+
+    [Fact]
+    public void O_impacto_e_do_modelo_so_com_a_chamada_da_arquitetura_e_sem_volta_as_regras()
+    {
+        ModelCallRecord Call(string purpose) => new("agent", purpose, "gpt-4o-mini", "v", new string('a', 64), 10, 10);
+
+        Assert.True(ActionGovernance.ImpactFromModel(ImpactAck(), [Call("plan"), Call("architecture")]));
+        Assert.False(ActionGovernance.ImpactFromModel(ImpactAck(), []));
+        Assert.False(ActionGovernance.ImpactFromModel(ImpactAck(), [Call("plan")]));
+        Assert.False(ActionGovernance.ImpactFromModel(ImpactAck(new WorkflowLimitation("IMPACT_MODEL_FALLBACK", "x")), [Call("architecture")]));
+    }
+
+    [Fact]
+    public void Com_impacto_do_modelo_o_registro_lista_as_areas()
+    {
+        var fromModel = Assert.Single(ActionGovernance.Review(ImpactAck(), [ActionGovernance.FileWrite], impactFromModel: true)).Content;
+        var fromRules = Assert.Single(ActionGovernance.Review(ImpactAck(), [ActionGovernance.FileWrite], impactFromModel: false)).Content;
+
+        Assert.Contains("- Serviço", fromModel);
+        Assert.DoesNotContain("Não classificadas", fromModel);
+        Assert.Contains("- Não classificadas", fromRules);
+        Assert.DoesNotContain("- Serviço", fromRules);
+    }
+
+    // Validação real M2:a ação gravava o arquivo, mas a execução dizia "nenhuma alteração" e não podia ser desfeita.
+    [Fact]
+    public async Task O_arquivo_da_acao_aprovada_conta_como_alteracao_e_volta_pela_reversao()
+    {
+        using var rig = new Rig();
+        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Intent()]));
+        var (run, approvalId, executionId) = await PauseAsync(service, rig.ProjectId);
+        await (await service.ResumeAsync(rig.ProjectId, run.RunId, new ResumeDecision(approvalId, ["act-decisao-impacto"]))).Completion!;
+
+        var journal = rig.Store.LoadJournal(rig.ProjectId, run.RunId)!;
+        var op = Assert.Single(journal.Ops);
+        Assert.Equal(($".mariliz/decisions/{executionId}-impacto.md", OpKinds.Create, OpSources.Action, OpStatus.Applied), (op.Path, op.Op, op.Source, op.Status));
+        Assert.Equal(journal.Actions[0].ContentSha256, op.AfterHash);
+        Assert.True(journal.ChangesApplied && journal.CanBeReverted);
+
+        var revert = new RunHandle("run-bbbbbbbbbbbb", rig.ProjectId, RunKinds.Revert, (_, _, _, _, _) => { });
+        var result = new RevertService(rig.Store, new SystemClock()).Execute(revert, new TestFilesFactory().Open(rig.Project.Root), run.RunId, CancellationToken.None);
+
+        Assert.False(File.Exists(DecisionPath(rig.Project, executionId)));
+        Assert.Equal(revert.RunId, rig.Store.LoadJournal(rig.ProjectId, run.RunId)!.RevertedByRunId);
+        Assert.Equal(1, result["reverted"]!.AsArray().Count);
+    }
+
+    [Fact]
+    public async Task Workflow_sem_acao_executada_nao_tem_o_que_reverter()
+    {
+        using var rig = new Rig();
+        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Intent()]));
+        var (run, approvalId, _) = await PauseAsync(service, rig.ProjectId);
+        await (await service.ResumeAsync(rig.ProjectId, run.RunId, new ResumeDecision(approvalId, []))).Completion!;
+
+        var journal = rig.Store.LoadJournal(rig.ProjectId, run.RunId)!;
+        Assert.Empty(journal.Ops);
+        Assert.False(journal.CanBeReverted);
+        var revert = new RunHandle("run-bbbbbbbbbbbb", rig.ProjectId, RunKinds.Revert, (_, _, _, _, _) => { });
+        var refused = Assert.Throws<EngineException>(() => new RevertService(rig.Store, new SystemClock()).Execute(revert, new TestFilesFactory().Open(rig.Project.Root), run.RunId, CancellationToken.None));
+        Assert.Equal("NOTHING_TO_REVERT", refused.Code);
     }
 
     [Fact]

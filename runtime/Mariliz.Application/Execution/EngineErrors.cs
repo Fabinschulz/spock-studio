@@ -12,6 +12,10 @@ public static class EngineErrors
     public static EngineException RunNotFound() =>
         new("RUN_NOT_FOUND", "Execução não encontrada.");
 
+    // A execução existe, mas já terminou ou não ficou pausada de um jeito que dê para retomar.
+    public static EngineException RunNotResumable() =>
+        new("RUN_NOT_RESUMABLE", "Esta execução não está aguardando aprovação: ela já terminou, foi cancelada ou não guardou a pausa.");
+
     public static EngineException AiRuntimeInvalidResponse() =>
         new("AI_RUNTIME_INVALID_RESPONSE", "O runtime de IA respondeu fora do contrato.");
 

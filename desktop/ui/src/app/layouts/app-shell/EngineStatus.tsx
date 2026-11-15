@@ -28,7 +28,11 @@ function describe(
           tone: 'ok'
         };
       if (aiRuntime === 'stopped')
-        return { title: 'Sistema local', detail: 'Motor pronto. A inteligência local está parada.', tone: 'ok' };
+        return {
+          title: 'Sistema local',
+          detail: 'Motor pronto. A inteligência local liga no primeiro pedido.',
+          tone: 'ok'
+        };
       return { title: 'Sistema local', detail: 'Pronto para usar', tone: 'ok' };
     case 'starting':
       return { title: 'Sistema local', detail: 'Iniciando o motor…', tone: 'pending' };

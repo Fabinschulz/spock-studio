@@ -28,6 +28,9 @@ public sealed class RunHandle
     public string State { get; private set; } = RunStates.Running;
     public JsonObject? Result { get; private set; }
     public CancellationTokenSource Cancellation { get; } = new();
+
+    // O motor está encerrando, não a pessoa cancelando: quem espera aprovação deixa o diário como está, para retomar depois.
+    public bool Suspending { get; private set; }
     public Task? Completion { get; set; }
 
     public Action<JsonObject>? Recorder { get; set; }
@@ -83,6 +86,12 @@ public sealed class RunHandle
         }
         Emit(RunId, seq, type, data, at);
         return seq;
+    }
+
+    public void Suspend()
+    {
+        Suspending = true;
+        Cancellation.Cancel();
     }
 
     public void SetState(string state, string? detail = null)

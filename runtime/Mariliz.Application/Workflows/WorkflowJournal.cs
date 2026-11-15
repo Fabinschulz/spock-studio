@@ -31,6 +31,7 @@ internal sealed class WorkflowJournal(IRunStore store, IClock clock)
     public void Approve(RunJournal journal)
     {
         journal.ApprovedAt = clock.UtcNow;
+        journal.ApprovedActions = journal.Actions.Count(action => action.Status == JournalAction.Approved);
         store.SaveJournal(journal);
     }
 

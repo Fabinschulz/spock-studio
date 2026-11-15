@@ -1,12 +1,17 @@
+import io
 import json
+import sqlite3
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
+from unittest import mock
 
 import _paths  # noqa: F401
 
 from contracts.engineering import forbidden
-from workflows.engineering import graph
+from knowledge.index import KnowledgeError
+from workflows.engineering import graph, nodes
 
 RUN = "run-aaaaaaaaaaaa"
 PROJECT = "p-aaaaaaaaaaaa"
@@ -223,3 +228,24 @@ class GraphTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RagFailureTests(unittest.TestCase):
+    def test_indice_indisponivel_diz_a_causa_no_stderr_sem_caminho(self) -> None:
+        def falha(*_args) -> dict:
+            try:
+                raise sqlite3.OperationalError("database is locked: C:/segredo/index.sqlite")
+            except sqlite3.OperationalError as ex:
+                raise KnowledgeError("índice indisponível") from ex
+
+        with tempfile.TemporaryDirectory() as root:
+            payload = _start()
+            payload["context"]["knowledgeRoot"] = root
+            payload["context"]["sources"] = [{"path": "docs/a.md", "hash": "a" * 64, "text": "cobrança mensal"}]
+            stderr = io.StringIO()
+            with mock.patch.object(nodes, "sync", falha), redirect_stderr(stderr):
+                _, ack = _run(graph.run_start(payload))
+
+        self.assertIn("RAG_NOT_READY", _codes(ack))
+        self.assertIn("índice indisponível na recuperação: OperationalError", stderr.getvalue())
+        self.assertNotIn("segredo", stderr.getvalue())

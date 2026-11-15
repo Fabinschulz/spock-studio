@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Mariliz.Application.Execution;
+using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Core.Text;
@@ -36,7 +37,11 @@ internal static partial class ActionGovernance
     public static bool IsDecisionTarget(string target) => DecisionTarget().IsMatch(target);
 
     // O que fugir da política, do formato ou da recuperação desta execução é descartado, nunca corrigido. Intenção com alvo, resumo ou conteúdo próprios também: isso é decisão do motor.
-    public static List<JournalAction> Review(WorkflowAck ack, IReadOnlyList<string> allowed)
+    // O impacto é do modelo só se o proxy viu a chamada da arquitetura e o runtime não voltou às regras depois dela.
+    public static bool ImpactFromModel(WorkflowAck ack, IReadOnlyList<ModelCallRecord> calls) =>
+        calls.Any(call => call.Purpose == "architecture") && ack.Limitations.All(limitation => limitation.Code != "IMPACT_MODEL_FALLBACK");
+
+    public static List<JournalAction> Review(WorkflowAck ack, IReadOnlyList<string> allowed, bool impactFromModel = false)
     {
         var accepted = new List<JournalAction>();
         if (allowed.Count == 0 || ack.Output["impact"] is not JsonObject impact) return accepted;
@@ -52,7 +57,7 @@ internal static partial class ActionGovernance
             if (!IsDecisionTarget(target)) continue;
             if (!TryEvidence(intent["evidence"], known, out var evidence)) continue;
 
-            var content = DecisionRecordRenderer.Render(ack, impact, evidence, known);
+            var content = DecisionRecordRenderer.Render(ack, impact, evidence, known, impactFromModel);
             accepted.Add(new JournalAction
             {
                 Id = id,
@@ -78,7 +83,14 @@ internal static partial class ActionGovernance
     {
         foreach (var action in journal.Actions.Where(a => a.Status == JournalAction.Approved))
         {
-            action.Status = Run(executor, projectId, action);
+            var outcome = Run(executor, projectId, action);
+            action.Status = outcome.Status;
+            // O arquivo criado é uma alteração da execução como qualquer outra: aparece na lista e volta por harness.revert.
+            if (outcome is { Status: JournalAction.Executed, CreatedPath: { } created })
+            {
+                journal.Ops.Add(new JournalOp { Path = created, Op = OpKinds.Create, Source = OpSources.Action, AfterHash = action.ContentSha256, Status = OpStatus.Applied });
+                journal.ChangesApplied = true;
+            }
             saved();
         }
     }
@@ -95,16 +107,16 @@ internal static partial class ActionGovernance
     public static JsonArray ForResult(IEnumerable<JournalAction> actions) =>
         new(actions.Select(a => (JsonNode)new JsonObject { ["id"] = a.Id, ["kind"] = a.Kind, ["summary"] = a.Summary, ["target"] = a.Target, ["status"] = a.Status }).ToArray());
 
-    private static string Run(IActionExecutor? executor, string projectId, JournalAction action)
+    private static ActionOutcome Run(IActionExecutor? executor, string projectId, JournalAction action)
     {
-        if (executor is null) return JournalAction.Failed;
+        if (executor is null) return new ActionOutcome(JournalAction.Failed);
         try
         {
-            return executor.Execute(projectId, action).Status;
+            return executor.Execute(projectId, action);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or EngineException or ArgumentException)
         {
-            return JournalAction.Failed;
+            return new ActionOutcome(JournalAction.Failed);
         }
     }
 

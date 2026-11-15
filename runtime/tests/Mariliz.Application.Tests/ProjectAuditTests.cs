@@ -195,6 +195,36 @@ public class ProjectAuditTests
         Assert.All(changes, entry => Assert.True(entry.AuditLine is null && entry.RunId is not null));
     }
 
+    // Validação real B1: recusar tudo passava pela mesma aprovação e aparecia como "aprovadas", com "0 executadas".
+    [Fact]
+    public void Recusar_todas_as_acoes_aparece_como_recusa_e_aprovar_parte_diz_quantas()
+    {
+        using var w = new World();
+        w.At(10);
+        var at = w.H.Clock.UtcNow;
+        w.Journal("ex-000000000005", RunKinds.Workflow, RunStates.Completed, at, journal =>
+        {
+            journal.ApprovedAt = at.AddMinutes(1);
+            journal.ApprovedActions = 0;
+            journal.Actions.Add(new JournalAction { Id = "a1", Kind = "write", Summary = "Registrar", Target = "docs/a.md", Status = JournalAction.Skipped });
+            journal.Actions.Add(new JournalAction { Id = "a2", Kind = "write", Summary = "Outra", Target = "docs/b.md", Status = JournalAction.Skipped });
+        });
+        w.Journal("ex-000000000006", RunKinds.Workflow, RunStates.Failed, at, journal =>
+        {
+            // Aprovada e não executada porque o workflow falhou depois: SkipPending não pode transformar isso em recusa.
+            journal.ApprovedAt = at.AddMinutes(1);
+            journal.ApprovedActions = 1;
+            journal.Actions.Add(new JournalAction { Id = "a1", Kind = "write", Summary = "Registrar", Target = "docs/a.md", Status = JournalAction.Skipped });
+        });
+
+        var changes = Of(w.Service().Read(w.H.ProjectId, [], 200, null), "change").ToList();
+
+        var rejected = Assert.Single(changes, entry => entry.RunId == "ex-000000000005");
+        Assert.Equal(("Ações propostas por agentes recusadas", "Nenhuma das 2 ações propostas foi aprovada; nada foi executado."), (rejected.Title, rejected.Detail));
+        var failed = Assert.Single(changes, entry => entry.RunId == "ex-000000000006");
+        Assert.Equal(("Ações propostas por agentes aprovadas", "1 ação aprovada; 0 executadas."), (failed.Title, failed.Detail));
+    }
+
     [Fact]
     public async Task As_acoes_de_agentes_aprovadas_e_executadas_aparecem_so_as_executadas_com_o_destino()
     {
@@ -203,7 +233,7 @@ public class ProjectAuditTests
         var changes = Of(w.Service().Read(w.H.ProjectId, [], 200, null), "change").Where(entry => entry.RunId == "ex-000000000004").ToList();
 
         Assert.Equal(2, changes.Count);
-        Assert.Contains(changes, entry => entry.Title == "Ações propostas por agentes aprovadas" && entry.Detail == "2 ações no conjunto aprovado; 1 executada.");
+        Assert.Contains(changes, entry => entry.Title == "Ações propostas por agentes aprovadas" && entry.Detail == "1 de 2 ações aprovadas; 1 executada.");
         var executed = Assert.Single(changes, entry => entry.Title.StartsWith("Ação de agente executada", StringComparison.Ordinal));
         Assert.Equal("Destino: .mariliz/decisions/ex-000000000004-impacto.md.", executed.Detail);
         Assert.DoesNotContain(changes, entry => entry.Title.Contains("Outra ação", StringComparison.Ordinal));

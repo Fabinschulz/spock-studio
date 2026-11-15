@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { parseEngineReport, useEngineStatus } from './use-engine-status';
+import { AI_RUNTIME_REFRESH_MS, parseEngineReport, useEngineStatus } from './use-engine-status';
 
 const invoke = vi.fn();
 const listen = vi.fn();
@@ -60,5 +60,33 @@ describe('useEngineStatus', () => {
     unmount();
 
     expect(stop).toHaveBeenCalledTimes(1);
+  });
+
+  // Validação real B3: o workflow rodava e o rodapé seguia dizendo que a inteligência local estava parada.
+  it('reconsulta a inteligência local, que liga sozinha no primeiro pedido', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      tauri.__TAURI_INTERNALS__ = {};
+      listen.mockResolvedValue(vi.fn());
+      invoke.mockResolvedValue({ engine: 'ready', aiRuntime: 'stopped' });
+
+      const { result, unmount } = renderHook(() => useEngineStatus());
+      await waitFor(() => expect(result.current.aiRuntime).toBe('stopped'));
+
+      invoke.mockResolvedValue({ engine: 'ready', aiRuntime: 'ready' });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(AI_RUNTIME_REFRESH_MS);
+      });
+
+      expect(result.current.aiRuntime).toBe('ready');
+      const calls = invoke.mock.calls.length;
+      unmount();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(AI_RUNTIME_REFRESH_MS * 3);
+      });
+      expect(invoke.mock.calls.length).toBe(calls);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

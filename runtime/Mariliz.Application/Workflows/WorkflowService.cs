@@ -76,9 +76,10 @@ public sealed class WorkflowService(
     private Task<RunHandle> ResumeFromJournal(string projectId, string runId, ResumeDecision decision)
     {
         var journal = store.LoadJournal(projectId, runId);
-        if (journal is null || journal.Kind != Kind || journal.State != RunStates.AwaitingApproval
+        if (journal is null || journal.Kind != Kind) throw EngineErrors.RunNotFound();
+        if (journal.State != RunStates.AwaitingApproval
             || string.IsNullOrEmpty(journal.ExecutionId) || string.IsNullOrEmpty(journal.InterruptId) || string.IsNullOrEmpty(journal.ApprovalId))
-            throw EngineErrors.RunNotFound();
+            throw EngineErrors.RunNotResumable();
 
         // Antes de religar qualquer coisa: o diário em disco precisa ainda bater com a aprovação que foi aberta.
         ApprovalBinding.EnsureDecision(journal, decision.ApprovalId, decision.ActionIds);
@@ -124,7 +125,7 @@ public sealed class WorkflowService(
 
             if (ack.Status == AckStatus.Interrupted)
             {
-                ReviewActions(journal, ack, allowedActions);
+                ReviewActions(journal, ack, allowedActions, ActionGovernance.ImpactFromModel(ack, models?.Calls(executionId) ?? []));
                 await WaitForApprovalAsync(run, journal, ack);
                 ack = await WithDeadlineAsync(run, ct => runtime.ResumeAsync(Resume(run, journal), _events.Relay(run, filter), ct));
                 EnsureAck(run, executionId, ack);
@@ -152,9 +153,9 @@ public sealed class WorkflowService(
         evalRecords?.Save(run.ProjectId, ack.ExecutionId, JudgmentRecord.ForDisk(judgment, run.RunId, run.ProjectId, ack.ExecutionId, clock.UtcNow));
     }
 
-    private static void ReviewActions(RunJournal journal, WorkflowAck ack, IReadOnlyList<string> allowedActions)
+    private static void ReviewActions(RunJournal journal, WorkflowAck ack, IReadOnlyList<string> allowedActions, bool impactFromModel)
     {
-        journal.Actions = ActionGovernance.Review(ack, allowedActions);
+        journal.Actions = ActionGovernance.Review(ack, allowedActions, impactFromModel);
         journal.ActionsHash = ApprovalBinding.HashOf(journal.Actions);
     }
 
@@ -251,6 +252,9 @@ public sealed class WorkflowService(
             run.Complete(stored.State, new JsonObject { ["kind"] = Kind });
             return;
         }
+
+        // Sem cancelar no runtime nem marcar o diário: é o que ResumeFromJournal precisa encontrar depois do reinício.
+        if (run.Suspending && stored?.State == RunStates.AwaitingApproval) return;
 
         await runtime.CancelAsync(run.RunId, run.ProjectId, context.DataRoot);
         _journal.Cancel(journal);
