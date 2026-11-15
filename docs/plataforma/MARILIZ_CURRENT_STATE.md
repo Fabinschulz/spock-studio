@@ -272,8 +272,9 @@ Vistas só pelo lado do Spock, antes da comparação:
 
 ## 9. O que não foi verificado
 
-- Nenhuma tela foi renderizada para este documento; aparência e quebras de layout vêm do código e das capturas em
-  `docs/redesign/screenshots/`, que são anteriores a Gestão, Integrações e à marca Spock.
+- Nenhuma tela foi renderizada para este documento; aparência e quebras de layout vêm do código e das capturas que ficavam
+  em `docs/redesign/screenshots/` (anteriores a Gestão, Integrações e à marca Spock); elas saíram do repositório
+  para deixá-lo mais leve e estão no histórico até o commit `7728b4b` (`git show 7728b4b:<caminho>`).
 - Comportamento com serviços reais (GitHub, Jira, OpenAI) e no aplicativo Tauri empacotado.
 - Peças grandes do motor (`PlanBuilder.cs`, `ApplyExecution.cs`, `SyncService.cs`, conectores) foram lidas em parte.
 - Props e comportamento dos componentes do ui-kit que o aplicativo não usa: só os nomes exportados foram conferidos.

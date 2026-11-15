@@ -1,6 +1,6 @@
 # Mariliz Studio — Redesign: auditoria, proposta e protótipo
 
-> **Estado:** Fases 1 a 6 concluídas (seção 13). O desenho Workbench está no aplicativo real. O protótipo visual (`desktop/ui/src/prototype/` e `prototype.html`) foi removido ao fim da Fase 6; a última revisão que o contém é o commit `6e9918b` (`git show 6e9918b:desktop/ui/src/prototype/main.tsx`). O que ficou como registro são as capturas em `screenshots/` e a análise abaixo.
+> **Estado:** Fases 1 a 6 concluídas (seção 13). O desenho Workbench está no aplicativo real. O protótipo visual (`desktop/ui/src/prototype/` e `prototype.html`) foi removido ao fim da Fase 6; a última revisão que o contém é o commit `6e9918b` (`git show 6e9918b:desktop/ui/src/prototype/main.tsx`). O que ficou como registro é a análise abaixo; as capturas que ficavam em `screenshots/` saíram do repositório para deixá-lo mais leve e estão no histórico até o commit `7728b4b` (`git show 7728b4b:<caminho>`).
 >
 > Documentos relacionados: [contratos-propostos.md](contratos-propostos.md) (eventos que o motor ainda não publica) e [ui-modernization.md](../ui-modernization.md) (desenho atual).
 
@@ -10,16 +10,16 @@ Durante as Fases 3 a 5 o desenho foi avaliado num protótipo em `desktop/ui/prot
 
 Para revê-lo, use a revisão `6e9918b` (por exemplo `git worktree add ../mariliz-prototipo 6e9918b`, depois `pnpm --dir desktop/ui exec vite --port 1420` e `http://localhost:1420/prototype.html`). As seções 5 a 8 descrevem o que ele mostrava.
 
-Capturas em 760×560 (mínimo do Tauri), 900×650 (tamanho inicial), 1280×800 e 1600×900: `docs/redesign/screenshots/`. As do desenho anterior têm prefixo `atual-`, as do protótipo são numeradas (`01-…`) e as do aplicativo real têm prefixo `implementado-`.
+Capturas em 760×560 (mínimo do Tauri), 900×650 (tamanho inicial), 1280×800 e 1600×900, que ficavam em `docs/redesign/screenshots/` e saíram do repositório para deixá-lo mais leve e estão no histórico até o commit `7728b4b` (`git show 7728b4b:<caminho>`). As do desenho anterior têm prefixo `atual-`, as do protótipo são numeradas (`01-…`) e as do aplicativo real têm prefixo `implementado-`.
 
 ### Antes e depois, na janela inicial do Tauri (900×650)
 
 | | Desenho atual | Protótipo (Workbench) |
 | --- | --- | --- |
-| Início | ![atual](screenshots/atual-01-inicio-900x650.png) | ![proposto](screenshots/01-inicio-900x650.png) |
-| Revisão | ![atual](screenshots/atual-06-revisao-900x650.png) | ![proposto](screenshots/09-revisao-900x650.png) |
-| Aplicação | ![atual](screenshots/atual-07-aplicacao-900x650.png) | ![proposto](screenshots/10-aplicacao-contrato-atual-900x650.png) |
-| Resultado | ![atual](screenshots/atual-08-resultado-900x650.png) | ![proposto](screenshots/12-resultado-validacao-900x650.png) |
+| Início | `atual-01-inicio-900x650.png` | `01-inicio-900x650.png` |
+| Revisão | `atual-06-revisao-900x650.png` | `09-revisao-900x650.png` |
+| Aplicação | `atual-07-aplicacao-900x650.png` | `10-aplicacao-contrato-atual-900x650.png` |
+| Resultado | `atual-08-resultado-900x650.png` | `12-resultado-validacao-900x650.png` |
 
 _As capturas do desenho atual usam o host simulado com as respostas golden do motor; as etapas Aplicação e Resultado são do mesmo fluxo, em instantes diferentes._
 
@@ -301,7 +301,7 @@ As fatias 1–7 não dependem do .NET; a 8 melhora a fidelidade (hoje o protóti
 | Contraste dos tokens (script, 5 superfícies, 45+ pares) | todos passam |
 | axe-core no navegador (WCAG 2.0/2.1/2.2 A/AA) | 0 violações em Resultado; `color-contrast` marcado "incompleto" pelo axe, por isso foi feito o próximo item |
 | Auditor de contraste **efetivo** (cor computada composta com o fundo) em 8 telas a 1280 px | 0 falhas, exceto botões **desabilitados** (isentos na WCAG 1.4.3) |
-| Responsivo | capturas a 760×560, 900×650, 1280×800, 1600×900 (ver `screenshots/`) |
+| Responsivo | capturas a 760×560, 900×650, 1280×800, 1600×900 (fora do repositório; histórico até `7728b4b`) |
 | **Não feito** | leitor de tela real; zoom do sistema e alto contraste; execução dentro do Tauri; teste de usuários; 100 % da navegação por teclado (apenas a ordem do DOM e foco visível por CSS) |
 
 ---
@@ -327,7 +327,7 @@ Decisões tomadas com a aprovação: direção A (Workbench), `#33C1BA`, **tema 
 | 8 · Contratos | feito no escopo da Fase 6 | Entregues no motor e consumidos pela interface: `at` (1), `run.plan` (2) e `eval.started`/`eval.completed` (3). A etapa de execução usa a lista do motor quando ela chega, mostra as verificações uma a uma e mede as durações pelo carimbo do motor; com um motor antigo cai no vocabulário local. Os itens 4 a 7 ficam **fora da Fase 6**, de propósito (ver "Encerramento" abaixo); a interface mostra "o motor não informa" no lugar deles |
 | 9 · Validação | feito no que é automatizável | Ver "Encerramento" abaixo |
 
-**Verificação desta rodada** (`pnpm check` em `desktop/ui`): `tsc`, ESLint, Prettier e **204 testes** passam (20 novos: etapas planejadas, reducer de progresso, painel de contexto com regras "sem evento não há agente" e juiz "não executado", paridade de paleta). No aplicativo real com o host simulado pelas fixtures _golden_: axe-core com **0 violações** e auditor de contraste efetivo com **0 falhas** em Revisão, Aplicação (em andamento) e Resultado; capturas a 760×560, 900×650, 1280×800 e 1600×900 em `screenshots/implementado-*`.
+**Verificação desta rodada** (`pnpm check` em `desktop/ui`): `tsc`, ESLint, Prettier e **204 testes** passam (20 novos: etapas planejadas, reducer de progresso, painel de contexto com regras "sem evento não há agente" e juiz "não executado", paridade de paleta). No aplicativo real com o host simulado pelas fixtures _golden_: axe-core com **0 violações** e auditor de contraste efetivo com **0 falhas** em Revisão, Aplicação (em andamento) e Resultado; capturas a 760×560, 900×650, 1280×800 e 1600×900 (`implementado-*`, histórico até `7728b4b`).
 
 **Não verificado:** leitor de tela real, zoom do sistema, alto contraste do Windows, execução dentro do Tauri (as capturas são do front-end em navegador), Análise/Modelo/Plano/Revisão passaram só na inspeção visual e nos testes. As quatro etapas da jornada já estão no desenho novo; a pendência é conferi-las no Tauri.
 
