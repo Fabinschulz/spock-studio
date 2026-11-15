@@ -1,6 +1,9 @@
 import type { EngineClient } from '@/shared/api';
 import {
+  iacArchitectDraftSchema,
   iacBootstrapPlanSchema,
+  iacGeneratePlanSchema,
+  iacGenerateSaveSchema,
   iacBootstrapSaveSchema,
   iacStateReadSchema,
   iacStateReportSchema,
@@ -10,7 +13,10 @@ import {
   iacOperationResultSchema,
   iacRuntimeOfferResultSchema,
   iacRuntimeStatusResultSchema,
+  type IacArchitectDraft,
+  type IacBlueprint,
   type IacBootstrapPlan,
+  type IacGeneratePlan,
   type IacEngine,
   type IacStateRead,
   type IacStateReport,
@@ -63,7 +69,15 @@ export type IacApi = {
   bootstrapPlan(input: BootstrapInput): Promise<IacBootstrapPlan>;
   /** Grava os arquivos revisados como execução do Spock (desfazer pela tela da execução); devolve o id dela. */
   bootstrapSave(input: BootstrapInput & { planId: string }): Promise<string>;
+  /** A IA propõe componentes e explica; os fatos (região, conta, rede, certificado) valem sobre o que ela escrever. */
+  architectDraft(input: { projectId: string; need: string; facts: IacBlueprint }): Promise<IacArchitectDraft>;
+  /** Confere o desenho e monta o diff dos arquivos no modelo; com checagem falhando, volta sem arquivos. */
+  generatePlan(input: GenerateInput): Promise<IacGeneratePlan>;
+  /** Grava os arquivos revisados como execução do Spock (desfazer pela tela da execução); devolve o id dela. */
+  generateSave(input: GenerateInput & { planId: string }): Promise<string>;
 };
+
+export type GenerateInput = { projectId: string; blueprint: IacBlueprint; folder?: string };
 
 export type BootstrapInput = {
   projectId: string;
@@ -107,6 +121,10 @@ export function createIacApi(client: EngineClient): IacApi {
     },
     bootstrapPlan: (input) => client.request('iac.bootstrap.plan', input, iacBootstrapPlanSchema).then((r) => r.plan),
     bootstrapSave: (input) => client.request('iac.bootstrap.save', input, iacBootstrapSaveSchema).then((r) => r.runId),
+    architectDraft: (input) =>
+      client.request('iac.architect.draft', input, iacArchitectDraftSchema).then((r) => r.draft),
+    generatePlan: (input) => client.request('iac.generate.plan', input, iacGeneratePlanSchema).then((r) => r.plan),
+    generateSave: (input) => client.request('iac.generate.save', input, iacGenerateSaveSchema).then((r) => r.runId),
     apply: (input) => client.request('iac.apply', input, iacOperationResultSchema).then((r) => r.operation),
     operations: (projectId) =>
       client.request('iac.operations', { projectId }, iacOperationListSchema).then((r) => r.operations)

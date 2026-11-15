@@ -313,7 +313,11 @@ public sealed class IacStateTests : IDisposable
     [InlineData("infra/.terraform/modules/x.tf", false)]
     [InlineData(".git/hooks/pre-commit.tf", false)]
     [InlineData("infra/terraform.tfvars", false)]
-    public void Escopo_de_infraestrutura_so_grava_tf_tofu_e_gitignore(string path, bool writable) =>
+    [InlineData("infra/terraform.tfvars.example", true)]
+    [InlineData("infra/README.md", true)]
+    [InlineData("README.md", false)]
+    [InlineData("infra/notas.md", false)]
+    public void Escopo_de_infraestrutura_so_grava_tf_tofu_exemplo_readme_e_gitignore(string path, bool writable) =>
         Assert.Equal(writable, Mariliz.Core.Policy.ManagedScope.IsInfrastructureWritable(path));
 
     private sealed class MapLocator(string tofu) : IExecutableLocator

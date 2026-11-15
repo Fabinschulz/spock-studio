@@ -8,6 +8,7 @@ import type { IacEngine, IacRuntimeOffer, IacRuntimeSource } from '@/shared/sche
 import { useCallback, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 
+import { GeneratePanel } from './components/generate-panel';
 import { IacOperations } from './components/iac-operations';
 import { LifecycleStrip } from './components/lifecycle-strip';
 import { StatePanel } from './components/state-panel';
@@ -111,6 +112,12 @@ export function InfrastructurePage({ client, project }: { client: EngineClient; 
               </p>
             )}
           </PageSection>
+
+          {project ? (
+            <PageSection title="Gerar infraestrutura">
+              <GeneratePanel key={`generate-${project.projectId}`} client={client} api={api} project={project} />
+            </PageSection>
+          ) : null}
 
           {project ? (
             <PageSection title="State">

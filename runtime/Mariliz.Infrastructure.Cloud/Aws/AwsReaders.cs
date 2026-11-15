@@ -45,6 +45,11 @@ internal static class AwsReaders
             [C("region", "Região"), C("optIn", "Habilitação"), C("endpoint", "Endpoint")]),
         new("aws.ec2.instances", "Instâncias EC2", "Máquinas virtuais da região, com estado e tipo.", "EC2", ["ec2:DescribeInstances"], CloudRegionUse.Required,
             [C("id", "Id"), C("name", "Nome"), C("type", "Tipo"), C("state", "Estado"), C("zone", "Zona"), C("privateIp", "IP privado"), C("launchedAt", "Iniciada em")]),
+        new("aws.ec2.vpcs", "VPCs", "Redes virtuais da região, com faixa de endereços e se é a padrão.", "EC2", ["ec2:DescribeVpcs"], CloudRegionUse.Required,
+            [C("id", "Id"), C("name", "Nome"), C("cidr", "Faixa"), C("default", "Padrão"), C("state", "Estado")]),
+        new("aws.ec2.subnets", "Subnets", "Subnets da região, com zona e se saem para a internet por um internet gateway (pública).", "EC2",
+            ["ec2:DescribeSubnets", "ec2:DescribeRouteTables"], CloudRegionUse.Required,
+            [C("id", "Id"), C("name", "Nome"), C("vpc", "VPC"), C("zone", "Zona"), C("cidr", "Faixa"), C("public", "Pública"), C("freeIps", "IPs livres")]),
         new("aws.ecs.clusters", "Clusters ECS", "Clusters de contêineres da região, com tarefas e serviços.", "ECS", ["ecs:ListClusters", "ecs:DescribeClusters"], CloudRegionUse.Required,
             [C("name", "Nome"), C("status", "Estado"), C("runningTasks", "Tarefas em execução"), C("services", "Serviços ativos"), C("instances", "Instâncias registradas")]),
         new("aws.ecr.repositories", "Repositórios ECR", "Registros de imagens de contêiner da região.", "ECR", ["ecr:DescribeRepositories"], CloudRegionUse.Required,
@@ -65,6 +70,8 @@ internal static class AwsReaders
     {
         "aws.regions" => RegionsAsync(credentials, region, query.Limit, ct),
         "aws.ec2.instances" => InstancesAsync(credentials, region, query.Limit, ct),
+        "aws.ec2.vpcs" => VpcsAsync(credentials, region, query.Limit, ct),
+        "aws.ec2.subnets" => SubnetsAsync(credentials, region, query.Limit, ct),
         "aws.ecs.clusters" => ClustersAsync(credentials, region, query.Limit, ct),
         "aws.ecr.repositories" => RepositoriesAsync(credentials, region, query.Limit, ct),
         "aws.rds.instances" => DatabasesAsync(credentials, region, query.Limit, ct),
@@ -103,6 +110,64 @@ internal static class AwsReaders
         }
         return Table(rows, limit, more: !string.IsNullOrEmpty(token));
     }
+
+    private static async Task<CloudTable> VpcsAsync(AWSCredentials credentials, string region, int limit, CancellationToken ct)
+    {
+        using var ec2 = new AmazonEC2Client(credentials, AwsClients.Config<AmazonEC2Config>(region));
+        var rows = new List<IReadOnlyList<string?>>();
+        string? token = null;
+        for (var page = 0; page < MaxPages && rows.Count <= limit; page++)
+        {
+            var response = await ec2.DescribeVpcsAsync(new DescribeVpcsRequest { MaxResults = Math.Clamp(limit + 1, 5, 1000), NextToken = token }, ct);
+            rows.AddRange((response.Vpcs ?? []).Select(v => Row(v.VpcId, Name(v.Tags), v.CidrBlock, Flag(v.IsDefault), v.State?.Value)));
+            token = response.NextToken;
+            if (string.IsNullOrEmpty(token)) break;
+        }
+        return Table(rows, limit, more: !string.IsNullOrEmpty(token));
+    }
+
+    // Pública é a subnet cuja tabela de rotas (a associada a ela ou, sem associação, a principal da VPC) manda 0.0.0.0/0
+    // para um internet gateway. MapPublicIpOnLaunch sozinho não diz isso.
+    private static async Task<CloudTable> SubnetsAsync(AWSCredentials credentials, string region, int limit, CancellationToken ct)
+    {
+        using var ec2 = new AmazonEC2Client(credentials, AwsClients.Config<AmazonEC2Config>(region));
+        var subnets = new List<Amazon.EC2.Model.Subnet>();
+        string? token = null;
+        for (var page = 0; page < MaxPages && subnets.Count <= limit; page++)
+        {
+            var response = await ec2.DescribeSubnetsAsync(new DescribeSubnetsRequest { MaxResults = Math.Clamp(limit + 1, 5, 1000), NextToken = token }, ct);
+            subnets.AddRange(response.Subnets ?? []);
+            token = response.NextToken;
+            if (string.IsNullOrEmpty(token)) break;
+        }
+
+        var tables = new List<RouteTable>();
+        string? routesToken = null;
+        for (var page = 0; page < MaxPages; page++)
+        {
+            var response = await ec2.DescribeRouteTablesAsync(new DescribeRouteTablesRequest { MaxResults = 100, NextToken = routesToken }, ct);
+            tables.AddRange(response.RouteTables ?? []);
+            routesToken = response.NextToken;
+            if (string.IsNullOrEmpty(routesToken)) break;
+        }
+        static bool ToInternet(RouteTable table) => (table.Routes ?? []).Any(r =>
+            r.DestinationCidrBlock == "0.0.0.0/0" && r.GatewayId?.StartsWith("igw-", StringComparison.Ordinal) == true);
+        var bySubnet = tables.SelectMany(t => (t.Associations ?? []).Where(a => a.SubnetId is not null).Select(a => (a.SubnetId, Table: t)))
+            .GroupBy(x => x.SubnetId).ToDictionary(g => g.Key, g => g.First().Table, StringComparer.Ordinal);
+        var main = tables.Where(t => (t.Associations ?? []).Any(a => a.Main == true)).GroupBy(t => t.VpcId)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.Ordinal);
+        string? Public(Amazon.EC2.Model.Subnet subnet)
+        {
+            var table = bySubnet.GetValueOrDefault(subnet.SubnetId) ?? main.GetValueOrDefault(subnet.VpcId);
+            return table is null ? null : Flag(ToInternet(table));
+        }
+
+        var rows = subnets.OrderBy(s => s.VpcId, StringComparer.Ordinal).ThenBy(s => s.AvailabilityZone, StringComparer.Ordinal)
+            .Select(s => Row(s.SubnetId, Name(s.Tags), s.VpcId, s.AvailabilityZone, s.CidrBlock, Public(s), Number(s.AvailableIpAddressCount))).ToList();
+        return Table(rows, limit, more: !string.IsNullOrEmpty(token));
+    }
+
+    private static string? Name(List<Amazon.EC2.Model.Tag>? tags) => (tags ?? []).FirstOrDefault(t => t.Key == "Name")?.Value;
 
     private static async Task<CloudTable> ClustersAsync(AWSCredentials credentials, string region, int limit, CancellationToken ct)
     {

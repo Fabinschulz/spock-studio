@@ -30,13 +30,17 @@ public static class ManagedScope
     public static bool IsSecurityFixWritable(string normalizedPath) =>
         normalizedPath.Equals(GitIgnore, StringComparison.Ordinal) || IsWritable(normalizedPath);
 
-    // Infraestrutura como código aprovada (bootstrap do state e, depois, a geração no modelo): só arquivos .tf e .tofu,
-    // nunca dentro de .git/ nem do .terraform/ que a ferramenta mantém, e o .gitignore da raiz para manter o state fora do git.
+    // Infraestrutura como código aprovada (bootstrap do state e geração no modelo): arquivos .tf e .tofu, o exemplo de
+    // valores (.tfvars.example, nunca o .tfvars) e o README de uma pasta, nunca dentro de .git/ nem do .terraform/ que a
+    // ferramenta mantém, e o .gitignore da raiz para manter o state fora do git. O README da raiz do projeto fica de fora.
     public static bool IsInfrastructureWritable(string normalizedPath)
     {
         if (normalizedPath.Equals(GitIgnore, StringComparison.Ordinal)) return true;
-        if (!normalizedPath.EndsWith(".tf", StringComparison.Ordinal) && !normalizedPath.EndsWith(".tofu", StringComparison.Ordinal)) return false;
         var segments = normalizedPath.Split('/');
+        var allowed = normalizedPath.EndsWith(".tf", StringComparison.Ordinal) || normalizedPath.EndsWith(".tofu", StringComparison.Ordinal)
+                      || normalizedPath.EndsWith(".tfvars.example", StringComparison.Ordinal)
+                      || (segments.Length > 1 && segments[^1].Equals("README.md", StringComparison.Ordinal));
+        if (!allowed) return false;
         return !segments.Any(segment => segment.Equals(".git", StringComparison.OrdinalIgnoreCase) || segment.Equals(".terraform", StringComparison.OrdinalIgnoreCase))
                && !IsSpecificationOwned(normalizedPath);
     }

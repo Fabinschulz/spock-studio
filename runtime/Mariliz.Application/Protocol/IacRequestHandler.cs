@@ -6,7 +6,7 @@ namespace Mariliz.Application.Protocol;
 
 // Só a interface chega aqui (a allowlist do host não deixa agentes chamarem iac.*): instalar, adotar, fixar, remover,
 // validar e planejar são sempre um clique da pessoa.
-internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperationService operations, IacStateService state)
+internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperationService operations, IacStateService state, IacGenerationService generation)
 {
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
@@ -19,6 +19,13 @@ internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperatio
         ProtocolMethods.IacStateUnlock => await Unlocked(p, ct),
         ProtocolMethods.IacBootstrapPlan => new JsonObject { ["plan"] = IntegrationJson.Node(state.BootstrapPlan(Bootstrap(p))) },
         ProtocolMethods.IacBootstrapSave => new JsonObject { ["runId"] = state.StartBootstrap(Bootstrap(p), p.Str("planId")).RunId },
+        ProtocolMethods.IacArchitectDraft => new JsonObject
+        {
+            ["draft"] = IntegrationJson.Node(await generation.DraftAsync(new IacDraftRequest(p.Str("projectId"), p.Str("need"),
+                IacBlueprintJson.Blueprint(p.ObjectOrEmpty("facts"))), ct))
+        },
+        ProtocolMethods.IacGeneratePlan => new JsonObject { ["plan"] = IntegrationJson.Node(generation.Plan(Generate(p))) },
+        ProtocolMethods.IacGenerateSave => new JsonObject { ["runId"] = generation.StartSave(Generate(p), p.Str("planId")).RunId },
         ProtocolMethods.IacLayout => new JsonObject { ["layout"] = IntegrationJson.Node(operations.Layout(p.Str("projectId"))) },
         ProtocolMethods.IacValidate => Operation(await operations.ValidateAsync(p.Str("projectId"), IacOperationService.Person, ct)),
         ProtocolMethods.IacPlan => Operation(await operations.PlanAsync(
@@ -52,6 +59,9 @@ internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperatio
             p.Str("lockId"), p.Flag("confirmed"), ct);
         return new JsonObject { ["unlocked"] = true };
     }
+
+    private static IacGenerateRequest Generate(RequestParams p) =>
+        new(p.Str("projectId"), IacBlueprintJson.Blueprint(p.Object("blueprint") ?? throw new ParamException("'blueprint' é obrigatório.")), p.OptionalStr("folder"));
 
     private static IacBootstrapRequest Bootstrap(RequestParams p) =>
         new(p.Str("projectId"), p.Str("provider"), p.OptionalStr("connectionId"), p.Has("values") ? p.StringMap("values") : new Dictionary<string, string>());

@@ -197,6 +197,41 @@ public sealed class IacRuntimeLiveTests(ITestOutputHelper output)
         }
     }
 
+    // O Terraform gerado a partir do desenho completo (serviço, banco e filas) e do mínimo (só filas) passa no fmt e no
+    // validate do OpenTofu, raiz e cada módulo, com o provider AWS de verdade.
+    [LiveFact(Variable, "MARILIZ_LIVE_IAC_PROVIDERS")]
+    public async Task Terraform_gerado_passa_no_fmt_e_no_validate_do_OpenTofu()
+    {
+        using var project = TempProject.Dotnet();
+        var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(project.DataDir));
+        var projectId = workspace.Authorize(project.Root).Project!.ProjectId;
+        using var tofu = new OpenTofuToolchain(project.DataDir, new NoExternal());
+        var runner = new SystemProcessRunner();
+        var audit = new MemoryAudit();
+        var runtimes = new IacRuntimeService([tofu], new FileIacSettingsStore(project.DataDir), new IacConfigReader(), runner, workspace, new FakeClock(), audit);
+        var offer = await runtimes.OfferAsync(null, null, null, CancellationToken.None);
+        await runtimes.InstallAsync(offer.OfferId, offer.Version, IacEngine.OpenTofu, CancellationToken.None);
+        var operations = new IacOperationService(runtimes, new CliIacRuntimeFactory(runner, project.DataDir), new IacConfigReader(),
+            new FileIacWorkArea(project.DataDir), workspace, null, new SystemClock(), audit);
+
+        foreach (var blueprint in new[] { IacBlueprintSamples.Full(), IacBlueprintSamples.QueuesOnly() })
+        {
+            var infra = Path.Combine(project.Root, "infra");
+            if (Directory.Exists(infra)) Directory.Delete(infra, recursive: true);
+            foreach (var file in IacAwsGenerator.Generate(blueprint, "infra"))
+            {
+                var path = Path.Combine(project.Root, file.Path);
+                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                await File.WriteAllTextAsync(path, file.Content);
+            }
+            var validation = await operations.ValidateAsync(projectId, IacOperationService.Person, CancellationToken.None);
+            output.WriteLine($"{blueprint.Project}: {validation.Status} {validation.Error}");
+            foreach (var folder in validation.Validation ?? [])
+                output.WriteLine($"  {folder.Folder}: valid={folder.Valid} fmt={folder.Formatted} {folder.Error} " + string.Join(" | ", folder.Diagnostics.Select(d => $"{d.Severity} {d.Summary} {d.Detail} {d.File}:{d.Line}")));
+            Assert.Equal(IacOperationStatus.Succeeded, validation.Status);
+        }
+    }
+
     private sealed class NoExternal : Application.Ports.IExecutableLocator
     {
         public string? Find(string name) => null;

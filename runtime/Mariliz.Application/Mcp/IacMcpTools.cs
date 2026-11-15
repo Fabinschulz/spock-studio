@@ -6,8 +6,9 @@ using Mariliz.Application.Workspace;
 namespace Mariliz.Application.Mcp;
 
 // Agentes consultam e validam: se há OpenTofu ou Terraform, qual ferramenta e versão o projeto usa, validar a
-// configuração (fmt e validate, sem backend nem nuvem) e ler o resumo de um plano que a pessoa gerou. Instalar, adotar,
-// fixar, remover, planejar e aplicar não existem aqui; são decisões da pessoa na interface.
+// configuração (fmt e validate, sem backend nem nuvem), ler o resumo de um plano que a pessoa gerou e conferir um desenho
+// de infraestrutura. Instalar, adotar, fixar, remover, gerar arquivos, planejar e aplicar não existem aqui; são decisões
+// da pessoa na interface.
 public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<WorkspaceAuthorizer, IacRuntimeService> terraform,
     Func<WorkspaceAuthorizer, IacOperationService> operations, string workingDirectory, IReadOnlySet<string>? scope = null,
     Func<WorkspaceAuthorizer, IacStateService>? state = null)
@@ -17,14 +18,54 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
     public const string PlanSummaryTool = "iac_plan_summary";
     public const string HistoryTool = "iac_history";
     public const string StateTool = "iac_state";
+    public const string BlueprintTool = "iac_blueprint_check";
     private const int MaxArgument = 200;
     private const int MaxChanges = 60;
 
     public IReadOnlyList<McpTool> Tools() =>
         state is null
-            ? [new McpTool(Status, StatusAsync), new McpTool(Validate, ValidateAsync), new McpTool(PlanSummary, PlanSummaryAsync), new McpTool(History, HistoryAsync)]
+            ? [new McpTool(Status, StatusAsync), new McpTool(Validate, ValidateAsync), new McpTool(PlanSummary, PlanSummaryAsync), new McpTool(History, HistoryAsync),
+                new McpTool(Blueprint, BlueprintAsync)]
             : [new McpTool(Status, StatusAsync), new McpTool(Validate, ValidateAsync), new McpTool(PlanSummary, PlanSummaryAsync), new McpTool(History, HistoryAsync),
-                new McpTool(State, StateAsync)];
+                new McpTool(Blueprint, BlueprintAsync), new McpTool(State, StateAsync)];
+
+    private static readonly McpToolInfo Blueprint = new(
+        BlueprintTool, "Conferir um desenho de infraestrutura",
+        "Confere um desenho AWS (serviço em contêiner, banco RDS, filas) com as mesmas checagens da tela Infraestrutura e " +
+        "devolve o que falha, os arquivos que a geração escreveria no formato do modelo e o que seria cobrado (sem valores). " +
+        "Não grava nada: gerar os arquivos é decisão da pessoa na tela.",
+        new JsonObject
+        {
+            ["type"] = "object",
+            ["properties"] = new JsonObject
+            {
+                ["blueprint"] = new JsonObject
+                {
+                    ["type"] = "object",
+                    ["description"] = "provider (aws), project, region, account, profile, network {vpcId, privateSubnets, publicSubnets}, " +
+                                      "service {name, port, healthPath, cpu, memory, desiredCount, certificateArn, publicIp}, " +
+                                      "database {engine, engineVersion, instanceClass, storageGb, multiAz}, queues, alarmEmail, backend {bucket, region}."
+                }
+            },
+            ["required"] = new JsonArray("blueprint"),
+            ["additionalProperties"] = false
+        });
+
+    private static Task<string> BlueprintAsync(McpCall call)
+    {
+        var blueprint = IacBlueprintJson.Blueprint(call.Arguments["blueprint"] as JsonObject ?? []);
+        var checks = IacBlueprintChecks.Check(blueprint);
+        var failed = checks.Where(c => !c.Passed).ToList();
+        var text = new StringBuilder(failed.Count == 0
+            ? $"Desenho de {blueprint.Project} passa nas {checks.Count} verificações."
+            : $"Desenho com {failed.Count} de {checks.Count} verificações falhando:");
+        foreach (var check in failed) text.Append($"\n- {check.Description}{(check.Detail is null ? "" : $" ({check.Detail})")}");
+        if (failed.Count > 0) return Task.FromResult(text.ToString());
+        text.Append("\nArquivos que a geração escreveria em infra/: " + string.Join(", ", IacAwsGenerator.Generate(blueprint, "").Select(f => f.Path)) + ".");
+        text.Append("\nO que é cobrado: " + string.Join("; ", IacAwsGenerator.Costs(blueprint).Select(c => $"{c.Resource} ({c.Billing})")));
+        text.Append("\nGerar os arquivos exige a revisão do diff e a aprovação da pessoa na tela Infraestrutura do Spock.");
+        return Task.FromResult(text.ToString());
+    }
 
     private static readonly McpToolInfo State = new(
         StateTool, "State da infraestrutura do projeto",

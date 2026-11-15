@@ -1,0 +1,215 @@
+{
+  "draft": {
+    "blueprint": {
+      "provider": "aws",
+      "project": "loja-api",
+      "region": "sa-east-1",
+      "account": "123456789012",
+      "profile": "loja-sso",
+      "network": {
+        "vpcId": "vpc-0a1b2c3d4e5f60718",
+        "privateSubnets": [
+          "subnet-0aaaaaaaaaaaaaaa1",
+          "subnet-0bbbbbbbbbbbbbbb2"
+        ],
+        "publicSubnets": [
+          "subnet-0ccccccccccccccc3",
+          "subnet-0ddddddddddddddd4"
+        ]
+      },
+      "service": {
+        "name": "api",
+        "port": 8080,
+        "healthPath": "/health",
+        "cpu": 512,
+        "memory": 1024,
+        "desiredCount": 2,
+        "certificateArn": "arn:aws:acm:sa-east-1:123456789012:certificate/0f1e2d3c-4b5a-6978-8a9b-0c1d2e3f4a5b",
+        "publicIp": false
+      },
+      "database": {
+        "engine": "postgres",
+        "engineVersion": "16",
+        "instanceClass": "db.t4g.micro",
+        "storageGb": 20,
+        "multiAz": false
+      },
+      "queues": [
+        "pedidos",
+        "estoque"
+      ],
+      "alarmEmail": "alertas@example.com",
+      "backend": {
+        "bucket": "loja-terraform-state-123456789012-sa-east-1",
+        "region": "sa-east-1"
+      }
+    },
+    "notes": {
+      "services": [
+        {
+          "name": "ECS Fargate",
+          "reason": "Roda o cont\u00EAiner da API sem servidor para manter."
+        }
+      ],
+      "risks": [
+        "Tarefas em subnets privadas precisam de NAT ou endpoints VPC."
+      ],
+      "alternatives": [
+        "Lambda com API Gateway, se o tr\u00E1fego for espor\u00E1dico."
+      ],
+      "assumptions": [
+        "Tr\u00E1fego baixo no in\u00EDcio."
+      ]
+    },
+    "checks": [
+      {
+        "id": "provider",
+        "description": "Nuvem suportada na gera\u00E7\u00E3o (aws)",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "project",
+        "description": "Nome do projeto em min\u00FAsculas, d\u00EDgitos e h\u00EDfen, at\u00E9 18 caracteres",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "region",
+        "description": "Regi\u00E3o AWS no formato sa-east-1",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "account",
+        "description": "Conta AWS com 12 d\u00EDgitos, quando informada",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "profile",
+        "description": "Perfil com letras, d\u00EDgitos, ponto, h\u00EDfen e sublinhado, quando informado",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "vpc",
+        "description": "VPC existente no formato vpc-0123456789abcdef0",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "private-subnets",
+        "description": "Ao menos uma subnet privada para tarefas e banco, no formato subnet-...",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "public-subnets",
+        "description": "Subnets p\u00FAblicas no formato subnet-...",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "service-name",
+        "description": "Nome do servi\u00E7o em min\u00FAsculas, d\u00EDgitos e h\u00EDfen, at\u00E9 10 caracteres",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "service-port",
+        "description": "Porta do cont\u00EAiner entre 1024 e 65535",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "service-health",
+        "description": "Health check com caminho come\u00E7ando por /",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "service-size",
+        "description": "CPU e mem\u00F3ria numa combina\u00E7\u00E3o aceita pelo Fargate",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "service-count",
+        "description": "Entre 1 e 10 tarefas",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "load-balancer-subnets",
+        "description": "Ao menos duas subnets p\u00FAblicas, em zonas diferentes, para o load balancer",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "certificate",
+        "description": "Certificado ACM na regi\u00E3o sa-east-1 para o HTTPS",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "database-engine",
+        "description": "Banco postgres ou mysql",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "database-version",
+        "description": "Vers\u00E3o principal do banco (ex.: 16)",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "database-class",
+        "description": "Classe de inst\u00E2ncia RDS (ex.: db.t4g.micro)",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "database-storage",
+        "description": "Armazenamento entre 20 e 1000 GB",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "database-subnets",
+        "description": "Ao menos duas subnets privadas para o grupo de subnets do banco",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "queues",
+        "description": "At\u00E9 8 filas, nomes em min\u00FAsculas, d\u00EDgitos e h\u00EDfen, sem repetir",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "components",
+        "description": "Ao menos um componente: servi\u00E7o, banco ou fila",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "alarm-email",
+        "description": "E-mail de alarme v\u00E1lido, quando informado",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "backend",
+        "description": "Bucket de state e regi\u00E3o v\u00E1lidos",
+        "passed": true,
+        "detail": null
+      }
+    ],
+    "valid": true,
+    "attempts": 1,
+    "inputTokens": 1840,
+    "outputTokens": 610
+  }
+}

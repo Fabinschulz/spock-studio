@@ -29,6 +29,8 @@ const REQUEST_TIMEOUT: Duration = Duration::from_secs(120);
 // motor: se cortasse antes, a UI mostraria ENGINE_TIMEOUT enquanto o motor ainda termina e grava a resposta.
 const INVESTIGATION_TIMEOUT: Duration = Duration::from_secs(180);
 const INVESTIGATION_METHOD: &str = "management.investigate";
+// O desenho da infraestrutura pode pedir duas respostas ao modelo.
+const IAC_ARCHITECT_METHOD: &str = "iac.architect.draft";
 // O download do OpenTofu ou do Terraform tem até 10 min no motor (OfficialReleaseToolchain); o host espera um pouco mais.
 const TERRAFORM_INSTALL_TIMEOUT: Duration = Duration::from_secs(660);
 const TERRAFORM_INSTALL_METHOD: &str = "iac.runtime.install";
@@ -45,7 +47,7 @@ const IAC_APPLY_METHOD: &str = "iac.apply";
 
 fn request_timeout(method: &str) -> Duration {
     match method {
-        INVESTIGATION_METHOD => INVESTIGATION_TIMEOUT,
+        INVESTIGATION_METHOD | IAC_ARCHITECT_METHOD => INVESTIGATION_TIMEOUT,
         TERRAFORM_INSTALL_METHOD => TERRAFORM_INSTALL_TIMEOUT,
         IAC_VALIDATE_METHOD | IAC_PLAN_METHOD | IAC_STATE_METHOD | IAC_UNLOCK_METHOD => {
             IAC_OPERATION_TIMEOUT

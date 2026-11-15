@@ -95,7 +95,9 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     iacOperations: new IacOperationService(iacRuntimes, new CliIacRuntimeFactory(engine.Runner, engine.DataRoot), new IacConfigReader(),
         new FileIacWorkArea(engine.DataRoot), engine.Workspace, cloud, engine.Clock, integrations.Audit, iacStates, iacRegistry),
     iacState: new IacStateService(engine.Workspace, new IacConfigReader(), iacStates, iacRegistry, cloud, engine.Files, engine.Store, engine.Runner,
-        engine.Clock, engine.Tracker, integrations.Audit));
+        engine.Clock, engine.Tracker, integrations.Audit),
+    iacGeneration: new IacGenerationService(engine.Workspace, new IacConfigReader(), models, engine.Files, engine.Store, engine.Clock, engine.Tracker,
+        integrations.Audit));
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

@@ -132,6 +132,12 @@ public static class IacErrors
 
     public static EngineException BootstrapValueInvalid(string message) => new("IAC_BOOTSTRAP_INVALID", message);
 
+    public static EngineException BlueprintInvalid(IEnumerable<IacBlueprintCheck> failed) =>
+        new("IAC_BLUEPRINT_INVALID", "O desenho não passou nas verificações: " + string.Join("; ", failed.Select(check => check.Description)) + ".");
+
+    public static EngineException GenerationFolderInvalid() =>
+        new("IAC_GENERATION_FOLDER_INVALID", "A pasta da infraestrutura deve ser um caminho relativo dentro do projeto, com letras, dígitos, ponto, hífen e sublinhado.");
+
     public static EngineException UnlockConfirmationRequired() =>
         new("IAC_UNLOCK_CONFIRMATION_REQUIRED", "Liberar a trava do state pede confirmação: se alguém ainda estiver aplicando, o state pode corromper.");
 }
