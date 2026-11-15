@@ -29,7 +29,7 @@ var relay = new EventRelay();
 var engine = LocalEngine.Create(FileRunStore.DefaultDataRoot(), relay.Emit, rememberWorkspaces: true);
 using var transport = new HttpsModelTransport();
 var models = new ModelGateway(engine.Settings, transport, chat: transport, checks: new FileModelCheckStore(engine.DataRoot), clock: engine.Clock,
-    preferences: new FileModelPreferences(engine.DataRoot));
+    preferences: new FileModelPreferences(engine.DataRoot), budgets: new FileModelBudgets(engine.DataRoot));
 using var modelAccess = new LocalModelAccess(new ModelBroker(models));
 var aiRuntime = new LoopbackAiRuntime();
 // Antes dos workflows: o que um projeto autorizou como contexto entra no índice do workflow.

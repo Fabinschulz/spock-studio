@@ -30,7 +30,8 @@ const none: ModelConnection = {
     checkedAt: null,
     lastError: null
   })),
-  purposes: []
+  purposes: [],
+  budgets: connected.budgets
 };
 const purposeTemplate = connected.purposes.map((purpose) => ({ ...purpose, isDefault: true }));
 
@@ -64,7 +65,7 @@ function settle(state: ModelConnection): ModelConnection {
   };
 }
 
-type Behavior = { refuseSave?: boolean; refuseTest?: boolean; refusePurpose?: boolean };
+type Behavior = { refuseSave?: boolean; refuseTest?: boolean; refusePurpose?: boolean; refuseBudget?: boolean };
 
 type Fake = EngineClient & { requests: { method: string; params: Record<string, unknown> }[] };
 
@@ -135,6 +136,23 @@ function client(initial: ModelConnection, behavior: Behavior = {}): Fake {
                 : model === null || !owner || model === fallback?.model
                   ? { ...purpose, provider: fallback!.id, model: fallback!.model, isDefault: true }
                   : { ...purpose, provider: owner.id, model, isDefault: false }
+            )
+          };
+          return schema.parse(state);
+        }
+        case 'model.budget': {
+          if (behavior.refuseBudget)
+            throw new EngineError(
+              'MODEL_BUDGET_OUT_OF_RANGE',
+              'O teto de Fluxos de engenharia vai de 2.000 a 64.000 tokens.'
+            );
+          const tokens = typeof params.tokens === 'number' ? params.tokens : null;
+          state = {
+            ...state,
+            budgets: state.budgets.map((budget) =>
+              budget.purpose !== params.purpose
+                ? budget
+                : { ...budget, tokens: tokens ?? budget.defaultTokens, isDefault: tokens === null }
             )
           };
           return schema.parse(state);
@@ -386,11 +404,11 @@ describe('Minha IA · modelo por finalidade', () => {
     expect(await selectOf('Juiz')).toHaveTextContent('GPT-4o mini (OpenAI) (padrão)');
   });
 
-  it('diz que a escolha é da pessoa e que o teto de tokens não muda', async () => {
+  it('diz que a escolha é da pessoa e onde fica o teto de tokens', async () => {
     renderPage(client(connected));
 
     expect(await screen.findByText(/nenhum agente escolhe o modelo: a escolha é sua/)).toBeInTheDocument();
-    expect(screen.getByText(/O teto de tokens de cada execução continua o mesmo/)).toBeInTheDocument();
+    expect(screen.getByText(/O teto de tokens de cada execução fica na seção seguinte/)).toBeInTheDocument();
   });
 
   it('sem chave a seção não aparece', async () => {
@@ -437,6 +455,73 @@ describe('Minha IA · modelo por finalidade', () => {
   it('não tem violações estruturais de acessibilidade com vários provedores', async () => {
     const { container } = renderPage(client(multi));
     await selectOf('Juiz');
+
+    await expectNoA11yViolations(container);
+  });
+});
+
+describe('Minha IA · teto de tokens por finalidade', () => {
+  const fieldOf = async (label: string) => screen.findByLabelText(`${label} (tokens por execução)`);
+
+  it('aparece mesmo sem chave, com o teto de hoje, a faixa e o padrão', async () => {
+    renderPage(client(none));
+
+    expect(await screen.findByRole('heading', { name: 'Teto de tokens por finalidade' })).toBeInTheDocument();
+    expect(await fieldOf('Fluxos de engenharia')).toHaveValue('8000');
+    expect(screen.getByText('De 2.000 a 64.000 tokens. Padrão: 8.000.')).toBeInTheDocument();
+    expect(await fieldOf('Investigação do assistente')).toHaveValue('30000');
+    expect(screen.getByText(/segunda opinião do juiz/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Voltar o teto/ })).not.toBeInTheDocument();
+  });
+
+  it('salvar manda a finalidade e o número, avisa e oferece voltar ao padrão', async () => {
+    const api = client(connected);
+    renderPage(api);
+
+    const field = await fieldOf('Fluxos de engenharia');
+    await userEvent.clear(field);
+    await userEvent.type(field, '16000');
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar o teto de Fluxos de engenharia' }));
+
+    expect(await screen.findByText('Teto de fluxos de engenharia: 16.000 tokens por execução.')).toBeInTheDocument();
+    expect(api.requests.at(-1)).toEqual({ method: 'model.budget', params: { purpose: 'workflow', tokens: 16000 } });
+    expect(await fieldOf('Fluxos de engenharia')).toHaveValue('16000');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Voltar o teto de Fluxos de engenharia ao padrão' }));
+
+    expect(await screen.findByText('Teto de fluxos de engenharia: 8.000 tokens por execução.')).toBeInTheDocument();
+    expect(api.requests.at(-1)).toEqual({ method: 'model.budget', params: { purpose: 'workflow', tokens: null } });
+  });
+
+  it('fora da faixa ou sem ser número, explica e não deixa salvar', async () => {
+    const api = client(connected);
+    renderPage(api);
+
+    const field = await fieldOf('Investigação do assistente');
+    for (const value of ['4999', '120001', '20.000', 'muito']) {
+      await userEvent.clear(field);
+      await userEvent.type(field, value);
+      expect(screen.getByText('Use um número inteiro. De 5.000 a 120.000 tokens. Padrão: 30.000.')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Salvar o teto de Investigação do assistente' })).toBeDisabled();
+    }
+    expect(modelCalls(api)).not.toContain('model.budget');
+  });
+
+  it('se o motor recusa, mostra o motivo e o teto continua o de antes', async () => {
+    renderPage(client(connected, { refuseBudget: true }));
+
+    const field = await fieldOf('Fluxos de engenharia');
+    await userEvent.clear(field);
+    await userEvent.type(field, '9000');
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar o teto de Fluxos de engenharia' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('vai de 2.000 a 64.000 tokens');
+    expect(screen.queryByRole('button', { name: /Voltar o teto/ })).not.toBeInTheDocument();
+  });
+
+  it('não tem violações estruturais de acessibilidade', async () => {
+    const { container } = renderPage(client(connected));
+    await fieldOf('Fluxos de engenharia');
 
     await expectNoA11yViolations(container);
   });

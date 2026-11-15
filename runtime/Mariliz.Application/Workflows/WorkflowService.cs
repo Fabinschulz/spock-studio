@@ -108,7 +108,7 @@ public sealed class WorkflowService(
             {
                 var projectContext = await context.BuildAsync(run.ProjectId, ct);
                 // O acesso ao modelo vale só para esta conversa: o que foi gasto é contado pelo motor e fica no diário.
-                var grant = useModel ? models!.Open(executionId, WorkflowRequests.ModelTokenBudget) : null;
+                var grant = useModel ? models!.Open(executionId, ModelPurposes.Workflow) : null;
                 try
                 {
                     return await runtime.StartAsync(WorkflowRequests.Start(run, executionId, input, projectContext, grant, allowedActions),

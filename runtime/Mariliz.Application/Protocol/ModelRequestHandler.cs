@@ -12,7 +12,8 @@ internal sealed class ModelRequestHandler(ModelGateway models)
         ProtocolMethods.ModelSave => await Save(method, parameters, ct),
         ProtocolMethods.ModelConnection => ConnectionJson(models.Connection()),
         ProtocolMethods.ModelPurpose => ConnectionJson(models.SetPurposeModel(RequiredString(method, parameters, "purpose"), ReadString(parameters, "model"))),
-        ProtocolMethods.ModelTest => ConnectionJson(await models.TestAsync(ReadString(parameters, "provider"), ct)),
+        ProtocolMethods.ModelBudget => ConnectionJson(models.SetBudget(RequiredString(method, parameters, "purpose"), ReadTokens(method, parameters))),
+        ProtocolMethods.ModelTest =>ConnectionJson(await models.TestAsync(ReadString(parameters, "provider"), ct)),
         ProtocolMethods.ModelRemove => ConnectionJson(models.Remove(RequiredString(method, parameters, "provider"))),
         ProtocolMethods.ModelDefault => ConnectionJson(models.SetDefaultProvider(RequiredString(method, parameters, "provider"))),
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
@@ -29,6 +30,14 @@ internal sealed class ModelRequestHandler(ModelGateway models)
 
     private static string? ReadString(JsonObject? values, string name) =>
         values?[name] is JsonValue node && node.TryGetValue<string>(out var text) ? text : null;
+
+    // Ausente ou nulo volta ao padrão; qualquer outra coisa que não seja inteiro é recusada.
+    private static int? ReadTokens(string method, JsonObject? values) => values?["tokens"] switch
+    {
+        null => null,
+        JsonValue node when node.TryGetValue<int>(out var tokens) => tokens,
+        _ => throw new ParamException($"Parâmetros de {method} inválidos.")
+    };
 
     private static JsonObject StatusJson(ModelStatus status) => new()
     {

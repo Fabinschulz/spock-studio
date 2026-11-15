@@ -38,16 +38,35 @@ export const modelPurposeSchema = z.object({
   isDefault: z.boolean()
 });
 
+/**
+ * O teto de tokens de cada execução de uma finalidade, entrada e resposta somadas. Não depende de chave. O juiz não tem
+ * teto próprio: gasta do fluxo de engenharia em que roda.
+ */
+export const modelBudgetSchema = z.object({
+  purpose: z.string(),
+  label: z.string(),
+  description: z.string(),
+  /** O que vale agora: o escolhido ou, sem escolha, o padrão (`isDefault`). */
+  tokens: z.number().int(),
+  defaultTokens: z.number().int(),
+  minTokens: z.number().int(),
+  maxTokens: z.number().int(),
+  isDefault: z.boolean()
+});
+
 /** `provider` é o padrão; vazio sem nenhuma chave. Todos os provedores vêm na lista, com ou sem chave. */
 export const modelConnectionSchema = z.object({
   configured: z.boolean(),
   provider: z.string(),
   providers: z.array(providerConnectionSchema),
   /** Uma por finalidade (assistente, juiz, fluxos); vazio sem chave. */
-  purposes: z.array(modelPurposeSchema)
+  purposes: z.array(modelPurposeSchema),
+  /** Fluxos de engenharia e investigação do assistente; vem com ou sem chave. */
+  budgets: z.array(modelBudgetSchema)
 });
 
 export type ModelStatus = z.infer<typeof modelStatusSchema>;
 export type ModelConnection = z.infer<typeof modelConnectionSchema>;
 export type ProviderConnection = z.infer<typeof providerConnectionSchema>;
 export type ModelPurpose = z.infer<typeof modelPurposeSchema>;
+export type ModelBudget = z.infer<typeof modelBudgetSchema>;

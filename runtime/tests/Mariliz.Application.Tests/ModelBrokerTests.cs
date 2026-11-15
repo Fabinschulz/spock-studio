@@ -236,7 +236,7 @@ public class ModelBrokerTests
         var chat = new FakeChat();
         var broker = new ModelBroker(new ModelGateway(new FakeSettings(), new NoopTransport(), chat: chat));
         using var access = new LocalModelAccess(broker);
-        var grant = access.Open(ExecutionId, 8000);
+        var grant = access.Open(ExecutionId, ModelPurposes.Workflow);
         using var http = new HttpClient();
 
         // O mesmo formato que o schema de ai.workflow.start.v2 exige para o endereço do proxy.
@@ -261,7 +261,7 @@ public class ModelBrokerTests
         Assert.Equal(1, chat.Calls);
 
         // Duas execuções ao mesmo tempo usam o mesmo servidor, cada uma com o seu token.
-        var second = access.Open("ex-aaaaaaaaaaaa", 8000);
+        var second = access.Open("ex-aaaaaaaaaaaa", ModelPurposes.Workflow);
         Assert.Equal(grant.Url, second.Url);
         Assert.NotEqual(grant.Token, second.Token);
         using var crossed = await Post(http, grant.Url, second.Token, Request());

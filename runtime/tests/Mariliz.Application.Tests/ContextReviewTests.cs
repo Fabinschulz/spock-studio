@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Context;
 using Mariliz.Application.Execution;
+using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Tests.Support;
@@ -97,12 +98,33 @@ public sealed class ContextReviewTests : IDisposable
         Assert.Equal(planning.InputTokens, planning.Sections.Sum(section => section.Tokens));
         Assert.Equal("Arquitetura", review.Calls[1].Label);
         Assert.Equal(review.Calls.Sum(call => call.InputTokens + call.OutputTokens), review.PlannedTokens);
-        Assert.Equal(WorkflowRequests.ModelTokenBudget, review.Budget);
+        Assert.Equal(ModelBudgets.Default(ModelPurposes.Workflow), review.Budget);
         Assert.False(review.Model.Configured);
         Assert.False(review.Counting.Exact);
         Assert.Equal("Corrigir o frete", preview.Request!["goal"]!.GetValue<string>());
         Assert.Equal("ai.context.preview.v1", preview.Request["schema"]!.GetValue<string>());
         Assert.Equal("src/a.cs", preview.Request["context"]!["sources"]![0]!["path"]!.GetValue<string>());
+    }
+
+    private sealed class NoTransport : IModelTransport
+    {
+        public Task<ModelTransportResult> SendAsync(Uri endpoint, string key, string prompt, int maxTokens, CancellationToken ct) =>
+            throw new InvalidOperationException("A revisão não chama o modelo.");
+    }
+
+    [Fact]
+    public async Task O_teto_configurado_para_os_fluxos_decide_o_que_cabe()
+    {
+        var budgets = new FileModelBudgets(_project.DataDir);
+        var models = new ModelGateway(new FileModelSettings(_project.DataDir), new NoTransport(), budgets: budgets);
+        models.SetBudget(ModelPurposes.Workflow, 2_000);
+        var preview = new FakePreview(_ => Reply([Call("planning", 100, 300), Call("architecture", 80, 300)]));
+
+        var review = await new ContextReviewService(_workspace, new FakeContext(), preview, new WordTokenizers(), models)
+            .ReviewAsync(_projectId, "Corrigir o frete", CancellationToken.None);
+
+        Assert.Equal(2_000, review.Budget);
+        Assert.Equal([true, false], review.Calls.Select(call => call.WithinBudget));
     }
 
     [Fact]

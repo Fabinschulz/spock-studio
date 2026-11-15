@@ -44,11 +44,15 @@ public sealed record ModelConnection(
     bool Configured,
     string Provider,
     IReadOnlyList<ProviderConnection> Providers,
-    IReadOnlyList<ModelPurposeState> Purposes);
+    IReadOnlyList<ModelPurposeState> Purposes,
+    IReadOnlyList<ModelBudgetState> Budgets);
 
 /// <param name="Provider">De quem é o modelo: o provedor sai do próprio modelo.</param>
 /// <param name="IsDefault">Ninguém escolheu um modelo para a finalidade: vale o padrão do provedor padrão.</param>
 public sealed record ModelPurposeState(string Id, string Label, string Description, string Provider, string Model, bool IsDefault);
+
+/// <param name="Tokens">O teto que vale agora, escolhido ou padrão.</param>
+public sealed record ModelBudgetState(string Purpose, string Label, string Description, int Tokens, int DefaultTokens, int MinTokens, int MaxTokens, bool IsDefault);
 
 // Só no diretório de dados do motor. Cada provedor tem a sua chave; guardar uma nunca mexe nas dos outros.
 public interface IModelSettings

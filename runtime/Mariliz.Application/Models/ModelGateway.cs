@@ -14,7 +14,8 @@ public sealed class ModelGateway(
     IModelChatTransport? chat = null,
     IModelCheckStore? checks = null,
     IClock? clock = null,
-    IModelPreferences? preferences = null)
+    IModelPreferences? preferences = null,
+    IModelBudgetStore? budgets = null)
 {
     public const int MaxChatTokens = 8192;
     public const int MaxChatText = 64000;
@@ -36,7 +37,36 @@ public sealed class ModelGateway(
         var configured = settings.Providers();
         var fallback = Default(configured);
         var providers = ModelProviders.All.Select(provider => ProviderState(provider, configured.Contains(provider.Id), provider == fallback)).ToList();
-        return new ModelConnection(configured.Count > 0, fallback?.Id ?? "", providers, fallback is null ? [] : Purposes(configured, fallback));
+        return new ModelConnection(configured.Count > 0, fallback?.Id ?? "", providers, fallback is null ? [] : Purposes(configured, fallback), Budgets());
+    }
+
+    // Finalidade sem teto próprio (o juiz gasta do fluxo) não abre execução sozinha.
+    public int Budget(string purpose) =>
+        ModelBudgets.Find(purpose) is { } budget ? ModelBudgets.Resolve(budget, budgets?.Read()) : throw UnknownBudget();
+
+    // Não depende de chave: a revisão de contexto já mostra o teto antes de haver modelo.
+    public ModelConnection SetBudget(string purpose, int? tokens)
+    {
+        var budget = ModelBudgets.Find(purpose) ?? throw UnknownBudget();
+        if (tokens is { } value && !budget.Accepts(value))
+            throw new EngineException("MODEL_BUDGET_OUT_OF_RANGE",
+                $"O teto de {budget.Label} vai de {ModelBudgets.Format(budget.MinTokens)} a {ModelBudgets.Format(budget.MaxTokens)} tokens.");
+
+        budgets?.Write(purpose, tokens == budget.DefaultTokens ? null : tokens);
+        return Connection();
+    }
+
+    private static EngineException UnknownBudget() => new("MODEL_BUDGET_UNKNOWN", "Essa finalidade não tem teto de tokens próprio.");
+
+    private List<ModelBudgetState> Budgets()
+    {
+        var chosen = budgets?.Read();
+        return ModelBudgets.All.Select(budget =>
+        {
+            var tokens = ModelBudgets.Resolve(budget, chosen);
+            return new ModelBudgetState(budget.Purpose, budget.Label, budget.Description, tokens, budget.DefaultTokens, budget.MinTokens, budget.MaxTokens,
+                tokens == budget.DefaultTokens);
+        }).ToList();
     }
 
     private ProviderConnection ProviderState(ModelProvider provider, bool configured, bool isDefault)

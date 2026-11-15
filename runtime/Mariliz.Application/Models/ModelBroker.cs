@@ -23,8 +23,8 @@ public interface IModelAccess
 {
     bool Configured { get; }
 
-    // O endereço só existe em 127.0.0.1.
-    ModelGrant Open(string executionId, int tokenBudget);
+    // O endereço só existe em 127.0.0.1. O teto vem da finalidade, configurado pela pessoa, não de quem abre a execução.
+    ModelGrant Open(string executionId, string purpose);
 
     // Fechar duas vezes devolve o mesmo total.
     ModelUsage Close(string executionId);
@@ -49,6 +49,8 @@ public sealed partial class ModelBroker(ModelGateway gateway)
     private const int RetainedClosed = 256;
 
     public bool Configured => gateway.Status().Configured;
+
+    public int Budget(string purpose) => gateway.Budget(purpose);
 
     public string Open(string executionId, int tokenBudget)
     {

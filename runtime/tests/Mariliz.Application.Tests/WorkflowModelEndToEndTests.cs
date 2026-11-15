@@ -144,7 +144,7 @@ public class WorkflowModelEndToEndTests
             var calls = run.Result["usage"]!["modelCalls"]!.GetValue<int>();
             Assert.Equal(provider.Requests.Count, calls);
             Assert.InRange(calls, 4, 5);
-            Assert.InRange(run.Result["usage"]!["inputTokens"]!.GetValue<int>() + run.Result["usage"]!["outputTokens"]!.GetValue<int>(), 1, WorkflowRequests.ModelTokenBudget);
+            Assert.InRange(run.Result["usage"]!["inputTokens"]!.GetValue<int>() + run.Result["usage"]!["outputTokens"]!.GetValue<int>(), 1, ModelBudgets.Default(ModelPurposes.Workflow));
         }
         finally
         {

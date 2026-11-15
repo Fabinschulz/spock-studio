@@ -16,13 +16,13 @@ public class WorkflowModelTests
         public bool Configured => configured;
         public List<string> Opened { get; } = [];
         public List<string> Closed { get; } = [];
-        public int OpenBudget;
+        public string? OpenPurpose;
 
-        public ModelGrant Open(string executionId, int tokenBudget)
+        public ModelGrant Open(string executionId, string purpose)
         {
             Opened.Add(executionId);
-            OpenBudget = tokenBudget;
-            return new ModelGrant("http://127.0.0.1:49152/v1/model", new string('t', 43), tokenBudget);
+            OpenPurpose = purpose;
+            return new ModelGrant("http://127.0.0.1:49152/v1/model", new string('t', 43), 12_000);
         }
 
         public ModelUsage Close(string executionId)
@@ -99,8 +99,8 @@ public class WorkflowModelTests
         await run.Completion!;
 
         var start = runtime.Started!;
-        Assert.Equal(WorkflowRequests.ModelTokenBudget, access.OpenBudget);
-        Assert.Equal(8000, start["limits"]!["maxTokens"]!.GetValue<int>());
+        Assert.Equal(ModelPurposes.Workflow, access.OpenPurpose);
+        Assert.Equal(12_000, start["limits"]!["maxTokens"]!.GetValue<int>());
         Assert.Equal(WorkflowRequests.ModelMilliseconds, start["limits"]!["maxMilliseconds"]!.GetValue<int>());
         Assert.True(start["policy"]!["modelAllowed"]!.GetValue<bool>());
         Assert.Equal("http://127.0.0.1:49152/v1/model", start["broker"]!["url"]!.GetValue<string>());

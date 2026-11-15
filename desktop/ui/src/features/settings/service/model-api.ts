@@ -11,6 +11,8 @@ export type ModelApi = {
   test(provider: string): Promise<ModelConnection>;
   /** Só entre os modelos de provedores com chave; nulo volta ao padrão. */
   setPurpose(purpose: string, model: string | null): Promise<ModelConnection>;
+  /** Dentro da faixa da finalidade; nulo volta ao padrão. */
+  setBudget(purpose: string, tokens: number | null): Promise<ModelConnection>;
   remove(provider: string): Promise<ModelConnection>;
   setDefault(provider: string): Promise<ModelConnection>;
 };
@@ -23,6 +25,7 @@ export function createModelApi(client: EngineClient): ModelApi {
     test: (provider) => client.request('model.test', { provider }, modelConnectionSchema),
     setPurpose: (purpose, model) =>
       client.request('model.purpose', model === null ? { purpose } : { purpose, model }, modelConnectionSchema),
+    setBudget: (purpose, tokens) => client.request('model.budget', { purpose, tokens }, modelConnectionSchema),
     remove: (provider) => client.request('model.remove', { provider }, modelConnectionSchema),
     setDefault: (provider) => client.request('model.default', { provider }, modelConnectionSchema)
   };

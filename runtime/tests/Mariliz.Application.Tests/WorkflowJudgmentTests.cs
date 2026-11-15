@@ -123,7 +123,7 @@ public class WorkflowJudgmentTests
     private sealed class FakeAccess(IReadOnlyList<ModelCallRecord> calls) : IModelAccess
     {
         public bool Configured => true;
-        public ModelGrant Open(string executionId, int tokenBudget) => new("http://127.0.0.1:49152/v1/model", new string('t', 43), tokenBudget);
+        public ModelGrant Open(string executionId, string purpose) => new("http://127.0.0.1:49152/v1/model", new string('t', 43), ModelBudgets.Default(purpose));
         public ModelUsage Close(string executionId) => new(calls.Count, calls.Sum(c => c.InputTokens), calls.Sum(c => c.OutputTokens), 0);
         public IReadOnlyList<ModelCallRecord> Calls(string executionId) => calls;
     }

@@ -34,6 +34,7 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "model.connection",
     "model.test",
     "model.purpose",
+    "model.budget",
     "integration.catalog",
     "connection.list",
     "connection.create",

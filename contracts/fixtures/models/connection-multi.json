@@ -99,5 +99,27 @@
       "model": "gpt-4o-mini",
       "isDefault": true
     }
+  ],
+  "budgets": [
+    {
+      "purpose": "workflow",
+      "label": "Fluxos de engenharia",
+      "description": "Por execução de um fluxo de engenharia: classificação, plano, arquitetura, buscas reformuladas e a segunda opinião do juiz somadas.",
+      "tokens": 8000,
+      "defaultTokens": 8000,
+      "minTokens": 2000,
+      "maxTokens": 64000,
+      "isDefault": true
+    },
+    {
+      "purpose": "assistant",
+      "label": "Investigação do assistente",
+      "description": "Por investigação em etapas do assistente gerencial. Uma pergunta direta ao assistente é uma chamada só, com resposta curta, e não passa por este teto.",
+      "tokens": 30000,
+      "defaultTokens": 30000,
+      "minTokens": 5000,
+      "maxTokens": 120000,
+      "isDefault": true
+    }
   ]
 }

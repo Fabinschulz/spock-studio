@@ -43,10 +43,13 @@ public class ProjectInvestigationTests
         public List<string> Opened { get; } = [];
         public List<string> Closed { get; } = [];
 
-        public ModelGrant Open(string executionId, int tokenBudget)
+        public List<string> Purposes { get; } = [];
+
+        public ModelGrant Open(string executionId, string purpose)
         {
             Opened.Add(executionId);
-            return new ModelGrant("http://127.0.0.1:49152/v1/model", new string('t', 43), tokenBudget);
+            Purposes.Add(purpose);
+            return new ModelGrant("http://127.0.0.1:49152/v1/model", new string('t', 43), 45_000);
         }
 
         public ModelUsage Close(string executionId)
@@ -260,7 +263,9 @@ public class ProjectInvestigationTests
         Assert.Matches(@"^ex-[0-9a-f]{12}$", seen["executionId"]!.GetValue<string>());
         Assert.Equal(Question, seen["question"]!.GetValue<string>());
         Assert.True(seen["policy"]!["modelAllowed"]!.GetValue<bool>());
-        Assert.Equal(InvestigationService.TokenBudget, seen["limits"]!["maxTokens"]!.GetValue<int>());
+        // O teto é o que o acesso concedeu para a finalidade do assistente, não um número do serviço.
+        Assert.Equal([ModelPurposes.Assistant], s.Models.Purposes);
+        Assert.Equal(45_000, seen["limits"]!["maxTokens"]!.GetValue<int>());
         // O runtime de IA termina por tempo antes de o motor cortar a conversa (e o host espera mais que o motor).
         Assert.Equal(InvestigationService.RuntimeBudgetMilliseconds, seen["limits"]!["maxMilliseconds"]!.GetValue<int>());
         Assert.True(TimeSpan.FromMilliseconds(InvestigationService.RuntimeBudgetMilliseconds) < s.Service.Deadline);
