@@ -11,6 +11,7 @@ using Mariliz.Application.Management.Investigation;
 using Mariliz.Application.Mcp;
 using Mariliz.Application.Audit;
 using Mariliz.Application.Context;
+using Mariliz.Application.Iac;
 using Mariliz.Application.Ideas;
 using Mariliz.Application.Security;
 using Mariliz.Runtime;
@@ -20,6 +21,7 @@ using Mariliz.Infrastructure;
 using Mariliz.Infrastructure.Cloud;
 using Mariliz.Infrastructure.Engineering;
 using Mariliz.Infrastructure.Integrations;
+using Mariliz.Infrastructure.Terraform;
 
 // stdout é exclusivo do protocolo; qualquer diagnóstico vai para stderr.
 using var cts = LocalEngine.ConfigureConsole();
@@ -63,6 +65,10 @@ var investigation = new InvestigationService(assistant, integrations, engine.Wor
 var portfolioAssistant = new PortfolioAssistant(assistant, engine.Workspace, models, integrations, engine.Clock);
 // Credenciais da cloud ficam onde o SDK de cada provedor as procura; a trilha é a mesma das integrações.
 var cloud = LocalCloudHub.Create(engine.DataRoot, engine.Workspace, engine.Clock, integrations.Audit);
+// O Terraform fica numa pasta própria dos dados do Spock; nada é instalado sem um pedido da pessoa pela interface.
+using var terraformToolchain = new HashiCorpTerraformToolchain(engine.DataRoot, ExecutableLocator.FromEnvironment());
+var terraform = new TerraformDependencyService(terraformToolchain, new FileTerraformSettingsStore(engine.DataRoot), new TerraformConfigReader(),
+    engine.Runner, engine.Workspace, engine.Clock, integrations.Audit);
 var knowledge = new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge, decisionMemory);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
@@ -79,7 +85,8 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     contextReview: new ContextReviewService(engine.Workspace, workflowContext, aiRuntime, new TiktokenTokenizers(), models, knowledge),
     security: new SecurityService(engine.Workspace, engine.Files, engine.Store, engine.Clock, engine.Tracker),
     ideas: new IdeaArchitectService(engine.Workspace, models, engine.Files, engine.Store, engine.Clock, engine.Tracker),
-    cloud: cloud);
+    cloud: cloud,
+    terraform: terraform);
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

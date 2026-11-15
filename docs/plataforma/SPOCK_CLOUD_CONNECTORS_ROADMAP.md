@@ -24,11 +24,14 @@ por valor e risco; nada aqui está decidido sem aprovação do dono.
    leitura), logs recentes do CloudWatch Logs com filtro fixo, Cost Explorer agregado. Cada uma com permissão
    declarada e colunas fixas.
 7. **Leitura cruzada com o projeto.** Relacionar recursos à infraestrutura como código do repositório (pilha
-   CloudFormation × template, recursos com tag do projeto), para responder "o que deste repositório está rodando".
+   CloudFormation × template, state do Terraform, recursos com tag do projeto), para responder "o que deste repositório
+   está rodando". O lado Terraform está em [INFRASTRUCTURE_MANAGEMENT.md](INFRASTRUCTURE_MANAGEMENT.md).
 
 ## Longo prazo
 
-8. **Operações de escrita**, só com: capacidade própria `impact: write`, permissão explícita por vínculo, confirmação
+8. **Operações de escrita** fora do Terraform (criar e mudar infraestrutura vai pelo Terraform, com plano e aprovação:
+   [TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md)). Uma escrita direta pelo conector, se um dia
+   existir, só com: capacidade própria `impact: write`, permissão explícita por vínculo, confirmação
    da pessoa a cada execução (o mesmo caminho das ações aprovadas dos workflows), desfazer quando possível e trilha
    própria. Nenhum agente executaria escrita sem aprovação.
 9. **Provedores adicionais** (Oracle Cloud, DigitalOcean, Cloudflare, Kubernetes como "provedor" de leitura) seguindo

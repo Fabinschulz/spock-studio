@@ -1,0 +1,23 @@
+{
+  "offer": {
+    "offerId": "9cb34c4058559e373171889b",
+    "version": "1.17.2",
+    "platform": {
+      "os": "windows",
+      "arch": "amd64",
+      "key": "windows_amd64"
+    },
+    "archiveUrl": "https://releases.hashicorp.com/terraform/1.17.2/terraform_1.17.2_windows_amd64.zip",
+    "shasumsUrl": "https://releases.hashicorp.com/terraform/1.17.2/terraform_1.17.2_SHA256SUMS",
+    "signatureUrl": "https://releases.hashicorp.com/terraform/1.17.2/terraform_1.17.2_SHA256SUMS.72D7468F.sig",
+    "signingKey": "C874011F0AB405110D02105534365D9472D7468F",
+    "publishedAt": "2026-11-11T11:57:56.765+00:00",
+    "changelogUrl": "https://github.com/hashicorp/terraform/blob/v1.17/CHANGELOG.md",
+    "currentVersion": null,
+    "isUpdate": false,
+    "impacts": [
+      "Já existe o Terraform 1.16.5 compatível nesta máquina, instalado fora do Spock. Usá-lo dispensa esta instalação.",
+      "A instalação fica na pasta de dados do Spock, sem mexer no PATH da máquina, ao lado das versões que já existirem."
+    ]
+  }
+}

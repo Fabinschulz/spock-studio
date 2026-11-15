@@ -4,6 +4,9 @@ Como o Spock se conecta a AWS, Microsoft Azure e Google Cloud, descobre o que a 
 pessoa, aos projetos e aos agentes, sempre só com leitura. Escrito antes da implementação e mantido junto com ela.
 Segurança em [CLOUD_CONNECTION_SECURITY.md](CLOUD_CONNECTION_SECURITY.md), autenticação em
 [CLOUD_AUTHENTICATION_GUIDE.md](CLOUD_AUTHENTICATION_GUIDE.md), situação em [CLOUD_CONNECTORS_STATUS.md](CLOUD_CONNECTORS_STATUS.md).
+Criar e mudar infraestrutura não é papel dos conectores: é da gestão de infraestrutura com Terraform
+([INFRASTRUCTURE_MANAGEMENT.md](INFRASTRUCTURE_MANAGEMENT.md)), que usa estas conexões e segue o modelo de projeto
+[TERRAFORM_PROJECT_LAYOUT.md](TERRAFORM_PROJECT_LAYOUT.md).
 
 ## 1. O que já existia e o que foi reaproveitado
 

@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using Mariliz.Application.AiTools;
 using Mariliz.Application.Audit;
 using Mariliz.Application.Cloud;
+using Mariliz.Application.Iac;
 using Mariliz.Application.Context;
 using Mariliz.Application.Ideas;
 using Mariliz.Application.Security;
@@ -44,6 +45,7 @@ public sealed class EngineSession
     private readonly SecurityRequestHandler? _security;
     private readonly IdeaRequestHandler? _ideas;
     private readonly CloudRequestHandler? _cloud;
+    private readonly IacRequestHandler? _iac;
     private readonly EngineeringRequestHandler? _engineering;
     private readonly RunTracker? _tracker;
     private readonly SemaphoreSlim _outputGate = new(1, 1);
@@ -79,7 +81,8 @@ public sealed class EngineSession
         ContextReviewService? contextReview = null,
         SecurityService? security = null,
         IdeaArchitectService? ideas = null,
-        CloudHub? cloud = null)
+        CloudHub? cloud = null,
+        TerraformDependencyService? terraform = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
@@ -99,6 +102,7 @@ public sealed class EngineSession
         _security = security is null ? null : new SecurityRequestHandler(security);
         _ideas = ideas is null ? null : new IdeaRequestHandler(ideas);
         _cloud = cloud is null ? null : new CloudRequestHandler(cloud);
+        _iac = terraform is null ? null : new IacRequestHandler(terraform);
         _engineering = profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions, mcp);
         _tracker = tracker;
         if (relay is not null) relay.Target = WriteEvent;
@@ -121,6 +125,7 @@ public sealed class EngineSession
         if (security is not null) offered.AddRange(ProtocolMethods.Security);
         if (ideas is not null) offered.AddRange(ProtocolMethods.Idea);
         if (cloud is not null) offered.AddRange(ProtocolMethods.Cloud);
+        if (terraform is not null) offered.AddRange(ProtocolMethods.Iac);
         if (profiles is not null) offered.AddRange(ProtocolMethods.Engineering);
         _capabilities = [.. offered];
     }
@@ -286,6 +291,8 @@ public sealed class EngineSession
                 Reply(ProtocolMessages.Ok(id, _timeline.Handle(method, new RequestParams(parameters)))),
             _ when _cloud is not null && ProtocolMethods.Cloud.Contains(method) =>
                 Reply(ProtocolMessages.Ok(id, await _cloud.HandleAsync(method, new RequestParams(parameters), ct))),
+            _ when _iac is not null && ProtocolMethods.Iac.Contains(method) =>
+                Reply(ProtocolMessages.Ok(id, await _iac.HandleAsync(method, new RequestParams(parameters), ct))),
             _ when _engineering is not null && ProtocolMethods.Engineering.Contains(method) =>
                 Reply(ProtocolMessages.Ok(id, await _engineering.HandleAsync(method, new RequestParams(parameters), ct))),
             _ => Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.MethodNotFound, "Método desconhecido."))

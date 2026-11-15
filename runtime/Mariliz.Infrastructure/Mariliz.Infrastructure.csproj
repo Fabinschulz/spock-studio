@@ -12,6 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Chave pública com que a HashiCorp assina as listas de checksums do Terraform. -->
+    <EmbeddedResource Include="Terraform\hashicorp-release-key.asc" LogicalName="Mariliz.Infrastructure.Terraform.hashicorp-release-key.asc" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="Mariliz.Application.Tests" />
   </ItemGroup>
 

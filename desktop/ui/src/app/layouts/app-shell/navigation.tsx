@@ -8,6 +8,7 @@ import {
   ChartBarIcon,
   ChatIcon,
   ComplianceIcon,
+  GlobeIcon,
   GridIcon,
   Home01Icon,
   IdeaIcon,
@@ -111,6 +112,12 @@ export const PLATFORM_GROUP: NavGroup = {
       to: pathTo('integrations')
     },
     { id: 'cloud', label: 'Conexões cloud', icon: <GridIcon fontSize="small" />, to: pathTo('cloud') },
+    {
+      id: 'infrastructure',
+      label: 'Infraestrutura',
+      icon: <GlobeIcon fontSize="small" />,
+      to: pathTo('infrastructure')
+    },
     { id: 'settings', label: 'Configurações', icon: <SettingIcon fontSize="small" />, to: pathTo('settings') }
   ]
 };

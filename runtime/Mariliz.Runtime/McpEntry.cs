@@ -1,4 +1,5 @@
 using Mariliz.Application;
+using Mariliz.Application.Iac;
 using Mariliz.Application.Mcp;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
@@ -6,6 +7,7 @@ using Mariliz.Infrastructure;
 using Mariliz.Infrastructure.Cloud;
 using Mariliz.Infrastructure.Engineering;
 using Mariliz.Infrastructure.Integrations;
+using Mariliz.Infrastructure.Terraform;
 
 namespace Mariliz.Runtime;
 
@@ -39,6 +41,10 @@ internal static class McpEntry
         Func<WorkspaceAuthorizer> workspaces = () => new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(dataRoot));
         var audit = new FileAuditLog(dataRoot, clock);
         var cloud = new CloudMcpTools(LocalCloudHub.Create(dataRoot, workspaces(), clock, audit), workspaces, Environment.CurrentDirectory, options.Scope);
+        // Só a consulta: o servidor MCP nunca baixa nem instala, e o binário externo só é perguntado pela versão.
+        using var terraformToolchain = new HashiCorpTerraformToolchain(dataRoot, ExecutableLocator.FromEnvironment());
+        var iac = new IacMcpTools(workspaces, authorizer => new TerraformDependencyService(terraformToolchain, new FileTerraformSettingsStore(dataRoot),
+            new TerraformConfigReader(), new SystemProcessRunner(), authorizer, clock, audit), Environment.CurrentDirectory, options.Scope);
         var tools = new ProjectContextTools(
             workspaces,
             new LocalProjectFilesFactory(),
@@ -52,7 +58,7 @@ internal static class McpEntry
             options.Scope);
         try
         {
-            await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. cloud.Tools()]).RunAsync(Console.In, Console.Out, ct);
+            await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. cloud.Tools(), .. iac.Tools()]).RunAsync(Console.In, Console.Out, ct);
         }
         catch (OperationCanceledException)
         {

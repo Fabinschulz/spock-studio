@@ -29,12 +29,15 @@ const REQUEST_TIMEOUT: Duration = Duration::from_secs(120);
 // motor: se cortasse antes, a UI mostraria ENGINE_TIMEOUT enquanto o motor ainda termina e grava a resposta.
 const INVESTIGATION_TIMEOUT: Duration = Duration::from_secs(180);
 const INVESTIGATION_METHOD: &str = "management.investigate";
+// O download do Terraform tem até 10 min no motor (HashiCorpTerraformToolchain); o host espera um pouco mais pelo mesmo motivo.
+const TERRAFORM_INSTALL_TIMEOUT: Duration = Duration::from_secs(660);
+const TERRAFORM_INSTALL_METHOD: &str = "iac.terraform.install";
 
 fn request_timeout(method: &str) -> Duration {
-    if method == INVESTIGATION_METHOD {
-        INVESTIGATION_TIMEOUT
-    } else {
-        REQUEST_TIMEOUT
+    match method {
+        INVESTIGATION_METHOD => INVESTIGATION_TIMEOUT,
+        TERRAFORM_INSTALL_METHOD => TERRAFORM_INSTALL_TIMEOUT,
+        _ => REQUEST_TIMEOUT,
     }
 }
 const SIDECAR: &str = "mariliz-runtime";
@@ -332,6 +335,7 @@ mod tests {
         assert!(request_timeout("management.investigate") > Duration::from_secs(150));
         assert_eq!(request_timeout("management.ask"), REQUEST_TIMEOUT);
         assert_eq!(request_timeout("run.snapshot"), REQUEST_TIMEOUT);
+        assert!(request_timeout("iac.terraform.install") > Duration::from_secs(600));
     }
 
     #[test]

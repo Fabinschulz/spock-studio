@@ -5,6 +5,8 @@ import cloudCatalogFixture from '@contracts/fixtures/cloud/catalog.json';
 import cloudConnectionsFixture from '@contracts/fixtures/cloud/connections.json';
 import cloudLinksFixture from '@contracts/fixtures/cloud/links.json';
 import cloudReadFixture from '@contracts/fixtures/cloud/read.json';
+import iacOfferFixture from '@contracts/fixtures/iac/offer.json';
+import iacStatusFixture from '@contracts/fixtures/iac/status.json';
 import contextReviewFixture from '@contracts/fixtures/context/review.json';
 import ideConnectionFixture from '@contracts/fixtures/ide/connection.json';
 import ideaDraftFixture from '@contracts/fixtures/idea/draft.json';
@@ -67,6 +69,8 @@ import {
   cloudConnectionListSchema,
   cloudLinkListSchema,
   cloudReadResultSchema,
+  terraformOfferResultSchema,
+  terraformStatusResultSchema,
   assistantAnswerSchema,
   connectionListSchema,
   connectionReachListSchema,
@@ -894,5 +898,16 @@ describe('contrato do assistente do portfólio (fixtures do motor)', () => {
     expect(cloudLinkListSchema.parse(cloudLinksFixture).links[0]?.agentAccess).toBe(true);
     const read = cloudReadResultSchema.parse(cloudReadFixture).result;
     for (const row of read.rows) expect(row).toHaveLength(read.columns.length);
+  });
+
+  it('iac: estado do Terraform sem caminho completo e proposta só de fonte oficial da HashiCorp', () => {
+    const status = terraformStatusResultSchema.parse(iacStatusFixture).terraform;
+    expect(status.state).toBe('ready');
+    for (const installation of status.installations) expect(installation.path.startsWith('~')).toBe(true);
+    expect(status.project?.requirements[0]?.constraint).toBe('>= 1.11');
+    const offer = terraformOfferResultSchema.parse(iacOfferFixture).offer;
+    for (const url of [offer.archiveUrl, offer.shasumsUrl, offer.signatureUrl])
+      expect(url.startsWith(`https://releases.hashicorp.com/terraform/${offer.version}/`)).toBe(true);
+    expect(offer.signingKey).toBe('C874011F0AB405110D02105534365D9472D7468F');
   });
 });

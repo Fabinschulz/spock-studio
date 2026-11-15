@@ -1,0 +1,68 @@
+{
+  "terraform": {
+    "state": "ready",
+    "platform": {
+      "os": "windows",
+      "arch": "amd64",
+      "key": "windows_amd64"
+    },
+    "minimumVersion": "1.5.0",
+    "installations": [
+      {
+        "source": "managed",
+        "version": "1.17.2",
+        "path": "~\\AppData\\Local\\Mariliz\\tools\\terraform\\1.17.2\\terraform.exe",
+        "compatible": true,
+        "verified": true,
+        "adopted": false,
+        "problem": null,
+        "installedAt": "2026-11-15T13:52:59.5797736+00:00"
+      },
+      {
+        "source": "external",
+        "version": "1.16.5",
+        "path": "~\\bin\\terraform.exe",
+        "compatible": true,
+        "verified": true,
+        "adopted": true,
+        "problem": null,
+        "installedAt": "2026-11-15T13:52:57.5163413+00:00"
+      }
+    ],
+    "selected": {
+      "source": "managed",
+      "version": "1.17.2",
+      "path": "~\\AppData\\Local\\Mariliz\\tools\\terraform\\1.17.2\\terraform.exe",
+      "compatible": true,
+      "verified": true,
+      "adopted": false,
+      "problem": null,
+      "installedAt": "2026-11-15T13:52:59.5797736+00:00"
+    },
+    "project": {
+      "projectId": "p-0123456789ab",
+      "requirements": [
+        {
+          "file": "infra/providers.tf",
+          "constraint": ">= 1.11",
+          "valid": true
+        }
+      ],
+      "pin": null,
+      "selected": {
+        "source": "managed",
+        "version": "1.17.2",
+        "path": "~\\AppData\\Local\\Mariliz\\tools\\terraform\\1.17.2\\terraform.exe",
+        "compatible": true,
+        "verified": true,
+        "adopted": false,
+        "problem": null,
+        "installedAt": "2026-11-15T13:52:59.5797736+00:00"
+      },
+      "automatic": true,
+      "problem": null
+    },
+    "declinedAt": null,
+    "message": "Terraform 1.17.2 pronto, gerenciado pelo Spock."
+  }
+}
