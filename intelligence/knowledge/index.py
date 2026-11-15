@@ -95,7 +95,7 @@ def lexical(index_root: str, project_id: str, query: str, limit: int = 20) -> li
     path = _index_file(index_root, project_id)
     if not path.exists():
         return []
-    match = " OR ".join(f'"{token}"' for token in tokens)
+    match = " OR ".join(_match_term(token) for token in tokens)
     with _session(path) as conn:
         try:
             rows = conn.execute(
@@ -179,6 +179,23 @@ def query_terms(query: str) -> list[str]:
         if len(tokens) == 12:
             break
     return tokens
+
+
+def _match_term(token: str) -> str:
+    """
+    O índice não tem radical: "trechos" não achava "trecho". Plural vira prefixo do singular ("trecho"*), que acha as duas
+    formas; o resto continua exato. Só ``s`` e ``es`` finais, que valem para o português e o inglês sem errar muito.
+    """
+    stem = _singular(token)
+    return f'"{stem}"*' if stem != token else f'"{token}"'
+
+
+def _singular(token: str) -> str:
+    if len(token) < 5 or not token.endswith("s") or token.endswith("ss"):
+        return token
+    if token.endswith("es") and token[-3] in "rzl":
+        return token[:-2]
+    return token[:-1]
 
 
 def identifier_parts(name: str) -> list[str]:

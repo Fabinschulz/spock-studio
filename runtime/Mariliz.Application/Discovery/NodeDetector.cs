@@ -9,7 +9,7 @@ namespace Mariliz.Application.Discovery;
 internal static class NodeDetector
 {
     internal static void Detect(IProjectFiles files, IReadOnlyList<string> all,
-        List<StackFinding> stacks, List<ToolingFinding> tooling, List<DiscoveryWarning> warnings)
+        List<StackFinding> stacks, List<ToolingFinding> tooling, List<FrameworkFinding> frameworks, List<DiscoveryWarning> warnings)
     {
         var manifests = all.Where(p => Path.GetFileName(p) == "package.json" && ProjectPath.Depth(p) <= 3).OrderBy(p => p, StringComparer.Ordinal).ToList();
         foreach (var manifest in manifests)
@@ -72,6 +72,7 @@ internal static class NodeDetector
                     warnings.Add(new(DiscoveryWarningCodes.UnknownVersion, $"A versão de {name} em {manifest} não pôde ser determinada.", [manifest]));
 
                 stacks.Add(new StackFinding(id, name, root, version, version is null ? Confidence.Low : confidence, evidence, notes));
+                Frameworks.Add(frameworks, Frameworks.Node, id, root, manifest, deps);
                 DetectNodeTooling(files, all, doc.RootElement, root, manifest, tooling, warnings);
             }
         }

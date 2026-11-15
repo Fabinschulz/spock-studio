@@ -13,10 +13,14 @@ public static class TechnologyCatalog
         ["nextjs"] = "Framework web",
         ["react"] = "Biblioteca de interface",
         ["angular"] = "Framework web",
-        ["flutter"] = "Framework de aplicativo"
+        ["flutter"] = "Framework de aplicativo",
+        ["python"] = "Linguagem e runtime",
+        ["rust"] = "Linguagem",
+        ["go"] = "Linguagem",
+        ["java"] = "Plataforma e runtime"
     };
 
-    public static string Category(string id) => Categories.GetValueOrDefault(id, "Outra");
+    public static string Category(string id) => Categories.GetValueOrDefault(id) ?? Discovery.Frameworks.Category(id) ?? "Outra";
 
     // A mesma decisão que o plano do Harness toma.
     public static ProfileHarnessGuidance Guidance(ProfileTechnology technology) =>

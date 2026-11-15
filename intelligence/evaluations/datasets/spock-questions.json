@@ -1,0 +1,71 @@
+{
+  "schema": "rag.project.v1",
+  "description": "Perguntas reais sobre o repositório do Spock. Um acerto é qualquer arquivo de produção da lista entre os 5 primeiros. As cinco primeiras são as da validação real de 2026-11-14. Roda com python intelligence/evaluations/project_recall.py; não é teste de CI porque o repositório muda a cada commit.",
+  "measurements": [
+    {"at": "2026-11-15", "retrieval": "BM25 + símbolos com RRF, 20 candidatos, sem peso por tipo de arquivo", "recallAt5": 0.0833, "mrr": 0.0833, "testShareAt5": 0.6833},
+    {"at": "2026-11-15", "retrieval": "teste com peso 0,5 (fora quando a pergunta fala de teste), até 2 trechos por arquivo, 50 candidatos, plural como prefixo do singular", "recallAt5": 0.3333, "mrr": 0.225, "testShareAt5": 0.0}
+  ],
+  "limits": "O que falta é vocabulário: a pergunta em português e o código em inglês (ForecastCalculator para previsão, RevertService para reversão). Isso pede busca semântica, não peso.",
+  "cases": [
+    {
+      "id": "motor-conversa-com-o-runtime-python",
+      "query": "Como o motor .NET conversa com o runtime Python do LangGraph?",
+      "expect": ["runtime/Mariliz.Infrastructure/LoopbackAiRuntime.cs", "intelligence/server.py"]
+    },
+    {
+      "id": "token-do-github-no-windows",
+      "query": "Onde e como o token do GitHub fica guardado no Windows?",
+      "expect": ["runtime/Mariliz.Infrastructure/Integrations/DpapiSecretVault.cs"]
+    },
+    {
+      "id": "ferramentas-do-servidor-mcp",
+      "query": "Quais ferramentas o servidor MCP expõe para a IDE?",
+      "expect": ["runtime/Mariliz.Application/Mcp/ProjectContextTools.cs", "runtime/Mariliz.Application/Mcp/McpServer.cs"]
+    },
+    {
+      "id": "jira-pagina-e-retoma",
+      "query": "Como a sincronização do Jira pagina e retoma depois de falha?",
+      "expect": ["runtime/Mariliz.Application/Integrations/Connectors/JiraConnector.cs", "runtime/Mariliz.Application/Integrations/SyncExecution.cs", "runtime/Mariliz.Application/Integrations/SyncService.cs"]
+    },
+    {
+      "id": "aprovacao-antes-de-gravar",
+      "query": "Qual é a política de aprovação humana antes de gravar arquivos?",
+      "expect": ["runtime/Mariliz.Application/Workflows/ActionGovernance.cs", "runtime/Mariliz.Application/Execution/ApprovedWriter.cs"]
+    },
+    {
+      "id": "orcamento-de-tokens-no-proxy",
+      "query": "Como o orçamento de tokens é cobrado em cada chamada ao modelo?",
+      "expect": ["runtime/Mariliz.Application/Models/ModelBroker.cs"]
+    },
+    {
+      "id": "divisao-em-trechos",
+      "query": "Como o índice de conhecimento divide um arquivo em trechos?",
+      "expect": ["intelligence/knowledge/chunking.py"]
+    },
+    {
+      "id": "reverter-o-harness",
+      "query": "Como a reversão desfaz os arquivos aplicados pelo Harness?",
+      "expect": ["runtime/Mariliz.Application/Execution/RevertService.cs", "runtime/Mariliz.Application/Execution/OperationUndoer.cs"]
+    },
+    {
+      "id": "segredos-redigidos",
+      "query": "Como os segredos são removidos das linhas antes de sair do motor?",
+      "expect": ["runtime/Mariliz.Core/Policy/SecretScanner.cs"]
+    },
+    {
+      "id": "host-inicia-o-motor",
+      "query": "Como o host Tauri inicia o motor e lê o stdout dele?",
+      "expect": ["desktop/host/src-tauri/src/engine.rs"]
+    },
+    {
+      "id": "modelo-por-finalidade",
+      "query": "Como o modelo de cada finalidade é escolhido entre os provedores com chave?",
+      "expect": ["runtime/Mariliz.Application/Models/ModelGateway.cs", "runtime/Mariliz.Application/Models/ModelPurposes.cs"]
+    },
+    {
+      "id": "previsao-de-entrega",
+      "query": "Como a previsão de entrega do projeto é calculada?",
+      "expect": ["runtime/Mariliz.Application/Management/ForecastCalculator.cs"]
+    }
+  ]
+}

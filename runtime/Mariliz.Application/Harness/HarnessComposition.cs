@@ -13,6 +13,9 @@ internal sealed class HarnessComposition(
     // O perfil tecnológico lê daqui para dizer o mesmo que o plano.
     internal static readonly string[] JavascriptStacks = ["node", "nextjs", "react", "angular"];
 
+    // Detectadas, mas sem regra de stack: o plano diz isso em vez de calar.
+    private static readonly string[] StacksWithoutProfile = ["flutter", "python", "rust", "go", "java"];
+
     // O plano, a validação e o perfil usam esta mesma pergunta.
     internal static bool IsJavascriptStack(StackFinding stack) => JavascriptStacks.Contains(stack.Id);
 
@@ -190,9 +193,9 @@ internal sealed class HarnessComposition(
         AddStackRule(Catalog.RuleStackJavascript, Catalog.PathRuleJavascript, "rules/stack-javascript.md", ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
             "JavaScript/TypeScript", id => JavascriptStacks.Contains(id));
 
-        foreach (var flutter in report.Stacks.Where(s => s.Id == "flutter"))
+        foreach (var stack in report.Stacks.Where(s => StacksWithoutProfile.Contains(s.Id)))
             _limitations.Add(new(LimitationCodes.NoRuleProfile,
-                $"Flutter foi detectado em '{(flutter.Root.Length == 0 ? "." : flutter.Root)}', mas ainda não há perfil de regras para ele; nenhuma regra de stack foi gerada."));
+                $"{stack.Name} foi detectado em '{(stack.Root.Length == 0 ? "." : stack.Root)}', mas ainda não há perfil de regras para ele; nenhuma regra de stack foi gerada."));
 
         var withoutProfile = _architecture.Stack
             .Where(item => item.Language && item.StackId is null or "flutter" && !report.Stacks.Any(stack => stack.Id == item.StackId))

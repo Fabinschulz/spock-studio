@@ -172,6 +172,46 @@ class RagTests(unittest.TestCase):
             self.assertTrue(again["valid"])
             self.assertEqual(again["documents"], 3)
 
+    def test_reconhece_caminhos_de_teste_e_fixture(self) -> None:
+        for path in ("runtime/tests/X/BillingTests.cs", "src/a.test.ts", "web/b.spec.tsx", "intelligence/tests/test_rag.py",
+                     "pkg/conta_test.go", "contracts/fixtures/x.json", "src/Loja.Tests/Conta.cs", "src/__tests__/a.js"):
+            self.assertTrue(chunking.is_test_path(path), path)
+        for path in ("src/Billing/BillingService.cs", "src/testemunha.py", "docs/testes.md", "src/Contest.cs", "src/latest.ts"):
+            self.assertFalse(chunking.is_test_path(path), path)
+
+    def test_producao_vem_antes_do_teste_que_repete_as_palavras_da_pergunta(self) -> None:
+        # Validacao real M1: nomes longos de testes em portugues casavam com a pergunta e tomavam o topo.
+        sources = [
+            {"path": "src/Frete.cs", "hash": "a" * 64, "text": "public class Frete\n{\n    // calcula o frete da entrega pela distancia\n    public decimal Calcular() => 0;\n}\n"},
+            {"path": "tests/FreteTests.cs", "hash": "b" * 64, "text": "public class FreteTests\n{\n    public void Calcula_o_frete_da_entrega_pela_distancia_e_calcula_o_frete_da_entrega() { }\n}\n"},
+        ]
+        with tempfile.TemporaryDirectory() as root:
+            rag.sync(root, PROJECT_A, sources)
+            producao = retrieval.search(root, PROJECT_A, "como calcula o frete da entrega pela distancia")
+            sobre_testes = retrieval.search(root, PROJECT_A, "quais testes cobrem o frete da entrega pela distancia")
+        self.assertEqual(producao[0]["filePath"], "src/Frete.cs")
+        self.assertIn("tests/FreteTests.cs", [hit["filePath"] for hit in producao])
+        self.assertEqual(sobre_testes[0]["filePath"], "tests/FreteTests.cs")
+
+    def test_no_maximo_dois_trechos_do_mesmo_arquivo(self) -> None:
+        metodos = "".join(f"    public void Cobrar{n}() {{ /* cobranca mensal da assinatura */ }}\n\n" for n in range(6))
+        sources = [
+            {"path": "src/Cobranca.cs", "hash": "a" * 64, "text": f"public class Cobranca\n{{\n{metodos}}}\n"},
+            {"path": "docs/cobranca.md", "hash": "b" * 64, "text": "# Cobranca\n\nA cobranca mensal da assinatura sai no dia 5.\n"},
+        ]
+        with tempfile.TemporaryDirectory() as root:
+            rag.sync(root, PROJECT_A, sources)
+            hits = retrieval.search(root, PROJECT_A, "cobranca mensal da assinatura")
+        paths = [hit["filePath"] for hit in hits]
+        self.assertEqual(paths.count("src/Cobranca.cs"), retrieval.PER_FILE)
+        self.assertIn("docs/cobranca.md", paths)
+
+    def test_plural_da_pergunta_acha_o_singular_do_texto(self) -> None:
+        with tempfile.TemporaryDirectory() as root:
+            rag.sync(root, PROJECT_A, [{"path": "docs/a.md", "hash": "a" * 64, "text": "Cada trecho tem uma ancora estavel no arquivo."}])
+            self.assertEqual(rag.search(root, PROJECT_A, "trechos")[0]["filePath"], "docs/a.md")
+            self.assertEqual(rag.search(root, PROJECT_A, "arquivos")[0]["filePath"], "docs/a.md")
+
     def test_chunking_segue_a_estrutura_da_fonte(self) -> None:
         markdown = chunking.chunk("docs/a.md", "# Guia\n\nIntro.\n\n## Instalação\n\nPasso um.\n\n### Windows\n\nPasso dois.\n")
         self.assertEqual([piece.anchor for piece in markdown], ["h:guia", "h:instalacao", "h:windows"])
