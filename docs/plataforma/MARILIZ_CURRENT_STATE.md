@@ -1,14 +1,14 @@
 # Spock Studio: diagnóstico do estado atual
 
-**Data:** 2026-11-15. **Código lido:** `master` em `7198c8d` (depois dos PRs #90 a #99).
+**Data:** 2026-11-15. **Código lido:** `master` em `3f898c3` (depois dos PRs #90 a #101).
 **Método:** leitura do código, seção por seção, contra o retrato anterior (2026-11-12, `5fa0ddd`), mais os gates da CI
-rodados na máquina (`python scripts/verify.py`): motor .NET com 1339 testes aprovados e 15 ignorados (os ao vivo, que
-pedem credencial), 5 de integração do executável; inteligência com 192; interface com 813; host com 45. O que foi
+rodados na máquina (`python scripts/verify.py`): motor .NET com 1389 testes aprovados e 18 ignorados (os ao vivo, que
+pedem credencial ou download real), 5 de integração do executável; inteligência com 192; interface com 823; host com 45. O que foi
 provado com serviço real vem de [MARILIZ_REAL_WORLD_VALIDATION.md](../MARILIZ_REAL_WORLD_VALIDATION.md) e
 [REMEDIATION_REPORT.md](REMEDIATION_REPORT.md).
 
 Registra o que o Spock Studio já faz, o que está parcial e o que não existe, para que as propostas não recriem o que já
-está pronto. O que está em PR aberto (gestão do Terraform, #97) não entra.
+está pronto. A entrega 3 da infraestrutura como código (aplicar o plano), em andamento numa branch, não entra.
 
 Legenda de situação: **Implementado**, **Parcial** (com o que falta), **Inexistente**. "Validado" quer dizer exercitado
 com o serviço real; sem essa palavra, a prova é a suíte de testes.
@@ -19,7 +19,7 @@ com o serviço real; sem essa palavra, a prova é a suíte de testes.
 | --- | --- | --- | --- |
 | Host desktop | `desktop/host/src-tauri` (Rust, Tauri 2) | Janela, diálogo nativo de pasta, ciclo de vida do sidecar, allowlist de métodos, projetos recentes, log de diagnóstico em memória, terminal integrado. | Implementado |
 | Interface | `desktop/ui` (React, TypeScript, Vite) | Telas, validação Zod das respostas, nenhuma regra de negócio. | Implementado |
-| Motor | `runtime/` (.NET 10) | Domínio, casos de uso, persistência, integrações, cloud, gestão, proxy de modelo, protocolo, servidor MCP. | Implementado |
+| Motor | `runtime/` (.NET 10) | Domínio, casos de uso, persistência, integrações, cloud, infraestrutura como código, gestão, proxy de modelo, protocolo, servidor MCP. | Implementado |
 | Runtime de IA | `intelligence/` (Python, LangGraph) | Grafos de engenharia e de investigação, índice e recuperação de conhecimento, checkpoint, evals de IA e de gestão. | Implementado |
 | Contratos | `contracts/` | Schemas JSON, fixtures válidas e inválidas, goldens conferidos em mais de uma linguagem. | Implementado |
 
@@ -45,7 +45,7 @@ SDK de AWS, Azure e Google, atrás da porta `ICloudProvider`), `Mariliz.Runtime`
 
 ## 2. Protocolo do motor
 
-87 métodos, 83 liberados à interface. Os quatro só do host são `engine.hello`, `engine.shutdown`,
+99 métodos, 95 liberados à interface. Os quatro só do host são `engine.hello`, `engine.shutdown`,
 `workspace.authorize` e `runtime.health`.
 
 | Grupo | Métodos | O que cobre |
@@ -65,6 +65,7 @@ SDK de AWS, Azure e Google, atrás da porta `ICloudProvider`), `Mariliz.Runtime`
 | Segurança | `security.{scan,plan,fix}` | Varredura, plano de correção, correção aprovada. |
 | Ideia (fase A) | `idea.{draft,plan,save}` | Especificação, arquitetura e backlog validados, gravados pelo plano. |
 | Cloud | `cloud.{catalog,list,create,validate,permissions,remove,links,link,configure,unlink,read}` | Conexões AWS, Azure e Google, vínculo por projeto, leituras. |
+| Infraestrutura como código | `iac.runtime.{status,offer,install,decline,remove,adopt,pin}`, `iac.{layout,validate,plan,operations,operation}` | OpenTofu ou Terraform: instalação, ferramenta e versão por projeto, validação e plano sobre uma cópia, histórico. |
 
 Não existem métodos `eval.*`: as evals rodam por `harness.validate` e pelo workflow, e aparecem como eventos.
 
@@ -95,7 +96,7 @@ Não existem métodos `eval.*`: as evals rodam por `harness.validate` e pelo wor
 | Política dos agentes | Implementado, só leitura | `engineering.policy` (`Engineering/AgentPolicy.cs`): as regras deny, ask e allow lidas do próprio hook gerenciado. Não é editável pela tela. |
 | Inventário de MCP | Parcial | `engineering.mcp` (`Engineering/McpInventory.cs`): transporte, programa ou host, variáveis citadas e segredo literal, sem devolver valores. Catálogo, instalação, teste e grants: Inexistente. |
 | Execução de agentes por CLI | Implementado, só leitura, não validado | `aitool.list` e `agent.run` (`AiTools/AiToolCatalog.cs`, `AgentRunService.cs`): Claude Code em modo plano, Cursor Agent e Codex em sandbox de leitura, Gemini CLI sem `--yolo`. Pedido de até 8.000 caracteres, 10 minutos, saída ao vivo com segredos redigidos, registro no diário. Nenhuma CLI estava instalada na validação real. Tela `/agentes`. |
-| Servidor MCP do Spock | Implementado, validado por stdio | `Mcp/`: `list_projects`, `project_briefing` (tecnologias, comandos, Harness, integrações, indicadores, riscos, marcos, decisões), `decisions` e `search_project` (trechos com caminho e hash; trechos de integração ficam de fora), mais `cloud_connections` e uma ferramenta por leitura cloud liberada. Escopo por `--project`; cada leitura vira `ide.context_read` na auditoria, com caminhos e sem conteúdo. A configuração para a IDE sai de `ide.connection`. |
+| Servidor MCP do Spock | Implementado, validado por stdio | `Mcp/`: `list_projects`, `project_briefing` (tecnologias, comandos, Harness, integrações, indicadores, riscos, marcos, decisões), `decisions` e `search_project` (trechos com caminho e hash; trechos de integração ficam de fora), mais `cloud_connections`, uma ferramenta por leitura cloud liberada e `iac_status`, `iac_validate` e `iac_plan_summary`. Escopo por `--project`; cada leitura vira `ide.context_read` na auditoria, com caminhos e sem conteúdo. A configuração para a IDE sai de `ide.connection`. |
 | Proposta do Harness Engineer | Implementado | O agente roda no Claude Code da pessoa e grava `.mariliz/proposal.json`; o motor trata como dado não confiável (`Harness/ProposalReader.cs`). |
 
 Ponto central: o Spock **executa agentes só para leitura**. Mudança no projeto continua passando pelo motor, com plano,
@@ -171,7 +172,8 @@ Portfólio, indicadores, previsão, riscos, marcos, relatório e linha do tempo 
 Inexistente: usuário, login, organização, equipe e papéis. Controles que existem: pasta autorizada pelo diálogo nativo,
 allowlist de métodos em três camadas, política de caminhos graváveis, aprovação humana por mudança, comando e ação,
 tokens por sessão em loopback, instância única, agentes por CLI só em modo leitura, MCP com escopo por projeto e leitura
-auditada, e leitura cloud liberada por vínculo, projeto a projeto.
+auditada, leitura cloud liberada por vínculo, projeto a projeto, e infraestrutura validada e planejada numa cópia, sem
+aplicar nada na nuvem.
 
 ### 3.8 Persistência
 
@@ -187,8 +189,26 @@ credencial que o SDK de cada um já encontra na máquina.
   - `projects/<id>/`: `runs/<runId>/` (diário, eventos, vínculos, backup), `evals/`, `risk-history.json`,
     `decisions/`, `knowledge/index.sqlite`, `execution/checkpoint.sqlite`;
   - `investigation-index/`, `integrations/` (conexões, segredos cifrados, dados sincronizados),
-    `cloud/connections.json`.
+    `cloud/connections.json`;
+  - infraestrutura: `tools/<ferramenta>/` (instalações verificadas), `iac/terraform.json` (ferramenta e versão por
+    projeto), `iac/plugin-cache/`, e `projects/<id>/iac/` com `operations.json` e a pasta de cada operação (cópia da
+    configuração e o `plan.tfplan`).
 - No host: `recent-projects.json`.
+
+### 3.9 Infraestrutura como código
+
+| Capacidade | Situação | Evidência e observações |
+| --- | --- | --- |
+| Ferramenta | Implementado, validado no Windows | OpenTofu como padrão (gratuito, MPL 2.0) e Terraform como opção. Detecção, compatibilidade com o `required_version` (também em `.tofu`), instalação autorizada com assinatura conferida pela chave do fornecedor embutida (`Infrastructure/Iac/OpenTofuToolchain.cs`, `HashiCorpTerraformToolchain.cs`, `OpenPgpSignature.cs`), adoção de instalação existente, ferramenta e versão por projeto, atualização lado a lado e remoção. As duas ferramentas foram instaladas de verdade. |
+| Validar | Implementado, validado com o OpenTofu real | `iac.validate`: `fmt -check` e `validate` em cada pasta com `.tf`, sobre uma cópia, sem backend nem nuvem; erros por arquivo e linha (`Application/Iac/IacOperationService.cs`, adaptador único `CliIacRuntime.cs`). |
+| Planejar | Implementado, validado com o OpenTofu real | `iac.plan`: `init` e `plan -out` na cópia, com a conexão cloud do projeto passando só nomes; resumo de criar, alterar, substituir e destruir, achados de segurança, valores sensíveis fora da tela e da trilha. O projeto não é alterado. |
+| Histórico e trilha | Implementado | `iac.operations` e `iac.operation`; a trilha recebe `iac.validate` e `iac.plan` sem valores. As operações ficam fora da central de execuções. |
+| MCP | Implementado, só consulta | `iac_status`, `iac_validate` e `iac_plan_summary` (`Mcp/IacMcpTools.cs`). Instalar, planejar e aplicar são decisões da pessoa na interface. |
+| Aplicar o plano aprovado | Inexistente | Entrega 3 em andamento: aprovação amarrada ao hash do plano, destaque de destruição, apply e verificação. |
+| State, geração de `.tf`, drift e custo | Inexistente | Desenhados em [INFRASTRUCTURE_MANAGEMENT.md](INFRASTRUCTURE_MANAGEMENT.md) (entregas 4 a 6) e [TERRAFORM_STATE_MANAGEMENT.md](TERRAFORM_STATE_MANAGEMENT.md). |
+
+O layout esperado dos projetos segue [TERRAFORM_PROJECT_LAYOUT.md](TERRAFORM_PROJECT_LAYOUT.md). macOS e Linux estão
+implementados e não rodados em máquina real.
 
 ## 4. Interface atual
 
@@ -212,6 +232,7 @@ Diagnóstico.
 | `/execucoes`, `/execucao/:runId` | Central de execuções e execução | Filtros, detalhe em `Drawer`, Desfazer, volta para a lista |
 | `/linha-do-tempo`, `/auditoria` | Linha do tempo e auditoria | Carregando, erro e vazio; ligam para a execução |
 | `/integracoes`, `/cloud` | Integrações e conexões cloud | Aviso de cofre indisponível; estados completos |
+| `/infraestrutura` | Infraestrutura: ferramenta, versão por projeto, validação e plano | Ciclo da mudança com as etapas que ainda não existem marcadas como próxima entrega |
 | `/configuracoes/ia`, `/configuracoes/diagnostico` | Minha IA (vários provedores), Diagnóstico | Menu próprio de Configurações |
 
 Nenhuma tela foi conferida no navegador para este documento. A validação real de 2026-11-14 dirigiu o aplicativo
@@ -222,7 +243,7 @@ Tauri por Integrações, sincronização, pedido com aprovação e Auditoria.
 `desktop/ui/src/app/layouts/app-shell/`:
 - **Topo:** seletor de projeto (ativo e recentes), alternador Engenharia/Gestão e busca (Ctrl K).
 - **Menu lateral:** mostra só o grupo do ambiente atual, mais Plataforma (Execuções, Linha do tempo, Auditoria,
-  Integrações, Conexões cloud, Configurações), sempre visível.
+  Integrações, Conexões cloud, Infraestrutura, Configurações), sempre visível.
 - **Paleta de comandos:** telas e projetos.
 - **Atalhos:** Ctrl/⌘ com K, B (recolher menu), J (painel inferior), ` (terminal) e / (folha de atalhos).
 - **Barra de estado:** motor, inteligência local, Terminal, Saída, Atalhos e versão.
@@ -288,6 +309,7 @@ ambientes com entrada própria, topo sem repetição do estado do motor, jornada
 | Integrações | Jira sem OAuth; só leitura; sem agendamento de sincronização; sem MCP, banco, Azure DevOps ou GitLab como conexão; agentes LangGraph não leem cloud. |
 | Gestão | Sem mudança de escopo, previsibilidade, dependências, responsáveis e relatórios salvos. |
 | MCP do Spock | Sem linha do tempo nem relatório como ferramenta. |
+| Infraestrutura | Sem aplicar o plano, state, geração de `.tf`, drift e custo; operações fora da central de execuções; macOS e Linux não rodados. |
 | Execuções | Sincronização fora da lista; listagem lê diários inteiros; sem visão agregada de tokens. |
 | Identidade | Sem usuário, papel ou organização. |
 | Distribuição | Instaladores Windows (NSIS) e Linux (AppImage e deb) gerados pela CI, sem assinatura, sem atualização automática, sem workflow de release, sem macOS. |
@@ -303,7 +325,6 @@ ambientes com entrada própria, topo sem repetição do estado do motor, jornada
 | Identidade de leitura no Azure e no Google | Validar os conectores cloud |
 | Máquinas Linux e macOS | Validar os cofres Unix; macOS segue fora (ADR-0001, D2) |
 | Certificados de assinatura de código | Instalador assinado |
-| Terraform (BUSL) ou OpenTofu | Gestão de infraestrutura (PR #97) |
 | Sincronização como execução | Central de execuções completa |
 | Marcador de bloqueio configurável por projeto | Bloqueados no GitHub além dos três rótulos fixos |
 | Custo em dinheiro (D4), identidade e papéis | Visão de custo e auditoria com "quem" |
