@@ -47,13 +47,13 @@ Tela Infraestrutura ──iac.* (só interface)──► IacRequestHandler
 Agente (MCP) ──terraform_status, só leitura──► IacMcpTools
                                                    ▼
                      Application/Iac
-                       TerraformDependencyService   (entrega 1)
+                       IacRuntimeService   (entrega 1)
                        TerraformWorkspaceService    (entrega 2: validate, plan)
                        TerraformApplyService        (entrega 3: aprovação, apply, verificação)
-                          │ ITerraformToolchain, ITerraformSettingsStore, ITerraformConfigReader, IProcessRunner
+                          │ IIacToolchain, ITerraformSettingsStore, IIacConfigReader, IProcessRunner
                           ▼
-                     Infrastructure/Terraform
-                       HashiCorpTerraformToolchain, OpenPgpKeyring, TerraformConfigReader, FileTerraformSettingsStore
+                     Infrastructure/Iac
+                       HashiCorpTerraformToolchain, OpenPgpKeyring, IacConfigReader, FileIacSettingsStore
 ```
 
 - **Sem execução arbitrária.** Cada operação é um método com contrato (`validate`, `plan`, `apply` de um plano
@@ -79,7 +79,7 @@ Agente (MCP) ──terraform_status, só leitura──► IacMcpTools
 
 | # | Entrega | Situação |
 | --- | --- | --- |
-| 1 | Dependência: OpenTofu como padrão e Terraform como opção, detecção, compatibilidade, instalação autorizada e verificada, adoção de instalação existente, ferramenta e versão por projeto, atualização lado a lado, remoção, trilha, tela, `terraform_status` no MCP | **Implementada**; validada no Windows com instalação real das duas ferramentas |
+| 1 | Dependência: OpenTofu como padrão e Terraform como opção, detecção, compatibilidade, instalação autorizada e verificada, adoção de instalação existente, ferramenta e versão por projeto, atualização lado a lado, remoção, trilha, tela, `iac_status` no MCP | **Implementada**; validada no Windows com instalação real das duas ferramentas |
 | 2 | Validação e plano: `fmt -check` e `validate` por pasta, `plan -out` por workspace, resumo do plano (criar/mudar/destruir) guardado na execução | Desenhada em [TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md) |
 | 3 | Aprovação vinculada ao plano, destaque de destruição, apply do plano aprovado, verificação pós-apply | Desenhada |
 | 4 | State: assistente de backend, bootstrap do bucket no modelo, proteção e backup | Desenhada em [TERRAFORM_STATE_MANAGEMENT.md](TERRAFORM_STATE_MANAGEMENT.md) |

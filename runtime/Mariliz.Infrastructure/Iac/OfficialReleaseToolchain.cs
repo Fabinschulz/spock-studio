@@ -9,12 +9,12 @@ using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
 using Mariliz.Infrastructure.Integrations;
 
-namespace Mariliz.Infrastructure.Terraform;
+namespace Mariliz.Infrastructure.Iac;
 
 // O que as duas distribuições (OpenTofu e Terraform) têm em comum: instalações em <dados>/tools/<ferramenta>/<versão>/,
 // a lista de checksums com assinatura válida de uma chave do chaveiro embutido, o pacote batendo com ela e só o binário
 // extraído. O binário nunca vai para o PATH. Cada subclasse diz onde a ferramenta publica as versões.
-public abstract class OfficialReleaseToolchain : ITerraformToolchain, IDisposable
+public abstract class OfficialReleaseToolchain : IIacToolchain, IDisposable
 {
     private const string ManifestName = "install.json";
     private const long MaxArchiveBytes = 256L * 1024 * 1024;
@@ -28,7 +28,7 @@ public abstract class OfficialReleaseToolchain : ITerraformToolchain, IDisposabl
     private readonly HttpClient _http;
 
     protected OfficialReleaseToolchain(string dataRoot, string folder, IExecutableLocator locator, OpenPgpKeyring keyring,
-        HttpMessageHandler? handler, TerraformPlatform? platform)
+        HttpMessageHandler? handler, IacPlatform? platform)
     {
         _root = Path.Combine(dataRoot, "tools", folder);
         _locator = locator;
@@ -51,7 +51,7 @@ public abstract class OfficialReleaseToolchain : ITerraformToolchain, IDisposabl
     // O nome do executável sem extensão (tofu, terraform) e o prefixo dos arquivos publicados.
     protected abstract string BinaryBaseName { get; }
 
-    public TerraformPlatform? Platform { get; }
+    public IacPlatform? Platform { get; }
 
     public string SigningKey => _keyring.PrimaryFingerprint;
 
@@ -59,9 +59,9 @@ public abstract class OfficialReleaseToolchain : ITerraformToolchain, IDisposabl
 
     protected string ArchiveName(string version) => $"{BinaryBaseName}_{version}_{Platform!.Key}.zip";
 
-    public abstract Task<IReadOnlyList<TerraformRelease>> ReleasesAsync(CancellationToken ct);
+    public abstract Task<IReadOnlyList<IacRelease>> ReleasesAsync(CancellationToken ct);
 
-    public abstract Task<TerraformRelease?> ReleaseAsync(string version, CancellationToken ct);
+    public abstract Task<IacRelease?> ReleaseAsync(string version, CancellationToken ct);
 
     // O endereço de um arquivo da versão na fonte oficial (antes de qualquer redirecionamento).
     protected abstract bool Official(string url, string version);
@@ -69,15 +69,15 @@ public abstract class OfficialReleaseToolchain : ITerraformToolchain, IDisposabl
     // Para onde a fonte oficial pode mandar o download (a CDN dela); nada além disso é seguido.
     protected virtual bool RedirectAllowed(Uri target) => false;
 
-    public IReadOnlyList<ManagedTerraform> Managed()
+    public IReadOnlyList<ManagedRuntime> Managed()
     {
         if (Platform is null || !Directory.Exists(_root)) return [];
-        var found = new List<ManagedTerraform>();
+        var found = new List<ManagedRuntime>();
         foreach (var directory in Directory.EnumerateDirectories(_root))
         {
             var name = Path.GetFileName(directory);
-            if (TerraformVersion.TryParse(name) is null) continue;
-            var manifest = AtomicFile.ReadJson<ManagedTerraform>(Path.Combine(directory, ManifestName), IntegrationJson.Options,
+            if (IacVersion.TryParse(name) is null) continue;
+            var manifest = AtomicFile.ReadJson<ManagedRuntime>(Path.Combine(directory, ManifestName), IntegrationJson.Options,
                 m => m.Version == name && !string.IsNullOrEmpty(m.BinarySha256));
             // O caminho e a ferramenta vêm da pasta, nunca do manifesto: um manifesto adulterado não aponta o Spock para outro binário.
             if (manifest is not null) found.Add(manifest with { Path = Path.Combine(directory, BinaryName), Engine = Engine });
@@ -85,13 +85,13 @@ public abstract class OfficialReleaseToolchain : ITerraformToolchain, IDisposabl
         return found;
     }
 
-    public bool Intact(ManagedTerraform installation) =>
+    public bool Intact(ManagedRuntime installation) =>
         File.Exists(installation.Path) && string.Equals(HashFile(installation.Path), installation.BinarySha256, StringComparison.Ordinal);
 
-    public async Task<ManagedTerraform> InstallAsync(TerraformRelease release, CancellationToken ct)
+    public async Task<ManagedRuntime> InstallAsync(IacRelease release, CancellationToken ct)
     {
         var platform = Platform ?? throw IacErrors.UnsupportedPlatform(Name);
-        if (release.Engine != Engine || TerraformVersion.TryParse(release.Version) is not { IsPrerelease: false }) throw IacErrors.VersionInvalid(Name, release.Version);
+        if (release.Engine != Engine || IacVersion.TryParse(release.Version) is not { IsPrerelease: false }) throw IacErrors.VersionInvalid(Name, release.Version);
         var archiveName = ArchiveName(release.Version);
         foreach (var url in new[] { release.ArchiveUrl, release.ShasumsUrl, release.SignatureUrl })
             if (!Official(url, release.Version)) throw IacErrors.DownloadFailed(Name);
@@ -117,7 +117,7 @@ public abstract class OfficialReleaseToolchain : ITerraformToolchain, IDisposabl
             if (!OperatingSystem.IsWindows())
                 File.SetUnixFileMode(binary, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
 
-            var installed = new ManagedTerraform(release.Version, "", platform.Os, platform.Arch, archiveSha, HashFile(binary), release.ArchiveUrl,
+            var installed = new ManagedRuntime(release.Version, "", platform.Os, platform.Arch, archiveSha, HashFile(binary), release.ArchiveUrl,
                 signedBy, DateTimeOffset.UtcNow, Engine);
             AtomicFile.Write(Path.Combine(staging, ManifestName), JsonSerializer.Serialize(installed, IntegrationJson.Options));
 
@@ -141,7 +141,7 @@ public abstract class OfficialReleaseToolchain : ITerraformToolchain, IDisposabl
     public void Remove(string version)
     {
         // Só nomes de versão: nada de "..", barra ou caminho vindo de fora.
-        if (TerraformVersion.TryParse(version) is null || version.Contains('/') || version.Contains('\\')) throw IacErrors.VersionInvalid(Name, version);
+        if (IacVersion.TryParse(version) is null || version.Contains('/') || version.Contains('\\')) throw IacErrors.VersionInvalid(Name, version);
         var directory = Path.Combine(_root, version);
         if (Directory.Exists(directory)) Directory.Delete(directory, recursive: true);
     }
@@ -166,7 +166,7 @@ public abstract class OfficialReleaseToolchain : ITerraformToolchain, IDisposabl
         GC.SuppressFinalize(this);
     }
 
-    public static TerraformPlatform? Detect()
+    public static IacPlatform? Detect()
     {
         var os = OperatingSystem.IsWindows() ? "windows"
             : OperatingSystem.IsMacOS() ? "darwin"
@@ -180,7 +180,7 @@ public abstract class OfficialReleaseToolchain : ITerraformToolchain, IDisposabl
             Architecture.Arm when os is "linux" => "arm",
             _ => null
         };
-        return os is null || arch is null ? null : new TerraformPlatform(os, arch);
+        return os is null || arch is null ? null : new IacPlatform(os, arch);
     }
 
     protected static OpenPgpKeyring EmbeddedKeyring(string resource)

@@ -69,8 +69,8 @@ import {
   cloudConnectionListSchema,
   cloudLinkListSchema,
   cloudReadResultSchema,
-  terraformOfferResultSchema,
-  terraformStatusResultSchema,
+  iacRuntimeOfferResultSchema,
+  iacRuntimeStatusResultSchema,
   assistantAnswerSchema,
   connectionListSchema,
   connectionReachListSchema,
@@ -901,11 +901,11 @@ describe('contrato do assistente do portfólio (fixtures do motor)', () => {
   });
 
   it('iac: estado sem caminho completo e proposta do OpenTofu só da fonte oficial', () => {
-    const status = terraformStatusResultSchema.parse(iacStatusFixture).terraform;
+    const status = iacRuntimeStatusResultSchema.parse(iacStatusFixture).runtime;
     expect(status.state).toBe('ready');
     for (const installation of status.installations) expect(installation.path.startsWith('~')).toBe(true);
     expect(status.project?.requirements[0]?.constraint).toBe('>= 1.11');
-    const offer = terraformOfferResultSchema.parse(iacOfferFixture).offer;
+    const offer = iacRuntimeOfferResultSchema.parse(iacOfferFixture).offer;
     expect(status.installations.map((installation) => installation.engine)).toEqual(['openTofu', 'terraform']);
     expect(offer.engine).toBe('openTofu');
     for (const url of [offer.archiveUrl, offer.shasumsUrl, offer.signatureUrl])

@@ -7,7 +7,7 @@ using Mariliz.Infrastructure;
 using Mariliz.Infrastructure.Cloud;
 using Mariliz.Infrastructure.Engineering;
 using Mariliz.Infrastructure.Integrations;
-using Mariliz.Infrastructure.Terraform;
+using Mariliz.Infrastructure.Iac;
 
 namespace Mariliz.Runtime;
 
@@ -44,8 +44,8 @@ internal static class McpEntry
         // Só a consulta: o servidor MCP nunca baixa nem instala, e o binário externo só é perguntado pela versão.
         using var openTofuToolchain = new OpenTofuToolchain(dataRoot, ExecutableLocator.FromEnvironment());
         using var terraformToolchain = new HashiCorpTerraformToolchain(dataRoot, ExecutableLocator.FromEnvironment());
-        var iac = new IacMcpTools(workspaces, authorizer => new TerraformDependencyService([openTofuToolchain, terraformToolchain], new FileTerraformSettingsStore(dataRoot),
-            new TerraformConfigReader(), new SystemProcessRunner(), authorizer, clock, audit), Environment.CurrentDirectory, options.Scope);
+        var iac = new IacMcpTools(workspaces, authorizer => new IacRuntimeService([openTofuToolchain, terraformToolchain], new FileIacSettingsStore(dataRoot),
+            new IacConfigReader(), new SystemProcessRunner(), authorizer, clock, audit), Environment.CurrentDirectory, options.Scope);
         var tools = new ProjectContextTools(
             workspaces,
             new LocalProjectFilesFactory(),

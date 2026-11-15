@@ -7,10 +7,10 @@ namespace Mariliz.Application.Mcp;
 
 // Agentes só consultam: se há OpenTofu ou Terraform, qual ferramenta e versão o projeto usa e o que os .tf exigem.
 // Instalar, adotar, fixar e remover não existem aqui; são decisões da pessoa na interface.
-public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<WorkspaceAuthorizer, TerraformDependencyService> terraform,
+public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<WorkspaceAuthorizer, IacRuntimeService> terraform,
     string workingDirectory, IReadOnlySet<string>? scope = null)
 {
-    public const string StatusTool = "terraform_status";
+    public const string StatusTool = "iac_status";
     private const int MaxArgument = 200;
 
     public IReadOnlyList<McpTool> Tools() => [new McpTool(Status, StatusAsync)];
@@ -42,8 +42,8 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
         if (status.Project is { } details)
         {
             text.Append(details.Selected is { } selected
-                ? $"\nFerramenta do projeto: {TerraformDependencyService.NameOf(selected.Engine)} {selected.Version} " +
-                  $"({(details.Automatic ? "automática, ainda não fixada" : "fixada")}, {(selected.Source == TerraformSource.Managed ? "gerenciada pelo Spock" : "instalada fora do Spock")})."
+                ? $"\nFerramenta do projeto: {IacRuntimeService.NameOf(selected.Engine)} {selected.Version} " +
+                  $"({(details.Automatic ? "automática, ainda não fixada" : "fixada")}, {(selected.Source == IacRuntimeSource.Managed ? "gerenciada pelo Spock" : "instalada fora do Spock")})."
                 : "\nFerramenta do projeto: nenhuma disponível.");
             if (details.Problem is { } problem) text.Append($"\nPendência: {problem}");
             text.Append(details.Requirements.Count == 0

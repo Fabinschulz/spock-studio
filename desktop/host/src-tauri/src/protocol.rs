@@ -95,13 +95,13 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "cloud.configure",
     "cloud.unlink",
     "cloud.read",
-    "iac.terraform.status",
-    "iac.terraform.offer",
-    "iac.terraform.install",
-    "iac.terraform.decline",
-    "iac.terraform.remove",
-    "iac.terraform.adopt",
-    "iac.terraform.pin",
+    "iac.runtime.status",
+    "iac.runtime.offer",
+    "iac.runtime.install",
+    "iac.runtime.decline",
+    "iac.runtime.remove",
+    "iac.runtime.adopt",
+    "iac.runtime.pin",
 ];
 
 pub mod error_code {

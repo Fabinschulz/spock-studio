@@ -20,7 +20,7 @@ assume a licença da HashiCorp.
 
 Onde a preferência aparece:
 
-- `iac.terraform.offer` sem `engine` propõe o OpenTofu.
+- `iac.runtime.offer` sem `engine` propõe o OpenTofu.
 - A escolha automática do projeto põe o OpenTofu antes do Terraform (depois, gerenciada antes de externa e a versão mais
   nova primeiro).
 - O texto de consentimento explica o OpenTofu, a licença e o custo zero.
@@ -44,25 +44,25 @@ externas), `IProcessRunner` sem shell (agora com variáveis de ambiente opcionai
 
 | Peça | Onde | Papel |
 | --- | --- | --- |
-| `TerraformDependencyService` | `Application/Iac` | Detecção, compatibilidade, preferência, consentimento, oferta, instalação, adoção, ferramenta e versão por projeto, remoção, trilha |
-| `ITerraformToolchain` | `Application/Iac/Interfaces` | Porta de uma ferramenta: instalações gerenciadas e distribuição oficial |
-| `OfficialReleaseToolchain` | `Infrastructure/Terraform` | O comum às duas: pasta, download, redirecionamento controlado, verificação, extração, manifesto |
-| `OpenTofuToolchain` | `Infrastructure/Terraform` | Versões de `get.opentofu.org`, arquivos das releases do GitHub do OpenTofu |
-| `HashiCorpTerraformToolchain` | `Infrastructure/Terraform` | API e arquivos de `releases.hashicorp.com` |
-| `OpenPgpKeyring` | `Infrastructure/Terraform` | Verificação de assinatura OpenPGP destacada (RSA, SHA-256/512), sem biblioteca externa |
-| `opentofu-release-key.asc`, `hashicorp-release-key.asc` | `Infrastructure/Terraform` (recursos embutidos) | Chaves públicas de assinatura |
-| `TerraformConfigReader` | `Infrastructure/Terraform` | Lê `required_version` dos `.tf` e `.tofu` do projeto como texto |
-| `FileTerraformSettingsStore` | `Infrastructure/Terraform` | `<dados>/iac/terraform.json`: recusa, adoções e ferramenta/versão por projeto |
-| `IacRequestHandler` | `Application/Protocol` | Métodos `iac.terraform.*`, só para a interface |
-| `IacMcpTools` | `Application/Mcp` | `terraform_status`, só consulta |
+| `IacRuntimeService` | `Application/Iac` | Detecção, compatibilidade, preferência, consentimento, oferta, instalação, adoção, ferramenta e versão por projeto, remoção, trilha |
+| `IIacToolchain` | `Application/Iac/Interfaces` | Porta de uma ferramenta: instalações gerenciadas e distribuição oficial |
+| `OfficialReleaseToolchain` | `Infrastructure/Iac` | O comum às duas: pasta, download, redirecionamento controlado, verificação, extração, manifesto |
+| `OpenTofuToolchain` | `Infrastructure/Iac` | Versões de `get.opentofu.org`, arquivos das releases do GitHub do OpenTofu |
+| `HashiCorpTerraformToolchain` | `Infrastructure/Iac` | API e arquivos de `releases.hashicorp.com` |
+| `OpenPgpKeyring` | `Infrastructure/Iac` | Verificação de assinatura OpenPGP destacada (RSA, SHA-256/512), sem biblioteca externa |
+| `opentofu-release-key.asc`, `hashicorp-release-key.asc` | `Infrastructure/Iac` (recursos embutidos) | Chaves públicas de assinatura |
+| `IacConfigReader` | `Infrastructure/Iac` | Lê `required_version` dos `.tf` e `.tofu` do projeto como texto |
+| `FileIacSettingsStore` | `Infrastructure/Iac` | `<dados>/iac/terraform.json`: recusa, adoções e ferramenta/versão por projeto |
+| `IacRequestHandler` | `Application/Protocol` | Métodos `iac.runtime.*`, só para a interface |
+| `IacMcpTools` | `Application/Mcp` | `iac_status`, só consulta |
 | Tela Infraestrutura | `desktop/ui/src/features/infrastructure` | Consentimento, ferramentas, ferramenta do projeto, ciclo de vida |
 
-Os nomes no código (`Terraform*`, `iac.terraform.*`) falam da linguagem e do ecossistema; a ferramenta é o campo
+Os nomes no código (`Terraform*`, `iac.runtime.*`) falam da linguagem e do ecossistema; a ferramenta é o campo
 `engine` (`openTofu` ou `terraform`) em toda instalação, proposta, adoção e fixação.
 
 ## 4. Detecção
 
-A cada consulta (`iac.terraform.status`), sem rede:
+A cada consulta (`iac.runtime.status`), sem rede:
 
 1. **Plataforma**: sistema e arquitetura nos nomes das distribuições (`windows|darwin|linux` × `amd64|arm64`, mais
    `386` e `arm` onde existem).
@@ -104,7 +104,7 @@ missing ──"Autorizar instalação"──► proposta do OpenTofu ──"Inst
 - A proposta mostra ferramenta, licença, versão, plataforma, origem, chave que assina, data de publicação (quando a
   fonte informa), changelog e os impactos.
 - **Recusa** grava a data; o resto do Spock segue igual e nada roda em segundo plano.
-- Só a interface chama `iac.terraform.*` (allowlist do host Rust e da UI). O servidor MCP não tem ferramenta de
+- Só a interface chama `iac.runtime.*` (allowlist do host Rust e da UI). O servidor MCP não tem ferramenta de
   instalação.
 
 ## 6. Instalação verificada
@@ -134,7 +134,7 @@ Passos, iguais para as duas:
    numa pasta `.staging-*` movida para `<versão>/` no fim. Qualquer falha apaga a pasta temporária.
 
 Falhas: `IAC_DOWNLOAD_FAILED` (inclui redirecionamento recusado), `IAC_SIGNATURE_INVALID`, `IAC_CHECKSUM_MISMATCH`,
-`IAC_ARCHIVE_INVALID`, todas registradas como `iac.terraform.install_failed` com ferramenta e código.
+`IAC_ARCHIVE_INVALID`, todas registradas como `iac.runtime.install_failed` com ferramenta e código.
 
 **Antes de cada uso** (`ResolveForUseAsync`, a porta das próximas entregas) o hash do binário é conferido de novo;
 binário alterado deixa de ser usado. Instalar a mesma versão de novo pela tela substitui o binário que falhou na
@@ -148,9 +148,9 @@ uma versão do Spock trazer o arquivo novo; nunca há download sem assinatura.
 ## 7. Ferramenta e versão por projeto, atualização
 
 - Várias versões das duas ferramentas convivem em `<dados>/tools/`.
-- Cada projeto tem ferramenta e versão **fixadas** (`iac.terraform.pin` com `engine`, `version`, `source`) ou
+- Cada projeto tem ferramenta e versão **fixadas** (`iac.runtime.pin` com `engine`, `version`, `source`) ou
   **automáticas** (OpenTofu antes de Terraform, a mais nova compatível). A automática vira fixa no primeiro uso
-  (`ResolveForUseAsync`), registrado como `iac.terraform.pinned` com `automatic: true`: instalar outra ferramenta ou
+  (`ResolveForUseAsync`), registrado como `iac.runtime.pinned` com `automatic: true`: instalar outra ferramenta ou
   versão depois disso não muda o projeto.
 - Fixar respeita o `required_version` do projeto (`IAC_PROJECT_INCOMPATIBLE`).
 - **Um projeto, uma ferramenta.** O state escrito por uma pode não ser lido pela outra em versões futuras, e o
@@ -166,27 +166,27 @@ uma versão do Spock trazer o arquivo novo; nunca há download sem assinatura.
 
 | Ação | Detalhe |
 | --- | --- |
-| `iac.terraform.declined` | sem detalhe |
-| `iac.terraform.installed` | ferramenta, versão, plataforma, URL, SHA-256 do zip, chave que assinou, se foi atualização |
-| `iac.terraform.install_failed` | ferramenta, versão, plataforma, código do erro |
-| `iac.terraform.adopted` | ferramenta, versão |
-| `iac.terraform.pinned` / `unpinned` | projeto, ferramenta, versão, origem, se foi automática (aparece na Auditoria do projeto) |
-| `iac.terraform.removed` | ferramenta, versão |
+| `iac.runtime.declined` | sem detalhe |
+| `iac.runtime.installed` | ferramenta, versão, plataforma, URL, SHA-256 do zip, chave que assinou, se foi atualização |
+| `iac.runtime.install_failed` | ferramenta, versão, plataforma, código do erro |
+| `iac.runtime.adopted` | ferramenta, versão |
+| `iac.runtime.pinned` / `unpinned` | projeto, ferramenta, versão, origem, se foi automática (aparece na Auditoria do projeto) |
+| `iac.runtime.removed` | ferramenta, versão |
 
 ## 9. Protocolo
 
 | Método | Parâmetros | Resposta |
 | --- | --- | --- |
-| `iac.terraform.status` | `projectId?` | `{ terraform: TerraformStatus }` com `engines` (nome, licença, mínimo, preferida) e caminhos com `~` |
-| `iac.terraform.offer` | `version?`, `projectId?`, `engine?` (padrão `openTofu`) | `{ offer: TerraformOffer }` (fala com a rede) |
-| `iac.terraform.install` | `offerId`, `version`, `engine` | status |
-| `iac.terraform.decline` | nenhum | status |
-| `iac.terraform.adopt` | `engine`, `version` (a que a pessoa viu) | status |
-| `iac.terraform.pin` | `projectId`, `engine?`, `version?` (sem ela: automático), `source?` | status |
-| `iac.terraform.remove` | `engine`, `version`, `confirmed` | status |
+| `iac.runtime.status` | `projectId?` | `{ runtime: IacRuntimeStatus }` com `engines` (nome, licença, mínimo, preferida) e caminhos com `~` |
+| `iac.runtime.offer` | `version?`, `projectId?`, `engine?` (padrão `openTofu`) | `{ offer: IacRuntimeOffer }` (fala com a rede) |
+| `iac.runtime.install` | `offerId`, `version`, `engine` | status |
+| `iac.runtime.decline` | nenhum | status |
+| `iac.runtime.adopt` | `engine`, `version` (a que a pessoa viu) | status |
+| `iac.runtime.pin` | `projectId`, `engine?`, `version?` (sem ela: automático), `source?` | status |
+| `iac.runtime.remove` | `engine`, `version`, `confirmed` | status |
 
 Fixtures: `contracts/fixtures/iac/` (geradas da saída real do motor, caminhos anonimizados). O host espera até 660 s
-por `iac.terraform.install` (o download tem até 10 min no motor).
+por `iac.runtime.install` (o download tem até 10 min no motor).
 
 ## 10. Compatibilidade
 
@@ -198,14 +198,14 @@ por `iac.terraform.install` (o download tem até 10 min no motor).
 
 ## 11. Testes
 
-- `OpenTofuDependencyTests`: assinatura real do OpenTofu aceita com a chave embutida, proposta padrão do OpenTofu com
+- `OpenTofuRuntimeTests`: assinatura real do OpenTofu aceita com a chave embutida, proposta padrão do OpenTofu com
   licença, instalação pelo redirecionamento para a CDN do GitHub, redirecionamento para outro host recusado, projeto
   com as duas ferramentas (OpenTofu automático, Terraform fixado), `required_version` do modelo e arquivos `.tofu`.
-- `TerraformDependencyTests`: sintaxe de restrição, assinatura real da HashiCorp, instalação com servidor falso e chave
+- `IacRuntimeTests`: sintaxe de restrição, assinatura real da HashiCorp, instalação com servidor falso e chave
   de teste, autorização forjada, checksum trocado, lista sem assinatura válida, zip sem o binário, binário adulterado e
   reinstalado, externo adotado e alterado, externo abaixo do mínimo, fixação no primeiro uso e atualização lado a lado,
   remoção bloqueada, ferramenta MCP só de leitura.
-- `TerraformLiveTests` (com `MARILIZ_LIVE_TERRAFORM=1`): baixa o OpenTofu e o Terraform publicados, verifica e roda os
+- `IacRuntimeLiveTests` (com `MARILIZ_LIVE_TERRAFORM=1`): baixa o OpenTofu e o Terraform publicados, verifica e roda os
   binários instalados.
 - `infrastructure-page.test.tsx`: nada é baixado antes de autorizar, proposta e instalação do OpenTofu por padrão,
   Terraform como escolha explícita, recusa, ferramenta do projeto, etapas do ciclo.

@@ -1,6 +1,6 @@
 import type { SelectedProject } from '@/features/project-selection';
 import { StatusChip } from '@/shared/components';
-import type { IacEngine, TerraformSource, TerraformStatus } from '@/shared/schema';
+import type { IacEngine, IacRuntimeSource, IacRuntimeStatus } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 
 import styles from '../infrastructure-page.module.scss';
@@ -8,16 +8,16 @@ import { installationName } from '../domain/labels';
 
 interface ProjectTerraformProps {
   project: SelectedProject;
-  status: TerraformStatus;
+  status: IacRuntimeStatus;
   busy: boolean;
-  onPin: (choice: { engine: IacEngine; version: string; source: TerraformSource } | null) => void;
+  onPin: (choice: { engine: IacEngine; version: string; source: IacRuntimeSource } | null) => void;
 }
 
 /**
  * A ferramenta e a versão de cada projeto: automáticas (OpenTofu antes de Terraform) até o primeiro uso ou até a pessoa
  * fixar; uma instalação nova nunca troca sozinha.
  */
-export function ProjectTerraform({ project, status, busy, onPin }: ProjectTerraformProps) {
+export function ProjectRuntime({ project, status, busy, onPin }: ProjectTerraformProps) {
   const details = status.project;
   if (!details) return null;
   const usable = status.installations.filter(

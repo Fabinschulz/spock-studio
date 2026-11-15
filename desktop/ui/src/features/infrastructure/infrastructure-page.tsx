@@ -4,13 +4,13 @@ import type { SelectedProject } from '@/features/project-selection';
 import { errorMessage, type EngineClient } from '@/shared/api';
 import { ErrorState, LoadingState, Page, PageSection, SuccessState } from '@/shared/components';
 import { pathTo } from '@/shared/routing';
-import type { IacEngine, TerraformOffer, TerraformSource } from '@/shared/schema';
+import type { IacEngine, IacRuntimeOffer, IacRuntimeSource } from '@/shared/schema';
 import { useCallback, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 
 import { LifecycleStrip } from './components/lifecycle-strip';
-import { ProjectTerraform } from './components/project-terraform';
-import { TerraformPanel } from './components/terraform-panel';
+import { ProjectRuntime } from './components/project-runtime';
+import { RuntimePanel } from './components/runtime-panel';
 import styles from './infrastructure-page.module.scss';
 import { ENGINE_NAME } from './domain/labels';
 import { createIacApi } from './service/iac-api';
@@ -19,14 +19,14 @@ export function InfrastructurePage({ client, project }: { client: EngineClient; 
   const api = useMemo(() => createIacApi(client), [client]);
   const cloud = useMemo(() => createCloudApi(client), [client]);
   const projectId = project?.projectId;
-  // A consulta não fala com a rede: só olha a pasta do Spock e pergunta a versão ao terraform da máquina.
+  // A consulta não fala com a rede: só olha a pasta do Spock e pergunta a versão ao tofu e ao terraform da máquina.
   const load = useCallback(async () => {
-    const [terraform, connections] = await Promise.all([api.status(projectId), cloud.connections().catch(() => null)]);
-    return { terraform, connections };
+    const [runtime, connections] = await Promise.all([api.status(projectId), cloud.connections().catch(() => null)]);
+    return { runtime, connections };
   }, [api, cloud, projectId]);
   const hub = useReloadable(load);
   const action = useAction(hub.reload);
-  const [offer, setOffer] = useState<TerraformOffer | null>(null);
+  const [offer, setOffer] = useState<IacRuntimeOffer | null>(null);
 
   const requestOffer = (engine?: IacEngine) =>
     void action.run(
@@ -34,14 +34,14 @@ export function InfrastructurePage({ client, project }: { client: EngineClient; 
       'Não foi possível consultar as versões publicadas.'
     );
 
-  const install = (chosen: TerraformOffer) =>
+  const install = (chosen: IacRuntimeOffer) =>
     void action
       .run(() => api.install(chosen), 'Nada foi instalado.', {
         success: () => `${chosen.engineName} ${chosen.version} instalado e verificado.`
       })
       .then((ok) => ok && setOffer(null));
 
-  const pin = (choice: { engine: IacEngine; version: string; source: TerraformSource } | null) => {
+  const pin = (choice: { engine: IacEngine; version: string; source: IacRuntimeSource } | null) => {
     if (!projectId) return;
     void action.run(() => api.pin(projectId, choice), 'Não foi possível trocar a ferramenta do projeto.', {
       success: () =>
@@ -74,8 +74,8 @@ export function InfrastructurePage({ client, project }: { client: EngineClient; 
           <PageSection title="OpenTofu e Terraform">
             {action.error ? <p className={styles.error}>{action.error}</p> : null}
             {action.notice ? <SuccessState>{action.notice.text}</SuccessState> : null}
-            <TerraformPanel
-              status={hub.value.terraform}
+            <RuntimePanel
+              status={hub.value.runtime}
               offer={offer}
               busy={action.busy}
               onRequestOffer={requestOffer}
@@ -102,7 +102,7 @@ export function InfrastructurePage({ client, project }: { client: EngineClient; 
 
           <PageSection title="Projeto">
             {project ? (
-              <ProjectTerraform project={project} status={hub.value.terraform} busy={action.busy} onPin={pin} />
+              <ProjectRuntime project={project} status={hub.value.runtime} busy={action.busy} onPin={pin} />
             ) : (
               <p className={styles.meta}>
                 Selecione um projeto para ver o que os arquivos .tf exigem e qual versão ele usa.

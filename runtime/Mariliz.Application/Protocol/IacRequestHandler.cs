@@ -6,25 +6,25 @@ namespace Mariliz.Application.Protocol;
 
 // Só a interface chega aqui (a allowlist do host não deixa agentes chamarem iac.*): instalar, adotar, fixar e remover
 // são sempre um clique da pessoa.
-internal sealed class IacRequestHandler(TerraformDependencyService terraform)
+internal sealed class IacRequestHandler(IacRuntimeService terraform)
 {
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
-        ProtocolMethods.IacTerraformStatus => Status(await terraform.StatusAsync(p.OptionalStr("projectId"), ct)),
-        ProtocolMethods.IacTerraformOffer => new JsonObject
+        ProtocolMethods.IacRuntimeStatusMethod => Status(await terraform.StatusAsync(p.OptionalStr("projectId"), ct)),
+        ProtocolMethods.IacRuntimeOfferMethod => new JsonObject
         {
             ["offer"] = IntegrationJson.Node(await terraform.OfferAsync(p.OptionalStr("version"), p.OptionalStr("projectId"), OptionalEngine(p), ct))
         },
-        ProtocolMethods.IacTerraformInstall => Status(await terraform.InstallAsync(p.Str("offerId"), p.Str("version"), Engine(p), ct)),
-        ProtocolMethods.IacTerraformDecline => Status(await terraform.DeclineAsync(ct)),
-        ProtocolMethods.IacTerraformRemove => Status(await terraform.RemoveAsync(p.Str("version"), Engine(p), p.Flag("confirmed"), ct)),
-        ProtocolMethods.IacTerraformAdopt => Status(await terraform.AdoptAsync(p.Str("version"), Engine(p), ct)),
-        ProtocolMethods.IacTerraformPin => Status(await terraform.PinAsync(p.Str("projectId"), p.OptionalStr("version"), Source(p.OptionalStr("source")), OptionalEngine(p), ct)),
+        ProtocolMethods.IacRuntimeInstall => Status(await terraform.InstallAsync(p.Str("offerId"), p.Str("version"), Engine(p), ct)),
+        ProtocolMethods.IacRuntimeDecline => Status(await terraform.DeclineAsync(ct)),
+        ProtocolMethods.IacRuntimeRemove => Status(await terraform.RemoveAsync(p.Str("version"), Engine(p), p.Flag("confirmed"), ct)),
+        ProtocolMethods.IacRuntimeAdopt => Status(await terraform.AdoptAsync(p.Str("version"), Engine(p), ct)),
+        ProtocolMethods.IacRuntimePin => Status(await terraform.PinAsync(p.Str("projectId"), p.OptionalStr("version"), Source(p.OptionalStr("source")), OptionalEngine(p), ct)),
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
     };
 
     // Como nos projetos, a interface só vê o caminho abreviado: a pasta pessoal vira "~".
-    private static JsonObject Status(TerraformStatus status)
+    private static JsonObject Status(IacRuntimeStatus status)
     {
         var json = IntegrationJson.Node(status with
         {
@@ -35,7 +35,7 @@ internal sealed class IacRequestHandler(TerraformDependencyService terraform)
         return new JsonObject { ["terraform"] = json };
     }
 
-    private static TerraformInstallation Display(TerraformInstallation installation)
+    private static IacInstallation Display(IacInstallation installation)
     {
         var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
@@ -55,11 +55,11 @@ internal sealed class IacRequestHandler(TerraformDependencyService terraform)
         _ => throw new ParamException("'engine' deve ser openTofu ou terraform.")
     };
 
-    private static TerraformSource? Source(string? value) => value switch
+    private static IacRuntimeSource? Source(string? value) => value switch
     {
         null => null,
-        "managed" => TerraformSource.Managed,
-        "external" => TerraformSource.External,
+        "managed" => IacRuntimeSource.Managed,
+        "external" => IacRuntimeSource.External,
         _ => throw new ParamException("'source' deve ser managed ou external.")
     };
 }

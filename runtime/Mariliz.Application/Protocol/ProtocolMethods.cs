@@ -93,13 +93,13 @@ public static class ProtocolMethods
     public const string CloudConfigure = "cloud.configure";
     public const string CloudUnlink = "cloud.unlink";
     public const string CloudRead = "cloud.read";
-    public const string IacTerraformStatus = "iac.terraform.status";
-    public const string IacTerraformOffer = "iac.terraform.offer";
-    public const string IacTerraformInstall = "iac.terraform.install";
-    public const string IacTerraformDecline = "iac.terraform.decline";
-    public const string IacTerraformRemove = "iac.terraform.remove";
-    public const string IacTerraformAdopt = "iac.terraform.adopt";
-    public const string IacTerraformPin = "iac.terraform.pin";
+    public const string IacRuntimeStatusMethod = "iac.runtime.status";
+    public const string IacRuntimeOfferMethod = "iac.runtime.offer";
+    public const string IacRuntimeInstall = "iac.runtime.install";
+    public const string IacRuntimeDecline = "iac.runtime.decline";
+    public const string IacRuntimeRemove = "iac.runtime.remove";
+    public const string IacRuntimeAdopt = "iac.runtime.adopt";
+    public const string IacRuntimePin = "iac.runtime.pin";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -131,7 +131,7 @@ public static class ProtocolMethods
         // Os quatro falam com o provedor de cloud.
         CloudCreate, CloudValidate, CloudPermissions, CloudRead,
         // Rodam o terraform da máquina, refazem o hash dos binários ou baixam da HashiCorp.
-        IacTerraformStatus, IacTerraformOffer, IacTerraformInstall, IacTerraformDecline, IacTerraformRemove, IacTerraformAdopt, IacTerraformPin
+        IacRuntimeStatusMethod, IacRuntimeOfferMethod, IacRuntimeInstall, IacRuntimeDecline, IacRuntimeRemove, IacRuntimeAdopt, IacRuntimePin
     };
 
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
@@ -156,7 +156,7 @@ public static class ProtocolMethods
         [CloudCatalog, CloudList, CloudCreate, CloudValidate, CloudPermissions, CloudRemove, CloudLinks, CloudLink, CloudConfigure, CloudUnlink, CloudRead];
 
     public static readonly IReadOnlyList<string> Iac =
-        [IacTerraformStatus, IacTerraformOffer, IacTerraformInstall, IacTerraformDecline, IacTerraformRemove, IacTerraformAdopt, IacTerraformPin];
+        [IacRuntimeStatusMethod, IacRuntimeOfferMethod, IacRuntimeInstall, IacRuntimeDecline, IacRuntimeRemove, IacRuntimeAdopt, IacRuntimePin];
 
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }

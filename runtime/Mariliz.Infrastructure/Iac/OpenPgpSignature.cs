@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Mariliz.Infrastructure.Terraform;
+namespace Mariliz.Infrastructure.Iac;
 
 // Verificação de assinatura OpenPGP destacada (RFC 4880) só no que a HashiCorp usa: chave RSA versão 4, assinatura de
 // documento binário com SHA-256 ou SHA-512. O chaveiro é fixo no código, então a confiança vem dele e não das assinaturas

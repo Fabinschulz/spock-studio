@@ -3,9 +3,9 @@ import { z } from 'zod';
 /** OpenTofu é o padrão: gratuito e de código aberto. O Terraform da HashiCorp segue disponível. */
 export const iacEngineSchema = z.enum(['openTofu', 'terraform']);
 
-export const terraformSourceSchema = z.enum(['managed', 'external']);
+export const iacRuntimeSourceSchema = z.enum(['managed', 'external']);
 
-export const terraformStateSchema = z.enum([
+export const iacRuntimeStateSchema = z.enum([
   'ready',
   'externalAvailable',
   'missing',
@@ -14,12 +14,12 @@ export const terraformStateSchema = z.enum([
   'unsupportedPlatform'
 ]);
 
-export const terraformPlatformSchema = z.object({ os: z.string(), arch: z.string() });
+export const iacPlatformSchema = z.object({ os: z.string(), arch: z.string() });
 
 /** O caminho chega abreviado (a pasta pessoal vira "~"), como os caminhos de projeto. */
-export const terraformInstallationSchema = z.object({
+export const iacInstallationSchema = z.object({
   engine: iacEngineSchema,
-  source: terraformSourceSchema,
+  source: iacRuntimeSourceSchema,
   version: z.string(),
   path: z.string(),
   compatible: z.boolean(),
@@ -29,9 +29,9 @@ export const terraformInstallationSchema = z.object({
   installedAt: z.string().nullable()
 });
 
-export const terraformPinSchema = z.object({
+export const iacRuntimePinSchema = z.object({
   version: z.string(),
-  source: terraformSourceSchema,
+  source: iacRuntimeSourceSchema,
   pinnedAt: z.string(),
   engine: iacEngineSchema
 });
@@ -45,38 +45,38 @@ export const iacEngineInfoSchema = z.object({
   available: z.boolean()
 });
 
-export const terraformRequirementSchema = z.object({ file: z.string(), constraint: z.string(), valid: z.boolean() });
+export const iacRequirementSchema = z.object({ file: z.string(), constraint: z.string(), valid: z.boolean() });
 
-export const projectTerraformSchema = z.object({
+export const projectRuntimeSchema = z.object({
   projectId: z.string(),
-  requirements: z.array(terraformRequirementSchema),
-  pin: terraformPinSchema.nullable(),
-  selected: terraformInstallationSchema.nullable(),
+  requirements: z.array(iacRequirementSchema),
+  pin: iacRuntimePinSchema.nullable(),
+  selected: iacInstallationSchema.nullable(),
   automatic: z.boolean(),
   problem: z.string().nullable()
 });
 
-export const terraformStatusSchema = z.object({
-  state: terraformStateSchema,
-  platform: terraformPlatformSchema.nullable(),
+export const iacRuntimeStatusSchema = z.object({
+  state: iacRuntimeStateSchema,
+  platform: iacPlatformSchema.nullable(),
   engines: z.array(iacEngineInfoSchema),
-  installations: z.array(terraformInstallationSchema),
-  selected: terraformInstallationSchema.nullable(),
-  project: projectTerraformSchema.nullable(),
+  installations: z.array(iacInstallationSchema),
+  selected: iacInstallationSchema.nullable(),
+  project: projectRuntimeSchema.nullable(),
   declinedAt: z.string().nullable(),
   message: z.string()
 });
 
-export const terraformStatusResultSchema = z.object({ terraform: terraformStatusSchema });
+export const iacRuntimeStatusResultSchema = z.object({ runtime: iacRuntimeStatusSchema });
 
 /** A proposta que a pessoa autoriza: o offerId amarra versão, plataforma, endereços oficiais e chave de assinatura. */
-export const terraformOfferSchema = z.object({
+export const iacRuntimeOfferSchema = z.object({
   offerId: z.string(),
   engine: iacEngineSchema,
   engineName: z.string(),
   license: z.string(),
   version: z.string(),
-  platform: terraformPlatformSchema,
+  platform: iacPlatformSchema,
   archiveUrl: z.string(),
   shasumsUrl: z.string(),
   signatureUrl: z.string(),
@@ -88,13 +88,13 @@ export const terraformOfferSchema = z.object({
   impacts: z.array(z.string())
 });
 
-export const terraformOfferResultSchema = z.object({ offer: terraformOfferSchema });
+export const iacRuntimeOfferResultSchema = z.object({ offer: iacRuntimeOfferSchema });
 
 export type IacEngine = z.infer<typeof iacEngineSchema>;
 export type IacEngineInfo = z.infer<typeof iacEngineInfoSchema>;
-export type TerraformSource = z.infer<typeof terraformSourceSchema>;
-export type TerraformState = z.infer<typeof terraformStateSchema>;
-export type TerraformInstallation = z.infer<typeof terraformInstallationSchema>;
-export type TerraformStatus = z.infer<typeof terraformStatusSchema>;
-export type TerraformOffer = z.infer<typeof terraformOfferSchema>;
-export type ProjectTerraform = z.infer<typeof projectTerraformSchema>;
+export type IacRuntimeSource = z.infer<typeof iacRuntimeSourceSchema>;
+export type IacRuntimeState = z.infer<typeof iacRuntimeStateSchema>;
+export type IacInstallation = z.infer<typeof iacInstallationSchema>;
+export type IacRuntimeStatus = z.infer<typeof iacRuntimeStatusSchema>;
+export type IacRuntimeOffer = z.infer<typeof iacRuntimeOfferSchema>;
+export type ProjectRuntime = z.infer<typeof projectRuntimeSchema>;

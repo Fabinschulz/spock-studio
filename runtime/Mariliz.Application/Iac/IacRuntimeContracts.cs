@@ -12,13 +12,13 @@ public enum IacEngine
 public sealed record IacEngineInfo(IacEngine Engine, string Name, string License, string MinimumVersion, bool Preferred, bool Available);
 
 // Os nomes de sistema e arquitetura que as duas distribuições usam nos arquivos de cada versão (<ferramenta>_<v>_<os>_<arch>.zip).
-public sealed record TerraformPlatform(string Os, string Arch)
+public sealed record IacPlatform(string Os, string Arch)
 {
     public string Key => $"{Os}_{Arch}";
 }
 
 // Uma versão publicada e os endereços oficiais do pacote desta plataforma, da lista de checksums e da assinatura dela.
-public sealed record TerraformRelease(
+public sealed record IacRelease(
     IacEngine Engine,
     string Version,
     DateTimeOffset? PublishedAt,
@@ -28,7 +28,7 @@ public sealed record TerraformRelease(
     string? ChangelogUrl);
 
 // O manifesto de uma instalação gerenciada: o hash do binário é conferido de novo antes de cada uso.
-public sealed record ManagedTerraform(
+public sealed record ManagedRuntime(
     string Version,
     string Path,
     string Os,
@@ -40,29 +40,29 @@ public sealed record ManagedTerraform(
     DateTimeOffset InstalledAt,
     IacEngine Engine = IacEngine.Terraform);
 
-public enum TerraformSource
+public enum IacRuntimeSource
 {
     Managed,
     External
 }
 
 // Uma instalação que a pessoa fez fora do Spock e escolheu usar. Vale só enquanto o binário tiver o mesmo hash.
-public sealed record AdoptedTerraform(string Path, string Version, string BinarySha256, DateTimeOffset AdoptedAt, IacEngine Engine = IacEngine.Terraform);
+public sealed record AdoptedRuntime(string Path, string Version, string BinarySha256, DateTimeOffset AdoptedAt, IacEngine Engine = IacEngine.Terraform);
 
-public sealed record ProjectTerraformPin(string Version, TerraformSource Source, DateTimeOffset PinnedAt, IacEngine Engine = IacEngine.Terraform);
+public sealed record ProjectRuntimePin(string Version, IacRuntimeSource Source, DateTimeOffset PinnedAt, IacEngine Engine = IacEngine.Terraform);
 
 // O que a pessoa decidiu: recusa da instalação, instalações externas adotadas e a versão fixada por projeto.
-public sealed record TerraformSettings(
+public sealed record IacRuntimeSettings(
     DateTimeOffset? DeclinedAt,
-    List<AdoptedTerraform> Adopted,
-    Dictionary<string, ProjectTerraformPin> Pins)
+    List<AdoptedRuntime> Adopted,
+    Dictionary<string, ProjectRuntimePin> Pins)
 {
-    public static TerraformSettings Empty => new(null, [], []);
+    public static IacRuntimeSettings Empty => new(null, [], []);
 }
 
-public sealed record TerraformInstallation(
+public sealed record IacInstallation(
     IacEngine Engine,
-    TerraformSource Source,
+    IacRuntimeSource Source,
     string Version,
     string Path,
     bool Compatible,
@@ -71,17 +71,17 @@ public sealed record TerraformInstallation(
     string? Problem,
     DateTimeOffset? InstalledAt);
 
-public sealed record TerraformRequirement(string File, string Constraint, bool Valid);
+public sealed record IacRequirement(string File, string Constraint, bool Valid);
 
-public sealed record ProjectTerraform(
+public sealed record ProjectRuntime(
     string ProjectId,
-    IReadOnlyList<TerraformRequirement> Requirements,
-    ProjectTerraformPin? Pin,
-    TerraformInstallation? Selected,
+    IReadOnlyList<IacRequirement> Requirements,
+    ProjectRuntimePin? Pin,
+    IacInstallation? Selected,
     bool Automatic,
     string? Problem);
 
-public enum TerraformState
+public enum IacRuntimeState
 {
     // Há uma instalação verificada e compatível pronta para uso.
     Ready,
@@ -97,25 +97,25 @@ public enum TerraformState
     UnsupportedPlatform
 }
 
-public sealed record TerraformStatus(
-    TerraformState State,
-    TerraformPlatform? Platform,
+public sealed record IacRuntimeStatus(
+    IacRuntimeState State,
+    IacPlatform? Platform,
     IReadOnlyList<IacEngineInfo> Engines,
-    IReadOnlyList<TerraformInstallation> Installations,
-    TerraformInstallation? Selected,
-    ProjectTerraform? Project,
+    IReadOnlyList<IacInstallation> Installations,
+    IacInstallation? Selected,
+    ProjectRuntime? Project,
     DateTimeOffset? DeclinedAt,
     string Message);
 
 // A proposta que a pessoa autoriza: o id amarra ferramenta, versão, plataforma, endereços e chave. Se algo mudar, a
 // autorização não vale.
-public sealed record TerraformOffer(
+public sealed record IacRuntimeOffer(
     string OfferId,
     IacEngine Engine,
     string EngineName,
     string License,
     string Version,
-    TerraformPlatform Platform,
+    IacPlatform Platform,
     string ArchiveUrl,
     string ShasumsUrl,
     string SignatureUrl,

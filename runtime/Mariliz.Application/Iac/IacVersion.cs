@@ -4,23 +4,23 @@ using System.Text.RegularExpressions;
 namespace Mariliz.Application.Iac;
 
 // Só o que o Terraform publica: maior.menor.correção com sufixo opcional (-rc1, -beta2). Sufixo vem antes da versão final.
-public sealed partial record TerraformVersion(int Major, int Minor, int Patch, string? Prerelease) : IComparable<TerraformVersion>
+public sealed partial record IacVersion(int Major, int Minor, int Patch, string? Prerelease) : IComparable<IacVersion>
 {
-    public static TerraformVersion? TryParse(string? text)
+    public static IacVersion? TryParse(string? text)
     {
         if (string.IsNullOrWhiteSpace(text)) return null;
         var match = Pattern().Match(text.Trim().TrimStart('v'));
         if (!match.Success) return null;
         int Part(int group) => match.Groups[group].Success ? int.Parse(match.Groups[group].Value, CultureInfo.InvariantCulture) : 0;
-        return new TerraformVersion(Part(1), Part(2), Part(3), match.Groups[4].Success ? match.Groups[4].Value : null);
+        return new IacVersion(Part(1), Part(2), Part(3), match.Groups[4].Success ? match.Groups[4].Value : null);
     }
 
-    public static TerraformVersion Parse(string text) =>
+    public static IacVersion Parse(string text) =>
         TryParse(text) ?? throw new FormatException($"Versão do Terraform fora do formato: {text}.");
 
     public bool IsPrerelease => Prerelease is not null;
 
-    public int CompareTo(TerraformVersion? other)
+    public int CompareTo(IacVersion? other)
     {
         if (other is null) return 1;
         var core = (Major, Minor, Patch).CompareTo((other.Major, other.Minor, other.Patch));
@@ -34,10 +34,10 @@ public sealed partial record TerraformVersion(int Major, int Minor, int Patch, s
         };
     }
 
-    public static bool operator <(TerraformVersion left, TerraformVersion right) => left.CompareTo(right) < 0;
-    public static bool operator >(TerraformVersion left, TerraformVersion right) => left.CompareTo(right) > 0;
-    public static bool operator <=(TerraformVersion left, TerraformVersion right) => left.CompareTo(right) <= 0;
-    public static bool operator >=(TerraformVersion left, TerraformVersion right) => left.CompareTo(right) >= 0;
+    public static bool operator <(IacVersion left, IacVersion right) => left.CompareTo(right) < 0;
+    public static bool operator >(IacVersion left, IacVersion right) => left.CompareTo(right) > 0;
+    public static bool operator <=(IacVersion left, IacVersion right) => left.CompareTo(right) <= 0;
+    public static bool operator >=(IacVersion left, IacVersion right) => left.CompareTo(right) >= 0;
 
     public override string ToString() => $"{Major}.{Minor}.{Patch}" + (Prerelease is null ? "" : "-" + Prerelease);
 

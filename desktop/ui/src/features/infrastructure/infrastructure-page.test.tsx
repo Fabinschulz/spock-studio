@@ -13,7 +13,7 @@ import { expectNoA11yViolations } from '@/test/a11y';
 import { InfrastructurePage } from './infrastructure-page';
 
 const demo = { projectId: 'p-0123456789ab', displayName: 'loja-api', displayPath: '~\\loja-api' };
-const ready = statusFixture.terraform;
+const ready = statusFixture.runtime;
 const missing = {
   ...ready,
   state: 'missing',
@@ -30,8 +30,8 @@ function fakeEngine(initial: Record<string, unknown> = missing) {
   const client: EngineClient = {
     async request(method, params, schema) {
       calls.push({ method, params: params as Record<string, unknown> });
-      if (method === 'iac.terraform.install') current = ready;
-      if (method === 'iac.terraform.decline')
+      if (method === 'iac.runtime.install') current = ready;
+      if (method === 'iac.runtime.decline')
         current = {
           ...missing,
           state: 'declined',
@@ -39,11 +39,11 @@ function fakeEngine(initial: Record<string, unknown> = missing) {
           message: 'Instalação recusada.'
         };
       const reply: Record<string, unknown> = {
-        'iac.terraform.status': { terraform: current },
-        'iac.terraform.install': { terraform: current },
-        'iac.terraform.decline': { terraform: current },
-        'iac.terraform.pin': { terraform: current },
-        'iac.terraform.offer': offerFixture,
+        'iac.runtime.status': { runtime: current },
+        'iac.runtime.install': { runtime: current },
+        'iac.runtime.decline': { runtime: current },
+        'iac.runtime.pin': { runtime: current },
+        'iac.runtime.offer': offerFixture,
         'cloud.list': connectionsFixture
       };
       return schema.parse(reply[method]);
@@ -76,8 +76,8 @@ describe('Infraestrutura', () => {
     expect(screen.getByText(/OpenTofu nesta máquina: ferramenta gratuita e de código aberto/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Autorizar instalação' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Não instalar agora' })).toBeInTheDocument();
-    expect(methods(engine.calls)).not.toContain('iac.terraform.offer');
-    expect(methods(engine.calls)).not.toContain('iac.terraform.install');
+    expect(methods(engine.calls)).not.toContain('iac.runtime.offer');
+    expect(methods(engine.calls)).not.toContain('iac.runtime.install');
     await expectNoA11yViolations(container);
   });
 
@@ -89,15 +89,15 @@ describe('Infraestrutura', () => {
     expect(await screen.findByText(offerFixture.offer.archiveUrl)).toBeInTheDocument();
     expect(screen.getByText(/assinada por quem publica o OpenTofu/)).toBeInTheDocument();
     expect(screen.getByText(offerFixture.offer.license)).toBeInTheDocument();
-    expect(engine.calls.find((call) => call.method === 'iac.terraform.offer')?.params).not.toHaveProperty('engine');
-    expect(methods(engine.calls)).not.toContain('iac.terraform.install');
+    expect(engine.calls.find((call) => call.method === 'iac.runtime.offer')?.params).not.toHaveProperty('engine');
+    expect(methods(engine.calls)).not.toContain('iac.runtime.install');
 
     await userEvent.click(screen.getByRole('button', { name: `Instalar OpenTofu ${offerFixture.offer.version}` }));
 
     expect(
       await screen.findByText(`OpenTofu ${offerFixture.offer.version} instalado e verificado.`)
     ).toBeInTheDocument();
-    expect(engine.calls.find((call) => call.method === 'iac.terraform.install')?.params).toEqual({
+    expect(engine.calls.find((call) => call.method === 'iac.runtime.install')?.params).toEqual({
       offerId: offerFixture.offer.offerId,
       version: offerFixture.offer.version,
       engine: 'openTofu'
@@ -110,7 +110,7 @@ describe('Infraestrutura', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Prefiro o Terraform da HashiCorp' }));
 
-    expect(engine.calls.find((call) => call.method === 'iac.terraform.offer')?.params).toMatchObject({
+    expect(engine.calls.find((call) => call.method === 'iac.runtime.offer')?.params).toMatchObject({
       engine: 'terraform'
     });
   });
@@ -123,7 +123,7 @@ describe('Infraestrutura', () => {
 
     expect(await screen.findByText(/nada será instalado/)).toBeInTheDocument();
     expect(screen.getByText('Instalação recusada')).toBeInTheDocument();
-    expect(methods(engine.calls)).not.toContain('iac.terraform.offer');
+    expect(methods(engine.calls)).not.toContain('iac.runtime.offer');
   });
 
   it('mostra o que o projeto exige, usa o OpenTofu por padrão e fixa a ferramenta escolhida', async () => {
@@ -136,7 +136,7 @@ describe('Infraestrutura', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Fixar Terraform 1.16.5 (externo)' }));
 
-    expect(engine.calls.find((call) => call.method === 'iac.terraform.pin')?.params).toEqual({
+    expect(engine.calls.find((call) => call.method === 'iac.runtime.pin')?.params).toEqual({
       projectId: demo.projectId,
       engine: 'terraform',
       version: '1.16.5',

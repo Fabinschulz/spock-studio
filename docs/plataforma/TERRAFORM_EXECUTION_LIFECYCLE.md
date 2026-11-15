@@ -26,7 +26,7 @@ versão do Terraform e etapas, e aparece em Execuções, Linha do tempo e Audito
 
 O executor:
 
-- obtém o binário por `TerraformDependencyService.ResolveForUseAsync` (ferramenta e versão do projeto, OpenTofu por
+- obtém o binário por `IacRuntimeService.ResolveForUseAsync` (ferramenta e versão do projeto, OpenTofu por
   padrão, hash conferido, fixadas no primeiro uso);
 - roda pelo `IProcessRunner` **sem shell**, com argumentos fixos montados pelo Spock, `-chdir` na pasta autorizada do
   projeto, `-input=false`, `-no-color`, e as variáveis `CHECKPOINT_DISABLE=1`, `TF_IN_AUTOMATION=1`, `TF_INPUT=0` mais
@@ -61,7 +61,7 @@ O executor:
 
 | Necessidade | Já existe |
 | --- | --- |
-| Binário certo e íntegro por projeto | `TerraformDependencyService.ResolveForUseAsync` (entrega 1) |
+| Binário certo e íntegro por projeto | `IacRuntimeService.ResolveForUseAsync` (entrega 1) |
 | Processo sem shell, com timeout e árvore encerrada | `SystemProcessRunner` (agora com variáveis de ambiente) |
 | Execução com diário e eventos | `RunTracker`, `FileRunStore`, eventos `run.*` |
 | Aprovação amarrada a hash | `ApprovalBinding` (workflows), padrão `plan`/`fix` com `STALE_PLAN` (segurança) |
@@ -73,7 +73,7 @@ O executor:
 
 | Ferramenta | Entrega | Efeito |
 | --- | --- | --- |
-| `terraform_status` | 1 (existe) | Lê disponibilidade, versão do projeto e exigências |
+| `iac_status` | 1 (existe) | Lê disponibilidade, versão do projeto e exigências |
 | `terraform_validate` | 2 | Roda `fmt -check` e `validate`; não toca a nuvem |
 | `terraform_plan` | 2 | Gera plano; devolve o resumo e o id; precisa do vínculo cloud liberado para agentes |
 | `terraform_plan_summary` | 2 | Lê um plano existente pelo id |

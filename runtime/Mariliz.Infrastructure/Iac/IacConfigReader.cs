@@ -1,10 +1,10 @@
 using System.Text.RegularExpressions;
 using Mariliz.Application.Iac;
 
-namespace Mariliz.Infrastructure.Terraform;
+namespace Mariliz.Infrastructure.Iac;
 
 // Lê required_version dos .tf e .tofu do projeto como texto. Não roda o Terraform nem interpreta HCL além dessa atribuição.
-public sealed partial class TerraformConfigReader : ITerraformConfigReader
+public sealed partial class IacConfigReader : IIacConfigReader
 {
     private const int MaxDepth = 6;
     private const int MaxFiles = 2000;
@@ -15,9 +15,9 @@ public sealed partial class TerraformConfigReader : ITerraformConfigReader
         ".git", ".terraform", "node_modules", "bin", "obj", "dist", "build", "vendor", ".venv", "target"
     };
 
-    public IReadOnlyList<TerraformRequirement> Requirements(string projectRoot)
+    public IReadOnlyList<IacRequirement> Requirements(string projectRoot)
     {
-        var found = new List<TerraformRequirement>();
+        var found = new List<IacRequirement>();
         foreach (var file in TerraformFiles(projectRoot).Take(MaxFiles))
         {
             string text;
@@ -34,7 +34,7 @@ public sealed partial class TerraformConfigReader : ITerraformConfigReader
             foreach (Match match in RequiredVersion().Matches(text))
             {
                 var constraint = match.Groups[1].Value.Trim();
-                found.Add(new TerraformRequirement(relative, constraint, VersionConstraint.TryParse(constraint) is not null));
+                found.Add(new IacRequirement(relative, constraint, VersionConstraint.TryParse(constraint) is not null));
             }
         }
         return found.OrderBy(r => r.File, StringComparer.Ordinal).ToList();

@@ -21,7 +21,7 @@ using Mariliz.Infrastructure;
 using Mariliz.Infrastructure.Cloud;
 using Mariliz.Infrastructure.Engineering;
 using Mariliz.Infrastructure.Integrations;
-using Mariliz.Infrastructure.Terraform;
+using Mariliz.Infrastructure.Iac;
 
 // stdout é exclusivo do protocolo; qualquer diagnóstico vai para stderr.
 using var cts = LocalEngine.ConfigureConsole();
@@ -69,8 +69,8 @@ var cloud = LocalCloudHub.Create(engine.DataRoot, engine.Workspace, engine.Clock
 // pessoa pela interface.
 using var openTofuToolchain = new OpenTofuToolchain(engine.DataRoot, ExecutableLocator.FromEnvironment());
 using var terraformToolchain = new HashiCorpTerraformToolchain(engine.DataRoot, ExecutableLocator.FromEnvironment());
-var terraform = new TerraformDependencyService([openTofuToolchain, terraformToolchain], new FileTerraformSettingsStore(engine.DataRoot),
-    new TerraformConfigReader(), engine.Runner, engine.Workspace, engine.Clock, integrations.Audit);
+var terraform = new IacRuntimeService([openTofuToolchain, terraformToolchain], new FileIacSettingsStore(engine.DataRoot),
+    new IacConfigReader(), engine.Runner, engine.Workspace, engine.Clock, integrations.Audit);
 var knowledge = new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge, decisionMemory);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,

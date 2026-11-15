@@ -55,5 +55,5 @@ Os achados não bloqueiam sozinhos: aparecem na aprovação, e os graves pedem c
 - Instalação só com autorização, ligada à proposta (`offerId`), recusa respeitada.
 - Assinatura e checksum conferidos; zip só com o binário extraído; nada fora da pasta do Spock.
 - Hash conferido antes de usar; binário externo só depois de adotado.
-- Métodos `iac.*` só para a interface; MCP com `terraform_status` só de leitura.
+- Métodos `iac.*` só para a interface; MCP com `iac_status` só de leitura.
 - Caminhos da máquina abreviados (`~`) antes de chegar à interface.

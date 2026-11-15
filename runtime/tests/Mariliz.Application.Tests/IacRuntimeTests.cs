@@ -6,15 +6,15 @@ using Mariliz.Application.Ports;
 using Mariliz.Application.Tests.Support;
 using Mariliz.Application.Workspace;
 using Mariliz.Infrastructure;
-using Mariliz.Infrastructure.Terraform;
+using Mariliz.Infrastructure.Iac;
 
 namespace Mariliz.Application.Tests;
 
 // A dependência Terraform sem rede de verdade: um servidor falso no formato da HashiCorp, uma chave de teste e um
-// Terraform "externo" simulado pelo executor de processos. A instalação real está em TerraformLiveTests.
-public sealed class TerraformDependencyTests : IDisposable
+// Terraform "externo" simulado pelo executor de processos. A instalação real está em IacRuntimeLiveTests.
+public sealed class IacRuntimeTests : IDisposable
 {
-    private static readonly TerraformPlatform Windows = new("windows", "amd64");
+    private static readonly IacPlatform Windows = new("windows", "amd64");
 
     private readonly TempProject _project = TempProject.Dotnet();
     private readonly MemoryAudit _audit = new();
@@ -26,7 +26,7 @@ public sealed class TerraformDependencyTests : IDisposable
     private readonly string _projectId;
 
     // Autoriza antes de qualquer serviço: o autorizador lê o registro de projetos ao nascer.
-    public TerraformDependencyTests() => _projectId = Workspace().Authorize(_project.Root).Project!.ProjectId;
+    public IacRuntimeTests() => _projectId = Workspace().Authorize(_project.Root).Project!.ProjectId;
 
     public void Dispose()
     {
@@ -41,8 +41,8 @@ public sealed class TerraformDependencyTests : IDisposable
     private HashiCorpTerraformToolchain Toolchain() =>
         new(_project.DataDir, new MapLocator(_external), _server, Windows, _pgp.Keyring());
 
-    private TerraformDependencyService Service(HashiCorpTerraformToolchain? toolchain = null) =>
-        new([toolchain ?? Toolchain()], new FileTerraformSettingsStore(_project.DataDir), new TerraformConfigReader(), Runner(), Workspace(), _clock, _audit);
+    private IacRuntimeService Service(HashiCorpTerraformToolchain? toolchain = null) =>
+        new([toolchain ?? Toolchain()], new FileIacSettingsStore(_project.DataDir), new IacConfigReader(), Runner(), Workspace(), _clock, _audit);
 
     // Responde a `terraform version -json` como o binário externo responderia.
     private InterceptingRunner Runner() => new((spec, _) => Task.FromResult<ProcessResult?>(
@@ -74,12 +74,12 @@ public sealed class TerraformDependencyTests : IDisposable
     [InlineData("1.16.5", "1.16.5", true)]
     [InlineData("!= 1.16.5", "1.16.5", false)]
     public void Restricao_de_versao_segue_a_sintaxe_do_required_version(string constraint, string version, bool expected) =>
-        Assert.Equal(expected, VersionConstraint.TryParse(constraint)!.IsSatisfiedBy(TerraformVersion.Parse(version)));
+        Assert.Equal(expected, VersionConstraint.TryParse(constraint)!.IsSatisfiedBy(IacVersion.Parse(version)));
 
     [Fact]
     public void Versao_candidata_vem_antes_da_final()
     {
-        Assert.True(TerraformVersion.Parse("1.17.0-rc2") < TerraformVersion.Parse("1.17.0"));
+        Assert.True(IacVersion.Parse("1.17.0-rc2") < IacVersion.Parse("1.17.0"));
         Assert.Null(VersionConstraint.TryParse(">= um"));
     }
 
@@ -87,8 +87,8 @@ public sealed class TerraformDependencyTests : IDisposable
     public void Assinatura_real_da_HashiCorp_e_aceita_e_qualquer_byte_trocado_e_recusado()
     {
         var keyring = OpenPgpKeyring.FromArmored(File.ReadAllText(Path.Combine(ContractFiles.Root,
-            "runtime", "Mariliz.Infrastructure", "Terraform", "hashicorp-release-key.asc")));
-        var fixtures = Path.Combine(ContractFiles.Root, "runtime", "tests", "Mariliz.Application.Tests", "Fixtures", "terraform");
+            "runtime", "Mariliz.Infrastructure", "Iac", "hashicorp-release-key.asc")));
+        var fixtures = Path.Combine(ContractFiles.Root, "runtime", "tests", "Mariliz.Application.Tests", "Fixtures", "iac");
         var sums = File.ReadAllBytes(Path.Combine(fixtures, "terraform_1.17.2_SHA256SUMS"));
         var signature = File.ReadAllBytes(Path.Combine(fixtures, "terraform_1.17.2_SHA256SUMS.72D7468F.sig"));
 
@@ -108,7 +108,7 @@ public sealed class TerraformDependencyTests : IDisposable
     {
         var status = await Service().StatusAsync(null, CancellationToken.None);
 
-        Assert.Equal(TerraformState.Missing, status.State);
+        Assert.Equal(IacRuntimeState.Missing, status.State);
         Assert.Empty(status.Installations);
         Assert.Null(status.Selected);
         Assert.Empty(_server.Requested);
@@ -120,12 +120,12 @@ public sealed class TerraformDependencyTests : IDisposable
         var declined = await Service().DeclineAsync(CancellationToken.None);
         var again = await Service().StatusAsync(null, CancellationToken.None);
 
-        Assert.Equal(TerraformState.Declined, declined.State);
-        Assert.Equal(TerraformState.Declined, again.State);
+        Assert.Equal(IacRuntimeState.Declined, declined.State);
+        Assert.Equal(IacRuntimeState.Declined, again.State);
         Assert.Equal(_clock.UtcNow, again.DeclinedAt);
         Assert.Empty(_server.Requested);
         Assert.False(Directory.Exists(Path.Combine(_project.DataDir, "tools", "terraform")));
-        Assert.Contains(_audit.Entries, e => e.Action == "iac.terraform.declined");
+        Assert.Contains(_audit.Entries, e => e.Action == "iac.runtime.declined");
     }
 
     [Fact]
@@ -142,16 +142,16 @@ public sealed class TerraformDependencyTests : IDisposable
         Assert.Equal("1.17.2", offer.Version);
         Assert.Equal(_pgp.Fingerprint, offer.SigningKey);
         Assert.False(offer.IsUpdate);
-        Assert.Equal(TerraformState.Ready, status.State);
+        Assert.Equal(IacRuntimeState.Ready, status.State);
         Assert.Null(status.DeclinedAt);
         var installed = Assert.Single(status.Installations);
-        Assert.Equal(TerraformSource.Managed, installed.Source);
+        Assert.Equal(IacRuntimeSource.Managed, installed.Source);
         Assert.True(installed.Verified);
         Assert.Equal(Path.Combine(_project.DataDir, "tools", "terraform", "1.17.2", "terraform.exe"), installed.Path);
         Assert.Equal("binario 1.17.2", File.ReadAllText(installed.Path));
         Assert.DoesNotContain(Path.GetDirectoryName(installed.Path)!, Environment.GetEnvironmentVariable("PATH") ?? "", StringComparison.OrdinalIgnoreCase);
         Assert.Empty(Directory.GetDirectories(Path.Combine(_project.DataDir, "tools", "terraform"), ".staging-*"));
-        Assert.Contains(_audit.Entries, e => e.Action == "iac.terraform.installed" && e.Detail.Contains(_pgp.Fingerprint));
+        Assert.Contains(_audit.Entries, e => e.Action == "iac.runtime.installed" && e.Detail.Contains(_pgp.Fingerprint));
     }
 
     [Fact]
@@ -182,7 +182,7 @@ public sealed class TerraformDependencyTests : IDisposable
         Assert.Equal("IAC_CHECKSUM_MISMATCH", error.Code);
         Assert.Empty(Toolchain().Managed());
         Assert.Empty(Directory.GetDirectories(Path.Combine(_project.DataDir, "tools", "terraform")));
-        Assert.Contains(_audit.Entries, e => e.Action == "iac.terraform.install_failed" && e.Detail.Contains("IAC_CHECKSUM_MISMATCH"));
+        Assert.Contains(_audit.Entries, e => e.Action == "iac.runtime.install_failed" && e.Detail.Contains("IAC_CHECKSUM_MISMATCH"));
     }
 
     [Fact]
@@ -224,7 +224,7 @@ public sealed class TerraformDependencyTests : IDisposable
         var error = await Assert.ThrowsAsync<EngineException>(() => service.ResolveForUseAsync(Project(), CancellationToken.None));
 
         Assert.False(status.Installations.Single().Verified);
-        Assert.NotEqual(TerraformState.Ready, status.State);
+        Assert.NotEqual(IacRuntimeState.Ready, status.State);
         Assert.Equal("IAC_TERRAFORM_UNAVAILABLE", error.Code);
 
         var again = await service.OfferAsync(installed.Version, null, IacEngine.Terraform, CancellationToken.None);
@@ -246,12 +246,12 @@ public sealed class TerraformDependencyTests : IDisposable
         File.WriteAllText(path, "outro binario");
         var changed = await service.StatusAsync(null, CancellationToken.None);
 
-        Assert.Equal(TerraformState.ExternalAvailable, found.State);
+        Assert.Equal(IacRuntimeState.ExternalAvailable, found.State);
         Assert.Null(found.Selected);
         Assert.Equal("IAC_EXTERNAL_CHANGED", wrongVersion.Code);
-        Assert.Equal(TerraformState.Ready, adopted.State);
-        Assert.Equal(TerraformSource.External, adopted.Selected!.Source);
-        Assert.Equal(TerraformState.ExternalAvailable, changed.State);
+        Assert.Equal(IacRuntimeState.Ready, adopted.State);
+        Assert.Equal(IacRuntimeSource.External, adopted.Selected!.Source);
+        Assert.Equal(IacRuntimeState.ExternalAvailable, changed.State);
         Assert.Contains("mudou", changed.Installations.Single().Problem);
         Assert.Empty(_server.Requested);
     }
@@ -265,7 +265,7 @@ public sealed class TerraformDependencyTests : IDisposable
         var status = await service.StatusAsync(null, CancellationToken.None);
         var error = await Assert.ThrowsAsync<EngineException>(() => service.AdoptAsync("1.4.6", IacEngine.Terraform, CancellationToken.None));
 
-        Assert.Equal(TerraformState.Incompatible, status.State);
+        Assert.Equal(IacRuntimeState.Incompatible, status.State);
         Assert.Equal("IAC_VERSION_INCOMPATIBLE", error.Code);
     }
 
@@ -310,7 +310,7 @@ public sealed class TerraformDependencyTests : IDisposable
         Assert.Equal("1.16.5", after.Project!.Selected!.Version);
         Assert.False(after.Project.Automatic);
         Assert.Equal(2, after.Installations.Count);
-        Assert.Contains(_audit.Entries, e => e.Action == "iac.terraform.pinned" && e.Detail.Contains("\"automatic\":true"));
+        Assert.Contains(_audit.Entries, e => e.Action == "iac.runtime.pinned" && e.Detail.Contains("\"automatic\":true"));
     }
 
     [Fact]
@@ -328,7 +328,7 @@ public sealed class TerraformDependencyTests : IDisposable
         var project = Project();
 
         var incompatible = await Assert.ThrowsAsync<EngineException>(() => service.PinAsync(project, "1.16.5", null, IacEngine.Terraform, CancellationToken.None));
-        var pinned = await service.PinAsync(project, "1.17.2", TerraformSource.Managed, IacEngine.Terraform, CancellationToken.None);
+        var pinned = await service.PinAsync(project, "1.17.2", IacRuntimeSource.Managed, IacEngine.Terraform, CancellationToken.None);
         var unconfirmed = await Assert.ThrowsAsync<EngineException>(() => service.RemoveAsync("1.16.5", IacEngine.Terraform, false, CancellationToken.None));
         var inUse = await Assert.ThrowsAsync<EngineException>(() => service.RemoveAsync("1.17.2", IacEngine.Terraform, true, CancellationToken.None));
         var removed = await service.RemoveAsync("1.16.5", IacEngine.Terraform, true, CancellationToken.None);
@@ -338,7 +338,7 @@ public sealed class TerraformDependencyTests : IDisposable
         Assert.Equal("IAC_CONFIRMATION_REQUIRED", unconfirmed.Code);
         Assert.Equal("IAC_VERSION_IN_USE", inUse.Code);
         Assert.Equal("1.17.2", Assert.Single(removed.Installations).Version);
-        Assert.Contains(_audit.Entries, e => e.Action == "iac.terraform.removed");
+        Assert.Contains(_audit.Entries, e => e.Action == "iac.runtime.removed");
     }
 
     [Fact]
@@ -354,8 +354,8 @@ public sealed class TerraformDependencyTests : IDisposable
     {
         ExternalBinary("1.16.5");
         var project = Project();
-        var tools = new IacMcpTools(Workspace, authorizer => new TerraformDependencyService([Toolchain()], new FileTerraformSettingsStore(_project.DataDir),
-            new TerraformConfigReader(), Runner(), authorizer, _clock, _audit), _project.Root);
+        var tools = new IacMcpTools(Workspace, authorizer => new IacRuntimeService([Toolchain()], new FileIacSettingsStore(_project.DataDir),
+            new IacConfigReader(), Runner(), authorizer, _clock, _audit), _project.Root);
 
         var tool = Assert.Single(tools.Tools());
         var text = await tool.Call(new McpCall(new System.Text.Json.Nodes.JsonObject { ["project"] = project }, "teste", CancellationToken.None));
@@ -364,7 +364,7 @@ public sealed class TerraformDependencyTests : IDisposable
         Assert.Contains("O Spock pode usá-lo sem instalar outro", text);
         Assert.Contains("só pela tela Infraestrutura", text);
         Assert.Empty(_server.Requested);
-        Assert.Empty(new FileTerraformSettingsStore(_project.DataDir).Read().Adopted);
+        Assert.Empty(new FileIacSettingsStore(_project.DataDir).Read().Adopted);
     }
 
     private sealed class MapLocator(Dictionary<string, string> map) : IExecutableLocator

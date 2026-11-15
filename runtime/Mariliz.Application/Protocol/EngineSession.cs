@@ -82,7 +82,7 @@ public sealed class EngineSession
         SecurityService? security = null,
         IdeaArchitectService? ideas = null,
         CloudHub? cloud = null,
-        TerraformDependencyService? terraform = null)
+        IacRuntimeService? terraform = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;

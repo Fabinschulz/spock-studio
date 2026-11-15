@@ -1,7 +1,7 @@
 import type { Tone } from '@/shared/components';
-import type { IacEngine, TerraformInstallation, TerraformState } from '@/shared/schema';
+import type { IacEngine, IacInstallation, IacRuntimeState } from '@/shared/schema';
 
-export const TERRAFORM_STATE: Record<TerraformState, { label: string; tone: Tone }> = {
+export const RUNTIME_STATE: Record<IacRuntimeState, { label: string; tone: Tone }> = {
   ready: { label: 'Pronto', tone: 'success' },
   externalAvailable: { label: 'Instalado fora do Spock', tone: 'info' },
   missing: { label: 'Não instalado', tone: 'warning' },
@@ -25,7 +25,7 @@ export function installationName(installation: { engine: IacEngine; version: str
   return `${ENGINE_NAME[installation.engine]} ${installation.version}`;
 }
 
-export function sourceLabel(installation: TerraformInstallation): string {
+export function sourceLabel(installation: IacInstallation): string {
   if (installation.source === 'managed') return 'Gerenciado pelo Spock';
   return installation.adopted ? 'Instalado fora do Spock, em uso' : 'Instalado fora do Spock';
 }
@@ -77,7 +77,7 @@ export const LIFECYCLE: readonly LifecycleStage[] = [
     id: 'plan',
     label: 'Plano',
     mode: 'analysis',
-    description: 'terraform plan: mostra o que criaria, mudaria ou destruiria.',
+    description: 'plan: mostra o que criaria, mudaria ou destruiria.',
     available: false
   },
   {
