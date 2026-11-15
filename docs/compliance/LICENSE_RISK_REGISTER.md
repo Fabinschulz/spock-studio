@@ -45,15 +45,19 @@ de parecer.
 
 ### R-02: Berkeley DB (Sleepycat) no python-build-standalone: ALTO, distribuição
 
-- **Evidência.** `scripts/package-intelligence.py:31-45` (PBS 20250409; a poda não remove `_dbm`). `downloads.py` e
-  `targets.yml` da tag 20250409: `_dbm` vincula ao Berkeley DB 6.0.19, "the last version licensed under the Sleepycat
-  license".
+- **Evidência.** `scripts/package-intelligence.py:31-45` (PBS 20250409). `downloads.py` e `targets.yml` da tag
+  20250409: `_dbm` vincula ao Berkeley DB 6.0.19, "the last version licensed under the Sleepycat license". No arquivo
+  oficial (SHA-256 fixado no script) não há `_dbm*.so`: `PyInit__dbm` e "Berkeley DB 6.0.19" estão **dentro de
+  `lib/libpython3.12.so.1.0`**, ligados estaticamente. O `main` do PBS (2026-11) ainda inclui o `bdb` no alvo Linux.
 - **Motivo.** A Sleepycat exige informar como obter o código-fonte completo do DB "and any accompanying software that uses the
   DB software". O alcance sobre o produto proprietário é incerto ⚖.
 - **Impacto comercial.** Obrigação de fonte com alcance discutível, no pacote Linux.
-- **Ação.** Remover `_dbm*.so` e `libdb*` na poda (a inteligência não usa `dbm`) e confirmar com o smoke do instalador.
-  Alternativa: parecer.
-- **Prioridade.** P0. A correção é barata.
+- **Ação.** A poda não resolve, porque o DB faz parte do próprio interpretador. Opções (D-05):
+  1. Cumprir a Sleepycat: nos avisos, o texto da licença e onde obter o fonte do Berkeley DB 6.0.19 e do CPython/PBS, mais um
+     parecer sobre o alcance de "software que use o DB". O código do Spock não chama `dbm`.
+  2. Compilar um CPython próprio para Linux sem `bdb`.
+  3. Tirar o Linux da 1ª versão.
+- **Prioridade.** P0 para o pacote Linux.
 
 ### R-03: GTK/WebKitGTK (LGPL) no AppImage: ALTO, distribuição
 

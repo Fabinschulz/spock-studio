@@ -13923,7 +13923,7 @@ na versão correspondente, antes do lançamento (não foi redigido aqui):
 Componentes fora de gerenciador de pacotes cujos textos ainda não foram reunidos:
 
 - Bibliotecas nativas do python-build-standalone 20250409 (Linux): licenças no PYTHON.json/`licenses` do arquivo da release.
-- Berkeley DB 6.0.19 (Sleepycat), se o `_dbm` continuar no pacote Linux.
+- Berkeley DB 6.0.19 (Sleepycat), ligado estaticamente ao libpython do pacote Linux: texto da licença e onde obter o fonte.
 - WebKitGTK, GTK, GLib e demais bibliotecas embutidas no AppImage (LGPL e outras): listar a partir do AppImage gerado.
 - .NET Runtime para linux-x64: mesmos LICENSE.TXT/THIRD-PARTY-NOTICES.TXT do pacote linux-x64 (o arquivo copiado é o do win-x64).
 - nsis_tauri_utils (MIT OR Apache-2.0) e o runtime do AppImage: textos do repositório oficial.

@@ -27,7 +27,7 @@ Fonte: `desktop/host/src-tauri/tauri.conf.json` (`bundle`), `.github/workflows/c
 | --- | --- | --- | --- |
 | Host | Rust + Tauri + interface | 261 crates (os do Windows, menos os específicos dele, mais GTK/glib/webkit2gtk-rs, zbus, x11 etc.); os mesmos 106 pacotes npm | Incorporado |
 | Sidecar | .NET 10 linux-x64, single-file | Runtime .NET linux-x64 (MIT); os mesmos 47 NuGet | Incorporado |
-| `python/` | python-build-standalone 3.12.10+20250409, podado | CPython, OpenSSL 3.0.16, SQLite 3.47.1, ncurses 6.5, libedit, libffi 3.4.6, expat 2.6.3, mpdecimal 4.0.0, zlib 1.3.1, xz 5.2.12, bzip2, uuid, libX11/libxcb e **Berkeley DB 6.0.19 (`_dbm`, Sleepycat)**. Tcl/Tk são podados | Redistribuído |
+| `python/` | python-build-standalone 3.12.10+20250409, podado | CPython, OpenSSL 3.0.16, SQLite 3.47.1, ncurses 6.5, libedit, libffi 3.4.6, expat 2.6.3, mpdecimal 4.0.0, zlib 1.3.1, xz 5.2.12, bzip2, uuid, libX11/libxcb e **Berkeley DB 6.0.19 (`_dbm`, Sleepycat, ligado estaticamente ao `libpython3.12.so`)**. Tcl/Tk são podados | Redistribuído |
 | `intelligence/` | Igual ao Windows (rodas manylinux com `strip`) | 41 pacotes PyPI | Redistribuído |
 | Só no AppImage | Bibliotecas do sistema embutidas pelo `linuxdeploy --plugin gtk` | WebKitGTK 4.1 (processos e `libwebkit2gtkinjectedbundle.so`), GTK 3, GLib, libsoup e afins: LGPL-2.1+ e outras. Lista exata não inspecionada | Redistribuído |
 | Só no `.deb` | Dependências declaradas (`libwebkit2gtk-4.1-0`, `libgtk-3-0`) | Do sistema | Não redistribuído |
@@ -61,7 +61,7 @@ Legenda: ✅ permitido · ⚠️ permitido com condições · ⚖ depende de par
 | CPython embed (Windows) | ⚠️ LICENSE.txt e EULA protetivo para o código da Microsoft | ⚠️ idem | — | ✅ | — | ✅ | ⚠️ PSF: resumo das mudanças; o Distributable Code da Microsoft não pode ser alterado |
 | Visual C++ Runtime | ⚠️ só junto com o app, só em Windows, EULA protetivo | ❌ separado | — | ✅ | — | ✅ | ❌ |
 | python-build-standalone | ⚠️ com as licenças das bibliotecas nativas | ⚠️ idem | — | ✅ | — | ✅ | ⚠️ (a poda atual é aceitável) |
-| Berkeley DB (`_dbm`) | ⚖ Sleepycat exige fonte; **remover** | ⚖ | — | — | — | ✅ recomendado | ⚖ |
+| Berkeley DB (`_dbm`, dentro do libpython) | ⚠️ Sleepycat: texto e onde obter o fonte; alcance ⚖ | ⚠️ idem | — | — | — | ❌ não sai pela poda (só recompilando o CPython) | ⚖ |
 | GTK/WebKitGTK (AppImage) | ⚠️ LGPL: textos, fonte ou oferta, bibliotecas substituíveis | ⚠️ idem | — | ✅ | — | ✅ | ⚠️ alterações publicadas sob LGPL |
 | NSIS | ✅ (stub no setup) | ✅ | — | ✅ | — | — | ⚠️ módulo LZMA alterado fica CPL |
 | WebView2 Runtime | ⚠️ só embutindo o bootstrapper ou o instalador offline, sob os termos da Microsoft (hoje não embute) | ❌ não fornecer links da Microsoft a terceiros | ✅ bootstrapper oficial (padrão atual) | Pela Microsoft (Evergreen) | — | — | ❌ |
