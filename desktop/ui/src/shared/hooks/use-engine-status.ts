@@ -28,6 +28,12 @@ const reportSchema = z.union([
 
 const UNKNOWN: EngineReport = { status: 'unknown', aiRuntime: 'unknown' };
 
+/**
+ * O evento do host só traz o estado do motor; a inteligência local sobe no primeiro pedido e muda sem aviso. Sem
+ * reconsultar, a barra dizia "parada" com um workflow rodando.
+ */
+export const AI_RUNTIME_REFRESH_MS = 10_000;
+
 export const parseEngineReport = (value: unknown): EngineReport => {
   const parsed = reportSchema.safeParse(value);
   return parsed.success ? parsed.data : UNKNOWN;
@@ -43,6 +49,7 @@ export function useEngineStatus(): EngineReport & { hosted: boolean } {
     if (!hosted) return;
     let active = true;
     let unlisten: (() => void) | undefined;
+    let timer: ReturnType<typeof setInterval> | undefined;
 
     const follow = async () => {
       const [{ invoke }, { listen }] = await Promise.all([
@@ -72,12 +79,24 @@ export function useEngineStatus(): EngineReport & { hosted: boolean } {
       } catch {
         if (active) setStatus('unknown');
       }
+
+      // A consulta ao runtime só pergunta (runtime.health não liga o Python): pode repetir sem custo.
+      timer = setInterval(() => {
+        invoke('engine_status')
+          .then((value) => {
+            const report = parseEngineReport(value);
+            if (active && report.aiRuntime !== 'unknown') setAiRuntime(report.aiRuntime);
+          })
+          .catch(() => undefined);
+      }, AI_RUNTIME_REFRESH_MS);
+      if (!active) clearInterval(timer);
     };
     follow().catch(() => undefined);
 
     return () => {
       active = false;
       unlisten?.();
+      if (timer) clearInterval(timer);
     };
   }, [hosted]);
 
