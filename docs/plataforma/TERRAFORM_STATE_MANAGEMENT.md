@@ -55,6 +55,9 @@ O Spock gera essa raiz e roda o mesmo ciclo de plano e aprovação ([TERRAFORM_E
 
 ## 6. Leitura do state pelo Spock
 
+Na entrega 2 o plano roda sobre uma cópia da configuração: state remoto é lido pelo backend; state local é copiado
+só para o plano ler e apagado da cópia em seguida, sem nunca ser gravado nem exibido.
+
 | Uso | Comando | O que sai |
 | --- | --- | --- |
 | Consulta de recursos gerenciados | `state list` | Endereços |

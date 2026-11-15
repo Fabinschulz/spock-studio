@@ -98,3 +98,72 @@ export type IacInstallation = z.infer<typeof iacInstallationSchema>;
 export type IacRuntimeStatus = z.infer<typeof iacRuntimeStatusSchema>;
 export type IacRuntimeOffer = z.infer<typeof iacRuntimeOfferSchema>;
 export type ProjectRuntime = z.infer<typeof projectRuntimeSchema>;
+
+export const iacDiagnosticSchema = z.object({
+  severity: z.string(),
+  summary: z.string(),
+  detail: z.string().nullable(),
+  file: z.string().nullable(),
+  line: z.number().nullable()
+});
+
+export const iacFolderValidationSchema = z.object({
+  folder: z.string(),
+  valid: z.boolean(),
+  formatted: z.boolean(),
+  diagnostics: z.array(iacDiagnosticSchema),
+  error: z.string().nullable()
+});
+
+export const iacResourceChangeSchema = z.object({ address: z.string(), type: z.string(), action: z.string() });
+
+/** Só endereços, tipos e ações: valores de atributo nunca saem do arquivo de plano. */
+export const iacPlanSummarySchema = z.object({
+  create: z.number(),
+  update: z.number(),
+  replace: z.number(),
+  delete: z.number(),
+  read: z.number(),
+  unchanged: z.number(),
+  changes: z.array(iacResourceChangeSchema),
+  outputsChanged: z.array(z.string())
+});
+
+export const iacFindingSchema = z.object({
+  severity: z.enum(['warning', 'danger']),
+  rule: z.string(),
+  address: z.string(),
+  message: z.string()
+});
+
+export const iacOperationSchema = z.object({
+  id: z.string(),
+  projectId: z.string(),
+  kind: z.enum(['validate', 'plan']),
+  status: z.enum(['succeeded', 'failed']),
+  engine: iacEngineSchema,
+  version: z.string(),
+  root: z.string(),
+  folder: z.string().nullable(),
+  workspace: z.string().nullable(),
+  connectionId: z.string().nullable(),
+  configHash: z.string(),
+  startedAt: z.string(),
+  finishedAt: z.string(),
+  requestedBy: z.string(),
+  validation: z.array(iacFolderValidationSchema).nullable(),
+  planId: z.string().nullable(),
+  hasChanges: z.boolean().nullable(),
+  summary: iacPlanSummarySchema.nullable(),
+  findings: z.array(iacFindingSchema).nullable(),
+  error: z.string().nullable()
+});
+
+export const iacOperationResultSchema = z.object({ operation: iacOperationSchema });
+export const iacOperationListSchema = z.object({ operations: z.array(iacOperationSchema) });
+export const iacLayoutSchema = z.object({
+  layout: z.object({ projectId: z.string(), root: z.string().nullable(), folders: z.array(z.string()) })
+});
+
+export type IacOperation = z.infer<typeof iacOperationSchema>;
+export type IacLayout = z.infer<typeof iacLayoutSchema>['layout'];

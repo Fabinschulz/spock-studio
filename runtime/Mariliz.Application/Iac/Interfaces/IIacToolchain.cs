@@ -51,4 +51,7 @@ public interface IIacSettingsStore
 public interface IIacConfigReader
 {
     IReadOnlyList<IacRequirement> Requirements(string projectRoot);
+
+    // As pastas (relativas, com "/") que têm .tf ou .tofu, ignorando .terraform/, node_modules/ e afins.
+    IReadOnlyList<string> Folders(string projectRoot);
 }

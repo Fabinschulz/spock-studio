@@ -102,6 +102,11 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "iac.runtime.remove",
     "iac.runtime.adopt",
     "iac.runtime.pin",
+    "iac.layout",
+    "iac.validate",
+    "iac.plan",
+    "iac.operations",
+    "iac.operation",
 ];
 
 pub mod error_code {

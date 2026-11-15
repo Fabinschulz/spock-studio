@@ -71,14 +71,14 @@ export const LIFECYCLE: readonly LifecycleStage[] = [
     label: 'Validação',
     mode: 'analysis',
     description: 'fmt -check e validate, sem credencial.',
-    available: false
+    available: true
   },
   {
     id: 'plan',
     label: 'Plano',
     mode: 'analysis',
     description: 'plan: mostra o que criaria, mudaria ou destruiria.',
-    available: false
+    available: true
   },
   {
     id: 'approval',

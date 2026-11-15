@@ -8,6 +8,7 @@ import type { IacEngine, IacRuntimeOffer, IacRuntimeSource } from '@/shared/sche
 import { useCallback, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 
+import { IacOperations } from './components/iac-operations';
 import { LifecycleStrip } from './components/lifecycle-strip';
 import { ProjectRuntime } from './components/project-runtime';
 import { RuntimePanel } from './components/runtime-panel';
@@ -109,6 +110,18 @@ export function InfrastructurePage({ client, project }: { client: EngineClient; 
               </p>
             )}
           </PageSection>
+
+          {project ? (
+            <PageSection title="Validar e planejar">
+              <IacOperations
+                key={project.projectId}
+                client={client}
+                api={api}
+                project={project}
+                ready={hub.value.runtime.project?.selected != null}
+              />
+            </PageSection>
+          ) : null}
 
           <PageSection title="Provedores">
             <p className={styles.meta}>

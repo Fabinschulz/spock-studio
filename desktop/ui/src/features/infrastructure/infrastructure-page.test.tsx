@@ -1,7 +1,10 @@
 import connectionsFixture from '@contracts/fixtures/cloud/connections.json';
+import linksFixture from '@contracts/fixtures/cloud/links.json';
+import layoutFixture from '@contracts/fixtures/iac/layout.json';
 import offerFixture from '@contracts/fixtures/iac/offer.json';
+import operationsFixture from '@contracts/fixtures/iac/operations.json';
 import statusFixture from '@contracts/fixtures/iac/status.json';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
@@ -44,7 +47,12 @@ function fakeEngine(initial: Record<string, unknown> = missing) {
         'iac.runtime.decline': { runtime: current },
         'iac.runtime.pin': { runtime: current },
         'iac.runtime.offer': offerFixture,
-        'cloud.list': connectionsFixture
+        'iac.layout': layoutFixture,
+        'iac.operations': operationsFixture,
+        'iac.validate': { operation: operationsFixture.operations[1] },
+        'iac.plan': { operation: operationsFixture.operations[0] },
+        'cloud.list': connectionsFixture,
+        'cloud.links': { links: linksFixture.links.map((link) => ({ ...link, projectId: demo.projectId })) }
       };
       return schema.parse(reply[method]);
     },
@@ -149,7 +157,47 @@ describe('Infraestrutura', () => {
 
     expect(await screen.findByRole('list', { name: 'Ciclo de uma mudança de infraestrutura' })).toBeInTheDocument();
     expect(screen.getAllByText('Só analisa')).toHaveLength(6);
+    expect(screen.getAllByText('Disponível')).toHaveLength(3);
     expect(screen.getAllByText('Muda a nuvem')).toHaveLength(1);
     expect(screen.getByText('Prepara a mudança')).toBeInTheDocument();
+  });
+
+  it('validar e planejar mostram o resultado e passam pasta, ambiente e conexão escolhidos', async () => {
+    const engine = fakeEngine(ready);
+    renderPage(engine.client);
+
+    expect(await screen.findByText(/não mudam a nuvem nem o projeto/)).toBeInTheDocument();
+    const plan = operationsFixture.operations[0]!;
+    const summary = await screen.findByLabelText('Resumo do plano');
+    expect(within(summary).getByText(`Criar ${plan.summary!.create}`)).toBeInTheDocument();
+    expect(screen.getByText('module.rede.terraform_data.rede')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('radio', { name: 'infra/modules/rede' }));
+    await userEvent.type(screen.getByLabelText(/Ambiente/), 'dev');
+    const connection = connectionsFixture.connections.find((c) => c.id === linksFixture.links[0]!.connectionId)!;
+    await userEvent.click(screen.getByRole('radio', { name: `Conexão ${connection.name} (${connection.provider})` }));
+    await userEvent.click(screen.getByRole('button', { name: 'Gerar plano' }));
+
+    expect(await screen.findByText('Plano gerado e guardado.')).toBeInTheDocument();
+    expect(engine.calls.find((call) => call.method === 'iac.plan')?.params).toEqual({
+      projectId: demo.projectId,
+      folder: 'infra/modules/rede',
+      workspace: 'dev',
+      connectionId: connection.id
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Validar' }));
+    expect(await screen.findByText('Configuração válida e formatada.')).toBeInTheDocument();
+    expect(methods(engine.calls)).not.toContain('iac.apply');
+  });
+
+  it('sem ferramenta pronta, validar e planejar ficam desligados', async () => {
+    renderPage(fakeEngine().client);
+
+    expect(
+      await screen.findByText('Instale ou escolha a ferramenta acima para validar e planejar.')
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Validar' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Gerar plano' })).toBeDisabled();
   });
 });

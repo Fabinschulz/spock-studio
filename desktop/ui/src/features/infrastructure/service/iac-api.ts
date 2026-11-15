@@ -1,8 +1,13 @@
 import type { EngineClient } from '@/shared/api';
 import {
+  iacLayoutSchema,
+  iacOperationListSchema,
+  iacOperationResultSchema,
   iacRuntimeOfferResultSchema,
   iacRuntimeStatusResultSchema,
   type IacEngine,
+  type IacLayout,
+  type IacOperation,
   type IacRuntimeOffer,
   type IacRuntimeSource,
   type IacRuntimeStatus
@@ -21,6 +26,12 @@ export type IacApi = {
     projectId: string,
     choice: { engine: IacEngine; version: string; source: IacRuntimeSource } | null
   ): Promise<IacRuntimeStatus>;
+  layout(projectId: string): Promise<IacLayout>;
+  /** fmt -check e validate sobre uma cópia da configuração: não lê state nem toca a nuvem. */
+  validate(projectId: string): Promise<IacOperation>;
+  /** Gera e guarda o plano; aplicar é outra etapa, com aprovação daquele plano. */
+  plan(input: { projectId: string; folder?: string; workspace?: string; connectionId?: string }): Promise<IacOperation>;
+  operations(projectId: string): Promise<IacOperation[]>;
 };
 
 export function createIacApi(client: EngineClient): IacApi {
@@ -46,6 +57,12 @@ export function createIacApi(client: EngineClient): IacApi {
     adopt: (engine, version) =>
       client.request('iac.runtime.adopt', { engine, version }, iacRuntimeStatusResultSchema).then(status),
     pin: (projectId, choice) =>
-      client.request('iac.runtime.pin', { projectId, ...(choice ?? {}) }, iacRuntimeStatusResultSchema).then(status)
+      client.request('iac.runtime.pin', { projectId, ...(choice ?? {}) }, iacRuntimeStatusResultSchema).then(status),
+    layout: (projectId) => client.request('iac.layout', { projectId }, iacLayoutSchema).then((r) => r.layout),
+    validate: (projectId) =>
+      client.request('iac.validate', { projectId }, iacOperationResultSchema).then((r) => r.operation),
+    plan: (input) => client.request('iac.plan', input, iacOperationResultSchema).then((r) => r.operation),
+    operations: (projectId) =>
+      client.request('iac.operations', { projectId }, iacOperationListSchema).then((r) => r.operations)
   };
 }

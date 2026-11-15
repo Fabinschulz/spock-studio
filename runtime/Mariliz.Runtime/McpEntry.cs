@@ -41,11 +41,16 @@ internal static class McpEntry
         Func<WorkspaceAuthorizer> workspaces = () => new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(dataRoot));
         var audit = new FileAuditLog(dataRoot, clock);
         var cloud = new CloudMcpTools(LocalCloudHub.Create(dataRoot, workspaces(), clock, audit), workspaces, Environment.CurrentDirectory, options.Scope);
-        // Só a consulta: o servidor MCP nunca baixa nem instala, e o binário externo só é perguntado pela versão.
+        // O servidor MCP nunca instala a ferramenta nem planeja: consulta, valida sobre uma cópia e lê planos já gerados.
         using var openTofuToolchain = new OpenTofuToolchain(dataRoot, ExecutableLocator.FromEnvironment());
         using var terraformToolchain = new HashiCorpTerraformToolchain(dataRoot, ExecutableLocator.FromEnvironment());
-        var iac = new IacMcpTools(workspaces, authorizer => new IacRuntimeService([openTofuToolchain, terraformToolchain], new FileIacSettingsStore(dataRoot),
-            new IacConfigReader(), new SystemProcessRunner(), authorizer, clock, audit), Environment.CurrentDirectory, options.Scope);
+        var processes = new SystemProcessRunner();
+        IacRuntimeService Runtimes(WorkspaceAuthorizer authorizer) => new([openTofuToolchain, terraformToolchain], new FileIacSettingsStore(dataRoot),
+            new IacConfigReader(), processes, authorizer, clock, audit);
+        var iac = new IacMcpTools(workspaces, Runtimes,
+            authorizer => new IacOperationService(Runtimes(authorizer), new CliIacRuntimeFactory(processes, dataRoot), new IacConfigReader(),
+                new FileIacWorkArea(dataRoot), authorizer, cloud: null, clock, audit),
+            Environment.CurrentDirectory, options.Scope);
         var tools = new ProjectContextTools(
             workspaces,
             new LocalProjectFilesFactory(),

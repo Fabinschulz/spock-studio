@@ -4,14 +4,24 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Application.Protocol;
 
-// Só a interface chega aqui (a allowlist do host não deixa agentes chamarem iac.*): instalar, adotar, fixar e remover
-// são sempre um clique da pessoa.
-internal sealed class IacRequestHandler(IacRuntimeService terraform)
+// Só a interface chega aqui (a allowlist do host não deixa agentes chamarem iac.*): instalar, adotar, fixar, remover,
+// validar e planejar são sempre um clique da pessoa.
+internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperationService operations)
 {
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
-        ProtocolMethods.IacRuntimeStatusMethod => Status(await terraform.StatusAsync(p.OptionalStr("projectId"), ct)),
-        ProtocolMethods.IacRuntimeOfferMethod => new JsonObject
+        ProtocolMethods.IacLayout => new JsonObject { ["layout"] = IntegrationJson.Node(operations.Layout(p.Str("projectId"))) },
+        ProtocolMethods.IacValidate => Operation(await operations.ValidateAsync(p.Str("projectId"), IacOperationService.Person, ct)),
+        ProtocolMethods.IacPlan => Operation(await operations.PlanAsync(
+            new IacPlanRequest(p.Str("projectId"), p.OptionalStr("folder"), p.OptionalStr("workspace"), p.OptionalStr("connectionId")),
+            IacOperationService.Person, ct)),
+        ProtocolMethods.IacOperations => new JsonObject
+        {
+            ["operations"] = new JsonArray(operations.History(p.Str("projectId")).Select(o => IntegrationJson.Node(o)).ToArray())
+        },
+        ProtocolMethods.IacOperation => Operation(operations.Detail(p.Str("projectId"), p.Str("operationId"))),
+        ProtocolMethods.IacRuntimeStatus => Status(await terraform.StatusAsync(p.OptionalStr("projectId"), ct)),
+        ProtocolMethods.IacRuntimeOffer => new JsonObject
         {
             ["offer"] = IntegrationJson.Node(await terraform.OfferAsync(p.OptionalStr("version"), p.OptionalStr("projectId"), OptionalEngine(p), ct))
         },
@@ -24,6 +34,8 @@ internal sealed class IacRequestHandler(IacRuntimeService terraform)
     };
 
     // Como nos projetos, a interface só vê o caminho abreviado: a pasta pessoal vira "~".
+    private static JsonObject Operation(IacOperation operation) => new() { ["operation"] = IntegrationJson.Node(operation) };
+
     private static JsonObject Status(IacRuntimeStatus status)
     {
         var json = IntegrationJson.Node(status with
@@ -32,7 +44,7 @@ internal sealed class IacRequestHandler(IacRuntimeService terraform)
             Selected = status.Selected is null ? null : Display(status.Selected),
             Project = status.Project is null ? null : status.Project with { Selected = status.Project.Selected is null ? null : Display(status.Project.Selected) }
         });
-        return new JsonObject { ["terraform"] = json };
+        return new JsonObject { ["runtime"] = json };
     }
 
     private static IacInstallation Display(IacInstallation installation)

@@ -14,7 +14,8 @@ O Spock trabalha com duas ferramentas que entendem a mesma linguagem (HCL), os m
 | **OpenTofu** (Linux Foundation) | MPL 2.0, código aberto | Gratuito, sem licença a contratar, inclusive em produto comercial | **Padrão**: é o que o Spock oferece instalar e o que escolhe primeiro |
 | Terraform (HashiCorp) | BUSL 1.1 desde a 1.6 | Gratuito para a própria infraestrutura; oferecer o Terraform como serviço que concorra com a HashiCorp exige acordo com ela | Escolha explícita ("Prefiro o Terraform da HashiCorp") ou instalação que a pessoa já tem |
 
-Decisão do dono em 2026-11-15: preferir a ferramenta gratuita. Com o OpenTofu o Spock não precisa negociar licença
+Decisões do dono em 2026-11-15: preferir a ferramenta gratuita, e deixar o Terraform liberado, sem trava, para quem o
+selecionar no projeto; o jurídico negocia a licença com a HashiCorp à parte. Com o OpenTofu o Spock não precisa negociar licença
 nenhuma, mesmo que vire produto. O Terraform continua suportado para quem já o usa ou precisa dele, e quem decide usá-lo
 assume a licença da HashiCorp.
 

@@ -1,0 +1,10 @@
+{
+  "layout": {
+    "projectId": "p-0123456789ab",
+    "root": "infra",
+    "folders": [
+      "infra",
+      "infra/modules/rede"
+    ]
+  }
+}

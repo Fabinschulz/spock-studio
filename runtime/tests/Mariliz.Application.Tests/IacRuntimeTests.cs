@@ -354,10 +354,16 @@ public sealed class IacRuntimeTests : IDisposable
     {
         ExternalBinary("1.16.5");
         var project = Project();
-        var tools = new IacMcpTools(Workspace, authorizer => new IacRuntimeService([Toolchain()], new FileIacSettingsStore(_project.DataDir),
-            new IacConfigReader(), Runner(), authorizer, _clock, _audit), _project.Root);
+        IacRuntimeService Runtimes(WorkspaceAuthorizer authorizer) => new([Toolchain()], new FileIacSettingsStore(_project.DataDir),
+            new IacConfigReader(), Runner(), authorizer, _clock, _audit);
+        var tools = new IacMcpTools(Workspace, Runtimes, authorizer => new IacOperationService(Runtimes(authorizer),
+            new CliIacRuntimeFactory(Runner(), _project.DataDir), new IacConfigReader(), new FileIacWorkArea(_project.DataDir), authorizer, null, _clock, _audit),
+            _project.Root);
 
-        var tool = Assert.Single(tools.Tools());
+        var all = tools.Tools();
+        Assert.Equal([IacMcpTools.StatusTool, IacMcpTools.ValidateTool, IacMcpTools.PlanSummaryTool], all.Select(t => t.Info.Name));
+        Assert.DoesNotContain(all, t => t.Info.Name.Contains("apply") || t.Info.Name.Contains("install"));
+        var tool = all[0];
         var text = await tool.Call(new McpCall(new System.Text.Json.Nodes.JsonObject { ["project"] = project }, "teste", CancellationToken.None));
 
         Assert.Equal(IacMcpTools.StatusTool, tool.Info.Name);

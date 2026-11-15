@@ -109,7 +109,12 @@ export const ENGINE_METHODS = [
   'iac.runtime.decline',
   'iac.runtime.remove',
   'iac.runtime.adopt',
-  'iac.runtime.pin'
+  'iac.runtime.pin',
+  'iac.layout',
+  'iac.validate',
+  'iac.plan',
+  'iac.operations',
+  'iac.operation'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

@@ -41,24 +41,32 @@ Os dois se completam e não se duplicam:
 
 ## 3. Arquitetura
 
+O desenho do dono (2026-11-15), em quatro camadas:
+
 ```
-Tela Infraestrutura ──iac.* (só interface)──► IacRequestHandler
-                                                   │
-Agente (MCP) ──terraform_status, só leitura──► IacMcpTools
-                                                   ▼
-                     Application/Iac
-                       IacRuntimeService   (entrega 1)
-                       TerraformWorkspaceService    (entrega 2: validate, plan)
-                       TerraformApplyService        (entrega 3: aprovação, apply, verificação)
-                          │ IIacToolchain, ITerraformSettingsStore, IIacConfigReader, IProcessRunner
-                          ▼
-                     Infrastructure/Iac
-                       HashiCorpTerraformToolchain, OpenPgpKeyring, IacConfigReader, FileIacSettingsStore
+Spock Infrastructure Management     interface, políticas, aprovação, auditoria e execução
+        │
+IaC Runtime Abstraction             contrato independente da ferramenta
+        │
+OpenTofu (padrão)  |  Terraform (opcional)
+        │
+Cloud Providers                     AWS · Azure · Google Cloud
 ```
 
-- **Sem execução arbitrária.** Cada operação é um método com contrato (`validate`, `plan`, `apply` de um plano
-  guardado). Agentes nunca recebem uma ferramenta "rode este comando"; o executor usa `IProcessRunner` sem shell,
-  com argumentos fixos montados pelo Spock.
+Assim o Spock evolui sem ficar preso à licença nem ao ciclo de atualizações de uma única ferramenta.
+
+| Camada | No código |
+| --- | --- |
+| Spock Infrastructure Management | Tela Infraestrutura (`desktop/ui/src/features/infrastructure`); `IacOperationService` (políticas, execução, histórico, trilha); `IacRuntimeService` (instalação, consentimento, ferramenta e versão por projeto); `IacRequestHandler` (`iac.*`, só interface); `IacMcpTools` (agentes) |
+| IaC Runtime Abstraction | `IIacRuntime` (`FormatCheckAsync`, `ValidateAsync`, `PlanAsync`; `ApplyAsync` na entrega 3) e `IIacRuntimeFactory`; `IIacToolchain` para a distribuição de cada ferramenta |
+| OpenTofu / Terraform | `CliIacRuntime` (o mesmo adaptador de linha de comando para `tofu` e `terraform`); `OpenTofuToolchain` e `HashiCorpTerraformToolchain` (download verificado) |
+| Cloud Providers | Conectores cloud (`Application/Cloud`): a conexão vinculada ao projeto entrega ao plano só nomes (perfil, região, subscription, projeto) |
+
+O Terraform é opcional e **liberado**: quem escolher pode usá-lo no projeto, sem trava. A licença BUSL 1.1 da HashiCorp
+fica com o jurídico da empresa, que negocia à parte; o Spock só informa a licença na proposta.
+
+- **Sem execução arbitrária.** Cada operação é um método com contrato. Agentes nunca recebem uma ferramenta "rode este
+  comando"; o adaptador usa `IProcessRunner` sem shell, com argumentos fixos montados pelo Spock.
 - **Mesma porta para interface e MCP.** Como em `CloudReadService`, a regra fica no serviço; o MCP não tem atalho.
 - **"Plugin" de provedor**: como nos conectores, o Spock não carrega plugins dinâmicos. O suporte a um provedor é o
   conjunto backend + provider + checagens descrito no modelo; ver "Como adicionar um provedor".
@@ -80,7 +88,7 @@ Agente (MCP) ──terraform_status, só leitura──► IacMcpTools
 | # | Entrega | Situação |
 | --- | --- | --- |
 | 1 | Dependência: OpenTofu como padrão e Terraform como opção, detecção, compatibilidade, instalação autorizada e verificada, adoção de instalação existente, ferramenta e versão por projeto, atualização lado a lado, remoção, trilha, tela, `iac_status` no MCP | **Implementada**; validada no Windows com instalação real das duas ferramentas |
-| 2 | Validação e plano: `fmt -check` e `validate` por pasta, `plan -out` por workspace, resumo do plano (criar/mudar/destruir) guardado na execução | Desenhada em [TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md) |
+| 2 | Validação e plano sobre uma cópia da configuração: `fmt -check` e `validate` por pasta, `plan -out` por workspace com a conexão cloud do projeto, resumo (criar/alterar/substituir/destruir), achados de segurança, histórico, trilha, `iac_validate` e `iac_plan_summary` no MCP | **Implementada**; validada com o OpenTofu real ([TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md)) |
 | 3 | Aprovação vinculada ao plano, destaque de destruição, apply do plano aprovado, verificação pós-apply | Desenhada |
 | 4 | State: assistente de backend, bootstrap do bucket no modelo, proteção e backup | Desenhada em [TERRAFORM_STATE_MANAGEMENT.md](TERRAFORM_STATE_MANAGEMENT.md) |
 | 5 | Geração: da necessidade à arquitetura e aos `.tf` no modelo; uso das leituras cloud como entrada | Desenhada; usa o fluxo de ideias (`idea.*`) para a etapa de arquitetura |

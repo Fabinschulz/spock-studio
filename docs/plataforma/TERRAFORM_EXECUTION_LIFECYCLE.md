@@ -19,28 +19,52 @@ apoiá-las. Formato dos arquivos: [TERRAFORM_PROJECT_LAYOUT.md](TERRAFORM_PROJEC
 
 Gerar arquivos não autoriza executá-los; gerar plano não autoriza aplicá-lo; conectar conta não autoriza criar recurso.
 
-## 2. Execução (entregas 2 e 3)
+## 2. Execução (entrega 2, implementada)
 
-Cada operação vira uma **execução do Spock** (o mesmo `RunTracker` e diário dos workflows), com `projectId`, ambiente,
-versão do Terraform e etapas, e aparece em Execuções, Linha do tempo e Auditoria.
+Validar e planejar passam pela camada Spock Infrastructure Management (`IacOperationService`) e chegam à ferramenta pela
+IaC Runtime Abstraction (`IIacRuntime`), com o adaptador `CliIacRuntime`, o mesmo para `tofu` e `terraform`.
 
-O executor:
+**Políticas, antes de qualquer processo:**
 
-- obtém o binário por `IacRuntimeService.ResolveForUseAsync` (ferramenta e versão do projeto, OpenTofu por
-  padrão, hash conferido, fixadas no primeiro uso);
-- roda pelo `IProcessRunner` **sem shell**, com argumentos fixos montados pelo Spock, `-chdir` na pasta autorizada do
-  projeto, `-input=false`, `-no-color`, e as variáveis `CHECKPOINT_DISABLE=1`, `TF_IN_AUTOMATION=1`, `TF_INPUT=0` mais
-  as de nome da conexão (`AWS_PROFILE`, `ARM_SUBSCRIPTION_ID`, `GOOGLE_CLOUD_PROJECT`);
-- usa `TF_DATA_DIR` próprio por projeto e ambiente dentro dos dados do Spock, para não misturar `.terraform/` entre
-  workspaces;
-- nunca aceita argumento livre vindo de agente ou de texto do modelo.
+- projeto autorizado no Spock;
+- ferramenta do projeto resolvida por `IacRuntimeService.ResolveForUseAsync` (OpenTofu por padrão, hash conferido,
+  ferramenta e versão fixadas no primeiro uso); sem ferramenta pronta, nada é instalado nem executado;
+- pasta do plano entre as pastas com `.tf`/`.tofu` descobertas (nada de `..` nem caminho livre);
+- ambiente (workspace) com `^[a-z0-9][a-z0-9_-]{0,31}$`; o Spock só seleciona workspace existente, nunca cria;
+- conexão cloud, se escolhida, vinculada ao projeto; dela vão para o processo só nomes (`AWS_PROFILE`, `AWS_REGION`,
+  `ARM_SUBSCRIPTION_ID`, `ARM_TENANT_ID`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_APPLICATION_CREDENTIALS` como caminho);
+- uma operação de IaC por vez em cada projeto (`IAC_OPERATION_RUNNING`).
+
+**Cópia da configuração.** A raiz de IaC (a pasta comum a todas as que têm `.tf`, no modelo `infra/`) é copiada para
+`<dados>/projects/<id>/iac/operations/<op>/config/`, sem `.terraform/`, planos e logs. O projeto nunca é tocado: nem
+`.terraform/`, nem `.terraform.lock.hcl`, nem state, nem workspace selecionado. O hash da cópia (`configHash`, sobre
+caminhos e conteúdo, sem state) fica na operação para a aprovação da entrega 3 amarrar plano e configuração.
+
+**Validar** (`iac.validate`, `iac_validate`): `fmt -check -recursive -list=true` na cópia e, em cada pasta,
+`init -backend=false` e `validate -json`. Resultado por pasta (válida, formatada, diagnósticos com arquivo e linha). A
+pasta da operação é apagada no fim: validar não deixa nada além do registro.
+
+**Planejar** (`iac.plan`): na pasta escolhida da cópia, `init` (com backend), `workspace select` (se pedido),
+`plan -input=false -detailed-exitcode -out=<op>/plan.tfplan` e `show -json` do plano. O state local, se existir, é
+copiado só para o plano ler e apagado da cópia logo depois; o plano não grava state. Ficam a cópia da configuração e o
+arquivo de plano (que contém valores em texto puro: nunca sai pelo protocolo, pelo MCP nem pela trilha).
+
+Variáveis de todo processo: `CHECKPOINT_DISABLE=1`, `TF_IN_AUTOMATION=1`, `TF_INPUT=0`, `TF_DATA_DIR` da operação e
+`TF_PLUGIN_CACHE_DIR` por ferramenta (`<dados>/iac/plugin-cache/<ferramenta>`), para não baixar os providers a cada vez.
+
+**Histórico e trilha.** `<dados>/projects/<id>/iac/operations.json` guarda as 50 operações mais recentes (a que sai leva
+a pasta e o plano junto). A trilha recebe `iac.validate` (pastas, inválidas, fora do formato) e `iac.plan` (pasta,
+ambiente, contagens, achados, `planId`, se havia state local), com ids e contagens, nunca valores.
+
+Diferença do desenho anterior: as operações de IaC têm histórico próprio e ainda não aparecem na tela Execuções; a
+integração com o `RunTracker` fica para a entrega 3, junto do apply.
 
 ## 3. Plano guardado e aprovação vinculada
 
-- `plan -out=<dados>/projects/<id>/iac/<execução>/plan.tfplan`, e `show -json` do arquivo para o resumo.
+- `plan -out=<dados>/projects/<id>/iac/operations/<op>/plan.tfplan`, e `show -json` do arquivo para o resumo (entrega 2).
 - O resumo é derivado de `resource_changes[].change.actions`: criar, atualizar, substituir (destrói e cria), destruir,
   só ler. Valores marcados como sensíveis no JSON (`*_sensitive`) nunca vão para tela, trilha ou agente.
-- **Id do plano** = SHA-256 do arquivo `.tfplan`. A aprovação registra esse id, como o `ApprovalBinding` dos workflows
+- **Id do plano** = SHA-256 do arquivo `.tfplan` (16 primeiros hex, já gravado na entrega 2). A aprovação registra esse id, como o `ApprovalBinding` dos workflows
   faz com o hash das ações. O apply recalcula o hash e recusa se o arquivo mudou (`IAC_PLAN_CHANGED`); um plano novo
   invalida a aprovação anterior.
 - **Destruição em destaque**: qualquer `delete` ou substituição exige uma segunda confirmação com a lista dos recursos
@@ -73,11 +97,11 @@ O executor:
 
 | Ferramenta | Entrega | Efeito |
 | --- | --- | --- |
-| `iac_status` | 1 (existe) | Lê disponibilidade, versão do projeto e exigências |
-| `terraform_validate` | 2 | Roda `fmt -check` e `validate`; não toca a nuvem |
-| `terraform_plan` | 2 | Gera plano; devolve o resumo e o id; precisa do vínculo cloud liberado para agentes |
-| `terraform_plan_summary` | 2 | Lê um plano existente pelo id |
-| `terraform_request_approval` | 3 | Pede aprovação de um plano; **a aprovação só acontece na tela** |
-| `terraform_history` | 3 | Lista operações do projeto |
+| `iac_status` | 1 (existe) | Lê disponibilidade, ferramenta e versão do projeto e exigências |
+| `iac_validate` | 2 (existe) | Roda `fmt -check` e `validate` sobre a cópia; não lê backend nem state, não toca a nuvem |
+| `iac_plan_summary` | 2 (existe) | Lê o último plano (ou um pelo id): contagens, endereços, achados |
+| `iac_plan` | Depois | Gerar plano por agente pede o vínculo cloud liberado para agentes; hoje só a pessoa planeja |
+| `iac_request_approval` | 3 | Pede aprovação de um plano; **a aprovação só acontece na tela** |
+| `iac_history` | 3 | Lista operações do projeto |
 
 Não haverá `terraform_apply` para agentes: o MCP nunca contorna a aprovação humana.

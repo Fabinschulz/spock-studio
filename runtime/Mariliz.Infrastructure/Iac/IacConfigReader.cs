@@ -40,6 +40,14 @@ public sealed partial class IacConfigReader : IIacConfigReader
         return found.OrderBy(r => r.File, StringComparer.Ordinal).ToList();
     }
 
+    public IReadOnlyList<string> Folders(string projectRoot) =>
+        TerraformFiles(projectRoot).Take(MaxFiles)
+            .Select(file => Path.GetRelativePath(projectRoot, Path.GetDirectoryName(file)!).Replace(Path.DirectorySeparatorChar, '/'))
+            .Select(folder => folder == "." ? "" : folder)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToList();
+
     private static IEnumerable<string> TerraformFiles(string root)
     {
         var pending = new Stack<(string Path, int Depth)>();

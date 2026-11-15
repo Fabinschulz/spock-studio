@@ -54,4 +54,25 @@ public static class IacErrors
 
     public static EngineException ProjectIncompatible(string engine, string version, string constraint) =>
         new("IAC_PROJECT_INCOMPATIBLE", $"O projeto exige versão {constraint}; o {engine} {version} não atende.");
+
+    public static EngineException FolderUnknown(string folder) =>
+        new("IAC_FOLDER_UNKNOWN", $"A pasta {folder} não tem configuração de infraestrutura neste projeto.");
+
+    public static EngineException NoConfiguration() =>
+        new("IAC_NO_CONFIGURATION", "O projeto não tem arquivos .tf nem .tofu.");
+
+    public static EngineException ConfigurationTooLarge() =>
+        new("IAC_CONFIGURATION_TOO_LARGE", "A pasta de infraestrutura passa dos limites de cópia (5.000 arquivos, 200 MB). Separe-a do resto do projeto.");
+
+    public static EngineException WorkspaceInvalid() =>
+        new("IAC_WORKSPACE_INVALID", "O ambiente deve ter só letras minúsculas, dígitos, hífen e sublinhado (até 32 caracteres).");
+
+    public static EngineException OperationRunning() =>
+        new("IAC_OPERATION_RUNNING", "Já há uma operação de infraestrutura em andamento neste projeto.");
+
+    public static EngineException OperationNotFound() =>
+        new("IAC_OPERATION_NOT_FOUND", "Operação de infraestrutura não encontrada neste projeto.");
+
+    public static EngineException ConnectionNotLinked() =>
+        new("IAC_CONNECTION_NOT_LINKED", "Esta conexão cloud não está vinculada ao projeto. Vincule-a em Conexões cloud.");
 }
