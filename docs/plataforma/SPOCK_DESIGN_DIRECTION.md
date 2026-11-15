@@ -376,8 +376,9 @@ Lista de conferência por tela, antes de dar como pronta:
 5. **Um padrão de leitura assíncrona.**
 6. **Testes acompanham.** Os testes de shell, rotas, tokens e tipografia são atualizados junto com a mudança, não
    removidos. O teste de contraste por nome de token impede renomear token sem intenção.
-7. **Capturas novas.** As de `docs/redesign/screenshots/` são anteriores a Gestão e à marca Spock. Refazer ao fim de
-   cada fase, no mesmo conjunto de larguras.
+7. **Capturas novas.** As que ficavam em `docs/redesign/screenshots/` eram anteriores a Gestão e à marca Spock e
+   saíram do repositório para deixá-lo mais leve; estão no histórico até o commit `7728b4b`
+   (`git show 7728b4b:<caminho>`). Refazer ao fim de cada fase, no mesmo conjunto de larguras, fora do repositório.
 8. **Conferência no Tauri empacotado**, com leitor de tela, zoom e alto contraste, que nunca foi feita.
 
 ## 12. O que não foi verificado
