@@ -78,7 +78,14 @@ internal static partial class ActionGovernance
     {
         foreach (var action in journal.Actions.Where(a => a.Status == JournalAction.Approved))
         {
-            action.Status = Run(executor, projectId, action);
+            var outcome = Run(executor, projectId, action);
+            action.Status = outcome.Status;
+            // O arquivo criado é uma alteração da execução como qualquer outra: aparece na lista e volta por harness.revert.
+            if (outcome is { Status: JournalAction.Executed, CreatedPath: { } created })
+            {
+                journal.Ops.Add(new JournalOp { Path = created, Op = OpKinds.Create, Source = OpSources.Action, AfterHash = action.ContentSha256, Status = OpStatus.Applied });
+                journal.ChangesApplied = true;
+            }
             saved();
         }
     }
@@ -95,16 +102,16 @@ internal static partial class ActionGovernance
     public static JsonArray ForResult(IEnumerable<JournalAction> actions) =>
         new(actions.Select(a => (JsonNode)new JsonObject { ["id"] = a.Id, ["kind"] = a.Kind, ["summary"] = a.Summary, ["target"] = a.Target, ["status"] = a.Status }).ToArray());
 
-    private static string Run(IActionExecutor? executor, string projectId, JournalAction action)
+    private static ActionOutcome Run(IActionExecutor? executor, string projectId, JournalAction action)
     {
-        if (executor is null) return JournalAction.Failed;
+        if (executor is null) return new ActionOutcome(JournalAction.Failed);
         try
         {
-            return executor.Execute(projectId, action).Status;
+            return executor.Execute(projectId, action);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or EngineException or ArgumentException)
         {
-            return JournalAction.Failed;
+            return new ActionOutcome(JournalAction.Failed);
         }
     }
 

@@ -34,6 +34,8 @@ public sealed class ProjectActionExecutor(WorkspaceAuthorizer workspace, IProjec
         }
 
         files.WriteAtomic(path, bytes);
-        return new ActionOutcome(files.ReadBytes(path) is { } written && written.AsSpan().SequenceEqual(bytes) ? JournalAction.Executed : JournalAction.Failed);
+        return files.ReadBytes(path) is { } written && written.AsSpan().SequenceEqual(bytes)
+            ? new ActionOutcome(JournalAction.Executed, path)
+            : new ActionOutcome(JournalAction.Failed);
     }
 }

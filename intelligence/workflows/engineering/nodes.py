@@ -205,7 +205,8 @@ def synthesizer(state: dict) -> dict:
     count = len(state["plan"]["steps"]) if isinstance(state.get("plan"), dict) else 0
     detected = len(state["stacks"])
     found = len(state["evidence"])
-    state["summary"] = f"{count} etapa(s). Stacks detectadas: {detected}. Trechos: {found}. Nenhuma alteração no projeto."
+    # O workflow não grava no projeto; o que muda vem das ações aprovadas, gravadas pelo motor depois deste resumo.
+    state["summary"] = f"{count} etapa(s). Stacks detectadas: {detected}. Trechos: {found}."
     return state
 
 

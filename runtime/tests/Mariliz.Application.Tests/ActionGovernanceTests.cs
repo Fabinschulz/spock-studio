@@ -361,6 +361,45 @@ public class ActionGovernanceTests
         Assert.Equal("RUN_NOT_RESUMABLE", refused.Code);
     }
 
+    // Validação real M2: a ação gravava o arquivo, mas a execução dizia "nenhuma alteração" e não podia ser desfeita.
+    [Fact]
+    public async Task O_arquivo_da_acao_aprovada_conta_como_alteracao_e_volta_pela_reversao()
+    {
+        using var rig = new Rig();
+        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Intent()]));
+        var (run, approvalId, executionId) = await PauseAsync(service, rig.ProjectId);
+        await (await service.ResumeAsync(rig.ProjectId, run.RunId, new ResumeDecision(approvalId, ["act-decisao-impacto"]))).Completion!;
+
+        var journal = rig.Store.LoadJournal(rig.ProjectId, run.RunId)!;
+        var op = Assert.Single(journal.Ops);
+        Assert.Equal(($".mariliz/decisions/{executionId}-impacto.md", OpKinds.Create, OpSources.Action, OpStatus.Applied), (op.Path, op.Op, op.Source, op.Status));
+        Assert.Equal(journal.Actions[0].ContentSha256, op.AfterHash);
+        Assert.True(journal.ChangesApplied && journal.CanBeReverted);
+
+        var revert = new RunHandle("run-bbbbbbbbbbbb", rig.ProjectId, RunKinds.Revert, (_, _, _, _, _) => { });
+        var result = new RevertService(rig.Store, new SystemClock()).Execute(revert, new TestFilesFactory().Open(rig.Project.Root), run.RunId, CancellationToken.None);
+
+        Assert.False(File.Exists(DecisionPath(rig.Project, executionId)));
+        Assert.Equal(revert.RunId, rig.Store.LoadJournal(rig.ProjectId, run.RunId)!.RevertedByRunId);
+        Assert.Equal(1, result["reverted"]!.AsArray().Count);
+    }
+
+    [Fact]
+    public async Task Workflow_sem_acao_executada_nao_tem_o_que_reverter()
+    {
+        using var rig = new Rig();
+        var (service, _) = rig.NewEngine(new ProposingRuntime(ex => [Intent()]));
+        var (run, approvalId, _) = await PauseAsync(service, rig.ProjectId);
+        await (await service.ResumeAsync(rig.ProjectId, run.RunId, new ResumeDecision(approvalId, []))).Completion!;
+
+        var journal = rig.Store.LoadJournal(rig.ProjectId, run.RunId)!;
+        Assert.Empty(journal.Ops);
+        Assert.False(journal.CanBeReverted);
+        var revert = new RunHandle("run-bbbbbbbbbbbb", rig.ProjectId, RunKinds.Revert, (_, _, _, _, _) => { });
+        var refused = Assert.Throws<EngineException>(() => new RevertService(rig.Store, new SystemClock()).Execute(revert, new TestFilesFactory().Open(rig.Project.Root), run.RunId, CancellationToken.None));
+        Assert.Equal("NOTHING_TO_REVERT", refused.Code);
+    }
+
     [Fact]
     public async Task Retomada_repetida_nao_executa_de_novo()
     {

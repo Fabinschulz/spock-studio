@@ -54,5 +54,5 @@ public sealed class RunJournal
     public string? ActionsHash { get; set; }
 
     [JsonIgnore]
-    public bool CanBeReverted =>ChangesApplied && !RolledBack && RevertedByRunId is null;
+    public bool CanBeReverted => ChangesApplied && !RolledBack && RevertedByRunId is null && RunKinds.IsRevertible(Kind);
 }

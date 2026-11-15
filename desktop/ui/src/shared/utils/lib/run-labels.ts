@@ -41,6 +41,6 @@ export function evalStatusLabel(status: string): string {
 
 export function runEffectLabel(run: { kind: string; changesApplied: boolean; reverted: boolean }): string {
   if (run.reverted) return 'revertida depois';
-  if (run.kind === 'apply' && run.changesApplied) return 'alterações aplicadas';
+  if ((run.kind === 'apply' || run.kind === 'workflow') && run.changesApplied) return 'alterações aplicadas';
   return '';
 }

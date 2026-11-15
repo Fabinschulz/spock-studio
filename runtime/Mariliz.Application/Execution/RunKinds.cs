@@ -12,6 +12,6 @@ public static class RunKinds
     public const string Security = "security";
     public const string Idea = "idea";
 
-    // Só execuções que gravam no projeto com backup podem ser desfeitas.
-    public static bool IsRevertible(string kind) => kind is Apply or Security or Idea;
+    // Só execuções que gravam no projeto pelo diário podem ser desfeitas; o workflow grava só o arquivo novo da ação aprovada.
+    public static bool IsRevertible(string kind) => kind is Apply or Security or Idea or Workflow;
 }

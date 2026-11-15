@@ -25,7 +25,7 @@ const done: WorkflowSnapshot = {
   state: 'completed_with_limitations',
   result: {
     kind: 'workflow',
-    summary: '1 etapa(s). Stacks detectadas: 1. Trechos: 1. Nenhuma alteração no projeto.',
+    summary: '1 etapa(s). Stacks detectadas: 1. Trechos: 1.',
     evidence: [{ filePath: 'docs/nota.md', excerpt: 'trecho visível', chunkId: 'docs/nota.md#1' }],
     limitations: [{ code: 'JUDGE_NOT_RUN', message: 'O juiz por modelo não é o veredito desta fase.' }],
     impact: { schema: 'engineering.impact.v1', areas: ['servico'], risks: [], evidence: ['docs/nota.md#1'] }
