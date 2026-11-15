@@ -74,21 +74,28 @@ def chunk(path: str, text: str) -> list[Chunk]:
 
 def _finish(pieces: list[Chunk]) -> list[Chunk]:
     result: list[Chunk] = []
-    seen: dict[str, int] = {}
+    used: set[str] = set()
     for piece in pieces:
         for part, body in enumerate(_split(piece.body)):
             if not body.strip():
                 continue
-            anchor = piece.anchor if part == 0 else f"{piece.anchor}~{part + 1}"
-            count = seen.get(anchor, 0)
-            seen[anchor] = count + 1
-            if count:
-                anchor = f"{anchor}~{count + 1}"
+            anchor = _unique(piece.anchor if part == 0 else f"{piece.anchor}~{part + 1}", used)
+            used.add(anchor)
             symbols = list(dict.fromkeys(piece.symbols + _IDS.findall(body)))
             result.append(Chunk(anchor, piece.kind, body, piece.heading, symbols, piece.start_line))
             if len(result) == MAX_CHUNKS:
                 return result
     return result
+
+
+def _unique(anchor: str, used: set[str]) -> str:
+    """Partes de um trecho longo e nomes repetidos (sobrecargas) usam o mesmo sufixo `~N`: o id é o próximo livre."""
+    if anchor not in used:
+        return anchor
+    number = 2
+    while f"{anchor}~{number}" in used:
+        number += 1
+    return f"{anchor}~{number}"
 
 
 def _split(body: str) -> list[str]:

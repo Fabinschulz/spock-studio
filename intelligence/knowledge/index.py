@@ -6,7 +6,9 @@ from __future__ import annotations
 
 import re
 import sqlite3
+import sys
 import threading
+import traceback
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -57,7 +59,17 @@ def sync(index_root: str, project_id: str, sources: list) -> dict:
             if "text" not in item:
                 pending += 1
                 continue
-            written = _replace(conn, project_id, item, (previous[1] + 1) if previous else 1)
+            # Um documento que o banco recusa fica de fora sozinho: desfazer o lote inteiro deixaria o projeto sem índice.
+            conn.execute("SAVEPOINT documento")
+            try:
+                written = _replace(conn, project_id, item, (previous[1] + 1) if previous else 1)
+            except sqlite3.IntegrityError as ex:
+                conn.execute("ROLLBACK TO documento")
+                conn.execute("RELEASE documento")
+                _log_skipped(ex)
+                problems.append(item["path"])
+                continue
+            conn.execute("RELEASE documento")
             if written == 0:
                 problems.append(item["path"])
             updated += 1
@@ -357,6 +369,12 @@ def _replace(conn: sqlite3.Connection, project_id: str, item: dict, version: int
             )
         written += 1
     return written
+
+
+def _log_skipped(error: BaseException) -> None:
+    """Só o tipo e as linhas do código, como o servidor registra falhas: a mensagem do SQLite traz o id, que tem o caminho."""
+    frames = "".join(traceback.format_tb(error.__traceback__))
+    print(f"[ai] documento fora do índice: {type(error).__name__}\n{frames}", file=sys.stderr, flush=True)
 
 
 def _delete(conn: sqlite3.Connection, path: str) -> None:

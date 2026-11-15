@@ -127,6 +127,51 @@ class RagTests(unittest.TestCase):
         self.assertEqual(stats["pending"], 1)
         self.assertEqual(stats["documents"], 1)
 
+    def test_sobrecarga_depois_de_metodo_longo_ganha_id_proprio_e_o_arquivo_entra_inteiro(self) -> None:
+        # Validacao real C1: o metodo longo vira Compute e Compute~2, e a sobrecarga tambem pedia Compute~2.
+        corpo = "".join(f"        total += Parcela({n}) * Taxa({n});\n" for n in range(120))
+        text = (
+            "public class Previsao\n{\n"
+            f"    public decimal Compute(DateTime inicio)\n    {{\n        var total = 0m;\n{corpo}        return total;\n    }}\n\n"
+            "    public decimal Compute(int dias)\n    {\n        return CalculoDaSobrecargaUnica(dias);\n    }\n}\n"
+        )
+        pieces = chunking.chunk("src/Previsao.cs", text)
+        anchors = [piece.anchor for piece in pieces]
+        self.assertEqual(len(anchors), len(set(anchors)), anchors)
+        with tempfile.TemporaryDirectory() as root:
+            stats = rag.sync(root, PROJECT_A, [{"path": "src/Previsao.cs", "hash": "a" * 64, "text": text}])
+            self.assertTrue(stats["valid"])
+            self.assertEqual(stats["chunks"], len(pieces))
+            self.assertEqual(rag.search(root, PROJECT_A, "CalculoDaSobrecargaUnica")[0]["filePath"], "src/Previsao.cs")
+
+    def test_documento_que_o_banco_recusa_fica_de_fora_sozinho(self) -> None:
+        real = rag.chunk
+
+        def repete(path: str, text: str) -> list:
+            pieces = real(path, text)
+            return pieces + pieces if path == "src/ruim.cs" else pieces
+
+        sources = [
+            {"path": "docs/a.md", "hash": "a" * 64, "text": "estoque e catalogo do armazem central"},
+            {"path": "src/ruim.cs", "hash": "b" * 64, "text": "public class Ruim { public void Falha() { } }"},
+            {"path": "docs/c.md", "hash": "c" * 64, "text": "frete e transportadora da regiao sul"},
+        ]
+        with tempfile.TemporaryDirectory() as root:
+            with mock.patch.object(rag, "chunk", repete), mock.patch("sys.stderr") as stderr:
+                stats = rag.sync(root, PROJECT_A, sources)
+            self.assertFalse(stats["valid"])
+            self.assertEqual(stats["documents"], 2)
+            self.assertEqual(rag.search(root, PROJECT_A, "transportadora")[0]["filePath"], "docs/c.md")
+            self.assertEqual(rag.search(root, PROJECT_A, "Falha"), [])
+            logged = "".join(str(call.args[0]) for call in stderr.write.call_args_list if call.args)
+            self.assertIn("IntegrityError", logged)
+            self.assertNotIn("ruim", logged)
+
+            # Sem o defeito, a sincronização seguinte traz o documento que tinha ficado de fora.
+            again = rag.sync(root, PROJECT_A, sources)
+            self.assertTrue(again["valid"])
+            self.assertEqual(again["documents"], 3)
+
     def test_chunking_segue_a_estrutura_da_fonte(self) -> None:
         markdown = chunking.chunk("docs/a.md", "# Guia\n\nIntro.\n\n## Instalação\n\nPasso um.\n\n### Windows\n\nPasso dois.\n")
         self.assertEqual([piece.anchor for piece in markdown], ["h:guia", "h:instalacao", "h:windows"])
