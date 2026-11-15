@@ -2,6 +2,7 @@ import type { EngineClient } from '@/shared/api';
 import {
   terraformOfferResultSchema,
   terraformStatusResultSchema,
+  type IacEngine,
   type TerraformOffer,
   type TerraformSource,
   type TerraformStatus
@@ -10,12 +11,16 @@ import {
 /** Cada chamada que muda algo nasce de um clique da pessoa; nenhuma é feita em segundo plano. */
 export type IacApi = {
   status(projectId?: string): Promise<TerraformStatus>;
-  offer(input?: { version?: string; projectId?: string }): Promise<TerraformOffer>;
+  /** Sem `engine`, o motor propõe o OpenTofu (gratuito). */
+  offer(input?: { version?: string; projectId?: string; engine?: IacEngine }): Promise<TerraformOffer>;
   install(offer: TerraformOffer): Promise<TerraformStatus>;
   decline(): Promise<TerraformStatus>;
-  remove(version: string): Promise<TerraformStatus>;
-  adopt(version: string): Promise<TerraformStatus>;
-  pin(projectId: string, version: string | null, source?: TerraformSource): Promise<TerraformStatus>;
+  remove(engine: IacEngine, version: string): Promise<TerraformStatus>;
+  adopt(engine: IacEngine, version: string): Promise<TerraformStatus>;
+  pin(
+    projectId: string,
+    choice: { engine: IacEngine; version: string; source: TerraformSource } | null
+  ): Promise<TerraformStatus>;
 };
 
 export function createIacApi(client: EngineClient): IacApi {
@@ -29,21 +34,18 @@ export function createIacApi(client: EngineClient): IacApi {
       client
         .request(
           'iac.terraform.install',
-          { offerId: offer.offerId, version: offer.version },
+          { offerId: offer.offerId, version: offer.version, engine: offer.engine },
           terraformStatusResultSchema
         )
         .then(status),
     decline: () => client.request('iac.terraform.decline', {}, terraformStatusResultSchema).then(status),
-    remove: (version) =>
-      client.request('iac.terraform.remove', { version, confirmed: true }, terraformStatusResultSchema).then(status),
-    adopt: (version) => client.request('iac.terraform.adopt', { version }, terraformStatusResultSchema).then(status),
-    pin: (projectId, version, source) =>
+    remove: (engine, version) =>
       client
-        .request(
-          'iac.terraform.pin',
-          { projectId, ...(version ? { version } : {}), ...(source ? { source } : {}) },
-          terraformStatusResultSchema
-        )
-        .then(status)
+        .request('iac.terraform.remove', { engine, version, confirmed: true }, terraformStatusResultSchema)
+        .then(status),
+    adopt: (engine, version) =>
+      client.request('iac.terraform.adopt', { engine, version }, terraformStatusResultSchema).then(status),
+    pin: (projectId, choice) =>
+      client.request('iac.terraform.pin', { projectId, ...(choice ?? {}) }, terraformStatusResultSchema).then(status)
   };
 }

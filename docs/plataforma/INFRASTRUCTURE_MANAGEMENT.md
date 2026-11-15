@@ -1,13 +1,14 @@
 # Gestão de infraestrutura (Infrastructure Management)
 
 O Spock deixa de só consultar AWS, Azure e Google Cloud e passa a ajudar a **planejar, provisionar e evoluir**
-infraestrutura como código, com Terraform, sempre com a pessoa decidindo cada mudança. Esta página é o mapa: arquitetura,
+infraestrutura como código na linguagem do Terraform, executada pelo **OpenTofu** (padrão: gratuito, MPL 2.0) ou pelo
+Terraform da HashiCorp, sempre com a pessoa decidindo cada mudança. Esta página é o mapa: arquitetura,
 responsabilidades, o que já existe e a ordem das entregas.
 
 | Documento | Assunto |
 | --- | --- |
 | [TERRAFORM_PROJECT_LAYOUT.md](TERRAFORM_PROJECT_LAYOUT.md) | **Modelo de projeto Terraform** que o Spock gera, lê e valida |
-| [TERRAFORM_DEPENDENCY_MANAGEMENT.md](TERRAFORM_DEPENDENCY_MANAGEMENT.md) | Detecção, instalação autorizada e verificada, versões |
+| [TERRAFORM_DEPENDENCY_MANAGEMENT.md](TERRAFORM_DEPENDENCY_MANAGEMENT.md) | OpenTofu como padrão, detecção, instalação autorizada e verificada, versões |
 | [TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md) | Validação, plano, aprovação, apply e verificação |
 | [TERRAFORM_STATE_MANAGEMENT.md](TERRAFORM_STATE_MANAGEMENT.md) | Backends, lock, isolamento e proteção do state |
 | [CLOUD_INFRASTRUCTURE_SECURITY.md](CLOUD_INFRASTRUCTURE_SECURITY.md) | Regras de segurança e governança |
@@ -24,8 +25,8 @@ com dono (A3 OAuth do Jira, E1 Jira real, E2 modelo real). Nenhum deles toca inf
 | Mecanismo | Faz | Não faz |
 | --- | --- | --- |
 | **Conectores cloud** (`Application/Cloud`) | Autenticar pelos mecanismos oficiais, identificar conta/projeto, descobrir e ler recursos, verificar permissões | Criar, alterar ou apagar recurso |
-| **Terraform** (`Application/Iac`) | Declarar infraestrutura, validar, planejar, aplicar plano aprovado, consultar state, detectar drift | Autenticar por conta própria, inventariar a conta, guardar credencial |
-| **Dependência Terraform** | Achar, oferecer, instalar e verificar o binário; versão por projeto | Mudar o PATH, instalar sem autorização |
+| **OpenTofu / Terraform** (`Application/Iac`) | Declarar infraestrutura, validar, planejar, aplicar plano aprovado, consultar state, detectar drift | Autenticar por conta própria, inventariar a conta, guardar credencial |
+| **Dependência** | Achar, oferecer (OpenTofu primeiro), instalar e verificar o binário; ferramenta e versão por projeto | Mudar o PATH, instalar sem autorização |
 
 Os dois se completam e não se duplicam:
 
@@ -70,7 +71,7 @@ Agente (MCP) ──terraform_status, só leitura──► IacMcpTools
 | Projeto de infraestrutura | Um projeto do Spock com pasta `infra/` no modelo; o vínculo cloud diz qual conexão ele usa |
 | Ambiente | Workspace do Terraform (`dev`, `hml`, `prd`), como no modelo |
 | Módulos, variáveis, outputs, providers | Arquivos do modelo; lidos e gerados, nunca guardados fora do repositório |
-| Versão do Terraform | Fixada por projeto (`iac/terraform.json`) |
+| Ferramenta e versão | OpenTofu ou Terraform, fixados por projeto (`iac/terraform.json`) |
 | Backend de state | Declarado em `providers.tf`; regras em [TERRAFORM_STATE_MANAGEMENT.md](TERRAFORM_STATE_MANAGEMENT.md) |
 | Operação | Validação, plano, apply: cada uma vira execução do Spock com evidência (entregas 2 e 3) |
 
@@ -78,7 +79,7 @@ Agente (MCP) ──terraform_status, só leitura──► IacMcpTools
 
 | # | Entrega | Situação |
 | --- | --- | --- |
-| 1 | Dependência Terraform: detecção, compatibilidade, instalação autorizada e verificada, adoção de instalação existente, versão por projeto, atualização lado a lado, remoção, trilha, tela, `terraform_status` no MCP | **Implementada**; validada no Windows com instalação real |
+| 1 | Dependência: OpenTofu como padrão e Terraform como opção, detecção, compatibilidade, instalação autorizada e verificada, adoção de instalação existente, ferramenta e versão por projeto, atualização lado a lado, remoção, trilha, tela, `terraform_status` no MCP | **Implementada**; validada no Windows com instalação real das duas ferramentas |
 | 2 | Validação e plano: `fmt -check` e `validate` por pasta, `plan -out` por workspace, resumo do plano (criar/mudar/destruir) guardado na execução | Desenhada em [TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md) |
 | 3 | Aprovação vinculada ao plano, destaque de destruição, apply do plano aprovado, verificação pós-apply | Desenhada |
 | 4 | State: assistente de backend, bootstrap do bucket no modelo, proteção e backup | Desenhada em [TERRAFORM_STATE_MANAGEMENT.md](TERRAFORM_STATE_MANAGEMENT.md) |
@@ -112,7 +113,7 @@ drift. Entram com as entregas 2 a 4.
 
 ## 8. Limitações atuais
 
-- Só a entrega 1 está implementada: o Spock instala e escolhe o Terraform, mas ainda não roda `validate`, `plan` nem
-  `apply`.
+- Só a entrega 1 está implementada: o Spock instala e escolhe o OpenTofu ou o Terraform, mas ainda não roda
+  `validate`, `plan` nem `apply`.
 - macOS e Linux implementados e não rodados em máquina real.
 - Sem custo estimado, drift ou geração de `.tf` ainda.

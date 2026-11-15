@@ -1,20 +1,27 @@
-using System.Text.Json.Serialization;
-
 namespace Mariliz.Application.Iac;
 
-// Os nomes de sistema e arquitetura que a HashiCorp usa nos arquivos de cada versão (terraform_<v>_<os>_<arch>.zip).
+// As duas ferramentas que entendem a mesma linguagem (HCL) e os mesmos providers. O OpenTofu é o padrão: gratuito e de
+// código aberto (MPL 2.0). O Terraform da HashiCorp segue disponível para quem precisar dele (BUSL 1.1).
+// Terraform é o 0 de propósito: manifesto e escolha gravados antes do OpenTofu existir no Spock eram todos do Terraform.
+public enum IacEngine
+{
+    Terraform,
+    OpenTofu
+}
+
+public sealed record IacEngineInfo(IacEngine Engine, string Name, string License, string MinimumVersion, bool Preferred, bool Available);
+
+// Os nomes de sistema e arquitetura que as duas distribuições usam nos arquivos de cada versão (<ferramenta>_<v>_<os>_<arch>.zip).
 public sealed record TerraformPlatform(string Os, string Arch)
 {
     public string Key => $"{Os}_{Arch}";
-
-    [JsonIgnore]
-    public string BinaryName => Os == "windows" ? "terraform.exe" : "terraform";
 }
 
 // Uma versão publicada e os endereços oficiais do pacote desta plataforma, da lista de checksums e da assinatura dela.
 public sealed record TerraformRelease(
+    IacEngine Engine,
     string Version,
-    DateTimeOffset PublishedAt,
+    DateTimeOffset? PublishedAt,
     string ArchiveUrl,
     string ShasumsUrl,
     string SignatureUrl,
@@ -30,7 +37,8 @@ public sealed record ManagedTerraform(
     string BinarySha256,
     string SourceUrl,
     string SignedBy,
-    DateTimeOffset InstalledAt);
+    DateTimeOffset InstalledAt,
+    IacEngine Engine = IacEngine.Terraform);
 
 public enum TerraformSource
 {
@@ -38,10 +46,10 @@ public enum TerraformSource
     External
 }
 
-// Um Terraform que a pessoa instalou fora do Spock e escolheu usar. Vale só enquanto o binário tiver o mesmo hash.
-public sealed record AdoptedTerraform(string Path, string Version, string BinarySha256, DateTimeOffset AdoptedAt);
+// Uma instalação que a pessoa fez fora do Spock e escolheu usar. Vale só enquanto o binário tiver o mesmo hash.
+public sealed record AdoptedTerraform(string Path, string Version, string BinarySha256, DateTimeOffset AdoptedAt, IacEngine Engine = IacEngine.Terraform);
 
-public sealed record ProjectTerraformPin(string Version, TerraformSource Source, DateTimeOffset PinnedAt);
+public sealed record ProjectTerraformPin(string Version, TerraformSource Source, DateTimeOffset PinnedAt, IacEngine Engine = IacEngine.Terraform);
 
 // O que a pessoa decidiu: recusa da instalação, instalações externas adotadas e a versão fixada por projeto.
 public sealed record TerraformSettings(
@@ -53,6 +61,7 @@ public sealed record TerraformSettings(
 }
 
 public sealed record TerraformInstallation(
+    IacEngine Engine,
     TerraformSource Source,
     string Version,
     string Path,
@@ -76,7 +85,7 @@ public enum TerraformState
 {
     // Há uma instalação verificada e compatível pronta para uso.
     Ready,
-    // Há um Terraform instalado fora do Spock, compatível, esperando a pessoa decidir se o Spock pode usá-lo.
+    // Há uma instalação feita fora do Spock, compatível, esperando a pessoa decidir se o Spock pode usá-la.
     ExternalAvailable,
     // Nada instalado; o Spock pode oferecer a instalação.
     Missing,
@@ -91,23 +100,27 @@ public enum TerraformState
 public sealed record TerraformStatus(
     TerraformState State,
     TerraformPlatform? Platform,
-    string MinimumVersion,
+    IReadOnlyList<IacEngineInfo> Engines,
     IReadOnlyList<TerraformInstallation> Installations,
     TerraformInstallation? Selected,
     ProjectTerraform? Project,
     DateTimeOffset? DeclinedAt,
     string Message);
 
-// A proposta que a pessoa autoriza: o id amarra versão, plataforma, endereços e chave. Se algo mudar, a autorização não vale.
+// A proposta que a pessoa autoriza: o id amarra ferramenta, versão, plataforma, endereços e chave. Se algo mudar, a
+// autorização não vale.
 public sealed record TerraformOffer(
     string OfferId,
+    IacEngine Engine,
+    string EngineName,
+    string License,
     string Version,
     TerraformPlatform Platform,
     string ArchiveUrl,
     string ShasumsUrl,
     string SignatureUrl,
     string SigningKey,
-    DateTimeOffset PublishedAt,
+    DateTimeOffset? PublishedAt,
     string? ChangelogUrl,
     string? CurrentVersion,
     bool IsUpdate,

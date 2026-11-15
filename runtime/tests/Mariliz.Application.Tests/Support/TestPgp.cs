@@ -103,3 +103,48 @@ internal sealed class FakeHashiCorp : HttpMessageHandler
             : new HttpResponseMessage(System.Net.HttpStatusCode.NotFound));
     }
 }
+
+// Responde como get.opentofu.org e as releases do GitHub do OpenTofu: o download na github.com redireciona para a CDN.
+internal sealed class FakeOpenTofu : HttpMessageHandler
+{
+    public const string Cdn = "https://release-assets.githubusercontent.com/asset/";
+
+    private readonly List<string> _versions = [];
+
+    public Dictionary<string, byte[]> Files { get; } = [];
+    public List<string> Requested { get; } = [];
+
+    // Para onde o github.com manda o download; trocar prova que só a CDN do GitHub é seguida.
+    public string RedirectBase { get; set; } = Cdn;
+
+    public static string Url(string version, string file) => $"https://github.com/opentofu/opentofu/releases/download/v{version}/{file}";
+
+    public void Publish(string version, string platform, byte[] zip, TestPgp signer)
+    {
+        var archive = $"tofu_{version}_{platform}.zip";
+        var sums = Encoding.UTF8.GetBytes($"{Convert.ToHexString(SHA256.HashData(zip)).ToLowerInvariant()}  {archive}\n");
+        Files[Cdn + archive] = zip;
+        Files[Cdn + $"tofu_{version}_SHA256SUMS"] = sums;
+        Files[Cdn + $"tofu_{version}_SHA256SUMS.gpgsig"] = signer.Sign(sums);
+        _versions.Insert(0, $$"""{"id":"{{version}}","files":["{{archive}}","tofu_{{version}}_SHA256SUMS","tofu_{{version}}_SHA256SUMS.gpgsig"]}""");
+        Files[OpenTofuApi] = Encoding.UTF8.GetBytes("{\"versions\":[" + string.Join(",", _versions) + "]}");
+    }
+
+    private const string OpenTofuApi = "https://get.opentofu.org/tofu/api.json";
+
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        var url = request.RequestUri!.ToString();
+        Requested.Add(url);
+        const string github = "https://github.com/opentofu/opentofu/releases/download/";
+        if (url.StartsWith(github, StringComparison.Ordinal))
+        {
+            var redirect = new HttpResponseMessage(System.Net.HttpStatusCode.Found);
+            redirect.Headers.Location = new Uri(RedirectBase + url[(url.LastIndexOf('/') + 1)..]);
+            return Task.FromResult(redirect);
+        }
+        return Task.FromResult(Files.TryGetValue(url, out var body)
+            ? new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new ByteArrayContent(body) }
+            : new HttpResponseMessage(System.Net.HttpStatusCode.NotFound));
+    }
+}

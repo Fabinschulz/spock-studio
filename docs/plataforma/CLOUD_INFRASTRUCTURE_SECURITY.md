@@ -8,8 +8,8 @@ a preparar e aplicar mudanças com Terraform.
 
 | Ato | Autoriza | Não autoriza |
 | --- | --- | --- |
-| Instalar o Terraform | Baixar e verificar **a versão mostrada** | Atualizar depois, usar em projeto sem versão fixada |
-| Adotar Terraform externo | Usar **aquele binário** (hash gravado) | Usar o binário depois de alterado |
+| Instalar o OpenTofu ou o Terraform | Baixar e verificar **a ferramenta e a versão mostradas** | Atualizar depois, usar em projeto sem versão fixada |
+| Adotar instalação externa (OpenTofu ou Terraform) | Usar **aquele binário** (hash gravado) | Usar o binário depois de alterado |
 | Conectar uma conta | Ler o que o vínculo liberar | Criar recurso |
 | Gerar `.tf` | Gravar o diff aprovado | Executar |
 | Gerar plano | Mostrar o plano | Aplicar |
@@ -23,11 +23,11 @@ depois de uma recusa.
 - **Menor privilégio**: a conexão de leitura (descoberta) e a identidade que aplica são separadas; o Spock recomenda um
   perfil/papel de leitura para o dia a dia e um papel de deploy só para `apply`, com SSO e credenciais temporárias.
 - **Credenciais**: o Spock não guarda credencial de nuvem; usa a cadeia oficial de cada SDK (SSO da AWS, `az login`,
-  ADC do Google). O processo do Terraform recebe só nomes (perfil, subscription, projeto).
+  ADC do Google). O processo do OpenTofu ou do Terraform recebe só nomes (perfil, subscription, projeto).
 - **Separação**: um vínculo cloud por projeto; trava de conta no provider; um state por projeto e ambiente.
 - **Ambientes**: workspace por ambiente com guarda contra `default`; produção pede confirmação reforçada no apply.
-- **Binário confiável**: Terraform só da HashiCorp, com assinatura OpenPGP conferida e checksum; hash refeito antes de
-  cada uso; nunca no PATH global ([TERRAFORM_DEPENDENCY_MANAGEMENT.md](TERRAFORM_DEPENDENCY_MANAGEMENT.md)).
+- **Binário confiável**: OpenTofu só das releases oficiais do projeto e Terraform só da HashiCorp, com assinatura
+  OpenPGP conferida pela chave de quem publica e checksum; hash refeito antes de cada uso; nunca no PATH global ([TERRAFORM_DEPENDENCY_MANAGEMENT.md](TERRAFORM_DEPENDENCY_MANAGEMENT.md)).
 - **Sem shell**: nenhuma operação monta linha de comando a partir de texto; argumentos fixos por operação.
 - **Agentes**: só ferramentas com contrato; nenhuma executa `apply`; o MCP não contorna aprovação nem escopo
   `--project`.
@@ -51,6 +51,7 @@ Os achados não bloqueiam sozinhos: aparecem na aprovação, e os graves pedem c
 
 ## 4. O que já está implementado (entrega 1)
 
+- OpenTofu (gratuito, MPL 2.0) como padrão; Terraform só por escolha explícita.
 - Instalação só com autorização, ligada à proposta (`offerId`), recusa respeitada.
 - Assinatura e checksum conferidos; zip só com o binário extraído; nada fora da pasta do Spock.
 - Hash conferido antes de usar; binário externo só depois de adotado.

@@ -1,22 +1,26 @@
 {
   "offer": {
-    "offerId": "9cb34c4058559e373171889b",
-    "version": "1.17.2",
+    "offerId": "378fc186d9538f3d16efddb9",
+    "engine": "openTofu",
+    "engineName": "OpenTofu",
+    "license": "MPL 2.0 (código aberto)",
+    "version": "1.13.9",
     "platform": {
       "os": "windows",
       "arch": "amd64",
       "key": "windows_amd64"
     },
-    "archiveUrl": "https://releases.hashicorp.com/terraform/1.17.2/terraform_1.17.2_windows_amd64.zip",
-    "shasumsUrl": "https://releases.hashicorp.com/terraform/1.17.2/terraform_1.17.2_SHA256SUMS",
-    "signatureUrl": "https://releases.hashicorp.com/terraform/1.17.2/terraform_1.17.2_SHA256SUMS.72D7468F.sig",
-    "signingKey": "C874011F0AB405110D02105534365D9472D7468F",
-    "publishedAt": "2026-11-11T11:57:56.765+00:00",
-    "changelogUrl": "https://github.com/hashicorp/terraform/blob/v1.17/CHANGELOG.md",
+    "archiveUrl": "https://github.com/opentofu/opentofu/releases/download/v1.13.9/tofu_1.13.9_windows_amd64.zip",
+    "shasumsUrl": "https://github.com/opentofu/opentofu/releases/download/v1.13.9/tofu_1.13.9_SHA256SUMS",
+    "signatureUrl": "https://github.com/opentofu/opentofu/releases/download/v1.13.9/tofu_1.13.9_SHA256SUMS.gpgsig",
+    "signingKey": "E3E6E43D84CB852EADB0051D0C0AF313E5FD9F80",
+    "publishedAt": null,
+    "changelogUrl": "https://github.com/opentofu/opentofu/blob/v1.13.9/CHANGELOG.md",
     "currentVersion": null,
     "isUpdate": false,
     "impacts": [
       "Já existe o Terraform 1.16.5 compatível nesta máquina, instalado fora do Spock. Usá-lo dispensa esta instalação.",
+      "Licença MPL 2.0 (código aberto). Gratuito e de código aberto, sem licença a contratar.",
       "A instalação fica na pasta de dados do Spock, sem mexer no PATH da máquina, ao lado das versões que já existirem."
     ]
   }

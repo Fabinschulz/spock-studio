@@ -26,8 +26,8 @@ versão do Terraform e etapas, e aparece em Execuções, Linha do tempo e Audito
 
 O executor:
 
-- obtém o binário por `TerraformDependencyService.ResolveForUseAsync` (versão do projeto, hash conferido, fixada no
-  primeiro uso);
+- obtém o binário por `TerraformDependencyService.ResolveForUseAsync` (ferramenta e versão do projeto, OpenTofu por
+  padrão, hash conferido, fixadas no primeiro uso);
 - roda pelo `IProcessRunner` **sem shell**, com argumentos fixos montados pelo Spock, `-chdir` na pasta autorizada do
   projeto, `-input=false`, `-no-color`, e as variáveis `CHECKPOINT_DISABLE=1`, `TF_IN_AUTOMATION=1`, `TF_INPUT=0` mais
   as de nome da conexão (`AWS_PROFILE`, `ARM_SUBSCRIPTION_ID`, `GOOGLE_CLOUD_PROJECT`);

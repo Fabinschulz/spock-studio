@@ -1,18 +1,22 @@
 import type { SelectedProject } from '@/features/project-selection';
 import { StatusChip } from '@/shared/components';
-import type { TerraformSource, TerraformStatus } from '@/shared/schema';
+import type { IacEngine, TerraformSource, TerraformStatus } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 
 import styles from '../infrastructure-page.module.scss';
+import { installationName } from '../domain/labels';
 
 interface ProjectTerraformProps {
   project: SelectedProject;
   status: TerraformStatus;
   busy: boolean;
-  onPin: (version: string | null, source?: TerraformSource) => void;
+  onPin: (choice: { engine: IacEngine; version: string; source: TerraformSource } | null) => void;
 }
 
-/** A versão de cada projeto: automática até o primeiro uso ou até a pessoa fixar; uma instalação nova nunca troca sozinha. */
+/**
+ * A ferramenta e a versão de cada projeto: automáticas (OpenTofu antes de Terraform) até o primeiro uso ou até a pessoa
+ * fixar; uma instalação nova nunca troca sozinha.
+ */
 export function ProjectTerraform({ project, status, busy, onPin }: ProjectTerraformProps) {
   const details = status.project;
   if (!details) return null;
@@ -27,10 +31,10 @@ export function ProjectTerraform({ project, status, busy, onPin }: ProjectTerraf
         <span className={styles.rowTitle}>{project.displayName}</span>
         {details.selected ? (
           <StatusChip tone="success">
-            Terraform {details.selected.version} · {details.automatic ? 'automático' : 'fixado'}
+            {installationName(details.selected)} · {details.automatic ? 'automático' : 'fixado'}
           </StatusChip>
         ) : (
-          <StatusChip tone="warning">Sem Terraform disponível</StatusChip>
+          <StatusChip tone="warning">Sem ferramenta disponível</StatusChip>
         )}
       </div>
       {details.requirements.length === 0 ? (
@@ -52,19 +56,28 @@ export function ProjectTerraform({ project, status, busy, onPin }: ProjectTerraf
         </p>
       ) : null}
       {usable.length > 0 ? (
-        <div className={styles.actions} role="group" aria-label={`Versão do Terraform de ${project.displayName}`}>
+        <div
+          className={styles.actions}
+          role="group"
+          aria-label={`Ferramenta de infraestrutura de ${project.displayName}`}
+        >
           {usable.map((installation) => {
-            const current = details.pin?.version === installation.version && details.pin.source === installation.source;
+            const current =
+              details.pin?.engine === installation.engine &&
+              details.pin.version === installation.version &&
+              details.pin.source === installation.source;
             return (
               <Button
-                key={`${installation.source}-${installation.version}`}
+                key={`${installation.engine}-${installation.source}-${installation.version}`}
                 type="button"
                 variant={current ? 'contained' : 'outlined'}
                 aria-pressed={current}
                 disabled={busy || current}
-                onClick={() => onPin(installation.version, installation.source)}
+                onClick={() =>
+                  onPin({ engine: installation.engine, version: installation.version, source: installation.source })
+                }
               >
-                Fixar {installation.version}
+                Fixar {installationName(installation)}
                 {installation.source === 'external' ? ' (externo)' : ''}
               </Button>
             );

@@ -19,6 +19,11 @@ projeto (número da conta, nome do bucket, perfil de SSO, IDs do GitHub, e-mails
 | `<perfil>` | Perfil SSO da AWS CLI (IAM Identity Center) usado pelo backend e pelo provider |
 | `<env>` | Ambiente: o workspace selecionado (`dev`, `hml`, `prd`) |
 
+**OpenTofu ou Terraform.** O modelo vale igual para as duas ferramentas: mesma árvore, mesmos arquivos `.tf`, mesmos
+providers e mesmos comandos (`tofu` no lugar de `terraform`). O Spock usa o OpenTofu por padrão, por ser gratuito e de
+código aberto ([TERRAFORM_DEPENDENCY_MANAGEMENT.md](TERRAFORM_DEPENDENCY_MANAGEMENT.md)); o modelo de referência foi
+escrito e aplicado com o Terraform. As diferenças estão na seção 4.
+
 O pedido de escopo trazia uma árvore com `environments/development|staging|production`. Ela era ilustrativa; o modelo
 do dono vence: **um diretório raiz, um workspace por ambiente**.
 
@@ -132,6 +137,18 @@ provider "aws" {
   módulo**. Módulo novo: copie o lock de um módulo existente antes do `init`, porque módulos não fixam a versão.
 - `aws_region` e `aws_profile` são variáveis com padrão; o perfil é de SSO, nunca chave de acesso.
 
+**Com OpenTofu:**
+
+- `required_version` é comparado com a versão do OpenTofu. O `>= 1.11` do modelo (lock nativo do S3) é atendido pelo
+  OpenTofu 1.11 em diante; o `use_lockfile` do backend S3 existe no OpenTofu desde a 1.10.
+- `hashicorp/aws` resolve em `registry.opentofu.org/hashicorp/aws` (o mesmo provider, publicado pelo registro do
+  OpenTofu). O `.terraform.lock.hcl` passa a ter entradas desse registro: um lock gerado pelo Terraform não vale para o
+  OpenTofu e vice-versa. Projeto novo nasce com o lock da ferramenta escolhida; trocar de ferramenta regenera os locks
+  de todas as pastas (`tofu init -upgrade` em cada uma) e é decisão explícita.
+- Um projeto usa uma ferramenta só (a fixada no Spock). A pasta pode ter arquivos `.tofu`, que só o OpenTofu lê; o
+  Spock não os gera para não prender o projeto.
+- Comandos da seção 11 com `tofu` no lugar de `terraform`; o README gerado diz qual ferramenta o projeto usa.
+
 ## 5. State
 
 - `bootstrap/` cria o bucket de state uma vez por conta e guarda o próprio state **local** (no `.gitignore`). Se esse
@@ -222,7 +239,7 @@ dispara, como trocar segredo, voltar versão e renomear chave sem destruir recur
 | --- | --- |
 | Gerar Terraform para um projeto | Cria `infra/` com esta árvore, os cabeçalhos de seção, `validation` nas variáveis, guarda de workspace, tags em `locals`, lock por pasta e o README nas seções da seção 11 |
 | Ler um `infra/` existente | Descobre as pastas com `.tf`, lê `required_version` e `required_providers`, os workspaces e o backend; aponta o que diverge do modelo como sugestão, sem reescrever |
-| Validar | `fmt -check -recursive` e `validate` por pasta, exatamente como a seção 10 |
+| Validar | `fmt -check -recursive` e `validate` por pasta, exatamente como a seção 10, com a ferramenta fixada no projeto (OpenTofu por padrão) |
 | Planejar | Na raiz, no workspace escolhido, com `-out` guardado pelo Spock ([TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md)) |
 | Provar | Segundo plan com `-detailed-exitcode` depois do apply, registrado como evidência da operação |
 

@@ -42,7 +42,7 @@ public sealed class TerraformDependencyTests : IDisposable
         new(_project.DataDir, new MapLocator(_external), _server, Windows, _pgp.Keyring());
 
     private TerraformDependencyService Service(HashiCorpTerraformToolchain? toolchain = null) =>
-        new(toolchain ?? Toolchain(), new FileTerraformSettingsStore(_project.DataDir), new TerraformConfigReader(), Runner(), Workspace(), _clock, _audit);
+        new([toolchain ?? Toolchain()], new FileTerraformSettingsStore(_project.DataDir), new TerraformConfigReader(), Runner(), Workspace(), _clock, _audit);
 
     // Responde a `terraform version -json` como o binário externo responderia.
     private InterceptingRunner Runner() => new((spec, _) => Task.FromResult<ProcessResult?>(
@@ -136,8 +136,8 @@ public sealed class TerraformDependencyTests : IDisposable
         var service = Service();
         await service.DeclineAsync(CancellationToken.None);
 
-        var offer = await service.OfferAsync(null, null, CancellationToken.None);
-        var status = await service.InstallAsync(offer.OfferId, offer.Version, CancellationToken.None);
+        var offer = await service.OfferAsync(null, null, IacEngine.Terraform, CancellationToken.None);
+        var status = await service.InstallAsync(offer.OfferId, offer.Version, IacEngine.Terraform, CancellationToken.None);
 
         Assert.Equal("1.17.2", offer.Version);
         Assert.Equal(_pgp.Fingerprint, offer.SigningKey);
@@ -159,10 +159,10 @@ public sealed class TerraformDependencyTests : IDisposable
     {
         Publish("1.17.2");
         var service = Service();
-        var offer = await service.OfferAsync(null, null, CancellationToken.None);
+        var offer = await service.OfferAsync(null, null, IacEngine.Terraform, CancellationToken.None);
 
-        var otherVersion = await Assert.ThrowsAsync<EngineException>(() => service.InstallAsync(offer.OfferId, "1.16.5", CancellationToken.None));
-        var forged = await Assert.ThrowsAsync<EngineException>(() => service.InstallAsync("000000000000000000000000", "1.17.2", CancellationToken.None));
+        var otherVersion = await Assert.ThrowsAsync<EngineException>(() => service.InstallAsync(offer.OfferId, "1.16.5", IacEngine.Terraform, CancellationToken.None));
+        var forged = await Assert.ThrowsAsync<EngineException>(() => service.InstallAsync("000000000000000000000000", "1.17.2", IacEngine.Terraform, CancellationToken.None));
 
         Assert.Equal("IAC_VERSION_NOT_PUBLISHED", otherVersion.Code);
         Assert.Equal("IAC_OFFER_STALE", forged.Code);
@@ -174,10 +174,10 @@ public sealed class TerraformDependencyTests : IDisposable
     {
         _server.Publish("1.17.2", Windows.Key, FakeHashiCorp.Zip(("terraform.exe", "original")), _pgp);
         var service = Service();
-        var offer = await service.OfferAsync(null, null, CancellationToken.None);
+        var offer = await service.OfferAsync(null, null, IacEngine.Terraform, CancellationToken.None);
         _server.Files[FakeHashiCorp.Url("1.17.2", "terraform_1.17.2_windows_amd64.zip")] = FakeHashiCorp.Zip(("terraform.exe", "trocado"));
 
-        var error = await Assert.ThrowsAsync<EngineException>(() => service.InstallAsync(offer.OfferId, offer.Version, CancellationToken.None));
+        var error = await Assert.ThrowsAsync<EngineException>(() => service.InstallAsync(offer.OfferId, offer.Version, IacEngine.Terraform, CancellationToken.None));
 
         Assert.Equal("IAC_CHECKSUM_MISMATCH", error.Code);
         Assert.Empty(Toolchain().Managed());
@@ -190,9 +190,9 @@ public sealed class TerraformDependencyTests : IDisposable
     {
         _server.Publish("1.17.2", Windows.Key, FakeHashiCorp.Zip(("terraform.exe", "x")), _pgp, tamperSums: sums => sums.Replace("terraform_", "terraform-"));
         var service = Service();
-        var offer = await service.OfferAsync(null, null, CancellationToken.None);
+        var offer = await service.OfferAsync(null, null, IacEngine.Terraform, CancellationToken.None);
 
-        var error = await Assert.ThrowsAsync<EngineException>(() => service.InstallAsync(offer.OfferId, offer.Version, CancellationToken.None));
+        var error = await Assert.ThrowsAsync<EngineException>(() => service.InstallAsync(offer.OfferId, offer.Version, IacEngine.Terraform, CancellationToken.None));
 
         Assert.Equal("IAC_SIGNATURE_INVALID", error.Code);
         Assert.Empty(Toolchain().Managed());
@@ -203,9 +203,9 @@ public sealed class TerraformDependencyTests : IDisposable
     {
         _server.Publish("1.17.2", Windows.Key, FakeHashiCorp.Zip(("../terraform.exe", "fuga"), ("LICENSE.txt", "licenca")), _pgp);
         var service = Service();
-        var offer = await service.OfferAsync(null, null, CancellationToken.None);
+        var offer = await service.OfferAsync(null, null, IacEngine.Terraform, CancellationToken.None);
 
-        var error = await Assert.ThrowsAsync<EngineException>(() => service.InstallAsync(offer.OfferId, offer.Version, CancellationToken.None));
+        var error = await Assert.ThrowsAsync<EngineException>(() => service.InstallAsync(offer.OfferId, offer.Version, IacEngine.Terraform, CancellationToken.None));
 
         Assert.Equal("IAC_ARCHIVE_INVALID", error.Code);
         Assert.False(File.Exists(Path.Combine(_project.DataDir, "tools", "terraform.exe")));
@@ -216,8 +216,8 @@ public sealed class TerraformDependencyTests : IDisposable
     {
         Publish("1.17.2");
         var service = Service();
-        var offer = await service.OfferAsync(null, null, CancellationToken.None);
-        var installed = (await service.InstallAsync(offer.OfferId, offer.Version, CancellationToken.None)).Installations.Single();
+        var offer = await service.OfferAsync(null, null, IacEngine.Terraform, CancellationToken.None);
+        var installed = (await service.InstallAsync(offer.OfferId, offer.Version, IacEngine.Terraform, CancellationToken.None)).Installations.Single();
         File.WriteAllText(installed.Path, "adulterado");
 
         var status = await service.StatusAsync(Project(), CancellationToken.None);
@@ -227,8 +227,8 @@ public sealed class TerraformDependencyTests : IDisposable
         Assert.NotEqual(TerraformState.Ready, status.State);
         Assert.Equal("IAC_TERRAFORM_UNAVAILABLE", error.Code);
 
-        var again = await service.OfferAsync(installed.Version, null, CancellationToken.None);
-        var repaired = await service.InstallAsync(again.OfferId, again.Version, CancellationToken.None);
+        var again = await service.OfferAsync(installed.Version, null, IacEngine.Terraform, CancellationToken.None);
+        var repaired = await service.InstallAsync(again.OfferId, again.Version, IacEngine.Terraform, CancellationToken.None);
         Assert.DoesNotContain(again.Impacts, i => i.Contains("já está instalado"));
         Assert.True(repaired.Installations.Single().Verified);
         Assert.Equal("binario 1.17.2", File.ReadAllText(installed.Path));
@@ -241,8 +241,8 @@ public sealed class TerraformDependencyTests : IDisposable
         var service = Service();
 
         var found = await service.StatusAsync(null, CancellationToken.None);
-        var wrongVersion = await Assert.ThrowsAsync<EngineException>(() => service.AdoptAsync("1.16.4", CancellationToken.None));
-        var adopted = await service.AdoptAsync("1.16.5", CancellationToken.None);
+        var wrongVersion = await Assert.ThrowsAsync<EngineException>(() => service.AdoptAsync("1.16.4", IacEngine.Terraform, CancellationToken.None));
+        var adopted = await service.AdoptAsync("1.16.5", IacEngine.Terraform, CancellationToken.None);
         File.WriteAllText(path, "outro binario");
         var changed = await service.StatusAsync(null, CancellationToken.None);
 
@@ -263,7 +263,7 @@ public sealed class TerraformDependencyTests : IDisposable
         var service = Service();
 
         var status = await service.StatusAsync(null, CancellationToken.None);
-        var error = await Assert.ThrowsAsync<EngineException>(() => service.AdoptAsync("1.4.6", CancellationToken.None));
+        var error = await Assert.ThrowsAsync<EngineException>(() => service.AdoptAsync("1.4.6", IacEngine.Terraform, CancellationToken.None));
 
         Assert.Equal(TerraformState.Incompatible, status.State);
         Assert.Equal("IAC_VERSION_INCOMPATIBLE", error.Code);
@@ -279,7 +279,7 @@ public sealed class TerraformDependencyTests : IDisposable
         var service = Service();
 
         var status = await service.StatusAsync(Project(), CancellationToken.None);
-        var offer = await service.OfferAsync(null, Project(), CancellationToken.None);
+        var offer = await service.OfferAsync(null, Project(), IacEngine.Terraform, CancellationToken.None);
 
         var requirement = Assert.Single(status.Project!.Requirements);
         Assert.Equal("infra/providers.tf", requirement.File);
@@ -292,14 +292,14 @@ public sealed class TerraformDependencyTests : IDisposable
     {
         Publish("1.16.5");
         var service = Service();
-        var first = await service.OfferAsync(null, null, CancellationToken.None);
-        await service.InstallAsync(first.OfferId, first.Version, CancellationToken.None);
+        var first = await service.OfferAsync(null, null, IacEngine.Terraform, CancellationToken.None);
+        await service.InstallAsync(first.OfferId, first.Version, IacEngine.Terraform, CancellationToken.None);
         var project = Project();
 
         var used = await service.ResolveForUseAsync(project, CancellationToken.None);
         Publish("1.17.2");
-        var update = await service.OfferAsync(null, null, CancellationToken.None);
-        await service.InstallAsync(update.OfferId, update.Version, CancellationToken.None);
+        var update = await service.OfferAsync(null, null, IacEngine.Terraform, CancellationToken.None);
+        await service.InstallAsync(update.OfferId, update.Version, IacEngine.Terraform, CancellationToken.None);
         var after = await service.StatusAsync(project, CancellationToken.None);
 
         Assert.Equal("1.16.5", used.Version);
@@ -322,16 +322,16 @@ public sealed class TerraformDependencyTests : IDisposable
         var service = Service();
         foreach (var version in new[] { "1.16.5", "1.17.2" })
         {
-            var offer = await service.OfferAsync(version, null, CancellationToken.None);
-            await service.InstallAsync(offer.OfferId, offer.Version, CancellationToken.None);
+            var offer = await service.OfferAsync(version, null, IacEngine.Terraform, CancellationToken.None);
+            await service.InstallAsync(offer.OfferId, offer.Version, IacEngine.Terraform, CancellationToken.None);
         }
         var project = Project();
 
-        var incompatible = await Assert.ThrowsAsync<EngineException>(() => service.PinAsync(project, "1.16.5", null, CancellationToken.None));
-        var pinned = await service.PinAsync(project, "1.17.2", TerraformSource.Managed, CancellationToken.None);
-        var unconfirmed = await Assert.ThrowsAsync<EngineException>(() => service.RemoveAsync("1.16.5", false, CancellationToken.None));
-        var inUse = await Assert.ThrowsAsync<EngineException>(() => service.RemoveAsync("1.17.2", true, CancellationToken.None));
-        var removed = await service.RemoveAsync("1.16.5", true, CancellationToken.None);
+        var incompatible = await Assert.ThrowsAsync<EngineException>(() => service.PinAsync(project, "1.16.5", null, IacEngine.Terraform, CancellationToken.None));
+        var pinned = await service.PinAsync(project, "1.17.2", TerraformSource.Managed, IacEngine.Terraform, CancellationToken.None);
+        var unconfirmed = await Assert.ThrowsAsync<EngineException>(() => service.RemoveAsync("1.16.5", IacEngine.Terraform, false, CancellationToken.None));
+        var inUse = await Assert.ThrowsAsync<EngineException>(() => service.RemoveAsync("1.17.2", IacEngine.Terraform, true, CancellationToken.None));
+        var removed = await service.RemoveAsync("1.16.5", IacEngine.Terraform, true, CancellationToken.None);
 
         Assert.Equal("IAC_PROJECT_INCOMPATIBLE", incompatible.Code);
         Assert.Equal("1.17.2", pinned.Project!.Pin!.Version);
@@ -344,7 +344,7 @@ public sealed class TerraformDependencyTests : IDisposable
     [Fact]
     public async Task Remover_recusa_nome_de_versao_que_seria_caminho()
     {
-        var error = await Assert.ThrowsAsync<EngineException>(() => Service().RemoveAsync("../../x", true, CancellationToken.None));
+        var error = await Assert.ThrowsAsync<EngineException>(() => Service().RemoveAsync("../../x", IacEngine.Terraform, true, CancellationToken.None));
         Assert.Equal("IAC_NOT_INSTALLED", error.Code);
         Assert.Throws<EngineException>(() => Toolchain().Remove(".."));
     }
@@ -354,7 +354,7 @@ public sealed class TerraformDependencyTests : IDisposable
     {
         ExternalBinary("1.16.5");
         var project = Project();
-        var tools = new IacMcpTools(Workspace, authorizer => new TerraformDependencyService(Toolchain(), new FileTerraformSettingsStore(_project.DataDir),
+        var tools = new IacMcpTools(Workspace, authorizer => new TerraformDependencyService([Toolchain()], new FileTerraformSettingsStore(_project.DataDir),
             new TerraformConfigReader(), Runner(), authorizer, _clock, _audit), _project.Root);
 
         var tool = Assert.Single(tools.Tools());

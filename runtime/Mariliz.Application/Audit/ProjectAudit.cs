@@ -229,12 +229,12 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                 yield return Entry("", AuditCategories.Credential, $"Conexão cloud removida: {Clean(Text(d, "name"))}", "Só o registro saiu: a credencial nunca esteve com o Spock.");
                 break;
             case "iac.terraform.pinned":
-                yield return Entry("", AuditCategories.Change, $"Terraform {Clean(Text(d, "version"))} fixado no projeto",
+                yield return Entry("", AuditCategories.Change, $"{(Text(d, "engine") == "openTofu" ? "OpenTofu" : "Terraform")} {Clean(Text(d, "version"))} fixado no projeto",
                     (Flag(d, "automatic") ? "Fixado no primeiro uso, para que uma instalação nova não troque a versão. " : "Escolha feita na tela Infraestrutura. ")
                     + (Text(d, "source") == "managed" ? "Binário gerenciado pelo Spock." : "Binário instalado fora do Spock."));
                 break;
             case "iac.terraform.unpinned":
-                yield return Entry("", AuditCategories.Change, "Terraform do projeto de volta à escolha automática", "Vale a versão compatível mais nova até o próximo uso.");
+                yield return Entry("", AuditCategories.Change, "Ferramenta de infraestrutura do projeto de volta à escolha automática", "Vale a versão compatível mais nova até o próximo uso.");
                 break;
             default:
                 yield return Entry("", AuditCategories.Change, $"Operação registrada: {Clean(record.Action)}", "");

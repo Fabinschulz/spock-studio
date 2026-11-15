@@ -20,7 +20,8 @@ const missing = {
   installations: [],
   selected: null,
   project: { ...ready.project, selected: null, automatic: false },
-  message: 'O Terraform não está instalado. O Spock pode instalá-lo com a sua autorização.'
+  message:
+    'Nenhuma ferramenta de infraestrutura como código instalada. O Spock pode instalar o OpenTofu, gratuito, com a sua autorização.'
 };
 
 function fakeEngine(initial: Record<string, unknown> = missing) {
@@ -64,36 +65,53 @@ function renderPage(client: EngineClient, project: typeof demo | null = demo) {
   );
 }
 
+const methods = (calls: { method: string }[]) => calls.map((call) => call.method);
+
 describe('Infraestrutura', () => {
-  it('explica a instalação e não baixa nada antes da autorização', async () => {
+  it('explica a instalação do OpenTofu gratuito e não baixa nada antes da autorização', async () => {
     const engine = fakeEngine();
     const { container } = renderPage(engine.client);
 
     expect(await screen.findByText(/Nenhuma instalação será realizada sem sua autorização/)).toBeInTheDocument();
+    expect(screen.getByText(/OpenTofu nesta máquina: ferramenta gratuita e de código aberto/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Autorizar instalação' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Não instalar agora' })).toBeInTheDocument();
-    expect(engine.calls.map((call) => call.method)).not.toContain('iac.terraform.offer');
-    expect(engine.calls.map((call) => call.method)).not.toContain('iac.terraform.install');
+    expect(methods(engine.calls)).not.toContain('iac.terraform.offer');
+    expect(methods(engine.calls)).not.toContain('iac.terraform.install');
     await expectNoA11yViolations(container);
   });
 
-  it('autorizar mostra a proposta verificável e instala só a proposta mostrada', async () => {
+  it('autorizar mostra a proposta verificável do OpenTofu e instala só a proposta mostrada', async () => {
     const engine = fakeEngine();
     renderPage(engine.client);
 
     await userEvent.click(await screen.findByRole('button', { name: 'Autorizar instalação' }));
     expect(await screen.findByText(offerFixture.offer.archiveUrl)).toBeInTheDocument();
-    expect(screen.getByText(/assinada pela HashiCorp/)).toBeInTheDocument();
-    expect(engine.calls.map((call) => call.method)).not.toContain('iac.terraform.install');
+    expect(screen.getByText(/assinada por quem publica o OpenTofu/)).toBeInTheDocument();
+    expect(screen.getByText(offerFixture.offer.license)).toBeInTheDocument();
+    expect(engine.calls.find((call) => call.method === 'iac.terraform.offer')?.params).not.toHaveProperty('engine');
+    expect(methods(engine.calls)).not.toContain('iac.terraform.install');
 
-    await userEvent.click(screen.getByRole('button', { name: `Instalar Terraform ${offerFixture.offer.version}` }));
+    await userEvent.click(screen.getByRole('button', { name: `Instalar OpenTofu ${offerFixture.offer.version}` }));
 
     expect(
-      await screen.findByText(`Terraform ${offerFixture.offer.version} instalado e verificado.`)
+      await screen.findByText(`OpenTofu ${offerFixture.offer.version} instalado e verificado.`)
     ).toBeInTheDocument();
     expect(engine.calls.find((call) => call.method === 'iac.terraform.install')?.params).toEqual({
       offerId: offerFixture.offer.offerId,
-      version: offerFixture.offer.version
+      version: offerFixture.offer.version,
+      engine: 'openTofu'
+    });
+  });
+
+  it('o Terraform da HashiCorp continua disponível como escolha explícita', async () => {
+    const engine = fakeEngine();
+    renderPage(engine.client);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Prefiro o Terraform da HashiCorp' }));
+
+    expect(engine.calls.find((call) => call.method === 'iac.terraform.offer')?.params).toMatchObject({
+      engine: 'terraform'
     });
   });
 
@@ -105,21 +123,22 @@ describe('Infraestrutura', () => {
 
     expect(await screen.findByText(/nada será instalado/)).toBeInTheDocument();
     expect(screen.getByText('Instalação recusada')).toBeInTheDocument();
-    expect(engine.calls.map((call) => call.method)).not.toContain('iac.terraform.offer');
+    expect(methods(engine.calls)).not.toContain('iac.terraform.offer');
   });
 
-  it('mostra o que o projeto exige e fixa a versão escolhida', async () => {
+  it('mostra o que o projeto exige, usa o OpenTofu por padrão e fixa a ferramenta escolhida', async () => {
     const engine = fakeEngine(ready);
     renderPage(engine.client);
 
     expect(await screen.findByText('infra/providers.tf')).toBeInTheDocument();
-    expect(screen.getByText(/Terraform 1\.17\.2 · automático/)).toBeInTheDocument();
+    expect(screen.getByText(/OpenTofu 1\.13\.9 · automático/)).toBeInTheDocument();
     expect(screen.getByText(/^Gerenciado pelo Spock ·/)).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Fixar 1.16.5 (externo)' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Fixar Terraform 1.16.5 (externo)' }));
 
     expect(engine.calls.find((call) => call.method === 'iac.terraform.pin')?.params).toEqual({
       projectId: demo.projectId,
+      engine: 'terraform',
       version: '1.16.5',
       source: 'external'
     });

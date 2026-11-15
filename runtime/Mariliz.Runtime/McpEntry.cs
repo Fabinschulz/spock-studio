@@ -42,8 +42,9 @@ internal static class McpEntry
         var audit = new FileAuditLog(dataRoot, clock);
         var cloud = new CloudMcpTools(LocalCloudHub.Create(dataRoot, workspaces(), clock, audit), workspaces, Environment.CurrentDirectory, options.Scope);
         // Só a consulta: o servidor MCP nunca baixa nem instala, e o binário externo só é perguntado pela versão.
+        using var openTofuToolchain = new OpenTofuToolchain(dataRoot, ExecutableLocator.FromEnvironment());
         using var terraformToolchain = new HashiCorpTerraformToolchain(dataRoot, ExecutableLocator.FromEnvironment());
-        var iac = new IacMcpTools(workspaces, authorizer => new TerraformDependencyService(terraformToolchain, new FileTerraformSettingsStore(dataRoot),
+        var iac = new IacMcpTools(workspaces, authorizer => new TerraformDependencyService([openTofuToolchain, terraformToolchain], new FileTerraformSettingsStore(dataRoot),
             new TerraformConfigReader(), new SystemProcessRunner(), authorizer, clock, audit), Environment.CurrentDirectory, options.Scope);
         var tools = new ProjectContextTools(
             workspaces,

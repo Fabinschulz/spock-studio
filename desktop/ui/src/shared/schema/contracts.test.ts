@@ -900,14 +900,16 @@ describe('contrato do assistente do portfólio (fixtures do motor)', () => {
     for (const row of read.rows) expect(row).toHaveLength(read.columns.length);
   });
 
-  it('iac: estado do Terraform sem caminho completo e proposta só de fonte oficial da HashiCorp', () => {
+  it('iac: estado sem caminho completo e proposta do OpenTofu só da fonte oficial', () => {
     const status = terraformStatusResultSchema.parse(iacStatusFixture).terraform;
     expect(status.state).toBe('ready');
     for (const installation of status.installations) expect(installation.path.startsWith('~')).toBe(true);
     expect(status.project?.requirements[0]?.constraint).toBe('>= 1.11');
     const offer = terraformOfferResultSchema.parse(iacOfferFixture).offer;
+    expect(status.installations.map((installation) => installation.engine)).toEqual(['openTofu', 'terraform']);
+    expect(offer.engine).toBe('openTofu');
     for (const url of [offer.archiveUrl, offer.shasumsUrl, offer.signatureUrl])
-      expect(url.startsWith(`https://releases.hashicorp.com/terraform/${offer.version}/`)).toBe(true);
-    expect(offer.signingKey).toBe('C874011F0AB405110D02105534365D9472D7468F');
+      expect(url.startsWith(`https://github.com/opentofu/opentofu/releases/download/v${offer.version}/`)).toBe(true);
+    expect(offer.signingKey).toBe('E3E6E43D84CB852EADB0051D0C0AF313E5FD9F80');
   });
 });

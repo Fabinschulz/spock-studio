@@ -6,19 +6,38 @@
       "arch": "amd64",
       "key": "windows_amd64"
     },
-    "minimumVersion": "1.5.0",
+    "engines": [
+      {
+        "engine": "openTofu",
+        "name": "OpenTofu",
+        "license": "MPL 2.0 (código aberto)",
+        "minimumVersion": "1.6.0",
+        "preferred": true,
+        "available": true
+      },
+      {
+        "engine": "terraform",
+        "name": "Terraform",
+        "license": "BUSL 1.1 (HashiCorp)",
+        "minimumVersion": "1.5.0",
+        "preferred": false,
+        "available": true
+      }
+    ],
     "installations": [
       {
+        "engine": "openTofu",
         "source": "managed",
-        "version": "1.17.2",
-        "path": "~\\AppData\\Local\\Mariliz\\tools\\terraform\\1.17.2\\terraform.exe",
+        "version": "1.13.9",
+        "path": "~\\AppData\\Local\\Mariliz\\tools\\opentofu\\1.13.9\\tofu.exe",
         "compatible": true,
         "verified": true,
         "adopted": false,
         "problem": null,
-        "installedAt": "2026-11-15T13:52:59.5797736+00:00"
+        "installedAt": "2026-11-15T14:23:35.8570094+00:00"
       },
       {
+        "engine": "terraform",
         "source": "external",
         "version": "1.16.5",
         "path": "~\\bin\\terraform.exe",
@@ -26,18 +45,19 @@
         "verified": true,
         "adopted": true,
         "problem": null,
-        "installedAt": "2026-11-15T13:52:57.5163413+00:00"
+        "installedAt": "2026-11-15T14:23:30.0579337+00:00"
       }
     ],
     "selected": {
+      "engine": "openTofu",
       "source": "managed",
-      "version": "1.17.2",
-      "path": "~\\AppData\\Local\\Mariliz\\tools\\terraform\\1.17.2\\terraform.exe",
+      "version": "1.13.9",
+      "path": "~\\AppData\\Local\\Mariliz\\tools\\opentofu\\1.13.9\\tofu.exe",
       "compatible": true,
       "verified": true,
       "adopted": false,
       "problem": null,
-      "installedAt": "2026-11-15T13:52:59.5797736+00:00"
+      "installedAt": "2026-11-15T14:23:35.8570094+00:00"
     },
     "project": {
       "projectId": "p-0123456789ab",
@@ -50,19 +70,20 @@
       ],
       "pin": null,
       "selected": {
+        "engine": "openTofu",
         "source": "managed",
-        "version": "1.17.2",
-        "path": "~\\AppData\\Local\\Mariliz\\tools\\terraform\\1.17.2\\terraform.exe",
+        "version": "1.13.9",
+        "path": "~\\AppData\\Local\\Mariliz\\tools\\opentofu\\1.13.9\\tofu.exe",
         "compatible": true,
         "verified": true,
         "adopted": false,
         "problem": null,
-        "installedAt": "2026-11-15T13:52:59.5797736+00:00"
+        "installedAt": "2026-11-15T14:23:35.8570094+00:00"
       },
       "automatic": true,
       "problem": null
     },
     "declinedAt": null,
-    "message": "Terraform 1.17.2 pronto, gerenciado pelo Spock."
+    "message": "OpenTofu 1.13.9 pronto, gerenciado pelo Spock."
   }
 }

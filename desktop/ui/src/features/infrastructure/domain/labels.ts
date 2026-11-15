@@ -1,5 +1,5 @@
 import type { Tone } from '@/shared/components';
-import type { TerraformInstallation, TerraformState } from '@/shared/schema';
+import type { IacEngine, TerraformInstallation, TerraformState } from '@/shared/schema';
 
 export const TERRAFORM_STATE: Record<TerraformState, { label: string; tone: Tone }> = {
   ready: { label: 'Pronto', tone: 'success' },
@@ -10,14 +10,20 @@ export const TERRAFORM_STATE: Record<TerraformState, { label: string; tone: Tone
   unsupportedPlatform: { label: 'Sistema sem suporte', tone: 'danger' }
 };
 
-/** O texto que explica por que o Spock quer instalar o Terraform, antes de qualquer download. */
+export const ENGINE_NAME: Record<IacEngine, string> = { openTofu: 'OpenTofu', terraform: 'Terraform' };
+
+/** O texto que explica por que o Spock quer instalar a ferramenta, antes de qualquer download. */
 export const INSTALL_EXPLANATION = [
-  'O Spock possui recursos de gerenciamento de infraestrutura utilizando Terraform (Infrastructure as Code).',
+  'O Spock possui recursos de gerenciamento de infraestrutura como código (Infrastructure as Code) com a linguagem do Terraform.',
   'Com essa integração, você poderá criar, modificar, consultar e administrar infraestrutura em provedores como AWS, Azure e Google Cloud, utilizando configurações versionadas e planos de execução auditáveis.',
-  'Para disponibilizar essa funcionalidade, precisamos instalar o Terraform nesta máquina.',
+  'Para disponibilizar essa funcionalidade, precisamos instalar o OpenTofu nesta máquina: ferramenta gratuita e de código aberto (licença MPL 2.0, mantida pela Linux Foundation), compatível com os arquivos e providers do Terraform, sem licença a contratar.',
   'A instalação será realizada pelo próprio Spock, utilizando uma versão compatível, obtida de uma fonte oficial e validada antes da utilização.',
   'Nenhuma instalação será realizada sem sua autorização.'
 ] as const;
+
+export function installationName(installation: { engine: IacEngine; version: string }): string {
+  return `${ENGINE_NAME[installation.engine]} ${installation.version}`;
+}
 
 export function sourceLabel(installation: TerraformInstallation): string {
   if (installation.source === 'managed') return 'Gerenciado pelo Spock';

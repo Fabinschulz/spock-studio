@@ -3,7 +3,7 @@ using Mariliz.Application.Iac;
 
 namespace Mariliz.Infrastructure.Terraform;
 
-// Lê required_version dos .tf do projeto como texto. Não roda o Terraform nem interpreta HCL além dessa atribuição.
+// Lê required_version dos .tf e .tofu do projeto como texto. Não roda o Terraform nem interpreta HCL além dessa atribuição.
 public sealed partial class TerraformConfigReader : ITerraformConfigReader
 {
     private const int MaxDepth = 6;
@@ -50,7 +50,7 @@ public sealed partial class TerraformConfigReader : ITerraformConfigReader
             IEnumerable<string> files, children;
             try
             {
-                files = Directory.EnumerateFiles(directory, "*.tf").ToList();
+                files = Directory.EnumerateFiles(directory, "*.tf").Concat(Directory.EnumerateFiles(directory, "*.tofu")).ToList();
                 children = depth < MaxDepth ? Directory.EnumerateDirectories(directory).ToList() : [];
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
