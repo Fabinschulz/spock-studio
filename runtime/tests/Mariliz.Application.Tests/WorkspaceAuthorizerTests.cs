@@ -16,6 +16,17 @@ public class WorkspaceAuthorizerTests
         public string HomeDirectory => Home;
         public string? ResolveDirectory(string path) => Existing.Contains(path) ? path : null;
         public bool CanEnumerate(string directory) => !Unreadable.Contains(directory);
+        public Dictionary<string, string> Files { get; } = new(StringComparer.OrdinalIgnoreCase);
+        public IReadOnlyList<string> RootFiles(string directory) =>
+            Files.Keys.Where(path => Path.GetDirectoryName(path) == directory).Select(path => Path.GetFileName(path)!).ToList();
+        public string? ReadRootFile(string directory, string fileName) => Files.GetValueOrDefault(Path.Combine(directory, fileName));
+    }
+
+    private sealed class MemoryRegistry : IWorkspaceRegistry
+    {
+        private readonly Dictionary<string, string> _saved = new(StringComparer.Ordinal);
+        public IReadOnlyDictionary<string, string> Load() => _saved;
+        public void Save(string projectId, string path) => _saved[projectId] = path;
     }
 
     private static (WorkspaceAuthorizer Auth, FakeFileSystem Fs) Create()
@@ -71,6 +82,74 @@ public class WorkspaceAuthorizerTests
         Assert.Equal($"~{sep}…{sep}backend{sep}EmpregaNetAPI", first.DisplayPath);
         Assert.True(auth.IsAuthorized(first.ProjectId));
         Assert.False(auth.IsAuthorized("p-000000000000"));
+    }
+
+    // Validação real B2: o demo aparecia como "demo", o nome da pasta, em vez do nome do package.json.
+    [Theory]
+    [InlineData("package.json", "{\"name\": \"e2e-tasks-api\", \"version\": \"1.0.0\"}", "e2e-tasks-api")]
+    [InlineData("pyproject.toml", "[build-system]\nrequires = [\"x\"]\n\n[project]\nname = \"motor-de-regras\"\n", "motor-de-regras")]
+    [InlineData("pyproject.toml", "[tool.poetry]\nname = 'faturamento'\n", "faturamento")]
+    [InlineData("Cargo.toml", "[workspace]\nmembers = [\"a\"]\n\n[package]\nname = \"agenda\"\n", "agenda")]
+    [InlineData("go.mod", "module github.com/acme/estoque\n\ngo 1.22\n", "estoque")]
+    [InlineData("Loja.Api.sln", "", "Loja.Api")]
+    public void Nome_exibido_vem_do_manifesto_e_o_id_continua_o_da_pasta(string manifest, string content, string expected)
+    {
+        var (auth, fs) = Create();
+        var dir = Path.Combine(Home, "demo");
+        fs.Existing.Add(dir);
+        var withoutManifest = auth.Authorize(dir).Project!;
+
+        fs.Files[Path.Combine(dir, manifest)] = content;
+        var project = auth.Authorize(dir).Project!;
+
+        Assert.Equal("demo", withoutManifest.DisplayName);
+        Assert.Equal(expected, project.DisplayName);
+        Assert.Equal(withoutManifest.ProjectId, project.ProjectId);
+        Assert.Equal(expected, Assert.Single(auth.Projects()).DisplayName);
+    }
+
+    [Theory]
+    [InlineData("package.json", "{ quebrado")]
+    [InlineData("package.json", "{\"name\": \"   \"}")]
+    [InlineData("package.json", "{\"name\": 42}")]
+    [InlineData("Cargo.toml", "[workspace]\nname = \"so-o-workspace\"\n")]
+    public void Manifesto_sem_nome_utilizavel_fica_com_o_nome_da_pasta(string manifest, string content)
+    {
+        var (auth, fs) = Create();
+        var dir = Path.Combine(Home, "demo");
+        fs.Existing.Add(dir);
+        fs.Files[Path.Combine(dir, manifest)] = content;
+
+        Assert.Equal("demo", auth.Authorize(dir).Project!.DisplayName);
+    }
+
+    [Fact]
+    public void Duas_solucoes_na_raiz_nao_escolhem_nome_e_package_json_vem_antes_da_solucao()
+    {
+        var (auth, fs) = Create();
+        var dir = Path.Combine(Home, "monorepo");
+        fs.Existing.Add(dir);
+        fs.Files[Path.Combine(dir, "Api.sln")] = "";
+        fs.Files[Path.Combine(dir, "Worker.slnx")] = "";
+        Assert.Equal("monorepo", auth.Authorize(dir).Project!.DisplayName);
+
+        fs.Files[Path.Combine(dir, "package.json")] = "{\"name\": \"plataforma\"}";
+        Assert.Equal("plataforma", auth.Authorize(dir).Project!.DisplayName);
+    }
+
+    [Fact]
+    public void Projeto_recuperado_do_registro_tambem_usa_o_nome_do_manifesto()
+    {
+        var fs = new FakeFileSystem();
+        var registry = new MemoryRegistry();
+        var dir = Path.Combine(Home, "demo");
+        fs.Existing.Add(dir);
+        fs.Files[Path.Combine(dir, "package.json")] = "{\"name\": \"e2e-tasks-api\"}";
+        var id = new WorkspaceAuthorizer(fs, registry).Authorize(dir).Project!.ProjectId;
+
+        var reopened = new WorkspaceAuthorizer(fs, registry).Projects();
+
+        Assert.Equal((id, "e2e-tasks-api"), (Assert.Single(reopened).ProjectId, reopened[0].DisplayName));
     }
 
     [Fact]

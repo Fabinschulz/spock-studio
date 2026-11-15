@@ -33,10 +33,13 @@ public sealed class McpProjectResolver(WorkspaceAuthorizer workspace, string wor
             return Default() ?? throw new McpToolException(
                 $"A pasta atual não é de um projeto {Available}. Informe 'project' com um nome de list_projects, ou abra a pasta no Spock primeiro.");
 
-        // Fora do escopo responde igual a inexistente: a conexão não fica sabendo de projetos que não pode ler.
+        // Fora do escopo responde igual a inexistente: a conexão não fica sabendo de projetos que não pode ler. O nome da pasta
+        // continua valendo porque era o nome exibido antes de o Spock ler o do manifesto, e configurações antigas o usam.
         var matches = Projects()
             .Where(item => item.ProjectId == project || string.Equals(item.DisplayName, project, StringComparison.OrdinalIgnoreCase))
             .ToList();
+        if (matches.Count == 0)
+            matches = Projects().Where(item => string.Equals(FolderOf(item), project, StringComparison.OrdinalIgnoreCase)).ToList();
         return matches.Count switch
         {
             1 => matches[0],
@@ -44,6 +47,9 @@ public sealed class McpProjectResolver(WorkspaceAuthorizer workspace, string wor
             _ => throw new McpToolException($"Há mais de um projeto chamado '{project}'. Use o id de list_projects.")
         };
     }
+
+    private string FolderOf(AuthorizedProject project) =>
+        workspace.TryGetRoot(project.ProjectId, out var root) ? Path.GetFileName(root) : "";
 
     private string Available => scope is null ? "aberto no Spock" : "disponível para esta conexão";
 
