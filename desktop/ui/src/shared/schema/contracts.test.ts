@@ -756,7 +756,12 @@ describe('contrato da ligação com a IDE (fixture do motor)', () => {
 
     expect(parsed.args).toEqual(['mcp']);
     expect(parsed.command).toMatch(/mariliz-runtime\.exe$/);
-    expect(parsed.tools.map((tool) => tool.name)).toEqual(['list_projects', 'project_briefing', 'decisions']);
+    expect(parsed.tools.map((tool) => tool.name)).toEqual([
+      'list_projects',
+      'project_briefing',
+      'decisions',
+      'search_project'
+    ]);
   });
 });
 

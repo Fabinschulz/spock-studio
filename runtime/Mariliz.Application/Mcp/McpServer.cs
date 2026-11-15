@@ -1,12 +1,13 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using Mariliz.Application.Execution;
 using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Mcp;
 
 // JSON-RPC 2.0 por linhas no stdio, como as IDEs iniciam um servidor MCP local. Só ferramentas, todas de leitura.
-public sealed class McpServer(string version, IReadOnlyList<McpTool> tools)
+public sealed partial class McpServer(string version, IReadOnlyList<McpTool> tools)
 {
     public const string LatestProtocol = "2025-06-18";
     private static readonly string[] SupportedProtocols = [LatestProtocol, "2025-03-26", "2024-11-05"];
@@ -17,21 +18,24 @@ public sealed class McpServer(string version, IReadOnlyList<McpTool> tools)
     private const int InvalidParams = -32602;
 
     private const string Instructions =
-        "Contexto do Spock Studio sobre os projetos que a pessoa abriu nele: tecnologias, comandos, estado do Harness e decisões registradas. " +
-        "Só leitura. Comece por project_briefing; sem 'project', vale o projeto da pasta atual.";
+        "Contexto do Spock Studio sobre os projetos que a pessoa abriu nele: tecnologias, comandos, estado do Harness, decisões registradas " +
+        "e busca no índice de conhecimento. Só leitura. Comece por project_briefing e use search_project para achar o código e os documentos " +
+        "de um assunto; sem 'project', vale o projeto da pasta atual.";
+
+    private string? _client;
 
     public async Task RunAsync(TextReader input, TextWriter output, CancellationToken ct)
     {
         while (await input.ReadLineAsync(ct) is { } line)
         {
             if (string.IsNullOrWhiteSpace(line)) continue;
-            if (Handle(line) is not { } reply) continue;
+            if (await HandleAsync(line, ct) is not { } reply) continue;
             await output.WriteLineAsync(reply.ToJsonString());
             await output.FlushAsync(ct);
         }
     }
 
-    public JsonObject? Handle(string line)
+    public async Task<JsonObject?> HandleAsync(string line, CancellationToken ct = default)
     {
         JsonNode? parsed;
         try
@@ -57,7 +61,7 @@ public sealed class McpServer(string version, IReadOnlyList<McpTool> tools)
             "initialize" => Ok(id, Initialize(parameters)),
             "ping" => Ok(id, []),
             "tools/list" => Ok(id, new JsonObject { ["tools"] = new JsonArray(tools.Select(Describe).ToArray()) }),
-            "tools/call" => Call(id, parameters),
+            "tools/call" => await CallAsync(id, parameters, ct),
             _ => Error(id, MethodNotFound, $"Método desconhecido: {method}.")
         };
     }
@@ -65,6 +69,7 @@ public sealed class McpServer(string version, IReadOnlyList<McpTool> tools)
     private JsonObject Initialize(JsonObject parameters)
     {
         var requested = parameters["protocolVersion"] is JsonValue value && value.TryGetValue<string>(out var asked) ? asked : null;
+        _client = ClientName(parameters);
         return new JsonObject
         {
             ["protocolVersion"] = requested is not null && SupportedProtocols.Contains(requested) ? requested : LatestProtocol,
@@ -83,7 +88,7 @@ public sealed class McpServer(string version, IReadOnlyList<McpTool> tools)
         ["annotations"] = new JsonObject { ["readOnlyHint"] = true, ["openWorldHint"] = false }
     };
 
-    private JsonObject Call(JsonNode id, JsonObject parameters)
+    private async Task<JsonObject> CallAsync(JsonNode id, JsonObject parameters, CancellationToken ct)
     {
         var name = parameters["name"] is JsonValue value && value.TryGetValue<string>(out var asked) ? asked : null;
         var tool = tools.FirstOrDefault(item => item.Info.Name == name);
@@ -93,7 +98,7 @@ public sealed class McpServer(string version, IReadOnlyList<McpTool> tools)
         var failed = false;
         try
         {
-            text = tool.Call(parameters["arguments"] as JsonObject ?? []);
+            text = await tool.Call(new McpCall(parameters["arguments"] as JsonObject ?? [], _client, ct));
         }
         catch (Exception ex) when (ex is McpToolException or EngineException)
         {
@@ -113,6 +118,16 @@ public sealed class McpServer(string version, IReadOnlyList<McpTool> tools)
             ["isError"] = failed
         });
     }
+
+    // Vai para a trilha de auditoria: só o que parece um nome de programa, curto.
+    private static string? ClientName(JsonObject parameters)
+    {
+        var name = parameters["clientInfo"] is JsonObject info && info["name"] is JsonValue value && value.TryGetValue<string>(out var text) ? text.Trim() : null;
+        return name is { Length: > 0 and <= 60 } && ClientPattern().IsMatch(name) ? name : null;
+    }
+
+    [GeneratedRegex(@"^[\p{L}\p{N}][\p{L}\p{N} ._\-]*$")]
+    private static partial Regex ClientPattern();
 
     private static JsonObject Ok(JsonNode id, JsonObject result) =>
         new() { ["jsonrpc"] = "2.0", ["id"] = id, ["result"] = result };

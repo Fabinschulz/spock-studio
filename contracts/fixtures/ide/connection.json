@@ -18,6 +18,11 @@
       "name": "decisions",
       "title": "Decisões registradas",
       "description": "Decisões que a equipe registrou no Spock, das mais recentes para as mais antigas, com o que se decidiu e por quê. Filtre por texto com 'query'."
+    },
+    {
+      "name": "search_project",
+      "title": "Busca no índice do projeto",
+      "description": "Trechos do código, da documentação e das decisões do projeto que falam do assunto, do mais ao menos relevante, com arquivo e linha. Use nomes de classes, métodos, ids de requisito ou termos do domínio. Mostra o que o Spock indexou da última vez e avisa quando o arquivo mudou depois."
     }
   ]
 }

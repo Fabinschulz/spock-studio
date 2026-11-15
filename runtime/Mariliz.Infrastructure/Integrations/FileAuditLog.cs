@@ -11,6 +11,7 @@ public sealed class FileAuditLog(string dataRoot, IClock clock) : IAuditLog, IAu
 {
     // A numeração é a do arquivo inteiro.
     public const int MaxLines = 100_000;
+    private const int WriteAttempts = 5;
 
     private readonly object _gate = new();
     private string FilePath => Path.Combine(dataRoot, "audit.ndjson");
@@ -48,15 +49,25 @@ public sealed class FileAuditLog(string dataRoot, IClock clock) : IAuditLog, IAu
         var line = new JsonObject { ["at"] = EventStamp.Format(clock.UtcNow), ["action"] = action, ["detail"] = detail.DeepClone() };
         lock (_gate)
         {
-            try
+            // O servidor MCP de cada IDE grava no mesmo arquivo que o aplicativo: quem encontra o arquivo aberto por outro processo tenta de novo.
+            for (var attempt = 1; ; attempt++)
             {
-                Directory.CreateDirectory(dataRoot);
-                File.AppendAllText(FilePath, line.ToJsonString() + "\n", new UTF8Encoding(false));
-            }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-            {
-                // A trilha não pode derrubar a operação que ela registra; quem hospeda o motor fica sabendo pelo stderr.
-                Console.Error.WriteLine($"Não foi possível gravar a auditoria ({ex.GetType().Name}).");
+                try
+                {
+                    Directory.CreateDirectory(dataRoot);
+                    File.AppendAllText(FilePath, line.ToJsonString() + "\n", new UTF8Encoding(false));
+                    return;
+                }
+                catch (IOException) when (attempt < WriteAttempts)
+                {
+                    Thread.Sleep(20 * attempt);
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    // A trilha não pode derrubar a operação que ela registra; quem hospeda o motor fica sabendo pelo stderr.
+                    Console.Error.WriteLine($"Não foi possível gravar a auditoria ({ex.GetType().Name}).");
+                    return;
+                }
             }
         }
     }

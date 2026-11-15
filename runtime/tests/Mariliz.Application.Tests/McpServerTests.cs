@@ -29,7 +29,9 @@ public sealed class McpServerTests : IDisposable
         new FileDecisionStore(_project.DataDir), workingDirectory ?? _project.Root).Tools());
 
     private static JsonObject Send(McpServer server, string method, JsonObject? parameters = null) =>
-        server.Handle(new JsonObject { ["jsonrpc"] = "2.0", ["id"] = 7, ["method"] = method, ["params"] = parameters }.ToJsonString())!;
+        Raw(server, new JsonObject { ["jsonrpc"] = "2.0", ["id"] = 7, ["method"] = method, ["params"] = parameters }.ToJsonString())!;
+
+    private static JsonObject? Raw(McpServer server, string line) => server.HandleAsync(line).GetAwaiter().GetResult();
 
     private static (string Text, bool Failed) Call(McpServer server, string tool, JsonObject? arguments = null)
     {
@@ -66,11 +68,11 @@ public sealed class McpServerTests : IDisposable
     {
         var server = Server();
 
-        Assert.Null(server.Handle("""{"jsonrpc":"2.0","method":"notifications/initialized"}"""));
-        Assert.Equal(-32700, server.Handle("{quebrado")!["error"]!["code"]!.GetValue<int>());
+        Assert.Null(Raw(server, """{"jsonrpc":"2.0","method":"notifications/initialized"}"""));
+        Assert.Equal(-32700, Raw(server, "{quebrado")!["error"]!["code"]!.GetValue<int>());
         Assert.Equal(-32601, Send(server, "resources/list")["error"]!["code"]!.GetValue<int>());
         Assert.Equal(-32602, Send(server, "tools/call", new JsonObject { ["name"] = "apagar_tudo" })["error"]!["code"]!.GetValue<int>());
-        Assert.NotNull(server.Handle("\uFEFF" + """{"jsonrpc":"2.0","id":1,"method":"ping"}""")!["result"]);
+        Assert.NotNull(Raw(server, "\uFEFF" + """{"jsonrpc":"2.0","id":1,"method":"ping"}""")!["result"]);
     }
 
     [Fact]
@@ -78,7 +80,7 @@ public sealed class McpServerTests : IDisposable
     {
         var tools = Send(Server(), "tools/list")["result"]!["tools"]!.AsArray();
 
-        Assert.Equal(["list_projects", "project_briefing", "decisions"], tools.Select(tool => tool!["name"]!.GetValue<string>()));
+        Assert.Equal(["list_projects", "project_briefing", "decisions", "search_project"], tools.Select(tool => tool!["name"]!.GetValue<string>()));
         Assert.All(tools, tool => Assert.True(tool!["annotations"]!["readOnlyHint"]!.GetValue<bool>()));
     }
 
@@ -237,7 +239,7 @@ public sealed class McpServerTests : IDisposable
 
         Assert.Equal(@"C:\Spock\mariliz-runtime.exe", result["command"]!.GetValue<string>());
         Assert.Equal(["mcp"], result["args"]!.AsArray().Select(arg => arg!.GetValue<string>()));
-        Assert.Equal(3, result["tools"]!.AsArray().Count);
+        Assert.Equal(4, result["tools"]!.AsArray().Count);
 
         var pretty = result.ToJsonString(new JsonSerializerOptions
         {

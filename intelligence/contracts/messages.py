@@ -66,6 +66,19 @@ class PreviewRequest:
     sources: list[dict]
 
 
+SEARCH_SCHEMA = "ai.knowledge.search.v1"
+SEARCH_MAX_QUERY = 300
+SEARCH_MAX_LIMIT = 10
+
+
+@dataclass(frozen=True)
+class SearchRequest:
+    project_id: str
+    query: str
+    knowledge_root: str
+    limit: int
+
+
 @dataclass(frozen=True)
 class ResumeRequest:
     run_id: str
@@ -133,6 +146,20 @@ def parse_preview(payload: object) -> PreviewRequest:
         knowledge_root=knowledge_root,
         sources=_sources(context.get("sources")),
     )
+
+
+def parse_search(payload: object) -> SearchRequest:
+    body = _object(payload, "mensagem")
+    if body.get("schema") != SEARCH_SCHEMA:
+        raise ContractError("schema")
+    query, limit, root = body.get("query"), body.get("limit"), _text(body.get("knowledgeRoot"))
+    if not isinstance(query, str) or not 0 < len(query.strip()) <= SEARCH_MAX_QUERY:
+        raise ContractError("query")
+    if not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= SEARCH_MAX_LIMIT:
+        raise ContractError("limit")
+    if not root:
+        raise ContractError("knowledgeRoot")
+    return SearchRequest(project_id=_match(body, "projectId", PROJECT_ID), query=query.strip(), knowledge_root=root, limit=limit)
 
 
 def parse_resume(payload: object) -> ResumeRequest:

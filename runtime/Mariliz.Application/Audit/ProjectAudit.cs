@@ -185,6 +185,9 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                 yield return Entry("", AuditCategories.Decision, "Decisão gerencial registrada",
                     $"{Count(Count(d, "facts"), "fato do momento", "fatos do momento")} e {Count(Count(d, "runs"), "execução relacionada", "execuções relacionadas")}." + (Flag(d, "redacted") ? " Houve redação de segredo no texto." : ""));
                 break;
+            case "ide.context_read":
+                yield return Entry("", AuditCategories.Context, IdeReadTitle(Text(d, "tool")), IdeReadDetail(d));
+                break;
             case "connection.created":
                 yield return Entry("", AuditCategories.Credential, $"Conexão criada: {Clean(Text(d, "name"))}", $"Provedor: {Clean(Text(d, "provider"))}. Conexão usada por este projeto.");
                 break;
@@ -242,6 +245,34 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                     $"{Count(usage.Calls, "chamada", "chamadas")} ao provedor, {usage.InputTokens + usage.OutputTokens} tokens ({usage.InputTokens} de entrada, {usage.OutputTokens} de saída)."));
         }
         return result;
+    }
+
+    private const int ShownPaths = 8;
+
+    private static string IdeReadTitle(string tool) => tool switch
+    {
+        "search_project" => "Trechos do índice entregues à IDE",
+        "project_briefing" => "Resumo do projeto entregue à IDE",
+        "decisions" => "Decisões registradas entregues à IDE",
+        _ => $"Contexto entregue à IDE: {Clean(tool)}"
+    };
+
+    // A IDE diz o próprio nome no início da conversa MCP; a trilha repete o que ela disse, sem conferir.
+    private static string IdeReadDetail(JsonObject d)
+    {
+        var tool = Text(d, "tool");
+        var paths = d["paths"] is JsonArray list ? list.OfType<JsonValue>().Select(item => item.TryGetValue<string>(out var path) ? Clean(path) : "").Where(path => path.Length > 0).ToList() : [];
+        var files = Count(d, "files");
+        var what = tool switch
+        {
+            "search_project" when paths.Count > 0 =>
+                $"{Count(Count(d, "items"), "trecho", "trechos")} de {Count(files, "arquivo ou decisão", "arquivos ou decisões")}: {string.Join(", ", paths.Take(ShownPaths))}{(files > ShownPaths ? $" e mais {files - ShownPaths}" : "")}.",
+            "decisions" => $"{Count(Count(d, "items"), "decisão", "decisões")}.",
+            "project_briefing" => "Tecnologias, comandos, estado do Harness e decisões recentes.",
+            _ => $"{Count(Count(d, "items"), "item", "itens")}."
+        };
+        var client = Clean(Text(d, "client"));
+        return client.Length > 0 ? $"{what} Cliente MCP informado: {client}." : what;
     }
 
     private static string Policy(bool feeds) => feeds ? "aberta" : "fechada";
