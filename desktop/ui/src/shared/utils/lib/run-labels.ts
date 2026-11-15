@@ -6,6 +6,7 @@ const KIND_LABEL: Record<string, string> = {
   agent: 'Pedido a um agente de IA',
   security: 'Correção de segurança',
   idea: 'Da ideia ao projeto',
+  infrastructure: 'Arquivos de infraestrutura',
   assistant: 'Pergunta ao assistente',
   investigation: 'Investigação de gestão'
 };

@@ -1,4 +1,5 @@
 using Mariliz.Application;
+using Mariliz.Application.Execution;
 using Mariliz.Application.Iac;
 using Mariliz.Application.Management;
 using Mariliz.Application.Mcp;
@@ -50,10 +51,14 @@ internal static class McpEntry
         var processes = new SystemProcessRunner();
         IacRuntimeService Runtimes(WorkspaceAuthorizer authorizer) => new([openTofuToolchain, terraformToolchain], new FileIacSettingsStore(dataRoot),
             new IacConfigReader(), processes, authorizer, clock, audit);
+        var iacStates = new IacStateReader();
+        var iacRegistry = new FileIacStateRegistry(dataRoot);
         var iac = new IacMcpTools(workspaces, Runtimes,
             authorizer => new IacOperationService(Runtimes(authorizer), new CliIacRuntimeFactory(processes, dataRoot), new IacConfigReader(),
-                new FileIacWorkArea(dataRoot), authorizer, cloud: null, clock, audit),
-            Environment.CurrentDirectory, options.Scope);
+                new FileIacWorkArea(dataRoot), authorizer, cloud: null, clock, audit, iacStates, iacRegistry),
+            Environment.CurrentDirectory, options.Scope,
+            authorizer => new IacStateService(authorizer, new IacConfigReader(), iacStates, iacRegistry, null, new LocalProjectFilesFactory(),
+                new FileRunStore(dataRoot), processes, clock, new RunTracker(), audit));
         var tools = new ProjectContextTools(
             workspaces,
             new LocalProjectFilesFactory(),

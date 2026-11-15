@@ -115,7 +115,12 @@ export const ENGINE_METHODS = [
   'iac.plan',
   'iac.operations',
   'iac.operation',
-  'iac.apply'
+  'iac.apply',
+  'iac.state',
+  'iac.state.resources',
+  'iac.state.unlock',
+  'iac.bootstrap.plan',
+  'iac.bootstrap.save'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

@@ -21,6 +21,12 @@ public interface IIacRuntime
     // Aplica exatamente o arquivo de plano aprovado e prova o resultado: novo plano sem mudanças, recursos no state e
     // outputs não sensíveis. Nunca roda apply sem arquivo de plano.
     Task<IacApplyRun> ApplyAsync(IacApplySpec spec, CancellationToken ct);
+
+    // workspace list e state list: nomes de workspace e endereços de recurso, nunca atributos.
+    Task<IacStateRead> StateAsync(IacStateSpec spec, CancellationToken ct);
+
+    // force-unlock de uma trava pelo id que a própria ferramenta informou. Só com confirmação da pessoa.
+    Task<string?> UnlockAsync(IacStateSpec spec, string lockId, CancellationToken ct);
 }
 
 public interface IIacRuntimeFactory
@@ -51,6 +57,16 @@ public interface IIacWorkArea
     // copiar nada: compara o projeto de agora e a cópia guardada com o hash do plano.
     string ConfigHash(string directory);
 
+    // Hash do arquivo de state, ou null quando ele não existe.
+    string? StateHash(string path);
+
+    void CopyState(string from, string to);
+
+    // Devolve ao projeto o state que o apply gravou na cópia, guardando o anterior como .backup, como a ferramenta faz. Se o
+    // state do projeto mudou desde o plano (expectedHash), nada é sobrescrito: o novo fica em recoveryDirectory e o erro
+    // IAC_STATE_CONFLICT diz onde.
+    void ReturnState(string from, string to, string? expectedHash, string recoveryDirectory);
+
     IReadOnlyList<IacOperation> History(string projectId);
 
     void Save(IacOperation operation);
@@ -74,7 +90,9 @@ public sealed record IacPlanRun(
     IReadOnlyList<IacFinding> Findings,
     string? Error,
     string? Backend = null,
-    string? ApplyBlocker = null);
+    string? ApplyBlocker = null,
+    IacStateMode? StateMode = null,
+    string? LocalStatePath = null);
 
 public sealed record IacApplySpec(
     string Directory,
@@ -174,6 +192,10 @@ public sealed record IacOperation(
     string? AppliedBy = null,
     string? PlanOperationId = null,
     IacApproval? Approval = null,
-    IacApplyRun? Apply = null);
+    IacApplyRun? Apply = null,
+    IacStateMode? StateMode = null,
+    string? LocalStatePath = null,
+    string? LocalStateHash = null,
+    string? LockId = null);
 
 public sealed record IacProjectLayout(string ProjectId, string? Root, IReadOnlyList<string> Folders);

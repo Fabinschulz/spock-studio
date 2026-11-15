@@ -242,6 +242,18 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                     $"Criar {Count(d, "create")}, alterar {Count(d, "update")}, substituir {Count(d, "replace")}, destruir {Count(d, "delete")}; " +
                     $"{Count(d, "findings")} achado(s). Nada mudou na nuvem.");
                 break;
+            case "iac.bootstrap_written":
+                yield return Entry("", AuditCategories.Change, $"Bootstrap do state gravado ({Clean(Text(d, "provider"))})",
+                    $"{Count(d, "files")} arquivo(s) em {Clean(Text(d, "folder"))}. O bucket só é criado depois, pelo plano e apply aprovados.");
+                break;
+            case "iac.state_read":
+                yield return Entry("", AuditCategories.Read, "State de infraestrutura consultado",
+                    $"Pasta {Clean(Text(d, "folder"))}, ambiente {Clean(Text(d, "workspace"))}: {Count(d, "resources")} recurso(s). Só endereços, nenhum valor.");
+                break;
+            case "iac.state_unlocked":
+                yield return Entry("", AuditCategories.Change, "Trava do state liberada (force-unlock)",
+                    $"Pasta {Clean(Text(d, "folder"))}, ambiente {Clean(Text(d, "workspace"))}, trava {Clean(Text(d, "lockId"))}, com confirmação da pessoa.");
+                break;
             case "iac.apply_approved":
                 yield return Entry("", AuditCategories.Decision, $"Plano {Clean(Text(d, "planId"))} aprovado para aplicar",
                     $"Ambiente {Clean(Text(d, "workspace"))}; destruição {(Flag(d, "destroyConfirmed") ? "confirmada" : "não havia")}; " +
@@ -271,7 +283,7 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
             AuditEntry Entry(string suffix, DateTimeOffset when, string category, string title, string detail) =>
                 new($"journal:{journal.RunId}{suffix}", when, category, title, detail, AuditSources.Journal, journal.RunId, null);
 
-            if (journal.Kind is RunKinds.Apply or RunKinds.Revert or RunKinds.Security or RunKinds.Idea)
+            if (journal.Kind is RunKinds.Apply or RunKinds.Revert or RunKinds.Security or RunKinds.Idea or RunKinds.Infrastructure)
             {
                 var applied = journal.Ops.Count(op => op.Status == OpStatus.Applied);
                 var reverted = journal.Ops.Count(op => op.Status == OpStatus.Reverted);

@@ -1,0 +1,14 @@
+{
+  "state": {
+    "succeeded": true,
+    "workspace": "default",
+    "workspaces": [
+      "default"
+    ],
+    "addresses": [
+      "terraform_data.fila",
+      "module.rede.terraform_data.rede"
+    ],
+    "error": null
+  }
+}

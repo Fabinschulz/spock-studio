@@ -36,6 +36,9 @@ const TERRAFORM_INSTALL_METHOD: &str = "iac.runtime.install";
 const IAC_OPERATION_TIMEOUT: Duration = Duration::from_secs(2700);
 const IAC_VALIDATE_METHOD: &str = "iac.validate";
 const IAC_PLAN_METHOD: &str = "iac.plan";
+// Consultar o state e liberar a trava também rodam init (providers e backend).
+const IAC_STATE_METHOD: &str = "iac.state.resources";
+const IAC_UNLOCK_METHOD: &str = "iac.state.unlock";
 // O apply pode criar banco e cluster: até 55 min no motor, mais o plano de verificação.
 const IAC_APPLY_TIMEOUT: Duration = Duration::from_secs(5400);
 const IAC_APPLY_METHOD: &str = "iac.apply";
@@ -44,7 +47,9 @@ fn request_timeout(method: &str) -> Duration {
     match method {
         INVESTIGATION_METHOD => INVESTIGATION_TIMEOUT,
         TERRAFORM_INSTALL_METHOD => TERRAFORM_INSTALL_TIMEOUT,
-        IAC_VALIDATE_METHOD | IAC_PLAN_METHOD => IAC_OPERATION_TIMEOUT,
+        IAC_VALIDATE_METHOD | IAC_PLAN_METHOD | IAC_STATE_METHOD | IAC_UNLOCK_METHOD => {
+            IAC_OPERATION_TIMEOUT
+        }
         IAC_APPLY_METHOD => IAC_APPLY_TIMEOUT,
         _ => REQUEST_TIMEOUT,
     }

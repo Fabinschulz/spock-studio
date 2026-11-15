@@ -9,17 +9,51 @@ namespace Mariliz.Application.Mcp;
 // configuração (fmt e validate, sem backend nem nuvem) e ler o resumo de um plano que a pessoa gerou. Instalar, adotar,
 // fixar, remover, planejar e aplicar não existem aqui; são decisões da pessoa na interface.
 public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<WorkspaceAuthorizer, IacRuntimeService> terraform,
-    Func<WorkspaceAuthorizer, IacOperationService> operations, string workingDirectory, IReadOnlySet<string>? scope = null)
+    Func<WorkspaceAuthorizer, IacOperationService> operations, string workingDirectory, IReadOnlySet<string>? scope = null,
+    Func<WorkspaceAuthorizer, IacStateService>? state = null)
 {
     public const string StatusTool = "iac_status";
     public const string ValidateTool = "iac_validate";
     public const string PlanSummaryTool = "iac_plan_summary";
     public const string HistoryTool = "iac_history";
+    public const string StateTool = "iac_state";
     private const int MaxArgument = 200;
     private const int MaxChanges = 60;
 
     public IReadOnlyList<McpTool> Tools() =>
-        [new McpTool(Status, StatusAsync), new McpTool(Validate, ValidateAsync), new McpTool(PlanSummary, PlanSummaryAsync), new McpTool(History, HistoryAsync)];
+        state is null
+            ? [new McpTool(Status, StatusAsync), new McpTool(Validate, ValidateAsync), new McpTool(PlanSummary, PlanSummaryAsync), new McpTool(History, HistoryAsync)]
+            : [new McpTool(Status, StatusAsync), new McpTool(Validate, ValidateAsync), new McpTool(PlanSummary, PlanSummaryAsync), new McpTool(History, HistoryAsync),
+                new McpTool(State, StateAsync)];
+
+    private static readonly McpToolInfo State = new(
+        StateTool, "State da infraestrutura do projeto",
+        "Onde vive o state de cada raiz (backend remoto, local no projeto ou caminho absoluto), se tem trava e criptografia, " +
+        "os riscos (state no git, sem trava, dividido com outro projeto) e o backend recomendado. Lê a configuração como texto; " +
+        "não abre o state nem mostra valores.",
+        ProjectOnly());
+
+    private async Task<string> StateAsync(McpCall call)
+    {
+        var authorizer = workspaces();
+        var project = new McpProjectResolver(authorizer, workingDirectory, scope).Resolve(McpArguments.Text(call.Arguments, "project", MaxArgument));
+        var report = await state!(authorizer).ReportAsync(project.ProjectId, call.Ct);
+        if (report.Roots.Count == 0) return $"{project.DisplayName} não tem raiz de infraestrutura (pasta com bloco provider ou backend).";
+        var text = new StringBuilder($"State de {project.DisplayName}:");
+        foreach (var root in report.Roots)
+        {
+            var mode = root.Mode switch
+            {
+                IacStateMode.Remote => "remoto",
+                IacStateMode.LocalAbsolute => "local, fora do projeto",
+                _ => "local, dentro do projeto"
+            };
+            text.Append('\n').Append($"- {Display(root.Folder)}: backend {root.Backend} ({mode}); trava {(root.Locking ? "sim" : "não")}; criptografia {(root.Encrypted ? "sim" : "não")}");
+            foreach (var risk in root.Risks) text.Append('\n').Append($"  {risk.Level}: {risk.Message}");
+        }
+        if (report.Recommendation is { } recommendation) text.Append('\n').Append($"Recomendação: {recommendation.Reason}");
+        return text.ToString();
+    }
 
     private static readonly McpToolInfo History = new(
         HistoryTool, "Histórico de infraestrutura do projeto",

@@ -1,8 +1,11 @@
 import connectionsFixture from '@contracts/fixtures/cloud/connections.json';
 import linksFixture from '@contracts/fixtures/cloud/links.json';
+import bootstrapFixture from '@contracts/fixtures/iac/bootstrap-plan.json';
 import layoutFixture from '@contracts/fixtures/iac/layout.json';
 import offerFixture from '@contracts/fixtures/iac/offer.json';
 import operationsFixture from '@contracts/fixtures/iac/operations.json';
+import stateResourcesFixture from '@contracts/fixtures/iac/state-resources.json';
+import stateFixture from '@contracts/fixtures/iac/state.json';
 import statusFixture from '@contracts/fixtures/iac/status.json';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -52,6 +55,11 @@ function fakeEngine(initial: Record<string, unknown> = missing) {
         'iac.validate': { operation: operationsFixture.operations[3] },
         'iac.plan': { operation: operationsFixture.operations[0] },
         'iac.apply': { operation: operationsFixture.operations[1] },
+        'iac.state': stateFixture,
+        'iac.state.resources': stateResourcesFixture,
+        'iac.state.unlock': { unlocked: true },
+        'iac.bootstrap.plan': bootstrapFixture,
+        'iac.bootstrap.save': { runId: 'run-iac-1' },
         'cloud.list': connectionsFixture,
         'cloud.links': { links: linksFixture.links.map((link) => ({ ...link, projectId: demo.projectId })) }
       };
@@ -248,5 +256,53 @@ describe('Infraestrutura', () => {
     await userEvent.click(planButtons[planButtons.length - 1]!);
     expect(screen.getByText(`Este plano já foi aplicado (${applied.appliedBy}).`)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Aprovar e aplicar' })).not.toBeInTheDocument();
+  });
+
+  it('state mostra onde vive cada raiz e consulta só endereços', async () => {
+    const engine = fakeEngine(ready);
+    renderPage(engine.client);
+
+    const roots = await screen.findByLabelText('Raízes e onde vive o state');
+    expect(within(roots).getByText('Remoto')).toBeInTheDocument();
+    expect(within(roots).getByText('Local, no projeto')).toBeInTheDocument();
+    expect(within(roots).getByText(/Bootstrap com state local, como no modelo/)).toBeInTheDocument();
+
+    await userEvent.click(within(roots).getAllByRole('button', { name: 'Consultar o state' })[0]!);
+
+    const read = await screen.findByLabelText('State de infra');
+    for (const address of stateResourcesFixture.state.addresses)
+      expect(within(read).getByText(address)).toBeInTheDocument();
+    expect(engine.calls.find((call) => call.method === 'iac.state.resources')?.params).toEqual({
+      projectId: demo.projectId,
+      folder: 'infra'
+    });
+  });
+
+  it('bootstrap mostra os arquivos e o bloco backend antes de gravar e grava só com o planId revisado', async () => {
+    const engine = fakeEngine(ready);
+    renderPage(engine.client);
+
+    const form = await screen.findByLabelText('Bootstrap do state');
+    await userEvent.click(within(form).getByRole('radio', { name: 'AWS (S3)' }));
+    await userEvent.type(within(form).getByLabelText('Bucket de state'), 'loja-terraform-state-123456789012-sa-east-1');
+    await userEvent.click(within(form).getByRole('button', { name: 'Revisar os arquivos' }));
+
+    const review = await screen.findByLabelText('Revisar o bootstrap');
+    expect(within(review).getByLabelText('Diferenças em infra/bootstrap/resource.tf')).toHaveTextContent(
+      'prevent_destroy = true'
+    );
+    expect(within(review).getByLabelText('Diferenças em bloco backend')).toHaveTextContent('use_lockfile');
+    expect(methods(engine.calls)).not.toContain('iac.bootstrap.save');
+
+    await userEvent.click(within(review).getByRole('button', { name: 'Gravar no projeto' }));
+    await userEvent.click(within(review).getByRole('button', { name: 'Gravar' }));
+
+    expect(await screen.findByText(/Arquivos do bootstrap gravados na execução run-iac-1/)).toBeInTheDocument();
+    expect(engine.calls.find((call) => call.method === 'iac.bootstrap.save')?.params).toMatchObject({
+      projectId: demo.projectId,
+      provider: 'aws',
+      planId: bootstrapFixture.plan.planId,
+      values: { bucket: 'loja-terraform-state-123456789012-sa-east-1' }
+    });
   });
 });

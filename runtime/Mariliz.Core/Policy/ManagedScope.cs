@@ -30,6 +30,17 @@ public static class ManagedScope
     public static bool IsSecurityFixWritable(string normalizedPath) =>
         normalizedPath.Equals(GitIgnore, StringComparison.Ordinal) || IsWritable(normalizedPath);
 
+    // Infraestrutura como código aprovada (bootstrap do state e, depois, a geração no modelo): só arquivos .tf e .tofu,
+    // nunca dentro de .git/ nem do .terraform/ que a ferramenta mantém, e o .gitignore da raiz para manter o state fora do git.
+    public static bool IsInfrastructureWritable(string normalizedPath)
+    {
+        if (normalizedPath.Equals(GitIgnore, StringComparison.Ordinal)) return true;
+        if (!normalizedPath.EndsWith(".tf", StringComparison.Ordinal) && !normalizedPath.EndsWith(".tofu", StringComparison.Ordinal)) return false;
+        var segments = normalizedPath.Split('/');
+        return !segments.Any(segment => segment.Equals(".git", StringComparison.OrdinalIgnoreCase) || segment.Equals(".terraform", StringComparison.OrdinalIgnoreCase))
+               && !IsSpecificationOwned(normalizedPath);
+    }
+
     // Só o instalador oficial escreve estes arquivos.
     public static bool IsSpecificationOwned(string normalizedPath) =>
         normalizedPath.Equals(SpecificationDirectory, StringComparison.Ordinal)

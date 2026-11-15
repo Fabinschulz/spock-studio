@@ -368,16 +368,24 @@ public sealed class IacOperationTests : IDisposable
         Assert.Equal("IAC_NOT_A_PLAN", error.Code);
     }
 
-    private sealed class FakeFactory(FakeRuntime runtime) : IIacRuntimeFactory
+    internal sealed class FakeFactory(FakeRuntime runtime) : IIacRuntimeFactory
     {
         public IIacRuntime For(IacInstallation installation) => runtime;
     }
 
-    private sealed class FakeRuntime : IIacRuntime
+    internal sealed class FakeRuntime : IIacRuntime
     {
         public IReadOnlyList<string> Unformatted { get; set; } = [];
         public string? PlanError { get; set; }
         public string? PlanBlocker { get; set; }
+        public IacStateMode PlanStateMode { get; set; } = IacStateMode.Remote;
+        public string? PlanLocalState { get; set; }
+        // O que o apply grava no state da cópia (state local), e o que acontece no projeto enquanto ele roda.
+        public string? ApplyWritesState { get; set; }
+        public Action? DuringApply { get; set; }
+        public IacStateRead StateResult { get; set; } = new(true, "default", ["default", "dev"], ["aws_s3_bucket.tf_state"], null);
+        public string? UnlockError { get; set; }
+        public (IacStateSpec Spec, string LockId)? LastUnlock { get; private set; }
         public IacPlanSummary Summary { get; set; } = new(1, 0, 0, 0, 0, 0, [new IacResourceChange("terraform_data.q", "terraform_data", "create")], []);
         public IReadOnlyList<IacFinding> Findings { get; set; } = [];
         public IacApplyRun ApplyResult { get; set; } = new(true, true, null, 3, new Dictionary<string, string> { ["fila"] = "fila-dev" }, null);
@@ -409,14 +417,25 @@ public sealed class IacOperationTests : IDisposable
             Directory.CreateDirectory(spec.DataDirectory);
             if (PlanError is not null) return new IacPlanRun(false, false, null, [], PlanError);
             File.WriteAllText(spec.PlanFile, "plano binário de mentira " + Guid.NewGuid());
-            return new IacPlanRun(true, true, Summary, Findings, null, PlanBlocker is null ? "s3" : "local", PlanBlocker);
+            return new IacPlanRun(true, true, Summary, Findings, null, PlanBlocker is null && PlanStateMode == IacStateMode.Remote ? "s3" : "local", PlanBlocker,
+                PlanStateMode, PlanLocalState);
         }
 
         public Task<IacApplyRun> ApplyAsync(IacApplySpec spec, CancellationToken ct)
         {
             LastApply = spec;
             PlanFileExistedOnApply = File.Exists(spec.PlanFile);
+            if (ApplyWritesState is not null && PlanLocalState is not null) File.WriteAllText(Path.Combine(spec.Directory, PlanLocalState), ApplyWritesState);
+            DuringApply?.Invoke();
             return Task.FromResult(ApplyResult);
+        }
+
+        public Task<IacStateRead> StateAsync(IacStateSpec spec, CancellationToken ct) => Task.FromResult(StateResult);
+
+        public Task<string?> UnlockAsync(IacStateSpec spec, string lockId, CancellationToken ct)
+        {
+            LastUnlock = (spec, lockId);
+            return Task.FromResult(UnlockError);
         }
 
         private void Look(string directory)

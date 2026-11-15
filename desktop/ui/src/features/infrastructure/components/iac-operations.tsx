@@ -2,7 +2,7 @@ import { createCloudApi } from '@/features/cloud';
 import { formatEngineDate, useAction, useReloadable } from '@/features/integrations';
 import type { SelectedProject } from '@/features/project-selection';
 import { errorMessage, type EngineClient } from '@/shared/api';
-import { ErrorState, LoadingState, Radio, StatusChip, SuccessState } from '@/shared/components';
+import { ConfirmAction, ErrorState, LoadingState, Radio, StatusChip, SuccessState } from '@/shared/components';
 import type { IacOperation } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
 import { Fragment, useCallback, useMemo, useState, type ReactNode } from 'react';
@@ -108,6 +108,21 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
       )
       .then(() => setShown(null));
 
+  const unlock = (target: IacOperation) =>
+    void action
+      .run(
+        () =>
+          api.unlock({
+            projectId,
+            lockId: target.lockId!,
+            ...(target.folder !== null ? { folder: target.folder } : {}),
+            ...(target.workspace && target.workspace !== 'default' ? { workspace: target.workspace } : {})
+          }),
+        'A trava não foi liberada.',
+        { success: () => 'Trava liberada. Gere o plano de novo.' }
+      )
+      .then(() => setShown(null));
+
   // Só o plano mais recente de cada pasta e ambiente pode ser aprovado.
   const approvable = (operation: IacOperation) =>
     operation.kind === 'plan' &&
@@ -193,6 +208,11 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
       {current ? (
         <OperationResult
           operation={current}
+          unlock={
+            current.lockId ? (
+              <UnlockLock lockId={current.lockId} busy={action.busy} onConfirm={() => unlock(current)} />
+            ) : null
+          }
           approval={
             approvable(current) ? (
               <PlanApproval
@@ -239,7 +259,40 @@ function outcome(operation: IacOperation): { label: string; tone: 'success' | 'w
     : { label: 'Falhou', tone: 'danger' };
 }
 
-function OperationResult({ operation, approval }: { operation: IacOperation; approval: ReactNode }) {
+function UnlockLock({ lockId, busy, onConfirm }: { lockId: string; busy: boolean; onConfirm: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+  return confirming ? (
+    <ConfirmAction
+      label={`Liberar a trava ${lockId}`}
+      confirmLabel="Liberar a trava"
+      cancelLabel="Esperar"
+      busy={busy}
+      onConfirm={() => {
+        setConfirming(false);
+        onConfirm();
+      }}
+      onCancel={() => setConfirming(false)}
+    >
+      Só libere se ninguém estiver aplicando agora: liberar a trava de um apply em andamento pode corromper o state.
+    </ConfirmAction>
+  ) : (
+    <div className={styles.actions}>
+      <Button type="button" variant="outlined" disabled={busy} onClick={() => setConfirming(true)}>
+        Liberar a trava do state
+      </Button>
+    </div>
+  );
+}
+
+function OperationResult({
+  operation,
+  approval,
+  unlock
+}: {
+  operation: IacOperation;
+  approval: ReactNode;
+  unlock?: ReactNode;
+}) {
   const title = KIND_LABEL[operation.kind];
   const result = outcome(operation);
   return (
@@ -257,6 +310,7 @@ function OperationResult({ operation, approval }: { operation: IacOperation; app
         {operation.planId ? ` · plano ${operation.planId}` : ''}
       </p>
       {operation.error ? <p className={styles.error}>{operation.error}</p> : null}
+      {unlock}
       {operation.kind === 'plan' && operation.appliedBy ? (
         <p className={styles.hint}>Este plano já foi aplicado ({operation.appliedBy}).</p>
       ) : null}

@@ -12,6 +12,7 @@ public static class OperationUndoer
         {
             OpSources.Command => WriteScope.SpecificationRestore,
             OpSources.Security => WriteScope.SecurityFix,
+            OpSources.Infrastructure => WriteScope.Infrastructure,
             _ => WriteScope.Managed
         };
         var currentBytes = files.ReadBytes(op.Path);

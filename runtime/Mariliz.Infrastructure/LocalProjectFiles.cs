@@ -155,6 +155,7 @@ public sealed class LocalProjectFiles : IProjectFiles
         {
             WriteScope.SpecificationRestore => ManagedScope.IsSpecificationOwned(normalized),
             WriteScope.SecurityFix => ManagedScope.IsSecurityFixWritable(normalized),
+            WriteScope.Infrastructure => ManagedScope.IsInfrastructureWritable(normalized),
             _ => ManagedScope.IsWritable(normalized)
         };
         if (!allowed) throw new UnauthorizedAccessException($"O caminho '{normalized}' está fora do escopo de escrita.");

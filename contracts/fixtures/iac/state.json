@@ -1,0 +1,48 @@
+{
+  "state": {
+    "projectId": "p-0123456789ab",
+    "root": "infra",
+    "roots": [
+      {
+        "folder": "infra",
+        "backend": "s3",
+        "mode": "remote",
+        "settings": {
+          "bucket": "org-terraform-state-123456789012-sa-east-1",
+          "encrypt": "true",
+          "key": "terraform.tfstate",
+          "region": "sa-east-1",
+          "use_lockfile": "true",
+          "workspace_key_prefix": "loja"
+        },
+        "identity": "s3://org-terraform-state-123456789012-sa-east-1/loja/terraform.tfstate",
+        "locking": true,
+        "encrypted": true,
+        "localStateFiles": [],
+        "sharedWith": [],
+        "risks": []
+      },
+      {
+        "folder": "infra/bootstrap",
+        "backend": "local",
+        "mode": "localInProject",
+        "settings": {},
+        "identity": "projeto://p-0123456789ab/infra/bootstrap",
+        "locking": false,
+        "encrypted": false,
+        "localStateFiles": [
+          "terraform.tfstate"
+        ],
+        "sharedWith": [],
+        "risks": [
+          {
+            "level": "info",
+            "rule": "bootstrap-local",
+            "message": "Bootstrap com state local, como no modelo: ele cria o bucket das outras raízes."
+          }
+        ]
+      }
+    ],
+    "recommendation": null
+  }
+}

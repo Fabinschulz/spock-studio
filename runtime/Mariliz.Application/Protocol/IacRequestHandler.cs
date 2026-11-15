@@ -6,10 +6,19 @@ namespace Mariliz.Application.Protocol;
 
 // Só a interface chega aqui (a allowlist do host não deixa agentes chamarem iac.*): instalar, adotar, fixar, remover,
 // validar e planejar são sempre um clique da pessoa.
-internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperationService operations)
+internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperationService operations, IacStateService state)
 {
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
+        ProtocolMethods.IacState => new JsonObject { ["state"] = IntegrationJson.Node(await state.ReportAsync(p.Str("projectId"), ct)) },
+        ProtocolMethods.IacStateResources => new JsonObject
+        {
+            ["state"] = IntegrationJson.Node(await operations.ReadStateAsync(p.Str("projectId"), p.OptionalStr("folder"), p.OptionalStr("workspace"),
+                p.OptionalStr("connectionId"), IacOperationService.Person, ct))
+        },
+        ProtocolMethods.IacStateUnlock => await Unlocked(p, ct),
+        ProtocolMethods.IacBootstrapPlan => new JsonObject { ["plan"] = IntegrationJson.Node(state.BootstrapPlan(Bootstrap(p))) },
+        ProtocolMethods.IacBootstrapSave => new JsonObject { ["runId"] = state.StartBootstrap(Bootstrap(p), p.Str("planId")).RunId },
         ProtocolMethods.IacLayout => new JsonObject { ["layout"] = IntegrationJson.Node(operations.Layout(p.Str("projectId"))) },
         ProtocolMethods.IacValidate => Operation(await operations.ValidateAsync(p.Str("projectId"), IacOperationService.Person, ct)),
         ProtocolMethods.IacPlan => Operation(await operations.PlanAsync(
@@ -37,6 +46,16 @@ internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperatio
     };
 
     // Como nos projetos, a interface só vê o caminho abreviado: a pasta pessoal vira "~".
+    private async Task<JsonObject> Unlocked(RequestParams p, CancellationToken ct)
+    {
+        await operations.UnlockAsync(p.Str("projectId"), p.OptionalStr("folder"), p.OptionalStr("workspace"), p.OptionalStr("connectionId"),
+            p.Str("lockId"), p.Flag("confirmed"), ct);
+        return new JsonObject { ["unlocked"] = true };
+    }
+
+    private static IacBootstrapRequest Bootstrap(RequestParams p) =>
+        new(p.Str("projectId"), p.Str("provider"), p.OptionalStr("connectionId"), p.Has("values") ? p.StringMap("values") : new Dictionary<string, string>());
+
     private static JsonObject Operation(IacOperation operation) => new() { ["operation"] = IntegrationJson.Node(operation) };
 
     private static JsonObject Status(IacRuntimeStatus status)

@@ -181,7 +181,11 @@ export const iacOperationSchema = z.object({
   appliedBy: z.string().nullable(),
   planOperationId: z.string().nullable(),
   approval: iacApprovalSchema.nullable(),
-  apply: iacApplyRunSchema.nullable()
+  apply: iacApplyRunSchema.nullable(),
+  stateMode: z.enum(['remote', 'localAbsolute', 'localInProject']).nullable(),
+  localStatePath: z.string().nullable(),
+  localStateHash: z.string().nullable(),
+  lockId: z.string().nullable()
 });
 
 export const iacOperationResultSchema = z.object({ operation: iacOperationSchema });
@@ -192,3 +196,74 @@ export const iacLayoutSchema = z.object({
 
 export type IacOperation = z.infer<typeof iacOperationSchema>;
 export type IacLayout = z.infer<typeof iacLayoutSchema>['layout'];
+
+export const iacStateModeSchema = z.enum(['remote', 'localAbsolute', 'localInProject']);
+
+export const iacStateRiskSchema = z.object({
+  level: z.enum(['info', 'warning', 'danger']),
+  rule: z.string(),
+  message: z.string()
+});
+
+/** Onde vive o state de uma raiz e o que está arriscado. Só configurações seguras do backend; nenhuma credencial. */
+export const iacStateRootSchema = z.object({
+  folder: z.string(),
+  backend: z.string(),
+  mode: iacStateModeSchema,
+  settings: z.record(z.string(), z.string()),
+  identity: z.string(),
+  locking: z.boolean(),
+  encrypted: z.boolean(),
+  localStateFiles: z.array(z.string()),
+  sharedWith: z.array(z.string()),
+  risks: z.array(iacStateRiskSchema)
+});
+
+export const iacStateReportSchema = z.object({
+  state: z.object({
+    projectId: z.string(),
+    root: z.string().nullable(),
+    roots: z.array(iacStateRootSchema),
+    recommendation: z.object({ provider: z.string(), backend: z.string(), reason: z.string() }).nullable()
+  })
+});
+
+/** state list e workspace list: endereços e nomes, nunca atributos. */
+export const iacStateReadSchema = z.object({
+  state: z.object({
+    succeeded: z.boolean(),
+    workspace: z.string().nullable(),
+    workspaces: z.array(z.string()),
+    addresses: z.array(z.string()),
+    error: z.string().nullable()
+  })
+});
+
+export const iacBootstrapPlanSchema = z.object({
+  plan: z.object({
+    planId: z.string(),
+    projectId: z.string(),
+    provider: z.string(),
+    folder: z.string(),
+    changes: z.array(
+      z.object({
+        path: z.string(),
+        op: z.string(),
+        diff: z.string(),
+        truncated: z.boolean(),
+        beforeHash: z.string().nullable(),
+        afterHash: z.string()
+      })
+    ),
+    backendBlock: z.string(),
+    notes: z.array(z.string())
+  })
+});
+
+export const iacBootstrapSaveSchema = z.object({ runId: z.string() });
+export const iacUnlockSchema = z.object({ unlocked: z.boolean() });
+
+export type IacStateReport = z.infer<typeof iacStateReportSchema>['state'];
+export type IacStateRoot = z.infer<typeof iacStateRootSchema>;
+export type IacStateRead = z.infer<typeof iacStateReadSchema>['state'];
+export type IacBootstrapPlan = z.infer<typeof iacBootstrapPlanSchema>['plan'];
