@@ -1,3 +1,4 @@
+import runDetailFixture from '@contracts/fixtures/runs/run-detail.json';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
@@ -555,5 +556,110 @@ describe('Execução', () => {
 
     expect(await screen.findByText('Planejamento começou')).toBeInTheDocument();
     expect(screen.getByText('Planejamento concluiu')).toBeInTheDocument();
+  });
+});
+
+describe('Execução · desfazer o que a ação gravou', () => {
+  const wrote: WorkflowSnapshot = {
+    ...done,
+    result: {
+      ...done.result!,
+      actions: [
+        {
+          id: 'act-decisao-impacto',
+          kind: 'file.write',
+          summary: 'Registrar a decisão de arquitetura',
+          target: '.mariliz/decisions/ex-0123456789ab-impacto.md',
+          status: 'executed'
+        }
+      ]
+    }
+  };
+
+  /** O diário diz se dá para desfazer; depois de desfazer, diz de novo (reverted ou não). */
+  function undoClient(snapshot: WorkflowSnapshot, before: { canRevert: boolean; reverted: boolean }, after = before) {
+    const calls: { method: string; params: Record<string, unknown> }[] = [];
+    let reverts = 0;
+    const client: EngineClient = {
+      async request(method, params, schema) {
+        calls.push({ method, params });
+        if (method === 'run.snapshot') {
+          return schema.parse(
+            params.runId === 'run-revert' ? { ...done, runId: 'run-revert', state: 'completed' } : snapshot
+          );
+        }
+        if (method === 'run.detail') return schema.parse({ ...runDetailFixture, ...(reverts > 0 ? after : before) });
+        if (method === 'harness.revert') {
+          reverts += 1;
+          return schema.parse({ runId: 'run-revert' });
+        }
+        throw new Error(method);
+      },
+      async onEvent() {
+        return () => undefined;
+      }
+    };
+    return { client, calls };
+  }
+
+  const renderWith = (client: EngineClient) =>
+    render(
+      <AppProviders>
+        <MemoryRouter>
+          <ExecutionPage runId="run-1" client={client} />
+        </MemoryRouter>
+      </AppProviders>
+    );
+
+  it('com o arquivo gravado, confirma antes e desfaz pelo mesmo caminho do Harness', async () => {
+    const { client, calls } = undoClient(
+      wrote,
+      { canRevert: true, reverted: false },
+      { canRevert: false, reverted: true }
+    );
+    const { container } = renderWith(client);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Desfazer o que a ação gravou' }));
+    expect(calls.some((call) => call.method === 'harness.revert')).toBe(false);
+    await expectNoA11yViolations(container);
+    await userEvent.click(screen.getByRole('button', { name: 'Desfazer' }));
+
+    expect(await screen.findByText('O arquivo que a ação aprovada gravou saiu do projeto.')).toBeInTheDocument();
+    expect(calls.find((call) => call.method === 'harness.revert')?.params).toEqual({
+      projectId: 'p-aaaaaaaaaaaa',
+      runId: 'run-1'
+    });
+    expect(calls.find((call) => call.method === 'run.detail')?.params).toEqual({
+      projectId: 'p-aaaaaaaaaaaa',
+      runId: 'run-1'
+    });
+  });
+
+  it('se um arquivo mudou depois da ação, diz que ficou e onde ver', async () => {
+    const { client } = undoClient(wrote, { canRevert: true, reverted: false });
+    renderWith(client);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Desfazer o que a ação gravou' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Desfazer' }));
+
+    expect(await screen.findByText('Nem tudo foi desfeito')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Execuções' })).toBeInTheDocument();
+  });
+
+  it('já desfeita, diz isso em vez de oferecer de novo', async () => {
+    const { client } = undoClient(wrote, { canRevert: false, reverted: true });
+    renderWith(client);
+
+    expect(await screen.findByText('O arquivo que a ação aprovada gravou saiu do projeto.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Desfazer o que a ação gravou' })).not.toBeInTheDocument();
+  });
+
+  it('sem ação executada, nem pergunta ao diário', async () => {
+    const { client, calls } = undoClient(done, { canRevert: true, reverted: false });
+    renderWith(client);
+
+    expect(await screen.findByText('1 etapa(s). Stacks detectadas: 1. Trechos: 1.')).toBeInTheDocument();
+    expect(calls.some((call) => call.method === 'run.detail')).toBe(false);
+    expect(screen.queryByRole('button', { name: 'Desfazer o que a ação gravou' })).not.toBeInTheDocument();
   });
 });

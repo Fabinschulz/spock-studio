@@ -17,17 +17,20 @@ import {
   UsageSection
 } from './components/result-sections';
 import { StageList } from './components/stage-list';
+import { UndoActions } from './components/undo-actions';
 import { STATE_TONE } from './domain/labels';
 import { describeEvent, pendingApproval } from './domain/run-timeline';
 import { deriveEvidence, deriveStages } from './domain/run-workspace';
 import { useApproval } from './hooks/use-approval';
 import { useRunFollow } from './hooks/use-run-follow';
+import { useUndo } from './hooks/use-undo';
 
 export { workflowSnapshotSchema, type WorkflowSnapshot } from './domain/run-timeline';
 
 export function ExecutionPage({ runId, client }: { runId: string; client: EngineClient }) {
   const { view, error, setError, refresh, retry } = useRunFollow(client, runId);
   const { busy, chosen, toggle, approve } = useApproval(client, runId, view, refresh, setError);
+  const { undo, revert } = useUndo(client, runId, view);
 
   if (error && !view) {
     return (
@@ -100,6 +103,7 @@ export function ExecutionPage({ runId, client }: { runId: string; client: Engine
         <ProposedActions pending={pending} chosen={chosen} busy={busy} onToggle={toggle} />
       ) : null}
       {result?.actions && result.actions.length > 0 ? <ActionOutcomes actions={result.actions} /> : null}
+      <UndoActions undo={undo} onRevert={() => void revert()} />
 
       {awaitingApproval ? (
         <ApproveButton
