@@ -23,7 +23,7 @@ using Mariliz.Infrastructure.Integrations;
 // stdout é exclusivo do protocolo; qualquer diagnóstico vai para stderr.
 using var cts = LocalEngine.ConfigureConsole();
 
-if (args is [IdeConnection.ServerArgument]) return await McpEntry.RunAsync(cts.Token);
+if (args is [IdeConnection.ServerArgument, ..]) return await McpEntry.RunAsync(args[1..], cts.Token);
 
 var relay = new EventRelay();
 var engine = LocalEngine.Create(FileRunStore.DefaultDataRoot(), relay.Emit, rememberWorkspaces: true);

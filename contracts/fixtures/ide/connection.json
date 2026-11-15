@@ -3,6 +3,7 @@
   "args": [
     "mcp"
   ],
+  "projectArgument": "--project",
   "tools": [
     {
       "name": "list_projects",

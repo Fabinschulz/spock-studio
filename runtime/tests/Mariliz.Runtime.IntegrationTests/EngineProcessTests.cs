@@ -15,11 +15,11 @@ public class EngineProcessTests
         return dir?.FullName ?? throw new InvalidOperationException("Raiz do repositório não encontrada.");
     }
 
-    private static Process StartEngine()
+    private static Process StartEngine(string extra = "")
     {
         // O motor chega à saída dos testes pela ProjectReference; é o mesmo build que está sendo testado.
         var dll = Path.Combine(AppContext.BaseDirectory, "Mariliz.Runtime.dll");
-        var psi = new ProcessStartInfo("dotnet", $"\"{dll}\"")
+        var psi = new ProcessStartInfo("dotnet", $"\"{dll}\"{extra}")
         {
             RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,
             StandardInputEncoding = new UTF8Encoding(false), StandardOutputEncoding = Encoding.UTF8,
@@ -52,6 +52,25 @@ public class EngineProcessTests
         Assert.Equal("s1", JsonNode.Parse(shutdownLine!)!["id"]!.GetValue<string>());
         Assert.Equal(string.Empty, rest);
         Assert.Equal(0, engine.ExitCode);
+    }
+
+    // Validação real M3: um escopo que não se entende não pode virar "todos os projetos".
+    [Theory]
+    [InlineData(" mcp --project")]
+    [InlineData(" mcp --project ../outro")]
+    [InlineData(" mcp --todos")]
+    public async Task Modo_mcp_com_escopo_invalido_nao_sobe(string arguments)
+    {
+        using var engine = StartEngine(arguments);
+        var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30)).Token;
+
+        var stdout = await engine.StandardOutput.ReadToEndAsync(timeout);
+        var stderr = await engine.StandardError.ReadToEndAsync(timeout);
+        await engine.WaitForExitAsync(timeout);
+
+        Assert.Equal(2, engine.ExitCode);
+        Assert.Equal(string.Empty, stdout);
+        Assert.Contains("--project", stderr);
     }
 
     [Fact]

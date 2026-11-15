@@ -104,7 +104,7 @@ function ProjectAgents({ api, project }: { api: AgentApi; project: SelectedProje
       </form>
 
       <RunView run={run} />
-      <IdeConnectionSection api={api} />
+      <IdeConnectionSection api={api} project={project} />
     </Page>
   );
 }

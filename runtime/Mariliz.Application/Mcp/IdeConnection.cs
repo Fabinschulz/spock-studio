@@ -11,6 +11,8 @@ public sealed class IdeConnection(string? enginePath)
     {
         ["command"] = enginePath,
         ["args"] = new JsonArray(ServerArgument),
+        // Repetido por projeto, depois de "mcp": a conexão passa a ler só esses.
+        ["projectArgument"] = McpOptions.ProjectArgument,
         ["tools"] = new JsonArray(ProjectContextTools.Catalog
             .Select(tool => (JsonNode)new JsonObject { ["name"] = tool.Name, ["title"] = tool.Title, ["description"] = tool.Description })
             .ToArray())
