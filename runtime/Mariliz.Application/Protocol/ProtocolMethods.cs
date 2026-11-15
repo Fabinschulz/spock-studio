@@ -93,6 +93,13 @@ public static class ProtocolMethods
     public const string CloudConfigure = "cloud.configure";
     public const string CloudUnlink = "cloud.unlink";
     public const string CloudRead = "cloud.read";
+    public const string IacTerraformStatus = "iac.terraform.status";
+    public const string IacTerraformOffer = "iac.terraform.offer";
+    public const string IacTerraformInstall = "iac.terraform.install";
+    public const string IacTerraformDecline = "iac.terraform.decline";
+    public const string IacTerraformRemove = "iac.terraform.remove";
+    public const string IacTerraformAdopt = "iac.terraform.adopt";
+    public const string IacTerraformPin = "iac.terraform.pin";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -122,7 +129,9 @@ public static class ProtocolMethods
         SecurityScan, SecurityPlan, SecurityFix,
         IdeaDraft,
         // Os quatro falam com o provedor de cloud.
-        CloudCreate, CloudValidate, CloudPermissions, CloudRead
+        CloudCreate, CloudValidate, CloudPermissions, CloudRead,
+        // Rodam o terraform da máquina, refazem o hash dos binários ou baixam da HashiCorp.
+        IacTerraformStatus, IacTerraformOffer, IacTerraformInstall, IacTerraformDecline, IacTerraformRemove, IacTerraformAdopt, IacTerraformPin
     };
 
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
@@ -145,6 +154,9 @@ public static class ProtocolMethods
 
     public static readonly IReadOnlyList<string> Cloud =
         [CloudCatalog, CloudList, CloudCreate, CloudValidate, CloudPermissions, CloudRemove, CloudLinks, CloudLink, CloudConfigure, CloudUnlink, CloudRead];
+
+    public static readonly IReadOnlyList<string> Iac =
+        [IacTerraformStatus, IacTerraformOffer, IacTerraformInstall, IacTerraformDecline, IacTerraformRemove, IacTerraformAdopt, IacTerraformPin];
 
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }

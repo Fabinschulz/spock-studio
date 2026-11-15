@@ -5,6 +5,8 @@ import cloudCatalogFixture from '@contracts/fixtures/cloud/catalog.json';
 import cloudConnectionsFixture from '@contracts/fixtures/cloud/connections.json';
 import cloudLinksFixture from '@contracts/fixtures/cloud/links.json';
 import cloudReadFixture from '@contracts/fixtures/cloud/read.json';
+import iacOfferFixture from '@contracts/fixtures/iac/offer.json';
+import iacStatusFixture from '@contracts/fixtures/iac/status.json';
 import contextReviewFixture from '@contracts/fixtures/context/review.json';
 import ideConnectionFixture from '@contracts/fixtures/ide/connection.json';
 import ideaDraftFixture from '@contracts/fixtures/idea/draft.json';
@@ -67,6 +69,8 @@ import {
   cloudConnectionListSchema,
   cloudLinkListSchema,
   cloudReadResultSchema,
+  terraformOfferResultSchema,
+  terraformStatusResultSchema,
   assistantAnswerSchema,
   connectionListSchema,
   connectionReachListSchema,
@@ -894,5 +898,18 @@ describe('contrato do assistente do portfólio (fixtures do motor)', () => {
     expect(cloudLinkListSchema.parse(cloudLinksFixture).links[0]?.agentAccess).toBe(true);
     const read = cloudReadResultSchema.parse(cloudReadFixture).result;
     for (const row of read.rows) expect(row).toHaveLength(read.columns.length);
+  });
+
+  it('iac: estado sem caminho completo e proposta do OpenTofu só da fonte oficial', () => {
+    const status = terraformStatusResultSchema.parse(iacStatusFixture).terraform;
+    expect(status.state).toBe('ready');
+    for (const installation of status.installations) expect(installation.path.startsWith('~')).toBe(true);
+    expect(status.project?.requirements[0]?.constraint).toBe('>= 1.11');
+    const offer = terraformOfferResultSchema.parse(iacOfferFixture).offer;
+    expect(status.installations.map((installation) => installation.engine)).toEqual(['openTofu', 'terraform']);
+    expect(offer.engine).toBe('openTofu');
+    for (const url of [offer.archiveUrl, offer.shasumsUrl, offer.signatureUrl])
+      expect(url.startsWith(`https://github.com/opentofu/opentofu/releases/download/v${offer.version}/`)).toBe(true);
+    expect(offer.signingKey).toBe('E3E6E43D84CB852EADB0051D0C0AF313E5FD9F80');
   });
 });

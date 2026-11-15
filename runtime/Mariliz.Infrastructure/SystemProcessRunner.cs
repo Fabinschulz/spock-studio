@@ -25,6 +25,7 @@ public sealed class SystemProcessRunner : IProcessRunner
             StandardErrorEncoding = Encoding.UTF8
         };
         foreach (var arg in spec.Arguments) psi.ArgumentList.Add(arg);
+        foreach (var (name, value) in spec.Environment ?? new Dictionary<string, string>()) psi.Environment[name] = value;
         return psi;
     }
 

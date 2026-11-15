@@ -18,6 +18,7 @@ export const paths = {
   audit: '/auditoria',
   integrations: '/integracoes',
   cloud: '/cloud',
+  infrastructure: '/infraestrutura',
   settings: '/configuracoes',
   settingsAi: '/configuracoes/ia',
   settingsDiagnostics: '/configuracoes/diagnostico'

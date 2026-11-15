@@ -6,3 +6,8 @@
 *.icns binary
 *.zip binary
 *.exe binary
+
+# Assinados byte a byte: nenhuma conversao de fim de linha.
+*.sig binary
+*_SHA256SUMS -text
+*.asc -text

@@ -102,7 +102,14 @@ export const ENGINE_METHODS = [
   'cloud.link',
   'cloud.configure',
   'cloud.unlink',
-  'cloud.read'
+  'cloud.read',
+  'iac.terraform.status',
+  'iac.terraform.offer',
+  'iac.terraform.install',
+  'iac.terraform.decline',
+  'iac.terraform.remove',
+  'iac.terraform.adopt',
+  'iac.terraform.pin'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];
