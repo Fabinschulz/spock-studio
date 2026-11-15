@@ -603,9 +603,9 @@ def manual(inv: Inventory) -> None:
          "pkg:generic/berkeley-db@6.0.19", "https://github.com/astral-sh/python-build-standalone/blob/20250409/pythonbuild/downloads.py",
          "Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência)", "execução", "redistribuído (resources/python no AppImage/deb)",
          {"linux-x64"}, "Sleepycat", "ALTO",
-         "A licença Sleepycat exige informar como obter o código-fonte completo do DB e de software que o use; o script de poda não remove _dbm",
+         "A licença Sleepycat exige informar como obter o código-fonte completo do DB e de software que o use; o _dbm e o DB estão ligados estaticamente ao libpython3.12.so, então a poda não os remove",
          ["scripts/package-intelligence.py:144", "https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/pythonbuild/downloads.py"], None,
-         "Presença do _dbm*.so no pacote Linux a confirmar num build Linux."),
+         "Conferido no arquivo oficial (SHA-256 fixado): sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0. O main do PBS (2026-11) ainda inclui o bdb."),
         ("bin:dotnet-runtime-win", "Microsoft .NET Runtime para win-x64 (self-contained)", "10.0.x", "nuget", "runtime",
          "pkg:nuget/Microsoft.NETCore.App.Runtime.win-x64@10.0.13", "https://github.com/dotnet/runtime",
          "Runtime do motor .NET embutido no sidecar single-file (Windows)", "execução", "incorporado (sidecar .NET single-file)", {"windows-x64"},
@@ -774,7 +774,7 @@ MANUAL_OBLIGATIONS = {
                          "Distributable Code da Microsoft; não usar marcas da PSF/Microsoft",
     "bin:vcruntime": "Termos de usuário final protetivos; só plataformas Microsoft; não alterar avisos",
     "bin:python-build-standalone": "Reproduzir a licença do CPython e de cada biblioteca nativa listada no PYTHON.json da release",
-    "bin:berkeley-db": "Sleepycat: informar como obter o código-fonte completo do Berkeley DB e de software que o use; recomendado remover o _dbm do pacote",
+    "bin:berkeley-db": "Sleepycat: informar, junto da distribuição, como obter o código-fonte completo do Berkeley DB 6.0.19 e do CPython/python-build-standalone que o usa (gratuito e redistribuível)",
     "bin:dotnet-runtime-win": "Incluir LICENSE.TXT e THIRD-PARTY-NOTICES.TXT do runtime; EULA com termos protetivos (.NET Library License); "
                               "distribuir só dentro do app; não usar marcas da Microsoft",
     "bin:dotnet-runtime-linux": "Incluir LICENSE.TXT e THIRD-PARTY-NOTICES.TXT do runtime nos avisos",
@@ -1051,7 +1051,7 @@ def write_notices(items: list[Component]) -> None:
     out += [f"- {c.name} {c.version} — declarado `{c.declared}` — origem: {c.origin or 'não informada'}" for c in missing]
     out += ["", "Componentes fora de gerenciador de pacotes cujos textos ainda não foram reunidos:", "",
             "- Bibliotecas nativas do python-build-standalone 20250409 (Linux): licenças no PYTHON.json/`licenses` do arquivo da release.",
-            "- Berkeley DB 6.0.19 (Sleepycat), se o `_dbm` continuar no pacote Linux.",
+            "- Berkeley DB 6.0.19 (Sleepycat), ligado estaticamente ao libpython do pacote Linux: texto da licença e onde obter o fonte.",
             "- WebKitGTK, GTK, GLib e demais bibliotecas embutidas no AppImage (LGPL e outras): listar a partir do AppImage gerado.",
             "- .NET Runtime para linux-x64: mesmos LICENSE.TXT/THIRD-PARTY-NOTICES.TXT do pacote linux-x64 (o arquivo copiado é o do win-x64).",
             "- nsis_tauri_utils (MIT OR Apache-2.0) e o runtime do AppImage: textos do repositório oficial.", ""]

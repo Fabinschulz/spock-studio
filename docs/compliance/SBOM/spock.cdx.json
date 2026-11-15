@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:d75f6629-14e9-4c7d-8d3e-a40cc90796c5",
+  "serialNumber": "urn:uuid:257a4ee3-f359-49ac-a3b0-213f8c2fa689",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-15T16:09:35Z",
+    "timestamp": "2026-11-15T22:17:45Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -312,7 +312,7 @@
         },
         {
           "name": "spock:obligations",
-          "value": "Sleepycat: informar como obter o código-fonte completo do Berkeley DB e de software que o use; recomendado remover o _dbm do pacote"
+          "value": "Sleepycat: informar, junto da distribuição, como obter o código-fonte completo do Berkeley DB 6.0.19 e do CPython/python-build-standalone que o usa (gratuito e redistribuível)"
         },
         {
           "name": "spock:evidence",
@@ -324,7 +324,7 @@
         },
         {
           "name": "spock:note",
-          "value": "Presença do _dbm*.so no pacote Linux a confirmar num build Linux."
+          "value": "Conferido no arquivo oficial (SHA-256 fixado): sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0. O main do PBS (2026-11) ainda inclui o bdb."
         }
       ]
     },

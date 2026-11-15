@@ -8,8 +8,8 @@ auditoria e as que **aguardam aprovação**. Nenhuma substituição, remoção o
 | D-01 | OpenTofu como motor padrão de IaC | Adotada (2026-11-15, decisão do dono) |
 | D-02 | Terraform: instalação gerenciada pelo Spock | **Aguarda aprovação e parecer** |
 | D-03 | Ferramentas de IaC por download oficial sob demanda, nunca embarcadas | Adotada |
-| D-04 | CPython embarcado (embed no Windows, python-build-standalone no Linux) | Adotada; ajuste pendente (D-05) |
-| D-05 | Remover o `_dbm` (Berkeley DB) do Python do Linux | **Aguarda aprovação** |
+| D-04 | CPython embarcado (embed no Windows, python-build-standalone no Linux) | Adotada; pendência no Linux (D-05) |
+| D-05 | Berkeley DB (Sleepycat) embutido no Python do Linux | **Aguarda aprovação** |
 | D-06 | Formato do pacote Linux na 1ª versão (AppImage com LGPL ou só `.deb`) | **Aguarda aprovação** |
 | D-07 | Avisos de terceiros gerados do inventário e embarcados | **Aguarda aprovação** |
 | D-08 | Integração com CLIs de IA só invocando o binário do usuário | Adotada; confirmação pendente |
@@ -66,12 +66,17 @@ auditoria e as que **aguardam aprovação**. Nenhuma substituição, remoção o
 - **Também:** corrigir o texto da proposta para citar o caso "embedded" e o licenciante atual (IBM).
 - **Pendência jurídica:** "competitive offering" / "significantly overlaps" (LICENSE_AUDIT.md §5).
 
-### D-05: remover o `_dbm` do python-build-standalone
+### D-05: Berkeley DB (Sleepycat) no python-build-standalone
 
-- **Motivo:** Berkeley DB 6.0.19 sob Sleepycat (obrigação de fonte de alcance incerto). A inteligência não usa `dbm`.
-- **Proposta:** acrescentar `_dbm` à poda de `lib-dynload` e remover `libdb*` em `scripts/package-intelligence.py`. O smoke do
-  instalador confirma a remoção.
-- **Custo:** baixo. **Alternativa:** parecer sobre a Sleepycat.
+- **Motivo:** o Berkeley DB 6.0.19, sob Sleepycat, traz uma obrigação de fonte de alcance incerto. A inteligência não usa
+  `dbm`.
+- **Tentativa descartada (2026-11-15):** remover o `_dbm` na poda. No arquivo oficial, o módulo e o DB estão ligados
+  estaticamente ao `libpython3.12.so.1.0`, sem arquivo separado. O `main` do PBS também inclui o `bdb`.
+- **Opções:**
+  1. **Recomendada:** cumprir a Sleepycat. Nos avisos, o texto da licença e onde obter o fonte do Berkeley DB 6.0.19 e do
+     CPython/PBS, os dois gratuitos. Pedir parecer sobre "any accompanying software that uses the DB software".
+  2. Compilar um CPython próprio para Linux sem `bdb` (fork da receita do PBS). Custo de manutenção alto.
+  3. Tirar o Linux da 1ª versão.
 
 ### D-06: pacote Linux
 
@@ -132,7 +137,7 @@ auditoria e as que **aguardam aprovação**. Nenhuma substituição, remoção o
 ## Pendências jurídicas consolidadas
 
 1. BUSL 1.1: o Spock pago é "competitive offering"? O cenário 2 (Terraform do usuário) está fora de "embedded"? (D-02)
-2. Sleepycat: alcance da obrigação de fonte, caso o `_dbm` seja mantido. (D-05)
+2. Sleepycat: alcance de "software que use o DB" para o Berkeley DB embutido no libpython do Linux. (D-05)
 3. LGPL no AppImage, caso a opção B seja escolhida. (D-06)
 4. Redação do EULA com as cláusulas da Microsoft. (D-09)
 5. Repasse do Visual C++ runtime recebido via PSF. (R-06)
