@@ -10,12 +10,15 @@ internal static class ProjectBriefing
     public const int Decisions = 5;
 
     public static IEnumerable<string> Sections(
-        AuthorizedProject project, TechnologyProfile? profile, HarnessStatus? harness, IReadOnlyList<MemoryDocument> decisions)
+        AuthorizedProject project, TechnologyProfile? profile, HarnessStatus? harness, IReadOnlyList<MemoryDocument> decisions,
+        ManagementSnapshot? management = null, bool managementAvailable = false)
     {
         yield return $"# {project.DisplayName}\nId no Spock: {project.ProjectId} · pasta {project.DisplayPath}";
         yield return Technologies(profile);
         if (profile is { Tooling.Count: > 0 }) yield return Tooling(profile);
         yield return Harness(harness);
+        if (managementAvailable)
+            foreach (var section in ManagementBriefing.Sections(management)) yield return section;
         yield return RecentDecisions(decisions);
     }
 
