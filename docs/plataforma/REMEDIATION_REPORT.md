@@ -46,7 +46,7 @@ Tipos: **F** falha comprovada, **I** pendência de implementação, **A** proble
 | M3 | MCP sem escopo por cliente | A | P1 | Corrigido no #92 e revalidado |
 | M4 | Sem modelo, a decisão gravada inventava áreas afetadas | F | P2 | Corrigido no #90 e revalidado |
 | B1 | Rejeição registrada como aprovação na auditoria | F | P3 | Corrigido no #90 e revalidado |
-| B2 | Nome do projeto vem da pasta, não do manifesto | I | P3 | Aberto, plano na seção 6 |
+| B2 | Nome do projeto vem da pasta, não do manifesto | I | P3 | Corrigido no #98 (`ProjectNameReader`); o id não muda |
 | B3 | Barra de estado dizia "inteligência parada" durante uma execução | F | P3 | Corrigido no #90 (`use-engine-status.test.ts`) |
 | R1 | MCP com escopo de um projeto exigia `project` quando a pasta atual não é de projeto (o caso do Claude Desktop) | F | P1 | **Novo na revalidação; corrigido nesta entrega** |
 | R2 | `--project` com id que não está aberto no Spock subia calado | F | P3 | **Novo; corrigido nesta entrega** (aviso no stderr) |
@@ -57,7 +57,7 @@ Tipos: **F** falha comprovada, **I** pendência de implementação, **A** proble
 | E3 | Cofre do Linux e do macOS nunca rodou em máquina real | E | P2 | Bloqueado: falta máquina; `UnixVaultRealityTests` pronto |
 | E4 | MCPs do ambiente do Claude: `aws-mcp` (`CONNECTION_CLOSED`), Datadog (`ENOTFOUND`), Atlassian no endpoint V1 obsoleto | L | n/a | Fora do Spock: configuração do Claude Desktop do usuário. A AWS foi lida pelo CLI com SSO por código de dispositivo |
 | D1 | Seis documentos citados no pedido não existem | I | P3 | Registrado na seção 1; os equivalentes existentes estão listados |
-| D2 | `MARILIZ_CURRENT_STATE.md` desatualizado | I | P3 | Plano na seção 6 |
+| D2 | `MARILIZ_CURRENT_STATE.md` desatualizado | I | P3 | Regenerado em 2026-11-15 sobre o `master` 7198c8d |
 
 Nenhum P0 ou P1 fica aberto sem classificação: os P1 restantes (A3, E1, E2) dependem de decisão do dono ou de
 credencial que não existe no ambiente.
