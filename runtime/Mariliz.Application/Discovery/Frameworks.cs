@@ -80,9 +80,6 @@ internal static partial class Frameworks
         .GroupBy(known => known.Id, StringComparer.Ordinal)
         .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
 
-    // Os do ecossistema JavaScript são cobertos pela mesma regra de stack do Harness.
-    internal static readonly IReadOnlySet<string> JavascriptIds = Node.Values.Select(known => known.Id).ToHashSet(StringComparer.Ordinal);
-
     internal static string? Category(string id) => ById.GetValueOrDefault(id)?.Category;
 
     // A chave do catálogo pode ser só o começo do nome (versões maiores do Go mudam o caminho: echo/v4; artefatos do Spring têm sufixo).

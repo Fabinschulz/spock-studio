@@ -141,7 +141,7 @@ describe('Projeto · visão geral', () => {
     await userEvent.click(within(profile).getByRole('button', { name: 'Atualizar perfil' }));
     await userEvent.click(await within(profile).findByText(/Histórico de mudanças \(2\)/));
     expect(within(profile).getByText('Next.js mudou de 16.0.1 para 16.1.0.')).toBeTruthy();
-    expect(within(profile).getByText('Perfil criado com 1 tecnologia.')).toBeTruthy();
+    expect(within(profile).getByText('Perfil criado com 2 tecnologias.')).toBeTruthy();
   });
 
   it('não repete o Harness, as revisões nem o conhecimento: cada um tem a sua tela, e a visão geral aponta para elas', async () => {

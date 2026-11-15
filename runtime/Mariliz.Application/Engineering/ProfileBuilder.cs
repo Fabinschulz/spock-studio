@@ -47,7 +47,8 @@ public static class ProfileBuilder
             tooling,
             report.AiEnvironments.Select(environment => environment.Name).ToList(),
             connections,
-            technologies.Select(TechnologyCatalog.Guidance).ToList(),
+            // A orientação é sobre regra de stack: um framework repetiria a linha da stack dele.
+            technologies.Where(technology => report.Stacks.Any(stack => stack.Id == technology.Id)).Select(TechnologyCatalog.Guidance).ToList(),
             []);
 
         var changes = previous is null

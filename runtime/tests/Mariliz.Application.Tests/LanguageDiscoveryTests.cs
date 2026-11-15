@@ -151,8 +151,9 @@ public class LanguageDiscoveryTests
         var vitest = Assert.Single(profile.Technologies, technology => technology.Id == "vitest");
         Assert.Equal(("Testes", Confidence.Medium), (vitest.Category, vitest.Confidence));
         Assert.Equal("Linguagem e runtime", Assert.Single(profile.Technologies, technology => technology.Id == "python").Category);
-        Assert.True(Assert.Single(profile.Harness, guidance => guidance.Technology == "Vitest").Covered);
-        Assert.False(Assert.Single(profile.Harness, guidance => guidance.Technology == "LangGraph").Covered);
+        // A orientação do Harness é por stack: os frameworks não repetem a linha da stack deles.
+        Assert.Equal(["Node.js", "Python"], profile.Harness.Select(guidance => guidance.Technology).Order(StringComparer.Ordinal));
+        Assert.False(Assert.Single(profile.Harness, guidance => guidance.Technology == "Python").Covered);
     }
 
     [Fact]

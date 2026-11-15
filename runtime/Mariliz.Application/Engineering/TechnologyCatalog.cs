@@ -26,7 +26,7 @@ public static class TechnologyCatalog
     public static ProfileHarnessGuidance Guidance(ProfileTechnology technology) =>
         technology.Id == "dotnet"
             ? new(technology.Name, Catalog.RuleStackDotnet, true, "Regra da stack .NET, aplicada aos arquivos .cs e .csproj.")
-            : HarnessComposition.JavascriptStacks.Contains(technology.Id) || Discovery.Frameworks.JavascriptIds.Contains(technology.Id)
+            : HarnessComposition.JavascriptStacks.Contains(technology.Id)
                 ? new(technology.Name, Catalog.RuleStackJavascript, true, "Regra da stack JavaScript e TypeScript, aplicada aos arquivos .ts, .tsx, .js e .jsx.")
                 : new(technology.Name, null, false, "Ainda não há perfil de regras para esta tecnologia; o plano registra a limitação.");
 

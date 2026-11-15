@@ -64,12 +64,6 @@
         "ruleId": "mariliz.rule.stack-javascript",
         "covered": true,
         "detail": "Regra da stack JavaScript e TypeScript, aplicada aos arquivos .ts, .tsx, .js e .jsx."
-      },
-      {
-        "technology": "TypeScript",
-        "ruleId": "mariliz.rule.stack-javascript",
-        "covered": true,
-        "detail": "Regra da stack JavaScript e TypeScript, aplicada aos arquivos .ts, .tsx, .js e .jsx."
       }
     ],
     "history": [
