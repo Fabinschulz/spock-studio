@@ -1,6 +1,8 @@
 import connectionsFixture from '@contracts/fixtures/cloud/connections.json';
 import linksFixture from '@contracts/fixtures/cloud/links.json';
+import draftFixture from '@contracts/fixtures/iac/architect-draft.json';
 import bootstrapFixture from '@contracts/fixtures/iac/bootstrap-plan.json';
+import generateFixture from '@contracts/fixtures/iac/generate-plan.json';
 import layoutFixture from '@contracts/fixtures/iac/layout.json';
 import offerFixture from '@contracts/fixtures/iac/offer.json';
 import operationsFixture from '@contracts/fixtures/iac/operations.json';
@@ -60,6 +62,35 @@ function fakeEngine(initial: Record<string, unknown> = missing) {
         'iac.state.unlock': { unlocked: true },
         'iac.bootstrap.plan': bootstrapFixture,
         'iac.bootstrap.save': { runId: 'run-iac-1' },
+        'iac.architect.draft': draftFixture,
+        'iac.generate.plan': generateFixture,
+        'iac.generate.save': { runId: 'run-iac-2' },
+        'cloud.read': {
+          result: {
+            connectionId: 'cloud-00cedffc75fa',
+            connectionName: 'AWS dev (SSO)',
+            provider: 'aws',
+            account: '123456789012',
+            capability: 'aws.ec2.subnets',
+            region: 'sa-east-1',
+            columns: ['id', 'name', 'vpc', 'zone', 'cidr', 'public', 'freeIps'].map((id) => ({ id, label: id })),
+            rows: [
+              ['subnet-0aaaaaaaaaaaaaaa1', 'app-a', 'vpc-0a1b2c3d4e5f60718', 'sa-east-1a', '10.0.1.0/24', 'não', '250'],
+              ['subnet-0bbbbbbbbbbbbbbb2', 'app-b', 'vpc-0a1b2c3d4e5f60718', 'sa-east-1b', '10.0.2.0/24', 'não', '250'],
+              [
+                'subnet-0ccccccccccccccc3',
+                'pub-a',
+                'vpc-0a1b2c3d4e5f60718',
+                'sa-east-1a',
+                '10.0.101.0/24',
+                'sim',
+                '250'
+              ]
+            ],
+            truncated: false,
+            readAt: '2026-11-15T12:00:00+00:00'
+          }
+        },
         'cloud.list': connectionsFixture,
         'cloud.links': { links: linksFixture.links.map((link) => ({ ...link, projectId: demo.projectId })) }
       };
@@ -166,8 +197,8 @@ describe('Infraestrutura', () => {
 
     expect(await screen.findByRole('list', { name: 'Ciclo de uma mudança de infraestrutura' })).toBeInTheDocument();
     expect(screen.getAllByText('Só analisa')).toHaveLength(6);
-    expect(screen.getAllByText('Disponível')).toHaveLength(6);
-    expect(screen.getAllByText('Próxima entrega')).toHaveLength(2);
+    expect(screen.getAllByText('Disponível')).toHaveLength(8);
+    expect(screen.queryByText('Próxima entrega')).not.toBeInTheDocument();
     expect(screen.getAllByText('Muda a nuvem')).toHaveLength(1);
     expect(screen.getByText('Prepara a mudança')).toBeInTheDocument();
   });
@@ -305,4 +336,56 @@ describe('Infraestrutura', () => {
       values: { bucket: 'loja-terraform-state-123456789012-sa-east-1' }
     });
   });
+
+  it('a IA propõe o desenho, os fatos da conta vêm da conexão e só o diff revisado é gravado', async () => {
+    const engine = fakeEngine(ready);
+    renderPage(engine.client);
+
+    const panel = await screen.findByRole('group', { name: 'Desenho da infraestrutura' });
+    await userEvent.click(
+      await within(panel).findByRole('button', { name: 'Preencher conta, região e perfil pela conexão AWS dev (SSO)' })
+    );
+    expect(within(panel).getByLabelText('Região')).toHaveValue('sa-east-1');
+    expect(within(panel).getByLabelText('Conta (opcional)')).toHaveValue('123456789012');
+
+    await userEvent.click(within(panel).getByRole('button', { name: 'Ler VPCs e subnets da conta' }));
+    await userEvent.click(await within(panel).findByRole('radio', { name: /vpc-0a1b2c3d4e5f60718 · 2 privada/ }));
+    expect(within(panel).getByLabelText('Subnets privadas')).toHaveValue(
+      'subnet-0aaaaaaaaaaaaaaa1, subnet-0bbbbbbbbbbbbbbb2'
+    );
+    expect(engine.calls.find((call) => call.method === 'cloud.read')?.params).toMatchObject({
+      capability: 'aws.ec2.subnets',
+      region: 'sa-east-1'
+    });
+
+    await userEvent.click(within(panel).getByLabelText('O que o sistema precisa'));
+    await userEvent.paste('Uma API de pedidos com banco relacional e duas filas.');
+    await userEvent.click(within(panel).getByRole('button', { name: 'Propor com IA' }));
+    expect(await within(panel).findByText(/Roda o contêiner da API/)).toBeInTheDocument();
+    expect(within(panel).getByLabelText('Nome do projeto')).toHaveValue('loja-api');
+    const draftCall = engine.calls.find((call) => call.method === 'iac.architect.draft')!;
+    expect(draftCall.params).toMatchObject({
+      projectId: demo.projectId,
+      facts: { region: 'sa-east-1', account: '123456789012', network: { vpcId: 'vpc-0a1b2c3d4e5f60718' } }
+    });
+    expect(methods(engine.calls)).not.toContain('iac.generate.plan');
+
+    await userEvent.click(within(panel).getByRole('button', { name: 'Revisar os arquivos' }));
+    const review = await screen.findByLabelText('Revisar a infraestrutura gerada');
+    expect(within(review).getByLabelText('Diferenças em infra/modules/sqs/resource.tf')).toHaveTextContent(
+      'aws_sqs_queue_redrive_allow_policy'
+    );
+    expect(within(review).getByLabelText('O que é cobrado')).toHaveTextContent('Por requisição');
+    expect(methods(engine.calls)).not.toContain('iac.generate.save');
+
+    await userEvent.click(within(review).getByRole('button', { name: 'Gravar no projeto' }));
+    await userEvent.click(within(review).getByRole('button', { name: 'Gravar' }));
+
+    expect(await screen.findByText(/Arquivos gravados na execução run-iac-2/)).toBeInTheDocument();
+    expect(engine.calls.find((call) => call.method === 'iac.generate.save')?.params).toMatchObject({
+      projectId: demo.projectId,
+      planId: generateFixture.plan.planId,
+      blueprint: { project: 'loja-api', region: 'sa-east-1', network: { vpcId: 'vpc-0a1b2c3d4e5f60718' } }
+    });
+  }, 20_000);
 });

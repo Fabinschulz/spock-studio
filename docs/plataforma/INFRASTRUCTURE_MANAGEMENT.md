@@ -91,7 +91,7 @@ fica com o jurídico da empresa, que negocia à parte; o Spock só informa a lic
 | 2 | Validação e plano sobre uma cópia da configuração: `fmt -check` e `validate` por pasta, `plan -out` por workspace com a conexão cloud do projeto, resumo (criar/alterar/substituir/destruir), achados de segurança, histórico, trilha, `iac_validate` e `iac_plan_summary` no MCP | **Implementada**; validada com o OpenTofu real ([TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md)) |
 | 3 | Aprovação vinculada ao plano (id, hashes, prazo, plano mais recente, ferramenta), confirmações a mais para destruição, achados graves e produção, apply só do arquivo aprovado, verificação por plano seguinte limpo, state e outputs não sensíveis, `iac_history` no MCP | **Implementada**; validada com o OpenTofu real (aplicar, verificar, destruir com confirmação, bloqueio de state local) |
 | 4 | State: onde vive o state de cada raiz e os riscos (state no git, sem trava, sem criptografia, dividido), backend recomendado pela nuvem do projeto, bootstrap do bucket no modelo para AWS, Azure e Google (diff revisado, execução reversível), state local devolvido ao projeto com conflito, isolamento entre projetos, consulta do state, force-unlock com confirmação, `iac_state` no MCP | **Implementada**; bootstraps validados com o OpenTofu e os providers reais, state local devolvido num apply real ([TERRAFORM_STATE_MANAGEMENT.md](TERRAFORM_STATE_MANAGEMENT.md)) |
-| 5 | Geração: da necessidade à arquitetura e aos `.tf` no modelo; uso das leituras cloud como entrada | Desenhada; usa o fluxo de ideias (`idea.*`) para a etapa de arquitetura |
+| 5 | Geração: da necessidade ao desenho (IA opcional, fatos da conta pela conexão), checagens determinísticas, `.tf` da AWS no modelo por modelos fixos (raiz e módulos SNS, CloudWatch, SQS, ECR, Secrets Manager, IAM, ALB, ECS Fargate e RDS), o que é cobrado sem preço inventado, diff revisado e execução reversível; leitura de VPCs e subnets pela conexão; `iac_blueprint_check` no MCP | **Implementada**; arquivos gerados validados com `fmt` e `validate` do OpenTofu e o provider AWS real ([TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md), seção 5) |
 | 6 | Drift e custos | Depois: custo só com fonte real (preços públicos do provedor) e marcado como estimativa |
 
 Priorização dos recursos por provedor: primeiro o que o modelo de referência já cobre na AWS (SQS, SNS, CloudWatch,
@@ -101,14 +101,15 @@ grupo de recursos/projeto, rede e o equivalente de contêiner gerenciado (Contai
 ## 6. Experiência na tela Infraestrutura
 
 - **Ciclo de uma mudança**: Descoberta → Arquitetura → Configuração → Validação → Plano → Aprovação → Aplicação →
-  Verificação, cada etapa marcada como "Só analisa", "Prepara a mudança" ou "Muda a nuvem", e "Próxima entrega" enquanto
-  não existir.
+  Verificação, cada etapa marcada como "Só analisa", "Prepara a mudança" ou "Muda a nuvem"; as oito estão disponíveis.
+- **Gerar infraestrutura**: necessidade para a IA (opcional), conta, região e perfil pela conexão AWS vinculada, VPC e
+  subnets lidas da conta, componentes, revisão do diff com o que é cobrado e gravação no projeto.
+- **State**, **Validar e planejar** e a aprovação do plano, como nas entregas 2 a 4.
 - **Dependência Terraform**: estado, mensagem, consentimento, proposta verificável, instalações com origem e verificação.
 - **Projeto**: o que os `.tf` exigem, a versão usada (automática ou fixada) e a escolha.
 - **Provedores**: quantas conexões cloud existem e quantas estão conectadas, com o link para Conexões cloud.
 
-Ainda não aparecem: lista de projetos de infraestrutura com ambientes, histórico de planos e aplicações, alertas de
-drift. Entram com as entregas 2 a 4.
+Ainda não aparecem: lista de projetos de infraestrutura com ambientes e alertas de drift.
 
 ## 7. Como adicionar um provedor
 
@@ -121,7 +122,7 @@ drift. Entram com as entregas 2 a 4.
 
 ## 8. Limitações atuais
 
-- As entregas 1 e 2 estão implementadas: o Spock instala e escolhe o OpenTofu ou o Terraform, valida e planeja sobre
-  uma cópia da configuração, mas ainda não aplica o plano.
 - macOS e Linux implementados e não rodados em máquina real.
-- Sem custo estimado, drift ou geração de `.tf` ainda.
+- Geração só para AWS e só com os componentes do modelo (serviço em contêiner, RDS, filas); Azure e Google têm o
+  bootstrap do state, ainda não a geração.
+- Sem custo estimado (só a lista do que é cobrado) e sem drift.

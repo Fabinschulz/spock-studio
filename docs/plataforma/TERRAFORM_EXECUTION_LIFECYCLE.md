@@ -1,15 +1,15 @@
 # Ciclo de execução do Terraform
 
-Como uma mudança de infraestrutura anda no Spock, da necessidade à verificação, e onde a pessoa decide. A entrega 1
-(dependência) está implementada; as etapas abaixo são o desenho das entregas 2 e 3 e dizem o que já existe para
-apoiá-las. Formato dos arquivos: [TERRAFORM_PROJECT_LAYOUT.md](TERRAFORM_PROJECT_LAYOUT.md).
+Como uma mudança de infraestrutura anda no Spock, da necessidade à verificação, e onde a pessoa decide. As oito etapas
+estão implementadas: dependência (entrega 1), validação e plano (2), aprovação e aplicação (3), state (4) e
+arquitetura e configuração (5). Formato dos arquivos: [TERRAFORM_PROJECT_LAYOUT.md](TERRAFORM_PROJECT_LAYOUT.md).
 
 ## 1. As oito etapas
 
 | # | Etapa | O que o Spock faz | Toca a nuvem? | Quem decide |
 | --- | --- | --- | --- | --- |
 | 1 | Descoberta | Lê conta, região, rede e serviços pelas conexões cloud | Só leitura | A pessoa liberou a leitura no vínculo |
-| 2 | Arquitetura | Propõe serviços, justificativa, dependências, riscos, alternativas e custo **quando há fonte** | Não | A pessoa aprova a proposta |
+| 2 | Arquitetura | A IA (opcional) propõe componentes e tamanhos, com justificativa, riscos, alternativas e premissas; custo é a lista do que é cobrado, sem valor | Não | A pessoa confere e completa o desenho |
 | 3 | Configuração | Gera ou altera `infra/` no modelo, como mudança revisada (diff) | Não | A pessoa aprova o diff antes de gravar |
 | 4 | Validação | `fmt -check -recursive` e `validate` em cada pasta com `.tf` | Não (`init -backend=false`) | Não se aplica |
 | 5 | Plano | `init` e `plan -out` no workspace do ambiente | Só leitura (refresh) | Não se aplica |
@@ -121,7 +121,55 @@ trilha recebe `iac.apply` (aplicado, verificado, pendências, recursos no state)
 
 Timeouts: apply até 55 minutos no motor; o host espera 90 minutos por `iac.apply`.
 
-## 5. O que já existe para isso
+## 5. Arquitetura e configuração (entrega 5, implementada)
+
+O caminho é necessidade → desenho → checagens → arquivos no modelo → diff aprovado → execução reversível. Nenhum HCL sai
+do modelo de linguagem: a IA preenche um **desenho** (`IacBlueprint`), e modelos fixos (`IacAwsGenerator`) escrevem os
+arquivos já no formato do `fmt`.
+
+**Desenho.** Nuvem `aws`; nome do projeto (até 18 caracteres, por causa do limite de 32 do nome do load balancer);
+região, conta e perfil; a rede **existente** (VPC, subnets privadas e públicas: o Terraform não cria rede); e os
+componentes do modelo de referência: um serviço em contêiner (ECS Fargate atrás de load balancer só HTTPS, com
+certificado ACM), um banco RDS (postgres ou mysql) e filas SQS (cada uma com fila de mensagens mortas). Alarmes e tópico
+SNS entram sempre. Bucket de state opcional: sem ele, a raiz nasce sem backend remoto e a nota manda usar o bootstrap.
+
+**IA, opcional** (`iac.architect.draft`, finalidade Fluxos de engenharia). A necessidade vai delimitada como conteúdo.
+Do projeto, o modelo recebe só nome, região e quantas subnets existem, nunca ids. Na resposta, conta, perfil, rede,
+certificado, e-mail e bucket são **sobrepostos** pelos fatos informados pela pessoa: o que o modelo escrever ali é
+descartado. As checagens rodam na resposta; se falhar o que é dele (nome, tamanhos, portas, filas), o Spock pede uma
+segunda resposta com o que falhou; se faltar um fato da conta, não pede de novo e a tela mostra o que completar. A
+trilha recebe `iac.architecture_drafted` com tentativas e tokens, nunca o texto. Sem provedor de IA configurado, o
+desenho é montado à mão na mesma tela.
+
+**Checagens** (`IacBlueprintChecks`, as mesmas para IA, tela e MCP): formatos de região, conta, perfil, VPC e subnets;
+combinação de CPU e memória do Fargate; porta, health check e 1 a 10 tarefas; certificado ACM da mesma região; duas
+subnets públicas para o load balancer e duas privadas para o banco; motor, versão, classe e 20 a 1000 GB do banco; até 8
+filas sem repetir; e-mail; bucket. Rede só é exigida com serviço ou banco.
+
+**Arquivos** (`iac.generate.plan`), na pasta de IaC que o projeto já tem (sem o `bootstrap`) ou em `infra/`: raiz com
+`providers.tf` (versão mínima 1.11, provider fixado, `allowed_account_ids`, backend S3 com `use_lockfile`),
+`variables.tf` (com `validation`), `resource.tf` (`environment_guard`, `name_prefix` e tags, um bloco por módulo),
+`output.tf`, `terraform.tfvars.example` e `README.md` (pré-requisitos, plan e apply, primeiro deploy, verificações,
+operação); e módulos `sns`, `cloudwatch`, `sqs`, `ecr`, `secrets`, `iam`, `alb`, `ecs` e `rds`. Senhas nunca passam
+pelo Terraform: o segredo da aplicação é criado sem valor e a senha do banco é gerada e guardada pelo próprio RDS
+(`manage_master_user_password`). Banco privado, criptografado, com proteção contra exclusão e snapshot final; ECR com
+tag imutável; load balancer só HTTPS com TLS 1.3; tarefas que só aceitam o load balancer; o CI é o dono da revisão da
+task definition (`ignore_changes`). O `.gitignore` da raiz ganha as linhas de state, planos e `terraform.tfvars`.
+
+O plano devolve o diff de cada arquivo, as checagens, **o que é cobrado** (sem preço inventado: o Spock não tem fonte de
+preços) e notas (arquivo da pasta que não é do modelo, NAT para tarefas em subnet privada, ordem do primeiro deploy).
+Desenho com checagem falhando volta sem arquivo e sem `planId`.
+
+**Gravar** (`iac.generate.save`) exige o `planId` revisado (`STALE_PLAN` se o desenho ou os arquivos mudaram) e roda
+como execução `infrastructure` reversível, no escopo de escrita de infraestrutura (`.tf`, `.tofu`, `.tfvars.example`,
+o `README.md` de uma pasta e o `.gitignore` da raiz). A trilha recebe `iac.generated`. Os arquivos gerados passam no
+`fmt -check` e no `validate` do OpenTofu com o provider AWS de verdade (teste ao vivo com `MARILIZ_LIVE_IAC_PROVIDERS`).
+
+**Descoberta da rede.** A conexão AWS ganhou as leituras `aws.ec2.vpcs` e `aws.ec2.subnets` (`ec2:DescribeVpcs`,
+`ec2:DescribeSubnets`, `ec2:DescribeRouteTables`). Pública é a subnet cuja tabela de rotas manda `0.0.0.0/0` para um
+internet gateway. A tela lê pela conexão vinculada e a pessoa escolhe a VPC; as subnets entram no desenho já separadas.
+
+## 6. O que já existe para isso
 
 | Necessidade | Já existe |
 | --- | --- |
@@ -133,7 +181,7 @@ Timeouts: apply até 55 minutos no motor; o host espera 90 minutos por `iac.appl
 | Leitura cloud para descoberta e verificação | `CloudReadService` |
 | Trilha | `IAuditLog`, Auditoria do projeto |
 
-## 6. Ferramentas para agentes (MCP)
+## 7. Ferramentas para agentes (MCP)
 
 | Ferramenta | Entrega | Efeito |
 | --- | --- | --- |
@@ -142,6 +190,7 @@ Timeouts: apply até 55 minutos no motor; o host espera 90 minutos por `iac.appl
 | `iac_plan_summary` | 2 e 3 | Lê o último plano (ou um pelo id): contagens, endereços, achados, se já foi aplicado ou por que não pode ser |
 | `iac_history` | 3 | Lista validações, planos e aplicações, com quem pediu e o resultado da verificação |
 | `iac_state` | 4 | Onde vive o state de cada raiz, trava, criptografia, riscos e backend recomendado (só a configuração) |
+| `iac_blueprint_check` | 5 | Confere um desenho com as checagens da tela e lista os arquivos que a geração escreveria e o que é cobrado; não grava nada |
 | `iac_plan` | Depois | Gerar plano por agente pede o vínculo cloud liberado para agentes; hoje só a pessoa planeja |
 
 Não haverá `terraform_apply` para agentes: o MCP nunca contorna a aprovação humana.

@@ -56,15 +56,15 @@ export const LIFECYCLE: readonly LifecycleStage[] = [
     id: 'architecture',
     label: 'Arquitetura',
     mode: 'analysis',
-    description: 'Propõe serviços, custos e riscos.',
-    available: false
+    description: 'Propõe serviços, o que é cobrado e riscos.',
+    available: true
   },
   {
     id: 'configuration',
     label: 'Configuração',
     mode: 'analysis',
     description: 'Gera os arquivos .tf no modelo do projeto.',
-    available: false
+    available: true
   },
   {
     id: 'validation',

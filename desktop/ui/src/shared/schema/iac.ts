@@ -239,26 +239,104 @@ export const iacStateReadSchema = z.object({
   })
 });
 
+const iacReviewedChangeSchema = z.object({
+  path: z.string(),
+  op: z.string(),
+  diff: z.string(),
+  truncated: z.boolean(),
+  beforeHash: z.string().nullable(),
+  afterHash: z.string()
+});
+
 export const iacBootstrapPlanSchema = z.object({
   plan: z.object({
     planId: z.string(),
     projectId: z.string(),
     provider: z.string(),
     folder: z.string(),
-    changes: z.array(
-      z.object({
-        path: z.string(),
-        op: z.string(),
-        diff: z.string(),
-        truncated: z.boolean(),
-        beforeHash: z.string().nullable(),
-        afterHash: z.string()
-      })
-    ),
+    changes: z.array(iacReviewedChangeSchema),
     backendBlock: z.string(),
     notes: z.array(z.string())
   })
 });
+
+/** O desenho em dados: a IA (ou a pessoa) preenche, o motor confere e gera os arquivos com modelos fixos. */
+export const iacBlueprintSchema = z.object({
+  provider: z.string(),
+  project: z.string(),
+  region: z.string(),
+  account: z.string().nullable(),
+  profile: z.string().nullable(),
+  network: z.object({
+    vpcId: z.string(),
+    privateSubnets: z.array(z.string()),
+    publicSubnets: z.array(z.string())
+  }),
+  service: z
+    .object({
+      name: z.string(),
+      port: z.number(),
+      healthPath: z.string(),
+      cpu: z.number(),
+      memory: z.number(),
+      desiredCount: z.number(),
+      certificateArn: z.string(),
+      publicIp: z.boolean()
+    })
+    .nullable(),
+  database: z
+    .object({
+      engine: z.string(),
+      engineVersion: z.string(),
+      instanceClass: z.string(),
+      storageGb: z.number(),
+      multiAz: z.boolean()
+    })
+    .nullable(),
+  queues: z.array(z.string()),
+  alarmEmail: z.string().nullable(),
+  backend: z.object({ bucket: z.string(), region: z.string() }).nullable()
+});
+
+export const iacBlueprintCheckSchema = z.object({
+  id: z.string(),
+  description: z.string(),
+  passed: z.boolean(),
+  detail: z.string().nullable()
+});
+
+export const iacArchitectDraftSchema = z.object({
+  draft: z.object({
+    blueprint: iacBlueprintSchema.nullable(),
+    notes: z
+      .object({
+        services: z.array(z.object({ name: z.string(), reason: z.string() })),
+        risks: z.array(z.string()),
+        alternatives: z.array(z.string()),
+        assumptions: z.array(z.string())
+      })
+      .nullable(),
+    checks: z.array(iacBlueprintCheckSchema),
+    valid: z.boolean(),
+    attempts: z.number(),
+    inputTokens: z.number(),
+    outputTokens: z.number()
+  })
+});
+
+export const iacGeneratePlanSchema = z.object({
+  plan: z.object({
+    planId: z.string(),
+    projectId: z.string(),
+    root: z.string(),
+    changes: z.array(iacReviewedChangeSchema),
+    checks: z.array(iacBlueprintCheckSchema),
+    costs: z.array(z.object({ resource: z.string(), billing: z.string() })),
+    notes: z.array(z.string())
+  })
+});
+
+export const iacGenerateSaveSchema = z.object({ runId: z.string() });
 
 export const iacBootstrapSaveSchema = z.object({ runId: z.string() });
 export const iacUnlockSchema = z.object({ unlocked: z.boolean() });
@@ -267,3 +345,7 @@ export type IacStateReport = z.infer<typeof iacStateReportSchema>['state'];
 export type IacStateRoot = z.infer<typeof iacStateRootSchema>;
 export type IacStateRead = z.infer<typeof iacStateReadSchema>['state'];
 export type IacBootstrapPlan = z.infer<typeof iacBootstrapPlanSchema>['plan'];
+export type IacBlueprint = z.infer<typeof iacBlueprintSchema>;
+export type IacBlueprintCheck = z.infer<typeof iacBlueprintCheckSchema>;
+export type IacArchitectDraft = z.infer<typeof iacArchitectDraftSchema>['draft'];
+export type IacGeneratePlan = z.infer<typeof iacGeneratePlanSchema>['plan'];

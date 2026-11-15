@@ -178,7 +178,7 @@ public sealed class IacStateService(
     }
 
     // As linhas que mantêm state, planos, providers baixados e valores fora do git; null quando já estão todas lá.
-    private static string? GitIgnore(string? current)
+    internal static string? GitIgnore(string? current)
     {
         var lines = (current ?? "").Replace("\r\n", "\n").Split('\n').Select(l => l.Trim()).ToHashSet(StringComparer.Ordinal);
         var missing = IgnoredPatterns.Where(pattern => !lines.Contains(pattern)).ToList();

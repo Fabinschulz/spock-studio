@@ -1,0 +1,196 @@
+{
+  "plan": {
+    "planId": "iacgen-0b5f9e97b92e",
+    "projectId": "p-0123456789ab",
+    "root": "infra",
+    "changes": [
+      {
+        "path": "infra/providers.tf",
+        "op": "create",
+        "diff": "--- /dev/null\n\u002B\u002B\u002B b/infra/providers.tf\n@@ -1,0 \u002B1,17 @@\n\u002Bterraform {\n\u002B  required_version = \u0022\u003E= 1.11\u0022\n\u002B\n\u002B  required_providers {\n\u002B    aws = {\n\u002B      source  = \u0022hashicorp/aws\u0022\n\u002B      version = \u00226.73.0\u0022\n\u002B    }\n\u002B  }\n\u002B\n\u002B  # Sem backend remoto ainda: crie o bucket com o bootstrap (tela Infraestrutura, State) e cole aqui o bloco backend \u0022s3\u0022.\n\u002B}\n\u002B\n\u002Bprovider \u0022aws\u0022 {\n\u002B  region  = var.aws_region\n\u002B  profile = var.aws_profile\n\u002B}\n",
+        "truncated": false,
+        "beforeHash": null,
+        "afterHash": "72655d1ae6e270f5e232af544315ba703f73fdd32038c8567371d27f4f799f0b"
+      },
+      {
+        "path": "infra/variables.tf",
+        "op": "create",
+        "diff": "--- /dev/null\n\u002B\u002B\u002B b/infra/variables.tf\n@@ -1,0 \u002B1,20 @@\n\u002B# ------------------------- AWS Region --------------------------\n\u002Bvariable \u0022aws_region\u0022 {\n\u002B  description = \u0022Regi\u00E3o da AWS onde os recursos s\u00E3o criados\u0022\n\u002B  type        = string\n\u002B  default     = \u0022us-east-1\u0022\n\u002B}\n\u002B\n\u002B# ------------------------- AWS Profile -------------------------\n\u002Bvariable \u0022aws_profile\u0022 {\n\u002B  description = \u0022Profile da AWS CLI (SSO) usado para autenticar; null usa a cadeia padr\u00E3o de credenciais\u0022\n\u002B  type        = string\n\u002B  default     = null\n\u002B}\n\u002B\n\u002B# ------------------------- Alarmes -----------------------------\n\u002Bvariable \u0022alarm_email\u0022 {\n\u002B  description = \u0022E-mail que recebe os alarmes; null cria o t\u00F3pico sem assinatura\u0022\n\u002B  type        = string\n\u002B  default     = null\n\u002B}\n",
+        "truncated": false,
+        "beforeHash": null,
+        "afterHash": "a08061c4c0afcddf0ded9b1a84fdec748c94b901dd68c4397560d2a42323e35e"
+      },
+      {
+        "path": "infra/resource.tf",
+        "op": "create",
+        "diff": "--- /dev/null\n\u002B\u002B\u002B b/infra/resource.tf\n@@ -1,0 \u002B1,50 @@\n\u002B# ------------------------- Environment guard -------------------\n\u002B# O ambiente \u00E9 o workspace selecionado; no workspace default os recursos n\u00E3o teriam ambiente definido.\n\u002Bresource \u0022terraform_data\u0022 \u0022environment_guard\u0022 {\n\u002B  input = terraform.workspace\n\u002B\n\u002B  lifecycle {\n\u002B    precondition {\n\u002B      condition     = terraform.workspace != \u0022default\u0022\n\u002B      error_message = \u0022Selecione o workspace do ambiente antes do plan/apply (ex.: tofu workspace select dev).\u0022\n\u002B    }\n\u002B  }\n\u002B}\n\u002B\n\u002Blocals {\n\u002B  name_prefix = \u0022eventos-${terraform.workspace}\u0022\n\u002B\n\u002B  tags = {\n\u002B    Project     = \u0022eventos\u0022\n\u002B    Environment = terraform.workspace\n\u002B    ManagedBy   = \u0022terraform\u0022\n\u002B  }\n\u002B}\n\u002B\n\u002B# ------------------------- SNS ---------------------------------\n\u002Bmodule \u0022sns\u0022 {\n\u002B  source = \u0022./modules/sns\u0022\n\u002B\n\u002B  name_prefix = local.name_prefix\n\u002B  alarm_email = var.alarm_email\n\u002B  tags        = local.tags\n\u002B}\n\u002B\n\u002B# ------------------------- SQS ---------------------------------\n\u002Bmodule \u0022sqs\u0022 {\n\u002B  source = \u0022./modules/sqs\u0022\n\u002B\n\u002B  name_prefix = local.name_prefix\n\u002B  flows       = [\u0022notas-fiscais\u0022]\n\u002B  tags        = local.tags\n\u002B}\n\u002B\n\u002B# ------------------------- CLOUDWATCH --------------------------\n\u002Bmodule \u0022cloudwatch\u0022 {\n\u002B  source = \u0022./modules/cloudwatch\u0022\n\u002B\n\u002B  name_prefix = local.name_prefix\n\u002B  topic_arn   = module.sns.topic_arn\n\u002B  flows       = [\u0022notas-fiscais\u0022]\n\u002B  tags        = local.tags\n\u002B}\n",
+        "truncated": false,
+        "beforeHash": null,
+        "afterHash": "69ab92eb5890670ed0c87b9e53f3662fe3e8df6124dee017bfda5b86d84a492b"
+      },
+      {
+        "path": "infra/output.tf",
+        "op": "create",
+        "diff": "--- /dev/null\n\u002B\u002B\u002B b/infra/output.tf\n@@ -1,0 \u002B1,9 @@\n\u002Boutput \u0022alarm_topic_arn\u0022 {\n\u002B  description = \u0022ARN do t\u00F3pico SNS que recebe os alarmes\u0022\n\u002B  value       = module.sns.topic_arn\n\u002B}\n\u002B\n\u002Boutput \u0022queues\u0022 {\n\u002B  description = \u0022Filas por fluxo: URL e ARN da fila principal e da fila de mensagens mortas\u0022\n\u002B  value       = module.sqs.queues\n\u002B}\n",
+        "truncated": false,
+        "beforeHash": null,
+        "afterHash": "e00483fb5fb82e4677a40f66e5f83c9bdc00e3c615cc09b5f14c09534199d7cf"
+      },
+      {
+        "path": "infra/terraform.tfvars.example",
+        "op": "create",
+        "diff": "--- /dev/null\n\u002B\u002B\u002B b/infra/terraform.tfvars.example\n@@ -1,0 \u002B1,2 @@\n\u002B# Copie para terraform.tfvars (no .gitignore) e troque cada valor pelo real da conta.\n\u002B# Este desenho n\u00E3o tem vari\u00E1vel obrigat\u00F3ria: regi\u00E3o, perfil e e-mail de alarme j\u00E1 t\u00EAm valor padr\u00E3o.\n",
+        "truncated": false,
+        "beforeHash": null,
+        "afterHash": "315b23b75021d76ae06dc74c9440a4368d55482127a6e9ce5a37c1d755767738"
+      },
+      {
+        "path": "infra/README.md",
+        "op": "create",
+        "diff": "--- /dev/null\n\u002B\u002B\u002B b/infra/README.md\n@@ -1,0 \u002B1,56 @@\n\u002B# Infraestrutura (OpenTofu/Terraform)\n\u002B\n\u002BRecursos AWS de \u0060eventos\u0060, gerados pelo Spock a partir do desenho aprovado, no formato do modelo de projeto.\n\u002B\n\u002B| Caminho | O que \u00E9 |\n\u002B| ------- | ------- |\n\u002B| \u0060providers.tf\u0060, \u0060variables.tf\u0060, \u0060resource.tf\u0060, \u0060output.tf\u0060 | Configura\u00E7\u00E3o raiz. O **workspace selecionado \u00E9 o ambiente**; sem backend remoto ainda (crie com o bootstrap) |\n\u002B| \u0060terraform.tfvars.example\u0060 | Formato dos valores que n\u00E3o ficam no reposit\u00F3rio; copie para \u0060terraform.tfvars\u0060, que est\u00E1 no .gitignore |\n\u002B| \u0060modules/sns/\u0060 | T\u00F3pico de alarmes e a assinatura por e-mail |\n\u002B| \u0060modules/cloudwatch/\u0060 | Alarmes: fila de mensagens mortas com mensagem, servi\u00E7o sem tarefa rodando, CPU do banco |\n\u002B| \u0060modules/sqs/\u0060 | Filas standard (\u0060notas-fiscais\u0060) e uma fila de mensagens mortas para cada |\n\u002B\n\u002BRegi\u00E3o \u0060us-east-1\u0060.\n\u002B\n\u002B## Pr\u00E9-requisitos\n\u002B\n\u002B- OpenTofu **\u2265 1.11** (ou Terraform \u2265 1.11): lock nativo do state no S3. O Spock instala e verifica a ferramenta.\n\u002B- Provider AWS fixado em \u00606.73.0\u0060.\n\u002B- Perfil SSO da AWS CLI.\n\u002B\n\u002B## Plan e apply de um ambiente\n\u002B\n\u002BPela tela Infraestrutura do Spock (validar, gerar plano, aprovar) ou no terminal:\n\u002B\n\u002B\u0060\u0060\u0060bash\n\u002Btofu -chdir=infra init\n\u002B\u0060\u0060\u0060\n\u002B\n\u002B\u0060\u0060\u0060bash\n\u002Btofu -chdir=infra workspace select dev\n\u002B\u0060\u0060\u0060\n\u002B\n\u002B\u0060\u0060\u0060bash\n\u002Btofu -chdir=infra plan -out=dev.tfplan\n\u002B\u0060\u0060\u0060\n\u002B\n\u002B\u0060\u0060\u0060bash\n\u002Btofu -chdir=infra apply dev.tfplan\n\u002B\u0060\u0060\u0060\n\u002B\n\u002B- Ambiente novo: \u0060tofu workspace new \u003Cenv\u003E\u0060 (at\u00E9 7 caracteres, por causa do limite de 32 do nome do load balancer).\n\u002B- No workspace \u0060default\u0060 o plan falha de prop\u00F3sito.\n\u002B- Depois de um apply, \u0060plan -detailed-exitcode\u0060 deve informar \u0060No changes\u0060.\n\u002B\n\u002B## Verifica\u00E7\u00F5es\n\u002B\n\u002B\u0060\u0060\u0060bash\n\u002Btofu fmt -check -recursive infra\n\u002B\u0060\u0060\u0060\n\u002B\n\u002BRode \u0060tofu validate\u0060 em cada pasta com \u0060.tf\u0060 depois de \u0060tofu init -backend=false\u0060. Uma mudan\u00E7a \u00E9 provada pelo plan revisado, por um segundo plan sem mudan\u00E7as depois do apply e pela leitura dos recursos na AWS.\n\u002B\n\u002B## Operando\n\u002B\n\u002B- **Alarme de fila de mensagens mortas.** Uma mensagem falhou 5 vezes e fica 14 dias em \u0060\u003Cfila\u003E-dlq\u0060: encontre a causa e reenvie pelo console do SQS.\n\u002B- **Renomear uma fila ou host.** Os nomes s\u00E3o endere\u00E7os de recurso: trocar destr\u00F3i o recurso. Renomeie s\u00F3 com bloco \u0060moved\u0060.\n",
+        "truncated": false,
+        "beforeHash": null,
+        "afterHash": "89577f37fbceac20e818f37ea888d7b6bc827478dc66dd73846a080a60e84c08"
+      },
+      {
+        "path": "infra/modules/sns/resource.tf",
+        "op": "create",
+        "diff": "--- /dev/null\n\u002B\u002B\u002B b/infra/modules/sns/resource.tf\n@@ -1,0 \u002B1,14 @@\n\u002B# ------------------------- Alarm topic -------------------------\n\u002Bresource \u0022aws_sns_topic\u0022 \u0022alarms\u0022 {\n\u002B  name = \u0022${var.name_prefix}-alarms\u0022\n\u002B  tags = var.tags\n\u002B}\n\u002B\n\u002B# Sem e-mail, o t\u00F3pico existe e n\u00E3o h\u00E1 assinatura. A AWS pede confirma\u00E7\u00E3o no primeiro envio.\n\u002Bresource \u0022aws_sns_topic_subscription\u0022 \u0022email\u0022 {\n\u002B  count = var.alarm_email == null ? 0 : 1\n\u002B\n\u002B  topic_arn = aws_sns_topic.alarms.arn\n\u002B  protocol  = \u0022email\u0022\n\u002B  endpoint  = var.alarm_email\n\u002B}\n",
+        "truncated": false,
+        "beforeHash": null,
+        "afterHash": "1de227fc3ef43953e0e0d3d396b087b35e8778da0a0b14063bac9e867f0b0a7f"
+      },
+      {
+        "path": "infra/modules/sns/variables.tf",
+        "op": "create",
+        "diff": "--- /dev/null\n\u002B\u002B\u002B b/infra/modules/sns/variables.tf\n@@ -1,0 \u002B1,23 @@\n\u002B# ------------------------- Environment -------------------------\n\u002Bvariable \u0022name_prefix\u0022 {\n\u002B  description = \u0022Prefixo dos nomes: \u003Cprojeto\u003E-\u003Cambiente\u003E\u0022\n\u002B  type        = string\n\u002B\n\u002B  validation {\n\u002B    condition     = can(regex(\u0022^[a-z0-9-]\u002B$\u0022, var.name_prefix))\n\u002B    error_message = \u0022O prefixo deve conter apenas letras min\u00FAsculas, d\u00EDgitos e h\u00EDfens.\u0022\n\u002B  }\n\u002B}\n\u002B\n\u002Bvariable \u0022alarm_email\u0022 {\n\u002B  description = \u0022E-mail que recebe os alarmes; sem ele, o t\u00F3pico existe e n\u00E3o h\u00E1 assinatura\u0022\n\u002B  type        = string\n\u002B  default     = null\n\u002B}\n\u002B\n\u002B# ------------------------- Tags --------------------------------\n\u002Bvariable \u0022tags\u0022 {\n\u002B  description = \u0022Tags aplicadas aos recursos\u0022\n\u002B  type        = map(string)\n\u002B  default     = {}\n\u002B}\n",
+        "truncated": false,
+        "beforeHash": null,
+        "afterHash": "19fac6c497221c489d969a5922383c6d3904413e66cb6de671325e0582dae232"
+      },
+      {
+        "path": "infra/modules/sns/outputs.tf",
+        "op": "create",
+        "diff": "--- /dev/null\n\u002B\u002B\u002B b/infra/modules/sns/outputs.tf\n@@ -1,0 \u002B1,4 @@\n\u002Boutput \u0022topic_arn\u0022 {\n\u002B  description = \u0022ARN do t\u00F3pico de alarmes, usado pelos alarmes do CloudWatch\u0022\n\u002B  value       = aws_sns_topic.alarms.arn\n\u002B}\n",
+        "truncated": false,
+        "beforeHash": null,
+        "afterHash": "4f9ccdb26be302a06053e18a9bd0231c97752b7556c9ebf1c6cbb4a298c44212"
+      },
+      {
+        "path": "infra/modules/cloudwatch/resource.tf",
+        "op": "create",
+        "diff": "--- /dev/null\n\u002B\u002B\u002B b/infra/modules/cloudwatch/resource.tf\n@@ -1,0 \u002B1,20 @@\n\u002B# ------------------------- Dead-letter alarms ------------------\n\u002B# Uma mensagem na fila de mensagens mortas \u00E9 uma falha que se repetiu 5 vezes.\n\u002Bresource \u0022aws_cloudwatch_metric_alarm\u0022 \u0022dead_letters\u0022 {\n\u002B  for_each = toset(var.flows)\n\u002B\n\u002B  alarm_name          = \u0022${var.name_prefix}-${each.key}-dlq\u0022\n\u002B  alarm_description   = \u0022Mensagens na fila de mensagens mortas de ${each.key}\u0022\n\u002B  namespace           = \u0022AWS/SQS\u0022\n\u002B  metric_name         = \u0022ApproximateNumberOfMessagesVisible\u0022\n\u002B  dimensions          = { QueueName = \u0022${var.name_prefix}-${each.key}-dlq\u0022 }\n\u002B  statistic           = \u0022Maximum\u0022\n\u002B  period              = 300\n\u002B  evaluation_periods  = 1\n\u002B  threshold           = 0\n\u002B  comparison_operator = \u0022GreaterThanThreshold\u0022\n\u002B  treat_missing_data  = \u0022notBreaching\u0022\n\u002B  alarm_actions       = [var.topic_arn]\n\u002B  ok_actions          = [var.topic_arn]\n\u002B  tags                = var.tags\n\u002B}\n",
+        "truncated": false,
+        "beforeHash": null,
+        "afterHash": "3995ef78c34e57c8785e337a67fc5e62582123cabbdb4efd16209db90029a0e7"
+      },
+      {
+        "path": "infra/modules/cloudwatch/variables.tf",
+        "op": "create",
+        "diff": "--- /dev/null\n\u002B\u002B\u002B b/infra/modules/cloudwatch/variables.tf\n@@ -1,0 \u002B1,27 @@\n\u002B# ------------------------- Environment -------------------------\n\u002Bvariable \u0022name_prefix\u0022 {\n\u002B  description = \u0022Prefixo dos nomes: \u003Cprojeto\u003E-\u003Cambiente\u003E\u0022\n\u002B  type        = string\n\u002B\n\u002B  validation {\n\u002B    condition     = can(regex(\u0022^[a-z0-9-]\u002B$\u0022, var.name_prefix))\n\u002B    error_message = \u0022O prefixo deve conter apenas letras min\u00FAsculas, d\u00EDgitos e h\u00EDfens.\u0022\n\u002B  }\n\u002B}\n\u002B\n\u002Bvariable \u0022topic_arn\u0022 {\n\u002B  description = \u0022T\u00F3pico SNS que recebe os alarmes\u0022\n\u002B  type        = string\n\u002B}\n\u002B\n\u002Bvariable \u0022flows\u0022 {\n\u002B  description = \u0022Fluxos com fila de mensagens mortas\u0022\n\u002B  type        = list(string)\n\u002B}\n\u002B\n\u002B# ------------------------- Tags --------------------------------\n\u002Bvariable \u0022tags\u0022 {\n\u002B  description = \u0022Tags aplicadas aos recursos\u0022\n\u002B  type        = map(string)\n\u002B  default     = {}\n\u002B}\n",
+        "truncated": false,
+        "beforeHash": null,
+        "afterHash": "7e06a24609688de9562c87f0107e1a057acb5a27d964a4362155cf8d20c01f42"
+      },
+      {
+        "path": "infra/modules/sqs/resource.tf",
+        "op": "create",
+        "diff": "--- /dev/null\n\u002B\u002B\u002B b/infra/modules/sqs/resource.tf\n@@ -1,0 \u002B1,44 @@\n\u002B# ------------------------- Flows -------------------------------\n\u002B# Os fluxos s\u00E3o endere\u00E7os de recurso: renomear um destr\u00F3i a fila e as mensagens dela. Para renomear, use um bloco moved.\n\u002Blocals {\n\u002B  flows = toset(var.flows)\n\u002B}\n\u002B\n\u002B# ------------------------- Dead-letter queues ------------------\n\u002Bresource \u0022aws_sqs_queue\u0022 \u0022dlq\u0022 {\n\u002B  for_each = local.flows\n\u002B\n\u002B  name                      = \u0022${var.name_prefix}-${each.key}-dlq\u0022\n\u002B  message_retention_seconds = 1209600\n\u002B  sqs_managed_sse_enabled   = true\n\u002B  tags                      = var.tags\n\u002B}\n\u002B\n\u002B# ------------------------- Main queues -------------------------\n\u002Bresource \u0022aws_sqs_queue\u0022 \u0022main\u0022 {\n\u002B  for_each = local.flows\n\u002B\n\u002B  name                       = \u0022${var.name_prefix}-${each.key}\u0022\n\u002B  visibility_timeout_seconds = 180\n\u002B  message_retention_seconds  = 345600\n\u002B  receive_wait_time_seconds  = 20\n\u002B  sqs_managed_sse_enabled    = true\n\u002B  tags                       = var.tags\n\u002B\n\u002B  redrive_policy = jsonencode({\n\u002B    deadLetterTargetArn = aws_sqs_queue.dlq[each.key].arn\n\u002B    maxReceiveCount     = 5\n\u002B  })\n\u002B}\n\u002B\n\u002B# Recurso separado: a pol\u00EDtica dentro da fila de mensagens mortas criaria um ciclo entre as duas filas.\n\u002Bresource \u0022aws_sqs_queue_redrive_allow_policy\u0022 \u0022dlq\u0022 {\n\u002B  for_each = local.flows\n\u002B\n\u002B  queue_url = aws_sqs_queue.dlq[each.key].id\n\u002B\n\u002B  redrive_allow_policy = jsonencode({\n\u002B    redrivePermission = \u0022byQueue\u0022\n\u002B    sourceQueueArns   = [aws_sqs_queue.main[each.key].arn]\n\u002B  })\n\u002B}\n",
+        "truncated": false,
+        "beforeHash": null,
+        "afterHash": "5d2d5712be353d02c75a7d50ce3537171ff1c6a7dcec2e9cc1be25bf991afa3a"
+      },
+      {
+        "path": "infra/modules/sqs/variables.tf",
+        "op": "create",
+        "diff": "--- /dev/null\n\u002B\u002B\u002B b/infra/modules/sqs/variables.tf\n@@ -1,0 \u002B1,22 @@\n\u002B# ------------------------- Environment -------------------------\n\u002Bvariable \u0022name_prefix\u0022 {\n\u002B  description = \u0022Prefixo dos nomes: \u003Cprojeto\u003E-\u003Cambiente\u003E\u0022\n\u002B  type        = string\n\u002B\n\u002B  validation {\n\u002B    condition     = can(regex(\u0022^[a-z0-9-]\u002B$\u0022, var.name_prefix))\n\u002B    error_message = \u0022O prefixo deve conter apenas letras min\u00FAsculas, d\u00EDgitos e h\u00EDfens.\u0022\n\u002B  }\n\u002B}\n\u002B\n\u002Bvariable \u0022flows\u0022 {\n\u002B  description = \u0022Fluxos de mensagens; cada um vira uma fila standard e uma fila de mensagens mortas. Os nomes s\u00E3o endere\u00E7os de recurso: renomear destr\u00F3i a fila\u0022\n\u002B  type        = list(string)\n\u002B}\n\u002B\n\u002B# ------------------------- Tags --------------------------------\n\u002Bvariable \u0022tags\u0022 {\n\u002B  description = \u0022Tags aplicadas aos recursos\u0022\n\u002B  type        = map(string)\n\u002B  default     = {}\n\u002B}\n",
+        "truncated": false,
+        "beforeHash": null,
+        "afterHash": "72688867f9cdb3eab5c795e9d5fddf574300632f3ead45e1c4c987786311f89f"
+      },
+      {
+        "path": "infra/modules/sqs/outputs.tf",
+        "op": "create",
+        "diff": "--- /dev/null\n\u002B\u002B\u002B b/infra/modules/sqs/outputs.tf\n@@ -1,0 \u002B1,11 @@\n\u002Boutput \u0022queues\u0022 {\n\u002B  description = \u0022Filas por fluxo: URL e ARN da fila principal e da fila de mensagens mortas\u0022\n\u002B  value = {\n\u002B    for key, queue in aws_sqs_queue.main : key =\u003E {\n\u002B      url      = queue.url\n\u002B      arn      = queue.arn\n\u002B      dlq_arn  = aws_sqs_queue.dlq[key].arn\n\u002B      dlq_name = aws_sqs_queue.dlq[key].name\n\u002B    }\n\u002B  }\n\u002B}\n",
+        "truncated": false,
+        "beforeHash": null,
+        "afterHash": "2b2acb289eeb7ccfcb521029fbea13b71089f940ebe525263820f6cf4e560e91"
+      },
+      {
+        "path": ".gitignore",
+        "op": "create",
+        "diff": "--- /dev/null\n\u002B\u002B\u002B b/.gitignore\n@@ -1,0 \u002B1,7 @@\n\u002B# Infraestrutura como c\u00F3digo: state, planos e valores n\u00E3o v\u00E3o para o reposit\u00F3rio.\n\u002B**/.terraform/\n\u002B*.tfstate\n\u002B*.tfstate.*\n\u002B*.tfplan\n\u002Bterraform.tfvars\n\u002Bcrash.log\n",
+        "truncated": false,
+        "beforeHash": null,
+        "afterHash": "62b17a83f6245dd61f27857dc429e99c46fd958472b39ad3cb396ee93d7576db"
+      }
+    ],
+    "checks": [
+      {
+        "id": "provider",
+        "description": "Nuvem suportada na gera\u00E7\u00E3o (aws)",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "project",
+        "description": "Nome do projeto em min\u00FAsculas, d\u00EDgitos e h\u00EDfen, at\u00E9 18 caracteres",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "region",
+        "description": "Regi\u00E3o AWS no formato sa-east-1",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "account",
+        "description": "Conta AWS com 12 d\u00EDgitos, quando informada",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "profile",
+        "description": "Perfil com letras, d\u00EDgitos, ponto, h\u00EDfen e sublinhado, quando informado",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "queues",
+        "description": "At\u00E9 8 filas, nomes em min\u00FAsculas, d\u00EDgitos e h\u00EDfen, sem repetir",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "components",
+        "description": "Ao menos um componente: servi\u00E7o, banco ou fila",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "alarm-email",
+        "description": "E-mail de alarme v\u00E1lido, quando informado",
+        "passed": true,
+        "detail": null
+      }
+    ],
+    "costs": [
+      {
+        "resource": "SQS (1 fila(s) e suas filas de mensagens mortas)",
+        "billing": "Por requisi\u00E7\u00E3o."
+      },
+      {
+        "resource": "CloudWatch Alarms e SNS",
+        "billing": "Por alarme por m\u00EAs e por notifica\u00E7\u00E3o enviada."
+      },
+      {
+        "resource": "Transfer\u00EAncia de dados",
+        "billing": "Sa\u00EDda para a internet por GB."
+      }
+    ],
+    "notes": [
+      "Sem backend remoto: o state fica local at\u00E9 voc\u00EA criar o bucket com o bootstrap e colar o bloco backend \u0022s3\u0022 em providers.tf."
+    ]
+  }
+}

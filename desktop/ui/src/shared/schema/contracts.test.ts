@@ -7,7 +7,9 @@ import cloudLinksFixture from '@contracts/fixtures/cloud/links.json';
 import cloudReadFixture from '@contracts/fixtures/cloud/read.json';
 import iacLayoutFixture from '@contracts/fixtures/iac/layout.json';
 import iacOfferFixture from '@contracts/fixtures/iac/offer.json';
+import iacArchitectDraftFixture from '@contracts/fixtures/iac/architect-draft.json';
 import iacBootstrapFixture from '@contracts/fixtures/iac/bootstrap-plan.json';
+import iacGeneratePlanFixture from '@contracts/fixtures/iac/generate-plan.json';
 import iacOperationsFixture from '@contracts/fixtures/iac/operations.json';
 import iacStateResourcesFixture from '@contracts/fixtures/iac/state-resources.json';
 import iacStateFixture from '@contracts/fixtures/iac/state.json';
@@ -74,7 +76,9 @@ import {
   cloudConnectionListSchema,
   cloudLinkListSchema,
   cloudReadResultSchema,
+  iacArchitectDraftSchema,
   iacBootstrapPlanSchema,
+  iacGeneratePlanSchema,
   iacLayoutSchema,
   iacStateReadSchema,
   iacStateReportSchema,
@@ -954,5 +958,17 @@ describe('contrato do assistente do portfólio (fixtures do motor)', () => {
     const plan = iacBootstrapPlanSchema.parse(iacBootstrapFixture).plan;
     expect(plan.changes.map((change) => change.path)).toContain('infra/bootstrap/resource.tf');
     expect(plan.backendBlock).toMatch(/use_lockfile\s+= true/);
+  });
+
+  it('aceita o desenho proposto e o plano de geração do Terraform no modelo', () => {
+    const draft = iacArchitectDraftSchema.parse(iacArchitectDraftFixture).draft;
+    expect(draft.valid).toBe(true);
+    expect(draft.blueprint?.service?.cpu).toBe(512);
+    expect(draft.notes?.services[0]?.name).toBe('ECS Fargate');
+    const generated = iacGeneratePlanSchema.parse(iacGeneratePlanFixture).plan;
+    expect(generated.root).toBe('infra');
+    expect(generated.changes.map((change) => change.path)).toContain('infra/modules/sqs/resource.tf');
+    expect(generated.checks.every((check) => check.passed)).toBe(true);
+    expect(generated.costs.length).toBeGreaterThan(0);
   });
 });

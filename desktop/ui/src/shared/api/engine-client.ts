@@ -120,7 +120,10 @@ export const ENGINE_METHODS = [
   'iac.state.resources',
   'iac.state.unlock',
   'iac.bootstrap.plan',
-  'iac.bootstrap.save'
+  'iac.bootstrap.save',
+  'iac.architect.draft',
+  'iac.generate.plan',
+  'iac.generate.save'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

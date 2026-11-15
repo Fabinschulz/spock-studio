@@ -246,6 +246,14 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                 yield return Entry("", AuditCategories.Change, $"Bootstrap do state gravado ({Clean(Text(d, "provider"))})",
                     $"{Count(d, "files")} arquivo(s) em {Clean(Text(d, "folder"))}. O bucket só é criado depois, pelo plano e apply aprovados.");
                 break;
+            case "iac.generated":
+                yield return Entry("", AuditCategories.Change, $"Infraestrutura gerada no modelo ({Clean(Text(d, "provider"))})",
+                    $"{Count(d, "files")} arquivo(s) em {Clean(Text(d, "folder"))}. Nada foi criado na nuvem: isso só acontece pelo plano e apply aprovados.");
+                break;
+            case "iac.architecture_drafted":
+                yield return Entry("", AuditCategories.Read, "Desenho de infraestrutura proposto pela IA",
+                    $"{Count(d, "attempts")} tentativa(s), {Count(d, "inputTokens")} tokens de entrada e {Count(d, "outputTokens")} de saída. Nada foi gravado.");
+                break;
             case "iac.state_read":
                 yield return Entry("", AuditCategories.Read, "State de infraestrutura consultado",
                     $"Pasta {Clean(Text(d, "folder"))}, ambiente {Clean(Text(d, "workspace"))}: {Count(d, "resources")} recurso(s). Só endereços, nenhum valor.");

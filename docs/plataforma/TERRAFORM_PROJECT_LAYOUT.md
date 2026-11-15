@@ -238,7 +238,7 @@ dispara, como trocar segredo, voltar versão e renomear chave sem destruir recur
 | Situação | O que o Spock faz |
 | --- | --- |
 | Gerar o bootstrap do state | `<raiz de IaC>/bootstrap/` na árvore, estilo e proteções da seção 5, para AWS, Azure ou Google ([TERRAFORM_STATE_MANAGEMENT.md](TERRAFORM_STATE_MANAGEMENT.md), seção 3) |
-| Gerar Terraform para um projeto | Cria `infra/` com esta árvore, os cabeçalhos de seção, `validation` nas variáveis, guarda de workspace, tags em `locals`, lock por pasta e o README nas seções da seção 11 |
+| Gerar Terraform para um projeto | Cria `infra/` (ou a raiz de IaC que o projeto já tem) com esta árvore, os cabeçalhos de seção, `validation` nas variáveis, guarda de workspace, `name_prefix` e tags em `locals`, um módulo por serviço (SNS, CloudWatch, SQS, ECR, Secrets Manager, IAM, ALB, ECS Fargate e RDS), `terraform.tfvars.example` e o README nas seções da seção 11, a partir de um desenho conferido e de modelos fixos, nunca de HCL escrito pela IA ([TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md), seção 5) |
 | Ler um `infra/` existente | Descobre as pastas com `.tf`, lê `required_version` e `required_providers`, os workspaces e o backend; aponta o que diverge do modelo como sugestão, sem reescrever |
 | Validar | `fmt -check -recursive` e `validate` por pasta, exatamente como a seção 10, com a ferramenta fixada no projeto (OpenTofu por padrão) |
 | Planejar | Na raiz, no workspace escolhido, com `-out` guardado pelo Spock ([TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md)) |

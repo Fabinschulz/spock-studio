@@ -33,6 +33,10 @@ depois de uma recusa.
   `--project`.
 - **State**: tratado como segredo ([TERRAFORM_STATE_MANAGEMENT.md](TERRAFORM_STATE_MANAGEMENT.md)).
 - **Destruição**: destaque e segunda confirmação para qualquer `delete` ou substituição.
+- **Geração**: a IA nunca escreve HCL; ela propõe um desenho em dados, que passa por checagens determinísticas, e
+  modelos fixos escrevem os arquivos. Ids da conta (conta, VPC, subnets, certificado, bucket, e-mail) não vão para o
+  modelo de linguagem e, na resposta dele, são substituídos pelos que a pessoa informou. Senhas nunca entram no
+  Terraform: o segredo nasce sem valor e a senha do banco fica com o próprio RDS.
 - **Trilha**: instalação, recusa, adoção, versão do projeto, remoção, planos, aprovações e applies na `audit.ndjson`,
   com ids e contagens, nunca valores.
 
@@ -49,7 +53,7 @@ Checagens determinísticas sobre `show -json`, avisando antes da aprovação:
 
 Os achados não bloqueiam sozinhos: aparecem na aprovação, e os graves pedem confirmação extra.
 
-## 4. O que já está implementado (entregas 1 a 4)
+## 4. O que já está implementado (entregas 1 a 5)
 
 - OpenTofu (gratuito, MPL 2.0) como padrão; Terraform liberado por escolha explícita (licença com o jurídico).
 - Instalação só com autorização, ligada à proposta (`offerId`), recusa respeitada.
@@ -62,5 +66,6 @@ Os achados não bloqueiam sozinhos: aparecem na aprovação, e os graves pedem c
 - Aprovação vinculada ao plano exato (id, hash do arquivo e da configuração, configuração do projeto inalterada, prazo de 24 h, plano mais recente, mesma ferramenta); destruição, achados graves e produção pedem confirmação a mais; o plano vale uma vez e o arquivo é apagado depois.
 - Apply só do arquivo aprovado, com verificação por plano seguinte limpo; nenhuma ferramenta MCP aplica.
 - State: credenciais do bloco backend nunca lidas; state no git, sem trava, sem criptografia e dividido entre projetos apontados; plano recusado se outro projeto usa o mesmo state; state local devolvido ao projeto só se não mudou desde o plano (senão fica em recuperação); force-unlock só com confirmação.
-- Escopo de escrita `Infrastructure`: o Spock grava `.tf`, `.tofu` e o `.gitignore` da raiz só por execução aprovada e reversível; state, `.tfvars` e código ficam fora.
+- Escopo de escrita `Infrastructure`: o Spock grava `.tf`, `.tofu`, `.tfvars.example`, o `README.md` de uma pasta e o `.gitignore` da raiz só por execução aprovada e reversível; state, `.tfvars` e código ficam fora.
+- Geração no modelo com padrões seguros: banco privado, criptografado e com proteção contra exclusão; ECR com tag imutável; load balancer só HTTPS (TLS 1.3); tarefas que só aceitam o load balancer; IAM sem curinga de serviço; trava de conta no provider; `MARILIZ_LIVE_IAC_PROVIDERS` prova `fmt` e `validate` com o provider real.
 - Achados de segurança do plano (seção 3) já calculados: destruição, substituição, entrada aberta para a internet, IAM com curinga, ECR com tag mutável, banco público, S3 sem bloqueio público, NSG e firewall abertos, bucket público no Google.
