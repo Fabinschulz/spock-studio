@@ -51,6 +51,18 @@ def language_of(path: str) -> str:
     return _LANGUAGE.get(path.rsplit(".", 1)[-1].lower() if "." in path else "", "text")
 
 
+_TEST_DIRS = {"test", "tests", "__tests__", "spec", "specs", "fixtures", "__fixtures__", "testdata", "e2e"}
+_TEST_FILE = re.compile(r"(\.(test|spec)\.[a-z]+$)|(^test_.+\.py$)|(_test\.(py|go)$)|(Tests?\.(cs|java|kt)$)")
+
+
+def is_test_path(path: str) -> bool:
+    """Teste, fixture ou dado de teste: pasta de testes, projeto ``*.Tests`` ou nome de arquivo de teste das linguagens comuns."""
+    parts = path.split("/")
+    if any(part.lower() in _TEST_DIRS or part.endswith((".Tests", ".IntegrationTests", ".UnitTests")) for part in parts[:-1]):
+        return True
+    return _TEST_FILE.search(parts[-1]) is not None
+
+
 def chunk(path: str, text: str) -> list[Chunk]:
     language = language_of(path)
     if language == "markdown":
