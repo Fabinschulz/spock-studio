@@ -76,9 +76,10 @@ public sealed class WorkflowService(
     private Task<RunHandle> ResumeFromJournal(string projectId, string runId, ResumeDecision decision)
     {
         var journal = store.LoadJournal(projectId, runId);
-        if (journal is null || journal.Kind != Kind || journal.State != RunStates.AwaitingApproval
+        if (journal is null || journal.Kind != Kind) throw EngineErrors.RunNotFound();
+        if (journal.State != RunStates.AwaitingApproval
             || string.IsNullOrEmpty(journal.ExecutionId) || string.IsNullOrEmpty(journal.InterruptId) || string.IsNullOrEmpty(journal.ApprovalId))
-            throw EngineErrors.RunNotFound();
+            throw EngineErrors.RunNotResumable();
 
         // Antes de religar qualquer coisa: o diário em disco precisa ainda bater com a aprovação que foi aberta.
         ApprovalBinding.EnsureDecision(journal, decision.ApprovalId, decision.ActionIds);
@@ -251,6 +252,9 @@ public sealed class WorkflowService(
             run.Complete(stored.State, new JsonObject { ["kind"] = Kind });
             return;
         }
+
+        // Sem cancelar no runtime nem marcar o diário: é o que ResumeFromJournal precisa encontrar depois do reinício.
+        if (run.Suspending && stored?.State == RunStates.AwaitingApproval) return;
 
         await runtime.CancelAsync(run.RunId, run.ProjectId, context.DataRoot);
         _journal.Cancel(journal);

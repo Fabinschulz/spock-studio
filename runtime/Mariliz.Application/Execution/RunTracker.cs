@@ -68,7 +68,12 @@ public sealed class RunTracker
     {
         List<RunHandle> running;
         lock (_gate) running = _runs.Values.Where(r => !RunStates.IsTerminal(r.State)).ToList();
-        foreach (var run in running) run.Cancellation.Cancel();
+        // Uma aprovação pendente sobrevive ao encerramento: o diário e o checkpoint do runtime ficam, e workflow.resume a retoma no próximo motor.
+        foreach (var run in running)
+        {
+            if (run.State == RunStates.AwaitingApproval) run.Suspend();
+            else run.Cancellation.Cancel();
+        }
         var tasks = running.Select(r => r.Completion).Where(t => t is not null).Cast<Task>().ToArray();
         if (tasks.Length == 0) return;
         await Task.WhenAny(Task.WhenAll(tasks), Task.Delay(timeout));

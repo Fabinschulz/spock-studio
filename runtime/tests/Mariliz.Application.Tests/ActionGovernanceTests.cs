@@ -25,7 +25,14 @@ public class ActionGovernanceTests
         public string Probe() => "ready";
         public Task<IReadOnlyDictionary<string, string>> IndexedHashesAsync(string projectId, string indexRoot, CancellationToken ct) =>
             Task.FromResult<IReadOnlyDictionary<string, string>>(new Dictionary<string, string>());
-        public Task CancelAsync(string runId, string? projectId = null, string? executionRoot = null) => Task.CompletedTask;
+        public List<string> Cancelled { get; } = [];
+
+        public Task CancelAsync(string runId, string? projectId = null, string? executionRoot = null)
+        {
+            Cancelled.Add(runId);
+            return Task.CompletedTask;
+        }
+
         public Task ShutdownAsync() => Task.CompletedTask;
 
         public Task<WorkflowAck> StartAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct)
@@ -311,6 +318,47 @@ public class ActionGovernanceTests
         Assert.True(File.Exists(DecisionPath(rig.Project, executionId)));
         Assert.Equal(["act-decisao-impacto"], runtime.Resumed!["decision"]!["actionIds"]!.AsArray().Select(a => a!.GetValue<string>()));
         Assert.Single(rig.Executor.Executed);
+    }
+
+    // Validação real A2: fechar o aplicativo com uma aprovação aberta cancelava a execução, e a retomada dizia que ela não existia.
+    [Fact]
+    public async Task Encerrar_o_motor_com_aprovacao_pendente_deixa_retomar_no_proximo()
+    {
+        using var rig = new Rig();
+        var first = new ProposingRuntime(ex => [Intent()]);
+        var (service, tracker) = rig.NewEngine(first);
+        var (run, approvalId, executionId) = await PauseAsync(service, rig.ProjectId);
+
+        await tracker.CancelAllAndWaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.True(run.Completion!.IsCompleted);
+        Assert.Equal(RunStates.AwaitingApproval, rig.Store.LoadJournal(rig.ProjectId, run.RunId)!.State);
+        Assert.Empty(first.Cancelled);
+        Assert.Empty(rig.Executor.Executed);
+
+        var (restarted, _) = rig.NewEngine(new ProposingRuntime(_ => []));
+        await (await restarted.ResumeAsync(rig.ProjectId, run.RunId, new ResumeDecision(approvalId, ["act-decisao-impacto"]))).Completion!;
+
+        Assert.True(File.Exists(DecisionPath(rig.Project, executionId)));
+        Assert.Single(rig.Executor.Executed);
+    }
+
+    [Fact]
+    public async Task Cancelar_pela_pessoa_uma_aprovacao_pendente_continua_cancelando()
+    {
+        using var rig = new Rig();
+        var runtime = new ProposingRuntime(ex => [Intent()]);
+        var (service, tracker) = rig.NewEngine(runtime);
+        var (run, approvalId, _) = await PauseAsync(service, rig.ProjectId);
+
+        Assert.True(tracker.Cancel(run.RunId));
+        await run.Completion!;
+
+        Assert.Equal(RunStates.Cancelled, rig.Store.LoadJournal(rig.ProjectId, run.RunId)!.State);
+        Assert.Equal([run.RunId], runtime.Cancelled);
+        var (restarted, _) = rig.NewEngine(new ProposingRuntime(_ => []));
+        var refused = await Assert.ThrowsAsync<EngineException>(() => restarted.ResumeAsync(rig.ProjectId, run.RunId, new ResumeDecision(approvalId, ["act-decisao-impacto"])));
+        Assert.Equal("RUN_NOT_RESUMABLE", refused.Code);
     }
 
     [Fact]
