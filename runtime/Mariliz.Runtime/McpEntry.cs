@@ -11,8 +11,19 @@ namespace Mariliz.Runtime;
 // Modo iniciado pela IDE: só lê o que o aplicativo já gravou, anota cada leitura na trilha de auditoria e nunca autoriza pasta nova.
 internal static class McpEntry
 {
-    public static async Task<int> RunAsync(CancellationToken ct)
+    public static async Task<int> RunAsync(string[] args, CancellationToken ct)
     {
+        McpOptions options;
+        try
+        {
+            options = McpOptions.Parse(args);
+        }
+        catch (McpOptionsException ex)
+        {
+            Console.Error.WriteLine(ex.Message);
+            return 2;
+        }
+
         var dataRoot = FileRunStore.DefaultDataRoot();
         var clock = new SystemClock();
         // Um Python só deste processo, subido na primeira busca: o do aplicativo tem token próprio e pode nem estar aberto.
@@ -26,7 +37,8 @@ internal static class McpEntry
             Environment.CurrentDirectory,
             runtime,
             dataRoot,
-            new FileAuditLog(dataRoot, clock));
+            new FileAuditLog(dataRoot, clock),
+            options.Scope);
         try
         {
             await new McpServer(BuildInfo.Version, tools.Tools()).RunAsync(Console.In, Console.Out, ct);

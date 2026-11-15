@@ -20,7 +20,8 @@ public sealed class ProjectContextTools(
     string workingDirectory,
     IKnowledgeSearchRuntime? search = null,
     string? indexRoot = null,
-    IAuditLog? audit = null)
+    IAuditLog? audit = null,
+    IReadOnlySet<string>? scope = null)
 {
     public const int DefaultBriefingChars = 6000;
     public const int MinChars = 1000;
@@ -121,14 +122,16 @@ public sealed class ProjectContextTools(
 
     private string RenderProjects()
     {
-        var resolver = new McpProjectResolver(workspaces(), workingDirectory);
+        var resolver = new McpProjectResolver(workspaces(), workingDirectory, scope);
         var projects = resolver.Projects();
         if (projects.Count == 0)
-            return "Nenhum projeto aberto no Spock ainda. Abra a pasta do projeto no aplicativo para liberar o contexto dele.";
+            return scope is null
+                ? "Nenhum projeto aberto no Spock ainda. Abra a pasta do projeto no aplicativo para liberar o contexto dele."
+                : "Nenhum dos projetos desta conexão está aberto no Spock. Abra a pasta no aplicativo ou ajuste o --project da configuração.";
         var current = resolver.Current()?.ProjectId;
         return string.Join("\n", projects
             .Select(project => $"- {project.DisplayName} · id {project.ProjectId} · {project.DisplayPath}{(project.ProjectId == current ? " (pasta atual)" : "")}")
-            .Prepend("Projetos abertos no Spock:"));
+            .Prepend(scope is null ? "Projetos abertos no Spock:" : "Projetos disponíveis para esta conexão:"));
     }
 
     private string RenderBriefing(McpCall call)
@@ -249,7 +252,7 @@ public sealed class ProjectContextTools(
     }
 
     private AuthorizedProject Resolve(WorkspaceAuthorizer workspace, JsonObject args) =>
-        new McpProjectResolver(workspace, workingDirectory).Resolve(McpArguments.Text(args, "project", MaxProjectArgument));
+        new McpProjectResolver(workspace, workingDirectory, scope).Resolve(McpArguments.Text(args, "project", MaxProjectArgument));
 
     private HarnessStatus? Harness(WorkspaceAuthorizer workspace, string projectId)
     {
