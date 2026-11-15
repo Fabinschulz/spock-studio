@@ -37,4 +37,38 @@ public sealed class LocalWorkspaceFileSystem : IWorkspaceFileSystem
             return false;
         }
     }
+
+    private const long MaxManifestBytes = 256 * 1024;
+    private const int MaxRootFiles = 500;
+
+    public IReadOnlyList<string> RootFiles(string directory)
+    {
+        try
+        {
+            return new DirectoryInfo(directory).EnumerateFiles()
+                .Where(file => !file.Attributes.HasFlag(FileAttributes.ReparsePoint))
+                .Take(MaxRootFiles)
+                .Select(file => file.Name)
+                .ToList();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return [];
+        }
+    }
+
+    public string? ReadRootFile(string directory, string fileName)
+    {
+        if (Path.GetFileName(fileName) != fileName) return null;
+        try
+        {
+            var file = new FileInfo(Path.Combine(directory, fileName));
+            if (!file.Exists || file.Attributes.HasFlag(FileAttributes.ReparsePoint) || file.Length > MaxManifestBytes) return null;
+            return File.ReadAllText(file.FullName);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
 }

@@ -1,11 +1,11 @@
 {
-  "planId": "sec-34fe0aa07be6",
+  "planId": "sec-ff0bebae36fa",
   "projectId": "p-000000000001",
   "changes": [
     {
       "path": ".gitignore",
       "op": "update",
-      "diff": "--- a/.gitignore\r\n+++ b/.gitignore\r\n@@ -1,2 +1,6 @@\r\n node_modules/\r\n .env.local\r\n+\r\n+# Arquivos sensíveis (Spock Studio)\r\n+/.env\r\n+/certs/ca.pem\r\n",
+      "diff": "--- a/.gitignore\n+++ b/.gitignore\n@@ -1,2 +1,6 @@\n node_modules/\n .env.local\n+\n+# Arquivos sensíveis (Spock Studio)\n+/.env\n+/certs/ca.pem\n",
       "truncated": false,
       "beforeHash": "1dcdd7202a73085b6afb072ead1b3105d699d8cfafe20564f9298dce9e524cf4",
       "afterHash": "213a44a4f080276b0ff1e22b63bda1faac7805eb08564094d53370cabe36664f"
@@ -13,10 +13,10 @@
     {
       "path": ".claude/settings.json",
       "op": "update",
-      "diff": "--- a/.claude/settings.json\r\n+++ b/.claude/settings.json\r\n@@ -1,7 +1,9 @@\r\n {\r\n   \"permissions\": {\r\n-    \"defaultMode\": \"bypassPermissions\",\r\n-    \"allow\": [\"Bash\", \"Bash(npm test)\", \"Read\"]\r\n+    \"allow\": [\r\n+      \"Bash(npm test)\",\r\n+      \"Read\"\r\n+    ]\r\n   },\r\n   \"hooks\": {}\r\n }\r\n",
+      "diff": "--- a/.claude/settings.json\n+++ b/.claude/settings.json\n@@ -1,7 +1,9 @@\n {\n   \"permissions\": {\n-    \"defaultMode\": \"bypassPermissions\",\n-    \"allow\": [\"Bash\", \"Bash(npm test)\", \"Read\"]\n+    \"allow\": [\n+      \"Bash(npm test)\",\n+      \"Read\"\n+    ]\n   },\n   \"hooks\": {}\n }\n",
       "truncated": false,
       "beforeHash": "ba7047bb245d8b72d1a19ccc6c907ebcb5368c7b1ef30d326ee683fb88814ddd",
-      "afterHash": "4fc7aa0562ecc99154c77ce5a951ee514c735eec6ad1b57f80f9e65578a6bbcd"
+      "afterHash": "d5a0ae6e7b42d918eb8d100d803aa7a37577db489abe362275ca087af193b895"
     }
   ],
   "findingIds": [

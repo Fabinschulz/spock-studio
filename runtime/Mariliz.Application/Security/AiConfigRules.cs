@@ -19,7 +19,8 @@ internal static class AiConfigRules
     private static readonly HashSet<string> UnrestrictedBash = new(StringComparer.Ordinal) { "Bash", "Bash(*)", "Bash(:*)" };
     private static readonly Regex FullAccess = new(@"^\s*sandbox_mode\s*=\s*""danger-full-access""", RegexOptions.Multiline);
     private static readonly Regex NoApproval = new(@"^\s*approval_policy\s*=\s*""never""", RegexOptions.Multiline);
-    private static readonly JsonSerializerOptions Indented = new() { WriteIndented = true };
+    // Sem NewLine, o JSON indentado sairia com \r\n no Windows: o arquivo corrigido e o hash dele mudariam com o sistema.
+    private static readonly JsonSerializerOptions Indented = new() { WriteIndented = true, NewLine = "\n" };
 
     public static IEnumerable<(string Path, string Rule)> Inspect(IProjectFiles files)
     {

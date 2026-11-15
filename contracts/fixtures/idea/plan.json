@@ -5,7 +5,7 @@
     {
       "path": ".mariliz/arquitetura/especificacao.md",
       "op": "create",
-      "diff": "--- /dev/null\r\n+++ b/.mariliz/arquitetura/especificacao.md\r\n@@ -1,0 +1,38 @@\r\n+# Pedidos da loja\r\n+\r\n+Especificação gerada a partir de uma ideia no Spock Studio e aprovada etapa por etapa.\r\n+\r\n+## Ideia\r\n+\r\n+Um app para lojistas acompanharem pedidos e avisarem o cliente quando o pedido sair para entrega.\r\n+\r\n+## Problema\r\n+\r\n+O lojista não sabe onde está cada pedido. O cliente pergunta por telefone.\r\n+\r\n+## Usuários\r\n+\r\n+- Lojista\r\n+- Cliente\r\n+\r\n+## Objetivos\r\n+\r\n+- Menos ligações de clientes\r\n+\r\n+## Requisitos\r\n+\r\n+- **REQ-01** (must): Quando um pedido for criado, o sistema deve registrá-lo como recebido.\r\n+- **REQ-02** (must): Quando o pedido sair para entrega, o sistema deve avisar o cliente.\r\n+- **REQ-03** (could): O sistema deve mostrar ao lojista os pedidos do dia.\r\n+\r\n+## Requisitos não funcionais\r\n+\r\n+- **NFR-01**: O sistema deve responder em até dois segundos.\r\n+\r\n+## Fora do escopo\r\n+\r\n+- Pagamento\r\n+\r\n+## Perguntas em aberto\r\n+\r\n+- O aviso é por e-mail ou mensagem?\r\n",
+      "diff": "--- /dev/null\n+++ b/.mariliz/arquitetura/especificacao.md\n@@ -1,0 +1,38 @@\n+# Pedidos da loja\n+\n+Especificação gerada a partir de uma ideia no Spock Studio e aprovada etapa por etapa.\n+\n+## Ideia\n+\n+Um app para lojistas acompanharem pedidos e avisarem o cliente quando o pedido sair para entrega.\n+\n+## Problema\n+\n+O lojista não sabe onde está cada pedido. O cliente pergunta por telefone.\n+\n+## Usuários\n+\n+- Lojista\n+- Cliente\n+\n+## Objetivos\n+\n+- Menos ligações de clientes\n+\n+## Requisitos\n+\n+- **REQ-01** (must): Quando um pedido for criado, o sistema deve registrá-lo como recebido.\n+- **REQ-02** (must): Quando o pedido sair para entrega, o sistema deve avisar o cliente.\n+- **REQ-03** (could): O sistema deve mostrar ao lojista os pedidos do dia.\n+\n+## Requisitos não funcionais\n+\n+- **NFR-01**: O sistema deve responder em até dois segundos.\n+\n+## Fora do escopo\n+\n+- Pagamento\n+\n+## Perguntas em aberto\n+\n+- O aviso é por e-mail ou mensagem?\n",
       "truncated": false,
       "beforeHash": null,
       "afterHash": "087a45a50efd88078febce6b3daa3f4038a62593d3b535516be3d3e97cba730b"
@@ -13,7 +13,7 @@
     {
       "path": ".mariliz/arquitetura/arquitetura.md",
       "op": "create",
-      "diff": "--- /dev/null\r\n+++ b/.mariliz/arquitetura/arquitetura.md\r\n@@ -1,0 +1,30 @@\r\n+# Arquitetura\r\n+\r\n+**Estilo:** Monólito modular\r\n+\r\n+Uma API com um painel web e um serviço de avisos.\r\n+\r\n+## Componentes\r\n+\r\n+- **CMP-01 Pedidos**: Guarda e muda o estado dos pedidos. Atende a REQ-01, REQ-03.\r\n+- **CMP-02 Avisos**: Avisa o cliente. Atende a REQ-02.\r\n+\r\n+## Stack\r\n+\r\n+- **backend**: .NET. Equipe já conhece.\r\n+\r\n+## Dados\r\n+\r\n+- Pedido no PostgreSQL\r\n+\r\n+## Integrações\r\n+\r\n+- Serviço de e-mail\r\n+\r\n+## Riscos\r\n+\r\n+- Aviso duplicado. Mitigação: Chave de idempotência por pedido.\r\n+\r\n+## Decisões\r\n+\r\n+- **Banco**: PostgreSQL. Relacional e simples.\r\n",
+      "diff": "--- /dev/null\n+++ b/.mariliz/arquitetura/arquitetura.md\n@@ -1,0 +1,30 @@\n+# Arquitetura\n+\n+**Estilo:** Monólito modular\n+\n+Uma API com um painel web e um serviço de avisos.\n+\n+## Componentes\n+\n+- **CMP-01 Pedidos**: Guarda e muda o estado dos pedidos. Atende a REQ-01, REQ-03.\n+- **CMP-02 Avisos**: Avisa o cliente. Atende a REQ-02.\n+\n+## Stack\n+\n+- **backend**: .NET. Equipe já conhece.\n+\n+## Dados\n+\n+- Pedido no PostgreSQL\n+\n+## Integrações\n+\n+- Serviço de e-mail\n+\n+## Riscos\n+\n+- Aviso duplicado. Mitigação: Chave de idempotência por pedido.\n+\n+## Decisões\n+\n+- **Banco**: PostgreSQL. Relacional e simples.\n",
       "truncated": false,
       "beforeHash": null,
       "afterHash": "7c90e505f073e9a3e03b960c766a19ba081e958a87b594b404aa4e744f0b6aad"
@@ -21,7 +21,7 @@
     {
       "path": ".mariliz/arquitetura/backlog.md",
       "op": "create",
-      "diff": "--- /dev/null\r\n+++ b/.mariliz/arquitetura/backlog.md\r\n@@ -1,0 +1,15 @@\r\n+# Backlog\r\n+\r\n+## EPIC-01 Ciclo do pedido\r\n+\r\n+### US-01 Como lojista, quero registrar pedidos para acompanhá-los\r\n+\r\n+Requisitos: REQ-01, REQ-03. Estimativa: P.\r\n+\r\n+- [ ] Dado um pedido novo, quando salvo, então ele aparece como recebido\r\n+\r\n+### US-02 Como cliente, quero ser avisado da entrega para me organizar\r\n+\r\n+Requisitos: REQ-02. Estimativa: M.\r\n+\r\n+- [ ] Dado um pedido em entrega, quando o estado muda, então o cliente recebe o aviso\r\n",
+      "diff": "--- /dev/null\n+++ b/.mariliz/arquitetura/backlog.md\n@@ -1,0 +1,15 @@\n+# Backlog\n+\n+## EPIC-01 Ciclo do pedido\n+\n+### US-01 Como lojista, quero registrar pedidos para acompanhá-los\n+\n+Requisitos: REQ-01, REQ-03. Estimativa: P.\n+\n+- [ ] Dado um pedido novo, quando salvo, então ele aparece como recebido\n+\n+### US-02 Como cliente, quero ser avisado da entrega para me organizar\n+\n+Requisitos: REQ-02. Estimativa: M.\n+\n+- [ ] Dado um pedido em entrega, quando o estado muda, então o cliente recebe o aviso\n",
       "truncated": false,
       "beforeHash": null,
       "afterHash": "886d841a62981e3158431762520e9e564b1c5a0cf01d698fb365632c6d25aa3c"

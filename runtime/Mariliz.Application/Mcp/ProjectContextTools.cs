@@ -21,7 +21,8 @@ public sealed class ProjectContextTools(
     IKnowledgeSearchRuntime? search = null,
     string? indexRoot = null,
     IAuditLog? audit = null,
-    IReadOnlySet<string>? scope = null)
+    IReadOnlySet<string>? scope = null,
+    Func<WorkspaceAuthorizer, ManagementService>? management = null)
 {
     public const int DefaultBriefingChars = 6000;
     public const int MinChars = 1000;
@@ -52,7 +53,8 @@ public sealed class ProjectContextTools(
 
     public static readonly McpToolInfo Briefing = new(
         "project_briefing", "Resumo do projeto",
-        "Resumo compacto do projeto: tecnologias e versões, comandos de build e teste, estado do Harness e decisões recentes. " +
+        "Resumo compacto do projeto: tecnologias e versões, comandos de build e teste, estado do Harness, integrações vinculadas, " +
+        "indicadores de entrega, riscos e marcos calculados pelo Spock, e decisões recentes. " +
         "Use antes de planejar uma mudança.",
         new JsonObject
         {
@@ -140,7 +142,8 @@ public sealed class ProjectContextTools(
         var workspace = workspaces();
         var project = Resolve(workspace, call.Arguments);
         var sections = ProjectBriefing.Sections(project, profiles.Read(project.ProjectId), Harness(workspace, project.ProjectId),
-            new DecisionMemory(workspace, decisions).Documents(project.ProjectId)).ToList();
+            new DecisionMemory(workspace, decisions).Documents(project.ProjectId), Management(workspace, project.ProjectId),
+            management is not null).ToList();
         Audit(project.ProjectId, Briefing.Name, call.Client, sections.Count, []);
         return McpText.Fit(sections, maxChars, "Peça de novo com max_chars maior se precisar do resto.");
     }
@@ -261,6 +264,20 @@ public sealed class ProjectContextTools(
             return new HarnessStatusService(workspace, files, clock).Inspect(projectId);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
+    private ManagementSnapshot? Management(WorkspaceAuthorizer workspace, string projectId)
+    {
+        if (management is null) return null;
+        try
+        {
+            var service = management(workspace);
+            return new ManagementSnapshot(service.Metrics(projectId, null), service.Risks(projectId), service.Milestones(projectId));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
         {
             return null;
         }

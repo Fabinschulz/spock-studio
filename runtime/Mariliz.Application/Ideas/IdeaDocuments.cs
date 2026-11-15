@@ -33,7 +33,7 @@ internal static class IdeaDocuments
         Bullets(text, "Requisitos não funcionais", Objects(spec, "nonFunctional").Select(item => $"**{Text(item, "id")}**: {Text(item, "text")}"));
         Bullets(text, "Fora do escopo", Strings(spec, "outOfScope"));
         Bullets(text, "Perguntas em aberto", Strings(spec, "openQuestions"));
-        return text.ToString();
+        return Lf(text);
     }
 
     private static string Architecture(JsonObject architecture)
@@ -49,7 +49,7 @@ internal static class IdeaDocuments
         Bullets(text, "Integrações", Strings(architecture, "integrations"));
         Bullets(text, "Riscos", Objects(architecture, "risks").Select(item => $"{Text(item, "text")} Mitigação: {Text(item, "mitigation")}"));
         Bullets(text, "Decisões", Objects(architecture, "decisions").Select(item => $"**{Text(item, "title")}**: {Text(item, "choice")}. {Text(item, "reason")}"));
-        return text.ToString();
+        return Lf(text);
     }
 
     private static string Backlog(JsonObject backlog)
@@ -68,7 +68,7 @@ internal static class IdeaDocuments
                 text.AppendLine();
             }
         }
-        return text.ToString().TrimEnd() + "\n";
+        return Lf(text).TrimEnd() + "\n";
     }
 
     private static void Bullets(StringBuilder text, string title, IEnumerable<string> items)
@@ -79,4 +79,7 @@ internal static class IdeaDocuments
         foreach (var item in list) text.Append("- ").AppendLine(item);
         text.AppendLine();
     }
+
+    // AppendLine usa \r\n no Windows: o documento gravado e o hash dele seriam outros em cada sistema.
+    private static string Lf(StringBuilder text) => text.ToString().Replace("\r\n", "\n");
 }
