@@ -49,8 +49,9 @@ function fakeEngine(initial: Record<string, unknown> = missing) {
         'iac.runtime.offer': offerFixture,
         'iac.layout': layoutFixture,
         'iac.operations': operationsFixture,
-        'iac.validate': { operation: operationsFixture.operations[1] },
+        'iac.validate': { operation: operationsFixture.operations[3] },
         'iac.plan': { operation: operationsFixture.operations[0] },
+        'iac.apply': { operation: operationsFixture.operations[1] },
         'cloud.list': connectionsFixture,
         'cloud.links': { links: linksFixture.links.map((link) => ({ ...link, projectId: demo.projectId })) }
       };
@@ -157,7 +158,8 @@ describe('Infraestrutura', () => {
 
     expect(await screen.findByRole('list', { name: 'Ciclo de uma mudança de infraestrutura' })).toBeInTheDocument();
     expect(screen.getAllByText('Só analisa')).toHaveLength(6);
-    expect(screen.getAllByText('Disponível')).toHaveLength(3);
+    expect(screen.getAllByText('Disponível')).toHaveLength(6);
+    expect(screen.getAllByText('Próxima entrega')).toHaveLength(2);
     expect(screen.getAllByText('Muda a nuvem')).toHaveLength(1);
     expect(screen.getByText('Prepara a mudança')).toBeInTheDocument();
   });
@@ -169,8 +171,10 @@ describe('Infraestrutura', () => {
     expect(await screen.findByText(/não mudam a nuvem nem o projeto/)).toBeInTheDocument();
     const plan = operationsFixture.operations[0]!;
     const summary = await screen.findByLabelText('Resumo do plano');
-    expect(within(summary).getByText(`Criar ${plan.summary!.create}`)).toBeInTheDocument();
-    expect(screen.getByText('module.rede.terraform_data.rede')).toBeInTheDocument();
+    expect(within(summary).getByText(`Destruir ${plan.summary!.delete}`)).toBeInTheDocument();
+    expect(
+      within(screen.getByLabelText('Mudanças do plano')).getByText('module.rede.terraform_data.rede')
+    ).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('radio', { name: 'infra/modules/rede' }));
     await userEvent.type(screen.getByLabelText(/Ambiente/), 'dev');
@@ -199,5 +203,50 @@ describe('Infraestrutura', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Validar' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Gerar plano' })).toBeDisabled();
+  });
+
+  it('aprovar exige confirmar a destruição e passa o planId mostrado', async () => {
+    const engine = fakeEngine(ready);
+    renderPage(engine.client);
+    const plan = operationsFixture.operations[0]!;
+
+    const approval = await screen.findByLabelText(`Aprovar o plano ${plan.planId}`);
+    const button = within(approval).getByRole('button', { name: 'Aprovar e aplicar' });
+    expect(button).toBeDisabled();
+    expect(within(approval).getByText(/muda a nuvem/)).toBeInTheDocument();
+
+    await userEvent.click(
+      within(approval).getByRole('checkbox', { name: /Confirmo destruir ou substituir 1 recurso/ })
+    );
+    await userEvent.click(button);
+    expect(methods(engine.calls)).not.toContain('iac.apply');
+    await userEvent.click(within(approval).getByRole('button', { name: 'Aplicar agora' }));
+
+    expect(
+      await screen.findByText('Plano aplicado e verificado: o plano seguinte não tem mudanças.')
+    ).toBeInTheDocument();
+    expect(engine.calls.find((call) => call.method === 'iac.apply')?.params).toEqual({
+      projectId: demo.projectId,
+      operationId: plan.id,
+      planId: plan.planId,
+      destroyConfirmed: true,
+      risksAccepted: false
+    });
+  });
+
+  it('aplicação mostra a verificação, o state e os outputs; plano já aplicado não pode ser aprovado de novo', async () => {
+    renderPage(fakeEngine(ready).client);
+    const apply = operationsFixture.operations[1]!;
+    const applied = operationsFixture.operations[2]!;
+
+    await userEvent.click(await screen.findByRole('button', { name: /^Aplicação de / }));
+    expect(screen.getByText('Aplicado e verificado')).toBeInTheDocument();
+    expect(screen.getByText(/O state tem 2 recurso/)).toBeInTheDocument();
+    expect(within(screen.getByLabelText('Outputs')).getByText(apply.apply!.outputs.fila!)).toBeInTheDocument();
+
+    const planButtons = screen.getAllByRole('button', { name: /^Plano de / });
+    await userEvent.click(planButtons[planButtons.length - 1]!);
+    expect(screen.getByText(`Este plano já foi aplicado (${applied.appliedBy}).`)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Aprovar e aplicar' })).not.toBeInTheDocument();
   });
 });

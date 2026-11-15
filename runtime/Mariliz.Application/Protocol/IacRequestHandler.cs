@@ -20,6 +20,9 @@ internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperatio
             ["operations"] = new JsonArray(operations.History(p.Str("projectId")).Select(o => IntegrationJson.Node(o)).ToArray())
         },
         ProtocolMethods.IacOperation => Operation(operations.Detail(p.Str("projectId"), p.Str("operationId"))),
+        // A aprovação vem junto do pedido de aplicar: o planId que a pessoa viu e as confirmações que ela marcou.
+        ProtocolMethods.IacApply => Operation(await operations.ApplyAsync(new IacApplyRequest(p.Str("projectId"), p.Str("operationId"), p.Str("planId"),
+            p.Flag("destroyConfirmed"), p.Flag("risksAccepted"), p.OptionalStr("workspaceConfirmation")), ct)),
         ProtocolMethods.IacRuntimeStatus => Status(await terraform.StatusAsync(p.OptionalStr("projectId"), ct)),
         ProtocolMethods.IacRuntimeOffer => new JsonObject
         {

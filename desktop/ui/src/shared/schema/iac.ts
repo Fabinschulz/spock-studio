@@ -136,10 +136,29 @@ export const iacFindingSchema = z.object({
   message: z.string()
 });
 
+export const iacApprovalSchema = z.object({
+  planId: z.string(),
+  configHash: z.string(),
+  approvedAt: z.string(),
+  destroyConfirmed: z.boolean(),
+  risksAccepted: z.boolean(),
+  workspaceConfirmed: z.string().nullable()
+});
+
+/** O resultado de um apply e a prova: verified só quando o plano seguinte não tem mudanças. */
+export const iacApplyRunSchema = z.object({
+  applied: z.boolean(),
+  verified: z.boolean(),
+  remaining: iacPlanSummarySchema.nullable(),
+  managedResources: z.number().nullable(),
+  outputs: z.record(z.string(), z.string()),
+  error: z.string().nullable()
+});
+
 export const iacOperationSchema = z.object({
   id: z.string(),
   projectId: z.string(),
-  kind: z.enum(['validate', 'plan']),
+  kind: z.enum(['validate', 'plan', 'apply']),
   status: z.enum(['succeeded', 'failed']),
   engine: iacEngineSchema,
   version: z.string(),
@@ -156,7 +175,13 @@ export const iacOperationSchema = z.object({
   hasChanges: z.boolean().nullable(),
   summary: iacPlanSummarySchema.nullable(),
   findings: z.array(iacFindingSchema).nullable(),
-  error: z.string().nullable()
+  error: z.string().nullable(),
+  backend: z.string().nullable(),
+  applyBlocker: z.string().nullable(),
+  appliedBy: z.string().nullable(),
+  planOperationId: z.string().nullable(),
+  approval: iacApprovalSchema.nullable(),
+  apply: iacApplyRunSchema.nullable()
 });
 
 export const iacOperationResultSchema = z.object({ operation: iacOperationSchema });

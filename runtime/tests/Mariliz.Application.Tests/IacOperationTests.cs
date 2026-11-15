@@ -200,6 +200,174 @@ public sealed class IacOperationTests : IDisposable
         Assert.False(_runtime.SawConfig);
     }
 
+    private async Task<(IacOperationService Service, IacOperation Plan)> Planned(string? workspace = null)
+    {
+        var service = await Service();
+        var plan = await service.PlanAsync(new IacPlanRequest(_projectId, null, workspace, null), IacOperationService.Person, CancellationToken.None);
+        return (service, plan);
+    }
+
+    private static IacApplyRequest Approve(IacOperation plan, bool destroy = false, bool risks = false, string? workspace = null) =>
+        new(plan.ProjectId, plan.Id, plan.PlanId!, destroy, risks, workspace);
+
+    [Fact]
+    public async Task Aplicar_usa_o_arquivo_do_plano_aprovado_verifica_e_consome_o_plano()
+    {
+        var (service, plan) = await Planned("dev");
+
+        var applied = await service.ApplyAsync(Approve(plan), CancellationToken.None);
+        var again = await Assert.ThrowsAsync<EngineException>(() => service.ApplyAsync(Approve(plan), CancellationToken.None));
+
+        Assert.Equal(IacOperationKind.Apply, applied.Kind);
+        Assert.Equal(IacOperationStatus.Succeeded, applied.Status);
+        Assert.True(applied.Apply!.Verified);
+        Assert.Equal(3, applied.Apply.ManagedResources);
+        Assert.Equal(plan.Id, applied.PlanOperationId);
+        Assert.Equal(plan.PlanId, applied.Approval!.PlanId);
+        Assert.True(_runtime.PlanFileExistedOnApply);
+        Assert.Equal("dev", _runtime.LastApply!.Workspace);
+        Assert.EndsWith("plan.tfplan", _runtime.LastApply.PlanFile);
+        Assert.Equal(applied.Id, service.Detail(_projectId, plan.Id).AppliedBy);
+        Assert.False(Directory.Exists(Path.Combine(_project.DataDir, "projects", _projectId, "iac", "operations", plan.Id)));
+        Assert.Equal("IAC_PLAN_ALREADY_APPLIED", again.Code);
+        Assert.Contains(_audit.Entries, e => e.Action == "iac.apply_approved" && e.Detail.Contains(plan.PlanId!));
+        Assert.Contains(_audit.Entries, e => e.Action == "iac.apply" && e.Detail.Contains("\"verified\":true"));
+    }
+
+    [Fact]
+    public async Task Aprovacao_de_outro_plano_e_recusada()
+    {
+        var (service, plan) = await Planned();
+
+        var error = await Assert.ThrowsAsync<EngineException>(() =>
+            service.ApplyAsync(Approve(plan) with { PlanId = "0000000000000000" }, CancellationToken.None));
+
+        Assert.Equal("IAC_PLAN_MISMATCH", error.Code);
+        Assert.Null(_runtime.LastApply);
+    }
+
+    [Fact]
+    public async Task Configuracao_mudada_no_projeto_invalida_a_aprovacao()
+    {
+        var (service, plan) = await Planned();
+        _project.Write("infra/modules/sqs/resource.tf", "resource \"terraform_data\" \"q\" {}\nresource \"terraform_data\" \"r\" {}\n");
+
+        var error = await Assert.ThrowsAsync<EngineException>(() => service.ApplyAsync(Approve(plan), CancellationToken.None));
+
+        Assert.Equal("IAC_PLAN_STALE", error.Code);
+        Assert.Null(_runtime.LastApply);
+    }
+
+    [Fact]
+    public async Task Copia_ou_arquivo_do_plano_alterados_nao_sao_aplicados()
+    {
+        var (service, plan) = await Planned();
+        var directory = Path.Combine(_project.DataDir, "projects", _projectId, "iac", "operations", plan.Id);
+        File.AppendAllText(Path.Combine(directory, "config", "resource.tf"), "\n# alterado depois do plano\n");
+
+        var error = await Assert.ThrowsAsync<EngineException>(() => service.ApplyAsync(Approve(plan), CancellationToken.None));
+
+        Assert.Equal("IAC_PLAN_CHANGED", error.Code);
+        Assert.Null(_runtime.LastApply);
+    }
+
+    [Fact]
+    public async Task Plano_mais_novo_ou_vencido_nao_e_aplicado()
+    {
+        var (service, first) = await Planned();
+        await service.PlanAsync(new IacPlanRequest(_projectId, null, null, null), IacOperationService.Person, CancellationToken.None);
+        var superseded = await Assert.ThrowsAsync<EngineException>(() => service.ApplyAsync(Approve(first), CancellationToken.None));
+
+        var latest = service.History(_projectId).First(o => o.Kind == IacOperationKind.Plan);
+        _clock.UtcNow += TimeSpan.FromHours(25);
+        var expired = await Assert.ThrowsAsync<EngineException>(() => service.ApplyAsync(Approve(latest), CancellationToken.None));
+
+        Assert.Equal("IAC_PLAN_SUPERSEDED", superseded.Code);
+        Assert.Equal("IAC_PLAN_EXPIRED", expired.Code);
+        Assert.Null(_runtime.LastApply);
+    }
+
+    [Fact]
+    public async Task Destruicao_pede_confirmacao_explicita_a_mais()
+    {
+        _runtime.Summary = new IacPlanSummary(0, 0, 1, 1, 0, 0,
+            [new IacResourceChange("aws_db_instance.old", "aws_db_instance", "delete"), new IacResourceChange("aws_ecr_repository.api", "aws_ecr_repository", "replace")], []);
+        var (service, plan) = await Planned();
+
+        var refused = await Assert.ThrowsAsync<EngineException>(() => service.ApplyAsync(Approve(plan), CancellationToken.None));
+        var applied = await service.ApplyAsync(Approve(plan, destroy: true), CancellationToken.None);
+
+        Assert.Equal("IAC_DESTROY_CONFIRMATION_REQUIRED", refused.Code);
+        Assert.Contains("2 recurso", refused.Message);
+        Assert.True(applied.Approval!.DestroyConfirmed);
+    }
+
+    [Fact]
+    public async Task Achado_grave_pede_que_a_pessoa_confirme_a_revisao()
+    {
+        _runtime.Findings = [new IacFinding(IacFindingSeverity.Danger, "open-ingress", "aws_security_group.tasks", "abre a porta 22")];
+        var (service, plan) = await Planned();
+
+        var refused = await Assert.ThrowsAsync<EngineException>(() => service.ApplyAsync(Approve(plan), CancellationToken.None));
+        var applied = await service.ApplyAsync(Approve(plan, risks: true), CancellationToken.None);
+
+        Assert.Equal("IAC_RISKS_CONFIRMATION_REQUIRED", refused.Code);
+        Assert.True(applied.Approval!.RisksAccepted);
+    }
+
+    [Fact]
+    public async Task Producao_pede_o_nome_do_ambiente_digitado()
+    {
+        var (service, plan) = await Planned("prd");
+
+        var refused = await Assert.ThrowsAsync<EngineException>(() => service.ApplyAsync(Approve(plan, workspace: "prod"), CancellationToken.None));
+        var applied = await service.ApplyAsync(Approve(plan, workspace: "prd"), CancellationToken.None);
+
+        Assert.Equal("IAC_WORKSPACE_CONFIRMATION_REQUIRED", refused.Code);
+        Assert.Equal("prd", applied.Approval!.WorkspaceConfirmed);
+    }
+
+    [Fact]
+    public async Task Plano_com_state_dentro_da_copia_e_mostrado_mas_nao_aplicado()
+    {
+        _runtime.PlanBlocker = "state local dentro da pasta";
+        var (service, plan) = await Planned();
+
+        var error = await Assert.ThrowsAsync<EngineException>(() => service.ApplyAsync(Approve(plan), CancellationToken.None));
+
+        Assert.Equal("state local dentro da pasta", plan.ApplyBlocker);
+        Assert.Equal("IAC_APPLY_BLOCKED", error.Code);
+        Assert.Contains(_audit.Entries, e => e.Action == "iac.plan" && e.Detail.Contains("\"applicable\":false"));
+    }
+
+    [Fact]
+    public async Task Falha_no_apply_registra_o_que_ficou_pendente_e_consome_o_plano()
+    {
+        _runtime.ApplyResult = new IacApplyRun(false, false,
+            new IacPlanSummary(1, 0, 0, 0, 0, 0, [new IacResourceChange("terraform_data.q", "terraform_data", "create")], []), 2,
+            new Dictionary<string, string>(), "Error: creating SQS Queue: AccessDenied");
+        var (service, plan) = await Planned();
+
+        var failed = await service.ApplyAsync(Approve(plan), CancellationToken.None);
+
+        Assert.Equal(IacOperationStatus.Failed, failed.Status);
+        Assert.Equal("terraform_data.q", Assert.Single(failed.Apply!.Remaining!.Changes).Address);
+        Assert.Contains("AccessDenied", failed.Error);
+        Assert.Equal(failed.Id, service.Detail(_projectId, plan.Id).AppliedBy);
+    }
+
+    [Fact]
+    public async Task Plano_que_falhou_ou_sem_mudancas_nao_e_aplicavel()
+    {
+        _runtime.PlanError = "init falhou";
+        var (service, failedPlan) = await Planned();
+
+        var error = await Assert.ThrowsAsync<EngineException>(() =>
+            service.ApplyAsync(new IacApplyRequest(_projectId, failedPlan.Id, "x", false, false, null), CancellationToken.None));
+
+        Assert.Equal("IAC_NOT_A_PLAN", error.Code);
+    }
+
     private sealed class FakeFactory(FakeRuntime runtime) : IIacRuntimeFactory
     {
         public IIacRuntime For(IacInstallation installation) => runtime;
@@ -209,6 +377,12 @@ public sealed class IacOperationTests : IDisposable
     {
         public IReadOnlyList<string> Unformatted { get; set; } = [];
         public string? PlanError { get; set; }
+        public string? PlanBlocker { get; set; }
+        public IacPlanSummary Summary { get; set; } = new(1, 0, 0, 0, 0, 0, [new IacResourceChange("terraform_data.q", "terraform_data", "create")], []);
+        public IReadOnlyList<IacFinding> Findings { get; set; } = [];
+        public IacApplyRun ApplyResult { get; set; } = new(true, true, null, 3, new Dictionary<string, string> { ["fila"] = "fila-dev" }, null);
+        public IacApplySpec? LastApply { get; private set; }
+        public bool PlanFileExistedOnApply { get; private set; }
         public TaskCompletionSource? Gate { get; set; }
         public IacPlanSpec? LastPlan { get; private set; }
         public bool SawConfig { get; private set; }
@@ -234,8 +408,15 @@ public sealed class IacOperationTests : IDisposable
             if (Gate is not null) await Gate.Task;
             Directory.CreateDirectory(spec.DataDirectory);
             if (PlanError is not null) return new IacPlanRun(false, false, null, [], PlanError);
-            File.WriteAllText(spec.PlanFile, "plano binário de mentira");
-            return new IacPlanRun(true, true, new IacPlanSummary(1, 0, 0, 0, 0, 0, [new IacResourceChange("terraform_data.q", "terraform_data", "create")], []), [], null);
+            File.WriteAllText(spec.PlanFile, "plano binário de mentira " + Guid.NewGuid());
+            return new IacPlanRun(true, true, Summary, Findings, null, PlanBlocker is null ? "s3" : "local", PlanBlocker);
+        }
+
+        public Task<IacApplyRun> ApplyAsync(IacApplySpec spec, CancellationToken ct)
+        {
+            LastApply = spec;
+            PlanFileExistedOnApply = File.Exists(spec.PlanFile);
+            return Task.FromResult(ApplyResult);
         }
 
         private void Look(string directory)

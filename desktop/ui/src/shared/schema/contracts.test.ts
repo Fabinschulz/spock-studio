@@ -917,13 +917,19 @@ describe('contrato do assistente do portfólio (fixtures do motor)', () => {
     expect(offer.signingKey).toBe('E3E6E43D84CB852EADB0051D0C0AF313E5FD9F80');
   });
 
-  it('iac: operações reais de validate e plan, sem valores de atributo', () => {
+  it('iac: ciclo real de validate, plan, aprovação e apply, sem valores de atributo fora dos outputs', () => {
     expect(iacLayoutSchema.parse(iacLayoutFixture).layout.root).toBe('infra');
-    const [plan, validation] = iacOperationListSchema.parse(iacOperationsFixture).operations;
-    expect(plan?.kind).toBe('plan');
-    expect(plan?.summary?.create).toBe(2);
-    expect(plan?.planId).toHaveLength(16);
+    const [pending, apply, applied, validation] = iacOperationListSchema.parse(iacOperationsFixture).operations;
+    expect(pending?.summary?.delete).toBe(1);
+    expect(pending?.appliedBy).toBeNull();
+    expect(apply?.kind).toBe('apply');
+    expect(apply?.apply?.verified).toBe(true);
+    expect(apply?.approval?.planId).toBe(applied?.planId);
+    expect(applied?.appliedBy).toBe(apply?.id);
     expect(validation?.validation?.map((folder) => folder.folder)).toEqual(['infra', 'infra/modules/rede']);
-    expect(JSON.stringify(iacOperationsFixture)).not.toMatch(/fila-dev|10\.0\.0\.0/);
+    const withoutOutputs = (iacOperationsFixture.operations as Record<string, unknown>[]).map(
+      ({ apply: _apply, ...rest }) => rest
+    );
+    expect(JSON.stringify(withoutOutputs)).not.toMatch(/fila-dev|10\.0\.0\.0/);
   });
 });

@@ -233,6 +233,26 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                     (Flag(d, "automatic") ? "Fixado no primeiro uso, para que uma instalação nova não troque a versão. " : "Escolha feita na tela Infraestrutura. ")
                     + (Text(d, "source") == "managed" ? "Binário gerenciado pelo Spock." : "Binário instalado fora do Spock."));
                 break;
+            case "iac.validate":
+                yield return Entry("", AuditCategories.Read, "Infraestrutura validada",
+                    $"{Count(d, "folders")} pasta(s); {Count(d, "invalid")} inválida(s), {Count(d, "unformatted")} fora do formato. Nada mudou na nuvem nem no projeto.");
+                break;
+            case "iac.plan":
+                yield return Entry("", AuditCategories.Read, $"Plano de infraestrutura gerado ({Clean(Text(d, "workspace"))})",
+                    $"Criar {Count(d, "create")}, alterar {Count(d, "update")}, substituir {Count(d, "replace")}, destruir {Count(d, "delete")}; " +
+                    $"{Count(d, "findings")} achado(s). Nada mudou na nuvem.");
+                break;
+            case "iac.apply_approved":
+                yield return Entry("", AuditCategories.Decision, $"Plano {Clean(Text(d, "planId"))} aprovado para aplicar",
+                    $"Ambiente {Clean(Text(d, "workspace"))}; destruição {(Flag(d, "destroyConfirmed") ? "confirmada" : "não havia")}; " +
+                    $"riscos {(Flag(d, "risksAccepted") ? "aceitos" : "não havia graves")}.");
+                break;
+            case "iac.apply":
+                yield return Entry("", AuditCategories.Change, $"Plano {Clean(Text(d, "planId"))} aplicado na nuvem",
+                    Flag(d, "verified") ? "Verificado: o plano seguinte não tem mudanças."
+                    : Flag(d, "applied") ? $"Aplicado com divergência: {Count(d, "remaining")} mudança(s) ainda pendente(s)."
+                    : $"Falhou; {Count(d, "remaining")} mudança(s) ficaram pendentes.");
+                break;
             case "iac.runtime.unpinned":
                 yield return Entry("", AuditCategories.Change, "Ferramenta de infraestrutura do projeto de volta à escolha automática", "Vale a versão compatível mais nova até o próximo uso.");
                 break;

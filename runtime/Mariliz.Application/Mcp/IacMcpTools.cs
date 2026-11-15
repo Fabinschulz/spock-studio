@@ -14,11 +14,43 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
     public const string StatusTool = "iac_status";
     public const string ValidateTool = "iac_validate";
     public const string PlanSummaryTool = "iac_plan_summary";
+    public const string HistoryTool = "iac_history";
     private const int MaxArgument = 200;
     private const int MaxChanges = 60;
 
     public IReadOnlyList<McpTool> Tools() =>
-        [new McpTool(Status, StatusAsync), new McpTool(Validate, ValidateAsync), new McpTool(PlanSummary, PlanSummaryAsync)];
+        [new McpTool(Status, StatusAsync), new McpTool(Validate, ValidateAsync), new McpTool(PlanSummary, PlanSummaryAsync), new McpTool(History, HistoryAsync)];
+
+    private static readonly McpToolInfo History = new(
+        HistoryTool, "Histórico de infraestrutura do projeto",
+        "As operações de infraestrutura do projeto, da mais recente para a mais antiga: validações, planos e aplicações, com " +
+        "quem pediu, o resultado e, nas aplicações, se a verificação depois do apply confirmou a mudança. Só leitura.",
+        ProjectOnly());
+
+    private Task<string> HistoryAsync(McpCall call)
+    {
+        var authorizer = workspaces();
+        var project = new McpProjectResolver(authorizer, workingDirectory, scope).Resolve(McpArguments.Text(call.Arguments, "project", MaxArgument));
+        var history = operations(authorizer).History(project.ProjectId);
+        if (history.Count == 0) return Task.FromResult($"{project.DisplayName} ainda não tem operações de infraestrutura no Spock.");
+        var text = new StringBuilder($"Operações de infraestrutura de {project.DisplayName} (mais recentes primeiro):");
+        foreach (var operation in history.Take(20))
+        {
+            var kind = operation.Kind switch
+            {
+                IacOperationKind.Validate => "validação",
+                IacOperationKind.Plan => "plano",
+                _ => "aplicação"
+            };
+            text.Append('\n').Append($"- {operation.FinishedAt.UtcDateTime:yyyy-MM-dd HH:mm} UTC · {kind} {operation.Id} · {IacRuntimeService.NameOf(operation.Engine)} {operation.Version}");
+            if (operation.Workspace is { } ws) text.Append($" · ambiente {ws}");
+            text.Append(operation.Status == IacOperationStatus.Succeeded ? " · concluída" : " · falhou");
+            if (operation.Apply is { } apply) text.Append(apply.Verified ? " · verificada (plano seguinte sem mudanças)" : " · verificação com pendências");
+            if (operation.AppliedBy is { } by) text.Append($" · aplicado por {by}");
+            text.Append($" · pedida por {operation.RequestedBy}");
+        }
+        return Task.FromResult(text.ToString());
+    }
 
     private static JsonObject ProjectOnly() => new()
     {
@@ -91,7 +123,9 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
         foreach (var change in s.Changes.Take(MaxChanges)) text.Append($"\n- {change.Action}: {change.Address}");
         if (s.Changes.Count > MaxChanges) text.Append($"\n... e mais {s.Changes.Count - MaxChanges}.");
         foreach (var finding in plan.Findings ?? []) text.Append($"\nAchado ({(finding.Severity == IacFindingSeverity.Danger ? "grave" : "atenção")}): {finding.Message}");
-        return Task.FromResult(text.Append("\nAplicar exige a aprovação da pessoa na tela Infraestrutura do Spock.").ToString());
+        if (plan.AppliedBy is { } applied) return Task.FromResult(text.Append($"\nEste plano já foi aplicado ({applied}).").ToString());
+        if (plan.ApplyBlocker is { } blocker) return Task.FromResult(text.Append($"\nO Spock não aplica este plano: {blocker}").ToString());
+        return Task.FromResult(text.Append("\nAplicar exige a aprovação da pessoa na tela Infraestrutura do Spock; agentes não aplicam.").ToString());
     }
 
     private static string Display(string folder) => folder.Length == 0 ? "raiz do projeto" : folder;

@@ -58,6 +58,10 @@ O Spock gera essa raiz e roda o mesmo ciclo de plano e aprovação ([TERRAFORM_E
 Na entrega 2 o plano roda sobre uma cópia da configuração: state remoto é lido pelo backend; state local é copiado
 só para o plano ler e apagado da cópia em seguida, sem nunca ser gravado nem exibido.
 
+Na entrega 3 o apply só acontece quando o state vive fora da cópia: backend remoto ou `local` com caminho absoluto.
+Com o state local padrão (dentro da pasta), o plano é mostrado com o motivo e o Spock não aplica, porque o state novo
+ficaria na cópia e não no projeto. Depois do apply, o Spock lê só `state list` (contagem) e os outputs não sensíveis.
+
 | Uso | Comando | O que sai |
 | --- | --- | --- |
 | Consulta de recursos gerenciados | `state list` | Endereços |

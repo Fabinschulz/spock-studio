@@ -49,7 +49,7 @@ Checagens determinísticas sobre `show -json`, avisando antes da aprovação:
 
 Os achados não bloqueiam sozinhos: aparecem na aprovação, e os graves pedem confirmação extra.
 
-## 4. O que já está implementado (entregas 1 e 2)
+## 4. O que já está implementado (entregas 1 a 3)
 
 - OpenTofu (gratuito, MPL 2.0) como padrão; Terraform liberado por escolha explícita (licença com o jurídico).
 - Instalação só com autorização, ligada à proposta (`offerId`), recusa respeitada.
@@ -59,4 +59,6 @@ Os achados não bloqueiam sozinhos: aparecem na aprovação, e os graves pedem c
 - Caminhos da máquina abreviados (`~`) antes de chegar à interface.
 - Validar e planejar sobre uma cópia da configuração: o projeto nunca é tocado; state local copiado só para o plano e apagado em seguida.
 - Políticas antes de rodar: pasta descoberta, workspace com nome válido e só selecionado, conexão vinculada, uma operação por vez.
+- Aprovação vinculada ao plano exato (id, hash do arquivo e da configuração, configuração do projeto inalterada, prazo de 24 h, plano mais recente, mesma ferramenta); destruição, achados graves e produção pedem confirmação a mais; o plano vale uma vez e o arquivo é apagado depois.
+- Apply só do arquivo aprovado, com verificação por plano seguinte limpo; nenhuma ferramenta MCP aplica.
 - Achados de segurança do plano (seção 3) já calculados: destruição, substituição, entrada aberta para a internet, IAM com curinga, ECR com tag mutável, banco público, S3 sem bloqueio público, NSG e firewall abertos, bucket público no Google.

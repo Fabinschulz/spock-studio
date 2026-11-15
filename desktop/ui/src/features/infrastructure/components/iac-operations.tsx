@@ -5,10 +5,11 @@ import { errorMessage, type EngineClient } from '@/shared/api';
 import { ErrorState, LoadingState, Radio, StatusChip, SuccessState } from '@/shared/components';
 import type { IacOperation } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
-import { useCallback, useMemo, useState } from 'react';
+import { Fragment, useCallback, useMemo, useState, type ReactNode } from 'react';
 
 import styles from '../infrastructure-page.module.scss';
 import { ENGINE_NAME } from '../domain/labels';
+import { PlanApproval } from './plan-approval';
 import type { IacApi } from '../service/iac-api';
 
 interface IacOperationsProps {
@@ -88,11 +89,45 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
       )
       .then(() => setShown(null));
 
+  const apply = (
+    target: IacOperation,
+    confirmations: { destroyConfirmed: boolean; risksAccepted: boolean; workspaceConfirmation?: string }
+  ) =>
+    void action
+      .run(
+        () => api.apply({ projectId, operationId: target.id, planId: target.planId!, ...confirmations }),
+        'Nada foi aplicado.',
+        {
+          success: (operation) =>
+            operation.apply?.verified
+              ? 'Plano aplicado e verificado: o plano seguinte não tem mudanças.'
+              : operation.apply?.applied
+                ? 'Plano aplicado, mas a verificação encontrou diferenças.'
+                : 'O apply falhou; veja o que ficou pendente.'
+        }
+      )
+      .then(() => setShown(null));
+
+  // Só o plano mais recente de cada pasta e ambiente pode ser aprovado.
+  const approvable = (operation: IacOperation) =>
+    operation.kind === 'plan' &&
+    operation.status === 'succeeded' &&
+    operation.hasChanges === true &&
+    operation.appliedBy === null &&
+    operation.applyBlocker === null &&
+    operations.find(
+      (other) =>
+        other.kind === 'plan' &&
+        other.status === 'succeeded' &&
+        other.folder === operation.folder &&
+        other.workspace === operation.workspace
+    )?.id === operation.id;
+
   return (
     <div className={styles.panel}>
       <p className={styles.hint}>
-        Validar e planejar não mudam a nuvem nem o projeto: rodam numa cópia da configuração na pasta do Spock. Aplicar
-        um plano é a próxima etapa e vai exigir a sua aprovação daquele plano.
+        Validar e planejar não mudam a nuvem nem o projeto: rodam numa cópia da configuração na pasta do Spock. Só
+        aplicar muda a nuvem, e só com a sua aprovação daquele plano.
       </p>
 
       <fieldset className={styles.choices}>
@@ -155,7 +190,21 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
       {action.error ? <p className={styles.error}>{action.error}</p> : null}
       {action.notice ? <SuccessState>{action.notice.text}</SuccessState> : null}
 
-      {current ? <OperationResult operation={current} /> : null}
+      {current ? (
+        <OperationResult
+          operation={current}
+          approval={
+            approvable(current) ? (
+              <PlanApproval
+                key={current.id}
+                plan={current}
+                busy={action.busy}
+                onApply={(confirmations) => apply(current, confirmations)}
+              />
+            ) : null
+          }
+        />
+      ) : null}
 
       {operations.length > 1 ? (
         <ul className={styles.rows} aria-label="Operações anteriores">
@@ -163,7 +212,7 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
             <li key={operation.id} className={styles.row}>
               <div className={styles.rowHead}>
                 <Button type="button" variant="text" onClick={() => setShown(operation.id)}>
-                  {operation.kind === 'plan' ? 'Plano' : 'Validação'} de {formatEngineDate(operation.finishedAt)}
+                  {KIND_LABEL[operation.kind]} de {formatEngineDate(operation.finishedAt)}
                 </Button>
                 <StatusChip tone={operation.status === 'succeeded' ? 'success' : 'danger'}>
                   {operation.status === 'succeeded' ? 'Concluída' : 'Falhou'}
@@ -177,17 +226,29 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
   );
 }
 
-function OperationResult({ operation }: { operation: IacOperation }) {
-  const title = operation.kind === 'plan' ? 'Plano' : 'Validação';
+const KIND_LABEL: Record<IacOperation['kind'], string> = { validate: 'Validação', plan: 'Plano', apply: 'Aplicação' };
+
+function outcome(operation: IacOperation): { label: string; tone: 'success' | 'warning' | 'danger' } {
+  if (operation.kind === 'apply') {
+    if (operation.apply?.verified) return { label: 'Aplicado e verificado', tone: 'success' };
+    if (operation.apply?.applied) return { label: 'Aplicado com divergência', tone: 'warning' };
+    return { label: 'Falhou', tone: 'danger' };
+  }
+  return operation.status === 'succeeded'
+    ? { label: 'Concluída', tone: 'success' }
+    : { label: 'Falhou', tone: 'danger' };
+}
+
+function OperationResult({ operation, approval }: { operation: IacOperation; approval: ReactNode }) {
+  const title = KIND_LABEL[operation.kind];
+  const result = outcome(operation);
   return (
     <section className={styles.consent} aria-label={`${title} ${operation.id}`}>
       <div className={styles.rowHead}>
         <span className={styles.rowTitle}>
           {title} · {ENGINE_NAME[operation.engine]} {operation.version}
         </span>
-        <StatusChip tone={operation.status === 'succeeded' ? 'success' : 'danger'}>
-          {operation.status === 'succeeded' ? 'Concluída' : 'Falhou'}
-        </StatusChip>
+        <StatusChip tone={result.tone}>{result.label}</StatusChip>
       </div>
       <p className={styles.hint}>
         {formatEngineDate(operation.finishedAt)}
@@ -196,6 +257,13 @@ function OperationResult({ operation }: { operation: IacOperation }) {
         {operation.planId ? ` · plano ${operation.planId}` : ''}
       </p>
       {operation.error ? <p className={styles.error}>{operation.error}</p> : null}
+      {operation.kind === 'plan' && operation.appliedBy ? (
+        <p className={styles.hint}>Este plano já foi aplicado ({operation.appliedBy}).</p>
+      ) : null}
+      {operation.kind === 'plan' && operation.applyBlocker ? (
+        <p className={styles.hint}>O Spock não aplica este plano: {operation.applyBlocker}</p>
+      ) : null}
+      {operation.apply ? <ApplyResult run={operation.apply} /> : null}
 
       {operation.validation ? (
         <ul className={styles.rows} aria-label="Pastas validadas">
@@ -258,6 +326,42 @@ function OperationResult({ operation }: { operation: IacOperation }) {
           ) : null}
         </>
       ) : null}
+      {approval}
     </section>
+  );
+}
+
+function ApplyResult({ run }: { run: NonNullable<IacOperation['apply']> }) {
+  const outputs = Object.entries(run.outputs);
+  return (
+    <div className={styles.panel} aria-label="Resultado da aplicação">
+      <p>
+        {run.verified
+          ? 'Verificado: um plano novo depois do apply não encontrou mudanças.'
+          : run.applied
+            ? 'O apply terminou, mas um plano novo ainda encontra diferenças.'
+            : 'O apply não terminou.'}
+        {run.managedResources !== null ? ` O state tem ${run.managedResources} recurso(s).` : ''}
+      </p>
+      {run.remaining && run.remaining.changes.length > 0 ? (
+        <ul className={styles.impacts} aria-label="Pendente depois da aplicação">
+          {run.remaining.changes.map((change) => (
+            <li key={change.address}>
+              ainda {ACTION_LABEL[change.action] ?? change.action}: <code>{change.address}</code>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {outputs.length > 0 ? (
+        <dl className={styles.facts} aria-label="Outputs">
+          {outputs.map(([name, value]) => (
+            <Fragment key={name}>
+              <dt>{name}</dt>
+              <dd>{value}</dd>
+            </Fragment>
+          ))}
+        </dl>
+      ) : null}
+    </div>
   );
 }

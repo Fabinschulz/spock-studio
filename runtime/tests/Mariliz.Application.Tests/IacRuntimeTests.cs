@@ -361,7 +361,7 @@ public sealed class IacRuntimeTests : IDisposable
             _project.Root);
 
         var all = tools.Tools();
-        Assert.Equal([IacMcpTools.StatusTool, IacMcpTools.ValidateTool, IacMcpTools.PlanSummaryTool], all.Select(t => t.Info.Name));
+        Assert.Equal([IacMcpTools.StatusTool, IacMcpTools.ValidateTool, IacMcpTools.PlanSummaryTool, IacMcpTools.HistoryTool], all.Select(t => t.Info.Name));
         Assert.DoesNotContain(all, t => t.Info.Name.Contains("apply") || t.Info.Name.Contains("install"));
         var tool = all[0];
         var text = await tool.Call(new McpCall(new System.Text.Json.Nodes.JsonObject { ["project"] = project }, "teste", CancellationToken.None));

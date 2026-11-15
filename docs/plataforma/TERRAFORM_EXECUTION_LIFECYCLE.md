@@ -56,30 +56,68 @@ Variáveis de todo processo: `CHECKPOINT_DISABLE=1`, `TF_IN_AUTOMATION=1`, `TF_I
 a pasta e o plano junto). A trilha recebe `iac.validate` (pastas, inválidas, fora do formato) e `iac.plan` (pasta,
 ambiente, contagens, achados, `planId`, se havia state local), com ids e contagens, nunca valores.
 
-Diferença do desenho anterior: as operações de IaC têm histórico próprio e ainda não aparecem na tela Execuções; a
-integração com o `RunTracker` fica para a entrega 3, junto do apply.
+Diferença do desenho anterior: as operações de IaC têm histórico próprio (tela Infraestrutura, `iac_history`, trilha e
+Auditoria do projeto) e não aparecem na tela Execuções, que é dos workflows de engenharia.
 
-## 3. Plano guardado e aprovação vinculada
+## 3. Aprovação vinculada ao plano (entrega 3, implementada)
 
-- `plan -out=<dados>/projects/<id>/iac/operations/<op>/plan.tfplan`, e `show -json` do arquivo para o resumo (entrega 2).
-- O resumo é derivado de `resource_changes[].change.actions`: criar, atualizar, substituir (destrói e cria), destruir,
-  só ler. Valores marcados como sensíveis no JSON (`*_sensitive`) nunca vão para tela, trilha ou agente.
-- **Id do plano** = SHA-256 do arquivo `.tfplan` (16 primeiros hex, já gravado na entrega 2). A aprovação registra esse id, como o `ApprovalBinding` dos workflows
-  faz com o hash das ações. O apply recalcula o hash e recusa se o arquivo mudou (`IAC_PLAN_CHANGED`); um plano novo
-  invalida a aprovação anterior.
-- **Destruição em destaque**: qualquer `delete` ou substituição exige uma segunda confirmação com a lista dos recursos
-  (`ConfirmAction`), e o pedido de apply carrega `destroyConfirmed: true`.
-- Plano expira: se o state mudou (outro apply, lock), o Terraform recusa o plano velho e o Spock pede novo plano.
+O plano fica em `<dados>/projects/<id>/iac/operations/<op>/plan.tfplan`, com a cópia da configuração ao lado. O
+resumo vem de `show -json` (`IacPlanReader`); valores marcados como sensíveis e valores de atributo nunca vão para tela,
+trilha ou agente.
 
-## 4. Aplicação e resultado
+Na hora de planejar, o adaptador lê o backend que o `init` configurou (só o tipo e o caminho). Se o state ficaria dentro
+da cópia (sem bloco `backend`, ou `local` com caminho relativo), o plano é mostrado com o motivo em `applyBlocker` e o
+Spock **não** o aplica: o state novo se perderia fora do projeto. Backend remoto (S3, azurerm, gcs) ou `local` com caminho
+absoluto pode ser aplicado.
 
-- `apply -input=false <plano>`: só o arquivo aprovado, nunca `-auto-approve` sem plano.
-- Saída capturada linha a linha no diário da execução (sem valores sensíveis), código de saída, duração.
-- **Concluído só com prova**: exit 0 **e** o plano de verificação sem mudanças (`-detailed-exitcode` = 0). Exit 0 com
-  plano ainda mostrando mudanças vira "aplicado com divergência"; exit diferente de zero vira falha com os recursos que
-  chegaram a mudar (lidos do state depois) marcados como falha parcial.
-- Outputs (`output -json`) guardados sem os marcados como sensíveis.
-- Recursos afetados registrados por endereço (`module.ecs.aws_ecs_service.this["api"]`), nunca por valor.
+`iac.apply` leva o `planId` que a pessoa viu e as confirmações que ela marcou. `IacOperationService.ApplyAsync` recusa,
+nesta ordem e sem rodar nada:
+
+| Regra | Erro |
+| --- | --- |
+| Operação não é um plano bem-sucedido | `IAC_NOT_A_PLAN` |
+| `planId` diferente do plano mostrado | `IAC_PLAN_MISMATCH` |
+| Plano já aplicado (vale uma vez) | `IAC_PLAN_ALREADY_APPLIED` |
+| Plano sem mudanças | `IAC_PLAN_NO_CHANGES` |
+| State ficaria na cópia | `IAC_APPLY_BLOCKED` |
+| Há plano mais novo da mesma pasta e ambiente | `IAC_PLAN_SUPERSEDED` |
+| Plano com mais de 24 horas | `IAC_PLAN_EXPIRED` |
+| Destrói ou substitui recurso sem `destroyConfirmed` | `IAC_DESTROY_CONFIRMATION_REQUIRED` |
+| Achado grave (fora destruição) sem `risksAccepted` | `IAC_RISKS_CONFIRMATION_REQUIRED` |
+| Ambiente `prd`, `prod`, `production` ou `producao` sem o nome digitado | `IAC_WORKSPACE_CONFIRMATION_REQUIRED` |
+| Arquivo do plano ou cópia da configuração alterados (hash) | `IAC_PLAN_CHANGED` |
+| Configuração do projeto mudou desde o plano (`configHash`) | `IAC_PLAN_STALE` |
+| Ferramenta ou versão do projeto mudou desde o plano | `IAC_RUNTIME_CHANGED` |
+| Conexão cloud do plano não está mais vinculada | `IAC_CONNECTION_NOT_LINKED` |
+
+O `configHash` cobre caminhos e conteúdo da configuração, sem state, `.terraform/`, planos, logs e o
+`.terraform.lock.hcl` (o `init` pode reescrevê-lo na cópia; o arquivo de plano já registra os providers).
+
+A aprovação vira o registro `iac.apply_approved` (plano, `configHash`, ambiente, quantos destruídos e se confirmou,
+quantos achados graves e se aceitou) e fica na operação de aplicação (`approval`).
+
+Na tela, o plano mais recente de cada pasta e ambiente mostra "Aprovar e aplicar este plano": a lista do que será
+destruído com a caixa de confirmação, a caixa de achados graves, o campo do nome do ambiente de produção e, no fim, uma
+confirmação que diz que a nuvem vai mudar. Só a pessoa aprova; não existe ferramenta MCP de apply.
+
+## 4. Aplicação e prova do resultado (entrega 3, implementada)
+
+`CliIacRuntime.ApplyAsync`, na cópia guardada do plano, com um `TF_DATA_DIR` novo:
+
+1. `init` e `workspace select`; confere de novo o backend.
+2. `apply -input=false <plan.tfplan>`: só o arquivo aprovado, nunca `-auto-approve` sem plano. A saída vai para
+   `apply.log` na pasta da operação (evidência local; não sai pelo protocolo).
+3. **Verificação**: `plan -detailed-exitcode` sobre o mesmo state. Sem mudanças, a aplicação é "aplicado e
+   verificado". Com mudanças, o resumo delas fica em `apply.remaining`: o que faltou numa falha parcial ou a
+   divergência depois de um apply que terminou.
+4. `state list` (só a contagem) e `output -json` (só os outputs não sensíveis, cada um resumido em até 300 caracteres).
+
+Uma aplicação só conta como concluída com exit 0 **e** o plano seguinte limpo; o processo ter começado não basta. O
+plano aplicado é marcado (`appliedBy`) e a pasta dele é apagada, porque o arquivo guardava valores em texto puro. A
+trilha recebe `iac.apply` (aplicado, verificado, pendências, recursos no state), e a Auditoria do projeto mostra
+"Plano X aplicado na nuvem" com o resultado da verificação.
+
+Timeouts: apply até 55 minutos no motor; o host espera 90 minutos por `iac.apply`.
 
 ## 5. O que já existe para isso
 
@@ -97,11 +135,10 @@ integração com o `RunTracker` fica para a entrega 3, junto do apply.
 
 | Ferramenta | Entrega | Efeito |
 | --- | --- | --- |
-| `iac_status` | 1 (existe) | Lê disponibilidade, ferramenta e versão do projeto e exigências |
-| `iac_validate` | 2 (existe) | Roda `fmt -check` e `validate` sobre a cópia; não lê backend nem state, não toca a nuvem |
-| `iac_plan_summary` | 2 (existe) | Lê o último plano (ou um pelo id): contagens, endereços, achados |
+| `iac_status` | 1 | Lê disponibilidade, ferramenta e versão do projeto e exigências |
+| `iac_validate` | 2 | Roda `fmt -check` e `validate` sobre a cópia; não lê backend nem state, não toca a nuvem |
+| `iac_plan_summary` | 2 e 3 | Lê o último plano (ou um pelo id): contagens, endereços, achados, se já foi aplicado ou por que não pode ser |
+| `iac_history` | 3 | Lista validações, planos e aplicações, com quem pediu e o resultado da verificação |
 | `iac_plan` | Depois | Gerar plano por agente pede o vínculo cloud liberado para agentes; hoje só a pessoa planeja |
-| `iac_request_approval` | 3 | Pede aprovação de um plano; **a aprovação só acontece na tela** |
-| `iac_history` | 3 | Lista operações do projeto |
 
 Não haverá `terraform_apply` para agentes: o MCP nunca contorna a aprovação humana.

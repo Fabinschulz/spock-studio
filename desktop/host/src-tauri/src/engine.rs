@@ -36,12 +36,16 @@ const TERRAFORM_INSTALL_METHOD: &str = "iac.runtime.install";
 const IAC_OPERATION_TIMEOUT: Duration = Duration::from_secs(2700);
 const IAC_VALIDATE_METHOD: &str = "iac.validate";
 const IAC_PLAN_METHOD: &str = "iac.plan";
+// O apply pode criar banco e cluster: até 55 min no motor, mais o plano de verificação.
+const IAC_APPLY_TIMEOUT: Duration = Duration::from_secs(5400);
+const IAC_APPLY_METHOD: &str = "iac.apply";
 
 fn request_timeout(method: &str) -> Duration {
     match method {
         INVESTIGATION_METHOD => INVESTIGATION_TIMEOUT,
         TERRAFORM_INSTALL_METHOD => TERRAFORM_INSTALL_TIMEOUT,
         IAC_VALIDATE_METHOD | IAC_PLAN_METHOD => IAC_OPERATION_TIMEOUT,
+        IAC_APPLY_METHOD => IAC_APPLY_TIMEOUT,
         _ => REQUEST_TIMEOUT,
     }
 }
@@ -342,6 +346,7 @@ mod tests {
         assert_eq!(request_timeout("run.snapshot"), REQUEST_TIMEOUT);
         assert!(request_timeout("iac.runtime.install") > Duration::from_secs(600));
         assert!(request_timeout("iac.plan") > Duration::from_secs(2400));
+        assert!(request_timeout("iac.apply") > Duration::from_secs(5000));
     }
 
     #[test]

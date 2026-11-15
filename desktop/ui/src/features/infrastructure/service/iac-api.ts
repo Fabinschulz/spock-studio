@@ -32,6 +32,15 @@ export type IacApi = {
   /** Gera e guarda o plano; aplicar é outra etapa, com aprovação daquele plano. */
   plan(input: { projectId: string; folder?: string; workspace?: string; connectionId?: string }): Promise<IacOperation>;
   operations(projectId: string): Promise<IacOperation[]>;
+  /** Aprova aquele plano (pelo planId que a pessoa viu, com as confirmações dela) e aplica. Muda a nuvem. */
+  apply(input: {
+    projectId: string;
+    operationId: string;
+    planId: string;
+    destroyConfirmed: boolean;
+    risksAccepted: boolean;
+    workspaceConfirmation?: string;
+  }): Promise<IacOperation>;
 };
 
 export function createIacApi(client: EngineClient): IacApi {
@@ -62,6 +71,7 @@ export function createIacApi(client: EngineClient): IacApi {
     validate: (projectId) =>
       client.request('iac.validate', { projectId }, iacOperationResultSchema).then((r) => r.operation),
     plan: (input) => client.request('iac.plan', input, iacOperationResultSchema).then((r) => r.operation),
+    apply: (input) => client.request('iac.apply', input, iacOperationResultSchema).then((r) => r.operation),
     operations: (projectId) =>
       client.request('iac.operations', { projectId }, iacOperationListSchema).then((r) => r.operations)
   };
