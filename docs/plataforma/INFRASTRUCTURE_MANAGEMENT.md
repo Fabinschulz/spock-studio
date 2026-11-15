@@ -121,7 +121,7 @@ drift. Entram com as entregas 2 a 4.
 
 ## 8. Limitações atuais
 
-- Só a entrega 1 está implementada: o Spock instala e escolhe o OpenTofu ou o Terraform, mas ainda não roda
-  `validate`, `plan` nem `apply`.
+- As entregas 1 e 2 estão implementadas: o Spock instala e escolhe o OpenTofu ou o Terraform, valida e planeja sobre
+  uma cópia da configuração, mas ainda não aplica o plano.
 - macOS e Linux implementados e não rodados em máquina real.
 - Sem custo estimado, drift ou geração de `.tf` ainda.
