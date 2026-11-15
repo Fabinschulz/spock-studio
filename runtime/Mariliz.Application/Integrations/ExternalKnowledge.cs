@@ -130,7 +130,8 @@ public sealed partial class ExternalKnowledge(IIntegrationStore store, ISyncedDa
         if (!string.IsNullOrWhiteSpace(item.Parent)) text.Append("Item pai: ").AppendLine(Clean(item.Parent, 80));
         if (item.Milestones is { Count: > 0 }) text.Append("Marcos: ").AppendLine(string.Join(", ", item.Milestones.Take(10).Select(m => Clean(m.Name, 80))));
         if (item.BlockedBy is { Count: > 0 }) text.Append("Bloqueado por: ").AppendLine(string.Join(", ", item.BlockedBy.Take(10).Select(id => Clean(id, 80))));
-        return text.ToString();
+        // Sempre \n: o hash do documento no índice não pode depender do sistema.
+        return text.ToString().Replace("\r\n", "\n");
     }
 
     private static string CategoryLabel(string category) => category switch

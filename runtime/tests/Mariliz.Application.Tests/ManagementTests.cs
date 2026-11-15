@@ -185,7 +185,11 @@ public class ManagementTests
         Assert.Equal(new KindSnapshot(DataKinds.Issues, 3, 1, 1, 1, null), Assert.Single(mine.Kinds));
         Assert.Empty(mine.Signals);
         Assert.Equal(Path.GetFileName(h.Project.Root), mine.DisplayName);
-        Assert.DoesNotContain(h.Project.Root, System.Text.Json.JsonSerializer.Serialize(portfolio));
+        // A raiz só pode aparecer como caminho de exibição: no Linux, /tmp/x é curto demais para ser abreviado. Comparada já
+        // escapada como JSON, senão as barras do Windows nunca casariam e o teste não conferiria nada.
+        var json = System.Text.Json.JsonSerializer.Serialize(portfolio);
+        string Escaped(string text) => System.Text.Json.JsonSerializer.Serialize(text)[1..^1];
+        Assert.DoesNotContain(Escaped(h.Project.Root), json.Replace($"\"DisplayPath\":\"{Escaped(mine.DisplayPath)}\"", ""));
         Assert.Empty(other.Kinds);
         Assert.Equal(0, other.Sources);
         Assert.Equal("no-sources", Assert.Single(other.Signals).Id);
