@@ -14,8 +14,13 @@ public interface IIacRuntime
     // init sem backend e validate de uma pasta; não lê nem escreve state.
     Task<IacFolderValidation> ValidateAsync(string directory, string folder, string dataDirectory, CancellationToken ct);
 
-    // init com backend, seleção do workspace, plan para um arquivo e show -json desse arquivo.
+    // init com backend, seleção do workspace, plan para um arquivo e show -json desse arquivo. Diz também onde o state
+    // vive, para a aprovação saber se o plano pode ser aplicado.
     Task<IacPlanRun> PlanAsync(IacPlanSpec spec, CancellationToken ct);
+
+    // Aplica exatamente o arquivo de plano aprovado e prova o resultado: novo plano sem mudanças, recursos no state e
+    // outputs não sensíveis. Nunca roda apply sem arquivo de plano.
+    Task<IacApplyRun> ApplyAsync(IacApplySpec spec, CancellationToken ct);
 }
 
 public interface IIacRuntimeFactory
@@ -42,6 +47,10 @@ public interface IIacWorkArea
 
     string HashFile(string path);
 
+    // O hash da configuração como Snapshot calcularia (caminho e conteúdo, sem state, .terraform, planos e logs), sem
+    // copiar nada: compara o projeto de agora e a cópia guardada com o hash do plano.
+    string ConfigHash(string directory);
+
     IReadOnlyList<IacOperation> History(string projectId);
 
     void Save(IacOperation operation);
@@ -57,7 +66,50 @@ public sealed record IacFolderValidation(string Folder, bool Valid, bool Formatt
 
 public sealed record IacPlanSpec(string Directory, string DataDirectory, string PlanFile, string? Workspace, IReadOnlyDictionary<string, string> Environment);
 
-public sealed record IacPlanRun(bool Succeeded, bool HasChanges, IacPlanSummary? Summary, IReadOnlyList<IacFinding> Findings, string? Error);
+// Backend é o tipo declarado (s3, azurerm, gcs, local); ApplyBlocker diz por que o Spock não aplicaria este plano.
+public sealed record IacPlanRun(
+    bool Succeeded,
+    bool HasChanges,
+    IacPlanSummary? Summary,
+    IReadOnlyList<IacFinding> Findings,
+    string? Error,
+    string? Backend = null,
+    string? ApplyBlocker = null);
+
+public sealed record IacApplySpec(
+    string Directory,
+    string DataDirectory,
+    string PlanFile,
+    string? Workspace,
+    IReadOnlyDictionary<string, string> Environment,
+    string LogFile);
+
+// Applied: o apply terminou sem erro. Verified: o plano seguinte não tem mudança. Remaining: o que o plano seguinte
+// ainda mudaria (o que faltou numa falha parcial, ou a divergência). Outputs: só os não sensíveis.
+public sealed record IacApplyRun(
+    bool Applied,
+    bool Verified,
+    IacPlanSummary? Remaining,
+    int? ManagedResources,
+    IReadOnlyDictionary<string, string> Outputs,
+    string? Error);
+
+// O que a pessoa confirmou ao aprovar aquele plano.
+public sealed record IacApproval(
+    string PlanId,
+    string ConfigHash,
+    DateTimeOffset ApprovedAt,
+    bool DestroyConfirmed,
+    bool RisksAccepted,
+    string? WorkspaceConfirmed);
+
+public sealed record IacApplyRequest(
+    string ProjectId,
+    string OperationId,
+    string PlanId,
+    bool DestroyConfirmed,
+    bool RisksAccepted,
+    string? WorkspaceConfirmation);
 
 public sealed record IacResourceChange(string Address, string Type, string Action);
 
@@ -83,7 +135,8 @@ public sealed record IacFinding(IacFindingSeverity Severity, string Rule, string
 public enum IacOperationKind
 {
     Validate,
-    Plan
+    Plan,
+    Apply
 }
 
 public enum IacOperationStatus
@@ -115,6 +168,12 @@ public sealed record IacOperation(
     bool? HasChanges,
     IacPlanSummary? Summary,
     IReadOnlyList<IacFinding>? Findings,
-    string? Error);
+    string? Error,
+    string? Backend = null,
+    string? ApplyBlocker = null,
+    string? AppliedBy = null,
+    string? PlanOperationId = null,
+    IacApproval? Approval = null,
+    IacApplyRun? Apply = null);
 
 public sealed record IacProjectLayout(string ProjectId, string? Root, IReadOnlyList<string> Folders);

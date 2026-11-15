@@ -12,7 +12,9 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
     private static readonly TimeSpan ShortTimeout = TimeSpan.FromMinutes(2);
     private static readonly TimeSpan InitTimeout = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan PlanTimeout = TimeSpan.FromMinutes(30);
+    private static readonly TimeSpan ApplyTimeout = TimeSpan.FromMinutes(55);
     private const int ErrorLines = 25;
+    private const int MaxOutput = 300;
 
     public IacEngine Engine => installation.Engine;
 
@@ -54,35 +56,127 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
     public async Task<IacPlanRun> PlanAsync(IacPlanSpec spec, CancellationToken ct)
     {
         var env = Environment(spec.DataDirectory, spec.Environment);
-        var init = await RunAsync(spec.Directory, ["init", "-input=false", "-no-color"], env, InitTimeout, ct);
-        if (init.ExitCode != 0) return Failed("init falhou (backend ou providers): " + Tail(init));
-
-        // Selecionar só; criar um workspace muda o state e não é papel do plano.
-        if (spec.Workspace is { } workspace && workspace != "default")
-        {
-            var select = await RunAsync(spec.Directory, ["workspace", "select", workspace], env, ShortTimeout, ct);
-            if (select.ExitCode != 0) return Failed($"O workspace {workspace} não existe neste backend. Criá-lo muda o state e fica fora do plano. " + Tail(select));
-        }
+        if (await PrepareAsync(spec.Directory, spec.Workspace, env, ct) is { } failure) return Failed(failure);
+        var (backend, blocker) = Backend(spec.Directory, spec.DataDirectory);
 
         var plan = await RunAsync(spec.Directory, ["plan", "-input=false", "-no-color", "-detailed-exitcode", "-out=" + spec.PlanFile], env, PlanTimeout, ct);
         if (plan.TimedOut) return Failed("O plano passou de 30 minutos e foi interrompido.");
         // -detailed-exitcode: 0 sem mudanças, 2 com mudanças, 1 erro.
         if (plan.ExitCode is not (0 or 2)) return Failed(Tail(plan));
 
-        var show = await RunAsync(spec.Directory, ["show", "-json", "-no-color", spec.PlanFile], env, ShortTimeout, ct);
-        if (show.ExitCode != 0) return Failed("O plano foi gerado, mas show -json falhou: " + Tail(show));
+        var summary = await ShowAsync(spec.Directory, spec.PlanFile, env, ct);
+        return summary is null
+            ? Failed("O plano foi gerado, mas show -json falhou ou devolveu um formato inesperado.")
+            : new IacPlanRun(true, plan.ExitCode == 2, summary.Value.Summary, summary.Value.Findings, null, backend, blocker);
+    }
+
+    public async Task<IacApplyRun> ApplyAsync(IacApplySpec spec, CancellationToken ct)
+    {
+        var env = Environment(spec.DataDirectory, spec.Environment);
+        if (await PrepareAsync(spec.Directory, spec.Workspace, env, ct) is { } failure) return NotApplied(failure);
+        // A mesma conferência do plano, de novo na hora: o state nunca pode ir parar na cópia da configuração.
+        if (Backend(spec.Directory, spec.DataDirectory).Blocker is { } blocker) return NotApplied(blocker);
+
+        Directory.CreateDirectory(Path.GetDirectoryName(spec.LogFile)!);
+        var apply = await RunAsync(spec.Directory, ["apply", "-input=false", "-no-color", spec.PlanFile], env, ApplyTimeout, ct);
+        await File.WriteAllTextAsync(spec.LogFile, $"$ apply (código {apply.ExitCode})\n{apply.StandardOutput}\n{apply.StandardError}\n", ct);
+        var applied = apply.ExitCode == 0 && !apply.TimedOut;
+        var error = applied ? null : apply.TimedOut ? "O apply passou de 55 minutos e foi interrompido." : Tail(apply);
+
+        // A prova: um plano novo sobre o mesmo state. Sem mudanças, aplicado; com mudanças, o que faltou ou divergiu.
+        var verifyFile = spec.PlanFile + ".verify";
+        var verify = await RunAsync(spec.Directory, ["plan", "-input=false", "-no-color", "-detailed-exitcode", "-out=" + verifyFile], env, PlanTimeout, ct);
+        IacPlanSummary? remaining = null;
+        if (verify.ExitCode == 2) remaining = (await ShowAsync(spec.Directory, verifyFile, env, ct))?.Summary;
+        if (File.Exists(verifyFile)) File.Delete(verifyFile);
+        var verified = verify.ExitCode == 0;
+        if (verify.ExitCode is not (0 or 2)) error = (error is null ? "" : error + "\n") + "A verificação depois do apply falhou: " + Tail(verify);
+
+        var state = await RunAsync(spec.Directory, ["state", "list"], env, ShortTimeout, ct);
+        int? managed = state.ExitCode == 0 ? Lines(state.StandardOutput).Count() : null;
+        var outputs = await OutputsAsync(spec.Directory, env, ct);
+        return new IacApplyRun(applied, applied && verified, remaining, managed, outputs, error);
+    }
+
+    // init com backend e seleção do workspace. Selecionar só; criar um workspace muda o state e não é papel do Spock.
+    private async Task<string?> PrepareAsync(string directory, string? workspace, Dictionary<string, string> env, CancellationToken ct)
+    {
+        var init = await RunAsync(directory, ["init", "-input=false", "-no-color"], env, InitTimeout, ct);
+        if (init.ExitCode != 0) return "init falhou (backend ou providers): " + Tail(init);
+        if (workspace is null || workspace == "default") return null;
+        var select = await RunAsync(directory, ["workspace", "select", workspace], env, ShortTimeout, ct);
+        return select.ExitCode == 0 ? null : $"O workspace {workspace} não existe neste backend. Criá-lo muda o state e fica fora do Spock. " + Tail(select);
+    }
+
+    private async Task<(IacPlanSummary Summary, IReadOnlyList<IacFinding> Findings)?> ShowAsync(string directory, string planFile,
+        Dictionary<string, string> env, CancellationToken ct)
+    {
+        var show = await RunAsync(directory, ["show", "-json", "-no-color", planFile], env, ShortTimeout, ct);
+        if (show.ExitCode != 0) return null;
         try
         {
-            var (summary, findings) = IacPlanReader.Read(JsonNode.Parse(show.StandardOutput) ?? new JsonObject());
-            return new IacPlanRun(true, plan.ExitCode == 2, summary, findings, null);
+            return IacPlanReader.Read(JsonNode.Parse(show.StandardOutput) ?? new JsonObject());
         }
         catch (JsonException)
         {
-            return Failed("show -json devolveu um formato inesperado.");
+            return null;
         }
     }
 
+    // Só os outputs não sensíveis, cada um resumido; os sensíveis não aparecem nem pelo nome do valor.
+    private async Task<Dictionary<string, string>> OutputsAsync(string directory, Dictionary<string, string> env, CancellationToken ct)
+    {
+        var outputs = new Dictionary<string, string>(StringComparer.Ordinal);
+        var result = await RunAsync(directory, ["output", "-json", "-no-color"], env, ShortTimeout, ct);
+        if (result.ExitCode != 0) return outputs;
+        try
+        {
+            foreach (var (name, node) in JsonNode.Parse(result.StandardOutput) as JsonObject ?? [])
+            {
+                if (node?["sensitive"]?.GetValue<bool>() == true) continue;
+                var value = node?["value"] is JsonValue v && v.TryGetValue<string>(out var text) ? text : node?["value"]?.ToJsonString() ?? "null";
+                outputs[name] = value.Length > MaxOutput ? value[..MaxOutput] + "…" : value;
+            }
+        }
+        catch (Exception ex) when (ex is JsonException or InvalidOperationException)
+        {
+            outputs.Clear();
+        }
+        return outputs;
+    }
+
+    // Depois do init, TF_DATA_DIR/terraform.tfstate guarda o backend configurado (só o tipo e o caminho são lidos: a
+    // configuração pode ter credencial). Sem backend, ou local com caminho relativo, o state ficaria dentro da cópia da
+    // configuração e se perderia: o plano é mostrado, mas o Spock não o aplica.
+    private static (string? Backend, string? Blocker) Backend(string directory, string dataDirectory)
+    {
+        string? type = null, path = null;
+        var file = Path.Combine(dataDirectory, "terraform.tfstate");
+        if (File.Exists(file))
+        {
+            try
+            {
+                var backend = JsonNode.Parse(File.ReadAllText(file))?["backend"];
+                type = backend?["type"]?.GetValue<string>();
+                path = backend?["config"]?["path"] is JsonValue value && value.TryGetValue<string>(out var text) ? text : null;
+            }
+            catch (Exception ex) when (ex is JsonException or InvalidOperationException or IOException)
+            {
+                type = null;
+            }
+        }
+        if (type is not null && type != "local") return (type, null);
+        if (type == "local" && path is not null && Path.IsPathRooted(path)
+            && !Path.GetFullPath(path).StartsWith(Path.GetFullPath(directory), StringComparison.OrdinalIgnoreCase))
+            return (type, null);
+        return (type ?? "local", "O projeto guarda o state localmente dentro da pasta da configuração. O Spock planeja sobre uma cópia e não " +
+            "aplica nela, para o state não ficar fora do projeto. Configure um backend remoto (S3, azurerm, gcs) ou um backend " +
+            "local com caminho absoluto; veja TERRAFORM_STATE_MANAGEMENT.md.");
+    }
+
     private static IacPlanRun Failed(string error) => new(false, false, null, [], error);
+
+    private static IacApplyRun NotApplied(string error) => new(false, false, null, null, new Dictionary<string, string>(), error);
 
     private Task<ProcessResult> RunAsync(string directory, IReadOnlyList<string> arguments, IReadOnlyDictionary<string, string>? env, TimeSpan timeout,
         CancellationToken ct) =>

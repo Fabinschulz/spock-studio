@@ -75,4 +75,42 @@ public static class IacErrors
 
     public static EngineException ConnectionNotLinked() =>
         new("IAC_CONNECTION_NOT_LINKED", "Esta conexão cloud não está vinculada ao projeto. Vincule-a em Conexões cloud.");
+
+    public static EngineException NotAPlan() =>
+        new("IAC_NOT_A_PLAN", "Só um plano gerado com sucesso pode ser aprovado e aplicado.");
+
+    public static EngineException PlanMismatch() =>
+        new("IAC_PLAN_MISMATCH", "A aprovação não corresponde ao plano mostrado. Revise o plano e aprove de novo.");
+
+    public static EngineException PlanNoChanges() =>
+        new("IAC_PLAN_NO_CHANGES", "Este plano não tem mudanças: não há nada a aplicar.");
+
+    public static EngineException ApplyBlocked(string reason) => new("IAC_APPLY_BLOCKED", reason);
+
+    public static EngineException PlanAlreadyApplied() =>
+        new("IAC_PLAN_ALREADY_APPLIED", "Este plano já foi aplicado. Gere um plano novo para outra mudança.");
+
+    public static EngineException PlanSuperseded() =>
+        new("IAC_PLAN_SUPERSEDED", "Há um plano mais novo para esta pasta e este ambiente. Aprove o mais recente.");
+
+    public static EngineException PlanExpired() =>
+        new("IAC_PLAN_EXPIRED", "O plano tem mais de 24 horas. Gere um plano novo antes de aplicar.");
+
+    public static EngineException PlanChanged() =>
+        new("IAC_PLAN_CHANGED", "O arquivo do plano ou a cópia da configuração mudou desde a geração. Nada foi aplicado.");
+
+    public static EngineException PlanStale() =>
+        new("IAC_PLAN_STALE", "A configuração do projeto mudou desde o plano. Gere um plano novo: a aprovação anterior não vale mais.");
+
+    public static EngineException DestroyConfirmationRequired(int count) =>
+        new("IAC_DESTROY_CONFIRMATION_REQUIRED", $"O plano destrói ou substitui {count} recurso(s). Confirme a destruição explicitamente.");
+
+    public static EngineException RisksConfirmationRequired(int count) =>
+        new("IAC_RISKS_CONFIRMATION_REQUIRED", $"O plano tem {count} achado(s) grave(s) de segurança. Confirme que revisou antes de aplicar.");
+
+    public static EngineException WorkspaceConfirmationRequired(string workspace) =>
+        new("IAC_WORKSPACE_CONFIRMATION_REQUIRED", $"Aplicar em {workspace} pede que você digite o nome do ambiente para confirmar.");
+
+    public static EngineException RuntimeChanged() =>
+        new("IAC_RUNTIME_CHANGED", "A ferramenta ou a versão do projeto mudou desde o plano. Gere um plano novo com a ferramenta atual.");
 }

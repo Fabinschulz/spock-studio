@@ -114,7 +114,8 @@ export const ENGINE_METHODS = [
   'iac.validate',
   'iac.plan',
   'iac.operations',
-  'iac.operation'
+  'iac.operation',
+  'iac.apply'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

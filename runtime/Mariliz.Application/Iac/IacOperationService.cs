@@ -11,7 +11,8 @@ namespace Mariliz.Application.Iac;
 
 // Spock Infrastructure Management: as políticas que valem antes de qualquer ferramenta rodar, a execução pela IaC
 // Runtime Abstraction (IIacRuntime), o histórico e a trilha. Validar e planejar nunca mudam a nuvem nem o projeto:
-// rodam sobre uma cópia da configuração na pasta do Spock. Aplicar não existe aqui (entrega 3, com aprovação).
+// rodam sobre uma cópia da configuração na pasta do Spock. Aplicar só acontece com a aprovação da pessoa para aquele
+// plano exato, e sempre a partir do arquivo de plano guardado.
 public sealed partial class IacOperationService(
     IacRuntimeService runtimes,
     IIacRuntimeFactory factory,
@@ -23,6 +24,11 @@ public sealed partial class IacOperationService(
     IAuditLog audit)
 {
     public const string Person = "person";
+
+    // Plano velho tende a ser recusado pela ferramenta (state mudou); o Spock recusa antes, com uma mensagem clara.
+    public static readonly TimeSpan PlanLifetime = TimeSpan.FromHours(24);
+
+    private static readonly HashSet<string> ProductionWorkspaces = new(StringComparer.Ordinal) { "prd", "prod", "production", "producao" };
 
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _running = new(StringComparer.Ordinal);
 
@@ -134,7 +140,8 @@ public sealed partial class IacOperationService(
             if (!run.Succeeded) area.DeleteOperation(request.ProjectId, id);
             var operation = new IacOperation(id, request.ProjectId, IacOperationKind.Plan, run.Succeeded ? IacOperationStatus.Succeeded : IacOperationStatus.Failed,
                 installation.Engine, installation.Version, iacRoot, folder, workspaceName ?? "default", request.ConnectionId, snapshot.ConfigHash, started,
-                clock.UtcNow, requestedBy, null, planId, run.Succeeded ? run.HasChanges : null, run.Summary, run.Findings, run.Error);
+                clock.UtcNow, requestedBy, null, planId, run.Succeeded ? run.HasChanges : null, run.Summary, run.Findings, run.Error,
+                Backend: run.Backend, ApplyBlocker: run.ApplyBlocker);
             var detail = new JsonObject
             {
                 ["folder"] = folder,
@@ -151,6 +158,107 @@ public sealed partial class IacOperationService(
                 detail["delete"] = summary.Delete;
                 detail["findings"] = run.Findings.Count;
             }
+            if (run.Backend is not null) detail["backend"] = run.Backend;
+            detail["applicable"] = run.Succeeded && run.ApplyBlocker is null;
+            Record(operation, detail);
+            return operation;
+        });
+    }
+
+    // A aprovação é daquele plano: mesmo id, mesma cópia da configuração, mesma configuração no projeto, mesma ferramenta,
+    // plano mais recente da pasta e do ambiente, dentro do prazo e ainda não aplicado. Destruição, achados graves e
+    // produção pedem confirmações a mais. Só a pessoa aprova; agentes não chegam aqui.
+    public async Task<IacOperation> ApplyAsync(IacApplyRequest request, CancellationToken ct)
+    {
+        var root = RequireRoot(request.ProjectId);
+        var history = area.History(request.ProjectId);
+        var plan = history.FirstOrDefault(o => o.Id == request.OperationId) ?? throw IacErrors.OperationNotFound();
+        if (plan.Kind != IacOperationKind.Plan || plan.Status != IacOperationStatus.Succeeded || plan.PlanId is null || plan.Summary is null)
+            throw IacErrors.NotAPlan();
+        if (!string.Equals(plan.PlanId, request.PlanId, StringComparison.Ordinal)) throw IacErrors.PlanMismatch();
+        if (plan.AppliedBy is not null) throw IacErrors.PlanAlreadyApplied();
+        if (plan.HasChanges != true) throw IacErrors.PlanNoChanges();
+        if (plan.ApplyBlocker is { } blocker) throw IacErrors.ApplyBlocked(blocker);
+        // O histórico vem do mais recente para o mais antigo: qualquer plano antes deste, da mesma pasta e ambiente, é mais novo.
+        if (history.TakeWhile(o => o.Id != plan.Id).Any(o => o.Kind == IacOperationKind.Plan && o.Status == IacOperationStatus.Succeeded
+                                                          && o.Folder == plan.Folder && o.Workspace == plan.Workspace))
+            throw IacErrors.PlanSuperseded();
+        if (clock.UtcNow - plan.FinishedAt > PlanLifetime) throw IacErrors.PlanExpired();
+
+        var destructive = plan.Summary.Delete + plan.Summary.Replace;
+        if (destructive > 0 && !request.DestroyConfirmed) throw IacErrors.DestroyConfirmationRequired(destructive);
+        var risks = (plan.Findings ?? []).Count(f => f.Severity == IacFindingSeverity.Danger && f.Rule is not ("destroy" or "replace"));
+        if (risks > 0 && !request.RisksAccepted) throw IacErrors.RisksConfirmationRequired(risks);
+        if (plan.Workspace is { } ws && ProductionWorkspaces.Contains(ws) && request.WorkspaceConfirmation?.Trim() != ws)
+            throw IacErrors.WorkspaceConfirmationRequired(ws);
+
+        var directory = area.OperationDirectory(request.ProjectId, plan.Id);
+        var planFile = Path.Combine(directory, "plan.tfplan");
+        var copy = Path.Combine(directory, "config");
+        try
+        {
+            if (!area.HashFile(planFile).StartsWith(plan.PlanId, StringComparison.Ordinal) || area.ConfigHash(copy) != plan.ConfigHash)
+                throw IacErrors.PlanChanged();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            throw IacErrors.PlanChanged();
+        }
+        var folders = config.Folders(root);
+        if (folders.Count == 0 || area.ConfigHash(Combine(root, plan.Root)) != plan.ConfigHash) throw IacErrors.PlanStale();
+        var environment = CloudEnvironment(request.ProjectId, plan.ConnectionId);
+
+        return await Exclusive(request.ProjectId, async () =>
+        {
+            var installation = await runtimes.ResolveForUseAsync(request.ProjectId, ct);
+            if (installation.Engine != plan.Engine || installation.Version != plan.Version) throw IacErrors.RuntimeChanged();
+
+            var approval = new IacApproval(plan.PlanId, plan.ConfigHash, clock.UtcNow, request.DestroyConfirmed, request.RisksAccepted,
+                request.WorkspaceConfirmation?.Trim());
+            audit.Record("iac.apply_approved", new JsonObject
+            {
+                ["projectId"] = request.ProjectId,
+                ["operationId"] = plan.Id,
+                ["planId"] = plan.PlanId,
+                ["configHash"] = plan.ConfigHash,
+                ["workspace"] = plan.Workspace,
+                ["destroy"] = destructive,
+                ["destroyConfirmed"] = request.DestroyConfirmed,
+                ["risks"] = risks,
+                ["risksAccepted"] = request.RisksAccepted
+            });
+
+            var id = NewId();
+            var started = clock.UtcNow;
+            var applyDirectory = area.OperationDirectory(request.ProjectId, id);
+            IacApplyRun run;
+            try
+            {
+                run = await factory.For(installation).ApplyAsync(new IacApplySpec(Combine(copy, Relative(plan.Root, plan.Folder ?? plan.Root)),
+                    Path.Combine(applyDirectory, "data"), planFile, plan.Workspace, environment, Path.Combine(applyDirectory, "apply.log")), ct);
+            }
+            finally
+            {
+                area.DiscardData(Path.Combine(applyDirectory, "data"));
+            }
+
+            var operation = new IacOperation(id, request.ProjectId, IacOperationKind.Apply,
+                run.Applied ? IacOperationStatus.Succeeded : IacOperationStatus.Failed, installation.Engine, installation.Version, plan.Root, plan.Folder,
+                plan.Workspace, plan.ConnectionId, plan.ConfigHash, started, clock.UtcNow, Person, null, plan.PlanId, null, plan.Summary, plan.Findings,
+                run.Error, plan.Backend, null, null, plan.Id, approval, run);
+            // O plano vale uma vez: marcado como aplicado e sem o arquivo, que guardava valores em texto puro.
+            area.Save(plan with { AppliedBy = id });
+            area.DeleteOperation(request.ProjectId, plan.Id);
+            var detail = new JsonObject
+            {
+                ["planOperationId"] = plan.Id,
+                ["planId"] = plan.PlanId,
+                ["workspace"] = plan.Workspace,
+                ["applied"] = run.Applied,
+                ["verified"] = run.Verified,
+                ["remaining"] = run.Remaining is { } left ? left.Changes.Count : 0
+            };
+            if (run.ManagedResources is { } managed) detail["managedResources"] = managed;
             Record(operation, detail);
             return operation;
         });
@@ -200,7 +308,12 @@ public sealed partial class IacOperationService(
         detail["status"] = operation.Status == IacOperationStatus.Succeeded ? "succeeded" : "failed";
         detail["requestedBy"] = operation.RequestedBy;
         detail["configHash"] = operation.ConfigHash;
-        audit.Record(operation.Kind == IacOperationKind.Validate ? "iac.validate" : "iac.plan", detail);
+        audit.Record(operation.Kind switch
+        {
+            IacOperationKind.Validate => "iac.validate",
+            IacOperationKind.Plan => "iac.plan",
+            _ => "iac.apply"
+        }, detail);
     }
 
     private async Task<IacOperation> Exclusive(string projectId, Func<Task<IacOperation>> work)

@@ -1,4 +1,6 @@
+using Mariliz.Application.Execution;
 using Mariliz.Application.Iac;
+using Mariliz.Application.Ports;
 using Mariliz.Application.Tests.Support;
 using Mariliz.Application.Workspace;
 using Mariliz.Infrastructure;
@@ -91,6 +93,64 @@ public sealed class IacRuntimeLiveTests(ITestOutputHelper output)
         project.Write("infra/modules/rede/resource.tf", "resource \"terraform_data\" \"rede\" {\n  input = \"10.0.0.0/16\"\n}\n");
         Assert.Equal(before, project.Fingerprint());
         Assert.False(Directory.Exists(Path.Combine(project.Root, "infra", ".terraform")));
+    }
+
+    // Entrega 3 de ponta a ponta com o OpenTofu de verdade: aprovar e aplicar um plano, provar com um plano seguinte sem
+    // mudanças, recusar plano sem mudanças, exigir confirmação para destruir e recusar aplicar quando o state ficaria na
+    // cópia. O backend local aponta para fora do projeto, como um backend remoto faria.
+    [LiveFact(Variable)]
+    public async Task OpenTofu_aplica_so_o_plano_aprovado_e_prova_o_resultado()
+    {
+        using var project = TempProject.Dotnet();
+        var stateDirectory = Directory.CreateTempSubdirectory("spock-state-").FullName;
+        var statePath = Path.Combine(stateDirectory, "terraform.tfstate").Replace('\\', '/');
+        project.Write("infra/providers.tf", $"terraform {{\n  required_version = \">= 1.6\"\n\n  backend \"local\" {{\n    path = \"{statePath}\"\n  }}\n}}\n");
+        project.Write("infra/resource.tf", "resource \"terraform_data\" \"fila\" {\n  input = \"fila-dev\"\n}\n\nresource \"terraform_data\" \"rede\" {\n  input = \"10.0.0.0/16\"\n}\n\noutput \"fila\" {\n  value = terraform_data.fila.output\n}\n");
+        var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(project.DataDir));
+        var projectId = workspace.Authorize(project.Root).Project!.ProjectId;
+        using var tofu = new OpenTofuToolchain(project.DataDir, new NoExternal());
+        var runner = new SystemProcessRunner();
+        var audit = new MemoryAudit();
+        var runtimes = new IacRuntimeService([tofu], new FileIacSettingsStore(project.DataDir), new IacConfigReader(), runner, workspace, new FakeClock(), audit);
+        var offer = await runtimes.OfferAsync(null, null, null, CancellationToken.None);
+        await runtimes.InstallAsync(offer.OfferId, offer.Version, IacEngine.OpenTofu, CancellationToken.None);
+        var operations = new IacOperationService(runtimes, new CliIacRuntimeFactory(runner, project.DataDir), new IacConfigReader(),
+            new FileIacWorkArea(project.DataDir), workspace, null, new SystemClock(), audit);
+        IacApplyRequest Approve(IacOperation plan, bool destroy = false) => new(projectId, plan.Id, plan.PlanId!, destroy, false, null);
+        Task<IacOperation> Plan() => operations.PlanAsync(new IacPlanRequest(projectId, "infra", null, null), IacOperationService.Person, CancellationToken.None);
+
+        var first = await Plan();
+        var applied = await operations.ApplyAsync(Approve(first), CancellationToken.None);
+        var nothing = await Plan();
+        var noChanges = await Assert.ThrowsAsync<EngineException>(() => operations.ApplyAsync(Approve(nothing), CancellationToken.None));
+
+        project.Write("infra/resource.tf", "resource \"terraform_data\" \"fila\" {\n  input = \"fila-dev\"\n}\n\noutput \"fila\" {\n  value = terraform_data.fila.output\n}\n");
+        var removal = await Plan();
+        var unconfirmed = await Assert.ThrowsAsync<EngineException>(() => operations.ApplyAsync(Approve(removal), CancellationToken.None));
+        var destroyed = await operations.ApplyAsync(Approve(removal, destroy: true), CancellationToken.None);
+
+        project.Write("infra/providers.tf", "terraform {\n  required_version = \">= 1.6\"\n}\n");
+        var localState = await Plan();
+        var blocked = await Assert.ThrowsAsync<EngineException>(() => operations.ApplyAsync(Approve(localState), CancellationToken.None));
+
+        output.WriteLine($"apply: {applied.Status} verificado={applied.Apply!.Verified} recursos={applied.Apply.ManagedResources} outputs={string.Join(",", applied.Apply.Outputs)}");
+        output.WriteLine($"destruição: {destroyed.Status} verificado={destroyed.Apply!.Verified} recursos={destroyed.Apply.ManagedResources}; bloqueio: {localState.ApplyBlocker}");
+        Assert.Equal(IacOperationStatus.Succeeded, applied.Status);
+        Assert.True(applied.Apply.Verified);
+        Assert.Equal(2, applied.Apply.ManagedResources);
+        Assert.Equal("fila-dev", applied.Apply.Outputs["fila"]);
+        Assert.True(File.Exists(statePath));
+        Assert.False(nothing.HasChanges);
+        Assert.Equal("IAC_PLAN_NO_CHANGES", noChanges.Code);
+        Assert.Equal(1, removal.Summary!.Delete);
+        Assert.Equal("IAC_DESTROY_CONFIRMATION_REQUIRED", unconfirmed.Code);
+        Assert.True(destroyed.Apply.Verified);
+        Assert.Equal(1, destroyed.Apply.ManagedResources);
+        Assert.NotNull(localState.ApplyBlocker);
+        Assert.Equal("IAC_APPLY_BLOCKED", blocked.Code);
+        Assert.False(Directory.Exists(Path.Combine(project.Root, "infra", ".terraform")));
+        Assert.False(File.Exists(Path.Combine(project.Root, "infra", "terraform.tfstate")));
+        Directory.Delete(stateDirectory, recursive: true);
     }
 
     private sealed class NoExternal : Application.Ports.IExecutableLocator

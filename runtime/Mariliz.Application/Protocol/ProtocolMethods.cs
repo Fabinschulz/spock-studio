@@ -105,6 +105,7 @@ public static class ProtocolMethods
     public const string IacPlan = "iac.plan";
     public const string IacOperations = "iac.operations";
     public const string IacOperation = "iac.operation";
+    public const string IacApply = "iac.apply";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -138,7 +139,7 @@ public static class ProtocolMethods
         // Rodam o terraform da máquina, refazem o hash dos binários ou baixam da HashiCorp.
         IacRuntimeStatus, IacRuntimeOffer, IacRuntimeInstall, IacRuntimeDecline, IacRuntimeRemove, IacRuntimeAdopt, IacRuntimePin,
         // Rodam a ferramenta de IaC: init baixa providers e o plano lê o backend.
-        IacValidate, IacPlan
+        IacValidate, IacPlan, IacApply
     };
 
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
@@ -164,7 +165,7 @@ public static class ProtocolMethods
 
     public static readonly IReadOnlyList<string> Iac =
         [IacRuntimeStatus, IacRuntimeOffer, IacRuntimeInstall, IacRuntimeDecline, IacRuntimeRemove, IacRuntimeAdopt, IacRuntimePin,
-            IacLayout, IacValidate, IacPlan, IacOperations, IacOperation];
+            IacLayout, IacValidate, IacPlan, IacOperations, IacOperation, IacApply];
 
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }

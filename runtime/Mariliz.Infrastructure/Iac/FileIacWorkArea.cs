@@ -32,7 +32,7 @@ public sealed class FileIacWorkArea(string dataRoot) : IIacWorkArea
         if (!source.StartsWith(Path.GetFullPath(projectRoot), StringComparison.OrdinalIgnoreCase)) throw IacErrors.FolderUnknown(iacRoot);
         Directory.CreateDirectory(destination);
 
-        var hashed = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        var copied = 0;
         long total = 0;
         var count = 0;
         var localState = false;
@@ -49,12 +49,25 @@ public sealed class FileIacWorkArea(string dataRoot) : IIacWorkArea
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
             File.Copy(file, target, overwrite: true);
             if (state) localState = true;
-            else hashed[relative] = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(target))).ToLowerInvariant();
+            else copied++;
         }
 
+        return new IacSnapshot(destination, ConfigHash(destination), copied, localState);
+    }
+
+    public string ConfigHash(string directory)
+    {
+        var hashed = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        if (Directory.Exists(directory))
+            foreach (var file in Files(directory))
+            {
+                var relative = Path.GetRelativePath(directory, file).Replace(Path.DirectorySeparatorChar, '/');
+                // O lock de providers fica fora: o init da ferramenta pode reescrevê-lo na cópia, e o plano já registra os providers.
+                if (IsState(relative) || IsPlanOrLog(relative) || relative.EndsWith(".terraform.lock.hcl", StringComparison.Ordinal)) continue;
+                hashed[relative] = HashFile(file);
+            }
         var manifest = string.Join('\n', hashed.Select(f => $"{f.Key}\n{f.Value}"));
-        var configHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(manifest))).ToLowerInvariant();
-        return new IacSnapshot(destination, configHash, hashed.Count, localState);
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(manifest))).ToLowerInvariant();
     }
 
     public void DiscardLocalState(string snapshotDirectory)

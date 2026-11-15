@@ -1,7 +1,7 @@
 {
   "operations": [
     {
-      "id": "iac-844b5dacda4e",
+      "id": "iac-4afa2e42c645",
       "projectId": "p-0123456789ab",
       "kind": "plan",
       "status": "succeeded",
@@ -11,12 +11,128 @@
       "folder": "infra",
       "workspace": "default",
       "connectionId": null,
-      "configHash": "c56e7821c78ea31c8afbd36d1c1413b3a9213365e6ac5f44c5c7a1167d84f02e",
-      "startedAt": "2026-11-15T14:52:15.6253037+00:00",
-      "finishedAt": "2026-11-15T14:52:15.9398125+00:00",
+      "configHash": "e1bb446f00c144f5de43be4e243463679dbf28e1162b5a7b45fd9eaa7927c65a",
+      "startedAt": "2026-11-15T15:17:32.8780999+00:00",
+      "finishedAt": "2026-11-15T15:17:33.1168726+00:00",
       "requestedBy": "person",
       "validation": null,
-      "planId": "442908caca45bc92",
+      "planId": "aab06700de6aeafb",
+      "hasChanges": true,
+      "summary": {
+        "create": 0,
+        "update": 0,
+        "replace": 0,
+        "delete": 1,
+        "read": 0,
+        "unchanged": 1,
+        "changes": [
+          {
+            "address": "module.rede.terraform_data.rede",
+            "type": "terraform_data",
+            "action": "delete"
+          }
+        ],
+        "outputsChanged": []
+      },
+      "findings": [
+        {
+          "severity": "danger",
+          "rule": "destroy",
+          "address": "module.rede.terraform_data.rede",
+          "message": "module.rede.terraform_data.rede será destruído."
+        }
+      ],
+      "error": null,
+      "backend": "local",
+      "applyBlocker": null,
+      "appliedBy": null,
+      "planOperationId": null,
+      "approval": null,
+      "apply": null
+    },
+    {
+      "id": "iac-5157045a336a",
+      "projectId": "p-0123456789ab",
+      "kind": "apply",
+      "status": "succeeded",
+      "engine": "openTofu",
+      "version": "1.13.9",
+      "root": "infra",
+      "folder": "infra",
+      "workspace": "default",
+      "connectionId": null,
+      "configHash": "ec7b990c1871b96e597936dc15678fc0895bf73af6edb3e04e81960542b205cf",
+      "startedAt": "2026-11-15T15:17:32.173534+00:00",
+      "finishedAt": "2026-11-15T15:17:32.5646213+00:00",
+      "requestedBy": "person",
+      "validation": null,
+      "planId": "4623d69c86d2d690",
+      "hasChanges": null,
+      "summary": {
+        "create": 2,
+        "update": 0,
+        "replace": 0,
+        "delete": 0,
+        "read": 0,
+        "unchanged": 0,
+        "changes": [
+          {
+            "address": "terraform_data.fila",
+            "type": "terraform_data",
+            "action": "create"
+          },
+          {
+            "address": "module.rede.terraform_data.rede",
+            "type": "terraform_data",
+            "action": "create"
+          }
+        ],
+        "outputsChanged": [
+          "fila"
+        ]
+      },
+      "findings": [],
+      "error": null,
+      "backend": "local",
+      "applyBlocker": null,
+      "appliedBy": null,
+      "planOperationId": "iac-abc758a43c66",
+      "approval": {
+        "planId": "4623d69c86d2d690",
+        "configHash": "ec7b990c1871b96e597936dc15678fc0895bf73af6edb3e04e81960542b205cf",
+        "approvedAt": "2026-11-15T15:17:32.1728202+00:00",
+        "destroyConfirmed": false,
+        "risksAccepted": false,
+        "workspaceConfirmed": null
+      },
+      "apply": {
+        "applied": true,
+        "verified": true,
+        "remaining": null,
+        "managedResources": 2,
+        "outputs": {
+          "fila": "fila-dev"
+        },
+        "error": null
+      }
+    },
+    {
+      "id": "iac-abc758a43c66",
+      "projectId": "p-0123456789ab",
+      "kind": "plan",
+      "status": "succeeded",
+      "engine": "openTofu",
+      "version": "1.13.9",
+      "root": "infra",
+      "folder": "infra",
+      "workspace": "default",
+      "connectionId": null,
+      "configHash": "ec7b990c1871b96e597936dc15678fc0895bf73af6edb3e04e81960542b205cf",
+      "startedAt": "2026-11-15T15:17:31.5762739+00:00",
+      "finishedAt": "2026-11-15T15:17:31.8507935+00:00",
+      "requestedBy": "person",
+      "validation": null,
+      "planId": "4623d69c86d2d690",
       "hasChanges": true,
       "summary": {
         "create": 2,
@@ -42,10 +158,16 @@
         ]
       },
       "findings": [],
-      "error": null
+      "error": null,
+      "backend": "local",
+      "applyBlocker": null,
+      "appliedBy": "iac-5157045a336a",
+      "planOperationId": null,
+      "approval": null,
+      "apply": null
     },
     {
-      "id": "iac-19f57800902c",
+      "id": "iac-b0cfccdf1d0c",
       "projectId": "p-0123456789ab",
       "kind": "validate",
       "status": "succeeded",
@@ -55,9 +177,9 @@
       "folder": null,
       "workspace": null,
       "connectionId": null,
-      "configHash": "c56e7821c78ea31c8afbd36d1c1413b3a9213365e6ac5f44c5c7a1167d84f02e",
-      "startedAt": "2026-11-15T14:52:13.5450398+00:00",
-      "finishedAt": "2026-11-15T14:52:15.2727896+00:00",
+      "configHash": "ec7b990c1871b96e597936dc15678fc0895bf73af6edb3e04e81960542b205cf",
+      "startedAt": "2026-11-15T15:17:29.7769481+00:00",
+      "finishedAt": "2026-11-15T15:17:31.2182913+00:00",
       "requestedBy": "person",
       "validation": [
         {
@@ -79,7 +201,13 @@
       "hasChanges": null,
       "summary": null,
       "findings": null,
-      "error": null
+      "error": null,
+      "backend": null,
+      "applyBlocker": null,
+      "appliedBy": null,
+      "planOperationId": null,
+      "approval": null,
+      "apply": null
     }
   ]
 }

@@ -85,21 +85,21 @@ export const LIFECYCLE: readonly LifecycleStage[] = [
     label: 'Aprovação',
     mode: 'preparation',
     description: 'Você aprova aquele plano específico.',
-    available: false
+    available: true
   },
   {
     id: 'apply',
     label: 'Aplicação',
     mode: 'execution',
     description: 'Executa só o plano aprovado.',
-    available: false
+    available: true
   },
   {
     id: 'verification',
     label: 'Verificação',
     mode: 'analysis',
     description: 'Novo plano sem mudanças e leitura dos recursos.',
-    available: false
+    available: true
   }
 ];
 
