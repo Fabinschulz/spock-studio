@@ -28,9 +28,6 @@ public sealed record ProjectInvestigation(
 // Sem modelo configurado, a investigação ainda roda e lista os sinais, dizendo que o modelo não escreveu a análise.
 public sealed class InvestigationService
 {
-    /// <summary>Teto de tokens de uma investigação com modelo: até quatro chamadas (três rodadas de hipóteses e a conclusão).</summary>
-    public const int TokenBudget = 30_000;
-
     public const int WindowDays = InvestigationFacts.WindowDays;
     private const int MaxFacts = 300;
 
@@ -91,9 +88,9 @@ public sealed class InvestigationService
             var request = InvestigationWire.Request(investigationId, executionId, projectId, cleanQuestion, pack);
             var documents = _memory.Documents(projectId);
             if (_memory.Request(documents) is { } memoryRequest) request["memory"] = memoryRequest;
-            var grant = _models is { Configured: true } ? _models.Open(executionId, TokenBudget) : null;
+            var grant = _models is { Configured: true } ? _models.Open(executionId, ModelPurposes.Assistant) : null;
             request["policy"]!["modelAllowed"] = grant is not null;
-            request["limits"]!["maxTokens"] = grant is null ? 0 : TokenBudget;
+            request["limits"]!["maxTokens"] = grant?.TokenBudget ?? 0;
             if (grant is not null) request["broker"] = new JsonObject { ["url"] = grant.Url, ["token"] = grant.Token };
 
             JsonObject ack;

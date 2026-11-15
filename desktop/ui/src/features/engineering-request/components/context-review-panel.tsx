@@ -39,7 +39,8 @@ function Review({ review }: { review: ContextReview }) {
     >
       <p className={styles.summary}>
         No pior caso, a execução usa {number(review.plannedTokens)} de {number(review.budget)}{' '}
-        <Term id="token">tokens</Term>: a entrada de cada etapa mais a resposta máxima dela.
+        <Term id="token">tokens</Term>: a entrada de cada etapa mais a resposta máxima dela. O teto dos fluxos de
+        engenharia se ajusta em Minha IA.
       </p>
       <meter
         className={styles.meter}

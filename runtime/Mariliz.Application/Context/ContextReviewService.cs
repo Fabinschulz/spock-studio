@@ -50,14 +50,15 @@ public sealed class ContextReviewService(
         var counter = tokenizers.For(model.Provider, model.Model);
         var pieces = evidence.OfType<JsonObject>().Select(item => Evidence(item, counter)).ToList();
         var evidenceTokens = pieces.Where(piece => piece.Included).Sum(piece => piece.Tokens);
-        var reviewed = Calls(calls, counter, evidenceTokens);
+        var budget = models?.Budget(ModelPurposes.Workflow) ?? ModelBudgets.Default(ModelPurposes.Workflow);
+        var reviewed = Calls(calls, counter, evidenceTokens, budget);
         var exclusions = knowledge is null ? [] : (await knowledge.InspectAsync(projectId, ct)).Excluded;
 
         return new ContextReview(
             projectId,
             model,
             new ContextCounting(counter.Exact, counter.Method),
-            WorkflowRequests.ModelTokenBudget,
+            budget,
             reviewed.Sum(call => call.InputTokens + call.OutputTokens),
             reviewed,
             pieces,
@@ -93,7 +94,7 @@ public sealed class ContextReviewService(
         item["truncated"]?.GetValue<bool>() is true);
 
     // Cada chamada reserva a resposta máxima: é o pior caso que o orçamento precisa comportar.
-    private static List<ContextCall> Calls(JsonArray calls, TokenCounter counter, int evidenceTokens)
+    private static List<ContextCall> Calls(JsonArray calls, TokenCounter counter, int evidenceTokens, int budget)
     {
         var result = new List<ContextCall>();
         var spent = 0;
@@ -105,7 +106,7 @@ public sealed class ContextReviewService(
             var block = Math.Min(evidenceTokens, user);
             var input = system + user + PerReply;
             var output = call["maxOutputTokens"] is JsonValue value && value.TryGetValue<int>(out var max) ? Math.Max(0, max) : 0;
-            var within = spent + input + output <= WorkflowRequests.ModelTokenBudget;
+            var within = spent + input + output <= budget;
             if (within) spent += input + output;
 
             var agentId = call.Text("agentId");

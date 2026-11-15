@@ -18,10 +18,11 @@ public sealed class LocalModelAccess(ModelBroker broker) : IModelAccess, IDispos
 
     public bool Configured => broker.Configured;
 
-    public ModelGrant Open(string executionId, int tokenBudget)
+    public ModelGrant Open(string executionId, string purpose)
     {
         var url = EnsureStarted();
-        return new ModelGrant(url, broker.Open(executionId, tokenBudget), tokenBudget);
+        var budget = broker.Budget(purpose);
+        return new ModelGrant(url, broker.Open(executionId, budget), budget);
     }
 
     public ModelUsage Close(string executionId) => broker.Close(executionId);

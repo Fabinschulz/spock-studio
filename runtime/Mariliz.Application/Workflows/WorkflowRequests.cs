@@ -10,12 +10,6 @@ internal static class WorkflowRequests
     public const string GraphId = "engineering.request";
     public const string GraphVersion = "1";
 
-    /// <summary>
-    /// Teto de tokens de uma execução com modelo (D4, decidida em 2026-11-05): soma de entrada e saída, cobrada pelo proxy.
-    /// Sem teto em dinheiro. O tempo sobe junto, porque uma chamada de modelo leva segundos.
-    /// </summary>
-    public const int ModelTokenBudget = 8000;
-
     // O limite de tempo que o runtime recebe vem daqui: os dois precisam concordar, senão o motor desiste antes do que o runtime foi autorizado a gastar.
     public static readonly TimeSpan RuntimeDeadline = TimeSpan.FromSeconds(60);
 

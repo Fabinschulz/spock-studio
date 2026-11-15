@@ -19,7 +19,7 @@ export function PurposesSection({ connection, busy, onChoose }: PurposesSectionP
   return (
     <PageSection
       title="Modelo por finalidade"
-      description="Cada tarefa pode usar um modelo diferente, de qualquer provedor com chave. Um modelo maior costuma responder melhor, custa mais e demora mais. O teto de tokens de cada execução continua o mesmo, e nenhum agente escolhe o modelo: a escolha é sua."
+      description="Cada tarefa pode usar um modelo diferente, de qualquer provedor com chave. Um modelo maior costuma responder melhor, custa mais e demora mais. O teto de tokens de cada execução fica na seção seguinte, e nenhum agente escolhe o modelo: a escolha é sua."
     >
       <ul className={styles.purposes}>
         {connection.purposes.map((purpose) => (

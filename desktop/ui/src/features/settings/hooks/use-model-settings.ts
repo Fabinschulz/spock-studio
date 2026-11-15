@@ -82,6 +82,21 @@ export function useModelSettings(api: ModelApi) {
     [api, run]
   );
 
+  const setBudget = useCallback(
+    (purpose: string, tokens: number | null, label: string) =>
+      run(
+        () => api.setBudget(purpose, tokens),
+        'Não foi possível trocar o teto de tokens.',
+        (next) => {
+          const budget = next.budgets.find((entry) => entry.purpose === purpose);
+          return budget
+            ? `Teto de ${label.toLowerCase()}: ${budget.tokens.toLocaleString('pt-BR')} tokens por execução.`
+            : null;
+        }
+      ),
+    [api, run]
+  );
+
   const remove = useCallback(
     (provider: string, name: string) =>
       run(
@@ -102,5 +117,5 @@ export function useModelSettings(api: ModelApi) {
     [api, run]
   );
 
-  return { connection, busy, error, notice, save, test, choose, remove, setDefault };
+  return { connection, busy, error, notice, save, test, choose, setBudget, remove, setDefault };
 }

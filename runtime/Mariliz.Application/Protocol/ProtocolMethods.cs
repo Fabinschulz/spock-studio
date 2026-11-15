@@ -31,6 +31,7 @@ public static class ProtocolMethods
     public const string ModelConnection = "model.connection";
     public const string ModelTest = "model.test";
     public const string ModelPurpose = "model.purpose";
+    public const string ModelBudget = "model.budget";
 
     public const string IntegrationCatalog = "integration.catalog";
     public const string ConnectionList = "connection.list";
@@ -89,7 +90,7 @@ public static class ProtocolMethods
 
     public static readonly IReadOnlyList<string> Workflow = [WorkflowStart, WorkflowResume];
 
-    public static readonly IReadOnlyList<string> Model = [ModelStatus, ModelSave, ModelRemove, ModelDefault, ModelConnection, ModelTest, ModelPurpose];
+    public static readonly IReadOnlyList<string> Model = [ModelStatus, ModelSave, ModelRemove, ModelDefault, ModelConnection, ModelTest, ModelPurpose, ModelBudget];
 
     public static readonly IReadOnlyList<string> Integrations =
     [

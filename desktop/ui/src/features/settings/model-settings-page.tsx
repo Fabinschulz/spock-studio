@@ -3,6 +3,7 @@ import { ErrorState, LoadingState, Page, PageSection, SuccessState, Term } from 
 import { useMemo } from 'react';
 
 import { AiToolsSection } from './components/ai-tools-section';
+import { BudgetsSection } from './components/budgets-section';
 import { ProviderRow } from './components/provider-row';
 import { PurposesSection } from './components/purposes-section';
 import { useModelSettings } from './hooks/use-model-settings';
@@ -11,7 +12,7 @@ import { createModelApi } from './service/model-api';
 
 export function ModelSettingsPage({ client }: { client: EngineClient }) {
   const api = useMemo(() => createModelApi(client), [client]);
-  const { connection, busy, error, notice, save, test, choose, remove, setDefault } = useModelSettings(api);
+  const { connection, busy, error, notice, save, test, choose, setBudget, remove, setDefault } = useModelSettings(api);
 
   return (
     <Page
@@ -60,6 +61,14 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
           connection={connection}
           busy={busy}
           onChoose={(purpose, model) => void choose(purpose.id, model, purpose.label)}
+        />
+      ) : null}
+
+      {connection ? (
+        <BudgetsSection
+          connection={connection}
+          busy={busy}
+          onSave={(budget, tokens) => void setBudget(budget.purpose, tokens, budget.label)}
         />
       ) : null}
 

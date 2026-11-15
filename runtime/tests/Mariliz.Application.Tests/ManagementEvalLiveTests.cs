@@ -37,7 +37,7 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
             {
                 var testCase = item!.AsObject();
                 var executionId = "ex-" + Guid.NewGuid().ToString("N")[..12];
-                var grant = access.Open(executionId, InvestigationService.TokenBudget);
+                var grant = access.Open(executionId, ModelPurposes.Assistant);
                 var facts = scenarios[testCase["scenario"]!.GetValue<string>()]!.DeepClone().AsArray();
                 var request = new JsonObject
                 {
@@ -49,7 +49,7 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
                     ["facts"] = facts,
                     ["groups"] = GroupsFor(facts),
                     ["policy"] = new JsonObject { ["modelAllowed"] = true },
-                    ["limits"] = new JsonObject { ["maxIterations"] = 12, ["maxMilliseconds"] = 150_000, ["maxTokens"] = InvestigationService.TokenBudget },
+                    ["limits"] = new JsonObject { ["maxIterations"] = 12, ["maxMilliseconds"] = 150_000, ["maxTokens"] = grant.TokenBudget },
                     ["broker"] = new JsonObject { ["url"] = grant.Url, ["token"] = grant.Token }
                 };
                 JsonObject ack;
