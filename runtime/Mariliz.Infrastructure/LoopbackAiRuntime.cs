@@ -11,7 +11,7 @@ using Mariliz.Core.Text;
 namespace Mariliz.Infrastructure;
 
 // A entrada padrão do filho fica fechada, para não herdar o canal do protocolo.
-public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime, IContextPreviewRuntime
+public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime, IContextPreviewRuntime, IKnowledgeSearchRuntime
 {
     private const int MaxLine = 1_000_000;
     private static readonly TimeSpan StartupBudget = TimeSpan.FromSeconds(20);
@@ -112,6 +112,12 @@ public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime, ICont
     {
         await EnsureReadyAsync(ct);
         return await PostAsync("v1/context/preview", request, ct);
+    }
+
+    public async Task<JsonObject> SearchKnowledgeAsync(JsonObject request, CancellationToken ct)
+    {
+        await EnsureReadyAsync(ct);
+        return await PostAsync("v1/knowledge/search", request, ct);
     }
 
     public Task<JsonObject> InvestigateAsync(JsonObject request, Action<JsonObject> onEvent, CancellationToken ct) =>

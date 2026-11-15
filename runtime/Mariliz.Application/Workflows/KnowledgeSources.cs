@@ -76,15 +76,11 @@ internal static class KnowledgeSources
     // Na ordem em que o índice recebe (documentação primeiro). Só lê o texto do que passou pelas regras de caminho.
     public static IEnumerable<Evaluated> Evaluate(IProjectFiles files)
     {
-        var ignored = IgnorePatterns.Parse((files.ReadText(".gitignore") ?? "").Split('\n'));
-        var (includeRules, excludeRules) = DeclaredRules(files);
-        var include = IgnorePatterns.Parse(includeRules);
-        var exclude = IgnorePatterns.Parse(excludeRules);
-
+        var rules = Rules.Read(files);
         var allowed = 0;
         foreach (var path in files.EnumerateFiles("").OrderBy(Rank).ThenBy(path => path, StringComparer.Ordinal))
         {
-            var byPath = ByPath(path, ignored, include, exclude);
+            var byPath = ByPath(path, rules);
             if (byPath != Exclusion.None)
             {
                 yield return new Evaluated(path, byPath, null, null);
@@ -96,25 +92,41 @@ internal static class KnowledgeSources
                 continue;
             }
             allowed++;
-
-            var text = files.ReadText(path);
-            if (string.IsNullOrWhiteSpace(text) || text.Contains('\0'))
-            {
-                yield return new Evaluated(path, Exclusion.Empty, null, null);
-                continue;
-            }
-            if (text.Length > MaxChars) text = text[..MaxChars];
-            if (SecretScanner.ContainsSecret(text))
-            {
-                yield return new Evaluated(path, Exclusion.Secret, null, null);
-                continue;
-            }
-            yield return new Evaluated(path, Exclusion.None, text, Hashing.Sha256(text));
+            yield return ByContent(files, path);
         }
     }
 
-    private static Exclusion ByPath(string path, IgnorePatterns ignored, IgnorePatterns include, IgnorePatterns exclude)
+    // Os mesmos critérios só para os caminhos pedidos: conferir um punhado de trechos não relê o projeto inteiro. Não conta o
+    // limite de arquivos, que depende da ordem do projeto todo. Um arquivo que não existe mais sai como vazio.
+    public static IReadOnlyList<Evaluated> EvaluatePaths(IProjectFiles files, IEnumerable<string> paths)
     {
+        var rules = Rules.Read(files);
+        return paths.Distinct(StringComparer.Ordinal)
+            .Select(path => ByPath(path, rules) is var byPath && byPath != Exclusion.None ? new Evaluated(path, byPath, null, null) : ByContent(files, path))
+            .ToList();
+    }
+
+    private sealed record Rules(IgnorePatterns Ignored, IgnorePatterns Include, IgnorePatterns Exclude)
+    {
+        public static Rules Read(IProjectFiles files)
+        {
+            var (include, exclude) = DeclaredRules(files);
+            return new(IgnorePatterns.Parse((files.ReadText(".gitignore") ?? "").Split('\n')), IgnorePatterns.Parse(include), IgnorePatterns.Parse(exclude));
+        }
+    }
+
+    private static Evaluated ByContent(IProjectFiles files, string path)
+    {
+        var text = files.ReadText(path);
+        if (string.IsNullOrWhiteSpace(text) || text.Contains('\0')) return new Evaluated(path, Exclusion.Empty, null, null);
+        if (text.Length > MaxChars) text = text[..MaxChars];
+        if (SecretScanner.ContainsSecret(text)) return new Evaluated(path, Exclusion.Secret, null, null);
+        return new Evaluated(path, Exclusion.None, text, Hashing.Sha256(text));
+    }
+
+    private static Exclusion ByPath(string path, Rules rules)
+    {
+        var (ignored, include, exclude) = (rules.Ignored, rules.Include, rules.Exclude);
         if (string.IsNullOrWhiteSpace(path) || path.Contains('\\') || path.Split('/').Contains("..")) return Exclusion.Blocked;
         // O prefixo das fontes externas é só do motor: um arquivo do projeto com esse nome não se passa por dado de terceiros.
         if (path.StartsWith(ExternalKnowledge.Prefix, StringComparison.Ordinal) || path.StartsWith(DecisionMemory.Prefix, StringComparison.Ordinal)) return Exclusion.Blocked;

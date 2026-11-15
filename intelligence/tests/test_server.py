@@ -85,6 +85,15 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(result["schema"], "ai.context.preview.ack.v1")
             self.assertEqual(self.call("/v1/context/preview", {**body, "goal": ""}), (400, {"error": "invalid_request"}))
 
+    def test_busca_no_indice_responde_json_e_recusa_pedido_invalido(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as root:
+            body = {"schema": "ai.knowledge.search.v1", "projectId": "p-aaaaaaaaaaaa", "query": "frete", "knowledgeRoot": root, "limit": 5}
+            self.assertEqual(self.call("/v1/knowledge/search", body), (200, {"schema": "ai.knowledge.search.ack.v1", "indexed": False, "hits": []}))
+            self.assertEqual(self.call("/v1/knowledge/search", {**body, "limit": 50}), (400, {"error": "invalid_request"}))
+            self.assertEqual(self.call("/v1/knowledge/search", body, token="x" * 32)[0], 401)
+
     def test_falha_do_grafo_deixa_rastro_sem_a_mensagem_da_excecao(self) -> None:
         captured = io.StringIO()
         with mock.patch.object(server, "run_cancel", side_effect=RuntimeError("C:/segredo/caminho")):
