@@ -10,6 +10,7 @@ import { Link } from 'react-router';
 
 import { IacOperations } from './components/iac-operations';
 import { LifecycleStrip } from './components/lifecycle-strip';
+import { StatePanel } from './components/state-panel';
 import { ProjectRuntime } from './components/project-runtime';
 import { RuntimePanel } from './components/runtime-panel';
 import styles from './infrastructure-page.module.scss';
@@ -110,6 +111,18 @@ export function InfrastructurePage({ client, project }: { client: EngineClient; 
               </p>
             )}
           </PageSection>
+
+          {project ? (
+            <PageSection title="State">
+              <StatePanel
+                key={`state-${project.projectId}`}
+                client={client}
+                api={api}
+                project={project}
+                ready={hub.value.runtime.project?.selected != null}
+              />
+            </PageSection>
+          ) : null}
 
           {project ? (
             <PageSection title="Validar e planejar">

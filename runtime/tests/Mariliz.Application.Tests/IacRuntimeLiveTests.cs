@@ -129,12 +129,14 @@ public sealed class IacRuntimeLiveTests(ITestOutputHelper output)
         var unconfirmed = await Assert.ThrowsAsync<EngineException>(() => operations.ApplyAsync(Approve(removal), CancellationToken.None));
         var destroyed = await operations.ApplyAsync(Approve(removal, destroy: true), CancellationToken.None);
 
+        // State local padrão (entrega 4): o apply roda na cópia e o state volta ao projeto, com o anterior em .backup.
         project.Write("infra/providers.tf", "terraform {\n  required_version = \">= 1.6\"\n}\n");
         var localState = await Plan();
-        var blocked = await Assert.ThrowsAsync<EngineException>(() => operations.ApplyAsync(Approve(localState), CancellationToken.None));
+        var local = await operations.ApplyAsync(Approve(localState), CancellationToken.None);
+        var afterLocal = await Plan();
 
         output.WriteLine($"apply: {applied.Status} verificado={applied.Apply!.Verified} recursos={applied.Apply.ManagedResources} outputs={string.Join(",", applied.Apply.Outputs)}");
-        output.WriteLine($"destruição: {destroyed.Status} verificado={destroyed.Apply!.Verified} recursos={destroyed.Apply.ManagedResources}; bloqueio: {localState.ApplyBlocker}");
+        output.WriteLine($"destruição: {destroyed.Status} verificado={destroyed.Apply!.Verified} recursos={destroyed.Apply.ManagedResources}; state local: {local.Status} {local.Error}");
         Assert.Equal(IacOperationStatus.Succeeded, applied.Status);
         Assert.True(applied.Apply.Verified);
         Assert.Equal(2, applied.Apply.ManagedResources);
@@ -146,11 +148,53 @@ public sealed class IacRuntimeLiveTests(ITestOutputHelper output)
         Assert.Equal("IAC_DESTROY_CONFIRMATION_REQUIRED", unconfirmed.Code);
         Assert.True(destroyed.Apply.Verified);
         Assert.Equal(1, destroyed.Apply.ManagedResources);
-        Assert.NotNull(localState.ApplyBlocker);
-        Assert.Equal("IAC_APPLY_BLOCKED", blocked.Code);
+        Assert.Equal(IacStateMode.LocalInProject, localState.StateMode);
+        Assert.Null(localState.ApplyBlocker);
+        Assert.True(local.Apply!.Verified);
+        Assert.True(File.Exists(Path.Combine(project.Root, "infra", "terraform.tfstate")));
+        Assert.False(afterLocal.HasChanges);
         Assert.False(Directory.Exists(Path.Combine(project.Root, "infra", ".terraform")));
-        Assert.False(File.Exists(Path.Combine(project.Root, "infra", "terraform.tfstate")));
         Directory.Delete(stateDirectory, recursive: true);
+    }
+
+    // Os bootstraps gerados para AWS, Azure e Google passam no validate do OpenTofu de verdade. Baixa os três providers
+    // oficiais (algumas centenas de MB): só com MARILIZ_LIVE_IAC_PROVIDERS=1 também definido.
+    [LiveFact(Variable, "MARILIZ_LIVE_IAC_PROVIDERS")]
+    public async Task Bootstraps_gerados_passam_no_validate_do_OpenTofu()
+    {
+        using var project = TempProject.Dotnet();
+        var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(project.DataDir));
+        var projectId = workspace.Authorize(project.Root).Project!.ProjectId;
+        using var tofu = new OpenTofuToolchain(project.DataDir, new NoExternal());
+        var runner = new SystemProcessRunner();
+        var audit = new MemoryAudit();
+        var runtimes = new IacRuntimeService([tofu], new FileIacSettingsStore(project.DataDir), new IacConfigReader(), runner, workspace, new FakeClock(), audit);
+        var offer = await runtimes.OfferAsync(null, null, null, CancellationToken.None);
+        await runtimes.InstallAsync(offer.OfferId, offer.Version, IacEngine.OpenTofu, CancellationToken.None);
+        var state = new IacStateService(workspace, new IacConfigReader(), new IacStateReader(), new FileIacStateRegistry(project.DataDir), null,
+            new LocalProjectFilesFactory(), new FileRunStore(project.DataDir), runner, new SystemClock(), new RunTracker(), audit);
+        var operations = new IacOperationService(runtimes, new CliIacRuntimeFactory(runner, project.DataDir), new IacConfigReader(),
+            new FileIacWorkArea(project.DataDir), workspace, null, new SystemClock(), audit);
+
+        var requests = new Dictionary<string, Dictionary<string, string>>
+        {
+            ["aws"] = new() { ["bucket"] = "loja-terraform-state-123456789012-sa-east-1", ["region"] = "sa-east-1", ["account"] = "123456789012" },
+            ["azure"] = new() { ["resourceGroup"] = "rg-loja-state", ["storageAccount"] = "lojatfstate", ["location"] = "brazilsouth",
+                ["subscription"] = "00000000-0000-0000-0000-000000000000" },
+            ["gcp"] = new() { ["bucket"] = "loja-tf-state", ["gcpProject"] = "loja-dev-123", ["location"] = "southamerica-east1" }
+        };
+        foreach (var (provider, values) in requests)
+        {
+            foreach (var file in Directory.Exists(Path.Combine(project.Root, "infra")) ? Directory.GetFiles(Path.Combine(project.Root, "infra"), "*.tf", SearchOption.AllDirectories) : [])
+                File.Delete(file);
+            var request = new IacBootstrapRequest(projectId, provider, null, values);
+            var plan = state.BootstrapPlan(request);
+            await state.StartBootstrap(request, plan.PlanId).Completion!;
+            var validation = await operations.ValidateAsync(projectId, IacOperationService.Person, CancellationToken.None);
+            var folder = validation.Validation!.Single();
+            output.WriteLine($"{provider}: {validation.Status} {validation.Error} {folder.Error} " + string.Join(" | ", folder.Diagnostics.Select(d => $"{d.Severity} {d.Summary} {d.Detail} {d.File}:{d.Line}")));
+            Assert.Equal(IacOperationStatus.Succeeded, validation.Status);
+        }
     }
 
     private sealed class NoExternal : Application.Ports.IExecutableLocator

@@ -1,11 +1,19 @@
 import type { EngineClient } from '@/shared/api';
 import {
+  iacBootstrapPlanSchema,
+  iacBootstrapSaveSchema,
+  iacStateReadSchema,
+  iacStateReportSchema,
+  iacUnlockSchema,
   iacLayoutSchema,
   iacOperationListSchema,
   iacOperationResultSchema,
   iacRuntimeOfferResultSchema,
   iacRuntimeStatusResultSchema,
+  type IacBootstrapPlan,
   type IacEngine,
+  type IacStateRead,
+  type IacStateReport,
   type IacLayout,
   type IacOperation,
   type IacRuntimeOffer,
@@ -41,6 +49,27 @@ export type IacApi = {
     risksAccepted: boolean;
     workspaceConfirmation?: string;
   }): Promise<IacOperation>;
+  /** Onde vive o state de cada raiz e os riscos; lê a configuração como texto. */
+  state(projectId: string): Promise<IacStateReport>;
+  /** workspace list e state list sobre a cópia: endereços, nunca valores. */
+  stateResources(input: {
+    projectId: string;
+    folder?: string;
+    workspace?: string;
+    connectionId?: string;
+  }): Promise<IacStateRead>;
+  /** force-unlock com a confirmação da pessoa. */
+  unlock(input: { projectId: string; folder?: string; workspace?: string; lockId: string }): Promise<void>;
+  bootstrapPlan(input: BootstrapInput): Promise<IacBootstrapPlan>;
+  /** Grava os arquivos revisados como execução do Spock (desfazer pela tela da execução); devolve o id dela. */
+  bootstrapSave(input: BootstrapInput & { planId: string }): Promise<string>;
+};
+
+export type BootstrapInput = {
+  projectId: string;
+  provider: 'aws' | 'azure' | 'gcp';
+  connectionId?: string;
+  values: Record<string, string>;
 };
 
 export function createIacApi(client: EngineClient): IacApi {
@@ -71,6 +100,13 @@ export function createIacApi(client: EngineClient): IacApi {
     validate: (projectId) =>
       client.request('iac.validate', { projectId }, iacOperationResultSchema).then((r) => r.operation),
     plan: (input) => client.request('iac.plan', input, iacOperationResultSchema).then((r) => r.operation),
+    state: (projectId) => client.request('iac.state', { projectId }, iacStateReportSchema).then((r) => r.state),
+    stateResources: (input) => client.request('iac.state.resources', input, iacStateReadSchema).then((r) => r.state),
+    unlock: async (input) => {
+      await client.request('iac.state.unlock', { ...input, confirmed: true }, iacUnlockSchema);
+    },
+    bootstrapPlan: (input) => client.request('iac.bootstrap.plan', input, iacBootstrapPlanSchema).then((r) => r.plan),
+    bootstrapSave: (input) => client.request('iac.bootstrap.save', input, iacBootstrapSaveSchema).then((r) => r.runId),
     apply: (input) => client.request('iac.apply', input, iacOperationResultSchema).then((r) => r.operation),
     operations: (projectId) =>
       client.request('iac.operations', { projectId }, iacOperationListSchema).then((r) => r.operations)

@@ -7,7 +7,10 @@ import cloudLinksFixture from '@contracts/fixtures/cloud/links.json';
 import cloudReadFixture from '@contracts/fixtures/cloud/read.json';
 import iacLayoutFixture from '@contracts/fixtures/iac/layout.json';
 import iacOfferFixture from '@contracts/fixtures/iac/offer.json';
+import iacBootstrapFixture from '@contracts/fixtures/iac/bootstrap-plan.json';
 import iacOperationsFixture from '@contracts/fixtures/iac/operations.json';
+import iacStateResourcesFixture from '@contracts/fixtures/iac/state-resources.json';
+import iacStateFixture from '@contracts/fixtures/iac/state.json';
 import iacStatusFixture from '@contracts/fixtures/iac/status.json';
 import contextReviewFixture from '@contracts/fixtures/context/review.json';
 import ideConnectionFixture from '@contracts/fixtures/ide/connection.json';
@@ -71,7 +74,10 @@ import {
   cloudConnectionListSchema,
   cloudLinkListSchema,
   cloudReadResultSchema,
+  iacBootstrapPlanSchema,
   iacLayoutSchema,
+  iacStateReadSchema,
+  iacStateReportSchema,
   iacOperationListSchema,
   iacRuntimeOfferResultSchema,
   iacRuntimeStatusResultSchema,
@@ -931,5 +937,22 @@ describe('contrato do assistente do portfólio (fixtures do motor)', () => {
       ({ apply: _apply, ...rest }) => rest
     );
     expect(JSON.stringify(withoutOutputs)).not.toMatch(/fila-dev|10\.0\.0\.0/);
+  });
+
+  it('iac: state real por raiz, consulta só de endereços e bootstrap no formato do modelo', () => {
+    const report = iacStateReportSchema.parse(iacStateFixture).state;
+    const [main, bootstrap] = report.roots;
+    expect(main).toMatchObject({ folder: 'infra', backend: 's3', mode: 'remote', locking: true, encrypted: true });
+    expect(bootstrap).toMatchObject({
+      folder: 'infra/bootstrap',
+      mode: 'localInProject',
+      localStateFiles: ['terraform.tfstate']
+    });
+    expect(JSON.stringify(iacStateFixture)).not.toMatch(/access_key|secret_key|sas_token/);
+    const read = iacStateReadSchema.parse(iacStateResourcesFixture).state;
+    expect(read.addresses).toContain('terraform_data.fila');
+    const plan = iacBootstrapPlanSchema.parse(iacBootstrapFixture).plan;
+    expect(plan.changes.map((change) => change.path)).toContain('infra/bootstrap/resource.tf');
+    expect(plan.backendBlock).toMatch(/use_lockfile\s+= true/);
   });
 });

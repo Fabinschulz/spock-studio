@@ -108,6 +108,11 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "iac.operations",
     "iac.operation",
     "iac.apply",
+    "iac.state",
+    "iac.state.resources",
+    "iac.state.unlock",
+    "iac.bootstrap.plan",
+    "iac.bootstrap.save",
 ];
 
 pub mod error_code {

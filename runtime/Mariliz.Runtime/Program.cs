@@ -69,6 +69,9 @@ var cloud = LocalCloudHub.Create(engine.DataRoot, engine.Workspace, engine.Clock
 // pessoa pela interface.
 using var openTofuToolchain = new OpenTofuToolchain(engine.DataRoot, ExecutableLocator.FromEnvironment());
 using var terraformToolchain = new HashiCorpTerraformToolchain(engine.DataRoot, ExecutableLocator.FromEnvironment());
+// O state de cada raiz é lido como texto; o registro garante que dois projetos do Spock não dividam o mesmo state.
+var iacStates = new IacStateReader();
+var iacRegistry = new FileIacStateRegistry(engine.DataRoot);
 var iacRuntimes = new IacRuntimeService([openTofuToolchain, terraformToolchain], new FileIacSettingsStore(engine.DataRoot),
     new IacConfigReader(), engine.Runner, engine.Workspace, engine.Clock, integrations.Audit);
 var knowledge = new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge, decisionMemory);
@@ -90,7 +93,9 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     cloud: cloud,
     terraform: iacRuntimes,
     iacOperations: new IacOperationService(iacRuntimes, new CliIacRuntimeFactory(engine.Runner, engine.DataRoot), new IacConfigReader(),
-        new FileIacWorkArea(engine.DataRoot), engine.Workspace, cloud, engine.Clock, integrations.Audit));
+        new FileIacWorkArea(engine.DataRoot), engine.Workspace, cloud, engine.Clock, integrations.Audit, iacStates, iacRegistry),
+    iacState: new IacStateService(engine.Workspace, new IacConfigReader(), iacStates, iacRegistry, cloud, engine.Files, engine.Store, engine.Runner,
+        engine.Clock, engine.Tracker, integrations.Audit));
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

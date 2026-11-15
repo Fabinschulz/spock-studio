@@ -1,7 +1,7 @@
 {
   "operations": [
     {
-      "id": "iac-4afa2e42c645",
+      "id": "iac-387b6636eaeb",
       "projectId": "p-0123456789ab",
       "kind": "plan",
       "status": "succeeded",
@@ -11,12 +11,12 @@
       "folder": "infra",
       "workspace": "default",
       "connectionId": null,
-      "configHash": "e1bb446f00c144f5de43be4e243463679dbf28e1162b5a7b45fd9eaa7927c65a",
-      "startedAt": "2026-11-15T15:17:32.8780999+00:00",
-      "finishedAt": "2026-11-15T15:17:33.1168726+00:00",
+      "configHash": "086024f612bc30b06bef5b2f612f03f7c65be159ecf7a27dff355dddfeaf1897",
+      "startedAt": "2026-11-15T15:43:56.9294003+00:00",
+      "finishedAt": "2026-11-15T15:43:57.5777563+00:00",
       "requestedBy": "person",
       "validation": null,
-      "planId": "aab06700de6aeafb",
+      "planId": "a6f8aea382142a5b",
       "hasChanges": true,
       "summary": {
         "create": 0,
@@ -48,10 +48,14 @@
       "appliedBy": null,
       "planOperationId": null,
       "approval": null,
-      "apply": null
+      "apply": null,
+      "stateMode": "localInProject",
+      "localStatePath": "terraform.tfstate",
+      "localStateHash": "251766df141eb9c5eeca2164668b2b504077e7a1768785a1a2001a5e70cd916e",
+      "lockId": null
     },
     {
-      "id": "iac-5157045a336a",
+      "id": "iac-9654d9914f20",
       "projectId": "p-0123456789ab",
       "kind": "apply",
       "status": "succeeded",
@@ -61,12 +65,12 @@
       "folder": "infra",
       "workspace": "default",
       "connectionId": null,
-      "configHash": "ec7b990c1871b96e597936dc15678fc0895bf73af6edb3e04e81960542b205cf",
-      "startedAt": "2026-11-15T15:17:32.173534+00:00",
-      "finishedAt": "2026-11-15T15:17:32.5646213+00:00",
+      "configHash": "c56e7821c78ea31c8afbd36d1c1413b3a9213365e6ac5f44c5c7a1167d84f02e",
+      "startedAt": "2026-11-15T15:43:56.1288888+00:00",
+      "finishedAt": "2026-11-15T15:43:56.6412869+00:00",
       "requestedBy": "person",
       "validation": null,
-      "planId": "4623d69c86d2d690",
+      "planId": "5e3535bb283e9013",
       "hasChanges": null,
       "summary": {
         "create": 2,
@@ -96,11 +100,11 @@
       "backend": "local",
       "applyBlocker": null,
       "appliedBy": null,
-      "planOperationId": "iac-abc758a43c66",
+      "planOperationId": "iac-ccaf5067aef2",
       "approval": {
-        "planId": "4623d69c86d2d690",
-        "configHash": "ec7b990c1871b96e597936dc15678fc0895bf73af6edb3e04e81960542b205cf",
-        "approvedAt": "2026-11-15T15:17:32.1728202+00:00",
+        "planId": "5e3535bb283e9013",
+        "configHash": "c56e7821c78ea31c8afbd36d1c1413b3a9213365e6ac5f44c5c7a1167d84f02e",
+        "approvedAt": "2026-11-15T15:43:56.1282581+00:00",
         "destroyConfirmed": false,
         "risksAccepted": false,
         "workspaceConfirmed": null
@@ -114,10 +118,14 @@
           "fila": "fila-dev"
         },
         "error": null
-      }
+      },
+      "stateMode": null,
+      "localStatePath": null,
+      "localStateHash": null,
+      "lockId": null
     },
     {
-      "id": "iac-abc758a43c66",
+      "id": "iac-ccaf5067aef2",
       "projectId": "p-0123456789ab",
       "kind": "plan",
       "status": "succeeded",
@@ -127,12 +135,12 @@
       "folder": "infra",
       "workspace": "default",
       "connectionId": null,
-      "configHash": "ec7b990c1871b96e597936dc15678fc0895bf73af6edb3e04e81960542b205cf",
-      "startedAt": "2026-11-15T15:17:31.5762739+00:00",
-      "finishedAt": "2026-11-15T15:17:31.8507935+00:00",
+      "configHash": "c56e7821c78ea31c8afbd36d1c1413b3a9213365e6ac5f44c5c7a1167d84f02e",
+      "startedAt": "2026-11-15T15:43:55.4206705+00:00",
+      "finishedAt": "2026-11-15T15:43:55.8270098+00:00",
       "requestedBy": "person",
       "validation": null,
-      "planId": "4623d69c86d2d690",
+      "planId": "5e3535bb283e9013",
       "hasChanges": true,
       "summary": {
         "create": 2,
@@ -161,13 +169,17 @@
       "error": null,
       "backend": "local",
       "applyBlocker": null,
-      "appliedBy": "iac-5157045a336a",
+      "appliedBy": "iac-9654d9914f20",
       "planOperationId": null,
       "approval": null,
-      "apply": null
+      "apply": null,
+      "stateMode": "localInProject",
+      "localStatePath": "terraform.tfstate",
+      "localStateHash": null,
+      "lockId": null
     },
     {
-      "id": "iac-b0cfccdf1d0c",
+      "id": "iac-c6dbdd9f14cc",
       "projectId": "p-0123456789ab",
       "kind": "validate",
       "status": "succeeded",
@@ -177,9 +189,9 @@
       "folder": null,
       "workspace": null,
       "connectionId": null,
-      "configHash": "ec7b990c1871b96e597936dc15678fc0895bf73af6edb3e04e81960542b205cf",
-      "startedAt": "2026-11-15T15:17:29.7769481+00:00",
-      "finishedAt": "2026-11-15T15:17:31.2182913+00:00",
+      "configHash": "c56e7821c78ea31c8afbd36d1c1413b3a9213365e6ac5f44c5c7a1167d84f02e",
+      "startedAt": "2026-11-15T15:43:51.9698966+00:00",
+      "finishedAt": "2026-11-15T15:43:55.0742667+00:00",
       "requestedBy": "person",
       "validation": [
         {
@@ -207,7 +219,11 @@
       "appliedBy": null,
       "planOperationId": null,
       "approval": null,
-      "apply": null
+      "apply": null,
+      "stateMode": null,
+      "localStatePath": null,
+      "localStateHash": null,
+      "lockId": null
     }
   ]
 }

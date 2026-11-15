@@ -70,6 +70,32 @@ public sealed class FileIacWorkArea(string dataRoot) : IIacWorkArea
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(manifest))).ToLowerInvariant();
     }
 
+    public string? StateHash(string path) => File.Exists(path) ? HashFile(path) : null;
+
+    public void CopyState(string from, string to)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(to)!);
+        File.Copy(from, to, overwrite: true);
+    }
+
+    public void ReturnState(string from, string to, string? expectedHash, string recoveryDirectory)
+    {
+        lock (_gate)
+        {
+            if (StateHash(to) != expectedHash)
+            {
+                var recovery = Path.Combine(recoveryDirectory, "terraform.tfstate");
+                CopyState(from, recovery);
+                throw IacErrors.StateConflict(recovery);
+            }
+            Directory.CreateDirectory(Path.GetDirectoryName(to)!);
+            if (File.Exists(to)) File.Copy(to, to + ".backup", overwrite: true);
+            var temporary = to + ".spock-" + Guid.NewGuid().ToString("N")[..8];
+            File.Copy(from, temporary, overwrite: true);
+            File.Move(temporary, to, overwrite: true);
+        }
+    }
+
     public void DiscardLocalState(string snapshotDirectory)
     {
         if (!Directory.Exists(snapshotDirectory)) return;

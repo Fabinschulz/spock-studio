@@ -65,10 +65,11 @@ O plano fica em `<dados>/projects/<id>/iac/operations/<op>/plan.tfplan`, com a c
 resumo vem de `show -json` (`IacPlanReader`); valores marcados como sensíveis e valores de atributo nunca vão para tela,
 trilha ou agente.
 
-Na hora de planejar, o adaptador lê o backend que o `init` configurou (só o tipo e o caminho). Se o state ficaria dentro
-da cópia (sem bloco `backend`, ou `local` com caminho relativo), o plano é mostrado com o motivo em `applyBlocker` e o
-Spock **não** o aplica: o state novo se perderia fora do projeto. Backend remoto (S3, azurerm, gcs) ou `local` com caminho
-absoluto pode ser aplicado.
+Na hora de planejar, o adaptador lê o backend que o `init` configurou (só o tipo e os caminhos). Backend remoto ou
+`local` com caminho absoluto: a ferramenta grava onde o state vive. State local dentro da pasta (sem bloco `backend`, ou
+`local` com caminho relativo): desde a entrega 4 o Spock aplica na cópia e devolve o state ao projeto, conferindo
+conflito ([TERRAFORM_STATE_MANAGEMENT.md](TERRAFORM_STATE_MANAGEMENT.md), seção 4). Continuam bloqueados, com o motivo
+em `applyBlocker`, só os casos em que o Spock não sabe onde a ferramenta gravaria.
 
 `iac.apply` leva o `planId` que a pessoa viu e as confirmações que ela marcou. `IacOperationService.ApplyAsync` recusa,
 nesta ordem e sem rodar nada:
@@ -79,7 +80,8 @@ nesta ordem e sem rodar nada:
 | `planId` diferente do plano mostrado | `IAC_PLAN_MISMATCH` |
 | Plano já aplicado (vale uma vez) | `IAC_PLAN_ALREADY_APPLIED` |
 | Plano sem mudanças | `IAC_PLAN_NO_CHANGES` |
-| State ficaria na cópia | `IAC_APPLY_BLOCKED` |
+| Caso de state local que o Spock não sabe devolver | `IAC_APPLY_BLOCKED` |
+| State local mudou desde o plano | `IAC_STATE_CHANGED` |
 | Há plano mais novo da mesma pasta e ambiente | `IAC_PLAN_SUPERSEDED` |
 | Plano com mais de 24 horas | `IAC_PLAN_EXPIRED` |
 | Destrói ou substitui recurso sem `destroyConfirmed` | `IAC_DESTROY_CONFIRMATION_REQUIRED` |
@@ -139,6 +141,7 @@ Timeouts: apply até 55 minutos no motor; o host espera 90 minutos por `iac.appl
 | `iac_validate` | 2 | Roda `fmt -check` e `validate` sobre a cópia; não lê backend nem state, não toca a nuvem |
 | `iac_plan_summary` | 2 e 3 | Lê o último plano (ou um pelo id): contagens, endereços, achados, se já foi aplicado ou por que não pode ser |
 | `iac_history` | 3 | Lista validações, planos e aplicações, com quem pediu e o resultado da verificação |
+| `iac_state` | 4 | Onde vive o state de cada raiz, trava, criptografia, riscos e backend recomendado (só a configuração) |
 | `iac_plan` | Depois | Gerar plano por agente pede o vínculo cloud liberado para agentes; hoje só a pessoa planeja |
 
 Não haverá `terraform_apply` para agentes: o MCP nunca contorna a aprovação humana.

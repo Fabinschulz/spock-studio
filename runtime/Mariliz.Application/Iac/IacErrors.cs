@@ -113,4 +113,25 @@ public static class IacErrors
 
     public static EngineException RuntimeChanged() =>
         new("IAC_RUNTIME_CHANGED", "A ferramenta ou a versão do projeto mudou desde o plano. Gere um plano novo com a ferramenta atual.");
+
+    public static EngineException StateChanged() =>
+        new("IAC_STATE_CHANGED", "O state local do projeto mudou desde o plano. Gere um plano novo: aplicar o antigo apagaria a mudança.");
+
+    public static EngineException StateConflict(string recovery) =>
+        new("IAC_STATE_CONFLICT", $"O state do projeto mudou durante o apply e não foi sobrescrito. O state novo ficou guardado em {recovery}; " +
+            "compare os dois antes de decidir qual fica.");
+
+    public static EngineException StateShared(IEnumerable<string> projects) =>
+        new("IAC_STATE_SHARED", $"Este state já é usado por outro projeto do Spock ({string.Join(", ", projects)}). Use uma chave própria por projeto e ambiente.");
+
+    public static EngineException LockIdInvalid() =>
+        new("IAC_LOCK_ID_INVALID", "O id da trava deve ser o que a ferramenta informou (letras, dígitos e hífen).");
+
+    public static EngineException ProviderUnknown(string provider) =>
+        new("IAC_PROVIDER_UNKNOWN", $"Não há bootstrap de state para {provider}. Use aws, azure ou gcp.");
+
+    public static EngineException BootstrapValueInvalid(string message) => new("IAC_BOOTSTRAP_INVALID", message);
+
+    public static EngineException UnlockConfirmationRequired() =>
+        new("IAC_UNLOCK_CONFIRMATION_REQUIRED", "Liberar a trava do state pede confirmação: se alguém ainda estiver aplicando, o state pode corromper.");
 }

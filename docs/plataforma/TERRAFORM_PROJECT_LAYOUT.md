@@ -237,6 +237,7 @@ dispara, como trocar segredo, voltar versão e renomear chave sem destruir recur
 
 | Situação | O que o Spock faz |
 | --- | --- |
+| Gerar o bootstrap do state | `<raiz de IaC>/bootstrap/` na árvore, estilo e proteções da seção 5, para AWS, Azure ou Google ([TERRAFORM_STATE_MANAGEMENT.md](TERRAFORM_STATE_MANAGEMENT.md), seção 3) |
 | Gerar Terraform para um projeto | Cria `infra/` com esta árvore, os cabeçalhos de seção, `validation` nas variáveis, guarda de workspace, tags em `locals`, lock por pasta e o README nas seções da seção 11 |
 | Ler um `infra/` existente | Descobre as pastas com `.tf`, lê `required_version` e `required_providers`, os workspaces e o backend; aponta o que diverge do modelo como sugestão, sem reescrever |
 | Validar | `fmt -check -recursive` e `validate` por pasta, exatamente como a seção 10, com a ferramenta fixada no projeto (OpenTofu por padrão) |

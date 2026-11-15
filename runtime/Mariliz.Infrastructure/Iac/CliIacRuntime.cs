@@ -57,7 +57,7 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
     {
         var env = Environment(spec.DataDirectory, spec.Environment);
         if (await PrepareAsync(spec.Directory, spec.Workspace, env, ct) is { } failure) return Failed(failure);
-        var (backend, blocker) = Backend(spec.Directory, spec.DataDirectory);
+        var state = Backend(spec.Directory, spec.DataDirectory, spec.Workspace);
 
         var plan = await RunAsync(spec.Directory, ["plan", "-input=false", "-no-color", "-detailed-exitcode", "-out=" + spec.PlanFile], env, PlanTimeout, ct);
         if (plan.TimedOut) return Failed("O plano passou de 30 minutos e foi interrompido.");
@@ -67,7 +67,8 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
         var summary = await ShowAsync(spec.Directory, spec.PlanFile, env, ct);
         return summary is null
             ? Failed("O plano foi gerado, mas show -json falhou ou devolveu um formato inesperado.")
-            : new IacPlanRun(true, plan.ExitCode == 2, summary.Value.Summary, summary.Value.Findings, null, backend, blocker);
+            : new IacPlanRun(true, plan.ExitCode == 2, summary.Value.Summary, summary.Value.Findings, null, state.Type, state.Blocker, state.Mode,
+                state.LocalPath);
     }
 
     public async Task<IacApplyRun> ApplyAsync(IacApplySpec spec, CancellationToken ct)
@@ -75,7 +76,7 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
         var env = Environment(spec.DataDirectory, spec.Environment);
         if (await PrepareAsync(spec.Directory, spec.Workspace, env, ct) is { } failure) return NotApplied(failure);
         // A mesma conferência do plano, de novo na hora: o state nunca pode ir parar na cópia da configuração.
-        if (Backend(spec.Directory, spec.DataDirectory).Blocker is { } blocker) return NotApplied(blocker);
+        if (Backend(spec.Directory, spec.DataDirectory, spec.Workspace).Blocker is { } blocker) return NotApplied(blocker);
 
         Directory.CreateDirectory(Path.GetDirectoryName(spec.LogFile)!);
         var apply = await RunAsync(spec.Directory, ["apply", "-input=false", "-no-color", spec.PlanFile], env, ApplyTimeout, ct);
@@ -96,6 +97,28 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
         int? managed = state.ExitCode == 0 ? Lines(state.StandardOutput).Count() : null;
         var outputs = await OutputsAsync(spec.Directory, env, ct);
         return new IacApplyRun(applied, applied && verified, remaining, managed, outputs, error);
+    }
+
+    public async Task<IacStateRead> StateAsync(IacStateSpec spec, CancellationToken ct)
+    {
+        var env = Environment(spec.DataDirectory, spec.Environment);
+        var init = await RunAsync(spec.Directory, ["init", "-input=false", "-no-color"], env, InitTimeout, ct);
+        if (init.ExitCode != 0) return new IacStateRead(false, null, [], [], "init falhou (backend ou providers): " + Tail(init));
+        var list = await RunAsync(spec.Directory, ["workspace", "list"], env, ShortTimeout, ct);
+        var workspaces = Lines(list.StandardOutput).Select(l => l.TrimStart('*').Trim()).Where(l => l.Length > 0).ToList();
+        if (await PrepareAsync(spec.Directory, spec.Workspace, env, ct) is { } failure) return new IacStateRead(false, spec.Workspace, workspaces, [], failure);
+        var state = await RunAsync(spec.Directory, ["state", "list"], env, ShortTimeout, ct);
+        return state.ExitCode == 0
+            ? new IacStateRead(true, spec.Workspace ?? "default", workspaces, Lines(state.StandardOutput).ToList(), null)
+            : new IacStateRead(false, spec.Workspace ?? "default", workspaces, [], Tail(state));
+    }
+
+    public async Task<string?> UnlockAsync(IacStateSpec spec, string lockId, CancellationToken ct)
+    {
+        var env = Environment(spec.DataDirectory, spec.Environment);
+        if (await PrepareAsync(spec.Directory, spec.Workspace, env, ct) is { } failure) return failure;
+        var unlock = await RunAsync(spec.Directory, ["force-unlock", "-force", lockId], env, ShortTimeout, ct);
+        return unlock.ExitCode == 0 ? null : Tail(unlock);
     }
 
     // init com backend e seleção do workspace. Selecionar só; criar um workspace muda o state e não é papel do Spock.
@@ -145,12 +168,12 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
         return outputs;
     }
 
-    // Depois do init, TF_DATA_DIR/terraform.tfstate guarda o backend configurado (só o tipo e o caminho são lidos: a
-    // configuração pode ter credencial). Sem backend, ou local com caminho relativo, o state ficaria dentro da cópia da
-    // configuração e se perderia: o plano é mostrado, mas o Spock não o aplica.
-    private static (string? Backend, string? Blocker) Backend(string directory, string dataDirectory)
+    // Depois do init, TF_DATA_DIR/terraform.tfstate guarda o backend configurado (só o tipo e os caminhos são lidos: a
+    // configuração pode ter credencial). Remoto ou local com caminho absoluto fora da cópia: a ferramenta grava onde o state
+    // vive. Local dentro da pasta: o Spock aplica na cópia e devolve o state ao projeto; LocalPath é o arquivo do workspace.
+    private static (string Type, IacStateMode Mode, string? LocalPath, string? Blocker) Backend(string directory, string dataDirectory, string? workspace)
     {
-        string? type = null, path = null;
+        string? type = null, path = null, workspaceDir = null;
         var file = Path.Combine(dataDirectory, "terraform.tfstate");
         if (File.Exists(file))
         {
@@ -158,21 +181,30 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
             {
                 var backend = JsonNode.Parse(File.ReadAllText(file))?["backend"];
                 type = backend?["type"]?.GetValue<string>();
-                path = backend?["config"]?["path"] is JsonValue value && value.TryGetValue<string>(out var text) ? text : null;
+                path = Text(backend?["config"]?["path"]);
+                workspaceDir = Text(backend?["config"]?["workspace_dir"]);
             }
             catch (Exception ex) when (ex is JsonException or InvalidOperationException or IOException)
             {
                 type = null;
             }
         }
-        if (type is not null && type != "local") return (type, null);
-        if (type == "local" && path is not null && Path.IsPathRooted(path)
+        if (type is not null && type != "local") return (type, IacStateMode.Remote, null, null);
+        if (path is not null && Path.IsPathRooted(path)
             && !Path.GetFullPath(path).StartsWith(Path.GetFullPath(directory), StringComparison.OrdinalIgnoreCase))
-            return (type, null);
-        return (type ?? "local", "O projeto guarda o state localmente dentro da pasta da configuração. O Spock planeja sobre uma cópia e não " +
-            "aplica nela, para o state não ficar fora do projeto. Configure um backend remoto (S3, azurerm, gcs) ou um backend " +
-            "local com caminho absoluto; veja TERRAFORM_STATE_MANAGEMENT.md.");
+            return ("local", IacStateMode.LocalAbsolute, null, null);
+
+        var named = workspace is not null && workspace != "default";
+        if (path is not null && named || workspaceDir is not null)
+            return ("local", IacStateMode.LocalInProject, null, "O backend local tem caminho próprio e workspace com nome; o Spock não sabe onde a " +
+                "ferramenta gravaria o state. Use o workspace default, um caminho absoluto ou um backend remoto.");
+        var local = (named ? $"terraform.tfstate.d/{workspace}/terraform.tfstate" : path ?? "terraform.tfstate").Replace('\\', '/');
+        if (local.StartsWith("../", StringComparison.Ordinal) || local.Contains("/../", StringComparison.Ordinal) || Path.IsPathRooted(local))
+            return ("local", IacStateMode.LocalInProject, null, "O state local aponta para fora da pasta da configuração. Use um caminho absoluto ou um backend remoto.");
+        return ("local", IacStateMode.LocalInProject, local, null);
     }
+
+    private static string? Text(JsonNode? node) => node is JsonValue value && value.TryGetValue<string>(out var text) && text.Length > 0 ? text : null;
 
     private static IacPlanRun Failed(string error) => new(false, false, null, [], error);
 

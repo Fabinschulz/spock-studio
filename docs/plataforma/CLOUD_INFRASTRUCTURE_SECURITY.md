@@ -49,7 +49,7 @@ Checagens determinísticas sobre `show -json`, avisando antes da aprovação:
 
 Os achados não bloqueiam sozinhos: aparecem na aprovação, e os graves pedem confirmação extra.
 
-## 4. O que já está implementado (entregas 1 a 3)
+## 4. O que já está implementado (entregas 1 a 4)
 
 - OpenTofu (gratuito, MPL 2.0) como padrão; Terraform liberado por escolha explícita (licença com o jurídico).
 - Instalação só com autorização, ligada à proposta (`offerId`), recusa respeitada.
@@ -61,4 +61,6 @@ Os achados não bloqueiam sozinhos: aparecem na aprovação, e os graves pedem c
 - Políticas antes de rodar: pasta descoberta, workspace com nome válido e só selecionado, conexão vinculada, uma operação por vez.
 - Aprovação vinculada ao plano exato (id, hash do arquivo e da configuração, configuração do projeto inalterada, prazo de 24 h, plano mais recente, mesma ferramenta); destruição, achados graves e produção pedem confirmação a mais; o plano vale uma vez e o arquivo é apagado depois.
 - Apply só do arquivo aprovado, com verificação por plano seguinte limpo; nenhuma ferramenta MCP aplica.
+- State: credenciais do bloco backend nunca lidas; state no git, sem trava, sem criptografia e dividido entre projetos apontados; plano recusado se outro projeto usa o mesmo state; state local devolvido ao projeto só se não mudou desde o plano (senão fica em recuperação); force-unlock só com confirmação.
+- Escopo de escrita `Infrastructure`: o Spock grava `.tf`, `.tofu` e o `.gitignore` da raiz só por execução aprovada e reversível; state, `.tfvars` e código ficam fora.
 - Achados de segurança do plano (seção 3) já calculados: destruição, substituição, entrada aberta para a internet, IAM com curinga, ECR com tag mutável, banco público, S3 sem bloqueio público, NSG e firewall abertos, bucket público no Google.
