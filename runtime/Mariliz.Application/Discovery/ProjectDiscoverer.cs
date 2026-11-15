@@ -21,9 +21,11 @@ public sealed class ProjectDiscoverer(IProcessRunner processRunner)
 
         var stacks = new List<StackFinding>();
         var tooling = new List<ToolingFinding>();
+        var frameworks = new List<FrameworkFinding>();
         DotnetDetector.Detect(files, all, stacks, tooling, warnings);
-        NodeDetector.Detect(files, all, stacks, tooling, warnings);
+        NodeDetector.Detect(files, all, stacks, tooling, frameworks, warnings);
         FlutterDetector.Detect(files, all, stacks, tooling, warnings);
+        LanguageDetectors.Detect(files, all, stacks, tooling, frameworks, warnings);
         CiDetector.Detect(all, tooling);
         if (stacks.Count == 0)
             warnings.Add(new(DiscoveryWarningCodes.NoStackDetected, "Nenhuma stack conhecida foi detectada pelos arquivos de configuração.", []));
@@ -52,6 +54,6 @@ public sealed class ProjectDiscoverer(IProcessRunner processRunner)
 
         return new DiscoveryReport(
             projectId, files.RootName, stacks, tooling, aiEnvironments, inventory, specification, git, tools,
-            files.FileExists(DeclaredConfig.FileName), warnings);
+            files.FileExists(DeclaredConfig.FileName), warnings) { Frameworks = frameworks };
     }
 }

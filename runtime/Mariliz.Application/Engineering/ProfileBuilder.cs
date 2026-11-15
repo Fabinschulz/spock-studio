@@ -24,6 +24,7 @@ public static class ProfileBuilder
                 // A melhor evidência entre as pastas (High é o menor valor do enum): basta uma prova forte de que a tecnologia existe.
                 group.Min(stack => stack.Confidence),
                 group.SelectMany(stack => stack.Evidence.Select(evidence => evidence.Path)).Distinct(StringComparer.Ordinal).Take(6).ToList()))
+            .Concat(FrameworkTechnologies(report))
             .OrderBy(technology => technology.Category, StringComparer.Ordinal)
             .ThenBy(technology => technology.Name, StringComparer.Ordinal)
             .ToList();
@@ -55,6 +56,20 @@ public static class ProfileBuilder
         var history = changes.Concat(previous?.History ?? []).Take(MaxHistory).ToList();
         return profile with { History = history };
     }
+
+    // Uma dependência declarada prova que o framework está no projeto, não que é usado em toda parte: confiança média.
+    private static IEnumerable<ProfileTechnology> FrameworkTechnologies(DiscoveryReport report) =>
+        report.Frameworks
+            .Where(framework => report.Stacks.All(stack => stack.Id != framework.Id))
+            .GroupBy(framework => framework.Id, StringComparer.Ordinal)
+            .Select(group => new ProfileTechnology(
+                group.Key,
+                group.First().Name,
+                TechnologyCatalog.Category(group.Key),
+                group.Select(framework => framework.Version).OfType<string>().Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList(),
+                group.Select(framework => framework.Root.Length == 0 ? "." : framework.Root).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList(),
+                Confidence.Medium,
+                group.SelectMany(framework => framework.Evidence.Select(evidence => evidence.Path)).Distinct(StringComparer.Ordinal).Take(6).ToList()));
 
     internal static List<ProfileChange> Diff(TechnologyProfile before, TechnologyProfile after, DateTimeOffset now)
     {

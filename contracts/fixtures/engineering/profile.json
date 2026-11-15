@@ -17,6 +17,21 @@
         "evidence": [
           "web/package.json"
         ]
+      },
+      {
+        "id": "typescript",
+        "name": "TypeScript",
+        "category": "Linguagem",
+        "versions": [
+          "5.6.0"
+        ],
+        "roots": [
+          "web"
+        ],
+        "confidence": "medium",
+        "evidence": [
+          "web/package.json"
+        ]
       }
     ],
     "tooling": [
@@ -49,6 +64,12 @@
         "ruleId": "mariliz.rule.stack-javascript",
         "covered": true,
         "detail": "Regra da stack JavaScript e TypeScript, aplicada aos arquivos .ts, .tsx, .js e .jsx."
+      },
+      {
+        "technology": "TypeScript",
+        "ruleId": "mariliz.rule.stack-javascript",
+        "covered": true,
+        "detail": "Regra da stack JavaScript e TypeScript, aplicada aos arquivos .ts, .tsx, .js e .jsx."
       }
     ],
     "history": [
@@ -57,7 +78,7 @@
         "kind": "created",
         "subject": "Perfil",
         "from": null,
-        "to": "1 tecnologia"
+        "to": "2 tecnologias"
       }
     ]
   }

@@ -11,4 +11,8 @@ public sealed record DiscoveryReport(
     GitState Git,
     ToolAvailability Tools,
     bool HasDeclaredConfig,
-    IReadOnlyList<DiscoveryWarning> Warnings);
+    IReadOnlyList<DiscoveryWarning> Warnings)
+{
+    // Fora das stacks: a lista de stacks vai para o workflow com teto de 8 e decide as regras do Harness.
+    public IReadOnlyList<FrameworkFinding> Frameworks { get; init; } = [];
+}

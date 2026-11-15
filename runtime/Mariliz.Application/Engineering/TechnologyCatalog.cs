@@ -13,16 +13,20 @@ public static class TechnologyCatalog
         ["nextjs"] = "Framework web",
         ["react"] = "Biblioteca de interface",
         ["angular"] = "Framework web",
-        ["flutter"] = "Framework de aplicativo"
+        ["flutter"] = "Framework de aplicativo",
+        ["python"] = "Linguagem e runtime",
+        ["rust"] = "Linguagem",
+        ["go"] = "Linguagem",
+        ["java"] = "Plataforma e runtime"
     };
 
-    public static string Category(string id) => Categories.GetValueOrDefault(id, "Outra");
+    public static string Category(string id) => Categories.GetValueOrDefault(id) ?? Discovery.Frameworks.Category(id) ?? "Outra";
 
     // A mesma decisão que o plano do Harness toma.
     public static ProfileHarnessGuidance Guidance(ProfileTechnology technology) =>
         technology.Id == "dotnet"
             ? new(technology.Name, Catalog.RuleStackDotnet, true, "Regra da stack .NET, aplicada aos arquivos .cs e .csproj.")
-            : HarnessComposition.JavascriptStacks.Contains(technology.Id)
+            : HarnessComposition.JavascriptStacks.Contains(technology.Id) || Discovery.Frameworks.JavascriptIds.Contains(technology.Id)
                 ? new(technology.Name, Catalog.RuleStackJavascript, true, "Regra da stack JavaScript e TypeScript, aplicada aos arquivos .ts, .tsx, .js e .jsx.")
                 : new(technology.Name, null, false, "Ainda não há perfil de regras para esta tecnologia; o plano registra a limitação.");
 

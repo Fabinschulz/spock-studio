@@ -118,5 +118,6 @@
       "message": "A pasta não é um repositório git; não há como reverter por controle de versão.",
       "paths": []
     }
-  ]
+  ],
+  "frameworks": []
 }
