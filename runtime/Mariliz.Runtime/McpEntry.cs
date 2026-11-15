@@ -26,6 +26,13 @@ internal static class McpEntry
 
         var dataRoot = FileRunStore.DefaultDataRoot();
         var clock = new SystemClock();
+        // Não derruba: o projeto pode ser aberto no Spock depois, e o registro é relido a cada chamada.
+        if (options.Scope is { } scope)
+        {
+            var known = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(dataRoot)).Projects().Select(p => p.ProjectId).ToHashSet();
+            foreach (var missing in scope.Where(id => !known.Contains(id)).Order(StringComparer.Ordinal))
+                Console.Error.WriteLine($"Aviso: o projeto {missing} de --project não está aberto no Spock; as ferramentas vão recusá-lo até que esteja.");
+        }
         // Um Python só deste processo, subido na primeira busca: o do aplicativo tem token próprio e pode nem estar aberto.
         var runtime = new LoopbackAiRuntime();
         var tools = new ProjectContextTools(

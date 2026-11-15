@@ -28,7 +28,7 @@ public sealed partial class McpServer(string version, IReadOnlyList<McpTool> too
     {
         while (await input.ReadLineAsync(ct) is { } line)
         {
-            if (string.IsNullOrWhiteSpace(line)) continue;
+            if (string.IsNullOrWhiteSpace(line.TrimStart('﻿'))) continue;
             if (await HandleAsync(line, ct) is not { } reply) continue;
             await output.WriteLineAsync(reply.ToJsonString());
             await output.FlushAsync(ct);

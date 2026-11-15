@@ -8,8 +8,19 @@ public sealed class McpProjectResolver(WorkspaceAuthorizer workspace, string wor
     public IReadOnlyList<AuthorizedProject> Projects() =>
         workspace.Projects().Where(project => scope is null || scope.Contains(project.ProjectId)).ToList();
 
-    public AuthorizedProject? Current() =>
-        Projects()
+    public AuthorizedProject? Current() => Containing(Projects());
+
+    // Um cliente sem pasta de projeto (o Claude Desktop) com escopo de um projeto só não tem o que escolher. Numa pasta de
+    // outro projeto do Spock a resposta continua sendo erro, para a IDE nunca receber o contexto de um projeto por engano.
+    private AuthorizedProject? Default()
+    {
+        if (Current() is { } current) return current;
+        if (scope is not { Count: 1 } || Containing(workspace.Projects()) is not null) return null;
+        return Projects() is [var only] ? only : null;
+    }
+
+    private AuthorizedProject? Containing(IEnumerable<AuthorizedProject> projects) =>
+        projects
             .Select(project => (Project: project, Root: workspace.TryGetRoot(project.ProjectId, out var root) ? root : ""))
             .Where(item => item.Root.Length > 0 && Contains(item.Root, workingDirectory))
             .OrderByDescending(item => item.Root.Length)
@@ -19,7 +30,7 @@ public sealed class McpProjectResolver(WorkspaceAuthorizer workspace, string wor
     public AuthorizedProject Resolve(string? project)
     {
         if (project is null)
-            return Current() ?? throw new McpToolException(
+            return Default() ?? throw new McpToolException(
                 $"A pasta atual não é de um projeto {Available}. Informe 'project' com um nome de list_projects, ou abra a pasta no Spock primeiro.");
 
         // Fora do escopo responde igual a inexistente: a conexão não fica sabendo de projetos que não pode ler.
