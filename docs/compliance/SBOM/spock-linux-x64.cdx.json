@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:38228aae-a489-436a-bfa8-175adfdd242f",
+  "serialNumber": "urn:uuid:284fd034-00b4-4970-96ef-cb7d81b13a3d",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-15T22:17:45Z",
+    "timestamp": "2026-11-15T22:26:46Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -257,15 +257,15 @@
         },
         {
           "name": "spock:risk",
-          "value": "ALTO"
+          "value": "MÉDIO"
         },
         {
           "name": "spock:obligations",
-          "value": "Sleepycat: informar, junto da distribuição, como obter o código-fonte completo do Berkeley DB 6.0.19 e do CPython/python-build-standalone que o usa (gratuito e redistribuível)"
+          "value": "Sleepycat: licença e informação de fonte do Berkeley DB 6.0.19 e do CPython/PBS junto da distribuição (implementado em python/licenses/berkeley-db e conferido pelo smoke do pacote); manter o canal de suporte para entregar as fontes"
         },
         {
           "name": "spock:evidence",
-          "value": "scripts/package-intelligence.py:144 | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/pythonbuild/downloads.py"
+          "value": "scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/pythonbuild/downloads.py"
         },
         {
           "name": "spock:usage",

@@ -8,7 +8,7 @@ hashes) em `inventory.csv` / `inventory.json`. W = Windows x64, L = Linux x64.
 | Chaves públicas OpenPGP de releases (HashiCorp, OpenTofu) | embutidas | asset | direta | x | x | NOASSERTION | CONFERIDO MANUALMENTE | BAIXO |
 | Conteúdo de agentes e skills adaptado de harness-engineering | embutido | asset | direta | x | x | MIT | CONFERIDO MANUALMENTE | BAIXO |
 | Ícones e logotipo Spock Studio | 0.1.0 | asset | direta | x | x | LicenseRef-Proprietary-Spock | CONFERIDO MANUALMENTE | PENDENTE |
-| Berkeley DB (dentro do python-build-standalone, módulo _dbm) | 6.0.19 | binário | direta |  | x | Sleepycat | CONFERIDO MANUALMENTE | ALTO |
+| Berkeley DB (dentro do python-build-standalone, módulo _dbm) | 6.0.19 | binário | direta |  | x | Sleepycat | CONFERIDO MANUALMENTE | MÉDIO |
 | CPython (python-build-standalone, install_only_stripped) | 3.12.10+20250409 | binário | direta |  | x | Python-2.0 | CONFERIDO MANUALMENTE | MÉDIO |
 | CPython (Windows embeddable package) | 3.12.10 | binário | direta | x |  | Python-2.0 | CONFERIDO MANUALMENTE | MÉDIO |
 | Microsoft Visual C++ Runtime (vcruntime140.dll, vcruntime140_1.dll) | 14.x | binário | direta | x |  | LicenseRef-Microsoft-Visual-Cpp-Redistributable | CONFERIDO MANUALMENTE | MÉDIO |

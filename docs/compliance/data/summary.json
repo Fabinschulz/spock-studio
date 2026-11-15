@@ -33,14 +33,14 @@
   "risco": {
     "BAIXO": 933,
     "PENDENTE": 3,
-    "ALTO": 6,
-    "MÉDIO": 13
+    "MÉDIO": 14,
+    "ALTO": 5
   },
   "risco_distribuidos": {
     "BAIXO": 469,
     "PENDENTE": 1,
-    "ALTO": 2,
-    "MÉDIO": 11
+    "MÉDIO": 12,
+    "ALTO": 1
   },
   "licencas_distribuidos": {
     "MIT": 397,
