@@ -10,7 +10,7 @@ de parecer.
 | ID | Nível | Tipo | Componente | Prioridade |
 | --- | --- | --- | --- | --- |
 | R-01 | ALTO | J | Terraform (BUSL 1.1), instalação e operação gerenciadas | P0 |
-| R-02 | ALTO | D/J | Berkeley DB 6.0.19 (Sleepycat) no Python do Linux | P0 |
+| R-02 | MÉDIO | J | Berkeley DB 6.0.19 (Sleepycat) no Python do Linux (obrigação cumprida no pacote) | P1 |
 | R-03 | ALTO | D | GTK/WebKitGTK (LGPL) embutidos no AppImage | P0 |
 | R-04 | MÉDIO | D | Avisos de ~480 componentes permissivos não distribuídos | P0 |
 | R-05 | MÉDIO | D/J | .NET Runtime win-x64 (.NET Library License) e linux-x64 (MIT) | P0 |
@@ -43,7 +43,7 @@ de parecer.
   instalado pelo usuário. Corrigir o texto da proposta.
 - **Prioridade.** P0.
 
-### R-02: Berkeley DB (Sleepycat) no python-build-standalone: ALTO, distribuição
+### R-02: Berkeley DB (Sleepycat) no python-build-standalone: MÉDIO (era ALTO), jurídico
 
 - **Evidência.** `scripts/package-intelligence.py:31-45` (PBS 20250409). `downloads.py` e `targets.yml` da tag
   20250409: `_dbm` vincula ao Berkeley DB 6.0.19, "the last version licensed under the Sleepycat license". No arquivo
@@ -52,12 +52,19 @@ de parecer.
 - **Motivo.** A Sleepycat exige informar como obter o código-fonte completo do DB "and any accompanying software that uses the
   DB software". O alcance sobre o produto proprietário é incerto ⚖.
 - **Impacto comercial.** Obrigação de fonte com alcance discutível, no pacote Linux.
-- **Ação.** A poda não resolve, porque o DB faz parte do próprio interpretador. Opções (D-05):
-  1. Cumprir a Sleepycat: nos avisos, o texto da licença e onde obter o fonte do Berkeley DB 6.0.19 e do CPython/PBS, mais um
-     parecer sobre o alcance de "software que use o DB". O código do Spock não chama `dbm`.
-  2. Compilar um CPython próprio para Linux sem `bdb`.
-  3. Tirar o Linux da 1ª versão.
-- **Prioridade.** P0 para o pacote Linux.
+- **Ação tomada (D-05, opção 1).** A poda não resolve, porque o DB faz parte do próprio interpretador. A distribuição passa a
+  cumprir a Sleepycat:
+  - `scripts/package-intelligence.py` copia `scripts/notices/berkeley-db/` para `python/licenses/berkeley-db/` no pacote Linux.
+  - Vão o `LICENSE` original do Berkeley DB 6.0.19 (tirado do tarball com o SHA-256 fixado pelo PBS) e um `SOURCES.md` com os
+    endereços e hashes do fonte do DB, do CPython 3.12.10, da receita do PBS e do interpretador redistribuído, mais a oferta de
+    cópia pelo suporte.
+  - O smoke `Pacote_embarcado` falha se esses arquivos faltarem, tanto no pacote quanto no instalador aberto.
+- **Pendências.**
+  1. Parecer sobre o alcance de "any accompanying software that uses the DB software". O código do Spock nunca chama `dbm`. O
+     executável que contém o DB é o `libpython`, cujo fonte completo está indicado.
+  2. Publicar o canal de suporte citado no `SOURCES.md`.
+  3. Guardar uma cópia dos tarballs de fonte junto das releases.
+- **Prioridade.** P1.
 
 ### R-03: GTK/WebKitGTK (LGPL) no AppImage: ALTO, distribuição
 

@@ -61,7 +61,7 @@ Legenda: ✅ permitido · ⚠️ permitido com condições · ⚖ depende de par
 | CPython embed (Windows) | ⚠️ LICENSE.txt e EULA protetivo para o código da Microsoft | ⚠️ idem | — | ✅ | — | ✅ | ⚠️ PSF: resumo das mudanças; o Distributable Code da Microsoft não pode ser alterado |
 | Visual C++ Runtime | ⚠️ só junto com o app, só em Windows, EULA protetivo | ❌ separado | — | ✅ | — | ✅ | ❌ |
 | python-build-standalone | ⚠️ com as licenças das bibliotecas nativas | ⚠️ idem | — | ✅ | — | ✅ | ⚠️ (a poda atual é aceitável) |
-| Berkeley DB (`_dbm`, dentro do libpython) | ⚠️ Sleepycat: texto e onde obter o fonte; alcance ⚖ | ⚠️ idem | — | — | — | ❌ não sai pela poda (só recompilando o CPython) | ⚖ |
+| Berkeley DB (`_dbm`, dentro do libpython) | ⚠️ Sleepycat: texto e onde obter o fonte (já em `python/licenses/berkeley-db/`); alcance ⚖ | ⚠️ idem | — | — | — | ❌ não sai pela poda (só recompilando o CPython) | ⚖ |
 | GTK/WebKitGTK (AppImage) | ⚠️ LGPL: textos, fonte ou oferta, bibliotecas substituíveis | ⚠️ idem | — | ✅ | — | ✅ | ⚠️ alterações publicadas sob LGPL |
 | NSIS | ✅ (stub no setup) | ✅ | — | ✅ | — | — | ⚠️ módulo LZMA alterado fica CPL |
 | WebView2 Runtime | ⚠️ só embutindo o bootstrapper ou o instalador offline, sob os termos da Microsoft (hoje não embute) | ❌ não fornecer links da Microsoft a terceiros | ✅ bootstrapper oficial (padrão atual) | Pela Microsoft (Evergreen) | — | — | ❌ |

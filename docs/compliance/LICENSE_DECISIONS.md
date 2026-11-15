@@ -8,8 +8,8 @@ auditoria e as que **aguardam aprovação**. Nenhuma substituição, remoção o
 | D-01 | OpenTofu como motor padrão de IaC | Adotada (2026-11-15, decisão do dono) |
 | D-02 | Terraform: instalação gerenciada pelo Spock | **Aguarda aprovação e parecer** |
 | D-03 | Ferramentas de IaC por download oficial sob demanda, nunca embarcadas | Adotada |
-| D-04 | CPython embarcado (embed no Windows, python-build-standalone no Linux) | Adotada; pendência no Linux (D-05) |
-| D-05 | Berkeley DB (Sleepycat) embutido no Python do Linux | **Aguarda aprovação** |
+| D-04 | CPython embarcado (embed no Windows, python-build-standalone no Linux) | Adotada |
+| D-05 | Berkeley DB (Sleepycat) embutido no Python do Linux | Adotada: cumprir a Sleepycat (2026-11-15); parecer pendente |
 | D-06 | Formato do pacote Linux na 1ª versão (AppImage com LGPL ou só `.deb`) | **Aguarda aprovação** |
 | D-07 | Avisos de terceiros gerados do inventário e embarcados | **Aguarda aprovação** |
 | D-08 | Integração com CLIs de IA só invocando o binário do usuário | Adotada; confirmação pendente |
@@ -68,15 +68,19 @@ auditoria e as que **aguardam aprovação**. Nenhuma substituição, remoção o
 
 ### D-05: Berkeley DB (Sleepycat) no python-build-standalone
 
-- **Motivo:** o Berkeley DB 6.0.19, sob Sleepycat, traz uma obrigação de fonte de alcance incerto. A inteligência não usa
-  `dbm`.
-- **Tentativa descartada (2026-11-15):** remover o `_dbm` na poda. No arquivo oficial, o módulo e o DB estão ligados
-  estaticamente ao `libpython3.12.so.1.0`, sem arquivo separado. O `main` do PBS também inclui o `bdb`.
-- **Opções:**
-  1. **Recomendada:** cumprir a Sleepycat. Nos avisos, o texto da licença e onde obter o fonte do Berkeley DB 6.0.19 e do
-     CPython/PBS, os dois gratuitos. Pedir parecer sobre "any accompanying software that uses the DB software".
-  2. Compilar um CPython próprio para Linux sem `bdb` (fork da receita do PBS). Custo de manutenção alto.
-  3. Tirar o Linux da 1ª versão.
+- **Decisão do dono (2026-11-15):** cumprir a Sleepycat.
+- **Tentativa descartada:** remover o `_dbm` na poda. No arquivo oficial, o módulo e o DB estão ligados estaticamente ao
+  `libpython3.12.so.1.0`. O `main` do PBS também inclui o `bdb`.
+- **Implementação:**
+  - `scripts/notices/berkeley-db/` guarda o `LICENSE-6.0.19.txt` original e o `SOURCES.md` (onde obter o fonte do DB, do
+    CPython e do PBS, com hashes, e oferta de cópia pelo suporte).
+  - `package-intelligence.py` copia a pasta para `python/licenses/berkeley-db/` nos pacotes Linux.
+  - O smoke `Pacote_embarcado` confere a presença dos arquivos. Também confere a licença do CPython em todas as plataformas.
+- **Descartadas:** compilar um CPython sem `bdb` (custo de manutenção) e tirar o Linux da 1ª versão.
+- **Pendências:**
+  1. Parecer sobre "software que use o DB".
+  2. Publicar o canal de suporte citado no `SOURCES.md`.
+  3. Anexar os tarballs de fonte às releases.
 
 ### D-06: pacote Linux
 
