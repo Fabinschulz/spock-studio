@@ -124,7 +124,8 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
         foreach (var record in records.OrderBy(record => record.Line))
         {
             var inProject = ProjectOf(record) == projectId;
-            var isConnection = record.Action.StartsWith("connection.", StringComparison.Ordinal);
+            var isConnection = record.Action.StartsWith("connection.", StringComparison.Ordinal)
+                || record.Action.StartsWith("cloud.connection_", StringComparison.Ordinal) || record.Action == "cloud.permissions_checked";
             if (!inProject && !(isConnection && connectionIds.Contains(Text(record.Detail, "connectionId")))) continue;
             result.AddRange(Describe(record, state, names));
         }
@@ -199,6 +200,33 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                 break;
             case "connection.removed":
                 yield return Entry("", AuditCategories.Credential, $"Conexão removida: {Clean(Text(d, "name"))}", "A conexão e a credencial saíram deste computador.");
+                break;
+            case "cloud.linked":
+                yield return Entry("", AuditCategories.Access, $"Conexão cloud vinculada: {Clean(Text(d, "name"))}",
+                    $"{Count(Count(d, "capabilities"), "leitura liberada", "leituras liberadas")}; agentes: {(Flag(d, "agentAccess") ? "liberados" : "fechados")}.");
+                break;
+            case "cloud.scope_changed":
+                yield return Entry("", AuditCategories.Access, "Escopo de uma conexão cloud alterado",
+                    $"{Count(d["capabilities"] is JsonArray caps ? caps.Count : 0, "leitura liberada", "leituras liberadas")}; agentes: de {(Flag(d, "agentAccessBefore") ? "liberados" : "fechados")} para {(Flag(d, "agentAccess") ? "liberados" : "fechados")}.");
+                break;
+            case "cloud.unlinked":
+                yield return Entry("", AuditCategories.Access, "Conexão cloud desvinculada do projeto", "Nenhuma leitura dela vale mais para este projeto.");
+                break;
+            case "cloud.read":
+                yield return Entry("", AuditCategories.Read, $"Leitura cloud: {Clean(Text(d, "capability"))}", CloudReadDetail(d));
+                break;
+            case "cloud.connection_created":
+                yield return Entry("", AuditCategories.Credential, $"Conexão cloud criada: {Clean(Text(d, "name"))}", $"Provedor: {Clean(Text(d, "provider"))}. Nenhuma credencial foi guardada pelo Spock.");
+                break;
+            case "cloud.connection_validated":
+                yield return Entry("", AuditCategories.Credential, $"Conexão cloud validada: {Clean(Text(d, "name"))}", $"Estado: {Clean(Text(d, "status"))}.");
+                break;
+            case "cloud.permissions_checked":
+                yield return Entry("", AuditCategories.Credential, $"Permissões verificadas: {Clean(Text(d, "name"))}",
+                    $"{Count(d, "allowed")} liberadas, {Count(d, "denied")} negadas, {Count(d, "failed")} sem resposta.");
+                break;
+            case "cloud.connection_removed":
+                yield return Entry("", AuditCategories.Credential, $"Conexão cloud removida: {Clean(Text(d, "name"))}", "Só o registro saiu: a credencial nunca esteve com o Spock.");
                 break;
             default:
                 yield return Entry("", AuditCategories.Change, $"Operação registrada: {Clean(record.Action)}", "");
@@ -305,6 +333,14 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
         "failed" or "Failed" => "Falhou",
         _ => "Terminou"
     };
+
+    private static string CloudReadDetail(JsonObject d)
+    {
+        var who = Text(d, "caller") == "agent" ? $"agente{(Text(d, "client") is { Length: > 0 } client ? $" ({Clean(client)})" : "")}" : "pessoa";
+        var where = Text(d, "region") is { Length: > 0 } region ? $", região {Clean(region)}" : "";
+        var outcome = Text(d, "outcome") is "ok" or "" ? Count(Count(d, "rows"), "item lido", "itens lidos") + (Flag(d, "truncated") ? " (havia mais)" : "") : $"recusada: {Clean(Text(d, "outcome"))}";
+        return $"{Clean(Text(d, "provider"))}{where}, pedida por {who}; {outcome}.";
+    }
 
     private static string Count(int value, string one, string many) => $"{value} {(value == 1 ? one : many)}";
 

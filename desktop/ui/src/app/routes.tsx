@@ -8,6 +8,7 @@ import Configure from './routes/configure';
 import EngineeringRequest from './routes/engineering-request';
 import Execution from './routes/execution';
 import Home from './routes/home';
+import Cloud from './routes/cloud';
 import Integrations from './routes/integrations';
 import Management from './routes/management';
 import Idea from './routes/idea';
@@ -151,6 +152,14 @@ export const routes: RouteObject[] = [
         element: (
           <RequiresHost>
             <Integrations />
+          </RequiresHost>
+        )
+      },
+      {
+        path: paths.cloud,
+        element: (
+          <RequiresHost>
+            <Cloud />
           </RequiresHost>
         )
       },

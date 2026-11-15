@@ -17,6 +17,7 @@ using Mariliz.Runtime;
 using Mariliz.Application.Timeline;
 using Mariliz.Application.Workflows;
 using Mariliz.Infrastructure;
+using Mariliz.Infrastructure.Cloud;
 using Mariliz.Infrastructure.Engineering;
 using Mariliz.Infrastructure.Integrations;
 
@@ -60,6 +61,8 @@ var audit = new ProjectAuditService(engine.Workspace, engine.Clock, engine.Store
 var investigation = new InvestigationService(assistant, integrations, engine.Workspace, aiRuntime, engine.Clock, engine.Store, modelAccess, timeline,
     decisionMemory, Path.Combine(engine.DataRoot, "investigation-index"));
 var portfolioAssistant = new PortfolioAssistant(assistant, engine.Workspace, models, integrations, engine.Clock);
+// Credenciais da cloud ficam onde o SDK de cada provedor as procura; a trilha é a mesma das integrações.
+var cloud = LocalCloudHub.Create(engine.DataRoot, engine.Workspace, engine.Clock, integrations.Audit);
 var knowledge = new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge, decisionMemory);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
@@ -75,7 +78,8 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     ide: new IdeConnection(Environment.ProcessPath),
     contextReview: new ContextReviewService(engine.Workspace, workflowContext, aiRuntime, new TiktokenTokenizers(), models, knowledge),
     security: new SecurityService(engine.Workspace, engine.Files, engine.Store, engine.Clock, engine.Tracker),
-    ideas: new IdeaArchitectService(engine.Workspace, models, engine.Files, engine.Store, engine.Clock, engine.Tracker));
+    ideas: new IdeaArchitectService(engine.Workspace, models, engine.Files, engine.Store, engine.Clock, engine.Tracker),
+    cloud: cloud);
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

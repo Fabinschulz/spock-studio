@@ -84,6 +84,17 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "idea.draft",
     "idea.plan",
     "idea.save",
+    "cloud.catalog",
+    "cloud.list",
+    "cloud.create",
+    "cloud.validate",
+    "cloud.permissions",
+    "cloud.remove",
+    "cloud.links",
+    "cloud.link",
+    "cloud.configure",
+    "cloud.unlink",
+    "cloud.read",
 ];
 
 pub mod error_code {

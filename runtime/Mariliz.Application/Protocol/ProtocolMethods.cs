@@ -82,6 +82,17 @@ public static class ProtocolMethods
     public const string IdeaDraft = "idea.draft";
     public const string IdeaPlan = "idea.plan";
     public const string IdeaSave = "idea.save";
+    public const string CloudCatalog = "cloud.catalog";
+    public const string CloudList = "cloud.list";
+    public const string CloudCreate = "cloud.create";
+    public const string CloudValidate = "cloud.validate";
+    public const string CloudPermissions = "cloud.permissions";
+    public const string CloudRemove = "cloud.remove";
+    public const string CloudLinks = "cloud.links";
+    public const string CloudLink = "cloud.link";
+    public const string CloudConfigure = "cloud.configure";
+    public const string CloudUnlink = "cloud.unlink";
+    public const string CloudRead = "cloud.read";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -109,7 +120,9 @@ public static class ProtocolMethods
         AiToolList, ContextReview,
         // Os três leem o projeto inteiro antes de responder.
         SecurityScan, SecurityPlan, SecurityFix,
-        IdeaDraft
+        IdeaDraft,
+        // Os quatro falam com o provedor de cloud.
+        CloudCreate, CloudValidate, CloudPermissions, CloudRead
     };
 
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
@@ -129,6 +142,9 @@ public static class ProtocolMethods
     public static readonly IReadOnlyList<string> Security = [SecurityScan, SecurityPlan, SecurityFix];
 
     public static readonly IReadOnlyList<string> Idea = [IdeaDraft, IdeaPlan, IdeaSave];
+
+    public static readonly IReadOnlyList<string> Cloud =
+        [CloudCatalog, CloudList, CloudCreate, CloudValidate, CloudPermissions, CloudRemove, CloudLinks, CloudLink, CloudConfigure, CloudUnlink, CloudRead];
 
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }

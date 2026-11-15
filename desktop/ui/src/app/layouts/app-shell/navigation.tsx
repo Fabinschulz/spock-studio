@@ -110,6 +110,7 @@ export const PLATFORM_GROUP: NavGroup = {
       icon: <IntersectingArrowsIcon fontSize="small" />,
       to: pathTo('integrations')
     },
+    { id: 'cloud', label: 'Conexões cloud', icon: <GridIcon fontSize="small" />, to: pathTo('cloud') },
     { id: 'settings', label: 'Configurações', icon: <SettingIcon fontSize="small" />, to: pathTo('settings') }
   ]
 };

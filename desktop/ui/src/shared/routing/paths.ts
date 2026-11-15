@@ -17,6 +17,7 @@ export const paths = {
   timeline: '/linha-do-tempo',
   audit: '/auditoria',
   integrations: '/integracoes',
+  cloud: '/cloud',
   settings: '/configuracoes',
   settingsAi: '/configuracoes/ia',
   settingsDiagnostics: '/configuracoes/diagnostico'

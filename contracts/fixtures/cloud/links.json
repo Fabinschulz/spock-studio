@@ -1,0 +1,16 @@
+{
+  "links": [
+    {
+      "id": "clink-97a670de278c",
+      "projectId": "p-0123456789ab",
+      "connectionId": "cloud-00cedffc75fa",
+      "provider": "aws",
+      "capabilities": [
+        "aws.ec2.instances",
+        "aws.s3.buckets"
+      ],
+      "agentAccess": true,
+      "linkedAt": "2026-11-15T04:46:17.1562794+00:00"
+    }
+  ]
+}

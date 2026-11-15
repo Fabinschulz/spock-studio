@@ -91,7 +91,18 @@ export const ENGINE_METHODS = [
   'security.fix',
   'idea.draft',
   'idea.plan',
-  'idea.save'
+  'idea.save',
+  'cloud.catalog',
+  'cloud.list',
+  'cloud.create',
+  'cloud.validate',
+  'cloud.permissions',
+  'cloud.remove',
+  'cloud.links',
+  'cloud.link',
+  'cloud.configure',
+  'cloud.unlink',
+  'cloud.read'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

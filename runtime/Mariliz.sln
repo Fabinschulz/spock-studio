@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mariliz.Application.Tests",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mariliz.Runtime.IntegrationTests", "tests\Mariliz.Runtime.IntegrationTests\Mariliz.Runtime.IntegrationTests.csproj", "{FCCC3D73-B7F4-4A34-A05F-131ABF1E6429}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mariliz.Infrastructure.Cloud", "Mariliz.Infrastructure.Cloud\Mariliz.Infrastructure.Cloud.csproj", "{4C378976-EBCB-4EE0-BD26-DCF3E063ED56}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -113,6 +115,18 @@ Global
 		{FCCC3D73-B7F4-4A34-A05F-131ABF1E6429}.Release|x64.Build.0 = Release|Any CPU
 		{FCCC3D73-B7F4-4A34-A05F-131ABF1E6429}.Release|x86.ActiveCfg = Release|Any CPU
 		{FCCC3D73-B7F4-4A34-A05F-131ABF1E6429}.Release|x86.Build.0 = Release|Any CPU
+		{4C378976-EBCB-4EE0-BD26-DCF3E063ED56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C378976-EBCB-4EE0-BD26-DCF3E063ED56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C378976-EBCB-4EE0-BD26-DCF3E063ED56}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4C378976-EBCB-4EE0-BD26-DCF3E063ED56}.Debug|x64.Build.0 = Debug|Any CPU
+		{4C378976-EBCB-4EE0-BD26-DCF3E063ED56}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4C378976-EBCB-4EE0-BD26-DCF3E063ED56}.Debug|x86.Build.0 = Debug|Any CPU
+		{4C378976-EBCB-4EE0-BD26-DCF3E063ED56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C378976-EBCB-4EE0-BD26-DCF3E063ED56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C378976-EBCB-4EE0-BD26-DCF3E063ED56}.Release|x64.ActiveCfg = Release|Any CPU
+		{4C378976-EBCB-4EE0-BD26-DCF3E063ED56}.Release|x64.Build.0 = Release|Any CPU
+		{4C378976-EBCB-4EE0-BD26-DCF3E063ED56}.Release|x86.ActiveCfg = Release|Any CPU
+		{4C378976-EBCB-4EE0-BD26-DCF3E063ED56}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

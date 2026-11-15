@@ -20,7 +20,8 @@ public sealed partial class McpServer(string version, IReadOnlyList<McpTool> too
     private const string Instructions =
         "Contexto do Spock Studio sobre os projetos que a pessoa abriu nele: tecnologias, comandos, estado do Harness, decisões registradas " +
         "e busca no índice de conhecimento. Só leitura. Comece por project_briefing e use search_project para achar o código e os documentos " +
-        "de um assunto; sem 'project', vale o projeto da pasta atual.";
+        "de um assunto; sem 'project', vale o projeto da pasta atual. Quando o projeto liberou conexões cloud para agentes, cloud_connections e as " +
+        "ferramentas aws_*, azure_* e gcp_* leem a infraestrutura, também só leitura.";
 
     private string? _client;
 
@@ -85,7 +86,7 @@ public sealed partial class McpServer(string version, IReadOnlyList<McpTool> too
         ["title"] = tool.Info.Title,
         ["description"] = tool.Info.Description,
         ["inputSchema"] = tool.Info.InputSchema.DeepClone(),
-        ["annotations"] = new JsonObject { ["readOnlyHint"] = true, ["openWorldHint"] = false }
+        ["annotations"] = new JsonObject { ["readOnlyHint"] = true, ["openWorldHint"] = tool.Info.OpenWorld }
     };
 
     private async Task<JsonObject> CallAsync(JsonNode id, JsonObject parameters, CancellationToken ct)
