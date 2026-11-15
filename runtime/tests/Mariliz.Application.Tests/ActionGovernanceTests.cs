@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
+using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Tests.Support;
@@ -236,7 +237,9 @@ public class ActionGovernanceTests
         Assert.True(File.Exists(path));
         var written = File.ReadAllText(path);
         Assert.Contains("# Decisão de arquitetura", written);
-        Assert.Contains("- Serviço", written);
+        // Sem modelo, as áreas não são inventadas a partir das stacks (validação real M4).
+        Assert.Contains("- Não classificadas: sem o modelo", written);
+        Assert.DoesNotContain("- Serviço", written);
         Assert.Contains("`docs/nota.md`", written);
         Assert.Equal(["act-decisao-impacto"], runtime.Resumed!["decision"]!["actionIds"]!.AsArray().Select(a => a!.GetValue<string>()));
         Assert.Equal(JournalAction.Executed, run.Result!["actions"]!.AsArray().Single()!["status"]!.GetValue<string>());
@@ -361,7 +364,39 @@ public class ActionGovernanceTests
         Assert.Equal("RUN_NOT_RESUMABLE", refused.Code);
     }
 
-    // Validação real M2: a ação gravava o arquivo, mas a execução dizia "nenhuma alteração" e não podia ser desfeita.
+    private static WorkflowAck ImpactAck(params WorkflowLimitation[] limitations) => new(
+        WorkflowService.WorkflowId, "run-aaaaaaaaaaaa", "p-aaaaaaaaaaaa", "ex-aaaaaaaaaaaa", AckStatus.Interrupted,
+        new JsonObject
+        {
+            ["evidence"] = new JsonArray(new JsonObject { ["chunkId"] = Chunk, ["filePath"] = "docs/nota.md", ["hash"] = new string('b', 64), ["score"] = 1.0, ["excerpt"] = "x" }),
+            ["impact"] = new JsonObject { ["schema"] = "engineering.impact.v1", ["areas"] = new JsonArray("servico"), ["risks"] = new JsonArray(), ["evidence"] = new JsonArray(Chunk) }
+        },
+        limitations, [], "int-aaaaaaaaaaaa", [Intent()]);
+
+    [Fact]
+    public void O_impacto_e_do_modelo_so_com_a_chamada_da_arquitetura_e_sem_volta_as_regras()
+    {
+        ModelCallRecord Call(string purpose) => new("agent", purpose, "gpt-4o-mini", "v", new string('a', 64), 10, 10);
+
+        Assert.True(ActionGovernance.ImpactFromModel(ImpactAck(), [Call("plan"), Call("architecture")]));
+        Assert.False(ActionGovernance.ImpactFromModel(ImpactAck(), []));
+        Assert.False(ActionGovernance.ImpactFromModel(ImpactAck(), [Call("plan")]));
+        Assert.False(ActionGovernance.ImpactFromModel(ImpactAck(new WorkflowLimitation("IMPACT_MODEL_FALLBACK", "x")), [Call("architecture")]));
+    }
+
+    [Fact]
+    public void Com_impacto_do_modelo_o_registro_lista_as_areas()
+    {
+        var fromModel = Assert.Single(ActionGovernance.Review(ImpactAck(), [ActionGovernance.FileWrite], impactFromModel: true)).Content;
+        var fromRules = Assert.Single(ActionGovernance.Review(ImpactAck(), [ActionGovernance.FileWrite], impactFromModel: false)).Content;
+
+        Assert.Contains("- Serviço", fromModel);
+        Assert.DoesNotContain("Não classificadas", fromModel);
+        Assert.Contains("- Não classificadas", fromRules);
+        Assert.DoesNotContain("- Serviço", fromRules);
+    }
+
+    // Validação real M2:a ação gravava o arquivo, mas a execução dizia "nenhuma alteração" e não podia ser desfeita.
     [Fact]
     public async Task O_arquivo_da_acao_aprovada_conta_como_alteracao_e_volta_pela_reversao()
     {

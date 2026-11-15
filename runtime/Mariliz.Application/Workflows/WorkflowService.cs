@@ -125,7 +125,7 @@ public sealed class WorkflowService(
 
             if (ack.Status == AckStatus.Interrupted)
             {
-                ReviewActions(journal, ack, allowedActions);
+                ReviewActions(journal, ack, allowedActions, ActionGovernance.ImpactFromModel(ack, models?.Calls(executionId) ?? []));
                 await WaitForApprovalAsync(run, journal, ack);
                 ack = await WithDeadlineAsync(run, ct => runtime.ResumeAsync(Resume(run, journal), _events.Relay(run, filter), ct));
                 EnsureAck(run, executionId, ack);
@@ -153,9 +153,9 @@ public sealed class WorkflowService(
         evalRecords?.Save(run.ProjectId, ack.ExecutionId, JudgmentRecord.ForDisk(judgment, run.RunId, run.ProjectId, ack.ExecutionId, clock.UtcNow));
     }
 
-    private static void ReviewActions(RunJournal journal, WorkflowAck ack, IReadOnlyList<string> allowedActions)
+    private static void ReviewActions(RunJournal journal, WorkflowAck ack, IReadOnlyList<string> allowedActions, bool impactFromModel)
     {
-        journal.Actions = ActionGovernance.Review(ack, allowedActions);
+        journal.Actions = ActionGovernance.Review(ack, allowedActions, impactFromModel);
         journal.ActionsHash = ApprovalBinding.HashOf(journal.Actions);
     }
 

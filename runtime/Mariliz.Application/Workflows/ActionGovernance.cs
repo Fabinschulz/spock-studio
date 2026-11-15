@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Mariliz.Application.Execution;
+using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Core.Text;
@@ -36,7 +37,11 @@ internal static partial class ActionGovernance
     public static bool IsDecisionTarget(string target) => DecisionTarget().IsMatch(target);
 
     // O que fugir da política, do formato ou da recuperação desta execução é descartado, nunca corrigido. Intenção com alvo, resumo ou conteúdo próprios também: isso é decisão do motor.
-    public static List<JournalAction> Review(WorkflowAck ack, IReadOnlyList<string> allowed)
+    // O impacto é do modelo só se o proxy viu a chamada da arquitetura e o runtime não voltou às regras depois dela.
+    public static bool ImpactFromModel(WorkflowAck ack, IReadOnlyList<ModelCallRecord> calls) =>
+        calls.Any(call => call.Purpose == "architecture") && ack.Limitations.All(limitation => limitation.Code != "IMPACT_MODEL_FALLBACK");
+
+    public static List<JournalAction> Review(WorkflowAck ack, IReadOnlyList<string> allowed, bool impactFromModel = false)
     {
         var accepted = new List<JournalAction>();
         if (allowed.Count == 0 || ack.Output["impact"] is not JsonObject impact) return accepted;
@@ -52,7 +57,7 @@ internal static partial class ActionGovernance
             if (!IsDecisionTarget(target)) continue;
             if (!TryEvidence(intent["evidence"], known, out var evidence)) continue;
 
-            var content = DecisionRecordRenderer.Render(ack, impact, evidence, known);
+            var content = DecisionRecordRenderer.Render(ack, impact, evidence, known, impactFromModel);
             accepted.Add(new JournalAction
             {
                 Id = id,
