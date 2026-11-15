@@ -10,6 +10,7 @@ public sealed class WorkspaceAuthorizer
     private readonly IWorkspaceRegistry? _registry;
     // Escrito pelo protocolo (autorização) e lido pelas execuções em segundo plano.
     private readonly ConcurrentDictionary<string, string> _authorized = new();
+    private readonly ConcurrentDictionary<string, string> _names = new();
 
     public WorkspaceAuthorizer(IWorkspaceFileSystem fileSystem, IWorkspaceRegistry? registry = null)
     {
@@ -26,6 +27,7 @@ public sealed class WorkspaceAuthorizer
             if (!IsProjectRoot(resolved, trimmed) || !fileSystem.CanEnumerate(resolved)) continue;
             if (ProjectIdFor(trimmed) != id) continue;
             _authorized[id] = trimmed;
+            _names[id] = NameOf(trimmed);
         }
     }
 
@@ -39,10 +41,12 @@ public sealed class WorkspaceAuthorizer
         if (!_fileSystem.CanEnumerate(resolved)) return WorkspaceResult.Fail(WorkspaceError.NotReadable);
 
         var projectId = ProjectIdFor(trimmed);
+        var name = NameOf(trimmed);
+        _names[projectId] = name;
         _authorized[projectId] = trimmed;
         _registry?.Save(projectId, trimmed);
 
-        return WorkspaceResult.Ok(new AuthorizedProject(projectId, Path.GetFileName(trimmed), Abbreviate(trimmed)));
+        return WorkspaceResult.Ok(new AuthorizedProject(projectId, name, Abbreviate(trimmed)));
     }
 
     public bool IsAuthorized(string projectId) => _authorized.ContainsKey(projectId);
@@ -50,7 +54,7 @@ public sealed class WorkspaceAuthorizer
     // O caminho completo continua só no motor.
     public IReadOnlyList<AuthorizedProject> Projects() =>
         _authorized
-            .Select(pair => new AuthorizedProject(pair.Key, Path.GetFileName(pair.Value), Abbreviate(pair.Value)))
+            .Select(pair => new AuthorizedProject(pair.Key, _names.GetValueOrDefault(pair.Key) ?? Path.GetFileName(pair.Value), Abbreviate(pair.Value)))
             .OrderBy(project => project.DisplayName, StringComparer.OrdinalIgnoreCase)
             .ThenBy(project => project.ProjectId, StringComparer.Ordinal)
             .ToList();
@@ -62,6 +66,9 @@ public sealed class WorkspaceAuthorizer
         root = value ?? "";
         return found;
     }
+
+    private string NameOf(string root) =>
+        ProjectNameReader.Read(_fileSystem.RootFiles(root), file => _fileSystem.ReadRootFile(root, file)) ?? Path.GetFileName(root);
 
     private static string Trim(string path) => path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
