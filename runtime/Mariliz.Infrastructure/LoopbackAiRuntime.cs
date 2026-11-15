@@ -14,20 +14,28 @@ namespace Mariliz.Infrastructure;
 public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime, IContextPreviewRuntime, IKnowledgeSearchRuntime
 {
     private const int MaxLine = 1_000_000;
+
+    // O Python só escreve no stderr o tipo da falha e as linhas do próprio código, nunca conteúdo do projeto; o host ainda redige caminhos e segredos.
+    public const string DiagnosticPrefix = "[ia] ";
+    public const int MaxDiagnosticLines = 400;
+    public const int MaxDiagnosticLength = 500;
     private static readonly TimeSpan StartupBudget = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan PingTimeout = TimeSpan.FromSeconds(5);
 
     private readonly string? _scriptPath;
     private readonly string? _pythonOverride;
+    private readonly TextWriter _diagnostics;
     private readonly object _gate = new();
     private readonly SemaphoreSlim _startup = new(1, 1);
     private Process? _process;
     private HttpClient? _http;
 
-    public LoopbackAiRuntime(string? scriptPath = null, string? pythonPath = null)
+    // O stderr do motor vai para o log de diagnóstico do host; sem isto, uma falha do Python só aparecia como "índice indisponível".
+    public LoopbackAiRuntime(string? scriptPath = null, string? pythonPath = null, TextWriter? diagnostics = null)
     {
         _scriptPath = scriptPath ?? AiRuntimeLocator.Script();
         _pythonOverride = pythonPath;
+        _diagnostics = diagnostics ?? Console.Error;
     }
 
     public bool IsRunning
@@ -248,6 +256,13 @@ public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime, ICont
             return false;
         }
 
+        var forwarded = 0;
+        process.ErrorDataReceived += (_, line) =>
+        {
+            if (string.IsNullOrWhiteSpace(line.Data) || Interlocked.Increment(ref forwarded) > MaxDiagnosticLines) return;
+            var text = line.Data.Length > MaxDiagnosticLength ? line.Data[..MaxDiagnosticLength] + "…" : line.Data;
+            lock (_diagnostics) _diagnostics.WriteLine(DiagnosticPrefix + text);
+        };
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
         try { process.StandardInput.Close(); }
