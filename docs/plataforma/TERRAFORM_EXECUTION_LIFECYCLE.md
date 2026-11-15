@@ -195,6 +195,9 @@ Savings Plans ou descontos; transferência de dados e backup além do tamanho do
 fora quando as tarefas não têm IP público. A consulta fica na trilha como leitura cloud de `aws.pricing`. O RDS gerado
 declara `storage_type = "gp3"`, o mesmo que a estimativa precifica.
 
+Validado contra a API real (`AwsPricingLiveTests`, com `MARILIZ_LIVE_AWS_PROFILE`): cada item do desenho completo em
+sa-east-1, também com Multi-AZ e MySQL, acha preço único, e a leitura `aws.pricing` da verificação de permissões responde.
+
 ## 7. O que já existe para isso
 
 | Necessidade | Já existe |

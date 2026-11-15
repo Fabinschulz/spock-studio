@@ -7,7 +7,8 @@ using Xunit.Abstractions;
 namespace Mariliz.Application.Tests;
 
 // A estimativa contra a Price List Query API de verdade: prova que cada consulta do desenho completo acha um preço único
-// na lista pública da AWS. Só lê preços públicos; nada da conta. Rode com MARILIZ_LIVE_AWS_PROFILE=<perfil do AWS CLI>.
+// na lista pública da AWS. Só lê preços públicos; nada da conta. Rode com MARILIZ_LIVE_AWS_PROFILE=<perfil do AWS CLI>, ou
+// =default com as credenciais nas variáveis de ambiente.
 public sealed class AwsPricingLiveTests(ITestOutputHelper output)
 {
     private const string Variable = "MARILIZ_LIVE_AWS_PROFILE";
@@ -15,11 +16,20 @@ public sealed class AwsPricingLiveTests(ITestOutputHelper output)
     [LiveFact(Variable)]
     public async Task Cada_item_do_desenho_completo_tem_preco_unico_na_lista_da_aws()
     {
-        var settings = new CloudSettings(AwsCloudProvider.ProfileMechanism, new Dictionary<string, string>
-        {
-            [AwsCloudProvider.ProfileField] = Environment.GetEnvironmentVariable(Variable)!,
-            [CloudFields.Region] = "sa-east-1"
-        });
+        // "default" usa a cadeia padrão do SDK (variáveis de ambiente, por exemplo as de aws configure export-credentials).
+        var profile = Environment.GetEnvironmentVariable(Variable)!;
+        var settings = profile == "default"
+            ? new CloudSettings(AwsCloudProvider.DefaultMechanism, new Dictionary<string, string> { [CloudFields.Region] = "sa-east-1" })
+            : new CloudSettings(AwsCloudProvider.ProfileMechanism, new Dictionary<string, string>
+            {
+                [AwsCloudProvider.ProfileField] = profile,
+                [CloudFields.Region] = "sa-east-1"
+            });
+        // A leitura mínima que a verificação de permissões da conexão faz para a capacidade aws.pricing.
+        var services = await new AwsCloudProvider().ReadAsync(settings, new CloudQuery("aws.pricing", null, 200), CancellationToken.None);
+        output.WriteLine($"aws.pricing: {services.Rows.Count} serviço(s) na lista, truncado={services.Truncated}");
+        Assert.Contains(services.Rows, row => row[0] == "AmazonECS");
+
         var blueprint = IacBlueprintSamples.Full();
         var multiAz = blueprint with { Database = blueprint.Database! with { MultiAz = true, Engine = "mysql" } };
 
