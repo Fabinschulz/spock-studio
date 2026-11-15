@@ -23,6 +23,10 @@ public sealed class RunJournal
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DateTimeOffset? ApprovedAt { get; set; }
 
+    // Quantas ações a pessoa marcou na decisão. Zero é uma recusa, mesmo com ApprovedAt preenchido; nulo em diário de antes deste campo.
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? ApprovedActions { get; set; }
+
     public string State { get; set; } = RunStates.Running;
     public DateTimeOffset StartedAt { get; set; }
     public DateTimeOffset? FinishedAt { get; set; }

@@ -235,8 +235,10 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
             // A aprovação que liga as ações propostas por agentes ao que foi executado: o que um agente fez no projeto.
             var executed = journal.Actions.Where(action => action.Status == JournalAction.Executed).ToList();
             if (journal.ApprovedAt is { } approvedAt && journal.Actions.Count > 0)
-                result.Add(Entry("a", approvedAt, AuditCategories.Change, "Ações propostas por agentes aprovadas",
-                    $"{Count(journal.Actions.Count, "ação", "ações")} no conjunto aprovado; {Count(executed.Count, "executada", "executadas")}."));
+            {
+                var (title, detail) = Decision(journal, executed.Count);
+                result.Add(Entry("a", approvedAt, AuditCategories.Change, title, detail));
+            }
             foreach (var (action, index) in executed.Select((action, index) => (action, index)))
                 result.Add(Entry($"x{index}", at, AuditCategories.Change, $"Ação de agente executada: {Clean(action.Summary)}", $"Destino: {Clean(action.Target)}."));
 
@@ -245,6 +247,18 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                     $"{Count(usage.Calls, "chamada", "chamadas")} ao provedor, {usage.InputTokens + usage.OutputTokens} tokens ({usage.InputTokens} de entrada, {usage.OutputTokens} de saída)."));
         }
         return result;
+    }
+
+    // A decisão da pessoa sobre as ações propostas: recusar tudo também passa pela aprovação aberta, e não pode virar "aprovadas".
+    private static (string Title, string Detail) Decision(RunJournal journal, int executed)
+    {
+        var total = journal.Actions.Count;
+        var approved = journal.ApprovedActions
+            ?? journal.Actions.Count(action => action.Status is JournalAction.Approved or JournalAction.Executed or JournalAction.Conflict or JournalAction.Failed);
+        return approved == 0
+            ? ("Ações propostas por agentes recusadas", $"Nenhuma das {Count(total, "ação proposta", "ações propostas")} foi aprovada; nada foi executado.")
+            : ("Ações propostas por agentes aprovadas",
+                $"{(approved == total ? Count(total, "ação aprovada", "ações aprovadas") : $"{approved} de {total} ações aprovadas")}; {Count(executed, "executada", "executadas")}.");
     }
 
     private const int ShownPaths = 8;
