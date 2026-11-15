@@ -13,7 +13,7 @@
     {
       "name": "project_briefing",
       "title": "Resumo do projeto",
-      "description": "Resumo compacto do projeto: tecnologias e versões, comandos de build e teste, estado do Harness e decisões recentes. Use antes de planejar uma mudança."
+      "description": "Resumo compacto do projeto: tecnologias e versões, comandos de build e teste, estado do Harness, integrações vinculadas, indicadores de entrega, riscos e marcos calculados pelo Spock, e decisões recentes. Use antes de planejar uma mudança."
     },
     {
       "name": "decisions",

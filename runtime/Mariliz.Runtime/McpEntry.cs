@@ -1,5 +1,6 @@
 using Mariliz.Application;
 using Mariliz.Application.Iac;
+using Mariliz.Application.Management;
 using Mariliz.Application.Mcp;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
@@ -40,6 +41,8 @@ internal static class McpEntry
         var runtime = new LoopbackAiRuntime();
         Func<WorkspaceAuthorizer> workspaces = () => new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(dataRoot));
         var audit = new FileAuditLog(dataRoot, clock);
+        // A gestão só lê o que o aplicativo já sincronizou; o transporte existe porque o hub de integrações o exige, e aqui nunca é usado.
+        using var connectorTransport = new HttpsConnectorTransport();
         var cloud = new CloudMcpTools(LocalCloudHub.Create(dataRoot, workspaces(), clock, audit), workspaces, Environment.CurrentDirectory, options.Scope);
         // Só a consulta: o servidor MCP nunca baixa nem instala, e o binário externo só é perguntado pela versão.
         using var openTofuToolchain = new OpenTofuToolchain(dataRoot, ExecutableLocator.FromEnvironment());
@@ -56,7 +59,8 @@ internal static class McpEntry
             runtime,
             dataRoot,
             audit,
-            options.Scope);
+            options.Scope,
+            workspace => new ManagementService(workspace, LocalIntegrationHub.Create(dataRoot, workspace, clock, connectorTransport), clock));
         try
         {
             await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. cloud.Tools(), .. iac.Tools()]).RunAsync(Console.In, Console.Out, ct);

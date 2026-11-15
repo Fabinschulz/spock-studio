@@ -2,7 +2,8 @@ using System.Text;
 
 namespace Mariliz.Core.Text;
 
-// LCS por linhas, suficiente para revisar arquivos de configuração.
+// LCS por linhas, suficiente para revisar arquivos de configuração. Sai sempre com \n: o mesmo pedido gera o mesmo diff
+// em qualquer sistema (AppendLine usaria \r\n no Windows).
 public static class UnifiedDiff
 {
     private const int MaxLines = 1500;
@@ -14,12 +15,12 @@ public static class UnifiedDiff
         var b = Split(after);
 
         var header = new StringBuilder();
-        header.Append("--- ").AppendLine(before is null ? "/dev/null" : "a/" + path);
-        header.Append("+++ b/").AppendLine(path);
+        header.Append("--- ").Append(before is null ? "/dev/null" : "a/" + path).Append('\n');
+        header.Append("+++ b/").Append(path).Append('\n');
 
         if (a.Length > MaxLines || b.Length > MaxLines)
         {
-            header.AppendLine($"@@ arquivo grande: {a.Length} → {b.Length} linhas, diff omitido @@");
+            header.Append($"@@ arquivo grande: {a.Length} → {b.Length} linhas, diff omitido @@").Append('\n');
             return (header.ToString(), true);
         }
 
@@ -79,9 +80,9 @@ public static class UnifiedDiff
             var newCount = slice.Count(o => o.Op != Op.Del);
 
             var sb = new StringBuilder();
-            sb.AppendLine($"@@ -{oldStart},{oldCount} +{newStart},{newCount} @@");
+            sb.Append($"@@ -{oldStart},{oldCount} +{newStart},{newCount} @@").Append('\n');
             foreach (var (op, line) in slice)
-                sb.Append(op switch { Op.Add => '+', Op.Del => '-', _ => ' ' }).AppendLine(line);
+                sb.Append(op switch { Op.Add => '+', Op.Del => '-', _ => ' ' }).Append(line).Append('\n');
             yield return sb.ToString();
 
             start = end + 1;
