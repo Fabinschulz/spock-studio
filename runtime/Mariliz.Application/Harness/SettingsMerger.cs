@@ -16,6 +16,8 @@ public static class SettingsMerger
     private static readonly JsonSerializerOptions Output = new()
     {
         WriteIndented = true,
+        // Sem isto, no Windows o arquivo sairia com \r\n por dentro e o \n final acrescentado abaixo.
+        NewLine = "\n",
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 

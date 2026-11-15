@@ -299,9 +299,14 @@ fn terminate_descendants(pid: u32) {
 
 #[cfg(not(windows))]
 fn terminate_descendants(pid: u32) {
-    // O pty cria uma sessão nova para o shell: o grupo de processos tem o id dele.
+    // Grupo 0 ou 1 seria o do próprio Spock ou o sistema inteiro.
+    if pid <= 1 {
+        return;
+    }
+    // O pty cria uma sessão nova para o shell: o grupo de processos tem o id dele. Sem o "--", o kill do procps lê o
+    // "-<pid>" de outro jeito e manda o sinal ao grupo de quem chama, derrubando o próprio host (visto no CI do Linux).
     let _ = std::process::Command::new("kill")
-        .args(["-TERM", &format!("-{pid}")])
+        .args(["-TERM", "--", &format!("-{pid}")])
         .status();
 }
 
