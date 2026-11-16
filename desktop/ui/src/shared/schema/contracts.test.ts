@@ -13,6 +13,7 @@ import iacCostEstimateFixture from '@contracts/fixtures/iac/cost-estimate.json';
 import iacDriftFixture from '@contracts/fixtures/iac/drift-operation.json';
 import iacGeneratePlanFixture from '@contracts/fixtures/iac/generate-plan.json';
 import iacOperationsFixture from '@contracts/fixtures/iac/operations.json';
+import iacPlanCostFixture from '@contracts/fixtures/iac/plan-cost.json';
 import iacStateResourcesFixture from '@contracts/fixtures/iac/state-resources.json';
 import iacStateFixture from '@contracts/fixtures/iac/state.json';
 import iacStatusFixture from '@contracts/fixtures/iac/status.json';
@@ -83,6 +84,7 @@ import {
   iacCostEstimateSchema,
   iacGeneratePlanSchema,
   iacOperationResultSchema,
+  iacPlanCostSchema,
   iacLayoutSchema,
   iacStateReadSchema,
   iacStateReportSchema,
@@ -985,5 +987,15 @@ describe('contrato do assistente do portfólio (fixtures do motor)', () => {
     expect(estimate.monthlyFixed).toBe(117.27);
     expect(estimate.usageBased.every((line) => line.monthly === null)).toBe(true);
     expect(estimate.assumptions.join(' ')).toMatch(/free tier/);
+  });
+
+  it('aceita o custo de um plano com antes, depois e o que ficou de fora', () => {
+    const plan = iacOperationListSchema.parse(iacOperationsFixture).operations[0]!;
+    expect(plan.billables?.map((b) => b.type)).toContain('aws_ecs_service');
+    expect(JSON.stringify(plan.billables)).not.toMatch(/senha/);
+    const cost = iacPlanCostSchema.parse(iacPlanCostFixture).estimate;
+    expect(cost.monthlyDelta).toBe(48.03);
+    expect(cost.lines.find((line) => line.address === 'aws_db_instance.novo')?.after).toBeNull();
+    expect(cost.uncovered).toEqual(['aws_ecs_task_definition', 'aws_sqs_queue']);
   });
 });

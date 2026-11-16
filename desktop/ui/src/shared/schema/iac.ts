@@ -168,6 +168,15 @@ export const iacDriftedResourceSchema = z.object({
   attributes: z.array(z.string())
 });
 
+/** Recurso cobrado que o plano muda, com só os atributos de preço; "?" é valor conhecido só depois do apply. */
+export const iacBillableSchema = z.object({
+  address: z.string(),
+  type: z.string(),
+  action: z.string(),
+  before: z.record(z.string(), z.string()).nullable(),
+  after: z.record(z.string(), z.string()).nullable()
+});
+
 export const iacOperationSchema = z.object({
   id: z.string(),
   projectId: z.string(),
@@ -199,7 +208,8 @@ export const iacOperationSchema = z.object({
   localStatePath: z.string().nullable(),
   localStateHash: z.string().nullable(),
   lockId: z.string().nullable(),
-  drift: z.array(iacDriftedResourceSchema).nullable()
+  drift: z.array(iacDriftedResourceSchema).nullable(),
+  billables: z.array(iacBillableSchema).nullable()
 });
 
 export const iacOperationResultSchema = z.object({ operation: iacOperationSchema });
@@ -238,6 +248,37 @@ export const iacCostEstimateSchema = z.object({
 });
 
 export type IacCostLine = z.infer<typeof iacCostLineSchema>;
+
+/** Custo fixo mensal de antes e de depois do plano, por recurso; nunca é a fatura. */
+export const iacPlanCostSchema = z.object({
+  estimate: z.object({
+    operationId: z.string(),
+    planId: z.string(),
+    currency: z.string(),
+    region: z.string(),
+    source: z.string(),
+    pricedAt: z.string(),
+    monthlyBefore: z.number(),
+    monthlyAfter: z.number(),
+    monthlyDelta: z.number(),
+    complete: z.boolean(),
+    lines: z.array(
+      z.object({
+        address: z.string(),
+        type: z.string(),
+        action: z.string(),
+        detail: z.string(),
+        before: z.number().nullable(),
+        after: z.number().nullable(),
+        problem: z.string().nullable()
+      })
+    ),
+    uncovered: z.array(z.string()),
+    assumptions: z.array(z.string())
+  })
+});
+
+export type IacPlanCost = z.infer<typeof iacPlanCostSchema>['estimate'];
 export type IacCostEstimate = z.infer<typeof iacCostEstimateSchema>['estimate'];
 export type IacLayout = z.infer<typeof iacLayoutSchema>['layout'];
 

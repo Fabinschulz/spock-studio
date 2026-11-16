@@ -8,6 +8,7 @@ import generateFixture from '@contracts/fixtures/iac/generate-plan.json';
 import layoutFixture from '@contracts/fixtures/iac/layout.json';
 import offerFixture from '@contracts/fixtures/iac/offer.json';
 import operationsFixture from '@contracts/fixtures/iac/operations.json';
+import planCostFixture from '@contracts/fixtures/iac/plan-cost.json';
 import stateResourcesFixture from '@contracts/fixtures/iac/state-resources.json';
 import stateFixture from '@contracts/fixtures/iac/state.json';
 import statusFixture from '@contracts/fixtures/iac/status.json';
@@ -71,6 +72,7 @@ function fakeEngine(initial: Record<string, unknown> = missing) {
         'iac.generate.save': { runId: 'run-iac-2' },
         'iac.drift': driftFixture,
         'iac.cost.estimate': costFixture,
+        'iac.cost.plan': planCostFixture,
         'cloud.read': {
           result: {
             connectionId: 'cloud-00cedffc75fa',
@@ -273,6 +275,25 @@ describe('Infraestrutura', () => {
       projectId: demo.projectId,
       folder: 'infra',
       workspace: 'dev'
+    });
+    expect(methods(engine.calls)).not.toContain('iac.apply');
+  });
+
+  it('o custo do plano compara antes e depois por recurso, pela conexão AWS do projeto', async () => {
+    const engine = fakeEngine(ready);
+    renderPage(engine.client);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Estimar o custo do plano' }));
+
+    const cost = await screen.findByLabelText('Custo do plano');
+    expect(cost).toHaveTextContent(/97,09 → US\$\s145,12 por mês \(\+US\$\s48,03\)/);
+    expect(cost).toHaveTextContent('Estimativa incompleta');
+    expect(within(cost).getByLabelText('Custo por recurso')).toHaveTextContent('aws_nat_gateway.main');
+    expect(cost).toHaveTextContent('aws_sqs_queue');
+    expect(engine.calls.find((call) => call.method === 'iac.cost.plan')?.params).toEqual({
+      projectId: demo.projectId,
+      operationId: operationsFixture.operations[0]!.id,
+      connectionId: 'cloud-00cedffc75fa'
     });
     expect(methods(engine.calls)).not.toContain('iac.apply');
   });

@@ -6,6 +6,7 @@ import {
   iacGenerateSaveSchema,
   iacBootstrapSaveSchema,
   iacCostEstimateSchema,
+  iacPlanCostSchema,
   iacStateReadSchema,
   iacStateReportSchema,
   iacUnlockSchema,
@@ -18,6 +19,7 @@ import {
   type IacBlueprint,
   type IacBootstrapPlan,
   type IacCostEstimate,
+  type IacPlanCost,
   type IacGeneratePlan,
   type IacEngine,
   type IacStateRead,
@@ -57,6 +59,8 @@ export type IacApi = {
   }): Promise<IacOperation>;
   /** Preços públicos do provedor pela conexão do projeto; nada da conta é lido. */
   costEstimate(input: { projectId: string; connectionId: string; blueprint: IacBlueprint }): Promise<IacCostEstimate>;
+  /** Custo mensal do que um plano guardado cria, muda ou destrói, com os preços públicos pela conexão. */
+  costPlan(input: { projectId: string; operationId: string; connectionId: string }): Promise<IacPlanCost>;
   /** Aprova aquele plano (pelo planId que a pessoa viu, com as confirmações dela) e aplica. Muda a nuvem. */
   apply(input: {
     projectId: string;
@@ -127,6 +131,7 @@ export function createIacApi(client: EngineClient): IacApi {
     plan: (input) => client.request('iac.plan', input, iacOperationResultSchema).then((r) => r.operation),
     drift: (input) => client.request('iac.drift', input, iacOperationResultSchema).then((r) => r.operation),
     costEstimate: (input) => client.request('iac.cost.estimate', input, iacCostEstimateSchema).then((r) => r.estimate),
+    costPlan: (input) => client.request('iac.cost.plan', input, iacPlanCostSchema).then((r) => r.estimate),
     state: (projectId) => client.request('iac.state', { projectId }, iacStateReportSchema).then((r) => r.state),
     stateResources: (input) => client.request('iac.state.resources', input, iacStateReadSchema).then((r) => r.state),
     unlock: async (input) => {

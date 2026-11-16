@@ -42,6 +42,11 @@ internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperatio
                 p.Str("connectionId"), IacBlueprintJson.Blueprint(p.Object("blueprint") ?? throw new ParamException("'blueprint' é obrigatório."))),
                 CloudCaller.Person, ct))
         },
+        ProtocolMethods.IacCostPlan => new JsonObject
+        {
+            ["estimate"] = IntegrationJson.Node(await (costs ?? throw IacErrors.CostSourceUnavailable()).EstimatePlanAsync(
+                new IacPlanCostRequest(p.Str("projectId"), p.Str("operationId"), p.Str("connectionId"), p.OptionalStr("region")), CloudCaller.Person, ct))
+        },
         ProtocolMethods.IacOperations => new JsonObject
         {
             ["operations"] = new JsonArray(operations.History(p.Str("projectId")).Select(o => IntegrationJson.Node(o)).ToArray())

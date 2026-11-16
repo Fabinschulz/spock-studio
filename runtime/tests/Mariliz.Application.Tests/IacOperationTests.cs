@@ -138,6 +138,65 @@ public sealed class IacOperationTests : IDisposable
     }
 
     [Fact]
+    public async Task Custo_do_plano_soma_antes_e_depois_e_deixa_fora_o_que_nao_da_para_cotar()
+    {
+        var json = System.Text.Json.Nodes.JsonNode.Parse(IacDriftAndCostTests.PlanJson)!;
+        _runtime.Billables = IacPlanBillables.Read(json);
+        _runtime.Summary = IacPlanReader.Read(json).Summary;
+        var provider = new PricedAwsProvider();
+        var cloud = new CloudHub(new FileCloudStore(_project.DataDir), new CloudProviderRegistry([provider]), Workspace(), _clock, _audit);
+        var connection = await cloud.Connections.CreateAsync("aws", "Conta de teste", "simple", new Dictionary<string, string> { ["region"] = "sa-east-1" },
+            CancellationToken.None);
+        cloud.Projects.Link(_projectId, connection.Id, [CloudReadService.PricingCapability("aws")], agentAccess: false);
+        var service = await Service(cloud);
+        var plan = await service.PlanAsync(new IacPlanRequest(_projectId, null, null, null), IacOperationService.Person, CancellationToken.None);
+        var costs = new IacCostService(Workspace(), cloud, _clock, service);
+
+        var estimate = await costs.EstimatePlanAsync(new IacPlanCostRequest(_projectId, plan.Id, connection.Id, null), CloudCaller.Person,
+            CancellationToken.None);
+
+        Assert.Equal(plan.PlanId, estimate.PlanId);
+        Assert.Equal(97.09m, estimate.MonthlyBefore);
+        Assert.Equal(145.12m, estimate.MonthlyAfter);
+        Assert.Equal(48.03m, estimate.MonthlyDelta);
+        Assert.False(estimate.Complete);
+        Assert.Equal(67.89m, estimate.Lines.Single(l => l.Address == "aws_nat_gateway.main").Before);
+        Assert.Equal(61.90m, estimate.Lines.Single(l => l.Type == "aws_ecs_service").After);
+        var legacy = estimate.Lines.Single(l => l.Address == "aws_db_instance.legacy");
+        Assert.Equal((29.20m, 54.02m), (legacy.Before!.Value, legacy.After!.Value));
+        var unknown = estimate.Lines.Single(l => l.Address == "aws_db_instance.novo");
+        Assert.Null(unknown.After);
+        Assert.Contains("storage_type", unknown.Problem);
+        Assert.Equal(["aws_ecs_task_definition", "aws_sqs_queue"], estimate.Uncovered);
+        Assert.Contains(_audit.Entries, e => e.Action == "cloud.read" && e.Detail.Contains("aws.pricing"));
+        Assert.DoesNotContain(provider.Queries, q => q.Attributes.Values.Contains("senha-do-plano"));
+
+        var tools = new Mariliz.Application.Mcp.IacMcpTools(Workspace, _ => throw new InvalidOperationException(), _ => service, _project.Root);
+        var summary = await tools.Tools().Single(t => t.Info.Name == Mariliz.Application.Mcp.IacMcpTools.PlanSummaryTool)
+            .Call(new Mariliz.Application.Mcp.McpCall(new System.Text.Json.Nodes.JsonObject(), "teste", CancellationToken.None));
+        Assert.Contains("Recursos com custo fixo que o plano muda: create RDS postgres db.t4g.micro", summary);
+        Assert.DoesNotContain("senha-do-plano", summary);
+    }
+
+    [Fact]
+    public async Task Custo_do_plano_recusa_plano_antigo_e_o_que_nao_e_plano()
+    {
+        _runtime.Billables = null;
+        var service = await Service();
+        var old = await service.PlanAsync(new IacPlanRequest(_projectId, null, null, null), IacOperationService.Person, CancellationToken.None);
+        var validation = await service.ValidateAsync(_projectId, IacOperationService.Person, CancellationToken.None);
+        var costs = new IacCostService(Workspace(), null, _clock, service);
+
+        var withoutData = await Assert.ThrowsAsync<EngineException>(() =>
+            costs.EstimatePlanAsync(new IacPlanCostRequest(_projectId, old.Id, "cloud-x", null), CloudCaller.Person, CancellationToken.None));
+        var notPlan = await Assert.ThrowsAsync<EngineException>(() =>
+            costs.EstimatePlanAsync(new IacPlanCostRequest(_projectId, validation.Id, "cloud-x", null), CloudCaller.Person, CancellationToken.None));
+
+        Assert.Equal("IAC_PLAN_COST_UNAVAILABLE", withoutData.Code);
+        Assert.Equal(IacErrors.NotAPlan().Code, notPlan.Code);
+    }
+
+    [Fact]
     public async Task Planejar_le_a_copia_do_state_local_e_apaga_a_copia_depois()
     {
         var before = _project.Fingerprint();
@@ -430,6 +489,7 @@ public sealed class IacOperationTests : IDisposable
         public (IacStateSpec Spec, string LockId)? LastUnlock { get; private set; }
         public IacPlanSummary Summary { get; set; } = new(1, 0, 0, 0, 0, 0, [new IacResourceChange("terraform_data.q", "terraform_data", "create")], []);
         public IReadOnlyList<IacFinding> Findings { get; set; } = [];
+        public IReadOnlyList<IacBillable>? Billables { get; set; } = [];
         public IacApplyRun ApplyResult { get; set; } = new(true, true, null, 3, new Dictionary<string, string> { ["fila"] = "fila-dev" }, null);
         public IacApplySpec? LastApply { get; private set; }
         public bool PlanFileExistedOnApply { get; private set; }
@@ -460,7 +520,7 @@ public sealed class IacOperationTests : IDisposable
             if (PlanError is not null) return new IacPlanRun(false, false, null, [], PlanError);
             File.WriteAllText(spec.PlanFile, "plano binário de mentira " + Guid.NewGuid());
             return new IacPlanRun(true, true, Summary, Findings, null, PlanBlocker is null && PlanStateMode == IacStateMode.Remote ? "s3" : "local", PlanBlocker,
-                PlanStateMode, PlanLocalState);
+                PlanStateMode, PlanLocalState, Billables);
         }
 
         public Task<IacApplyRun> ApplyAsync(IacApplySpec spec, CancellationToken ct)

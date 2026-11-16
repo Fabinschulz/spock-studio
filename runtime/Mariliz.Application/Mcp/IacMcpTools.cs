@@ -225,6 +225,9 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
         foreach (var change in s.Changes.Take(MaxChanges)) text.Append($"\n- {change.Action}: {change.Address}");
         if (s.Changes.Count > MaxChanges) text.Append($"\n... e mais {s.Changes.Count - MaxChanges}.");
         foreach (var finding in plan.Findings ?? []) text.Append($"\nAchado ({(finding.Severity == IacFindingSeverity.Danger ? "grave" : "atenção")}): {finding.Message}");
+        if (plan.Billables is { Count: > 0 } billables)
+            text.Append("\nRecursos com custo fixo que o plano muda: " + string.Join("; ", billables.Take(MaxChanges).Select(b => $"{b.Action} {IacPlanCost.Detail(b)} ({b.Address})")) +
+                ". A estimativa em dólares sai na tela Infraestrutura, com os preços públicos pela conexão do projeto.");
         if (plan.AppliedBy is { } applied) return Task.FromResult(text.Append($"\nEste plano já foi aplicado ({applied}).").ToString());
         if (plan.ApplyBlocker is { } blocker) return Task.FromResult(text.Append($"\nO Spock não aplica este plano: {blocker}").ToString());
         return Task.FromResult(text.Append("\nAplicar exige a aprovação da pessoa na tela Infraestrutura do Spock; agentes não aplicam.").ToString());

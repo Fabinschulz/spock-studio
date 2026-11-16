@@ -68,7 +68,7 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
         return summary is null
             ? Failed("O plano foi gerado, mas show -json falhou ou devolveu um formato inesperado.")
             : new IacPlanRun(true, plan.ExitCode == 2, summary.Value.Summary, summary.Value.Findings, null, state.Type, state.Blocker, state.Mode,
-                state.LocalPath);
+                state.LocalPath, summary.Value.Billables);
     }
 
     public async Task<IacApplyRun> ApplyAsync(IacApplySpec spec, CancellationToken ct)
@@ -156,14 +156,16 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
         return select.ExitCode == 0 ? null : $"O workspace {workspace} não existe neste backend. Criá-lo muda o state e fica fora do Spock. " + Tail(select);
     }
 
-    private async Task<(IacPlanSummary Summary, IReadOnlyList<IacFinding> Findings)?> ShowAsync(string directory, string planFile,
+    private async Task<(IacPlanSummary Summary, IReadOnlyList<IacFinding> Findings, IReadOnlyList<IacBillable> Billables)?> ShowAsync(string directory, string planFile,
         Dictionary<string, string> env, CancellationToken ct)
     {
         var show = await RunAsync(directory, ["show", "-json", "-no-color", planFile], env, ShortTimeout, ct);
         if (show.ExitCode != 0) return null;
         try
         {
-            return IacPlanReader.Read(JsonNode.Parse(show.StandardOutput) ?? new JsonObject());
+            var json = JsonNode.Parse(show.StandardOutput) ?? new JsonObject();
+            var (summary, findings) = IacPlanReader.Read(json);
+            return (summary, findings, IacPlanBillables.Read(json));
         }
         catch (JsonException)
         {

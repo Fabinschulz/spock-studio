@@ -53,7 +53,75 @@
       "localStatePath": "terraform.tfstate",
       "localStateHash": "251766df141eb9c5eeca2164668b2b504077e7a1768785a1a2001a5e70cd916e",
       "lockId": null,
-      "drift": null
+      "drift": null,
+      "billables": [
+        {
+          "address": "module.db.aws_db_instance.this",
+          "type": "aws_db_instance",
+          "action": "create",
+          "before": null,
+          "after": {
+            "instance_class": "db.t4g.micro",
+            "engine": "postgres",
+            "multi_az": "false",
+            "allocated_storage": "20",
+            "storage_type": "gp3"
+          }
+        },
+        {
+          "address": "aws_nat_gateway.main",
+          "type": "aws_nat_gateway",
+          "action": "delete",
+          "before": {
+            "connectivity_type": "public"
+          },
+          "after": null
+        },
+        {
+          "address": "module.ecs.aws_ecs_service.this",
+          "type": "aws_ecs_service",
+          "action": "create",
+          "before": null,
+          "after": {
+            "desired_count": "2",
+            "launch_type": "FARGATE",
+            "cpu": "512",
+            "memory": "1024"
+          }
+        },
+        {
+          "address": "aws_db_instance.legacy",
+          "type": "aws_db_instance",
+          "action": "update",
+          "before": {
+            "instance_class": "db.t4g.micro",
+            "engine": "postgres",
+            "multi_az": "false",
+            "allocated_storage": "20",
+            "storage_type": "gp3"
+          },
+          "after": {
+            "instance_class": "db.t4g.small",
+            "engine": "postgres",
+            "multi_az": "false",
+            "allocated_storage": "20",
+            "storage_type": "gp3"
+          }
+        },
+        {
+          "address": "aws_db_instance.novo",
+          "type": "aws_db_instance",
+          "action": "create",
+          "before": null,
+          "after": {
+            "instance_class": "db.t4g.micro",
+            "engine": "postgres",
+            "multi_az": "false",
+            "allocated_storage": "20",
+            "storage_type": "?"
+          }
+        }
+      ]
     },
     {
       "id": "iac-9654d9914f20",
@@ -124,7 +192,8 @@
       "localStatePath": null,
       "localStateHash": null,
       "lockId": null,
-      "drift": null
+      "drift": null,
+      "billables": null
     },
     {
       "id": "iac-ccaf5067aef2",
@@ -179,7 +248,8 @@
       "localStatePath": "terraform.tfstate",
       "localStateHash": null,
       "lockId": null,
-      "drift": null
+      "drift": null,
+      "billables": []
     },
     {
       "id": "iac-c6dbdd9f14cc",
@@ -227,7 +297,8 @@
       "localStatePath": null,
       "localStateHash": null,
       "lockId": null,
-      "drift": null
+      "drift": null,
+      "billables": null
     }
   ]
 }
