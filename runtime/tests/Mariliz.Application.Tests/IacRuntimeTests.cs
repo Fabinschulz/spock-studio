@@ -358,7 +358,7 @@ public sealed class IacRuntimeTests : IDisposable
             new IacConfigReader(), Runner(), authorizer, _clock, _audit);
         var tools = new IacMcpTools(Workspace, Runtimes, authorizer => new IacOperationService(Runtimes(authorizer),
             new CliIacRuntimeFactory(Runner(), _project.DataDir), new IacConfigReader(), new FileIacWorkArea(_project.DataDir), authorizer, null, _clock, _audit),
-            _project.Root);
+            _project.Root, McpScope.Of(project));
 
         var all = tools.Tools();
         Assert.Equal([IacMcpTools.StatusTool, IacMcpTools.ValidateTool, IacMcpTools.PlanSummaryTool, IacMcpTools.HistoryTool, IacMcpTools.DriftTool,

@@ -18,10 +18,10 @@ public sealed class ProjectContextTools(
     ITechnologyProfileStore profiles,
     IDecisionStore decisions,
     string workingDirectory,
+    IReadOnlySet<string> scope,
     IKnowledgeSearchRuntime? search = null,
     string? indexRoot = null,
     IAuditLog? audit = null,
-    IReadOnlySet<string>? scope = null,
     Func<WorkspaceAuthorizer, ManagementService>? management = null)
 {
     public const int DefaultBriefingChars = 6000;
@@ -47,8 +47,8 @@ public sealed class ProjectContextTools(
     };
 
     public static readonly McpToolInfo ListProjects = new(
-        "list_projects", "Projetos abertos no Spock",
-        "Lista os projetos que a pessoa abriu no Spock Studio e marca o da pasta atual. Só eles têm contexto disponível.",
+        "list_projects", "Projetos desta conexão",
+        "Lista os projetos desta conexão que a pessoa abriu no Spock Studio e marca o da pasta atual. Só eles têm contexto disponível.",
         new JsonObject { ["type"] = "object", ["properties"] = new JsonObject(), ["additionalProperties"] = false });
 
     public static readonly McpToolInfo Briefing = new(
@@ -127,13 +127,11 @@ public sealed class ProjectContextTools(
         var resolver = new McpProjectResolver(workspaces(), workingDirectory, scope);
         var projects = resolver.Projects();
         if (projects.Count == 0)
-            return scope is null
-                ? "Nenhum projeto aberto no Spock ainda. Abra a pasta do projeto no aplicativo para liberar o contexto dele."
-                : "Nenhum dos projetos desta conexão está aberto no Spock. Abra a pasta no aplicativo ou ajuste o --project da configuração.";
+            return "Nenhum dos projetos desta conexão está aberto no Spock. Abra a pasta no aplicativo ou ajuste o --project da configuração.";
         var current = resolver.Current()?.ProjectId;
         return string.Join("\n", projects
             .Select(project => $"- {project.DisplayName} · id {project.ProjectId} · {project.DisplayPath}{(project.ProjectId == current ? " (pasta atual)" : "")}")
-            .Prepend(scope is null ? "Projetos abertos no Spock:" : "Projetos disponíveis para esta conexão:"));
+            .Prepend("Projetos disponíveis para esta conexão:"));
     }
 
     private string RenderBriefing(McpCall call)

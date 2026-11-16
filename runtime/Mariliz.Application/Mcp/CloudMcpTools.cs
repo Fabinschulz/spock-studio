@@ -8,7 +8,7 @@ namespace Mariliz.Application.Mcp;
 // O adaptador MCP da cloud: só aparecem as leituras que algum projeto do escopo liberou para agentes, e cada chamada passa
 // de novo pela mesma porta da interface (CloudReadService), que confere o vínculo na hora: tirar a liberação vale sem
 // reiniciar a IDE, só a lista de ferramentas espera o próximo início.
-public sealed class CloudMcpTools(CloudHub cloud, Func<WorkspaceAuthorizer> workspaces, string workingDirectory, IReadOnlySet<string>? scope = null)
+public sealed class CloudMcpTools(CloudHub cloud, Func<WorkspaceAuthorizer> workspaces, string workingDirectory, IReadOnlySet<string> scope)
 {
     public const string ConnectionsTool = "cloud_connections";
     public const int DefaultLimit = 25;

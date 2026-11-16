@@ -30,13 +30,13 @@ export function ideSetups(command: string, args: readonly string[], serverName: 
     {
       id: 'claude-code',
       name: 'Claude Code',
-      how: 'Rode no terminal. Vale para todos os seus projetos.',
+      how: 'Rode no terminal. Fica registrado no seu usuário e o servidor lê só este projeto.',
       snippet: `claude mcp add --scope user ${serverName} -- ${launch}`
     },
     {
       id: 'codex',
       name: 'Codex CLI',
-      how: 'Rode no terminal. Vale para todos os seus projetos.',
+      how: 'Rode no terminal. Fica registrado no seu usuário e o servidor lê só este projeto.',
       snippet: `codex mcp add ${serverName} -- ${launch}`
     },
     {
@@ -48,7 +48,7 @@ export function ideSetups(command: string, args: readonly string[], serverName: 
     {
       id: 'gemini',
       name: 'Gemini CLI',
-      how: 'Rode no terminal. Vale para todos os seus projetos.',
+      how: 'Rode no terminal. Fica registrado no seu usuário e o servidor lê só este projeto.',
       snippet: `gemini mcp add --scope user ${serverName} ${launch}`
     }
   ];

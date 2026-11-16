@@ -24,9 +24,9 @@ public sealed class McpServerTests : IDisposable
 
     private string Authorize() => Workspace().Authorize(_project.Root).Project!.ProjectId;
 
-    private McpServer Server(string? workingDirectory = null) => new("1.2.3", new ProjectContextTools(
+    private McpServer Server(string? workingDirectory = null, IReadOnlySet<string>? scope = null) => new("1.2.3", new ProjectContextTools(
         Workspace, new TestFilesFactory(), new FakeClock { UtcNow = Now }, new FileTechnologyProfileStore(_project.DataDir),
-        new FileDecisionStore(_project.DataDir), workingDirectory ?? _project.Root).Tools());
+        new FileDecisionStore(_project.DataDir), workingDirectory ?? _project.Root, scope ?? McpScope.For(_project.Root)).Tools());
 
     private static JsonObject Send(McpServer server, string method, JsonObject? parameters = null) =>
         Raw(server, new JsonObject { ["jsonrpc"] = "2.0", ["id"] = 7, ["method"] = method, ["params"] = parameters }.ToJsonString())!;
@@ -102,7 +102,7 @@ public sealed class McpServerTests : IDisposable
     {
         var server = Server();
 
-        Assert.Contains("Nenhum projeto aberto no Spock", Call(server, "list_projects").Text);
+        Assert.Contains("Nenhum dos projetos desta conexão está aberto no Spock", Call(server, "list_projects").Text);
         var (text, failed) = Call(server, "project_briefing");
         Assert.True(failed);
         Assert.Contains("abra a pasta no Spock", text);
@@ -113,7 +113,7 @@ public sealed class McpServerTests : IDisposable
     {
         var subfolder = Directory.CreateDirectory(Path.Combine(_project.Root, "src", "Api")).FullName;
         var server = Server(subfolder);
-        Assert.Contains("Nenhum projeto", Call(server, "list_projects").Text);
+        Assert.Contains("Nenhum dos projetos", Call(server, "list_projects").Text);
 
         var projectId = Authorize();
 
@@ -126,15 +126,17 @@ public sealed class McpServerTests : IDisposable
     [Fact]
     public void Pasta_fora_dos_projetos_abertos_nao_vira_projeto()
     {
-        Authorize();
+        var projectId = Authorize();
+        // Com dois projetos no escopo a pasta é quem escolheria; com um só, o projeto do escopo vale fora de qualquer pasta.
+        var scope = McpScope.Of(projectId, "p-ffffffffffff");
         var outside = Directory.CreateTempSubdirectory("mariliz-fora-").FullName;
         try
         {
-            var (text, failed) = Call(Server(outside), "project_briefing");
+            var (text, failed) = Call(Server(outside, scope), "project_briefing");
 
             Assert.True(failed);
-            Assert.Contains("não é de um projeto aberto no Spock", text);
-            Assert.DoesNotContain("(pasta atual)", Call(Server(outside), "list_projects").Text);
+            Assert.Contains("não é de um projeto disponível para esta conexão", text);
+            Assert.DoesNotContain("(pasta atual)", Call(Server(outside, scope), "list_projects").Text);
         }
         finally
         {

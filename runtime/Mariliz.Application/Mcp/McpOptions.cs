@@ -4,15 +4,19 @@ namespace Mariliz.Application.Mcp;
 
 public sealed class McpOptionsException(string message) : Exception(message);
 
-/// <param name="Scope">Os projetos que este cliente pode ler; nulo é sem escopo, todos os abertos no Spock.</param>
-public sealed record McpOptions(IReadOnlySet<string>? Scope)
+/// <param name="Scope">Os projetos que este cliente pode ler; nunca vazio.</param>
+public sealed record McpOptions(IReadOnlySet<string> Scope)
 {
     public const string ProjectArgument = "--project";
     public const int MaxProjects = 20;
 
-    // Um argumento que não se entende derruba o servidor: seguir sem o escopo pedido abriria todos os projetos.
+    // Sem escopo, ou com um argumento que não se entende, o servidor não sobe: não existe modo "todos os projetos" para a IDE.
     public static McpOptions Parse(IReadOnlyList<string> args)
     {
+        if (args.Count == 0)
+            throw new McpOptionsException(
+                $"O modo MCP precisa de {ProjectArgument} <id do projeto>: sem ele, nenhum projeto é exposto à IDE. " +
+                "Copie o comando pronto em Agentes, na conexão com a IDE, com o projeto aberto no Spock.");
         var scope = new HashSet<string>(StringComparer.Ordinal);
         for (var index = 0; index < args.Count; index++)
         {
@@ -24,6 +28,6 @@ public sealed record McpOptions(IReadOnlySet<string>? Scope)
         }
         if (scope.Count > MaxProjects)
             throw new McpOptionsException($"No máximo {MaxProjects} projetos por conexão.");
-        return new McpOptions(scope.Count == 0 ? null : scope);
+        return new McpOptions(scope);
     }
 }

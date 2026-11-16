@@ -17,7 +17,7 @@ public sealed class McpBriefingTests : IDisposable
     private string Briefing(bool withManagement = true)
     {
         var tools = new ProjectContextTools(() => _h.Workspace, new TestFilesFactory(), _h.Clock,
-            new FileTechnologyProfileStore(_h.DataDir), new FileDecisionStore(_h.DataDir), _h.Project.Root,
+            new FileTechnologyProfileStore(_h.DataDir), new FileDecisionStore(_h.DataDir), _h.Project.Root, McpScope.Of(_h.ProjectId),
             management: withManagement ? _ => _h.Management : null);
         var line = new JsonObject
         {

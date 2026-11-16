@@ -54,8 +54,9 @@ public class EngineProcessTests
         Assert.Equal(0, engine.ExitCode);
     }
 
-    // Validação real M3: um escopo que não se entende não pode virar "todos os projetos".
+    // Validação real M3: um escopo que não se entende não pode virar "todos os projetos". H0-1 (16/11): nem a falta de escopo.
     [Theory]
+    [InlineData(" mcp")]
     [InlineData(" mcp --project")]
     [InlineData(" mcp --project ../outro")]
     [InlineData(" mcp --todos")]

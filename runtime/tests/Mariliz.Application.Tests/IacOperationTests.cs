@@ -116,7 +116,7 @@ public sealed class IacOperationTests : IDisposable
         Assert.Contains(_audit.Entries, e => e.Action == "iac.drift" && e.Detail.Contains("\"changed\":1") && e.Detail.Contains("\"deleted\":1"));
         Assert.Equal(IacOperationKind.Drift, service.History(_projectId)[0].Kind);
 
-        var tools = new Mariliz.Application.Mcp.IacMcpTools(Workspace, _ => throw new InvalidOperationException(), _ => service, _project.Root);
+        var tools = new Mariliz.Application.Mcp.IacMcpTools(Workspace, _ => throw new InvalidOperationException(), _ => service, _project.Root, McpScope.Of(_projectId));
         var summary = await tools.Tools().Single(t => t.Info.Name == Mariliz.Application.Mcp.IacMcpTools.DriftTool)
             .Call(new Mariliz.Application.Mcp.McpCall(new System.Text.Json.Nodes.JsonObject(), "teste", CancellationToken.None));
         Assert.Contains("alterado fora da ferramenta: aws_sqs_queue.main[\"pedidos\"] (tags, visibility_timeout_seconds)", summary);
@@ -171,7 +171,7 @@ public sealed class IacOperationTests : IDisposable
         Assert.Contains(_audit.Entries, e => e.Action == "cloud.read" && e.Detail.Contains("aws.pricing"));
         Assert.DoesNotContain(provider.Queries, q => q.Attributes.Values.Contains("senha-do-plano"));
 
-        var tools = new Mariliz.Application.Mcp.IacMcpTools(Workspace, _ => throw new InvalidOperationException(), _ => service, _project.Root);
+        var tools = new Mariliz.Application.Mcp.IacMcpTools(Workspace, _ => throw new InvalidOperationException(), _ => service, _project.Root, McpScope.Of(_projectId));
         var summary = await tools.Tools().Single(t => t.Info.Name == Mariliz.Application.Mcp.IacMcpTools.PlanSummaryTool)
             .Call(new Mariliz.Application.Mcp.McpCall(new System.Text.Json.Nodes.JsonObject(), "teste", CancellationToken.None));
         Assert.Contains("Recursos com custo fixo que o plano muda: create RDS postgres db.t4g.micro", summary);
