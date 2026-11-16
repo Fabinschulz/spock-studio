@@ -61,4 +61,35 @@ public class KnowledgeSourcesTests
         Assert.Equal(60, selected.Count);
         Assert.All(selected, source => Assert.StartsWith("docs/", source.Path));
     }
+
+    [Fact]
+    public void Codigo_cjs_e_mjs_entra_antes_de_configuracao_quando_o_limite_corta()
+    {
+        using var project = new TempProject();
+        project.Write("electron/main.cjs", "module.exports = { iniciar() { return 1; } };");
+        project.Write("services/api/server.mjs", "export function ouvir() { return 2; }");
+        project.Write("src/shared/x.cts", "export const x = 1;");
+        for (var i = 0; i < KnowledgeSources.MaxFiles; i++) project.Write($"config/c-{i:0000}.json", $"{{\"n\": {i}, \"texto\": \"configuracao\"}}");
+
+        var evaluated = KnowledgeSources.Evaluate(new LocalProjectFiles(project.Root)).ToDictionary(e => e.Path, e => e.Reason);
+
+        foreach (var code in new[] { "electron/main.cjs", "services/api/server.mjs", "src/shared/x.cts" })
+            Assert.Equal(KnowledgeSources.Exclusion.None, evaluated[code]);
+        Assert.Equal(3, evaluated.Values.Count(reason => reason == KnowledgeSources.Exclusion.OverLimit));
+    }
+
+    [Fact]
+    public void Codigo_fonte_entra_antes_dos_testes_do_mesmo_tipo_quando_o_limite_corta()
+    {
+        using var project = new TempProject();
+        for (var i = 0; i < KnowledgeSources.MaxFiles; i++) project.Write($"scripts/caso-{i:0000}.test.cjs", $"test('caso {i}', () => {{}})");
+        project.Write("src/shared/grade.cjs", "module.exports = { faixa() { return null; } };");
+        project.Write("tests/unit/grade_spec.py", "def test_x():\n    assert True\n");
+
+        var evaluated = KnowledgeSources.Evaluate(new LocalProjectFiles(project.Root)).ToDictionary(e => e.Path, e => e.Reason);
+
+        Assert.Equal(KnowledgeSources.Exclusion.None, evaluated["src/shared/grade.cjs"]);
+        Assert.Equal(KnowledgeSources.Exclusion.OverLimit, evaluated["tests/unit/grade_spec.py"]);
+        Assert.Equal(2, evaluated.Values.Count(reason => reason == KnowledgeSources.Exclusion.OverLimit));
+    }
 }

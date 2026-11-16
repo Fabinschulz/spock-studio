@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Mariliz policy hook for Claude Code (PreToolUse). Managed by Mariliz AI Engineering.
+Spock policy hook for Claude Code (PreToolUse). Managed by Spock Studio.
 
 Deterministic and read-only: standard library only, no network, no writes, never starts another agent, so it
 cannot loop or change the repository. It reads the hook payload from stdin and answers with the documented
@@ -14,7 +14,7 @@ What it enforces:
   - catastrophic shell commands are denied; risky ones (force push, hard reset, reading .env) ask.
 
 This is a guard rail, not a security boundary: it matches command text. If this script fails internally it exits
-non-zero without blocking (documented hook behavior), and the Mariliz validation reports missing protection.
+non-zero without blocking (documented hook behavior), and the Spock validation reports missing protection.
 """
 
 import json
@@ -59,7 +59,7 @@ def answer(decision, reason):
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": decision,
-            "permissionDecisionReason": "Mariliz policy: " + reason,
+            "permissionDecisionReason": "Spock policy: " + reason,
         }
     }))
     sys.exit(0)
@@ -91,7 +91,7 @@ def check_write(payload):
     if any(rel == a or rel.startswith(a) for a in ALLOWED_WRITES):
         return
     if rel in PROTECTED_FILES or any(rel.startswith(p) for p in PROTECTED_PREFIXES):
-        answer("ask", "this file belongs to the managed harness. Change it through Mariliz so it stays reviewable and reversible.")
+        answer("ask", "this file belongs to the managed harness. Change it through Spock Studio so it stays reviewable and reversible.")
 
 
 def check_bash(payload):

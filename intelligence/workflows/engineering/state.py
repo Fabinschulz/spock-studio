@@ -11,7 +11,8 @@ from infrastructure.events import Emitter, now
 WORKFLOW_ID = "engineering.request"
 WORKFLOW_VERSION = "1"
 MAX_ITERATIONS = 8
-MAX_MILLISECONDS = 2000
+# Igual ao que o motor pede sem modelo (WorkflowRequests): com 2 s, recuperar contexto num projeto grande já estourava.
+MAX_MILLISECONDS = 10000
 # Com modelo, uma chamada leva segundos: o tempo e os tokens sobem, mas o motor continua sendo quem define o teto.
 MAX_MILLISECONDS_MODEL = 60000
 MAX_TOKENS = 20000

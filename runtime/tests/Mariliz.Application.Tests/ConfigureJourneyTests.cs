@@ -89,6 +89,52 @@ public class ConfigureJourneyTests
     }
 
     [Fact]
+    public async Task Proposta_que_mantem_componentes_ja_aplicados_nao_os_tira_do_lock_e_o_plano_seguinte_fica_idempotente()
+    {
+        var (project, journey, _, first) = await Configured();
+        using var _ = project;
+        Assert.Equal("completed", first["outcome"]!.GetValue<string>());
+        string Keep(string id) => $"{{\"id\":\"{id}\",\"decision\":\"keep\",\"justification\":\"Já instalado e adequado ao projeto.\",\"evidence\":[\"mariliz.lock\"]}}";
+        var kept = new[] { Catalog.AgentHarnessEngineer, Catalog.AgentCodeReviewer, Catalog.AgentVerifier, Catalog.SkillHarnessContract, Catalog.RuleGeneral, Catalog.RuleStackDotnet, Catalog.RuleRepoCommands };
+        project.Write(".mariliz/proposal.json", "{\"schema\":1,\"origin\":\"harness-engineer\",\"decisions\":[" + string.Join(",", kept.Select(Keep)) + "]," +
+            "\"additionalRules\":[{\"id\":\"read-first\",\"title\":\"Read the guide first\",\"content\":\"Read docs/guide.md before any change.\",\"justification\":\"O guia define a ordem de leitura.\",\"evidence\":[\"docs/guide.md\"]}]}");
+
+        var withProposal = await journey.PlanAsync();
+        Assert.DoesNotContain(withProposal.Changes, c => c.Action == ChangeAction.Remove);
+        var applied = await journey.ApplyAsync(withProposal);
+        Assert.Equal("completed", applied["outcome"]!.GetValue<string>());
+
+        var lockText = project.Read("mariliz.lock")!;
+        foreach (var id in kept) Assert.Contains("id: " + id, lockText);
+        Assert.Contains("id: " + Catalog.CustomRulePrefix + "read-first", lockText);
+        var again = await journey.PlanAsync();
+        Assert.True(again.Changes.All(c => c.Action == ChangeAction.Preserve), string.Join(", ", again.Changes.Where(c => c.Action != ChangeAction.Preserve).Select(c => $"{c.Path}:{c.Action}")));
+        Assert.Equal("passed", Journey.Status(await journey.ValidateAsync(), "EV-IDEMP-001"));
+    }
+
+    [Fact]
+    public async Task Especificacao_dispensada_na_declaracao_nao_e_instalada_e_a_configuracao_fecha_sem_limitacao()
+    {
+        var project = TempProject.Dotnet();
+        using var _ = project;
+        var journey = new Journey(project, Journey.FakeInstaller(project));
+        project.Write("mariliz.yaml", "schema: 1\nproject:\n  name: app\nimplementationModel: mariliz\naiEnvironment: claude-code\ncomponents:\n  exclude:\n    - "
+            + Catalog.SpecificationStructure + "\n");
+
+        var plan = await journey.PlanAsync();
+        Assert.Empty(plan.Commands);
+        var decision = Assert.Single(plan.Decisions, d => d.ComponentId == Catalog.SpecificationStructure);
+        Assert.Equal("skip", decision.Decision);
+
+        var result = await journey.ApplyAsync(plan);
+        Assert.DoesNotContain(journey.Runner.Calls, c => c.Executable == "npx");
+        Assert.Equal("passed", Journey.Status(result, "EV-SPEC-001"));
+        Assert.Equal("completed", result["outcome"]!.GetValue<string>());
+        Assert.Equal("passed", Journey.Status(await journey.ValidateAsync(), "EV-IDEMP-001"));
+        Assert.False(project.Exists(".claude/skills/tlc-spec-driven/SKILL.md"));
+    }
+
+    [Fact]
     public async Task Especificacao_ja_instalado_e_mantido_sem_comando()
     {
         using var project = TempProject.Dotnet();

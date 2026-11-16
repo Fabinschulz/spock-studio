@@ -77,8 +77,49 @@ public class DiscoveryTests
         var report = await Discover(project);
 
         Assert.Contains(report.Tooling, t => t.Kind == "package-manager" && t.Name == "pnpm");
-        Assert.Contains(report.Tooling, t => t.Kind == "test" && t.Command == "pnpm run test");
-        Assert.Contains(report.Tooling, t => t.Kind == "build" && t.Command == "pnpm run build");
+        Assert.Contains(report.Tooling, t => t.Kind == "test" && t.Command == "pnpm --dir web run test");
+        Assert.Contains(report.Tooling, t => t.Kind == "build" && t.Command == "pnpm --dir web run build");
+    }
+
+    [Fact]
+    public async Task Comando_de_pacote_fora_da_raiz_diz_a_pasta_e_o_da_raiz_nao()
+    {
+        using var project = new TempProject();
+        project.Write("package.json", "{\"name\":\"raiz\",\"scripts\":{\"build\":\"tsc\",\"test\":\"node --test\"}}");
+        project.Write("package-lock.json", "{}");
+        project.Write("apps/site/package.json", "{\"name\":\"site\",\"scripts\":{\"build\":\"vite build\",\"test\":\"node --test\"}}");
+        project.Write("apps/site/package-lock.json", "{}");
+        project.Write("tools/y/package.json", "{\"name\":\"y\",\"scripts\":{\"build\":\"x\"}}");
+        project.Write("tools/y/yarn.lock", "");
+
+        var commands = (await Discover(project)).Tooling.Where(t => t.Command is not null).Select(t => t.Command!).ToList();
+
+        Assert.Contains("npm test", commands);
+        Assert.Contains("npm run build", commands);
+        Assert.Contains("npm --prefix apps/site test", commands);
+        Assert.Contains("npm --prefix apps/site run build", commands);
+        Assert.Contains("yarn --cwd tools/y run build", commands);
+    }
+
+    [Fact]
+    public async Task Inventario_inclui_agents_md_skills_de_agents_e_mcp_do_codex_sem_mostrar_valor()
+    {
+        using var project = TempProject.Dotnet();
+        project.Write("AGENTS.md", "# instruções\n");
+        project.Write(".agents/skills/deploy/SKILL.md", "---\nname: deploy\ndescription: d\n---\n");
+        project.Write(".codex/config.toml",
+            "approval_policy = \"never\"\n\n[mcp_servers.context7]\ncommand = \"npx\"\n\n[mcp_servers.\"db\"]\ncommand = \"x\"\n\n[mcp_servers.db.env]\nTOKEN = \"ghp_" + new string('a', 36) + "\"\n");
+        var before = project.Fingerprint();
+
+        var report = await Discover(project);
+
+        Assert.Contains(report.Inventory.Rules, r => r.Path == "AGENTS.md" && !r.Managed);
+        Assert.Contains(report.Inventory.Skills, s => s.Path == ".agents/skills/deploy/SKILL.md");
+        Assert.Equal(["context7", "db"], report.Inventory.McpServers.Select(m => m.Name).ToArray());
+        Assert.Null(report.Inventory.McpServers.Single(m => m.Name == "context7").Issue);
+        Assert.Contains("segredo", report.Inventory.McpServers.Single(m => m.Name == "db").Issue);
+        Assert.DoesNotContain(report.Inventory.McpServers, m => (m.Issue ?? "").Contains("ghp_"));
+        Assert.Equal(before, project.Fingerprint());
     }
 
     [Fact]

@@ -13,12 +13,13 @@ internal static class HarnessInventoryReader
         var agents = all.Where(p => p.StartsWith(".claude/agents/", StringComparison.Ordinal) && p.EndsWith(".md"))
             .Select(p => new InventoryItem(Path.GetFileNameWithoutExtension(p), p, managed.Contains(p), FrontmatterReader.Issue(files.ReadText(p), Path.GetFileNameWithoutExtension(p), requireTools: false))).ToList();
 
-        var skills = all.Where(p => p.StartsWith(".claude/skills/", StringComparison.Ordinal) && p.EndsWith("/SKILL.md"))
+        // .agents/skills é a pasta de skills do Codex e de outros ambientes; uma skill copiada nas duas aparece duas vezes, de propósito.
+        var skills = all.Where(p => (p.StartsWith(".claude/skills/", StringComparison.Ordinal) || p.StartsWith(".agents/skills/", StringComparison.Ordinal)) && p.EndsWith("/SKILL.md"))
             .Select(p => { var name = p.Split('/')[2]; return new InventoryItem(name, p, managed.Contains(p), FrontmatterReader.Issue(files.ReadText(p), name, requireTools: false)); }).ToList();
 
         var rules = all.Where(p => p.StartsWith(".claude/rules/", StringComparison.Ordinal) && p.EndsWith(".md"))
             .Select(p => new InventoryItem(Path.GetFileNameWithoutExtension(p), p, managed.Contains(p), null)).ToList();
-        foreach (var f in new[] { "CLAUDE.md", ".claude/CLAUDE.md" }) if (all.Contains(f)) rules.Add(new InventoryItem(f, f, managed.Contains(f), null));
+        foreach (var f in new[] { "CLAUDE.md", ".claude/CLAUDE.md", "AGENTS.md" }) if (all.Contains(f)) rules.Add(new InventoryItem(f, f, managed.Contains(f), null));
 
         var hooks = new List<InventoryItem>();
         var settings = files.ReadText(".claude/settings.json");
@@ -63,6 +64,8 @@ internal static class HarnessInventoryReader
                 mcp.Add(new InventoryItem(".mcp.json", ".mcp.json", false, "JSON inválido."));
             }
         }
+        if (files.ReadText(CodexConfig) is { } codex)
+            mcp.AddRange(CodexMcpServers(codex));
 
         var evals = all.Where(p => p.StartsWith(".claude/evals/", StringComparison.Ordinal))
             .Select(p => new InventoryItem(Path.GetFileName(p), p, managed.Contains(p), null)).ToList();
@@ -75,4 +78,40 @@ internal static class HarnessInventoryReader
 
         return new HarnessInventory(agents, skills, hooks, rules, mcp, evals);
     }
+
+    private const string CodexConfig = ".codex/config.toml";
+
+    // Só as tabelas [mcp_servers.<nome>] interessam; o valor de cada uma vai ao detector de segredo, nunca à resposta.
+    private static IEnumerable<InventoryItem> CodexMcpServers(string toml)
+    {
+        string? name = null;
+        var body = new System.Text.StringBuilder();
+        foreach (var raw in toml.Replace("\r\n", "\n").Split('\n'))
+        {
+            var line = raw.Trim();
+            if (line.StartsWith('['))
+            {
+                var server = CodexServerName(line);
+                // [mcp_servers.x.env] é subtabela do servidor x: o texto dela entra na checagem de segredo dele.
+                if (server is not null && server == name) continue;
+                if (name is not null) yield return CodexItem(name, body.ToString());
+                name = server;
+                body.Clear();
+            }
+            else if (name is not null)
+                body.Append(line).Append('\n');
+        }
+        if (name is not null) yield return CodexItem(name, body.ToString());
+    }
+
+    private static string? CodexServerName(string header)
+    {
+        const string prefix = "[mcp_servers.";
+        if (!header.StartsWith(prefix, StringComparison.Ordinal) || !header.EndsWith(']')) return null;
+        var name = header[prefix.Length..^1].Split('.')[0].Trim().Trim('"');
+        return name.Length == 0 ? null : name;
+    }
+
+    private static InventoryItem CodexItem(string name, string body) =>
+        new(name, CodexConfig, false, SecretScanner.ContainsSecret(body) ? "Possível segredo literal na configuração; use variáveis de ambiente." : null);
 }

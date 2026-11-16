@@ -73,7 +73,7 @@ class ResumeLimitsTests(unittest.TestCase):
             config = {"configurable": {"thread_id": RUN}}
             with saver(tmp, PROJECT, RUN) as checkpoints:
                 values = graph.build(Segment(Emitter(EXECUTION))).compile(checkpointer=checkpoints).get_state(config).values
-            self.assertEqual(values["limits"], {"iterations": 8, "milliseconds": 2000, "tokens": 0})
+            self.assertEqual(values["limits"], {"iterations": 8, "milliseconds": 10000, "tokens": 0})
 
             _, done = _run(graph.run_resume(_resume(tmp, paused["approval"]["interruptId"])))
             self.assertEqual(done["status"], "completed")

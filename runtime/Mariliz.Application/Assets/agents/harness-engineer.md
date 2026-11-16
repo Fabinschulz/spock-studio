@@ -33,9 +33,12 @@ Read these before proposing anything. Reference them; do not copy their content 
 
 - `mariliz.yaml` and `mariliz.lock` when present: what the person declared and what is already managed.
 - `.mariliz/schemas/harness-proposal.v1.schema.json`: the exact shape of the proposal.
-- The existing `CLAUDE.md`, `.claude/rules/`, `.claude/agents/`, `.claude/skills/` and `.mcp.json`.
+- The existing `AGENTS.md`, `CLAUDE.md`, `.claude/rules/`, `.claude/agents/`, `.claude/skills/`, `.agents/skills/`,
+  `.mcp.json` and `.codex/config.toml`.
 - The `harness-contract` skill: how to label facts, inferences and confidence.
-- The specification skill (`tlc-spec-driven`): the structure this harness is built around. It is fixed.
+- The development process the repository already documents (`AGENTS.md`, `CLAUDE.md`, its specs folder). When the
+  Spock specification skill (`tlc-spec-driven`) is installed, it is the structure this harness is built around and it
+  is fixed; when it is not, do not propose a parallel process.
 
 ## Process
 
@@ -44,7 +47,7 @@ Read these before proposing anything. Reference them; do not copy their content 
 2. Compare it with the component catalog in the schema (`enum` of component ids). Decide for each component:
    `enable`, `keep` (already adequate) or `skip`, with a justification a reviewer can check.
 3. Look for overlap and conflict: two agents with the same responsibility, rules that contradict a decision recorded
-   in `CLAUDE.md` or an ADR, skills that duplicate shared content. Report each as an observation.
+   in `AGENTS.md`, `CLAUDE.md` or an ADR, skills that duplicate shared content. Report each as an observation.
 4. When the repository has conventions that the catalog rules do not cover, propose `additionalRules` as short,
    evidence-backed Markdown. Do not restate rules the catalog already provides.
 5. Write the proposal to `.mariliz/proposal.json`, valid against the schema, and nothing else.
