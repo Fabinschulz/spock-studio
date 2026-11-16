@@ -390,7 +390,8 @@ export const iacBlueprintSchema = z.object({
   network: z.object({
     vpcId: z.string(),
     privateSubnets: z.array(z.string()),
-    publicSubnets: z.array(z.string())
+    publicSubnets: z.array(z.string()),
+    privateDnsZone: z.string().nullable().optional()
   }),
   service: z
     .object({
@@ -415,7 +416,14 @@ export const iacBlueprintSchema = z.object({
     .nullable(),
   queues: z.array(z.string()),
   alarmEmail: z.string().nullable(),
-  backend: z.object({ bucket: z.string(), region: z.string() }).nullable()
+  backend: z
+    .object({
+      bucket: z.string(),
+      region: z.string(),
+      resourceGroup: z.string().nullable().optional(),
+      container: z.string().nullable().optional()
+    })
+    .nullable()
 });
 
 export const iacBlueprintCheckSchema = z.object({

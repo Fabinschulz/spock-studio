@@ -41,6 +41,9 @@ public sealed partial class IacGenerationService(
     {
         RequireRoot(request.ProjectId);
         if (models is null) throw new EngineException("MODEL_NOT_CONFIGURED", "Configure um provedor de IA para propor o desenho, ou monte o desenho à mão.");
+        // O prompt e as checagens da resposta conhecem os componentes da AWS; no Azure e no Google o desenho é montado à mão.
+        if (request.Facts.Provider != "aws")
+            throw new EngineException("IAC_DRAFT_AWS_ONLY", "A proposta com IA é só para AWS por enquanto; no Azure e no Google, monte o desenho à mão.");
         var need = request.Need.Trim();
         if (need.Length is < MinNeed or > MaxNeed) throw new ParamException($"Descreva a necessidade com {MinNeed} a {MaxNeed} caracteres.");
 
@@ -123,12 +126,12 @@ public sealed partial class IacGenerationService(
         var checks = IacBlueprintChecks.Check(request.Blueprint);
         if (checks.Any(c => !c.Passed)) return (new IacGenerationPlan("", request.ProjectId, folder, [], checks, [], []), [], files);
 
-        var generated = IacAwsGenerator.Generate(request.Blueprint, folder);
+        var generated = IacGenerators.Generate(request.Blueprint, folder);
         var prepared = generated.Select(file => ReviewedChanges.Prepare(files, file.Path, file.Content)).ToList();
         if (IacStateService.GitIgnore(files.ReadText(".gitignore")) is { } gitignore) prepared.Add(ReviewedChanges.Prepare(files, ".gitignore", gitignore));
         var changes = prepared.Select(item => item.Change).ToList();
         var plan = new IacGenerationPlan(ReviewedChanges.PlanId("iacgen-", changes), request.ProjectId, folder, changes, checks,
-            IacAwsGenerator.Costs(request.Blueprint), Notes(files, folder, request.Blueprint, generated));
+            IacGenerators.Costs(request.Blueprint), Notes(files, folder, request.Blueprint, generated));
         return (plan, prepared.Select(item => item.Write).ToList(), files);
     }
 
@@ -140,14 +143,27 @@ public sealed partial class IacGenerationService(
             .Where(path => !path.StartsWith(folder + "/bootstrap/", StringComparison.Ordinal) && !ours.Contains(path)).Take(10).ToList();
         if (foreign.Count > 0)
             notes.Add($"Arquivos que já existem na pasta e não são do modelo ficam como estão: {string.Join(", ", foreign)}. Recurso declarado duas vezes falha no validate.");
+        var (backend, registry, protection) = blueprint.Provider switch
+        {
+            "azure" => ("a storage account com o bootstrap e colar o bloco backend \"azurerm\"", "no Azure Container Registry: o README explica a ordem (registro e Key Vault primeiro)",
+                "O banco nasce com prevent_destroy: apagar exige tirar a proteção do código antes."),
+            "gcp" => ("o bucket com o bootstrap e colar o bloco backend \"gcs\"", "no Artifact Registry: o README explica a ordem (APIs, repositório e segredo primeiro)",
+                "O banco nasce com deletion_protection: apagar exige tirar a proteção num apply anterior."),
+            _ => ("o bucket com o bootstrap e colar o bloco backend \"s3\"", "no ECR: o README explica a ordem (ECR, segredo e IAM primeiro)",
+                "O banco nasce com proteção contra exclusão e snapshot final: apagar exige tirar a proteção num apply anterior.")
+        };
         if (blueprint.Backend is null)
-            notes.Add("Sem backend remoto: o state fica local até você criar o bucket com o bootstrap e colar o bloco backend \"s3\" em providers.tf.");
-        if (blueprint.Service is { PublicIp: false })
+            notes.Add($"Sem backend remoto: o state fica local até você criar {backend} em providers.tf.");
+        if (blueprint.Provider == "aws" && blueprint.Service is { PublicIp: false })
             notes.Add("As tarefas ficam em subnets privadas: a VPC precisa de NAT gateway ou endpoints VPC (ECR, logs, Secrets Manager) para baixar a imagem.");
         if (blueprint.Service is not null)
-            notes.Add("O primeiro apply precisa de uma imagem no ECR: o README explica a ordem (ECR, segredo e IAM primeiro).");
+            notes.Add($"O primeiro apply precisa de uma imagem {registry}.");
         if (blueprint.Database is not null)
-            notes.Add("O banco nasce com proteção contra exclusão e snapshot final: apagar exige tirar a proteção num apply anterior.");
+            notes.Add(protection);
+        if (blueprint.Provider == "azure" && blueprint.Database is not null)
+            notes.Add("Sem senha no banco: defina um administrador do Entra ID (postgres_admin_object_id) para criar o usuário da aplicação.");
+        if (blueprint.Provider == "gcp" && blueprint.Database is not null)
+            notes.Add("A rede precisa do acesso privado a serviços (service networking) antes do apply, ou o Cloud SQL não ganha IP privado.");
         return notes;
     }
 

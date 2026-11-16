@@ -1,7 +1,10 @@
 import type { CloudConnection, CloudRead, IacBlueprint } from '@/shared/schema';
 
 /** O formulário guarda texto; o desenho só existe quando a pessoa pede a revisão, e o motor confere tudo de novo. */
+export type CloudProvider = 'aws' | 'azure' | 'gcp';
+
 export type BlueprintForm = {
+  provider: CloudProvider;
   project: string;
   region: string;
   account: string;
@@ -9,6 +12,7 @@ export type BlueprintForm = {
   vpcId: string;
   privateSubnets: string;
   publicSubnets: string;
+  privateDnsZone: string;
   withService: boolean;
   serviceName: string;
   port: string;
@@ -27,12 +31,56 @@ export type BlueprintForm = {
   alarmEmail: string;
   bucket: string;
   bucketRegion: string;
+  bucketResourceGroup: string;
+  bucketContainer: string;
 };
 
-/** As combinações de CPU e memória do Fargate oferecidas na tela; o motor aceita as demais válidas. */
-export const SERVICE_SIZES = ['256/512', '512/1024', '1024/2048', '2048/4096'] as const;
+/** As combinações de CPU e memória oferecidas na tela, por nuvem; o motor aceita as demais válidas. */
+export const SERVICE_SIZES: Record<CloudProvider, readonly string[]> = {
+  aws: ['256/512', '512/1024', '1024/2048', '2048/4096'],
+  azure: ['256/512', '512/1024', '1024/2048', '2048/4096'],
+  gcp: ['1024/512', '1024/2048', '2048/4096', '4096/8192']
+};
+
+/** O que muda de uma nuvem para outra quando a pessoa troca a nuvem do desenho. */
+export const PROVIDER_DEFAULTS: Record<
+  CloudProvider,
+  { label: string; size: string; instanceClass: string; storageGb: string; region: string }
+> = {
+  aws: { label: 'AWS', size: '256/512', instanceClass: 'db.t4g.micro', storageGb: '20', region: 'sa-east-1' },
+  azure: { label: 'Azure', size: '256/512', instanceClass: 'B_Standard_B1ms', storageGb: '32', region: 'brazilsouth' },
+  gcp: {
+    label: 'Google Cloud',
+    size: '1024/512',
+    instanceClass: 'db-f1-micro',
+    storageGb: '10',
+    region: 'southamerica-east1'
+  }
+};
+
+/** Troca a nuvem e põe os padrões dela no que só faz sentido naquela nuvem. */
+export function withProvider(form: BlueprintForm, provider: CloudProvider): BlueprintForm {
+  const defaults = PROVIDER_DEFAULTS[provider];
+  return {
+    ...form,
+    provider,
+    size: defaults.size,
+    instanceClass: defaults.instanceClass,
+    storageGb: defaults.storageGb,
+    engine: provider === 'azure' ? 'postgres' : form.engine,
+    certificateArn: provider === 'aws' ? form.certificateArn : '',
+    publicIp: provider === 'aws' ? form.publicIp : false,
+    account: '',
+    profile: '',
+    vpcId: '',
+    privateSubnets: '',
+    publicSubnets: '',
+    privateDnsZone: ''
+  };
+}
 
 export const EMPTY_FORM: BlueprintForm = {
+  provider: 'aws',
   project: '',
   region: '',
   account: '',
@@ -40,6 +88,7 @@ export const EMPTY_FORM: BlueprintForm = {
   vpcId: '',
   privateSubnets: '',
   publicSubnets: '',
+  privateDnsZone: '',
   withService: true,
   serviceName: 'api',
   port: '8080',
@@ -57,7 +106,9 @@ export const EMPTY_FORM: BlueprintForm = {
   queues: '',
   alarmEmail: '',
   bucket: '',
-  bucketRegion: ''
+  bucketRegion: '',
+  bucketResourceGroup: '',
+  bucketContainer: ''
 };
 
 /** Vírgula, espaço ou quebra de linha separam os itens. */
@@ -78,7 +129,7 @@ const integer = (text: string) => {
 export function toBlueprint(form: BlueprintForm): IacBlueprint {
   const [cpu, memory] = form.size.split('/').map(integer);
   return {
-    provider: 'aws',
+    provider: form.provider,
     project: form.project.trim(),
     region: form.region.trim(),
     account: optional(form.account),
@@ -86,7 +137,8 @@ export function toBlueprint(form: BlueprintForm): IacBlueprint {
     network: {
       vpcId: form.vpcId.trim(),
       privateSubnets: splitList(form.privateSubnets),
-      publicSubnets: splitList(form.publicSubnets)
+      publicSubnets: splitList(form.publicSubnets),
+      privateDnsZone: optional(form.privateDnsZone)
     },
     service: form.withService
       ? {
@@ -96,8 +148,8 @@ export function toBlueprint(form: BlueprintForm): IacBlueprint {
           cpu: cpu ?? 0,
           memory: memory ?? 0,
           desiredCount: integer(form.desiredCount),
-          certificateArn: form.certificateArn.trim(),
-          publicIp: form.publicIp
+          certificateArn: form.provider === 'aws' ? form.certificateArn.trim() : '',
+          publicIp: form.provider === 'aws' && form.publicIp
         }
       : null,
     database: form.withDatabase
@@ -112,7 +164,13 @@ export function toBlueprint(form: BlueprintForm): IacBlueprint {
     queues: splitList(form.queues),
     alarmEmail: optional(form.alarmEmail),
     backend: optional(form.bucket)
-      ? { bucket: form.bucket.trim(), region: form.bucketRegion.trim() || form.region.trim() }
+      ? {
+          bucket: form.bucket.trim(),
+          region: form.bucketRegion.trim() || form.region.trim(),
+          ...(form.provider === 'azure'
+            ? { resourceGroup: optional(form.bucketResourceGroup), container: optional(form.bucketContainer) }
+            : {})
+        }
       : null
   };
 }
@@ -151,13 +209,28 @@ export function fromBlueprint(blueprint: IacBlueprint, current: BlueprintForm): 
   };
 }
 
-/** Região, conta e perfil vêm da conexão AWS vinculada; nada disso passa pelo modelo de linguagem. */
+/**
+ * Região e conta vêm da conexão vinculada da mesma nuvem: perfil na AWS, subscription e tenant no Azure, projeto no
+ * Google. Nada disso passa pelo modelo de linguagem.
+ */
 export function fromConnection(connection: CloudConnection, current: BlueprintForm): BlueprintForm {
+  const values = connection.settings.values;
+  const account =
+    current.provider === 'azure'
+      ? (values['subscriptionId'] ?? connection.identity?.account)
+      : current.provider === 'gcp'
+        ? (values['projectId'] ?? connection.identity?.account)
+        : connection.identity?.account;
   return {
     ...current,
-    region: connection.settings.values['region'] ?? current.region,
-    profile: connection.settings.values['profile'] ?? current.profile,
-    account: connection.identity?.account ?? current.account
+    region: values['region'] ?? current.region,
+    profile:
+      (current.provider === 'azure'
+        ? values['tenantId']
+        : current.provider === 'aws'
+          ? values['profile']
+          : undefined) ?? current.profile,
+    account: account ?? current.account
   };
 }
 

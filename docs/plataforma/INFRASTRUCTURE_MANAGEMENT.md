@@ -96,10 +96,11 @@ fica com o jurídico da empresa, que negocia à parte; o Spock só informa a lic
 | 7 | Perfis do `aws login` na conexão AWS (`AWSSDK.Signin`); o provider AWS do modelo lê o mesmo perfil | **Implementada**; validada com um perfil real na conexão e num plano do OpenTofu |
 | 8 | Custo de um plano: atributos de preço de cada recurso cobrado guardados com o plano (EC2, NAT Gateway, load balancer, RDS, ECS Fargate, Secrets Manager, alarmes), custo mensal de antes e de depois por recurso, diferença, o que fica de fora e o que só se conhece depois do apply | **Implementada**; validada de ponta a ponta com o OpenTofu, o provider AWS e a Price List Query API reais ([TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md), seção 6) |
 | 9 | Drift agendado e fora do state: verificação automática por projeto (6 h a 7 dias, com o app aberto), alerta na tela, e recursos da conta fora do state para os tipos que o state gerencia, pelas leituras liberadas no vínculo | **Implementada**; fora do state validado com subnets reais de uma conta AWS ([TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md), seção 6) |
+| 10 | Geração para Azure e Google Cloud no mesmo modelo de pasta: Container Apps, ACR, Key Vault, PostgreSQL Flexible Server só com Entra ID, Service Bus e Azure Monitor; Cloud Run, Artifact Registry, Secret Manager, Cloud SQL com IP privado e login IAM, Pub/Sub e Cloud Monitoring; checagens por nuvem; seletor de nuvem na tela | **Implementada**; arquivos gerados validados com `fmt` e `validate` do OpenTofu e os providers azurerm e google reais ([TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md), seção 5) |
 
-Priorização dos recursos por provedor: primeiro o que o modelo de referência já cobre na AWS (SQS, SNS, CloudWatch,
-ECR, Secrets Manager, IAM, ALB, ECS Fargate e o bucket de state). Azure e Google entram pelo mesmo modelo, começando por
-grupo de recursos/projeto, rede e o equivalente de contêiner gerenciado (Container Apps, Cloud Run).
+Priorização dos recursos por provedor: o modelo de referência da AWS (SQS, SNS, CloudWatch, ECR, Secrets Manager, IAM,
+ALB, ECS Fargate e o bucket de state) e os equivalentes no Azure e no Google, sempre sem senha no Terraform e com rede
+existente recebida por id.
 
 ## 6. Experiência na tela Infraestrutura
 
@@ -134,8 +135,9 @@ Ainda não aparecem: lista de projetos de infraestrutura com ambientes.
 ## 8. Limitações atuais
 
 - macOS e Linux implementados e não rodados em máquina real.
-- Geração só para AWS e só com os componentes do modelo (serviço em contêiner, RDS, filas); Azure e Google têm o
-  bootstrap do state, ainda não a geração.
+- Geração com os componentes do modelo (serviço em contêiner, banco, filas) nas três nuvens; a proposta com IA, a leitura
+  de rede e a estimativa de custo são só da AWS. No Azure o banco é só PostgreSQL. Azure e Google têm `fmt` e `validate`
+  provados, não `plan` nem `apply`: não há identidade Azure nem Google nesta máquina.
 - Custo só na AWS e só dos tipos da tabela da seção 6 de [TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md); o resto do
   plano aparece como fora da estimativa. EC2 é cotado como Linux compartilhado.
 - Drift agendado só roda com o Spock aberto (não há serviço em segundo plano no sistema). Fora do state só na AWS e só

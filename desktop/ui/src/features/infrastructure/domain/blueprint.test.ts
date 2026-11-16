@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { iacArchitectDraftSchema } from '@/shared/schema';
 
-import { EMPTY_FORM, fromBlueprint, splitList, toBlueprint } from './blueprint';
+import { EMPTY_FORM, fromBlueprint, splitList, toBlueprint, withProvider } from './blueprint';
 
 describe('desenho da infraestrutura', () => {
   it('separa listas por vírgula, espaço ou quebra de linha', () => {
@@ -24,6 +24,41 @@ describe('desenho da infraestrutura', () => {
     const blueprint = toBlueprint({ ...EMPTY_FORM, region: 'sa-east-1', bucket: 'loja-state' });
 
     expect(blueprint.backend).toEqual({ bucket: 'loja-state', region: 'sa-east-1' });
+  });
+
+  it('trocar para o Azure põe os padrões dele e leva grupo de recursos e container do state', () => {
+    const azure = withProvider(
+      { ...EMPTY_FORM, certificateArn: 'arn-antigo', publicIp: true, account: '123456789012' },
+      'azure'
+    );
+    const blueprint = toBlueprint({
+      ...azure,
+      region: 'brazilsouth',
+      bucket: 'lojatfstate',
+      bucketResourceGroup: 'loja-tfstate',
+      bucketContainer: 'tfstate',
+      privateDnsZone: ' zona '
+    });
+
+    expect(azure.instanceClass).toBe('B_Standard_B1ms');
+    expect(azure.account).toBe('');
+    expect(blueprint.provider).toBe('azure');
+    expect(blueprint.service?.certificateArn).toBe('');
+    expect(blueprint.service?.publicIp).toBe(false);
+    expect(blueprint.network.privateDnsZone).toBe('zona');
+    expect(blueprint.backend).toEqual({
+      bucket: 'lojatfstate',
+      region: 'brazilsouth',
+      resourceGroup: 'loja-tfstate',
+      container: 'tfstate'
+    });
+  });
+
+  it('o Google usa tamanhos do Cloud Run', () => {
+    const google = withProvider(EMPTY_FORM, 'gcp');
+
+    expect(google.size).toBe('1024/512');
+    expect(toBlueprint(google).service).toMatchObject({ cpu: 1024, memory: 512 });
   });
 
   it('o que a IA propõe vai e volta pelo formulário sem perder tamanho, banco e filas', () => {

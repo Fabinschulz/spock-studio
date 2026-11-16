@@ -59,7 +59,7 @@ Checagens determinísticas sobre `show -json`, avisando antes da aprovação:
 
 Os achados não bloqueiam sozinhos: aparecem na aprovação, e os graves pedem confirmação extra.
 
-## 4. O que já está implementado (entregas 1 a 9)
+## 4. O que já está implementado (entregas 1 a 10)
 
 - OpenTofu (gratuito, MPL 2.0) como padrão; Terraform liberado por escolha explícita (licença com o jurídico).
 - Instalação só com autorização, ligada à proposta (`offerId`), recusa respeitada.
@@ -75,4 +75,5 @@ Os achados não bloqueiam sozinhos: aparecem na aprovação, e os graves pedem c
 - Escopo de escrita `Infrastructure`: o Spock grava `.tf`, `.tofu`, `.tfvars.example`, o `README.md` de uma pasta e o `.gitignore` da raiz só por execução aprovada e reversível; state, `.tfvars` e código ficam fora.
 - Geração no modelo com padrões seguros: banco privado, criptografado e com proteção contra exclusão; ECR com tag imutável; load balancer só HTTPS (TLS 1.3); tarefas que só aceitam o load balancer; IAM sem curinga de serviço; trava de conta no provider; `MARILIZ_LIVE_IAC_PROVIDERS` prova `fmt` e `validate` com o provider real.
 - Drift por `plan -refresh-only` sobre a cópia, sem gravar o state, com só nomes de atributo no resultado; custo estimado com a lista pública de preços da AWS pela capacidade `aws.pricing` do vínculo, sem ler a conta e sem inventar preço.
+- Geração no Azure e no Google com os mesmos padrões: banco sem senha (Entra ID; login IAM) e sem acesso público, registro sem usuário administrador, filas sem chave local no Azure, segredos gravados fora do Terraform, identidade ou conta de serviço própria da aplicação com papéis só nos recursos dela.
 - Achados de segurança do plano (seção 3) já calculados: destruição, substituição, entrada aberta para a internet, IAM com curinga, ECR com tag mutável, banco público, S3 sem bloqueio público, NSG e firewall abertos, bucket público no Google.
