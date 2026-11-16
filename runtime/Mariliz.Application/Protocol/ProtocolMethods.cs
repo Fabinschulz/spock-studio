@@ -117,6 +117,8 @@ public static class ProtocolMethods
     public const string IacDrift = "iac.drift";
     public const string IacCostEstimate = "iac.cost.estimate";
     public const string IacCostPlan = "iac.cost.plan";
+    public const string IacDriftSchedule = "iac.drift.schedule";
+    public const string IacDriftScheduleSet = "iac.drift.schedule.set";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -181,7 +183,7 @@ public static class ProtocolMethods
     public static readonly IReadOnlyList<string> Iac =
         [IacRuntimeStatus, IacRuntimeOffer, IacRuntimeInstall, IacRuntimeDecline, IacRuntimeRemove, IacRuntimeAdopt, IacRuntimePin,
             IacLayout, IacValidate, IacPlan, IacOperations, IacOperation, IacApply, IacState, IacStateResources, IacStateUnlock, IacBootstrapPlan,
-            IacBootstrapSave, IacArchitectDraft, IacGeneratePlan, IacGenerateSave, IacDrift, IacCostEstimate, IacCostPlan];
+            IacBootstrapSave, IacArchitectDraft, IacGeneratePlan, IacGenerateSave, IacDrift, IacCostEstimate, IacCostPlan, IacDriftSchedule, IacDriftScheduleSet];
 
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }

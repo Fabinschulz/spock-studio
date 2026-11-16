@@ -86,7 +86,8 @@ public sealed class EngineSession
         IacOperationService? iacOperations = null,
         IacStateService? iacState = null,
         IacGenerationService? iacGeneration = null,
-        IacCostService? iacCosts = null)
+        IacCostService? iacCosts = null,
+        IacDriftScheduler? iacSchedules = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
@@ -107,7 +108,7 @@ public sealed class EngineSession
         _ideas = ideas is null ? null : new IdeaRequestHandler(ideas);
         _cloud = cloud is null ? null : new CloudRequestHandler(cloud);
         _iac = terraform is null || iacOperations is null || iacState is null || iacGeneration is null ? null
-            : new IacRequestHandler(terraform, iacOperations, iacState, iacGeneration, iacCosts);
+            : new IacRequestHandler(terraform, iacOperations, iacState, iacGeneration, iacCosts, iacSchedules);
         _engineering = profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions, mcp);
         _tracker = tracker;
         if (relay is not null) relay.Target = WriteEvent;

@@ -80,6 +80,7 @@ var iacRuntimes = new IacRuntimeService([openTofuToolchain, terraformToolchain],
 var knowledge = new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge, decisionMemory);
 var iacOperations = new IacOperationService(iacRuntimes, new CliIacRuntimeFactory(engine.Runner, engine.DataRoot), new IacConfigReader(),
     new FileIacWorkArea(engine.DataRoot), engine.Workspace, cloud, engine.Clock, integrations.Audit, iacStates, iacRegistry);
+var iacSchedules = new IacDriftScheduler(iacOperations, new FileIacDriftScheduleStore(engine.DataRoot), engine.Workspace, engine.Clock, integrations.Audit);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
     management: management, assistant: assistant,
@@ -102,7 +103,30 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
         engine.Clock, engine.Tracker, integrations.Audit),
     iacGeneration: new IacGenerationService(engine.Workspace, new IacConfigReader(), models, engine.Files, engine.Store, engine.Clock, engine.Tracker,
         integrations.Audit),
-    iacCosts: new IacCostService(engine.Workspace, cloud, engine.Clock, iacOperations));
+    iacCosts: new IacCostService(engine.Workspace, cloud, engine.Clock, iacOperations),
+    iacSchedules: iacSchedules);
+// Verificação de drift agendada: uma volta por minuto enquanto o motor vive; falha de uma volta não derruba o laço.
+_ = Task.Run(async () =>
+{
+    using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
+    try
+    {
+        while (await timer.WaitForNextTickAsync(cts.Token))
+        {
+            try
+            {
+                await iacSchedules.RunDueAsync(cts.Token);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                Console.Error.WriteLine("Drift agendado: " + ex.GetType().Name);
+            }
+        }
+    }
+    catch (OperationCanceledException)
+    {
+    }
+});
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

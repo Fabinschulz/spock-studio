@@ -324,17 +324,22 @@ public sealed partial class IacOperationService(
                 var snapshot = area.Snapshot(root, iacRoot, Path.Combine(directory, "config"), includeLocalState: true);
                 var run = await factory.For(installation).DriftAsync(new IacPlanSpec(Combine(snapshot.Directory, Relative(iacRoot, folder)),
                     Path.Combine(directory, "data"), Path.Combine(directory, "drift.tfplan"), ws, environment), ct);
+                var (unmanaged, notes) = run.Succeeded && request.ConnectionId is { } connectionId
+                    ? await UnmanagedAsync(request.ProjectId, connectionId, run.StateIds ?? new Dictionary<string, IReadOnlySet<string>>(), ct)
+                    : ((IReadOnlyList<IacUnmanagedResource>?)null, (IReadOnlyList<string>?)null);
                 var operation = new IacOperation(id, request.ProjectId, IacOperationKind.Drift,
                     run.Succeeded ? IacOperationStatus.Succeeded : IacOperationStatus.Failed, installation.Engine, installation.Version, iacRoot, folder,
                     ws ?? "default", request.ConnectionId, snapshot.ConfigHash, started, clock.UtcNow, requestedBy, null, null,
                     run.Succeeded ? run.Drifted.Count > 0 : null, null, null, run.Error, Backend: run.Backend,
-                    LockId: run.Error is null ? null : LockIdIn(run.Error), Drift: run.Succeeded ? run.Drifted : null);
+                    LockId: run.Error is null ? null : LockIdIn(run.Error), Drift: run.Succeeded ? run.Drifted : null, Unmanaged: unmanaged,
+                    UnmanagedNotes: notes);
                 var detail = new JsonObject
                 {
                     ["folder"] = folder,
                     ["workspace"] = ws ?? "default",
                     ["changed"] = run.Drifted.Count(d => d.Change == "changed"),
-                    ["deleted"] = run.Drifted.Count(d => d.Change == "deleted")
+                    ["deleted"] = run.Drifted.Count(d => d.Change == "deleted"),
+                    ["unmanaged"] = unmanaged?.Count ?? 0
                 };
                 if (request.ConnectionId is not null) detail["connectionId"] = request.ConnectionId;
                 Record(operation, detail);
@@ -345,6 +350,39 @@ public sealed partial class IacOperationService(
                 area.DeleteOperation(request.ProjectId, id);
             }
         });
+    }
+
+    // O que existe na conta e não está no state, só para os tipos que o state já gerencia e só pelas leituras que o vínculo
+    // liberou. Ler a conta inteira listaria recursos de outros times; aqui a pergunta é "deste tipo, o que escapou do código".
+    private async Task<(IReadOnlyList<IacUnmanagedResource>?, IReadOnlyList<string>?)> UnmanagedAsync(string projectId, string connectionId,
+        IReadOnlyDictionary<string, IReadOnlySet<string>> stateIds, CancellationToken ct)
+    {
+        if (cloud is null) return (null, null);
+        var link = cloud.Projects.Find(projectId, connectionId);
+        var connection = cloud.Connections.Require(connectionId);
+        if (link is null || connection.Provider != CloudProviders.Aws) return (null, null);
+        var found = new List<IacUnmanagedResource>();
+        var notes = new List<string>();
+        foreach (var mapping in IacUnmanaged.Aws.Where(m => stateIds.ContainsKey(m.Type)))
+        {
+            if (!link.Capabilities.Contains(mapping.Capability, StringComparer.Ordinal))
+            {
+                notes.Add($"{mapping.Type}: a leitura {mapping.Capability} não está liberada no vínculo.");
+                continue;
+            }
+            try
+            {
+                var read = await cloud.Reads.ReadAsync(new CloudReadRequest(connectionId, mapping.Capability, null, CloudProviderRegistry.MaxLimit, projectId),
+                    CloudCaller.Person, ct);
+                found.AddRange(IacUnmanaged.Compare(mapping, stateIds[mapping.Type], read, connection.Settings.Region));
+                if (read.Truncated) notes.Add($"{mapping.Type}: a conta tem mais de {CloudProviderRegistry.MaxLimit}; só os primeiros foram comparados.");
+            }
+            catch (EngineException ex) when (ex.Code.StartsWith(CloudErrors.Prefix, StringComparison.Ordinal))
+            {
+                notes.Add($"{mapping.Type}: a leitura {mapping.Capability} falhou ({ex.Code}).");
+            }
+        }
+        return (found, notes);
     }
 
     // Consulta do state: workspaces e endereços de recurso, nunca atributos. Roda sobre a cópia, como o plano; um state
@@ -416,6 +454,10 @@ public sealed partial class IacOperationService(
             }
         });
     }
+
+    // Confere pasta, ambiente e conexão como a operação conferiria, sem rodar nada.
+    public void CheckTarget(string projectId, string? folder, string? workspaceName, string? connectionId) =>
+        Target(projectId, folder, workspaceName, connectionId);
 
     private (string Root, string IacRoot, string Folder, string? Workspace, IReadOnlyDictionary<string, string> Environment) Target(string projectId,
         string? folder, string? workspaceName, string? connectionId)

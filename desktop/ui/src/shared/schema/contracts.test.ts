@@ -11,6 +11,7 @@ import iacArchitectDraftFixture from '@contracts/fixtures/iac/architect-draft.js
 import iacBootstrapFixture from '@contracts/fixtures/iac/bootstrap-plan.json';
 import iacCostEstimateFixture from '@contracts/fixtures/iac/cost-estimate.json';
 import iacDriftFixture from '@contracts/fixtures/iac/drift-operation.json';
+import iacDriftScheduleFixture from '@contracts/fixtures/iac/drift-schedule.json';
 import iacGeneratePlanFixture from '@contracts/fixtures/iac/generate-plan.json';
 import iacOperationsFixture from '@contracts/fixtures/iac/operations.json';
 import iacPlanCostFixture from '@contracts/fixtures/iac/plan-cost.json';
@@ -85,6 +86,7 @@ import {
   iacGeneratePlanSchema,
   iacOperationResultSchema,
   iacPlanCostSchema,
+  iacDriftScheduleSchema,
   iacLayoutSchema,
   iacStateReadSchema,
   iacStateReportSchema,
@@ -997,5 +999,14 @@ describe('contrato do assistente do portfólio (fixtures do motor)', () => {
     expect(cost.monthlyDelta).toBe(48.03);
     expect(cost.lines.find((line) => line.address === 'aws_db_instance.novo')?.after).toBeNull();
     expect(cost.uncovered).toEqual(['aws_ecs_task_definition', 'aws_sqs_queue']);
+  });
+
+  it('aceita o agendamento de drift e o que está na conta fora do state', () => {
+    const view = iacDriftScheduleSchema.parse(iacDriftScheduleFixture).schedule;
+    expect(view.intervals).toEqual([6, 12, 24, 168]);
+    expect(view.schedule?.enabled).toBe(true);
+    const drift = iacOperationResultSchema.parse(iacDriftFixture).operation;
+    expect(drift.unmanaged?.map((item) => item.type)).toEqual(['aws_subnet', 'aws_s3_bucket']);
+    expect(drift.unmanagedNotes?.[0]).toMatch(/não está liberada/);
   });
 });

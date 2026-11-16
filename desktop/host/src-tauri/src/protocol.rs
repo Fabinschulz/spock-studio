@@ -119,6 +119,8 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "iac.drift",
     "iac.cost.estimate",
     "iac.cost.plan",
+    "iac.drift.schedule",
+    "iac.drift.schedule.set",
 ];
 
 pub mod error_code {

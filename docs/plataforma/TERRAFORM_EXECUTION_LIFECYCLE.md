@@ -2,7 +2,7 @@
 
 Como uma mudança de infraestrutura anda no Spock, da necessidade à verificação, e onde a pessoa decide. As oito etapas
 estão implementadas: dependência (entrega 1), validação e plano (2), aprovação e aplicação (3), state (4),
-arquitetura e configuração (5) e, em volta do ciclo, drift e custo estimado (6) e custo de um plano (8). Formato dos arquivos: [TERRAFORM_PROJECT_LAYOUT.md](TERRAFORM_PROJECT_LAYOUT.md).
+arquitetura e configuração (5) e, em volta do ciclo, drift e custo estimado (6), custo de um plano (8) e drift agendado com o que está na conta fora do state (9). Formato dos arquivos: [TERRAFORM_PROJECT_LAYOUT.md](TERRAFORM_PROJECT_LAYOUT.md).
 
 ## 1. As oito etapas
 
@@ -198,6 +198,42 @@ declara `storage_type = "gp3"`, o mesmo que a estimativa precifica.
 Validado contra a API real (`AwsPricingLiveTests`, com `MARILIZ_LIVE_AWS_PROFILE`): cada item do desenho completo em
 sa-east-1, também com Multi-AZ e MySQL, acha preço único, e a leitura `aws.pricing` da verificação de permissões responde.
 
+### Fora do state e drift agendado (entrega 9, implementada)
+
+**Fora do state.** Quando a verificação de drift usa uma conexão AWS vinculada, o Spock compara o state com a conta. O
+plano `-refresh-only` já traz o state que leu (`prior_state`); dele saem só os identificadores dos tipos da tabela
+abaixo (`IacUnmanaged.StateIds`), em todos os módulos, e nenhum outro atributo. Para cada tipo que o state gerencia, e só
+se o vínculo liberou a leitura, a conexão lista a conta, e o que não está no state aparece como "fora do state", com id
+e nome. Tipo que o state não gerencia não é lido: listar a conta inteira mostraria recursos de outros times. Leitura não
+liberada, que falhou ou passou de 200 itens vira nota no resultado.
+
+| Tipo no state | Identificador | Leitura da conexão | Não conta |
+| --- | --- | --- | --- |
+| `aws_instance` | `id` | `aws.ec2.instances` | instâncias encerradas |
+| `aws_vpc` | `id` | `aws.ec2.vpcs` | a VPC padrão |
+| `aws_subnet` | `id` | `aws.ec2.subnets` | |
+| `aws_db_instance` | `identifier` | `aws.rds.instances` | |
+| `aws_ecr_repository` | `name` | `aws.ecr.repositories` | |
+| `aws_ecs_cluster` | `name` | `aws.ecs.clusters` | |
+| `aws_lambda_function` | `function_name` | `aws.lambda.functions` | |
+| `aws_cloudwatch_metric_alarm` | `alarm_name` | `aws.cloudwatch.alarms` | |
+| `aws_s3_bucket` | `bucket` | `aws.s3.buckets` | buckets de outra região |
+
+Recurso fora do state não é erro: ou ele passa a ser declarado no código (import), ou é de outro dono. O Spock não
+importa nada.
+
+**Drift agendado.** Por projeto, a pessoa liga a verificação automática (`iac.drift.schedule.set`) a cada 6 h, 12 h,
+24 h ou 7 dias, com a pasta, o ambiente e a conexão escolhidos na tela, conferidos na hora de ligar como o botão
+conferiria. O agendamento fica em `iac/drift-schedules.json` na pasta do Spock. Um laço do motor (`IacDriftScheduler`,
+uma volta por minuto) roda a verificação vencida enquanto o app está aberto: a primeira logo depois de ligar, as
+seguintes quando o intervalo vence. Projeto ocupado com outra operação fica para a volta seguinte; outra falha conta como
+rodada, fica no agendamento (`lastError`) e na trilha (`iac.drift_schedule_failed`). A verificação é a mesma do botão,
+entra no histórico pedida por `schedule`, e a tela mostra um alerta quando a mais recente achou drift ou recurso fora do
+state. Agentes não ligam nem desligam o agendamento.
+
+Validado de ponta a ponta (`Drift_aponta_subnets_da_conta_fora_do_state`): com uma subnet real importada para um state
+local (o import só grava o state), o drift pela conexão aponta as outras subnets da região como fora do state.
+
 ### Custo de um plano (entrega 8, implementada)
 
 Qualquer plano gerado no Spock, não só o da geração, ganha a estimativa do que ele muda (`iac.cost.plan`, botão "Estimar
@@ -248,7 +284,7 @@ e segredo com o provider AWS real pela conexão (nada é aplicado) e o Spock cot
 | `iac_state` | 4 | Onde vive o state de cada raiz, trava, criptografia, riscos e backend recomendado (só a configuração) |
 | `iac_blueprint_check` | 5 | Confere um desenho com as checagens da tela e lista os arquivos que a geração escreveria e o que é cobrado; não grava nada |
 | `iac_plan_summary` (custo) | 8 | O resumo do plano lista os recursos com custo fixo que ele muda (tipo e tamanho); o valor em dólares fica na tela |
-| `iac_drift_summary` | 6 | Lê a última verificação de drift: recursos alterados ou apagados por fora, com os nomes dos atributos; não roda a verificação |
+| `iac_drift_summary` | 6 e 9 | Lê a última verificação de drift: recursos alterados ou apagados por fora, com os nomes dos atributos, o que está na conta fora do state e se veio do agendamento; não roda a verificação |
 | `iac_plan` | Depois | Gerar plano por agente pede o vínculo cloud liberado para agentes; hoje só a pessoa planeja |
 
 Não haverá `terraform_apply` para agentes: o MCP nunca contorna a aprovação humana.
