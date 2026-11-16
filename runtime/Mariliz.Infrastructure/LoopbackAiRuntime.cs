@@ -218,6 +218,17 @@ public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime, ICont
         process.Dispose();
     }
 
+    internal static Dictionary<string, string> PythonEnvironment(string token) => new(StringComparer.Ordinal)
+    {
+        ["MARILIZ_AI_TOKEN"] = token,
+        ["PYTHONUNBUFFERED"] = "1",
+        ["PYTHONIOENCODING"] = "utf-8",
+        // A inteligência não fala com serviços de telemetria; o servidor também desliga, isto vale antes do primeiro import.
+        ["LANGSMITH_TRACING"] = "false",
+        ["LANGCHAIN_TRACING_V2"] = "false",
+        ["LANGSMITH_OTEL_ENABLED"] = "false"
+    };
+
     private async Task<bool> TryStartAsync(string python, string script, CancellationToken ct)
     {
         var port = LoopbackPort.Free();
@@ -241,13 +252,8 @@ public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime, ICont
         // O Python termina sozinho se este processo morrer; sem isso, um motor finalizado à força o deixaria vivo.
         psi.ArgumentList.Add("--parent-pid");
         psi.ArgumentList.Add(Environment.ProcessId.ToString());
-        psi.Environment["MARILIZ_AI_TOKEN"] = token;
-        psi.Environment["PYTHONUNBUFFERED"] = "1";
-        psi.Environment["PYTHONIOENCODING"] = "utf-8";
-        // A inteligência não fala com serviços de telemetria; o servidor também desliga, isto vale antes do primeiro import.
-        psi.Environment["LANGSMITH_TRACING"] = "false";
-        psi.Environment["LANGCHAIN_TRACING_V2"] = "false";
-        psi.Environment["LANGSMITH_OTEL_ENABLED"] = "false";
+        // As chaves de modelo ficam no motor, que faz as chamadas; o Python não precisa de nenhum segredo herdado.
+        ChildEnvironment.Apply(psi.Environment, inheritedSecrets: null, PythonEnvironment(token));
 
         Process process;
         try { process = Process.Start(psi) ?? throw new InvalidOperationException(); }

@@ -71,6 +71,7 @@ public sealed class AgentRunTests : IDisposable
         Assert.Contains("Edit,Write,NotebookEdit,Bash", spec.Arguments);
         Assert.DoesNotContain(spec.Arguments, arg => arg.Contains("dangerously", StringComparison.Ordinal));
         Assert.DoesNotContain("O que este projeto faz?", spec.Arguments);
+        Assert.Equal(["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN"], spec.InheritedSecrets);
     }
 
     [Fact]
