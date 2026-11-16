@@ -135,6 +135,10 @@ public static class IacErrors
     public static EngineException BlueprintInvalid(IEnumerable<IacBlueprintCheck> failed) =>
         new("IAC_BLUEPRINT_INVALID", "O desenho não passou nas verificações: " + string.Join("; ", failed.Select(check => check.Description)) + ".");
 
+    public static EngineException CostSourceUnavailable() =>
+        new("IAC_COST_SOURCE_UNAVAILABLE", "A estimativa usa a lista de preços do provedor pela conexão cloud do projeto: vincule uma conexão da mesma nuvem " +
+            "do desenho e libere nela a leitura de preços públicos.");
+
     public static EngineException GenerationFolderInvalid() =>
         new("IAC_GENERATION_FOLDER_INVALID", "A pasta da infraestrutura deve ser um caminho relativo dentro do projeto, com letras, dígitos, ponto, hífen e sublinhado.");
 

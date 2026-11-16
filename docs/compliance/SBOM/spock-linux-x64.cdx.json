@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:f0829416-8f0e-4257-8a79-c6256f90ef4f",
+  "serialNumber": "urn:uuid:4da3b375-ebd1-4c5c-aa57-dfdfc7781fea",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-15T23:57:46Z",
+    "timestamp": "2026-11-16T00:20:20Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -24044,6 +24044,65 @@
     },
     {
       "type": "library",
+      "bom-ref": "nuget-AWSSDK.Pricing-4.1.0",
+      "name": "AWSSDK.Pricing",
+      "version": "4.1.0",
+      "purl": "pkg:nuget/AWSSDK.Pricing@4.1.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "68030d4f0266332a8e8bb060946bd44ae7d7b8d00b16ce8670fb6d4cc06f585321f205fe60224215cc116aaeeb65a7481eb5f4ec0f5e2db1a5aa80847daeb544"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/aws/aws-sdk-net/"
+        }
+      ],
+      "properties": [
+        {
+          "name": "spock:ecosystem",
+          "value": "nuget"
+        },
+        {
+          "name": "spock:environment",
+          "value": "execução"
+        },
+        {
+          "name": "spock:distribution",
+          "value": "incorporado (sidecar .NET single-file)"
+        },
+        {
+          "name": "spock:dependency",
+          "value": "direta"
+        },
+        {
+          "name": "spock:license-file-check",
+          "value": "SÓ EXPRESSÃO"
+        },
+        {
+          "name": "spock:risk",
+          "value": "BAIXO"
+        },
+        {
+          "name": "spock:obligations",
+          "value": "texto da Apache-2.0 e conteúdo do NOTICE (se houver) nos avisos; marcar arquivos modificados"
+        },
+        {
+          "name": "spock:evidence",
+          "value": "runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/awssdk.pricing/4.1.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "nuget-AWSSDK.RDS-4.1.0",
       "name": "AWSSDK.RDS",
       "version": "4.1.0",
@@ -29070,6 +29129,7 @@
         "nuget-AWSSDK.ECR-4.1.0",
         "nuget-AWSSDK.ECS-4.1.0",
         "nuget-AWSSDK.Lambda-4.1.1",
+        "nuget-AWSSDK.Pricing-4.1.0",
         "nuget-AWSSDK.RDS-4.1.0",
         "nuget-AWSSDK.S3-4.1.0",
         "nuget-AWSSDK.SSO-4.1.0",
@@ -31816,6 +31876,12 @@
     },
     {
       "ref": "nuget-AWSSDK.Lambda-4.1.1",
+      "dependsOn": [
+        "nuget-AWSSDK.Core-4.1.0.1"
+      ]
+    },
+    {
+      "ref": "nuget-AWSSDK.Pricing-4.1.0",
       "dependsOn": [
         "nuget-AWSSDK.Core-4.1.0.1"
       ]

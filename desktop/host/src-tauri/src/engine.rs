@@ -38,6 +38,8 @@ const TERRAFORM_INSTALL_METHOD: &str = "iac.runtime.install";
 const IAC_OPERATION_TIMEOUT: Duration = Duration::from_secs(2700);
 const IAC_VALIDATE_METHOD: &str = "iac.validate";
 const IAC_PLAN_METHOD: &str = "iac.plan";
+// O drift é um plan -refresh-only: mesmo init e mesmo teto do plano.
+const IAC_DRIFT_METHOD: &str = "iac.drift";
 // Consultar o state e liberar a trava também rodam init (providers e backend).
 const IAC_STATE_METHOD: &str = "iac.state.resources";
 const IAC_UNLOCK_METHOD: &str = "iac.state.unlock";
@@ -49,9 +51,8 @@ fn request_timeout(method: &str) -> Duration {
     match method {
         INVESTIGATION_METHOD | IAC_ARCHITECT_METHOD => INVESTIGATION_TIMEOUT,
         TERRAFORM_INSTALL_METHOD => TERRAFORM_INSTALL_TIMEOUT,
-        IAC_VALIDATE_METHOD | IAC_PLAN_METHOD | IAC_STATE_METHOD | IAC_UNLOCK_METHOD => {
-            IAC_OPERATION_TIMEOUT
-        }
+        IAC_VALIDATE_METHOD | IAC_PLAN_METHOD | IAC_DRIFT_METHOD | IAC_STATE_METHOD
+        | IAC_UNLOCK_METHOD => IAC_OPERATION_TIMEOUT,
         IAC_APPLY_METHOD => IAC_APPLY_TIMEOUT,
         _ => REQUEST_TIMEOUT,
     }
@@ -353,6 +354,7 @@ mod tests {
         assert_eq!(request_timeout("run.snapshot"), REQUEST_TIMEOUT);
         assert!(request_timeout("iac.runtime.install") > Duration::from_secs(600));
         assert!(request_timeout("iac.plan") > Duration::from_secs(2400));
+        assert!(request_timeout("iac.drift") > Duration::from_secs(2400));
         assert!(request_timeout("iac.apply") > Duration::from_secs(5000));
     }
 

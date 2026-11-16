@@ -103,7 +103,7 @@ public static class IacAwsGenerator
             if (!s.PublicIp) items.Add(new("NAT Gateway ou endpoints VPC (fora desta configuração)", "Tarefas sem IP público precisam deles para baixar a imagem; cobrados por hora e por GB."));
         }
         if (b.Database is { } d)
-            items.Add(new($"RDS {d.Engine} {d.InstanceClass}{(d.MultiAz ? " Multi-AZ" : "")}", $"Instância por hora, {d.StorageGb} GB de armazenamento por mês e backup além do tamanho do banco."));
+            items.Add(new($"RDS {d.Engine} {d.InstanceClass}{(d.MultiAz ? " Multi-AZ" : "")}", $"Instância por hora, {d.StorageGb} GB de armazenamento gp3 por mês e backup além do tamanho do banco."));
         if (b.Queues.Count > 0) items.Add(new($"SQS ({b.Queues.Count} fila(s) e suas filas de mensagens mortas)", "Por requisição."));
         items.Add(new("CloudWatch Alarms e SNS", "Por alarme por mês e por notificação enviada."));
         items.Add(new("Transferência de dados", "Saída para a internet por GB."));
@@ -692,7 +692,8 @@ public static class IacAwsGenerator
         h.Block("resource \"aws_db_instance\" \"this\"", r =>
         {
             r.Attr("identifier", Quote("${var.name_prefix}-db")).Attr("engine", "var.engine").Attr("engine_version", "var.engine_version")
-                .Attr("instance_class", "var.instance_class").Attr("allocated_storage", "var.storage_gb").Attr("storage_encrypted", "true")
+                .Attr("instance_class", "var.instance_class").Attr("allocated_storage", "var.storage_gb").Attr("storage_type", Quote("gp3"))
+                .Attr("storage_encrypted", "true")
                 .Attr("db_name", "var.database_name").Attr("username", Quote("app_admin"));
             r.Comment("A senha é criada e guardada pelo próprio RDS no Secrets Manager: nunca aparece no Terraform.");
             r.Attr("manage_master_user_password", "true").Attr("db_subnet_group_name", "aws_db_subnet_group.this.name")

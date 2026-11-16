@@ -17850,6 +17850,27 @@
   "nota": ""
  },
  {
+  "nome": "AWSSDK.Pricing",
+  "versao": "4.1.0",
+  "tipo": "library",
+  "ecossistema": "nuget",
+  "origem": "https://github.com/aws/aws-sdk-net/",
+  "uso": "",
+  "dependencia": "direta",
+  "ambiente": "execução",
+  "artefatos": "linux-x64,windows-x64",
+  "licenca_declarada": "Apache-2.0",
+  "licenca_confirmada": "Apache-2.0",
+  "conferencia": "SÓ EXPRESSÃO",
+  "distribuicao": "incorporado (sidecar .NET single-file)",
+  "obrigacoes": "texto da Apache-2.0 e conteúdo do NOTICE (se houver) nos avisos; marcar arquivos modificados",
+  "risco": "BAIXO",
+  "motivo": "Permissiva: manter aviso de copyright e texto da licença",
+  "evidencias": "runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/awssdk.pricing/4.1.0",
+  "hashes": "SHA-512:68030d4f0266332a8e8bb060946bd44ae7d7b8d00b16ce8670fb6d4cc06f585321f205fe60224215cc116aaeeb65a7481eb5f4ec0f5e2db1a5aa80847daeb544",
+  "nota": ""
+ },
+ {
   "nome": "AWSSDK.RDS",
   "versao": "4.1.0",
   "tipo": "library",

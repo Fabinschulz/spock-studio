@@ -13892,6 +13892,7 @@ na versão correspondente, antes do lançamento (não foi redigido aqui):
 - AWSSDK.Extensions.CborProtocol 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
 - AWSSDK.Extensions.Numerics 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
 - AWSSDK.Lambda 4.1.1 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
+- AWSSDK.Pricing 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
 - AWSSDK.RDS 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
 - AWSSDK.S3 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
 - AWSSDK.SecurityToken 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/

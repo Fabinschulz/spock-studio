@@ -116,6 +116,8 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "iac.architect.draft",
     "iac.generate.plan",
     "iac.generate.save",
+    "iac.drift",
+    "iac.cost.estimate",
 ];
 
 pub mod error_code {

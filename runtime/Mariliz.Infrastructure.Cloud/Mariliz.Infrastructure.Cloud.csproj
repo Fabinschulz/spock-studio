@@ -7,7 +7,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- AWS: STS para a identidade, SSO e SSOOIDC para perfis do IAM Identity Center, Signin para perfis do aws login, e os serviços lidos. -->
+    <!-- AWS: STS para a identidade, SSO e SSOOIDC para perfis do IAM Identity Center, Signin para perfis do aws login, os serviços lidos e a lista de preços. -->
     <PackageReference Include="AWSSDK.SecurityToken" Version="4.1.0" />
     <PackageReference Include="AWSSDK.SSO" Version="4.1.0" />
     <PackageReference Include="AWSSDK.SSOOIDC" Version="4.1.0" />
@@ -20,6 +20,7 @@
     <PackageReference Include="AWSSDK.Lambda" Version="4.1.1" />
     <PackageReference Include="AWSSDK.CloudFormation" Version="4.1.1" />
     <PackageReference Include="AWSSDK.CloudWatch" Version="4.1.1" />
+    <PackageReference Include="AWSSDK.Pricing" Version="4.1.0" />
     <!-- Azure: cadeia oficial de credenciais do Entra ID e o Azure Resource Manager. -->
     <PackageReference Include="Azure.Identity" Version="1.21.0" />
     <PackageReference Include="Azure.ResourceManager" Version="1.14.0" />

@@ -1,0 +1,121 @@
+{
+  "estimate": {
+    "currency": "USD",
+    "region": "sa-east-1",
+    "source": "AWS Price List Query API",
+    "pricedAt": "2026-11-10T12:00:00+00:00",
+    "monthlyFixed": 117.27,
+    "complete": true,
+    "fixed": [
+      {
+        "resource": "Application Load Balancer",
+        "basis": "Ligado o mês todo",
+        "quantity": 730,
+        "unit": "hora",
+        "unitPrice": 0.034,
+        "monthly": 24.82,
+        "priceDescription": "0.034 USD por Hrs"
+      },
+      {
+        "resource": "ECS Fargate, CPU",
+        "basis": "2 tarefa(s) de 0.5 vCPU o mês todo",
+        "quantity": 730.0,
+        "unit": "vCPU-hora",
+        "unitPrice": 0.0696,
+        "monthly": 50.81,
+        "priceDescription": "0.0696 USD por hours"
+      },
+      {
+        "resource": "ECS Fargate, memória",
+        "basis": "2 tarefa(s) de 1 GB o mês todo",
+        "quantity": 1460,
+        "unit": "GB-hora",
+        "unitPrice": 0.0076,
+        "monthly": 11.10,
+        "priceDescription": "0.0076 USD por hours"
+      },
+      {
+        "resource": "Secrets Manager",
+        "basis": "Segredo da aplicação e senha do banco",
+        "quantity": 2,
+        "unit": "segredo-mês",
+        "unitPrice": 0.40,
+        "monthly": 0.80,
+        "priceDescription": "0.40 USD por Secrets"
+      },
+      {
+        "resource": "RDS postgres db.t4g.micro",
+        "basis": "Single-AZ, ligado o mês todo",
+        "quantity": 730,
+        "unit": "hora",
+        "unitPrice": 0.034,
+        "monthly": 24.82,
+        "priceDescription": "0.034 USD por Hrs"
+      },
+      {
+        "resource": "RDS, armazenamento gp3",
+        "basis": "20 GB Single-AZ",
+        "quantity": 20,
+        "unit": "GB-mês",
+        "unitPrice": 0.219,
+        "monthly": 4.38,
+        "priceDescription": "0.219 USD por GB-Mo"
+      },
+      {
+        "resource": "CloudWatch Alarms",
+        "basis": "4 alarme(s) de resolução padrão",
+        "quantity": 4,
+        "unit": "alarme-mês",
+        "unitPrice": 0.135,
+        "monthly": 0.54,
+        "priceDescription": "0.135 USD por Alarms"
+      }
+    ],
+    "usageBased": [
+      {
+        "resource": "Application Load Balancer, capacidade",
+        "basis": "Depende do tráfego",
+        "quantity": null,
+        "unit": "LCU-hora",
+        "unitPrice": 0.011,
+        "monthly": null,
+        "priceDescription": "0.011 USD por LCU-Hrs"
+      },
+      {
+        "resource": "ECR, imagens",
+        "basis": "Depende do tamanho das imagens (guarda as 20 mais recentes)",
+        "quantity": null,
+        "unit": "GB-mês",
+        "unitPrice": 0.10,
+        "monthly": null,
+        "priceDescription": "0.10 USD por GB-Mo"
+      },
+      {
+        "resource": "CloudWatch Logs, ingestão",
+        "basis": "Depende do volume de log do serviço",
+        "quantity": null,
+        "unit": "GB",
+        "unitPrice": 0.90,
+        "monthly": null,
+        "priceDescription": "0.90 USD por GB"
+      },
+      {
+        "resource": "SQS",
+        "basis": "Depende do volume de mensagens",
+        "quantity": null,
+        "unit": "milhão de requisições",
+        "unitPrice": 0.4000000,
+        "monthly": null,
+        "priceDescription": "0.0000004 USD por Requests"
+      }
+    ],
+    "assumptions": [
+      "Estimativa com os preços públicos sob demanda da AWS em sa-east-1, em dólares, consultados na AWS Price List Query API em 2026-11-10.",
+      "Mês de 730 horas, com tudo ligado o mês inteiro.",
+      "Sem impostos, câmbio, free tier, Savings Plans, instâncias reservadas nem descontos da conta.",
+      "Os itens por uso dependem do tráfego e ficam fora do total.",
+      "Transferência de dados para a internet e backup do banco além do tamanho dele não entram.",
+      "Tarefas sem IP público precisam de NAT Gateway ou endpoints VPC, que não estão nesta configuração nem na estimativa."
+    ]
+  }
+}

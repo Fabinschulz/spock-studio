@@ -5,6 +5,7 @@ import {
   iacGeneratePlanSchema,
   iacGenerateSaveSchema,
   iacBootstrapSaveSchema,
+  iacCostEstimateSchema,
   iacStateReadSchema,
   iacStateReportSchema,
   iacUnlockSchema,
@@ -16,6 +17,7 @@ import {
   type IacArchitectDraft,
   type IacBlueprint,
   type IacBootstrapPlan,
+  type IacCostEstimate,
   type IacGeneratePlan,
   type IacEngine,
   type IacStateRead,
@@ -46,6 +48,15 @@ export type IacApi = {
   /** Gera e guarda o plano; aplicar é outra etapa, com aprovação daquele plano. */
   plan(input: { projectId: string; folder?: string; workspace?: string; connectionId?: string }): Promise<IacOperation>;
   operations(projectId: string): Promise<IacOperation[]>;
+  /** plan -refresh-only sobre a cópia: o que mudou na nuvem por fora da ferramenta. Não grava o state nem muda a nuvem. */
+  drift(input: {
+    projectId: string;
+    folder?: string;
+    workspace?: string;
+    connectionId?: string;
+  }): Promise<IacOperation>;
+  /** Preços públicos do provedor pela conexão do projeto; nada da conta é lido. */
+  costEstimate(input: { projectId: string; connectionId: string; blueprint: IacBlueprint }): Promise<IacCostEstimate>;
   /** Aprova aquele plano (pelo planId que a pessoa viu, com as confirmações dela) e aplica. Muda a nuvem. */
   apply(input: {
     projectId: string;
@@ -114,6 +125,8 @@ export function createIacApi(client: EngineClient): IacApi {
     validate: (projectId) =>
       client.request('iac.validate', { projectId }, iacOperationResultSchema).then((r) => r.operation),
     plan: (input) => client.request('iac.plan', input, iacOperationResultSchema).then((r) => r.operation),
+    drift: (input) => client.request('iac.drift', input, iacOperationResultSchema).then((r) => r.operation),
+    costEstimate: (input) => client.request('iac.cost.estimate', input, iacCostEstimateSchema).then((r) => r.estimate),
     state: (projectId) => client.request('iac.state', { projectId }, iacStateReportSchema).then((r) => r.state),
     stateResources: (input) => client.request('iac.state.resources', input, iacStateReadSchema).then((r) => r.state),
     unlock: async (input) => {

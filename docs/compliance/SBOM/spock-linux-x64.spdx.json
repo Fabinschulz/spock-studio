@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Spock Studio para Linux x64 (AppImage e .deb)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-linux-x64--appimage-e-.deb--ccd5cba8-c3c0-4b2f-8f0c-6fc753f6773d",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-linux-x64--appimage-e-.deb--610be8bd-9327-426f-a55f-75877724ea8d",
   "creationInfo": {
-    "created": "2026-11-15T23:57:46Z",
+    "created": "2026-11-16T00:20:20Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -9505,6 +9505,31 @@
       ]
     },
     {
+      "SPDXID": "SPDXRef-Package-nuget-AWSSDK.Pricing-4.1.0",
+      "name": "AWSSDK.Pricing",
+      "versionInfo": "4.1.0",
+      "downloadLocation": "https://github.com/aws/aws-sdk-net/",
+      "filesAnalyzed": false,
+      "licenseDeclared": "Apache-2.0",
+      "licenseConcluded": "Apache-2.0",
+      "copyrightText": "NOASSERTION",
+      "primaryPackagePurpose": "LIBRARY",
+      "comment": "Uso: transitiva. Ambiente: execução. Distribuição: incorporado (sidecar .NET single-file). Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/awssdk.pricing/4.1.0.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:nuget/AWSSDK.Pricing@4.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "68030d4f0266332a8e8bb060946bd44ae7d7b8d00b16ce8670fb6d4cc06f585321f205fe60224215cc116aaeeb65a7481eb5f4ec0f5e2db1a5aa80847daeb544"
+        }
+      ]
+    },
+    {
       "SPDXID": "SPDXRef-Package-nuget-AWSSDK.RDS-4.1.0",
       "name": "AWSSDK.RDS",
       "versionInfo": "4.1.0",
@@ -16300,6 +16325,16 @@
     },
     {
       "spdxElementId": "SPDXRef-Package-nuget-AWSSDK.Lambda-4.1.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-nuget-AWSSDK.Core-4.1.0.1"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-spock-studio",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-nuget-AWSSDK.Pricing-4.1.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-nuget-AWSSDK.Pricing-4.1.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-nuget-AWSSDK.Core-4.1.0.1"
     },

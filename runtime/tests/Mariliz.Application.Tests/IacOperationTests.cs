@@ -96,6 +96,48 @@ public sealed class IacOperationTests : IDisposable
     }
 
     [Fact]
+    public async Task Drift_le_a_copia_do_state_registra_so_nomes_e_nao_guarda_o_plano()
+    {
+        var before = _project.Fingerprint();
+        var service = await Service();
+
+        var operation = await service.DriftAsync(new IacPlanRequest(_projectId, null, "dev", null), IacOperationService.Person, CancellationToken.None);
+
+        Assert.Equal(IacOperationKind.Drift, operation.Kind);
+        Assert.Equal(IacOperationStatus.Succeeded, operation.Status);
+        Assert.True(operation.HasChanges);
+        Assert.Null(operation.PlanId);
+        Assert.Equal("dev", _runtime.LastDrift!.Workspace);
+        Assert.True(_runtime.SawState);
+        Assert.Equal(["changed", "deleted"], operation.Drift!.Select(d => d.Change));
+        Assert.False(Directory.Exists(Path.Combine(_project.DataDir, "projects", _projectId, "iac", "operations", operation.Id)));
+        Assert.Equal(before, _project.Fingerprint());
+        Assert.DoesNotContain(_audit.Entries, e => e.Detail.Contains(StateSecret));
+        Assert.Contains(_audit.Entries, e => e.Action == "iac.drift" && e.Detail.Contains("\"changed\":1") && e.Detail.Contains("\"deleted\":1"));
+        Assert.Equal(IacOperationKind.Drift, service.History(_projectId)[0].Kind);
+
+        var tools = new Mariliz.Application.Mcp.IacMcpTools(Workspace, _ => throw new InvalidOperationException(), _ => service, _project.Root);
+        var summary = await tools.Tools().Single(t => t.Info.Name == Mariliz.Application.Mcp.IacMcpTools.DriftTool)
+            .Call(new Mariliz.Application.Mcp.McpCall(new System.Text.Json.Nodes.JsonObject(), "teste", CancellationToken.None));
+        Assert.Contains("alterado fora da ferramenta: aws_sqs_queue.main[\"pedidos\"] (tags, visibility_timeout_seconds)", summary);
+        Assert.Contains("apagado fora da ferramenta: aws_sns_topic.alerts", summary);
+        Assert.DoesNotContain(StateSecret, summary);
+    }
+
+    [Fact]
+    public async Task Drift_que_falha_guarda_o_erro_e_a_trava_sem_lista()
+    {
+        _runtime.DriftResult = new IacDriftRun(false, [], "Error acquiring the state lock\nLock Info:\n  ID:        6f1c2a9e-1b2c-4d5e-8f90-123456789abc");
+        var operation = await (await Service()).DriftAsync(new IacPlanRequest(_projectId, null, null, null), IacOperationService.Person, CancellationToken.None);
+
+        Assert.Equal(IacOperationStatus.Failed, operation.Status);
+        Assert.Null(operation.Drift);
+        Assert.Null(operation.HasChanges);
+        Assert.Equal("6f1c2a9e-1b2c-4d5e-8f90-123456789abc", operation.LockId);
+        Assert.Equal("default", operation.Workspace);
+    }
+
+    [Fact]
     public async Task Planejar_le_a_copia_do_state_local_e_apaga_a_copia_depois()
     {
         var before = _project.Fingerprint();
@@ -431,6 +473,18 @@ public sealed class IacOperationTests : IDisposable
         }
 
         public Task<IacStateRead> StateAsync(IacStateSpec spec, CancellationToken ct) => Task.FromResult(StateResult);
+
+        public IacDriftRun DriftResult { get; set; } = new(true, [new IacDriftedResource("aws_sqs_queue.main[\"pedidos\"]", "aws_sqs_queue", "changed",
+            ["tags", "visibility_timeout_seconds"]), new IacDriftedResource("aws_sns_topic.alerts", "aws_sns_topic", "deleted", [])], null, "s3");
+        public IacPlanSpec? LastDrift { get; private set; }
+
+        public Task<IacDriftRun> DriftAsync(IacPlanSpec spec, CancellationToken ct)
+        {
+            LastDrift = spec;
+            Look(spec.Directory);
+            File.WriteAllText(spec.PlanFile, "plano refresh-only com valores " + StateSecret);
+            return Task.FromResult(DriftResult);
+        }
 
         public Task<string?> UnlockAsync(IacStateSpec spec, string lockId, CancellationToken ct)
         {

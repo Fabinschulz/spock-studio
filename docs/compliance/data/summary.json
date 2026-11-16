@@ -1,6 +1,6 @@
 {
-  "gerado_em": "2026-11-15",
-  "total": 956,
+  "gerado_em": "2026-11-16",
+  "total": 957,
   "por_ecossistema": {
     "GitHub Actions": 1,
     "asset": 3,
@@ -8,21 +8,21 @@
     "cargo": 377,
     "externo": 6,
     "npm": 445,
-    "nuget": 67,
+    "nuget": 68,
     "pypi": 43,
     "registro Terraform/OpenTofu": 1,
     "serviço": 2,
     "sistema operacional": 2
   },
-  "diretas": 103,
+  "diretas": 104,
   "transitivas": 853,
-  "distribuidos": 484,
+  "distribuidos": 485,
   "distribuidos_por_ecossistema": {
     "asset": 3,
     "binário": 7,
     "cargo": 276,
     "npm": 106,
-    "nuget": 50,
+    "nuget": 51,
     "pypi": 41,
     "sistema operacional": 1
   },
@@ -31,20 +31,20 @@
   "desenvolvimento_build": 460,
   "nao_instalados": 1,
   "risco": {
-    "BAIXO": 934,
+    "BAIXO": 935,
     "PENDENTE": 3,
     "ALTO": 6,
     "MÉDIO": 13
   },
   "risco_distribuidos": {
-    "BAIXO": 470,
+    "BAIXO": 471,
     "PENDENTE": 1,
     "ALTO": 2,
     "MÉDIO": 11
   },
   "licencas_distribuidos": {
     "MIT": 397,
-    "Apache-2.0": 28,
+    "Apache-2.0": 29,
     "BSD-3-Clause": 15,
     "Unicode-3.0": 15,
     "MPL-2.0": 5,
@@ -71,7 +71,7 @@
   "licencas_declaradas_todos": {
     "MIT": 528,
     "MIT OR Apache-2.0": 174,
-    "Apache-2.0": 56,
+    "Apache-2.0": 57,
     "Apache-2.0 OR MIT": 55,
     "BSD-3-Clause": 18,
     "Unicode-3.0": 18,
@@ -113,7 +113,7 @@
     "SEM ARQUIVO": 26,
     "DIVERGE": 6,
     "TEXTO NÃO RECONHECIDO": 1,
-    "SÓ EXPRESSÃO": 51
+    "SÓ EXPRESSÃO": 52
   },
   "conferencia_distribuidos": {
     "CONFERIDO MANUALMENTE": 13,
@@ -121,7 +121,7 @@
     "SEM ARQUIVO": 8,
     "DIVERGE": 1,
     "TEXTO NÃO RECONHECIDO": 1,
-    "SÓ EXPRESSÃO": 35
+    "SÓ EXPRESSÃO": 36
   },
   "divergentes_distribuidos": [
     "crossbeam-channel@0.5.17: declarado MIT OR Apache-2.0, arquivo Apache-2.0, BSD-3-Clause, MIT"

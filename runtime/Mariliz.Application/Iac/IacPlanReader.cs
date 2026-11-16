@@ -49,6 +49,41 @@ public static class IacPlanReader
         return (new IacPlanSummary(create, update, replace, delete, read, unchanged, changes, outputs), findings);
     }
 
+    public const int MaxDriftAttributes = 20;
+
+    // resource_drift de um plano: o que a nuvem tem diferente do state. Dos atributos saem só os nomes de nível de cima cujo
+    // valor mudou; a comparação acontece aqui e os valores ficam no arquivo de plano, que é apagado em seguida.
+    public static IReadOnlyList<IacDriftedResource> ReadDrift(JsonNode plan)
+    {
+        var drifted = new List<IacDriftedResource>();
+        foreach (var resource in (plan["resource_drift"] as JsonArray ?? []).OfType<JsonObject>())
+        {
+            if (Text(resource, "mode") == "data") continue;
+            var change = resource["change"] as JsonObject;
+            var actions = (change?["actions"] as JsonArray ?? []).Select(a => a?.GetValue<string>()).OfType<string>().ToList();
+            var kind = Action(actions) switch
+            {
+                "delete" => "deleted",
+                "update" or "replace" => "changed",
+                _ => null
+            };
+            if (kind is null) continue;
+            var attributes = kind == "deleted" ? [] : ChangedAttributes(change?["before"] as JsonObject, change?["after"] as JsonObject);
+            drifted.Add(new IacDriftedResource(Text(resource, "address") ?? "?", Text(resource, "type") ?? "?", kind, attributes));
+        }
+        return drifted;
+    }
+
+    private static List<string> ChangedAttributes(JsonObject? before, JsonObject? after)
+    {
+        if (before is null || after is null) return [];
+        return before.Select(p => p.Key).Union(after.Select(p => p.Key), StringComparer.Ordinal)
+            .Where(name => !JsonNode.DeepEquals(before[name], after[name]))
+            .Order(StringComparer.Ordinal)
+            .Take(MaxDriftAttributes)
+            .ToList();
+    }
+
     private static string Action(IReadOnlyList<string> actions) => actions switch
     {
         ["create"] => "create",

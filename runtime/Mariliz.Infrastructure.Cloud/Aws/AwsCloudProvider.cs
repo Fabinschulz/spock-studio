@@ -8,7 +8,7 @@ namespace Mariliz.Infrastructure.Cloud.Aws;
 
 // A credencial é sempre a que o AWS SDK acha sozinho (perfil, cache do SSO, variáveis, papel da máquina): o Spock guarda
 // só o nome do perfil, a região e o Role ARN.
-public sealed partial class AwsCloudProvider : ICloudProvider
+public sealed partial class AwsCloudProvider : ICloudProvider, ICloudPriceSource
 {
     public const string ProfileMechanism = "profile";
     public const string DefaultMechanism = "default";
@@ -85,6 +85,18 @@ public sealed partial class AwsCloudProvider : ICloudProvider
         {
             var credentials = AwsCredentials.Resolve(settings);
             return await AwsReaders.ReadAsync(credentials, query.Region ?? settings.Region!, query, ct);
+        }
+        catch (Exception ex) when (AwsErrors.Map(ex, settings, ct) is { } mapped)
+        {
+            throw mapped;
+        }
+    }
+
+    public async Task<IReadOnlyList<CloudPriceQuote>> PricesAsync(CloudSettings settings, IReadOnlyList<CloudPriceQuery> queries, CancellationToken ct)
+    {
+        try
+        {
+            return await AwsPrices.QuoteAsync(AwsCredentials.Resolve(settings), queries, ct);
         }
         catch (Exception ex) when (AwsErrors.Map(ex, settings, ct) is { } mapped)
         {

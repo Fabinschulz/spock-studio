@@ -12,6 +12,7 @@ using Amazon.ECS;
 using Amazon.ECS.Model;
 using Amazon.Lambda;
 using Amazon.Lambda.Model;
+using Amazon.Pricing;
 using Amazon.RDS;
 using Amazon.RDS.Model;
 using Amazon.Runtime;
@@ -63,7 +64,10 @@ internal static class AwsReaders
         new("aws.cloudformation.stacks", "Pilhas CloudFormation", "Pilhas de infraestrutura da região, com estado e desvio.", "CloudFormation", ["cloudformation:DescribeStacks"], CloudRegionUse.Required,
             [C("name", "Nome"), C("status", "Estado"), C("createdAt", "Criada em"), C("updatedAt", "Atualizada em"), C("drift", "Desvio")]),
         new("aws.cloudwatch.alarms", "Alarmes CloudWatch", "Alarmes de métrica da região e o estado atual de cada um.", "CloudWatch", ["cloudwatch:DescribeAlarms"], CloudRegionUse.Required,
-            [C("name", "Nome"), C("state", "Estado"), C("metric", "Métrica"), C("namespace", "Namespace"), C("changedAt", "Mudou em")])
+            [C("name", "Nome"), C("state", "Estado"), C("metric", "Métrica"), C("namespace", "Namespace"), C("changedAt", "Mudou em")]),
+        new("aws.pricing", "Preços públicos", "Lista de preços sob demanda da AWS, usada na estimativa de custo da infraestrutura. Não lê nada da conta.",
+            "Price List", ["pricing:DescribeServices", "pricing:GetProducts"], CloudRegionUse.None,
+            [C("service", "Serviço"), C("attributes", "Atributos")])
     ];
 
     public static Task<CloudTable> ReadAsync(AWSCredentials credentials, string region, CloudQuery query, CancellationToken ct) => query.Capability switch
@@ -79,6 +83,7 @@ internal static class AwsReaders
         "aws.lambda.functions" => FunctionsAsync(credentials, region, query.Limit, ct),
         "aws.cloudformation.stacks" => StacksAsync(credentials, region, query.Limit, ct),
         "aws.cloudwatch.alarms" => AlarmsAsync(credentials, region, query.Limit, ct),
+        "aws.pricing" => PricingServicesAsync(credentials, query.Limit, ct),
         _ => throw CloudErrors.CapabilityUnknown()
     };
 
@@ -278,6 +283,21 @@ internal static class AwsReaders
         {
             var response = await cloudWatch.DescribeAlarmsAsync(new DescribeAlarmsRequest { MaxRecords = Math.Clamp(limit + 1, 1, 100), NextToken = token }, ct);
             rows.AddRange((response.MetricAlarms ?? []).Select(a => Row(a.AlarmName, a.StateValue?.Value, a.MetricName, a.Namespace, Date(a.StateUpdatedTimestamp))));
+            token = response.NextToken;
+            if (string.IsNullOrEmpty(token)) break;
+        }
+        return Table(rows, limit, more: !string.IsNullOrEmpty(token));
+    }
+
+    private static async Task<CloudTable> PricingServicesAsync(AWSCredentials credentials, int limit, CancellationToken ct)
+    {
+        using var pricing = new AmazonPricingClient(credentials, AwsClients.Config<AmazonPricingConfig>("us-east-1"));
+        var rows = new List<IReadOnlyList<string?>>();
+        string? token = null;
+        for (var page = 0; page < MaxPages && rows.Count <= limit; page++)
+        {
+            var response = await pricing.DescribeServicesAsync(new Amazon.Pricing.Model.DescribeServicesRequest { FormatVersion = "aws_v1", MaxResults = 100, NextToken = token }, ct);
+            rows.AddRange((response.Services ?? []).Select(s => Row(s.ServiceCode, Number(s.AttributeNames?.Count))));
             token = response.NextToken;
             if (string.IsNullOrEmpty(token)) break;
         }

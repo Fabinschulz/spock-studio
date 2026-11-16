@@ -242,6 +242,11 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                     $"Criar {Count(d, "create")}, alterar {Count(d, "update")}, substituir {Count(d, "replace")}, destruir {Count(d, "delete")}; " +
                     $"{Count(d, "findings")} achado(s). Nada mudou na nuvem.");
                 break;
+            case "iac.drift":
+                yield return Entry("", AuditCategories.Read, $"Drift de infraestrutura verificado ({Clean(Text(d, "workspace"))})",
+                    Text(d, "status") == "failed" ? "A verificação falhou. Nada mudou na nuvem nem no state."
+                    : $"{Count(d, "changed")} recurso(s) alterado(s) e {Count(d, "deleted")} apagado(s) fora da ferramenta. Nada mudou na nuvem nem no state.");
+                break;
             case "iac.bootstrap_written":
                 yield return Entry("", AuditCategories.Change, $"Bootstrap do state gravado ({Clean(Text(d, "provider"))})",
                     $"{Count(d, "files")} arquivo(s) em {Clean(Text(d, "folder"))}. O bucket só é criado depois, pelo plano e apply aprovados.");

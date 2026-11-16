@@ -406,6 +406,7 @@ hashes) em `inventory.csv` / `inventory.json`. W = Windows x64, L = Linux x64.
 | AWSSDK.Extensions.CborProtocol | 4.1.0 | nuget | transitiva | x | x | Apache-2.0 | SÓ EXPRESSÃO | BAIXO |
 | AWSSDK.Extensions.Numerics | 4.1.0 | nuget | transitiva | x | x | Apache-2.0 | SÓ EXPRESSÃO | BAIXO |
 | AWSSDK.Lambda | 4.1.1 | nuget | direta | x | x | Apache-2.0 | SÓ EXPRESSÃO | BAIXO |
+| AWSSDK.Pricing | 4.1.0 | nuget | direta | x | x | Apache-2.0 | SÓ EXPRESSÃO | BAIXO |
 | AWSSDK.RDS | 4.1.0 | nuget | direta | x | x | Apache-2.0 | SÓ EXPRESSÃO | BAIXO |
 | AWSSDK.S3 | 4.1.0 | nuget | direta | x | x | Apache-2.0 | SÓ EXPRESSÃO | BAIXO |
 | AWSSDK.SecurityToken | 4.1.0 | nuget | direta | x | x | Apache-2.0 | SÓ EXPRESSÃO | BAIXO |
