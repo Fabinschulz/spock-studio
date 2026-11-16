@@ -1,5 +1,6 @@
 .container {
   width: 100%;
   min-height: 100%;
-  padding: var(--space-5) var(--space-5) 0;
+  // Espaço no fim: o último bloco da tela não encosta na barra de status quando a página rola até o fim.
+  padding: var(--space-5) var(--space-5) var(--space-6);
 }
