@@ -39,7 +39,6 @@ from workflows.engineering.state import (
     MAX_ITERATIONS,
     MAX_MILLISECONDS,
     MAX_MILLISECONDS_MODEL,
-    MAX_TOKENS,
     WORKFLOW_ID,
     WORKFLOW_VERSION,
     Segment,
@@ -68,7 +67,8 @@ def run_start(payload: dict, clock: Callable[[], float] | None = None,
         return
     emitter = Emitter(request.execution_id)
     model = (model_factory or broker_client)(request) if request.model_allowed else None
-    # O motor define os limites; o runtime só pode ser mais restritivo. O teto de tokens só existe com modelo.
+    # O motor define os limites; o runtime só pode ser mais restritivo. O teto de tokens é o do motor (o contrato recusa
+    # um acima da faixa) e só existe com modelo.
     ceiling = MAX_MILLISECONDS_MODEL if model else MAX_MILLISECONDS
     segment = Segment(
         emitter,
@@ -77,7 +77,7 @@ def run_start(payload: dict, clock: Callable[[], float] | None = None,
         min(ceiling, request.limits.max_milliseconds),
         request.sources,
         model,
-        min(MAX_TOKENS, request.limits.max_tokens) if model else 0,
+        request.limits.max_tokens if model else 0,
     )
     yield emitter.event("workflow.started")
     initial = initial_state(request)

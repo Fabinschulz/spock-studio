@@ -5,7 +5,7 @@ from typing import Callable, TypedDict
 
 from agents import planning as planning_model
 from agents.runner import Model
-from contracts.messages import StartRequest
+from contracts.messages import MAX_TOKENS, StartRequest
 from infrastructure.events import Emitter, now
 
 WORKFLOW_ID = "engineering.request"
@@ -15,7 +15,6 @@ MAX_ITERATIONS = 8
 MAX_MILLISECONDS = 10000
 # Com modelo, uma chamada leva segundos: o tempo e os tokens sobem, mas o motor continua sendo quem define o teto.
 MAX_MILLISECONDS_MODEL = 60000
-MAX_TOKENS = 20000
 AREA_BY_STACK = {
     "dotnet": "servico",
     "javascript": "interface",

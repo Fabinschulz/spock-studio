@@ -8,6 +8,7 @@ from support_model import TOKEN, URL, FakeModel
 
 from agents.model_client import ModelError
 from contracts.investigation import (
+    MAX_TOKENS,
     Fact,
     conclusion_from_model,
     hypotheses_from_model,
@@ -286,6 +287,21 @@ class InvestigationTests(unittest.TestCase):
         self.assertIn("MODEL_BUDGET_EXCEEDED", {item["code"] for item in ack["limitations"]})
         self.assertEqual(len(fake.calls), 1)
         self.assertIsNotNone(ack["answer"])
+
+    def test_o_teto_do_motor_vale_inteiro(self) -> None:
+        # P0-2: o runtime cortava em 40.000. Depois da primeira chamada (38.100), a conclusão só cabe no teto pedido.
+        fake = FakeModel(_hypotheses([("H", ["flow.throughput"])]), _conclusion(), input_tokens=38000, output_tokens=100)
+
+        _events, ack = _go(_payload(maxTokens=100000), fake)
+
+        self.assertEqual(len(fake.calls), 2)
+        self.assertNotIn("MODEL_BUDGET_EXCEEDED", {item["code"] for item in ack["limitations"]})
+        self.assertEqual(ack["status"], "completed")
+
+    def test_teto_acima_da_faixa_do_motor_e_recusado_e_nao_cortado(self) -> None:
+        self.assertEqual(parse_investigation(_payload(maxTokens=MAX_TOKENS)).max_tokens, MAX_TOKENS)
+        with self.assertRaises(ContractError):
+            parse_investigation(_payload(maxTokens=MAX_TOKENS + 1))
 
     def test_hipotese_que_cita_fato_nao_reunido_e_recusada_e_pedida_de_novo(self) -> None:
         fake = FakeModel(

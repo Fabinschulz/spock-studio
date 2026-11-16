@@ -6,6 +6,7 @@ from pathlib import Path
 
 import _paths  # noqa: F401
 
+from contracts import investigation, messages
 from workflows.engineering import graph
 
 CONTRACTS = Path(__file__).resolve().parents[2] / "contracts"
@@ -40,6 +41,14 @@ class ContractTests(unittest.TestCase):
         for path in SCHEMAS.glob("*.schema.json"):
             schema = json.loads(path.read_text(encoding="utf-8"))
             self.assertEqual(schema["$id"], f"https://mariliz.dev/schemas/intelligence/{path.name}", path.name)
+
+    def test_teto_de_tokens_do_runtime_e_o_maximo_do_schema(self) -> None:
+        for schema, ceiling in (("ai.workflow.start.v2", messages.MAX_TOKENS), ("ai.investigation.start.v2", investigation.MAX_TOKENS)):
+            body = _schema(schema)
+            limits = body["properties"]["limits"]
+            if "$ref" in limits:
+                limits = body["$defs"][limits["$ref"].rsplit("/", 1)[-1]]
+            self.assertEqual(limits["properties"]["maxTokens"]["maximum"], ceiling, schema)
 
     def test_toda_fixture_aponta_para_um_schema_existente(self) -> None:
         names = {path.name[: -len(".schema.json")] for path in SCHEMAS.glob("*.schema.json")}

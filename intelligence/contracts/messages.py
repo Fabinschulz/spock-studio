@@ -17,6 +17,8 @@ _VERSION = re.compile(r"^[0-9]+$")
 _STACK = re.compile(r"^[a-z0-9][a-z0-9_-]{0,31}$")
 _HASH = re.compile(r"^[0-9a-f]{64}$")
 _LIMITS = ("maxIterations", "maxMilliseconds", "maxTokens", "maxCostUsd")
+# O maior teto que o motor deixa escolher para um fluxo (ModelBudgets); o schema e os testes conferem os três valores.
+MAX_TOKENS = 64000
 _BROKER_URL = re.compile(r"^http://127\.0\.0\.1:[0-9]{1,5}/v1/model$")
 
 
@@ -100,6 +102,8 @@ def parse_start(payload: object) -> StartRequest:
     policy = _object(body.get("policy"), "policy")
     limits = _object(body.get("limits"), "limits")
     if any(not isinstance(limits.get(name), (int, float)) or isinstance(limits.get(name), bool) or limits[name] < 0 for name in _LIMITS):
+        raise ContractError("limits")
+    if limits["maxTokens"] > MAX_TOKENS:
         raise ContractError("limits")
     goal = _goal(incoming.get("goal"))
     stacks = _stacks(context.get("stacks"))
