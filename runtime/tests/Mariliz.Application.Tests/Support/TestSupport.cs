@@ -226,3 +226,12 @@ internal sealed class Journey
     public static string Status(JsonObject result, string evalId) =>
         result["validation"]!["results"]!.AsArray().First(r => r!["id"]!.GetValue<string>() == evalId)!["status"]!.GetValue<string>();
 }
+
+// O servidor MCP só sobe com escopo. O id sai do caminho, então dá para montar o escopo antes de o projeto ser aberto no Spock.
+internal static class McpScope
+{
+    public static IReadOnlySet<string> Of(params string[] projectIds) => new HashSet<string>(projectIds, StringComparer.Ordinal);
+
+    public static IReadOnlySet<string> For(string root) =>
+        Of(new WorkspaceAuthorizer(new LocalWorkspaceFileSystem()).Authorize(root).Project!.ProjectId);
+}

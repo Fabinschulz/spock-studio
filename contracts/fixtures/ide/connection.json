@@ -7,8 +7,8 @@
   "tools": [
     {
       "name": "list_projects",
-      "title": "Projetos abertos no Spock",
-      "description": "Lista os projetos que a pessoa abriu no Spock Studio e marca o da pasta atual. Só eles têm contexto disponível."
+      "title": "Projetos desta conexão",
+      "description": "Lista os projetos desta conexão que a pessoa abriu no Spock Studio e marca o da pasta atual. Só eles têm contexto disponível."
     },
     {
       "name": "project_briefing",

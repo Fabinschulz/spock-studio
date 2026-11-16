@@ -189,6 +189,20 @@ public class RiskHistoryTests
         new FileSyncedDataStore(h.DataDir).Write(h.ProjectId, integration.Id, data);
     }
 
+    // H0-2 do estudo de 16/11: a gestão montada para o MCP não recebia o histórico e respondia como se nada tivesse sido registrado.
+    [Fact]
+    public async Task A_gestao_montada_pela_composicao_grava_o_historico_de_riscos()
+    {
+        var (h, _, _, _) = await Setup([Item("1", ["blocked"])]);
+        using var harness = h;
+        using var composition = new Mariliz.Infrastructure.EngineComposition(h.DataDir, h.Clock, h.Audit, new Mariliz.Infrastructure.SystemProcessRunner(),
+            Mariliz.Application.Iac.IacDistributionPolicy.Unrestricted);
+
+        Assert.True(composition.Management(h.Workspace, h.Hub).CaptureRisks(h.ProjectId));
+        var saved = Assert.Single(new Mariliz.Infrastructure.Integrations.FileRiskHistoryStore(h.DataDir).Load(h.ProjectId));
+        Assert.Equal("blocked", Assert.Single(saved.Risks).Id);
+    }
+
     [Fact]
     public async Task Registra_o_estado_dos_riscos_e_confirma_sem_duplicar_quando_nada_mudou()
     {

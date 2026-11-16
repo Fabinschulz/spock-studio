@@ -29,9 +29,9 @@ public sealed class McpScopeTests : IDisposable
     private (string Loja, string Folha) Authorize() =>
         (Workspace().Authorize(_loja.Root).Project!.ProjectId, Workspace().Authorize(_folha.Root).Project!.ProjectId);
 
-    private McpServer Server(IReadOnlySet<string>? scope, string? workingDirectory = null) => new("1.2.3", new ProjectContextTools(
+    private McpServer Server(IReadOnlySet<string> scope, string? workingDirectory = null) => new("1.2.3", new ProjectContextTools(
         Workspace, new TestFilesFactory(), new FakeClock { UtcNow = Now }, new FileTechnologyProfileStore(_loja.DataDir),
-        new FileDecisionStore(_loja.DataDir), workingDirectory ?? Path.GetTempPath(), audit: _audit, scope: scope).Tools());
+        new FileDecisionStore(_loja.DataDir), workingDirectory ?? Path.GetTempPath(), scope, audit: _audit).Tools());
 
     private static (string Text, bool Failed) Call(McpServer server, string tool, JsonObject? arguments = null)
     {
@@ -44,11 +44,21 @@ public sealed class McpScopeTests : IDisposable
         return (result["content"]![0]!["text"]!.GetValue<string>(), result["isError"]!.GetValue<bool>());
     }
 
+    // H0-1 do estudo de 16/11: sem --project o servidor expunha todos os projetos autorizados; agora não sobe.
     [Fact]
-    public void Sem_argumento_nao_ha_escopo_e_cada_project_entra_uma_vez()
+    public void Sem_argumento_o_servidor_nao_sobe_e_diz_o_que_fazer()
     {
-        Assert.Null(McpOptions.Parse([]).Scope);
-        var scope = McpOptions.Parse(["--project", "p-aaaaaaaaaaaa", "--project", "p-bbbbbbbbbbbb", "--project", "p-aaaaaaaaaaaa"]).Scope!;
+        var error = Assert.Throws<McpOptionsException>(() => McpOptions.Parse([]));
+
+        Assert.Contains("--project", error.Message);
+        Assert.Contains("nenhum projeto é exposto", error.Message);
+    }
+
+    [Fact]
+    public void Cada_project_entra_uma_vez_no_escopo()
+    {
+        var scope = McpOptions.Parse(["--project", "p-aaaaaaaaaaaa", "--project", "p-bbbbbbbbbbbb", "--project", "p-aaaaaaaaaaaa"]).Scope;
+
         Assert.Equal(["p-aaaaaaaaaaaa", "p-bbbbbbbbbbbb"], scope.Order(StringComparer.Ordinal));
     }
 
@@ -76,14 +86,15 @@ public sealed class McpScopeTests : IDisposable
     {
         var (loja, folha) = Authorize();
 
-        var (scoped, _) = Call(Server(new HashSet<string> { loja }), "list_projects");
-        var (open, _) = Call(Server(null), "list_projects");
+        var (scoped, _) = Call(Server(McpScope.Of(loja)), "list_projects");
+        var (empty, _) = Call(Server(McpScope.Of("p-ffffffffffff")), "list_projects");
 
         Assert.StartsWith("Projetos disponíveis para esta conexão:", scoped);
         Assert.Contains(loja, scoped);
         Assert.DoesNotContain(folha, scoped);
-        Assert.Contains(loja, open);
-        Assert.Contains(folha, open);
+        Assert.DoesNotContain(loja, empty);
+        Assert.DoesNotContain(folha, empty);
+        Assert.Contains("Nenhum dos projetos desta conexão", empty);
     }
 
     [Fact]
@@ -91,7 +102,7 @@ public sealed class McpScopeTests : IDisposable
     {
         var (loja, folha) = Authorize();
         new FileDecisionStore(_loja.DataDir).Save(new ManagementDecision("dec-000000000001", folha, Now, "Folha", "Decisão sigilosa da folha", "Motivo.", [], [], []));
-        var server = Server(new HashSet<string> { loja });
+        var server = Server(McpScope.Of(loja));
 
         var byId = Call(server, "decisions", new JsonObject { ["project"] = folha });
         var unknown = Call(server, "decisions", new JsonObject { ["project"] = "p-ffffffffffff" });
@@ -107,8 +118,8 @@ public sealed class McpScopeTests : IDisposable
     {
         var (loja, _) = Authorize();
 
-        var (text, failed) = Call(Server(new HashSet<string> { loja }, _folha.Root), "project_briefing");
-        var (own, ownFailed) = Call(Server(new HashSet<string> { loja }, _loja.Root), "project_briefing");
+        var (text, failed) = Call(Server(McpScope.Of(loja), _folha.Root), "project_briefing");
+        var (own, ownFailed) = Call(Server(McpScope.Of(loja), _loja.Root), "project_briefing");
 
         Assert.True(failed);
         Assert.Contains("não é de um projeto disponível para esta conexão", text);
@@ -124,8 +135,8 @@ public sealed class McpScopeTests : IDisposable
         var (loja, _) = Authorize();
         var folder = Path.GetFileName(_loja.Root);
 
-        var (byManifest, manifestFailed) = Call(Server(null), "project_briefing", new JsonObject { ["project"] = "loja-virtual" });
-        var (byFolder, folderFailed) = Call(Server(null), "project_briefing", new JsonObject { ["project"] = folder });
+        var (byManifest, manifestFailed) = Call(Server(McpScope.Of(loja)), "project_briefing", new JsonObject { ["project"] = "loja-virtual" });
+        var (byFolder, folderFailed) = Call(Server(McpScope.Of(loja)), "project_briefing", new JsonObject { ["project"] = folder });
 
         Assert.False(manifestFailed);
         Assert.False(folderFailed);
@@ -139,16 +150,13 @@ public sealed class McpScopeTests : IDisposable
     {
         var (loja, folha) = Authorize();
 
-        var (single, singleFailed) = Call(Server(new HashSet<string> { loja }), "project_briefing");
-        var (two, twoFailed) = Call(Server(new HashSet<string> { loja, folha }), "project_briefing");
-        var (open, openFailed) = Call(Server(null), "project_briefing");
+        var (single, singleFailed) = Call(Server(McpScope.Of(loja)), "project_briefing");
+        var (two, twoFailed) = Call(Server(McpScope.Of(loja, folha)), "project_briefing");
 
         Assert.False(singleFailed);
         Assert.Contains(Workspace().Projects().Single(project => project.ProjectId == loja).DisplayName, single);
         Assert.True(twoFailed);
         Assert.Contains("Informe 'project'", two);
-        Assert.True(openFailed);
-        Assert.Contains("Informe 'project'", open);
     }
 
     [Fact]

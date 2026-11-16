@@ -23,6 +23,7 @@ const ENGINE = 'C:\\Program Files\\Spock\\mariliz-runtime.exe';
 const IDE = {
   command: ENGINE,
   args: ['mcp'],
+  projectArgument: '--project',
   tools: [{ name: 'project_briefing', title: 'Resumo do projeto', description: 'Tecnologias, comandos e decisões.' }]
 };
 
@@ -31,7 +32,7 @@ function fakeEngine(
   options: {
     tools?: typeof TOOLS;
     error?: string | null;
-    ide?: (typeof IDE & { projectArgument?: string }) | { command: null };
+    ide?: Omit<typeof IDE, 'projectArgument'> | { command: null };
   } = {}
 ) {
   const calls: { method: string; params: Record<string, unknown> }[] = [];
@@ -166,12 +167,16 @@ describe('Agentes de IA', () => {
 
     const section = await screen.findByRole('region', { name: 'O Spock dentro da sua ferramenta' });
     const snippet = await within(section).findByLabelText('Configuração para Claude Code');
-    expect(snippet).toHaveTextContent(`claude mcp add --scope user spock -- "${ENGINE}" mcp`);
+    expect(snippet).toHaveTextContent(
+      `claude mcp add --scope user ${scopedServerName(loja)} -- "${ENGINE}" mcp --project ${loja.projectId}`
+    );
     expect(within(section).getByText('Resumo do projeto')).toBeInTheDocument();
 
     await userEvent.click(within(section).getByRole('radio', { name: 'Cursor' }));
     const cursor = within(section).getByLabelText('Configuração para Cursor');
-    expect(JSON.parse(cursor.textContent ?? '')).toEqual({ mcpServers: { spock: { command: ENGINE, args: ['mcp'] } } });
+    expect(JSON.parse(cursor.textContent ?? '')).toEqual({
+      mcpServers: { [scopedServerName(loja)]: { command: ENGINE, args: ['mcp', '--project', loja.projectId] } }
+    });
 
     await userEvent.click(within(section).getByRole('button', { name: 'Copiar' }));
     expect(writeText).toHaveBeenCalledWith(cursor.textContent);
@@ -179,24 +184,15 @@ describe('Agentes de IA', () => {
     await expectNoA11yViolations(container);
   });
 
-  // Validação real M3: com um projeto aberto, a conexão sugerida lê só ele.
-  it('com projeto aberto, a configuração lê só ele e dá para escolher todos', async () => {
-    renderPage(fakeEngine({ ide: { ...IDE, projectArgument: '--project' } }).client);
+  // Validação real M3 e H0-1 (16/11): a conexão lê só o projeto aberto, e não existe mais a opção de ler todos.
+  it('com projeto aberto, a configuração lê só ele, sem opção de todos', async () => {
+    renderPage(fakeEngine().client);
 
     const section = await screen.findByRole('region', { name: 'O Spock dentro da sua ferramenta' });
-    const reach = within(section).getByRole('group', { name: 'O que ela pode ler' });
-    expect(within(reach).getByRole('radio', { name: `Só ${loja.displayName}` })).toBeChecked();
-    const scoped = within(section).getByLabelText('Configuração para Claude Code');
-    expect(scoped).toHaveTextContent(
-      `claude mcp add --scope user ${scopedServerName(loja)} -- "${ENGINE}" mcp --project ${loja.projectId}`
-    );
-    expect(within(section).getByText(new RegExp(`que só enxergam ${loja.displayName}`))).toBeInTheDocument();
-
-    await userEvent.click(within(reach).getByRole('radio', { name: 'Todos os projetos abertos no Spock' }));
-    expect(within(section).getByLabelText('Configuração para Claude Code')).toHaveTextContent(
-      `claude mcp add --scope user spock -- "${ENGINE}" mcp`
-    );
-    expect(within(section).getByLabelText('Configuração para Claude Code')).not.toHaveTextContent('--project');
+    await within(section).findByLabelText('Configuração para Claude Code');
+    expect(within(section).queryByRole('group', { name: 'O que ela pode ler' })).not.toBeInTheDocument();
+    expect(within(section).queryByText(/Todos os projetos/)).not.toBeInTheDocument();
+    expect(within(section).getByText(new RegExp(`que só\\s+enxergam ${loja.displayName}`))).toBeInTheDocument();
   });
 
   it('o nome do servidor restrito sai do nome do projeto, sem acento nem espaço', () => {
@@ -206,10 +202,12 @@ describe('Agentes de IA', () => {
     expect(scopedServerName({ projectId: 'p-aaaaaaaaaaaa', displayName: '***' })).toBe('spock-p-aaaaaaaaaaaa');
   });
 
-  it('o passo a passo da IDE aparece mesmo sem projeto aberto', async () => {
+  // H0-1 (16/11): sem projeto, o comando sairia sem --project, e o servidor não sobe assim.
+  it('sem projeto aberto, pede para abrir um em vez de mostrar um comando que não sobe', async () => {
     renderPage(fakeEngine().client, null);
 
-    expect(await screen.findByLabelText('Configuração para Claude Code')).toBeInTheDocument();
+    expect(await screen.findByText('Abra um projeto para ligar a sua ferramenta')).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Configuração para/)).not.toBeInTheDocument();
   });
 
   it('sem saber onde o motor está, não inventa um caminho', async () => {

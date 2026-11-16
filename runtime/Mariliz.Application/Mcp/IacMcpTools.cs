@@ -10,7 +10,7 @@ namespace Mariliz.Application.Mcp;
 // de infraestrutura e ler a última verificação de drift. Instalar, adotar, fixar, remover, gerar arquivos, planejar, verificar
 // drift (lê a nuvem com as credenciais da pessoa) e aplicar não existem aqui; são decisões da pessoa na interface.
 public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<WorkspaceAuthorizer, IacRuntimeService> terraform,
-    Func<WorkspaceAuthorizer, IacOperationService> operations, string workingDirectory, IReadOnlySet<string>? scope = null,
+    Func<WorkspaceAuthorizer, IacOperationService> operations, string workingDirectory, IReadOnlySet<string> scope,
     Func<WorkspaceAuthorizer, IacStateService>? state = null)
 {
     public const string StatusTool = "iac_status";

@@ -152,7 +152,7 @@ public sealed class CloudConnectorTests : IDisposable
         var hub = Hub();
         var connection = await hub.Connections.CreateAsync("fake", "Teste", "simple", Settings(), CancellationToken.None);
         var link = hub.Projects.Link(projectId, connection.Id, ["fake.items"], agentAccess: true);
-        var tools = new CloudMcpTools(hub, Workspace, _project.Root).Tools();
+        var tools = new CloudMcpTools(hub, Workspace, _project.Root, McpScope.Of(projectId)).Tools();
 
         hub.Projects.Configure(projectId, link.Id, null, agentAccess: false);
         var revoked = await Assert.ThrowsAsync<McpToolException>(() => tools.Single(t => t.Info.Name == "fake_items").Call(new McpCall([], "ide", CancellationToken.None)));

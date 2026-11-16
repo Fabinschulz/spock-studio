@@ -47,7 +47,8 @@ var workflows = new WorkflowService(engine.Workspace, aiRuntime, engine.Tracker,
 // Uma execução que a queda anterior deixou "em andamento" não vai terminar: vira falha antes de qualquer pedido.
 if (WorkflowRecovery.MarkInterrupted(engine.Store, engine.Clock) is > 0 and var interrupted)
     await Console.Error.WriteLineAsync($"{interrupted} execução(ões) interrompida(s) pela queda anterior foram marcadas como falha.");
-var management = new ManagementService(engine.Workspace, integrations, engine.Clock, new FileRiskHistoryStore(engine.DataRoot));
+using var composition = new EngineComposition(engine.DataRoot, engine.Clock, integrations.Audit, engine.Runner, BuildEdition.IacPolicy());
+var management = composition.Management(engine.Workspace, integrations);
 integrations.Sync.Finished += (integration, run) =>
 {
     if (run.Status is SyncStatus.Succeeded) management.CaptureRisks(integration.ProjectId);
@@ -65,21 +66,9 @@ var investigation = new InvestigationService(assistant, integrations, engine.Wor
 var portfolioAssistant = new PortfolioAssistant(assistant, engine.Workspace, models, integrations, engine.Clock);
 // Credenciais da cloud ficam onde o SDK de cada provedor as procura; a trilha é a mesma das integrações.
 var cloud = LocalCloudHub.Create(engine.DataRoot, engine.Workspace, engine.Clock, integrations.Audit);
-// OpenTofu (padrão, gratuito) e Terraform ficam numa pasta própria dos dados do Spock; nada é instalado sem um pedido da
-// pessoa pela interface.
-using var openTofuToolchain = new OpenTofuToolchain(engine.DataRoot, ExecutableLocator.FromEnvironment());
-using var terraformToolchain = new HashiCorpTerraformToolchain(engine.DataRoot, ExecutableLocator.FromEnvironment());
-// O state de cada raiz é lido como texto; o registro garante que dois projetos do Spock não dividam o mesmo state.
-var iacStates = new IacStateReader();
-var iacRegistry = new FileIacStateRegistry(engine.DataRoot);
-// A edição vem do build (-p:SpockEdition=commercial); a comercial não instala o Terraform (D-02).
-var iacPolicy = IacDistributionPolicy.ForEdition(typeof(Program).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyMetadataAttribute), false)
-    .OfType<System.Reflection.AssemblyMetadataAttribute>().FirstOrDefault(a => a.Key == "SpockEdition")?.Value);
-var iacRuntimes = new IacRuntimeService([openTofuToolchain, terraformToolchain], new FileIacSettingsStore(engine.DataRoot),
-    new IacConfigReader(), engine.Runner, engine.Workspace, engine.Clock, integrations.Audit, iacPolicy);
+var iacRuntimes = composition.IacRuntimes(engine.Workspace);
 var knowledge = new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge, decisionMemory);
-var iacOperations = new IacOperationService(iacRuntimes, new CliIacRuntimeFactory(engine.Runner, engine.DataRoot), new IacConfigReader(),
-    new FileIacWorkArea(engine.DataRoot), engine.Workspace, cloud, engine.Clock, integrations.Audit, iacStates, iacRegistry);
+var iacOperations = composition.IacOperations(iacRuntimes, engine.Workspace, cloud);
 var iacSchedules = new IacDriftScheduler(iacOperations, new FileIacDriftScheduleStore(engine.DataRoot), engine.Workspace, engine.Clock, integrations.Audit);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
@@ -99,8 +88,7 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     cloud: cloud,
     terraform: iacRuntimes,
     iacOperations: iacOperations,
-    iacState: new IacStateService(engine.Workspace, new IacConfigReader(), iacStates, iacRegistry, cloud, engine.Files, engine.Store, engine.Runner,
-        engine.Clock, engine.Tracker, integrations.Audit),
+    iacState: composition.IacState(engine.Workspace, cloud, engine.Files, engine.Store, engine.Tracker),
     iacGeneration: new IacGenerationService(engine.Workspace, new IacConfigReader(), models, engine.Files, engine.Store, engine.Clock, engine.Tracker,
         integrations.Audit),
     iacCosts: new IacCostService(engine.Workspace, cloud, engine.Clock, iacOperations),

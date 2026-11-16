@@ -28,7 +28,7 @@ public sealed class McpSearchTests : IDisposable
 
     private McpServer Server(IKnowledgeSearchRuntime? search) => new("1.2.3", new ProjectContextTools(
         Workspace, new TestFilesFactory(), new FakeClock { UtcNow = Now }, new FileTechnologyProfileStore(_project.DataDir),
-        new FileDecisionStore(_project.DataDir), _project.Root, search, _project.DataDir, _audit).Tools());
+        new FileDecisionStore(_project.DataDir), _project.Root, McpScope.For(_project.Root), search, _project.DataDir, _audit).Tools());
 
     private static JsonObject Send(McpServer server, string method, JsonObject parameters) =>
         server.HandleAsync(new JsonObject { ["jsonrpc"] = "2.0", ["id"] = 1, ["method"] = method, ["params"] = parameters }.ToJsonString()).GetAwaiter().GetResult()!;

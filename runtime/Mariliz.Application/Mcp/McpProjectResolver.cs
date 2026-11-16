@@ -2,11 +2,12 @@ using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Mcp;
 
-// Só projetos que a pessoa autorizou no Spock e, com escopo, só os da conexão: a pasta atual da IDE escolhe entre eles, nunca autoriza outro.
-public sealed class McpProjectResolver(WorkspaceAuthorizer workspace, string workingDirectory, IReadOnlySet<string>? scope = null)
+// Só projetos que a pessoa autorizou no Spock e que estão no escopo da conexão: a pasta atual da IDE escolhe entre eles, nunca
+// autoriza outro. O escopo é obrigatório; sem ele não há projeto nenhum.
+public sealed class McpProjectResolver(WorkspaceAuthorizer workspace, string workingDirectory, IReadOnlySet<string> scope)
 {
     public IReadOnlyList<AuthorizedProject> Projects() =>
-        workspace.Projects().Where(project => scope is null || scope.Contains(project.ProjectId)).ToList();
+        workspace.Projects().Where(project => scope.Contains(project.ProjectId)).ToList();
 
     public AuthorizedProject? Current() => Containing(Projects());
 
@@ -15,7 +16,7 @@ public sealed class McpProjectResolver(WorkspaceAuthorizer workspace, string wor
     private AuthorizedProject? Default()
     {
         if (Current() is { } current) return current;
-        if (scope is not { Count: 1 } || Containing(workspace.Projects()) is not null) return null;
+        if (scope.Count != 1 || Containing(workspace.Projects()) is not null) return null;
         return Projects() is [var only] ? only : null;
     }
 
@@ -51,7 +52,7 @@ public sealed class McpProjectResolver(WorkspaceAuthorizer workspace, string wor
     private string FolderOf(AuthorizedProject project) =>
         workspace.TryGetRoot(project.ProjectId, out var root) ? Path.GetFileName(root) : "";
 
-    private string Available => scope is null ? "aberto no Spock" : "disponível para esta conexão";
+    private const string Available = "disponível para esta conexão";
 
     private static bool Contains(string root, string path)
     {
