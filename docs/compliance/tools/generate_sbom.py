@@ -441,6 +441,12 @@ def runtime_assets(entry: dict) -> bool:
     return False
 
 
+# Pacotes que o SDK acrescenta sozinho a um restore de publicação (-r) e cuja versão segue o SDK instalado, não um
+# lockfile: entram ou não conforme o restore feito na máquina. Nenhum é distribuído; ficam fora para o --check valer
+# igual na CI e no desenvolvimento.
+SDK_IMPLICIT = {"Microsoft.NET.ILLink.Tasks", "Microsoft.DotNet.ILCompiler", "Microsoft.NET.Runtime.WebAssembly.Sdk"}
+
+
 def collect_nuget(inv: Inventory) -> None:
     direct: set[str] = set()
     test_direct: set[str] = set()
@@ -456,6 +462,8 @@ def collect_nuget(inv: Inventory) -> None:
             if lib["type"] != "package":
                 continue
             name, version = lib_key.split("/")
+            if name in SDK_IMPLICIT:
+                continue
             key = f"nuget:{name}@{version}"
             if not runtime and key in inv.items:
                 continue
@@ -1338,8 +1346,11 @@ def main() -> None:
     if args.check:
         # Binários nativos por plataforma dependem da máquina que gerou: ficam fora da comparação (são de build, não vão ao usuário).
         # Pacotes NuGet só de build (ILLink.Tasks) entram no assets.json conforme o restore (com ou sem RID): fora também.
-        platform = platform_specific_npm() | {(c.name, c.version) for c in inv.items.values() if c.ecosystem == "nuget" and c.environment == "build"}
-        current = {(r["nome"], r["versao"]) for r in json.loads((OUT / "data" / "inventory.json").read_text(encoding="utf-8"))} - platform
+        rows = json.loads((OUT / "data" / "inventory.json").read_text(encoding="utf-8"))
+        # Dos dois lados: o pacote de build que só o restore de outra máquina trouxe também não conta como removido.
+        platform = platform_specific_npm() | {(c.name, c.version) for c in inv.items.values() if c.ecosystem == "nuget" and c.environment == "build"} | {
+            (r["nome"], r["versao"]) for r in rows if r.get("ecossistema") == "nuget" and r.get("ambiente") == "build"}
+        current = {(r["nome"], r["versao"]) for r in rows} - platform
         fresh = {(c.name, c.version) for c in inv.items.values()} - platform
         added, removed = sorted(fresh - current), sorted(current - fresh)
         bundle_problems = check_bundle(list(inv.items.values()))
