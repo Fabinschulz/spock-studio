@@ -8,10 +8,13 @@ namespace Mariliz.Application.Tests;
 // O mais perto do app instalado que dá para chegar sem a janela. Só roda na CI do instalador, com MARILIZ_PACKAGED_ENGINE e MARILIZ_PACKAGED_RESOURCES apontando para o instalador aberto por scripts/smoke-installer.py.
 public class PackagedEngineE2ETests
 {
+    private const int FirstRunSeconds = 240;
+
     private sealed class Engine : IDisposable
     {
         private readonly Process _process;
         private readonly List<JsonObject> _messages = [];
+        private readonly Queue<string> _errors = new();
         private int _id;
 
         public Engine(string engine, string resources, string dataDir)
@@ -32,7 +35,16 @@ public class PackagedEngineE2ETests
             psi.Environment["MARILIZ_PYTHON"] = python;
             psi.Environment["MARILIZ_DATA_DIR"] = dataDir;
             _process = Process.Start(psi) ?? throw new InvalidOperationException("O motor não iniciou.");
-            _process.ErrorDataReceived += (_, _) => { };
+            // O stderr do motor e do Python vira diagnóstico do teste: sem ele, um prazo estourado na CI não diz nada.
+            _process.ErrorDataReceived += (_, e) =>
+            {
+                if (e.Data is null) return;
+                lock (_errors)
+                {
+                    _errors.Enqueue(e.Data);
+                    while (_errors.Count > 40) _errors.Dequeue();
+                }
+            };
             _process.BeginErrorReadLine();
             new Thread(ReadLines) { IsBackground = true }.Start();
         }
@@ -59,7 +71,10 @@ public class PackagedEngineE2ETests
                 if (_process.HasExited) break;
                 Thread.Sleep(50);
             }
-            throw new TimeoutException("A mensagem esperada não chegou do motor instalado.");
+            string tail;
+            lock (_errors) tail = string.Join(Environment.NewLine, _errors);
+            throw new TimeoutException((_process.HasExited ? $"O motor instalado saiu com código {_process.ExitCode}." : $"A mensagem esperada não chegou do motor instalado em {seconds} s.")
+                + (tail.Length == 0 ? "" : Environment.NewLine + "Últimas linhas do stderr:" + Environment.NewLine + tail));
         }
 
         public JsonObject Request(string method, JsonObject? parameters = null)
@@ -71,8 +86,8 @@ public class PackagedEngineE2ETests
             return Wait(m => m["kind"]?.GetValue<string>() == "response" && m["id"]?.GetValue<string>() == id);
         }
 
-        public JsonObject Event(string type, string runId) =>
-            Wait(m => m["kind"]?.GetValue<string>() == "event" && m["type"]?.GetValue<string>() == type && m["runId"]?.GetValue<string>() == runId);
+        public JsonObject Event(string type, string runId, int seconds = 90) =>
+            Wait(m => m["kind"]?.GetValue<string>() == "event" && m["type"]?.GetValue<string>() == type && m["runId"]?.GetValue<string>() == runId, seconds);
 
         public void Dispose()
         {
@@ -136,7 +151,8 @@ public class PackagedEngineE2ETests
             ["input"] = new JsonObject { ["goal"] = "avaliar o módulo de cobrança recorrente", ["impact"] = true, ["requiresApproval"] = true }
         })["result"]!["runId"]!.GetValue<string>();
 
-        var approval = engine.Event("approval.required", runId)["data"]!;
+        // A primeira execução sobe o Python instalado e importa o LangGraph a frio; num runner Windows novo isso passa de 90 s.
+        var approval = engine.Event("approval.required", runId, FirstRunSeconds)["data"]!;
         var action = approval["actions"]!.AsArray().Single()!;
         Assert.Equal("file.write", action["kind"]!.GetValue<string>());
         // Antes da aprovação, o Python instalado já está rodando o grafo, e o projeto está intacto.
@@ -179,7 +195,7 @@ public class PackagedEngineE2ETests
             ["projectId"] = projectId,
             ["input"] = new JsonObject { ["goal"] = "avaliar o módulo de cobrança recorrente", ["impact"] = true, ["requiresApproval"] = true }
         })["result"]!["runId"]!.GetValue<string>();
-        engine.Event("approval.required", runId);
+        engine.Event("approval.required", runId, FirstRunSeconds);
         Assert.NotEmpty(PythonProcesses(engine.PythonPath));
 
         // O host espera o prazo do desligamento e mata o motor. Só o motor: o Python não recebe sinal nenhum.
