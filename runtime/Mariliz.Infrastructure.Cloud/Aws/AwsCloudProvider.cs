@@ -25,7 +25,7 @@ public sealed partial class AwsCloudProvider : ICloudProvider
         "1.0.0",
         [
             new CloudMechanism(ProfileMechanism, "Perfil do AWS CLI",
-                "Um perfil de ~/.aws/config: chaves, IAM Identity Center (SSO), processo externo ou papel assumido. Para SSO, rode antes aws sso login --profile <perfil>.",
+                "Um perfil de ~/.aws/config: chaves, IAM Identity Center (SSO), aws login, processo externo ou papel assumido. Antes, rode aws sso login --profile <perfil> (SSO) ou aws login --profile <perfil>.",
                 [new CloudField(ProfileField, "Perfil", "Nome do perfil em ~/.aws/config, por exemplo dev.", Required: true), Region]),
             new CloudMechanism(DefaultMechanism, "Cadeia padrão do SDK",
                 "Variáveis de ambiente, AWS_PROFILE, perfil default, SSO, web identity ou o papel da máquina, na ordem oficial do AWS SDK.",

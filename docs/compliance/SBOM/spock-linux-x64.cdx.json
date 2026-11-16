@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:5e3461a0-241a-4aa5-95ef-16d34ee82015",
+  "serialNumber": "urn:uuid:f0829416-8f0e-4257-8a79-c6256f90ef4f",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-15T16:09:35Z",
+    "timestamp": "2026-11-15T23:57:46Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -24221,6 +24221,65 @@
     },
     {
       "type": "library",
+      "bom-ref": "nuget-AWSSDK.Signin-4.1.0",
+      "name": "AWSSDK.Signin",
+      "version": "4.1.0",
+      "purl": "pkg:nuget/AWSSDK.Signin@4.1.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "845f313f8967b96ba7db4ddad7842437e3a03df9d07c3db5d273187683242b22880ab63b4d18f44e97c5e6128b4a50917a69caf5de13d1a901e091a2725f4b53"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/aws/aws-sdk-net/"
+        }
+      ],
+      "properties": [
+        {
+          "name": "spock:ecosystem",
+          "value": "nuget"
+        },
+        {
+          "name": "spock:environment",
+          "value": "execução"
+        },
+        {
+          "name": "spock:distribution",
+          "value": "incorporado (sidecar .NET single-file)"
+        },
+        {
+          "name": "spock:dependency",
+          "value": "direta"
+        },
+        {
+          "name": "spock:license-file-check",
+          "value": "SÓ EXPRESSÃO"
+        },
+        {
+          "name": "spock:risk",
+          "value": "BAIXO"
+        },
+        {
+          "name": "spock:obligations",
+          "value": "texto da Apache-2.0 e conteúdo do NOTICE (se houver) nos avisos; marcar arquivos modificados"
+        },
+        {
+          "name": "spock:evidence",
+          "value": "runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/awssdk.signin/4.1.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "nuget-AWSSDK.SSO-4.1.0",
       "name": "AWSSDK.SSO",
       "version": "4.1.0",
@@ -29016,6 +29075,7 @@
         "nuget-AWSSDK.SSO-4.1.0",
         "nuget-AWSSDK.SSOOIDC-4.1.0",
         "nuget-AWSSDK.SecurityToken-4.1.0",
+        "nuget-AWSSDK.Signin-4.1.0",
         "nuget-Azure.Identity-1.21.0",
         "nuget-Azure.ResourceManager-1.14.0",
         "nuget-Google.Apis.Auth-1.78.0",
@@ -31774,6 +31834,12 @@
     },
     {
       "ref": "nuget-AWSSDK.SecurityToken-4.1.0",
+      "dependsOn": [
+        "nuget-AWSSDK.Core-4.1.0.1"
+      ]
+    },
+    {
+      "ref": "nuget-AWSSDK.Signin-4.1.0",
       "dependsOn": [
         "nuget-AWSSDK.Core-4.1.0.1"
       ]

@@ -81,6 +81,6 @@ internal static class AwsErrors
 
     private static string Hint(CloudSettings settings) =>
         (settings.Value(AwsCloudProvider.ProfileField) ?? settings.Value(AwsCloudProvider.SourceProfileField)) is { } profile
-        ? $"Rode aws sso login --profile {profile} (ou o login do tipo de credencial do perfil) e valide de novo."
+        ? $"Rode {AwsCredentials.LoginCommand(profile)} e valide de novo."
         : "Renove a credencial da cadeia padrão (aws sso login, aws configure ou variáveis de ambiente) e valide de novo.";
 }

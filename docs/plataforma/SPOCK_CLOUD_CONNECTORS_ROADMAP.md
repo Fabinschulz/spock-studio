@@ -13,7 +13,7 @@ por valor e risco; nada aqui está decidido sem aprovação do dono.
    sem terminal. Exige cuidado: só a pessoa inicia, nunca um agente.
 3. **Lista de ferramentas MCP dinâmica.** Recalcular `tools/list` a cada pedido e anunciar `listChanged`, para uma
    leitura liberada aparecer sem reiniciar a IDE.
-4. **`aws login` (`login_session`).** Acompanhar o suporte no AWS SDK para .NET; até lá, a mensagem orienta.
+4. **`aws login` (`login_session`).** Feito: lido pelo `AWSSDK.Signin`, validado com um perfil real.
 
 ## Médio prazo
 

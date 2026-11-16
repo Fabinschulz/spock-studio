@@ -33,7 +33,7 @@ internal static class AwsCredentials
             if (!chain.TryGetAWSCredentials(profile, out var credentials)) throw Unsupported(profile);
             return NoInteractiveLogin(credentials);
         }
-        // O SDK recusa assim os tipos de perfil que não conhece, como o login_session do aws login.
+        // O SDK recusa assim os tipos de perfil que não conhece.
         catch (InvalidOperationException)
         {
             throw Unsupported(profile);
@@ -41,7 +41,13 @@ internal static class AwsCredentials
     }
 
     private static Application.Execution.EngineException Unsupported(string profile) =>
-        CloudErrors.NotAuthenticated($"O perfil '{profile}' usa um tipo de credencial que o AWS SDK desta versão não sabe usar (por exemplo, aws login). Use um perfil de SSO ou de chaves, ou a cadeia padrão.");
+        CloudErrors.NotAuthenticated($"O perfil '{profile}' usa um tipo de credencial que o AWS SDK desta versão não sabe usar. Use um perfil de SSO, de aws login ou de chaves, ou a cadeia padrão.");
+
+    // O comando que renova a sessão do perfil: aws login para login_session, aws sso login para os demais com sessão.
+    public static string LoginCommand(string profile) =>
+        new CredentialProfileStoreChain().TryGetProfile(profile, out var found) && !string.IsNullOrEmpty(found.Options.LoginSession)
+            ? $"aws login --profile {profile}"
+            : $"aws sso login --profile {profile}";
 
     private static AWSCredentials FromDefaultChain()
     {
