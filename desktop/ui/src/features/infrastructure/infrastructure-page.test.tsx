@@ -2,6 +2,8 @@ import connectionsFixture from '@contracts/fixtures/cloud/connections.json';
 import linksFixture from '@contracts/fixtures/cloud/links.json';
 import draftFixture from '@contracts/fixtures/iac/architect-draft.json';
 import bootstrapFixture from '@contracts/fixtures/iac/bootstrap-plan.json';
+import costFixture from '@contracts/fixtures/iac/cost-estimate.json';
+import driftFixture from '@contracts/fixtures/iac/drift-operation.json';
 import generateFixture from '@contracts/fixtures/iac/generate-plan.json';
 import layoutFixture from '@contracts/fixtures/iac/layout.json';
 import offerFixture from '@contracts/fixtures/iac/offer.json';
@@ -53,7 +55,9 @@ function fakeEngine(initial: Record<string, unknown> = missing) {
         'iac.runtime.pin': { runtime: current },
         'iac.runtime.offer': offerFixture,
         'iac.layout': layoutFixture,
-        'iac.operations': operationsFixture,
+        'iac.operations': calls.some((call) => call.method === 'iac.drift')
+          ? { operations: [driftFixture.operation, ...operationsFixture.operations] }
+          : operationsFixture,
         'iac.validate': { operation: operationsFixture.operations[3] },
         'iac.plan': { operation: operationsFixture.operations[0] },
         'iac.apply': { operation: operationsFixture.operations[1] },
@@ -65,6 +69,8 @@ function fakeEngine(initial: Record<string, unknown> = missing) {
         'iac.architect.draft': draftFixture,
         'iac.generate.plan': generateFixture,
         'iac.generate.save': { runId: 'run-iac-2' },
+        'iac.drift': driftFixture,
+        'iac.cost.estimate': costFixture,
         'cloud.read': {
           result: {
             connectionId: 'cloud-00cedffc75fa',
@@ -224,7 +230,7 @@ describe('Infraestrutura', () => {
     const engine = fakeEngine(ready);
     renderPage(engine.client);
 
-    expect(await screen.findByText(/não mudam a nuvem nem o projeto/)).toBeInTheDocument();
+    expect(await screen.findByText(/não mudam a nuvem, o state nem o projeto/)).toBeInTheDocument();
     const plan = operationsFixture.operations[0]!;
     const summary = await screen.findByLabelText('Resumo do plano');
     expect(within(summary).getByText(`Destruir ${plan.summary!.delete}`)).toBeInTheDocument();
@@ -248,6 +254,26 @@ describe('Infraestrutura', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Validar' }));
     expect(await screen.findByText('Configuração válida e formatada.')).toBeInTheDocument();
+    expect(methods(engine.calls)).not.toContain('iac.apply');
+  });
+
+  it('verificar drift passa pasta e ambiente e mostra o que mudou por fora, sem valores', async () => {
+    const engine = fakeEngine(ready);
+    renderPage(engine.client);
+
+    await userEvent.type(await screen.findByLabelText(/Ambiente/), 'dev');
+    await userEvent.click(screen.getByRole('button', { name: 'Verificar drift' }));
+
+    expect(await screen.findByText('Drift em 2 recurso(s).')).toBeInTheDocument();
+    const found = screen.getByLabelText('Drift encontrado');
+    expect(found).toHaveTextContent('Alterado por fora');
+    expect(found).toHaveTextContent('module.sns.aws_sns_topic.alerts');
+    expect(found).toHaveTextContent('(tags, visibility_timeout_seconds)');
+    expect(engine.calls.find((call) => call.method === 'iac.drift')?.params).toEqual({
+      projectId: demo.projectId,
+      folder: 'infra',
+      workspace: 'dev'
+    });
     expect(methods(engine.calls)).not.toContain('iac.apply');
   });
 
@@ -394,6 +420,17 @@ describe('Infraestrutura', () => {
     );
     expect(within(review).getByLabelText('O que é cobrado')).toHaveTextContent('Por requisição');
     expect(methods(engine.calls)).not.toContain('iac.generate.save');
+
+    await userEvent.click(within(review).getByRole('button', { name: 'Estimar o custo com os preços da AWS' }));
+    const estimate = await within(review).findByLabelText('Estimativa de custo');
+    expect(estimate).toHaveTextContent(/Estimativa: US\$\s117,27 por mês/);
+    expect(within(estimate).getByLabelText('Custo por uso')).toHaveTextContent('SQS');
+    expect(within(estimate).getByLabelText('Premissas da estimativa')).toHaveTextContent('free tier');
+    expect(engine.calls.find((call) => call.method === 'iac.cost.estimate')?.params).toMatchObject({
+      projectId: demo.projectId,
+      connectionId: 'cloud-00cedffc75fa',
+      blueprint: { project: 'loja-api', region: 'sa-east-1' }
+    });
 
     await userEvent.click(within(review).getByRole('button', { name: 'Gravar no projeto' }));
     await userEvent.click(within(review).getByRole('button', { name: 'Gravar' }));

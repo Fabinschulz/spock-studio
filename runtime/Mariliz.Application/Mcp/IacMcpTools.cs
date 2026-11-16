@@ -7,8 +7,8 @@ namespace Mariliz.Application.Mcp;
 
 // Agentes consultam e validam: se há OpenTofu ou Terraform, qual ferramenta e versão o projeto usa, validar a
 // configuração (fmt e validate, sem backend nem nuvem), ler o resumo de um plano que a pessoa gerou e conferir um desenho
-// de infraestrutura. Instalar, adotar, fixar, remover, gerar arquivos, planejar e aplicar não existem aqui; são decisões
-// da pessoa na interface.
+// de infraestrutura e ler a última verificação de drift. Instalar, adotar, fixar, remover, gerar arquivos, planejar, verificar
+// drift (lê a nuvem com as credenciais da pessoa) e aplicar não existem aqui; são decisões da pessoa na interface.
 public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<WorkspaceAuthorizer, IacRuntimeService> terraform,
     Func<WorkspaceAuthorizer, IacOperationService> operations, string workingDirectory, IReadOnlySet<string>? scope = null,
     Func<WorkspaceAuthorizer, IacStateService>? state = null)
@@ -19,15 +19,41 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
     public const string HistoryTool = "iac_history";
     public const string StateTool = "iac_state";
     public const string BlueprintTool = "iac_blueprint_check";
+    public const string DriftTool = "iac_drift_summary";
     private const int MaxArgument = 200;
     private const int MaxChanges = 60;
 
     public IReadOnlyList<McpTool> Tools() =>
         state is null
             ? [new McpTool(Status, StatusAsync), new McpTool(Validate, ValidateAsync), new McpTool(PlanSummary, PlanSummaryAsync), new McpTool(History, HistoryAsync),
-                new McpTool(Blueprint, BlueprintAsync)]
+                new McpTool(Drift, DriftAsync), new McpTool(Blueprint, BlueprintAsync)]
             : [new McpTool(Status, StatusAsync), new McpTool(Validate, ValidateAsync), new McpTool(PlanSummary, PlanSummaryAsync), new McpTool(History, HistoryAsync),
-                new McpTool(Blueprint, BlueprintAsync), new McpTool(State, StateAsync)];
+                new McpTool(Drift, DriftAsync), new McpTool(Blueprint, BlueprintAsync), new McpTool(State, StateAsync)];
+
+    private static readonly McpToolInfo Drift = new(
+        DriftTool, "Último drift da infraestrutura",
+        "A última verificação de drift que a pessoa rodou no Spock: os recursos alterados ou apagados na nuvem por fora do " +
+        "OpenTofu/Terraform, com os nomes dos atributos que mudaram. Só leitura; não mostra valores nem roda a verificação.",
+        ProjectOnly());
+
+    private Task<string> DriftAsync(McpCall call)
+    {
+        var authorizer = workspaces();
+        var project = new McpProjectResolver(authorizer, workingDirectory, scope).Resolve(McpArguments.Text(call.Arguments, "project", MaxArgument));
+        var drift = operations(authorizer).History(project.ProjectId).FirstOrDefault(o => o.Kind == IacOperationKind.Drift);
+        if (drift is null) return Task.FromResult($"{project.DisplayName} ainda não tem verificação de drift no Spock. Ela roda pela tela Infraestrutura.");
+        var text = new StringBuilder($"Drift de {project.DisplayName} verificado em {drift.FinishedAt.UtcDateTime:yyyy-MM-dd HH:mm} UTC, pasta " +
+            $"{Display(drift.Folder ?? "")}, ambiente {drift.Workspace}.");
+        if (drift.Status == IacOperationStatus.Failed) return Task.FromResult(text.Append($"\nA verificação falhou: {drift.Error}").ToString());
+        var items = drift.Drift ?? [];
+        if (items.Count == 0) return Task.FromResult(text.Append("\nSem drift: a nuvem está como o state registra.").ToString());
+        foreach (var item in items.Take(MaxChanges))
+            text.Append(item.Change == "deleted"
+                ? $"\n- apagado fora da ferramenta: {item.Address}"
+                : $"\n- alterado fora da ferramenta: {item.Address}{(item.Attributes.Count == 0 ? "" : $" ({string.Join(", ", item.Attributes)})")}");
+        if (items.Count > MaxChanges) text.Append($"\n... e mais {items.Count - MaxChanges}.");
+        return Task.FromResult(text.Append("\nPara voltar ao que o código declara, a pessoa gera e aprova um plano; para manter a mudança, o código passa a declará-la.").ToString());
+    }
 
     private static readonly McpToolInfo Blueprint = new(
         BlueprintTool, "Conferir um desenho de infraestrutura",
@@ -98,7 +124,7 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
 
     private static readonly McpToolInfo History = new(
         HistoryTool, "Histórico de infraestrutura do projeto",
-        "As operações de infraestrutura do projeto, da mais recente para a mais antiga: validações, planos e aplicações, com " +
+        "As operações de infraestrutura do projeto, da mais recente para a mais antiga: validações, planos, aplicações e verificações de drift, com " +
         "quem pediu, o resultado e, nas aplicações, se a verificação depois do apply confirmou a mudança. Só leitura.",
         ProjectOnly());
 
@@ -115,6 +141,7 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
             {
                 IacOperationKind.Validate => "validação",
                 IacOperationKind.Plan => "plano",
+                IacOperationKind.Drift => "verificação de drift",
                 _ => "aplicação"
             };
             text.Append('\n').Append($"- {operation.FinishedAt.UtcDateTime:yyyy-MM-dd HH:mm} UTC · {kind} {operation.Id} · {IacRuntimeService.NameOf(operation.Engine)} {operation.Version}");

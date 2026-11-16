@@ -427,8 +427,9 @@ def collect_cargo(inv: Inventory) -> None:
         for dep in nodes[root]["deps"]:
             d = packages[dep["pkg"]]
             inv.roots["host"].append(f"cargo:{d['name']}@{d['version']}")
-    for c in inv.items.values():
-        for child in c.depends_on:
+    # Ordem fixa: o pai mostrado de um transitivo não pode mudar a cada execução.
+    for c in sorted(inv.items.values(), key=lambda item: item.key):
+        for child in sorted(c.depends_on):
             if child in inv.items and inv.items[child].parent is None and child.startswith("cargo:"):
                 inv.items[child].parent = c.name
 
@@ -491,8 +492,9 @@ def collect_nuget(inv: Inventory) -> None:
             match = next((k for k in data["libraries"] if k.split("/")[0] == name), None)
             if match:
                 inv.roots["runtime" if runtime else "dev"].append(f"nuget:{name}@{match.split('/')[1]}")
-    for c in inv.items.values():
-        for child in c.depends_on:
+    # Ordem fixa: o pai mostrado de um transitivo não pode mudar a cada execução.
+    for c in sorted(inv.items.values(), key=lambda item: item.key):
+        for child in sorted(c.depends_on):
             if child in inv.items and inv.items[child].parent is None and child.startswith("nuget:"):
                 inv.items[child].parent = c.name
 
@@ -563,8 +565,9 @@ def collect_python(inv: Inventory) -> None:
                     c.depends_on.add(f"pypi:{child}@{pinned[child][0]}")
         if cname in direct:
             inv.roots["intelligence"].append(c.key)
-    for c in inv.items.values():
-        for child in c.depends_on:
+    # Ordem fixa: o pai mostrado de um transitivo não pode mudar a cada execução.
+    for c in sorted(inv.items.values(), key=lambda item: item.key):
+        for child in sorted(c.depends_on):
             if child in inv.items and inv.items[child].parent is None and child.startswith("pypi:"):
                 inv.items[child].parent = c.name
 

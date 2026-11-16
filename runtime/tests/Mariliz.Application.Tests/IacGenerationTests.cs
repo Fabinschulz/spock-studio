@@ -83,7 +83,7 @@ public sealed class IacGenerationTests : IDisposable
         Assert.Contains("ssl_policy        = \"ELBSecurityPolicy-TLS13-1-2-2021-06\"", Find(files, "infra/modules/alb/resource.tf"));
         Assert.DoesNotContain("port              = \"80\"", Find(files, "infra/modules/alb/resource.tf"));
         Assert.Contains("resource \"aws_sqs_queue_redrive_allow_policy\" \"dlq\"", Find(files, "infra/modules/sqs/resource.tf"));
-        Assert.DoesNotContain("\u2014", string.Concat(files.Select(f => f.Content)));
+        Assert.DoesNotContain(((char)0x2014).ToString(), string.Concat(files.Select(f => f.Content)));
         Assert.All(files, f => Assert.DoesNotContain("\r", f.Content));
     }
 

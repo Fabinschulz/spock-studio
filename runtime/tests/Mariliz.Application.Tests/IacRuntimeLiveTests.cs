@@ -157,6 +157,82 @@ public sealed class IacRuntimeLiveTests(ITestOutputHelper output)
         Directory.Delete(stateDirectory, recursive: true);
     }
 
+    // O provider AWS fixado no modelo autentica pelo mesmo perfil que a conexão usa (SSO, chaves ou aws login), recebendo só
+    // AWS_PROFILE. O plano lê apenas aws_caller_identity: nada é criado.
+    [LiveFact(Variable, "MARILIZ_LIVE_IAC_PROVIDERS", "MARILIZ_LIVE_AWS_PROFILE")]
+    public async Task Provider_aws_autentica_pelo_perfil_da_conexao()
+    {
+        using var project = TempProject.Dotnet();
+        project.Write("infra/providers.tf", "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n" +
+                                            $"      version = \"{IacBootstrapTemplates.AwsVersion}\"\n    }}\n  }}\n}}\n\nprovider \"aws\" {{}}\n");
+        project.Write("infra/resource.tf", "data \"aws_caller_identity\" \"current\" {}\n\noutput \"conta_lida\" {\n  value = length(data.aws_caller_identity.current.account_id) == 12\n}\n");
+        var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(project.DataDir));
+        workspace.Authorize(project.Root);
+        using var tofu = new OpenTofuToolchain(project.DataDir, new NoExternal());
+        var runner = new SystemProcessRunner();
+        var runtimes = new IacRuntimeService([tofu], new FileIacSettingsStore(project.DataDir), new IacConfigReader(), runner, workspace, new FakeClock(),
+            new MemoryAudit());
+        var offer = await runtimes.OfferAsync(null, null, null, CancellationToken.None);
+        var status = await runtimes.InstallAsync(offer.OfferId, offer.Version, IacEngine.OpenTofu, CancellationToken.None);
+        var runtime = new CliIacRuntimeFactory(runner, project.DataDir).For(status.Selected!);
+        var environment = new Dictionary<string, string>
+        {
+            ["AWS_PROFILE"] = Environment.GetEnvironmentVariable("MARILIZ_LIVE_AWS_PROFILE")!,
+            ["AWS_REGION"] = "sa-east-1"
+        };
+
+        var plan = await runtime.PlanAsync(new IacPlanSpec(Path.Combine(project.Root, "infra"), Path.Combine(project.DataDir, "tf-data"),
+            Path.Combine(project.DataDir, "plan.tfplan"), null, environment), CancellationToken.None);
+
+        output.WriteLine($"plano: {(plan.Succeeded ? "ok" : plan.Error)}; outputs alterados: {string.Join(",", plan.Summary?.OutputsChanged ?? [])}");
+        Assert.True(plan.Succeeded, plan.Error);
+        Assert.Contains("conta_lida", plan.Summary!.OutputsChanged);
+    }
+
+    // Entrega 6: drift de verdade. Aplica um local_file (provider hashicorp/local), apaga o arquivo por fora da ferramenta e a
+    // verificação aponta o recurso como apagado, sem mudar o state do projeto.
+    [LiveFact(Variable, "MARILIZ_LIVE_IAC_PROVIDERS")]
+    public async Task OpenTofu_aponta_o_drift_de_um_recurso_apagado_por_fora()
+    {
+        using var project = TempProject.Dotnet();
+        var outside = Directory.CreateTempSubdirectory("spock-drift-").FullName;
+        var file = Path.Combine(outside, "nota.txt").Replace('\\', '/');
+        project.Write("infra/providers.tf", "terraform {\n  required_version = \">= 1.6\"\n\n  required_providers {\n    local = {\n      source  = \"hashicorp/local\"\n      version = \"~> 2.5\"\n    }\n  }\n}\n");
+        project.Write("infra/resource.tf", $"resource \"local_file\" \"nota\" {{\n  filename = \"{file}\"\n  content  = \"criado pelo plano\"\n}}\n");
+        var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(project.DataDir));
+        var projectId = workspace.Authorize(project.Root).Project!.ProjectId;
+        using var tofu = new OpenTofuToolchain(project.DataDir, new NoExternal());
+        var runner = new SystemProcessRunner();
+        var audit = new MemoryAudit();
+        var runtimes = new IacRuntimeService([tofu], new FileIacSettingsStore(project.DataDir), new IacConfigReader(), runner, workspace, new FakeClock(), audit);
+        var offer = await runtimes.OfferAsync(null, null, null, CancellationToken.None);
+        await runtimes.InstallAsync(offer.OfferId, offer.Version, IacEngine.OpenTofu, CancellationToken.None);
+        var operations = new IacOperationService(runtimes, new CliIacRuntimeFactory(runner, project.DataDir), new IacConfigReader(),
+            new FileIacWorkArea(project.DataDir), workspace, null, new SystemClock(), audit);
+        var request = new IacPlanRequest(projectId, "infra", null, null);
+
+        var plan = await operations.PlanAsync(request, IacOperationService.Person, CancellationToken.None);
+        var applied = await operations.ApplyAsync(new IacApplyRequest(projectId, plan.Id, plan.PlanId!, false, false, null), CancellationToken.None);
+        var clean = await operations.DriftAsync(request, IacOperationService.Person, CancellationToken.None);
+        File.Delete(file);
+        var stateBefore = File.ReadAllText(Path.Combine(project.Root, "infra", "terraform.tfstate"));
+        var drifted = await operations.DriftAsync(request, IacOperationService.Person, CancellationToken.None);
+
+        output.WriteLine($"apply: {applied.Status}; limpo: {clean.Status} {clean.Error}; drift: {drifted.Status} {drifted.Error} " +
+                         string.Join(", ", drifted.Drift?.Select(d => $"{d.Change} {d.Address}") ?? []));
+        Assert.True(applied.Apply!.Verified);
+        Assert.Equal(IacOperationStatus.Succeeded, clean.Status);
+        Assert.False(clean.HasChanges);
+        Assert.Empty(clean.Drift!);
+        Assert.Equal(IacOperationStatus.Succeeded, drifted.Status);
+        var item = Assert.Single(drifted.Drift!);
+        Assert.Equal("local_file.nota", item.Address);
+        Assert.Equal("deleted", item.Change);
+        Assert.Equal(stateBefore, File.ReadAllText(Path.Combine(project.Root, "infra", "terraform.tfstate")));
+        Assert.False(File.Exists(file));
+        Directory.Delete(outside, recursive: true);
+    }
+
     // Os bootstraps gerados para AWS, Azure e Google passam no validate do OpenTofu de verdade. Baixa os três providers
     // oficiais (algumas centenas de MB): só com MARILIZ_LIVE_IAC_PROVIDERS=1 também definido.
     [LiveFact(Variable, "MARILIZ_LIVE_IAC_PROVIDERS")]

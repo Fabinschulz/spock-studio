@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Mariliz.Application.Cloud;
 using Mariliz.Application.Iac;
 using Mariliz.Application.Integrations;
 
@@ -6,7 +7,8 @@ namespace Mariliz.Application.Protocol;
 
 // Só a interface chega aqui (a allowlist do host não deixa agentes chamarem iac.*): instalar, adotar, fixar, remover,
 // validar e planejar são sempre um clique da pessoa.
-internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperationService operations, IacStateService state, IacGenerationService generation)
+internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperationService operations, IacStateService state, IacGenerationService generation,
+    IacCostService? costs = null)
 {
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
@@ -31,6 +33,15 @@ internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperatio
         ProtocolMethods.IacPlan => Operation(await operations.PlanAsync(
             new IacPlanRequest(p.Str("projectId"), p.OptionalStr("folder"), p.OptionalStr("workspace"), p.OptionalStr("connectionId")),
             IacOperationService.Person, ct)),
+        ProtocolMethods.IacDrift => Operation(await operations.DriftAsync(
+            new IacPlanRequest(p.Str("projectId"), p.OptionalStr("folder"), p.OptionalStr("workspace"), p.OptionalStr("connectionId")),
+            IacOperationService.Person, ct)),
+        ProtocolMethods.IacCostEstimate => new JsonObject
+        {
+            ["estimate"] = IntegrationJson.Node(await (costs ?? throw IacErrors.CostSourceUnavailable()).EstimateAsync(new IacCostRequest(p.Str("projectId"),
+                p.Str("connectionId"), IacBlueprintJson.Blueprint(p.Object("blueprint") ?? throw new ParamException("'blueprint' é obrigatório."))),
+                CloudCaller.Person, ct))
+        },
         ProtocolMethods.IacOperations => new JsonObject
         {
             ["operations"] = new JsonArray(operations.History(p.Str("projectId")).Select(o => IntegrationJson.Node(o)).ToArray())

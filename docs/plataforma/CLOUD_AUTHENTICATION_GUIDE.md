@@ -13,14 +13,15 @@ interativo por conta própria: um agente pedindo uma leitura não faz surgir uma
 
 | Mecanismo | Campos | Onde está a credencial | Como autenticar |
 | --- | --- | --- | --- |
-| Perfil do AWS CLI | perfil, região padrão | `~/.aws/config` e `~/.aws/credentials` | Perfil de SSO: `aws sso login --profile <perfil>` (sem navegador: `--use-device-code --no-browser`). Perfil de chaves: `aws configure --profile <perfil>`. Processo externo e papel assumido do perfil também funcionam |
+| Perfil do AWS CLI | perfil, região padrão | `~/.aws/config` e `~/.aws/credentials` | Perfil de SSO: `aws sso login --profile <perfil>` (sem navegador: `--use-device-code --no-browser`). Perfil do `aws login` (credenciais do console, tipo `login_session`): `aws login --profile <perfil>`. Perfil de chaves: `aws configure --profile <perfil>`. Processo externo e papel assumido do perfil também funcionam |
 | Cadeia padrão do SDK | região padrão | Variáveis de ambiente, `AWS_PROFILE`, perfil `default`, SSO, web identity, papel da máquina (EC2/ECS) | O que a máquina já tiver; para SSO, `aws sso login` no perfil padrão |
 | Assumir um papel (AssumeRole) | Role ARN, perfil de origem (opcional), região padrão | Credenciais temporárias de 15 minutos do STS, a partir do perfil de origem ou da cadeia padrão | A identidade de origem precisa de `sts:AssumeRole` no papel, e a política de confiança do papel precisa aceitá-la |
 
 - A identidade vem do `sts:GetCallerIdentity`, que não exige permissão.
 - A região precisa ser uma região que o SDK conhece; uma inventada é recusada antes de gravar.
-- **Não suportado:** perfis criados pelo `aws login` (tipo `login_session`). O AWS SDK para .NET desta versão não lê
-  esse tipo, e a conexão mostra isso em vez de falhar calada. Use SSO, chaves ou a cadeia padrão.
+- Perfis do `aws login` (tipo `login_session`) são lidos pelo SDK com o pacote `AWSSDK.Signin`; o Spock nunca abre o
+  login: sessão vencida vira "credencial expirada" com o comando `aws login --profile <perfil>` para renovar. O provider
+  AWS do OpenTofu/Terraform (6.73.0, o do modelo) lê o mesmo perfil pelo `AWS_PROFILE` que o Spock repassa.
 - Chave de acesso digitada na tela não existe de propósito: chave de longa duração fica no `~/.aws/credentials`, onde o
   CLI e o SDK já a procuram.
 
