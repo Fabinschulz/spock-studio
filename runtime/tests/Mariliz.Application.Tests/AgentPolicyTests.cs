@@ -52,7 +52,7 @@ public class AgentPolicyTests : IDisposable
     {
         ["writing outside the project folder is not allowed."] = ("write", Path.Combine(Path.GetDirectoryName(_project.Root)!, "fora-do-projeto", "a.txt")),
         ["writing to a file that normally holds secrets is not allowed ("] = ("write", ".env"),
-        ["this file belongs to the managed harness. Change it through Mariliz so it stays reviewable and reversible."] = ("write", ".claude/agents/a.md"),
+        ["this file belongs to the managed harness. Change it through Spock Studio so it stays reviewable and reversible."] = ("write", ".claude/agents/a.md"),
         [".mariliz/proposal.json"] = ("write", ".mariliz/proposal.json"),
         [".specs/"] = ("write", ".specs/funcionalidade/spec.md"),
         ["recursive delete of a root, home or working directory"] = ("command", "rm -rf /"),

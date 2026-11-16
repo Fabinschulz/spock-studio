@@ -104,7 +104,7 @@ describe('Projeto · visão geral', () => {
     const technologies = await within(profile).findByRole('list', { name: 'Tecnologias' });
     expect(technologies).toHaveTextContent('Next.js');
     expect(technologies).toHaveTextContent('Framework web');
-    expect(within(profile).getByRole('list', { name: 'Ferramentas' })).toHaveTextContent('pnpm run test');
+    expect(within(profile).getByRole('list', { name: 'Ferramentas' })).toHaveTextContent('pnpm --dir web run test');
     expect(within(profile).getByText(/Regra da stack JavaScript e TypeScript/)).toBeTruthy();
     expect(within(profile).getByText(/Nenhuma ferramenta externa vinculada/)).toBeTruthy();
     expect(screen.getByText('Configuração aplicada')).toBeTruthy();

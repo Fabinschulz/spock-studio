@@ -32,13 +32,25 @@ internal static class SpecificationPlanner
             limitations.Add(new(LimitationCodes.SpecificationUntested, $"A versão {specification.Version ?? "desconhecida"} da estrutura de especificação não foi validada por esta fase; o funcionamento não é garantido."));
     }
 
-    internal static void Plan(DiscoveryReport report, IProjectFiles files, PlanOptions options, List<ComponentDecision> decisions,
-        List<PlannedCommand> commands, List<Limitation> limitations, List<string> risks)
+    // Só a declaração escrita pela pessoa dispensa a estrutura: a tela não oferece isso (ComponentRequest.IsManageable).
+    internal static bool IsDeclined(IReadOnlyList<string> exclude) => exclude.Contains(Catalog.SpecificationStructure, StringComparer.Ordinal);
+
+    internal static void Plan(DiscoveryReport report, IProjectFiles files, PlanOptions options, IReadOnlyList<string> exclude,
+        List<ComponentDecision> decisions, List<PlannedCommand> commands, List<Limitation> limitations, List<string> risks)
     {
         var specification = report.Specification;
         var evidence = specification.Problems.Take(3).ToList();
         var installed = specification.State == SpecificationState.Installed;
         var outdated = installed && SpecificationManifest.IsOlderThanLatest(specification.Version);
+
+        // Projeto com processo de especificação próprio: nada a instalar, e o plano continua idempotente. Uma estrutura já
+        // instalada não é removida, porque veio de um instalador externo e pode ter conteúdo da pessoa.
+        if (!installed && IsDeclined(exclude))
+        {
+            decisions.Add(new(ComponentKind.Specification, Catalog.SpecificationStructure, ComponentDecisions.Skip,
+                "Dispensada em mariliz.yaml (components.exclude): o projeto segue o próprio processo de especificação.", DecisionOrigins.Declared, [DeclaredConfig.FileName]));
+            return;
+        }
 
         // Instalação íntegra e atual: nada a fazer, e o plano continua idempotente.
         if (installed && !outdated && !options.UpdateSpecification)

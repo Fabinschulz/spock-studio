@@ -1,13 +1,15 @@
 # General engineering rules
 
-Managed by Mariliz Studio. These are defaults. When a rule here conflicts with a decision recorded in this
-repository (`CLAUDE.md`, an ADR, `.specs/STATE.md`), the recorded decision wins and the divergence is reported as a
-finding, never merged silently.
+Managed by Spock Studio. These are defaults. When a rule here conflicts with a decision recorded in this
+repository (`AGENTS.md`, `CLAUDE.md`, an ADR, `.specs/STATE.md`), the recorded decision wins and the divergence is
+reported as a finding, never merged silently.
 
 ## Method
 
-- Features follow the Mariliz specification cycle: Specify, Design, Tasks, Execute, Validate. Use the `tlc-spec-driven`
-  skill; do not invent a parallel process. Specs and decisions live under `.specs/`.
+- Features follow the development process this repository already documents (`AGENTS.md`, `CLAUDE.md`, its specs
+  folder). Do not invent a parallel process.
+- When the Spock specification structure is installed (`.claude/skills/tlc-spec-driven`), features follow its cycle:
+  Specify, Design, Tasks, Execute, Validate, with specs and decisions under `.specs/`.
 - A task is done when its verification ran and its output was read, not when an agent says it is done.
 - An independent check (`verifier`) closes a feature. The author of a change is never its only judge.
 

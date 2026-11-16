@@ -78,7 +78,7 @@ internal static class KnowledgeSources
     {
         var rules = Rules.Read(files);
         var allowed = 0;
-        foreach (var path in files.EnumerateFiles("").OrderBy(Rank).ThenBy(path => path, StringComparer.Ordinal))
+        foreach (var path in files.EnumerateFiles("").OrderBy(Rank).ThenBy(IsTest).ThenBy(path => path, StringComparer.Ordinal))
         {
             var byPath = ByPath(path, rules);
             if (byPath != Exclusion.None)
@@ -138,6 +138,16 @@ internal static class KnowledgeSources
         return include.IsEmpty || include.Matches(path) ? Exclusion.None : Exclusion.NotIncluded;
     }
 
+    // No mesmo tipo, o código vem antes dos testes dele: em ordem alfabética, scripts/*.test.* passava na frente de src/ e o
+    // limite de arquivos cortava o código-fonte.
+    private static bool IsTest(string path)
+    {
+        var name = path.Split('/')[^1];
+        return name.Contains(".test.", StringComparison.OrdinalIgnoreCase) || name.Contains(".spec.", StringComparison.OrdinalIgnoreCase)
+            || name.EndsWith("Tests.cs", StringComparison.Ordinal) || name.StartsWith("test_", StringComparison.Ordinal)
+            || path.Split('/').SkipLast(1).Any(dir => dir is "test" or "tests" or "__tests__");
+    }
+
     private static int Rank(string path)
     {
         var extension = System.IO.Path.GetExtension(path);
@@ -145,7 +155,8 @@ internal static class KnowledgeSources
         {
             ".md" => 0,
             ".cs" => 1,
-            ".ts" or ".tsx" or ".js" or ".jsx" or ".py" => 2,
+            // .cjs/.mjs/.cts/.mts são código como .js/.ts: no fim da fila, o limite de arquivos os cortava antes de configuração.
+            ".ts" or ".tsx" or ".js" or ".jsx" or ".cjs" or ".mjs" or ".cts" or ".mts" or ".py" => 2,
             ".json" or ".yml" or ".yaml" => 3,
             _ => 4
         };

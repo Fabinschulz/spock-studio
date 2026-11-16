@@ -58,6 +58,9 @@ fn request_timeout(method: &str) -> Duration {
     }
 }
 const SIDECAR: &str = "mariliz-runtime";
+// O handshake leva poucos segundos; autorizar um projeto espera por ele em vez de falhar enquanto o motor sobe.
+pub const STARTUP_WAIT: Duration = Duration::from_secs(20);
+const STARTUP_POLL: Duration = Duration::from_millis(100);
 const SHUTDOWN_GRACE: Duration = Duration::from_secs(10);
 // Um motor que ficou de pé por este tempo e caiu conta como uma queda nova, com direito a outra tentativa automática.
 const STABLE_UPTIME: Duration = Duration::from_secs(60);
@@ -81,6 +84,15 @@ pub struct Engine(Arc<Inner>);
 impl Engine {
     pub fn status(&self) -> Status {
         lock(&self.0.status).unwrap_or(Status::Starting)
+    }
+
+    /// A UI pede o último projeto logo ao abrir; antes de o processo do motor existir, o pedido falharia na hora com
+    /// `ENGINE_NOT_RUNNING` e o projeto não seria reaberto. Pronto ou caído, segue: o pedido responde por si.
+    pub async fn wait_until_started(&self, limit: Duration) {
+        let deadline = Instant::now() + limit;
+        while self.status() == Status::Starting && Instant::now() < deadline {
+            tokio::time::sleep(STARTUP_POLL).await;
+        }
     }
 
     fn set_status(&self, app: &AppHandle, status: Status) {
@@ -364,6 +376,30 @@ mod tests {
         assert!(restart_allowed(&restarts, Some(Duration::from_secs(2))));
         assert!(!restart_allowed(&restarts, Some(Duration::from_secs(2))));
         assert!(!restart_allowed(&restarts, None));
+    }
+
+    #[test]
+    fn autorizar_espera_o_motor_subir_e_nao_espera_alem_do_prazo() {
+        let engine = Engine::default();
+        let started = Instant::now();
+        tauri::async_runtime::block_on(engine.wait_until_started(Duration::from_millis(300)));
+        assert!(started.elapsed() >= Duration::from_millis(300));
+        assert!(started.elapsed() < Duration::from_secs(3));
+
+        let ready = engine.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(150));
+            *lock(&ready.0.status) = Some(Status::Ready);
+        });
+        let started = Instant::now();
+        tauri::async_runtime::block_on(engine.wait_until_started(Duration::from_secs(10)));
+        assert!(started.elapsed() < Duration::from_secs(5));
+        assert_eq!(engine.status(), Status::Ready);
+
+        *lock(&engine.0.status) = Some(Status::Crashed);
+        let started = Instant::now();
+        tauri::async_runtime::block_on(engine.wait_until_started(Duration::from_secs(10)));
+        assert!(started.elapsed() < Duration::from_secs(1));
     }
 
     #[test]

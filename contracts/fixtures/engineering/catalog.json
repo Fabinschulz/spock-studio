@@ -95,14 +95,14 @@
         "title": "Agente verificador",
         "version": "0.1.0",
         "whatItDoes": "Confere, de forma independente, se uma funcionalidade pronta cumpre os critérios de aceite da especificação, com evidência para cada afirmação, e registra o resultado.",
-        "whenItActs": "Depois da última tarefa de uma funcionalidade, na fase Validar do ciclo de especificação.",
+        "whenItActs": "Depois da última tarefa de uma funcionalidade, na validação do processo do projeto (ou na fase Validar do ciclo de especificação).",
         "reads": [
-          "A especificação da funcionalidade (spec.md)",
+          "A especificação da funcionalidade",
           "O código da funcionalidade",
           "A saída dos comandos que ele mesmo roda"
         ],
         "canChange": [
-          "Escreve um único arquivo: .specs/features/<funcionalidade>/validation.md, com o resultado. Não altera código."
+          "Escreve um único arquivo, e só com a estrutura de especificação instalada: .specs/features/<funcionalidade>/validation.md, com o resultado. Sem ela, só devolve o relatório. Não altera código."
         ],
         "tools": [
           {

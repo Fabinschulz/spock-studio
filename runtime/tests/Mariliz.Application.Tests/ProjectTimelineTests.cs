@@ -174,6 +174,22 @@ public class ProjectTimelineTests
     }
 
     [Fact]
+    public async Task Limitacoes_de_um_pedido_nao_contam_como_verificacoes_que_falharam()
+    {
+        using var w = new World();
+        w.Journal("ex-000000000009", RunKinds.Workflow, RunStates.CompletedWithLimitations, Day1, journal =>
+        {
+            journal.Evals.Add(new EvalSummary { Id = "INDEX_PENDING", Status = "recorded", Required = false });
+            journal.Evals.Add(new EvalSummary { Id = "EMBEDDINGS_NOT_READY", Status = "recorded", Required = false });
+            journal.Evals.Add(new EvalSummary { Id = "JUDGE_NOT_RUN", Status = "not_run", Required = false });
+        });
+
+        var run = Assert.Single(Events(await Task.FromResult(w.Service().Read(w.H.ProjectId, [], 200, null)), "run"));
+
+        Assert.Equal("Concluída com limitações; 1 verificação não executada.", run.Detail);
+    }
+
+    [Fact]
     public async Task As_mudancas_do_perfil_viram_frases_simples()
     {
         using var w = await Populated();

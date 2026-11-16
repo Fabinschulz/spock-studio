@@ -4,10 +4,12 @@ namespace Mariliz.Application.Harness;
 
 // Precedência: o que a pessoa excluiu em mariliz.yaml, depois a proposta validada do Harness Engineer, depois as regras-base.
 /// <param name="requested">Ainda não gravados em mariliz.yaml.</param>
+/// <param name="managed">Componentes que o mariliz.lock já registra.</param>
 internal sealed class ComponentSelector(
     IReadOnlySet<string> userExcluded,
     IReadOnlySet<string> requested,
     IReadOnlyDictionary<string, ProposalDecision> proposed,
+    IReadOnlySet<string> managed,
     List<ComponentDecision> decisions,
     List<Limitation> limitations)
 {
@@ -32,8 +34,11 @@ internal sealed class ComponentSelector(
             return false;
         }
 
+        // "keep" é "já está adequado": de um componente que o Spock gerencia, ele continua desejado, com o mesmo conteúdo e
+        // sem mudança no plano. Sem isto o componente saía do lock e deixava de ser conferido, revisado e revertido.
         if (proposal is not null)
-            return Record(kind, id, proposal.Decision, proposal.Justification, DecisionOrigins.HarnessEngineer, proposal.Evidence);
+            return Record(kind, id, proposal.Decision, proposal.Justification, DecisionOrigins.HarnessEngineer, proposal.Evidence)
+                || (proposal.Decision == ComponentDecisions.Keep && managed.Contains(id));
 
         return Record(kind, id, ComponentDecisions.Enable, baselineReason, origin, baselineEvidence);
     }

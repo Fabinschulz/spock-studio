@@ -39,6 +39,7 @@ async fn authorize_and_record(
     recents: &Recents,
     path: &str,
 ) -> Result<Value, HostError> {
+    engine.wait_until_started(engine::STARTUP_WAIT).await;
     let mut authorized = engine
         .request(
             method::AUTHORIZE_WORKSPACE,

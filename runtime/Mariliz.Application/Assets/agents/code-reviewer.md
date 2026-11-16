@@ -30,7 +30,8 @@ kept to read (`git diff`, `grep`) and to build throwaway reproductions outside t
 
 ## Required context
 
-- The rules in `.claude/rules/` (general, stack and repository) and the project's own `CLAUDE.md`.
+- The rules in `.claude/rules/` (general, stack and repository) and the project's own instructions (`AGENTS.md`,
+  `CLAUDE.md`).
 - The `harness-contract` skill: how to label evidence and confidence.
 
 ## Process

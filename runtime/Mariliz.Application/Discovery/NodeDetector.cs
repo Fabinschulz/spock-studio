@@ -111,11 +111,19 @@ internal static class NodeDetector
             {
                 if (!scripts.TryGetProperty(kind, out var cmd) || cmd.ValueKind != JsonValueKind.String) continue;
                 var runner = manager ?? "npm";
-                var command = kind == "test" && runner == "npm" ? "npm test" : $"{runner} run {kind}";
+                var command = kind == "test" && runner == "npm" ? $"npm{InPackage(runner, root)} test" : $"{runner}{InPackage(runner, root)} run {kind}";
                 tooling.Add(new ToolingFinding(kind, $"{runner} {kind}", command, [new Evidence(manifestPath, $"scripts.{kind}={Ellipsis.Truncate(cmd.GetString() ?? "", 80)}")]));
             }
         }
     }
+
+    // Sem a pasta, dois pacotes do mesmo repositório viram o mesmo comando e o agente roda o da raiz.
+    private static string InPackage(string runner, string root) => root.Length == 0 ? "" : runner switch
+    {
+        "pnpm" => $" --dir {root}",
+        "yarn" or "bun" => $" --cwd {root}",
+        _ => $" --prefix {root}"
+    };
 
     private static Dictionary<string, string> CollectDependencies(JsonElement root)
     {

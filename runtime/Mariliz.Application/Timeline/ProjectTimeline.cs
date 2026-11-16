@@ -153,13 +153,23 @@ public sealed class ProjectTimelineService(
             .Where(journal => !coveredByHarness.Contains(journal.RunId))
             .Select(journal =>
             {
-                var evals = journal.Evals.Count;
-                var passed = journal.Evals.Count(item => string.Equals(item.Status, "Passed", StringComparison.OrdinalIgnoreCase));
-                var detail = StateLabel(journal.State) + (evals > 0 ? $"; {passed} de {evals} verificações passaram" : "") + ".";
+                var detail = StateLabel(journal.State) + ChecksDetail(journal.Evals) + ".";
                 return new TimelineEvent(
                     $"run:{journal.RunId}", journal.FinishedAt ?? journal.StartedAt, TimelineKinds.Run, LevelOf(journal.State),
                     RunTitle(journal.Kind), Capitalize(detail), "run", journal.RunId);
             }).ToList();
+
+    // Um pedido de engenharia guarda as limitações como "recorded": não são verificações, e contá-las dizia "0 de 3
+    // passaram" de uma execução sem nenhuma falha. As que não rodaram aparecem à parte, como na tela de resultado.
+    private static string ChecksDetail(IEnumerable<EvalSummary> evals)
+    {
+        var checks = evals.Where(item => !string.Equals(item.Status, "recorded", StringComparison.OrdinalIgnoreCase)).ToList();
+        var notRun = checks.Count(item => item.Status.Replace("_", "").Equals("NotRun", StringComparison.OrdinalIgnoreCase));
+        var decided = checks.Count - notRun;
+        var passed = checks.Count(item => string.Equals(item.Status, "Passed", StringComparison.OrdinalIgnoreCase));
+        return (decided > 0 ? $"; {passed} de {decided} verificações passaram" : "")
+            + (notRun switch { 0 => "", 1 => "; 1 verificação não executada", _ => $"; {notRun} verificações não executadas" });
+    }
 
     private static string RunTitle(string kind) => kind switch
     {

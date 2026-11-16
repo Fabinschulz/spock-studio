@@ -60,7 +60,7 @@ internal sealed class HarnessComposition(
         AddRepositoryCommands();
         AddProposedRules();
         AddPolicyHook();
-        SpecificationPlanner.Plan(report, files, options, _decisions, _commands, _limitations, _risks);
+        SpecificationPlanner.Plan(report, files, options, _exclusion, _decisions, _commands, _limitations, _risks);
 
         return new ComposeResult(environment, _proposalOrigin, _desired, _decisions, _commands, _limitations,
             [.. _observations, .. proposal.Proposal?.Observations ?? []],
@@ -157,7 +157,8 @@ internal sealed class HarnessComposition(
         var excluded = _exclusion.ToHashSet(StringComparer.Ordinal);
         var requested = excluded.Except(declared?.Components.Exclude ?? [], StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
         var proposed = proposal.Proposal?.Decisions.ToDictionary(d => d.Id, StringComparer.Ordinal) ?? [];
-        return new ComponentSelector(excluded, requested, proposed, _decisions, _limitations);
+        var managed = (ManagedLockFile.Read(files)?.Components.Select(c => c.Id) ?? []).ToHashSet(StringComparer.Ordinal);
+        return new ComponentSelector(excluded, requested, proposed, managed, _decisions, _limitations);
     }
 
     private void AddCoreComponents()

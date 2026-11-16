@@ -9,7 +9,7 @@
       "plain": "Gravar em arquivos que costumam guardar segredos: .env (menos .env.example), chaves e certificados (.pem, .pfx, .p12, .key), chaves SSH e arquivos credentials ou secrets em JSON, YAML ou TOML."
     },
     {
-      "source": "this file belongs to the managed harness. Change it through Mariliz so it stays reviewable and reversible.",
+      "source": "this file belongs to the managed harness. Change it through Spock Studio so it stays reviewable and reversible.",
       "plain": "Mexer nos arquivos do Harness (.claude/, .agents/, mariliz.yaml, mariliz.lock e .mcp.json). O Claude Code pergunta antes, para a mudança passar pelo Spock Studio, que mostra a diferença e permite reverter."
     },
     {
