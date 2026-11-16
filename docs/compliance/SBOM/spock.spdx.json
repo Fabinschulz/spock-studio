@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Inventário consolidado (distribuído, sob demanda, externo e desenvolvimento)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--13eb1d1c-f1ef-464d-b413-3d2ffde94c10",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--e3e37c42-a345-4045-823b-496ebc62c24e",
   "creationInfo": {
-    "created": "2026-11-15T22:26:46Z",
+    "created": "2026-11-15T22:49:30Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -107,7 +107,7 @@
       "licenseConcluded": "Python-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Interpretador da inteligência no Linux (e macOS fora da 1ª versão). Ambiente: execução. Distribuição: redistribuído (resources/python no AppImage/deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py:31 | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml. SHA-256 do arquivo fixado no script: 8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado.",
+      "comment": "Uso: Interpretador da inteligência no Linux (e macOS fora da 1ª versão). Ambiente: execução. Distribuição: redistribuído (resources/python no AppImage/deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: scripts/package-intelligence.py:31 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml. SHA-256 do arquivo fixado no script: 8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -302,7 +302,7 @@
       "licenseConcluded": "Unlicense OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de regex. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT, Unlicense). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aho-corasick-1.1.5.",
+      "comment": "Uso: transitiva de regex-automata. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT, Unlicense). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aho-corasick-1.1.5.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -327,7 +327,7 @@
       "licenseConcluded": "BSD-3-Clause",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de brotli. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (BSD-3-Clause). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloc-no-stdlib-3.0.0.",
+      "comment": "Uso: transitiva de brotli-decompressor. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (BSD-3-Clause). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloc-no-stdlib-3.0.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -352,7 +352,7 @@
       "licenseConcluded": "NOASSERTION",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de brotli. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: SEM ARQUIVO. Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloc-stdlib-0.3.0.",
+      "comment": "Uso: transitiva de brotli-decompressor. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: SEM ARQUIVO. Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/alloc-stdlib-0.3.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -377,7 +377,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-utils. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104.",
+      "comment": "Uso: transitiva de tauri-plugin-fs. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -427,7 +427,7 @@
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de blocking. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-channel-2.5.0.",
+      "comment": "Uso: transitiva de async-process. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-channel-2.5.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -602,7 +602,7 @@
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de zbus. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-task-4.7.1.",
+      "comment": "Uso: transitiva de async-executor. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-task-4.7.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -752,7 +752,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-codegen. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base64-0.23.1.",
+      "comment": "Uso: transitiva de serde_with. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base64-0.23.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -827,7 +827,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de portable-pty. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitflags-1.3.2.",
+      "comment": "Uso: transitiva de defmt. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitflags-1.3.2.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -927,7 +927,7 @@
       "licenseConcluded": "BSD-3-Clause AND MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-utils. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (BSD-3-Clause, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/brotli-9.1.0.",
+      "comment": "Uso: transitiva de tauri-codegen. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (BSD-3-Clause, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/brotli-9.1.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -1027,7 +1027,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tokio. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.12.1.",
+      "comment": "Uso: transitiva de http. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.12.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -1202,7 +1202,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de embed-resource. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cc-1.10.0.",
+      "comment": "Uso: transitiva de vswhom-sys. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cc-1.10.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -1277,7 +1277,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de getrandom. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cfg-if-1.0.5.",
+      "comment": "Uso: transitiva de encoding_rs. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cfg-if-1.0.5.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -1352,7 +1352,7 @@
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de async-channel. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/concurrent-queue-2.5.0.",
+      "comment": "Uso: transitiva de async-executor. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/concurrent-queue-2.5.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -1552,7 +1552,7 @@
       "licenseConcluded": "MPL-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de dom_query. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MPL-2.0). Risco: MÉDIO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cssparser-0.37.0.",
+      "comment": "Uso: transitiva de selectors. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MPL-2.0). Risco: MÉDIO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cssparser-0.37.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -1652,7 +1652,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de darling_macro. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/darling_core-0.24.1.",
+      "comment": "Uso: transitiva de darling. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/darling_core-0.24.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -1727,7 +1727,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de jiff-core. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/defmt-1.2.0.",
+      "comment": "Uso: transitiva de jiff. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/defmt-1.2.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -1902,7 +1902,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de wry. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dirs-7.0.0.",
+      "comment": "Uso: transitiva de tauri-build. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dirs-7.0.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -1952,7 +1952,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de zerotrie. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/displaydoc-0.2.7.",
+      "comment": "Uso: transitiva de icu_collections. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/displaydoc-0.2.7.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -2152,7 +2152,7 @@
       "licenseConcluded": "CC0-1.0 OR MIT-0 OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de open. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (CC0-1.0). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dunce-1.0.5.",
+      "comment": "Uso: transitiva de tauri-plugin-fs. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (CC0-1.0). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dunce-1.0.5.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -2377,7 +2377,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de rustix. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/errno-0.3.14.",
+      "comment": "Uso: transitiva de signal-hook-registry. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/errno-0.3.14.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -2402,7 +2402,7 @@
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de event-listener-strategy. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/event-listener-5.4.2.",
+      "comment": "Uso: transitiva de zbus. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/event-listener-5.4.2.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -2677,7 +2677,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de soup3. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-channel-0.3.34.",
+      "comment": "Uso: transitiva de gtk. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-channel-0.3.34.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -2702,7 +2702,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de futures-executor. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-core-0.3.34.",
+      "comment": "Uso: transitiva de async-channel. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-core-0.3.34.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -2752,7 +2752,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de piper. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-io-0.3.34.",
+      "comment": "Uso: transitiva de async-io. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-io-0.3.34.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -2777,7 +2777,7 @@
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de zbus. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-lite-2.6.1.",
+      "comment": "Uso: transitiva de async-executor. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-lite-2.6.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -2852,7 +2852,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de futures-executor. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-task-0.3.34.",
+      "comment": "Uso: transitiva de glib. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-task-0.3.34.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -2877,7 +2877,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de futures-executor. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34.",
+      "comment": "Uso: transitiva de glib. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -2952,7 +2952,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de gdk-pixbuf. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gdk-pixbuf-sys-0.18.0.",
+      "comment": "Uso: transitiva de gdk-sys. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gdk-pixbuf-sys-0.18.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -3152,7 +3152,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de gdk-pixbuf. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gio-0.18.4.",
+      "comment": "Uso: transitiva de gtk. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gio-0.18.4.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -3202,7 +3202,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de atk. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/glib-0.18.5.",
+      "comment": "Uso: transitiva de libappindicator. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/glib-0.18.5.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -3277,7 +3277,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-utils. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/glob-0.3.4.",
+      "comment": "Uso: transitiva de tauri-plugin-fs. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/glob-0.3.4.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -3552,7 +3552,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-utils. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/http-1.5.0.",
+      "comment": "Uso: transitiva de tauri-runtime-wry. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/http-1.5.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -3877,7 +3877,7 @@
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de schemars. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/indexmap-1.9.3.",
+      "comment": "Uso: transitiva de serde_with. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/indexmap-1.9.3.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -3902,7 +3902,7 @@
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de toml. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/indexmap-2.14.2.",
+      "comment": "Uso: transitiva de serde_with. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/indexmap-2.14.2.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -4002,7 +4002,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de serde_json. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/itoa-1.0.18.",
+      "comment": "Uso: transitiva de cssparser. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/itoa-1.0.18.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -4177,7 +4177,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-utils. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/json-patch-4.2.0.",
+      "comment": "Uso: transitiva de tauri-build. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/json-patch-4.2.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -4327,7 +4327,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de open. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.191.",
+      "comment": "Uso: transitiva de shared_child. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.191.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -4477,7 +4477,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de rfd. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.34.",
+      "comment": "Uso: transitiva de tauri-plugin-fs. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.34.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -4527,7 +4527,7 @@
       "licenseConcluded": "Unlicense OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de serde_json. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT, Unlicense). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/memchr-2.8.3.",
+      "comment": "Uso: transitiva de aho-corasick. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT, Unlicense). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/memchr-2.8.3.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5002,7 +5002,7 @@
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de event-listener. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parking-2.2.1.",
+      "comment": "Uso: transitiva de async-io. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parking-2.2.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5102,7 +5102,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-utils. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/phf-0.13.1.",
+      "comment": "Uso: transitiva de cssparser. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/phf-0.13.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5127,7 +5127,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de web_atoms. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/phf_codegen-0.13.1.",
+      "comment": "Uso: transitiva de selectors. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/phf_codegen-0.13.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5152,7 +5152,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de phf_macros. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/phf_generator-0.13.1.",
+      "comment": "Uso: transitiva de string_cache_codegen. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/phf_generator-0.13.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5202,7 +5202,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de phf_macros. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/phf_shared-0.13.1.",
+      "comment": "Uso: transitiva de string_cache_codegen. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/phf_shared-0.13.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5227,7 +5227,7 @@
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tokio. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pin-project-lite-0.2.17.",
+      "comment": "Uso: transitiva de tracing. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pin-project-lite-0.2.17.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5277,7 +5277,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de gdk-sys. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pkg-config-0.3.34.",
+      "comment": "Uso: transitiva de gtk. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pkg-config-0.3.34.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5327,7 +5327,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-codegen. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/png-0.18.1.",
+      "comment": "Uso: transitiva de ico. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/png-0.18.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5452,7 +5452,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de dom_query. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/precomputed-hash-0.1.1.",
+      "comment": "Uso: transitiva de selectors. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/precomputed-hash-0.1.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5527,7 +5527,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de zvariant_derive. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/proc-macro-crate-3.5.0.",
+      "comment": "Uso: transitiva de zbus_macros. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/proc-macro-crate-3.5.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5552,7 +5552,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de gtk3-macros. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/proc-macro-error-1.0.4.",
+      "comment": "Uso: transitiva de glib-macros. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/proc-macro-error-1.0.4.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5602,7 +5602,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de phf_macros. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/proc-macro2-1.0.107.",
+      "comment": "Uso: transitiva de defmt-macros. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/proc-macro2-1.0.107.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5652,7 +5652,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de cssparser-macros. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/quote-1.0.47.",
+      "comment": "Uso: transitiva de defmt-macros. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/quote-1.0.47.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5677,7 +5677,7 @@
       "licenseConcluded": "MIT OR Apache-2.0 OR Zlib",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de rfd. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT, Zlib). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raw-window-handle-0.6.2.",
+      "comment": "Uso: transitiva de tauri-runtime-wry. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT, Zlib). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/raw-window-handle-0.6.2.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5802,7 +5802,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de regex. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/regex-syntax-0.8.11.",
+      "comment": "Uso: transitiva de regex-automata. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/regex-syntax-0.8.11.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5902,7 +5902,7 @@
       "licenseConcluded": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de zbus. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.5.",
+      "comment": "Uso: transitiva de async-io. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.5.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5977,7 +5977,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-utils. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/schemars-0.8.22.",
+      "comment": "Uso: transitiva de tauri-plugin-fs. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/schemars-0.8.22.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -6077,7 +6077,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de lock_api. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scopeguard-1.2.0.",
+      "comment": "Uso: transitiva de encoding_rs. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scopeguard-1.2.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -6127,7 +6127,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-utils. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.28.",
+      "comment": "Uso: transitiva de tauri-build. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/semver-1.0.28.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -6202,7 +6202,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de serde_json. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_core-1.0.229.",
+      "comment": "Uso: transitiva de serde_with. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_core-1.0.229.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -6677,7 +6677,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de fdeflate. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/simd-adler32-0.3.10.",
+      "comment": "Uso: transitiva de miniz_oxide. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/simd-adler32-0.3.10.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -6752,7 +6752,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de futures-util. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/slab-0.4.12.",
+      "comment": "Uso: transitiva de async-executor. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/slab-0.4.12.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -6777,7 +6777,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de parking_lot_core. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/smallvec-1.16.4.",
+      "comment": "Uso: transitiva de cssparser. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/smallvec-1.16.4.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -6877,7 +6877,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de soup3. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/soup3-sys-0.5.0.",
+      "comment": "Uso: transitiva de webkit2gtk-sys. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/soup3-sys-0.5.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -6902,7 +6902,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de yoke. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/stable_deref_trait-1.2.1.",
+      "comment": "Uso: transitiva de servo_arc. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/stable_deref_trait-1.2.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -7002,7 +7002,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de darling_core. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/strsim-0.11.1.",
+      "comment": "Uso: transitiva de tauri-build. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/strsim-0.11.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -7052,7 +7052,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de phf_macros. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/syn-2.0.119.",
+      "comment": "Uso: transitiva de windows-interface. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/syn-2.0.119.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -7077,7 +7077,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de cssparser-macros. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/syn-3.0.9.",
+      "comment": "Uso: transitiva de defmt-macros. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/syn-3.0.9.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -7102,7 +7102,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de zerofrom-derive. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/synstructure-0.14.0.",
+      "comment": "Uso: transitiva de yoke-derive. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/synstructure-0.14.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -7127,7 +7127,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de pango-sys. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/system-deps-6.2.2.",
+      "comment": "Uso: transitiva de atk-sys. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/system-deps-6.2.2.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -7302,7 +7302,7 @@
       "licenseConcluded": "NOASSERTION",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-plugin-dialog. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: SEM ARQUIVO. Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-plugin-2.7.2.",
+      "comment": "Uso: transitiva de tauri-plugin-fs. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: SEM ARQUIVO. Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-plugin-2.7.2.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -7577,7 +7577,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-utils. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.21.",
+      "comment": "Uso: transitiva de tauri-plugin-fs. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.21.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -7652,7 +7652,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de plist. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-0.3.55.",
+      "comment": "Uso: transitiva de serde_with. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-0.3.55.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -7827,7 +7827,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-winres. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml-1.1.8+spec-1.1.0.",
+      "comment": "Uso: transitiva de tauri-plugin-fs. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml-1.1.8+spec-1.1.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -7852,7 +7852,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de toml_edit. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml_datetime-0.6.3.",
+      "comment": "Uso: transitiva de proc-macro-crate. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml_datetime-0.6.3.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -7927,7 +7927,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de toml. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml_edit-0.20.2.",
+      "comment": "Uso: transitiva de proc-macro-crate. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml_edit-0.20.2.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -8027,7 +8027,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-plugin-single-instance. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-0.1.44.",
+      "comment": "Uso: transitiva de softbuffer. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tracing-0.1.44.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -8127,7 +8127,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de erased-serde. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typeid-1.0.3.",
+      "comment": "Uso: transitiva de serde-untagged. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typeid-1.0.3.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -8152,7 +8152,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de crypto-common. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1.",
+      "comment": "Uso: transitiva de generic-array. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -8227,7 +8227,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-utils. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/url-2.5.8.",
+      "comment": "Uso: transitiva de tauri-plugin-fs. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/url-2.5.8.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -8302,7 +8302,7 @@
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-utils. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.29.0.",
+      "comment": "Uso: transitiva de schemars. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.29.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -8427,7 +8427,7 @@
       "licenseConcluded": "Unlicense OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-utils. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT, Unlicense). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0.",
+      "comment": "Uso: transitiva de tauri-build. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT, Unlicense). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -8502,7 +8502,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de wry. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/webkit2gtk-2.0.2.",
+      "comment": "Uso: transitiva de tauri-runtime-wry. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/webkit2gtk-2.0.2.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -8552,7 +8552,7 @@
       "licenseConcluded": "NOASSERTION",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de wry. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: SEM ARQUIVO. Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/webview2-com-0.39.1.",
+      "comment": "Uso: transitiva de tauri-runtime-wry. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: SEM ARQUIVO. Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/webview2-com-0.39.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -8627,7 +8627,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de portable-pty. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/winapi-0.3.9.",
+      "comment": "Uso: transitiva de filedescriptor. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/winapi-0.3.9.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -8652,7 +8652,7 @@
       "licenseConcluded": "Unlicense OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de walkdir. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT, Unlicense). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/winapi-util-0.1.11.",
+      "comment": "Uso: transitiva de same-file. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT, Unlicense). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/winapi-util-0.1.11.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -8702,7 +8702,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de webview2-com. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/windows-0.62.2.",
+      "comment": "Uso: transitiva de tauri-runtime-wry. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/windows-0.62.2.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -8752,7 +8752,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de windows-numerics. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/windows-core-0.62.2.",
+      "comment": "Uso: transitiva de windows. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/windows-core-0.62.2.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -8852,7 +8852,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de windows-numerics. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/windows-link-0.2.1.",
+      "comment": "Uso: transitiva de jiff. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/windows-link-0.2.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -9202,7 +9202,7 @@
       "licenseConcluded": "Unicode-3.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de icu_provider. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Unicode-3.0). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/writeable-0.6.4.",
+      "comment": "Uso: transitiva de icu_locale_core. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Unicode-3.0). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/writeable-0.6.4.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -9302,7 +9302,7 @@
       "licenseConcluded": "Unicode-3.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de zerotrie. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Unicode-3.0). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/yoke-0.8.4.",
+      "comment": "Uso: transitiva de zerovec. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Unicode-3.0). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/yoke-0.8.4.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -9452,7 +9452,7 @@
       "licenseConcluded": "Unicode-3.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de zerotrie. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Unicode-3.0). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerofrom-0.1.8.",
+      "comment": "Uso: transitiva de zerovec. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Unicode-3.0). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerofrom-0.1.8.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -9677,7 +9677,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de zvariant_derive. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zvariant_utils-4.2.0.",
+      "comment": "Uso: transitiva de zvariant. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zvariant_utils-4.2.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",

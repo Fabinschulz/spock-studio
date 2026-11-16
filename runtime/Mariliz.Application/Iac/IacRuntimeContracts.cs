@@ -9,7 +9,9 @@ public enum IacEngine
     OpenTofu
 }
 
-public sealed record IacEngineInfo(IacEngine Engine, string Name, string License, string MinimumVersion, bool Preferred, bool Available);
+// ManagedInstall e ExternalUse vêm da política da edição (IacDistributionPolicy); Note explica uma restrição para a pessoa.
+public sealed record IacEngineInfo(IacEngine Engine, string Name, string License, string MinimumVersion, bool Preferred, bool Available,
+    bool ManagedInstall = true, bool ExternalUse = true, string? Note = null);
 
 // Os nomes de sistema e arquitetura que as duas distribuições usam nos arquivos de cada versão (<ferramenta>_<v>_<os>_<arch>.zip).
 public sealed record IacPlatform(string Os, string Arch)
@@ -105,7 +107,8 @@ public sealed record IacRuntimeStatus(
     IacInstallation? Selected,
     ProjectRuntime? Project,
     DateTimeOffset? DeclinedAt,
-    string Message);
+    string Message,
+    string Edition = IacDistributionPolicy.Development);
 
 // A proposta que a pessoa autoriza: o id amarra ferramenta, versão, plataforma, endereços e chave. Se algo mudar, a
 // autorização não vale.

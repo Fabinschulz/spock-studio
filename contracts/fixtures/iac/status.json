@@ -13,7 +13,10 @@
         "license": "MPL 2.0 (código aberto)",
         "minimumVersion": "1.6.0",
         "preferred": true,
-        "available": true
+        "available": true,
+        "managedInstall": true,
+        "externalUse": true,
+        "note": null
       },
       {
         "engine": "terraform",
@@ -21,7 +24,10 @@
         "license": "BUSL 1.1 (HashiCorp)",
         "minimumVersion": "1.5.0",
         "preferred": false,
-        "available": true
+        "available": true,
+        "managedInstall": true,
+        "externalUse": true,
+        "note": null
       }
     ],
     "installations": [
@@ -84,6 +90,7 @@
       "problem": null
     },
     "declinedAt": null,
-    "message": "OpenTofu 1.13.9 pronto, gerenciado pelo Spock."
+    "message": "OpenTofu 1.13.9 pronto, gerenciado pelo Spock.",
+    "edition": "development"
   }
 }

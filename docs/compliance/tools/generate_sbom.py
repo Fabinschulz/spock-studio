@@ -11,6 +11,8 @@ e o cache do Cargo com os crates de Windows e Linux (um `cargo metadata --locked
 
   python docs/compliance/tools/generate_sbom.py            gera docs/compliance/SBOM/* e docs/compliance/data/*
   python docs/compliance/tools/generate_sbom.py --check    só confere se o que está versionado ainda bate com os lockfiles
+  python docs/compliance/tools/generate_sbom.py --policy   relata o inventário contra license-policy.json (--enforce falha)
+  python docs/compliance/tools/generate_sbom.py --bundle <pasta> [--strict]   avisos prontos para recurso do Tauri
 """
 
 from __future__ import annotations
@@ -22,6 +24,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tomllib
@@ -369,7 +372,11 @@ def collect_cargo(inv: Inventory) -> None:
     checksums = {(p["name"], p["version"]): p.get("checksum") for p in lock["package"]}
     cwd = ROOT / "desktop/host/src-tauri"
     for triple, artifact in ((WIN, "windows-x64"), (LINUX, "linux-x64")):
-        meta = json.loads(run(["cargo", "metadata", "--locked", "--offline", "--format-version", "1", "--filter-platform", triple], cwd))
+        try:
+            meta = json.loads(run(["cargo", "metadata", "--locked", "--offline", "--format-version", "1", "--filter-platform", triple], cwd))
+        except subprocess.CalledProcessError:
+            # Cache sem os crates deste alvo (CI recém-criado): o Cargo baixa só o que o Cargo.lock fixa.
+            meta = json.loads(run(["cargo", "metadata", "--locked", "--format-version", "1", "--filter-platform", triple], cwd))
         packages = {p["id"]: p for p in meta["packages"]}
         nodes = {n["id"]: n for n in meta["resolve"]["nodes"]}
         root = meta["resolve"]["root"]
@@ -594,10 +601,10 @@ def manual(inv: Inventory) -> None:
         ("bin:python-build-standalone", "CPython (python-build-standalone, install_only_stripped)", "3.12.10+20250409", "binário", "runtime",
          "pkg:github/astral-sh/python-build-standalone@20250409", "https://github.com/astral-sh/python-build-standalone",
          "Interpretador da inteligência no Linux (e macOS fora da 1ª versão)", "execução", "redistribuído (resources/python no AppImage/deb)",
-         {"linux-x64"}, "Python-2.0", "MÉDIO",
-         "Redistribuição exige os avisos da PSF e dos componentes nativos (OpenSSL, SQLite, ncurses, libedit, libffi, expat, mpdecimal, zlib, xz, libX11); "
-         "o PYTHON.json/licenças do arquivo baixado não foram conferidos localmente",
-         ["scripts/package-intelligence.py:31", "https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml"], None,
+         {"linux-x64"}, "Python-2.0", "BAIXO",
+         "Bibliotecas nativas ligadas ao libpython (OpenSSL, SQLite, ncurses, libedit, libffi, expat, mpdecimal, zlib, xz, Tcl/Tk, X11); "
+         "os textos publicados pelo PBS na tag vão em python/licenses/python-build-standalone",
+         ["scripts/package-intelligence.py:31", "scripts/notices/python-build-standalone/README.md", "https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml"], None,
          "SHA-256 do arquivo fixado no script: 8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado."),
         ("bin:berkeley-db", "Berkeley DB (dentro do python-build-standalone, módulo _dbm)", "6.0.19", "binário", "library",
          "pkg:generic/berkeley-db@6.0.19", "https://github.com/astral-sh/python-build-standalone/blob/20250409/pythonbuild/downloads.py",
@@ -698,7 +705,7 @@ def manual(inv: Inventory) -> None:
          None, ""),
         ("asset:icons", "Ícones e logotipo Spock Studio", "0.1.0", "asset", "asset", None, None, "Ícone do app, instalador e favicon",
          "execução", "incorporado (instalador e interface)", {"windows-x64", "linux-x64"}, "LicenseRef-Proprietary-Spock", "PENDENTE",
-         "Desenho declarado original (comentário no SVG); a marca 'Spock' e a sobrancelha erguida podem remeter a personagem de terceiros (questão de marca, não de copyright)",
+         "Desenho próprio; busca de anterioridade e parecer da marca SPOCK (System of Programming, Organization, Code and Knowledge) pendentes (D-12)",
          ["desktop/host/src-tauri/icons/source/spock-studio.svg:2", "desktop/ui/public/favicon.svg"], ROOT / "desktop/host/src-tauri/icons/icon.ico", ""),
         ("asset:release-keys", "Chaves públicas OpenPGP de releases (HashiCorp, OpenTofu)", "embutidas", "asset", "data", None, None,
          "Verificação da assinatura dos binários baixados", "execução", "incorporado (sidecar)", {"windows-x64", "linux-x64"},
@@ -775,7 +782,7 @@ MANUAL_OBLIGATIONS = {
     "bin:cpython-embed": "Incluir LICENSE.txt do CPython (já vai em resources/python) nos avisos visíveis; EULA do Spock com proteção ao "
                          "Distributable Code da Microsoft; não usar marcas da PSF/Microsoft",
     "bin:vcruntime": "Termos de usuário final protetivos; só plataformas Microsoft; não alterar avisos",
-    "bin:python-build-standalone": "Reproduzir a licença do CPython e de cada biblioteca nativa listada no PYTHON.json da release",
+    "bin:python-build-standalone": "Licença do CPython (lib/python3.12/LICENSE.txt) e das bibliotecas nativas (python/licenses/python-build-standalone) no pacote",
     "bin:berkeley-db": "Sleepycat: licença e informação de fonte do Berkeley DB 6.0.19 e do CPython/PBS junto da distribuição (implementado em "
                        "python/licenses/berkeley-db e conferido pelo smoke do pacote); manter o canal de suporte para entregar as fontes",
     "bin:dotnet-runtime-win": "Incluir LICENSE.TXT e THIRD-PARTY-NOTICES.TXT do runtime; EULA com termos protetivos (.NET Library License); "
@@ -1006,9 +1013,22 @@ NOTICE_FILES = [
 ]
 
 
-def write_notices(items: list[Component]) -> None:
-    notices_dir = OUT / "notices"
-    notices_dir.mkdir(exist_ok=True)
+# Textos mantidos no repositório porque não vêm em nenhum pacote: vão junto do Python do Linux (package-intelligence.py).
+REPO_NOTICES = [
+    ("Berkeley DB 6.0.19, no Python embarcado do Linux", ROOT / "scripts" / "notices" / "berkeley-db"),
+    ("Bibliotecas nativas do python-build-standalone 20250409 (Linux)", ROOT / "scripts" / "notices" / "python-build-standalone"),
+]
+
+# O que ainda não tem texto reunido. Sai da lista quando o texto entra no repositório ou no pacote.
+OPEN_GAPS = [
+    "WebKitGTK, GTK, GLib e demais bibliotecas embutidas no AppImage (LGPL e outras): listar a partir do AppImage gerado (D-06).",
+    ".NET Runtime para linux-x64: LICENSE.TXT/THIRD-PARTY-NOTICES.TXT do pacote linux-x64 (o arquivo copiado é o do win-x64).",
+    "nsis_tauri_utils (MIT OR Apache-2.0) e o runtime do AppImage: textos do repositório oficial.",
+]
+
+
+def notice_texts(items: list[Component]) -> tuple[dict[str, tuple[list[str], list[Component]]], list[Component]]:
+    """Textos de licença dos componentes distribuídos, agrupados por texto idêntico, e os que não trazem texto no pacote."""
     by_text: dict[str, tuple[list[str], list[Component]]] = {}
     missing: list[Component] = []
     for c in items:
@@ -1017,9 +1037,8 @@ def write_notices(items: list[Component]) -> None:
         directory = package_dir(c)
         if directory is None:
             continue
-        files = license_files(directory, recursive=c.ecosystem == "pypi")
         texts = []
-        for f in files:
+        for f in license_files(directory, recursive=c.ecosystem == "pypi"):
             try:
                 texts.append((f.name, f.read_text(encoding="utf-8", errors="replace").strip()))
             except OSError:
@@ -1029,8 +1048,18 @@ def write_notices(items: list[Component]) -> None:
             continue
         for name, text in texts:
             digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
-            entry = by_text.setdefault(digest, ([name, text], []))
-            entry[1].append(c)
+            by_text.setdefault(digest, ([name, text], []))[1].append(c)
+    return by_text, missing
+
+
+def gaps(missing: list[Component]) -> list[str]:
+    return [f"{c.name} {c.version}: declarado {c.declared}, sem texto no pacote (origem: {c.origin or 'não informada'})" for c in missing] + OPEN_GAPS
+
+
+def write_notices(items: list[Component]) -> None:
+    notices_dir = OUT / "notices"
+    notices_dir.mkdir(exist_ok=True)
+    by_text, missing = notice_texts(items)
     copied = []
     for title, source, target in NOTICE_FILES:
         if source.is_file():
@@ -1044,21 +1073,50 @@ def write_notices(items: list[Component]) -> None:
            "titulares.", "", "## Textos completos distribuídos como arquivos", ""]
     for title, target in copied:
         out.append(f"- {title}: [`notices/{target}`](notices/{target})")
+    for title, folder in REPO_NOTICES:
+        relative = folder.relative_to(ROOT).as_posix()
+        out.append(f"- {title}: [`{relative}/`](../../{relative}/) (vai em `python/licenses/` no pacote Linux)")
     out += ["", "## Componentes de pacotes (npm, Cargo, NuGet, PyPI)", ""]
     for digest, ((name, text), comps) in sorted(by_text.items(), key=lambda kv: (kv[1][1][0].name.lower(), kv[0])):
         names = ", ".join(sorted({f"{c.name} {c.version}" for c in comps}))
         out += [f"### {names}", "", f"Arquivo `{name}`:", "", "```text", text.replace("```", "ʼʼʼ"), "```", ""]
     out += ["## Lacunas (PENDENTE)", "",
-            "Componentes distribuídos cujo pacote não traz arquivo de licença. O texto precisa ser obtido no repositório oficial,",
-            "na versão correspondente, antes do lançamento (não foi redigido aqui):", ""]
-    out += [f"- {c.name} {c.version} — declarado `{c.declared}` — origem: {c.origin or 'não informada'}" for c in missing]
-    out += ["", "Componentes fora de gerenciador de pacotes cujos textos ainda não foram reunidos:", "",
-            "- Bibliotecas nativas do python-build-standalone 20250409 (Linux): licenças no PYTHON.json/`licenses` do arquivo da release.",
-            "- Berkeley DB 6.0.19 (Sleepycat): já vai no pacote Linux em `python/licenses/berkeley-db/` (fonte: `scripts/notices/berkeley-db/`).",
-            "- WebKitGTK, GTK, GLib e demais bibliotecas embutidas no AppImage (LGPL e outras): listar a partir do AppImage gerado.",
-            "- .NET Runtime para linux-x64: mesmos LICENSE.TXT/THIRD-PARTY-NOTICES.TXT do pacote linux-x64 (o arquivo copiado é o do win-x64).",
-            "- nsis_tauri_utils (MIT OR Apache-2.0) e o runtime do AppImage: textos do repositório oficial.", ""]
-    (OUT / "THIRD_PARTY_NOTICES.md").write_text("\n".join(out), encoding="utf-8")
+            "O texto precisa ser obtido no repositório oficial, na versão correspondente, antes do lançamento (não foi redigido aqui):", ""]
+    out += [f"- {g}" for g in gaps(missing)]
+    (OUT / "THIRD_PARTY_NOTICES.md").write_text("\n".join(out) + "\n", encoding="utf-8")
+
+
+def write_bundle(items: list[Component], target: Path) -> list[str]:
+    """Pasta pronta para virar recurso do Tauri (D-07, aguardando aprovação): texto puro, os arquivos de licença e um manifesto."""
+    by_text, missing = notice_texts(items)
+    if target.exists():
+        for entry in target.iterdir():
+            if entry.name != ".gitkeep":
+                shutil.rmtree(entry) if entry.is_dir() else entry.unlink()
+    licenses = target / "licenses"
+    licenses.mkdir(parents=True, exist_ok=True)
+    for _, source, name in NOTICE_FILES:
+        if source.is_file():
+            shutil.copy2(source, licenses / name)
+    for _, folder in REPO_NOTICES:
+        shutil.copytree(folder, licenses / folder.name, dirs_exist_ok=True)
+    lines = [f"{PRODUCT[0]} {PRODUCT[1]} - Avisos de terceiros / Third-party notices", "",
+             "Este produto contém software de terceiros. Os textos abaixo são reproduzidos sem alteração; os textos longos estão",
+             "na pasta licenses/. / This product includes third-party software. The texts below are reproduced unchanged; long",
+             "texts are in the licenses/ folder.", ""]
+    for _, ((name, text), comps) in sorted(by_text.items(), key=lambda kv: (kv[1][1][0].name.lower(), kv[0])):
+        lines += ["=" * 78, ", ".join(sorted({f"{c.name} {c.version}" for c in comps})), f"({name})", "", text, ""]
+    (target / "THIRD_PARTY_NOTICES.txt").write_text("\n".join(lines), encoding="utf-8")
+    open_gaps = gaps(missing)
+    (target / "notices-manifest.json").write_text(json.dumps({
+        "product": f"{PRODUCT[0]} {PRODUCT[1]}",
+        "generated": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+        "components": sum(len(comps) for _, comps in by_text.values()),
+        "licenseFiles": sorted(p.relative_to(target).as_posix() for p in licenses.rglob("*") if p.is_file()),
+        "complete": not open_gaps,
+        "gaps": open_gaps,
+    }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return open_gaps
 
 
 def summarize(items: list[Component]) -> dict:
@@ -1089,9 +1147,122 @@ def summarize(items: list[Component]) -> dict:
     }
 
 
+def platform_specific_npm() -> set[tuple[str, str]]:
+    """Pacotes do lockfile presos a sistema/arquitetura (binários nativos opcionais): o pnpm só instala os da máquina."""
+    found: set[tuple[str, str]] = set()
+    current = None
+    for line in (ROOT / "pnpm-lock.yaml").read_text(encoding="utf-8").splitlines():
+        m = re.match(r"^  '?(@?[^@\s']+)@([^'\s(:]+)'?:\s*$", line)
+        if m:
+            current = (m.group(1), m.group(2))
+        elif current and re.match(r"^    (os|cpu|libc): ", line):
+            found.add(current)
+        elif line.strip() == "" or line.startswith("snapshots:"):
+            if line.startswith("snapshots:"):
+                break
+    return found
+
+
+POLICY_FILE = OUT / "license-policy.json"
+BLOCKING = {"PROIBIDA", "DESCONHECIDA", "REVISÃO PENDENTE"}
+
+
+def base_key(c: Component) -> str:
+    prefix, _, rest = c.key.partition(":")
+    if prefix in {"npm", "cargo", "nuget", "pypi"} and "@" in rest[1:]:
+        return f"{prefix}:{rest[: rest.rindex('@')]}"
+    return c.key
+
+
+def scope_of(c: Component) -> str:
+    if shipped(c):
+        return "distribuido"
+    return {"instalação sob demanda": "sob_demanda", "externo": "externo"}.get(c.environment, "desenvolvimento")
+
+
+def matches(license_id: str, patterns: list[str]) -> bool:
+    return any(p == "*" or p == license_id or (p.endswith("*") and license_id.startswith(p[:-1])) for p in patterns)
+
+
+def origin_chain(inv: Inventory, key: str) -> str:
+    """Caminho de uma dependência direta até o componente, para dizer de onde ele vem."""
+    parents: dict[str, list[str]] = defaultdict(list)
+    for c in inv.items.values():
+        for child in c.depends_on:
+            parents[child].append(c.key)
+    queue, seen = deque([[key]]), {key}
+    while queue:
+        path = queue.popleft()
+        node = inv.items.get(path[-1])
+        if node is not None and node.direct:
+            names = [inv.items[k].name for k in reversed(path) if k in inv.items]
+            return "direta" if len(names) == 1 else "via " + " > ".join(names[:-1])
+        # Um componente distribuído chega pelo caminho de execução, não pelo de build.
+        for parent in sorted(parents.get(path[-1], []), key=lambda k: (not (k in inv.items and shipped(inv.items[k])), k)):
+            if parent not in seen:
+                seen.add(parent)
+                queue.append(path + [parent])
+    return "sem caminho até uma dependência direta"
+
+
+def evaluate_policy(inv: Inventory, policy: dict) -> list[dict]:
+    results = []
+    registered = policy.get("registered", {})
+    for c in sorted(inv.items.values(), key=lambda x: (x.ecosystem, x.name.lower(), x.version)):
+        scope = scope_of(c)
+        rules = policy["scopes"][scope]
+        eff = effective(normalize(c.declared))
+        reference = registered.get(base_key(c))
+        if not eff:
+            status = "REVISÃO REGISTRADA" if reference else ("DESCONHECIDA" if scope != "externo" else "OK")
+            reason = f"licença não identificada ({c.declared or 'nenhuma'})"
+        elif any(matches(t, rules["forbidden"]) for t in eff):
+            status, reason = "PROIBIDA", "licença proibida neste escopo: " + ", ".join(t for t in eff if matches(t, rules["forbidden"]))
+        else:
+            # Revisão nomeada vence o "*" de permitidas; licença que a política não cita também pede revisão.
+            named_review = [p for p in rules["review"] if p != "*"]
+            pending = [t for t in eff if matches(t, named_review) or not matches(t, rules["allowed"])]
+            if not pending:
+                status, reason = "OK", ""
+            else:
+                status = "REVISÃO REGISTRADA" if reference else "REVISÃO PENDENTE"
+                reason = "exige revisão: " + ", ".join(pending)
+        results.append({
+            "componente": c.name, "versao": c.version, "ecossistema": c.ecosystem, "escopo": scope,
+            "licenca": c.declared or "", "efetiva": " AND ".join(eff), "status": status, "motivo": reason,
+            "registro": reference or "", "origem": origin_chain(inv, c.key) if status != "OK" else "",
+        })
+    return results
+
+
+def report_policy(inv: Inventory, enforce: bool, report: Path | None) -> int:
+    policy = json.loads(POLICY_FILE.read_text(encoding="utf-8"))
+    results = evaluate_policy(inv, policy)
+    counts = Counter((r["escopo"], r["status"]) for r in results)
+    print(f"Política de licenças: {policy['status']}")
+    for scope in ("distribuido", "sob_demanda", "externo", "desenvolvimento"):
+        line = ", ".join(f"{status} {n}" for (sc, status), n in sorted(counts.items()) if sc == scope)
+        print(f"  {scope}: {line}")
+    attention = [r for r in results if r["status"] != "OK"]
+    for r in attention:
+        extra = f" [{r['registro']}]" if r["registro"] else ""
+        print(f"  {r['status']}: {r['componente']}@{r['versao']} ({r['ecossistema']}, {r['escopo']}) {r['licenca'] or '-'}"
+              f" — {r['motivo']}{extra} — origem: {r['origem']}")
+    if report:
+        report.write_text(json.dumps({"policy": policy["status"], "results": results}, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    blocking = [r for r in results if r["status"] in BLOCKING and r["escopo"] in {"distribuido", "sob_demanda"}]
+    print(f"Bloqueantes (distribuído e sob demanda): {len(blocking)}" + ("" if enforce else " — modo relatório, sem falhar (D-10 pendente)."))
+    return 1 if enforce and blocking else 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--check", action="store_true", help="falha se o inventário versionado não bater com os lockfiles atuais")
+    parser.add_argument("--policy", action="store_true", help="avalia o inventário contra docs/compliance/license-policy.json")
+    parser.add_argument("--enforce", action="store_true", help="com --policy: sai com erro se houver bloqueante (só depois de aprovar a D-10)")
+    parser.add_argument("--report", type=Path, help="com --policy: grava o resultado completo em JSON")
+    parser.add_argument("--bundle", type=Path, help="gera avisos prontos para recurso do Tauri nesta pasta (D-07 aguarda aprovação)")
+    parser.add_argument("--strict", action="store_true", help="com --bundle: sai com erro se houver lacuna de aviso")
     args = parser.parse_args()
     inv = Inventory()
     collect_npm(inv)
@@ -1101,9 +1272,17 @@ def main() -> None:
     manual(inv)
     for c in inv.items.values():
         classify(c)
+    if args.policy:
+        sys.exit(report_policy(inv, args.enforce, args.report))
+    if args.bundle:
+        open_gaps = write_bundle(sorted(inv.items.values(), key=lambda c: (c.ecosystem, c.name.lower(), c.version)), args.bundle)
+        print(f"Avisos em {args.bundle}: {'completos' if not open_gaps else f'{len(open_gaps)} lacuna(s), ver notices-manifest.json'}")
+        sys.exit(1 if args.strict and open_gaps else 0)
     if args.check:
-        current = {(r["nome"], r["versao"]) for r in json.loads((OUT / "data" / "inventory.json").read_text(encoding="utf-8"))}
-        fresh = {(c.name, c.version) for c in inv.items.values()}
+        # Binários nativos por plataforma dependem da máquina que gerou: ficam fora da comparação (são de build, não vão ao usuário).
+        platform = platform_specific_npm()
+        current = {(r["nome"], r["versao"]) for r in json.loads((OUT / "data" / "inventory.json").read_text(encoding="utf-8"))} - platform
+        fresh = {(c.name, c.version) for c in inv.items.values()} - platform
         added, removed = sorted(fresh - current), sorted(current - fresh)
         if added or removed:
             print("Inventário desatualizado.\n  novos: " + ", ".join(f"{n}@{v}" for n, v in added) + "\n  removidos: " + ", ".join(f"{n}@{v}" for n, v in removed))

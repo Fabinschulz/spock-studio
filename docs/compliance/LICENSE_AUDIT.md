@@ -6,7 +6,7 @@
 | Escopo | Repositório inteiro no commit `2bdba24` (master; dependências e empacotamento idênticos em `8c61780`), mais o último build local (instalador Windows, recursos do Python e sidecar) |
 | Produto | Spock Studio 0.1.0, comercializado como software proprietário |
 | Natureza | Auditoria técnica de conformidade. **Não é parecer jurídico.** As questões marcadas ⚖ precisam de um profissional de propriedade intelectual e licenciamento de software |
-| Resultado | **Sem conformidade total.** Não há bloqueador de copyleft forte no produto distribuído. Há 5 riscos ALTO (2 no produto distribuído ou baixado por ele, 3 em dependências de teste com taxa), 14 MÉDIO e 3 PENDENTES, e as obrigações de aviso e EULA ainda não estão implementadas nos instaladores |
+| Resultado | **Sem conformidade total.** Não há bloqueador de copyleft forte no produto distribuído. Há 5 riscos ALTO (2 no produto distribuído ou baixado por ele, 3 em dependências de teste com taxa), 13 MÉDIO e 3 PENDENTES, e as obrigações de aviso e EULA ainda não estão implementadas nos instaladores |
 
 Documentos desta auditoria:
 
@@ -28,7 +28,7 @@ Documentos desta auditoria:
 | Externos (instalação ou conta do usuário) | 8: Git, Node/npx, Claude Code, Codex CLI, Cursor Agent, Gemini CLI, APIs de modelo e APIs de nuvem/integrações |
 | Só desenvolvimento ou build | 460 (inclui 104 crates de build/proc-macro). 1 pacote do lock não é instalado (`httpx2-jsfetch`, só emscripten) |
 | Licenças efetivas dos distribuídos | MIT 397, Apache-2.0 27, BSD-3-Clause 15, Unicode-3.0 15, MPL-2.0 5 (+1 em `orjson`), ISC 3, BSD-2-Clause 3, Python/PSF 3, Zlib, 0BSD, MIT-0, Sleepycat 1, .NET Library License 1, Visual C++ Redistributable 1, NSIS (Zlib+bzip2+CPL) 1 |
-| Risco (todos / distribuídos) | CRÍTICO 0/0 · ALTO 5/1 · MÉDIO 14/12 · PENDENTE 3/1 · BAIXO 933/469 |
+| Risco (todos / distribuídos) | CRÍTICO 0/0 · ALTO 5/1 · MÉDIO 13/11 · PENDENTE 3/1 · BAIXO 934/470 (atualizado em 2026-11-16) |
 | Licença conferida no arquivo do pacote (distribuídos) | 426 conferem com o declarado; 34 NuGet só declaram a expressão SPDX; 12 conferidos manualmente; 8 sem arquivo de licença no pacote; 1 texto não reconhecido; 1 divergência (`crossbeam-channel` traz também BSD-3-Clause, de código derivado do Go) |
 | Sem licença confirmada | Nenhum componente distribuído está sem licença declarada. 9 não trazem o texto no pacote (lista em THIRD_PARTY_NOTICES.md, "Lacunas") |
 | SBOM | 6 arquivos, todos **válidos** contra os schemas oficiais SPDX 2.3 e CycloneDX 1.6, sem referência quebrada |
@@ -229,11 +229,11 @@ Uma busca por "copyright", "SPDX-License-Identifier", "adapted from", "derived f
 "gist.github" no código-fonte próprio encontrou só as duas atribuições acima. Similaridade de código não foi analisada
 (ferramenta indisponível; ver Limitações).
 
-**Marca "Spock".** No USPTO, SPOCK é registro da CBS Studios só na classe 28 (brinquedos). Os agregadores de marca não mostram
-registro vivo nas classes 9/42 em nome da CBS/Paramount. Há porém marcas de Star Trek na classe 9 e possível proteção de
-personagem e de marca notória. O logotipo (sobrancelha erguida, "a expressão de curiosidade cética que inspira o nome") reforça
-a associação. As buscas completas no USPTO e no INPI não puderam ser feitas (páginas dinâmicas). ⚖ Busca de anterioridade
-recomendada antes da comercialização.
+**Marca SPOCK.** SPOCK significa System of Programming, Organization, Code and Knowledge. A busca preliminar encontrou, no
+USPTO, um registro nominativo "SPOCK" de terceiro só na classe 28 (brinquedos). Nas classes 9 e 42, os agregadores não mostram
+registro vivo do mesmo titular. As buscas completas no USPTO e no INPI não puderam ser feitas (páginas dinâmicas). Esses
+resultados não indicam conflito nem ausência dele. ⚖ Busca de anterioridade e parecer pendentes (D-12); o escopo está em
+[TRADEMARK_ASSESSMENT.md](TRADEMARK_ASSESSMENT.md).
 
 ## 8. Limitações da auditoria
 
@@ -245,7 +245,9 @@ recomendada antes da comercialização.
 - **AppImage não inspecionado.** Não houve build Linux local. A lista de bibliotecas que o `linuxdeploy --plugin gtk` embute
   vem do código do tauri-bundler, não de um artefato.
 - **python-build-standalone.** As versões e licenças vêm do `targets.yml` e do `downloads.py` da tag 20250409, não do
-  `PYTHON.json` do arquivo baixado. O Berkeley DB foi confirmado depois, dentro do `libpython3.12.so.1.0` do arquivo oficial.
+  `PYTHON.json` do arquivo baixado. Depois, conferi no arquivo oficial que o Berkeley DB e as demais bibliotecas estão
+  ligados ao `libpython3.12.so.1.0`; os textos de licença publicados pelo PBS na tag passaram a ir no pacote
+  ([IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)).
 - **Versões dinâmicas.** OpenTofu, Terraform, agent-skills e WebView2 têm versão escolhida em tempo de execução. O SBOM
   registra a regra, não um hash.
 - **Hashes.** Para npm, Cargo e NuGet, os hashes vêm dos lockfiles (integridade do pacote). Para o PyPI, o lock fixa vários

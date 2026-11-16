@@ -52,6 +52,12 @@ public static class IacErrors
 
     public static EngineException NotAvailable(string reason) => new("IAC_TERRAFORM_UNAVAILABLE", reason);
 
+    public static EngineException ManagedInstallDisabled(string engine, string? reason) =>
+        new("IAC_MANAGED_INSTALL_DISABLED", reason ?? $"A instalação do {engine} pelo Spock está desativada nesta edição.");
+
+    public static EngineException ExternalUseDisabled(string engine, string? reason) =>
+        new("IAC_EXTERNAL_USE_DISABLED", reason ?? $"O uso de um {engine} instalado fora do Spock está desativado nesta edição.");
+
     public static EngineException ProjectIncompatible(string engine, string version, string constraint) =>
         new("IAC_PROJECT_INCOMPATIBLE", $"O projeto exige versão {constraint}; o {engine} {version} não atende.");
 

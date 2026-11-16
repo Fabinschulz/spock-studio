@@ -42,7 +42,11 @@ export const iacEngineInfoSchema = z.object({
   license: z.string(),
   minimumVersion: z.string(),
   preferred: z.boolean(),
-  available: z.boolean()
+  available: z.boolean(),
+  /** Política da edição do build: a comercial não instala o Terraform pelo Spock (D-02). */
+  managedInstall: z.boolean().default(true),
+  externalUse: z.boolean().default(true),
+  note: z.string().nullable().default(null)
 });
 
 export const iacRequirementSchema = z.object({ file: z.string(), constraint: z.string(), valid: z.boolean() });
@@ -64,7 +68,8 @@ export const iacRuntimeStatusSchema = z.object({
   selected: iacInstallationSchema.nullable(),
   project: projectRuntimeSchema.nullable(),
   declinedAt: z.string().nullable(),
-  message: z.string()
+  message: z.string(),
+  edition: z.string().default('development')
 });
 
 export const iacRuntimeStatusResultSchema = z.object({ runtime: iacRuntimeStatusSchema });

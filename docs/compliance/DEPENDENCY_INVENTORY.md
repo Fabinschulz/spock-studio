@@ -80,7 +80,7 @@ conferência foi manual nas fontes oficiais (LICENSE_AUDIT.md §10).
 
 Transitivas que merecem atenção, todas no inventário completo:
 
-- **MPL-2.0 distribuídas:** `cssparser` 0.37.0, `selectors` 0.38.0 e `dtoa-short` 0.3.5 (via `tauri-utils` → `kuchikiki`),
+- **MPL-2.0 distribuídas:** `cssparser` 0.37.0, `selectors` 0.38.0 e `dtoa-short` 0.3.5 (via `tauri` → `tauri-utils` → `dom_query`),
   `option-ext` 0.2.0 (via `dirs`), `certifi` 2026.10.23, `orjson` 3.13.0.
 - **Dependências do JsonSchema.Net** sob o mesmo EULA: `Json.More.Net` 3.0.1 e `JsonPointer.Net` 7.0.3.
 - **Telemetria declarada:** `@mui/core-downloads-tracker` (MIT), um pacote vazio que o MUI usa para contar downloads no npm.

@@ -6,17 +6,19 @@ auditoria e as que **aguardam aprovação**. Nenhuma substituição, remoção o
 | ID | Decisão | Situação |
 | --- | --- | --- |
 | D-01 | OpenTofu como motor padrão de IaC | Adotada (2026-11-15, decisão do dono) |
-| D-02 | Terraform: instalação gerenciada pelo Spock | **Aguarda aprovação e parecer** |
+| D-02 | Terraform: instalação gerenciada pelo Spock | **Aguarda aprovação e parecer**; trava por edição de build preparada |
 | D-03 | Ferramentas de IaC por download oficial sob demanda, nunca embarcadas | Adotada |
 | D-04 | CPython embarcado (embed no Windows, python-build-standalone no Linux) | Adotada |
 | D-05 | Berkeley DB (Sleepycat) embutido no Python do Linux | Adotada: cumprir a Sleepycat (2026-11-15); parecer pendente |
 | D-06 | Formato do pacote Linux na 1ª versão (AppImage com LGPL ou só `.deb`) | **Aguarda aprovação** |
-| D-07 | Avisos de terceiros gerados do inventário e embarcados | **Aguarda aprovação** |
+| D-07 | Avisos de terceiros gerados do inventário e embarcados | **Aguarda aprovação**; geração preparada (`--bundle`) |
 | D-08 | Integração com CLIs de IA só invocando o binário do usuário | Adotada; confirmação pendente |
 | D-09 | EULA do Spock | **Aguarda redação e aprovação** |
-| D-10 | Política de licenças para novas dependências | **Aguarda aprovação** |
-| D-11 | Validador de JSON Schema dos testes (json-everything sob o EULA de taxa) | **Aguarda aprovação** |
+| D-10 | Política de licenças para novas dependências | **Aguarda aprovação**; verificação preparada (CI em modo relatório) |
+| D-11 | Validador de JSON Schema dos testes (json-everything sob o EULA de taxa) | **Aguarda aprovação**; comparação em [JSON_SCHEMA_VALIDATOR_REPORT.md](JSON_SCHEMA_VALIDATOR_REPORT.md) |
 | D-12 | Nome e marca "Spock" | **Aguarda parecer de marca** |
+
+O estado de implementação de cada decisão, com evidências, está em [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md).
 
 ## Adotadas
 
@@ -84,6 +86,8 @@ auditoria e as que **aguardam aprovação**. Nenhuma substituição, remoção o
 
 ### D-06: pacote Linux
 
+Comparação detalhada em [LINUX_DISTRIBUTION_REPORT.md](LINUX_DISTRIBUTION_REPORT.md).
+
 - **Opção A, recomendada para a 1ª versão:** só `.deb`. As bibliotecas GTK/WebKitGTK vêm do sistema, sem obrigação LGPL de
   redistribuição.
 - **Opção B:** AppImage com o pacote de conformidade LGPL.
@@ -136,7 +140,9 @@ auditoria e as que **aguardam aprovação**. Nenhuma substituição, remoção o
 
 - **Situação:** busca de anterioridade no INPI e no USPTO (classes 9 e 42) e avaliação do logotipo pendentes antes da
   comercialização.
-- **Contexto:** SPOCK é marca da CBS Studios na classe 28; há marcas Star Trek na classe 9.
+- **Identidade:** SPOCK significa System of Programming, Organization, Code and Knowledge.
+- **Escopo da avaliação:** [TRADEMARK_ASSESSMENT.md](TRADEMARK_ASSESSMENT.md). Nome e identidade visual não mudam sem aprovação
+  do proprietário.
 
 ## Pendências jurídicas consolidadas
 

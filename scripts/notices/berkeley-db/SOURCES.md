@@ -13,8 +13,8 @@ in `LICENSE-6.0.19.txt` in this folder. Spock Studio does not modify any of thes
 | Componente / Component | Onde obter / Where to get it | SHA-256 |
 | --- | --- | --- |
 | Berkeley DB 6.0.19 | https://ftp.osuosl.org/pub/blfs/conglomeration/db/db-6.0.19.tar.gz | `2917c28f60903908c2ca4587ded1363b812c4e830a5326aaa77c9879d13ae18e` |
-| CPython 3.12.10 | https://www.python.org/ftp/python/3.12.10/Python-3.12.10.tgz | — |
-| Receita de build e demais bibliotecas do interpretador / Build recipe and the interpreter's other libraries | https://github.com/astral-sh/python-build-standalone/tree/20250409 (versões e endereços em / versions and URLs in `pythonbuild/downloads.py`) | — |
+| CPython 3.12.10 | https://www.python.org/ftp/python/3.12.10/Python-3.12.10.tgz | não fixado / not pinned |
+| Receita de build e demais bibliotecas do interpretador / Build recipe and the interpreter's other libraries | https://github.com/astral-sh/python-build-standalone/tree/20250409 (versões e endereços em / versions and URLs in `pythonbuild/downloads.py`) | não fixado / not pinned |
 | Interpretador redistribuído / Redistributed interpreter | https://github.com/astral-sh/python-build-standalone/releases/download/20250409/cpython-3.12.10+20250409-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz | `8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee` |
 
 Todo esse código-fonte é gratuito e livremente redistribuível. Se algum endereço deixar de funcionar, o fornecedor do Spock

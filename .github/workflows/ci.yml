@@ -55,6 +55,38 @@ jobs:
       - run: pnpm ui:test
       - run: pnpm ui:build
 
+  # Inventário de licenças (docs/compliance): falha se um lockfile mudar sem regenerar o inventário. A política de licenças só
+  # relata enquanto a D-10 não for aprovada; depois, troque para --policy --enforce.
+  compliance:
+    name: conformidade de licenças
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.1.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: dotnet restore runtime/Mariliz.sln
+      - run: python scripts/package-intelligence.py dev
+      - run: cargo fetch --locked --manifest-path desktop/host/src-tauri/Cargo.toml
+      - name: testes do gerador
+        run: python -m unittest discover -s docs/compliance/tools -p "test_*.py" -v
+      - name: inventário em dia com os lockfiles
+        run: python docs/compliance/tools/generate_sbom.py --check
+      - name: política de licenças (relatório)
+        run: python docs/compliance/tools/generate_sbom.py --policy
+
   desktop:
     name: instalador (${{ matrix.name }})
     needs: [engine, ui]

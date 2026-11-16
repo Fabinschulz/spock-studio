@@ -13,6 +13,8 @@ titulares.
 - .NET Runtime 10 (LICENSE): [`notices/dotnet-runtime-LICENSE.TXT`](notices/dotnet-runtime-LICENSE.TXT)
 - .NET Runtime 10 (THIRD-PARTY-NOTICES): [`notices/dotnet-runtime-THIRD-PARTY-NOTICES.TXT`](notices/dotnet-runtime-THIRD-PARTY-NOTICES.TXT)
 - NSIS (COPYING): [`notices/nsis-COPYING.txt`](notices/nsis-COPYING.txt)
+- Berkeley DB 6.0.19, no Python embarcado do Linux: [`scripts/notices/berkeley-db/`](../../scripts/notices/berkeley-db/) (vai em `python/licenses/` no pacote Linux)
+- Bibliotecas nativas do python-build-standalone 20250409 (Linux): [`scripts/notices/python-build-standalone/`](../../scripts/notices/python-build-standalone/) (vai em `python/licenses/` no pacote Linux)
 
 ## Componentes de pacotes (npm, Cargo, NuGet, PyPI)
 
@@ -13874,56 +13876,50 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## Lacunas (PENDENTE)
 
-Componentes distribuídos cujo pacote não traz arquivo de licença. O texto precisa ser obtido no repositório oficial,
-na versão correspondente, antes do lançamento (não foi redigido aqui):
+O texto precisa ser obtido no repositório oficial, na versão correspondente, antes do lançamento (não foi redigido aqui):
 
-- alloc-stdlib 0.3.0 — declarado `BSD-3-Clause` — origem: https://github.com/dropbox/rust-alloc-no-stdlib
-- dlopen2 0.8.2 — declarado `MIT` — origem: https://github.com/OpenByteDev/dlopen2
-- libappindicator-sys 0.9.0 — declarado `Apache-2.0 OR MIT` — origem: não informada
-- selectors 0.38.0 — declarado `MPL-2.0` — origem: https://github.com/servo/stylo
-- webview2-com 0.39.1 — declarado `MIT` — origem: https://github.com/wravery/webview2-rs
-- webview2-com-sys 0.39.1 — declarado `MIT` — origem: https://github.com/wravery/webview2-rs
-- @mariliz/ui-kit 0.6.0 — declarado `MIT` — origem: https://github.com/Fabinschulz/mariliz-ui-kit#readme
-- AWSSDK.CloudFormation 4.1.1 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
-- AWSSDK.CloudWatch 4.1.1 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
-- AWSSDK.Core 4.1.0.1 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
-- AWSSDK.EC2 4.1.2 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
-- AWSSDK.ECR 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
-- AWSSDK.ECS 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
-- AWSSDK.Extensions.CborProtocol 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
-- AWSSDK.Extensions.Numerics 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
-- AWSSDK.Lambda 4.1.1 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
-- AWSSDK.RDS 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
-- AWSSDK.S3 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
-- AWSSDK.SecurityToken 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
-- AWSSDK.SSO 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
-- AWSSDK.SSOOIDC 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
-- Azure.Core 1.53.0 — declarado `MIT` — origem: https://github.com/Azure/azure-sdk-for-net
-- Azure.Identity 1.21.0 — declarado `MIT` — origem: https://github.com/Azure/azure-sdk-for-net
-- Azure.ResourceManager 1.14.0 — declarado `MIT` — origem: https://github.com/Azure/azure-sdk-for-net
-- Microsoft.Bcl.AsyncInterfaces 10.0.3 — declarado `MIT` — origem: https://github.com/dotnet/dotnet
-- Microsoft.Extensions.Configuration.Abstractions 10.0.3 — declarado `MIT` — origem: https://github.com/dotnet/dotnet
-- Microsoft.Extensions.DependencyInjection.Abstractions 10.0.3 — declarado `MIT` — origem: https://github.com/dotnet/dotnet
-- Microsoft.Extensions.Diagnostics.Abstractions 10.0.3 — declarado `MIT` — origem: https://github.com/dotnet/dotnet
-- Microsoft.Extensions.FileProviders.Abstractions 10.0.3 — declarado `MIT` — origem: https://github.com/dotnet/dotnet
-- Microsoft.Extensions.Hosting.Abstractions 10.0.3 — declarado `MIT` — origem: https://github.com/dotnet/dotnet
-- Microsoft.Extensions.Logging.Abstractions 10.0.3 — declarado `MIT` — origem: https://github.com/dotnet/dotnet
-- Microsoft.Extensions.Options 10.0.3 — declarado `MIT` — origem: https://github.com/dotnet/dotnet
-- Microsoft.Extensions.Primitives 10.0.3 — declarado `MIT` — origem: https://github.com/dotnet/dotnet
-- Microsoft.Identity.Client 4.83.1 — declarado `MIT` — origem: https://github.com/AzureAD/microsoft-authentication-library-for-dotnet
-- Microsoft.Identity.Client.Extensions.Msal 4.83.1 — declarado `MIT` — origem: https://github.com/AzureAD/microsoft-authentication-library-for-dotnet
-- Microsoft.IdentityModel.Abstractions 8.14.0 — declarado `MIT` — origem: https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet
-- System.ClientModel 1.10.0 — declarado `MIT` — origem: https://github.com/Azure/azure-sdk-for-net
-- System.Formats.Cbor 11.0.0 — declarado `MIT` — origem: https://github.com/dotnet/dotnet
-- System.IO.Hashing 11.0.0 — declarado `MIT` — origem: https://github.com/dotnet/dotnet
-- System.Memory.Data 10.0.3 — declarado `MIT` — origem: https://github.com/dotnet/dotnet
-- YamlDotNet 18.1.0 — declarado `MIT` — origem: https://github.com/aaubry/YamlDotNet
-- sqlite-vec 0.1.9 — declarado `MIT License, Apache License, Version 2.0` — origem: https://TODO.com
-
-Componentes fora de gerenciador de pacotes cujos textos ainda não foram reunidos:
-
-- Bibliotecas nativas do python-build-standalone 20250409 (Linux): licenças no PYTHON.json/`licenses` do arquivo da release.
-- Berkeley DB 6.0.19 (Sleepycat): já vai no pacote Linux em `python/licenses/berkeley-db/` (fonte: `scripts/notices/berkeley-db/`).
-- WebKitGTK, GTK, GLib e demais bibliotecas embutidas no AppImage (LGPL e outras): listar a partir do AppImage gerado.
-- .NET Runtime para linux-x64: mesmos LICENSE.TXT/THIRD-PARTY-NOTICES.TXT do pacote linux-x64 (o arquivo copiado é o do win-x64).
+- alloc-stdlib 0.3.0: declarado BSD-3-Clause, sem texto no pacote (origem: https://github.com/dropbox/rust-alloc-no-stdlib)
+- dlopen2 0.8.2: declarado MIT, sem texto no pacote (origem: https://github.com/OpenByteDev/dlopen2)
+- libappindicator-sys 0.9.0: declarado Apache-2.0 OR MIT, sem texto no pacote (origem: não informada)
+- selectors 0.38.0: declarado MPL-2.0, sem texto no pacote (origem: https://github.com/servo/stylo)
+- webview2-com 0.39.1: declarado MIT, sem texto no pacote (origem: https://github.com/wravery/webview2-rs)
+- webview2-com-sys 0.39.1: declarado MIT, sem texto no pacote (origem: https://github.com/wravery/webview2-rs)
+- @mariliz/ui-kit 0.6.0: declarado MIT, sem texto no pacote (origem: https://github.com/Fabinschulz/mariliz-ui-kit#readme)
+- AWSSDK.CloudFormation 4.1.1: declarado Apache-2.0, sem texto no pacote (origem: https://github.com/aws/aws-sdk-net/)
+- AWSSDK.CloudWatch 4.1.1: declarado Apache-2.0, sem texto no pacote (origem: https://github.com/aws/aws-sdk-net/)
+- AWSSDK.Core 4.1.0.1: declarado Apache-2.0, sem texto no pacote (origem: https://github.com/aws/aws-sdk-net/)
+- AWSSDK.EC2 4.1.2: declarado Apache-2.0, sem texto no pacote (origem: https://github.com/aws/aws-sdk-net/)
+- AWSSDK.ECR 4.1.0: declarado Apache-2.0, sem texto no pacote (origem: https://github.com/aws/aws-sdk-net/)
+- AWSSDK.ECS 4.1.0: declarado Apache-2.0, sem texto no pacote (origem: https://github.com/aws/aws-sdk-net/)
+- AWSSDK.Extensions.CborProtocol 4.1.0: declarado Apache-2.0, sem texto no pacote (origem: https://github.com/aws/aws-sdk-net/)
+- AWSSDK.Extensions.Numerics 4.1.0: declarado Apache-2.0, sem texto no pacote (origem: https://github.com/aws/aws-sdk-net/)
+- AWSSDK.Lambda 4.1.1: declarado Apache-2.0, sem texto no pacote (origem: https://github.com/aws/aws-sdk-net/)
+- AWSSDK.RDS 4.1.0: declarado Apache-2.0, sem texto no pacote (origem: https://github.com/aws/aws-sdk-net/)
+- AWSSDK.S3 4.1.0: declarado Apache-2.0, sem texto no pacote (origem: https://github.com/aws/aws-sdk-net/)
+- AWSSDK.SecurityToken 4.1.0: declarado Apache-2.0, sem texto no pacote (origem: https://github.com/aws/aws-sdk-net/)
+- AWSSDK.SSO 4.1.0: declarado Apache-2.0, sem texto no pacote (origem: https://github.com/aws/aws-sdk-net/)
+- AWSSDK.SSOOIDC 4.1.0: declarado Apache-2.0, sem texto no pacote (origem: https://github.com/aws/aws-sdk-net/)
+- Azure.Core 1.53.0: declarado MIT, sem texto no pacote (origem: https://github.com/Azure/azure-sdk-for-net)
+- Azure.Identity 1.21.0: declarado MIT, sem texto no pacote (origem: https://github.com/Azure/azure-sdk-for-net)
+- Azure.ResourceManager 1.14.0: declarado MIT, sem texto no pacote (origem: https://github.com/Azure/azure-sdk-for-net)
+- Microsoft.Bcl.AsyncInterfaces 10.0.3: declarado MIT, sem texto no pacote (origem: https://github.com/dotnet/dotnet)
+- Microsoft.Extensions.Configuration.Abstractions 10.0.3: declarado MIT, sem texto no pacote (origem: https://github.com/dotnet/dotnet)
+- Microsoft.Extensions.DependencyInjection.Abstractions 10.0.3: declarado MIT, sem texto no pacote (origem: https://github.com/dotnet/dotnet)
+- Microsoft.Extensions.Diagnostics.Abstractions 10.0.3: declarado MIT, sem texto no pacote (origem: https://github.com/dotnet/dotnet)
+- Microsoft.Extensions.FileProviders.Abstractions 10.0.3: declarado MIT, sem texto no pacote (origem: https://github.com/dotnet/dotnet)
+- Microsoft.Extensions.Hosting.Abstractions 10.0.3: declarado MIT, sem texto no pacote (origem: https://github.com/dotnet/dotnet)
+- Microsoft.Extensions.Logging.Abstractions 10.0.3: declarado MIT, sem texto no pacote (origem: https://github.com/dotnet/dotnet)
+- Microsoft.Extensions.Options 10.0.3: declarado MIT, sem texto no pacote (origem: https://github.com/dotnet/dotnet)
+- Microsoft.Extensions.Primitives 10.0.3: declarado MIT, sem texto no pacote (origem: https://github.com/dotnet/dotnet)
+- Microsoft.Identity.Client 4.83.1: declarado MIT, sem texto no pacote (origem: https://github.com/AzureAD/microsoft-authentication-library-for-dotnet)
+- Microsoft.Identity.Client.Extensions.Msal 4.83.1: declarado MIT, sem texto no pacote (origem: https://github.com/AzureAD/microsoft-authentication-library-for-dotnet)
+- Microsoft.IdentityModel.Abstractions 8.14.0: declarado MIT, sem texto no pacote (origem: https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet)
+- System.ClientModel 1.10.0: declarado MIT, sem texto no pacote (origem: https://github.com/Azure/azure-sdk-for-net)
+- System.Formats.Cbor 11.0.0: declarado MIT, sem texto no pacote (origem: https://github.com/dotnet/dotnet)
+- System.IO.Hashing 11.0.0: declarado MIT, sem texto no pacote (origem: https://github.com/dotnet/dotnet)
+- System.Memory.Data 10.0.3: declarado MIT, sem texto no pacote (origem: https://github.com/dotnet/dotnet)
+- YamlDotNet 18.1.0: declarado MIT, sem texto no pacote (origem: https://github.com/aaubry/YamlDotNet)
+- sqlite-vec 0.1.9: declarado MIT License, Apache License, Version 2.0, sem texto no pacote (origem: https://TODO.com)
+- WebKitGTK, GTK, GLib e demais bibliotecas embutidas no AppImage (LGPL e outras): listar a partir do AppImage gerado (D-06).
+- .NET Runtime para linux-x64: LICENSE.TXT/THIRD-PARTY-NOTICES.TXT do pacote linux-x64 (o arquivo copiado é o do win-x64).
 - nsis_tauri_utils (MIT OR Apache-2.0) e o runtime do AppImage: textos do repositório oficial.

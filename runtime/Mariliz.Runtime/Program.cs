@@ -72,8 +72,11 @@ using var terraformToolchain = new HashiCorpTerraformToolchain(engine.DataRoot, 
 // O state de cada raiz é lido como texto; o registro garante que dois projetos do Spock não dividam o mesmo state.
 var iacStates = new IacStateReader();
 var iacRegistry = new FileIacStateRegistry(engine.DataRoot);
+// A edição vem do build (-p:SpockEdition=commercial); a comercial não instala o Terraform (D-02).
+var iacPolicy = IacDistributionPolicy.ForEdition(typeof(Program).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyMetadataAttribute), false)
+    .OfType<System.Reflection.AssemblyMetadataAttribute>().FirstOrDefault(a => a.Key == "SpockEdition")?.Value);
 var iacRuntimes = new IacRuntimeService([openTofuToolchain, terraformToolchain], new FileIacSettingsStore(engine.DataRoot),
-    new IacConfigReader(), engine.Runner, engine.Workspace, engine.Clock, integrations.Audit);
+    new IacConfigReader(), engine.Runner, engine.Workspace, engine.Clock, integrations.Audit, iacPolicy);
 var knowledge = new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge, decisionMemory);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
