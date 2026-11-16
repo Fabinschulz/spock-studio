@@ -42,6 +42,9 @@ PBS = {
         55 * MB,
     ),
 }
+BERKELEY_DB_NOTICES = ROOT / "scripts" / "notices" / "berkeley-db"
+# Licenças das bibliotecas nativas que o PBS para Linux liga estaticamente ao libpython (textos da tag da release).
+PBS_LINUX_NOTICES = ROOT / "scripts" / "notices" / "python-build-standalone"
 PBS_PRUNE_STDLIB = {"test", "idlelib", "tkinter", "turtledemo", "ensurepip", "lib2to3", "pydoc_data", "site-packages"}
 
 
@@ -134,6 +137,11 @@ def fetch_python(triple: str, target: Path) -> None:
     if python3.is_symlink() or not python3.exists():
         python3.unlink(missing_ok=True)
         shutil.copy2(target / "bin" / "python3.12", python3)
+    if "linux" in triple:
+        # O libpython do PBS para Linux traz o Berkeley DB ligado estaticamente (_dbm), sem como podar: a licença Sleepycat
+        # exige que a distribuição leve o texto e diga onde obter o código-fonte completo (docs/compliance, D-05).
+        shutil.copytree(BERKELEY_DB_NOTICES, target / "licenses" / "berkeley-db", dirs_exist_ok=True)
+        shutil.copytree(PBS_LINUX_NOTICES, target / "licenses" / "python-build-standalone", dirs_exist_ok=True)
     size = _size(target)
     if size > budget:
         raise SystemExit(f"O interpretador tem {size / MB:.1f} MB e passa do orçamento de {budget // MB} MB.")

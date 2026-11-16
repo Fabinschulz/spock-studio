@@ -34,9 +34,10 @@ public sealed class IacRuntimeService
     private readonly WorkspaceAuthorizer _workspace;
     private readonly IClock _clock;
     private readonly IAuditLog _audit;
+    private readonly IacDistributionPolicy _policy;
 
     public IacRuntimeService(IEnumerable<IIacToolchain> toolchains, IIacSettingsStore store, IIacConfigReader config,
-        IProcessRunner runner, WorkspaceAuthorizer workspace, IClock clock, IAuditLog audit)
+        IProcessRunner runner, WorkspaceAuthorizer workspace, IClock clock, IAuditLog audit, IacDistributionPolicy? policy = null)
     {
         _toolchains = toolchains.ToDictionary(t => t.Engine);
         _store = store;
@@ -45,7 +46,10 @@ public sealed class IacRuntimeService
         _workspace = workspace;
         _clock = clock;
         _audit = audit;
+        _policy = policy ?? IacDistributionPolicy.Unrestricted;
     }
+
+    public IacDistributionPolicy Policy => _policy;
 
     // Blocos import e saída JSON estável de plan e show, que as próximas etapas usam. O OpenTofu nasceu na 1.6.
     public static IacVersion MinimumFor(IacEngine engine) => engine == IacEngine.OpenTofu ? new(1, 6, 0, null) : new(1, 5, 0, null);
@@ -66,7 +70,7 @@ public sealed class IacRuntimeService
 
         var project = projectId is null ? null : Project(projectId, root!, settings, usable);
         var selected = project is null ? Rank(usable).FirstOrDefault() : project.Selected;
-        var waiting = installations.FirstOrDefault(i => i is { Source: IacRuntimeSource.External, Compatible: true, Verified: true, Adopted: false });
+        var waiting = installations.FirstOrDefault(i => i is { Source: IacRuntimeSource.External, Compatible: true, Verified: true, Adopted: false } && Permitted(i));
         var platform = _toolchains.Values.Select(t => t.Platform).FirstOrDefault(p => p is not null);
 
         var state = selected is not null ? IacRuntimeState.Ready
@@ -76,7 +80,7 @@ public sealed class IacRuntimeService
             : installations.Count > 0 ? IacRuntimeState.Incompatible
             : IacRuntimeState.Missing;
         return new IacRuntimeStatus(state, platform, Engines(), installations, selected, project, settings.DeclinedAt,
-            Message(state, selected, waiting, settings.DeclinedAt, project));
+            Message(state, selected, waiting, settings.DeclinedAt, project), _policy.Edition);
     }
 
     public async Task<IacRuntimeOffer> OfferAsync(string? version, string? projectId, IacEngine? engine, CancellationToken ct) =>
@@ -150,6 +154,11 @@ public sealed class IacRuntimeService
     public async Task<IacRuntimeStatus> AdoptAsync(string expectedVersion, IacEngine engine, CancellationToken ct)
     {
         var toolchain = Toolchain(engine);
+        if (_policy.For(engine) is { ExternalUse: false } blocked)
+        {
+            _audit.Record("iac.runtime.adopt_blocked", new JsonObject { ["engine"] = EngineId(engine), ["edition"] = _policy.Edition });
+            throw IacErrors.ExternalUseDisabled(NameOf(engine), blocked.Note);
+        }
         var found = toolchain.FindExternal() ?? throw IacErrors.ExternalNotFound(NameOf(engine));
         var version = await ProbeAsync(found, ct) ?? throw IacErrors.ExternalNotFound(NameOf(engine));
         if (version.ToString() != expectedVersion) throw IacErrors.ExternalChanged(NameOf(engine));
@@ -222,6 +231,12 @@ public sealed class IacRuntimeService
     {
         var toolchain = Toolchain(engine);
         var name = NameOf(engine);
+        // A trava fica aqui, antes de consultar versões: proposta e instalação passam por este método, venham da interface ou não.
+        if (_policy.For(engine) is { ManagedInstall: false } blocked)
+        {
+            _audit.Record("iac.runtime.install_blocked", new JsonObject { ["engine"] = EngineId(engine), ["edition"] = _policy.Edition });
+            throw IacErrors.ManagedInstallDisabled(name, blocked.Note);
+        }
         var minimum = MinimumFor(engine);
         var platform = toolchain.Platform ?? throw IacErrors.UnsupportedPlatform(name);
         var requirements = projectId is null ? [] : _config.Requirements(RequireRoot(projectId));
@@ -327,12 +342,20 @@ public sealed class IacRuntimeService
             .ThenByDescending(i => IacVersion.Parse(i.Version))
             .ThenBy(i => i.Source);
 
-    private static bool Usable(IacInstallation i) =>
-        i.Compatible && i.Verified && (i.Source == IacRuntimeSource.Managed || i.Adopted);
+    private bool Usable(IacInstallation i) =>
+        i.Compatible && i.Verified && (i.Source == IacRuntimeSource.Managed || i.Adopted) && Permitted(i);
+
+    // Uma instalação gerenciada que sobrou de outra edição, ou uma externa que a edição não permite, não roda nada.
+    private bool Permitted(IacInstallation i) =>
+        i.Source == IacRuntimeSource.Managed ? _policy.For(i.Engine).ManagedInstall : _policy.For(i.Engine).ExternalUse;
 
     private List<IacEngineInfo> Engines() =>
-        Ordered().Select(t => new IacEngineInfo(t.Engine, NameOf(t.Engine), t.License, MinimumFor(t.Engine).ToString(), t.Engine == PreferredEngine,
-            t.Platform is not null)).ToList();
+        Ordered().Select(t =>
+        {
+            var policy = _policy.For(t.Engine);
+            return new IacEngineInfo(t.Engine, NameOf(t.Engine), t.License, MinimumFor(t.Engine).ToString(), t.Engine == PreferredEngine,
+                t.Platform is not null, policy.ManagedInstall, policy.ExternalUse, policy.Note);
+        }).ToList();
 
     private IEnumerable<IIacToolchain> Ordered() =>
         _toolchains.Values.OrderBy(t => t.Engine == PreferredEngine ? 0 : 1);
@@ -346,7 +369,9 @@ public sealed class IacRuntimeService
                 var minimum = MinimumFor(toolchain.Engine);
                 var compatible = version is not null && version >= minimum;
                 var problem = !intact ? "O binário não confere com o hash registrado na instalação."
-                    : !compatible ? $"Abaixo do mínimo do Spock ({minimum})." : null;
+                    : !compatible ? $"Abaixo do mínimo do Spock ({minimum})."
+                    : !_policy.For(toolchain.Engine).ManagedInstall ? _policy.For(toolchain.Engine).Note ?? "Instalação gerenciada desativada nesta edição."
+                    : null;
                 return new IacInstallation(toolchain.Engine, IacRuntimeSource.Managed, m.Version, m.Path, compatible, intact, false, problem, m.InstalledAt);
             })
             .OrderByDescending(i => IacVersion.TryParse(i.Version) ?? new IacVersion(0, 0, 0, null))
@@ -366,6 +391,7 @@ public sealed class IacRuntimeService
         var adoption = settings.Adopted.FirstOrDefault(a => a.Engine == engine && SamePath(a.Path, path));
         var adopted = adoption is not null && adoption.Version == version.ToString() && toolchain.HashFile(path) == adoption.BinarySha256;
         var problem = !compatible ? $"Abaixo do mínimo do Spock ({minimum})."
+            : !_policy.For(engine).ExternalUse ? _policy.For(engine).Note ?? "Uso desta ferramenta desativado nesta edição."
             : adoption is not null && !adopted ? "O binário mudou desde que você escolheu usá-lo. Confirme de novo."
             : null;
         return new IacInstallation(engine, IacRuntimeSource.External, version.ToString(), path, compatible, true, adopted, problem, adoption?.AdoptedAt);

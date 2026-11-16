@@ -6,6 +6,11 @@
     <ProjectReference Include="..\Mariliz.Infrastructure.Cloud\Mariliz.Infrastructure.Cloud.csproj" />
   </ItemGroup>
 
+  <!-- Edição do build: vazio ou development libera tudo; commercial aplica a IacDistributionPolicy comercial (sem Terraform gerenciado). -->
+  <ItemGroup Condition="'$(SpockEdition)' != ''">
+    <AssemblyMetadata Include="SpockEdition" Value="$(SpockEdition)" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>

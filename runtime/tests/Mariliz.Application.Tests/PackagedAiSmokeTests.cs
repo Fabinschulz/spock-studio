@@ -32,6 +32,17 @@ public class PackagedAiSmokeTests
         Assert.True(File.Exists(script), "server.py embarcado ausente.");
         Assert.True(File.Exists(python), "Interpretador embarcado ausente.");
         Assert.Empty(Directory.GetFiles(Path.Combine(root, "intelligence", "packages"), "*.py", SearchOption.AllDirectories));
+        var pythonLicense = OperatingSystem.IsWindows() ? Path.Combine(root, "python", "LICENSE.txt") : Path.Combine(root, "python", "lib", "python3.12", "LICENSE.txt");
+        Assert.True(File.Exists(pythonLicense), "Licença do CPython ausente do pacote.");
+        if (OperatingSystem.IsLinux())
+        {
+            // Sleepycat: o Berkeley DB vai dentro do libpython, então a licença e as fontes precisam ir junto.
+            foreach (var notice in new[] { "LICENSE-6.0.19.txt", "SOURCES.md" })
+                Assert.True(File.Exists(Path.Combine(root, "python", "licenses", "berkeley-db", notice)), $"{notice} do Berkeley DB ausente do pacote.");
+            // As bibliotecas nativas que o libpython do PBS leva dentro (OpenSSL, SQLite, ncurses, Tcl/Tk...).
+            foreach (var notice in new[] { "README.md", "LICENSE.openssl-3.txt", "LICENSE.ncurses.txt", "LICENSE.tcl.txt", "LICENSE.libX11.txt" })
+                Assert.True(File.Exists(Path.Combine(root, "python", "licenses", "python-build-standalone", notice)), $"{notice} do python-build-standalone ausente do pacote.");
+        }
 
         var runtime = new LoopbackAiRuntime(scriptPath: script, pythonPath: python);
         try

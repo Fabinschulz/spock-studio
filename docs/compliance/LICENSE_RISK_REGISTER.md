@@ -1,6 +1,6 @@
 # Registro de riscos de licenciamento
 
-Data: 2026-11-15. Escopo e critérios: [LICENSE_AUDIT.md](LICENSE_AUDIT.md). Os 933 componentes de risco BAIXO estão em
+Data: 2026-11-15 (atualizado em 2026-11-16). Escopo e critérios: [LICENSE_AUDIT.md](LICENSE_AUDIT.md). Os 934 componentes de risco BAIXO estão em
 [data/inventory.csv](data/inventory.csv), coluna `risco`, cada um com motivo e obrigação. Este registro detalha o que não é
 BAIXO e as obrigações coletivas que valem para todos os componentes permissivos.
 
@@ -10,14 +10,14 @@ de parecer.
 | ID | Nível | Tipo | Componente | Prioridade |
 | --- | --- | --- | --- | --- |
 | R-01 | ALTO | J | Terraform (BUSL 1.1), instalação e operação gerenciadas | P0 |
-| R-02 | ALTO | D/J | Berkeley DB 6.0.19 (Sleepycat) no Python do Linux | P0 |
+| R-02 | MÉDIO | J | Berkeley DB 6.0.19 (Sleepycat) no Python do Linux (obrigação cumprida no pacote) | P1 |
 | R-03 | ALTO | D | GTK/WebKitGTK (LGPL) embutidos no AppImage | P0 |
 | R-04 | MÉDIO | D | Avisos de ~480 componentes permissivos não distribuídos | P0 |
 | R-05 | MÉDIO | D/J | .NET Runtime win-x64 (.NET Library License) e linux-x64 (MIT) | P0 |
 | R-06 | MÉDIO | D/J | CPython embed e Visual C++ Runtime (Distributable Code) | P0 |
 | R-07 | MÉDIO | D | Componentes MPL-2.0 distribuídos (6) | P1 |
-| R-08 | MÉDIO | E | 9 componentes sem texto de licença no pacote e 34 NuGet só com expressão | P1 |
-| R-09 | MÉDIO | D | python-build-standalone: avisos das bibliotecas nativas | P1 |
+| R-08 | BAIXO (era MÉDIO) | E | Textos de licença obtidos nos repositórios oficiais | — |
+| R-09 | BAIXO (era MÉDIO) | D | python-build-standalone: avisos das bibliotecas nativas (textos no pacote) | — |
 | R-10 | MÉDIO | J | Integração com o Claude Code CLI | P1 |
 | R-11 | PENDENTE | J | Marca "Spock" e logotipo | P1 |
 | R-12 | MÉDIO | J | Conteúdo CC-BY-4.0 da skill `tlc-spec-driven` | P2 |
@@ -43,17 +43,28 @@ de parecer.
   instalado pelo usuário. Corrigir o texto da proposta.
 - **Prioridade.** P0.
 
-### R-02: Berkeley DB (Sleepycat) no python-build-standalone: ALTO, distribuição
+### R-02: Berkeley DB (Sleepycat) no python-build-standalone: MÉDIO (era ALTO), jurídico
 
-- **Evidência.** `scripts/package-intelligence.py:31-45` (PBS 20250409; a poda não remove `_dbm`). `downloads.py` e
-  `targets.yml` da tag 20250409: `_dbm` vincula ao Berkeley DB 6.0.19, "the last version licensed under the Sleepycat
-  license".
+- **Evidência.** `scripts/package-intelligence.py:31-45` (PBS 20250409). `downloads.py` e `targets.yml` da tag
+  20250409: `_dbm` vincula ao Berkeley DB 6.0.19, "the last version licensed under the Sleepycat license". No arquivo
+  oficial (SHA-256 fixado no script) não há `_dbm*.so`: `PyInit__dbm` e "Berkeley DB 6.0.19" estão **dentro de
+  `lib/libpython3.12.so.1.0`**, ligados estaticamente. O `main` do PBS (2026-11) ainda inclui o `bdb` no alvo Linux.
 - **Motivo.** A Sleepycat exige informar como obter o código-fonte completo do DB "and any accompanying software that uses the
   DB software". O alcance sobre o produto proprietário é incerto ⚖.
 - **Impacto comercial.** Obrigação de fonte com alcance discutível, no pacote Linux.
-- **Ação.** Remover `_dbm*.so` e `libdb*` na poda (a inteligência não usa `dbm`) e confirmar com o smoke do instalador.
-  Alternativa: parecer.
-- **Prioridade.** P0. A correção é barata.
+- **Ação tomada (D-05, opção 1).** A poda não resolve, porque o DB faz parte do próprio interpretador. A distribuição passa a
+  cumprir a Sleepycat:
+  - `scripts/package-intelligence.py` copia `scripts/notices/berkeley-db/` para `python/licenses/berkeley-db/` no pacote Linux.
+  - Vão o `LICENSE` original do Berkeley DB 6.0.19 (tirado do tarball com o SHA-256 fixado pelo PBS) e um `SOURCES.md` com os
+    endereços e hashes do fonte do DB, do CPython 3.12.10, da receita do PBS e do interpretador redistribuído, mais a oferta de
+    cópia pelo suporte.
+  - O smoke `Pacote_embarcado` falha se esses arquivos faltarem, tanto no pacote quanto no instalador aberto.
+- **Pendências.**
+  1. Parecer sobre o alcance de "any accompanying software that uses the DB software". O código do Spock nunca chama `dbm`. O
+     executável que contém o DB é o `libpython`, cujo fonte completo está indicado.
+  2. Publicar o canal de suporte citado no `SOURCES.md`.
+  3. Guardar uma cópia dos tarballs de fonte junto das releases.
+- **Prioridade.** P1.
 
 ### R-03: GTK/WebKitGTK (LGPL) no AppImage: ALTO, distribuição
 
@@ -103,7 +114,7 @@ de parecer.
 
 ### R-07: MPL-2.0 distribuídos: MÉDIO, distribuição
 
-- **Componentes.** `cssparser` 0.37.0, `selectors` 0.38.0 e `dtoa-short` 0.3.5 (servo, via `tauri-utils` → `kuchikiki`),
+- **Componentes.** `cssparser` 0.37.0, `selectors` 0.38.0 e `dtoa-short` 0.3.5 (servo, via `tauri` → `tauri-utils` → `dom_query`),
   `option-ext` 0.2.0 (via `dirs`), `certifi` 2026.10.23 (CA bundle do Python), `orjson` 3.13.0 (MPL-2.0 AND
   (Apache-2.0 OR MIT)).
 - **Motivo.** MPL §3.2: ao distribuir em forma executável, informar onde obter o fonte dos arquivos cobertos e manter a
@@ -111,25 +122,28 @@ de parecer.
 - **Ação.** Nos avisos, para cada um, o texto da MPL e o link para o fonte da versão (crates.io, PyPI ou repositório na tag).
 - **Prioridade.** P1.
 
-### R-08: Texto de licença ausente no pacote: MÉDIO, ausência de evidência
+### R-08: Texto de licença ausente no pacote: BAIXO (era MÉDIO), ausência de evidência
 
 - **Componentes.** `alloc-stdlib` 0.3.0, `dlopen2` 0.8.2, `libappindicator-sys` 0.9.0, `selectors` 0.38.0, `webview2-com`
   0.39.1, `webview2-com-sys` 0.39.1, `@mariliz/ui-kit` 0.6.0 (próprio), `sqlite-vec` 0.1.9 e `hoist-non-react-statics` 3.3.2
   (texto não reconhecido). Também os 34 NuGet que só declaram a expressão (AWS SDK Apache-2.0, Microsoft MIT).
 - **Motivo.** A licença declarada existe, mas o texto a reproduzir não vem no pacote.
-- **Ação.** Obter o texto no repositório da versão. Para os NuGet, usar o texto canônico da licença SPDX com o copyright do
-  titular.
-- **Prioridade.** P1.
+- **Ação feita (2026-11-16).** `tools/fetch_upstream_licenses.py` baixou os textos dos repositórios oficiais, fixados em
+  commit, para `notices/upstream/`, com procedência em `sources.json`. O `selectors` recebeu o texto oficial da MPL 2.0, porque
+  o repositório não tem arquivo de licença. O `hoist-non-react-statics` traz o próprio arquivo, que já vai nos avisos.
+- **Resta.** Nada para esses componentes.
 
-### R-09: python-build-standalone: avisos nativos: MÉDIO, distribuição
+### R-09: python-build-standalone: avisos nativos: BAIXO (era MÉDIO), distribuição
 
 - **Evidência.** `targets.yml` (20250409, Linux gnu).
   - Bibliotecas: OpenSSL 3.0.16, SQLite 3.47.1, ncurses 6.5, libedit, libffi 3.4.6, expat 2.6.3, mpdecimal 4.0.0, zlib 1.3.1,
     xz 5.2.12, bzip2 1.0.8, uuid, libX11/libxcb e Tcl/Tk.
-  - O Tcl/Tk é podado pelo script.
+  - Todas estão ligadas estaticamente ao `libpython3.12.so.1.0`, conforme conferido no arquivo oficial. A poda do script
+    remove só os scripts do Tcl/Tk, não o código.
   - O readline (GPL) não é usado (`USE_LIBEDIT`) e o `_gdbm` é desativado.
-- **Ação.** Reproduzir as licenças do `PYTHON.json`/`licenses` do arquivo baixado e confirmar a lista no pacote final.
-- **Prioridade.** P1.
+- **Ação feita (2026-11-16).** Os 16 textos que o PBS publica na tag 20250409 estão em
+  `scripts/notices/python-build-standalone/` e vão em `python/licenses/python-build-standalone/`. O smoke do pacote confere.
+- **Resta.** Exibir os avisos ao usuário (D-07).
 
 ### R-10: Claude Code CLI: MÉDIO, jurídico
 
@@ -143,10 +157,11 @@ de parecer.
 
 ### R-11: Marca "Spock" e logotipo: PENDENTE, jurídico ⚖
 
-- **Evidência.** `tauri.conf.json` (`productName: Spock Studio`). `icons/source/spock-studio.svg:2-5`. USPTO: SPOCK, reg.
-  1990155, CBS Studios, classe 28.
-- **Motivo.** Possível conflito com marca e personagem de terceiros. O logotipo evoca a expressão do personagem.
-- **Ação.** Busca de anterioridade no INPI e no USPTO (classes 9 e 42) e avaliação do logotipo antes do lançamento.
+- **Identidade.** SPOCK significa System of Programming, Organization, Code and Knowledge.
+- **Evidência.** `tauri.conf.json` (`productName: Spock Studio`) e `icons/source/spock-studio.svg`. A busca preliminar
+  encontrou o registro nominativo "SPOCK" nº 1990155 no USPTO, de terceiro, só na classe 28.
+- **Motivo.** A anterioridade nas classes de software (9 e 42) ainda não foi verificada no INPI nem no USPTO.
+- **Ação.** Busca de anterioridade e parecer, conforme o escopo de [TRADEMARK_ASSESSMENT.md](TRADEMARK_ASSESSMENT.md).
 - **Prioridade.** P1.
 
 ### R-12: Skill `tlc-spec-driven` (CC-BY-4.0): MÉDIO, jurídico

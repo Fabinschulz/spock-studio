@@ -169,6 +169,23 @@ describe('Infraestrutura', () => {
     });
   });
 
+  it('na edição comercial não oferece instalar o Terraform e explica o motivo', async () => {
+    const note =
+      'A instalação do Terraform pelo Spock está desativada nesta edição enquanto a licença BUSL 1.1 está em análise.';
+    const engine = fakeEngine({
+      ...missing,
+      edition: 'commercial',
+      engines: missing.engines.map((info) =>
+        info.engine === 'terraform' ? { ...info, managedInstall: false, note } : info
+      )
+    });
+    renderPage(engine.client);
+
+    expect(await screen.findByText(note)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Autorizar instalação' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Prefiro o Terraform da HashiCorp' })).not.toBeInTheDocument();
+  });
+
   it('recusar registra a decisão e não pede proposta', async () => {
     const engine = fakeEngine();
     renderPage(engine.client);

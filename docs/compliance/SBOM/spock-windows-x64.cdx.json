@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:ede5741a-7934-4a0d-aee3-13ff17768774",
+  "serialNumber": "urn:uuid:adc5610d-afed-44c8-b678-3331b33d8543",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-16T00:20:20Z",
+    "timestamp": "2026-11-16T00:58:36Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -223,6 +223,12 @@
       "version": "3.12.10",
       "purl": "pkg:generic/cpython-embed-amd64@3.12.10?download_url=https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip",
       "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9a0e3435aaa680d868150f87ab3e388ad2eebc22f87e036155c7b4eda8cd2120"
+        }
+      ],
       "licenses": [
         {
           "expression": "Python-2.0"
@@ -273,7 +279,7 @@
         },
         {
           "name": "spock:note",
-          "value": "Inclui OpenSSL 3.0.16 (Apache-2.0), libffi (MIT), bzip2 1.0.8, SQLite (domínio público), expat 2.7.1 (MIT), mpdecimal, xz/liblzma, zlib; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable)."
+          "value": "Inclui OpenSSL 3.0.16 (Apache-2.0), libffi (MIT), bzip2 1.0.8, SQLite (domínio público), expat 2.7.1 (MIT), mpdecimal, xz/liblzma, zlib; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Hash do arquivo desktop/host/src-tauri/resources/python/python312.dll do último build local."
         }
       ]
     },
@@ -284,6 +290,12 @@
       "version": "14.x",
       "purl": "pkg:generic/microsoft-vcruntime@14",
       "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "052ad6a20d375957e82aa6a3c441ea548d89be0981516ca7eb306e063d5027f4"
+        }
+      ],
       "licenses": [
         {
           "license": {
@@ -333,6 +345,10 @@
         {
           "name": "spock:usage",
           "value": "Runtime C do CPython embarcado"
+        },
+        {
+          "name": "spock:note",
+          "value": "Hash do arquivo desktop/host/src-tauri/resources/python/vcruntime140.dll do último build local."
         }
       ]
     },
@@ -461,6 +477,12 @@
       "version": "3.0.16",
       "purl": "pkg:generic/openssl@3.0.16",
       "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ccfffddcd3defb8d899026298af9af43bc186130f8483d77e97c93233d5f27d7"
+        }
+      ],
       "licenses": [
         {
           "expression": "Apache-2.0"
@@ -508,6 +530,10 @@
         {
           "name": "spock:usage",
           "value": "TLS do Python embarcado (libssl-3.dll, libcrypto-3.dll)"
+        },
+        {
+          "name": "spock:note",
+          "value": "Hash do arquivo desktop/host/src-tauri/resources/python/libcrypto-3.dll do último build local."
         }
       ]
     },

@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:4da3b375-ebd1-4c5c-aa57-dfdfc7781fea",
+  "serialNumber": "urn:uuid:79f2df9e-8613-4b79-8caa-47957c02b447",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-16T00:20:20Z",
+    "timestamp": "2026-11-16T00:58:36Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -257,15 +257,15 @@
         },
         {
           "name": "spock:risk",
-          "value": "ALTO"
+          "value": "MÉDIO"
         },
         {
           "name": "spock:obligations",
-          "value": "Sleepycat: informar como obter o código-fonte completo do Berkeley DB e de software que o use; recomendado remover o _dbm do pacote"
+          "value": "Sleepycat: licença e informação de fonte do Berkeley DB 6.0.19 e do CPython/PBS junto da distribuição (implementado em python/licenses/berkeley-db e conferido pelo smoke do pacote); manter o canal de suporte para entregar as fontes"
         },
         {
           "name": "spock:evidence",
-          "value": "scripts/package-intelligence.py:144 | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/pythonbuild/downloads.py"
+          "value": "scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/pythonbuild/downloads.py"
         },
         {
           "name": "spock:usage",
@@ -273,7 +273,7 @@
         },
         {
           "name": "spock:note",
-          "value": "Presença do _dbm*.so no pacote Linux a confirmar num build Linux."
+          "value": "Conferido no arquivo oficial (SHA-256 fixado): sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0. O main do PBS (2026-11) ainda inclui o bdb."
         }
       ]
     },
@@ -318,15 +318,15 @@
         },
         {
           "name": "spock:risk",
-          "value": "MÉDIO"
+          "value": "BAIXO"
         },
         {
           "name": "spock:obligations",
-          "value": "Reproduzir a licença do CPython e de cada biblioteca nativa listada no PYTHON.json da release"
+          "value": "Licença do CPython (lib/python3.12/LICENSE.txt) e das bibliotecas nativas (python/licenses/python-build-standalone) no pacote"
         },
         {
           "name": "spock:evidence",
-          "value": "scripts/package-intelligence.py:31 | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml"
+          "value": "scripts/package-intelligence.py:31 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml"
         },
         {
           "name": "spock:usage",

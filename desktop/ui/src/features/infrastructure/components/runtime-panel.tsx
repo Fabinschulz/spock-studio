@@ -37,6 +37,11 @@ export function RuntimePanel({
     (installation) => installation.source === 'external' && installation.compatible && !installation.adopted
   );
   const minimums = status.engines.map((engine) => `${engine.name} ${engine.minimumVersion}`).join(' · ');
+  // O motor recusa a instalação que a edição não permite; aqui só não se oferece o que seria recusado.
+  const canInstall = (engine: IacEngine) =>
+    status.engines.find((info) => info.engine === engine)?.managedInstall ?? false;
+  const notes = status.engines.filter((info) => info.note);
+  const selectedEngine = status.selected?.engine ?? 'openTofu';
 
   return (
     <div className={styles.panel}>
@@ -49,6 +54,11 @@ export function RuntimePanel({
         Mínimo do Spock: {minimums}
         {status.platform ? ` · Esta máquina: ${status.platform.os}_${status.platform.arch}` : ''}
       </p>
+      {notes.map((info) => (
+        <p key={info.engine} className={styles.hint}>
+          {info.note}
+        </p>
+      ))}
 
       {offer ? (
         <OfferReview offer={offer} busy={busy} onInstall={() => onInstall(offer)} onCancel={onDiscardOffer} />
@@ -64,9 +74,11 @@ export function RuntimePanel({
             <Button type="button" variant="outlined" disabled={busy} onClick={onDecline}>
               Não instalar agora
             </Button>
-            <Button type="button" variant="text" disabled={busy} onClick={() => onRequestOffer('terraform')}>
-              Prefiro o Terraform da HashiCorp
-            </Button>
+            {canInstall('terraform') ? (
+              <Button type="button" variant="text" disabled={busy} onClick={() => onRequestOffer('terraform')}>
+                Prefiro o Terraform da HashiCorp
+              </Button>
+            ) : null}
           </div>
         </section>
       ) : status.state === 'declined' ? (
@@ -81,7 +93,7 @@ export function RuntimePanel({
             Usar o {installationName(waiting)} desta máquina
           </Button>
         </div>
-      ) : status.state === 'ready' || status.state === 'incompatible' ? (
+      ) : (status.state === 'ready' || status.state === 'incompatible') && canInstall(selectedEngine) ? (
         <div className={styles.actions}>
           <Button
             type="button"
@@ -90,7 +102,7 @@ export function RuntimePanel({
             onClick={() => onRequestOffer(status.selected?.engine)}
           >
             {status.state === 'ready'
-              ? `Procurar versão mais nova do ${ENGINE_NAME[status.selected?.engine ?? 'openTofu']}`
+              ? `Procurar versão mais nova do ${ENGINE_NAME[selectedEngine]}`
               : 'Ver versão compatível para instalar'}
           </Button>
         </div>

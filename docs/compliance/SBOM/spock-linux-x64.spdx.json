@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Spock Studio para Linux x64 (AppImage e .deb)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-linux-x64--appimage-e-.deb--610be8bd-9327-426f-a55f-75877724ea8d",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-linux-x64--appimage-e-.deb--c00f3e57-af5d-46f1-9c91-92606f8cab24",
   "creationInfo": {
-    "created": "2026-11-16T00:20:20Z",
+    "created": "2026-11-16T00:58:36Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -76,7 +76,7 @@
       "licenseConcluded": "Sleepycat",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência). Ambiente: execução. Distribuição: redistribuído (resources/python no AppImage/deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: ALTO. Evidência: scripts/package-intelligence.py:144 | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/pythonbuild/downloads.py. Presença do _dbm*.so no pacote Linux a confirmar num build Linux.",
+      "comment": "Uso: Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência). Ambiente: execução. Distribuição: redistribuído (resources/python no AppImage/deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/pythonbuild/downloads.py. Conferido no arquivo oficial (SHA-256 fixado): sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0. O main do PBS (2026-11) ainda inclui o bdb.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -95,7 +95,7 @@
       "licenseConcluded": "Python-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Interpretador da inteligência no Linux (e macOS fora da 1ª versão). Ambiente: execução. Distribuição: redistribuído (resources/python no AppImage/deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py:31 | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml. SHA-256 do arquivo fixado no script: 8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado.",
+      "comment": "Uso: Interpretador da inteligência no Linux (e macOS fora da 1ª versão). Ambiente: execução. Distribuição: redistribuído (resources/python no AppImage/deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: scripts/package-intelligence.py:31 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml. SHA-256 do arquivo fixado no script: 8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",

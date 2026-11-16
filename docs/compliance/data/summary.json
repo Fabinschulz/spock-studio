@@ -31,16 +31,16 @@
   "desenvolvimento_build": 460,
   "nao_instalados": 1,
   "risco": {
-    "BAIXO": 935,
+    "BAIXO": 936,
     "PENDENTE": 3,
-    "ALTO": 6,
-    "MÉDIO": 13
+    "MÉDIO": 13,
+    "ALTO": 5
   },
   "risco_distribuidos": {
-    "BAIXO": 471,
+    "BAIXO": 472,
     "PENDENTE": 1,
-    "ALTO": 2,
-    "MÉDIO": 11
+    "MÉDIO": 11,
+    "ALTO": 1
   },
   "licencas_distribuidos": {
     "MIT": 397,
@@ -150,6 +150,6 @@
   "pendentes": [
     "APIs de modelo (OpenAI, Anthropic, Google Gemini)@n/a: Termos comerciais de cada provedor; o Spock não revende acesso",
     "Cursor Agent CLI@do usuário: Software proprietário; termos de uso por integração de terceiros não verificados",
-    "Ícones e logotipo Spock Studio@0.1.0: Desenho declarado original (comentário no SVG); a marca 'Spock' e a sobrancelha erguida podem remeter a personagem de terceiros (questão de marca, não de copyright)"
+    "Ícones e logotipo Spock Studio@0.1.0: Desenho próprio; busca de anterioridade e parecer da marca SPOCK (System of Programming, Organization, Code and Knowledge) pendentes (D-12)"
   ]
 }

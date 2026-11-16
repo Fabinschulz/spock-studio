@@ -1,0 +1,49 @@
+{
+  "status": "PROPOSTA — aguarda aprovação do dono (LICENSE_DECISIONS.md, D-10). Enquanto não for aprovada, o CI só relata; não é regra comercial.",
+  "scopes": {
+    "distribuido": {
+      "allowed": ["MIT", "MIT-0", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "0BSD", "Zlib", "Unicode-3.0", "Unicode-DFS-2016", "Unlicense", "CC0-1.0", "BSL-1.0", "PSF-2.0", "Python-2.0", "bzip2-1.0.6", "X11", "BlueOak-1.0.0", "Apache-2.0 WITH LLVM-exception"],
+      "review": ["MPL-2.0", "LGPL-2.0-only", "LGPL-2.0-or-later", "LGPL-2.1-only", "LGPL-2.1-or-later", "LGPL-3.0-only", "LGPL-3.0-or-later", "EPL-1.0", "EPL-2.0", "CDDL-1.0", "CDDL-1.1", "CPL-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "Sleepycat", "TCL", "LicenseRef-*"],
+      "forbidden": ["GPL-2.0-only", "GPL-2.0-or-later", "GPL-3.0-only", "GPL-3.0-or-later", "AGPL-3.0-only", "AGPL-3.0-or-later", "SSPL-1.0", "BUSL-1.1", "Elastic-2.0", "Commons-Clause"]
+    },
+    "sob_demanda": {
+      "description": "Baixado da fonte oficial na máquina do usuário, com consentimento: o Spock não redistribui, mas a licença é revisada.",
+      "allowed": ["MIT", "MIT-0", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "MPL-2.0"],
+      "review": ["*"],
+      "forbidden": []
+    },
+    "externo": {
+      "description": "Programa ou serviço do próprio usuário, invocado como processo ou por API: só registro.",
+      "allowed": ["*"],
+      "review": [],
+      "forbidden": []
+    },
+    "desenvolvimento": {
+      "description": "Não distribuído. EULAs com taxa passam por revisão.",
+      "allowed": ["*"],
+      "review": ["LicenseRef-OSMF-EULA"],
+      "forbidden": []
+    }
+  },
+  "registered": {
+    "cargo:cssparser": "R-07",
+    "cargo:selectors": "R-07",
+    "cargo:dtoa-short": "R-07",
+    "cargo:option-ext": "R-07",
+    "pypi:certifi": "R-07",
+    "pypi:orjson": "R-07",
+    "nuget:JsonSchema.Net": "R-17 / D-11",
+    "nuget:Json.More.Net": "R-17 / D-11",
+    "nuget:JsonPointer.Net": "R-17 / D-11",
+    "bin:berkeley-db": "R-02 / D-05",
+    "bin:nsis": "LICENSE_AUDIT §4 (exceção do LZMA)",
+    "bin:vcruntime": "R-06 / D-09",
+    "bin:dotnet-runtime-win": "R-05 / D-09",
+    "ext:webkitgtk": "R-03 / D-06",
+    "ext:webview2": "DISTRIBUTION_AUDIT (bootstrapper da Microsoft)",
+    "dl:terraform": "R-01 / D-02",
+    "dl:agent-skills": "R-12",
+    "asset:icons": "R-11 / D-12",
+    "asset:release-keys": "LICENSE_AUDIT §7 (dado factual)"
+  }
+}

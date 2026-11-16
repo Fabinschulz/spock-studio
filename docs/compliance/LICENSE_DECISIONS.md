@@ -6,17 +6,19 @@ auditoria e as que **aguardam aprovação**. Nenhuma substituição, remoção o
 | ID | Decisão | Situação |
 | --- | --- | --- |
 | D-01 | OpenTofu como motor padrão de IaC | Adotada (2026-11-15, decisão do dono) |
-| D-02 | Terraform: instalação gerenciada pelo Spock | **Aguarda aprovação e parecer** |
+| D-02 | Terraform: instalação gerenciada pelo Spock | **Aguarda aprovação e parecer**; trava por edição de build preparada |
 | D-03 | Ferramentas de IaC por download oficial sob demanda, nunca embarcadas | Adotada |
-| D-04 | CPython embarcado (embed no Windows, python-build-standalone no Linux) | Adotada; ajuste pendente (D-05) |
-| D-05 | Remover o `_dbm` (Berkeley DB) do Python do Linux | **Aguarda aprovação** |
+| D-04 | CPython embarcado (embed no Windows, python-build-standalone no Linux) | Adotada |
+| D-05 | Berkeley DB (Sleepycat) embutido no Python do Linux | Adotada: cumprir a Sleepycat (2026-11-15); parecer pendente |
 | D-06 | Formato do pacote Linux na 1ª versão (AppImage com LGPL ou só `.deb`) | **Aguarda aprovação** |
-| D-07 | Avisos de terceiros gerados do inventário e embarcados | **Aguarda aprovação** |
+| D-07 | Avisos de terceiros gerados do inventário e embarcados | **Aguarda aprovação**; geração preparada (`--bundle`) |
 | D-08 | Integração com CLIs de IA só invocando o binário do usuário | Adotada; confirmação pendente |
 | D-09 | EULA do Spock | **Aguarda redação e aprovação** |
-| D-10 | Política de licenças para novas dependências | **Aguarda aprovação** |
-| D-11 | Validador de JSON Schema dos testes (json-everything sob o EULA de taxa) | **Aguarda aprovação** |
+| D-10 | Política de licenças para novas dependências | **Aguarda aprovação**; verificação preparada (CI em modo relatório) |
+| D-11 | Validador de JSON Schema dos testes (json-everything sob o EULA de taxa) | **Aguarda aprovação**; comparação em [JSON_SCHEMA_VALIDATOR_REPORT.md](JSON_SCHEMA_VALIDATOR_REPORT.md) |
 | D-12 | Nome e marca "Spock" | **Aguarda parecer de marca** |
+
+O estado de implementação de cada decisão, com evidências, está em [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md).
 
 ## Adotadas
 
@@ -66,14 +68,25 @@ auditoria e as que **aguardam aprovação**. Nenhuma substituição, remoção o
 - **Também:** corrigir o texto da proposta para citar o caso "embedded" e o licenciante atual (IBM).
 - **Pendência jurídica:** "competitive offering" / "significantly overlaps" (LICENSE_AUDIT.md §5).
 
-### D-05: remover o `_dbm` do python-build-standalone
+### D-05: Berkeley DB (Sleepycat) no python-build-standalone
 
-- **Motivo:** Berkeley DB 6.0.19 sob Sleepycat (obrigação de fonte de alcance incerto). A inteligência não usa `dbm`.
-- **Proposta:** acrescentar `_dbm` à poda de `lib-dynload` e remover `libdb*` em `scripts/package-intelligence.py`. O smoke do
-  instalador confirma a remoção.
-- **Custo:** baixo. **Alternativa:** parecer sobre a Sleepycat.
+- **Decisão do dono (2026-11-15):** cumprir a Sleepycat.
+- **Tentativa descartada:** remover o `_dbm` na poda. No arquivo oficial, o módulo e o DB estão ligados estaticamente ao
+  `libpython3.12.so.1.0`. O `main` do PBS também inclui o `bdb`.
+- **Implementação:**
+  - `scripts/notices/berkeley-db/` guarda o `LICENSE-6.0.19.txt` original e o `SOURCES.md` (onde obter o fonte do DB, do
+    CPython e do PBS, com hashes, e oferta de cópia pelo suporte).
+  - `package-intelligence.py` copia a pasta para `python/licenses/berkeley-db/` nos pacotes Linux.
+  - O smoke `Pacote_embarcado` confere a presença dos arquivos. Também confere a licença do CPython em todas as plataformas.
+- **Descartadas:** compilar um CPython sem `bdb` (custo de manutenção) e tirar o Linux da 1ª versão.
+- **Pendências:**
+  1. Parecer sobre "software que use o DB".
+  2. Publicar o canal de suporte citado no `SOURCES.md`.
+  3. Anexar os tarballs de fonte às releases.
 
 ### D-06: pacote Linux
+
+Comparação detalhada em [LINUX_DISTRIBUTION_REPORT.md](LINUX_DISTRIBUTION_REPORT.md).
 
 - **Opção A, recomendada para a 1ª versão:** só `.deb`. As bibliotecas GTK/WebKitGTK vêm do sistema, sem obrigação LGPL de
   redistribuição.
@@ -127,12 +140,14 @@ auditoria e as que **aguardam aprovação**. Nenhuma substituição, remoção o
 
 - **Situação:** busca de anterioridade no INPI e no USPTO (classes 9 e 42) e avaliação do logotipo pendentes antes da
   comercialização.
-- **Contexto:** SPOCK é marca da CBS Studios na classe 28; há marcas Star Trek na classe 9.
+- **Identidade:** SPOCK significa System of Programming, Organization, Code and Knowledge.
+- **Escopo da avaliação:** [TRADEMARK_ASSESSMENT.md](TRADEMARK_ASSESSMENT.md). Nome e identidade visual não mudam sem aprovação
+  do proprietário.
 
 ## Pendências jurídicas consolidadas
 
 1. BUSL 1.1: o Spock pago é "competitive offering"? O cenário 2 (Terraform do usuário) está fora de "embedded"? (D-02)
-2. Sleepycat: alcance da obrigação de fonte, caso o `_dbm` seja mantido. (D-05)
+2. Sleepycat: alcance de "software que use o DB" para o Berkeley DB embutido no libpython do Linux. (D-05)
 3. LGPL no AppImage, caso a opção B seja escolhida. (D-06)
 4. Redação do EULA com as cláusulas da Microsoft. (D-09)
 5. Repasse do Visual C++ runtime recebido via PSF. (R-06)

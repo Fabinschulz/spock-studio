@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Inventário consolidado (distribuído, sob demanda, externo e desenvolvimento)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--bd6fc1fc-e00c-474a-b0f1-37d5d15c94db",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--9c43f988-52ae-4757-aa23-73837d32cc1f",
   "creationInfo": {
-    "created": "2026-11-16T00:20:20Z",
+    "created": "2026-11-16T00:58:36Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -88,7 +88,7 @@
       "licenseConcluded": "Sleepycat",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência). Ambiente: execução. Distribuição: redistribuído (resources/python no AppImage/deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: ALTO. Evidência: scripts/package-intelligence.py:144 | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/pythonbuild/downloads.py. Presença do _dbm*.so no pacote Linux a confirmar num build Linux.",
+      "comment": "Uso: Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência). Ambiente: execução. Distribuição: redistribuído (resources/python no AppImage/deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/pythonbuild/downloads.py. Conferido no arquivo oficial (SHA-256 fixado): sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0. O main do PBS (2026-11) ainda inclui o bdb.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -107,7 +107,7 @@
       "licenseConcluded": "Python-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Interpretador da inteligência no Linux (e macOS fora da 1ª versão). Ambiente: execução. Distribuição: redistribuído (resources/python no AppImage/deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py:31 | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml. SHA-256 do arquivo fixado no script: 8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado.",
+      "comment": "Uso: Interpretador da inteligência no Linux (e macOS fora da 1ª versão). Ambiente: execução. Distribuição: redistribuído (resources/python no AppImage/deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: scripts/package-intelligence.py:31 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml. SHA-256 do arquivo fixado no script: 8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -126,12 +126,18 @@
       "licenseConcluded": "Python-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Interpretador da inteligência (LangGraph) no Windows. Ambiente: execução. Distribuição: redistribuído (resources/python no instalador). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/build-runtime.ps1:66 | desktop/host/src-tauri/resources/python/LICENSE.txt:283. Inclui OpenSSL 3.0.16 (Apache-2.0), libffi (MIT), bzip2 1.0.8, SQLite (domínio público), expat 2.7.1 (MIT), mpdecimal, xz/liblzma, zlib; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable).",
+      "comment": "Uso: Interpretador da inteligência (LangGraph) no Windows. Ambiente: execução. Distribuição: redistribuído (resources/python no instalador). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/build-runtime.ps1:66 | desktop/host/src-tauri/resources/python/LICENSE.txt:283. Inclui OpenSSL 3.0.16 (Apache-2.0), libffi (MIT), bzip2 1.0.8, SQLite (domínio público), expat 2.7.1 (MIT), mpdecimal, xz/liblzma, zlib; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Hash do arquivo desktop/host/src-tauri/resources/python/python312.dll do último build local.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
           "referenceLocator": "pkg:generic/cpython-embed-amd64@3.12.10?download_url=https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "9a0e3435aaa680d868150f87ab3e388ad2eebc22f87e036155c7b4eda8cd2120"
         }
       ]
     },
@@ -145,12 +151,18 @@
       "licenseConcluded": "LicenseRef-Microsoft-Visual-Cpp-Redistributable",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Runtime C do CPython embarcado. Ambiente: execução. Distribuição: redistribuído (resources/python). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: desktop/host/src-tauri/resources/python/vcruntime140.dll | desktop/host/src-tauri/resources/python/LICENSE.txt:286.",
+      "comment": "Uso: Runtime C do CPython embarcado. Ambiente: execução. Distribuição: redistribuído (resources/python). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: desktop/host/src-tauri/resources/python/vcruntime140.dll | desktop/host/src-tauri/resources/python/LICENSE.txt:286. Hash do arquivo desktop/host/src-tauri/resources/python/vcruntime140.dll do último build local.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
           "referenceLocator": "pkg:generic/microsoft-vcruntime@14"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "052ad6a20d375957e82aa6a3c441ea548d89be0981516ca7eb306e063d5027f4"
         }
       ]
     },
@@ -202,12 +214,18 @@
       "licenseConcluded": "Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: TLS do Python embarcado (libssl-3.dll, libcrypto-3.dll). Ambiente: execução. Distribuição: redistribuído (resources/python). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: desktop/host/src-tauri/resources/python/libcrypto-3.dll.",
+      "comment": "Uso: TLS do Python embarcado (libssl-3.dll, libcrypto-3.dll). Ambiente: execução. Distribuição: redistribuído (resources/python). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: desktop/host/src-tauri/resources/python/libcrypto-3.dll. Hash do arquivo desktop/host/src-tauri/resources/python/libcrypto-3.dll do último build local.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
           "referenceLocator": "pkg:generic/openssl@3.0.16"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "ccfffddcd3defb8d899026298af9af43bc186130f8483d77e97c93233d5f27d7"
         }
       ]
     },

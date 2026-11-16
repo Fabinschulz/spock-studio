@@ -6,9 +6,13 @@
   O Tauri espera binaries/<nome>-<target-triple>[.exe]. O usuário final não precisa do SDK .NET.
 .PARAMETER Rid
   Identificador de runtime do .NET (padrão: win-x64).
+.PARAMETER Edition
+  development (padrão) ou commercial. A comercial não instala o Terraform pelo Spock (docs/compliance, D-02).
 #>
 param(
     [string]$Rid = 'win-x64',
+    [ValidateSet('development', 'commercial')]
+    [string]$Edition = 'development',
     [switch]$FetchPythonEmbed
 )
 
@@ -30,7 +34,7 @@ $dest = Join-Path $root 'desktop\host\src-tauri\binaries'
 
 dotnet publish $project -c Release -r $Rid --self-contained true `
     -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
-    -p:DebugType=none -o $out
+    -p:DebugType=none -p:SpockEdition=$Edition -o $out
 if ($LASTEXITCODE -ne 0) { throw 'dotnet publish falhou' }
 
 New-Item -ItemType Directory -Force $dest | Out-Null

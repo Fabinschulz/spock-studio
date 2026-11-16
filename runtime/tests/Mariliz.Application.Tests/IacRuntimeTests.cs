@@ -390,6 +390,96 @@ public sealed class IacRuntimeTests : IDisposable
         Assert.False(Directory.Exists(Path.Combine(_project.Root, "infra", "modules")));
     }
 
+    private IacRuntimeService Service(IacDistributionPolicy policy) =>
+        new([Toolchain()], new FileIacSettingsStore(_project.DataDir), new IacConfigReader(), Runner(), Workspace(), _clock, _audit, policy);
+
+    [Fact]
+    public void Edicao_vem_do_build_e_valor_desconhecido_e_erro()
+    {
+        Assert.Same(IacDistributionPolicy.Unrestricted, IacDistributionPolicy.ForEdition(null));
+        Assert.Same(IacDistributionPolicy.Unrestricted, IacDistributionPolicy.ForEdition("development"));
+        Assert.Same(IacDistributionPolicy.CommercialDefault, IacDistributionPolicy.ForEdition(" Commercial "));
+        Assert.Throws<ArgumentException>(() => IacDistributionPolicy.ForEdition("enterprise"));
+        Assert.False(IacDistributionPolicy.CommercialDefault.For(IacEngine.Terraform).ManagedInstall);
+        Assert.True(IacDistributionPolicy.CommercialDefault.For(IacEngine.Terraform).ExternalUse);
+        Assert.True(IacDistributionPolicy.CommercialDefault.For(IacEngine.OpenTofu).ManagedInstall);
+    }
+
+    [Fact]
+    public async Task Edicao_comercial_recusa_proposta_e_instalacao_do_Terraform_no_servico()
+    {
+        Publish("1.17.2");
+        var service = Service(IacDistributionPolicy.CommercialDefault);
+
+        var offer = await Assert.ThrowsAsync<EngineException>(() => service.OfferAsync(null, null, IacEngine.Terraform, CancellationToken.None));
+        // Quem pula a interface e chama a instalação direto, com qualquer proposta, cai na mesma trava.
+        var install = await Assert.ThrowsAsync<EngineException>(() => service.InstallAsync("000000000000000000000000", "1.17.2", IacEngine.Terraform, CancellationToken.None));
+
+        Assert.Equal("IAC_MANAGED_INSTALL_DISABLED", offer.Code);
+        Assert.Equal("IAC_MANAGED_INSTALL_DISABLED", install.Code);
+        Assert.False(Directory.Exists(Path.Combine(_project.DataDir, "tools", "terraform")));
+        Assert.Equal(2, _audit.Entries.Count(e => e.Action == "iac.runtime.install_blocked" && e.Detail.Contains("commercial")));
+        var status = await service.StatusAsync(null, CancellationToken.None);
+        Assert.Equal(IacDistributionPolicy.Commercial, status.Edition);
+        var terraform = Assert.Single(status.Engines);
+        Assert.False(terraform.ManagedInstall);
+        Assert.True(terraform.ExternalUse);
+        Assert.NotNull(terraform.Note);
+    }
+
+    [Fact]
+    public async Task Terraform_gerenciado_de_outra_edicao_nao_roda_na_comercial()
+    {
+        Publish("1.17.2");
+        var development = Service();
+        var offer = await development.OfferAsync(null, null, IacEngine.Terraform, CancellationToken.None);
+        await development.InstallAsync(offer.OfferId, offer.Version, IacEngine.Terraform, CancellationToken.None);
+
+        var commercial = Service(IacDistributionPolicy.CommercialDefault);
+        var status = await commercial.StatusAsync(Project(), CancellationToken.None);
+        // A porta das operações (validate, plan, apply e as ferramentas MCP dos agentes) é a mesma: nada roda com ele.
+        var error = await Assert.ThrowsAsync<EngineException>(() => commercial.ResolveForUseAsync(Project(), CancellationToken.None));
+
+        Assert.Null(status.Selected);
+        Assert.Equal(IacDistributionPolicy.CommercialDefault.For(IacEngine.Terraform).Note, Assert.Single(status.Installations).Problem);
+        Assert.Equal("IAC_TERRAFORM_UNAVAILABLE", error.Code);
+        // Remover continua possível: é o caminho para limpar a sobra.
+        await commercial.RemoveAsync("1.17.2", IacEngine.Terraform, confirmed: true, CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task Edicao_comercial_aceita_o_Terraform_que_a_pessoa_ja_tem()
+    {
+        ExternalBinary("1.17.2");
+        var service = Service(IacDistributionPolicy.CommercialDefault);
+
+        await service.AdoptAsync("1.17.2", IacEngine.Terraform, CancellationToken.None);
+        var selected = await service.ResolveForUseAsync(Project(), CancellationToken.None);
+
+        Assert.Equal(IacRuntimeSource.External, selected.Source);
+    }
+
+    [Fact]
+    public async Task Politica_que_proibe_o_externo_bloqueia_adocao_e_uso()
+    {
+        ExternalBinary("1.17.2");
+        await Service().AdoptAsync("1.17.2", IacEngine.Terraform, CancellationToken.None);
+        var policy = new IacDistributionPolicy("teste", new Dictionary<IacEngine, IacEnginePolicy>
+        {
+            [IacEngine.Terraform] = new(ManagedInstall: false, ExternalUse: false, "Terraform fora desta edição.")
+        });
+        var service = Service(policy);
+
+        var adopt = await Assert.ThrowsAsync<EngineException>(() => service.AdoptAsync("1.17.2", IacEngine.Terraform, CancellationToken.None));
+        var use = await Assert.ThrowsAsync<EngineException>(() => service.ResolveForUseAsync(Project(), CancellationToken.None));
+        var status = await service.StatusAsync(null, CancellationToken.None);
+
+        Assert.Equal("IAC_EXTERNAL_USE_DISABLED", adopt.Code);
+        Assert.Equal("IAC_TERRAFORM_UNAVAILABLE", use.Code);
+        Assert.NotEqual(IacRuntimeState.ExternalAvailable, status.State);
+        Assert.Contains(_audit.Entries, e => e.Action == "iac.runtime.adopt_blocked");
+    }
+
     private sealed class MapLocator(Dictionary<string, string> map) : IExecutableLocator
     {
         public string? Find(string name) => map.GetValueOrDefault(name);
