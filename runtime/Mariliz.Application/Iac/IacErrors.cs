@@ -135,6 +135,9 @@ public static class IacErrors
     public static EngineException BlueprintInvalid(IEnumerable<IacBlueprintCheck> failed) =>
         new("IAC_BLUEPRINT_INVALID", "O desenho não passou nas verificações: " + string.Join("; ", failed.Select(check => check.Description)) + ".");
 
+    public static EngineException PlanWithoutCostData() =>
+        new("IAC_PLAN_COST_UNAVAILABLE", "Este plano foi gerado antes de o Spock guardar os atributos de preço. Gere o plano de novo para estimar o custo.");
+
     public static EngineException CostSourceUnavailable() =>
         new("IAC_COST_SOURCE_UNAVAILABLE", "A estimativa usa a lista de preços do provedor pela conexão cloud do projeto: vincule uma conexão da mesma nuvem " +
             "do desenho e libere nela a leitura de preços públicos.");

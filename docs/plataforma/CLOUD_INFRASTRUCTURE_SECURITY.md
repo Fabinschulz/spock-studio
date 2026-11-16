@@ -39,7 +39,8 @@ depois de uma recusa.
   Terraform: o segredo nasce sem valor e a senha do banco fica com o próprio RDS.
 - **Drift e custo**: a verificação de drift é um plano `-refresh-only` que nunca grava o state; dela saem só nomes de
   atributo, e o arquivo com os valores é apagado no fim. A estimativa usa só a lista pública de preços, pela conexão
-  com a capacidade `aws.pricing` liberada no vínculo, e não lê nada da conta.
+  com a capacidade `aws.pricing` liberada no vínculo, e não lê nada da conta. Do plano, o custo usa só atributos de
+  preço (tipo, classe, tamanho, quantidade); nome, senha e tag nunca saem do arquivo de plano.
 - **Trilha**: instalação, recusa, adoção, versão do projeto, remoção, planos, drift, aprovações e applies na `audit.ndjson`,
   com ids e contagens, nunca valores.
 
@@ -56,7 +57,7 @@ Checagens determinísticas sobre `show -json`, avisando antes da aprovação:
 
 Os achados não bloqueiam sozinhos: aparecem na aprovação, e os graves pedem confirmação extra.
 
-## 4. O que já está implementado (entregas 1 a 6)
+## 4. O que já está implementado (entregas 1 a 8)
 
 - OpenTofu (gratuito, MPL 2.0) como padrão; Terraform liberado por escolha explícita (licença com o jurídico).
 - Instalação só com autorização, ligada à proposta (`offerId`), recusa respeitada.

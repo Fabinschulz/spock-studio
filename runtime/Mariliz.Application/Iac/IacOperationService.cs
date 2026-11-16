@@ -152,7 +152,7 @@ public sealed partial class IacOperationService(
                 installation.Engine, installation.Version, iacRoot, folder, workspaceName ?? "default", request.ConnectionId, snapshot.ConfigHash, started,
                 clock.UtcNow, requestedBy, null, planId, run.Succeeded ? run.HasChanges : null, run.Summary, run.Findings, run.Error,
                 Backend: run.Backend, ApplyBlocker: run.ApplyBlocker, StateMode: run.StateMode, LocalStatePath: run.LocalStatePath,
-                LocalStateHash: localStateHash, LockId: run.Error is null ? null : LockIdIn(run.Error));
+                LocalStateHash: localStateHash, LockId: run.Error is null ? null : LockIdIn(run.Error), Billables: run.Succeeded ? run.Billables : null);
             if (run.Succeeded && identity is not null) registry?.Claim(identity, request.ProjectId);
             var detail = new JsonObject
             {

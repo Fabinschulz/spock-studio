@@ -116,6 +116,7 @@ public static class ProtocolMethods
     public const string IacGenerateSave = "iac.generate.save";
     public const string IacDrift = "iac.drift";
     public const string IacCostEstimate = "iac.cost.estimate";
+    public const string IacCostPlan = "iac.cost.plan";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, Plan, Apply, Validate, Revert, Runs];
@@ -151,7 +152,7 @@ public static class ProtocolMethods
         // Rodam a ferramenta de IaC: init baixa providers e o plano lê o backend.
         IacValidate, IacPlan, IacApply, IacState, IacStateResources, IacStateUnlock, IacDrift,
         // Consulta a lista de preços do provedor de cloud.
-        IacCostEstimate,
+        IacCostEstimate, IacCostPlan,
         // Chama o provedor de IA.
         IacArchitectDraft
     };
@@ -180,7 +181,7 @@ public static class ProtocolMethods
     public static readonly IReadOnlyList<string> Iac =
         [IacRuntimeStatus, IacRuntimeOffer, IacRuntimeInstall, IacRuntimeDecline, IacRuntimeRemove, IacRuntimeAdopt, IacRuntimePin,
             IacLayout, IacValidate, IacPlan, IacOperations, IacOperation, IacApply, IacState, IacStateResources, IacStateUnlock, IacBootstrapPlan,
-            IacBootstrapSave, IacArchitectDraft, IacGeneratePlan, IacGenerateSave, IacDrift, IacCostEstimate];
+            IacBootstrapSave, IacArchitectDraft, IacGeneratePlan, IacGenerateSave, IacDrift, IacCostEstimate, IacCostPlan];
 
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }

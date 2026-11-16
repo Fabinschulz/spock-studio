@@ -1,0 +1,72 @@
+{
+  "estimate": {
+    "operationId": "iac-387b6636eaeb",
+    "planId": "a6f8aea382142a5b",
+    "currency": "USD",
+    "region": "sa-east-1",
+    "source": "AWS Price List Query API",
+    "pricedAt": "2026-11-10T12:00:00+00:00",
+    "monthlyBefore": 97.09,
+    "monthlyAfter": 145.12,
+    "monthlyDelta": 48.03,
+    "complete": false,
+    "lines": [
+      {
+        "address": "module.db.aws_db_instance.this",
+        "type": "aws_db_instance",
+        "action": "create",
+        "detail": "RDS postgres db.t4g.micro, Single-AZ, 20 GB gp3",
+        "before": null,
+        "after": 29.20,
+        "problem": null
+      },
+      {
+        "address": "aws_nat_gateway.main",
+        "type": "aws_nat_gateway",
+        "action": "delete",
+        "detail": "NAT Gateway",
+        "before": 67.89,
+        "after": null,
+        "problem": null
+      },
+      {
+        "address": "module.ecs.aws_ecs_service.this",
+        "type": "aws_ecs_service",
+        "action": "create",
+        "detail": "ECS FARGATE, 2 tarefa(s) de 512 CPU e 1024 MB",
+        "before": null,
+        "after": 61.90,
+        "problem": null
+      },
+      {
+        "address": "aws_db_instance.legacy",
+        "type": "aws_db_instance",
+        "action": "update",
+        "detail": "RDS postgres db.t4g.small, Single-AZ, 20 GB gp3",
+        "before": 29.20,
+        "after": 54.02,
+        "problem": null
+      },
+      {
+        "address": "aws_db_instance.novo",
+        "type": "aws_db_instance",
+        "action": "create",
+        "detail": "RDS postgres db.t4g.micro, Single-AZ, 20 GB",
+        "before": null,
+        "after": null,
+        "problem": "valor conhecido só depois do apply: storage_type"
+      }
+    ],
+    "uncovered": [
+      "aws_ecs_task_definition",
+      "aws_sqs_queue"
+    ],
+    "assumptions": [
+      "Estimativa com os preços públicos sob demanda da AWS em sa-east-1, em dólares, consultados na AWS Price List Query API em 2026-11-10.",
+      "Mês de 730 horas; só o custo fixo de cada recurso (tráfego, requisições, armazenamento usado e transferência ficam fora).",
+      "Sem impostos, câmbio, free tier, Savings Plans, instâncias reservadas nem descontos da conta.",
+      "EC2 cotado como Linux compartilhado; outro sistema operacional ou tenancy muda o preço.",
+      "Recursos sem valor em algum lado ficam fora do total: aws_db_instance.novo."
+    ]
+  }
+}

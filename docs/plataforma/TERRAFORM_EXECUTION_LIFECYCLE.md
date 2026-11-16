@@ -2,7 +2,7 @@
 
 Como uma mudança de infraestrutura anda no Spock, da necessidade à verificação, e onde a pessoa decide. As oito etapas
 estão implementadas: dependência (entrega 1), validação e plano (2), aprovação e aplicação (3), state (4),
-arquitetura e configuração (5) e, em volta do ciclo, drift e custo estimado (6). Formato dos arquivos: [TERRAFORM_PROJECT_LAYOUT.md](TERRAFORM_PROJECT_LAYOUT.md).
+arquitetura e configuração (5) e, em volta do ciclo, drift e custo estimado (6) e custo de um plano (8). Formato dos arquivos: [TERRAFORM_PROJECT_LAYOUT.md](TERRAFORM_PROJECT_LAYOUT.md).
 
 ## 1. As oito etapas
 
@@ -198,6 +198,33 @@ declara `storage_type = "gp3"`, o mesmo que a estimativa precifica.
 Validado contra a API real (`AwsPricingLiveTests`, com `MARILIZ_LIVE_AWS_PROFILE`): cada item do desenho completo em
 sa-east-1, também com Multi-AZ e MySQL, acha preço único, e a leitura `aws.pricing` da verificação de permissões responde.
 
+### Custo de um plano (entrega 8, implementada)
+
+Qualquer plano gerado no Spock, não só o da geração, ganha a estimativa do que ele muda (`iac.cost.plan`, botão "Estimar
+o custo do plano" no resultado do plano). Ao gerar o plano, `IacPlanBillables` tira do `show -json` os recursos cobrados
+que mudam e **só os atributos que definem preço**, de antes e de depois, e o plano os guarda (`billables`). Nome, senha,
+tag e qualquer outro valor ficam no arquivo de plano.
+
+| Tipo | Atributos de preço | Cotado como |
+| --- | --- | --- |
+| `aws_instance` | `instance_type` | EC2 Linux compartilhado por hora |
+| `aws_nat_gateway` | `connectivity_type` | NAT Gateway por hora |
+| `aws_lb` | `load_balancer_type` | load balancer application ou network por hora |
+| `aws_db_instance` | `instance_class`, `engine`, `multi_az`, `allocated_storage`, `storage_type` | instância por hora e armazenamento gp3 ou gp2 por GB-mês (postgres, mysql, mariadb) |
+| `aws_ecs_service` | `desired_count`, `launch_type` e `cpu`/`memory` da task definition referenciada | Fargate por vCPU-hora e GB-hora |
+| `aws_secretsmanager_secret` | | segredo por mês |
+| `aws_cloudwatch_metric_alarm` | | alarme de resolução padrão por mês |
+
+A task definition de um serviço ECS é achada pela referência na configuração do plano, no mesmo módulo. Mudança que não
+toca atributo de preço (uma tag) não entra. A resposta traz, por recurso, o custo mensal de antes e de depois, o total
+de antes, de depois e a diferença, e os tipos que o plano muda e a estimativa não cota (sem custo fixo, como IAM, ou por
+uso). Valor que só se conhece depois do apply deixa aquele lado sem valor, com o motivo, e a estimativa se diz
+incompleta. `multi_az` não declarado é cotado como Single-AZ, o padrão da AWS, e a premissa diz isso. Plano gerado antes
+desta entrega não tem os atributos e pede um plano novo (`IAC_PLAN_COST_UNAVAILABLE`).
+
+Validado de ponta a ponta (`Custo_de_um_plano_aws_real_com_precos_reais`): o OpenTofu planeja EC2, RDS, serviço Fargate
+e segredo com o provider AWS real pela conexão (nada é aplicado) e o Spock cota o plano com a Price List Query API real.
+
 ## 7. O que já existe para isso
 
 | Necessidade | Já existe |
@@ -220,6 +247,7 @@ sa-east-1, também com Multi-AZ e MySQL, acha preço único, e a leitura `aws.pr
 | `iac_history` | 3 | Lista validações, planos e aplicações, com quem pediu e o resultado da verificação |
 | `iac_state` | 4 | Onde vive o state de cada raiz, trava, criptografia, riscos e backend recomendado (só a configuração) |
 | `iac_blueprint_check` | 5 | Confere um desenho com as checagens da tela e lista os arquivos que a geração escreveria e o que é cobrado; não grava nada |
+| `iac_plan_summary` (custo) | 8 | O resumo do plano lista os recursos com custo fixo que ele muda (tipo e tamanho); o valor em dólares fica na tela |
 | `iac_drift_summary` | 6 | Lê a última verificação de drift: recursos alterados ou apagados por fora, com os nomes dos atributos; não roda a verificação |
 | `iac_plan` | Depois | Gerar plano por agente pede o vínculo cloud liberado para agentes; hoje só a pessoa planeja |
 

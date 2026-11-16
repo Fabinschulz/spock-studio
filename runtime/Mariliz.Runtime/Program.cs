@@ -75,6 +75,8 @@ var iacRegistry = new FileIacStateRegistry(engine.DataRoot);
 var iacRuntimes = new IacRuntimeService([openTofuToolchain, terraformToolchain], new FileIacSettingsStore(engine.DataRoot),
     new IacConfigReader(), engine.Runner, engine.Workspace, engine.Clock, integrations.Audit);
 var knowledge = new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge, decisionMemory);
+var iacOperations = new IacOperationService(iacRuntimes, new CliIacRuntimeFactory(engine.Runner, engine.DataRoot), new IacConfigReader(),
+    new FileIacWorkArea(engine.DataRoot), engine.Workspace, cloud, engine.Clock, integrations.Audit, iacStates, iacRegistry);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
     management: management, assistant: assistant,
@@ -92,13 +94,12 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     ideas: new IdeaArchitectService(engine.Workspace, models, engine.Files, engine.Store, engine.Clock, engine.Tracker),
     cloud: cloud,
     terraform: iacRuntimes,
-    iacOperations: new IacOperationService(iacRuntimes, new CliIacRuntimeFactory(engine.Runner, engine.DataRoot), new IacConfigReader(),
-        new FileIacWorkArea(engine.DataRoot), engine.Workspace, cloud, engine.Clock, integrations.Audit, iacStates, iacRegistry),
+    iacOperations: iacOperations,
     iacState: new IacStateService(engine.Workspace, new IacConfigReader(), iacStates, iacRegistry, cloud, engine.Files, engine.Store, engine.Runner,
         engine.Clock, engine.Tracker, integrations.Audit),
     iacGeneration: new IacGenerationService(engine.Workspace, new IacConfigReader(), models, engine.Files, engine.Store, engine.Clock, engine.Tracker,
         integrations.Audit),
-    iacCosts: new IacCostService(engine.Workspace, cloud, engine.Clock));
+    iacCosts: new IacCostService(engine.Workspace, cloud, engine.Clock, iacOperations));
 try
 {
     await session.RunAsync(Console.In, Console.Out, cts.Token);

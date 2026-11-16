@@ -93,6 +93,8 @@ fica com o jurídico da empresa, que negocia à parte; o Spock só informa a lic
 | 4 | State: onde vive o state de cada raiz e os riscos (state no git, sem trava, sem criptografia, dividido), backend recomendado pela nuvem do projeto, bootstrap do bucket no modelo para AWS, Azure e Google (diff revisado, execução reversível), state local devolvido ao projeto com conflito, isolamento entre projetos, consulta do state, force-unlock com confirmação, `iac_state` no MCP | **Implementada**; bootstraps validados com o OpenTofu e os providers reais, state local devolvido num apply real ([TERRAFORM_STATE_MANAGEMENT.md](TERRAFORM_STATE_MANAGEMENT.md)) |
 | 5 | Geração: da necessidade ao desenho (IA opcional, fatos da conta pela conexão), checagens determinísticas, `.tf` da AWS no modelo por modelos fixos (raiz e módulos SNS, CloudWatch, SQS, ECR, Secrets Manager, IAM, ALB, ECS Fargate e RDS), o que é cobrado sem preço inventado, diff revisado e execução reversível; leitura de VPCs e subnets pela conexão; `iac_blueprint_check` no MCP | **Implementada**; arquivos gerados validados com `fmt` e `validate` do OpenTofu e o provider AWS real ([TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md), seção 5) |
 | 6 | Drift e custos: `plan -refresh-only` sobre a cópia com recursos alterados ou apagados por fora (só nomes de atributo), histórico e trilha, `iac_drift_summary` no MCP; estimativa mensal do desenho com os preços públicos da AWS pela conexão (`aws.pricing`), itens por uso fora do total, premissas e item sem preço único deixado sem valor | **Implementada**; drift validado com o OpenTofu real (recurso apagado por fora apontado, state intocado); preços consultados de verdade na Price List Query API com uma identidade IAM (cada item do desenho com preço único, também com Multi-AZ e MySQL; `MARILIZ_LIVE_AWS_PROFILE`) ([TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md), seção 6) |
+| 7 | Perfis do `aws login` na conexão AWS (`AWSSDK.Signin`); o provider AWS do modelo lê o mesmo perfil | **Implementada**; validada com um perfil real na conexão e num plano do OpenTofu |
+| 8 | Custo de um plano: atributos de preço de cada recurso cobrado guardados com o plano (EC2, NAT Gateway, load balancer, RDS, ECS Fargate, Secrets Manager, alarmes), custo mensal de antes e de depois por recurso, diferença, o que fica de fora e o que só se conhece depois do apply | **Implementada**; validada de ponta a ponta com o OpenTofu, o provider AWS e a Price List Query API reais ([TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md), seção 6) |
 
 Priorização dos recursos por provedor: primeiro o que o modelo de referência já cobre na AWS (SQS, SNS, CloudWatch,
 ECR, Secrets Manager, IAM, ALB, ECS Fargate e o bucket de state). Azure e Google entram pelo mesmo modelo, começando por
@@ -105,6 +107,8 @@ grupo de recursos/projeto, rede e o equivalente de contêiner gerenciado (Contai
 - **Gerar infraestrutura**: necessidade para a IA (opcional), conta, região e perfil pela conexão AWS vinculada, VPC e
   subnets lidas da conta, componentes, revisão do diff com o que é cobrado, estimativa de custo pela conexão e gravação
   no projeto.
+- **Custo do plano**: no resultado de um plano com recursos cobrados, "Estimar o custo do plano" mostra antes, depois e
+  a diferença por mês, por recurso, pela conexão AWS do projeto.
 - **Validar, planejar e verificar drift**: o drift aparece no histórico como "Com drift" ou "Sem drift", com cada
   recurso alterado ou apagado por fora.
 - **State** e a aprovação do plano, como nas entregas 2 a 4.
@@ -128,5 +132,6 @@ Ainda não aparecem: lista de projetos de infraestrutura com ambientes e verific
 - macOS e Linux implementados e não rodados em máquina real.
 - Geração só para AWS e só com os componentes do modelo (serviço em contêiner, RDS, filas); Azure e Google têm o
   bootstrap do state, ainda não a geração.
-- Custo estimado só para o desenho da geração (AWS); um plano qualquer ainda não tem custo.
+- Custo só na AWS e só dos tipos da tabela da seção 6 de [TERRAFORM_EXECUTION_LIFECYCLE.md](TERRAFORM_EXECUTION_LIFECYCLE.md); o resto do
+  plano aparece como fora da estimativa. EC2 é cotado como Linux compartilhado.
 - Drift só por pedido da pessoa (sem agendamento) e só o que está no state: recursos criados fora do state não aparecem.

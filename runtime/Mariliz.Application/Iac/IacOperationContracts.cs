@@ -95,7 +95,17 @@ public sealed record IacPlanRun(
     string? Backend = null,
     string? ApplyBlocker = null,
     IacStateMode? StateMode = null,
-    string? LocalStatePath = null);
+    string? LocalStatePath = null,
+    IReadOnlyList<IacBillable>? Billables = null);
+
+// Um recurso cobrado que o plano cria, muda ou destrói, com só os atributos que definem o preço (tipo, classe, tamanho,
+// quantidade), de antes e de depois. "?" marca um valor que só se conhece depois do apply.
+public sealed record IacBillable(
+    string Address,
+    string Type,
+    string Action,
+    IReadOnlyDictionary<string, string>? Before,
+    IReadOnlyDictionary<string, string>? After);
 
 public sealed record IacApplySpec(
     string Directory,
@@ -207,6 +217,7 @@ public sealed record IacOperation(
     string? LocalStatePath = null,
     string? LocalStateHash = null,
     string? LockId = null,
-    IReadOnlyList<IacDriftedResource>? Drift = null);
+    IReadOnlyList<IacDriftedResource>? Drift = null,
+    IReadOnlyList<IacBillable>? Billables = null);
 
 public sealed record IacProjectLayout(string ProjectId, string? Root, IReadOnlyList<string> Folders);

@@ -17,7 +17,7 @@ public sealed class IacDriftAndCostTests : IDisposable
     private readonly TempProject _project = TempProject.Dotnet();
     private readonly MemoryAudit _audit = new();
     private readonly FakeClock _clock = new();
-    private readonly PricedProvider _provider = new();
+    private readonly PricedAwsProvider _provider = new();
 
     public void Dispose() => _project.Dispose();
 
@@ -52,6 +52,77 @@ public sealed class IacDriftAndCostTests : IDisposable
         Assert.Equal("deleted", drift[1].Change);
         Assert.Empty(drift[1].Attributes);
         Assert.DoesNotContain("outro-valor-secreto", System.Text.Json.JsonSerializer.Serialize(drift));
+    }
+
+    // Um plano com o que a estimativa cota e o que ela deixa de fora. A senha do banco está aqui para provar que não sai.
+    public const string PlanJson = """
+        {
+          "resource_changes": [
+            { "address": "module.db.aws_db_instance.this", "mode": "managed", "type": "aws_db_instance",
+              "change": { "actions": ["create"], "before": null,
+                "after": { "instance_class": "db.t4g.micro", "engine": "postgres", "multi_az": false, "allocated_storage": 20, "storage_type": "gp3",
+                           "password": "senha-do-plano" },
+                "after_unknown": { "id": true } } },
+            { "address": "aws_instance.web", "mode": "managed", "type": "aws_instance",
+              "change": { "actions": ["update"], "before": { "instance_type": "t3.micro", "tags": { "a": "1" } },
+                "after": { "instance_type": "t3.micro", "tags": { "a": "2" } }, "after_unknown": {} } },
+            { "address": "aws_nat_gateway.main", "mode": "managed", "type": "aws_nat_gateway",
+              "change": { "actions": ["delete"], "before": { "connectivity_type": "public" }, "after": null } },
+            { "address": "module.ecs.aws_ecs_service.this", "mode": "managed", "type": "aws_ecs_service",
+              "change": { "actions": ["create"], "before": null, "after": { "desired_count": 2, "launch_type": "FARGATE" },
+                "after_unknown": { "task_definition": true } } },
+            { "address": "module.ecs.aws_ecs_task_definition.app", "mode": "managed", "type": "aws_ecs_task_definition",
+              "change": { "actions": ["create"], "before": null, "after": { "cpu": "512", "memory": "1024" }, "after_unknown": { "arn": true } } },
+            { "address": "aws_db_instance.legacy", "mode": "managed", "type": "aws_db_instance",
+              "change": { "actions": ["update"],
+                "before": { "instance_class": "db.t4g.micro", "engine": "postgres", "multi_az": false, "allocated_storage": 20, "storage_type": "gp3" },
+                "after": { "instance_class": "db.t4g.small", "engine": "postgres", "multi_az": false, "allocated_storage": 20, "storage_type": "gp3" },
+                "after_unknown": {} } },
+            { "address": "aws_db_instance.novo", "mode": "managed", "type": "aws_db_instance",
+              "change": { "actions": ["create"], "before": null,
+                "after": { "instance_class": "db.t4g.micro", "engine": "postgres", "multi_az": false, "allocated_storage": 20 },
+                "after_unknown": { "storage_type": true } } },
+            { "address": "aws_sqs_queue.q", "mode": "managed", "type": "aws_sqs_queue",
+              "change": { "actions": ["create"], "before": null, "after": { "name": "q" }, "after_unknown": {} } }
+          ],
+          "configuration": { "root_module": { "module_calls": { "ecs": { "module": { "resources": [
+            { "address": "aws_ecs_service.this", "type": "aws_ecs_service",
+              "expressions": { "task_definition": { "references": ["aws_ecs_task_definition.app.arn", "aws_ecs_task_definition.app"] } } }
+          ] } } } } }
+        }
+        """;
+
+    [Fact]
+    public void Plano_da_so_os_atributos_de_preco_e_liga_o_servico_a_task_definition()
+    {
+        var billables = IacPlanBillables.Read(JsonNode.Parse(PlanJson)!);
+
+        Assert.Equal(["module.db.aws_db_instance.this", "aws_nat_gateway.main", "module.ecs.aws_ecs_service.this", "aws_db_instance.legacy",
+            "aws_db_instance.novo"], billables.Select(b => b.Address));
+        var service = billables.Single(b => b.Type == "aws_ecs_service");
+        Assert.Equal("512", service.After!["cpu"]);
+        Assert.Equal("1024", service.After["memory"]);
+        Assert.Equal("2", service.After["desired_count"]);
+        Assert.Null(billables.Single(b => b.Address == "aws_nat_gateway.main").After);
+        Assert.Equal("?", billables.Single(b => b.Address == "aws_db_instance.novo").After!["storage_type"]);
+        Assert.Equal("false", billables[0].After!["multi_az"]);
+        Assert.DoesNotContain("senha-do-plano", System.Text.Json.JsonSerializer.Serialize(billables));
+    }
+
+    [Fact]
+    public void Banco_sem_multi_az_declarado_e_cotado_como_single_az()
+    {
+        var values = new Dictionary<string, string>
+        {
+            ["instance_class"] = "db.t4g.micro", ["engine"] = "postgres", ["multi_az"] = "?", ["allocated_storage"] = "20", ["storage_type"] = "gp3"
+        };
+
+        var (parts, problem) = IacPlanCost.Parts("aws_db_instance", values, "sa-east-1");
+
+        Assert.Null(problem);
+        Assert.Equal("InstanceUsage:db.t4g.micro", parts[0].Query.UsageType);
+        Assert.All(parts, p => Assert.Equal("Single-AZ", p.Query.Attributes["deploymentOption"]));
+        Assert.True(IacPlanCost.AssumesSingleAz("aws_db_instance", values));
     }
 
     [Fact]
@@ -161,57 +232,5 @@ public sealed class IacDriftAndCostTests : IDisposable
             CancellationToken.None);
         hub.Projects.Link(projectId, connection.Id, capabilities, agentAccess: false);
         return (hub, projectId, connection.Id);
-    }
-
-    // Um provedor "aws" de teste: as capacidades que o vínculo usa e a lista de preços de sa-east-1.
-    private sealed class PricedProvider : ICloudProvider, ICloudPriceSource
-    {
-        private static readonly Dictionary<string, decimal> Prices = new(StringComparer.Ordinal)
-        {
-            ["LoadBalancerUsage"] = 0.034m,
-            ["Fargate-vCPU-Hours:perCPU"] = 0.0696m,
-            ["Fargate-GB-Hours"] = 0.0076m,
-            ["AWSSecretsManager-Secrets"] = 0.40m,
-            ["InstanceUsage:db.t4g.micro"] = 0.034m,
-            ["RDS:GP3-Storage"] = 0.219m,
-            ["CW:AlarmMonitorUsage"] = 0.135m,
-            ["LCUUsage"] = 0.011m,
-            ["TimedStorage-ByteHrs"] = 0.10m,
-            ["DataProcessing-Bytes"] = 0.90m,
-            ["Requests-Tier1"] = 0.0000004m
-        };
-
-        private static readonly CloudColumn[] Columns = [new("name", "Nome"), new("value", "Valor")];
-
-        public List<CloudPriceQuery> Queries { get; } = [];
-        public HashSet<string> Missing { get; } = [];
-
-        public CloudProviderDescriptor Descriptor { get; } = new("aws", "AWS de teste", "1.0.0",
-            [new CloudMechanism("simple", "Simples", "Teste.", [new CloudField("region", "Região", "", Required: true)])],
-            [
-                new CloudCapability("aws.ec2.vpcs", "VPCs", "VPCs.", "EC2", ["ec2:DescribeVpcs"], CloudRegionUse.Required, Columns),
-                new CloudCapability("aws.pricing", "Preços públicos", "Preços.", "Price List", ["pricing:GetProducts"], CloudRegionUse.None, Columns)
-            ],
-            "Teste.");
-
-        public CloudSettings Normalize(CloudSettings settings) => settings;
-
-        public string NormalizeRegion(string region) => region;
-
-        public Task<CloudIdentity> IdentifyAsync(CloudSettings settings, CancellationToken ct) =>
-            Task.FromResult(new CloudIdentity("123456789012", null, "arn:teste", null));
-
-        public Task<CloudTable> ReadAsync(CloudSettings settings, CloudQuery query, CancellationToken ct) => Task.FromResult(new CloudTable([], false));
-
-        public Task<IReadOnlyList<CloudPriceQuote>> PricesAsync(CloudSettings settings, IReadOnlyList<CloudPriceQuery> queries, CancellationToken ct)
-        {
-            Queries.AddRange(queries);
-            IReadOnlyList<CloudPriceQuote> quotes = queries
-                .Select(q => Missing.Contains(q.UsageType) || !Prices.TryGetValue(q.UsageType, out var price)
-                    ? new CloudPriceQuote(q, null, null)
-                    : new CloudPriceQuote(q, price, $"{price.ToString(System.Globalization.CultureInfo.InvariantCulture)} USD por {q.Unit}"))
-                .ToList();
-            return Task.FromResult(quotes);
-        }
     }
 }

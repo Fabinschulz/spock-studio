@@ -46,6 +46,7 @@
         "change": "deleted",
         "attributes": []
       }
-    ]
+    ],
+    "billables": null
   }
 }

@@ -10,6 +10,7 @@ import { Fragment, useCallback, useMemo, useState, type ReactNode } from 'react'
 import styles from '../infrastructure-page.module.scss';
 import { ENGINE_NAME } from '../domain/labels';
 import { PlanApproval } from './plan-approval';
+import { PlanCost } from './plan-cost';
 import type { IacApi } from '../service/iac-api';
 
 interface IacOperationsProps {
@@ -237,6 +238,24 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
               />
             ) : null
           }
+          cost={
+            current.kind === 'plan' &&
+            current.status === 'succeeded' &&
+            current.billables &&
+            current.billables.length > 0 ? (
+              <PlanCost
+                key={current.id}
+                api={api}
+                projectId={projectId}
+                plan={current}
+                connection={
+                  linked.find((c) => c.id === current.connectionId && c.provider === 'aws') ??
+                  linked.find((c) => c.provider === 'aws') ??
+                  null
+                }
+              />
+            ) : null
+          }
         />
       ) : null}
 
@@ -308,11 +327,13 @@ function UnlockLock({ lockId, busy, onConfirm }: { lockId: string; busy: boolean
 function OperationResult({
   operation,
   approval,
-  unlock
+  unlock,
+  cost
 }: {
   operation: IacOperation;
   approval: ReactNode;
   unlock?: ReactNode;
+  cost?: ReactNode;
 }) {
   const title = KIND_LABEL[operation.kind];
   const result = outcome(operation);
@@ -402,6 +423,7 @@ function OperationResult({
           ) : null}
         </>
       ) : null}
+      {cost}
       {approval}
     </section>
   );

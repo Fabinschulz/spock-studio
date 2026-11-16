@@ -189,6 +189,91 @@ public sealed class IacRuntimeLiveTests(ITestOutputHelper output)
         Assert.Contains("conta_lida", plan.Summary!.OutputsChanged);
     }
 
+    // Entrega 8 de ponta a ponta: o OpenTofu planeja recursos AWS cobrados com o perfil da conexão (só o plano: nada é aplicado
+    // nem criado) e o Spock cota o plano com a Price List Query API real, pela mesma conexão.
+    [LiveFact(Variable, "MARILIZ_LIVE_IAC_PROVIDERS", "MARILIZ_LIVE_AWS_PROFILE")]
+    public async Task Custo_de_um_plano_aws_real_com_precos_reais()
+    {
+        using var project = TempProject.Dotnet();
+        project.Write("infra/providers.tf", "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n" +
+                                            $"      version = \"{IacBootstrapTemplates.AwsVersion}\"\n    }}\n  }}\n}}\n\nprovider \"aws\" {{}}\n");
+        project.Write("infra/resource.tf", """
+            resource "aws_instance" "web" {
+              ami           = "ami-0123456789abcdef0"
+              instance_type = "t3.micro"
+            }
+
+            resource "aws_db_instance" "db" {
+              identifier                  = "spock-plano-de-custo"
+              engine                      = "postgres"
+              engine_version              = "16"
+              instance_class              = "db.t4g.micro"
+              allocated_storage           = 20
+              storage_type                = "gp3"
+              username                    = "app_admin"
+              manage_master_user_password = true
+              skip_final_snapshot         = true
+            }
+
+            resource "aws_ecs_task_definition" "app" {
+              family                   = "spock-plano-de-custo"
+              requires_compatibilities = ["FARGATE"]
+              network_mode             = "awsvpc"
+              cpu                      = "512"
+              memory                   = "1024"
+              container_definitions    = jsonencode([{ name = "app", image = "nginx", essential = true }])
+            }
+
+            resource "aws_ecs_service" "app" {
+              name            = "spock-plano-de-custo"
+              cluster         = "spock-plano-de-custo"
+              task_definition = aws_ecs_task_definition.app.arn
+              desired_count   = 2
+              launch_type     = "FARGATE"
+
+              network_configuration {
+                subnets = ["subnet-0aaaaaaaaaaaaaaa1"]
+              }
+            }
+
+            resource "aws_secretsmanager_secret" "app" {
+              name = "spock-plano-de-custo"
+            }
+            """.Replace("\r\n", "\n"));
+        var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(project.DataDir));
+        var projectId = workspace.Authorize(project.Root).Project!.ProjectId;
+        using var tofu = new OpenTofuToolchain(project.DataDir, new NoExternal());
+        var runner = new SystemProcessRunner();
+        var audit = new MemoryAudit();
+        var runtimes = new IacRuntimeService([tofu], new FileIacSettingsStore(project.DataDir), new IacConfigReader(), runner, workspace, new FakeClock(), audit);
+        var offer = await runtimes.OfferAsync(null, null, null, CancellationToken.None);
+        await runtimes.InstallAsync(offer.OfferId, offer.Version, IacEngine.OpenTofu, CancellationToken.None);
+        var cloud = new Mariliz.Application.Cloud.CloudHub(new Mariliz.Infrastructure.Cloud.FileCloudStore(project.DataDir),
+            new Mariliz.Application.Cloud.CloudProviderRegistry([new Mariliz.Infrastructure.Cloud.Aws.AwsCloudProvider()]), workspace, new SystemClock(), audit);
+        var connection = await cloud.Connections.CreateAsync("aws", "Conta de teste", "profile", new Dictionary<string, string>
+        {
+            ["profile"] = Environment.GetEnvironmentVariable("MARILIZ_LIVE_AWS_PROFILE")!,
+            ["region"] = "sa-east-1"
+        }, CancellationToken.None);
+        cloud.Projects.Link(projectId, connection.Id, ["aws.pricing"], agentAccess: false);
+        var operations = new IacOperationService(runtimes, new CliIacRuntimeFactory(runner, project.DataDir), new IacConfigReader(),
+            new FileIacWorkArea(project.DataDir), workspace, cloud, new SystemClock(), audit);
+
+        var plan = await operations.PlanAsync(new IacPlanRequest(projectId, "infra", null, connection.Id), IacOperationService.Person, CancellationToken.None);
+        Assert.True(plan.Status == IacOperationStatus.Succeeded, plan.Error);
+        var estimate = await new IacCostService(workspace, cloud, new SystemClock(), operations)
+            .EstimatePlanAsync(new IacPlanCostRequest(projectId, plan.Id, connection.Id, null), Mariliz.Application.Cloud.CloudCaller.Person,
+                CancellationToken.None);
+
+        foreach (var line in estimate.Lines) output.WriteLine($"{line.Address} ({line.Detail}): {line.Before} -> {line.After} {line.Problem}");
+        output.WriteLine($"Total: {estimate.MonthlyBefore} -> {estimate.MonthlyAfter} (+{estimate.MonthlyDelta}); fora: {string.Join(", ", estimate.Uncovered)}");
+        Assert.Equal(4, estimate.Lines.Count);
+        Assert.True(estimate.Complete, string.Join("; ", estimate.Lines.Select(l => l.Problem)));
+        Assert.All(estimate.Lines, line => Assert.NotNull(line.After));
+        Assert.Equal(61.90m, estimate.Lines.Single(l => l.Type == "aws_ecs_service").After);
+        Assert.Contains("aws_ecs_task_definition", estimate.Uncovered);
+    }
+
     // Entrega 6: drift de verdade. Aplica um local_file (provider hashicorp/local), apaga o arquivo por fora da ferramenta e a
     // verificação aponta o recurso como apagado, sem mudar o state do projeto.
     [LiveFact(Variable, "MARILIZ_LIVE_IAC_PROVIDERS")]
