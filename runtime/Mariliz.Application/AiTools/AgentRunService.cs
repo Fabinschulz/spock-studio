@@ -46,7 +46,8 @@ public sealed class AgentRunService(
             root,
             RunTimeout,
             tool.ReadOnly.PromptOnStandardInput ? request : null,
-            StreamTo(run));
+            StreamTo(run),
+            InheritedSecrets: tool.ReadOnly.Credentials);
 
         run.Start(async () =>
         {

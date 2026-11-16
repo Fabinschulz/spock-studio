@@ -15,13 +15,14 @@ public static class AiToolCatalog
     [
         new(AiEnvironments.ClaudeCode, "Claude Code", "claude", new AgentInvocation(
             ["-p", "--permission-mode", "plan", "--disallowedTools", "Edit,Write,NotebookEdit,Bash", "--output-format", "text"],
-            PromptOnStandardInput: true)),
+            PromptOnStandardInput: true, Credentials: ["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN"])),
         new(AiEnvironments.Cursor, "Cursor Agent", "cursor-agent", new AgentInvocation(
             ["--print", "--output-format", "text", "--sandbox", "enabled", "--workspace", AgentInvocation.ProjectFolder],
-            PromptOnStandardInput: true)),
+            PromptOnStandardInput: true, Credentials: ["CURSOR_API_KEY"])),
         new(AiEnvironments.Codex, "Codex CLI", "codex", new AgentInvocation(
             ["exec", "--sandbox", "read-only", "--skip-git-repo-check", "--color", "never", "-C", AgentInvocation.ProjectFolder, "-"],
-            PromptOnStandardInput: true)),
-        new(Gemini, "Gemini CLI", "gemini", new AgentInvocation(["-p"], PromptOnStandardInput: false))
+            PromptOnStandardInput: true, Credentials: ["OPENAI_API_KEY", "CODEX_API_KEY"])),
+        new(Gemini, "Gemini CLI", "gemini", new AgentInvocation(["-p"], PromptOnStandardInput: false,
+            Credentials: ["GEMINI_API_KEY", "GOOGLE_API_KEY"]))
     ];
 }
