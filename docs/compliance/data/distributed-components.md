@@ -489,4 +489,3 @@ hashes) em `inventory.csv` / `inventory.json`. W = Windows x64, L = Linux x64.
 | websockets | 17.4 | pypi | transitiva | x | x | BSD-3-Clause | CONFERE | BAIXO |
 | xxhash | 4.0.2 | pypi | transitiva | x | x | BSD-2-Clause | CONFERE | BAIXO |
 | zstandard | 0.25.0 | pypi | transitiva | x | x | BSD-3-Clause | CONFERE | BAIXO |
-| WebKitGTK 4.1 + GTK 3 e dependências | do sistema / embutidas no AppImage | sistema operacional | direta |  | x | LGPL-2.1-or-later | CONFERIDO MANUALMENTE | ALTO |

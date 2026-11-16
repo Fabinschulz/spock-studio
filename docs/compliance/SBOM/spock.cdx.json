@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:cece386b-bc57-4159-9dc4-1787926cc527",
+  "serialNumber": "urn:uuid:ecd0430f-6867-4aa0-9a35-4ba9317fce76",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-16T00:58:36Z",
+    "timestamp": "2026-11-16T01:32:54Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -36,7 +36,7 @@
     "properties": [
       {
         "name": "spock:coverage",
-        "value": "Cobre dependências de npm, Cargo, NuGet e PyPI resolvidas pelos lockfiles e binários embarcados conhecidos. Não cobre: bibliotecas do sistema embutidas no AppImage (sem build Linux inspecionado), componentes internos do python-build-standalone, versões exatas das ferramentas baixadas sob demanda (escolhidas em tempo de execução). Ver docs/compliance/LICENSE_AUDIT.md, seção Limitações."
+        "value": "Cobre dependências de npm, Cargo, NuGet e PyPI resolvidas pelos lockfiles e binários embarcados conhecidos. Não cobre: componentes internos do python-build-standalone, versões exatas das ferramentas baixadas sob demanda (escolhidas em tempo de execução). Ver docs/compliance/LICENSE_AUDIT.md, seção Limitações."
       }
     ]
   },
@@ -296,7 +296,7 @@
         },
         {
           "name": "spock:distribution",
-          "value": "redistribuído (resources/python no AppImage/deb)"
+          "value": "redistribuído (resources/python no .deb)"
         },
         {
           "name": "spock:dependency",
@@ -357,7 +357,7 @@
         },
         {
           "name": "spock:distribution",
-          "value": "redistribuído (resources/python no AppImage/deb)"
+          "value": "redistribuído (resources/python no .deb)"
         },
         {
           "name": "spock:dependency",
@@ -55872,6 +55872,65 @@
     },
     {
       "type": "library",
+      "bom-ref": "nuget-Microsoft.NET.ILLink.Tasks-10.0.13",
+      "name": "Microsoft.NET.ILLink.Tasks",
+      "version": "10.0.13",
+      "purl": "pkg:nuget/Microsoft.NET.ILLink.Tasks@10.0.13",
+      "scope": "excluded",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "e34cab04cb0b11c8e2c414781be16251a04fbf15c83d2289d8e812adb39972648305d6b849bd24ec15ab7c3a48be7dc8bef0f3c0e2ffb443daea00d07e1e9a47"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/dotnet/dotnet"
+        }
+      ],
+      "properties": [
+        {
+          "name": "spock:ecosystem",
+          "value": "nuget"
+        },
+        {
+          "name": "spock:environment",
+          "value": "build"
+        },
+        {
+          "name": "spock:distribution",
+          "value": "não distribuído"
+        },
+        {
+          "name": "spock:dependency",
+          "value": "transitiva"
+        },
+        {
+          "name": "spock:license-file-check",
+          "value": "SÓ EXPRESSÃO"
+        },
+        {
+          "name": "spock:risk",
+          "value": "BAIXO"
+        },
+        {
+          "name": "spock:obligations",
+          "value": "Nenhuma para o produto (não distribuído)."
+        },
+        {
+          "name": "spock:evidence",
+          "value": "runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/microsoft.net.illink.tasks/10.0.13"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "nuget-Microsoft.NET.Test.Sdk-17.14.1",
       "name": "Microsoft.NET.Test.Sdk",
       "version": "17.14.1",
@@ -59891,9 +59950,9 @@
       "type": "platform",
       "bom-ref": "ext-webkitgtk",
       "name": "WebKitGTK 4.1 + GTK 3 e dependências",
-      "version": "do sistema / embutidas no AppImage",
+      "version": "do sistema",
       "purl": "pkg:generic/webkit2gtk@4.1",
-      "scope": "required",
+      "scope": "optional",
       "licenses": [
         {
           "expression": "LGPL-2.1-or-later"
@@ -59912,11 +59971,11 @@
         },
         {
           "name": "spock:environment",
-          "value": "execução"
+          "value": "externo"
         },
         {
           "name": "spock:distribution",
-          "value": "redistribuído no AppImage; dependência do sistema no .deb"
+          "value": "externo (dependência do sistema declarada no .deb; não redistribuído)"
         },
         {
           "name": "spock:dependency",
@@ -59928,15 +59987,15 @@
         },
         {
           "name": "spock:risk",
-          "value": "ALTO"
+          "value": "BAIXO"
         },
         {
           "name": "spock:obligations",
-          "value": "AppImage: textos da LGPL, código-fonte correspondente (ou oferta escrita por 3 anos) das bibliotecas embutidas e bibliotecas substituíveis (já são .so); .deb: nenhuma (dependência do sistema)"
+          "value": "Nenhuma enquanto só o .deb for distribuído (dependência do sistema); um AppImage traria as obrigações da LGPL"
         },
         {
           "name": "spock:evidence",
-          "value": ".github/workflows/ci.yml:107 | .github/workflows/ci.yml:79"
+          "value": ".github/workflows/ci.yml:111 | docs/compliance/LINUX_DISTRIBUTION_REPORT.md"
         },
         {
           "name": "spock:usage",
@@ -59944,7 +60003,7 @@
         },
         {
           "name": "spock:note",
-          "value": "A lista real de bibliotecas do AppImage não foi inspecionada (sem build Linux local)."
+          "value": "Se o AppImage voltar, as bibliotecas passam a ser redistribuídas e a LGPL exige textos, fontes e bibliotecas substituíveis."
         }
       ]
     }
@@ -66316,6 +66375,10 @@
       "dependsOn": [
         "nuget-Microsoft.ML.Tokenizers-3.0.0"
       ]
+    },
+    {
+      "ref": "nuget-Microsoft.NET.ILLink.Tasks-10.0.13",
+      "dependsOn": []
     },
     {
       "ref": "nuget-Microsoft.NET.Test.Sdk-17.14.1",

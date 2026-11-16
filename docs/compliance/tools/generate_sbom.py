@@ -434,6 +434,13 @@ def collect_cargo(inv: Inventory) -> None:
                 inv.items[child].parent = c.name
 
 
+def runtime_assets(entry: dict) -> bool:
+    for kind in ("runtime", "native", "runtimeTargets"):
+        if any(not path.endswith("/_._") for path in entry.get(kind, {})):
+            return True
+    return False
+
+
 def collect_nuget(inv: Inventory) -> None:
     direct: set[str] = set()
     test_direct: set[str] = set()
@@ -471,12 +478,14 @@ def collect_nuget(inv: Inventory) -> None:
             status, detected, notice = check(declared, license_files(folder))
             if status == "SEM ARQUIVO" and declared:
                 status = "SÓ EXPRESSÃO"  # pacotes NuGet podem declarar só a expressão SPDX no nuspec, sem arquivo.
+            # Só vai no sidecar o que tem assembly de execução; pacote só com props/targets (ILLink.Tasks) é tarefa do MSBuild.
+            build_only = runtime and not runtime_assets(target.get(lib_key, {}))
             c = Component(
                 key, name, version, "nuget", "library", purl=f"pkg:nuget/{name}@{version}", origin=origin,
                 usage=NUGET_USAGE.get(name, ""), direct=name in (direct if runtime else test_direct),
-                environment="execução" if runtime else "desenvolvimento",
-                distribution="incorporado (sidecar .NET single-file)" if runtime else "não distribuído",
-                artifacts={"windows-x64", "linux-x64"} if runtime else {"desenvolvimento"},
+                environment="build" if build_only else ("execução" if runtime else "desenvolvimento"),
+                distribution="incorporado (sidecar .NET single-file)" if runtime and not build_only else "não distribuído",
+                artifacts={"windows-x64", "linux-x64"} if runtime and not build_only else {"desenvolvimento"},
                 declared=declared, detected=detected, status=status, notice_file=notice,
                 evidence=[rel(path), rel(folder)],
             )
@@ -603,7 +612,7 @@ def manual(inv: Inventory) -> None:
          py / "vcruntime140.dll", ""),
         ("bin:python-build-standalone", "CPython (python-build-standalone, install_only_stripped)", "3.12.10+20250409", "binário", "runtime",
          "pkg:github/astral-sh/python-build-standalone@20250409", "https://github.com/astral-sh/python-build-standalone",
-         "Interpretador da inteligência no Linux (e macOS fora da 1ª versão)", "execução", "redistribuído (resources/python no AppImage/deb)",
+         "Interpretador da inteligência no Linux (e macOS fora da 1ª versão)", "execução", "redistribuído (resources/python no .deb)",
          {"linux-x64"}, "Python-2.0", "BAIXO",
          "Bibliotecas nativas ligadas ao libpython (OpenSSL, SQLite, ncurses, libedit, libffi, expat, mpdecimal, zlib, xz, Tcl/Tk, X11); "
          "os textos publicados pelo PBS na tag vão em python/licenses/python-build-standalone",
@@ -611,7 +620,7 @@ def manual(inv: Inventory) -> None:
          "SHA-256 do arquivo fixado no script: 8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado."),
         ("bin:berkeley-db", "Berkeley DB (dentro do python-build-standalone, módulo _dbm)", "6.0.19", "binário", "library",
          "pkg:generic/berkeley-db@6.0.19", "https://github.com/astral-sh/python-build-standalone/blob/20250409/pythonbuild/downloads.py",
-         "Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência)", "execução", "redistribuído (resources/python no AppImage/deb)",
+         "Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência)", "execução", "redistribuído (resources/python no .deb)",
          {"linux-x64"}, "Sleepycat", "MÉDIO",
          "Ligado estaticamente ao libpython3.12.so (a poda não remove). A obrigação da Sleepycat é cumprida no pacote: licença e fontes vão em "
          "python/licenses/berkeley-db (D-05). Falta parecer sobre o alcance de 'software que use o DB'",
@@ -648,11 +657,12 @@ def manual(inv: Inventory) -> None:
          "Padrão do Tauri (downloadBootstrapper): o instalador baixa o bootstrapper da própria Microsoft se o runtime faltar; nada é redistribuído pelo Spock. "
          "Embutir o bootstrapper ou o instalador offline passaria a exigir os termos de distribuição da Microsoft",
          ["desktop/host/src-tauri/tauri.conf.json:48"], None, "Pré-instalado no Windows 11 e na maioria dos Windows 10 atualizados."),
-        ("ext:webkitgtk", "WebKitGTK 4.1 + GTK 3 e dependências", "do sistema / embutidas no AppImage", "sistema operacional", "runtime",
-         "pkg:generic/webkit2gtk@4.1", "https://webkitgtk.org/", "Motor web da janela no Linux", "execução",
-         "redistribuído no AppImage; dependência do sistema no .deb", {"linux-x64"}, "LGPL-2.1-or-later", "ALTO",
-         "No AppImage as bibliotecas LGPL são redistribuídas pelo Spock: exige texto da licença, oferta do código-fonte correspondente e permitir substituição das bibliotecas",
-         [".github/workflows/ci.yml:107", ".github/workflows/ci.yml:79"], None, "A lista real de bibliotecas do AppImage não foi inspecionada (sem build Linux local)."),
+        ("ext:webkitgtk", "WebKitGTK 4.1 + GTK 3 e dependências", "do sistema", "sistema operacional", "runtime",
+         "pkg:generic/webkit2gtk@4.1", "https://webkitgtk.org/", "Motor web da janela no Linux", "externo",
+         "externo (dependência do sistema declarada no .deb; não redistribuído)", {"linux-x64"}, "LGPL-2.1-or-later", "BAIXO",
+         "Só .deb na 1ª versão (D-06): o gerenciador da distribuição instala as bibliotecas; o Spock não as redistribui",
+         [".github/workflows/ci.yml:111", "docs/compliance/LINUX_DISTRIBUTION_REPORT.md"], None,
+         "Se o AppImage voltar, as bibliotecas passam a ser redistribuídas e a LGPL exige textos, fontes e bibliotecas substituíveis."),
         ("dl:opentofu", "OpenTofu (tofu)", "dinâmica (última estável compatível; testes usam 1.13.9)", "binário", "tool",
          "pkg:github/opentofu/opentofu", "https://github.com/opentofu/opentofu", "Motor padrão de infraestrutura como código",
          "instalação sob demanda", "baixado sob demanda da fonte oficial, com consentimento", {"sob-demanda"}, "MPL-2.0", "BAIXO",
@@ -794,8 +804,7 @@ MANUAL_OBLIGATIONS = {
     "bin:nsis": "Nenhuma obrigatória em binário (atribuição recomendada); não modificar o módulo LZMA sem cumprir a CPL-1.0",
     "bin:nsis-tauri-utils": "Aviso MIT nos avisos de terceiros",
     "bin:openssl": "Texto da Apache-2.0 nos avisos",
-    "ext:webkitgtk": "AppImage: textos da LGPL, código-fonte correspondente (ou oferta escrita por 3 anos) das bibliotecas embutidas e "
-                     "bibliotecas substituíveis (já são .so); .deb: nenhuma (dependência do sistema)",
+    "ext:webkitgtk": "Nenhuma enquanto só o .deb for distribuído (dependência do sistema); um AppImage traria as obrigações da LGPL",
     "asset:icons": "Nenhuma de licença (ativo próprio); pendência de marca",
     "asset:harness-content": "Manter a linha de atribuição MIT já presente nos arquivos",
     "dl:terraform": "Usar só dentro do Additional Use Grant da BUSL 1.1 ou com licença comercial da HashiCorp/IBM; informar a licença ao usuário (já feito)",
@@ -836,7 +845,7 @@ def obligations_for(eff: list[str], c: Component) -> str:
 
 ARTIFACTS = {
     "windows-x64": ("Spock Studio para Windows x64 (instalador NSIS)", {"windows-x64"}),
-    "linux-x64": ("Spock Studio para Linux x64 (AppImage e .deb)", {"linux-x64"}),
+    "linux-x64": ("Spock Studio para Linux x64 (.deb)", {"linux-x64"}),
 }
 
 
@@ -947,7 +956,7 @@ def write_outputs(inv: Inventory) -> None:
     (OUT / "SBOM").mkdir(parents=True, exist_ok=True)
     (OUT / "data").mkdir(parents=True, exist_ok=True)
     coverage = ("Cobre dependências de npm, Cargo, NuGet e PyPI resolvidas pelos lockfiles e binários embarcados conhecidos. "
-                "Não cobre: bibliotecas do sistema embutidas no AppImage (sem build Linux inspecionado), componentes internos do "
+                "Não cobre: componentes internos do "
                 "python-build-standalone, versões exatas das ferramentas baixadas sob demanda (escolhidas em tempo de execução). "
                 "Ver docs/compliance/LICENSE_AUDIT.md, seção Limitações.")
     for art, (title, tags) in ARTIFACTS.items():
@@ -974,6 +983,7 @@ def write_outputs(inv: Inventory) -> None:
 
     write_distributed_table(items)
     write_notices(items)
+    write_bundle(items, BUNDLE_DIR)
     stats = summarize(items)
     (OUT / "data" / "summary.json").write_text(json.dumps(stats, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json.dumps(stats, indent=2, ensure_ascii=False))
@@ -1024,9 +1034,8 @@ REPO_NOTICES = [
 
 # O que ainda não tem texto reunido. Sai da lista quando o texto entra no repositório ou no pacote.
 # (.NET linux-x64: LICENSE.TXT e THIRD-PARTY-NOTICES.TXT do pacote 10.0.13 são idênticos aos do win-x64, conferido em 2026-11-16.)
-OPEN_GAPS = [
-    "WebKitGTK, GTK, GLib, o runtime do AppImage e demais bibliotecas embutidas no AppImage (LGPL e outras): listar a partir do AppImage gerado (D-06).",
-]
+# (AppImage: fora da distribuição pela D-06, então as bibliotecas do sistema não são redistribuídas.)
+OPEN_GAPS: list[str] = []
 
 # Textos baixados dos repositórios oficiais, fixados em commit, para quem não traz o arquivo no pacote
 # (tools/fetch_upstream_licenses.py). Cada entrada cobre chaves de componente por prefixo.
@@ -1107,8 +1116,16 @@ def write_notices(items: list[Component]) -> None:
     (OUT / "THIRD_PARTY_NOTICES.md").write_text("\n".join(out) + "\n", encoding="utf-8")
 
 
+# Onde os avisos entram no instalador (recurso do Tauri, D-07). Versionado: o build só copia, sem depender de cache local.
+BUNDLE_DIR = ROOT / "desktop" / "host" / "src-tauri" / "resources" / "notices"
+
+
+def bundle_keys(items: list[Component]) -> list[str]:
+    return sorted(f"{c.ecosystem}:{c.name}@{c.version}" for c in items if shipped(c))
+
+
 def write_bundle(items: list[Component], target: Path) -> list[str]:
-    """Pasta pronta para virar recurso do Tauri (D-07, aguardando aprovação): texto puro, os arquivos de licença e um manifesto."""
+    """Avisos prontos para o instalador: texto puro, os arquivos de licença e um manifesto. Determinístico (sem data)."""
     by_text, missing = notice_texts(items)
     if target.exists():
         for entry in target.iterdir():
@@ -1116,30 +1133,47 @@ def write_bundle(items: list[Component], target: Path) -> list[str]:
                 shutil.rmtree(entry) if entry.is_dir() else entry.unlink()
     licenses = target / "licenses"
     licenses.mkdir(parents=True, exist_ok=True)
-    for _, source, name in NOTICE_FILES:
-        if source.is_file():
-            shutil.copy2(source, licenses / name)
+    # As cópias versionadas em docs/compliance/notices, não os caches da máquina: o resultado é o mesmo em qualquer sistema.
+    for _, _, name in NOTICE_FILES:
+        committed = OUT / "notices" / name
+        if committed.is_file():
+            shutil.copyfile(committed, licenses / name)
     for _, folder in REPO_NOTICES:
         shutil.copytree(folder, licenses / folder.name, dirs_exist_ok=True)
     if UPSTREAM.is_dir():
         shutil.copytree(UPSTREAM, licenses / "upstream", dirs_exist_ok=True)
+    # Uma frase por linha: a tela Sobre quebra o texto na largura da janela.
     lines = [f"{PRODUCT[0]} {PRODUCT[1]} - Avisos de terceiros / Third-party notices", "",
-             "Este produto contém software de terceiros. Os textos abaixo são reproduzidos sem alteração; os textos longos estão",
-             "na pasta licenses/. / This product includes third-party software. The texts below are reproduced unchanged; long",
-             "texts are in the licenses/ folder.", ""]
+             "Este produto contém software de terceiros. Os textos abaixo são reproduzidos sem alteração; os textos longos estão na pasta licenses/.",
+             "This product includes third-party software. The texts below are reproduced unchanged; long texts are in the licenses/ folder.", ""]
     for _, ((name, text), comps) in sorted(by_text.items(), key=lambda kv: (kv[1][1][0].name.lower(), kv[0])):
         lines += ["=" * 78, ", ".join(sorted({f"{c.name} {c.version}" for c in comps})), f"({name})", "", text, ""]
-    (target / "THIRD_PARTY_NOTICES.txt").write_text("\n".join(lines), encoding="utf-8")
+    (target / "THIRD_PARTY_NOTICES.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
     open_gaps = gaps(missing)
     (target / "notices-manifest.json").write_text(json.dumps({
         "product": f"{PRODUCT[0]} {PRODUCT[1]}",
-        "generated": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
-        "components": sum(len(comps) for _, comps in by_text.values()),
-        "licenseFiles": sorted(p.relative_to(target).as_posix() for p in licenses.rglob("*") if p.is_file()),
+        "components": len(bundle_keys(items)),
         "complete": not open_gaps,
         "gaps": open_gaps,
+        "licenseFiles": sorted(p.relative_to(target).as_posix() for p in licenses.rglob("*") if p.is_file()),
+        "componentKeys": bundle_keys(items),
     }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return open_gaps
+
+
+def check_bundle(items: list[Component]) -> list[str]:
+    """Avisos do instalador desatualizados em relação ao inventário (componente distribuído novo ou removido)."""
+    manifest = BUNDLE_DIR / "notices-manifest.json"
+    if not manifest.is_file():
+        return [f"{manifest.relative_to(ROOT).as_posix()} não existe"]
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    recorded, fresh = set(data.get("componentKeys", [])), set(bundle_keys(items))
+    problems = [f"novo sem aviso: {k}" for k in sorted(fresh - recorded)] + [f"removido: {k}" for k in sorted(recorded - fresh)]
+    if not data.get("complete"):
+        problems.append("o manifesto registra lacunas de aviso")
+    if not (BUNDLE_DIR / "THIRD_PARTY_NOTICES.txt").is_file():
+        problems.append("THIRD_PARTY_NOTICES.txt ausente")
+    return problems
 
 
 def summarize(items: list[Component]) -> dict:
@@ -1284,7 +1318,7 @@ def main() -> None:
     parser.add_argument("--policy", action="store_true", help="avalia o inventário contra docs/compliance/license-policy.json")
     parser.add_argument("--enforce", action="store_true", help="com --policy: sai com erro se houver bloqueante (só depois de aprovar a D-10)")
     parser.add_argument("--report", type=Path, help="com --policy: grava o resultado completo em JSON")
-    parser.add_argument("--bundle", type=Path, help="gera avisos prontos para recurso do Tauri nesta pasta (D-07 aguarda aprovação)")
+    parser.add_argument("--bundle", type=Path, help="gera os avisos do instalador numa outra pasta (o padrão já vai em resources/notices)")
     parser.add_argument("--strict", action="store_true", help="com --bundle: sai com erro se houver lacuna de aviso")
     args = parser.parse_args()
     inv = Inventory()
@@ -1303,10 +1337,15 @@ def main() -> None:
         sys.exit(1 if args.strict and open_gaps else 0)
     if args.check:
         # Binários nativos por plataforma dependem da máquina que gerou: ficam fora da comparação (são de build, não vão ao usuário).
-        platform = platform_specific_npm()
+        # Pacotes NuGet só de build (ILLink.Tasks) entram no assets.json conforme o restore (com ou sem RID): fora também.
+        platform = platform_specific_npm() | {(c.name, c.version) for c in inv.items.values() if c.ecosystem == "nuget" and c.environment == "build"}
         current = {(r["nome"], r["versao"]) for r in json.loads((OUT / "data" / "inventory.json").read_text(encoding="utf-8"))} - platform
         fresh = {(c.name, c.version) for c in inv.items.values()} - platform
         added, removed = sorted(fresh - current), sorted(current - fresh)
+        bundle_problems = check_bundle(list(inv.items.values()))
+        if bundle_problems:
+            print("Avisos do instalador desatualizados (rode o gerador):\n  " + "\n  ".join(bundle_problems))
+            sys.exit(1)
         if added or removed:
             print("Inventário desatualizado.\n  novos: " + ", ".join(f"{n}@{v}" for n, v in added) + "\n  removidos: " + ", ".join(f"{n}@{v}" for n, v in removed))
             sys.exit(1)

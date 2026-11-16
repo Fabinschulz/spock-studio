@@ -10,8 +10,8 @@ auditoria e as que **aguardam aprovação**. Nenhuma substituição, remoção o
 | D-03 | Ferramentas de IaC por download oficial sob demanda, nunca embarcadas | Adotada |
 | D-04 | CPython embarcado (embed no Windows, python-build-standalone no Linux) | Adotada |
 | D-05 | Berkeley DB (Sleepycat) embutido no Python do Linux | Adotada: cumprir a Sleepycat (2026-11-15); parecer pendente |
-| D-06 | Formato do pacote Linux na 1ª versão (AppImage com LGPL ou só `.deb`) | **Aguarda aprovação** |
-| D-07 | Avisos de terceiros gerados do inventário e embarcados | **Aguarda aprovação**; geração preparada (`--bundle`) |
+| D-06 | Formato do pacote Linux na 1ª versão | **Adotada (2026-11-16): só `.deb`** |
+| D-07 | Avisos de terceiros gerados do inventário e embarcados | **Adotada (2026-11-16)**: avisos no instalador e tela Sobre |
 | D-08 | Integração com CLIs de IA só invocando o binário do usuário | Adotada; confirmação pendente |
 | D-09 | EULA do Spock | **Aguarda redação e aprovação** |
 | D-10 | Política de licenças para novas dependências | **Aguarda aprovação**; verificação preparada (CI em modo relatório) |
@@ -88,9 +88,11 @@ O estado de implementação de cada decisão, com evidências, está em [IMPLEME
 
 Comparação detalhada em [LINUX_DISTRIBUTION_REPORT.md](LINUX_DISTRIBUTION_REPORT.md).
 
-- **Opção A, recomendada para a 1ª versão:** só `.deb`. As bibliotecas GTK/WebKitGTK vêm do sistema, sem obrigação LGPL de
-  redistribuição.
-- **Opção B:** AppImage com o pacote de conformidade LGPL.
+- **Decisão do dono (2026-11-16):** opção A, só `.deb` na 1ª versão.
+  - **Implementação:** o job `desktop` do CI gera `bundles: deb` no Linux, e o `APPIMAGE_EXTRACT_AND_RUN` saiu.
+  - **Efeito:** o WebKitGTK passa a "externo, dependência do sistema", e a última lacuna de aviso foi fechada.
+- **Opção A:** só `.deb`. As bibliotecas GTK/WebKitGTK vêm do sistema, sem obrigação LGPL de redistribuição.
+- **Opção B (descartada nesta versão):** AppImage com o pacote de conformidade LGPL.
   - Textos das licenças.
   - Fonte correspondente das bibliotecas embutidas, ou oferta escrita.
   - Bibliotecas substituíveis.
@@ -98,12 +100,18 @@ Comparação detalhada em [LINUX_DISTRIBUTION_REPORT.md](LINUX_DISTRIBUTION_REPO
 
 ### D-07: avisos de terceiros no produto
 
-- **Proposta:** o build gera os avisos com `docs/compliance/tools/generate_sbom.py`, a partir dos lockfiles e dos textos
-  originais.
-  - Os avisos entram como recurso do Tauri (`resources/`), acessível por "Sobre".
-  - O smoke do instalador confere a presença.
-  - Os textos que faltam são completados antes (THIRD_PARTY_NOTICES.md, "Lacunas").
-- **Alternativa:** ferramentas dedicadas (cargo-about, license-checker, pip-licenses, syft). Exigem autorização para instalar.
+- **Decisão do dono (2026-11-16):** adotada.
+- **Implementação:**
+  - `generate_sbom.py` gera `desktop/host/src-tauri/resources/notices/`, que fica versionado. Nele vão
+    `THIRD_PARTY_NOTICES.txt`, `licenses/` e `notices-manifest.json` com os componentes, as lacunas e `complete`.
+  - Os textos longos vêm das cópias versionadas em `docs/compliance/notices/`, então o resultado não depende da máquina.
+  - O `tauri.conf.json` mapeia a pasta para `notices/` no instalador.
+  - O comando do host `third_party_notices` lê os avisos, e a tela **Configurações → Sobre** os mostra junto com o
+    significado de SPOCK.
+  - O smoke `Pacote_embarcado` confere os avisos e `complete: true`, tanto no pacote quanto no instalador aberto. O
+    `--check` do CI falha se um componente distribuído entrar ou sair sem regenerar os avisos.
+- **Descartadas:** ferramentas dedicadas (cargo-about, license-checker, pip-licenses, syft), que exigiriam instalar
+  ferramentas.
 
 ### D-09: EULA do Spock
 
@@ -111,7 +119,7 @@ Comparação detalhada em [LINUX_DISTRIBUTION_REPORT.md](LINUX_DISTRIBUTION_REPO
   - Proteção ao código da Microsoft, pela .NET Library License e pelo Visual C++/CPython: sem engenharia reversa do código da
     Microsoft, exceto onde a lei permite; uso só com o app; indenização; sem uso de marcas da Microsoft.
   - Isenção de garantia de terceiros.
-  - Se houver AppImage: nada que impeça modificar ou depurar as bibliotecas LGPL.
+  - Se o AppImage voltar (D-06): nada que impeça modificar ou depurar as bibliotecas LGPL.
 - **Exibição:** no NSIS (`bundle.windows.nsis.license`) e no pacote Linux.
 - **Pendência jurídica:** redação.
 

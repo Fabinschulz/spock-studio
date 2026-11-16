@@ -2,14 +2,14 @@
   "spdxVersion": "SPDX-2.3",
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
-  "name": "Spock Studio 0.1.0 - Spock Studio para Linux x64 (AppImage e .deb)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-linux-x64--appimage-e-.deb--c00f3e57-af5d-46f1-9c91-92606f8cab24",
+  "name": "Spock Studio 0.1.0 - Spock Studio para Linux x64 (.deb)",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-linux-x64--.deb--c066cabc-7174-48f3-955b-d8471bd2c75b",
   "creationInfo": {
-    "created": "2026-11-16T00:58:36Z",
+    "created": "2026-11-16T01:32:54Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
-    "comment": "Cobre dependências de npm, Cargo, NuGet e PyPI resolvidas pelos lockfiles e binários embarcados conhecidos. Não cobre: bibliotecas do sistema embutidas no AppImage (sem build Linux inspecionado), componentes internos do python-build-standalone, versões exatas das ferramentas baixadas sob demanda (escolhidas em tempo de execução). Ver docs/compliance/LICENSE_AUDIT.md, seção Limitações."
+    "comment": "Cobre dependências de npm, Cargo, NuGet e PyPI resolvidas pelos lockfiles e binários embarcados conhecidos. Não cobre: componentes internos do python-build-standalone, versões exatas das ferramentas baixadas sob demanda (escolhidas em tempo de execução). Ver docs/compliance/LICENSE_AUDIT.md, seção Limitações."
   },
   "packages": [
     {
@@ -22,7 +22,7 @@
       "licenseDeclared": "LicenseRef-Proprietary",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "APPLICATION",
-      "comment": "Spock Studio para Linux x64 (AppImage e .deb)"
+      "comment": "Spock Studio para Linux x64 (.deb)"
     },
     {
       "SPDXID": "SPDXRef-Package-asset-release-keys",
@@ -76,7 +76,7 @@
       "licenseConcluded": "Sleepycat",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência). Ambiente: execução. Distribuição: redistribuído (resources/python no AppImage/deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/pythonbuild/downloads.py. Conferido no arquivo oficial (SHA-256 fixado): sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0. O main do PBS (2026-11) ainda inclui o bdb.",
+      "comment": "Uso: Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência). Ambiente: execução. Distribuição: redistribuído (resources/python no .deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/pythonbuild/downloads.py. Conferido no arquivo oficial (SHA-256 fixado): sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0. O main do PBS (2026-11) ainda inclui o bdb.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -95,7 +95,7 @@
       "licenseConcluded": "Python-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Interpretador da inteligência no Linux (e macOS fora da 1ª versão). Ambiente: execução. Distribuição: redistribuído (resources/python no AppImage/deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: scripts/package-intelligence.py:31 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml. SHA-256 do arquivo fixado no script: 8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado.",
+      "comment": "Uso: Interpretador da inteligência no Linux (e macOS fora da 1ª versão). Ambiente: execução. Distribuição: redistribuído (resources/python no .deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: scripts/package-intelligence.py:31 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml. SHA-256 do arquivo fixado no script: 8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11305,14 +11305,14 @@
     {
       "SPDXID": "SPDXRef-Package-ext-webkitgtk",
       "name": "WebKitGTK 4.1 + GTK 3 e dependências",
-      "versionInfo": "do sistema / embutidas no AppImage",
+      "versionInfo": "do sistema",
       "downloadLocation": "https://webkitgtk.org/",
       "filesAnalyzed": false,
       "licenseDeclared": "LGPL-2.1-or-later",
       "licenseConcluded": "LGPL-2.1-or-later",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "OPERATING_SYSTEM",
-      "comment": "Uso: Motor web da janela no Linux. Ambiente: execução. Distribuição: redistribuído no AppImage; dependência do sistema no .deb. Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: ALTO. Evidência: .github/workflows/ci.yml:107 | .github/workflows/ci.yml:79. A lista real de bibliotecas do AppImage não foi inspecionada (sem build Linux local).",
+      "comment": "Uso: Motor web da janela no Linux. Ambiente: externo. Distribuição: externo (dependência do sistema declarada no .deb; não redistribuído). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: .github/workflows/ci.yml:111 | docs/compliance/LINUX_DISTRIBUTION_REPORT.md. Se o AppImage voltar, as bibliotecas passam a ser redistribuídas e a LGPL exige textos, fontes e bibliotecas substituíveis.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -17040,8 +17040,9 @@
     },
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-ext-webkitgtk"
+      "relationshipType": "OTHER",
+      "relatedSpdxElement": "SPDXRef-Package-ext-webkitgtk",
+      "comment": "processo ou serviço externo"
     }
   ],
   "hasExtractedLicensingInfos": [

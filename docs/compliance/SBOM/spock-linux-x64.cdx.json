@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:79f2df9e-8613-4b79-8caa-47957c02b447",
+  "serialNumber": "urn:uuid:73a81e9b-ca7e-4954-bcec-78a44a1dfd4c",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-16T00:58:36Z",
+    "timestamp": "2026-11-16T01:32:54Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -24,7 +24,7 @@
       "bom-ref": "spock-studio",
       "name": "Spock Studio",
       "version": "0.1.0",
-      "description": "Spock Studio para Linux x64 (AppImage e .deb)",
+      "description": "Spock Studio para Linux x64 (.deb)",
       "licenses": [
         {
           "license": {
@@ -36,7 +36,7 @@
     "properties": [
       {
         "name": "spock:coverage",
-        "value": "Cobre dependências de npm, Cargo, NuGet e PyPI resolvidas pelos lockfiles e binários embarcados conhecidos. Não cobre: bibliotecas do sistema embutidas no AppImage (sem build Linux inspecionado), componentes internos do python-build-standalone, versões exatas das ferramentas baixadas sob demanda (escolhidas em tempo de execução). Ver docs/compliance/LICENSE_AUDIT.md, seção Limitações."
+        "value": "Cobre dependências de npm, Cargo, NuGet e PyPI resolvidas pelos lockfiles e binários embarcados conhecidos. Não cobre: componentes internos do python-build-standalone, versões exatas das ferramentas baixadas sob demanda (escolhidas em tempo de execução). Ver docs/compliance/LICENSE_AUDIT.md, seção Limitações."
       }
     ]
   },
@@ -245,7 +245,7 @@
         },
         {
           "name": "spock:distribution",
-          "value": "redistribuído (resources/python no AppImage/deb)"
+          "value": "redistribuído (resources/python no .deb)"
         },
         {
           "name": "spock:dependency",
@@ -306,7 +306,7 @@
         },
         {
           "name": "spock:distribution",
-          "value": "redistribuído (resources/python no AppImage/deb)"
+          "value": "redistribuído (resources/python no .deb)"
         },
         {
           "name": "spock:dependency",
@@ -29030,9 +29030,9 @@
       "type": "platform",
       "bom-ref": "ext-webkitgtk",
       "name": "WebKitGTK 4.1 + GTK 3 e dependências",
-      "version": "do sistema / embutidas no AppImage",
+      "version": "do sistema",
       "purl": "pkg:generic/webkit2gtk@4.1",
-      "scope": "required",
+      "scope": "optional",
       "licenses": [
         {
           "expression": "LGPL-2.1-or-later"
@@ -29051,11 +29051,11 @@
         },
         {
           "name": "spock:environment",
-          "value": "execução"
+          "value": "externo"
         },
         {
           "name": "spock:distribution",
-          "value": "redistribuído no AppImage; dependência do sistema no .deb"
+          "value": "externo (dependência do sistema declarada no .deb; não redistribuído)"
         },
         {
           "name": "spock:dependency",
@@ -29067,15 +29067,15 @@
         },
         {
           "name": "spock:risk",
-          "value": "ALTO"
+          "value": "BAIXO"
         },
         {
           "name": "spock:obligations",
-          "value": "AppImage: textos da LGPL, código-fonte correspondente (ou oferta escrita por 3 anos) das bibliotecas embutidas e bibliotecas substituíveis (já são .so); .deb: nenhuma (dependência do sistema)"
+          "value": "Nenhuma enquanto só o .deb for distribuído (dependência do sistema); um AppImage traria as obrigações da LGPL"
         },
         {
           "name": "spock:evidence",
-          "value": ".github/workflows/ci.yml:107 | .github/workflows/ci.yml:79"
+          "value": ".github/workflows/ci.yml:111 | docs/compliance/LINUX_DISTRIBUTION_REPORT.md"
         },
         {
           "name": "spock:usage",
@@ -29083,7 +29083,7 @@
         },
         {
           "name": "spock:note",
-          "value": "A lista real de bibliotecas do AppImage não foi inspecionada (sem build Linux local)."
+          "value": "Se o AppImage voltar, as bibliotecas passam a ser redistribuídas e a LGPL exige textos, fontes e bibliotecas substituíveis."
         }
       ]
     }

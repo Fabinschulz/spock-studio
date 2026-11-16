@@ -1,6 +1,6 @@
 {
   "gerado_em": "2026-11-16",
-  "total": 957,
+  "total": 958,
   "por_ecossistema": {
     "GitHub Actions": 1,
     "asset": 3,
@@ -8,39 +8,37 @@
     "cargo": 377,
     "externo": 6,
     "npm": 445,
-    "nuget": 68,
+    "nuget": 69,
     "pypi": 43,
     "registro Terraform/OpenTofu": 1,
     "serviço": 2,
     "sistema operacional": 2
   },
   "diretas": 104,
-  "transitivas": 853,
-  "distribuidos": 485,
+  "transitivas": 854,
+  "distribuidos": 484,
   "distribuidos_por_ecossistema": {
     "asset": 3,
     "binário": 7,
     "cargo": 276,
     "npm": 106,
     "nuget": 51,
-    "pypi": 41,
-    "sistema operacional": 1
+    "pypi": 41
   },
   "sob_demanda": 5,
-  "externos": 8,
-  "desenvolvimento_build": 460,
+  "externos": 9,
+  "desenvolvimento_build": 461,
   "nao_instalados": 1,
   "risco": {
-    "BAIXO": 936,
+    "BAIXO": 938,
     "PENDENTE": 3,
     "MÉDIO": 13,
-    "ALTO": 5
+    "ALTO": 4
   },
   "risco_distribuidos": {
     "BAIXO": 472,
     "PENDENTE": 1,
-    "MÉDIO": 11,
-    "ALTO": 1
+    "MÉDIO": 11
   },
   "licencas_distribuidos": {
     "MIT": 397,
@@ -65,11 +63,10 @@
     "0BSD": 1,
     "MIT AND LicenseRef-DotNet-Library-License": 1,
     "MPL-2.0 AND MIT": 1,
-    "PSF-2.0": 1,
-    "LGPL-2.1-or-later": 1
+    "PSF-2.0": 1
   },
   "licencas_declaradas_todos": {
-    "MIT": 528,
+    "MIT": 529,
     "MIT OR Apache-2.0": 174,
     "Apache-2.0": 57,
     "Apache-2.0 OR MIT": 55,
@@ -113,10 +110,10 @@
     "SEM ARQUIVO": 26,
     "DIVERGE": 6,
     "TEXTO NÃO RECONHECIDO": 1,
-    "SÓ EXPRESSÃO": 52
+    "SÓ EXPRESSÃO": 53
   },
   "conferencia_distribuidos": {
-    "CONFERIDO MANUALMENTE": 13,
+    "CONFERIDO MANUALMENTE": 12,
     "CONFERE": 426,
     "SEM ARQUIVO": 8,
     "DIVERGE": 1,
@@ -139,7 +136,6 @@
   ],
   "copyleft_distribuidos": [
     "NSIS (stub do instalador e plugins)@3.x: Zlib AND bzip2-1.0.6 AND CPL-1.0",
-    "WebKitGTK 4.1 + GTK 3 e dependências@do sistema / embutidas no AppImage: LGPL-2.1-or-later",
     "certifi@2026.10.23: MPL-2.0",
     "cssparser@0.37.0: MPL-2.0",
     "dtoa-short@0.3.5: MPL-2.0",

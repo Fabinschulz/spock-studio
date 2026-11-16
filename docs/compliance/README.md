@@ -78,6 +78,12 @@ com a evidência de cada um. Atualize essa tabela quando o empacotamento mudar. 
 estão listados no cabeçalho de `validate_sbom.cs`. `tools/spdx-license-ids.json` é a lista de ids SPDX extraída do schema do
 CycloneDX 1.6.
 
+## Avisos no instalador
+
+O gerador também grava `desktop/host/src-tauri/resources/notices/` (versionado), que o Tauri leva como `notices/` e a tela
+Configurações → Sobre exibe. Ao mudar dependências, rode o gerador e versione essa pasta junto. O `--check` do CI falha se ela
+ficar para trás.
+
 ## Build comercial
 
 Até a D-02 ser decidida, o motor do instalador comercial deve ser publicado com a edição `commercial`, que não instala o

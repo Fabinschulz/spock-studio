@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:adc5610d-afed-44c8-b678-3331b33d8543",
+  "serialNumber": "urn:uuid:c849c7ac-a78b-40f3-97d5-5acf13dab34a",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-16T00:58:36Z",
+    "timestamp": "2026-11-16T01:32:54Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -36,7 +36,7 @@
     "properties": [
       {
         "name": "spock:coverage",
-        "value": "Cobre dependências de npm, Cargo, NuGet e PyPI resolvidas pelos lockfiles e binários embarcados conhecidos. Não cobre: bibliotecas do sistema embutidas no AppImage (sem build Linux inspecionado), componentes internos do python-build-standalone, versões exatas das ferramentas baixadas sob demanda (escolhidas em tempo de execução). Ver docs/compliance/LICENSE_AUDIT.md, seção Limitações."
+        "value": "Cobre dependências de npm, Cargo, NuGet e PyPI resolvidas pelos lockfiles e binários embarcados conhecidos. Não cobre: componentes internos do python-build-standalone, versões exatas das ferramentas baixadas sob demanda (escolhidas em tempo de execução). Ver docs/compliance/LICENSE_AUDIT.md, seção Limitações."
       }
     ]
   },

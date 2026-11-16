@@ -134,6 +134,7 @@ pub mod error_code {
     pub const INVALID_PARAMS: &str = "INVALID_PARAMS";
     pub const MESSAGE_TOO_LARGE: &str = "MESSAGE_TOO_LARGE";
     pub const METHOD_NOT_ALLOWED: &str = "METHOD_NOT_ALLOWED";
+    pub const NOTICES_NOT_FOUND: &str = "NOTICES_NOT_FOUND";
     pub const PATH_NOT_ALLOWED: &str = "PATH_NOT_ALLOWED";
     pub const PATH_NOT_FOUND: &str = "PATH_NOT_FOUND";
     pub const RECENT_NOT_FOUND: &str = "RECENT_NOT_FOUND";

@@ -8,6 +8,7 @@ fn main() {
         "list_recent_projects",
         "open_recent_project",
         "diagnostic_log",
+        "third_party_notices",
         "terminal_open",
         "terminal_write",
         "terminal_resize",
