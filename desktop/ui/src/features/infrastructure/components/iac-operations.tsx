@@ -10,6 +10,7 @@ import { Fragment, useCallback, useMemo, useState, type ReactNode } from 'react'
 import styles from '../infrastructure-page.module.scss';
 import { ENGINE_NAME } from '../domain/labels';
 import { PlanApproval } from './plan-approval';
+import { DriftSchedule } from './drift-schedule';
 import { PlanCost } from './plan-cost';
 import type { IacApi } from '../service/iac-api';
 
@@ -34,13 +35,14 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
   const cloud = useMemo(() => createCloudApi(client), [client]);
   const projectId = project.projectId;
   const load = useCallback(async () => {
-    const [layout, operations, links, connections] = await Promise.all([
+    const [layout, operations, links, connections, schedule] = await Promise.all([
       api.layout(projectId),
       api.operations(projectId),
       cloud.links(projectId).catch(() => []),
-      cloud.connections().catch(() => [])
+      cloud.connections().catch(() => []),
+      api.driftSchedule(projectId).catch(() => null)
     ]);
-    return { layout, operations, links, connections };
+    return { layout, operations, links, connections, schedule };
   }, [api, cloud, projectId]);
   const hub = useReloadable(load);
   const action = useAction(hub.reload);
@@ -57,7 +59,7 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
       </ErrorState>
     );
 
-  const { layout, operations, links, connections } = hub.value;
+  const { layout, operations, links, connections, schedule } = hub.value;
   if (layout.folders.length === 0) return <p className={styles.meta}>Este projeto não tem arquivos .tf nem .tofu.</p>;
 
   const chosenFolder =
@@ -95,9 +97,10 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
         success: (operation) =>
           operation.status !== 'succeeded'
             ? 'A verificação de drift falhou.'
-            : operation.drift && operation.drift.length > 0
-              ? `Drift em ${operation.drift.length} recurso(s).`
-              : 'Sem drift: a nuvem está como o state registra.'
+            : `${operation.drift && operation.drift.length > 0 ? `Drift em ${operation.drift.length} recurso(s)` : 'Sem drift'}` +
+              (operation.unmanaged && operation.unmanaged.length > 0
+                ? `; ${operation.unmanaged.length} na conta fora do state.`
+                : '.')
       })
       .then(() => setShown(null));
 
@@ -150,12 +153,27 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
         other.workspace === operation.workspace
     )?.id === operation.id;
 
+  // O alerta vale para a verificação mais recente, feita pelo botão ou pelo agendamento.
+  const lastDrift = operations.find((operation) => operation.kind === 'drift' && operation.status === 'succeeded');
+  const driftAlert = lastDrift && (lastDrift.hasChanges || (lastDrift.unmanaged?.length ?? 0) > 0) ? lastDrift : null;
+
   return (
     <div className={styles.panel}>
       <p className={styles.hint}>
         Validar, planejar e verificar drift não mudam a nuvem, o state nem o projeto: rodam numa cópia da configuração
         na pasta do Spock. Só aplicar muda a nuvem, e só com a sua aprovação daquele plano.
       </p>
+      {driftAlert ? (
+        <p role="status" aria-label="Alerta de drift">
+          <StatusChip tone="warning">Alerta de drift</StatusChip>{' '}
+          {driftAlert.requestedBy === 'schedule' ? 'A verificação automática' : 'A última verificação'} de{' '}
+          {formatEngineDate(driftAlert.finishedAt)} achou {driftAlert.drift?.length ?? 0} recurso(s) mudado(s) por fora
+          e {driftAlert.unmanaged?.length ?? 0} na conta fora do state.{' '}
+          <Button type="button" variant="text" onClick={() => setShown(driftAlert.id)}>
+            Ver
+          </Button>
+        </p>
+      ) : null}
 
       <fieldset className={styles.choices}>
         <legend>Pasta do plano</legend>
@@ -215,6 +233,16 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
           Verificar drift
         </Button>
       </div>
+      {schedule ? (
+        <DriftSchedule
+          api={api}
+          projectId={projectId}
+          view={schedule}
+          target={target}
+          disabled={!ready || action.busy}
+          onSaved={hub.reload}
+        />
+      ) : null}
       {!ready ? <p className={styles.hint}>Instale ou escolha a ferramenta acima para validar e planejar.</p> : null}
       {action.busy ? <LoadingState>Rodando… o init pode baixar providers na primeira vez.</LoadingState> : null}
       {action.error ? <p className={styles.error}>{action.error}</p> : null}
@@ -288,7 +316,11 @@ const KIND_LABEL: Record<IacOperation['kind'], string> = {
 
 function outcome(operation: IacOperation): { label: string; tone: 'success' | 'warning' | 'danger' } {
   if (operation.kind === 'drift' && operation.status === 'succeeded')
-    return operation.hasChanges ? { label: 'Com drift', tone: 'warning' } : { label: 'Sem drift', tone: 'success' };
+    return operation.hasChanges
+      ? { label: 'Com drift', tone: 'warning' }
+      : operation.unmanaged && operation.unmanaged.length > 0
+        ? { label: 'Fora do state', tone: 'warning' }
+        : { label: 'Sem drift', tone: 'success' };
   if (operation.kind === 'apply') {
     if (operation.apply?.verified) return { label: 'Aplicado e verificado', tone: 'success' };
     if (operation.apply?.applied) return { label: 'Aplicado com divergência', tone: 'warning' };
@@ -361,6 +393,7 @@ function OperationResult({
       ) : null}
       {operation.apply ? <ApplyResult run={operation.apply} /> : null}
       {operation.drift ? <DriftResult drift={operation.drift} /> : null}
+      {operation.unmanaged ? <UnmanagedResult operation={operation} /> : null}
 
       {operation.validation ? (
         <ul className={styles.rows} aria-label="Pastas validadas">
@@ -448,6 +481,37 @@ function DriftResult({ drift }: { drift: IacDriftedResource[] }) {
         Para voltar ao que o código declara, gere um plano e aprove. Para manter a mudança, atualize o código para
         declará-la. O Spock não grava o drift no state.
       </p>
+    </>
+  );
+}
+
+function UnmanagedResult({ operation }: { operation: IacOperation }) {
+  const unmanaged = operation.unmanaged ?? [];
+  return (
+    <>
+      {unmanaged.length === 0 ? (
+        <p>Na conta não há recurso fora do state para os tipos que este projeto gerencia.</p>
+      ) : (
+        <ul className={styles.impacts} aria-label="Na conta e fora do state">
+          {unmanaged.map((item) => (
+            <li key={`${item.type}-${item.id}`}>
+              <StatusChip tone="warning">Fora do state</StatusChip> {item.type} <code>{item.id}</code>
+              {item.name ? ` (${item.name})` : ''}
+            </li>
+          ))}
+        </ul>
+      )}
+      {(operation.unmanagedNotes ?? []).map((note) => (
+        <p key={note} className={styles.hint}>
+          {note}
+        </p>
+      ))}
+      {unmanaged.length > 0 ? (
+        <p className={styles.hint}>
+          Recurso fora do state ou passa a ser declarado no código (import), ou é de outro dono. O Spock só compara os
+          tipos que o state deste projeto já gerencia.
+        </p>
+      ) : null}
     </>
   );
 }

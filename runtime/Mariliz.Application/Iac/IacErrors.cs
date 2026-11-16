@@ -73,8 +73,13 @@ public static class IacErrors
     public static EngineException WorkspaceInvalid() =>
         new("IAC_WORKSPACE_INVALID", "O ambiente deve ter só letras minúsculas, dígitos, hífen e sublinhado (até 32 caracteres).");
 
+    public const string OperationRunningCode = "IAC_OPERATION_RUNNING";
+
+    public static EngineException ScheduleIntervalInvalid(IEnumerable<int> intervals) =>
+        new("IAC_SCHEDULE_INVALID", "O intervalo da verificação automática deve ser de " + string.Join(", ", intervals) + " horas.");
+
     public static EngineException OperationRunning() =>
-        new("IAC_OPERATION_RUNNING", "Já há uma operação de infraestrutura em andamento neste projeto.");
+        new(OperationRunningCode, "Já há uma operação de infraestrutura em andamento neste projeto.");
 
     public static EngineException OperationNotFound() =>
         new("IAC_OPERATION_NOT_FOUND", "Operação de infraestrutura não encontrada neste projeto.");

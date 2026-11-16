@@ -40,7 +40,9 @@ depois de uma recusa.
 - **Drift e custo**: a verificação de drift é um plano `-refresh-only` que nunca grava o state; dela saem só nomes de
   atributo, e o arquivo com os valores é apagado no fim. A estimativa usa só a lista pública de preços, pela conexão
   com a capacidade `aws.pricing` liberada no vínculo, e não lê nada da conta. Do plano, o custo usa só atributos de
-  preço (tipo, classe, tamanho, quantidade); nome, senha e tag nunca saem do arquivo de plano.
+  preço (tipo, classe, tamanho, quantidade); nome, senha e tag nunca saem do arquivo de plano. A comparação com a conta
+  usa do state só identificadores (id, nome) e só pelas leituras liberadas no vínculo. O agendamento só é ligado pela
+  pessoa, roda com o app aberto e só lê a nuvem.
 - **Trilha**: instalação, recusa, adoção, versão do projeto, remoção, planos, drift, aprovações e applies na `audit.ndjson`,
   com ids e contagens, nunca valores.
 
@@ -57,7 +59,7 @@ Checagens determinísticas sobre `show -json`, avisando antes da aprovação:
 
 Os achados não bloqueiam sozinhos: aparecem na aprovação, e os graves pedem confirmação extra.
 
-## 4. O que já está implementado (entregas 1 a 8)
+## 4. O que já está implementado (entregas 1 a 9)
 
 - OpenTofu (gratuito, MPL 2.0) como padrão; Terraform liberado por escolha explícita (licença com o jurídico).
 - Instalação só com autorização, ligada à proposta (`offerId`), recusa respeitada.

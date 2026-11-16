@@ -138,7 +138,7 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
         try
         {
             if (show.ExitCode == 0 && JsonNode.Parse(show.StandardOutput) is { } json)
-                return new IacDriftRun(true, IacPlanReader.ReadDrift(json), null, state.Type);
+                return new IacDriftRun(true, IacPlanReader.ReadDrift(json), null, state.Type, IacUnmanaged.StateIds(json));
         }
         catch (JsonException)
         {

@@ -274,6 +274,53 @@ public sealed class IacRuntimeLiveTests(ITestOutputHelper output)
         Assert.Contains("aws_ecs_task_definition", estimate.Uncovered);
     }
 
+    // Entrega 9 com a conta real: uma subnet existente entra no state por import (só o state muda; a nuvem não), e o drift
+    // pela conexão aponta as outras subnets da região como fora do state. Os ids vêm da leitura, nada fica no repositório.
+    [LiveFact(Variable, "MARILIZ_LIVE_IAC_PROVIDERS", "MARILIZ_LIVE_AWS_PROFILE")]
+    public async Task Drift_aponta_subnets_da_conta_fora_do_state()
+    {
+        using var project = TempProject.Dotnet();
+        var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(project.DataDir));
+        var projectId = workspace.Authorize(project.Root).Project!.ProjectId;
+        var audit = new MemoryAudit();
+        var profile = Environment.GetEnvironmentVariable("MARILIZ_LIVE_AWS_PROFILE")!;
+        var cloud = new Mariliz.Application.Cloud.CloudHub(new Mariliz.Infrastructure.Cloud.FileCloudStore(project.DataDir),
+            new Mariliz.Application.Cloud.CloudProviderRegistry([new Mariliz.Infrastructure.Cloud.Aws.AwsCloudProvider()]), workspace, new SystemClock(), audit);
+        var connection = await cloud.Connections.CreateAsync("aws", "Conta de teste", "profile",
+            new Dictionary<string, string> { ["profile"] = profile, ["region"] = "sa-east-1" }, CancellationToken.None);
+        cloud.Projects.Link(projectId, connection.Id, ["aws.ec2.subnets"], agentAccess: false);
+        var subnets = await cloud.Reads.ReadAsync(new Mariliz.Application.Cloud.CloudReadRequest(connection.Id, "aws.ec2.subnets", null, 50, projectId),
+            Mariliz.Application.Cloud.CloudCaller.Person, CancellationToken.None);
+        Assert.True(subnets.Rows.Count >= 2, "A conta precisa de pelo menos duas subnets em sa-east-1.");
+        var managed = subnets.Rows[0];
+        project.Write("infra/providers.tf", "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n" +
+                                            $"      version = \"{IacBootstrapTemplates.AwsVersion}\"\n    }}\n  }}\n}}\n\nprovider \"aws\" {{}}\n");
+        project.Write("infra/resource.tf", $"resource \"aws_subnet\" \"existente\" {{\n  vpc_id     = \"{managed[2]}\"\n  cidr_block = \"{managed[4]}\"\n}}\n");
+
+        using var tofu = new OpenTofuToolchain(project.DataDir, new NoExternal());
+        var runner = new SystemProcessRunner();
+        var runtimes = new IacRuntimeService([tofu], new FileIacSettingsStore(project.DataDir), new IacConfigReader(), runner, workspace, new FakeClock(), audit);
+        var offer = await runtimes.OfferAsync(null, null, null, CancellationToken.None);
+        var status = await runtimes.InstallAsync(offer.OfferId, offer.Version, IacEngine.OpenTofu, CancellationToken.None);
+        var env = new Dictionary<string, string> { ["AWS_PROFILE"] = profile, ["AWS_REGION"] = "sa-east-1", ["TF_DATA_DIR"] = Path.Combine(project.DataDir, "import") };
+        var infra = Path.Combine(project.Root, "infra");
+        var init = await runner.RunAsync(new ProcessSpec(status.Selected!.Path, ["init", "-input=false", "-no-color"], infra, TimeSpan.FromMinutes(10), Environment: env),
+            CancellationToken.None);
+        var import = await runner.RunAsync(new ProcessSpec(status.Selected.Path, ["import", "-input=false", "-no-color", "aws_subnet.existente", managed[0]!], infra,
+            TimeSpan.FromMinutes(5), Environment: env), CancellationToken.None);
+        Assert.True(import.ExitCode == 0, init.StandardError + import.StandardError);
+
+        var operations = new IacOperationService(runtimes, new CliIacRuntimeFactory(runner, project.DataDir), new IacConfigReader(),
+            new FileIacWorkArea(project.DataDir), workspace, cloud, new SystemClock(), audit);
+        var drift = await operations.DriftAsync(new IacPlanRequest(projectId, "infra", null, connection.Id), IacOperationService.Person, CancellationToken.None);
+
+        output.WriteLine($"drift: {drift.Status} {drift.Error}; fora do state: {string.Join(", ", drift.Unmanaged?.Select(u => u.Id) ?? [])}; notas: " +
+                         string.Join(" | ", drift.UnmanagedNotes ?? []));
+        Assert.Equal(IacOperationStatus.Succeeded, drift.Status);
+        Assert.DoesNotContain(drift.Unmanaged!, u => u.Id == managed[0]);
+        Assert.Equal(subnets.Rows.Skip(1).Select(r => r[0]).Order(StringComparer.Ordinal), drift.Unmanaged!.Select(u => u.Id).Order(StringComparer.Ordinal));
+    }
+
     // Entrega 6: drift de verdade. Aplica um local_file (provider hashicorp/local), apaga o arquivo por fora da ferramenta e a
     // verificação aponta o recurso como apagado, sem mudar o state do projeto.
     [LiveFact(Variable, "MARILIZ_LIVE_IAC_PROVIDERS")]

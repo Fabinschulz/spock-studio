@@ -1,0 +1,23 @@
+{
+  "schedule": {
+    "schedule": {
+      "projectId": "p-0123456789ab",
+      "enabled": true,
+      "intervalHours": 24,
+      "folder": "infra",
+      "workspace": "dev",
+      "connectionId": "cloud-00cedffc75fa",
+      "changedAt": "2026-11-15T16:10:00+00:00",
+      "lastRunAt": "2026-11-15T17:10:00+00:00",
+      "lastOperationId": "iac-5d2e7f9a1b3c",
+      "lastError": null
+    },
+    "nextRunAt": "2026-11-16T17:10:00+00:00",
+    "intervals": [
+      6,
+      12,
+      24,
+      168
+    ]
+  }
+}

@@ -245,7 +245,15 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
             case "iac.drift":
                 yield return Entry("", AuditCategories.Read, $"Drift de infraestrutura verificado ({Clean(Text(d, "workspace"))})",
                     Text(d, "status") == "failed" ? "A verificação falhou. Nada mudou na nuvem nem no state."
-                    : $"{Count(d, "changed")} recurso(s) alterado(s) e {Count(d, "deleted")} apagado(s) fora da ferramenta. Nada mudou na nuvem nem no state.");
+                    : $"{Count(d, "changed")} recurso(s) alterado(s) e {Count(d, "deleted")} apagado(s) fora da ferramenta; {Count(d, "unmanaged")} na conta fora do state. " +
+                      "Nada mudou na nuvem nem no state.");
+                break;
+            case "iac.drift_schedule_changed":
+                yield return Entry("", AuditCategories.Change, Flag(d, "enabled") ? $"Verificação de drift agendada a cada {Count(d, "intervalHours")} h" : "Verificação de drift agendada desligada",
+                    $"Pasta {Clean(Text(d, "folder"))}, ambiente {Clean(Text(d, "workspace"))}. Roda enquanto o Spock está aberto e só lê a nuvem.");
+                break;
+            case "iac.drift_schedule_failed":
+                yield return Entry("", AuditCategories.Read, "Verificação de drift agendada não rodou", $"Código {Clean(Text(d, "code"))}. Tenta de novo no próximo intervalo.");
                 break;
             case "iac.bootstrap_written":
                 yield return Entry("", AuditCategories.Change, $"Bootstrap do state gravado ({Clean(Text(d, "provider"))})",

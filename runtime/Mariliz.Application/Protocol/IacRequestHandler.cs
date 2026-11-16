@@ -8,7 +8,7 @@ namespace Mariliz.Application.Protocol;
 // Só a interface chega aqui (a allowlist do host não deixa agentes chamarem iac.*): instalar, adotar, fixar, remover,
 // validar e planejar são sempre um clique da pessoa.
 internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperationService operations, IacStateService state, IacGenerationService generation,
-    IacCostService? costs = null)
+    IacCostService? costs = null, IacDriftScheduler? schedules = null)
 {
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
@@ -41,6 +41,15 @@ internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperatio
             ["estimate"] = IntegrationJson.Node(await (costs ?? throw IacErrors.CostSourceUnavailable()).EstimateAsync(new IacCostRequest(p.Str("projectId"),
                 p.Str("connectionId"), IacBlueprintJson.Blueprint(p.Object("blueprint") ?? throw new ParamException("'blueprint' é obrigatório."))),
                 CloudCaller.Person, ct))
+        },
+        ProtocolMethods.IacDriftSchedule => new JsonObject
+        {
+            ["schedule"] = IntegrationJson.Node((schedules ?? throw IacErrors.NotAvailable("Agendamento indisponível.")).Get(p.Str("projectId")))
+        },
+        ProtocolMethods.IacDriftScheduleSet => new JsonObject
+        {
+            ["schedule"] = IntegrationJson.Node((schedules ?? throw IacErrors.NotAvailable("Agendamento indisponível.")).Set(new IacDriftScheduleRequest(
+                p.Str("projectId"), p.Flag("enabled"), p.OptionalInt("intervalHours") ?? 24, p.OptionalStr("folder"), p.OptionalStr("workspace"), p.OptionalStr("connectionId"))))
         },
         ProtocolMethods.IacCostPlan => new JsonObject
         {

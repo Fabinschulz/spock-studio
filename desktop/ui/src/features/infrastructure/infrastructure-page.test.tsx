@@ -4,6 +4,7 @@ import draftFixture from '@contracts/fixtures/iac/architect-draft.json';
 import bootstrapFixture from '@contracts/fixtures/iac/bootstrap-plan.json';
 import costFixture from '@contracts/fixtures/iac/cost-estimate.json';
 import driftFixture from '@contracts/fixtures/iac/drift-operation.json';
+import scheduleFixture from '@contracts/fixtures/iac/drift-schedule.json';
 import generateFixture from '@contracts/fixtures/iac/generate-plan.json';
 import layoutFixture from '@contracts/fixtures/iac/layout.json';
 import offerFixture from '@contracts/fixtures/iac/offer.json';
@@ -73,6 +74,8 @@ function fakeEngine(initial: Record<string, unknown> = missing) {
         'iac.drift': driftFixture,
         'iac.cost.estimate': costFixture,
         'iac.cost.plan': planCostFixture,
+        'iac.drift.schedule': scheduleFixture,
+        'iac.drift.schedule.set': scheduleFixture,
         'cloud.read': {
           result: {
             connectionId: 'cloud-00cedffc75fa',
@@ -266,11 +269,14 @@ describe('Infraestrutura', () => {
     await userEvent.type(await screen.findByLabelText(/Ambiente/), 'dev');
     await userEvent.click(screen.getByRole('button', { name: 'Verificar drift' }));
 
-    expect(await screen.findByText('Drift em 2 recurso(s).')).toBeInTheDocument();
+    expect(await screen.findByText('Drift em 2 recurso(s); 2 na conta fora do state.')).toBeInTheDocument();
     const found = screen.getByLabelText('Drift encontrado');
     expect(found).toHaveTextContent('Alterado por fora');
     expect(found).toHaveTextContent('module.sns.aws_sns_topic.alerts');
     expect(found).toHaveTextContent('(tags, visibility_timeout_seconds)');
+    expect(screen.getByLabelText('Na conta e fora do state')).toHaveTextContent('loja-relatorios-antigos');
+    expect(screen.getByText(/aws.ec2.instances não está liberada/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Alerta de drift')).toHaveTextContent('2 na conta fora do state');
     expect(engine.calls.find((call) => call.method === 'iac.drift')?.params).toEqual({
       projectId: demo.projectId,
       folder: 'infra',
@@ -296,6 +302,28 @@ describe('Infraestrutura', () => {
       connectionId: 'cloud-00cedffc75fa'
     });
     expect(methods(engine.calls)).not.toContain('iac.apply');
+  });
+
+  it('a verificação automática de drift mostra o estado e salva com a pasta, o ambiente e o intervalo escolhidos', async () => {
+    const engine = fakeEngine(ready);
+    renderPage(engine.client);
+
+    const schedule = await screen.findByRole('group', { name: 'Verificação automática de drift' });
+    expect(schedule).toHaveTextContent('Ligada');
+    expect(schedule).toHaveTextContent('Uma vez por dia');
+    await userEvent.type(screen.getByLabelText(/Ambiente/), 'dev');
+    await userEvent.click(within(schedule).getByRole('radio', { name: 'A cada 6 h' }));
+    await userEvent.click(within(schedule).getByRole('button', { name: 'Salvar agendamento' }));
+
+    expect(await within(schedule).findByText('Verificação automática ligada.')).toBeInTheDocument();
+    expect(engine.calls.find((call) => call.method === 'iac.drift.schedule.set')?.params).toEqual({
+      projectId: demo.projectId,
+      enabled: true,
+      intervalHours: 6,
+      folder: 'infra',
+      workspace: 'dev'
+    });
+    expect(methods(engine.calls)).not.toContain('iac.drift');
   });
 
   it('sem ferramenta pronta, validar e planejar ficam desligados', async () => {

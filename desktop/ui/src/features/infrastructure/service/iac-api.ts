@@ -7,6 +7,7 @@ import {
   iacBootstrapSaveSchema,
   iacCostEstimateSchema,
   iacPlanCostSchema,
+  iacDriftScheduleSchema,
   iacStateReadSchema,
   iacStateReportSchema,
   iacUnlockSchema,
@@ -20,6 +21,7 @@ import {
   type IacBootstrapPlan,
   type IacCostEstimate,
   type IacPlanCost,
+  type IacDriftScheduleView,
   type IacGeneratePlan,
   type IacEngine,
   type IacStateRead,
@@ -61,6 +63,16 @@ export type IacApi = {
   costEstimate(input: { projectId: string; connectionId: string; blueprint: IacBlueprint }): Promise<IacCostEstimate>;
   /** Custo mensal do que um plano guardado cria, muda ou destrói, com os preços públicos pela conexão. */
   costPlan(input: { projectId: string; operationId: string; connectionId: string }): Promise<IacPlanCost>;
+  driftSchedule(projectId: string): Promise<IacDriftScheduleView>;
+  /** Liga ou desliga a verificação automática de drift do projeto, com pasta, ambiente, conexão e intervalo. */
+  setDriftSchedule(input: {
+    projectId: string;
+    enabled: boolean;
+    intervalHours: number;
+    folder?: string;
+    workspace?: string;
+    connectionId?: string;
+  }): Promise<IacDriftScheduleView>;
   /** Aprova aquele plano (pelo planId que a pessoa viu, com as confirmações dela) e aplica. Muda a nuvem. */
   apply(input: {
     projectId: string;
@@ -132,6 +144,10 @@ export function createIacApi(client: EngineClient): IacApi {
     drift: (input) => client.request('iac.drift', input, iacOperationResultSchema).then((r) => r.operation),
     costEstimate: (input) => client.request('iac.cost.estimate', input, iacCostEstimateSchema).then((r) => r.estimate),
     costPlan: (input) => client.request('iac.cost.plan', input, iacPlanCostSchema).then((r) => r.estimate),
+    driftSchedule: (projectId) =>
+      client.request('iac.drift.schedule', { projectId }, iacDriftScheduleSchema).then((r) => r.schedule),
+    setDriftSchedule: (input) =>
+      client.request('iac.drift.schedule.set', input, iacDriftScheduleSchema).then((r) => r.schedule),
     state: (projectId) => client.request('iac.state', { projectId }, iacStateReportSchema).then((r) => r.state),
     stateResources: (input) => client.request('iac.state.resources', input, iacStateReadSchema).then((r) => r.state),
     unlock: async (input) => {

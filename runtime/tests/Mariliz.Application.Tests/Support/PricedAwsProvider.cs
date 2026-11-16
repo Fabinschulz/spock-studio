@@ -31,7 +31,12 @@ internal sealed class PricedAwsProvider : ICloudProvider, ICloudPriceSource
     public CloudProviderDescriptor Descriptor { get; } = new("aws", "AWS de teste", "1.0.0",
         [new CloudMechanism("simple", "Simples", "Teste.", [new CloudField("region", "Região", "", Required: true)])],
         [
-            new CloudCapability("aws.ec2.vpcs", "VPCs", "VPCs.", "EC2", ["ec2:DescribeVpcs"], CloudRegionUse.Required, Columns),
+            new CloudCapability("aws.ec2.vpcs", "VPCs", "VPCs.", "EC2", ["ec2:DescribeVpcs"], CloudRegionUse.Required,
+                [new("id", "Id"), new("name", "Nome"), new("cidr", "Faixa"), new("default", "Padrão"), new("state", "Estado")]),
+            new CloudCapability("aws.ec2.instances", "Instâncias", "Instâncias.", "EC2", ["ec2:DescribeInstances"], CloudRegionUse.Required,
+                [new("id", "Id"), new("name", "Nome"), new("type", "Tipo"), new("state", "Estado"), new("zone", "Zona"), new("privateIp", "IP"), new("launchedAt", "Início")]),
+            new CloudCapability("aws.s3.buckets", "Buckets", "Buckets.", "S3", ["s3:ListAllMyBuckets"], CloudRegionUse.None,
+                [new("name", "Nome"), new("createdAt", "Criado"), new("region", "Região")]),
             new CloudCapability("aws.pricing", "Preços públicos", "Preços.", "Price List", ["pricing:GetProducts"], CloudRegionUse.None, Columns)
         ],
         "Teste.");
@@ -43,7 +48,11 @@ internal sealed class PricedAwsProvider : ICloudProvider, ICloudPriceSource
     public Task<CloudIdentity> IdentifyAsync(CloudSettings settings, CancellationToken ct) =>
         Task.FromResult(new CloudIdentity("123456789012", null, "arn:teste", null));
 
-    public Task<CloudTable> ReadAsync(CloudSettings settings, CloudQuery query, CancellationToken ct) => Task.FromResult(new CloudTable([], false));
+    // Linhas por capacidade, nas colunas declaradas acima.
+    public Dictionary<string, List<IReadOnlyList<string?>>> Tables { get; } = [];
+
+    public Task<CloudTable> ReadAsync(CloudSettings settings, CloudQuery query, CancellationToken ct) =>
+        Task.FromResult(new CloudTable(Tables.TryGetValue(query.Capability, out var rows) ? rows : [], false));
 
     public Task<IReadOnlyList<CloudPriceQuote>> PricesAsync(CloudSettings settings, IReadOnlyList<CloudPriceQuery> queries, CancellationToken ct)
     {

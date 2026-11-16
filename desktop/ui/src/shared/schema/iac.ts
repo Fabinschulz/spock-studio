@@ -177,6 +177,14 @@ export const iacBillableSchema = z.object({
   after: z.record(z.string(), z.string()).nullable()
 });
 
+/** Recurso que existe na conta e não está no state, de um tipo que o projeto já gerencia. */
+export const iacUnmanagedResourceSchema = z.object({
+  type: z.string(),
+  capability: z.string(),
+  id: z.string(),
+  name: z.string().nullable()
+});
+
 export const iacOperationSchema = z.object({
   id: z.string(),
   projectId: z.string(),
@@ -209,7 +217,9 @@ export const iacOperationSchema = z.object({
   localStateHash: z.string().nullable(),
   lockId: z.string().nullable(),
   drift: z.array(iacDriftedResourceSchema).nullable(),
-  billables: z.array(iacBillableSchema).nullable()
+  billables: z.array(iacBillableSchema).nullable(),
+  unmanaged: z.array(iacUnmanagedResourceSchema).nullable(),
+  unmanagedNotes: z.array(z.string()).nullable()
 });
 
 export const iacOperationResultSchema = z.object({ operation: iacOperationSchema });
@@ -279,6 +289,31 @@ export const iacPlanCostSchema = z.object({
 });
 
 export type IacPlanCost = z.infer<typeof iacPlanCostSchema>['estimate'];
+
+/** Verificação de drift automática do projeto: só roda com o app aberto e só lê a nuvem. */
+export const iacDriftScheduleSchema = z.object({
+  schedule: z.object({
+    schedule: z
+      .object({
+        projectId: z.string(),
+        enabled: z.boolean(),
+        intervalHours: z.number(),
+        folder: z.string().nullable(),
+        workspace: z.string().nullable(),
+        connectionId: z.string().nullable(),
+        changedAt: z.string(),
+        lastRunAt: z.string().nullable(),
+        lastOperationId: z.string().nullable(),
+        lastError: z.string().nullable()
+      })
+      .nullable(),
+    nextRunAt: z.string().nullable(),
+    intervals: z.array(z.number())
+  })
+});
+
+export type IacDriftScheduleView = z.infer<typeof iacDriftScheduleSchema>['schedule'];
+export type IacUnmanagedResource = z.infer<typeof iacUnmanagedResourceSchema>;
 export type IacCostEstimate = z.infer<typeof iacCostEstimateSchema>['estimate'];
 export type IacLayout = z.infer<typeof iacLayoutSchema>['layout'];
 

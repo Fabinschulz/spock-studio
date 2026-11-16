@@ -148,7 +148,9 @@ public sealed record IacResourceChange(string Address, string Type, string Actio
 // só nomes de atributo; os valores, de antes e de agora, nunca saem do arquivo de plano.
 public sealed record IacDriftedResource(string Address, string Type, string Change, IReadOnlyList<string> Attributes);
 
-public sealed record IacDriftRun(bool Succeeded, IReadOnlyList<IacDriftedResource> Drifted, string? Error, string? Backend = null);
+// StateIds: identificadores do state que o plano leu, só dos tipos que a comparação com a conta usa; ficam em memória.
+public sealed record IacDriftRun(bool Succeeded, IReadOnlyList<IacDriftedResource> Drifted, string? Error, string? Backend = null,
+    IReadOnlyDictionary<string, IReadOnlySet<string>>? StateIds = null);
 
 // Só endereços, tipos e ações: valores de atributo nunca saem do arquivo de plano.
 public sealed record IacPlanSummary(
@@ -218,6 +220,8 @@ public sealed record IacOperation(
     string? LocalStateHash = null,
     string? LockId = null,
     IReadOnlyList<IacDriftedResource>? Drift = null,
-    IReadOnlyList<IacBillable>? Billables = null);
+    IReadOnlyList<IacBillable>? Billables = null,
+    IReadOnlyList<IacUnmanagedResource>? Unmanaged = null,
+    IReadOnlyList<string>? UnmanagedNotes = null);
 
 public sealed record IacProjectLayout(string ProjectId, string? Root, IReadOnlyList<string> Folders);

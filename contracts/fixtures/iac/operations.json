@@ -121,7 +121,9 @@
             "storage_type": "?"
           }
         }
-      ]
+      ],
+      "unmanaged": null,
+      "unmanagedNotes": null
     },
     {
       "id": "iac-9654d9914f20",
@@ -193,7 +195,9 @@
       "localStateHash": null,
       "lockId": null,
       "drift": null,
-      "billables": null
+      "billables": null,
+      "unmanaged": null,
+      "unmanagedNotes": null
     },
     {
       "id": "iac-ccaf5067aef2",
@@ -249,7 +253,9 @@
       "localStateHash": null,
       "lockId": null,
       "drift": null,
-      "billables": []
+      "billables": [],
+      "unmanaged": null,
+      "unmanagedNotes": null
     },
     {
       "id": "iac-c6dbdd9f14cc",
@@ -298,7 +304,9 @@
       "localStateHash": null,
       "lockId": null,
       "drift": null,
-      "billables": null
+      "billables": null,
+      "unmanaged": null,
+      "unmanagedNotes": null
     }
   ]
 }

@@ -126,7 +126,9 @@ export const ENGINE_METHODS = [
   'iac.generate.save',
   'iac.drift',
   'iac.cost.estimate',
-  'iac.cost.plan'
+  'iac.cost.plan',
+  'iac.drift.schedule',
+  'iac.drift.schedule.set'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

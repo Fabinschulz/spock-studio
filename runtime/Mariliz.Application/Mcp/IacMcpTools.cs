@@ -46,13 +46,19 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
             $"{Display(drift.Folder ?? "")}, ambiente {drift.Workspace}.");
         if (drift.Status == IacOperationStatus.Failed) return Task.FromResult(text.Append($"\nA verificação falhou: {drift.Error}").ToString());
         var items = drift.Drift ?? [];
-        if (items.Count == 0) return Task.FromResult(text.Append("\nSem drift: a nuvem está como o state registra.").ToString());
+        if (drift.RequestedBy == IacDriftScheduler.Requester) text.Append("\nVerificação feita pelo agendamento.");
+        if (items.Count == 0) text.Append("\nSem drift: a nuvem está como o state registra.");
         foreach (var item in items.Take(MaxChanges))
             text.Append(item.Change == "deleted"
                 ? $"\n- apagado fora da ferramenta: {item.Address}"
                 : $"\n- alterado fora da ferramenta: {item.Address}{(item.Attributes.Count == 0 ? "" : $" ({string.Join(", ", item.Attributes)})")}");
         if (items.Count > MaxChanges) text.Append($"\n... e mais {items.Count - MaxChanges}.");
-        return Task.FromResult(text.Append("\nPara voltar ao que o código declara, a pessoa gera e aprova um plano; para manter a mudança, o código passa a declará-la.").ToString());
+        foreach (var resource in (drift.Unmanaged ?? []).Take(MaxChanges))
+            text.Append($"\n- na conta e fora do state: {resource.Type} {resource.Id}{(resource.Name is null ? "" : $" ({resource.Name})")}");
+        foreach (var note in drift.UnmanagedNotes ?? []) text.Append($"\n  {note}");
+        if (items.Count == 0 && drift.Unmanaged is not { Count: > 0 }) return Task.FromResult(text.ToString());
+        return Task.FromResult(text.Append("\nPara voltar ao que o código declara, a pessoa gera e aprova um plano; para manter a mudança, o código passa a declará-la. " +
+            "Recurso fora do state ou entra no código (import) ou é de outro dono.").ToString());
     }
 
     private static readonly McpToolInfo Blueprint = new(
