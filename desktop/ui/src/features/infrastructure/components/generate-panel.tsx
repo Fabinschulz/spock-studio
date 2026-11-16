@@ -4,7 +4,7 @@ import type { SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 import { ConfirmAction, DiffView, Radio, StatusChip, SuccessState } from '@/shared/components';
 import { pathTo } from '@/shared/routing';
-import type { IacArchitectDraft, IacGeneratePlan } from '@/shared/schema';
+import type { IacArchitectDraft, IacCostEstimate, IacGeneratePlan } from '@/shared/schema';
 import { Button, Checkbox, TextField } from '@mariliz/ui-kit';
 import { useCallback, useMemo, useState } from 'react';
 import { Link } from 'react-router';
@@ -21,6 +21,7 @@ import {
   type DiscoveredVpc
 } from '../domain/blueprint';
 import type { IacApi } from '../service/iac-api';
+import { CostEstimateView } from './cost-estimate';
 
 const MAX_NEED = 4000;
 
@@ -62,6 +63,7 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
   const [plan, setPlan] = useState<IacGeneratePlan | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [savedRun, setSavedRun] = useState<string | null>(null);
+  const [estimate, setEstimate] = useState<IacCostEstimate | null>(null);
 
   const connection = linked.value ?? null;
   const set = <K extends keyof BlueprintForm>(key: K, value: BlueprintForm[K]) =>
@@ -122,6 +124,37 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
                 </li>
               ))}
             </ul>
+            {estimate ? (
+              <CostEstimateView estimate={estimate} />
+            ) : connection ? (
+              <div className={styles.actions}>
+                <Button
+                  type="button"
+                  variant="outlined"
+                  disabled={action.busy}
+                  onClick={() =>
+                    void action.run(
+                      async () =>
+                        setEstimate(
+                          await api.costEstimate({
+                            projectId,
+                            connectionId: connection.id,
+                            blueprint: toBlueprint(form)
+                          })
+                        ),
+                      'Não foi possível consultar os preços pela conexão.'
+                    )
+                  }
+                >
+                  Estimar o custo com os preços da AWS
+                </Button>
+              </div>
+            ) : (
+              <p className={styles.hint}>
+                Para estimar o custo, vincule uma conexão AWS ao projeto em{' '}
+                <Link to={pathTo('cloud')}>Conexões cloud</Link> e libere nela a leitura de preços públicos.
+              </p>
+            )}
             {plan.notes.length > 0 ? (
               <ul className={styles.impacts} aria-label="Observações">
                 {plan.notes.map((note) => (
@@ -156,7 +189,15 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
                 Gravar no projeto
               </Button>
             ) : null}
-            <Button type="button" variant="outlined" disabled={action.busy} onClick={() => setPlan(null)}>
+            <Button
+              type="button"
+              variant="outlined"
+              disabled={action.busy}
+              onClick={() => {
+                setPlan(null);
+                setEstimate(null);
+              }}
+            >
               Voltar ao desenho
             </Button>
           </div>

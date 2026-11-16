@@ -121,6 +121,31 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
         return unlock.ExitCode == 0 ? null : Tail(unlock);
     }
 
+    // -refresh-only não propõe mudança nos recursos e o plano não grava o state: só lê a nuvem. O arquivo de plano guarda
+    // valores de antes e de agora; quem chama apaga a pasta da operação logo depois.
+    public async Task<IacDriftRun> DriftAsync(IacPlanSpec spec, CancellationToken ct)
+    {
+        var env = Environment(spec.DataDirectory, spec.Environment);
+        if (await PrepareAsync(spec.Directory, spec.Workspace, env, ct) is { } failure) return new IacDriftRun(false, [], failure);
+        var state = Backend(spec.Directory, spec.DataDirectory, spec.Workspace);
+
+        var plan = await RunAsync(spec.Directory, ["plan", "-refresh-only", "-input=false", "-no-color", "-detailed-exitcode", "-out=" + spec.PlanFile], env,
+            PlanTimeout, ct);
+        if (plan.TimedOut) return new IacDriftRun(false, [], "A verificação passou de 30 minutos e foi interrompida.", state.Type);
+        if (plan.ExitCode is not (0 or 2)) return new IacDriftRun(false, [], Tail(plan), state.Type);
+
+        var show = await RunAsync(spec.Directory, ["show", "-json", "-no-color", spec.PlanFile], env, ShortTimeout, ct);
+        try
+        {
+            if (show.ExitCode == 0 && JsonNode.Parse(show.StandardOutput) is { } json)
+                return new IacDriftRun(true, IacPlanReader.ReadDrift(json), null, state.Type);
+        }
+        catch (JsonException)
+        {
+        }
+        return new IacDriftRun(false, [], "A verificação rodou, mas show -json falhou ou devolveu um formato inesperado.", state.Type);
+    }
+
     // init com backend e seleção do workspace. Selecionar só; criar um workspace muda o state e não é papel do Spock.
     private async Task<string?> PrepareAsync(string directory, string? workspace, Dictionary<string, string> env, CancellationToken ct)
     {

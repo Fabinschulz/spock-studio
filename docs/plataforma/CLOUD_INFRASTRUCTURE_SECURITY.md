@@ -37,7 +37,10 @@ depois de uma recusa.
   modelos fixos escrevem os arquivos. Ids da conta (conta, VPC, subnets, certificado, bucket, e-mail) não vão para o
   modelo de linguagem e, na resposta dele, são substituídos pelos que a pessoa informou. Senhas nunca entram no
   Terraform: o segredo nasce sem valor e a senha do banco fica com o próprio RDS.
-- **Trilha**: instalação, recusa, adoção, versão do projeto, remoção, planos, aprovações e applies na `audit.ndjson`,
+- **Drift e custo**: a verificação de drift é um plano `-refresh-only` que nunca grava o state; dela saem só nomes de
+  atributo, e o arquivo com os valores é apagado no fim. A estimativa usa só a lista pública de preços, pela conexão
+  com a capacidade `aws.pricing` liberada no vínculo, e não lê nada da conta.
+- **Trilha**: instalação, recusa, adoção, versão do projeto, remoção, planos, drift, aprovações e applies na `audit.ndjson`,
   com ids e contagens, nunca valores.
 
 ## 3. Análise de segurança do plano (entrega 2, implementada em `IacPlanReader`)
@@ -53,7 +56,7 @@ Checagens determinísticas sobre `show -json`, avisando antes da aprovação:
 
 Os achados não bloqueiam sozinhos: aparecem na aprovação, e os graves pedem confirmação extra.
 
-## 4. O que já está implementado (entregas 1 a 5)
+## 4. O que já está implementado (entregas 1 a 6)
 
 - OpenTofu (gratuito, MPL 2.0) como padrão; Terraform liberado por escolha explícita (licença com o jurídico).
 - Instalação só com autorização, ligada à proposta (`offerId`), recusa respeitada.
@@ -68,4 +71,5 @@ Os achados não bloqueiam sozinhos: aparecem na aprovação, e os graves pedem c
 - State: credenciais do bloco backend nunca lidas; state no git, sem trava, sem criptografia e dividido entre projetos apontados; plano recusado se outro projeto usa o mesmo state; state local devolvido ao projeto só se não mudou desde o plano (senão fica em recuperação); force-unlock só com confirmação.
 - Escopo de escrita `Infrastructure`: o Spock grava `.tf`, `.tofu`, `.tfvars.example`, o `README.md` de uma pasta e o `.gitignore` da raiz só por execução aprovada e reversível; state, `.tfvars` e código ficam fora.
 - Geração no modelo com padrões seguros: banco privado, criptografado e com proteção contra exclusão; ECR com tag imutável; load balancer só HTTPS (TLS 1.3); tarefas que só aceitam o load balancer; IAM sem curinga de serviço; trava de conta no provider; `MARILIZ_LIVE_IAC_PROVIDERS` prova `fmt` e `validate` com o provider real.
+- Drift por `plan -refresh-only` sobre a cópia, sem gravar o state, com só nomes de atributo no resultado; custo estimado com a lista pública de preços da AWS pela capacidade `aws.pricing` do vínculo, sem ler a conta e sem inventar preço.
 - Achados de segurança do plano (seção 3) já calculados: destruição, substituição, entrada aberta para a internet, IAM com curinga, ECR com tag mutável, banco público, S3 sem bloqueio público, NSG e firewall abertos, bucket público no Google.

@@ -155,10 +155,18 @@ export const iacApplyRunSchema = z.object({
   error: z.string().nullable()
 });
 
+/** Alterado ou apagado na nuvem por fora da ferramenta; só os nomes dos atributos, nunca os valores. */
+export const iacDriftedResourceSchema = z.object({
+  address: z.string(),
+  type: z.string(),
+  change: z.enum(['changed', 'deleted']),
+  attributes: z.array(z.string())
+});
+
 export const iacOperationSchema = z.object({
   id: z.string(),
   projectId: z.string(),
-  kind: z.enum(['validate', 'plan', 'apply']),
+  kind: z.enum(['validate', 'plan', 'apply', 'drift']),
   status: z.enum(['succeeded', 'failed']),
   engine: iacEngineSchema,
   version: z.string(),
@@ -185,7 +193,8 @@ export const iacOperationSchema = z.object({
   stateMode: z.enum(['remote', 'localAbsolute', 'localInProject']).nullable(),
   localStatePath: z.string().nullable(),
   localStateHash: z.string().nullable(),
-  lockId: z.string().nullable()
+  lockId: z.string().nullable(),
+  drift: z.array(iacDriftedResourceSchema).nullable()
 });
 
 export const iacOperationResultSchema = z.object({ operation: iacOperationSchema });
@@ -195,6 +204,36 @@ export const iacLayoutSchema = z.object({
 });
 
 export type IacOperation = z.infer<typeof iacOperationSchema>;
+export type IacDriftedResource = z.infer<typeof iacDriftedResourceSchema>;
+
+/** Uma linha da estimativa: fixa (quantidade e valor no mês) ou por uso (só o preço da unidade). */
+export const iacCostLineSchema = z.object({
+  resource: z.string(),
+  basis: z.string(),
+  quantity: z.number().nullable(),
+  unit: z.string(),
+  unitPrice: z.number().nullable(),
+  monthly: z.number().nullable(),
+  priceDescription: z.string().nullable()
+});
+
+/** Estimativa com os preços públicos sob demanda do provedor; nunca é a fatura. */
+export const iacCostEstimateSchema = z.object({
+  estimate: z.object({
+    currency: z.string(),
+    region: z.string(),
+    source: z.string(),
+    pricedAt: z.string(),
+    monthlyFixed: z.number(),
+    complete: z.boolean(),
+    fixed: z.array(iacCostLineSchema),
+    usageBased: z.array(iacCostLineSchema),
+    assumptions: z.array(z.string())
+  })
+});
+
+export type IacCostLine = z.infer<typeof iacCostLineSchema>;
+export type IacCostEstimate = z.infer<typeof iacCostEstimateSchema>['estimate'];
 export type IacLayout = z.infer<typeof iacLayoutSchema>['layout'];
 
 export const iacStateModeSchema = z.enum(['remote', 'localAbsolute', 'localInProject']);

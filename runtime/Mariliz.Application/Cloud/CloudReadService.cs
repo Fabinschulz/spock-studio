@@ -45,6 +45,37 @@ public sealed class CloudReadService(
             capability.Columns, rows, truncated, clock.UtcNow);
     }
 
+    // Preços públicos pela conexão do projeto. Exige o vínculo com a capacidade de preços liberada, como qualquer leitura,
+    // e fica na trilha como uma leitura dessa capacidade.
+    public async Task<IReadOnlyList<CloudPriceQuote>> PricesAsync(string projectId, string connectionId, IReadOnlyList<CloudPriceQuery> queries,
+        CloudCaller caller, CancellationToken ct)
+    {
+        var connection = connections.Require(connectionId);
+        var capability = PricingCapability(connection.Provider);
+        var target = providers.Require(connection.Provider);
+        if (target is not ICloudPriceSource source || target.Descriptor.Capability(capability) is null) throw CloudErrors.CapabilityUnknown();
+        var request = new CloudReadRequest(connectionId, capability, null, null, projectId);
+        Authorize(request, caller, connection);
+
+        IReadOnlyList<CloudPriceQuote> quotes;
+        try
+        {
+            quotes = await source.PricesAsync(connection.Settings, queries, ct);
+            if (quotes.Count != queries.Count) throw CloudErrors.InvalidResponse();
+        }
+        catch (EngineException ex) when (ex.Code.StartsWith(CloudErrors.Prefix, StringComparison.Ordinal))
+        {
+            connections.RecordFailure(connection.Id, ex);
+            Audit(request, caller, connection, null, rows: 0, truncated: false, outcome: ex.Code);
+            throw;
+        }
+        connections.RecordSuccess(connection.Id);
+        Audit(request, caller, connection, null, quotes.Count(q => q.UsdPerUnit is not null), truncated: false, outcome: "ok");
+        return quotes;
+    }
+
+    public static string PricingCapability(string provider) => provider + ".pricing";
+
     // A pessoa pode explorar a própria conexão sem projeto; agente nunca lê sem projeto, vínculo, capacidade e liberação.
     private void Authorize(CloudReadRequest request, CloudCaller caller, CloudConnection connection)
     {

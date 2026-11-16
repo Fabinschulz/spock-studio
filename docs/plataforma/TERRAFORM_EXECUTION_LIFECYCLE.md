@@ -1,8 +1,8 @@
 # Ciclo de execução do Terraform
 
 Como uma mudança de infraestrutura anda no Spock, da necessidade à verificação, e onde a pessoa decide. As oito etapas
-estão implementadas: dependência (entrega 1), validação e plano (2), aprovação e aplicação (3), state (4) e
-arquitetura e configuração (5). Formato dos arquivos: [TERRAFORM_PROJECT_LAYOUT.md](TERRAFORM_PROJECT_LAYOUT.md).
+estão implementadas: dependência (entrega 1), validação e plano (2), aprovação e aplicação (3), state (4),
+arquitetura e configuração (5) e, em volta do ciclo, drift e custo estimado (6). Formato dos arquivos: [TERRAFORM_PROJECT_LAYOUT.md](TERRAFORM_PROJECT_LAYOUT.md).
 
 ## 1. As oito etapas
 
@@ -156,8 +156,8 @@ pelo Terraform: o segredo da aplicação é criado sem valor e a senha do banco 
 tag imutável; load balancer só HTTPS com TLS 1.3; tarefas que só aceitam o load balancer; o CI é o dono da revisão da
 task definition (`ignore_changes`). O `.gitignore` da raiz ganha as linhas de state, planos e `terraform.tfvars`.
 
-O plano devolve o diff de cada arquivo, as checagens, **o que é cobrado** (sem preço inventado: o Spock não tem fonte de
-preços) e notas (arquivo da pasta que não é do modelo, NAT para tarefas em subnet privada, ordem do primeiro deploy).
+O plano devolve o diff de cada arquivo, as checagens, **o que é cobrado** (a lista, sem valor; o valor vem da estimativa
+da seção 6) e notas (arquivo da pasta que não é do modelo, NAT para tarefas em subnet privada, ordem do primeiro deploy).
 Desenho com checagem falhando volta sem arquivo e sem `planId`.
 
 **Gravar** (`iac.generate.save`) exige o `planId` revisado (`STALE_PLAN` se o desenho ou os arquivos mudaram) e roda
@@ -169,7 +169,36 @@ o `README.md` de uma pasta e o `.gitignore` da raiz). A trilha recebe `iac.gener
 `ec2:DescribeSubnets`, `ec2:DescribeRouteTables`). Pública é a subnet cuja tabela de rotas manda `0.0.0.0/0` para um
 internet gateway. A tela lê pela conexão vinculada e a pessoa escolhe a VPC; as subnets entram no desenho já separadas.
 
-## 6. O que já existe para isso
+## 6. Drift e custo estimado (entrega 6, implementada)
+
+**Drift** (`iac.drift`, botão "Verificar drift" ao lado de validar e planejar). É um `plan -refresh-only` sobre a cópia da
+configuração, com a mesma pasta, o mesmo ambiente e a mesma conexão do plano: compara o state com a nuvem sem propor
+mudança e sem gravar o state. Do `show -json` sai o `resource_drift`, lido por `IacPlanReader.ReadDrift`: endereço, tipo,
+se o recurso foi **alterado** ou **apagado** por fora e os **nomes** dos atributos de nível de cima que mudaram (até 20).
+Os valores, de antes e de agora, ficam no arquivo de plano, apagado com a cópia no fim da operação. A operação entra no
+histórico (`drift`), com a trava do state quando a ferramenta recusa por lock, e a trilha recebe `iac.drift` com as
+contagens. Aceitar o drift no state (`apply -refresh-only`) fica fora do Spock: ou o código passa a declarar a mudança,
+ou um plano normal, aprovado, a desfaz. A mesma checagem do plano vale aqui: dois projetos não leem o mesmo state.
+
+**Custo estimado** (`iac.cost.estimate`, botão na revisão da infraestrutura gerada). Os preços vêm da **lista pública da
+AWS** (Price List Query API, `pricing:GetProducts`) pela conexão AWS vinculada ao projeto, com a nova capacidade
+`aws.pricing` liberada no vínculo; nada da conta é lido. Cada item do desenho vira uma consulta com atributos exatos
+(serviço, região, tipo de uso sem o prefixo da região, unidade). Dois produtos com preços diferentes para a mesma
+consulta deixam o item **sem valor**, e a estimativa se diz incompleta: o Spock não escolhe um número.
+
+| Fixo no mês (entra no total) | Por uso (só o preço da unidade) |
+| --- | --- |
+| Load balancer por hora; Fargate por vCPU-hora e GB-hora das tarefas; segredos do Secrets Manager; instância e armazenamento gp3 do RDS; alarmes do CloudWatch | LCU do load balancer; armazenamento do ECR; ingestão de logs; requisições do SQS |
+
+Premissas mostradas junto: dólar, preços sob demanda da região, mês de 730 horas, sem impostos, câmbio, free tier,
+Savings Plans ou descontos; transferência de dados e backup além do tamanho do banco fora; NAT Gateway ou endpoints VPC
+fora quando as tarefas não têm IP público. A consulta fica na trilha como leitura cloud de `aws.pricing`. O RDS gerado
+declara `storage_type = "gp3"`, o mesmo que a estimativa precifica.
+
+Validado contra a API real (`AwsPricingLiveTests`, com `MARILIZ_LIVE_AWS_PROFILE`): cada item do desenho completo em
+sa-east-1, também com Multi-AZ e MySQL, acha preço único, e a leitura `aws.pricing` da verificação de permissões responde.
+
+## 7. O que já existe para isso
 
 | Necessidade | Já existe |
 | --- | --- |
@@ -181,7 +210,7 @@ internet gateway. A tela lê pela conexão vinculada e a pessoa escolhe a VPC; a
 | Leitura cloud para descoberta e verificação | `CloudReadService` |
 | Trilha | `IAuditLog`, Auditoria do projeto |
 
-## 7. Ferramentas para agentes (MCP)
+## 8. Ferramentas para agentes (MCP)
 
 | Ferramenta | Entrega | Efeito |
 | --- | --- | --- |
@@ -191,6 +220,7 @@ internet gateway. A tela lê pela conexão vinculada e a pessoa escolhe a VPC; a
 | `iac_history` | 3 | Lista validações, planos e aplicações, com quem pediu e o resultado da verificação |
 | `iac_state` | 4 | Onde vive o state de cada raiz, trava, criptografia, riscos e backend recomendado (só a configuração) |
 | `iac_blueprint_check` | 5 | Confere um desenho com as checagens da tela e lista os arquivos que a geração escreveria e o que é cobrado; não grava nada |
+| `iac_drift_summary` | 6 | Lê a última verificação de drift: recursos alterados ou apagados por fora, com os nomes dos atributos; não roda a verificação |
 | `iac_plan` | Depois | Gerar plano por agente pede o vínculo cloud liberado para agentes; hoje só a pessoa planeja |
 
 Não haverá `terraform_apply` para agentes: o MCP nunca contorna a aprovação humana.

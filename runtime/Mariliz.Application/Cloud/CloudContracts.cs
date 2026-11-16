@@ -79,6 +79,15 @@ public sealed record CloudIdentity(string Account, string? AccountName, string P
 
 public sealed record CloudQuery(string Capability, string? Region, int Limit);
 
+/// <param name="Service">Código do serviço na lista de preços (AmazonECS, AmazonRDS...).</param>
+/// <param name="Attributes">Atributos do produto que precisam bater exatamente.</param>
+/// <param name="UsageType">O tipo de uso sem o prefixo da região (Fargate-GB-Hours).</param>
+/// <param name="Unit">A unidade do preço (Hrs, GB-Mo).</param>
+public sealed record CloudPriceQuery(string Service, string Region, IReadOnlyDictionary<string, string> Attributes, string UsageType, string Unit);
+
+/// <param name="Description">A descrição do preço como o provedor publica.</param>
+public sealed record CloudPriceQuote(CloudPriceQuery Query, decimal? UsdPerUnit, string? Description);
+
 /// <param name="Truncated">Havia mais do que o limite pedido.</param>
 public sealed record CloudTable(IReadOnlyList<IReadOnlyList<string?>> Rows, bool Truncated);
 

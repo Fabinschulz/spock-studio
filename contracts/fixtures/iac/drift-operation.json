@@ -1,0 +1,51 @@
+{
+  "operation": {
+    "id": "iac-5d2e7f9a1b3c",
+    "projectId": "p-0123456789ab",
+    "kind": "drift",
+    "status": "succeeded",
+    "engine": "openTofu",
+    "version": "1.13.9",
+    "root": "infra",
+    "folder": "infra",
+    "workspace": "default",
+    "connectionId": null,
+    "configHash": "086024f612bc30b06bef5b2f612f03f7c65be159ecf7a27dff355dddfeaf1897",
+    "startedAt": "2026-11-15T16:10:00+00:00",
+    "finishedAt": "2026-11-15T16:10:04+00:00",
+    "requestedBy": "person",
+    "validation": null,
+    "planId": null,
+    "hasChanges": true,
+    "summary": null,
+    "findings": null,
+    "error": null,
+    "backend": "s3",
+    "applyBlocker": null,
+    "appliedBy": null,
+    "planOperationId": null,
+    "approval": null,
+    "apply": null,
+    "stateMode": null,
+    "localStatePath": null,
+    "localStateHash": null,
+    "lockId": null,
+    "drift": [
+      {
+        "address": "module.sqs.aws_sqs_queue.main[\"pedidos\"]",
+        "type": "aws_sqs_queue",
+        "change": "changed",
+        "attributes": [
+          "tags",
+          "visibility_timeout_seconds"
+        ]
+      },
+      {
+        "address": "module.sns.aws_sns_topic.alerts",
+        "type": "aws_sns_topic",
+        "change": "deleted",
+        "attributes": []
+      }
+    ]
+  }
+}

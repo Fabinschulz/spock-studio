@@ -303,6 +303,50 @@ public sealed partial class IacOperationService(
         });
     }
 
+    // Drift: o que mudou na nuvem por fora da ferramenta desde o último apply (plan -refresh-only). Lê a nuvem como o plano e
+    // nunca grava o state; o arquivo do plano, com os valores, sai do disco junto com a cópia. Aceitar o drift no state
+    // (apply -refresh-only) fica fora do Spock: ou o código passa a declarar a mudança, ou um plano normal a desfaz.
+    public async Task<IacOperation> DriftAsync(IacPlanRequest request, string requestedBy, CancellationToken ct)
+    {
+        var (root, iacRoot, folder, ws, environment) = Target(request.ProjectId, request.Folder, request.Workspace, request.ConnectionId);
+        var identity = states?.Backend(root, folder) is { } declared ? IacStateIdentity.Of(declared) : null;
+        if (identity is not null && registry?.Owners(identity).Where(owner => owner != request.ProjectId).ToList() is { Count: > 0 } others)
+            throw IacErrors.StateShared(others.Select(DisplayName));
+
+        return await Exclusive(request.ProjectId, async () =>
+        {
+            var installation = await runtimes.ResolveForUseAsync(request.ProjectId, ct);
+            var id = NewId();
+            var started = clock.UtcNow;
+            var directory = area.OperationDirectory(request.ProjectId, id);
+            try
+            {
+                var snapshot = area.Snapshot(root, iacRoot, Path.Combine(directory, "config"), includeLocalState: true);
+                var run = await factory.For(installation).DriftAsync(new IacPlanSpec(Combine(snapshot.Directory, Relative(iacRoot, folder)),
+                    Path.Combine(directory, "data"), Path.Combine(directory, "drift.tfplan"), ws, environment), ct);
+                var operation = new IacOperation(id, request.ProjectId, IacOperationKind.Drift,
+                    run.Succeeded ? IacOperationStatus.Succeeded : IacOperationStatus.Failed, installation.Engine, installation.Version, iacRoot, folder,
+                    ws ?? "default", request.ConnectionId, snapshot.ConfigHash, started, clock.UtcNow, requestedBy, null, null,
+                    run.Succeeded ? run.Drifted.Count > 0 : null, null, null, run.Error, Backend: run.Backend,
+                    LockId: run.Error is null ? null : LockIdIn(run.Error), Drift: run.Succeeded ? run.Drifted : null);
+                var detail = new JsonObject
+                {
+                    ["folder"] = folder,
+                    ["workspace"] = ws ?? "default",
+                    ["changed"] = run.Drifted.Count(d => d.Change == "changed"),
+                    ["deleted"] = run.Drifted.Count(d => d.Change == "deleted")
+                };
+                if (request.ConnectionId is not null) detail["connectionId"] = request.ConnectionId;
+                Record(operation, detail);
+                return operation;
+            }
+            finally
+            {
+                area.DeleteOperation(request.ProjectId, id);
+            }
+        });
+    }
+
     // Consulta do state: workspaces e endereços de recurso, nunca atributos. Roda sobre a cópia, como o plano; um state
     // local entra na cópia só para a leitura e sai em seguida.
     public async Task<IacStateRead> ReadStateAsync(string projectId, string? folder, string? workspaceName, string? connectionId, string requestedBy,
@@ -435,6 +479,7 @@ public sealed partial class IacOperationService(
         {
             IacOperationKind.Validate => "iac.validate",
             IacOperationKind.Plan => "iac.plan",
+            IacOperationKind.Drift => "iac.drift",
             _ => "iac.apply"
         }, detail);
     }

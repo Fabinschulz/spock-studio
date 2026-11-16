@@ -361,8 +361,8 @@ public sealed class IacRuntimeTests : IDisposable
             _project.Root);
 
         var all = tools.Tools();
-        Assert.Equal([IacMcpTools.StatusTool, IacMcpTools.ValidateTool, IacMcpTools.PlanSummaryTool, IacMcpTools.HistoryTool, IacMcpTools.BlueprintTool],
-            all.Select(t => t.Info.Name));
+        Assert.Equal([IacMcpTools.StatusTool, IacMcpTools.ValidateTool, IacMcpTools.PlanSummaryTool, IacMcpTools.HistoryTool, IacMcpTools.DriftTool,
+            IacMcpTools.BlueprintTool], all.Select(t => t.Info.Name));
         Assert.DoesNotContain(all, t => t.Info.Name.Contains("apply") || t.Info.Name.Contains("install"));
         var tool = all[0];
         var text = await tool.Call(new McpCall(new System.Text.Json.Nodes.JsonObject { ["project"] = project }, "teste", CancellationToken.None));
@@ -373,11 +373,14 @@ public sealed class IacRuntimeTests : IDisposable
         Assert.Empty(_server.Requested);
         Assert.Empty(new FileIacSettingsStore(_project.DataDir).Read().Adopted);
 
-        var blueprint = await all[4].Call(new McpCall(new System.Text.Json.Nodes.JsonObject
+        var drift = await all[4].Call(new McpCall(new System.Text.Json.Nodes.JsonObject { ["project"] = project }, "teste", CancellationToken.None));
+        Assert.Contains("ainda não tem verificação de drift", drift);
+
+        var blueprint = await all[5].Call(new McpCall(new System.Text.Json.Nodes.JsonObject
         {
             ["blueprint"] = System.Text.Json.Nodes.JsonNode.Parse("""{"project": "loja", "region": "sa-east-1", "queues": ["pedidos"]}""")
         }, "teste", CancellationToken.None));
-        var invalid = await all[4].Call(new McpCall(new System.Text.Json.Nodes.JsonObject
+        var invalid = await all[5].Call(new McpCall(new System.Text.Json.Nodes.JsonObject
         {
             ["blueprint"] = System.Text.Json.Nodes.JsonNode.Parse("""{"project": "Loja", "region": "sa-east-1"}""")
         }, "teste", CancellationToken.None));

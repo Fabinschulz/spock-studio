@@ -52,7 +52,8 @@
       "stateMode": "localInProject",
       "localStatePath": "terraform.tfstate",
       "localStateHash": "251766df141eb9c5eeca2164668b2b504077e7a1768785a1a2001a5e70cd916e",
-      "lockId": null
+      "lockId": null,
+      "drift": null
     },
     {
       "id": "iac-9654d9914f20",
@@ -122,7 +123,8 @@
       "stateMode": null,
       "localStatePath": null,
       "localStateHash": null,
-      "lockId": null
+      "lockId": null,
+      "drift": null
     },
     {
       "id": "iac-ccaf5067aef2",
@@ -176,7 +178,8 @@
       "stateMode": "localInProject",
       "localStatePath": "terraform.tfstate",
       "localStateHash": null,
-      "lockId": null
+      "lockId": null,
+      "drift": null
     },
     {
       "id": "iac-c6dbdd9f14cc",
@@ -223,7 +226,8 @@
       "stateMode": null,
       "localStatePath": null,
       "localStateHash": null,
-      "lockId": null
+      "lockId": null,
+      "drift": null
     }
   ]
 }
