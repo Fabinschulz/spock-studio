@@ -26,7 +26,7 @@ região `sa-east-1`. Sessão aberta pelo usuário com `aws sso login --use-devic
 | --- | --- |
 | `cloud.create` com o perfil SSO | `connected`; conta e ARN do papel assumido vindos do STS |
 | Perfil inexistente | `notAuthenticated`, conexão gravada com a orientação |
-| Perfil do `aws login` (`login_session`) | `notAuthenticated` com a explicação; antes da correção desta entrega dava `INTERNAL_ERROR` |
+| Perfil do `aws login` (`login_session`) | Identidade (usuário IAM) lida pelo STS com o `AWSSDK.Signin`; antes dava `notAuthenticated` com a explicação. O provider AWS 6.73.0 do OpenTofu planeja com o mesmo perfil (`AwsProfileLiveTests`, `Provider_aws_autentica_pelo_perfil_da_conexao`) |
 | Cadeia padrão sem sessão válida | `expired` (SSO vencido do perfil padrão) |
 | Região `marte-1`, Role ARN malformado | Recusados antes de gravar (`CLOUD_REGION_INVALID`, `CLOUD_SETTINGS_INVALID`) |
 | `cloud.permissions` | Permitidas: regiões, EC2, ECR, RDS, S3, Lambda, CloudFormation, CloudWatch. Negada: ECS (`ecs:ListClusters`) |
@@ -59,7 +59,6 @@ região `sa-east-1`. Sessão aberta pelo usuário com `aws sso login --use-devic
 
 ## 4. Limitações conhecidas
 
-- `aws login` (`login_session`) não é lido pelo AWS SDK para .NET 4.1; use SSO, chaves ou a cadeia padrão.
 - Leituras da AWS fazem no máximo 10 páginas; a resposta diz "havia mais" quando passa do limite pedido.
 - No Azure, os recursos vêm da lista genérica do Resource Manager: nome, grupo, região, SKU e tipo, sem detalhes
   específicos de cada serviço.

@@ -149,7 +149,7 @@ Portfólio, indicadores, previsão, riscos, marcos, relatório e linha do tempo 
 | Transporte | Implementado | Só GET, só HTTPS, sem seguir redirecionamento; Jira restrito a `*.atlassian.net`. |
 | Sincronização | Implementado | Sob demanda, incremental, 50 páginas por execução, retomada por página; evento de término que a interface escuta, com releitura de segurança a cada 15 s. Sem agendamento. |
 | Auditoria | Implementado | `audit.ndjson`, inclusive leituras cloud e do MCP. |
-| Conectores cloud | Parcial | AWS, Azure e Google só leitura (`Application/Cloud`, `Infrastructure.Cloud`, tela `/cloud`, ferramentas MCP liberadas por vínculo com `agentAccess`). **AWS validada** com conta real por SSO (perfil, cadeia padrão e AssumeRole; motor, MCP e tela). **Azure e Google implementados, não validados**: não havia identidade na máquina. Perfil criado por `aws login` não é lido pelo SDK .NET. Os agentes LangGraph não usam cloud. Ver [CLOUD_CONNECTORS_STATUS.md](CLOUD_CONNECTORS_STATUS.md). |
+| Conectores cloud | Parcial | AWS, Azure e Google só leitura (`Application/Cloud`, `Infrastructure.Cloud`, tela `/cloud`, ferramentas MCP liberadas por vínculo com `agentAccess`). **AWS validada** com conta real por SSO (perfil, cadeia padrão e AssumeRole; motor, MCP e tela). **Azure e Google implementados, não validados**: não havia identidade na máquina. Perfil criado por `aws login` é lido (pacote `AWSSDK.Signin`), validado com um perfil real. Os agentes LangGraph não usam cloud. Ver [CLOUD_CONNECTORS_STATUS.md](CLOUD_CONNECTORS_STATUS.md). |
 | MCP, bancos, Azure DevOps, GitLab como conexão | Inexistente | Ponto de extensão: `IIntegrationConnector`. |
 | Escrita em provedor | Inexistente | Decisão registrada: só leitura, nos conectores e no `ICloudProvider`. |
 

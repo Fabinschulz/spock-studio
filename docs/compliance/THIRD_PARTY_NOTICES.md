@@ -9,7 +9,6 @@ titulares.
 
 ## Textos completos distribuídos como arquivos
 
-- CPython 3.12.10 (Windows embeddable package): [`notices/cpython-3.12.10-LICENSE.txt`](notices/cpython-3.12.10-LICENSE.txt)
 - .NET Runtime 10 (LICENSE): [`notices/dotnet-runtime-LICENSE.TXT`](notices/dotnet-runtime-LICENSE.TXT)
 - .NET Runtime 10 (THIRD-PARTY-NOTICES): [`notices/dotnet-runtime-THIRD-PARTY-NOTICES.TXT`](notices/dotnet-runtime-THIRD-PARTY-NOTICES.TXT)
 - NSIS (COPYING): [`notices/nsis-COPYING.txt`](notices/nsis-COPYING.txt)
@@ -13893,9 +13892,11 @@ na versão correspondente, antes do lançamento (não foi redigido aqui):
 - AWSSDK.Extensions.CborProtocol 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
 - AWSSDK.Extensions.Numerics 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
 - AWSSDK.Lambda 4.1.1 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
+- AWSSDK.Pricing 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
 - AWSSDK.RDS 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
 - AWSSDK.S3 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
 - AWSSDK.SecurityToken 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
+- AWSSDK.Signin 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
 - AWSSDK.SSO 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
 - AWSSDK.SSOOIDC 4.1.0 — declarado `Apache-2.0` — origem: https://github.com/aws/aws-sdk-net/
 - Azure.Core 1.53.0 — declarado `MIT` — origem: https://github.com/Azure/azure-sdk-for-net
