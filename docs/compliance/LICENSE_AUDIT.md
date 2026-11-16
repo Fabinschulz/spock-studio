@@ -273,9 +273,9 @@ resultados não indicam conflito nem ausência dele. ⚖ Busca de anterioridade 
 | # | Problema | Solução | Critério de conclusão |
 | --- | --- | --- | --- |
 | P1-1 | Componentes MPL-2.0 distribuídos (`cssparser`, `selectors`, `dtoa-short`, `option-ext`, `certifi`, `orjson`) (R-07) | Nos avisos, link para o fonte de cada versão e o texto da MPL. Não modificar esses arquivos | Avisos com os links |
-| P1-2 | 9 componentes distribuídos sem texto de licença no pacote, e 34 NuGet só com expressão (R-08) | Obter o texto no repositório da versão (ou o texto canônico da licença SPDX para os NuGet) | Seção "Lacunas" de THIRD_PARTY_NOTICES vazia |
+| P1-2 | 9 componentes distribuídos sem texto de licença no pacote, e 34 NuGet só com expressão (R-08) | Obter o texto no repositório da versão (ou o texto canônico da licença SPDX para os NuGet) | **Feito em 2026-11-16:** textos oficiais fixados em commit em `notices/upstream/`; lacunas de 45 para 1 (AppImage, D-06) |
 | P1-3 | `crossbeam-channel` traz também BSD-3-Clause (código derivado do Go) | Incluir o `LICENSE-THIRD-PARTY` dele nos avisos (o gerador já reproduz todos os arquivos de licença do pacote) | Conferido na versão final dos avisos |
-| P1-4 | Avisos do python-build-standalone e do runtime .NET linux-x64 | Reproduzir os arquivos de licença da release e do pacote linux-x64 | Arquivos presentes em `notices/` |
+| P1-4 | Avisos do python-build-standalone e do runtime .NET linux-x64 | **Feito:** licenças do PBS em `scripts/notices/python-build-standalone/`; .NET linux-x64 com os mesmos arquivos do win-x64 (conferido) | Arquivos presentes |
 | P1-5 | Integração com Claude Code (R-10) | Confirmar e documentar: binário sem modificação, login do usuário, sem ler ou armazenar tokens; nenhum uso de "Claude Code" na marca | Checagem registrada em LICENSE_DECISIONS (D-08) |
 | P1-6 | Marca "Spock" (R-11) | Busca de anterioridade (INPI e USPTO, classes 9 e 42) e avaliação do logotipo | Parecer de marca |
 | P1-7 | Texto da proposta do Terraform incompleto | Citar o caso "embedded" (oferta paga competitiva) e o licenciante atual (IBM) | Texto revisado |

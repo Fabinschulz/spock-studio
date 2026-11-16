@@ -136,8 +136,9 @@ PBS. Fica a decisão adotada: a licença e as fontes vão em `python/licenses/be
 3. Lista as lacunas no `notices-manifest.json`.
 4. Grava `THIRD_PARTY_NOTICES.txt` e a pasta `licenses/`, prontos para virar recurso do Tauri.
 
-Com `--strict`, sai com erro se houver lacuna. Hoje há 45: 8 pacotes sem texto, 34 NuGet só com expressão SPDX e 3 itens
-fora de pacote (bibliotecas do AppImage, .NET linux-x64, nsis_tauri_utils). Por isso, a geração **não é completa**.
+Com `--strict`, sai com erro se houver lacuna. Eram 45: 8 pacotes sem texto, 34 NuGet só com expressão SPDX e 3 itens fora
+de pacote. Depois da seção 8 resta **1**: as bibliotecas embutidas no AppImage, que dependem da D-06. Por isso, a geração ainda
+**não é completa**.
 
 Faltam, todos condicionados à aprovação da D-07:
 
@@ -176,7 +177,7 @@ com EULA de taxa). Também aparecem 3 "desconhecidas" de desenvolvimento: GitHub
 | `python -m unittest` dos testes do gerador (política e detecção) | 11/11 aprovados |
 | `generate_sbom.py --check` | Inventário em dia com os lockfiles |
 | `generate_sbom.py --policy` | 0 bloqueantes |
-| `generate_sbom.py --bundle --strict` | Falha esperada: 45 lacunas |
+| `generate_sbom.py --bundle --strict` | Falha esperada: 45 lacunas (1 depois da seção 8) |
 | SBOMs revalidados contra os schemas oficiais | 6/6 válidos |
 
 **Não executado:**
@@ -188,9 +189,7 @@ com EULA de taxa). Também aparecem 3 "desconhecidas" de desenvolvimento: GitHub
 ## 7. Pendências e riscos remanescentes
 
 - **Técnicas:**
-  - completar as 45 lacunas de aviso;
-  - inventariar o AppImage gerado (D-06);
-  - avisos do .NET linux-x64;
+  - inventariar o AppImage gerado (D-06), a última lacuna de aviso;
   - rodar o CI Linux quando houver orçamento;
   - o build de release precisa usar `-Edition commercial` (o CI atual gera builds de teste, sem a propriedade).
 - **Jurídicas:**
@@ -201,3 +200,28 @@ com EULA de taxa). Também aparecem 3 "desconhecidas" de desenvolvimento: GitHub
   - termos da Anthropic e da Cursor;
   - busca de anterioridade da marca SPOCK (D-12).
 - **Dependem do proprietário:** D-02, D-06, D-07, D-09, D-10, D-11 e D-12.
+
+## 8. Atualização de 2026-11-16: merge do master e lacunas de aviso
+
+- **Merge do master:** o PR conflitava com o master (#107 e #108 trouxeram `AWSSDK.Signin` e `AWSSDK.Pricing` e deixaram o
+  gerador determinístico).
+  - Os arquivos gerados foram regenerados depois do `dotnet restore`; o `--check` confere.
+  - Em `IacGenerationTests.cs` ficou a correção equivalente do master (`(char)0x2014`).
+- **Lacunas de aviso, de 45 para 1:**
+  - `tools/fetch_upstream_licenses.py` baixa, dos repositórios oficiais, o texto de licença dos componentes cujo pacote não
+    traz o arquivo. Cada texto é fixado num commit: o que o nuspec declara (Azure SDK, dotnet/dotnet, MSAL, IdentityModel,
+    YamlDotNet) ou o commit da branch padrão no dia (aws-sdk-net com `License.txt` e `Notice.txt`, alloc-no-stdlib, dlopen2,
+    libappindicator-rs, webview2-rs, mariliz-ui-kit, sqlite-vec, nsis-tauri-utils).
+  - O `selectors` (servo/stylo) não tem arquivo de licença no repositório; os fontes trazem o cabeçalho da MPL 2.0. Para ele
+    vai o texto oficial da Mozilla.
+  - Tudo fica em `notices/upstream/`, com `sources.json` (URL, commit e SHA-256). Os textos não foram editados.
+- **.NET linux-x64:** baixei o pacote oficial `Microsoft.NETCore.App.Runtime.linux-x64` 10.0.13 do nuget.org. Seus
+  `LICENSE.TXT` e `THIRD-PARTY-NOTICES.TXT` são idênticos aos do win-x64 (só muda o fim de linha). Os arquivos de `notices/`
+  cobrem as duas plataformas.
+- **Lacuna restante:** bibliotecas embutidas no AppImage (D-06).
+- **Testes depois do merge:**
+  - `dotnet test runtime/Mariliz.sln`: 1462 + 5 aprovados, 25 ignorados.
+  - Gerador: 11/11; `--check` em dia; `--policy` com 0 bloqueantes; os 6 SBOMs válidos.
+  - UI: 836/837. A falha é `decisions-section.test.tsx` ("oferece as execuções recentes..."), por tempo-limite de 5 s. O
+    teste é idêntico ao do master, passou 1 de 3 vezes isolado e não tem relação com este PR.
+

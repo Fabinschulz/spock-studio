@@ -47,6 +47,13 @@ Avisos prontos para recurso do Tauri (D-07 aguarda aprovação; `--strict` falha
 python docs/compliance/tools/generate_sbom.py --bundle desktop/host/src-tauri/resources/notices --strict
 ```
 
+Textos de licença dos pacotes que não trazem o arquivo, baixados dos repositórios oficiais e fixados em commit
+(`notices/upstream/`, procedência em `sources.json`):
+
+```bash
+python docs/compliance/tools/fetch_upstream_licenses.py
+```
+
 Testes do gerador:
 
 ```bash

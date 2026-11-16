@@ -1023,11 +1023,26 @@ REPO_NOTICES = [
 ]
 
 # O que ainda não tem texto reunido. Sai da lista quando o texto entra no repositório ou no pacote.
+# (.NET linux-x64: LICENSE.TXT e THIRD-PARTY-NOTICES.TXT do pacote 10.0.13 são idênticos aos do win-x64, conferido em 2026-11-16.)
 OPEN_GAPS = [
-    "WebKitGTK, GTK, GLib e demais bibliotecas embutidas no AppImage (LGPL e outras): listar a partir do AppImage gerado (D-06).",
-    ".NET Runtime para linux-x64: LICENSE.TXT/THIRD-PARTY-NOTICES.TXT do pacote linux-x64 (o arquivo copiado é o do win-x64).",
-    "nsis_tauri_utils (MIT OR Apache-2.0) e o runtime do AppImage: textos do repositório oficial.",
+    "WebKitGTK, GTK, GLib, o runtime do AppImage e demais bibliotecas embutidas no AppImage (LGPL e outras): listar a partir do AppImage gerado (D-06).",
 ]
+
+# Textos baixados dos repositórios oficiais, fixados em commit, para quem não traz o arquivo no pacote
+# (tools/fetch_upstream_licenses.py). Cada entrada cobre chaves de componente por prefixo.
+UPSTREAM = OUT / "notices" / "upstream"
+
+
+def upstream_texts(c: Component) -> list[tuple[str, str]]:
+    manifest = UPSTREAM / "sources.json"
+    if not manifest.is_file():
+        return []
+    texts = []
+    for entry in json.loads(manifest.read_text(encoding="utf-8"))["files"]:
+        if any(c.key.startswith(prefix) for prefix in entry["covers"]):
+            origin = f"{entry['repository']} @ {entry['commit'][:12]}" if "commit" in entry else entry["url"]
+            texts.append((f"{entry['file']} (de {origin})", (UPSTREAM / entry["file"]).read_text(encoding="utf-8", errors="replace").strip()))
+    return texts
 
 
 def notice_texts(items: list[Component]) -> tuple[dict[str, tuple[list[str], list[Component]]], list[Component]]:
@@ -1038,16 +1053,17 @@ def notice_texts(items: list[Component]) -> tuple[dict[str, tuple[list[str], lis
         if not shipped(c):
             continue
         directory = package_dir(c)
-        if directory is None:
-            continue
         texts = []
-        for f in license_files(directory, recursive=c.ecosystem == "pypi"):
+        for f in license_files(directory, recursive=c.ecosystem == "pypi") if directory else []:
             try:
                 texts.append((f.name, f.read_text(encoding="utf-8", errors="replace").strip()))
             except OSError:
                 pass
         if not texts:
-            missing.append(c)
+            texts = upstream_texts(c)
+        if not texts:
+            if directory is not None:
+                missing.append(c)
             continue
         for name, text in texts:
             digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
@@ -1079,6 +1095,8 @@ def write_notices(items: list[Component]) -> None:
     for title, folder in REPO_NOTICES:
         relative = folder.relative_to(ROOT).as_posix()
         out.append(f"- {title}: [`{relative}/`](../../{relative}/) (vai em `python/licenses/` no pacote Linux)")
+    out.append("- Textos obtidos nos repositórios oficiais, fixados em commit, para pacotes que não trazem o arquivo: "
+               "[`notices/upstream/`](notices/upstream/) (procedência em `sources.json`)")
     out += ["", "## Componentes de pacotes (npm, Cargo, NuGet, PyPI)", ""]
     for digest, ((name, text), comps) in sorted(by_text.items(), key=lambda kv: (kv[1][1][0].name.lower(), kv[0])):
         names = ", ".join(sorted({f"{c.name} {c.version}" for c in comps}))
@@ -1103,6 +1121,8 @@ def write_bundle(items: list[Component], target: Path) -> list[str]:
             shutil.copy2(source, licenses / name)
     for _, folder in REPO_NOTICES:
         shutil.copytree(folder, licenses / folder.name, dirs_exist_ok=True)
+    if UPSTREAM.is_dir():
+        shutil.copytree(UPSTREAM, licenses / "upstream", dirs_exist_ok=True)
     lines = [f"{PRODUCT[0]} {PRODUCT[1]} - Avisos de terceiros / Third-party notices", "",
              "Este produto contém software de terceiros. Os textos abaixo são reproduzidos sem alteração; os textos longos estão",
              "na pasta licenses/. / This product includes third-party software. The texts below are reproduced unchanged; long",

@@ -1,0 +1,226 @@
+{
+  "retrieved": "2026-11-15",
+  "files": [
+    {
+      "id": "aws-sdk-net",
+      "file": "aws-sdk-net-License.txt",
+      "repository": "https://github.com/aws/aws-sdk-net",
+      "ref": "branch padr\u00e3o",
+      "commit": "80697dc1074776fd534d331cfa817f6741b32556",
+      "url": "https://raw.githubusercontent.com/aws/aws-sdk-net/80697dc1074776fd534d331cfa817f6741b32556/License.txt",
+      "sha256": "192898453336a3f666e8138988cdda21ee7b858b1184e00c882c531df174d0d1",
+      "covers": [
+        "nuget:AWSSDK."
+      ]
+    },
+    {
+      "id": "aws-sdk-net",
+      "file": "aws-sdk-net-Notice.txt",
+      "repository": "https://github.com/aws/aws-sdk-net",
+      "ref": "branch padr\u00e3o",
+      "commit": "80697dc1074776fd534d331cfa817f6741b32556",
+      "url": "https://raw.githubusercontent.com/aws/aws-sdk-net/80697dc1074776fd534d331cfa817f6741b32556/Notice.txt",
+      "sha256": "02cd8cb851a379e90e50fe854d0fcb8e76bf0e4d4be8fcce749c23fec29cb720",
+      "covers": [
+        "nuget:AWSSDK."
+      ]
+    },
+    {
+      "id": "azure-sdk-for-net",
+      "file": "azure-sdk-for-net-LICENSE.txt",
+      "repository": "https://github.com/Azure/azure-sdk-for-net",
+      "ref": "c94768fafa4dd93eef9f7c90c92522434fcedb32",
+      "commit": "c94768fafa4dd93eef9f7c90c92522434fcedb32",
+      "url": "https://raw.githubusercontent.com/Azure/azure-sdk-for-net/c94768fafa4dd93eef9f7c90c92522434fcedb32/LICENSE.txt",
+      "sha256": "9b45236978bb5cd5de992021769e1eeaa79f0116d3b02cf8ba065a1ed603d5fa",
+      "covers": [
+        "nuget:Azure.Core",
+        "nuget:Azure.Identity",
+        "nuget:Azure.ResourceManager",
+        "nuget:System.ClientModel"
+      ]
+    },
+    {
+      "id": "dotnet",
+      "file": "dotnet-LICENSE.TXT",
+      "repository": "https://github.com/dotnet/dotnet",
+      "ref": "c2435c3e0f46de784341ac3ed62863ce77e117b4",
+      "commit": "c2435c3e0f46de784341ac3ed62863ce77e117b4",
+      "url": "https://raw.githubusercontent.com/dotnet/dotnet/c2435c3e0f46de784341ac3ed62863ce77e117b4/LICENSE.TXT",
+      "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b",
+      "covers": [
+        "nuget:Microsoft.Bcl.",
+        "nuget:Microsoft.Extensions.",
+        "nuget:System.Memory.Data",
+        "nuget:System.Formats.Cbor",
+        "nuget:System.IO.Hashing"
+      ]
+    },
+    {
+      "id": "msal-dotnet",
+      "file": "msal-dotnet-LICENSE",
+      "repository": "https://github.com/AzureAD/microsoft-authentication-library-for-dotnet",
+      "ref": "d5d7de6b103f0d9dd7bca9bf13cbb9f3da37bc9f",
+      "commit": "d5d7de6b103f0d9dd7bca9bf13cbb9f3da37bc9f",
+      "url": "https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-dotnet/d5d7de6b103f0d9dd7bca9bf13cbb9f3da37bc9f/LICENSE",
+      "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c",
+      "covers": [
+        "nuget:Microsoft.Identity.Client"
+      ]
+    },
+    {
+      "id": "identitymodel",
+      "file": "identitymodel-LICENSE.txt",
+      "repository": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet",
+      "ref": "c8f7d87bcda35557a68f6cb9c55856a2ee733856",
+      "commit": "c8f7d87bcda35557a68f6cb9c55856a2ee733856",
+      "url": "https://raw.githubusercontent.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet/c8f7d87bcda35557a68f6cb9c55856a2ee733856/LICENSE.txt",
+      "sha256": "cba03f5387b05405e56b688376421acae396136af4b5116738dc6e5160f87ddd",
+      "covers": [
+        "nuget:Microsoft.IdentityModel."
+      ]
+    },
+    {
+      "id": "yamldotnet",
+      "file": "yamldotnet-LICENSE.txt",
+      "repository": "https://github.com/aaubry/YamlDotNet",
+      "ref": "748334a8fa7c227740018b284b71ad95cc6b7fc7",
+      "commit": "748334a8fa7c227740018b284b71ad95cc6b7fc7",
+      "url": "https://raw.githubusercontent.com/aaubry/YamlDotNet/748334a8fa7c227740018b284b71ad95cc6b7fc7/LICENSE.txt",
+      "sha256": "daea8b7f1b2bab48ea12ad50b0ce91634669d99d7dd0cb64aed8dffeeef69ed3",
+      "covers": [
+        "nuget:YamlDotNet"
+      ]
+    },
+    {
+      "id": "alloc-no-stdlib",
+      "file": "alloc-no-stdlib-LICENSE",
+      "repository": "https://github.com/dropbox/rust-alloc-no-stdlib",
+      "ref": "branch padr\u00e3o",
+      "commit": "0a81fd6928ea3b33c8cd484aa4575d50ffb98012",
+      "url": "https://raw.githubusercontent.com/dropbox/rust-alloc-no-stdlib/0a81fd6928ea3b33c8cd484aa4575d50ffb98012/LICENSE",
+      "sha256": "c0c56f26d9c051cac4d200c34c84e7ae9aaa853e01a982a1df08b09931e518ae",
+      "covers": [
+        "cargo:alloc-stdlib"
+      ]
+    },
+    {
+      "id": "dlopen2",
+      "file": "dlopen2-LICENSE",
+      "repository": "https://github.com/OpenByteDev/dlopen2",
+      "ref": "branch padr\u00e3o",
+      "commit": "c1ca06007390d89e9adf2a4400176eba51ba9c28",
+      "url": "https://raw.githubusercontent.com/OpenByteDev/dlopen2/c1ca06007390d89e9adf2a4400176eba51ba9c28/LICENSE",
+      "sha256": "39fa265207450e77c62e90c5594a06c085b655d8374c7ced4bf7894b6bd95dd2",
+      "covers": [
+        "cargo:dlopen2"
+      ]
+    },
+    {
+      "id": "libappindicator-rs",
+      "file": "libappindicator-rs-LICENSE-MIT",
+      "repository": "https://github.com/tauri-apps/libappindicator-rs",
+      "ref": "branch padr\u00e3o",
+      "commit": "d3af4b3a51c0bf208d4aec23305d5ef6f1785e0a",
+      "url": "https://raw.githubusercontent.com/tauri-apps/libappindicator-rs/d3af4b3a51c0bf208d4aec23305d5ef6f1785e0a/LICENSE-MIT",
+      "sha256": "eb227437252b2a7a9c1fc342c93ade1f3d7ce38cc6dd754f613db07d53ceff0b",
+      "covers": [
+        "cargo:libappindicator-sys"
+      ]
+    },
+    {
+      "id": "libappindicator-rs",
+      "file": "libappindicator-rs-LICENSE-APACHE",
+      "repository": "https://github.com/tauri-apps/libappindicator-rs",
+      "ref": "branch padr\u00e3o",
+      "commit": "d3af4b3a51c0bf208d4aec23305d5ef6f1785e0a",
+      "url": "https://raw.githubusercontent.com/tauri-apps/libappindicator-rs/d3af4b3a51c0bf208d4aec23305d5ef6f1785e0a/LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "covers": [
+        "cargo:libappindicator-sys"
+      ]
+    },
+    {
+      "id": "webview2-rs",
+      "file": "webview2-rs-LICENSE",
+      "repository": "https://github.com/wravery/webview2-rs",
+      "ref": "branch padr\u00e3o",
+      "commit": "edc2caf886175ccaebe86078c9cfe1ae2a187328",
+      "url": "https://raw.githubusercontent.com/wravery/webview2-rs/edc2caf886175ccaebe86078c9cfe1ae2a187328/LICENSE",
+      "sha256": "0dcf41516e608bbcb6cdc5229feb7b86fe4a643b85e7df251133c93408fdac73",
+      "covers": [
+        "cargo:webview2-com"
+      ]
+    },
+    {
+      "id": "mariliz-ui-kit",
+      "file": "mariliz-ui-kit-LICENSE",
+      "repository": "https://github.com/Fabinschulz/mariliz-ui-kit",
+      "ref": "branch padr\u00e3o",
+      "commit": "2fc27605317a958d4730743ba9b33d2e67d40513",
+      "url": "https://raw.githubusercontent.com/Fabinschulz/mariliz-ui-kit/2fc27605317a958d4730743ba9b33d2e67d40513/LICENSE",
+      "sha256": "2254381d7ee6555220e5d66f7dfd620be4851fb9783a8e4b6fb8e9879eebee51",
+      "covers": [
+        "npm:@mariliz/ui-kit"
+      ]
+    },
+    {
+      "id": "sqlite-vec",
+      "file": "sqlite-vec-LICENSE-MIT",
+      "repository": "https://github.com/asg017/sqlite-vec",
+      "ref": "v0.1.9",
+      "commit": "e9f598abfa0c06b328d8fe5da9c3760cce74be10",
+      "url": "https://raw.githubusercontent.com/asg017/sqlite-vec/e9f598abfa0c06b328d8fe5da9c3760cce74be10/LICENSE-MIT",
+      "sha256": "6ce72bbe12d975bd5286e5ab0a064c069693300c47bccbc57bec18485f1621ea",
+      "covers": [
+        "pypi:sqlite-vec"
+      ]
+    },
+    {
+      "id": "sqlite-vec",
+      "file": "sqlite-vec-LICENSE-APACHE",
+      "repository": "https://github.com/asg017/sqlite-vec",
+      "ref": "v0.1.9",
+      "commit": "e9f598abfa0c06b328d8fe5da9c3760cce74be10",
+      "url": "https://raw.githubusercontent.com/asg017/sqlite-vec/e9f598abfa0c06b328d8fe5da9c3760cce74be10/LICENSE-APACHE",
+      "sha256": "a38070a94d4afd9cd710e3ce67bd1de78097cfe1784c1f0109ac95d3c196bfdc",
+      "covers": [
+        "pypi:sqlite-vec"
+      ]
+    },
+    {
+      "id": "nsis-tauri-utils",
+      "file": "nsis-tauri-utils-LICENSE_MIT",
+      "repository": "https://github.com/tauri-apps/nsis-tauri-utils",
+      "ref": "branch padr\u00e3o",
+      "commit": "13d9edd27b69310e108d6fbd49f90992f8a05390",
+      "url": "https://raw.githubusercontent.com/tauri-apps/nsis-tauri-utils/13d9edd27b69310e108d6fbd49f90992f8a05390/LICENSE_MIT",
+      "sha256": "1c1020fa10a6bf318717e82c911bcc54ebdfb9bb280460ae332bcb2f82f57fbe",
+      "covers": [
+        "bin:nsis-tauri-utils"
+      ]
+    },
+    {
+      "id": "nsis-tauri-utils",
+      "file": "nsis-tauri-utils-LICENSE_APACHE-2.0",
+      "repository": "https://github.com/tauri-apps/nsis-tauri-utils",
+      "ref": "branch padr\u00e3o",
+      "commit": "13d9edd27b69310e108d6fbd49f90992f8a05390",
+      "url": "https://raw.githubusercontent.com/tauri-apps/nsis-tauri-utils/13d9edd27b69310e108d6fbd49f90992f8a05390/LICENSE_APACHE-2.0",
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "covers": [
+        "bin:nsis-tauri-utils"
+      ]
+    },
+    {
+      "id": "mpl-2.0",
+      "file": "mpl-2.0-MPL-2.0.txt",
+      "url": "https://www.mozilla.org/media/MPL/2.0/index.txt",
+      "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+      "covers": [
+        "cargo:selectors"
+      ],
+      "note": "servo/stylo n\u00e3o tem arquivo de licen\u00e7a; os fontes de selectors t\u00eam o cabe\u00e7alho da MPL 2.0"
+    }
+  ]
+}

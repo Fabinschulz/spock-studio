@@ -16,7 +16,7 @@ de parecer.
 | R-05 | MÉDIO | D/J | .NET Runtime win-x64 (.NET Library License) e linux-x64 (MIT) | P0 |
 | R-06 | MÉDIO | D/J | CPython embed e Visual C++ Runtime (Distributable Code) | P0 |
 | R-07 | MÉDIO | D | Componentes MPL-2.0 distribuídos (6) | P1 |
-| R-08 | MÉDIO | E | 9 componentes sem texto de licença no pacote e 34 NuGet só com expressão | P1 |
+| R-08 | BAIXO (era MÉDIO) | E | Textos de licença obtidos nos repositórios oficiais | — |
 | R-09 | BAIXO (era MÉDIO) | D | python-build-standalone: avisos das bibliotecas nativas (textos no pacote) | — |
 | R-10 | MÉDIO | J | Integração com o Claude Code CLI | P1 |
 | R-11 | PENDENTE | J | Marca "Spock" e logotipo | P1 |
@@ -122,15 +122,16 @@ de parecer.
 - **Ação.** Nos avisos, para cada um, o texto da MPL e o link para o fonte da versão (crates.io, PyPI ou repositório na tag).
 - **Prioridade.** P1.
 
-### R-08: Texto de licença ausente no pacote: MÉDIO, ausência de evidência
+### R-08: Texto de licença ausente no pacote: BAIXO (era MÉDIO), ausência de evidência
 
 - **Componentes.** `alloc-stdlib` 0.3.0, `dlopen2` 0.8.2, `libappindicator-sys` 0.9.0, `selectors` 0.38.0, `webview2-com`
   0.39.1, `webview2-com-sys` 0.39.1, `@mariliz/ui-kit` 0.6.0 (próprio), `sqlite-vec` 0.1.9 e `hoist-non-react-statics` 3.3.2
   (texto não reconhecido). Também os 34 NuGet que só declaram a expressão (AWS SDK Apache-2.0, Microsoft MIT).
 - **Motivo.** A licença declarada existe, mas o texto a reproduzir não vem no pacote.
-- **Ação.** Obter o texto no repositório da versão. Para os NuGet, usar o texto canônico da licença SPDX com o copyright do
-  titular.
-- **Prioridade.** P1.
+- **Ação feita (2026-11-16).** `tools/fetch_upstream_licenses.py` baixou os textos dos repositórios oficiais, fixados em
+  commit, para `notices/upstream/`, com procedência em `sources.json`. O `selectors` recebeu o texto oficial da MPL 2.0, porque
+  o repositório não tem arquivo de licença. O `hoist-non-react-statics` traz o próprio arquivo, que já vai nos avisos.
+- **Resta.** Nada para esses componentes.
 
 ### R-09: python-build-standalone: avisos nativos: BAIXO (era MÉDIO), distribuição
 

@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Inventário consolidado (distribuído, sob demanda, externo e desenvolvimento)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--d767ca88-ef44-44cb-8f73-e6d5150a467b",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--9c43f988-52ae-4757-aa23-73837d32cc1f",
   "creationInfo": {
-    "created": "2026-11-16T00:42:58Z",
+    "created": "2026-11-16T00:58:36Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
