@@ -15156,4 +15156,3 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 O texto precisa ser obtido no repositório oficial, na versão correspondente, antes do lançamento (não foi redigido aqui):
 
-- WebKitGTK, GTK, GLib, o runtime do AppImage e demais bibliotecas embutidas no AppImage (LGPL e outras): listar a partir do AppImage gerado (D-06).

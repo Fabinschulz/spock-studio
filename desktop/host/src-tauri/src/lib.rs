@@ -144,6 +144,21 @@ fn diagnostic_log(log: State<'_, DiagnosticLog>) -> Vec<LogEntry> {
     log.snapshot()
 }
 
+/// Avisos de terceiros que o instalador leva como recurso (D-07, docs/compliance), para a tela Sobre.
+#[tauri::command(async)]
+fn third_party_notices(app: AppHandle) -> Result<resources::Notices, HostError> {
+    app.path()
+        .resource_dir()
+        .ok()
+        .and_then(|dir| resources::third_party_notices(&dir))
+        .ok_or_else(|| {
+            HostError::new(
+                error_code::NOTICES_NOT_FOUND,
+                "Os avisos de terceiros não estão nesta instalação.",
+            )
+        })
+}
+
 /// Como em `open_recent_project`, a UI manda o id do recente e o host resolve a pasta: o terminal só abre num projeto
 /// que passou pelo diálogo nativo.
 #[tauri::command(async)]
@@ -228,6 +243,7 @@ pub fn run() {
             list_recent_projects,
             open_recent_project,
             diagnostic_log,
+            third_party_notices,
             terminal_open,
             terminal_write,
             terminal_resize,

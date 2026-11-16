@@ -19,9 +19,10 @@ Fonte: `desktop/host/src-tauri/tauri.conf.json` (`bundle`), `.github/workflows/c
 | `python/` | CPython 3.12.10 embeddable oficial | CPython (Python-2.0), OpenSSL 3.0.16, libffi, SQLite, bzip2, xz, expat 2.7.1, mpdecimal, zlib, `vcruntime140.dll`, `vcruntime140_1.dll` | Redistribuído sem modificação; o `python312._pth` é editado pelo build para habilitar `import site` |
 | `intelligence/` | Código próprio + `packages/` | 41 pacotes PyPI em bytecode `.pyc` sem fonte, com os `dist-info` (e os arquivos de licença) preservados | Redistribuído; forma alterada para bytecode, conteúdo sem modificação |
 | Ícones | Ícones do app | Próprios | — |
+| `notices/` | Avisos de terceiros (D-07) | `THIRD_PARTY_NOTICES.txt`, `licenses/` e manifesto, gerados por `generate_sbom.py` | Mostrados em Configurações → Sobre |
 | Não incluídos | — | WebView2 (o instalador baixa o bootstrapper da Microsoft se faltar), OpenTofu, Terraform, providers, agent-skills, CLIs de IA | — |
 
-### Linux x64: AppImage e `.deb`
+### Linux x64: `.deb` (D-06: AppImage fora da 1ª versão)
 
 | Parte | Conteúdo | Componentes de terceiros | Forma |
 | --- | --- | --- | --- |
@@ -29,7 +30,6 @@ Fonte: `desktop/host/src-tauri/tauri.conf.json` (`bundle`), `.github/workflows/c
 | Sidecar | .NET 10 linux-x64, single-file | Runtime .NET linux-x64 (MIT); os mesmos 47 NuGet | Incorporado |
 | `python/` | python-build-standalone 3.12.10+20250409, podado | CPython, OpenSSL 3.0.16, SQLite 3.47.1, ncurses 6.5, libedit, libffi 3.4.6, expat 2.6.3, mpdecimal 4.0.0, zlib 1.3.1, xz 5.2.12, bzip2, uuid, libX11/libxcb e **Berkeley DB 6.0.19 (`_dbm`, Sleepycat, ligado estaticamente ao `libpython3.12.so`)**. Tcl/Tk são podados | Redistribuído |
 | `intelligence/` | Igual ao Windows (rodas manylinux com `strip`) | 41 pacotes PyPI | Redistribuído |
-| Só no AppImage | Bibliotecas do sistema embutidas pelo `linuxdeploy --plugin gtk` | WebKitGTK 4.1 (processos e `libwebkit2gtkinjectedbundle.so`), GTK 3, GLib, libsoup e afins: LGPL-2.1+ e outras. Lista exata não inspecionada | Redistribuído |
 | Só no `.deb` | Dependências declaradas (`libwebkit2gtk-4.1-0`, `libgtk-3-0`) | Do sistema | Não redistribuído |
 
 ### Atualizado automaticamente

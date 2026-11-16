@@ -21,7 +21,8 @@ export const paths = {
   infrastructure: '/infraestrutura',
   settings: '/configuracoes',
   settingsAi: '/configuracoes/ia',
-  settingsDiagnostics: '/configuracoes/diagnostico'
+  settingsDiagnostics: '/configuracoes/diagnostico',
+  settingsAbout: '/configuracoes/sobre'
 } as const;
 
 export const executionPattern = '/execucao/:runId';

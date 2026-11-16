@@ -24,6 +24,7 @@ import ProjectHarness from './routes/project-harness';
 import ProjectKnowledge from './routes/project-knowledge';
 import Runs from './routes/runs';
 import SettingsAi from './routes/settings-ai';
+import SettingsAbout from './routes/settings-about';
 import SettingsDiagnostics from './routes/settings-diagnostics';
 
 // Os caminhos vêm de `shared/routing`: a navegação e as rotas não podem divergir.
@@ -182,6 +183,7 @@ export const routes: RouteObject[] = [
         )
       },
       { path: paths.settingsDiagnostics, element: <SettingsDiagnostics /> },
+      { path: paths.settingsAbout, element: <SettingsAbout /> },
       {
         path: executionPattern,
         element: (

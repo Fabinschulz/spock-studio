@@ -1,6 +1,6 @@
 # D-06: formato do pacote Linux (relatório técnico)
 
-Data: 2026-11-16. **A decisão aguarda o proprietário. O formato atual (AppImage e `.deb`, `ci.yml`) não foi alterado.**
+Data: 2026-11-16. **Decisão do proprietário em 2026-11-16: só `.deb` na 1ª versão.** O CI passou a gerar `bundles: deb`.
 
 ## Fatos
 

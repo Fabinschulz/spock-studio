@@ -34,6 +34,12 @@ public class PackagedAiSmokeTests
         Assert.Empty(Directory.GetFiles(Path.Combine(root, "intelligence", "packages"), "*.py", SearchOption.AllDirectories));
         var pythonLicense = OperatingSystem.IsWindows() ? Path.Combine(root, "python", "LICENSE.txt") : Path.Combine(root, "python", "lib", "python3.12", "LICENSE.txt");
         Assert.True(File.Exists(pythonLicense), "Licença do CPython ausente do pacote.");
+        // D-07: os avisos de terceiros vão no instalador e precisam estar completos.
+        var notices = Path.Combine(root, "notices");
+        Assert.True(File.Exists(Path.Combine(notices, "THIRD_PARTY_NOTICES.txt")), "Avisos de terceiros ausentes do pacote.");
+        var manifest = JsonNode.Parse(File.ReadAllText(Path.Combine(notices, "notices-manifest.json")))!;
+        Assert.True(manifest["complete"]!.GetValue<bool>(), "O manifesto dos avisos registra lacunas.");
+        Assert.True(manifest["components"]!.GetValue<int>() > 0, "O manifesto dos avisos não lista componentes.");
         if (OperatingSystem.IsLinux())
         {
             // Sleepycat: o Berkeley DB vai dentro do libpython, então a licença e as fontes precisam ir junto.

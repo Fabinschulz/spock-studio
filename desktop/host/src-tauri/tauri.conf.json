@@ -43,7 +43,8 @@
     "externalBin": ["binaries/mariliz-runtime"],
     "resources": {
       "resources/intelligence/": "intelligence/",
-      "resources/python/": "python/"
+      "resources/python/": "python/",
+      "resources/notices/": "notices/"
     },
     "windows": {
       "nsis": {

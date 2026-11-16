@@ -15,8 +15,8 @@ SPOCK significa **System of Programming, Organization, Code and Knowledge**.
 | D-03 Download oficial sob demanda | Adotada | Já implementada (seção 2.2) | Nenhuma alteração |
 | D-04 CPython embarcado | Adotada | Windows: embed oficial com `LICENSE.txt`. Linux: o PBS não trazia as licenças das bibliotecas nativas | O pacote Linux passa a levar as licenças das 16 bibliotecas ligadas ao `libpython`, e o teste do pacote confere a presença |
 | D-05 Berkeley DB | Adotada em 2026-11-15: cumprir a Sleepycat | O pedido desta etapa fala em remover o `_dbm`, mas isso não é possível pela poda (seção 4) | Mantida a decisão adotada: licença e fontes no pacote, conferidas pelo teste |
-| D-06 Formato Linux | **Aguarda aprovação** | AppImage e `.deb` no CI | Só o relatório [LINUX_DISTRIBUTION_REPORT.md](LINUX_DISTRIBUTION_REPORT.md); nada mudou no formato |
-| D-07 Avisos no produto | **Aguarda aprovação** | Os avisos não iam ao instalador | Preparada a geração (`--bundle`, `--strict`). Não está ligada ao `tauri.conf.json` nem à tela "Sobre" |
+| D-06 Formato Linux | **Adotada em 2026-11-16: só `.deb`** | Antes: AppImage e `.deb` no CI | CI com `bundles: deb` (seção 9); relatório em [LINUX_DISTRIBUTION_REPORT.md](LINUX_DISTRIBUTION_REPORT.md) |
+| D-07 Avisos no produto | **Adotada em 2026-11-16** | Antes: os avisos não iam ao instalador | Avisos em `resources/notices/` no instalador, comando do host, tela Sobre e conferência no smoke e no `--check` (seção 9) |
 | D-08 CLIs de IA | Adotada; confirmação pendente | Conferido (seção 2.4) | Nenhuma alteração de código; as pendências da Anthropic e da Cursor estão registradas |
 | D-09 EULA | **Aguarda redação e aprovação** | O instalador não exibe EULA | Nenhuma |
 | D-10 Política de licenças | **Aguarda aprovação** | Não havia verificação automática | Preparada: `license-policy.json` (proposta), `--policy` em modo relatório e job `compliance` no CI |
@@ -224,4 +224,35 @@ com EULA de taxa). Também aparecem 3 "desconhecidas" de desenvolvimento: GitHub
   - Gerador: 11/11; `--check` em dia; `--policy` com 0 bloqueantes; os 6 SBOMs válidos.
   - UI: 836/837. A falha é `decisions-section.test.tsx` ("oferece as execuções recentes..."), por tempo-limite de 5 s. O
     teste é idêntico ao do master, passou 1 de 3 vezes isolado e não tem relação com este PR.
+
+## 9. D-06 e D-07 implementadas (2026-11-16, decisões do dono)
+
+- **D-06 (só `.deb`):** o job `desktop` gera `bundles: deb` no Linux, e o `APPIMAGE_EXTRACT_AND_RUN` saiu. O smoke do
+  instalador Linux já usava o `.deb`. O WebKitGTK passou a "externo, dependência do sistema" no inventário, e o R-03 caiu para
+  BAIXO.
+- **D-07 (avisos no produto):**
+  - `generate_sbom.py` grava `desktop/host/src-tauri/resources/notices/`, que fica versionado. Nele vão
+    `THIRD_PARTY_NOTICES.txt`, `licenses/` (45 arquivos) e `notices-manifest.json` (484 componentes, `complete: true`, lista
+    de componentes).
+  - O resultado não depende da máquina: os textos longos vêm das cópias versionadas em `docs/compliance/notices/`.
+  - O `--check` falha se um componente distribuído entrar ou sair sem regenerar os avisos. Pacotes NuGet só de build (como o
+    `Microsoft.NET.ILLink.Tasks`, que aparece num restore com RID) deixaram de contar como distribuídos.
+  - `tauri.conf.json` mapeia `resources/notices/` para `notices/`. O comando do host `third_party_notices` está liberado em
+    `build.rs` e em `capabilities/default.json`.
+  - A tela **Configurações → Sobre** mostra o significado de SPOCK, a versão, a contagem e os textos.
+- **Evidência:**
+  - O instalador NSIS comercial (`Spock Studio_0.1.0_x64-setup.exe`, 46,9 MB, build local) traz no `installer.nsi`
+    `notices\THIRD_PARTY_NOTICES.txt`, o manifesto e os 45 arquivos de `notices\licenses\`.
+  - O smoke `Pacote_embarcado`, rodado contra `target/release` (mesma estrutura da instalação), passou.
+  - No executável de release, aberto com dados isolados e dirigido pelo CDP, a tela Sobre mostrou "484 componentes de
+    terceiros" e os textos (762 mil caracteres). `third_party_notices` respondeu `complete=true`.
+  - Esse teste real pegou uma falha que os testes unitários não pegavam: o comando era recusado pela ACL do Tauri até entrar
+    em `build.rs` e nas capacidades.
+- **Testes:**
+  - `dotnet test runtime/Mariliz.sln`: 1466 + 5 aprovados, 26 ignorados.
+  - Host: `cargo test` 46/46; `clippy` e `fmt` limpos.
+  - UI: 843/843; `tsc`, `eslint` e `prettier` limpos.
+  - Gerador: 11/11; `--check` em dia; `--policy` com 0 bloqueantes; os 6 SBOMs válidos.
+- **Não verificado:** a instalação real do NSIS (o smoke executa o setup e criaria atalhos e registro de desinstalação nesta
+  máquina) e o `.deb`, que dependem do CI.
 

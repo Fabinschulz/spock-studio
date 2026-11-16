@@ -11,8 +11,8 @@ de parecer.
 | --- | --- | --- | --- | --- |
 | R-01 | ALTO | J | Terraform (BUSL 1.1), instalação e operação gerenciadas | P0 |
 | R-02 | MÉDIO | J | Berkeley DB 6.0.19 (Sleepycat) no Python do Linux (obrigação cumprida no pacote) | P1 |
-| R-03 | ALTO | D | GTK/WebKitGTK (LGPL) embutidos no AppImage | P0 |
-| R-04 | MÉDIO | D | Avisos de ~480 componentes permissivos não distribuídos | P0 |
+| R-03 | BAIXO (era ALTO) | D | GTK/WebKitGTK (LGPL): AppImage fora da distribuição (D-06) | — |
+| R-04 | BAIXO (era MÉDIO) | D | Avisos de terceiros no instalador e na tela Sobre (D-07) | — |
 | R-05 | MÉDIO | D/J | .NET Runtime win-x64 (.NET Library License) e linux-x64 (MIT) | P0 |
 | R-06 | MÉDIO | D/J | CPython embed e Visual C++ Runtime (Distributable Code) | P0 |
 | R-07 | MÉDIO | D | Componentes MPL-2.0 distribuídos (6) | P1 |
@@ -66,7 +66,7 @@ de parecer.
   3. Guardar uma cópia dos tarballs de fonte junto das releases.
 - **Prioridade.** P1.
 
-### R-03: GTK/WebKitGTK (LGPL) no AppImage: ALTO, distribuição
+### R-03: GTK/WebKitGTK (LGPL) no AppImage: BAIXO (era ALTO), distribuição
 
 - **Evidência.** `.github/workflows/ci.yml:79` (`bundles: appimage,deb`). O código do tauri-bundler (`linuxdeploy.rs`) copia
   os processos do WebKit e roda `linuxdeploy --plugin gtk`.
@@ -74,11 +74,11 @@ de parecer.
   `bundleMediaFramework`, GStreamer. No `.deb` elas são dependências do sistema.
 - **Impacto comercial.** A LGPL exige os textos, o código-fonte correspondente (ou oferta escrita) e permitir substituir e
   depurar as bibliotecas. O EULA não pode proibir isso.
-- **Ação.** Decidir (D-06): só `.deb` na 1ª versão, ou o AppImage com o pacote de conformidade LGPL. Inspecionar o AppImage
-  gerado para listar cada biblioteca e sua licença (não feito: falta build Linux).
-- **Prioridade.** P0.
+- **Ação feita (2026-11-16).** D-06 adotada: só `.deb`. O CI gera `bundles: deb`, e as bibliotecas ficam com o gerenciador
+  da distribuição, sem redistribuição pelo Spock.
+- **Resta.** Nada nesta versão. Se o AppImage voltar, o risco volta com ele.
 
-### R-04: Avisos de componentes permissivos não distribuídos: MÉDIO, distribuição
+### R-04: Avisos de componentes permissivos não distribuídos: BAIXO (era MÉDIO), distribuição
 
 - **Evidência.**
   - `desktop/ui/dist/assets/*.js` tem 0 comentários `@license` (106 pacotes npm de produção).
@@ -88,9 +88,9 @@ de parecer.
 - **Motivo.** MIT, BSD, ISC, Apache e Unicode exigem copyright e texto da licença em cópias distribuídas. Apache exige também
   o NOTICE.
 - **Impacto comercial.** Descumprimento generalizado, mas de baixo custo de correção.
-- **Ação.** Embarcar a versão final de [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) e de `notices/`, acessível em "Sobre",
-  gerada pelo `generate_sbom.py` no build.
-- **Prioridade.** P0.
+- **Ação feita (2026-11-16, D-07).** O instalador leva `notices/` (484 componentes, `complete: true`), e a tela Sobre os
+  mostra. O smoke do pacote e o `--check` do CI conferem.
+- **Resta.** A presença no instalador do Linux só será confirmada pelo CI.
 
 ### R-05: .NET Runtime self-contained: MÉDIO, distribuição/jurídico
 

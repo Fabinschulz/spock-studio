@@ -132,7 +132,8 @@ export const SETTINGS_GROUP: NavGroup = {
       label: 'Diagnóstico',
       icon: <InfoIcon fontSize="small" />,
       to: pathTo('settingsDiagnostics')
-    }
+    },
+    { id: 'settings-about', label: 'Sobre', icon: <BookOpenIcon fontSize="small" />, to: pathTo('settingsAbout') }
   ]
 };
 

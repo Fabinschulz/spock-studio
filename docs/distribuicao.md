@@ -8,11 +8,11 @@ Decisão de 2026-11-05: a primeira versão do Mariliz Studio sai para **Windows*
 | Sistema | Instalador | Certificado ou licença para rodar | Observação |
 | --- | --- | --- | --- |
 | Windows x64 | NSIS (`*-setup.exe`), instalação por usuário | Nenhum | O SmartScreen avisa sobre editor desconhecido (abaixo) |
-| Linux x64 | `.deb` e AppImage | Nenhum | Precisa do WebKitGTK 4.1 no sistema; o AppImage reduz o problema |
+| Linux x64 | `.deb` | Nenhum | Precisa do WebKitGTK 4.1 no sistema (dependência do pacote). Só `.deb` na 1ª versão (D-06, `docs/compliance`): o AppImage redistribuiria GTK/WebKitGTK sob LGPL |
 | macOS | — | Conta Apple Developer (paga) para assinar e notarizar | Fora desta versão; ver "Para voltar ao macOS" |
 
-Os componentes embarcados (Tauri, .NET, Python, LangGraph) são de licença permissiva e não pedem licença paga para
-redistribuir. Um arquivo com os avisos de licença de terceiros dentro do instalador ainda não existe.
+As licenças dos componentes embarcados e as obrigações de cada um estão em `docs/compliance/`. O instalador leva os avisos
+de terceiros em `notices/` (D-07), e o app os mostra na tela **Sobre**.
 
 ## O aviso do SmartScreen (Windows)
 

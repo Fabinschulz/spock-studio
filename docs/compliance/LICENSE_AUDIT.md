@@ -6,7 +6,7 @@
 | Escopo | Repositório inteiro no commit `2bdba24` (master; dependências e empacotamento idênticos em `8c61780`), mais o último build local (instalador Windows, recursos do Python e sidecar) |
 | Produto | Spock Studio 0.1.0, comercializado como software proprietário |
 | Natureza | Auditoria técnica de conformidade. **Não é parecer jurídico.** As questões marcadas ⚖ precisam de um profissional de propriedade intelectual e licenciamento de software |
-| Resultado | **Sem conformidade total.** Não há bloqueador de copyleft forte no produto distribuído. Há 5 riscos ALTO (2 no produto distribuído ou baixado por ele, 3 em dependências de teste com taxa), 13 MÉDIO e 3 PENDENTES, e as obrigações de aviso e EULA ainda não estão implementadas nos instaladores |
+| Resultado | **Sem conformidade total.** Não há bloqueador de copyleft forte no produto distribuído. Em 2026-11-16 restam 4 riscos ALTO (o Terraform sob demanda e 3 dependências de teste com taxa), nenhum no que vai ao usuário, 13 MÉDIO e 3 PENDENTES, e as obrigações de aviso e EULA ainda não estão implementadas nos instaladores |
 
 Documentos desta auditoria:
 
@@ -28,7 +28,7 @@ Documentos desta auditoria:
 | Externos (instalação ou conta do usuário) | 8: Git, Node/npx, Claude Code, Codex CLI, Cursor Agent, Gemini CLI, APIs de modelo e APIs de nuvem/integrações |
 | Só desenvolvimento ou build | 460 (inclui 104 crates de build/proc-macro). 1 pacote do lock não é instalado (`httpx2-jsfetch`, só emscripten) |
 | Licenças efetivas dos distribuídos | MIT 397, Apache-2.0 27, BSD-3-Clause 15, Unicode-3.0 15, MPL-2.0 5 (+1 em `orjson`), ISC 3, BSD-2-Clause 3, Python/PSF 3, Zlib, 0BSD, MIT-0, Sleepycat 1, .NET Library License 1, Visual C++ Redistributable 1, NSIS (Zlib+bzip2+CPL) 1 |
-| Risco (todos / distribuídos) | CRÍTICO 0/0 · ALTO 5/1 · MÉDIO 13/11 · PENDENTE 3/1 · BAIXO 934/470 (atualizado em 2026-11-16) |
+| Risco (todos / distribuídos) | CRÍTICO 0/0 · ALTO 4/0 · MÉDIO 13/11 · PENDENTE 3/1 · BAIXO 938/472 (atualizado em 2026-11-16, após D-06 e D-07) |
 | Licença conferida no arquivo do pacote (distribuídos) | 426 conferem com o declarado; 34 NuGet só declaram a expressão SPDX; 12 conferidos manualmente; 8 sem arquivo de licença no pacote; 1 texto não reconhecido; 1 divergência (`crossbeam-channel` traz também BSD-3-Clause, de código derivado do Go) |
 | Sem licença confirmada | Nenhum componente distribuído está sem licença declarada. 9 não trazem o texto no pacote (lista em THIRD_PARTY_NOTICES.md, "Lacunas") |
 | SBOM | 6 arquivos, todos **válidos** contra os schemas oficiais SPDX 2.3 e CycloneDX 1.6, sem referência quebrada |
@@ -264,9 +264,9 @@ resultados não indicam conflito nem ausência dele. ⚖ Busca de anterioridade 
 | --- | --- | --- | --- |
 | P0-1 | Terraform baixado e operado por produto pago pode ser "embedded" na BUSL 1.1 (R-01) | Parecer jurídico. Até lá, desativar nas versões comerciais a **instalação gerenciada** do Terraform (cenários 3 e 4), mantendo OpenTofu e Terraform pré-instalado. Ou obter licença comercial ou esclarecimento escrito da IBM | Parecer arquivado em LICENSE_DECISIONS (D-02) e build comercial coerente com ele |
 | P0-2 | Instaladores sem EULA, exigido pela .NET Library License (win-x64), pelos termos do Visual C++ e pelo CPython Windows (R-05, R-06) | Redigir o EULA do Spock com as cláusulas exigidas e exibi-lo no NSIS (`bundle.windows.nsis.license`) e no Linux | EULA revisado pelo jurídico e exibido nos instaladores |
-| P0-3 | Avisos de terceiros não chegam ao usuário (R-04) | Incluir `THIRD_PARTY_NOTICES` (versão final), `notices/` e os textos ainda faltantes como recurso do instalador, acessíveis por "Sobre". Gerar a partir do inventário no build | Instalador contém os avisos; smoke do CI verifica o arquivo |
+| P0-3 | Avisos de terceiros não chegam ao usuário (R-04) | Incluir `THIRD_PARTY_NOTICES` (versão final), `notices/` e os textos ainda faltantes como recurso do instalador, acessíveis por "Sobre". Gerar a partir do inventário no build | **Feito em 2026-11-16 (D-07):** `resources/notices/` no instalador, tela Sobre e conferência no smoke e no `--check` |
 | P0-4 | Berkeley DB (Sleepycat) no Python do Linux (R-02) | **Feito (D-05):** licença e fontes vão em `python/licenses/berkeley-db/`, conferidas pelo smoke. Restam o parecer, o canal de suporte e a cópia dos fontes nas releases (agora P1) | Smoke `Pacote_embarcado` verde no CI Linux |
-| P0-5 | AppImage redistribui GTK/WebKitGTK (LGPL) (R-03) | Distribuir só o `.deb` na 1ª versão, ou cumprir a LGPL no AppImage: textos, fonte correspondente ou oferta escrita, e EULA sem proibição de engenharia reversa dessas bibliotecas | Decisão D-06 registrada e o artefato coerente com ela |
+| P0-5 | AppImage redistribui GTK/WebKitGTK (LGPL) (R-03) | Distribuir só o `.deb` na 1ª versão, ou cumprir a LGPL no AppImage: textos, fonte correspondente ou oferta escrita, e EULA sem proibição de engenharia reversa dessas bibliotecas | **Feito em 2026-11-16 (D-06):** só `.deb` no CI |
 
 ### P1: conformidade obrigatória
 

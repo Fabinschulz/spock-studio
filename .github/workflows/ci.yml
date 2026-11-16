@@ -108,7 +108,8 @@ jobs:
             os: ubuntu-22.04
             rid: linux-x64
             triple: x86_64-unknown-linux-gnu
-            bundles: appimage,deb
+            # Só .deb na 1ª versão (D-06, docs/compliance): o AppImage redistribuiria GTK/WebKitGTK (LGPL).
+            bundles: deb
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -175,9 +176,6 @@ jobs:
         run: cargo test --locked
       - name: instalador
         working-directory: desktop/host
-        env:
-          # O AppImage é gerado sem FUSE nos runners hospedados.
-          APPIMAGE_EXTRACT_AND_RUN: '1'
         run: pnpm tauri build --target ${{ matrix.triple }} --bundles ${{ matrix.bundles }}
       # Smoke do instalador: abre o instalador gerado (não a pasta que a CI montou antes dele) e roda o grafo com o Python que
       # ele leva dentro. Pega o que o Tauri faz com os recursos: arquivos omitidos, permissão de execução, links simbólicos.

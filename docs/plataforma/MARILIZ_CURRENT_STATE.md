@@ -312,7 +312,7 @@ ambientes com entrada própria, topo sem repetição do estado do motor, jornada
 | Infraestrutura | Sem aplicar o plano, state, geração de `.tf`, drift e custo; operações fora da central de execuções; macOS e Linux não rodados. |
 | Execuções | Sincronização fora da lista; listagem lê diários inteiros; sem visão agregada de tokens. |
 | Identidade | Sem usuário, papel ou organização. |
-| Distribuição | Instaladores Windows (NSIS) e Linux (AppImage e deb) gerados pela CI, sem assinatura, sem atualização automática, sem workflow de release, sem macOS. |
+| Distribuição | Instaladores Windows (NSIS) e Linux (deb; AppImage fora pela D-06) gerados pela CI, sem assinatura, sem atualização automática, sem workflow de release, sem macOS. |
 
 ## 7. Decisões em aberto
 

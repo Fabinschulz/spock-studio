@@ -3,13 +3,13 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Spock Studio para Windows x64 (instalador NSIS)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-windows-x64--instalador-nsis--8d9769ff-d5d4-4145-8f6a-b6d43fc925f3",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-windows-x64--instalador-nsis--f0c1fe3b-a855-40af-af58-97f6dffa1ffa",
   "creationInfo": {
-    "created": "2026-11-16T00:58:36Z",
+    "created": "2026-11-16T01:32:54Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
-    "comment": "Cobre dependências de npm, Cargo, NuGet e PyPI resolvidas pelos lockfiles e binários embarcados conhecidos. Não cobre: bibliotecas do sistema embutidas no AppImage (sem build Linux inspecionado), componentes internos do python-build-standalone, versões exatas das ferramentas baixadas sob demanda (escolhidas em tempo de execução). Ver docs/compliance/LICENSE_AUDIT.md, seção Limitações."
+    "comment": "Cobre dependências de npm, Cargo, NuGet e PyPI resolvidas pelos lockfiles e binários embarcados conhecidos. Não cobre: componentes internos do python-build-standalone, versões exatas das ferramentas baixadas sob demanda (escolhidas em tempo de execução). Ver docs/compliance/LICENSE_AUDIT.md, seção Limitações."
   },
   "packages": [
     {
