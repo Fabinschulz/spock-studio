@@ -10,6 +10,8 @@ public static class IacBlueprintJson
 {
     public const int MaxText = 200;
     public const int MaxItems = 20;
+    // Id de recurso do Azure (subnet, zona DNS) passa de 200 caracteres.
+    public const int MaxId = 400;
 
     public static IacBlueprint Blueprint(JsonObject json)
     {
@@ -20,12 +22,15 @@ public static class IacBlueprintJson
             Text(json, "region") ?? "",
             Text(json, "account"),
             Text(json, "profile"),
-            new IacNetwork(network is null ? "" : Text(network, "vpcId") ?? "", Texts(network, "privateSubnets"), Texts(network, "publicSubnets")),
+            new IacNetwork(network is null ? "" : Text(network, "vpcId", MaxId) ?? "", Texts(network, "privateSubnets", MaxId), Texts(network, "publicSubnets", MaxId),
+                network is null ? null : Text(network, "privateDnsZone", MaxId)),
             json["service"] is JsonObject service ? Service(service) : null,
             json["database"] is JsonObject database ? Database(database) : null,
             Texts(json, "queues"),
             Text(json, "alarmEmail"),
-            json["backend"] is JsonObject backend && Text(backend, "bucket") is { } bucket ? new IacBackendSpec(bucket, Text(backend, "region") ?? "") : null);
+            json["backend"] is JsonObject backend && Text(backend, "bucket") is { } bucket
+                ? new IacBackendSpec(bucket, Text(backend, "region") ?? "", Text(backend, "resourceGroup"), Text(backend, "container"))
+                : null);
     }
 
     public static IacArchitectureNotes Notes(JsonObject? json)

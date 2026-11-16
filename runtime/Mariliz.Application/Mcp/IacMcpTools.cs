@@ -63,7 +63,7 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
 
     private static readonly McpToolInfo Blueprint = new(
         BlueprintTool, "Conferir um desenho de infraestrutura",
-        "Confere um desenho AWS (serviço em contêiner, banco RDS, filas) com as mesmas checagens da tela Infraestrutura e " +
+        "Confere um desenho AWS, Azure ou Google Cloud (serviço em contêiner, banco, filas) com as mesmas checagens da tela Infraestrutura e " +
         "devolve o que falha, os arquivos que a geração escreveria no formato do modelo e o que seria cobrado (sem valores). " +
         "Não grava nada: gerar os arquivos é decisão da pessoa na tela.",
         new JsonObject
@@ -74,9 +74,10 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
                 ["blueprint"] = new JsonObject
                 {
                     ["type"] = "object",
-                    ["description"] = "provider (aws), project, region, account, profile, network {vpcId, privateSubnets, publicSubnets}, " +
+                    ["description"] = "provider (aws, azure ou gcp), project, region, account (conta AWS, subscription do Azure ou projeto do Google), " +
+                                      "profile (perfil AWS ou tenant do Azure), network {vpcId, privateSubnets, publicSubnets, privateDnsZone}, " +
                                       "service {name, port, healthPath, cpu, memory, desiredCount, certificateArn, publicIp}, " +
-                                      "database {engine, engineVersion, instanceClass, storageGb, multiAz}, queues, alarmEmail, backend {bucket, region}."
+                                      "database {engine, engineVersion, instanceClass, storageGb, multiAz}, queues, alarmEmail, backend {bucket, region, resourceGroup, container}."
                 }
             },
             ["required"] = new JsonArray("blueprint"),
@@ -93,8 +94,8 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
             : $"Desenho com {failed.Count} de {checks.Count} verificações falhando:");
         foreach (var check in failed) text.Append($"\n- {check.Description}{(check.Detail is null ? "" : $" ({check.Detail})")}");
         if (failed.Count > 0) return Task.FromResult(text.ToString());
-        text.Append("\nArquivos que a geração escreveria em infra/: " + string.Join(", ", IacAwsGenerator.Generate(blueprint, "").Select(f => f.Path)) + ".");
-        text.Append("\nO que é cobrado: " + string.Join("; ", IacAwsGenerator.Costs(blueprint).Select(c => $"{c.Resource} ({c.Billing})")));
+        text.Append("\nArquivos que a geração escreveria em infra/: " + string.Join(", ", IacGenerators.Generate(blueprint, "").Select(f => f.Path)) + ".");
+        text.Append("\nO que é cobrado: " + string.Join("; ", IacGenerators.Costs(blueprint).Select(c => $"{c.Resource} ({c.Billing})")));
         text.Append("\nGerar os arquivos exige a revisão do diff e a aprovação da pessoa na tela Infraestrutura do Spock.");
         return Task.FromResult(text.ToString());
     }

@@ -769,7 +769,7 @@ public static class IacAwsGenerator
         if (b.Database is not null) v.Required("db_instance_id", "string", "Identificador da instância RDS");
     });
 
-    private static string Outputs(params (string Name, string Description, string Value)[] outputs)
+    internal static string Outputs(params (string Name, string Description, string Value)[] outputs)
     {
         var h = new IacHcl();
         foreach (var (name, description, value) in outputs)
@@ -781,7 +781,7 @@ public static class IacAwsGenerator
     }
 
     // name_prefix e tags em todo módulo, como environment e tags no modelo.
-    private static string ModuleVariables(Action<Variables> extra)
+    internal static string ModuleVariables(Action<Variables> extra)
     {
         var v = new Variables();
         v.Validated("name_prefix", "string", "Prefixo dos nomes: <projeto>-<ambiente>", "can(regex(\"^[a-z0-9-]+$\", var.name_prefix))",
@@ -791,7 +791,7 @@ public static class IacAwsGenerator
         return v.ToString();
     }
 
-    private sealed class Variables
+    internal sealed class Variables
     {
         private readonly IacHcl _h = new();
         private bool _first = true;

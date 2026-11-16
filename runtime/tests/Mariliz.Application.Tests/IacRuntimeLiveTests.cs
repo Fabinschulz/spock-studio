@@ -422,11 +422,12 @@ public sealed class IacRuntimeLiveTests(ITestOutputHelper output)
         var operations = new IacOperationService(runtimes, new CliIacRuntimeFactory(runner, project.DataDir), new IacConfigReader(),
             new FileIacWorkArea(project.DataDir), workspace, null, new SystemClock(), audit);
 
-        foreach (var blueprint in new[] { IacBlueprintSamples.Full(), IacBlueprintSamples.QueuesOnly() })
+        foreach (var blueprint in new[] { IacBlueprintSamples.Full(), IacBlueprintSamples.QueuesOnly(), IacBlueprintSamples.AzureFull(), IacBlueprintSamples.GoogleFull(),
+                     IacBlueprintSamples.GoogleFull() with { Database = IacBlueprintSamples.GoogleFull().Database! with { Engine = "mysql", EngineVersion = "8.0" } } })
         {
             var infra = Path.Combine(project.Root, "infra");
             if (Directory.Exists(infra)) Directory.Delete(infra, recursive: true);
-            foreach (var file in IacAwsGenerator.Generate(blueprint, "infra"))
+            foreach (var file in IacGenerators.Generate(blueprint, "infra"))
             {
                 var path = Path.Combine(project.Root, file.Path);
                 Directory.CreateDirectory(Path.GetDirectoryName(path)!);

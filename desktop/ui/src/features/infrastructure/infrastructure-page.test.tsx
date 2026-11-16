@@ -326,6 +326,35 @@ describe('Infraestrutura', () => {
     expect(methods(engine.calls)).not.toContain('iac.drift');
   });
 
+  it('no Azure o desenho pede subscription, esconde a IA e vai ao motor com a nuvem escolhida', async () => {
+    const engine = fakeEngine(ready);
+    renderPage(engine.client);
+
+    const panel = await screen.findByRole('group', { name: 'Desenho da infraestrutura' });
+    await userEvent.click(within(panel).getByRole('radio', { name: 'Azure' }));
+
+    expect(within(panel).getByText(/proposta com IA é só para AWS/)).toBeInTheDocument();
+    expect(within(panel).queryByLabelText('Certificado ACM (ARN)')).not.toBeInTheDocument();
+    expect(within(panel).getByText(/Container Apps com HTTPS gerenciado/)).toBeInTheDocument();
+    await userEvent.type(within(panel).getByLabelText('Nome do projeto'), 'loja-api');
+    await userEvent.type(within(panel).getByLabelText('Região'), 'brazilsouth');
+    await userEvent.type(within(panel).getByLabelText('Subscription'), '0f1e2d3c-4b5a-6978-8a9b-0c1d2e3f4a5b');
+    await userEvent.click(within(panel).getByRole('button', { name: 'Revisar os arquivos' }));
+
+    await screen.findByLabelText('Revisar a infraestrutura gerada');
+    expect(engine.calls.find((call) => call.method === 'iac.generate.plan')?.params).toMatchObject({
+      projectId: demo.projectId,
+      blueprint: {
+        provider: 'azure',
+        project: 'loja-api',
+        region: 'brazilsouth',
+        account: '0f1e2d3c-4b5a-6978-8a9b-0c1d2e3f4a5b',
+        service: { cpu: 256, memory: 512, certificateArn: '' }
+      }
+    });
+    expect(screen.queryByRole('button', { name: 'Estimar o custo com os preços da AWS' })).not.toBeInTheDocument();
+  }, 20_000);
+
   it('sem ferramenta pronta, validar e planejar ficam desligados', async () => {
     renderPage(fakeEngine().client);
 
@@ -435,7 +464,7 @@ describe('Infraestrutura', () => {
 
     const panel = await screen.findByRole('group', { name: 'Desenho da infraestrutura' });
     await userEvent.click(
-      await within(panel).findByRole('button', { name: 'Preencher conta, região e perfil pela conexão AWS dev (SSO)' })
+      await within(panel).findByRole('button', { name: 'Preencher conta e região pela conexão AWS dev (SSO)' })
     );
     expect(within(panel).getByLabelText('Região')).toHaveValue('sa-east-1');
     expect(within(panel).getByLabelText('Conta (opcional)')).toHaveValue('123456789012');

@@ -12,7 +12,10 @@ import { Link } from 'react-router';
 import styles from '../infrastructure-page.module.scss';
 import {
   EMPTY_FORM,
+  PROVIDER_DEFAULTS,
   SERVICE_SIZES,
+  withProvider,
+  type CloudProvider,
   fromBlueprint,
   fromConnection,
   toBlueprint,
@@ -48,11 +51,9 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
       cloud.links(projectId).catch(() => []),
       cloud.connections().catch(() => [])
     ]);
-    return (
-      links
-        .map((link) => connections.find((connection) => connection.id === link.connectionId))
-        .find((connection) => connection?.provider === 'aws') ?? null
-    );
+    return links
+      .map((link) => connections.find((connection) => connection.id === link.connectionId))
+      .filter((connection) => connection !== undefined);
   }, [cloud, projectId]);
   const linked = useReloadable(loadConnection);
   const action = useAction(NOTHING);
@@ -65,7 +66,10 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
   const [savedRun, setSavedRun] = useState<string | null>(null);
   const [estimate, setEstimate] = useState<IacCostEstimate | null>(null);
 
-  const connection = linked.value ?? null;
+  // A conexão vinculada da mesma nuvem do desenho; a estimativa de custo e a leitura de VPCs são só da AWS.
+  const connection = (linked.value ?? []).find((candidate) => candidate.provider === form.provider) ?? null;
+  const aws = form.provider === 'aws';
+  const providerLabel = PROVIDER_DEFAULTS[form.provider].label;
   const set = <K extends keyof BlueprintForm>(key: K, value: BlueprintForm[K]) =>
     setForm((current) => ({ ...current, [key]: value }));
   const text = (key: TextKey, label: string, hint?: string) => (
@@ -124,7 +128,7 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
                 </li>
               ))}
             </ul>
-            {estimate ? (
+            {!aws ? null : estimate ? (
               <CostEstimateView estimate={estimate} />
             ) : connection ? (
               <div className={styles.actions}>
@@ -209,13 +213,37 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
   return (
     <div className={styles.panel} role="group" aria-label="Desenho da infraestrutura">
       <p className={styles.hint}>
-        Gera a pasta de infraestrutura no formato do modelo do projeto: raiz com o workspace como ambiente, um módulo
-        por serviço (ECS Fargate atrás de load balancer HTTPS, RDS, SQS com fila de mensagens mortas, alarmes). A IA só
-        escolhe componentes e tamanhos; os arquivos saem de modelos fixos e você revisa o diff antes de gravar.
+        Gera a pasta de infraestrutura no formato do modelo do projeto: raiz com o workspace como ambiente e um módulo
+        por serviço (contêiner com HTTPS, banco sem senha, filas com fila de mensagens mortas, alarmes). A IA só escolhe
+        componentes e tamanhos; os arquivos saem de modelos fixos e você revisa o diff antes de gravar.
       </p>
       {action.error ? <p className={styles.error}>{action.error}</p> : null}
 
-      <section className={styles.consent} aria-label="Propor com IA">
+      <fieldset className={styles.choices}>
+        <legend>Nuvem</legend>
+        {(Object.keys(PROVIDER_DEFAULTS) as CloudProvider[]).map((option) => (
+          <Radio
+            key={option}
+            name="iac-generate-provider"
+            value={option}
+            checked={form.provider === option}
+            disabled={action.busy}
+            onChange={() => {
+              setForm((current) => withProvider(current, option));
+              setVpcs(null);
+              setDraft(null);
+            }}
+            label={PROVIDER_DEFAULTS[option].label}
+          />
+        ))}
+      </fieldset>
+
+      {!aws ? (
+        <p className={styles.hint}>
+          A proposta com IA é só para AWS por enquanto; no {providerLabel}, monte o desenho abaixo.
+        </p>
+      ) : null}
+      <section className={styles.consent} aria-label="Propor com IA" hidden={!aws}>
         <p className={styles.rowTitle}>Propor o desenho com IA (opcional)</p>
         <TextField
           label="O que o sistema precisa"
@@ -282,31 +310,33 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
               disabled={action.busy}
               onClick={() => setForm((current) => fromConnection(connection, current))}
             >
-              Preencher conta, região e perfil pela conexão {connection.name}
+              Preencher conta e região pela conexão {connection.name}
             </Button>
-            <Button
-              type="button"
-              variant="text"
-              disabled={action.busy || form.region.trim().length === 0}
-              onClick={() =>
-                void action.run(async () => {
-                  const read = await cloud.read({
-                    connectionId: connection.id,
-                    capability: 'aws.ec2.subnets',
-                    region: form.region.trim(),
-                    limit: 200
-                  });
-                  setVpcs(vpcsFromSubnets(read));
-                }, 'Não foi possível ler as subnets pela conexão.')
-              }
-            >
-              Ler VPCs e subnets da conta
-            </Button>
+            {aws ? (
+              <Button
+                type="button"
+                variant="text"
+                disabled={action.busy || form.region.trim().length === 0}
+                onClick={() =>
+                  void action.run(async () => {
+                    const read = await cloud.read({
+                      connectionId: connection.id,
+                      capability: 'aws.ec2.subnets',
+                      region: form.region.trim(),
+                      limit: 200
+                    });
+                    setVpcs(vpcsFromSubnets(read));
+                  }, 'Não foi possível ler as subnets pela conexão.')
+                }
+              >
+                Ler VPCs e subnets da conta
+              </Button>
+            ) : null}
           </div>
         ) : (
           <p className={styles.hint}>
-            Vincule uma conexão AWS ao projeto em <Link to={pathTo('cloud')}>Conexões cloud</Link> para preencher conta,
-            região e rede sem digitar.
+            Vincule uma conexão {providerLabel} ao projeto em <Link to={pathTo('cloud')}>Conexões cloud</Link> para
+            preencher conta e região sem digitar.
           </p>
         )}
         {vpcs ? (
@@ -337,18 +367,58 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
           )
         ) : null}
         {text('project', 'Nome do projeto', 'Minúsculas, dígitos e hífen, até 18 caracteres (ex.: loja-api).')}
-        {text('region', 'Região', 'Ex.: sa-east-1.')}
-        {text('account', 'Conta (opcional)', 'Vira allowed_account_ids: o provider recusa outra conta.')}
-        {text('profile', 'Perfil SSO (opcional)', 'Sem ele, vale a cadeia padrão de credenciais.')}
-        {text('vpcId', 'VPC existente', 'O Terraform não cria rede.')}
-        {text('privateSubnets', 'Subnets privadas', 'Separadas por vírgula; o banco precisa de duas zonas.')}
-        {text('publicSubnets', 'Subnets públicas', 'Para o load balancer, em duas zonas.')}
+        {text('region', 'Região', `Ex.: ${PROVIDER_DEFAULTS[form.provider].region}.`)}
+        {aws ? (
+          <>
+            {text('account', 'Conta (opcional)', 'Vira allowed_account_ids: o provider recusa outra conta.')}
+            {text('profile', 'Perfil SSO (opcional)', 'Sem ele, vale a cadeia padrão de credenciais.')}
+            {text('vpcId', 'VPC existente', 'O Terraform não cria rede.')}
+            {text('privateSubnets', 'Subnets privadas', 'Separadas por vírgula; o banco precisa de duas zonas.')}
+            {text('publicSubnets', 'Subnets públicas', 'Para o load balancer, em duas zonas.')}
+          </>
+        ) : form.provider === 'azure' ? (
+          <>
+            {text('account', 'Subscription', 'GUID da subscription; o provider opera só nela.')}
+            {text('profile', 'Tenant (opcional)', 'GUID do tenant do Entra ID; sem ele, vale o da credencial.')}
+            {form.withDatabase ? (
+              <>
+                {text(
+                  'privateSubnets',
+                  'Subnet delegada ao PostgreSQL',
+                  'Id completo da subnet; o Terraform não cria rede.'
+                )}
+                {text(
+                  'privateDnsZone',
+                  'Zona DNS privada do PostgreSQL',
+                  'Id completo de *.postgres.database.azure.com.'
+                )}
+              </>
+            ) : null}
+          </>
+        ) : (
+          <>
+            {text('account', 'Projeto do Google Cloud', 'Ex.: loja-producao-123.')}
+            {form.withDatabase
+              ? text(
+                  'vpcId',
+                  'Rede VPC do banco',
+                  'projects/<projeto>/global/networks/<rede>, com acesso privado a serviços.'
+                )
+              : null}
+          </>
+        )}
       </section>
 
       <section className={styles.consent} aria-label="Componentes">
         <p className={styles.rowTitle}>Componentes</p>
         <Checkbox
-          label="Serviço em contêiner (ECS Fargate atrás de load balancer só HTTPS)"
+          label={
+            aws
+              ? 'Serviço em contêiner (ECS Fargate atrás de load balancer só HTTPS)'
+              : form.provider === 'azure'
+                ? 'Serviço em contêiner (Container Apps com HTTPS gerenciado)'
+                : 'Serviço em contêiner (Cloud Run com HTTPS gerenciado)'
+          }
           checked={form.withService}
           disabled={action.busy}
           onChange={(_, checked) => set('withService', checked)}
@@ -360,7 +430,7 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
             {text('healthPath', 'Caminho do health check')}
             <fieldset className={styles.choices}>
               <legend>CPU e memória</legend>
-              {SERVICE_SIZES.map((size) => (
+              {SERVICE_SIZES[form.provider].map((size) => (
                 <Radio
                   key={size}
                   name="iac-generate-size"
@@ -372,18 +442,28 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
                 />
               ))}
             </fieldset>
-            {text('desiredCount', 'Tarefas rodando')}
-            {text('certificateArn', 'Certificado ACM (ARN)', 'Emitido na mesma região do load balancer.')}
-            <Checkbox
-              label="Tarefas com IP público (subnets públicas, sem NAT)"
-              checked={form.publicIp}
-              disabled={action.busy}
-              onChange={(_, checked) => set('publicIp', checked)}
-            />
+            {text('desiredCount', aws ? 'Tarefas rodando' : 'Réplicas mínimas')}
+            {aws ? (
+              <>
+                {text('certificateArn', 'Certificado ACM (ARN)', 'Emitido na mesma região do load balancer.')}
+                <Checkbox
+                  label="Tarefas com IP público (subnets públicas, sem NAT)"
+                  checked={form.publicIp}
+                  disabled={action.busy}
+                  onChange={(_, checked) => set('publicIp', checked)}
+                />
+              </>
+            ) : null}
           </>
         ) : null}
         <Checkbox
-          label="Banco RDS (senha criada e guardada pelo próprio RDS)"
+          label={
+            aws
+              ? 'Banco RDS (senha criada e guardada pelo próprio RDS)'
+              : form.provider === 'azure'
+                ? 'Banco PostgreSQL Flexible Server (só login do Entra ID, sem senha)'
+                : 'Banco Cloud SQL (só IP privado e login IAM, sem senha)'
+          }
           checked={form.withDatabase}
           disabled={action.busy}
           onChange={(_, checked) => set('withDatabase', checked)}
@@ -392,32 +472,60 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
           <>
             <fieldset className={styles.choices}>
               <legend>Motor</legend>
-              {(['postgres', 'mysql'] as const).map((engine) => (
-                <Radio
-                  key={engine}
-                  name="iac-generate-engine"
-                  value={engine}
-                  checked={form.engine === engine}
-                  disabled={action.busy}
-                  onChange={() => set('engine', engine)}
-                  label={engine === 'postgres' ? 'PostgreSQL' : 'MySQL'}
-                />
-              ))}
+              {(form.provider === 'azure' ? (['postgres'] as const) : (['postgres', 'mysql'] as const)).map(
+                (engine) => (
+                  <Radio
+                    key={engine}
+                    name="iac-generate-engine"
+                    value={engine}
+                    checked={form.engine === engine}
+                    disabled={action.busy}
+                    onChange={() => set('engine', engine)}
+                    label={engine === 'postgres' ? 'PostgreSQL' : 'MySQL'}
+                  />
+                )
+              )}
             </fieldset>
             {text('engineVersion', 'Versão principal', 'Ex.: 16.')}
-            {text('instanceClass', 'Classe da instância', 'Ex.: db.t4g.micro.')}
-            {text('storageGb', 'Armazenamento (GB)', 'Entre 20 e 1000.')}
+            {text(
+              'instanceClass',
+              aws ? 'Classe da instância' : form.provider === 'azure' ? 'SKU' : 'Tier',
+              `Ex.: ${PROVIDER_DEFAULTS[form.provider].instanceClass}.`
+            )}
+            {text(
+              'storageGb',
+              'Armazenamento (GB)',
+              aws
+                ? 'Entre 20 e 1000.'
+                : form.provider === 'azure'
+                  ? '32, 64, 128, 256, 512 ou 1024.'
+                  : 'Entre 10 e 1000.'
+            )}
             <Checkbox
-              label="Multi-AZ (réplica em outra zona)"
+              label={aws ? 'Multi-AZ (réplica em outra zona)' : 'Alta disponibilidade (réplica em outra zona)'}
               checked={form.multiAz}
               disabled={action.busy}
               onChange={(_, checked) => set('multiAz', checked)}
             />
           </>
         ) : null}
-        {text('queues', 'Filas SQS', 'Uma por fluxo, separadas por vírgula (ex.: pedidos, estoque).')}
+        {text(
+          'queues',
+          aws ? 'Filas SQS' : form.provider === 'azure' ? 'Filas do Service Bus' : 'Fluxos do Pub/Sub',
+          'Uma por fluxo, separadas por vírgula (ex.: pedidos, estoque).'
+        )}
         {text('alarmEmail', 'E-mail dos alarmes (opcional)')}
-        {text('bucket', 'Bucket de state (opcional)', 'O do bootstrap. Sem ele, a raiz nasce sem backend remoto.')}
+        {text(
+          'bucket',
+          form.provider === 'azure' ? 'Storage account de state (opcional)' : 'Bucket de state (opcional)',
+          'O do bootstrap. Sem ele, a raiz nasce sem backend remoto.'
+        )}
+        {form.provider === 'azure' && form.bucket.trim() ? (
+          <>
+            {text('bucketResourceGroup', 'Grupo de recursos da storage account')}
+            {text('bucketContainer', 'Container do state')}
+          </>
+        ) : null}
       </section>
 
       {draft && !draft.valid ? (

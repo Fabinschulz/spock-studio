@@ -165,6 +165,28 @@ como execução `infrastructure` reversível, no escopo de escrita de infraestru
 o `README.md` de uma pasta e o `.gitignore` da raiz). A trilha recebe `iac.generated`. Os arquivos gerados passam no
 `fmt -check` e no `validate` do OpenTofu com o provider AWS de verdade (teste ao vivo com `MARILIZ_LIVE_IAC_PROVIDERS`).
 
+**Azure e Google Cloud (entrega 10).** O mesmo desenho (`provider` `azure` ou `gcp`) gera o mesmo modelo de pasta com
+os serviços equivalentes, por modelos fixos (`IacAzureGenerator`, `IacGoogleGenerator`, escolhidos por `IacGenerators`):
+
+| Componente | AWS | Azure | Google Cloud |
+| --- | --- | --- | --- |
+| Serviço em contêiner | ECS Fargate atrás de ALB só HTTPS (certificado ACM) | Container App com HTTPS gerenciado e identidade gerenciada | Cloud Run com HTTPS gerenciado e conta de serviço própria |
+| Imagens | ECR | Azure Container Registry sem usuário administrador | Artifact Registry com tags imutáveis |
+| Segredo da aplicação | Secrets Manager sem valor | Key Vault com RBAC; segredo gravado fora | Secret Manager sem versão |
+| Banco | RDS com senha guardada pelo RDS | PostgreSQL Flexible Server só com login do Entra ID, na subnet delegada | Cloud SQL só com IP privado e login IAM |
+| Filas | SQS com fila de mensagens mortas | Service Bus sem chave local, 5 entregas antes da fila de mensagens mortas | Pub/Sub com tópico de mensagens mortas |
+| Alarmes | CloudWatch e SNS | Azure Monitor e grupo de ação | Cloud Monitoring e canal de e-mail |
+| Ambiente | workspace e prefixo de nome | workspace e um grupo de recursos por ambiente | workspace; a raiz liga as APIs usadas |
+| State | S3 com `use_lockfile` | Blob Storage com login do Entra ID | GCS com trava nativa |
+
+No desenho, `account` é a subscription do Azure (obrigatória, trava o provider) ou o projeto do Google, e `profile` é o
+tenant do Azure. As checagens seguem cada nuvem: memória o dobro da CPU no Container Apps, 1, 2 ou 4 vCPU no Cloud Run,
+SKU e tamanhos de armazenamento do Flexible Server, tier do Cloud SQL, rede só quando há banco (subnet delegada e zona
+DNS privada no Azure; rede com acesso privado a serviços no Google). Nos dois, o HTTPS usa o domínio gerenciado: o campo
+de certificado tem de ficar vazio. A proposta com IA, a leitura de rede pela conexão e a estimativa de custo continuam
+só na AWS. Os arquivos gerados passam no `fmt -check` e no `validate` do OpenTofu com os providers azurerm e google de
+verdade, inclusive o Cloud SQL com MySQL.
+
 **Descoberta da rede.** A conexão AWS ganhou as leituras `aws.ec2.vpcs` e `aws.ec2.subnets` (`ec2:DescribeVpcs`,
 `ec2:DescribeSubnets`, `ec2:DescribeRouteTables`). Pública é a subnet cuja tabela de rotas manda `0.0.0.0/0` para um
 internet gateway. A tela lê pela conexão vinculada e a pessoa escolhe a VPC; as subnets entram no desenho já separadas.
