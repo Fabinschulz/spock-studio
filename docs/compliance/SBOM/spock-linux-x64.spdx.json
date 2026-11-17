@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Spock Studio para Linux x64 (.deb)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-linux-x64--.deb--c066cabc-7174-48f3-955b-d8471bd2c75b",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-linux-x64--.deb--b112e9a6-b960-4263-b774-0ce631fb137c",
   "creationInfo": {
-    "created": "2026-11-16T01:32:54Z",
+    "created": "2026-11-17T19:56:01Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -9974,6 +9974,31 @@
       ]
     },
     {
+      "SPDXID": "SPDXRef-Package-nuget-Microsoft.Extensions.AI.Abstractions-10.11.0",
+      "name": "Microsoft.Extensions.AI.Abstractions",
+      "versionInfo": "10.11.0",
+      "downloadLocation": "https://github.com/dotnet/extensions",
+      "filesAnalyzed": false,
+      "licenseDeclared": "MIT",
+      "licenseConcluded": "MIT",
+      "copyrightText": "NOASSERTION",
+      "primaryPackagePurpose": "LIBRARY",
+      "comment": "Uso: transitiva de ModelContextProtocol.Core. Ambiente: execução. Distribuição: incorporado (sidecar .NET single-file). Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/microsoft.extensions.ai.abstractions/10.11.0.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:nuget/Microsoft.Extensions.AI.Abstractions@10.11.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "8780d7fd37495387e4d4619a7f5f67e8aba3923e955db19e2f85043ac43cf99242e5f540a4f6aea240adbc13faf380586dccd461940d7e8d666e6c871b85954a"
+        }
+      ]
+    },
+    {
       "SPDXID": "SPDXRef-Package-nuget-Microsoft.Extensions.Configuration.Abstractions-10.0.3",
       "name": "Microsoft.Extensions.Configuration.Abstractions",
       "versionInfo": "10.0.3",
@@ -9999,27 +10024,27 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-nuget-Microsoft.Extensions.DependencyInjection.Abstractions-10.0.3",
+      "SPDXID": "SPDXRef-Package-nuget-Microsoft.Extensions.DependencyInjection.Abstractions-10.0.14",
       "name": "Microsoft.Extensions.DependencyInjection.Abstractions",
-      "versionInfo": "10.0.3",
+      "versionInfo": "10.0.14",
       "downloadLocation": "https://github.com/dotnet/dotnet",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT",
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de Microsoft.Extensions.Diagnostics.Abstractions. Ambiente: execução. Distribuição: incorporado (sidecar .NET single-file). Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/10.0.3.",
+      "comment": "Uso: transitiva de Microsoft.Extensions.Diagnostics.Abstractions. Ambiente: execução. Distribuição: incorporado (sidecar .NET single-file). Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/10.0.14.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:nuget/Microsoft.Extensions.DependencyInjection.Abstractions@10.0.3"
+          "referenceLocator": "pkg:nuget/Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "6f018cad1700316c76b3f4438236bdee9dbbaf14b3da91105b4fab5f9716014595113549fdecb119f8c097cbee1b96be95c91698f204faf72e69935507960377"
+          "checksumValue": "42da50cee4995724cf0ae1d6d39f320acf4d8f4dfde2e5243721474bcd779ce98af5481474175aa6b2793cfb0182c408a710034ec4e46da30ca27ca47a6eaa77"
         }
       ]
     },
@@ -10099,27 +10124,27 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-nuget-Microsoft.Extensions.Logging.Abstractions-10.0.3",
+      "SPDXID": "SPDXRef-Package-nuget-Microsoft.Extensions.Logging.Abstractions-10.0.14",
       "name": "Microsoft.Extensions.Logging.Abstractions",
-      "versionInfo": "10.0.3",
+      "versionInfo": "10.0.14",
       "downloadLocation": "https://github.com/dotnet/dotnet",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT",
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de Microsoft.Extensions.Hosting.Abstractions. Ambiente: execução. Distribuição: incorporado (sidecar .NET single-file). Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/microsoft.extensions.logging.abstractions/10.0.3.",
+      "comment": "Uso: transitiva de Microsoft.Extensions.Hosting.Abstractions. Ambiente: execução. Distribuição: incorporado (sidecar .NET single-file). Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/microsoft.extensions.logging.abstractions/10.0.14.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:nuget/Microsoft.Extensions.Logging.Abstractions@10.0.3"
+          "referenceLocator": "pkg:nuget/Microsoft.Extensions.Logging.Abstractions@10.0.14"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "97197458b93b44e801140b2370e62343cfc354af9532ccf1181cd4860b50980b1336574b2f9a64f4d1bf7164ec5c7ab4954854100b5990413b8ce18e03c6c629"
+          "checksumValue": "4b071b101b64102ab70f6a32c2f1e49b8e9fcab5fd0ddd893d6a610e71d4736f9c51647531da38d5ab408e1ffd8998e0431baf6ca7d9297aa8b2d4ff2d97de7c"
         }
       ]
     },
@@ -10295,6 +10320,31 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "c76f9bc3c60fc61f351af267c6cafe72d98436a2f9ea8d3b7e8396b6ca67f0953285ac9545ffc3dfc60b5c970c4c155a505496ae0c9d6d8ec8ea8e4ea7b726cf"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-nuget-ModelContextProtocol.Core-2.4.0",
+      "name": "ModelContextProtocol.Core",
+      "versionInfo": "2.4.0",
+      "downloadLocation": "https://github.com/modelcontextprotocol/csharp-sdk",
+      "filesAnalyzed": false,
+      "licenseDeclared": "Apache-2.0",
+      "licenseConcluded": "Apache-2.0",
+      "copyrightText": "NOASSERTION",
+      "primaryPackagePurpose": "LIBRARY",
+      "comment": "Uso: transitiva. Ambiente: execução. Distribuição: incorporado (sidecar .NET single-file). Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/modelcontextprotocol.core/2.4.0.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:nuget/ModelContextProtocol.Core@2.4.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "abdf2964c95cc61b21d0ba465dc4f6a30eec18dbde08f8439494f7cc9ec2cf99cdc8f98f926f0fe7b754214a73bf5c3aa966dd499711fd9f916d9b4d6231265d"
         }
       ]
     },
@@ -16556,7 +16606,7 @@
     {
       "spdxElementId": "SPDXRef-Package-nuget-Microsoft.Extensions.Diagnostics.Abstractions-10.0.3",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.Extensions.DependencyInjection.Abstractions-10.0.3"
+      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.Extensions.DependencyInjection.Abstractions-10.0.14"
     },
     {
       "spdxElementId": "SPDXRef-Package-nuget-Microsoft.Extensions.Diagnostics.Abstractions-10.0.3",
@@ -16576,7 +16626,7 @@
     {
       "spdxElementId": "SPDXRef-Package-nuget-Microsoft.Extensions.Hosting.Abstractions-10.0.3",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.Extensions.DependencyInjection.Abstractions-10.0.3"
+      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.Extensions.DependencyInjection.Abstractions-10.0.14"
     },
     {
       "spdxElementId": "SPDXRef-Package-nuget-Microsoft.Extensions.Hosting.Abstractions-10.0.3",
@@ -16591,17 +16641,17 @@
     {
       "spdxElementId": "SPDXRef-Package-nuget-Microsoft.Extensions.Hosting.Abstractions-10.0.3",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.Extensions.Logging.Abstractions-10.0.3"
+      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.Extensions.Logging.Abstractions-10.0.14"
     },
     {
-      "spdxElementId": "SPDXRef-Package-nuget-Microsoft.Extensions.Logging.Abstractions-10.0.3",
+      "spdxElementId": "SPDXRef-Package-nuget-Microsoft.Extensions.Logging.Abstractions-10.0.14",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.Extensions.DependencyInjection.Abstractions-10.0.3"
+      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.Extensions.DependencyInjection.Abstractions-10.0.14"
     },
     {
       "spdxElementId": "SPDXRef-Package-nuget-Microsoft.Extensions.Options-10.0.3",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.Extensions.DependencyInjection.Abstractions-10.0.3"
+      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.Extensions.DependencyInjection.Abstractions-10.0.14"
     },
     {
       "spdxElementId": "SPDXRef-Package-nuget-Microsoft.Extensions.Options-10.0.3",
@@ -16639,6 +16689,21 @@
       "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.ML.Tokenizers-3.0.0"
     },
     {
+      "spdxElementId": "SPDXRef-Package-spock-studio",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-nuget-ModelContextProtocol.Core-2.4.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-nuget-ModelContextProtocol.Core-2.4.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.Extensions.AI.Abstractions-10.11.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-nuget-ModelContextProtocol.Core-2.4.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.Extensions.Logging.Abstractions-10.0.14"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-nuget-System.ClientModel-1.10.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.Extensions.Configuration.Abstractions-10.0.3"
@@ -16651,7 +16716,7 @@
     {
       "spdxElementId": "SPDXRef-Package-nuget-System.ClientModel-1.10.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.Extensions.Logging.Abstractions-10.0.3"
+      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.Extensions.Logging.Abstractions-10.0.14"
     },
     {
       "spdxElementId": "SPDXRef-Package-nuget-System.ClientModel-1.10.0",

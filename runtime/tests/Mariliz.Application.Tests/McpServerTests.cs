@@ -48,44 +48,51 @@ public sealed class McpServerTests : IDisposable
             [new ProfileTechnology("dotnet", ".NET", "backend", ["10.0"], ["src"], Confidence.High, [])],
             [new ProfileTool("test", "dotnet", command)], ["claude-code"], [], [], []));
 
-    [Fact]
-    public void Responde_na_versao_que_a_ide_pede_e_cai_na_mais_recente_quando_nao_conhece()
+    // O protocolo é do SDK oficial (ADR-0009): as IDEs de hoje abrem com o initialize de uma revisão anterior à 2026-07-28.
+    [Theory]
+    [InlineData("2024-11-05")]
+    [InlineData("2025-03-26")]
+    [InlineData("2025-06-18")]
+    [InlineData("2025-11-25")]
+    public void Negocia_com_a_ide_na_versao_que_ela_conhece_e_se_apresenta_como_spock(string protocol)
     {
-        var server = Server();
+        var result = McpWire.Exchange(Server(), McpWire.Initialize(protocol: protocol))[0]["result"]!;
 
-        var known = Send(server, "initialize", new JsonObject { ["protocolVersion"] = "2025-03-26" })["result"]!;
-        var unknown = Send(server, "initialize", new JsonObject { ["protocolVersion"] = "1999-01-01" })["result"]!;
-
-        Assert.Equal("2025-03-26", known["protocolVersion"]!.GetValue<string>());
-        Assert.Equal(McpServer.LatestProtocol, unknown["protocolVersion"]!.GetValue<string>());
-        Assert.Equal("spock-studio", known["serverInfo"]!["name"]!.GetValue<string>());
-        Assert.Equal("1.2.3", known["serverInfo"]!["version"]!.GetValue<string>());
-        Assert.NotNull(known["capabilities"]!["tools"]);
+        Assert.Equal(protocol, result["protocolVersion"]!.GetValue<string>());
+        Assert.Equal("spock-studio", result["serverInfo"]!["name"]!.GetValue<string>());
+        Assert.Equal("1.2.3", result["serverInfo"]!["version"]!.GetValue<string>());
+        Assert.NotNull(result["capabilities"]!["tools"]);
+        Assert.Contains("Spock Studio", result["instructions"]!.GetValue<string>());
     }
 
+    // JSON inválido não tem resposta no SDK (o servidor anterior respondia -32700; ADR-0009), mas não derruba a sessão.
     [Fact]
-    public void Notificacao_nao_tem_resposta_e_o_resto_segue_o_json_rpc()
+    public void Erros_de_protocolo_seguem_o_json_rpc_e_o_servidor_continua()
     {
-        var server = Server();
+        var replies = McpWire.Exchange(Server(), McpWire.Initialize(), McpWire.Initialized,
+            "{quebrado",
+            McpWire.Request(2, "resources/list"),
+            McpWire.Request(3, "tools/call", new JsonObject { ["name"] = "apagar_tudo" }),
+            McpWire.Request(4, "ping"));
 
-        Assert.Null(Raw(server, """{"jsonrpc":"2.0","method":"notifications/initialized"}"""));
-        Assert.Equal(-32700, Raw(server, "{quebrado")!["error"]!["code"]!.GetValue<int>());
-        Assert.Equal(-32601, Send(server, "resources/list")["error"]!["code"]!.GetValue<int>());
-        Assert.Equal(-32602, Send(server, "tools/call", new JsonObject { ["name"] = "apagar_tudo" })["error"]!["code"]!.GetValue<int>());
-        Assert.NotNull(Raw(server, "\uFEFF" + """{"jsonrpc":"2.0","id":1,"method":"ping"}""")!["result"]);
+        Assert.Equal(-32601, replies[1]["error"]!["code"]!.GetValue<int>());
+        Assert.Equal(-32602, replies[2]["error"]!["code"]!.GetValue<int>());
+        Assert.NotNull(replies[3]["result"]);
     }
 
-    // Revalidação 2026-11-15: o PowerShell abre a entrada com o BOM numa linha sozinha, que virava erro de JSON.
-    [Fact]
-    public async Task Linha_so_com_o_bom_e_ignorada_como_linha_vazia()
+    // Revalidação 2026-11-15: o PowerShell abre a entrada com o BOM do UTF-8, numa linha sozinha ou grudado na primeira mensagem.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Bom_do_utf8_no_comeco_da_entrada_nao_quebra_a_sessao(bool ownLine)
     {
-        var output = new StringWriter();
+        string[] opening = ownLine ? ["\uFEFF", McpWire.Initialize()] : ["\uFEFF" + McpWire.Initialize()];
 
-        await Server().RunAsync(new StringReader("﻿\n" + """{"jsonrpc":"2.0","id":7,"method":"ping"}""" + "\n"), output, CancellationToken.None);
+        var replies = McpWire.Exchange(Server(), [.. opening, McpWire.Initialized, McpWire.Request(7, "ping")]);
 
-        var lines = output.ToString().Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        Assert.Single(lines);
-        Assert.Equal(7, JsonNode.Parse(lines[0])!["id"]!.GetValue<int>());
+        Assert.Equal(2, replies.Count);
+        Assert.NotNull(replies[0]["result"]!["serverInfo"]);
+        Assert.Equal(7, replies[1]["id"]!.GetValue<int>());
     }
 
     [Fact]

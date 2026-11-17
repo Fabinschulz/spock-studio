@@ -3,19 +3,18 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Mariliz.Application.Execution;
 using Mariliz.Core.Policy;
+using ModelContextProtocol;
+using ModelContextProtocol.Protocol;
+using ModelContextProtocol.Server;
+using Sdk = ModelContextProtocol.Server;
 
 namespace Mariliz.Application.Mcp;
 
-// JSON-RPC 2.0 por linhas no stdio, como as IDEs iniciam um servidor MCP local. Só ferramentas, todas de leitura.
+// O protocolo é do SDK oficial (ADR-0009); o que é do Spock fica aqui: as ferramentas, todas de leitura, a redação de
+// segredos e o nome do cliente para a auditoria. O servidor próprio que veio antes está registrado na ADR para restauração.
 public sealed partial class McpServer(string version, IReadOnlyList<McpTool> tools)
 {
-    public const string LatestProtocol = "2025-06-18";
-    private static readonly string[] SupportedProtocols = [LatestProtocol, "2025-03-26", "2024-11-05"];
-
-    private const int ParseError = -32700;
-    private const int InvalidRequest = -32600;
-    private const int MethodNotFound = -32601;
-    private const int InvalidParams = -32602;
+    public const string ServerName = "spock-studio";
 
     private const string Instructions =
         "Contexto do Spock Studio sobre os projetos que a pessoa abriu nele: tecnologias, comandos, estado do Harness, decisões registradas " +
@@ -23,83 +22,47 @@ public sealed partial class McpServer(string version, IReadOnlyList<McpTool> too
         "de um assunto; sem 'project', vale o projeto da pasta atual. Quando o projeto liberou conexões cloud para agentes, cloud_connections e as " +
         "ferramentas aws_*, azure_* e gcp_* leem a infraestrutura, também só leitura.";
 
-    private string? _client;
-
-    public async Task RunAsync(TextReader input, TextWriter output, CancellationToken ct)
+    public McpServerOptions Options() => new()
     {
-        while (await input.ReadLineAsync(ct) is { } line)
+        ServerInfo = new Implementation { Name = ServerName, Title = "Spock Studio", Version = version },
+        ServerInstructions = Instructions,
+        Capabilities = new ServerCapabilities { Tools = new ToolsCapability { ListChanged = false } },
+        Handlers = new McpServerHandlers
         {
-            if (string.IsNullOrWhiteSpace(line.TrimStart('﻿'))) continue;
-            if (await HandleAsync(line, ct) is not { } reply) continue;
-            await output.WriteLineAsync(reply.ToJsonString());
-            await output.FlushAsync(ct);
+            ListToolsHandler = (_, _) => ValueTask.FromResult(new ListToolsResult { Tools = [.. tools.Select(Describe)] }),
+            CallToolHandler = (request, ct) => CallAsync(request.Params, ClientName(request.Server.ClientInfo?.Name), ct)
         }
-    }
-
-    public async Task<JsonObject?> HandleAsync(string line, CancellationToken ct = default)
-    {
-        JsonNode? parsed;
-        try
-        {
-            // Cliente no Windows às vezes manda o BOM do UTF-8 na primeira linha.
-            parsed = JsonNode.Parse(line.TrimStart('﻿'));
-        }
-        catch (JsonException)
-        {
-            return Error(null, ParseError, "JSON inválido.");
-        }
-
-        if (parsed is not JsonObject message) return Error(null, InvalidRequest, "Esperado um objeto JSON-RPC.");
-        var id = message["id"]?.DeepClone();
-        var method = message["method"] is JsonValue value && value.TryGetValue<string>(out var name) ? name : null;
-        // Notificações (initialized, cancelled) não têm resposta.
-        if (id is null) return null;
-        if (method is null) return Error(id, InvalidRequest, "Falta 'method'.");
-        var parameters = message["params"] as JsonObject ?? [];
-
-        return method switch
-        {
-            "initialize" => Ok(id, Initialize(parameters)),
-            "ping" => Ok(id, []),
-            "tools/list" => Ok(id, new JsonObject { ["tools"] = new JsonArray(tools.Select(Describe).ToArray()) }),
-            "tools/call" => await CallAsync(id, parameters, ct),
-            _ => Error(id, MethodNotFound, $"Método desconhecido: {method}.")
-        };
-    }
-
-    private JsonObject Initialize(JsonObject parameters)
-    {
-        var requested = parameters["protocolVersion"] is JsonValue value && value.TryGetValue<string>(out var asked) ? asked : null;
-        _client = ClientName(parameters);
-        return new JsonObject
-        {
-            ["protocolVersion"] = requested is not null && SupportedProtocols.Contains(requested) ? requested : LatestProtocol,
-            ["capabilities"] = new JsonObject { ["tools"] = new JsonObject { ["listChanged"] = false } },
-            ["serverInfo"] = new JsonObject { ["name"] = "spock-studio", ["title"] = "Spock Studio", ["version"] = version },
-            ["instructions"] = Instructions
-        };
-    }
-
-    private static JsonNode Describe(McpTool tool) => new JsonObject
-    {
-        ["name"] = tool.Info.Name,
-        ["title"] = tool.Info.Title,
-        ["description"] = tool.Info.Description,
-        ["inputSchema"] = tool.Info.InputSchema.DeepClone(),
-        ["annotations"] = new JsonObject { ["readOnlyHint"] = true, ["openWorldHint"] = tool.Info.OpenWorld }
     };
 
-    private async Task<JsonObject> CallAsync(JsonNode id, JsonObject parameters, CancellationToken ct)
+    // O modo mcp do motor: a IDE inicia o processo e conversa pelo stdin e stdout.
+    public Task RunStdioAsync(CancellationToken ct) => RunAsync(Console.OpenStandardInput(), Console.OpenStandardOutput(), ct);
+
+    public async Task RunAsync(Stream input, Stream output, CancellationToken ct)
     {
-        var name = parameters["name"] is JsonValue value && value.TryGetValue<string>(out var asked) ? asked : null;
-        var tool = tools.FirstOrDefault(item => item.Info.Name == name);
-        if (tool is null) return Error(id, InvalidParams, $"Ferramenta desconhecida: {name}.");
+        await using var transport = new StreamServerTransport(new LeadingBomSkipStream(input), output, ServerName);
+        await using var server = Sdk.McpServer.Create(transport, Options());
+        await server.RunAsync(ct);
+    }
+
+    private static Tool Describe(McpTool tool) => new()
+    {
+        Name = tool.Info.Name,
+        Title = tool.Info.Title,
+        Description = tool.Info.Description,
+        InputSchema = JsonSerializer.SerializeToElement(tool.Info.InputSchema),
+        Annotations = new ToolAnnotations { ReadOnlyHint = true, OpenWorldHint = tool.Info.OpenWorld }
+    };
+
+    private async ValueTask<CallToolResult> CallAsync(CallToolRequestParams? parameters, string? client, CancellationToken ct)
+    {
+        var tool = tools.FirstOrDefault(item => item.Info.Name == parameters?.Name)
+            ?? throw new McpProtocolException($"Ferramenta desconhecida: {parameters?.Name}.", McpErrorCode.InvalidParams);
 
         string text;
         var failed = false;
         try
         {
-            text = await tool.Call(new McpCall(parameters["arguments"] as JsonObject ?? [], _client, ct));
+            text = await tool.Call(new McpCall(Arguments(parameters!), client, ct));
         }
         catch (Exception ex) when (ex is McpToolException or EngineException)
         {
@@ -113,26 +76,25 @@ public sealed partial class McpServer(string version, IReadOnlyList<McpTool> too
             failed = true;
         }
 
-        return Ok(id, new JsonObject
-        {
-            ["content"] = new JsonArray(new JsonObject { ["type"] = "text", ["text"] = SecretScanner.RedactLines(text) }),
-            ["isError"] = failed
-        });
+        return new CallToolResult { Content = [new TextContentBlock { Text = SecretScanner.RedactLines(text) }], IsError = failed };
     }
 
-    // Vai para a trilha de auditoria: só o que parece um nome de programa, curto.
-    private static string? ClientName(JsonObject parameters)
+    private static JsonObject Arguments(CallToolRequestParams parameters)
     {
-        var name = parameters["clientInfo"] is JsonObject info && info["name"] is JsonValue value && value.TryGetValue<string>(out var text) ? text.Trim() : null;
-        return name is { Length: > 0 and <= 60 } && ClientPattern().IsMatch(name) ? name : null;
+        var arguments = new JsonObject();
+        foreach (var (name, value) in parameters.Arguments ?? new Dictionary<string, JsonElement>())
+            arguments[name] = JsonNode.Parse(value.GetRawText());
+        return arguments;
+    }
+
+    // Vai para a trilha de auditoria: só o que parece um nome de programa, curto. É o que o cliente diz de si, não uma
+    // identidade conferida.
+    private static string? ClientName(string? name)
+    {
+        var trimmed = name?.Trim();
+        return trimmed is { Length: > 0 and <= 60 } && ClientPattern().IsMatch(trimmed) ? trimmed : null;
     }
 
     [GeneratedRegex(@"^[\p{L}\p{N}][\p{L}\p{N} ._\-]*$")]
     private static partial Regex ClientPattern();
-
-    private static JsonObject Ok(JsonNode id, JsonObject result) =>
-        new() { ["jsonrpc"] = "2.0", ["id"] = id, ["result"] = result };
-
-    private static JsonObject Error(JsonNode? id, int code, string message) =>
-        new() { ["jsonrpc"] = "2.0", ["id"] = id, ["error"] = new JsonObject { ["code"] = code, ["message"] = message } };
 }
