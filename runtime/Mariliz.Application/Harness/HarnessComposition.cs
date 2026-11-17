@@ -115,7 +115,7 @@ internal sealed class HarnessComposition(
     {
         if (declared is not null || files.FileExists(DeclaredConfig.FileName)) return;
 
-        var config = new DeclaredConfig { Project = { Name = report.ProjectName }, AiEnvironment = environment, Components = { Exclude = [.. _exclusion] } };
+        var config = new DeclaredConfig { Project = { Id = options.StableId, Name = report.ProjectName }, AiEnvironment = environment, Components = { Exclude = [.. _exclusion] } };
         _desired.Add(new(DeclaredConfig.FileName, ComponentKind.Config, Catalog.ConfigDeclaration, DecisionOrigins.Baseline,
             "Declaração do projeto: ambiente de IA e método. É seu depois de criado; a aplicação só a lê.", config.ToYaml(), "file"));
     }
@@ -132,24 +132,47 @@ internal sealed class HarnessComposition(
         return new ComposeResult(environment, _proposalOrigin, _desired, _decisions, [], _limitations, _observations, _risks);
     }
 
-    // O pedido feito na tela vira uma edição pontual de components.exclude; sem ela aprovada no plano, nada muda.
+    // Edições pontuais, cada uma só com o plano aprovado: o pedido feito na tela em components.exclude e, uma vez, o
+    // project.id (F1). As duas saem no mesmo arquivo desejado.
     private void AddDeclarationEdit()
     {
-        var declaredList = declared?.Components.Exclude ?? [];
-        if (declared is null || _exclusion.SequenceEqual(declaredList, StringComparer.Ordinal)) return;
+        var text = declared is null ? null : files.ReadText(DeclaredConfig.FileName);
+        if (text is null) return;
+        var reasons = new List<string>();
 
-        var text = files.ReadText(DeclaredConfig.FileName);
-        var edited = text is null ? null : DeclarationEditor.WithExcluded(text, _exclusion);
-        if (edited is null)
+        if (string.IsNullOrEmpty(declared!.Project?.Id) && options.StableId is { } stableId)
         {
-            _limitations.Add(new(LimitationCodes.DeclarationNotEditable,
-                "O pedido de dispensar ou voltar a aplicar componentes não entrou no plano: o trecho components.exclude de mariliz.yaml não está num formato que a aplicação edite com segurança. Edite a lista à mão e planeje de novo."));
-            _exclusion = [.. declaredList];
-            return;
+            if (DeclarationEditor.WithProjectId(text, stableId) is { } withId)
+            {
+                text = withId;
+                reasons.Add("Grava o id estável do projeto em project.id: clones e worktrees passam a ser reconhecidos como o mesmo projeto.");
+            }
+            else
+            {
+                _limitations.Add(new(LimitationCodes.DeclarationNotEditable,
+                    $"O id estável do projeto não entrou no plano: o trecho project de mariliz.yaml não está num formato que a aplicação edite com segurança. Acrescente \"id: {stableId}\" dentro de project e planeje de novo."));
+            }
         }
 
+        var declaredList = declared.Components.Exclude ?? [];
+        if (!_exclusion.SequenceEqual(declaredList, StringComparer.Ordinal))
+        {
+            if (DeclarationEditor.WithExcluded(text, _exclusion) is { } withExcluded)
+            {
+                text = withExcluded;
+                reasons.Add("Grava o seu pedido em components.exclude.");
+            }
+            else
+            {
+                _limitations.Add(new(LimitationCodes.DeclarationNotEditable,
+                    "O pedido de dispensar ou voltar a aplicar componentes não entrou no plano: o trecho components.exclude de mariliz.yaml não está num formato que a aplicação edite com segurança. Edite a lista à mão e planeje de novo."));
+                _exclusion = [.. declaredList];
+            }
+        }
+
+        if (reasons.Count == 0) return;
         _desired.Add(new(DeclaredConfig.FileName, ComponentKind.Config, Catalog.ConfigDeclaration, DecisionOrigins.Declared,
-            "Grava o seu pedido em components.exclude; o restante do arquivo fica como está.", edited, "file"));
+            string.Join(" ", reasons) + " O restante do arquivo fica como está.", text, "file"));
     }
 
     private ComponentSelector CreateComponentSelector()

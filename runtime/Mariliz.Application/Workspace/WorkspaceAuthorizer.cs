@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Mariliz.Application.Harness;
 using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Workspace;
@@ -11,6 +12,8 @@ public sealed class WorkspaceAuthorizer
     // Escrito pelo protocolo (autorização) e lido pelas execuções em segundo plano.
     private readonly ConcurrentDictionary<string, string> _authorized = new();
     private readonly ConcurrentDictionary<string, string> _names = new();
+    private readonly ConcurrentDictionary<string, string> _proposedStableIds = new();
+    private readonly object _proposalGate = new();
 
     public WorkspaceAuthorizer(IWorkspaceFileSystem fileSystem, IWorkspaceRegistry? registry = null)
     {
@@ -18,6 +21,8 @@ public sealed class WorkspaceAuthorizer
         _registry = registry;
         if (registry is null) return;
 
+        foreach (var (id, stableId) in registry.LoadProposedStableIds())
+            if (Ids.IsProjectId(id) && StableProjectId.IsValid(stableId)) _proposedStableIds[id] = stableId;
         foreach (var (id, path) in registry.Load())
         {
             if (!Ids.IsProjectId(id)) continue;
@@ -65,6 +70,24 @@ public sealed class WorkspaceAuthorizer
         var found = _authorized.TryGetValue(projectId, out var value);
         root = value ?? "";
         return found;
+    }
+
+    // F1: o id estável que está no mariliz.yaml da cópia. Lido a cada pergunta: um plano aplicado o grava sem passar por aqui.
+    public string? StableIdOf(string projectId) =>
+        TryGetRoot(projectId, out var root) ? DeclaredConfig.StableIdIn(_fileSystem.ReadRootFile(root, DeclaredConfig.FileName)) : null;
+
+    // O id que o plano grava quando a declaração ainda não tem um: o mesmo até ser aplicado, mesmo replanejando ou reiniciando.
+    public string ProposedStableId(string projectId)
+    {
+        if (StableIdOf(projectId) is { } declared) return declared;
+        lock (_proposalGate)
+        {
+            if (_proposedStableIds.TryGetValue(projectId, out var proposed)) return proposed;
+            var created = StableProjectId.New(DateTimeOffset.UtcNow);
+            _registry?.SaveProposedStableId(projectId, created);
+            _proposedStableIds[projectId] = created;
+            return created;
+        }
     }
 
     private string NameOf(string root) =>
