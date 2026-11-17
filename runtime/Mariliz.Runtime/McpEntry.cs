@@ -1,4 +1,6 @@
 using Mariliz.Application;
+using Mariliz.Application.Context;
+using Mariliz.Application.Engineering;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Mcp;
 using Mariliz.Application.Ports;
@@ -49,6 +51,7 @@ internal static class McpEntry
             authorizer => composition.IacOperations(composition.IacRuntimes(authorizer), authorizer, cloud: null),
             workingDirectory, options.Scope,
             authorizer => composition.IacState(authorizer, cloud: null, new LocalProjectFilesFactory(), new FileRunStore(dataRoot), new RunTracker()));
+        var tokenizers = new TiktokenTokenizers();
         var tools = new ProjectContextTools(
             workspaces,
             new LocalProjectFilesFactory(),
@@ -60,7 +63,11 @@ internal static class McpEntry
             runtime,
             dataRoot,
             audit,
-            workspace => composition.Management(workspace, LocalIntegrationHub.Create(dataRoot, workspace, clock, connectorTransport)));
+            workspace => composition.Management(workspace, LocalIntegrationHub.Create(dataRoot, workspace, clock, connectorTransport)),
+            // O bootstrap só lista vínculos e conexões cloud: nenhuma leitura de conta passa por ele.
+            workspace => new ContextEngine(workspace, new HarnessStatusService(workspace, new LocalProjectFilesFactory(), clock),
+                new FileTechnologyProfileStore(dataRoot), tokenizers, clock, LocalIntegrationHub.Create(dataRoot, workspace, clock, connectorTransport),
+                LocalCloudHub.Create(dataRoot, workspace, clock, audit)));
         try
         {
             await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. cloud.Tools(), .. iac.Tools()]).RunStdioAsync(ct);

@@ -792,6 +792,7 @@ describe('contrato da ligação com a IDE (fixture do motor)', () => {
     expect(parsed.projectArgument).toBe('--project');
     expect(parsed.command).toMatch(/mariliz-runtime\.exe$/);
     expect(parsed.tools.map((tool) => tool.name)).toEqual([
+      'spock_context_bootstrap',
       'list_projects',
       'project_briefing',
       'decisions',

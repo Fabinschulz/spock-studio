@@ -261,7 +261,7 @@ public sealed class McpServerTests : IDisposable
 
         Assert.Equal(@"C:\Spock\mariliz-runtime.exe", result["command"]!.GetValue<string>());
         Assert.Equal(["mcp"], result["args"]!.AsArray().Select(arg => arg!.GetValue<string>()));
-        Assert.Equal(4, result["tools"]!.AsArray().Count);
+        Assert.Equal(ProjectContextTools.Catalog.Count, result["tools"]!.AsArray().Count);
 
         var pretty = result.ToJsonString(new JsonSerializerOptions
         {

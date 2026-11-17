@@ -18,7 +18,8 @@ public sealed partial class McpServer(string version, IReadOnlyList<McpTool> too
 
     private const string Instructions =
         "Contexto do Spock Studio sobre os projetos que a pessoa abriu nele: tecnologias, comandos, estado do Harness, decisões registradas " +
-        "e busca no índice de conhecimento. Só leitura. Comece por project_briefing e use search_project para achar o código e os documentos " +
+        "e busca no índice de conhecimento. Só leitura. Numa sessão nova, comece por spock_context_bootstrap; para planejar uma mudança, " +
+        "use project_briefing e search_project para achar o código e os documentos " +
         "de um assunto; sem 'project', vale o projeto da pasta atual. Quando o projeto liberou conexões cloud para agentes, cloud_connections e as " +
         "ferramentas aws_*, azure_* e gcp_* leem a infraestrutura, também só leitura.";
 
@@ -50,6 +51,7 @@ public sealed partial class McpServer(string version, IReadOnlyList<McpTool> too
         Title = tool.Info.Title,
         Description = tool.Info.Description,
         InputSchema = JsonSerializer.SerializeToElement(tool.Info.InputSchema),
+        OutputSchema = tool.Info.OutputSchema is { } output ? JsonSerializer.SerializeToElement(output) : null,
         Annotations = new ToolAnnotations { ReadOnlyHint = true, OpenWorldHint = tool.Info.OpenWorld }
     };
 
@@ -59,10 +61,13 @@ public sealed partial class McpServer(string version, IReadOnlyList<McpTool> too
             ?? throw new McpProtocolException($"Ferramenta desconhecida: {parameters?.Name}.", McpErrorCode.InvalidParams);
 
         string text;
+        JsonObject? structured = null;
         var failed = false;
         try
         {
-            text = await tool.Call(new McpCall(Arguments(parameters!), client, ct));
+            var call = new McpCall(Arguments(parameters!), client, ct);
+            if (tool.Reply is { } reply) (text, structured) = await reply(call);
+            else text = await tool.Call(call);
         }
         catch (Exception ex) when (ex is McpToolException or EngineException)
         {
@@ -76,8 +81,22 @@ public sealed partial class McpServer(string version, IReadOnlyList<McpTool> too
             failed = true;
         }
 
-        return new CallToolResult { Content = [new TextContentBlock { Text = SecretScanner.RedactLines(text) }], IsError = failed };
+        return new CallToolResult
+        {
+            Content = [new TextContentBlock { Text = SecretScanner.RedactLines(text) }],
+            StructuredContent = structured is null || failed ? null : JsonSerializer.SerializeToElement(Redact(structured)),
+            IsError = failed
+        };
     }
+
+    // A mesma regra do texto: nenhuma linha com cara de credencial sai para a IDE, nem dentro do JSON.
+    private static JsonNode? Redact(JsonNode? node) => node switch
+    {
+        JsonObject obj => new JsonObject(obj.Select(pair => KeyValuePair.Create(pair.Key, Redact(pair.Value)))),
+        JsonArray array => new JsonArray(array.Select(Redact).ToArray()),
+        JsonValue value when value.TryGetValue<string>(out var text) => JsonValue.Create(SecretScanner.RedactLines(text)),
+        _ => node?.DeepClone()
+    };
 
     private static JsonObject Arguments(CallToolRequestParams parameters)
     {
