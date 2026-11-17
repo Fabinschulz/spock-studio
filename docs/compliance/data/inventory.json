@@ -18396,6 +18396,27 @@
   "nota": ""
  },
  {
+  "nome": "Microsoft.Extensions.AI.Abstractions",
+  "versao": "10.11.0",
+  "tipo": "library",
+  "ecossistema": "nuget",
+  "origem": "https://github.com/dotnet/extensions",
+  "uso": "transitiva de ModelContextProtocol.Core",
+  "dependencia": "transitiva",
+  "ambiente": "execução",
+  "artefatos": "linux-x64,windows-x64",
+  "licenca_declarada": "MIT",
+  "licenca_confirmada": "MIT",
+  "conferencia": "SÓ EXPRESSÃO",
+  "distribuicao": "incorporado (sidecar .NET single-file)",
+  "obrigacoes": "aviso de copyright e texto da licença nos avisos de terceiros",
+  "risco": "BAIXO",
+  "motivo": "Permissiva: manter aviso de copyright e texto da licença",
+  "evidencias": "runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/microsoft.extensions.ai.abstractions/10.11.0",
+  "hashes": "SHA-512:8780d7fd37495387e4d4619a7f5f67e8aba3923e955db19e2f85043ac43cf99242e5f540a4f6aea240adbc13faf380586dccd461940d7e8d666e6c871b85954a",
+  "nota": ""
+ },
+ {
   "nome": "Microsoft.Extensions.Configuration.Abstractions",
   "versao": "10.0.3",
   "tipo": "library",
@@ -18418,7 +18439,7 @@
  },
  {
   "nome": "Microsoft.Extensions.DependencyInjection.Abstractions",
-  "versao": "10.0.3",
+  "versao": "10.0.14",
   "tipo": "library",
   "ecossistema": "nuget",
   "origem": "https://github.com/dotnet/dotnet",
@@ -18433,8 +18454,8 @@
   "obrigacoes": "aviso de copyright e texto da licença nos avisos de terceiros",
   "risco": "BAIXO",
   "motivo": "Permissiva: manter aviso de copyright e texto da licença",
-  "evidencias": "runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/10.0.3",
-  "hashes": "SHA-512:6f018cad1700316c76b3f4438236bdee9dbbaf14b3da91105b4fab5f9716014595113549fdecb119f8c097cbee1b96be95c91698f204faf72e69935507960377",
+  "evidencias": "runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/10.0.14",
+  "hashes": "SHA-512:42da50cee4995724cf0ae1d6d39f320acf4d8f4dfde2e5243721474bcd779ce98af5481474175aa6b2793cfb0182c408a710034ec4e46da30ca27ca47a6eaa77",
   "nota": ""
  },
  {
@@ -18502,7 +18523,7 @@
  },
  {
   "nome": "Microsoft.Extensions.Logging.Abstractions",
-  "versao": "10.0.3",
+  "versao": "10.0.14",
   "tipo": "library",
   "ecossistema": "nuget",
   "origem": "https://github.com/dotnet/dotnet",
@@ -18517,8 +18538,8 @@
   "obrigacoes": "aviso de copyright e texto da licença nos avisos de terceiros",
   "risco": "BAIXO",
   "motivo": "Permissiva: manter aviso de copyright e texto da licença",
-  "evidencias": "runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/microsoft.extensions.logging.abstractions/10.0.3",
-  "hashes": "SHA-512:97197458b93b44e801140b2370e62343cfc354af9532ccf1181cd4860b50980b1336574b2f9a64f4d1bf7164ec5c7ab4954854100b5990413b8ce18e03c6c629",
+  "evidencias": "runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/microsoft.extensions.logging.abstractions/10.0.14",
+  "hashes": "SHA-512:4b071b101b64102ab70f6a32c2f1e49b8e9fcab5fd0ddd893d6a610e71d4736f9c51647531da38d5ab408e1ffd8998e0431baf6ca7d9297aa8b2d4ff2d97de7c",
   "nota": ""
  },
  {
@@ -18669,27 +18690,6 @@
   "nota": ""
  },
  {
-  "nome": "Microsoft.NET.ILLink.Tasks",
-  "versao": "10.0.13",
-  "tipo": "library",
-  "ecossistema": "nuget",
-  "origem": "https://github.com/dotnet/dotnet",
-  "uso": "",
-  "dependencia": "transitiva",
-  "ambiente": "build",
-  "artefatos": "desenvolvimento",
-  "licenca_declarada": "MIT",
-  "licenca_confirmada": "MIT",
-  "conferencia": "SÓ EXPRESSÃO",
-  "distribuicao": "não distribuído",
-  "obrigacoes": "Nenhuma para o produto (não distribuído).",
-  "risco": "BAIXO",
-  "motivo": "Não distribuído ao usuário final",
-  "evidencias": "runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/microsoft.net.illink.tasks/10.0.13",
-  "hashes": "SHA-512:e34cab04cb0b11c8e2c414781be16251a04fbf15c83d2289d8e812adb39972648305d6b849bd24ec15ab7c3a48be7dc8bef0f3c0e2ffb443daea00d07e1e9a47",
-  "nota": ""
- },
- {
   "nome": "Microsoft.NET.Test.Sdk",
   "versao": "17.14.1",
   "tipo": "library",
@@ -18750,6 +18750,27 @@
   "motivo": "Não distribuído ao usuário final",
   "evidencias": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.testplatform.testhost/17.14.1",
   "hashes": "SHA-512:77bf0b3f318a909c2c257010c2c6c927b2c4ec3d7007eac0ca11c701a38317e443490d0d80c8c3164480d438f0d7c56bc4eefa1a52808d152197e1fc34bf19f9",
+  "nota": ""
+ },
+ {
+  "nome": "ModelContextProtocol.Core",
+  "versao": "2.4.0",
+  "tipo": "library",
+  "ecossistema": "nuget",
+  "origem": "https://github.com/modelcontextprotocol/csharp-sdk",
+  "uso": "",
+  "dependencia": "direta",
+  "ambiente": "execução",
+  "artefatos": "linux-x64,windows-x64",
+  "licenca_declarada": "Apache-2.0",
+  "licenca_confirmada": "Apache-2.0",
+  "conferencia": "SÓ EXPRESSÃO",
+  "distribuicao": "incorporado (sidecar .NET single-file)",
+  "obrigacoes": "texto da Apache-2.0 e conteúdo do NOTICE (se houver) nos avisos; marcar arquivos modificados",
+  "risco": "BAIXO",
+  "motivo": "Permissiva: manter aviso de copyright e texto da licença",
+  "evidencias": "runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/modelcontextprotocol.core/2.4.0",
+  "hashes": "SHA-512:abdf2964c95cc61b21d0ba465dc4f6a30eec18dbde08f8439494f7cc9ec2cf99cdc8f98f926f0fe7b754214a73bf5c3aa966dd499711fd9f916d9b4d6231265d",
   "nota": ""
  },
  {

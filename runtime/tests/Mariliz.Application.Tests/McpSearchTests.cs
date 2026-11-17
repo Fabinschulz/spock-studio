@@ -33,9 +33,11 @@ public sealed class McpSearchTests : IDisposable
     private static JsonObject Send(McpServer server, string method, JsonObject parameters) =>
         server.HandleAsync(new JsonObject { ["jsonrpc"] = "2.0", ["id"] = 1, ["method"] = method, ["params"] = parameters }.ToJsonString()).GetAwaiter().GetResult()!;
 
-    private static (string Text, bool Failed) Search(McpServer server, JsonObject arguments)
+    // Uma sessão de IDE: o nome do cliente vai no initialize, como no fio.
+    private static (string Text, bool Failed) Search(McpServer server, JsonObject arguments, string client = "teste")
     {
-        var result = Send(server, "tools/call", new JsonObject { ["name"] = "search_project", ["arguments"] = arguments })["result"]!;
+        var result = McpWire.Exchange(server, McpWire.Initialize(client: client), McpWire.Initialized,
+            McpWire.Request(1, "tools/call", new JsonObject { ["name"] = "search_project", ["arguments"] = arguments }))[^1]["result"]!;
         return (result["content"]![0]!["text"]!.GetValue<string>(), result["isError"]!.GetValue<bool>());
     }
 
@@ -49,9 +51,7 @@ public sealed class McpSearchTests : IDisposable
         _project.Write("src/Frete.cs", Frete);
         var runtime = new FakeSearch(Hit("src/Frete.cs", Hashing.Sha256(Frete), Frete, 3, "Frete"));
         var server = Server(runtime);
-        Send(server, "initialize", new JsonObject { ["clientInfo"] = new JsonObject { ["name"] = "claude-code", ["version"] = "2.1" } });
-
-        var (text, failed) = Search(server, new JsonObject { ["query"] = "calculo de frete sigiloso", ["limit"] = 3 });
+        var (text, failed) = Search(server, new JsonObject { ["query"] = "calculo de frete sigiloso", ["limit"] = 3 }, "claude-code");
 
         Assert.False(failed);
         Assert.Contains("## src/Frete.cs:3 · Frete", text);
@@ -152,8 +152,7 @@ public sealed class McpSearchTests : IDisposable
         var projectId = Authorize();
         _project.Write("src/Frete.cs", Frete);
         var server = Server(new FakeSearch(Hit("src/Frete.cs", Hashing.Sha256(Frete), Frete)));
-        Send(server, "initialize", new JsonObject { ["clientInfo"] = new JsonObject { ["name"] = "Cursor" } });
-        Search(server, new JsonObject { ["query"] = "frete" });
+        Search(server, new JsonObject { ["query"] = "frete" }, "Cursor");
 
         var trail = new ProjectAuditService(Workspace(), new FakeClock { UtcNow = Now }, new FileRunStore(_project.DataDir), _audit)
             .Read(projectId, [AuditCategories.Context], null, null);
@@ -169,9 +168,7 @@ public sealed class McpSearchTests : IDisposable
         Authorize();
         _project.Write("src/Frete.cs", Frete);
         var server = Server(new FakeSearch(Hit("src/Frete.cs", Hashing.Sha256(Frete), Frete)));
-        Send(server, "initialize", new JsonObject { ["clientInfo"] = new JsonObject { ["name"] = "x\n## falso" } });
-
-        Search(server, new JsonObject { ["query"] = "frete" });
+        Search(server, new JsonObject { ["query"] = "frete" }, "x\n## falso");
 
         Assert.DoesNotContain("client", Assert.Single(_audit.Entries).Detail);
     }

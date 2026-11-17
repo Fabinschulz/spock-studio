@@ -63,7 +63,7 @@ internal static class McpEntry
             workspace => composition.Management(workspace, LocalIntegrationHub.Create(dataRoot, workspace, clock, connectorTransport)));
         try
         {
-            await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. cloud.Tools(), .. iac.Tools()]).RunAsync(Console.In, Console.Out, ct);
+            await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. cloud.Tools(), .. iac.Tools()]).RunStdioAsync(ct);
         }
         catch (OperationCanceledException)
         {

@@ -68,6 +68,7 @@ conferência foi manual nas fontes oficiais (LICENSE_AUDIT.md §10).
 | axe-core | 4.14.0 | npm | desenvolvimento | Testes de acessibilidade | MPL-2.0 | DIVERGE (texto MPL com notas de terceiros) | BAIXO |
 | sass-embedded | 1.106.1 | npm | desenvolvimento | SCSS (inclui binário Dart Sass) | MIT | CONFERE | BAIXO |
 | YamlDotNet | 18.1.0 | nuget | execução | Leitura de mariliz.yaml e frontmatter | MIT | SÓ EXPRESSÃO | BAIXO |
+| ModelContextProtocol.Core | 2.4.0 | nuget | execução | Protocolo do modo `mcp` (ADR-0009) | Apache-2.0 declarado; o `LICENSE` do repositório (tag v2.4.0) traz Apache-2.0 e MIT, em transição | TEXTO DO REPOSITÓRIO | BAIXO |
 | Microsoft.ML.Tokenizers (+ Data.O200kBase) | 3.0.0 | nuget | execução | Contagem de tokens; vocabulário o200k_base | MIT | CONFERE | BAIXO |
 | System.Security.Cryptography.ProtectedData | 9.0.11 | nuget | execução | DPAPI: cofre de credenciais no Windows | MIT | CONFERE | BAIXO |
 | AWSSDK.SecurityToken, SSO, SSOOIDC, EC2, S3, ECS, ECR, RDS, Lambda, CloudFormation, CloudWatch | 4.1.0–4.1.2 | nuget | execução | Conector AWS (identidade e leitura de recursos) | Apache-2.0 | SÓ EXPRESSÃO | BAIXO |

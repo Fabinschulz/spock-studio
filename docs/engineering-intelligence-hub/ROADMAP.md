@@ -78,6 +78,9 @@ critério de aceite.
 - **Decisão pendente:** manter implementação própria ou adotar o SDK oficial C# (DD-5).
 - **Dependências:** H0-1, H0-2, F2. **Complexidade:** média. **Valor:** alto.
 - **Aceite:** fixtures de contrato por ferramenta em `contracts/schemas/mcp/`; Claude Code e Cursor exibem a resposta (Cursor descarta resultado só estruturado: sempre mandar texto junto).
+- **Estado:** DD-5 decidida (ADR-0009): o protocolo passa a ser o SDK oficial (`ModelContextProtocol.Core` 2.4.0); o
+  servidor próprio fica registrado na ADR para restauração. Faltam `spock_context_bootstrap` (depende do F2 no master),
+  `structuredContent` com texto, erros tipados, `tools/list_changed` e as fixtures de contrato.
 
 ### F4 Política por destino
 - **Problema:** um booleano por vínculo (RT-50).

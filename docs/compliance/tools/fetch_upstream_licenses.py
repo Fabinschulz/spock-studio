@@ -41,6 +41,8 @@ SOURCES = [
     ("mariliz-ui-kit", "Fabinschulz/mariliz-ui-kit", None, [["LICENSE", "LICENSE.md", "LICENSE.txt"]], ["npm:@mariliz/ui-kit"]),
     ("sqlite-vec", "asg017/sqlite-vec", "v0.1.9", [["LICENSE-MIT"], ["LICENSE-APACHE"]], ["pypi:sqlite-vec"]),
     ("nsis-tauri-utils", "tauri-apps/nsis-tauri-utils", None, [["LICENSE_MIT"], ["LICENSE_APACHE-2.0"]], ["bin:nsis-tauri-utils"]),
+    # O pacote declara Apache-2.0 sem trazer o texto; o repositório não tem NOTICE (ADR-0009).
+    ("mcp-csharp-sdk", "modelcontextprotocol/csharp-sdk", "v2.4.0", [["LICENSE", "LICENSE.txt"]], ["nuget:ModelContextProtocol"]),
 ]
 
 

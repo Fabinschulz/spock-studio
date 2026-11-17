@@ -221,6 +221,18 @@
         "cargo:selectors"
       ],
       "note": "servo/stylo n\u00e3o tem arquivo de licen\u00e7a; os fontes de selectors t\u00eam o cabe\u00e7alho da MPL 2.0"
+    },
+    {
+      "id": "mcp-csharp-sdk",
+      "file": "mcp-csharp-sdk-LICENSE",
+      "repository": "https://github.com/modelcontextprotocol/csharp-sdk",
+      "ref": "v2.4.0",
+      "commit": "4cbf42ef107763f0bc75c358af8cb2dfe47a769a",
+      "url": "https://raw.githubusercontent.com/modelcontextprotocol/csharp-sdk/4cbf42ef107763f0bc75c358af8cb2dfe47a769a/LICENSE",
+      "sha256": "7c6a686d2b34b86ad8c726e0ac4d76903b525f251d73e617f8db3879fa8f11fc",
+      "covers": [
+        "nuget:ModelContextProtocol"
+      ]
     }
   ]
 }

@@ -426,12 +426,13 @@ hashes) em `inventory.csv` / `inventory.json`. W = Windows x64, L = Linux x64.
 | Microsoft .NET Runtime para linux-x64 (self-contained) | 10.0.x | nuget | direta |  | x | MIT | CONFERIDO MANUALMENTE | MÉDIO |
 | Microsoft .NET Runtime para win-x64 (self-contained) | 10.0.x | nuget | direta | x |  | MIT AND LicenseRef-DotNet-Library-License | CONFERIDO MANUALMENTE | MÉDIO |
 | Microsoft.Bcl.AsyncInterfaces | 10.0.3 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
+| Microsoft.Extensions.AI.Abstractions | 10.11.0 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
 | Microsoft.Extensions.Configuration.Abstractions | 10.0.3 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
-| Microsoft.Extensions.DependencyInjection.Abstractions | 10.0.3 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
+| Microsoft.Extensions.DependencyInjection.Abstractions | 10.0.14 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
 | Microsoft.Extensions.Diagnostics.Abstractions | 10.0.3 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
 | Microsoft.Extensions.FileProviders.Abstractions | 10.0.3 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
 | Microsoft.Extensions.Hosting.Abstractions | 10.0.3 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
-| Microsoft.Extensions.Logging.Abstractions | 10.0.3 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
+| Microsoft.Extensions.Logging.Abstractions | 10.0.14 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
 | Microsoft.Extensions.Options | 10.0.3 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
 | Microsoft.Extensions.Primitives | 10.0.3 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
 | Microsoft.Identity.Client | 4.83.1 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
@@ -439,6 +440,7 @@ hashes) em `inventory.csv` / `inventory.json`. W = Windows x64, L = Linux x64.
 | Microsoft.IdentityModel.Abstractions | 8.14.0 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
 | Microsoft.ML.Tokenizers | 3.0.0 | nuget | direta | x | x | MIT | CONFERE | BAIXO |
 | Microsoft.ML.Tokenizers.Data.O200kBase | 3.0.0 | nuget | direta | x | x | MIT | CONFERE | BAIXO |
+| ModelContextProtocol.Core | 2.4.0 | nuget | direta | x | x | Apache-2.0 | SÓ EXPRESSÃO | BAIXO |
 | Newtonsoft.Json | 13.0.4 | nuget | transitiva | x | x | MIT | CONFERE | BAIXO |
 | System.ClientModel | 1.10.0 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
 | System.CodeDom | 7.0.0 | nuget | transitiva | x | x | MIT | CONFERE | BAIXO |
