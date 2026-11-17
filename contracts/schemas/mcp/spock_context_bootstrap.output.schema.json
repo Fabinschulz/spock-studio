@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/mcp/spock_context_bootstrap.output.schema.json",
+  "type": "object",
+  "required": [
+    "projectId",
+    "intent",
+    "contextVersion",
+    "budgetTokens",
+    "usedTokens",
+    "composedAt",
+    "items",
+    "omitted",
+    "limitations"
+  ],
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Id da cópia de trabalho (p-)."
+    },
+    "stableId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Id estável do projeto (spk-), do mariliz.yaml."
+    },
+    "intent": {
+      "type": "string",
+      "enum": [
+        "bootstrap"
+      ]
+    },
+    "contextVersion": {
+      "type": "string",
+      "description": "Muda quando algo declarado ou aprovado muda; não a cada sincronização."
+    },
+    "budgetTokens": {
+      "type": "integer"
+    },
+    "usedTokens": {
+      "type": "integer"
+    },
+    "composedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "section",
+          "text",
+          "source",
+          "ref",
+          "classification",
+          "freshness"
+        ],
+        "properties": {
+          "section": {
+            "type": "string",
+            "enum": [
+              "identity",
+              "policies",
+              "connections",
+              "harness",
+              "warnings"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "description": "O item como a IDE o lê."
+          },
+          "source": {
+            "type": "string",
+            "description": "De onde veio: spock, mariliz.yaml, mariliz.lock, o provedor da integração ou cloud:<provedor>."
+          },
+          "ref": {
+            "type": "string",
+            "description": "O que identifica o item na origem."
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "discovered",
+              "declared",
+              "approved",
+              "integration",
+              "calculated",
+              "inferred"
+            ]
+          },
+          "observedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "freshness": {
+            "type": "string",
+            "enum": [
+              "fresh",
+              "stale",
+              "unknown"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "omitted": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "section",
+          "ref",
+          "reason"
+        ],
+        "properties": {
+          "section": {
+            "type": "string",
+            "description": "Seção do item."
+          },
+          "ref": {
+            "type": "string",
+            "description": "Item que ficou de fora."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Por quê."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

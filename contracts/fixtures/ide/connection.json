@@ -6,6 +6,11 @@
   "projectArgument": "--project",
   "tools": [
     {
+      "name": "spock_context_bootstrap",
+      "title": "Contexto de abertura do projeto",
+      "description": "Comece por aqui numa sessão nova: identidade do projeto (id estável e cópia), o que cada integração e conexão cloud libera, há quanto tempo cada uma foi lida, divergências do Harness e avisos. Cada item diz de onde veio, como foi obtido e se está atual. Compacto (até 1.500 tokens por padrão) e sem conteúdo das fontes externas."
+    },
+    {
       "name": "list_projects",
       "title": "Projetos desta conexão",
       "description": "Lista os projetos desta conexão que a pessoa abriu no Spock Studio e marca o da pasta atual. Só eles têm contexto disponível."

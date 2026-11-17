@@ -79,8 +79,10 @@ critério de aceite.
 - **Dependências:** H0-1, H0-2, F2. **Complexidade:** média. **Valor:** alto.
 - **Aceite:** fixtures de contrato por ferramenta em `contracts/schemas/mcp/`; Claude Code e Cursor exibem a resposta (Cursor descarta resultado só estruturado: sempre mandar texto junto).
 - **Estado:** DD-5 decidida (ADR-0009): o protocolo passa a ser o SDK oficial (`ModelContextProtocol.Core` 2.4.0); o
-  servidor próprio fica registrado na ADR para restauração. Faltam `spock_context_bootstrap` (depende do F2 no master),
-  `structuredContent` com texto, erros tipados, `tools/list_changed` e as fixtures de contrato.
+  servidor próprio fica registrado na ADR para restauração. Entrega 2: `spock_context_bootstrap` (primeira ferramenta da
+  lista), com texto e `structuredContent` juntos, `outputSchema` e o contrato em
+  `contracts/schemas/mcp/spock_context_bootstrap.output.schema.json`; linhas com cara de segredo saem redigidas também
+  no JSON. Faltam erros tipados, `tools/list_changed` e o contrato das demais ferramentas.
 
 ### F4 Política por destino
 - **Problema:** um booleano por vínculo (RT-50).

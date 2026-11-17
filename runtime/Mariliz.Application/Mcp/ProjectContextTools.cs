@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Mariliz.Application.Context;
 using Mariliz.Application.Engineering;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
@@ -22,7 +23,8 @@ public sealed class ProjectContextTools(
     IKnowledgeSearchRuntime? search = null,
     string? indexRoot = null,
     IAuditLog? audit = null,
-    Func<WorkspaceAuthorizer, ManagementService>? management = null)
+    Func<WorkspaceAuthorizer, ManagementService>? management = null,
+    Func<WorkspaceAuthorizer, ContextEngine>? context = null)
 {
     public const int DefaultBriefingChars = 6000;
     public const int MinChars = 1000;
@@ -112,15 +114,29 @@ public sealed class ProjectContextTools(
             ["additionalProperties"] = false
         });
 
-    public static IReadOnlyList<McpToolInfo> Catalog { get; } = [ListProjects, Briefing, Decisions, Search];
+    public static IReadOnlyList<McpToolInfo> Catalog { get; } = [ContextBootstrapTool.Info, ListProjects, Briefing, Decisions, Search];
 
+    // O bootstrap só existe com o Context Engine montado (o modo mcp do motor sempre monta).
     public IReadOnlyList<McpTool> Tools() =>
     [
+        .. context is null ? [] : new[] { McpTool.Structured(ContextBootstrapTool.Info, call => Task.FromResult(RenderBootstrap(call))) },
         new(ListProjects, _ => RenderProjects()),
         new(Briefing, call => Task.FromResult(RenderBriefing(call))),
         new(Decisions, call => Task.FromResult(RenderDecisions(call))),
         new(Search, RenderSearchAsync)
     ];
+
+    private McpReply RenderBootstrap(McpCall call)
+    {
+        var budget = McpArguments.Number(call.Arguments, "budget_tokens", ContextEngine.DefaultBootstrapBudget, ContextEngine.MinBudget,
+            ContextEngine.MaxBudget);
+        var workspace = workspaces();
+        var project = Resolve(workspace, call.Arguments);
+        var package = context!(workspace).Compose(project.ProjectId, ContextIntents.Bootstrap, budget);
+        // A trilha guarda o que foi entregue e em qual versão; o pacote não lê conteúdo de arquivo nem de fonte externa.
+        Audit(project.ProjectId, ContextBootstrapTool.Name, call.Client, package.Items.Count, [package.ContextVersion]);
+        return ContextBootstrapTool.Reply(package);
+    }
 
     private string RenderProjects()
     {
