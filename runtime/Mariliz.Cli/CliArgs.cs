@@ -6,7 +6,7 @@ public sealed class CliArgs
     private static readonly HashSet<string> Flags =
         ["--json", "--yes", "--diff", "--allow-specification-reinstall", "--update-specification", "--approve-removals", "--help"];
 
-    private static readonly HashSet<string> Valued = ["--env", "--run", "--overwrite", "--approve-command"];
+    private static readonly HashSet<string> Valued = ["--env", "--run", "--overwrite", "--approve-command", "--intent", "--budget"];
 
     private readonly Dictionary<string, List<string>> _values = new();
     private readonly HashSet<string> _flags = [];

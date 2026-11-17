@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Mariliz.Application.Context;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Harness;
 using Mariliz.Application.Workspace;
@@ -14,7 +15,8 @@ public sealed class CliRunner(
     TextReader stdin,
     TextWriter stdout,
     TextWriter stderr,
-    bool interactive)
+    bool interactive,
+    Func<ContextEngine>? context = null)
 {
     public const int ExitOk = 0;
     public const int ExitFailed = 1;
@@ -35,6 +37,7 @@ public sealed class CliRunner(
                                    [--approve-removals] [--allow-specification-reinstall] [--update-specification] [--yes] [--json]
           mariliz validate <pasta> [--json]
           mariliz revert   <pasta> [--run <id>] [--yes] [--json]
+          mariliz context  <pasta> [--intent bootstrap] [--budget <tokens>] [--json]
 
         Nada é gravado sem aprovação: 'apply' aprova só criar e atualizar arquivos; remoções, comandos e
         substituição de arquivos seus exigem as opções acima. Conflitos mantêm o seu arquivo por padrão.
@@ -84,6 +87,7 @@ public sealed class CliRunner(
                 "apply" => await ApplyAsync(args, ct),
                 "validate" => await ValidateAsync(args, ct),
                 "revert" => await RevertAsync(args, ct),
+                "context" => Context(args),
                 _ => throw new CliUsageException($"Comando desconhecido: {args.Command}")
             };
         }
@@ -135,6 +139,21 @@ public sealed class CliRunner(
 
         var run = service.StartApply(projectId, plan.PlanId, approvals);
         return await FinishAsync(run, ct);
+    }
+
+    // Só lê: o pacote que a IDE recebe no começo de uma sessão (F2). O texto vai para stdout; o resumo, para stderr.
+    private int Context(CliArgs args)
+    {
+        var projectId = Authorize(args);
+        var engine = context?.Invoke() ?? throw new CliUsageException("O comando context não está disponível nesta montagem.");
+        int? budget = args.Single("--budget") is { } value
+            ? int.TryParse(value, out var tokens) ? tokens : throw new CliUsageException("--budget precisa ser um número de tokens.")
+            : null;
+        var package = engine.Compose(projectId, args.Single("--intent") ?? ContextIntents.Bootstrap, budget);
+        if (_json) { WriteJson(JournalJson.Node(package)); return ExitOk; }
+        stdout.Write(package.Text);
+        stderr.WriteLine($"{package.UsedTokens} de {package.BudgetTokens} tokens · {package.Items.Count} itens · {package.Omitted.Count} de fora · {package.ContextVersion}");
+        return ExitOk;
     }
 
     private async Task<int> ValidateAsync(CliArgs args, CancellationToken ct)

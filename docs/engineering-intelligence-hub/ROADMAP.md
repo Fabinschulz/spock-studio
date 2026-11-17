@@ -65,6 +65,11 @@ critério de aceite.
 - **Dependências:** F1. **Riscos:** virar segundo motor; mitigação: o engine só compõe, não calcula. **Complexidade:** média.
 - **Aceite:** `bootstrap` ≤ 1.500 tokens em três projetos reais; cada item com `source`, `classification`, `observedAt`, `freshness`.
 - **Métrica:** tokens e latência por intenção.
+- **Estado:** entrega 1 feita: `ContextEngine` (`Mariliz.Application/Context/`) com o modelo de item (origem, classificação,
+  data, frescor), orçamento com `omitted[]`, `contextVersion` e a intenção `bootstrap`; `mariliz context <pasta>` na CLI.
+  Medido em três pastas reais (Kaivor, o próprio SPOCK e uma worktree dele): 143 a 153 tokens, menos de 1 s com o
+  processo inteiro. As demais intenções (`development`, `management`, `infrastructure`, `investigation`, `delivery`)
+  entram nas próximas entregas; pedir uma delas hoje é erro `CONTEXT_INTENT_UNKNOWN`.
 
 ### F3 MCP v2
 - **Problema:** saída só texto; sem bootstrap; sem proveniência; lista de ferramentas fixa; protocolo 2025-06-18 com a spec atual em 2026-07-28.
