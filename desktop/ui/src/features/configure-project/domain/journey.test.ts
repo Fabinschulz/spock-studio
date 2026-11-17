@@ -17,7 +17,10 @@ import { awaitingHarnessProposal, explainOutcome, outcomeSeverity } from './run-
 const discovery = discoverySchema.parse(discoveryFixture);
 const plan = planSchema.parse(planFixture);
 const conflictId = plan.changes.find((change) => change.action === 'conflict')!.id;
-const createIds = plan.changes.filter((change) => change.action === 'create').map((change) => change.id);
+// Criar e atualizar vêm marcados; desde o C2 o plano também atualiza o CLAUDE.md da equipe (só o bloco do Spock).
+const createIds = plan.changes
+  .filter((change) => change.action === 'create' || change.action === 'update')
+  .map((change) => change.id);
 const preserveId = plan.changes.find((change) => change.action === 'preserve')!.id;
 
 const event = (type: string, data: Record<string, unknown>): RunEvent => ({

@@ -227,13 +227,15 @@ public class ConfigureJourneyTests
         Assert.Equal(".claude/agents/code-reviewer.md", conflict.Path);
         Assert.NotNull(conflict.Diff);
         Assert.Contains(plan.Changes, c => c.Path == ".claude/agents/my-agent.md" && c.Action == ChangeAction.Preserve);
-        Assert.Contains(plan.Changes, c => c.Path == "CLAUDE.md" && c.Action == ChangeAction.Preserve);
+        // C2: o CLAUDE.md é da pessoa; o plano só acrescenta o bloco do Spock no fim.
+        Assert.Contains(plan.Changes, c => c.Path == "CLAUDE.md" && c.Action == ChangeAction.Update);
 
         var result = await journey.ApplyAsync(plan);
 
         Assert.Contains("meu revisor", project.Read(".claude/agents/code-reviewer.md"));
         Assert.Contains(".claude/agents/code-reviewer.md", result["files"]!["kept"]!.AsArray().Select(n => n!.GetValue<string>()));
-        Assert.Equal("# minhas regras\n", project.Read("CLAUDE.md"));
+        Assert.StartsWith("# minhas regras\n", project.Read("CLAUDE.md"));
+        Assert.Contains("<!-- spock:begin spock.bootstrap", project.Read("CLAUDE.md"));
 
         // E continua mantido numa nova execução, sem voltar a ser conflito.
         var again = await journey.PlanAsync();

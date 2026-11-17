@@ -112,9 +112,14 @@ C2, que é o primeiro a compor trechos.
 hook de sessão chama; pasta fora do Spock ou erro viram aviso com código 0) e recusa argumento desconhecido em vez de subir
 como sidecar; o lançador `spock` (`desktop/launcher`, Rust, sem dependências) acha o `mariliz-runtime` ao lado ou na pasta
 de cima e repassa argumentos e stdio; o instalador do Windows copia o lançador para `bin\` e põe só essa pasta no PATH do
-usuário (e tira na desinstalação); no Linux o `.deb` leva `spock` para `/usr/bin` (não verificado num pacote). Falta a
-entrega 2: o Harness gravar o bloco no `CLAUDE.md`, a chave `spock` no `.mcp.json` e o hook `SessionStart`, e a tela de
-Agentes passar a oferecer `spock mcp --project-dir`.
+usuário (e tira na desinstalação); no Linux o `.deb` leva `spock` para `/usr/bin` (não verificado num pacote). Entrega 2
+feita: a descoberta detecta o lançador (`spock version`); o Harness do Claude Code grava o bloco no `CLAUDE.md`
+(`mariliz.ide.claude-bootstrap`), a chave `spock` no `.mcp.json` (`mariliz.ide.mcp`, `spock mcp --project-dir .`) e o hook
+`SessionStart` (`mariliz.hook.session`, `spock context session`) no mesmo `.claude/settings.json` do hook de política; sem o
+lançador, entra só o bloco e o plano diz por quê, e numa máquina sem ele nada do que a equipe versionou é apagado;
+dispensar um componente tira só o trecho dele, se ninguém o editou. Faltam: a tela de Agentes oferecer
+`spock mcp --project-dir`, o hook por prompt (`context prompt`, depende da intenção `development`) e a homologação do
+cenário 1 num Claude Code de verdade.
 
 Riscos do bloco: aprovação de servidor de projeto e projeto confiável são da pessoa (o SPOCK explica, não contorna);
 formatos mudam rápido (teste de conformidade por adaptador e revisão da matriz a cada entrega).

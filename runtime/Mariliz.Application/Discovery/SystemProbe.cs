@@ -26,7 +26,11 @@ internal sealed class SystemProbe(IProcessRunner processRunner)
             python = await Version(candidate, @"Python (3\.\d+\.\d+)");
             if (python is not null) { pythonCommand = candidate; break; }
         }
-        return new ToolAvailability(git, node, python, pythonCommand);
+        var spock = await processRunner.RunAsync(new ProcessSpec("spock", ["version"], root, ProbeTimeout), ct);
+        var launcher = spock is { NotFound: false, TimedOut: false, ExitCode: 0 } && Regex.Match(spock.StandardOutput, @"^\s*(\d+\.\d+\.\d+)") is { Success: true } match
+            ? match.Groups[1].Value
+            : null;
+        return new ToolAvailability(git, node, python, pythonCommand, launcher);
     }
 
     public async Task<GitState> ReadGitStateAsync(string root, IProjectFiles files, ToolAvailability tools, CancellationToken ct)

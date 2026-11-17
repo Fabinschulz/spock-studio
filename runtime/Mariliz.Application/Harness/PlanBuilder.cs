@@ -63,7 +63,7 @@ public static class PlanBuilder
     private static FileChange Classify(DesiredFile file, IProjectFiles files, ManagedLockFile? lockFile)
     {
         // Num trecho, o arquivo é da pessoa: o fim de linha dela (CRLF, por exemplo) fica como está.
-        var desired = ManagedRegion.IsRegionMode(file.Mode) ? file.Content : Normalize(file.Content);
+        var desired = file.Region is not null ? file.Content : Normalize(file.Content);
         var afterHash = Hashing.Sha256(desired);
         var currentBytes = files.ReadBytes(file.Path);
         var entry = lockFile?.ManagedFiles.FirstOrDefault(e => e.Path == file.Path);

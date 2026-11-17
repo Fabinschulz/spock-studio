@@ -77,6 +77,12 @@
         "path": ".claude/agents/code-reviewer.md",
         "managed": false,
         "issue": null
+      },
+      {
+        "name": "meu-agente",
+        "path": ".claude/agents/meu-agente.md",
+        "managed": false,
+        "issue": null
       }
     ],
     "skills": [],
@@ -109,7 +115,8 @@
     "git": "2.56.0",
     "node": "25.2.1",
     "python": "3.12.10",
-    "pythonCommand": "python"
+    "pythonCommand": "python",
+    "spock": null
   },
   "hasDeclaredConfig": false,
   "warnings": [

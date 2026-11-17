@@ -59,7 +59,8 @@ internal sealed class HarnessComposition(
         AddArchitectureRule();
         AddRepositoryCommands();
         AddProposedRules();
-        AddPolicyHook();
+        AddHooks();
+        AddIdeIntegration();
         SpecificationPlanner.Plan(report, files, options, _exclusion, _decisions, _commands, _limitations, _risks);
 
         return new ComposeResult(environment, _proposalOrigin, _desired, _decisions, _commands, _limitations,
@@ -291,42 +292,140 @@ internal sealed class HarnessComposition(
         }
     }
 
-    private void AddPolicyHook()
+    // .claude/settings.json guarda os dois hooks: um arquivo desejado só, mesclado na ordem política, sessão. O resto do
+    // arquivo é da pessoa.
+    private void AddHooks()
     {
-        if (!_components.Wants(Catalog.HookPolicy, true, "Controle determinístico antes de escritas e comandos: bloqueia o que a política proíbe.", []))
+        var current = files.ReadText(Catalog.PathSettings);
+        var text = current;
+        string? owner = null;
+        var reasons = new List<string>();
+
+        if (_components.Wants(Catalog.HookPolicy, true, "Controle determinístico antes de escritas e comandos: bloqueia o que a política proíbe.", []))
         {
-            AddHookRelease();
-            return;
+            var python = report.Tools.PythonCommand;
+            var (merged, error) = python is null ? (null, null) : SettingsMerger.Merge(text, python);
+            if (python is null)
+                BlockPolicyHook("Python 3 não foi encontrado; o hook depende dele.", "O hook de política não foi planejado: Python 3 não está disponível.");
+            else if (merged is null)
+                BlockPolicyHook(error ?? "settings.json não pôde ser mesclado.", error ?? "settings.json não pôde ser mesclado.");
+            else
+            {
+                text = merged;
+                owner = Catalog.HookPolicy;
+                reasons.Add("Registra o hook e nega a leitura de arquivos .env; o restante do arquivo é preservado.");
+                _desired.Add(RuleContent.Asset(Catalog.PathHookScript, ComponentKind.Hook, Catalog.HookPolicy, "hooks/mariliz-policy.py",
+                    "Script do hook: determinístico, somente leitura, sem rede."));
+                _risks.Add($"O hook usa o comando '{python}' em .claude/settings.json; em máquinas onde esse nome não existe ele falha sem bloquear (comportamento documentado).");
+            }
+        }
+        // settings.json é mesclado, nunca apagado: dispensar o hook tira só o registro dele.
+        else if (SettingsMerger.Release(text) is { } released)
+        {
+            text = released;
+            reasons.Add("O hook foi dispensado: sai só o registro dele; o restante do arquivo e as regras que negam a leitura de .env ficam.");
         }
 
-        var python = report.Tools.PythonCommand;
-        if (python is null)
+        if (_components.Wants(Catalog.HookSession, report.Tools.Spock is not null,
+                "Entrega à IDE, no começo de cada sessão, o contexto de abertura do projeto (spock context session).", [], LauncherMissing))
         {
-            BlockPolicyHook("Python 3 não foi encontrado; o hook depende dele.", "O hook de política não foi planejado: Python 3 não está disponível.");
-            return;
+            var (merged, error) = SettingsMerger.MergeSession(text);
+            if (merged is null)
+                BlockComponent(Catalog.HookSession, LimitationCodes.HookBlocked, error ?? "settings.json não pôde ser mesclado.");
+            else
+            {
+                if (merged != text) reasons.Add("Registra o hook de início de sessão (spock context session).");
+                text = merged;
+                owner ??= Catalog.HookSession;
+            }
+        }
+        // Sem o lançador nesta máquina o hook não é tirado: o arquivo é da equipe, e quem tem o Spock instalado continua usando.
+        else if (_exclusion.Contains(Catalog.HookSession) && SettingsMerger.ReleaseSession(text) is { } released)
+        {
+            text = released;
+            reasons.Add("O hook de sessão foi dispensado: sai só o registro dele.");
         }
 
-        var (merged, error) = SettingsMerger.Merge(files.ReadText(Catalog.PathSettings), python);
-        if (merged is null)
-        {
-            var reason = error ?? "settings.json não pôde ser mesclado.";
-            BlockPolicyHook(reason, reason);
-            return;
-        }
-
-        _desired.Add(RuleContent.Asset(Catalog.PathHookScript, ComponentKind.Hook, Catalog.HookPolicy, "hooks/mariliz-policy.py",
-            "Script do hook: determinístico, somente leitura, sem rede."));
-        _desired.Add(new(Catalog.PathSettings, ComponentKind.Hook, Catalog.HookPolicy, DecisionOrigins.Baseline,
-            "Registra o hook e nega a leitura de arquivos .env; o restante do arquivo é preservado.", merged, "merge"));
-        _risks.Add($"O hook usa o comando '{python}' em .claude/settings.json; em máquinas onde esse nome não existe ele falha sem bloquear (comportamento documentado).");
+        if (owner is not null)
+            _desired.Add(new(Catalog.PathSettings, ComponentKind.Hook, owner, DecisionOrigins.Baseline, string.Join(" ", reasons), text!, "merge"));
+        else if (text is not null && text != current)
+            _desired.Add(new(Catalog.PathSettings, ComponentKind.Hook, Catalog.HookPolicy, DecisionOrigins.Declared, string.Join(" ", reasons), text, "release"));
     }
 
-    // settings.json é mesclado, nunca apagado: dispensar o hook tira só o registro dele.
-    private void AddHookRelease()
+    private const string LauncherMissing =
+        "O comando spock não foi encontrado nesta máquina. Instale ou atualize o Spock Studio para os arquivos do projeto chamarem o Spock pelo comando.";
+
+    // C2: o que liga o Claude Code ao Spock, nos arquivos da equipe e só no trecho do Spock (ManagedRegion).
+    private void AddIdeIntegration()
     {
-        if (SettingsMerger.Release(files.ReadText(Catalog.PathSettings)) is not { } released) return;
-        _desired.Add(new(Catalog.PathSettings, ComponentKind.Hook, Catalog.HookPolicy, DecisionOrigins.Declared,
-            "O hook foi dispensado: sai só o registro dele; o restante do arquivo e as regras que negam a leitura de .env ficam.", released, "release"));
+        var launcher = report.Tools.Spock is not null;
+        AddRegion(Catalog.IdeClaudeBootstrap, true, "Diz à IDE como chegar ao contexto do Spock: hook de sessão, MCP e busca.", null,
+            ComponentKind.Rule, Catalog.PathClaudeMd, ManagedRegion.Block, ClaudeBlockId, ClaudeBlock,
+            "Bloco do Spock no CLAUDE.md: como chegar ao contexto do projeto.");
+        AddRegion(Catalog.IdeMcpServer, launcher, "Liga o servidor MCP do Spock ao Claude Code pelo comando spock, sem caminho desta máquina.",
+            LauncherMissing, ComponentKind.Tool, Catalog.PathMcpJson, ManagedRegion.JsonKey, McpServerKey, McpServer,
+            "Registra o servidor MCP do Spock (spock mcp --project-dir .) no .mcp.json.");
+        if (!launcher)
+            _limitations.Add(new(LimitationCodes.LauncherMissing,
+                LauncherMissing + " Até lá, o plano não grava o servidor MCP nem o hook de sessão; conecte a IDE pela tela Agentes."));
+    }
+
+    private const string ClaudeBlockId = "spock.bootstrap";
+    private const string McpServerKey = "mcpServers.spock";
+    private const string McpServer = """{"type":"stdio","command":"spock","args":["mcp","--project-dir","."]}""";
+
+    private const string ClaudeBlock = """
+        ## Spock Studio
+
+        Este projeto é acompanhado pelo Spock Studio, que guarda fora do repositório o contexto dele: perfil, decisões, gestão e conexões.
+
+        - No começo da sessão, o contexto de abertura chega pelo hook `spock context session`. Se não chegou, chame a ferramenta `spock_context_bootstrap` do servidor MCP `spock`.
+        - Para achar código, documentos e decisões, use `search_project` e `decisions`; antes de planejar uma mudança, `project_briefing`.
+        - O Spock só lê. As regras e os arquivos que ele gerencia mudam por plano aprovado no aplicativo; o que está fora deste bloco é da equipe.
+        """;
+
+    private void AddRegion(string id, bool applicable, string baselineReason, string? notApplicableReason, ComponentKind kind, string path, string mode,
+        string region, string content, string reason)
+    {
+        if (!_components.Wants(id, applicable, baselineReason, [], notApplicableReason))
+        {
+            // Só a dispensa pedida tira o trecho; não se aplicar nesta máquina (sem o lançador) não apaga o que a equipe versiona.
+            if (_exclusion.Contains(id)) ReleaseRegion(id, kind, path, mode, region);
+            return;
+        }
+        var (file, problem) = ManagedRegion.Desired(files, path, mode, region, content, kind, id, DecisionOrigins.Baseline, reason);
+        if (file is not null) _desired.Add(file);
+        else BlockComponent(id, LimitationCodes.IdeRegionBlocked, $"{problem} Corrija o arquivo e planeje de novo.");
+    }
+
+    // Tira só o trecho que o Spock escreveu e ninguém editou; o que foi editado à mão fica, com o aviso.
+    private void ReleaseRegion(string id, ComponentKind kind, string path, string mode, string region)
+    {
+        var entry = ManagedLockFile.Read(files)?.ManagedFiles.FirstOrDefault(e => e.Path == path && e.Component == id && e.Region == region);
+        var text = files.ReadText(path);
+        if (entry is null || text is null) return;
+        try
+        {
+            if (ManagedRegion.Extract(mode, region, text) is not { } onDisk) return;
+            if (ManagedRegion.Hash(onDisk) != entry.Sha256)
+            {
+                _limitations.Add(new(LimitationCodes.IdeRegionBlocked, $"{path}: o trecho do Spock foi editado à mão e não sai sem você decidir; apague-o à mão se quiser."));
+                return;
+            }
+            _desired.Add(new(path, kind, id, DecisionOrigins.Declared, "O componente foi dispensado: sai só o trecho do Spock; o resto do arquivo fica.",
+                ManagedRegion.Remove(mode, region, text), "release", region));
+        }
+        catch (FormatException ex)
+        {
+            _limitations.Add(new(LimitationCodes.IdeRegionBlocked, $"{path}: {ex.Message}"));
+        }
+    }
+
+    private void BlockComponent(string id, string code, string reason)
+    {
+        var index = _decisions.FindLastIndex(d => d.ComponentId == id);
+        if (index >= 0) _decisions[index] = _decisions[index] with { Decision = ComponentDecisions.Blocked, Justification = reason };
+        _limitations.Add(new(code, reason));
     }
 
     private void BlockPolicyHook(string decisionReason, string limitation)

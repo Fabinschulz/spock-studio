@@ -144,7 +144,7 @@ internal sealed class ApplyExecution(
     {
         var step = _recorder.BeginStep(ApplySteps.Write);
         var contents = session.Composed.Files.ToDictionary(f => f.Path,
-            f => ManagedRegion.IsRegionMode(f.Mode) ? f.Content : PlanBuilder.Normalize(f.Content), StringComparer.Ordinal);
+            f => f.Region is not null ? f.Content : PlanBuilder.Normalize(f.Content), StringComparer.Ordinal);
 
         foreach (var (change, kind) in decision.Writes)
         {

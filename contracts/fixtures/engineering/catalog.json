@@ -306,6 +306,78 @@
     },
     {
       "sheet": {
+        "id": "mariliz.hook.session",
+        "kind": "hook",
+        "title": "Hook de início de sessão",
+        "version": "0.1.0",
+        "whatItDoes": "No começo de cada sessão do Claude Code, entrega à IDE o contexto de abertura do projeto que o Spock Studio monta: identidade, o que cada conexão libera, frescor dos dados, divergências do Harness e avisos.",
+        "whenItActs": "Quando uma sessão do Claude Code começa, volta, é limpa ou compactada.",
+        "reads": [
+          "O que o Spock Studio já gravou sobre o projeto: id, vínculos, datas de sincronização e o estado do Harness"
+        ],
+        "canChange": [
+          "Nada. Só escreve o contexto na saída do hook; é registrado em .claude/settings.json e chama o comando spock."
+        ],
+        "tools": [],
+        "origin": "Escrito pelo Spock Studio; chama o lançador spock que o instalador põe no PATH.",
+        "files": [
+          ".claude/settings.json"
+        ],
+        "manageable": true
+      },
+      "presence": "not_applied",
+      "state": null
+    },
+    {
+      "sheet": {
+        "id": "mariliz.ide.claude-bootstrap",
+        "kind": "rule",
+        "title": "Bloco do Spock no CLAUDE.md",
+        "version": "0.1.0",
+        "whatItDoes": "Um bloco curto no CLAUDE.md que diz ao Claude Code como chegar ao contexto do Spock: o hook de sessão, a ferramenta spock_context_bootstrap e a busca no projeto.",
+        "whenItActs": "Sempre que o Claude Code lê o CLAUDE.md do projeto.",
+        "reads": [
+          "Nada: é texto fixo do Spock Studio"
+        ],
+        "canChange": [
+          "Nada. Fica só entre os marcadores do Spock; o resto do CLAUDE.md é da equipe e não é tocado."
+        ],
+        "tools": [],
+        "origin": "Escrito pelo Spock Studio.",
+        "files": [
+          "CLAUDE.md"
+        ],
+        "manageable": true
+      },
+      "presence": "applied",
+      "state": "intact"
+    },
+    {
+      "sheet": {
+        "id": "mariliz.ide.mcp",
+        "kind": "tool",
+        "title": "Servidor MCP do Spock (.mcp.json)",
+        "version": "0.1.0",
+        "whatItDoes": "Registra o servidor MCP do Spock (spock mcp --project-dir .) no .mcp.json do projeto, para o Claude Code usar as ferramentas de contexto, busca, gestão e infraestrutura do Spock.",
+        "whenItActs": "Quando o Claude Code abre o projeto e liga os servidores MCP aprovados pela pessoa.",
+        "reads": [
+          "O que o Spock Studio já gravou sobre o projeto, sob as políticas de cada conexão"
+        ],
+        "canChange": [
+          "Nada. As ferramentas só leem; a chave spock é a única que o Spock mantém no .mcp.json."
+        ],
+        "tools": [],
+        "origin": "Escrito pelo Spock Studio; chama o lançador spock que o instalador põe no PATH.",
+        "files": [
+          ".mcp.json"
+        ],
+        "manageable": true
+      },
+      "presence": "not_applied",
+      "state": null
+    },
+    {
+      "sheet": {
         "id": "mariliz.specification.structure",
         "kind": "specification",
         "title": "Estrutura de especificação",

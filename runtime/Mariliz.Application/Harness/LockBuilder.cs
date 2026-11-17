@@ -53,7 +53,10 @@ public static class LockBuilder
         };
         lockFile.ManagedFiles.AddRange(entries);
 
-        foreach (var id in lockFile.ManagedFiles.Select(f => f.Component).Distinct())
+        var components = lockFile.ManagedFiles.Select(f => f.Component).ToList();
+        if (composed.Files.Any(f => f.Path == Catalog.PathSettings && f.Mode == "merge" && SettingsMerger.HasSession(f.Content)))
+            components.Add(Catalog.HookSession);
+        foreach (var id in components.Distinct())
         {
             var component = Catalog.Find(id);
             lockFile.Components.Add(new() { Id = id, Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(), Version = ComponentVersion(id, component, installed ? specification.Version : null) });

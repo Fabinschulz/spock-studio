@@ -19,6 +19,7 @@ const GROUPS: { kind: string; title: string }[] = [
   { kind: 'skill', title: 'Skills (instruções prontas)' },
   { kind: 'rule', title: 'Regras' },
   { kind: 'hook', title: 'Hooks (checagens automáticas)' },
+  { kind: 'tool', title: 'Conexões com a IDE' },
   { kind: 'specification', title: 'Ciclo de especificação' },
   { kind: 'config', title: 'Declaração do projeto' }
 ];

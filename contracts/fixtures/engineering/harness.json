@@ -58,6 +58,21 @@
       ]
     },
     {
+      "id": "mariliz.ide.claude-bootstrap",
+      "label": "Bloco do Spock no CLAUDE.md",
+      "kind": "rule",
+      "version": "0.1.0",
+      "state": "intact",
+      "manageable": true,
+      "files": [
+        {
+          "path": "CLAUDE.md",
+          "mode": "block",
+          "state": "intact"
+        }
+      ]
+    },
+    {
       "id": "mariliz.rule.repo-commands",
       "label": "Comandos do repositório",
       "kind": "rule",
@@ -139,7 +154,7 @@
     }
   ],
   "excluded": [],
-  "intact": 7,
+  "intact": 8,
   "kept": 0,
   "modified": 1,
   "missing": 0

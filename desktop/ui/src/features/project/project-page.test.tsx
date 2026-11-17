@@ -293,7 +293,7 @@ describe('Projeto · Harness', () => {
     renderPage(clientWith([]), project, HarnessPage);
 
     const harness = (await screen.findByRole('heading', { name: 'Harness aplicado' })).closest('section')!;
-    expect(await within(harness).findByText(/8 componentes: 7 íntegros, 1 modificado à mão, 0 ausentes/)).toBeTruthy();
+    expect(await within(harness).findByText(/9 componentes: 8 íntegros, 1 modificado à mão, 0 ausentes/)).toBeTruthy();
     const list = within(harness).getByRole('list', { name: 'Componentes do Harness' });
     const first = within(list).getAllByRole('listitem')[0]!;
     expect(first).toHaveTextContent('Agente revisor de código');

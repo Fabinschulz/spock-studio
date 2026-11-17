@@ -15,7 +15,7 @@
         "status": "passed",
         "criteria": "mariliz.yaml (se existir) e mariliz.lock são válidos, no schema 1, e declaram o mesmo ambiente de IA.",
         "evidence": [
-          "mariliz.lock: schema 1, motor 0.1.0, ambiente claude-code, 10 arquivo(s)",
+          "mariliz.lock: schema 1, motor 0.1.0, ambiente claude-code, 11 arquivo(s)",
           "mariliz.yaml: schema 1, implementationModel=mariliz"
         ],
         "reason": null,
@@ -30,7 +30,7 @@
         "status": "passed",
         "criteria": "Todo arquivo do lock existe e tem o hash registrado; os arquivos mesclados mantêm as chaves gerenciadas.",
         "evidence": [
-          "10 arquivo(s) conferido(s) contra o lock"
+          "11 arquivo(s) conferido(s) contra o lock"
         ],
         "reason": null,
         "limitations": []
@@ -140,7 +140,7 @@
         "status": "passed",
         "criteria": "Nenhum arquivo gerenciado, .mcp.json, mariliz.yaml ou proposta contém formato conhecido de credencial.",
         "evidence": [
-          "12 arquivo(s) verificado(s); nenhum formato conhecido de credencial"
+          "13 arquivo(s) verificado(s); nenhum formato conhecido de credencial"
         ],
         "reason": null,
         "limitations": []
@@ -154,7 +154,7 @@
         "status": "passed",
         "criteria": "O ambiente declarado é suportado e nenhum arquivo gerenciado está fora das pastas desse ambiente.",
         "evidence": [
-          "Ambiente claude-code; 10 arquivo(s) todos em .claude/, .mariliz/ ou na raiz de configuração"
+          "Ambiente claude-code; 11 arquivo(s) todos em .claude/, .mariliz/ ou na raiz de configuração"
         ],
         "reason": null,
         "limitations": []
@@ -182,7 +182,7 @@
         "status": "passed",
         "criteria": "Um novo plano não contém criação, atualização, remoção, conflito nem comando.",
         "evidence": [
-          "Novo plano: 11 arquivo(s) preservado(s), nenhuma alteração, nenhum comando"
+          "Novo plano: 12 arquivo(s) preservado(s), nenhuma alteração, nenhum comando"
         ],
         "reason": null,
         "limitations": []
