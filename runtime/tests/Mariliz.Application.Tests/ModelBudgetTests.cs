@@ -52,6 +52,19 @@ public sealed class ModelBudgetTests : IDisposable
         Assert.Equal("MODEL_BUDGET_UNKNOWN", error.Code);
     }
 
+    // P0-2: o Python recusa um teto acima do máximo do schema; o teste do Python confere o próprio limite contra o schema.
+    [Theory]
+    [InlineData("ai.workflow.start.v2", ModelPurposes.Workflow)]
+    [InlineData("ai.investigation.start.v2", ModelPurposes.Assistant)]
+    public void O_maximo_do_schema_e_o_maior_teto_que_a_pessoa_escolhe(string schema, string purpose)
+    {
+        var body = JsonNode.Parse(File.ReadAllText(ContractFiles.Path_("schemas", "intelligence", schema + ".schema.json")))!;
+        var limits = body["properties"]!["limits"]!;
+        if (limits["$ref"] is { } reference) limits = body["$defs"]![reference.GetValue<string>().Split('/')[^1]]!;
+
+        Assert.Equal(ModelBudgets.Find(purpose)!.MaxTokens, limits["properties"]!["maxTokens"]!["maximum"]!.GetValue<int>());
+    }
+
     [Fact]
     public void Sem_chave_o_teto_ja_aparece_e_a_escolha_sobrevive_a_reiniciar()
     {

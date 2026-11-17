@@ -138,7 +138,8 @@
         },
         "maxTokens": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 120000
         }
       },
       "additionalProperties": false

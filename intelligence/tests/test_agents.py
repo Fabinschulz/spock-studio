@@ -9,7 +9,7 @@ from test_graph import _codes, _run, _start
 from agents import prompts
 from agents.model_client import ModelError
 from contracts.engineering import impact_ok
-from contracts.messages import ContractError, parse_start
+from contracts.messages import MAX_TOKENS, ContractError, parse_start
 from workflows.engineering import graph
 
 
@@ -126,6 +126,16 @@ class PlanningWithModelTests(unittest.TestCase):
         self.assertIn("MODEL_BUDGET_EXCEEDED", _codes(ack))
         self.assertEqual(ack["usage"]["modelCalls"], 1)
         self.assertEqual(_steps(ack), ["describe", "context", "evidence"])
+
+    def test_o_teto_do_motor_vale_inteiro(self) -> None:
+        # P0-2: o runtime cortava em 20.000. A primeira chamada gasta 20.000; com 50.000 a segunda ainda cabe.
+        model = FakeModel("não é json", plan(("a", "A")), input_tokens=15000, output_tokens=5000)
+
+        _, ack = _go(with_model(max_tokens=50000), model)
+
+        self.assertEqual(len(_agent_calls(model)), 2)
+        self.assertNotIn("MODEL_BUDGET_EXCEEDED", _codes(ack))
+        self.assertEqual(_steps(ack), ["a"])
 
     def test_sem_orcamento_nenhuma_chamada_e_feita(self) -> None:
         model = FakeModel(plan(("a", "A")))
@@ -263,6 +273,11 @@ class ContractTests(unittest.TestCase):
         payload["broker"] = {"url": "http://127.0.0.1:49152/v1/model", "token": TOKEN}
         with self.assertRaises(ContractError):
             parse_start(payload)
+
+    def test_teto_acima_da_faixa_do_motor_e_recusado_e_nao_cortado(self) -> None:
+        self.assertEqual(parse_start(with_model(max_tokens=MAX_TOKENS)).limits.max_tokens, MAX_TOKENS)
+        with self.assertRaises(ContractError):
+            parse_start(with_model(max_tokens=MAX_TOKENS + 1))
 
     def test_token_nao_aparece_na_representacao_da_requisicao(self) -> None:
         self.assertNotIn(TOKEN, repr(parse_start(with_model())))

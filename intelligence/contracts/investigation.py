@@ -13,6 +13,8 @@ _EXECUTION_ID = re.compile(r"^ex-[0-9a-f]{12}$")
 _PROJECT_ID = re.compile(r"^p-[0-9a-f]{12}$")
 _FACT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$")
 _LIMITS = ("maxIterations", "maxMilliseconds", "maxTokens")
+# O maior teto que o motor deixa escolher para a investigação (ModelBudgets); o schema e os testes conferem os três valores.
+MAX_TOKENS = 120000
 _MEMORY_PATH = re.compile(r"^@(decision|external)/[A-Za-z0-9._:/-]{1,200}$")
 _HASH = re.compile(r"^[0-9a-f]{64}$")
 
@@ -91,7 +93,7 @@ def parse_investigation(payload: object) -> InvestigationRequest:
         raise ContractError("schema")
     policy = _object(body.get("policy"), "policy")
     limits = _object(body.get("limits"), "limits")
-    if any(not isinstance(limits.get(name), int) or isinstance(limits.get(name), bool) or limits[name] < 0 for name in _LIMITS):
+    if any(not isinstance(limits.get(name), int) or isinstance(limits.get(name), bool) or limits[name] < 0 for name in _LIMITS) or limits["maxTokens"] > MAX_TOKENS:
         raise ContractError("limits")
     if not isinstance(policy.get("modelAllowed"), bool):
         raise ContractError("policy")

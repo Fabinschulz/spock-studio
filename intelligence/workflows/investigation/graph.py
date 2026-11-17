@@ -29,7 +29,6 @@ MAX_ITERATIONS = 12
 MAX_MILLISECONDS = 5000
 # Até quatro chamadas de modelo (três rodadas de hipóteses e a conclusão): o motor define o teto, o runtime só restringe.
 MAX_MILLISECONDS_MODEL = 150000
-MAX_TOKENS = 40000
 
 __all__ = ["WORKFLOW_ID", "WORKFLOW_VERSION", "build", "run_investigation"]
 
@@ -79,7 +78,7 @@ def run_investigation(payload: dict, clock: Callable[[], float] | None = None,
         min(MAX_MILLISECONDS_MODEL if model else MAX_MILLISECONDS, request.max_milliseconds),
         None,
         model,
-        min(MAX_TOKENS, request.max_tokens) if model else 0,
+        request.max_tokens if model else 0,
     )
     yield emitter.event("workflow.started", {"workflowId": WORKFLOW_ID, "workflowVersion": WORKFLOW_VERSION})
     run = nodes.Run(request, segment)
