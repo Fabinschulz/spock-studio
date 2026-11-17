@@ -15,7 +15,7 @@ interativo por conta própria: um agente pedindo uma leitura não faz surgir uma
 | --- | --- | --- | --- |
 | Perfil do AWS CLI | perfil, região padrão | `~/.aws/config` e `~/.aws/credentials` | Perfil de SSO: `aws sso login --profile <perfil>` (sem navegador: `--use-device-code --no-browser`). Perfil do `aws login` (credenciais do console, tipo `login_session`): `aws login --profile <perfil>`. Perfil de chaves: `aws configure --profile <perfil>`. Processo externo e papel assumido do perfil também funcionam |
 | Cadeia padrão do SDK | região padrão | Variáveis de ambiente, `AWS_PROFILE`, perfil `default`, SSO, web identity, papel da máquina (EC2/ECS) | O que a máquina já tiver; para SSO, `aws sso login` no perfil padrão |
-| Assumir um papel (AssumeRole) | Role ARN, perfil de origem (opcional), região padrão | Credenciais temporárias de 15 minutos do STS, a partir do perfil de origem ou da cadeia padrão | A identidade de origem precisa de `sts:AssumeRole` no papel, e a política de confiança do papel precisa aceitá-la |
+| Assumir um papel (AssumeRole) | Role ARN, perfil de origem (opcional), região padrão | Credenciais temporárias do STS (15 minutos nas leituras; uma hora num plano, apply, drift ou leitura de state da IaC, que recebe as credenciais do papel e não o perfil de origem), a partir do perfil de origem ou da cadeia padrão | A identidade de origem precisa de `sts:AssumeRole` no papel, e a política de confiança do papel precisa aceitá-la |
 
 - A identidade vem do `sts:GetCallerIdentity`, que não exige permissão.
 - A região precisa ser uma região que o SDK conhece; uma inventada é recusada antes de gravar.

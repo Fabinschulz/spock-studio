@@ -33,6 +33,15 @@ public interface ICloudPriceSource
     Task<IReadOnlyList<CloudPriceQuote>> PricesAsync(CloudSettings settings, IReadOnlyList<CloudPriceQuery> queries, CancellationToken ct);
 }
 
+// Para o provedor em que os nomes da conexão não levam a ferramenta de IaC à mesma identidade que as leituras usam: a AWS
+// com AssumeRole, que a ferramenta não sabe montar a partir de um Role ARN guardado só no Spock (P0-1). As variáveis valem
+// para um processo e não são guardadas.
+public interface ICloudProcessCredentials
+{
+    // Vazio quando os nomes da conexão bastam. Recusa com os códigos de CloudErrors, como uma leitura.
+    Task<IReadOnlyDictionary<string, string>> ProcessEnvironmentAsync(CloudSettings settings, CancellationToken ct);
+}
+
 // Nunca dentro de um projeto.
 public interface ICloudStore
 {

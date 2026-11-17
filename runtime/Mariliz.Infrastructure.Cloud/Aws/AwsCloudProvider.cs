@@ -8,8 +8,14 @@ namespace Mariliz.Infrastructure.Cloud.Aws;
 
 // A credencial é sempre a que o AWS SDK acha sozinho (perfil, cache do SSO, variáveis, papel da máquina): o Spock guarda
 // só o nome do perfil, a região e o Role ARN.
-public sealed partial class AwsCloudProvider : ICloudProvider, ICloudPriceSource
+public sealed partial class AwsCloudProvider : ICloudProvider, ICloudPriceSource, ICloudProcessCredentials
 {
+    public const string IacSessionName = "spock-studio-iac";
+
+    // Um apply passa fácil dos 15 minutos das leituras. Uma hora é o máximo padrão de um papel e o teto quando o perfil de
+    // origem já é um papel assumido (encadeamento).
+    public const int IacSessionSeconds = 3600;
+
     public const string ProfileMechanism = "profile";
     public const string DefaultMechanism = "default";
     public const string AssumeRoleMechanism = "assume-role";
@@ -31,7 +37,7 @@ public sealed partial class AwsCloudProvider : ICloudProvider, ICloudPriceSource
                 "Variáveis de ambiente, AWS_PROFILE, perfil default, SSO, web identity ou o papel da máquina, na ordem oficial do AWS SDK.",
                 [Region]),
             new CloudMechanism(AssumeRoleMechanism, "Assumir um papel (AssumeRole)",
-                "Credenciais temporárias de 15 minutos de um papel IAM, a partir de um perfil ou da cadeia padrão.",
+                "Credenciais temporárias de um papel IAM (15 minutos nas leituras, uma hora num plano ou apply da IaC), a partir de um perfil ou da cadeia padrão.",
                 [
                     new CloudField(RoleArnField, "Role ARN", "arn:aws:iam::<conta>:role/<nome>.", Required: true),
                     new CloudField(SourceProfileField, "Perfil de origem", "Opcional. Sem ele, vale a cadeia padrão.", Required: false),
@@ -97,6 +103,26 @@ public sealed partial class AwsCloudProvider : ICloudProvider, ICloudPriceSource
         try
         {
             return await AwsPrices.QuoteAsync(AwsCredentials.Resolve(settings), queries, ct);
+        }
+        catch (Exception ex) when (AwsErrors.Map(ex, settings, ct) is { } mapped)
+        {
+            throw mapped;
+        }
+    }
+
+    // O OpenTofu/Terraform só conhece o perfil de origem: com ele, rodaria com a identidade de origem, não com a do papel.
+    public async Task<IReadOnlyDictionary<string, string>> ProcessEnvironmentAsync(CloudSettings settings, CancellationToken ct)
+    {
+        if (settings.Mechanism != AssumeRoleMechanism) return new Dictionary<string, string>();
+        try
+        {
+            var role = await AwsCredentials.AssumeRole(settings, IacSessionName, IacSessionSeconds).GetCredentialsAsync();
+            return new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["AWS_ACCESS_KEY_ID"] = role.AccessKey,
+                ["AWS_SECRET_ACCESS_KEY"] = role.SecretKey,
+                ["AWS_SESSION_TOKEN"] = role.Token
+            };
         }
         catch (Exception ex) when (AwsErrors.Map(ex, settings, ct) is { } mapped)
         {

@@ -258,6 +258,89 @@ public sealed class IacOperationTests : IDisposable
         Assert.DoesNotContain(_runtime.LastPlan.Environment.Keys, k => k.Contains("SECRET") || k.Contains("ACCESS_KEY"));
     }
 
+    // P0-1: com AssumeRole, a ferramenta recebia só o perfil de origem e rodava com a identidade dele, não com a do papel.
+    private sealed class RoleProvider : ICloudProvider, ICloudProcessCredentials
+    {
+        public const string SecretKey = "segredo-temporario-do-papel-7f3a";
+
+        public int Issued { get; private set; }
+        public EngineException? Failure { get; set; }
+
+        public CloudProviderDescriptor Descriptor { get; } = new("aws", "AWS de teste", "1.0.0",
+            [new CloudMechanism("assume-role", "Papel", "Teste.", [new CloudField("roleArn", "Role ARN", "", Required: true),
+                new CloudField("sourceProfile", "Perfil de origem", "", Required: false), new CloudField("region", "Região", "", Required: true)])],
+            [], "Teste.");
+
+        public CloudSettings Normalize(CloudSettings settings) => settings;
+
+        public string NormalizeRegion(string region) => region;
+
+        public Task<CloudIdentity> IdentifyAsync(CloudSettings settings, CancellationToken ct) =>
+            Task.FromResult(new CloudIdentity("123456789012", null, "arn:teste", null));
+
+        public Task<CloudTable> ReadAsync(CloudSettings settings, CloudQuery query, CancellationToken ct) => Task.FromResult(new CloudTable([], false));
+
+        public Task<IReadOnlyDictionary<string, string>> ProcessEnvironmentAsync(CloudSettings settings, CancellationToken ct)
+        {
+            if (Failure is not null) throw Failure;
+            Issued++;
+            IReadOnlyDictionary<string, string> environment = new Dictionary<string, string>
+            {
+                ["AWS_ACCESS_KEY_ID"] = "ASIATESTE" + Issued, ["AWS_SECRET_ACCESS_KEY"] = SecretKey, ["AWS_SESSION_TOKEN"] = "sessao-" + Issued
+            };
+            return Task.FromResult(environment);
+        }
+    }
+
+    private async Task<(IacOperationService Service, RoleProvider Provider)> WithRoleConnection()
+    {
+        var store = new FileCloudStore(_project.DataDir);
+        store.SaveConnection(new CloudConnection("c-papel", "aws", "Papel", new CloudSettings("assume-role", new Dictionary<string, string>
+            {
+                ["roleArn"] = "arn:aws:iam::123456789012:role/deploy", ["sourceProfile"] = "origem-sso", ["region"] = "sa-east-1"
+            }), CloudConnectionStatus.Connected, null, [], _clock.UtcNow, _clock.UtcNow, null, "1"));
+        store.SaveLink(new CloudProjectLink("l-papel", _projectId, "c-papel", "aws", [], false, _clock.UtcNow));
+        var provider = new RoleProvider();
+        return (await Service(new CloudHub(store, new CloudProviderRegistry([provider]), Workspace(), _clock, _audit)), provider);
+    }
+
+    [Fact]
+    public async Task Com_papel_assumido_a_ferramenta_roda_com_a_credencial_do_papel_e_nao_com_o_perfil_de_origem()
+    {
+        var (service, provider) = await WithRoleConnection();
+
+        var plan = await service.PlanAsync(new IacPlanRequest(_projectId, null, null, "c-papel"), IacOperationService.Person, CancellationToken.None);
+        await service.ApplyAsync(Approve(plan), CancellationToken.None);
+        await service.DriftAsync(new IacPlanRequest(_projectId, null, null, "c-papel"), IacOperationService.Person, CancellationToken.None);
+
+        foreach (var environment in new[] { _runtime.LastPlan!.Environment, _runtime.LastApply!.Environment, _runtime.LastDrift!.Environment })
+        {
+            Assert.Equal(RoleProvider.SecretKey, environment["AWS_SECRET_ACCESS_KEY"]);
+            Assert.StartsWith("sessao-", environment["AWS_SESSION_TOKEN"]);
+            Assert.False(environment.ContainsKey("AWS_PROFILE"));
+            Assert.Equal("sa-east-1", environment["AWS_REGION"]);
+        }
+        // Uma credencial por operação, pedida na hora: o apply não reusa a do plano.
+        Assert.Equal(3, provider.Issued);
+        Assert.NotEqual(_runtime.LastPlan.Environment["AWS_SESSION_TOKEN"], _runtime.LastApply.Environment["AWS_SESSION_TOKEN"]);
+        Assert.DoesNotContain(_audit.Entries, entry => entry.Detail.Contains(RoleProvider.SecretKey));
+        Assert.DoesNotContain(Directory.EnumerateFiles(_project.DataDir, "*", SearchOption.AllDirectories),
+            file => File.ReadAllText(file).Contains(RoleProvider.SecretKey));
+    }
+
+    [Fact]
+    public async Task Sem_credencial_do_papel_a_ferramenta_nem_roda()
+    {
+        var (service, provider) = await WithRoleConnection();
+        provider.Failure = CloudErrors.Expired("Rode aws sso login --profile origem-sso e valide de novo.");
+
+        var refused = await Assert.ThrowsAsync<EngineException>(() =>
+            service.PlanAsync(new IacPlanRequest(_projectId, null, null, "c-papel"), IacOperationService.Person, CancellationToken.None));
+
+        Assert.StartsWith(CloudErrors.Prefix, refused.Code);
+        Assert.Null(_runtime.LastPlan);
+    }
+
     [Fact]
     public async Task Uma_operacao_por_vez_no_mesmo_projeto()
     {
