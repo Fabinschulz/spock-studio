@@ -180,6 +180,17 @@ public class PolicyTests
     [InlineData(".claude/skills/tlc-spec-driven/SKILL.md", false)]
     [InlineData(".agents/.skill-lock.json", false)]
     [InlineData("claude/x.md", false)]
+    // C1: os arquivos de IDE dos adaptadores, em que o Spock só grava o trecho dele.
+    [InlineData("CLAUDE.md", true)]
+    [InlineData("AGENTS.md", true)]
+    [InlineData(".mcp.json", true)]
+    [InlineData(".cursor/mcp.json", true)]
+    [InlineData(".cursor/rules/spock.mdc", true)]
+    [InlineData(".codex/config.toml", true)]
+    [InlineData("docs/CLAUDE.md", false)]
+    [InlineData("README.md", false)]
+    [InlineData(".cursor/settings.json", false)]
+    [InlineData(".codex/auth.json", false)]
     public void Escopo_de_escrita_gerenciado(string path, bool writable) => Assert.Equal(writable, ManagedScope.IsWritable(path));
 
     [Fact]

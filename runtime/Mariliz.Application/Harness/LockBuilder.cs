@@ -64,9 +64,9 @@ public static class LockBuilder
     private static ManagedLockFile.ManagedFileEntry? EntryFor(FileChange change, DesiredFile desired, ManagedLockFile? existing) =>
         change.Action switch
         {
-            ChangeAction.Create or ChangeAction.Update => Entry(change.Path, desired.ComponentId, desired.Mode, change.AfterHash ?? ""),
+            ChangeAction.Create or ChangeAction.Update => Entry(change.Path, desired, desired.Mode, change.AfterHash ?? ""),
             ChangeAction.Preserve when change.Origin == DecisionOrigins.Existing => Entry(change.Path, desired.ComponentId, "kept", change.BeforeHash ?? ""),
-            ChangeAction.Preserve => Entry(change.Path, desired.ComponentId, desired.Mode, change.AfterHash ?? ""),
+            ChangeAction.Preserve => Entry(change.Path, desired, desired.Mode, change.AfterHash ?? ""),
             // Resolvido na aplicação: se mantido, registra-se como "kept" naquele momento.
             ChangeAction.Conflict => existing?.ManagedFiles.FirstOrDefault(e => e.Path == change.Path),
             _ => null
@@ -75,7 +75,7 @@ public static class LockBuilder
     private static ManagedLockFile.ManagedFileEntry? EntryFromOutcome(string path, DesiredFile desired, FileOutcome outcome, ManagedLockFile? existing) =>
         outcome.Kind switch
         {
-            OutcomeKind.Written or OutcomeKind.Preserved => Entry(path, desired.ComponentId, desired.Mode, outcome.Hash ?? ""),
+            OutcomeKind.Written or OutcomeKind.Preserved => Entry(path, desired, desired.Mode, outcome.Hash ?? ""),
             OutcomeKind.Kept => Entry(path, desired.ComponentId, "kept", outcome.Hash ?? ""),
             OutcomeKind.NotApplied => existing?.ManagedFiles.FirstOrDefault(e => e.Path == path),
             _ => null
@@ -83,6 +83,12 @@ public static class LockBuilder
 
     private static ManagedLockFile.ManagedFileEntry Entry(string path, string component, string mode, string hash) =>
         new() { Path = path, Component = component, Mode = mode, Sha256 = hash };
+
+    // Num trecho, o arquivo inteiro é da pessoa: o registro guarda o hash do trecho, que é o que o próximo plano compara.
+    private static ManagedLockFile.ManagedFileEntry Entry(string path, DesiredFile desired, string mode, string fileHash) =>
+        ManagedRegion.IsRegionMode(mode) && ManagedRegion.Extract(mode, desired.Region!, desired.Content) is { } region
+            ? new() { Path = path, Component = desired.ComponentId, Mode = mode, Region = desired.Region, Sha256 = ManagedRegion.Hash(region) }
+            : Entry(path, desired.ComponentId, mode, fileHash);
 
     // A estrutura de especificação é externa: a versão é a da instalação verificada, nunca um valor fixo do catálogo.
     private static string ComponentVersion(string id, CatalogComponent? component, string? installedSpecification) =>

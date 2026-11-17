@@ -67,6 +67,20 @@ public sealed class HarnessStatusService(WorkspaceAuthorizer workspace, IProject
         var bytes = project.ReadBytes(path);
         if (bytes is null) return new HarnessFileStatus(path, entry.Mode, "missing");
 
+        if (ManagedRegion.IsRegionMode(entry.Mode))
+        {
+            try
+            {
+                var region = ManagedRegion.Extract(entry.Mode, entry.Region ?? "", System.Text.Encoding.UTF8.GetString(bytes));
+                var state = region is null ? "missing" : ManagedRegion.Hash(region) == entry.Sha256 ? "intact" : "modified";
+                return new HarnessFileStatus(path, entry.Mode, state);
+            }
+            catch (Exception ex) when (ex is FormatException or ArgumentException)
+            {
+                return new HarnessFileStatus(path, entry.Mode, "modified");
+            }
+        }
+
         if (entry.Mode == "merge")
         {
             var hookRegistered = path != Catalog.PathSettings

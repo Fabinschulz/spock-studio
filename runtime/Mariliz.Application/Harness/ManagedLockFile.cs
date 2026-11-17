@@ -1,5 +1,6 @@
 using Mariliz.Application.Ports;
 using YamlDotNet.Core;
+using YamlDotNet.Serialization;
 
 namespace Mariliz.Application.Harness;
 
@@ -33,6 +34,11 @@ public sealed class ManagedLockFile
         public string Path { get; set; } = "";
         public string Component { get; set; } = "";
         public string Mode { get; set; } = "file";
+
+        // Só nos modos de trecho (ManagedRegion): o Sha256 é o do trecho, não o do arquivo.
+        [YamlMember(DefaultValuesHandling = DefaultValuesHandling.OmitNull)]
+        public string? Region { get; set; }
+
         public string Sha256 { get; set; } = "";
     }
 

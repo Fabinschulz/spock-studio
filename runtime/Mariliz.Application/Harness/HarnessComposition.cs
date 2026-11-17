@@ -69,7 +69,7 @@ internal sealed class HarnessComposition(
 
     private string? ResolveEnvironment()
     {
-        if (!string.IsNullOrWhiteSpace(declared?.AiEnvironment)) return declared!.AiEnvironment;
+        if (!string.IsNullOrWhiteSpace(declared?.PrimaryEnvironment)) return declared!.PrimaryEnvironment;
         if (!string.IsNullOrWhiteSpace(options.AiEnvironment)) return options.AiEnvironment;
         return report.AiEnvironments.Count == 1 ? report.AiEnvironments[0].Id : null;
     }

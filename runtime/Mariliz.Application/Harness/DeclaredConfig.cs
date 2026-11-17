@@ -16,6 +16,15 @@ public sealed class DeclaredConfig
     public ProjectSection Project { get; set; } = new();
     public string ImplementationModel { get; set; } = ImplementationModels.Mariliz;
     public string AiEnvironment { get; set; } = "";
+
+    // C1: um projeto pode usar mais de uma IDE. Sem aiEnvironment, o principal é o primeiro da lista.
+    [YamlMember(DefaultValuesHandling = DefaultValuesHandling.OmitNull)]
+    public List<string>? AiEnvironments { get; set; }
+
+    public string PrimaryEnvironment => AiEnvironment.Length > 0 ? AiEnvironment : AiEnvironments?.FirstOrDefault() ?? "";
+
+    public IReadOnlyList<string> Environments =>
+        (AiEnvironment.Length > 0 ? new[] { AiEnvironment } : []).Concat(AiEnvironments ?? []).Distinct(StringComparer.Ordinal).ToList();
     public ComponentsSection Components { get; set; } = new();
     public EvalsSection Evals { get; set; } = new();
 
@@ -71,8 +80,12 @@ public sealed class DeclaredConfig
             if (config.Schema != 1) return (null, $"mariliz.yaml: schema {config.Schema} não é suportado (esperado 1).");
             if (!string.Equals(config.ImplementationModel, ImplementationModels.Mariliz, StringComparison.OrdinalIgnoreCase))
                 return (null, $"mariliz.yaml: implementationModel '{config.ImplementationModel}' não é suportado; esta fase usa somente '{ImplementationModels.Mariliz}'.");
-            if (config.AiEnvironment.Length > 0 && !AiEnvironments.Known.Contains(config.AiEnvironment))
+            if (config.AiEnvironment.Length > 0 && !Discovery.AiEnvironments.Known.Contains(config.AiEnvironment))
                 return (null, $"mariliz.yaml: aiEnvironment '{config.AiEnvironment}' é desconhecido.");
+            if (config.AiEnvironments?.FirstOrDefault(environment => !Discovery.AiEnvironments.Known.Contains(environment)) is { } unknown)
+                return (null, $"mariliz.yaml: '{unknown}' em aiEnvironments é desconhecido.");
+            if (config is { AiEnvironment.Length: > 0, AiEnvironments.Count: > 0 } && !config.AiEnvironments.Contains(config.AiEnvironment))
+                return (null, $"mariliz.yaml: aiEnvironment '{config.AiEnvironment}' precisa estar também em aiEnvironments.");
             if (config.Project?.Id is { } id && !StableProjectId.IsValid(id))
                 return (null, $"mariliz.yaml: project.id '{id}' não é um id do Spock ({StableProjectId.Prefix} e 26 caracteres). Apague a linha e planeje de novo para gerar um.");
             return (config, null);

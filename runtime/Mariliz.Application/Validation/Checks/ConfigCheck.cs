@@ -28,8 +28,8 @@ internal sealed class ConfigCheck : IEvalCheck
 
         if (ctx.Declared is not null)
         {
-            if (ctx.Declared.AiEnvironment.Length > 0 && ctx.Declared.AiEnvironment != ctx.Lock.AiEnvironment)
-                return Fail(spec, $"mariliz.yaml declara '{ctx.Declared.AiEnvironment}', mas o lock registra '{ctx.Lock.AiEnvironment}'.", [DeclaredConfig.FileName, ManagedLockFile.FileName]);
+            if (ctx.Declared.PrimaryEnvironment.Length > 0 && ctx.Declared.PrimaryEnvironment != ctx.Lock.AiEnvironment)
+                return Fail(spec, $"mariliz.yaml declara '{ctx.Declared.PrimaryEnvironment}', mas o lock registra '{ctx.Lock.AiEnvironment}'.", [DeclaredConfig.FileName, ManagedLockFile.FileName]);
             evidence.Add($"{DeclaredConfig.FileName}: schema 1, implementationModel=mariliz");
         }
         return Pass(spec, evidence);
