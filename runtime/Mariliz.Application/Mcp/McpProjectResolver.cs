@@ -3,11 +3,15 @@ using Mariliz.Application.Workspace;
 namespace Mariliz.Application.Mcp;
 
 // Só projetos que a pessoa autorizou no Spock e que estão no escopo da conexão: a pasta atual da IDE escolhe entre eles, nunca
-// autoriza outro. O escopo é obrigatório; sem ele não há projeto nenhum.
+// autoriza outro. O escopo é obrigatório; sem ele não há projeto nenhum. Um id estável (spk-) no escopo vale para toda cópia
+// autorizada cujo mariliz.yaml o declare (F1): clone e worktree do mesmo repositório, cada um com o próprio estado.
 public sealed class McpProjectResolver(WorkspaceAuthorizer workspace, string workingDirectory, IReadOnlySet<string> scope)
 {
     public IReadOnlyList<AuthorizedProject> Projects() =>
-        workspace.Projects().Where(project => scope.Contains(project.ProjectId)).ToList();
+        workspace.Projects().Where(InScope).ToList();
+
+    private bool InScope(AuthorizedProject project) =>
+        scope.Contains(project.ProjectId) || (workspace.StableIdOf(project.ProjectId) is { } stable && scope.Contains(stable));
 
     public AuthorizedProject? Current() => Containing(Projects());
 
@@ -37,7 +41,8 @@ public sealed class McpProjectResolver(WorkspaceAuthorizer workspace, string wor
         // Fora do escopo responde igual a inexistente: a conexão não fica sabendo de projetos que não pode ler. O nome da pasta
         // continua valendo porque era o nome exibido antes de o Spock ler o do manifesto, e configurações antigas o usam.
         var matches = Projects()
-            .Where(item => item.ProjectId == project || string.Equals(item.DisplayName, project, StringComparison.OrdinalIgnoreCase))
+            .Where(item => item.ProjectId == project || workspace.StableIdOf(item.ProjectId) == project
+                           || string.Equals(item.DisplayName, project, StringComparison.OrdinalIgnoreCase))
             .ToList();
         if (matches.Count == 0)
             matches = Projects().Where(item => string.Equals(FolderOf(item), project, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -45,7 +50,7 @@ public sealed class McpProjectResolver(WorkspaceAuthorizer workspace, string wor
         {
             1 => matches[0],
             0 => throw new McpToolException($"'{project}' não é um projeto {Available}. Veja os disponíveis em list_projects."),
-            _ => throw new McpToolException($"Há mais de um projeto chamado '{project}'. Use o id de list_projects.")
+            _ => throw new McpToolException($"Há mais de um projeto ou cópia que responde por '{project}'. Use o id da cópia (p-) de list_projects.")
         };
     }
 

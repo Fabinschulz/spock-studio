@@ -33,6 +33,8 @@ public sealed class ConfigureProjectService(
     public async Task<ConfigurationPlan> PlanAsync(string projectId, PlanOptions options, CancellationToken ct)
     {
         var (root, files) = Open(projectId);
+        // Os replanejamentos do apply usam as opções guardadas na sessão: o id tem de estar nelas.
+        options = options with { StableId = workspace.ProposedStableId(projectId) };
         var replanned = await _planner.ReplanAsync(projectId, root, files, options, ct);
         _plans.Save(new PlanSession(projectId, root, options, replanned.Plan, replanned.Composed));
         return replanned.Plan;

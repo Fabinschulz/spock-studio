@@ -1,6 +1,7 @@
 using Mariliz.Application.Discovery;
 using Mariliz.Application.Ports;
 using Mariliz.Core.Plan;
+using Mariliz.Core.Text;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 
@@ -22,7 +23,14 @@ public sealed class DeclaredConfig
     [YamlMember(DefaultValuesHandling = DefaultValuesHandling.OmitNull)]
     public KnowledgeSection? Knowledge { get; set; }
 
-    public sealed class ProjectSection { public string Name { get; set; } = ""; }
+    public sealed class ProjectSection
+    {
+        // F1: gravado uma vez, por plano aprovado; vai para o Git com o resto da declaração.
+        [YamlMember(DefaultValuesHandling = DefaultValuesHandling.OmitNull)]
+        public string? Id { get; set; }
+
+        public string Name { get; set; } = "";
+    }
     public sealed class ComponentsSection { public List<string> Exclude { get; set; } = []; }
     public sealed class EvalsSection { public List<string> Required { get; set; } = []; }
 
@@ -38,6 +46,21 @@ public sealed class DeclaredConfig
         + "# Este arquivo é seu: edite à vontade. A aplicação o lê, mas não o reescreve.\n"
         + YamlFiles.Writer.Serialize(this);
 
+    // Nulo quando o arquivo não existe, não lê ou não tem um id válido.
+    public static string? StableIdIn(string? text)
+    {
+        if (text is null) return null;
+        try
+        {
+            var id = YamlFiles.Reader.Deserialize<DeclaredConfig>(text)?.Project?.Id;
+            return StableProjectId.IsValid(id) ? id : null;
+        }
+        catch (YamlException)
+        {
+            return null;
+        }
+    }
+
     public static (DeclaredConfig? Config, string? Error) TryRead(IProjectFiles files)
     {
         var text = files.ReadText(FileName);
@@ -50,6 +73,8 @@ public sealed class DeclaredConfig
                 return (null, $"mariliz.yaml: implementationModel '{config.ImplementationModel}' não é suportado; esta fase usa somente '{ImplementationModels.Mariliz}'.");
             if (config.AiEnvironment.Length > 0 && !AiEnvironments.Known.Contains(config.AiEnvironment))
                 return (null, $"mariliz.yaml: aiEnvironment '{config.AiEnvironment}' é desconhecido.");
+            if (config.Project?.Id is { } id && !StableProjectId.IsValid(id))
+                return (null, $"mariliz.yaml: project.id '{id}' não é um id do Spock ({StableProjectId.Prefix} e 26 caracteres). Apague a linha e planeje de novo para gerar um.");
             return (config, null);
         }
         catch (YamlException ex)

@@ -124,13 +124,16 @@ public sealed class ProjectContextTools(
 
     private string RenderProjects()
     {
-        var resolver = new McpProjectResolver(workspaces(), workingDirectory, scope);
+        var workspace = workspaces();
+        var resolver = new McpProjectResolver(workspace, workingDirectory, scope);
         var projects = resolver.Projects();
         if (projects.Count == 0)
             return "Nenhum dos projetos desta conexão está aberto no Spock. Abra a pasta no aplicativo ou ajuste o --project da configuração.";
         var current = resolver.Current()?.ProjectId;
         return string.Join("\n", projects
-            .Select(project => $"- {project.DisplayName} · id {project.ProjectId} · {project.DisplayPath}{(project.ProjectId == current ? " (pasta atual)" : "")}")
+            .Select(project => $"- {project.DisplayName} · id {project.ProjectId}" +
+                               (workspace.StableIdOf(project.ProjectId) is { } stable ? $" · projeto {stable}" : "") +
+                               $" · {project.DisplayPath}{(project.ProjectId == current ? " (pasta atual)" : "")}")
             .Prepend("Projetos disponíveis para esta conexão:"));
     }
 

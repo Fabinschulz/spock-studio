@@ -52,6 +52,11 @@ critério de aceite.
 - **Dependências:** H0-1. **Riscos:** fork com o mesmo id (aviso pelo remoto). **Complexidade:** média. **Valor:** alto.
 - **Aceite:** o mesmo repositório em duas pastas resolve para o mesmo projeto, cada uma com estado Git próprio; pasta sem id recusa.
 - **Métrica:** zero resoluções ambíguas nos testes de cenário.
+- **Estado:** feito. `project.id: spk-<ULID>` entra no `mariliz.yaml` pelo plano (no arquivo novo ou como edição pontual
+  aprovada); o id proposto fica no registro local até ser aplicado. O MCP aceita `--project spk-…` (toda cópia autorizada
+  com esse id; a pasta da IDE escolhe a cópia) e `--project-dir` (sobe até o `mariliz.yaml`; sem id, recusa). O
+  `p-<hash>` segue como chave dos dados de cada cópia: nada foi migrado. Ficam para depois o aviso de remoto Git
+  diferente (fork), o id na tela e o comando da tela de Agentes com `--project-dir` (C2).
 
 ### F2 Context Engine e modelo canônico
 - **Problema:** cada consumidor monta contexto do seu jeito; sem orçamento comum, proveniência tipada nem frescor.

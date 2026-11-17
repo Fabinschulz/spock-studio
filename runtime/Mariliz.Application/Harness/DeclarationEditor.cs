@@ -15,6 +15,50 @@ public static class DeclarationEditor
         return ReadsAsExpected(text, result, exclude) ? result : null;
     }
 
+    // F1: só acrescenta "id:" no bloco project; um id que já esteja lá (mesmo vazio) não é trocado.
+    public static string? WithProjectId(string text, string id)
+    {
+        var lines = text.Replace("\r\n", "\n").Split('\n').ToList();
+        var project = lines.FindIndex(line => IsKey(line, "project", indent: 0));
+        if (project < 0)
+        {
+            var at = lines.FindIndex(line => !IsBlankOrComment(line));
+            lines.InsertRange(at < 0 ? lines.Count : at, ["project:", $"  id: {id}"]);
+        }
+        else
+        {
+            if (Value(lines[project]).Length > 0) return null; // project: {} ou na mesma linha: formato não reconhecido.
+            var end = project + 1;
+            while (end < lines.Count && (IsBlankOrComment(lines[end]) || Indent(lines[end]) > 0)) end++;
+            var children = Enumerable.Range(project + 1, end - project - 1).Where(i => !IsBlankOrComment(lines[i])).ToList();
+            if (children.Any(i => lines[i].TrimStart().StartsWith("id:", StringComparison.Ordinal))) return null;
+            var indent = children.Count > 0 ? new string(' ', Indent(lines[children[0]])) : "  ";
+            lines.Insert(project + 1, $"{indent}id: {id}");
+        }
+
+        var result = string.Join("\n", lines);
+        return ReadsWithId(text, result, id) ? result : null;
+    }
+
+    private static bool ReadsWithId(string original, string edited, string id)
+    {
+        try
+        {
+            var before = YamlFiles.Reader.Deserialize<DeclaredConfig>(original) ?? new DeclaredConfig();
+            var after = YamlFiles.Reader.Deserialize<DeclaredConfig>(edited) ?? new DeclaredConfig();
+            if (after.Project?.Id != id) return false;
+
+            // Fora o id, nada mais pode mudar de sentido. "project:" sem nada embaixo lê como nulo.
+            before.Project = new DeclaredConfig.ProjectSection { Name = before.Project?.Name ?? "" };
+            after.Project = new DeclaredConfig.ProjectSection { Name = after.Project?.Name ?? "" };
+            return YamlFiles.Writer.Serialize(before) == YamlFiles.Writer.Serialize(after);
+        }
+        catch (YamlException)
+        {
+            return false;
+        }
+    }
+
     private static List<string>? Edit(List<string> lines, IReadOnlyList<string> exclude)
     {
         var components = lines.FindIndex(line => IsKey(line, "components", indent: 0));
