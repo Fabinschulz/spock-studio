@@ -28,8 +28,9 @@ public static class PlanBuilder
             if (current is null) continue;
             var currentHash = Hashing.Sha256(current);
 
-            // Mantido por decisão da pessoa, ou mesclado num arquivo dela (settings.json): nunca apagado inteiro.
-            if (entry.Mode is "kept" or "merge") continue;
+            // Mantido por decisão da pessoa, mesclado num arquivo dela (settings.json) ou trecho num arquivo dela: nunca apagado
+            // inteiro. Tirar só o trecho fica para quando houver componente que o dispense (C2).
+            if (entry.Mode is "kept" or "merge" || ManagedRegion.IsRegionMode(entry.Mode)) continue;
             if (currentHash == entry.Sha256)
                 changes.Add(New(entry.Path, kind, entry.Component, ChangeAction.Remove, "O componente foi dispensado; o arquivo gerenciado e intacto sai.",
                     DecisionOrigins.Baseline, currentHash, null, destructive: true, null, Diff(entry.Path, Encoding.UTF8.GetString(current), "")));
@@ -61,7 +62,8 @@ public static class PlanBuilder
 
     private static FileChange Classify(DesiredFile file, IProjectFiles files, ManagedLockFile? lockFile)
     {
-        var desired = Normalize(file.Content);
+        // Num trecho, o arquivo é da pessoa: o fim de linha dela (CRLF, por exemplo) fica como está.
+        var desired = ManagedRegion.IsRegionMode(file.Mode) ? file.Content : Normalize(file.Content);
         var afterHash = Hashing.Sha256(desired);
         var currentBytes = files.ReadBytes(file.Path);
         var entry = lockFile?.ManagedFiles.FirstOrDefault(e => e.Path == file.Path);
@@ -74,6 +76,8 @@ public static class PlanBuilder
 
         var currentText = Encoding.UTF8.GetString(currentBytes);
         var currentHash = Hashing.Sha256(currentBytes);
+
+        if (ManagedRegion.IsRegionMode(file.Mode)) return ClassifyRegion(file, desired, afterHash, currentText, currentHash, entry);
 
         if (file.Mode == "merge")
         {
@@ -100,6 +104,42 @@ public static class PlanBuilder
             ? "Já existe um arquivo neste caminho que a aplicação não gerencia."
             : "O arquivo gerenciado foi editado depois da última aplicação.";
         return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Conflict, file.Reason, file.Origin, currentHash, afterHash, destructive: true, why, Diff(file.Path, currentText, desired));
+    }
+
+    // O que fica fora do trecho é da pessoa: nunca entra na decisão. Dentro dele, a mesma regra de três vias dos arquivos.
+    private static FileChange ClassifyRegion(DesiredFile file, string desired, string afterHash, string currentText, string currentHash,
+        ManagedLockFile.ManagedFileEntry? entry)
+    {
+        string? onDisk;
+        try
+        {
+            onDisk = ManagedRegion.Extract(file.Mode, file.Region!, currentText);
+        }
+        catch (FormatException ex)
+        {
+            return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Conflict, file.Reason, file.Origin, currentHash, afterHash, destructive: true,
+                $"O trecho do Spock em {file.Path} não pôde ser lido: {ex.Message}", Diff(file.Path, currentText, desired));
+        }
+        var wanted = ManagedRegion.Extract(file.Mode, file.Region!, desired);
+
+        if (onDisk is not null && onDisk == wanted)
+            return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Preserve, "O trecho gerenciado já está como o desejado.", file.Origin,
+                currentHash, currentHash, false, null, null);
+        if (entry is { Mode: "kept" } && entry.Sha256 == currentHash)
+            return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Preserve, "Mantido por decisão sua; a aplicação não o altera.",
+                DecisionOrigins.Existing, currentHash, currentHash, false, null, null);
+        if (onDisk is null)
+            return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Update, file.Reason + " O restante do arquivo fica como está.", file.Origin,
+                currentHash, afterHash, false, null, Diff(file.Path, currentText, desired));
+        if (entry is not null && entry.Mode == file.Mode && entry.Region == file.Region && entry.Sha256 == ManagedRegion.Hash(onDisk))
+            return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Update, "Trecho gerenciado desatualizado; atualizar. " + file.Reason,
+                file.Origin, currentHash, afterHash, false, null, Diff(file.Path, currentText, desired));
+
+        var why = entry is null
+            ? "Já existe um trecho do Spock neste arquivo, mas o registro não o conhece."
+            : "O trecho gerenciado foi editado depois da última aplicação.";
+        return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Conflict, file.Reason, file.Origin, currentHash, afterHash, destructive: true, why,
+            Diff(file.Path, currentText, desired));
     }
 
     private static FileChange? ClassifyLock(IProjectFiles files, ManagedLockFile? existing, ComposeResult composed, DiscoveryReport report, List<FileChange> changes)

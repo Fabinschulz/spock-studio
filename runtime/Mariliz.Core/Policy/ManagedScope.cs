@@ -7,10 +7,15 @@ public static class ManagedScope
     public const string SkillsLockDirectory = ".agents";
 
     // Ao desfazer, só pastas vazias dentro delas podem ser apagadas.
-    public static readonly IReadOnlyList<string> TopLevelDirectories = [".claude", ".mariliz", SkillsLockDirectory];
+    public static readonly IReadOnlyList<string> TopLevelDirectories = [".claude", ".mariliz", SkillsLockDirectory, ".cursor", ".codex"];
 
-    private static readonly string[] AllowedPrefixes = [".claude/", ".mariliz/"];
-    private static readonly string[] AllowedFiles = ["mariliz.yaml", "mariliz.lock"];
+    // Os arquivos de IDE dos adaptadores (C1): neles o Spock escreve só o trecho dele (ManagedRegion) ou arquivos próprios.
+    private static readonly string[] AllowedPrefixes = [".claude/", ".mariliz/", ".cursor/rules/"];
+    private static readonly string[] AllowedFiles =
+    [
+        "mariliz.yaml", "mariliz.lock", "CLAUDE.md", "AGENTS.md", ".mcp.json", ".cursor/mcp.json", ".cursor/hooks.json", ".codex/config.toml",
+        ".codex/hooks.json"
+    ];
 
     // O único lugar onde um arquivo gerenciado pode estar.
     public static bool IsEnvironmentFile(string normalizedPath) =>

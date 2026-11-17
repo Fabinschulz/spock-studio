@@ -100,6 +100,14 @@ critério de aceite.
 | C4 | Diagnóstico de IDE na tela; evals `EV-CTX-001..003`, `EV-CTX-SEC`; eventos `ide.bootstrap`, `ide.denied` | Auditoria, evals | C2 | Tela mostra última consulta, versão do contexto e divergências por IDE |
 | C5 | Homologação multi-IDE com roteiro (como a de 16/11) | — | C3, H0-7 | **Cenário 6** e relatório com tokens e latência por IDE |
 
+**Estado do C1:** feito. `ManagedRegion` gerencia um trecho em Markdown (marcadores `spock:begin`/`spock:end`), uma
+chave própria em JSON (sem comentários, que a regravação apagaria) e uma tabela própria em TOML; formato que não dá
+para editar com segurança vira conflito. O plano e o lock comparam só o trecho (modos `block`, `json-key`,
+`toml-table`, campo `region` no lock), o fim de linha do arquivo da pessoa é mantido, e o escopo gravável inclui
+`CLAUDE.md`, `AGENTS.md`, `.mcp.json`, `.cursor/mcp.json`, `.cursor/hooks.json`, `.cursor/rules/`, `.codex/config.toml`
+e `.codex/hooks.json`. `aiEnvironments` aceita lista. Tirar só o trecho quando um componente é dispensado fica para o
+C2, que é o primeiro a compor trechos.
+
 Riscos do bloco: aprovação de servidor de projeto e projeto confiável são da pessoa (o SPOCK explica, não contorna);
 formatos mudam rápido (teste de conformidade por adaptador e revisão da matriz a cada entrega).
 

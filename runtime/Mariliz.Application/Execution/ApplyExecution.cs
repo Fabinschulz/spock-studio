@@ -143,7 +143,8 @@ internal sealed class ApplyExecution(
     private void ApplyWrites(WriteDecision decision)
     {
         var step = _recorder.BeginStep(ApplySteps.Write);
-        var contents = session.Composed.Files.ToDictionary(f => f.Path, f => PlanBuilder.Normalize(f.Content), StringComparer.Ordinal);
+        var contents = session.Composed.Files.ToDictionary(f => f.Path,
+            f => ManagedRegion.IsRegionMode(f.Mode) ? f.Content : PlanBuilder.Normalize(f.Content), StringComparer.Ordinal);
 
         foreach (var (change, kind) in decision.Writes)
         {

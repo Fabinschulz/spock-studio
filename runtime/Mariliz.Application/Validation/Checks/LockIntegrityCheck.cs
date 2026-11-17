@@ -29,6 +29,8 @@ internal sealed class LockIntegrityCheck : IEvalCheck
             checkedFiles++;
 
             if (entry.Mode == "file" && Hashing.Sha256(bytes) != entry.Sha256) problems.Add($"{path}: o conteúdo difere do hash registrado.");
+            if (ManagedRegion.IsRegionMode(entry.Mode) && RegionProblem(entry, System.Text.Encoding.UTF8.GetString(bytes)) is { } problem)
+                problems.Add($"{path}: {problem}");
             if (entry.Mode == "merge" && path == Catalog.PathSettings)
             {
                 var text = System.Text.Encoding.UTF8.GetString(bytes);
@@ -39,5 +41,20 @@ internal sealed class LockIntegrityCheck : IEvalCheck
         return problems.Count == 0
             ? Pass(spec, [$"{checkedFiles} arquivo(s) conferido(s) contra o lock"])
             : Fail(spec, $"{problems.Count} divergência(s) entre o lock e o disco.", problems);
+    }
+
+    // Num trecho, só ele é conferido: o resto do arquivo é da pessoa.
+    private static string? RegionProblem(ManagedLockFile.ManagedFileEntry entry, string text)
+    {
+        try
+        {
+            return ManagedRegion.Extract(entry.Mode, entry.Region ?? "", text) is not { } region
+                ? $"o trecho {entry.Region} do Spock sumiu."
+                : ManagedRegion.Hash(region) != entry.Sha256 ? $"o trecho {entry.Region} difere do hash registrado." : null;
+        }
+        catch (Exception ex) when (ex is FormatException or ArgumentException)
+        {
+            return $"o trecho {entry.Region} não pôde ser lido: {ex.Message}";
+        }
     }
 }
