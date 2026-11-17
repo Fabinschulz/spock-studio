@@ -141,7 +141,7 @@ Code); E1 (gestão na IDE com dados que já existem); C3 (Cursor e Codex); D1 a 
 | DD-3 | Portfólio entre pessoas | Cada um com o seu até o Modelo C |
 | DD-4 | Comercialização (individual ou organização) | Junto com D-07 (EULA) |
 | DD-5 | Servidor MCP próprio ou SDK oficial C# (spec mudou para 2026-07-28) | Avaliar o SDK com a auditoria de licenças; manter o próprio até lá |
-| DD-6 | Lançador `spock` no PATH e versionar os arquivos de IDE no repositório | Sim para os dois; sem lançador, gravar no escopo local |
+| DD-6 | Lançador `spock` no PATH e versionar os arquivos de IDE no repositório | **Decidida pelo dono em 2026-11-17:** sim para os dois; sem lançador, gravar no escopo local |
 | DD-7 | A IDE pode disparar sincronização incremental com teto | Sim, com teto e auditoria |
 | DD-8 | Nível padrão do destino `ide` | `summary` |
 | DD-9 | Ler comentários do Jira | Opcional, sob política, como dado não confiável |

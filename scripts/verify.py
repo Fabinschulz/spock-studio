@@ -23,6 +23,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 HOST = ROOT / "desktop" / "host" / "src-tauri"
+LAUNCHER = ROOT / "desktop" / "launcher"
 UI = ["pnpm", "--filter", "@mariliz/desktop-ui"]
 
 
@@ -46,6 +47,9 @@ GATES = [
     Gate("host", "formatação do host", ["cargo", "fmt", "--check"], HOST),
     Gate("host", "clippy do host", ["cargo", "clippy", "--locked", "--all-targets", "--all-features", "--", "-D", "warnings"], HOST),
     Gate("host", "testes do host", ["cargo", "test", "--locked"], HOST),
+    Gate("host", "formatação do lançador", ["cargo", "fmt", "--check"], LAUNCHER),
+    Gate("host", "clippy do lançador", ["cargo", "clippy", "--locked", "--all-targets", "--all-features", "--", "-D", "warnings"], LAUNCHER),
+    Gate("host", "testes do lançador", ["cargo", "test", "--locked"], LAUNCHER),
 ]
 GROUPS = sorted({gate.group for gate in GATES})
 

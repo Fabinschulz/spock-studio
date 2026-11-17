@@ -108,6 +108,14 @@ para editar com segurança vira conflito. O plano e o lock comparam só o trecho
 e `.codex/hooks.json`. `aiEnvironments` aceita lista. Tirar só o trecho quando um componente é dispensado fica para o
 C2, que é o primeiro a compor trechos.
 
+**Estado do C2:** DD-6 decidida em 2026-11-17. Entrega 1 feita: o motor aceita `version` e `context session` (o que o
+hook de sessão chama; pasta fora do Spock ou erro viram aviso com código 0) e recusa argumento desconhecido em vez de subir
+como sidecar; o lançador `spock` (`desktop/launcher`, Rust, sem dependências) acha o `mariliz-runtime` ao lado ou na pasta
+de cima e repassa argumentos e stdio; o instalador do Windows copia o lançador para `bin\` e põe só essa pasta no PATH do
+usuário (e tira na desinstalação); no Linux o `.deb` leva `spock` para `/usr/bin` (não verificado num pacote). Falta a
+entrega 2: o Harness gravar o bloco no `CLAUDE.md`, a chave `spock` no `.mcp.json` e o hook `SessionStart`, e a tela de
+Agentes passar a oferecer `spock mcp --project-dir`.
+
 Riscos do bloco: aprovação de servidor de projeto e projeto confiável são da pessoa (o SPOCK explica, não contorna);
 formatos mudam rápido (teste de conformidade por adaptador e revisão da matriz a cada entrega).
 
