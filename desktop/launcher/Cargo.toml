@@ -1,0 +1,17 @@
+[package]
+name = "spock-launcher"
+version = "0.1.0"
+description = "Lançador spock: repassa a linha de comando ao motor do Spock Studio"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[[bin]]
+name = "spock"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
+panic = "abort"

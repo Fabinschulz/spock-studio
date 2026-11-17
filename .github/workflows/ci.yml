@@ -151,6 +151,9 @@ jobs:
             -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o dist/runtime/${{ matrix.rid }}
           ext=""; [ "${{ runner.os }}" = "Windows" ] && ext=".exe"
           cp "dist/runtime/${{ matrix.rid }}/Mariliz.Runtime$ext" "desktop/host/src-tauri/binaries/mariliz-runtime-${{ matrix.triple }}$ext"
+          # O lançador spock (DD-6); no Windows ele sai do build-runtime.ps1.
+          cargo build --release --locked --manifest-path desktop/launcher/Cargo.toml --target ${{ matrix.triple }}
+          cp "desktop/launcher/target/${{ matrix.triple }}/release/spock$ext" "desktop/host/src-tauri/binaries/spock-${{ matrix.triple }}$ext"
       # CPython do python-build-standalone (ADR-0001, D2), hash fixado no script, mais a inteligência em bytecode.
       - name: inteligência e interpretador embarcados (demais plataformas)
         if: runner.os != 'Windows'
@@ -171,6 +174,12 @@ jobs:
         run: |
           cargo fmt --check
           cargo clippy --locked --all-targets --all-features -- -D warnings
+      - name: formatação, lint e testes do lançador spock
+        working-directory: desktop/launcher
+        run: |
+          cargo fmt --check
+          cargo clippy --locked --all-targets --all-features -- -D warnings
+          cargo test --locked
       - name: testes do host
         working-directory: desktop/host/src-tauri
         run: cargo test --locked

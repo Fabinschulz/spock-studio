@@ -189,6 +189,10 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
             case "ide.context_read":
                 yield return Entry("", AuditCategories.Context, IdeReadTitle(Text(d, "tool")), IdeReadDetail(d));
                 break;
+            case "ide.bootstrap":
+                yield return Entry("", AuditCategories.Context, "Contexto de abertura entregue à IDE pelo hook de sessão",
+                    $"Versão {Clean(Text(d, "contextVersion"))}: {Count(Count(d, "items"), "item", "itens")}, {Count(Count(d, "usedTokens"), "token", "tokens")}.");
+                break;
             case "connection.created":
                 yield return Entry("", AuditCategories.Credential, $"Conexão criada: {Clean(Text(d, "name"))}", $"Provedor: {Clean(Text(d, "provider"))}. Conexão usada por este projeto.");
                 break;

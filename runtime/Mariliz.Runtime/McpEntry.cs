@@ -64,10 +64,7 @@ internal static class McpEntry
             dataRoot,
             audit,
             workspace => composition.Management(workspace, LocalIntegrationHub.Create(dataRoot, workspace, clock, connectorTransport)),
-            // O bootstrap só lista vínculos e conexões cloud: nenhuma leitura de conta passa por ele.
-            workspace => new ContextEngine(workspace, new HarnessStatusService(workspace, new LocalProjectFilesFactory(), clock),
-                new FileTechnologyProfileStore(dataRoot), tokenizers, clock, LocalIntegrationHub.Create(dataRoot, workspace, clock, connectorTransport),
-                LocalCloudHub.Create(dataRoot, workspace, clock, audit)));
+            workspace => ContextComposition.Engine(workspace, dataRoot, clock, audit, connectorTransport, tokenizers));
         try
         {
             await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. cloud.Tools(), .. iac.Tools()]).RunStdioAsync(ct);

@@ -27,6 +27,19 @@ using Mariliz.Infrastructure.Iac;
 using var cts = LocalEngine.ConfigureConsole();
 
 if (args is [IdeConnection.ServerArgument, ..]) return await McpEntry.RunAsync(args[1..], cts.Token);
+if (args is ["version"])
+{
+    Console.WriteLine(BuildInfo.Version);
+    return 0;
+}
+if (args is [ContextHookEntry.Command, ..]) return ContextHookEntry.Run(args[1..]);
+// O host inicia o motor sem argumentos. Um argumento que não se entende (do lançador spock, por exemplo) não pode virar um
+// sidecar parado esperando o protocolo na entrada.
+if (args.Length > 0)
+{
+    Console.Error.WriteLine($"Argumento desconhecido: {args[0]}. Use: spock mcp --project-dir <pasta> | spock context session | spock version");
+    return 2;
+}
 
 var relay = new EventRelay();
 var engine = LocalEngine.Create(FileRunStore.DefaultDataRoot(), relay.Emit, rememberWorkspaces: true);

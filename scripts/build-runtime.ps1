@@ -43,6 +43,14 @@ $target = Join-Path $dest ("mariliz-runtime-" + $t.Triple + $t.Ext)
 Copy-Item $exe $target -Force
 "Sidecar: $target ({0:N1} MB)" -f ((Get-Item $target).Length / 1MB)
 
+# O lançador spock (DD-6) vai junto: o instalador o põe no PATH, e os arquivos de IDE chamam "spock" em vez deste caminho.
+$launcher = Join-Path $root 'desktop\launcher'
+cargo build --release --locked --manifest-path (Join-Path $launcher 'Cargo.toml') --target $t.Triple
+if ($LASTEXITCODE -ne 0) { throw 'O build do lançador spock falhou' }
+$spock = Join-Path $dest ("spock-" + $t.Triple + $t.Ext)
+Copy-Item (Join-Path $launcher ("target\" + $t.Triple + "\release\spock" + $t.Ext)) $spock -Force
+"Lançador: $spock ({0:N0} KB)" -f ((Get-Item $spock).Length / 1KB)
+
 # Medido em 2026-10-31: sidecar 70,8 MB; zip oficial python-3.12.10-embed-amd64 10,6 MB (orçamento do interpretador: 25 MB).
 # A inteligência e as dependências (bytecode, orçamento 30 MB) saem de scripts/package-intelligence.py (ADR-0001).
 $budget = 25MB
