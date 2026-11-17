@@ -6,6 +6,7 @@ using Mariliz.Application.Tests.Support;
 using Mariliz.Application.Workspace;
 using Mariliz.Infrastructure;
 using Mariliz.Infrastructure.Cloud;
+using Mariliz.Infrastructure.Cloud.Aws;
 
 namespace Mariliz.Application.Tests;
 
@@ -225,5 +226,22 @@ public sealed class CloudConnectorTests : IDisposable
         public Task<CloudIdentity> IdentifyAsync(CloudSettings settings, CancellationToken ct) => Task.FromResult(Identify());
 
         public Task<CloudTable> ReadAsync(CloudSettings settings, CloudQuery query, CancellationToken ct) => Task.FromResult(Read(query));
+    }
+
+    // Só o papel assumido precisa de credencial própria para a IaC; perfil e cadeia padrão a ferramenta acha sozinha.
+    [Fact]
+    public async Task Credencial_da_aws_para_a_iac_so_existe_com_papel_assumido()
+    {
+        var provider = new AwsCloudProvider();
+        var profile = provider.Normalize(new CloudSettings(AwsCloudProvider.ProfileMechanism,
+            new Dictionary<string, string> { ["profile"] = "dev", ["region"] = "sa-east-1" }));
+        var role = provider.Normalize(new CloudSettings(AwsCloudProvider.AssumeRoleMechanism, new Dictionary<string, string>
+        {
+            ["roleArn"] = "arn:aws:iam::123456789012:role/deploy", ["sourceProfile"] = "spock-perfil-que-nao-existe", ["region"] = "sa-east-1"
+        }));
+
+        Assert.Empty(await provider.ProcessEnvironmentAsync(profile, CancellationToken.None));
+        var refused = await Assert.ThrowsAsync<EngineException>(() => provider.ProcessEnvironmentAsync(role, CancellationToken.None));
+        Assert.Equal(CloudErrors.NotAuthenticatedCode, refused.Code);
     }
 }

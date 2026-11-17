@@ -40,7 +40,7 @@
         {
           "id": "assume-role",
           "label": "Assumir um papel (AssumeRole)",
-          "description": "Credenciais temporárias de 15 minutos de um papel IAM, a partir de um perfil ou da cadeia padrão.",
+          "description": "Credenciais temporárias de um papel IAM (15 minutos nas leituras, uma hora num plano ou apply da IaC), a partir de um perfil ou da cadeia padrão.",
           "fields": [
             {
               "name": "roleArn",

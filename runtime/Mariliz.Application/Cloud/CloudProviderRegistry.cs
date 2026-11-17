@@ -24,6 +24,8 @@ public sealed class CloudProviderRegistry
     public ICloudProvider Require(string provider) =>
         _byProvider.TryGetValue(provider, out var found) ? found : throw CloudErrors.ProviderUnknown();
 
+    public ICloudProvider? Find(string provider) => _byProvider.GetValueOrDefault(provider);
+
     public CloudCapability RequireCapability(string provider, string capability) =>
         Require(provider).Descriptor.Capability(capability) ?? throw CloudErrors.CapabilityUnknown();
 

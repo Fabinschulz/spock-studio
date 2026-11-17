@@ -15,13 +15,15 @@ internal static class AwsCredentials
     {
         AwsCloudProvider.ProfileMechanism => FromProfile(settings.Value(AwsCloudProvider.ProfileField)!),
         AwsCloudProvider.DefaultMechanism => FromDefaultChain(),
-        AwsCloudProvider.AssumeRoleMechanism => new AssumeRoleAWSCredentials(
-            settings.Value(AwsCloudProvider.SourceProfileField) is { } source ? FromProfile(source) : FromDefaultChain(),
-            settings.Value(AwsCloudProvider.RoleArnField)!,
-            SessionName,
-            new AssumeRoleAWSCredentialsOptions { DurationSeconds = 900 }),
+        AwsCloudProvider.AssumeRoleMechanism => AssumeRole(settings, SessionName, 900),
         _ => throw CloudErrors.MechanismUnknown()
     };
+
+    public static AssumeRoleAWSCredentials AssumeRole(CloudSettings settings, string sessionName, int seconds) => new(
+        settings.Value(AwsCloudProvider.SourceProfileField) is { } source ? FromProfile(source) : FromDefaultChain(),
+        settings.Value(AwsCloudProvider.RoleArnField)!,
+        sessionName,
+        new AssumeRoleAWSCredentialsOptions { DurationSeconds = seconds });
 
     private static AWSCredentials FromProfile(string profile)
     {

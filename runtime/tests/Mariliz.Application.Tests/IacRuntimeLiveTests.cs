@@ -1,9 +1,11 @@
+using Mariliz.Application.Cloud;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Iac;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Tests.Support;
 using Mariliz.Application.Workspace;
 using Mariliz.Infrastructure;
+using Mariliz.Infrastructure.Cloud.Aws;
 using Mariliz.Infrastructure.Iac;
 using Xunit.Abstractions;
 
@@ -187,6 +189,48 @@ public sealed class IacRuntimeLiveTests(ITestOutputHelper output)
         output.WriteLine($"plano: {(plan.Succeeded ? "ok" : plan.Error)}; outputs alterados: {string.Join(",", plan.Summary?.OutputsChanged ?? [])}");
         Assert.True(plan.Succeeded, plan.Error);
         Assert.Contains("conta_lida", plan.Summary!.OutputsChanged);
+    }
+
+    // H0-4 (P0-1): com uma conexão AssumeRole, o processo da IaC autentica como o papel, não como o perfil de origem. A
+    // pós-condição do data source faz o plano falhar se a identidade lida não for a sessão do papel. Só lê; nada é criado.
+    // Rode com MARILIZ_LIVE_AWS_PROFILE=<perfil de origem> e MARILIZ_LIVE_AWS_ROLE_ARN=<papel que esse perfil pode assumir>.
+    [LiveFact(Variable, "MARILIZ_LIVE_IAC_PROVIDERS", "MARILIZ_LIVE_AWS_PROFILE", "MARILIZ_LIVE_AWS_ROLE_ARN")]
+    public async Task Provider_aws_autentica_como_o_papel_da_conexao()
+    {
+        var roleArn = Environment.GetEnvironmentVariable("MARILIZ_LIVE_AWS_ROLE_ARN")!;
+        var session = $":assumed-role/{roleArn.Split('/')[^1]}/{AwsCloudProvider.IacSessionName}";
+        using var project = TempProject.Dotnet();
+        project.Write("infra/providers.tf", "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n" +
+                                            $"      version = \"{IacBootstrapTemplates.AwsVersion}\"\n    }}\n  }}\n}}\n\nprovider \"aws\" {{}}\n");
+        project.Write("infra/resource.tf", "data \"aws_caller_identity\" \"current\" {\n  lifecycle {\n    postcondition {\n" +
+                                           $"      condition     = strcontains(self.arn, \"{session}\")\n" +
+                                           "      error_message = \"A IaC não autenticou como o papel da conexão.\"\n    }\n  }\n}\n");
+        var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(project.DataDir));
+        workspace.Authorize(project.Root);
+        using var tofu = new OpenTofuToolchain(project.DataDir, new NoExternal());
+        var runner = new SystemProcessRunner();
+        var runtimes = new IacRuntimeService([tofu], new FileIacSettingsStore(project.DataDir), new IacConfigReader(), runner, workspace, new FakeClock(),
+            new MemoryAudit());
+        var offer = await runtimes.OfferAsync(null, null, null, CancellationToken.None);
+        var status = await runtimes.InstallAsync(offer.OfferId, offer.Version, IacEngine.OpenTofu, CancellationToken.None);
+        var runtime = new CliIacRuntimeFactory(runner, project.DataDir).For(status.Selected!);
+        var provider = new AwsCloudProvider();
+        var settings = provider.Normalize(new CloudSettings(AwsCloudProvider.AssumeRoleMechanism, new Dictionary<string, string>
+        {
+            [AwsCloudProvider.RoleArnField] = roleArn,
+            [AwsCloudProvider.SourceProfileField] = Environment.GetEnvironmentVariable("MARILIZ_LIVE_AWS_PROFILE")!,
+            ["region"] = "sa-east-1"
+        }));
+        var environment = new Dictionary<string, string>(await provider.ProcessEnvironmentAsync(settings, CancellationToken.None))
+        {
+            ["AWS_REGION"] = "sa-east-1"
+        };
+
+        var plan = await runtime.PlanAsync(new IacPlanSpec(Path.Combine(project.Root, "infra"), Path.Combine(project.DataDir, "tf-data"),
+            Path.Combine(project.DataDir, "plan.tfplan"), null, environment), CancellationToken.None);
+
+        output.WriteLine($"plano: {(plan.Succeeded ? "ok" : plan.Error)}");
+        Assert.True(plan.Succeeded, plan.Error);
     }
 
     // Entrega 8 de ponta a ponta: o OpenTofu planeja recursos AWS cobrados com o perfil da conexão (só o plano: nada é aplicado

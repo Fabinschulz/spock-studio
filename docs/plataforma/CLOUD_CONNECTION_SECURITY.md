@@ -8,7 +8,7 @@ liberado, sempre registrado, sem segredo no Spock**.
 | Controle | Como é feito |
 | --- | --- |
 | Armazenamento | O Spock não guarda credencial cloud. `cloud/connections.json` tem nome, mecanismo, perfil, região, Role ARN, tenant, subscription, projeto e o caminho de uma chave de service account, nunca o conteúdo |
-| Credenciais temporárias | Preferidas por padrão: SSO do IAM Identity Center, AssumeRole de 15 minutos, tokens do Entra ID e do Google renovados pelo próprio SDK |
+| Credenciais temporárias | Preferidas por padrão: SSO do IAM Identity Center, AssumeRole de 15 minutos (uma hora na IaC, só para o processo da operação), tokens do Entra ID e do Google renovados pelo próprio SDK |
 | Renovação e expiração | Feitas pelo SDK oficial. Credencial vencida vira o estado **Credenciais expiradas**; o Spock nunca abre login interativo sozinho |
 | Revogação | Revogar no provedor (sair do SSO, `az logout`, `gcloud auth application-default revoke`) vale na hora: a próxima leitura falha e marca a conexão |
 | Vazamento | Mensagens de erro do provedor (com ARN, nome de política, cabeçalho) não passam adiante: só um código `CLOUD_*` e um texto do Spock. O servidor MCP passa o texto de resposta pelo `SecretScanner` antes de entregar |
