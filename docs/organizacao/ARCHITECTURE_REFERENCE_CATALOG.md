@@ -1,3 +1,8 @@
+---
+titulo: Catálogo de referências arquiteturais
+analisadoEm: 2026-11-17
+---
+
 # Catálogo de referências arquiteturais do Spock
 
 > Base oficial de referências arquiteturais do Spock, na pasta da [Organização](README.md). Nasceu do estudo

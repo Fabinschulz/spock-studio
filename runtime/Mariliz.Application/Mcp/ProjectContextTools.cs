@@ -212,9 +212,11 @@ public sealed class ProjectContextTools(
                 : $"O índice de {project.DisplayName} ainda não foi montado. O Spock monta o índice ao revisar o contexto ou rodar uma execução de engenharia.";
         }
 
-        var memory = new DecisionMemory(workspace, decisions).Documents(project.ProjectId).ToDictionary(item => item.Path, item => item.Hash, StringComparer.Ordinal);
+        // Decisões e referências da Organização não são arquivos do projeto: valem pelo documento que o motor monta hoje.
+        var memory = new DecisionMemory(workspace, decisions).Documents(project.ProjectId).Concat(OrganizationReferences.Documents)
+            .ToDictionary(item => item.Path, item => item.Hash, StringComparer.Ordinal);
         var current = KnowledgeSources.EvaluatePaths(files.Open(root),
-                hits.Select(hit => hit.Path).Where(path => !path.StartsWith(DecisionMemory.Prefix, StringComparison.Ordinal) && !path.StartsWith(ExternalKnowledge.Prefix, StringComparison.Ordinal)))
+                hits.Select(hit => hit.Path).Where(path => !IsVirtual(path) && !path.StartsWith(ExternalKnowledge.Prefix, StringComparison.Ordinal)))
             .Where(item => item.Reason == KnowledgeSources.Exclusion.None)
             .ToDictionary(item => item.Path, item => item.Hash!, StringComparer.Ordinal);
 
@@ -224,7 +226,7 @@ public sealed class ProjectContextTools(
         foreach (var hit in hits)
         {
             string? hash;
-            if (hit.Path.StartsWith(DecisionMemory.Prefix, StringComparison.Ordinal)) hash = memory.GetValueOrDefault(hit.Path);
+            if (IsVirtual(hit.Path)) hash = memory.GetValueOrDefault(hit.Path);
             else if (hit.Path.StartsWith(ExternalKnowledge.Prefix, StringComparison.Ordinal)) hash = null;
             else hash = current.GetValueOrDefault(hit.Path);
             if (hash is null)
@@ -246,11 +248,15 @@ public sealed class ProjectContextTools(
         return McpText.Fit(blocks.Prepend(header), MaxChars, "Peça um 'limit' menor ou uma busca mais específica.");
     }
 
+    private static bool IsVirtual(string path) =>
+        path.StartsWith(DecisionMemory.Prefix, StringComparison.Ordinal) || path.StartsWith(OrganizationReferences.Prefix, StringComparison.Ordinal);
+
     private static string Render(Hit hit, bool stale)
     {
-        var title = hit.Path.StartsWith(DecisionMemory.Prefix, StringComparison.Ordinal)
-            ? "## Decisão registrada no Spock"
-            : $"## {hit.Path}:{hit.StartLine}{(hit.Heading.Length > 0 ? $" · {hit.Heading}" : "")}";
+        var title = hit.Path.StartsWith(DecisionMemory.Prefix, StringComparison.Ordinal) ? "## Decisão registrada no Spock"
+            : hit.Path.StartsWith(OrganizationReferences.Prefix, StringComparison.Ordinal)
+                ? $"## Referência da Organização{(hit.Heading.Length > 0 ? $" · {hit.Heading}" : "")}"
+                : $"## {hit.Path}:{hit.StartLine}{(hit.Heading.Length > 0 ? $" · {hit.Heading}" : "")}";
         var warning = stale ? "\n(O arquivo mudou depois da indexação: confira no disco antes de confiar neste trecho.)" : "";
         return $"{title}{warning}\n{hit.Body.TrimEnd()}";
     }

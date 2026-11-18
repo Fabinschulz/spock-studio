@@ -16,6 +16,8 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Assets\**\*" LogicalName="Assets/%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- A pasta Organização tem uma fonte só, em docs/: o motor a embute para o aplicativo instalado ter as referências. -->
+    <EmbeddedResource Include="..\..\docs\organizacao\*.md" LogicalName="Organizacao/%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
