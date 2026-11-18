@@ -28,6 +28,9 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     css: { modules: { classNameStrategy: 'non-scoped' } },
-    include: ['src/**/*.test.{ts,tsx}']
+    include: ['src/**/*.test.{ts,tsx}'],
+    // Os testes de página montam a tela inteira (MUI, axe) e encadeiam interações: o da nuvem leva 1,5 s sozinho e passou
+    // de 5 s com a máquina ocupada. O padrão de 5 s media a máquina, não o teste; 15 s ainda pega um teste travado.
+    testTimeout: 15_000
   }
 });

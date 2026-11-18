@@ -46,6 +46,11 @@ Enquanto isso, `python scripts/verify.py` (ou `pnpm verify`) roda na sua máquin
 instalador: motor, inteligência, interface e host. `python scripts/verify.py --install-hook` instala um `pre-push` que
 roda o mesmo script.
 
+Sem CI, uma falha intermitente só aparece se a suíte rodar mais de uma vez. Antes de uma entrega que mexe em tempo,
+processo ou rede, rode `python scripts/verify.py --only motor inteligencia ui --repeat 3`: o resumo diz em quais rodadas
+cada gate falhou, e cada rodada guarda os logs numa pasta própria. Os testes da interface têm 15 s de limite por teste
+(`desktop/ui/vite.config.ts`), porque os de página passavam de 5 s com a máquina ocupada sem estarem travados.
+
 ## Para voltar ao macOS
 
 1. Reincluir `aarch64-apple-darwin` (`bundles: dmg`) na matriz do `ci.yml`.

@@ -44,6 +44,12 @@ class ServerTests(unittest.TestCase):
     def test_saude_exige_o_token(self) -> None:
         self.assertEqual(self.call("/health")[0], 200)
         self.assertEqual(self.call("/health", token=None)[0], 401)
+
+    def test_recusa_por_token_chega_inteira_mesmo_com_corpo_grande(self) -> None:
+        # Sem ler o corpo antes de fechar, o Windows manda RST e o cliente via ConnectionAbortedError em vez do 401.
+        body = {"query": "x" * 600_000}
+        for _ in range(60):
+            self.assertEqual(self.call("/v1/knowledge/search", body, token="x" * 43), (401, {"error": "unauthorized"}))
         self.assertEqual(self.call("/health", token="x" * 32)[0], 401)
 
     def test_so_a_rota_exata_de_retomar_e_cancelar_existe(self) -> None:

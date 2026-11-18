@@ -140,9 +140,19 @@ def make_handler(token: str):
         def _authorized(self, expected_header: str) -> bool:
             header = self.headers.get("Authorization", "")
             if len(header) != len(expected_header) or not hmac.compare_digest(header, expected_header):
+                self._discard_body()
                 self._send(401, {"error": "unauthorized"})
                 return False
             return True
+
+        def _discard_body(self) -> None:
+            """Fechar o socket com o corpo ainda por ler faz o Windows mandar RST, e o cliente perde a resposta de recusa."""
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+            except ValueError:
+                return
+            if 0 < length <= MAX_BODY:
+                self.rfile.read(length)
 
         def _read_json(self) -> dict | None:
             raw_length = self.headers.get("Content-Length", "0")
