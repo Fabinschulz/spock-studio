@@ -9,10 +9,10 @@ namespace Mariliz.Application.Iac;
 // ambiente. Os módulos são texto fixo; o desenho entra pela raiz.
 public static class IacAzureGenerator
 {
-    public static IReadOnlyList<IacAwsGenerator.File> Generate(IacBlueprint b, string root)
+    public static IReadOnlyList<IacGeneratedFile> Generate(IacBlueprint b, string root)
     {
         string P(string relative) => root.Length == 0 ? relative : $"{root}/{relative}";
-        var files = new List<IacAwsGenerator.File>
+        var files = new List<IacGeneratedFile>
         {
             new(P("providers.tf"), Providers(b)),
             new(P("variables.tf"), RootVariables(b)),
@@ -21,7 +21,7 @@ public static class IacAzureGenerator
             new(P("terraform.tfvars.example"), TfvarsExample(b)),
             new(P("README.md"), Readme(b, root)),
             new(P("modules/monitor/resource.tf"), MonitorResource),
-            new(P("modules/monitor/variables.tf"), IacAwsGenerator.ModuleVariables(v => v
+            new(P("modules/monitor/variables.tf"), IacModuleText.ModuleVariables(v => v
                 .Required("resource_group_name", "string", "Grupo de recursos do ambiente")
                 .Nullable("alarm_email", "string", "E-mail que recebe os alarmes; null cria o grupo de ação sem destinatário")
                 .Default("queues", "list(string)", "Filas com alarme de mensagens mortas", "[]")
@@ -30,17 +30,17 @@ public static class IacAzureGenerator
                 .Nullable("container_app_id", "string", "Container App vigiado")
                 .Default("watch_database", "bool", "Se há banco para vigiar", "false")
                 .Nullable("postgres_server_id", "string", "Servidor PostgreSQL vigiado"))),
-            new(P("modules/monitor/outputs.tf"), IacAwsGenerator.Outputs(("action_group_id", "Grupo de ação que recebe os alarmes", "azurerm_monitor_action_group.alarms.id")))
+            new(P("modules/monitor/outputs.tf"), IacModuleText.Outputs(("action_group_id", "Grupo de ação que recebe os alarmes", "azurerm_monitor_action_group.alarms.id")))
         };
 
         if (b.Queues.Count > 0)
         {
             files.Add(new(P("modules/servicebus/resource.tf"), ServiceBusResource));
-            files.Add(new(P("modules/servicebus/variables.tf"), IacAwsGenerator.ModuleVariables(v => v
+            files.Add(new(P("modules/servicebus/variables.tf"), IacModuleText.ModuleVariables(v => v
                 .Required("resource_group_name", "string", "Grupo de recursos do ambiente")
                 .Required("location", "string", "Região do Azure")
                 .Required("flows", "list(string)", "Fluxos de mensagens; cada um vira uma fila com fila de mensagens mortas. Renomear destrói a fila"))));
-            files.Add(new(P("modules/servicebus/outputs.tf"), IacAwsGenerator.Outputs(
+            files.Add(new(P("modules/servicebus/outputs.tf"), IacModuleText.Outputs(
                 ("namespace_id", "Namespace do Service Bus", "azurerm_servicebus_namespace.this.id"),
                 ("namespace_endpoint", "Endpoint do namespace, que a aplicação usa com a identidade gerenciada", "azurerm_servicebus_namespace.this.endpoint"),
                 ("queues", "Id de cada fila, por fluxo", "{ for flow, queue in azurerm_servicebus_queue.main : flow => queue.id }"))));
@@ -49,21 +49,21 @@ public static class IacAzureGenerator
         if (b.Service is not null)
         {
             files.Add(new(P("modules/acr/resource.tf"), AcrResource));
-            files.Add(new(P("modules/acr/variables.tf"), IacAwsGenerator.ModuleVariables(v => v
+            files.Add(new(P("modules/acr/variables.tf"), IacModuleText.ModuleVariables(v => v
                 .Required("resource_group_name", "string", "Grupo de recursos do ambiente")
                 .Required("location", "string", "Região do Azure"))));
-            files.Add(new(P("modules/acr/outputs.tf"), IacAwsGenerator.Outputs(
+            files.Add(new(P("modules/acr/outputs.tf"), IacModuleText.Outputs(
                 ("registry_id", "Registro de imagens", "azurerm_container_registry.this.id"),
                 ("login_server", "Servidor onde o CI publica a imagem com a tag do commit", "azurerm_container_registry.this.login_server"))));
             files.Add(new(P("modules/keyvault/resource.tf"), KeyVaultResource));
-            files.Add(new(P("modules/keyvault/variables.tf"), IacAwsGenerator.ModuleVariables(v => v
+            files.Add(new(P("modules/keyvault/variables.tf"), IacModuleText.ModuleVariables(v => v
                 .Required("resource_group_name", "string", "Grupo de recursos do ambiente")
                 .Required("location", "string", "Região do Azure"))));
-            files.Add(new(P("modules/keyvault/outputs.tf"), IacAwsGenerator.Outputs(
+            files.Add(new(P("modules/keyvault/outputs.tf"), IacModuleText.Outputs(
                 ("key_vault_id", "Key Vault da aplicação; os segredos são gravados fora do Terraform", "azurerm_key_vault.this.id"),
                 ("key_vault_uri", "Endereço do Key Vault, que a aplicação lê com a identidade gerenciada", "azurerm_key_vault.this.vault_uri"))));
             files.Add(new(P("modules/containerapp/resource.tf"), ContainerAppResource));
-            files.Add(new(P("modules/containerapp/variables.tf"), IacAwsGenerator.ModuleVariables(v => v
+            files.Add(new(P("modules/containerapp/variables.tf"), IacModuleText.ModuleVariables(v => v
                 .Required("resource_group_name", "string", "Grupo de recursos do ambiente")
                 .Required("location", "string", "Região do Azure")
                 .Required("service_name", "string", "Nome do serviço; também é o nome da imagem")
@@ -80,7 +80,7 @@ public static class IacAzureGenerator
                 .Default("grant_queue_access", "bool", "Se a identidade da aplicação envia e recebe nas filas", "false")
                 .Nullable("servicebus_namespace_id", "string", "Namespace das filas")
                 .Default("environment", "map(string)", "Variáveis de ambiente do contêiner (nunca segredo)", "{}"))));
-            files.Add(new(P("modules/containerapp/outputs.tf"), IacAwsGenerator.Outputs(
+            files.Add(new(P("modules/containerapp/outputs.tf"), IacModuleText.Outputs(
                 ("container_app_id", "Container App do serviço", "azurerm_container_app.this.id"),
                 ("fqdn", "Endereço HTTPS público do serviço", "azurerm_container_app.this.ingress[0].fqdn"),
                 ("principal_id", "Identidade gerenciada da aplicação, para dar acesso ao banco", "azurerm_user_assigned_identity.app.principal_id"),
@@ -90,7 +90,7 @@ public static class IacAzureGenerator
         if (b.Database is not null)
         {
             files.Add(new(P("modules/postgres/resource.tf"), PostgresResource));
-            files.Add(new(P("modules/postgres/variables.tf"), IacAwsGenerator.ModuleVariables(v => v
+            files.Add(new(P("modules/postgres/variables.tf"), IacModuleText.ModuleVariables(v => v
                 .Required("resource_group_name", "string", "Grupo de recursos do ambiente")
                 .Required("location", "string", "Região do Azure")
                 .Required("engine_version", "string", "Versão principal do PostgreSQL")
@@ -103,7 +103,7 @@ public static class IacAzureGenerator
                 .Nullable("admin_object_id", "string", "Objeto do Entra ID (grupo de DBAs) que administra o banco; null deixa sem administrador")
                 .Nullable("admin_name", "string", "Nome do administrador do Entra ID")
                 .Default("admin_type", "string", "Tipo do administrador: Group, User ou ServicePrincipal", "\"Group\""))));
-            files.Add(new(P("modules/postgres/outputs.tf"), IacAwsGenerator.Outputs(
+            files.Add(new(P("modules/postgres/outputs.tf"), IacModuleText.Outputs(
                 ("server_id", "Servidor PostgreSQL", "azurerm_postgresql_flexible_server.this.id"),
                 ("fqdn", "Endereço privado do banco", "azurerm_postgresql_flexible_server.this.fqdn"),
                 ("database_name", "Nome do banco criado", "azurerm_postgresql_flexible_server_database.app.name"))));
@@ -165,7 +165,7 @@ public static class IacAzureGenerator
 
     private static string RootVariables(IacBlueprint b)
     {
-        var v = new IacAwsGenerator.Variables();
+        var v = new IacModuleText.Variables();
         v.Validated("subscription_id", "string", "Subscription dos recursos; o provider recusa operar em outra",
             "can(regex(\"^[0-9a-fA-F-]{36}$\", var.subscription_id))", "A subscription deve ser um GUID.", "Subscription");
         v.Default("tenant_id", "string", "Tenant do Entra ID; null usa o da credencial", b.Profile is null ? "null" : Quote(b.Profile));
@@ -301,7 +301,7 @@ public static class IacAzureGenerator
             outputs.Add(("service_fqdn", "Endereço HTTPS público do serviço", "module.containerapp.fqdn"));
         }
         if (b.Database is not null) outputs.Add(("database_fqdn", "Endereço privado do banco", "module.postgres.fqdn"));
-        return IacAwsGenerator.Outputs([.. outputs]);
+        return IacModuleText.Outputs([.. outputs]);
     }
 
     private static string TfvarsExample(IacBlueprint b)

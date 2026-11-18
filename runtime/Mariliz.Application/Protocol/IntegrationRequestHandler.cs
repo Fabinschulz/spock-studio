@@ -4,8 +4,10 @@ using Mariliz.Application.Integrations;
 namespace Mariliz.Application.Protocol;
 
 // A credencial entra em connection.create e connection.rotate e nunca volta: nenhuma resposta daqui a contém.
-internal sealed class IntegrationRequestHandler(IntegrationHub hub)
+internal sealed class IntegrationRequestHandler(IntegrationHub hub) : IRequestHandler
 {
+    public IReadOnlyList<string> Methods => ProtocolMethods.Integrations;
+
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
         ProtocolMethods.IntegrationCatalog => Catalog(),

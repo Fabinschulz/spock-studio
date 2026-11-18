@@ -36,7 +36,7 @@ fn main() -> ExitCode {
         return ExitCode::from(127);
     };
     match Command::new(&runtime).args(env::args_os().skip(1)).status() {
-        Ok(status) => ExitCode::from(status.code().map_or(1, |code| code.clamp(0, 255) as u8)),
+        Ok(status) => ExitCode::from(exit_code(status.code())),
         Err(error) => {
             eprintln!(
                 "spock: não foi possível iniciar o motor em {}: {error}",
@@ -47,10 +47,26 @@ fn main() -> ExitCode {
     }
 }
 
+/// No Windows uma queda chega como NTSTATUS negativo (0xC0000005 vira -1073741819); cortar para 0 diria ao hook da IDE
+/// que deu certo. Fora de 0..=255 é falha.
+fn exit_code(code: Option<i32>) -> u8 {
+    code.and_then(|code| u8::try_from(code).ok()).unwrap_or(1)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::fs;
+
+    #[test]
+    fn repassa_o_codigo_do_motor_e_trata_queda_como_falha() {
+        assert_eq!(exit_code(Some(0)), 0);
+        assert_eq!(exit_code(Some(3)), 3);
+        assert_eq!(exit_code(Some(255)), 255);
+        assert_eq!(exit_code(Some(-1_073_741_819)), 1);
+        assert_eq!(exit_code(Some(256)), 1);
+        assert_eq!(exit_code(None), 1);
+    }
 
     fn temp_dir(name: &str) -> PathBuf {
         let dir = env::temp_dir().join(format!("spock-launcher-{name}-{}", std::process::id()));

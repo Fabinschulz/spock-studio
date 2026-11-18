@@ -9,10 +9,10 @@ namespace Mariliz.Application.Iac;
 // Os módulos são texto fixo; o desenho entra pela raiz.
 public static class IacGoogleGenerator
 {
-    public static IReadOnlyList<IacAwsGenerator.File> Generate(IacBlueprint b, string root)
+    public static IReadOnlyList<IacGeneratedFile> Generate(IacBlueprint b, string root)
     {
         string P(string relative) => root.Length == 0 ? relative : $"{root}/{relative}";
-        var files = new List<IacAwsGenerator.File>
+        var files = new List<IacGeneratedFile>
         {
             new(P("providers.tf"), Providers(b)),
             new(P("variables.tf"), RootVariables(b)),
@@ -36,7 +36,7 @@ public static class IacGoogleGenerator
             files.Add(new(P("modules/pubsub/resource.tf"), PubSubResource));
             files.Add(new(P("modules/pubsub/variables.tf"), Variables(v => v
                 .Required("flows", "list(string)", "Fluxos de mensagens; cada um vira tópico, assinatura e tópico de mensagens mortas. Renomear destrói o fluxo"))));
-            files.Add(new(P("modules/pubsub/outputs.tf"), IacAwsGenerator.Outputs(
+            files.Add(new(P("modules/pubsub/outputs.tf"), IacModuleText.Outputs(
                 ("topics", "Tópico de cada fluxo", "{ for flow, topic in google_pubsub_topic.main : flow => topic.id }"),
                 ("subscriptions", "Assinatura de cada fluxo", "{ for flow, subscription in google_pubsub_subscription.main : flow => subscription.id }"),
                 ("dead_letter_subscriptions", "Nomes das assinaturas de mensagens mortas", "[for subscription in google_pubsub_subscription.dead_letter : subscription.name]"))));
@@ -46,14 +46,14 @@ public static class IacGoogleGenerator
         {
             files.Add(new(P("modules/artifact/resource.tf"), ArtifactResource));
             files.Add(new(P("modules/artifact/variables.tf"), Variables(v => v.Required("region", "string", "Região do repositório"))));
-            files.Add(new(P("modules/artifact/outputs.tf"), IacAwsGenerator.Outputs(
+            files.Add(new(P("modules/artifact/outputs.tf"), IacModuleText.Outputs(
                 ("repository_id", "Repositório de imagens", "google_artifact_registry_repository.this.repository_id"),
                 ("repository_name", "Nome completo do repositório", "google_artifact_registry_repository.this.name"),
                 ("registry_path", "Caminho onde o CI publica a imagem com a tag do commit",
                     "\"${google_artifact_registry_repository.this.location}-docker.pkg.dev/${google_artifact_registry_repository.this.project}/${google_artifact_registry_repository.this.repository_id}\""))));
             files.Add(new(P("modules/secrets/resource.tf"), SecretsResource));
             files.Add(new(P("modules/secrets/variables.tf"), Variables(_ => { })));
-            files.Add(new(P("modules/secrets/outputs.tf"), IacAwsGenerator.Outputs(("secret_id", "Segredo da aplicação, criado sem versão (sem valor)", "google_secret_manager_secret.app.id"))));
+            files.Add(new(P("modules/secrets/outputs.tf"), IacModuleText.Outputs(("secret_id", "Segredo da aplicação, criado sem versão (sem valor)", "google_secret_manager_secret.app.id"))));
             files.Add(new(P("modules/cloudrun/resource.tf"), CloudRunResource));
             files.Add(new(P("modules/cloudrun/variables.tf"), Variables(v => v
                 .Required("project_id", "string", "Projeto do Google Cloud")
@@ -74,7 +74,7 @@ public static class IacGoogleGenerator
                 .Nullable("network_id", "string", "Rede VPC para alcançar o banco por IP privado")
                 .Default("grant_database_access", "bool", "Se a conta de serviço entra no Cloud SQL", "false")
                 .Default("environment", "map(string)", "Variáveis de ambiente do contêiner (nunca segredo)", "{}"))));
-            files.Add(new(P("modules/cloudrun/outputs.tf"), IacAwsGenerator.Outputs(
+            files.Add(new(P("modules/cloudrun/outputs.tf"), IacModuleText.Outputs(
                 ("service_name", "Serviço do Cloud Run", "google_cloud_run_v2_service.this.name"),
                 ("uri", "Endereço HTTPS público do serviço", "google_cloud_run_v2_service.this.uri"),
                 ("service_account_email", "Conta de serviço da aplicação", "google_service_account.app.email"))));
@@ -93,7 +93,7 @@ public static class IacGoogleGenerator
                 .Required("network_id", "string", "Rede VPC com acesso privado a serviços")
                 .Nullable("iam_user", "string", "Conta de serviço que entra no banco pelo login IAM")
                 .Default("create_iam_user", "bool", "Se cria o usuário IAM da aplicação", "false"))));
-            files.Add(new(P("modules/cloudsql/outputs.tf"), IacAwsGenerator.Outputs(
+            files.Add(new(P("modules/cloudsql/outputs.tf"), IacModuleText.Outputs(
                 ("instance_name", "Instância do Cloud SQL", "google_sql_database_instance.this.name"),
                 ("connection_name", "Nome de conexão (projeto:região:instância)", "google_sql_database_instance.this.connection_name"),
                 ("private_ip", "IP privado do banco", "google_sql_database_instance.this.private_ip_address"),
@@ -128,9 +128,9 @@ public static class IacGoogleGenerator
         d.Engine == "mysql" ? "MYSQL_" + d.EngineVersion.Replace('.', '_') : "POSTGRES_" + d.EngineVersion;
 
     // name_prefix e labels em todo módulo; no Google os rótulos (labels) fazem o papel das tags.
-    private static string Variables(Action<IacAwsGenerator.Variables> extra)
+    private static string Variables(Action<IacModuleText.Variables> extra)
     {
-        var v = new IacAwsGenerator.Variables();
+        var v = new IacModuleText.Variables();
         v.Validated("name_prefix", "string", "Prefixo dos nomes: <projeto>-<ambiente>", "can(regex(\"^[a-z0-9-]+$\", var.name_prefix))",
             "O prefixo deve conter apenas letras minúsculas, dígitos e hífens.", "Environment");
         extra(v);
@@ -164,7 +164,7 @@ public static class IacGoogleGenerator
 
     private static string RootVariables(IacBlueprint b)
     {
-        var v = new IacAwsGenerator.Variables();
+        var v = new IacModuleText.Variables();
         v.Validated("project_id", "string", "Projeto do Google Cloud dos recursos", "can(regex(\"^[a-z][a-z0-9-]{4,28}[a-z0-9]$\", var.project_id))",
             "O projeto deve ter de 6 a 30 caracteres: minúsculas, dígitos e hífen.", "Project");
         v.Default("region", "string", "Região do Google Cloud onde os recursos são criados", Quote(b.Region), "Region");
@@ -289,7 +289,7 @@ public static class IacGoogleGenerator
         }
         if (b.Database is not null) outputs.Add(("database_connection_name", "Nome de conexão do Cloud SQL", "module.cloudsql.connection_name"));
         outputs.Add(("project_id", "Projeto do Google Cloud dos recursos", "var.project_id"));
-        return IacAwsGenerator.Outputs([.. outputs]);
+        return IacModuleText.Outputs([.. outputs]);
     }
 
     private static string TfvarsExample(IacBlueprint b)

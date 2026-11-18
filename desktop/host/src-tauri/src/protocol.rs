@@ -2,7 +2,7 @@
 //! UI (TypeScript).
 
 use serde::Serialize;
-use serde_json::Value;
+use serde_json::{json, Value};
 
 pub const PROTOCOL_VERSION: u64 = 1;
 pub const MAX_MESSAGE_BYTES: usize = 4 * 1024 * 1024;
@@ -272,6 +272,39 @@ pub fn parse_engine_line(line: &[u8]) -> Option<EngineMessage> {
     }
 }
 
+/// O envelope que o host manda ao motor, já com o fim de linha que delimita a mensagem.
+pub fn encode_request(id: &str, method: &str, params: Option<Value>) -> Vec<u8> {
+    let mut envelope =
+        json!({ "v": PROTOCOL_VERSION, "kind": "request", "id": id, "method": method });
+    if let Some(params) = params {
+        envelope["params"] = params;
+    }
+    let mut line = envelope.to_string().into_bytes();
+    line.push(b'\n');
+    line
+}
+
+/// A resposta do motor vira o `result` ou o erro que ele mandou; o código do motor passa como está.
+pub fn decode_response(response: &Value) -> Result<Value, HostError> {
+    if let Some(error) = response.get("error") {
+        let code = error
+            .get("code")
+            .and_then(Value::as_str)
+            .unwrap_or("UNKNOWN");
+        let message = error
+            .get("message")
+            .and_then(Value::as_str)
+            .unwrap_or("Falha no motor.");
+        return Err(HostError::new(code, message));
+    }
+    response.get("result").cloned().ok_or_else(|| {
+        HostError::new(
+            error_code::INVALID_MESSAGE,
+            "Resposta do motor sem resultado.",
+        )
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -390,5 +423,40 @@ mod tests {
             None
         );
         assert_eq!(parse_engine_line(br#"{"v":1,"kind":"response"}"#), None);
+    }
+
+    #[test]
+    fn a_requisicao_ao_motor_e_uma_linha_do_envelope() {
+        let line = encode_request("h-1", "run.list", Some(json!({ "projectId": "p" })));
+        assert_eq!(line.last(), Some(&b'\n'));
+        let envelope: Value = serde_json::from_slice(&line).unwrap();
+        assert_eq!(
+            envelope,
+            json!({ "v": PROTOCOL_VERSION, "kind": "request", "id": "h-1", "method": "run.list", "params": { "projectId": "p" } })
+        );
+
+        let without: Value =
+            serde_json::from_slice(&encode_request("h-2", method::ENGINE_SHUTDOWN, None)).unwrap();
+        assert!(without.get("params").is_none());
+    }
+
+    #[test]
+    fn a_resposta_vira_resultado_ou_o_erro_do_motor() {
+        assert_eq!(
+            decode_response(&json!({ "result": { "ok": true } })),
+            Ok(json!({ "ok": true }))
+        );
+        assert_eq!(
+            decode_response(&json!({ "error": { "code": "PATH_NOT_FOUND", "message": "Sumiu." } })),
+            Err(HostError::new("PATH_NOT_FOUND", "Sumiu."))
+        );
+        assert_eq!(
+            decode_response(&json!({ "error": {} })),
+            Err(HostError::new("UNKNOWN", "Falha no motor."))
+        );
+        assert_eq!(
+            decode_response(&json!({})).unwrap_err().code,
+            error_code::INVALID_MESSAGE
+        );
     }
 }

@@ -471,6 +471,41 @@ public sealed class IacOperationTests : IDisposable
         Assert.Null(_runtime.LastApply);
     }
 
+    // A lista e o apply usam a mesma regra: o que a lista oferece é exatamente o que o apply aceita.
+    [Fact]
+    public async Task A_lista_anuncia_o_que_cada_plano_pede_e_so_o_plano_aplicavel()
+    {
+        _runtime.Findings = [new IacFinding(IacFindingSeverity.Danger, "open-ingress", "aws_security_group.tasks", "abre a porta 22")];
+        var (service, first) = await Planned("prd");
+        var latest = await service.PlanAsync(new IacPlanRequest(_projectId, null, "prd", null), IacOperationService.Person, CancellationToken.None);
+        IacApplyRequirements? Offered(IacOperation plan) =>
+            service.HistoryWithRequirements(_projectId).Single(entry => entry.Operation.Id == plan.Id).ApplyRequirements;
+
+        var offered = Offered(latest);
+
+        Assert.Null(Offered(first));
+        Assert.NotNull(offered);
+        Assert.Equal(latest.PlanId, offered.PlanId);
+        Assert.Equal(1, offered.Risks);
+        Assert.Equal("prd", offered.WorkspaceConfirmation);
+        Assert.Equal(latest.FinishedAt + IacApplyPolicy.PlanLifetime, offered.ExpiresAt);
+
+        _clock.UtcNow += TimeSpan.FromHours(25);
+        Assert.Null(Offered(latest));
+    }
+
+    [Fact]
+    public async Task Plano_aplicado_deixa_de_ser_anunciado()
+    {
+        var (service, plan) = await Planned("dev");
+        Assert.Equal(new IacApplyRequirements(plan.PlanId!, 0, 0, null, plan.FinishedAt + IacApplyPolicy.PlanLifetime),
+            service.HistoryWithRequirements(_projectId).Single(entry => entry.Operation.Id == plan.Id).ApplyRequirements);
+
+        await service.ApplyAsync(Approve(plan), CancellationToken.None);
+
+        Assert.All(service.HistoryWithRequirements(_projectId), entry => Assert.Null(entry.ApplyRequirements));
+    }
+
     [Fact]
     public async Task Destruicao_pede_confirmacao_explicita_a_mais()
     {

@@ -8,8 +8,10 @@ namespace Mariliz.Application.Protocol;
 // Só a interface chega aqui (a allowlist do host não deixa agentes chamarem iac.*): instalar, adotar, fixar, remover,
 // validar e planejar são sempre um clique da pessoa.
 internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperationService operations, IacStateService state, IacGenerationService generation,
-    IacCostService? costs = null, IacDriftScheduler? schedules = null)
+    IacCostService? costs = null, IacDriftScheduler? schedules = null) : IRequestHandler
 {
+    public IReadOnlyList<string> Methods => ProtocolMethods.Iac;
+
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
         ProtocolMethods.IacState => new JsonObject { ["state"] = IntegrationJson.Node(await state.ReportAsync(p.Str("projectId"), ct)) },
@@ -58,7 +60,7 @@ internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperatio
         },
         ProtocolMethods.IacOperations => new JsonObject
         {
-            ["operations"] = new JsonArray(operations.History(p.Str("projectId")).Select(o => IntegrationJson.Node(o)).ToArray())
+            ["operations"] = new JsonArray(operations.HistoryWithRequirements(p.Str("projectId")).Select(Listed).ToArray())
         },
         ProtocolMethods.IacOperation => Operation(operations.Detail(p.Str("projectId"), p.Str("operationId"))),
         // A aprovação vem junto do pedido de aplicar: o planId que a pessoa viu e as confirmações que ela marcou.
@@ -92,6 +94,13 @@ internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperatio
         new(p.Str("projectId"), p.Str("provider"), p.OptionalStr("connectionId"), p.Has("values") ? p.StringMap("values") : new Dictionary<string, string>());
 
     private static JsonObject Operation(IacOperation operation) => new() { ["operation"] = IntegrationJson.Node(operation) };
+
+    private static JsonNode Listed((IacOperation Operation, IacApplyRequirements? ApplyRequirements) entry)
+    {
+        var node = IntegrationJson.Node(entry.Operation)!.AsObject();
+        node["applyRequirements"] = IntegrationJson.Node(entry.ApplyRequirements);
+        return node;
+    }
 
     private static JsonObject Status(IacRuntimeStatus status)
     {

@@ -17,6 +17,7 @@ import {
   iacRuntimeOfferResultSchema,
   iacRuntimeStatusResultSchema,
   type IacArchitectDraft,
+  type IacListedOperation,
   type IacBlueprint,
   type IacBootstrapPlan,
   type IacCostEstimate,
@@ -51,7 +52,8 @@ export type IacApi = {
   validate(projectId: string): Promise<IacOperation>;
   /** Gera e guarda o plano; aplicar é outra etapa, com aprovação daquele plano. */
   plan(input: { projectId: string; folder?: string; workspace?: string; connectionId?: string }): Promise<IacOperation>;
-  operations(projectId: string): Promise<IacOperation[]>;
+  /** O histórico, com o que cada plano exige para ser aplicado agora. */
+  operations(projectId: string): Promise<IacListedOperation[]>;
   /** plan -refresh-only sobre a cópia: o que mudou na nuvem por fora da ferramenta. Não grava o state nem muda a nuvem. */
   drift(input: {
     projectId: string;

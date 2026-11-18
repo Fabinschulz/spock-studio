@@ -36,7 +36,7 @@ public sealed class IacGenerationTests : IDisposable
         new(_workspace, new IacConfigReader(), model ? new ModelGateway(new Settings(), new NoTransport(), chat: _chat) : null,
             new TestFilesFactory(), _store, new FakeClock { UtcNow = Now }, new RunTracker(), _audit);
 
-    private static string Find(IReadOnlyList<IacAwsGenerator.File> files, string path) => files.Single(f => f.Path == path).Content;
+    private static string Find(IReadOnlyList<IacGeneratedFile> files, string path) => files.Single(f => f.Path == path).Content;
 
     [Fact]
     public void Desenho_completo_gera_a_raiz_e_um_modulo_por_servico_no_formato_do_modelo()

@@ -5,8 +5,12 @@ using Mariliz.Application.Timeline;
 
 namespace Mariliz.Application.Protocol;
 
-internal sealed class TimelineRequestHandler(ProjectTimelineService service)
+internal sealed class TimelineRequestHandler(ProjectTimelineService service) : IRequestHandler
 {
+    public IReadOnlyList<string> Methods => ProtocolMethods.Timeline;
+
+    Task<JsonObject> IRequestHandler.HandleAsync(string method, RequestParams p, CancellationToken ct) => Task.FromResult(Handle(method, p));
+
     public JsonObject Handle(string method, RequestParams p) => method switch
     {
         ProtocolMethods.TimelineRead => IntegrationJson.Node(service.Read(p.Str("projectId"), p.StringList("kinds"), p.OptionalInt("limit"), Before(p)))!.AsObject(),

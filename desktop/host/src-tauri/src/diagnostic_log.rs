@@ -9,6 +9,7 @@ use serde::Serialize;
 use tauri::{AppHandle, Manager};
 
 use crate::lock;
+use crate::terminal::is_secret_variable;
 
 const CAPACITY: usize = 300;
 const MAX_MESSAGE_CHARS: usize = 400;
@@ -94,10 +95,12 @@ fn redact_word(word: &str, after_credential: bool) -> String {
     if after_credential || is_secret(word) {
         REDACTED_SECRET.to_string()
     } else if let Some((name, value)) = word.split_once('=') {
+        // A regra do ambiente do terminal (a mesma do motor), mais nomes que num log costumam guardar segredo.
         let lowered = name.to_lowercase();
-        let sensitive = ["key", "token", "secret", "password", "senha"]
-            .iter()
-            .any(|marker| lowered.contains(marker));
+        let sensitive = is_secret_variable(name)
+            || ["key", "senha"]
+                .iter()
+                .any(|marker| lowered.contains(marker));
         if sensitive {
             format!("{name}={REDACTED_SECRET}")
         } else if is_path(value) {
@@ -153,6 +156,14 @@ mod tests {
         assert_eq!(
             redact("api_key=meuvalor token=x ok=1"),
             "api_key=[segredo] token=[segredo] ok=1"
+        );
+    }
+
+    #[test]
+    fn nome_que_o_terminal_esconde_tambem_vira_segredo_no_log() {
+        assert_eq!(
+            redact("ConnectionStrings__Default=Server=x;Password=p credential=c passwd=p"),
+            "ConnectionStrings__Default=[segredo] credential=[segredo] passwd=[segredo]"
         );
     }
 

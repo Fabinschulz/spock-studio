@@ -10,8 +10,10 @@ internal sealed class EngineeringRequestHandler(
     ProjectKnowledgeService? knowledge,
     HarnessStatusService? harness,
     HarnessRevisionService? revisions,
-    McpInventoryService? mcp)
+    McpInventoryService? mcp) : IRequestHandler
 {
+    public IReadOnlyList<string> Methods => ProtocolMethods.Engineering;
+
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
         ProtocolMethods.EngineeringProfile => new JsonObject { ["profile"] = IntegrationJson.Node(profiles.Get(p.Str("projectId"))) },

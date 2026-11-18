@@ -8,7 +8,7 @@ namespace Mariliz.Application.Tests;
 // IacRuntimeLiveTests (fmt e validate).
 public sealed class IacMultiCloudTests
 {
-    private static string Find(IReadOnlyList<IacAwsGenerator.File> files, string path) => files.Single(f => f.Path == path).Content;
+    private static string Find(IReadOnlyList<IacGeneratedFile> files, string path) => files.Single(f => f.Path == path).Content;
 
     [Fact]
     public void Desenhos_completos_de_azure_e_google_passam_nas_checagens()

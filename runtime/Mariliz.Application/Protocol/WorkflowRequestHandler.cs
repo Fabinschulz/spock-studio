@@ -5,8 +5,10 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Protocol;
 
-internal sealed class WorkflowRequestHandler(WorkflowService service)
+internal sealed class WorkflowRequestHandler(WorkflowService service) : IRequestHandler
 {
+    public IReadOnlyList<string> Methods => ProtocolMethods.Workflow;
+
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
         ProtocolMethods.WorkflowStart => RunStarted(await service.StartAsync(p.Str("projectId"), p.ObjectOrEmpty("input"), ct)),

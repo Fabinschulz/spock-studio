@@ -3,8 +3,12 @@ using Mariliz.Application.Execution;
 
 namespace Mariliz.Application.Protocol;
 
-internal sealed class RunRequestHandler(RunQueries runs)
+internal sealed class RunRequestHandler(RunQueries runs) : IRequestHandler
 {
+    public IReadOnlyList<string> Methods => ProtocolMethods.RunControl;
+
+    Task<JsonObject> IRequestHandler.HandleAsync(string method, RequestParams p, CancellationToken ct) => Task.FromResult(Handle(method, p));
+
     public JsonObject Handle(string method, RequestParams p) => method switch
     {
         ProtocolMethods.Snapshot => runs.Snapshot(p.Str("runId"), p.OptionalInt("sinceSeq"), p.OptionalStr("projectId")),

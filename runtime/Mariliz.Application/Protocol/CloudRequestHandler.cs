@@ -5,8 +5,10 @@ using Mariliz.Application.Integrations;
 namespace Mariliz.Application.Protocol;
 
 // A interface é a pessoa: lê pela mesma porta que o MCP, sem o atalho dos agentes.
-internal sealed class CloudRequestHandler(CloudHub hub)
+internal sealed class CloudRequestHandler(CloudHub hub) : IRequestHandler
 {
+    public IReadOnlyList<string> Methods => ProtocolMethods.Cloud;
+
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
         ProtocolMethods.CloudCatalog => new JsonObject { ["providers"] = Array(hub.Providers.Catalog().Select(d => IntegrationJson.Node(d))) },

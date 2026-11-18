@@ -222,13 +222,29 @@ export const iacOperationSchema = z.object({
   unmanagedNotes: z.array(z.string()).nullable()
 });
 
+/** O que o motor exige para aplicar o plano agora; ausente quando o plano não pode ser aplicado (vencido, superado...). */
+export const iacApplyRequirementsSchema = z.object({
+  planId: z.string(),
+  destructive: z.number(),
+  risks: z.number(),
+  workspaceConfirmation: z.string().nullable(),
+  expiresAt: z.string()
+});
+
+export const iacListedOperationSchema = iacOperationSchema.extend({
+  applyRequirements: iacApplyRequirementsSchema.nullable()
+});
+
 export const iacOperationResultSchema = z.object({ operation: iacOperationSchema });
-export const iacOperationListSchema = z.object({ operations: z.array(iacOperationSchema) });
+export const iacOperationListSchema = z.object({ operations: z.array(iacListedOperationSchema) });
 export const iacLayoutSchema = z.object({
   layout: z.object({ projectId: z.string(), root: z.string().nullable(), folders: z.array(z.string()) })
 });
 
 export type IacOperation = z.infer<typeof iacOperationSchema>;
+export type IacListedOperation = z.infer<typeof iacListedOperationSchema>;
+export type IacPlanSummary = z.infer<typeof iacPlanSummarySchema>;
+export type IacApplyRequirements = z.infer<typeof iacApplyRequirementsSchema>;
 export type IacDriftedResource = z.infer<typeof iacDriftedResourceSchema>;
 
 /** Uma linha da estimativa: fixa (quantidade e valor no mês) ou por uso (só o preço da unidade). */

@@ -1,14 +1,15 @@
 import { ConfirmAction } from '@/shared/components';
-import type { IacOperation } from '@/shared/schema';
+import type { IacApplyRequirements, IacOperation, IacPlanSummary } from '@/shared/schema';
 import { Button, Checkbox, TextField } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
 import styles from '../infrastructure-page.module.scss';
 
-const PRODUCTION = new Set(['prd', 'prod', 'production', 'producao']);
-
 interface PlanApprovalProps {
   plan: IacOperation;
+  summary: IacPlanSummary;
+  /** O motor decide o que precisa ser confirmado; a tela só pergunta. */
+  requirements: IacApplyRequirements;
   busy: boolean;
   onApply: (confirmations: {
     destroyConfirmed: boolean;
@@ -21,35 +22,32 @@ interface PlanApprovalProps {
  * A aprovação é daquele plano: o Spock aplica exatamente o arquivo mostrado. Destruir, achado grave e produção pedem
  * confirmações a mais, e o clique final ainda passa por uma confirmação que diz que a nuvem vai mudar.
  */
-export function PlanApproval({ plan, busy, onApply }: PlanApprovalProps) {
+export function PlanApproval({ plan, summary, requirements, busy, onApply }: PlanApprovalProps) {
   const [destroyConfirmed, setDestroyConfirmed] = useState(false);
   const [risksAccepted, setRisksAccepted] = useState(false);
   const [typed, setTyped] = useState('');
   const [confirming, setConfirming] = useState(false);
 
-  const summary = plan.summary!;
   const destructive = summary.changes.filter((change) => change.action === 'delete' || change.action === 'replace');
-  const risks = (plan.findings ?? []).filter(
-    (finding) => finding.severity === 'danger' && finding.rule !== 'destroy' && finding.rule !== 'replace'
-  );
   const workspace = plan.workspace ?? 'default';
-  const production = PRODUCTION.has(workspace);
+  const production = requirements.workspaceConfirmation;
   const ready =
-    (destructive.length === 0 || destroyConfirmed) &&
-    (risks.length === 0 || risksAccepted) &&
-    (!production || typed.trim() === workspace);
+    (requirements.destructive === 0 || destroyConfirmed) &&
+    (requirements.risks === 0 || risksAccepted) &&
+    (production === null || typed.trim() === production);
 
   return (
-    <section className={styles.approval} aria-label={`Aprovar o plano ${plan.planId}`}>
+    <section className={styles.approval} aria-label={`Aprovar o plano ${requirements.planId}`}>
       <p className={styles.rowTitle}>Aprovar e aplicar este plano</p>
       <p>
-        Aplicar <strong>muda a nuvem</strong>. O Spock aplica exatamente o plano {plan.planId} no ambiente {workspace} e
-        confere o resultado com um plano novo. Se a configuração do projeto mudar, esta aprovação deixa de valer.
+        Aplicar <strong>muda a nuvem</strong>. O Spock aplica exatamente o plano {requirements.planId} no ambiente{' '}
+        {workspace} e confere o resultado com um plano novo. Se a configuração do projeto mudar, esta aprovação deixa de
+        valer.
       </p>
 
-      {destructive.length > 0 ? (
+      {requirements.destructive > 0 ? (
         <div className={styles.danger}>
-          <p className={styles.rowTitle}>{destructive.length} recurso(s) serão destruídos ou substituídos:</p>
+          <p className={styles.rowTitle}>{requirements.destructive} recurso(s) serão destruídos ou substituídos:</p>
           <ul className={styles.impacts}>
             {destructive.map((change) => (
               <li key={change.address}>
@@ -58,7 +56,7 @@ export function PlanApproval({ plan, busy, onApply }: PlanApprovalProps) {
             ))}
           </ul>
           <Checkbox
-            label={`Confirmo destruir ou substituir ${destructive.length} recurso(s)`}
+            label={`Confirmo destruir ou substituir ${requirements.destructive} recurso(s)`}
             checked={destroyConfirmed}
             disabled={busy}
             onChange={(_, checked) => setDestroyConfirmed(checked)}
@@ -66,18 +64,18 @@ export function PlanApproval({ plan, busy, onApply }: PlanApprovalProps) {
         </div>
       ) : null}
 
-      {risks.length > 0 ? (
+      {requirements.risks > 0 ? (
         <Checkbox
-          label={`Revisei os ${risks.length} achado(s) grave(s) de segurança e aceito aplicar`}
+          label={`Revisei os ${requirements.risks} achado(s) grave(s) de segurança e aceito aplicar`}
           checked={risksAccepted}
           disabled={busy}
           onChange={(_, checked) => setRisksAccepted(checked)}
         />
       ) : null}
 
-      {production ? (
+      {production !== null ? (
         <TextField
-          label={`Digite ${workspace} para confirmar o ambiente de produção`}
+          label={`Digite ${production} para confirmar o ambiente de produção`}
           value={typed}
           disabled={busy}
           onChange={(event) => setTyped(event.target.value)}
@@ -87,7 +85,7 @@ export function PlanApproval({ plan, busy, onApply }: PlanApprovalProps) {
 
       {confirming ? (
         <ConfirmAction
-          label={`Aplicar o plano ${plan.planId}`}
+          label={`Aplicar o plano ${requirements.planId}`}
           confirmLabel="Aplicar agora"
           cancelLabel="Não aplicar"
           busy={busy}
@@ -96,7 +94,7 @@ export function PlanApproval({ plan, busy, onApply }: PlanApprovalProps) {
             onApply({
               destroyConfirmed,
               risksAccepted,
-              ...(production ? { workspaceConfirmation: typed.trim() } : {})
+              ...(production !== null ? { workspaceConfirmation: typed.trim() } : {})
             });
           }}
           onCancel={() => setConfirming(false)}

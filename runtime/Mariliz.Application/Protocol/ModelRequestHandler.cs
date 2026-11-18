@@ -4,9 +4,14 @@ using Mariliz.Application.Models;
 
 namespace Mariliz.Application.Protocol;
 
-internal sealed class ModelRequestHandler(ModelGateway models)
+internal sealed class ModelRequestHandler(ModelGateway models) : IRequestHandler
 {
-    public async Task<JsonObject> HandleAsync(string method, JsonObject? parameters, CancellationToken ct) => method switch
+    public IReadOnlyList<string> Methods => ProtocolMethods.Model;
+
+    // Os erros deste grupo nomeiam o método ("Parâmetros de model.save inválidos."), por isso ele lê o JSON cru.
+    public Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => HandleAsync(method, p.Values, ct);
+
+    private async Task<JsonObject> HandleAsync(string method, JsonObject? parameters, CancellationToken ct) => method switch
     {
         ProtocolMethods.ModelStatus => StatusJson(models.Status()),
         ProtocolMethods.ModelSave => await Save(method, parameters, ct),

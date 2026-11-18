@@ -27,11 +27,6 @@ public sealed partial class IacOperationService(
 {
     public const string Person = "person";
 
-    // Plano velho tende a ser recusado pela ferramenta (state mudou); o Spock recusa antes, com uma mensagem clara.
-    public static readonly TimeSpan PlanLifetime = TimeSpan.FromHours(24);
-
-    private static readonly HashSet<string> ProductionWorkspaces = new(StringComparer.Ordinal) { "prd", "prod", "production", "producao" };
-
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _running = new(StringComparer.Ordinal);
 
     public static string Agent(string? client) => "agent:" + (string.IsNullOrWhiteSpace(client) ? "mcp" : client.Trim()[..Math.Min(client.Trim().Length, 60)]);
@@ -46,6 +41,14 @@ public sealed partial class IacOperationService(
     {
         RequireRoot(projectId);
         return area.History(projectId);
+    }
+
+    // O histórico com o que cada plano pede para ser aplicado agora (nulo quando não pode).
+    public IReadOnlyList<(IacOperation Operation, IacApplyRequirements? ApplyRequirements)> HistoryWithRequirements(string projectId)
+    {
+        var history = History(projectId);
+        var now = clock.UtcNow;
+        return [.. history.Select(operation => (operation, IacApplyPolicy.Requirements(history, operation, now)))];
     }
 
     public IacOperation Detail(string projectId, string operationId)
@@ -188,23 +191,14 @@ public sealed partial class IacOperationService(
         var root = RequireRoot(request.ProjectId);
         var history = area.History(request.ProjectId);
         var plan = history.FirstOrDefault(o => o.Id == request.OperationId) ?? throw IacErrors.OperationNotFound();
-        if (plan.Kind != IacOperationKind.Plan || plan.Status != IacOperationStatus.Succeeded || plan.PlanId is null || plan.Summary is null)
-            throw IacErrors.NotAPlan();
+        if (!IacApplyPolicy.IsPlan(plan)) throw IacErrors.NotAPlan();
         if (!string.Equals(plan.PlanId, request.PlanId, StringComparison.Ordinal)) throw IacErrors.PlanMismatch();
-        if (plan.AppliedBy is not null) throw IacErrors.PlanAlreadyApplied();
-        if (plan.HasChanges != true) throw IacErrors.PlanNoChanges();
-        if (plan.ApplyBlocker is { } blocker) throw IacErrors.ApplyBlocked(blocker);
-        // O histórico vem do mais recente para o mais antigo: qualquer plano antes deste, da mesma pasta e ambiente, é mais novo.
-        if (history.TakeWhile(o => o.Id != plan.Id).Any(o => o.Kind == IacOperationKind.Plan && o.Status == IacOperationStatus.Succeeded
-                                                          && o.Folder == plan.Folder && o.Workspace == plan.Workspace))
-            throw IacErrors.PlanSuperseded();
-        if (clock.UtcNow - plan.FinishedAt > PlanLifetime) throw IacErrors.PlanExpired();
+        if (IacApplyPolicy.Refusal(history, plan, clock.UtcNow) is { } refusal) throw refusal;
 
-        var destructive = plan.Summary.Delete + plan.Summary.Replace;
-        if (destructive > 0 && !request.DestroyConfirmed) throw IacErrors.DestroyConfirmationRequired(destructive);
-        var risks = (plan.Findings ?? []).Count(f => f.Severity == IacFindingSeverity.Danger && f.Rule is not ("destroy" or "replace"));
-        if (risks > 0 && !request.RisksAccepted) throw IacErrors.RisksConfirmationRequired(risks);
-        if (plan.Workspace is { } ws && ProductionWorkspaces.Contains(ws) && request.WorkspaceConfirmation?.Trim() != ws)
+        var needs = IacApplyPolicy.For(plan);
+        if (needs.Destructive > 0 && !request.DestroyConfirmed) throw IacErrors.DestroyConfirmationRequired(needs.Destructive);
+        if (needs.Risks > 0 && !request.RisksAccepted) throw IacErrors.RisksConfirmationRequired(needs.Risks);
+        if (needs.WorkspaceConfirmation is { } ws && request.WorkspaceConfirmation?.Trim() != ws)
             throw IacErrors.WorkspaceConfirmationRequired(ws);
 
         var directory = area.OperationDirectory(request.ProjectId, plan.Id);
@@ -212,7 +206,7 @@ public sealed partial class IacOperationService(
         var copy = Path.Combine(directory, "config");
         try
         {
-            if (!area.HashFile(planFile).StartsWith(plan.PlanId, StringComparison.Ordinal) || area.ConfigHash(copy) != plan.ConfigHash)
+            if (!area.HashFile(planFile).StartsWith(needs.PlanId, StringComparison.Ordinal) || area.ConfigHash(copy) != plan.ConfigHash)
                 throw IacErrors.PlanChanged();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -229,7 +223,7 @@ public sealed partial class IacOperationService(
             if (installation.Engine != plan.Engine || installation.Version != plan.Version) throw IacErrors.RuntimeChanged();
             var session = await SessionEnvironmentAsync(environment, plan.ConnectionId, ct);
 
-            var approval = new IacApproval(plan.PlanId, plan.ConfigHash, clock.UtcNow, request.DestroyConfirmed, request.RisksAccepted,
+            var approval = new IacApproval(needs.PlanId, plan.ConfigHash, clock.UtcNow, request.DestroyConfirmed, request.RisksAccepted,
                 request.WorkspaceConfirmation?.Trim());
             audit.Record("iac.apply_approved", new JsonObject
             {
@@ -238,9 +232,9 @@ public sealed partial class IacOperationService(
                 ["planId"] = plan.PlanId,
                 ["configHash"] = plan.ConfigHash,
                 ["workspace"] = plan.Workspace,
-                ["destroy"] = destructive,
+                ["destroy"] = needs.Destructive,
                 ["destroyConfirmed"] = request.DestroyConfirmed,
-                ["risks"] = risks,
+                ["risks"] = needs.Risks,
                 ["risksAccepted"] = request.RisksAccepted
             });
 

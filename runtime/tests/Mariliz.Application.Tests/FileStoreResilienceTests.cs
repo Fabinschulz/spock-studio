@@ -2,6 +2,7 @@ using System.Text.Json;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Management;
+using Mariliz.Application.Models;
 using Mariliz.Application.Tests.Support;
 using Mariliz.Infrastructure;
 using Mariliz.Infrastructure.Integrations;
@@ -172,6 +173,43 @@ public class FileStoreResilienceTests : IDisposable
         });
 
         await Task.WhenAll(writer, reader);
+    }
+
+    // Ler para gravar tratava o arquivo travado como vazio: a gravação seguinte apagava os tetos e escolhas das outras finalidades.
+    [Fact]
+    public void Preferencias_do_modelo_com_o_arquivo_travado_falham_ao_gravar_e_nada_se_perde()
+    {
+        var budgets = new FileModelBudgets(_dir);
+        var purposes = new FileModelPreferences(_dir);
+        var checks = new FileModelCheckStore(_dir);
+        budgets.Write(ModelPurposes.Workflow, 16_000);
+        purposes.Write(ModelPurposes.Workflow, "gpt-4.1-mini");
+        checks.Write("openai", new ModelCheck("connected", DateTimeOffset.UnixEpoch, null));
+
+        using (Lock(Path.Combine(_dir, "model-budgets.json")))
+        using (Lock(Path.Combine(_dir, "model-purposes.json")))
+        using (Lock(Path.Combine(_dir, "model-checks.json")))
+        {
+            Assert.Empty(budgets.Read());
+            Assert.ThrowsAny<IOException>(() => budgets.Write(ModelPurposes.Assistant, 40_000));
+            Assert.ThrowsAny<IOException>(() => purposes.Write(ModelPurposes.Assistant, "gpt-4.1"));
+            Assert.ThrowsAny<IOException>(() => checks.Write("anthropic", new ModelCheck("error", DateTimeOffset.UnixEpoch, null)));
+        }
+
+        Assert.Equal(16_000, budgets.Read()[ModelPurposes.Workflow]);
+        Assert.Equal("gpt-4.1-mini", purposes.Read()[ModelPurposes.Workflow]);
+        Assert.NotNull(checks.Read("openai"));
+    }
+
+    [Fact]
+    public void Preferencias_do_modelo_corrompidas_vao_para_quarentena_antes_de_gravar()
+    {
+        File.WriteAllText(Path.Combine(_dir, "model-budgets.json"), "{ quebrado");
+
+        new FileModelBudgets(_dir).Write(ModelPurposes.Workflow, 16_000);
+
+        Assert.Single(Quarantined("model-budgets.json"));
+        Assert.Equal(16_000, new FileModelBudgets(_dir).Read()[ModelPurposes.Workflow]);
     }
 
     [UnixFact]
