@@ -21,7 +21,7 @@ public static class ContextBootstrapTool
         ["properties"] = new JsonObject
         {
             ["projectId"] = Text("Id da cópia de trabalho (p-)."),
-            ["stableId"] = new JsonObject { ["type"] = new JsonArray("string", "null"), ["description"] = "Id estável do projeto (spk-), do mariliz.yaml." },
+            ["stableId"] = new JsonObject { ["type"] = new JsonArray("string", "null"), ["description"] = "Id estável do projeto (spk-), do spock.yaml (ou do mariliz.yaml de um projeto anterior à troca de nome)." },
             ["intent"] = Enum(ContextIntents.Bootstrap),
             ["contextVersion"] = Text("Muda quando algo declarado ou aprovado muda; não a cada sincronização."),
             ["budgetTokens"] = new JsonObject { ["type"] = "integer" },
@@ -38,7 +38,7 @@ public static class ContextBootstrapTool
                     {
                         ["section"] = Enum("identity", "policies", "connections", "harness", "warnings"),
                         ["text"] = Text("O item como a IDE o lê."),
-                        ["source"] = Text("De onde veio: spock, mariliz.yaml, mariliz.lock, o provedor da integração ou cloud:<provedor>."),
+                        ["source"] = Text("De onde veio: spock, a declaração (spock.yaml ou mariliz.yaml), o lock (spock.lock ou mariliz.lock), o provedor da integração ou cloud:<provedor>."),
                         ["ref"] = Text("O que identifica o item na origem."),
                         ["classification"] = Enum(ContextClassifications.Discovered, ContextClassifications.Declared, ContextClassifications.Approved,
                             ContextClassifications.Integration, ContextClassifications.Calculated, ContextClassifications.Inferred),

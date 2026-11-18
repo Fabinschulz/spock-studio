@@ -15,7 +15,7 @@ internal sealed class LockIntegrityCheck : IEvalCheck
 
     private static EvalResult Run(EvalSpec spec, ValidationContext ctx)
     {
-        if (ctx.Lock is null) return Block(spec, "Sem mariliz.lock, não há o que conferir.");
+        if (ctx.Lock is null) return Block(spec, $"Sem {ctx.Naming.Lock}, não há o que conferir.");
         var problems = new List<string>();
         var checkedFiles = 0;
 
@@ -34,7 +34,7 @@ internal sealed class LockIntegrityCheck : IEvalCheck
             if (entry.Mode == "merge" && path == Catalog.PathSettings)
             {
                 var text = System.Text.Encoding.UTF8.GetString(bytes);
-                if (!text.Contains(Catalog.PathHookScript, StringComparison.Ordinal)) problems.Add($"{path}: o hook gerenciado não está mais registrado.");
+                if (!text.Contains(ctx.Naming.HookScript, StringComparison.Ordinal)) problems.Add($"{path}: o hook gerenciado não está mais registrado.");
             }
         }
 

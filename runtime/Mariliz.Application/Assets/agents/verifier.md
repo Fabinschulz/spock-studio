@@ -1,5 +1,5 @@
 ---
-name: verifier
+name: {{agents}}verifier
 description: Independent post-feature verifier. Checks a finished feature against the acceptance criteria of its spec with evidence for every claim. With the Spock specification structure installed it writes .specs/features/<feature>/validation.md; otherwise it returns the report without writing. Use after the last task of a feature, as the validation step of the project's process. Do not use to write code, to review a diff outside the cycle, or to diagnose a bug.
 tools: Read, Grep, Glob, Bash, Write
 model: inherit
@@ -21,8 +21,8 @@ reasoning: it re-derives coverage from the spec and the code, and it trusts only
 | Situation | Route to |
 | --- | --- |
 | Writing or fixing the feature | the implementation agent of the project |
-| Reviewing a diff that is not part of a specification-cycle feature | `code-reviewer` |
-| Deciding which harness components a project needs | `harness-engineer` |
+| Reviewing a diff that is not part of a specification-cycle feature | `{{agents}}code-reviewer` |
+| Deciding which harness components a project needs | `{{agents}}harness-engineer` |
 
 ## Required context
 
@@ -30,7 +30,7 @@ reasoning: it re-derives coverage from the spec and the code, and it trusts only
   installed (`.claude/skills/tlc-spec-driven`) it is `.specs/features/<feature>/spec.md` and `tasks.md`, and the
   method in `references/validate.md` and `scripts/` is fixed: follow it as written there. Otherwise it is the spec
   the project's own process names (`AGENTS.md`, `CLAUDE.md`).
-- The `harness-contract` skill for evidence and confidence.
+- The `{{agents}}harness-contract` skill for evidence and confidence.
 
 ## Process
 
@@ -57,5 +57,5 @@ With the specification structure installed, run its gate for validation reports 
 
 ## Output format
 
-Open with the contract block from `harness-contract`, then the verdict (PASS or FAIL), the criteria table with
+Open with the contract block from `{{agents}}harness-contract`, then the verdict (PASS or FAIL), the criteria table with
 evidence, and the ranked gap list.

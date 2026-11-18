@@ -14,7 +14,7 @@ internal sealed class AgentsCheck : IEvalCheck
 
     private static EvalResult Run(EvalSpec spec, ValidationContext ctx)
     {
-        if (ctx.Lock is null) return Block(spec, "Sem mariliz.lock, não há agentes gerenciados a conferir.");
+        if (ctx.Lock is null) return Block(spec, $"Sem {ctx.Naming.Lock}, não há agentes gerenciados a conferir.");
         var agents = ctx.OwnedFiles().Where(f => f.Path.StartsWith(".claude/agents/", StringComparison.Ordinal)).ToList();
         if (agents.Count == 0) return Pass(spec, ["Nenhum agente gerenciado"], ["Nenhum agente foi configurado neste projeto."]);
 
@@ -31,12 +31,12 @@ internal sealed class AgentsCheck : IEvalCheck
                 problems.Add($"{entry.Path}: falta a seção '{section}'.");
 
             var tools = FrontmatterReader.Read(text)!["tools"].Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            if (AgentTools.TryGetValue(entry.Path, out var allowed))
+            if (AgentTools.TryGetValue(entry.Component, out var allowed))
             {
                 var extra = tools.Except(allowed, StringComparer.Ordinal).ToList();
                 if (extra.Count > 0) problems.Add($"{entry.Path}: ferramentas fora do conjunto permitido ({string.Join(", ", extra)}).");
             }
-            if (entry.Path == Catalog.PathCodeReviewer && tools.Any(t => WriteTools.Contains(t)))
+            if (entry.Component == Catalog.AgentCodeReviewer && tools.Any(t => WriteTools.Contains(t)))
                 problems.Add($"{entry.Path}: agente somente leitura com ferramenta de escrita.");
         }
 
@@ -45,11 +45,12 @@ internal sealed class AgentsCheck : IEvalCheck
             : Fail(spec, $"{problems.Count} não conformidade(s) nos agentes.", problems);
     }
 
+    // Pelo componente, não pelo caminho: o nome do arquivo muda com a convenção do projeto.
     private static readonly Dictionary<string, string[]> AgentTools = new()
     {
-        [Catalog.PathHarnessEngineer] = ["Read", "Grep", "Glob", "Write"],
-        [Catalog.PathCodeReviewer] = ["Read", "Grep", "Glob", "Bash"],
-        [Catalog.PathVerifier] = ["Read", "Grep", "Glob", "Bash", "Write"]
+        [Catalog.AgentHarnessEngineer] = ["Read", "Grep", "Glob", "Write"],
+        [Catalog.AgentCodeReviewer] = ["Read", "Grep", "Glob", "Bash"],
+        [Catalog.AgentVerifier] = ["Read", "Grep", "Glob", "Bash", "Write"]
     };
 
     private static readonly string[] AgentSections = ["## Role", "## Use when", "## Do not use when", "## Required context", "## Inviolable rules", "## Output format"];

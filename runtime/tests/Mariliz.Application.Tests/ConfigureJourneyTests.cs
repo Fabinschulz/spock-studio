@@ -30,9 +30,9 @@ public class ConfigureJourneyTests
         Assert.Equal("completed", result["outcome"]!.GetValue<string>());
         foreach (var path in new[]
         {
-            "mariliz.yaml", "mariliz.lock", ".claude/agents/harness-engineer.md", ".claude/agents/code-reviewer.md", ".claude/agents/verifier.md",
-            ".claude/skills/harness-contract/SKILL.md", ".claude/rules/mariliz-general.md", ".claude/rules/mariliz-stack-dotnet.md",
-            ".claude/rules/mariliz-repo.md", ".claude/hooks/mariliz-policy.py", ".claude/settings.json", ".mariliz/schemas/harness-proposal.v1.schema.json"
+            "spock.yaml", "spock.lock", ".claude/agents/spock-harness-engineer.md", ".claude/agents/spock-code-reviewer.md", ".claude/agents/spock-verifier.md",
+            ".claude/skills/spock-harness-contract/SKILL.md", ".claude/rules/spock-general.md", ".claude/rules/spock-stack-dotnet.md",
+            ".claude/rules/spock-repo.md", ".claude/hooks/spock-policy.py", ".claude/settings.json", ".spock/schemas/harness-proposal.v1.schema.json"
         })
             Assert.True(project.Exists(path), path);
 
@@ -84,7 +84,7 @@ public class ConfigureJourneyTests
         var installed = await journey.ApplyAsync(plan2);
         Assert.Single(journey.Runner.Calls, c => c.Executable == "npx");
         Assert.Equal("passed", Journey.Status(installed, "EV-SPEC-001"));
-        var lockText = project.Read("mariliz.lock")!;
+        var lockText = project.Read("spock.lock")!;
         Assert.Contains("version: 4.0.0", lockText);
     }
 
@@ -94,9 +94,9 @@ public class ConfigureJourneyTests
         var (project, journey, _, first) = await Configured();
         using var _ = project;
         Assert.Equal("completed", first["outcome"]!.GetValue<string>());
-        string Keep(string id) => $"{{\"id\":\"{id}\",\"decision\":\"keep\",\"justification\":\"Já instalado e adequado ao projeto.\",\"evidence\":[\"mariliz.lock\"]}}";
+        string Keep(string id) => $"{{\"id\":\"{id}\",\"decision\":\"keep\",\"justification\":\"Já instalado e adequado ao projeto.\",\"evidence\":[\"spock.lock\"]}}";
         var kept = new[] { Catalog.AgentHarnessEngineer, Catalog.AgentCodeReviewer, Catalog.AgentVerifier, Catalog.SkillHarnessContract, Catalog.RuleGeneral, Catalog.RuleStackDotnet, Catalog.RuleRepoCommands };
-        project.Write(".mariliz/proposal.json", "{\"schema\":1,\"origin\":\"harness-engineer\",\"decisions\":[" + string.Join(",", kept.Select(Keep)) + "]," +
+        project.Write(".spock/proposal.json", "{\"schema\":1,\"origin\":\"harness-engineer\",\"decisions\":[" + string.Join(",", kept.Select(Keep)) + "]," +
             "\"additionalRules\":[{\"id\":\"read-first\",\"title\":\"Read the guide first\",\"content\":\"Read docs/guide.md before any change.\",\"justification\":\"O guia define a ordem de leitura.\",\"evidence\":[\"docs/guide.md\"]}]}");
 
         var withProposal = await journey.PlanAsync();
@@ -104,7 +104,7 @@ public class ConfigureJourneyTests
         var applied = await journey.ApplyAsync(withProposal);
         Assert.Equal("completed", applied["outcome"]!.GetValue<string>());
 
-        var lockText = project.Read("mariliz.lock")!;
+        var lockText = project.Read("spock.lock")!;
         foreach (var id in kept) Assert.Contains("id: " + id, lockText);
         Assert.Contains("id: " + Catalog.CustomRulePrefix + "read-first", lockText);
         var again = await journey.PlanAsync();
@@ -118,7 +118,7 @@ public class ConfigureJourneyTests
         var project = TempProject.Dotnet();
         using var _ = project;
         var journey = new Journey(project, Journey.FakeInstaller(project));
-        project.Write("mariliz.yaml", "schema: 1\nproject:\n  name: app\nimplementationModel: mariliz\naiEnvironment: claude-code\ncomponents:\n  exclude:\n    - "
+        project.Write("spock.yaml", "schema: 1\nproject:\n  name: app\nimplementationModel: mariliz\naiEnvironment: claude-code\ncomponents:\n  exclude:\n    - "
             + Catalog.SpecificationStructure + "\n");
 
         var plan = await journey.PlanAsync();
@@ -217,14 +217,14 @@ public class ConfigureJourneyTests
     {
         using var project = TempProject.Dotnet();
         SpecificationFixture.Install(project);
-        project.Write(".claude/agents/code-reviewer.md", "---\nname: code-reviewer\ndescription: o meu\ntools: Read\n---\n\n# meu revisor\n");
+        project.Write(".claude/agents/spock-code-reviewer.md", "---\nname: code-reviewer\ndescription: o meu\ntools: Read\n---\n\n# meu revisor\n");
         project.Write(".claude/agents/my-agent.md", "---\nname: my-agent\ndescription: meu\ntools: Read\n---\n");
         project.Write("CLAUDE.md", "# minhas regras\n");
         var journey = new Journey(project);
 
         var plan = await journey.PlanAsync();
         var conflict = Assert.Single(plan.Changes, c => c.Action == ChangeAction.Conflict);
-        Assert.Equal(".claude/agents/code-reviewer.md", conflict.Path);
+        Assert.Equal(".claude/agents/spock-code-reviewer.md", conflict.Path);
         Assert.NotNull(conflict.Diff);
         Assert.Contains(plan.Changes, c => c.Path == ".claude/agents/my-agent.md" && c.Action == ChangeAction.Preserve);
         // C2: o CLAUDE.md é da pessoa; o plano só acrescenta o bloco do Spock no fim.
@@ -232,8 +232,8 @@ public class ConfigureJourneyTests
 
         var result = await journey.ApplyAsync(plan);
 
-        Assert.Contains("meu revisor", project.Read(".claude/agents/code-reviewer.md"));
-        Assert.Contains(".claude/agents/code-reviewer.md", result["files"]!["kept"]!.AsArray().Select(n => n!.GetValue<string>()));
+        Assert.Contains("meu revisor", project.Read(".claude/agents/spock-code-reviewer.md"));
+        Assert.Contains(".claude/agents/spock-code-reviewer.md", result["files"]!["kept"]!.AsArray().Select(n => n!.GetValue<string>()));
         Assert.StartsWith("# minhas regras\n", project.Read("CLAUDE.md"));
         Assert.Contains("<!-- spock:begin spock.bootstrap", project.Read("CLAUDE.md"));
 
@@ -250,18 +250,18 @@ public class ConfigureJourneyTests
         using var project = TempProject.Dotnet();
         SpecificationFixture.Install(project);
         const string mine = "---\nname: code-reviewer\ndescription: o meu revisor\ntools: Read\n---\nRevise meus diffs com cuidado.\n";
-        project.Write(".claude/agents/code-reviewer.md", mine);
+        project.Write(".claude/agents/spock-code-reviewer.md", mine);
         var journey = new Journey(project);
 
         var plan = await journey.PlanAsync();
         var result = await journey.ApplyAsync(plan);
 
-        Assert.Equal(mine, project.Read(".claude/agents/code-reviewer.md"));
+        Assert.Equal(mine, project.Read(".claude/agents/spock-code-reviewer.md"));
         Assert.Equal("passed", Journey.Status(result, "EV-AGENT-001"));
         // Nenhum Eval reprova; o arquivo mantido é uma pendência dita, então o desfecho é "com limitações", nunca "falhou".
         Assert.Equal("completed_with_limitations", result["outcome"]!.GetValue<string>());
         Assert.Contains(result["pending"]!.AsArray(), n => n!.GetValue<string>().Contains("code-reviewer.md"));
-        Assert.Contains(".claude/agents/code-reviewer.md", result["files"]!["kept"]!.AsArray().Select(n => n!.GetValue<string>()));
+        Assert.Contains(".claude/agents/spock-code-reviewer.md", result["files"]!["kept"]!.AsArray().Select(n => n!.GetValue<string>()));
     }
 
     [Fact]
@@ -270,19 +270,19 @@ public class ConfigureJourneyTests
         using var project = TempProject.Dotnet();
         SpecificationFixture.Install(project);
         const string mine = "---\nname: code-reviewer\ndescription: o meu\ntools: Read\n---\n\n# meu revisor\n";
-        project.Write(".claude/agents/code-reviewer.md", mine);
+        project.Write(".claude/agents/spock-code-reviewer.md", mine);
         var journey = new Journey(project);
 
         var plan = await journey.PlanAsync();
         var result = await journey.ApplyAsync(plan, Journey.ApproveAll(plan, ConflictResolution.Overwrite));
-        Assert.DoesNotContain("meu revisor", project.Read(".claude/agents/code-reviewer.md"));
+        Assert.DoesNotContain("meu revisor", project.Read(".claude/agents/spock-code-reviewer.md"));
 
         var revert = await journey.RevertAsync(result["runId"]!.GetValue<string>());
 
         Assert.Equal("completed", revert["outcome"]!.GetValue<string>());
         Assert.True(revert["verified"]!.GetValue<bool>());
-        Assert.Equal(mine, project.Read(".claude/agents/code-reviewer.md"));
-        Assert.False(project.Exists("mariliz.lock"));
+        Assert.Equal(mine, project.Read(".claude/agents/spock-code-reviewer.md"));
+        Assert.False(project.Exists("spock.lock"));
         Assert.False(project.Exists(".claude/hooks"));
     }
 
@@ -291,7 +291,7 @@ public class ConfigureJourneyTests
     {
         var (project, journey, _, result) = await Configured();
         using var _ = project;
-        var rule = ".claude/rules/mariliz-general.md";
+        var rule = ".claude/rules/spock-general.md";
         project.Write(rule, project.Read(rule) + "\n- minha regra extra\n");
         var edited = project.Read(rule);
 
@@ -342,7 +342,7 @@ public class ConfigureJourneyTests
         var plan = await journey.PlanAsync("cursor");
 
         Assert.Contains(plan.Limitations, l => l.Code == LimitationCodes.EnvironmentNotSupported);
-        Assert.Equal(["mariliz.yaml"], plan.Changes.Where(c => c.Action == ChangeAction.Create).Select(c => c.Path).ToArray());
+        Assert.Equal(["spock.yaml"], plan.Changes.Where(c => c.Action == ChangeAction.Create).Select(c => c.Path).ToArray());
         Assert.Empty(plan.Commands);
         Assert.All(plan.Decisions.Where(d => d.ComponentId != Catalog.ConfigDeclaration), d => Assert.Equal("blocked", d.Decision));
         Assert.False(project.Exists(".cursor"));
@@ -392,7 +392,7 @@ public class ConfigureJourneyTests
         SpecificationFixture.Install(project);
         var journey = new Journey(project);
         var plan = await journey.PlanAsync();
-        project.Write(".claude/rules/mariliz-general.md", "alguém criou isto depois do plano\n");
+        project.Write(".claude/rules/spock-general.md", "alguém criou isto depois do plano\n");
         var before = project.Fingerprint();
 
         var result = await journey.ApplyAsync(plan);

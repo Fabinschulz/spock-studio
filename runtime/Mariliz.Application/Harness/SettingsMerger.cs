@@ -1,6 +1,7 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Harness;
 
@@ -8,7 +9,7 @@ namespace Mariliz.Application.Harness;
 public static class SettingsMerger
 {
     public const string HookMatcher = "Bash|Write|Edit|MultiEdit|NotebookEdit";
-    public const string HookScriptReference = "${CLAUDE_PROJECT_DIR}/" + Catalog.PathHookScript;
+    public static string HookScriptReference(HarnessNaming naming) => "${CLAUDE_PROJECT_DIR}/" + naming.HookScript;
 
     public static readonly IReadOnlyList<string> DenyRules =
         ["Read(./.env)", "Read(./.env.local)", "Read(./.env.production)", "Read(./.env.development)"];
@@ -21,15 +22,15 @@ public static class SettingsMerger
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
-    public static JsonObject DesiredHook(string pythonCommand) => new()
+    public static JsonObject DesiredHook(string pythonCommand, HarnessNaming naming) => new()
     {
         ["type"] = "command",
         ["command"] = pythonCommand,
-        ["args"] = new JsonArray(HookScriptReference),
+        ["args"] = new JsonArray(HookScriptReference(naming)),
         ["timeout"] = 10
     };
 
-    public static (string? Content, string? Error) Merge(string? current, string pythonCommand)
+    public static (string? Content, string? Error) Merge(string? current, string pythonCommand, HarnessNaming naming)
     {
         JsonObject root;
         if (string.IsNullOrWhiteSpace(current))
@@ -54,7 +55,7 @@ public static class SettingsMerger
         if (!TryGetOrCreateObject(root, "hooks", out var hooks) || !TryGetOrCreateArray(hooks!, "PreToolUse", out var preToolUse))
             return (null, ".claude/settings.json tem 'hooks' em formato inesperado; a aplicação não o altera.");
 
-        var desired = DesiredHook(pythonCommand);
+        var desired = DesiredHook(pythonCommand, naming);
         var replaced = false;
         foreach (var group in preToolUse!.OfType<JsonObject>())
         {
@@ -188,10 +189,11 @@ public static class SettingsMerger
         }
     }
 
+    // Nos dois nomes: o hook de um projeto antigo continua sendo reconhecido e nunca ganha uma cópia ao lado.
     public static bool IsOurs(JsonObject hook)
     {
         if (hook["args"] is JsonArray args && args.Count > 0 && args[0] is JsonValue v && v.TryGetValue<string>(out var s))
-            return s.EndsWith(Catalog.PathHookScript, StringComparison.Ordinal);
+            return HarnessNaming.All.Any(naming => s.EndsWith(naming.HookScript, StringComparison.Ordinal));
         return false;
     }
 

@@ -58,7 +58,7 @@ public static partial class AgentPolicyService
 
         var limits = document.RootElement.GetProperty("limits").EnumerateArray().Select(item => item.GetString()!).ToList();
         var watches = SettingsMerger.HookMatcher.Split('|').Select(HarnessCatalogService.PlainOf).Distinct().ToList();
-        return new AgentPolicy(Catalog.PathHookScript, watches, rules, limits);
+        return new AgentPolicy(Mariliz.Core.Policy.HarnessNaming.Spock.HookScript, watches, rules, limits);
     }
 
     private static string Between(string text, string start, string end)

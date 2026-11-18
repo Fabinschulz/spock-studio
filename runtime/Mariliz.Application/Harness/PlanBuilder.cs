@@ -57,7 +57,7 @@ public static class PlanBuilder
         var planId = PlanIdentity(projectId, composed, changes);
         return new ConfigurationPlan(
             planId, projectId, composed.AiEnvironment, ImplementationModels.Mariliz, composed.ProposalOrigin,
-            composed.Decisions, changes, composed.Commands, composed.Limitations, composed.Observations, composed.Risks, PlannedValidations(report));
+            composed.Decisions, changes, composed.Commands, composed.Limitations, composed.Observations, composed.Risks, PlannedValidations(report, files.Naming()));
     }
 
     private static FileChange Classify(DesiredFile file, IProjectFiles files, ManagedLockFile? lockFile)
@@ -91,7 +91,7 @@ public static class PlanBuilder
 
         // Edições pontuais pedidas pela pessoa (a lista de exclusão em mariliz.yaml, a saída do hook do settings.json):
         // o arquivo é dela, a mudança é só o pedido, e o plano mostra a diferença para aprovação.
-        if (file.Mode == "release" || (file.Path == DeclaredConfig.FileName && entry is null))
+        if (file.Mode == "release" || (HarnessNaming.IsDeclaration(file.Path) && entry is null))
             return New(file.Path, file.Kind, file.ComponentId, ChangeAction.Update, file.Reason, file.Origin, currentHash, afterHash, false, null, Diff(file.Path, currentText, desired));
 
         if (entry is { Mode: "file" } && entry.Sha256 == currentHash)
@@ -145,9 +145,10 @@ public static class PlanBuilder
     private static FileChange? ClassifyLock(IProjectFiles files, ManagedLockFile? existing, ComposeResult composed, DiscoveryReport report, List<FileChange> changes)
     {
         if (composed.AiEnvironment.Length == 0) return null;
-        var current = files.ReadText(ManagedLockFile.FileName);
+        var lockPath = files.Naming().Lock;
+        var current = files.ReadText(lockPath);
         // Sem nada gerenciado (ex.: ambiente sem suporte), não há o que registrar.
-        if (current is null && composed.Files.All(f => f.Path == DeclaredConfig.FileName) && composed.Commands.Count == 0) return null;
+        if (current is null && composed.Files.All(f => HarnessNaming.IsDeclaration(f.Path)) && composed.Commands.Count == 0) return null;
         var pendingSpecification = composed.Commands.Any(c => c.Id is "specification-install" or "specification-update");
         var content = LockBuilder.Build(composed, changes, existing, report.Specification, pendingSpecification);
         var currentHash = current is null ? null : Hashing.Sha256(Normalize(current));
@@ -155,7 +156,7 @@ public static class PlanBuilder
         if (content is null)
         {
             // O hash da estrutura de especificação só existe depois da instalação; o lock é gravado ao final da aplicação.
-            return New(ManagedLockFile.FileName, ComponentKind.Config, Catalog.ConfigDeclaration,
+            return New(lockPath, ComponentKind.Config, Catalog.ConfigDeclaration,
                 current is null ? ChangeAction.Create : ChangeAction.Update,
                 "Registro dos arquivos gerenciados e da estrutura de especificação. O conteúdo é calculado depois da instalação dela.",
                 DecisionOrigins.Baseline, currentHash, null, false, null, null);
@@ -163,13 +164,13 @@ public static class PlanBuilder
 
         var afterHash = Hashing.Sha256(Normalize(content));
         if (currentHash == afterHash)
-            return New(ManagedLockFile.FileName, ComponentKind.Config, Catalog.ConfigDeclaration, ChangeAction.Preserve,
+            return New(lockPath, ComponentKind.Config, Catalog.ConfigDeclaration, ChangeAction.Preserve,
                 "O registro já está como o desejado.", DecisionOrigins.Baseline, currentHash, afterHash, false, null, null);
 
-        return New(ManagedLockFile.FileName, ComponentKind.Config, Catalog.ConfigDeclaration,
+        return New(lockPath, ComponentKind.Config, Catalog.ConfigDeclaration,
             current is null ? ChangeAction.Create : ChangeAction.Update,
             "Registro dos arquivos gerenciados, das versões e da estrutura de especificação.", DecisionOrigins.Baseline, currentHash, afterHash, false, null,
-            Diff(ManagedLockFile.FileName, current, Normalize(content)));
+            Diff(lockPath, current, Normalize(content)));
     }
 
     private static IEnumerable<(InventoryItem Item, ComponentKind Kind)> InventoryWithKind(HarnessInventory inv)
@@ -182,13 +183,13 @@ public static class PlanBuilder
     }
 
     // Dito antes para a pessoa aprovar sabendo.
-    private static IReadOnlyList<string> PlannedValidations(DiscoveryReport report)
+    private static IReadOnlyList<string> PlannedValidations(DiscoveryReport report, HarnessNaming naming)
     {
         var python = report.Tools.PythonCommand ?? "python";
         return
         [
             "Conferir arquivos, hashes, agentes, skills, regras, referências e ausência de segredos (somente leitura).",
-            $"Executar o script do hook com entradas conhecidas: {python} .claude/hooks/mariliz-policy.py (sem rede, sem escrita).",
+            $"Executar o script do hook com entradas conhecidas: {python} {naming.HookScript} (sem rede, sem escrita).",
             $"Executar as validações da especificação: {python} <skill>/scripts/check_commit.py e lessons.py selftest (somente leitura).",
             "Gerar um novo plano e confirmar que ele não propõe nenhuma mudança (idempotência)."
         ];

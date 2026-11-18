@@ -31,7 +31,7 @@ export function PlanStep({ plan, onBack, onContinue }: PlanStepProps) {
       >
         {fromEngineer
           ? 'A proposta do agente foi validada pelo motor (formato, catálogo de componentes e ausência de segredos) antes de entrar no plano.'
-          : 'O Harness Engineer ainda não gerou uma proposta. Depois de aplicar, o agente fica em .claude/agents/harness-engineer.md: peça a ele, no seu ambiente de IA, que escreva .mariliz/proposal.json e gere o plano de novo.'}
+          : 'O Harness Engineer ainda não gerou uma proposta. Depois de aplicar, o agente fica em .claude/agents/spock-harness-engineer.md: peça a ele, no seu ambiente de IA, que escreva a proposta no arquivo que ele indica e gere o plano de novo.'}
       </InlineNotice>
 
       <DecisionsList decisions={plan.decisions} />

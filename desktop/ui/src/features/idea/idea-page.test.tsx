@@ -145,7 +145,7 @@ describe('Da ideia ao projeto', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Revisar os documentos' }));
     const review = await screen.findByRole('region', { name: 'Revisar os documentos' });
-    expect(within(review).getByLabelText('Diferenças em .mariliz/arquitetura/especificacao.md')).toBeInTheDocument();
+    expect(within(review).getByLabelText('Diferenças em .spock/arquitetura/especificacao.md')).toBeInTheDocument();
     expect(engine.calls.some((call) => call.method === 'idea.save')).toBe(false);
 
     await userEvent.click(within(review).getByRole('button', { name: 'Gravar documentos' }));

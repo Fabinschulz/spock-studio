@@ -81,14 +81,19 @@ internal static class McpEntry
 
     private static string? DeclarationIn(string directory)
     {
-        var file = new FileInfo(Path.Combine(directory, Application.Harness.DeclaredConfig.FileName));
-        try
+        // Na mesma ordem da detecção do projeto: spock.yaml, depois o mariliz.yaml de um projeto anterior à troca de nome.
+        foreach (var naming in Core.Policy.HarnessNaming.All)
         {
-            return file.Exists && file.Length <= 256 * 1024 ? File.ReadAllText(file.FullName) : null;
+            var file = new FileInfo(Path.Combine(directory, naming.Declaration));
+            try
+            {
+                if (file.Exists && file.Length <= 256 * 1024) return File.ReadAllText(file.FullName);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                return null;
+            }
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            return null;
-        }
+        return null;
     }
 }

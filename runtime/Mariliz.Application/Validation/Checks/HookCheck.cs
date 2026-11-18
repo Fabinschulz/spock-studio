@@ -14,8 +14,8 @@ internal sealed class HookCheck : IEvalCheck
 
     public async Task<EvalResult> RunAsync(EvalSpec spec, ValidationContext ctx, IReadOnlyList<EvalResult> completed, CancellationToken ct)
     {
-        if (ctx.Lock is null) return Block(spec, "Sem mariliz.lock, não há hook gerenciado a conferir.");
-        var entry = ctx.Lock.ManagedFiles.FirstOrDefault(f => f.Path == Catalog.PathHookScript);
+        if (ctx.Lock is null) return Block(spec, $"Sem {ctx.Naming.Lock}, não há hook gerenciado a conferir.");
+        var entry = ctx.Lock.ManagedFiles.FirstOrDefault(f => f.Path == ctx.Naming.HookScript);
         if (entry is null) return Pass(spec, ["Nenhum hook gerenciado"], ["O hook de política não foi configurado neste projeto."]);
 
         var evidence = new List<string>();
@@ -33,18 +33,18 @@ internal sealed class HookCheck : IEvalCheck
         if (registered != 1) return Fail(spec, $"O hook gerenciado está registrado {registered} vez(es); esperado 1.", [Catalog.PathSettings]);
         evidence.Add($"{Catalog.PathSettings}: hook PreToolUse registrado uma vez");
 
-        var script = ctx.Files.ReadText(Catalog.PathHookScript);
-        if (script is null) return Fail(spec, "O script do hook não existe.", [Catalog.PathHookScript]);
+        var script = ctx.Files.ReadText(ctx.Naming.HookScript);
+        if (script is null) return Fail(spec, "O script do hook não existe.", [ctx.Naming.HookScript]);
         // Palavras da documentação (docstring) não contam: só o código.
         var code = StripDocstring(script);
         var forbidden = ForbiddenHookTokens.Where(t => code.Contains(t, StringComparison.Ordinal)).ToList();
-        if (forbidden.Count > 0) return Fail(spec, "O script do hook usa recursos que a política proíbe (rede, processos ou escrita).", forbidden.Select(f => $"{Catalog.PathHookScript}: {f}").ToList());
-        evidence.Add($"{Catalog.PathHookScript}: sem rede, sem processos, sem escrita (análise estática)");
+        if (forbidden.Count > 0) return Fail(spec, "O script do hook usa recursos que a política proíbe (rede, processos ou escrita).", forbidden.Select(f => $"{ctx.Naming.HookScript}: {f}").ToList());
+        evidence.Add($"{ctx.Naming.HookScript}: sem rede, sem processos, sem escrita (análise estática)");
 
         var python = ctx.Discovery.Tools.PythonCommand;
         if (python is null) return Block(spec, "Python 3 não está disponível; o comportamento do hook não pôde ser verificado.");
 
-        var scriptPath = Path.Combine(ctx.RootPath, Catalog.PathHookScript.Replace('/', Path.DirectorySeparatorChar));
+        var scriptPath = Path.Combine(ctx.RootPath, ctx.Naming.HookScript.Replace('/', Path.DirectorySeparatorChar));
         var cases = new (string Name, object Payload, string? Expected)[]
         {
             ("Bash inofensivo", Bash(ctx, "git status"), null),
@@ -56,7 +56,7 @@ internal sealed class HookCheck : IEvalCheck
             ("escrita em .env", Write(ctx, Path.Combine(ctx.RootPath, ".env")), "deny"),
             ("escrita em .env.example", Write(ctx, Path.Combine(ctx.RootPath, ".env.example")), null),
             ("escrita em arquivo do Harness", Write(ctx, Path.Combine(ctx.RootPath, ".claude", "agents", "x.md")), "ask"),
-            ("escrita da proposta", Write(ctx, Path.Combine(ctx.RootPath, ".mariliz", "proposal.json")), null),
+            ("escrita da proposta", Write(ctx, Path.Combine(ctx.RootPath, ctx.Naming.Proposal)), null),
             ("escrita em código-fonte", Write(ctx, Path.Combine(ctx.RootPath, "src", "app.cs")), null)
         };
 
@@ -69,7 +69,7 @@ internal sealed class HookCheck : IEvalCheck
                 failures.Add($"{name}: esperado {expected ?? "sem objeção"}, obtido {(result.ExitCode != 0 ? $"saída {result.ExitCode}" : actual ?? "sem objeção")}");
         }
         if (failures.Count > 0) return Fail(spec, $"{failures.Count} caso(s) do hook com decisão inesperada.", failures);
-        evidence.Add($"{cases.Length} entradas conhecidas com a decisão esperada ({python} {Catalog.PathHookScript})");
+        evidence.Add($"{cases.Length} entradas conhecidas com a decisão esperada ({python} {ctx.Naming.HookScript})");
         return Pass(spec, evidence, ["O hook é uma barreira de apoio: casa texto de comandos e não é um limite de segurança."]);
     }
 

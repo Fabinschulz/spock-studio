@@ -87,9 +87,9 @@ public class HookScriptTests : IDisposable
     [InlineData("deploy/credentials.json", "deny")]
     [InlineData(".claude/agents/a.md", "ask")]
     [InlineData(".claude/settings.json", "ask")]
-    [InlineData("mariliz.lock", "ask")]
+    [InlineData("spock.lock", "ask")]
     [InlineData(".mcp.json", "ask")]
-    [InlineData(".mariliz/proposal.json", null)]
+    [InlineData(".spock/proposal.json", null)]
     [InlineData(".specs/features/x/validation.md", null)]
     public async Task Decisao_para_escritas_relativas_ao_projeto(string relative, string? expected)
     {

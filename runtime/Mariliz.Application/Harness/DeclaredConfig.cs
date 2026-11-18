@@ -10,8 +10,6 @@ namespace Mariliz.Application.Harness;
 // É criado uma vez e passa a ser da pessoa: a declaração vale mais que a inferência e a aplicação nunca o reescreve. A única edição é pontual, em components.exclude, quando a pessoa pede na tela e aprova no plano.
 public sealed class DeclaredConfig
 {
-    public const string FileName = "mariliz.yaml";
-
     public int Schema { get; set; } = 1;
     public ProjectSection Project { get; set; } = new();
     public string ImplementationModel { get; set; } = ImplementationModels.Mariliz;
@@ -51,7 +49,7 @@ public sealed class DeclaredConfig
     }
 
     public string ToYaml() =>
-        "# Declaração do Harness gerenciado pelo Mariliz Studio.\n"
+        "# Declaração do Harness gerenciado pelo Spock Studio.\n"
         + "# Este arquivo é seu: edite à vontade. A aplicação o lê, mas não o reescreve.\n"
         + YamlFiles.Writer.Serialize(this);
 
@@ -72,27 +70,28 @@ public sealed class DeclaredConfig
 
     public static (DeclaredConfig? Config, string? Error) TryRead(IProjectFiles files)
     {
-        var text = files.ReadText(FileName);
+        var name = files.Naming().Declaration;
+        var text = files.ReadText(name);
         if (text is null) return (null, null);
         try
         {
             var config = YamlFiles.Reader.Deserialize<DeclaredConfig>(text) ?? new DeclaredConfig();
-            if (config.Schema != 1) return (null, $"mariliz.yaml: schema {config.Schema} não é suportado (esperado 1).");
+            if (config.Schema != 1) return (null, $"{name}: schema {config.Schema} não é suportado (esperado 1).");
             if (!string.Equals(config.ImplementationModel, ImplementationModels.Mariliz, StringComparison.OrdinalIgnoreCase))
-                return (null, $"mariliz.yaml: implementationModel '{config.ImplementationModel}' não é suportado; esta fase usa somente '{ImplementationModels.Mariliz}'.");
+                return (null, $"{name}: implementationModel '{config.ImplementationModel}' não é suportado; esta fase usa somente '{ImplementationModels.Mariliz}'.");
             if (config.AiEnvironment.Length > 0 && !Discovery.AiEnvironments.Known.Contains(config.AiEnvironment))
-                return (null, $"mariliz.yaml: aiEnvironment '{config.AiEnvironment}' é desconhecido.");
+                return (null, $"{name}: aiEnvironment '{config.AiEnvironment}' é desconhecido.");
             if (config.AiEnvironments?.FirstOrDefault(environment => !Discovery.AiEnvironments.Known.Contains(environment)) is { } unknown)
-                return (null, $"mariliz.yaml: '{unknown}' em aiEnvironments é desconhecido.");
+                return (null, $"{name}: '{unknown}' em aiEnvironments é desconhecido.");
             if (config is { AiEnvironment.Length: > 0, AiEnvironments.Count: > 0 } && !config.AiEnvironments.Contains(config.AiEnvironment))
-                return (null, $"mariliz.yaml: aiEnvironment '{config.AiEnvironment}' precisa estar também em aiEnvironments.");
+                return (null, $"{name}: aiEnvironment '{config.AiEnvironment}' precisa estar também em aiEnvironments.");
             if (config.Project?.Id is { } id && !StableProjectId.IsValid(id))
-                return (null, $"mariliz.yaml: project.id '{id}' não é um id do Spock ({StableProjectId.Prefix} e 26 caracteres). Apague a linha e planeje de novo para gerar um.");
+                return (null, $"{name}: project.id '{id}' não é um id do Spock ({StableProjectId.Prefix} e 26 caracteres). Apague a linha e planeje de novo para gerar um.");
             return (config, null);
         }
         catch (YamlException ex)
         {
-            return (null, $"mariliz.yaml inválido: {ex.Message}");
+            return (null, $"{name} inválido: {ex.Message}");
         }
     }
 }

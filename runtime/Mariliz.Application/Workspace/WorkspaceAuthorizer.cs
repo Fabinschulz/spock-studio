@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Mariliz.Application.Harness;
+using Mariliz.Core.Policy;
 using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Workspace;
@@ -72,9 +73,15 @@ public sealed class WorkspaceAuthorizer
         return found;
     }
 
-    // F1: o id estável que está no mariliz.yaml da cópia. Lido a cada pergunta: um plano aplicado o grava sem passar por aqui.
+    // F1: o id estável que está na declaração da cópia (spock.yaml, ou mariliz.yaml num projeto anterior à troca de nome). Lido a cada pergunta: um plano aplicado o grava sem passar por aqui.
+    public HarnessNaming NamingOf(string projectId) =>
+        TryGetRoot(projectId, out var root)
+            ? HarnessNaming.Detect(name => _fileSystem.RootFiles(root).Contains(name, StringComparer.Ordinal),
+                directory => _fileSystem.ResolveDirectory(Path.Combine(root, directory)) is not null)
+            : HarnessNaming.Spock;
+
     public string? StableIdOf(string projectId) =>
-        TryGetRoot(projectId, out var root) ? DeclaredConfig.StableIdIn(_fileSystem.ReadRootFile(root, DeclaredConfig.FileName)) : null;
+        TryGetRoot(projectId, out var root) ? HarnessNaming.All.Select(naming => DeclaredConfig.StableIdIn(_fileSystem.ReadRootFile(root, naming.Declaration))).FirstOrDefault(id => id is not null) : null;
 
     // O id que o plano grava quando a declaração ainda não tem um: o mesmo até ser aplicado, mesmo replanejando ou reiniciando.
     public string ProposedStableId(string projectId)

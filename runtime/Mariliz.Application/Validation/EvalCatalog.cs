@@ -7,7 +7,7 @@ internal static class EvalCatalog
     public static readonly IReadOnlyList<EvalSpec> Specs =
     [
         new(EvalIds.Config, "Declaração e lock", "Integridade e completude da configuração", EvalKind.Deterministic, true,
-            "mariliz.yaml (se existir) e mariliz.lock são válidos, no schema 1, e declaram o mesmo ambiente de IA."),
+            "A declaração (spock.yaml ou mariliz.yaml, se existir) e o lock são válidos, no schema 1, e declaram o mesmo ambiente de IA."),
         new(EvalIds.Lock, "Arquivos gerenciados", "Integridade dos arquivos escritos pela aplicação", EvalKind.Deterministic, true,
             "Todo arquivo do lock existe e tem o hash registrado; os arquivos mesclados mantêm as chaves gerenciadas."),
         new(EvalIds.Agent, "Agentes", "Conformidade dos agentes gerenciados", EvalKind.Deterministic, true,
@@ -23,7 +23,7 @@ internal static class EvalCatalog
         new(EvalIds.Specification, "Estrutura de especificação operacional", "A estrutura de especificação é utilizável", EvalKind.Deterministic, true,
             "Instalação completa, hash igual ao do instalador, versão validada, Python disponível, e os scripts de validação respondem corretamente a entradas conhecidas."),
         new(EvalIds.Secrets, "Segredos", "Ausência de credenciais nos arquivos de configuração", EvalKind.Deterministic, true,
-            "Nenhum arquivo gerenciado, .mcp.json, mariliz.yaml ou proposta contém formato conhecido de credencial."),
+            "Nenhum arquivo gerenciado, .mcp.json, declaração ou proposta contém formato conhecido de credencial."),
         new(EvalIds.Environment, "Ambiente de IA", "Compatibilidade com o ambiente selecionado", EvalKind.Deterministic, true,
             "O ambiente declarado é suportado e nenhum arquivo gerenciado está fora das pastas desse ambiente."),
         new(EvalIds.Requirements, "Requisitos do projeto", "Cumprimento dos requisitos identificados", EvalKind.Deterministic, true,

@@ -55,7 +55,7 @@ public class ContractGoldenTests
         // Sem estrutura de especificação e com conflito: cobre comando planejado, diff e conflito.
         using (var project = TempProject.Dotnet())
         {
-            project.Write(".claude/agents/code-reviewer.md", "---\nname: code-reviewer\ndescription: o meu\ntools: Read\n---\n\n# meu\n");
+            project.Write(".claude/agents/spock-code-reviewer.md", "---\nname: code-reviewer\ndescription: o meu\ntools: Read\n---\n\n# meu\n");
             project.Write("CLAUDE.md", "# meu\n");
             // Um agente só da equipe: o plano o mantém (preserve). O CLAUDE.md não serve mais para isso: ganha o bloco do Spock (C2).
             project.Write(".claude/agents/meu-agente.md", "---\nname: meu-agente\ndescription: da equipe\ntools: Read\n---\n\n# da equipe\n");

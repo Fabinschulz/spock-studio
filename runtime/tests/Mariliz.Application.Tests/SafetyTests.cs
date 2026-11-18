@@ -64,16 +64,16 @@ public class SafetyTests
         SpecificationFixture.Install(project);
         const string edited = "# editei enquanto a aplicação rodava\n";
         // Na 4ª escrita o disco "falha"; um instante antes a pessoa edita um arquivo que a aplicação já gravou.
-        var journey = new Journey(project, files: new FailingFilesFactory(4, () => project.Write(".claude/agents/code-reviewer.md", edited)));
+        var journey = new Journey(project, files: new FailingFilesFactory(4, () => project.Write(".claude/agents/spock-code-reviewer.md", edited)));
 
         var plan = await journey.PlanAsync();
         var result = await journey.ApplyAsync(plan);
 
         Assert.Equal("requires_intervention", result["outcome"]!.GetValue<string>());
-        Assert.Equal(edited, project.Read(".claude/agents/code-reviewer.md"));
+        Assert.Equal(edited, project.Read(".claude/agents/spock-code-reviewer.md"));
         Assert.Contains(result["pending"]!.AsArray(), p => p!.GetValue<string>().Contains("code-reviewer.md"));
-        Assert.False(project.Exists(".claude/agents/harness-engineer.md"));
-        Assert.False(project.Exists("mariliz.lock"));
+        Assert.False(project.Exists(".claude/agents/spock-harness-engineer.md"));
+        Assert.False(project.Exists("spock.lock"));
     }
 
     [Fact]
@@ -175,14 +175,14 @@ public class SafetyTests
         Assert.Equal("passed", Journey.Status(await journey.ValidateAsync(), "EV-AGENT-001"));
 
         // Reprovado: o revisor somente leitura ganhou uma ferramenta de escrita.
-        var reviewer = project.Read(".claude/agents/code-reviewer.md")!.Replace("tools: Read, Grep, Glob, Bash", "tools: Read, Grep, Glob, Bash, Edit");
-        project.Write(".claude/agents/code-reviewer.md", reviewer);
+        var reviewer = project.Read(".claude/agents/spock-code-reviewer.md")!.Replace("tools: Read, Grep, Glob, Bash", "tools: Read, Grep, Glob, Bash, Edit");
+        project.Write(".claude/agents/spock-code-reviewer.md", reviewer);
         var failed = await journey.ValidateAsync();
         Assert.Equal("failed", Journey.Status(failed, "EV-AGENT-001"));
         Assert.Equal("failed", failed["outcome"]!.GetValue<string>());
 
         // Bloqueado: sem o lock não há o que conferir.
-        File.Delete(Path.Combine(project.Root, "mariliz.lock"));
+        File.Delete(Path.Combine(project.Root, "spock.lock"));
         var blocked = await journey.ValidateAsync();
         Assert.Equal("blocked", Journey.Status(blocked, "EV-CONFIG-001"));
         Assert.Equal("blocked", Journey.Status(blocked, "EV-LOCK-001"));
@@ -197,8 +197,8 @@ public class SafetyTests
     {
         var (project, journey) = await Applied();
         using var _ = project;
-        var script = project.Read(".claude/hooks/mariliz-policy.py")!;
-        project.Write(".claude/hooks/mariliz-policy.py", script.Replace("import json", "import json\nimport subprocess"));
+        var script = project.Read(".claude/hooks/spock-policy.py")!;
+        project.Write(".claude/hooks/spock-policy.py", script.Replace("import json", "import json\nimport subprocess"));
 
         var result = await journey.ValidateAsync();
 
@@ -215,7 +215,7 @@ public class SafetyTests
         var good = await journey.ValidateAsync();
         Assert.Equal("passed", Journey.Status(good, "EV-REGR-001"));
 
-        project.Write(".claude/skills/harness-contract/SKILL.md", "sem frontmatter\n");
+        project.Write(".claude/skills/spock-harness-contract/SKILL.md", "sem frontmatter\n");
         var bad = await journey.ValidateAsync();
 
         Assert.Equal("failed", Journey.Status(bad, "EV-SKILL-001"));
@@ -227,7 +227,7 @@ public class SafetyTests
     {
         var (project, journey) = await Applied();
         using var _ = project;
-        var rule = ".claude/rules/mariliz-general.md";
+        var rule = ".claude/rules/spock-general.md";
         project.Write(rule, project.Read(rule) + "\nVeja [o guia](docs/nao-existe.md).\n");
 
         var result = await journey.ValidateAsync();
@@ -244,7 +244,7 @@ public class SafetyTests
         using var _ = project;
         project.Write(".mcp.json", $"{{\"mcpServers\":{{\"github\":{{\"command\":\"npx\",\"env\":{{\"GITHUB_TOKEN\":\"{Secret}\"}}}}}}}}");
         var db = $"Server=db;Database=x;User Id=sa;Password=SuperSecret123!;";
-        project.Write(".claude/rules/mariliz-repo.md", project.Read(".claude/rules/mariliz-repo.md") + "\n" + db + "\n");
+        project.Write(".claude/rules/spock-repo.md", project.Read(".claude/rules/spock-repo.md") + "\n" + db + "\n");
 
         var discovery = await journey.Service.DiscoverAsync(journey.ProjectId, CancellationToken.None);
         var plan = await journey.PlanAsync();

@@ -1,5 +1,6 @@
 using Mariliz.Application.Harness;
 using Mariliz.Core.Plan;
+using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Execution;
 
@@ -35,7 +36,7 @@ internal static class WritePlanner
             ? new FileOutcome(OutcomeKind.Kept, change.BeforeHash)
             : new FileOutcome(OutcomeKind.Preserved, change.AfterHash ?? change.BeforeHash)),
 
-        ChangeAction.Create or ChangeAction.Update when change.Path != ManagedLockFile.FileName => approved
+        ChangeAction.Create or ChangeAction.Update when !HarnessNaming.IsLock(change.Path) => approved
             ? ChangeEffect.WriteOf(new PlannedWrite(change, change.Action == ChangeAction.Create ? OpKinds.Create : OpKinds.Update))
             : ChangeEffect.SkippedOf(change.Path, new FileOutcome(OutcomeKind.NotApplied, change.BeforeHash)),
 

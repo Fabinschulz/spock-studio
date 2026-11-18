@@ -87,7 +87,7 @@ public class SpecificationInstallerRealityTests
         var result = await journey.ApplyAsync(await journey.PlanAsync());
 
         Assert.Equal("completed", result["outcome"]!.GetValue<string>());
-        var lockText = project.Read("mariliz.lock")!;
+        var lockText = project.Read("spock.lock")!;
         Assert.Contains("version: 4.0.0", lockText);
         Assert.DoesNotContain("3.3.0", lockText);
     }

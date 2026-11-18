@@ -24,8 +24,8 @@ public sealed class ProjectKnowledgeService(
     private static readonly IReadOnlyList<(KnowledgeSources.Exclusion Reason, string Id, string Label)> Reasons =
     [
         (KnowledgeSources.Exclusion.Secret, "secret", "Possível segredo no conteúdo"),
-        (KnowledgeSources.Exclusion.Excluded, "excluded", "Excluído em mariliz.yaml (knowledge.exclude)"),
-        (KnowledgeSources.Exclusion.NotIncluded, "notIncluded", "Fora do knowledge.include de mariliz.yaml"),
+        (KnowledgeSources.Exclusion.Excluded, "excluded", "Excluído na declaração do projeto (knowledge.exclude)"),
+        (KnowledgeSources.Exclusion.NotIncluded, "notIncluded", "Fora do knowledge.include da declaração do projeto"),
         (KnowledgeSources.Exclusion.Gitignored, "gitignored", "Ignorado pelo .gitignore"),
         (KnowledgeSources.Exclusion.Blocked, "blocked", "Binário, dependência, build ou arquivo sensível pelo nome"),
         (KnowledgeSources.Exclusion.Empty, "empty", "Vazio ou binário"),

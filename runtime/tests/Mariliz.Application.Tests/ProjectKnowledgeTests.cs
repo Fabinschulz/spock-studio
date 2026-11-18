@@ -48,7 +48,7 @@ public class ProjectKnowledgeTests
             Project.Write("logo.png", "binário");
             Project.Write("node_modules/pkg/index.js", "module.exports = 1;");
             Project.Write("vazio.md", "   ");
-            Project.Write("mariliz.yaml", "schema: 1\nknowledge:\n  exclude:\n    - docs/rascunho/\n");
+            Project.Write("spock.yaml", "schema: 1\nknowledge:\n  exclude:\n    - docs/rascunho/\n");
 
             var engine = LocalEngine.Create(Project.DataDir, (_, _, _, _, _) => { }, rememberWorkspaces: false);
             ProjectId = engine.Workspace.Authorize(Project.Root).Project!.ProjectId;
@@ -90,7 +90,7 @@ public class ProjectKnowledgeTests
         var files = knowledge["files"]!.AsArray().ToDictionary(f => f!["path"]!.GetValue<string>(), f => f!["state"]!.GetValue<string>());
         Assert.Equal("indexed", files["README.md"]);
         Assert.Equal("outdated", files["src/App.cs"]);
-        Assert.Equal("pending", files["mariliz.yaml"]);
+        Assert.Equal("pending", files["spock.yaml"]);
         Assert.Equal("README.md", knowledge["files"]![0]!["path"]!.GetValue<string>());
         Assert.Equal((1, 1, 1), (knowledge["indexed"]!.GetValue<int>(), knowledge["outdated"]!.GetValue<int>(), knowledge["orphaned"]!.GetValue<int>()));
         Assert.Equal(["docs/rascunho/"], knowledge["exclude"]!.AsArray().Select(x => x!.GetValue<string>()));

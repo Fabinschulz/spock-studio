@@ -1,6 +1,7 @@
 using Mariliz.Application.Execution;
 using Mariliz.Core.Discovery;
 using Mariliz.Core.Plan;
+using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Harness;
 
@@ -14,7 +15,7 @@ public static class LockBuilder
 
         var desired = Desired(composed);
         var entries = changes
-            .Where(change => change.Path != DeclaredConfig.FileName && desired.ContainsKey(change.Path))
+            .Where(change => !HarnessNaming.IsDeclaration(change.Path) && desired.ContainsKey(change.Path))
             .Select(change => EntryFor(change, desired[change.Path], existing))
             .OfType<ManagedLockFile.ManagedFileEntry>();
         return Write(composed, entries, specification);
@@ -24,7 +25,7 @@ public static class LockBuilder
     {
         var desired = Desired(composed);
         var written = outcomes
-            .Where(pair => pair.Key != DeclaredConfig.FileName && desired.ContainsKey(pair.Key))
+            .Where(pair => !HarnessNaming.IsDeclaration(pair.Key) && desired.ContainsKey(pair.Key))
             .Select(pair => EntryFromOutcome(pair.Key, desired[pair.Key], pair.Value, existing))
             .OfType<ManagedLockFile.ManagedFileEntry>();
 
@@ -33,7 +34,7 @@ public static class LockBuilder
         return Write(composed, written.Concat(untouched), specification);
     }
 
-    // mariliz.yaml é da pessoa depois de criado: nunca entra como gerenciado. A saída do hook do settings.json ("release") também não: depois dela o arquivo não tem mais nada gerenciado.
+    // A declaração é da pessoa depois de criada: nunca entra como gerenciado. A saída do hook do settings.json ("release") também não: depois dela o arquivo não tem mais nada gerenciado.
     private static Dictionary<string, DesiredFile> Desired(ComposeResult composed) =>
         composed.Files.Where(f => f.Mode != "release").ToDictionary(f => f.Path, StringComparer.Ordinal);
 

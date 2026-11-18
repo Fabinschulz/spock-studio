@@ -1,3 +1,4 @@
+using Mariliz.Core.Policy;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Harness;
 using Mariliz.Application.Mcp;
@@ -10,7 +11,7 @@ using Mariliz.Infrastructure;
 namespace Mariliz.Application.Tests;
 
 // F1: o id do projeto era o hash do caminho, então clone, worktree e outra máquina viravam outro projeto. Agora o
-// mariliz.yaml carrega project.id (spk-), gravado por plano aprovado; o p-<hash> continua sendo a chave de cada cópia.
+// spock.yaml carrega project.id (spk-), gravado por plano aprovado; o p-<hash> continua sendo a chave de cada cópia.
 public sealed class StableProjectIdTests : IDisposable
 {
     private const string Id = "spk-01JD2Y8Q4W0000000000000000";
@@ -77,7 +78,7 @@ public sealed class StableProjectIdTests : IDisposable
     public void Declaracao_com_id_que_nao_e_do_spock_e_recusada()
     {
         var project = NewProject();
-        project.Write("mariliz.yaml", Declaration.Replace("project:\n", "project:\n  id: meu-projeto\n"));
+        project.Write("spock.yaml", Declaration.Replace("project:\n", "project:\n  id: meu-projeto\n"));
 
         var (config, error) = DeclaredConfig.TryRead(new TestFilesFactory().Open(project.Root));
 
@@ -93,16 +94,16 @@ public sealed class StableProjectIdTests : IDisposable
 
         var first = await journey.PlanAsync();
         var again = await journey.PlanAsync();
-        var declaration = first.Changes.Single(change => change.Path == DeclaredConfig.FileName);
+        var declaration = first.Changes.Single(change => change.Path == HarnessNaming.Spock.Declaration);
         Assert.Equal(ChangeAction.Create, declaration.Action);
-        Assert.Equal(declaration.AfterHash, again.Changes.Single(change => change.Path == DeclaredConfig.FileName).AfterHash);
+        Assert.Equal(declaration.AfterHash, again.Changes.Single(change => change.Path == HarnessNaming.Spock.Declaration).AfterHash);
 
         await journey.ApplyAsync(again);
 
-        var id = DeclaredConfig.StableIdIn(project.Read(DeclaredConfig.FileName));
+        var id = DeclaredConfig.StableIdIn(project.Read(HarnessNaming.Spock.Declaration));
         Assert.True(StableProjectId.IsValid(id));
         var after = await journey.PlanAsync();
-        Assert.DoesNotContain(after.Changes, change => change.Path == DeclaredConfig.FileName && change.Action != ChangeAction.Preserve);
+        Assert.DoesNotContain(after.Changes, change => change.Path == HarnessNaming.Spock.Declaration && change.Action != ChangeAction.Preserve);
     }
 
     [Fact]
@@ -112,22 +113,22 @@ public sealed class StableProjectIdTests : IDisposable
         var journey = new Journey(project, Journey.FakeInstaller(project));
         await journey.ApplyAsync(await journey.PlanAsync());
         // Como um projeto configurado antes do F1: a declaração existe, sem id.
-        var old = project.Read(DeclaredConfig.FileName)!.Replace("\r\n", "\n");
+        var old = project.Read(HarnessNaming.Spock.Declaration)!.Replace("\r\n", "\n");
         var lines = old.Split('\n').Where(line => !line.TrimStart().StartsWith("id: spk-", StringComparison.Ordinal));
-        project.Write(DeclaredConfig.FileName, string.Join("\n", lines));
-        var withoutId = project.Read(DeclaredConfig.FileName)!;
+        project.Write(HarnessNaming.Spock.Declaration, string.Join("\n", lines));
+        var withoutId = project.Read(HarnessNaming.Spock.Declaration)!;
 
         var plan = await journey.PlanAsync();
-        var edit = plan.Changes.Single(change => change.Path == DeclaredConfig.FileName);
+        var edit = plan.Changes.Single(change => change.Path == HarnessNaming.Spock.Declaration);
         Assert.Equal(ChangeAction.Update, edit.Action);
         Assert.Contains("project.id", edit.Reason);
         // Sem aprovar, nada muda.
         await journey.ApplyAsync(plan, new ApplyApprovals([], [], new Dictionary<string, ConflictResolution>()));
-        Assert.Equal(withoutId, project.Read(DeclaredConfig.FileName));
+        Assert.Equal(withoutId, project.Read(HarnessNaming.Spock.Declaration));
 
         await journey.ApplyAsync(await journey.PlanAsync());
 
-        var written = project.Read(DeclaredConfig.FileName)!.Replace("\r\n", "\n");
+        var written = project.Read(HarnessNaming.Spock.Declaration)!.Replace("\r\n", "\n");
         var id = DeclaredConfig.StableIdIn(written)!;
         Assert.Equal(withoutId.Replace("\r\n", "\n").Replace("project:\n", $"project:\n  id: {id}\n"), written);
     }
@@ -140,14 +141,14 @@ public sealed class StableProjectIdTests : IDisposable
         var journey = new Journey(project, Journey.FakeInstaller(project));
         await journey.ApplyAsync(await journey.PlanAsync());
         var withId = await journey.ValidateAsync();
-        var lines = project.Read(DeclaredConfig.FileName)!.Replace("\r\n", "\n").Split('\n')
+        var lines = project.Read(HarnessNaming.Spock.Declaration)!.Replace("\r\n", "\n").Split('\n')
             .Where(line => !line.TrimStart().StartsWith("id: spk-", StringComparison.Ordinal));
-        project.Write(DeclaredConfig.FileName, string.Join("\n", lines));
+        project.Write(HarnessNaming.Spock.Declaration, string.Join("\n", lines));
 
         var withoutId = await journey.ValidateAsync();
 
         Assert.Equal(withId["outcome"]!.GetValue<string>(), withoutId["outcome"]!.GetValue<string>());
-        Assert.Null(DeclaredConfig.StableIdIn(project.Read(DeclaredConfig.FileName)));
+        Assert.Null(DeclaredConfig.StableIdIn(project.Read(HarnessNaming.Spock.Declaration)));
     }
 
     [Fact]
@@ -176,7 +177,7 @@ public sealed class StableProjectIdTests : IDisposable
     public void O_mesmo_repositorio_em_duas_pastas_e_o_mesmo_projeto_e_cada_copia_tem_o_seu_estado()
     {
         var (original, clone) = (NewProject(), NewProject());
-        foreach (var copy in new[] { original, clone }) copy.Write(DeclaredConfig.FileName, Declaration.Replace("project:\n", $"project:\n  id: {Id}\n"));
+        foreach (var copy in new[] { original, clone }) copy.Write(HarnessNaming.Spock.Declaration, Declaration.Replace("project:\n", $"project:\n  id: {Id}\n"));
         var other = NewProject();
         var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(original.DataDir));
         var first = workspace.Authorize(original.Root).Project!.ProjectId;
@@ -213,11 +214,11 @@ public sealed class StableProjectIdTests : IDisposable
     public void Project_dir_le_o_id_subindo_ate_o_mariliz_yaml_e_pasta_sem_id_recusa()
     {
         var (with, withoutId, without) = (NewProject(), NewProject(), NewProject());
-        with.Write(DeclaredConfig.FileName, Declaration.Replace("project:\n", $"project:\n  id: {Id}\n"));
+        with.Write(HarnessNaming.Spock.Declaration, Declaration.Replace("project:\n", $"project:\n  id: {Id}\n"));
         with.Write("src/Loja/Program.cs", "class P {}");
-        withoutId.Write(DeclaredConfig.FileName, Declaration);
+        withoutId.Write(HarnessNaming.Spock.Declaration, Declaration);
         static string? Read(string directory) =>
-            File.Exists(Path.Combine(directory, DeclaredConfig.FileName)) ? File.ReadAllText(Path.Combine(directory, DeclaredConfig.FileName)) : null;
+            File.Exists(Path.Combine(directory, HarnessNaming.Spock.Declaration)) ? File.ReadAllText(Path.Combine(directory, HarnessNaming.Spock.Declaration)) : null;
 
         var resolved = McpOptions.Parse(["--project-dir", Path.Combine(with.Root, "src", "Loja")]).WithDirectoryResolved(Read);
 
@@ -225,7 +226,7 @@ public sealed class StableProjectIdTests : IDisposable
         Assert.Equal(Path.Combine(with.Root, "src", "Loja"), resolved.ProjectDirectory);
         Assert.Contains("não tem project.id", Assert.Throws<McpOptionsException>(() =>
             McpOptions.Parse(["--project-dir", withoutId.Root]).WithDirectoryResolved(Read)).Message);
-        Assert.Contains("Nenhum mariliz.yaml", Assert.Throws<McpOptionsException>(() =>
+        Assert.Contains("Nenhum spock.yaml", Assert.Throws<McpOptionsException>(() =>
             McpOptions.Parse(["--project-dir", without.Root]).WithDirectoryResolved(Read)).Message);
     }
 

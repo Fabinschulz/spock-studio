@@ -65,8 +65,8 @@ export function ModelStep({
 
       {showUnsupportedNotice ? (
         <InlineNotice tone="warning" title="Ambiente sem suporte nesta fase">
-          Só a declaração do projeto (mariliz.yaml) pode ser criada de forma genérica. Agentes, skills, regras e hooks
-          não serão gerados para este ambiente.
+          Só a declaração do projeto (spock.yaml) pode ser criada de forma genérica. Agentes, skills, regras e hooks não
+          serão gerados para este ambiente.
         </InlineNotice>
       ) : null}
 

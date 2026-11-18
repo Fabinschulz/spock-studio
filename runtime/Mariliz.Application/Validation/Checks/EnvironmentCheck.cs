@@ -15,15 +15,15 @@ internal sealed class EnvironmentCheck : IEvalCheck
 
     private static EvalResult Run(EvalSpec spec, ValidationContext ctx)
     {
-        if (ctx.Lock is null) return Block(spec, "Sem mariliz.lock, o ambiente de IA configurado não é conhecido.");
+        if (ctx.Lock is null) return Block(spec, $"Sem {ctx.Naming.Lock}, o ambiente de IA configurado não é conhecido.");
         if (!AiEnvironments.Supported.Contains(ctx.Lock.AiEnvironment))
-            return Fail(spec, $"O ambiente '{ctx.Lock.AiEnvironment}' não é suportado por esta fase.", [ManagedLockFile.FileName]);
+            return Fail(spec, $"O ambiente '{ctx.Lock.AiEnvironment}' não é suportado por esta fase.", [ctx.Naming.Lock]);
 
         var outside = ctx.Lock.ManagedFiles
             .Where(f => !ManagedScope.IsEnvironmentFile(f.Path))
             .Select(f => f.Path).ToList();
         return outside.Count == 0
-            ? Pass(spec, [$"Ambiente claude-code; {ctx.Lock.ManagedFiles.Count} arquivo(s) todos em .claude/, .mariliz/ ou na raiz de configuração"])
+            ? Pass(spec, [$"Ambiente claude-code; {ctx.Lock.ManagedFiles.Count} arquivo(s) todos em .claude/, {ctx.Naming.StateDirectory}/ ou na raiz de configuração"])
             : Fail(spec, "Há arquivos gerenciados fora das pastas do ambiente.", outside);
     }
 }

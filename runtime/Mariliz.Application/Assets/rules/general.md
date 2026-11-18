@@ -11,7 +11,7 @@ reported as a finding, never merged silently.
 - When the Spock specification structure is installed (`.claude/skills/tlc-spec-driven`), features follow its cycle:
   Specify, Design, Tasks, Execute, Validate, with specs and decisions under `.specs/`.
 - A task is done when its verification ran and its output was read, not when an agent says it is done.
-- An independent check (`verifier`) closes a feature. The author of a change is never its only judge.
+- An independent check (`{{agents}}verifier`) closes a feature. The author of a change is never its only judge.
 
 ## Boundaries and responsibility
 
@@ -47,6 +47,6 @@ reported as a finding, never merged silently.
 
 ## Completion and review
 
-- Before finishing a task, run the project's real build, test and lint commands (see `mariliz-repo.md`) and
+- Before finishing a task, run the project's real build, test and lint commands (see `{{prefix}}-repo.md`) and
   report their actual results. An unrun check is reported as unrun.
 - Report what is not done or not verified. Do not describe an outcome as achieved without evidence.

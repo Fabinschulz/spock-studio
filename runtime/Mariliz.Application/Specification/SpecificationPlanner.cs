@@ -48,7 +48,7 @@ internal static class SpecificationPlanner
         if (!installed && IsDeclined(exclude))
         {
             decisions.Add(new(ComponentKind.Specification, Catalog.SpecificationStructure, ComponentDecisions.Skip,
-                "Dispensada em mariliz.yaml (components.exclude): o projeto segue o próprio processo de especificação.", DecisionOrigins.Declared, [DeclaredConfig.FileName]));
+                $"Dispensada em {files.Naming().Declaration} (components.exclude): o projeto segue o próprio processo de especificação.", DecisionOrigins.Declared, [files.Naming().Declaration]));
             return;
         }
 

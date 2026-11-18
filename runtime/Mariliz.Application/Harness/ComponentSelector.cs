@@ -2,16 +2,17 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Harness;
 
-// Precedência: o que a pessoa excluiu em mariliz.yaml, depois a proposta validada do Harness Engineer, depois as regras-base.
-/// <param name="requested">Ainda não gravados em mariliz.yaml.</param>
-/// <param name="managed">Componentes que o mariliz.lock já registra.</param>
+// Precedência: o que a pessoa excluiu na declaração, depois a proposta validada do Harness Engineer, depois as regras-base.
+/// <param name="requested">Ainda não gravados na declaração.</param>
+/// <param name="managed">Componentes que o lock já registra.</param>
 internal sealed class ComponentSelector(
     IReadOnlySet<string> userExcluded,
     IReadOnlySet<string> requested,
     IReadOnlyDictionary<string, ProposalDecision> proposed,
     IReadOnlySet<string> managed,
     List<ComponentDecision> decisions,
-    List<Limitation> limitations)
+    List<Limitation> limitations,
+    string declaration)
 {
     /// <param name="origin">De onde vem a decisão quando nem a pessoa nem a proposta decidiram.</param>
     public bool Wants(string id, bool applicable, string baselineReason, IReadOnlyList<string> baselineEvidence, string? notApplicableReason = null,
@@ -21,8 +22,8 @@ internal sealed class ComponentSelector(
 
         if (userExcluded.Contains(id))
             return Record(kind, id, ComponentDecisions.Skip, requested.Contains(id)
-                ? "Dispensado a seu pedido; o plano grava isto em mariliz.yaml (components.exclude)."
-                : "Excluído em mariliz.yaml (components.exclude).", DecisionOrigins.Declared, []);
+                ? $"Dispensado a seu pedido; o plano grava isto em {declaration} (components.exclude)."
+                : $"Excluído em {declaration} (components.exclude).", DecisionOrigins.Declared, []);
 
         proposed.TryGetValue(id, out var proposal);
 

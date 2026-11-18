@@ -10,7 +10,7 @@ internal sealed class IdempotenceCheck : IEvalCheck
 
     public async Task<EvalResult> RunAsync(EvalSpec spec, ValidationContext ctx, IReadOnlyList<EvalResult> completed, CancellationToken ct)
     {
-        if (ctx.Lock is null) return Block(spec, "Sem mariliz.lock, não há uma configuração aplicada para repetir.");
+        if (ctx.Lock is null) return Block(spec, $"Sem {ctx.Naming.Lock}, não há uma configuração aplicada para repetir.");
         var plan = await ctx.Replan(ct);
         var managed = ctx.Lock.ManagedFiles.Where(f => f.Mode != "kept").Select(f => f.Path).ToHashSet(StringComparer.Ordinal);
 

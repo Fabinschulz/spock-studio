@@ -1,10 +1,13 @@
 using Mariliz.Core.Plan;
+using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Harness;
 
 // A proposta do Harness Engineer só pode escolher entre estes componentes.
 public static class Catalog
 {
+    // SemVer por componente: sobe quando muda o texto que o componente grava num projeto já configurado.
+    // 0.1.1: o Harness Engineer e os cabeçalhos dizem Spock, e o hook protege os nomes spock e mariliz.
     public const string ComponentVersion = "0.1.0";
 
     public const string AgentHarnessEngineer = "mariliz.agent.harness-engineer";
@@ -27,7 +30,7 @@ public static class Catalog
 
     public static readonly IReadOnlyList<CatalogComponent> Components =
     [
-        new(AgentHarnessEngineer, ComponentKind.Agent, ComponentVersion, "Harness Engineer"),
+        new(AgentHarnessEngineer, ComponentKind.Agent, "0.1.1", "Harness Engineer"),
         new(AgentCodeReviewer, ComponentKind.Agent, ComponentVersion, "Code Reviewer"),
         new(AgentVerifier, ComponentKind.Agent, ComponentVersion, "Verifier"),
         new(SkillHarnessContract, ComponentKind.Skill, ComponentVersion, "Contrato de evidência"),
@@ -36,13 +39,13 @@ public static class Catalog
         new(RuleStackJavascript, ComponentKind.Rule, ComponentVersion, "Regras JavaScript e TypeScript"),
         new(RuleRepoCommands, ComponentKind.Rule, ComponentVersion, "Comandos do repositório"),
         new(RuleArchitecture, ComponentKind.Rule, ComponentVersion, "Documentos de arquitetura"),
-        new(HookPolicy, ComponentKind.Hook, ComponentVersion, "Hook de política"),
+        new(HookPolicy, ComponentKind.Hook, "0.1.1", "Hook de política"),
         new(HookSession, ComponentKind.Hook, ComponentVersion, "Hook de início de sessão"),
         new(IdeClaudeBootstrap, ComponentKind.Rule, ComponentVersion, "Bloco do Spock no CLAUDE.md"),
         new(IdeMcpServer, ComponentKind.Tool, ComponentVersion, "Servidor MCP do Spock"),
         // Externo: a versão real vem da instalação verificada (ver LockBuilder), não do catálogo.
         new(SpecificationStructure, ComponentKind.Specification, "", "Estrutura de especificação"),
-        new(ConfigDeclaration, ComponentKind.Config, ComponentVersion, "Declaração e lock")
+        new(ConfigDeclaration, ComponentKind.Config, "0.1.1", "Declaração e lock")
     ];
 
     public static CatalogComponent? Find(string id) => Components.FirstOrDefault(c => c.Id == id);
@@ -53,19 +56,32 @@ public static class Catalog
         RuleGeneral, RuleStackDotnet, RuleStackJavascript, RuleRepoCommands
     ];
 
-    public const string PathHarnessEngineer = ".claude/agents/harness-engineer.md";
-    public const string PathProposalSchema = ".mariliz/schemas/harness-proposal.v1.schema.json";
-    public const string PathProposal = ".mariliz/proposal.json";
-    public const string PathCodeReviewer = ".claude/agents/code-reviewer.md";
-    public const string PathVerifier = ".claude/agents/verifier.md";
-    public const string PathHarnessContract = ".claude/skills/harness-contract/SKILL.md";
-    public const string PathRuleGeneral = ".claude/rules/mariliz-general.md";
-    public const string PathRuleDotnet = ".claude/rules/mariliz-stack-dotnet.md";
-    public const string PathRuleJavascript = ".claude/rules/mariliz-stack-javascript.md";
-    public const string PathRuleRepo = ".claude/rules/mariliz-repo.md";
-    public const string PathRuleArchitecture = ".claude/rules/mariliz-architecture.md";
-    public const string PathHookScript = ".claude/hooks/mariliz-policy.py";
+    // Os caminhos com o nome do produto (regras, hook, declaração, lock, proposta) vêm de HarnessNaming, por projeto.
     public const string PathSettings = ".claude/settings.json";
     public const string PathClaudeMd = "CLAUDE.md";
     public const string PathMcpJson = ".mcp.json";
+
+    // Arquivo do componente, no nome que este projeto usa. Nulo para o que não tem arquivo próprio.
+    public static IReadOnlyList<string> FilesOf(string componentId, HarnessNaming naming) => componentId switch
+    {
+        AgentHarnessEngineer => [naming.HarnessEngineerAgent, naming.ProposalSchema],
+        AgentCodeReviewer => [naming.CodeReviewerAgent],
+        AgentVerifier => [naming.VerifierAgent],
+        SkillHarnessContract => [naming.HarnessContractSkill],
+        RuleGeneral => [naming.RuleGeneral],
+        RuleStackDotnet => [naming.RuleDotnet],
+        RuleStackJavascript => [naming.RuleJavascript],
+        RuleRepoCommands => [naming.RuleRepo],
+        RuleArchitecture => [naming.RuleArchitecture],
+        HookPolicy => [naming.HookScript, PathSettings],
+        HookSession => [PathSettings],
+        IdeClaudeBootstrap => [PathClaudeMd],
+        IdeMcpServer => [PathMcpJson],
+        ConfigDeclaration => [naming.Declaration, naming.Lock],
+        _ => []
+    };
+
+    // O inverso de FilesOf, nos dois nomes: um caminho gerenciado leva ao componente dono.
+    public static string? OwnerOf(string path) =>
+        HarnessNaming.All.SelectMany(naming => Components.Where(c => FilesOf(c.Id, naming).Contains(path))).Select(c => c.Id).FirstOrDefault();
 }

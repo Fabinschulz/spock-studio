@@ -4,6 +4,7 @@ using Mariliz.Application.Harness;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Specification;
 using Mariliz.Application.Workspace;
+using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Engineering;
 
@@ -12,28 +13,11 @@ public sealed partial class HarnessRevisionService(WorkspaceAuthorizer workspace
 {
     private const string OtherFiles = "other";
 
-    private static readonly Dictionary<string, string> ComponentByPath = new(StringComparer.Ordinal)
-    {
-        [Catalog.PathHarnessEngineer] = Catalog.AgentHarnessEngineer,
-        [Catalog.PathProposalSchema] = Catalog.AgentHarnessEngineer,
-        [Catalog.PathCodeReviewer] = Catalog.AgentCodeReviewer,
-        [Catalog.PathVerifier] = Catalog.AgentVerifier,
-        [Catalog.PathHarnessContract] = Catalog.SkillHarnessContract,
-        [Catalog.PathRuleGeneral] = Catalog.RuleGeneral,
-        [Catalog.PathRuleDotnet] = Catalog.RuleStackDotnet,
-        [Catalog.PathRuleJavascript] = Catalog.RuleStackJavascript,
-        [Catalog.PathRuleRepo] = Catalog.RuleRepoCommands,
-        [Catalog.PathRuleArchitecture] = Catalog.RuleArchitecture,
-        [Catalog.PathHookScript] = Catalog.HookPolicy,
-        [Catalog.PathSettings] = Catalog.HookPolicy,
-        [DeclaredConfig.FileName] = Catalog.ConfigDeclaration
-    };
-
     public HarnessRevisions Read(string projectId)
     {
         if (!workspace.TryGetRoot(projectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
         var project = files.Open(root);
-        var lockFile = project.FileExists(ManagedLockFile.FileName) ? ManagedLockFile.Read(project) : null;
+        var lockFile = ManagedLockFile.Read(project);
 
         var journals = store.ListJournals(projectId);
         var byRunId = journals.ToDictionary(j => j.RunId, StringComparer.Ordinal);
@@ -65,13 +49,13 @@ public sealed partial class HarnessRevisionService(WorkspaceAuthorizer workspace
     {
         if (journal.Kind == RunKinds.Apply)
             return journal.Ops
-                .Where(op => op.Status != OpStatus.Pending && op.Path != ManagedLockFile.FileName)
+                .Where(op => op.Status != OpStatus.Pending && !HarnessNaming.IsLock(op.Path))
                 .Select(op => (op.Path, op.Op))
                 .ToList();
 
         if (journal.RevertsRunId is null || !byRunId.TryGetValue(journal.RevertsRunId, out var target) || target.Kind != RunKinds.Apply) return [];
         return target.Ops
-            .Where(op => op.Status == OpStatus.Reverted && op.Path != ManagedLockFile.FileName)
+            .Where(op => op.Status == OpStatus.Reverted && !HarnessNaming.IsLock(op.Path))
             .Select(op => (op.Path, Inverse(op.Op)))
             .ToList();
     }
@@ -98,12 +82,12 @@ public sealed partial class HarnessRevisionService(WorkspaceAuthorizer workspace
 
     private static string ComponentOf(string path)
     {
-        if (ComponentByPath.TryGetValue(path, out var id)) return id;
+        if (Catalog.OwnerOf(path) is { } id) return id;
         if (path.StartsWith(SpecificationManifest.SkillDirectory + "/", StringComparison.Ordinal)) return Catalog.SpecificationStructure;
         if (CustomRulePath().Match(path) is { Success: true } match) return Catalog.CustomRulePrefix + match.Groups[1].Value;
         return OtherFiles;
     }
 
-    [GeneratedRegex("^\\.claude/rules/mariliz-repo-([a-z][a-z0-9-]{2,40})\\.md$")]
+    [GeneratedRegex("^\\.claude/rules/(?:spock|mariliz)-repo-([a-z][a-z0-9-]{2,40})\\.md$")]
     private static partial Regex CustomRulePath();
 }

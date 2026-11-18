@@ -119,8 +119,8 @@ public class CliTests
         var code = await cli.RunAsync("apply", cli.Project.Root, "--env", "claude-code", "--yes");
 
         Assert.Equal(CliRunner.ExitOk, code);
-        Assert.True(cli.Project.Exists("mariliz.lock"));
-        Assert.True(cli.Project.Exists(".claude/agents/harness-engineer.md"));
+        Assert.True(cli.Project.Exists("spock.lock"));
+        Assert.True(cli.Project.Exists(".claude/agents/spock-harness-engineer.md"));
         Assert.Contains("concluído; todas as verificações obrigatórias passaram", cli.Out);
         Assert.Contains("passed   EV-CONFIG-001", cli.Out);
         Assert.Contains("not_run  EV-JUDGE-001", cli.Out);
@@ -148,7 +148,7 @@ public class CliTests
         var code = await cli.RunAsync("s\n", true, "apply", cli.Project.Root, "--env", "claude-code");
 
         Assert.Equal(CliRunner.ExitOk, code);
-        Assert.True(cli.Project.Exists("mariliz.lock"));
+        Assert.True(cli.Project.Exists("spock.lock"));
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public class CliTests
 
         Assert.Equal(CliRunner.ExitUsage, code);
         Assert.Contains("o plano não tem esse comando", cli.Err);
-        Assert.False(cli.Project.Exists("mariliz.lock"));
+        Assert.False(cli.Project.Exists("spock.lock"));
     }
 
     [Fact]
@@ -186,11 +186,11 @@ public class CliTests
     {
         using var cli = WithSpecification();
         const string mine = "---\nname: code-reviewer\ndescription: o meu\ntools: Read\n---\nmeu revisor\n";
-        cli.Project.Write(".claude/agents/code-reviewer.md", mine);
+        cli.Project.Write(".claude/agents/spock-code-reviewer.md", mine);
 
         await cli.RunAsync("apply", cli.Project.Root, "--env", "claude-code", "--yes");
 
-        Assert.Equal(mine, cli.Project.Read(".claude/agents/code-reviewer.md"));
+        Assert.Equal(mine, cli.Project.Read(".claude/agents/spock-code-reviewer.md"));
         Assert.Contains("manter o seu arquivo", cli.Out);
     }
 
@@ -199,17 +199,17 @@ public class CliTests
     {
         using var cli = WithSpecification();
         const string mine = "---\nname: code-reviewer\ndescription: o meu\ntools: Read\n---\nmeu revisor\n";
-        cli.Project.Write(".claude/agents/code-reviewer.md", mine);
+        cli.Project.Write(".claude/agents/spock-code-reviewer.md", mine);
         var before = cli.Project.Fingerprint();
 
-        await cli.RunAsync("apply", cli.Project.Root, "--env", "claude-code", "--overwrite", ".claude/agents/code-reviewer.md", "--yes");
-        Assert.NotEqual(mine, cli.Project.Read(".claude/agents/code-reviewer.md"));
+        await cli.RunAsync("apply", cli.Project.Root, "--env", "claude-code", "--overwrite", ".claude/agents/spock-code-reviewer.md", "--yes");
+        Assert.NotEqual(mine, cli.Project.Read(".claude/agents/spock-code-reviewer.md"));
         Assert.Contains("substituir (o seu fica em backup)", cli.Out);
 
         var code = await cli.RunAsync("revert", cli.Project.Root, "--yes");
 
         Assert.Equal(CliRunner.ExitOk, code);
-        Assert.Equal(mine, cli.Project.Read(".claude/agents/code-reviewer.md"));
+        Assert.Equal(mine, cli.Project.Read(".claude/agents/spock-code-reviewer.md"));
         Assert.Equal(before, cli.Project.Fingerprint());
         Assert.Contains("conferidos", cli.Out);
     }
@@ -219,10 +219,10 @@ public class CliTests
     {
         using var cli = WithSpecification();
 
-        var code = await cli.RunAsync("apply", cli.Project.Root, "--env", "claude-code", "--overwrite", "mariliz.yaml", "--yes");
+        var code = await cli.RunAsync("apply", cli.Project.Root, "--env", "claude-code", "--overwrite", "spock.yaml", "--yes");
 
         Assert.Equal(CliRunner.ExitUsage, code);
-        Assert.False(cli.Project.Exists("mariliz.lock"));
+        Assert.False(cli.Project.Exists("spock.lock"));
     }
 
     [Fact]
@@ -298,7 +298,7 @@ public class CliTests
 
         Assert.Equal(CliRunner.ExitOk, code);
         Assert.Single(cli.Processes.Calls, c => c.Executable == "npx");
-        Assert.Contains("version: 4.0.0", project.Read("mariliz.lock")!);
+        Assert.Contains("version: 4.0.0", project.Read("spock.lock")!);
     }
 
     [Fact]

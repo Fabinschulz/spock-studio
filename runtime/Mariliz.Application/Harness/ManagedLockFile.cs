@@ -7,8 +7,6 @@ namespace Mariliz.Application.Harness;
 // Sem datas, para que repetir o fluxo produza exatamente o mesmo arquivo.
 public sealed class ManagedLockFile
 {
-    public const string FileName = "mariliz.lock";
-
     public int Schema { get; set; } = 1;
     public string Engine { get; set; } = "";
     public string AiEnvironment { get; set; } = "";
@@ -46,13 +44,13 @@ public sealed class ManagedLockFile
     {
         Components = Components.OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
         ManagedFiles = ManagedFiles.OrderBy(f => f.Path, StringComparer.Ordinal).ToList();
-        return "# Gerado pelo Mariliz Studio. Não edite à mão: use a aplicação.\n" + YamlFiles.Writer.Serialize(this);
+        return "# Gerado pelo Spock Studio. Não edite à mão: use a aplicação.\n" + YamlFiles.Writer.Serialize(this);
     }
 
     // Lock ilegível vale como ausente: o plano o recria em vez de confiar em conteúdo quebrado.
     public static ManagedLockFile? Read(IProjectFiles files)
     {
-        var text = files.ReadText(FileName);
+        var text = files.ReadText(files.Naming().Lock);
         if (text is null) return null;
         try { return YamlFiles.Reader.Deserialize<ManagedLockFile>(text); }
         catch (YamlException) { return null; }

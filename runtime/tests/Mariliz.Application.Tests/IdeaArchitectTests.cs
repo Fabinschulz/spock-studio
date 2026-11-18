@@ -1,3 +1,4 @@
+using Mariliz.Core.Policy;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
@@ -215,22 +216,22 @@ public sealed class IdeaArchitectTests : IDisposable
     {
         var service = Service();
         var plan = service.Plan(_projectId, All());
-        Assert.Equal([IdeaDocuments.SpecificationFile, IdeaDocuments.ArchitectureFile, IdeaDocuments.BacklogFile], plan.Changes.Select(change => change.Path));
+        Assert.Equal([IdeaDocuments.SpecificationFile(HarnessNaming.Spock), IdeaDocuments.ArchitectureFile(HarnessNaming.Spock), IdeaDocuments.BacklogFile(HarnessNaming.Spock)], plan.Changes.Select(change => change.Path));
         Assert.All(plan.Changes, change => Assert.Equal(OpKinds.Create, change.Op));
         Assert.Equal("STALE_PLAN", Assert.Throws<EngineException>(() => service.StartSave(_projectId, All(), "idea-outro")).Code);
 
         var run = await Finished(service.StartSave(_projectId, All(), plan.PlanId));
 
         Assert.Equal(RunStates.Completed, run.State);
-        var spec = File.ReadAllText(Path.Combine(_project.Root, ".mariliz", "arquitetura", "especificacao.md"));
+        var spec = File.ReadAllText(Path.Combine(_project.Root, ".spock", "arquitetura", "especificacao.md"));
         Assert.Contains("**REQ-02** (must): Quando o pedido sair para entrega, o sistema deve avisar o cliente.", spec);
-        Assert.Contains("### US-02", File.ReadAllText(Path.Combine(_project.Root, ".mariliz", "arquitetura", "backlog.md")));
-        Assert.Contains("**CMP-02 Avisos**", File.ReadAllText(Path.Combine(_project.Root, ".mariliz", "arquitetura", "arquitetura.md")));
+        Assert.Contains("### US-02", File.ReadAllText(Path.Combine(_project.Root, ".spock", "arquitetura", "backlog.md")));
+        Assert.Contains("**CMP-02 Avisos**", File.ReadAllText(Path.Combine(_project.Root, ".spock", "arquitetura", "arquitetura.md")));
 
         var revert = new RunHandle("run-reverte0002", _projectId, RunKinds.Revert, (_, _, _, _, _) => { });
         var result = new RevertService(_store, new FakeClock { UtcNow = Now }).Execute(revert, new TestFilesFactory().Open(_project.Root), run.RunId, CancellationToken.None);
         Assert.True(result["verified"]!.GetValue<bool>());
-        Assert.False(Directory.Exists(Path.Combine(_project.Root, ".mariliz", "arquitetura")));
+        Assert.False(Directory.Exists(Path.Combine(_project.Root, ".spock", "arquitetura")));
     }
 
     [Fact]

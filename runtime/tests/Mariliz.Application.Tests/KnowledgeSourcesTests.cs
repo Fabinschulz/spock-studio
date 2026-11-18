@@ -38,7 +38,7 @@ public class KnowledgeSourcesTests
         project.Write("config/credentials.json", "{\"ok\": true, \"texto\": \"longo o bastante\"}");
         project.Write("web/app.min.js", "function a(){return 1}");
         project.Write("pnpm-lock.yaml", "lockfileVersion: 9");
-        project.Write("mariliz.yaml", "schema: 1\nknowledge:\n  exclude:\n    - docs/interno/\n");
+        project.Write("spock.yaml", "schema: 1\nknowledge:\n  exclude:\n    - docs/interno/\n");
 
         var paths = KnowledgeSources.Select(new LocalProjectFiles(project.Root), new Dictionary<string, string>())
             .Select(source => source.Path).ToList();
@@ -54,7 +54,7 @@ public class KnowledgeSourcesTests
         using var project = TempProject.Dotnet();
         for (var i = 0; i < 60; i++) project.Write($"docs/nota-{i:00}.md", $"Nota {i} com texto longo o bastante para indexar.");
         project.Write("src/Outro.cs", "class Outro { }");
-        project.Write("mariliz.yaml", "schema: 1\nknowledge:\n  include:\n    - docs/\n");
+        project.Write("spock.yaml", "schema: 1\nknowledge:\n  include:\n    - docs/\n");
 
         var selected = KnowledgeSources.Select(new LocalProjectFiles(project.Root), new Dictionary<string, string>());
 

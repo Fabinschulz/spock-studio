@@ -16,7 +16,7 @@
       "manageable": true,
       "files": [
         {
-          "path": ".claude/agents/code-reviewer.md",
+          "path": ".claude/agents/spock-code-reviewer.md",
           "mode": "file",
           "state": "modified"
         }
@@ -26,17 +26,17 @@
       "id": "mariliz.agent.harness-engineer",
       "label": "Agente Harness Engineer",
       "kind": "agent",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "state": "intact",
       "manageable": true,
       "files": [
         {
-          "path": ".claude/agents/harness-engineer.md",
+          "path": ".claude/agents/spock-harness-engineer.md",
           "mode": "file",
           "state": "intact"
         },
         {
-          "path": ".mariliz/schemas/harness-proposal.v1.schema.json",
+          "path": ".spock/schemas/harness-proposal.v1.schema.json",
           "mode": "file",
           "state": "intact"
         }
@@ -51,7 +51,7 @@
       "manageable": true,
       "files": [
         {
-          "path": ".claude/agents/verifier.md",
+          "path": ".claude/agents/spock-verifier.md",
           "mode": "file",
           "state": "intact"
         }
@@ -81,7 +81,7 @@
       "manageable": true,
       "files": [
         {
-          "path": ".claude/rules/mariliz-repo.md",
+          "path": ".claude/rules/spock-repo.md",
           "mode": "file",
           "state": "intact"
         }
@@ -91,12 +91,12 @@
       "id": "mariliz.hook.policy",
       "label": "Hook de política",
       "kind": "hook",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "state": "intact",
       "manageable": true,
       "files": [
         {
-          "path": ".claude/hooks/mariliz-policy.py",
+          "path": ".claude/hooks/spock-policy.py",
           "mode": "file",
           "state": "intact"
         },
@@ -116,7 +116,7 @@
       "manageable": true,
       "files": [
         {
-          "path": ".claude/rules/mariliz-stack-dotnet.md",
+          "path": ".claude/rules/spock-stack-dotnet.md",
           "mode": "file",
           "state": "intact"
         }
@@ -131,7 +131,7 @@
       "manageable": true,
       "files": [
         {
-          "path": ".claude/rules/mariliz-general.md",
+          "path": ".claude/rules/spock-general.md",
           "mode": "file",
           "state": "intact"
         }
@@ -146,7 +146,7 @@
       "manageable": true,
       "files": [
         {
-          "path": ".claude/skills/harness-contract/SKILL.md",
+          "path": ".claude/skills/spock-harness-contract/SKILL.md",
           "mode": "file",
           "state": "intact"
         }

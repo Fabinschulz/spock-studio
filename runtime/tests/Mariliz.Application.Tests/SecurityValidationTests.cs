@@ -168,7 +168,7 @@ public class SecurityValidationTests
         Assert.False(File.Exists(outside));
         var proposed = approval["actions"]!.AsArray();
         Assert.Single(proposed);
-        Assert.Equal(".mariliz/decisions/" + approval["executionId"]!.GetValue<string>() + "-impacto.md", proposed[0]!["target"]!.GetValue<string>());
+        Assert.Equal(".spock/decisions/" + approval["executionId"]!.GetValue<string>() + "-impacto.md", proposed[0]!["target"]!.GetValue<string>());
 
         await (await world.Service.ResumeAsync(projectId, run.RunId,
             new ResumeDecision(approval["approvalId"]!.GetValue<string>(), ["act-decisao-impacto"]))).Completion!;
@@ -178,7 +178,7 @@ public class SecurityValidationTests
         var created = FilesUnder(project.Root).Select(f => Path.GetRelativePath(project.Root, f).Replace('\\', '/'))
             .Except(before.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(l => l.Split('=')[0].Replace('\\', '/'))).ToList();
         Assert.Single(created);
-        Assert.StartsWith(".mariliz/decisions/", created[0]);
+        Assert.StartsWith(".spock/decisions/", created[0]);
         var record = File.ReadAllText(Path.Combine(project.Root, created[0].Replace('/', Path.DirectorySeparatorChar)));
         foreach (var forbidden in new[] { "PWNED", "rm -rf", "Ignore as instruções", "../fora.md", "<sistema>" })
             Assert.DoesNotContain(forbidden, record);

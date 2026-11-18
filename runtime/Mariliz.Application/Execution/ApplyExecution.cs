@@ -199,16 +199,17 @@ internal sealed class ApplyExecution(
 
         var content = LockBuilder.BuildFromOutcomes(session.Composed, outcomes, ManagedLockFile.Read(files), specification);
         var newHash = Hashing.Sha256(Encoding.UTF8.GetBytes(content));
-        var current = files.ReadBytes(ManagedLockFile.FileName);
+        var lockPath = files.Naming().Lock;
+        var current = files.ReadBytes(lockPath);
         var currentHash = current is null ? null : Hashing.Sha256(current);
 
         if (currentHash != newHash)
         {
-            if (current is not null) store.SaveBackup(run.ProjectId, run.RunId, ManagedLockFile.FileName, current);
+            if (current is not null) store.SaveBackup(run.ProjectId, run.RunId, lockPath, current);
 
             var op = new JournalOp
             {
-                Path = ManagedLockFile.FileName,
+                Path = lockPath,
                 Op = current is null ? OpKinds.Create : OpKinds.Update,
                 BeforeHash = currentHash,
                 AfterHash = newHash,
@@ -216,7 +217,7 @@ internal sealed class ApplyExecution(
             };
             Record(op);
 
-            files.WriteAtomic(ManagedLockFile.FileName, Encoding.UTF8.GetBytes(content));
+            files.WriteAtomic(lockPath, Encoding.UTF8.GetBytes(content));
             MarkApplied(op);
         }
 

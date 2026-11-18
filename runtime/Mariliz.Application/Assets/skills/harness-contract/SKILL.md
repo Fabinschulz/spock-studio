@@ -1,5 +1,5 @@
 ---
-name: harness-contract
+name: {{agents}}harness-contract
 description: How agents in this repository state what they know. Source-of-truth hierarchy (what the system does today versus what it should do), claim classification (FACT, INFERENCE, ASSUMPTION, UNKNOWN), confidence scale and the structured block that opens an agent's output. Use when an agent must declare confidence, cite evidence, resolve a conflict between sources, or decide whether it has enough evidence to act. Not a source of code conventions.
 ---
 

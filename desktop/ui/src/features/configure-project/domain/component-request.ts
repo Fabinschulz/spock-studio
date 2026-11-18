@@ -3,7 +3,7 @@ export interface ComponentRequestItem {
   label: string;
 }
 
-/** Chega ao Configurar pelo estado da rota e só entra no plano: o motor o grava em mariliz.yaml como uma mudança que a pessoa aprova ou não. */
+/** Chega ao Configurar pelo estado da rota e só entra no plano: o motor o grava na declaração do projeto como uma mudança que a pessoa aprova ou não. */
 export interface ComponentRequest {
   exclude: ComponentRequestItem[];
   include: ComponentRequestItem[];

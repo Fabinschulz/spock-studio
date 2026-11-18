@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
+using Mariliz.Core.Policy;
 using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
@@ -125,7 +126,7 @@ public sealed class WorkflowService(
 
             if (ack.Status == AckStatus.Interrupted)
             {
-                ReviewActions(journal, ack, allowedActions, ActionGovernance.ImpactFromModel(ack, models?.Calls(executionId) ?? []));
+                ReviewActions(journal, ack, allowedActions, ActionGovernance.ImpactFromModel(ack, models?.Calls(executionId) ?? []), workspace.NamingOf(run.ProjectId));
                 await WaitForApprovalAsync(run, journal, ack);
                 ack = await WithDeadlineAsync(run, ct => runtime.ResumeAsync(Resume(run, journal), _events.Relay(run, filter), ct));
                 EnsureAck(run, executionId, ack);
@@ -153,9 +154,9 @@ public sealed class WorkflowService(
         evalRecords?.Save(run.ProjectId, ack.ExecutionId, JudgmentRecord.ForDisk(judgment, run.RunId, run.ProjectId, ack.ExecutionId, clock.UtcNow));
     }
 
-    private static void ReviewActions(RunJournal journal, WorkflowAck ack, IReadOnlyList<string> allowedActions, bool impactFromModel)
+    private static void ReviewActions(RunJournal journal, WorkflowAck ack, IReadOnlyList<string> allowedActions, bool impactFromModel, HarnessNaming naming)
     {
-        journal.Actions = ActionGovernance.Review(ack, allowedActions, impactFromModel);
+        journal.Actions = ActionGovernance.Review(ack, allowedActions, impactFromModel, naming);
         journal.ActionsHash = ApprovalBinding.HashOf(journal.Actions);
     }
 

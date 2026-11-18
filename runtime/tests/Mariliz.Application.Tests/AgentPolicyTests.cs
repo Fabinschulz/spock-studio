@@ -1,3 +1,4 @@
+using Mariliz.Core.Policy;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Engineering;
@@ -53,6 +54,7 @@ public class AgentPolicyTests : IDisposable
         ["writing outside the project folder is not allowed."] = ("write", Path.Combine(Path.GetDirectoryName(_project.Root)!, "fora-do-projeto", "a.txt")),
         ["writing to a file that normally holds secrets is not allowed ("] = ("write", ".env"),
         ["this file belongs to the managed harness. Change it through Spock Studio so it stays reviewable and reversible."] = ("write", ".claude/agents/a.md"),
+        [".spock/proposal.json"] = ("write", ".spock/proposal.json"),
         [".mariliz/proposal.json"] = ("write", ".mariliz/proposal.json"),
         [".specs/"] = ("write", ".specs/funcionalidade/spec.md"),
         ["recursive delete of a root, home or working directory"] = ("command", "rm -rf /"),
@@ -93,7 +95,7 @@ public class AgentPolicyTests : IDisposable
         var rules = AgentPolicyService.HookRules();
 
         Assert.Equal(3, rules.Count(rule => rule.Scope == "write" && rule.Decision != "allow"));
-        Assert.Equal(2, rules.Count(rule => rule.Decision == "allow"));
+        Assert.Equal(3, rules.Count(rule => rule.Decision == "allow"));
         Assert.Equal(8, rules.Count(rule => rule is { Scope: "command", Decision: "deny" }));
         Assert.Equal(4, rules.Count(rule => rule is { Scope: "command", Decision: "ask" }));
         Assert.Contains(rules, rule => rule is { Decision: "deny", Source: "fork bomb" });
@@ -138,7 +140,7 @@ public class AgentPolicyTests : IDisposable
         Assert.All(texts, text => Assert.False(string.IsNullOrWhiteSpace(text)));
         Assert.All(texts, text => Assert.DoesNotContain("\u2014", text));
         Assert.Equal(AgentPolicyService.HookRules().Select(rule => (rule.Decision, rule.Scope)), policy.Rules.Select(rule => (rule.Decision, rule.Scope)));
-        Assert.Equal(Catalog.PathHookScript, policy.Script);
+        Assert.Equal(HarnessNaming.Spock.HookScript, policy.Script);
         Assert.NotEmpty(policy.Limits);
     }
 

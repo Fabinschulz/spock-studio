@@ -1,3 +1,4 @@
+using Mariliz.Core.Policy;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Harness;
 using Mariliz.Application.Ports;
@@ -55,7 +56,7 @@ public sealed class ClaudeCodeAdapterTests : IDisposable
         Assert.Contains(lockFile.Components, c => c.Id == Catalog.HookSession);
 
         var again = await journey.PlanAsync();
-        Assert.All(again.Changes.Where(c => c.Path is Catalog.PathClaudeMd or Catalog.PathMcpJson or Catalog.PathSettings or ManagedLockFile.FileName),
+        Assert.All(again.Changes.Where(c => c.Path is Catalog.PathClaudeMd or Catalog.PathMcpJson or Catalog.PathSettings || c.Path == HarnessNaming.Spock.Lock),
             change => Assert.Equal(ChangeAction.Preserve, change.Action));
         var validation = await journey.ValidateAsync();
         Assert.NotEqual("failed", validation["outcome"]!.GetValue<string>());

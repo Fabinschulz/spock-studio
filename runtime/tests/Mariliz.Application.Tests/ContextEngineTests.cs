@@ -1,3 +1,4 @@
+using Mariliz.Core.Policy;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Cloud;
 using Mariliz.Application.Context;
@@ -37,9 +38,9 @@ public sealed class ContextEngineTests : IDisposable
     {
         var journey = new Journey(_h.Project, Journey.FakeInstaller(_h.Project));
         await journey.ApplyAsync(await journey.PlanAsync());
-        var declaration = _h.Project.Read(DeclaredConfig.FileName)!.Replace("\r\n", "\n");
+        var declaration = _h.Project.Read(HarnessNaming.Spock.Declaration)!.Replace("\r\n", "\n");
         var withoutId = string.Join("\n", declaration.Split('\n').Where(line => !line.TrimStart().StartsWith("id: ", StringComparison.Ordinal)));
-        _h.Project.Write(DeclaredConfig.FileName, withoutId.Replace("project:\n", $"project:\n  id: {StableId}\n"));
+        _h.Project.Write(HarnessNaming.Spock.Declaration, withoutId.Replace("project:\n", $"project:\n  id: {StableId}\n"));
         var rule = ManagedLockFile.Read(new TestFilesFactory().Open(_h.Project.Root))!.ManagedFiles.First(file => file.Path.EndsWith(".md", StringComparison.Ordinal));
         _h.Project.Write(rule.Path, _h.Project.Read(rule.Path) + "\nEditado à mão.\n");
 
@@ -82,7 +83,7 @@ public sealed class ContextEngineTests : IDisposable
         });
 
         var identity = package.Items.Single(item => item.Section == "identity");
-        Assert.Equal((ContextClassifications.Declared, "mariliz.yaml", StableId), (identity.Classification, identity.Source, identity.Ref));
+        Assert.Equal((ContextClassifications.Declared, "spock.yaml", StableId), (identity.Classification, identity.Source, identity.Ref));
         var github = package.Items.Single(item => item.Section == "connections" && item.Ref == integration.Id);
         Assert.Equal((ContextClassifications.Integration, ContextFreshness.Stale), (github.Classification, github.Freshness));
         Assert.Contains("mais de 24 h", github.Text);

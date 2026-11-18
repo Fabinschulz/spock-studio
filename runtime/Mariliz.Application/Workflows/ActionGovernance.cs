@@ -4,6 +4,7 @@ using Mariliz.Application.Execution;
 using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
+using Mariliz.Core.Policy;
 using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Workflows;
@@ -16,17 +17,17 @@ internal static partial class ActionGovernance
     // A única intenção que o runtime pode propor hoje. Vira uma ação file.write.
     public const string RecordDecision = "record-decision";
 
-    private const string DecisionSummary = "Registrar a decisão de arquitetura (áreas, riscos e evidências) em .mariliz/decisions";
+    private static string DecisionSummary(HarnessNaming naming) => $"Registrar a decisão de arquitetura (áreas, riscos e evidências) em {naming.DecisionsFolder}";
     private static readonly HashSet<string> IntentKeys = new(StringComparer.Ordinal) { "id", "intent", "evidence" };
 
     // Só o motor conhece este caminho.
-    public static string DecisionTargetFor(string executionId) => $".mariliz/decisions/{executionId}-impacto.md";
+    public static string DecisionTargetFor(string executionId, HarnessNaming naming) => $"{naming.DecisionsFolder}/{executionId}-impacto.md";
 
     // Aprovar é a decisão sobre as ações propostas: sem pausa não há onde aprovar, então file.write só em execuções pausáveis que pedem impacto.
     public static IReadOnlyList<string> AllowedKinds(JsonObject input) =>
         input["requiresApproval"]?.GetValue<bool>() == true && input["impact"]?.GetValue<bool>() == true ? [FileWrite] : [];
 
-    [GeneratedRegex(@"^\.mariliz/decisions/ex-[0-9a-f]{12}-impacto\.md$")]
+    [GeneratedRegex(@"^\.(?:spock|mariliz)/decisions/ex-[0-9a-f]{12}-impacto\.md$")]
     private static partial Regex DecisionTarget();
 
     [GeneratedRegex("^act-[0-9a-z-]{1,32}$")]
@@ -41,7 +42,7 @@ internal static partial class ActionGovernance
     public static bool ImpactFromModel(WorkflowAck ack, IReadOnlyList<ModelCallRecord> calls) =>
         calls.Any(call => call.Purpose == "architecture") && ack.Limitations.All(limitation => limitation.Code != "IMPACT_MODEL_FALLBACK");
 
-    public static List<JournalAction> Review(WorkflowAck ack, IReadOnlyList<string> allowed, bool impactFromModel = false)
+    public static List<JournalAction> Review(WorkflowAck ack, IReadOnlyList<string> allowed, bool impactFromModel = false, HarnessNaming? naming = null)
     {
         var accepted = new List<JournalAction>();
         if (allowed.Count == 0 || ack.Output["impact"] is not JsonObject impact) return accepted;
@@ -53,7 +54,7 @@ internal static partial class ActionGovernance
             var id = intent.Text("id");
             if (intent.Text("intent") != RecordDecision || !allowed.Contains(FileWrite)) continue;
             if (!IsActionId(id) || accepted.Any(a => a.Id == id)) continue;
-            var target = DecisionTargetFor(ack.ExecutionId);
+            var target = DecisionTargetFor(ack.ExecutionId, naming ?? HarnessNaming.Spock);
             if (!IsDecisionTarget(target)) continue;
             if (!TryEvidence(intent["evidence"], known, out var evidence)) continue;
 
@@ -62,7 +63,7 @@ internal static partial class ActionGovernance
             {
                 Id = id,
                 Kind = FileWrite,
-                Summary = DecisionSummary,
+                Summary = DecisionSummary(naming ?? HarnessNaming.Spock),
                 Target = target,
                 Evidence = evidence,
                 Content = content,

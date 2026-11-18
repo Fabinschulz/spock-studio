@@ -1,3 +1,4 @@
+using Mariliz.Core.Policy;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Engineering;
 using Mariliz.Application.Harness;
@@ -69,8 +70,8 @@ public class HarnessStatusTests
         Assert.Contains(fresh["components"]!.AsArray(), c => c!["label"]!.GetValue<string>() == "Agente revisor de código");
         Assert.Equal(before, project.Fingerprint());
 
-        project.Write(Catalog.PathCodeReviewer, project.Read(Catalog.PathCodeReviewer) + "\nregra minha\n");
-        File.Delete(Path.Combine(project.Root, Catalog.PathRuleGeneral.Replace('/', Path.DirectorySeparatorChar)));
+        project.Write(HarnessNaming.Spock.CodeReviewerAgent, project.Read(HarnessNaming.Spock.CodeReviewerAgent) + "\nregra minha\n");
+        File.Delete(Path.Combine(project.Root, HarnessNaming.Spock.RuleGeneral.Replace('/', Path.DirectorySeparatorChar)));
         project.Write(Catalog.PathSettings, "{}");
 
         var changed = Inspect(session, projectId);
@@ -87,7 +88,7 @@ public class HarnessStatusTests
     {
         using var project = TempProject.Dotnet();
         SpecificationFixture.Install(project);
-        project.Write(Catalog.PathCodeReviewer, "---\nname: code-reviewer\ndescription: o meu\ntools: Read\n---\n\n# meu revisor\n");
+        project.Write(HarnessNaming.Spock.CodeReviewerAgent, "---\nname: code-reviewer\ndescription: o meu\ntools: Read\n---\n\n# meu revisor\n");
         var journey = new Journey(project);
         await journey.ApplyAsync(await journey.PlanAsync());
         var (session, projectId) = Session(project);
@@ -99,7 +100,7 @@ public class HarnessStatusTests
         Assert.Equal(kept["components"]!.AsArray().Count,
             kept["intact"]!.GetValue<int>() + kept["kept"]!.GetValue<int>() + kept["modified"]!.GetValue<int>() + kept["missing"]!.GetValue<int>());
 
-        project.Write(Catalog.PathCodeReviewer, project.Read(Catalog.PathCodeReviewer) + "\nmais uma\n");
+        project.Write(HarnessNaming.Spock.CodeReviewerAgent, project.Read(HarnessNaming.Spock.CodeReviewerAgent) + "\nmais uma\n");
         var edited = Inspect(session, projectId);
         Assert.Equal((0, 1), (edited["kept"]!.GetValue<int>(), edited["modified"]!.GetValue<int>()));
     }
@@ -110,10 +111,10 @@ public class HarnessStatusTests
         using var project = TempProject.Dotnet();
         await Apply(project);
         var (session, projectId) = Session(project);
-        project.Write("mariliz.yaml", project.Read("mariliz.yaml")!.Replace("exclude: []", "exclude:\n  - mariliz.agent.verifier"));
+        project.Write("spock.yaml", project.Read("spock.yaml")!.Replace("exclude: []", "exclude:\n  - mariliz.agent.verifier"));
 
         var withExclusion = Inspect(session, projectId);
-        project.Write(ManagedLockFile.FileName, "isto: [não é yaml válido");
+        project.Write(HarnessNaming.Spock.Lock, "isto: [não é yaml válido");
         var broken = Inspect(session, projectId);
 
         var excluded = Assert.Single(withExclusion["excluded"]!.AsArray())!;
@@ -129,7 +130,7 @@ public class HarnessStatusTests
     {
         using var project = TempProject.Dotnet();
         await Apply(project);
-        project.Write(Catalog.PathCodeReviewer, project.Read(Catalog.PathCodeReviewer) + "\nregra minha\n");
+        project.Write(HarnessNaming.Spock.CodeReviewerAgent, project.Read(HarnessNaming.Spock.CodeReviewerAgent) + "\nregra minha\n");
         var (session, projectId) = Session(project);
 
         var text = Inspect(session, projectId).ToJsonString(new System.Text.Json.JsonSerializerOptions

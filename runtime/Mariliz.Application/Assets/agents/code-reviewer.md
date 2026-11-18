@@ -1,5 +1,5 @@
 ---
-name: code-reviewer
+name: {{agents}}code-reviewer
 description: Senior reviewer. Analyzes a diff for correctness defects, security failures and architecture-boundary violations, and returns prioritized findings with a concrete fix, without changing code. Do not use to write the code, to diagnose a runtime bug, or to check a feature against its spec.
 tools: Read, Grep, Glob, Bash
 model: inherit
@@ -26,13 +26,13 @@ kept to read (`git diff`, `grep`) and to build throwaway reproductions outside t
 | --- | --- |
 | Applying the fixes | the implementation agent of the project |
 | A runtime bug with an unknown cause | the diagnosis agent of the project |
-| Checking a finished feature against its acceptance criteria | `verifier` |
+| Checking a finished feature against its acceptance criteria | `{{agents}}verifier` |
 
 ## Required context
 
 - The rules in `.claude/rules/` (general, stack and repository) and the project's own instructions (`AGENTS.md`,
   `CLAUDE.md`).
-- The `harness-contract` skill: how to label evidence and confidence.
+- The `{{agents}}harness-contract` skill: how to label evidence and confidence.
 
 ## Process
 
@@ -55,5 +55,5 @@ Before returning, confirm that every blocker points to a concrete line and carri
 
 ## Output format
 
-Open with the contract block from `harness-contract` (`confidence`, `evidence`, `assumptions`, `open_questions`,
+Open with the contract block from `{{agents}}harness-contract` (`confidence`, `evidence`, `assumptions`, `open_questions`,
 `blocked_by`), followed by the prioritized findings.
