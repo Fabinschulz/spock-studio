@@ -117,10 +117,10 @@ class PlanningWithModelTests(unittest.TestCase):
 
     def test_o_orcamento_de_tokens_e_respeitado_antes_de_chamar(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            # Cada chamada reserva 1024: cabe uma de 1500, a segunda tentativa não.
+            # Cada chamada reserva a entrada estimada (~550) mais 1024 de saída: cabe uma em 2000, a segunda tentativa não.
             model = FakeModel("não é json", plan(("a", "A")), input_tokens=700, output_tokens=300)
 
-            _, ack = _go(with_model(tmp, max_tokens=1500), model)
+            _, ack = _go(with_model(tmp, max_tokens=2000), model)
 
         self.assertEqual(len(model.calls), 1)
         self.assertIn("MODEL_BUDGET_EXCEEDED", _codes(ack))

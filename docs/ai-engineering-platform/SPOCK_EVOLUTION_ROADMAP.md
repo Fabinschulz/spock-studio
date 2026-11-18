@@ -6,6 +6,15 @@
 > [roadmap do hub](../engineering-intelligence-hub/ROADMAP.md), ele aparece entre parênteses e este roadmap não o
 > substitui.
 
+## Situação
+
+| Entrega | Estado |
+| --- | --- |
+| W0-1 contexto do RAG íntegro | Feita: corpo do trecho no prompt de planning, architecture, judge e prévia; memória da investigação com o corpo; aviso `INDEX_FILES_TRUNCATED`; reserva da entrada estimada no orçamento. Falta o aviso do corte de 24.000 caracteres feito no motor, que precisa de campo novo no contrato |
+| C-5 documentos desatualizados | Feita junto com o W0-1 |
+| C3 Cursor e Codex (roadmap do hub) | Feita (#139-#142) |
+| Demais | Não iniciadas |
+
 ## 1. Sequência
 
 ```text

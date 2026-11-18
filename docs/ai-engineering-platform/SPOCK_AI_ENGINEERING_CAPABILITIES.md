@@ -22,11 +22,11 @@ Estado: Implementado · Parcial · Ausente · Com falhas.
 | Agentes especializados | Parcial | Python: `planning`, `architecture`, `judge`, `investigator`. Harness: `.md` de `harness-engineer`, `code-reviewer`, `verifier` | Nenhum agente de implementação, teste, especificação ou modernização; `architecture` escolhe entre 3 áreas e 2 riscos fixos |
 | Skills | Parcial | `Assets/skills/harness-contract/SKILL.md`; estrutura de especificação externa (TLC) | Uma skill própria; nenhuma por stack; sem versão por componente |
 | Rules | Parcial | `general.md`, `stack-dotnet.md`, `stack-javascript.md`, mais `repo-commands` e `architecture` geradas | React, Angular, Next e Node recebem o mesmo texto; Python, Java, Go, Rust e Flutter ficam "sem perfil" |
-| Hooks | Parcial | `mariliz-policy.py` (PreToolUse) e `SessionStart` → `spock context session` | Só Claude Code; política por regex de texto |
+| Hooks | Parcial | `mariliz-policy.py` (PreToolUse) e `SessionStart` → `spock context session`; desde o C3 (#139-#142) também `.codex/hooks.json` e o hook de sessão do Cursor | Política por regex de texto; o Cursor só tem o hook de sessão |
 | MCP servers | Parcial | Spock como servidor (12 ferramentas + cloud), `.mcp.json` gerado pelo Harness, inventário de MCPs do projeto | Spock não é cliente MCP; só 1 ferramenta com saída tipada |
 | Ferramentas para agentes | Ausente | A única ação é `record-decision`, executada pelo motor após aprovação | Nenhum agente faz tool calling; a recuperação acontece antes do agente |
 | Instruções | Parcial | Prompts `_TASK` no código; regras comuns de segurança em `agents/prompts.py:25-34` (conteúdo do projeto não confiável) | Sem registro nem versão de prompt; nenhum prompt varia por stack |
-| Contexto de projeto | Com falhas | Context Engine (`bootstrap`), perfil de stacks, decisões, prévia de contexto | Agente recebe ~160 caracteres por trecho; `context_builder` vazio; só a intenção `bootstrap` |
+| Contexto de projeto | Parcial | Context Engine (`bootstrap`), perfil de stacks, decisões, prévia de contexto; desde o W0-1 o agente recebe o trecho inteiro | `context_builder` vazio; só a intenção `bootstrap` |
 | Provedores de IA | Implementado | Proxy único no motor; OpenAI, Anthropic, Google; chave no cofre; modelo por finalidade | Finalidades grossas (3); nenhum provedor local; nunca validado com chave real |
 | Workflows | Parcial | `engineering.request`, `management.investigation` (LangGraph) | Engenharia linear, sem replanejamento; nenhum workflow de análise de arquitetura, modernização ou criação de projeto |
 | Execuções | Implementado | 10 tipos de execução, `ai.ack.v3`, telas `/runs` e `/execution/:id` | Investigação sem pausa |
@@ -106,7 +106,7 @@ O desenho proposto está em [SPOCK_ARCHITECTURE_RECOMMENDATIONS.md, R2](SPOCK_AR
 | Dependências, segurança, testes | Varredura de segredos e correções (`SecurityFixPlanner`); checks do Harness | Análise de dependências e vulnerabilidades; cobertura de testes |
 | Code smells e débito técnico | Nada | Métricas de tamanho, complexidade e acoplamento |
 | Modernização incremental | Nada | Workflow com caracterização, plano por passos e verificação |
-| Aplicar Harness e AI Engineering | Harness Claude Code por família de stack | Harness por framework; Cursor/Codex |
+| Aplicar Harness e AI Engineering | Harness por família de stack, projetado para Claude Code, Cursor e Codex | Harness por framework |
 | Histórico de decisões e evidências | Decisões, auditoria, linha do tempo | Ligação decisão → referência (`REF-*`) |
 | Novo projeto: requisitos → arquitetura | Jornada "Da ideia ao projeto" (especificação EARS, arquitetura, backlog) | Perguntas de requisitos não funcionais; escolha de stack com critérios (§10 do catálogo) e trade-offs explícitos |
 | Novo projeto: estrutura e padrões | Bootstrap IaC | Esqueleto por stack a partir do catálogo |

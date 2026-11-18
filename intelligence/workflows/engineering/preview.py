@@ -7,14 +7,15 @@ from __future__ import annotations
 from agents import architecture, planning, prompts
 from contracts.messages import PreviewRequest
 from knowledge import retrieval
-from knowledge.index import sync
+from knowledge.index import chunk_bodies, sync
 
 PREVIEW_ACK = "ai.context.preview.ack.v1"
 
 
 def preview(request: PreviewRequest) -> dict:
     stats = sync(request.knowledge_root, request.project_id, request.sources)
-    hits = retrieval.search(request.knowledge_root, request.project_id, request.goal)
+    found = retrieval.search(request.knowledge_root, request.project_id, request.goal)
+    hits = prompts.with_bodies(found, chunk_bodies(request.knowledge_root, request.project_id, [hit["chunkId"] for hit in found]))
     paths = {hit["chunkId"]: hit["filePath"] for hit in hits}
     return {
         "schema": PREVIEW_ACK,

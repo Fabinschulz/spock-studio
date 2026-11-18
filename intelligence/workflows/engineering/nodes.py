@@ -19,7 +19,7 @@ from contracts.engineering import (
     judgment_outcome,
 )
 from knowledge import retrieval
-from knowledge.index import KnowledgeError, sync
+from knowledge.index import KnowledgeError, chunk_bodies, sync
 from workflows.engineering.budget import CanSpend, model_call, run_agent
 from workflows.engineering.state import (
     AGENT_VERSION,
@@ -58,6 +58,7 @@ def rag_research(state: dict, segment: Segment) -> dict:
     try:
         stats = sync(root, state["project_id"], segment.sources)
         hits = retrieval.search(root, state["project_id"], state["goal"])
+        bodies = chunk_bodies(root, state["project_id"], [hit["chunkId"] for hit in hits])
     except KnowledgeError as ex:
         # A causa vai para o diagnóstico do host pelo stderr; a mensagem do SQLite fica de fora porque pode trazer caminho.
         cause = type(ex.__cause__).__name__ if ex.__cause__ else type(ex).__name__
@@ -66,6 +67,7 @@ def rag_research(state: dict, segment: Segment) -> dict:
         return state
     state["retrieval_attempted"] = True
     state["evidence"] = hits
+    segment.bodies = bodies
     for hit in hits:
         segment.emitter.emit("context.retrieved", {
             "documentId": hit["documentId"],
@@ -85,6 +87,9 @@ def _limit_retrieval(state: dict, stats: dict, hits: list[dict]) -> None:
         limit(state, "INDEX_INVALID", "Parte do índice não passou na validação e será refeita na próxima execução.")
     if stats["pending"]:
         limit(state, "INDEX_PENDING", "Parte do projeto ainda não foi indexada; entra nas próximas execuções.")
+    if stats.get("truncated"):
+        limit(state, "INDEX_FILES_TRUNCATED",
+              f"{stats['truncated']} arquivo(s) passaram do limite de trechos por arquivo; o fim deles não foi indexado.")
     if hits:
         return
     if stats["documents"] == 0:
@@ -106,7 +111,7 @@ def planning_agent(state: dict, segment: Segment | None = None) -> dict:
     if segment is not None and segment.model is not None:
         def work() -> int:
             return model_call(
-                state, segment, lambda can_spend: planning_model.plan(segment.model, state, can_spend),
+                state, segment, lambda can_spend: planning_model.plan(segment.model, segment.prompt_state(state), can_spend),
                 lambda outcome: state.__setitem__("plan", outcome.value),
                 "PLAN_MODEL_FALLBACK", "O plano veio das regras determinísticas, não do modelo.")
 
@@ -137,7 +142,7 @@ def architecture_agent(state: dict, segment: Segment | None = None) -> dict:
         if segment is None or segment.model is None:
             return 0
         return model_call(
-            state, segment, lambda can_spend: architecture_model.assess(segment.model, state, can_spend),
+            state, segment, lambda can_spend: architecture_model.assess(segment.model, segment.prompt_state(state), can_spend),
             lambda outcome: state.__setitem__("impact", outcome.value),
             "IMPACT_MODEL_FALLBACK", "O impacto veio das regras determinísticas, não do modelo.")
 
@@ -230,7 +235,7 @@ def _judge_with_model(state: dict, segment: Segment) -> bool:
         state["judgment"] = {**outcome.value, "model": outcome.model, "modelVersion": outcome.model_version}
 
     def call(can_spend: CanSpend) -> Outcome:
-        return judge_model.judge(segment.model, state, can_spend)
+        return judge_model.judge(segment.model, segment.prompt_state(state), can_spend)
 
     tokens = model_call(state, segment, call, adopt, "JUDGE_NOT_RUN", "O juiz por modelo não rodou; o veredito segue determinístico.")
     judgment = state.get("judgment")

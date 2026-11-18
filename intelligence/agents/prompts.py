@@ -42,6 +42,14 @@ def system(task: str) -> dict:
     return {"role": "system", "content": f"{task}\n\n{_RULES}"}
 
 
+def with_bodies(evidence: list[dict], bodies: dict[str, str]) -> list[dict]:
+    """O ``excerpt`` da busca é um recorte de exibição (160 caracteres); o agente precisa do trecho como foi indexado."""
+    return [
+        {**item, "excerpt": bodies[item["chunkId"]]} if isinstance(item, dict) and item.get("chunkId") in bodies else item
+        for item in evidence
+    ]
+
+
 def entries(evidence: list[dict]) -> list[dict]:
     """Cada trecho como entra no bloco, na ordem. O primeiro que não cabe fecha o bloco: ele e os seguintes ficam de fora."""
     result: list[dict] = []

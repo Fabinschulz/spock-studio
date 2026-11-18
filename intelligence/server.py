@@ -63,7 +63,8 @@ def main() -> None:
     handler = make_handler(token)
     server = ThreadingHTTPServer((args.host, args.port), handler)
     if args.parent_pid > 0:
-        # Saída imediata, sem esperar as conexões: o checkpoint do SQLite já é consistente a cada passo do grafo.
+        # Saída imediata, sem esperar as conexões: o checkpoint grava só a pausa e o fim (durability="exit"), então uma pausa
+        # já gravada sobrevive e uma execução em andamento termina junto, sem retomada.
         watch_parent(args.parent_pid, lambda: os._exit(0))
     server.serve_forever()
 

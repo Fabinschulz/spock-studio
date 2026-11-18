@@ -4,6 +4,7 @@ import time
 from typing import Callable, TypedDict
 
 from agents import planning as planning_model
+from agents import prompts
 from agents.runner import Model
 from contracts.messages import MAX_TOKENS, StartRequest
 from infrastructure.events import Emitter, now
@@ -83,6 +84,11 @@ class Segment:
         self.sources = sources
         self.model = model
         self.max_tokens = max_tokens
+        self.bodies: dict[str, str] = {}
+
+    def prompt_state(self, state: dict) -> dict:
+        """O que o agente lê: o estado com o corpo de cada trecho no lugar do recorte. O estado e o checkpoint não mudam."""
+        return {**state, "evidence": prompts.with_bodies(list(state.get("evidence") or []), self.bodies)}
 
 
     def limits(self) -> dict:

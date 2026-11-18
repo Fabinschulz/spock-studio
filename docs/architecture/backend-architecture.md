@@ -11,8 +11,9 @@ o runtime sobe o processo e fala com ele por HTTP.
 | ------- | ----- | ---------- |
 | `Mariliz.Core` | Modelos por contexto (`Discovery/`, `Plan/`, `Evals/`), políticas puras (`PathGuard`, `ManagedScope`, `SecretScanner`), hash, diff e caminhos | nada |
 | `Mariliz.Application` | Casos de uso e protocolo. Define as portas (`IProjectFiles`, `IProcessRunner`, `IRunStore`, `IClock`) | Core |
-| `Mariliz.Infrastructure` | Implementa as portas: disco, processos, diário | Application |
-| `Mariliz.Runtime` / `Mariliz.Cli` | Pontos de entrada (protocolo NDJSON e linha de comando) | Application, Infrastructure |
+| `Mariliz.Infrastructure` | Implementa as portas: disco, processos, diário, cofre do sistema, tokenizador, processo Python | Application |
+| `Mariliz.Infrastructure.Cloud` | Provedores de nuvem (`Aws/`, `Azure/`, `Gcp/`) atrás de `LocalCloudHub`, com os SDKs de cada um | Application, Infrastructure |
+| `Mariliz.Runtime` / `Mariliz.Cli` | Pontos de entrada (protocolo NDJSON, `mcp`, `context`, `version` e linha de comando) | Application, Infrastructure (o Runtime também .Cloud) |
 
 Os testes ficam em `runtime/tests/`. A solução é `runtime/Mariliz.sln`.
 
@@ -30,6 +31,24 @@ A Application nunca acessa disco nem processos diretamente: usa as portas.
 | `Protocol/` | `EngineSession` (laço e envelope), `ConfigureRequestHandler` (casos de uso), `RequestParams`, `ProtocolMethods` |
 | `Workspace/` | Autorização de pastas |
 | `Integrations/` | Central de integrações: `ConnectionService` (credencial e ciclo de vida), `ProjectIntegrationService` (vínculo e recorte por projeto), `SyncService` (sincronização incremental), e um `IIntegrationConnector` por provedor em `Connectors/`. Portas: `ISecretVault`, `IIntegrationStore`, `ISyncedDataStore`, `IConnectorTransport`, `IAuditLog`. Ver [evolucao-engineering-management.md](../plataforma/evolucao-engineering-management.md) |
+| `Cloud/` | Conexões de nuvem e leitura por projeto: `CloudConnectionService`, `CloudProjectService`, `CloudHub`; os provedores ficam em `Mariliz.Infrastructure.Cloud` |
+| `Iac/` | OpenTofu/Terraform: geração por provedor, validação, plano, aplicação com aprovação, drift, state e runtimes |
+| `Workflows/` | Fluxos com o Python: `WorkflowService`, `ApprovalGate`, `ActionGovernance`, `KnowledgeSources` (o que vai ao índice) |
+| `Context/` | Context Engine e prévia do contexto: `ContextEngine`, `ContextPackage`, `ContextReviewService` |
+| `Mcp/` | Servidor MCP para a IDE: `McpServer` sobre o SDK oficial e as ferramentas por domínio |
+| `Models/` | Provedores, finalidades e tetos de modelo: `ModelProviders`, `ModelPurposes`, `ModelBudgets`, `ModelBroker` |
+| `Management/` | Gestão: decisões (`DecisionMemory`), fluxo, previsão, riscos e investigação |
+| `Engineering/` | Catálogo do Harness, revisões, política dos agentes, `TechnologyCatalog`, inventário de MCP |
+| `AiTools/` | CLIs de IA externas em modo leitura: `AiToolCatalog`, `AgentRunService` |
+| `Ideas/` | Jornada "Da ideia ao projeto": `IdeaArchitectService`, `IdeaChecks` |
+| `Security/` | Varredura e correções: `SecurityScanner`, `SecurityFixPlanner` |
+| `Audit/`, `Timeline/` | Trilha de auditoria e linha do tempo do projeto |
+| `Assets/` | Textos embutidos do Harness: agentes, regras, hooks, skill e catálogo de componentes |
+| `Ports/` | Tipos das portas (`ProcessSpec`, `ProcessResult`, `WorkflowAck`) |
+
+Desvios conhecidos da regra "a Application nunca acessa disco": `InvestigationMemory`, `WorkflowContextBuilder` e
+`WorkspaceAuthorizer` ainda criam ou sobem pastas diretamente; o SDK do MCP e o stdio moram em `Mcp/`. Ver
+[SPOCK_CURRENT_STATE.md](../ai-engineering-platform/SPOCK_CURRENT_STATE.md#2-estrutura).
 
 ## Regras
 
