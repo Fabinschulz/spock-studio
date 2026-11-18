@@ -173,6 +173,14 @@ export const routes: RouteObject[] = [
           </RequiresHost>
         )
       },
+      {
+        path: paths.connectionsModels,
+        element: (
+          <RequiresHost>
+            <SettingsAi />
+          </RequiresHost>
+        )
+      },
       { path: paths.settings, element: <Navigate to={paths.settingsAi} replace /> },
       {
         path: paths.settingsAi,

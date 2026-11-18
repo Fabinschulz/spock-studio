@@ -1,6 +1,8 @@
 import { app } from '@/shared/config/app';
 import type { AiRuntimeStatus, EngineStatus as Status } from '@/shared/hooks';
+import { paths } from '@/shared/routing';
 import { cn } from '@/shared/utils';
+import { Link } from 'react-router';
 
 import styles from './AppShell.module.scss';
 import { BOTTOM_PANEL_ID } from './bottom-panel/BottomPanel';
@@ -49,6 +51,10 @@ export function StatusBar({ engine, panel, onPanelTab, onShortcuts }: StatusBarP
         >
           Atalhos
         </button>
+        {/* Configurações saiu do menu: é preferência do aplicativo, não tela de trabalho. */}
+        <Link to={paths.settings} className={styles.statusButton}>
+          Configurações
+        </Link>
         <p className={styles.version}>
           <span className="visually-hidden">Versão </span>v{app.version}
         </p>

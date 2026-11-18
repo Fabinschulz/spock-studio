@@ -1,14 +1,20 @@
 """Uma investigação que falhou pontua zero em tudo o que depende da resposta; os mínimos ficam no dataset. Para pontuar uma
 rodada com modelo real, o teste ``ManagementEvalLiveTests`` (motor) grava os resultados e
 ``python intelligence/evaluations/management.py score`` os pontua.
+
+A primeira rodada real aceita vira a linha de base do provedor (``baseline``): as rodadas seguintes se medem contra
+ela, para que um ajuste de prompt não piore o que já funcionava sem ninguém perceber. A linha de base guarda só
+números e ids de caso, nunca o texto das respostas.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
 import sys
+from datetime import date
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Callable
@@ -23,6 +29,7 @@ if __name__ == "__main__":  # pragma: no cover - uso como script
 from workflows.investigation.nodes import plain  # noqa: E402
 
 _DATASET = Path(__file__).resolve().parent / "datasets" / "management.json"
+_BASELINES = _DATASET.parent
 # Os grupos de fatos são do motor; a avaliação lê a mesma cópia que o teste do motor confere contra o catálogo dele.
 _GROUPS = Path(__file__).resolve().parents[2] / "contracts" / "fixtures" / "management" / "fact-groups.json"
 
@@ -38,6 +45,10 @@ _NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
 _CLAIM_SECTIONS = ("observed", "calculations", "inferences", "recommendations")
 _METRICS = ("framing", "grounding", "coverage", "abstention")
 _BROKER = {"url": "http://127.0.0.1:49152/v1/model", "token": "t" * 43}
+_PROVIDER = re.compile(r"[a-z][a-z0-9-]{1,30}")
+_RESULTS_NAME = re.compile(r"management-eval-([a-z][a-z0-9-]{1,30})\.json")
+# Um modelo real não responde igual duas vezes; abaixo disto é variação, acima é regressão.
+BASELINE_TOLERANCE = 0.05
 
 
 class ManagementEvalError(Exception):
@@ -184,17 +195,128 @@ def format_report(report: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def main(argv: list[str]) -> int:
-    if len(argv) != 2 or argv[0] != "score":
-        print("uso: python management.py score <acks.json>", file=sys.stderr)
-        return 2
-    acks = json.loads(Path(argv[1]).read_text(encoding="utf-8"))
+def dataset_digest(path: Path | None = None) -> str:
+    # Pelo conteúdo e não pelo arquivo: fim de linha diferente entre máquinas não pode invalidar a linha de base.
+    document = json.loads((path or _DATASET).read_text(encoding="utf-8"))
+    canonical = json.dumps(document, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def baseline_path(provider: str, folder: Path | None = None) -> Path:
+    if not _PROVIDER.fullmatch(provider):
+        raise ManagementEvalError("provedor inválido")
+    return (folder or _BASELINES) / f"management-baseline-{provider}.json"
+
+
+def provider_of(results: Path) -> str | None:
+    match = _RESULTS_NAME.fullmatch(results.name)
+    return match.group(1) if match else None
+
+
+def make_baseline(report: dict[str, Any], provider: str, recorded_on: str, digest: str) -> dict[str, Any]:
+    return {
+        "schema": "management.eval.baseline.v1",
+        "provider": provider,
+        "recordedOn": recorded_on,
+        "dataset": digest,
+        "means": report["means"],
+        "cases": [{"id": item["id"], **{metric: item[metric] for metric in _METRICS}, "failed": item["failed"]} for item in report["cases"]],
+    }
+
+
+def compare_to_baseline(report: dict[str, Any], baseline: dict[str, Any], digest: str) -> dict[str, Any]:
+    """Uma média que cai mais que a tolerância abaixo da linha de base é regressão. Dataset mudado: a linha de base não vale."""
+    if baseline.get("schema") != "management.eval.baseline.v1":
+        raise ManagementEvalError("linha de base inválida")
+    if baseline.get("dataset") != digest:
+        return {"applies": False, "recordedOn": baseline.get("recordedOn"), "metrics": {}, "regressed": False}
+    metrics: dict[str, dict[str, Any]] = {}
+    for metric in _METRICS:
+        now, before = report["means"][metric], baseline["means"].get(metric)
+        delta = None if now is None or before is None else round(now - before, 4)
+        metrics[metric] = {"value": now, "baseline": before, "delta": delta, "regressed": delta is not None and delta < -BASELINE_TOLERANCE}
+    return {
+        "applies": True,
+        "recordedOn": baseline.get("recordedOn"),
+        "metrics": metrics,
+        "regressed": any(item["regressed"] for item in metrics.values()),
+    }
+
+
+def format_comparison(provider: str, comparison: dict[str, Any] | None) -> str:
+    if comparison is None:
+        return f"linha de base de {provider}: nenhuma ainda. Se esta rodada for aceita, grave-a com o comando baseline."
+    if not comparison["applies"]:
+        return f"linha de base de {provider} ({comparison['recordedOn']}): feita com outro dataset, não se aplica. Grave uma nova."
+    lines = [f"linha de base de {provider} ({comparison['recordedOn']}), tolerância {BASELINE_TOLERANCE:.2f}:"]
+    for metric, state in comparison["metrics"].items():
+        if state["delta"] is None:
+            lines.append(f"{metric.ljust(10)} sem comparação")
+            continue
+        verdict = "PIOROU" if state["regressed"] else "ok"
+        lines.append(f"{metric.ljust(10)} {state['baseline']:.2f} -> {state['value']:.2f}  ({state['delta']:+.2f})  {verdict}")
+    return "\n".join(lines)
+
+
+def _read_acks(path: Path) -> dict[str, dict] | None:
+    acks = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(acks, dict):
         print("o arquivo precisa ser um objeto {idDoCaso: ack}", file=sys.stderr)
+        return None
+    return acks
+
+
+def _score_command(results: Path, provider: str | None) -> int:
+    acks = _read_acks(results)
+    if acks is None:
         return 2
     report = score_dataset(load_dataset(), acks)
     print(format_report(report))
-    return 0 if report["passed"] else 1
+    regressed = False
+    if provider:
+        stored = baseline_path(provider)
+        comparison = None
+        if stored.exists():
+            comparison = compare_to_baseline(report, json.loads(stored.read_text(encoding="utf-8")), dataset_digest())
+            regressed = comparison["regressed"]
+        print()
+        print(format_comparison(provider, comparison))
+    return 0 if report["passed"] and not regressed else 1
+
+
+def _baseline_command(results: Path, provider: str) -> int:
+    acks = _read_acks(results)
+    if acks is None:
+        return 2
+    report = score_dataset(load_dataset(), acks)
+    if any(item["failed"] for item in report["cases"]):
+        # Uma rodada com investigação que falhou (rede, chave, teto) mede a infraestrutura, não o modelo.
+        print("rodada com caso que falhou: rode de novo antes de gravar a linha de base", file=sys.stderr)
+        return 1
+    target = baseline_path(provider)
+    baseline = make_baseline(report, provider, date.today().isoformat(), dataset_digest())
+    target.write_text(json.dumps(baseline, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(format_report(report))
+    print(f"\nlinha de base de {provider} gravada em {target}")
+    return 0
+
+
+def main(argv: list[str]) -> int:
+    usage = "uso: python management.py score <acks.json> [provedor] | baseline <acks.json> [provedor]"
+    if len(argv) not in (2, 3) or argv[0] not in ("score", "baseline"):
+        print(usage, file=sys.stderr)
+        return 2
+    results = Path(argv[1])
+    provider = argv[2] if len(argv) == 3 else provider_of(results)
+    if provider is not None and not _PROVIDER.fullmatch(provider):
+        print("provedor inválido: use letras minúsculas, como openai ou anthropic", file=sys.stderr)
+        return 2
+    if argv[0] == "score":
+        return _score_command(results, provider)
+    if provider is None:
+        print("informe o provedor: o nome do arquivo não segue management-eval-<provedor>.json", file=sys.stderr)
+        return 2
+    return _baseline_command(results, provider)
 
 
 if __name__ == "__main__":  # pragma: no cover - uso como script

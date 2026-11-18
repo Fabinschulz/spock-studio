@@ -2,7 +2,14 @@ import type { RunActivity } from '@/features/runs';
 import styles from './AppShell.module.scss';
 import type { Environment } from './environment';
 import { NavGroupList } from './NavGroupList';
-import { APP_GROUP, ENVIRONMENT_GROUP, PLATFORM_GROUP, type NavGroup, type NavItem } from './navigation';
+import {
+  APP_GROUP,
+  ENVIRONMENT_GROUP,
+  PLATFORM_GROUP,
+  platformItemsFor,
+  type NavGroup,
+  type NavItem
+} from './navigation';
 
 export function SideNav({
   environment,
@@ -11,7 +18,8 @@ export function SideNav({
   environment: Environment;
   runActivity?: RunActivity | null;
 }) {
-  const groups = [APP_GROUP, ENVIRONMENT_GROUP[environment], withRunActivity(PLATFORM_GROUP, runActivity)];
+  const platform = { ...PLATFORM_GROUP, items: platformItemsFor(environment) };
+  const groups = [APP_GROUP, ENVIRONMENT_GROUP[environment], withRunActivity(platform, runActivity)];
 
   return (
     <nav aria-label="Navegação principal" className={styles.groups}>

@@ -1,7 +1,14 @@
-import type { Crumb } from '@/shared/components';
+import type { Crumb, PageTabSet } from '@/shared/components';
 import { executionPattern, paths } from '@/shared/routing';
 
-import { ENGINEERING_GROUP, MANAGEMENT_GROUP, PLATFORM_GROUP, SETTINGS_GROUP, type NavGroup } from './navigation';
+import {
+  ENGINEERING_GROUP,
+  MANAGEMENT_GROUP,
+  PLATFORM_GROUP,
+  SETTINGS_GROUP,
+  tabOwner,
+  type NavGroup
+} from './navigation';
 
 const EXECUTION_PREFIX = executionPattern.split('/:')[0] ?? '';
 
@@ -25,8 +32,17 @@ function executionTrail(): Crumb[] {
   return [groupCrumb(ENGINEERING_GROUP), { label: runs?.label ?? '', to: paths.runs }, { label: 'Execução' }];
 }
 
+export function tabSetOf(pathname: string): PageTabSet | null {
+  const owner = tabOwner(pathname);
+  return owner?.item.tabs ? { label: owner.item.label, tabs: owner.item.tabs } : null;
+}
+
 export function trailOf(pathname: string): Crumb[] {
   if (pathname.startsWith(`${EXECUTION_PREFIX}/`)) return executionTrail();
+
+  const owner = tabOwner(pathname);
+  if (owner)
+    return [groupCrumb(owner.group), { label: owner.item.label, to: owner.item.to }, { label: owner.tab.label }];
 
   for (const group of GROUPS) {
     const item = group.items.find((entry) => entry.to === pathname);

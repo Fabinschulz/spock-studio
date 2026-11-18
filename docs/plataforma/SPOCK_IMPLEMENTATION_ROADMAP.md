@@ -1,6 +1,7 @@
 # Spock Studio: roadmap de implementação
 
-**Data:** 2026-11-12. Documento 6 da análise de referência. Base: `SPOCK_PRODUCT_EVOLUTION.md` (o quê) e
+**Data:** 2026-11-12; ciclo 2 (segunda rodada, 2026-11-17) na seção 9. Documento 6 da análise de referência. Base:
+`SPOCK_PRODUCT_EVOLUTION.md` (o quê) e
 `SPOCK_DESIGN_DIRECTION.md` (como se vê).
 
 Este roadmap é uma proposta de ordem. Não é autorização para implementar: cada fase começa com a aprovação do dono do
@@ -944,3 +945,117 @@ Limites: **nunca foi perguntado a um modelo real**; a qualidade da comparação 
 ### Fase G: balanço
 
 As oito entregas da tabela da fase estão no código e testadas: linha do tempo, trilha de auditoria, workflow de investigação, laço do RAG, decisões como memória, evals de gestão e assistente do portfólio (mais o caminho da investigação reaberto na central). **O "pronto quando" está atendido na forma e não provado**: a pergunta "por que a vazão caiu?" devolve uma resposta em que cada afirmação cita um fato e o caminho fica no diário, mas isso só foi exercitado com modelo falso ou roteirizado. Falta, e depende de você: rodar a investigação e as evals com a OpenAI e com a Anthropic (as duas nunca foram validadas com chave real), calibrar os mínimos das evals com o primeiro resultado e conferir as telas novas no navegador.
+
+## 9. Ciclo 2: segunda rodada (2026-11-17)
+
+Base: `MARILIZ_CURRENT_STATE.md` atualizado até o #132 e a seção 13 de `SPOCK_PRODUCT_EVOLUTION.md` e de
+`SPOCK_DESIGN_DIRECTION.md`. Este ciclo **não substitui** o roadmap do hub
+([ROADMAP.md](../engineering-intelligence-hub/ROADMAP.md)): ordena a parte dele que pesa no produto (H0-7, F2 a F4,
+D1 a D3) junto das entregas de interface e de gestão que lá não estão. As etapas recebem número, não letra, para não
+colidir com as fases A a G, com as do ecossistema (U, W, I2, P, C, S, A) nem com as iniciativas do hub.
+
+### 9.1 O que aconteceu com os itens adiados (seção 5)
+
+| Item | Situação em 2026-11-17 | Evidência |
+| --- | --- | --- |
+| Paleta de comandos | Feito | Fase H (#74) |
+| Painéis redimensionáveis | Parcial: só o painel inferior | `bottom-panel/PanelResizer.tsx`; o `Drawer` não redimensiona |
+| Sincronização agendada e rotinas | Parcial: só o drift da IaC é agendado | `Iac/IacDriftScheduler.cs`; integrações seguem sob demanda |
+| MCP gerenciado pelo plano do Harness | Parcial: só o servidor do próprio Spock | C2 (#130); MCP de terceiros só inventariado |
+| Servidor MCP do Spock para o Claude Code | Feito | #82, #88, #92, #120, #126, #127, #130 |
+| Assistente de engenharia | Não feito como tela | Substitutos: `search_project` na IDE e Agentes de IA |
+| Uso de modelo agregado | Não feito | Só tokens por execução |
+| Modo de diagnóstico | Parcial | Tela Diagnóstico com 300 linhas redigidas; sem modo ligável nem disco |
+| Estado de operação interrompida | Feito | `interrupted` no contrato, `ENGINE_RESTARTED`, aprovação que sobrevive ao reinício |
+| Segundo ambiente de IA | Parcial | CLI e MCP para Codex, Cursor e Gemini; Harness só no Claude Code (C3 não feito) |
+| Leitura do ciclo de especificação | Não feito | Nenhuma leitura de `.specs` |
+| Azure DevOps ou GitLab | Não feito | I1 do hub |
+| Mapa de etapas somente leitura | Não feito | |
+| Escrita em provedores | Parcial: só nuvem | `iac.apply` com aprovação presa ao hash; GitHub e Jira só leitura (W1) |
+| Bancos e APIs como conexão | Não feito | I3 e DD-10 |
+| Identidade, papéis e organização | Não feito | M3 e DD-2 |
+| Tema claro | Não feito, removido de propósito | `docs/redesign/proposta-de-redesign.md` |
+
+Os sete itens fora de qualquer horizonte continuam fora. Observação: o terminal integrado (fase W) e a infraestrutura
+completa não estavam na lista de exclusões, mas tensionam a regra do estudo do hub de não reconstruir o que a IDE já
+faz.
+
+### 9.2 Decisões da seção 6, hoje
+
+| # | Decisão | Situação |
+| --- | --- | --- |
+| 1 | Credencial de teste para GitHub e Jira | GitHub resolvida (validado com dado real); **Jira aberta** |
+| 2 | Chave de modelo real | **Aberta** (H0-7) |
+| 3 | Chave de modelo no cofre | Resolvida |
+| 4 | Shell com seletor e alternador | Resolvida (fase B) |
+| 5 | Tela Projeto repartida | Resolvida |
+| 6 | A e B antes da ordem aprovada | Resolvida |
+| 7 | Segundo provedor de IA | Anthropic e Google implementados; **confirmação do dono pendente** |
+| 8 | Dado sincronizado alimenta o conhecimento | Resolvida com `feedsKnowledge`; refinamento por destino é F4 (DD-8) |
+| 9 | Componentes no aplicativo ou no ui-kit | Resolvida: no aplicativo |
+| 10 | Cofre em Linux e macOS | Implementado, **sem validação** em máquina real |
+
+### 9.3 Etapas
+
+```
+Etapa 1  Prova com modelo real ------------------------------+
+Etapa 2  Navegação e resíduos (só interface, em paralelo) ---+--> Etapa 5  Central e gestão
+Etapa 3  Contrato do hub ------> Etapa 4  Entrega conferida -+
+```
+
+| Etapa | Conteúdo | Hub | Depende de | Pronto quando | Tamanho |
+| --- | --- | --- | --- | --- | --- |
+| **1. Prova** (P0) | Rodar `scripts/live-validation.py`, os `*LiveTests` e as evals de gestão com OpenAI e Anthropic; guardar o resultado como linha de base; calibrar os mínimos; corrigir o que quebrar | H0-7 | Chave com limite de gasto (dono) | Relatório com fluxos, tokens, latência e falhas; mínimos das evals vindos da rodada real | Pequeno no código, depende do dono |
+| **2. Navegação e resíduos** (P1) | Link das execuções na Visão geral; `ResourceView` nas sete telas; um indicador de estado; reversão com `ConfirmAction`; `Term` em Gestão e Infraestrutura; "Em breve" fora do Início; `PageTabs`; menu consolidado (`SPOCK_DESIGN_DIRECTION.md` 13.2) | | Aprovação do menu (dono) | Engenharia com 11 itens e Gestão com 7, contando o Início; rotas antigas abrem a aba certa; testes de shell e rotas atualizados; conferido no Tauri | Médio |
+| **3. Contrato do hub** (P1) | Política por destino com `ide: summary` como padrão e teste com texto hostil numa issue; erros tipados, `tools/list_changed` e fixture por ferramenta; intenções `development` e `management`; `ProvenanceList` na Visão geral e em Conexões | F2, F3, F4 | | Cada intenção dentro do orçamento, com origem e frescor por item; nenhum texto de terceiros chega à IDE sem delimitação | Médio |
+| **4. Entrega conferida** (P1) | Git e PR só leitura; pacote de tarefa com critério com id; verificador determinístico como execução `delivery`, com aprovação para rodar comandos do projeto; `VerificationTable`; regra de risco "entrega com pendência"; intenção `delivery` | D1, D2, D3, F2 | Etapa 3; para critério vindo do Jira, credencial (decisão 1) | Um pedido feito na IDE aparece na central com o declarado e o conferido lado a lado, e o gestor vê a pendência | Grande |
+| **5. Central e gestão** (P1) | Operações de IaC e sincronização como execuções; histórico do escopo por marco; previsibilidade; dependências lidas do provedor como lista | | Etapa 2 (lugar na tela) | A central responde "o que aconteceu" para toda operação; escopo e previsibilidade saem de `notCalculated` com dado real do GitHub | Médio |
+
+As etapas 1 e 2 não dependem uma da outra e podem correr juntas. Nenhum item P1 que use modelo começa antes da
+etapa 1.
+
+**Andamento (2026-11-18, branch `feat/ciclo2-etapas-1-2`).** O dono aprovou as etapas 1 e 2 em 2026-11-17.
+
+| Etapa | Feito | Falta |
+| --- | --- | --- |
+| 1. Prova | Linha de base por provedor nas evals de gestão: `management.py baseline <arquivo>` grava só números e ids de caso, recusa rodada com caso que falhou e fica presa ao conteúdo do dataset; `score` compara com a linha de base do provedor (tolerância 0,05) e falha se uma média piorar; `live-validation.py` diz como gravar. 7 testes novos | **A rodada real**, que depende da chave com limite de gasto: o dono roda `python scripts/live-validation.py` com `MARILIZ_LIVE_OPENAI_KEY` e `MARILIZ_LIVE_ANTHROPIC_KEY` no terminal (nunca no chat), lê o resultado e, se aceitar, grava a linha de base e calibra os mínimos |
+| 2. Navegação | Menu consolidado (11 itens em Engenharia e 7 em Gestão, contando o Início); abas como dado do menu e componente `PageTabs`; trilha e busca cientes das abas (a busca acha a tela pelo nome antigo); Conexões fora do menu de Gestão; Configurações na barra de estado; "Da ideia ao projeto" no Início no lugar dos dois cartões "Em breve"; execuções da Visão geral com link; "nesta fase" fora das telas; previsão sem "simulações" e com `Term`. 854 testes da interface, conferido no navegador com host simulado | `ResourceView` nas sete telas; um só indicador de estado (`StatusChip` e `StatusGlyph`); reversão do Configurar com `ConfirmAction`; `Term` em Infraestrutura (o glossário já tem state e drift); aba IDEs em Conexões; conferência no Tauri empacotado |
+
+### 9.4 Depois deste ciclo
+
+| Item | Prior. | Quando reconsiderar |
+| --- | --- | --- |
+| Leitura de `.specs` | P2 | Depois de D2 |
+| Adaptadores Cursor e Codex, diagnóstico de IDE | P2 | C3 e C4 do hub, depois da etapa 3 |
+| Histórico do assistente | P2 | Depois da etapa 1 |
+| Uso agregado de tokens | P2 | Junto da etapa 5, se couber |
+| Qualidade do RAG | P2 | Q1 do hub; embeddings só com medição |
+| Migração para um só conjunto de nomes | P2 | Depois da decisão D-12 |
+| Resto do F1 (aviso de cópia, id na tela, recentes pelo id) | P2 | Quando houver segundo usuário |
+| Identidade e papéis | P3 | DD-2 |
+| Escrita em Jira e GitHub | P3 | Depois de D3 (W1) |
+| Azure DevOps, bancos | P3 | I1 e I3, por demanda real |
+
+Continuam fora: execução própria de código, perfis de execução, loja de agentes, canais de mensagem, nível de
+autonomia configurável para agentes, mais tudo o que a seção 5 já deixava de fora.
+
+### 9.5 Decisões que este ciclo pede
+
+| # | Decisão | Bloqueia |
+| --- | --- | --- |
+| 1 | Chave de modelo com limite de gasto para a rodada real | Etapa 1 e tudo que usa modelo |
+| 2 | Aprovar o menu consolidado (Infraestrutura em Engenharia; Catálogo como aba; Conexões única; Histórico com Linha do tempo e Auditoria) | Etapa 2 |
+| 3 | O verificador pode rodar os comandos do projeto, com aprovação por execução | Etapa 4 |
+| 4 | Credencial de teste do Jira | Critérios vindos do Jira na etapa 4 |
+| 5 | Congelar novas entregas de infraestrutura neste ciclo, além de levar as operações à central | Escopo do ciclo |
+| 6 | Marca e nome dos arquivos (D-12) | Migração de nomes |
+
+### 9.6 Riscos
+
+| Risco | Etapa | Redução |
+| --- | --- | --- |
+| A rodada real mostrar que o assistente ou a investigação não sustentam a tese | 1 | É para isso que ela vem primeiro; o resultado reordena as etapas 3 a 5 |
+| Consolidar o menu quebrar atalhos e hábitos | 2 | Rotas antigas mantidas, abrindo a aba; paleta de comandos acha pelo nome antigo |
+| Verificador virar executor | 4 | Só comandos detectados e mostrados antes, aprovação, sem escrita no repositório, filhos sem segredos |
+| Texto de terceiros na IDE | 3 | Princípio 12 da proposta; teste com conteúdo hostil |
+| Etapas crescerem | Todas | Cada uma fecha com suíte verde, documento atualizado e conferência visual antes da próxima |

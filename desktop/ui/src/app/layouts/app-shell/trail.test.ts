@@ -8,12 +8,28 @@ describe('trailOf', () => {
   });
 
   it('uma tela do menu mostra o grupo, que leva à tela inicial dele, e o nome da tela', () => {
-    expect(trailOf('/projeto/harness')).toEqual([{ label: 'Engenharia', to: '/projeto' }, { label: 'Harness' }]);
+    expect(trailOf('/projeto/conhecimento')).toEqual([
+      { label: 'Engenharia', to: '/projeto' },
+      { label: 'Conhecimento' }
+    ]);
     expect(trailOf('/gestao/relatorio')).toEqual([{ label: 'Gestão', to: '/gestao' }, { label: 'Relatório' }]);
   });
 
+  it('uma aba mostra o item do menu que a contém e o nome da aba', () => {
+    expect(trailOf('/projeto/catalogo')).toEqual([
+      { label: 'Engenharia', to: '/projeto' },
+      { label: 'Harness', to: '/projeto/harness' },
+      { label: 'Catálogo' }
+    ]);
+  });
+
   it('a Plataforma não tem tela própria: o nome dela é só texto', () => {
-    expect(trailOf('/integracoes')).toEqual([{ label: 'Plataforma' }, { label: 'Integrações' }]);
+    expect(trailOf('/execucoes')).toEqual([{ label: 'Plataforma' }, { label: 'Execuções' }]);
+    expect(trailOf('/cloud')).toEqual([
+      { label: 'Plataforma' },
+      { label: 'Conexões', to: '/integracoes' },
+      { label: 'Nuvem' }
+    ]);
   });
 
   it('as Configurações têm trilha própria, que leva à primeira seção', () => {

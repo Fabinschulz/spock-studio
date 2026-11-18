@@ -1,7 +1,7 @@
 import { formatRecentDateTime, type SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 import { EmptyState, ErrorState, LoadingState, Page, PageSection } from '@/shared/components';
-import { pathTo } from '@/shared/routing';
+import { executionPath, pathTo } from '@/shared/routing';
 import type { Discovery, RunSummary } from '@/shared/schema';
 import { runKindLabel } from '@/shared/utils';
 import { Link } from 'react-router';
@@ -108,7 +108,9 @@ function RunsSection({ runs }: { runs: RunSummary[] }) {
         {runs.map((run) => (
           <li key={run.runId} className={styles.row}>
             <span>
-              <span className={styles.rowTitle}>{runKindLabel(run.kind)}</span>
+              <Link to={executionPath(run.runId)} className={styles.rowTitle}>
+                {runKindLabel(run.kind)}
+              </Link>
               <span className={styles.meta}> · {runRowText(run)}</span>
             </span>
             <span className={styles.end}>{formatRunDate(run.startedAt)}</span>

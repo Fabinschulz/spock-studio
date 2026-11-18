@@ -1,10 +1,4 @@
-export type JourneyId =
-  | 'configure-project'
-  | 'engineering-request'
-  | 'follow-projects'
-  | 'import-requirements'
-  | 'connect-tools'
-  | 'modernize-system';
+export type JourneyId = 'configure-project' | 'engineering-request' | 'follow-projects' | 'idea' | 'connect-tools';
 
 export type Journey = {
   id: JourneyId;
@@ -13,8 +7,7 @@ export type Journey = {
   unavailableReason?: string;
 };
 
-const SOON = 'Em breve';
-
+// Só o que existe: uma promessa "em breve" na tela de entrada vale menos que um cartão a menos.
 export const journeys: readonly Journey[] = [
   {
     id: 'configure-project',
@@ -32,20 +25,13 @@ export const journeys: readonly Journey[] = [
     description: 'Veja prazos, riscos e entregas de todos os projetos, sem precisar abrir código.'
   },
   {
-    id: 'import-requirements',
-    title: 'Importar requisitos',
-    description: 'Gere especificações, backlog e roadmap a partir de documentos existentes.',
-    unavailableReason: SOON
+    id: 'idea',
+    title: 'Da ideia ao projeto',
+    description: 'Descreva uma ideia e receba especificação, arquitetura e backlog, conferidos etapa por etapa.'
   },
   {
     id: 'connect-tools',
     title: 'Conectar ferramentas',
     description: 'Conecte GitHub e Jira e decida o que cada projeto pode ler.'
-  },
-  {
-    id: 'modernize-system',
-    title: 'Modernizar sistema',
-    description: 'Analise um legado e planeje sua modernização.',
-    unavailableReason: SOON
   }
 ];
