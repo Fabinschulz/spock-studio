@@ -316,7 +316,9 @@ public class SecurityValidationTests
         await (await world.Service.ResumeAsync(projectB, runB.RunId)).Completion!;
         Assert.Equal(RunStates.CompletedWithLimitations, runA.State);
         Assert.Equal(RunStates.CompletedWithLimitations, runB.State);
-        Assert.All(runB.Result!["evidence"]!.AsArray(), e => Assert.Equal("docs/b.md", e!["filePath"]!.GetValue<string>()));
+        // Fora as referências da Organização, iguais em todo projeto, a evidência de B é só o arquivo de B.
+        Assert.All(runB.Result!["evidence"]!.AsArray().Select(e => e!["filePath"]!.GetValue<string>())
+            .Where(path => !path.StartsWith(Workflows.OrganizationReferences.Prefix, StringComparison.Ordinal)), path => Assert.Equal("docs/b.md", path));
 
         // No disco, cada projeto tem a sua pasta e nada de A está na pasta de B.
         Assert.Empty(Leaks([Path.Combine(world.DataDir, "projects", projectB), b.Root], ["exclusivo-a", "zebrafish"]));

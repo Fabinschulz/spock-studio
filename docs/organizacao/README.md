@@ -34,7 +34,22 @@ cobrir uma dúvida que ela não responde.
 
 ## Como o Spock usa esta pasta
 
-Hoje agentes e pessoas a leem diretamente. A recuperação seletiva por tecnologia, tipo de projeto e responsabilidade é a
-Onda 1 do [roadmap](../ai-engineering-platform/SPOCK_EVOLUTION_ROADMAP.md): esta pasta passa a ser indexada como
-`@reference/`, separada do conhecimento de cada projeto, e cada trecho chega ao agente marcado como referência, não
-como convenção do projeto analisado.
+O motor embute os arquivos desta pasta (menos este README) e cada seção `## ` vira um documento `@reference/` no
+índice de todo projeto. A busca dos agentes e a ferramenta `search_project` da IDE trazem essas seções junto com os
+arquivos do projeto, e cada trecho chega marcado como referência da Organização, com o título e a data da análise: é
+argumento de engenharia, nunca convenção do projeto analisado. Um arquivo do projeto chamado `@reference/...` é
+bloqueado, para ninguém se passar por referência.
+
+Por isso, todo arquivo desta pasta começa com um frontmatter com `titulo` e `analisadoEm`; sem ele, o arquivo não entra
+no índice:
+
+```yaml
+---
+titulo: Catálogo de referências arquiteturais
+analisadoEm: 2026-11-17
+---
+```
+
+Mudou um arquivo daqui? A versão nova do motor leva o texto novo, e o índice de cada projeto se atualiza na próxima
+execução, pelo hash. A busca ainda não filtra por tecnologia: uma pergunta sobre React pode trazer a seção Angular. O
+filtro é o W1-2 do [roadmap](../ai-engineering-platform/SPOCK_EVOLUTION_ROADMAP.md).

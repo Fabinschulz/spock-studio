@@ -14,6 +14,7 @@
 | C-5 documentos desatualizados | Feita junto com o W0-1 |
 | W0-2 fonte única de tecnologias | Feita: `Discovery/Technologies.cs` com id, nome, categoria, família de regras, área e padrão da arquitetura; famílias de regra em `Harness/StackRuleProfiles.cs`; caminhos dos ativos em `Catalog.Asset`. Corrigiu o mapa de áreas do Python, que ignorava React, Next.js e Angular. O catálogo de componentes já tinha paridade testada com as fichas; a única duplicação ali eram os caminhos dos ativos |
 | W0-3 testes estáveis | Feita: o teste de servidor do Python falhava por RST do Windows ao recusar o token sem ler o corpo (corrigido, com teste que reproduz); testes de página da interface com limite de 15 s; `verify.py --repeat N`. As 3 falhas .NET do diagnóstico não se repetiram em 5 rodadas, uma delas sob carga |
+| W1-1 pasta Organização no índice | Feita: o motor embute `docs/organizacao/` e cada seção vira `@reference/` no índice de todo projeto (em vez de um índice separado: reaproveita sincronização por hash, busca e MCP), com título, fonte e data em cada trecho; prompts e `search_project` marcam como referência; prefixo bloqueado para arquivos do projeto. Sem filtro por tecnologia ainda (W1-2): "estado React" traz também a seção Angular |
 | C3 Cursor e Codex (roadmap do hub) | Feita (#139-#142) |
 | Demais | Não iniciadas |
 

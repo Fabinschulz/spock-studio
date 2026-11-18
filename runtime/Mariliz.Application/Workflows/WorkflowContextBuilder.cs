@@ -98,7 +98,8 @@ public sealed class WorkflowContextBuilder : IWorkflowContext
         }
 
         var sources = new JsonArray();
-        foreach (var source in KnowledgeSources.Select(_files.Open(root), indexed, _external?.Documents(projectId), _memory?.Documents(projectId)))
+        var memory = (_memory?.Documents(projectId) ?? []).Concat(OrganizationReferences.Documents);
+        foreach (var source in KnowledgeSources.Select(_files.Open(root), indexed, _external?.Documents(projectId), memory))
         {
             var item = new JsonObject { ["path"] = source.Path, ["hash"] = source.Hash };
             if (source.Text is not null) item["text"] = source.Text;

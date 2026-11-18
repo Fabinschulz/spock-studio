@@ -221,7 +221,9 @@ public class WorkflowRuntimeTests
             })["result"]!["runId"]!.GetValue<string>();
             wire.Wait(m => m["type"]?.GetValue<string>() == "workflow.completed" && m["runId"]?.GetValue<string>() == runB);
             var foreign = wire.Request("run.snapshot", new JsonObject { ["runId"] = runB })["result"]!;
-            Assert.Empty(foreign["result"]!["evidence"]!.AsArray());
+            // As referências da Organização são as mesmas em todo projeto; arquivo de projeto nenhum responde aqui.
+            Assert.All(foreign["result"]!["evidence"]!.AsArray(),
+                e => Assert.StartsWith(Workflows.OrganizationReferences.Prefix, e!["filePath"]!.GetValue<string>()));
             Assert.DoesNotContain(token, foreign.ToJsonString());
             Assert.Equal(beforeSecond, second.Fingerprint());
         }
