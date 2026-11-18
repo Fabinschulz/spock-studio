@@ -75,6 +75,12 @@ def main() -> int:
             return 1
 
     print(f"\nRelatório completo em {report} (sem segredos). Resultado: {'passou' if code == 0 else 'falhou'}.")
+    evals = sorted(out.glob("management-eval-*.json"))
+    if evals:
+        # Gravar é decisão de quem leu o resultado: uma rodada ruim não pode virar a régua sem querer.
+        print("\nSe a rodada for aceita como linha de base das evals de gestão:")
+        for result in evals:
+            print(f"  python intelligence/evaluations/management.py baseline {result}")
     return 0 if code == 0 else 1
 
 

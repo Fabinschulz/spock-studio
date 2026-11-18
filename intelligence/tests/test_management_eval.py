@@ -5,6 +5,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import _paths  # noqa: F401
 from support_model import FakeModel
@@ -194,6 +195,104 @@ class ScoreFileTests(unittest.TestCase):
 
         self.assertNotIn("Desbloquear", report)
         self.assertNotIn("itens abertos", report)
+
+
+class BaselineTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._root = tempfile.TemporaryDirectory()
+        self.addCleanup(self._root.cleanup)
+        self.folder = Path(self._root.name)
+        patcher = mock.patch.object(evals, "_BASELINES", self.folder)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def _write(self, name: str, acks: dict) -> Path:
+        path = self.folder / name
+        path.write_text(json.dumps(acks, ensure_ascii=False), encoding="utf-8")
+        return path
+
+    def _main(self, *argv: str) -> tuple[int, str]:
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = evals.main(list(argv))
+        return code, out.getvalue() + err.getvalue()
+
+    def test_a_linha_de_base_guarda_so_numeros_e_ids_de_caso(self) -> None:
+        results = self._write("management-eval-openai.json", _reference_acks())
+
+        code, _output = self._main("baseline", str(results))
+
+        self.assertEqual(code, 0)
+        stored = json.loads((self.folder / "management-baseline-openai.json").read_text(encoding="utf-8"))
+        self.assertEqual(stored["provider"], "openai")
+        self.assertEqual(stored["dataset"], evals.dataset_digest())
+        self.assertEqual({case["id"] for case in stored["cases"]}, set(CASES))
+        text = json.dumps(stored, ensure_ascii=False)
+        self.assertNotIn("Desbloquear", text)
+        self.assertNotIn("itens abertos", text)
+        for case in DOCUMENT["cases"]:
+            self.assertNotIn(case["question"], text)
+
+    def test_rodada_com_caso_que_falhou_nao_vira_linha_de_base(self) -> None:
+        acks = _reference_acks()
+        acks.pop(next(iter(acks)))
+        results = self._write("management-eval-openai.json", acks)
+
+        code, output = self._main("baseline", str(results))
+
+        self.assertEqual(code, 1)
+        self.assertIn("rode de novo", output)
+        self.assertFalse((self.folder / "management-baseline-openai.json").exists())
+
+    def test_a_pontuacao_compara_com_a_linha_de_base_do_provedor_do_arquivo(self) -> None:
+        good = _reference_acks()
+        self._main("baseline", str(self._write("management-eval-anthropic.json", good)))
+        bad = copy.deepcopy(good)
+        for ack in bad.values():
+            ack["answer"]["summary"]["evidence"] = []
+
+        code_same, report_same = self._main("score", str(self._write("management-eval-anthropic.json", good)))
+        code_bad, report_bad = self._main("score", str(self._write("management-eval-anthropic.json", bad)))
+
+        self.assertEqual(code_same, 0)
+        self.assertIn("linha de base de anthropic", report_same)
+        self.assertNotIn("PIOROU", report_same)
+        self.assertEqual(code_bad, 1)
+        self.assertIn("PIOROU", report_bad)
+
+    def test_variacao_dentro_da_tolerancia_nao_e_regressao(self) -> None:
+        report = evals.score_dataset(DOCUMENT, _reference_acks())
+        baseline = evals.make_baseline(report, "openai", "2026-11-17", evals.dataset_digest())
+        lower = copy.deepcopy(report)
+        lower["means"]["grounding"] = round(report["means"]["grounding"] - evals.BASELINE_TOLERANCE / 2, 4)
+
+        comparison = evals.compare_to_baseline(lower, baseline, evals.dataset_digest())
+
+        self.assertTrue(comparison["applies"])
+        self.assertFalse(comparison["regressed"])
+
+    def test_linha_de_base_de_outro_dataset_nao_se_aplica(self) -> None:
+        report = evals.score_dataset(DOCUMENT, _reference_acks())
+        baseline = evals.make_baseline(report, "openai", "2026-11-17", "0" * 64)
+
+        comparison = evals.compare_to_baseline(report, baseline, evals.dataset_digest())
+
+        self.assertFalse(comparison["applies"])
+        self.assertFalse(comparison["regressed"])
+        self.assertIn("outro dataset", evals.format_comparison("openai", comparison))
+
+    def test_sem_linha_de_base_a_pontuacao_diz_como_gravar(self) -> None:
+        code, report = self._main("score", str(self._write("management-eval-openai.json", _reference_acks())))
+
+        self.assertEqual(code, 0)
+        self.assertIn("nenhuma ainda", report)
+
+    def test_provedor_invalido_ou_ausente_sai_com_dois(self) -> None:
+        results = self._write("acks.json", _reference_acks())
+
+        self.assertEqual(self._main("baseline", str(results))[0], 2)
+        self.assertEqual(self._main("baseline", str(results), "../fora")[0], 2)
+        self.assertFalse(any(self.folder.glob("management-baseline-*")))
 
 
 if __name__ == "__main__":
