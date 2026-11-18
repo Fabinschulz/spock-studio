@@ -348,6 +348,25 @@ internal sealed class HarnessComposition(
             reasons.Add("O hook de sessão foi dispensado: sai só o registro dele.");
         }
 
+        if (_components.Wants(Catalog.HookPrompt, report.Tools.Spock is not null,
+                "A cada prompt, avisa a IDE só quando o contexto mudou, uma fonte ficou velha ou o assunto pede uma ferramenta do Spock (spock context prompt).", [], LauncherMissing))
+        {
+            var (merged, error) = SettingsMerger.MergePrompt(text);
+            if (merged is null)
+                BlockComponent(Catalog.HookPrompt, LimitationCodes.HookBlocked, error ?? "settings.json não pôde ser mesclado.");
+            else
+            {
+                if (merged != text) reasons.Add("Registra o hook por prompt (spock context prompt).");
+                text = merged;
+                owner ??= Catalog.HookPrompt;
+            }
+        }
+        else if (_exclusion.Contains(Catalog.HookPrompt) && SettingsMerger.ReleasePrompt(text) is { } releasedPrompt)
+        {
+            text = releasedPrompt;
+            reasons.Add("O hook por prompt foi dispensado: sai só o registro dele.");
+        }
+
         if (owner is not null)
             _desired.Add(new(Catalog.PathSettings, ComponentKind.Hook, owner, DecisionOrigins.Baseline, string.Join(" ", reasons), text!, "merge"));
         else if (text is not null && text != current)

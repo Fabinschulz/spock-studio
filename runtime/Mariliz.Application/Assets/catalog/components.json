@@ -110,6 +110,14 @@
       "origin": "Escrito pelo Spock Studio; chama o lançador spock que o instalador põe no PATH."
     },
     {
+      "id": "mariliz.hook.prompt",
+      "whatItDoes": "A cada prompt no Claude Code, avisa a IDE só quando o contexto do projeto mudou no Spock desde o começo da sessão, quando uma fonte ficou velha ou quando o assunto (gestão, arquitetura, infraestrutura) pede uma ferramenta do Spock. No resto, não diz nada.",
+      "whenItActs": "Quando a pessoa envia um prompt no Claude Code. Sem modelo e sem busca: cada aviso sai uma vez por sessão.",
+      "reads": ["O que o Spock Studio já gravou sobre o projeto (versão do contexto e datas de sincronização) e o texto do prompt, que não é gravado"],
+      "canChange": ["Nada no projeto. Guarda, fora do repositório, o que já avisou a cada sessão; é registrado em .claude/settings.json e chama o comando spock."],
+      "origin": "Escrito pelo Spock Studio; chama o lançador spock que o instalador põe no PATH."
+    },
+    {
       "id": "mariliz.ide.claude-bootstrap",
       "whatItDoes": "Um bloco curto no CLAUDE.md que diz ao Claude Code como chegar ao contexto do Spock: o hook de sessão, a ferramenta spock_context_bootstrap e a busca no projeto.",
       "whenItActs": "Sempre que o Claude Code lê o CLAUDE.md do projeto.",

@@ -9,7 +9,7 @@ using Mariliz.Infrastructure;
 namespace Mariliz.Application.Tests;
 
 // C2: o Harness liga o Claude Code ao Spock pelo comando spock (DD-6): bloco no CLAUDE.md, servidor MCP no .mcp.json e hook
-// de início de sessão no .claude/settings.json, cada um só no trecho do Spock.
+// de início de sessão e por prompt no .claude/settings.json, cada um só no trecho do Spock.
 public sealed class ClaudeCodeAdapterTests : IDisposable
 {
     private readonly TempProject _project = TempProject.Dotnet();
@@ -39,7 +39,7 @@ public sealed class ClaudeCodeAdapterTests : IDisposable
         Assert.Equal(ChangeAction.Update, plan.Changes.Single(c => c.Path == Catalog.PathClaudeMd).Action);
         Assert.Equal(ChangeAction.Create, plan.Changes.Single(c => c.Path == Catalog.PathMcpJson).Action);
         Assert.DoesNotContain(plan.Limitations, l => l.Code == LimitationCodes.LauncherMissing);
-        foreach (var id in new[] { Catalog.IdeClaudeBootstrap, Catalog.IdeMcpServer, Catalog.HookSession })
+        foreach (var id in new[] { Catalog.IdeClaudeBootstrap, Catalog.IdeMcpServer, Catalog.HookSession, Catalog.HookPrompt })
             Assert.Equal(ComponentDecisions.Enable, plan.Decisions.Single(d => d.ComponentId == id).Decision);
 
         await journey.ApplyAsync(plan);
@@ -51,9 +51,11 @@ public sealed class ClaudeCodeAdapterTests : IDisposable
         Assert.Equal(["mcp", "--project-dir", "."], server["args"]!.AsArray().Select(a => a!.GetValue<string>()));
         var settings = Settings(_project);
         Assert.Equal(SettingsMerger.SessionCommand, settings["hooks"]!["SessionStart"]![0]!["hooks"]![0]!["command"]!.GetValue<string>());
+        Assert.Equal(SettingsMerger.PromptCommand, settings["hooks"]!["UserPromptSubmit"]![0]!["hooks"]![0]!["command"]!.GetValue<string>());
         Assert.NotNull(settings["hooks"]!["PreToolUse"]);
         var lockFile = ManagedLockFile.Read(new LocalProjectFiles(_project.Root))!;
         Assert.Contains(lockFile.Components, c => c.Id == Catalog.HookSession);
+        Assert.Contains(lockFile.Components, c => c.Id == Catalog.HookPrompt);
 
         var again = await journey.PlanAsync();
         Assert.All(again.Changes.Where(c => c.Path is Catalog.PathClaudeMd or Catalog.PathMcpJson or Catalog.PathSettings || c.Path == HarnessNaming.Spock.Lock),
@@ -73,9 +75,11 @@ public sealed class ClaudeCodeAdapterTests : IDisposable
         Assert.Contains(plan.Limitations, l => l.Code == LimitationCodes.LauncherMissing && l.Message.Contains("tela Agentes"));
         Assert.Equal(ComponentDecisions.Skip, plan.Decisions.Single(d => d.ComponentId == Catalog.IdeMcpServer).Decision);
         Assert.Equal(ComponentDecisions.Skip, plan.Decisions.Single(d => d.ComponentId == Catalog.HookSession).Decision);
+        Assert.Equal(ComponentDecisions.Skip, plan.Decisions.Single(d => d.ComponentId == Catalog.HookPrompt).Decision);
         Assert.Contains("<!-- spock:begin spock.bootstrap", _project.Read(Catalog.PathClaudeMd));
         Assert.False(_project.Exists(Catalog.PathMcpJson));
         Assert.Null(Settings(_project)["hooks"]!["SessionStart"]);
+        Assert.Null(Settings(_project)["hooks"]!["UserPromptSubmit"]);
     }
 
     // Numa máquina sem o lançador, o plano não apaga o que a equipe versionou para quem tem o Spock.
@@ -109,6 +113,26 @@ public sealed class ClaudeCodeAdapterTests : IDisposable
         Assert.Equal(TeamClaude, _project.Read(Catalog.PathClaudeMd));
         Assert.DoesNotContain(ManagedLockFile.Read(new LocalProjectFiles(_project.Root))!.ManagedFiles, f => f.Path == Catalog.PathClaudeMd);
         Assert.DoesNotContain((await journey.PlanAsync()).Changes, c => c.Path == Catalog.PathClaudeMd && c.Action != ChangeAction.Preserve);
+    }
+
+    // Quem acha o aviso por prompt demais dispensa só ele: o hook de sessão e o de política ficam.
+    [Fact]
+    public async Task Dispensar_o_hook_por_prompt_tira_so_o_registro_dele()
+    {
+        var journey = JourneyWith(launcher: true);
+        await journey.ApplyAsync(await journey.PlanAsync());
+
+        var plan = await journey.Service.PlanAsync(journey.ProjectId,
+            new PlanOptions("claude-code", ExcludeComponents: [Catalog.HookPrompt]), CancellationToken.None);
+        await journey.ApplyAsync(plan);
+
+        var settings = _project.Read(Catalog.PathSettings);
+        Assert.False(SettingsMerger.HasPrompt(settings));
+        Assert.True(SettingsMerger.HasSession(settings));
+        Assert.NotNull(Settings(_project)["hooks"]!["PreToolUse"]);
+        Assert.DoesNotContain(ManagedLockFile.Read(new LocalProjectFiles(_project.Root))!.Components, c => c.Id == Catalog.HookPrompt);
+        Assert.DoesNotContain((await journey.Service.PlanAsync(journey.ProjectId, new PlanOptions("claude-code"), CancellationToken.None)).Changes,
+            c => c.Path == Catalog.PathSettings && c.Action != ChangeAction.Preserve);
     }
 
     [Fact]
@@ -146,6 +170,26 @@ public sealed class ClaudeCodeAdapterTests : IDisposable
         Assert.Equal("meu-script", JsonNode.Parse(released)!["hooks"]!["SessionStart"]![0]!["hooks"]![0]!["command"]!.GetValue<string>());
         Assert.Null(SettingsMerger.ReleaseSession(released));
         Assert.Null(SettingsMerger.MergeSession("{ quebrado").Content);
+    }
+
+    [Fact]
+    public void Hook_por_prompt_entra_ao_lado_do_da_equipe_e_sai_sozinho()
+    {
+        const string current = """{ "hooks": { "UserPromptSubmit": [ { "hooks": [ { "type": "command", "command": "meu-filtro" } ] } ] } }""";
+
+        var (merged, error) = SettingsMerger.MergePrompt(current);
+        Assert.Null(error);
+        Assert.True(SettingsMerger.HasPrompt(merged));
+        Assert.False(SettingsMerger.HasSession(merged));
+        Assert.Equal(merged, SettingsMerger.MergePrompt(merged).Content);
+        var hooks = JsonNode.Parse(merged!)!["hooks"]!["UserPromptSubmit"]!.AsArray();
+        Assert.Equal("meu-filtro", hooks[0]!["hooks"]![0]!["command"]!.GetValue<string>());
+        Assert.Equal(5, hooks[1]!["hooks"]![0]!["timeout"]!.GetValue<int>());
+
+        var released = SettingsMerger.ReleasePrompt(merged)!;
+        Assert.False(SettingsMerger.HasPrompt(released));
+        Assert.Equal("meu-filtro", JsonNode.Parse(released)!["hooks"]!["UserPromptSubmit"]![0]!["hooks"]![0]!["command"]!.GetValue<string>());
+        Assert.Null(SettingsMerger.ReleasePrompt(released));
     }
 
     [Fact]

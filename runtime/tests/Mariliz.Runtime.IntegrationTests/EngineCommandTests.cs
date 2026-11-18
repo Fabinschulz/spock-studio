@@ -5,7 +5,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Runtime.IntegrationTests;
 
-// C2: o que o lançador spock repassa ao motor. O hook de sessão da IDE chama "context session"; um argumento que o motor não
+// C2: o que o lançador spock repassa ao motor. Os hooks da IDE chamam "context session" e "context prompt"; um argumento que o motor não
 // entende não pode virar um sidecar parado esperando o protocolo.
 public sealed class EngineCommandTests : IDisposable
 {
@@ -18,20 +18,26 @@ public sealed class EngineCommandTests : IDisposable
         Directory.Delete(_project, recursive: true);
     }
 
-    private async Task<(int Code, string Out, string Err)> Run(params string[] arguments)
+    private Task<(int Code, string Out, string Err)> Run(params string[] arguments) => RunWith(null, arguments);
+
+    // input é o JSON que a IDE manda na entrada do hook.
+    private async Task<(int Code, string Out, string Err)> RunWith(string? input, params string[] arguments)
     {
         var dll = Path.Combine(AppContext.BaseDirectory, "Mariliz.Runtime.dll");
         var psi = new ProcessStartInfo("dotnet")
         {
             RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,
-            StandardOutputEncoding = Encoding.UTF8, StandardErrorEncoding = Encoding.UTF8, UseShellExecute = false,
+            StandardInputEncoding = new UTF8Encoding(false), StandardOutputEncoding = Encoding.UTF8, StandardErrorEncoding = Encoding.UTF8, UseShellExecute = false,
             // Os testes não leem nem gravam os dados de verdade da pessoa.
             Environment = { ["MARILIZ_DATA_DIR"] = _data },
             WorkingDirectory = Path.GetTempPath()
         };
+        // Quem roda o teste dentro do Claude Code herdaria a pasta dele, que tem precedência sobre o cwd da entrada.
+        psi.Environment.Remove("CLAUDE_PROJECT_DIR");
         psi.ArgumentList.Add(dll);
         foreach (var argument in arguments) psi.ArgumentList.Add(argument);
         using var engine = Process.Start(psi)!;
+        if (input is not null) await engine.StandardInput.WriteAsync(input);
         engine.StandardInput.Close();
         var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60)).Token;
         var stdout = engine.StandardOutput.ReadToEndAsync(timeout);
@@ -70,6 +76,45 @@ public sealed class EngineCommandTests : IDisposable
         Assert.Contains("ide.bootstrap", trail);
         Assert.Contains(projectId, trail);
         Assert.Contains("ctx-", trail);
+    }
+
+    [Fact]
+    public async Task Hook_por_prompt_sugere_uma_vez_por_sessao_e_nao_grava_o_prompt()
+    {
+        File.WriteAllText(Path.Combine(_project, "spock.yaml"),
+            "schema: 1\nproject:\n  id: spk-01M7GTEK00ABCDEFGHJKMNPQRS\n  name: loja\nimplementationModel: mariliz\naiEnvironment: claude-code\n");
+        new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(_data)).Authorize(_project);
+        var cwd = System.Text.Json.JsonSerializer.Serialize(_project);
+        const string secret = "Como está o drift do Terraform da conta zebra-azul?";
+        var prompt = $$"""{"session_id":"s-1","hook_event_name":"UserPromptSubmit","cwd":{{cwd}},"prompt":"{{secret}}"}""";
+
+        var opened = await RunWith($$"""{"session_id":"s-1","hook_event_name":"SessionStart","cwd":{{cwd}}}""", "context", "session");
+        var first = await RunWith(prompt, "context", "prompt");
+        var again = await RunWith(prompt, "context", "prompt");
+        var noSession = await RunWith($$"""{"cwd":{{cwd}},"prompt":"{{secret}}"}""", "context", "prompt");
+
+        Assert.Equal(0, opened.Code);
+        Assert.StartsWith("# Contexto do projeto", opened.Out);
+        Assert.Equal(0, first.Code);
+        Assert.StartsWith("Spock:\n- Para infraestrutura", first.Out.ReplaceLineEndings("\n"));
+        Assert.Equal((0, ""), (again.Code, again.Out));
+        Assert.Equal((0, ""), (noSession.Code, noSession.Out));
+        var trail = string.Join("\n", Directory.EnumerateFiles(_data, "*", SearchOption.AllDirectories).Select(File.ReadAllText));
+        Assert.Contains("ide.prompt", trail);
+        Assert.Contains("hint:infrastructure", trail);
+        Assert.DoesNotContain("zebra-azul", trail);
+    }
+
+    [Fact]
+    public async Task Hook_por_prompt_fora_de_projeto_fica_em_silencio()
+    {
+        var input = $$"""{"session_id":"s-1","prompt":"terraform"}""";
+
+        var outside = await RunWith(input, "context", "prompt", "--project-dir", _project);
+        var budget = await RunWith(input, "context", "prompt", "--budget", "500");
+
+        Assert.Equal((0, ""), (outside.Code, outside.Out));
+        Assert.Equal(2, budget.Code);
     }
 
     [Fact]

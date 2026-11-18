@@ -17,6 +17,7 @@ public static class HarnessLabels
         [Catalog.RuleArchitecture] = "Documentos de arquitetura",
         [Catalog.HookPolicy] = "Hook de política",
         [Catalog.HookSession] = "Hook de início de sessão",
+        [Catalog.HookPrompt] = "Hook por prompt",
         [Catalog.IdeClaudeBootstrap] = "Bloco do Spock no CLAUDE.md",
         [Catalog.IdeMcpServer] = "Servidor MCP do Spock (.mcp.json)",
         [Catalog.SpecificationStructure] = "Estrutura de especificação",

@@ -37,7 +37,7 @@ if (args is [ContextHookEntry.Command, ..]) return ContextHookEntry.Run(args[1..
 // sidecar parado esperando o protocolo na entrada.
 if (args.Length > 0)
 {
-    Console.Error.WriteLine($"Argumento desconhecido: {args[0]}. Use: spock mcp --project-dir <pasta> | spock context session | spock version");
+    Console.Error.WriteLine($"Argumento desconhecido: {args[0]}. Use: spock mcp --project-dir <pasta> | spock context session | spock context prompt | spock version");
     return 2;
 }
 
