@@ -129,9 +129,21 @@ Harness com 11 componentes íntegros) com código 0 e registrou `ide.bootstrap`.
 `initialize`, listou as 12 ferramentas, e `spock_context_bootstrap` devolveu 4 itens sem omissões e registrou
 `ide.context_read`, com o mesmo `contextVersion` do hook. O Claude Code 2.1.326 reconheceu o servidor do `.mcp.json` como "Pending approval": na primeira
 sessão interativa a pessoa aprova o servidor do projeto uma vez, como para qualquer `.mcp.json`. Ficaram de fora: a resposta
-de um modelo numa sessão logada (o CLI fora do app não tinha login), o instalador de verdade (validado antes só como
-pacote) e o critério "`contextVersion` igual ao do lock", porque o lock não guarda a versão do contexto, que depende dos
-componentes do próprio lock e precisa ser redefinida.
+de um modelo numa sessão logada (o CLI fora do app não tinha login) e o instalador de verdade (validado antes só como
+pacote).
+
+**`contextVersion` e o lock (decidido pelo dono em 2026-11-18):** o lock não guarda a versão do contexto. A parte do
+Harness da versão (componentes com versão, ambiente, especificação, dispensados) já vem do lock e da declaração, e os
+arquivos que o Spock grava para a IDE (bloco, `.mcp.json`, hooks) não dependem de vínculos, políticas nem nomes de
+conexão. Guardar a versão faria cada mudança de vínculo deixar um plano só com o lock. O critério do cenário 1 passa a ser:
+
+- o `ide.bootstrap` do hook e o `ide.context_read` do MCP registram o mesmo `contextVersion`, o que a homologação acima
+  mostrou;
+- a versão muda quando uma aplicação muda o lock ou a declaração, ou quando um vínculo ou uma política muda;
+- ela não muda com sincronização, edição à mão ou replano vazio (`ContextEngineTests`).
+
+A versão volta a ser gravada nos arquivos projetados quando o bloco passar a citar conexões (C3 e C4), porque aí ela
+indica arquivo de IDE desatualizado.
 
 **Hook por prompt (2026-11-18):** feito como pede o §6 de `CONTEXT_PERSISTENCE_AND_ADAPTERS.md`, sem modelo e sem busca,
 por isso sem depender da intenção `development` (a anotação anterior estava errada). O componente `mariliz.hook.prompt`
@@ -203,7 +215,7 @@ Nada foi descartado. Nenhuma iniciativa P0 ou P1 anterior saiu do caminho.
 
 | # | Cenário | Entregas | Critério objetivo |
 | --- | --- | --- | --- |
-| 1 | Nova sessão no Claude Code | F1, F2, F3, C2 | Sessão nova recebe o bloco e o resumo do hook; `ide.bootstrap` registrado com `contextVersion` igual ao do lock |
+| 1 | Nova sessão no Claude Code | F1, F2, F3, C2 | Sessão nova recebe o bloco e o resumo do hook; `ide.bootstrap` e `ide.context_read` registrados com o mesmo `contextVersion`, que muda com o lock, a declaração, um vínculo ou uma política (redefinido em 2026-11-18; o lock não guarda a versão) |
 | 2 | Novo prompt sobre arquitetura | C2, D4, Q1 | A resposta cita trechos de `search_project`/`project_architecture` com caminho e `indexedAt`; vale também numa sessão nova sem histórico |
 | 3 | Consulta gerencial no Claude Code | E1 | Números iguais aos da tela, com id da métrica, fonte e `syncedAt` |
 | 4 | Nova sessão no Cursor | C3 | Contexto equivalente sem nenhum arquivo do Claude Code no projeto |

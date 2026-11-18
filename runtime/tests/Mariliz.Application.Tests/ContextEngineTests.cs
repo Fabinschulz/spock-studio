@@ -128,6 +128,28 @@ public sealed class ContextEngineTests : IDisposable
         Assert.NotEqual(before, afterPolicy);
     }
 
+    // Redefinição do cenário 1 (2026-11-18): o lock não guarda a versão, porque a parte do Harness dela vem do próprio lock. O que
+    // vale é a versão mudar quando uma aplicação muda o lock ou a declaração, e não com a edição à mão nem com um replano vazio.
+    [Fact]
+    public async Task A_versao_muda_com_o_lock_e_nao_com_a_edicao_a_mao_nem_com_replano_vazio()
+    {
+        await SeedAsync();
+        var before = Engine().Compose(_h.ProjectId, ContextIntents.Bootstrap).ContextVersion;
+        var journey = new Journey(_h.Project, Journey.FakeInstaller(_h.Project));
+
+        _h.Project.Write(HarnessNaming.Spock.HarnessContractSkill, _h.Project.Read(HarnessNaming.Spock.HarnessContractSkill) + "\nOutra nota.\n");
+        var afterEdit = Engine().Compose(_h.ProjectId, ContextIntents.Bootstrap).ContextVersion;
+        await journey.ApplyAsync(await journey.PlanAsync());
+        var afterEmptyReplan = Engine().Compose(_h.ProjectId, ContextIntents.Bootstrap).ContextVersion;
+        await journey.ApplyAsync(await journey.Service.PlanAsync(journey.ProjectId,
+            new PlanOptions("claude-code", ExcludeComponents: [Catalog.AgentVerifier]), CancellationToken.None));
+        var afterExclusion = Engine().Compose(_h.ProjectId, ContextIntents.Bootstrap).ContextVersion;
+
+        Assert.Equal(before, afterEdit);
+        Assert.Equal(before, afterEmptyReplan);
+        Assert.NotEqual(before, afterExclusion);
+    }
+
     [Fact]
     public void Sem_id_estavel_e_sem_fontes_o_pacote_avisa_em_vez_de_inventar()
     {

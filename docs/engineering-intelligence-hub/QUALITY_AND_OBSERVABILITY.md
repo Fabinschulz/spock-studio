@@ -10,7 +10,7 @@ Instalar o MCP não é prova de que a IDE recebe o contexto. A tela "Conexão co
 | Sinal | Fonte | Observável hoje? |
 | --- | --- | --- |
 | Arquivos de IDE presentes e íntegros | Lock + hash do bloco | Parcial (só arquivos do Claude Code) |
-| `contextVersion` gerado contra o canônico | Lock | Não |
+| `contextVersion` gerado contra o canônico | Trilha (`ide.bootstrap`, `ide.context_read`); o lock não guarda a versão (decisão de 2026-11-18) | Sim, pela trilha |
 | Projeto associado ao MCP | Resolução no motor | Não (sem registro de sessão) |
 | Última consulta da IDE, ferramenta, cliente declarado | `ide.context_read` em `audit.ndjson` | Sim, sem `list_projects` |
 | Bootstrap executado (hook ou ferramenta) e tokens gastos | Evento novo `ide.bootstrap` | Não |
