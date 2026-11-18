@@ -7,6 +7,7 @@ temporária; no terminal aparece só o resumo e, quando um gate falha, o fim do 
   python scripts/verify.py                    todos os gates
   python scripts/verify.py --only ui host     só os grupos pedidos (motor, inteligencia, ui, host)
   python scripts/verify.py --fail-fast        para no primeiro gate que falhar
+  python scripts/verify.py --repeat 3         roda os gates 3 vezes: um teste intermitente aparece numa das rodadas
   python scripts/verify.py --install-hook     instala um pre-push que roda este script
 """
 
@@ -106,8 +107,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--only", nargs="+", choices=GROUPS, help="grupos a rodar")
     parser.add_argument("--fail-fast", action="store_true", help="para no primeiro gate que falhar")
+    parser.add_argument("--repeat", type=int, default=1, metavar="N", help="roda os gates N vezes seguidas")
     parser.add_argument("--install-hook", action="store_true", help="instala um pre-push que roda este script")
     args = parser.parse_args()
+    if args.repeat < 1:
+        parser.error("--repeat precisa ser 1 ou mais")
 
     if args.install_hook:
         return install_hook()
@@ -120,26 +124,39 @@ def main() -> int:
             return 2
 
     logs = Path(tempfile.mkdtemp(prefix="spock-verify-"))
-    results: list[tuple[Gate, str, float, Path | None]] = []
-    for gate in selected:
-        print(f"... {gate.name}", flush=True)
-        status, seconds, log = run(gate, logs)
-        results.append((gate, status, seconds, log))
-        if status != "ok" and args.fail_fast:
+    # Uma lista por gate (pelo nome, que é único), uma entrada por rodada: o resumo diz em quais rodadas cada gate falhou.
+    results: dict[str, list[tuple[str, float, Path | None]]] = {}
+    stopped = False
+    for round_number in range(1, args.repeat + 1):
+        folder = logs / f"rodada-{round_number}" if args.repeat > 1 else logs
+        folder.mkdir(exist_ok=True)
+        for gate in selected:
+            print(f"... {gate.name}" + (f" (rodada {round_number} de {args.repeat})" if args.repeat > 1 else ""), flush=True)
+            outcome = run(gate, folder)
+            results.setdefault(gate.name, []).append(outcome)
+            if outcome[0] != "ok" and args.fail_fast:
+                stopped = True
+                break
+        if stopped:
             break
 
     print()
-    width = max(len(gate.name) for gate, *_ in results)
-    for gate, status, seconds, _ in results:
-        print(f"{gate.name.ljust(width)}  {status}  ({seconds:.0f} s)")
-    skipped = len(selected) - len(results)
-    if skipped:
-        print(f"{skipped} gate(s) não rodaram por causa do --fail-fast.")
+    width = max(len(name) for name in results)
+    for name, rounds in results.items():
+        seconds = sum(outcome[1] for outcome in rounds) / len(rounds)
+        bad = [number for number, outcome in enumerate(rounds, start=1) if outcome[0] != "ok"]
+        if args.repeat == 1:
+            status = rounds[0][0]
+        else:
+            status = f"ok em {len(rounds) - len(bad)} de {len(rounds)}" + (f", falhou na rodada {', '.join(map(str, bad))}" if bad else "")
+        print(f"{name.ljust(width)}  {status}  ({seconds:.0f} s)")
+    if stopped:
+        print("Parou no primeiro gate que falhou (--fail-fast).")
 
-    failed = [(gate, log) for gate, status, _, log in results if status != "ok"]
-    for gate, log in failed:
+    failed = [(name, log) for name, rounds in results.items() for status, _, log in rounds if status != "ok"]
+    for name, log in failed:
         if log is not None:
-            print(f"\n--- fim do log de {gate.name} ({log}) ---\n{tail(log)}")
+            print(f"\n--- fim do log de {name} ({log}) ---\n{tail(log)}")
     print(f"\nLogs em {logs}")
     return 1 if failed else 0
 

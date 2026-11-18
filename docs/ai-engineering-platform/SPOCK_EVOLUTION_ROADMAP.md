@@ -13,6 +13,7 @@
 | W0-1 contexto do RAG íntegro | Feita: corpo do trecho no prompt de planning, architecture, judge e prévia; memória da investigação com o corpo; aviso `INDEX_FILES_TRUNCATED`; reserva da entrada estimada no orçamento. Falta o aviso do corte de 24.000 caracteres feito no motor, que precisa de campo novo no contrato |
 | C-5 documentos desatualizados | Feita junto com o W0-1 |
 | W0-2 fonte única de tecnologias | Feita: `Discovery/Technologies.cs` com id, nome, categoria, família de regras, área e padrão da arquitetura; famílias de regra em `Harness/StackRuleProfiles.cs`; caminhos dos ativos em `Catalog.Asset`. Corrigiu o mapa de áreas do Python, que ignorava React, Next.js e Angular. O catálogo de componentes já tinha paridade testada com as fichas; a única duplicação ali eram os caminhos dos ativos |
+| W0-3 testes estáveis | Feita: o teste de servidor do Python falhava por RST do Windows ao recusar o token sem ler o corpo (corrigido, com teste que reproduz); testes de página da interface com limite de 15 s; `verify.py --repeat N`. As 3 falhas .NET do diagnóstico não se repetiram em 5 rodadas, uma delas sob carga |
 | C3 Cursor e Codex (roadmap do hub) | Feita (#139-#142) |
 | Demais | Não iniciadas |
 
