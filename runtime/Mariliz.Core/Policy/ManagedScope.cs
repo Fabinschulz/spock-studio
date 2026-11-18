@@ -11,7 +11,11 @@ public static class ManagedScope
         [".claude", .. HarnessNaming.All.Select(n => n.StateDirectory), SkillsLockDirectory, ".cursor", ".codex"];
 
     // Os arquivos de IDE dos adaptadores (C1): neles o Spock escreve só o trecho dele (ManagedRegion) ou arquivos próprios.
-    private static readonly string[] AllowedPrefixes = [".claude/", .. HarnessNaming.All.Select(n => n.StateDirectory + "/"), ".cursor/rules/"];
+    // A pasta .agents é do instalador da especificação, menos a skill que o Spock grava para o Codex e o Cursor (C3).
+    private static readonly string[] SpockAgentsSkills = [.. HarnessNaming.All.Select(n => n.AgentsHarnessContractDirectory + "/")];
+
+    private static readonly string[] AllowedPrefixes =
+        [".claude/", .. HarnessNaming.All.Select(n => n.StateDirectory + "/"), ".cursor/rules/", .. SpockAgentsSkills];
     private static readonly string[] AllowedFiles =
     [
         .. HarnessNaming.All.SelectMany(n => new[] { n.Declaration, n.Lock }),
@@ -56,5 +60,6 @@ public static class ManagedScope
         normalizedPath.Equals(SpecificationDirectory, StringComparison.Ordinal)
         || normalizedPath.StartsWith(SpecificationDirectory + "/", StringComparison.Ordinal)
         || normalizedPath.Equals(SkillsLockDirectory, StringComparison.Ordinal)
-        || normalizedPath.StartsWith(SkillsLockDirectory + "/", StringComparison.Ordinal);
+        || (normalizedPath.StartsWith(SkillsLockDirectory + "/", StringComparison.Ordinal)
+            && !SpockAgentsSkills.Any(p => normalizedPath.StartsWith(p, StringComparison.Ordinal)));
 }

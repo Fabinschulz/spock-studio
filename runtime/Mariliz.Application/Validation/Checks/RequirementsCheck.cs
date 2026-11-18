@@ -15,7 +15,7 @@ internal sealed class RequirementsCheck : IEvalCheck
     {
         if (ctx.Lock is null) return Block(spec, $"Sem {ctx.Naming.Lock}, não há configuração para comparar com os requisitos.");
         if (!ctx.ConfiguresClaudeCode)
-            return Pass(spec, ["Sem o Claude Code entre os ambientes"], ["As requisitos do Claude Code não se aplicam: o Spock grava só a ligação com a IDE nos outros ambientes."]);
+            return Pass(spec, ["Sem o Claude Code entre os ambientes"], ["Os requisitos do Claude Code não se aplicam: nos outros ambientes o Spock grava só a ligação com a IDE e a skill do contrato."]);
         var excluded = ctx.Declared?.Components.Exclude.ToHashSet(StringComparer.Ordinal) ?? [];
         var have = ctx.Lock.ManagedFiles.Select(f => f.Path).ToHashSet(StringComparer.Ordinal);
         var missing = new List<string>();

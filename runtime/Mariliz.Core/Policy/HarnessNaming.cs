@@ -42,6 +42,8 @@ public sealed class HarnessNaming
     public string CodeReviewerAgent => Agent(CodeReviewer);
     public string VerifierAgent => Agent(Verifier);
     public string HarnessContractSkill => $".claude/skills/{HarnessContract}/SKILL.md";
+    public string AgentsHarnessContractDirectory => $".agents/skills/{HarnessContract}";
+    public string AgentsHarnessContractSkill => AgentsHarnessContractDirectory + "/SKILL.md";
 
     private static string Agent(string name) => $".claude/agents/{name}.md";
 

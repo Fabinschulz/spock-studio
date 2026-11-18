@@ -34,6 +34,8 @@ public static class Catalog
     public const string IdeCursorRule = "mariliz.ide.cursor-rule";
     public const string IdeCursorMcp = "mariliz.ide.cursor-mcp";
     public const string HookCursorSession = "mariliz.hook.cursor-session";
+    // C3: a mesma skill do contrato em .agents/skills, a pasta que o Codex e o Cursor leem.
+    public const string SkillAgentsHarnessContract = "mariliz.skill.agents-harness-contract";
     public const string SpecificationStructure = "mariliz.specification.structure";
     public const string ConfigDeclaration = "mariliz.config.declaration";
     public const string CustomRulePrefix = "mariliz.rule.custom.";
@@ -61,6 +63,7 @@ public static class Catalog
         new(IdeCursorRule, ComponentKind.Rule, ComponentVersion, "Regra do Spock no Cursor"),
         new(IdeCursorMcp, ComponentKind.Tool, ComponentVersion, "Servidor MCP do Spock no Cursor"),
         new(HookCursorSession, ComponentKind.Hook, ComponentVersion, "Hook de início de sessão do Cursor"),
+        new(SkillAgentsHarnessContract, ComponentKind.Skill, ComponentVersion, "Contrato de evidência em .agents/skills"),
         // Externo: a versão real vem da instalação verificada (ver LockBuilder), não do catálogo.
         new(SpecificationStructure, ComponentKind.Specification, "", "Estrutura de especificação"),
         new(ConfigDeclaration, ComponentKind.Config, "0.1.1", "Declaração e lock")
@@ -92,6 +95,7 @@ public static class Catalog
         AgentCodeReviewer => [naming.CodeReviewerAgent],
         AgentVerifier => [naming.VerifierAgent],
         SkillHarnessContract => [naming.HarnessContractSkill],
+        SkillAgentsHarnessContract => [naming.AgentsHarnessContractSkill],
         RuleGeneral => [naming.RuleGeneral],
         RuleStackDotnet => [naming.RuleDotnet],
         RuleStackJavascript => [naming.RuleJavascript],

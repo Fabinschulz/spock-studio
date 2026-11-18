@@ -73,10 +73,11 @@ internal sealed class HarnessComposition(
             // O Harness Engineer é um agente do Claude Code: sem ele entre os ambientes, pedir a proposta dele não leva a nada.
             _limitations.RemoveAll(l => l.Code == LimitationCodes.HarnessEngineerNotInvoked);
             _limitations.Add(new(LimitationCodes.EnvironmentPartial,
-                "Sem o Claude Code entre os ambientes, o Spock grava por enquanto só a ligação com a IDE (bloco, MCP e hooks). Agentes, regras, skills, o hook de política e a estrutura de especificação ainda são só do Claude Code."));
+                "Sem o Claude Code entre os ambientes, o Spock grava por enquanto a ligação com a IDE (bloco, MCP e hooks) e a skill do contrato de evidência em .agents/skills. Agentes, regras, o hook de política e a estrutura de especificação ainda são só do Claude Code."));
         }
         if (environments.Contains(AiEnvironments.Codex)) AddCodexIntegration();
         if (environments.Contains(AiEnvironments.Cursor)) AddCursorIntegration();
+        AddAgentsSkills(environments);
 
         return new ComposeResult(environment, _proposalOrigin, _desired, _decisions, _commands, _limitations,
             [.. _observations, .. proposal.Proposal?.Observations ?? []],
@@ -474,6 +475,25 @@ internal sealed class HarnessComposition(
         else if (!_limitations.Any(l => l.Code == LimitationCodes.LauncherMissing))
             _limitations.Add(new(LimitationCodes.LauncherMissing,
                 LauncherMissing + " Até lá, o plano não grava o servidor MCP nem o hook; conecte a IDE pela tela Agentes."));
+    }
+
+    // C3: o Codex só lê skills em .agents/skills. O Cursor lê ali e também em .claude/skills, então com o Claude Code na
+    // lista ele já tem a skill, e uma segunda cópia apareceria duas vezes.
+    private void AddAgentsSkills(IReadOnlyCollection<string> environments)
+    {
+        var claude = environments.Contains(AiEnvironments.ClaudeCode);
+        var codex = environments.Contains(AiEnvironments.Codex);
+        if (!codex && !(environments.Contains(AiEnvironments.Cursor) && !claude)) return;
+
+        if (_components.Wants(Catalog.SkillAgentsHarnessContract, true,
+                "Contrato de evidência e confiança na pasta de skills que o Codex e o Cursor leem.", []))
+            _desired.Add(RuleContent.Asset(_naming, _naming.AgentsHarnessContractSkill, ComponentKind.Skill, Catalog.SkillAgentsHarnessContract,
+                "skills/harness-contract/SKILL.md", "Contrato de evidência em .agents/skills, para o Codex e o Cursor."));
+
+        if (codex && claude)
+            _observations.Add(new("fact",
+                $"A estrutura de especificação fica em {SpecificationManifest.SkillDirectory}, que o Codex não lê: o ciclo spec-driven continua só no Claude Code.",
+                [SpecificationManifest.SkillDirectory]));
     }
 
     private const string CursorMcpServer = """{"type":"stdio","command":"spock","args":["mcp","--project-dir","${workspaceFolder}"]}""";

@@ -570,6 +570,30 @@
     },
     {
       "sheet": {
+        "id": "mariliz.skill.agents-harness-contract",
+        "kind": "skill",
+        "title": "Skill do contrato de evidências (.agents/skills)",
+        "version": "0.1.0",
+        "whatItDoes": "A mesma skill do contrato de evidência em .agents/skills, a pasta de skills que o Codex e o Cursor leem: o que vale como prova, como classificar cada afirmação e a escala de confiança.",
+        "whenItActs": "Quando o agente do Codex ou do Cursor precisa declarar confiança, citar evidência ou resolver um conflito entre fontes.",
+        "reads": [
+          "Nenhum arquivo do projeto: é um texto de referência que os agentes leem"
+        ],
+        "canChange": [
+          "Nada. É só texto de orientação; o Spock grava só a pasta dele em .agents/skills, e o resto da pasta é da equipe ou do instalador."
+        ],
+        "tools": [],
+        "origin": "Adaptado dos padrões de github.com/Fabinschulz/harness-engineering (licença MIT).",
+        "files": [
+          ".agents/skills/spock-harness-contract/SKILL.md"
+        ],
+        "manageable": true
+      },
+      "presence": "not_applied",
+      "state": null
+    },
+    {
+      "sheet": {
         "id": "mariliz.specification.structure",
         "kind": "specification",
         "title": "Estrutura de especificação",

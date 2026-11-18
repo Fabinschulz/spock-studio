@@ -168,8 +168,8 @@ A **entrega 1 (Codex)** está feita, conferida contra a documentação oficial d
     É o mesmo formato do `.claude/settings.json`, e o Codex aceita o texto do hook na saída padrão, então os comandos são
     os mesmos.
 - **Codex como único ambiente:** o projeto recebe só essas peças, a declaração e o lock, sem nenhum arquivo do Claude
-  Code. O plano avisa (`ENVIRONMENT_PARTIAL`) que agentes, regras, skills, o hook de política e a especificação ainda são
-  só do Claude Code. As avaliações de regras e requisitos do Claude Code não se aplicam.
+  Code. O plano avisa (`ENVIRONMENT_PARTIAL`) que agentes, regras, o hook de política e a especificação ainda são só do
+  Claude Code (a skill do contrato chegou na entrega 3). As avaliações de regras e requisitos do Claude Code não se aplicam.
 - **Equipe com os dois:** quem usa os dois declara `aiEnvironments: [claude-code, codex]` no `spock.yaml`, e o Codex entra
   sem tocar no que o Claude Code já tem.
 - **Confiança:** o plano lembra que o Codex só lê `.codex/` em projeto confiável e que cada hook precisa ser revisto com
@@ -203,7 +203,22 @@ Homologado pelo lançador num projeto descartável, sem o Cursor instalado:
 - o hook respondeu em JSON com o contexto de abertura;
 - o MCP achou o projeto pelo caminho absoluto, subindo fora da pasta.
 
-Faltam o Codex e o Cursor de verdade, a escolha de vários ambientes na tela e a entrega 3.
+A **entrega 3 (skills)** está feita, conferida contra a documentação oficial do Codex e do Cursor de 2026-11-18:
+
+- **Onde as IDEs leem skills:**
+  - o Codex lê `.agents/skills/<nome>/SKILL.md` em cada pasta, da atual até a raiz do repositório;
+  - o Cursor lê `.agents/skills` e `.cursor/skills` e, por compatibilidade, também `.claude/skills`;
+  - nos dois, o frontmatter traz `name` e `description`, e no Cursor o `name` tem que ser igual ao nome da pasta.
+- **O componente novo:** `mariliz.skill.agents-harness-contract` grava a mesma skill do contrato de evidência em
+  `.agents/skills/spock-harness-contract/SKILL.md`.
+- **Quando entra:** quando o Codex está entre os ambientes, ou quando o Cursor está sem o Claude Code. Com o Claude Code e o
+  Cursor juntos, o Cursor já lê `.claude/skills`, e a segunda cópia apareceria duas vezes.
+- **Quem é dono de `.agents/`:** a pasta continua sendo do instalador da especificação (`.agents/.skill-lock.json`) e da
+  equipe. O escopo gerenciado abre só a pasta da skill do Spock.
+- **Especificação:** com o Claude Code e o Codex juntos, o plano registra que `.claude/skills/tlc-spec-driven`, que o Codex
+  não lê, continua só no Claude Code.
+
+Faltam o Codex e o Cursor de verdade e a escolha de vários ambientes na tela.
 
 Riscos do bloco: aprovação de servidor de projeto e projeto confiável são da pessoa (o SPOCK explica, não contorna);
 formatos mudam rápido (teste de conformidade por adaptador e revisão da matriz a cada entrega).
