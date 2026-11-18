@@ -10,7 +10,7 @@ from agents import investigation as agent
 from agents import prompts
 from contracts.investigation import MAX_SEARCHES, Fact, FactGroup, InvestigationRequest
 from knowledge import retrieval
-from knowledge.index import KnowledgeError, sync
+from knowledge.index import KnowledgeError, chunk_bodies, sync
 from workflows.engineering.budget import model_call
 from workflows.engineering.state import Segment, limit
 
@@ -162,12 +162,14 @@ def retrieve(state: dict, run: Run) -> dict:
                 sync(memory.root, run.request.project_id, memory.documents)
                 run.synced = True
             for query in queries:
-                for hit in retrieval.search(memory.root, run.request.project_id, query, MAX_HITS):
+                hits = retrieval.search(memory.root, run.request.project_id, query, MAX_HITS)
+                bodies = chunk_bodies(memory.root, run.request.project_id, [hit["chunkId"] for hit in hits])
+                for hit in hits:
                     if any(item["chunkId"] == hit["chunkId"] for item in retrieved):
                         continue
                     fact_id = f"memory.{len(retrieved) + 1}"
                     retrieved.append({"id": fact_id, "path": hit["filePath"], "chunkId": hit["chunkId"]})
-                    run.found[fact_id] = Fact(fact_id, MEMORY_GROUP, _memory_text(hit))
+                    run.found[fact_id] = Fact(fact_id, MEMORY_GROUP, _memory_text(hit, bodies.get(hit["chunkId"])))
                     added.append(fact_id)
         except KnowledgeError:
             limit(state, "INVESTIGATION_MEMORY_UNAVAILABLE", "A memória do projeto não pôde ser consultada.")
@@ -184,11 +186,12 @@ def retrieve(state: dict, run: Run) -> dict:
     return state
 
 
-def _memory_text(hit: dict) -> str:
+def _memory_text(hit: dict, body: str | None) -> str:
     """Um item sincronizado é escrito por terceiros: a natureza do documento vai dita no fato."""
     external = str(hit.get("filePath", "")).startswith(prompts.EXTERNAL_PREFIX)
     label = "item sincronizado, escrito por terceiros" if external else "decisão registrada pela equipe"
-    return f"Memória do projeto ({label}): {' '.join(str(hit.get('excerpt', '')).split())}"[:400]
+    text = body if body is not None else str(hit.get("excerpt", ""))
+    return f"Memória do projeto ({label}): {' '.join(text.split())}"[:400]
 
 
 def _asked(groups: list[str], searches: int) -> str:

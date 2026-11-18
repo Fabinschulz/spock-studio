@@ -23,7 +23,7 @@ public sealed record McpServerEntry(
 
 public sealed record McpInventory(string ProjectId, bool Present, bool Readable, IReadOnlyList<McpServerEntry> Servers);
 
-// Só leitura: o Spock Studio não grava .mcp.json, e nenhum valor de variável, argumento ou cabeçalho sai daqui.
+// Só leitura: a chave spock do .mcp.json é do Harness, por plano aprovado; este inventário não grava, e nenhum valor de variável, argumento ou cabeçalho sai daqui.
 public sealed partial class McpInventoryService(WorkspaceAuthorizer workspace, IProjectFilesFactory files)
 {
     public const string FileName = ".mcp.json";

@@ -30,6 +30,24 @@
 a homologação. O P0-2 avançou metade. A duplicação de composição deixou de ser cosmética. Por isso o roadmap deste estudo
 começa por eles.
 
+**Atualização de 2026-11-18** (`master` `0e00ecc`, conferida no código). A tabela acima é o retrato de `bea3302`; hoje:
+
+| Achado | Situação |
+| --- | --- |
+| P0-1 AssumeRole na IaC | Fechado (H0-4, #123): a credencial do papel chega pelo provedor (`IacOperationService.cs`, `AwsCredentials.cs`) |
+| P0-2 Teto de tokens | Fechado (H0-3, #122): o Python aceita 64k/120k e usa o teto que o motor envia |
+| P0-3 D-02 no build | Parcial: a via do MCP fechou com a composição comum (H0-2); o CI continua sem `SpockEdition` (H0-6) |
+| P1-1 ADRs | Propostas escritas: `docs/architecture/adr/` tem 0001 a 0009 |
+| P1-4 Jira sem `description` | Aberto |
+| P1-5 Arquitetura existente | Aberto (W2-2 do [roadmap da plataforma](../ai-engineering-platform/SPOCK_EVOLUTION_ROADMAP.md)) |
+| P1-6 Ambiente dos filhos | Fechado (H0-5, #121): `ChildEnvironment` filtra segredos para todo filho |
+| P1-6 MCP sem projeto | Fechado (H0-1, #120) |
+| P2-10 Composição duplicada | Fechado no efeito (H0-2, #120); a composição manual continua em vários pontos de entrada |
+| INT-22 Harness para Cursor/Codex | Fechado (C3, #139-#142) |
+| C-09 Ligar a IDE | Fechado: `.mcp.json` gerado pelo Harness (C2, #130) |
+
+Diagnóstico atual completo em [../ai-engineering-platform/SPOCK_CURRENT_STATE.md](../ai-engineering-platform/SPOCK_CURRENT_STATE.md).
+
 ## 2. Inventário: o que existe e como entra na nova arquitetura
 
 Legenda: **R** reutilizar como está; **A** ampliar; **N** novo; **C** corrigir antes.

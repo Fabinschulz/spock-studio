@@ -2,6 +2,23 @@
 
 > Parte do estudo [Engineering Intelligence Hub](README.md) (2026-11-16). Inventário lido em `master` `bea3302`.
 > "Existente" é o que o código faz hoje; "recomendado" é proposta. Nada foi implementado.
+>
+> **Atualização de 2026-11-18** (`master` `0e00ecc`): a §1 descreve o servidor de `bea3302`. Desde então mudou:
+>
+> | Aspecto ou problema | Hoje |
+> | --- | --- |
+> | Implementação e protocolo | SDK oficial `ModelContextProtocol.Core` 2.4.0, handlers de baixo nível, stdio ([ADR-0009](../architecture/adr/0009-sdk-oficial-do-mcp.md)) |
+> | Saída | `spock_context_bootstrap` com `structuredContent` e `outputSchema` (contrato em `contracts/schemas/mcp/`); as outras ferramentas seguem só em texto |
+> | Instruções do servidor | "Numa sessão nova, comece por `spock_context_bootstrap`" (`McpServer.cs`) |
+> | MCP-1 escopo | **Corrigido** (#120): sem `--project` ou `--project-dir` o servidor não sobe (`McpOptions.cs`) |
+> | MCP-2 composição | **Corrigido** (#120): `EngineComposition` comum ao sidecar e ao MCP |
+> | MCP-3 `iac_validate` | Aberto |
+> | MCP-4 cliente autodeclarado | Aberto |
+> | MCP-5 auditoria incompleta | Aberto (7 ferramentas sem registro) |
+> | MCP-6 só texto | Parcial: só o bootstrap é estruturado |
+> | MCP-7 configuração da IDE | **Corrigido**: o Harness grava a chave `spock` no `.mcp.json` (C2, #130) e projeta Cursor e Codex (C3, #139-#142) |
+>
+> Avaliação completa e atual em [../ai-engineering-platform/MCP_QUALITY_ASSESSMENT.md](../ai-engineering-platform/MCP_QUALITY_ASSESSMENT.md).
 
 ## 1. O servidor que existe
 

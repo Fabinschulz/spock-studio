@@ -10,6 +10,12 @@ from contracts.engineering import Rejected
 ATTEMPTS = 2
 INVALID = "MODEL_OUTPUT_INVALID"
 BUDGET = "MODEL_BUDGET_EXCEEDED"
+# Sem tokenizador aqui: três caracteres por token erra para cima em português e em código, que é o lado seguro.
+CHARS_PER_TOKEN = 3
+
+
+def input_estimate(messages: list[dict]) -> int:
+    return -(-sum(len(str(message.get("content", ""))) for message in messages) // CHARS_PER_TOKEN)
 
 
 class Model(Protocol):
@@ -47,8 +53,9 @@ def ask(
     outcome = Outcome()
     conversation = list(messages)
     for _ in range(ATTEMPTS):
-        # O motor também cobra, mas não chamar já economiza a ida e volta e deixa o código claro.
-        if not can_spend(outcome.tokens + max_tokens):
+        # O motor também cobra, mas não chamar já economiza a ida e volta e deixa o código claro. A entrada entra na
+        # reserva: sem ela, uma chamada com contexto grande passava na conferência e estourava o teto da execução.
+        if not can_spend(outcome.tokens + input_estimate(conversation) + max_tokens):
             outcome.code = BUDGET
             return outcome
         try:

@@ -13,7 +13,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-from knowledge.chunking import chunk, language_of
+from knowledge.chunking import MAX_CHUNKS, chunk, language_of
 
 SCHEMA_VERSION = 2
 _PROJECT_ID = re.compile(r"^p-[0-9a-f]{12}$")
@@ -82,9 +82,13 @@ def sync(index_root: str, project_id: str, sources: list) -> dict:
         documents = conn.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
         chunks = conn.execute("SELECT COUNT(*) FROM chunks").fetchone()[0]
         orphans = conn.execute("SELECT COUNT(*) FROM documents d WHERE NOT EXISTS (SELECT 1 FROM chunks c WHERE c.path = d.path)").fetchone()[0]
+        # O chunking para no teto de trechos por arquivo: quem chegou nele perdeu o fim, e isso precisa aparecer.
+        truncated = conn.execute(
+            "SELECT COUNT(*) FROM (SELECT path FROM chunks GROUP BY path HAVING COUNT(*) >= ?)", (MAX_CHUNKS,)
+        ).fetchone()[0]
     return {
         "updated": updated, "unchanged": unchanged, "removed": removed, "pending": pending,
-        "documents": documents, "chunks": chunks, "valid": not problems and orphans == 0,
+        "documents": documents, "chunks": chunks, "truncated": truncated, "valid": not problems and orphans == 0,
     }
 
 
