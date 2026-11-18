@@ -8,7 +8,7 @@ public static partial class ComponentRequest
 {
     // A estrutura de especificação e a declaração ficam de fora.
     public static bool IsManageable(string id) =>
-        Catalog.Find(id) is { Kind: ComponentKind.Agent or ComponentKind.Skill or ComponentKind.Rule or ComponentKind.Hook }
+        Catalog.Find(id) is { Kind: ComponentKind.Agent or ComponentKind.Skill or ComponentKind.Rule or ComponentKind.Hook or ComponentKind.Tool }
         || CustomRuleId().IsMatch(id);
 
     public static List<string> Effective(IReadOnlyList<string> declared, IReadOnlyList<string> exclude, IReadOnlyList<string> include)

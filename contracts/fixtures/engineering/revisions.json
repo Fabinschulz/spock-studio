@@ -155,6 +155,15 @@
           ],
           "updated": [],
           "removed": []
+        },
+        {
+          "id": "other",
+          "label": "Outros arquivos",
+          "created": [
+            "CLAUDE.md"
+          ],
+          "updated": [],
+          "removed": []
         }
       ]
     }

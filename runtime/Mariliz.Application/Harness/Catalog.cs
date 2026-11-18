@@ -17,6 +17,10 @@ public static class Catalog
     public const string RuleRepoCommands = "mariliz.rule.repo-commands";
     public const string RuleArchitecture = "mariliz.rule.architecture";
     public const string HookPolicy = "mariliz.hook.policy";
+    // C2: o que liga o Claude Code ao Spock. Ficam nos arquivos da equipe, só o trecho do Spock (ManagedRegion).
+    public const string HookSession = "mariliz.hook.session";
+    public const string IdeClaudeBootstrap = "mariliz.ide.claude-bootstrap";
+    public const string IdeMcpServer = "mariliz.ide.mcp";
     public const string SpecificationStructure = "mariliz.specification.structure";
     public const string ConfigDeclaration = "mariliz.config.declaration";
     public const string CustomRulePrefix = "mariliz.rule.custom.";
@@ -33,6 +37,9 @@ public static class Catalog
         new(RuleRepoCommands, ComponentKind.Rule, ComponentVersion, "Comandos do repositório"),
         new(RuleArchitecture, ComponentKind.Rule, ComponentVersion, "Documentos de arquitetura"),
         new(HookPolicy, ComponentKind.Hook, ComponentVersion, "Hook de política"),
+        new(HookSession, ComponentKind.Hook, ComponentVersion, "Hook de início de sessão"),
+        new(IdeClaudeBootstrap, ComponentKind.Rule, ComponentVersion, "Bloco do Spock no CLAUDE.md"),
+        new(IdeMcpServer, ComponentKind.Tool, ComponentVersion, "Servidor MCP do Spock"),
         // Externo: a versão real vem da instalação verificada (ver LockBuilder), não do catálogo.
         new(SpecificationStructure, ComponentKind.Specification, "", "Estrutura de especificação"),
         new(ConfigDeclaration, ComponentKind.Config, ComponentVersion, "Declaração e lock")
@@ -59,4 +66,6 @@ public static class Catalog
     public const string PathRuleArchitecture = ".claude/rules/mariliz-architecture.md";
     public const string PathHookScript = ".claude/hooks/mariliz-policy.py";
     public const string PathSettings = ".claude/settings.json";
+    public const string PathClaudeMd = "CLAUDE.md";
+    public const string PathMcpJson = ".mcp.json";
 }

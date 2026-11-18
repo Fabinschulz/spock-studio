@@ -66,6 +66,9 @@ public sealed class HarnessCatalogService(HarnessStatusService? status)
         [Catalog.RuleRepoCommands] = [Catalog.PathRuleRepo],
         [Catalog.RuleArchitecture] = [Catalog.PathRuleArchitecture],
         [Catalog.HookPolicy] = [Catalog.PathHookScript, Catalog.PathSettings],
+        [Catalog.HookSession] = [Catalog.PathSettings],
+        [Catalog.IdeClaudeBootstrap] = [Catalog.PathClaudeMd],
+        [Catalog.IdeMcpServer] = [Catalog.PathMcpJson],
         [Catalog.SpecificationStructure] = [".specs/"],
         [Catalog.ConfigDeclaration] = ["mariliz.yaml", "mariliz.lock"]
     };

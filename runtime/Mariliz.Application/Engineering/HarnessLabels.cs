@@ -16,6 +16,9 @@ public static class HarnessLabels
         [Catalog.RuleRepoCommands] = "Comandos do repositório",
         [Catalog.RuleArchitecture] = "Documentos de arquitetura",
         [Catalog.HookPolicy] = "Hook de política",
+        [Catalog.HookSession] = "Hook de início de sessão",
+        [Catalog.IdeClaudeBootstrap] = "Bloco do Spock no CLAUDE.md",
+        [Catalog.IdeMcpServer] = "Servidor MCP do Spock (.mcp.json)",
         [Catalog.SpecificationStructure] = "Estrutura de especificação",
         [Catalog.ConfigDeclaration] = "Declaração do projeto (mariliz.yaml)"
     };

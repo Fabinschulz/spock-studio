@@ -130,12 +130,12 @@ public sealed class ManagedRegionTests : IDisposable
     {
         foreach (var (path, mode, region, content) in new[]
                  {
-                     ("CLAUDE.md", ManagedRegion.Block, "spock.bootstrap", bootstrap),
+                     ("AGENTS.md", ManagedRegion.Block, "spock.bootstrap", bootstrap),
                      (".mcp.json", ManagedRegion.JsonKey, "mcpServers.spock", McpServer),
                      (".codex/config.toml", ManagedRegion.TomlTable, "mcp_servers.spock", CodexTable)
                  })
         {
-            var (file, problem) = ManagedRegion.Desired(files, path, mode, region, content, ComponentKind.Config, "spock.ide", DecisionOrigins.Baseline,
+            var (file, problem) = ManagedRegion.Desired(files, path, mode, region, content, ComponentKind.Config, "mariliz.ide.teste", DecisionOrigins.Baseline,
                 "Trecho do Spock para a IDE.");
             Assert.Null(problem);
             yield return file!;
@@ -171,24 +171,24 @@ public sealed class ManagedRegionTests : IDisposable
     {
         var journey = new Journey(_project, Journey.FakeInstaller(_project));
         await journey.ApplyAsync(await journey.PlanAsync());
-        _project.Write("CLAUDE.md", Claude);
+        _project.Write("AGENTS.md", Claude);
         _project.Write(".mcp.json", Mcp);
         _project.Write(".codex/config.toml", Codex);
 
         var (plan, composed) = await PlanWithRegions(journey);
-        Assert.All(plan.Changes.Where(c => c.ComponentId == "spock.ide"), change => Assert.Equal(ChangeAction.Update, change.Action));
+        Assert.All(plan.Changes.Where(c => c.ComponentId == "mariliz.ide.teste"), change => Assert.Equal(ChangeAction.Update, change.Action));
         var result = await Apply(journey, plan, composed);
 
         Assert.True(result["changesApplied"]!.GetValue<bool>(), result.ToJsonString());
-        Assert.StartsWith(Claude, _project.Read("CLAUDE.md"));
+        Assert.StartsWith(Claude, _project.Read("AGENTS.md"));
         Assert.StartsWith(Codex, _project.Read(".codex/config.toml"));
         Assert.Equal("outro-servidor", JsonNode.Parse(_project.Read(".mcp.json")!)!["mcpServers"]!["outro"]!["command"]!.GetValue<string>());
         var lockFile = ManagedLockFile.Read(new LocalProjectFiles(_project.Root))!;
-        var claude = lockFile.ManagedFiles.Single(f => f.Path == "CLAUDE.md");
+        var claude = lockFile.ManagedFiles.Single(f => f.Path == "AGENTS.md");
         Assert.Equal((ManagedRegion.Block, "spock.bootstrap", ManagedRegion.Hash(Bootstrap)), (claude.Mode, claude.Region, claude.Sha256));
 
         var (again, _) = await PlanWithRegions(journey);
-        Assert.All(again.Changes.Where(c => c.ComponentId == "spock.ide"), change => Assert.Equal(ChangeAction.Preserve, change.Action));
+        Assert.All(again.Changes.Where(c => c.ComponentId == "mariliz.ide.teste"), change => Assert.Equal(ChangeAction.Preserve, change.Action));
         Assert.DoesNotContain(again.Changes, change => change.Path == ManagedLockFile.FileName && change.Action != ChangeAction.Preserve);
         Assert.True(await journey.ValidateAsync() is var validation && validation["outcome"]!.GetValue<string>() != "failed", validation.ToJsonString());
     }
@@ -198,32 +198,32 @@ public sealed class ManagedRegionTests : IDisposable
     {
         var journey = new Journey(_project, Journey.FakeInstaller(_project));
         await journey.ApplyAsync(await journey.PlanAsync());
-        _project.Write("CLAUDE.md", Claude);
+        _project.Write("AGENTS.md", Claude);
         var (plan, composed) = await PlanWithRegions(journey);
         await Apply(journey, plan, composed);
 
         var workspace = new Workspace.WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
         string ClaudeState() => new Engineering.HarnessStatusService(workspace, new TestFilesFactory(), new SystemClock())
-            .Inspect(workspace.Authorize(_project.Root).Project!.ProjectId).Components.Single(c => c.Id == "spock.ide").Files.Single(f => f.Path == "CLAUDE.md").State;
+            .Inspect(workspace.Authorize(_project.Root).Project!.ProjectId).Components.Single(c => c.Id == "mariliz.ide.teste").Files.Single(f => f.Path == "AGENTS.md").State;
 
         // Fora do trecho: o plano nem olha, e o estado do Harness continua íntegro.
-        _project.Write("CLAUDE.md", _project.Read("CLAUDE.md") + "Nota nova da equipe.\r\n");
+        _project.Write("AGENTS.md", _project.Read("AGENTS.md") + "Nota nova da equipe.\r\n");
         var (outside, _) = await PlanWithRegions(journey);
-        Assert.Equal(ChangeAction.Preserve, outside.Changes.Single(c => c.Path == "CLAUDE.md").Action);
+        Assert.Equal(ChangeAction.Preserve, outside.Changes.Single(c => c.Path == "AGENTS.md").Action);
         Assert.Equal("intact", ClaudeState());
 
         // Dentro do trecho: conflito, com o porquê, e nada é gravado sem decisão.
-        _project.Write("CLAUDE.md", _project.Read("CLAUDE.md")!.Replace("no começo da sessão", "quando quiser"));
+        _project.Write("AGENTS.md", _project.Read("AGENTS.md")!.Replace("no começo da sessão", "quando quiser"));
         var (inside, _) = await PlanWithRegions(journey);
-        var conflict = inside.Changes.Single(c => c.Path == "CLAUDE.md");
+        var conflict = inside.Changes.Single(c => c.Path == "AGENTS.md");
         Assert.Equal(ChangeAction.Conflict, conflict.Action);
         Assert.Contains("editado depois da última aplicação", conflict.ConflictReason);
         Assert.Equal("modified", ClaudeState());
 
         // Um trecho novo do Spock (versão nova do texto) atualiza só o trecho, se ninguém mexeu nele.
-        _project.Write("CLAUDE.md", _project.Read("CLAUDE.md")!.Replace("quando quiser", "no começo da sessão"));
+        _project.Write("AGENTS.md", _project.Read("AGENTS.md")!.Replace("quando quiser", "no começo da sessão"));
         var (updated, _) = await PlanWithRegions(journey, "## Spock\nTexto novo do Spock.");
-        Assert.Equal(ChangeAction.Update, updated.Changes.Single(c => c.Path == "CLAUDE.md").Action);
+        Assert.Equal(ChangeAction.Update, updated.Changes.Single(c => c.Path == "AGENTS.md").Action);
     }
 }
 

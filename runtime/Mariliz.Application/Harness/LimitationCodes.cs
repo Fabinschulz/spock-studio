@@ -10,6 +10,8 @@ public static class LimitationCodes
     public const string ProposalIgnored = "PROPOSAL_IGNORED";
     public const string NoRuleProfile = "NO_RULE_PROFILE";
     public const string HookBlocked = "HOOK_BLOCKED";
+    public const string LauncherMissing = "LAUNCHER_MISSING";
+    public const string IdeRegionBlocked = "IDE_REGION_BLOCKED";
     public const string SpecificationBlocked = "SPECIFICATION_BLOCKED";
     public const string SpecificationNeedsReinstall = "SPECIFICATION_NEEDS_REINSTALL";
     public const string SpecificationUntested = "SPECIFICATION_UNTESTED_VERSION";

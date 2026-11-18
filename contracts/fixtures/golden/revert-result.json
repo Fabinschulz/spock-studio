@@ -7,6 +7,7 @@
   "reverted": [
     "create: mariliz.lock",
     "create: mariliz.yaml",
+    "create: CLAUDE.md",
     "create: .mariliz/schemas/harness-proposal.v1.schema.json",
     "create: .claude/skills/harness-contract/SKILL.md",
     "create: .claude/settings.json",

@@ -42,6 +42,37 @@ public static partial class ManagedRegion
         _ => throw new ArgumentException($"Modo sem região: {mode}.", nameof(mode))
     };
 
+    /// <returns>O arquivo sem o trecho (e sem a linha em branco que o separava); o resto fica como estava.</returns>
+    public static string Remove(string mode, string region, string text)
+    {
+        switch (mode)
+        {
+            case Block when FindBlock(region, Lines(text)) is { } block:
+                return Without(text, block.Begin, block.End);
+            case TomlTable when FindTable(region, Lines(text)) is { } table:
+                return Without(text, table.Begin, table.End);
+            case JsonKey:
+                var root = ParseObject(text);
+                JsonNode? node = root;
+                var parts = JsonPath(region);
+                foreach (var part in parts[..^1]) node = (node as JsonObject)?[part];
+                if (node is not JsonObject parent || !parent.Remove(parts[^1])) return text;
+                return root.ToJsonString(Indented).Replace("\r\n", "\n") + "\n";
+            case Block or TomlTable:
+                return text;
+            default:
+                throw new ArgumentException($"Modo sem região: {mode}.", nameof(mode));
+        }
+    }
+
+    private static string Without(string text, int start, int end)
+    {
+        var raw = text.Split('\n');
+        // A linha em branco que Append pôs antes do trecho sai junto.
+        if (start > 0 && raw[start - 1].TrimEnd('\r').Length == 0) start--;
+        return string.Join('\n', raw.Take(start).Concat(raw.Skip(end + 1)));
+    }
+
     // Para quem compõe o plano: o arquivo desejado é o que está no disco com o trecho do Spock no lugar.
     public static (DesiredFile? File, string? Problem) Desired(IProjectFiles files, string path, string mode, string region, string content,
         ComponentKind kind, string componentId, string origin, string reason)

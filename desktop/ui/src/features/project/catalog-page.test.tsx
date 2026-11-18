@@ -85,6 +85,7 @@ describe('Catálogo do Harness', () => {
       'Skills (instruções prontas)',
       'Regras',
       'Hooks (checagens automáticas)',
+      'Conexões com a IDE',
       'Ciclo de especificação',
       'Declaração do projeto',
       'O que o hook de política faz',
