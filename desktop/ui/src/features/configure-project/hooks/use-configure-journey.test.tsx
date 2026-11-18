@@ -73,12 +73,12 @@ describe('useConfigureJourney', () => {
 
     await act(() => hook.current.actions.discover());
     expect(hook.current.state.discovery.status).toBe('ready');
-    expect(hook.current.state.aiEnvironment).toBe('claude-code');
+    expect(hook.current.state.aiEnvironments).toEqual(['claude-code']);
 
     await act(() => hook.current.actions.generatePlan());
     expect(api.plan).toHaveBeenCalledWith({
       projectId: 'p-1',
-      aiEnvironment: 'claude-code',
+      aiEnvironments: ['claude-code'],
       allowSpecificationReinstall: false,
       updateSpecification: false
     });

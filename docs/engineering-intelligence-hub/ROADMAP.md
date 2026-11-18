@@ -218,7 +218,23 @@ A **entrega 3 (skills)** está feita, conferida contra a documentação oficial 
 - **Especificação:** com o Claude Code e o Codex juntos, o plano registra que `.claude/skills/tlc-spec-driven`, que o Codex
   não lê, continua só no Claude Code.
 
-Faltam o Codex e o Cursor de verdade e a escolha de vários ambientes na tela.
+A **escolha de vários ambientes na tela** também está feita:
+
+- **Tela:** a jornada Configurar marca as IDEs com caixas de seleção. O ponto de partida é a declaração; sem ela, as IDEs
+  detectadas com evidência forte (um `AGENTS.md` sozinho não marca o Codex).
+- **Pedido do plano:** `harness.plan` aceita `aiEnvironments`, e a leitura do projeto devolve `declaredAiEnvironments`.
+- **Declaração:**
+  - num projeto novo, a lista vai para `aiEnvironments`, com o principal em `aiEnvironment`;
+  - num projeto configurado, a troca vira uma edição pontual do `spock.yaml`, aprovada no plano como as outras, e o
+    resto do arquivo fica igual;
+  - a declaração deixa de gravar `primaryEnvironment` e `environments`, que são cópias calculadas, e a edição tira essas
+    chaves de arquivos antigos.
+- **IDE que sai da lista:** o plano dispensa as peças que o Spock gravou para ela. O que é da equipe fica. Vale também
+  para a lista editada à mão.
+- **O Claude Code não sai** de um projeto configurado, porque levaria agentes, regras e a estrutura de especificação. O
+  plano registra `ENVIRONMENT_REMOVAL_UNSUPPORTED`, e a tela deixa a caixa travada.
+
+Faltam o Codex e o Cursor de verdade.
 
 Riscos do bloco: aprovação de servidor de projeto e projeto confiável são da pessoa (o SPOCK explica, não contorna);
 formatos mudam rápido (teste de conformidade por adaptador e revisão da matriz a cada entrega).

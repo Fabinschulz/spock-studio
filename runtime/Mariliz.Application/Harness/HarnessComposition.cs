@@ -34,6 +34,7 @@ internal sealed class HarnessComposition(
     private ComponentSelector _components = null!;
     private readonly ArchitectureDocuments _architecture = ArchitectureDocuments.Read(files);
     private List<string> _exclusion = [];
+    private HashSet<string> _retired = [];
 
     public ComposeResult Build()
     {
@@ -41,22 +42,25 @@ internal sealed class HarnessComposition(
         NoteDetectedFacts();
         NoteRepositoryRisks();
 
-        var environment = ResolveEnvironment();
+        var requested = RequestedEnvironments();
+        var environment = ResolveEnvironment(requested);
         if (environment is null)
         {
             _limitations.Add(new(LimitationCodes.EnvironmentNotSelected, "Selecione o ambiente de IA do projeto para planejar a configuração."));
             return new ComposeResult("", _proposalOrigin, [], _decisions, [], _limitations, _observations, _risks);
         }
+        if (requested is not null) requested = [environment, .. requested.Where(e => e != environment)];
 
         _exclusion = ComponentRequest.Effective(declared?.Components.Exclude ?? [], options.ExcludeComponents ?? [], options.IncludeComponents ?? []);
-        AddDeclarationOnce(environment);
+        AddDeclarationOnce(environment, requested);
 
-        if (!AiEnvironments.Supported.Contains(environment))
-            return BlockUnsupportedEnvironment(environment);
+        if ((requested ?? [environment]).FirstOrDefault(e => !AiEnvironments.Supported.Contains(e)) is { } unsupported)
+            return BlockUnsupportedEnvironment(unsupported);
 
-        AddDeclarationEdit();
+        var environments = AddDeclarationEdit(requested) ?? requested ?? (declared?.Environments is { Count: > 0 } listed ? listed : [environment]);
+        environment = environments[0];
+        _retired = RetiredComponents(environments);
         _components = CreateComponentSelector();
-        var environments = declared?.Environments is { Count: > 0 } listed ? listed : [environment];
         if (environments.Contains(AiEnvironments.ClaudeCode))
         {
             AddCoreComponents();
@@ -75,8 +79,9 @@ internal sealed class HarnessComposition(
             _limitations.Add(new(LimitationCodes.EnvironmentPartial,
                 "Sem o Claude Code entre os ambientes, o Spock grava por enquanto a ligação com a IDE (bloco, MCP e hooks) e a skill do contrato de evidência em .agents/skills. Agentes, regras, o hook de política e a estrutura de especificação ainda são só do Claude Code."));
         }
-        if (environments.Contains(AiEnvironments.Codex)) AddCodexIntegration();
-        if (environments.Contains(AiEnvironments.Cursor)) AddCursorIntegration();
+        // Uma IDE que saiu da lista passa pelo mesmo caminho: as peças dela são dispensadas e saem como numa dispensa.
+        if (environments.Contains(AiEnvironments.Codex) || Retiring(AiEnvironments.Codex)) AddCodexIntegration(environments.Contains(AiEnvironments.Codex));
+        if (environments.Contains(AiEnvironments.Cursor) || Retiring(AiEnvironments.Cursor)) AddCursorIntegration(environments.Contains(AiEnvironments.Cursor));
         AddAgentsSkills(environments);
 
         return new ComposeResult(environment, _proposalOrigin, _desired, _decisions, _commands, _limitations,
@@ -84,12 +89,52 @@ internal sealed class HarnessComposition(
             [.. _risks, .. proposal.Proposal?.Risks ?? []]);
     }
 
-    private string? ResolveEnvironment()
+    // Nulo quando a tela não pediu uma lista ou pediu a mesma da declaração. O Claude Code não sai por aqui: a saída dele
+    // levaria agentes, regras e a estrutura de especificação, o que ainda não tem caminho seguro.
+    private IReadOnlyList<string>? RequestedEnvironments()
     {
-        if (!string.IsNullOrWhiteSpace(declared?.PrimaryEnvironment)) return declared!.PrimaryEnvironment;
+        if (options.AiEnvironments is not { Count: > 0 } requested) return null;
+        if (declared?.Environments is not { Count: > 0 } current) return requested;
+        if (current.Contains(AiEnvironments.ClaudeCode) && !requested.Contains(AiEnvironments.ClaudeCode))
+        {
+            _limitations.Add(new(LimitationCodes.EnvironmentRemovalUnsupported,
+                "O Claude Code continua entre os ambientes: tirá-lo de um projeto já configurado ainda não é feito pelo plano. Dispense os componentes dele na tela Projeto, se quiser."));
+            requested = [AiEnvironments.ClaudeCode, .. requested];
+        }
+        return requested.ToHashSet(StringComparer.Ordinal).SetEquals(current) ? null : requested;
+    }
+
+    // O principal da declaração continua principal enquanto estiver na lista.
+    private string? ResolveEnvironment(IReadOnlyList<string>? requested)
+    {
+        if (!string.IsNullOrWhiteSpace(declared?.PrimaryEnvironment))
+            return requested is null || requested.Contains(declared!.PrimaryEnvironment) ? declared!.PrimaryEnvironment : requested[0];
+        if (requested is not null) return requested[0];
         if (!string.IsNullOrWhiteSpace(options.AiEnvironment)) return options.AiEnvironment;
         return report.AiEnvironments.Count == 1 ? report.AiEnvironments[0].Id : null;
     }
+
+    private static readonly (string Environment, string[] Components)[] IdeComponents =
+    [
+        (AiEnvironments.Codex, [Catalog.IdeCodexBootstrap, Catalog.IdeCodexMcp, Catalog.HookCodexSession, Catalog.HookCodexPrompt]),
+        (AiEnvironments.Cursor, [Catalog.IdeCursorRule, Catalog.IdeCursorMcp, Catalog.HookCursorSession])
+    ];
+
+    // Peças que o Spock gravou para uma IDE que não está mais entre os ambientes.
+    private HashSet<string> RetiredComponents(IReadOnlyCollection<string> environments)
+    {
+        var managed = (ManagedLockFile.Read(files)?.Components.Select(c => c.Id) ?? []).ToHashSet(StringComparer.Ordinal);
+        var retired = IdeComponents.Where(ide => !environments.Contains(ide.Environment))
+            .SelectMany(ide => ide.Components).Where(managed.Contains).ToHashSet(StringComparer.Ordinal);
+        if (!AgentsSkillApplies(environments) && managed.Contains(Catalog.SkillAgentsHarnessContract))
+            retired.Add(Catalog.SkillAgentsHarnessContract);
+        return retired;
+    }
+
+    private bool Retiring(string environment) => IdeComponents.Single(ide => ide.Environment == environment).Components.Any(_retired.Contains);
+
+    // A dispensa pedida e a saída da IDE tiram o que o Spock gravou do mesmo jeito.
+    private bool Releasing(string id) => _exclusion.Contains(id) || _retired.Contains(id);
 
     private void NoteProposalStatus()
     {
@@ -128,11 +173,15 @@ internal sealed class HarnessComposition(
     }
 
     // A declaração é criada uma vez; depois é da pessoa.
-    private void AddDeclarationOnce(string environment)
+    private void AddDeclarationOnce(string environment, IReadOnlyList<string>? requested)
     {
         if (declared is not null || files.FileExists(_naming.Declaration)) return;
 
-        var config = new DeclaredConfig { Project = { Id = options.StableId, Name = report.ProjectName }, AiEnvironment = environment, Components = { Exclude = [.. _exclusion] } };
+        var config = new DeclaredConfig
+        {
+            Project = { Id = options.StableId, Name = report.ProjectName }, AiEnvironment = environment,
+            AiEnvironments = requested is { Count: > 1 } ? [.. requested] : null, Components = { Exclude = [.. _exclusion] }
+        };
         _desired.Add(new(_naming.Declaration, ComponentKind.Config, Catalog.ConfigDeclaration, DecisionOrigins.Baseline,
             "Declaração do projeto: ambiente de IA e método. É seu depois de criado; a aplicação só a lê.", config.ToYaml(), "file"));
     }
@@ -149,13 +198,31 @@ internal sealed class HarnessComposition(
         return new ComposeResult(environment, _proposalOrigin, _desired, _decisions, [], _limitations, _observations, _risks);
     }
 
-    // Edições pontuais, cada uma só com o plano aprovado: o pedido feito na tela em components.exclude e, uma vez, o
-    // project.id (F1). As duas saem no mesmo arquivo desejado.
-    private void AddDeclarationEdit()
+    // Edições pontuais, cada uma só com o plano aprovado: os pedidos feitos na tela (components.exclude e a lista de
+    // ambientes) e, uma vez, o project.id (F1). Saem todas no mesmo arquivo desejado. Devolve os ambientes que valem,
+    // ou nulo quando a lista não muda.
+    private IReadOnlyList<string>? AddDeclarationEdit(IReadOnlyList<string>? requested)
     {
         var text = declared is null ? null : files.ReadText(_naming.Declaration);
-        if (text is null) return;
+        if (text is null) return null;
         var reasons = new List<string>();
+        IReadOnlyList<string>? environments = null;
+
+        if (requested is not null)
+        {
+            if (DeclarationEditor.WithEnvironments(text, requested) is { } withEnvironments)
+            {
+                text = withEnvironments;
+                environments = requested;
+                reasons.Add($"Grava os ambientes de IA escolhidos ({string.Join(", ", requested)}).");
+            }
+            else
+            {
+                _limitations.Add(new(LimitationCodes.DeclarationNotEditable,
+                    $"A troca de ambientes não entrou no plano: aiEnvironment e aiEnvironments de {_naming.Declaration} não estão num formato que a aplicação edite com segurança. Edite a lista à mão e planeje de novo."));
+                environments = declared!.Environments;
+            }
+        }
 
         if (string.IsNullOrEmpty(declared!.Project?.Id) && options.StableId is { } stableId)
         {
@@ -187,9 +254,10 @@ internal sealed class HarnessComposition(
             }
         }
 
-        if (reasons.Count == 0) return;
-        _desired.Add(new(_naming.Declaration, ComponentKind.Config, Catalog.ConfigDeclaration, DecisionOrigins.Declared,
-            string.Join(" ", reasons) + " O restante do arquivo fica como está.", text, "file"));
+        if (reasons.Count > 0)
+            _desired.Add(new(_naming.Declaration, ComponentKind.Config, Catalog.ConfigDeclaration, DecisionOrigins.Declared,
+                string.Join(" ", reasons) + " O restante do arquivo fica como está.", text, "file"));
+        return environments;
     }
 
     private ComponentSelector CreateComponentSelector()
@@ -198,7 +266,7 @@ internal sealed class HarnessComposition(
         var requested = excluded.Except(declared?.Components.Exclude ?? [], StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
         var proposed = proposal.Proposal?.Decisions.ToDictionary(d => d.Id, StringComparer.Ordinal) ?? [];
         var managed = (ManagedLockFile.Read(files)?.Components.Select(c => c.Id) ?? []).ToHashSet(StringComparer.Ordinal);
-        return new ComponentSelector(excluded, requested, proposed, managed, _decisions, _limitations, _naming.Declaration);
+        return new ComponentSelector(excluded, requested, proposed, managed, _retired, _decisions, _limitations, _naming.Declaration);
     }
 
     private void AddCoreComponents()
@@ -368,7 +436,7 @@ internal sealed class HarnessComposition(
                 owner ??= sessionId;
             }
         }
-        else if (_exclusion.Contains(sessionId) && SettingsMerger.ReleaseSession(text) is { } released)
+        else if (Releasing(sessionId) && SettingsMerger.ReleaseSession(text) is { } released)
         {
             text = released;
             reasons.Add("O hook de sessão foi dispensado: sai só o registro dele.");
@@ -387,7 +455,7 @@ internal sealed class HarnessComposition(
                 owner ??= promptId;
             }
         }
-        else if (_exclusion.Contains(promptId) && SettingsMerger.ReleasePrompt(text) is { } releasedPrompt)
+        else if (Releasing(promptId) && SettingsMerger.ReleasePrompt(text) is { } releasedPrompt)
         {
             text = releasedPrompt;
             reasons.Add("O hook por prompt foi dispensado: sai só o registro dele.");
@@ -414,7 +482,8 @@ internal sealed class HarnessComposition(
 
     // C3: o que liga o Codex ao Spock. O mesmo bloco no AGENTS.md, o servidor no .codex/config.toml e os hooks no
     // .codex/hooks.json, que tem o formato do .claude/settings.json e aceita o texto do hook na saída padrão.
-    private void AddCodexIntegration()
+    // Sem `active`, o Codex saiu da lista: as peças dele são dispensadas, sem os avisos de quem vai usá-lo.
+    private void AddCodexIntegration(bool active)
     {
         var launcher = report.Tools.Spock is not null;
         AddRegion(Catalog.IdeCodexBootstrap, true, "Diz ao Codex como chegar ao contexto do Spock: hook de sessão, MCP e busca.", null,
@@ -434,6 +503,7 @@ internal sealed class HarnessComposition(
         else if (text is not null && text != current)
             _desired.Add(new(Catalog.PathCodexHooks, ComponentKind.Hook, Catalog.HookCodexSession, DecisionOrigins.Declared, string.Join(" ", reasons), text, "release"));
 
+        if (!active) return;
         if (launcher)
             _risks.Add("O Codex só lê .codex/config.toml e .codex/hooks.json em projeto confiável, e cada hook novo ou alterado só roda depois de revisto com /hooks no Codex. Confiar no projeto e nos hooks é com a pessoa.");
         else if (!_limitations.Any(l => l.Code == LimitationCodes.LauncherMissing))
@@ -443,7 +513,7 @@ internal sealed class HarnessComposition(
 
     // C3: o que liga o Cursor ao Spock. A regra é um arquivo do Spock (alwaysApply), o servidor fica numa chave do
     // .cursor/mcp.json e o hook de sessão no .cursor/hooks.json, que tem formato próprio e lê o contexto de um JSON.
-    private void AddCursorIntegration()
+    private void AddCursorIntegration(bool active)
     {
         var launcher = report.Tools.Spock is not null;
         if (_components.Wants(Catalog.IdeCursorRule, true, "Diz ao Cursor como chegar ao contexto do Spock: hook de sessão, MCP e busca.", []))
@@ -464,10 +534,11 @@ internal sealed class HarnessComposition(
                 _desired.Add(new(Catalog.PathCursorHooks, ComponentKind.Hook, Catalog.HookCursorSession, DecisionOrigins.Baseline,
                     "Registra o hook de início de sessão (spock context session --ide cursor); o restante do arquivo é preservado.", merged, "merge"));
         }
-        else if (_exclusion.Contains(Catalog.HookCursorSession) && CursorHooksMerger.ReleaseSession(current) is { } released)
+        else if (Releasing(Catalog.HookCursorSession) && CursorHooksMerger.ReleaseSession(current) is { } released)
             _desired.Add(new(Catalog.PathCursorHooks, ComponentKind.Hook, Catalog.HookCursorSession, DecisionOrigins.Declared,
                 "O hook de sessão foi dispensado: sai só o registro dele.", released, "release"));
 
+        if (!active) return;
         _limitations.Add(new(LimitationCodes.PromptHookUnavailable,
             "O Cursor não tem hook por prompt que injete contexto: se o contexto mudar no meio da sessão, o aviso chega só quando o agente chamar spock_context_bootstrap pelo MCP."));
         if (launcher)
@@ -479,11 +550,20 @@ internal sealed class HarnessComposition(
 
     // C3: o Codex só lê skills em .agents/skills. O Cursor lê ali e também em .claude/skills, então com o Claude Code na
     // lista ele já tem a skill, e uma segunda cópia apareceria duas vezes.
+    private static bool AgentsSkillApplies(IReadOnlyCollection<string> environments) =>
+        environments.Contains(AiEnvironments.Codex)
+        || (environments.Contains(AiEnvironments.Cursor) && !environments.Contains(AiEnvironments.ClaudeCode));
+
     private void AddAgentsSkills(IReadOnlyCollection<string> environments)
     {
         var claude = environments.Contains(AiEnvironments.ClaudeCode);
         var codex = environments.Contains(AiEnvironments.Codex);
-        if (!codex && !(environments.Contains(AiEnvironments.Cursor) && !claude)) return;
+        if (!AgentsSkillApplies(environments))
+        {
+            // Registrada como dispensada para o arquivo sair pelo plano.
+            if (_retired.Contains(Catalog.SkillAgentsHarnessContract)) _components.Wants(Catalog.SkillAgentsHarnessContract, false, "", []);
+            return;
+        }
 
         if (_components.Wants(Catalog.SkillAgentsHarnessContract, true,
                 "Contrato de evidência e confiança na pasta de skills que o Codex e o Cursor leem.", []))
@@ -538,7 +618,7 @@ internal sealed class HarnessComposition(
         if (!_components.Wants(id, applicable, baselineReason, [], notApplicableReason))
         {
             // Só a dispensa pedida tira o trecho; não se aplicar nesta máquina (sem o lançador) não apaga o que a equipe versiona.
-            if (_exclusion.Contains(id)) ReleaseRegion(id, kind, path, mode, region);
+            if (Releasing(id)) ReleaseRegion(id, kind, path, mode, region);
             return;
         }
         var (file, problem) = ManagedRegion.Desired(files, path, mode, region, content, kind, id, DecisionOrigins.Baseline, reason);

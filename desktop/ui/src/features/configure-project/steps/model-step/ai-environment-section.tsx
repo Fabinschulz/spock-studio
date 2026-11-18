@@ -1,48 +1,53 @@
-import { Radio } from '@/shared/components';
+import { CheckboxOption } from '@/shared/components';
 import type { Discovery } from '@/shared/schema';
 
 import { EnvironmentGlyph } from '../../components/environment-glyph';
 import {
   AI_ENVIRONMENTS,
   aiEnvironmentNames,
+  isLockedEnvironment,
   isSupportedEnvironment,
   partialEnvironmentNote
 } from '../../domain/ai-environments';
 import styles from './model.module.scss';
 
 interface AiEnvironmentSectionProps {
-  detected: Discovery['aiEnvironments'];
-  selected: string | null;
-  onSelect: (id: string) => void;
+  discovery: Discovery;
+  selected: readonly string[];
+  onToggle: (id: string) => void;
 }
 
-export function AiEnvironmentSection({ detected, selected, onSelect }: AiEnvironmentSectionProps) {
-  const detectedIds = new Set(detected.map((environment) => environment.id));
+export function AiEnvironmentSection({ discovery, selected, onToggle }: AiEnvironmentSectionProps) {
+  const detectedIds = new Set(discovery.aiEnvironments.map((environment) => environment.id));
+  const declared = new Set(discovery.declaredAiEnvironments);
+  const leaving = discovery.declaredAiEnvironments.filter((id) => !selected.includes(id));
 
   return (
     <section aria-labelledby="ambiente-titulo" className={styles.section}>
       <h3 id="ambiente-titulo" className={styles.title}>
-        Ambiente de IA
+        Ambientes de IA
       </h3>
       <fieldset className={styles.fieldset}>
-        <legend className="visually-hidden">Ambiente de IA do projeto</legend>
+        <legend className="visually-hidden">Ambientes de IA do projeto</legend>
         <p className={styles.note}>
-          Escolha o ambiente em que você trabalha. Ele define onde agentes, skills, hooks e regras serão escritos.
+          Marque as IDEs que a equipe usa. Cada uma recebe só as peças dela, e a lista fica em spock.yaml.
         </p>
         <ul role="list" className={styles.rows}>
           {AI_ENVIRONMENTS.map((id) => {
             const supported = isSupportedEnvironment(id);
+            const locked = isLockedEnvironment(discovery, id);
             const tags = [
-              detectedIds.has(id) ? 'detectado' : '',
+              declared.has(id) ? 'declarado' : detectedIds.has(id) ? 'detectado' : '',
               supported ? (partialEnvironmentNote[id] ?? '') : 'ainda sem suporte'
             ];
             return (
               <li key={id}>
-                <Radio
+                <CheckboxOption
                   name="ai-environment"
                   value={id}
-                  checked={selected === id}
-                  onChange={() => onSelect(id)}
+                  checked={selected.includes(id)}
+                  disabled={locked}
+                  onChange={() => onToggle(id)}
                   labelProps={{ className: styles.choice, 'aria-disabled': !supported || undefined }}
                   label={
                     <>
@@ -57,6 +62,19 @@ export function AiEnvironmentSection({ detected, selected, onSelect }: AiEnviron
             );
           })}
         </ul>
+        {declared.has('claude-code') ? (
+          <p className={styles.note}>
+            O Claude Code continua marcado: tirá-lo de um projeto já configurado levaria agentes, regras e a estrutura
+            de especificação, o que o plano ainda não faz.
+          </p>
+        ) : null}
+        {leaving.length > 0 ? (
+          <p className={styles.note} role="status">
+            {leaving.map((id) => aiEnvironmentNames[id] ?? id).join(' e ')} {leaving.length > 1 ? 'saem' : 'sai'} da
+            lista: o plano vai propor tirar o que o Spock gravou para {leaving.length > 1 ? 'elas' : 'ela'}, e o que é
+            da equipe fica.
+          </p>
+        ) : null}
       </fieldset>
     </section>
   );

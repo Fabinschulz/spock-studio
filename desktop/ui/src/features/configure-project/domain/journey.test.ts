@@ -40,10 +40,30 @@ function planned(): JourneyState {
 }
 
 describe('reducer da jornada', () => {
-  it('sugere o ambiente de IA quando a descoberta só encontra um, e não sobrescreve a escolha da pessoa', () => {
-    expect(journeyReducer(initialJourneyState, { type: 'discover.ok', discovery }).aiEnvironment).toBe('claude-code');
-    const chosen = journeyReducer(initialJourneyState, { type: 'environment.set', id: 'cursor' });
-    expect(journeyReducer(chosen, { type: 'discover.ok', discovery }).aiEnvironment).toBe('cursor');
+  it('parte das IDEs detectadas, e não sobrescreve a escolha da pessoa', () => {
+    expect(journeyReducer(initialJourneyState, { type: 'discover.ok', discovery }).aiEnvironments).toEqual([
+      'claude-code'
+    ]);
+    const chosen = journeyReducer(initialJourneyState, { type: 'environment.toggle', id: 'cursor' });
+    expect(journeyReducer(chosen, { type: 'discover.ok', discovery }).aiEnvironments).toEqual(['cursor']);
+  });
+
+  it('a declaração manda no ponto de partida, e a escolha fica sempre na ordem da lista', () => {
+    const declared = { ...discovery, declaredAiEnvironments: ['codex', 'claude-code'] };
+    let state = journeyReducer(initialJourneyState, { type: 'discover.ok', discovery: declared });
+    expect(state.aiEnvironments).toEqual(['claude-code', 'codex']);
+    state = journeyReducer(state, { type: 'environment.toggle', id: 'cursor' });
+    expect(state.aiEnvironments).toEqual(['claude-code', 'cursor', 'codex']);
+    state = journeyReducer(state, { type: 'environment.toggle', id: 'codex' });
+    expect(state.aiEnvironments).toEqual(['claude-code', 'cursor']);
+  });
+
+  it('um AGENTS.md sozinho não marca o Codex', () => {
+    const weak = {
+      ...discovery,
+      aiEnvironments: [{ id: 'codex', name: 'OpenAI Codex', supported: true, confidence: 'low' as const, evidence: [] }]
+    };
+    expect(journeyReducer(initialJourneyState, { type: 'discover.ok', discovery: weak }).aiEnvironments).toEqual([]);
   });
 
   it('plano novo vai para a etapa do plano com criar/atualizar marcados, comandos desmarcados e conflitos mantidos', () => {

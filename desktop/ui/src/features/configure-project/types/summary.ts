@@ -6,7 +6,7 @@ export type SummaryFact = readonly [label: string, value: string];
 export interface SummaryInput {
   step: JourneyStepId;
   projectName: string;
-  aiEnvironment: string | null;
+  aiEnvironments: readonly string[];
   plan: Loadable<ConfigurationPlan>;
   approvalCount: number;
 }

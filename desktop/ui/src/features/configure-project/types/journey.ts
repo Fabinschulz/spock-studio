@@ -16,7 +16,8 @@ export interface JourneyResults {
 export interface JourneyState {
   step: JourneyStepId;
   discovery: Loadable<Discovery>;
-  aiEnvironment: string | null;
+  /** C3: as IDEs escolhidas, na ordem de `AI_ENVIRONMENTS`. */
+  aiEnvironments: string[];
   allowSpecificationReinstall: boolean;
   updateSpecification: boolean;
   componentRequest: ComponentRequest;
@@ -32,7 +33,7 @@ export type JourneyAction =
   | { type: 'discover.start' }
   | { type: 'discover.ok'; discovery: Discovery }
   | { type: 'discover.error'; message: string }
-  | { type: 'environment.set'; id: string }
+  | { type: 'environment.toggle'; id: string }
   | { type: 'reinstall.set'; value: boolean }
   | { type: 'update.set'; value: boolean }
   | { type: 'request.clear' }

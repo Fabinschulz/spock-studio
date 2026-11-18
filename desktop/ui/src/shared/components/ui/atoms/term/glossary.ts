@@ -58,7 +58,7 @@ export const GLOSSARY = {
   },
   aiEnvironment: {
     label: 'ambiente de IA',
-    text: 'A ferramenta de IA em que você programa, como Claude Code, onde os agentes são instalados.'
+    text: 'A ferramenta de IA em que você programa, como Claude Code, Cursor ou Codex. Um projeto pode ter mais de uma.'
   },
   revert: {
     label: 'reverter',

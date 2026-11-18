@@ -126,5 +126,6 @@
       "paths": []
     }
   ],
-  "frameworks": []
+  "frameworks": [],
+  "declaredAiEnvironments": []
 }

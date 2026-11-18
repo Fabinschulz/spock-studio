@@ -26,6 +26,13 @@ internal sealed class ConfigureRequestHandler(ConfigureProjectService service) :
         var environment = p.OptionalStr("aiEnvironment");
         if (environment is not null && !AiEnvironments.Known.Contains(environment))
             throw new ParamException("aiEnvironment desconhecido.");
+        var environments = p.StrList("aiEnvironments");
+        if (environments.FirstOrDefault(e => !AiEnvironments.Known.Contains(e)) is { } unknown)
+            throw new ParamException($"'{unknown}' em aiEnvironments é desconhecido.");
+        if (environments.Distinct(StringComparer.Ordinal).Count() != environments.Count)
+            throw new ParamException("aiEnvironments não pode repetir um ambiente.");
+        if (environment is not null && environments.Count > 0 && !environments.Contains(environment))
+            throw new ParamException("aiEnvironment precisa estar também em aiEnvironments.");
 
         var exclude = p.StrList("excludeComponents");
         var include = p.StrList("includeComponents");
@@ -34,7 +41,8 @@ internal sealed class ConfigureRequestHandler(ConfigureProjectService service) :
         if (exclude.Intersect(include, StringComparer.Ordinal).Any())
             throw new ParamException("Um componente não pode ser dispensado e voltar no mesmo pedido.");
 
-        var options = new PlanOptions(environment, p.Flag("allowSpecificationReinstall"), p.Flag("updateSpecification"), exclude, include);
+        var options = new PlanOptions(environment, p.Flag("allowSpecificationReinstall"), p.Flag("updateSpecification"), exclude, include,
+            AiEnvironments: environments.Count > 0 ? environments : null);
         return Json(await service.PlanAsync(p.Str("projectId"), options, ct));
     }
 

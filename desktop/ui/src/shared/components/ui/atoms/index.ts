@@ -1,3 +1,4 @@
+export * from './checkbox-option';
 export * from './container';
 export * from './icons';
 export * from './inline-notice';

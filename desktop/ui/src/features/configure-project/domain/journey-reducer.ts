@@ -1,4 +1,5 @@
 import type { JourneyAction, JourneyState } from '../types/journey';
+import { initialEnvironments, toggleEnvironment } from './ai-environments';
 import { defaultApprovals, toggleId } from './approvals';
 import { applyRunEvent } from './run-events';
 
@@ -6,20 +7,16 @@ export function journeyReducer(state: JourneyState, action: JourneyAction): Jour
   switch (action.type) {
     case 'discover.start':
       return { ...state, discovery: { status: 'loading' } };
-    case 'discover.ok': {
-      const supported = action.discovery.aiEnvironments.filter((e) => e.supported);
-      const suggested =
-        action.discovery.aiEnvironments.length === 1 && supported.length === 1 ? (supported[0]?.id ?? null) : null;
+    case 'discover.ok':
       return {
         ...state,
         discovery: { status: 'ready', data: action.discovery },
-        aiEnvironment: state.aiEnvironment ?? suggested
+        aiEnvironments: state.aiEnvironments.length > 0 ? state.aiEnvironments : initialEnvironments(action.discovery)
       };
-    }
     case 'discover.error':
       return { ...state, discovery: { status: 'error', message: action.message } };
-    case 'environment.set':
-      return { ...state, aiEnvironment: action.id };
+    case 'environment.toggle':
+      return { ...state, aiEnvironments: toggleEnvironment(state.aiEnvironments, action.id) };
     case 'reinstall.set':
       return { ...state, allowSpecificationReinstall: action.value };
     case 'update.set':

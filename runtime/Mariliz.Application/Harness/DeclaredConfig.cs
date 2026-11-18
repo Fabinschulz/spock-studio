@@ -7,7 +7,7 @@ using YamlDotNet.Serialization;
 
 namespace Mariliz.Application.Harness;
 
-// É criado uma vez e passa a ser da pessoa: a declaração vale mais que a inferência e a aplicação nunca o reescreve. A única edição é pontual, em components.exclude, quando a pessoa pede na tela e aprova no plano.
+// É criado uma vez e passa a ser da pessoa: a declaração vale mais que a inferência e a aplicação nunca o reescreve. As edições são pontuais (components.exclude, os ambientes de IA e, uma vez, project.id), pedidas na tela e aprovadas no plano.
 public sealed class DeclaredConfig
 {
     public int Schema { get; set; } = 1;
@@ -19,8 +19,11 @@ public sealed class DeclaredConfig
     [YamlMember(DefaultValuesHandling = DefaultValuesHandling.OmitNull)]
     public List<string>? AiEnvironments { get; set; }
 
+    // Calculadas: não vão para o arquivo. Versões anteriores as gravavam, e a leitura as ignora.
+    [YamlIgnore]
     public string PrimaryEnvironment => AiEnvironment.Length > 0 ? AiEnvironment : AiEnvironments?.FirstOrDefault() ?? "";
 
+    [YamlIgnore]
     public IReadOnlyList<string> Environments =>
         (AiEnvironment.Length > 0 ? new[] { AiEnvironment } : []).Concat(AiEnvironments ?? []).Distinct(StringComparer.Ordinal).ToList();
     public ComponentsSection Components { get; set; } = new();

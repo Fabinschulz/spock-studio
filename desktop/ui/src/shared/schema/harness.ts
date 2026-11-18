@@ -80,6 +80,8 @@ export const discoverySchema = z.object({
     pythonCommand: z.string().nullable()
   }),
   hasDeclaredConfig: z.boolean(),
+  /** C3: os ambientes que spock.yaml já lista; vazio sem declaração válida. */
+  declaredAiEnvironments: z.array(z.string()),
   warnings: z.array(discoveryWarningSchema)
 });
 
