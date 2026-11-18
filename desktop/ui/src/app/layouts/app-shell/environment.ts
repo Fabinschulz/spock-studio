@@ -28,6 +28,12 @@ const OWNED: Record<Environment, readonly string[]> = {
     paths.security,
     paths.idea,
     paths.infrastructure,
+    // Conexões só aparece no menu da Engenharia: quem chega a uma das abas dela, por busca ou link, fica onde o item
+    // está marcado.
+    paths.integrations,
+    paths.cloud,
+    paths.connectionsModels,
+    paths.connectionsIdes,
     EXECUTION_PREFIX
   ],
   management: [paths.portfolio, paths.management]

@@ -12,6 +12,8 @@ describe('ambientes · a que ambiente uma tela pertence', () => {
     [paths.configure, 'engineering'],
     [paths.engineeringRequest, 'engineering'],
     [executionPath('run-000000000000'), 'engineering'],
+    [paths.integrations, 'engineering'],
+    [paths.connectionsIdes, 'engineering'],
     [paths.portfolio, 'management'],
     [paths.management, 'management'],
     [paths.assistant, 'management']
@@ -19,7 +21,7 @@ describe('ambientes · a que ambiente uma tela pertence', () => {
     expect(environmentOf(pathname)).toBe(environment);
   });
 
-  it.each([paths.home, paths.integrations, paths.settings])(
+  it.each([paths.home, paths.runs, paths.timeline, paths.settings])(
     '%s é comum: não pertence a nenhum ambiente',
     (pathname) => {
       expect(environmentOf(pathname)).toBeNull();

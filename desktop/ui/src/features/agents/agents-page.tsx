@@ -21,7 +21,6 @@ import { useCallback, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
 
 import styles from './agents-page.module.scss';
-import { IdeConnectionSection } from './components/ide-connection-section';
 import { useAgentRun, type AgentRun } from './hooks/use-agent-run';
 import { createAgentApi, type AgentApi } from './service/agent-api';
 
@@ -39,7 +38,6 @@ export function AgentsPage({ client, project }: { client: EngineClient; project:
     return (
       <Page title="Agentes de IA">
         <NoProjectState />
-        <IdeConnectionSection api={api} />
       </Page>
     );
   }
@@ -104,7 +102,10 @@ function ProjectAgents({ api, project }: { api: AgentApi; project: SelectedProje
       </form>
 
       <RunView run={run} />
-      <IdeConnectionSection api={api} project={project} />
+      <p className={styles.hint}>
+        Para a sua ferramenta ler o Spock enquanto você programa, ligue-a em{' '}
+        <Link to={pathTo('connectionsIdes')}>Conexões, IDEs</Link>.
+      </p>
     </Page>
   );
 }

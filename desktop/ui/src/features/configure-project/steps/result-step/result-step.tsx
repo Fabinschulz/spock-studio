@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import { runOutcomeLabel } from '@/shared/utils';
 
-import { EvidenceDisclosure, PrimaryActionFooter } from '@/shared/components/ui';
+import { ConfirmAction, EvidenceDisclosure, PrimaryActionFooter } from '@/shared/components/ui';
 
 import styles from '../../components/panels.module.scss';
 import { StepHeader } from '../../components/step-header';
@@ -13,7 +13,6 @@ import { runKindLabel } from '../../domain/labels';
 import { awaitingHarnessProposal, explainOutcome, outcomeSeverity } from '../../domain/run-outcome';
 import { FilesSummary } from './files-summary';
 import { ProposalGuide } from './proposal-guide';
-import { RevertConfirmModal } from './revert-confirm-modal';
 import { RevertSummary } from './revert-summary';
 import { ValidationList } from './validation-list';
 
@@ -102,8 +101,21 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
         </div>
       ) : null}
 
+      {confirming ? (
+        <ConfirmAction
+          label="Reverter as alterações"
+          confirmLabel="Reverter agora"
+          cancelLabel="Não reverter"
+          onConfirm={confirmRevert}
+          onCancel={() => setConfirming(false)}
+        >
+          Isto restaura o estado anterior dos arquivos que a aplicação alterou. Arquivos que você editou depois da
+          aplicação não são sobrescritos: ficam como estão e aparecem como pendência.
+        </ConfirmAction>
+      ) : null}
+
       <PrimaryActionFooter>
-        {canRevert ? (
+        {canRevert && !confirming ? (
           <Button variant="outlined" color="inherit" disabled={busy} onClick={() => setConfirming(true)}>
             Reverter alterações
           </Button>
@@ -115,8 +127,6 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
           Concluir
         </Button>
       </PrimaryActionFooter>
-
-      <RevertConfirmModal open={confirming} onCancel={() => setConfirming(false)} onConfirm={confirmRevert} />
     </section>
   );
 }

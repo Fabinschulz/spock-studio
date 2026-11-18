@@ -5,6 +5,7 @@ import { WindowLayout, WindowLayoutError } from './layouts/window-layout';
 import Agents from './routes/agents';
 import Assistant from './routes/assistant';
 import Configure from './routes/configure';
+import ConnectionsIdes from './routes/connections-ides';
 import EngineeringRequest from './routes/engineering-request';
 import Execution from './routes/execution';
 import Home from './routes/home';
@@ -178,6 +179,14 @@ export const routes: RouteObject[] = [
         element: (
           <RequiresHost>
             <SettingsAi />
+          </RequiresHost>
+        )
+      },
+      {
+        path: paths.connectionsIdes,
+        element: (
+          <RequiresHost>
+            <ConnectionsIdes />
           </RequiresHost>
         )
       },

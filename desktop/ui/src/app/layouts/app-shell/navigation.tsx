@@ -144,7 +144,8 @@ export const PLATFORM_GROUP: NavGroup = {
       tabs: [
         { id: 'integrations', label: 'Serviços', to: pathTo('integrations'), keywords: 'Integrações GitHub Jira' },
         { id: 'cloud', label: 'Nuvem', to: pathTo('cloud'), keywords: 'Conexões cloud AWS Azure Google' },
-        { id: 'models', label: 'Modelos de IA', to: pathTo('connectionsModels'), keywords: 'Minha IA provedores' }
+        { id: 'models', label: 'Modelos de IA', to: pathTo('connectionsModels'), keywords: 'Minha IA provedores' },
+        { id: 'ides', label: 'IDEs', to: pathTo('connectionsIdes'), keywords: 'Claude Code Cursor Codex MCP' }
       ]
     }
   ]

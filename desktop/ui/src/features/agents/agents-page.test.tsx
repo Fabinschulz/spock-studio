@@ -9,6 +9,7 @@ import type { RunEvent } from '@/shared/schema';
 import { expectNoA11yViolations } from '@/test/a11y';
 
 import { AgentsPage } from './agents-page';
+import { IdeConnectionsPage } from './ide-connections-page';
 import { scopedServerName } from './domain/ide-setup';
 
 const loja = { projectId: 'p-1', displayName: 'Loja', displayPath: '~\\Loja' };
@@ -99,6 +100,16 @@ function renderPage(client: EngineClient, project: typeof loja | null = loja) {
   );
 }
 
+function renderIdePage(client: EngineClient, project: typeof loja | null = loja) {
+  return render(
+    <AppProviders>
+      <MemoryRouter>
+        <IdeConnectionsPage client={client} project={project} />
+      </MemoryRouter>
+    </AppProviders>
+  );
+}
+
 async function ask(text = 'O que este projeto faz?') {
   const group = await screen.findByRole('group', { name: 'Ferramenta' });
   await userEvent.click(await within(group).findByRole('radio', { name: /Claude Code/ }));
@@ -138,6 +149,14 @@ describe('Agentes de IA', () => {
     expect(screen.getByRole('link', { name: 'Execuções' })).toHaveAttribute('href', '/execucoes');
   });
 
+  it('o passo de IDE fica em Conexões: a tela de pedidos só aponta para lá', async () => {
+    renderPage(fakeEngine().client);
+
+    await screen.findByRole('group', { name: 'Ferramenta' });
+    expect(screen.queryByRole('region', { name: 'O Spock dentro da sua ferramenta' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Conexões, IDEs' })).toHaveAttribute('href', '/conexoes/ides');
+  });
+
   it('quando a ferramenta falha, explica em português e mostra o que ela escreveu', async () => {
     const engine = fakeEngine({ error: 'AGENT_FAILED' });
     renderPage(engine.client);
@@ -164,7 +183,7 @@ describe('Agentes de IA', () => {
   it('mostra como ligar o Spock em cada ferramenta e copia o passo', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.assign(navigator, { clipboard: { writeText } });
-    const { container } = renderPage(fakeEngine().client);
+    const { container } = renderIdePage(fakeEngine().client);
 
     const section = await screen.findByRole('region', { name: 'O Spock dentro da sua ferramenta' });
     const snippet = await within(section).findByLabelText('Configuração para Claude Code');
@@ -187,7 +206,7 @@ describe('Agentes de IA', () => {
 
   // C2 (DD-6): com o lançador instalado, o passo chama "spock", sem o caminho do motor nesta máquina.
   it('com o lançador instalado, o passo usa o comando spock e lembra do .mcp.json do Harness', async () => {
-    renderPage(fakeEngine({ ide: { ...IDE, launcher: 'spock' } }).client);
+    renderIdePage(fakeEngine({ ide: { ...IDE, launcher: 'spock' } }).client);
 
     const section = await screen.findByRole('region', { name: 'O Spock dentro da sua ferramenta' });
     const snippet = await within(section).findByLabelText('Configuração para Claude Code');
@@ -200,7 +219,7 @@ describe('Agentes de IA', () => {
   });
 
   it('sem o lançador, o passo usa o caminho do motor e avisa', async () => {
-    renderPage(fakeEngine().client);
+    renderIdePage(fakeEngine().client);
 
     const section = await screen.findByRole('region', { name: 'O Spock dentro da sua ferramenta' });
     await within(section).findByLabelText('Configuração para Claude Code');
@@ -210,7 +229,7 @@ describe('Agentes de IA', () => {
 
   // Validação real M3 e H0-1 (16/11): a conexão lê só o projeto aberto, e não existe mais a opção de ler todos.
   it('com projeto aberto, a configuração lê só ele, sem opção de todos', async () => {
-    renderPage(fakeEngine().client);
+    renderIdePage(fakeEngine().client);
 
     const section = await screen.findByRole('region', { name: 'O Spock dentro da sua ferramenta' });
     await within(section).findByLabelText('Configuração para Claude Code');
@@ -228,14 +247,14 @@ describe('Agentes de IA', () => {
 
   // H0-1 (16/11): sem projeto, o comando sairia sem --project, e o servidor não sobe assim.
   it('sem projeto aberto, pede para abrir um em vez de mostrar um comando que não sobe', async () => {
-    renderPage(fakeEngine().client, null);
+    renderIdePage(fakeEngine().client, null);
 
     expect(await screen.findByText('Abra um projeto para ligar a sua ferramenta')).toBeInTheDocument();
     expect(screen.queryByLabelText(/Configuração para/)).not.toBeInTheDocument();
   });
 
   it('sem saber onde o motor está, não inventa um caminho', async () => {
-    renderPage(fakeEngine({ ide: { command: null } }).client);
+    renderIdePage(fakeEngine({ ide: { command: null } }).client);
 
     expect(await screen.findByText(/não conseguiu descobrir onde está instalado/)).toBeInTheDocument();
     expect(screen.queryByLabelText(/Configuração para/)).not.toBeInTheDocument();

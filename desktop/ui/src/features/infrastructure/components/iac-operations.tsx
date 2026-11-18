@@ -2,7 +2,7 @@ import { createCloudApi } from '@/features/cloud';
 import { formatEngineDate, useAction, useReloadable } from '@/features/integrations';
 import type { SelectedProject } from '@/features/project-selection';
 import { errorMessage, type EngineClient } from '@/shared/api';
-import { ConfirmAction, ErrorState, LoadingState, Radio, StatusChip, SuccessState } from '@/shared/components';
+import { ConfirmAction, ErrorState, LoadingState, Radio, StatusChip, SuccessState, Term } from '@/shared/components';
 import type { IacDriftedResource, IacOperation } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
 import { Fragment, useCallback, useMemo, useState, type ReactNode } from 'react';
@@ -147,8 +147,8 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
   return (
     <div className={styles.panel}>
       <p className={styles.hint}>
-        Validar, planejar e verificar drift não mudam a nuvem, o state nem o projeto: rodam numa cópia da configuração
-        na pasta do Spock. Só aplicar muda a nuvem, e só com a sua aprovação daquele plano.
+        Validar, planejar e verificar <Term id="drift" /> não mudam a nuvem, o <Term id="state" /> nem o projeto: rodam
+        numa cópia da configuração na pasta do Spock. Só aplicar muda a nuvem, e só com a sua aprovação daquele plano.
       </p>
       {driftAlert ? (
         <p role="status" aria-label="Alerta de drift">

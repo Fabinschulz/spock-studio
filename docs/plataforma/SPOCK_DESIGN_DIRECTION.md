@@ -432,9 +432,10 @@ mostra só Execuções e Histórico; Conexões fica em Engenharia, porque é tar
 **Como ficou no código (2026-11-18, branch `feat/ciclo2-etapas-1-2`).** As abas são dado do menu (`NavItem.tabs` em
 `navigation.tsx`); o shell entrega o conjunto ao `Page` pelo `PageTabsProvider`, e cada aba é um link com endereço
 próprio (`aria-current`), não `role="tab"`. A aba Modelos de IA é a rota `/conexoes/modelos`, que abre a mesma tela de
-Minha IA sem trocar o shell para o modo Configurações; o título da página continua "Minha IA". Ficaram de fora: a aba
-IDEs (o passo de IDE continua na tela de Agentes) e as abas Revisões e Política no Harness, que hoje são seções das
-duas telas existentes.
+Minha IA sem trocar o shell para o modo Configurações; o título da página continua "Minha IA". A aba IDEs
+(`/conexoes/ides`) recebeu o passo de ligar a IDE, que saiu da tela de Agentes. As telas de Conexões pertencem à
+Engenharia: quem chega a uma delas vindo de Gestão passa ao ambiente em que o item está no menu. Ficaram de fora as abas
+Revisões e Política no Harness, que hoje são seções das duas telas existentes.
 
 A aba **Modelos de IA** em Conexões é o mesmo cadastro de Minha IA, não um segundo: Minha IA passa a ser o atalho para
 essa aba. As quatro perguntas por conexão (com qual conta, em quais projetos, o que lê, se alimenta os agentes) valem
@@ -456,11 +457,11 @@ Reutilizar antes de criar.
 | Componente | Situação | Ação |
 | --- | --- | --- |
 | `Drawer` (ui-kit) | Só na central | Usar no detalhe de Histórico e de Conexões |
-| `ResourceView` | Fora de sete telas | Migrar Cloud, Integrações, Infraestrutura, Auditoria, Linha do tempo, Execução e Ideia, uma por vez |
-| `StatusChip` e `StatusGlyph` | Dois para a mesma ideia | Ficar com um; o outro sai na mesma mudança |
-| `ConfirmAction` | Falta a reversão do Configurar | Trocar o modal |
-| `Term` | Em 5 arquivos | Cobrir Gestão e Infraestrutura, a começar por "simulações", "state" e "drift" |
-| **`PageTabs`** (novo) | Não existe | Abas ligadas a sub-rotas, sobre o `TabBar` do ui-kit depois de conferir foco, Esc e tema escuro |
+| `ResourceView` | Diagnóstico corrigido em 2026-11-18 | As sete telas já usam `LoadingState` e `ErrorState`; só não passam pelo `ResourceView` porque a leitura delas não é um `Resource` (paginação com "ver mais", conexões que se releem). Migrar seria trocar o hook, não a tela. Só o histórico de sincronização fugia do padrão (parágrafo solto): passou a `ResourceView` com `EmptyState` |
+| `StatusChip` e `StatusGlyph` | Não são o mesmo componente | Regra: `StatusGlyph` é o progresso de uma etapa numa sequência (pendente, rodando, feito), sem texto; `StatusChip` é um estado com rótulo. Os dois ficam |
+| `ConfirmAction` | Feito em 2026-11-18 | A reversão do Configurar confirma na própria tela, como as outras; o modal saiu |
+| `Term` | Feito em 2026-11-18 | Glossário com simulações, state e drift; usados na previsão e na Infraestrutura |
+| **`PageTabs`** (novo) | Feito em 2026-11-18 | Abas como links com `aria-current`, sem o `TabBar` do ui-kit: cada aba é uma tela com endereço próprio |
 | **`ProvenanceList`** (novo) | Não existe | Itens de contexto com origem, classificação, frescor e omitidos; serve à seção 13.3 e ao assistente |
 | **`VerificationTable`** (novo) | Não existe | Critério, declarado, conferido, evidência; serve à execução `delivery` |
 

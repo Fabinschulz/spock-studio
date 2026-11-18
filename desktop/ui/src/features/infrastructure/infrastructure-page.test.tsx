@@ -236,7 +236,11 @@ describe('Infraestrutura', () => {
     const engine = fakeEngine(ready);
     renderPage(engine.client);
 
-    expect(await screen.findByText(/não mudam a nuvem, o state nem o projeto/)).toBeInTheDocument();
+    const hint = await screen.findByText(/rodam numa cópia da configuração/);
+    expect(hint).toHaveTextContent('não mudam a nuvem, o state nem o projeto');
+    // Os dois termos técnicos vêm com a explicação do glossário.
+    expect(within(hint).getByRole('button', { name: 'drift' })).toBeInTheDocument();
+    expect(within(hint).getByRole('button', { name: 'state' })).toBeInTheDocument();
     const plan = operationsFixture.operations[0]!;
     const summary = await screen.findByLabelText('Resumo do plano');
     expect(within(summary).getByText(`Destruir ${plan.summary!.delete}`)).toBeInTheDocument();
