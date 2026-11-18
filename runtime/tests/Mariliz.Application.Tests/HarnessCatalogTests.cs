@@ -1,3 +1,4 @@
+using Mariliz.Core.Policy;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Engineering;
@@ -168,8 +169,8 @@ public class HarnessCatalogTests
     public async Task Harness_aplicado_traz_cada_componente_com_o_estado_dos_arquivos_e_o_dispensado_como_excluido()
     {
         using var project = await Applied();
-        project.Write(Catalog.PathCodeReviewer, project.Read(Catalog.PathCodeReviewer) + "\nregra minha\n");
-        project.Write("mariliz.yaml", project.Read("mariliz.yaml")!.Replace("exclude: []", "exclude:\n  - mariliz.agent.verifier"));
+        project.Write(HarnessNaming.Spock.CodeReviewerAgent, project.Read(HarnessNaming.Spock.CodeReviewerAgent) + "\nregra minha\n");
+        project.Write("spock.yaml", project.Read("spock.yaml")!.Replace("exclude: []", "exclude:\n  - mariliz.agent.verifier"));
 
         var catalog = ReadCatalog(project, out _);
         var byId = catalog.Entries.ToDictionary(entry => entry.Sheet.Id);
@@ -177,7 +178,7 @@ public class HarnessCatalogTests
         Assert.True(catalog.Applied);
         Assert.Equal(("applied", "intact"), (byId[Catalog.AgentHarnessEngineer].Presence, byId[Catalog.AgentHarnessEngineer].State));
         Assert.Equal(("applied", "modified"), (byId[Catalog.AgentCodeReviewer].Presence, byId[Catalog.AgentCodeReviewer].State));
-        // O verificador foi dispensado em mariliz.yaml, mas os arquivos continuam até a próxima aplicação.
+        // O verificador foi dispensado em spock.yaml, mas os arquivos continuam até a próxima aplicação.
         Assert.Equal(("excluded", "intact"), (byId[Catalog.AgentVerifier].Presence, byId[Catalog.AgentVerifier].State));
     }
 
@@ -227,7 +228,7 @@ public class HarnessCatalogTests
     public async Task Fixture_de_contrato_do_catalogo()
     {
         using var project = await Applied();
-        project.Write("mariliz.yaml", project.Read("mariliz.yaml")!.Replace("exclude: []", "exclude:\n  - mariliz.agent.verifier"));
+        project.Write("spock.yaml", project.Read("spock.yaml")!.Replace("exclude: []", "exclude:\n  - mariliz.agent.verifier"));
         var catalog = ReadCatalog(project, out var projectId);
 
         var text = JsonSerializer.Serialize(catalog, Mariliz.Application.Integrations.IntegrationJson.Options);

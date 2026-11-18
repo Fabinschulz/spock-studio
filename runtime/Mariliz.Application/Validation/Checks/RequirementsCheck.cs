@@ -13,7 +13,7 @@ internal sealed class RequirementsCheck : IEvalCheck
 
     private static EvalResult Run(EvalSpec spec, ValidationContext ctx)
     {
-        if (ctx.Lock is null) return Block(spec, "Sem mariliz.lock, não há configuração para comparar com os requisitos.");
+        if (ctx.Lock is null) return Block(spec, $"Sem {ctx.Naming.Lock}, não há configuração para comparar com os requisitos.");
         var excluded = ctx.Declared?.Components.Exclude.ToHashSet(StringComparer.Ordinal) ?? [];
         var have = ctx.Lock.ManagedFiles.Select(f => f.Path).ToHashSet(StringComparer.Ordinal);
         var missing = new List<string>();
@@ -26,18 +26,18 @@ internal sealed class RequirementsCheck : IEvalCheck
             if (!have.Contains(path)) missing.Add($"{path}: {why}");
         }
 
-        Need(Catalog.RuleGeneral, Catalog.PathRuleGeneral, "regras gerais exigidas");
-        Need(Catalog.AgentHarnessEngineer, Catalog.PathHarnessEngineer, "o Harness Engineer planeja a configuração");
+        Need(Catalog.RuleGeneral, ctx.Naming.RuleGeneral, "regras gerais exigidas");
+        Need(Catalog.AgentHarnessEngineer, ctx.Naming.HarnessEngineerAgent, "o Harness Engineer planeja a configuração");
         // As mesmas perguntas do plano: stack detectada ou, sem ela, planejada na arquitetura aprovada.
         var architecture = ArchitectureDocuments.Read(ctx.Files);
         if (ctx.Discovery.Stacks.Any(s => s.Id == "dotnet") || architecture.PlannedOnly(ctx.Discovery.Stacks, id => id == "dotnet").Count > 0)
-            Need(Catalog.RuleStackDotnet, Catalog.PathRuleDotnet, "stack .NET detectada ou planejada na arquitetura");
+            Need(Catalog.RuleStackDotnet, ctx.Naming.RuleDotnet, "stack .NET detectada ou planejada na arquitetura");
         if (ctx.Discovery.Stacks.Any(HarnessComposition.IsJavascriptStack)
             || architecture.PlannedOnly(ctx.Discovery.Stacks, id => HarnessComposition.JavascriptStacks.Contains(id)).Count > 0)
-            Need(Catalog.RuleStackJavascript, Catalog.PathRuleJavascript, "stack JavaScript/TypeScript detectada ou planejada na arquitetura");
-        if (architecture.Exists) Need(Catalog.RuleArchitecture, Catalog.PathRuleArchitecture, "documentos de arquitetura em .mariliz/arquitetura");
-        if (ctx.Discovery.Tooling.Any(HarnessComposition.IsRepositoryCommand)) Need(Catalog.RuleRepoCommands, Catalog.PathRuleRepo, "comandos do repositório detectados");
-        if (ctx.Discovery.Tools.PythonCommand is not null) Need(Catalog.HookPolicy, Catalog.PathHookScript, "Python disponível: o hook de política é exigido");
+            Need(Catalog.RuleStackJavascript, ctx.Naming.RuleJavascript, "stack JavaScript/TypeScript detectada ou planejada na arquitetura");
+        if (architecture.Exists) Need(Catalog.RuleArchitecture, ctx.Naming.RuleArchitecture, $"documentos de arquitetura em {ctx.Naming.ArchitectureFolder}");
+        if (ctx.Discovery.Tooling.Any(HarnessComposition.IsRepositoryCommand)) Need(Catalog.RuleRepoCommands, ctx.Naming.RuleRepo, "comandos do repositório detectados");
+        if (ctx.Discovery.Tools.PythonCommand is not null) Need(Catalog.HookPolicy, ctx.Naming.HookScript, "Python disponível: o hook de política é exigido");
 
         // A estrutura de especificação é verificada pelo EV-SPEC-001 (bloqueado quando não instalado); contá-lo aqui duplicaria a falha.
 

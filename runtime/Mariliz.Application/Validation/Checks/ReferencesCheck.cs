@@ -15,7 +15,7 @@ internal sealed class ReferencesCheck : IEvalCheck
 
     private static EvalResult Run(EvalSpec spec, ValidationContext ctx)
     {
-        if (ctx.Lock is null) return Block(spec, "Sem mariliz.lock, não há arquivos gerenciados a conferir.");
+        if (ctx.Lock is null) return Block(spec, $"Sem {ctx.Naming.Lock}, não há arquivos gerenciados a conferir.");
         var markdown = ctx.Lock.ManagedFiles.Where(f => f.Path.EndsWith(".md", StringComparison.Ordinal) && f.Mode == "file").ToList();
         var problems = new List<string>();
         var links = 0;

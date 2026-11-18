@@ -18,7 +18,7 @@
       "state": "outdated"
     },
     {
-      "path": "mariliz.yaml",
+      "path": "spock.yaml",
       "chars": 53,
       "state": "pending"
     }
@@ -34,7 +34,7 @@
     },
     {
       "reason": "excluded",
-      "label": "Excluído em mariliz.yaml (knowledge.exclude)",
+      "label": "Excluído na declaração do projeto (knowledge.exclude)",
       "count": 1,
       "examples": [
         "docs/rascunho/ideia.md"

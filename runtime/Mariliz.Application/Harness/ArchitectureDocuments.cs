@@ -13,8 +13,6 @@ internal sealed record PlannedStack(string Area, string Choice, string? StackId,
 // planejar de novo, o plano acompanha.
 internal sealed partial class ArchitectureDocuments
 {
-    private static readonly string[] Files = [IdeaDocuments.SpecificationFile, IdeaDocuments.ArchitectureFile, IdeaDocuments.BacklogFile];
-
     // A ordem importa: a primeira que casar vence ("Next.js com React" é Next.js).
     private static readonly (string Id, Regex Pattern)[] Profiles =
     [
@@ -30,21 +28,25 @@ internal sealed partial class ArchitectureDocuments
         @"\bpython\b|\bdjango\b|\bfastapi\b|\bflask\b|\bjava\b|\bspring\b|\bkotlin\b|\bgolang\b|\bgo\b|\brust\b|\bphp\b|\blaravel\b|\bruby\b|\brails\b|\bswift\b|\belixir\b|\bscala\b",
         RegexOptions.IgnoreCase);
 
-    private ArchitectureDocuments(IReadOnlyList<string> present, IReadOnlyList<PlannedStack> stack)
+    private ArchitectureDocuments(IReadOnlyList<string> present, IReadOnlyList<PlannedStack> stack, string architectureFile)
     {
+        ArchitectureFile = architectureFile;
         Present = present;
         Stack = stack;
     }
 
+    public string ArchitectureFile { get; }
     public IReadOnlyList<string> Present { get; }
     public IReadOnlyList<PlannedStack> Stack { get; }
     public bool Exists => Present.Count > 0;
 
     public static ArchitectureDocuments Read(IProjectFiles files)
     {
-        var present = Files.Where(files.FileExists).ToList();
-        var text = present.Contains(IdeaDocuments.ArchitectureFile) ? files.ReadText(IdeaDocuments.ArchitectureFile) : null;
-        return new(present, text is null ? [] : ParseStack(text));
+        var naming = files.Naming();
+        var architectureFile = IdeaDocuments.ArchitectureFile(naming);
+        var present = IdeaDocuments.Files(naming).Where(files.FileExists).ToList();
+        var text = present.Contains(architectureFile) ? files.ReadText(architectureFile) : null;
+        return new(present, text is null ? [] : ParseStack(text), architectureFile);
     }
 
     // Só o que a descoberta não achou: o que está no código sempre vale mais que o planejado.
@@ -53,7 +55,7 @@ internal sealed partial class ArchitectureDocuments
         if (detected.Any(stack => family(stack.Id))) return [];
         return Stack.Where(item => item.StackId is not null && family(item.StackId))
             .Select(item => new StackFinding(item.StackId!, item.Choice, "", null, Confidence.Low,
-                [new Evidence(IdeaDocuments.ArchitectureFile, item.Line)], ["Planejada na arquitetura aprovada, ainda sem arquivos no projeto."]))
+                [new Evidence(ArchitectureFile, item.Line)], ["Planejada na arquitetura aprovada, ainda sem arquivos no projeto."]))
             .ToList();
     }
 

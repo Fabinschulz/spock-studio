@@ -9,8 +9,9 @@ cannot loop or change the repository. It reads the hook payload from stdin and a
 What it enforces:
   - writes outside the project folder are denied;
   - writes to files that normally hold secrets (.env, keys, certificates) are denied;
-  - writes to the harness files (.claude/, mariliz.yaml, mariliz.lock, .mcp.json) ask for confirmation, except the
-    proposal file .mariliz/proposal.json and specification feature files under .specs/;
+  - writes to the harness files (.claude/, spock.yaml, spock.lock, .mcp.json, and mariliz.yaml and mariliz.lock in
+    projects configured before the rename) ask for confirmation, except the proposal file (.spock/proposal.json or
+    .mariliz/proposal.json) and specification feature files under .specs/;
   - catastrophic shell commands are denied; risky ones (force push, hard reset, reading .env) ask.
 
 This is a guard rail, not a security boundary: it matches command text. If this script fails internally it exits
@@ -24,8 +25,8 @@ import sys
 
 WRITE_TOOLS = {"Write", "Edit", "MultiEdit", "NotebookEdit"}
 PROTECTED_PREFIXES = (".claude/", ".agents/")
-PROTECTED_FILES = ("mariliz.yaml", "mariliz.lock", ".mcp.json")
-ALLOWED_WRITES = (".mariliz/proposal.json", ".specs/")
+PROTECTED_FILES = ("spock.yaml", "spock.lock", "mariliz.yaml", "mariliz.lock", ".mcp.json")
+ALLOWED_WRITES = (".spock/proposal.json", ".mariliz/proposal.json", ".specs/")
 
 SECRET_FILES = [
     re.compile(r"(^|/)\.env(\.(?!example$|sample$|template$)[^/]+)?$", re.IGNORECASE),

@@ -57,7 +57,7 @@ public sealed class EngineCommandTests : IDisposable
     public async Task Hook_de_sessao_entrega_o_contexto_da_pasta_e_registra_na_trilha()
     {
         Directory.CreateDirectory(Path.Combine(_project, "src"));
-        File.WriteAllText(Path.Combine(_project, "mariliz.yaml"),
+        File.WriteAllText(Path.Combine(_project, "spock.yaml"),
             "schema: 1\nproject:\n  id: spk-01M7GTEK00ABCDEFGHJKMNPQRS\n  name: loja\nimplementationModel: mariliz\naiEnvironment: claude-code\n");
         var projectId = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(_data)).Authorize(_project).Project!.ProjectId;
 

@@ -1,3 +1,4 @@
+using Mariliz.Core.Policy;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Mariliz.Application.Engineering;
@@ -71,19 +72,19 @@ public class HarnessRevisionTests
 
         var first = revisions[2]!;
         Assert.Contains(first["components"]!.AsArray(), c => c!["id"]!.GetValue<string>() == Catalog.AgentCodeReviewer
-            && c["created"]!.AsArray().Any(p => p!.GetValue<string>() == Catalog.PathCodeReviewer));
-        Assert.DoesNotContain(first["components"]!.AsArray().SelectMany(c => c!["created"]!.AsArray()), p => p!.GetValue<string>() == ManagedLockFile.FileName);
+            && c["created"]!.AsArray().Any(p => p!.GetValue<string>() == HarnessNaming.Spock.CodeReviewerAgent));
+        Assert.DoesNotContain(first["components"]!.AsArray().SelectMany(c => c!["created"]!.AsArray()), p => p!.GetValue<string>() == HarnessNaming.Spock.Lock);
 
         var dispense = revisions[1]!;
         var byId = dispense["components"]!.AsArray().ToDictionary(c => c!["id"]!.GetValue<string>(), c => c!);
-        Assert.Equal([Catalog.PathCodeReviewer], byId[Catalog.AgentCodeReviewer]["removed"]!.AsArray().Select(p => p!.GetValue<string>()));
-        Assert.Equal([DeclaredConfig.FileName], byId[Catalog.ConfigDeclaration]["updated"]!.AsArray().Select(p => p!.GetValue<string>()));
+        Assert.Equal([HarnessNaming.Spock.CodeReviewerAgent], byId[Catalog.AgentCodeReviewer]["removed"]!.AsArray().Select(p => p!.GetValue<string>()));
+        Assert.Equal([HarnessNaming.Spock.Declaration], byId[Catalog.ConfigDeclaration]["updated"]!.AsArray().Select(p => p!.GetValue<string>()));
         Assert.Equal(revisions[0]!["runId"]!.GetValue<string>(), dispense["revertedByRunId"]!.GetValue<string>());
 
         var revert = revisions[0]!;
         Assert.Equal(dispense["runId"]!.GetValue<string>(), revert["revertsRunId"]!.GetValue<string>());
         var restored = revert["components"]!.AsArray().Single(c => c!["id"]!.GetValue<string>() == Catalog.AgentCodeReviewer)!;
-        Assert.Equal([Catalog.PathCodeReviewer], restored["created"]!.AsArray().Select(p => p!.GetValue<string>()));
+        Assert.Equal([HarnessNaming.Spock.CodeReviewerAgent], restored["created"]!.AsArray().Select(p => p!.GetValue<string>()));
     }
 
     [Fact]

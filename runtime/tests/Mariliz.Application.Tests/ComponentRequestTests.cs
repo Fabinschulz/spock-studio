@@ -1,3 +1,4 @@
+using Mariliz.Core.Policy;
 using Mariliz.Application.Harness;
 using Mariliz.Application.Tests.Support;
 using Mariliz.Core.Plan;
@@ -65,29 +66,29 @@ public sealed class ComponentRequestTests
         SpecificationFixture.Install(project);
         var journey = new Journey(project);
         await journey.ApplyAsync(await journey.PlanAsync());
-        var declaration = project.Read(DeclaredConfig.FileName)!;
+        var declaration = project.Read(HarnessNaming.Spock.Declaration)!;
 
         var plan = await Plan(journey, exclude: [Catalog.AgentCodeReviewer]);
-        var yaml = Assert.Single(plan.Changes, c => c.Path == DeclaredConfig.FileName);
+        var yaml = Assert.Single(plan.Changes, c => c.Path == HarnessNaming.Spock.Declaration);
         Assert.Equal(ChangeAction.Update, yaml.Action);
         Assert.False(yaml.Destructive);
         Assert.Contains(Catalog.AgentCodeReviewer, yaml.Diff);
-        Assert.Contains(plan.Changes, c => c.Path == Catalog.PathCodeReviewer && c.Action == ChangeAction.Remove);
+        Assert.Contains(plan.Changes, c => c.Path == HarnessNaming.Spock.CodeReviewerAgent && c.Action == ChangeAction.Remove);
         Assert.Contains(plan.Decisions, d => d.ComponentId == Catalog.AgentCodeReviewer && d.Decision == ComponentDecisions.Skip && d.Justification.StartsWith("Dispensado a seu pedido"));
 
         var applied = await journey.ApplyAsync(plan);
-        Assert.Null(project.Read(Catalog.PathCodeReviewer));
-        Assert.Equal(declaration.Replace("exclude: []", $"exclude:\n    - {Catalog.AgentCodeReviewer}"), project.Read(DeclaredConfig.FileName));
-        Assert.DoesNotContain(Catalog.AgentCodeReviewer, project.Read(ManagedLockFile.FileName));
+        Assert.Null(project.Read(HarnessNaming.Spock.CodeReviewerAgent));
+        Assert.Equal(declaration.Replace("exclude: []", $"exclude:\n    - {Catalog.AgentCodeReviewer}"), project.Read(HarnessNaming.Spock.Declaration));
+        Assert.DoesNotContain(Catalog.AgentCodeReviewer, project.Read(HarnessNaming.Spock.Lock));
 
-        // Sem pedido, o próximo plano já não muda nada: a decisão está em mariliz.yaml.
+        // Sem pedido, o próximo plano já não muda nada: a decisão está em spock.yaml.
         Assert.DoesNotContain((await journey.PlanAsync()).Changes, c => c.Action is ChangeAction.Create or ChangeAction.Update or ChangeAction.Remove or ChangeAction.Conflict);
 
         var back = await Plan(journey, include: [Catalog.AgentCodeReviewer]);
-        Assert.Contains(back.Changes, c => c.Path == Catalog.PathCodeReviewer && c.Action == ChangeAction.Create);
+        Assert.Contains(back.Changes, c => c.Path == HarnessNaming.Spock.CodeReviewerAgent && c.Action == ChangeAction.Create);
         await journey.ApplyAsync(back);
-        Assert.NotNull(project.Read(Catalog.PathCodeReviewer));
-        Assert.Equal(declaration, project.Read(DeclaredConfig.FileName));
+        Assert.NotNull(project.Read(HarnessNaming.Spock.CodeReviewerAgent));
+        Assert.Equal(declaration, project.Read(HarnessNaming.Spock.Declaration));
 
         _ = applied;
     }
@@ -99,14 +100,14 @@ public sealed class ComponentRequestTests
         SpecificationFixture.Install(project);
         var journey = new Journey(project);
         await journey.ApplyAsync(await journey.PlanAsync());
-        var declaration = project.Read(DeclaredConfig.FileName);
-        var reviewer = project.Read(Catalog.PathCodeReviewer);
+        var declaration = project.Read(HarnessNaming.Spock.Declaration);
+        var reviewer = project.Read(HarnessNaming.Spock.CodeReviewerAgent);
 
         var applied = await journey.ApplyAsync(await Plan(journey, exclude: [Catalog.AgentCodeReviewer]));
         await journey.RevertAsync(applied["runId"]!.GetValue<string>());
 
-        Assert.Equal(reviewer, project.Read(Catalog.PathCodeReviewer));
-        Assert.Equal(declaration, project.Read(DeclaredConfig.FileName));
+        Assert.Equal(reviewer, project.Read(HarnessNaming.Spock.CodeReviewerAgent));
+        Assert.Equal(declaration, project.Read(HarnessNaming.Spock.Declaration));
     }
 
     [Fact]
@@ -117,20 +118,20 @@ public sealed class ComponentRequestTests
         project.Write(Catalog.PathSettings, "{\n  \"model\": \"o-meu\"\n}\n");
         var journey = new Journey(project);
         await journey.ApplyAsync(await journey.PlanAsync());
-        Assert.Contains(Catalog.PathHookScript, project.Read(Catalog.PathSettings));
+        Assert.Contains(HarnessNaming.Spock.HookScript, project.Read(Catalog.PathSettings));
 
         var plan = await Plan(journey, exclude: [Catalog.HookPolicy]);
         var settings = Assert.Single(plan.Changes, c => c.Path == Catalog.PathSettings);
         Assert.Equal(ChangeAction.Update, settings.Action);
-        Assert.Contains(plan.Changes, c => c.Path == Catalog.PathHookScript && c.Action == ChangeAction.Remove);
+        Assert.Contains(plan.Changes, c => c.Path == HarnessNaming.Spock.HookScript && c.Action == ChangeAction.Remove);
         await journey.ApplyAsync(plan);
 
         var after = project.Read(Catalog.PathSettings)!;
-        Assert.DoesNotContain(Catalog.PathHookScript, after);
+        Assert.DoesNotContain(HarnessNaming.Spock.HookScript, after);
         Assert.Contains("\"model\": \"o-meu\"", after);
         Assert.Contains("Read(./.env)", after);
-        Assert.Null(project.Read(Catalog.PathHookScript));
-        Assert.DoesNotContain(Catalog.PathSettings, project.Read(ManagedLockFile.FileName));
+        Assert.Null(project.Read(HarnessNaming.Spock.HookScript));
+        Assert.DoesNotContain(Catalog.PathSettings, project.Read(HarnessNaming.Spock.Lock));
         Assert.DoesNotContain((await journey.PlanAsync()).Changes, c => c.Action is ChangeAction.Create or ChangeAction.Update or ChangeAction.Remove or ChangeAction.Conflict);
     }
 
@@ -141,7 +142,7 @@ public sealed class ComponentRequestTests
         SpecificationFixture.Install(project);
         var journey = new Journey(project);
         await journey.ApplyAsync(await journey.PlanAsync());
-        project.Write(DeclaredConfig.FileName, project.Read(DeclaredConfig.FileName)!.Replace("exclude: []", $"exclude:\n    - {Catalog.HookPolicy}"));
+        project.Write(HarnessNaming.Spock.Declaration, project.Read(HarnessNaming.Spock.Declaration)!.Replace("exclude: []", $"exclude:\n    - {Catalog.HookPolicy}"));
 
         var plan = await journey.PlanAsync();
 

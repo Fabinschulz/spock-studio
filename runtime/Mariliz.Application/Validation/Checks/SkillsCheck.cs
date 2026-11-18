@@ -13,7 +13,7 @@ internal sealed class SkillsCheck : IEvalCheck
 
     private static EvalResult Run(EvalSpec spec, ValidationContext ctx)
     {
-        if (ctx.Lock is null) return Block(spec, "Sem mariliz.lock, não há skills gerenciadas a conferir.");
+        if (ctx.Lock is null) return Block(spec, $"Sem {ctx.Naming.Lock}, não há skills gerenciadas a conferir.");
         var skills = ctx.OwnedFiles().Where(f => f.Path.EndsWith("/SKILL.md", StringComparison.Ordinal)).ToList();
         if (skills.Count == 0) return Pass(spec, ["Nenhuma skill gerenciada"], ["Nenhuma skill foi configurada neste projeto."]);
 

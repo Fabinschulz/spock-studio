@@ -1,5 +1,5 @@
 {
-  "script": ".claude/hooks/mariliz-policy.py",
+  "script": ".claude/hooks/spock-policy.py",
   "watches": [
     "rodar comandos no terminal",
     "gravar arquivos",
@@ -20,12 +20,17 @@
     {
       "decision": "ask",
       "scope": "write",
-      "plain": "Mexer nos arquivos do Harness (.claude/, .agents/, mariliz.yaml, mariliz.lock e .mcp.json). O Claude Code pergunta antes, para a mudança passar pelo Spock Studio, que mostra a diferença e permite reverter."
+      "plain": "Mexer nos arquivos do Harness (.claude/, .agents/, spock.yaml, spock.lock, .mcp.json e, nos projetos configurados antes da troca de nome, mariliz.yaml e mariliz.lock). O Claude Code pergunta antes, para a mudança passar pelo Spock Studio, que mostra a diferença e permite reverter."
     },
     {
       "decision": "allow",
       "scope": "write",
-      "plain": "Gravar a proposta do Harness Engineer em .mariliz/proposal.json."
+      "plain": "Gravar a proposta do Harness Engineer em .spock/proposal.json."
+    },
+    {
+      "decision": "allow",
+      "scope": "write",
+      "plain": "Gravar a proposta do Harness Engineer em .mariliz/proposal.json, nos projetos configurados antes da troca de nome."
     },
     {
       "decision": "allow",

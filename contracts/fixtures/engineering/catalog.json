@@ -7,7 +7,7 @@
         "id": "mariliz.agent.harness-engineer",
         "kind": "agent",
         "title": "Agente Harness Engineer",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "whatItDoes": "Lê o seu projeto e escreve uma proposta de como montar o Harness: quais agentes, skills e regras fazem sentido e por quê. Só recomenda. Quem valida a proposta, mostra a diferença e aplica é o Spock Studio, com a sua aprovação.",
         "whenItActs": "Quando você configura ou revisa o Harness pela jornada Configurar.",
         "reads": [
@@ -15,7 +15,7 @@
           "Os agentes, skills, regras, hooks e a configuração de MCP que já existem"
         ],
         "canChange": [
-          "Escreve um único arquivo: .mariliz/proposal.json, a proposta. Não altera código nem os arquivos do Harness."
+          "Escreve um único arquivo: .spock/proposal.json, a proposta. Não altera código nem os arquivos do Harness."
         ],
         "tools": [
           {
@@ -37,8 +37,8 @@
         ],
         "origin": "Escrito pelo Spock Studio.",
         "files": [
-          ".claude/agents/harness-engineer.md",
-          ".mariliz/schemas/harness-proposal.v1.schema.json"
+          ".claude/agents/spock-harness-engineer.md",
+          ".spock/schemas/harness-proposal.v1.schema.json"
         ],
         "manageable": true
       },
@@ -81,7 +81,7 @@
         ],
         "origin": "Adaptado do exemplo de referência de github.com/Fabinschulz/harness-engineering (licença MIT).",
         "files": [
-          ".claude/agents/code-reviewer.md"
+          ".claude/agents/spock-code-reviewer.md"
         ],
         "manageable": true
       },
@@ -128,7 +128,7 @@
         ],
         "origin": "Escrito pelo Spock Studio.",
         "files": [
-          ".claude/agents/verifier.md"
+          ".claude/agents/spock-verifier.md"
         ],
         "manageable": true
       },
@@ -152,7 +152,7 @@
         "tools": [],
         "origin": "Adaptado dos padrões de github.com/Fabinschulz/harness-engineering (licença MIT).",
         "files": [
-          ".claude/skills/harness-contract/SKILL.md"
+          ".claude/skills/spock-harness-contract/SKILL.md"
         ],
         "manageable": true
       },
@@ -176,7 +176,7 @@
         "tools": [],
         "origin": "Escrito pelo Spock Studio.",
         "files": [
-          ".claude/rules/mariliz-general.md"
+          ".claude/rules/spock-general.md"
         ],
         "manageable": true
       },
@@ -200,7 +200,7 @@
         "tools": [],
         "origin": "Escrito pelo Spock Studio; os caminhos a que vale vêm da stack detectada no seu projeto.",
         "files": [
-          ".claude/rules/mariliz-stack-dotnet.md"
+          ".claude/rules/spock-stack-dotnet.md"
         ],
         "manageable": true
       },
@@ -224,7 +224,7 @@
         "tools": [],
         "origin": "Escrito pelo Spock Studio; os caminhos a que vale vêm da stack detectada no seu projeto.",
         "files": [
-          ".claude/rules/mariliz-stack-javascript.md"
+          ".claude/rules/spock-stack-javascript.md"
         ],
         "manageable": true
       },
@@ -248,7 +248,7 @@
         "tools": [],
         "origin": "Gerado a partir dos arquivos do seu projeto; não é um texto fixo do aplicativo.",
         "files": [
-          ".claude/rules/mariliz-repo.md"
+          ".claude/rules/spock-repo.md"
         ],
         "manageable": true
       },
@@ -264,15 +264,15 @@
         "whatItDoes": "Aponta para a especificação, a arquitetura e o backlog que você aprovou em Da ideia ao projeto, e pede ao agente que siga esses documentos e cite os ids (REQ, CMP, US) no que fizer.",
         "whenItActs": "Sempre: o Claude Code carrega esta regra nas sessões deste projeto.",
         "reads": [
-          "Os documentos em .mariliz/arquitetura, quando o agente vai implementar ou revisar algo"
+          "Os documentos em .spock/arquitetura, quando o agente vai implementar ou revisar algo"
         ],
         "canChange": [
           "Nada. É só orientação."
         ],
         "tools": [],
-        "origin": "Gerado a partir dos documentos de .mariliz/arquitetura que existem no seu projeto.",
+        "origin": "Gerado a partir dos documentos de .spock/arquitetura que existem no seu projeto.",
         "files": [
-          ".claude/rules/mariliz-architecture.md"
+          ".claude/rules/spock-architecture.md"
         ],
         "manageable": true
       },
@@ -284,7 +284,7 @@
         "id": "mariliz.hook.policy",
         "kind": "hook",
         "title": "Hook de política",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "whatItDoes": "Confere cada escrita de arquivo e cada comando do agente antes de acontecer e bloqueia ou pede confirmação conforme a política do Spock Studio. É uma proteção que confere o texto do pedido, não uma barreira de segurança.",
         "whenItActs": "Antes de toda escrita de arquivo e de todo comando que o agente tenta usar.",
         "reads": [
@@ -296,7 +296,7 @@
         "tools": [],
         "origin": "Escrito pelo Spock Studio; usa só a biblioteca padrão do Python.",
         "files": [
-          ".claude/hooks/mariliz-policy.py",
+          ".claude/hooks/spock-policy.py",
           ".claude/settings.json"
         ],
         "manageable": true
@@ -404,12 +404,12 @@
       "sheet": {
         "id": "mariliz.config.declaration",
         "kind": "config",
-        "title": "Declaração do projeto (mariliz.yaml)",
-        "version": "0.1.0",
-        "whatItDoes": "Dois arquivos: mariliz.yaml, onde o projeto declara o que quer (por exemplo, componentes a não aplicar), e mariliz.lock, o registro do que foi aplicado, com o hash de cada arquivo.",
+        "title": "Declaração do projeto",
+        "version": "0.1.1",
+        "whatItDoes": "Dois arquivos: spock.yaml, onde o projeto declara o que quer (por exemplo, componentes a não aplicar), e spock.lock, o registro do que foi aplicado, com o hash de cada arquivo. Num projeto configurado antes da troca de nome, os dois continuam como mariliz.yaml e mariliz.lock.",
         "whenItActs": "A cada plano, validação e conferência do estado do Harness.",
         "reads": [
-          "O próprio mariliz.yaml e mariliz.lock"
+          "O próprio spock.yaml e spock.lock (ou mariliz.yaml e mariliz.lock)"
         ],
         "canChange": [
           "O Spock Studio atualiza o lock a cada aplicação ou reversão. O yaml muda quando você dispensa ou volta a aplicar um componente."
@@ -417,8 +417,8 @@
         "tools": [],
         "origin": "Escrito pelo Spock Studio.",
         "files": [
-          "mariliz.yaml",
-          "mariliz.lock"
+          "spock.yaml",
+          "spock.lock"
         ],
         "manageable": false
       },

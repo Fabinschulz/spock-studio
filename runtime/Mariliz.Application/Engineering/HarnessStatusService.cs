@@ -12,6 +12,12 @@ public sealed class HarnessStatusService(WorkspaceAuthorizer workspace, IProject
 {
     private static readonly string[] Severity = ["intact", "kept", "modified", "outOfScope", "missing"];
 
+    public HarnessNaming NamingOf(string projectId)
+    {
+        if (!workspace.TryGetRoot(projectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
+        return files.Open(root).Naming();
+    }
+
     public HarnessStatus Inspect(string projectId)
     {
         if (!workspace.TryGetRoot(projectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
@@ -21,7 +27,7 @@ public sealed class HarnessStatusService(WorkspaceAuthorizer workspace, IProject
             .ToList();
         var now = clock.UtcNow;
 
-        var lockExists = project.FileExists(ManagedLockFile.FileName);
+        var lockExists = project.FileExists(project.Naming().Lock);
         var lockFile = lockExists ? ManagedLockFile.Read(project) : null;
         if (lockFile is null)
             return new HarnessStatus(projectId, now, lockExists, !lockExists, null, null, null, [], excluded, 0, 0, 0, 0);
@@ -84,7 +90,7 @@ public sealed class HarnessStatusService(WorkspaceAuthorizer workspace, IProject
         if (entry.Mode == "merge")
         {
             var hookRegistered = path != Catalog.PathSettings
-                || System.Text.Encoding.UTF8.GetString(bytes).Contains(Catalog.PathHookScript, StringComparison.Ordinal);
+                || System.Text.Encoding.UTF8.GetString(bytes).Contains(project.Naming().HookScript, StringComparison.Ordinal);
             return new HarnessFileStatus(path, entry.Mode, hookRegistered ? "intact" : "modified");
         }
 

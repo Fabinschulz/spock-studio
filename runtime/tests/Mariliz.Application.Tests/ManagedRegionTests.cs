@@ -1,3 +1,4 @@
+using Mariliz.Core.Policy;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Harness;
@@ -115,7 +116,7 @@ public sealed class ManagedRegionTests : IDisposable
     [InlineData("aiEnvironment: cursor\naiEnvironments: [claude-code]", null, "precisa estar também em aiEnvironments")]
     public void Declaracao_aceita_mais_de_uma_ide_e_o_principal_e_o_primeiro(string environments, string? primary, string? error)
     {
-        _project.Write(DeclaredConfig.FileName, $"schema: 1\nproject:\n  name: loja\nimplementationModel: mariliz\n{environments}\n");
+        _project.Write(HarnessNaming.Spock.Declaration, $"schema: 1\nproject:\n  name: loja\nimplementationModel: mariliz\n{environments}\n");
 
         var (config, problem) = DeclaredConfig.TryRead(new TestFilesFactory().Open(_project.Root));
 
@@ -189,7 +190,7 @@ public sealed class ManagedRegionTests : IDisposable
 
         var (again, _) = await PlanWithRegions(journey);
         Assert.All(again.Changes.Where(c => c.ComponentId == "mariliz.ide.teste"), change => Assert.Equal(ChangeAction.Preserve, change.Action));
-        Assert.DoesNotContain(again.Changes, change => change.Path == ManagedLockFile.FileName && change.Action != ChangeAction.Preserve);
+        Assert.DoesNotContain(again.Changes, change => change.Path == HarnessNaming.Spock.Lock && change.Action != ChangeAction.Preserve);
         Assert.True(await journey.ValidateAsync() is var validation && validation["outcome"]!.GetValue<string>() != "failed", validation.ToJsonString());
     }
 

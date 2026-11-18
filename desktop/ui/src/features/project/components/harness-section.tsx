@@ -61,7 +61,7 @@ export function HarnessSection({ client, projectId }: { client: EngineClient; pr
 
 function HarnessContent({ harness }: { harness: HarnessStatus }) {
   const navigate = useNavigate();
-  // O pedido só abre o Configurar: lá vira plano, com a diferença de mariliz.yaml e dos arquivos, e espera aprovação.
+  // O pedido só abre o Configurar: lá vira plano, com a diferença da declaração e dos arquivos, e espera aprovação.
   const request = (kind: 'exclude' | 'include', { id, label }: ComponentRequestItem) =>
     void navigate(pathTo('configure'), { state: componentRequestState({ [kind]: [{ id, label }] }) });
 
@@ -76,7 +76,7 @@ function HarnessContent({ harness }: { harness: HarnessStatus }) {
   if (!harness.lockReadable) {
     return (
       <p className={styles.warning} role="alert">
-        O arquivo mariliz.lock existe, mas não pôde ser lido. O próximo plano em{' '}
+        O lock do Harness existe, mas não pôde ser lido. O próximo plano em{' '}
         <Link to={pathTo('configure')}>Configurar</Link> o recria.
       </p>
     );
@@ -139,7 +139,7 @@ function HarnessContent({ harness }: { harness: HarnessStatus }) {
 
       {harness.excluded.length > 0 ? (
         <>
-          <h3 className={styles.subsection}>Dispensados em mariliz.yaml</h3>
+          <h3 className={styles.subsection}>Dispensados na declaração</h3>
           <ul className={styles.rows} aria-label="Componentes dispensados">
             {harness.excluded.map((item) => (
               <li key={item.id} className={styles.row}>
@@ -167,8 +167,8 @@ function HarnessContent({ harness }: { harness: HarnessStatus }) {
         </>
       ) : null}
       <p className={styles.meta}>
-        Dispensar ou voltar a aplicar abre o plano em Configurar: ele grava o pedido em mariliz.yaml e mostra o que sai
-        ou volta. Nada muda sem a sua aprovação, e a aplicação pode ser revertida.
+        Dispensar ou voltar a aplicar abre o plano em Configurar: ele grava o pedido na declaração do projeto e mostra o
+        que sai ou volta. Nada muda sem a sua aprovação, e a aplicação pode ser revertida.
       </p>
       {harness.modified + harness.missing > 0 ? (
         <p className={styles.meta}>

@@ -10,8 +10,8 @@ export function ComponentRequestNotice({ request, onClear }: { request: Componen
     <aside className={styles.requestNotice} aria-label="Pedido da tela Projeto">
       <p>
         {request.exclude.length > 0 ? <>Dispensar: {names(request.exclude)}. </> : null}
-        {request.include.length > 0 ? <>Voltar a aplicar: {names(request.include)}. </> : null}O plano grava o pedido em
-        mariliz.yaml (components.exclude) e mostra o que sai ou volta; nada muda sem a sua aprovação.
+        {request.include.length > 0 ? <>Voltar a aplicar: {names(request.include)}. </> : null}O plano grava o pedido na
+        declaração do projeto (components.exclude) e mostra o que sai ou volta; nada muda sem a sua aprovação.
       </p>
       <Button type="button" variant="outlined" size="small" onClick={onClear}>
         Desfazer pedido

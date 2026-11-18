@@ -4,6 +4,7 @@ using Mariliz.Application.Ports;
 using Mariliz.Application.Specification;
 using Mariliz.Core.Discovery;
 using Mariliz.Core.Plan;
+using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Harness;
 
@@ -27,6 +28,7 @@ internal sealed class HarnessComposition(
     private readonly List<ComponentDecision> _decisions = [];
     private readonly List<DesiredFile> _desired = [];
     private readonly List<PlannedCommand> _commands = [];
+    private readonly HarnessNaming _naming = files.Naming();
     private readonly string _proposalOrigin = proposal.Proposal is not null ? DecisionOrigins.HarnessEngineer : DecisionOrigins.Baseline;
 
     private ComponentSelector _components = null!;
@@ -80,7 +82,7 @@ internal sealed class HarnessComposition(
         if (!proposal.Present)
         {
             _limitations.Add(new(LimitationCodes.HarnessEngineerNotInvoked,
-                "O Harness Engineer ainda não gerou .mariliz/proposal.json; o plano usa as regras-base. Peça a proposta ao agente no seu ambiente de IA e planeje de novo."));
+                $"O Harness Engineer ainda não gerou {_naming.Proposal}; o plano usa as regras-base. Peça a proposta ao agente no seu ambiente de IA e planeje de novo."));
         }
         else if (proposal.Proposal is null)
         {
@@ -111,20 +113,20 @@ internal sealed class HarnessComposition(
             _risks.Add("A pasta não é um repositório git; a reversão depende apenas do backup da aplicação.");
     }
 
-    // mariliz.yaml é criado uma vez; depois é da pessoa.
+    // A declaração é criada uma vez; depois é da pessoa.
     private void AddDeclarationOnce(string environment)
     {
-        if (declared is not null || files.FileExists(DeclaredConfig.FileName)) return;
+        if (declared is not null || files.FileExists(_naming.Declaration)) return;
 
         var config = new DeclaredConfig { Project = { Id = options.StableId, Name = report.ProjectName }, AiEnvironment = environment, Components = { Exclude = [.. _exclusion] } };
-        _desired.Add(new(DeclaredConfig.FileName, ComponentKind.Config, Catalog.ConfigDeclaration, DecisionOrigins.Baseline,
+        _desired.Add(new(_naming.Declaration, ComponentKind.Config, Catalog.ConfigDeclaration, DecisionOrigins.Baseline,
             "Declaração do projeto: ambiente de IA e método. É seu depois de criado; a aplicação só a lê.", config.ToYaml(), "file"));
     }
 
     private ComposeResult BlockUnsupportedEnvironment(string environment)
     {
         _limitations.Add(new(LimitationCodes.EnvironmentNotSupported,
-            $"O ambiente '{environment}' foi detectado ou selecionado, mas esta fase só configura Claude Code. Apenas a declaração (mariliz.yaml) pode ser criada de forma genérica; agentes, skills, regras e hooks não foram gerados."));
+            $"O ambiente '{environment}' foi detectado ou selecionado, mas esta fase só configura Claude Code. Apenas a declaração ({_naming.Declaration}) pode ser criada de forma genérica; agentes, skills, regras e hooks não foram gerados."));
 
         foreach (var component in Catalog.Components.Where(c => c.Kind != ComponentKind.Config))
             _decisions.Add(new(component.Kind, component.Id, ComponentDecisions.Blocked,
@@ -137,7 +139,7 @@ internal sealed class HarnessComposition(
     // project.id (F1). As duas saem no mesmo arquivo desejado.
     private void AddDeclarationEdit()
     {
-        var text = declared is null ? null : files.ReadText(DeclaredConfig.FileName);
+        var text = declared is null ? null : files.ReadText(_naming.Declaration);
         if (text is null) return;
         var reasons = new List<string>();
 
@@ -151,7 +153,7 @@ internal sealed class HarnessComposition(
             else
             {
                 _limitations.Add(new(LimitationCodes.DeclarationNotEditable,
-                    $"O id estável do projeto não entrou no plano: o trecho project de mariliz.yaml não está num formato que a aplicação edite com segurança. Acrescente \"id: {stableId}\" dentro de project e planeje de novo."));
+                    $"O id estável do projeto não entrou no plano: o trecho project de {_naming.Declaration} não está num formato que a aplicação edite com segurança. Acrescente \"id: {stableId}\" dentro de project e planeje de novo."));
             }
         }
 
@@ -166,13 +168,13 @@ internal sealed class HarnessComposition(
             else
             {
                 _limitations.Add(new(LimitationCodes.DeclarationNotEditable,
-                    "O pedido de dispensar ou voltar a aplicar componentes não entrou no plano: o trecho components.exclude de mariliz.yaml não está num formato que a aplicação edite com segurança. Edite a lista à mão e planeje de novo."));
+                    $"O pedido de dispensar ou voltar a aplicar componentes não entrou no plano: o trecho components.exclude de {_naming.Declaration} não está num formato que a aplicação edite com segurança. Edite a lista à mão e planeje de novo."));
                 _exclusion = [.. declaredList];
             }
         }
 
         if (reasons.Count == 0) return;
-        _desired.Add(new(DeclaredConfig.FileName, ComponentKind.Config, Catalog.ConfigDeclaration, DecisionOrigins.Declared,
+        _desired.Add(new(_naming.Declaration, ComponentKind.Config, Catalog.ConfigDeclaration, DecisionOrigins.Declared,
             string.Join(" ", reasons) + " O restante do arquivo fica como está.", text, "file"));
     }
 
@@ -182,40 +184,40 @@ internal sealed class HarnessComposition(
         var requested = excluded.Except(declared?.Components.Exclude ?? [], StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
         var proposed = proposal.Proposal?.Decisions.ToDictionary(d => d.Id, StringComparer.Ordinal) ?? [];
         var managed = (ManagedLockFile.Read(files)?.Components.Select(c => c.Id) ?? []).ToHashSet(StringComparer.Ordinal);
-        return new ComponentSelector(excluded, requested, proposed, managed, _decisions, _limitations);
+        return new ComponentSelector(excluded, requested, proposed, managed, _decisions, _limitations, _naming.Declaration);
     }
 
     private void AddCoreComponents()
     {
         if (_components.Wants(Catalog.AgentHarnessEngineer, true, "Planeja a configuração do Harness a partir de evidências do projeto.", []))
         {
-            _desired.Add(RuleContent.Asset(Catalog.PathHarnessEngineer, ComponentKind.Agent, Catalog.AgentHarnessEngineer, "agents/harness-engineer.md",
-                "Agente que propõe a composição do Harness em .mariliz/proposal.json."));
-            _desired.Add(RuleContent.Asset(Catalog.PathProposalSchema, ComponentKind.Agent, Catalog.AgentHarnessEngineer, "schemas/harness-proposal.v1.schema.json",
+            _desired.Add(RuleContent.Asset(_naming, _naming.HarnessEngineerAgent, ComponentKind.Agent, Catalog.AgentHarnessEngineer, "agents/harness-engineer.md",
+                $"Agente que propõe a composição do Harness em {_naming.Proposal}."));
+            _desired.Add(RuleContent.Asset(_naming, _naming.ProposalSchema, ComponentKind.Agent, Catalog.AgentHarnessEngineer, "schemas/harness-proposal.v1.schema.json",
                 "Schema da proposta que o Harness Engineer deve seguir."));
         }
 
         if (_components.Wants(Catalog.AgentCodeReviewer, true, "Revisão de diffs com evidência, somente leitura.", []))
-            _desired.Add(RuleContent.Asset(Catalog.PathCodeReviewer, ComponentKind.Agent, Catalog.AgentCodeReviewer, "agents/code-reviewer.md",
+            _desired.Add(RuleContent.Asset(_naming, _naming.CodeReviewerAgent, ComponentKind.Agent, Catalog.AgentCodeReviewer, "agents/code-reviewer.md",
                 "Revisor independente, sem permissão de escrita."));
 
         if (_components.Wants(Catalog.AgentVerifier, true, "Verificação independente de requisitos e critérios de aceite, como o ciclo de especificação exige.", [$"{SpecificationManifest.SkillDirectory} (estrutura fixa)"]))
-            _desired.Add(RuleContent.Asset(Catalog.PathVerifier, ComponentKind.Agent, Catalog.AgentVerifier, "agents/verifier.md",
+            _desired.Add(RuleContent.Asset(_naming, _naming.VerifierAgent, ComponentKind.Agent, Catalog.AgentVerifier, "agents/verifier.md",
                 "Verificador do ciclo spec-driven (autor diferente do verificador)."));
 
         if (_components.Wants(Catalog.SkillHarnessContract, true, "Contrato único de evidência e confiança lido por todos os agentes.", []))
-            _desired.Add(RuleContent.Asset(Catalog.PathHarnessContract, ComponentKind.Skill, Catalog.SkillHarnessContract, "skills/harness-contract/SKILL.md",
+            _desired.Add(RuleContent.Asset(_naming, _naming.HarnessContractSkill, ComponentKind.Skill, Catalog.SkillHarnessContract, "skills/harness-contract/SKILL.md",
                 "Contrato de evidência compartilhado por referência."));
 
         if (_components.Wants(Catalog.RuleGeneral, true, "Regras de método, limites, testes, erros, segurança e conclusão.", []))
-            _desired.Add(RuleContent.Asset(Catalog.PathRuleGeneral, ComponentKind.Rule, Catalog.RuleGeneral, "rules/general.md", "Regras gerais do produto."));
+            _desired.Add(RuleContent.Asset(_naming, _naming.RuleGeneral, ComponentKind.Rule, Catalog.RuleGeneral, "rules/general.md", "Regras gerais do produto."));
     }
 
     private void AddStackRules()
     {
-        AddStackRule(Catalog.RuleStackDotnet, Catalog.PathRuleDotnet, "rules/stack-dotnet.md", ["**/*.cs", "**/*.csproj"], ".NET",
+        AddStackRule(Catalog.RuleStackDotnet, _naming.RuleDotnet, "rules/stack-dotnet.md", ["**/*.cs", "**/*.csproj"], ".NET",
             id => id == "dotnet");
-        AddStackRule(Catalog.RuleStackJavascript, Catalog.PathRuleJavascript, "rules/stack-javascript.md", ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+        AddStackRule(Catalog.RuleStackJavascript, _naming.RuleJavascript, "rules/stack-javascript.md", ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
             "JavaScript/TypeScript", id => JavascriptStacks.Contains(id));
 
         foreach (var stack in report.Stacks.Where(s => StacksWithoutProfile.Contains(s.Id)))
@@ -231,7 +233,7 @@ internal sealed class HarnessComposition(
 
         var other = _architecture.Stack.Where(item => !item.Language).Select(Describe).ToList();
         if (other.Count > 0)
-            _observations.Add(new("fact", $"Da arquitetura aprovada, sem regra de stack: {string.Join(", ", other)}.", [IdeaDocuments.ArchitectureFile]));
+            _observations.Add(new("fact", $"Da arquitetura aprovada, sem regra de stack: {string.Join(", ", other)}.", [_architecture.ArchitectureFile]));
     }
 
     private static string Describe(PlannedStack item) => item.Area.Length == 0 ? item.Choice : $"{item.Choice} ({item.Area})";
@@ -246,18 +248,18 @@ internal sealed class HarnessComposition(
         var reason = detected.Count > 0
             ? $"Stack {name} detectada."
             : $"Stack {name} planejada na arquitetura aprovada ({string.Join(", ", planned.Select(stack => stack.Name))}); ainda sem arquivos no projeto.";
-        List<string> evidence = detected.Count > 0 ? EvidencePaths(detected) : [IdeaDocuments.ArchitectureFile];
+        List<string> evidence = detected.Count > 0 ? EvidencePaths(detected) : [_architecture.ArchitectureFile];
 
         if (_components.Wants(component, stacks.Count > 0, reason, evidence, $"Nenhuma stack {name} detectada nem planejada na arquitetura.", origin))
-            _desired.Add(new(path, ComponentKind.Rule, component, origin, $"Regras da stack {name}.", RuleContent.ForStack(asset, stacks, globs), "file"));
+            _desired.Add(new(path, ComponentKind.Rule, component, origin, $"Regras da stack {name}.", RuleContent.ForStack(_naming, asset, stacks, globs), "file"));
     }
 
     private void AddArchitectureRule()
     {
         if (_components.Wants(Catalog.RuleArchitecture, _architecture.Exists,
                 "Documentos aprovados em Da ideia ao projeto: o agente segue a especificação, a arquitetura e o backlog.",
-                [.. _architecture.Present], "Nenhum documento de arquitetura em .mariliz/arquitetura.", DecisionOrigins.Architecture))
-            _desired.Add(new(Catalog.PathRuleArchitecture, ComponentKind.Rule, Catalog.RuleArchitecture, DecisionOrigins.Architecture,
+                [.. _architecture.Present], $"Nenhum documento de arquitetura em {_naming.ArchitectureFolder}.", DecisionOrigins.Architecture))
+            _desired.Add(new(_naming.RuleArchitecture, ComponentKind.Rule, Catalog.RuleArchitecture, DecisionOrigins.Architecture,
                 "Pede ao agente que siga os documentos aprovados e cite os ids deles.", RuleContent.ForArchitecture(_architecture.Present), "file"));
     }
 
@@ -270,7 +272,7 @@ internal sealed class HarnessComposition(
         var evidence = commands.SelectMany(t => t.Evidence.Take(1).Select(e => e.Path)).Distinct().ToList();
 
         if (_components.Wants(Catalog.RuleRepoCommands, commands.Count > 0, "Comandos de build, teste e lint detectados nos arquivos do projeto.", evidence, "Nenhum comando de build ou teste foi detectado."))
-            _desired.Add(new(Catalog.PathRuleRepo, ComponentKind.Rule, Catalog.RuleRepoCommands, DecisionOrigins.Baseline,
+            _desired.Add(new(_naming.RuleRepo, ComponentKind.Rule, Catalog.RuleRepoCommands, DecisionOrigins.Baseline,
                 "Comandos reais do repositório, com a evidência de cada um.", RuleContent.ForRepository(commands), "file"));
     }
 
@@ -282,12 +284,12 @@ internal sealed class HarnessComposition(
             if (_exclusion.Contains(id, StringComparer.Ordinal))
             {
                 // Registrada como dispensada para que o arquivo já escrito saia pelo plano, como nos demais componentes.
-                _decisions.Add(new(ComponentKind.Rule, id, ComponentDecisions.Skip, "Excluída em mariliz.yaml (components.exclude).", DecisionOrigins.Declared, []));
+                _decisions.Add(new(ComponentKind.Rule, id, ComponentDecisions.Skip, $"Excluída em {_naming.Declaration} (components.exclude).", DecisionOrigins.Declared, []));
                 continue;
             }
 
             _decisions.Add(new(ComponentKind.Rule, id, ComponentDecisions.Enable, rule.Justification, DecisionOrigins.HarnessEngineer, rule.Evidence));
-            _desired.Add(new($".claude/rules/mariliz-repo-{rule.Id}.md", ComponentKind.Rule, id, DecisionOrigins.HarnessEngineer,
+            _desired.Add(new(_naming.CustomRule(rule.Id), ComponentKind.Rule, id, DecisionOrigins.HarnessEngineer,
                 "Regra específica do repositório proposta pelo Harness Engineer.", RuleContent.ForProposal(rule), "file"));
         }
     }
@@ -304,7 +306,7 @@ internal sealed class HarnessComposition(
         if (_components.Wants(Catalog.HookPolicy, true, "Controle determinístico antes de escritas e comandos: bloqueia o que a política proíbe.", []))
         {
             var python = report.Tools.PythonCommand;
-            var (merged, error) = python is null ? (null, null) : SettingsMerger.Merge(text, python);
+            var (merged, error) = python is null ? (null, null) : SettingsMerger.Merge(text, python, _naming);
             if (python is null)
                 BlockPolicyHook("Python 3 não foi encontrado; o hook depende dele.", "O hook de política não foi planejado: Python 3 não está disponível.");
             else if (merged is null)
@@ -314,7 +316,7 @@ internal sealed class HarnessComposition(
                 text = merged;
                 owner = Catalog.HookPolicy;
                 reasons.Add("Registra o hook e nega a leitura de arquivos .env; o restante do arquivo é preservado.");
-                _desired.Add(RuleContent.Asset(Catalog.PathHookScript, ComponentKind.Hook, Catalog.HookPolicy, "hooks/mariliz-policy.py",
+                _desired.Add(RuleContent.Asset(_naming, _naming.HookScript, ComponentKind.Hook, Catalog.HookPolicy, "hooks/mariliz-policy.py",
                     "Script do hook: determinístico, somente leitura, sem rede."));
                 _risks.Add($"O hook usa o comando '{python}' em .claude/settings.json; em máquinas onde esse nome não existe ele falha sem bloquear (comportamento documentado).");
             }

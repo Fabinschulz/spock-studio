@@ -20,7 +20,7 @@ public static class HarnessLabels
         [Catalog.IdeClaudeBootstrap] = "Bloco do Spock no CLAUDE.md",
         [Catalog.IdeMcpServer] = "Servidor MCP do Spock (.mcp.json)",
         [Catalog.SpecificationStructure] = "Estrutura de especificação",
-        [Catalog.ConfigDeclaration] = "Declaração do projeto (mariliz.yaml)"
+        [Catalog.ConfigDeclaration] = "Declaração do projeto"
     };
 
     public static string Of(string id) =>

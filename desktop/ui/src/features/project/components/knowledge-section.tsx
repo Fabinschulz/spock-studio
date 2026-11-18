@@ -79,7 +79,7 @@ function KnowledgeContent({ knowledge }: { knowledge: ProjectKnowledge }) {
         {knowledge.indexState === 'read' ? indexSummary(knowledge) : INDEX_STATE_TEXT[knowledge.indexState]}
       </p>
 
-      <h3 className={styles.subsection}>Regras em mariliz.yaml</h3>
+      <h3 className={styles.subsection}>Regras na declaração do projeto</h3>
       {knowledge.include.length === 0 && knowledge.exclude.length === 0 ? (
         <p className={styles.meta}>Nenhuma regra declarada: entra todo arquivo permitido pelas proteções abaixo.</p>
       ) : (

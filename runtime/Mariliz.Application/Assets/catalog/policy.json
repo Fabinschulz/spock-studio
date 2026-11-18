@@ -10,11 +10,15 @@
     },
     {
       "source": "this file belongs to the managed harness. Change it through Spock Studio so it stays reviewable and reversible.",
-      "plain": "Mexer nos arquivos do Harness (.claude/, .agents/, mariliz.yaml, mariliz.lock e .mcp.json). O Claude Code pergunta antes, para a mudança passar pelo Spock Studio, que mostra a diferença e permite reverter."
+      "plain": "Mexer nos arquivos do Harness (.claude/, .agents/, spock.yaml, spock.lock, .mcp.json e, nos projetos configurados antes da troca de nome, mariliz.yaml e mariliz.lock). O Claude Code pergunta antes, para a mudança passar pelo Spock Studio, que mostra a diferença e permite reverter."
+    },
+    {
+      "source": ".spock/proposal.json",
+      "plain": "Gravar a proposta do Harness Engineer em .spock/proposal.json."
     },
     {
       "source": ".mariliz/proposal.json",
-      "plain": "Gravar a proposta do Harness Engineer em .mariliz/proposal.json."
+      "plain": "Gravar a proposta do Harness Engineer em .mariliz/proposal.json, nos projetos configurados antes da troca de nome."
     },
     {
       "source": ".specs/",

@@ -90,7 +90,7 @@ public class ProjectAuditTests
         {
             journal.ApprovedAt = day1.AddDays(3).AddMinutes(1);
             journal.ApprovalId = "ap-000000000001";
-            journal.Actions.Add(new JournalAction { Id = "a1", Kind = "write", Summary = "Registrar a decisão de arquitetura", Target = ".mariliz/decisions/ex-000000000004-impacto.md", Status = JournalAction.Executed });
+            journal.Actions.Add(new JournalAction { Id = "a1", Kind = "write", Summary = "Registrar a decisão de arquitetura", Target = ".spock/decisions/ex-000000000004-impacto.md", Status = JournalAction.Executed });
             journal.Actions.Add(new JournalAction { Id = "a2", Kind = "write", Summary = "Outra ação", Target = "docs/x.md", Status = JournalAction.Skipped });
             journal.ModelUsage = new JournalModelUsage { Calls = 3, InputTokens = 1200, OutputTokens = 300 };
         });
@@ -235,7 +235,7 @@ public class ProjectAuditTests
         Assert.Equal(2, changes.Count);
         Assert.Contains(changes, entry => entry.Title == "Ações propostas por agentes aprovadas" && entry.Detail == "1 de 2 ações aprovadas; 1 executada.");
         var executed = Assert.Single(changes, entry => entry.Title.StartsWith("Ação de agente executada", StringComparison.Ordinal));
-        Assert.Equal("Destino: .mariliz/decisions/ex-000000000004-impacto.md.", executed.Detail);
+        Assert.Equal("Destino: .spock/decisions/ex-000000000004-impacto.md.", executed.Detail);
         Assert.DoesNotContain(changes, entry => entry.Title.Contains("Outra ação", StringComparison.Ordinal));
     }
 

@@ -50,8 +50,8 @@ public class ActionGovernanceEndToEndTests
             var action = approval["actions"]!.AsArray().Single()!;
             Assert.Equal("file.write", action["kind"]!.GetValue<string>());
             var executionId = approval["executionId"]!.GetValue<string>();
-            var target = Path.Combine(project.Root, ".mariliz", "decisions", executionId + "-impacto.md");
-            Assert.Equal($".mariliz/decisions/{executionId}-impacto.md", action["target"]!.GetValue<string>());
+            var target = Path.Combine(project.Root, ".spock", "decisions", executionId + "-impacto.md");
+            Assert.Equal($".spock/decisions/{executionId}-impacto.md", action["target"]!.GetValue<string>());
             Assert.False(File.Exists(target), "a proposta do agente não grava nada");
             Assert.True(ContractFiles.IsValid(ContractFiles.Schema("ai", "approval.required.data.schema.json"), approval));
 
@@ -110,7 +110,7 @@ public class ActionGovernanceEndToEndTests
             await run.Completion!;
 
             Assert.Null(run.Result!["actions"]);
-            Assert.False(Directory.Exists(Path.Combine(project.Root, ".mariliz", "decisions")));
+            Assert.False(Directory.Exists(Path.Combine(project.Root, ".spock", "decisions")));
         }
         finally
         {

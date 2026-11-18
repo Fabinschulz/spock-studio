@@ -158,7 +158,7 @@ describe('contrato do motor (fixtures golden)', () => {
     expect(parsed.commands[0]).toMatchObject({ id: 'specification-install', executable: 'npx' });
     expect(parsed.commands[0]?.effects).toContain('write_local');
     const conflict = parsed.changes.find((c) => c.action === 'conflict');
-    expect(conflict?.path).toBe('.claude/agents/code-reviewer.md');
+    expect(conflict?.path).toBe('.claude/agents/spock-code-reviewer.md');
     expect(conflict?.diff).toContain('@@');
   });
 
@@ -513,11 +513,11 @@ describe('contrato do inventário de MCP (fixture do motor)', () => {
 describe('contrato da política dos agentes (fixture do motor)', () => {
   it('traz o hook, o que ele vigia, as regras com a decisão e os limites', () => {
     const parsed = agentPolicySchema.parse(engineeringPolicy);
-    expect(parsed.script).toBe('.claude/hooks/mariliz-policy.py');
+    expect(parsed.script).toBe('.claude/hooks/spock-policy.py');
     expect(parsed.watches).toContain('rodar comandos no terminal');
     expect(parsed.limits.length).toBeGreaterThan(0);
     const count = (decision: string) => parsed.rules.filter((rule) => rule.decision === decision).length;
-    expect([count('deny'), count('ask'), count('allow')]).toEqual([10, 5, 2]);
+    expect([count('deny'), count('ask'), count('allow')]).toEqual([10, 5, 3]);
     expect(parsed.rules.every((rule) => ['command', 'write'].includes(rule.scope))).toBe(true);
   });
 
@@ -739,11 +739,11 @@ describe('contrato da ideia ao projeto (fixtures do motor)', () => {
     ]);
   });
 
-  it('o plano grava só os três documentos em .mariliz/arquitetura', () => {
+  it('o plano grava só os três documentos em .spock/arquitetura', () => {
     expect(ideaPlanSchema.parse(ideaPlanFixture).changes.map((change) => change.path)).toEqual([
-      '.mariliz/arquitetura/especificacao.md',
-      '.mariliz/arquitetura/arquitetura.md',
-      '.mariliz/arquitetura/backlog.md'
+      '.spock/arquitetura/especificacao.md',
+      '.spock/arquitetura/arquitetura.md',
+      '.spock/arquitetura/backlog.md'
     ]);
   });
 });

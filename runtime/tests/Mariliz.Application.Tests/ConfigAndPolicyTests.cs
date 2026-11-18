@@ -10,14 +10,14 @@ public class SettingsMergerTests
     [Fact]
     public void Cria_o_arquivo_com_o_hook_e_as_regras_de_leitura_negada()
     {
-        var (content, error) = SettingsMerger.Merge(null, "python");
+        var (content, error) = SettingsMerger.Merge(null, "python", HarnessNaming.Spock);
 
         Assert.Null(error);
         var json = JsonNode.Parse(content!)!;
         var hook = json["hooks"]!["PreToolUse"]![0]!["hooks"]![0]!;
         Assert.Equal("command", hook["type"]!.GetValue<string>());
         Assert.Equal("python", hook["command"]!.GetValue<string>());
-        Assert.Equal("${CLAUDE_PROJECT_DIR}/.claude/hooks/mariliz-policy.py", hook["args"]![0]!.GetValue<string>());
+        Assert.Equal("${CLAUDE_PROJECT_DIR}/.claude/hooks/spock-policy.py", hook["args"]![0]!.GetValue<string>());
         Assert.Equal(SettingsMerger.HookMatcher, json["hooks"]!["PreToolUse"]![0]!["matcher"]!.GetValue<string>());
         Assert.Contains("Read(./.env)", json["permissions"]!["deny"]!.AsArray().Select(n => n!.GetValue<string>()));
     }
@@ -28,7 +28,7 @@ public class SettingsMergerTests
         const string current = "{\"model\":\"opus\",\"env\":{\"A\":\"1\"},\"permissions\":{\"allow\":[\"Bash(dotnet test:*)\"],\"deny\":[\"Read(./segredo.txt)\"]},"
             + "\"hooks\":{\"PreToolUse\":[{\"matcher\":\"Bash\",\"hooks\":[{\"type\":\"command\",\"command\":\"meu-hook\"}]}],\"Stop\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"fim\"}]}]}}";
 
-        var (content, error) = SettingsMerger.Merge(current, "python3");
+        var (content, error) = SettingsMerger.Merge(current, "python3", HarnessNaming.Spock);
 
         Assert.Null(error);
         var json = JsonNode.Parse(content!)!;
@@ -44,21 +44,21 @@ public class SettingsMergerTests
     [Fact]
     public void E_idempotente_e_nao_reformata_um_arquivo_ja_correto()
     {
-        var first = SettingsMerger.Merge(null, "python").Content!;
-        var second = SettingsMerger.Merge(first, "python").Content!;
+        var first = SettingsMerger.Merge(null, "python", HarnessNaming.Spock).Content!;
+        var second = SettingsMerger.Merge(first, "python", HarnessNaming.Spock).Content!;
         Assert.Equal(first, second);
 
         // Compacto e na ordem da pessoa: continua exatamente como está.
         var compact = JsonNode.Parse(first)!.ToJsonString();
-        Assert.Equal(compact, SettingsMerger.Merge(compact, "python").Content);
+        Assert.Equal(compact, SettingsMerger.Merge(compact, "python", HarnessNaming.Spock).Content);
     }
 
     [Fact]
     public void Troca_o_comando_do_hook_gerenciado_em_vez_de_duplicar()
     {
-        var withPython = SettingsMerger.Merge(null, "python").Content!;
+        var withPython = SettingsMerger.Merge(null, "python", HarnessNaming.Spock).Content!;
 
-        var updated = SettingsMerger.Merge(withPython, "python3").Content!;
+        var updated = SettingsMerger.Merge(withPython, "python3", HarnessNaming.Spock).Content!;
 
         var hooks = JsonNode.Parse(updated)!["hooks"]!["PreToolUse"]!.AsArray();
         Assert.Single(hooks);
@@ -74,7 +74,7 @@ public class SettingsMergerTests
     [InlineData("{\"permissions\":{\"deny\":\"x\"}}")]
     public void Arquivo_invalido_ou_em_formato_inesperado_nao_e_alterado(string current)
     {
-        var (content, error) = SettingsMerger.Merge(current, "python");
+        var (content, error) = SettingsMerger.Merge(current, "python", HarnessNaming.Spock);
 
         Assert.Null(content);
         Assert.NotNull(error);
@@ -172,9 +172,9 @@ public class PolicyTests
 
     [Theory]
     [InlineData(".claude/agents/x.md", true)]
-    [InlineData(".mariliz/proposal.json", true)]
-    [InlineData("mariliz.yaml", true)]
-    [InlineData("mariliz.lock", true)]
+    [InlineData(".spock/proposal.json", true)]
+    [InlineData("spock.yaml", true)]
+    [InlineData("spock.lock", true)]
     [InlineData("src/a.cs", false)]
     [InlineData(".git/config", false)]
     [InlineData(".claude/skills/tlc-spec-driven/SKILL.md", false)]

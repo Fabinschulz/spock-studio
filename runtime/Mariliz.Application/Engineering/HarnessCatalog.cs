@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Mariliz.Application.Harness;
+using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Engineering;
 
@@ -54,24 +55,8 @@ public sealed class HarnessCatalogService(HarnessStatusService? status)
         [Catalog.AgentVerifier] = "agents/verifier.md"
     };
 
-    private static readonly Dictionary<string, string[]> FilesOf = new(StringComparer.Ordinal)
-    {
-        [Catalog.AgentHarnessEngineer] = [Catalog.PathHarnessEngineer, Catalog.PathProposalSchema],
-        [Catalog.AgentCodeReviewer] = [Catalog.PathCodeReviewer],
-        [Catalog.AgentVerifier] = [Catalog.PathVerifier],
-        [Catalog.SkillHarnessContract] = [Catalog.PathHarnessContract],
-        [Catalog.RuleGeneral] = [Catalog.PathRuleGeneral],
-        [Catalog.RuleStackDotnet] = [Catalog.PathRuleDotnet],
-        [Catalog.RuleStackJavascript] = [Catalog.PathRuleJavascript],
-        [Catalog.RuleRepoCommands] = [Catalog.PathRuleRepo],
-        [Catalog.RuleArchitecture] = [Catalog.PathRuleArchitecture],
-        [Catalog.HookPolicy] = [Catalog.PathHookScript, Catalog.PathSettings],
-        [Catalog.HookSession] = [Catalog.PathSettings],
-        [Catalog.IdeClaudeBootstrap] = [Catalog.PathClaudeMd],
-        [Catalog.IdeMcpServer] = [Catalog.PathMcpJson],
-        [Catalog.SpecificationStructure] = [".specs/"],
-        [Catalog.ConfigDeclaration] = ["mariliz.yaml", "mariliz.lock"]
-    };
+    private static IReadOnlyList<string> FilesOf(string id, HarnessNaming naming) =>
+        id == Catalog.SpecificationStructure ? [".specs/"] : Catalog.FilesOf(id, naming);
 
     private static readonly Lazy<IReadOnlyList<ComponentSheet>> Sheets = new(LoadSheets);
 
@@ -84,8 +69,9 @@ public sealed class HarnessCatalogService(HarnessStatusService? status)
         var state = (status ?? throw new Execution.EngineException("HARNESS_STATUS_UNAVAILABLE", "O estado do Harness não está disponível nesta sessão do motor.")).Inspect(projectId);
         var byId = state.Components.ToDictionary(component => component.Id, StringComparer.Ordinal);
         var excluded = state.Excluded.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var naming = status.NamingOf(projectId);
 
-        var entries = AllSheets.Select(sheet =>
+        var entries = AllSheets.Select(sheet => sheet with { Files = FilesOf(sheet.Id, naming) }).Select(sheet =>
         {
             byId.TryGetValue(sheet.Id, out var applied);
             // O que mariliz.yaml pede para não aplicar vale como "excluído" mesmo que os arquivos ainda estejam no projeto: eles saem
@@ -139,7 +125,7 @@ public sealed class HarnessCatalogService(HarnessStatusService? status)
                 List(sheet, "canChange"),
                 ToolsOf(component.Id),
                 Text(sheet, "origin"),
-                FilesOf.GetValueOrDefault(component.Id) ?? [],
+                FilesOf(component.Id, HarnessNaming.Spock),
                 ComponentRequest.IsManageable(component.Id));
         }).ToList();
     }

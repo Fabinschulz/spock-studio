@@ -21,10 +21,11 @@ export function ProposalGuide({ onReplan, replan, busy }: ProposalGuideProps) {
     <div className={styles.card}>
       <h3 className={styles.cardTitle}>Próximo passo: peça a proposta ao Harness Engineer</h3>
       <span className={styles.muted}>
-        O plano usou as regras-base. O agente <span className={styles.mono}>harness-engineer</span> já está no projeto (
-        <span className={styles.mono}>.claude/agents/harness-engineer.md</span>). Abra a pasta no Claude Code, cole o
-        pedido abaixo e deixe que ele escreva <span className={styles.mono}>.mariliz/proposal.json</span>. O motor
-        valida a proposta antes de usá-la e você revisa tudo de novo antes de aplicar.
+        O plano usou as regras-base. O agente <span className={styles.mono}>spock-harness-engineer</span> já está no
+        projeto (<span className={styles.mono}>.claude/agents/spock-harness-engineer.md</span>). Abra a pasta no Claude
+        Code, cole o pedido abaixo e deixe que ele escreva a proposta (
+        <span className={styles.mono}>.spock/proposal.json</span>). O motor valida a proposta antes de usá-la e você
+        revisa tudo de novo antes de aplicar.
       </span>
       <TextField
         label="Pedido para o Harness Engineer"

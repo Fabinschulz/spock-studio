@@ -14,7 +14,7 @@ internal sealed class SecretsCheck : IEvalCheck
 
     private static EvalResult Run(EvalSpec spec, ValidationContext ctx)
     {
-        var paths = new List<string> { DeclaredConfig.FileName, ManagedLockFile.FileName, ".mcp.json", Catalog.PathProposal };
+        var paths = new List<string> { ctx.Naming.Declaration, ctx.Naming.Lock, ".mcp.json", ctx.Naming.Proposal };
         paths.AddRange(ctx.Lock?.ManagedFiles.Select(f => f.Path) ?? []);
         var findings = new List<string>();
         var scanned = 0;

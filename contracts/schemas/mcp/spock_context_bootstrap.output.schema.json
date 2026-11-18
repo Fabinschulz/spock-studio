@@ -23,7 +23,7 @@
         "string",
         "null"
       ],
-      "description": "Id estável do projeto (spk-), do mariliz.yaml."
+      "description": "Id estável do projeto (spk-), do spock.yaml (ou do mariliz.yaml de um projeto anterior à troca de nome)."
     },
     "intent": {
       "type": "string",
@@ -74,7 +74,7 @@
           },
           "source": {
             "type": "string",
-            "description": "De onde veio: spock, mariliz.yaml, mariliz.lock, o provedor da integração ou cloud:<provedor>."
+            "description": "De onde veio: spock, a declaração (spock.yaml ou mariliz.yaml), o lock (spock.lock ou mariliz.lock), o provedor da integração ou cloud:<provedor>."
           },
           "ref": {
             "type": "string",

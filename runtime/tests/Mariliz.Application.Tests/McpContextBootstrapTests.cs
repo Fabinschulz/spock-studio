@@ -51,7 +51,7 @@ public sealed class McpContextBootstrapTests : IDisposable
     [Fact]
     public void Responde_em_texto_e_em_json_que_segue_o_contrato_e_fica_na_trilha()
     {
-        _project.Write("mariliz.yaml", $"schema: 1\nproject:\n  id: {StableId}\n  name: loja\nimplementationModel: mariliz\naiEnvironment: claude-code\n");
+        _project.Write("spock.yaml", $"schema: 1\nproject:\n  id: {StableId}\n  name: loja\nimplementationModel: mariliz\naiEnvironment: claude-code\n");
         var projectId = Workspace().Authorize(_project.Root).Project!.ProjectId;
 
         var result = Call(Server())["result"]!;

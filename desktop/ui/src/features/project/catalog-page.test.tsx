@@ -110,7 +110,7 @@ describe('Catálogo do Harness', () => {
       'Adaptado do exemplo de referência'
     );
     expect(within(reviewer).getByText('Onde fica no projeto').nextElementSibling).toHaveTextContent(
-      '.claude/agents/code-reviewer.md'
+      '.claude/agents/spock-code-reviewer.md'
     );
   });
 
@@ -130,7 +130,7 @@ describe('Catálogo do Harness', () => {
 
     expect(within(await card('Agente Harness Engineer')).getByText('Aplicado')).toBeInTheDocument();
     const verifier = await card('Agente verificador');
-    expect(within(verifier).getByText('Dispensado em mariliz.yaml')).toBeInTheDocument();
+    expect(within(verifier).getByText('Dispensado na declaração')).toBeInTheDocument();
     expect(within(verifier).getByText('Os arquivos saem na próxima aplicação')).toBeInTheDocument();
     expect(
       within(await card('Regras da stack JavaScript e TypeScript')).getByText('Não aplicado neste projeto')

@@ -53,7 +53,7 @@ internal static class CliRender
         w.WriteLine($"Plano {plan.PlanId}: ambiente {(plan.AiEnvironment.Length == 0 ? "(não definido)" : plan.AiEnvironment)}, modelo de implementação {plan.ImplementationModel}");
         w.WriteLine(plan.ProposalOrigin == "harness-engineer"
             ? "Proposta do Harness Engineer, validada pelo motor."
-            : "Plano pelas regras-base (o Harness Engineer ainda não gerou .mariliz/proposal.json).");
+            : "Plano pelas regras-base (o Harness Engineer ainda não gerou a proposta).");
 
         w.WriteLine();
         w.WriteLine("Decisões:");

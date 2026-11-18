@@ -314,7 +314,7 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                 var reverted = journal.Ops.Count(op => op.Status == OpStatus.Reverted);
                 if (journal.Kind == RunKinds.Idea && applied > 0)
                     result.Add(Entry("", at, AuditCategories.Change, "Documentos da ideia gravados",
-                        $"{Count(applied, "arquivo gravado", "arquivos gravados")} em .mariliz/arquitetura depois da aprovação."));
+                        $"{Count(applied, "arquivo gravado", "arquivos gravados")} na pasta de arquitetura do projeto depois da aprovação."));
                 else if (journal.Kind == RunKinds.Security && applied > 0)
                     result.Add(Entry("", at, AuditCategories.Change, "Correção de segurança aplicada",
                         $"{Count(applied, "arquivo gravado", "arquivos gravados")} depois da aprovação."));

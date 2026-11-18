@@ -298,7 +298,7 @@ describe('Projeto · Harness', () => {
     const first = within(list).getAllByRole('listitem')[0]!;
     expect(first).toHaveTextContent('Agente revisor de código');
     expect(first).toHaveTextContent('Modificado à mão');
-    expect(first).toHaveTextContent('.claude/agents/code-reviewer.md');
+    expect(first).toHaveTextContent('.claude/agents/spock-code-reviewer.md');
     expect(within(harness).getByText(/Nada é aplicado sem aprovação/)).toBeTruthy();
   });
 

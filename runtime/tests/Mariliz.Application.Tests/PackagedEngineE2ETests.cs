@@ -157,7 +157,7 @@ public class PackagedEngineE2ETests
         Assert.Equal("file.write", action["kind"]!.GetValue<string>());
         // Antes da aprovação, o Python instalado já está rodando o grafo, e o projeto está intacto.
         Assert.NotEmpty(PythonProcesses(engine.PythonPath));
-        Assert.False(Directory.Exists(Path.Combine(project.Root, ".mariliz", "decisions")));
+        Assert.False(Directory.Exists(Path.Combine(project.Root, ".spock", "decisions")));
 
         engine.Request("workflow.resume", new JsonObject
         {
@@ -171,7 +171,7 @@ public class PackagedEngineE2ETests
         var snapshot = engine.Request("run.snapshot", new JsonObject { ["runId"] = runId })["result"]!;
         Assert.Equal("completed_with_limitations", snapshot["state"]!.GetValue<string>());
         Assert.Contains("docs/cobranca.md", snapshot["result"]!["evidence"]!.ToJsonString());
-        var record = Directory.GetFiles(Path.Combine(project.Root, ".mariliz", "decisions"), "*-impacto.md").Single();
+        var record = Directory.GetFiles(Path.Combine(project.Root, ".spock", "decisions"), "*-impacto.md").Single();
         Assert.Contains("# Decisão de arquitetura", File.ReadAllText(record));
 
         // Fim ordenado, como o host o pede: o motor sai e leva o Python junto.

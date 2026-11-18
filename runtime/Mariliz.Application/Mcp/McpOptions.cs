@@ -48,7 +48,7 @@ public sealed record McpOptions(IReadOnlySet<string> Scope, string? ProjectDirec
         return new McpOptions(scope, directory);
     }
 
-    // --project-dir vira o id estável do mariliz.yaml mais próximo, subindo a partir da pasta. Sem id, recusa: o vínculo pela
+    // --project-dir vira o id estável da declaração (spock.yaml ou mariliz.yaml) mais próxima, subindo a partir da pasta. Sem id, recusa: o vínculo pela
     // pasta só vale para um projeto que tem identidade própria, e nunca vira "o que estiver por perto".
     public McpOptions WithDirectoryResolved(Func<string, string?> readDeclaration)
     {
@@ -59,10 +59,10 @@ public sealed record McpOptions(IReadOnlySet<string> Scope, string? ProjectDirec
             var text = readDeclaration(current.FullName);
             if (text is null) continue;
             var id = Harness.DeclaredConfig.StableIdIn(text) ?? throw new McpOptionsException(
-                $"O mariliz.yaml de {current.FullName} não tem project.id. Abra o projeto no Spock, planeje e aplique o Harness para gravar o id, e reinicie a conexão.");
+                $"A declaração do projeto em {current.FullName} não tem project.id. Abra o projeto no Spock, planeje e aplique o Harness para gravar o id, e reinicie a conexão.");
             return new McpOptions(new HashSet<string>(Scope, StringComparer.Ordinal) { id }, full);
         }
         throw new McpOptionsException(
-            $"Nenhum mariliz.yaml em {full} nem nas pastas acima. Abra o projeto no Spock, planeje e aplique o Harness para gravar o id, e reinicie a conexão.");
+            $"Nenhum spock.yaml (ou mariliz.yaml) em {full} nem nas pastas acima. Abra o projeto no Spock, planeje e aplique o Harness para gravar o id, e reinicie a conexão.");
     }
 }

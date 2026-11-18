@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Mariliz.Application.Harness;
 using Mariliz.Core.Evals;
 using Mariliz.Core.Plan;
+using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Execution;
 
@@ -11,7 +12,7 @@ internal static class ResultJson
     public static JsonObject Build(RunJournal journal, ValidationReport report, ConfigurationPlan plan,
         IReadOnlyDictionary<string, FileOutcome> outcomes)
     {
-        string[] Paths(Func<JournalOp, bool> predicate) => journal.Ops.Where(o => o.Source == OpSources.Write && predicate(o) && o.Path != ManagedLockFile.FileName).Select(o => o.Path).ToArray();
+        string[] Paths(Func<JournalOp, bool> predicate) => journal.Ops.Where(o => o.Source == OpSources.Write && predicate(o) && !HarnessNaming.IsLock(o.Path)).Select(o => o.Path).ToArray();
 
         var files = new JsonObject
         {
@@ -34,7 +35,7 @@ internal static class ResultJson
             ["changesApplied"] = journal.ChangesApplied,
             ["rolledBack"] = journal.RolledBack,
             ["files"] = files,
-            ["lockWritten"] = journal.Ops.Any(o => o.Path == ManagedLockFile.FileName),
+            ["lockWritten"] = journal.Ops.Any(o => HarnessNaming.IsLock(o.Path)),
             ["validation"] = new JsonObject
             {
                 ["outcome"] = JournalJson.Node(report.Outcome),

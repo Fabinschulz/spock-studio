@@ -6,7 +6,7 @@
       "whatItDoes": "Lê o seu projeto e escreve uma proposta de como montar o Harness: quais agentes, skills e regras fazem sentido e por quê. Só recomenda. Quem valida a proposta, mostra a diferença e aplica é o Spock Studio, com a sua aprovação.",
       "whenItActs": "Quando você configura ou revisa o Harness pela jornada Configurar.",
       "reads": ["Os arquivos do projeto", "Os agentes, skills, regras, hooks e a configuração de MCP que já existem"],
-      "canChange": ["Escreve um único arquivo: .mariliz/proposal.json, a proposta. Não altera código nem os arquivos do Harness."],
+      "canChange": ["Escreve um único arquivo: .spock/proposal.json, a proposta. Não altera código nem os arquivos do Harness."],
       "origin": "Escrito pelo Spock Studio."
     },
     {
@@ -70,12 +70,12 @@
       "whatItDoes": "Aponta para a especificação, a arquitetura e o backlog que você aprovou em Da ideia ao projeto, e pede ao agente que siga esses documentos e cite os ids (REQ, CMP, US) no que fizer.",
       "whenItActs": "Sempre: o Claude Code carrega esta regra nas sessões deste projeto.",
       "reads": [
-        "Os documentos em .mariliz/arquitetura, quando o agente vai implementar ou revisar algo"
+        "Os documentos em .spock/arquitetura, quando o agente vai implementar ou revisar algo"
       ],
       "canChange": [
         "Nada. É só orientação."
       ],
-      "origin": "Gerado a partir dos documentos de .mariliz/arquitetura que existem no seu projeto."
+      "origin": "Gerado a partir dos documentos de .spock/arquitetura que existem no seu projeto."
     },
     {
       "id": "mariliz.hook.policy",
@@ -95,9 +95,9 @@
     },
     {
       "id": "mariliz.config.declaration",
-      "whatItDoes": "Dois arquivos: mariliz.yaml, onde o projeto declara o que quer (por exemplo, componentes a não aplicar), e mariliz.lock, o registro do que foi aplicado, com o hash de cada arquivo.",
+      "whatItDoes": "Dois arquivos: spock.yaml, onde o projeto declara o que quer (por exemplo, componentes a não aplicar), e spock.lock, o registro do que foi aplicado, com o hash de cada arquivo. Num projeto configurado antes da troca de nome, os dois continuam como mariliz.yaml e mariliz.lock.",
       "whenItActs": "A cada plano, validação e conferência do estado do Harness.",
-      "reads": ["O próprio mariliz.yaml e mariliz.lock"],
+      "reads": ["O próprio spock.yaml e spock.lock (ou mariliz.yaml e mariliz.lock)"],
       "canChange": ["O Spock Studio atualiza o lock a cada aplicação ou reversão. O yaml muda quando você dispensa ou volta a aplicar um componente."],
       "origin": "Escrito pelo Spock Studio."
     },

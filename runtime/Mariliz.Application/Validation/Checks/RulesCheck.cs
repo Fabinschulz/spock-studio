@@ -14,18 +14,18 @@ internal sealed class RulesCheck : IEvalCheck
 
     private static EvalResult Run(EvalSpec spec, ValidationContext ctx)
     {
-        if (ctx.Lock is null) return Block(spec, "Sem mariliz.lock, não há regras gerenciadas a conferir.");
+        if (ctx.Lock is null) return Block(spec, $"Sem {ctx.Naming.Lock}, não há regras gerenciadas a conferir.");
         var rules = ctx.OwnedFiles().Where(f => f.Path.StartsWith(".claude/rules/", StringComparison.Ordinal)).ToList();
         var problems = new List<string>();
 
-        if (!rules.Any(r => r.Path == Catalog.PathRuleGeneral) && !(ctx.Declared?.Components.Exclude.Contains(Catalog.RuleGeneral) ?? false))
-            problems.Add($"{Catalog.PathRuleGeneral}: a regra geral não está no lock.");
+        if (!rules.Any(r => r.Path == ctx.Naming.RuleGeneral) && !(ctx.Declared?.Components.Exclude.Contains(Catalog.RuleGeneral) ?? false))
+            problems.Add($"{ctx.Naming.RuleGeneral}: a regra geral não está no lock.");
 
         foreach (var rule in rules)
         {
             var text = ctx.Files.ReadText(rule.Path);
             if (string.IsNullOrWhiteSpace(text)) { problems.Add($"{rule.Path}: ausente ou vazio."); continue; }
-            if (rule.Path.Contains("mariliz-stack-", StringComparison.Ordinal))
+            if (rule.Path.StartsWith(ctx.Naming.RulePrefix + "stack-", StringComparison.Ordinal))
             {
                 var m = Regex.Match(text, @"\A---\n(?<fm>[\s\S]*?)\n---\n");
                 if (!m.Success || !Regex.IsMatch(m.Groups["fm"].Value, @"^paths:\s*\n(\s+- "".+""\n?)+", RegexOptions.Multiline))

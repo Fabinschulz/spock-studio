@@ -15,22 +15,22 @@ internal sealed class ConfigCheck : IEvalCheck
     private static EvalResult Run(EvalSpec spec, ValidationContext ctx)
     {
         var evidence = new List<string>();
-        if (ctx.DeclaredError is not null) return Fail(spec, ctx.DeclaredError, [DeclaredConfig.FileName]);
+        if (ctx.DeclaredError is not null) return Fail(spec, ctx.DeclaredError, [ctx.Naming.Declaration]);
         if (ctx.Lock is null)
-            return ctx.Files.FileExists(ManagedLockFile.FileName)
-                ? Fail(spec, "mariliz.lock existe, mas não é um YAML válido.", [ManagedLockFile.FileName])
-                : Block(spec, "mariliz.lock não existe: nenhuma configuração foi aplicada neste projeto.");
+            return ctx.Files.FileExists(ctx.Naming.Lock)
+                ? Fail(spec, $"{ctx.Naming.Lock} existe, mas não é um YAML válido.", [ctx.Naming.Lock])
+                : Block(spec, $"{ctx.Naming.Lock} não existe: nenhuma configuração foi aplicada neste projeto.");
 
-        if (ctx.Lock.Schema != 1) return Fail(spec, $"mariliz.lock com schema {ctx.Lock.Schema}; esperado 1.", [ManagedLockFile.FileName]);
-        if (string.IsNullOrWhiteSpace(ctx.Lock.Engine)) return Fail(spec, "mariliz.lock sem a versão do motor.", [ManagedLockFile.FileName]);
-        if (!AiEnvironments.Known.Contains(ctx.Lock.AiEnvironment)) return Fail(spec, "mariliz.lock declara um ambiente de IA desconhecido.", [ManagedLockFile.FileName]);
-        evidence.Add($"{ManagedLockFile.FileName}: schema 1, motor {ctx.Lock.Engine}, ambiente {ctx.Lock.AiEnvironment}, {ctx.Lock.ManagedFiles.Count} arquivo(s)");
+        if (ctx.Lock.Schema != 1) return Fail(spec, $"{ctx.Naming.Lock} com schema {ctx.Lock.Schema}; esperado 1.", [ctx.Naming.Lock]);
+        if (string.IsNullOrWhiteSpace(ctx.Lock.Engine)) return Fail(spec, $"{ctx.Naming.Lock} sem a versão do motor.", [ctx.Naming.Lock]);
+        if (!AiEnvironments.Known.Contains(ctx.Lock.AiEnvironment)) return Fail(spec, $"{ctx.Naming.Lock} declara um ambiente de IA desconhecido.", [ctx.Naming.Lock]);
+        evidence.Add($"{ctx.Naming.Lock}: schema 1, motor {ctx.Lock.Engine}, ambiente {ctx.Lock.AiEnvironment}, {ctx.Lock.ManagedFiles.Count} arquivo(s)");
 
         if (ctx.Declared is not null)
         {
             if (ctx.Declared.PrimaryEnvironment.Length > 0 && ctx.Declared.PrimaryEnvironment != ctx.Lock.AiEnvironment)
-                return Fail(spec, $"mariliz.yaml declara '{ctx.Declared.PrimaryEnvironment}', mas o lock registra '{ctx.Lock.AiEnvironment}'.", [DeclaredConfig.FileName, ManagedLockFile.FileName]);
-            evidence.Add($"{DeclaredConfig.FileName}: schema 1, implementationModel=mariliz");
+                return Fail(spec, $"{ctx.Naming.Declaration} declara '{ctx.Declared.PrimaryEnvironment}', mas o lock registra '{ctx.Lock.AiEnvironment}'.", [ctx.Naming.Declaration, ctx.Naming.Lock]);
+            evidence.Add($"{ctx.Naming.Declaration}: schema 1, implementationModel=mariliz");
         }
         return Pass(spec, evidence);
     }

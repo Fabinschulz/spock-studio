@@ -1,3 +1,4 @@
+using Mariliz.Core.Policy;
 using Mariliz.Application.Harness;
 using Mariliz.Application.Ideas;
 using Mariliz.Application.Tests.Support;
@@ -37,9 +38,9 @@ public class HarnessArchitectureTests
     {
         var project = new TempProject();
         SpecificationFixture.Install(project);
-        project.Write(IdeaDocuments.SpecificationFile, "# Pedidos da loja\n\n## Requisitos\n\n- **REQ-01** (must): O sistema deve registrar o pedido.\n");
-        project.Write(IdeaDocuments.ArchitectureFile, architecture);
-        project.Write(IdeaDocuments.BacklogFile, "# Backlog\n\n## EPIC-01 Pedidos\n\n### US-01 Como lojista, quero ver os pedidos\n");
+        project.Write(IdeaDocuments.SpecificationFile(HarnessNaming.Spock), "# Pedidos da loja\n\n## Requisitos\n\n- **REQ-01** (must): O sistema deve registrar o pedido.\n");
+        project.Write(IdeaDocuments.ArchitectureFile(HarnessNaming.Spock), architecture);
+        project.Write(IdeaDocuments.BacklogFile(HarnessNaming.Spock), "# Backlog\n\n## EPIC-01 Pedidos\n\n### US-01 Como lojista, quero ver os pedidos\n");
         return project;
     }
 
@@ -79,14 +80,14 @@ public class HarnessArchitectureTests
         var architecture = Decision(plan, Catalog.RuleArchitecture);
         Assert.Equal(ComponentDecisions.Enable, architecture.Decision);
         Assert.Equal(DecisionOrigins.Architecture, architecture.Origin);
-        Assert.Equal([IdeaDocuments.SpecificationFile, IdeaDocuments.ArchitectureFile, IdeaDocuments.BacklogFile], architecture.Evidence);
+        Assert.Equal([IdeaDocuments.SpecificationFile(HarnessNaming.Spock), IdeaDocuments.ArchitectureFile(HarnessNaming.Spock), IdeaDocuments.BacklogFile(HarnessNaming.Spock)], architecture.Evidence);
 
         foreach (var id in new[] { Catalog.RuleStackDotnet, Catalog.RuleStackJavascript })
         {
             var decision = Decision(plan, id);
             Assert.Equal(ComponentDecisions.Enable, decision.Decision);
             Assert.Equal(DecisionOrigins.Architecture, decision.Origin);
-            Assert.Equal([IdeaDocuments.ArchitectureFile], decision.Evidence);
+            Assert.Equal([IdeaDocuments.ArchitectureFile(HarnessNaming.Spock)], decision.Evidence);
         }
         Assert.Contains("ASP.NET Core 9", Decision(plan, Catalog.RuleStackDotnet).Justification);
 
@@ -95,17 +96,17 @@ public class HarnessArchitectureTests
 
         // A validação exige o mesmo que o plano gera: aplicado sem a regra dos documentos, o requisito falha.
         var all = Journey.ApproveAll(plan);
-        var withoutRule = all with { ChangeIds = all.ChangeIds.Where(id => plan.Changes.Single(change => change.Id == id).Path != Catalog.PathRuleArchitecture).ToList() };
+        var withoutRule = all with { ChangeIds = all.ChangeIds.Where(id => plan.Changes.Single(change => change.Id == id).Path != HarnessNaming.Spock.RuleArchitecture).ToList() };
         Assert.Equal("failed", Journey.Status(await journey.ApplyAsync(plan, withoutRule), EvalIds.Requirements));
 
         plan = await journey.PlanAsync();
         var result = await journey.ApplyAsync(plan);
         Assert.Equal("passed", Journey.Status(result, EvalIds.Requirements));
-        var rule = project.Read(Catalog.PathRuleArchitecture)!;
-        foreach (var path in new[] { IdeaDocuments.SpecificationFile, IdeaDocuments.ArchitectureFile, IdeaDocuments.BacklogFile })
+        var rule = project.Read(HarnessNaming.Spock.RuleArchitecture)!;
+        foreach (var path in new[] { IdeaDocuments.SpecificationFile(HarnessNaming.Spock), IdeaDocuments.ArchitectureFile(HarnessNaming.Spock), IdeaDocuments.BacklogFile(HarnessNaming.Spock) })
             Assert.Contains(path, rule);
-        Assert.Contains("ASP.NET Core 9", project.Read(Catalog.PathRuleDotnet));
-        Assert.Contains("Next.js", project.Read(Catalog.PathRuleJavascript));
+        Assert.Contains("ASP.NET Core 9", project.Read(HarnessNaming.Spock.RuleDotnet));
+        Assert.Contains("Next.js", project.Read(HarnessNaming.Spock.RuleJavascript));
     }
 
     [Fact]
@@ -128,14 +129,14 @@ public class HarnessArchitectureTests
         using var project = FromIdea();
         var journey = new Journey(project);
         await journey.ApplyAsync(await journey.PlanAsync());
-        Assert.True(project.Exists(Catalog.PathRuleJavascript));
+        Assert.True(project.Exists(HarnessNaming.Spock.RuleJavascript));
 
-        project.Write(IdeaDocuments.ArchitectureFile, Architecture.Replace("- **frontend**: Next.js. Renderiza o painel no servidor.\n", ""));
+        project.Write(IdeaDocuments.ArchitectureFile(HarnessNaming.Spock), Architecture.Replace("- **frontend**: Next.js. Renderiza o painel no servidor.\n", ""));
         var replanned = await journey.PlanAsync();
 
         Assert.Equal(ComponentDecisions.Skip, Decision(replanned, Catalog.RuleStackJavascript).Decision);
-        Assert.Contains(replanned.Changes, change => change.Path == Catalog.PathRuleJavascript && change.Action == ChangeAction.Remove);
-        Assert.Contains(replanned.Changes, change => change.Path == Catalog.PathRuleDotnet && change.Action == ChangeAction.Preserve);
+        Assert.Contains(replanned.Changes, change => change.Path == HarnessNaming.Spock.RuleJavascript && change.Action == ChangeAction.Remove);
+        Assert.Contains(replanned.Changes, change => change.Path == HarnessNaming.Spock.RuleDotnet && change.Action == ChangeAction.Preserve);
     }
 
     [Fact]
@@ -148,7 +149,7 @@ public class HarnessArchitectureTests
 
         var architecture = Decision(plan, Catalog.RuleArchitecture);
         Assert.Equal(ComponentDecisions.Skip, architecture.Decision);
-        Assert.DoesNotContain(plan.Changes, change => change.Path == Catalog.PathRuleArchitecture);
+        Assert.DoesNotContain(plan.Changes, change => change.Path == HarnessNaming.Spock.RuleArchitecture);
         Assert.Equal(DecisionOrigins.Baseline, Decision(plan, Catalog.RuleStackDotnet).Origin);
         Assert.Equal(ComponentDecisions.Skip, Decision(plan, Catalog.RuleStackJavascript).Decision);
     }

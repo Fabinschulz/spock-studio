@@ -73,16 +73,16 @@
   "inventory": {
     "agents": [
       {
-        "name": "code-reviewer",
-        "path": ".claude/agents/code-reviewer.md",
-        "managed": false,
-        "issue": null
-      },
-      {
         "name": "meu-agente",
         "path": ".claude/agents/meu-agente.md",
         "managed": false,
         "issue": null
+      },
+      {
+        "name": "spock-code-reviewer",
+        "path": ".claude/agents/spock-code-reviewer.md",
+        "managed": false,
+        "issue": "'name' (code-reviewer) difere do nome do arquivo (spock-code-reviewer)."
       }
     ],
     "skills": [],

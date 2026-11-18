@@ -31,4 +31,4 @@ Managed by Spock Studio. Defaults for {{detail}}; a recorded project decision ov
 
 - Unit tests for domain and application logic; integration tests for persistence and HTTP with a real or in-memory
   provider that matches production behavior closely enough to catch mapping errors.
-- Run the build and the tests with the commands listed in `mariliz-repo.md` before finishing a task.
+- Run the build and the tests with the commands listed in `{{prefix}}-repo.md` before finishing a task.

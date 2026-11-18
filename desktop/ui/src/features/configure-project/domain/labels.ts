@@ -60,9 +60,9 @@ export const decisionLabel: Record<string, string> = {
 export const originLabel: Record<string, string> = {
   'baseline-rules': 'Regras-base',
   'harness-engineer': 'Harness Engineer',
-  'mariliz.yaml': 'Sua declaração (mariliz.yaml)',
+  'mariliz.yaml': 'Sua declaração do projeto',
   existing: 'Já existente no projeto',
-  architecture: 'Arquitetura aprovada (.mariliz/arquitetura)'
+  architecture: 'Arquitetura aprovada em Da ideia ao projeto'
 };
 
 export const effectLabel: Record<PlannedCommand['effects'][number], string> = {

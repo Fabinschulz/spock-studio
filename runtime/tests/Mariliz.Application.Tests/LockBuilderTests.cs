@@ -8,7 +8,7 @@ namespace Mariliz.Application.Tests;
 // Senão o plano seguinte nunca fica limpo.
 public class LockBuilderTests
 {
-    private const string Path = ".claude/rules/mariliz-general.md";
+    private const string Path = ".claude/rules/spock-general.md";
     private static readonly string Hash = new('b', 64);
 
     [Theory]

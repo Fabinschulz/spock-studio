@@ -1,3 +1,4 @@
+using Mariliz.Application.Harness;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
@@ -94,7 +95,7 @@ public sealed class IdeaArchitectService(
             throw new ParamException("O backlog precisa estar aprovado e passar nas verificações antes de gravar.");
         RequireApproved(IdeaStages.Backlog, artifacts);
 
-        var prepared = IdeaDocuments.Render(artifacts).Select(document => ReviewedChanges.Prepare(files, document.Path, document.Content)).ToList();
+        var prepared = IdeaDocuments.Render(artifacts, files.Naming()).Select(document => ReviewedChanges.Prepare(files, document.Path, document.Content)).ToList();
         var changes = prepared.Select(item => item.Change).ToList();
         return (new IdeaPlan(ReviewedChanges.PlanId("idea-", changes), projectId, changes), prepared.Select(item => item.Write).ToList());
     }

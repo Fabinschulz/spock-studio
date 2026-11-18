@@ -4,6 +4,7 @@ using Mariliz.Application.Harness;
 using Mariliz.Application.Ports;
 using Mariliz.Core.Discovery;
 using Mariliz.Core.Plan;
+using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Validation;
 
@@ -20,5 +21,7 @@ public sealed record ValidationContext(
     IModelSettings? Models = null)
 {
     // Os mesclados e "kept" ficam no lock para a decisão não se perder, mas não são avaliados: as regras de conformidade valem para o que geramos.
+    public HarnessNaming Naming { get; } = Files.Naming();
+
     public IEnumerable<ManagedLockFile.ManagedFileEntry> OwnedFiles() => Lock?.ManagedFiles.Where(f => f.Mode != "kept") ?? [];
 }

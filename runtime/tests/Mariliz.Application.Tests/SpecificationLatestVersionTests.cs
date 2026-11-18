@@ -90,7 +90,7 @@ public class SpecificationLatestVersionTests
         Assert.Single(journey.Runner.Calls, c => c.Executable == "npx");
         Assert.False(project.Exists(SkillDir + "/scripts/validate_state.py"));
         Assert.Equal("passed", Journey.Status(result, "EV-SPEC-001"));
-        Assert.Contains("version: 4.0.0", project.Read("mariliz.lock")!);
+        Assert.Contains("version: 4.0.0", project.Read("spock.lock")!);
 
         // Depois de atualizado, planejar de novo não propõe nada.
         Assert.Empty((await journey.PlanAsync()).Commands);

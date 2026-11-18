@@ -70,7 +70,7 @@ describe('PlanStep', () => {
 
     await userEvent.click(screen.getByText('Regra'));
 
-    expect(screen.getByText('Origem: Arquitetura aprovada (.mariliz/arquitetura)')).toBeTruthy();
+    expect(screen.getByText('Origem: Arquitetura aprovada em Da ideia ao projeto')).toBeTruthy();
     expect(screen.getByText('.mariliz/arquitetura/arquitetura.md')).toBeTruthy();
   });
 

@@ -2,15 +2,16 @@ using System.Text;
 using Mariliz.Application.Ideas;
 using Mariliz.Core.Discovery;
 using Mariliz.Core.Plan;
+using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Harness;
 
 internal static class RuleContent
 {
-    internal static DesiredFile Asset(string path, ComponentKind kind, string componentId, string asset, string reason) =>
-        new(path, kind, componentId, DecisionOrigins.Baseline, reason, AssetLoader.Read(asset), "file");
+    internal static DesiredFile Asset(HarnessNaming naming, string path, ComponentKind kind, string componentId, string asset, string reason) =>
+        new(path, kind, componentId, DecisionOrigins.Baseline, reason, naming.Render(AssetLoader.Read(asset)), "file");
 
-    internal static string ForStack(string asset, List<StackFinding> stacks, string[] globs)
+    internal static string ForStack(HarnessNaming naming, string asset, List<StackFinding> stacks, string[] globs)
     {
         var paths = new StringBuilder();
         foreach (var stack in stacks.OrderBy(s => s.Root, StringComparer.Ordinal))
@@ -18,7 +19,7 @@ internal static class RuleContent
                 paths.Append("  - \"").Append(stack.Root.Length == 0 ? glob : stack.Root + "/" + glob).Append("\"\n");
 
         var detail = string.Join(", ", stacks.Select(s => $"{s.Name} {s.Version ?? "(version unknown)"} at {(s.Root.Length == 0 ? "." : s.Root)}"));
-        return AssetLoader.Read(asset).Replace("{{paths}}", paths.ToString().TrimEnd('\n')).Replace("{{detail}}", detail);
+        return naming.Render(AssetLoader.Read(asset)).Replace("{{paths}}", paths.ToString().TrimEnd('\n')).Replace("{{detail}}", detail);
     }
 
     internal static string ForArchitecture(IReadOnlyList<string> documents)
@@ -40,8 +41,8 @@ internal static class RuleContent
 
     private static string DocumentPurpose(string path) => path switch
     {
-        IdeaDocuments.SpecificationFile => "requirements (`REQ-..`, `NFR-..`), scope and open questions.",
-        IdeaDocuments.ArchitectureFile => "style, components (`CMP-..`) and the requirements each one serves, stack, data, risks and decisions.",
+        _ when path.EndsWith(IdeaDocuments.SpecificationName, StringComparison.Ordinal) => "requirements (`REQ-..`, `NFR-..`), scope and open questions.",
+        _ when path.EndsWith(IdeaDocuments.ArchitectureName, StringComparison.Ordinal) => "style, components (`CMP-..`) and the requirements each one serves, stack, data, risks and decisions.",
         _ => "epics and stories (`US-..`) with acceptance criteria, in the order they unblock each other."
     };
 

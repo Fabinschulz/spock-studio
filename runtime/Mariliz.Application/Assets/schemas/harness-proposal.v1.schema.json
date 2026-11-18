@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://mariliz.dev/schemas/harness-proposal.v1.schema.json",
   "title": "Harness proposal v1",
-  "description": "Proposal written by the harness-engineer agent to .mariliz/proposal.json. The Mariliz engine validates it, never trusts it, and plans only what a person approves. It cannot carry permissions, hooks, commands or MCP servers.",
+  "description": "Proposal written by the {{agents}}harness-engineer agent to {{state}}/proposal.json. The Spock engine validates it, never trusts it, and plans only what a person approves. It cannot carry permissions, hooks, commands or MCP servers.",
   "type": "object",
   "required": ["schema", "origin", "decisions"],
   "additionalProperties": false,

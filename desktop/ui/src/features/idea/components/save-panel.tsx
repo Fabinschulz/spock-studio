@@ -24,7 +24,7 @@ export function SavePanel({ plan, saved, reverted, busy, onReview, onSave, onCan
   if (saved) {
     return (
       <InlineNotice tone="success" title="Documentos gravados">
-        A especificação, a arquitetura e o backlog estão em .mariliz/arquitetura, e a gravação ficou em{' '}
+        A especificação, a arquitetura e o backlog estão na pasta arquitetura do Spock, e a gravação ficou em{' '}
         <Link to={pathTo('runs')}>Execuções</Link>. Próximo passo:{' '}
         <Link to={pathTo('configure')}>configurar o Harness</Link> do projeto, para que as ferramentas de IA trabalhem
         seguindo estes documentos.

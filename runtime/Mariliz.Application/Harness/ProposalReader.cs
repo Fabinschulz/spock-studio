@@ -17,7 +17,7 @@ public static class ProposalReader
 
     public static ProposalResult Read(IProjectFiles files)
     {
-        var text = files.ReadText(Catalog.PathProposal);
+        var text = files.ReadText(files.Naming().Proposal);
         if (text is null) return new ProposalResult(false, null, []);
         return Parse(text);
     }

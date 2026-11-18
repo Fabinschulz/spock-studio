@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json.Nodes;
+using Mariliz.Core.Policy;
 using static Mariliz.Application.Ideas.IdeaChecks;
 
 namespace Mariliz.Application.Ideas;
@@ -7,17 +8,22 @@ namespace Mariliz.Application.Ideas;
 // Documentos para gente e para agentes lerem: cada item mantém o id, então histórias e componentes apontam para os requisitos.
 internal static class IdeaDocuments
 {
-    public const string Folder = ".mariliz/arquitetura";
-    public const string SpecificationFile = Folder + "/especificacao.md";
-    public const string ArchitectureFile = Folder + "/arquitetura.md";
-    public const string BacklogFile = Folder + "/backlog.md";
+    public const string SpecificationName = "especificacao.md";
+    public const string ArchitectureName = "arquitetura.md";
+    public const string BacklogName = "backlog.md";
+
+    // Na pasta que o projeto usa (.spock/arquitetura, ou .mariliz/arquitetura num projeto configurado antes da troca de nome).
+    public static string SpecificationFile(HarnessNaming naming) => naming.ArchitectureFolder + "/" + SpecificationName;
+    public static string ArchitectureFile(HarnessNaming naming) => naming.ArchitectureFolder + "/" + ArchitectureName;
+    public static string BacklogFile(HarnessNaming naming) => naming.ArchitectureFolder + "/" + BacklogName;
+    public static IReadOnlyList<string> Files(HarnessNaming naming) => [SpecificationFile(naming), ArchitectureFile(naming), BacklogFile(naming)];
 
     // Fim de linha fixo: o mesmo documento dá o mesmo hash, e o mesmo plano, em qualquer sistema.
-    public static IReadOnlyList<(string Path, string Content)> Render(IdeaArtifacts artifacts) =>
+    public static IReadOnlyList<(string Path, string Content)> Render(IdeaArtifacts artifacts, HarnessNaming naming) =>
     [
-        (SpecificationFile, Specification(artifacts.Idea, artifacts.Specification!).ReplaceLineEndings("\n")),
-        (ArchitectureFile, Architecture(artifacts.Architecture!).ReplaceLineEndings("\n")),
-        (BacklogFile, Backlog(artifacts.Backlog!).ReplaceLineEndings("\n"))
+        (SpecificationFile(naming), Specification(artifacts.Idea, artifacts.Specification!).ReplaceLineEndings("\n")),
+        (ArchitectureFile(naming), Architecture(artifacts.Architecture!).ReplaceLineEndings("\n")),
+        (BacklogFile(naming), Backlog(artifacts.Backlog!).ReplaceLineEndings("\n"))
     ];
 
     private static string Specification(string idea, JsonObject spec)

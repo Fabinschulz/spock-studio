@@ -20,7 +20,7 @@ internal sealed class SpecificationCheck : IEvalCheck
 
         // Como as regras dispensadas: o projeto declarou que segue o próprio processo, e não há estrutura a conferir.
         if (specification.State == SpecificationState.NotInstalled && SpecificationPlanner.IsDeclined(ctx.Declared?.Components.Exclude ?? []))
-            return Pass(spec, [$"{DeclaredConfig.FileName}: {Catalog.SpecificationStructure} em components.exclude; o projeto segue o próprio processo de especificação"]);
+            return Pass(spec, [$"{ctx.Naming.Declaration}: {Catalog.SpecificationStructure} em components.exclude; o projeto segue o próprio processo de especificação"]);
         if (specification.State == SpecificationState.NotInstalled) return Block(spec, "A estrutura de especificação não está instalada neste projeto.");
         if (specification.State is SpecificationState.Invalid or SpecificationState.Drifted)
             return Fail(spec, specification.State == SpecificationState.Invalid ? "A estrutura de especificação está incompleta ou inválida." : "A estrutura de especificação difere do hash do instalador.", specification.Problems);

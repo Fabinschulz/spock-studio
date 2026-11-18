@@ -132,7 +132,7 @@ public class ActionGovernanceTests
         throw new TimeoutException("A condição não aconteceu a tempo.");
     }
 
-    private static string DecisionPath(TempProject project, string executionId) => Path.Combine(project.Root, ".mariliz", "decisions", executionId + "-impacto.md");
+    private static string DecisionPath(TempProject project, string executionId) => Path.Combine(project.Root, ".spock", "decisions", executionId + "-impacto.md");
 
     [Fact]
     public async Task A_politica_do_motor_manda_so_file_write_e_so_em_execucao_que_pausa_e_pede_impacto()
@@ -166,8 +166,8 @@ public class ActionGovernanceTests
             Intent(id: "act-escrita", intent: ActionGovernance.FileWrite),
             // O agente não escolhe o alvo, o resumo nem o conteúdo: qualquer um deles descarta a intenção.
             With(Intent(id: "act-fora"), "target", "src/Program.cs"),
-            With(Intent(id: "act-sobe"), "target", ".mariliz/decisions/../../src/x.md"),
-            With(Intent(id: "act-outra"), "target", $".mariliz/decisions/ex-ffffffffffff-impacto.md"),
+            With(Intent(id: "act-sobe"), "target", ".spock/decisions/../../src/x.md"),
+            With(Intent(id: "act-outra"), "target", $".spock/decisions/ex-ffffffffffff-impacto.md"),
             With(Intent(id: "act-resumo"), "summary", "TEXTO-DO-AGENTE"),
             With(Intent(id: "act-conteudo"), "content", "# escrito pelo agente"),
             With(Intent(id: "act-comando-junto"), "command", "rm -rf /"),
@@ -195,9 +195,9 @@ public class ActionGovernanceTests
         var data = run.Snapshot()["events"]!.AsArray().Single(e => e!["type"]!.GetValue<string>() == "approval.required")!["data"]!;
         Assert.True(ContractFiles.IsValid(ContractFiles.Schema("ai", "approval.required.data.schema.json"), data));
         var action = data["actions"]!.AsArray().Single()!;
-        Assert.Equal($".mariliz/decisions/{executionId}-impacto.md", action["target"]!.GetValue<string>());
+        Assert.Equal($".spock/decisions/{executionId}-impacto.md", action["target"]!.GetValue<string>());
         Assert.Equal(ActionGovernance.FileWrite, action["kind"]!.GetValue<string>());
-        Assert.Equal("Registrar a decisão de arquitetura (áreas, riscos e evidências) em .mariliz/decisions", action["summary"]!.GetValue<string>());
+        Assert.Equal("Registrar a decisão de arquitetura (áreas, riscos e evidências) em .spock/decisions", action["summary"]!.GetValue<string>());
         // A tela só recebe o que a política mostra (id, tipo, resumo e alvo), nunca o conteúdo.
         Assert.Null(action["content"]);
 
@@ -286,7 +286,7 @@ public class ActionGovernanceTests
 
         // O diário em disco é editado: o alvo da ação passa a ser outro arquivo do projeto.
         var tampered = rig.Store.LoadJournal(rig.ProjectId, run.RunId)!;
-        tampered.Actions[0].Target = ".mariliz/decisions/ex-ffffffffffff-impacto.md";
+        tampered.Actions[0].Target = ".spock/decisions/ex-ffffffffffff-impacto.md";
         rig.Store.SaveJournal(tampered);
 
         // O motor reinicia: uma instância nova, sem a execução na memória, retoma pelo diário.
@@ -295,11 +295,11 @@ public class ActionGovernanceTests
 
         Assert.Equal("APPROVAL_HASH_MISMATCH", refused.Code);
         Assert.False(File.Exists(DecisionPath(rig.Project, executionId)));
-        Assert.False(File.Exists(Path.Combine(rig.Project.Root, ".mariliz", "decisions", "ex-ffffffffffff-impacto.md")));
+        Assert.False(File.Exists(Path.Combine(rig.Project.Root, ".spock", "decisions", "ex-ffffffffffff-impacto.md")));
         Assert.Empty(rig.Executor.Executed);
         // E o conteúdo também: trocar o texto aprovado muda o hash.
         var contentTampered = rig.Store.LoadJournal(rig.ProjectId, run.RunId)!;
-        contentTampered.Actions[0].Target = $".mariliz/decisions/{executionId}-impacto.md";
+        contentTampered.Actions[0].Target = $".spock/decisions/{executionId}-impacto.md";
         contentTampered.Actions[0].ContentSha256 = new string('0', 64);
         rig.Store.SaveJournal(contentTampered);
         var again = await Assert.ThrowsAsync<EngineException>(() => restarted.ResumeAsync(rig.ProjectId, run.RunId, new ResumeDecision(approvalId, ["act-decisao-impacto"])));
@@ -407,7 +407,7 @@ public class ActionGovernanceTests
 
         var journal = rig.Store.LoadJournal(rig.ProjectId, run.RunId)!;
         var op = Assert.Single(journal.Ops);
-        Assert.Equal(($".mariliz/decisions/{executionId}-impacto.md", OpKinds.Create, OpSources.Action, OpStatus.Applied), (op.Path, op.Op, op.Source, op.Status));
+        Assert.Equal(($".spock/decisions/{executionId}-impacto.md", OpKinds.Create, OpSources.Action, OpStatus.Applied), (op.Path, op.Op, op.Source, op.Status));
         Assert.Equal(journal.Actions[0].ContentSha256, op.AfterHash);
         Assert.True(journal.ChangesApplied && journal.CanBeReverted);
 
@@ -514,7 +514,7 @@ public class ActionGovernanceTests
         var executor = new ProjectActionExecutor(rig.Authorizer, new TestFilesFactory());
         var before = rig.Project.Fingerprint();
 
-        foreach (var target in new[] { "src/Program.cs", ".claude/settings.json", ".mariliz/decisions/../../x.md", "mariliz.yaml", "C:/Windows/x.md" })
+        foreach (var target in new[] { "src/Program.cs", ".claude/settings.json", ".spock/decisions/../../x.md", "spock.yaml", "C:/Windows/x.md" })
         {
             var bad = Clone(good);
             bad.Target = target;

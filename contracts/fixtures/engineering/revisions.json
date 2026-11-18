@@ -17,17 +17,17 @@
           "id": "mariliz.agent.code-reviewer",
           "label": "Agente revisor de código",
           "created": [
-            ".claude/agents/code-reviewer.md"
+            ".claude/agents/spock-code-reviewer.md"
           ],
           "updated": [],
           "removed": []
         },
         {
           "id": "mariliz.config.declaration",
-          "label": "Declaração do projeto (mariliz.yaml)",
+          "label": "Declaração do projeto",
           "created": [],
           "updated": [
-            "mariliz.yaml"
+            "spock.yaml"
           ],
           "removed": []
         }
@@ -49,15 +49,15 @@
           "created": [],
           "updated": [],
           "removed": [
-            ".claude/agents/code-reviewer.md"
+            ".claude/agents/spock-code-reviewer.md"
           ]
         },
         {
           "id": "mariliz.config.declaration",
-          "label": "Declaração do projeto (mariliz.yaml)",
+          "label": "Declaração do projeto",
           "created": [],
           "updated": [
-            "mariliz.yaml"
+            "spock.yaml"
           ],
           "removed": []
         }
@@ -77,8 +77,8 @@
           "id": "mariliz.agent.harness-engineer",
           "label": "Agente Harness Engineer",
           "created": [
-            ".claude/agents/harness-engineer.md",
-            ".mariliz/schemas/harness-proposal.v1.schema.json"
+            ".claude/agents/spock-harness-engineer.md",
+            ".spock/schemas/harness-proposal.v1.schema.json"
           ],
           "updated": [],
           "removed": []
@@ -87,7 +87,7 @@
           "id": "mariliz.agent.code-reviewer",
           "label": "Agente revisor de código",
           "created": [
-            ".claude/agents/code-reviewer.md"
+            ".claude/agents/spock-code-reviewer.md"
           ],
           "updated": [],
           "removed": []
@@ -96,7 +96,16 @@
           "id": "mariliz.agent.verifier",
           "label": "Agente verificador",
           "created": [
-            ".claude/agents/verifier.md"
+            ".claude/agents/spock-verifier.md"
+          ],
+          "updated": [],
+          "removed": []
+        },
+        {
+          "id": "mariliz.ide.claude-bootstrap",
+          "label": "Bloco do Spock no CLAUDE.md",
+          "created": [
+            "CLAUDE.md"
           ],
           "updated": [],
           "removed": []
@@ -105,16 +114,16 @@
           "id": "mariliz.rule.repo-commands",
           "label": "Comandos do repositório",
           "created": [
-            ".claude/rules/mariliz-repo.md"
+            ".claude/rules/spock-repo.md"
           ],
           "updated": [],
           "removed": []
         },
         {
           "id": "mariliz.config.declaration",
-          "label": "Declaração do projeto (mariliz.yaml)",
+          "label": "Declaração do projeto",
           "created": [
-            "mariliz.yaml"
+            "spock.yaml"
           ],
           "updated": [],
           "removed": []
@@ -123,7 +132,7 @@
           "id": "mariliz.hook.policy",
           "label": "Hook de política",
           "created": [
-            ".claude/hooks/mariliz-policy.py",
+            ".claude/hooks/spock-policy.py",
             ".claude/settings.json"
           ],
           "updated": [],
@@ -133,7 +142,7 @@
           "id": "mariliz.rule.stack-dotnet",
           "label": "Regras da stack .NET",
           "created": [
-            ".claude/rules/mariliz-stack-dotnet.md"
+            ".claude/rules/spock-stack-dotnet.md"
           ],
           "updated": [],
           "removed": []
@@ -142,7 +151,7 @@
           "id": "mariliz.rule.general",
           "label": "Regras gerais",
           "created": [
-            ".claude/rules/mariliz-general.md"
+            ".claude/rules/spock-general.md"
           ],
           "updated": [],
           "removed": []
@@ -151,16 +160,7 @@
           "id": "mariliz.skill.harness-contract",
           "label": "Skill do contrato de evidências",
           "created": [
-            ".claude/skills/harness-contract/SKILL.md"
-          ],
-          "updated": [],
-          "removed": []
-        },
-        {
-          "id": "other",
-          "label": "Outros arquivos",
-          "created": [
-            "CLAUDE.md"
+            ".claude/skills/spock-harness-contract/SKILL.md"
           ],
           "updated": [],
           "removed": []

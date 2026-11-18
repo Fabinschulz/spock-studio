@@ -108,7 +108,7 @@ function Presence({ entry }: { entry: CatalogEntry }) {
   if (entry.presence === 'excluded')
     return (
       <>
-        <StatusChip tone="neutral">Dispensado em mariliz.yaml</StatusChip>
+        <StatusChip tone="neutral">Dispensado na declaração</StatusChip>
         {entry.state !== null ? <StatusChip tone="warning">Os arquivos saem na próxima aplicação</StatusChip> : null}
       </>
     );

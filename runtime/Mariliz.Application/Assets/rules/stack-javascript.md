@@ -28,4 +28,4 @@ Managed by Spock Studio. Defaults for {{detail}}; a recorded project decision ov
 ## Tests
 
 - Test behavior through the public surface (rendered output, function results), not implementation details.
-- Run lint, type check, tests and build with the commands listed in `mariliz-repo.md` before finishing a task.
+- Run lint, type check, tests and build with the commands listed in `{{prefix}}-repo.md` before finishing a task.

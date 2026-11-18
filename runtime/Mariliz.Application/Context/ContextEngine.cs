@@ -1,3 +1,4 @@
+using Mariliz.Core.Policy;
 using System.Globalization;
 using System.Text;
 using Mariliz.Application.Cloud;
@@ -51,6 +52,7 @@ public sealed class ContextEngine(
         var now = clock.UtcNow;
         var project = workspace.Projects().Single(p => p.ProjectId == projectId);
         var stableId = workspace.StableIdOf(projectId);
+        var naming = workspace.NamingOf(projectId);
         var status = harness.Inspect(projectId);
         var links = integrations?.Projects.List(projectId) ?? [];
         var cloudLinks = cloud?.Projects.List(projectId) ?? [];
@@ -59,11 +61,11 @@ public sealed class ContextEngine(
         if (cloud is null) limitations.Add("As conexões cloud não estão disponíveis nesta sessão do motor.");
 
         var candidates = new List<ContextItem>();
-        candidates.AddRange(Identity(project, stableId, now));
+        candidates.AddRange(Identity(project, stableId, now, naming));
         candidates.AddRange(Policies(links, cloudLinks));
         candidates.AddRange(Connections(links, cloudLinks, now));
-        candidates.AddRange(Harness(status));
-        candidates.AddRange(Warnings(projectId, stableId, now));
+        candidates.AddRange(Harness(status, naming));
+        candidates.AddRange(Warnings(projectId, stableId, now, naming));
 
         var counter = tokenizers.For(null, null);
         var title = $"# Contexto do projeto {project.DisplayName} ({intent})";
@@ -88,13 +90,13 @@ public sealed class ContextEngine(
             Version(project, stableId, links, cloudLinks, status), now, kept, omitted, limitations, text);
     }
 
-    private static IEnumerable<ContextItem> Identity(AuthorizedProject project, string? stableId, DateTimeOffset now)
+    private static IEnumerable<ContextItem> Identity(AuthorizedProject project, string? stableId, DateTimeOffset now, HarnessNaming naming)
     {
         yield return stableId is null
             ? new ContextItem("identity", $"{project.DisplayName}: cópia {project.ProjectId} em {project.DisplayPath}, sem id estável.",
                 "spock", project.ProjectId, ContextClassifications.Discovered, now, ContextFreshness.Fresh)
             : new ContextItem("identity", $"{project.DisplayName}: projeto {stableId}, cópia {project.ProjectId} em {project.DisplayPath}.",
-                "mariliz.yaml", stableId, ContextClassifications.Declared, now, ContextFreshness.Fresh);
+                naming.Declaration, stableId, ContextClassifications.Declared, now, ContextFreshness.Fresh);
     }
 
     private IEnumerable<ContextItem> Policies(IReadOnlyList<ProjectIntegration> links, IReadOnlyList<CloudProjectLink> cloudLinks)
@@ -149,29 +151,29 @@ public sealed class ContextEngine(
         }
     }
 
-    private static IEnumerable<ContextItem> Harness(HarnessStatus status)
+    private static IEnumerable<ContextItem> Harness(HarnessStatus status, HarnessNaming naming)
     {
         if (!status.Applied)
         {
             yield return new ContextItem("harness", "Harness não aplicado: o projeto não tem as regras gerenciadas pelo Spock.",
-                "mariliz.lock", "harness", ContextClassifications.Discovered, status.InspectedAt, ContextFreshness.Fresh);
+                naming.Lock, "harness", ContextClassifications.Discovered, status.InspectedAt, ContextFreshness.Fresh);
             yield break;
         }
         var target = status.AiEnvironment is null ? "Aplicado" : $"Aplicado para {status.AiEnvironment}";
         var specification = status.SpecificationVersion is null ? "" : $", especificação {status.SpecificationVersion}";
         yield return new ContextItem("harness",
             $"{target}{specification}: {status.Intact} íntegros, {status.Kept} mantidos pela equipe, {status.Modified} modificados à mão, {status.Missing} faltando.",
-            "mariliz.lock", "harness", ContextClassifications.Discovered, status.InspectedAt, ContextFreshness.Fresh);
+            naming.Lock, "harness", ContextClassifications.Discovered, status.InspectedAt, ContextFreshness.Fresh);
         foreach (var component in status.Components.Where(component => component.State != "intact"))
             yield return new ContextItem("harness", $"{component.Label}: {State(component.State)}.",
-                "mariliz.lock", component.Id, ContextClassifications.Discovered, status.InspectedAt, ContextFreshness.Fresh);
+                naming.Lock, component.Id, ContextClassifications.Discovered, status.InspectedAt, ContextFreshness.Fresh);
     }
 
-    private IEnumerable<ContextItem> Warnings(string projectId, string? stableId, DateTimeOffset now)
+    private IEnumerable<ContextItem> Warnings(string projectId, string? stableId, DateTimeOffset now, HarnessNaming naming)
     {
         if (stableId is null)
             yield return new ContextItem("warnings",
-                "Sem id estável (project.id no mariliz.yaml): planeje e aplique o Harness no Spock para que clones e worktrees sejam o mesmo projeto.",
+                $"Sem id estável (project.id no {naming.Declaration}): planeje e aplique o Harness no Spock para que clones e worktrees sejam o mesmo projeto.",
                 "spock", "project.id", ContextClassifications.Calculated, now, ContextFreshness.Fresh);
         var profile = profiles.Read(projectId);
         if (profile is null)

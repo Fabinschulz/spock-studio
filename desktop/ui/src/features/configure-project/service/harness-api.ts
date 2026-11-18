@@ -20,7 +20,7 @@ export type PlanInput = {
   allowSpecificationReinstall?: boolean;
   /** Pede ao instalador oficial a versão mais recente da estrutura de especificação, mesmo que a instalada já seja a mais recente conhecida. */
   updateSpecification?: boolean;
-  /** Pedido da tela Projeto: o motor grava em mariliz.yaml (components.exclude) como mudança do plano. */
+  /** Pedido da tela Projeto: o motor grava na declaração do projeto (components.exclude) como mudança do plano. */
   excludeComponents?: string[];
   includeComponents?: string[];
 };
