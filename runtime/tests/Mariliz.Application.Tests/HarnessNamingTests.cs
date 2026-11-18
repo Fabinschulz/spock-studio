@@ -59,7 +59,7 @@ public partial class HarnessNamingTests
             .Concat(plan.Decisions.Where(d => d.Decision == ComponentDecisions.Enable).Select(d => d.ComponentId)).ToHashSet(StringComparer.Ordinal);
         // Os do Codex e do Cursor só entram quando eles estão entre os ambientes (CodexAdapterTests, CursorAdapterTests).
         string[] codex = [Catalog.IdeCodexBootstrap, Catalog.IdeCodexMcp, Catalog.HookCodexSession, Catalog.HookCodexPrompt,
-            Catalog.IdeCursorRule, Catalog.IdeCursorMcp, Catalog.HookCursorSession];
+            Catalog.IdeCursorRule, Catalog.IdeCursorMcp, Catalog.HookCursorSession, Catalog.SkillAgentsHarnessContract];
         foreach (var component in Catalog.Components.Where(c => c.Id != Catalog.SpecificationStructure && !codex.Contains(c.Id)))
             Assert.Contains(component.Id, proposed);
         Assert.All(plan.Changes, change => Assert.DoesNotContain("mariliz", change.Path, StringComparison.OrdinalIgnoreCase));

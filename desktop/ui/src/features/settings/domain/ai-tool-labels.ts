@@ -18,12 +18,12 @@ function stateOf(tool: AiTool): Pick<AiToolDescription, 'state' | 'tone' | 'deta
   };
 }
 
-// C3: no Cursor e no Codex o Harness grava só a ligação com a IDE; prometer o Harness inteiro seria falso.
+// C3: no Cursor e no Codex o Harness grava a ligação com a IDE e a skill do contrato; prometer o Harness inteiro seria falso.
 const partialHarness: Record<string, string> = {
   cursor:
-    'O Spock liga esta ferramenta ao projeto (regra em .cursor/rules, MCP e hook de sessão); agentes, regras e skills ainda são só do Claude Code.',
+    'O Spock liga esta ferramenta ao projeto (regra em .cursor/rules, MCP, hook de sessão e a skill do contrato em .agents/skills); agentes e regras ainda são só do Claude Code.',
   codex:
-    'O Spock liga esta ferramenta ao projeto (bloco no AGENTS.md, MCP e hooks); agentes, regras e skills ainda são só do Claude Code.'
+    'O Spock liga esta ferramenta ao projeto (bloco no AGENTS.md, MCP, hooks e a skill do contrato em .agents/skills); agentes e regras ainda são só do Claude Code.'
 };
 
 export function describeAiTool(tool: AiTool): AiToolDescription {

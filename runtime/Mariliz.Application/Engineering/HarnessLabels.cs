@@ -25,6 +25,7 @@ public static class HarnessLabels
         [Catalog.IdeCursorRule] = "Regra do Spock no Cursor (.cursor/rules/spock.mdc)",
         [Catalog.IdeCursorMcp] = "Servidor MCP do Spock (.cursor/mcp.json)",
         [Catalog.HookCursorSession] = "Hook de início de sessão do Cursor",
+        [Catalog.SkillAgentsHarnessContract] = "Skill do contrato de evidências (.agents/skills)",
         [Catalog.IdeClaudeBootstrap] = "Bloco do Spock no CLAUDE.md",
         [Catalog.IdeMcpServer] = "Servidor MCP do Spock (.mcp.json)",
         [Catalog.SpecificationStructure] = "Estrutura de especificação",

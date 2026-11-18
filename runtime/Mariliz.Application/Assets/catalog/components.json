@@ -188,6 +188,14 @@
       "reads": ["O que o Spock Studio já gravou sobre o projeto: id, vínculos, datas de sincronização e o estado do Harness"],
       "canChange": ["Nada. Só escreve o contexto na saída do hook; é registrado em .cursor/hooks.json e chama o comando spock."],
       "origin": "Escrito pelo Spock Studio; chama o lançador spock que o instalador põe no PATH."
+    },
+    {
+      "id": "mariliz.skill.agents-harness-contract",
+      "whatItDoes": "A mesma skill do contrato de evidência em .agents/skills, a pasta de skills que o Codex e o Cursor leem: o que vale como prova, como classificar cada afirmação e a escala de confiança.",
+      "whenItActs": "Quando o agente do Codex ou do Cursor precisa declarar confiança, citar evidência ou resolver um conflito entre fontes.",
+      "reads": ["Nenhum arquivo do projeto: é um texto de referência que os agentes leem"],
+      "canChange": ["Nada. É só texto de orientação; o Spock grava só a pasta dele em .agents/skills, e o resto da pasta é da equipe ou do instalador."],
+      "origin": "Adaptado dos padrões de github.com/Fabinschulz/harness-engineering (licença MIT)."
     }
   ]
 }

@@ -10,8 +10,8 @@ export const aiEnvironmentNames: Record<string, string> = {
 
 export const isSupportedEnvironment = (id: string): boolean => SUPPORTED_AI_ENVIRONMENTS.includes(id);
 
-/** C3: no Cursor e no Codex o Spock grava só a ligação com a IDE; agentes, regras e skills ainda são do Claude Code. */
+/** C3: no Cursor e no Codex o Spock grava a ligação com a IDE e a skill do contrato; agentes e regras ainda são do Claude Code. */
 export const partialEnvironmentNote: Record<string, string> = {
-  cursor: 'só a ligação com a IDE',
-  codex: 'só a ligação com a IDE'
+  cursor: 'ligação com a IDE e skill',
+  codex: 'ligação com a IDE e skill'
 };

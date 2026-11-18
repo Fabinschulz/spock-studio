@@ -462,7 +462,7 @@ describe('contrato do catálogo do Harness (fixture do motor)', () => {
   it('uma ficha por componente, com o estado de cada um no projeto', () => {
     const parsed = harnessCatalogSchema.parse(engineeringCatalog);
     expect(parsed.applied).toBe(true);
-    expect(parsed.entries).toHaveLength(23);
+    expect(parsed.entries).toHaveLength(24);
     const byId = new Map(parsed.entries.map((entry) => [entry.sheet.id, entry]));
     // C2: o bloco no CLAUDE.md entra sempre; o MCP e os hooks de sessão e por prompt só com o lançador spock, ausente no projeto da fixture.
     expect(byId.get('mariliz.ide.claude-bootstrap')).toMatchObject({ presence: 'applied', state: 'intact' });
@@ -472,6 +472,7 @@ describe('contrato do catálogo do Harness (fixture do motor)', () => {
     // C3: as peças do Codex e do Cursor só entram com eles entre os ambientes; o projeto da fixture é só de Claude Code.
     expect(byId.get('mariliz.ide.codex-bootstrap')).toMatchObject({ presence: 'not_applied', state: null });
     expect(byId.get('mariliz.ide.cursor-rule')).toMatchObject({ presence: 'not_applied', state: null });
+    expect(byId.get('mariliz.skill.agents-harness-contract')).toMatchObject({ presence: 'not_applied', state: null });
     expect(byId.get('mariliz.agent.verifier')).toMatchObject({ presence: 'excluded', state: 'intact' });
     expect(byId.get('mariliz.rule.stack-javascript')).toMatchObject({ presence: 'not_applied', state: null });
     expect(byId.get('mariliz.rule.architecture')).toMatchObject({ presence: 'not_applied', state: null });
