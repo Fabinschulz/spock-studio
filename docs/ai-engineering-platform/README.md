@@ -12,7 +12,7 @@ compilar nem executar nada; os testes do Spock rodaram localmente, sem rede.
 | Documento | Conteúdo |
 | --- | --- |
 | [MCP_QUALITY_ASSESSMENT.md](MCP_QUALITY_ASSESSMENT.md) | Inventário dos 24 servidores MCP, leituras reais, qualidade de contrato, segurança, erros e uso por agentes, incluindo o MCP do próprio Spock |
-| [ARCHITECTURE_REFERENCE_CATALOG.md](ARCHITECTURE_REFERENCE_CATALOG.md) | **Base permanente**: padrões React, `@mariliz/ui-kit`, Angular, .NET, outras stacks, monorepo e Harness, com ids `REF-*`, e diretrizes de decisão |
+| [ARCHITECTURE_REFERENCE_CATALOG.md](../organizacao/ARCHITECTURE_REFERENCE_CATALOG.md) | **Base permanente**, na pasta [Organização](../organizacao/README.md): padrões React, `@mariliz/ui-kit`, Angular, .NET, outras stacks, monorepo e Harness, com ids `REF-*`, e diretrizes de decisão |
 | [SPOCK_CURRENT_STATE.md](SPOCK_CURRENT_STATE.md) | Estrutura, capacidades verificadas, MCP, conectores, testes e documentos desatualizados |
 | [SPOCK_AI_ENGINEERING_CAPABILITIES.md](SPOCK_AI_ENGINEERING_CAPABILITIES.md) | Agentes, skills, rules, hooks, RAG, evals, memória, Harness por stack e disponibilização de conhecimento |
 | [SPOCK_ARCHITECTURE_RECOMMENDATIONS.md](SPOCK_ARCHITECTURE_RECOMMENDATIONS.md) | R1 a R10, com justificativa, impacto, dependências e trade-offs |
@@ -52,9 +52,8 @@ criação; cliente MCP; validação com modelo real; telemetria.
 **Prioridades.** Contexto do RAG íntegro (W0-1) → fonte única de tecnologias (W0-2) → catálogo recuperável com filtros
 (Onda 1) → análise de arquitetura (W2-2) → Harness por framework (Onda 3) → workflows (Onda 4).
 
-## Atenção: confidencialidade
+## Fontes privadas
 
-O catálogo descreve a estrutura de três repositórios **privados da empresa** (Easymart.CRM,
-Easymart.IntegracaoAnymarket, Easymart.EmissaoDocumentos), sem segredos, hosts ou regras de negócio. Antes de versionar
-esta pasta num repositório pessoal, ou de embarcar o catálogo no produto, confirme que isso é permitido. A recomendação
-R2 separa o pacote público do organizacional.
+Três das referências são repositórios privados. Elas aparecem no catálogo só por id neutro (`ANG-CRM`, `NET-INT`,
+`NET-DOC`), estrutura e caminho, sem nome de organização, cliente, fornecedor, host, segredo ou regra de negócio; as
+regras estão no [README da Organização](../organizacao/README.md).

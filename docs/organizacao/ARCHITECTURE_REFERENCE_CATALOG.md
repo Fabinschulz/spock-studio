@@ -1,6 +1,7 @@
 # Catálogo de referências arquiteturais do Spock
 
-> Base oficial de referências arquiteturais do Spock. Parte do estudo [Plataforma de engenharia com IA](README.md).
+> Base oficial de referências arquiteturais do Spock, na pasta da [Organização](README.md). Nasceu do estudo
+> [Plataforma de engenharia com IA](../ai-engineering-platform/README.md).
 > Análise feita em 2026-11-17, por leitura estática dos repositórios (nada foi compilado nem executado). Os commits
 > analisados estão na §1; quando a referência mudar, o catálogo é revisto pela §12.
 >
@@ -12,7 +13,7 @@
 
 1. **Consultar só a seção da tecnologia em jogo.** Cada seção começa com uma linha `Escopo:` (tecnologia, tipo de
    projeto, responsabilidade). A recuperação seletiva está descrita em
-   [SPOCK_ARCHITECTURE_RECOMMENDATIONS.md](SPOCK_ARCHITECTURE_RECOMMENDATIONS.md#r2-conhecimento-arquitetural-recuperável).
+   [SPOCK_ARCHITECTURE_RECOMMENDATIONS.md](../ai-engineering-platform/SPOCK_ARCHITECTURE_RECOMMENDATIONS.md#r2-conhecimento-arquitetural-recuperável).
 
    | Situação | Seções |
    | --- | --- |
@@ -47,12 +48,12 @@
 | EMP-MONO | [Fabinschulz/EmpregaNet](https://github.com/Fabinschulz/EmpregaNet) (redireciona para EmpregaNetAPI) | Monorepo .NET + Next + Terraform | Organização fullstack | master @ e0b0a47 | 2026-10-21 | Média |
 | MLZ-WEB | [Fabinschulz/mariliz](https://github.com/Fabinschulz/mariliz) | React Router 8 (framework mode, pré-renderizado), Vite 8, MUI via kit | Site institucional estático, sem API | main @ d85abe1 | 2026-10-13 | Média |
 | MLZ-UI | [Fabinschulz/mariliz-ui-kit](https://github.com/Fabinschulz/mariliz-ui-kit) | `@mariliz/ui-kit` 0.6.1: MUI 9 + Emotion, ESM | Design system React | master @ 2fc2760 | 2026-11-05 | Média |
-| EZM-CRM | EasymartTecnologia/Easymart.CRM (privado) | Angular 19 standalone, Material 19, RxJS 7.8 | SPA de CRM; backend em outro repositório | master @ 9f49168 | 2026-10-23 | Média-baixa no código, alta no Harness |
-| EZM-ANY | EasymartTecnologia/Easymart.IntegracaoAnymarket (privado) | .NET 10, EF Core SqlServer, SQS, Polly v8 | Conector multi-tenant ERP ↔ hub de marketplaces | main @ 35bce76 | 2026-11-17 | Alta |
-| EZM-DOC | EasymartTecnologia/Easymart.EmissaoDocumentos (privado) | .NET 10, QuestPDF/PDFsharp/RDLC, Npgsql | Geração de PDFs e webhook de assinatura | main @ 3c5cc29 | 2026-10-23 | Baixa (contraexemplo útil) |
+| ANG-CRM | Repositório privado: CRM em Angular | Angular 19 standalone, Material 19, RxJS 7.8 | SPA de CRM; backend em outro repositório | master @ 9f49168 | 2026-10-23 | Média-baixa no código, alta no Harness |
+| NET-INT | Repositório privado: integrador .NET multi-tenant | .NET 10, EF Core SqlServer, SQS, Polly v8 | Conector multi-tenant ERP ↔ hub de marketplaces | main @ 35bce76 | 2026-11-17 | Alta |
+| NET-DOC | Repositório privado: serviço .NET de documentos | .NET 10, QuestPDF/PDFsharp/RDLC, Npgsql | Geração de PDFs e webhook de assinatura | main @ 3c5cc29 | 2026-10-23 | Baixa (contraexemplo útil) |
 
-Os repositórios privados da empresa são citados por estrutura e caminho; nenhum segredo, host interno, nome de cliente
-ou regra de negócio foi copiado.
+As referências privadas aparecem só por id neutro, estrutura e caminho: nenhum nome de organização, cliente, fornecedor,
+host, segredo ou regra de negócio entra neste catálogo (ver [README](README.md)).
 
 ## 2. Princípios transversais
 
@@ -63,15 +64,15 @@ seguintes.
 
 | Id | Princípio | Evidência | Por que importa para um agente de IA |
 | --- | --- | --- | --- |
-| REF-P1 | **Fronteira de arquitetura é um teste ou uma regra de lint, não uma convenção** | ESLint de camadas em EMP-FE (`eslint.config.mjs`); testes que leem `.csproj` em EZM-ANY (`tests/Shared/Architecture/`); teste de autorização por reflexão em EMP-BE | Agentes quebram convenções que não são verificadas; um gate falha antes do review |
+| REF-P1 | **Fronteira de arquitetura é um teste ou uma regra de lint, não uma convenção** | ESLint de camadas em EMP-FE (`eslint.config.mjs`); testes que leem `.csproj` em NET-INT (`tests/Shared/Architecture/`); teste de autorização por reflexão em EMP-BE | Agentes quebram convenções que não são verificadas; um gate falha antes do review |
 | REF-P2 | **Contrato validado na fronteira, nas duas direções** | Zod na ida e na volta em EMP-FE (ADR 0009); testes de forma JSON em EMP-BE | Drift silencioso entre front e back é o bug mais comum que o ADR 0009 documenta |
-| REF-P3 | **Um único formato de erro, com código estável** | `DomainError` em EMP-BE e EZM-ANY; `parseApiError` em EMP-FE | O cliente e o agente tratam um formato só; o código estável permite decidir sem casar texto |
-| REF-P4 | **Efeitos externos só depois do commit** | Fila de eventos por requisição (EMP-BE, ADR 0012); `DomainEventPublishingUnitOfWork` (EZM-ANY) | Evita e-mail ou chamada externa sobre operação desfeita |
-| REF-P5 | **Configuração crítica falha no boot** | Chave JWT curta derruba a subida (EMP-BE); chave obrigatória ausente derruba com o nome dela (EZM-ANY) | Erro de configuração aparece no deploy, não em produção |
-| REF-P6 | **Idempotência em camadas** | Busca por chave local, lock com expiração, índice único e content hash (EZM-ANY) | Retries e reentregas são normais em integrações; sem idempotência viram duplicatas |
-| REF-P7 | **Migração é etapa do deploy, nunca da réplica que serve tráfego** | `--migrate-only` em EMP-BE e EZM-ANY; contraexemplo em EZM-DOC | Corrida de migração entre réplicas e startup lento |
-| REF-P8 | **Decisões registradas com consequências negativas e gatilho de revisão** | ADRs de EMP-BE; `.specs/STATE.md` (AD-NNN) em EZM-ANY e EZM-CRM | O agente sabe por que algo é assim e quando pode mudar |
-| REF-P9 | **YAGNI com custos assimétricos**: decidir já o que é caro desfazer (contrato HTTP, migração destrutiva, captura de dados, autorização); adiar o resto | `backend-skill` e `frontend-skill` de EMP; EZM-ANY sem outbox por decisão | Evita tanto a arquitetura presumida quanto a dívida irreversível |
+| REF-P3 | **Um único formato de erro, com código estável** | `DomainError` em EMP-BE e NET-INT; `parseApiError` em EMP-FE | O cliente e o agente tratam um formato só; o código estável permite decidir sem casar texto |
+| REF-P4 | **Efeitos externos só depois do commit** | Fila de eventos por requisição (EMP-BE, ADR 0012); `DomainEventPublishingUnitOfWork` (NET-INT) | Evita e-mail ou chamada externa sobre operação desfeita |
+| REF-P5 | **Configuração crítica falha no boot** | Chave JWT curta derruba a subida (EMP-BE); chave obrigatória ausente derruba com o nome dela (NET-INT) | Erro de configuração aparece no deploy, não em produção |
+| REF-P6 | **Idempotência em camadas** | Busca por chave local, lock com expiração, índice único e content hash (NET-INT) | Retries e reentregas são normais em integrações; sem idempotência viram duplicatas |
+| REF-P7 | **Migração é etapa do deploy, nunca da réplica que serve tráfego** | `--migrate-only` em EMP-BE e NET-INT; contraexemplo em NET-DOC | Corrida de migração entre réplicas e startup lento |
+| REF-P8 | **Decisões registradas com consequências negativas e gatilho de revisão** | ADRs de EMP-BE; `.specs/STATE.md` (AD-NNN) em NET-INT e ANG-CRM | O agente sabe por que algo é assim e quando pode mudar |
+| REF-P9 | **YAGNI com custos assimétricos**: decidir já o que é caro desfazer (contrato HTTP, migração destrutiva, captura de dados, autorização); adiar o resto | `backend-skill` e `frontend-skill` de EMP; NET-INT sem outbox por decisão | Evita tanto a arquitetura presumida quanto a dívida irreversível |
 | REF-P10 | **Documentação que afirma o que o código não faz é um defeito** | EMP-BE cita OData e namespaces inexistentes; MLZ-WEB cita testes inexistentes | Agentes confiam na documentação; deriva vira código errado |
 
 ## 3. Frontend React
@@ -227,7 +228,7 @@ tooltip, popover, radio, slider, chip, stepper, accordion, upload, spinner e lay
 
 Escopo: tecnologia `angular` · tipo `frontend` · responsabilidades estrutura, DI, rotas, formulários, estado, HTTP.
 
-Fonte: EZM-CRM (Angular 19, 100% standalone, Material 19, Jasmine/Karma + Playwright). O código tem qualidade média e
+Fonte: ANG-CRM (Angular 19, 100% standalone, Material 19, Jasmine/Karma + Playwright). O código tem qualidade média e
 dívidas claras; o Harness de IA do repositório é de alta qualidade. Não misturar com padrões React: as convenções
 abaixo são idiomas do Angular.
 
@@ -255,7 +256,7 @@ src/app/
 
 ### 5.2 Padrões
 
-| Id | Padrão | Onde (EZM-CRM) | Problema que resolve | Usar quando | Evitar quando | Como adaptar |
+| Id | Padrão | Onde (ANG-CRM) | Problema que resolve | Usar quando | Evitar quando | Como adaptar |
 | --- | --- | --- | --- | --- | --- | --- |
 | REF-A1 | App standalone com `app.config.ts` e rotas `loadComponent` aninhadas espelhando as pastas | `app.config.ts`, `app.routes.ts` | Bundle único; achar o código de uma URL | Todo app Angular ≥ 15 novo | Aninhamento > 3 níveis sem input binding | `withComponentInputBinding()`, `paramsInheritanceStrategy: 'always'`, `loadChildren` por feature |
 | REF-A2 | Interceptor funcional de autenticação com refresh deduplicado (`shareReplay(1)` + `finalize`) | `core/interceptors/auth.interceptor.ts`, `core/services/token-refresh.service.ts` | N requisições com token vencido disparando N refreshes | JWT com refresh token | Sessão por cookie httpOnly (o refresh é do servidor) | URLs públicas por `HttpContextToken` (`SKIP_AUTH`), não `url.includes` |
@@ -297,7 +298,7 @@ em tudo, nunca os dois na mesma classe.
 Escopo: tecnologia `dotnet` · tipo `backend`, `api`, `worker`, `integração` · responsabilidades camadas, domínio,
 casos de uso, persistência, integrações, erros, segurança, testes.
 
-Fontes: EMP-BE (API de produto), EZM-ANY (conector multi-tenant, a referência mais madura) e EZM-DOC (serviço pequeno,
+Fontes: EMP-BE (API de produto), NET-INT (conector multi-tenant, a referência mais madura) e NET-DOC (serviço pequeno,
 usado sobretudo como contraexemplo).
 
 ### 6.1 Organização da solução
@@ -307,9 +308,9 @@ Duas formas válidas, escolhidas pelo tamanho do domínio:
 | Forma | Quando | Referência |
 | --- | --- | --- |
 | **Camadas únicas**: `Domain`, `Application`, `Infrastructure`, `Api`, `Tests` | Um domínio coeso, uma equipe, até dezenas de casos de uso | EMP-BE |
-| **Contextos delimitados**: `BuildingBlocks/*`, `Integrations/<Sistema>`, `BoundedContexts/<Contexto>/{Domain,Application,Infrastructure}`, `Hosts/{Api,Worker}` | Vários subdomínios com regras próprias, mais de um host (API + worker), integrações pesadas | EZM-ANY |
+| **Contextos delimitados**: `BuildingBlocks/*`, `Integrations/<Sistema>`, `BoundedContexts/<Contexto>/{Domain,Application,Infrastructure}`, `Hosts/{Api,Worker}` | Vários subdomínios com regras próprias, mais de um host (API + worker), integrações pesadas | NET-INT |
 
-Comum às duas: `Directory.Build.props` (EZM-ANY usa para nomes curtos e namespaces), e **deveria** haver
+Comum às duas: `Directory.Build.props` (NET-INT usa para nomes curtos e namespaces), e **deveria** haver
 `Directory.Packages.props` (gestão central de versões) e `global.json`: nenhuma das referências tem, e ambas repetem
 versões de pacotes e precisam de pins manuais para fechar vulnerabilidades transitivas.
 
@@ -322,31 +323,31 @@ Domain ← Application ← Infrastructure ← Hosts (Api, Worker)
 ```
 
 - `Domain` não referencia pacote de framework. EMP-BE viola (ASP.NET Identity no `User`, registrado em ADR 0005; o
-  mediator mora no Domain; `DomainError` com status HTTP). EZM-ANY cumpre (`Orders.Domain.csproj` sem pacote nenhum).
+  mediator mora no Domain; `DomainError` com status HTTP). NET-INT cumpre (`Orders.Domain.csproj` sem pacote nenhum).
 - `Application` não conhece HTTP. EMP-BE viola (`IHttpContextAccessor`, emissão de JWT na Application); a saída é uma
   porta `ICurrentUser` implementada na Api.
-- `Application` nunca referencia `Infrastructure`. EZM-DOC inverte isso e é o contraexemplo.
-- Um contexto nunca referencia a `Infrastructure` de outro; só a `Application` publicada (EZM-ANY fixa essa
+- `Application` nunca referencia `Infrastructure`. NET-DOC inverte isso e é o contraexemplo.
+- Um contexto nunca referencia a `Infrastructure` de outro; só a `Application` publicada (NET-INT fixa essa
   superfície em testes: 27 tipos no Catalog).
-- **A regra só vale se for testada** (REF-P1): EZM-ANY lê os `.csproj` por regex em testes, sem compilar.
+- **A regra só vale se for testada** (REF-P1): NET-INT lê os `.csproj` por regex em testes, sem compilar.
 
 ### 6.3 Domínio
 
 - Agregados com estado privado, construtor privado para o ORM, coleções expostas como `IReadOnlyList`, métodos de
   intenção (`Close`, `FillPosition`, `ConfirmCreation`) e a invariante documentada no próprio membro (EMP-BE `Job.cs`;
-  EZM-ANY `ReferenceMapping.cs`).
-- Transições recebem `now` como parâmetro, nunca leem o relógio (EZM-ANY); `TimeProvider` injetado nos serviços (EMP-BE).
-- Value objects com regra e igualdade por valor (`ContentHash`, `TenantId`, `AnymarketId` em EZM-ANY). O `Address`
+  NET-INT `ReferenceMapping.cs`).
+- Transições recebem `now` como parâmetro, nunca leem o relógio (NET-INT); `TimeProvider` injetado nos serviços (EMP-BE).
+- Value objects com regra e igualdade por valor (`ContentHash`, `TenantId`, `<Fornecedor>Id` em NET-INT). O `Address`
   mutável de EMP-BE é o modelo a evitar.
-- Eventos de domínio levantados pelo agregado (`AggregateRoot` com lista de eventos em EZM-ANY). Em EMP-BE quem
+- Eventos de domínio levantados pelo agregado (`AggregateRoot` com lista de eventos em NET-INT). Em EMP-BE quem
   enfileira é o handler: funciona, mas o evento deixa de ser do domínio.
 - Domínio anêmico é aceitável em CRUD sem regra; não em máquinas de estado.
 
 ### 6.4 Casos de uso
 
-- Pasta por caso de uso (slice) com `Command`, `Handler`, `Validator` (EZM-ANY `Intake/Application/AcceptClientEvent/`;
+- Pasta por caso de uso (slice) com `Command`, `Handler`, `Validator` (NET-INT `Intake/Application/AcceptClientEvent/`;
   EMP-BE `Application/<Feature>/Commands/<Ação>`).
-- Mediator: as duas referências maduras usam **implementação própria** (proibição registrada de MediatR em EZM-ANY;
+- Mediator: as duas referências maduras usam **implementação própria** (proibição registrada de MediatR em NET-INT;
   licença). Se usar, mantê-lo num `BuildingBlocks/Mediator` com namespace, nunca no Domain. Rotinas em lote podem
   chamar o núcleo direto, sem mediator.
 - Pipeline de behaviors (EMP-BE): `Performance → Validation → NotificationDispatch → Transaction`, com a ordem
@@ -356,34 +357,34 @@ Domain ← Application ← Infrastructure ← Hosts (Api, Worker)
 
 - FluentValidation no pipeline, com cultura fixada em `pt-BR` no host (sem isso as mensagens saem em inglês).
 - Não injetar `IValidator` no handler quando o pipeline já valida (ruído em EMP-BE).
-- **Modelo de erro de EZM-ANY** é o recomendado: catálogo `DomainErrorCode`; `Result`/`Result<T>` para ramo de negócio
+- **Modelo de erro de NET-INT** é o recomendado: catálogo `DomainErrorCode`; `Result`/`Result<T>` para ramo de negócio
   previsto; `DomainException` quando não dá para retornar ou quando seguir deixaria o agregado inconsistente;
   `WriteConflictException` traduzida de violação de índice único e de concorrência; um só corpo HTTP com mapeamento
   código → status; detalhes de falha externa só em Development.
-- Não mapear exceções do BCL para o contrato HTTP: `InvalidOperationException` → 409 em EMP-BE e EZM-DOC faz bug de
+- Não mapear exceções do BCL para o contrato HTTP: `InvalidOperationException` → 409 em EMP-BE e NET-DOC faz bug de
   infraestrutura chegar ao cliente como "conflito". "Não encontrado" deve ser 404, não 400.
 - `ProblemDetails` (RFC 9457) com extensões `code` e `errors` é alternativa válida e padronizada; o essencial é um
   contrato só (as duas referências maduras escolheram corpo próprio, por decisão registrada).
 
 ### 6.6 Persistência
 
-- EF Core; um `DbContext` por contexto delimitado, cada um com tabela de histórico de migração própria (EZM-ANY).
-- Unit of Work que salva, **publica eventos depois do commit** e traduz conflitos (EZM-ANY
+- EF Core; um `DbContext` por contexto delimitado, cada um com tabela de histórico de migração própria (NET-INT).
+- Unit of Work que salva, **publica eventos depois do commit** e traduz conflitos (NET-INT
   `DomainEventPublishingUnitOfWork`); com retry automático, limpar o `ChangeTracker` a cada nova tentativa (EMP-BE,
   ADR 0013).
 - Uma única fronteira de `SaveChanges`: em EMP-BE o repositório genérico também salva, e a fronteira fica dupla.
 - Soft delete sempre com `HasQueryFilter` (EMP-BE confere `IsDeleted` à mão em cada handler).
-- Concorrência: `rowversion` (EZM-ANY), `SELECT ... FOR UPDATE` (EMP-BE), índice único parcial como defesa final.
+- Concorrência: `rowversion` (NET-INT), `SELECT ... FOR UPDATE` (EMP-BE), índice único parcial como defesa final.
 - Migração como etapa do deploy (REF-P7): `--migrate-only` + advisory lock (EMP-BE) ou tarefa avulsa no ECS que precisa
-  terminar com 0 antes de atualizar o serviço (EZM-ANY); script idempotente gerado no CI como artefato revisável.
+  terminar com 0 antes de atualizar o serviço (NET-INT); script idempotente gerado no CI como artefato revisável.
 
 ### 6.7 Configuração, observabilidade e segurança
 
 - Options pattern com `SectionName` e validação no startup (`ValidateOnStart`); só `appsettings.example.json`
   versionado; segredos de ambiente ou Secrets Manager.
 - Logs estruturados com templates (sem interpolação, sem PII); um único building block conhece Serilog/Sentry/Datadog
-  (EZM-ANY `BuildingBlocks/Observability`); correlação por middleware, propagada em filas e chamadas externas.
-- Health separado em `live` e `ready` (EMP-BE). EZM-ANY só tem liveness: lacuna.
+  (NET-INT `BuildingBlocks/Observability`); correlação por middleware, propagada em filas e chamadas externas.
+- Health separado em `live` e `ready` (EMP-BE). NET-INT só tem liveness: lacuna.
 - Nenhuma referência usa OpenTelemetry; é a lacuna comum e a recomendação para projetos novos.
 - Segurança: autorização segura por omissão (`[Authorize]` na classe base) **com teste por reflexão** (EMP-BE
   `ControllerAuthorizationTests`); comparação de segredo com `CryptographicOperations.FixedTimeEquals`; refresh token
@@ -392,32 +393,32 @@ Domain ← Application ← Infrastructure ← Hosts (Api, Worker)
 
 ### 6.8 Testes
 
-- Teste existe para provar regra, não o encanamento do framework (política escrita em EZM-ANY).
+- Teste existe para provar regra, não o encanamento do framework (política escrita em NET-INT).
 - `WebApplicationFactory<Program>` com dublês; handler HTTP de gravação **no registro real do cliente** para afirmar
   headers e retries; `FakeTimeProvider` controlando também os atrasos do Polly; logger de gravação para afirmar
-  propriedades estruturadas (EZM-ANY).
-- Banco real condicional que aparece como *skipped* quando falta, nunca como aprovado (`[LocalDbFact]` em EZM-ANY,
+  propriedades estruturadas (NET-INT).
+- Banco real condicional que aparece como *skipped* quando falta, nunca como aprovado (`[LocalDbFact]` em NET-INT,
   `[PostgresFact]` em EMP-BE); no CI, container de serviço. Testcontainers quando houver Docker local.
 - Testes de convenção: forma JSON da resposta, ordem do pipeline, autorização por rota, fronteiras de projeto.
 - Nomes `Metodo_Cenario_Resultado`.
 
 ### 6.9 Integrações externas
 
-A seção mais forte de EZM-ANY; aplica-se a qualquer serviço que fale com sistemas de terceiros.
+A seção mais forte de NET-INT; aplica-se a qualquer serviço que fale com sistemas de terceiros.
 
-| Id | Padrão | Onde (EZM-ANY) | Problema que resolve | Evitar quando |
+| Id | Padrão | Onde (NET-INT) | Problema que resolve | Evitar quando |
 | --- | --- | --- | --- | --- |
-| REF-N1 | Cliente único por sistema externo (camada anticorrupção): só ele monta autenticação, URL base, paginação e exceções tipadas; contratos de fio nunca vazam | `src/Integrations/Anymarket/AnymarketClient.cs` | Segredo e contrato do fornecedor espalhados | Uma chamada trivial: typed client direto |
-| REF-N2 | Resiliência ciente do verbo: retry com jitter só em método idempotente; POST só em 429; timeout por tentativa; respeita `Retry-After`/`ratelimit-reset` com teto | `AnymarketServiceCollectionExtensions.cs` | Duplicata por retry de POST que já tinha sido gravado | Provedor com `Idempotency-Key`: usar a chave e repetir |
-| REF-N3 | Rate limiter por tenant com teto de espera diferente por host (worker curto: devolve à fila; API longo) | `Integrations/Anymarket/RateLimit/TenantRateLimiter.cs` | Thread presa esperando cota | API externa sem limite por credencial |
-| REF-N4 | Isolamento por tenant (circuit distribuído): tenant com dependência fora do ar não consome tentativas dos outros | `Integrations/Suite/Isolation/` | Um cliente derruba o processamento de todos | Um tenant só: circuit breaker simples |
+| REF-N1 | Cliente único por sistema externo (camada anticorrupção): só ele monta autenticação, URL base, paginação e exceções tipadas; contratos de fio nunca vazam | `src/Integrations/<Fornecedor>/<Fornecedor>Client.cs` | Segredo e contrato do fornecedor espalhados | Uma chamada trivial: typed client direto |
+| REF-N2 | Resiliência ciente do verbo: retry com jitter só em método idempotente; POST só em 429; timeout por tentativa; respeita `Retry-After`/`ratelimit-reset` com teto | `<Fornecedor>ServiceCollectionExtensions.cs` | Duplicata por retry de POST que já tinha sido gravado | Provedor com `Idempotency-Key`: usar a chave e repetir |
+| REF-N3 | Rate limiter por tenant com teto de espera diferente por host (worker curto: devolve à fila; API longo) | `Integrations/<Fornecedor>/RateLimit/TenantRateLimiter.cs` | Thread presa esperando cota | API externa sem limite por credencial |
+| REF-N4 | Isolamento por tenant (circuit distribuído): tenant com dependência fora do ar não consome tentativas dos outros | `Integrations/<ERP>/Isolation/` | Um cliente derruba o processamento de todos | Um tenant só: circuit breaker simples |
 | REF-N5 | Classificador de falha externa (`Transient`, `CredentialRefusal`, `Permanent`, `NotExternal`) | `SharedKernel/Errors/ExternalFailureClassifier.cs` | Decidir entre pular registro, parar lote ou adiar mensagem | — |
 | REF-N6 | Consumidor de fila com envelope versionado (`messageType`, `messageVersion`, `tenantId`, `correlationId`), delete só após sucesso, DLQ, adiamento por visibilidade, extensão em handler longo, fila separada para lote | `BuildingBlocks/Messaging.Sqs/SqsFlowConsumer.cs` | Mensagem perdida ou repetida sem controle | Processamento síncrono simples |
 | REF-N7 | Idempotência em camadas: busca pela chave local antes de criar, lock de criação com expiração e `rowversion`, índice único, content hash para pular envio sem mudança | `ReferenceMapping.cs`, `ContentHash.cs` | Duplicatas no sistema externo | — |
 | REF-N8 | Segredos por tenant, buscados na hora da chamada, por sistema, com cache curto que não guarda falha | `Tenancy/Infrastructure/Secrets/` | Segredo quebrado de um sistema bloqueando tudo | Aplicação de tenant único com segredo fixo |
-| REF-N9 | Webhook seguro: `EnableBuffering`, HMAC com `FixedTimeEquals`, parse seguro, sem logar corpo nem assinatura, tolerância de timestamp, deduplicação por id de evento | Contraexemplo: EZM-DOC `HmacValidationMiddleware.cs` | Falsificação, replay e reentrega duplicando efeito | — |
+| REF-N9 | Webhook seguro: `EnableBuffering`, HMAC com `FixedTimeEquals`, parse seguro, sem logar corpo nem assinatura, tolerância de timestamp, deduplicação por id de evento | Contraexemplo: NET-DOC `HmacValidationMiddleware.cs` | Falsificação, replay e reentrega duplicando efeito | — |
 
-Outbox: nenhuma referência usa. EMP-BE e EZM-ANY aceitam, por decisão registrada, perder o evento entre o commit e a
+Outbox: nenhuma referência usa. EMP-BE e NET-INT aceitam, por decisão registrada, perder o evento entre o commit e a
 publicação. Usar outbox quando o evento cruza processos e perdê-lo custa caro (pagamento, integração entre sistemas).
 
 ### 6.10 Padrões de aplicação
@@ -429,8 +430,8 @@ publicação. Usar outbox quando o evento cruza processos e perdê-lo custa caro
 | REF-N12 | Teste que fixa a ordem do pipeline a partir do registro de produção (`internal` + `InternalsVisibleTo`) | EMP-BE `PipelineBehaviorRegistrationTests.cs` | — |
 | REF-N13 | Testes de convenção de segurança por reflexão sobre controllers | EMP-BE `ControllerAuthorizationTests.cs` | — |
 | REF-N14 | Startup coordenado: espera do banco, advisory lock, etapas (`MigrationStep`, `SeedStep`) | EMP-BE `Infra/Persistence/Startup/*` | Serverless: migrar no pipeline |
-| REF-N15 | Fronteiras de projeto como testes que leem `.csproj` e varrem o código (posse de header, `HttpClient` proibido fora do cliente) | EZM-ANY `tests/Shared/Architecture/` | — |
-| REF-N16 | Porta de geração com estratégias trocáveis por biblioteca | EZM-DOC `Domain/Interfaces/IDanfeGenerator.cs` + `Infrastructure/Libs/<Lib>/` | Uma biblioteca só e estável |
+| REF-N15 | Fronteiras de projeto como testes que leem `.csproj` e varrem o código (posse de header, `HttpClient` proibido fora do cliente) | NET-INT `tests/Shared/Architecture/` | — |
+| REF-N16 | Porta de geração com estratégias trocáveis por biblioteca | NET-DOC `Domain/Interfaces/IDanfeGenerator.cs` + `Infrastructure/Libs/<Lib>/` | Uma biblioteca só e estável |
 
 ### 6.11 Não copiar
 
@@ -438,17 +439,17 @@ publicação. Usar outbox quando o evento cruza processos e perdê-lo custa caro
 | --- | --- |
 | Mediator e `DomainError` com status HTTP no Domain; Application com JWT e `IHttpContextAccessor` | EMP-BE |
 | `HttpUserContext.SetHeader` copiando claims para headers da requisição | EMP-BE |
-| Repositório genérico com ordenação por `switch` de string e `SaveChanges` duplicado | EMP-BE, EZM-DOC |
+| Repositório genérico com ordenação por `switch` de string e `SaveChanges` duplicado | EMP-BE, NET-DOC |
 | Projetos de capacidade presumida sem consumidor (`EmpregaNet.AI`, BFF vazio) | EMP-BE |
-| Newtonsoft e System.Text.Json configurados juntos | EMP-BE, EZM-DOC |
-| Connection string no console; `EnableSensitiveDataLogging` em todos os ambientes | EMP-BE, EZM-DOC |
-| Application referenciando Infrastructure | EZM-DOC |
-| Migração no startup de cada réplica com `BuildServiceProvider()` | EZM-DOC |
-| `catch (Exception)` relançando `new Exception(...)` | EZM-DOC |
-| `static HttpClient` baixando URL vinda do request (SSRF) | EZM-DOC |
-| CORS `AllowAll` e endpoints sem autenticação; chaves AWS na configuração | EZM-DOC |
-| Skill de conhecimento de ~50 mil tokens misturando conhecimento estável com changelog | EZM-ANY |
-| Mediator por reflexão a cada chamada (aceitável, mas avaliar source generator) | EZM-ANY |
+| Newtonsoft e System.Text.Json configurados juntos | EMP-BE, NET-DOC |
+| Connection string no console; `EnableSensitiveDataLogging` em todos os ambientes | EMP-BE, NET-DOC |
+| Application referenciando Infrastructure | NET-DOC |
+| Migração no startup de cada réplica com `BuildServiceProvider()` | NET-DOC |
+| `catch (Exception)` relançando `new Exception(...)` | NET-DOC |
+| `static HttpClient` baixando URL vinda do request (SSRF) | NET-DOC |
+| CORS `AllowAll` e endpoints sem autenticação; chaves AWS na configuração | NET-DOC |
+| Skill de conhecimento de ~50 mil tokens misturando conhecimento estável com changelog | NET-INT |
+| Mediator por reflexão a cada chamada (aceitável, mas avaliar source generator) | NET-INT |
 
 ## 7. Outras tecnologias de backend
 
@@ -535,29 +536,29 @@ EMP-MONO usa `backend/` e `frontend/` e funciona.
 | Front e back mudam juntos e são da mesma equipe | Ciclos de release independentes ou equipes diferentes |
 | Há contrato a gerar e conferir no mesmo PR | A API serve vários clientes que não são do mesmo time |
 | Um Harness de IA precisa enxergar as duas pontas | Requisitos de acesso diferentes (código de terceiros, compliance) |
-| CI seletivo é viável | O repositório ficaria grande demais para clonar e indexar (EZM-ANY já tem ~1.400 arquivos sozinho) |
+| CI seletivo é viável | O repositório ficaria grande demais para clonar e indexar (NET-INT já tem ~1.400 arquivos sozinho) |
 
-EZM-CRM e o seu backend estão em repositórios separados; EMP é monorepo. As duas escolhas são legítimas.
+ANG-CRM e o seu backend estão em repositórios separados; EMP é monorepo. As duas escolhas são legítimas.
 
 ## 9. Harness de IA nas referências
 
 Escopo: qualquer tecnologia · responsabilidade AI Engineering, agentes, skills, rules, hooks, evals.
 
-As referências da empresa e o EMP já trazem Harness versionado. Esta seção é a base para o Spock gerar Harness
+As referências privadas e o EMP já trazem Harness versionado. Esta seção é a base para o Spock gerar Harness
 específico por stack.
 
 | Elemento | Onde | O que vale | O que evitar |
 | --- | --- | --- | --- |
-| `CLAUDE.md` âncora, curto | EZM-ANY, EZM-CRM, EMP | Regras de camada, YAGNI, ponte entre ciclo e agentes | Afirmar o que o código não faz (EMP cita namespace e OData inexistentes) |
-| Skill de conhecimento da stack | `integrador-backend-skill`, `easymart-frontend-skill`, `frontend-skill`, `backend-skill` | Convenções levantadas do código, anti-padrões, checklist, "inconsistência conhecida" registrada como fato | Skill de ~50 mil tokens com changelog de feature (EZM-ANY) |
+| `CLAUDE.md` âncora, curto | NET-INT, ANG-CRM, EMP | Regras de camada, YAGNI, ponte entre ciclo e agentes | Afirmar o que o código não faz (EMP cita namespace e OData inexistentes) |
+| Skill de conhecimento da stack | `integrador-backend-skill`, a skill de convenções do ANG-CRM, `frontend-skill`, `backend-skill` | Convenções levantadas do código, anti-padrões, checklist, "inconsistência conhecida" registrada como fato | Skill de ~50 mil tokens com changelog de feature (NET-INT) |
 | Agentes agnósticos de stack | `.claude/agents/` (architect só leitura, implementer, verifier, code-reviewer, test-engineer, debug, performance) | **Autor diferente do verificador**; arquiteto sem escrita | Agente que duplica conhecimento da skill |
-| Regras por caminho | EZM-ANY `.claude/rules/backend-code-structure.md` (carregada quando um `.cs` é tocado) | Contexto só quando relevante | — |
+| Regras por caminho | NET-INT `.claude/rules/backend-code-structure.md` (carregada quando um `.cs` é tocado) | Contexto só quando relevante | — |
 | Specs por feature | `.specs/features/<id>/{spec,design,tasks,validation}.md`; `docs/features/<id>/` | Ciclo spec-driven com validação | — |
-| Decisões numeradas | `.specs/STATE.md` (~91 AD-NNN em EZM-ANY), ADRs em EMP | Rastreabilidade de por quê | — |
-| Vocabulário de evidência | EZM-ANY `harness-contract` (FACT/INFERENCE e confiança) | O agente diz o que viu e o que deduziu | — |
-| Lint/eval do Harness no CI | EMP `.claude/evals/check-harness.mjs`; EZM-ANY `harness_lint/` | Harness quebrado falha o build | Eval que não confere afirmações factuais contra o código |
-| MCP local por projeto | EZM-ANY `.mcp.json` (banco, sandbox do fornecedor) | Ferramentas no escopo do projeto | Credenciais de produção |
-| Permissões | `settings.json` com allowlist; `deny Read` em appsettings reais (EZM-ANY) | Menor privilégio | — |
+| Decisões numeradas | `.specs/STATE.md` (~91 AD-NNN em NET-INT), ADRs em EMP | Rastreabilidade de por quê | — |
+| Vocabulário de evidência | NET-INT `harness-contract` (FACT/INFERENCE e confiança) | O agente diz o que viu e o que deduziu | — |
+| Lint/eval do Harness no CI | EMP `.claude/evals/check-harness.mjs`; NET-INT `harness_lint/` | Harness quebrado falha o build | Eval que não confere afirmações factuais contra o código |
+| MCP local por projeto | NET-INT `.mcp.json` (banco, sandbox do fornecedor) | Ferramentas no escopo do projeto | Credenciais de produção |
+| Permissões | `settings.json` com allowlist; `deny Read` em appsettings reais (NET-INT) | Menor privilégio | — |
 
 Lição central: **separar conhecimento da stack (skill curta, estável, verificada) de agentes agnósticos**, e manter o
 detalhe de feature nas specs, não na skill.
@@ -571,7 +572,7 @@ Cada diretriz é um ponto de partida; a decisão final depende dos requisitos e 
 | Escolha | Quando |
 | --- | --- |
 | React | Equipe com experiência React; produto que precisa de SSR/SEO (Next) ou site de conteúdo; reaproveitar `@mariliz/ui-kit`; ecossistema de bibliotecas amplo |
-| Angular | Equipe com experiência Angular; aplicação corporativa grande com formulários pesados; preferência por framework completo e opinativo (DI, roteador, formulários, HTTP no núcleo); continuidade com projetos Angular da organização (EZM-CRM) |
+| Angular | Equipe com experiência Angular; aplicação corporativa grande com formulários pesados; preferência por framework completo e opinativo (DI, roteador, formulários, HTTP no núcleo); continuidade com projetos Angular da organização (ANG-CRM) |
 | Manter o que existe | Projeto existente: não trocar de framework por preferência. Trocar só com problema concreto que o framework atual não resolve |
 
 ### 10.2 Quando usar o `@mariliz/ui-kit`
@@ -594,7 +595,7 @@ system, não migrar só para padronizar.
 | --- | --- | --- |
 | Conhecimento da equipe | Equipe .NET (caso da organização) | Equipe sem .NET |
 | Domínio com regras e transações | EF Core, pipeline, tipagem forte | — |
-| Integrações corporativas (ERP, filas, AWS) | Polly, SDKs maduros, referência EZM-ANY pronta | — |
+| Integrações corporativas (ERP, filas, AWS) | Polly, SDKs maduros, referência NET-INT pronta | — |
 | IA/ML, ciência de dados | — | Python (ecossistema de ML e LangGraph) |
 | Front e back na mesma linguagem, BFF fino | — | Node/TS |
 | Serviço muito pequeno, cold start crítico | Native AOT ajuda | Go |
@@ -660,4 +661,4 @@ Ver §8.5.
 
 | Data | Mudança |
 | --- | --- |
-| 2026-11-17 | Primeira versão: 8 referências (EMP-FE, EMP-BE, EMP-MONO, MLZ-WEB, MLZ-UI, EZM-CRM, EZM-ANY, EZM-DOC) |
+| 2026-11-17 | Primeira versão: 8 referências (EMP-FE, EMP-BE, EMP-MONO, MLZ-WEB, MLZ-UI, ANG-CRM, NET-INT, NET-DOC) |

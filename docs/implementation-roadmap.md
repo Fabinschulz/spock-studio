@@ -283,7 +283,7 @@ Importação de documentos, integrações (Jira, Azure DevOps, GitHub, MCP, banc
 
 | # | Decisão | Bloqueia | Recomendação |
 | --- | --- | --- | --- |
-| 1 | Titularidade dos ativos Easymart e EmpregaNet | Fase 2; teste com projetos reais na 1b | Resolver por escrito antes da Fase 2 |
+| 1 | Titularidade dos ativos dos projetos privados e do EmpregaNet | Fase 2; teste com projetos reais na 1b | Resolver por escrito antes da Fase 2 |
 | 2 | Método do núcleo (TLC vs próprio) | Fase 2 | Método próprio enxuto, com atribuição ao TLC onde conceitos forem aproveitados; evita redistribuir um projeto de terceiros |
 | 3 | Assinatura de código (Authenticode, Apple Developer) | Distribuição externa | Adiar para antes do primeiro usuário externo |
 | 4 | Licença do repositório | Publicação | Proprietária até a decisão comercial |

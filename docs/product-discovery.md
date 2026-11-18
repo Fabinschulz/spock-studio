@@ -94,9 +94,9 @@ Base: a auditoria de 2026-10-22 (Artifact "Auditoria Mariliz AI Engineering") re
 
 | Projeto | Stack | Agentes | Método | Evals | Revalidação em 2026-10-25 |
 | --- | --- | --- | --- | --- | --- |
-| Easymart.IntegradorAnymarket | .NET 10 | 7 | TLC v3.3.0 | Lint Tier 0 em Python (9 regras), CI | **[FATO]** `python .claude/evals/harness_lint/lint.py` → `harness lint: OK (9 regras)`. 11 features em `.specs/features` (eram 8). Arquivos de agentes alterados desde 2026-10-22 |
-| Backoffice.Web | Next.js | 5 | TLC | RAG eval 22/23 (não roda no CI) | Sem alterações de harness desde 2026-10-22 |
-| Easymart.CRM | Angular 19 | 3 | TLC | Nenhum no CI | 29 arquivos de harness alterados desde 2026-10-22; 24 features |
+| Integrador .NET (privado) | .NET 10 | 7 | TLC v3.3.0 | Lint Tier 0 em Python (9 regras), CI | **[FATO]** `python .claude/evals/harness_lint/lint.py` → `harness lint: OK (9 regras)`. 11 features em `.specs/features` (eram 8). Arquivos de agentes alterados desde 2026-10-22 |
+| Backoffice web (privado) | Next.js | 5 | TLC | RAG eval 22/23 (não roda no CI) | Sem alterações de harness desde 2026-10-22 |
+| CRM em Angular (privado) | Angular 19 | 3 | TLC | Nenhum no CI | 29 arquivos de harness alterados desde 2026-10-22; 24 features |
 | EmpregaNetAPI | .NET 10 + Next.js | 8 | SDD próprio | `check-harness.mjs` + `audit-traces.mjs` | **[FATO]** `node .claude/evals/check-harness.mjs` → `harness ok — 8 agentes, 6 skills, 17 documentos verificados` |
 
 > **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
@@ -132,13 +132,13 @@ Classificação da seção 3.1 do briefing. "Uso no produto" indica se o ativo p
 | Leitor de transcripts (`audit-traces.mjs`) | **Experimental** | EmpregaNet | Referência para evals de trajetória |
 | Desenho de evals (`DESIGN.md`, 52 KB) | **Experimental** (só o Tier 0 foi construído) | Integrador | Referência para a estratégia de evals |
 | `dotnet-architect`, `dotnet-implementer`, `test-engineer`, `performance-optimizer`, `backend-skill` | **Profile .NET** | Integrador, EmpregaNet | Destilar o profile `.NET` |
-| `frontend-engineer`, `frontend-skill`, `frontend-conventions` | **Profile Next.js/React** | Backoffice.Web, EmpregaNet | Destilar o profile `nextjs` |
-| `easymart-frontend-skill` | **Profile Angular** (com conteúdo de projeto) | CRM | Fase 5 |
-| Skills de QA E2E pela UI (`e2e-qa-skill`, `e2e-regression`) | **Experimental** | CRM, Backoffice.Web, EmpregaNet | Fora do MVP |
-| `integrador-backend-skill`, `legado-flutter`, ADs em `.specs/STATE.md`, roadmaps, Jira ESM0036/ESM0026/BAC | **Project-specific** | Projetos Easymart | **Não reutilizar** |
-| RAG do Backoffice (código Dart copiado, dossiês, `extracted/*.json`) | **Project-specific** | Backoffice.Web | **Não reutilizar** conteúdo; a arquitetura serve só como referência |
-| Arquitetura do RAG (extração determinística → dossiês ancorados → busca híbrida → eval recall@k + âncoras com hash) | **Experimental** | Backoffice.Web | Referência para a Fase 6 |
-| MCPs `anymarket-db`, `anymarket-sandbox` | **Project-specific** | Integrador | Não reutilizar; o padrão "dbhub `readonly=true` + `max_rows`" é referência |
+| `frontend-engineer`, `frontend-skill`, `frontend-conventions` | **Profile Next.js/React** | Backoffice web, EmpregaNet | Destilar o profile `nextjs` |
+| Skill de convenções do CRM | **Profile Angular** (com conteúdo de projeto) | CRM | Fase 5 |
+| Skills de QA E2E pela UI (`e2e-qa-skill`, `e2e-regression`) | **Experimental** | CRM, Backoffice web, EmpregaNet | Fora do MVP |
+| `integrador-backend-skill`, `legado-flutter`, ADs em `.specs/STATE.md`, roadmaps, chaves de projetos do Jira | **Project-specific** | Projetos privados | **Não reutilizar** |
+| RAG do Backoffice (código Dart copiado, dossiês, `extracted/*.json`) | **Project-specific** | Backoffice web | **Não reutilizar** conteúdo; a arquitetura serve só como referência |
+| Arquitetura do RAG (extração determinística → dossiês ancorados → busca híbrida → eval recall@k + âncoras com hash) | **Experimental** | Backoffice web | Referência para a Fase 6 |
+| MCPs de banco e de sandbox do fornecedor | **Project-specific** | Integrador | Não reutilizar; o padrão "dbhub `readonly=true` + `max_rows`" é referência |
 | TLC spec-driven v3.3.0 (Felipe Rodrigues, CC-BY-4.0) | **Third-party** | 3 projetos | Ver seção 4 |
 | Regras "AWS Agent Toolkit" | **Third-party** | CLAUDE.md do EmpregaNet | Não incluir |
 | `shadcn` MCP, `mermaid-mcp`, `@bytebase/dbhub` | **Third-party** | `.mcp.json` | Avaliar licença e manutenção caso a caso |
@@ -157,7 +157,7 @@ Classificação da seção 3.1 do briefing. "Uso no produto" indica se o ativo p
 
 | Ativo | Pergunta em aberto | Bloqueia |
 | --- | --- | --- |
-| Tudo que nasceu nos repositórios Easymart (agentes, skills, lint Python, `DESIGN.md`) | A Mariliz pode reutilizar e comercializar? Existe contrato de cessão ou de prestação de serviço que trate de PI? | Consolidação do núcleo (Fase 2) |
+| Tudo que nasceu nos repositórios privados (agentes, skills, lint Python, `DESIGN.md`) | A Mariliz pode reutilizar e comercializar? Existe contrato de cessão ou de prestação de serviço que trate de PI? | Consolidação do núcleo (Fase 2) |
 | EmpregaNetAPI (em `MyApps`) | Quem detém os direitos? É projeto pessoal, da Mariliz ou de cliente? | Uso de `check-harness.mjs` e do profile .NET derivado |
 | TLC spec-driven | CC-BY-4.0 permite uso comercial com atribuição e indicação de mudanças. Falta decidir se o produto **redistribui** o TLC, se instrui o cliente a instalá-lo pelo instalador oficial, ou se usa um método próprio | Escolha do método do núcleo |
 | Synthra UI | Licença MIT. Falta confirmar se "Synthra" e a Mariliz são a mesma titular e se há plano de versão estável (hoje 0.x) | Nenhum para o MVP; afeta a política de atualização |
@@ -353,7 +353,7 @@ Em ordem de prioridade. Detalhes em [`implementation-roadmap.md`](implementation
 
 > **Nota (2026-10-30):** o produto apresenta um único modelo de implementação, o **Mariliz**. Nomes de kits e metodologias citados neste documento são históricos: na interface e nos contratos o mecanismo de especificação é a "estrutura de especificação" (ver [backend-architecture.md](architecture/backend-architecture.md)).
 
-1. **[DECISÃO PENDENTE]** Titularidade: o que dos projetos Easymart e EmpregaNet pode alimentar o núcleo?
+1. **[DECISÃO PENDENTE]** Titularidade: o que dos projetos privados e do EmpregaNet pode alimentar o núcleo?
 2. **[DECISÃO PENDENTE]** Método do núcleo: TLC (redistribuído com atribuição ou instalado pelo canal oficial) ou método próprio da Mariliz.
 3. **[DECISÃO PENDENTE]** Assinatura de código: certificado Authenticode e conta Apple Developer para o primeiro instalador, ou instaladores não assinados em fase de avaliação.
 4. **[DECISÃO PENDENTE]** Licença do próprio repositório `mariliz-ai-engineering` (proprietária, source-available ou outra).
