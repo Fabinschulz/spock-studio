@@ -77,11 +77,40 @@ describe('AppShell · navegação', () => {
     expect(within(nav).getByRole('link', { name: 'Visão geral' })).toHaveAttribute('href', '/projeto');
     // "Configurar" abre a primeira etapa da jornada, onde se escolhe a pasta: sempre existe.
     expect(within(nav).getByRole('link', { name: 'Configurar' })).toHaveAttribute('href', '/configurar');
-    expect(within(nav).getByRole('link', { name: 'Configurações' })).toHaveAttribute('href', '/configuracoes');
-    expect(within(nav).getByRole('link', { name: 'Catálogo' })).toHaveAttribute('href', '/projeto/catalogo');
+    // Configurações é preferência, não tela de trabalho: sai do menu e fica na barra de estado.
+    expect(within(nav).queryByRole('link', { name: 'Configurações' })).not.toBeInTheDocument();
+    expect(within(screen.getByRole('contentinfo')).getByRole('link', { name: 'Configurações' })).toHaveAttribute(
+      'href',
+      '/configuracoes'
+    );
   });
 
-  it('mostra só o ambiente atual no menu e deixa as integrações fora dos dois', () => {
+  it('o menu consolidado: onze itens em Engenharia e sete em Gestão, contando o Início', () => {
+    const { unmount } = renderShell('/projeto');
+    expect(within(navigation()).getAllByRole('link')).toHaveLength(11);
+    unmount();
+
+    renderShell('/gestao');
+    expect(within(navigation()).getAllByRole('link')).toHaveLength(7);
+  });
+
+  it('um item com abas fica marcado em qualquer uma delas, e a página mostra as abas', () => {
+    renderShell('/projeto/catalogo', <Page title="Catálogo" />);
+    const nav = navigation();
+
+    expect(within(nav).getByRole('link', { name: 'Harness' })).toHaveAttribute('aria-current', 'page');
+    const tabs = screen.getByRole('navigation', { name: 'Seções de Harness' });
+    expect(within(tabs).getByRole('link', { name: 'Catálogo' })).toHaveAttribute('aria-current', 'page');
+    expect(within(tabs).getByRole('link', { name: 'Estado e revisões' })).toHaveAttribute('href', '/projeto/harness');
+  });
+
+  it('a tela que não divide item com outra não mostra abas', () => {
+    renderShell('/projeto/conhecimento', <Page title="Conhecimento" />);
+
+    expect(screen.queryByRole('navigation', { name: /^Seções de/ })).not.toBeInTheDocument();
+  });
+
+  it('mostra só o ambiente atual no menu e deixa as conexões fora dos dois', () => {
     renderShell();
     const nav = navigation();
 
@@ -93,11 +122,16 @@ describe('AppShell · navegação', () => {
       '/projeto/conhecimento'
     );
     expect(within(engineering).getByRole('link', { name: 'Configurar' })).toHaveAttribute('href', '/configurar');
-    expect(within(engineering).getByRole('link', { name: 'Pedido de engenharia' })).toHaveAttribute('href', '/pedido');
+    expect(within(engineering).getByRole('link', { name: 'Pedidos' })).toHaveAttribute('href', '/pedido');
+    expect(within(engineering).getByRole('link', { name: 'Infraestrutura' })).toHaveAttribute(
+      'href',
+      '/infraestrutura'
+    );
     expect(within(nav).queryByRole('list', { name: 'Gestão' })).not.toBeInTheDocument();
 
     const platform = within(nav).getByRole('list', { name: 'Plataforma' });
-    expect(within(platform).getByRole('link', { name: 'Integrações' })).toHaveAttribute('href', '/integracoes');
+    expect(within(platform).getByRole('link', { name: 'Conexões' })).toHaveAttribute('href', '/integracoes');
+    expect(within(platform).getByRole('link', { name: 'Histórico' })).toHaveAttribute('href', '/linha-do-tempo');
   });
 
   it('em Gestão, o menu traz as telas de Gestão e some com as de Engenharia', () => {
@@ -110,7 +144,10 @@ describe('AppShell · navegação', () => {
     expect(within(management).getByRole('link', { name: 'Assistente' })).toHaveAttribute('href', '/gestao/assistente');
     expect(within(nav).queryByRole('list', { name: 'Engenharia' })).not.toBeInTheDocument();
     expect(within(nav).queryByRole('link', { name: 'Configurar' })).not.toBeInTheDocument();
-    expect(within(nav).getByRole('list', { name: 'Plataforma' })).toBeInTheDocument();
+    const platform = within(nav).getByRole('list', { name: 'Plataforma' });
+    expect(within(platform).getByRole('link', { name: 'Execuções' })).toBeInTheDocument();
+    // Conexões é tarefa de quem configura: o gestor não a vê no menu.
+    expect(within(platform).queryByRole('link', { name: 'Conexões' })).not.toBeInTheDocument();
   });
 
   it('nenhum item do menu repete o ícone de outro', () => {
@@ -292,13 +329,13 @@ describe('AppShell · topo', () => {
     expect(within(header).getByRole('button', { name: 'Projeto: EmpregaNetAPI' })).toBeInTheDocument();
   });
 
-  it('numa tela comum, como Integrações, mantém o ambiente em que a pessoa estava', async () => {
+  it('numa tela comum, como o Histórico, mantém o ambiente em que a pessoa estava', async () => {
     renderShell('/gestao');
     const nav = navigation();
 
-    await userEvent.click(within(nav).getByRole('link', { name: 'Integrações' }));
+    await userEvent.click(within(nav).getByRole('link', { name: 'Histórico' }));
 
-    expect(screen.getByTestId('where')).toHaveTextContent('/integracoes');
+    expect(screen.getByTestId('where')).toHaveTextContent('/linha-do-tempo');
     expect(within(screen.getByRole('banner')).getByRole('link', { name: 'Gestão' })).toHaveAttribute(
       'aria-current',
       'true'

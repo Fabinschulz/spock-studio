@@ -107,7 +107,10 @@ describe('Projeto · visão geral', () => {
     expect(within(profile).getByRole('list', { name: 'Ferramentas' })).toHaveTextContent('pnpm --dir web run test');
     expect(within(profile).getByText(/Regra da stack JavaScript e TypeScript/)).toBeTruthy();
     expect(within(profile).getByText(/Nenhuma ferramenta externa vinculada/)).toBeTruthy();
-    expect(screen.getByText('Configuração aplicada')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Configuração aplicada' })).toHaveAttribute(
+      'href',
+      '/execucao/run-aaaaaaaaaaaa'
+    );
     expect(screen.getByText(/alterações aplicadas/)).toBeTruthy();
     expect(client.request).toHaveBeenCalledWith('harness.runs', { projectId: project.projectId }, expect.anything());
   });

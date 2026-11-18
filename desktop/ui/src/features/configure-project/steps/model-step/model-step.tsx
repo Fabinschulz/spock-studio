@@ -64,7 +64,7 @@ export function ModelStep({
       <ConfiguredItemsSection />
 
       {showUnsupportedNotice ? (
-        <InlineNotice tone="warning" title="Ambiente sem suporte nesta fase">
+        <InlineNotice tone="warning" title="Ambiente ainda sem suporte">
           Só a declaração do projeto (spock.yaml) pode ser criada de forma genérica. Agentes, skills, regras e hooks não
           serão gerados para este ambiente.
         </InlineNotice>

@@ -14,7 +14,7 @@ interface EngineeringRequestPageProps {
 }
 
 const DESCRIPTION_WITH_PROJECT =
-  'Stacks e evidências vêm da descoberta do projeto; nada é gravado no repositório nesta fase.';
+  'Stacks e evidências vêm da descoberta do projeto; nada é gravado no repositório sem a sua aprovação.';
 const DESCRIPTION_WITHOUT_PROJECT =
   'Descreva o que precisa analisar. O motor executa fora do repositório até você aprovar na tela de execução.';
 

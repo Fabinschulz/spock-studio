@@ -1,4 +1,4 @@
-import { StatusChip, PageSection, Disclosure } from '@/shared/components';
+import { StatusChip, PageSection, Disclosure, Term } from '@/shared/components';
 import type { Connector, DeliveryForecast, ProjectForecast } from '@/shared/schema';
 import { useId } from 'react';
 
@@ -67,7 +67,8 @@ function KindForecast({ forecast, label }: { forecast: DeliveryForecast; label: 
                 <dt>
                   {scenario.label}
                   <span className={styles.figureNote}>
-                    {formatWeeks(scenario.weeks)}; {scenario.percentile}% das simulações terminam até esta data
+                    {formatWeeks(scenario.weeks)}; {scenario.percentile}% de chance de terminar até esta data, se o
+                    ritmo das últimas semanas se mantiver
                   </span>
                 </dt>
                 <dd>{formatDay(scenario.by)}</dd>
@@ -76,7 +77,7 @@ function KindForecast({ forecast, label }: { forecast: DeliveryForecast; label: 
           </dl>
           <p className={styles.muted}>
             Base: {forecast.historyWeeks} semanas de histórico, com {forecast.weeklyThroughput.join(', ')} entregas por
-            semana; {forecast.trials.toLocaleString('pt-BR')} simulações.
+            semana; {forecast.trials.toLocaleString('pt-BR')} <Term id="simulation" />.
           </p>
           {forecast.confidenceReasons.length > 0 ? (
             <ul className={styles.notes} aria-label={`Por que a confiança não é alta (${label})`}>

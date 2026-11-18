@@ -43,8 +43,11 @@ describe('CommandPalette', () => {
 
     const field = screen.getByRole('combobox', { name: 'Tela ou projeto' });
     expect(field).toHaveFocus();
-    expect(screen.getByRole('option', { name: /Harness/ })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /Portfólio/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /^Harness/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /^Portfólio/ })).toBeInTheDocument();
+    // A aba vira opção com o nome dela, então o nome que a tela tinha no menu continua achável.
+    expect(screen.getByRole('option', { name: /^Auditoria/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /^Da ideia ao projeto/ })).toBeInTheDocument();
   });
 
   it('filtra ao digitar, sem exigir acento', async () => {

@@ -382,10 +382,13 @@ button.item {
   gap: var(--space-1);
 }
 
-button.statusButton {
+// Botão (painel, atalhos) ou link (Configurações), com a mesma cara.
+button.statusButton,
+a.statusButton {
   @include plain-button;
 
   padding: 2px var(--space-2);
+  text-decoration: none;
   border: 0;
   border-radius: var(--radius-sm);
   background: none;

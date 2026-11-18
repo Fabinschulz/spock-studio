@@ -7,6 +7,7 @@ export * from './page';
 export * from './page-header';
 export * from './page-section';
 export * from './page-state';
+export * from './page-tabs';
 export * from './primary-action-footer';
 export * from './resource-view';
 export * from './section-card';

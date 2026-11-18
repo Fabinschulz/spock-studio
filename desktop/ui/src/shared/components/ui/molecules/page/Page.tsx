@@ -1,6 +1,7 @@
 import { cn } from '@/shared/utils';
 import type { ReactNode } from 'react';
 import { PageHeader, usePageTrail, type Crumb } from '../page-header';
+import { PageTabs, usePageTabs } from '../page-tabs';
 import styles from './Page.module.scss';
 
 interface PageProps {
@@ -20,10 +21,12 @@ interface PageProps {
 
 export function Page({ title, description, breadcrumb, actions, width = 'text', children }: PageProps) {
   const trail = usePageTrail();
+  const tabs = usePageTabs();
 
   return (
     <div className={cn(styles.page, width === 'wide' && styles.wide)}>
       <PageHeader title={title} description={description} breadcrumb={breadcrumb ?? trail} actions={actions} />
+      <PageTabs set={tabs} />
       {children}
     </div>
   );

@@ -2,7 +2,7 @@ import { useRunActivity } from '@/features/runs';
 import { OutputLog } from '@/features/settings';
 import { TerminalPanel } from '@/features/terminal';
 import { tauriEngineClient } from '@/shared/api';
-import { Container, Logo, PageTrailProvider, Wordmark } from '@/shared/components';
+import { Container, Logo, PageTabsProvider, PageTrailProvider, Wordmark } from '@/shared/components';
 import { app } from '@/shared/config/app';
 import { ContentAreaProvider, useEngineStatus, useScrollToTop } from '@/shared/hooks';
 import { isWithin, pathTo, paths } from '@/shared/routing';
@@ -23,7 +23,7 @@ import { ShortcutSheet } from './shortcuts/ShortcutSheet';
 import { useShortcuts } from './shortcuts/use-shortcuts';
 import { SideNav } from './SideNav';
 import { StatusBar } from './StatusBar';
-import { trailOf } from './trail';
+import { tabSetOf, trailOf } from './trail';
 import { useEnvironment } from './use-environment';
 import { useRail } from './use-rail';
 
@@ -35,6 +35,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const environment = useEnvironment();
   const { pathname } = useLocation();
   const trail = useMemo(() => trailOf(pathname), [pathname]);
+  const tabs = useMemo(() => tabSetOf(pathname), [pathname]);
   const palette = useCommandPalette();
   const rail = useRail();
   const panel = useBottomPanel();
@@ -103,7 +104,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main id={MAIN_CONTENT_ID} ref={main} tabIndex={-1} className={styles.main}>
           <ContentAreaProvider value={main}>
             <PageTrailProvider value={trail}>
-              <Container>{children}</Container>
+              <PageTabsProvider value={tabs}>
+                <Container>{children}</Container>
+              </PageTabsProvider>
             </PageTrailProvider>
           </ContentAreaProvider>
         </main>

@@ -11,6 +11,12 @@ const WITHOUT_PROJECT: Partial<Record<JourneyId, Parameters<typeof pathTo>[0]>> 
   'follow-projects': 'portfolio'
 };
 
+const WITH_PROJECT: Partial<Record<JourneyId, Parameters<typeof pathTo>[0]>> = {
+  'configure-project': 'configure',
+  'engineering-request': 'engineeringRequest',
+  idea: 'idea'
+};
+
 export function HomePage() {
   const navigate = useNavigate();
   const { selected, pick } = useProjectSelectionContext();
@@ -21,10 +27,11 @@ export function HomePage() {
       navigate(pathTo(route));
       return;
     }
-    if (id !== 'configure-project' && id !== 'engineering-request') return;
+    const target = WITH_PROJECT[id];
+    if (!target) return;
     const project = selected ?? (await pick());
     if (!project) return;
-    navigate(pathTo(id === 'engineering-request' ? 'engineeringRequest' : 'configure'));
+    navigate(pathTo(target));
   };
 
   return (

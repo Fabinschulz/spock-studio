@@ -27,7 +27,7 @@ export function AiEnvironmentSection({ detected, selected, onSelect }: AiEnviron
         <ul role="list" className={styles.rows}>
           {AI_ENVIRONMENTS.map((id) => {
             const supported = isSupportedEnvironment(id);
-            const tags = [detectedIds.has(id) ? 'detectado' : '', supported ? '' : 'sem suporte nesta fase'];
+            const tags = [detectedIds.has(id) ? 'detectado' : '', supported ? '' : 'ainda sem suporte'];
             return (
               <li key={id}>
                 <Radio

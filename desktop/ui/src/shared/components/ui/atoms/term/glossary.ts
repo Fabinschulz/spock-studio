@@ -63,6 +63,18 @@ export const GLOSSARY = {
   revert: {
     label: 'reverter',
     text: 'Desfazer o que uma aplicação mudou, voltando os arquivos ao estado anterior.'
+  },
+  simulation: {
+    label: 'simulações',
+    text: 'Futuros possíveis sorteados a partir das entregas reais de cada semana. A data é a que a maioria deles alcança; não é promessa.'
+  },
+  state: {
+    label: 'state',
+    text: 'O arquivo em que a ferramenta de infraestrutura anota o que já existe na nuvem, para saber o que criar, mudar ou apagar.'
+  },
+  drift: {
+    label: 'drift',
+    text: 'Diferença entre o que está na nuvem e o que o projeto descreve, causada por mudança feita fora do projeto.'
   }
 } as const;
 

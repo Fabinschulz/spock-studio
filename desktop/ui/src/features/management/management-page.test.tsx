@@ -108,7 +108,7 @@ describe('Gestão · acompanhamento do projeto', () => {
     expect(within(issueForecast).getByText('Confiança alta')).toBeInTheDocument();
     expect(within(issueForecast).getByText('Provável').closest('div')).toHaveTextContent('22/12/2026');
     expect(within(issueForecast).getByText('Conservador').closest('div')).toHaveTextContent('29/12/2026');
-    expect(within(issueForecast).getByText(/85% das simulações terminam até esta data/)).toBeInTheDocument();
+    expect(within(issueForecast).getByText(/85% de chance de terminar até esta data/)).toBeInTheDocument();
     expect(within(forecast).getByRole('group', { name: 'Pull requests: 1 aberto' })).toHaveTextContent(
       'Sem previsão. São precisas ao menos 6 semanas de histórico'
     );

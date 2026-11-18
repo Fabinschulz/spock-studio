@@ -421,14 +421,20 @@ menu.
 
 | Grupo | Itens | De onde vêm |
 | --- | --- | --- |
-| Engenharia (7) | Visão geral; Harness (abas Estado, Catálogo, Revisões, Política); Configurar; Pedidos (abas Pedido com plano, Agente na sua máquina); Conhecimento; Segurança; Infraestrutura | Catálogo vira aba do Harness; Agentes de IA vira aba de Pedidos; Infraestrutura sai da Plataforma porque é do projeto |
+| Engenharia (7) | Visão geral; Harness (abas Estado e revisões, Catálogo); Configurar; Pedidos (abas Pedido de engenharia, Agentes de IA); Conhecimento; Segurança; Infraestrutura | Catálogo vira aba do Harness; Agentes de IA vira aba de Pedidos; Infraestrutura sai da Plataforma porque é do projeto |
 | Gestão (4) | Portfólio; Acompanhamento; Assistente; Relatório | Sem mudança |
-| Comum (3) | Execuções; Histórico (abas Linha do tempo, Auditoria); Conexões (abas Serviços, Nuvem, Modelos de IA, IDEs) | Linha do tempo e Auditoria juntas; Integrações, Conexões cloud, provedores de Minha IA e o passo de IDE da tela de Agentes juntos |
-| Fora do menu | Início (marca e "nenhum projeto"); Da ideia ao projeto (jornada no Início); Configurações (só pelo modo do shell, ícone na barra de estado) | |
+| Plataforma (3) | Execuções; Histórico (abas Linha do tempo, Auditoria); Conexões (abas Serviços, Nuvem, Modelos de IA) | Linha do tempo e Auditoria juntas; Integrações, Conexões cloud e provedores de Minha IA juntos |
+| Fora do menu | Da ideia ao projeto (jornada no Início e na busca); Configurações (link na barra de estado) | |
 
-Resultado: 10 itens visíveis em Engenharia e 6 em Gestão, contra 17 e 12 hoje (Início, o grupo do ambiente e os 7 da
-Plataforma). Em Gestão, o grupo comum mostra só Execuções e Histórico; Conexões fica em Engenharia e no modo
-Configurações, porque é tarefa de quem configura.
+Resultado, contando o Início: 11 itens em Engenharia e 7 em Gestão, contra 17 e 12 antes. Em Gestão, a Plataforma
+mostra só Execuções e Histórico; Conexões fica em Engenharia, porque é tarefa de quem configura.
+
+**Como ficou no código (2026-11-18, branch `feat/ciclo2-etapas-1-2`).** As abas são dado do menu (`NavItem.tabs` em
+`navigation.tsx`); o shell entrega o conjunto ao `Page` pelo `PageTabsProvider`, e cada aba é um link com endereço
+próprio (`aria-current`), não `role="tab"`. A aba Modelos de IA é a rota `/conexoes/modelos`, que abre a mesma tela de
+Minha IA sem trocar o shell para o modo Configurações; o título da página continua "Minha IA". Ficaram de fora: a aba
+IDEs (o passo de IDE continua na tela de Agentes) e as abas Revisões e Política no Harness, que hoje são seções das
+duas telas existentes.
 
 A aba **Modelos de IA** em Conexões é o mesmo cadastro de Minha IA, não um segundo: Minha IA passa a ser o atalho para
 essa aba. As quatro perguntas por conexão (com qual conta, em quais projetos, o que lê, se alimenta os agentes) valem
