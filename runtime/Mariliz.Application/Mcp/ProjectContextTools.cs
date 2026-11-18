@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using Mariliz.Application.Context;
 using Mariliz.Application.Engineering;
 using Mariliz.Application.Execution;
@@ -12,7 +13,7 @@ using Mariliz.Application.Workspace;
 namespace Mariliz.Application.Mcp;
 
 // O registro de pastas é relido a cada chamada: um projeto aberto no Spock depois de a IDE iniciar o servidor já aparece.
-public sealed class ProjectContextTools(
+public sealed partial class ProjectContextTools(
     Func<WorkspaceAuthorizer> workspaces,
     IProjectFilesFactory files,
     IClock clock,
@@ -114,7 +115,8 @@ public sealed class ProjectContextTools(
             ["additionalProperties"] = false
         });
 
-    public static IReadOnlyList<McpToolInfo> Catalog { get; } = [ContextBootstrapTool.Info, ListProjects, Briefing, Decisions, Search];
+    public static IReadOnlyList<McpToolInfo> Catalog { get; } =
+        [ContextBootstrapTool.Info, ListProjects, Briefing, Decisions, Search, ArchitectureReferenceTool.Info];
 
     // O bootstrap só existe com o Context Engine montado (o modo mcp do motor sempre monta).
     public IReadOnlyList<McpTool> Tools() =>
@@ -123,8 +125,32 @@ public sealed class ProjectContextTools(
         new(ListProjects, _ => RenderProjects()),
         new(Briefing, call => Task.FromResult(RenderBriefing(call))),
         new(Decisions, call => Task.FromResult(RenderDecisions(call))),
-        new(Search, RenderSearchAsync)
+        new(Search, RenderSearchAsync),
+        McpTool.Structured(ArchitectureReferenceTool.Info, call => Task.FromResult(RenderReference(call)))
     ];
+
+    private McpReply RenderReference(McpCall call)
+    {
+        var limit = McpArguments.Number(call.Arguments, "limit", ArchitectureReferenceTool.DefaultLimit, 1, ArchitectureReferenceTool.MaxLimit);
+        var id = McpArguments.Text(call.Arguments, "id", 20);
+        if (id is not null && !ReferenceId().IsMatch(id)) throw new McpToolException("'id' é um REF-… como REF-R4.");
+        var technology = McpArguments.Text(call.Arguments, "technology", 40);
+        if (technology is not null && !TechnologyId().IsMatch(technology))
+            throw new McpToolException("'technology' é um id de stack em minúsculas, como react, angular ou dotnet.");
+        var topic = McpArguments.Text(call.Arguments, "topic", ArchitectureReferenceTool.MaxTopic);
+        var workspace = workspaces();
+        var project = Resolve(workspace, call.Arguments);
+        var stacks = technology is null ? ProjectStacks(project.ProjectId) : [technology];
+        var selection = ArchitectureReferenceTool.Select(OrganizationReferences.Patterns, id, stacks, topic, limit);
+        // A trilha guarda os ids entregues; o pedido (topic) fica de fora, como na busca.
+        Audit(project.ProjectId, ArchitectureReferenceTool.Name, call.Client, selection.Patterns.Count, selection.Patterns.Select(p => p.Id).ToList());
+        return ArchitectureReferenceTool.Reply(selection);
+    }
+
+    // Só as stacks do registro: o perfil também lista frameworks, que não decidem quais referências valem.
+    private IReadOnlyList<string> ProjectStacks(string projectId) =>
+        (profiles.Read(projectId)?.Technologies ?? []).Select(item => item.Id)
+            .Where(id => Discovery.Technologies.Find(id) is not null).Distinct().ToList();
 
     private McpReply RenderBootstrap(McpCall call)
     {
@@ -202,9 +228,8 @@ public sealed class ProjectContextTools(
             ["limit"] = limit
         };
         // As stacks do perfil: uma referência da Organização marcada para outra stack não chega à IDE. Sem perfil, nada é filtrado.
-        var stacks = (profiles.Read(project.ProjectId)?.Technologies ?? []).Select(item => item.Id)
-            .Where(id => Discovery.Technologies.Find(id) is not null).Distinct().ToArray();
-        if (stacks.Length > 0)
+        var stacks = ProjectStacks(project.ProjectId);
+        if (stacks.Count > 0)
             request["filters"] = new JsonObject { ["technologies"] = new JsonArray(stacks.Select(id => (JsonNode)JsonValue.Create(id)!).ToArray()) };
         var reply = await search.SearchKnowledgeAsync(request, call.Ct);
         if (reply.Text("schema") != SearchAck || reply["hits"] is not JsonArray rawHits)
@@ -325,4 +350,10 @@ public sealed class ProjectContextTools(
             return new Hit(path, item.Text("hash"), item.Text("heading"), line, body);
         }
     }
+
+    [GeneratedRegex("^REF-[A-Z]+[0-9]+$", RegexOptions.IgnoreCase)]
+    private static partial Regex ReferenceId();
+
+    [GeneratedRegex("^[a-z0-9-]{1,40}$")]
+    private static partial Regex TechnologyId();
 }
