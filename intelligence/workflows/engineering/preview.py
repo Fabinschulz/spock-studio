@@ -14,7 +14,7 @@ PREVIEW_ACK = "ai.context.preview.ack.v1"
 
 def preview(request: PreviewRequest) -> dict:
     stats = sync(request.knowledge_root, request.project_id, request.sources)
-    found = retrieval.search(request.knowledge_root, request.project_id, request.goal)
+    found = retrieval.search(request.knowledge_root, request.project_id, request.goal, technologies=request.stacks)
     hits = prompts.with_bodies(found, chunk_bodies(request.knowledge_root, request.project_id, [hit["chunkId"] for hit in found]))
     paths = {hit["chunkId"]: hit["filePath"] for hit in hits}
     return {

@@ -11,7 +11,7 @@ SEARCH_ACK = "ai.knowledge.search.ack.v1"
 
 
 def lookup(request: SearchRequest) -> dict:
-    hits = retrieval.search(request.knowledge_root, request.project_id, request.query, request.limit)
+    hits = retrieval.search(request.knowledge_root, request.project_id, request.query, request.limit, request.technologies)
     bodies = index.chunk_bodies(request.knowledge_root, request.project_id, [hit["chunkId"] for hit in hits])
     return {
         "schema": SEARCH_ACK,

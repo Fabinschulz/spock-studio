@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/intelligence/ai.knowledge.search.v1.schema.json",
+  "title": "Motor → busca no índice de conhecimento do projeto",
+  "description": "Só lê o índice que o aplicativo montou. filters.technologies são as stacks do projeto: um documento marcado com outras stacks (uma seção da pasta Organização) fica de fora; sem filtro, nada é filtrado.",
+  "type": "object",
+  "required": ["schema", "projectId", "query", "knowledgeRoot", "limit"],
+  "properties": {
+    "schema": { "const": "ai.knowledge.search.v1" },
+    "projectId": { "type": "string", "pattern": "^p-[0-9a-f]{12}$" },
+    "query": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "knowledgeRoot": { "type": "string", "minLength": 1 },
+    "limit": { "type": "integer", "minimum": 1, "maximum": 10 },
+    "filters": {
+      "type": "object",
+      "properties": {
+        "technologies": {
+          "type": "array",
+          "maxItems": 20,
+          "items": { "type": "string", "pattern": "^[a-z0-9-]{1,40}$" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

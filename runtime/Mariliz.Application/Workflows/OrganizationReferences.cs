@@ -44,8 +44,20 @@ public static partial class OrganizationReferences
             // A fonte e a data vão no título principal: o índice repete o caminho de títulos em cada trecho de subseção.
             var text = $"# Referência da Organização · {Heading().Replace(heading, "")} · {title}, análise de {analyzed}\n" +
                        $"{Notice}\n\n## {section.TrimEnd()}\n";
+            var technologies = TechnologiesOf(section);
+            if (technologies.Count > 0) text = $"---\ntechnologies: {string.Join(", ", technologies)}\n---\n{text}";
             yield return new MemoryDocument($"{Prefix}{file}/{Slug(heading)}.md", Hashing.Sha256(text), text);
         }
+    }
+
+    // A linha "Escopo: tecnologias `react`, `nextjs` · tipo ..." da seção diz a que stacks ela vale; o índice filtra por isso.
+    // Sem o trecho de tecnologia, ou com "qualquer tecnologia", a seção vale para todos os projetos.
+    private static List<string> TechnologiesOf(string section)
+    {
+        var scope = Scope().Match(section);
+        if (!scope.Success) return [];
+        var segment = scope.Groups["scope"].Value.Split('·').FirstOrDefault(part => part.TrimStart().StartsWith("tecnologia", StringComparison.Ordinal));
+        return segment is null ? [] : Quoted().Matches(segment).Select(match => match.Groups["id"].Value).Distinct().ToList();
     }
 
     private static string Read(Assembly assembly, string name)
@@ -65,6 +77,12 @@ public static partial class OrganizationReferences
 
     [GeneratedRegex(@"(?m)^## ")]
     private static partial Regex Section();
+
+    [GeneratedRegex(@"(?m)^Escopo:(?<scope>.*)$")]
+    private static partial Regex Scope();
+
+    [GeneratedRegex(@"`(?<id>[a-z0-9-]{1,40})`")]
+    private static partial Regex Quoted();
 
     [GeneratedRegex(@"^\d+\.\s*")]
     private static partial Regex Heading();

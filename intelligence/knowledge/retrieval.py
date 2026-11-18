@@ -17,7 +17,11 @@ _WORD = re.compile(r"[A-Za-z_$][\w$.\-]*[\w$]|[A-Za-z]")
 _REQUIREMENT = re.compile(r"^[A-Z]{2,5}-\d{1,4}$")
 
 
-def search(index_root: str, project_id: str, query: str, limit: int = 5) -> list[dict]:
+def search(index_root: str, project_id: str, query: str, limit: int = 5, technologies: list[str] | tuple[str, ...] | None = None) -> list[dict]:
+    """
+    ``technologies`` são as stacks do projeto: um documento marcado com outras stacks (uma seção Angular da pasta Organização,
+    num projeto React) fica de fora. Documento sem marca vale para todos; sem stacks, nada é filtrado.
+    """
     lexical = index.lexical(index_root, project_id, query, _CANDIDATES)
     symbols = index.symbols(index_root, project_id, identifiers(query), _CANDIDATES)
     fused: dict[str, dict] = {}
@@ -36,7 +40,11 @@ def search(index_root: str, project_id: str, query: str, limit: int = 5) -> list
         entry["score"] += _coverage(f"{entry['hit'].get('heading', '')} {body}", terms)
         if not about_tests and is_test_path(entry["hit"].get("filePath", "")):
             entry["score"] *= TEST_WEIGHT
-    ranked = sorted(fused.values(), key=lambda entry: (-entry["score"], entry["hit"]["chunkId"]))
+    wanted = set(technologies or ())
+    ranked = sorted(
+        (entry for entry in fused.values() if not wanted or not entry["hit"].get("technologies") or wanted & set(entry["hit"]["technologies"])),
+        key=lambda entry: (-entry["score"], entry["hit"]["chunkId"]),
+    )
     results = []
     per_file: dict[str, int] = {}
     for entry in ranked:

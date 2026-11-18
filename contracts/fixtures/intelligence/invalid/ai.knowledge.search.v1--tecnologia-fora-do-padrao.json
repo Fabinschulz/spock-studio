@@ -1,0 +1,8 @@
+{
+  "schema": "ai.knowledge.search.v1",
+  "projectId": "p-aaaaaaaaaaaa",
+  "query": "estado",
+  "knowledgeRoot": "C:/dados/spock",
+  "limit": 5,
+  "filters": { "technologies": ["React!"] }
+}
