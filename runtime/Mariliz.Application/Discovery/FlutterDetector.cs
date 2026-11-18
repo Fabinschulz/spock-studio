@@ -32,7 +32,7 @@ internal static class FlutterDetector
                 if (version is null)
                     warnings.Add(new(DiscoveryWarningCodes.UnknownVersion, $"A versão do Flutter/Dart em {pubspec} não está declarada.", [pubspec]));
 
-                stacks.Add(new StackFinding("flutter", "Flutter", root, version, version is null ? Confidence.Low : Confidence.Medium,
+                stacks.Add(new StackFinding(Technologies.Flutter.Id, Technologies.Flutter.Name, root, version, version is null ? Confidence.Low : Confidence.Medium,
                     [new Evidence(pubspec, sdk is null ? "dependencies.flutter" : $"environment={sdk}")],
                     ["Versão lida da restrição declarada no pubspec."]));
                 tooling.Add(new ToolingFinding("test", "flutter test", "flutter test", [new Evidence(pubspec)]));

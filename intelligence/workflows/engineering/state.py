@@ -16,11 +16,13 @@ MAX_ITERATIONS = 8
 MAX_MILLISECONDS = 10000
 # Com modelo, uma chamada leva segundos: o tempo e os tokens sobem, mas o motor continua sendo quem define o teto.
 MAX_MILLISECONDS_MODEL = 60000
+# Espelha Technology.Area do registro do motor (Technologies.cs), com os ids que o motor manda; um teste do .NET confere.
 AREA_BY_STACK = {
     "dotnet": "servico",
-    "javascript": "interface",
-    "typescript": "interface",
     "node": "interface",
+    "nextjs": "interface",
+    "react": "interface",
+    "angular": "interface",
     "flutter": "interface",
 }
 ARCHITECTURE = "architecture"

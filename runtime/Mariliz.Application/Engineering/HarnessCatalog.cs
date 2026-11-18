@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Mariliz.Application.Harness;
+using Mariliz.Core.Plan;
 using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Engineering;
@@ -48,12 +49,6 @@ public sealed class HarnessCatalogService(HarnessStatusService? status)
 
     public static string PlainOf(string tool) => ToolPlain.GetValueOrDefault(tool, UnknownTool);
 
-    private static readonly Dictionary<string, string> AgentAssets = new(StringComparer.Ordinal)
-    {
-        [Catalog.AgentHarnessEngineer] = "agents/harness-engineer.md",
-        [Catalog.AgentCodeReviewer] = "agents/code-reviewer.md",
-        [Catalog.AgentVerifier] = "agents/verifier.md"
-    };
 
     private static IReadOnlyList<string> FilesOf(string id, HarnessNaming naming) =>
         id == Catalog.SpecificationStructure ? [".specs/"] : Catalog.FilesOf(id, naming);
@@ -132,8 +127,8 @@ public sealed class HarnessCatalogService(HarnessStatusService? status)
 
     private static List<HarnessTool> ToolsOf(string id)
     {
-        if (!AgentAssets.TryGetValue(id, out var asset)) return [];
-        var match = Regex.Match(Harness.AssetLoader.Read(asset), @"^tools:\s*(?<tools>.+)$", RegexOptions.Multiline);
+        if (Catalog.Find(id)?.Kind != ComponentKind.Agent) return [];
+        var match = Regex.Match(Harness.AssetLoader.Read(Catalog.Asset(id)), @"^tools:\s*(?<tools>.+)$", RegexOptions.Multiline);
         if (!match.Success) return [];
         return match.Groups["tools"].Value.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
             .Select(name => new HarnessTool(name, PlainOf(name))).ToList();

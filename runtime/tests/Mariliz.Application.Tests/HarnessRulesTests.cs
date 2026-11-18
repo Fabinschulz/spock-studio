@@ -17,7 +17,7 @@ public class HarnessRulesTests
     [InlineData("angular")]
     public void Toda_stack_da_regra_JavaScript_e_reconhecida_pela_mesma_pergunta(string id)
     {
-        Assert.Contains(id, HarnessComposition.JavascriptStacks);
+        Assert.Equal(Mariliz.Application.Discovery.RuleFamily.Javascript, Mariliz.Application.Discovery.Technologies.RulesOf(id));
         Assert.True(HarnessComposition.IsJavascriptStack(Stack(id)));
     }
 

@@ -1,34 +1,19 @@
+using Mariliz.Application.Discovery;
 using Mariliz.Application.Harness;
 using Mariliz.Application.Integrations;
 
 namespace Mariliz.Application.Engineering;
 
-// É o único lugar com regra por tecnologia fora dos detectores; a interface só mostra o que vem daqui.
+// O que a interface mostra por tecnologia, lido do registro (Technologies) e das famílias de regra do Harness.
 public static class TechnologyCatalog
 {
-    private static readonly Dictionary<string, string> Categories = new(StringComparer.Ordinal)
-    {
-        ["dotnet"] = "Plataforma e runtime",
-        ["node"] = "Runtime",
-        ["nextjs"] = "Framework web",
-        ["react"] = "Biblioteca de interface",
-        ["angular"] = "Framework web",
-        ["flutter"] = "Framework de aplicativo",
-        ["python"] = "Linguagem e runtime",
-        ["rust"] = "Linguagem",
-        ["go"] = "Linguagem",
-        ["java"] = "Plataforma e runtime"
-    };
-
-    public static string Category(string id) => Categories.GetValueOrDefault(id) ?? Discovery.Frameworks.Category(id) ?? "Outra";
+    public static string Category(string id) => Technologies.Find(id)?.Category ?? Frameworks.Category(id) ?? "Outra";
 
     // A mesma decisão que o plano do Harness toma.
     public static ProfileHarnessGuidance Guidance(ProfileTechnology technology) =>
-        technology.Id == "dotnet"
-            ? new(technology.Name, Catalog.RuleStackDotnet, true, "Regra da stack .NET, aplicada aos arquivos .cs e .csproj.")
-            : HarnessComposition.JavascriptStacks.Contains(technology.Id)
-                ? new(technology.Name, Catalog.RuleStackJavascript, true, "Regra da stack JavaScript e TypeScript, aplicada aos arquivos .ts, .tsx, .js e .jsx.")
-                : new(technology.Name, null, false, "Ainda não há perfil de regras para esta tecnologia; o plano registra a limitação.");
+        StackRuleProfiles.Of(technology.Id) is { } profile
+            ? new(technology.Name, profile.Component, true, profile.Guidance)
+            : new(technology.Name, null, false, "Ainda não há perfil de regras para esta tecnologia; o plano registra a limitação.");
 
     public static string ConnectionRole(string provider) => provider switch
     {

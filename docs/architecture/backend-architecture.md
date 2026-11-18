@@ -69,6 +69,9 @@ Desvios conhecidos da regra "a Application nunca acessa disco": `InvestigationMe
 - Adicionar uma verificação de validação é criar um `IEvalCheck` e uma entrada em `EvalCatalog`, sem mexer em `EvalRunner`.
 - Adicionar um provedor de integração é criar um `IIntegrationConnector` e registrá-lo em `LocalIntegrationHub`, sem mexer nos
   serviços nem na interface (ela desenha os campos a partir do `ConnectorDescriptor`). A credencial só passa por `ISecretVault`.
+- Toda regra por tecnologia sai de `Discovery/Technologies.cs` (id, nome, categoria, família de regras, área, como a arquitetura
+  a nomeia). Uma stack nova é uma linha ali mais o detector; nenhum outro arquivo repete id de stack. O mapa de áreas do
+  Python (`AREA_BY_STACK`) espelha o registro, e `TechnologiesTests` confere.
 - Valores textuais repetidos viram constante (`OpKinds`, `OpSources`, `StepStatus`, `ComponentDecisions`, `ProtocolMethods`).
 - Interface só quando há mais de uma implementação (`IEvalCheck`) ou uma fronteira com o sistema (portas).
 - Comentário explica um **porquê** que o código não mostra (segurança, contrato com o instalador, protocolo). Não repete o nome

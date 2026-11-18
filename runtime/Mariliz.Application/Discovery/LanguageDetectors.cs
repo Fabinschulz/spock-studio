@@ -97,9 +97,9 @@ internal static partial class LanguageDetectors
             if (version is { } found) evidence.Add(found.Source);
             else Unknown(warnings, "Python", root, manifests);
 
-            stacks.Add(new StackFinding("python", "Python", root, version?.Value, version?.Confidence ?? Confidence.Low, evidence,
+            stacks.Add(new StackFinding(Technologies.Python.Id, Technologies.Python.Name, root, version?.Value, version?.Confidence ?? Confidence.Low, evidence,
                 version is null ? [] : ["Versão lida do que o projeto declara; o interpretador instalado pode ser outro."]));
-            Frameworks.Add(frameworks, Frameworks.Python, "python", root, depsManifest ?? manifests[0], deps);
+            Frameworks.Add(frameworks, Frameworks.Python, Technologies.Python.Id, root, depsManifest ?? manifests[0], deps);
 
             var at = new Evidence(depsManifest ?? manifests[0]);
             if (deps.ContainsKey("pytest")) tooling.Add(new ToolingFinding("test", "pytest", root.Length == 0 ? "python -m pytest" : $"python -m pytest {root}", [at]));
@@ -156,8 +156,8 @@ internal static partial class LanguageDetectors
                 foreach (var (key, value) in TomlKeys(Section(text, section)))
                     deps.TryAdd(key, CargoVersion(value));
 
-            stacks.Add(new StackFinding("rust", "Rust", root, version, version is null ? Confidence.Low : Confidence.Medium, evidence, notes));
-            Frameworks.Add(frameworks, Frameworks.Rust, "rust", root, manifest, deps);
+            stacks.Add(new StackFinding(Technologies.Rust.Id, Technologies.Rust.Name, root, version, version is null ? Confidence.Low : Confidence.Medium, evidence, notes));
+            Frameworks.Add(frameworks, Frameworks.Rust, Technologies.Rust.Id, root, manifest, deps);
 
             var path = root.Length == 0 ? "" : $" --manifest-path {manifest}";
             tooling.Add(new ToolingFinding("build", "cargo build", $"cargo build{path}", [new Evidence(manifest)]));
@@ -192,8 +192,8 @@ internal static partial class LanguageDetectors
             var deps = new Dictionary<string, string>(StringComparer.Ordinal);
             foreach (Match require in GoRequire().Matches(text)) deps.TryAdd(require.Groups[1].Value, require.Groups[2].Value);
 
-            stacks.Add(new StackFinding("go", "Go", root, version, version is null ? Confidence.Low : Confidence.High, evidence, []));
-            Frameworks.Add(frameworks, Frameworks.Go, "go", root, manifest, deps, byPrefix: true);
+            stacks.Add(new StackFinding(Technologies.Go.Id, Technologies.Go.Name, root, version, version is null ? Confidence.Low : Confidence.High, evidence, []));
+            Frameworks.Add(frameworks, Frameworks.Go, Technologies.Go.Id, root, manifest, deps, byPrefix: true);
 
             var at = root.Length == 0 ? "go" : $"go -C {root}";
             tooling.Add(new ToolingFinding("build", "go build", $"{at} build ./...", [new Evidence(manifest)]));
@@ -238,9 +238,9 @@ internal static partial class LanguageDetectors
             }
             if (version is null) Unknown(warnings, "Java", root, [manifest]);
 
-            stacks.Add(new StackFinding("java", "Java", root, version, version is null ? Confidence.Low : Confidence.Medium, evidence,
+            stacks.Add(new StackFinding(Technologies.Java.Id, Technologies.Java.Name, root, version, version is null ? Confidence.Low : Confidence.Medium, evidence,
                 [maven ? "Build com Maven." : "Build com Gradle."]));
-            Frameworks.Add(frameworks, Frameworks.Java, "java", root, manifest, deps, byPrefix: true);
+            Frameworks.Add(frameworks, Frameworks.Java, Technologies.Java.Id, root, manifest, deps, byPrefix: true);
 
             var command = maven
                 ? $"{(all.Contains(ProjectPath.Combine(root, "mvnw")) ? "./mvnw" : "mvn")} test{(root.Length == 0 ? "" : $" -f {manifest}")}"

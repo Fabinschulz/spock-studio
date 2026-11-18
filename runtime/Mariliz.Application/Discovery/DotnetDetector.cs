@@ -55,7 +55,7 @@ internal static class DotnetDetector
             warnings.Add(new(DiscoveryWarningCodes.UnknownVersion, "A versão do .NET não pôde ser determinada pelos arquivos de projeto.", projects.Take(3).ToList()));
 
         var root = solutions.Count > 0 ? ProjectPath.Parent(solutions[0]) : ProjectPath.Parent(projects[0]);
-        stacks.Add(new StackFinding("dotnet", ".NET", root, version, version is null ? Confidence.Medium : Confidence.High, evidence, notes));
+        stacks.Add(new StackFinding(Technologies.Dotnet.Id, Technologies.Dotnet.Name, root, version, version is null ? Confidence.Medium : Confidence.High, evidence, notes));
 
         var target = solutions.Count > 0 ? solutions[0] : projects.Count == 1 ? projects[0] : null;
         var arg = target is null ? "" : " " + target;

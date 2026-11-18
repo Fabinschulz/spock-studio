@@ -29,12 +29,12 @@ internal static class NodeDetector
                 var root = ProjectPath.Parent(manifest);
                 var deps = CollectDependencies(doc.RootElement);
                 var (id, name, depName) =
-                    deps.ContainsKey("next") ? ("nextjs", "Next.js", "next")
-                    : deps.ContainsKey("@angular/core") ? ("angular", "Angular", "@angular/core")
-                    : deps.ContainsKey("react") ? ("react", "React", "react")
-                    : ("node", "Node.js", "");
+                    deps.ContainsKey("next") ? (Technologies.Nextjs.Id, Technologies.Nextjs.Name, "next")
+                    : deps.ContainsKey("@angular/core") ? (Technologies.Angular.Id, Technologies.Angular.Name, "@angular/core")
+                    : deps.ContainsKey("react") ? (Technologies.React.Id, Technologies.React.Name, "react")
+                    : (Technologies.Node.Id, Technologies.Node.Name, "");
 
-                if (id == "node" && deps.Count == 0 && !doc.RootElement.TryGetProperty("scripts", out _)) continue;
+                if (id == Technologies.Node.Id && deps.Count == 0 && !doc.RootElement.TryGetProperty("scripts", out _)) continue;
 
                 var evidence = new List<Evidence>();
                 string? version = null;
@@ -66,7 +66,7 @@ internal static class NodeDetector
                 }
 
                 if (deps.ContainsKey("typescript") || all.Contains(ProjectPath.Combine(root, "tsconfig.json"))) notes.Add("TypeScript");
-                if (id is "nextjs" or "angular" && deps.ContainsKey("react") && id == "nextjs") notes.Add("React");
+                if (id == Technologies.Nextjs.Id && deps.ContainsKey("react")) notes.Add(Technologies.React.Name);
 
                 if (version is null)
                     warnings.Add(new(DiscoveryWarningCodes.UnknownVersion, $"A versão de {name} em {manifest} não pôde ser determinada.", [manifest]));

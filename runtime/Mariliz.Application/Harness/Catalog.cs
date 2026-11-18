@@ -71,6 +71,19 @@ public static class Catalog
 
     public static CatalogComponent? Find(string id) => Components.FirstOrDefault(c => c.Id == id);
 
+    // O ativo embutido que o componente grava no projeto, num lugar só: o plano, as fichas e a política leem daqui.
+    public static string Asset(string componentId) => componentId switch
+    {
+        AgentHarnessEngineer => "agents/harness-engineer.md",
+        AgentCodeReviewer => "agents/code-reviewer.md",
+        AgentVerifier => "agents/verifier.md",
+        SkillHarnessContract or SkillAgentsHarnessContract => "skills/harness-contract/SKILL.md",
+        RuleGeneral => "rules/general.md",
+        HookPolicy => "hooks/mariliz-policy.py",
+        _ => StackRuleProfiles.All.FirstOrDefault(profile => profile.Component == componentId)?.Asset
+             ?? throw new InvalidOperationException($"O componente {componentId} não grava um ativo único.")
+    };
+
     public static readonly IReadOnlyList<string> Proposable =
     [
         AgentHarnessEngineer, AgentCodeReviewer, AgentVerifier, SkillHarnessContract,

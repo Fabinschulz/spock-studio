@@ -182,6 +182,16 @@ class GraphTests(unittest.TestCase):
         self.assertEqual(done["output"]["evaluation"]["verdict"], "deterministic")
         self.assertEqual(done["output"]["evaluation"]["tokens"], 0)
 
+    def test_frameworks_de_interface_que_o_motor_manda_viram_area_de_interface(self) -> None:
+        for stack in ("react", "nextjs", "angular"):
+            with self.subTest(stack=stack):
+                payload = _start(impact=True)
+                payload["context"]["stacks"] = [stack]
+
+                _events, done = _run(graph.run_start(payload))
+
+                self.assertEqual(done["output"]["impact"]["areas"], ["interface"])
+
     def test_impacto_adulterado_nao_entra_no_resultado(self) -> None:
         state = {"limitations": [], "evidence": [], "agents": [{"agentId": "architecture"}],
                  "impact": {"schema": "engineering.impact.v1", "areas": ["servico"], "risks": [], "evidence": [], "command": "rm"}}
