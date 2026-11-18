@@ -14,7 +14,7 @@ public static class SettingsMerger
     public static readonly IReadOnlyList<string> DenyRules =
         ["Read(./.env)", "Read(./.env.local)", "Read(./.env.production)", "Read(./.env.development)"];
 
-    private static readonly JsonSerializerOptions Output = new()
+    internal static readonly JsonSerializerOptions Output = new()
     {
         WriteIndented = true,
         // Sem isto, no Windows o arquivo sairia com \r\n por dentro e o \n final acrescentado abaixo.
@@ -196,7 +196,7 @@ public static class SettingsMerger
     private static bool IsSpockContext(JsonObject hook) =>
         hook["command"] is JsonValue value && value.TryGetValue<string>(out var command) && command.StartsWith("spock context ", StringComparison.Ordinal);
 
-    private static JsonObject? Parse(string? current)
+    internal static JsonObject? Parse(string? current)
     {
         if (string.IsNullOrWhiteSpace(current)) return new JsonObject();
         try
@@ -217,14 +217,14 @@ public static class SettingsMerger
         return false;
     }
 
-    private static bool TryGetOrCreateObject(JsonObject parent, string name, out JsonObject? child)
+    internal static bool TryGetOrCreateObject(JsonObject parent, string name, out JsonObject? child)
     {
         if (parent[name] is null) { child = new JsonObject(); parent[name] = child; return true; }
         child = parent[name] as JsonObject;
         return child is not null;
     }
 
-    private static bool TryGetOrCreateArray(JsonObject parent, string name, out JsonArray? child)
+    internal static bool TryGetOrCreateArray(JsonObject parent, string name, out JsonArray? child)
     {
         if (parent[name] is null) { child = new JsonArray(); parent[name] = child; return true; }
         child = parent[name] as JsonArray;

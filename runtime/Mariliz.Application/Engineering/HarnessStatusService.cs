@@ -94,6 +94,7 @@ public sealed class HarnessStatusService(WorkspaceAuthorizer workspace, IProject
             {
                 Catalog.PathSettings => text.Contains(project.Naming().HookScript, StringComparison.Ordinal),
                 Catalog.PathCodexHooks => SettingsMerger.HasSession(text) || SettingsMerger.HasPrompt(text),
+                Catalog.PathCursorHooks => CursorHooksMerger.HasSession(text),
                 _ => true
             };
             return new HarnessFileStatus(path, entry.Mode, hookRegistered ? "intact" : "modified");

@@ -41,6 +41,8 @@ internal sealed class LockIntegrityCheck : IEvalCheck
                 var text = System.Text.Encoding.UTF8.GetString(bytes);
                 if (!SettingsMerger.HasSession(text) && !SettingsMerger.HasPrompt(text)) problems.Add($"{path}: os hooks do Spock não estão mais registrados.");
             }
+            if (entry.Mode == "merge" && path == Catalog.PathCursorHooks && !CursorHooksMerger.HasSession(System.Text.Encoding.UTF8.GetString(bytes)))
+                problems.Add($"{path}: o hook do Spock não está mais registrado.");
         }
 
         return problems.Count == 0

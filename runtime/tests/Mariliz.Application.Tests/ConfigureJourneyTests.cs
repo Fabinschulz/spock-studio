@@ -333,19 +333,16 @@ public class ConfigureJourneyTests
     public async Task Ambiente_nao_suportado_gera_apenas_a_declaracao_e_diz_o_que_nao_foi_feito()
     {
         using var project = TempProject.Dotnet();
-        project.Write(".cursorrules", "regras do cursor\n");
         var journey = new Journey(project);
 
-        var report = await journey.Service.DiscoverAsync(journey.ProjectId, CancellationToken.None);
-        Assert.Contains(report.AiEnvironments, e => e.Id == "cursor" && !e.Supported);
-
-        var plan = await journey.PlanAsync("cursor");
+        // Claude Code, Cursor e Codex são suportados (C3); um ambiente fora da lista continua só com a declaração.
+        var plan = await journey.PlanAsync("gemini");
 
         Assert.Contains(plan.Limitations, l => l.Code == LimitationCodes.EnvironmentNotSupported);
         Assert.Equal(["spock.yaml"], plan.Changes.Where(c => c.Action == ChangeAction.Create).Select(c => c.Path).ToArray());
         Assert.Empty(plan.Commands);
         Assert.All(plan.Decisions.Where(d => d.ComponentId != Catalog.ConfigDeclaration), d => Assert.Equal("blocked", d.Decision));
-        Assert.False(project.Exists(".cursor"));
+        Assert.False(project.Exists(".gemini"));
     }
 
     [Fact]

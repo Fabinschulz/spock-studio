@@ -498,6 +498,78 @@
     },
     {
       "sheet": {
+        "id": "mariliz.ide.cursor-rule",
+        "kind": "rule",
+        "title": "Regra do Spock no Cursor (.cursor/rules/spock.mdc)",
+        "version": "0.1.0",
+        "whatItDoes": "Uma regra do Spock em .cursor/rules/spock.mdc, sempre aplicada, diz ao Cursor que o projeto é acompanhado pelo Spock Studio e como chegar ao contexto dele: o hook de sessão, o servidor MCP spock e as ferramentas de busca.",
+        "whenItActs": "Em toda conversa do Cursor no projeto (alwaysApply).",
+        "reads": [
+          "Nada: é texto fixo"
+        ],
+        "canChange": [
+          "Só o próprio arquivo .cursor/rules/spock.mdc, que é do Spock; as outras regras do Cursor são da equipe."
+        ],
+        "tools": [],
+        "origin": "Escrito pelo Spock Studio.",
+        "files": [
+          ".cursor/rules/spock.mdc"
+        ],
+        "manageable": true
+      },
+      "presence": "not_applied",
+      "state": null
+    },
+    {
+      "sheet": {
+        "id": "mariliz.ide.cursor-mcp",
+        "kind": "tool",
+        "title": "Servidor MCP do Spock (.cursor/mcp.json)",
+        "version": "0.1.0",
+        "whatItDoes": "Registra o servidor MCP do Spock no .cursor/mcp.json (chave spock), chamando o comando spock com a pasta do projeto (${workspaceFolder}), sem caminho desta máquina.",
+        "whenItActs": "Quando o Cursor abre o projeto; ele pede aprovação antes de usar cada ferramenta.",
+        "reads": [
+          "O que o Spock Studio já gravou sobre o projeto, pelas ferramentas do servidor MCP"
+        ],
+        "canChange": [
+          "Só a chave spock em mcpServers no .cursor/mcp.json; o resto do arquivo é da equipe."
+        ],
+        "tools": [],
+        "origin": "Escrito pelo Spock Studio; chama o lançador spock que o instalador põe no PATH.",
+        "files": [
+          ".cursor/mcp.json"
+        ],
+        "manageable": true
+      },
+      "presence": "not_applied",
+      "state": null
+    },
+    {
+      "sheet": {
+        "id": "mariliz.hook.cursor-session",
+        "kind": "hook",
+        "title": "Hook de início de sessão do Cursor",
+        "version": "0.1.0",
+        "whatItDoes": "No começo de cada sessão do Cursor, entrega o contexto de abertura do projeto que o Spock Studio monta: identidade, o que cada conexão libera, frescor dos dados, divergências do Harness e avisos. O Cursor não tem hook por prompt.",
+        "whenItActs": "Quando uma sessão do Cursor começa, num workspace confiável.",
+        "reads": [
+          "O que o Spock Studio já gravou sobre o projeto: id, vínculos, datas de sincronização e o estado do Harness"
+        ],
+        "canChange": [
+          "Nada. Só escreve o contexto na saída do hook; é registrado em .cursor/hooks.json e chama o comando spock."
+        ],
+        "tools": [],
+        "origin": "Escrito pelo Spock Studio; chama o lançador spock que o instalador põe no PATH.",
+        "files": [
+          ".cursor/hooks.json"
+        ],
+        "manageable": true
+      },
+      "presence": "not_applied",
+      "state": null
+    },
+    {
+      "sheet": {
         "id": "mariliz.specification.structure",
         "kind": "specification",
         "title": "Estrutura de especificação",

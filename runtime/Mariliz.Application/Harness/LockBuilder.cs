@@ -68,6 +68,8 @@ public static class LockBuilder
             if (SettingsMerger.HasSession(merged.Content)) components.Add(session);
             if (SettingsMerger.HasPrompt(merged.Content)) components.Add(prompt);
         }
+        if (composed.Files.Any(f => f.Path == Catalog.PathCursorHooks && f.Mode == "merge" && CursorHooksMerger.HasSession(f.Content)))
+            components.Add(Catalog.HookCursorSession);
         foreach (var id in components.Distinct())
         {
             var component = Catalog.Find(id);

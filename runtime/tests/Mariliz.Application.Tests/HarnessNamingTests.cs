@@ -57,8 +57,9 @@ public partial class HarnessNamingTests
         // O hook de sessão divide o settings.json com o hook de política: aparece pela decisão, não por uma mudança própria.
         var proposed = plan.Changes.Select(c => c.ComponentId)
             .Concat(plan.Decisions.Where(d => d.Decision == ComponentDecisions.Enable).Select(d => d.ComponentId)).ToHashSet(StringComparer.Ordinal);
-        // Os do Codex só entram quando ele está entre os ambientes (CodexAdapterTests).
-        string[] codex = [Catalog.IdeCodexBootstrap, Catalog.IdeCodexMcp, Catalog.HookCodexSession, Catalog.HookCodexPrompt];
+        // Os do Codex e do Cursor só entram quando eles estão entre os ambientes (CodexAdapterTests, CursorAdapterTests).
+        string[] codex = [Catalog.IdeCodexBootstrap, Catalog.IdeCodexMcp, Catalog.HookCodexSession, Catalog.HookCodexPrompt,
+            Catalog.IdeCursorRule, Catalog.IdeCursorMcp, Catalog.HookCursorSession];
         foreach (var component in Catalog.Components.Where(c => c.Id != Catalog.SpecificationStructure && !codex.Contains(c.Id)))
             Assert.Contains(component.Id, proposed);
         Assert.All(plan.Changes, change => Assert.DoesNotContain("mariliz", change.Path, StringComparison.OrdinalIgnoreCase));

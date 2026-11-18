@@ -18,12 +18,13 @@ internal static class ContextHookEntry
     public const string PromptAuditAction = "ide.prompt";
 
     public const string Usage = """
-        Uso: spock context session [--project-dir <pasta>] [--budget <tokens>]
+        Uso: spock context session [--project-dir <pasta>] [--budget <tokens>] [--ide cursor]
              spock context prompt [--project-dir <pasta>]
 
         session escreve na saída padrão o contexto de abertura do projeto da pasta (padrão: CLAUDE_PROJECT_DIR, o cwd que a IDE
         manda na entrada ou a pasta atual). prompt escreve um aviso curto só quando o contexto mudou desde o começo da sessão, uma
         fonte ficou velha ou o assunto pede uma ferramenta do Spock; no resto, nada. Os dois só leem o que o Spock Studio gravou.
+        Com --ide cursor, a sessão sai no JSON que o Cursor lê ({"additional_context": ...}).
         """;
 
     public static int Run(string[] args)
@@ -31,6 +32,7 @@ internal static class ContextHookEntry
         if (args is not [("session" or "prompt") and var mode, .. var options]) return UsageError("Use 'context session' ou 'context prompt'.");
         string? directory = null;
         int? budget = null;
+        var cursor = false;
         for (var index = 0; index < options.Length; index++)
         {
             var value = index + 1 < options.Length ? options[index + 1] : null;
@@ -42,6 +44,9 @@ internal static class ContextHookEntry
                 case "--budget" when mode == "session" && int.TryParse(value, out var tokens):
                     budget = tokens;
                     break;
+                case "--ide" when mode == "session" && value == "cursor":
+                    cursor = true;
+                    break;
                 default:
                     return UsageError($"Argumento desconhecido ou sem valor: {options[index]}.");
             }
@@ -50,18 +55,22 @@ internal static class ContextHookEntry
 
         var input = HookInput.Read();
         directory ??= Environment.GetEnvironmentVariable("CLAUDE_PROJECT_DIR") ?? input.Cwd ?? Environment.CurrentDirectory;
+        string text;
         try
         {
-            Console.Out.Write(mode == "session" ? Session(directory, budget, input) : Prompt(directory, input));
+            text = mode == "session" ? Session(directory, budget, input) : Prompt(directory, input);
         }
         catch (Exception ex) when (ex is not OutOfMemoryException)
         {
             // Na abertura a mensagem vai para a IDE no lugar do contexto; no prompt, um erro não pode virar texto a cada pergunta.
-            if (mode == "session")
-                Console.Out.WriteLine($"Spock: o contexto do projeto não pôde ser montado agora ({ex.GetType().Name}). Chame spock_context_bootstrap pelo MCP.");
-            else
+            if (mode != "session")
+            {
                 Console.Error.WriteLine($"Spock: o aviso do prompt não pôde ser montado ({ex.GetType().Name}).");
+                return 0;
+            }
+            text = $"Spock: o contexto do projeto não pôde ser montado agora ({ex.GetType().Name}). Chame spock_context_bootstrap pelo MCP.\n";
         }
+        Console.Out.Write(cursor ? new JsonObject { ["additional_context"] = text }.ToJsonString() + "\n" : text);
         return 0;
     }
 
@@ -134,7 +143,8 @@ internal static class ContextHookEntry
         public TokenCounter For(string? provider, string? model) => new(text => text.Length / 3, false, "caracteres/3");
     }
 
-    // O JSON que a IDE manda na entrada do hook (Claude Code e Codex usam os mesmos nomes). Rodado à mão, sem entrada, fica vazio.
+    // O JSON que a IDE manda na entrada do hook (Claude Code e Codex usam os mesmos nomes; o Cursor manda workspace_roots no lugar
+    // de cwd). Rodado à mão, sem entrada, fica vazio.
     private sealed record HookInput(string? SessionId, string? Prompt, string? Cwd)
     {
         private const int MaxSessionId = 200;
@@ -155,7 +165,9 @@ internal static class ContextHookEntry
                 return new HookInput(
                     session is { Length: > 0 and <= MaxSessionId } ? session : null,
                     prompt is { Length: > MaxPrompt } ? prompt[..MaxPrompt] : prompt,
-                    Text(root, "cwd") is { Length: > 0 } cwd ? cwd : null);
+                    Text(root, "cwd") is { Length: > 0 } cwd ? cwd
+                        : root["workspace_roots"] is JsonArray roots && roots.FirstOrDefault() is JsonValue first && first.TryGetValue<string>(out var folder) && folder.Length > 0 ? folder
+                        : null);
             }
             catch (JsonException)
             {

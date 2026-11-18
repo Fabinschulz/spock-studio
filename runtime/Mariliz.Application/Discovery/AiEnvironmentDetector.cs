@@ -21,7 +21,7 @@ internal static class AiEnvironmentDetector
         var cursor = new List<Evidence>();
         if (all.Any(p => p.StartsWith(".cursor/", StringComparison.Ordinal))) cursor.Add(new Evidence(".cursor/"));
         if (all.Contains(".cursorrules")) cursor.Add(new Evidence(".cursorrules"));
-        if (cursor.Count > 0) result.Add(new AiEnvironmentFinding(AiEnvironments.Cursor, "Cursor", false, Confidence.High, cursor));
+        if (cursor.Count > 0) result.Add(new AiEnvironmentFinding(AiEnvironments.Cursor, "Cursor", AiEnvironments.Supported.Contains(AiEnvironments.Cursor), Confidence.High, cursor));
 
         var codex = new List<Evidence>();
         if (all.Any(p => p.StartsWith(".codex/", StringComparison.Ordinal))) codex.Add(new Evidence(".codex/"));
