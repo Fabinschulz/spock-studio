@@ -101,6 +101,14 @@
       "evidence": []
     },
     {
+      "kind": "hook",
+      "componentId": "mariliz.hook.prompt",
+      "decision": "skip",
+      "justification": "O comando spock não foi encontrado nesta máquina. Instale ou atualize o Spock Studio para os arquivos do projeto chamarem o Spock pelo comando.",
+      "origin": "baseline-rules",
+      "evidence": []
+    },
+    {
       "kind": "rule",
       "componentId": "mariliz.ide.claude-bootstrap",
       "decision": "enable",

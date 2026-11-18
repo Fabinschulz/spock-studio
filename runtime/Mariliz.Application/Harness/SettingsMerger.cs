@@ -116,64 +116,82 @@ public static class SettingsMerger
         return root.ToJsonString(Output) + "\n";
     }
 
-    // C2: o hook de início de sessão chama o lançador spock (DD-6), que escreve o contexto de abertura na saída. Sem matcher:
-    // vale para início, retomada, limpeza e compactação.
+    // C2: os hooks da IDE chamam o lançador spock (DD-6). O de sessão escreve o contexto de abertura; o de prompt, um aviso curto
+    // só quando algo mudou. Sem matcher: valem para início, retomada, limpeza e compactação, e para todo prompt.
     public const string SessionCommand = "spock context session";
+    public const string PromptCommand = "spock context prompt";
 
-    public static (string? Content, string? Error) MergeSession(string? current)
+    private const string SessionEvent = "SessionStart";
+    private const string PromptEvent = "UserPromptSubmit";
+
+    public static (string? Content, string? Error) MergeSession(string? current) => MergeEvent(current, SessionEvent, SessionCommand, 15);
+
+    // Roda a cada prompt: o prazo curto impede que um motor travado segure a pergunta da pessoa.
+    public static (string? Content, string? Error) MergePrompt(string? current) => MergeEvent(current, PromptEvent, PromptCommand, 5);
+
+    public static string? ReleaseSession(string? current) => ReleaseEvent(current, SessionEvent);
+
+    public static string? ReleasePrompt(string? current) => ReleaseEvent(current, PromptEvent);
+
+    public static bool HasSession(string? content) => HasEvent(content, SessionEvent);
+
+    public static bool HasPrompt(string? content) => HasEvent(content, PromptEvent);
+
+    private static (string? Content, string? Error) MergeEvent(string? current, string hookEvent, string command, int timeout)
     {
         if (Parse(current) is not { } root) return (null, ".claude/settings.json não é um JSON válido (sem comentários nem vírgulas sobrando); a aplicação não o altera.");
         var before = root.DeepClone();
-        if (!TryGetOrCreateObject(root, "hooks", out var hooks) || !TryGetOrCreateArray(hooks!, "SessionStart", out var sessionStart))
+        if (!TryGetOrCreateObject(root, "hooks", out var hooks) || !TryGetOrCreateArray(hooks!, hookEvent, out var groups))
             return (null, ".claude/settings.json tem 'hooks' em formato inesperado; a aplicação não o altera.");
 
-        var desired = new JsonObject { ["type"] = "command", ["command"] = SessionCommand, ["timeout"] = 15 };
+        var desired = new JsonObject { ["type"] = "command", ["command"] = command, ["timeout"] = timeout };
         var replaced = false;
-        foreach (var group in sessionStart!.OfType<JsonObject>())
+        foreach (var group in groups!.OfType<JsonObject>())
         {
             if (group["hooks"] is not JsonArray list) continue;
             for (var i = 0; i < list.Count; i++)
             {
-                if (list[i] is not JsonObject hook || !IsOurSession(hook)) continue;
+                if (list[i] is not JsonObject hook || !IsSpockContext(hook)) continue;
                 list[i] = desired.DeepClone();
                 replaced = true;
             }
         }
-        if (!replaced) sessionStart!.Add(new JsonObject { ["hooks"] = new JsonArray(desired) });
+        if (!replaced) groups!.Add(new JsonObject { ["hooks"] = new JsonArray(desired) });
 
         if (!string.IsNullOrWhiteSpace(current) && JsonNode.DeepEquals(before, root)) return (current, null);
         return (root.ToJsonString(Output) + "\n", null);
     }
 
     // Nulo quando não havia o que tirar.
-    public static string? ReleaseSession(string? current)
+    private static string? ReleaseEvent(string? current, string hookEvent)
     {
         if (string.IsNullOrWhiteSpace(current) || Parse(current) is not { } root) return null;
-        if (root["hooks"] is not JsonObject hooks || hooks["SessionStart"] is not JsonArray sessionStart) return null;
+        if (root["hooks"] is not JsonObject hooks || hooks[hookEvent] is not JsonArray groups) return null;
 
         var removed = false;
-        foreach (var group in sessionStart.OfType<JsonObject>().ToList())
+        foreach (var group in groups.OfType<JsonObject>().ToList())
         {
             if (group["hooks"] is not JsonArray list) continue;
-            foreach (var hook in list.OfType<JsonObject>().Where(IsOurSession).ToList())
+            foreach (var hook in list.OfType<JsonObject>().Where(IsSpockContext).ToList())
             {
                 list.Remove(hook);
                 removed = true;
             }
-            if (list.Count == 0) sessionStart.Remove(group);
+            if (list.Count == 0) groups.Remove(group);
         }
         if (!removed) return null;
 
-        if (sessionStart.Count == 0) hooks.Remove("SessionStart");
+        if (groups.Count == 0) hooks.Remove(hookEvent);
         if (hooks.Count == 0) root.Remove("hooks");
         return root.ToJsonString(Output) + "\n";
     }
 
-    public static bool HasSession(string? content) =>
-        Parse(content) is { } root && root["hooks"]?["SessionStart"] is JsonArray groups
-        && groups.OfType<JsonObject>().Any(group => group["hooks"] is JsonArray list && list.OfType<JsonObject>().Any(IsOurSession));
+    private static bool HasEvent(string? content, string hookEvent) =>
+        Parse(content) is { } root && root["hooks"]?[hookEvent] is JsonArray groups
+        && groups.OfType<JsonObject>().Any(group => group["hooks"] is JsonArray list && list.OfType<JsonObject>().Any(IsSpockContext));
 
-    private static bool IsOurSession(JsonObject hook) =>
+    // Só o que chama "spock context" é do Spock: um hook da equipe no mesmo evento fica onde está.
+    private static bool IsSpockContext(JsonObject hook) =>
         hook["command"] is JsonValue value && value.TryGetValue<string>(out var command) && command.StartsWith("spock context ", StringComparison.Ordinal);
 
     private static JsonObject? Parse(string? current)

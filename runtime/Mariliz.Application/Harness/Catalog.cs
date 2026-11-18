@@ -22,6 +22,7 @@ public static class Catalog
     public const string HookPolicy = "mariliz.hook.policy";
     // C2: o que liga o Claude Code ao Spock. Ficam nos arquivos da equipe, só o trecho do Spock (ManagedRegion).
     public const string HookSession = "mariliz.hook.session";
+    public const string HookPrompt = "mariliz.hook.prompt";
     public const string IdeClaudeBootstrap = "mariliz.ide.claude-bootstrap";
     public const string IdeMcpServer = "mariliz.ide.mcp";
     public const string SpecificationStructure = "mariliz.specification.structure";
@@ -41,6 +42,7 @@ public static class Catalog
         new(RuleArchitecture, ComponentKind.Rule, ComponentVersion, "Documentos de arquitetura"),
         new(HookPolicy, ComponentKind.Hook, "0.1.1", "Hook de política"),
         new(HookSession, ComponentKind.Hook, ComponentVersion, "Hook de início de sessão"),
+        new(HookPrompt, ComponentKind.Hook, ComponentVersion, "Hook por prompt"),
         new(IdeClaudeBootstrap, ComponentKind.Rule, ComponentVersion, "Bloco do Spock no CLAUDE.md"),
         new(IdeMcpServer, ComponentKind.Tool, ComponentVersion, "Servidor MCP do Spock"),
         // Externo: a versão real vem da instalação verificada (ver LockBuilder), não do catálogo.
@@ -74,7 +76,7 @@ public static class Catalog
         RuleRepoCommands => [naming.RuleRepo],
         RuleArchitecture => [naming.RuleArchitecture],
         HookPolicy => [naming.HookScript, PathSettings],
-        HookSession => [PathSettings],
+        HookSession or HookPrompt => [PathSettings],
         IdeClaudeBootstrap => [PathClaudeMd],
         IdeMcpServer => [PathMcpJson],
         ConfigDeclaration => [naming.Declaration, naming.Lock],

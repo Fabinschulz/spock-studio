@@ -330,6 +330,30 @@
     },
     {
       "sheet": {
+        "id": "mariliz.hook.prompt",
+        "kind": "hook",
+        "title": "Hook por prompt",
+        "version": "0.1.0",
+        "whatItDoes": "A cada prompt no Claude Code, avisa a IDE só quando o contexto do projeto mudou no Spock desde o começo da sessão, quando uma fonte ficou velha ou quando o assunto (gestão, arquitetura, infraestrutura) pede uma ferramenta do Spock. No resto, não diz nada.",
+        "whenItActs": "Quando a pessoa envia um prompt no Claude Code. Sem modelo e sem busca: cada aviso sai uma vez por sessão.",
+        "reads": [
+          "O que o Spock Studio já gravou sobre o projeto (versão do contexto e datas de sincronização) e o texto do prompt, que não é gravado"
+        ],
+        "canChange": [
+          "Nada no projeto. Guarda, fora do repositório, o que já avisou a cada sessão; é registrado em .claude/settings.json e chama o comando spock."
+        ],
+        "tools": [],
+        "origin": "Escrito pelo Spock Studio; chama o lançador spock que o instalador põe no PATH.",
+        "files": [
+          ".claude/settings.json"
+        ],
+        "manageable": true
+      },
+      "presence": "not_applied",
+      "state": null
+    },
+    {
+      "sheet": {
         "id": "mariliz.ide.claude-bootstrap",
         "kind": "rule",
         "title": "Bloco do Spock no CLAUDE.md",

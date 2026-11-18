@@ -193,6 +193,9 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                 yield return Entry("", AuditCategories.Context, "Contexto de abertura entregue à IDE pelo hook de sessão",
                     $"Versão {Clean(Text(d, "contextVersion"))}: {Count(Count(d, "items"), "item", "itens")}, {Count(Count(d, "usedTokens"), "token", "tokens")}.");
                 break;
+            case "ide.prompt":
+                yield return Entry("", AuditCategories.Context, "Aviso entregue à IDE pelo hook por prompt", PromptSignalsDetail(d));
+                break;
             case "connection.created":
                 yield return Entry("", AuditCategories.Credential, $"Conexão criada: {Clean(Text(d, "name"))}", $"Provedor: {Clean(Text(d, "provider"))}. Conexão usada por este projeto.");
                 break;
@@ -365,6 +368,23 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
     };
 
     // A IDE diz o próprio nome no início da conversa MCP; a trilha repete o que ela disse, sem conferir.
+    // O texto do prompt nunca é gravado; só o que motivou o aviso.
+    private static string PromptSignalsDetail(JsonObject d)
+    {
+        var signals = d["signals"] is JsonArray list ? list.OfType<JsonValue>().Select(item => item.TryGetValue<string>(out var s) ? s : "").ToList() : [];
+        var what = signals.Select(signal => signal switch
+        {
+            "version_changed" => "o contexto mudou desde o começo da sessão",
+            "hint:management" => "sugestão de ferramenta para gestão",
+            "hint:architecture" => "sugestão de ferramenta para arquitetura",
+            "hint:infrastructure" => "sugestão de ferramenta para infraestrutura",
+            _ when signal.StartsWith("stale:", StringComparison.Ordinal) => "fonte desatualizada",
+            _ => ""
+        }).Where(text => text.Length > 0).Distinct().ToList();
+        var version = Clean(Text(d, "contextVersion"));
+        return what.Count == 0 ? $"Versão {version}." : $"Versão {version}: {string.Join("; ", what)}.";
+    }
+
     private static string IdeReadDetail(JsonObject d)
     {
         var tool = Text(d, "tool");

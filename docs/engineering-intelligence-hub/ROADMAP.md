@@ -131,8 +131,19 @@ Harness com 11 componentes íntegros) com código 0 e registrou `ide.bootstrap`.
 sessão interativa a pessoa aprova o servidor do projeto uma vez, como para qualquer `.mcp.json`. Ficaram de fora: a resposta
 de um modelo numa sessão logada (o CLI fora do app não tinha login), o instalador de verdade (validado antes só como
 pacote) e o critério "`contextVersion` igual ao do lock", porque o lock não guarda a versão do contexto, que depende dos
-componentes do próprio lock e precisa ser redefinida. Falta ainda o hook por prompt (`context prompt`, depende da intenção
-`development`).
+componentes do próprio lock e precisa ser redefinida.
+
+**Hook por prompt (2026-11-18):** feito como pede o §6 de `CONTEXT_PERSISTENCE_AND_ADAPTERS.md`, sem modelo e sem busca,
+por isso sem depender da intenção `development` (a anotação anterior estava errada). O componente `mariliz.hook.prompt`
+grava o `UserPromptSubmit` (`spock context prompt`, prazo de 5 s) no mesmo `.claude/settings.json` e pode ser dispensado
+sozinho. O hook de sessão guarda, por sessão da IDE e fora do repositório (`<dados>/ide-sessions`), a versão do contexto e
+as fontes já velhas na abertura. A cada prompt saem só três tipos de linha, cada um uma vez por sessão: o contexto mudou no
+Spock, uma fonte ficou velha durante a sessão, ou o assunto (gestão, com integração vinculada; arquitetura;
+infraestrutura) pede uma ferramenta do Spock. O teto é de 900 caracteres (cerca de 300 tokens), e no resto não sai nada.
+Sem `session_id`, fora de projeto do Spock ou com erro, o hook fica em silêncio com código 0. A trilha registra
+`ide.prompt` com os sinais, nunca o texto do prompt. Medido pelo lançador num projeto descartável, com a máquina carregada
+(o motor sem trabalho subia em 90 a 190 ms): cerca de 310 ms por prompt, dos quais uns 120 ms são a primeira inspeção do
+Harness. Sem o tiktoken, que o aviso não usa, o tempo caiu a um terço do hook de sessão.
 
 Riscos do bloco: aprovação de servidor de projeto e projeto confiável são da pessoa (o SPOCK explica, não contorna);
 formatos mudam rápido (teste de conformidade por adaptador e revisão da matriz a cada entrega).

@@ -156,6 +156,23 @@ public class ProjectAuditTests
     }
 
     [Fact]
+    public async Task O_aviso_por_prompt_diz_o_que_motivou_sem_o_texto_do_prompt()
+    {
+        using var w = await Lived();
+        w.H.Audit.Record("ide.prompt", new System.Text.Json.Nodes.JsonObject
+        {
+            ["projectId"] = w.H.ProjectId,
+            ["contextVersion"] = "ctx-abc",
+            ["signals"] = new System.Text.Json.Nodes.JsonArray("version_changed", "stale:pi-1", "stale:pi-2", "hint:infrastructure")
+        });
+
+        var entry = w.Service().Read(w.H.ProjectId, [], 200, null).Entries.Single(e => e.Title == "Aviso entregue à IDE pelo hook por prompt");
+
+        Assert.Equal("context", entry.Category);
+        Assert.Equal("Versão ctx-abc: o contexto mudou desde o começo da sessão; fonte desatualizada; sugestão de ferramenta para infraestrutura.", entry.Detail);
+    }
+
+    [Fact]
     public async Task So_as_conexoes_que_o_projeto_usa_aparecem_e_a_outra_conexao_nao()
     {
         using var w = await Lived();

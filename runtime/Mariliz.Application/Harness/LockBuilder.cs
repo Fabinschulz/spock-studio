@@ -57,6 +57,8 @@ public static class LockBuilder
         var components = lockFile.ManagedFiles.Select(f => f.Component).ToList();
         if (composed.Files.Any(f => f.Path == Catalog.PathSettings && f.Mode == "merge" && SettingsMerger.HasSession(f.Content)))
             components.Add(Catalog.HookSession);
+        if (composed.Files.Any(f => f.Path == Catalog.PathSettings && f.Mode == "merge" && SettingsMerger.HasPrompt(f.Content)))
+            components.Add(Catalog.HookPrompt);
         foreach (var id in components.Distinct())
         {
             var component = Catalog.Find(id);
