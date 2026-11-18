@@ -1,0 +1,104 @@
+# Roadmap de evolução: Spock como plataforma de engenharia com IA
+
+> Parte do estudo [Plataforma de engenharia com IA](README.md), 2026-11-17. **Proposta, não plano aprovado.** Cada
+> entrega precisa de aprovação do dono e vai em PR próprio contra `master`, uma por vez (sem empilhar PR). As ids `R*`
+> são das [recomendações](SPOCK_ARCHITECTURE_RECOMMENDATIONS.md); quando há item equivalente no
+> [roadmap do hub](../engineering-intelligence-hub/ROADMAP.md), ele aparece entre parênteses e este roadmap não o
+> substitui.
+
+## 1. Sequência
+
+```text
+Onda 0  Base confiável         W0-1 contexto do RAG íntegro (R3) · W0-2 fonte única de tecnologias (R1) · W0-3 testes estáveis (R10)
+   │
+Onda 1  Conhecimento           W1-1 pacote de referência + índice de organização (R2) · W1-2 filtros e frontmatter (R3)
+   │                           W1-3 intenção "architecture" no Context Engine · W1-4 ferramenta MCP de referência
+   │
+Onda 2  Compreensão            W2-1 frameworks .NET na descoberta (R1) · W2-2 análise de arquitetura determinística (R4)
+   │                           W2-3 evals de referência e arquitetura (R8) · W2-4 validação com modelo real (H0-7)
+   │
+Onda 3  Harness específico     W3-1 regras por framework geradas do catálogo (R5) · W3-2 skills curtas por stack
+   │                           W3-3 versão e proveniência por componente · (C3 Cursor/Codex segue no roadmap do hub)
+   │
+Onda 4  Workflows              W4-1 architecture.assessment (R7) · W4-2 modernization.plan · W4-3 project.design
+   │
+Contínuo  MCP v2 (R6, F3) · telemetria (R10) · cliente MCP só leitura quando houver necessidade (R9)
+```
+
+A ordem segue as dependências: sem contexto íntegro (W0-1) o catálogo não ajuda; sem fonte única de tecnologias
+(W0-2) cada referência vira quatro edições; sem análise do que existe (W2-2) não há modernização sem reescrita.
+
+## 2. Entregas
+
+Formato: problema, entrega, depende, esforço, critério de aceite. Esforço: B (dias), M (uma a duas semanas), A (mais).
+
+### Onda 0: base confiável
+
+| Id | Problema | Entrega | Depende | Esforço | Aceite |
+| --- | --- | --- | --- | --- | --- |
+| W0-1 | Agente vê ~160 caracteres por trecho | Corpo do trecho (até 1.200) no prompt; snippet só para a UI; aviso de corte por arquivo | — | B | Teste que falha hoje: o bloco de contexto do `planning` contém o trecho inteiro; `project_recall` sem regressão |
+| W0-2 | Ids de stack em 4 lugares; catálogo de componentes em 3 | `TechnologyCatalog` como registro único; catálogo de componentes numa fonte | — | M | Adicionar uma stack fictícia em teste exige uma única edição |
+| W0-3 | 3 falhas .NET e 17 da UI intermitentes; CI sem orçamento | Nomes das falhas (TRX, várias rodadas); `testTimeout` das páginas; verificação local documentada | — | B | Três rodadas seguidas sem falha nas duas suítes |
+
+### Onda 1: conhecimento
+
+| Id | Problema | Entrega | Depende | Esforço | Aceite |
+| --- | --- | --- | --- | --- | --- |
+| W1-1 | Não há referências técnicas | Pacote de referência (Markdown com frontmatter, derivado do catálogo); índice de organização `@reference/`; divisão público/organizacional | W0-2 | M | Busca por "estado React" num projeto React devolve REF-R4 com a fonte e a data; o pacote organizacional não entra no instalador |
+| W1-2 | Sem filtro nem metadado | Frontmatter lido; `filters` em `ai.knowledge.search.v1` (com JSON Schema); perfil de stacks como filtro padrão | W0-1 | M | Projeto React nunca recebe trecho de §5 (Angular) no dataset de contaminação |
+| W1-3 | Contexto inicial sem referências | Intenção `architecture` no Context Engine com a lista de padrões aplicáveis (ids e uma linha) | W1-1 | B | Pacote dentro do orçamento; cada item com classificação (`reference`, `project-convention`...) |
+| W1-4 | Agente na IDE sem acesso às referências | `spock_architecture_reference(technology, topic)` com `structuredContent`; `search_project` aceitando `@reference/` | W1-1 | B | Teste pelo fio com `outputSchema` validado contra `contracts/schemas/mcp/` |
+
+### Onda 2: compreensão
+
+| Id | Problema | Entrega | Depende | Esforço | Aceite |
+| --- | --- | --- | --- | --- | --- |
+| W2-1 | .NET sem frameworks na descoberta | EF Core, MediatR, FluentValidation, Polly, Serilog, OpenTelemetry, Blazor, MAUI por `PackageReference` | W0-2 | B | Descoberta em EMP-BE e EZM-ANY lista os frameworks conhecidos |
+| W2-2 | Arquitetura existente desconhecida | Analisador determinístico .NET e React (grafo de dependências, violações de direção, arquivos grandes, áreas sem teste) com relatório `@analysis/` (D4 do hub) | W0-2, W2-1 | A | Em EZM-DOC aponta Application → Infrastructure; em EMP-BE aponta Domain com pacote de framework; no Spock, a Application com SDK MCP |
+| W2-3 | Nada mede a qualidade das referências | Datasets de recall e contaminação de referências; dataset de arquitetura com gabarito das referências; histórico de métricas | W1-2, W2-2 | M | Métricas gravadas por data; meta inicial: recall@3 ≥ 0,8 e contaminação 0 |
+| W2-4 | Nada rodou com modelo real | `scripts/live-validation.py` com orçamento pequeno (H0-7) | Chave do dono | B | Relatório com fluxos, tokens, latência e falhas |
+
+### Onda 3: Harness específico
+
+| Id | Problema | Entrega | Depende | Esforço | Aceite |
+| --- | --- | --- | --- | --- | --- |
+| W3-1 | React e Angular recebem a mesma regra | Regras React, Angular, .NET e fullstack geradas das seções do catálogo; `paths` por stack | W1-1, W0-2 | M | Plano do Harness num projeto Angular contém a regra Angular e nenhuma regra React |
+| W3-2 | Uma skill genérica | Skills curtas por stack (anti-padrões + checklist), limite de tamanho verificado | W3-1 | M | Check novo no `EvalRunner` reprova skill acima do limite |
+| W3-3 | Sem versão por componente | Versão e `REF-*` + data no lock; aviso quando a referência muda | W3-1 | B | Mudar a data de uma seção do pacote marca as regras derivadas como desatualizadas |
+| W3-4 | Projeto existente recebe referência no lugar da convenção | Regra de arquitetura gerada do relatório W2-2, marcada `project-convention` | W2-2, W3-1 | M | Em EMP-BE, a regra registra o mediator próprio como convenção, sem propor MediatR |
+
+### Onda 4: workflows
+
+| Id | Problema | Entrega | Depende | Esforço | Aceite |
+| --- | --- | --- | --- | --- | --- |
+| W4-1 | Sem avaliação de arquitetura | `architecture.assessment` (só leitura): R4 → referências → arquiteto com ferramentas de leitura → juiz | W2-2, W1-4, W2-4 | A | Relatório classifica divergências em risco/custo/estilo e cita arquivos e `REF-*`; juiz aprova em ≥ 80% do dataset |
+| W4-2 | Sem modernização | `modernization.plan`: caracterização, passos reversíveis, aprovação por passo, decisão registrada | W4-1 | A | Nenhum plano propõe reescrita sem custo, risco e plano de convivência |
+| W4-3 | Criação sem critério de stack | `project.design` sobre a jornada "Da ideia ao projeto": requisitos não funcionais, decisão de stack pelos critérios do catálogo §10, trade-offs explícitos | W1-3, W2-4 | M | Para requisitos iguais, a escolha é estável; cada escolha cita o critério |
+
+### Contínuo
+
+| Id | Entrega | Quando |
+| --- | --- | --- |
+| C-1 | MCP v2 (R6): `structuredContent` em todas, códigos de erro, prefixo `spock_`, cursor, auditoria completa, `iac_validate` honesto (F3 e MCP-3/4/5 do hub) | Em paralelo à Onda 1 |
+| C-2 | Telemetria mínima (R10) | Junto da Onda 2, antes dos workflows |
+| C-3 | Cliente MCP só leitura (R9) | Só quando houver fonte sem conector nativo; decisão do dono |
+| C-4 | Revisão do catálogo (§12 do catálogo) | A cada mudança relevante nas referências, ou a cada 6 meses |
+| C-5 | Atualizar documentos desatualizados ([estado atual §9](SPOCK_CURRENT_STATE.md#9-documentos-desatualizados-encontrados)) | No primeiro PR da Onda 0 |
+
+## 3. Maior valor por esforço
+
+1. **W0-1** (dias): todo agente passa a ver o conteúdo que já é recuperado.
+2. **W0-2 + W1-1 + W1-2**: o catálogo deste estudo passa a ser consultado seletivamente.
+3. **C-1** (parte de segurança): `iac_validate` deixa de declarar o que não é.
+4. **W3-1**: o Harness deixa de ser genérico para React, Angular e .NET.
+5. **W2-2 → W4-1**: análise de projeto existente com evidência, base da modernização sem reescrita.
+
+## 4. Decisões que dependem do dono
+
+| Decisão | Opções | Recomendação |
+| --- | --- | --- |
+| Onde vive o pacote organizacional (conhecimento de repositórios privados da empresa) | Pasta local configurada · repositório privado da organização · embarcado | Repositório ou pasta da organização; nunca no instalador |
+| Ordem entre Harness específico (Onda 3) e workflows (Onda 4) | Harness antes · workflows antes | Harness antes: entrega valor diário na IDE sem depender de modelo |
+| Cliente MCP | Agora · quando houver necessidade | Quando houver necessidade (os conectores nativos cobrem Jira, GitHub, AWS) |
+| Renomear ferramentas MCP com prefixo `spock_` | Com alias por uma versão · sem alias | Com alias |
+| Chave de modelo para H0-7 e W2-4 | — | Necessária antes da Onda 4 |
