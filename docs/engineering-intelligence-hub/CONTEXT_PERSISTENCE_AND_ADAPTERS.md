@@ -179,7 +179,7 @@ se o que está carregado é o atual.
 | 8. Configurar MCP | Não (texto para copiar) | Componente `spock.mcp` do Harness |
 | 9. Gerar arquivos da IDE | Parcial | Bootstrap, regras e hooks por adaptador |
 | 10. Validar | Sim (evals) | Evals novas: `EV-CTX-001` bloco íntegro, `EV-CTX-002` MCP responde ao bootstrap do projeto certo, `EV-CTX-003` hook responde no orçamento |
-| 11. Registrar a versão | Parcial (lock) | `contextVersion` no lock e na trilha de auditoria |
+| 11. Registrar a versão | Sim (trilha) | `contextVersion` na trilha (`ide.bootstrap`, `ide.context_read`); no lock só quando os arquivos da IDE dependerem de conexões (decisão de 2026-11-18, ROADMAP C2) |
 
 ### 6.2 Início de sessão na IDE
 
