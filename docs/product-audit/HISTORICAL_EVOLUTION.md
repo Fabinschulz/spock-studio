@@ -26,7 +26,7 @@ O primeiro commit (`a488ee9`, 2026-10-26 20:26 -03) traz quatro documentos de di
 
 ### A.1 Nome e propósito
 - Nome: **"Mariliz AI Engineering"** (`a488ee9:docs/product-discovery.md:1`). "Mariliz" aparece também como titular/marca de outros ativos ("Mariliz Web", "se 'Synthra' e a Mariliz são a mesma titular", `product-discovery.md` tabela §3 e §4).
-- Problema de partida (FATO no discovery): os Harnesses dos projetos do dono (Easymart.IntegradorAnymarket, Backoffice.Web, Easymart.CRM, EmpregaNetAPI) "continuam evoluindo por cópia", sem núcleo comum; "a orquestração atual é prosa seguida pela sessão do Claude Code. Não existe motor de execução, estado persistido, idempotência nem cancelamento"; "os gates de entrega (Jira, PR, sem atribuição de IA) são reforçados por instrução, não por hook" (`product-discovery.md` §2, linhas ~95 a 110).
+- Problema de partida (FATO no discovery): os Harnesses dos projetos do dono (o integrador .NET, o backoffice web e o CRM em Angular, privados, e o EmpregaNetAPI) "continuam evoluindo por cópia", sem núcleo comum; "a orquestração atual é prosa seguida pela sessão do Claude Code. Não existe motor de execução, estado persistido, idempotência nem cancelamento"; "os gates de entrega (Jira, PR, sem atribuição de IA) são reforçados por instrução, não por hook" (`product-discovery.md` §2, linhas ~95 a 110).
 - Propósito implícito: um produto que **consolida e distribui um Harness de engenharia com IA** (agentes, skills, regras, hooks, evals) com política imposta por código, aplicado de forma idempotente e reversível ao repositório do cliente.
 
 ### A.2 Usuários-alvo (`docs/blueprints/experience-blueprint.md:11-14`)
@@ -51,7 +51,7 @@ Roadmap (`docs/implementation-roadmap.md`): Fase 2 núcleo e profiles; 3 requisi
 - Host ↔ motor: "**stdin/stdout, NDJSON**", HTTP em loopback **rejeitado** para esse trecho ("stdio não abre porta nem exige token efêmero", `:240`). Contrato: JSON Schema versionado + fixtures (`:241`). Runtime de IA alvo: "**Claude Code primeiro**, via adaptador" (`:244`).
 - **Python não fazia parte da arquitetura**: "Necessário só para reaproveitar gates em Python" (`:53`). Não havia módulo de IA, RAG nem chamada a modelo; o blueprint dizia que "a intelligence não chama modelo" (citado em `auditoria-orquestracao-agentic.md:573`, decisão D6).
 - Local-first (`product-discovery.md` §7): `mariliz.yaml`/`mariliz.lock`/`.mariliz/` versionados no projeto; histórico no diretório de dados do usuário; segredos "Cofre do sistema operacional … Nunca" no projeto (`:264`).
-- Decisões pendentes já em 25/10 (`:356-361`): titularidade dos ativos Easymart/EmpregaNet; método do núcleo (TLC ou próprio); assinatura de código; licença do repositório; ícones faltantes na Synthra; tema inicial.
+- Decisões pendentes já em 25/10 (`:356-361`): titularidade dos ativos dos projetos privados e do EmpregaNet; método do núcleo (TLC ou próprio); assinatura de código; licença do repositório; ícones faltantes na Synthra; tema inicial.
 
 **Arquitetura atual comparada:** os quatro processos (Tauri/Rust, React/Vite, .NET 10, **Python/LangGraph**) e o canal motor ↔ Python por **HTTP em 127.0.0.1 com token** (`docs/blueprints/architecture-blueprint.md:33`) foram acrescentados depois (31/10 e 02/11). O princípio "regras só no .NET" foi preservado (Python só propõe; ADR-0001 e `MARILIZ_CURRENT_STATE.md:285`).
 
@@ -197,14 +197,14 @@ Legenda do "Depois": **Mantido**, **Mudou**, **Abandonado**, **Pendente**, **Par
 | H-59 | Decisões como memória do índice (`@decision/`) e conhecimento externo (`@external/`) | DECISÃO | `f86ecb6`; `runtime/Mariliz.Application/Integrations/ExternalKnowledge.cs:28` | Mantido |
 | H-60 | "Memória aprendida" | EXPLORAÇÃO (rejeitada) | `SPOCK_PRODUCT_EVOLUTION.md:330` | Abandonado |
 
-### C.8 Referências externas, EmpregaNet, Easymart, referência externa de produto
+### C.8 Referências externas, EmpregaNet, projetos privados, referência externa de produto
 
 | ID | Item | Cat. | Fonte | Depois |
 | --- | --- | --- | --- | --- |
 | H-61 | Espelhar a arquitetura, pastas, tipagem, forms, hooks e services do EmpregaNet (frontend, depois backend) | DECISÃO | P 10-29T01:14Z, 10-30T02:17Z [b801eaae] | Mantido (memória `reference-empreganet-architecture`) |
-| H-62 | Titularidade dos ativos Easymart/EmpregaNet antes de reutilizá-los | PROPOSTA pendente | `product-discovery.md:356` | Contornada: o produto escreveu agentes originais; nunca registrada como resolvida |
+| H-62 | Titularidade dos ativos dos projetos privados e do EmpregaNet antes de reutilizá-los | PROPOSTA pendente | `product-discovery.md:356` | Contornada: o produto escreveu agentes originais; nunca registrada como resolvida |
 | H-63 | Nenhum arquivo dos projetos de referência copiado | DECISÃO | `product-discovery.md:168` | Mantido (não auditado arquivo a arquivo) |
-| H-64 | Modelo Terraform da `infra/` de um projeto Easymart registrado em Markdown, anonimizado, "para evitar consultas ao repositório direto no github" | DECISÃO | R 11-15T16:00Z [49d60201] (citação do dono); `docs/plataforma/TERRAFORM_PROJECT_LAYOUT.md:7-11` | Mantido |
+| H-64 | Modelo Terraform da `infra/` de um projeto privado registrado em Markdown, anonimizado, "para evitar consultas ao repositório direto no github" | DECISÃO | R 11-15T16:00Z [49d60201] (citação do dono); `docs/plataforma/TERRAFORM_PROJECT_LAYOUT.md:7-11` | Mantido |
 | H-65 | "Mariliz Web" como referência de organização do frontend | DECISÃO | `9d58afc`; `product-discovery.md` §3 | Mantido historicamente |
 | H-66 | referência externa de produto como referência de produto/UX, sem copiar código, marca ou imagens | DECISÃO | P 11-12T11:03Z [c50e36d6] | Mantido |
 | H-67 | "Não quero que registre nada no projeto spock algo sobre o referência externa de produto" | DECISÃO | P 11-13T20:24Z [f206ef78] | Parcial: docs removidos (`72f1463`), mas o nome segue no histórico público (commit `8e27c7a` e arquivos apagados) e em `docs/MARILIZ_REAL_WORLD_VALIDATION.md:222` (pasta "referência externa de produto" usada como projeto não autorizado no teste) |

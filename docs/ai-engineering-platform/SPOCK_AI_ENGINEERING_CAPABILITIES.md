@@ -53,7 +53,7 @@ O pedido exige que o Harness não seja genérico. Situação hoje:
 | Comandos do repositório | Sim (gerados da descoberta) | regra `repo-commands` |
 | Arquitetura | Só a declarada pela jornada de ideia | `ArchitectureDocuments.cs` |
 
-O que um Harness específico precisaria, usando o [catálogo](ARCHITECTURE_REFERENCE_CATALOG.md) como fonte:
+O que um Harness específico precisaria, usando o [catálogo](../organizacao/ARCHITECTURE_REFERENCE_CATALOG.md) como fonte:
 
 | Projeto | Regras | Skill | Agentes | Hooks / checks |
 | --- | --- | --- | --- | --- |

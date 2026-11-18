@@ -21,7 +21,7 @@
 ```text
 Onda 0  Base confiável         W0-1 contexto do RAG íntegro (R3) · W0-2 fonte única de tecnologias (R1) · W0-3 testes estáveis (R10)
    │
-Onda 1  Conhecimento           W1-1 pacote de referência + índice de organização (R2) · W1-2 filtros e frontmatter (R3)
+Onda 1  Conhecimento           W1-1 pasta Organização indexada como @reference/ (R2) · W1-2 filtros e frontmatter (R3)
    │                           W1-3 intenção "architecture" no Context Engine · W1-4 ferramenta MCP de referência
    │
 Onda 2  Compreensão            W2-1 frameworks .NET na descoberta (R1) · W2-2 análise de arquitetura determinística (R4)
@@ -54,7 +54,7 @@ Formato: problema, entrega, depende, esforço, critério de aceite. Esforço: B 
 
 | Id | Problema | Entrega | Depende | Esforço | Aceite |
 | --- | --- | --- | --- | --- | --- |
-| W1-1 | Não há referências técnicas | Pacote de referência (Markdown com frontmatter, derivado do catálogo); índice de organização `@reference/`; divisão público/organizacional | W0-2 | M | Busca por "estado React" num projeto React devolve REF-R4 com a fonte e a data; o pacote organizacional não entra no instalador |
+| W1-1 | Não há referências técnicas | A pasta Organização (`docs/organizacao/`, Markdown com frontmatter) indexada como `@reference/`, separada do índice de cada projeto | W0-2 | M | Busca por "estado React" num projeto React devolve REF-R4 com a fonte e a data; nenhum trecho cita organização, cliente ou fornecedor |
 | W1-2 | Sem filtro nem metadado | Frontmatter lido; `filters` em `ai.knowledge.search.v1` (com JSON Schema); perfil de stacks como filtro padrão | W0-1 | M | Projeto React nunca recebe trecho de §5 (Angular) no dataset de contaminação |
 | W1-3 | Contexto inicial sem referências | Intenção `architecture` no Context Engine com a lista de padrões aplicáveis (ids e uma linha) | W1-1 | B | Pacote dentro do orçamento; cada item com classificação (`reference`, `project-convention`...) |
 | W1-4 | Agente na IDE sem acesso às referências | `spock_architecture_reference(technology, topic)` com `structuredContent`; `search_project` aceitando `@reference/` | W1-1 | B | Teste pelo fio com `outputSchema` validado contra `contracts/schemas/mcp/` |
@@ -63,8 +63,8 @@ Formato: problema, entrega, depende, esforço, critério de aceite. Esforço: B 
 
 | Id | Problema | Entrega | Depende | Esforço | Aceite |
 | --- | --- | --- | --- | --- | --- |
-| W2-1 | .NET sem frameworks na descoberta | EF Core, MediatR, FluentValidation, Polly, Serilog, OpenTelemetry, Blazor, MAUI por `PackageReference` | W0-2 | B | Descoberta em EMP-BE e EZM-ANY lista os frameworks conhecidos |
-| W2-2 | Arquitetura existente desconhecida | Analisador determinístico .NET e React (grafo de dependências, violações de direção, arquivos grandes, áreas sem teste) com relatório `@analysis/` (D4 do hub) | W0-2, W2-1 | A | Em EZM-DOC aponta Application → Infrastructure; em EMP-BE aponta Domain com pacote de framework; no Spock, a Application com SDK MCP |
+| W2-1 | .NET sem frameworks na descoberta | EF Core, MediatR, FluentValidation, Polly, Serilog, OpenTelemetry, Blazor, MAUI por `PackageReference` | W0-2 | B | Descoberta em EMP-BE e NET-INT lista os frameworks conhecidos |
+| W2-2 | Arquitetura existente desconhecida | Analisador determinístico .NET e React (grafo de dependências, violações de direção, arquivos grandes, áreas sem teste) com relatório `@analysis/` (D4 do hub) | W0-2, W2-1 | A | Em NET-DOC aponta Application → Infrastructure; em EMP-BE aponta Domain com pacote de framework; no Spock, a Application com SDK MCP |
 | W2-3 | Nada mede a qualidade das referências | Datasets de recall e contaminação de referências; dataset de arquitetura com gabarito das referências; histórico de métricas | W1-2, W2-2 | M | Métricas gravadas por data; meta inicial: recall@3 ≥ 0,8 e contaminação 0 |
 | W2-4 | Nada rodou com modelo real | `scripts/live-validation.py` com orçamento pequeno (H0-7) | Chave do dono | B | Relatório com fluxos, tokens, latência e falhas |
 
@@ -98,7 +98,7 @@ Formato: problema, entrega, depende, esforço, critério de aceite. Esforço: B 
 ## 3. Maior valor por esforço
 
 1. **W0-1** (dias): todo agente passa a ver o conteúdo que já é recuperado.
-2. **W0-2 + W1-1 + W1-2**: o catálogo deste estudo passa a ser consultado seletivamente.
+2. **W1-1 + W1-2**: a pasta Organização passa a ser consultada seletivamente.
 3. **C-1** (parte de segurança): `iac_validate` deixa de declarar o que não é.
 4. **W3-1**: o Harness deixa de ser genérico para React, Angular e .NET.
 5. **W2-2 → W4-1**: análise de projeto existente com evidência, base da modernização sem reescrita.
@@ -107,7 +107,7 @@ Formato: problema, entrega, depende, esforço, critério de aceite. Esforço: B 
 
 | Decisão | Opções | Recomendação |
 | --- | --- | --- |
-| Onde vive o pacote organizacional (conhecimento de repositórios privados da empresa) | Pasta local configurada · repositório privado da organização · embarcado | Repositório ou pasta da organização; nunca no instalador |
+| Onde vive o conhecimento extraído de outros projetos | — | **Decidido em 2026-11-18:** na pasta [Organização](../organizacao/README.md) (`docs/organizacao/`), sem mencionar nenhuma organização; fontes privadas por id neutro |
 | Ordem entre Harness específico (Onda 3) e workflows (Onda 4) | Harness antes · workflows antes | Harness antes: entrega valor diário na IDE sem depender de modelo |
 | Cliente MCP | Agora · quando houver necessidade | Quando houver necessidade (os conectores nativos cobrem Jira, GitHub, AWS) |
 | Renomear ferramentas MCP com prefixo `spock_` | Com alias por uma versão · sem alias | Com alias |

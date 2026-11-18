@@ -2,7 +2,7 @@
 
 > Parte do estudo [Plataforma de engenharia com IA](README.md), 2026-11-17. Validação feita **só com leituras**:
 > nenhuma criação, edição, transição, comentário ou exclusão foi feita em Jira, GitHub, AWS ou outro serviço. Os
-> identificadores de conta, e-mails de pessoas e nomes de projetos da empresa foram omitidos de propósito.
+> identificadores de conta, e-mails de pessoas e nomes de projetos do site Atlassian foram omitidos de propósito.
 
 ## 1. Resumo
 
@@ -211,7 +211,7 @@ Não alteram nenhum MCP nesta etapa; são o que o Spock deve exigir ou compensar
    (anotação `readOnlyHint` do protocolo quando existir, nome e lista explícita quando não) e só liberar escrita com
    aprovação humana. É o mesmo princípio da política de edição que o motor já aplica a arquivos.
 2. **Credenciais mínimas.** Token fino do GitHub só de leitura para análise; conta de serviço ou token do Jira sem
-   `write:jira-work` para diagnóstico; perfil AWS com política `ReadOnlyAccess` (ou menor) e sem o perfil da empresa
+   `write:jira-work` para diagnóstico; perfil AWS com política `ReadOnlyAccess` (ou menor) e sem perfis de ambientes de trabalho
    para testes. Registrar no Spock qual credencial cada conexão usa e o escopo dela.
 3. **Validar antes de confiar em vazio.** Para JQL, rodar a consulta com `searchResultMode=count` e tratar zero como
    suspeito quando a consulta tem campos não padrão; preferir os conectores tipados do próprio Spock para Jira, que

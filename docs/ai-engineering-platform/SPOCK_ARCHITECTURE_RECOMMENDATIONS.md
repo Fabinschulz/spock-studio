@@ -3,7 +3,7 @@
 > Parte do estudo [Plataforma de engenharia com IA](README.md), 2026-11-17. **Recomendações, não plano aprovado**: cada
 > uma precisa de decisão do dono e entra em PR próprio, como nas fases anteriores. Baseadas no
 > [estado atual](SPOCK_CURRENT_STATE.md), nas [capacidades](SPOCK_AI_ENGINEERING_CAPABILITIES.md), na
-> [avaliação dos MCPs](MCP_QUALITY_ASSESSMENT.md) e no [catálogo](ARCHITECTURE_REFERENCE_CATALOG.md). Onde uma
+> [avaliação dos MCPs](MCP_QUALITY_ASSESSMENT.md) e no [catálogo](../organizacao/ARCHITECTURE_REFERENCE_CATALOG.md). Onde uma
 > recomendação coincide com um item do [roadmap do hub](../engineering-intelligence-hub/ROADMAP.md), o id de lá aparece.
 
 ## Visão geral
@@ -59,10 +59,10 @@ como dizer "só referências React".
    analyzedAt: 2026-11-17
    ```
 
-   O `ARCHITECTURE_REFERENCE_CATALOG.md` deste estudo é a fonte; o pacote é derivado dele (ou o catálogo é quebrado em
-   arquivos, mantendo um índice).
+   A fonte é a pasta [Organização](../organizacao/README.md) (`docs/organizacao/`): o catálogo de hoje, quebrado em
+   arquivos por assunto quando crescer, mantendo os ids.
 
-2. **Escopo do índice.** Um índice **de organização**, separado do índice de cada projeto, com prefixo `@reference/`. O
+2. **Escopo do índice.** Um índice **da Organização**, separado do índice de cada projeto, com prefixo `@reference/`. O
    projeto continua isolado; a referência é compartilhada e só leitura.
 
 3. **Recuperação seletiva.** `ai.knowledge.search` ganha `filters: { technologies, projectTypes, responsibilities,
@@ -90,12 +90,12 @@ Context Engine que já existem.
 
 **Trade-offs e cuidados.**
 
-- **Confidencialidade.** O catálogo contém conhecimento estrutural de repositórios **privados da empresa** (EZM-*). Ele
-  não deve ser embarcado no instalador distribuído. Recomendo dividir: pacote público (EMP, MLZ) embarcado; pacote
-  organizacional (EZM) carregado de uma pasta ou repositório da organização, configurado pelo usuário.
-- **Embarcar × buscar na hora.** Embarcar dá previsibilidade e funciona sem rede; buscar no GitHub a cada uso é lento,
-  depende de credencial e reabre a análise. O pedido diz "consultar primeiro o catálogo local": embarcar (público) e
-  carregar de pasta (organizacional).
+- **Neutralidade (decidido em 2026-11-18).** O Spock não menciona nenhuma organização. Tudo o que vem de outros projetos
+  fica numa única pasta, a Organização, com fontes privadas por id neutro e sem nome de organização, cliente,
+  fornecedor ou host ([regras](../organizacao/README.md#regras)).
+- **Local × buscar na hora.** A pasta local dá previsibilidade e funciona sem rede; buscar no GitHub a cada uso é lento,
+  depende de credencial e reabre a análise. O pedido diz "consultar primeiro o catálogo local": a pasta Organização é
+  a fonte, e a fonte original só é relida para conferir uma atualização.
 - **Busca semântica.** Não é necessária para isto: metadados e filtros resolvem a seleção por tecnologia. Embeddings
   continuam úteis para o problema PT×EN do índice de projeto (M1), mas são outra decisão.
 
@@ -128,7 +128,7 @@ padrão de workflow (8.000) pode precisar de ajuste.
 
 | Stack | Fonte | Saída |
 | --- | --- | --- |
-| .NET | `.sln`/`.slnx`, `ProjectReference`, `PackageReference` | Grafo de projetos, camadas inferidas por nome, violações de direção (ex.: Application → Infrastructure, como em EZM-DOC) |
+| .NET | `.sln`/`.slnx`, `ProjectReference`, `PackageReference` | Grafo de projetos, camadas inferidas por nome, violações de direção (ex.: Application → Infrastructure, como em NET-DOC) |
 | TS/React | `import` entre pastas de primeiro nível, ESLint config | `app/features/shared` presentes?, imports cruzados entre features, lint de camadas existe? |
 | Angular | `app.routes.ts`, `core/` × `features/` | `core` importa `features`?, lazy loading, standalone |
 | Geral | Tamanho de arquivos, testes por projeto, ADRs, Harness existente | Arquivos grandes, áreas sem teste, decisões registradas |
@@ -141,7 +141,7 @@ do que existe, não do que foi declarado).
 hub ("arquitetura existente").
 
 **Trade-off.** Heurísticas por stack precisam de manutenção. Começar por .NET e React (as stacks das referências e do
-próprio Spock) e medir em repositórios reais (EMP, EZM-ANY, o próprio Spock).
+próprio Spock) e medir em repositórios reais (EMP, NET-INT, o próprio Spock).
 
 ## R5. Harness por framework, gerado do catálogo
 
@@ -152,7 +152,7 @@ próprio Spock) e medir em repositórios reais (EMP, EZM-ANY, o próprio Spock).
 1. Regras por framework geradas de seções do catálogo: React (§3 + §4 quando o kit for compatível), Angular (§5), .NET
    (§6, mais §6.9 se houver integração), fullstack (§8). O texto da regra é curto: os padrões aplicáveis por id, com uma
    linha cada, e a instrução de consultar `spock_architecture_reference` para o detalhe.
-2. Skill por stack **curta e estável** (lição do EZM-ANY: skill de ~50 mil tokens é anti-padrão), com a lista "não
+2. Skill por stack **curta e estável** (lição do NET-INT: skill de ~50 mil tokens é anti-padrão), com a lista "não
    copiar" como anti-padrões.
 3. Regra por caminho (`paths`) para carregar a regra só quando o arquivo da stack é tocado (já suportado).
 4. Versão por componente e proveniência: cada regra gerada registra os `REF-*` e a data da análise no lock, para que uma
@@ -210,7 +210,7 @@ todo o contexto antes (passo para fora do "sem tool calling" atual).
 - Dataset de referências: perguntas por stack com os `REF-*` esperados (ex.: "como validar resposta da API num projeto
   React?" → REF-R3), medindo recall e, principalmente, **contaminação** (seção de outra stack recuperada).
 - Dataset de avaliação de arquitetura com os repositórios de referência como gabarito (as violações conhecidas de
-  EZM-DOC e EMP-BE estão descritas no catálogo).
+  NET-DOC e EMP-BE estão descritas no catálogo).
 - Guardar o histórico das métricas (hoje só passa/falha).
 
 **Trade-off.** Custo de modelo pequeno e controlado pelo teto que já existe.
