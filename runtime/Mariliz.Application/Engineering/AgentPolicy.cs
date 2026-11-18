@@ -16,7 +16,7 @@ public sealed record AgentPolicy(string Script, IReadOnlyList<string> Watches, I
 public static partial class AgentPolicyService
 {
     public const string PolicyAsset = "catalog/policy.json";
-    public const string HookAsset = "hooks/mariliz-policy.py";
+    public static readonly string HookAsset = Catalog.Asset(Catalog.HookPolicy);
 
     private static readonly Lazy<AgentPolicy> Policy = new(Build);
 

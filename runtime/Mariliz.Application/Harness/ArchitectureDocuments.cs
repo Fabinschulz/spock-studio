@@ -1,32 +1,22 @@
 using System.Text.RegularExpressions;
+using Mariliz.Application.Discovery;
 using Mariliz.Application.Ideas;
 using Mariliz.Application.Ports;
 using Mariliz.Core.Discovery;
 
 namespace Mariliz.Application.Harness;
 
-/// <param name="StackId">Uma stack com perfil de regras (dotnet, node, react, nextjs, angular, flutter); nulo quando não há.</param>
-/// <param name="Language">Reconhecida como linguagem ou framework, com ou sem perfil de regras.</param>
+/// <param name="StackId">A tecnologia do registro (Technologies) nomeada na linha; nulo quando não é nenhuma delas.</param>
+/// <param name="Language">Reconhecida como linguagem ou framework, com ou sem tecnologia no registro.</param>
 internal sealed record PlannedStack(string Area, string Choice, string? StackId, bool Language, string Line);
 
 // Os documentos que a fase A grava. O motor lê o Markdown, não uma cópia em JSON: se a pessoa editar a stack no documento e
 // planejar de novo, o plano acompanha.
 internal sealed partial class ArchitectureDocuments
 {
-    // A ordem importa: a primeira que casar vence ("Next.js com React" é Next.js).
-    private static readonly (string Id, Regex Pattern)[] Profiles =
-    [
-        ("nextjs", new(@"\bnext\.?js\b", RegexOptions.IgnoreCase)),
-        ("angular", new(@"\bangular\b", RegexOptions.IgnoreCase)),
-        ("react", new(@"\breact\b", RegexOptions.IgnoreCase)),
-        ("dotnet", new(@"\.net\b|\basp\.net|\bc#|\bdotnet\b|\bblazor\b|\bentity framework\b", RegexOptions.IgnoreCase)),
-        ("node", new(@"\bnode(\.?js)?\b|\bnestjs\b|\bexpress\b|\btypescript\b|\bjavascript\b|\bvue(\.js)?\b|\bnuxt\b|\bsvelte\b", RegexOptions.IgnoreCase)),
-        ("flutter", new(@"\bflutter\b|\bdart\b", RegexOptions.IgnoreCase))
-    ];
-
-    private static readonly Regex WithoutProfile = new(
-        @"\bpython\b|\bdjango\b|\bfastapi\b|\bflask\b|\bjava\b|\bspring\b|\bkotlin\b|\bgolang\b|\bgo\b|\brust\b|\bphp\b|\blaravel\b|\bruby\b|\brails\b|\bswift\b|\belixir\b|\bscala\b",
-        RegexOptions.IgnoreCase);
+    // Linguagens que o Spock reconhece numa arquitetura, mas que não são tecnologia do registro (não há detector para elas).
+    private static readonly Regex OtherLanguages = new(
+        @"\bphp\b|\blaravel\b|\bruby\b|\brails\b|\bswift\b|\belixir\b|\bscala\b", RegexOptions.IgnoreCase);
 
     private ArchitectureDocuments(IReadOnlyList<string> present, IReadOnlyList<PlannedStack> stack, string architectureFile)
     {
@@ -81,8 +71,8 @@ internal sealed partial class ArchitectureDocuments
             var choice = (end < 0 ? rest : rest[..end]).Trim().TrimEnd('.');
             if (choice.Length == 0) continue;
 
-            var profile = Profiles.FirstOrDefault(item => item.Pattern.IsMatch(choice)).Id;
-            stack.Add(new(area, choice, profile, profile is not null || WithoutProfile.IsMatch(choice), line));
+            var technology = Technologies.Named(choice);
+            stack.Add(new(area, choice, technology?.Id, technology is not null || OtherLanguages.IsMatch(choice), line));
         }
         return stack;
     }

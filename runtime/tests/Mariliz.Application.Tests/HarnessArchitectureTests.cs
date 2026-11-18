@@ -52,7 +52,7 @@ public class HarnessArchitectureTests
         var stack = ArchitectureDocuments.ParseStack(Architecture);
 
         Assert.Equal(["ASP.NET Core 9", "Next.js", "PostgreSQL", "Python com FastAPI"], stack.Select(item => item.Choice));
-        Assert.Equal(["dotnet", "nextjs", null, null], stack.Select(item => item.StackId));
+        Assert.Equal(["dotnet", "nextjs", null, "python"], stack.Select(item => item.StackId));
         Assert.Equal([true, true, false, true], stack.Select(item => item.Language));
         Assert.Equal("backend", stack[0].Area);
     }

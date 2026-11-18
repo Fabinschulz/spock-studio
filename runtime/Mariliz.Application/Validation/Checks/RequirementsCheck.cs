@@ -1,3 +1,4 @@
+using Mariliz.Application.Discovery;
 using Mariliz.Application.Harness;
 using Mariliz.Core.Evals;
 using static Mariliz.Application.Validation.EvalResults;
@@ -32,11 +33,12 @@ internal sealed class RequirementsCheck : IEvalCheck
         Need(Catalog.AgentHarnessEngineer, ctx.Naming.HarnessEngineerAgent, "o Harness Engineer planeja a configuração");
         // As mesmas perguntas do plano: stack detectada ou, sem ela, planejada na arquitetura aprovada.
         var architecture = ArchitectureDocuments.Read(ctx.Files);
-        if (ctx.Discovery.Stacks.Any(s => s.Id == "dotnet") || architecture.PlannedOnly(ctx.Discovery.Stacks, id => id == "dotnet").Count > 0)
-            Need(Catalog.RuleStackDotnet, ctx.Naming.RuleDotnet, "stack .NET detectada ou planejada na arquitetura");
-        if (ctx.Discovery.Stacks.Any(HarnessComposition.IsJavascriptStack)
-            || architecture.PlannedOnly(ctx.Discovery.Stacks, id => HarnessComposition.JavascriptStacks.Contains(id)).Count > 0)
-            Need(Catalog.RuleStackJavascript, ctx.Naming.RuleJavascript, "stack JavaScript/TypeScript detectada ou planejada na arquitetura");
+        foreach (var profile in StackRuleProfiles.All)
+        {
+            bool family(string id) => Technologies.RulesOf(id) == profile.Family;
+            if (ctx.Discovery.Stacks.Any(s => family(s.Id)) || architecture.PlannedOnly(ctx.Discovery.Stacks, family).Count > 0)
+                Need(profile.Component, Catalog.FilesOf(profile.Component, ctx.Naming).Single(), $"stack {profile.Name} detectada ou planejada na arquitetura");
+        }
         if (architecture.Exists) Need(Catalog.RuleArchitecture, ctx.Naming.RuleArchitecture, $"documentos de arquitetura em {ctx.Naming.ArchitectureFolder}");
         if (ctx.Discovery.Tooling.Any(HarnessComposition.IsRepositoryCommand)) Need(Catalog.RuleRepoCommands, ctx.Naming.RuleRepo, "comandos do repositório detectados");
         if (ctx.Discovery.Tools.PythonCommand is not null) Need(Catalog.HookPolicy, ctx.Naming.HookScript, "Python disponível: o hook de política é exigido");

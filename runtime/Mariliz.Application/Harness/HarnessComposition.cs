@@ -11,14 +11,8 @@ namespace Mariliz.Application.Harness;
 internal sealed class HarnessComposition(
     DiscoveryReport report, IProjectFiles files, DeclaredConfig? declared, ProposalResult proposal, PlanOptions options)
 {
-    // O perfil tecnológico lê daqui para dizer o mesmo que o plano.
-    internal static readonly string[] JavascriptStacks = ["node", "nextjs", "react", "angular"];
-
-    // Detectadas, mas sem regra de stack: o plano diz isso em vez de calar.
-    private static readonly string[] StacksWithoutProfile = ["flutter", "python", "rust", "go", "java"];
-
     // O plano, a validação e o perfil usam esta mesma pergunta.
-    internal static bool IsJavascriptStack(StackFinding stack) => JavascriptStacks.Contains(stack.Id);
+    internal static bool IsJavascriptStack(StackFinding stack) => Technologies.RulesOf(stack.Id) == RuleFamily.Javascript;
 
     internal static bool IsRepositoryCommand(ToolingFinding tool) => tool.Command is not null && tool.Kind is "build" or "test" or "lint" or "typecheck";
 
@@ -273,41 +267,40 @@ internal sealed class HarnessComposition(
     {
         if (_components.Wants(Catalog.AgentHarnessEngineer, true, "Planeja a configuração do Harness a partir de evidências do projeto.", []))
         {
-            _desired.Add(RuleContent.Asset(_naming, _naming.HarnessEngineerAgent, ComponentKind.Agent, Catalog.AgentHarnessEngineer, "agents/harness-engineer.md",
+            _desired.Add(RuleContent.Asset(_naming, _naming.HarnessEngineerAgent, ComponentKind.Agent, Catalog.AgentHarnessEngineer, Catalog.Asset(Catalog.AgentHarnessEngineer),
                 $"Agente que propõe a composição do Harness em {_naming.Proposal}."));
             _desired.Add(RuleContent.Asset(_naming, _naming.ProposalSchema, ComponentKind.Agent, Catalog.AgentHarnessEngineer, "schemas/harness-proposal.v1.schema.json",
                 "Schema da proposta que o Harness Engineer deve seguir."));
         }
 
         if (_components.Wants(Catalog.AgentCodeReviewer, true, "Revisão de diffs com evidência, somente leitura.", []))
-            _desired.Add(RuleContent.Asset(_naming, _naming.CodeReviewerAgent, ComponentKind.Agent, Catalog.AgentCodeReviewer, "agents/code-reviewer.md",
+            _desired.Add(RuleContent.Asset(_naming, _naming.CodeReviewerAgent, ComponentKind.Agent, Catalog.AgentCodeReviewer, Catalog.Asset(Catalog.AgentCodeReviewer),
                 "Revisor independente, sem permissão de escrita."));
 
         if (_components.Wants(Catalog.AgentVerifier, true, "Verificação independente de requisitos e critérios de aceite, como o ciclo de especificação exige.", [$"{SpecificationManifest.SkillDirectory} (estrutura fixa)"]))
-            _desired.Add(RuleContent.Asset(_naming, _naming.VerifierAgent, ComponentKind.Agent, Catalog.AgentVerifier, "agents/verifier.md",
+            _desired.Add(RuleContent.Asset(_naming, _naming.VerifierAgent, ComponentKind.Agent, Catalog.AgentVerifier, Catalog.Asset(Catalog.AgentVerifier),
                 "Verificador do ciclo spec-driven (autor diferente do verificador)."));
 
         if (_components.Wants(Catalog.SkillHarnessContract, true, "Contrato único de evidência e confiança lido por todos os agentes.", []))
-            _desired.Add(RuleContent.Asset(_naming, _naming.HarnessContractSkill, ComponentKind.Skill, Catalog.SkillHarnessContract, "skills/harness-contract/SKILL.md",
+            _desired.Add(RuleContent.Asset(_naming, _naming.HarnessContractSkill, ComponentKind.Skill, Catalog.SkillHarnessContract, Catalog.Asset(Catalog.SkillHarnessContract),
                 "Contrato de evidência compartilhado por referência."));
 
         if (_components.Wants(Catalog.RuleGeneral, true, "Regras de método, limites, testes, erros, segurança e conclusão.", []))
-            _desired.Add(RuleContent.Asset(_naming, _naming.RuleGeneral, ComponentKind.Rule, Catalog.RuleGeneral, "rules/general.md", "Regras gerais do produto."));
+            _desired.Add(RuleContent.Asset(_naming, _naming.RuleGeneral, ComponentKind.Rule, Catalog.RuleGeneral, Catalog.Asset(Catalog.RuleGeneral), "Regras gerais do produto."));
     }
 
     private void AddStackRules()
     {
-        AddStackRule(Catalog.RuleStackDotnet, _naming.RuleDotnet, "rules/stack-dotnet.md", ["**/*.cs", "**/*.csproj"], ".NET",
-            id => id == "dotnet");
-        AddStackRule(Catalog.RuleStackJavascript, _naming.RuleJavascript, "rules/stack-javascript.md", ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
-            "JavaScript/TypeScript", id => JavascriptStacks.Contains(id));
+        foreach (var profile in StackRuleProfiles.All)
+            AddStackRule(profile);
 
-        foreach (var stack in report.Stacks.Where(s => StacksWithoutProfile.Contains(s.Id)))
+        // Detectadas, mas sem regra de stack: o plano diz isso em vez de calar.
+        foreach (var stack in report.Stacks.Where(s => Technologies.RulesOf(s.Id) == RuleFamily.None))
             _limitations.Add(new(LimitationCodes.NoRuleProfile,
                 $"{stack.Name} foi detectado em '{(stack.Root.Length == 0 ? "." : stack.Root)}', mas ainda não há perfil de regras para ele; nenhuma regra de stack foi gerada."));
 
         var withoutProfile = _architecture.Stack
-            .Where(item => item.Language && item.StackId is null or "flutter" && !report.Stacks.Any(stack => stack.Id == item.StackId))
+            .Where(item => item.Language && Technologies.RulesOf(item.StackId) == RuleFamily.None && !report.Stacks.Any(stack => stack.Id == item.StackId))
             .ToList();
         foreach (var item in withoutProfile)
             _limitations.Add(new(LimitationCodes.NoRuleProfile,
@@ -321,8 +314,11 @@ internal sealed class HarnessComposition(
     private static string Describe(PlannedStack item) => item.Area.Length == 0 ? item.Choice : $"{item.Choice} ({item.Area})";
 
     // O que a descoberta achou no código vale mais; a arquitetura só completa uma família que o projeto ainda não tem.
-    private void AddStackRule(string component, string path, string asset, string[] globs, string name, Func<string, bool> family)
+    private void AddStackRule(StackRuleProfile profile)
     {
+        var (component, asset, globs, name) = (profile.Component, profile.Asset, profile.Globs, profile.Name);
+        var path = Catalog.FilesOf(component, _naming).Single();
+        bool family(string id) => Technologies.RulesOf(id) == profile.Family;
         var detected = report.Stacks.Where(stack => family(stack.Id)).ToList();
         var planned = _architecture.PlannedOnly(report.Stacks, family);
         var stacks = detected.Count > 0 ? detected : planned;
@@ -398,7 +394,7 @@ internal sealed class HarnessComposition(
                 text = merged;
                 owner = Catalog.HookPolicy;
                 reasons.Add("Registra o hook e nega a leitura de arquivos .env; o restante do arquivo é preservado.");
-                _desired.Add(RuleContent.Asset(_naming, _naming.HookScript, ComponentKind.Hook, Catalog.HookPolicy, "hooks/mariliz-policy.py",
+                _desired.Add(RuleContent.Asset(_naming, _naming.HookScript, ComponentKind.Hook, Catalog.HookPolicy, Catalog.Asset(Catalog.HookPolicy),
                     "Script do hook: determinístico, somente leitura, sem rede."));
                 _risks.Add($"O hook usa o comando '{python}' em .claude/settings.json; em máquinas onde esse nome não existe ele falha sem bloquear (comportamento documentado).");
             }
@@ -568,7 +564,7 @@ internal sealed class HarnessComposition(
         if (_components.Wants(Catalog.SkillAgentsHarnessContract, true,
                 "Contrato de evidência e confiança na pasta de skills que o Codex e o Cursor leem.", []))
             _desired.Add(RuleContent.Asset(_naming, _naming.AgentsHarnessContractSkill, ComponentKind.Skill, Catalog.SkillAgentsHarnessContract,
-                "skills/harness-contract/SKILL.md", "Contrato de evidência em .agents/skills, para o Codex e o Cursor."));
+                Catalog.Asset(Catalog.SkillAgentsHarnessContract), "Contrato de evidência em .agents/skills, para o Codex e o Cursor."));
 
         if (codex && claude)
             _observations.Add(new("fact",
