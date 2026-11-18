@@ -117,9 +117,22 @@ feita: a descoberta detecta o lançador (`spock version`); o Harness do Claude C
 (`mariliz.ide.claude-bootstrap`), a chave `spock` no `.mcp.json` (`mariliz.ide.mcp`, `spock mcp --project-dir .`) e o hook
 `SessionStart` (`mariliz.hook.session`, `spock context session`) no mesmo `.claude/settings.json` do hook de política; sem o
 lançador, entra só o bloco e o plano diz por quê, e numa máquina sem ele nada do que a equipe versionou é apagado;
-dispensar um componente tira só o trecho dele, se ninguém o editou. Faltam: a tela de Agentes oferecer
-`spock mcp --project-dir`, o hook por prompt (`context prompt`, depende da intenção `development`) e a homologação do
-cenário 1 num Claude Code de verdade.
+dispensar um componente tira só o trecho dele, se ninguém o editou. A tela de Agentes usa `spock` nos passos de cada IDE
+quando o lançador está instalado (procura no PATH e em `bin\` ao lado do motor) e avisa quando não está.
+
+**Homologação do cenário 1 (2026-11-18, master `09d7e4d`, com os nomes `spock` do #132):** motor e lançador gerados do
+master, lançador só no PATH do processo de teste (sem instalar), projeto Node descartável. O plano para `claude-code`
+detectou o lançador (sem `LAUNCHER_MISSING`) e gravou `spock.yaml` e `spock.lock` com cabeçalho Spock Studio, o bloco
+`spock.bootstrap` no `CLAUDE.md`, o servidor `spock` no `.mcp.json` e o `SessionStart` ao lado do hook
+`spock-policy.py`; a validação passou. `spock context session` devolveu o contexto de abertura (identidade, conexões,
+Harness com 11 componentes íntegros) com código 0 e registrou `ide.bootstrap`. `spock mcp --project-dir .` respondeu
+`initialize`, listou as 12 ferramentas, e `spock_context_bootstrap` devolveu 4 itens sem omissões e registrou
+`ide.context_read`, com o mesmo `contextVersion` do hook. O Claude Code 2.1.326 reconheceu o servidor do `.mcp.json` como "Pending approval": na primeira
+sessão interativa a pessoa aprova o servidor do projeto uma vez, como para qualquer `.mcp.json`. Ficaram de fora: a resposta
+de um modelo numa sessão logada (o CLI fora do app não tinha login), o instalador de verdade (validado antes só como
+pacote) e o critério "`contextVersion` igual ao do lock", porque o lock não guarda a versão do contexto, que depende dos
+componentes do próprio lock e precisa ser redefinida. Falta ainda o hook por prompt (`context prompt`, depende da intenção
+`development`).
 
 Riscos do bloco: aprovação de servidor de projeto e projeto confiável são da pessoa (o SPOCK explica, não contorna);
 formatos mudam rápido (teste de conformidade por adaptador e revisão da matriz a cada entrega).
