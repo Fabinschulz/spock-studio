@@ -161,7 +161,7 @@ public class DiscoveryTests
         var claude = report.AiEnvironments.Single(e => e.Id == "claude-code");
         Assert.True(claude.Supported);
         Assert.Equal(Confidence.High, claude.Confidence);
-        Assert.False(report.AiEnvironments.Single(e => e.Id == "cursor").Supported);
+        Assert.True(report.AiEnvironments.Single(e => e.Id == "cursor").Supported);
         Assert.Equal(Confidence.Low, report.AiEnvironments.Single(e => e.Id == "codex").Confidence);
         Assert.Contains(report.Warnings, w => w.Code == DiscoveryWarningCodes.MultipleAiEnvironments);
     }

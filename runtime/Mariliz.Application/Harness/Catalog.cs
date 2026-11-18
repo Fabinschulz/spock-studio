@@ -30,6 +30,10 @@ public static class Catalog
     public const string IdeCodexMcp = "mariliz.ide.codex-mcp";
     public const string HookCodexSession = "mariliz.hook.codex-session";
     public const string HookCodexPrompt = "mariliz.hook.codex-prompt";
+    // C3: o Cursor tem regra própria em .cursor/rules, MCP em .cursor/mcp.json e só o hook de sessão.
+    public const string IdeCursorRule = "mariliz.ide.cursor-rule";
+    public const string IdeCursorMcp = "mariliz.ide.cursor-mcp";
+    public const string HookCursorSession = "mariliz.hook.cursor-session";
     public const string SpecificationStructure = "mariliz.specification.structure";
     public const string ConfigDeclaration = "mariliz.config.declaration";
     public const string CustomRulePrefix = "mariliz.rule.custom.";
@@ -54,6 +58,9 @@ public static class Catalog
         new(IdeCodexMcp, ComponentKind.Tool, ComponentVersion, "Servidor MCP do Spock no Codex"),
         new(HookCodexSession, ComponentKind.Hook, ComponentVersion, "Hook de início de sessão do Codex"),
         new(HookCodexPrompt, ComponentKind.Hook, ComponentVersion, "Hook por prompt do Codex"),
+        new(IdeCursorRule, ComponentKind.Rule, ComponentVersion, "Regra do Spock no Cursor"),
+        new(IdeCursorMcp, ComponentKind.Tool, ComponentVersion, "Servidor MCP do Spock no Cursor"),
+        new(HookCursorSession, ComponentKind.Hook, ComponentVersion, "Hook de início de sessão do Cursor"),
         // Externo: a versão real vem da instalação verificada (ver LockBuilder), não do catálogo.
         new(SpecificationStructure, ComponentKind.Specification, "", "Estrutura de especificação"),
         new(ConfigDeclaration, ComponentKind.Config, "0.1.1", "Declaração e lock")
@@ -74,6 +81,9 @@ public static class Catalog
     public const string PathAgentsMd = "AGENTS.md";
     public const string PathCodexConfig = ".codex/config.toml";
     public const string PathCodexHooks = ".codex/hooks.json";
+    public const string PathCursorRule = ".cursor/rules/spock.mdc";
+    public const string PathCursorMcp = ".cursor/mcp.json";
+    public const string PathCursorHooks = ".cursor/hooks.json";
 
     // Arquivo do componente, no nome que este projeto usa. Nulo para o que não tem arquivo próprio.
     public static IReadOnlyList<string> FilesOf(string componentId, HarnessNaming naming) => componentId switch
@@ -94,6 +104,9 @@ public static class Catalog
         IdeCodexBootstrap => [PathAgentsMd],
         IdeCodexMcp => [PathCodexConfig],
         HookCodexSession or HookCodexPrompt => [PathCodexHooks],
+        IdeCursorRule => [PathCursorRule],
+        IdeCursorMcp => [PathCursorMcp],
+        HookCursorSession => [PathCursorHooks],
         ConfigDeclaration => [naming.Declaration, naming.Lock],
         _ => []
     };

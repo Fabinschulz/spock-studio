@@ -76,6 +76,7 @@ internal sealed class HarnessComposition(
                 "Sem o Claude Code entre os ambientes, o Spock grava por enquanto só a ligação com a IDE (bloco, MCP e hooks). Agentes, regras, skills, o hook de política e a estrutura de especificação ainda são só do Claude Code."));
         }
         if (environments.Contains(AiEnvironments.Codex)) AddCodexIntegration();
+        if (environments.Contains(AiEnvironments.Cursor)) AddCursorIntegration();
 
         return new ComposeResult(environment, _proposalOrigin, _desired, _decisions, _commands, _limitations,
             [.. _observations, .. proposal.Proposal?.Observations ?? []],
@@ -138,7 +139,7 @@ internal sealed class HarnessComposition(
     private ComposeResult BlockUnsupportedEnvironment(string environment)
     {
         _limitations.Add(new(LimitationCodes.EnvironmentNotSupported,
-            $"O ambiente '{environment}' foi detectado ou selecionado, mas esta versão configura só o Claude Code e a ligação do Codex. Apenas a declaração ({_naming.Declaration}) pode ser criada de forma genérica; agentes, skills, regras e hooks não foram gerados."));
+            $"O ambiente '{environment}' foi detectado ou selecionado, mas esta versão configura só o Claude Code e a ligação do Codex e do Cursor. Apenas a declaração ({_naming.Declaration}) pode ser criada de forma genérica; agentes, skills, regras e hooks não foram gerados."));
 
         foreach (var component in Catalog.Components.Where(c => c.Kind != ComponentKind.Config))
             _decisions.Add(new(component.Kind, component.Id, ComponentDecisions.Blocked,
@@ -438,6 +439,61 @@ internal sealed class HarnessComposition(
             _limitations.Add(new(LimitationCodes.LauncherMissing,
                 LauncherMissing + " Até lá, o plano não grava o servidor MCP nem os hooks; conecte a IDE pela tela Agentes."));
     }
+
+    // C3: o que liga o Cursor ao Spock. A regra é um arquivo do Spock (alwaysApply), o servidor fica numa chave do
+    // .cursor/mcp.json e o hook de sessão no .cursor/hooks.json, que tem formato próprio e lê o contexto de um JSON.
+    private void AddCursorIntegration()
+    {
+        var launcher = report.Tools.Spock is not null;
+        if (_components.Wants(Catalog.IdeCursorRule, true, "Diz ao Cursor como chegar ao contexto do Spock: hook de sessão, MCP e busca.", []))
+            _desired.Add(new(Catalog.PathCursorRule, ComponentKind.Rule, Catalog.IdeCursorRule, DecisionOrigins.Baseline,
+                "Regra do Spock no Cursor, sempre aplicada: como chegar ao contexto do projeto.", CursorRule, "file"));
+        AddRegion(Catalog.IdeCursorMcp, launcher, "Liga o servidor MCP do Spock ao Cursor pelo comando spock, sem caminho desta máquina.",
+            LauncherMissing, ComponentKind.Tool, Catalog.PathCursorMcp, ManagedRegion.JsonKey, McpServerKey, CursorMcpServer,
+            "Registra o servidor MCP do Spock (spock mcp --project-dir ${workspaceFolder}) no .cursor/mcp.json.");
+
+        var current = files.ReadText(Catalog.PathCursorHooks);
+        if (_components.Wants(Catalog.HookCursorSession, launcher,
+                "Entrega ao Cursor, no começo de cada sessão, o contexto de abertura do projeto (spock context session --ide cursor).", [], LauncherMissing))
+        {
+            var (merged, error) = CursorHooksMerger.MergeSession(current);
+            if (merged is null)
+                BlockComponent(Catalog.HookCursorSession, LimitationCodes.HookBlocked, error ?? $"{Catalog.PathCursorHooks} não pôde ser mesclado.");
+            else
+                _desired.Add(new(Catalog.PathCursorHooks, ComponentKind.Hook, Catalog.HookCursorSession, DecisionOrigins.Baseline,
+                    "Registra o hook de início de sessão (spock context session --ide cursor); o restante do arquivo é preservado.", merged, "merge"));
+        }
+        else if (_exclusion.Contains(Catalog.HookCursorSession) && CursorHooksMerger.ReleaseSession(current) is { } released)
+            _desired.Add(new(Catalog.PathCursorHooks, ComponentKind.Hook, Catalog.HookCursorSession, DecisionOrigins.Declared,
+                "O hook de sessão foi dispensado: sai só o registro dele.", released, "release"));
+
+        _limitations.Add(new(LimitationCodes.PromptHookUnavailable,
+            "O Cursor não tem hook por prompt que injete contexto: se o contexto mudar no meio da sessão, o aviso chega só quando o agente chamar spock_context_bootstrap pelo MCP."));
+        if (launcher)
+            _risks.Add("O Cursor só roda hooks de projeto em workspace confiável e pede aprovação antes de usar cada ferramenta MCP. Confiar no workspace e aprovar as ferramentas é com a pessoa.");
+        else if (!_limitations.Any(l => l.Code == LimitationCodes.LauncherMissing))
+            _limitations.Add(new(LimitationCodes.LauncherMissing,
+                LauncherMissing + " Até lá, o plano não grava o servidor MCP nem o hook; conecte a IDE pela tela Agentes."));
+    }
+
+    private const string CursorMcpServer = """{"type":"stdio","command":"spock","args":["mcp","--project-dir","${workspaceFolder}"]}""";
+
+    private const string CursorRule = """
+        ---
+        description: Como chegar ao contexto do Spock Studio neste projeto
+        alwaysApply: true
+        ---
+
+        ## Spock Studio
+
+        Este projeto é acompanhado pelo Spock Studio, que guarda fora do repositório o contexto dele: perfil, decisões, gestão e conexões.
+
+        - No começo da sessão, o contexto de abertura chega pelo hook `spock context session`. Se não chegou, chame a ferramenta `spock_context_bootstrap` do servidor MCP `spock`.
+        - O Cursor não avisa a cada prompt quando o contexto muda no Spock: numa sessão longa, chame `spock_context_bootstrap` de novo antes de planejar uma mudança.
+        - Para achar código, documentos e decisões, use `search_project` e `decisions`; antes de planejar uma mudança, `project_briefing`.
+        - O Spock só lê. Este arquivo é do Spock e muda por plano aprovado no aplicativo.
+
+        """;
 
     private const string CodexMcpTable = "mcp_servers.spock";
     private const string CodexMcpServer = "[mcp_servers.spock]\ncommand = \"spock\"\nargs = [\"mcp\", \"--project-dir\", \".\"]";

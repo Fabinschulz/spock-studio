@@ -6,7 +6,7 @@ public static class AiEnvironments
     public const string Cursor = "cursor";
     public const string Codex = "codex";
 
-    // O Cursor ainda só é detectado. No Codex, o Harness grava só a ligação com a IDE (C3).
-    public static readonly IReadOnlyList<string> Supported = [ClaudeCode, Codex];
+    // No Cursor e no Codex o Harness grava só a ligação com a IDE (C3).
+    public static readonly IReadOnlyList<string> Supported = [ClaudeCode, Cursor, Codex];
     public static readonly IReadOnlyList<string> Known = [ClaudeCode, Cursor, Codex];
 }

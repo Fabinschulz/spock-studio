@@ -182,7 +182,28 @@ Homologado pelo lançador num projeto descartável, sem o Codex instalado:
 - o servidor MCP achou o projeto subindo de uma subpasta. A documentação não diz em que pasta o Codex sobe o servidor
   quando falta `cwd`.
 
-Faltam o Codex de verdade, a escolha de vários ambientes na tela e as entregas 2 e 3.
+A **entrega 2 (Cursor)** está feita, conferida contra a documentação oficial do Cursor de 2026-11-18. O Cursor passa a ser
+um ambiente suportado e recebe três componentes:
+
+- `mariliz.ide.cursor-rule`: `.cursor/rules/spock.mdc` com `alwaysApply: true`. É um arquivo do Spock; o texto pede para
+  chamar `spock_context_bootstrap` de novo numa sessão longa, porque o Cursor não avisa a cada prompt.
+- `mariliz.ide.cursor-mcp`: a chave `spock` no `.cursor/mcp.json`, com `spock mcp --project-dir ${workspaceFolder}`. O
+  Cursor resolve a variável como a raiz do projeto, então o servidor não depende da pasta em que sobe.
+- `mariliz.hook.cursor-session`: `sessionStart` no `.cursor/hooks.json`, que tem formato próprio
+  (`{"version": 1, "hooks": {"sessionStart": [{"command", "timeout"}]}}`). O comando é `spock context session --ide cursor`,
+  que responde no JSON que o Cursor lê (`{"additional_context": ...}`) e acha a pasta por `workspace_roots`.
+
+O plano registra `PROMPT_HOOK_UNAVAILABLE`, porque o Cursor não tem hook por prompt que injete contexto. Também lembra que
+o Cursor só roda hooks de projeto em workspace confiável e pede aprovação antes de cada ferramenta MCP. Um projeto pode
+declarar os três ambientes em `aiEnvironments`, e cada IDE recebe só as peças dela.
+
+Homologado pelo lançador num projeto descartável, sem o Cursor instalado:
+
+- o plano mexeu só em `.cursor/` e nos arquivos do Spock, preservando os hooks e servidores da equipe;
+- o hook respondeu em JSON com o contexto de abertura;
+- o MCP achou o projeto pelo caminho absoluto, subindo fora da pasta.
+
+Faltam o Codex e o Cursor de verdade, a escolha de vários ambientes na tela e a entrega 3.
 
 Riscos do bloco: aprovação de servidor de projeto e projeto confiável são da pessoa (o SPOCK explica, não contorna);
 formatos mudam rápido (teste de conformidade por adaptador e revisão da matriz a cada entrega).

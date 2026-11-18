@@ -19,4 +19,6 @@ public static class LimitationCodes
     public const string HarnessEngineerNotInvoked = "HARNESS_ENGINEER_NOT_INVOKED";
     // C3: ambiente sem o Claude Code recebe só a ligação com a IDE.
     public const string EnvironmentPartial = "ENVIRONMENT_PARTIAL";
+    // C3: o Cursor não tem hook por prompt que injete contexto.
+    public const string PromptHookUnavailable = "PROMPT_HOOK_UNAVAILABLE";
 }

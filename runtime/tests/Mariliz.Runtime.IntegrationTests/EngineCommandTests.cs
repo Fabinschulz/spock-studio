@@ -105,6 +105,28 @@ public sealed class EngineCommandTests : IDisposable
         Assert.DoesNotContain("zebra-azul", trail);
     }
 
+    // C3: o Cursor lê o contexto de um JSON (additional_context) e manda a pasta em workspace_roots, não em cwd.
+    [Fact]
+    public async Task Hook_de_sessao_do_cursor_responde_em_json_pela_pasta_do_workspace()
+    {
+        File.WriteAllText(Path.Combine(_project, "spock.yaml"),
+            "schema: 1\nproject:\n  id: spk-01M7GTEK00ABCDEFGHJKMNPQRS\n  name: loja\nimplementationModel: mariliz\naiEnvironment: cursor\n");
+        new WorkspaceAuthorizer(new LocalWorkspaceFileSystem(), new FileWorkspaceRegistry(_data)).Authorize(_project);
+        var roots = System.Text.Json.JsonSerializer.Serialize(new[] { _project });
+        var input = $$"""{"session_id":"c-1","hook_event_name":"sessionStart","workspace_roots":{{roots}},"is_background_agent":false}""";
+
+        var inside = await RunWith(input, "context", "session", "--ide", "cursor");
+        var outside = await RunWith("""{"session_id":"c-2"}""", "context", "session", "--ide", "cursor", "--project-dir", Path.GetTempPath());
+        var other = await RunWith(input, "context", "session", "--ide", "vscode");
+
+        Assert.Equal(0, inside.Code);
+        var context = System.Text.Json.Nodes.JsonNode.Parse(inside.Out)!["additional_context"]!.GetValue<string>();
+        Assert.StartsWith("# Contexto do projeto", context);
+        Assert.Contains("spk-01M7GTEK00ABCDEFGHJKMNPQRS", context);
+        Assert.Contains("não está aberta no Spock Studio", System.Text.Json.Nodes.JsonNode.Parse(outside.Out)!["additional_context"]!.GetValue<string>());
+        Assert.Equal(2, other.Code);
+    }
+
     [Fact]
     public async Task Hook_por_prompt_fora_de_projeto_fica_em_silencio()
     {
