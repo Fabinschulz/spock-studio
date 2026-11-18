@@ -116,7 +116,7 @@ public static class SettingsMerger
         return root.ToJsonString(Output) + "\n";
     }
 
-    // C2: os hooks da IDE chamam o lançador spock (DD-6). O de sessão escreve o contexto de abertura; o de prompt, um aviso curto
+    // C2 e C3: os hooks da IDE chamam o lançador spock (DD-6). O Codex usa o mesmo formato no .codex/hooks.json. O de sessão escreve o contexto de abertura; o de prompt, um aviso curto
     // só quando algo mudou. Sem matcher: valem para início, retomada, limpeza e compactação, e para todo prompt.
     public const string SessionCommand = "spock context session";
     public const string PromptCommand = "spock context prompt";
@@ -124,10 +124,12 @@ public static class SettingsMerger
     private const string SessionEvent = "SessionStart";
     private const string PromptEvent = "UserPromptSubmit";
 
-    public static (string? Content, string? Error) MergeSession(string? current) => MergeEvent(current, SessionEvent, SessionCommand, 15);
+    public static (string? Content, string? Error) MergeSession(string? current, string path = Catalog.PathSettings) =>
+        MergeEvent(current, path, SessionEvent, SessionCommand, 15);
 
     // Roda a cada prompt: o prazo curto impede que um motor travado segure a pergunta da pessoa.
-    public static (string? Content, string? Error) MergePrompt(string? current) => MergeEvent(current, PromptEvent, PromptCommand, 5);
+    public static (string? Content, string? Error) MergePrompt(string? current, string path = Catalog.PathSettings) =>
+        MergeEvent(current, path, PromptEvent, PromptCommand, 5);
 
     public static string? ReleaseSession(string? current) => ReleaseEvent(current, SessionEvent);
 
@@ -137,12 +139,12 @@ public static class SettingsMerger
 
     public static bool HasPrompt(string? content) => HasEvent(content, PromptEvent);
 
-    private static (string? Content, string? Error) MergeEvent(string? current, string hookEvent, string command, int timeout)
+    private static (string? Content, string? Error) MergeEvent(string? current, string path, string hookEvent, string command, int timeout)
     {
-        if (Parse(current) is not { } root) return (null, ".claude/settings.json não é um JSON válido (sem comentários nem vírgulas sobrando); a aplicação não o altera.");
+        if (Parse(current) is not { } root) return (null, $"{path} não é um JSON válido (sem comentários nem vírgulas sobrando); a aplicação não o altera.");
         var before = root.DeepClone();
         if (!TryGetOrCreateObject(root, "hooks", out var hooks) || !TryGetOrCreateArray(hooks!, hookEvent, out var groups))
-            return (null, ".claude/settings.json tem 'hooks' em formato inesperado; a aplicação não o altera.");
+            return (null, $"{path} tem 'hooks' em formato inesperado; a aplicação não o altera.");
 
         var desired = new JsonObject { ["type"] = "command", ["command"] = command, ["timeout"] = timeout };
         var replaced = false;

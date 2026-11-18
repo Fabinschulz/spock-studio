@@ -22,7 +22,7 @@
       "binary": "codex",
       "installed": true,
       "version": null,
-      "harnessSupport": false
+      "harnessSupport": true
     },
     {
       "id": "gemini",

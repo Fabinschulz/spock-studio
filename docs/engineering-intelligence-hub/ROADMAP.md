@@ -157,6 +157,33 @@ Sem `session_id`, fora de projeto do Spock ou com erro, o hook fica em silêncio
 (o motor sem trabalho subia em 90 a 190 ms): cerca de 310 ms por prompt, dos quais uns 120 ms são a primeira inspeção do
 Harness. Sem o tiktoken, que o aviso não usa, o tempo caiu a um terço do hook de sessão.
 
+**Estado do C3 (2026-11-18):** o C3 sai em três entregas: Codex, Cursor e skills em `.agents/skills`.
+
+A **entrega 1 (Codex)** está feita, conferida contra a documentação oficial do Codex de 2026-11-18:
+
+- O Codex passa a ser um ambiente suportado e recebe quatro componentes, cada um só no trecho do Spock:
+  - `mariliz.ide.codex-bootstrap`: o mesmo bloco `spock.bootstrap` no `AGENTS.md`;
+  - `mariliz.ide.codex-mcp`: `[mcp_servers.spock]` no `.codex/config.toml`, com `spock mcp --project-dir .`;
+  - `mariliz.hook.codex-session` e `mariliz.hook.codex-prompt`: `SessionStart` e `UserPromptSubmit` no `.codex/hooks.json`.
+    É o mesmo formato do `.claude/settings.json`, e o Codex aceita o texto do hook na saída padrão, então os comandos são
+    os mesmos.
+- **Codex como único ambiente:** o projeto recebe só essas peças, a declaração e o lock, sem nenhum arquivo do Claude
+  Code. O plano avisa (`ENVIRONMENT_PARTIAL`) que agentes, regras, skills, o hook de política e a especificação ainda são
+  só do Claude Code. As avaliações de regras e requisitos do Claude Code não se aplicam.
+- **Equipe com os dois:** quem usa os dois declara `aiEnvironments: [claude-code, codex]` no `spock.yaml`, e o Codex entra
+  sem tocar no que o Claude Code já tem.
+- **Confiança:** o plano lembra que o Codex só lê `.codex/` em projeto confiável e que cada hook precisa ser revisto com
+  `/hooks`. As duas coisas são da pessoa.
+
+Homologado pelo lançador num projeto descartável, sem o Codex instalado:
+
+- o plano mexeu só no `AGENTS.md`, no `.codex/config.toml`, no `.codex/hooks.json`, na declaração e no lock;
+- os hooks responderam à entrada no formato do Codex, com `cwd` numa subpasta e sem `CLAUDE_PROJECT_DIR`;
+- o servidor MCP achou o projeto subindo de uma subpasta. A documentação não diz em que pasta o Codex sobe o servidor
+  quando falta `cwd`.
+
+Faltam o Codex de verdade, a escolha de vários ambientes na tela e as entregas 2 e 3.
+
 Riscos do bloco: aprovação de servidor de projeto e projeto confiável são da pessoa (o SPOCK explica, não contorna);
 formatos mudam rápido (teste de conformidade por adaptador e revisão da matriz a cada entrega).
 

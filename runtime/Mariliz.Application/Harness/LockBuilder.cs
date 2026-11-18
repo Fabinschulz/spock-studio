@@ -38,6 +38,12 @@ public static class LockBuilder
     private static Dictionary<string, DesiredFile> Desired(ComposeResult composed) =>
         composed.Files.Where(f => f.Mode != "release").ToDictionary(f => f.Path, StringComparer.Ordinal);
 
+    private static readonly (string Path, string Session, string Prompt)[] LauncherHookFiles =
+    [
+        (Catalog.PathSettings, Catalog.HookSession, Catalog.HookPrompt),
+        (Catalog.PathCodexHooks, Catalog.HookCodexSession, Catalog.HookCodexPrompt)
+    ];
+
     private static string Write(ComposeResult composed, IEnumerable<ManagedLockFile.ManagedFileEntry> entries, SpecificationStatus specification)
     {
         // Só uma instalação verificada da estrutura de especificação é registrada.
@@ -55,10 +61,13 @@ public static class LockBuilder
         lockFile.ManagedFiles.AddRange(entries);
 
         var components = lockFile.ManagedFiles.Select(f => f.Component).ToList();
-        if (composed.Files.Any(f => f.Path == Catalog.PathSettings && f.Mode == "merge" && SettingsMerger.HasSession(f.Content)))
-            components.Add(Catalog.HookSession);
-        if (composed.Files.Any(f => f.Path == Catalog.PathSettings && f.Mode == "merge" && SettingsMerger.HasPrompt(f.Content)))
-            components.Add(Catalog.HookPrompt);
+        // Num arquivo de hooks mesclado, o dono registrado é um só; os outros hooks do Spock nele entram pelo conteúdo.
+        foreach (var (path, session, prompt) in LauncherHookFiles)
+        {
+            if (composed.Files.FirstOrDefault(f => f.Path == path && f.Mode == "merge") is not { } merged) continue;
+            if (SettingsMerger.HasSession(merged.Content)) components.Add(session);
+            if (SettingsMerger.HasPrompt(merged.Content)) components.Add(prompt);
+        }
         foreach (var id in components.Distinct())
         {
             var component = Catalog.Find(id);

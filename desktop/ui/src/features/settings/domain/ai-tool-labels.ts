@@ -18,11 +18,16 @@ function stateOf(tool: AiTool): Pick<AiToolDescription, 'state' | 'tone' | 'deta
   };
 }
 
+// C3: no Codex o Harness grava só a ligação com a IDE; prometer o Harness inteiro seria falso.
+const partialHarness: Record<string, string> = {
+  codex: 'O Spock liga esta ferramenta ao projeto (bloco no AGENTS.md, MCP e hooks); agentes, regras e skills ainda são só do Claude Code.'
+};
+
 export function describeAiTool(tool: AiTool): AiToolDescription {
   return {
     ...stateOf(tool),
-    harness: tool.harnessSupport
-      ? 'O Spock configura o Harness para esta ferramenta.'
-      : 'O Spock detecta esta ferramenta, mas ainda não configura o Harness dela.'
+    harness: !tool.harnessSupport
+      ? 'O Spock detecta esta ferramenta, mas ainda não configura o Harness dela.'
+      : (partialHarness[tool.id] ?? 'O Spock configura o Harness para esta ferramenta.')
   };
 }

@@ -56,14 +56,26 @@ internal sealed class HarnessComposition(
 
         AddDeclarationEdit();
         _components = CreateComponentSelector();
-        AddCoreComponents();
-        AddStackRules();
-        AddArchitectureRule();
-        AddRepositoryCommands();
-        AddProposedRules();
-        AddHooks();
-        AddIdeIntegration();
-        SpecificationPlanner.Plan(report, files, options, _exclusion, _decisions, _commands, _limitations, _risks);
+        var environments = declared?.Environments is { Count: > 0 } listed ? listed : [environment];
+        if (environments.Contains(AiEnvironments.ClaudeCode))
+        {
+            AddCoreComponents();
+            AddStackRules();
+            AddArchitectureRule();
+            AddRepositoryCommands();
+            AddProposedRules();
+            AddHooks();
+            AddIdeIntegration();
+            SpecificationPlanner.Plan(report, files, options, _exclusion, _decisions, _commands, _limitations, _risks);
+        }
+        else
+        {
+            // O Harness Engineer é um agente do Claude Code: sem ele entre os ambientes, pedir a proposta dele não leva a nada.
+            _limitations.RemoveAll(l => l.Code == LimitationCodes.HarnessEngineerNotInvoked);
+            _limitations.Add(new(LimitationCodes.EnvironmentPartial,
+                "Sem o Claude Code entre os ambientes, o Spock grava por enquanto só a ligação com a IDE (bloco, MCP e hooks). Agentes, regras, skills, o hook de política e a estrutura de especificação ainda são só do Claude Code."));
+        }
+        if (environments.Contains(AiEnvironments.Codex)) AddCodexIntegration();
 
         return new ComposeResult(environment, _proposalOrigin, _desired, _decisions, _commands, _limitations,
             [.. _observations, .. proposal.Proposal?.Observations ?? []],
@@ -126,7 +138,7 @@ internal sealed class HarnessComposition(
     private ComposeResult BlockUnsupportedEnvironment(string environment)
     {
         _limitations.Add(new(LimitationCodes.EnvironmentNotSupported,
-            $"O ambiente '{environment}' foi detectado ou selecionado, mas esta fase só configura Claude Code. Apenas a declaração ({_naming.Declaration}) pode ser criada de forma genérica; agentes, skills, regras e hooks não foram gerados."));
+            $"O ambiente '{environment}' foi detectado ou selecionado, mas esta versão configura só o Claude Code e a ligação do Codex. Apenas a declaração ({_naming.Declaration}) pode ser criada de forma genérica; agentes, skills, regras e hooks não foram gerados."));
 
         foreach (var component in Catalog.Components.Where(c => c.Kind != ComponentKind.Config))
             _decisions.Add(new(component.Kind, component.Id, ComponentDecisions.Blocked,
@@ -328,49 +340,56 @@ internal sealed class HarnessComposition(
             reasons.Add("O hook foi dispensado: sai só o registro dele; o restante do arquivo e as regras que negam a leitura de .env ficam.");
         }
 
-        if (_components.Wants(Catalog.HookSession, report.Tools.Spock is not null,
-                "Entrega à IDE, no começo de cada sessão, o contexto de abertura do projeto (spock context session).", [], LauncherMissing))
-        {
-            var (merged, error) = SettingsMerger.MergeSession(text);
-            if (merged is null)
-                BlockComponent(Catalog.HookSession, LimitationCodes.HookBlocked, error ?? "settings.json não pôde ser mesclado.");
-            else
-            {
-                if (merged != text) reasons.Add("Registra o hook de início de sessão (spock context session).");
-                text = merged;
-                owner ??= Catalog.HookSession;
-            }
-        }
-        // Sem o lançador nesta máquina o hook não é tirado: o arquivo é da equipe, e quem tem o Spock instalado continua usando.
-        else if (_exclusion.Contains(Catalog.HookSession) && SettingsMerger.ReleaseSession(text) is { } released)
-        {
-            text = released;
-            reasons.Add("O hook de sessão foi dispensado: sai só o registro dele.");
-        }
-
-        if (_components.Wants(Catalog.HookPrompt, report.Tools.Spock is not null,
-                "A cada prompt, avisa a IDE só quando o contexto mudou, uma fonte ficou velha ou o assunto pede uma ferramenta do Spock (spock context prompt).", [], LauncherMissing))
-        {
-            var (merged, error) = SettingsMerger.MergePrompt(text);
-            if (merged is null)
-                BlockComponent(Catalog.HookPrompt, LimitationCodes.HookBlocked, error ?? "settings.json não pôde ser mesclado.");
-            else
-            {
-                if (merged != text) reasons.Add("Registra o hook por prompt (spock context prompt).");
-                text = merged;
-                owner ??= Catalog.HookPrompt;
-            }
-        }
-        else if (_exclusion.Contains(Catalog.HookPrompt) && SettingsMerger.ReleasePrompt(text) is { } releasedPrompt)
-        {
-            text = releasedPrompt;
-            reasons.Add("O hook por prompt foi dispensado: sai só o registro dele.");
-        }
+        MergeLauncherHooks(Catalog.PathSettings, Catalog.HookSession, Catalog.HookPrompt, ref text, ref owner, reasons);
 
         if (owner is not null)
             _desired.Add(new(Catalog.PathSettings, ComponentKind.Hook, owner, DecisionOrigins.Baseline, string.Join(" ", reasons), text!, "merge"));
         else if (text is not null && text != current)
             _desired.Add(new(Catalog.PathSettings, ComponentKind.Hook, Catalog.HookPolicy, DecisionOrigins.Declared, string.Join(" ", reasons), text, "release"));
+    }
+
+    // Os hooks que chamam o lançador, no arquivo de hooks da IDE. Sem o lançador nesta máquina o hook não é tirado: o arquivo é
+    // da equipe, e quem tem o Spock instalado continua usando. Só a dispensa pedida tira o registro.
+    private void MergeLauncherHooks(string path, string sessionId, string promptId, ref string? text, ref string? owner, List<string> reasons)
+    {
+        var launcher = report.Tools.Spock is not null;
+        if (_components.Wants(sessionId, launcher,
+                "Entrega à IDE, no começo de cada sessão, o contexto de abertura do projeto (spock context session).", [], LauncherMissing))
+        {
+            var (merged, error) = SettingsMerger.MergeSession(text, path);
+            if (merged is null)
+                BlockComponent(sessionId, LimitationCodes.HookBlocked, error ?? $"{path} não pôde ser mesclado.");
+            else
+            {
+                if (merged != text) reasons.Add("Registra o hook de início de sessão (spock context session).");
+                text = merged;
+                owner ??= sessionId;
+            }
+        }
+        else if (_exclusion.Contains(sessionId) && SettingsMerger.ReleaseSession(text) is { } released)
+        {
+            text = released;
+            reasons.Add("O hook de sessão foi dispensado: sai só o registro dele.");
+        }
+
+        if (_components.Wants(promptId, launcher,
+                "A cada prompt, avisa a IDE só quando o contexto mudou, uma fonte ficou velha ou o assunto pede uma ferramenta do Spock (spock context prompt).", [], LauncherMissing))
+        {
+            var (merged, error) = SettingsMerger.MergePrompt(text, path);
+            if (merged is null)
+                BlockComponent(promptId, LimitationCodes.HookBlocked, error ?? $"{path} não pôde ser mesclado.");
+            else
+            {
+                if (merged != text) reasons.Add("Registra o hook por prompt (spock context prompt).");
+                text = merged;
+                owner ??= promptId;
+            }
+        }
+        else if (_exclusion.Contains(promptId) && SettingsMerger.ReleasePrompt(text) is { } releasedPrompt)
+        {
+            text = releasedPrompt;
+            reasons.Add("O hook por prompt foi dispensado: sai só o registro dele.");
+        }
     }
 
     private const string LauncherMissing =
@@ -390,6 +409,38 @@ internal sealed class HarnessComposition(
             _limitations.Add(new(LimitationCodes.LauncherMissing,
                 LauncherMissing + " Até lá, o plano não grava o servidor MCP nem o hook de sessão; conecte a IDE pela tela Agentes."));
     }
+
+    // C3: o que liga o Codex ao Spock. O mesmo bloco no AGENTS.md, o servidor no .codex/config.toml e os hooks no
+    // .codex/hooks.json, que tem o formato do .claude/settings.json e aceita o texto do hook na saída padrão.
+    private void AddCodexIntegration()
+    {
+        var launcher = report.Tools.Spock is not null;
+        AddRegion(Catalog.IdeCodexBootstrap, true, "Diz ao Codex como chegar ao contexto do Spock: hook de sessão, MCP e busca.", null,
+            ComponentKind.Rule, Catalog.PathAgentsMd, ManagedRegion.Block, ClaudeBlockId, ClaudeBlock,
+            "Bloco do Spock no AGENTS.md: como chegar ao contexto do projeto.");
+        AddRegion(Catalog.IdeCodexMcp, launcher, "Liga o servidor MCP do Spock ao Codex pelo comando spock, sem caminho desta máquina.",
+            LauncherMissing, ComponentKind.Tool, Catalog.PathCodexConfig, ManagedRegion.TomlTable, CodexMcpTable, CodexMcpServer,
+            "Registra o servidor MCP do Spock (spock mcp --project-dir .) no .codex/config.toml.");
+
+        var current = files.ReadText(Catalog.PathCodexHooks);
+        var text = current;
+        string? owner = null;
+        var reasons = new List<string>();
+        MergeLauncherHooks(Catalog.PathCodexHooks, Catalog.HookCodexSession, Catalog.HookCodexPrompt, ref text, ref owner, reasons);
+        if (owner is not null)
+            _desired.Add(new(Catalog.PathCodexHooks, ComponentKind.Hook, owner, DecisionOrigins.Baseline, string.Join(" ", reasons), text!, "merge"));
+        else if (text is not null && text != current)
+            _desired.Add(new(Catalog.PathCodexHooks, ComponentKind.Hook, Catalog.HookCodexSession, DecisionOrigins.Declared, string.Join(" ", reasons), text, "release"));
+
+        if (launcher)
+            _risks.Add("O Codex só lê .codex/config.toml e .codex/hooks.json em projeto confiável, e cada hook novo ou alterado só roda depois de revisto com /hooks no Codex. Confiar no projeto e nos hooks é com a pessoa.");
+        else if (!_limitations.Any(l => l.Code == LimitationCodes.LauncherMissing))
+            _limitations.Add(new(LimitationCodes.LauncherMissing,
+                LauncherMissing + " Até lá, o plano não grava o servidor MCP nem os hooks; conecte a IDE pela tela Agentes."));
+    }
+
+    private const string CodexMcpTable = "mcp_servers.spock";
+    private const string CodexMcpServer = "[mcp_servers.spock]\ncommand = \"spock\"\nargs = [\"mcp\", \"--project-dir\", \".\"]";
 
     private const string ClaudeBlockId = "spock.bootstrap";
     private const string McpServerKey = "mcpServers.spock";

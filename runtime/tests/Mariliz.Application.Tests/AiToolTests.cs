@@ -56,13 +56,13 @@ public class AiToolTests
     }
 
     [Fact]
-    public async Task So_o_Claude_Code_tem_o_Harness_configurado_pelo_Spock()
+    public async Task Claude_Code_e_Codex_tem_o_Harness_configurado_pelo_Spock()
     {
         var service = Service([], _ => Output(""), out _);
 
         var tools = await service.ListAsync(CancellationToken.None);
 
-        Assert.Equal(["claude-code"], tools.Where(tool => tool.HarnessSupport).Select(tool => tool.Id));
+        Assert.Equal(["claude-code", "codex"], tools.Where(tool => tool.HarnessSupport).Select(tool => tool.Id));
     }
 
     [Theory]
