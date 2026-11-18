@@ -15,19 +15,47 @@ public static partial class OrganizationReferences
     private const string ResourceFolder = "Organizacao/";
     private const string Notice = "Referência arquitetural da Organização: argumento de engenharia, não é regra nem convenção do projeto.";
 
-    private static readonly Lazy<IReadOnlyList<MemoryDocument>> All = new(Load);
+    private const int MaxPatternTitle = 140;
+
+    private static readonly Lazy<IReadOnlyList<MemoryDocument>> All = new(() => Files().SelectMany(file => Split(file.Name, file.Markdown)).ToList());
+
+    private static readonly Lazy<IReadOnlyList<ReferencePattern>> AllPatterns =
+        new(() => Files().SelectMany(file => PatternsOf(file.Markdown)).ToList());
 
     public static IReadOnlyList<MemoryDocument> Documents => All.Value;
 
-    private static IReadOnlyList<MemoryDocument> Load()
+    // Cada linha "| REF-… | nome |" das tabelas: o índice dos padrões que a intenção architecture do Context Engine entrega.
+    public static IReadOnlyList<ReferencePattern> Patterns => AllPatterns.Value;
+
+    private static IEnumerable<(string Name, string Markdown)> Files()
     {
         var assembly = typeof(OrganizationReferences).Assembly;
         return assembly.GetManifestResourceNames()
             .Where(name => name.StartsWith(ResourceFolder, StringComparison.Ordinal) && name.EndsWith(".md", StringComparison.Ordinal))
             .Where(name => !name.EndsWith("/README.md", StringComparison.OrdinalIgnoreCase))
             .Order(StringComparer.Ordinal)
-            .SelectMany(name => Split(name[ResourceFolder.Length..^".md".Length], Read(assembly, name)))
-            .ToList();
+            .Select(name => (name[ResourceFolder.Length..^".md".Length], Read(assembly, name)));
+    }
+
+    internal static IEnumerable<ReferencePattern> PatternsOf(string markdown)
+    {
+        var frontmatter = FrontmatterReader.Read(markdown);
+        if (frontmatter is null || !frontmatter.TryGetValue("titulo", out var title) || !frontmatter.TryGetValue("analisadoEm", out var analyzed)
+            || !DateTimeOffset.TryParse(analyzed, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.AssumeUniversal, out var analyzedAt))
+            yield break;
+
+        foreach (var section in Section().Split(markdown.Replace("\r\n", "\n")).Skip(1))
+        {
+            var heading = Heading().Replace(section[..section.IndexOf('\n')].Trim(), "");
+            var technologies = TechnologiesOf(section);
+            foreach (Match row in PatternRow().Matches(section))
+            {
+                var name = row.Groups["title"].Value.Replace("**", "").Trim();
+                if (name.Length > MaxPatternTitle) name = name[..(MaxPatternTitle - 1)].TrimEnd() + "…";
+                yield return new ReferencePattern(row.Groups["id"].Value, name, heading, technologies, title, analyzedAt);
+            }
+        }
     }
 
     // Sem titulo e analisadoEm no frontmatter, o arquivo não entra: o agente precisa saber de quando é a referência.
@@ -77,6 +105,9 @@ public static partial class OrganizationReferences
 
     [GeneratedRegex(@"(?m)^## ")]
     private static partial Regex Section();
+
+    [GeneratedRegex(@"(?m)^\| (?<id>REF-[A-Z]+\d+) \| (?<title>[^|]+)\|")]
+    private static partial Regex PatternRow();
 
     [GeneratedRegex(@"(?m)^Escopo:(?<scope>.*)$")]
     private static partial Regex Scope();

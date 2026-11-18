@@ -6,6 +6,7 @@ using Mariliz.Application.Engineering;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
+using Mariliz.Application.Workflows;
 using Mariliz.Application.Workspace;
 using Mariliz.Core.Text;
 
@@ -39,6 +40,15 @@ public sealed class ContextEngine(
         ("warnings", "Avisos")
     ];
 
+    // W1-3: o agente recebe o índice dos padrões que valem para a stack (id e uma linha); o texto ele busca quando precisa.
+    private static readonly (string Id, string Title)[] ArchitectureSections =
+    [
+        ("identity", "Identidade"),
+        ("stacks", "Tecnologias do projeto"),
+        ("references", "Referências da Organização"),
+        ("warnings", "Avisos")
+    ];
+
     public ContextPackage Compose(string projectId, string intent, int? budgetTokens = null)
     {
         if (!workspace.IsAuthorized(projectId)) throw EngineErrors.ProjectNotAuthorized();
@@ -57,15 +67,32 @@ public sealed class ContextEngine(
         var links = integrations?.Projects.List(projectId) ?? [];
         var cloudLinks = cloud?.Projects.List(projectId) ?? [];
         var limitations = new List<string>();
-        if (integrations is null) limitations.Add("As integrações não estão disponíveis nesta sessão do motor: o pacote não fala de Jira, GitHub e afins.");
-        if (cloud is null) limitations.Add("As conexões cloud não estão disponíveis nesta sessão do motor.");
-
         var candidates = new List<ContextItem>();
         candidates.AddRange(Identity(project, stableId, now, naming));
-        candidates.AddRange(Policies(links, cloudLinks));
-        candidates.AddRange(Connections(links, cloudLinks, now));
-        candidates.AddRange(Harness(status, naming));
-        candidates.AddRange(Warnings(projectId, stableId, now, naming));
+        (string Id, string Title)[] sections;
+        var version = Version(project, stableId, links, cloudLinks, status);
+        if (intent == ContextIntents.Architecture)
+        {
+            var profile = profiles.Read(projectId);
+            var stacks = Stacks(profile);
+            var patterns = OrganizationReferences.Patterns.Where(pattern => pattern.AppliesTo(stacks.Select(item => item.Ref).ToHashSet())).ToList();
+            // O aviso entra antes das referências no orçamento (o texto o mostra no fim): sem perfil, ele explica por que não há filtro.
+            candidates.AddRange(stacks);
+            candidates.AddRange(ArchitectureWarnings(profile, now));
+            candidates.AddRange(References(patterns));
+            sections = ArchitectureSections;
+            version = "ctx-" + Hashing.Sha256(string.Join("\n", [version, .. stacks.Select(item => item.Ref), .. patterns.Select(p => p.Id)]))[..16];
+        }
+        else
+        {
+            if (integrations is null) limitations.Add("As integrações não estão disponíveis nesta sessão do motor: o pacote não fala de Jira, GitHub e afins.");
+            if (cloud is null) limitations.Add("As conexões cloud não estão disponíveis nesta sessão do motor.");
+            candidates.AddRange(Policies(links, cloudLinks));
+            candidates.AddRange(Connections(links, cloudLinks, now));
+            candidates.AddRange(Harness(status, naming));
+            candidates.AddRange(Warnings(projectId, stableId, now, naming));
+            sections = BootstrapSections;
+        }
 
         var counter = tokenizers.For(null, null);
         var title = $"# Contexto do projeto {project.DisplayName} ({intent})";
@@ -73,21 +100,21 @@ public sealed class ContextEngine(
         var omitted = new List<ContextOmission>();
         foreach (var item in candidates)
         {
-            if (counter.Count(Render(title, [.. kept, item], limitations)) <= budget) kept.Add(item);
+            if (counter.Count(Render(title, sections, [.. kept, item], limitations)) <= budget) kept.Add(item);
             else omitted.Add(new ContextOmission(item.Section, item.Ref, "Não coube no orçamento de tokens."));
         }
         // O aviso do que ficou de fora também gasta tokens: se ele estourar o orçamento, sai mais um item do fim.
-        var text = Render(title, kept, limitations, omitted.Count);
+        var text = Render(title, sections, kept, limitations, omitted.Count);
         while (kept.Count > 0 && counter.Count(text) > budget)
         {
             var last = kept[^1];
             kept.RemoveAt(kept.Count - 1);
             omitted.Insert(0, new ContextOmission(last.Section, last.Ref, "Não coube no orçamento de tokens."));
-            text = Render(title, kept, limitations, omitted.Count);
+            text = Render(title, sections, kept, limitations, omitted.Count);
         }
 
         return new ContextPackage(projectId, stableId, intent, budget, counter.Count(text), counter.Method,
-            Version(project, stableId, links, cloudLinks, status), now, kept, omitted, limitations, text);
+            version, now, kept, omitted, limitations, text);
     }
 
     private static IEnumerable<ContextItem> Identity(AuthorizedProject project, string? stableId, DateTimeOffset now, HarnessNaming naming)
@@ -169,6 +196,42 @@ public sealed class ContextEngine(
                 naming.Lock, component.Id, ContextClassifications.Discovered, status.InspectedAt, ContextFreshness.Fresh);
     }
 
+    // Só as stacks do registro: o perfil também lista frameworks (Vite, Zod...), que não decidem quais referências valem.
+    private static List<ContextItem> Stacks(TechnologyProfile? profile) => profile is null ? [] : profile.Technologies
+        .Where(technology => Discovery.Technologies.Find(technology.Id) is not null)
+        .DistinctBy(technology => technology.Id)
+        .Select(technology => new ContextItem("stacks",
+            $"{technology.Name}{(technology.Versions.Count > 0 ? $" {string.Join(", ", technology.Versions)}" : "")}.",
+            "spock", technology.Id, ContextClassifications.Discovered, profile.AnalyzedAt,
+            ContextFreshness.Fresh))
+        .ToList();
+
+    // Padrões da stack primeiro, depois os gerais: se o orçamento apertar, sai primeiro o que vale para qualquer projeto.
+    private static IEnumerable<ContextItem> References(IReadOnlyList<ReferencePattern> patterns)
+    {
+        if (patterns.Count == 0) yield break;
+        var analyzed = patterns.Max(pattern => pattern.AnalyzedAt);
+        yield return new ContextItem("references",
+            $"Padrões extraídos de outros projetos ({patterns[0].Source}, análise de {analyzed:yyyy-MM-dd}): são argumento de engenharia, " +
+            "não são convenção deste projeto. O texto de cada um está na busca do projeto (search_project), pelo id.",
+            "organizacao", "organizacao", ContextClassifications.Reference, analyzed, ContextFreshness.Fresh);
+        foreach (var pattern in patterns.OrderBy(pattern => pattern.Technologies.Count == 0))
+            yield return new ContextItem("references", $"{pattern.Id} · {pattern.Title} ({pattern.Section}).",
+                "organizacao", pattern.Id, ContextClassifications.Reference, pattern.AnalyzedAt, ContextFreshness.Fresh);
+    }
+
+    private static IEnumerable<ContextItem> ArchitectureWarnings(TechnologyProfile? profile, DateTimeOffset now)
+    {
+        if (profile is null)
+            yield return new ContextItem("warnings",
+                "Tecnologias ainda não analisadas no Spock: o pacote traz referências de todas as stacks. Analise o projeto para filtrar.",
+                "spock", "profile", ContextClassifications.Calculated, now, ContextFreshness.Unknown);
+        else if (now - profile.AnalyzedAt > ProfileFreshFor)
+            yield return new ContextItem("warnings",
+                $"Perfil de tecnologias de {Stamp(profile.AnalyzedAt)}, com mais de 7 dias: reanalise no Spock se o projeto mudou.",
+                "spock", "profile", ContextClassifications.Calculated, profile.AnalyzedAt, ContextFreshness.Stale);
+    }
+
     private IEnumerable<ContextItem> Warnings(string projectId, string? stableId, DateTimeOffset now, HarnessNaming naming)
     {
         if (stableId is null)
@@ -185,10 +248,11 @@ public sealed class ContextEngine(
                 "spock", "profile", ContextClassifications.Calculated, profile.AnalyzedAt, ContextFreshness.Stale);
     }
 
-    private static string Render(string title, IReadOnlyList<ContextItem> items, IReadOnlyList<string> limitations, int omitted = 0)
+    private static string Render(string title, (string Id, string Title)[] sections, IReadOnlyList<ContextItem> items,
+        IReadOnlyList<string> limitations, int omitted = 0)
     {
         var text = new StringBuilder(title).Append('\n');
-        foreach (var (id, heading) in BootstrapSections)
+        foreach (var (id, heading) in sections)
         {
             var section = items.Where(item => item.Section == id).ToList();
             if (section.Count == 0) continue;

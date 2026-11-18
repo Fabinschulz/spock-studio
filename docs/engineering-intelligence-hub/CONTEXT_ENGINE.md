@@ -82,6 +82,7 @@ módulo.
 | Intenção | Seções, em ordem de prioridade | Orçamento padrão |
 | --- | --- | --- |
 | `bootstrap` | identity, policies, connections (nome e frescor), harness (divergências), avisos | 1.500 |
+| `architecture` (implementada, W1-3) | identity, stacks do perfil, avisos, references (id e uma linha de cada padrão da pasta [Organização](../organizacao/README.md) que vale para as stacks; os da stack antes dos gerais). Classificação `reference` | 1.500 |
 | `development` | rules (do `focus`), architecture (módulo), decisions relacionadas, evidence (código e testes), critérios do item | 6.000 |
 | `management` | management (métricas, riscos, marcos), itens filtrados, changes, limitações | 3.000 |
 | `infrastructure` | infrastructure (conexões liberadas, IaC, último plano, drift), políticas de aprovação | 3.000 |
