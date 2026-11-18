@@ -2,7 +2,12 @@ import { Radio } from '@/shared/components';
 import type { Discovery } from '@/shared/schema';
 
 import { EnvironmentGlyph } from '../../components/environment-glyph';
-import { AI_ENVIRONMENTS, aiEnvironmentNames, isSupportedEnvironment } from '../../domain/ai-environments';
+import {
+  AI_ENVIRONMENTS,
+  aiEnvironmentNames,
+  isSupportedEnvironment,
+  partialEnvironmentNote
+} from '../../domain/ai-environments';
 import styles from './model.module.scss';
 
 interface AiEnvironmentSectionProps {
@@ -27,7 +32,10 @@ export function AiEnvironmentSection({ detected, selected, onSelect }: AiEnviron
         <ul role="list" className={styles.rows}>
           {AI_ENVIRONMENTS.map((id) => {
             const supported = isSupportedEnvironment(id);
-            const tags = [detectedIds.has(id) ? 'detectado' : '', supported ? '' : 'ainda sem suporte'];
+            const tags = [
+              detectedIds.has(id) ? 'detectado' : '',
+              supported ? (partialEnvironmentNote[id] ?? '') : 'ainda sem suporte'
+            ];
             return (
               <li key={id}>
                 <Radio

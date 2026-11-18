@@ -27,7 +27,7 @@ internal static class AiEnvironmentDetector
         if (all.Any(p => p.StartsWith(".codex/", StringComparison.Ordinal))) codex.Add(new Evidence(".codex/"));
         if (all.Contains("AGENTS.md")) codex.Add(new Evidence("AGENTS.md", "lido por várias ferramentas; evidência fraca"));
         if (codex.Count > 0)
-            result.Add(new AiEnvironmentFinding(AiEnvironments.Codex, "OpenAI Codex", false, codex.Any(e => e.Path == ".codex/") ? Confidence.High : Confidence.Low, codex));
+            result.Add(new AiEnvironmentFinding(AiEnvironments.Codex, "OpenAI Codex", AiEnvironments.Supported.Contains(AiEnvironments.Codex), codex.Any(e => e.Path == ".codex/") ? Confidence.High : Confidence.Low, codex));
 
         if (result.Count == 0)
             warnings.Add(new(DiscoveryWarningCodes.NoAiEnvironment, "Nenhum ambiente de IA foi detectado; selecione o que o projeto usa.", []));

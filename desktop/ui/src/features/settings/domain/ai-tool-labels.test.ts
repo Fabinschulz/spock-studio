@@ -31,9 +31,10 @@ describe('describeAiTool', () => {
   });
 
   it('diz se o Spock configura o Harness da ferramenta', () => {
-    expect(describeAiTool(tool({ harnessSupport: true })).harness).toBe(
+    expect(describeAiTool(tool({ id: 'claude-code', harnessSupport: true })).harness).toBe(
       'O Spock configura o Harness para esta ferramenta.'
     );
     expect(describeAiTool(tool({ harnessSupport: false })).harness).toContain('ainda não configura');
+    expect(describeAiTool(tool({ id: 'codex', harnessSupport: true })).harness).toContain('ainda são só do Claude Code');
   });
 });

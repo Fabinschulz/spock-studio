@@ -15,6 +15,8 @@ internal sealed class RulesCheck : IEvalCheck
     private static EvalResult Run(EvalSpec spec, ValidationContext ctx)
     {
         if (ctx.Lock is null) return Block(spec, $"Sem {ctx.Naming.Lock}, não há regras gerenciadas a conferir.");
+        if (!ctx.ConfiguresClaudeCode)
+            return Pass(spec, ["Sem o Claude Code entre os ambientes"], ["As regras do Claude Code não se aplicam: o Spock grava só a ligação com a IDE nos outros ambientes."]);
         var rules = ctx.OwnedFiles().Where(f => f.Path.StartsWith(".claude/rules/", StringComparison.Ordinal)).ToList();
         var problems = new List<string>();
 

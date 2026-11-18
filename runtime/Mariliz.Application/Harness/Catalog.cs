@@ -25,6 +25,11 @@ public static class Catalog
     public const string HookPrompt = "mariliz.hook.prompt";
     public const string IdeClaudeBootstrap = "mariliz.ide.claude-bootstrap";
     public const string IdeMcpServer = "mariliz.ide.mcp";
+    // C3: o mesmo para o Codex, no AGENTS.md, no .codex/config.toml e no .codex/hooks.json.
+    public const string IdeCodexBootstrap = "mariliz.ide.codex-bootstrap";
+    public const string IdeCodexMcp = "mariliz.ide.codex-mcp";
+    public const string HookCodexSession = "mariliz.hook.codex-session";
+    public const string HookCodexPrompt = "mariliz.hook.codex-prompt";
     public const string SpecificationStructure = "mariliz.specification.structure";
     public const string ConfigDeclaration = "mariliz.config.declaration";
     public const string CustomRulePrefix = "mariliz.rule.custom.";
@@ -45,6 +50,10 @@ public static class Catalog
         new(HookPrompt, ComponentKind.Hook, ComponentVersion, "Hook por prompt"),
         new(IdeClaudeBootstrap, ComponentKind.Rule, ComponentVersion, "Bloco do Spock no CLAUDE.md"),
         new(IdeMcpServer, ComponentKind.Tool, ComponentVersion, "Servidor MCP do Spock"),
+        new(IdeCodexBootstrap, ComponentKind.Rule, ComponentVersion, "Bloco do Spock no AGENTS.md"),
+        new(IdeCodexMcp, ComponentKind.Tool, ComponentVersion, "Servidor MCP do Spock no Codex"),
+        new(HookCodexSession, ComponentKind.Hook, ComponentVersion, "Hook de início de sessão do Codex"),
+        new(HookCodexPrompt, ComponentKind.Hook, ComponentVersion, "Hook por prompt do Codex"),
         // Externo: a versão real vem da instalação verificada (ver LockBuilder), não do catálogo.
         new(SpecificationStructure, ComponentKind.Specification, "", "Estrutura de especificação"),
         new(ConfigDeclaration, ComponentKind.Config, "0.1.1", "Declaração e lock")
@@ -62,6 +71,9 @@ public static class Catalog
     public const string PathSettings = ".claude/settings.json";
     public const string PathClaudeMd = "CLAUDE.md";
     public const string PathMcpJson = ".mcp.json";
+    public const string PathAgentsMd = "AGENTS.md";
+    public const string PathCodexConfig = ".codex/config.toml";
+    public const string PathCodexHooks = ".codex/hooks.json";
 
     // Arquivo do componente, no nome que este projeto usa. Nulo para o que não tem arquivo próprio.
     public static IReadOnlyList<string> FilesOf(string componentId, HarnessNaming naming) => componentId switch
@@ -79,6 +91,9 @@ public static class Catalog
         HookSession or HookPrompt => [PathSettings],
         IdeClaudeBootstrap => [PathClaudeMd],
         IdeMcpServer => [PathMcpJson],
+        IdeCodexBootstrap => [PathAgentsMd],
+        IdeCodexMcp => [PathCodexConfig],
+        HookCodexSession or HookCodexPrompt => [PathCodexHooks],
         ConfigDeclaration => [naming.Declaration, naming.Lock],
         _ => []
     };

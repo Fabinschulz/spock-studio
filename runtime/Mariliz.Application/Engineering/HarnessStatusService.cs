@@ -89,8 +89,13 @@ public sealed class HarnessStatusService(WorkspaceAuthorizer workspace, IProject
 
         if (entry.Mode == "merge")
         {
-            var hookRegistered = path != Catalog.PathSettings
-                || System.Text.Encoding.UTF8.GetString(bytes).Contains(project.Naming().HookScript, StringComparison.Ordinal);
+            var text = System.Text.Encoding.UTF8.GetString(bytes);
+            var hookRegistered = path switch
+            {
+                Catalog.PathSettings => text.Contains(project.Naming().HookScript, StringComparison.Ordinal),
+                Catalog.PathCodexHooks => SettingsMerger.HasSession(text) || SettingsMerger.HasPrompt(text),
+                _ => true
+            };
             return new HarnessFileStatus(path, entry.Mode, hookRegistered ? "intact" : "modified");
         }
 

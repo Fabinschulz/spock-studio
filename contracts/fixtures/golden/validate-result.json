@@ -154,7 +154,7 @@
         "status": "passed",
         "criteria": "O ambiente declarado é suportado e nenhum arquivo gerenciado está fora das pastas desse ambiente.",
         "evidence": [
-          "Ambiente claude-code; 11 arquivo(s) todos em .claude/, .spock/ ou na raiz de configuração"
+          "Ambiente claude-code; 11 arquivo(s) todos nas pastas e arquivos de configuração das IDEs ou em .spock/"
         ],
         "reason": null,
         "limitations": []

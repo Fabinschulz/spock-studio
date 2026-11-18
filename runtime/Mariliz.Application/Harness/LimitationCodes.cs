@@ -17,4 +17,6 @@ public static class LimitationCodes
     public const string SpecificationUntested = "SPECIFICATION_UNTESTED_VERSION";
     public const string SpecificationOutdated = "SPECIFICATION_OUTDATED";
     public const string HarnessEngineerNotInvoked = "HARNESS_ENGINEER_NOT_INVOKED";
+    // C3: ambiente sem o Claude Code recebe só a ligação com a IDE.
+    public const string EnvironmentPartial = "ENVIRONMENT_PARTIAL";
 }

@@ -402,6 +402,102 @@
     },
     {
       "sheet": {
+        "id": "mariliz.ide.codex-bootstrap",
+        "kind": "rule",
+        "title": "Bloco do Spock no AGENTS.md",
+        "version": "0.1.0",
+        "whatItDoes": "Um bloco curto no AGENTS.md diz ao Codex que o projeto é acompanhado pelo Spock Studio e como chegar ao contexto dele: o hook de sessão, o servidor MCP spock e as ferramentas de busca.",
+        "whenItActs": "Sempre que o Codex lê o AGENTS.md, no começo de cada sessão.",
+        "reads": [
+          "Nada: é texto fixo"
+        ],
+        "canChange": [
+          "Só o trecho entre os marcadores do Spock no AGENTS.md; o resto do arquivo é da equipe."
+        ],
+        "tools": [],
+        "origin": "Escrito pelo Spock Studio.",
+        "files": [
+          "AGENTS.md"
+        ],
+        "manageable": true
+      },
+      "presence": "not_applied",
+      "state": null
+    },
+    {
+      "sheet": {
+        "id": "mariliz.ide.codex-mcp",
+        "kind": "tool",
+        "title": "Servidor MCP do Spock (.codex/config.toml)",
+        "version": "0.1.0",
+        "whatItDoes": "Registra o servidor MCP do Spock no .codex/config.toml (tabela [mcp_servers.spock]), chamando o comando spock com a pasta do projeto, sem caminho desta máquina.",
+        "whenItActs": "Quando o Codex abre o projeto, se a pessoa confiou nele.",
+        "reads": [
+          "O que o Spock Studio já gravou sobre o projeto, pelas ferramentas do servidor MCP"
+        ],
+        "canChange": [
+          "Só a tabela [mcp_servers.spock] no .codex/config.toml; o resto do arquivo é da equipe."
+        ],
+        "tools": [],
+        "origin": "Escrito pelo Spock Studio; chama o lançador spock que o instalador põe no PATH.",
+        "files": [
+          ".codex/config.toml"
+        ],
+        "manageable": true
+      },
+      "presence": "not_applied",
+      "state": null
+    },
+    {
+      "sheet": {
+        "id": "mariliz.hook.codex-session",
+        "kind": "hook",
+        "title": "Hook de início de sessão do Codex",
+        "version": "0.1.0",
+        "whatItDoes": "No começo de cada sessão do Codex, entrega o contexto de abertura do projeto que o Spock Studio monta: identidade, o que cada conexão libera, frescor dos dados, divergências do Harness e avisos.",
+        "whenItActs": "Quando uma sessão do Codex começa, volta, é limpa, compactada ou bifurcada, depois que a pessoa revisou o hook com /hooks.",
+        "reads": [
+          "O que o Spock Studio já gravou sobre o projeto: id, vínculos, datas de sincronização e o estado do Harness"
+        ],
+        "canChange": [
+          "Nada. Só escreve o contexto na saída do hook; é registrado em .codex/hooks.json e chama o comando spock."
+        ],
+        "tools": [],
+        "origin": "Escrito pelo Spock Studio; chama o lançador spock que o instalador põe no PATH.",
+        "files": [
+          ".codex/hooks.json"
+        ],
+        "manageable": true
+      },
+      "presence": "not_applied",
+      "state": null
+    },
+    {
+      "sheet": {
+        "id": "mariliz.hook.codex-prompt",
+        "kind": "hook",
+        "title": "Hook por prompt do Codex",
+        "version": "0.1.0",
+        "whatItDoes": "A cada prompt no Codex, avisa só quando o contexto do projeto mudou no Spock desde o começo da sessão, quando uma fonte ficou velha ou quando o assunto (gestão, arquitetura, infraestrutura) pede uma ferramenta do Spock. No resto, não diz nada.",
+        "whenItActs": "Quando a pessoa envia um prompt no Codex, depois que revisou o hook com /hooks. Sem modelo e sem busca: cada aviso sai uma vez por sessão.",
+        "reads": [
+          "O que o Spock Studio já gravou sobre o projeto (versão do contexto e datas de sincronização) e o texto do prompt, que não é gravado"
+        ],
+        "canChange": [
+          "Nada no projeto. Guarda, fora do repositório, o que já avisou a cada sessão; é registrado em .codex/hooks.json e chama o comando spock."
+        ],
+        "tools": [],
+        "origin": "Escrito pelo Spock Studio; chama o lançador spock que o instalador põe no PATH.",
+        "files": [
+          ".codex/hooks.json"
+        ],
+        "manageable": true
+      },
+      "presence": "not_applied",
+      "state": null
+    },
+    {
+      "sheet": {
         "id": "mariliz.specification.structure",
         "kind": "specification",
         "title": "Estrutura de especificação",

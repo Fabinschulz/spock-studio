@@ -24,4 +24,8 @@ public sealed record ValidationContext(
     public HarnessNaming Naming { get; } = Files.Naming();
 
     public IEnumerable<ManagedLockFile.ManagedFileEntry> OwnedFiles() => Lock?.ManagedFiles.Where(f => f.Mode != "kept") ?? [];
+
+    // C3: regras, agentes e o hook de política só existem para o Claude Code; num projeto só de Codex, cobrá-los reprovaria à toa.
+    public bool ConfiguresClaudeCode =>
+        (Declared?.Environments is { Count: > 0 } environments ? environments : [Lock?.AiEnvironment ?? ""]).Contains(global::Mariliz.Application.Discovery.AiEnvironments.ClaudeCode);
 }

@@ -23,7 +23,7 @@ internal sealed class EnvironmentCheck : IEvalCheck
             .Where(f => !ManagedScope.IsEnvironmentFile(f.Path))
             .Select(f => f.Path).ToList();
         return outside.Count == 0
-            ? Pass(spec, [$"Ambiente claude-code; {ctx.Lock.ManagedFiles.Count} arquivo(s) todos em .claude/, {ctx.Naming.StateDirectory}/ ou na raiz de configuração"])
+            ? Pass(spec, [$"Ambiente {ctx.Lock.AiEnvironment}; {ctx.Lock.ManagedFiles.Count} arquivo(s) todos nas pastas e arquivos de configuração das IDEs ou em {ctx.Naming.StateDirectory}/"])
             : Fail(spec, "Há arquivos gerenciados fora das pastas do ambiente.", outside);
     }
 }

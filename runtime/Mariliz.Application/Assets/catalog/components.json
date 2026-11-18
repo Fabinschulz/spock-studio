@@ -132,6 +132,38 @@
       "reads": ["O que o Spock Studio já gravou sobre o projeto, sob as políticas de cada conexão"],
       "canChange": ["Nada. As ferramentas só leem; a chave spock é a única que o Spock mantém no .mcp.json."],
       "origin": "Escrito pelo Spock Studio; chama o lançador spock que o instalador põe no PATH."
+    },
+    {
+      "id": "mariliz.ide.codex-bootstrap",
+      "whatItDoes": "Um bloco curto no AGENTS.md diz ao Codex que o projeto é acompanhado pelo Spock Studio e como chegar ao contexto dele: o hook de sessão, o servidor MCP spock e as ferramentas de busca.",
+      "whenItActs": "Sempre que o Codex lê o AGENTS.md, no começo de cada sessão.",
+      "reads": ["Nada: é texto fixo"],
+      "canChange": ["Só o trecho entre os marcadores do Spock no AGENTS.md; o resto do arquivo é da equipe."],
+      "origin": "Escrito pelo Spock Studio."
+    },
+    {
+      "id": "mariliz.ide.codex-mcp",
+      "whatItDoes": "Registra o servidor MCP do Spock no .codex/config.toml (tabela [mcp_servers.spock]), chamando o comando spock com a pasta do projeto, sem caminho desta máquina.",
+      "whenItActs": "Quando o Codex abre o projeto, se a pessoa confiou nele.",
+      "reads": ["O que o Spock Studio já gravou sobre o projeto, pelas ferramentas do servidor MCP"],
+      "canChange": ["Só a tabela [mcp_servers.spock] no .codex/config.toml; o resto do arquivo é da equipe."],
+      "origin": "Escrito pelo Spock Studio; chama o lançador spock que o instalador põe no PATH."
+    },
+    {
+      "id": "mariliz.hook.codex-session",
+      "whatItDoes": "No começo de cada sessão do Codex, entrega o contexto de abertura do projeto que o Spock Studio monta: identidade, o que cada conexão libera, frescor dos dados, divergências do Harness e avisos.",
+      "whenItActs": "Quando uma sessão do Codex começa, volta, é limpa, compactada ou bifurcada, depois que a pessoa revisou o hook com /hooks.",
+      "reads": ["O que o Spock Studio já gravou sobre o projeto: id, vínculos, datas de sincronização e o estado do Harness"],
+      "canChange": ["Nada. Só escreve o contexto na saída do hook; é registrado em .codex/hooks.json e chama o comando spock."],
+      "origin": "Escrito pelo Spock Studio; chama o lançador spock que o instalador põe no PATH."
+    },
+    {
+      "id": "mariliz.hook.codex-prompt",
+      "whatItDoes": "A cada prompt no Codex, avisa só quando o contexto do projeto mudou no Spock desde o começo da sessão, quando uma fonte ficou velha ou quando o assunto (gestão, arquitetura, infraestrutura) pede uma ferramenta do Spock. No resto, não diz nada.",
+      "whenItActs": "Quando a pessoa envia um prompt no Codex, depois que revisou o hook com /hooks. Sem modelo e sem busca: cada aviso sai uma vez por sessão.",
+      "reads": ["O que o Spock Studio já gravou sobre o projeto (versão do contexto e datas de sincronização) e o texto do prompt, que não é gravado"],
+      "canChange": ["Nada no projeto. Guarda, fora do repositório, o que já avisou a cada sessão; é registrado em .codex/hooks.json e chama o comando spock."],
+      "origin": "Escrito pelo Spock Studio; chama o lançador spock que o instalador põe no PATH."
     }
   ]
 }
