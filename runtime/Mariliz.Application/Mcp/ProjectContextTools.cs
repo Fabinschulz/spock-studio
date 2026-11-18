@@ -193,14 +193,20 @@ public sealed class ProjectContextTools(
         if (search is null || indexRoot is null) throw new McpToolException("A busca no índice não está disponível nesta instalação do Spock.");
         if (!workspace.TryGetRoot(project.ProjectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
 
-        var reply = await search.SearchKnowledgeAsync(new JsonObject
+        var request = new JsonObject
         {
             ["schema"] = SearchSchema,
             ["projectId"] = project.ProjectId,
             ["query"] = query,
             ["knowledgeRoot"] = indexRoot,
             ["limit"] = limit
-        }, call.Ct);
+        };
+        // As stacks do perfil: uma referência da Organização marcada para outra stack não chega à IDE. Sem perfil, nada é filtrado.
+        var stacks = (profiles.Read(project.ProjectId)?.Technologies ?? []).Select(item => item.Id)
+            .Where(id => Discovery.Technologies.Find(id) is not null).Distinct().ToArray();
+        if (stacks.Length > 0)
+            request["filters"] = new JsonObject { ["technologies"] = new JsonArray(stacks.Select(id => (JsonNode)JsonValue.Create(id)!).ToArray()) };
+        var reply = await search.SearchKnowledgeAsync(request, call.Ct);
         if (reply.Text("schema") != SearchAck || reply["hits"] is not JsonArray rawHits)
             throw EngineErrors.AiRuntimeInvalidResponse();
 

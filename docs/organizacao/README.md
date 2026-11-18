@@ -50,6 +50,16 @@ analisadoEm: 2026-11-17
 ---
 ```
 
+A linha `Escopo:` no começo de cada seção diz a que tecnologias ela vale, e a busca filtra por isso: um projeto React não
+recebe a seção Angular. Escreva os ids das stacks entre crases, no trecho que começa com "tecnologia" ou "tecnologias",
+com os mesmos ids que o Spock detecta (`react`, `nextjs`, `angular`, `dotnet`, `node`, `python`, `java`, `go`...):
+
+```text
+Escopo: tecnologias `react`, `nextjs` · tipo `frontend` · responsabilidade interface.
+```
+
+Uma seção sem esse trecho, ou com "qualquer tecnologia", vale para todos os projetos. Projeto sem stack detectada recebe
+todas as seções.
+
 Mudou um arquivo daqui? A versão nova do motor leva o texto novo, e o índice de cada projeto se atualiza na próxima
-execução, pelo hash. A busca ainda não filtra por tecnologia: uma pergunta sobre React pode trazer a seção Angular. O
-filtro é o W1-2 do [roadmap](../ai-engineering-platform/SPOCK_EVOLUTION_ROADMAP.md).
+execução, pelo hash.

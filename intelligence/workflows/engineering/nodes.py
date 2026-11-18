@@ -57,7 +57,7 @@ def rag_research(state: dict, segment: Segment) -> dict:
     segment.emitter.emit("context.retrieval.started", {"strategy": ["lexical", "symbol"]})
     try:
         stats = sync(root, state["project_id"], segment.sources)
-        hits = retrieval.search(root, state["project_id"], state["goal"])
+        hits = retrieval.search(root, state["project_id"], state["goal"], technologies=state["stacks"])
         bodies = chunk_bodies(root, state["project_id"], [hit["chunkId"] for hit in hits])
     except KnowledgeError as ex:
         # A causa vai para o diagnóstico do host pelo stderr; a mensagem do SQLite fica de fora porque pode trazer caminho.

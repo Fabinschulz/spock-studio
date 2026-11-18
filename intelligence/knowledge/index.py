@@ -15,11 +15,14 @@ from pathlib import Path
 
 from knowledge.chunking import MAX_CHUNKS, chunk, language_of
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 _PROJECT_ID = re.compile(r"^p-[0-9a-f]{12}$")
 _HASH = re.compile(r"^[0-9a-f]{64}$")
 _TOKEN = re.compile(r"[^\W_]{2,}", re.UNICODE)
 _CAMEL = re.compile(r"(?<=[a-z0-9])(?=[A-Z])|[_\-.]+")
+_FRONTMATTER = re.compile(r"\A---\n(?P<body>.*?)\n---\n", re.DOTALL)
+_TECHNOLOGIES = re.compile(r"^technologies:[ \t]*(?P<value>.*)$", re.MULTILINE)
+_TECHNOLOGY_ID = re.compile(r"^[a-z0-9-]{1,40}$")
 _BLOCKED_DIRS = {
     "node_modules", "bin", "obj", ".git", "dist", "build", ".next", "target", ".venv", "venv", "__pycache__",
 }
@@ -209,13 +212,13 @@ def identifier_parts(name: str) -> list[str]:
 def _hit(conn: sqlite3.Connection, chunk_id: str, score: float, excerpt: str | None) -> dict:
     row = conn.execute(
         """
-        SELECT c.path, c.content_hash, c.kind, c.heading, c.start_line, c.body, d.language, d.module, d.version
+        SELECT c.path, c.content_hash, c.kind, c.heading, c.start_line, c.body, d.language, d.module, d.version, d.technologies
         FROM chunks c JOIN documents d ON d.path = c.path
         WHERE c.chunk_id = ?
         """,
         (chunk_id,),
     ).fetchone()
-    path, digest, kind, heading, start_line, body, language, module, version = row
+    path, digest, kind, heading, start_line, body, language, module, version, technologies = row
     return {
         "documentId": path,
         "chunkId": chunk_id,
@@ -229,6 +232,7 @@ def _hit(conn: sqlite3.Connection, chunk_id: str, score: float, excerpt: str | N
         "language": language,
         "module": module,
         "documentVersion": version,
+        "technologies": [item for item in technologies.split(",") if item],
     }
 
 
@@ -330,7 +334,8 @@ def _ensure(conn: sqlite3.Connection) -> None:
             version INTEGER NOT NULL,
             language TEXT NOT NULL,
             module TEXT NOT NULL,
-            indexed_at TEXT NOT NULL
+            indexed_at TEXT NOT NULL,
+            technologies TEXT NOT NULL DEFAULT ''
         );
         CREATE TABLE IF NOT EXISTS chunks (
             chunk_id TEXT PRIMARY KEY,
@@ -364,13 +369,14 @@ def _ensure(conn: sqlite3.Connection) -> None:
 
 def _replace(conn: sqlite3.Connection, project_id: str, item: dict, version: int) -> int:
     _delete(conn, item["path"])
+    technologies, text = technologies_of(item["path"], item["text"])
     conn.execute(
-        "INSERT INTO documents(path, content_hash, version, language, module, indexed_at) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO documents(path, content_hash, version, language, module, indexed_at, technologies) VALUES (?, ?, ?, ?, ?, ?, ?)",
         (item["path"], item["hash"], version, language_of(item["path"]), _module(item["path"]),
-         datetime.now(timezone.utc).isoformat(timespec="seconds")),
+         datetime.now(timezone.utc).isoformat(timespec="seconds"), ",".join(technologies)),
     )
     written = 0
-    for piece in chunk(item["path"], item["text"]):
+    for piece in chunk(item["path"], text):
         chunk_id = f"{item['path']}#{piece.anchor}"
         conn.execute(
             "INSERT INTO chunks(chunk_id, path, content_hash, kind, heading, start_line, body) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -390,6 +396,27 @@ def _replace(conn: sqlite3.Connection, project_id: str, item: dict, version: int
             )
         written += 1
     return written
+
+
+def technologies_of(path: str, text: str) -> tuple[list[str], str]:
+    """
+    Em Markdown, a linha ``technologies:`` do frontmatter diz a que stacks o documento vale (a pasta Organização usa isso) e
+    vira metadado, não texto do trecho. O resto do frontmatter fica como estava; se ele só tinha essa linha, sai inteiro, e as
+    linhas viram linhas em branco para os números de linha dos trechos não mudarem.
+    """
+    if language_of(path) != "markdown":
+        return [], text
+    block = _FRONTMATTER.match(text)
+    found = _TECHNOLOGIES.search(block.group("body")) if block else None
+    if block is None or found is None:
+        return [], text
+    technologies = list(dict.fromkeys(
+        value for value in (part.strip().lower() for part in found.group("value").split(",")) if _TECHNOLOGY_ID.match(value)
+    ))
+    rest = _TECHNOLOGIES.sub("", block.group("body"))
+    blank = "\n" * block.group(0).count("\n")
+    replaced = blank if not rest.strip() else block.group(0).replace(found.group(0), "")
+    return technologies, replaced + text[block.end():]
 
 
 def _log_skipped(error: BaseException) -> None:

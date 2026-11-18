@@ -69,6 +69,8 @@ class PreviewRequest:
 
 
 SEARCH_SCHEMA = "ai.knowledge.search.v1"
+MAX_FILTER_TECHNOLOGIES = 20
+TECHNOLOGY_ID = re.compile(r"^[a-z0-9-]{1,40}$")
 SEARCH_MAX_QUERY = 300
 SEARCH_MAX_LIMIT = 10
 
@@ -79,6 +81,7 @@ class SearchRequest:
     query: str
     knowledge_root: str
     limit: int
+    technologies: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -163,7 +166,20 @@ def parse_search(payload: object) -> SearchRequest:
         raise ContractError("limit")
     if not root:
         raise ContractError("knowledgeRoot")
-    return SearchRequest(project_id=_match(body, "projectId", PROJECT_ID), query=query.strip(), knowledge_root=root, limit=limit)
+    return SearchRequest(project_id=_match(body, "projectId", PROJECT_ID), query=query.strip(), knowledge_root=root, limit=limit,
+                         technologies=_technologies(body.get("filters")))
+
+
+def _technologies(filters: object) -> tuple[str, ...]:
+    """As stacks do projeto, para a busca deixar de fora o que é marcado para outras stacks. Ausente: nada filtrado."""
+    if filters is None:
+        return ()
+    if not isinstance(filters, dict) or set(filters) - {"technologies"}:
+        raise ContractError("filters")
+    values = filters.get("technologies", [])
+    if not isinstance(values, list) or len(values) > MAX_FILTER_TECHNOLOGIES or not all(isinstance(v, str) and TECHNOLOGY_ID.match(v) for v in values):
+        raise ContractError("filters.technologies")
+    return tuple(dict.fromkeys(values))
 
 
 def parse_resume(payload: object) -> ResumeRequest:

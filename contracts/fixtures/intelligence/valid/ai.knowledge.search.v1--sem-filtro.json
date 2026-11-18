@@ -1,0 +1,7 @@
+{
+  "schema": "ai.knowledge.search.v1",
+  "projectId": "p-aaaaaaaaaaaa",
+  "query": "frete",
+  "knowledgeRoot": "C:/dados/spock",
+  "limit": 3
+}

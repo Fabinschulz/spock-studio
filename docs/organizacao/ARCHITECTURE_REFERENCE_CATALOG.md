@@ -82,7 +82,7 @@ seguintes.
 
 ## 3. Frontend React
 
-Escopo: tecnologia `react` · tipo `frontend`, `fullstack` · responsabilidades estrutura, dados, formulários, rotas,
+Escopo: tecnologias `react`, `nextjs` · tipo `frontend`, `fullstack` · responsabilidades estrutura, dados, formulários, rotas,
 autenticação, erros.
 
 Fontes: EMP-FE (app com dados e autenticação) e MLZ-WEB (site de conteúdo sem API). O próprio MLZ-WEB declara seguir o
@@ -155,7 +155,7 @@ Lint recomendado = soma dos dois: camadas e níveis do EMP-FE, mais `jsx-a11y`, 
 
 ## 4. Design system: `@mariliz/ui-kit`
 
-Escopo: tecnologia `react` · tipo `frontend` · responsabilidade interface, componentes, tema.
+Escopo: tecnologias `react`, `nextjs` · tipo `frontend` · responsabilidade interface, componentes, tema.
 
 ### 4.1 Identidade
 
