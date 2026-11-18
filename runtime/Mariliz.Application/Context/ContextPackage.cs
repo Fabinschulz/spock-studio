@@ -10,6 +10,8 @@ public static class ContextClassifications
     public const string Integration = "integration";
     public const string Calculated = "calculated";
     public const string Inferred = "inferred";
+    // Padrão da pasta Organização: argumento de engenharia vindo de outros projetos, nunca convenção do projeto atual.
+    public const string Reference = "reference";
 }
 
 public static class ContextFreshness
@@ -22,13 +24,15 @@ public static class ContextFreshness
 public static class ContextIntents
 {
     public const string Bootstrap = "bootstrap";
+    public const string Architecture = "architecture";
 
     // As demais intenções do estudo (development, management, infrastructure, investigation, delivery) entram nas próximas
     // entregas; pedir uma delas hoje é erro, não um pacote vazio.
-    public static readonly IReadOnlyList<string> Available = [Bootstrap];
+    public static readonly IReadOnlyList<string> Available = [Bootstrap, Architecture];
 }
 
-/// <param name="Section">identity, policies, connections, harness ou warnings, na ordem de prioridade da intenção.</param>
+/// <param name="Section">identity, policies, connections, harness ou warnings (bootstrap); identity, stacks, references ou
+/// warnings (architecture). Na ordem de prioridade da intenção.</param>
 /// <param name="Source">De onde veio: spock, mariliz.yaml, harness, o provedor da integração (jira, github…) ou cloud:aws.</param>
 /// <param name="Ref">O que identifica o item na origem: id da cópia, do vínculo, do componente.</param>
 public sealed record ContextItem(
