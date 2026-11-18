@@ -40,6 +40,79 @@ public static class DeclarationEditor
         return ReadsWithId(text, result, id) ? result : null;
     }
 
+    // C3: o principal fica em aiEnvironment e, com mais de uma IDE, a lista inteira em aiEnvironments, logo abaixo.
+    public static string? WithEnvironments(string text, IReadOnlyList<string> environments)
+    {
+        if (environments.Count == 0) return null;
+        var lines = text.Replace("\r\n", "\n").Split('\n').ToList();
+
+        // primaryEnvironment e environments são cópias calculadas que versões anteriores gravavam; com a lista nova
+        // ficariam desatualizadas, então saem junto.
+        if (!RemoveKey(lines, "primaryEnvironment", out _) || !RemoveKey(lines, "environments", out _)) return null;
+        if (!RemoveKey(lines, "aiEnvironments", out var at)) return null;
+
+        var primary = lines.FindIndex(line => IsKey(line, "aiEnvironment", indent: 0));
+        var block = environments.Count > 1
+            ? new List<string> { "aiEnvironments:" }.Concat(environments.Select(e => $"  - {e}")).ToList()
+            : [];
+        if (primary >= 0)
+        {
+            var value = lines[primary][(lines[primary].IndexOf(':') + 1)..];
+            var comment = value.IndexOf(" #", StringComparison.Ordinal);
+            lines[primary] = $"aiEnvironment: {environments[0]}" + (comment >= 0 ? value[comment..] : "");
+            lines.InsertRange(primary + 1, block);
+        }
+        else
+        {
+            if (at < 0) at = lines.FindIndex(line => IsKey(line, "components", indent: 0));
+            if (at < 0) at = lines.Count > 0 && lines[^1].Length == 0 ? lines.Count - 1 : lines.Count;
+            lines.InsertRange(at, [$"aiEnvironment: {environments[0]}", .. block]);
+        }
+
+        var result = string.Join("\n", lines);
+        return ReadsWithEnvironments(text, result, environments) ? result : null;
+    }
+
+    // Tira uma chave de topo com valor simples, lista em linha ou lista em bloco. Falso num formato que não reconhece;
+    // `at` é onde a chave estava, ou -1.
+    private static bool RemoveKey(List<string> lines, string key, out int at)
+    {
+        at = lines.FindIndex(line => IsKey(line, key, indent: 0));
+        if (at < 0) return true;
+        var end = at + 1;
+        var inline = Value(lines[at]);
+        if (inline.Length == 0)
+        {
+            while (end < lines.Count && (lines[end].Trim().Length == 0 || IsItem(lines[end], 0))) end++;
+            while (end > at + 1 && lines[end - 1].Trim().Length == 0) end--;
+        }
+        else if (inline.StartsWith('[') != inline.EndsWith(']') || inline.StartsWith('{')) return false;
+        lines.RemoveRange(at, end - at);
+        return true;
+    }
+
+    private static bool ReadsWithEnvironments(string original, string edited, IReadOnlyList<string> environments)
+    {
+        try
+        {
+            var before = YamlFiles.Reader.Deserialize<DeclaredConfig>(original) ?? new DeclaredConfig();
+            var after = YamlFiles.Reader.Deserialize<DeclaredConfig>(edited) ?? new DeclaredConfig();
+            if (after.PrimaryEnvironment != environments[0] || !after.Environments.SequenceEqual(environments, StringComparer.Ordinal)) return false;
+
+            // Fora os ambientes, nada mais pode mudar de sentido.
+            foreach (var config in new[] { before, after })
+            {
+                config.AiEnvironment = "";
+                config.AiEnvironments = null;
+            }
+            return YamlFiles.Writer.Serialize(before) == YamlFiles.Writer.Serialize(after);
+        }
+        catch (YamlException)
+        {
+            return false;
+        }
+    }
+
     private static bool ReadsWithId(string original, string edited, string id)
     {
         try

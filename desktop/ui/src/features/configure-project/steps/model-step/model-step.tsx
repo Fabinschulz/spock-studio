@@ -14,11 +14,11 @@ import { SpecificationSection } from './specification-section';
 
 interface ModelStepProps {
   discovery: Discovery;
-  aiEnvironment: string | null;
+  aiEnvironments: readonly string[];
   allowReinstall: boolean;
   updateSpecification: boolean;
   plan: Loadable<unknown>;
-  onEnvironment: (id: string) => void;
+  onToggleEnvironment: (id: string) => void;
   onReinstall: (value: boolean) => void;
   onUpdateSpecification: (value: boolean) => void;
   onBack: () => void;
@@ -27,21 +27,18 @@ interface ModelStepProps {
 
 export function ModelStep({
   discovery,
-  aiEnvironment,
+  aiEnvironments,
   allowReinstall,
   updateSpecification,
   plan,
-  onEnvironment,
+  onToggleEnvironment,
   onReinstall,
   onUpdateSpecification,
   onBack,
   onPlan
 }: ModelStepProps) {
-  const reportedUnsupported = discovery.aiEnvironments.some(
-    (environment) => environment.id === aiEnvironment && !environment.supported
-  );
-  const showUnsupportedNotice =
-    aiEnvironment !== null && (!isSupportedEnvironment(aiEnvironment) || reportedUnsupported);
+  const reportedUnsupported = new Set(discovery.aiEnvironments.filter((e) => !e.supported).map((e) => e.id));
+  const showUnsupportedNotice = aiEnvironments.some((id) => !isSupportedEnvironment(id) || reportedUnsupported.has(id));
   const generating = plan.status === 'loading';
 
   return (
@@ -60,7 +57,7 @@ export function ModelStep({
         onUpdateSpecification={onUpdateSpecification}
         onReinstall={onReinstall}
       />
-      <AiEnvironmentSection detected={discovery.aiEnvironments} selected={aiEnvironment} onSelect={onEnvironment} />
+      <AiEnvironmentSection discovery={discovery} selected={aiEnvironments} onToggle={onToggleEnvironment} />
       <ConfiguredItemsSection />
 
       {showUnsupportedNotice ? (
@@ -79,7 +76,7 @@ export function ModelStep({
         <Button
           variant="contained"
           onClick={onPlan}
-          disabled={aiEnvironment === null || generating}
+          disabled={aiEnvironments.length === 0 || generating}
           endIcon={<ArrowRightIcon />}
         >
           {generating ? 'Gerando plano…' : 'Gerar plano'}

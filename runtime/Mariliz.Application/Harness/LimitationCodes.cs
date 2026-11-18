@@ -21,4 +21,6 @@ public static class LimitationCodes
     public const string EnvironmentPartial = "ENVIRONMENT_PARTIAL";
     // C3: o Cursor não tem hook por prompt que injete contexto.
     public const string PromptHookUnavailable = "PROMPT_HOOK_UNAVAILABLE";
+    // C3: o Claude Code não sai da lista de um projeto já configurado pelo plano.
+    public const string EnvironmentRemovalUnsupported = "ENVIRONMENT_REMOVAL_UNSUPPORTED";
 }

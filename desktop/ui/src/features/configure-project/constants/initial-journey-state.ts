@@ -4,7 +4,7 @@ import type { JourneyState } from '../types/journey';
 export const initialJourneyState: JourneyState = {
   step: 'project',
   discovery: { status: 'idle' },
-  aiEnvironment: null,
+  aiEnvironments: [],
   allowSpecificationReinstall: false,
   updateSpecification: false,
   componentRequest: EMPTY_COMPONENT_REQUEST,

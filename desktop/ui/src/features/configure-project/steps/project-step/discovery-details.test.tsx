@@ -34,6 +34,7 @@ const discovery: Discovery = {
   git: { isRepository: false, hasUncommittedChanges: null, changedPaths: [] },
   tools: { git: null, node: '22.1.0', python: null, pythonCommand: null },
   hasDeclaredConfig: false,
+  declaredAiEnvironments: [],
   warnings: []
 };
 

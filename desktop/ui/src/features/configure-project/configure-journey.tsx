@@ -60,7 +60,7 @@ export function ConfigureJourney({
         <ContextPanel
           step={state.step}
           projectName={projectName}
-          aiEnvironment={state.aiEnvironment}
+          aiEnvironments={state.aiEnvironments}
           plan={state.plan}
           approvalCount={approvalCount}
           run={state.run}
@@ -84,11 +84,11 @@ export function ConfigureJourney({
       {state.step === 'model' && state.discovery.status === 'ready' ? (
         <ModelStep
           discovery={state.discovery.data}
-          aiEnvironment={state.aiEnvironment}
+          aiEnvironments={state.aiEnvironments}
           allowReinstall={state.allowSpecificationReinstall}
           updateSpecification={state.updateSpecification}
           plan={state.plan}
-          onEnvironment={actions.setEnvironment}
+          onToggleEnvironment={actions.toggleEnvironment}
           onReinstall={actions.setReinstall}
           onUpdateSpecification={actions.setUpdateSpecification}
           onBack={() => actions.goTo('project')}

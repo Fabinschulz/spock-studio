@@ -62,7 +62,7 @@ export function useConfigureJourney(
 
   const generatePlan = useCallback(async () => {
     const {
-      aiEnvironment,
+      aiEnvironments,
       allowSpecificationReinstall,
       updateSpecification,
       componentRequest: request
@@ -71,7 +71,7 @@ export function useConfigureJourney(
     try {
       const plan = await api.plan({
         projectId,
-        ...(aiEnvironment ? { aiEnvironment } : {}),
+        ...(aiEnvironments.length > 0 ? { aiEnvironments } : {}),
         allowSpecificationReinstall: allowSpecificationReinstall,
         updateSpecification,
         ...(request.exclude.length > 0 ? { excludeComponents: request.exclude.map((item) => item.id) } : {}),
@@ -136,7 +136,7 @@ export function useConfigureJourney(
       validate,
       cancelRun,
       goTo: (step: JourneyStepId) => dispatch({ type: 'step.go', step }),
-      setEnvironment: (id: string) => dispatch({ type: 'environment.set', id }),
+      toggleEnvironment: (id: string) => dispatch({ type: 'environment.toggle', id }),
       setReinstall: (value: boolean) => dispatch({ type: 'reinstall.set', value }),
       setUpdateSpecification: (value: boolean) => dispatch({ type: 'update.set', value }),
       clearComponentRequest: () => dispatch({ type: 'request.clear' }),

@@ -17,6 +17,8 @@ import {
 export type PlanInput = {
   projectId: string;
   aiEnvironment?: string;
+  /** C3: as IDEs escolhidas. Diferente da declaração, o plano grava a lista em spock.yaml como mudança aprovada. */
+  aiEnvironments?: string[];
   allowSpecificationReinstall?: boolean;
   /** Pede ao instalador oficial a versão mais recente da estrutura de especificação, mesmo que a instalada já seja a mais recente conhecida. */
   updateSpecification?: boolean;
@@ -51,6 +53,7 @@ export function createHarnessApi(client: EngineClient): HarnessApi {
     plan: ({
       projectId,
       aiEnvironment,
+      aiEnvironments,
       allowSpecificationReinstall,
       updateSpecification,
       excludeComponents,
@@ -61,6 +64,7 @@ export function createHarnessApi(client: EngineClient): HarnessApi {
         {
           projectId,
           ...(aiEnvironment ? { aiEnvironment } : {}),
+          ...(aiEnvironments?.length ? { aiEnvironments } : {}),
           ...(allowSpecificationReinstall ? { allowSpecificationReinstall: true } : {}),
           ...(updateSpecification ? { updateSpecification: true } : {}),
           ...(excludeComponents?.length ? { excludeComponents } : {}),

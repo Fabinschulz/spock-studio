@@ -54,6 +54,10 @@ public sealed class ProjectDiscoverer(IProcessRunner processRunner)
 
         return new DiscoveryReport(
             projectId, files.RootName, stacks, tooling, aiEnvironments, inventory, specification, git, tools,
-            files.FileExists(files.Naming().Declaration), warnings) { Frameworks = frameworks };
+            files.FileExists(files.Naming().Declaration), warnings)
+        {
+            Frameworks = frameworks,
+            DeclaredAiEnvironments = DeclaredConfig.TryRead(files).Config?.Environments ?? []
+        };
     }
 }

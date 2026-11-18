@@ -308,10 +308,10 @@
       "reason": "Declaração do projeto: ambiente de IA e método. É seu depois de criado; a aplicação só a lê.",
       "origin": "baseline-rules",
       "beforeHash": null,
-      "afterHash": "2416bfd80c877031da539965adc55f23b762a79ae24c8370ddddca5a55ab04b8",
+      "afterHash": "378c7e679a2e1e1ce5f2f100618c3ed276653aed22ef4aaadb2acc496046b7fa",
       "destructive": false,
       "conflictReason": null,
-      "diff": "--- /dev/null\n+++ b/spock.yaml\n@@ -1,0 +1,15 @@\n+# Declaração do Harness gerenciado pelo Spock Studio.\n+# Este arquivo é seu: edite à vontade. A aplicação o lê, mas não o reescreve.\n+schema: 1\n+project:\n+  id: spk-01M7P0ERPXKNFK217854WABXX2\n+  name: projeto\n+implementationModel: mariliz\n+aiEnvironment: claude-code\n+primaryEnvironment: claude-code\n+environments:\n+- claude-code\n+components:\n+  exclude: []\n+evals:\n+  required: []\n",
+      "diff": "--- /dev/null\n+++ b/spock.yaml\n@@ -1,0 +1,12 @@\n+# Declaração do Harness gerenciado pelo Spock Studio.\n+# Este arquivo é seu: edite à vontade. A aplicação o lê, mas não o reescreve.\n+schema: 1\n+project:\n+  id: spk-01M7QVM9VP1ND7ZTFFN78RN4YE\n+  name: projeto\n+implementationModel: mariliz\n+aiEnvironment: claude-code\n+components:\n+  exclude: []\n+evals:\n+  required: []\n",
       "diffTruncated": false
     },
     {

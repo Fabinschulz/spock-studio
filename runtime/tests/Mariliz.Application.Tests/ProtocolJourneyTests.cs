@@ -136,6 +136,10 @@ public class ProtocolJourneyTests
 
         Assert.Equal("INVALID_PARAMS", wire.Request("harness.plan", new JsonObject())["error"]!["code"]!.GetValue<string>());
         Assert.Equal("INVALID_PARAMS", wire.Request("harness.plan", new JsonObject { ["projectId"] = projectId, ["aiEnvironment"] = "vim" })["error"]!["code"]!.GetValue<string>());
+        Assert.Equal("INVALID_PARAMS", wire.Request("harness.plan", new JsonObject { ["projectId"] = projectId, ["aiEnvironments"] = new JsonArray("cursor", "vim") })["error"]!["code"]!.GetValue<string>());
+        Assert.Equal("INVALID_PARAMS", wire.Request("harness.plan", new JsonObject { ["projectId"] = projectId, ["aiEnvironments"] = new JsonArray("cursor", "cursor") })["error"]!["code"]!.GetValue<string>());
+        Assert.Equal("INVALID_PARAMS", wire.Request("harness.plan", new JsonObject { ["projectId"] = projectId, ["aiEnvironment"] = "codex", ["aiEnvironments"] = new JsonArray("cursor") })["error"]!["code"]!.GetValue<string>());
+        Assert.Equal("cursor", wire.Request("harness.plan", new JsonObject { ["projectId"] = projectId, ["aiEnvironments"] = new JsonArray("cursor", "codex") })["result"]!["aiEnvironment"]!.GetValue<string>());
         Assert.Equal("PLAN_UNKNOWN", wire.Request("harness.apply", new JsonObject { ["projectId"] = projectId, ["planId"] = "plan-x" })["error"]!["code"]!.GetValue<string>());
         Assert.Equal("RUN_NOT_FOUND", wire.Request("run.snapshot", new JsonObject { ["runId"] = "run-x" })["error"]!["code"]!.GetValue<string>());
         Assert.Equal("INVALID_PARAMS", wire.Request("harness.apply", new JsonObject { ["projectId"] = projectId, ["planId"] = "p", ["resolutions"] = new JsonObject { ["c"] = "talvez" } })["error"]!["code"]!.GetValue<string>());

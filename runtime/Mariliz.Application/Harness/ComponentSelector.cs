@@ -5,11 +5,13 @@ namespace Mariliz.Application.Harness;
 // Precedência: o que a pessoa excluiu na declaração, depois a proposta validada do Harness Engineer, depois as regras-base.
 /// <param name="requested">Ainda não gravados na declaração.</param>
 /// <param name="managed">Componentes que o lock já registra.</param>
+/// <param name="retired">Componentes de uma IDE que saiu dos ambientes do projeto.</param>
 internal sealed class ComponentSelector(
     IReadOnlySet<string> userExcluded,
     IReadOnlySet<string> requested,
     IReadOnlyDictionary<string, ProposalDecision> proposed,
     IReadOnlySet<string> managed,
+    IReadOnlySet<string> retired,
     List<ComponentDecision> decisions,
     List<Limitation> limitations,
     string declaration)
@@ -24,6 +26,10 @@ internal sealed class ComponentSelector(
             return Record(kind, id, ComponentDecisions.Skip, requested.Contains(id)
                 ? $"Dispensado a seu pedido; o plano grava isto em {declaration} (components.exclude)."
                 : $"Excluído em {declaration} (components.exclude).", DecisionOrigins.Declared, []);
+
+        if (retired.Contains(id))
+            return Record(kind, id, ComponentDecisions.Skip,
+                $"A IDE deste componente não está mais entre os ambientes de IA de {declaration}; o que o Spock gravou para ela sai.", DecisionOrigins.Declared, []);
 
         proposed.TryGetValue(id, out var proposal);
 

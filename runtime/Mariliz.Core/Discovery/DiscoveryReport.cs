@@ -15,4 +15,7 @@ public sealed record DiscoveryReport(
 {
     // Fora das stacks: a lista de stacks vai para o workflow com teto de 8 e decide as regras do Harness.
     public IReadOnlyList<FrameworkFinding> Frameworks { get; init; } = [];
+
+    // C3: os ambientes que a declaração já lista, para a tela partir deles. Vazio sem declaração válida.
+    public IReadOnlyList<string> DeclaredAiEnvironments { get; init; } = [];
 }
