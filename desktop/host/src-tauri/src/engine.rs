@@ -18,7 +18,8 @@ use tokio::sync::oneshot;
 use crate::diagnostic_log::{record, Source};
 use crate::lock;
 use crate::protocol::{
-    error_code, method, parse_engine_line, EngineMessage, HostError, PROTOCOL_VERSION,
+    decode_response, encode_request, error_code, method, parse_engine_line, EngineMessage,
+    HostError, PROTOCOL_VERSION,
 };
 use crate::resources::packaged_runtime;
 use crate::status::Status;
@@ -69,7 +70,7 @@ const MAX_QUICK_RESTARTS: u64 = 1;
 #[derive(Default)]
 struct Inner {
     child: Mutex<Option<CommandChild>>,
-    pending: Mutex<HashMap<String, oneshot::Sender<Value>>>,
+    pending: Pending,
     status: Mutex<Option<Status>>,
     next_id: AtomicU64,
     restarts: AtomicU64,
@@ -251,36 +252,9 @@ impl Engine {
     pub async fn request(&self, method: &str, params: Value) -> Result<Value, HostError> {
         let id = format!("h-{}", self.0.next_id.fetch_add(1, Ordering::SeqCst) + 1);
         let (tx, rx) = oneshot::channel();
-        lock(&self.0.pending).insert(id.clone(), tx);
+        let _pending = PendingEntry::register(&self.0.pending, id.clone(), tx);
 
-        let mut line = serde_json::to_vec(&json!({
-            "v": PROTOCOL_VERSION, "kind": "request", "id": id, "method": method, "params": params
-        }))
-        .map_err(|_| {
-            HostError::new(
-                error_code::INVALID_MESSAGE,
-                "Não foi possível serializar a requisição.",
-            )
-        })?;
-        line.push(b'\n');
-
-        {
-            let mut guard = lock(&self.0.child);
-            let Some(child) = guard.as_mut() else {
-                lock(&self.0.pending).remove(&id);
-                return Err(HostError::new(
-                    error_code::ENGINE_NOT_RUNNING,
-                    "O motor não está em execução.",
-                ));
-            };
-            if child.write(&line).is_err() {
-                lock(&self.0.pending).remove(&id);
-                return Err(HostError::new(
-                    error_code::ENGINE_WRITE_FAILED,
-                    "Não foi possível falar com o motor.",
-                ));
-            }
-        }
+        self.write(&encode_request(&id, method, Some(params)))?;
 
         let response = match tokio::time::timeout(request_timeout(method), rx).await {
             Ok(Ok(value)) => value,
@@ -291,29 +265,27 @@ impl Engine {
                 ))
             }
             Err(_) => {
-                lock(&self.0.pending).remove(&id);
                 return Err(HostError::new(
                     error_code::ENGINE_TIMEOUT,
                     "O motor demorou demais para responder.",
-                ));
+                ))
             }
         };
+        decode_response(&response)
+    }
 
-        if let Some(error) = response.get("error") {
-            let code = error
-                .get("code")
-                .and_then(Value::as_str)
-                .unwrap_or("UNKNOWN");
-            let message = error
-                .get("message")
-                .and_then(Value::as_str)
-                .unwrap_or("Falha no motor.");
-            return Err(HostError::new(code, message));
-        }
-        response.get("result").cloned().ok_or_else(|| {
+    fn write(&self, line: &[u8]) -> Result<(), HostError> {
+        let mut guard = lock(&self.0.child);
+        let child = guard.as_mut().ok_or_else(|| {
             HostError::new(
-                error_code::INVALID_MESSAGE,
-                "Resposta do motor sem resultado.",
+                error_code::ENGINE_NOT_RUNNING,
+                "O motor não está em execução.",
+            )
+        })?;
+        child.write(line).map_err(|_| {
+            HostError::new(
+                error_code::ENGINE_WRITE_FAILED,
+                "Não foi possível falar com o motor.",
             )
         })
     }
@@ -323,15 +295,11 @@ impl Engine {
     pub fn shutdown(&self) {
         self.0.shutting_down.store(true, Ordering::SeqCst);
         self.0.terminated.store(false, Ordering::SeqCst);
-        {
-            let mut guard = lock(&self.0.child);
-            let Some(child) = guard.as_mut() else { return };
-            let mut line = serde_json::to_vec(&json!({
-                "v": PROTOCOL_VERSION, "kind": "request", "id": "h-shutdown", "method": method::ENGINE_SHUTDOWN
-            }))
-            .unwrap_or_default();
-            line.push(b'\n');
-            let _ = child.write(&line);
+        let line = encode_request("h-shutdown", method::ENGINE_SHUTDOWN, None);
+        if let Err(error) = self.write(&line) {
+            if error.code == error_code::ENGINE_NOT_RUNNING {
+                return;
+            }
         }
 
         let deadline = std::time::Instant::now() + SHUTDOWN_GRACE;
@@ -342,6 +310,28 @@ impl Engine {
         if let Some(child) = lock(&self.0.child).take() {
             let _ = child.kill();
         }
+    }
+}
+
+type Pending = Mutex<HashMap<String, oneshot::Sender<Value>>>;
+
+/// Tira a requisição de `pending` em qualquer saída de `request`: erro de escrita, prazo estourado ou o future
+/// descartado por quem pediu. Se a resposta chegou antes, o leitor já a removeu e aqui não sobra nada.
+struct PendingEntry<'a> {
+    pending: &'a Pending,
+    id: String,
+}
+
+impl<'a> PendingEntry<'a> {
+    fn register(pending: &'a Pending, id: String, tx: oneshot::Sender<Value>) -> Self {
+        lock(pending).insert(id.clone(), tx);
+        Self { pending, id }
+    }
+}
+
+impl Drop for PendingEntry<'_> {
+    fn drop(&mut self) {
+        lock(self.pending).remove(&self.id);
     }
 }
 

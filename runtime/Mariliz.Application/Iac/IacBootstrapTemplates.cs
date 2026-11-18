@@ -16,10 +16,10 @@ public static partial class IacBootstrapTemplates
 
     public static Generated Aws(string project, string bucket, string region, string? profile, string? account)
     {
-        Require(bucket, S3Bucket(), "O bucket deve ter de 3 a 63 caracteres: letras minúsculas, dígitos, ponto e hífen.");
-        Require(region, AwsRegion(), "A região deve estar no formato sa-east-1.");
-        if (profile is not null) Require(profile, Name(), "O perfil deve ter só letras, dígitos, ponto, hífen e sublinhado.");
-        if (account is not null) Require(account, Account(), "A conta AWS tem 12 dígitos.");
+        Require(bucket, CloudIdentifiers.S3Bucket(), "O bucket deve ter de 3 a 63 caracteres: letras minúsculas, dígitos, ponto e hífen.");
+        Require(region, CloudIdentifiers.AwsRegion(), "A região deve estar no formato sa-east-1.");
+        if (profile is not null) Require(profile, CloudIdentifiers.AwsProfile(), "O perfil deve ter só letras, dígitos, ponto, hífen e sublinhado.");
+        if (account is not null) Require(account, CloudIdentifiers.AwsAccount(), "A conta AWS tem 12 dígitos.");
 
         var providers = $$"""
             terraform {
@@ -132,10 +132,10 @@ public static partial class IacBootstrapTemplates
     public static Generated Azure(string project, string resourceGroup, string storageAccount, string container, string location, string? subscription)
     {
         Require(resourceGroup, AzureGroup(), "O grupo de recursos deve ter até 90 caracteres: letras, dígitos, ponto, hífen, sublinhado e parênteses.");
-        Require(storageAccount, AzureStorage(), "A storage account deve ter de 3 a 24 letras minúsculas e dígitos.");
-        Require(container, AzureContainer(), "O container deve ter de 3 a 63 caracteres: letras minúsculas, dígitos e hífen.");
-        Require(location, AzureLocation(), "A região do Azure deve estar no formato brazilsouth.");
-        if (subscription is not null) Require(subscription, Guid(), "A subscription é um GUID.");
+        Require(storageAccount, CloudIdentifiers.AzureStorage(), "A storage account deve ter de 3 a 24 letras minúsculas e dígitos.");
+        Require(container, CloudIdentifiers.AzureContainer(), "O container deve ter de 3 a 63 caracteres: letras minúsculas, dígitos e hífen.");
+        Require(location, CloudIdentifiers.AzureLocation(), "A região do Azure deve estar no formato brazilsouth.");
+        if (subscription is not null) Require(subscription, CloudIdentifiers.Guid(), "A subscription é um GUID.");
 
         var providers = $$"""
             terraform {
@@ -267,8 +267,8 @@ public static partial class IacBootstrapTemplates
 
     public static Generated Gcp(string project, string bucket, string gcpProject, string location)
     {
-        Require(bucket, GcsBucket(), "O bucket deve ter de 3 a 63 caracteres: letras minúsculas, dígitos, ponto, hífen e sublinhado.");
-        Require(gcpProject, GcpProject(), "O projeto do Google Cloud deve ter de 6 a 30 caracteres: letras minúsculas, dígitos e hífen.");
+        Require(bucket, CloudIdentifiers.GcsBucket(), "O bucket deve ter de 3 a 63 caracteres: letras minúsculas, dígitos, ponto, hífen e sublinhado.");
+        Require(gcpProject, CloudIdentifiers.GoogleProject(), "O projeto do Google Cloud deve ter de 6 a 30 caracteres: letras minúsculas, dígitos e hífen.");
         Require(location, GcsLocation(), "A localização deve estar no formato US ou southamerica-east1.");
 
         var providers = $$"""
@@ -392,38 +392,8 @@ public static partial class IacBootstrapTemplates
         if (!pattern.IsMatch(value)) throw IacErrors.BootstrapValueInvalid(message);
     }
 
-    [GeneratedRegex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$")]
-    private static partial Regex S3Bucket();
-
-    [GeneratedRegex("^[a-z]{2}(-gov)?-[a-z]+-[0-9]$")]
-    private static partial Regex AwsRegion();
-
-    [GeneratedRegex("^[A-Za-z0-9_.-]{1,64}$")]
-    private static partial Regex Name();
-
-    [GeneratedRegex("^[0-9]{12}$")]
-    private static partial Regex Account();
-
     [GeneratedRegex(@"^[-\w._()]{1,90}$")]
     private static partial Regex AzureGroup();
-
-    [GeneratedRegex("^[a-z0-9]{3,24}$")]
-    private static partial Regex AzureStorage();
-
-    [GeneratedRegex("^[a-z0-9](?!.*--)[a-z0-9-]{1,61}[a-z0-9]$")]
-    private static partial Regex AzureContainer();
-
-    [GeneratedRegex("^[a-z0-9]{3,40}$")]
-    private static partial Regex AzureLocation();
-
-    [GeneratedRegex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
-    private static partial Regex Guid();
-
-    [GeneratedRegex("^[a-z0-9][a-z0-9._-]{1,61}[a-z0-9]$")]
-    private static partial Regex GcsBucket();
-
-    [GeneratedRegex("^[a-z][a-z0-9-]{4,28}[a-z0-9]$")]
-    private static partial Regex GcpProject();
 
     [GeneratedRegex("^[A-Za-z0-9-]{2,40}$")]
     private static partial Regex GcsLocation();

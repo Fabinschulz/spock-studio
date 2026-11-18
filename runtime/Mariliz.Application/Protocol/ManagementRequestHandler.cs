@@ -8,8 +8,10 @@ using Mariliz.Application.Management.Investigation;
 namespace Mariliz.Application.Protocol;
 
 internal sealed class ManagementRequestHandler(ManagementService service, ManagementAssistant? assistant, ReportService? report = null, InvestigationService? investigation = null,
-    PortfolioAssistant? portfolioAssistant = null)
+    PortfolioAssistant? portfolioAssistant = null) : IRequestHandler
 {
+    public IReadOnlyList<string> Methods => ProtocolMethods.Management;
+
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
         ProtocolMethods.ManagementEvidence => IntegrationJson.Node(Assistant().Evidence(p.Str("projectId")))!.AsObject(),

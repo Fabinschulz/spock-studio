@@ -29,25 +29,10 @@ public sealed class EngineSession
     private readonly string _engineVersion;
     private readonly string[] _capabilities;
     private readonly WorkspaceAuthorizer? _workspace;
-    private readonly ConfigureRequestHandler? _configure;
     private readonly WorkflowRequestHandler? _workflows;
-    private readonly RunRequestHandler? _runs;
-    private readonly ModelRequestHandler? _models;
     private readonly IntegrationRequestHandler? _integrations;
-    private readonly ManagementRequestHandler? _management;
-    private readonly DecisionRequestHandler? _decisions;
-    private readonly TimelineRequestHandler? _timeline;
-    private readonly AuditRequestHandler? _audit;
-    private readonly AiToolRequestHandler? _aiTools;
-    private readonly AgentRequestHandler? _agents;
-    private readonly IdeConnection? _ide;
-    private readonly ContextRequestHandler? _context;
-    private readonly SecurityRequestHandler? _security;
-    private readonly IdeaRequestHandler? _ideas;
-    private readonly CloudRequestHandler? _cloud;
-    private readonly IacRequestHandler? _iac;
-    private readonly EngineeringRequestHandler? _engineering;
     private readonly RunTracker? _tracker;
+    private readonly Dictionary<string, IRequestHandler> _routes;
     private readonly SemaphoreSlim _outputGate = new(1, 1);
     private TextWriter? _output;
 
@@ -91,49 +76,53 @@ public sealed class EngineSession
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
-        _configure = configure is null ? null : new ConfigureRequestHandler(configure);
-        _workflows = workflows is null ? null : new WorkflowRequestHandler(workflows);
-        _models = models is null ? null : new ModelRequestHandler(models);
-        _runs = runs is null ? null : new RunRequestHandler(runs);
-        _integrations = integrations is null ? null : new IntegrationRequestHandler(integrations);
-        _management = management is null ? null : new ManagementRequestHandler(management, assistant, reports, investigation, portfolioAssistant);
-        _decisions = decisions is null ? null : new DecisionRequestHandler(decisions);
-        _timeline = timeline is null ? null : new TimelineRequestHandler(timeline);
-        _audit = audit is null ? null : new AuditRequestHandler(audit);
-        _aiTools = aiTools is null ? null : new AiToolRequestHandler(aiTools);
-        _agents = agents is null ? null : new AgentRequestHandler(agents);
-        _ide = ide;
-        _context = contextReview is null ? null : new ContextRequestHandler(contextReview);
-        _security = security is null ? null : new SecurityRequestHandler(security);
-        _ideas = ideas is null ? null : new IdeaRequestHandler(ideas);
-        _cloud = cloud is null ? null : new CloudRequestHandler(cloud);
-        _iac = terraform is null || iacOperations is null || iacState is null || iacGeneration is null ? null
-            : new IacRequestHandler(terraform, iacOperations, iacState, iacGeneration, iacCosts, iacSchedules);
-        _engineering = profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions, mcp);
         _tracker = tracker;
+        _workflows = workflows is null ? null : new WorkflowRequestHandler(workflows);
+        _integrations = integrations is null ? null : new IntegrationRequestHandler(integrations);
         if (relay is not null) relay.Target = WriteEvent;
 
-        var offered = new List<string>(capabilities ?? []);
-        if (workspace is not null) offered.Add(ProtocolMethods.AuthorizeWorkspace);
-        if (configure is not null) offered.AddRange(ProtocolMethods.Configure);
-        if (workflows is not null) offered.AddRange(ProtocolMethods.Workflow);
-        if (runs is not null) offered.AddRange(ProtocolMethods.RunControl);
-        if (models is not null) offered.AddRange(ProtocolMethods.Model);
-        if (integrations is not null) offered.AddRange(ProtocolMethods.Integrations);
-        if (management is not null) offered.AddRange(ProtocolMethods.Management);
-        if (decisions is not null) offered.AddRange(ProtocolMethods.Decision);
-        if (timeline is not null) offered.AddRange(ProtocolMethods.Timeline);
-        if (audit is not null) offered.AddRange(ProtocolMethods.Audit);
-        if (aiTools is not null) offered.AddRange(ProtocolMethods.AiTool);
-        if (agents is not null) offered.AddRange(ProtocolMethods.Agent);
-        if (ide is not null) offered.AddRange(ProtocolMethods.Ide);
-        if (contextReview is not null) offered.AddRange(ProtocolMethods.Context);
-        if (security is not null) offered.AddRange(ProtocolMethods.Security);
-        if (ideas is not null) offered.AddRange(ProtocolMethods.Idea);
-        if (cloud is not null) offered.AddRange(ProtocolMethods.Cloud);
-        if (_iac is not null) offered.AddRange(ProtocolMethods.Iac);
-        if (profiles is not null) offered.AddRange(ProtocolMethods.Engineering);
-        _capabilities = [.. offered];
+        // A ordem é a dos grupos anunciados em engine.hello.
+        IRequestHandler?[] handlers =
+        [
+            configure is null ? null : new ConfigureRequestHandler(configure),
+            _workflows,
+            runs is null ? null : new RunRequestHandler(runs),
+            models is null ? null : new ModelRequestHandler(models),
+            _integrations,
+            management is null ? null : new ManagementRequestHandler(management, assistant, reports, investigation, portfolioAssistant),
+            decisions is null ? null : new DecisionRequestHandler(decisions),
+            timeline is null ? null : new TimelineRequestHandler(timeline),
+            audit is null ? null : new AuditRequestHandler(audit),
+            aiTools is null ? null : new AiToolRequestHandler(aiTools),
+            agents is null ? null : new AgentRequestHandler(agents),
+            ide is null ? null : new IdeRequestHandler(ide),
+            contextReview is null ? null : new ContextRequestHandler(contextReview),
+            security is null ? null : new SecurityRequestHandler(security),
+            ideas is null ? null : new IdeaRequestHandler(ideas),
+            cloud is null ? null : new CloudRequestHandler(cloud),
+            terraform is null || iacOperations is null || iacState is null || iacGeneration is null ? null
+                : new IacRequestHandler(terraform, iacOperations, iacState, iacGeneration, iacCosts, iacSchedules),
+            profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions, mcp)
+        ];
+        var present = handlers.OfType<IRequestHandler>().ToArray();
+        _routes = Routes(present);
+        _capabilities =
+        [
+            .. capabilities ?? [],
+            .. workspace is null ? Array.Empty<string>() : [ProtocolMethods.AuthorizeWorkspace],
+            .. present.SelectMany(handler => handler.Methods)
+        ];
+    }
+
+    // Um método em dois grupos é erro de montagem: falha ao criar a sessão, não no primeiro pedido.
+    private static Dictionary<string, IRequestHandler> Routes(IEnumerable<IRequestHandler> handlers)
+    {
+        var routes = new Dictionary<string, IRequestHandler>(StringComparer.Ordinal);
+        foreach (var handler in handlers)
+        {
+            foreach (var method in handler.Methods) routes.Add(method, handler);
+        }
+        return routes;
     }
 
     public async Task RunAsync(TextReader input, TextWriter output, CancellationToken ct)
@@ -265,42 +254,8 @@ public sealed class EngineSession
             ProtocolMethods.Shutdown => (ProtocolMessages.Ok(id, new JsonObject()), true),
             ProtocolMethods.AuthorizeWorkspace when _workspace is not null => Reply(Authorize(id, parameters)),
             ProtocolMethods.RuntimeHealth when _workflows is not null => Reply(Health(id)),
-            _ when _models is not null && ProtocolMethods.Model.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, await _models.HandleAsync(method, parameters, ct))),
-            _ when _configure is not null && ProtocolMethods.Configure.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, await _configure.HandleAsync(method, new RequestParams(parameters), ct))),
-            _ when _runs is not null && ProtocolMethods.RunControl.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, _runs.Handle(method, new RequestParams(parameters)))),
-            _ when _workflows is not null && ProtocolMethods.Workflow.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, await _workflows.HandleAsync(method, new RequestParams(parameters), ct))),
-            _ when _integrations is not null && ProtocolMethods.Integrations.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, await _integrations.HandleAsync(method, new RequestParams(parameters), ct))),
-            _ when _management is not null && ProtocolMethods.Management.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, await _management.HandleAsync(method, new RequestParams(parameters), ct))),
-            _ when _decisions is not null && ProtocolMethods.Decision.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, _decisions.Handle(method, new RequestParams(parameters)))),
-            _ when _audit is not null && ProtocolMethods.Audit.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, _audit.Handle(method, new RequestParams(parameters)))),
-            _ when _aiTools is not null && ProtocolMethods.AiTool.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, await _aiTools.HandleAsync(method, ct))),
-            _ when _agents is not null && ProtocolMethods.Agent.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, _agents.Handle(method, new RequestParams(parameters)))),
-            _ when _ide is not null && ProtocolMethods.Ide.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, _ide.Describe())),
-            _ when _context is not null && ProtocolMethods.Context.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, await _context.HandleAsync(method, new RequestParams(parameters), ct))),
-            _ when _security is not null && ProtocolMethods.Security.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, _security.Handle(method, new RequestParams(parameters)))),
-            _ when _ideas is not null && ProtocolMethods.Idea.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, await _ideas.HandleAsync(method, new RequestParams(parameters), ct))),
-            _ when _timeline is not null && ProtocolMethods.Timeline.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, _timeline.Handle(method, new RequestParams(parameters)))),
-            _ when _cloud is not null && ProtocolMethods.Cloud.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, await _cloud.HandleAsync(method, new RequestParams(parameters), ct))),
-            _ when _iac is not null && ProtocolMethods.Iac.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, await _iac.HandleAsync(method, new RequestParams(parameters), ct))),
-            _ when _engineering is not null && ProtocolMethods.Engineering.Contains(method) =>
-                Reply(ProtocolMessages.Ok(id, await _engineering.HandleAsync(method, new RequestParams(parameters), ct))),
+            _ when _routes.TryGetValue(method, out var handler) =>
+                Reply(ProtocolMessages.Ok(id, await handler.HandleAsync(method, new RequestParams(parameters), ct))),
             _ => Reply(ProtocolMessages.Error(id, ProtocolErrorCodes.MethodNotFound, "Método desconhecido."))
         };
 

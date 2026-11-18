@@ -68,6 +68,11 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
     .map((link) => connections.find((connection) => connection.id === link.connectionId))
     .filter((connection) => connection !== undefined);
   const current = operations.find((operation) => operation.id === shown) ?? operations[0] ?? null;
+  // O motor diz quais planos podem ser aplicados agora (o mais recente da pasta e do ambiente, no prazo, não aplicado).
+  const approval =
+    current?.applyRequirements && current.summary
+      ? { requirements: current.applyRequirements, summary: current.summary }
+      : null;
 
   const validate = () =>
     void action
@@ -105,22 +110,19 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
       .then(() => setShown(null));
 
   const apply = (
-    target: IacOperation,
+    operationId: string,
+    planId: string,
     confirmations: { destroyConfirmed: boolean; risksAccepted: boolean; workspaceConfirmation?: string }
   ) =>
     void action
-      .run(
-        () => api.apply({ projectId, operationId: target.id, planId: target.planId!, ...confirmations }),
-        'Nada foi aplicado.',
-        {
-          success: (operation) =>
-            operation.apply?.verified
-              ? 'Plano aplicado e verificado: o plano seguinte não tem mudanças.'
-              : operation.apply?.applied
-                ? 'Plano aplicado, mas a verificação encontrou diferenças.'
-                : 'O apply falhou; veja o que ficou pendente.'
-        }
-      )
+      .run(() => api.apply({ projectId, operationId, planId, ...confirmations }), 'Nada foi aplicado.', {
+        success: (operation) =>
+          operation.apply?.verified
+            ? 'Plano aplicado e verificado: o plano seguinte não tem mudanças.'
+            : operation.apply?.applied
+              ? 'Plano aplicado, mas a verificação encontrou diferenças.'
+              : 'O apply falhou; veja o que ficou pendente.'
+      })
       .then(() => setShown(null));
 
   const unlock = (target: IacOperation) =>
@@ -137,21 +139,6 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
         { success: () => 'Trava liberada. Gere o plano de novo.' }
       )
       .then(() => setShown(null));
-
-  // Só o plano mais recente de cada pasta e ambiente pode ser aprovado.
-  const approvable = (operation: IacOperation) =>
-    operation.kind === 'plan' &&
-    operation.status === 'succeeded' &&
-    operation.hasChanges === true &&
-    operation.appliedBy === null &&
-    operation.applyBlocker === null &&
-    operations.find(
-      (other) =>
-        other.kind === 'plan' &&
-        other.status === 'succeeded' &&
-        other.folder === operation.folder &&
-        other.workspace === operation.workspace
-    )?.id === operation.id;
 
   // O alerta vale para a verificação mais recente, feita pelo botão ou pelo agendamento.
   const lastDrift = operations.find((operation) => operation.kind === 'drift' && operation.status === 'succeeded');
@@ -257,12 +244,14 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
             ) : null
           }
           approval={
-            approvable(current) ? (
+            approval ? (
               <PlanApproval
                 key={current.id}
                 plan={current}
+                summary={approval.summary}
+                requirements={approval.requirements}
                 busy={action.busy}
-                onApply={(confirmations) => apply(current, confirmations)}
+                onApply={(confirmations) => apply(current.id, approval.requirements.planId, confirmations)}
               />
             ) : null
           }

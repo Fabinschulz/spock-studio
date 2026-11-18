@@ -59,10 +59,10 @@ public static partial class IacBlueprintChecks
     private static void Aws(IacBlueprint blueprint, Action<string, string, bool, string?> add)
     {
         void Add(string id, string description, bool passed, string? detail = null) => add(id, description, passed, detail);
-        Add("region", "Região AWS no formato sa-east-1", Region().IsMatch(blueprint.Region));
-        Add("account", "Conta AWS com 12 dígitos, quando informada", blueprint.Account is null || Account().IsMatch(blueprint.Account));
+        Add("region", "Região AWS no formato sa-east-1", CloudIdentifiers.AwsRegion().IsMatch(blueprint.Region));
+        Add("account", "Conta AWS com 12 dígitos, quando informada", blueprint.Account is null || CloudIdentifiers.AwsAccount().IsMatch(blueprint.Account));
         Add("profile", "Perfil com letras, dígitos, ponto, hífen e sublinhado, quando informado",
-            blueprint.Profile is null || Profile().IsMatch(blueprint.Profile));
+            blueprint.Profile is null || CloudIdentifiers.AwsProfile().IsMatch(blueprint.Profile));
         if (NeedsNetwork(blueprint))
         {
             Add("vpc", "VPC existente no formato vpc-0123456789abcdef0", Vpc().IsMatch(blueprint.Network.VpcId));
@@ -89,16 +89,16 @@ public static partial class IacBlueprintChecks
                 "O RDS exige subnets em duas zonas de disponibilidade.");
         }
         if (blueprint.Backend is { } backend)
-            Add("backend", "Bucket de state e região válidos", S3Bucket().IsMatch(backend.Bucket) && Region().IsMatch(backend.Region));
+            Add("backend", "Bucket de state e região válidos", CloudIdentifiers.S3Bucket().IsMatch(backend.Bucket) && CloudIdentifiers.AwsRegion().IsMatch(backend.Region));
     }
 
     private static void Azure(IacBlueprint blueprint, Action<string, string, bool, string?> add)
     {
         void Add(string id, string description, bool passed, string? detail = null) => add(id, description, passed, detail);
-        Add("region", "Região do Azure no formato brazilsouth", AzureLocation().IsMatch(blueprint.Region));
-        Add("account", "Subscription do Azure (GUID)", blueprint.Account is not null && Guid().IsMatch(blueprint.Account),
+        Add("region", "Região do Azure no formato brazilsouth", CloudIdentifiers.AzureLocation().IsMatch(blueprint.Region));
+        Add("account", "Subscription do Azure (GUID)", blueprint.Account is not null && CloudIdentifiers.Guid().IsMatch(blueprint.Account),
             "O provider azurerm exige a subscription; ela também trava o apply nessa subscription.");
-        Add("profile", "Tenant do Azure (GUID), quando informado", blueprint.Profile is null || Guid().IsMatch(blueprint.Profile));
+        Add("profile", "Tenant do Azure (GUID), quando informado", blueprint.Profile is null || CloudIdentifiers.Guid().IsMatch(blueprint.Profile));
         if (blueprint.Service is { } service)
         {
             Add("service-size", "CPU e memória aceitas pelo Container Apps (memória o dobro da CPU, até 2 vCPU)", ContainerApps(service.Cpu, service.Memory),
@@ -122,7 +122,7 @@ public static partial class IacBlueprintChecks
         }
         if (blueprint.Backend is { } backend)
             Add("backend", "Storage account, grupo de recursos e container do state válidos",
-                AzureStorage().IsMatch(backend.Bucket) && backend.ResourceGroup is { Length: > 0 } && backend.Container is { } container && AzureContainer().IsMatch(container));
+                CloudIdentifiers.AzureStorage().IsMatch(backend.Bucket) && backend.ResourceGroup is { Length: > 0 } && backend.Container is { } container && CloudIdentifiers.AzureContainer().IsMatch(container));
     }
 
     private static void Google(IacBlueprint blueprint, Action<string, string, bool, string?> add)
@@ -130,7 +130,7 @@ public static partial class IacBlueprintChecks
         void Add(string id, string description, bool passed, string? detail = null) => add(id, description, passed, detail);
         Add("region", "Região do Google Cloud no formato southamerica-east1", GoogleRegion().IsMatch(blueprint.Region));
         Add("account", "Projeto do Google Cloud (6 a 30 caracteres: minúsculas, dígitos e hífen)",
-            blueprint.Account is not null && GoogleProject().IsMatch(blueprint.Account), "O provider recebe o projeto; ele também é o escopo dos recursos.");
+            blueprint.Account is not null && CloudIdentifiers.GoogleProject().IsMatch(blueprint.Account), "O provider recebe o projeto; ele também é o escopo dos recursos.");
         if (blueprint.Service is { } service)
         {
             Add("service-size", "CPU e memória aceitas pelo Cloud Run (1, 2 ou 4 vCPU)", CloudRun(service.Cpu, service.Memory),
@@ -147,7 +147,7 @@ public static partial class IacBlueprintChecks
                 GoogleNetwork().IsMatch(blueprint.Network.VpcId), "O Cloud SQL do modelo tem só IP privado.");
         }
         if (blueprint.Backend is { } backend)
-            Add("backend", "Bucket de state válido", GcsBucket().IsMatch(backend.Bucket));
+            Add("backend", "Bucket de state válido", CloudIdentifiers.GcsBucket().IsMatch(backend.Bucket));
     }
 
     private static bool Fargate(int cpu, int memory) => cpu switch
@@ -174,15 +174,6 @@ public static partial class IacBlueprintChecks
     [GeneratedRegex("^[a-z][a-z0-9-]*[a-z0-9]$")]
     private static partial Regex Project();
 
-    [GeneratedRegex("^[a-z]{2}(-gov)?-[a-z]+-[0-9]$")]
-    private static partial Regex Region();
-
-    [GeneratedRegex("^[0-9]{12}$")]
-    private static partial Regex Account();
-
-    [GeneratedRegex("^[A-Za-z0-9_.-]{1,64}$")]
-    private static partial Regex Profile();
-
     [GeneratedRegex("^vpc-[0-9a-f]{8,17}$")]
     private static partial Regex Vpc();
 
@@ -207,15 +198,6 @@ public static partial class IacBlueprintChecks
     [GeneratedRegex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$")]
     private static partial Regex Email();
 
-    [GeneratedRegex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$")]
-    private static partial Regex S3Bucket();
-
-    [GeneratedRegex("^[a-z][a-z0-9]{2,40}$")]
-    private static partial Regex AzureLocation();
-
-    [GeneratedRegex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
-    private static partial Regex Guid();
-
     [GeneratedRegex("^(B|GP|MO)_Standard_[A-Za-z0-9_]+$")]
     private static partial Regex AzureSku();
 
@@ -225,24 +207,12 @@ public static partial class IacBlueprintChecks
     [GeneratedRegex(@"^/subscriptions/[0-9a-fA-F-]{36}/resourceGroups/[^/]+/providers/Microsoft\.Network/privateDnsZones/[a-z0-9.-]+\.postgres\.database\.azure\.com$", RegexOptions.IgnoreCase)]
     private static partial Regex AzurePostgresZone();
 
-    [GeneratedRegex("^[a-z0-9]{3,24}$")]
-    private static partial Regex AzureStorage();
-
-    [GeneratedRegex("^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$")]
-    private static partial Regex AzureContainer();
-
     [GeneratedRegex("^[a-z]+-[a-z]+[0-9]{1,2}$")]
     private static partial Regex GoogleRegion();
-
-    [GeneratedRegex("^[a-z][a-z0-9-]{4,28}[a-z0-9]$")]
-    private static partial Regex GoogleProject();
 
     [GeneratedRegex("^db-(f1-micro|g1-small|custom-[0-9]{1,2}-[0-9]{3,6}|perf-optimized-N-[0-9]{1,2})$")]
     private static partial Regex CloudSqlTier();
 
     [GeneratedRegex("^projects/[a-z][a-z0-9-]{4,28}[a-z0-9]/global/networks/[a-z0-9-]{1,63}$")]
     private static partial Regex GoogleNetwork();
-
-    [GeneratedRegex("^[a-z0-9][a-z0-9._-]{1,61}[a-z0-9]$")]
-    private static partial Regex GcsBucket();
 }

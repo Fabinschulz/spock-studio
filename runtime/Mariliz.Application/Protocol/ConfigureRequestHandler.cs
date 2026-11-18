@@ -6,8 +6,10 @@ using Mariliz.Core.Plan;
 
 namespace Mariliz.Application.Protocol;
 
-internal sealed class ConfigureRequestHandler(ConfigureProjectService service)
+internal sealed class ConfigureRequestHandler(ConfigureProjectService service) : IRequestHandler
 {
+    public IReadOnlyList<string> Methods => ProtocolMethods.Configure;
+
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
         ProtocolMethods.Discover => Json(await service.DiscoverAsync(p.Str("projectId"), ct)),

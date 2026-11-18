@@ -4,8 +4,10 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Application.Protocol;
 
-internal sealed class IdeaRequestHandler(IdeaArchitectService service)
+internal sealed class IdeaRequestHandler(IdeaArchitectService service) : IRequestHandler
 {
+    public IReadOnlyList<string> Methods => ProtocolMethods.Idea;
+
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
         ProtocolMethods.IdeaDraft => Json(await service.DraftAsync(p.Str("projectId"), p.Str("stage"), Artifacts(p), ct)),

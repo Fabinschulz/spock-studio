@@ -123,7 +123,14 @@
         }
       ],
       "unmanaged": null,
-      "unmanagedNotes": null
+      "unmanagedNotes": null,
+      "applyRequirements": {
+        "planId": "a6f8aea382142a5b",
+        "destructive": 1,
+        "risks": 0,
+        "workspaceConfirmation": null,
+        "expiresAt": "2026-11-16T15:43:57.5777563+00:00"
+      }
     },
     {
       "id": "iac-9654d9914f20",
@@ -197,7 +204,8 @@
       "drift": null,
       "billables": null,
       "unmanaged": null,
-      "unmanagedNotes": null
+      "unmanagedNotes": null,
+      "applyRequirements": null
     },
     {
       "id": "iac-ccaf5067aef2",
@@ -255,7 +263,8 @@
       "drift": null,
       "billables": [],
       "unmanaged": null,
-      "unmanagedNotes": null
+      "unmanagedNotes": null,
+      "applyRequirements": null
     },
     {
       "id": "iac-c6dbdd9f14cc",
@@ -306,7 +315,8 @@
       "drift": null,
       "billables": null,
       "unmanaged": null,
-      "unmanagedNotes": null
+      "unmanagedNotes": null,
+      "applyRequirements": null
     }
   ]
 }

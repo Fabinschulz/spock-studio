@@ -4,8 +4,12 @@ using Mariliz.Application.Management;
 
 namespace Mariliz.Application.Protocol;
 
-internal sealed class DecisionRequestHandler(DecisionService service)
+internal sealed class DecisionRequestHandler(DecisionService service) : IRequestHandler
 {
+    public IReadOnlyList<string> Methods => ProtocolMethods.Decision;
+
+    Task<JsonObject> IRequestHandler.HandleAsync(string method, RequestParams p, CancellationToken ct) => Task.FromResult(Handle(method, p));
+
     public JsonObject Handle(string method, RequestParams p) => method switch
     {
         ProtocolMethods.DecisionRecord => Record(p),

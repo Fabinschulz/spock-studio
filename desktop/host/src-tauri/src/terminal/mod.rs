@@ -7,6 +7,8 @@ mod env;
 mod shell;
 mod utf8;
 
+pub use env::is_secret as is_secret_variable;
+
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::path::Path;

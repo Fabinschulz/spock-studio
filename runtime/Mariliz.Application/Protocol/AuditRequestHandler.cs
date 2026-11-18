@@ -5,8 +5,12 @@ using Mariliz.Application.Integrations;
 
 namespace Mariliz.Application.Protocol;
 
-internal sealed class AuditRequestHandler(ProjectAuditService service)
+internal sealed class AuditRequestHandler(ProjectAuditService service) : IRequestHandler
 {
+    public IReadOnlyList<string> Methods => ProtocolMethods.Audit;
+
+    Task<JsonObject> IRequestHandler.HandleAsync(string method, RequestParams p, CancellationToken ct) => Task.FromResult(Handle(method, p));
+
     public JsonObject Handle(string method, RequestParams p) => method switch
     {
         ProtocolMethods.AuditRead => IntegrationJson.Node(service.Read(p.Str("projectId"), p.StringList("categories"), p.OptionalInt("limit"), Before(p)))!.AsObject(),

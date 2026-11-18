@@ -36,7 +36,7 @@ const missing = {
     'Nenhuma ferramenta de infraestrutura como código instalada. O Spock pode instalar o OpenTofu, gratuito, com a sua autorização.'
 };
 
-function fakeEngine(initial: Record<string, unknown> = missing) {
+function fakeEngine(initial: Record<string, unknown> = missing, overrides: Record<string, unknown> = {}) {
   let current: Record<string, unknown> = initial;
   const calls: { method: string; params: Record<string, unknown> }[] = [];
   const client: EngineClient = {
@@ -58,7 +58,7 @@ function fakeEngine(initial: Record<string, unknown> = missing) {
         'iac.runtime.offer': offerFixture,
         'iac.layout': layoutFixture,
         'iac.operations': calls.some((call) => call.method === 'iac.drift')
-          ? { operations: [driftFixture.operation, ...operationsFixture.operations] }
+          ? { operations: [{ ...driftFixture.operation, applyRequirements: null }, ...operationsFixture.operations] }
           : operationsFixture,
         'iac.validate': { operation: operationsFixture.operations[3] },
         'iac.plan': { operation: operationsFixture.operations[0] },
@@ -103,7 +103,8 @@ function fakeEngine(initial: Record<string, unknown> = missing) {
           }
         },
         'cloud.list': connectionsFixture,
-        'cloud.links': { links: linksFixture.links.map((link) => ({ ...link, projectId: demo.projectId })) }
+        'cloud.links': { links: linksFixture.links.map((link) => ({ ...link, projectId: demo.projectId })) },
+        ...overrides
       };
       return schema.parse(reply[method]);
     },
@@ -392,6 +393,39 @@ describe('Infraestrutura', () => {
       destroyConfirmed: true,
       risksAccepted: false
     });
+  });
+
+  it('produção pede digitar o ambiente que o motor indicou', async () => {
+    const [plan, ...rest] = operationsFixture.operations;
+    const engine = fakeEngine(ready, {
+      'iac.operations': {
+        operations: [
+          {
+            ...plan,
+            workspace: 'prod',
+            applyRequirements: { ...plan!.applyRequirements!, destructive: 0, workspaceConfirmation: 'prod' }
+          },
+          ...rest
+        ]
+      }
+    });
+    renderPage(engine.client);
+
+    const approval = await screen.findByLabelText(`Aprovar o plano ${plan!.planId}`);
+    const button = within(approval).getByRole('button', { name: 'Aprovar e aplicar' });
+    expect(button).toBeDisabled();
+    await userEvent.type(within(approval).getByRole('textbox', { name: /Digite prod/ }), 'prod');
+    expect(button).toBeEnabled();
+  });
+
+  it('plano que o motor não anuncia como aplicável (vencido, superado) não oferece aprovação', async () => {
+    const [plan, ...rest] = operationsFixture.operations;
+    renderPage(
+      fakeEngine(ready, { 'iac.operations': { operations: [{ ...plan, applyRequirements: null }, ...rest] } }).client
+    );
+
+    await screen.findAllByRole('button', { name: /^Plano de / });
+    expect(screen.queryByRole('button', { name: 'Aprovar e aplicar' })).not.toBeInTheDocument();
   });
 
   it('aplicação mostra a verificação, o state e os outputs; plano já aplicado não pode ser aprovado de novo', async () => {

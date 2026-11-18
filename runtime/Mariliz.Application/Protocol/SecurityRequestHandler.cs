@@ -4,8 +4,12 @@ using Mariliz.Application.Security;
 
 namespace Mariliz.Application.Protocol;
 
-internal sealed class SecurityRequestHandler(SecurityService service)
+internal sealed class SecurityRequestHandler(SecurityService service) : IRequestHandler
 {
+    public IReadOnlyList<string> Methods => ProtocolMethods.Security;
+
+    Task<JsonObject> IRequestHandler.HandleAsync(string method, RequestParams p, CancellationToken ct) => Task.FromResult(Handle(method, p));
+
     public JsonObject Handle(string method, RequestParams p) => method switch
     {
         ProtocolMethods.SecurityScan => IntegrationJson.Node(service.Scan(p.Str("projectId")))!.AsObject(),

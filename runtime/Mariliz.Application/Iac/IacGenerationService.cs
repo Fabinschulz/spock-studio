@@ -135,7 +135,7 @@ public sealed partial class IacGenerationService(
         return (plan, prepared.Select(item => item.Write).ToList(), files);
     }
 
-    private static List<string> Notes(IProjectFiles files, string folder, IacBlueprint blueprint, IReadOnlyList<IacAwsGenerator.File> generated)
+    private static List<string> Notes(IProjectFiles files, string folder, IacBlueprint blueprint, IReadOnlyList<IacGeneratedFile> generated)
     {
         var notes = new List<string>();
         var ours = generated.Select(file => file.Path).ToHashSet(StringComparer.Ordinal);

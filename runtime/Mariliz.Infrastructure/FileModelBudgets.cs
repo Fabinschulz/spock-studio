@@ -1,10 +1,12 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Models;
+using Mariliz.Infrastructure.Integrations;
 
 namespace Mariliz.Infrastructure;
 
-// Arquivo ausente ou ilegível quer dizer "tudo no padrão". Remover a chave do modelo não mexe aqui: o teto não depende do provedor.
+// Arquivo ausente ou ilegível quer dizer "tudo no padrão" ao ler. Ao gravar, um arquivo travado faz a gravação falhar
+// (tratá-lo como vazio apagaria os outros tetos) e um conteúdo inválido vai para .corrupt-*. Remover a chave do modelo não mexe aqui: o teto não depende do provedor.
 public sealed class FileModelBudgets(string dataRoot) : IModelBudgetStore
 {
     private readonly object _gate = new();
@@ -12,21 +14,21 @@ public sealed class FileModelBudgets(string dataRoot) : IModelBudgetStore
 
     public IReadOnlyDictionary<string, int> Read()
     {
-        lock (_gate) return ReadFile();
+        lock (_gate) return ReadFile(forWrite: false);
     }
 
     public void Write(string purpose, int? tokens)
     {
         lock (_gate)
         {
-            var current = new Dictionary<string, int>(ReadFile(), StringComparer.Ordinal);
+            var current = new Dictionary<string, int>(ReadFile(forWrite: true), StringComparer.Ordinal);
             if (tokens is { } value) current[purpose] = value;
             else current.Remove(purpose);
             Save(current);
         }
     }
 
-    private Dictionary<string, int> ReadFile()
+    private Dictionary<string, int> ReadFile(bool forWrite)
     {
         var result = new Dictionary<string, int>(StringComparer.Ordinal);
         if (!File.Exists(FilePath)) return result;
@@ -37,7 +39,12 @@ public sealed class FileModelBudgets(string dataRoot) : IModelBudgetStore
                 if (ModelBudgets.Find(purpose) is not null && node is JsonValue value && value.TryGetValue<int>(out var tokens))
                     result[purpose] = tokens;
         }
-        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException or InvalidOperationException)
+        catch (Exception ex) when (ex is JsonException or InvalidOperationException)
+        {
+            if (forWrite) AtomicFile.Quarantine(FilePath);
+            result.Clear();
+        }
+        catch (Exception ex) when (!forWrite && ex is IOException or UnauthorizedAccessException)
         {
             result.Clear();
         }
@@ -52,11 +59,8 @@ public sealed class FileModelBudgets(string dataRoot) : IModelBudgetStore
             return;
         }
 
-        Directory.CreateDirectory(dataRoot);
         var document = new JsonObject();
         foreach (var (purpose, tokens) in budgets.OrderBy(pair => pair.Key, StringComparer.Ordinal)) document[purpose] = tokens;
-        var temp = FilePath + ".tmp";
-        File.WriteAllText(temp, document.ToJsonString());
-        File.Move(temp, FilePath, overwrite: true);
+        AtomicFile.Write(FilePath, document.ToJsonString());
     }
 }

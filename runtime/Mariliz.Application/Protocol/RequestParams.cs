@@ -4,6 +4,8 @@ namespace Mariliz.Application.Protocol;
 
 internal readonly struct RequestParams(JsonObject? values)
 {
+    public JsonObject? Values => values;
+
     public string Str(string name) =>
         OptionalStr(name) ?? throw new ParamException($"'{name}' é obrigatório.");
 
