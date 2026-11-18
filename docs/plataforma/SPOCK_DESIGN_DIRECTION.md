@@ -1,6 +1,6 @@
 # Spock Studio: direção visual e de experiência
 
-**Data:** 2026-11-12. Documento 5 da análise de referência. Complementa `docs/redesign/proposta-de-redesign.md`
+**Data:** 2026-11-12, com a segunda rodada de 2026-11-17 na seção 13. Documento 5 da análise de referência. Complementa `docs/redesign/proposta-de-redesign.md`
 (direção Workbench, aprovada) e não a substitui: o que aquela proposta decidiu continua valendo.
 
 Este documento é direção, não implementação. Nenhuma tela foi alterada. Os desenhos abaixo são esquemas de estrutura,
@@ -388,3 +388,84 @@ Lista de conferência por tela, antes de dar como pronta:
   testado: é preciso conferir foco, Esc e tema escuro antes de adotá-los.
 - Os princípios vêm de produtos de referência estudados por leitura, não por uso.
 - Nenhum teste com usuário foi feito.
+
+## 13. Segunda rodada (2026-11-17)
+
+As seções 1 a 12 viraram código nas fases B a G e na fase V. Esta seção trata do que apareceu depois: o menu cresceu
+com as entregas de cloud, infraestrutura, segurança, agentes e ideia, e a tela passou a ter de mostrar coisas que não
+existiam (contexto com proveniência, entrega conferida). Base: `MARILIZ_CURRENT_STATE.md`, seção 4.
+
+### 13.1 Avaliação
+
+| O que está bom | Onde |
+| --- | --- |
+| Shell com projeto, alternador, paleta de comandos, atalhos e painel inferior | `app/layouts/app-shell/` |
+| Esqueleto de página e estados (`Page`, `PageState`, `ResourceView`, `ConfirmAction`) | `shared/components/ui/molecules` |
+| Glossário no ponto de uso (`Term`) e confirmação antes de descartar | Fase U |
+| Paleta carvão com o teal só como assinatura; contraste testado | Fase V |
+
+| # | Problema | Evidência | Impacto |
+| --- | --- | --- | --- |
+| 1 | 21 itens no menu lateral; o grupo Plataforma tem 7 fixos e aparece igual em Gestão | `navigation.tsx` | Alto |
+| 2 | Conexões em três lugares: Integrações, Conexões cloud e provedores em Minha IA | Rotas `/integracoes`, `/cloud`, `/configuracoes/ia` | Alto |
+| 3 | Gestor vê Infraestrutura (state, drift), Conexões cloud e Auditoria no menu | Grupo Plataforma | Médio |
+| 4 | "Agentes de IA" não mostra os agentes do projeto; eles estão no Catálogo, que é outra rota do Harness | `/agentes`, `/projeto/catalogo` | Médio |
+| 5 | Configurações é item do menu e modo próprio do shell | `navigation.tsx` | Baixo |
+| 6 | "Da ideia ao projeto" é jornada de começo e ocupa lugar fixo no menu de trabalho contínuo | `/ideia` | Baixo |
+| 7 | Resíduos da primeira rodada: execução sem link na Visão geral, telas fora de `ResourceView`, `StatusChip` e `StatusGlyph`, ícone repetido, "Em breve" no Início | `MARILIZ_CURRENT_STATE.md`, seção 4.4 | Médio, cumulativo |
+
+### 13.2 Navegação proposta
+
+Regra: **nenhuma rota some**. As rotas atuais continuam válidas e passam a abrir a aba correspondente. O que muda é o
+menu.
+
+| Grupo | Itens | De onde vêm |
+| --- | --- | --- |
+| Engenharia (7) | Visão geral; Harness (abas Estado, Catálogo, Revisões, Política); Configurar; Pedidos (abas Pedido com plano, Agente na sua máquina); Conhecimento; Segurança; Infraestrutura | Catálogo vira aba do Harness; Agentes de IA vira aba de Pedidos; Infraestrutura sai da Plataforma porque é do projeto |
+| Gestão (4) | Portfólio; Acompanhamento; Assistente; Relatório | Sem mudança |
+| Comum (3) | Execuções; Histórico (abas Linha do tempo, Auditoria); Conexões (abas Serviços, Nuvem, Modelos de IA, IDEs) | Linha do tempo e Auditoria juntas; Integrações, Conexões cloud, provedores de Minha IA e o passo de IDE da tela de Agentes juntos |
+| Fora do menu | Início (marca e "nenhum projeto"); Da ideia ao projeto (jornada no Início); Configurações (só pelo modo do shell, ícone na barra de estado) | |
+
+Resultado: 10 itens visíveis em Engenharia e 6 em Gestão, contra 17 e 12 hoje (Início, o grupo do ambiente e os 7 da
+Plataforma). Em Gestão, o grupo comum mostra só Execuções e Histórico; Conexões fica em Engenharia e no modo
+Configurações, porque é tarefa de quem configura.
+
+A aba **Modelos de IA** em Conexões é o mesmo cadastro de Minha IA, não um segundo: Minha IA passa a ser o atalho para
+essa aba. As quatro perguntas por conexão (com qual conta, em quais projetos, o que lê, se alimenta os agentes) valem
+para as quatro abas, inclusive para modelos e IDEs.
+
+### 13.3 Telas novas que a segunda rodada pede
+
+Só duas, e as duas dentro de telas que já existem.
+
+| Onde | O que mostra | Por quê |
+| --- | --- | --- |
+| Execução `delivery` (central) | **Conferido e declarado lado a lado:** para cada critério, o que o agente disse e o que o Spock verificou (comando, saída resumida, diff), com "não verificável" quando não há como conferir | Princípio 13 da proposta: "pronto" é o que o produto conferiu |
+| Visão geral de Engenharia e Conexões, aba IDEs | **O que a IDE recebeu:** a última entrega de contexto por intenção, com cada item, origem, frescor e o que ficou de fora | O envelope do ContextEngine já existe e ninguém o vê; é o C4 do hub |
+
+### 13.4 Componentes
+
+Reutilizar antes de criar.
+
+| Componente | Situação | Ação |
+| --- | --- | --- |
+| `Drawer` (ui-kit) | Só na central | Usar no detalhe de Histórico e de Conexões |
+| `ResourceView` | Fora de sete telas | Migrar Cloud, Integrações, Infraestrutura, Auditoria, Linha do tempo, Execução e Ideia, uma por vez |
+| `StatusChip` e `StatusGlyph` | Dois para a mesma ideia | Ficar com um; o outro sai na mesma mudança |
+| `ConfirmAction` | Falta a reversão do Configurar | Trocar o modal |
+| `Term` | Em 5 arquivos | Cobrir Gestão e Infraestrutura, a começar por "simulações", "state" e "drift" |
+| **`PageTabs`** (novo) | Não existe | Abas ligadas a sub-rotas, sobre o `TabBar` do ui-kit depois de conferir foco, Esc e tema escuro |
+| **`ProvenanceList`** (novo) | Não existe | Itens de contexto com origem, classificação, frescor e omitidos; serve à seção 13.3 e ao assistente |
+| **`VerificationTable`** (novo) | Não existe | Critério, declarado, conferido, evidência; serve à execução `delivery` |
+
+Nada de toasts por enquanto: a mensagem na linha (`useAction` com `target`) já cobre o retorno de ação, e um segundo
+canal seria um segundo padrão.
+
+### 13.5 Ordem
+
+1. Resíduos da seção 13.1, item 7: são pequenos e destravam o resto.
+2. `PageTabs` e a consolidação do menu, com os testes de shell e rotas atualizados junto.
+3. `ProvenanceList` quando a intenção nova do ContextEngine (F2) existir.
+4. `VerificationTable` quando o verificador (D3) existir.
+
+Conferir no navegador ao fim de cada passo e no Tauri empacotado ao fim do 2.

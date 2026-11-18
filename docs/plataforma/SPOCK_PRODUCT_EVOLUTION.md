@@ -1,6 +1,10 @@
 # Spock Studio: proposta de evolução de produto
 
-**Data:** 2026-11-12. Documento 4 da análise de referência. Base: `MARILIZ_CURRENT_STATE.md`.
+**Data:** 2026-11-12, com a segunda rodada de 2026-11-17 na seção 13. Documento 4 da análise de referência. Base:
+`MARILIZ_CURRENT_STATE.md`.
+
+As seções 1 a 12 são a proposta de 12/11, já construída nas fases A a G (mergeadas até o #56) e mantida como registro.
+O que vale para o próximo ciclo está na seção 13.
 
 Este documento é proposta. Nada aqui foi implementado, e nada deve ser implementado sem decisão do dono do produto. A
 ordem de construção está em `SPOCK_IMPLEMENTATION_ROADMAP.md`; a forma visual, em `SPOCK_DESIGN_DIRECTION.md`.
@@ -374,3 +378,93 @@ Três nós sustentam quase tudo: os componentes de página, a validação com da
 | P1 | Visão geral por ambiente; catálogo do Harness; conhecimento com fontes sincronizadas; sincronização como execução; cycle time, marcos, bloqueios, histórico de riscos; decisões com evidência; relatórios; histórico de perguntas; execução ligada à entrega; resumo de entrega; trilha de auditoria única; segundo provedor de IA; gráficos simples; camada de texto para quem não é técnico |
 | P2 | Paleta de comandos; MCP gerenciado pelo plano; servidor MCP do Spock; sincronização agendada e rotinas de plataforma; assistente de engenharia; uso de modelo agregado; diagnóstico; estado de operação interrompida; cofre em Linux e macOS; segundo ambiente de IA; linha do tempo do projeto; leitura do ciclo de especificação |
 | P3 | Mapa de etapas somente leitura; escrita em provedores; bancos e APIs como conexão; identidade e papéis (depende de decisão); tema claro |
+
+## 13. Segunda rodada (2026-11-17)
+
+Base: o produto em `origin/master` `09d7e4d` (#132), descrito em `MARILIZ_CURRENT_STATE.md`, e uma nova leitura de
+produtos de referência, cujo detalhe fica fora do repositório. Esta seção não reabre o que a seção 9 deixou de fora e
+não duplica o roadmap do hub ([ROADMAP.md](../engineering-intelligence-hub/ROADMAP.md)): quando uma oportunidade já é
+uma iniciativa de lá, ela aparece pelo identificador (H0-7, F2, D3 e assim por diante).
+
+### 13.1 O que mudou desde a primeira rodada
+
+1. **Os três movimentos da seção 1 estão feitos.** Shell com contexto, central de execuções, catálogo, linha do tempo,
+   auditoria, gestão que explica e inteligência compartilhada estão no master. O que não está é a **prova**: nada que
+   escreve com modelo rodou com chave real.
+2. **O Spock virou hub.** Servidor MCP com escopo obrigatório, `spock_context_bootstrap`, ContextEngine com proveniência,
+   lançador `spock` e Harness ligado ao Claude Code por bloco gerenciado e hook. Isso não estava na proposta de 12/11.
+3. **O produto cresceu para a nuvem.** Conectores cloud e infraestrutura como código completa, com aplicação aprovada:
+   o primeiro caminho de escrita em provedor. É valor real e também a maior ampliação de superfície do ciclo.
+4. **Produtos de referência estão indo para o papel de executor.** A leitura nova mostra um produto de referência
+   declarando que vai executar, verificar e julgar, e que vai **consumir** um hub externo de inteligência de projetos
+   por MCP, só leitura, sem portfólio nem índice próprios. Também mostra, pelo autodiagnóstico dele, que os gates do
+   ciclo de engenharia confiavam na declaração do agente e que o estado de conexão podia dizer "configurado" sem ser.
+
+### 13.2 Tese atualizada
+
+O Spock é **a inteligência persistente do projeto e o lugar onde a entrega é conferida**. Quem executa é a IDE da
+pessoa ou um executor externo. O Spock entrega contexto com proveniência, recebe de volta o que foi feito e diz, com
+evidência calculada por ele, se o que foi pedido foi entregue. O gestor vê o resultado dessa conferência, não a
+declaração do agente.
+
+Isso não pede construir execução. Pede três coisas: contrato de contexto estável, verificação da entrega e gestão
+que usa as duas.
+
+### 13.3 Princípios novos
+
+Somam-se aos dez da seção 2.
+
+| # | Princípio | Por quê |
+| --- | --- | --- |
+| 11 | Executor de terceiro é consumidor de primeira classe: o contrato do MCP é versionado, com erros tipados e fixture por ferramenta. | O valor do hub depende de quem o consome sem quebrar. |
+| 12 | O que o Spock injeta numa IDE é dado, nunca instrução. Texto escrito por terceiros (issue, comentário) vai delimitado e com nível por destino; o padrão para a IDE é resumo. | Sem isso o Spock vira canal de injeção de prompt dentro da sessão do agente. |
+| 13 | "Pronto" é o que o produto conferiu. A declaração do agente aparece ao lado do resultado conferido, nunca no lugar. | É a diferença que produtos de referência admitem não ter. |
+| 14 | Linha de base antes de mexer em prompt: a primeira rodada com modelo real é guardada e as mudanças seguintes se medem contra ela. | Evita calibrar mínimo de eval por intuição. |
+| 15 | Orçamento de navegação: tela nova entra no lugar de outra, ou dentro de uma existente como aba. | O menu passou de 15 para 21 itens em uma semana. |
+
+### 13.4 Oportunidades por área
+
+| Área | Hoje | Proposta | Prior. | Onde |
+| --- | --- | --- | --- | --- |
+| Shared Intelligence | Nada com modelo rodou com chave real | Rodar `scripts/live-validation.py` e as evals de gestão com OpenAI e Anthropic; guardar como linha de base | **P0** | H0-7 |
+| Shared Intelligence | ContextEngine só com `bootstrap` | Intenções `development`, `management`, `delivery` com o mesmo envelope (origem, classificação, frescor, `omitted[]`) e o envelope visível na tela | P1 | F2 |
+| Integration Hub | Contexto externo por um booleano por vínculo | Política por destino, com `ide: summary` como padrão e texto de terceiros delimitado | P1 | F4 |
+| Integration Hub | MCP sem erros tipados nem contrato das ferramentas além do bootstrap | Erros tipados, `tools/list_changed`, fixture por ferramenta | P1 | F3 |
+| Engineering | Pedido feito na IDE não é conferido; "pronto" é declaração | Pacote de tarefa a partir do item com critério com id; verificador determinístico (critério, diff, comandos do projeto) como execução `delivery`; declaração do agente ao lado | P1 | D1, D2, D3 |
+| Engineering | Ciclo de especificação feito na IDE invisível | Ler, só leitura e com versão conferida, o estado de `.specs` e mostrar a fase de cada pedido | P2 | novo, depois de D2 |
+| Engineering | Harness só para Claude Code | Adaptadores Cursor e Codex, e diagnóstico de IDE na tela | P2 | C3, C4 |
+| Management | Sem escopo, previsibilidade nem dependências | Histórico do escopo por marco (entrou, saiu, quando); previsibilidade planejado contra entregue; dependências lidas do provedor, só como lista | P1 | novo |
+| Management | Resultado da verificação não chega ao gestor | Regra de risco "entrega com pendência" e coluna "conferido pelo Spock" no acompanhamento | P1 | D3 |
+| Management | Assistente sem histórico | Histórico das perguntas por projeto, guardado no diretório de dados do projeto | P2 | novo |
+| Shared Intelligence | Execuções de IaC e sincronização fora da central | As duas como execuções, com o mesmo diário e eventos | P1 | novo (P2-9 da auditoria) |
+| Shared Intelligence | Tokens só por execução | Uso agregado por projeto e finalidade, sem dinheiro (D4 continua) | P2 | novo |
+| Shared Intelligence | Recall@5 de 0,33 | Dicionário pt/en, reformulação no fluxo de engenharia; embeddings só depois, medidos | P2 | Q1 |
+| UX | 21 itens no menu; três lugares para conexões; Plataforma técnica visível em Gestão | Consolidação da navegação (`SPOCK_DESIGN_DIRECTION.md`, seção 13) | P1 | novo |
+| Plataforma | Dois conjuntos de nomes de arquivo e marca dividida | Plano de migração única depois da decisão de marca (D-12) | P2 | H0-6 |
+| Engineering | Identidade estável sem aviso de cópia | Aviso de fork, id na tela, recentes do host pelo id | P2 | resto do F1 |
+
+### 13.5 O que continua fora
+
+Tudo da seção 9, mais: perfis de execução (a finalidade do modelo já cumpre o papel), loja de agentes, canais de
+mensagem, nível de autonomia configurável para agentes por CLI e escrita em GitHub ou Jira antes de D3 (W1 do hub).
+Construir execução própria de código continua fora: é o papel da IDE e dos executores.
+
+### 13.6 Riscos novos
+
+| Risco | Efeito | Como reduzir |
+| --- | --- | --- |
+| Verificar a entrega exige rodar comandos do projeto | Executar código da pessoa dentro do produto | Comando detectado e mostrado antes, aprovação por execução, filhos sem segredos (H0-5), tempo limite, nada gravado no repositório |
+| Contexto injetado virar canal de injeção | Agente da IDE seguindo texto de terceiros | Princípio 12; F4 com resumo como padrão; teste com texto hostil numa issue |
+| Hub sem consumidor além do Claude Code | Contrato desenhado para um só cliente | C3 e um teste de contrato com um cliente MCP genérico |
+| Infraestrutura crescer além do papel de hub | Produto de nuvem dentro do produto de engenharia | Nenhuma entrega nova de IaC neste ciclo além de levar as operações à central |
+| Valor de IA nunca provado | Diferencial só no papel | H0-7 antes de qualquer item P1 que use modelo |
+| Duas convenções de nome por tempo indefinido | Suporte e documentação duplicados | Data para a migração única depois da D-12 |
+
+### 13.7 Priorização desta rodada
+
+| Prior. | Itens |
+| --- | --- |
+| P0 | Validação com modelo real e linha de base das evals (H0-7) |
+| P1 | Contrato de hub (F2, F3, F4); verificação da entrega (D1 a D3) e seu reflexo na gestão; escopo, previsibilidade e dependências; IaC e sincronização na central; consolidação da navegação |
+| P2 | Leitura de `.specs`; adaptadores Cursor e Codex (C3, C4); histórico do assistente; uso agregado de tokens; qualidade do RAG (Q1); migração de nomes; resto do F1 |
+| P3 | Identidade e papéis (M3, depende de DD-2); escrita em provedores de trabalho (W1); conectores novos (I1, I3) |

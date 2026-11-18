@@ -1,14 +1,15 @@
 # Spock Studio: diagnóstico do estado atual
 
-**Data:** 2026-11-15. **Código lido:** `master` em `3f898c3` (depois dos PRs #90 a #101).
-**Método:** leitura do código, seção por seção, contra o retrato anterior (2026-11-12, `5fa0ddd`), mais os gates da CI
-rodados na máquina (`python scripts/verify.py`): motor .NET com 1389 testes aprovados e 18 ignorados (os ao vivo, que
-pedem credencial ou download real), 5 de integração do executável; inteligência com 192; interface com 823; host com 45. O que foi
-provado com serviço real vem de [MARILIZ_REAL_WORLD_VALIDATION.md](../MARILIZ_REAL_WORLD_VALIDATION.md) e
-[REMEDIATION_REPORT.md](REMEDIATION_REPORT.md).
+**Data:** 2026-11-17 (segunda rodada). **Código lido:** `origin/master` em `09d7e4d` (depois dos PRs #102 a #132).
+**Retrato anterior:** 2026-11-15, `master` em `3f898c3` (#101), com os gates da CI rodados na máquina: motor .NET com
+1389 testes aprovados e 18 ignorados, 5 de integração do executável, inteligência com 192, interface com 823, host com
+45. **Nesta atualização os gates não foram rodados de novo**: as contagens acima são as de 15/11. O que mudou de #102 a
+#132 foi lido no código, nos commits e nos documentos de cada entrega. O que foi provado com serviço real vem de
+[MARILIZ_REAL_WORLD_VALIDATION.md](../MARILIZ_REAL_WORLD_VALIDATION.md), [REMEDIATION_REPORT.md](REMEDIATION_REPORT.md)
+e [INFRASTRUCTURE_MANAGEMENT.md](INFRASTRUCTURE_MANAGEMENT.md).
 
 Registra o que o Spock Studio já faz, o que está parcial e o que não existe, para que as propostas não recriem o que já
-está pronto. A entrega 3 da infraestrutura como código (aplicar o plano), em andamento numa branch, não entra.
+está pronto. A homologação do cenário 1 do hub (branch `docs/c2-homologacao-cenario-1`, sem merge) não entra.
 
 Legenda de situação: **Implementado**, **Parcial** (com o que falta), **Inexistente**. "Validado" quer dizer exercitado
 com o serviço real; sem essa palavra, a prova é a suíte de testes.
@@ -22,6 +23,7 @@ com o serviço real; sem essa palavra, a prova é a suíte de testes.
 | Motor | `runtime/` (.NET 10) | Domínio, casos de uso, persistência, integrações, cloud, infraestrutura como código, gestão, proxy de modelo, protocolo, servidor MCP. | Implementado |
 | Runtime de IA | `intelligence/` (Python, LangGraph) | Grafos de engenharia e de investigação, índice e recuperação de conhecimento, checkpoint, evals de IA e de gestão. | Implementado |
 | Contratos | `contracts/` | Schemas JSON, fixtures válidas e inválidas, goldens conferidos em mais de uma linguagem. | Implementado |
+| Lançador `spock` | `desktop/launcher` (Rust) | Comando no PATH que repassa `version`, `context session` e `mcp` ao motor; é o que o Harness grava no `.mcp.json` e no hook da IDE. | Implementado; no Linux, sem verificação num pacote real |
 
 Como as camadas conversam:
 
@@ -35,8 +37,10 @@ Como as camadas conversam:
   do motor (`Models/ModelBroker.cs`): a chave nunca chega ao Python. O stderr do Python vai para o diagnóstico do host.
 - A interface não fala com o Python.
 - **Modo MCP:** o mesmo executável, com o argumento `mcp`, vira um servidor MCP por stdio iniciado pela IDE
-  (`Mariliz.Runtime/McpEntry.cs`). Só lê o que o aplicativo gravou, anota cada leitura na auditoria e nunca autoriza
-  pasta nova. Sobe um Python próprio quando precisa buscar no índice.
+  (`Mariliz.Runtime/McpEntry.cs`), hoje pelo SDK oficial C# `ModelContextProtocol.Core` 2.4.0 (ADR-0009). Só lê o que o
+  aplicativo gravou, anota cada leitura na auditoria e nunca autoriza pasta nova. Recusa iniciar sem projeto (H0-1) e
+  usa a mesma composição de serviços do sidecar (H0-2). Sobe um Python próprio quando precisa buscar no índice.
+- **Processos filhos** do motor não herdam variáveis com cara de segredo, com exceção nomeada por ferramenta (H0-5).
 
 Projetos .NET: `Mariliz.Core` (modelos e políticas puras), `Mariliz.Application` (casos de uso, protocolo e MCP),
 `Mariliz.Infrastructure` (disco, processos, HTTP, cofres, runtime Python), `Mariliz.Infrastructure.Cloud` (o único com
@@ -45,8 +49,8 @@ SDK de AWS, Azure e Google, atrás da porta `ICloudProvider`), `Mariliz.Runtime`
 
 ## 2. Protocolo do motor
 
-99 métodos, 95 liberados à interface. Os quatro só do host são `engine.hello`, `engine.shutdown`,
-`workspace.authorize` e `runtime.health`.
+113 nomes em `ProtocolMethods.cs` (eram 99 em 15/11; o crescimento é quase todo da infraestrutura como código). Os
+quatro só do host são `engine.hello`, `engine.shutdown`, `workspace.authorize` e `runtime.health`.
 
 | Grupo | Métodos | O que cobre |
 | --- | --- | --- |
@@ -65,7 +69,7 @@ SDK de AWS, Azure e Google, atrás da porta `ICloudProvider`), `Mariliz.Runtime`
 | Segurança | `security.{scan,plan,fix}` | Varredura, plano de correção, correção aprovada. |
 | Ideia (fase A) | `idea.{draft,plan,save}` | Especificação, arquitetura e backlog validados, gravados pelo plano. |
 | Cloud | `cloud.{catalog,list,create,validate,permissions,remove,links,link,configure,unlink,read}` | Conexões AWS, Azure e Google, vínculo por projeto, leituras. |
-| Infraestrutura como código | `iac.runtime.{status,offer,install,decline,remove,adopt,pin}`, `iac.{layout,validate,plan,operations,operation}` | OpenTofu ou Terraform: instalação, ferramenta e versão por projeto, validação e plano sobre uma cópia, histórico. |
+| Infraestrutura como código | `iac.runtime.{status,offer,install,decline,remove,adopt,pin}`, `iac.{layout,validate,plan,apply,operations,operation}`, `iac.state{,.resources,.unlock}`, `iac.bootstrap.{plan,save}`, `iac.architect.draft`, `iac.generate.{plan,save}`, `iac.drift{,.schedule,.schedule.set}`, `iac.cost.{estimate,plan}` | OpenTofu ou Terraform: instalação, validação, plano, aplicação aprovada, state, bootstrap do backend, desenho e geração de `.tf`, drift e custo. |
 
 Não existem métodos `eval.*`: as evals rodam por `harness.validate` e pelo workflow, e aparecem como eventos.
 
@@ -82,7 +86,10 @@ Não existem métodos `eval.*`: as evals rodam por `harness.validate` e pelo wor
 | Da ideia ao projeto (fase A) | Implementado, não validado com modelo real | `Ideas/IdeaArchitectService.cs`: especificação, arquitetura e backlog escritos pelo modelo e conferidos pelo motor (até 2 tentativas). A gravação passa por plano, aprovação e diário. A seção "Stack" aprovada vira regra de arquitetura e entra na eval de requisitos (`Harness/ArchitectureDocuments.cs`). |
 | Segurança | Implementado | `Security/`: credenciais (13 regras), arquivos sensíveis fora do `.gitignore` e permissões perigosas de agentes. Corrige só duas coisas (entradas no `.gitignore` e o settings do Claude), com plano, aprovação, diário, nova varredura e reversão. Validado no Spock (1443 arquivos, achados só em fixtures). |
 | Evals do Harness | Implementado | 14 no catálogo, 12 obrigatórias (`Validation/EvalCatalog.cs`). O juiz por modelo do Harness continua devolvendo "não rodou", mesmo com modelo configurado. |
-| Ambientes de IA | Parcial | Só `claude-code` recebe configuração; `cursor` e `codex` são detectados, e escolher outro ambiente bloqueia o plano (`Discovery/AiEnvironments.cs`). |
+| Ambientes de IA | Parcial | Só `claude-code` recebe Harness: desde o C2 (#130), bloco gerenciado no `CLAUDE.md`, servidor `spock` no `.mcp.json` (`spock mcp --project-dir .`) e hook `SessionStart` chamando `spock context session`. `cursor` e `codex` são detectados e recebem só a configuração de MCP pela tela de Agentes (`ide.connection`, também para Gemini); os adaptadores deles (C3) não existem. O hook por prompt (`context prompt`) não existe. |
+| Identidade do projeto | Implementado | `project.id: spk-<ULID>` no arquivo de declaração (F1, #124). O host ainda guarda os recentes por caminho; aviso de cópia (fork) e id na tela: Inexistente. |
+| Arquivos compartilhados com a pessoa | Implementado | Modo bloco (C1, #128, `ManagedRegion`): o Spock gerencia só o trecho dele em `CLAUDE.md`, `AGENTS.md`, `.mcp.json`, `.cursor/*` e `.codex/*`; o resto do arquivo fica intacto e edição dentro do bloco vira conflito. |
+| Nomes dos arquivos | Duas convenções vivas | Projeto novo recebe `spock.yaml`, `spock.lock`, `.spock/` e agentes `spock-*`; projeto configurado antes mantém `mariliz.yaml`, `mariliz.lock`, `.mariliz/` (#132). Pacotes, pasta de dados e variáveis seguem `Mariliz`/`MARILIZ_*`; a marca depende da decisão D-12. |
 
 ### 3.2 Agentes, Skills, Rules, Hooks, MCP
 
@@ -96,7 +103,8 @@ Não existem métodos `eval.*`: as evals rodam por `harness.validate` e pelo wor
 | Política dos agentes | Implementado, só leitura | `engineering.policy` (`Engineering/AgentPolicy.cs`): as regras deny, ask e allow lidas do próprio hook gerenciado. Não é editável pela tela. |
 | Inventário de MCP | Parcial | `engineering.mcp` (`Engineering/McpInventory.cs`): transporte, programa ou host, variáveis citadas e segredo literal, sem devolver valores. Catálogo, instalação, teste e grants: Inexistente. |
 | Execução de agentes por CLI | Implementado, só leitura, não validado | `aitool.list` e `agent.run` (`AiTools/AiToolCatalog.cs`, `AgentRunService.cs`): Claude Code em modo plano, Cursor Agent e Codex em sandbox de leitura, Gemini CLI sem `--yolo`. Pedido de até 8.000 caracteres, 10 minutos, saída ao vivo com segredos redigidos, registro no diário. Nenhuma CLI estava instalada na validação real. Tela `/agentes`. |
-| Servidor MCP do Spock | Implementado, validado por stdio | `Mcp/`: `list_projects`, `project_briefing` (tecnologias, comandos, Harness, integrações, indicadores, riscos, marcos, decisões), `decisions` e `search_project` (trechos com caminho e hash; trechos de integração ficam de fora), mais `cloud_connections`, uma ferramenta por leitura cloud liberada e `iac_status`, `iac_validate` e `iac_plan_summary`. Escopo por `--project`; cada leitura vira `ide.context_read` na auditoria, com caminhos e sem conteúdo. A configuração para a IDE sai de `ide.connection`. |
+| Servidor MCP do Spock | Implementado, validado por stdio | `Mcp/`: `spock_context_bootstrap` (texto e `structuredContent`, com contrato em `contracts/schemas/mcp/`), `list_projects`, `project_briefing` (tecnologias, comandos, Harness, integrações, indicadores, riscos, marcos, decisões), `decisions` e `search_project` (trechos com caminho e hash; trechos de integração ficam de fora), mais `cloud_connections`, uma ferramenta por leitura cloud liberada e `iac_status`, `iac_validate`, `iac_plan_summary`, `iac_history`, `iac_state`, `iac_drift_summary` e `iac_blueprint_check`. Escopo obrigatório por `--project` ou `--project-dir`; cada leitura vira `ide.context_read` na auditoria, com caminhos e sem conteúdo. Faltam erros tipados, `tools/list_changed` e contrato das demais ferramentas (F3). |
+| Context Engine | Parcial | `Context/ContextEngine.cs` (F2, #125): cada item com origem, classificação, data e frescor, orçamento com `omitted[]` e `contextVersion`. Só a intenção `bootstrap` (143 a 153 tokens medidos em três pastas reais); as outras devolvem `CONTEXT_INTENT_UNKNOWN`. Consumido pelo MCP, pelo hook `SessionStart` e por `mariliz context` na CLI. |
 | Proposta do Harness Engineer | Implementado | O agente roda no Claude Code da pessoa e grava `.mariliz/proposal.json`; o motor trata como dado não confiável (`Harness/ProposalReader.cs`). |
 
 Ponto central: o Spock **executa agentes só para leitura**. Mudança no projeto continua passando pelo motor, com plano,
@@ -166,14 +174,16 @@ Portfólio, indicadores, previsão, riscos, marcos, relatório e linha do tempo 
 | Auditoria única | Implementado, sem "quem" | `audit.read` junta `audit.ndjson` e os diários (`Audit/ProjectAudit.cs`), em categorias; tela `/auditoria`. Não há identidade de pessoa. |
 | Logs | Parcial | O host guarda as últimas 300 linhas do motor (com o stderr do Python) e do host, redigidas (`diagnostic_log.rs`), na tela Diagnóstico. Sem gravação em disco nem métricas. |
 | Sincronização como execução | Inexistente | Aparece na linha do tempo e em `integration.history`, fora da lista de execuções (decisão pendente). |
+| Infraestrutura na central | Parcial | Só o bootstrap do backend usa o tipo `infrastructure` (`Execution/RunKinds.cs`); validar, planejar, aplicar, drift e geração ficam no histórico próprio (`iac.operations`), fora da central. |
 
 ### 3.7 Identidade e permissões
 
 Inexistente: usuário, login, organização, equipe e papéis. Controles que existem: pasta autorizada pelo diálogo nativo,
 allowlist de métodos em três camadas, política de caminhos graváveis, aprovação humana por mudança, comando e ação,
-tokens por sessão em loopback, instância única, agentes por CLI só em modo leitura, MCP com escopo por projeto e leitura
-auditada, leitura cloud liberada por vínculo, projeto a projeto, e infraestrutura validada e planejada numa cópia, sem
-aplicar nada na nuvem.
+tokens por sessão em loopback, instância única, agentes por CLI só em modo leitura (argumentos fixos por ferramenta em
+`AiTools/AiToolCatalog.cs`, sem nível de autonomia configurável), MCP com escopo obrigatório por projeto e leitura
+auditada, leitura cloud liberada por vínculo, projeto a projeto, e infraestrutura que só aplica o plano aprovado, com a
+aprovação presa ao hash do plano e confirmações a mais para destruição.
 
 ### 3.8 Persistência
 
@@ -202,10 +212,12 @@ credencial que o SDK de cada um já encontra na máquina.
 | Ferramenta | Implementado, validado no Windows | OpenTofu como padrão (gratuito, MPL 2.0) e Terraform como opção. Detecção, compatibilidade com o `required_version` (também em `.tofu`), instalação autorizada com assinatura conferida pela chave do fornecedor embutida (`Infrastructure/Iac/OpenTofuToolchain.cs`, `HashiCorpTerraformToolchain.cs`, `OpenPgpSignature.cs`), adoção de instalação existente, ferramenta e versão por projeto, atualização lado a lado e remoção. As duas ferramentas foram instaladas de verdade. |
 | Validar | Implementado, validado com o OpenTofu real | `iac.validate`: `fmt -check` e `validate` em cada pasta com `.tf`, sobre uma cópia, sem backend nem nuvem; erros por arquivo e linha (`Application/Iac/IacOperationService.cs`, adaptador único `CliIacRuntime.cs`). |
 | Planejar | Implementado, validado com o OpenTofu real | `iac.plan`: `init` e `plan -out` na cópia, com a conexão cloud do projeto passando só nomes; resumo de criar, alterar, substituir e destruir, achados de segurança, valores sensíveis fora da tela e da trilha. O projeto não é alterado. |
-| Histórico e trilha | Implementado | `iac.operations` e `iac.operation`; a trilha recebe `iac.validate` e `iac.plan` sem valores. As operações ficam fora da central de execuções. |
-| MCP | Implementado, só consulta | `iac_status`, `iac_validate` e `iac_plan_summary` (`Mcp/IacMcpTools.cs`). Instalar, planejar e aplicar são decisões da pessoa na interface. |
-| Aplicar o plano aprovado | Inexistente | Entrega 3 em andamento: aprovação amarrada ao hash do plano, destaque de destruição, apply e verificação. |
-| State, geração de `.tf`, drift e custo | Inexistente | Desenhados em [INFRASTRUCTURE_MANAGEMENT.md](INFRASTRUCTURE_MANAGEMENT.md) (entregas 4 a 6) e [TERRAFORM_STATE_MANAGEMENT.md](TERRAFORM_STATE_MANAGEMENT.md). |
+| Histórico e trilha | Implementado | `iac.operations` e `iac.operation`; a trilha recebe as operações sem valores. As operações ficam fora da central de execuções. |
+| MCP | Implementado, só consulta | `iac_status`, `iac_validate`, `iac_plan_summary`, `iac_history`, `iac_state`, `iac_drift_summary`, `iac_blueprint_check` (`Mcp/IacMcpTools.cs`). Instalar, planejar e aplicar são decisões da pessoa na interface. |
+| Aplicar o plano aprovado | Implementado, validado com o OpenTofu real | Entrega 3: aprovação presa ao id e aos hashes do plano, com prazo; confirmações a mais para destruição, achados graves e produção; apply só do arquivo aprovado; verificação por plano seguinte limpo. **É o primeiro caminho de escrita em provedor do produto.** Com AssumeRole, roda com a credencial do papel (H0-4, validado em conta real). |
+| State | Implementado, validado | Entrega 4: onde vive o state, riscos, backend recomendado, bootstrap do bucket (AWS, Azure, Google) por plano reversível, consulta e force-unlock com confirmação ([TERRAFORM_STATE_MANAGEMENT.md](TERRAFORM_STATE_MANAGEMENT.md)). |
+| Desenho e geração de `.tf` | Implementado, validado com `fmt` e `validate` | Entregas 5 e 10: da necessidade ao desenho (IA opcional), checagens determinísticas, `.tf` por modelos fixos para AWS, Azure e Google, diff revisado. A parte com IA nunca rodou com modelo real. |
+| Drift e custo | Implementado, validado na AWS | Entregas 6, 8 e 9: drift por `plan -refresh-only` na cópia, agendado de 6 h a 7 dias com o aplicativo aberto (`IacDriftScheduler.cs`), recursos da conta fora do state; custo mensal do desenho e do plano com os preços públicos da AWS, sem preço inventado. |
 
 O layout esperado dos projetos segue [TERRAFORM_PROJECT_LAYOUT.md](TERRAFORM_PROJECT_LAYOUT.md). macOS e Linux estão
 implementados e não rodados em máquina real.
@@ -233,7 +245,10 @@ Diagnóstico.
 | `/linha-do-tempo`, `/auditoria` | Linha do tempo e auditoria | Carregando, erro e vazio; ligam para a execução |
 | `/integracoes`, `/cloud` | Integrações e conexões cloud | Aviso de cofre indisponível; estados completos |
 | `/infraestrutura` | Infraestrutura: ferramenta, versão por projeto, validação e plano | Ciclo da mudança com as etapas que ainda não existem marcadas como próxima entrega |
-| `/configuracoes/ia`, `/configuracoes/diagnostico` | Minha IA (vários provedores), Diagnóstico | Menu próprio de Configurações |
+| `/configuracoes/ia`, `/configuracoes/diagnostico`, `/configuracoes/sobre` | Minha IA (vários provedores e CLIs detectadas), Diagnóstico, Sobre (avisos de terceiros) | Menu próprio de Configurações |
+
+São 24 caminhos mais a rota da execução; 21 aparecem no menu lateral. O Início ainda oferece "Importar requisitos" e
+"Modernizar sistema" como "Em breve" (`features/home/journey-grid/journeys.ts`).
 
 Nenhuma tela foi conferida no navegador para este documento. A validação real de 2026-11-14 dirigiu o aplicativo
 Tauri por Integrações, sincronização, pedido com aprovação e Auditoria.
@@ -272,13 +287,19 @@ Dos dez problemas do retrato anterior, estão resolvidos: projeto ativo no shell
 ambientes com entrada própria, topo sem repetição do estado do motor, jornada que não se perde ao trocar de rota, e
 "Remover conexão" com confirmação. Continuam:
 
-1. As linhas de execução na Visão geral não abrem a execução.
-2. Três telas (Configurar, Integrações, Pedido) não usam `PageState`/`ResourceView`; 46 módulos SCSS nas telas.
-3. Sem toasts; a confirmação de reversão é modal enquanto as outras usam `ConfirmAction` na linha.
-4. Vocabulário técnico em telas de pessoa (`mariliz.yaml`, `components.exclude`, "% das simulações").
-5. Quatro fontes de ícone, `StatusChip` e `StatusGlyph` para a mesma ideia, dois seletores de pasta e três listas de
-   recentes.
+1. As linhas de execução na Visão geral não abrem a execução (`features/project/project-page.tsx`).
+2. Configurar e Início não usam `Page`; Cloud, Integrações, Infraestrutura, Auditoria, Linha do tempo, Execução e Ideia
+   montam carregando e erro à mão em vez de `ResourceView`; 48 módulos SCSS nas telas.
+3. Sem toasts; a confirmação de reversão no Configurar é modal enquanto as outras usam `ConfirmAction` na linha. O
+   `Drawer` só é usado na central de execuções.
+4. Vocabulário técnico em telas de pessoa (`mariliz.yaml`, `components.exclude`, "% das simulações"); o glossário
+   `Term` aparece em só 5 arquivos; "nesta fase" sobrou em três telas.
+5. `StatusChip` (41 arquivos) e `StatusGlyph` (4) para a mesma ideia; Portfólio e Conexões cloud com o mesmo ícone.
 6. Acompanhamento sem visualização de dados: só texto e tabelas.
+7. **Menu longo e misturado** (novo): o grupo Plataforma tem 7 itens fixos e aparece também em Gestão, com
+   Infraestrutura, Conexões cloud e Auditoria; conexões ficam em três lugares (Integrações, Conexões cloud, Minha IA);
+   "Agentes de IA" não mostra os agentes do Harness, que estão no Catálogo; Configurações é item da Plataforma e modo
+   próprio do shell.
 
 ## 5. Pontos que não devem ser alterados
 
@@ -303,13 +324,14 @@ ambientes com entrada própria, topo sem repetição do estado do motor, jornada
 
 | Área | Lacuna |
 | --- | --- |
-| Validação real | Nada que escreve com modelo foi rodado com chave real; Jira só nos erros; Azure, Google e cofres Unix nunca rodaram. |
-| Engenharia | Ações com efeito limitadas ao registro de decisão; regras de stack só para .NET e JS/TS; configuração só para Claude Code; sem autoria de agentes, skills, regras e hooks; MCP de terceiros só inventariado. |
+| Validação real | Nada que escreve com modelo foi rodado com chave real (H0-7); Jira só nos erros; Azure, Google e cofres Unix nunca rodaram; IaC e `.deb` com o `spock` não rodaram em macOS e Linux. |
+| Engenharia | Ações com efeito limitadas ao registro de decisão; regras de stack só para .NET e JS/TS; Harness só para Claude Code; sem autoria de agentes, skills, regras e hooks; MCP de terceiros só inventariado; nenhuma leitura do ciclo de especificação (`.specs`); o resultado de um pedido feito na IDE não é verificado pelo produto (D1 a D3 do hub). |
+| Hub de contexto | ContextEngine só com `bootstrap`; política por destino (F4) inexistente, ainda um booleano por vínculo; sem hook por prompt; sem adaptadores Cursor e Codex (C3); sem diagnóstico de IDE na tela (C4). |
 | IA | RAG sem busca semântica (recall@5 0,33); laço do RAG só na investigação; custo em dinheiro zero. |
 | Integrações | Jira sem OAuth; só leitura; sem agendamento de sincronização; sem MCP, banco, Azure DevOps ou GitLab como conexão; agentes LangGraph não leem cloud. |
 | Gestão | Sem mudança de escopo, previsibilidade, dependências, responsáveis e relatórios salvos. |
 | MCP do Spock | Sem linha do tempo nem relatório como ferramenta. |
-| Infraestrutura | Sem aplicar o plano, state, geração de `.tf`, drift e custo; operações fora da central de execuções; macOS e Linux não rodados. |
+| Infraestrutura | Operações fora da central de execuções; Azure e Google só validados até `fmt` e `validate`; macOS e Linux não rodados. |
 | Execuções | Sincronização fora da lista; listagem lê diários inteiros; sem visão agregada de tokens. |
 | Identidade | Sem usuário, papel ou organização. |
 | Distribuição | Instaladores Windows (NSIS) e Linux (deb; AppImage fora pela D-06) gerados pela CI, sem assinatura, sem atualização automática, sem workflow de release, sem macOS. |
@@ -329,19 +351,28 @@ ambientes com entrada própria, topo sem repetição do estado do motor, jornada
 | Marcador de bloqueio configurável por projeto | Bloqueados no GitHub além dos três rótulos fixos |
 | Custo em dinheiro (D4), identidade e papéis | Visão de custo e auditoria com "quem" |
 | Apagar o repositório temporário da validação real | Limpeza |
+| DD-1 a DD-4 e DD-7 a DD-10 do hub ([README](../engineering-intelligence-hub/README.md)) | Modelo de implantação, identidade, sincronização antes de responder, conectores novos, níveis de banco |
+| ADR-0002 a 0008 em "proposta" (a 0002, do Context Engine, já tem código no master) | H0-8 |
+| Decisões de licença e marca pendentes (D-02, D-05, D-08 a D-12, `docs/compliance/LICENSE_DECISIONS.md`) | H0-6, release, nome único dos arquivos |
 
 ## 8. Oportunidades identificadas
 
+A ordem de construção da segunda rodada está em [SPOCK_IMPLEMENTATION_ROADMAP.md](SPOCK_IMPLEMENTATION_ROADMAP.md),
+seção 9.
+
 1. Destravar a validação com modelo real: é o maior pedaço do produto que só foi provado com dublê.
-2. Busca semântica medida pelo mesmo `project_recall.py` antes de virar padrão.
-3. Regras do Harness para as stacks que a descoberta já reconhece (Python, Rust, Go, Java).
-4. Linha do tempo e relatório como ferramentas do MCP, com a mesma política do resumo.
-5. Fechar os resíduos de interface da seção 4.4, começando pelo link das execuções na Visão geral.
-6. Assinatura e atualização automática antes de distribuir para fora da máquina do dono.
+2. Fechar o contrato de hub: demais intenções do ContextEngine, política por destino e erros tipados no MCP.
+3. Verificar a entrega feita fora do produto (D1 a D3), que é onde "pronto" ainda é declaração.
+4. Consolidar a navegação (seção 4.4, item 7) antes de acrescentar qualquer tela.
+5. Levar infraestrutura e sincronização para a central de execuções.
+6. Busca semântica medida pelo mesmo `project_recall.py` antes de virar padrão.
+7. Regras do Harness para as stacks que a descoberta já reconhece (Python, Rust, Go, Java).
+8. Assinatura e atualização automática antes de distribuir para fora da máquina do dono.
 
 ## 9. O que não foi verificado
 
 - Nenhuma tela foi renderizada para este documento; o acabamento vem do código e da validação real de 2026-11-14.
+- Os gates da CI não foram rodados para a atualização de 2026-11-17; as contagens de testes são de 15/11.
 - Comportamento com OpenAI, Anthropic, Google, Jira (além dos erros), Azure, Google Cloud e cofres Unix.
 - O conteúdo de `evals/` e `investigation-index/` no diretório de dados, e se a interface soma tokens em algum ponto.
 - O limite de tempo por execução de workflow: o código mostra 30 s por chamada de chat ao modelo.
