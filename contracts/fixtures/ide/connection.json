@@ -4,6 +4,7 @@
     "mcp"
   ],
   "projectArgument": "--project",
+  "launcher": "spock",
   "tools": [
     {
       "name": "spock_context_bootstrap",

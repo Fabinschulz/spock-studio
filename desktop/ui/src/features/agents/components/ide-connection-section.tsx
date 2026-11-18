@@ -22,7 +22,8 @@ export function IdeConnectionSection({ api, project = null }: { api: AgentApi; p
         fallbackError="Não foi possível montar o passo a passo."
       >
         {(value) => {
-          if (!value.command)
+          const command = value.launcher ?? value.command;
+          if (!command)
             return (
               <InlineNotice tone="warning" title="Passo a passo indisponível">
                 O motor não conseguiu descobrir onde está instalado. Reinstale o Spock e volte a esta tela.
@@ -36,12 +37,21 @@ export function IdeConnectionSection({ api, project = null }: { api: AgentApi; p
               </InlineNotice>
             );
           return (
-            <Setup
-              connection={value}
-              command={value.command}
-              projectArgument={value.projectArgument}
-              project={project}
-            />
+            <>
+              {!value.launcher && (
+                <InlineNotice tone="info" title="Comando spock não encontrado">
+                  O passo abaixo usa o caminho do motor nesta máquina. Instale ou atualize o Spock Studio para usar o
+                  comando spock, que vale em qualquer máquina e nos arquivos do projeto.
+                </InlineNotice>
+              )}
+              <Setup
+                connection={value}
+                command={command}
+                projectArgument={value.projectArgument}
+                project={project}
+                launcher={Boolean(value.launcher)}
+              />
+            </>
           );
         }}
       </ResourceView>
@@ -53,12 +63,14 @@ function Setup({
   connection,
   command,
   projectArgument,
-  project
+  project,
+  launcher
 }: {
   connection: IdeConnection;
   command: string;
   projectArgument: string;
   project: SelectedProject;
+  launcher: boolean;
 }) {
   const serverName = scopedServerName(project);
   const setups = ideSetups(command, [...connection.args, projectArgument, project.projectId], serverName);
@@ -83,6 +95,12 @@ function Setup({
       </fieldset>
 
       <p className={styles.how}>{setup.how}</p>
+      {launcher && setup.id === 'claude-code' && (
+        <p className={styles.how}>
+          Com o Harness do Spock aplicado neste projeto, o .mcp.json dele já liga o servidor “spock” no Claude Code e
+          este passo não é necessário.
+        </p>
+      )}
       <pre className={styles.snippet} aria-label={`Configuração para ${setup.name}`}>
         {setup.snippet}
       </pre>

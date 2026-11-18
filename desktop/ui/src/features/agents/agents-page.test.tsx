@@ -24,6 +24,7 @@ const IDE = {
   command: ENGINE,
   args: ['mcp'],
   projectArgument: '--project',
+  launcher: null as string | null,
   tools: [{ name: 'project_briefing', title: 'Resumo do projeto', description: 'Tecnologias, comandos e decisões.' }]
 };
 
@@ -182,6 +183,29 @@ describe('Agentes de IA', () => {
     expect(writeText).toHaveBeenCalledWith(cursor.textContent);
     expect(within(section).getByRole('button', { name: 'Copiado' })).toBeInTheDocument();
     await expectNoA11yViolations(container);
+  });
+
+  // C2 (DD-6): com o lançador instalado, o passo chama "spock", sem o caminho do motor nesta máquina.
+  it('com o lançador instalado, o passo usa o comando spock e lembra do .mcp.json do Harness', async () => {
+    renderPage(fakeEngine({ ide: { ...IDE, launcher: 'spock' } }).client);
+
+    const section = await screen.findByRole('region', { name: 'O Spock dentro da sua ferramenta' });
+    const snippet = await within(section).findByLabelText('Configuração para Claude Code');
+    expect(snippet).toHaveTextContent(
+      `claude mcp add --scope user ${scopedServerName(loja)} -- "spock" mcp --project ${loja.projectId}`
+    );
+    expect(snippet).not.toHaveTextContent(ENGINE);
+    expect(within(section).getByText(/o .mcp.json dele já liga o servidor/)).toBeInTheDocument();
+    expect(within(section).queryByText('Comando spock não encontrado')).not.toBeInTheDocument();
+  });
+
+  it('sem o lançador, o passo usa o caminho do motor e avisa', async () => {
+    renderPage(fakeEngine().client);
+
+    const section = await screen.findByRole('region', { name: 'O Spock dentro da sua ferramenta' });
+    await within(section).findByLabelText('Configuração para Claude Code');
+    expect(within(section).getByText('Comando spock não encontrado')).toBeInTheDocument();
+    expect(within(section).queryByText(/o .mcp.json dele já liga o servidor/)).not.toBeInTheDocument();
   });
 
   // Validação real M3 e H0-1 (16/11): a conexão lê só o projeto aberto, e não existe mais a opção de ler todos.

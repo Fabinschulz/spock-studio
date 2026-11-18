@@ -251,7 +251,7 @@ public sealed class McpServerTests : IDisposable
     [Fact]
     public void O_aplicativo_mostra_como_ligar_o_servidor_na_ide()
     {
-        var session = new EngineSession("test", ide: new IdeConnection(@"C:\Spock\mariliz-runtime.exe"));
+        var session = new EngineSession("test", ide: new IdeConnection(@"C:\Spock\mariliz-runtime.exe", () => true));
 
         var response = session.Handle(new JsonObject
         {
@@ -261,6 +261,10 @@ public sealed class McpServerTests : IDisposable
 
         Assert.Equal(@"C:\Spock\mariliz-runtime.exe", result["command"]!.GetValue<string>());
         Assert.Equal(["mcp"], result["args"]!.AsArray().Select(arg => arg!.GetValue<string>()));
+        // Com o lançador instalado, a IDE chama "spock"; sem ele, o caminho do motor continua valendo.
+        Assert.Equal("spock", result["launcher"]!.GetValue<string>());
+        Assert.Null(new IdeConnection(@"C:\Spock\mariliz-runtime.exe", () => false).Describe()["launcher"]);
+        Assert.Null(new IdeConnection(@"C:\Spock\mariliz-runtime.exe").Describe()["launcher"]);
         Assert.Equal(ProjectContextTools.Catalog.Count, result["tools"]!.AsArray().Count);
 
         var pretty = result.ToJsonString(new JsonSerializerOptions
