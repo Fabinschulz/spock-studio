@@ -121,7 +121,7 @@
   "obrigacoes": "Licença do CPython (lib/python3.12/LICENSE.txt) e das bibliotecas nativas (python/licenses/python-build-standalone) no pacote",
   "risco": "BAIXO",
   "motivo": "Bibliotecas nativas ligadas ao libpython (OpenSSL, SQLite, ncurses, libedit, libffi, expat, mpdecimal, zlib, xz, zstd, Tcl/Tk, X11); os textos publicados pelo PBS na tag vão em python/licenses/python-build-standalone",
-  "evidencias": "scripts/package-intelligence.py:41 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml",
+  "evidencias": "scripts/package-intelligence.py:46 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml",
   "hashes": "",
   "nota": "SHA-256 do arquivo fixado no script: 6a9e62dad033790aef722dbd370e0ce76ce17b73627ba3ae679f537049350b39. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado."
  },
@@ -142,7 +142,7 @@
   "obrigacoes": "Incluir LICENSE.txt do CPython (já vai em resources/python) e os textos das bibliotecas nativas (python/licenses/python-build-standalone) nos avisos; EULA do Spock com proteção ao Distributable Code da Microsoft; não usar marcas da PSF/Microsoft",
   "risco": "MÉDIO",
   "motivo": "Redistribuição exige manter o LICENSE.txt, os textos das bibliotecas nativas (python/licenses/python-build-standalone) e, pelo runtime MSVC junto, termos de usuário final que protejam o Distributable Code da Microsoft",
-  "evidencias": "scripts/package-intelligence.py:36 | scripts/notices/python-build-standalone-windows/README.md",
+  "evidencias": "scripts/package-intelligence.py:41 | scripts/notices/python-build-standalone-windows/README.md",
   "hashes": "SHA-256:f4ee82750281a43282d2d6bfcf03812f2ac62725ae8c958b6e6182ba203c3cef",
   "nota": "SHA-256 do arquivo fixado no script: 355ee61b8207b91574491b1c6dc9b0ebb4408fc56bfafe498f3ef439314b52dc. Inclui OpenSSL 3.5.9 (Apache-2.0), libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 2.5.1, xz 5.8.4 (0BSD), zlib 1.4; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk podados. Hash do arquivo desktop/host/src-tauri/resources/python/python312.dll do último build local."
  },
@@ -778,7 +778,7 @@
  },
  {
   "nome": "block-buffer",
-  "versao": "0.10.4",
+  "versao": "0.12.1",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/RustCrypto/utils",
@@ -793,8 +793,8 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-buffer-0.10.4",
-  "hashes": "SHA-256:3078c7629b62d3f0439517fa394996acacc5cbc91c5a20d8c658e77abd503a71",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-buffer-0.12.1",
+  "hashes": "SHA-256:d2f6c7dbe95a6ed67ad9f18e57daf93a2f034c524b99fd2b76d18fdfeb6660aa",
   "nota": ""
  },
  {
@@ -1197,6 +1197,27 @@
   "nota": ""
  },
  {
+  "nome": "const-oid",
+  "versao": "0.10.3",
+  "tipo": "library",
+  "ecossistema": "cargo",
+  "origem": "https://github.com/RustCrypto/formats",
+  "uso": "transitiva de digest",
+  "dependencia": "transitiva",
+  "ambiente": "build",
+  "artefatos": "desenvolvimento",
+  "licenca_declarada": "Apache-2.0 OR MIT",
+  "licenca_confirmada": "Apache-2.0, MIT",
+  "conferencia": "CONFERE",
+  "distribuicao": "não distribuído (build/proc-macro)",
+  "obrigacoes": "Nenhuma para o produto (não distribuído).",
+  "risco": "BAIXO",
+  "motivo": "Não distribuído ao usuário final",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/const-oid-0.10.3",
+  "hashes": "SHA-256:be95d4a884358a21a199689323c29e9256b4a1b315e22f183d155422041d3a9a",
+  "nota": ""
+ },
+ {
   "nome": "cookie",
   "versao": "0.18.2",
   "tipo": "library",
@@ -1240,7 +1261,7 @@
  },
  {
   "nome": "cpufeatures",
-  "versao": "0.2.17",
+  "versao": "0.3.1",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/RustCrypto/utils",
@@ -1255,8 +1276,8 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cpufeatures-0.2.17",
-  "hashes": "SHA-256:59ed5838eebb26a2bb2e58f6d5b5316989ae9d08bab10e0e6d103e656d1b0280",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cpufeatures-0.3.1",
+  "hashes": "SHA-256:5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566",
   "nota": ""
  },
  {
@@ -1324,7 +1345,7 @@
  },
  {
   "nome": "crypto-common",
-  "versao": "0.1.7",
+  "versao": "0.2.2",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/RustCrypto/traits",
@@ -1339,8 +1360,8 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-common-0.1.7",
-  "hashes": "SHA-256:78c8292055d1c1df0cce5d180393dc8cce0abec0a7102adb6c7b1eef6016d60a",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-common-0.2.2",
+  "hashes": "SHA-256:ce6e4c961d6cd6c9a86db418387425e8bdeaf05b3c8bc1411e6dca4c252f1453",
   "nota": ""
  },
  {
@@ -1618,7 +1639,7 @@
  },
  {
   "nome": "digest",
-  "versao": "0.10.7",
+  "versao": "0.11.3",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/RustCrypto/traits",
@@ -1633,8 +1654,8 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7",
-  "hashes": "SHA-256:9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.11.3",
+  "hashes": "SHA-256:f1dd6dbb5841937940781866fa1281a1ff7bd3bf827091440879f9994983d5c2",
   "nota": ""
  },
  {
@@ -2625,27 +2646,6 @@
   "nota": ""
  },
  {
-  "nome": "generic-array",
-  "versao": "0.14.7",
-  "tipo": "library",
-  "ecossistema": "cargo",
-  "origem": "https://github.com/fizyk20/generic-array.git",
-  "uso": "transitiva de block-buffer",
-  "dependencia": "transitiva",
-  "ambiente": "build",
-  "artefatos": "desenvolvimento",
-  "licenca_declarada": "MIT",
-  "licenca_confirmada": "MIT",
-  "conferencia": "CONFERE",
-  "distribuicao": "não distribuído (build/proc-macro)",
-  "obrigacoes": "Nenhuma para o produto (não distribuído).",
-  "risco": "BAIXO",
-  "motivo": "Não distribuído ao usuário final",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic-array-0.14.7",
-  "hashes": "SHA-256:85649ca51fd72272d7821adaf274ad91c288277713d9c18820d8499a7ff69e9a",
-  "nota": ""
- },
- {
   "nome": "getrandom",
   "versao": "0.3.4",
   "tipo": "library",
@@ -3042,6 +3042,27 @@
   "motivo": "Permissiva: manter aviso de copyright e texto da licença",
   "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/http-1.5.0",
   "hashes": "SHA-256:918d3568bebf352712bc2ef3d46a8bcf1a75b373be6539de198e9105cbbf9ce0",
+  "nota": ""
+ },
+ {
+  "nome": "hybrid-array",
+  "versao": "0.4.15",
+  "tipo": "library",
+  "ecossistema": "cargo",
+  "origem": "https://github.com/RustCrypto/hybrid-array",
+  "uso": "transitiva de block-buffer",
+  "dependencia": "transitiva",
+  "ambiente": "build",
+  "artefatos": "desenvolvimento",
+  "licenca_declarada": "MIT OR Apache-2.0",
+  "licenca_confirmada": "Apache-2.0, MIT",
+  "conferencia": "CONFERE",
+  "distribuicao": "não distribuído (build/proc-macro)",
+  "obrigacoes": "Nenhuma para o produto (não distribuído).",
+  "risco": "BAIXO",
+  "motivo": "Não distribuído ao usuário final",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hybrid-array-0.4.15",
+  "hashes": "SHA-256:27f864f10dfb56725ce5ce5472bc52252c8f93a4ab86327122cebf62c5f59a17",
   "nota": ""
  },
  {
@@ -4936,7 +4957,7 @@
  },
  {
   "nome": "rfd",
-  "versao": "0.16.1",
+  "versao": "0.17.2",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/PolyMeilex/rfd",
@@ -4951,8 +4972,8 @@
   "obrigacoes": "aviso de copyright e texto da licença nos avisos de terceiros",
   "risco": "BAIXO",
   "motivo": "Permissiva: manter aviso de copyright e texto da licença",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rfd-0.16.1",
-  "hashes": "SHA-256:f4fe518b6db89699d59862e4d1e3a0226316090f4e4ec09f7dd686be25634c7c",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rfd-0.17.2",
+  "hashes": "SHA-256:20dafead71c16a34e1ff357ddefc8afc11e7d51d6d2b9fbd07eaa48e3e540220",
   "nota": ""
  },
  {
@@ -5524,7 +5545,7 @@
  },
  {
   "nome": "sha2",
-  "versao": "0.10.9",
+  "versao": "0.11.1",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/RustCrypto/hashes",
@@ -5539,8 +5560,8 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.10.9",
-  "hashes": "SHA-256:a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.11.1",
+  "hashes": "SHA-256:47d7069beb7d6ac7b9acd1039986e73443f24234f41074da099d6f994ac9ad19",
   "nota": ""
  },
  {
@@ -6091,7 +6112,7 @@
  },
  {
   "nome": "tauri",
-  "versao": "2.12.5",
+  "versao": "2.12.7",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/tauri-apps/tauri",
@@ -6106,13 +6127,13 @@
   "obrigacoes": "aviso de copyright e texto da licença nos avisos de terceiros",
   "risco": "BAIXO",
   "motivo": "Permissiva: manter aviso de copyright e texto da licença",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-2.12.5",
-  "hashes": "SHA-256:5fb0244332cfb9cee7e2a568bf5da29a36ed8fdbd717f6f47a66b6b7b358c072",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-2.12.7",
+  "hashes": "SHA-256:30fbfbb9dc9a2697b0e96d909ddc295fb18d2d82a58ed542ab8d9eba2edbe6da",
   "nota": ""
  },
  {
   "nome": "tauri-build",
-  "versao": "2.7.4",
+  "versao": "2.7.6",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/tauri-apps/tauri",
@@ -6127,13 +6148,13 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-build-2.7.4",
-  "hashes": "SHA-256:adddb0e648752aaac5da9c3c3c6a68e1e87cab55e3b757b18a9441ef8c3ac614",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-build-2.7.6",
+  "hashes": "SHA-256:73d80784e874fa117b9b00a6680cf2f9b8a51bbd14406bea980cf8f328b00646",
   "nota": ""
  },
  {
   "nome": "tauri-codegen",
-  "versao": "2.7.4",
+  "versao": "2.7.6",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/tauri-apps/tauri",
@@ -6148,13 +6169,13 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-codegen-2.7.4",
-  "hashes": "SHA-256:fb37631cf71dab5e8ab55e1bdd701e18a52653d90b78e71d0e5598b1e0a61316",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-codegen-2.7.6",
+  "hashes": "SHA-256:c5dc6caab4da5646f57648f39b794bae118f0dd4a4305eeb8c892966171f4852",
   "nota": ""
  },
  {
   "nome": "tauri-macros",
-  "versao": "2.7.4",
+  "versao": "2.7.6",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/tauri-apps/tauri",
@@ -6169,8 +6190,8 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-macros-2.7.4",
-  "hashes": "SHA-256:0cc38db58854c10fb5f91a887ed8bf82d3239bb92b5d8db86eda09e96d9963d1",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-macros-2.7.6",
+  "hashes": "SHA-256:2831c5da8603a96b1efc0b650c2cb6decc69b6cda257d815fe70c7f5be53818e",
   "nota": ""
  },
  {
@@ -6196,7 +6217,7 @@
  },
  {
   "nome": "tauri-plugin-dialog",
-  "versao": "2.8.3",
+  "versao": "2.8.4",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/tauri-apps/plugins-workspace",
@@ -6211,8 +6232,8 @@
   "obrigacoes": "aviso de copyright e texto da licença nos avisos de terceiros",
   "risco": "BAIXO",
   "motivo": "Permissiva: manter aviso de copyright e texto da licença",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-plugin-dialog-2.8.3",
-  "hashes": "SHA-256:b7461aaacf1901915ea7b9f5cd74f8224a351ed96af0a62c07fce934003cb34b",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-plugin-dialog-2.8.4",
+  "hashes": "SHA-256:ce0fb9c2b6d34a9720627ed930ebc8af26f61e648695aecaeb03d5c33c5896f5",
   "nota": ""
  },
  {
@@ -6238,7 +6259,7 @@
  },
  {
   "nome": "tauri-plugin-shell",
-  "versao": "2.5.0",
+  "versao": "2.6.0",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/tauri-apps/plugins-workspace",
@@ -6253,13 +6274,13 @@
   "obrigacoes": "aviso de copyright e texto da licença nos avisos de terceiros",
   "risco": "BAIXO",
   "motivo": "Permissiva: manter aviso de copyright e texto da licença",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-plugin-shell-2.5.0",
-  "hashes": "SHA-256:8567d42b2c7264355daa1df415ec77f52aa42e885924c86a969be2e920e05521",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-plugin-shell-2.6.0",
+  "hashes": "SHA-256:7375b25f72f70f6168f27f1ba3a413e30eaa0a2098cff53a4046ebfe9e2f142d",
   "nota": ""
  },
  {
   "nome": "tauri-plugin-single-instance",
-  "versao": "2.5.4",
+  "versao": "2.5.5",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/tauri-apps/plugins-workspace",
@@ -6274,13 +6295,13 @@
   "obrigacoes": "aviso de copyright e texto da licença nos avisos de terceiros",
   "risco": "BAIXO",
   "motivo": "Permissiva: manter aviso de copyright e texto da licença",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-plugin-single-instance-2.5.4",
-  "hashes": "SHA-256:561cd99484561bc39c954768e7b41a66cebbe1ac3d9d081c34361f740c489e2c",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-plugin-single-instance-2.5.5",
+  "hashes": "SHA-256:726b6da0dd5bd1344f84f4108a622c07d01923baacb5c803a605189672c5352f",
   "nota": ""
  },
  {
   "nome": "tauri-runtime",
-  "versao": "2.12.2",
+  "versao": "2.12.4",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/tauri-apps/tauri",
@@ -6295,13 +6316,13 @@
   "obrigacoes": "aviso de copyright e texto da licença nos avisos de terceiros",
   "risco": "BAIXO",
   "motivo": "Permissiva: manter aviso de copyright e texto da licença",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-runtime-2.12.2",
-  "hashes": "SHA-256:7c55766d99cea69055904d1735b93c2049302b2e09effd462120deb5581d78e9",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-runtime-2.12.4",
+  "hashes": "SHA-256:60c2b14bd5265b63993cdc34ad526fb836e0fd0cf64a4634a895db0784844d5e",
   "nota": ""
  },
  {
   "nome": "tauri-runtime-wry",
-  "versao": "2.12.3",
+  "versao": "2.12.5",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/tauri-apps/tauri",
@@ -6316,13 +6337,13 @@
   "obrigacoes": "aviso de copyright e texto da licença nos avisos de terceiros",
   "risco": "BAIXO",
   "motivo": "Permissiva: manter aviso de copyright e texto da licença",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-runtime-wry-2.12.3",
-  "hashes": "SHA-256:e1aa9d8b7a120f879f44fdc1053f7b7dbf416bf0bbc6a72b714dec46b782b52f",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-runtime-wry-2.12.5",
+  "hashes": "SHA-256:b8c14a025255cc9816d401635035075b09b6cc9973b7b8fd7b8fcb8753f30f92",
   "nota": ""
  },
  {
   "nome": "tauri-utils",
-  "versao": "2.10.2",
+  "versao": "2.10.4",
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/tauri-apps/tauri",
@@ -6337,8 +6358,8 @@
   "obrigacoes": "aviso de copyright e texto da licença nos avisos de terceiros",
   "risco": "BAIXO",
   "motivo": "Permissiva: manter aviso de copyright e texto da licença",
-  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-utils-2.10.2",
-  "hashes": "SHA-256:362ab21cd4cc713f2a02b1a9b5688198b1541cfb6907c4281e9190e0f0ef4aa3",
+  "evidencias": "desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-utils-2.10.4",
+  "hashes": "SHA-256:28d1d33d4453c5df0bf1672dbc7ada69d8ed74f56a4316d964a4aa73d4ecd3ad",
   "nota": ""
  },
  {
@@ -6893,7 +6914,7 @@
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/paholg/typenum",
-  "uso": "transitiva de crypto-common",
+  "uso": "transitiva de hybrid-array",
   "dependencia": "transitiva",
   "ambiente": "build",
   "artefatos": "desenvolvimento",
@@ -7565,7 +7586,7 @@
   "tipo": "library",
   "ecossistema": "cargo",
   "origem": "https://github.com/microsoft/windows-rs",
-  "uso": "transitiva de rfd",
+  "uso": "transitiva de tauri-plugin-shell",
   "dependencia": "transitiva",
   "ambiente": "execução",
   "artefatos": "windows-x64",
@@ -10123,7 +10144,7 @@
  },
  {
   "nome": "@tauri-apps/api",
-  "versao": "2.12.4",
+  "versao": "2.12.5",
   "tipo": "library",
   "ecossistema": "npm",
   "origem": "https://github.com/tauri-apps/tauri#readme",
@@ -10138,13 +10159,13 @@
   "obrigacoes": "aviso de copyright e texto da licença nos avisos de terceiros",
   "risco": "BAIXO",
   "motivo": "Permissiva: manter aviso de copyright e texto da licença",
-  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@tauri-apps+api@2.12.4/node_modules/@tauri-apps/api",
-  "hashes": "SHA-512:a5599f8acfb8cd3f07d10869df13d9c7d26eee4a73bc0eabaff3d224fcaec1fbee71343cb15b7ad4d614f4a3242bbd3750595869d1668ca0381e1c9b3ad37482",
+  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@tauri-apps+api@2.12.5/node_modules/@tauri-apps/api",
+  "hashes": "SHA-512:1bd40832de5fcc40fe692e108552b7c351d62caa4b2301ff327a42afdcf5ba01841e74b63919aaacb91cd2e00b3a344ae2a5c9cbee188b0f0b0e5fca89c0b51e",
   "nota": ""
  },
  {
   "nome": "@tauri-apps/cli",
-  "versao": "2.12.4",
+  "versao": "2.12.6",
   "tipo": "library",
   "ecossistema": "npm",
   "origem": "https://github.com/tauri-apps/tauri#readme",
@@ -10159,13 +10180,13 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@tauri-apps+cli@2.12.4/node_modules/@tauri-apps/cli",
-  "hashes": "SHA-512:248f5b1dfb9d4912629063ab8db5c49ba463cf3be62ae2dcf898b1075344f21373424365082202de94c44b7bb2a6447d9711ebb1bc737274b0848d88c4142987",
+  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@tauri-apps+cli@2.12.6/node_modules/@tauri-apps/cli",
+  "hashes": "SHA-512:fdc39e420aaaf0f0433ce0ce8e34f4607b38ab12821dc40c58c8819b8acb33724dafd99913e3c734a38ae3302484852d60c34bff47f0796e3c54dbf30f501ba8",
   "nota": ""
  },
  {
   "nome": "@tauri-apps/cli-win32-x64-msvc",
-  "versao": "2.12.4",
+  "versao": "2.12.6",
   "tipo": "library",
   "ecossistema": "npm",
   "origem": "https://github.com/tauri-apps/tauri#readme",
@@ -10180,8 +10201,8 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@tauri-apps+cli-win32-x64-msvc@2.12.4/node_modules/@tauri-apps/cli-win32-x64-msvc",
-  "hashes": "SHA-512:0c9843782aa32c334c598172ed94bc71f7801d7d912b445b40c2e20376cc5559174432783416221eb886aac521b2bf621b8d5a4dbf9d2469053e63f0d605b057",
+  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@tauri-apps+cli-win32-x64-msvc@2.12.6/node_modules/@tauri-apps/cli-win32-x64-msvc",
+  "hashes": "SHA-512:8a89fb0a16e3db544ec4c4698d0ec6f2bcf9b0839a23b228050ba6d68ab9b25d55e73196c9cfe86270ab42156a3b64f12bf9410d6c6deb8f01ccb8b4d926375e",
   "nota": ""
  },
  {

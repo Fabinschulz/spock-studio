@@ -1,11 +1,11 @@
 {
   "gerado_em": "2026-11-19",
-  "total": 959,
+  "total": 960,
   "por_ecossistema": {
     "GitHub Actions": 1,
     "asset": 3,
     "binário": 9,
-    "cargo": 377,
+    "cargo": 378,
     "externo": 6,
     "npm": 445,
     "nuget": 70,
@@ -15,7 +15,7 @@
     "sistema operacional": 2
   },
   "diretas": 105,
-  "transitivas": 854,
+  "transitivas": 855,
   "distribuidos": 486,
   "distribuidos_por_ecossistema": {
     "asset": 3,
@@ -27,10 +27,10 @@
   },
   "sob_demanda": 5,
   "externos": 9,
-  "desenvolvimento_build": 460,
+  "desenvolvimento_build": 461,
   "nao_instalados": 1,
   "risco": {
-    "BAIXO": 939,
+    "BAIXO": 940,
     "PENDENTE": 3,
     "MÉDIO": 13,
     "ALTO": 4
@@ -66,10 +66,10 @@
     "PSF-2.0": 1
   },
   "licencas_declaradas_todos": {
-    "MIT": 529,
-    "MIT OR Apache-2.0": 174,
+    "MIT": 528,
+    "MIT OR Apache-2.0": 175,
     "Apache-2.0": 58,
-    "Apache-2.0 OR MIT": 55,
+    "Apache-2.0 OR MIT": 56,
     "BSD-3-Clause": 18,
     "Unicode-3.0": 18,
     "ISC": 14,
@@ -106,7 +106,7 @@
   "conferencia_arquivo": {
     "PENDENTE": 3,
     "CONFERIDO MANUALMENTE": 25,
-    "CONFERE": 844,
+    "CONFERE": 845,
     "SEM ARQUIVO": 26,
     "DIVERGE": 6,
     "TEXTO NÃO RECONHECIDO": 1,

@@ -48,6 +48,11 @@ Os ecossistemas não seguem o mesmo versionamento semântico. Algumas exceções
 
 Merge automático só acontece com tudo verde. Uma atualização que muda o aviso de licença (exemplo: ProtectedData 10.0.15, que publica só a expressão MIT) para até o aviso ser resolvido.
 
+Na máquina de desenvolvimento, depois de trocar a versão de um pacote npm, apague `node_modules/.vitest-cache` na raiz antes de
+rodar os testes da interface. O cache de módulos do Vitest usa o conteúdo do arquivo como chave e guarda o caminho resolvido
+do pacote antigo. No MV-9 do Tauri, isso fez o `vi.mock` de `@tauri-apps/api/core` deixar de valer e 22 testes falharem sem
+defeito no código. O CI não é afetado, porque cada execução parte do zero.
+
 ## 5. Governança do catálogo
 
 - O catálogo só muda por PR. O diff é o próprio JSON, e o relatório do gerador vai na descrição.
