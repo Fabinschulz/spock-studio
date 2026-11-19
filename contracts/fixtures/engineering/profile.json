@@ -74,6 +74,78 @@
         "from": null,
         "to": "2 tecnologias"
       }
+    ],
+    "modules": [
+      {
+        "root": "web",
+        "technologyId": "typescript",
+        "name": "TypeScript",
+        "version": "5.6.0",
+        "origin": "framework",
+        "confidence": "medium",
+        "evidence": [
+          "web/package.json: typescript=~5.6.0"
+        ]
+      },
+      {
+        "root": "web",
+        "technologyId": "nextjs",
+        "name": "Next.js",
+        "version": "16.0.1",
+        "origin": "stack",
+        "confidence": "medium",
+        "evidence": [
+          "web/package.json: next=^16.0.1 (faixa declarada, não instalada)"
+        ]
+      }
+    ]
+  },
+  "compatibility": {
+    "catalogGeneratedAt": "2026-11-18T00:00:00+00:00",
+    "catalogStale": false,
+    "modules": [
+      {
+        "root": "web",
+        "technologyId": "typescript",
+        "name": "TypeScript",
+        "version": "5.6.0",
+        "origin": "framework",
+        "status": "unknown",
+        "statusLabel": "<catálogo>",
+        "cycle": null,
+        "channel": null,
+        "eol": null,
+        "latestInCycle": null,
+        "newestStable": null,
+        "language": null,
+        "confirmed": false,
+        "reason": "<catálogo>",
+        "guidance": "<catálogo>",
+        "evidence": [
+          "web/package.json: typescript=~5.6.0"
+        ]
+      },
+      {
+        "root": "web",
+        "technologyId": "nextjs",
+        "name": "Next.js",
+        "version": "16.0.1",
+        "origin": "stack",
+        "status": "unknown",
+        "statusLabel": "<catálogo>",
+        "cycle": null,
+        "channel": null,
+        "eol": null,
+        "latestInCycle": null,
+        "newestStable": null,
+        "language": null,
+        "confirmed": false,
+        "reason": "<catálogo>",
+        "guidance": "<catálogo>",
+        "evidence": [
+          "web/package.json: next=^16.0.1 (faixa declarada, não instalada)"
+        ]
+      }
     ]
   }
 }

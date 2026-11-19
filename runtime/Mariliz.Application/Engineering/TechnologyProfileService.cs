@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Mariliz.Application.Compatibility;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Harness;
 using Mariliz.Application.Integrations;
@@ -38,6 +39,10 @@ public sealed class TechnologyProfileService(
         });
         return profile;
     }
+
+    // Calculada a cada leitura: a mesma versão muda de situação quando o suporte acaba ou o catálogo é atualizado.
+    public CompatibilityReport? Compatibility(TechnologyProfile? profile) =>
+        profile is null ? null : CompatibilityAssessor.Assess(profile.Modules, ReleaseCatalog.Embedded, clock.UtcNow);
 
     private void EnsureAuthorized(string projectId)
     {

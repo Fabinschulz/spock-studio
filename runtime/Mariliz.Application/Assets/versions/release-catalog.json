@@ -1,0 +1,1429 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-19T02:55:26Z",
+  "technologies": [
+    {
+      "id": "dotnet",
+      "name": ".NET",
+      "policy": "lifecycle",
+      "cycle": "major.minor",
+      "source": "https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json",
+      "checkedAt": "2026-11-19T02:55:26Z",
+      "stale": false,
+      "error": null,
+      "prerelease": null,
+      "lines": [
+        {
+          "cycle": "11.0",
+          "channel": "sts",
+          "status": "active",
+          "releaseDate": null,
+          "eol": "2028-11-14",
+          "latest": "11.0.0",
+          "latestDate": "2026-11-10",
+          "language": "C# 15"
+        },
+        {
+          "cycle": "10.0",
+          "channel": "lts",
+          "status": "active",
+          "releaseDate": null,
+          "eol": "2028-11-14",
+          "latest": "10.0.15",
+          "latestDate": "2026-11-10",
+          "language": "C# 14"
+        },
+        {
+          "cycle": "9.0",
+          "channel": "sts",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": "2026-11-10",
+          "latest": "9.0.23",
+          "latestDate": "2026-11-10",
+          "language": "C# 13"
+        },
+        {
+          "cycle": "8.0",
+          "channel": "lts",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": "2026-11-10",
+          "latest": "8.0.34",
+          "latestDate": "2026-11-10",
+          "language": "C# 12"
+        },
+        {
+          "cycle": "7.0",
+          "channel": "sts",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": "2024-05-14",
+          "latest": "7.0.20",
+          "latestDate": "2024-05-28",
+          "language": "C# 11"
+        },
+        {
+          "cycle": "6.0",
+          "channel": "lts",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": "2024-11-12",
+          "latest": "6.0.36",
+          "latestDate": "2024-11-12",
+          "language": "C# 10"
+        },
+        {
+          "cycle": "5.0",
+          "channel": "sts",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": "2022-05-10",
+          "latest": "5.0.17",
+          "latestDate": "2022-05-10",
+          "language": "C# 9"
+        },
+        {
+          "cycle": "3.1",
+          "channel": "lts",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": "2022-12-13",
+          "latest": "3.1.32",
+          "latestDate": "2022-12-13",
+          "language": "C# 8"
+        },
+        {
+          "cycle": "3.0",
+          "channel": "sts",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": "2020-03-03",
+          "latest": "3.0.3",
+          "latestDate": "2020-02-18",
+          "language": "C# 8"
+        },
+        {
+          "cycle": "2.2",
+          "channel": "sts",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": "2019-12-23",
+          "latest": "2.2.8",
+          "latestDate": "2019-11-19",
+          "language": null
+        },
+        {
+          "cycle": "2.1",
+          "channel": "lts",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": "2021-08-21",
+          "latest": "2.1.30",
+          "latestDate": "2021-08-19",
+          "language": null
+        },
+        {
+          "cycle": "2.0",
+          "channel": "sts",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": "2018-10-01",
+          "latest": "2.0.9",
+          "latestDate": "2018-07-10",
+          "language": null
+        },
+        {
+          "cycle": "1.1",
+          "channel": "lts",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": "2019-06-27",
+          "latest": "1.1.13",
+          "latestDate": "2019-05-14",
+          "language": null
+        },
+        {
+          "cycle": "1.0",
+          "channel": "lts",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": "2019-06-27",
+          "latest": "1.0.16",
+          "latestDate": "2019-05-14",
+          "language": null
+        }
+      ]
+    },
+    {
+      "id": "node",
+      "name": "Node.js",
+      "policy": "lifecycle",
+      "cycle": "major",
+      "source": "https://github.com/nodejs/Release/blob/main/schedule.json",
+      "checkedAt": "2026-11-19T02:55:26Z",
+      "stale": false,
+      "error": null,
+      "prerelease": null,
+      "lines": [
+        {
+          "cycle": "27",
+          "channel": "preview",
+          "status": "preview",
+          "releaseDate": "2027-04-22",
+          "eol": "2030-04-30",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "26",
+          "channel": "lts",
+          "status": "active",
+          "releaseDate": "2026-05-05",
+          "eol": "2029-04-30",
+          "latest": "26.13.1",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "25",
+          "channel": "current",
+          "status": "eol",
+          "releaseDate": "2025-10-15",
+          "eol": "2026-06-01",
+          "latest": "25.9.0",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "24",
+          "channel": "lts",
+          "status": "maintenance",
+          "releaseDate": "2025-05-06",
+          "eol": "2028-04-30",
+          "latest": "24.22.3",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "23",
+          "channel": "current",
+          "status": "eol",
+          "releaseDate": "2024-10-16",
+          "eol": "2025-06-01",
+          "latest": "23.11.1",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "22",
+          "channel": "lts",
+          "status": "maintenance",
+          "releaseDate": "2024-04-24",
+          "eol": "2027-04-30",
+          "latest": "22.23.5",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "21",
+          "channel": "current",
+          "status": "eol",
+          "releaseDate": "2023-10-17",
+          "eol": "2024-06-01",
+          "latest": "21.7.3",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "20",
+          "channel": "lts",
+          "status": "eol",
+          "releaseDate": "2023-04-18",
+          "eol": "2026-04-30",
+          "latest": "20.20.2",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "19",
+          "channel": "current",
+          "status": "eol",
+          "releaseDate": "2022-10-18",
+          "eol": "2023-06-01",
+          "latest": "19.9.0",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "18",
+          "channel": "lts",
+          "status": "eol",
+          "releaseDate": "2022-04-19",
+          "eol": "2025-04-30",
+          "latest": "18.20.8",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "17",
+          "channel": "current",
+          "status": "eol",
+          "releaseDate": "2021-10-19",
+          "eol": "2022-06-01",
+          "latest": "17.9.1",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "16",
+          "channel": "lts",
+          "status": "eol",
+          "releaseDate": "2021-04-20",
+          "eol": "2023-09-11",
+          "latest": "16.20.2",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "15",
+          "channel": "current",
+          "status": "eol",
+          "releaseDate": "2020-10-20",
+          "eol": "2021-06-01",
+          "latest": "15.14.0",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "14",
+          "channel": "lts",
+          "status": "eol",
+          "releaseDate": "2020-04-21",
+          "eol": "2023-04-30",
+          "latest": "14.21.3",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "13",
+          "channel": "current",
+          "status": "eol",
+          "releaseDate": "2019-10-22",
+          "eol": "2020-06-01",
+          "latest": "13.14.0",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "12",
+          "channel": "lts",
+          "status": "eol",
+          "releaseDate": "2019-04-23",
+          "eol": "2022-04-30",
+          "latest": "12.22.12",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "11",
+          "channel": "current",
+          "status": "eol",
+          "releaseDate": "2018-10-23",
+          "eol": "2019-06-01",
+          "latest": "11.15.0",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "10",
+          "channel": "lts",
+          "status": "eol",
+          "releaseDate": "2018-04-24",
+          "eol": "2021-04-30",
+          "latest": "10.24.1",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "9",
+          "channel": "current",
+          "status": "eol",
+          "releaseDate": "2017-10-01",
+          "eol": "2018-06-30",
+          "latest": "9.11.2",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "8",
+          "channel": "lts",
+          "status": "eol",
+          "releaseDate": "2017-05-30",
+          "eol": "2019-12-31",
+          "latest": "8.17.0",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "7",
+          "channel": "current",
+          "status": "eol",
+          "releaseDate": "2016-10-25",
+          "eol": "2017-06-30",
+          "latest": "7.10.1",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "6",
+          "channel": "lts",
+          "status": "eol",
+          "releaseDate": "2016-04-26",
+          "eol": "2019-04-30",
+          "latest": "6.17.1",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "5",
+          "channel": "current",
+          "status": "eol",
+          "releaseDate": "2015-10-29",
+          "eol": "2016-06-30",
+          "latest": "5.12.0",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "4",
+          "channel": "lts",
+          "status": "eol",
+          "releaseDate": "2015-09-08",
+          "eol": "2018-04-30",
+          "latest": "4.9.1",
+          "latestDate": null,
+          "language": null
+        }
+      ]
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "policy": "lifecycle",
+      "cycle": "major.minor",
+      "source": "https://peps.python.org/api/release-cycle.json",
+      "checkedAt": "2026-11-19T02:55:26Z",
+      "stale": false,
+      "error": null,
+      "prerelease": null,
+      "lines": [
+        {
+          "cycle": "3.16",
+          "channel": "preview",
+          "status": "preview",
+          "releaseDate": "2027-10-06",
+          "eol": "2032-10",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.15",
+          "channel": "stable",
+          "status": "active",
+          "releaseDate": "2026-10-09",
+          "eol": "2031-10",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.14",
+          "channel": "stable",
+          "status": "active",
+          "releaseDate": "2025-10-07",
+          "eol": "2030-10",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.13",
+          "channel": "stable",
+          "status": "maintenance",
+          "releaseDate": "2024-10-07",
+          "eol": "2029-10",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.12",
+          "channel": "stable",
+          "status": "maintenance",
+          "releaseDate": "2023-10-02",
+          "eol": "2028-10",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.11",
+          "channel": "stable",
+          "status": "maintenance",
+          "releaseDate": "2022-10-24",
+          "eol": "2027-10",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.10",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": "2021-10-04",
+          "eol": "2026-10-01",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.9",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": "2020-10-05",
+          "eol": "2025-10-31",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.8",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": "2019-10-14",
+          "eol": "2024-10-07",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.7",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": "2018-06-27",
+          "eol": "2023-06-27",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.6",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": "2016-12-23",
+          "eol": "2021-12-23",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.5",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": "2015-09-13",
+          "eol": "2020-09-30",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.4",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": "2014-03-16",
+          "eol": "2019-03-18",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.3",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": "2012-09-29",
+          "eol": "2017-09-29",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.2",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": "2011-02-20",
+          "eol": "2016-02-20",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.1",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": "2009-06-27",
+          "eol": "2012-04-09",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3.0",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": "2008-12-03",
+          "eol": "2009-06-27",
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        }
+      ]
+    },
+    {
+      "id": "go",
+      "name": "Go",
+      "policy": "supported-window",
+      "cycle": "major.minor",
+      "source": "https://go.dev/dl/?mode=json",
+      "checkedAt": "2026-11-19T02:55:26Z",
+      "stale": false,
+      "error": null,
+      "prerelease": null,
+      "lines": [
+        {
+          "cycle": "1.27",
+          "channel": "stable",
+          "status": "active",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "1.27.4",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "1.26",
+          "channel": "stable",
+          "status": "active",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "1.26.11",
+          "latestDate": null,
+          "language": null
+        }
+      ]
+    },
+    {
+      "id": "rust",
+      "name": "Rust",
+      "policy": "rolling",
+      "cycle": "major.minor",
+      "source": "https://static.rust-lang.org/dist/channel-rust-stable.toml",
+      "checkedAt": "2026-11-19T02:55:26Z",
+      "stale": false,
+      "error": null,
+      "prerelease": null,
+      "lines": [
+        {
+          "cycle": "1.100",
+          "channel": "stable",
+          "status": "active",
+          "releaseDate": "2026-11-12",
+          "eol": null,
+          "latest": "1.100.0",
+          "latestDate": null,
+          "language": null
+        }
+      ]
+    },
+    {
+      "id": "java",
+      "name": "Java (Eclipse Adoptium)",
+      "policy": "vendor",
+      "cycle": "major",
+      "source": "https://api.adoptium.net/v3/info/available_releases",
+      "checkedAt": "2026-11-19T02:55:26Z",
+      "stale": false,
+      "error": null,
+      "prerelease": null,
+      "lines": [
+        {
+          "cycle": "28",
+          "channel": "preview",
+          "status": "preview",
+          "releaseDate": null,
+          "eol": null,
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "27",
+          "channel": "stable",
+          "status": "active",
+          "releaseDate": null,
+          "eol": null,
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "26",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": null,
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "25",
+          "channel": "lts",
+          "status": "active",
+          "releaseDate": null,
+          "eol": null,
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "24",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": null,
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "23",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": null,
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "22",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": null,
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "21",
+          "channel": "lts",
+          "status": "vendor",
+          "releaseDate": null,
+          "eol": null,
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "20",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": null,
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "19",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": null,
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "18",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": null,
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "17",
+          "channel": "lts",
+          "status": "vendor",
+          "releaseDate": null,
+          "eol": null,
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "16",
+          "channel": "stable",
+          "status": "eol",
+          "releaseDate": null,
+          "eol": null,
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "11",
+          "channel": "lts",
+          "status": "vendor",
+          "releaseDate": null,
+          "eol": null,
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "8",
+          "channel": "lts",
+          "status": "vendor",
+          "releaseDate": null,
+          "eol": null,
+          "latest": null,
+          "latestDate": null,
+          "language": null
+        }
+      ]
+    },
+    {
+      "id": "react",
+      "name": "React",
+      "policy": "latest-major",
+      "cycle": "major",
+      "source": "https://registry.npmjs.org/react",
+      "checkedAt": "2026-11-19T02:55:26Z",
+      "stale": false,
+      "error": null,
+      "prerelease": null,
+      "lines": [
+        {
+          "cycle": "19",
+          "channel": "stable",
+          "status": "active",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "19.3.1",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "18",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "18.3.1",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "17",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "17.0.2",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "16",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "16.14.0",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "15",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "15.7.0",
+          "latestDate": null,
+          "language": null
+        }
+      ]
+    },
+    {
+      "id": "angular",
+      "name": "Angular",
+      "policy": "latest-major",
+      "cycle": "major",
+      "source": "https://registry.npmjs.org/@angular/core",
+      "checkedAt": "2026-11-19T02:55:26Z",
+      "stale": false,
+      "error": null,
+      "prerelease": null,
+      "lines": [
+        {
+          "cycle": "22",
+          "channel": "stable",
+          "status": "active",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "22.3.0",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "21",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "21.2.26",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "20",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "20.3.35",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "19",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "19.2.25",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "18",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "18.2.14",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "17",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "17.3.12",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "16",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "16.2.12",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "15",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "15.2.10",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "14",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "14.3.0",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "13",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "13.4.0",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "12",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "12.2.17",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "11",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "11.2.14",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "10",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "10.2.5",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "9",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "9.1.13",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "8",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "8.2.14",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "7",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "7.2.16",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "6",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "6.1.10",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "5",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "5.2.11",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "4",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "4.4.7",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "2",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "2.4.10",
+          "latestDate": null,
+          "language": null
+        }
+      ]
+    },
+    {
+      "id": "nextjs",
+      "name": "Next.js",
+      "policy": "latest-major",
+      "cycle": "major",
+      "source": "https://registry.npmjs.org/next",
+      "checkedAt": "2026-11-19T02:55:26Z",
+      "stale": false,
+      "error": null,
+      "prerelease": "16.5.0-canary.55",
+      "lines": [
+        {
+          "cycle": "16",
+          "channel": "stable",
+          "status": "active",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "16.4.6",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "15",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "15.5.29",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "14",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "14.2.35",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "13",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "13.5.11",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "12",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "12.3.7",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "11",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "11.1.4",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "10",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "10.2.3",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "9",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "9.5.5",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "8",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "8.1.0",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "7",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "7.0.3",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "6",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "6.1.2",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "5",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "5.1.0",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "4",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "4.2.3",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "3.2.3",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "2",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "2.4.9",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "1",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "1.2.3",
+          "latestDate": null,
+          "language": null
+        }
+      ]
+    },
+    {
+      "id": "vite",
+      "name": "Vite",
+      "policy": "latest-major",
+      "cycle": "major",
+      "source": "https://registry.npmjs.org/vite",
+      "checkedAt": "2026-11-19T02:55:26Z",
+      "stale": false,
+      "error": null,
+      "prerelease": "8.4.0-beta.1",
+      "lines": [
+        {
+          "cycle": "8",
+          "channel": "stable",
+          "status": "active",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "8.3.8",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "7",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "7.3.8",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "6",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "6.4.6",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "5",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "5.4.21",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "4",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "4.5.14",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "3.2.11",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "2",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "2.9.18",
+          "latestDate": null,
+          "language": null
+        }
+      ]
+    },
+    {
+      "id": "typescript",
+      "name": "TypeScript",
+      "policy": "latest-major",
+      "cycle": "major",
+      "source": "https://registry.npmjs.org/typescript",
+      "checkedAt": "2026-11-19T02:55:26Z",
+      "stale": false,
+      "error": null,
+      "prerelease": "7.1.0-beta",
+      "lines": [
+        {
+          "cycle": "7",
+          "channel": "stable",
+          "status": "active",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "7.0.2",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "6",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "6.0.3",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "5",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "5.9.3",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "4",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "4.9.5",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "3",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "3.9.10",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "2",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "2.9.2",
+          "latestDate": null,
+          "language": null
+        },
+        {
+          "cycle": "1",
+          "channel": "stable",
+          "status": "unknown",
+          "releaseDate": null,
+          "eol": null,
+          "latest": "1.8.10",
+          "latestDate": null,
+          "language": null
+        }
+      ]
+    }
+  ]
+}

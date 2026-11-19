@@ -27,6 +27,7 @@ public sealed class ProjectDiscoverer(IProcessRunner processRunner)
         FlutterDetector.Detect(files, all, stacks, tooling, warnings);
         LanguageDetectors.Detect(files, all, stacks, tooling, frameworks, warnings);
         CiDetector.Detect(all, tooling);
+        var runtimes = RuntimeDetector.Detect(files, all, stacks);
         if (stacks.Count == 0)
             warnings.Add(new(DiscoveryWarningCodes.NoStackDetected, "Nenhuma stack conhecida foi detectada pelos arquivos de configuração.", []));
 
@@ -57,7 +58,8 @@ public sealed class ProjectDiscoverer(IProcessRunner processRunner)
             files.FileExists(files.Naming().Declaration), warnings)
         {
             Frameworks = frameworks,
-            DeclaredAiEnvironments = DeclaredConfig.TryRead(files).Config?.Environments ?? []
+            DeclaredAiEnvironments = DeclaredConfig.TryRead(files).Config?.Environments ?? [],
+            Runtimes = runtimes
         };
     }
 }

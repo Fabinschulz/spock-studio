@@ -18,4 +18,6 @@ public sealed record DiscoveryReport(
 
     // C3: os ambientes que a declaração já lista, para a tela partir deles. Vazio sem declaração válida.
     public IReadOnlyList<string> DeclaredAiEnvironments { get; init; } = [];
+
+    public IReadOnlyList<RuntimeFinding> Runtimes { get; init; } = [];
 }

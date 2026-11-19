@@ -154,5 +154,6 @@
       ]
     }
   ],
-  "declaredAiEnvironments": []
+  "declaredAiEnvironments": [],
+  "runtimes": []
 }

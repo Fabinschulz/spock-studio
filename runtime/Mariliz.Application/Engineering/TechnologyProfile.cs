@@ -1,3 +1,4 @@
+using Mariliz.Application.Compatibility;
 using Mariliz.Core.Discovery;
 
 namespace Mariliz.Application.Engineering;
@@ -27,4 +28,8 @@ public sealed record TechnologyProfile(
     IReadOnlyList<string> AiEnvironments,
     IReadOnlyList<ProfileConnection> Connections,
     IReadOnlyList<ProfileHarnessGuidance> Harness,
-    IReadOnlyList<ProfileChange> History);
+    IReadOnlyList<ProfileChange> History)
+{
+    // Vazio em perfis gravados antes do catálogo de versões: a próxima análise preenche.
+    public IReadOnlyList<ProjectModule> Modules { get; init; } = [];
+}

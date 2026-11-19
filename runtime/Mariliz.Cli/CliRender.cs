@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Mariliz.Application.Compatibility;
 using Mariliz.Application.Execution;
 using Mariliz.Core.Plan;
 
@@ -9,6 +10,27 @@ internal static class CliRender
 {
     private static string Str(JsonNode? n, string key) => n?[key]?.GetValue<string>() ?? "";
     private static IEnumerable<JsonNode?> Items(JsonNode? n, string key) => n?[key] is JsonArray a ? a : [];
+
+    public static void Versions(TextWriter w, string project, CompatibilityReport report)
+    {
+        w.WriteLine($"Versões de {project} (catálogo de {report.CatalogGeneratedAt:yyyy-MM-dd}{(report.CatalogStale ? ", desatualizado" : "")})");
+        w.WriteLine("(Análise somente de leitura: nada foi alterado e nenhuma versão é atualizada.)");
+        if (report.Modules.Count == 0) w.WriteLine("  nenhuma versão encontrada nos arquivos de configuração");
+        foreach (var module in report.Modules)
+        {
+            w.WriteLine();
+            w.WriteLine($"  {module.Root}  {module.Name} {module.Version ?? "(sem versão)"}  [{module.StatusLabel}]");
+            w.WriteLine($"    {module.Reason}");
+            var facts = new[]
+            {
+                module.Eol is { } eol ? $"suporte até {eol}" : null,
+                module.LatestInCycle is { } latest ? $"mais nova da linha {latest}" : null,
+                module.NewestStable is { } newest ? $"mais nova estável {newest}" : null,
+                module.Confirmed ? null : "versão de faixa declarada"
+            }.OfType<string>().ToList();
+            if (facts.Count > 0) w.WriteLine($"    {string.Join(" · ", facts)}");
+        }
+    }
 
     public static void Discovery(TextWriter w, JsonNode report)
     {

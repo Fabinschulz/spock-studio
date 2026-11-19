@@ -1,3 +1,4 @@
+using Mariliz.Application.Compatibility;
 using Mariliz.Application.Integrations;
 using Mariliz.Core.Discovery;
 
@@ -49,7 +50,10 @@ public static class ProfileBuilder
             connections,
             // A orientação é sobre regra de stack: um framework repetiria a linha da stack dele.
             technologies.Where(technology => report.Stacks.Any(stack => stack.Id == technology.Id)).Select(TechnologyCatalog.Guidance).ToList(),
-            []);
+            [])
+        {
+            Modules = ProjectModules.From(report)
+        };
 
         var changes = previous is null
             ? [new ProfileChange(now, "created", "Perfil", null, technologies.Count == 1 ? "1 tecnologia" : $"{technologies.Count} tecnologias")]

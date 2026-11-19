@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Analysis;
+using Mariliz.Application.Compatibility;
 using Mariliz.Application.Context;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Harness;
@@ -34,6 +35,7 @@ public sealed class CliRunner(
           mariliz version
           mariliz discover <pasta> [--json]
           mariliz analyze  <pasta> [--json]
+          mariliz versions <pasta> [--json]
           mariliz plan     <pasta> [--env <ambiente>] [--allow-specification-reinstall] [--update-specification] [--diff] [--json]
           mariliz apply    <pasta> --env <ambiente> [--approve-command <id>]... [--overwrite <caminho>]...
                                    [--approve-removals] [--allow-specification-reinstall] [--update-specification] [--yes] [--json]
@@ -86,6 +88,7 @@ public sealed class CliRunner(
             {
                 "discover" => await DiscoverAsync(args, ct),
                 "analyze" => Analyze(args),
+                "versions" => await VersionsAsync(args, ct),
                 "plan" => await PlanAsync(args, ct),
                 "apply" => await ApplyAsync(args, ct),
                 "validate" => await ValidateAsync(args, ct),
@@ -127,6 +130,16 @@ public sealed class CliRunner(
         var report = service.AnalyzeArchitecture(Authorize(args));
         if (_json) { WriteJson(JournalJson.Node(report)); return ExitOk; }
         stdout.Write(ArchitectureAnalysisDocuments.Render(report));
+        return ExitOk;
+    }
+
+    // Situação de suporte de cada pasta pelo catálogo embutido: só lê o projeto e não consulta a rede.
+    private async Task<int> VersionsAsync(CliArgs args, CancellationToken ct)
+    {
+        var report = await service.DiscoverAsync(Authorize(args), ct);
+        var compatibility = CompatibilityAssessor.Assess(ProjectModules.From(report), ReleaseCatalog.Embedded, DateTimeOffset.UtcNow);
+        if (_json) { WriteJson(JournalJson.Node(compatibility)); return ExitOk; }
+        CliRender.Versions(stdout, report.ProjectName, compatibility);
         return ExitOk;
     }
 
