@@ -8,8 +8,8 @@ Consulta feita em **2026-11-18**. A versão usada vem dos manifestos e lockfiles
 
 | Componente | Usado | Estável mais recente | Situação | Observação |
 |---|---|---|---|---|
-| .NET (TargetFramework) | `net10.0` em todos os projetos | 11.0.0 (STS, 2026-11-10); 10.0.15 (LTS) | 10.0 LTS ativo até 2028-11-14 | Sem `global.json`: o SDK que compila depende da máquina (CI fixa `10.0.x`) |
-| SDK local | 10.0.402 | 10.0.404 / 11.0.100 | Suportado | |
+| .NET (TargetFramework) | `net10.0` em todos os projetos | 11.0.0 (STS, 2026-11-10); 10.0.15 (LTS) | 10.0 LTS ativo até 2028-11-14 | `global.json` com SDK mínimo 10.0.404 desde o MV-8b (antes, o SDK dependia da máquina) |
+| SDK local | 10.0.402 → **10.0.404** (2026-11-19) | 10.0.404 / 11.0.100 | Suportado | O 10.0.402 embutia o runtime 10.0.13 no motor, sem os releases de segurança 10.0.14 e 10.0.15 |
 | ModelContextProtocol.Core | 2.4.0 | 2.4.0 | Atual | |
 | YamlDotNet | 18.1.0 | 18.1.0 | Atual | |
 | Microsoft.ML.Tokenizers (+O200kBase) | 3.0.0 | 3.0.0 | Atual | |

@@ -18370,9 +18370,9 @@
   "obrigacoes": "Incluir LICENSE.TXT e THIRD-PARTY-NOTICES.TXT do runtime; EULA com termos protetivos (.NET Library License); distribuir só dentro do app; não usar marcas da Microsoft",
   "risco": "MÉDIO",
   "motivo": "O pacote de runtime do Windows é distribuído sob a .NET Library License (coreclr.dll, DiaSymReader) além do MIT: exige termos de usuário final protetivos, não remover avisos e não usar marcas da Microsoft; o single-file não leva LICENSE.TXT nem THIRD-PARTY-NOTICES.TXT",
-  "evidencias": "scripts/build-runtime.ps1:31 | ~/.nuget/packages/microsoft.netcore.app.runtime.win-x64/10.0.13/LICENSE.TXT | https://raw.githubusercontent.com/dotnet/core/main/license-information-windows.md",
+  "evidencias": "scripts/build-runtime.ps1:31 | ~/.nuget/packages/microsoft.netcore.app.runtime.win-x64/10.0.15/LICENSE.TXT | https://raw.githubusercontent.com/dotnet/core/main/license-information-windows.md",
   "hashes": "",
-  "nota": "Versão exata depende do SDK 10.0.x do build (10.0.13 no cache local)."
+  "nota": "SDK mínimo fixado no global.json (10.0.404, rollForward latestFeature), que embute o runtime 10.0.15."
  },
  {
   "nome": "Microsoft.Bcl.AsyncInterfaces",

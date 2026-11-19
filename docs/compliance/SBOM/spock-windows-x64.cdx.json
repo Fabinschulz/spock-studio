@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:d56ec65d-10ab-476e-bb8c-35ab00de4cdc",
+  "serialNumber": "urn:uuid:9d458ff0-181a-48d7-b211-1e9039fe3d9c",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-19T18:33:13Z",
+    "timestamp": "2026-11-19T19:20:49Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -21458,7 +21458,7 @@
       "bom-ref": "bin-dotnet-runtime-win",
       "name": "Microsoft .NET Runtime para win-x64 (self-contained)",
       "version": "10.0.x",
-      "purl": "pkg:nuget/Microsoft.NETCore.App.Runtime.win-x64@10.0.13",
+      "purl": "pkg:nuget/Microsoft.NETCore.App.Runtime.win-x64@10.0.15",
       "scope": "required",
       "licenses": [
         {
@@ -21502,7 +21502,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "scripts/build-runtime.ps1:31 | ~/.nuget/packages/microsoft.netcore.app.runtime.win-x64/10.0.13/LICENSE.TXT | https://raw.githubusercontent.com/dotnet/core/main/license-information-windows.md"
+          "value": "scripts/build-runtime.ps1:31 | ~/.nuget/packages/microsoft.netcore.app.runtime.win-x64/10.0.15/LICENSE.TXT | https://raw.githubusercontent.com/dotnet/core/main/license-information-windows.md"
         },
         {
           "name": "spock:usage",
@@ -21510,7 +21510,7 @@
         },
         {
           "name": "spock:note",
-          "value": "Versão exata depende do SDK 10.0.x do build (10.0.13 no cache local)."
+          "value": "SDK mínimo fixado no global.json (10.0.404, rollForward latestFeature), que embute o runtime 10.0.15."
         }
       ]
     },
