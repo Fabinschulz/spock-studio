@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:6592f821-6a36-413f-b7f7-603ad1177a54",
+  "serialNumber": "urn:uuid:3df9b306-e9eb-4e1f-a381-9a559f8381e5",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-19T17:46:47Z",
+    "timestamp": "2026-11-19T18:01:43Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -29900,15 +29900,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "npm--oxc-project-types-0.155.0",
+      "bom-ref": "npm--oxc-project-types-0.156.0",
       "name": "@oxc-project/types",
-      "version": "0.155.0",
-      "purl": "pkg:npm/%40oxc-project/types@0.155.0",
+      "version": "0.156.0",
+      "purl": "pkg:npm/%40oxc-project/types@0.156.0",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "49e13c24fc16d71b35b4778dc9c8d4b5405d868ad16bca388e5be3c24e3d47bfd9dbdd62fb80d06bb2492203a6fd3698419c7e42b3d06d527ff5cf1d30864df1"
+          "content": "d43bb2838f1374935dca1101f179f52f7e9b4fd3efe8652d94a8c7c4ecacf3191a17fad0ab75c913e6c0bab48afc0808cf998616c6fbedc9fd3dbdb4f9609273"
         }
       ],
       "licenses": [
@@ -29957,7 +29957,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@oxc-project+types@0.155.0/node_modules/@oxc-project/types"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@oxc-project+types@0.156.0/node_modules/@oxc-project/types"
         }
       ]
     },
@@ -30215,15 +30215,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "npm--rolldown-binding-win32-x64-msvc-1.2.15",
+      "bom-ref": "npm--rolldown-binding-win32-x64-msvc-1.2.19",
       "name": "@rolldown/binding-win32-x64-msvc",
-      "version": "1.2.15",
-      "purl": "pkg:npm/%40rolldown/binding-win32-x64-msvc@1.2.15",
+      "version": "1.2.19",
+      "purl": "pkg:npm/%40rolldown/binding-win32-x64-msvc@1.2.19",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "1c565dd90350627d496c88be1e977b1feaff9645b171f22edbc9e2ad9e9e0a7d8b69fbaf984c4c95bfcff7a49fc79b5fee93c0af0dfd21d866085f2f995f8d85"
+          "content": "cbfb2a45173a77b8440b33857399f72d27aa72d988a7d98c8d8d4aab8b35e2e2cf77f2d9e33ee2d73ad6e9f32da7698f7ae4080b87ba50b31cc10ccca26a906a"
         }
       ],
       "licenses": [
@@ -30268,7 +30268,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@rolldown+binding-win32-x64-msvc@1.2.15/node_modules/@rolldown/binding-win32-x64-msvc"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@rolldown+binding-win32-x64-msvc@1.2.19/node_modules/@rolldown/binding-win32-x64-msvc"
         }
       ]
     },
@@ -30770,7 +30770,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@testing-library+jest-dom@7.0.1_@testing-library+dom@10.4.2_vitest@5.0.5_@types+node@24.19.2__fjixxm7fnuhh6wm3htr3sgdfhu/node_modules/@testing-library/jest-dom"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@testing-library+jest-dom@7.0.1_@testing-library+dom@10.4.2_vitest@5.1.1_@types+node@24.19.2__runwju3hnu5ies4grpzsj3g5vi/node_modules/@testing-library/jest-dom"
         }
       ]
     },
@@ -32225,15 +32225,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "npm--vitejs-plugin-react-6.1.2",
+      "bom-ref": "npm--vitejs-plugin-react-6.3.0",
       "name": "@vitejs/plugin-react",
-      "version": "6.1.2",
-      "purl": "pkg:npm/%40vitejs/plugin-react@6.1.2",
+      "version": "6.3.0",
+      "purl": "pkg:npm/%40vitejs/plugin-react@6.3.0",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "7e124d19476c7106b81e4234c45c70a275b28675517823c36d723b147ee39b3a67542ac5408ecf46b85679c3b6eb7eb5d2f3abb3db6bd98e3171ff2e01d1716f"
+          "content": "1fd13de79695bc3d85e333470b0e1e2196c87c5eb12a576587b30dbbe85253bc7043387ae6523f37e0895aa99f862d0f1230d722dfc7ed3ec9ff8c14eb72898b"
         }
       ],
       "licenses": [
@@ -32282,21 +32282,21 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@vitejs+plugin-react@6.1.2_vite@8.3.5_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/@vitejs/plugin-react"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@vitejs+plugin-react@6.3.0_vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/@vitejs/plugin-react"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "npm--vitest-mocker-5.0.5",
+      "bom-ref": "npm--vitest-mocker-5.1.1",
       "name": "@vitest/mocker",
-      "version": "5.0.5",
-      "purl": "pkg:npm/%40vitest/mocker@5.0.5",
+      "version": "5.1.1",
+      "purl": "pkg:npm/%40vitest/mocker@5.1.1",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "c4b2f79640de809670f8c1a819a082b056b20d9b611a0a40b6bdd5ce2c9f738a7bc47f3d2bb2913dc441061fe41189b402a92de43b539a462906d455fc5ac766"
+          "content": "6f63a04c1e3edc899621569f5ca6b3257c0b2b043150d9e2c7a6f7c54bd44cc87b4725e5aedce8c5f66bf1a133f7390738c012e0ae65bb74ef156a2255e55342"
         }
       ],
       "licenses": [
@@ -32345,21 +32345,21 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@vitest+mocker@5.0.5_vite@8.3.5_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/@vitest/mocker"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@vitest+mocker@5.1.1_vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/@vitest/mocker"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "npm--vitest-spy-5.0.5",
+      "bom-ref": "npm--vitest-spy-5.1.1",
       "name": "@vitest/spy",
-      "version": "5.0.5",
-      "purl": "pkg:npm/%40vitest/spy@5.0.5",
+      "version": "5.1.1",
+      "purl": "pkg:npm/%40vitest/spy@5.1.1",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "970251131b87e35ef6e7b439c2ff5062e80df48309928c5cacaad8c463d0901ce5ef094da535310ffe72357e0448a55421284a3e090672160f14c58e3a4d30cf"
+          "content": "e8af02e9a9501b5fd873cfd9236da2252ec912cc4f755ceab6a0eafbfc4ce19d26195ca47a63158cb86a332feaebf207606de4283f21292c117a7fd977223dbd"
         }
       ],
       "licenses": [
@@ -32408,7 +32408,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@vitest+spy@5.0.5/node_modules/@vitest/spy"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@vitest+spy@5.1.1/node_modules/@vitest/spy"
         }
       ]
     },
@@ -44447,15 +44447,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "npm-magic-string-1.4.4",
+      "bom-ref": "npm-magic-string-1.4.5",
       "name": "magic-string",
-      "version": "1.4.4",
-      "purl": "pkg:npm/magic-string@1.4.4",
+      "version": "1.4.5",
+      "purl": "pkg:npm/magic-string@1.4.5",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "8d0cfdb1586b66ea611f836b0081d28240c90a5b903bb2288b828644b6bb69352300e0d0d77844357d18232b6a604feb2243b8f398101b62de07125a5b9de491"
+          "content": "a0b2c2dbe62f4147c06bebf1a2e7c4ff273589c6fceccf625c846a02847fd84844ffc71bdd217ff868b4736072d41fb9573d9edaf42d52f1e2bb5fbadd99e1fb"
         }
       ],
       "licenses": [
@@ -44504,7 +44504,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/magic-string@1.4.4/node_modules/magic-string"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/magic-string@1.4.5/node_modules/magic-string"
         }
       ]
     },
@@ -47928,15 +47928,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "npm-rolldown-1.2.15",
+      "bom-ref": "npm-rolldown-1.2.19",
       "name": "rolldown",
-      "version": "1.2.15",
-      "purl": "pkg:npm/rolldown@1.2.15",
+      "version": "1.2.19",
+      "purl": "pkg:npm/rolldown@1.2.19",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "ea874d0fe7de979cd5c3723861cd9eebd82f82e0e75f408000688d0d94aae2293959471a2eb903d862eea20d1770e0dba2bdf5859e5ac843205439e8f8a3d5e6"
+          "content": "408895d49f5dd29ccde2379e4c7e2c8cfcb4019e9c032d9c1b41317a8135f94f11be3fa1477818928931d186de50d1a566a890249daeb5c1137b4a0a5f0cecb8"
         }
       ],
       "licenses": [
@@ -47985,7 +47985,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/rolldown@1.2.15/node_modules/rolldown"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/rolldown@1.2.19/node_modules/rolldown"
         }
       ]
     },
@@ -50318,15 +50318,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "npm-tinybench-6.2.2",
+      "bom-ref": "npm-tinybench-6.2.4",
       "name": "tinybench",
-      "version": "6.2.2",
-      "purl": "pkg:npm/tinybench@6.2.2",
+      "version": "6.2.4",
+      "purl": "pkg:npm/tinybench@6.2.4",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "9c8676376745a6306c8368608ad2aeee603e16fb0826e1893b0cac4678265514665a047f5323e3c098fc73f7d3fdd866f049079c5e443a88117fed19daaae298"
+          "content": "490e768c49dc5f16cc0b326e63603f8c621b6c0bba358b01596ee0af3da9344f849f341da066a805fa64e2a0bfa2913baa251c1a61a0686233e44a07752d4ef7"
         }
       ],
       "licenses": [
@@ -50375,7 +50375,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/tinybench@6.2.2/node_modules/tinybench"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/tinybench@6.2.4/node_modules/tinybench"
         }
       ]
     },
@@ -51767,15 +51767,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "npm-vite-8.3.5",
+      "bom-ref": "npm-vite-8.3.8",
       "name": "vite",
-      "version": "8.3.5",
-      "purl": "pkg:npm/vite@8.3.5",
+      "version": "8.3.8",
+      "purl": "pkg:npm/vite@8.3.8",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "cf56298e2789f60d1e6d3990a4b06ffe8abd13717d10894e7beecb6a15bc4ab1372d3886dee7414545d03a56173fd6fe202daada9847795c63f711a5c37e0e11"
+          "content": "2f33a7de1f6b1bfd2f84b757ad5e3227840503d784a2a0a5f98c7e90625deda07dc3a9df3605472926302cf6541ebcf86466beb7e9178d5f62b6f7070cb428b8"
         }
       ],
       "licenses": [
@@ -51824,7 +51824,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/vite@8.3.5_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1/node_modules/vite"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1/node_modules/vite"
         },
         {
           "name": "spock:usage",
@@ -51834,15 +51834,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "npm-vitest-5.0.5",
+      "bom-ref": "npm-vitest-5.1.1",
       "name": "vitest",
-      "version": "5.0.5",
-      "purl": "pkg:npm/vitest@5.0.5",
+      "version": "5.1.1",
+      "purl": "pkg:npm/vitest@5.1.1",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "70f38338c17c627922898b43747a3a9f8c16981ace0416ce2181f6777dcce25dc274d9fbda1faa3263bab977df50de80e406455cd343fddfa4ad2f668245d17e"
+          "content": "b6b566cd414e4ab68265c237b9920c0f916a061e1ab45902fd7b893ff214eeab7241acb4142b3721afb4422436249c06c961bfc6b701a0935e976f8eee4119d2"
         }
       ],
       "licenses": [
@@ -51891,7 +51891,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/vitest@5.0.5_@types+node@24.19.2_jsdom@29.1.1_vite@8.3.5_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/vitest"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/vitest@5.1.1_@types+node@24.19.2_jsdom@29.1.1_vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/vitest"
         },
         {
           "name": "spock:usage",
@@ -60183,7 +60183,7 @@
         "npm--types-node-24.19.2",
         "npm--types-react-19.3.0",
         "npm--types-react-dom-19.3.0",
-        "npm--vitejs-plugin-react-6.1.2",
+        "npm--vitejs-plugin-react-6.3.0",
         "npm--xterm-addon-fit-0.11.0",
         "npm--xterm-xterm-6.0.0",
         "npm-axe-core-4.14.0",
@@ -60202,8 +60202,8 @@
         "npm-sass-embedded-1.106.1",
         "npm-typescript-6.0.3",
         "npm-typescript-eslint-8.72.1",
-        "npm-vite-8.3.5",
-        "npm-vitest-5.0.5",
+        "npm-vite-8.3.8",
+        "npm-vitest-5.1.1",
         "npm-zod-4.6.7",
         "nuget-AWSSDK.CloudFormation-4.1.1",
         "nuget-AWSSDK.CloudWatch-4.1.1",
@@ -63849,7 +63849,7 @@
       ]
     },
     {
-      "ref": "npm--oxc-project-types-0.155.0",
+      "ref": "npm--oxc-project-types-0.156.0",
       "dependsOn": []
     },
     {
@@ -63875,7 +63875,7 @@
       "dependsOn": []
     },
     {
-      "ref": "npm--rolldown-binding-win32-x64-msvc-1.2.15",
+      "ref": "npm--rolldown-binding-win32-x64-msvc-1.2.19",
       "dependsOn": []
     },
     {
@@ -63927,7 +63927,7 @@
         "npm-dom-accessibility-api-0.6.3",
         "npm-picocolors-1.1.1",
         "npm-redent-3.0.0",
-        "npm-vitest-5.0.5"
+        "npm-vitest-5.1.1"
       ]
     },
     {
@@ -64102,24 +64102,24 @@
       ]
     },
     {
-      "ref": "npm--vitejs-plugin-react-6.1.2",
+      "ref": "npm--vitejs-plugin-react-6.3.0",
       "dependsOn": [
         "npm--rolldown-pluginutils-1.0.1",
-        "npm-vite-8.3.5"
+        "npm-vite-8.3.8"
       ]
     },
     {
-      "ref": "npm--vitest-mocker-5.0.5",
+      "ref": "npm--vitest-mocker-5.1.1",
       "dependsOn": [
         "npm--jridgewell-trace-mapping-0.3.31",
-        "npm--vitest-spy-5.0.5",
+        "npm--vitest-spy-5.1.1",
         "npm-estree-walker-3.0.3",
-        "npm-magic-string-1.4.4",
-        "npm-vite-8.3.5"
+        "npm-magic-string-1.4.5",
+        "npm-vite-8.3.8"
       ]
     },
     {
-      "ref": "npm--vitest-spy-5.0.5",
+      "ref": "npm--vitest-spy-5.1.1",
       "dependsOn": []
     },
     {
@@ -65333,7 +65333,7 @@
       "dependsOn": []
     },
     {
-      "ref": "npm-magic-string-1.4.4",
+      "ref": "npm-magic-string-1.4.5",
       "dependsOn": [
         "npm--jridgewell-sourcemap-codec-1.6.0"
       ]
@@ -65661,10 +65661,10 @@
       "dependsOn": []
     },
     {
-      "ref": "npm-rolldown-1.2.15",
+      "ref": "npm-rolldown-1.2.19",
       "dependsOn": [
-        "npm--oxc-project-types-0.155.0",
-        "npm--rolldown-binding-win32-x64-msvc-1.2.15",
+        "npm--oxc-project-types-0.156.0",
+        "npm--rolldown-binding-win32-x64-msvc-1.2.19",
         "npm--rolldown-pluginutils-1.0.1"
       ]
     },
@@ -65919,7 +65919,7 @@
       "dependsOn": []
     },
     {
-      "ref": "npm-tinybench-6.2.2",
+      "ref": "npm-tinybench-6.2.4",
       "dependsOn": []
     },
     {
@@ -66068,36 +66068,36 @@
       "dependsOn": []
     },
     {
-      "ref": "npm-vite-8.3.5",
+      "ref": "npm-vite-8.3.8",
       "dependsOn": [
         "npm--types-node-24.19.2",
         "npm-lightningcss-1.33.0",
         "npm-picomatch-4.0.7",
         "npm-postcss-8.5.32",
-        "npm-rolldown-1.2.15",
+        "npm-rolldown-1.2.19",
         "npm-sass-1.106.1",
         "npm-sass-embedded-1.106.1",
         "npm-tinyglobby-0.2.17"
       ]
     },
     {
-      "ref": "npm-vitest-5.0.5",
+      "ref": "npm-vitest-5.1.1",
       "dependsOn": [
         "npm--types-chai-5.2.3",
         "npm--types-node-24.19.2",
-        "npm--vitest-mocker-5.0.5",
+        "npm--vitest-mocker-5.1.1",
         "npm-chai-6.3.0",
         "npm-es-module-lexer-2.3.2",
         "npm-expect-type-1.4.0",
         "npm-jsdom-29.1.1",
-        "npm-magic-string-1.4.4",
+        "npm-magic-string-1.4.5",
         "npm-obug-3.0.0",
         "npm-picomatch-4.0.7",
         "npm-std-env-4.3.0",
-        "npm-tinybench-6.2.2",
+        "npm-tinybench-6.2.4",
         "npm-tinyexec-1.3.1",
         "npm-tinyglobby-0.2.17",
-        "npm-vite-8.3.5",
+        "npm-vite-8.3.8",
         "npm-why-is-node-running-3.2.1"
       ]
     },

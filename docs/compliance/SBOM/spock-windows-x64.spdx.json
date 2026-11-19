@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Spock Studio para Windows x64 (instalador NSIS)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-windows-x64--instalador-nsis--9210db17-c442-44a2-b6ec-f3071973379e",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-windows-x64--instalador-nsis--382199b3-de02-4cfa-bc3c-415091675a7b",
   "creationInfo": {
-    "created": "2026-11-19T17:46:47Z",
+    "created": "2026-11-19T18:01:43Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],

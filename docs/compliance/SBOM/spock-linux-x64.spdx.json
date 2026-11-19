@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Spock Studio para Linux x64 (.deb)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-linux-x64--.deb--48fcc15e-e3f7-4b05-ac05-25131667ec9f",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-linux-x64--.deb--951a054e-a65d-4af9-b836-2b292d030630",
   "creationInfo": {
-    "created": "2026-11-19T17:46:47Z",
+    "created": "2026-11-19T18:01:43Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
