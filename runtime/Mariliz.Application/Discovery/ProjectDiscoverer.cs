@@ -22,7 +22,7 @@ public sealed class ProjectDiscoverer(IProcessRunner processRunner)
         var stacks = new List<StackFinding>();
         var tooling = new List<ToolingFinding>();
         var frameworks = new List<FrameworkFinding>();
-        DotnetDetector.Detect(files, all, stacks, tooling, warnings);
+        DotnetDetector.Detect(files, all, stacks, tooling, frameworks, warnings);
         NodeDetector.Detect(files, all, stacks, tooling, frameworks, warnings);
         FlutterDetector.Detect(files, all, stacks, tooling, warnings);
         LanguageDetectors.Detect(files, all, stacks, tooling, frameworks, warnings);

@@ -6,7 +6,8 @@ namespace Mariliz.Application.Discovery;
 // Só dependências que dizem algo sobre como o projeto é feito; uma biblioteca utilitária qualquer não vira tecnologia.
 internal static partial class Frameworks
 {
-    internal sealed record Known(string Id, string Name, string Category);
+    // Versioned = false: a versão do pacote não é a do framework (as extensões de resiliência 10.x trazem o Polly 8).
+    internal sealed record Known(string Id, string Name, string Category, bool Versioned = true);
 
     private const string Web = "Framework web";
     private const string Ui = "Biblioteca de interface";
@@ -17,6 +18,57 @@ internal static partial class Frameworks
     private const string Validation = "Validação de dados";
     private const string Build = "Ferramenta de build";
     private const string Async = "Runtime assíncrono";
+    private const string Mediator = "Mediador de requisições";
+    private const string Resilience = "Resiliência";
+    private const string Observability = "Observabilidade";
+    private const string Messaging = "Mensageria";
+    private const string Jobs = "Tarefas em segundo plano";
+    private const string Mapping = "Mapeamento de objetos";
+    private const string Identity = "Autenticação";
+    private const string ApiDocs = "Documentação de API";
+    private const string Cache = "Cache";
+    private const string Cloud = "SDK de nuvem";
+    private const string App = "Aplicativo móvel e desktop";
+
+    // O SDK do projeto e o UseMaui dizem tanto quanto um pacote: um projeto Web é ASP.NET Core sem PackageReference nenhum.
+    internal static readonly Known AspNetCore = new("aspnetcore", "ASP.NET Core", Web);
+    internal static readonly Known Blazor = new("blazor", "Blazor", Ui);
+    internal static readonly Known Worker = new("worker-service", "Worker Service", Jobs);
+    internal static readonly Known Maui = new("maui", ".NET MAUI", App);
+
+    // O id do NuGet não diferencia maiúsculas e cada família tem vários pacotes (Microsoft.EntityFrameworkCore.SqlServer,
+    // Serilog.Sinks.Console): a chave é o começo do nome.
+    internal static readonly IReadOnlyDictionary<string, Known> Dotnet = new Dictionary<string, Known>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Microsoft.EntityFrameworkCore"] = new("efcore", "Entity Framework Core", Data),
+        ["Npgsql.EntityFrameworkCore"] = new("efcore", "Entity Framework Core", Data),
+        ["Pomelo.EntityFrameworkCore"] = new("efcore", "Entity Framework Core", Data),
+        ["Dapper"] = new("dapper", "Dapper", Data),
+        ["MediatR"] = new("mediatr", "MediatR", Mediator),
+        ["FluentValidation"] = new("fluentvalidation", "FluentValidation", Validation),
+        ["Polly"] = new("polly", "Polly", Resilience),
+        ["Microsoft.Extensions.Http.Resilience"] = new("polly", "Polly", Resilience, Versioned: false),
+        ["Microsoft.Extensions.Resilience"] = new("polly", "Polly", Resilience, Versioned: false),
+        ["Serilog"] = new("serilog", "Serilog", Observability),
+        ["OpenTelemetry"] = new("opentelemetry", "OpenTelemetry", Observability),
+        ["Sentry"] = new("sentry", "Sentry", Observability),
+        ["MassTransit"] = new("masstransit", "MassTransit", Messaging),
+        ["Hangfire"] = new("hangfire", "Hangfire", Jobs),
+        ["AutoMapper"] = new("automapper", "AutoMapper", Mapping),
+        ["Microsoft.AspNetCore.Identity"] = new("aspnetcore-identity", "ASP.NET Core Identity", Identity),
+        ["Microsoft.AspNetCore.Components.WebAssembly"] = Blazor,
+        ["Microsoft.Maui"] = Maui,
+        ["Swashbuckle.AspNetCore"] = new("swashbuckle", "Swashbuckle", ApiDocs),
+        ["StackExchange.Redis"] = new("redis", "Redis", Cache),
+        ["AWSSDK"] = new("aws-sdk", "AWS SDK", Cloud),
+        ["ModelContextProtocol"] = new("mcp-sdk", "SDK do MCP", Ai),
+        ["Microsoft.SemanticKernel"] = new("semantic-kernel", "Semantic Kernel", Ai),
+        ["Microsoft.Extensions.AI"] = new("microsoft-extensions-ai", "Microsoft.Extensions.AI", Ai),
+        ["OpenAI"] = new("openai", "OpenAI SDK", Ai),
+        ["xunit"] = new("xunit", "xUnit", Tests),
+        ["NUnit"] = new("nunit", "NUnit", Tests),
+        ["MSTest"] = new("mstest", "MSTest", Tests)
+    };
 
     internal static readonly IReadOnlyDictionary<string, Known> Node = new Dictionary<string, Known>(StringComparer.Ordinal)
     {
@@ -75,8 +127,9 @@ internal static partial class Frameworks
         ["hibernate-core"] = new("hibernate", "Hibernate", Data)
     };
 
-    private static readonly Dictionary<string, Known> ById = new[] { Node, Python, Rust, Go, Java }
+    private static readonly Dictionary<string, Known> ById = new[] { Node, Python, Rust, Go, Java, Dotnet }
         .SelectMany(map => map.Values)
+        .Concat([AspNetCore, Worker])
         .GroupBy(known => known.Id, StringComparer.Ordinal)
         .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
 
@@ -84,17 +137,21 @@ internal static partial class Frameworks
 
     // A chave do catálogo pode ser só o começo do nome (versões maiores do Go mudam o caminho: echo/v4; artefatos do Spring têm sufixo).
     internal static void Add(List<FrameworkFinding> found, IReadOnlyDictionary<string, Known> catalog, string stackId, string root,
-        string manifest, IReadOnlyDictionary<string, string> dependencies, bool byPrefix = false)
+        string manifest, IReadOnlyDictionary<string, string> dependencies, bool byPrefix = false,
+        StringComparison comparison = StringComparison.Ordinal)
     {
         foreach (var (name, range) in dependencies.OrderBy(pair => pair.Key, StringComparer.Ordinal))
         {
-            var key = byPrefix ? catalog.Keys.FirstOrDefault(prefix => name.StartsWith(prefix, StringComparison.Ordinal)) : catalog.ContainsKey(name) ? name : null;
+            var key = byPrefix ? catalog.Keys.FirstOrDefault(prefix => name.StartsWith(prefix, comparison)) : catalog.ContainsKey(name) ? name : null;
             if (key is null) continue;
-            var known = catalog[key];
-            if (found.Any(item => item.Id == known.Id && item.Root == root)) continue;
-            found.Add(new FrameworkFinding(known.Id, known.Name, stackId, root, VersionOf(range),
-                [new Evidence(manifest, range.Length == 0 ? name : $"{name}={range}")]));
+            Add(found, catalog[key], stackId, root, catalog[key].Versioned ? VersionOf(range) : null, new Evidence(manifest, range.Length == 0 ? name : $"{name}={range}"));
         }
+    }
+
+    internal static void Add(List<FrameworkFinding> found, Known known, string stackId, string root, string? version, Evidence evidence)
+    {
+        if (found.Any(item => item.Id == known.Id && item.Root == root)) return;
+        found.Add(new FrameworkFinding(known.Id, known.Name, stackId, root, version, [evidence]));
     }
 
     internal static string? VersionOf(string range) => VersionPattern().Match(range).Value is { Length: > 0 } version ? version : null;

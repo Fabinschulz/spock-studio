@@ -126,6 +126,33 @@
       "paths": []
     }
   ],
-  "frameworks": [],
+  "frameworks": [
+    {
+      "id": "aspnetcore",
+      "name": "ASP.NET Core",
+      "stackId": "dotnet",
+      "root": "backend",
+      "version": "10.0",
+      "evidence": [
+        {
+          "path": "backend/src/App/App.csproj",
+          "detail": "Sdk=Microsoft.NET.Sdk.Web"
+        }
+      ]
+    },
+    {
+      "id": "xunit",
+      "name": "xUnit",
+      "stackId": "dotnet",
+      "root": "backend",
+      "version": "2.9.3",
+      "evidence": [
+        {
+          "path": "backend/tests/App.Tests/App.Tests.csproj",
+          "detail": "xunit=2.9.3"
+        }
+      ]
+    }
+  ],
   "declaredAiEnvironments": []
 }
