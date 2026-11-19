@@ -8,12 +8,15 @@
   Identificador de runtime do .NET (padrão: win-x64).
 .PARAMETER Edition
   development (padrão) ou commercial. A comercial não instala o Terraform pelo Spock (docs/compliance, D-02).
+.PARAMETER FetchPython
+  Baixa e poda o CPython do python-build-standalone (scripts/package-intelligence.py). -FetchPythonEmbed é o nome antigo.
 #>
 param(
     [string]$Rid = 'win-x64',
     [ValidateSet('development', 'commercial')]
     [string]$Edition = 'development',
-    [switch]$FetchPythonEmbed
+    [Alias('FetchPythonEmbed')]
+    [switch]$FetchPython
 )
 
 $ErrorActionPreference = 'Stop'
@@ -51,55 +54,31 @@ $spock = Join-Path $dest ("spock-" + $t.Triple + $t.Ext)
 Copy-Item (Join-Path $launcher ("target\" + $t.Triple + "\release\spock" + $t.Ext)) $spock -Force
 "Lançador: $spock ({0:N0} KB)" -f ((Get-Item $spock).Length / 1KB)
 
-# Medido em 2026-10-31: sidecar 70,8 MB; zip oficial python-3.12.10-embed-amd64 10,6 MB (orçamento do interpretador: 25 MB).
-# A inteligência e as dependências (bytecode, orçamento 30 MB) saem de scripts/package-intelligence.py (ADR-0001).
-$budget = 25MB
+# Orçamento do interpretador no Windows: 40 MB. O PBS 3.12.16 podado tem 36 MB (medido em 2026-11-19); o embeddable do
+# python.org tinha 10,6 MB, mas não existe para releases só de segurança (3.12.11+). As dependências da inteligência
+# (bytecode, orçamento 30 MB) saem de scripts/package-intelligence.py (ADR-0001).
+$budget = 40MB
 $resources = Join-Path $root 'desktop\host\src-tauri\resources'
 $builder = if ($env:MARILIZ_BUILD_PYTHON) { $env:MARILIZ_BUILD_PYTHON } else { 'python' }
-& $builder (Join-Path $root 'scripts\package-intelligence.py') bundle --resources $resources
+$fetch = $FetchPython -or ($env:MARILIZ_FETCH_PYTHON -eq '1') -or ($env:MARILIZ_FETCH_PYTHON_EMBED -eq '1')
+$pythonHome = $env:MARILIZ_PYTHON_HOME
+$bundleArgs = @((Join-Path $root 'scripts\package-intelligence.py'), 'bundle', '--resources', $resources)
+if ($fetch -and -not $pythonHome) { $bundleArgs += @('--python', $t.Triple) }
+& $builder @bundleArgs
 if ($LASTEXITCODE -ne 0) { throw 'Empacotamento da inteligência falhou' }
 
-function Enable-EmbedSiteImports {
-    param([string]$Dir)
-    $pth = Get-ChildItem $Dir -Filter 'python*._pth' -File | Select-Object -First 1
-    if (-not $pth) { return }
-    $lines = Get-Content $pth.FullName
-    $lines = $lines | ForEach-Object { if ($_ -match '^\#import site') { 'import site' } else { $_ } }
-    if ($lines -notcontains 'import site') { $lines += 'import site' }
-    Set-Content -Path $pth.FullName -Value $lines -Encoding ascii
-}
-
-$pythonHome = $env:MARILIZ_PYTHON_HOME
-$fetchEmbed = $FetchPythonEmbed -or ($env:MARILIZ_FETCH_PYTHON_EMBED -eq '1')
-if (-not $pythonHome -and $fetchEmbed) {
-    if ($Rid -ne 'win-x64') {
-        throw 'O download automático do CPython embed só está disponível para win-x64. Use MARILIZ_PYTHON_HOME.'
-    }
-    $embedUrl = 'https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip'
-    $cache = Join-Path $root '.cache\python-embed-amd64'
-    $zip = Join-Path $cache 'python-3.12.10-embed-amd64.zip'
-    New-Item -ItemType Directory -Force $cache | Out-Null
-    if (-not (Test-Path $zip)) {
-        "Baixando CPython embed: $embedUrl"
-        Invoke-WebRequest -Uri $embedUrl -OutFile $zip -UseBasicParsing
-    }
-    $extract = Join-Path $cache 'extracted'
-    if (Test-Path $extract) { Remove-Item $extract -Recurse -Force }
-    Expand-Archive -Path $zip -DestinationPath $extract -Force
-    Enable-EmbedSiteImports $extract
-    $pythonHome = $extract
-}
-
 $pythonDest = Join-Path $resources 'python'
-if ($pythonHome -and (Test-Path (Join-Path $pythonHome 'python.exe'))) {
+if ($fetch -and -not $pythonHome) {
+    'Interpretador embarcado: python-build-standalone (scripts/package-intelligence.py).'
+} elseif ($pythonHome -and (Test-Path (Join-Path $pythonHome 'python.exe'))) {
     $pythonBytes = (Get-ChildItem $pythonHome -Recurse -File | Measure-Object Length -Sum).Sum
     if ($pythonBytes -gt $budget) {
-        throw ("O interpretador em MARILIZ_PYTHON_HOME tem {0:N1} MB e passa do orçamento de 25 MB." -f ($pythonBytes / 1MB))
+        throw ("O interpretador em MARILIZ_PYTHON_HOME tem {0:N1} MB e passa do orçamento de 40 MB." -f ($pythonBytes / 1MB))
     }
     if (Test-Path $pythonDest) { Remove-Item $pythonDest -Recurse -Force }
     Copy-Item $pythonHome $pythonDest -Recurse -Force
     New-Item -ItemType File -Force (Join-Path $pythonDest '.gitkeep') | Out-Null
     "Interpretador embarcado: $pythonDest ({0:N1} MB)" -f ($pythonBytes / 1MB)
 } else {
-    "Interpretador embarcado: ausente. Defina MARILIZ_PYTHON_HOME ou execute com -FetchPythonEmbed (win-x64)."
+    "Interpretador embarcado: ausente. Defina MARILIZ_PYTHON_HOME ou execute com -FetchPython."
 }

@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:1dbcb9fa-c9c5-40de-bcde-68074c137eda",
+  "serialNumber": "urn:uuid:f743a6a2-5054-4d51-8100-abd2947f2349",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-17T19:56:01Z",
+    "timestamp": "2026-11-19T12:45:24Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -282,7 +282,7 @@
       "externalReferences": [
         {
           "type": "vcs",
-          "url": "https://github.com/astral-sh/python-build-standalone/blob/20250409/pythonbuild/downloads.py"
+          "url": "https://github.com/astral-sh/python-build-standalone/blob/20261110/pythonbuild/downloads.json"
         }
       ],
       "properties": [
@@ -316,7 +316,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/pythonbuild/downloads.py"
+          "value": "scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/pythonbuild/downloads.json"
         },
         {
           "name": "spock:usage",
@@ -324,7 +324,7 @@
         },
         {
           "name": "spock:note",
-          "value": "Conferido no arquivo oficial (SHA-256 fixado): sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0. O main do PBS (2026-11) ainda inclui o bdb."
+          "value": "A tag 20261110 mantém o bdb 6.0.19 na lista do alvo x86_64-unknown-linux-gnu (cpython-unix/targets.yml). Conferido na 20250409: sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0; na 20261110, não verificado em Linux."
         }
       ]
     },
@@ -332,8 +332,8 @@
       "type": "platform",
       "bom-ref": "bin-python-build-standalone",
       "name": "CPython (python-build-standalone, install_only_stripped)",
-      "version": "3.12.10+20250409",
-      "purl": "pkg:github/astral-sh/python-build-standalone@20250409",
+      "version": "3.12.16+20261110",
+      "purl": "pkg:github/astral-sh/python-build-standalone@20261110",
       "scope": "required",
       "licenses": [
         {
@@ -377,7 +377,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "scripts/package-intelligence.py:31 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml"
+          "value": "scripts/package-intelligence.py:41 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml"
         },
         {
           "name": "spock:usage",
@@ -385,21 +385,21 @@
         },
         {
           "name": "spock:note",
-          "value": "SHA-256 do arquivo fixado no script: 8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado."
+          "value": "SHA-256 do arquivo fixado no script: 6a9e62dad033790aef722dbd370e0ce76ce17b73627ba3ae679f537049350b39. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado."
         }
       ]
     },
     {
       "type": "platform",
-      "bom-ref": "bin-cpython-embed",
-      "name": "CPython (Windows embeddable package)",
-      "version": "3.12.10",
-      "purl": "pkg:generic/cpython-embed-amd64@3.12.10?download_url=https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip",
+      "bom-ref": "bin-python-build-standalone-win",
+      "name": "CPython (python-build-standalone, install_only_stripped, Windows)",
+      "version": "3.12.16+20261110",
+      "purl": "pkg:github/astral-sh/python-build-standalone@20261110",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9a0e3435aaa680d868150f87ab3e388ad2eebc22f87e036155c7b4eda8cd2120"
+          "content": "f4ee82750281a43282d2d6bfcf03812f2ac62725ae8c958b6e6182ba203c3cef"
         }
       ],
       "licenses": [
@@ -409,8 +409,8 @@
       ],
       "externalReferences": [
         {
-          "type": "website",
-          "url": "https://www.python.org/"
+          "type": "vcs",
+          "url": "https://github.com/astral-sh/python-build-standalone"
         }
       ],
       "properties": [
@@ -440,11 +440,11 @@
         },
         {
           "name": "spock:obligations",
-          "value": "Incluir LICENSE.txt do CPython (já vai em resources/python) nos avisos visíveis; EULA do Spock com proteção ao Distributable Code da Microsoft; não usar marcas da PSF/Microsoft"
+          "value": "Incluir LICENSE.txt do CPython (já vai em resources/python) e os textos das bibliotecas nativas (python/licenses/python-build-standalone) nos avisos; EULA do Spock com proteção ao Distributable Code da Microsoft; não usar marcas da PSF/Microsoft"
         },
         {
           "name": "spock:evidence",
-          "value": "scripts/build-runtime.ps1:66 | desktop/host/src-tauri/resources/python/LICENSE.txt:283"
+          "value": "scripts/package-intelligence.py:36 | scripts/notices/python-build-standalone-windows/README.md"
         },
         {
           "name": "spock:usage",
@@ -452,7 +452,7 @@
         },
         {
           "name": "spock:note",
-          "value": "Inclui OpenSSL 3.0.16 (Apache-2.0), libffi (MIT), bzip2 1.0.8, SQLite (domínio público), expat 2.7.1 (MIT), mpdecimal, xz/liblzma, zlib; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Hash do arquivo desktop/host/src-tauri/resources/python/python312.dll do último build local."
+          "value": "SHA-256 do arquivo fixado no script: 355ee61b8207b91574491b1c6dc9b0ebb4408fc56bfafe498f3ef439314b52dc. Inclui OpenSSL 3.5.9 (Apache-2.0), libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 2.5.1, xz 5.8.4 (0BSD), zlib 1.4; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk podados. Hash do arquivo desktop/host/src-tauri/resources/python/python312.dll do último build local."
         }
       ]
     },
@@ -466,7 +466,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "052ad6a20d375957e82aa6a3c441ea548d89be0981516ca7eb306e063d5027f4"
+          "content": "d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066"
         }
       ],
       "licenses": [
@@ -513,7 +513,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "desktop/host/src-tauri/resources/python/vcruntime140.dll | desktop/host/src-tauri/resources/python/LICENSE.txt:286"
+          "value": "desktop/host/src-tauri/resources/python/vcruntime140.dll"
         },
         {
           "name": "spock:usage",
@@ -647,13 +647,13 @@
       "type": "library",
       "bom-ref": "bin-openssl",
       "name": "OpenSSL (dentro do CPython)",
-      "version": "3.0.16",
-      "purl": "pkg:generic/openssl@3.0.16",
+      "version": "3.5.9",
+      "purl": "pkg:generic/openssl@3.5.9",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ccfffddcd3defb8d899026298af9af43bc186130f8483d77e97c93233d5f27d7"
+          "content": "b36cfb21dc3dad939aabab2e479c6e179b65e3a674105b15bfcc8b5ca7cad526"
         }
       ],
       "licenses": [
@@ -698,15 +698,15 @@
         },
         {
           "name": "spock:evidence",
-          "value": "desktop/host/src-tauri/resources/python/libcrypto-3.dll"
+          "value": "desktop/host/src-tauri/resources/python/DLLs/libcrypto-3-x64.dll | scripts/notices/python-build-standalone-windows/LICENSE.openssl-3.txt"
         },
         {
           "name": "spock:usage",
-          "value": "TLS do Python embarcado (libssl-3.dll, libcrypto-3.dll)"
+          "value": "TLS do Python embarcado (libssl-3-x64.dll, libcrypto-3-x64.dll)"
         },
         {
           "name": "spock:note",
-          "value": "Hash do arquivo desktop/host/src-tauri/resources/python/libcrypto-3.dll do último build local."
+          "value": "Hash do arquivo desktop/host/src-tauri/resources/python/DLLs/libcrypto-3-x64.dll do último build local."
         }
       ]
     },
@@ -60075,13 +60075,13 @@
         "asset-icons",
         "asset-release-keys",
         "bin-berkeley-db",
-        "bin-cpython-embed",
         "bin-dotnet-runtime-linux",
         "bin-dotnet-runtime-win",
         "bin-nsis",
         "bin-nsis-tauri-utils",
         "bin-openssl",
         "bin-python-build-standalone",
+        "bin-python-build-standalone-win",
         "bin-vcruntime",
         "cargo-portable-pty-0.9.0",
         "cargo-serde-1.0.229",
@@ -60203,7 +60203,7 @@
       "dependsOn": []
     },
     {
-      "ref": "bin-cpython-embed",
+      "ref": "bin-python-build-standalone-win",
       "dependsOn": []
     },
     {

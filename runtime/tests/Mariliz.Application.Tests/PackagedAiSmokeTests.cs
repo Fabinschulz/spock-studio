@@ -6,7 +6,7 @@ using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
 
-// Só roda no CI do instalador, com MARILIZ_PACKAGED_RESOURCES apontando para desktop/host/src-tauri/resources depois de build-runtime.ps1 -FetchPythonEmbed (Windows) ou de scripts/package-intelligence.py bundle --python <triple> (macOS e Linux). Com MARILIZ_REQUIRE_PACKAGED=1 a falta do pacote é falha.
+// Só roda no CI do instalador, com MARILIZ_PACKAGED_RESOURCES apontando para desktop/host/src-tauri/resources depois de build-runtime.ps1 -FetchPython (Windows) ou de scripts/package-intelligence.py bundle --python <triple> (macOS e Linux). Com MARILIZ_REQUIRE_PACKAGED=1 a falta do pacote é falha.
 public class PackagedAiSmokeTests
 {
     [PackagedFact]
@@ -40,6 +40,13 @@ public class PackagedAiSmokeTests
         var manifest = JsonNode.Parse(File.ReadAllText(Path.Combine(notices, "notices-manifest.json")))!;
         Assert.True(manifest["complete"]!.GetValue<bool>(), "O manifesto dos avisos registra lacunas.");
         Assert.True(manifest["components"]!.GetValue<int>() > 0, "O manifesto dos avisos não lista componentes.");
+        if (OperatingSystem.IsWindows())
+        {
+            // O PBS para Windows não traz no LICENSE.txt os textos de OpenSSL, SQLite, libffi e afins; eles vão à parte.
+            foreach (var notice in new[] { "README.md", "LICENSE.openssl-3.txt", "LICENSE.sqlite.txt", "LICENSE.libffi.txt", "LICENSE.zlib.txt" })
+                Assert.True(File.Exists(Path.Combine(root, "python", "licenses", "python-build-standalone", notice)), $"{notice} do python-build-standalone ausente do pacote.");
+            Assert.True(File.Exists(Path.Combine(root, "python", "python312._pth")), "python312._pth ausente: o interpretador leria PYTHONPATH e o registro.");
+        }
         if (OperatingSystem.IsLinux())
         {
             // Sleepycat: o Berkeley DB vai dentro do libpython, então a licença e as fontes precisam ir junto.

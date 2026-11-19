@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Spock Studio para Linux x64 (.deb)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-linux-x64--.deb--b112e9a6-b960-4263-b774-0ce631fb137c",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-linux-x64--.deb--a3dd2257-93b5-4be2-a40a-6f6bfbbc93e9",
   "creationInfo": {
-    "created": "2026-11-17T19:56:01Z",
+    "created": "2026-11-19T12:45:24Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -70,13 +70,13 @@
       "SPDXID": "SPDXRef-Package-bin-berkeley-db",
       "name": "Berkeley DB (dentro do python-build-standalone, módulo _dbm)",
       "versionInfo": "6.0.19",
-      "downloadLocation": "https://github.com/astral-sh/python-build-standalone/blob/20250409/pythonbuild/downloads.py",
+      "downloadLocation": "https://github.com/astral-sh/python-build-standalone/blob/20261110/pythonbuild/downloads.json",
       "filesAnalyzed": false,
       "licenseDeclared": "Sleepycat",
       "licenseConcluded": "Sleepycat",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência). Ambiente: execução. Distribuição: redistribuído (resources/python no .deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/pythonbuild/downloads.py. Conferido no arquivo oficial (SHA-256 fixado): sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0. O main do PBS (2026-11) ainda inclui o bdb.",
+      "comment": "Uso: Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência). Ambiente: execução. Distribuição: redistribuído (resources/python no .deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/pythonbuild/downloads.json. A tag 20261110 mantém o bdb 6.0.19 na lista do alvo x86_64-unknown-linux-gnu (cpython-unix/targets.yml). Conferido na 20250409: sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0; na 20261110, não verificado em Linux.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -88,19 +88,19 @@
     {
       "SPDXID": "SPDXRef-Package-bin-python-build-standalone",
       "name": "CPython (python-build-standalone, install_only_stripped)",
-      "versionInfo": "3.12.10+20250409",
+      "versionInfo": "3.12.16+20261110",
       "downloadLocation": "https://github.com/astral-sh/python-build-standalone",
       "filesAnalyzed": false,
       "licenseDeclared": "Python-2.0",
       "licenseConcluded": "Python-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Interpretador da inteligência no Linux (e macOS fora da 1ª versão). Ambiente: execução. Distribuição: redistribuído (resources/python no .deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: scripts/package-intelligence.py:31 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml. SHA-256 do arquivo fixado no script: 8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado.",
+      "comment": "Uso: Interpretador da inteligência no Linux (e macOS fora da 1ª versão). Ambiente: execução. Distribuição: redistribuído (resources/python no .deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: scripts/package-intelligence.py:41 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml. SHA-256 do arquivo fixado no script: 6a9e62dad033790aef722dbd370e0ce76ce17b73627ba3ae679f537049350b39. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:github/astral-sh/python-build-standalone@20250409"
+          "referenceLocator": "pkg:github/astral-sh/python-build-standalone@20261110"
         }
       ]
     },

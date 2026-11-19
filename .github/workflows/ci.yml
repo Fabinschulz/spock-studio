@@ -147,7 +147,7 @@ jobs:
       - name: motor e recursos embarcados (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
-        run: ./scripts/build-runtime.ps1 -Rid ${{ matrix.rid }} -FetchPythonEmbed
+        run: ./scripts/build-runtime.ps1 -Rid ${{ matrix.rid }} -FetchPython
       - name: motor como sidecar (demais plataformas)
         if: runner.os != 'Windows'
         shell: bash

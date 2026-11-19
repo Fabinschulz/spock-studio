@@ -135,3 +135,10 @@ Sem isso, as dependências dariam 50,6 MB. No macOS o `strip` invalidaria a assi
 | D6 | **Feita**: `docs/blueprints/architecture-blueprint.md` §1 e §10 atualizados |
 | D7 | Pendente: `workspaceId` reservado como `null` no `ai.workflow.start.v2` |
 | D8 | Pendente: acompanhamento ao vivo por `seq` na página de execução já na Fase 3 |
+
+## Atualização de 2026-11-19 (MV-8a)
+
+O interpretador embarcado deixou de ser o `3.12.10-embed-amd64` do python.org no Windows. As três plataformas usam o
+python-build-standalone 20261110 (CPython 3.12.16), porque o python.org não publica o embeddable para releases só de
+segurança. O `python312._pth` agora é escrito pelo `scripts/package-intelligence.py`, e o orçamento do interpretador no
+Windows passou para 40 MB. Detalhes em `docs/compatibilidade-multiversao/ROADMAP.md`.

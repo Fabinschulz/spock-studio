@@ -90,7 +90,7 @@ Até a D-02 ser decidida, o motor do instalador comercial deve ser publicado com
 Terraform pelo Spock:
 
 ```powershell
-./scripts/build-runtime.ps1 -Rid win-x64 -Edition commercial -FetchPythonEmbed
+./scripts/build-runtime.ps1 -Rid win-x64 -Edition commercial -FetchPython
 ```
 
 Em outras plataformas, acrescente `-p:SpockEdition=commercial` ao `dotnet publish`. Sem a propriedade, o build é

@@ -119,15 +119,15 @@ interior de outra (só o `index.ts`). Verificar por lint desde o primeiro commit
 | REF-R1 | Camadas `app → features → shared` verificadas por ESLint (`NO_FEATURES_FROM_SHARED`, `NO_DEEP_CROSS_SLICE`, `NO_EXPORT_STAR`) com mensagens didáticas | EMP-FE `eslint.config.mjs`; MLZ-WEB `eslint.config.js` (versão enxuta) | Acoplamento cíclico; `shared` virando depósito de domínio; barrel gigante | Mais de 2 features ou mais de uma pessoa/agente | Protótipo de uma tela | Começar com as 3 regras do MLZ-WEB; somar "sem axios em `.tsx`" quando entrar HTTP; `eslint-plugin-boundaries` se as regras crescerem |
 | REF-R2 | Escada atomic design (`atoms → molecules → organisms → templates`) verificada por `no-restricted-imports` | EMP-FE `uiTierRule` | "Átomo" que importa componente | Biblioteca de UI própria | Kit externo (MUI, `@mariliz/ui-kit`): a camada local é fina | Proibir também importar o barrel de `ui/` dentro de `ui/` |
 | REF-R3 | `service/` por feature com Zod na ida e na volta; schema de formulário separado, com mappers | EMP-FE `features/recrutamento/vagas/service/*`, ADR 0009 | Drift de contrato; regra de UX guardando o transporte | API que você não controla 100% | Cliente gerado de OpenAPI com validação em runtime: gere os schemas | Response schema "estrito na forma, permissivo na regra"; a API nunca importa schema de formulário; paginação genérica `createPaginatedResponseSchema(item)` |
-| REF-R4 | Query keys em fábrica (`all → lists → list(params) → detail(id)`) e `QueryClient` sem retry em 4xx, `staleTime` 60 s | EMP-FE `*-keys.ts`, `shared/utils/lib/query-client.tsx` | Invalidação imprecisa; martelar a API com 403/404 | Qualquer app com TanStack Query | — | Documentar no hook a invalidação entre domínios |
-| REF-R5 | Taxonomia única de erro (`parseApiError`, 10 tipos) e ponto único de reporte de mutation: erro no campo quando o servidor aponta campo conhecido, senão toast + alerta | EMP-FE `shared/utils/errors/*`, `shared/context/form-context.tsx` | Cada `onError` com sua política; erro de campo sumindo | Backend com erro estruturado | — | Mapear o formato do backend num só lugar; manter o filtro "só campos que o form conhece" |
+| REF-R4 | Query keys em fábrica (`all → lists → list(params) → detail(id)`) e `QueryClient` sem retry em 4xx, `staleTime` 60 s | EMP-FE `*-keys.ts`, `shared/utils/lib/query-client.tsx` | Invalidação imprecisa; martelar a API com 403/404 | Qualquer app com TanStack Query | - | Documentar no hook a invalidação entre domínios |
+| REF-R5 | Taxonomia única de erro (`parseApiError`, 10 tipos) e ponto único de reporte de mutation: erro no campo quando o servidor aponta campo conhecido, senão toast + alerta | EMP-FE `shared/utils/errors/*`, `shared/context/form-context.tsx` | Cada `onError` com sua política; erro de campo sumindo | Backend com erro estruturado | - | Mapear o formato do backend num só lugar; manter o filtro "só campos que o form conhece" |
 | REF-R6 | Sessão em cookie httpOnly; a mesma `evaluateRouteAccess` no proxy (servidor) e no guard (cliente); permissões nomeadas (`can(roles,'job.delete')`); refresh em 401 com promessa única | EMP-FE `src/proxy.ts`, `shared/utils/lib/route-access-policy.ts`, `rbac.ts`, ADR 0001 | Roubo de sessão por XSS; duas implementações de autorização que divergem; tempestade de refresh | App autenticado com backend próprio | API em domínio sem cookie compartilhável e sem BFF possível | Deixar escrito que o proxy decodifica o JWT sem verificar (é gate de UX; a autorização real é da API); validar `?redirect=` contra open redirect |
-| REF-R7 | Estado de filtro e lista na URL, com codec puro (`parse`/`serialize`, defaults omitidos) | MLZ-WEB `features/busca/core/url-state.ts`; EMP-FE `use-url-synced-params.ts` | Filtro perdido ao recarregar; URL não compartilhável | Listas com filtro | — | O codec do MLZ-WEB é o núcleo; o hook do EMP-FE só com formulário de filtro |
-| REF-R8 | Manifesto único de rotas que gera rotas, navegação, breadcrumbs, SEO, sitemap e prerender | MLZ-WEB `shared/routing/route-manifest.ts` | Path duplicado; página fora do sitemap | React Router com rotas por configuração | Next App Router (o file-system já é o manifesto): usar `xRoutes` por entidade | — |
+| REF-R7 | Estado de filtro e lista na URL, com codec puro (`parse`/`serialize`, defaults omitidos) | MLZ-WEB `features/busca/core/url-state.ts`; EMP-FE `use-url-synced-params.ts` | Filtro perdido ao recarregar; URL não compartilhável | Listas com filtro | - | O codec do MLZ-WEB é o núcleo; o hook do EMP-FE só com formulário de filtro |
+| REF-R8 | Manifesto único de rotas que gera rotas, navegação, breadcrumbs, SEO, sitemap e prerender | MLZ-WEB `shared/routing/route-manifest.ts` | Path duplicado; página fora do sitemap | React Router com rotas por configuração | Next App Router (o file-system já é o manifesto): usar `xRoutes` por entidade | - |
 | REF-R9 | Porta/adaptador para capacidade trocável, carregada sob demanda e cancelável | MLZ-WEB `features/busca/core/types.ts` (`SearchProvider`), `telemetry.ts` | Trocar o fornecedor mexe na UI; bundle inicial pesado | Busca, telemetria, pagamentos | Capacidade com uma só implementação previsível | Com TanStack Query, `useQuery({ queryFn: ({signal}) => provider.search(q, signal) })` |
-| REF-R10 | Vocabulário fechado de estados: skeletons canônicos, `LoadingState` com atraso de ~250 ms, botão de envio com `aria-busy` | EMP-FE `shared/components/common/loading/*`; MLZ-WEB `StateMessage` | Telas inconsistentes e inacessíveis | Sempre | — | Com `@mariliz/ui-kit`, usar o `skeleton` dos componentes (§4) |
-| REF-R11 | Hidratação sem mismatch com `useSyncExternalStore` | MLZ-WEB `use-hydrated.ts`; EMP-FE `use-has-mounted.ts` | Warning de hidratação e tela piscando | SSR ou pré-renderização | SPA pura | — |
-| REF-R12 | Skill de frontend com stack fechada, anti-padrões, checklist e "teste de decisão" YAGNI; ADRs curtas | `EmpregaNetAPI/.claude/skills/frontend-skill/SKILL.md`; `mariliz/docs/ARCHITECTURE.md` | Agente sem critério para decidir | Todo projeto com IA no fluxo | — | Ver §9 |
+| REF-R10 | Vocabulário fechado de estados: skeletons canônicos, `LoadingState` com atraso de ~250 ms, botão de envio com `aria-busy` | EMP-FE `shared/components/common/loading/*`; MLZ-WEB `StateMessage` | Telas inconsistentes e inacessíveis | Sempre | - | Com `@mariliz/ui-kit`, usar o `skeleton` dos componentes (§4) |
+| REF-R11 | Hidratação sem mismatch com `useSyncExternalStore` | MLZ-WEB `use-hydrated.ts`; EMP-FE `use-has-mounted.ts` | Warning de hidratação e tela piscando | SSR ou pré-renderização | SPA pura | - |
+| REF-R12 | Skill de frontend com stack fechada, anti-padrões, checklist e "teste de decisão" YAGNI; ADRs curtas | `EmpregaNetAPI/.claude/skills/frontend-skill/SKILL.md`; `mariliz/docs/ARCHITECTURE.md` | Agente sem critério para decidir | Todo projeto com IA no fluxo | - | Ver §9 |
 
 ### 3.3 Não copiar
 
@@ -266,14 +266,14 @@ src/app/
 | REF-A1 | App standalone com `app.config.ts` e rotas `loadComponent` aninhadas espelhando as pastas | `app.config.ts`, `app.routes.ts` | Bundle único; achar o código de uma URL | Todo app Angular ≥ 15 novo | Aninhamento > 3 níveis sem input binding | `withComponentInputBinding()`, `paramsInheritanceStrategy: 'always'`, `loadChildren` por feature |
 | REF-A2 | Interceptor funcional de autenticação com refresh deduplicado (`shareReplay(1)` + `finalize`) | `core/interceptors/auth.interceptor.ts`, `core/services/token-refresh.service.ts` | N requisições com token vencido disparando N refreshes | JWT com refresh token | Sessão por cookie httpOnly (o refresh é do servidor) | URLs públicas por `HttpContextToken` (`SKIP_AUTH`), não `url.includes` |
 | REF-A3 | `ErrorHandler` global estreito: recarrega uma vez quando falha o chunk (deploy novo), com trava em `sessionStorage` | `core/error-handlers/session-aware.error-handler.ts` | Tela quebrada depois de deploy | SPA com hash de chunks | Usá-lo para engolir erro | `inject()` de `DOCUMENT`/`Router`; telemetria no ramo final |
-| REF-A4 | Tradutor único de erro da API | `core/services/api-handle-messages.service.ts` | Formatos de erro heterogêneos | Backend legado com erro inconsistente | — | Chamar uma vez, num interceptor de erro |
-| REF-A5 | Validators como funções puras, testados sem `TestBed`; mensagens centralizadas | `shared/helpers/validators.ts` | Validação espalhada e difícil de testar | Sempre | — | Mensagens por pipe ou função pura; `NonNullableFormBuilder` |
-| REF-A6 | `ControlValueAccessor` para máscara: exibe formatado, guarda só dígitos | `shared/directives/phone-mask.directive.ts` | API recebendo valor formatado | CPF/CNPJ, telefone, moeda | — | `host: { '(input)': ... }` em vez de `@HostListener` |
-| REF-A7 | Busca com `Subject` + `switchMap` | `open-attendence/campaign/campaign.component.ts` | Resposta obsoleta sobrescrevendo a atual | Filtros e buscas | — | `debounceTime`, `distinctUntilChanged`, `takeUntilDestroyed()`; ou `resource`/`rxResource` |
-| REF-A8 | Tema runtime por variáveis CSS aplicado antes do bootstrap | `main.ts`, `shared/helpers/theme-palette.ts`, `theme.scss` | White-label sem recompilar e sem flash | Multi-tenant visual | — | Material 3 `mat.theme()` com tokens `--mat-sys-*` |
+| REF-A4 | Tradutor único de erro da API | `core/services/api-handle-messages.service.ts` | Formatos de erro heterogêneos | Backend legado com erro inconsistente | - | Chamar uma vez, num interceptor de erro |
+| REF-A5 | Validators como funções puras, testados sem `TestBed`; mensagens centralizadas | `shared/helpers/validators.ts` | Validação espalhada e difícil de testar | Sempre | - | Mensagens por pipe ou função pura; `NonNullableFormBuilder` |
+| REF-A6 | `ControlValueAccessor` para máscara: exibe formatado, guarda só dígitos | `shared/directives/phone-mask.directive.ts` | API recebendo valor formatado | CPF/CNPJ, telefone, moeda | - | `host: { '(input)': ... }` em vez de `@HostListener` |
+| REF-A7 | Busca com `Subject` + `switchMap` | `open-attendence/campaign/campaign.component.ts` | Resposta obsoleta sobrescrevendo a atual | Filtros e buscas | - | `debounceTime`, `distinctUntilChanged`, `takeUntilDestroyed()`; ou `resource`/`rxResource` |
+| REF-A8 | Tema runtime por variáveis CSS aplicado antes do bootstrap | `main.ts`, `shared/helpers/theme-palette.ts`, `theme.scss` | White-label sem recompilar e sem flash | Multi-tenant visual | - | Material 3 `mat.theme()` com tokens `--mat-sys-*` |
 | REF-A9 | Testes fora de `src/`, espelhando a árvore, com critério explícito: unit (tudo dublê), integration (≥ 1 real ou `HttpTestingController`), E2E (Playwright) | `tests/{unit,integration,e2e}` | Fronteira vaga entre tipos de teste | Times com vários tipos de teste | Projeto pequeno (spec ao lado é mais simples) | Angular ≥ 20: Vitest/Jest no lugar do Karma |
-| REF-A10 | Configuração estrita: `strictTemplates`, `noPropertyAccessFromIndexSignature`, `explicit-function-return-type`, commitlint | `tsconfig.json`, `.eslintrc.json` | Erros de template em runtime | Sempre | — | Flat config `eslint.config.js` alinhado à versão |
-| REF-A11 | Harness versionado: skill de convenções levantada do código (com "inconsistência conhecida" registrada), agents agnósticos de stack, specs por ticket | `.claude/`, `.specs/` | Agente sem conhecimento da stack | Todo projeto com IA | — | Ver §9 |
+| REF-A10 | Configuração estrita: `strictTemplates`, `noPropertyAccessFromIndexSignature`, `explicit-function-return-type`, commitlint | `tsconfig.json`, `.eslintrc.json` | Erros de template em runtime | Sempre | - | Flat config `eslint.config.js` alinhado à versão |
+| REF-A11 | Harness versionado: skill de convenções levantada do código (com "inconsistência conhecida" registrada), agents agnósticos de stack, specs por ticket | `.claude/`, `.specs/` | Agente sem conhecimento da stack | Todo projeto com IA | - | Ver §9 |
 
 Estado: service por feature com `signal` privado e `computed` público; RxJS só para fluxo assíncrono, convertido com
 `toSignal`; NgRx Signal Store quando muitas telas compartilham o mesmo agregado. DI: `inject()` em tudo ou construtor
@@ -417,11 +417,11 @@ A seção mais forte de NET-INT; aplica-se a qualquer serviço que fale com sist
 | REF-N2 | Resiliência ciente do verbo: retry com jitter só em método idempotente; POST só em 429; timeout por tentativa; respeita `Retry-After`/`ratelimit-reset` com teto | `<Fornecedor>ServiceCollectionExtensions.cs` | Duplicata por retry de POST que já tinha sido gravado | Provedor com `Idempotency-Key`: usar a chave e repetir |
 | REF-N3 | Rate limiter por tenant com teto de espera diferente por host (worker curto: devolve à fila; API longo) | `Integrations/<Fornecedor>/RateLimit/TenantRateLimiter.cs` | Thread presa esperando cota | API externa sem limite por credencial |
 | REF-N4 | Isolamento por tenant (circuit distribuído): tenant com dependência fora do ar não consome tentativas dos outros | `Integrations/<ERP>/Isolation/` | Um cliente derruba o processamento de todos | Um tenant só: circuit breaker simples |
-| REF-N5 | Classificador de falha externa (`Transient`, `CredentialRefusal`, `Permanent`, `NotExternal`) | `SharedKernel/Errors/ExternalFailureClassifier.cs` | Decidir entre pular registro, parar lote ou adiar mensagem | — |
+| REF-N5 | Classificador de falha externa (`Transient`, `CredentialRefusal`, `Permanent`, `NotExternal`) | `SharedKernel/Errors/ExternalFailureClassifier.cs` | Decidir entre pular registro, parar lote ou adiar mensagem | - |
 | REF-N6 | Consumidor de fila com envelope versionado (`messageType`, `messageVersion`, `tenantId`, `correlationId`), delete só após sucesso, DLQ, adiamento por visibilidade, extensão em handler longo, fila separada para lote | `BuildingBlocks/Messaging.Sqs/SqsFlowConsumer.cs` | Mensagem perdida ou repetida sem controle | Processamento síncrono simples |
-| REF-N7 | Idempotência em camadas: busca pela chave local antes de criar, lock de criação com expiração e `rowversion`, índice único, content hash para pular envio sem mudança | `ReferenceMapping.cs`, `ContentHash.cs` | Duplicatas no sistema externo | — |
+| REF-N7 | Idempotência em camadas: busca pela chave local antes de criar, lock de criação com expiração e `rowversion`, índice único, content hash para pular envio sem mudança | `ReferenceMapping.cs`, `ContentHash.cs` | Duplicatas no sistema externo | - |
 | REF-N8 | Segredos por tenant, buscados na hora da chamada, por sistema, com cache curto que não guarda falha | `Tenancy/Infrastructure/Secrets/` | Segredo quebrado de um sistema bloqueando tudo | Aplicação de tenant único com segredo fixo |
-| REF-N9 | Webhook seguro: `EnableBuffering`, HMAC com `FixedTimeEquals`, parse seguro, sem logar corpo nem assinatura, tolerância de timestamp, deduplicação por id de evento | Contraexemplo: NET-DOC `HmacValidationMiddleware.cs` | Falsificação, replay e reentrega duplicando efeito | — |
+| REF-N9 | Webhook seguro: `EnableBuffering`, HMAC com `FixedTimeEquals`, parse seguro, sem logar corpo nem assinatura, tolerância de timestamp, deduplicação por id de evento | Contraexemplo: NET-DOC `HmacValidationMiddleware.cs` | Falsificação, replay e reentrega duplicando efeito | - |
 
 Outbox: nenhuma referência usa. EMP-BE e NET-INT aceitam, por decisão registrada, perder o evento entre o commit e a
 publicação. Usar outbox quando o evento cruza processos e perdê-lo custa caro (pagamento, integração entre sistemas).
@@ -432,10 +432,10 @@ publicação. Usar outbox quando o evento cruza processos e perdê-lo custa caro
 | --- | --- | --- | --- |
 | REF-N10 | Transação condicionada por interface-marcador (`TransactionBehavior where TRequest : ITransactional`) | EMP-BE `Infra/Behaviors/TransactionBehavior.cs` | Vários bancos ou sagas |
 | REF-N11 | Eventos por requisição despachados depois do commit, com deduplicação | EMP-BE `DomainEventQueue.cs`, ADR 0012 | Evento cuja perda é cara: outbox |
-| REF-N12 | Teste que fixa a ordem do pipeline a partir do registro de produção (`internal` + `InternalsVisibleTo`) | EMP-BE `PipelineBehaviorRegistrationTests.cs` | — |
-| REF-N13 | Testes de convenção de segurança por reflexão sobre controllers | EMP-BE `ControllerAuthorizationTests.cs` | — |
+| REF-N12 | Teste que fixa a ordem do pipeline a partir do registro de produção (`internal` + `InternalsVisibleTo`) | EMP-BE `PipelineBehaviorRegistrationTests.cs` | - |
+| REF-N13 | Testes de convenção de segurança por reflexão sobre controllers | EMP-BE `ControllerAuthorizationTests.cs` | - |
 | REF-N14 | Startup coordenado: espera do banco, advisory lock, etapas (`MigrationStep`, `SeedStep`) | EMP-BE `Infra/Persistence/Startup/*` | Serverless: migrar no pipeline |
-| REF-N15 | Fronteiras de projeto como testes que leem `.csproj` e varrem o código (posse de header, `HttpClient` proibido fora do cliente) | NET-INT `tests/Shared/Architecture/` | — |
+| REF-N15 | Fronteiras de projeto como testes que leem `.csproj` e varrem o código (posse de header, `HttpClient` proibido fora do cliente) | NET-INT `tests/Shared/Architecture/` | - |
 | REF-N16 | Porta de geração com estratégias trocáveis por biblioteca | NET-DOC `Domain/Interfaces/IDanfeGenerator.cs` + `Infrastructure/Libs/<Lib>/` | Uma biblioteca só e estável |
 
 ### 6.11 Não copiar
@@ -557,13 +557,13 @@ específico por stack.
 | `CLAUDE.md` âncora, curto | NET-INT, ANG-CRM, EMP | Regras de camada, YAGNI, ponte entre ciclo e agentes | Afirmar o que o código não faz (EMP cita namespace e OData inexistentes) |
 | Skill de conhecimento da stack | `integrador-backend-skill`, a skill de convenções do ANG-CRM, `frontend-skill`, `backend-skill` | Convenções levantadas do código, anti-padrões, checklist, "inconsistência conhecida" registrada como fato | Skill de ~50 mil tokens com changelog de feature (NET-INT) |
 | Agentes agnósticos de stack | `.claude/agents/` (architect só leitura, implementer, verifier, code-reviewer, test-engineer, debug, performance) | **Autor diferente do verificador**; arquiteto sem escrita | Agente que duplica conhecimento da skill |
-| Regras por caminho | NET-INT `.claude/rules/backend-code-structure.md` (carregada quando um `.cs` é tocado) | Contexto só quando relevante | — |
-| Specs por feature | `.specs/features/<id>/{spec,design,tasks,validation}.md`; `docs/features/<id>/` | Ciclo spec-driven com validação | — |
-| Decisões numeradas | `.specs/STATE.md` (~91 AD-NNN em NET-INT), ADRs em EMP | Rastreabilidade de por quê | — |
-| Vocabulário de evidência | NET-INT `harness-contract` (FACT/INFERENCE e confiança) | O agente diz o que viu e o que deduziu | — |
+| Regras por caminho | NET-INT `.claude/rules/backend-code-structure.md` (carregada quando um `.cs` é tocado) | Contexto só quando relevante | - |
+| Specs por feature | `.specs/features/<id>/{spec,design,tasks,validation}.md`; `docs/features/<id>/` | Ciclo spec-driven com validação | - |
+| Decisões numeradas | `.specs/STATE.md` (~91 AD-NNN em NET-INT), ADRs em EMP | Rastreabilidade de por quê | - |
+| Vocabulário de evidência | NET-INT `harness-contract` (FACT/INFERENCE e confiança) | O agente diz o que viu e o que deduziu | - |
 | Lint/eval do Harness no CI | EMP `.claude/evals/check-harness.mjs`; NET-INT `harness_lint/` | Harness quebrado falha o build | Eval que não confere afirmações factuais contra o código |
 | MCP local por projeto | NET-INT `.mcp.json` (banco, sandbox do fornecedor) | Ferramentas no escopo do projeto | Credenciais de produção |
-| Permissões | `settings.json` com allowlist; `deny Read` em appsettings reais (NET-INT) | Menor privilégio | — |
+| Permissões | `settings.json` com allowlist; `deny Read` em appsettings reais (NET-INT) | Menor privilégio | - |
 
 Lição central: **separar conhecimento da stack (skill curta, estável, verificada) de agentes agnósticos**, e manter o
 detalhe de feature nas specs, não na skill.
@@ -599,10 +599,10 @@ system, não migrar só para padronizar.
 | Fator | Favorece .NET | Favorece outra |
 | --- | --- | --- |
 | Conhecimento da equipe | Equipe .NET (caso da organização) | Equipe sem .NET |
-| Domínio com regras e transações | EF Core, pipeline, tipagem forte | — |
-| Integrações corporativas (ERP, filas, AWS) | Polly, SDKs maduros, referência NET-INT pronta | — |
-| IA/ML, ciência de dados | — | Python (ecossistema de ML e LangGraph) |
-| Front e back na mesma linguagem, BFF fino | — | Node/TS |
+| Domínio com regras e transações | EF Core, pipeline, tipagem forte | - |
+| Integrações corporativas (ERP, filas, AWS) | Polly, SDKs maduros, referência NET-INT pronta | - |
+| IA/ML, ciência de dados | - | Python (ecossistema de ML e LangGraph) |
+| Front e back na mesma linguagem, BFF fino | - | Node/TS |
 | Serviço muito pequeno, cold start crítico | Native AOT ajuda | Go |
 | Custo operacional | Contêiner único e eficiente | Equivalente |
 
@@ -624,14 +624,14 @@ Ver §8.5.
 
 | Contexto | Leve | Completo |
 | --- | --- | --- |
-| CRUD sem regra | Modelo anêmico, validação, um serviço | — |
-| Máquina de estados, capacidade, concorrência | — | Agregado rico, `rowversion`, eventos |
-| Uma integração simples | Typed client | — |
-| Integração multi-tenant com cota | — | REF-N1 a REF-N8 |
-| Um banco | `ITransactional` | — |
-| Vários bancos ou processos | — | Outbox, sagas |
-| Um domínio coeso | Camadas únicas | — |
-| Vários subdomínios e hosts | — | Contextos delimitados |
+| CRUD sem regra | Modelo anêmico, validação, um serviço | - |
+| Máquina de estados, capacidade, concorrência | - | Agregado rico, `rowversion`, eventos |
+| Uma integração simples | Typed client | - |
+| Integração multi-tenant com cota | - | REF-N1 a REF-N8 |
+| Um banco | `ITransactional` | - |
+| Vários bancos ou processos | - | Outbox, sagas |
+| Um domínio coeso | Camadas únicas | - |
+| Vários subdomínios e hosts | - | Contextos delimitados |
 
 ### 10.8 Modernização de projeto existente
 
