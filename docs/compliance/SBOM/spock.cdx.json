@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:3df9b306-e9eb-4e1f-a381-9a559f8381e5",
+  "serialNumber": "urn:uuid:7ab1c8d8-26a3-4d34-8763-93ca1b3d4e68",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-19T18:01:43Z",
+    "timestamp": "2026-11-19T18:33:13Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -54168,15 +54168,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "nuget-coverlet.collector-6.0.4",
+      "bom-ref": "nuget-coverlet.collector-10.1.1",
       "name": "coverlet.collector",
-      "version": "6.0.4",
-      "purl": "pkg:nuget/coverlet.collector@6.0.4",
+      "version": "10.1.1",
+      "purl": "pkg:nuget/coverlet.collector@10.1.1",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "96486aa45f0fbb663b22237b3a7b5bb13b5d6e9475b3232c9b61772205faa28b40e1f7d1a962f98c5ed78a91ee6504dd56e586fe054001c7fc9a393c4f3d313e"
+          "content": "891586a4dcca1bafe903457302df960f31403cc1efb3f13867179262211a01aecccc584071670859ded10cd2e10817a7a5235d242c26e3651c40fe271946f025"
         }
       ],
       "licenses": [
@@ -54221,7 +54221,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/coverlet.collector/6.0.4"
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/coverlet.collector/10.1.1"
         },
         {
           "name": "spock:usage",
@@ -55093,15 +55093,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "nuget-Microsoft.CodeCoverage-17.14.1",
+      "bom-ref": "nuget-Microsoft.CodeCoverage-18.12.0",
       "name": "Microsoft.CodeCoverage",
-      "version": "17.14.1",
-      "purl": "pkg:nuget/Microsoft.CodeCoverage@17.14.1",
+      "version": "18.12.0",
+      "purl": "pkg:nuget/Microsoft.CodeCoverage@18.12.0",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "a664eb85f148a299731556e157052ab93fbbec26c61fe878ff7981a5d988958b418bd9c007e90a23a74ddc0fe75780c58b7c0b2f1fc194720f2be3246d0e93a6"
+          "content": "3a138f49a0804210498171753ab5f4b8adde4e4c19d579cce388862d9a656202ab9a02b341476ff71b4619a139ebc46e43bdfc4e5ad3277a66f5a58be451fb8b"
         }
       ],
       "licenses": [
@@ -55146,7 +55146,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.codecoverage/17.14.1"
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.codecoverage/18.12.0"
         }
       ]
     },
@@ -55994,15 +55994,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "nuget-Microsoft.NET.Test.Sdk-17.14.1",
+      "bom-ref": "nuget-Microsoft.NET.Test.Sdk-18.12.0",
       "name": "Microsoft.NET.Test.Sdk",
-      "version": "17.14.1",
-      "purl": "pkg:nuget/Microsoft.NET.Test.Sdk@17.14.1",
+      "version": "18.12.0",
+      "purl": "pkg:nuget/Microsoft.NET.Test.Sdk@18.12.0",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "1c92aa28e13ebec857adad9a107a62d93971617ed9f5515892bf84e6bc04bc70bc7885e2c8ef8af64366f2f98da26ddedab039e96ab153efcdf4d2652c65ec25"
+          "content": "31d564b2433664229294db6ce4321bcfd31989d5fb4b0717281a01a98e174fdd5bdf4840c02f0f92359b7462916a4e812800f5050a9a66787f483d00246a0309"
         }
       ],
       "licenses": [
@@ -56047,7 +56047,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.net.test.sdk/17.14.1"
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.net.test.sdk/18.12.0"
         },
         {
           "name": "spock:usage",
@@ -56057,15 +56057,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "nuget-Microsoft.TestPlatform.ObjectModel-17.14.1",
+      "bom-ref": "nuget-Microsoft.TestPlatform.ObjectModel-18.12.0",
       "name": "Microsoft.TestPlatform.ObjectModel",
-      "version": "17.14.1",
-      "purl": "pkg:nuget/Microsoft.TestPlatform.ObjectModel@17.14.1",
+      "version": "18.12.0",
+      "purl": "pkg:nuget/Microsoft.TestPlatform.ObjectModel@18.12.0",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "c533f55ba322e925a6bb17776be8e3f46f54a02f39d161b0654a6cd566a1f6bd59c605e17497e3d50a832c99058c70c2bcde36a832f63ece4a8d0616514d3371"
+          "content": "8a54f6a38bff7358e82e0b1fcd2e1d610ef56d6032fd1b00e9f058edfe4e114a54b14870233a25886797752df272d5aecb8359cae49594eedd3d7e1e77b474e8"
         }
       ],
       "licenses": [
@@ -56110,21 +56110,21 @@
         },
         {
           "name": "spock:evidence",
-          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.testplatform.objectmodel/17.14.1"
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.testplatform.objectmodel/18.12.0"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "nuget-Microsoft.TestPlatform.TestHost-17.14.1",
+      "bom-ref": "nuget-Microsoft.TestPlatform.TestHost-18.12.0",
       "name": "Microsoft.TestPlatform.TestHost",
-      "version": "17.14.1",
-      "purl": "pkg:nuget/Microsoft.TestPlatform.TestHost@17.14.1",
+      "version": "18.12.0",
+      "purl": "pkg:nuget/Microsoft.TestPlatform.TestHost@18.12.0",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "77bf0b3f318a909c2c257010c2c6c927b2c4ec3d7007eac0ca11c701a38317e443490d0d80c8c3164480d438f0d7c56bc4eefa1a52808d152197e1fc34bf19f9"
+          "content": "5934fdd76254aa615ad819027973e43025296d83aab1b7917d125d85a21044ec78f62a2482718f0252af5e61d6282f672705ab1f04907d1fa4f909fb342c5fcf"
         }
       ],
       "licenses": [
@@ -56169,7 +56169,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.testplatform.testhost/17.14.1"
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.testplatform.testhost/18.12.0"
         }
       ]
     },
@@ -60228,11 +60228,11 @@
         "nuget-JsonSchema.Net-9.5.0",
         "nuget-Microsoft.ML.Tokenizers-3.0.0",
         "nuget-Microsoft.ML.Tokenizers.Data.O200kBase-3.0.0",
-        "nuget-Microsoft.NET.Test.Sdk-17.14.1",
+        "nuget-Microsoft.NET.Test.Sdk-18.12.0",
         "nuget-ModelContextProtocol.Core-2.4.0",
         "nuget-System.Security.Cryptography.ProtectedData-9.0.11",
         "nuget-YamlDotNet-18.1.0",
-        "nuget-coverlet.collector-6.0.4",
+        "nuget-coverlet.collector-10.1.1",
         "nuget-xunit-2.9.3",
         "nuget-xunit.runner.visualstudio-3.1.4",
         "pypi-langgraph-1.2.19",
@@ -66338,7 +66338,7 @@
       ]
     },
     {
-      "ref": "nuget-coverlet.collector-6.0.4",
+      "ref": "nuget-coverlet.collector-10.1.1",
       "dependsOn": []
     },
     {
@@ -66423,7 +66423,7 @@
       "dependsOn": []
     },
     {
-      "ref": "nuget-Microsoft.CodeCoverage-17.14.1",
+      "ref": "nuget-Microsoft.CodeCoverage-18.12.0",
       "dependsOn": []
     },
     {
@@ -66508,21 +66508,20 @@
       ]
     },
     {
-      "ref": "nuget-Microsoft.NET.Test.Sdk-17.14.1",
+      "ref": "nuget-Microsoft.NET.Test.Sdk-18.12.0",
       "dependsOn": [
-        "nuget-Microsoft.CodeCoverage-17.14.1",
-        "nuget-Microsoft.TestPlatform.TestHost-17.14.1"
+        "nuget-Microsoft.CodeCoverage-18.12.0",
+        "nuget-Microsoft.TestPlatform.TestHost-18.12.0"
       ]
     },
     {
-      "ref": "nuget-Microsoft.TestPlatform.ObjectModel-17.14.1",
+      "ref": "nuget-Microsoft.TestPlatform.ObjectModel-18.12.0",
       "dependsOn": []
     },
     {
-      "ref": "nuget-Microsoft.TestPlatform.TestHost-17.14.1",
+      "ref": "nuget-Microsoft.TestPlatform.TestHost-18.12.0",
       "dependsOn": [
-        "nuget-Microsoft.TestPlatform.ObjectModel-17.14.1",
-        "nuget-Newtonsoft.Json-13.0.4"
+        "nuget-Microsoft.TestPlatform.ObjectModel-18.12.0"
       ]
     },
     {

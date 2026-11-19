@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Inventário consolidado (distribuído, sob demanda, externo e desenvolvimento)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--bd2074a3-74d0-43f0-873b-3c815ceb35c5",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--8a0379a4-a23c-403e-b9fe-1b02a3cedb56",
   "creationInfo": {
-    "created": "2026-11-19T18:01:43Z",
+    "created": "2026-11-19T18:33:13Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -21426,27 +21426,27 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-nuget-coverlet.collector-6.0.4",
+      "SPDXID": "SPDXRef-Package-nuget-coverlet.collector-10.1.1",
       "name": "coverlet.collector",
-      "versionInfo": "6.0.4",
+      "versionInfo": "10.1.1",
       "downloadLocation": "https://github.com/coverlet-coverage/coverlet.git",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT",
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Cobertura de testes. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/coverlet.collector/6.0.4.",
+      "comment": "Uso: Cobertura de testes. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/coverlet.collector/10.1.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:nuget/coverlet.collector@6.0.4"
+          "referenceLocator": "pkg:nuget/coverlet.collector@10.1.1"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "96486aa45f0fbb663b22237b3a7b5bb13b5d6e9475b3232c9b61772205faa28b40e1f7d1a962f98c5ed78a91ee6504dd56e586fe054001c7fc9a393c4f3d313e"
+          "checksumValue": "891586a4dcca1bafe903457302df960f31403cc1efb3f13867179262211a01aecccc584071670859ded10cd2e10817a7a5235d242c26e3651c40fe271946f025"
         }
       ]
     },
@@ -21789,27 +21789,27 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-nuget-Microsoft.CodeCoverage-17.14.1",
+      "SPDXID": "SPDXRef-Package-nuget-Microsoft.CodeCoverage-18.12.0",
       "name": "Microsoft.CodeCoverage",
-      "versionInfo": "17.14.1",
+      "versionInfo": "18.12.0",
       "downloadLocation": "https://github.com/microsoft/vstest",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT",
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de Microsoft.NET.Test.Sdk. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.codecoverage/17.14.1.",
+      "comment": "Uso: transitiva de Microsoft.NET.Test.Sdk. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.codecoverage/18.12.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:nuget/Microsoft.CodeCoverage@17.14.1"
+          "referenceLocator": "pkg:nuget/Microsoft.CodeCoverage@18.12.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "a664eb85f148a299731556e157052ab93fbbec26c61fe878ff7981a5d988958b418bd9c007e90a23a74ddc0fe75780c58b7c0b2f1fc194720f2be3246d0e93a6"
+          "checksumValue": "3a138f49a0804210498171753ab5f4b8adde4e4c19d579cce388862d9a656202ab9a02b341476ff71b4619a139ebc46e43bdfc4e5ad3277a66f5a58be451fb8b"
         }
       ]
     },
@@ -22164,77 +22164,77 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-nuget-Microsoft.NET.Test.Sdk-17.14.1",
+      "SPDXID": "SPDXRef-Package-nuget-Microsoft.NET.Test.Sdk-18.12.0",
       "name": "Microsoft.NET.Test.Sdk",
-      "versionInfo": "17.14.1",
+      "versionInfo": "18.12.0",
       "downloadLocation": "https://github.com/microsoft/vstest",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT",
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Execução de testes. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.net.test.sdk/17.14.1.",
+      "comment": "Uso: Execução de testes. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.net.test.sdk/18.12.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:nuget/Microsoft.NET.Test.Sdk@17.14.1"
+          "referenceLocator": "pkg:nuget/Microsoft.NET.Test.Sdk@18.12.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "1c92aa28e13ebec857adad9a107a62d93971617ed9f5515892bf84e6bc04bc70bc7885e2c8ef8af64366f2f98da26ddedab039e96ab153efcdf4d2652c65ec25"
+          "checksumValue": "31d564b2433664229294db6ce4321bcfd31989d5fb4b0717281a01a98e174fdd5bdf4840c02f0f92359b7462916a4e812800f5050a9a66787f483d00246a0309"
         }
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-nuget-Microsoft.TestPlatform.ObjectModel-17.14.1",
+      "SPDXID": "SPDXRef-Package-nuget-Microsoft.TestPlatform.ObjectModel-18.12.0",
       "name": "Microsoft.TestPlatform.ObjectModel",
-      "versionInfo": "17.14.1",
+      "versionInfo": "18.12.0",
       "downloadLocation": "https://github.com/microsoft/vstest",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT",
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de Microsoft.TestPlatform.TestHost. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.testplatform.objectmodel/17.14.1.",
+      "comment": "Uso: transitiva de Microsoft.TestPlatform.TestHost. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.testplatform.objectmodel/18.12.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:nuget/Microsoft.TestPlatform.ObjectModel@17.14.1"
+          "referenceLocator": "pkg:nuget/Microsoft.TestPlatform.ObjectModel@18.12.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "c533f55ba322e925a6bb17776be8e3f46f54a02f39d161b0654a6cd566a1f6bd59c605e17497e3d50a832c99058c70c2bcde36a832f63ece4a8d0616514d3371"
+          "checksumValue": "8a54f6a38bff7358e82e0b1fcd2e1d610ef56d6032fd1b00e9f058edfe4e114a54b14870233a25886797752df272d5aecb8359cae49594eedd3d7e1e77b474e8"
         }
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-nuget-Microsoft.TestPlatform.TestHost-17.14.1",
+      "SPDXID": "SPDXRef-Package-nuget-Microsoft.TestPlatform.TestHost-18.12.0",
       "name": "Microsoft.TestPlatform.TestHost",
-      "versionInfo": "17.14.1",
+      "versionInfo": "18.12.0",
       "downloadLocation": "https://github.com/microsoft/vstest",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT",
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de Microsoft.NET.Test.Sdk. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.testplatform.testhost/17.14.1.",
+      "comment": "Uso: transitiva de Microsoft.NET.Test.Sdk. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.testplatform.testhost/18.12.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:nuget/Microsoft.TestPlatform.TestHost@17.14.1"
+          "referenceLocator": "pkg:nuget/Microsoft.TestPlatform.TestHost@18.12.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "77bf0b3f318a909c2c257010c2c6c927b2c4ec3d7007eac0ca11c701a38317e443490d0d80c8c3164480d438f0d7c56bc4eefa1a52808d152197e1fc34bf19f9"
+          "checksumValue": "5934fdd76254aa615ad819027973e43025296d83aab1b7917d125d85a21044ec78f62a2482718f0252af5e61d6282f672705ab1f04907d1fa4f909fb342c5fcf"
         }
       ]
     },
@@ -34542,7 +34542,7 @@
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-nuget-coverlet.collector-6.0.4"
+      "relatedSpdxElement": "SPDXRef-Package-nuget-coverlet.collector-10.1.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-nuget-Google.Apis-1.78.0",
@@ -34757,27 +34757,22 @@
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.NET.Test.Sdk-17.14.1"
+      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.NET.Test.Sdk-18.12.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-nuget-Microsoft.NET.Test.Sdk-17.14.1",
+      "spdxElementId": "SPDXRef-Package-nuget-Microsoft.NET.Test.Sdk-18.12.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.CodeCoverage-17.14.1"
+      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.CodeCoverage-18.12.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-nuget-Microsoft.NET.Test.Sdk-17.14.1",
+      "spdxElementId": "SPDXRef-Package-nuget-Microsoft.NET.Test.Sdk-18.12.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.TestPlatform.TestHost-17.14.1"
+      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.TestPlatform.TestHost-18.12.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-nuget-Microsoft.TestPlatform.TestHost-17.14.1",
+      "spdxElementId": "SPDXRef-Package-nuget-Microsoft.TestPlatform.TestHost-18.12.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.TestPlatform.ObjectModel-17.14.1"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-nuget-Microsoft.TestPlatform.TestHost-17.14.1",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-nuget-Newtonsoft.Json-13.0.4"
+      "relatedSpdxElement": "SPDXRef-Package-nuget-Microsoft.TestPlatform.ObjectModel-18.12.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
