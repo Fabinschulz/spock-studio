@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Inventário consolidado (distribuído, sob demanda, externo e desenvolvimento)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--cf00dd9b-530d-4024-a6ae-fa2dec49aa94",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--408e7b7e-ebf6-4e12-8c94-32705770797a",
   "creationInfo": {
-    "created": "2026-11-19T12:45:24Z",
+    "created": "2026-11-19T17:46:47Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -107,7 +107,7 @@
       "licenseConcluded": "Python-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Interpretador da inteligência no Linux (e macOS fora da 1ª versão). Ambiente: execução. Distribuição: redistribuído (resources/python no .deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: scripts/package-intelligence.py:41 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml. SHA-256 do arquivo fixado no script: 6a9e62dad033790aef722dbd370e0ce76ce17b73627ba3ae679f537049350b39. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado.",
+      "comment": "Uso: Interpretador da inteligência no Linux (e macOS fora da 1ª versão). Ambiente: execução. Distribuição: redistribuído (resources/python no .deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: scripts/package-intelligence.py:46 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml. SHA-256 do arquivo fixado no script: 6a9e62dad033790aef722dbd370e0ce76ce17b73627ba3ae679f537049350b39. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -126,7 +126,7 @@
       "licenseConcluded": "Python-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Interpretador da inteligência (LangGraph) no Windows. Ambiente: execução. Distribuição: redistribuído (resources/python no instalador). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py:36 | scripts/notices/python-build-standalone-windows/README.md. SHA-256 do arquivo fixado no script: 355ee61b8207b91574491b1c6dc9b0ebb4408fc56bfafe498f3ef439314b52dc. Inclui OpenSSL 3.5.9 (Apache-2.0), libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 2.5.1, xz 5.8.4 (0BSD), zlib 1.4; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk podados. Hash do arquivo desktop/host/src-tauri/resources/python/python312.dll do último build local.",
+      "comment": "Uso: Interpretador da inteligência (LangGraph) no Windows. Ambiente: execução. Distribuição: redistribuído (resources/python no instalador). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py:41 | scripts/notices/python-build-standalone-windows/README.md. SHA-256 do arquivo fixado no script: 355ee61b8207b91574491b1c6dc9b0ebb4408fc56bfafe498f3ef439314b52dc. Inclui OpenSSL 3.5.9 (Apache-2.0), libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 2.5.1, xz 5.8.4 (0BSD), zlib 1.4; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk podados. Hash do arquivo desktop/host/src-tauri/resources/python/python312.dll do último build local.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -868,27 +868,27 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-block-buffer-0.10.4",
+      "SPDXID": "SPDXRef-Package-cargo-block-buffer-0.12.1",
       "name": "block-buffer",
-      "versionInfo": "0.10.4",
+      "versionInfo": "0.12.1",
       "downloadLocation": "https://github.com/RustCrypto/utils",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT OR Apache-2.0",
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de digest. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-buffer-0.10.4.",
+      "comment": "Uso: transitiva de digest. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/block-buffer-0.12.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/block-buffer@0.10.4"
+          "referenceLocator": "pkg:cargo/block-buffer@0.12.1"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "3078c7629b62d3f0439517fa394996acacc5cbc91c5a20d8c658e77abd503a71"
+          "checksumValue": "d2f6c7dbe95a6ed67ad9f18e57daf93a2f034c524b99fd2b76d18fdfeb6660aa"
         }
       ]
     },
@@ -1368,6 +1368,31 @@
       ]
     },
     {
+      "SPDXID": "SPDXRef-Package-cargo-const-oid-0.10.3",
+      "name": "const-oid",
+      "versionInfo": "0.10.3",
+      "downloadLocation": "https://github.com/RustCrypto/formats",
+      "filesAnalyzed": false,
+      "licenseDeclared": "Apache-2.0 OR MIT",
+      "licenseConcluded": "Apache-2.0 OR MIT",
+      "copyrightText": "NOASSERTION",
+      "primaryPackagePurpose": "LIBRARY",
+      "comment": "Uso: transitiva de digest. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/const-oid-0.10.3.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:cargo/const-oid@0.10.3"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "be95d4a884358a21a199689323c29e9256b4a1b315e22f183d155422041d3a9a"
+        }
+      ]
+    },
+    {
       "SPDXID": "SPDXRef-Package-cargo-cookie-0.18.2",
       "name": "cookie",
       "versionInfo": "0.18.2",
@@ -1418,27 +1443,27 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-cpufeatures-0.2.17",
+      "SPDXID": "SPDXRef-Package-cargo-cpufeatures-0.3.1",
       "name": "cpufeatures",
-      "versionInfo": "0.2.17",
+      "versionInfo": "0.3.1",
       "downloadLocation": "https://github.com/RustCrypto/utils",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT OR Apache-2.0",
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de sha2. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cpufeatures-0.2.17.",
+      "comment": "Uso: transitiva de sha2. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cpufeatures-0.3.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/cpufeatures@0.2.17"
+          "referenceLocator": "pkg:cargo/cpufeatures@0.3.1"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "59ed5838eebb26a2bb2e58f6d5b5316989ae9d08bab10e0e6d103e656d1b0280"
+          "checksumValue": "5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566"
         }
       ]
     },
@@ -1518,27 +1543,27 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-crypto-common-0.1.7",
+      "SPDXID": "SPDXRef-Package-cargo-crypto-common-0.2.2",
       "name": "crypto-common",
-      "versionInfo": "0.1.7",
+      "versionInfo": "0.2.2",
       "downloadLocation": "https://github.com/RustCrypto/traits",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT OR Apache-2.0",
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de digest. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-common-0.1.7.",
+      "comment": "Uso: transitiva de digest. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crypto-common-0.2.2.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/crypto-common@0.1.7"
+          "referenceLocator": "pkg:cargo/crypto-common@0.2.2"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "78c8292055d1c1df0cce5d180393dc8cce0abec0a7102adb6c7b1eef6016d60a"
+          "checksumValue": "ce6e4c961d6cd6c9a86db418387425e8bdeaf05b3c8bc1411e6dca4c252f1453"
         }
       ]
     },
@@ -1868,27 +1893,27 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-digest-0.10.7",
+      "SPDXID": "SPDXRef-Package-cargo-digest-0.11.3",
       "name": "digest",
-      "versionInfo": "0.10.7",
+      "versionInfo": "0.11.3",
       "downloadLocation": "https://github.com/RustCrypto/traits",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT OR Apache-2.0",
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de sha2. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.10.7.",
+      "comment": "Uso: transitiva de sha2. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/digest-0.11.3.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/digest@0.10.7"
+          "referenceLocator": "pkg:cargo/digest@0.11.3"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292"
+          "checksumValue": "f1dd6dbb5841937940781866fa1281a1ff7bd3bf827091440879f9994983d5c2"
         }
       ]
     },
@@ -3068,31 +3093,6 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-generic-array-0.14.7",
-      "name": "generic-array",
-      "versionInfo": "0.14.7",
-      "downloadLocation": "https://github.com/fizyk20/generic-array.git",
-      "filesAnalyzed": false,
-      "licenseDeclared": "MIT",
-      "licenseConcluded": "MIT",
-      "copyrightText": "NOASSERTION",
-      "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de block-buffer. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/generic-array-0.14.7.",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/generic-array@0.14.7"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA256",
-          "checksumValue": "85649ca51fd72272d7821adaf274ad91c288277713d9c18820d8499a7ff69e9a"
-        }
-      ]
-    },
-    {
       "SPDXID": "SPDXRef-Package-cargo-getrandom-0.3.4",
       "name": "getrandom",
       "versionInfo": "0.3.4",
@@ -3564,6 +3564,31 @@
         {
           "algorithm": "SHA256",
           "checksumValue": "918d3568bebf352712bc2ef3d46a8bcf1a75b373be6539de198e9105cbbf9ce0"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-cargo-hybrid-array-0.4.15",
+      "name": "hybrid-array",
+      "versionInfo": "0.4.15",
+      "downloadLocation": "https://github.com/RustCrypto/hybrid-array",
+      "filesAnalyzed": false,
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "copyrightText": "NOASSERTION",
+      "primaryPackagePurpose": "LIBRARY",
+      "comment": "Uso: transitiva de block-buffer. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hybrid-array-0.4.15.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:cargo/hybrid-array@0.4.15"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "27f864f10dfb56725ce5ce5472bc52252c8f93a4ab86327122cebf62c5f59a17"
         }
       ]
     },
@@ -5818,27 +5843,27 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-rfd-0.16.1",
+      "SPDXID": "SPDXRef-Package-cargo-rfd-0.17.2",
       "name": "rfd",
-      "versionInfo": "0.16.1",
+      "versionInfo": "0.17.2",
       "downloadLocation": "https://github.com/PolyMeilex/rfd",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT",
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-plugin-dialog. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rfd-0.16.1.",
+      "comment": "Uso: transitiva de tauri-plugin-dialog. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rfd-0.17.2.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/rfd@0.16.1"
+          "referenceLocator": "pkg:cargo/rfd@0.17.2"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "f4fe518b6db89699d59862e4d1e3a0226316090f4e4ec09f7dd686be25634c7c"
+          "checksumValue": "20dafead71c16a34e1ff357ddefc8afc11e7d51d6d2b9fbd07eaa48e3e540220"
         }
       ]
     },
@@ -6518,27 +6543,27 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-sha2-0.10.9",
+      "SPDXID": "SPDXRef-Package-cargo-sha2-0.11.1",
       "name": "sha2",
-      "versionInfo": "0.10.9",
+      "versionInfo": "0.11.1",
       "downloadLocation": "https://github.com/RustCrypto/hashes",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT OR Apache-2.0",
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-codegen. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.10.9.",
+      "comment": "Uso: transitiva de tauri-codegen. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-0.11.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/sha2@0.10.9"
+          "referenceLocator": "pkg:cargo/sha2@0.11.1"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283"
+          "checksumValue": "47d7069beb7d6ac7b9acd1039986e73443f24234f41074da099d6f994ac9ad19"
         }
       ]
     },
@@ -7193,102 +7218,102 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "SPDXID": "SPDXRef-Package-cargo-tauri-2.12.7",
       "name": "tauri",
-      "versionInfo": "2.12.5",
+      "versionInfo": "2.12.7",
       "downloadLocation": "https://github.com/tauri-apps/tauri",
       "filesAnalyzed": false,
       "licenseDeclared": "Apache-2.0 OR MIT",
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Framework do host desktop (janela, IPC, WebView). Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-2.12.5.",
+      "comment": "Uso: Framework do host desktop (janela, IPC, WebView). Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-2.12.7.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/tauri@2.12.5"
+          "referenceLocator": "pkg:cargo/tauri@2.12.7"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "5fb0244332cfb9cee7e2a568bf5da29a36ed8fdbd717f6f47a66b6b7b358c072"
+          "checksumValue": "30fbfbb9dc9a2697b0e96d909ddc295fb18d2d82a58ed542ab8d9eba2edbe6da"
         }
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "SPDXID": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "name": "tauri-build",
-      "versionInfo": "2.7.4",
+      "versionInfo": "2.7.6",
       "downloadLocation": "https://github.com/tauri-apps/tauri",
       "filesAnalyzed": false,
       "licenseDeclared": "Apache-2.0 OR MIT",
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Script de build do Tauri. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-build-2.7.4.",
+      "comment": "Uso: Script de build do Tauri. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-build-2.7.6.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/tauri-build@2.7.4"
+          "referenceLocator": "pkg:cargo/tauri-build@2.7.6"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "adddb0e648752aaac5da9c3c3c6a68e1e87cab55e3b757b18a9441ef8c3ac614"
+          "checksumValue": "73d80784e874fa117b9b00a6680cf2f9b8a51bbd14406bea980cf8f328b00646"
         }
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "SPDXID": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "name": "tauri-codegen",
-      "versionInfo": "2.7.4",
+      "versionInfo": "2.7.6",
       "downloadLocation": "https://github.com/tauri-apps/tauri",
       "filesAnalyzed": false,
       "licenseDeclared": "Apache-2.0 OR MIT",
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-macros. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-codegen-2.7.4.",
+      "comment": "Uso: transitiva de tauri-macros. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-codegen-2.7.6.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/tauri-codegen@2.7.4"
+          "referenceLocator": "pkg:cargo/tauri-codegen@2.7.6"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "fb37631cf71dab5e8ab55e1bdd701e18a52653d90b78e71d0e5598b1e0a61316"
+          "checksumValue": "c5dc6caab4da5646f57648f39b794bae118f0dd4a4305eeb8c892966171f4852"
         }
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-tauri-macros-2.7.4",
+      "SPDXID": "SPDXRef-Package-cargo-tauri-macros-2.7.6",
       "name": "tauri-macros",
-      "versionInfo": "2.7.4",
+      "versionInfo": "2.7.6",
       "downloadLocation": "https://github.com/tauri-apps/tauri",
       "filesAnalyzed": false,
       "licenseDeclared": "Apache-2.0 OR MIT",
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-macros-2.7.4.",
+      "comment": "Uso: transitiva de tauri. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-macros-2.7.6.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/tauri-macros@2.7.4"
+          "referenceLocator": "pkg:cargo/tauri-macros@2.7.6"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "0cc38db58854c10fb5f91a887ed8bf82d3239bb92b5d8db86eda09e96d9963d1"
+          "checksumValue": "2831c5da8603a96b1efc0b650c2cb6decc69b6cda257d815fe70c7f5be53818e"
         }
       ]
     },
@@ -7318,27 +7343,27 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.3",
+      "SPDXID": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.4",
       "name": "tauri-plugin-dialog",
-      "versionInfo": "2.8.3",
+      "versionInfo": "2.8.4",
       "downloadLocation": "https://github.com/tauri-apps/plugins-workspace",
       "filesAnalyzed": false,
       "licenseDeclared": "Apache-2.0 OR MIT",
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Diálogos nativos. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-plugin-dialog-2.8.3.",
+      "comment": "Uso: Diálogos nativos. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-plugin-dialog-2.8.4.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/tauri-plugin-dialog@2.8.3"
+          "referenceLocator": "pkg:cargo/tauri-plugin-dialog@2.8.4"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "b7461aaacf1901915ea7b9f5cd74f8224a351ed96af0a62c07fce934003cb34b"
+          "checksumValue": "ce0fb9c2b6d34a9720627ed930ebc8af26f61e648695aecaeb03d5c33c5896f5"
         }
       ]
     },
@@ -7368,127 +7393,127 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "SPDXID": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "name": "tauri-plugin-shell",
-      "versionInfo": "2.5.0",
+      "versionInfo": "2.6.0",
       "downloadLocation": "https://github.com/tauri-apps/plugins-workspace",
       "filesAnalyzed": false,
       "licenseDeclared": "Apache-2.0 OR MIT",
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Processo do sidecar (motor .NET). Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-plugin-shell-2.5.0.",
+      "comment": "Uso: Processo do sidecar (motor .NET). Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-plugin-shell-2.6.0.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/tauri-plugin-shell@2.5.0"
+          "referenceLocator": "pkg:cargo/tauri-plugin-shell@2.6.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "8567d42b2c7264355daa1df415ec77f52aa42e885924c86a969be2e920e05521"
+          "checksumValue": "7375b25f72f70f6168f27f1ba3a413e30eaa0a2098cff53a4046ebfe9e2f142d"
         }
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.4",
+      "SPDXID": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.5",
       "name": "tauri-plugin-single-instance",
-      "versionInfo": "2.5.4",
+      "versionInfo": "2.5.5",
       "downloadLocation": "https://github.com/tauri-apps/plugins-workspace",
       "filesAnalyzed": false,
       "licenseDeclared": "Apache-2.0 OR MIT",
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Instância única do app. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-plugin-single-instance-2.5.4.",
+      "comment": "Uso: Instância única do app. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-plugin-single-instance-2.5.5.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/tauri-plugin-single-instance@2.5.4"
+          "referenceLocator": "pkg:cargo/tauri-plugin-single-instance@2.5.5"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "561cd99484561bc39c954768e7b41a66cebbe1ac3d9d081c34361f740c489e2c"
+          "checksumValue": "726b6da0dd5bd1344f84f4108a622c07d01923baacb5c803a605189672c5352f"
         }
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-tauri-runtime-2.12.2",
+      "SPDXID": "SPDXRef-Package-cargo-tauri-runtime-2.12.4",
       "name": "tauri-runtime",
-      "versionInfo": "2.12.2",
+      "versionInfo": "2.12.4",
       "downloadLocation": "https://github.com/tauri-apps/tauri",
       "filesAnalyzed": false,
       "licenseDeclared": "Apache-2.0 OR MIT",
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-runtime-wry. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-runtime-2.12.2.",
+      "comment": "Uso: transitiva de tauri-runtime-wry. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-runtime-2.12.4.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/tauri-runtime@2.12.2"
+          "referenceLocator": "pkg:cargo/tauri-runtime@2.12.4"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "7c55766d99cea69055904d1735b93c2049302b2e09effd462120deb5581d78e9"
+          "checksumValue": "60c2b14bd5265b63993cdc34ad526fb836e0fd0cf64a4634a895db0784844d5e"
         }
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3",
+      "SPDXID": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5",
       "name": "tauri-runtime-wry",
-      "versionInfo": "2.12.3",
+      "versionInfo": "2.12.5",
       "downloadLocation": "https://github.com/tauri-apps/tauri",
       "filesAnalyzed": false,
       "licenseDeclared": "Apache-2.0 OR MIT",
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-runtime-wry-2.12.3.",
+      "comment": "Uso: transitiva de tauri. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-runtime-wry-2.12.5.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/tauri-runtime-wry@2.12.3"
+          "referenceLocator": "pkg:cargo/tauri-runtime-wry@2.12.5"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "e1aa9d8b7a120f879f44fdc1053f7b7dbf416bf0bbc6a72b714dec46b782b52f"
+          "checksumValue": "b8c14a025255cc9816d401635035075b09b6cc9973b7b8fd7b8fcb8753f30f92"
         }
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "SPDXID": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "name": "tauri-utils",
-      "versionInfo": "2.10.2",
+      "versionInfo": "2.10.4",
       "downloadLocation": "https://github.com/tauri-apps/tauri",
       "filesAnalyzed": false,
       "licenseDeclared": "Apache-2.0 OR MIT",
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de tauri-build. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-utils-2.10.2.",
+      "comment": "Uso: transitiva de tauri-build. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-utils-2.10.4.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:cargo/tauri-utils@2.10.2"
+          "referenceLocator": "pkg:cargo/tauri-utils@2.10.4"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "362ab21cd4cc713f2a02b1a9b5688198b1541cfb6907c4281e9190e0f0ef4aa3"
+          "checksumValue": "28d1d33d4453c5df0bf1672dbc7ada69d8ed74f56a4316d964a4aa73d4ecd3ad"
         }
       ]
     },
@@ -8152,7 +8177,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de crypto-common. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1.",
+      "comment": "Uso: transitiva de hybrid-array. Ambiente: build. Distribuição: não distribuído (build/proc-macro). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/typenum-1.20.1.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -8952,7 +8977,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de rfd. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/windows-sys-0.60.2.",
+      "comment": "Uso: transitiva de tauri-plugin-shell. Ambiente: execução. Distribuição: incorporado (binário do host, link estático). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: desktop/host/src-tauri/Cargo.lock | ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/windows-sys-0.60.2.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11957,77 +11982,77 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-npm--tauri-apps-api-2.12.4",
+      "SPDXID": "SPDXRef-Package-npm--tauri-apps-api-2.12.5",
       "name": "@tauri-apps/api",
-      "versionInfo": "2.12.4",
+      "versionInfo": "2.12.5",
       "downloadLocation": "https://github.com/tauri-apps/tauri#readme",
       "filesAnalyzed": false,
       "licenseDeclared": "Apache-2.0 OR MIT",
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Ponte da interface com o host Tauri. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@tauri-apps+api@2.12.4/node_modules/@tauri-apps/api.",
+      "comment": "Uso: Ponte da interface com o host Tauri. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@tauri-apps+api@2.12.5/node_modules/@tauri-apps/api.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40tauri-apps/api@2.12.4"
+          "referenceLocator": "pkg:npm/%40tauri-apps/api@2.12.5"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "a5599f8acfb8cd3f07d10869df13d9c7d26eee4a73bc0eabaff3d224fcaec1fbee71343cb15b7ad4d614f4a3242bbd3750595869d1668ca0381e1c9b3ad37482"
+          "checksumValue": "1bd40832de5fcc40fe692e108552b7c351d62caa4b2301ff327a42afdcf5ba01841e74b63919aaacb91cd2e00b3a344ae2a5c9cbee188b0f0b0e5fca89c0b51e"
         }
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-npm--tauri-apps-cli-2.12.4",
+      "SPDXID": "SPDXRef-Package-npm--tauri-apps-cli-2.12.6",
       "name": "@tauri-apps/cli",
-      "versionInfo": "2.12.4",
+      "versionInfo": "2.12.6",
       "downloadLocation": "https://github.com/tauri-apps/tauri#readme",
       "filesAnalyzed": false,
       "licenseDeclared": "Apache-2.0 OR MIT",
       "licenseConcluded": "Apache-2.0 OR MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: CLI de build e empacotamento do Tauri (gera o instalador). Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@tauri-apps+cli@2.12.4/node_modules/@tauri-apps/cli.",
+      "comment": "Uso: CLI de build e empacotamento do Tauri (gera o instalador). Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (Apache-2.0, MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@tauri-apps+cli@2.12.6/node_modules/@tauri-apps/cli.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40tauri-apps/cli@2.12.4"
+          "referenceLocator": "pkg:npm/%40tauri-apps/cli@2.12.6"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "248f5b1dfb9d4912629063ab8db5c49ba463cf3be62ae2dcf898b1075344f21373424365082202de94c44b7bb2a6447d9711ebb1bc737274b0848d88c4142987"
+          "checksumValue": "fdc39e420aaaf0f0433ce0ce8e34f4607b38ab12821dc40c58c8819b8acb33724dafd99913e3c734a38ae3302484852d60c34bff47f0796e3c54dbf30f501ba8"
         }
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-npm--tauri-apps-cli-win32-x64-msvc-2.12.4",
+      "SPDXID": "SPDXRef-Package-npm--tauri-apps-cli-win32-x64-msvc-2.12.6",
       "name": "@tauri-apps/cli-win32-x64-msvc",
-      "versionInfo": "2.12.4",
+      "versionInfo": "2.12.6",
       "downloadLocation": "https://github.com/tauri-apps/tauri#readme",
       "filesAnalyzed": false,
       "licenseDeclared": "Apache-2.0 OR MIT",
       "licenseConcluded": "NOASSERTION",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @tauri-apps/cli. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: SEM ARQUIVO. Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@tauri-apps+cli-win32-x64-msvc@2.12.4/node_modules/@tauri-apps/cli-win32-x64-msvc.",
+      "comment": "Uso: transitiva de @tauri-apps/cli. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: SEM ARQUIVO. Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@tauri-apps+cli-win32-x64-msvc@2.12.6/node_modules/@tauri-apps/cli-win32-x64-msvc.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40tauri-apps/cli-win32-x64-msvc@2.12.4"
+          "referenceLocator": "pkg:npm/%40tauri-apps/cli-win32-x64-msvc@2.12.6"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "0c9843782aa32c334c598172ed94bc71f7801d7d912b445b40c2e20376cc5559174432783416221eb886aac521b2bf621b8d5a4dbf9d2469053e63f0d605b057"
+          "checksumValue": "8a89fb0a16e3db544ec4c4698d0ec6f2bcf9b0839a23b228050ba6d68ab9b25d55e73196c9cfe86270ab42156a3b64f12bf9410d6c6deb8f01ccb8b4d926375e"
         }
       ]
     },
@@ -23924,9 +23949,9 @@
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-core-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-block-buffer-0.10.4",
+      "spdxElementId": "SPDXRef-Package-cargo-block-buffer-0.12.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-generic-array-0.14.7"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-hybrid-array-0.4.15"
     },
     {
       "spdxElementId": "SPDXRef-Package-cargo-blocking-1.7.0",
@@ -24169,14 +24194,9 @@
       "relatedSpdxElement": "SPDXRef-Package-cargo-crossbeam-utils-0.8.23"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-crypto-common-0.1.7",
+      "spdxElementId": "SPDXRef-Package-cargo-crypto-common-0.2.2",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-generic-array-0.14.7"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-cargo-crypto-common-0.1.7",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-typenum-1.20.1"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-hybrid-array-0.4.15"
     },
     {
       "spdxElementId": "SPDXRef-Package-cargo-cssparser-0.37.0",
@@ -24339,14 +24359,19 @@
       "relatedSpdxElement": "SPDXRef-Package-cargo-syn-2.0.119"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-digest-0.10.7",
+      "spdxElementId": "SPDXRef-Package-cargo-digest-0.11.3",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-block-buffer-0.10.4"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-block-buffer-0.12.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-digest-0.10.7",
+      "spdxElementId": "SPDXRef-Package-cargo-digest-0.11.3",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-crypto-common-0.1.7"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-const-oid-0.10.3"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cargo-digest-0.11.3",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-cargo-crypto-common-0.2.2"
     },
     {
       "spdxElementId": "SPDXRef-Package-cargo-dirs-7.0.0",
@@ -24944,16 +24969,6 @@
       "relatedSpdxElement": "SPDXRef-Package-cargo-x11-2.21.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-generic-array-0.14.7",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-typenum-1.20.1"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-cargo-generic-array-0.14.7",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-version-check-0.9.5"
-    },
-    {
       "spdxElementId": "SPDXRef-Package-cargo-getrandom-0.3.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-cfg-if-1.0.5"
@@ -25337,6 +25352,11 @@
       "spdxElementId": "SPDXRef-Package-cargo-http-1.5.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-itoa-1.0.18"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cargo-hybrid-array-0.4.15",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-cargo-typenum-1.20.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-cargo-ico-0.6.0",
@@ -26329,34 +26349,44 @@
       "relatedSpdxElement": "SPDXRef-Package-cargo-regex-syntax-0.8.11"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-rfd-0.16.1",
+      "spdxElementId": "SPDXRef-Package-cargo-rfd-0.17.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-glib-sys-0.18.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-rfd-0.16.1",
+      "spdxElementId": "SPDXRef-Package-cargo-rfd-0.17.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-gobject-sys-0.18.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-rfd-0.16.1",
+      "spdxElementId": "SPDXRef-Package-cargo-rfd-0.17.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-gtk-sys-0.18.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-rfd-0.16.1",
+      "spdxElementId": "SPDXRef-Package-cargo-rfd-0.17.2",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-cargo-libc-0.2.191"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cargo-rfd-0.17.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-log-0.4.34"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-rfd-0.16.1",
+      "spdxElementId": "SPDXRef-Package-cargo-rfd-0.17.2",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-cargo-percent-encoding-2.3.2"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cargo-rfd-0.17.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-raw-window-handle-0.6.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-rfd-0.16.1",
+      "spdxElementId": "SPDXRef-Package-cargo-rfd-0.17.2",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-windows-sys-0.60.2"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-windows-sys-0.61.2"
     },
     {
       "spdxElementId": "SPDXRef-Package-cargo-rustc-version-0.4.1",
@@ -26789,19 +26819,19 @@
       "relatedSpdxElement": "SPDXRef-Package-cargo-stable-deref-trait-1.2.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-sha2-0.10.9",
+      "spdxElementId": "SPDXRef-Package-cargo-sha2-0.11.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-cfg-if-1.0.5"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-sha2-0.10.9",
+      "spdxElementId": "SPDXRef-Package-cargo-sha2-0.11.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-cpufeatures-0.2.17"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-cpufeatures-0.3.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-sha2-0.10.9",
+      "spdxElementId": "SPDXRef-Package-cargo-sha2-0.11.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-digest-0.10.7"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-digest-0.11.3"
     },
     {
       "spdxElementId": "SPDXRef-Package-cargo-shared-child-1.1.2",
@@ -27121,357 +27151,352 @@
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-2.12.5"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-2.12.7"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-anyhow-1.0.104"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-cookie-0.18.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-dirs-7.0.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-dunce-1.0.5"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-getrandom-0.3.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-glob-0.3.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-gtk-0.18.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-heck-0.5.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-http-1.5.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-log-0.4.34"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-mime-0.3.17"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-muda-0.20.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-percent-encoding-2.3.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-raw-window-handle-0.6.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-json-1.0.154"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-repr-0.1.21"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serialize-to-javascript-0.1.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-build-2.7.4"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-macros-2.7.6"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-macros-2.7.4"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-runtime-2.12.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-runtime-2.12.2"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.2"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-thiserror-2.0.21"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-tokio-1.54.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-tray-icon-0.25.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-url-2.5.8"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-webkit2gtk-2.0.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-webview2-com-0.39.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-window-vibrancy-0.8.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.5",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-2.12.7",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-windows-0.62.2"
     },
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-build-2.7.4"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-build-2.7.6"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-anyhow-1.0.104"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-cargo-toml-1.0.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-dirs-7.0.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-glob-0.3.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-heck-0.5.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-json-patch-4.2.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-schemars-0.8.22"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-semver-1.0.28"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-json-1.0.154"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-static-vcruntime-3.0.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-strsim-0.11.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.2"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-winres-0.3.7"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-build-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-walkdir-2.5.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-base64-0.23.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-brotli-9.1.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-ico-0.6.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-json-patch-4.2.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-png-0.18.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-proc-macro2-1.0.107"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-quote-1.0.47"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-semver-1.0.28"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-json-1.0.154"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-sha2-0.10.9"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-sha2-0.11.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-syn-2.0.119"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.2"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-thiserror-2.0.21"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-url-2.5.8"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-uuid-1.29.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-codegen-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-walkdir-2.5.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-macros-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-macros-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-heck-0.5.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-macros-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-macros-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-proc-macro2-1.0.107"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-macros-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-macros-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-quote-1.0.47"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-macros-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-macros-2.7.6",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-syn-2.0.119"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-macros-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-macros-2.7.6",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-codegen-2.7.4"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-codegen-2.7.6"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-macros-2.7.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-macros-2.7.6",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.2"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.4"
     },
     {
       "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-2.7.2",
@@ -27501,7 +27526,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-2.7.2",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.2"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.4"
     },
     {
       "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-2.7.2",
@@ -27511,55 +27536,55 @@
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.3"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-log-0.4.34"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-raw-window-handle-0.6.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-rfd-0.16.1"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-rfd-0.17.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-json-1.0.154"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-plugin-fs-2.7.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-plugin-2.7.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-2.12.5"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-2.12.7"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-thiserror-2.0.21"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-dialog-2.8.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-url-2.5.8"
     },
@@ -27616,12 +27641,12 @@
     {
       "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-fs-2.7.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.2"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.4"
     },
     {
       "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-fs-2.7.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-2.12.5"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-2.12.7"
     },
     {
       "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-fs-2.7.1",
@@ -27641,405 +27666,405 @@
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-encoding-rs-0.8.42"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-libc-0.2.191"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-log-0.4.34"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-open-5.4.5"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-os-pipe-1.2.3"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-regex-1.13.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-schemars-0.8.22"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-json-1.0.154"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-shared-child-1.1.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-plugin-2.7.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-2.12.5"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-2.12.7"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-thiserror-2.0.21"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-tokio-1.54.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.5.0",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-shell-2.6.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-windows-sys-0.60.2"
     },
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.4"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.5"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-json-1.0.154"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.5",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-2.12.5"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-2.12.7"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-thiserror-2.0.21"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-tokio-1.54.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-tracing-0.1.44"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-windows-sys-0.61.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.4",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-plugin-single-instance-2.5.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-zbus-5.19.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-cookie-0.18.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-dpi-0.1.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-gtk-0.18.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-http-1.5.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-raw-window-handle-0.6.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-json-1.0.154"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.2"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-thiserror-2.0.21"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-url-2.5.8"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-webkit2gtk-2.0.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-webview2-com-0.39.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-2.12.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-windows-0.62.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-gtk-0.18.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-http-1.5.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-log-0.4.34"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-percent-encoding-2.3.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-raw-window-handle-0.6.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-softbuffer-0.4.8"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-tao-0.37.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-runtime-2.12.2"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-runtime-2.12.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.2"
+      "relatedSpdxElement": "SPDXRef-Package-cargo-tauri-utils-2.10.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-url-2.5.8"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-webkit2gtk-2.0.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-webview2-com-0.39.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-windows-0.62.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.3",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-runtime-wry-2.12.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-wry-0.57.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-anyhow-1.0.104"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-brotli-9.1.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-cargo-metadata-0.19.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-ctor-1.0.13"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-dom-query-0.28.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-dunce-1.0.5"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-glob-0.3.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-http-1.5.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-infer-0.22.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-json-patch-4.2.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-log-0.4.34"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-memchr-2.8.3"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-phf-0.13.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-plist-1.10.3"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-proc-macro2-1.0.107"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-quote-1.0.47"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-regex-1.13.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-schemars-0.8.22"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-semver-1.0.28"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-untagged-0.1.9"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-json-1.0.154"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-serde-with-3.24.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-thiserror-2.0.21"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-toml-1.1.8-spec-1.1.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-url-2.5.8"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-urlpattern-0.6.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-uuid-1.29.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.2",
+      "spdxElementId": "SPDXRef-Package-cargo-tauri-utils-2.10.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cargo-walkdir-2.5.0"
     },
@@ -30652,17 +30677,17 @@
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-npm--tauri-apps-api-2.12.4"
+      "relatedSpdxElement": "SPDXRef-Package-npm--tauri-apps-api-2.12.5"
     },
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-npm--tauri-apps-cli-2.12.4"
+      "relatedSpdxElement": "SPDXRef-Package-npm--tauri-apps-cli-2.12.6"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--tauri-apps-cli-2.12.4",
+      "spdxElementId": "SPDXRef-Package-npm--tauri-apps-cli-2.12.6",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-npm--tauri-apps-cli-win32-x64-msvc-2.12.4"
+      "relatedSpdxElement": "SPDXRef-Package-npm--tauri-apps-cli-win32-x64-msvc-2.12.6"
     },
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",

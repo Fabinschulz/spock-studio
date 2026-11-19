@@ -187,7 +187,7 @@ hashes) em `inventory.csv` / `inventory.json`. W = Windows x64, L = Linux x64.
 | regex | 1.13.1 | cargo | transitiva | x | x | MIT OR Apache-2.0 | CONFERE | BAIXO |
 | regex-automata | 0.4.18 | cargo | transitiva | x | x | MIT OR Apache-2.0 | CONFERE | BAIXO |
 | regex-syntax | 0.8.11 | cargo | transitiva | x | x | MIT OR Apache-2.0 | CONFERE | BAIXO |
-| rfd | 0.16.1 | cargo | transitiva | x | x | MIT | CONFERE | BAIXO |
+| rfd | 0.17.2 | cargo | transitiva | x | x | MIT | CONFERE | BAIXO |
 | rustc-hash | 2.1.3 | cargo | transitiva | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
 | rustix | 1.1.5 | cargo | transitiva |  | x | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | CONFERE | BAIXO |
 | same-file | 1.0.6 | cargo | transitiva | x | x | Unlicense/MIT | CONFERE | BAIXO |
@@ -221,14 +221,14 @@ hashes) em `inventory.csv` / `inventory.json`. W = Windows x64, L = Linux x64.
 | stable_deref_trait | 1.2.1 | cargo | transitiva | x | x | MIT OR Apache-2.0 | CONFERE | BAIXO |
 | string_cache | 0.9.0 | cargo | transitiva | x | x | MIT OR Apache-2.0 | CONFERE | BAIXO |
 | tao | 0.37.2 | cargo | transitiva | x | x | Apache-2.0 | CONFERE | BAIXO |
-| tauri | 2.12.5 | cargo | direta | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
-| tauri-plugin-dialog | 2.8.3 | cargo | direta | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
+| tauri | 2.12.7 | cargo | direta | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
+| tauri-plugin-dialog | 2.8.4 | cargo | direta | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
 | tauri-plugin-fs | 2.7.1 | cargo | transitiva | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
-| tauri-plugin-shell | 2.5.0 | cargo | direta | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
-| tauri-plugin-single-instance | 2.5.4 | cargo | direta | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
-| tauri-runtime | 2.12.2 | cargo | transitiva | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
-| tauri-runtime-wry | 2.12.3 | cargo | transitiva | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
-| tauri-utils | 2.10.2 | cargo | transitiva | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
+| tauri-plugin-shell | 2.6.0 | cargo | direta | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
+| tauri-plugin-single-instance | 2.5.5 | cargo | direta | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
+| tauri-runtime | 2.12.4 | cargo | transitiva | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
+| tauri-runtime-wry | 2.12.5 | cargo | transitiva | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
+| tauri-utils | 2.10.4 | cargo | transitiva | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
 | tendril | 0.5.1 | cargo | transitiva | x | x | MIT OR Apache-2.0 | CONFERE | BAIXO |
 | thiserror | 1.0.69 | cargo | transitiva | x | x | MIT OR Apache-2.0 | CONFERE | BAIXO |
 | thiserror | 2.0.21 | cargo | transitiva | x | x | MIT OR Apache-2.0 | CONFERE | BAIXO |
@@ -337,7 +337,7 @@ hashes) em `inventory.csv` / `inventory.json`. W = Windows x64, L = Linux x64.
 | @popperjs/core | 2.11.8 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | @remix-run/route-pattern | 0.22.1 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | @standard-schema/utils | 0.3.0 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
-| @tauri-apps/api | 2.12.4 | npm | direta | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
+| @tauri-apps/api | 2.12.5 | npm | direta | x | x | Apache-2.0 OR MIT | CONFERE | BAIXO |
 | @types/parse-json | 4.0.2 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | @types/prop-types | 15.7.15 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | @types/react | 19.3.0 | npm | direta | x | x | MIT | CONFERE | BAIXO |

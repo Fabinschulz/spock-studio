@@ -14,7 +14,7 @@ A sequência foi definida pelo que destrava as outras entregas. O MV-1 é a base
 | MV-6 | Funcionalidade | O Spock não cria projeto | `project.scaffold` sobre a jornada "Da ideia ao projeto" (W4-3): versões do MV-5, comandos oficiais de criação (`dotnet new`, `npm create vite`) com versão fixada, registro `spock-versions.json` no projeto gerado, build e teste do projeto gerado | MV-5, W4-3 | A | O projeto .NET + React + Vite gerado compila e passa nos testes; o registro diz versão, motivo, fonte e data |
 | MV-7 | Funcionalidade | Modernização misturada a tarefas | `modernization.plan` (W4-2) consumindo a compatibilidade: saltos por linha, breaking changes da fonte oficial, passos reversíveis, rollback, aprovação por passo | MV-1, W4-1 | A | Plano para .NET 6 → 10 em passos (6 → 8 → 10) com critério de aceite por passo; nenhuma mudança aplicada sem aprovação |
 | MV-8 | Modernização do Spock | Runtime embarcado e CI desatualizados | (a) **feito** (MV-8a, ver abaixo): CPython embarcado 3.12.10 → 3.12.16; (b) `global.json` do motor (10.0.x, `latestFeature`); (c) GitHub Actions para os majors atuais, uma por vez; (d) Dependabot para NuGet, npm, Cargo, pip e Actions, agrupado por ecossistema, com a política de patch/minor/major e sem merge automático | **DD-MV-1** para (c) e (d) | M | Smoke do instalador verde; `generate_sbom.py --check` verde; Dependabot abre PR agrupado com o rótulo do tipo de atualização |
-| MV-9 | Modernização do Spock | Majors pendentes na interface e nos testes | Uma entrega por item: TypeScript 7 + typescript-eslint; ESLint 10; Vitest 5.1; Tauri 2.12.x alinhado (crate, CLI, API, plugins); Microsoft.NET.Test.Sdk 18 + coverlet 10; xUnit v2 → v3; ProtectedData no trem 10.0.x **depois de resolver o aviso de licença** (o pacote 10.0.15 traz só a expressão MIT); pnpm 9 → 12; Python 3.12 → 3.13/3.14 (com `sqlite-vec` validado) | MV-8 | M cada | Por item: build, testes, lint, smoke e conformidade de licenças verdes, com versão anterior, nova, fonte e testes registrados no PR |
+| MV-9 | Modernização do Spock | Majors pendentes na interface e nos testes | Uma entrega por item: TypeScript 7 + typescript-eslint; ESLint 10; Vitest 5.1; Tauri 2.12.x alinhado (crate, CLI, API, plugins; **feito**, ver abaixo); Microsoft.NET.Test.Sdk 18 + coverlet 10; xUnit v2 → v3; ProtectedData no trem 10.0.x **depois de resolver o aviso de licença** (o pacote 10.0.15 traz só a expressão MIT); pnpm 9 → 12; Python 3.12 → 3.13/3.14 (com `sqlite-vec` validado) | MV-8 | M cada | Por item: build, testes, lint, smoke e conformidade de licenças verdes, com versão anterior, nova, fonte e testes registrados no PR |
 | MV-10 | Avaliação | .NET 11 | Ramo de avaliação: suíte, smoke do instalador, `argv[0]` do lançador, requisito de CPU, ganho do Runtime Async medido no laço do protocolo | **DD-MV-3** | M | Relatório com o ganho medido e os riscos; a decisão de migrar fica com o dono, com o .NET 12 LTS como alvo provável |
 
 ## Ordem
@@ -63,6 +63,23 @@ Maior valor por esforço depois do MV-1 era o **MV-8 (a)**, feito, e depois o **
 | Catálogo | PHP (`php.net/releases/states.php`: suporte ativo, só segurança, fim) e Ruby (`branches.yml` do site oficial). Hoje: PHP 8.2 só segurança até 2026-12-31, 8.1 sem suporte; Ruby 3.3 em manutenção legada até 2027-03-31, 3.2 sem suporte desde 2026-04-01 |
 | Fora desta entrega | `compileSdk`/`targetSdk` do Android, catálogo de Kotlin, Swift e C++ (sem fonte oficial de ciclo de vida legível), projetos só Xcode, Makefile e Bazel |
 | Testes | `EcosystemDiscoveryTests` (12 casos: PHP com plataforma, `.php-version` e mínimo; Ruby com `.ruby-version` e lock; CMake com subpasta; SwiftPM; Android com Kotlin e wrapper; asdf com Volta vencendo; mise, toolchain do Go e SDKMAN; Agent Framework e Semantic Kernel; situação de suporte de PHP e Ruby pelo catálogo embutido). Registro: "PHP com Laravel", "Ruby on Rails" e "C++ com CMake". Gerador do catálogo: 15 testes |
+
+## MV-9, item 1: Tauri alinhado (2026-11-19)
+
+| Componente | Antes | Depois | Fonte |
+|---|---|---|---|
+| `tauri` (crate) | 2.12.5 | 2.12.7 | crates.io; notas `tauri-v2.12.6` e `tauri-v2.12.7` (sem mudança incompatível; só a auditoria do cargo) |
+| `tauri-build` | 2.7.4 | 2.7.6 | crates.io |
+| `tauri-plugin-dialog` | 2.8.3 | 2.8.4 | `dialog-v2.8.4`: `rfd` 0.16 → 0.17 |
+| `tauri-plugin-shell` | 2.5.0 | 2.6.0 | `shell-v2.6.0`: só acrescenta `Command::kill_on_drop` |
+| `tauri-plugin-single-instance` | 2.5.4 | 2.5.5 | `single-instance-v2.5.5`: corrige corrida no Windows e solta a trava em `cleanup_before_exit` |
+| `@tauri-apps/cli` | 2.12.4 | 2.12.6 | npm; `cli-v2.12.5` corrige `signCommand` no Windows, `cli-v2.12.6`, o servidor de desenvolvimento |
+| `@tauri-apps/api` | 2.12.4 | 2.12.5 | npm; `core.js` idêntico; muda `mocks` e `window` |
+
+- **Alinhamento verificado na suíte.** `TauriAlignmentTests` confere que o crate `tauri`, a CLI e a API do npm estão na mesma versão maior e menor, que estão fixados sem faixa, e que `tauri-build` e os plugins seguem a versão maior do crate. Conferido que o teste falha com a API em 2.11.0.
+- **Escopo do `cargo update`.** Restrito aos pacotes do Tauri (`-p`): mudaram só a árvore do Tauri, o `rfd` e as crates de hash que o `tauri-codegen` 2.7.6 traz. O `pnpm-lock.yaml` mudou só nos pacotes `@tauri-apps`.
+- **Achado.** Depois da troca do `@tauri-apps/api`, 22 testes da interface falharam localmente sem defeito: o cache de módulos do Vitest (`node_modules/.vitest-cache`, na raiz) guardava o caminho resolvido da versão antiga, e o `vi.mock` deixou de interceptar. Registrado em [POLITICA.md](POLITICA.md).
+- **Testes.** Motor 1.817 e 12 de integração; host em Rust com `cargo fmt --check`, `cargo clippy -D warnings` e 50 testes; interface com typecheck, lint, formatação e 860 testes; `build-runtime.ps1 -FetchPython`; instalador NSIS; smoke do instalador e motor instalado de ponta a ponta (ver o PR); `generate_sbom.py --check` com o manifesto de avisos completo. Linux e macOS não foram executados.
 
 ## Decisões que dependem do dono
 
