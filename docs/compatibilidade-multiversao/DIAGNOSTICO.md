@@ -56,7 +56,7 @@ Consulta feita em **2026-11-18**. A versão usada vem dos manifestos e lockfiles
 | Componente | Usado | Estável mais recente | Situação |
 |---|---|---|---|
 | Python (CI, ruff `py312`, lock) | 3.12 | 3.15.2 | 3.12 só recebe correções de segurança, até 2028-10 |
-| **CPython embarcado no instalador** | **3.12.10** (python-build-standalone 20250409) | 3.12.16 | **Seis correções de segurança atrás.** Achado mais urgente do diagnóstico (MV-8) |
+| **CPython embarcado no instalador** | **3.12.10** (embeddable oficial no Windows; python-build-standalone 20250409 no Linux e no macOS) | 3.12.16 | **Seis correções de segurança atrás.** Achado mais urgente do diagnóstico. **Resolvido no MV-8a:** 3.12.16 do python-build-standalone 20261110 nas três plataformas |
 | langgraph | 1.2.19 | 1.2.22 | Patch atrás |
 | langgraph-checkpoint-sqlite | 3.1.3 | 3.1.3 | Atual |
 | langchain-core | 1.7.4 (transitiva) | 1.8.3, exige Python >=3.11 | Minor atrás |

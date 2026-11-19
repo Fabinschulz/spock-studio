@@ -9,12 +9,12 @@ hashes) em `inventory.csv` / `inventory.json`. W = Windows x64, L = Linux x64.
 | Conteúdo de agentes e skills adaptado de harness-engineering | embutido | asset | direta | x | x | MIT | CONFERIDO MANUALMENTE | BAIXO |
 | Ícones e logotipo Spock Studio | 0.1.0 | asset | direta | x | x | LicenseRef-Proprietary-Spock | CONFERIDO MANUALMENTE | PENDENTE |
 | Berkeley DB (dentro do python-build-standalone, módulo _dbm) | 6.0.19 | binário | direta |  | x | Sleepycat | CONFERIDO MANUALMENTE | MÉDIO |
-| CPython (python-build-standalone, install_only_stripped) | 3.12.10+20250409 | binário | direta |  | x | Python-2.0 | CONFERIDO MANUALMENTE | BAIXO |
-| CPython (Windows embeddable package) | 3.12.10 | binário | direta | x |  | Python-2.0 | CONFERIDO MANUALMENTE | MÉDIO |
+| CPython (python-build-standalone, install_only_stripped) | 3.12.16+20261110 | binário | direta |  | x | Python-2.0 | CONFERIDO MANUALMENTE | BAIXO |
+| CPython (python-build-standalone, install_only_stripped, Windows) | 3.12.16+20261110 | binário | direta | x |  | Python-2.0 | CONFERIDO MANUALMENTE | MÉDIO |
 | Microsoft Visual C++ Runtime (vcruntime140.dll, vcruntime140_1.dll) | 14.x | binário | direta | x |  | LicenseRef-Microsoft-Visual-Cpp-Redistributable | CONFERIDO MANUALMENTE | MÉDIO |
 | NSIS (stub do instalador e plugins) | 3.x | binário | direta | x |  | Zlib AND bzip2-1.0.6 AND CPL-1.0 | CONFERIDO MANUALMENTE | BAIXO |
 | nsis_tauri_utils (plugin NSIS do Tauri) | conforme tauri-bundler | binário | direta | x |  | MIT OR Apache-2.0 | CONFERIDO MANUALMENTE | BAIXO |
-| OpenSSL (dentro do CPython) | 3.0.16 | binário | direta | x |  | Apache-2.0 | CONFERIDO MANUALMENTE | BAIXO |
+| OpenSSL (dentro do CPython) | 3.5.9 | binário | direta | x |  | Apache-2.0 | CONFERIDO MANUALMENTE | BAIXO |
 | aho-corasick | 1.1.5 | cargo | transitiva | x | x | Unlicense OR MIT | CONFERE | BAIXO |
 | alloc-no-stdlib | 3.0.0 | cargo | transitiva | x | x | BSD-3-Clause | CONFERE | BAIXO |
 | alloc-stdlib | 0.3.0 | cargo | transitiva | x | x | BSD-3-Clause | SEM ARQUIVO | BAIXO |

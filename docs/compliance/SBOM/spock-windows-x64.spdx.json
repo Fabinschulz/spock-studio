@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Spock Studio para Windows x64 (instalador NSIS)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-windows-x64--instalador-nsis--7e4a4357-eaa8-4a0b-8ab8-4e2829a80aad",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-windows-x64--instalador-nsis--f7cf2123-c5b3-4289-bdf6-0a8e5567c485",
   "creationInfo": {
-    "created": "2026-11-17T19:56:01Z",
+    "created": "2026-11-19T12:45:24Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -67,27 +67,27 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-bin-cpython-embed",
-      "name": "CPython (Windows embeddable package)",
-      "versionInfo": "3.12.10",
-      "downloadLocation": "https://www.python.org/",
+      "SPDXID": "SPDXRef-Package-bin-python-build-standalone-win",
+      "name": "CPython (python-build-standalone, install_only_stripped, Windows)",
+      "versionInfo": "3.12.16+20261110",
+      "downloadLocation": "https://github.com/astral-sh/python-build-standalone",
       "filesAnalyzed": false,
       "licenseDeclared": "Python-2.0",
       "licenseConcluded": "Python-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Interpretador da inteligência (LangGraph) no Windows. Ambiente: execução. Distribuição: redistribuído (resources/python no instalador). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/build-runtime.ps1:66 | desktop/host/src-tauri/resources/python/LICENSE.txt:283. Inclui OpenSSL 3.0.16 (Apache-2.0), libffi (MIT), bzip2 1.0.8, SQLite (domínio público), expat 2.7.1 (MIT), mpdecimal, xz/liblzma, zlib; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Hash do arquivo desktop/host/src-tauri/resources/python/python312.dll do último build local.",
+      "comment": "Uso: Interpretador da inteligência (LangGraph) no Windows. Ambiente: execução. Distribuição: redistribuído (resources/python no instalador). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py:36 | scripts/notices/python-build-standalone-windows/README.md. SHA-256 do arquivo fixado no script: 355ee61b8207b91574491b1c6dc9b0ebb4408fc56bfafe498f3ef439314b52dc. Inclui OpenSSL 3.5.9 (Apache-2.0), libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 2.5.1, xz 5.8.4 (0BSD), zlib 1.4; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk podados. Hash do arquivo desktop/host/src-tauri/resources/python/python312.dll do último build local.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:generic/cpython-embed-amd64@3.12.10?download_url=https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip"
+          "referenceLocator": "pkg:github/astral-sh/python-build-standalone@20261110"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "9a0e3435aaa680d868150f87ab3e388ad2eebc22f87e036155c7b4eda8cd2120"
+          "checksumValue": "f4ee82750281a43282d2d6bfcf03812f2ac62725ae8c958b6e6182ba203c3cef"
         }
       ]
     },
@@ -101,7 +101,7 @@
       "licenseConcluded": "LicenseRef-Microsoft-Visual-Cpp-Redistributable",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Runtime C do CPython embarcado. Ambiente: execução. Distribuição: redistribuído (resources/python). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: desktop/host/src-tauri/resources/python/vcruntime140.dll | desktop/host/src-tauri/resources/python/LICENSE.txt:286. Hash do arquivo desktop/host/src-tauri/resources/python/vcruntime140.dll do último build local.",
+      "comment": "Uso: Runtime C do CPython embarcado. Ambiente: execução. Distribuição: redistribuído (resources/python). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: desktop/host/src-tauri/resources/python/vcruntime140.dll. Hash do arquivo desktop/host/src-tauri/resources/python/vcruntime140.dll do último build local.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -112,7 +112,7 @@
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "052ad6a20d375957e82aa6a3c441ea548d89be0981516ca7eb306e063d5027f4"
+          "checksumValue": "d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066"
         }
       ]
     },
@@ -157,25 +157,25 @@
     {
       "SPDXID": "SPDXRef-Package-bin-openssl",
       "name": "OpenSSL (dentro do CPython)",
-      "versionInfo": "3.0.16",
+      "versionInfo": "3.5.9",
       "downloadLocation": "https://www.openssl.org/",
       "filesAnalyzed": false,
       "licenseDeclared": "Apache-2.0",
       "licenseConcluded": "Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: TLS do Python embarcado (libssl-3.dll, libcrypto-3.dll). Ambiente: execução. Distribuição: redistribuído (resources/python). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: desktop/host/src-tauri/resources/python/libcrypto-3.dll. Hash do arquivo desktop/host/src-tauri/resources/python/libcrypto-3.dll do último build local.",
+      "comment": "Uso: TLS do Python embarcado (libssl-3-x64.dll, libcrypto-3-x64.dll). Ambiente: execução. Distribuição: redistribuído (resources/python). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: desktop/host/src-tauri/resources/python/DLLs/libcrypto-3-x64.dll | scripts/notices/python-build-standalone-windows/LICENSE.openssl-3.txt. Hash do arquivo desktop/host/src-tauri/resources/python/DLLs/libcrypto-3-x64.dll do último build local.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:generic/openssl@3.0.16"
+          "referenceLocator": "pkg:generic/openssl@3.5.9"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "ccfffddcd3defb8d899026298af9af43bc186130f8483d77e97c93233d5f27d7"
+          "checksumValue": "b36cfb21dc3dad939aabab2e479c6e179b65e3a674105b15bfcc8b5ca7cad526"
         }
       ]
     },
@@ -9946,7 +9946,7 @@
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-bin-cpython-embed"
+      "relatedSpdxElement": "SPDXRef-Package-bin-python-build-standalone-win"
     },
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",

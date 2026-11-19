@@ -16,7 +16,7 @@ Fonte: `desktop/host/src-tauri/tauri.conf.json` (`bundle`), `.github/workflows/c
 | Stub do setup | Instalador NSIS | NSIS 3.x (zlib/libpng, módulo LZMA CPL-1.0 com exceção), `nsis_tauri_utils` (MIT OR Apache-2.0) | Incorporado |
 | `Spock Studio.exe` (host) | Rust + Tauri, com a interface embutida | 200 crates com link estático (MIT, Apache-2.0, BSD, Unicode-3.0, Zlib, 4 MPL-2.0); 106 pacotes npm no bundle Vite (MIT, BSD, ISC, Apache-2.0 OR MIT, 0BSD) | Incorporado |
 | `mariliz-runtime.exe` (sidecar) | Motor .NET 10 self-contained, single-file | Runtime .NET win-x64 (MIT AND .NET Library License); 47 pacotes NuGet (26 MIT, 21 Apache-2.0) | Incorporado |
-| `python/` | CPython 3.12.10 embeddable oficial | CPython (Python-2.0), OpenSSL 3.0.16, libffi, SQLite, bzip2, xz, expat 2.7.1, mpdecimal, zlib, `vcruntime140.dll`, `vcruntime140_1.dll` | Redistribuído sem modificação; o `python312._pth` é editado pelo build para habilitar `import site` |
+| `python/` | python-build-standalone 3.12.16+20261110, podado (desde o MV-8a; antes, CPython 3.12.10 embeddable oficial) | CPython (Python-2.0), OpenSSL 3.5.9, libffi 3.8.0, SQLite 3.53.1, bzip2 1.0.8, xz 5.8.4, expat 2.9.0, mpdecimal 2.5.1, zlib 1.4, `vcruntime140.dll`, `vcruntime140_1.dll`. Textos das bibliotecas em `python/licenses/python-build-standalone`. Tcl/Tk podados | Redistribuído sem modificação; o build acrescenta `python312._pth` (isolamento, `import site`) |
 | `intelligence/` | Código próprio + `packages/` | 41 pacotes PyPI em bytecode `.pyc` sem fonte, com os `dist-info` (e os arquivos de licença) preservados | Redistribuído; forma alterada para bytecode, conteúdo sem modificação |
 | Ícones | Ícones do app | Próprios | — |
 | `notices/` | Avisos de terceiros (D-07) | `THIRD_PARTY_NOTICES.txt`, `licenses/` e manifesto, gerados por `generate_sbom.py` | Mostrados em Configurações → Sobre |
@@ -28,7 +28,7 @@ Fonte: `desktop/host/src-tauri/tauri.conf.json` (`bundle`), `.github/workflows/c
 | --- | --- | --- | --- |
 | Host | Rust + Tauri + interface | 261 crates (os do Windows, menos os específicos dele, mais GTK/glib/webkit2gtk-rs, zbus, x11 etc.); os mesmos 106 pacotes npm | Incorporado |
 | Sidecar | .NET 10 linux-x64, single-file | Runtime .NET linux-x64 (MIT); os mesmos 47 NuGet | Incorporado |
-| `python/` | python-build-standalone 3.12.10+20250409, podado | CPython, OpenSSL 3.0.16, SQLite 3.47.1, ncurses 6.5, libedit, libffi 3.4.6, expat 2.6.3, mpdecimal 4.0.0, zlib 1.3.1, xz 5.2.12, bzip2, uuid, libX11/libxcb e **Berkeley DB 6.0.19 (`_dbm`, Sleepycat, ligado estaticamente ao `libpython3.12.so`)**. Tcl/Tk são podados | Redistribuído |
+| `python/` | python-build-standalone 3.12.16+20261110, podado | CPython, OpenSSL 3.5.9, SQLite 3.53.1, ncurses 6.5, libedit, libffi 3.8.0, expat 2.10.0, mpdecimal 4.0.0, zlib 1.4, xz 5.8.4, zstd 1.5.7, bzip2, uuid, libX11/libxcb e **Berkeley DB 6.0.19 (`_dbm`, Sleepycat, ligado estaticamente ao `libpython3.12.so`)**. Tcl/Tk são podados | Redistribuído |
 | `intelligence/` | Igual ao Windows (rodas manylinux com `strip`) | 41 pacotes PyPI | Redistribuído |
 | Só no `.deb` | Dependências declaradas (`libwebkit2gtk-4.1-0`, `libgtk-3-0`) | Do sistema | Não redistribuído |
 

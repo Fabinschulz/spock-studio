@@ -91,11 +91,11 @@ Transitivas que merecem atenção, todas no inventário completo:
 
 | Componente | Versão | Tipo | Uso no Spock | Ambiente | Distribuição | Licença confirmada | Risco | Evidência |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| CPython (Windows embeddable) | 3.12.10 | runtime | Interpretador da inteligência no Windows | execução | Redistribuído em `resources/python` | Python-2.0 (PSF), com as condições do binário Windows | MÉDIO | `scripts/build-runtime.ps1:66`, `resources/python/LICENSE.txt` |
-| OpenSSL (no CPython) | 3.0.16 | biblioteca | TLS do Python | execução | Redistribuído | Apache-2.0 | BAIXO | `resources/python/libcrypto-3.dll` |
+| python-build-standalone (Windows) | 3.12.16+20261110 | runtime | Interpretador da inteligência no Windows | execução | Redistribuído em `resources/python` | Python-2.0 + bibliotecas nativas | MÉDIO | `scripts/package-intelligence.py:41`, `scripts/notices/python-build-standalone-windows/` |
+| OpenSSL (no CPython) | 3.5.9 | biblioteca | TLS do Python | execução | Redistribuído | Apache-2.0 | BAIXO | `resources/python/DLLs/libcrypto-3-x64.dll` |
 | Visual C++ Runtime | 14.x | runtime | Runtime C do CPython | execução | Redistribuído | Distributable Code da Microsoft | MÉDIO | `resources/python/vcruntime140*.dll` |
-| python-build-standalone | 3.12.10+20250409 | runtime | Interpretador no Linux | execução | Redistribuído em `resources/python` | Python-2.0 + bibliotecas nativas | MÉDIO | `scripts/package-intelligence.py:31` |
-| Berkeley DB (no PBS, `_dbm`) | 6.0.19 | biblioteca | Backend do `dbm`, não usado | execução | Redistribuído (Linux) | Sleepycat | ALTO | `downloads.py` da tag 20250409 |
+| python-build-standalone | 3.12.16+20261110 | runtime | Interpretador no Linux | execução | Redistribuído em `resources/python` | Python-2.0 + bibliotecas nativas | MÉDIO | `scripts/package-intelligence.py:46` |
+| Berkeley DB (no PBS, `_dbm`) | 6.0.19 | biblioteca | Backend do `dbm`, não usado | execução | Redistribuído (Linux) | Sleepycat | ALTO | `downloads.json` da tag 20261110 |
 | .NET Runtime win-x64 | 10.0.x (10.0.13 no cache) | runtime | Runtime do sidecar | execução | Incorporado (single-file) | MIT AND .NET Library License | MÉDIO | `scripts/build-runtime.ps1:31` |
 | .NET Runtime linux-x64 | 10.0.x | runtime | Runtime do sidecar | execução | Incorporado (single-file) | MIT | MÉDIO | `ci.yml:117` |
 | NSIS (stub e plugins) | 3.x | instalador | Instalador Windows | build | Incorporado no setup.exe | Zlib AND bzip2-1.0.6 AND CPL-1.0 (exceção do LZMA) | BAIXO | `%LOCALAPPDATA%/tauri/NSIS/COPYING` |

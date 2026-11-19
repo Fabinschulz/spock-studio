@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:96c3c714-8f6b-4228-9df4-bc0328576e95",
+  "serialNumber": "urn:uuid:f4396f94-8631-4a8e-8772-0be0c7bcaa82",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-17T19:56:01Z",
+    "timestamp": "2026-11-19T12:45:24Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -231,7 +231,7 @@
       "externalReferences": [
         {
           "type": "vcs",
-          "url": "https://github.com/astral-sh/python-build-standalone/blob/20250409/pythonbuild/downloads.py"
+          "url": "https://github.com/astral-sh/python-build-standalone/blob/20261110/pythonbuild/downloads.json"
         }
       ],
       "properties": [
@@ -265,7 +265,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/pythonbuild/downloads.py"
+          "value": "scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/pythonbuild/downloads.json"
         },
         {
           "name": "spock:usage",
@@ -273,7 +273,7 @@
         },
         {
           "name": "spock:note",
-          "value": "Conferido no arquivo oficial (SHA-256 fixado): sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0. O main do PBS (2026-11) ainda inclui o bdb."
+          "value": "A tag 20261110 mantém o bdb 6.0.19 na lista do alvo x86_64-unknown-linux-gnu (cpython-unix/targets.yml). Conferido na 20250409: sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0; na 20261110, não verificado em Linux."
         }
       ]
     },
@@ -281,8 +281,8 @@
       "type": "platform",
       "bom-ref": "bin-python-build-standalone",
       "name": "CPython (python-build-standalone, install_only_stripped)",
-      "version": "3.12.10+20250409",
-      "purl": "pkg:github/astral-sh/python-build-standalone@20250409",
+      "version": "3.12.16+20261110",
+      "purl": "pkg:github/astral-sh/python-build-standalone@20261110",
       "scope": "required",
       "licenses": [
         {
@@ -326,7 +326,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "scripts/package-intelligence.py:31 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml"
+          "value": "scripts/package-intelligence.py:41 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml"
         },
         {
           "name": "spock:usage",
@@ -334,7 +334,7 @@
         },
         {
           "name": "spock:note",
-          "value": "SHA-256 do arquivo fixado no script: 8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado."
+          "value": "SHA-256 do arquivo fixado no script: 6a9e62dad033790aef722dbd370e0ce76ce17b73627ba3ae679f537049350b39. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado."
         }
       ]
     },

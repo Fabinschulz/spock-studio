@@ -52,8 +52,14 @@ SPOCK significa **System of Programming, Organization, Code and Knowledge**.
 
 ### 2.3 D-04: CPython embarcado
 
-- **Windows:** CPython 3.12.10 embed oficial. O `LICENSE.txt` vai em `python/` e inclui as condições do código MSVC.
-- **Linux:** python-build-standalone 20250409, com SHA-256 fixado.
+- **Atualização de 2026-11-19 (MV-8a, `docs/compatibilidade-multiversao`):** as três plataformas passam para o
+  python-build-standalone 20261110 (CPython 3.12.16), com SHA-256 fixado. O python.org não publica o embeddable do Windows
+  para releases só de segurança. No Windows, o `LICENSE.txt` do PBS cobre o CPython e o bzip2. Os textos de OpenSSL, SQLite,
+  libffi, zlib, xz, expat e mpdecimal ficam em `scripts/notices/python-build-standalone-windows/` e vão para
+  `python/licenses/python-build-standalone/`. Os textos do Linux foram trocados pelos da tag 20261110: xz agora é 0BSD, o
+  zlib 1.4 trouxe novo copyright, o zstd entrou e o Tix saiu.
+- **Windows (até o MV-8a):** CPython 3.12.10 embed oficial. O `LICENSE.txt` vai em `python/` e inclui as condições do código MSVC.
+- **Linux:** python-build-standalone 20250409 até o MV-8a, com SHA-256 fixado.
   - Conferi o arquivo oficial: o `lib-dynload` só tem `_crypt`. Os módulos `_ssl`, `_sqlite3`, `_curses`, `readline`
     (libedit), `_tkinter` (Tcl/Tk/X11), `_lzma`, `_uuid` e `_dbm` (Berkeley DB) estão ligados estaticamente ao
     `libpython3.12.so.1.0`.

@@ -88,7 +88,7 @@
   "versao": "6.0.19",
   "tipo": "library",
   "ecossistema": "binário",
-  "origem": "https://github.com/astral-sh/python-build-standalone/blob/20250409/pythonbuild/downloads.py",
+  "origem": "https://github.com/astral-sh/python-build-standalone/blob/20261110/pythonbuild/downloads.json",
   "uso": "Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência)",
   "dependencia": "direta",
   "ambiente": "execução",
@@ -100,13 +100,13 @@
   "obrigacoes": "Sleepycat: licença e informação de fonte do Berkeley DB 6.0.19 e do CPython/PBS junto da distribuição (implementado em python/licenses/berkeley-db e conferido pelo smoke do pacote); manter o canal de suporte para entregar as fontes",
   "risco": "MÉDIO",
   "motivo": "Ligado estaticamente ao libpython3.12.so (a poda não remove). A obrigação da Sleepycat é cumprida no pacote: licença e fontes vão em python/licenses/berkeley-db (D-05). Falta parecer sobre o alcance de 'software que use o DB'",
-  "evidencias": "scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/pythonbuild/downloads.py",
+  "evidencias": "scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/pythonbuild/downloads.json",
   "hashes": "",
-  "nota": "Conferido no arquivo oficial (SHA-256 fixado): sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0. O main do PBS (2026-11) ainda inclui o bdb."
+  "nota": "A tag 20261110 mantém o bdb 6.0.19 na lista do alvo x86_64-unknown-linux-gnu (cpython-unix/targets.yml). Conferido na 20250409: sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0; na 20261110, não verificado em Linux."
  },
  {
   "nome": "CPython (python-build-standalone, install_only_stripped)",
-  "versao": "3.12.10+20250409",
+  "versao": "3.12.16+20261110",
   "tipo": "runtime",
   "ecossistema": "binário",
   "origem": "https://github.com/astral-sh/python-build-standalone",
@@ -120,17 +120,17 @@
   "distribuicao": "redistribuído (resources/python no .deb)",
   "obrigacoes": "Licença do CPython (lib/python3.12/LICENSE.txt) e das bibliotecas nativas (python/licenses/python-build-standalone) no pacote",
   "risco": "BAIXO",
-  "motivo": "Bibliotecas nativas ligadas ao libpython (OpenSSL, SQLite, ncurses, libedit, libffi, expat, mpdecimal, zlib, xz, Tcl/Tk, X11); os textos publicados pelo PBS na tag vão em python/licenses/python-build-standalone",
-  "evidencias": "scripts/package-intelligence.py:31 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20250409/cpython-unix/targets.yml",
+  "motivo": "Bibliotecas nativas ligadas ao libpython (OpenSSL, SQLite, ncurses, libedit, libffi, expat, mpdecimal, zlib, xz, zstd, Tcl/Tk, X11); os textos publicados pelo PBS na tag vão em python/licenses/python-build-standalone",
+  "evidencias": "scripts/package-intelligence.py:41 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml",
   "hashes": "",
-  "nota": "SHA-256 do arquivo fixado no script: 8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado."
+  "nota": "SHA-256 do arquivo fixado no script: 6a9e62dad033790aef722dbd370e0ce76ce17b73627ba3ae679f537049350b39. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado."
  },
  {
-  "nome": "CPython (Windows embeddable package)",
-  "versao": "3.12.10",
+  "nome": "CPython (python-build-standalone, install_only_stripped, Windows)",
+  "versao": "3.12.16+20261110",
   "tipo": "runtime",
   "ecossistema": "binário",
-  "origem": "https://www.python.org/",
+  "origem": "https://github.com/astral-sh/python-build-standalone",
   "uso": "Interpretador da inteligência (LangGraph) no Windows",
   "dependencia": "direta",
   "ambiente": "execução",
@@ -139,12 +139,12 @@
   "licenca_confirmada": "Python-2.0",
   "conferencia": "CONFERIDO MANUALMENTE",
   "distribuicao": "redistribuído (resources/python no instalador)",
-  "obrigacoes": "Incluir LICENSE.txt do CPython (já vai em resources/python) nos avisos visíveis; EULA do Spock com proteção ao Distributable Code da Microsoft; não usar marcas da PSF/Microsoft",
+  "obrigacoes": "Incluir LICENSE.txt do CPython (já vai em resources/python) e os textos das bibliotecas nativas (python/licenses/python-build-standalone) nos avisos; EULA do Spock com proteção ao Distributable Code da Microsoft; não usar marcas da PSF/Microsoft",
   "risco": "MÉDIO",
-  "motivo": "Redistribuição exige manter o LICENSE.txt e, pelo código MSVC embutido, termos de usuário final que protejam o Distributable Code da Microsoft",
-  "evidencias": "scripts/build-runtime.ps1:66 | desktop/host/src-tauri/resources/python/LICENSE.txt:283",
-  "hashes": "SHA-256:9a0e3435aaa680d868150f87ab3e388ad2eebc22f87e036155c7b4eda8cd2120",
-  "nota": "Inclui OpenSSL 3.0.16 (Apache-2.0), libffi (MIT), bzip2 1.0.8, SQLite (domínio público), expat 2.7.1 (MIT), mpdecimal, xz/liblzma, zlib; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Hash do arquivo desktop/host/src-tauri/resources/python/python312.dll do último build local."
+  "motivo": "Redistribuição exige manter o LICENSE.txt, os textos das bibliotecas nativas (python/licenses/python-build-standalone) e, pelo runtime MSVC junto, termos de usuário final que protejam o Distributable Code da Microsoft",
+  "evidencias": "scripts/package-intelligence.py:36 | scripts/notices/python-build-standalone-windows/README.md",
+  "hashes": "SHA-256:f4ee82750281a43282d2d6bfcf03812f2ac62725ae8c958b6e6182ba203c3cef",
+  "nota": "SHA-256 do arquivo fixado no script: 355ee61b8207b91574491b1c6dc9b0ebb4408fc56bfafe498f3ef439314b52dc. Inclui OpenSSL 3.5.9 (Apache-2.0), libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 2.5.1, xz 5.8.4 (0BSD), zlib 1.4; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk podados. Hash do arquivo desktop/host/src-tauri/resources/python/python312.dll do último build local."
  },
  {
   "nome": "Microsoft Visual C++ Runtime (vcruntime140.dll, vcruntime140_1.dll)",
@@ -163,8 +163,8 @@
   "obrigacoes": "Termos de usuário final protetivos; só plataformas Microsoft; não alterar avisos",
   "risco": "MÉDIO",
   "motivo": "Distributable Code da Microsoft: exige EULA do Spock com proteção equivalente; só para plataformas Microsoft",
-  "evidencias": "desktop/host/src-tauri/resources/python/vcruntime140.dll | desktop/host/src-tauri/resources/python/LICENSE.txt:286",
-  "hashes": "SHA-256:052ad6a20d375957e82aa6a3c441ea548d89be0981516ca7eb306e063d5027f4",
+  "evidencias": "desktop/host/src-tauri/resources/python/vcruntime140.dll",
+  "hashes": "SHA-256:d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066",
   "nota": "Hash do arquivo desktop/host/src-tauri/resources/python/vcruntime140.dll do último build local."
  },
  {
@@ -211,11 +211,11 @@
  },
  {
   "nome": "OpenSSL (dentro do CPython)",
-  "versao": "3.0.16",
+  "versao": "3.5.9",
   "tipo": "library",
   "ecossistema": "binário",
   "origem": "https://www.openssl.org/",
-  "uso": "TLS do Python embarcado (libssl-3.dll, libcrypto-3.dll)",
+  "uso": "TLS do Python embarcado (libssl-3-x64.dll, libcrypto-3-x64.dll)",
   "dependencia": "direta",
   "ambiente": "execução",
   "artefatos": "windows-x64",
@@ -226,9 +226,9 @@
   "obrigacoes": "Texto da Apache-2.0 nos avisos",
   "risco": "BAIXO",
   "motivo": "Apache-2.0: manter licença",
-  "evidencias": "desktop/host/src-tauri/resources/python/libcrypto-3.dll",
-  "hashes": "SHA-256:ccfffddcd3defb8d899026298af9af43bc186130f8483d77e97c93233d5f27d7",
-  "nota": "Hash do arquivo desktop/host/src-tauri/resources/python/libcrypto-3.dll do último build local."
+  "evidencias": "desktop/host/src-tauri/resources/python/DLLs/libcrypto-3-x64.dll | scripts/notices/python-build-standalone-windows/LICENSE.openssl-3.txt",
+  "hashes": "SHA-256:b36cfb21dc3dad939aabab2e479c6e179b65e3a674105b15bfcc8b5ca7cad526",
+  "nota": "Hash do arquivo desktop/host/src-tauri/resources/python/DLLs/libcrypto-3-x64.dll do último build local."
  },
  {
   "nome": "OpenTofu (tofu)",

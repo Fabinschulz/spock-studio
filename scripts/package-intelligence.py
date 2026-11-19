@@ -3,8 +3,7 @@
 
   dev                 instala intelligence/requirements.lock em intelligence/packages (fonte .py, para depurar)
   bundle --resources  copia a inteligência para o pacote do Tauri com as dependências em bytecode sem fonte e,
-                      com --python <triple>, baixa e poda o CPython do python-build-standalone (macOS e Linux).
-                      No Windows o interpretador continua vindo do CPython embed oficial (scripts/build-runtime.ps1).
+                      com --python <triple>, baixa e poda o CPython do python-build-standalone (Windows, macOS e Linux).
 
 Precisa rodar com o mesmo Python 3.12 do runtime: o bytecode só carrega na mesma versão menor.
 """
@@ -28,23 +27,34 @@ SOURCES = ("server.py", "agents", "knowledge", "memory", "workflows", "contracts
 MB = 1024 * 1024
 PACKAGES_BUDGET = 30 * MB
 
-# python-build-standalone 20250409, CPython 3.12.10 (a mesma versão do embed do Windows). Hashes do SHA256SUMS da release.
-PBS_RELEASE = "https://github.com/astral-sh/python-build-standalone/releases/download/20250409"
+# python-build-standalone 20261110, CPython 3.12.16, nas três plataformas. O python.org só publica binário (inclusive o
+# embeddable do Windows) enquanto a linha recebe correções gerais; a 3.12 está só em segurança e as releases 3.12.11+
+# saíram só em código-fonte. Hashes do SHA256SUMS da release.
+PBS_RELEASE = "https://github.com/astral-sh/python-build-standalone/releases/download/20261110"
 PBS = {
     "aarch64-apple-darwin": (
-        "cpython-3.12.10+20250409-aarch64-apple-darwin-install_only_stripped.tar.gz",
-        "0be1fe0b35a4d3c382141764ef16ed3b8cc2b4620b657f678daa7b7f8df39699",
+        "cpython-3.12.16+20261110-aarch64-apple-darwin-install_only_stripped.tar.gz",
+        "2f11b8aa3726bdbd87dd9eb76568412faddf4f47e26913fa45d6a2e424972acd",
         30 * MB,
     ),
+    "x86_64-pc-windows-msvc": (
+        "cpython-3.12.16+20261110-x86_64-pc-windows-msvc-install_only_stripped.tar.gz",
+        "355ee61b8207b91574491b1c6dc9b0ebb4408fc56bfafe498f3ef439314b52dc",
+        40 * MB,
+    ),
     "x86_64-unknown-linux-gnu": (
-        "cpython-3.12.10+20250409-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
-        "8c59b9ac6bff2dc3934181d7bc82594f9f59a613afed8d72c9e89d7194e790ee",
+        "cpython-3.12.16+20261110-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+        "6a9e62dad033790aef722dbd370e0ce76ce17b73627ba3ae679f537049350b39",
         55 * MB,
     ),
 }
 BERKELEY_DB_NOTICES = ROOT / "scripts" / "notices" / "berkeley-db"
-# Licenças das bibliotecas nativas que o PBS para Linux liga estaticamente ao libpython (textos da tag da release).
+# Licenças das bibliotecas nativas que o PBS liga ao interpretador (textos da tag da release).
 PBS_LINUX_NOTICES = ROOT / "scripts" / "notices" / "python-build-standalone"
+PBS_WINDOWS_NOTICES = ROOT / "scripts" / "notices" / "python-build-standalone-windows"
+# Sem PYTHONPATH, PYTHONHOME nem registro: o mesmo isolamento que o embeddable oficial dava. "import site" fica ligado
+# porque as dependências da inteligência dependem dos .pth que o site processa.
+WINDOWS_PTH = "Lib\nDLLs\n.\nimport site\n"
 PBS_PRUNE_STDLIB = {"test", "idlelib", "tkinter", "turtledemo", "ensurepip", "lib2to3", "pydoc_data", "site-packages"}
 
 
@@ -120,23 +130,28 @@ def fetch_python(triple: str, target: Path) -> None:
         archive.unlink()
         raise SystemExit(f"Hash inesperado em {name}.")
 
+    windows = "windows" in triple
     extracted = cache / triple
     if extracted.exists():
         shutil.rmtree(extracted)
     with tarfile.open(archive) as tar:
         # O que será podado nem sai do arquivo (terminfo tem milhares de links e nomes que só diferem na caixa).
-        members = [member for member in tar.getmembers() if not _pruned_on_extract(member.name)]
+        members = [member for member in tar.getmembers() if not _pruned_on_extract(member.name, windows)]
         tar.extractall(extracted, members=members, filter="data")
     home = extracted / "python"
-    _prune(home)
+    _prune_windows(home) if windows else _prune(home)
 
     _clear(target)
     # O Tauri copia recursos como arquivos; links simbólicos viram cópias reais.
     shutil.copytree(home, target, symlinks=False, dirs_exist_ok=True)
-    python3 = target / "bin" / "python3"
-    if python3.is_symlink() or not python3.exists():
-        python3.unlink(missing_ok=True)
-        shutil.copy2(target / "bin" / "python3.12", python3)
+    if windows:
+        (target / "python312._pth").write_text(WINDOWS_PTH, encoding="ascii", newline="\r\n")
+        shutil.copytree(PBS_WINDOWS_NOTICES, target / "licenses" / "python-build-standalone", dirs_exist_ok=True)
+    else:
+        python3 = target / "bin" / "python3"
+        if python3.is_symlink() or not python3.exists():
+            python3.unlink(missing_ok=True)
+            shutil.copy2(target / "bin" / "python3.12", python3)
     if "linux" in triple:
         # O libpython do PBS para Linux traz o Berkeley DB ligado estaticamente (_dbm), sem como podar: a licença Sleepycat
         # exige que a distribuição leve o texto e diga onde obter o código-fonte completo (docs/compliance, D-05).
@@ -148,11 +163,22 @@ def fetch_python(triple: str, target: Path) -> None:
     print(f"Interpretador embarcado: {target} ({size / MB:.1f} MB)")
 
 
-def _pruned_on_extract(name: str) -> bool:
+def _pruned_on_extract(name: str, windows: bool) -> bool:
     parts = name.split("/")
+    if windows:
+        if len(parts) > 1 and parts[1] in {"include", "libs", "Scripts", "tcl"}:
+            return True
+        return len(parts) > 2 and parts[1] == "Lib" and parts[2] in PBS_PRUNE_STDLIB
     if len(parts) > 1 and parts[1] in {"include", "share"}:
         return True
     return len(parts) > 3 and parts[1] == "lib" and parts[2] == "python3.12" and parts[3] in PBS_PRUNE_STDLIB
+
+
+def _prune_windows(home: Path) -> None:
+    (home / "pythonw.exe").unlink(missing_ok=True)
+    for entry in (home / "DLLs").iterdir():
+        if entry.name.startswith(("_tkinter", "_test", "_ctypes_test", "xxlimited", "tcl", "tk")):
+            entry.unlink()
 
 
 def _prune(home: Path) -> None:
