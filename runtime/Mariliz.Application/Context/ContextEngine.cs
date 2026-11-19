@@ -213,7 +213,7 @@ public sealed class ContextEngine(
         var analyzed = patterns.Max(pattern => pattern.AnalyzedAt);
         yield return new ContextItem("references",
             $"Padrões extraídos de outros projetos ({patterns[0].Source}, análise de {analyzed:yyyy-MM-dd}): são argumento de engenharia, " +
-            "não são convenção deste projeto. O texto de cada um está na busca do projeto (search_project), pelo id.",
+            "não são convenção deste projeto. O padrão inteiro está em spock_architecture_reference, pelo id.",
             "organizacao", "organizacao", ContextClassifications.Reference, analyzed, ContextFreshness.Fresh);
         foreach (var pattern in patterns.OrderBy(pattern => pattern.Technologies.Count == 0))
             yield return new ContextItem("references", $"{pattern.Id} · {pattern.Title} ({pattern.Section}).",

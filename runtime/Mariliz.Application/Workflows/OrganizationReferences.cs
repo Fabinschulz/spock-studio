@@ -16,6 +16,8 @@ public static partial class OrganizationReferences
     private const string Notice = "Referência arquitetural da Organização: argumento de engenharia, não é regra nem convenção do projeto.";
 
     private const int MaxPatternTitle = 140;
+    // A célula vazia das tabelas do catálogo é um travessão (U+2014).
+    private const string EmptyCell = "\u2014";
 
     private static readonly Lazy<IReadOnlyList<MemoryDocument>> All = new(() => Files().SelectMany(file => Split(file.Name, file.Markdown)).ToList());
 
@@ -49,11 +51,22 @@ public static partial class OrganizationReferences
         {
             var heading = Heading().Replace(section[..section.IndexOf('\n')].Trim(), "");
             var technologies = TechnologiesOf(section);
-            foreach (Match row in PatternRow().Matches(section))
+            // O cabeçalho da tabela dá o nome de cada coluna ("Onde", "Evitar quando"): é a linha logo antes da "| --- |".
+            var lines = section.Split('\n');
+            IReadOnlyList<string> header = [];
+            for (var index = 0; index < lines.Length; index++)
             {
-                var name = row.Groups["title"].Value.Replace("**", "").Trim();
+                if (Separator().IsMatch(lines[index]) && index > 0) header = Cells(lines[index - 1]);
+                var row = PatternRow().Match(lines[index]);
+                if (!row.Success) continue;
+                var cells = Cells(lines[index]);
+                var name = Clean(cells[1]);
                 if (name.Length > MaxPatternTitle) name = name[..(MaxPatternTitle - 1)].TrimEnd() + "…";
-                yield return new ReferencePattern(row.Groups["id"].Value, name, heading, technologies, title, analyzedAt);
+                var details = cells.Skip(2)
+                    .Select((cell, column) => new ReferenceDetail(column + 2 < header.Count ? header[column + 2] : $"Coluna {column + 3}", Clean(cell)))
+                    .Where(detail => detail.Text.Length > 0 && detail.Text != EmptyCell)
+                    .ToList();
+                yield return new ReferencePattern(row.Groups["id"].Value, name, heading, technologies, title, analyzedAt, details);
             }
         }
     }
@@ -88,6 +101,12 @@ public static partial class OrganizationReferences
         return segment is null ? [] : Quoted().Matches(segment).Select(match => match.Groups["id"].Value).Distinct().ToList();
     }
 
+    // "\|" dentro de uma célula é texto, não divisória.
+    private static IReadOnlyList<string> Cells(string line) =>
+        line.Trim().Trim('|').Replace(@"\|", "\u0001").Split('|').Select(cell => cell.Replace("\u0001", "|").Trim()).ToList();
+
+    private static string Clean(string cell) => cell.Replace("**", "").Trim();
+
     private static string Read(Assembly assembly, string name)
     {
         using var stream = assembly.GetManifestResourceStream(name)!;
@@ -106,8 +125,11 @@ public static partial class OrganizationReferences
     [GeneratedRegex(@"(?m)^## ")]
     private static partial Regex Section();
 
-    [GeneratedRegex(@"(?m)^\| (?<id>REF-[A-Z]+\d+) \| (?<title>[^|]+)\|")]
+    [GeneratedRegex(@"^\| (?<id>REF-[A-Z]+\d+) \|")]
     private static partial Regex PatternRow();
+
+    [GeneratedRegex(@"^\|(\s*:?-{3,}:?\s*\|)+\s*$")]
+    private static partial Regex Separator();
 
     [GeneratedRegex(@"(?m)^Escopo:(?<scope>.*)$")]
     private static partial Regex Scope();

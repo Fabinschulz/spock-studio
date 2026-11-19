@@ -40,6 +40,16 @@ arquivos do projeto, e cada trecho chega marcado como referência da Organizaç�
 argumento de engenharia, nunca convenção do projeto analisado. Um arquivo do projeto chamado `@reference/...` é
 bloqueado, para ninguém se passar por referência.
 
+Os padrões das tabelas (as linhas `| REF-… |`) também têm caminhos próprios:
+
+- a intenção `architecture` do Context Engine entrega ao agente a lista dos padrões que valem para a stack do projeto, um
+  por linha;
+- a ferramenta `spock_architecture_reference` da IDE traz um padrão inteiro pelo id (`REF-R4`), com cada coluna da
+  tabela, ou os padrões de uma tecnologia e de um assunto.
+
+Por isso, cada tabela de padrões precisa de cabeçalho: o nome de cada coluna ("Onde", "Evitar quando") vira o rótulo do
+detalhe.
+
 Por isso, todo arquivo desta pasta começa com um frontmatter com `titulo` e `analisadoEm`; sem ele, o arquivo não entra
 no índice:
 

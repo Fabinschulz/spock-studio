@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/mcp/spock_architecture_reference.output.schema.json",
+  "type": "object",
+  "required": [
+    "technologies",
+    "topic",
+    "patterns",
+    "omitted",
+    "notice"
+  ],
+  "properties": {
+    "technologies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Stacks usadas no filtro; vazio quando nenhuma foi informada nem detectada (vem tudo)."
+    },
+    "topic": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "O assunto pedido, quando houve."
+    },
+    "patterns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "section",
+          "technologies",
+          "source",
+          "analyzedAt",
+          "classification",
+          "details"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id estável do padrão (REF-…)."
+          },
+          "title": {
+            "type": "string",
+            "description": "O padrão em uma linha."
+          },
+          "section": {
+            "type": "string",
+            "description": "Seção do catálogo."
+          },
+          "technologies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Stacks a que a seção vale; vazio quando vale para todas."
+          },
+          "source": {
+            "type": "string",
+            "description": "Arquivo da pasta Organização."
+          },
+          "analyzedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "reference"
+            ]
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "label",
+                "text"
+              ],
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "description": "Coluna da tabela."
+                },
+                "text": {
+                  "type": "string",
+                  "description": "Conteúdo."
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "omitted": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Quantos casaram e ficaram de fora pelo limite."
+    },
+    "notice": {
+      "type": "string",
+      "description": "O que esses padrões são e o que não são."
+    }
+  },
+  "additionalProperties": false
+}
