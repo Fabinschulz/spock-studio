@@ -96,8 +96,8 @@ Transitivas que merecem atenção, todas no inventário completo:
 | Visual C++ Runtime | 14.x | runtime | Runtime C do CPython | execução | Redistribuído | Distributable Code da Microsoft | MÉDIO | `resources/python/vcruntime140*.dll` |
 | python-build-standalone | 3.12.16+20261110 | runtime | Interpretador no Linux | execução | Redistribuído em `resources/python` | Python-2.0 + bibliotecas nativas | MÉDIO | `scripts/package-intelligence.py:46` |
 | Berkeley DB (no PBS, `_dbm`) | 6.0.19 | biblioteca | Backend do `dbm`, não usado | execução | Redistribuído (Linux) | Sleepycat | ALTO | `downloads.json` da tag 20261110 |
-| .NET Runtime win-x64 | 10.0.x (10.0.13 no cache) | runtime | Runtime do sidecar | execução | Incorporado (single-file) | MIT AND .NET Library License | MÉDIO | `scripts/build-runtime.ps1:31` |
-| .NET Runtime linux-x64 | 10.0.x | runtime | Runtime do sidecar | execução | Incorporado (single-file) | MIT | MÉDIO | `ci.yml:117` |
+| .NET Runtime win-x64 | 10.0.15 (SDK mínimo 10.0.404 no `global.json`) | runtime | Runtime do sidecar | execução | Incorporado (single-file) | MIT AND .NET Library License | MÉDIO | `scripts/build-runtime.ps1:31` |
+| .NET Runtime linux-x64 | 10.0.15 (SDK mínimo 10.0.404 no `global.json`) | runtime | Runtime do sidecar | execução | Incorporado (single-file) | MIT | MÉDIO | `ci.yml:117` |
 | NSIS (stub e plugins) | 3.x | instalador | Instalador Windows | build | Incorporado no setup.exe | Zlib AND bzip2-1.0.6 AND CPL-1.0 (exceção do LZMA) | BAIXO | `%LOCALAPPDATA%/tauri/NSIS/COPYING` |
 | nsis_tauri_utils | do tauri-bundler | plugin | Plugin do instalador | build | Incorporado no setup.exe | MIT OR Apache-2.0 | BAIXO | cache do tauri-bundler |
 | WebView2 Runtime | do sistema | runtime | Motor web no Windows | sob demanda | Bootstrapper baixado da Microsoft se faltar | Termos Microsoft WebView2 | BAIXO | `tauri.conf.json` (modo padrão) |

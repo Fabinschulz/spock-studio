@@ -596,6 +596,10 @@ def sha256(path: Path) -> str | None:
     return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
 
 
+# O runtime que o SDK mínimo do global.json (10.0.404) embute no motor self-contained. Muda junto com o global.json.
+DOTNET_RUNTIME = "10.0.15"
+
+
 def manual(inv: Inventory) -> None:
     py = ROOT / "desktop/host/src-tauri/resources/python"
     entries = [
@@ -639,14 +643,14 @@ def manual(inv: Inventory) -> None:
           "https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/pythonbuild/downloads.json"], None,
          "A tag 20261110 mantém o bdb 6.0.19 na lista do alvo x86_64-unknown-linux-gnu (cpython-unix/targets.yml). Conferido na 20250409: sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0; na 20261110, não verificado em Linux."),
         ("bin:dotnet-runtime-win", "Microsoft .NET Runtime para win-x64 (self-contained)", "10.0.x", "nuget", "runtime",
-         "pkg:nuget/Microsoft.NETCore.App.Runtime.win-x64@10.0.13", "https://github.com/dotnet/runtime",
+         f"pkg:nuget/Microsoft.NETCore.App.Runtime.win-x64@{DOTNET_RUNTIME}", "https://github.com/dotnet/runtime",
          "Runtime do motor .NET embutido no sidecar single-file (Windows)", "execução", "incorporado (sidecar .NET single-file)", {"windows-x64"},
          "MIT AND LicenseRef-DotNet-Library-License", "MÉDIO",
          "O pacote de runtime do Windows é distribuído sob a .NET Library License (coreclr.dll, DiaSymReader) além do MIT: exige termos de usuário final "
          "protetivos, não remover avisos e não usar marcas da Microsoft; o single-file não leva LICENSE.TXT nem THIRD-PARTY-NOTICES.TXT",
-         ["scripts/build-runtime.ps1:31", "~/.nuget/packages/microsoft.netcore.app.runtime.win-x64/10.0.13/LICENSE.TXT",
+         ["scripts/build-runtime.ps1:31", f"~/.nuget/packages/microsoft.netcore.app.runtime.win-x64/{DOTNET_RUNTIME}/LICENSE.TXT",
           "https://raw.githubusercontent.com/dotnet/core/main/license-information-windows.md"], None,
-         "Versão exata depende do SDK 10.0.x do build (10.0.13 no cache local)."),
+         f"SDK mínimo fixado no global.json (10.0.404, rollForward latestFeature), que embute o runtime {DOTNET_RUNTIME}."),
         ("bin:dotnet-runtime-linux", "Microsoft .NET Runtime para linux-x64 (self-contained)", "10.0.x", "nuget", "runtime",
          "pkg:nuget/Microsoft.NETCore.App.Runtime.linux-x64@10.0", "https://github.com/dotnet/runtime",
          "Runtime do motor .NET embutido no sidecar single-file (Linux)", "execução", "incorporado (sidecar .NET single-file)", {"linux-x64"},
@@ -1032,8 +1036,8 @@ def package_dir(c: Component) -> Path | None:
 # Textos grandes que vão como arquivo à parte (copiados sem alteração de onde o build os obtém).
 NOTICE_FILES = [
     ("CPython 3.12.16 (python-build-standalone, Windows)", ROOT / "desktop/host/src-tauri/resources/python/LICENSE.txt", "cpython-3.12.16-LICENSE.txt"),
-    (".NET Runtime 10 (LICENSE)", NUGET / "microsoft.netcore.app.runtime.win-x64/10.0.13/LICENSE.TXT", "dotnet-runtime-LICENSE.TXT"),
-    (".NET Runtime 10 (THIRD-PARTY-NOTICES)", NUGET / "microsoft.netcore.app.runtime.win-x64/10.0.13/THIRD-PARTY-NOTICES.TXT", "dotnet-runtime-THIRD-PARTY-NOTICES.TXT"),
+    (".NET Runtime 10 (LICENSE)", NUGET / f"microsoft.netcore.app.runtime.win-x64/{DOTNET_RUNTIME}/LICENSE.TXT", "dotnet-runtime-LICENSE.TXT"),
+    (".NET Runtime 10 (THIRD-PARTY-NOTICES)", NUGET / f"microsoft.netcore.app.runtime.win-x64/{DOTNET_RUNTIME}/THIRD-PARTY-NOTICES.TXT", "dotnet-runtime-THIRD-PARTY-NOTICES.TXT"),
     ("NSIS (COPYING)", Path(os.environ.get("LOCALAPPDATA", "")) / "tauri/NSIS/COPYING", "nsis-COPYING.txt"),
 ]
 
@@ -1046,7 +1050,8 @@ REPO_NOTICES = [
 ]
 
 # O que ainda não tem texto reunido. Sai da lista quando o texto entra no repositório ou no pacote.
-# (.NET linux-x64: LICENSE.TXT e THIRD-PARTY-NOTICES.TXT do pacote 10.0.13 são idênticos aos do win-x64, conferido em 2026-11-16.)
+# (.NET linux-x64: LICENSE.TXT e THIRD-PARTY-NOTICES.TXT do pacote 10.0.15 são idênticos aos do win-x64 a menos da quebra de linha,
+# conferido em 2026-11-19; também idênticos aos da 10.0.13.)
 # (AppImage: fora da distribuição pela D-06, então as bibliotecas do sistema não são redistribuídas.)
 OPEN_GAPS: list[str] = []
 

@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Inventário consolidado (distribuído, sob demanda, externo e desenvolvimento)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--8a0379a4-a23c-403e-b9fe-1b02a3cedb56",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--fab47cdc-72e6-48d6-83c0-8223c9f2ecc2",
   "creationInfo": {
-    "created": "2026-11-19T18:33:13Z",
+    "created": "2026-11-19T19:20:49Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -21754,12 +21754,12 @@
       "licenseConcluded": "MIT AND LicenseRef-DotNet-Library-License",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Runtime do motor .NET embutido no sidecar single-file (Windows). Ambiente: execução. Distribuição: incorporado (sidecar .NET single-file). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/build-runtime.ps1:31 | ~/.nuget/packages/microsoft.netcore.app.runtime.win-x64/10.0.13/LICENSE.TXT | https://raw.githubusercontent.com/dotnet/core/main/license-information-windows.md. Versão exata depende do SDK 10.0.x do build (10.0.13 no cache local).",
+      "comment": "Uso: Runtime do motor .NET embutido no sidecar single-file (Windows). Ambiente: execução. Distribuição: incorporado (sidecar .NET single-file). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/build-runtime.ps1:31 | ~/.nuget/packages/microsoft.netcore.app.runtime.win-x64/10.0.15/LICENSE.TXT | https://raw.githubusercontent.com/dotnet/core/main/license-information-windows.md. SDK mínimo fixado no global.json (10.0.404, rollForward latestFeature), que embute o runtime 10.0.15.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:nuget/Microsoft.NETCore.App.Runtime.win-x64@10.0.13"
+          "referenceLocator": "pkg:nuget/Microsoft.NETCore.App.Runtime.win-x64@10.0.15"
         }
       ]
     },
