@@ -29,21 +29,15 @@ internal static class DotnetDetector
 
         foreach (var csproj in projects)
         {
-            if (Parse(files, csproj, warnings) is not { } xml) continue;
-            var tfm = xml.Descendants().FirstOrDefault(e => e.Name.LocalName == "TargetFramework")?.Value
-                      ?? xml.Descendants().FirstOrDefault(e => e.Name.LocalName == "TargetFrameworks")?.Value;
-            var targets = tfm?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
-            if (targets.Length > 0)
+            if (Read(files, csproj, central, warnings) is not { } project) continue;
+            if (project.Targets.Count > 0)
             {
-                frameworks.AddRange(targets);
-                if (evidence.Count < 12) evidence.Add(new Evidence(csproj, $"TargetFramework={tfm}"));
+                frameworks.AddRange(project.Targets);
+                if (evidence.Count < 12) evidence.Add(new Evidence(csproj, $"TargetFramework={string.Join(';', project.Targets)}"));
             }
-            var sdks = Sdks(xml);
-            if (sdks.Any(sdk => sdk.Contains("Web", StringComparison.OrdinalIgnoreCase))) web = true;
-            var packages = Packages(xml, central.For(csproj));
-            if (packages.Keys.Any(IsTestFramework)) testProjects++;
-            Frameworks.Add(found, Frameworks.Dotnet, Technologies.Dotnet.Id, root, csproj, packages, byPrefix: true, StringComparison.OrdinalIgnoreCase);
-            Implied(found, all, root, csproj, xml, sdks, PlatformVersion(targets));
+            if (project.Sdks.Any(sdk => sdk.Contains("Web", StringComparison.OrdinalIgnoreCase))) web = true;
+            if (project.IsTest) testProjects++;
+            Collect(found, all, root, project);
         }
 
         // Um pacote no Directory.Build.props entra em todos os projetos abaixo dele, sem aparecer em nenhum .csproj.
@@ -68,6 +62,38 @@ internal static class DotnetDetector
         if (testProjects > 0) tooling.Add(new ToolingFinding("test", "dotnet test", $"dotnet test{arg}", ev));
     }
 
+    // Um .csproj lido uma vez: a descoberta tira daqui a stack e os frameworks, e a análise de arquitetura, o grafo de projetos.
+    internal sealed record DotnetProject(string Path, XDocument Xml, IReadOnlyList<string> Targets, IReadOnlyList<string> Sdks,
+        IReadOnlyDictionary<string, string> Packages)
+    {
+        public bool IsTest => Packages.Keys.Any(IsTestFramework);
+
+        // O Include vem relativo ao .csproj e com barra invertida; volta como caminho do projeto.
+        public IReadOnlyList<string> ProjectReferences => Xml.Descendants()
+            .Where(e => e.Name.LocalName == "ProjectReference")
+            .Select(e => e.Attribute("Include")?.Value)
+            .OfType<string>()
+            .Select(include => ProjectPath.Resolve(ProjectPath.Parent(Path), include.Replace('\\', '/').Trim()))
+            .OfType<string>()
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+    }
+
+    internal static DotnetProject? Read(IProjectFiles files, string csproj, CentralVersions central, List<DiscoveryWarning> warnings)
+    {
+        if (Parse(files, csproj, warnings) is not { } xml) return null;
+        var tfm = xml.Descendants().FirstOrDefault(e => e.Name.LocalName == "TargetFramework")?.Value
+                  ?? xml.Descendants().FirstOrDefault(e => e.Name.LocalName == "TargetFrameworks")?.Value;
+        var targets = tfm?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
+        return new DotnetProject(csproj, xml, targets, Sdks(xml), Packages(xml, central.For(csproj)));
+    }
+
+    internal static void Collect(List<FrameworkFinding> found, IReadOnlyList<string> all, string root, DotnetProject project)
+    {
+        Frameworks.Add(found, Frameworks.Dotnet, Technologies.Dotnet.Id, root, project.Path, project.Packages, byPrefix: true, StringComparison.OrdinalIgnoreCase);
+        Implied(found, all, root, project.Path, project.Xml, project.Sdks, PlatformVersion(project.Targets));
+    }
+
     private static XDocument? Parse(IProjectFiles files, string path, List<DiscoveryWarning> warnings)
     {
         if (files.ReadText(path) is not { } text) return null;
@@ -82,7 +108,7 @@ internal static class DotnetDetector
         }
     }
 
-    private static bool IsTestFramework(string package) =>
+    internal static bool IsTestFramework(string package) =>
         package.StartsWith("xunit", StringComparison.OrdinalIgnoreCase) || package.StartsWith("NUnit", StringComparison.OrdinalIgnoreCase)
         || package.StartsWith("MSTest", StringComparison.OrdinalIgnoreCase);
 
@@ -115,7 +141,7 @@ internal static class DotnetDetector
         element.Attribute(name)?.Value ?? element.Elements().FirstOrDefault(child => child.Name.LocalName == name)?.Value;
 
     private static void Implied(List<FrameworkFinding> found, IReadOnlyList<string> all, string root, string csproj, XDocument xml,
-        List<string> sdks, string? version)
+        IReadOnlyList<string> sdks, string? version)
     {
         var dotnet = Technologies.Dotnet.Id;
         foreach (var sdk in sdks)
@@ -147,7 +173,7 @@ internal static class DotnetDetector
         Newest(targets) is { } newest && Rank(newest) is { Family: >= 2 } ? Frameworks.VersionOf(newest.Split('-')[0]) : null;
 
     // Vale o Directory.Packages.props mais próximo acima do projeto, como no MSBuild.
-    private sealed class CentralVersions(IProjectFiles files, IReadOnlyList<string> all)
+    internal sealed class CentralVersions(IProjectFiles files, IReadOnlyList<string> all)
     {
         private static readonly IReadOnlyDictionary<string, string> None = new Dictionary<string, string>();
         private readonly List<string> props = all.Where(path => IsFile(path, CentralVersionsFile)).OrderByDescending(ProjectPath.Depth).ToList();

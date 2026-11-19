@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Mariliz.Application.Analysis;
 using Mariliz.Application.Context;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Harness;
@@ -32,6 +33,7 @@ public sealed class CliRunner(
         Uso:
           mariliz version
           mariliz discover <pasta> [--json]
+          mariliz analyze  <pasta> [--json]
           mariliz plan     <pasta> [--env <ambiente>] [--allow-specification-reinstall] [--update-specification] [--diff] [--json]
           mariliz apply    <pasta> --env <ambiente> [--approve-command <id>]... [--overwrite <caminho>]...
                                    [--approve-removals] [--allow-specification-reinstall] [--update-specification] [--yes] [--json]
@@ -83,6 +85,7 @@ public sealed class CliRunner(
             return args.Command switch
             {
                 "discover" => await DiscoverAsync(args, ct),
+                "analyze" => Analyze(args),
                 "plan" => await PlanAsync(args, ct),
                 "apply" => await ApplyAsync(args, ct),
                 "validate" => await ValidateAsync(args, ct),
@@ -115,6 +118,15 @@ public sealed class CliRunner(
         var report = await service.DiscoverAsync(projectId, ct);
         if (_json) { WriteJson(JournalJson.Node(report)); return ExitOk; }
         CliRender.Discovery(stdout, JournalJson.Node(report)!);
+        return ExitOk;
+    }
+
+    // Análise de arquitetura determinística: só lê o projeto.
+    private int Analyze(CliArgs args)
+    {
+        var report = service.AnalyzeArchitecture(Authorize(args));
+        if (_json) { WriteJson(JournalJson.Node(report)); return ExitOk; }
+        stdout.Write(ArchitectureAnalysisDocuments.Render(report));
         return ExitOk;
     }
 

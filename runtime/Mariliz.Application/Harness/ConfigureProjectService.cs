@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Mariliz.Application.Analysis;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
@@ -28,6 +29,12 @@ public sealed class ConfigureProjectService(
     {
         var (root, files) = Open(projectId);
         return await _planner.DiscoverAsync(projectId, root, files, ct);
+    }
+
+    public ArchitectureReport AnalyzeArchitecture(string projectId)
+    {
+        var (_, files) = Open(projectId);
+        return ArchitectureAnalyzer.Analyze(projectId, files, clock.UtcNow);
     }
 
     public async Task<ConfigurationPlan> PlanAsync(string projectId, PlanOptions options, CancellationToken ct)

@@ -19,6 +19,10 @@ DECISION_NOTE = "decisão registrada por uma pessoa da equipe: memória do que f
 # A pasta Organização do Spock entra em todo projeto com este prefixo: é referência de engenharia, que pode não valer aqui.
 REFERENCE_PREFIX = "@reference/"
 REFERENCE_NOTE = "referência arquitetural da Organização: argumento de engenharia, não regra nem convenção deste projeto"
+# A análise de arquitetura do motor descreve o código atual deste projeto. A marca de cada trecho basta: uma frase a mais nas
+# regras gerais pesaria em toda chamada, com ou sem análise no contexto.
+ANALYSIS_PREFIX = "@analysis/"
+ANALYSIS_NOTE = "análise determinística do código atual deste projeto: fato com evidência, não regra nem recomendação"
 RESULT_TAG = "resultado-a-avaliar"
 _TAG = re.compile(r"<(/?)(" + TAG + "|pedido|" + RESULT_TAG + ")", re.IGNORECASE)
 MAX_EXCERPT = 1200
@@ -71,6 +75,8 @@ def entries(evidence: list[dict]) -> list[dict]:
             mark = f"({DECISION_NOTE})\n"
         elif chunk_id.startswith(REFERENCE_PREFIX):
             mark = f"({REFERENCE_NOTE})\n"
+        elif chunk_id.startswith(ANALYSIS_PREFIX):
+            mark = f"({ANALYSIS_NOTE})\n"
         else:
             mark = ""
         text = f"[{neutralize(chunk_id)}]\n{mark}{neutralize(raw[:MAX_EXCERPT])}"

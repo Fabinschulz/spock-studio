@@ -32,3 +32,11 @@ class ReferenceTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AnalysisTests(unittest.TestCase):
+    def test_o_agente_le_a_analise_como_fato_do_projeto_e_nao_como_regra(self) -> None:
+        block = prompts.project_block([{"chunkId": "@analysis/visao-geral.md#h:violacoes", "excerpt": "Application depende de Infrastructure."}])
+
+        self.assertIn(f"({prompts.ANALYSIS_NOTE})", block)
+        self.assertNotIn(f"({prompts.REFERENCE_NOTE})", block)

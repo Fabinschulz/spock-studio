@@ -8,12 +8,14 @@ import styles from './context-review-panel.module.scss';
 
 const DECISION = '@decision/';
 const EXTERNAL = '@external/';
+const ANALYSIS = '@analysis/';
 
 const number = (value: number) => value.toLocaleString('pt-BR');
 
-/** Decisões e fontes externas não são arquivos: o nome diz de onde o trecho veio. */
+/** Decisões, fontes externas e a análise de arquitetura não são arquivos: o nome diz de onde o trecho veio. */
 export function sourceLabel(path: string) {
   if (path.startsWith(DECISION)) return 'Decisão registrada';
+  if (path.startsWith(ANALYSIS)) return `Análise de arquitetura: ${path.slice(ANALYSIS.length).replace(/\.md$/, '')}`;
   if (path.startsWith(EXTERNAL)) return `Fonte externa: ${path.slice(EXTERNAL.length).split('/').slice(-2).join('/')}`;
   return path;
 }
