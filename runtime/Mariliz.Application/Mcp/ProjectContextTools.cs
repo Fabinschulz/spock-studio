@@ -1,3 +1,4 @@
+using Mariliz.Application.Analysis;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Mariliz.Application.Context;
@@ -243,8 +244,12 @@ public sealed partial class ProjectContextTools(
                 : $"O índice de {project.DisplayName} ainda não foi montado. O Spock monta o índice ao revisar o contexto ou rodar uma execução de engenharia.";
         }
 
-        // Decisões e referências da Organização não são arquivos do projeto: valem pelo documento que o motor monta hoje.
-        var memory = new DecisionMemory(workspace, decisions).Documents(project.ProjectId).Concat(OrganizationReferences.Documents)
+        // Decisões, referências da Organização e a análise de arquitetura não são arquivos do projeto: valem pelo documento que o
+        // motor monta hoje. A análise lê o projeto inteiro, então só roda quando um trecho dela veio na busca.
+        var analysis = hits.Any(hit => hit.Path.StartsWith(ArchitectureAnalysisDocuments.Prefix, StringComparison.Ordinal))
+            ? ArchitectureAnalysisDocuments.For(files.Open(root))
+            : [];
+        var memory = new DecisionMemory(workspace, decisions).Documents(project.ProjectId).Concat(OrganizationReferences.Documents).Concat(analysis)
             .ToDictionary(item => item.Path, item => item.Hash, StringComparer.Ordinal);
         var current = KnowledgeSources.EvaluatePaths(files.Open(root),
                 hits.Select(hit => hit.Path).Where(path => !IsVirtual(path) && !path.StartsWith(ExternalKnowledge.Prefix, StringComparison.Ordinal)))
@@ -280,13 +285,16 @@ public sealed partial class ProjectContextTools(
     }
 
     private static bool IsVirtual(string path) =>
-        path.StartsWith(DecisionMemory.Prefix, StringComparison.Ordinal) || path.StartsWith(OrganizationReferences.Prefix, StringComparison.Ordinal);
+        path.StartsWith(DecisionMemory.Prefix, StringComparison.Ordinal) || path.StartsWith(OrganizationReferences.Prefix, StringComparison.Ordinal)
+        || path.StartsWith(ArchitectureAnalysisDocuments.Prefix, StringComparison.Ordinal);
 
     private static string Render(Hit hit, bool stale)
     {
         var title = hit.Path.StartsWith(DecisionMemory.Prefix, StringComparison.Ordinal) ? "## Decisão registrada no Spock"
             : hit.Path.StartsWith(OrganizationReferences.Prefix, StringComparison.Ordinal)
                 ? $"## Referência da Organização{(hit.Heading.Length > 0 ? $" · {hit.Heading}" : "")}"
+            : hit.Path.StartsWith(ArchitectureAnalysisDocuments.Prefix, StringComparison.Ordinal)
+                ? $"## Análise de arquitetura deste projeto{(hit.Heading.Length > 0 ? $" · {hit.Heading}" : "")}"
                 : $"## {hit.Path}:{hit.StartLine}{(hit.Heading.Length > 0 ? $" · {hit.Heading}" : "")}";
         var warning = stale ? "\n(O arquivo mudou depois da indexação: confira no disco antes de confiar neste trecho.)" : "";
         return $"{title}{warning}\n{hit.Body.TrimEnd()}";

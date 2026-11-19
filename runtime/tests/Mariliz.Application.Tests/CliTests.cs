@@ -312,4 +312,24 @@ public class CliTests
         Assert.Equal(CliRunner.ExitOk, await cli.RunAsync("plan", cli.Project.Root, "--env", "claude-code", "--update-specification"));
         Assert.Contains("specification-update: npx -y @tech-leads-club/agent-skills install -s tlc-spec-driven -a claude-code", cli.Out);
     }
+
+    [Fact]
+    public async Task Analisar_so_le_e_mostra_a_direcao_das_camadas_em_texto_e_em_json()
+    {
+        using var cli = new CliHarness(new TempProject());
+        cli.Project.Write("src/App.Domain/App.Domain.csproj", "<Project Sdk=\"Microsoft.NET.Sdk\"></Project>");
+        cli.Project.Write("src/App.Application/App.Application.csproj",
+            "<Project Sdk=\"Microsoft.NET.Sdk\"><ItemGroup><ProjectReference Include=\"..\\App.Infrastructure\\App.Infrastructure.csproj\" /></ItemGroup></Project>");
+        cli.Project.Write("src/App.Infrastructure/App.Infrastructure.csproj", "<Project Sdk=\"Microsoft.NET.Sdk\"></Project>");
+        var before = cli.Project.Fingerprint();
+
+        Assert.Equal(CliRunner.ExitOk, await cli.RunAsync("analyze", cli.Project.Root));
+        Assert.Contains("# Análise de arquitetura · Visão geral", cli.Out);
+        Assert.Contains("App.Application (aplicação) depende de App.Infrastructure (infraestrutura)", cli.Out);
+
+        Assert.Equal(CliRunner.ExitOk, await cli.RunAsync("analyze", cli.Project.Root, "--json"));
+        var finding = JsonNode.Parse(cli.Out)!["findings"]!.AsArray().Single(item => item!["severity"]!.GetValue<string>() == "warning")!;
+        Assert.Equal("dependency-direction", finding["code"]!.GetValue<string>());
+        Assert.Equal(before, cli.Project.Fingerprint());
+    }
 }

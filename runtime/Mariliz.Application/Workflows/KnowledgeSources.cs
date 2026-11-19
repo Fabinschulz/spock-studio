@@ -130,7 +130,8 @@ internal static class KnowledgeSources
         if (string.IsNullOrWhiteSpace(path) || path.Contains('\\') || path.Split('/').Contains("..")) return Exclusion.Blocked;
         // O prefixo das fontes externas é só do motor: um arquivo do projeto com esse nome não se passa por dado de terceiros.
         if (path.StartsWith(ExternalKnowledge.Prefix, StringComparison.Ordinal) || path.StartsWith(DecisionMemory.Prefix, StringComparison.Ordinal)
-            || path.StartsWith(OrganizationReferences.Prefix, StringComparison.Ordinal)) return Exclusion.Blocked;
+            || path.StartsWith(OrganizationReferences.Prefix, StringComparison.Ordinal)
+            || path.StartsWith(Analysis.ArchitectureAnalysisDocuments.Prefix, StringComparison.Ordinal)) return Exclusion.Blocked;
         var name = path.Split('/')[^1];
         if (BlockedNames.Contains(name) || BlockedExtensions.Contains(System.IO.Path.GetExtension(name)) || BlockedPatterns.Matches(path))
             return Exclusion.Blocked;
