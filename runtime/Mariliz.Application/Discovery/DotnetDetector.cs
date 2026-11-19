@@ -212,6 +212,15 @@ internal static class DotnetDetector
             .Select(item => item.Tfm)
             .FirstOrDefault();
 
+    // O alvo mais antigo de um projeto com vários é o que limita as APIs que o código pode usar.
+    internal static string? Oldest(IEnumerable<string> frameworks) =>
+        frameworks.Select(tfm => (Tfm: tfm, Rank: Rank(tfm)))
+            .Where(item => item.Rank is not null)
+            .OrderBy(item => item.Rank!.Value.Family)
+            .ThenBy(item => item.Rank!.Value.Version)
+            .Select(item => item.Tfm)
+            .FirstOrDefault();
+
     private static (int Family, Version Version)? Rank(string tfm)
     {
         var name = tfm.Split('-')[0].Trim().ToLowerInvariant();

@@ -41,7 +41,12 @@ const discovery = {
 };
 
 /** O perfil salvo começa vazio quando `saved` é falso: a tela precisa pedir ao motor que crie o primeiro. */
-function clientWith(runs: unknown[], saved = true, knowledge: unknown = knowledgeFixture): EngineClient {
+function clientWith(
+  runs: unknown[],
+  saved = true,
+  knowledge: unknown = knowledgeFixture,
+  compatibility: unknown = null
+): EngineClient {
   let stored: unknown = saved ? profileFixture.profile : null;
   const refreshed = {
     ...profileFixture.profile,
@@ -54,7 +59,7 @@ function clientWith(runs: unknown[], saved = true, knowledge: unknown = knowledg
   return {
     request: vi.fn(async (method: string, _params: unknown, schema: { parse(value: unknown): unknown }) => {
       if (method === 'harness.runs') return schema.parse({ runs });
-      if (method === 'engineering.profile') return schema.parse({ profile: stored });
+      if (method === 'engineering.profile') return schema.parse({ profile: stored, compatibility });
       if (method === 'engineering.knowledge') return schema.parse(knowledge);
       if (method === 'engineering.harness') return schema.parse(harnessFixture);
       if (method === 'engineering.revisions') return schema.parse(revisionsFixture);
@@ -114,6 +119,25 @@ describe('Projeto · visão geral', () => {
     );
     expect(screen.getByText(/alterações aplicadas/)).toBeTruthy();
     expect(client.request).toHaveBeenCalledWith('harness.runs', { projectId: project.projectId }, expect.anything());
+  });
+
+  it('mostra a situação de suporte de cada versão sem propor atualização', async () => {
+    const legacy = {
+      ...profileFixture.compatibility.modules[1],
+      version: 'net6.0',
+      name: '.NET',
+      status: 'end-of-life',
+      statusLabel: 'Legado sem suporte',
+      reason: 'Fim do suporte oficial em 2024-11-12.',
+      confirmed: true
+    };
+    renderPage(clientWith([], true, knowledgeFixture, { ...profileFixture.compatibility, modules: [legacy] }));
+
+    const versions = await screen.findByRole('list', { name: 'Versões e suporte' });
+    expect(versions).toHaveTextContent('.NET net6.0');
+    expect(versions).toHaveTextContent('Legado sem suporte');
+    expect(versions).toHaveTextContent('Fim do suporte oficial em 2024-11-12.');
+    expect(screen.getByText(/Os agentes trabalham nas versões do projeto/)).toBeTruthy();
   });
 
   it('sem execuções, diz isso em vez de mostrar uma lista vazia', async () => {

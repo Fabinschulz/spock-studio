@@ -1,7 +1,7 @@
 import { formatEngineDate } from '@/features/integrations';
 import { errorMessage, type EngineClient } from '@/shared/api';
 import { pathTo } from '@/shared/routing';
-import type { TechnologyProfile } from '@/shared/schema';
+import type { Compatibility, ProfileResult, TechnologyProfile } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
@@ -13,8 +13,7 @@ import { readProfile, refreshProfile } from '../service/project-api';
 
 const HISTORY_SHOWN = 10;
 
-type State =
-  { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; profile: TechnologyProfile };
+type State = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; result: ProfileResult };
 
 /** Na primeira visita o motor cria o perfil (a análise só lê o projeto). */
 export function ProfileSection({ client, projectId }: { client: EngineClient; projectId: string }) {
@@ -31,10 +30,10 @@ export function ProfileSection({ client, projectId }: { client: EngineClient; pr
   useEffect(() => {
     let active = true;
     readProfile(client, projectId)
-      .then((profile) => profile ?? refreshProfile(client, projectId))
+      .then((result) => (result.profile ? result : refreshProfile(client, projectId)))
       .then(
-        (profile) => {
-          if (active) setState({ status: 'ready', profile });
+        (result) => {
+          if (active) setState({ status: 'ready', result });
         },
         (error: unknown) => {
           if (active) setState({ status: 'error', message: errorMessage(error, 'Não foi possível montar o perfil.') });
@@ -49,7 +48,7 @@ export function ProfileSection({ client, projectId }: { client: EngineClient; pr
     setBusy(true);
     setRefreshError(null);
     try {
-      setState({ status: 'ready', profile: await refreshProfile(client, projectId) });
+      setState({ status: 'ready', result: await refreshProfile(client, projectId) });
     } catch (error) {
       setRefreshError(errorMessage(error, 'Não foi possível atualizar o perfil.'));
     } finally {
@@ -71,12 +70,55 @@ export function ProfileSection({ client, projectId }: { client: EngineClient; pr
       {state.status === 'loading' ? <LoadingState>Montando o perfil do projeto…</LoadingState> : null}
       {state.status === 'error' ? <ErrorState onRetry={retry}>{state.message}</ErrorState> : null}
       {refreshError ? <ErrorState onRetry={() => void refresh()}>{refreshError}</ErrorState> : null}
-      {state.status === 'ready' ? <ProfileContent profile={state.profile} /> : null}
+      {state.status === 'ready' && state.result.profile ? (
+        <ProfileContent profile={state.result.profile} compatibility={state.result.compatibility ?? null} />
+      ) : null}
     </PageSection>
   );
 }
 
-function ProfileContent({ profile }: { profile: TechnologyProfile }) {
+const ATTENTION = new Set(['end-of-life', 'maintenance', 'preview', 'unknown']);
+
+/** A situação orienta os agentes a trabalhar na versão do projeto; atualizar é uma modernização à parte. */
+function VersionsList({ compatibility }: { compatibility: Compatibility }) {
+  return (
+    <>
+      <h3 className={styles.subsection}>Versões e suporte</h3>
+      <p className={styles.meta}>
+        Os agentes trabalham nas versões do projeto. Catálogo de versões de{' '}
+        {formatEngineDate(compatibility.catalogGeneratedAt)}
+        {compatibility.catalogStale ? ', possivelmente desatualizado' : ''}.
+      </p>
+      <ul className={styles.rows} aria-label="Versões e suporte">
+        {compatibility.modules.map((module) => (
+          <li key={`${module.root}:${module.technologyId}:${module.origin}`} className={styles.row}>
+            <span>
+              <span className={styles.rowTitle}>
+                {module.name} {module.version ?? '(sem versão)'}
+              </span>
+              <span className={styles.meta}>
+                {' '}
+                · em {module.root} · {module.reason}
+                {module.confirmed ? '' : ' Versão lida de uma faixa declarada.'}
+              </span>
+            </span>
+            <span className={`${styles.end} ${ATTENTION.has(module.status) ? styles.warning : ''}`}>
+              {module.statusLabel}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+function ProfileContent({
+  profile,
+  compatibility
+}: {
+  profile: TechnologyProfile;
+  compatibility: Compatibility | null;
+}) {
   return (
     <>
       <p className={styles.meta}>
@@ -101,6 +143,8 @@ function ProfileContent({ profile }: { profile: TechnologyProfile }) {
           </li>
         ))}
       </ul>
+
+      {compatibility && compatibility.modules.length > 0 ? <VersionsList compatibility={compatibility} /> : null}
 
       {profile.tooling.length > 0 ? (
         <ul className={styles.rows} aria-label="Ferramentas">

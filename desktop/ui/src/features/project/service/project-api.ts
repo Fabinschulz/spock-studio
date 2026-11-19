@@ -17,7 +17,7 @@ import {
   type McpInventory,
   type ProjectKnowledge,
   type RunSummary,
-  type TechnologyProfile
+  type ProfileResult
 } from '@/shared/schema';
 
 export function readDiscovery(client: EngineClient, projectId: string): Promise<Discovery> {
@@ -29,15 +29,14 @@ export async function readRuns(client: EngineClient, projectId: string): Promise
   return runs;
 }
 
-export async function readProfile(client: EngineClient, projectId: string): Promise<TechnologyProfile | null> {
-  const { profile } = await client.request('engineering.profile', { projectId }, profileResultSchema);
-  return profile;
+export function readProfile(client: EngineClient, projectId: string): Promise<ProfileResult> {
+  return client.request('engineering.profile', { projectId }, profileResultSchema);
 }
 
-export async function refreshProfile(client: EngineClient, projectId: string): Promise<TechnologyProfile> {
-  const { profile } = await client.request('engineering.analyze', { projectId }, profileResultSchema);
-  if (!profile) throw new Error('O motor não devolveu o perfil.');
-  return profile;
+export async function refreshProfile(client: EngineClient, projectId: string): Promise<ProfileResult> {
+  const result = await client.request('engineering.analyze', { projectId }, profileResultSchema);
+  if (!result.profile) throw new Error('O motor não devolveu o perfil.');
+  return result;
 }
 
 /** O índice só é consultado se a inteligência local já estiver ligada. */

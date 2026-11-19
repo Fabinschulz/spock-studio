@@ -16,11 +16,8 @@ internal sealed class EngineeringRequestHandler(
 
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
-        ProtocolMethods.EngineeringProfile => new JsonObject { ["profile"] = IntegrationJson.Node(profiles.Get(p.Str("projectId"))) },
-        ProtocolMethods.EngineeringAnalyze => new JsonObject
-        {
-            ["profile"] = IntegrationJson.Node(await profiles.RefreshAsync(p.Str("projectId"), ct))
-        },
+        ProtocolMethods.EngineeringProfile => Profile(profiles.Get(p.Str("projectId"))),
+        ProtocolMethods.EngineeringAnalyze => Profile(await profiles.RefreshAsync(p.Str("projectId"), ct)),
         ProtocolMethods.EngineeringKnowledge => IntegrationJson.Node(await Knowledge().InspectAsync(p.Str("projectId"), ct))!.AsObject(),
         ProtocolMethods.EngineeringHarness => IntegrationJson.Node(Harness().Inspect(p.Str("projectId")))!.AsObject(),
         ProtocolMethods.EngineeringCatalog => IntegrationJson.Node(new HarnessCatalogService(harness).Read(p.OptionalStr("projectId")))!.AsObject(),
@@ -28,6 +25,12 @@ internal sealed class EngineeringRequestHandler(
         ProtocolMethods.EngineeringMcp => IntegrationJson.Node(Mcp().Read(p.Str("projectId")))!.AsObject(),
         ProtocolMethods.EngineeringRevisions => IntegrationJson.Node(Revisions().Read(p.Str("projectId")))!.AsObject(),
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
+    };
+
+    private JsonObject Profile(TechnologyProfile? profile) => new()
+    {
+        ["profile"] = IntegrationJson.Node(profile),
+        ["compatibility"] = IntegrationJson.Node(profiles.Compatibility(profile))
     };
 
     private ProjectKnowledgeService Knowledge() =>

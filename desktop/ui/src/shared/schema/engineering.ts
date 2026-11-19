@@ -32,9 +32,35 @@ export const technologyProfileSchema = z.object({
   )
 });
 
-export const profileResultSchema = z.object({ profile: technologyProfileSchema.nullable() });
+/** Situação de suporte de cada pasta, calculada pelo motor a partir do catálogo de versões embutido. */
+export const compatibilitySchema = z.object({
+  catalogGeneratedAt: z.string(),
+  catalogStale: z.boolean(),
+  modules: z.array(
+    z.object({
+      root: z.string(),
+      technologyId: z.string(),
+      name: z.string(),
+      version: z.string().nullable(),
+      origin: z.enum(['stack', 'runtime', 'framework']),
+      status: z.enum(['current', 'supported', 'maintenance', 'end-of-life', 'preview', 'partial', 'unknown']),
+      statusLabel: z.string(),
+      eol: z.string().nullable(),
+      newestStable: z.string().nullable(),
+      confirmed: z.boolean(),
+      reason: z.string()
+    })
+  )
+});
+
+export const profileResultSchema = z.object({
+  profile: technologyProfileSchema.nullable(),
+  compatibility: compatibilitySchema.nullable().optional()
+});
 
 export type TechnologyProfile = z.infer<typeof technologyProfileSchema>;
+export type Compatibility = z.infer<typeof compatibilitySchema>;
+export type ProfileResult = z.infer<typeof profileResultSchema>;
 export type ProfileChange = TechnologyProfile['history'][number];
 
 /** Sem `authorized`, nada vai e `documents` é zero. Só contagens e rótulos: o texto dos itens não sai do motor. */

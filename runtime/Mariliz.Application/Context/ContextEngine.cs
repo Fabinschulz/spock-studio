@@ -2,6 +2,7 @@ using Mariliz.Core.Policy;
 using System.Globalization;
 using System.Text;
 using Mariliz.Application.Cloud;
+using Mariliz.Application.Compatibility;
 using Mariliz.Application.Engineering;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
@@ -21,7 +22,8 @@ public sealed class ContextEngine(
     ITokenizers tokenizers,
     IClock clock,
     IntegrationHub? integrations = null,
-    CloudHub? cloud = null)
+    CloudHub? cloud = null,
+    ReleaseCatalog? releases = null)
 {
     public const int DefaultBootstrapBudget = 1500;
     public const int MinBudget = 200;
@@ -34,6 +36,7 @@ public sealed class ContextEngine(
     private static readonly (string Id, string Title)[] BootstrapSections =
     [
         ("identity", "Identidade"),
+        ("versions", "Restrições de versão"),
         ("policies", "O que cada vínculo libera"),
         ("connections", "Conexões e frescor"),
         ("harness", "Harness"),
@@ -45,6 +48,7 @@ public sealed class ContextEngine(
     [
         ("identity", "Identidade"),
         ("stacks", "Tecnologias do projeto"),
+        ("versions", "Restrições de versão"),
         ("references", "Referências da Organização"),
         ("warnings", "Avisos")
     ];
@@ -70,14 +74,20 @@ public sealed class ContextEngine(
         var candidates = new List<ContextItem>();
         candidates.AddRange(Identity(project, stableId, now, naming));
         (string Id, string Title)[] sections;
+        var stored = profiles.Read(projectId);
+        // Logo depois da identidade: é o que impede o agente de trazer recurso de outra geração para o projeto.
+        var versions = Versions(stored, now).ToList();
         var version = Version(project, stableId, links, cloudLinks, status);
+        if (versions.Count > 0)
+            version = "ctx-" + Hashing.Sha256(string.Join("\n", [version, .. versions.Select(item => item.Text)]))[..16];
         if (intent == ContextIntents.Architecture)
         {
-            var profile = profiles.Read(projectId);
+            var profile = stored;
             var stacks = Stacks(profile);
             var patterns = OrganizationReferences.Patterns.Where(pattern => pattern.AppliesTo(stacks.Select(item => item.Ref).ToHashSet())).ToList();
             // O aviso entra antes das referências no orçamento (o texto o mostra no fim): sem perfil, ele explica por que não há filtro.
             candidates.AddRange(stacks);
+            candidates.AddRange(versions);
             candidates.AddRange(ArchitectureWarnings(profile, now));
             candidates.AddRange(References(patterns));
             sections = ArchitectureSections;
@@ -87,6 +97,7 @@ public sealed class ContextEngine(
         {
             if (integrations is null) limitations.Add("As integrações não estão disponíveis nesta sessão do motor: o pacote não fala de Jira, GitHub e afins.");
             if (cloud is null) limitations.Add("As conexões cloud não estão disponíveis nesta sessão do motor.");
+            candidates.AddRange(versions);
             candidates.AddRange(Policies(links, cloudLinks));
             candidates.AddRange(Connections(links, cloudLinks, now));
             candidates.AddRange(Harness(status, naming));
@@ -205,6 +216,37 @@ public sealed class ContextEngine(
             "spock", technology.Id, ContextClassifications.Discovered, profile.AnalyzedAt,
             ContextFreshness.Fresh))
         .ToList();
+
+    // Uma restrição por pasta e tecnologia (stack e runtime fixado). Frameworks do catálogo vão numa linha só: a versão
+    // deles importa, mas a regra é a mesma da stack. Sem perfil, o aviso de tecnologias não analisadas já cobre.
+    private IEnumerable<ContextItem> Versions(TechnologyProfile? profile, DateTimeOffset now)
+    {
+        if (profile is null) yield break;
+        var freshness = now - profile.AnalyzedAt > ProfileFreshFor ? ContextFreshness.Stale : ContextFreshness.Fresh;
+        if (profile.Modules.Count == 0)
+        {
+            yield return new ContextItem("versions",
+                "O perfil foi gravado antes das restrições por pasta: reanalise o projeto no Spock e, até lá, leia os manifestos antes de usar recurso que dependa de versão.",
+                "spock", "modules", ContextClassifications.Calculated, profile.AnalyzedAt, ContextFreshness.Stale);
+            yield break;
+        }
+
+        var report = CompatibilityAssessor.Assess(profile.Modules, releases ?? ReleaseCatalog.Embedded, now);
+        foreach (var module in report.Modules.Where(module => module.Origin != ProjectModules.Framework))
+            yield return new ContextItem("versions",
+                $"{module.Guidance} Situação: {module.StatusLabel.ToLowerInvariant()}{(module.Eol is { } eol ? $" (suporte até {eol})" : "")}.",
+                "spock", $"{module.Root}:{module.TechnologyId}:{module.Origin}", ContextClassifications.Calculated, profile.AnalyzedAt, freshness);
+
+        var frameworks = report.Modules.Where(module => module.Origin == ProjectModules.Framework).ToList();
+        if (frameworks.Count > 0)
+            yield return new ContextItem("versions",
+                $"Versões fixadas no projeto, a manter: {string.Join("; ", frameworks.Select(module => $"{module.Name} {module.Version} em {module.Root}"))}.",
+                "spock", "frameworks", ContextClassifications.Discovered, profile.AnalyzedAt, freshness);
+        if (report.CatalogStale)
+            yield return new ContextItem("versions",
+                $"O catálogo de versões é de {Stamp(report.CatalogGeneratedAt)} ou teve fonte indisponível: a situação de suporte pode estar desatualizada.",
+                "spock", "catalog", ContextClassifications.Calculated, report.CatalogGeneratedAt, ContextFreshness.Stale);
+    }
 
     // Padrões da stack primeiro, depois os gerais: se o orçamento apertar, sai primeiro o que vale para qualquer projeto.
     private static IEnumerable<ContextItem> References(IReadOnlyList<ReferencePattern> patterns)

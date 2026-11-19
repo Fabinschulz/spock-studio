@@ -149,6 +149,16 @@ public class TechnologyProfileTests
         // Ambientes de IA dependem da máquina que roda o teste: a fixture guarda só o formato da lista.
         var node = System.Text.Json.Nodes.JsonNode.Parse(text)!;
         node["profile"]!["aiEnvironments"] = new JsonArray();
+        // A situação de suporte vem do catálogo embutido, que muda a cada atualização: a fixture guarda os campos, não os valores.
+        // Os valores trocados continuam válidos para o Zod da interface, que lê esta fixture.
+        node["compatibility"]!["catalogGeneratedAt"] = "2026-11-18T00:00:00+00:00";
+        node["compatibility"]!["catalogStale"] = false;
+        foreach (var module in node["compatibility"]!["modules"]!.AsArray())
+        {
+            module!["status"] = "unknown";
+            foreach (var field in new[] { "statusLabel", "reason", "guidance" }) module[field] = "<catálogo>";
+            foreach (var field in new[] { "cycle", "channel", "eol", "latestInCycle", "newestStable", "language" }) module[field] = null;
+        }
         text = node.ToJsonString(new System.Text.Json.JsonSerializerOptions
         {
             WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
