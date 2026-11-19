@@ -25,11 +25,15 @@ Toda classificação leva `reason` (o porquê, em uma frase), `confirmed` (a ver
 | Node.js / React / Next.js / Angular | `package.json`, `node_modules/<pacote>/package.json`, lockfiles npm/pnpm/yarn/bun, **`.nvmrc`, `.node-version`**, `engines.node` | Versão instalada; sem ela, a faixa declarada (`confirmed=false`). Node pelo arquivo de versão mais próximo, ou o mínimo do `engines` | Cada `package.json` até profundidade 3 | `CompatibilityTests`, testes de descoberta existentes |
 | Vite, TypeScript e demais frameworks JS | Dependências do `package.json` | Faixa declarada | Raiz do pacote | Classificados quando estão no catálogo (Vite, TypeScript) |
 | Python | `pyproject.toml` (`requires-python`, `target-version` do ruff), `.python-version`, `setup.py`, `Pipfile` (`python_version`), `requirements*.txt/.in/.lock` | `.python-version`; sem ele, o que o manifesto declara (mínimo de `requires-python`) | Cada manifesto até profundidade 3 | `CompatibilityTests`, `LanguageDiscoveryTests` |
-| Java | `pom.xml` (`maven.compiler.release`/`source`, `java.version`, `release`), `build.gradle[.kts]` (toolchain `JavaLanguageVersion.of`, `JavaVersion.VERSION_*`) | Propriedade declarada | Cada manifesto | `LanguageDiscoveryTests`. Gradle Wrapper e `.sdkmanrc`: MV-4 |
-| Go | `go.mod` (diretiva `go`) | Diretiva `go` | Cada `go.mod` | `LanguageDiscoveryTests`. `toolchain` do `go.mod`: MV-4 |
+| Java | `pom.xml` (`maven.compiler.release`/`source`, `java.version`, `release`), `build.gradle[.kts]` (toolchain `JavaLanguageVersion.of`, `JavaVersion.VERSION_*`) | Propriedade declarada | Cada manifesto | `LanguageDiscoveryTests`, `EcosystemDiscoveryTests`. Kotlin e Android Gradle Plugin pelo bloco `plugins`; Gradle do wrapper (`gradle-wrapper.properties`) e Java do `.sdkmanrc` como runtime |
+| Go | `go.mod` (diretiva `go` e `toolchain`) | Diretiva `go` (stack); `toolchain` como runtime | Cada `go.mod` | `LanguageDiscoveryTests`, `EcosystemDiscoveryTests` |
 | Rust | `Cargo.toml` (`rust-version`), `rust-toolchain[.toml]` | Canal fixado; sem ele, o mínimo declarado | Cada `Cargo.toml` | `LanguageDiscoveryTests` |
 | Flutter / Dart | `pubspec.yaml` | Restrição do SDK | Cada `pubspec.yaml` | Testes de descoberta existentes. Fora do catálogo: `unknown` |
-| PHP, Ruby, C/C++, Kotlin/Android, Swift, asdf/mise, Volta | Não lidos | — | — | MV-4 |
+| PHP | `composer.json` (`config.platform.php`, `require.php`, `require`/`require-dev`), `.php-version`, `composer.lock` | Plataforma do Composer; depois `.php-version`; depois o mínimo do `require.php` | Cada `composer.json` | `EcosystemDiscoveryTests`. Laravel, Symfony, Slim, Doctrine, PHPUnit, Pest |
+| Ruby | `Gemfile` (`ruby`, `gem`), `Gemfile.lock` (gems e `RUBY VERSION`), `.ruby-version` | `.ruby-version`; depois o `ruby` do Gemfile; depois o lock | Cada `Gemfile` | `EcosystemDiscoveryTests`. Rails, Sinatra, Sidekiq, RSpec, Minitest com a versão do lock |
+| C/C++ | `CMakeLists.txt` (`CMAKE_CXX_STANDARD`, `cxx_std_N`, `CMAKE_C_STANDARD`, `cmake_minimum_required`) | Padrão da linguagem (C++20, C11); CMake mínimo como nota | Projeto CMake de cima (subpastas são parte dele) | `EcosystemDiscoveryTests`. Makefile e Bazel não são lidos |
+| Swift | `Package.swift` (`swift-tools-version`) | Versão das ferramentas do SwiftPM | Cada `Package.swift` | `EcosystemDiscoveryTests`. Projeto só Xcode não é lido |
+| Gerenciadores de versão | `.tool-versions` (asdf), `mise.toml`/`.mise.toml`, `volta.node` do `package.json`, `.sdkmanrc` | Runtime fixado para a pasta e as de baixo; o mais próximo vence. Node: `.nvmrc`/`.node-version`, depois Volta, depois o gerenciador, por fim o mínimo do `engines` | Por stack | `EcosystemDiscoveryTests` |
 
 ## Catálogo de versões (consulta de 2026-11-18)
 
@@ -41,6 +45,8 @@ Toda classificação leva `reason` (o porquê, em uma frase), `confirmed` (a ver
 | Go | `go.dev/dl/?mode=json` | Janela: só as duas mais novas | As listadas pela fonte |
 | Rust | `static.rust-lang.org/dist/channel-rust-stable.toml` | Contínua: só a estável recebe correção | A estável atual |
 | Java | Eclipse Adoptium (`api.adoptium.net`) | Fornecedor | As disponíveis. LTS antigas como `partial` |
+| PHP | `www.php.net/releases/states.php` | Janela: suporte ativo, depois só segurança, depois fim | As listadas pela fonte |
+| Ruby | `branches.yml` do repositório do site oficial (`ruby/www.ruby-lang.org`) | Datas da fonte (manutenção normal, legada, fim) | As listadas; branches antigas de três números viram `major.minor` |
 | React, Angular, Next.js, Vite, TypeScript | `registry.npmjs.org` | Maior mais nova | Uma linha por versão maior |
 
 O gerador marca a entrada como `stale` quando a fonte falha, devolve dado inválido ou faz a linha ativa mais nova regredir. Nesse caso mantém a consulta anterior. O motor marca o catálogo como desatualizado quando alguma fonte está `stale` ou quando ele tem mais de 90 dias, e diz isso ao agente.

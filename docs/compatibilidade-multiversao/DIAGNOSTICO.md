@@ -129,8 +129,8 @@ O que o .NET 11 traz de relevante para um motor console, stdio, publicado self-c
 | `global.json` ignorado | Resolvida |
 | Nenhuma noção de suporte ou fim de vida | Resolvida: catálogo e classificação |
 | O agente não recebia restrição de versão | Resolvida no contexto (`bootstrap` e `architecture`) |
-| Gradle Wrapper (`gradle-wrapper.properties`), `toolchain` do `go.mod`, `.tool-versions` (asdf/mise), `mise.toml`, Volta, `.sdkmanrc` | Aberta: MV-4 |
-| PHP (`composer.json`), Ruby (`Gemfile`, `.ruby-version`), C/C++ (CMake), Kotlin/Android, Swift | Aberta: MV-4 |
+| Gradle Wrapper (`gradle-wrapper.properties`), `toolchain` do `go.mod`, `.tool-versions` (asdf/mise), `mise.toml`, Volta, `.sdkmanrc` | Resolvida no MV-4 |
+| PHP (`composer.json`), Ruby (`Gemfile`, `.ruby-version`), C/C++ (CMake), Kotlin/Android, Swift | Resolvida no MV-4 (o `compileSdk` do Android e projetos só Xcode, Makefile ou Bazel seguem fora) |
 | Compatibilidade entre tecnologias (Vite 8 exige Node >= 20.19, React 19 com TypeScript) | Aberta: MV-3 |
 | Verificação depois da implementação (o diff usa API mais nova que o alvo?) | Aberta: MV-3 |
 

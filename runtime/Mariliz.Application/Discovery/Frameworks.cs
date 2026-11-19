@@ -63,6 +63,7 @@ internal static partial class Frameworks
         ["AWSSDK"] = new("aws-sdk", "AWS SDK", Cloud),
         ["ModelContextProtocol"] = new("mcp-sdk", "SDK do MCP", Ai),
         ["Microsoft.SemanticKernel"] = new("semantic-kernel", "Semantic Kernel", Ai),
+        ["Microsoft.Agents.AI"] = new("agent-framework", "Microsoft Agent Framework", Ai),
         ["Microsoft.Extensions.AI"] = new("microsoft-extensions-ai", "Microsoft.Extensions.AI", Ai),
         ["OpenAI"] = new("openai", "OpenAI SDK", Ai),
         ["xunit"] = new("xunit", "xUnit", Tests),
@@ -96,6 +97,9 @@ internal static partial class Frameworks
         ["langgraph"] = new("langgraph", "LangGraph", Ai),
         ["langchain"] = new("langchain", "LangChain", Ai),
         ["langchain-core"] = new("langchain", "LangChain", Ai),
+        ["agent-framework"] = new("agent-framework", "Microsoft Agent Framework", Ai),
+        ["agent-framework-core"] = new("agent-framework", "Microsoft Agent Framework", Ai),
+        ["semantic-kernel"] = new("semantic-kernel", "Semantic Kernel", Ai),
         ["pydantic"] = new("pydantic", "Pydantic", Validation),
         ["sqlalchemy"] = new("sqlalchemy", "SQLAlchemy", Data),
         ["pytest"] = new("pytest", "pytest", Tests)
@@ -124,10 +128,33 @@ internal static partial class Frameworks
         ["spring-boot"] = new("spring-boot", "Spring Boot", Web),
         ["quarkus"] = new("quarkus", "Quarkus", Web),
         ["junit-jupiter"] = new("junit", "JUnit", Tests),
-        ["hibernate-core"] = new("hibernate", "Hibernate", Data)
+        ["hibernate-core"] = new("hibernate", "Hibernate", Data),
+        // Plugins do Gradle, lidos do bloco plugins: a linguagem e o build do Android, que limitam o que o código pode usar.
+        ["kotlin"] = new("kotlin", "Kotlin", "Linguagem"),
+        ["android-gradle-plugin"] = new("android-gradle-plugin", "Android Gradle Plugin", App)
     };
 
-    private static readonly Dictionary<string, Known> ById = new[] { Node, Python, Rust, Go, Java, Dotnet }
+    internal static readonly IReadOnlyDictionary<string, Known> Php = new Dictionary<string, Known>(StringComparer.Ordinal)
+    {
+        ["laravel/framework"] = new("laravel", "Laravel", Web),
+        ["symfony/framework-bundle"] = new("symfony", "Symfony", Web),
+        ["slim/slim"] = new("slim", "Slim", Web),
+        ["doctrine/orm"] = new("doctrine", "Doctrine ORM", Data),
+        ["phpunit/phpunit"] = new("phpunit", "PHPUnit", Tests),
+        ["pestphp/pest"] = new("pest", "Pest", Tests)
+    };
+
+    internal static readonly IReadOnlyDictionary<string, Known> Ruby = new Dictionary<string, Known>(StringComparer.Ordinal)
+    {
+        ["rails"] = new("rails", "Ruby on Rails", Web),
+        ["sinatra"] = new("sinatra", "Sinatra", Web),
+        ["sidekiq"] = new("sidekiq", "Sidekiq", Jobs),
+        ["rspec"] = new("rspec", "RSpec", Tests),
+        ["rspec-core"] = new("rspec", "RSpec", Tests),
+        ["minitest"] = new("minitest", "Minitest", Tests)
+    };
+
+    private static readonly Dictionary<string, Known> ById = new[] { Node, Python, Rust, Go, Java, Dotnet, Php, Ruby }
         .SelectMany(map => map.Values)
         .Concat([AspNetCore, Worker])
         .GroupBy(known => known.Id, StringComparer.Ordinal)

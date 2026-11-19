@@ -18,9 +18,13 @@ public static class Technologies
     public static readonly Technology Java = new("java", "Java", "Plataforma e runtime", RuleFamily.None, null, Pattern(@"\bjava\b|\bspring\b|\bkotlin\b"));
     public static readonly Technology Go = new("go", "Go", "Linguagem", RuleFamily.None, null, Pattern(@"\bgolang\b|\bgo\b"));
     public static readonly Technology Rust = new("rust", "Rust", "Linguagem", RuleFamily.None, null, Pattern(@"\brust\b"));
+    public static readonly Technology Php = new("php", "PHP", "Linguagem e runtime", RuleFamily.None, null, Pattern(@"\bphp\b|\blaravel\b|\bsymfony\b"));
+    public static readonly Technology Ruby = new("ruby", "Ruby", "Linguagem e runtime", RuleFamily.None, null, Pattern(@"\bruby\b|\brails\b"));
+    public static readonly Technology Cpp = new("cpp", "C/C++", "Linguagem", RuleFamily.None, null, Pattern(@"\bc\+\+|\bcmake\b"));
+    public static readonly Technology Swift = new("swift", "Swift", "Linguagem", RuleFamily.None, null, Pattern(@"\bswift\b"));
 
     // A ordem vale para ler a arquitetura: a primeira que casar vence ("Next.js com React" é Next.js, "ASP.NET com TypeScript" é .NET).
-    public static readonly IReadOnlyList<Technology> All = [Nextjs, Angular, React, Dotnet, Node, Flutter, Python, Java, Go, Rust];
+    public static readonly IReadOnlyList<Technology> All = [Nextjs, Angular, React, Dotnet, Node, Flutter, Python, Java, Go, Rust, Php, Ruby, Cpp, Swift];
 
     public static Technology? Find(string? id) => id is null ? null : All.FirstOrDefault(technology => technology.Id == id);
 

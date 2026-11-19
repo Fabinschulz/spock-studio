@@ -8,6 +8,8 @@ Só fontes oficiais, cada uma com o seu formato:
   Go      go.dev/dl/?mode=json
   Rust    static.rust-lang.org/dist/channel-rust-stable.toml
   Java    api.adoptium.net (Eclipse Adoptium)
+  PHP     www.php.net/releases/states.php
+  Ruby    github.com/ruby/www.ruby-lang.org (_data/branches.yml, a fonte da página de branches do site oficial)
   React, Angular, Next.js, Vite, TypeScript: registry.npmjs.org
 
 Uma fonte que falha, devolve dado inválido ou regride a linha mais nova mantém a entrada anterior do catálogo, marcada
@@ -219,6 +221,61 @@ def parse_npm(document: dict) -> tuple[list[dict], str | None]:
     return lines, max(prereleases, key=lambda tag: version_key(tag.split("-")[0]), default=None)
 
 
+def parse_php(states: dict, today: dt.date) -> list[dict]:
+    # A lista oficial só traz as linhas suportadas; o motor trata o que é mais antigo que ela como sem suporte.
+    lines = []
+    for branches in states.values():
+        for cycle, item in branches.items():
+            active_end = (item.get("active_support_end") or "")[:10] or None
+            security_end = (item.get("security_support_end") or "")[:10] or None
+            state = item.get("state")
+            if state == "eol":
+                status = "eol"
+            elif state == "security" or (active_end and today > dt.date.fromisoformat(active_end)):
+                status = "maintenance"
+            elif state == "stable":
+                status = "active"
+            else:
+                status = "preview"
+            lines.append({
+                "cycle": cycle, "channel": "preview" if status == "preview" else "stable", "status": status,
+                "releaseDate": (item.get("initial_release") or "")[:10] or None, "eol": security_end, "latest": None, "latestDate": None,
+                "language": None,
+            })
+    return lines
+
+
+def parse_ruby(branches_yml: str) -> list[dict]:
+    # branches.yml é uma lista plana de "- name:" com chaves simples; não precisa de biblioteca de YAML.
+    statuses = {"normal maintenance": "active", "security maintenance": "maintenance", "legacy maintenance": "maintenance",
+                "eol": "eol", "preview": "preview"}
+    lines, current = [], None
+    for raw in branches_yml.splitlines():
+        line = raw.split("#")[0].rstrip()
+        match = re.match(r"^-?\s*(\w+):\s*(.*)$", line.strip())
+        if not match:
+            continue
+        key, value = match.group(1), match.group(2).strip().strip("'\"")
+        if line.lstrip().startswith("- ") and key == "name":
+            current = {"name": value}
+            lines.append(current)
+        elif current is not None:
+            current[key] = value
+    result = []
+    for item in lines:
+        status = statuses.get(item.get("status", ""), "unknown")
+        # Antes da 2.1 a branch tinha três números (2.0.0, 1.9.3); a linha é major.minor como nas demais.
+        cycle = ".".join(re.findall(r"\d+", item["name"])[:2])
+        if not cycle or any(existing["cycle"] == cycle for existing in result):
+            continue
+        result.append({
+            "cycle": cycle, "channel": "preview" if status == "preview" else "stable", "status": status,
+            "releaseDate": item.get("date") or None, "eol": item.get("eol_date") or item.get("expected_eol_date") or None,
+            "latest": None, "latestDate": None, "language": None,
+        })
+    return result
+
+
 # O engines.node da versão mais nova da linha: é o que o pacote declara aceitar, e o motor confronta com o Node do projeto.
 def _requires(manifest: dict) -> dict | None:
     engines = manifest.get("engines") if isinstance(manifest, dict) else None
@@ -253,6 +310,11 @@ SOURCES: list[dict] = [
     {"id": "java", "name": "Java (Eclipse Adoptium)", "policy": "vendor", "cycle": "major",
      "url": "https://api.adoptium.net/v3/info/available_releases",
      "load": lambda today: (parse_java(fetch_json("https://api.adoptium.net/v3/info/available_releases")), None)},  # type: ignore[arg-type]
+    {"id": "php", "name": "PHP", "policy": "supported-window", "cycle": "major.minor", "url": "https://www.php.net/releases/states.php",
+     "load": lambda today: (parse_php(fetch_json("https://www.php.net/releases/states.php"), today), None)},  # type: ignore[arg-type]
+    {"id": "ruby", "name": "Ruby", "policy": "lifecycle", "cycle": "major.minor",
+     "url": "https://github.com/ruby/www.ruby-lang.org/blob/master/_data/branches.yml",
+     "load": lambda today: (parse_ruby(fetch("https://raw.githubusercontent.com/ruby/www.ruby-lang.org/master/_data/branches.yml").decode()), None)},
     {"id": "react", "name": "React", "policy": "latest-major", "cycle": "major", "url": "https://registry.npmjs.org/react", "load": npm_source("react")},
     {"id": "angular", "name": "Angular", "policy": "latest-major", "cycle": "major", "url": "https://registry.npmjs.org/@angular/core",
      "load": npm_source("@angular/core")},
