@@ -73,3 +73,8 @@ todas as seções.
 
 Mudou um arquivo daqui? A versão nova do motor leva o texto novo, e o índice de cada projeto se atualiza na próxima
 execução, pelo hash.
+
+O eval de referências (`intelligence/evaluations/references.py`) mede se a busca acha o padrão certo para cada stack sem
+trazer seção de outra. Ele roda sobre uma cópia dos documentos que o motor gera: depois de mudar esta pasta, regenere a cópia
+(`MARILIZ_UPDATE_GOLDEN=1`, teste `ReferenceCorpusTests`) e confira o eval; um padrão novo que valha perguntar entra no
+dataset `intelligence/evaluations/datasets/references.json`.

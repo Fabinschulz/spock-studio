@@ -1,0 +1,28 @@
+{
+  "schema": "rag.references.v1",
+  "description": "Perguntas que um agente faria num projeto de cada stack, com os padrões REF-* da pasta Organização que respondem. Um acerto é um dos ids esperados no corpo de um dos k primeiros trechos. Contaminação é trecho de seção marcada com outra stack entre os k primeiros.",
+  "k": 3,
+  "target": { "recallAtK": 0.8, "contaminationAtK": 0.0 },
+  "cases": [
+    { "id": "react-contrato-zod", "technologies": ["react"], "query": "como validar a resposta da API com Zod na ida e na volta", "expect": ["REF-R3"] },
+    { "id": "react-query-keys", "technologies": ["react"], "query": "query keys em fábrica e retry do QueryClient em erro 4xx", "expect": ["REF-R4"] },
+    { "id": "react-filtro-na-url", "technologies": ["react"], "query": "guardar estado de filtro e lista na URL", "expect": ["REF-R7"] },
+    { "id": "react-sessao", "technologies": ["react"], "query": "sessão em cookie httpOnly e guarda de rota no cliente e no servidor", "expect": ["REF-R6"] },
+    { "id": "react-camadas", "technologies": ["react"], "query": "camadas app features shared verificadas por ESLint", "expect": ["REF-R1"] },
+    { "id": "react-carregamento", "technologies": ["react"], "query": "skeleton e estado de carregamento com atraso no botão de envio", "expect": ["REF-R10"] },
+    { "id": "next-hidratacao", "technologies": ["nextjs"], "query": "warning de hidratação mismatch no Next", "expect": ["REF-R11"] },
+    { "id": "react-erro", "technologies": ["react"], "query": "taxonomia de erro da API e erro no campo do formulário", "expect": ["REF-R5", "REF-P3"] },
+    { "id": "angular-refresh", "technologies": ["angular"], "query": "interceptor de autenticação com refresh do token deduplicado", "expect": ["REF-A2"] },
+    { "id": "angular-chunk", "technologies": ["angular"], "query": "falha ao carregar chunk depois de um deploy novo", "expect": ["REF-A3"] },
+    { "id": "angular-mascara", "technologies": ["angular"], "query": "máscara de telefone no formulário guardando só os dígitos", "expect": ["REF-A6"] },
+    { "id": "angular-busca", "technologies": ["angular"], "query": "busca com Subject e switchMap para descartar resposta obsoleta", "expect": ["REF-A7"] },
+    { "id": "dotnet-retry", "technologies": ["dotnet"], "query": "retry com jitter só em método idempotente e timeout por tentativa", "expect": ["REF-N2"] },
+    { "id": "dotnet-rate-limit", "technologies": ["dotnet"], "query": "rate limiter por tenant com espera diferente no worker e na API", "expect": ["REF-N3"] },
+    { "id": "dotnet-fila", "technologies": ["dotnet"], "query": "consumidor de fila com envelope versionado e dead letter", "expect": ["REF-N6"] },
+    { "id": "dotnet-webhook", "technologies": ["dotnet"], "query": "webhook seguro com assinatura HMAC", "expect": ["REF-N9"] },
+    { "id": "dotnet-eventos", "technologies": ["dotnet"], "query": "publicar eventos de domínio só depois do commit", "expect": ["REF-N11", "REF-P4"] },
+    { "id": "dotnet-segredos", "technologies": ["dotnet"], "query": "segredos por tenant buscados na hora da chamada", "expect": ["REF-N8"] },
+    { "id": "dotnet-migracao", "technologies": ["dotnet"], "query": "rodar a migração do banco no deploy e não na réplica", "expect": ["REF-P7", "REF-N14"] },
+    { "id": "monorepo-ci", "technologies": ["react", "dotnet"], "query": "CI seletivo pelo diff contra o merge-base no monorepo", "expect": ["REF-M1"] }
+  ]
+}

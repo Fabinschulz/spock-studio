@@ -1,0 +1,2 @@
+{"measuredAt":"2026-11-18","metrics":{"cases":20,"contaminationAtK":0.0,"contaminationAtKUnfiltered":0.25,"mrr":0.975,"recallAtK":1.0},"suite":"references"}
+{"measuredAt":"2026-11-18","metrics":{"cases":6,"expected":6,"falsePositives":0,"found":6,"recall":1},"suite":"architecture"}
