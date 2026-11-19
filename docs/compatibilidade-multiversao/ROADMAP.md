@@ -14,7 +14,7 @@ A sequência foi definida pelo que destrava as outras entregas. O MV-1 é a base
 | MV-6 | Funcionalidade | O Spock não cria projeto | `project.scaffold` sobre a jornada "Da ideia ao projeto" (W4-3): versões do MV-5, comandos oficiais de criação (`dotnet new`, `npm create vite`) com versão fixada, registro `spock-versions.json` no projeto gerado, build e teste do projeto gerado | MV-5, W4-3 | A | O projeto .NET + React + Vite gerado compila e passa nos testes; o registro diz versão, motivo, fonte e data |
 | MV-7 | Funcionalidade | Modernização misturada a tarefas | `modernization.plan` (W4-2) consumindo a compatibilidade: saltos por linha, breaking changes da fonte oficial, passos reversíveis, rollback, aprovação por passo | MV-1, W4-1 | A | Plano para .NET 6 → 10 em passos (6 → 8 → 10) com critério de aceite por passo; nenhuma mudança aplicada sem aprovação |
 | MV-8 | Modernização do Spock | Runtime embarcado e CI desatualizados | (a) **feito** (MV-8a, ver abaixo): CPython embarcado 3.12.10 → 3.12.16; (b) `global.json` do motor (10.0.x, `latestFeature`); (c) GitHub Actions para os majors atuais, uma por vez; (d) Dependabot para NuGet, npm, Cargo, pip e Actions, agrupado por ecossistema, com a política de patch/minor/major e sem merge automático | **DD-MV-1** para (c) e (d) | M | Smoke do instalador verde; `generate_sbom.py --check` verde; Dependabot abre PR agrupado com o rótulo do tipo de atualização |
-| MV-9 | Modernização do Spock | Majors pendentes na interface e nos testes | Uma entrega por item: TypeScript 7 + typescript-eslint; ESLint 10; Vitest 5.1; Tauri 2.12.x alinhado (crate, CLI, API, plugins; **feito**, ver abaixo); Microsoft.NET.Test.Sdk 18 + coverlet 10; xUnit v2 → v3; ProtectedData no trem 10.0.x **depois de resolver o aviso de licença** (o pacote 10.0.15 traz só a expressão MIT); pnpm 9 → 12; Python 3.12 → 3.13/3.14 (com `sqlite-vec` validado) | MV-8 | M cada | Por item: build, testes, lint, smoke e conformidade de licenças verdes, com versão anterior, nova, fonte e testes registrados no PR |
+| MV-9 | Modernização do Spock | Majors pendentes na interface e nos testes | Uma entrega por item: TypeScript 7 + typescript-eslint (**bloqueado**, ver abaixo); ESLint 10 (**bloqueado**, ver abaixo); Vitest 5.1 (**feito**, com Vite e plugin-react); Tauri 2.12.x alinhado (crate, CLI, API, plugins; **feito**, ver abaixo); Microsoft.NET.Test.Sdk 18 + coverlet 10; xUnit v2 → v3; ProtectedData no trem 10.0.x **depois de resolver o aviso de licença** (o pacote 10.0.15 traz só a expressão MIT); pnpm 9 → 12; Python 3.12 → 3.13/3.14 (com `sqlite-vec` validado) | MV-8 | M cada | Por item: build, testes, lint, smoke e conformidade de licenças verdes, com versão anterior, nova, fonte e testes registrados no PR |
 | MV-10 | Avaliação | .NET 11 | Ramo de avaliação: suíte, smoke do instalador, `argv[0]` do lançador, requisito de CPU, ganho do Runtime Async medido no laço do protocolo | **DD-MV-3** | M | Relatório com o ganho medido e os riscos; a decisão de migrar fica com o dono, com o .NET 12 LTS como alvo provável |
 
 ## Ordem
@@ -80,6 +80,27 @@ Maior valor por esforço depois do MV-1 era o **MV-8 (a)**, feito, e depois o **
 - **Escopo do `cargo update`.** Restrito aos pacotes do Tauri (`-p`): mudaram só a árvore do Tauri, o `rfd` e as crates de hash que o `tauri-codegen` 2.7.6 traz. O `pnpm-lock.yaml` mudou só nos pacotes `@tauri-apps`.
 - **Achado.** Depois da troca do `@tauri-apps/api`, 22 testes da interface falharam localmente sem defeito: o cache de módulos do Vitest (`node_modules/.vitest-cache`, na raiz) guardava o caminho resolvido da versão antiga, e o `vi.mock` deixou de interceptar. Registrado em [POLITICA.md](POLITICA.md).
 - **Testes.** Motor 1.817 e 12 de integração; host em Rust com `cargo fmt --check`, `cargo clippy -D warnings` e 50 testes; interface com typecheck, lint, formatação e 860 testes; `build-runtime.ps1 -FetchPython`; instalador NSIS; smoke do instalador e motor instalado de ponta a ponta (ver o PR); `generate_sbom.py --check` com o manifesto de avisos completo. Linux e macOS não foram executados.
+
+## MV-9, item 2: Vitest, Vite e plugin-react (2026-11-19)
+
+| Componente | Antes | Depois | Fonte |
+|---|---|---|---|
+| `vitest` | 5.0.5 | 5.1.1 | Notas `v5.1.0` e `v5.1.1` (recursos e correções, sem mudança incompatível) |
+| `vite` | 8.3.5 | 8.3.8 | `CHANGELOG.md` do Vite (só patches) |
+| `@vitejs/plugin-react` | 6.1.2 | 6.3.0 | `CHANGELOG.md` do plugin (opções novas de fast refresh e correções) |
+| `rolldown` (transitivo do Vite) | 1.2.15 | 1.2.19 | Puxado pelo Vite 8.3.8 |
+
+- Sobem juntas porque o Vitest roda sobre o Vite e o plugin-react exige o Vite 8.
+- **Pré-lançamento transitivo.** O lock passou a listar `@emnapi/core` e `@emnapi/runtime` 2.0.0-beta.2. O próprio rolldown fixa essas versões, e elas servem só à variante `@rolldown/binding-wasm32-wasi`, que é opcional e marcada `cpu: wasm32`. Não são instaladas em Windows, Linux nem macOS (conferido em `node_modules/.pnpm`), e nada disso vai no instalador.
+- **Aviso de tamanho do chunk.** O aviso do build (`index` com 1,56 MB) já existia no master, com o mesmo tamanho (1.562,76 kB antes, 1.562,84 kB depois).
+- **Testes.** Typecheck, lint, formatação e 860 testes da interface; `pnpm ui:build`; `generate_sbom.py --check` com o manifesto de avisos completo.
+
+## MV-9: itens bloqueados por compatibilidade (consulta de 2026-11-19)
+
+| Item | Bloqueio | Fonte | Quando reavaliar |
+|---|---|---|---|
+| TypeScript 6 → 7 | O `typescript-eslint` 8.73.0 (o mais novo) declara `typescript` `>=4.8.4 <6.1.0`. Com o TypeScript 7, o lint da interface fica fora do suportado | `registry.npmjs.org/typescript-eslint/latest` (`peerDependencies`) | Quando o `typescript-eslint` aceitar o TypeScript 7. O MV-2 (catálogo periódico) pode avisar |
+| ESLint 9 → 10 | O `eslint-plugin-jsx-a11y` 6.10.2 (o mais novo) declara `eslint` só até `^9`. O `typescript-eslint` e o `eslint-plugin-react-hooks` já aceitam o 10 | `registry.npmjs.org/eslint-plugin-jsx-a11y/latest` | Quando o `jsx-a11y` aceitar o ESLint 10, ou se a decisão for trocar de plugin de acessibilidade |
 
 ## Decisões que dependem do dono
 

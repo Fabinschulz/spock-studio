@@ -9976,7 +9976,7 @@
  },
  {
   "nome": "@oxc-project/types",
-  "versao": "0.155.0",
+  "versao": "0.156.0",
   "tipo": "library",
   "ecossistema": "npm",
   "origem": "https://oxc.rs",
@@ -9991,8 +9991,8 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@oxc-project+types@0.155.0/node_modules/@oxc-project/types",
-  "hashes": "SHA-512:49e13c24fc16d71b35b4778dc9c8d4b5405d868ad16bca388e5be3c24e3d47bfd9dbdd62fb80d06bb2492203a6fd3698419c7e42b3d06d527ff5cf1d30864df1",
+  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@oxc-project+types@0.156.0/node_modules/@oxc-project/types",
+  "hashes": "SHA-512:d43bb2838f1374935dca1101f179f52f7e9b4fd3efe8652d94a8c7c4ecacf3191a17fad0ab75c913e6c0bab48afc0808cf998616c6fbedc9fd3dbdb4f9609273",
   "nota": ""
  },
  {
@@ -10081,7 +10081,7 @@
  },
  {
   "nome": "@rolldown/binding-win32-x64-msvc",
-  "versao": "1.2.15",
+  "versao": "1.2.19",
   "tipo": "library",
   "ecossistema": "npm",
   "origem": "https://rolldown.rs/",
@@ -10096,8 +10096,8 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@rolldown+binding-win32-x64-msvc@1.2.15/node_modules/@rolldown/binding-win32-x64-msvc",
-  "hashes": "SHA-512:1c565dd90350627d496c88be1e977b1feaff9645b171f22edbc9e2ad9e9e0a7d8b69fbaf984c4c95bfcff7a49fc79b5fee93c0af0dfd21d866085f2f995f8d85",
+  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@rolldown+binding-win32-x64-msvc@1.2.19/node_modules/@rolldown/binding-win32-x64-msvc",
+  "hashes": "SHA-512:cbfb2a45173a77b8440b33857399f72d27aa72d988a7d98c8d8d4aab8b35e2e2cf77f2d9e33ee2d73ad6e9f32da7698f7ae4080b87ba50b31cc10ccca26a906a",
   "nota": ""
  },
  {
@@ -10264,7 +10264,7 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@testing-library+jest-dom@7.0.1_@testing-library+dom@10.4.2_vitest@5.0.5_@types+node@24.19.2__fjixxm7fnuhh6wm3htr3sgdfhu/node_modules/@testing-library/jest-dom",
+  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@testing-library+jest-dom@7.0.1_@testing-library+dom@10.4.2_vitest@5.1.1_@types+node@24.19.2__runwju3hnu5ies4grpzsj3g5vi/node_modules/@testing-library/jest-dom",
   "hashes": "SHA-512:a0c0d30b7a00fba09748ed89667bce23b080ea856e6fa9228f982093da21c327b9b259a4c316035dc3ce57180cc3f45096d89c8ed3b40b5459911f7b1e0ad633",
   "nota": ""
  },
@@ -10753,7 +10753,7 @@
  },
  {
   "nome": "@vitejs/plugin-react",
-  "versao": "6.1.2",
+  "versao": "6.3.0",
   "tipo": "library",
   "ecossistema": "npm",
   "origem": "https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#readme",
@@ -10768,13 +10768,13 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@vitejs+plugin-react@6.1.2_vite@8.3.5_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/@vitejs/plugin-react",
-  "hashes": "SHA-512:7e124d19476c7106b81e4234c45c70a275b28675517823c36d723b147ee39b3a67542ac5408ecf46b85679c3b6eb7eb5d2f3abb3db6bd98e3171ff2e01d1716f",
+  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@vitejs+plugin-react@6.3.0_vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/@vitejs/plugin-react",
+  "hashes": "SHA-512:1fd13de79695bc3d85e333470b0e1e2196c87c5eb12a576587b30dbbe85253bc7043387ae6523f37e0895aa99f862d0f1230d722dfc7ed3ec9ff8c14eb72898b",
   "nota": ""
  },
  {
   "nome": "@vitest/mocker",
-  "versao": "5.0.5",
+  "versao": "5.1.1",
   "tipo": "library",
   "ecossistema": "npm",
   "origem": "https://github.com/vitest-dev/vitest/tree/main/packages/mocker",
@@ -10789,13 +10789,13 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@vitest+mocker@5.0.5_vite@8.3.5_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/@vitest/mocker",
-  "hashes": "SHA-512:c4b2f79640de809670f8c1a819a082b056b20d9b611a0a40b6bdd5ce2c9f738a7bc47f3d2bb2913dc441061fe41189b402a92de43b539a462906d455fc5ac766",
+  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@vitest+mocker@5.1.1_vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/@vitest/mocker",
+  "hashes": "SHA-512:6f63a04c1e3edc899621569f5ca6b3257c0b2b043150d9e2c7a6f7c54bd44cc87b4725e5aedce8c5f66bf1a133f7390738c012e0ae65bb74ef156a2255e55342",
   "nota": ""
  },
  {
   "nome": "@vitest/spy",
-  "versao": "5.0.5",
+  "versao": "5.1.1",
   "tipo": "library",
   "ecossistema": "npm",
   "origem": "https://vitest.dev/api/mock",
@@ -10810,8 +10810,8 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@vitest+spy@5.0.5/node_modules/@vitest/spy",
-  "hashes": "SHA-512:970251131b87e35ef6e7b439c2ff5062e80df48309928c5cacaad8c463d0901ce5ef094da535310ffe72357e0448a55421284a3e090672160f14c58e3a4d30cf",
+  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/@vitest+spy@5.1.1/node_modules/@vitest/spy",
+  "hashes": "SHA-512:e8af02e9a9501b5fd873cfd9236da2252ec912cc4f755ceab6a0eafbfc4ce19d26195ca47a63158cb86a332feaebf207606de4283f21292c117a7fd977223dbd",
   "nota": ""
  },
  {
@@ -14827,7 +14827,7 @@
  },
  {
   "nome": "magic-string",
-  "versao": "1.4.4",
+  "versao": "1.4.5",
   "tipo": "library",
   "ecossistema": "npm",
   "origem": "https://github.com/Rich-Harris/magic-string#readme",
@@ -14842,8 +14842,8 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/magic-string@1.4.4/node_modules/magic-string",
-  "hashes": "SHA-512:8d0cfdb1586b66ea611f836b0081d28240c90a5b903bb2288b828644b6bb69352300e0d0d77844357d18232b6a604feb2243b8f398101b62de07125a5b9de491",
+  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/magic-string@1.4.5/node_modules/magic-string",
+  "hashes": "SHA-512:a0b2c2dbe62f4147c06bebf1a2e7c4ff273589c6fceccf625c846a02847fd84844ffc71bdd217ff868b4736072d41fb9573d9edaf42d52f1e2bb5fbadd99e1fb",
   "nota": ""
  },
  {
@@ -15982,7 +15982,7 @@
  },
  {
   "nome": "rolldown",
-  "versao": "1.2.15",
+  "versao": "1.2.19",
   "tipo": "library",
   "ecossistema": "npm",
   "origem": "https://rolldown.rs/",
@@ -15997,8 +15997,8 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/rolldown@1.2.15/node_modules/rolldown",
-  "hashes": "SHA-512:ea874d0fe7de979cd5c3723861cd9eebd82f82e0e75f408000688d0d94aae2293959471a2eb903d862eea20d1770e0dba2bdf5859e5ac843205439e8f8a3d5e6",
+  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/rolldown@1.2.19/node_modules/rolldown",
+  "hashes": "SHA-512:408895d49f5dd29ccde2379e4c7e2c8cfcb4019e9c032d9c1b41317a8135f94f11be3fa1477818928931d186de50d1a566a890249daeb5c1137b4a0a5f0cecb8",
   "nota": ""
  },
  {
@@ -16780,7 +16780,7 @@
  },
  {
   "nome": "tinybench",
-  "versao": "6.2.2",
+  "versao": "6.2.4",
   "tipo": "library",
   "ecossistema": "npm",
   "origem": "https://github.com/tinylibs/tinybench#readme",
@@ -16795,8 +16795,8 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/tinybench@6.2.2/node_modules/tinybench",
-  "hashes": "SHA-512:9c8676376745a6306c8368608ad2aeee603e16fb0826e1893b0cac4678265514665a047f5323e3c098fc73f7d3fdd866f049079c5e443a88117fed19daaae298",
+  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/tinybench@6.2.4/node_modules/tinybench",
+  "hashes": "SHA-512:490e768c49dc5f16cc0b326e63603f8c621b6c0bba358b01596ee0af3da9344f849f341da066a805fa64e2a0bfa2913baa251c1a61a0686233e44a07752d4ef7",
   "nota": ""
  },
  {
@@ -17263,7 +17263,7 @@
  },
  {
   "nome": "vite",
-  "versao": "8.3.5",
+  "versao": "8.3.8",
   "tipo": "library",
   "ecossistema": "npm",
   "origem": "https://vite.dev",
@@ -17278,13 +17278,13 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/vite@8.3.5_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1/node_modules/vite",
-  "hashes": "SHA-512:cf56298e2789f60d1e6d3990a4b06ffe8abd13717d10894e7beecb6a15bc4ab1372d3886dee7414545d03a56173fd6fe202daada9847795c63f711a5c37e0e11",
+  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1/node_modules/vite",
+  "hashes": "SHA-512:2f33a7de1f6b1bfd2f84b757ad5e3227840503d784a2a0a5f98c7e90625deda07dc3a9df3605472926302cf6541ebcf86466beb7e9178d5f62b6f7070cb428b8",
   "nota": ""
  },
  {
   "nome": "vitest",
-  "versao": "5.0.5",
+  "versao": "5.1.1",
   "tipo": "library",
   "ecossistema": "npm",
   "origem": "https://vitest.dev",
@@ -17299,8 +17299,8 @@
   "obrigacoes": "Nenhuma para o produto (não distribuído).",
   "risco": "BAIXO",
   "motivo": "Não distribuído ao usuário final",
-  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/vitest@5.0.5_@types+node@24.19.2_jsdom@29.1.1_vite@8.3.5_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/vitest",
-  "hashes": "SHA-512:70f38338c17c627922898b43747a3a9f8c16981ace0416ce2181f6777dcce25dc274d9fbda1faa3263bab977df50de80e406455cd343fddfa4ad2f668245d17e",
+  "evidencias": "pnpm-lock.yaml | node_modules/.pnpm/vitest@5.1.1_@types+node@24.19.2_jsdom@29.1.1_vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/vitest",
+  "hashes": "SHA-512:b6b566cd414e4ab68265c237b9920c0f916a061e1ab45902fd7b893ff214eeab7241acb4142b3721afb4422436249c06c961bfc6b701a0935e976f8eee4119d2",
   "nota": ""
  },
  {
