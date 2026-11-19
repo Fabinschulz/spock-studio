@@ -2,7 +2,6 @@ using Mariliz.Application.Cloud;
 using Mariliz.Application.Iac;
 using Mariliz.Application.Tests.Support;
 using Mariliz.Infrastructure.Cloud.Aws;
-using Xunit.Abstractions;
 
 namespace Mariliz.Application.Tests;
 

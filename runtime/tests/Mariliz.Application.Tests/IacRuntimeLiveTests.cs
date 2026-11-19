@@ -7,7 +7,6 @@ using Mariliz.Application.Workspace;
 using Mariliz.Infrastructure;
 using Mariliz.Infrastructure.Cloud.Aws;
 using Mariliz.Infrastructure.Iac;
-using Xunit.Abstractions;
 
 namespace Mariliz.Application.Tests;
 

@@ -9,7 +9,8 @@ namespace Mariliz.Application.Tests;
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class UnixVaultFactAttribute : FactAttribute
 {
-    public UnixVaultFactAttribute()
+    public UnixVaultFactAttribute([System.Runtime.CompilerServices.CallerFilePath] string? sourceFilePath = null, [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+        : base(sourceFilePath, sourceLineNumber)
     {
         if (!OperatingSystem.IsMacOS() && !OperatingSystem.IsLinux()) Skip = "Só roda no macOS e no Linux: usa o cofre do sistema.";
         else if (Environment.GetEnvironmentVariable("MARILIZ_LIVE_VAULT") != "1") Skip = "Mexe no cofre real: defina MARILIZ_LIVE_VAULT=1 para rodar.";

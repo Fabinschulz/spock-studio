@@ -4,7 +4,6 @@ using Mariliz.Application.Models;
 using Mariliz.Application.Management.Investigation;
 using Mariliz.Application.Tests.Support;
 using Mariliz.Infrastructure;
-using Xunit.Abstractions;
 
 namespace Mariliz.Application.Tests;
 

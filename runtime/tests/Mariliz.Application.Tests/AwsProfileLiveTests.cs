@@ -1,6 +1,5 @@
 using Mariliz.Application.Cloud;
 using Mariliz.Infrastructure.Cloud.Aws;
-using Xunit.Abstractions;
 
 namespace Mariliz.Application.Tests;
 

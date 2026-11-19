@@ -4,7 +4,8 @@ namespace Mariliz.Application.Tests.Support;
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class WindowsFactAttribute : FactAttribute
 {
-    public WindowsFactAttribute()
+    public WindowsFactAttribute([System.Runtime.CompilerServices.CallerFilePath] string? sourceFilePath = null, [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+        : base(sourceFilePath, sourceLineNumber)
     {
         if (!OperatingSystem.IsWindows()) Skip = "Só roda no Windows: usa a DPAPI do sistema.";
     }
