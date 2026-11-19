@@ -35,6 +35,11 @@
       "name": "spock_architecture_reference",
       "title": "Referências arquiteturais da Organização",
       "description": "Padrões de engenharia extraídos de outros projetos (React, Angular, .NET, monorepo, Harness), com onde foram vistos, o problema que resolvem, quando usar e quando evitar. Peça por 'id' (o REF-… da lista da intenção architecture) para ler um padrão inteiro, ou por 'technology' e 'topic'. Sem nada, usa as stacks do projeto. São argumento, não convenção do projeto: diga isso ao usar."
+    },
+    {
+      "name": "spock_version_check",
+      "title": "Conferência de versões depois da tarefa",
+      "description": "Chame antes de concluir uma tarefa que mexeu em código ou configuração. Compara as versões que os arquivos do projeto declaram agora (TargetFramework, global.json, .nvmrc, engines, requires-python, dependências) com as do perfil que o Spock analisou e aponta combinação incompatível (por exemplo, Vite que exige Node mais novo que o do projeto). Só lê: não muda o projeto nem o perfil."
     }
   ]
 }

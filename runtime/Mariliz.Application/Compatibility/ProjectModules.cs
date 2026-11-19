@@ -21,11 +21,14 @@ public static class ProjectModules
     public const string Framework = "framework";
 
     // Por pasta, sem agrupar: num monorepo, o serviço em .NET 6 e o em .NET 10 são restrições diferentes.
-    public static IReadOnlyList<ProjectModule> From(DiscoveryReport report) =>
-        report.Stacks.Select(stack => new ProjectModule(Folder(stack.Root), stack.Id, stack.Name, stack.Version, Stack, stack.Confidence, Paths(stack.Evidence)))
-            .Concat(report.Runtimes.Select(runtime => new ProjectModule(Folder(runtime.Root), runtime.TechnologyId, runtime.Name, runtime.Version, Runtime,
+    public static IReadOnlyList<ProjectModule> From(DiscoveryReport report) => From(report.Stacks, report.Frameworks, report.Runtimes);
+
+    public static IReadOnlyList<ProjectModule> From(IReadOnlyList<StackFinding> stacks, IReadOnlyList<FrameworkFinding> frameworks,
+        IReadOnlyList<RuntimeFinding> runtimes) =>
+        stacks.Select(stack => new ProjectModule(Folder(stack.Root), stack.Id, stack.Name, stack.Version, Stack, stack.Confidence, Paths(stack.Evidence)))
+            .Concat(runtimes.Select(runtime => new ProjectModule(Folder(runtime.Root), runtime.TechnologyId, runtime.Name, runtime.Version, Runtime,
                 Confidence.High, Paths(runtime.Evidence))))
-            .Concat(report.Frameworks.Where(framework => framework.Version is not null && report.Stacks.All(stack => stack.Id != framework.Id || stack.Root != framework.Root))
+            .Concat(frameworks.Where(framework => framework.Version is not null && stacks.All(stack => stack.Id != framework.Id || stack.Root != framework.Root))
                 .Select(framework => new ProjectModule(Folder(framework.Root), framework.Id, framework.Name, framework.Version, Framework, Confidence.Medium,
                     Paths(framework.Evidence))))
             .OrderBy(module => module.Root, StringComparer.Ordinal)

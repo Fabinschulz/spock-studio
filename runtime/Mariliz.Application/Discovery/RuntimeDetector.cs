@@ -10,6 +10,9 @@ namespace Mariliz.Application.Discovery;
 // .NET informa só o alvo mais novo. Sem arquivo que fixe a versão, nada é inventado.
 internal static partial class RuntimeDetector
 {
+    internal const string SdkName = ".NET SDK";
+    internal const string ProjectName = ".NET (projeto)";
+
     private static readonly string[] JavaScriptStacks = [Technologies.React.Id, Technologies.Nextjs.Id, Technologies.Angular.Id];
 
     internal static List<RuntimeFinding> Detect(IProjectFiles files, IReadOnlyList<string> all, IReadOnlyList<StackFinding> stacks)
@@ -71,7 +74,7 @@ internal static partial class RuntimeDetector
                     && sdk.TryGetProperty("version", out var version) && version.ValueKind == JsonValueKind.String)
                 {
                     var rollForward = sdk.TryGetProperty("rollForward", out var policy) && policy.ValueKind == JsonValueKind.String ? $", rollForward={policy.GetString()}" : "";
-                    return new RuntimeFinding(Technologies.Dotnet.Id, ".NET SDK", root, version.GetString()!, [new Evidence(path, $"sdk.version={version.GetString()}{rollForward}")]);
+                    return new RuntimeFinding(Technologies.Dotnet.Id, SdkName, root, version.GetString()!, [new Evidence(path, $"sdk.version={version.GetString()}{rollForward}")]);
                 }
             }
             catch (JsonException)
@@ -94,7 +97,7 @@ internal static partial class RuntimeDetector
         if (projects.Select(project => string.Join(';', project.Targets)).Distinct(StringComparer.OrdinalIgnoreCase).Count() < 2) yield break;
         foreach (var project in projects)
             if (DotnetDetector.Oldest(project.Targets) is { } oldest)
-                yield return new RuntimeFinding(Technologies.Dotnet.Id, ".NET (projeto)", ProjectPath.Parent(project.Path), oldest,
+                yield return new RuntimeFinding(Technologies.Dotnet.Id, ProjectName, ProjectPath.Parent(project.Path), oldest,
                     [new Evidence(project.Path, $"TargetFramework={string.Join(';', project.Targets)}")]);
     }
 

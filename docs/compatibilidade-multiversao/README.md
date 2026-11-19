@@ -56,7 +56,7 @@ A situação de suporte não é gravada no perfil. Ela é calculada a cada leitu
 | Perfil de compatibilidade | Feito | `engineering.profile` e `engineering.analyze` devolvem `compatibility`, e a tela mostra "Versões e suporte" |
 | Catálogo central de versões | Feito, 11 tecnologias | `release-catalog.json`, gerado por fontes oficiais em 2026-11-18 |
 | Descoberta periódica | Parcial | O gerador já tem cache (o último catálogo), timeout, retry com backoff, validação, detecção de regressão e fallback. Ainda falta rodar periodicamente: MV-2 |
-| Restrições na execução dos agentes | Feito para o contexto | O pacote `bootstrap` (hook de início de sessão da IDE) e o pacote `architecture` trazem uma restrição por pasta. A verificação depois da implementação é o MV-3 |
+| Restrições na execução dos agentes | Feito | O pacote `bootstrap` (hook de início de sessão da IDE) e o pacote `architecture` trazem uma restrição por pasta. Depois da tarefa, a ferramenta MCP `spock_version_check` aponta versão trocada e combinação incompatível (MV-3) |
 | Criação de projetos pelo catálogo | Não existe criação de projeto no Spock | MV-6 |
 | Atualização automática do Spock | Política escrita; automação no MV-8 | [POLITICA.md](POLITICA.md) |
 | Testes de compatibilidade | Feito para descoberta, classificação e contexto | 50 testes no motor, 12 no gerador, 1 na interface |

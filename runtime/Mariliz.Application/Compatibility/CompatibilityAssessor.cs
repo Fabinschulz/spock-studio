@@ -1,4 +1,5 @@
 using System.Globalization;
+using Mariliz.Application.Discovery;
 using Mariliz.Core.Discovery;
 
 namespace Mariliz.Application.Compatibility;
@@ -11,6 +12,7 @@ public static class SupportStatuses
     public const string Maintenance = "maintenance";
     public const string EndOfLife = "end-of-life";
     public const string Preview = "preview";
+    public const string Incompatible = "incompatible";
     public const string Partial = "partial";
     public const string Unknown = "unknown";
 
@@ -21,6 +23,7 @@ public static class SupportStatuses
         Maintenance => "Legado suportado",
         EndOfLife => "Legado sem suporte",
         Preview => "Pré-lançamento",
+        Incompatible => "Incompatível",
         Partial => "Parcialmente validado",
         _ => "Desconhecido"
     };
@@ -65,7 +68,7 @@ public static class CompatibilityAssessor
         var today = DateOnly.FromDateTime(now.UtcDateTime);
         var assessed = modules
             .Where(module => module.Origin != ProjectModules.Framework || catalog.Find(module.TechnologyId) is not null)
-            .Select(module => Assess(module, catalog, today))
+            .Select(module => Requirements(Assess(module, catalog, today), modules, catalog))
             .ToList();
         var stale = now - catalog.GeneratedAt > CatalogFreshFor || catalog.Technologies.Any(technology => technology.Stale);
         return new CompatibilityReport(catalog.GeneratedAt, stale, assessed);
@@ -128,13 +131,65 @@ public static class CompatibilityAssessor
             return $"Em {module.Root}: a versão de {module.Name} não foi encontrada; leia os manifestos antes de usar recurso que dependa de versão.";
         var text = $"Em {module.Root}: escreva código e configuração para {target}; não use API, sintaxe, pacote nem opção de build de versão mais nova, " +
                    "e mantenha o gerenciador de pacotes e os lockfiles do projeto.";
-        if (module.Origin == ProjectModules.Runtime && module.Name.EndsWith("(projeto)", StringComparison.Ordinal))
+        if (module.Origin == ProjectModules.Runtime && module.Name == RuntimeDetector.ProjectName)
             text = $"Em {module.Root}: o projeto compila para {module.Version}; use só APIs disponíveis nesse alvo.";
         if (!confirmed) text += " A versão vem de uma faixa declarada: confirme no lockfile antes de depender de um recurso novo.";
         if (status is SupportStatuses.EndOfLife or SupportStatuses.Maintenance)
             text += " Atualizar a versão é uma modernização à parte, com plano aprovado; não a misture com esta tarefa.";
         return text;
     }
+
+    // MV-3: o que só aparece olhando o projeto inteiro. A situação de suporte da linha fica no motivo; incompatível vence porque
+    // a combinação não roda, com ou sem suporte.
+    private static ModuleCompatibility Requirements(ModuleCompatibility module, IReadOnlyList<ProjectModule> modules, ReleaseCatalog catalog)
+    {
+        var line = module.Cycle is null ? null : catalog.Find(module.TechnologyId)?.Lines.FirstOrDefault(item => item.Cycle == module.Cycle);
+        if (line?.Requires?.GetValueOrDefault("node") is { } range && module.TechnologyId != "node"
+            && NodeOf(module.Root, modules) is { Version: { } node } runtime)
+        {
+            var at = runtime.Evidence.FirstOrDefault() ?? runtime.Root;
+            switch (NodeRange.Evaluate(range, node))
+            {
+                case RangeVerdict.Unsatisfied:
+                    return Incompatible(module, $"{module.Name} {module.Cycle} exige Node {range}; o projeto fixa Node {node} ({at}).");
+                case RangeVerdict.Unknown:
+                    return module with { Reason = $"{module.Reason} Exige Node {range}; o projeto fixa Node {node} ({at}): confirme a versão exata." };
+            }
+        }
+
+        if (module.TechnologyId == "dotnet" && module.Name == RuntimeDetector.SdkName && module.Cycle is { } sdk
+            && !module.Evidence.Any(item => item.Contains("rollForward=major", StringComparison.OrdinalIgnoreCase)
+                                            || item.Contains("rollForward=latestMajor", StringComparison.OrdinalIgnoreCase)))
+        {
+            var newer = modules
+                .Where(item => item.TechnologyId == "dotnet" && item.Name != RuntimeDetector.SdkName && Under(item.Root, module.Root))
+                .Select(item => (Module: item, Cycle: catalog.Find("dotnet") is { } dotnet ? VersionCycles.Of(dotnet, item.Version) : null))
+                .Where(item => item.Cycle is not null && VersionCycles.Compare(item.Cycle, sdk) > 0)
+                .OrderByDescending(item => item.Cycle, Comparer<string?>.Create((a, b) => VersionCycles.Compare(a!, b!)))
+                .FirstOrDefault();
+            if (newer.Module is { } target)
+                return Incompatible(module, $"O SDK {module.Version} do global.json não compila {target.Version} (em {target.Root}); o SDK precisa ser {newer.Cycle} ou mais novo.");
+        }
+        return module;
+    }
+
+    private static ModuleCompatibility Incompatible(ModuleCompatibility module, string reason) => module with
+    {
+        Status = SupportStatuses.Incompatible,
+        StatusLabel = SupportStatuses.Label(SupportStatuses.Incompatible),
+        Reason = reason,
+        Guidance = $"{module.Guidance} A combinação de versões desta pasta não é suportada ({reason}) Não troque versões para contornar: resolver é decisão do projeto."
+    };
+
+    // O Node que vale para a pasta: o fixado nela ou na pasta acima mais próxima; o runtime fixado vence a stack Node.
+    private static ProjectModule? NodeOf(string root, IReadOnlyList<ProjectModule> modules) =>
+        modules.Where(item => item.TechnologyId == "node" && item.Version is not null && Under(root, item.Root))
+            .OrderByDescending(item => item.Root == "." ? 0 : item.Root.Length)
+            .ThenBy(item => item.Origin == ProjectModules.Runtime ? 0 : 1)
+            .FirstOrDefault();
+
+    private static bool Under(string folder, string ancestor) =>
+        ancestor == "." || folder == ancestor || folder.StartsWith(ancestor + "/", StringComparison.Ordinal);
 
     private static ReleaseLine? NewestStable(CatalogTechnology technology) => NewestActive(technology, lts: false);
 

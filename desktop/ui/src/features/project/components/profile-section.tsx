@@ -77,7 +77,7 @@ export function ProfileSection({ client, projectId }: { client: EngineClient; pr
   );
 }
 
-const ATTENTION = new Set(['end-of-life', 'maintenance', 'preview', 'unknown']);
+const ATTENTION = new Set(['incompatible', 'end-of-life', 'maintenance', 'preview', 'unknown']);
 
 /** A situação orienta os agentes a trabalhar na versão do projeto; atualizar é uma modernização à parte. */
 function VersionsList({ compatibility }: { compatibility: Compatibility }) {

@@ -13,7 +13,7 @@ A matriz diz o que o Spock lê de cada ecossistema, como classifica a versão e 
 | `preview` | Pré-lançamento | Linha que ainda não é estável (Node 27, Python 3.16, Java 28) |
 | `partial` | Parcialmente validado | A linha existe, mas o fim de suporte não é publicado em formato legível (React, Angular, Next.js, Vite e TypeScript fora da maior mais nova) ou depende do fornecedor (JDK LTS antigas) |
 | `unknown` | Desconhecido | Sem versão nos arquivos, tecnologia fora do catálogo, versão que não vira linha (`net48`, `netstandard2.0`) ou mais nova que o catálogo |
-| (incompatível) | Não implementado | Precisa de regra entre tecnologias. Fica para o MV-3 |
+| `incompatible` | Incompatível | Framework do catálogo que exige um Node que o Node fixado na pasta (ou acima) não atende, ou SDK do `global.json` mais antigo que um `TargetFramework` abaixo dele (MV-3). Vence a situação de suporte |
 
 Toda classificação leva `reason` (o porquê, em uma frase), `confirmed` (a versão veio de arquivo que fixa ou de faixa declarada) e `evidence` (arquivo e valor lido).
 

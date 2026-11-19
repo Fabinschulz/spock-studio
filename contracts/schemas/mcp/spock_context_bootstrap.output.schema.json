@@ -62,6 +62,7 @@
             "type": "string",
             "enum": [
               "identity",
+              "versions",
               "policies",
               "connections",
               "harness",

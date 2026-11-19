@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/mcp/spock_version_check.output.schema.json",
+  "type": "object",
+  "required": [
+    "projectId",
+    "baselineAt",
+    "clean",
+    "changes",
+    "incompatible",
+    "guidance"
+  ],
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Id da cópia de trabalho (p-)."
+    },
+    "baselineAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Quando o perfil comparado foi analisado; nulo sem perfil."
+    },
+    "clean": {
+      "type": "boolean",
+      "description": "Nenhuma versão mudou e nenhuma combinação está incompatível."
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "root",
+          "technologyId",
+          "name",
+          "origin",
+          "kind",
+          "from",
+          "to",
+          "evidence"
+        ],
+        "properties": {
+          "root": {
+            "type": "string",
+            "description": "Pasta do projeto."
+          },
+          "technologyId": {
+            "type": "string",
+            "description": "Tecnologia."
+          },
+          "name": {
+            "type": "string",
+            "description": "Nome legível."
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "stack",
+              "runtime",
+              "framework"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "changed",
+              "added",
+              "removed"
+            ]
+          },
+          "from": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Versão no perfil."
+          },
+          "to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Versão nos arquivos agora."
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Arquivo e valor lido."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "incompatible": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "root",
+          "technologyId",
+          "name",
+          "version",
+          "reason"
+        ],
+        "properties": {
+          "root": {
+            "type": "string",
+            "description": "Pasta do projeto."
+          },
+          "technologyId": {
+            "type": "string",
+            "description": "Tecnologia."
+          },
+          "name": {
+            "type": "string",
+            "description": "Nome legível."
+          },
+          "version": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Versão declarada."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Por que a combinação não é suportada."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "guidance": {
+      "type": "string",
+      "description": "O que fazer com o resultado."
+    }
+  },
+  "additionalProperties": false
+}

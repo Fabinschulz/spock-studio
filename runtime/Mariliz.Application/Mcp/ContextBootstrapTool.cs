@@ -36,7 +36,7 @@ public static class ContextBootstrapTool
                     ["required"] = new JsonArray("section", "text", "source", "ref", "classification", "freshness"),
                     ["properties"] = new JsonObject
                     {
-                        ["section"] = Enum("identity", "policies", "connections", "harness", "warnings"),
+                        ["section"] = Enum("identity", "versions", "policies", "connections", "harness", "warnings"),
                         ["text"] = Text("O item como a IDE o lê."),
                         ["source"] = Text("De onde veio: spock, a declaração (spock.yaml ou mariliz.yaml), o lock (spock.lock ou mariliz.lock), o provedor da integração ou cloud:<provedor>."),
                         ["ref"] = Text("O que identifica o item na origem."),

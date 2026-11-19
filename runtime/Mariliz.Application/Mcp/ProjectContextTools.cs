@@ -1,4 +1,6 @@
 using Mariliz.Application.Analysis;
+using Mariliz.Application.Compatibility;
+using Mariliz.Application.Discovery;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Mariliz.Application.Context;
@@ -117,7 +119,7 @@ public sealed partial class ProjectContextTools(
         });
 
     public static IReadOnlyList<McpToolInfo> Catalog { get; } =
-        [ContextBootstrapTool.Info, ListProjects, Briefing, Decisions, Search, ArchitectureReferenceTool.Info];
+        [ContextBootstrapTool.Info, ListProjects, Briefing, Decisions, Search, ArchitectureReferenceTool.Info, VersionCheckTool.Info];
 
     // O bootstrap só existe com o Context Engine montado (o modo mcp do motor sempre monta).
     public IReadOnlyList<McpTool> Tools() =>
@@ -127,8 +129,22 @@ public sealed partial class ProjectContextTools(
         new(Briefing, call => Task.FromResult(RenderBriefing(call))),
         new(Decisions, call => Task.FromResult(RenderDecisions(call))),
         new(Search, RenderSearchAsync),
-        McpTool.Structured(ArchitectureReferenceTool.Info, call => Task.FromResult(RenderReference(call)))
+        McpTool.Structured(ArchitectureReferenceTool.Info, call => Task.FromResult(RenderReference(call))),
+        McpTool.Structured(VersionCheckTool.Info, call => Task.FromResult(RenderVersionCheck(call)))
     ];
+
+    // Lê só os manifestos (sem git, python ou node) e compara com o perfil; a trilha guarda quantas diferenças, não os arquivos.
+    private McpReply RenderVersionCheck(McpCall call)
+    {
+        var workspace = workspaces();
+        var project = Resolve(workspace, call.Arguments);
+        if (!workspace.TryGetRoot(project.ProjectId, out var root)) throw new McpToolException("O projeto não está autorizado no Spock.");
+        var scan = ProjectDiscoverer.Scan(files.Open(root));
+        var report = VersionCheck.Compare(project.ProjectId, profiles.Read(project.ProjectId),
+            ProjectModules.From(scan.Stacks, scan.Frameworks, scan.Runtimes), ReleaseCatalog.Embedded, clock.UtcNow);
+        Audit(project.ProjectId, VersionCheckTool.Name, call.Client, report.Changes.Count + report.Incompatible.Count, []);
+        return VersionCheckTool.Reply(report);
+    }
 
     private McpReply RenderReference(McpCall call)
     {

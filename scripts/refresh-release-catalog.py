@@ -212,10 +212,18 @@ def parse_npm(document: dict) -> tuple[list[dict], str | None]:
     lines = [{
         "cycle": major, "channel": "stable", "status": "active" if major == newest_major else "unknown", "releaseDate": None,
         "eol": None, "latest": version, "latestDate": None, "language": None,
+        "requires": _requires(document["versions"][version]),
     } for major, version in by_major.items() if int(major) <= int(newest_major)]
     prereleases = [tag for name, tag in document["dist-tags"].items()
                    if name != "latest" and "-" in tag and version_key(tag.split("-")[0]) > version_key(latest)]
     return lines, max(prereleases, key=lambda tag: version_key(tag.split("-")[0]), default=None)
+
+
+# O engines.node da versão mais nova da linha: é o que o pacote declara aceitar, e o motor confronta com o Node do projeto.
+def _requires(manifest: dict) -> dict | None:
+    engines = manifest.get("engines") if isinstance(manifest, dict) else None
+    node = engines.get("node") if isinstance(engines, dict) else None
+    return {"node": node.strip()} if isinstance(node, str) and node.strip() else None
 
 
 # ---------- fontes ----------
@@ -323,6 +331,8 @@ def diff_lines(name: str, prior: dict | None, entry: dict) -> list[str]:
             changes.append(f"- {name} {line['cycle']}: nova linha ({line['channel']}, {line['status']})")
         elif (was["status"], was["latest"], was["eol"]) != (line["status"], line["latest"], line["eol"]):
             changes.append(f"- {name} {line['cycle']}: {was['status']}/{was['latest']}/{was['eol']} -> {line['status']}/{line['latest']}/{line['eol']}")
+        if was is not None and was.get("requires") != line.get("requires"):
+            changes.append(f"- {name} {line['cycle']}: requisitos {was.get('requires')} -> {line.get('requires')}")
     return changes
 
 
