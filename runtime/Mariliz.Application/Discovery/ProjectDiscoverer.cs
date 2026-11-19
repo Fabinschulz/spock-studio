@@ -19,15 +19,7 @@ public sealed class ProjectDiscoverer(IProcessRunner processRunner)
         var lockFile = ManagedLockFile.Read(files);
         var managed = lockFile?.ManagedFiles.Select(m => m.Path).ToHashSet(StringComparer.Ordinal) ?? [];
 
-        var stacks = new List<StackFinding>();
-        var tooling = new List<ToolingFinding>();
-        var frameworks = new List<FrameworkFinding>();
-        DotnetDetector.Detect(files, all, stacks, tooling, frameworks, warnings);
-        NodeDetector.Detect(files, all, stacks, tooling, frameworks, warnings);
-        FlutterDetector.Detect(files, all, stacks, tooling, warnings);
-        LanguageDetectors.Detect(files, all, stacks, tooling, frameworks, warnings);
-        CiDetector.Detect(all, tooling);
-        var runtimes = RuntimeDetector.Detect(files, all, stacks);
+        var (stacks, tooling, frameworks, runtimes) = Scan(files, all, warnings);
         if (stacks.Count == 0)
             warnings.Add(new(DiscoveryWarningCodes.NoStackDetected, "Nenhuma stack conhecida foi detectada pelos arquivos de configuração.", []));
 
@@ -62,4 +54,27 @@ public sealed class ProjectDiscoverer(IProcessRunner processRunner)
             Runtimes = runtimes
         };
     }
+
+    // Só arquivos, sem processo: a checagem de versões depois da tarefa (MV-3) usa isto sem rodar git, python ou node.
+    public static TechnologyScan Scan(IProjectFiles files, List<DiscoveryWarning>? warnings = null) =>
+        Scan(files, files.EnumerateFiles("", 6), warnings ?? []);
+
+    private static TechnologyScan Scan(IProjectFiles files, IReadOnlyList<string> all, List<DiscoveryWarning> warnings)
+    {
+        var stacks = new List<StackFinding>();
+        var tooling = new List<ToolingFinding>();
+        var frameworks = new List<FrameworkFinding>();
+        DotnetDetector.Detect(files, all, stacks, tooling, frameworks, warnings);
+        NodeDetector.Detect(files, all, stacks, tooling, frameworks, warnings);
+        FlutterDetector.Detect(files, all, stacks, tooling, warnings);
+        LanguageDetectors.Detect(files, all, stacks, tooling, frameworks, warnings);
+        CiDetector.Detect(all, tooling);
+        return new TechnologyScan(stacks, tooling, frameworks, RuntimeDetector.Detect(files, all, stacks));
+    }
 }
+
+public sealed record TechnologyScan(
+    List<StackFinding> Stacks,
+    List<ToolingFinding> Tooling,
+    List<FrameworkFinding> Frameworks,
+    List<RuntimeFinding> Runtimes);

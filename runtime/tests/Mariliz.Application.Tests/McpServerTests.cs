@@ -100,7 +100,7 @@ public sealed class McpServerTests : IDisposable
     {
         var tools = Send(Server(), "tools/list")["result"]!["tools"]!.AsArray();
 
-        Assert.Equal(["list_projects", "project_briefing", "decisions", "search_project", "spock_architecture_reference"],
+        Assert.Equal(["list_projects", "project_briefing", "decisions", "search_project", "spock_architecture_reference", "spock_version_check"],
             tools.Select(tool => tool!["name"]!.GetValue<string>()));
         Assert.All(tools, tool => Assert.True(tool!["annotations"]!["readOnlyHint"]!.GetValue<bool>()));
     }

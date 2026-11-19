@@ -43,7 +43,16 @@ export const compatibilitySchema = z.object({
       name: z.string(),
       version: z.string().nullable(),
       origin: z.enum(['stack', 'runtime', 'framework']),
-      status: z.enum(['current', 'supported', 'maintenance', 'end-of-life', 'preview', 'partial', 'unknown']),
+      status: z.enum([
+        'current',
+        'supported',
+        'maintenance',
+        'end-of-life',
+        'preview',
+        'partial',
+        'unknown',
+        'incompatible'
+      ]),
       statusLabel: z.string(),
       eol: z.string().nullable(),
       newestStable: z.string().nullable(),

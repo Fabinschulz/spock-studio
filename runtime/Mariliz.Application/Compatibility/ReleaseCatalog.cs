@@ -6,6 +6,7 @@ namespace Mariliz.Application.Compatibility;
 /// <param name="Status">active, maintenance, eol, preview, vendor (fim de suporte depende do fornecedor) ou unknown (sem política legível).</param>
 /// <param name="Eol">Data do fim de suporte; o Python publica só o mês (AAAA-MM).</param>
 /// <param name="Language">Versão padrão da linguagem nesta linha, quando a fonte oficial a define (C# por .NET).</param>
+/// <param name="Requires">O que a versão mais nova da linha declara exigir, por tecnologia ("node": engines.node do npm).</param>
 public sealed record ReleaseLine(
     string Cycle,
     string Channel,
@@ -14,7 +15,8 @@ public sealed record ReleaseLine(
     string? Eol,
     string? Latest,
     string? LatestDate,
-    string? Language);
+    string? Language,
+    IReadOnlyDictionary<string, string>? Requires = null);
 
 /// <param name="Policy">lifecycle (datas da fonte), supported-window (só as listadas são suportadas), rolling (só a mais nova recebe
 /// correção), vendor (depende do fornecedor) ou latest-major (só a maior mais nova é garantidamente mantida).</param>

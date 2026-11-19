@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-19T02:55:26Z",
+  "generatedAt": "2026-11-19T15:24:37Z",
   "technologies": [
     {
       "id": "dotnet",
@@ -8,7 +8,7 @@
       "policy": "lifecycle",
       "cycle": "major.minor",
       "source": "https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json",
-      "checkedAt": "2026-11-19T02:55:26Z",
+      "checkedAt": "2026-11-19T15:24:37Z",
       "stale": false,
       "error": null,
       "prerelease": null,
@@ -161,7 +161,7 @@
       "policy": "lifecycle",
       "cycle": "major",
       "source": "https://github.com/nodejs/Release/blob/main/schedule.json",
-      "checkedAt": "2026-11-19T02:55:26Z",
+      "checkedAt": "2026-11-19T15:24:37Z",
       "stale": false,
       "error": null,
       "prerelease": null,
@@ -414,7 +414,7 @@
       "policy": "lifecycle",
       "cycle": "major.minor",
       "source": "https://peps.python.org/api/release-cycle.json",
-      "checkedAt": "2026-11-19T02:55:26Z",
+      "checkedAt": "2026-11-19T15:24:37Z",
       "stale": false,
       "error": null,
       "prerelease": null,
@@ -597,7 +597,7 @@
       "policy": "supported-window",
       "cycle": "major.minor",
       "source": "https://go.dev/dl/?mode=json",
-      "checkedAt": "2026-11-19T02:55:26Z",
+      "checkedAt": "2026-11-19T15:24:37Z",
       "stale": false,
       "error": null,
       "prerelease": null,
@@ -630,7 +630,7 @@
       "policy": "rolling",
       "cycle": "major.minor",
       "source": "https://static.rust-lang.org/dist/channel-rust-stable.toml",
-      "checkedAt": "2026-11-19T02:55:26Z",
+      "checkedAt": "2026-11-19T15:24:37Z",
       "stale": false,
       "error": null,
       "prerelease": null,
@@ -653,7 +653,7 @@
       "policy": "vendor",
       "cycle": "major",
       "source": "https://api.adoptium.net/v3/info/available_releases",
-      "checkedAt": "2026-11-19T02:55:26Z",
+      "checkedAt": "2026-11-19T15:24:37Z",
       "stale": false,
       "error": null,
       "prerelease": null,
@@ -816,7 +816,7 @@
       "policy": "latest-major",
       "cycle": "major",
       "source": "https://registry.npmjs.org/react",
-      "checkedAt": "2026-11-19T02:55:26Z",
+      "checkedAt": "2026-11-19T15:24:37Z",
       "stale": false,
       "error": null,
       "prerelease": null,
@@ -829,7 +829,10 @@
           "eol": null,
           "latest": "19.3.1",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=0.10.0"
+          }
         },
         {
           "cycle": "18",
@@ -839,7 +842,10 @@
           "eol": null,
           "latest": "18.3.1",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=0.10.0"
+          }
         },
         {
           "cycle": "17",
@@ -849,7 +855,10 @@
           "eol": null,
           "latest": "17.0.2",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=0.10.0"
+          }
         },
         {
           "cycle": "16",
@@ -859,7 +868,10 @@
           "eol": null,
           "latest": "16.14.0",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=0.10.0"
+          }
         },
         {
           "cycle": "15",
@@ -869,7 +881,10 @@
           "eol": null,
           "latest": "15.7.0",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=0.10.0"
+          }
         }
       ]
     },
@@ -879,7 +894,7 @@
       "policy": "latest-major",
       "cycle": "major",
       "source": "https://registry.npmjs.org/@angular/core",
-      "checkedAt": "2026-11-19T02:55:26Z",
+      "checkedAt": "2026-11-19T15:24:37Z",
       "stale": false,
       "error": null,
       "prerelease": null,
@@ -892,7 +907,10 @@
           "eol": null,
           "latest": "22.3.0",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
+          }
         },
         {
           "cycle": "21",
@@ -902,7 +920,10 @@
           "eol": null,
           "latest": "21.2.26",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
+          }
         },
         {
           "cycle": "20",
@@ -912,7 +933,10 @@
           "eol": null,
           "latest": "20.3.35",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
+          }
         },
         {
           "cycle": "19",
@@ -922,7 +946,10 @@
           "eol": null,
           "latest": "19.2.25",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^18.19.1 || ^20.11.1 || >=22.0.0"
+          }
         },
         {
           "cycle": "18",
@@ -932,7 +959,10 @@
           "eol": null,
           "latest": "18.2.14",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^18.19.1 || ^20.11.1 || >=22.0.0"
+          }
         },
         {
           "cycle": "17",
@@ -942,7 +972,10 @@
           "eol": null,
           "latest": "17.3.12",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^18.13.0 || >=20.9.0"
+          }
         },
         {
           "cycle": "16",
@@ -952,7 +985,10 @@
           "eol": null,
           "latest": "16.2.12",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^16.14.0 || >=18.10.0"
+          }
         },
         {
           "cycle": "15",
@@ -962,7 +998,10 @@
           "eol": null,
           "latest": "15.2.10",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^14.20.0 || ^16.13.0 || >=18.10.0"
+          }
         },
         {
           "cycle": "14",
@@ -972,7 +1011,10 @@
           "eol": null,
           "latest": "14.3.0",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^14.15.0 || >=16.10.0"
+          }
         },
         {
           "cycle": "13",
@@ -982,7 +1024,10 @@
           "eol": null,
           "latest": "13.4.0",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^12.20.0 || ^14.15.0 || >=16.10.0"
+          }
         },
         {
           "cycle": "12",
@@ -992,7 +1037,10 @@
           "eol": null,
           "latest": "12.2.17",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^12.14.1 || >=14.0.0"
+          }
         },
         {
           "cycle": "11",
@@ -1002,7 +1050,8 @@
           "eol": null,
           "latest": "11.2.14",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         },
         {
           "cycle": "10",
@@ -1012,7 +1061,8 @@
           "eol": null,
           "latest": "10.2.5",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         },
         {
           "cycle": "9",
@@ -1022,7 +1072,8 @@
           "eol": null,
           "latest": "9.1.13",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         },
         {
           "cycle": "8",
@@ -1032,7 +1083,8 @@
           "eol": null,
           "latest": "8.2.14",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         },
         {
           "cycle": "7",
@@ -1042,7 +1094,8 @@
           "eol": null,
           "latest": "7.2.16",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         },
         {
           "cycle": "6",
@@ -1052,7 +1105,8 @@
           "eol": null,
           "latest": "6.1.10",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         },
         {
           "cycle": "5",
@@ -1062,7 +1116,8 @@
           "eol": null,
           "latest": "5.2.11",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         },
         {
           "cycle": "4",
@@ -1072,7 +1127,8 @@
           "eol": null,
           "latest": "4.4.7",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         },
         {
           "cycle": "2",
@@ -1082,7 +1138,8 @@
           "eol": null,
           "latest": "2.4.10",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         }
       ]
     },
@@ -1092,7 +1149,7 @@
       "policy": "latest-major",
       "cycle": "major",
       "source": "https://registry.npmjs.org/next",
-      "checkedAt": "2026-11-19T02:55:26Z",
+      "checkedAt": "2026-11-19T15:24:37Z",
       "stale": false,
       "error": null,
       "prerelease": "16.5.0-canary.55",
@@ -1105,7 +1162,10 @@
           "eol": null,
           "latest": "16.4.6",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=20.9.0"
+          }
         },
         {
           "cycle": "15",
@@ -1115,7 +1175,10 @@
           "eol": null,
           "latest": "15.5.29",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^18.18.0 || ^19.8.0 || >= 20.0.0"
+          }
         },
         {
           "cycle": "14",
@@ -1125,7 +1188,10 @@
           "eol": null,
           "latest": "14.2.35",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=18.17.0"
+          }
         },
         {
           "cycle": "13",
@@ -1135,7 +1201,10 @@
           "eol": null,
           "latest": "13.5.11",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=16.14.0"
+          }
         },
         {
           "cycle": "12",
@@ -1145,7 +1214,10 @@
           "eol": null,
           "latest": "12.3.7",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=12.22.0"
+          }
         },
         {
           "cycle": "11",
@@ -1155,7 +1227,10 @@
           "eol": null,
           "latest": "11.1.4",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=12.0.0"
+          }
         },
         {
           "cycle": "10",
@@ -1165,7 +1240,10 @@
           "eol": null,
           "latest": "10.2.3",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=10.13.0"
+          }
         },
         {
           "cycle": "9",
@@ -1175,7 +1253,10 @@
           "eol": null,
           "latest": "9.5.5",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=10.13.0"
+          }
         },
         {
           "cycle": "8",
@@ -1185,7 +1266,10 @@
           "eol": null,
           "latest": "8.1.0",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">= 8.0.0"
+          }
         },
         {
           "cycle": "7",
@@ -1195,7 +1279,8 @@
           "eol": null,
           "latest": "7.0.3",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         },
         {
           "cycle": "6",
@@ -1205,7 +1290,8 @@
           "eol": null,
           "latest": "6.1.2",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         },
         {
           "cycle": "5",
@@ -1215,7 +1301,8 @@
           "eol": null,
           "latest": "5.1.0",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         },
         {
           "cycle": "4",
@@ -1225,7 +1312,8 @@
           "eol": null,
           "latest": "4.2.3",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         },
         {
           "cycle": "3",
@@ -1235,7 +1323,8 @@
           "eol": null,
           "latest": "3.2.3",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         },
         {
           "cycle": "2",
@@ -1245,7 +1334,8 @@
           "eol": null,
           "latest": "2.4.9",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         },
         {
           "cycle": "1",
@@ -1255,7 +1345,8 @@
           "eol": null,
           "latest": "1.2.3",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": null
         }
       ]
     },
@@ -1265,7 +1356,7 @@
       "policy": "latest-major",
       "cycle": "major",
       "source": "https://registry.npmjs.org/vite",
-      "checkedAt": "2026-11-19T02:55:26Z",
+      "checkedAt": "2026-11-19T15:24:37Z",
       "stale": false,
       "error": null,
       "prerelease": "8.4.0-beta.1",
@@ -1278,7 +1369,10 @@
           "eol": null,
           "latest": "8.3.8",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^20.19.0 || >=22.12.0"
+          }
         },
         {
           "cycle": "7",
@@ -1288,7 +1382,10 @@
           "eol": null,
           "latest": "7.3.8",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^20.19.0 || >=22.12.0"
+          }
         },
         {
           "cycle": "6",
@@ -1298,7 +1395,10 @@
           "eol": null,
           "latest": "6.4.6",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^18.0.0 || ^20.0.0 || >=22.0.0"
+          }
         },
         {
           "cycle": "5",
@@ -1308,7 +1408,10 @@
           "eol": null,
           "latest": "5.4.21",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^18.0.0 || >=20.0.0"
+          }
         },
         {
           "cycle": "4",
@@ -1318,7 +1421,10 @@
           "eol": null,
           "latest": "4.5.14",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^14.18.0 || >=16.0.0"
+          }
         },
         {
           "cycle": "3",
@@ -1328,7 +1434,10 @@
           "eol": null,
           "latest": "3.2.11",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": "^14.18.0 || >=16.0.0"
+          }
         },
         {
           "cycle": "2",
@@ -1338,7 +1447,10 @@
           "eol": null,
           "latest": "2.9.18",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=12.2.0"
+          }
         }
       ]
     },
@@ -1348,7 +1460,7 @@
       "policy": "latest-major",
       "cycle": "major",
       "source": "https://registry.npmjs.org/typescript",
-      "checkedAt": "2026-11-19T02:55:26Z",
+      "checkedAt": "2026-11-19T15:24:37Z",
       "stale": false,
       "error": null,
       "prerelease": "7.1.0-beta",
@@ -1361,7 +1473,10 @@
           "eol": null,
           "latest": "7.0.2",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=16.20.0"
+          }
         },
         {
           "cycle": "6",
@@ -1371,7 +1486,10 @@
           "eol": null,
           "latest": "6.0.3",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=14.17"
+          }
         },
         {
           "cycle": "5",
@@ -1381,7 +1499,10 @@
           "eol": null,
           "latest": "5.9.3",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=14.17"
+          }
         },
         {
           "cycle": "4",
@@ -1391,7 +1512,10 @@
           "eol": null,
           "latest": "4.9.5",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=4.2.0"
+          }
         },
         {
           "cycle": "3",
@@ -1401,7 +1525,10 @@
           "eol": null,
           "latest": "3.9.10",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=4.2.0"
+          }
         },
         {
           "cycle": "2",
@@ -1411,7 +1538,10 @@
           "eol": null,
           "latest": "2.9.2",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=4.2.0"
+          }
         },
         {
           "cycle": "1",
@@ -1421,7 +1551,10 @@
           "eol": null,
           "latest": "1.8.10",
           "latestDate": null,
-          "language": null
+          "language": null,
+          "requires": {
+            "node": ">=0.8.0"
+          }
         }
       ]
     }

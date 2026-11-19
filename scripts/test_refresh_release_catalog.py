@@ -77,6 +77,15 @@ class ParsersTest(unittest.TestCase):
         self.assertEqual(("unknown", "7.3.10"), (by_cycle["7"]["status"], by_cycle["7"]["latest"]))
         self.assertNotIn("0", by_cycle)
 
+    def test_npm_guarda_o_node_exigido_pela_versao_mais_nova_da_linha(self):
+        lines, _ = catalog.parse_npm({
+            "dist-tags": {"latest": "8.3.8"},
+            "versions": {"8.3.8": {"engines": {"node": "^20.19.0 || >=22.12.0"}}, "8.0.0": {"engines": {"node": ">=18"}},
+                         "7.3.8": {}}})
+        by_cycle = {item["cycle"]: item for item in lines}
+        self.assertEqual({"node": "^20.19.0 || >=22.12.0"}, by_cycle["8"]["requires"])
+        self.assertIsNone(by_cycle["7"]["requires"])
+
     def test_rust_le_a_versao_estavel(self):
         lines = catalog.parse_rust('date = "2026-11-12"\n[pkg.rust]\nversion = "1.100.0 (0ef1bc386 2026-11-09)"\n')
         self.assertEqual(("1.100", "1.100.0"), (lines[0]["cycle"], lines[0]["latest"]))

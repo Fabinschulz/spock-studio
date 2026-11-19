@@ -10,8 +10,10 @@ instalado usaria.
 
   Linux    extrai o .deb com ``dpkg-deb -x``
   macOS    usa Contents/Resources do .app (o .dmg só embrulha o .app)
-  Windows  roda o instalador NSIS em modo silencioso (/S) numa pasta própria; a instalação é por usuário e não toca no registro
-           além da entrada de desinstalação
+  Windows  roda o instalador NSIS em modo silencioso (/S) numa pasta própria. A instalação é por usuário e deixa a entrada de
+           desinstalação e a pasta bin (lançador spock, DD-6) no PATH do usuário. Fora da CI, desinstale depois
+           (``uninstall.exe /S`` na pasta de saída): com o spock no PATH, o plano do Harness passa a gerenciar o .mcp.json e testes do
+           motor mudam de resultado
 
 Escreve ``MARILIZ_PACKAGED_RESOURCES=<pasta>`` em ``$GITHUB_ENV`` (quando existe) e imprime a pasta.
 """

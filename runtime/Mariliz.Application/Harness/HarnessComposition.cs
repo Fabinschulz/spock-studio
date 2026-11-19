@@ -587,6 +587,7 @@ internal sealed class HarnessComposition(
         - No começo da sessão, o contexto de abertura chega pelo hook `spock context session`. Se não chegou, chame a ferramenta `spock_context_bootstrap` do servidor MCP `spock`.
         - O Cursor não avisa a cada prompt quando o contexto muda no Spock: numa sessão longa, chame `spock_context_bootstrap` de novo antes de planejar uma mudança.
         - Para achar código, documentos e decisões, use `search_project` e `decisions`; antes de planejar uma mudança, `project_briefing`.
+        - Antes de concluir uma tarefa que mexeu em código ou configuração, chame `spock_version_check`: ele aponta versão trocada sem pedido e combinação incompatível.
         - O Spock só lê. Este arquivo é do Spock e muda por plano aprovado no aplicativo.
 
         """;
@@ -605,6 +606,7 @@ internal sealed class HarnessComposition(
 
         - No começo da sessão, o contexto de abertura chega pelo hook `spock context session`. Se não chegou, chame a ferramenta `spock_context_bootstrap` do servidor MCP `spock`.
         - Para achar código, documentos e decisões, use `search_project` e `decisions`; antes de planejar uma mudança, `project_briefing`.
+        - Antes de concluir uma tarefa que mexeu em código ou configuração, chame `spock_version_check`: ele aponta versão trocada sem pedido e combinação incompatível.
         - O Spock só lê. As regras e os arquivos que ele gerencia mudam por plano aprovado no aplicativo; o que está fora deste bloco é da equipe.
         """;
 
