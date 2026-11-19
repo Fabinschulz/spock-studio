@@ -5,7 +5,7 @@ using Mariliz.Core.Text;
 
 namespace Mariliz.Application.Discovery;
 
-// Python, Rust, Go e Java pelos manifestos, como os outros detectores: nunca pelo nome da pasta. Os manifestos TOML e XML
+// Python, Rust, Go, Java (e, em LanguageDetectors.Ecosystems, PHP, Ruby, C/C++ e Swift) pelos manifestos, como os outros detectores: nunca pelo nome da pasta. Os manifestos TOML e XML
 // são lidos por padrão de texto, o bastante para versão e nomes de dependência; o que não dá para ler fica sem versão e com aviso.
 internal static partial class LanguageDetectors
 {
@@ -18,6 +18,10 @@ internal static partial class LanguageDetectors
         Rust(files, all, stacks, tooling, frameworks, warnings);
         Go(files, all, stacks, tooling, frameworks, warnings);
         Java(files, all, stacks, tooling, frameworks, warnings);
+        Php(files, all, stacks, tooling, frameworks, warnings);
+        Ruby(files, all, stacks, tooling, frameworks, warnings);
+        Cpp(files, all, stacks, warnings);
+        Swift(files, all, stacks, tooling, warnings);
     }
 
     private static IEnumerable<IGrouping<string, string>> ByRoot(IReadOnlyList<string> all, Func<string, bool> isManifest) =>
@@ -235,6 +239,12 @@ internal static partial class LanguageDetectors
                 }
                 foreach (Match coordinate in GradleCoordinate().Matches(text)) deps.TryAdd(coordinate.Groups[1].Value, coordinate.Groups[2].Value);
                 if (text.Contains("org.springframework.boot", StringComparison.Ordinal)) deps.TryAdd("spring-boot", "");
+                foreach (Match plugin in GradlePlugin().Matches(text))
+                {
+                    var id = plugin.Groups["id"].Value;
+                    var key = id.StartsWith("com.android.", StringComparison.Ordinal) ? "android-gradle-plugin" : "kotlin";
+                    deps.TryAdd(key, plugin.Groups["version"].Value);
+                }
             }
             if (version is null) Unknown(warnings, "Java", root, [manifest]);
 
@@ -312,6 +322,10 @@ internal static partial class LanguageDetectors
 
     [GeneratedRegex(@"[""'][\w.\-]+:([\w.\-]+)(?::([\w.\-]+))?[""']")]
     private static partial Regex GradleCoordinate();
+
+    // id("org.jetbrains.kotlin.jvm") version "2.1.0", id 'com.android.application' version '8.7.0' e kotlin("android") version "2.1.0".
+    [GeneratedRegex(@"(?:id\s*\(?\s*[""'](?<id>org\.jetbrains\.kotlin\.[\w.]+|com\.android\.(?:application|library))[""']\s*\)?|kotlin\s*\(\s*[""'](?<id>[\w.]+)[""']\s*\))\s*version\s*[""'](?<version>[^""']+)[""']")]
+    private static partial Regex GradlePlugin();
 
     [GeneratedRegex(@"(?m)^\s*\[")]
     private static partial Regex NextSection();

@@ -59,7 +59,9 @@ public class TechnologiesTests
     [InlineData("ASP.NET Core com TypeScript no cliente", "dotnet")]
     [InlineData("FastAPI", "python")]
     [InlineData("Spring Boot", "java")]
-    [InlineData("PHP com Laravel", null)]
+    [InlineData("PHP com Laravel", "php")]
+    [InlineData("Ruby on Rails", "ruby")]
+    [InlineData("Motor em C++ com CMake", "cpp")]
     public void A_ordem_do_registro_decide_quem_vence_na_arquitetura(string choice, string? expected) =>
         Assert.Equal(expected, ArchitectureDocuments.ParseStack($"## Stack\n\n- **Área**: {choice}. Motivo.\n").Single().StackId);
 

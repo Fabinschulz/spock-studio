@@ -86,6 +86,26 @@ class ParsersTest(unittest.TestCase):
         self.assertEqual({"node": "^20.19.0 || >=22.12.0"}, by_cycle["8"]["requires"])
         self.assertIsNone(by_cycle["7"]["requires"])
 
+    def test_php_pelas_datas_de_suporte_ativo_e_de_seguranca(self):
+        lines = {item["cycle"]: (item["status"], item["eol"]) for item in catalog.parse_php({"8": {
+            "8.5": {"state": "stable", "active_support_end": "2027-12-31T00:00:00+00:00", "security_support_end": "2029-12-31T00:00:00+00:00"},
+            "8.4": {"state": "stable", "active_support_end": "2026-11-01T00:00:00+00:00", "security_support_end": "2028-12-31T00:00:00+00:00"},
+            "8.3": {"state": "security", "active_support_end": "2025-12-31T00:00:00+00:00", "security_support_end": "2027-12-31T00:00:00+00:00"},
+            "8.1": {"state": "eol", "security_support_end": "2025-12-31T00:00:00+00:00"}}}, TODAY)}
+        self.assertEqual(("active", "2029-12-31"), lines["8.5"])
+        self.assertEqual(("maintenance", "2028-12-31"), lines["8.4"])
+        self.assertEqual(("maintenance", "2027-12-31"), lines["8.3"])
+        self.assertEqual(("eol", "2025-12-31"), lines["8.1"])
+
+    def test_ruby_le_o_branches_yml_e_normaliza_as_branches_antigas(self):
+        lines = {item["cycle"]: (item["status"], item["eol"]) for item in catalog.parse_ruby(
+            "# comentário\n- name: 4.1\n  status: preview\n  date:\n  eol_date:\n\n"
+            "- name: 3.4\n  status: normal maintenance\n  date: 2024-12-25\n  eol_date:\n\n"
+            "- name: 3.3\n  status: legacy maintenance\n  eol_date:\n  expected_eol_date: 2027-03-31\n\n"
+            "- name: 2.0.0\n  status: eol\n  eol_date: 2016-02-24\n")}
+        self.assertEqual({"4.1": ("preview", None), "3.4": ("active", None), "3.3": ("maintenance", "2027-03-31"),
+                          "2.0": ("eol", "2016-02-24")}, lines)
+
     def test_rust_le_a_versao_estavel(self):
         lines = catalog.parse_rust('date = "2026-11-12"\n[pkg.rust]\nversion = "1.100.0 (0ef1bc386 2026-11-09)"\n')
         self.assertEqual(("1.100", "1.100.0"), (lines[0]["cycle"], lines[0]["latest"]))
