@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:0d99dbb8-e26d-49cd-b4af-6dac2d4eb55f",
+  "serialNumber": "urn:uuid:e416a053-75cc-47ba-9b9e-86503c45c077",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-20T12:55:06Z",
+    "timestamp": "2026-11-20T13:06:53Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -26484,7 +26484,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@base-ui+utils@0.5.0_@types+react@19.3.0_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/@base-ui/utils"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@base-ui+utils@0.5.0_@types_6b1c5c30254f04ccfc8f12b63d1f3b80/node_modules/@base-ui/utils"
         }
       ]
     },
@@ -26732,7 +26732,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-calc@3.4.3_@csstools+css-parser-algorithms@4.0.2_@csstools+css-tokenizer@4.0.2__jzdx62jomxa2u5lq3rskr5mnam/node_modules/@csstools/css-calc"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-calc@3.4.3_@c_5d0f8d745a07415aae8a65a2b2b89950/node_modules/@csstools/css-calc"
         }
       ]
     },
@@ -26795,7 +26795,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-color-parser@4.2.6_@csstools+css-parser-algorithms@4.0.2_@csstools+css-tokenize_3irbf4gc4ltddedcixqcxbejee/node_modules/@csstools/css-color-parser"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-color-parser@_3beec650aa1a03825a56f62de173c9bb/node_modules/@csstools/css-color-parser"
         }
       ]
     },
@@ -26858,7 +26858,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-parser-algorithms@4.0.2_@csstools+css-tokenizer@4.0.2/node_modules/@csstools/css-parser-algorithms"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-parser-algori_d4304c31a6cd56ce1efe1c6b839b3154/node_modules/@csstools/css-parser-algorithms"
         }
       ]
     },
@@ -26921,7 +26921,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-syntax-patches-for-csstree@1.1.15_css-tree@3.2.1/node_modules/@csstools/css-syntax-patches-for-csstree"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-syntax-patche_8041c7b11c6edf6c2fe415ca5c211d02/node_modules/@csstools/css-syntax-patches-for-csstree"
         }
       ]
     },
@@ -27555,7 +27555,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@emotion+styled@11.14.1_@emotion+react@11.14.0_@types+react@19.3.0_react@19.3.1__@types+react@19.3.0_react@19.3.1/node_modules/@emotion/styled"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@emotion+styled@11.14.1_@em_eaf01582f5ac4d2227dff53086611941/node_modules/@emotion/styled"
         },
         {
           "name": "spock:usage",
@@ -27685,7 +27685,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@emotion+use-insertion-effect-with-fallbacks@1.2.0_react@19.3.1/node_modules/@emotion/use-insertion-effect-with-fallbacks"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@emotion+use-insertion-effe_0050a736459e2bf913ca7104f6702bad/node_modules/@emotion/use-insertion-effect-with-fallbacks"
         }
       ]
     },
@@ -28567,7 +28567,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@hookform+resolvers@7.0.0_react-hook-form@7.91.0_@types+react@19.3.0_react@19.3.1__zod@4.6.7/node_modules/@hookform/resolvers"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@hookform+resolvers@7.0.0_r_248346a6827cc56055d14273efed4c8e/node_modules/@hookform/resolvers"
         },
         {
           "name": "spock:usage",
@@ -29256,7 +29256,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mariliz+ui-kit@0.6.0_@emotion+react@11.14.0_@types+react@19.3.0_react@19.3.1__@emotion+style_e6kjwqvnxbqnhtyfnh7yz747bq/node_modules/@mariliz/ui-kit"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mariliz+ui-kit@0.6.0_@emot_4f53bddc30065a6973d0a2a5f01e0d1e/node_modules/@mariliz/ui-kit"
         },
         {
           "name": "spock:usage",
@@ -29386,7 +29386,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mui+material@9.5.0_@emotion+react@11.14.0_@types+react@19.3.0_react@19.3.1__@emotion+styled@_3hsirgk6x76lo23tvh4ymwec5e/node_modules/@mui/material"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mui+material@9.5.0_@emotio_e4d91915e94d9ca442999cd0ee28c248/node_modules/@mui/material"
         },
         {
           "name": "spock:usage",
@@ -29516,7 +29516,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mui+styled-engine@9.5.0_@emotion+react@11.14.0_@types+react@19.3.0_react@19.3.1__@emotion+st_laoivosrq6md62xkdwxn2itl74/node_modules/@mui/styled-engine"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mui+styled-engine@9.5.0_@e_87f28f2389eaa902c96844bc73ca42dc/node_modules/@mui/styled-engine"
         }
       ]
     },
@@ -29579,7 +29579,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mui+system@9.5.0_@emotion+react@11.14.0_@types+react@19.3.0_react@19.3.1__@emotion+styled@11_esixxjshcp3gmtypgyitjl7gey/node_modules/@mui/system"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mui+system@9.5.0_@emotion+_52a30419c1516986dc83ae59b406b756/node_modules/@mui/system"
         }
       ]
     },
@@ -29768,7 +29768,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mui+x-data-grid@9.16.0_@emotion+react@11.14.0_@types+react@19.3.0_react@19.3.1__@emotion+sty_4qkhnfig5cryhxld5al2mzhzkm/node_modules/@mui/x-data-grid"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mui+x-data-grid@9.16.0_@em_99e2cf4dc9b9c352e03201a3982b1abe/node_modules/@mui/x-data-grid"
         }
       ]
     },
@@ -29831,7 +29831,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mui+x-internals@9.16.0_@types+react@19.3.0_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/@mui/x-internals"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mui+x-internals@9.16.0_@ty_3ad961462e7721e8c41d1bbca3da2ecc/node_modules/@mui/x-internals"
         }
       ]
     },
@@ -29894,7 +29894,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mui+x-virtualizer@0.7.4_@types+react@19.3.0_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/@mui/x-virtualizer"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mui+x-virtualizer@0.7.4_@t_2624967dd67fa14a3ba94c1c0417b4c8/node_modules/@mui/x-virtualizer"
         }
       ]
     },
@@ -30770,7 +30770,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@testing-library+jest-dom@7.0.1_@testing-library+dom@10.4.2_vitest@5.1.1_@types+node@24.19.2__runwju3hnu5ies4grpzsj3g5vi/node_modules/@testing-library/jest-dom"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@testing-library+jest-dom@7_21d9cc0e26ba0bf25e4e8edbbb18a27c/node_modules/@testing-library/jest-dom"
         }
       ]
     },
@@ -30833,7 +30833,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@testing-library+react@16.3.3_@testing-library+dom@10.4.2_@types+react-dom@19.3.0_@types+reac_bxsa26tagmopasg2pmf353q5ii/node_modules/@testing-library/react"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@testing-library+react@16.3_caf0c89dcd807677af52e2a43e70eff8/node_modules/@testing-library/react"
         }
       ]
     },
@@ -30896,7 +30896,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@testing-library+user-event@14.6.8_@testing-library+dom@10.4.2/node_modules/@testing-library/user-event"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@testing-library+user-event_aea6012367c281fb0dc3c23f015b1380/node_modules/@testing-library/user-event"
         }
       ]
     },
@@ -31473,7 +31473,7 @@
       "name": "@types/react-dom",
       "version": "19.3.0",
       "purl": "pkg:npm/%40types/react-dom@19.3.0",
-      "scope": "required",
+      "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -31498,11 +31498,11 @@
         },
         {
           "name": "spock:environment",
-          "value": "execução"
+          "value": "desenvolvimento"
         },
         {
           "name": "spock:distribution",
-          "value": "incorporado (bundle da interface)"
+          "value": "não distribuído"
         },
         {
           "name": "spock:dependency",
@@ -31522,7 +31522,7 @@
         },
         {
           "name": "spock:obligations",
-          "value": "aviso de copyright e texto da licença nos avisos de terceiros"
+          "value": "Nenhuma para o produto (não distribuído)."
         },
         {
           "name": "spock:evidence",
@@ -31652,7 +31652,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+eslint-plugin@8.72.1_@typescript-eslint+parser@8.72.1_eslint@9.39.5_typesc_4fbdq7v4hqqwqbl52ely2fmc34/node_modules/@typescript-eslint/eslint-plugin"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+eslint-p_2da76a6517e23aa251964cfc54a26d3b/node_modules/@typescript-eslint/eslint-plugin"
         }
       ]
     },
@@ -31715,7 +31715,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+parser@8.72.1_eslint@9.39.5_typescript@6.0.3/node_modules/@typescript-eslint/parser"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+parser@8_0e952629f979e400c09d1eb3fc0a0b5f/node_modules/@typescript-eslint/parser"
         }
       ]
     },
@@ -31967,7 +31967,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+type-utils@8.72.1_eslint@9.39.5_typescript@6.0.3/node_modules/@typescript-eslint/type-utils"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+type-uti_1f8da332ba1b8272039f55c888086643/node_modules/@typescript-eslint/type-utils"
         }
       ]
     },
@@ -32156,7 +32156,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+utils@8.72.1_eslint@9.39.5_typescript@6.0.3/node_modules/@typescript-eslint/utils"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+utils@8._56a011b84fcda7270615a9a8abb2f02c/node_modules/@typescript-eslint/utils"
         }
       ]
     },
@@ -32282,7 +32282,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@vitejs+plugin-react@6.3.0_vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/@vitejs/plugin-react"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@vitejs+plugin-react@6.3.0__66e69f696edc8b39a7cfcb4a422c3318/node_modules/@vitejs/plugin-react"
         }
       ]
     },
@@ -32345,7 +32345,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@vitest+mocker@5.1.1_vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/@vitest/mocker"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@vitest+mocker@5.1.1_vite@8_2d060c020e224120e6b33d29c8672174/node_modules/@vitest/mocker"
         }
       ]
     },
@@ -46965,7 +46965,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/react-code-input@3.10.1_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/react-code-input"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/react-code-input@3.10.1_rea_599c7974e3213d833c6cc66f87a21748/node_modules/react-code-input"
         }
       ]
     },
@@ -47351,7 +47351,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/react-router@8.5.0_@types+react-dom@19.3.0_@types+react@19.3.0__@types+react@19.3.0_react-dom_sv6ypji4h73j2h6kenrpoid4ze/node_modules/react-router"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/react-router@8.5.0_@types+r_6cb9623782d1813d65fa0efb9041c376/node_modules/react-router"
         },
         {
           "name": "spock:usage",
@@ -47418,7 +47418,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/react-transition-group@4.4.5_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/react-transition-group"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/react-transition-group@4.4._fb09311f545bcaa25cc9ffd145316358/node_modules/react-transition-group"
         }
       ]
     },
@@ -51824,7 +51824,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1/node_modules/vite"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/vite@8.3.8_@types+node@24.1_84f98ba628a7af878be49bd56a45e3fb/node_modules/vite"
         },
         {
           "name": "spock:usage",
@@ -51891,7 +51891,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/vitest@5.1.1_@types+node@24.19.2_jsdom@29.1.1_vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/vitest"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/vitest@5.1.1_@types+node@24_f8e9b6289b904154d5b3c7c6b58111fd/node_modules/vitest"
         },
         {
           "name": "spock:usage",

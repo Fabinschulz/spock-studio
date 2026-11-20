@@ -301,12 +301,21 @@ class Inventory:
         return c
 
 
+# O pnpm 12 grava antes do lockfile do projeto um documento YAML que só fixa o próprio pnpm (packageManagerDependencies),
+# com packages e snapshots próprios. O inventário lê só o último documento, o do projeto.
+def project_lockfile() -> str:
+    text = (ROOT / "pnpm-lock.yaml").read_text(encoding="utf-8")
+    documents = [doc for doc in re.split(r"(?m)^---\s*$", text) if doc.strip()]
+    return documents[-1] if documents else text
+
+
 def collect_npm(inv: Inventory) -> None:
-    prod = json.loads(run(["pnpm", "licenses", "list", "--prod", "--json"]))
-    every = json.loads(run(["pnpm", "licenses", "list", "--json"]))
+    # Num workspace, o pnpm 10+ só lista o pacote da raiz sem -r.
+    prod = json.loads(run(["pnpm", "licenses", "list", "--prod", "--json", "-r"]))
+    every = json.loads(run(["pnpm", "licenses", "list", "--json", "-r"]))
     integrity: dict[str, str] = {}
     current = None
-    for line in (ROOT / "pnpm-lock.yaml").read_text(encoding="utf-8").splitlines():
+    for line in project_lockfile().splitlines():
         m = re.match(r"^  '?(@?[^@\s']+)@([^'\s(:]+)'?:\s*$", line)
         if m:
             current = f"{m.group(1)}@{m.group(2)}"
@@ -1226,7 +1235,7 @@ def platform_specific_npm() -> set[tuple[str, str]]:
     """Pacotes do lockfile presos a sistema/arquitetura (binários nativos opcionais): o pnpm só instala os da máquina."""
     found: set[tuple[str, str]] = set()
     current = None
-    for line in (ROOT / "pnpm-lock.yaml").read_text(encoding="utf-8").splitlines():
+    for line in project_lockfile().splitlines():
         m = re.match(r"^  '?(@?[^@\s']+)@([^'\s(:]+)'?:\s*$", line)
         if m:
             current = (m.group(1), m.group(2))

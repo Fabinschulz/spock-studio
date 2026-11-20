@@ -35,7 +35,7 @@ Consulta feita em **2026-11-18**. A versão usada vem dos manifestos e lockfiles
 | @mui/material | ^9.4.0 / 9.5.0 | 9.5.0 | Atual |
 | react-router | ^8.4.0 / 8.5.0 | 8.5.2 | Patch atrás |
 | zod / react-hook-form | 4.6.7 / ^7.89.0 | 4.6.7 / 7.92.0 | Atual / minor atrás |
-| pnpm (`packageManager`) | 9.1.2 | 12.21.0 | Três majors atrás. A situação de suporte do pnpm 9 não foi verificada |
+| pnpm (`packageManager`) | 9.1.2 → **12.21.0** (MV-9) | 12.21.0 | Atualizado; ver o registro no roadmap |
 | Node.js (CI e `engines`) | 22 / `>=22` | 26.13.1 (LTS ativa) | 22 em manutenção até **2027-04-30** |
 | Node.js na máquina de desenvolvimento | v25.2.1 | | **Sem suporte desde 2026-06-01** (linha ímpar) |
 

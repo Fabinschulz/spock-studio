@@ -1,3 +1,8 @@
 packages:
   - desktop/ui
   - desktop/host
+
+# pnpm 11+ bloqueia script de instalação de dependência que não estiver aqui. O do @parcel/watcher (via sass-embedded e vite)
+# só compila do código-fonte quando falta o binário pronto, que já vem pelas dependências opcionais de cada plataforma.
+allowBuilds:
+  '@parcel/watcher': false
