@@ -10,7 +10,7 @@ de parecer.
 | ID | Nível | Tipo | Componente | Prioridade |
 | --- | --- | --- | --- | --- |
 | R-01 | ALTO | J | Terraform (BUSL 1.1), instalação e operação gerenciadas | P0 |
-| R-02 | MÉDIO | J | Berkeley DB 6.0.19 (Sleepycat) no Python do Linux (obrigação cumprida no pacote) | P1 |
+| R-02 | ENCERRADO | J | Berkeley DB 6.0.19 (Sleepycat) no Python do Linux: fora do pacote desde a 3.14 | — |
 | R-03 | BAIXO (era ALTO) | D | GTK/WebKitGTK (LGPL): AppImage fora da distribuição (D-06) | — |
 | R-04 | BAIXO (era MÉDIO) | D | Avisos de terceiros no instalador e na tela Sobre (D-07) | — |
 | R-05 | MÉDIO | D/J | .NET Runtime win-x64 (.NET Library License) e linux-x64 (MIT) | P0 |
@@ -43,7 +43,11 @@ de parecer.
   instalado pelo usuário. Corrigir o texto da proposta.
 - **Prioridade.** P0.
 
-### R-02: Berkeley DB (Sleepycat) no python-build-standalone: MÉDIO (era ALTO), jurídico
+### R-02: Berkeley DB (Sleepycat) no python-build-standalone: ENCERRADO (era MÉDIO), jurídico
+
+- **Encerramento (2026-11-20, MV-9).** No CPython 3.14 do PBS 20261110, o Berkeley DB fica só no módulo separado
+  `lib-dynload/_dbm.cpython-314-x86_64-linux-gnu.so`; o executável e o `libpython` não o contêm. A poda tira o módulo, e o
+  smoke `Pacote_embarcado` falha se ele voltar. O histórico abaixo vale para a 3.12.
 
 - **Evidência.** `scripts/package-intelligence.py:31-45` (PBS 20250409). `downloads.py` e `targets.yml` da tag
   20250409: `_dbm` vincula ao Berkeley DB 6.0.19, "the last version licensed under the Sleepycat license". No arquivo

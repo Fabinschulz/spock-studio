@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:57954a93-7157-402b-abae-6ae34ffff694",
+  "serialNumber": "urn:uuid:f6f17436-233a-44b1-bc50-aa3511cd5a96",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-20T13:06:53Z",
+    "timestamp": "2026-11-20T13:40:26Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -220,13 +220,13 @@
       "type": "platform",
       "bom-ref": "bin-python-build-standalone-win",
       "name": "CPython (python-build-standalone, install_only_stripped, Windows)",
-      "version": "3.12.16+20261110",
+      "version": "3.14.10+20261110",
       "purl": "pkg:github/astral-sh/python-build-standalone@20261110",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f4ee82750281a43282d2d6bfcf03812f2ac62725ae8c958b6e6182ba203c3cef"
+          "content": "481f745b9693e6b8e84db645460bca7dfe30de5b4dacc2ee67daa9d8dcb37300"
         }
       ],
       "licenses": [
@@ -271,7 +271,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "scripts/package-intelligence.py:41 | scripts/notices/python-build-standalone-windows/README.md"
+          "value": "scripts/package-intelligence.py:40 | scripts/notices/python-build-standalone-windows/README.md"
         },
         {
           "name": "spock:usage",
@@ -279,7 +279,7 @@
         },
         {
           "name": "spock:note",
-          "value": "SHA-256 do arquivo fixado no script: 355ee61b8207b91574491b1c6dc9b0ebb4408fc56bfafe498f3ef439314b52dc. Inclui OpenSSL 3.5.9 (Apache-2.0), libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 2.5.1, xz 5.8.4 (0BSD), zlib 1.4; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk podados. Hash do arquivo desktop/host/src-tauri/resources/python/python312.dll do último build local."
+          "value": "SHA-256 do arquivo fixado no script: 32b6cf90a03e2bc15fda8d2ab7ff78c4870f138887d612932650ce764efaab8f. Inclui OpenSSL 3.5.9 (Apache-2.0), libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 4.0.0, xz 5.8.4 (0BSD), zlib-ng 2.2.4, zstd 1.5.7; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk e libtommath podados. Hash do arquivo desktop/host/src-tauri/resources/python/python314.dll do último build local."
         }
       ]
     },
@@ -480,7 +480,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b36cfb21dc3dad939aabab2e479c6e179b65e3a674105b15bfcc8b5ca7cad526"
+          "content": "a76d21af69d46135b4b31c296fe633a7076dc96771be9206b78023186768cb5a"
         }
       ],
       "licenses": [

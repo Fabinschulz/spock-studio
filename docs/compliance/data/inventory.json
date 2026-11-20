@@ -84,29 +84,8 @@
   "nota": "Hash do arquivo desktop/host/src-tauri/icons/icon.ico do último build local."
  },
  {
-  "nome": "Berkeley DB (dentro do python-build-standalone, módulo _dbm)",
-  "versao": "6.0.19",
-  "tipo": "library",
-  "ecossistema": "binário",
-  "origem": "https://github.com/astral-sh/python-build-standalone/blob/20261110/pythonbuild/downloads.json",
-  "uso": "Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência)",
-  "dependencia": "direta",
-  "ambiente": "execução",
-  "artefatos": "linux-x64",
-  "licenca_declarada": "Sleepycat",
-  "licenca_confirmada": "Sleepycat",
-  "conferencia": "CONFERIDO MANUALMENTE",
-  "distribuicao": "redistribuído (resources/python no .deb)",
-  "obrigacoes": "Sleepycat: licença e informação de fonte do Berkeley DB 6.0.19 e do CPython/PBS junto da distribuição (implementado em python/licenses/berkeley-db e conferido pelo smoke do pacote); manter o canal de suporte para entregar as fontes",
-  "risco": "MÉDIO",
-  "motivo": "Ligado estaticamente ao libpython3.12.so (a poda não remove). A obrigação da Sleepycat é cumprida no pacote: licença e fontes vão em python/licenses/berkeley-db (D-05). Falta parecer sobre o alcance de 'software que use o DB'",
-  "evidencias": "scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/pythonbuild/downloads.json",
-  "hashes": "",
-  "nota": "A tag 20261110 mantém o bdb 6.0.19 na lista do alvo x86_64-unknown-linux-gnu (cpython-unix/targets.yml). Conferido na 20250409: sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0; na 20261110, não verificado em Linux."
- },
- {
   "nome": "CPython (python-build-standalone, install_only_stripped)",
-  "versao": "3.12.16+20261110",
+  "versao": "3.14.10+20261110",
   "tipo": "runtime",
   "ecossistema": "binário",
   "origem": "https://github.com/astral-sh/python-build-standalone",
@@ -118,16 +97,16 @@
   "licenca_confirmada": "Python-2.0",
   "conferencia": "CONFERIDO MANUALMENTE",
   "distribuicao": "redistribuído (resources/python no .deb)",
-  "obrigacoes": "Licença do CPython (lib/python3.12/LICENSE.txt) e das bibliotecas nativas (python/licenses/python-build-standalone) no pacote",
+  "obrigacoes": "Licença do CPython (lib/python3.14/LICENSE.txt) e das bibliotecas nativas (python/licenses/python-build-standalone) no pacote",
   "risco": "BAIXO",
-  "motivo": "Bibliotecas nativas ligadas ao libpython (OpenSSL, SQLite, ncurses, libedit, libffi, expat, mpdecimal, zlib, xz, zstd, Tcl/Tk, X11); os textos publicados pelo PBS na tag vão em python/licenses/python-build-standalone",
-  "evidencias": "scripts/package-intelligence.py:46 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml",
+  "motivo": "Bibliotecas nativas ligadas ao executável (OpenSSL, SQLite, ncurses, libedit, libffi, expat, mpdecimal, zlib, xz, zstd, libuuid); os textos publicados pelo PBS na tag vão em python/licenses/python-build-standalone",
+  "evidencias": "scripts/package-intelligence.py:45 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml",
   "hashes": "",
-  "nota": "SHA-256 do arquivo fixado no script: 6a9e62dad033790aef722dbd370e0ce76ce17b73627ba3ae679f537049350b39. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado."
+  "nota": "SHA-256 do arquivo fixado no script: c2ff2e97422f5d3896a16e0317fd212ba977bbf2688d93a6f7a03d817506bd30. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado. A poda tira o _dbm (único lugar do Berkeley DB 6.0.19, Sleepycat, na 3.14), o _tkinter (Tcl/Tk e X11) e o libpython, que o executável não carrega."
  },
  {
   "nome": "CPython (python-build-standalone, install_only_stripped, Windows)",
-  "versao": "3.12.16+20261110",
+  "versao": "3.14.10+20261110",
   "tipo": "runtime",
   "ecossistema": "binário",
   "origem": "https://github.com/astral-sh/python-build-standalone",
@@ -142,9 +121,9 @@
   "obrigacoes": "Incluir LICENSE.txt do CPython (já vai em resources/python) e os textos das bibliotecas nativas (python/licenses/python-build-standalone) nos avisos; EULA do Spock com proteção ao Distributable Code da Microsoft; não usar marcas da PSF/Microsoft",
   "risco": "MÉDIO",
   "motivo": "Redistribuição exige manter o LICENSE.txt, os textos das bibliotecas nativas (python/licenses/python-build-standalone) e, pelo runtime MSVC junto, termos de usuário final que protejam o Distributable Code da Microsoft",
-  "evidencias": "scripts/package-intelligence.py:41 | scripts/notices/python-build-standalone-windows/README.md",
-  "hashes": "SHA-256:f4ee82750281a43282d2d6bfcf03812f2ac62725ae8c958b6e6182ba203c3cef",
-  "nota": "SHA-256 do arquivo fixado no script: 355ee61b8207b91574491b1c6dc9b0ebb4408fc56bfafe498f3ef439314b52dc. Inclui OpenSSL 3.5.9 (Apache-2.0), libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 2.5.1, xz 5.8.4 (0BSD), zlib 1.4; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk podados. Hash do arquivo desktop/host/src-tauri/resources/python/python312.dll do último build local."
+  "evidencias": "scripts/package-intelligence.py:40 | scripts/notices/python-build-standalone-windows/README.md",
+  "hashes": "SHA-256:481f745b9693e6b8e84db645460bca7dfe30de5b4dacc2ee67daa9d8dcb37300",
+  "nota": "SHA-256 do arquivo fixado no script: 32b6cf90a03e2bc15fda8d2ab7ff78c4870f138887d612932650ce764efaab8f. Inclui OpenSSL 3.5.9 (Apache-2.0), libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 4.0.0, xz 5.8.4 (0BSD), zlib-ng 2.2.4, zstd 1.5.7; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk e libtommath podados. Hash do arquivo desktop/host/src-tauri/resources/python/python314.dll do último build local."
  },
  {
   "nome": "Microsoft Visual C++ Runtime (vcruntime140.dll, vcruntime140_1.dll)",
@@ -227,7 +206,7 @@
   "risco": "BAIXO",
   "motivo": "Apache-2.0: manter licença",
   "evidencias": "desktop/host/src-tauri/resources/python/DLLs/libcrypto-3-x64.dll | scripts/notices/python-build-standalone-windows/LICENSE.openssl-3.txt",
-  "hashes": "SHA-256:b36cfb21dc3dad939aabab2e479c6e179b65e3a674105b15bfcc8b5ca7cad526",
+  "hashes": "SHA-256:a76d21af69d46135b4b31c296fe633a7076dc96771be9206b78023186768cb5a",
   "nota": "Hash do arquivo desktop/host/src-tauri/resources/python/DLLs/libcrypto-3-x64.dll do último build local."
  },
  {

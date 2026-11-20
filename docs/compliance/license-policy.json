@@ -35,7 +35,6 @@
     "nuget:JsonSchema.Net": "R-17 / D-11",
     "nuget:Json.More.Net": "R-17 / D-11",
     "nuget:JsonPointer.Net": "R-17 / D-11",
-    "bin:berkeley-db": "R-02 / D-05",
     "bin:nsis": "LICENSE_AUDIT §4 (exceção do LZMA)",
     "bin:vcruntime": "R-06 / D-09",
     "bin:dotnet-runtime-win": "R-05 / D-09",

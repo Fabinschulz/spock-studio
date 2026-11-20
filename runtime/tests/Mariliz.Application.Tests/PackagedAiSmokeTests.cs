@@ -32,7 +32,7 @@ public class PackagedAiSmokeTests
         Assert.True(File.Exists(script), "server.py embarcado ausente.");
         Assert.True(File.Exists(python), "Interpretador embarcado ausente.");
         Assert.Empty(Directory.GetFiles(Path.Combine(root, "intelligence", "packages"), "*.py", SearchOption.AllDirectories));
-        var pythonLicense = OperatingSystem.IsWindows() ? Path.Combine(root, "python", "LICENSE.txt") : Path.Combine(root, "python", "lib", "python3.12", "LICENSE.txt");
+        var pythonLicense = OperatingSystem.IsWindows() ? Path.Combine(root, "python", "LICENSE.txt") : Path.Combine(root, "python", "lib", "python3.14", "LICENSE.txt");
         Assert.True(File.Exists(pythonLicense), "Licença do CPython ausente do pacote.");
         // D-07: os avisos de terceiros vão no instalador e precisam estar completos.
         var notices = Path.Combine(root, "notices");
@@ -43,17 +43,16 @@ public class PackagedAiSmokeTests
         if (OperatingSystem.IsWindows())
         {
             // O PBS para Windows não traz no LICENSE.txt os textos de OpenSSL, SQLite, libffi e afins; eles vão à parte.
-            foreach (var notice in new[] { "README.md", "LICENSE.openssl-3.txt", "LICENSE.sqlite.txt", "LICENSE.libffi.txt", "LICENSE.zlib.txt" })
+            foreach (var notice in new[] { "README.md", "LICENSE.openssl-3.txt", "LICENSE.sqlite.txt", "LICENSE.libffi.txt", "LICENSE.zlib-ng.txt", "LICENSE.zstd.txt" })
                 Assert.True(File.Exists(Path.Combine(root, "python", "licenses", "python-build-standalone", notice)), $"{notice} do python-build-standalone ausente do pacote.");
-            Assert.True(File.Exists(Path.Combine(root, "python", "python312._pth")), "python312._pth ausente: o interpretador leria PYTHONPATH e o registro.");
+            Assert.True(File.Exists(Path.Combine(root, "python", "python314._pth")), "python314._pth ausente: o interpretador leria PYTHONPATH e o registro.");
         }
         if (OperatingSystem.IsLinux())
         {
-            // Sleepycat: o Berkeley DB vai dentro do libpython, então a licença e as fontes precisam ir junto.
-            foreach (var notice in new[] { "LICENSE-6.0.19.txt", "SOURCES.md" })
-                Assert.True(File.Exists(Path.Combine(root, "python", "licenses", "berkeley-db", notice)), $"{notice} do Berkeley DB ausente do pacote.");
-            // As bibliotecas nativas que o libpython do PBS leva dentro (OpenSSL, SQLite, ncurses, Tcl/Tk...).
-            foreach (var notice in new[] { "README.md", "LICENSE.openssl-3.txt", "LICENSE.ncurses.txt", "LICENSE.tcl.txt", "LICENSE.libX11.txt" })
+            // O Berkeley DB (Sleepycat) só existe no módulo _dbm, que a poda tira; se ele voltar, a licença e as fontes têm de ir junto.
+            Assert.Empty(Directory.GetFiles(Path.Combine(root, "python", "lib", "python3.14", "lib-dynload"), "_dbm*"));
+            // As bibliotecas nativas que o executável do PBS leva dentro (OpenSSL, SQLite, ncurses, zstd...).
+            foreach (var notice in new[] { "README.md", "LICENSE.openssl-3.txt", "LICENSE.ncurses.txt", "LICENSE.zstd.txt" })
                 Assert.True(File.Exists(Path.Combine(root, "python", "licenses", "python-build-standalone", notice)), $"{notice} do python-build-standalone ausente do pacote.");
         }
 

@@ -164,7 +164,7 @@ public class LanguageDiscoveryTests
 
         var report = await new ProjectDiscoverer(new InterceptingRunner()).DiscoverAsync("p-aaaaaaaaaaaa", root, files, CancellationToken.None);
 
-        Assert.Contains(report.Stacks, stack => stack.Id == "python" && stack.Root == "intelligence" && stack.Version == "3.12");
+        Assert.Contains(report.Stacks, stack => stack.Id == "python" && stack.Root == "intelligence" && stack.Version == "3.14");
         Assert.Contains(report.Stacks, stack => stack.Id == "rust" && stack.Root == "desktop/host/src-tauri");
         Assert.Contains(report.Frameworks, framework => framework.Id == "langgraph");
         Assert.Contains(report.Frameworks, framework => framework.Id == "tauri" && framework.StackId == "rust");

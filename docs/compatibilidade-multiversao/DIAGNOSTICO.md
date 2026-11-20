@@ -55,7 +55,7 @@ Consulta feita em **2026-11-18**. A versão usada vem dos manifestos e lockfiles
 
 | Componente | Usado | Estável mais recente | Situação |
 |---|---|---|---|
-| Python (CI, ruff `py312`, lock) | 3.12 | 3.15.2 | 3.12 só recebe correções de segurança, até 2028-10 |
+| Python (CI, ruff, lock) | 3.12 → **3.14** (MV-9) | 3.15.2 | 3.14 recebe correções gerais até 2027-10; ver o registro no roadmap |
 | **CPython embarcado no instalador** | **3.12.10** (embeddable oficial no Windows; python-build-standalone 20250409 no Linux e no macOS) | 3.12.16 | **Seis correções de segurança atrás.** Achado mais urgente do diagnóstico. **Resolvido no MV-8a:** 3.12.16 do python-build-standalone 20261110 nas três plataformas |
 | langgraph | 1.2.19 | 1.2.22 | Patch atrás |
 | langgraph-checkpoint-sqlite | 3.1.3 | 3.1.3 | Atual |
@@ -106,7 +106,7 @@ O que o .NET 11 traz de relevante para um motor console, stdio, publicado self-c
 
 - **React, Vite e MUI:** atuais na linha major. O TypeScript 7 e o ESLint 10 são as duas mudanças grandes pendentes e precisam ser avaliadas juntas com `typescript-eslint`, que hoje está na linha 8. A dúvida é se ele já declara suporte ao TypeScript 7 (não verificado).
 - **Tauri:** só patches. CLI (npm), API (npm), crate e plugins precisam subir na mesma entrega. A linha 3.0 está em alpha e fica fora.
-- **Python:** a linha 3.12 é suportada só em segurança. A subida para 3.13 ou 3.14 depende de `sqlite-vec`, que não declara versão de Python, e do CPython embarcado. Precisa de entrega própria com o smoke do instalador.
+- **Python:** a linha 3.12 é suportada só em segurança. **Feito no MV-9:** 3.14.10, com o `sqlite-vec` validado no interpretador embarcado e o smoke do pacote verde.
 - **Ferramentas de qualidade:** ruff fixo no CI (bom). Não há Playwright, ferramenta de vulnerabilidade de dependência nem container.
 
 ## 5. Riscos de modernização

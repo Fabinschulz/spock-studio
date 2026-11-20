@@ -5,7 +5,7 @@
   bundle --resources  copia a inteligência para o pacote do Tauri com as dependências em bytecode sem fonte e,
                       com --python <triple>, baixa e poda o CPython do python-build-standalone (Windows, macOS e Linux).
 
-Precisa rodar com o mesmo Python 3.12 do runtime: o bytecode só carrega na mesma versão menor.
+Precisa rodar com o mesmo Python 3.14 do runtime: o bytecode só carrega na mesma versão menor.
 """
 
 from __future__ import annotations
@@ -27,28 +27,27 @@ SOURCES = ("server.py", "agents", "knowledge", "memory", "workflows", "contracts
 MB = 1024 * 1024
 PACKAGES_BUDGET = 30 * MB
 
-# python-build-standalone 20261110, CPython 3.12.16, nas três plataformas. O python.org só publica binário (inclusive o
-# embeddable do Windows) enquanto a linha recebe correções gerais; a 3.12 está só em segurança e as releases 3.12.11+
-# saíram só em código-fonte. Hashes do SHA256SUMS da release.
+# python-build-standalone 20261110, CPython 3.14.10, nas três plataformas. A 3.14 é a linha que ainda recebe correções
+# gerais (a 3.13 passou a só segurança em 2026-10); a 3.15 tem um mês. Hashes do SHA256SUMS da release.
+PY_MINOR = "3.14"
 PBS_RELEASE = "https://github.com/astral-sh/python-build-standalone/releases/download/20261110"
 PBS = {
     "aarch64-apple-darwin": (
-        "cpython-3.12.16+20261110-aarch64-apple-darwin-install_only_stripped.tar.gz",
-        "2f11b8aa3726bdbd87dd9eb76568412faddf4f47e26913fa45d6a2e424972acd",
+        "cpython-3.14.10+20261110-aarch64-apple-darwin-install_only_stripped.tar.gz",
+        "f15ec3d15460dd66c2eb88639b152cd9040e7d1ece11e38bf89e8f53f0171e02",
         30 * MB,
     ),
     "x86_64-pc-windows-msvc": (
-        "cpython-3.12.16+20261110-x86_64-pc-windows-msvc-install_only_stripped.tar.gz",
-        "355ee61b8207b91574491b1c6dc9b0ebb4408fc56bfafe498f3ef439314b52dc",
+        "cpython-3.14.10+20261110-x86_64-pc-windows-msvc-install_only_stripped.tar.gz",
+        "32b6cf90a03e2bc15fda8d2ab7ff78c4870f138887d612932650ce764efaab8f",
         40 * MB,
     ),
     "x86_64-unknown-linux-gnu": (
-        "cpython-3.12.16+20261110-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
-        "6a9e62dad033790aef722dbd370e0ce76ce17b73627ba3ae679f537049350b39",
-        55 * MB,
+        "cpython-3.14.10+20261110-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+        "c2ff2e97422f5d3896a16e0317fd212ba977bbf2688d93a6f7a03d817506bd30",
+        45 * MB,
     ),
 }
-BERKELEY_DB_NOTICES = ROOT / "scripts" / "notices" / "berkeley-db"
 # Licenças das bibliotecas nativas que o PBS liga ao interpretador (textos da tag da release).
 PBS_LINUX_NOTICES = ROOT / "scripts" / "notices" / "python-build-standalone"
 PBS_WINDOWS_NOTICES = ROOT / "scripts" / "notices" / "python-build-standalone-windows"
@@ -67,8 +66,8 @@ def main() -> None:
     bundle.add_argument("--python", choices=sorted(PBS))
     args = parser.parse_args()
 
-    if sys.version_info[:2] != (3, 12):
-        raise SystemExit(f"Use Python 3.12 (o mesmo do runtime); este é {sys.version.split()[0]}.")
+    if f"{sys.version_info[0]}.{sys.version_info[1]}" != PY_MINOR:
+        raise SystemExit(f"Use Python {PY_MINOR} (o mesmo do runtime); este é {sys.version.split()[0]}.")
     if args.command == "dev":
         install(INTELLIGENCE / "packages", bytecode=False)
         return
@@ -145,17 +144,9 @@ def fetch_python(triple: str, target: Path) -> None:
     # O Tauri copia recursos como arquivos; links simbólicos viram cópias reais.
     shutil.copytree(home, target, symlinks=False, dirs_exist_ok=True)
     if windows:
-        (target / "python312._pth").write_text(WINDOWS_PTH, encoding="ascii", newline="\r\n")
+        (target / f"python{PY_MINOR.replace('.', '')}._pth").write_text(WINDOWS_PTH, encoding="ascii", newline="\r\n")
         shutil.copytree(PBS_WINDOWS_NOTICES, target / "licenses" / "python-build-standalone", dirs_exist_ok=True)
-    else:
-        python3 = target / "bin" / "python3"
-        if python3.is_symlink() or not python3.exists():
-            python3.unlink(missing_ok=True)
-            shutil.copy2(target / "bin" / "python3.12", python3)
     if "linux" in triple:
-        # O libpython do PBS para Linux traz o Berkeley DB ligado estaticamente (_dbm), sem como podar: a licença Sleepycat
-        # exige que a distribuição leve o texto e diga onde obter o código-fonte completo (docs/compliance, D-05).
-        shutil.copytree(BERKELEY_DB_NOTICES, target / "licenses" / "berkeley-db", dirs_exist_ok=True)
         shutil.copytree(PBS_LINUX_NOTICES, target / "licenses" / "python-build-standalone", dirs_exist_ok=True)
     size = _size(target)
     if size > budget:
@@ -171,35 +162,41 @@ def _pruned_on_extract(name: str, windows: bool) -> bool:
         return len(parts) > 2 and parts[1] == "Lib" and parts[2] in PBS_PRUNE_STDLIB
     if len(parts) > 1 and parts[1] in {"include", "share"}:
         return True
-    return len(parts) > 3 and parts[1] == "lib" and parts[2] == "python3.12" and parts[3] in PBS_PRUNE_STDLIB
+    return len(parts) > 3 and parts[1] == "lib" and parts[2] == f"python{PY_MINOR}" and parts[3] in PBS_PRUNE_STDLIB
 
 
 def _prune_windows(home: Path) -> None:
     (home / "pythonw.exe").unlink(missing_ok=True)
     for entry in (home / "DLLs").iterdir():
-        if entry.name.startswith(("_tkinter", "_test", "_ctypes_test", "xxlimited", "tcl", "tk")):
+        if entry.name.startswith(("_tkinter", "_test", "_ctypes_test", "xxlimited", "tcl", "tk", "libtommath")):
             entry.unlink()
 
 
 def _prune(home: Path) -> None:
     for name in ("include", "share"):
         shutil.rmtree(home / name, ignore_errors=True)
+    # Na 3.14 o executável do PBS leva o interpretador inteiro (libpython estático) e não carrega o libpython. Fica só
+    # ele, com o nome que o host e o motor procuram (bin/python3); o libpython, que só serve a quem embute o Python, sai.
+    executable = home / "bin" / f"python{PY_MINOR}"
     for entry in (home / "bin").iterdir():
-        if entry.name not in {"python3", "python3.12"}:
+        if entry != executable:
             entry.unlink()
-    # Links como libpython3.12.so -> libpython3.12.so.1.0 virariam cópias inteiras; o interpretador só carrega o SONAME.
-    for link in [item for item in home.rglob("*") if item.is_symlink() and item != home / "bin" / "python3"]:
+    executable.rename(home / "bin" / "python3")
+    # O Tauri copia links simbólicos como arquivos inteiros.
+    for link in [item for item in home.rglob("*") if item.is_symlink()]:
         link.unlink()
     lib = home / "lib"
     for entry in lib.iterdir():
-        if entry.name.startswith(("tcl", "tk", "Tix", "itcl", "thread", "pkgconfig")) or entry.suffix == ".a":
+        if entry.name.startswith(("tcl", "tk", "libtcl", "libpython", "Tix", "itcl", "thread", "pkgconfig")) or entry.suffix == ".a":
             shutil.rmtree(entry) if entry.is_dir() else entry.unlink()
-    stdlib = lib / "python3.12"
+    stdlib = lib / f"python{PY_MINOR}"
     for entry in stdlib.iterdir():
         if entry.name in PBS_PRUNE_STDLIB or entry.name.startswith("config-"):
             shutil.rmtree(entry)
+    # Na 3.14 o Berkeley DB do Linux fica só no _dbm, não mais no libpython: sem o módulo, o pacote não leva o DB
+    # nem a obrigação da Sleepycat, e o dbm cai no dbm.sqlite3.
     for entry in (stdlib / "lib-dynload").iterdir():
-        if entry.name.startswith(("_tkinter", "_test", "_ctypes_test", "xxlimited")):
+        if entry.name.startswith(("_dbm.", "_tkinter", "_test", "_ctypes_test", "xxlimited")):
             entry.unlink()
 
 

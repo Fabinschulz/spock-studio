@@ -9,11 +9,10 @@ titulares.
 
 ## Textos completos distribuídos como arquivos
 
-- CPython 3.12.16 (python-build-standalone, Windows): [`notices/cpython-3.12.16-LICENSE.txt`](notices/cpython-3.12.16-LICENSE.txt)
+- CPython 3.14.10 (python-build-standalone, Windows): [`notices/cpython-3.14.10-LICENSE.txt`](notices/cpython-3.14.10-LICENSE.txt)
 - .NET Runtime 10 (LICENSE): [`notices/dotnet-runtime-LICENSE.TXT`](notices/dotnet-runtime-LICENSE.TXT)
 - .NET Runtime 10 (THIRD-PARTY-NOTICES): [`notices/dotnet-runtime-THIRD-PARTY-NOTICES.TXT`](notices/dotnet-runtime-THIRD-PARTY-NOTICES.TXT)
 - NSIS (COPYING): [`notices/nsis-COPYING.txt`](notices/nsis-COPYING.txt)
-- Berkeley DB 6.0.19, no Python embarcado do Linux: [`scripts/notices/berkeley-db/`](../../scripts/notices/berkeley-db/) (vai em `python/licenses/` no pacote da plataforma)
 - Bibliotecas nativas do python-build-standalone 20261110 (Linux): [`scripts/notices/python-build-standalone/`](../../scripts/notices/python-build-standalone/) (vai em `python/licenses/` no pacote da plataforma)
 - Bibliotecas nativas do python-build-standalone 20261110 (Windows): [`scripts/notices/python-build-standalone-windows/`](../../scripts/notices/python-build-standalone-windows/) (vai em `python/licenses/` no pacote da plataforma)
 - Textos obtidos nos repositórios oficiais, fixados em commit, para pacotes que não trazem o arquivo: [`notices/upstream/`](notices/upstream/) (procedência em `sources.json`)

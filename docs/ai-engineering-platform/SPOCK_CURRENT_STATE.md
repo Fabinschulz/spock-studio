@@ -28,7 +28,7 @@ caracteres e o Spock não consome MCPs de terceiros**. Nada com modelo rodou com
 
 ```text
 runtime/        .NET 10: Core ← Application ← Infrastructure (+ .Cloud) ← Runtime (sidecar, mcp) e Cli
-intelligence/   Python 3.12 + LangGraph 1.2.19: agentes, workflows, índice de conhecimento, evals
+intelligence/   Python 3.14 + LangGraph 1.2.19: agentes, workflows, índice de conhecimento, evals
 desktop/        host Tauri (Rust), ui (React), launcher `spock` (Rust)
 contracts/      JSON Schemas versionados no nome + fixtures válidas e inválidas
 ```

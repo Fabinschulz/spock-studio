@@ -544,7 +544,8 @@ public class WorkflowRuntimeTests
     private static async Task<List<JsonObject>> RawWorkflowLinesAsync(string dataDir)
     {
         var script = Path.Combine(ContractFiles.Root, "intelligence", "server.py");
-        var python = Mariliz.Infrastructure.PythonRuntimeLayout.Candidates(AppContext.BaseDirectory, null, null, Environment.GetEnvironmentVariable("PATH")).First();
+        var python = Mariliz.Infrastructure.PythonRuntimeLayout.Candidates(
+            AppContext.BaseDirectory, Environment.GetEnvironmentVariable("MARILIZ_PYTHON"), null, Environment.GetEnvironmentVariable("PATH")).First();
         var port = FreePort();
         var token = Guid.NewGuid().ToString("N");
         var psi = new System.Diagnostics.ProcessStartInfo(python) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };

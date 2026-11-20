@@ -54,8 +54,8 @@ $spock = Join-Path $dest ("spock-" + $t.Triple + $t.Ext)
 Copy-Item (Join-Path $launcher ("target\" + $t.Triple + "\release\spock" + $t.Ext)) $spock -Force
 "Lançador: $spock ({0:N0} KB)" -f ((Get-Item $spock).Length / 1KB)
 
-# Orçamento do interpretador no Windows: 40 MB. O PBS 3.12.16 podado tem 36 MB (medido em 2026-11-19); o embeddable do
-# python.org tinha 10,6 MB, mas não existe para releases só de segurança (3.12.11+). As dependências da inteligência
+# Orçamento do interpretador no Windows: 40 MB. O PBS 3.14.10 podado tem 34,4 MB (medido em 2026-11-20); o embeddable do
+# python.org tinha 10,6 MB, mas não existe para releases só de segurança. As dependências da inteligência
 # (bytecode, orçamento 30 MB) saem de scripts/package-intelligence.py (ADR-0001).
 $budget = 40MB
 $resources = Join-Path $root 'desktop\host\src-tauri\resources'

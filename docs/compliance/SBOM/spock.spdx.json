@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Inventário consolidado (distribuído, sob demanda, externo e desenvolvimento)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--949dc594-efbe-4e79-9afb-652aa28a523b",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--208eb9dd-c9ee-4b50-a593-b3cb7b7b6ff6",
   "creationInfo": {
-    "created": "2026-11-20T13:06:53Z",
+    "created": "2026-11-20T13:40:26Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -79,35 +79,16 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-bin-berkeley-db",
-      "name": "Berkeley DB (dentro do python-build-standalone, módulo _dbm)",
-      "versionInfo": "6.0.19",
-      "downloadLocation": "https://github.com/astral-sh/python-build-standalone/blob/20261110/pythonbuild/downloads.json",
-      "filesAnalyzed": false,
-      "licenseDeclared": "Sleepycat",
-      "licenseConcluded": "Sleepycat",
-      "copyrightText": "NOASSERTION",
-      "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência). Ambiente: execução. Distribuição: redistribuído (resources/python no .deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/pythonbuild/downloads.json. A tag 20261110 mantém o bdb 6.0.19 na lista do alvo x86_64-unknown-linux-gnu (cpython-unix/targets.yml). Conferido na 20250409: sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0; na 20261110, não verificado em Linux.",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:generic/berkeley-db@6.0.19"
-        }
-      ]
-    },
-    {
       "SPDXID": "SPDXRef-Package-bin-python-build-standalone",
       "name": "CPython (python-build-standalone, install_only_stripped)",
-      "versionInfo": "3.12.16+20261110",
+      "versionInfo": "3.14.10+20261110",
       "downloadLocation": "https://github.com/astral-sh/python-build-standalone",
       "filesAnalyzed": false,
       "licenseDeclared": "Python-2.0",
       "licenseConcluded": "Python-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Interpretador da inteligência no Linux (e macOS fora da 1ª versão). Ambiente: execução. Distribuição: redistribuído (resources/python no .deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: scripts/package-intelligence.py:46 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml. SHA-256 do arquivo fixado no script: 6a9e62dad033790aef722dbd370e0ce76ce17b73627ba3ae679f537049350b39. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado.",
+      "comment": "Uso: Interpretador da inteligência no Linux (e macOS fora da 1ª versão). Ambiente: execução. Distribuição: redistribuído (resources/python no .deb). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: BAIXO. Evidência: scripts/package-intelligence.py:45 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml. SHA-256 do arquivo fixado no script: c2ff2e97422f5d3896a16e0317fd212ba977bbf2688d93a6f7a03d817506bd30. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado. A poda tira o _dbm (único lugar do Berkeley DB 6.0.19, Sleepycat, na 3.14), o _tkinter (Tcl/Tk e X11) e o libpython, que o executável não carrega.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -119,14 +100,14 @@
     {
       "SPDXID": "SPDXRef-Package-bin-python-build-standalone-win",
       "name": "CPython (python-build-standalone, install_only_stripped, Windows)",
-      "versionInfo": "3.12.16+20261110",
+      "versionInfo": "3.14.10+20261110",
       "downloadLocation": "https://github.com/astral-sh/python-build-standalone",
       "filesAnalyzed": false,
       "licenseDeclared": "Python-2.0",
       "licenseConcluded": "Python-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Interpretador da inteligência (LangGraph) no Windows. Ambiente: execução. Distribuição: redistribuído (resources/python no instalador). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py:41 | scripts/notices/python-build-standalone-windows/README.md. SHA-256 do arquivo fixado no script: 355ee61b8207b91574491b1c6dc9b0ebb4408fc56bfafe498f3ef439314b52dc. Inclui OpenSSL 3.5.9 (Apache-2.0), libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 2.5.1, xz 5.8.4 (0BSD), zlib 1.4; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk podados. Hash do arquivo desktop/host/src-tauri/resources/python/python312.dll do último build local.",
+      "comment": "Uso: Interpretador da inteligência (LangGraph) no Windows. Ambiente: execução. Distribuição: redistribuído (resources/python no instalador). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py:40 | scripts/notices/python-build-standalone-windows/README.md. SHA-256 do arquivo fixado no script: 32b6cf90a03e2bc15fda8d2ab7ff78c4870f138887d612932650ce764efaab8f. Inclui OpenSSL 3.5.9 (Apache-2.0), libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 4.0.0, xz 5.8.4 (0BSD), zlib-ng 2.2.4, zstd 1.5.7; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk e libtommath podados. Hash do arquivo desktop/host/src-tauri/resources/python/python314.dll do último build local.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -137,7 +118,7 @@
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "f4ee82750281a43282d2d6bfcf03812f2ac62725ae8c958b6e6182ba203c3cef"
+          "checksumValue": "481f745b9693e6b8e84db645460bca7dfe30de5b4dacc2ee67daa9d8dcb37300"
         }
       ]
     },
@@ -225,7 +206,7 @@
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "b36cfb21dc3dad939aabab2e479c6e179b65e3a674105b15bfcc8b5ca7cad526"
+          "checksumValue": "a76d21af69d46135b4b31c296fe633a7076dc96771be9206b78023186768cb5a"
         }
       ]
     },
@@ -23687,11 +23668,6 @@
       "spdxElementId": "SPDXRef-Package-spock-studio",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-asset-icons"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-spock-studio",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-bin-berkeley-db"
     },
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
