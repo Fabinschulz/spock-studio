@@ -69,6 +69,33 @@ public class CliTests
     }
 
     [Fact]
+    public async Task Recomendar_versoes_usa_so_o_catalogo_e_nao_le_projeto()
+    {
+        using var cli = new CliHarness(TempProject.Dotnet());
+
+        Assert.Equal(CliRunner.ExitOk, await cli.RunAsync("recommend", "dotnet,node,desconhecida"));
+        Assert.Contains("Versões para um projeto novo (produção", cli.Out);
+        Assert.Contains("[LTS]", cli.Out);
+        Assert.Contains("desconhecida: sem recomendação", cli.Out);
+        Assert.Empty(cli.Processes.Calls);
+
+        Assert.Equal(CliRunner.ExitOk, await cli.RunAsync("recommend", "dotnet", "--goal", "latest", "--json"));
+        var report = JsonNode.Parse(cli.Out)!;
+        Assert.Equal("latest", report["goal"]!.GetValue<string>());
+        Assert.Equal("dotnet", report["technologies"]![0]!["technologyId"]!.GetValue<string>());
+    }
+
+    [Theory]
+    [InlineData("recommend")]
+    [InlineData("recommend", "dotnet", "--goal", "beta")]
+    public async Task Recomendar_sem_tecnologia_ou_com_objetivo_invalido_e_erro_de_uso(params string[] args)
+    {
+        using var cli = new CliHarness(TempProject.Dotnet());
+
+        Assert.Equal(CliRunner.ExitUsage, await cli.RunAsync(args));
+    }
+
+    [Fact]
     public async Task Saida_json_e_so_json_e_igual_ao_contrato_do_motor()
     {
         using var cli = WithSpecification();

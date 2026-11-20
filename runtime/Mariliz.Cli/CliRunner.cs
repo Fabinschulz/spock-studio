@@ -36,6 +36,7 @@ public sealed class CliRunner(
           mariliz discover <pasta> [--json]
           mariliz analyze  <pasta> [--json]
           mariliz versions <pasta> [--json]
+          mariliz recommend <tecnologias> [--goal production|latest] [--json]
           mariliz plan     <pasta> [--env <ambiente>] [--allow-specification-reinstall] [--update-specification] [--diff] [--json]
           mariliz apply    <pasta> --env <ambiente> [--approve-command <id>]... [--overwrite <caminho>]...
                                    [--approve-removals] [--allow-specification-reinstall] [--update-specification] [--yes] [--json]
@@ -89,6 +90,7 @@ public sealed class CliRunner(
                 "discover" => await DiscoverAsync(args, ct),
                 "analyze" => Analyze(args),
                 "versions" => await VersionsAsync(args, ct),
+                "recommend" => Recommend(args),
                 "plan" => await PlanAsync(args, ct),
                 "apply" => await ApplyAsync(args, ct),
                 "validate" => await ValidateAsync(args, ct),
@@ -140,6 +142,19 @@ public sealed class CliRunner(
         var compatibility = CompatibilityAssessor.Assess(ProjectModules.From(report), ReleaseCatalog.Embedded, DateTimeOffset.UtcNow);
         if (_json) { WriteJson(JournalJson.Node(compatibility)); return ExitOk; }
         CliRender.Versions(stdout, report.ProjectName, compatibility);
+        return ExitOk;
+    }
+
+    // Projeto novo (MV-5): as versões vêm só do catálogo embutido. Não lê projeto, não consulta a rede e não instala nada.
+    private int Recommend(CliArgs args)
+    {
+        var technologies = (args.Path ?? throw new CliUsageException("Informe as tecnologias separadas por vírgula (ex.: dotnet,node,react,vite)."))
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var goal = args.Single("--goal") ?? VersionGoals.Production;
+        if (!VersionGoals.All.Contains(goal)) throw new CliUsageException($"--goal aceita {string.Join(" ou ", VersionGoals.All)}.");
+        var report = VersionPolicy.Recommend(technologies, goal, ReleaseCatalog.Embedded, DateOnly.FromDateTime(DateTime.UtcNow));
+        if (_json) { WriteJson(JournalJson.Node(report)); return ExitOk; }
+        CliRender.Recommendation(stdout, report);
         return ExitOk;
     }
 

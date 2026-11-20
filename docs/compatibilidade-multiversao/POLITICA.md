@@ -12,7 +12,9 @@
 
 ## 2. Projeto novo: estável, atual e coerente
 
-Ainda não implementado. A política vale para o MV-5 e o MV-6, e o catálogo atual já tem os dados que ela usa.
+Implementada no MV-5 (`VersionPolicy`, `mariliz recommend`) para os itens 1 a 4; o registro no projeto gerado (item 5) é do MV-6.
+Da regra 4, só o requisito de Node dos pacotes do npm está no catálogo hoje. As faixas entre pacotes (React → TypeScript,
+typescript-eslint → TypeScript, plugins do Tauri) não estão: o MV-6 precisa conferi-las na instalação do projeto gerado.
 
 1. **Canal.** Só linha `active` com canal `lts`, `sts`, `current` ou `stable`. Nunca `preview`, alpha, beta, rc, nightly ou canary como padrão.
 2. **LTS ou mais nova.** Quando houver uma STS ou Current mais nova que a LTS, a escolha é mostrada com a data de fim de cada uma. Exemplo de hoje: .NET 11 (STS) e .NET 10 (LTS), as duas até 2028-11-14. Sem preferência do usuário, a recomendação para produção é a LTS ativa mais nova. No empate de data de fim, como agora, ganha a LTS, porque o caminho de atualização para a próxima LTS é o oficial.

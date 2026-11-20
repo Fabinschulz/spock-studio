@@ -32,6 +32,25 @@ internal static class CliRender
         }
     }
 
+    public static void Recommendation(TextWriter w, VersionRecommendationReport report)
+    {
+        var goal = report.Goal == VersionGoals.Production ? "produção" : "mais nova estável";
+        w.WriteLine($"Versões para um projeto novo ({goal}; catálogo de {report.CatalogGeneratedAt:yyyy-MM-dd})");
+        w.WriteLine("(Só o catálogo embutido: nada foi instalado e nenhum projeto foi lido.)");
+        foreach (var technology in report.Technologies)
+        {
+            w.WriteLine();
+            var choice = technology.Choice;
+            w.WriteLine(choice is null
+                ? $"  {technology.Name}: sem recomendação"
+                : $"  {technology.Name} {choice.Cycle}{(choice.Version is { } version ? $" ({version})" : "")}{(choice.Language is { } language ? $" · {language}" : "")}  [{choice.Channel.ToUpperInvariant()}]");
+            if (choice is not null) w.WriteLine($"    {choice.Reason}");
+            foreach (var alternative in technology.Alternatives)
+                w.WriteLine($"    alternativa {alternative.Cycle}{(alternative.Version is { } other ? $" ({other})" : "")}: {alternative.Reason}");
+            foreach (var note in technology.Notes) w.WriteLine($"    ! {note}");
+        }
+    }
+
     public static void Discovery(TextWriter w, JsonNode report)
     {
         w.WriteLine($"Projeto: {Str(report, "projectName")}");
