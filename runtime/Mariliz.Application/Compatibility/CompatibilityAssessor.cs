@@ -199,7 +199,7 @@ public static class CompatibilityAssessor
             .FirstOrDefault();
 
     // O Python publica só o mês do fim de suporte: vale até o último dia dele.
-    private static DateOnly? EndOfLife(string? eol)
+    internal static DateOnly? EndOfLife(string? eol)
     {
         if (eol is null) return null;
         if (DateOnly.TryParseExact(eol, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var day)) return day;
