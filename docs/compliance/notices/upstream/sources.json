@@ -53,7 +53,8 @@
         "nuget:Microsoft.Extensions.",
         "nuget:System.Memory.Data",
         "nuget:System.Formats.Cbor",
-        "nuget:System.IO.Hashing"
+        "nuget:System.IO.Hashing",
+        "nuget:System.Security.Cryptography.ProtectedData"
       ]
     },
     {

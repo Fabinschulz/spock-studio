@@ -105,19 +105,19 @@
   "conferencia_arquivo": {
     "PENDENTE": 3,
     "CONFERIDO MANUALMENTE": 24,
-    "CONFERE": 847,
+    "CONFERE": 846,
     "SEM ARQUIVO": 25,
     "DIVERGE": 6,
     "TEXTO NÃO RECONHECIDO": 1,
-    "SÓ EXPRESSÃO": 56
+    "SÓ EXPRESSÃO": 57
   },
   "conferencia_distribuidos": {
     "CONFERIDO MANUALMENTE": 11,
-    "CONFERE": 425,
+    "CONFERE": 424,
     "SEM ARQUIVO": 8,
     "DIVERGE": 1,
     "TEXTO NÃO RECONHECIDO": 1,
-    "SÓ EXPRESSÃO": 38
+    "SÓ EXPRESSÃO": 39
   },
   "divergentes_distribuidos": [
     "crossbeam-channel@0.5.17: declarado MIT OR Apache-2.0, arquivo Apache-2.0, BSD-3-Clause, MIT"
