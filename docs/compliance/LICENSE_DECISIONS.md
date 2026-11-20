@@ -9,7 +9,7 @@ auditoria e as que **aguardam aprovação**. Nenhuma substituição, remoção o
 | D-02 | Terraform: instalação gerenciada pelo Spock | **Aguarda aprovação e parecer**; trava por edição de build preparada |
 | D-03 | Ferramentas de IaC por download oficial sob demanda, nunca embarcadas | Adotada |
 | D-04 | CPython embarcado (embed no Windows, python-build-standalone no Linux) | Adotada |
-| D-05 | Berkeley DB (Sleepycat) embutido no Python do Linux | **Superada (2026-11-20, MV-9)**: o Berkeley DB saiu do pacote; aguarda confirmação do dono |
+| D-05 | Berkeley DB (Sleepycat) embutido no Python do Linux | **Superada (2026-11-20, MV-9)**: o Berkeley DB saiu do pacote; remoção confirmada pelo dono em 2026-11-20 |
 | D-06 | Formato do pacote Linux na 1ª versão | **Adotada (2026-11-16): só `.deb`** |
 | D-07 | Avisos de terceiros gerados do inventário e embarcados | **Adotada (2026-11-16)**: avisos no instalador e tela Sobre |
 | D-08 | Integração com CLIs de IA só invocando o binário do usuário | Adotada; confirmação pendente |
@@ -83,7 +83,7 @@ O estado de implementação de cada decisão, com evidências, está em [IMPLEME
   (`lib-dynload/_dbm.cpython-314-x86_64-linux-gnu.so`, conferido no arquivo oficial). A poda passou a tirá-lo, que era o pedido
   original do dono: o pacote Linux não leva mais o Berkeley DB, e `scripts/notices/berkeley-db/` saiu do repositório. O `dbm`
   da biblioteca padrão cai no `dbm.sqlite3`; a inteligência não usa `dbm`. O smoke `Pacote_embarcado` falha se o `_dbm` voltar.
-  As pendências abaixo deixam de valer enquanto o módulo ficar fora.
+  As pendências abaixo deixam de valer enquanto o módulo ficar fora. O dono confirmou a remoção em 2026-11-20.
 - **Pendências (até a 3.12):**
   1. Parecer sobre "software que use o DB".
   2. Publicar o canal de suporte citado no `SOURCES.md`.
