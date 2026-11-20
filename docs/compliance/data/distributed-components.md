@@ -341,7 +341,6 @@ hashes) em `inventory.csv` / `inventory.json`. W = Windows x64, L = Linux x64.
 | @types/parse-json | 4.0.2 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | @types/prop-types | 15.7.15 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | @types/react | 19.3.0 | npm | direta | x | x | MIT | CONFERE | BAIXO |
-| @types/react-dom | 19.3.0 | npm | direta | x | x | MIT | CONFERE | BAIXO |
 | @types/react-transition-group | 4.4.12 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | @xterm/addon-fit | 0.11.0 | npm | direta | x | x | MIT | CONFERE | BAIXO |
 | @xterm/xterm | 6.0.0 | npm | direta | x | x | MIT | CONFERE | BAIXO |

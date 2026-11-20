@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Inventário consolidado (distribuído, sob demanda, externo e desenvolvimento)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--428a8b3f-7908-4324-a394-80ff0d70b692",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--949dc594-efbe-4e79-9afb-652aa28a523b",
   "creationInfo": {
-    "created": "2026-11-20T12:55:06Z",
+    "created": "2026-11-20T13:06:53Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -9916,7 +9916,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @asamuzakjp/dom-selector. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@asamuzakjp+generational-cache@1.0.1/node_modules/@asamuzakjp/generational-cache.",
+      "comment": "Uso: transitiva de @asamuzakjp/css-color. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@asamuzakjp+generational-cache@1.0.1/node_modules/@asamuzakjp/generational-cache.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -9966,7 +9966,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de parse-json. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@babel+code-frame@7.29.7/node_modules/@babel/code-frame.",
+      "comment": "Uso: transitiva de @babel/traverse. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@babel+code-frame@7.29.7/node_modules/@babel/code-frame.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -10266,7 +10266,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @babel/traverse. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@babel+parser@7.29.11/node_modules/@babel/parser.",
+      "comment": "Uso: transitiva de @babel/generator. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@babel+parser@7.29.11/node_modules/@babel/parser.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -10391,7 +10391,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @babel/helper-module-imports. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@babel+types@7.29.11/node_modules/@babel/types.",
+      "comment": "Uso: transitiva de @babel/parser. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@babel+types@7.29.11/node_modules/@babel/types.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -10416,7 +10416,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mui/x-data-grid. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@base-ui+utils@0.5.0_@types+react@19.3.0_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/@base-ui/utils.",
+      "comment": "Uso: transitiva de @mui/x-data-grid. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@base-ui+utils@0.5.0_@types_6b1c5c30254f04ccfc8f12b63d1f3b80/node_modules/@base-ui/utils.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -10516,7 +10516,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @asamuzakjp/css-color. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-calc@3.4.3_@csstools+css-parser-algorithms@4.0.2_@csstools+css-tokenizer@4.0.2__jzdx62jomxa2u5lq3rskr5mnam/node_modules/@csstools/css-calc.",
+      "comment": "Uso: transitiva de @asamuzakjp/css-color. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-calc@3.4.3_@c_5d0f8d745a07415aae8a65a2b2b89950/node_modules/@csstools/css-calc.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -10541,7 +10541,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @asamuzakjp/css-color. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-color-parser@4.2.6_@csstools+css-parser-algorithms@4.0.2_@csstools+css-tokenize_3irbf4gc4ltddedcixqcxbejee/node_modules/@csstools/css-color-parser.",
+      "comment": "Uso: transitiva de @asamuzakjp/css-color. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-color-parser@_3beec650aa1a03825a56f62de173c9bb/node_modules/@csstools/css-color-parser.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -10566,7 +10566,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @asamuzakjp/css-color. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-parser-algorithms@4.0.2_@csstools+css-tokenizer@4.0.2/node_modules/@csstools/css-parser-algorithms.",
+      "comment": "Uso: transitiva de @csstools/css-calc. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-parser-algori_d4304c31a6cd56ce1efe1c6b839b3154/node_modules/@csstools/css-parser-algorithms.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -10591,7 +10591,7 @@
       "licenseConcluded": "MIT-0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de jsdom. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-syntax-patches-for-csstree@1.1.15_css-tree@3.2.1/node_modules/@csstools/css-syntax-patches-for-csstree.",
+      "comment": "Uso: transitiva de jsdom. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-syntax-patche_8041c7b11c6edf6c2fe415ca5c211d02/node_modules/@csstools/css-syntax-patches-for-csstree.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -10616,7 +10616,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @asamuzakjp/css-color. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-tokenizer@4.0.2/node_modules/@csstools/css-tokenizer.",
+      "comment": "Uso: transitiva de @csstools/css-parser-algorithms. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@csstools+css-tokenizer@4.0.2/node_modules/@csstools/css-tokenizer.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -10691,7 +10691,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @emotion/serialize. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+hash@0.9.2/node_modules/@emotion/hash.",
+      "comment": "Uso: transitiva de @emotion/babel-plugin. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+hash@0.9.2/node_modules/@emotion/hash.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -10741,7 +10741,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @emotion/cache. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+memoize@0.9.0/node_modules/@emotion/memoize.",
+      "comment": "Uso: transitiva de @emotion/babel-plugin. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+memoize@0.9.0/node_modules/@emotion/memoize.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -10791,7 +10791,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @emotion/react. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+serialize@1.3.3/node_modules/@emotion/serialize.",
+      "comment": "Uso: transitiva de @emotion/babel-plugin. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+serialize@1.3.3/node_modules/@emotion/serialize.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -10841,7 +10841,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: CSS-in-JS do MUI. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+styled@11.14.1_@emotion+react@11.14.0_@types+react@19.3.0_react@19.3.1__@types+react@19.3.0_react@19.3.1/node_modules/@emotion/styled.",
+      "comment": "Uso: CSS-in-JS do MUI. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+styled@11.14.1_@em_eaf01582f5ac4d2227dff53086611941/node_modules/@emotion/styled.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -10891,7 +10891,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @emotion/react. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+use-insertion-effect-with-fallbacks@1.2.0_react@19.3.1/node_modules/@emotion/use-insertion-effect-with-fallbacks.",
+      "comment": "Uso: transitiva de @emotion/react. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+use-insertion-effe_0050a736459e2bf913ca7104f6702bad/node_modules/@emotion/use-insertion-effect-with-fallbacks.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -10916,7 +10916,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @emotion/react. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+utils@1.4.2/node_modules/@emotion/utils.",
+      "comment": "Uso: transitiva de @emotion/serialize. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+utils@1.4.2/node_modules/@emotion/utils.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -10941,7 +10941,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @emotion/react. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+weak-memoize@0.4.0/node_modules/@emotion/weak-memoize.",
+      "comment": "Uso: transitiva de @emotion/cache. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+weak-memoize@0.4.0/node_modules/@emotion/weak-memoize.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11066,7 +11066,7 @@
       "licenseConcluded": "Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de eslint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (Apache-2.0). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@eslint+core@0.17.0/node_modules/@eslint/core.",
+      "comment": "Uso: transitiva de @eslint/config-helpers. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (Apache-2.0). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@eslint+core@0.17.0/node_modules/@eslint/core.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11241,7 +11241,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Validação de formulários com zod. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@hookform+resolvers@7.0.0_react-hook-form@7.91.0_@types+react@19.3.0_react@19.3.1__zod@4.6.7/node_modules/@hookform/resolvers.",
+      "comment": "Uso: Validação de formulários com zod. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@hookform+resolvers@7.0.0_r_248346a6827cc56055d14273efed4c8e/node_modules/@hookform/resolvers.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11316,7 +11316,7 @@
       "licenseConcluded": "NOASSERTION",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @humanfs/node. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: SEM ARQUIVO. Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@humanfs+types@0.15.0/node_modules/@humanfs/types.",
+      "comment": "Uso: transitiva de @humanfs/core. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: SEM ARQUIVO. Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@humanfs+types@0.15.0/node_modules/@humanfs/types.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11366,7 +11366,7 @@
       "licenseConcluded": "Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de eslint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (Apache-2.0). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@humanwhocodes+retry@0.4.3/node_modules/@humanwhocodes/retry.",
+      "comment": "Uso: transitiva de @humanfs/node. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (Apache-2.0). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@humanwhocodes+retry@0.4.3/node_modules/@humanwhocodes/retry.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11466,7 +11466,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @jridgewell/trace-mapping. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@jridgewell+sourcemap-codec@1.6.0/node_modules/@jridgewell/sourcemap-codec.",
+      "comment": "Uso: transitiva de @jridgewell/gen-mapping. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@jridgewell+sourcemap-codec@1.6.0/node_modules/@jridgewell/sourcemap-codec.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11491,7 +11491,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @babel/generator. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping.",
+      "comment": "Uso: transitiva de @jridgewell/gen-mapping. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11516,7 +11516,7 @@
       "licenseConcluded": "NOASSERTION",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Biblioteca de componentes própria (publicada no npm). Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: SEM ARQUIVO. Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mariliz+ui-kit@0.6.0_@emotion+react@11.14.0_@types+react@19.3.0_react@19.3.1__@emotion+style_e6kjwqvnxbqnhtyfnh7yz747bq/node_modules/@mariliz/ui-kit.",
+      "comment": "Uso: Biblioteca de componentes própria (publicada no npm). Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: SEM ARQUIVO. Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mariliz+ui-kit@0.6.0_@emot_4f53bddc30065a6973d0a2a5f01e0d1e/node_modules/@mariliz/ui-kit.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11566,7 +11566,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Componentes visuais (base do ui-kit). Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+material@9.5.0_@emotion+react@11.14.0_@types+react@19.3.0_react@19.3.1__@emotion+styled@_3hsirgk6x76lo23tvh4ymwec5e/node_modules/@mui/material.",
+      "comment": "Uso: Componentes visuais (base do ui-kit). Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+material@9.5.0_@emotio_e4d91915e94d9ca442999cd0ee28c248/node_modules/@mui/material.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11616,7 +11616,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mui/system. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+styled-engine@9.5.0_@emotion+react@11.14.0_@types+react@19.3.0_react@19.3.1__@emotion+st_laoivosrq6md62xkdwxn2itl74/node_modules/@mui/styled-engine.",
+      "comment": "Uso: transitiva de @mui/system. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+styled-engine@9.5.0_@e_87f28f2389eaa902c96844bc73ca42dc/node_modules/@mui/styled-engine.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11641,7 +11641,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mui/material. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+system@9.5.0_@emotion+react@11.14.0_@types+react@19.3.0_react@19.3.1__@emotion+styled@11_esixxjshcp3gmtypgyitjl7gey/node_modules/@mui/system.",
+      "comment": "Uso: transitiva de @mui/material. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+system@9.5.0_@emotion+_52a30419c1516986dc83ae59b406b756/node_modules/@mui/system.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11666,7 +11666,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mui/material. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+types@9.5.0_@types+react@19.3.0/node_modules/@mui/types.",
+      "comment": "Uso: transitiva de @mui/utils. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+types@9.5.0_@types+react@19.3.0/node_modules/@mui/types.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11691,7 +11691,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mui/material. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+utils@9.5.0_@types+react@19.3.0_react@19.3.1/node_modules/@mui/utils.",
+      "comment": "Uso: transitiva de @mui/private-theming. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+utils@9.5.0_@types+react@19.3.0_react@19.3.1/node_modules/@mui/utils.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11716,7 +11716,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mariliz/ui-kit. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+x-data-grid@9.16.0_@emotion+react@11.14.0_@types+react@19.3.0_react@19.3.1__@emotion+sty_4qkhnfig5cryhxld5al2mzhzkm/node_modules/@mui/x-data-grid.",
+      "comment": "Uso: transitiva de @mariliz/ui-kit. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+x-data-grid@9.16.0_@em_99e2cf4dc9b9c352e03201a3982b1abe/node_modules/@mui/x-data-grid.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11741,7 +11741,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mui/x-data-grid. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+x-internals@9.16.0_@types+react@19.3.0_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/@mui/x-internals.",
+      "comment": "Uso: transitiva de @mui/x-data-grid. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+x-internals@9.16.0_@ty_3ad961462e7721e8c41d1bbca3da2ecc/node_modules/@mui/x-internals.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -11766,7 +11766,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mui/x-data-grid. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+x-virtualizer@0.7.4_@types+react@19.3.0_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/@mui/x-virtualizer.",
+      "comment": "Uso: transitiva de @mui/x-data-grid. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+x-virtualizer@0.7.4_@t_2624967dd67fa14a3ba94c1c0417b4c8/node_modules/@mui/x-virtualizer.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12085,7 +12085,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @testing-library/react. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@testing-library+dom@10.4.2/node_modules/@testing-library/dom.",
+      "comment": "Uso: transitiva de @testing-library/jest-dom. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@testing-library+dom@10.4.2/node_modules/@testing-library/dom.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12110,7 +12110,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@testing-library+jest-dom@7.0.1_@testing-library+dom@10.4.2_vitest@5.1.1_@types+node@24.19.2__runwju3hnu5ies4grpzsj3g5vi/node_modules/@testing-library/jest-dom.",
+      "comment": "Uso: transitiva. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@testing-library+jest-dom@7_21d9cc0e26ba0bf25e4e8edbbb18a27c/node_modules/@testing-library/jest-dom.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12135,7 +12135,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@testing-library+react@16.3.3_@testing-library+dom@10.4.2_@types+react-dom@19.3.0_@types+reac_bxsa26tagmopasg2pmf353q5ii/node_modules/@testing-library/react.",
+      "comment": "Uso: transitiva. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@testing-library+react@16.3_caf0c89dcd807677af52e2a43e70eff8/node_modules/@testing-library/react.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12160,7 +12160,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@testing-library+user-event@14.6.8_@testing-library+dom@10.4.2/node_modules/@testing-library/user-event.",
+      "comment": "Uso: transitiva. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@testing-library+user-event_aea6012367c281fb0dc3c23f015b1380/node_modules/@testing-library/user-event.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12260,7 +12260,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de eslint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@types+estree@1.0.9/node_modules/@types/estree.",
+      "comment": "Uso: transitiva de estree-walker. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@types+estree@1.0.9/node_modules/@types/estree.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12310,7 +12310,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de vite. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@types+node@24.19.2/node_modules/@types/node.",
+      "comment": "Uso: transitiva de vitest. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@types+node@24.19.2/node_modules/@types/node.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12385,7 +12385,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de react-hook-form. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@types+react@19.3.0/node_modules/@types/react.",
+      "comment": "Uso: transitiva de @emotion/react. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@types+react@19.3.0/node_modules/@types/react.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12410,7 +12410,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de react-router. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@types+react-dom@19.3.0_@types+react@19.3.0/node_modules/@types/react-dom.",
+      "comment": "Uso: transitiva de react-router. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@types+react-dom@19.3.0_@types+react@19.3.0/node_modules/@types/react-dom.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12460,7 +12460,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de typescript-eslint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+eslint-plugin@8.72.1_@typescript-eslint+parser@8.72.1_eslint@9.39.5_typesc_4fbdq7v4hqqwqbl52ely2fmc34/node_modules/@typescript-eslint/eslint-plugin.",
+      "comment": "Uso: transitiva de typescript-eslint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+eslint-p_2da76a6517e23aa251964cfc54a26d3b/node_modules/@typescript-eslint/eslint-plugin.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12485,7 +12485,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de typescript-eslint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+parser@8.72.1_eslint@9.39.5_typescript@6.0.3/node_modules/@typescript-eslint/parser.",
+      "comment": "Uso: transitiva de @typescript-eslint/eslint-plugin. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+parser@8_0e952629f979e400c09d1eb3fc0a0b5f/node_modules/@typescript-eslint/parser.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12560,7 +12560,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @typescript-eslint/typescript-estree. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+tsconfig-utils@8.72.1_typescript@6.0.3/node_modules/@typescript-eslint/tsconfig-utils.",
+      "comment": "Uso: transitiva de @typescript-eslint/project-service. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+tsconfig-utils@8.72.1_typescript@6.0.3/node_modules/@typescript-eslint/tsconfig-utils.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12585,7 +12585,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @typescript-eslint/eslint-plugin. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+type-utils@8.72.1_eslint@9.39.5_typescript@6.0.3/node_modules/@typescript-eslint/type-utils.",
+      "comment": "Uso: transitiva de @typescript-eslint/eslint-plugin. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+type-uti_1f8da332ba1b8272039f55c888086643/node_modules/@typescript-eslint/type-utils.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12610,7 +12610,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @typescript-eslint/typescript-estree. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+types@8.72.1/node_modules/@typescript-eslint/types.",
+      "comment": "Uso: transitiva de @typescript-eslint/scope-manager. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+types@8.72.1/node_modules/@typescript-eslint/types.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12635,7 +12635,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de typescript-eslint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+typescript-estree@8.72.1_typescript@6.0.3/node_modules/@typescript-eslint/typescript-estree.",
+      "comment": "Uso: transitiva de @typescript-eslint/parser. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+typescript-estree@8.72.1_typescript@6.0.3/node_modules/@typescript-eslint/typescript-estree.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12660,7 +12660,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de typescript-eslint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+utils@8.72.1_eslint@9.39.5_typescript@6.0.3/node_modules/@typescript-eslint/utils.",
+      "comment": "Uso: transitiva de @typescript-eslint/type-utils. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+utils@8._56a011b84fcda7270615a9a8abb2f02c/node_modules/@typescript-eslint/utils.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12685,7 +12685,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @typescript-eslint/typescript-estree. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+visitor-keys@8.72.1/node_modules/@typescript-eslint/visitor-keys.",
+      "comment": "Uso: transitiva de @typescript-eslint/scope-manager. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@typescript-eslint+visitor-keys@8.72.1/node_modules/@typescript-eslint/visitor-keys.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12710,7 +12710,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@vitejs+plugin-react@6.3.0_vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/@vitejs/plugin-react.",
+      "comment": "Uso: transitiva. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@vitejs+plugin-react@6.3.0__66e69f696edc8b39a7cfcb4a422c3318/node_modules/@vitejs/plugin-react.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12735,7 +12735,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de vitest. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@vitest+mocker@5.1.1_vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/@vitest/mocker.",
+      "comment": "Uso: transitiva de vitest. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@vitest+mocker@5.1.1_vite@8_2d060c020e224120e6b33d29c8672174/node_modules/@vitest/mocker.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -12885,7 +12885,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de eslint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/ajv@6.15.0/node_modules/ajv.",
+      "comment": "Uso: transitiva de @eslint/eslintrc. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/ajv@6.15.0/node_modules/ajv.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -13560,7 +13560,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de call-bound. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers.",
+      "comment": "Uso: transitiva de call-bind. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -13585,7 +13585,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de safe-regex-test. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/call-bound@1.0.4/node_modules/call-bound.",
+      "comment": "Uso: transitiva de array-includes. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/call-bound@1.0.4/node_modules/call-bound.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -14010,7 +14010,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de jsdom. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/css-tree@3.2.1/node_modules/css-tree.",
+      "comment": "Uso: transitiva de @asamuzakjp/dom-selector. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/css-tree@3.2.1/node_modules/css-tree.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -14060,7 +14060,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @types/react. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/csstype@3.2.3/node_modules/csstype.",
+      "comment": "Uso: transitiva de @emotion/serialize. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/csstype@3.2.3/node_modules/csstype.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -14285,7 +14285,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de define-properties. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/define-data-property@1.1.4/node_modules/define-data-property.",
+      "comment": "Uso: transitiva de set-function-length. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/define-data-property@1.1.4/node_modules/define-data-property.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -14635,7 +14635,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de get-intrinsic. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/es-define-property@1.0.1/node_modules/es-define-property.",
+      "comment": "Uso: transitiva de call-bind. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/es-define-property@1.0.1/node_modules/es-define-property.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -15010,7 +15010,7 @@
       "licenseConcluded": "Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de eslint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (Apache-2.0). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/eslint-visitor-keys@4.2.1/node_modules/eslint-visitor-keys.",
+      "comment": "Uso: transitiva de espree. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (Apache-2.0). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/eslint-visitor-keys@4.2.1/node_modules/eslint-visitor-keys.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -15060,7 +15060,7 @@
       "licenseConcluded": "BSD-2-Clause",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de eslint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (BSD-2-Clause). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/espree@10.4.0/node_modules/espree.",
+      "comment": "Uso: transitiva de @eslint/eslintrc. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (BSD-2-Clause). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/espree@10.4.0/node_modules/espree.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -15135,7 +15135,7 @@
       "licenseConcluded": "BSD-2-Clause",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de esquery. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (BSD-2-Clause). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/estraverse@5.3.0/node_modules/estraverse.",
+      "comment": "Uso: transitiva de esrecurse. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (BSD-2-Clause). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/estraverse@5.3.0/node_modules/estraverse.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -15235,7 +15235,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de eslint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal.",
+      "comment": "Uso: transitiva de ajv. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -15610,7 +15610,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de call-bound. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/get-intrinsic.",
+      "comment": "Uso: transitiva de call-bind. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/get-intrinsic.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -15785,7 +15785,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de get-intrinsic. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/gopd@1.2.0/node_modules/gopd.",
+      "comment": "Uso: transitiva de dunder-proto. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/gopd@1.2.0/node_modules/gopd.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -15810,7 +15810,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de unbox-primitive. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/has-bigints@1.1.0/node_modules/has-bigints.",
+      "comment": "Uso: transitiva de is-bigint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/has-bigints@1.1.0/node_modules/has-bigints.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -15860,7 +15860,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de define-properties. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/has-property-descriptors@1.0.2/node_modules/has-property-descriptors.",
+      "comment": "Uso: transitiva de set-function-length. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/has-property-descriptors@1.0.2/node_modules/has-property-descriptors.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -15935,7 +15935,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de is-regex. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/has-tostringtag@1.0.2/node_modules/has-tostringtag.",
+      "comment": "Uso: transitiva de which-typed-array. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/has-tostringtag@1.0.2/node_modules/has-tostringtag.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -16085,7 +16085,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de eslint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/ignore@5.3.2/node_modules/ignore.",
+      "comment": "Uso: transitiva de @eslint/eslintrc. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/ignore@5.3.2/node_modules/ignore.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -16135,7 +16135,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de sass-embedded. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/immutable@5.1.9/node_modules/immutable.",
+      "comment": "Uso: transitiva de sass. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/immutable@5.1.9/node_modules/immutable.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -16260,7 +16260,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de es-abstract. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/is-array-buffer@3.0.5/node_modules/is-array-buffer.",
+      "comment": "Uso: transitiva de array-buffer-byte-length. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/is-array-buffer@3.0.5/node_modules/is-array-buffer.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -16385,7 +16385,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de es-abstract. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/is-callable@1.2.7/node_modules/is-callable.",
+      "comment": "Uso: transitiva de for-each. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/is-callable@1.2.7/node_modules/is-callable.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -16435,7 +16435,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de es-abstract. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/is-data-view@1.0.2/node_modules/is-data-view.",
+      "comment": "Uso: transitiva de data-view-buffer. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/is-data-view@1.0.2/node_modules/is-data-view.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -16585,7 +16585,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de eslint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/is-glob@4.0.3/node_modules/is-glob.",
+      "comment": "Uso: transitiva de @parcel/watcher. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/is-glob@4.0.3/node_modules/is-glob.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -16685,7 +16685,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de jsdom. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/is-potential-custom-element-name@1.0.1/node_modules/is-potential-custom-element-name.",
+      "comment": "Uso: transitiva de @asamuzakjp/dom-selector. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/is-potential-custom-element-name@1.0.1/node_modules/is-potential-custom-element-name.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -16785,7 +16785,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de array-includes. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/is-string@1.1.1/node_modules/is-string.",
+      "comment": "Uso: transitiva de es-abstract. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/is-string@1.1.1/node_modules/is-string.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -16835,7 +16835,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de es-abstract. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/is-typed-array@1.1.15/node_modules/is-typed-array.",
+      "comment": "Uso: transitiva de is-data-view. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/is-typed-array@1.1.15/node_modules/is-typed-array.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -17560,7 +17560,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de vitest. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/magic-string@1.4.5/node_modules/magic-string.",
+      "comment": "Uso: transitiva de @vitest/mocker. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/magic-string@1.4.5/node_modules/magic-string.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -17685,7 +17685,7 @@
       "licenseConcluded": "ISC",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de eslint. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (ISC). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/minimatch@3.1.5/node_modules/minimatch.",
+      "comment": "Uso: transitiva de @eslint/config-array. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (ISC). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/minimatch@3.1.5/node_modules/minimatch.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -17860,7 +17860,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de es-abstract. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/object-inspect@1.13.4/node_modules/object-inspect.",
+      "comment": "Uso: transitiva de es-abstract-get. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/object-inspect@1.13.4/node_modules/object-inspect.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -18460,7 +18460,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mui/material. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/prop-types@15.8.1/node_modules/prop-types.",
+      "comment": "Uso: transitiva de @mui/utils. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/prop-types@15.8.1/node_modules/prop-types.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -18485,7 +18485,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de uri-js. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/punycode@2.3.1/node_modules/punycode.",
+      "comment": "Uso: transitiva de tr46. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/punycode@2.3.1/node_modules/punycode.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -18535,7 +18535,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mariliz/ui-kit. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/react-code-input@3.10.1_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/react-code-input.",
+      "comment": "Uso: transitiva de @mariliz/ui-kit. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/react-code-input@3.10.1_rea_599c7974e3213d833c6cc66f87a21748/node_modules/react-code-input.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -18660,7 +18660,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mui/material. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/react-is@19.3.1/node_modules/react-is.",
+      "comment": "Uso: transitiva de @mui/utils. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/react-is@19.3.1/node_modules/react-is.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -18685,7 +18685,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Rotas da interface. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/react-router@8.5.0_@types+react-dom@19.3.0_@types+react@19.3.0__@types+react@19.3.0_react-dom_sv6ypji4h73j2h6kenrpoid4ze/node_modules/react-router.",
+      "comment": "Uso: Rotas da interface. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/react-router@8.5.0_@types+r_6cb9623782d1813d65fa0efb9041c376/node_modules/react-router.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -18710,7 +18710,7 @@
       "licenseConcluded": "BSD-3-Clause",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mui/material. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (BSD-3-Clause). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/react-transition-group@4.4.5_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/react-transition-group.",
+      "comment": "Uso: transitiva de @mui/material. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (BSD-3-Clause). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/react-transition-group@4.4._fb09311f545bcaa25cc9ffd145316358/node_modules/react-transition-group.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -19010,7 +19010,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de es-abstract. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/safe-push-apply@1.0.0/node_modules/safe-push-apply.",
+      "comment": "Uso: transitiva de own-keys. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/safe-push-apply@1.0.0/node_modules/safe-push-apply.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -19035,7 +19035,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de eslint-plugin-jsx-a11y. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/safe-regex-test@1.1.0/node_modules/safe-regex-test.",
+      "comment": "Uso: transitiva de is-symbol. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/safe-regex-test@1.1.0/node_modules/safe-regex-test.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -19185,7 +19185,7 @@
       "licenseConcluded": "ISC",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @babel/core. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (ISC). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/semver@6.3.1/node_modules/semver.",
+      "comment": "Uso: transitiva de @babel/helper-compilation-targets. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (ISC). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/semver@6.3.1/node_modules/semver.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -19485,7 +19485,7 @@
       "licenseConcluded": "BSD-3-Clause",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de css-tree. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (BSD-3-Clause). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/source-map-js@1.2.2/node_modules/source-map-js.",
+      "comment": "Uso: transitiva de postcss. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (BSD-3-Clause). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/source-map-js@1.2.2/node_modules/source-map-js.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -19710,7 +19710,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @emotion/cache. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/stylis@4.2.0/node_modules/stylis.",
+      "comment": "Uso: transitiva de @emotion/babel-plugin. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/stylis@4.2.0/node_modules/stylis.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -20410,7 +20410,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mui/x-data-grid. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/use-sync-external-store@1.7.0_react@19.3.1/node_modules/use-sync-external-store.",
+      "comment": "Uso: transitiva de @base-ui/utils. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/use-sync-external-store@1.7.0_react@19.3.1/node_modules/use-sync-external-store.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -20460,7 +20460,7 @@
       "licenseConcluded": "NOASSERTION",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Build da interface. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: DIVERGE (BSD-2-Clause, ISC, MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1/node_modules/vite.",
+      "comment": "Uso: Build da interface. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: DIVERGE (BSD-2-Clause, ISC, MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/vite@8.3.8_@types+node@24.1_84f98ba628a7af878be49bd56a45e3fb/node_modules/vite.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -20485,7 +20485,7 @@
       "licenseConcluded": "NOASSERTION",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Testes da interface. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: DIVERGE (BSD-3-Clause, MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/vitest@5.1.1_@types+node@24.19.2_jsdom@29.1.1_vite@8.3.8_@types+node@24.19.2_sass-embedded@1.106.1_sass@1.106.1_/node_modules/vitest.",
+      "comment": "Uso: Testes da interface. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: DIVERGE (BSD-3-Clause, MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/vitest@5.1.1_@types+node@24_f8e9b6289b904154d5b3c7c6b58111fd/node_modules/vitest.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -20535,7 +20535,7 @@
       "licenseConcluded": "BSD-2-Clause",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de jsdom. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (BSD-2-Clause). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/webidl-conversions@8.0.1/node_modules/webidl-conversions.",
+      "comment": "Uso: transitiva de whatwg-url. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (BSD-2-Clause). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/webidl-conversions@8.0.1/node_modules/webidl-conversions.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -20560,7 +20560,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de jsdom. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/whatwg-mimetype@5.0.0/node_modules/whatwg-mimetype.",
+      "comment": "Uso: transitiva de data-urls. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/whatwg-mimetype@5.0.0/node_modules/whatwg-mimetype.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -20585,7 +20585,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de jsdom. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/whatwg-url@16.0.1/node_modules/whatwg-url.",
+      "comment": "Uso: transitiva de data-urls. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/whatwg-url@16.0.1/node_modules/whatwg-url.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -20635,7 +20635,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de unbox-primitive. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/which-boxed-primitive@1.1.1/node_modules/which-boxed-primitive.",
+      "comment": "Uso: transitiva de which-builtin-type. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/which-boxed-primitive@1.1.1/node_modules/which-boxed-primitive.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -20710,7 +20710,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de es-abstract. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/which-typed-array@1.1.24/node_modules/which-typed-array.",
+      "comment": "Uso: transitiva de is-typed-array. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/which-typed-array@1.1.24/node_modules/which-typed-array.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -20785,7 +20785,7 @@
       "licenseConcluded": "Apache-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de jsdom. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (Apache-2.0). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/xml-name-validator@5.0.0/node_modules/xml-name-validator.",
+      "comment": "Uso: transitiva de w3c-xmlserializer. Ambiente: desenvolvimento. Distribuição: não distribuído. Conferência do arquivo de licença: CONFERE (Apache-2.0). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/xml-name-validator@5.0.0/node_modules/xml-name-validator.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",

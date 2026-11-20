@@ -1,7 +1,7 @@
 {
   "name": "mariliz-ai-engineering",
   "private": true,
-  "packageManager": "pnpm@9.1.2",
+  "packageManager": "pnpm@12.21.0",
   "engines": { "node": ">=22" },
   "scripts": {
     "ui:dev": "pnpm --filter @mariliz/desktop-ui dev",

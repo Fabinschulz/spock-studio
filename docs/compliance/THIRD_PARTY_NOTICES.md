@@ -15014,7 +15014,7 @@ Apache License
    limitations under the License.
 ```
 
-### @types/parse-json 4.0.2, @types/prop-types 15.7.15, @types/react 19.3.0, @types/react-dom 19.3.0, @types/react-transition-group 4.4.12, windows 0.62.2, windows-collections 0.3.2, windows-core 0.62.2, windows-future 0.3.2, windows-link 0.2.1, windows-numerics 0.3.1, windows-result 0.4.1, windows-strings 0.5.1, windows-sys 0.60.2, windows-sys 0.61.2, windows-targets 0.53.5, windows-threading 0.2.1, windows-version 0.1.7, windows_x86_64_msvc 0.53.1
+### @types/parse-json 4.0.2, @types/prop-types 15.7.15, @types/react 19.3.0, @types/react-transition-group 4.4.12, windows 0.62.2, windows-collections 0.3.2, windows-core 0.62.2, windows-future 0.3.2, windows-link 0.2.1, windows-numerics 0.3.1, windows-result 0.4.1, windows-strings 0.5.1, windows-sys 0.60.2, windows-sys 0.61.2, windows-targets 0.53.5, windows-threading 0.2.1, windows-version 0.1.7, windows_x86_64_msvc 0.53.1
 
 Arquivo `license-mit`:
 
