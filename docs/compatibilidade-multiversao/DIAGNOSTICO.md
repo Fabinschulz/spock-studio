@@ -13,7 +13,7 @@ Consulta feita em **2026-11-18**. A versão usada vem dos manifestos e lockfiles
 | ModelContextProtocol.Core | 2.4.0 | 2.4.0 | Atual | |
 | YamlDotNet | 18.1.0 | 18.1.0 | Atual | |
 | Microsoft.ML.Tokenizers (+O200kBase) | 3.0.0 | 3.0.0 | Atual | |
-| System.Security.Cryptography.ProtectedData | 9.0.11 | 10.0.15 (trem do .NET 10); 11.0.0 | Desalinhado do TFM | Tentamos atualizar para 10.0.15 e revertemos: o pacote novo só declara "MIT" e não traz o texto da licença, e a conferência de avisos do instalador falha. Ver MV-9 |
+| System.Security.Cryptography.ProtectedData | 9.0.11 → **10.0.15** (MV-9) | 10.0.15 (trem do .NET 10); 11.0.0 | Alinhado ao TFM | O pacote só declara "MIT"; o texto entra pela licença oficial do `dotnet/dotnet`, fixada em commit. Ver MV-9 |
 | AWSSDK.* | 4.1.0–4.1.2 | Core 4.1.1.1 | Atual na linha 4.1 | |
 | Azure.Identity / Azure.ResourceManager | 1.21.0 / 1.14.0 | 1.21.0 / não verificado | | |
 | Google.Apis.* | 1.78.0 | não verificado | | |
@@ -114,7 +114,7 @@ O que o .NET 11 traz de relevante para um motor console, stdio, publicado self-c
 | Risco | Impacto | Mitigação |
 |---|---|---|
 | CPython embarcado sem patches de segurança | Alto: vai para a máquina de todo usuário | MV-8 com o smoke do instalador nas três plataformas |
-| Pacote que perde o texto de licença numa versão nova | Bloqueia a conformidade | A conferência de licenças já pegou o caso do ProtectedData 10.0.15. Toda atualização roda `generate_sbom.py --check` |
+| Pacote que perde o texto de licença numa versão nova | Bloqueia a conformidade | A conferência de licenças já pegou o caso do ProtectedData 10.0.15, resolvido com o texto oficial do repositório de origem (`fetch_upstream_licenses.py`). Toda atualização roda `generate_sbom.py --check` |
 | TypeScript 7 e ESLint 10 juntos | Médio: a ferramenta inteira da interface | Uma entrega por major, com typecheck, lint e testes |
 | .NET 11 com requisito de CPU maior | Usuário com máquina antiga sem o app | Não migrar sem a decisão do dono (DD-MV-3) |
 | CI sem orçamento | Nenhuma atualização é validada no servidor | Validação local obrigatória e registrada no PR até o orçamento voltar |

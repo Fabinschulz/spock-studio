@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:a632bb86-13b6-4778-b97b-40fa3b8ad3a2",
+  "serialNumber": "urn:uuid:68431698-2408-46b7-9536-9b1e76da515f",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-20T13:40:26Z",
+    "timestamp": "2026-11-20T14:55:10Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -26405,15 +26405,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "nuget-System.Security.Cryptography.ProtectedData-9.0.11",
+      "bom-ref": "nuget-System.Security.Cryptography.ProtectedData-10.0.15",
       "name": "System.Security.Cryptography.ProtectedData",
-      "version": "9.0.11",
-      "purl": "pkg:nuget/System.Security.Cryptography.ProtectedData@9.0.11",
+      "version": "10.0.15",
+      "purl": "pkg:nuget/System.Security.Cryptography.ProtectedData@10.0.15",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "b3cc9462e618bbe3c0c2f05d84b1b52b2ac6ae4f609187ae3f17c0b17b13aaa5b27a9c12c84c3c84069f956e273bdf0d1b9d98a582356a6dbef68fbbf61d91b5"
+          "content": "006e3da13c41d11e18409cde2081d182ac9a23748e4fc43cbc47c651c8eed96c4ebec0640c953814a4d0f206100180b1987387ab224bd140c67027fc9f34688b"
         }
       ],
       "licenses": [
@@ -26424,7 +26424,7 @@
       "externalReferences": [
         {
           "type": "vcs",
-          "url": "https://github.com/dotnet/runtime"
+          "url": "https://github.com/dotnet/dotnet"
         }
       ],
       "properties": [
@@ -26446,11 +26446,7 @@
         },
         {
           "name": "spock:license-file-check",
-          "value": "CONFERE"
-        },
-        {
-          "name": "spock:license-file-detected",
-          "value": "MIT"
+          "value": "SÓ EXPRESSÃO"
         },
         {
           "name": "spock:risk",
@@ -26462,7 +26458,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/system.security.cryptography.protecteddata/9.0.11"
+          "value": "runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/system.security.cryptography.protecteddata/10.0.15"
         },
         {
           "name": "spock:usage",
@@ -29138,7 +29134,7 @@
         "nuget-Microsoft.ML.Tokenizers-3.0.0",
         "nuget-Microsoft.ML.Tokenizers.Data.O200kBase-3.0.0",
         "nuget-ModelContextProtocol.Core-2.4.0",
-        "nuget-System.Security.Cryptography.ProtectedData-9.0.11",
+        "nuget-System.Security.Cryptography.ProtectedData-10.0.15",
         "nuget-YamlDotNet-18.1.0",
         "pypi-langgraph-1.2.19",
         "pypi-langgraph-checkpoint-sqlite-3.1.3"
@@ -32050,7 +32046,7 @@
       "ref": "nuget-Microsoft.Identity.Client.Extensions.Msal-4.83.1",
       "dependsOn": [
         "nuget-Microsoft.Identity.Client-4.83.1",
-        "nuget-System.Security.Cryptography.ProtectedData-9.0.11"
+        "nuget-System.Security.Cryptography.ProtectedData-10.0.15"
       ]
     },
     {
@@ -32110,7 +32106,7 @@
       "dependsOn": []
     },
     {
-      "ref": "nuget-System.Security.Cryptography.ProtectedData-9.0.11",
+      "ref": "nuget-System.Security.Cryptography.ProtectedData-10.0.15",
       "dependsOn": []
     },
     {

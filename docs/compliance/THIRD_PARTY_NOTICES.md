@@ -9311,7 +9311,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### Microsoft.Bcl.AsyncInterfaces 10.0.3, Microsoft.Extensions.AI.Abstractions 10.11.0, Microsoft.Extensions.Configuration.Abstractions 10.0.3, Microsoft.Extensions.DependencyInjection.Abstractions 10.0.14, Microsoft.Extensions.Diagnostics.Abstractions 10.0.3, Microsoft.Extensions.FileProviders.Abstractions 10.0.3, Microsoft.Extensions.Hosting.Abstractions 10.0.3, Microsoft.Extensions.Logging.Abstractions 10.0.14, Microsoft.Extensions.Options 10.0.3, Microsoft.Extensions.Primitives 10.0.3, Microsoft.ML.Tokenizers 3.0.0, Microsoft.ML.Tokenizers.Data.O200kBase 3.0.0, System.CodeDom 7.0.0, System.Formats.Cbor 11.0.0, System.IO.Hashing 11.0.0, System.Management 7.0.2, System.Memory.Data 10.0.3, System.Security.Cryptography.ProtectedData 9.0.11
+### Microsoft.Bcl.AsyncInterfaces 10.0.3, Microsoft.Extensions.AI.Abstractions 10.11.0, Microsoft.Extensions.Configuration.Abstractions 10.0.3, Microsoft.Extensions.DependencyInjection.Abstractions 10.0.14, Microsoft.Extensions.Diagnostics.Abstractions 10.0.3, Microsoft.Extensions.FileProviders.Abstractions 10.0.3, Microsoft.Extensions.Hosting.Abstractions 10.0.3, Microsoft.Extensions.Logging.Abstractions 10.0.14, Microsoft.Extensions.Options 10.0.3, Microsoft.Extensions.Primitives 10.0.3, Microsoft.ML.Tokenizers 3.0.0, Microsoft.ML.Tokenizers.Data.O200kBase 3.0.0, System.CodeDom 7.0.0, System.Formats.Cbor 11.0.0, System.IO.Hashing 11.0.0, System.Management 7.0.2, System.Memory.Data 10.0.3, System.Security.Cryptography.ProtectedData 10.0.15
 
 Arquivo `dotnet-LICENSE.TXT (de https://github.com/dotnet/dotnet @ c2435c3e0f46)`:
 

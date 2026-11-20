@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Inventário consolidado (distribuído, sob demanda, externo e desenvolvimento)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--208eb9dd-c9ee-4b50-a593-b3cb7b7b6ff6",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--c31fd6ff-5d95-48e9-865d-1d1d9b78175b",
   "creationInfo": {
-    "created": "2026-11-20T13:40:26Z",
+    "created": "2026-11-20T14:55:10Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -22470,27 +22470,27 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-nuget-System.Security.Cryptography.ProtectedData-9.0.11",
+      "SPDXID": "SPDXRef-Package-nuget-System.Security.Cryptography.ProtectedData-10.0.15",
       "name": "System.Security.Cryptography.ProtectedData",
-      "versionInfo": "9.0.11",
-      "downloadLocation": "https://github.com/dotnet/runtime",
+      "versionInfo": "10.0.15",
+      "downloadLocation": "https://github.com/dotnet/dotnet",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT",
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: DPAPI: cofre de credenciais no Windows. Ambiente: execução. Distribuição: incorporado (sidecar .NET single-file). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/system.security.cryptography.protecteddata/9.0.11.",
+      "comment": "Uso: DPAPI: cofre de credenciais no Windows. Ambiente: execução. Distribuição: incorporado (sidecar .NET single-file). Conferência do arquivo de licença: SÓ EXPRESSÃO. Risco: BAIXO. Evidência: runtime/Mariliz.Runtime/obj/project.assets.json | ~/.nuget/packages/system.security.cryptography.protecteddata/10.0.15.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:nuget/System.Security.Cryptography.ProtectedData@9.0.11"
+          "referenceLocator": "pkg:nuget/System.Security.Cryptography.ProtectedData@10.0.15"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "b3cc9462e618bbe3c0c2f05d84b1b52b2ac6ae4f609187ae3f17c0b17b13aaa5b27a9c12c84c3c84069f956e273bdf0d1b9d98a582356a6dbef68fbbf61d91b5"
+          "checksumValue": "006e3da13c41d11e18409cde2081d182ac9a23748e4fc43cbc47c651c8eed96c4ebec0640c953814a4d0f206100180b1987387ab224bd140c67027fc9f34688b"
         }
       ]
     },
@@ -34788,7 +34788,7 @@
     {
       "spdxElementId": "SPDXRef-Package-nuget-Microsoft.Identity.Client.Extensions.Msal-4.83.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-nuget-System.Security.Cryptography.ProtectedData-9.0.11"
+      "relatedSpdxElement": "SPDXRef-Package-nuget-System.Security.Cryptography.ProtectedData-10.0.15"
     },
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
@@ -34868,7 +34868,7 @@
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-nuget-System.Security.Cryptography.ProtectedData-9.0.11"
+      "relatedSpdxElement": "SPDXRef-Package-nuget-System.Security.Cryptography.ProtectedData-10.0.15"
     },
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",

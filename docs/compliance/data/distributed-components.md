@@ -446,7 +446,7 @@ hashes) em `inventory.csv` / `inventory.json`. W = Windows x64, L = Linux x64.
 | System.IO.Hashing | 11.0.0 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
 | System.Management | 7.0.2 | nuget | transitiva | x | x | MIT | CONFERE | BAIXO |
 | System.Memory.Data | 10.0.3 | nuget | transitiva | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
-| System.Security.Cryptography.ProtectedData | 9.0.11 | nuget | direta | x | x | MIT | CONFERE | BAIXO |
+| System.Security.Cryptography.ProtectedData | 10.0.15 | nuget | direta | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
 | YamlDotNet | 18.1.0 | nuget | direta | x | x | MIT | SÓ EXPRESSÃO | BAIXO |
 | aiosqlite | 0.22.1 | pypi | transitiva | x | x | MIT | CONFERE | BAIXO |
 | annotated-types | 0.8.0 | pypi | transitiva | x | x | MIT | CONFERE | BAIXO |
