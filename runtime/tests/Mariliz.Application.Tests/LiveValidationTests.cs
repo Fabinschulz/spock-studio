@@ -8,7 +8,6 @@ using Mariliz.Application.Tests.Support;
 using Mariliz.Application.Workspace;
 using Mariliz.Infrastructure;
 using Mariliz.Infrastructure.Integrations;
-using Xunit.Abstractions;
 
 namespace Mariliz.Application.Tests;
 
@@ -216,7 +215,11 @@ public class LiveValidationTests(ITestOutputHelper output)
 
 // Sem as variáveis pedidas aparece como ignorado, nunca como aprovado: um verde que não testou nada é pior que um aviso.
 [AttributeUsage(AttributeTargets.Method)]
+// xUnit3003 pede o arquivo e a linha do teste no construtor, mas eles não cabem depois de params: aqui o runner
+// fica sem a posição do teste, o que só afeta o atalho da IDE.
+#pragma warning disable xUnit3003
 public sealed class LiveFactAttribute : FactAttribute
+#pragma warning restore xUnit3003
 {
     public LiveFactAttribute(params string[] variables)
     {

@@ -5,7 +5,6 @@ using Mariliz.Application.Ports;
 using Mariliz.Application.Tests.Support;
 using Mariliz.Application.Workspace;
 using Mariliz.Infrastructure;
-using Xunit.Abstractions;
 
 namespace Mariliz.Application.Tests;
 

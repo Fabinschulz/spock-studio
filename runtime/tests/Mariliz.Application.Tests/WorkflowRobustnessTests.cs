@@ -15,11 +15,13 @@ public class WorkflowRobustnessTests
     public async Task Aprovacao_mais_lenta_que_o_prazo_do_runtime_ainda_conclui()
     {
         using var project = TempProject.Dotnet();
-        var (workflows, projectId, _) = Build(project, new PausingRuntime(), TimeSpan.FromMilliseconds(150));
+        // O prazo cobre a retomada inteira (estado em disco e eventos), não só o runtime falso: com 150 ms ele estourava
+        // quando a suíte rodava em paralelo. A espera da aprovação segue o dobro do prazo, que é o que o teste prova.
+        var (workflows, projectId, _) = Build(project, new PausingRuntime(), TimeSpan.FromSeconds(1));
 
         var run = await workflows.StartAsync(projectId, new JsonObject { ["goal"] = "x", ["requiresApproval"] = true }, CancellationToken.None);
         await WaitUntil(() => run.State == RunStates.AwaitingApproval);
-        await Task.Delay(600);
+        await Task.Delay(TimeSpan.FromSeconds(2));
         await workflows.ResumeAsync(projectId, run.RunId);
         await run.Completion!;
 

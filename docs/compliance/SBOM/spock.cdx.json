@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:7f1e5714-7e49-4adb-86be-f613317f2f4e",
+  "serialNumber": "urn:uuid:0d99dbb8-e26d-49cd-b4af-6dac2d4eb55f",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-19T19:20:49Z",
+    "timestamp": "2026-11-20T12:55:06Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -56175,6 +56175,63 @@
     },
     {
       "type": "library",
+      "bom-ref": "nuget-Microsoft.Win32.Registry-5.0.0",
+      "name": "Microsoft.Win32.Registry",
+      "version": "5.0.0",
+      "purl": "pkg:nuget/Microsoft.Win32.Registry@5.0.0",
+      "scope": "excluded",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "743a0a8b43e70f3df5c80c844df467b6c2c0ad3955015cd4cc222fbc40ec0ecb9cae5df70e5f292091b4e9e3d3253237b46a5ec874bd0aaec5a1cfece0478a72"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "properties": [
+        {
+          "name": "spock:ecosystem",
+          "value": "nuget"
+        },
+        {
+          "name": "spock:environment",
+          "value": "desenvolvimento"
+        },
+        {
+          "name": "spock:distribution",
+          "value": "não distribuído"
+        },
+        {
+          "name": "spock:dependency",
+          "value": "transitiva"
+        },
+        {
+          "name": "spock:license-file-check",
+          "value": "CONFERE"
+        },
+        {
+          "name": "spock:license-file-detected",
+          "value": "MIT"
+        },
+        {
+          "name": "spock:risk",
+          "value": "BAIXO"
+        },
+        {
+          "name": "spock:obligations",
+          "value": "Nenhuma para o produto (não distribuído)."
+        },
+        {
+          "name": "spock:evidence",
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/microsoft.win32.registry/5.0.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "nuget-ModelContextProtocol.Core-2.4.0",
       "name": "ModelContextProtocol.Core",
       "version": "2.4.0",
@@ -56659,6 +56716,69 @@
     },
     {
       "type": "library",
+      "bom-ref": "nuget-System.Security.AccessControl-6.0.1",
+      "name": "System.Security.AccessControl",
+      "version": "6.0.1",
+      "purl": "pkg:nuget/System.Security.AccessControl@6.0.1",
+      "scope": "excluded",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "210e0d5cffc1dc0cb3bf0d2b0d0cd54d8b022b2cb4269f4a23a69870aed49c656547df80c33fbe4c83c242d3d87cb25f3a99bc6a3a30311d3d57baae0f7b041f"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/dotnet/runtime"
+        }
+      ],
+      "properties": [
+        {
+          "name": "spock:ecosystem",
+          "value": "nuget"
+        },
+        {
+          "name": "spock:environment",
+          "value": "desenvolvimento"
+        },
+        {
+          "name": "spock:distribution",
+          "value": "não distribuído"
+        },
+        {
+          "name": "spock:dependency",
+          "value": "transitiva"
+        },
+        {
+          "name": "spock:license-file-check",
+          "value": "CONFERE"
+        },
+        {
+          "name": "spock:license-file-detected",
+          "value": "MIT"
+        },
+        {
+          "name": "spock:risk",
+          "value": "BAIXO"
+        },
+        {
+          "name": "spock:obligations",
+          "value": "Nenhuma para o produto (não distribuído)."
+        },
+        {
+          "name": "spock:evidence",
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/system.security.accesscontrol/6.0.1"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "nuget-System.Security.Cryptography.ProtectedData-9.0.11",
       "name": "System.Security.Cryptography.ProtectedData",
       "version": "9.0.11",
@@ -56726,132 +56846,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "nuget-xunit-2.9.3",
-      "name": "xunit",
-      "version": "2.9.3",
-      "purl": "pkg:nuget/xunit@2.9.3",
-      "scope": "excluded",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "4e55d00629cadf92e938f28702a6cb638c6511e9fd4c169f8ecd15e4a9c0e3066ca102d02628ab091e026c85ef387f0dce45b861e24a3f93ff067ae8766d21f5"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "Apache-2.0"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "vcs",
-          "url": "https://github.com/xunit/xunit"
-        }
-      ],
-      "properties": [
-        {
-          "name": "spock:ecosystem",
-          "value": "nuget"
-        },
-        {
-          "name": "spock:environment",
-          "value": "desenvolvimento"
-        },
-        {
-          "name": "spock:distribution",
-          "value": "não distribuído"
-        },
-        {
-          "name": "spock:dependency",
-          "value": "direta"
-        },
-        {
-          "name": "spock:license-file-check",
-          "value": "SÓ EXPRESSÃO"
-        },
-        {
-          "name": "spock:risk",
-          "value": "BAIXO"
-        },
-        {
-          "name": "spock:obligations",
-          "value": "Nenhuma para o produto (não distribuído)."
-        },
-        {
-          "name": "spock:evidence",
-          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit/2.9.3"
-        },
-        {
-          "name": "spock:usage",
-          "value": "Framework de testes"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "nuget-xunit.abstractions-2.0.3",
-      "name": "xunit.abstractions",
-      "version": "2.0.3",
-      "purl": "pkg:nuget/xunit.abstractions@2.0.3",
-      "scope": "excluded",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "a68b7523860ec655a321be639b0bef40d6d3ad9de5250fa35069068d613784414cd25e603a70564be1f7aac7b1ebcb3970ee7683ee38be91b3840b7ee36bf02a"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "vcs",
-          "url": "https://github.com/xunit/xunit"
-        }
-      ],
-      "properties": [
-        {
-          "name": "spock:ecosystem",
-          "value": "nuget"
-        },
-        {
-          "name": "spock:environment",
-          "value": "desenvolvimento"
-        },
-        {
-          "name": "spock:distribution",
-          "value": "não distribuído"
-        },
-        {
-          "name": "spock:dependency",
-          "value": "transitiva"
-        },
-        {
-          "name": "spock:license-file-check",
-          "value": "SEM ARQUIVO"
-        },
-        {
-          "name": "spock:risk",
-          "value": "BAIXO"
-        },
-        {
-          "name": "spock:obligations",
-          "value": "Nenhuma para o produto (não distribuído)."
-        },
-        {
-          "name": "spock:evidence",
-          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.abstractions/2.0.3"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "nuget-xunit.analyzers-1.18.0",
+      "bom-ref": "nuget-xunit.analyzers-2.3.0",
       "name": "xunit.analyzers",
-      "version": "1.18.0",
-      "purl": "pkg:nuget/xunit.analyzers@1.18.0",
+      "version": "2.3.0",
+      "purl": "pkg:nuget/xunit.analyzers@2.3.0",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "3ad14c1cdf32a887183fdc1c548809aead3501f4f18a38c0a950f2fd6790552cab0c2d51cc159e40fced2f8f43376b325d16a1f136277ef934df9b3b2fde4465"
+          "content": "15cb8baa834181003832641739d356b039e5c3e2c1cac5947163aa97a3024d75c52593e7faa8dbc4703d17d2814623c7d18f7b30baf5544e8bc5d1fc320294a1"
         }
       ],
       "licenses": [
@@ -56896,257 +56899,21 @@
         },
         {
           "name": "spock:evidence",
-          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.analyzers/1.18.0"
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.analyzers/2.3.0"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "nuget-xunit.assert-2.9.3",
-      "name": "xunit.assert",
-      "version": "2.9.3",
-      "purl": "pkg:nuget/xunit.assert@2.9.3",
-      "scope": "excluded",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "fcaab6f1f084ecc8ce578d982d5440273445d16984aac99f966d1c7e93231adcd0da5479998563d7f8b463cb8300e2dcce42f7fe302baf07a17cc0f462880c00"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "Apache-2.0"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "vcs",
-          "url": "https://github.com/xunit/xunit"
-        }
-      ],
-      "properties": [
-        {
-          "name": "spock:ecosystem",
-          "value": "nuget"
-        },
-        {
-          "name": "spock:environment",
-          "value": "desenvolvimento"
-        },
-        {
-          "name": "spock:distribution",
-          "value": "não distribuído"
-        },
-        {
-          "name": "spock:dependency",
-          "value": "transitiva"
-        },
-        {
-          "name": "spock:license-file-check",
-          "value": "SÓ EXPRESSÃO"
-        },
-        {
-          "name": "spock:risk",
-          "value": "BAIXO"
-        },
-        {
-          "name": "spock:obligations",
-          "value": "Nenhuma para o produto (não distribuído)."
-        },
-        {
-          "name": "spock:evidence",
-          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.assert/2.9.3"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "nuget-xunit.core-2.9.3",
-      "name": "xunit.core",
-      "version": "2.9.3",
-      "purl": "pkg:nuget/xunit.core@2.9.3",
-      "scope": "excluded",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "062004bea1afca67b5f70134c1329d0031fe365a18aa292253499c9e688dc97685f47c87984eacaffdc30b9be706482c59a13ac8fc96b332923d202959d45579"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "Apache-2.0"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "vcs",
-          "url": "https://github.com/xunit/xunit"
-        }
-      ],
-      "properties": [
-        {
-          "name": "spock:ecosystem",
-          "value": "nuget"
-        },
-        {
-          "name": "spock:environment",
-          "value": "desenvolvimento"
-        },
-        {
-          "name": "spock:distribution",
-          "value": "não distribuído"
-        },
-        {
-          "name": "spock:dependency",
-          "value": "transitiva"
-        },
-        {
-          "name": "spock:license-file-check",
-          "value": "SÓ EXPRESSÃO"
-        },
-        {
-          "name": "spock:risk",
-          "value": "BAIXO"
-        },
-        {
-          "name": "spock:obligations",
-          "value": "Nenhuma para o produto (não distribuído)."
-        },
-        {
-          "name": "spock:evidence",
-          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.core/2.9.3"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "nuget-xunit.extensibility.core-2.9.3",
-      "name": "xunit.extensibility.core",
-      "version": "2.9.3",
-      "purl": "pkg:nuget/xunit.extensibility.core@2.9.3",
-      "scope": "excluded",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "91fdec8b46139f66bc27c79935bfb3169c1fa32bc8ad0ee2bcd939658039cae624d5b12d31ee03c49d8217faac4609849c3afb3275b59b1ca505a1d3678a84ac"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "Apache-2.0"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "vcs",
-          "url": "https://github.com/xunit/xunit"
-        }
-      ],
-      "properties": [
-        {
-          "name": "spock:ecosystem",
-          "value": "nuget"
-        },
-        {
-          "name": "spock:environment",
-          "value": "desenvolvimento"
-        },
-        {
-          "name": "spock:distribution",
-          "value": "não distribuído"
-        },
-        {
-          "name": "spock:dependency",
-          "value": "transitiva"
-        },
-        {
-          "name": "spock:license-file-check",
-          "value": "SÓ EXPRESSÃO"
-        },
-        {
-          "name": "spock:risk",
-          "value": "BAIXO"
-        },
-        {
-          "name": "spock:obligations",
-          "value": "Nenhuma para o produto (não distribuído)."
-        },
-        {
-          "name": "spock:evidence",
-          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.extensibility.core/2.9.3"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "nuget-xunit.extensibility.execution-2.9.3",
-      "name": "xunit.extensibility.execution",
-      "version": "2.9.3",
-      "purl": "pkg:nuget/xunit.extensibility.execution@2.9.3",
-      "scope": "excluded",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "c8c6fabcc112952ac4dd67e3ed5e9c8d0dd2e135dd5e946a61e344237cec5f7d6e4ec18c263130ea80f9179bb57079cca6d8e11040a79994ac3f107a0a16470d"
-        }
-      ],
-      "licenses": [
-        {
-          "expression": "Apache-2.0"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "vcs",
-          "url": "https://github.com/xunit/xunit"
-        }
-      ],
-      "properties": [
-        {
-          "name": "spock:ecosystem",
-          "value": "nuget"
-        },
-        {
-          "name": "spock:environment",
-          "value": "desenvolvimento"
-        },
-        {
-          "name": "spock:distribution",
-          "value": "não distribuído"
-        },
-        {
-          "name": "spock:dependency",
-          "value": "transitiva"
-        },
-        {
-          "name": "spock:license-file-check",
-          "value": "SÓ EXPRESSÃO"
-        },
-        {
-          "name": "spock:risk",
-          "value": "BAIXO"
-        },
-        {
-          "name": "spock:obligations",
-          "value": "Nenhuma para o produto (não distribuído)."
-        },
-        {
-          "name": "spock:evidence",
-          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.extensibility.execution/2.9.3"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "nuget-xunit.runner.visualstudio-3.1.4",
+      "bom-ref": "nuget-xunit.runner.visualstudio-4.0.1",
       "name": "xunit.runner.visualstudio",
-      "version": "3.1.4",
-      "purl": "pkg:nuget/xunit.runner.visualstudio@3.1.4",
+      "version": "4.0.1",
+      "purl": "pkg:nuget/xunit.runner.visualstudio@4.0.1",
       "scope": "excluded",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "e668fdf4bbc2aabab708d8b4eb161dc8801738487ee5bdf71769c4ac2cc8e735a20dd2c75e23d711615250017cce522fd195aa8d9342c074d07803d86c5de90a"
+          "content": "f02a006999278957a4475c9c272c67fa13b3fba6500833dca08b08b3aba37785b215c04c97118d535e506fc53177888ee1498eb844dbd0ceafcc16f05ff99f2c"
         }
       ],
       "licenses": [
@@ -57191,11 +56958,424 @@
         },
         {
           "name": "spock:evidence",
-          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.runner.visualstudio/3.1.4"
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.runner.visualstudio/4.0.1"
         },
         {
           "name": "spock:usage",
           "value": "Runner de testes"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "nuget-xunit.v3.assert-4.0.3",
+      "name": "xunit.v3.assert",
+      "version": "4.0.3",
+      "purl": "pkg:nuget/xunit.v3.assert@4.0.3",
+      "scope": "excluded",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "46b956437c9795afae77d241583218f469d44bf0d2e38af739baaa57bc1d5add46852f92bde09ed0c0432f6dfc5576285769969d7fc384ed8b753ab9153953ee"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/xunit/xunit"
+        }
+      ],
+      "properties": [
+        {
+          "name": "spock:ecosystem",
+          "value": "nuget"
+        },
+        {
+          "name": "spock:environment",
+          "value": "desenvolvimento"
+        },
+        {
+          "name": "spock:distribution",
+          "value": "não distribuído"
+        },
+        {
+          "name": "spock:dependency",
+          "value": "transitiva"
+        },
+        {
+          "name": "spock:license-file-check",
+          "value": "SÓ EXPRESSÃO"
+        },
+        {
+          "name": "spock:risk",
+          "value": "BAIXO"
+        },
+        {
+          "name": "spock:obligations",
+          "value": "Nenhuma para o produto (não distribuído)."
+        },
+        {
+          "name": "spock:evidence",
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.v3.assert/4.0.3"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "nuget-xunit.v3.common-4.0.3",
+      "name": "xunit.v3.common",
+      "version": "4.0.3",
+      "purl": "pkg:nuget/xunit.v3.common@4.0.3",
+      "scope": "excluded",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "fb6a86cf7adcbde231cdb5de6551d4f1d84cc9a6b0b74d66826ff3bf51491f614f72f2697d352a735bd0de12b6579cd5b7c4040dd740f81e9f91ff7f2d67ff3e"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/xunit/xunit"
+        }
+      ],
+      "properties": [
+        {
+          "name": "spock:ecosystem",
+          "value": "nuget"
+        },
+        {
+          "name": "spock:environment",
+          "value": "desenvolvimento"
+        },
+        {
+          "name": "spock:distribution",
+          "value": "não distribuído"
+        },
+        {
+          "name": "spock:dependency",
+          "value": "transitiva"
+        },
+        {
+          "name": "spock:license-file-check",
+          "value": "SÓ EXPRESSÃO"
+        },
+        {
+          "name": "spock:risk",
+          "value": "BAIXO"
+        },
+        {
+          "name": "spock:obligations",
+          "value": "Nenhuma para o produto (não distribuído)."
+        },
+        {
+          "name": "spock:evidence",
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.v3.common/4.0.3"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "nuget-xunit.v3.core.mtp-off-4.0.3",
+      "name": "xunit.v3.core.mtp-off",
+      "version": "4.0.3",
+      "purl": "pkg:nuget/xunit.v3.core.mtp-off@4.0.3",
+      "scope": "excluded",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "cf37779e8309ec8e839e85cc7cdbffb245a5271f3bdc28fb3ebada03e253545b419e8cbdc89c067797fda2f3f68c14315587f21d4762580944de996f260872f1"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/xunit/xunit"
+        }
+      ],
+      "properties": [
+        {
+          "name": "spock:ecosystem",
+          "value": "nuget"
+        },
+        {
+          "name": "spock:environment",
+          "value": "desenvolvimento"
+        },
+        {
+          "name": "spock:distribution",
+          "value": "não distribuído"
+        },
+        {
+          "name": "spock:dependency",
+          "value": "transitiva"
+        },
+        {
+          "name": "spock:license-file-check",
+          "value": "SÓ EXPRESSÃO"
+        },
+        {
+          "name": "spock:risk",
+          "value": "BAIXO"
+        },
+        {
+          "name": "spock:obligations",
+          "value": "Nenhuma para o produto (não distribuído)."
+        },
+        {
+          "name": "spock:evidence",
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.v3.core.mtp-off/4.0.3"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "nuget-xunit.v3.extensibility.core-4.0.3",
+      "name": "xunit.v3.extensibility.core",
+      "version": "4.0.3",
+      "purl": "pkg:nuget/xunit.v3.extensibility.core@4.0.3",
+      "scope": "excluded",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "4c162a40ac93f970432d21e31ba3e7990a68a2a6ad7e505c5af362112552e69b50c565d57ff14696451f90dc872910940d20b1c47209360c0ef92468b1499913"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/xunit/xunit"
+        }
+      ],
+      "properties": [
+        {
+          "name": "spock:ecosystem",
+          "value": "nuget"
+        },
+        {
+          "name": "spock:environment",
+          "value": "desenvolvimento"
+        },
+        {
+          "name": "spock:distribution",
+          "value": "não distribuído"
+        },
+        {
+          "name": "spock:dependency",
+          "value": "transitiva"
+        },
+        {
+          "name": "spock:license-file-check",
+          "value": "SÓ EXPRESSÃO"
+        },
+        {
+          "name": "spock:risk",
+          "value": "BAIXO"
+        },
+        {
+          "name": "spock:obligations",
+          "value": "Nenhuma para o produto (não distribuído)."
+        },
+        {
+          "name": "spock:evidence",
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.v3.extensibility.core/4.0.3"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "nuget-xunit.v3.mtp-off-4.0.3",
+      "name": "xunit.v3.mtp-off",
+      "version": "4.0.3",
+      "purl": "pkg:nuget/xunit.v3.mtp-off@4.0.3",
+      "scope": "excluded",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "ff60e594949daf89a731d9d8e603799ddc467531b04d7e9bac8a6666fd8f115ec3d8dd4fc307525b8b7edc0443ff92706171419755d5fbca33c124f2ab6c1b12"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/xunit/xunit"
+        }
+      ],
+      "properties": [
+        {
+          "name": "spock:ecosystem",
+          "value": "nuget"
+        },
+        {
+          "name": "spock:environment",
+          "value": "desenvolvimento"
+        },
+        {
+          "name": "spock:distribution",
+          "value": "não distribuído"
+        },
+        {
+          "name": "spock:dependency",
+          "value": "direta"
+        },
+        {
+          "name": "spock:license-file-check",
+          "value": "SÓ EXPRESSÃO"
+        },
+        {
+          "name": "spock:risk",
+          "value": "BAIXO"
+        },
+        {
+          "name": "spock:obligations",
+          "value": "Nenhuma para o produto (não distribuído)."
+        },
+        {
+          "name": "spock:evidence",
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.v3.mtp-off/4.0.3"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "nuget-xunit.v3.runner.common-4.0.3",
+      "name": "xunit.v3.runner.common",
+      "version": "4.0.3",
+      "purl": "pkg:nuget/xunit.v3.runner.common@4.0.3",
+      "scope": "excluded",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "27f924841809837c2ed7123c818d84b26de8444e3b80dac698aa53fd76433cecd9dff177df24cafd91f508ceaa0e9007a134f7198fc982b55b4b84f524429889"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/xunit/xunit"
+        }
+      ],
+      "properties": [
+        {
+          "name": "spock:ecosystem",
+          "value": "nuget"
+        },
+        {
+          "name": "spock:environment",
+          "value": "desenvolvimento"
+        },
+        {
+          "name": "spock:distribution",
+          "value": "não distribuído"
+        },
+        {
+          "name": "spock:dependency",
+          "value": "transitiva"
+        },
+        {
+          "name": "spock:license-file-check",
+          "value": "SÓ EXPRESSÃO"
+        },
+        {
+          "name": "spock:risk",
+          "value": "BAIXO"
+        },
+        {
+          "name": "spock:obligations",
+          "value": "Nenhuma para o produto (não distribuído)."
+        },
+        {
+          "name": "spock:evidence",
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.v3.runner.common/4.0.3"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "nuget-xunit.v3.runner.inproc.console-4.0.3",
+      "name": "xunit.v3.runner.inproc.console",
+      "version": "4.0.3",
+      "purl": "pkg:nuget/xunit.v3.runner.inproc.console@4.0.3",
+      "scope": "excluded",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "943bcdb397b16bcac17565d7ff075aa4f4e9f3548d0af51aad70b9897cebd6abced7af3e4b1fd8b6b93d5522db483dd8f4a34af0f70e8cc975abb25f0a8a372d"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/xunit/xunit"
+        }
+      ],
+      "properties": [
+        {
+          "name": "spock:ecosystem",
+          "value": "nuget"
+        },
+        {
+          "name": "spock:environment",
+          "value": "desenvolvimento"
+        },
+        {
+          "name": "spock:distribution",
+          "value": "não distribuído"
+        },
+        {
+          "name": "spock:dependency",
+          "value": "transitiva"
+        },
+        {
+          "name": "spock:license-file-check",
+          "value": "SÓ EXPRESSÃO"
+        },
+        {
+          "name": "spock:risk",
+          "value": "BAIXO"
+        },
+        {
+          "name": "spock:obligations",
+          "value": "Nenhuma para o produto (não distribuído)."
+        },
+        {
+          "name": "spock:evidence",
+          "value": "runtime/tests/Mariliz.Application.Tests/obj/project.assets.json | ~/.nuget/packages/xunit.v3.runner.inproc.console/4.0.3"
         }
       ]
     },
@@ -60233,8 +60413,8 @@
         "nuget-System.Security.Cryptography.ProtectedData-9.0.11",
         "nuget-YamlDotNet-18.1.0",
         "nuget-coverlet.collector-10.1.1",
-        "nuget-xunit-2.9.3",
-        "nuget-xunit.runner.visualstudio-3.1.4",
+        "nuget-xunit.runner.visualstudio-4.0.1",
+        "nuget-xunit.v3.mtp-off-4.0.3",
         "pypi-langgraph-1.2.19",
         "pypi-langgraph-checkpoint-sqlite-3.1.3",
         "svc-cloud-apis",
@@ -66525,6 +66705,10 @@
       ]
     },
     {
+      "ref": "nuget-Microsoft.Win32.Registry-5.0.0",
+      "dependsOn": []
+    },
+    {
       "ref": "nuget-ModelContextProtocol.Core-2.4.0",
       "dependsOn": [
         "nuget-Microsoft.Extensions.AI.Abstractions-10.11.0",
@@ -66567,51 +66751,66 @@
       "dependsOn": []
     },
     {
+      "ref": "nuget-System.Security.AccessControl-6.0.1",
+      "dependsOn": []
+    },
+    {
       "ref": "nuget-System.Security.Cryptography.ProtectedData-9.0.11",
       "dependsOn": []
     },
     {
-      "ref": "nuget-xunit-2.9.3",
-      "dependsOn": [
-        "nuget-xunit.analyzers-1.18.0",
-        "nuget-xunit.assert-2.9.3",
-        "nuget-xunit.core-2.9.3"
-      ]
-    },
-    {
-      "ref": "nuget-xunit.abstractions-2.0.3",
+      "ref": "nuget-xunit.analyzers-2.3.0",
       "dependsOn": []
     },
     {
-      "ref": "nuget-xunit.analyzers-1.18.0",
+      "ref": "nuget-xunit.runner.visualstudio-4.0.1",
       "dependsOn": []
     },
     {
-      "ref": "nuget-xunit.assert-2.9.3",
+      "ref": "nuget-xunit.v3.assert-4.0.3",
       "dependsOn": []
     },
     {
-      "ref": "nuget-xunit.core-2.9.3",
+      "ref": "nuget-xunit.v3.common-4.0.3",
       "dependsOn": [
-        "nuget-xunit.extensibility.core-2.9.3",
-        "nuget-xunit.extensibility.execution-2.9.3"
+        "nuget-Microsoft.Bcl.AsyncInterfaces-10.0.3"
       ]
     },
     {
-      "ref": "nuget-xunit.extensibility.core-2.9.3",
+      "ref": "nuget-xunit.v3.core.mtp-off-4.0.3",
       "dependsOn": [
-        "nuget-xunit.abstractions-2.0.3"
+        "nuget-xunit.v3.extensibility.core-4.0.3",
+        "nuget-xunit.v3.runner.inproc.console-4.0.3"
       ]
     },
     {
-      "ref": "nuget-xunit.extensibility.execution-2.9.3",
+      "ref": "nuget-xunit.v3.extensibility.core-4.0.3",
       "dependsOn": [
-        "nuget-xunit.extensibility.core-2.9.3"
+        "nuget-xunit.v3.common-4.0.3"
       ]
     },
     {
-      "ref": "nuget-xunit.runner.visualstudio-3.1.4",
-      "dependsOn": []
+      "ref": "nuget-xunit.v3.mtp-off-4.0.3",
+      "dependsOn": [
+        "nuget-xunit.analyzers-2.3.0",
+        "nuget-xunit.v3.assert-4.0.3",
+        "nuget-xunit.v3.core.mtp-off-4.0.3"
+      ]
+    },
+    {
+      "ref": "nuget-xunit.v3.runner.common-4.0.3",
+      "dependsOn": [
+        "nuget-Microsoft.Win32.Registry-5.0.0",
+        "nuget-System.Security.AccessControl-6.0.1",
+        "nuget-xunit.v3.common-4.0.3"
+      ]
+    },
+    {
+      "ref": "nuget-xunit.v3.runner.inproc.console-4.0.3",
+      "dependsOn": [
+        "nuget-xunit.v3.extensibility.core-4.0.3",
+        "nuget-xunit.v3.runner.common-4.0.3"
+      ]
     },
     {
       "ref": "nuget-YamlDotNet-18.1.0",
