@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:db3df760-5943-45b8-824c-334b19c121af",
+  "serialNumber": "urn:uuid:a632bb86-13b6-4778-b97b-40fa3b8ad3a2",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-20T13:06:53Z",
+    "timestamp": "2026-11-20T13:40:26Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -217,71 +217,10 @@
       ]
     },
     {
-      "type": "library",
-      "bom-ref": "bin-berkeley-db",
-      "name": "Berkeley DB (dentro do python-build-standalone, módulo _dbm)",
-      "version": "6.0.19",
-      "purl": "pkg:generic/berkeley-db@6.0.19",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "Sleepycat"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "vcs",
-          "url": "https://github.com/astral-sh/python-build-standalone/blob/20261110/pythonbuild/downloads.json"
-        }
-      ],
-      "properties": [
-        {
-          "name": "spock:ecosystem",
-          "value": "binário"
-        },
-        {
-          "name": "spock:environment",
-          "value": "execução"
-        },
-        {
-          "name": "spock:distribution",
-          "value": "redistribuído (resources/python no .deb)"
-        },
-        {
-          "name": "spock:dependency",
-          "value": "direta"
-        },
-        {
-          "name": "spock:license-file-check",
-          "value": "CONFERIDO MANUALMENTE"
-        },
-        {
-          "name": "spock:risk",
-          "value": "MÉDIO"
-        },
-        {
-          "name": "spock:obligations",
-          "value": "Sleepycat: licença e informação de fonte do Berkeley DB 6.0.19 e do CPython/PBS junto da distribuição (implementado em python/licenses/berkeley-db e conferido pelo smoke do pacote); manter o canal de suporte para entregar as fontes"
-        },
-        {
-          "name": "spock:evidence",
-          "value": "scripts/package-intelligence.py | scripts/notices/berkeley-db/LICENSE-6.0.19.txt | scripts/notices/berkeley-db/SOURCES.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/pythonbuild/downloads.json"
-        },
-        {
-          "name": "spock:usage",
-          "value": "Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência)"
-        },
-        {
-          "name": "spock:note",
-          "value": "A tag 20261110 mantém o bdb 6.0.19 na lista do alvo x86_64-unknown-linux-gnu (cpython-unix/targets.yml). Conferido na 20250409: sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0; na 20261110, não verificado em Linux."
-        }
-      ]
-    },
-    {
       "type": "platform",
       "bom-ref": "bin-python-build-standalone",
       "name": "CPython (python-build-standalone, install_only_stripped)",
-      "version": "3.12.16+20261110",
+      "version": "3.14.10+20261110",
       "purl": "pkg:github/astral-sh/python-build-standalone@20261110",
       "scope": "required",
       "licenses": [
@@ -322,11 +261,11 @@
         },
         {
           "name": "spock:obligations",
-          "value": "Licença do CPython (lib/python3.12/LICENSE.txt) e das bibliotecas nativas (python/licenses/python-build-standalone) no pacote"
+          "value": "Licença do CPython (lib/python3.14/LICENSE.txt) e das bibliotecas nativas (python/licenses/python-build-standalone) no pacote"
         },
         {
           "name": "spock:evidence",
-          "value": "scripts/package-intelligence.py:46 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml"
+          "value": "scripts/package-intelligence.py:45 | scripts/notices/python-build-standalone/README.md | https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml"
         },
         {
           "name": "spock:usage",
@@ -334,7 +273,7 @@
         },
         {
           "name": "spock:note",
-          "value": "SHA-256 do arquivo fixado no script: 6a9e62dad033790aef722dbd370e0ce76ce17b73627ba3ae679f537049350b39. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado."
+          "value": "SHA-256 do arquivo fixado no script: c2ff2e97422f5d3896a16e0317fd212ba977bbf2688d93a6f7a03d817506bd30. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado. A poda tira o _dbm (único lugar do Berkeley DB 6.0.19, Sleepycat, na 3.14), o _tkinter (Tcl/Tk e X11) e o libpython, que o executável não carrega."
         }
       ]
     },
@@ -29150,7 +29089,6 @@
         "asset-harness-content",
         "asset-icons",
         "asset-release-keys",
-        "bin-berkeley-db",
         "bin-dotnet-runtime-linux",
         "bin-python-build-standalone",
         "cargo-portable-pty-0.9.0",
@@ -29216,10 +29154,6 @@
     },
     {
       "ref": "asset-icons",
-      "dependsOn": []
-    },
-    {
-      "ref": "bin-berkeley-db",
       "dependsOn": []
     },
     {

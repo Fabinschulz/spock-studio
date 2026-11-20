@@ -613,16 +613,16 @@ def manual(inv: Inventory) -> None:
     py = ROOT / "desktop/host/src-tauri/resources/python"
     entries = [
         # (chave, nome, versão, ecossistema, tipo, purl, origem, uso, ambiente, distribuição, artefatos, licença, risco, motivo, evidências, hash-path, nota)
-        ("bin:python-build-standalone-win", "CPython (python-build-standalone, install_only_stripped, Windows)", "3.12.16+20261110", "binário", "runtime",
+        ("bin:python-build-standalone-win", "CPython (python-build-standalone, install_only_stripped, Windows)", "3.14.10+20261110", "binário", "runtime",
          "pkg:github/astral-sh/python-build-standalone@20261110", "https://github.com/astral-sh/python-build-standalone",
          "Interpretador da inteligência (LangGraph) no Windows", "execução",
          "redistribuído (resources/python no instalador)", {"windows-x64"}, "Python-2.0", "MÉDIO",
          "Redistribuição exige manter o LICENSE.txt, os textos das bibliotecas nativas (python/licenses/python-build-standalone) e, "
          "pelo runtime MSVC junto, termos de usuário final que protejam o Distributable Code da Microsoft",
-         ["scripts/package-intelligence.py:41", "scripts/notices/python-build-standalone-windows/README.md"], py / "python312.dll",
-         "SHA-256 do arquivo fixado no script: 355ee61b8207b91574491b1c6dc9b0ebb4408fc56bfafe498f3ef439314b52dc. Inclui OpenSSL 3.5.9 (Apache-2.0), "
-         "libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 2.5.1, xz 5.8.4 (0BSD), zlib 1.4; "
-         "vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk podados."),
+         ["scripts/package-intelligence.py:40", "scripts/notices/python-build-standalone-windows/README.md"], py / "python314.dll",
+         "SHA-256 do arquivo fixado no script: 32b6cf90a03e2bc15fda8d2ab7ff78c4870f138887d612932650ce764efaab8f. Inclui OpenSSL 3.5.9 (Apache-2.0), "
+         "libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 4.0.0, xz 5.8.4 (0BSD), zlib-ng 2.2.4, "
+         "zstd 1.5.7; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk e libtommath podados."),
         ("bin:openssl", "OpenSSL (dentro do CPython)", "3.5.9", "binário", "library", "pkg:generic/openssl@3.5.9", "https://www.openssl.org/",
          "TLS do Python embarcado (libssl-3-x64.dll, libcrypto-3-x64.dll)", "execução", "redistribuído (resources/python)", {"windows-x64"},
          "Apache-2.0", "BAIXO", "Apache-2.0: manter licença", ["desktop/host/src-tauri/resources/python/DLLs/libcrypto-3-x64.dll",
@@ -634,23 +634,15 @@ def manual(inv: Inventory) -> None:
          "Distributable Code da Microsoft: exige EULA do Spock com proteção equivalente; só para plataformas Microsoft",
          ["desktop/host/src-tauri/resources/python/vcruntime140.dll"],
          py / "vcruntime140.dll", ""),
-        ("bin:python-build-standalone", "CPython (python-build-standalone, install_only_stripped)", "3.12.16+20261110", "binário", "runtime",
+        ("bin:python-build-standalone", "CPython (python-build-standalone, install_only_stripped)", "3.14.10+20261110", "binário", "runtime",
          "pkg:github/astral-sh/python-build-standalone@20261110", "https://github.com/astral-sh/python-build-standalone",
          "Interpretador da inteligência no Linux (e macOS fora da 1ª versão)", "execução", "redistribuído (resources/python no .deb)",
          {"linux-x64"}, "Python-2.0", "BAIXO",
-         "Bibliotecas nativas ligadas ao libpython (OpenSSL, SQLite, ncurses, libedit, libffi, expat, mpdecimal, zlib, xz, zstd, Tcl/Tk, X11); "
+         "Bibliotecas nativas ligadas ao executável (OpenSSL, SQLite, ncurses, libedit, libffi, expat, mpdecimal, zlib, xz, zstd, libuuid); "
          "os textos publicados pelo PBS na tag vão em python/licenses/python-build-standalone",
-         ["scripts/package-intelligence.py:46", "scripts/notices/python-build-standalone/README.md", "https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml"], None,
-         "SHA-256 do arquivo fixado no script: 6a9e62dad033790aef722dbd370e0ce76ce17b73627ba3ae679f537049350b39. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado."),
-        ("bin:berkeley-db", "Berkeley DB (dentro do python-build-standalone, módulo _dbm)", "6.0.19", "binário", "library",
-         "pkg:generic/berkeley-db@6.0.19", "https://github.com/astral-sh/python-build-standalone/blob/20261110/pythonbuild/downloads.json",
-         "Backend do módulo dbm do Python embarcado no Linux (não usado pela inteligência)", "execução", "redistribuído (resources/python no .deb)",
-         {"linux-x64"}, "Sleepycat", "MÉDIO",
-         "Ligado estaticamente ao libpython3.12.so (a poda não remove). A obrigação da Sleepycat é cumprida no pacote: licença e fontes vão em "
-         "python/licenses/berkeley-db (D-05). Falta parecer sobre o alcance de 'software que use o DB'",
-         ["scripts/package-intelligence.py", "scripts/notices/berkeley-db/LICENSE-6.0.19.txt", "scripts/notices/berkeley-db/SOURCES.md",
-          "https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/pythonbuild/downloads.json"], None,
-         "A tag 20261110 mantém o bdb 6.0.19 na lista do alvo x86_64-unknown-linux-gnu (cpython-unix/targets.yml). Conferido na 20250409: sem _dbm*.so em lib-dynload; PyInit__dbm e 'Berkeley DB 6.0.19' dentro de lib/libpython3.12.so.1.0; na 20261110, não verificado em Linux."),
+         ["scripts/package-intelligence.py:45", "scripts/notices/python-build-standalone/README.md", "https://raw.githubusercontent.com/astral-sh/python-build-standalone/20261110/cpython-unix/targets.yml"], None,
+         "SHA-256 do arquivo fixado no script: c2ff2e97422f5d3896a16e0317fd212ba977bbf2688d93a6f7a03d817506bd30. readline (GPL) não é usado (USE_LIBEDIT) e _gdbm é desativado. "
+         "A poda tira o _dbm (único lugar do Berkeley DB 6.0.19, Sleepycat, na 3.14), o _tkinter (Tcl/Tk e X11) e o libpython, que o executável não carrega."),
         ("bin:dotnet-runtime-win", "Microsoft .NET Runtime para win-x64 (self-contained)", "10.0.x", "nuget", "runtime",
          f"pkg:nuget/Microsoft.NETCore.App.Runtime.win-x64@{DOTNET_RUNTIME}", "https://github.com/dotnet/runtime",
          "Runtime do motor .NET embutido no sidecar single-file (Windows)", "execução", "incorporado (sidecar .NET single-file)", {"windows-x64"},
@@ -820,9 +812,7 @@ MANUAL_OBLIGATIONS = {
                                        "(python/licenses/python-build-standalone) nos avisos; EULA do Spock com proteção ao Distributable Code "
                                        "da Microsoft; não usar marcas da PSF/Microsoft",
     "bin:vcruntime": "Termos de usuário final protetivos; só plataformas Microsoft; não alterar avisos",
-    "bin:python-build-standalone": "Licença do CPython (lib/python3.12/LICENSE.txt) e das bibliotecas nativas (python/licenses/python-build-standalone) no pacote",
-    "bin:berkeley-db": "Sleepycat: licença e informação de fonte do Berkeley DB 6.0.19 e do CPython/PBS junto da distribuição (implementado em "
-                       "python/licenses/berkeley-db e conferido pelo smoke do pacote); manter o canal de suporte para entregar as fontes",
+    "bin:python-build-standalone": "Licença do CPython (lib/python3.14/LICENSE.txt) e das bibliotecas nativas (python/licenses/python-build-standalone) no pacote",
     "bin:dotnet-runtime-win": "Incluir LICENSE.TXT e THIRD-PARTY-NOTICES.TXT do runtime; EULA com termos protetivos (.NET Library License); "
                               "distribuir só dentro do app; não usar marcas da Microsoft",
     "bin:dotnet-runtime-linux": "Incluir LICENSE.TXT e THIRD-PARTY-NOTICES.TXT do runtime nos avisos",
@@ -1044,7 +1034,7 @@ def package_dir(c: Component) -> Path | None:
 
 # Textos grandes que vão como arquivo à parte (copiados sem alteração de onde o build os obtém).
 NOTICE_FILES = [
-    ("CPython 3.12.16 (python-build-standalone, Windows)", ROOT / "desktop/host/src-tauri/resources/python/LICENSE.txt", "cpython-3.12.16-LICENSE.txt"),
+    ("CPython 3.14.10 (python-build-standalone, Windows)", ROOT / "desktop/host/src-tauri/resources/python/LICENSE.txt", "cpython-3.14.10-LICENSE.txt"),
     (".NET Runtime 10 (LICENSE)", NUGET / f"microsoft.netcore.app.runtime.win-x64/{DOTNET_RUNTIME}/LICENSE.TXT", "dotnet-runtime-LICENSE.TXT"),
     (".NET Runtime 10 (THIRD-PARTY-NOTICES)", NUGET / f"microsoft.netcore.app.runtime.win-x64/{DOTNET_RUNTIME}/THIRD-PARTY-NOTICES.TXT", "dotnet-runtime-THIRD-PARTY-NOTICES.TXT"),
     ("NSIS (COPYING)", Path(os.environ.get("LOCALAPPDATA", "")) / "tauri/NSIS/COPYING", "nsis-COPYING.txt"),
@@ -1053,7 +1043,6 @@ NOTICE_FILES = [
 
 # Textos mantidos no repositório porque não vêm em nenhum pacote: vão junto do Python do Linux (package-intelligence.py).
 REPO_NOTICES = [
-    ("Berkeley DB 6.0.19, no Python embarcado do Linux", ROOT / "scripts" / "notices" / "berkeley-db"),
     ("Bibliotecas nativas do python-build-standalone 20261110 (Linux)", ROOT / "scripts" / "notices" / "python-build-standalone"),
     ("Bibliotecas nativas do python-build-standalone 20261110 (Windows)", ROOT / "scripts" / "notices" / "python-build-standalone-windows"),
 ]

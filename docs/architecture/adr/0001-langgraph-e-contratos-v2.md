@@ -142,3 +142,10 @@ O interpretador embarcado deixou de ser o `3.12.10-embed-amd64` do python.org no
 python-build-standalone 20261110 (CPython 3.12.16), porque o python.org não publica o embeddable para releases só de
 segurança. O `python312._pth` agora é escrito pelo `scripts/package-intelligence.py`, e o orçamento do interpretador no
 Windows passou para 40 MB. Detalhes em `docs/compatibilidade-multiversao/ROADMAP.md`.
+
+## Atualização de 2026-11-20 (MV-9)
+
+O interpretador sobe para o CPython 3.14.10, do mesmo python-build-standalone 20261110. O `._pth` do Windows passa a ser
+`python314._pth`. No Linux e no macOS, o executável da 3.14 traz o interpretador inteiro: o pacote leva só `bin/python3`, sem
+o `libpython`, e a poda tira o `_dbm` (com ele, o Berkeley DB) e o `_tkinter`. O orçamento do Linux baixa para 45 MB.
+Detalhes em `docs/compatibilidade-multiversao/ROADMAP.md`.

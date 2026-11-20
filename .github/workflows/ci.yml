@@ -21,7 +21,7 @@ jobs:
       # Os Evals do hook e das validações da especificação executam scripts Python; a versão é fixa para o resultado não depender do runner.
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.14'
       # Dependências da inteligência (LangGraph) com hash verificado, em intelligence/packages.
       - name: dependências da inteligência
         run: python scripts/package-intelligence.py dev
@@ -72,7 +72,7 @@ jobs:
           dotnet-version: 10.0.x
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.14'
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -122,10 +122,10 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      # Monta o pacote da inteligência; o bytecode precisa da mesma versão menor do interpretador embarcado (3.12).
+      # Monta o pacote da inteligência; o bytecode precisa da mesma versão menor do interpretador embarcado (3.14).
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.14'
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.triple }}

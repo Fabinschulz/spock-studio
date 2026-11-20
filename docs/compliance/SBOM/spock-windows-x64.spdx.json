@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Spock Studio para Windows x64 (instalador NSIS)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-windows-x64--instalador-nsis--6a171b81-bacf-4afe-b1b3-091f41685361",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-windows-x64--instalador-nsis--4e3ffa2c-7141-464f-970c-bedd9215aeb4",
   "creationInfo": {
-    "created": "2026-11-20T13:06:53Z",
+    "created": "2026-11-20T13:40:26Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -69,14 +69,14 @@
     {
       "SPDXID": "SPDXRef-Package-bin-python-build-standalone-win",
       "name": "CPython (python-build-standalone, install_only_stripped, Windows)",
-      "versionInfo": "3.12.16+20261110",
+      "versionInfo": "3.14.10+20261110",
       "downloadLocation": "https://github.com/astral-sh/python-build-standalone",
       "filesAnalyzed": false,
       "licenseDeclared": "Python-2.0",
       "licenseConcluded": "Python-2.0",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Interpretador da inteligência (LangGraph) no Windows. Ambiente: execução. Distribuição: redistribuído (resources/python no instalador). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py:41 | scripts/notices/python-build-standalone-windows/README.md. SHA-256 do arquivo fixado no script: 355ee61b8207b91574491b1c6dc9b0ebb4408fc56bfafe498f3ef439314b52dc. Inclui OpenSSL 3.5.9 (Apache-2.0), libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 2.5.1, xz 5.8.4 (0BSD), zlib 1.4; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk podados. Hash do arquivo desktop/host/src-tauri/resources/python/python312.dll do último build local.",
+      "comment": "Uso: Interpretador da inteligência (LangGraph) no Windows. Ambiente: execução. Distribuição: redistribuído (resources/python no instalador). Conferência do arquivo de licença: CONFERIDO MANUALMENTE. Risco: MÉDIO. Evidência: scripts/package-intelligence.py:40 | scripts/notices/python-build-standalone-windows/README.md. SHA-256 do arquivo fixado no script: 32b6cf90a03e2bc15fda8d2ab7ff78c4870f138887d612932650ce764efaab8f. Inclui OpenSSL 3.5.9 (Apache-2.0), libffi 3.8.0 (MIT), bzip2 1.0.8, SQLite 3.53.1 (domínio público), expat 2.9.0 (MIT), mpdecimal 4.0.0, xz 5.8.4 (0BSD), zlib-ng 2.2.4, zstd 1.5.7; vcruntime140.dll e vcruntime140_1.dll (Microsoft Visual C++ Redistributable). Tcl/Tk e libtommath podados. Hash do arquivo desktop/host/src-tauri/resources/python/python314.dll do último build local.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -87,7 +87,7 @@
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "f4ee82750281a43282d2d6bfcf03812f2ac62725ae8c958b6e6182ba203c3cef"
+          "checksumValue": "481f745b9693e6b8e84db645460bca7dfe30de5b4dacc2ee67daa9d8dcb37300"
         }
       ]
     },
@@ -175,7 +175,7 @@
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "b36cfb21dc3dad939aabab2e479c6e179b65e3a674105b15bfcc8b5ca7cad526"
+          "checksumValue": "a76d21af69d46135b4b31c296fe633a7076dc96771be9206b78023186768cb5a"
         }
       ]
     },

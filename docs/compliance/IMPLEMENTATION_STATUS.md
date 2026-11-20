@@ -14,7 +14,7 @@ SPOCK significa **System of Programming, Organization, Code and Knowledge**.
 | D-02 Terraform gerenciado | **Aguarda parecer** | Antes: liberado em qualquer build | Preparada a trava por edição de build (seção 3). O padrão continua liberado, como está decidido; a trava vale só no build `commercial` |
 | D-03 Download oficial sob demanda | Adotada | Já implementada (seção 2.2) | Nenhuma alteração |
 | D-04 CPython embarcado | Adotada | Windows: embed oficial com `LICENSE.txt`. Linux: o PBS não trazia as licenças das bibliotecas nativas | O pacote Linux passa a levar as licenças das 16 bibliotecas ligadas ao `libpython`, e o teste do pacote confere a presença |
-| D-05 Berkeley DB | Adotada em 2026-11-15: cumprir a Sleepycat | O pedido desta etapa fala em remover o `_dbm`, mas isso não é possível pela poda (seção 4) | Mantida a decisão adotada: licença e fontes no pacote, conferidas pelo teste |
+| D-05 Berkeley DB | Adotada em 2026-11-15: cumprir a Sleepycat | O pedido desta etapa fala em remover o `_dbm`, mas isso não era possível pela poda na 3.12 (seção 4) | **Superada (2026-11-20, MV-9)**: na 3.14 o `_dbm` é módulo separado e sai na poda; o teste do pacote falha se ele voltar |
 | D-06 Formato Linux | **Adotada em 2026-11-16: só `.deb`** | Antes: AppImage e `.deb` no CI | CI com `bundles: deb` (seção 9); relatório em [LINUX_DISTRIBUTION_REPORT.md](LINUX_DISTRIBUTION_REPORT.md) |
 | D-07 Avisos no produto | **Adotada em 2026-11-16** | Antes: os avisos não iam ao instalador | Avisos em `resources/notices/` no instalador, comando do host, tela Sobre e conferência no smoke e no `--check` (seção 9) |
 | D-08 CLIs de IA | Adotada; confirmação pendente | Conferido (seção 2.4) | Nenhuma alteração de código; as pendências da Anthropic e da Cursor estão registradas |
@@ -58,6 +58,10 @@ SPOCK significa **System of Programming, Organization, Code and Knowledge**.
   libffi, zlib, xz, expat e mpdecimal ficam em `scripts/notices/python-build-standalone-windows/` e vão para
   `python/licenses/python-build-standalone/`. Os textos do Linux foram trocados pelos da tag 20261110: xz agora é 0BSD, o
   zlib 1.4 trouxe novo copyright, o zstd entrou e o Tix saiu.
+- **Atualização de 2026-11-20 (MV-9):** CPython 3.14.10 do mesmo PBS 20261110. O executável do Linux e do macOS passa a
+  trazer o interpretador inteiro, e `_dbm` e `_tkinter` viram módulos separados: a poda tira os dois e o `libpython`, e o
+  pacote Linux deixa de levar o Berkeley DB, o Tcl/Tk e o X11. No Windows entram o zstd (`_zstd`) e o zlib-ng no lugar do
+  zlib; o libmpdec sobe para 4.0.0.
 - **Windows (até o MV-8a):** CPython 3.12.10 embed oficial. O `LICENSE.txt` vai em `python/` e inclui as condições do código MSVC.
 - **Linux:** python-build-standalone 20250409 até o MV-8a, com SHA-256 fixado.
   - Conferi o arquivo oficial: o `lib-dynload` só tem `_crypt`. Os módulos `_ssl`, `_sqlite3`, `_curses`, `readline`

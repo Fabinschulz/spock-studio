@@ -1,6 +1,6 @@
 # Só configura o linter: a inteligência não é um pacote instalável. Dependências ficam em requirements.in/lock.
 [tool.ruff]
-target-version = "py312"
+target-version = "py314"
 line-length = 140
 extend-exclude = ["packages"]
 

@@ -1,8 +1,8 @@
 namespace Mariliz.Infrastructure;
 
 /// <summary>
-/// Onde o instalador coloca o interpretador: o python-build-standalone 3.12.16 podado no Windows (≤ 40 MB; 36 MB medido em
-/// 2026-11-19), no macOS (≤ 30 MB) e no Linux (≤ 55 MB). O embeddable do python.org não existe para releases só de segurança.
+/// Onde o instalador coloca o interpretador: o python-build-standalone 3.14.10 podado no Windows (≤ 40 MB; 34,4 MB medido em
+/// 2026-11-20), no macOS (≤ 30 MB) e no Linux (≤ 45 MB). O embeddable do python.org não existe para releases só de segurança.
 /// As dependências da inteligência ficam em <c>intelligence/packages</c>, fora do interpretador (ADR-0001).
 /// Um interpretador maior que o orçamento é uma instalação completa, não o runtime do produto.
 /// </summary>

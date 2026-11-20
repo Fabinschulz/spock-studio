@@ -1,10 +1,10 @@
 {
   "gerado_em": "2026-11-20",
-  "total": 963,
+  "total": 962,
   "por_ecossistema": {
     "GitHub Actions": 1,
     "asset": 3,
-    "binário": 9,
+    "binário": 8,
     "cargo": 378,
     "externo": 6,
     "npm": 445,
@@ -14,12 +14,12 @@
     "serviço": 2,
     "sistema operacional": 2
   },
-  "diretas": 105,
+  "diretas": 104,
   "transitivas": 858,
-  "distribuidos": 485,
+  "distribuidos": 484,
   "distribuidos_por_ecossistema": {
     "asset": 3,
-    "binário": 7,
+    "binário": 6,
     "cargo": 276,
     "npm": 105,
     "nuget": 53,
@@ -32,13 +32,13 @@
   "risco": {
     "BAIXO": 943,
     "PENDENTE": 3,
-    "MÉDIO": 13,
+    "MÉDIO": 12,
     "ALTO": 4
   },
   "risco_distribuidos": {
     "BAIXO": 473,
     "PENDENTE": 1,
-    "MÉDIO": 11
+    "MÉDIO": 10
   },
   "licencas_distribuidos": {
     "MIT": 397,
@@ -51,7 +51,6 @@
     "Python-2.0": 2,
     "NOASSERTION": 1,
     "LicenseRef-Proprietary-Spock": 1,
-    "Sleepycat": 1,
     "LicenseRef-Microsoft-Visual-Cpp-Redistributable": 1,
     "Zlib AND bzip2-1.0.6 AND CPL-1.0": 1,
     "BSD-3-Clause AND MIT": 1,
@@ -105,7 +104,7 @@
   },
   "conferencia_arquivo": {
     "PENDENTE": 3,
-    "CONFERIDO MANUALMENTE": 25,
+    "CONFERIDO MANUALMENTE": 24,
     "CONFERE": 847,
     "SEM ARQUIVO": 25,
     "DIVERGE": 6,
@@ -113,7 +112,7 @@
     "SÓ EXPRESSÃO": 56
   },
   "conferencia_distribuidos": {
-    "CONFERIDO MANUALMENTE": 12,
+    "CONFERIDO MANUALMENTE": 11,
     "CONFERE": 425,
     "SEM ARQUIVO": 8,
     "DIVERGE": 1,

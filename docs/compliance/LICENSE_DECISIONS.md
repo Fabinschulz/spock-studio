@@ -9,7 +9,7 @@ auditoria e as que **aguardam aprovação**. Nenhuma substituição, remoção o
 | D-02 | Terraform: instalação gerenciada pelo Spock | **Aguarda aprovação e parecer**; trava por edição de build preparada |
 | D-03 | Ferramentas de IaC por download oficial sob demanda, nunca embarcadas | Adotada |
 | D-04 | CPython embarcado (embed no Windows, python-build-standalone no Linux) | Adotada |
-| D-05 | Berkeley DB (Sleepycat) embutido no Python do Linux | Adotada: cumprir a Sleepycat (2026-11-15); parecer pendente |
+| D-05 | Berkeley DB (Sleepycat) embutido no Python do Linux | **Superada (2026-11-20, MV-9)**: o Berkeley DB saiu do pacote; remoção confirmada pelo dono em 2026-11-20 |
 | D-06 | Formato do pacote Linux na 1ª versão | **Adotada (2026-11-16): só `.deb`** |
 | D-07 | Avisos de terceiros gerados do inventário e embarcados | **Adotada (2026-11-16)**: avisos no instalador e tela Sobre |
 | D-08 | Integração com CLIs de IA só invocando o binário do usuário | Adotada; confirmação pendente |
@@ -79,7 +79,12 @@ O estado de implementação de cada decisão, com evidências, está em [IMPLEME
   - `package-intelligence.py` copia a pasta para `python/licenses/berkeley-db/` nos pacotes Linux.
   - O smoke `Pacote_embarcado` confere a presença dos arquivos. Também confere a licença do CPython em todas as plataformas.
 - **Descartadas:** compilar um CPython sem `bdb` (custo de manutenção) e tirar o Linux da 1ª versão.
-- **Pendências:**
+- **Atualização (2026-11-20, MV-9):** com o CPython 3.14, o `_dbm` deixou de estar dentro do `libpython` e virou módulo separado
+  (`lib-dynload/_dbm.cpython-314-x86_64-linux-gnu.so`, conferido no arquivo oficial). A poda passou a tirá-lo, que era o pedido
+  original do dono: o pacote Linux não leva mais o Berkeley DB, e `scripts/notices/berkeley-db/` saiu do repositório. O `dbm`
+  da biblioteca padrão cai no `dbm.sqlite3`; a inteligência não usa `dbm`. O smoke `Pacote_embarcado` falha se o `_dbm` voltar.
+  As pendências abaixo deixam de valer enquanto o módulo ficar fora. O dono confirmou a remoção em 2026-11-20.
+- **Pendências (até a 3.12):**
   1. Parecer sobre "software que use o DB".
   2. Publicar o canal de suporte citado no `SOURCES.md`.
   3. Anexar os tarballs de fonte às releases.
@@ -155,7 +160,7 @@ Comparação detalhada em [LINUX_DISTRIBUTION_REPORT.md](LINUX_DISTRIBUTION_REPO
 ## Pendências jurídicas consolidadas
 
 1. BUSL 1.1: o Spock pago é "competitive offering"? O cenário 2 (Terraform do usuário) está fora de "embedded"? (D-02)
-2. Sleepycat: alcance de "software que use o DB" para o Berkeley DB embutido no libpython do Linux. (D-05)
+2. ~~Sleepycat: alcance de "software que use o DB" para o Berkeley DB embutido no libpython do Linux. (D-05)~~ O DB saiu do pacote na 3.14.
 3. LGPL no AppImage, caso a opção B seja escolhida. (D-06)
 4. Redação do EULA com as cláusulas da Microsoft. (D-09)
 5. Repasse do Visual C++ runtime recebido via PSF. (R-06)
