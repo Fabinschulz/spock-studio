@@ -14,7 +14,7 @@ A sequência foi definida pelo que destrava as outras entregas. O MV-1 é a base
 | MV-6 | Funcionalidade | O Spock não cria projeto | `project.scaffold` sobre a jornada "Da ideia ao projeto" (W4-3): versões do MV-5, comandos oficiais de criação (`dotnet new`, `npm create vite`) com versão fixada, registro `spock-versions.json` no projeto gerado, build e teste do projeto gerado | MV-5, W4-3 | A | O projeto .NET + React + Vite gerado compila e passa nos testes; o registro diz versão, motivo, fonte e data |
 | MV-7 | Funcionalidade | Modernização misturada a tarefas | `modernization.plan` (W4-2) consumindo a compatibilidade: saltos por linha, breaking changes da fonte oficial, passos reversíveis, rollback, aprovação por passo | MV-1, W4-1 | A | Plano para .NET 6 → 10 em passos (6 → 8 → 10) com critério de aceite por passo; nenhuma mudança aplicada sem aprovação |
 | MV-8 | Modernização do Spock | Runtime embarcado e CI desatualizados | (a) **feito** (MV-8a, ver abaixo): CPython embarcado 3.12.10 → 3.12.16; (b) **feito** (MV-8b, ver abaixo): `global.json` com SDK mínimo 10.0.404 e `latestFeature`; (c) GitHub Actions para os majors atuais, uma por vez; (d) Dependabot para NuGet, npm, Cargo, pip e Actions, agrupado por ecossistema, com a política de patch/minor/major e sem merge automático | **DD-MV-1** para (c) e (d) | M | Smoke do instalador verde; `generate_sbom.py --check` verde; Dependabot abre PR agrupado com o rótulo do tipo de atualização |
-| MV-9 | Modernização do Spock | Majors pendentes na interface e nos testes | Uma entrega por item: TypeScript 7 + typescript-eslint (**bloqueado**, ver abaixo); ESLint 10 (**bloqueado**, ver abaixo); Vitest 5.1 (**feito**, com Vite e plugin-react); Tauri 2.12.x alinhado (crate, CLI, API, plugins; **feito**, ver abaixo); Microsoft.NET.Test.Sdk 18 + coverlet 10 (**feito**, ver abaixo); xUnit v2 → v3; ProtectedData no trem 10.0.x **depois de resolver o aviso de licença** (o pacote 10.0.15 traz só a expressão MIT); pnpm 9 → 12; Python 3.12 → 3.13/3.14 (com `sqlite-vec` validado) | MV-8 | M cada | Por item: build, testes, lint, smoke e conformidade de licenças verdes, com versão anterior, nova, fonte e testes registrados no PR |
+| MV-9 | Modernização do Spock | Majors pendentes na interface e nos testes | Uma entrega por item: TypeScript 7 + typescript-eslint (**bloqueado**, ver abaixo); ESLint 10 (**bloqueado**, ver abaixo); Vitest 5.1 (**feito**, com Vite e plugin-react); Tauri 2.12.x alinhado (crate, CLI, API, plugins; **feito**, ver abaixo); Microsoft.NET.Test.Sdk 18 + coverlet 10 (**feito**, ver abaixo); xUnit v2 → v3 (**feito**, ver abaixo); ProtectedData no trem 10.0.x **depois de resolver o aviso de licença** (o pacote 10.0.15 traz só a expressão MIT); pnpm 9 → 12; Python 3.12 → 3.13/3.14 (com `sqlite-vec` validado) | MV-8 | M cada | Por item: build, testes, lint, smoke e conformidade de licenças verdes, com versão anterior, nova, fonte e testes registrados no PR |
 | MV-10 | Avaliação | .NET 11 | Ramo de avaliação: suíte, smoke do instalador, `argv[0]` do lançador, requisito de CPU, ganho do Runtime Async medido no laço do protocolo | **DD-MV-3** | M | Relatório com o ganho medido e os riscos; a decisão de migrar fica com o dono, com o .NET 12 LTS como alvo provável |
 
 ## Ordem
@@ -122,6 +122,32 @@ Maior valor por esforço depois do MV-1 era o **MV-8 (a)**, feito, e depois o **
 A nota do VSTest 18.12.0 corrige a CVE-2026-105544 (elevação de privilégio no pós-processador de artefatos do `Microsoft.TestPlatform.CLI`), que vem dentro do .NET SDK. A correção é o SDK 10.0.404, do .NET 10.0.15 (2026-11-10), que corrige 16 CVEs. O 10.0.14 (SDK 10.0.403) corrige outras quatro (`builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json`).
 
 A máquina de desenvolvimento tem o **SDK 10.0.402** (runtime 10.0.13). O motor é publicado *self-contained*, e o inventário de licenças registra o runtime `Microsoft.NETCore.App.Runtime.win-x64@10.0.13`. Um instalador gerado nesta máquina leva um runtime sem esses dois releases de segurança. O CI usa `dotnet-version: 10.0.x` e pegaria o mais novo, mas está sem orçamento. Isso sobe a prioridade do **MV-8 (b)**: o `global.json` com SDK mínimo 10.0.404 faz o build recusar um SDK sem as correções. Depende de atualizar o SDK desta máquina.
+
+## MV-9, item 4: xUnit v2 → v3 (2026-11-20)
+
+| Componente | Antes | Depois | Fonte |
+|---|---|---|---|
+| `xunit` | 2.9.3 | `xunit.v3.mtp-off` 4.0.3 | Guia `xunit.net/docs/getting-started/v3/migration`; notas `xunit.net/releases/v3/4.0.0` a `4.0.3` |
+| `xunit.runner.visualstudio` | 3.1.4 | 4.0.1 | `xunit.net/releases/visualstudio/4.0.0` (suporta projetos v3 4.0) |
+
+- **Por que `mtp-off`.** Com o SDK .NET 10, o v3 pode usar o Microsoft.Testing.Platform, e aí o `dotnet test` via VSTest deixa de funcionar. O CI e o `scripts/assert-test-passed.py` dependem do VSTest (`--filter`, logger TRX). A variante `mtp-off` é o mesmo v3 4.0.3 com o MTP desligado. O smoke do pacote, com filtro e TRX, passa no script do CI.
+- **Mudanças na suíte.** Projetos de teste com `OutputType` `Exe`. O `using Xunit.Abstractions` sai dos testes ao vivo. Os atributos `Fact` próprios, que decidem `Skip` no construtor, ganham o construtor com arquivo e linha (`xUnit3003`); o `LiveFact` usa `params` e fica com o aviso suprimido, com o motivo escrito. O `xUnit1051` (analisador novo) fica desligado nos projetos de teste com o motivo no csproj. Os testes passam `default` de propósito (mapeamento de erro sem cancelamento, esperas curtas), e adotar o `TestContext.Current.CancellationToken` em 59 chamadas é uma mudança à parte. Novos transitivos só de teste: `Microsoft.Win32.Registry` 5.0.0 e `System.Security.AccessControl` 6.0.1, vindos do `xunit.v3.runner.common` (MIT, não distribuídos).
+- **Desempenho na máquina de desenvolvimento.** Medição limpa: três pares alternados, uma rodada por vez, sem processos órfãos.
+
+  | Par | v2 | v3 |
+  |---|---|---|
+  | 1 | 99 s | 131 s |
+  | 2 | 149 s | 331 s |
+  | 3 | 114 s | 157 s |
+  | Mediana | 114 s | 157 s (+38%) |
+
+  Os testes rápidos não mudam. Ficam mais lentos só os que gravam muitos arquivos e abrem processos, e só com vários ao mesmo tempo; uma classe sozinha leva o mesmo tempo. GC, prioridade, CPUs, pool de threads e variáveis de ambiente são iguais. A diferença é a imagem do processo: no v2 os testes rodam no `testhost` da Microsoft, assinado; no v3, no executável do projeto, sem assinatura. O antivírus ativo na máquina é o Kaspersky (o Defender está desligado), que vigia mais esse tipo de executável. Essa é a causa provável, inferida pelos sintomas e não comprovada desligando o antivírus. O CI de testes roda em Linux e não é afetado. Na máquina de desenvolvimento, uma exclusão do antivírus para as pastas `bin` resolveria; é decisão do dono.
+- **Cuidado ao medir.** Rodadas interrompidas (fim de sessão ou parada do processo em segundo plano) deixaram `dotnet test`, `vstest.console` e `testhost` vivos. Eles seguiram rodando a suíte em paralelo com as rodadas seguintes e contaminaram as primeiras medições (de 3 min 50 s a 4 min 52 s). Antes de medir, confira que não há `testhost` nem `Mariliz.Application.Tests` rodando.
+- **Falhas intermitentes vistas na medição.**
+  - `WorkflowRobustnessTests.Aprovacao_mais_lenta_que_o_prazo_do_runtime_ainda_conclui`: o prazo de 150 ms cobria a retomada inteira (estado em disco e eventos). Corrigido, com prazo de 1 s e espera de 2 s.
+  - `SecurityValidationTests.Um_projeto_nao_enxerga_a_execucao_nem_o_conhecimento_do_outro`: a aprovação da IA em Python não abre em 20 s com a máquina cheia. **Acontece também no v2**; já existia.
+  - `SafetyTests.Plano_com_caminho_fora_do_escopo_falha_antes_de_gravar_e_desfaz_o_que_ja_foi_gravado`: `FileNotFoundException` no `CLAUDE.MD.tmp` da gravação atômica, uma vez no v3. É compatível com o antivírus segurando o arquivo temporário. Não investigado a fundo.
+- **Testes.** Motor 1.817 aprovados e 28 ignorados, os mesmos do v2. O `Skip` decidido no construtor continua valendo. Integração com 12 testes. Smoke do pacote com TRX e `assert-test-passed.py`. `generate_sbom.py --check`.
 
 ## MV-9: itens bloqueados por compatibilidade (consulta de 2026-11-19)
 

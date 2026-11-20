@@ -1,6 +1,6 @@
 {
-  "gerado_em": "2026-11-19",
-  "total": 960,
+  "gerado_em": "2026-11-20",
+  "total": 963,
   "por_ecossistema": {
     "GitHub Actions": 1,
     "asset": 3,
@@ -8,14 +8,14 @@
     "cargo": 378,
     "externo": 6,
     "npm": 445,
-    "nuget": 70,
+    "nuget": 73,
     "pypi": 43,
     "registro Terraform/OpenTofu": 1,
     "serviço": 2,
     "sistema operacional": 2
   },
   "diretas": 105,
-  "transitivas": 855,
+  "transitivas": 858,
   "distribuidos": 486,
   "distribuidos_por_ecossistema": {
     "asset": 3,
@@ -27,10 +27,10 @@
   },
   "sob_demanda": 5,
   "externos": 9,
-  "desenvolvimento_build": 461,
+  "desenvolvimento_build": 464,
   "nao_instalados": 1,
   "risco": {
-    "BAIXO": 940,
+    "BAIXO": 943,
     "PENDENTE": 3,
     "MÉDIO": 13,
     "ALTO": 4
@@ -66,9 +66,9 @@
     "PSF-2.0": 1
   },
   "licencas_declaradas_todos": {
-    "MIT": 528,
+    "MIT": 530,
     "MIT OR Apache-2.0": 175,
-    "Apache-2.0": 58,
+    "Apache-2.0": 60,
     "Apache-2.0 OR MIT": 56,
     "BSD-3-Clause": 18,
     "Unicode-3.0": 18,
@@ -84,7 +84,6 @@
     "MIT-0": 2,
     "CC0-1.0": 2,
     "BlueOak-1.0.0": 2,
-    "DESCONHECIDA": 2,
     "0BSD OR MIT OR Apache-2.0": 1,
     "BSD-3-Clause AND MIT": 1,
     "BSD-3-Clause OR MIT": 1,
@@ -99,6 +98,7 @@
     "Python-2.0": 1,
     "CC-BY-4.0": 1,
     "0BSD": 1,
+    "DESCONHECIDA": 1,
     "MPL-2.0 AND (Apache-2.0 OR MIT)": 1,
     "Apache-2.0 OR BSD-2-Clause": 1,
     "PSF-2.0": 1
@@ -106,11 +106,11 @@
   "conferencia_arquivo": {
     "PENDENTE": 3,
     "CONFERIDO MANUALMENTE": 25,
-    "CONFERE": 845,
-    "SEM ARQUIVO": 26,
+    "CONFERE": 847,
+    "SEM ARQUIVO": 25,
     "DIVERGE": 6,
     "TEXTO NÃO RECONHECIDO": 1,
-    "SÓ EXPRESSÃO": 54
+    "SÓ EXPRESSÃO": 56
   },
   "conferencia_distribuidos": {
     "CONFERIDO MANUALMENTE": 12,
