@@ -45,7 +45,11 @@ Os padrões das tabelas (as linhas `| REF-… |`) também têm caminhos próprio
 - a intenção `architecture` do Context Engine entrega ao agente a lista dos padrões que valem para a stack do projeto, um
   por linha;
 - a ferramenta `spock_architecture_reference` da IDE traz um padrão inteiro pelo id (`REF-R4`), com cada coluna da
-  tabela, ou os padrões de uma tecnologia e de um assunto.
+  tabela, ou os padrões de uma tecnologia e de um assunto;
+- o Harness grava no projeto uma regra de padrões por framework (`.claude/rules/spock-patterns-react.md`, `-angular`,
+  `-dotnet` e `-fullstack`), um por linha, válida só nas pastas da stack. Os padrões de `.NET` da subseção
+  "6.9 Integrações externas" só entram quando o projeto usa pacote de resiliência, mensageria ou SDK de nuvem; mudar o
+  número dessa subseção muda a regra.
 
 Por isso, cada tabela de padrões precisa de cabeçalho: o nome de cada coluna ("Onde", "Evitar quando") vira o rótulo do
 detalhe.

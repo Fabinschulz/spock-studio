@@ -68,6 +68,41 @@
     },
     {
       "kind": "rule",
+      "componentId": "mariliz.rule.patterns-react",
+      "decision": "skip",
+      "justification": "Nenhuma stack React detectada nem planejada na arquitetura.",
+      "origin": "baseline-rules",
+      "evidence": []
+    },
+    {
+      "kind": "rule",
+      "componentId": "mariliz.rule.patterns-angular",
+      "decision": "skip",
+      "justification": "Nenhuma stack Angular detectada nem planejada na arquitetura.",
+      "origin": "baseline-rules",
+      "evidence": []
+    },
+    {
+      "kind": "rule",
+      "componentId": "mariliz.rule.patterns-dotnet",
+      "decision": "enable",
+      "justification": "Padrões .NET da pasta Organização para a stack detectada.",
+      "origin": "baseline-rules",
+      "evidence": [
+        "backend/App.sln",
+        "backend/src/App/App.csproj"
+      ]
+    },
+    {
+      "kind": "rule",
+      "componentId": "mariliz.rule.patterns-fullstack",
+      "decision": "skip",
+      "justification": "Nenhuma stack fullstack detectada nem planejada na arquitetura.",
+      "origin": "baseline-rules",
+      "evidence": []
+    },
+    {
+      "kind": "rule",
       "componentId": "mariliz.rule.architecture",
       "decision": "skip",
       "justification": "Nenhum documento de arquitetura em .spock/arquitetura.",
@@ -210,6 +245,21 @@
       "diffTruncated": false
     },
     {
+      "id": "chg-3395a86df7",
+      "kind": "rule",
+      "componentId": "mariliz.rule.patterns-dotnet",
+      "path": ".claude/rules/spock-patterns-dotnet.md",
+      "action": "create",
+      "reason": "Padrões .NET da pasta Organização, um por linha.",
+      "origin": "baseline-rules",
+      "beforeHash": null,
+      "afterHash": "d713e8f44238a65ebbf45d7382b67398c105f5e25c01820ee9c0c408ad0daf09",
+      "destructive": false,
+      "conflictReason": null,
+      "diff": "--- /dev/null\n+++ b/.claude/rules/spock-patterns-dotnet.md\n@@ -1,0 +1,22 @@\n+---\n+paths:\n+  - \"backend/**/*.cs\"\n+  - \"backend/**/*.csproj\"\n+---\n+\n+# .NET patterns from the Organization\n+\n+Managed by Spock Studio. Generated from the Organization catalog (Catálogo de referências arquiteturais, analysis of 2026-11-17).\n+These patterns come from other projects; they are not conventions of this one. Follow what this repository already\n+does, and reach for a pattern when the change calls for it, citing its id. Read a pattern in full (where it was seen,\n+when to use it, when to avoid it) with the `spock_architecture_reference` MCP tool, by id.\n+\n+- `REF-N10` Transação condicionada por interface-marcador (`TransactionBehavior where TRequest : ITransactional`)\n+- `REF-N11` Eventos por requisição despachados depois do commit, com deduplicação\n+- `REF-N12` Teste que fixa a ordem do pipeline a partir do registro de produção (`internal` + `InternalsVisibleTo`)\n+- `REF-N13` Testes de convenção de segurança por reflexão sobre controllers\n+- `REF-N14` Startup coordenado: espera do banco, advisory lock, etapas (`MigrationStep`, `SeedStep`)\n+- `REF-N15` Fronteiras de projeto como testes que leem `.csproj` e varrem o código (posse de header, `HttpClient` proibido fora do cliente)\n+- `REF-N16` Porta de geração com estratégias trocáveis por biblioteca\n+\n+External integrations (REF-N1 to REF-N9) are left out: no resilience, messaging or cloud SDK package was detected. Read them with `spock_architecture_reference` when the project starts calling an external system.\n",
+      "diffTruncated": false
+    },
+    {
       "id": "chg-490f62cb31",
       "kind": "rule",
       "componentId": "mariliz.rule.repo-commands",
@@ -293,10 +343,10 @@
       "reason": "Bloco do Spock no CLAUDE.md: como chegar ao contexto do projeto. O restante do arquivo fica como está.",
       "origin": "baseline-rules",
       "beforeHash": "6a346af2f1350b25cb7de090ac9eddc67ddd3d2dae5b087634dfdb7a9ef7df56",
-      "afterHash": "9b76f7bc24f0201faa7fc6b9fe40a7090b199323444f554c2accb6f07f962a65",
+      "afterHash": "7446a285e609da8942be797132596fe86d090babdfe495edb64088c89f1d62b2",
       "destructive": false,
       "conflictReason": null,
-      "diff": "--- a/CLAUDE.md\n+++ b/CLAUDE.md\n@@ -1,1 +1,11 @@\n # meu\n+\n+<!-- spock:begin spock.bootstrap sha256=095835784891af9c -->\n+## Spock Studio\n+\n+Este projeto é acompanhado pelo Spock Studio, que guarda fora do repositório o contexto dele: perfil, decisões, gestão e conexões.\n+\n+- No começo da sessão, o contexto de abertura chega pelo hook `spock context session`. Se não chegou, chame a ferramenta `spock_context_bootstrap` do servidor MCP `spock`.\n+- Para achar código, documentos e decisões, use `search_project` e `decisions`; antes de planejar uma mudança, `project_briefing`.\n+- O Spock só lê. As regras e os arquivos que ele gerencia mudam por plano aprovado no aplicativo; o que está fora deste bloco é da equipe.\n+<!-- spock:end spock.bootstrap -->\n",
+      "diff": "--- a/CLAUDE.md\n+++ b/CLAUDE.md\n@@ -1,1 +1,12 @@\n # meu\n+\n+<!-- spock:begin spock.bootstrap sha256=51020335fd1cbb6c -->\n+## Spock Studio\n+\n+Este projeto é acompanhado pelo Spock Studio, que guarda fora do repositório o contexto dele: perfil, decisões, gestão e conexões.\n+\n+- No começo da sessão, o contexto de abertura chega pelo hook `spock context session`. Se não chegou, chame a ferramenta `spock_context_bootstrap` do servidor MCP `spock`.\n+- Para achar código, documentos e decisões, use `search_project` e `decisions`; antes de planejar uma mudança, `project_briefing`.\n+- Antes de concluir uma tarefa que mexeu em código ou configuração, chame `spock_version_check`: ele aponta versão trocada sem pedido e combinação incompatível.\n+- O Spock só lê. As regras e os arquivos que ele gerencia mudam por plano aprovado no aplicativo; o que está fora deste bloco é da equipe.\n+<!-- spock:end spock.bootstrap -->\n",
       "diffTruncated": false
     },
     {
@@ -308,10 +358,10 @@
       "reason": "Declaração do projeto: ambiente de IA e método. É seu depois de criado; a aplicação só a lê.",
       "origin": "baseline-rules",
       "beforeHash": null,
-      "afterHash": "378c7e679a2e1e1ce5f2f100618c3ed276653aed22ef4aaadb2acc496046b7fa",
+      "afterHash": "26f4c93b464523104c7352343256169c634e74b68fe0909dc1974876f62052d4",
       "destructive": false,
       "conflictReason": null,
-      "diff": "--- /dev/null\n+++ b/spock.yaml\n@@ -1,0 +1,12 @@\n+# Declaração do Harness gerenciado pelo Spock Studio.\n+# Este arquivo é seu: edite à vontade. A aplicação o lê, mas não o reescreve.\n+schema: 1\n+project:\n+  id: spk-01M7QVM9VP1ND7ZTFFN78RN4YE\n+  name: projeto\n+implementationModel: mariliz\n+aiEnvironment: claude-code\n+components:\n+  exclude: []\n+evals:\n+  required: []\n",
+      "diff": "--- /dev/null\n+++ b/spock.yaml\n@@ -1,0 +1,12 @@\n+# Declaração do Harness gerenciado pelo Spock Studio.\n+# Este arquivo é seu: edite à vontade. A aplicação o lê, mas não o reescreve.\n+schema: 1\n+project:\n+  id: spk-01M845R4CX54VYBF39CYDKPCVE\n+  name: projeto\n+implementationModel: mariliz\n+aiEnvironment: claude-code\n+components:\n+  exclude: []\n+evals:\n+  required: []\n",
       "diffTruncated": false
     },
     {

@@ -78,6 +78,38 @@
       "origin": "Gerado a partir dos documentos de .spock/arquitetura que existem no seu projeto."
     },
     {
+      "id": "mariliz.rule.patterns-react",
+      "whatItDoes": "Lista, uma linha por padrão, os padrões React da pasta Organização (camadas, contrato com Zod, query keys, erros, rotas), com o id de cada um. Avisa quando o projeto usa o @mariliz/ui-kit.",
+      "whenItActs": "Quando o agente trabalha em arquivos .ts, .tsx, .js ou .jsx das pastas React ou Next do projeto.",
+      "reads": ["Nenhum arquivo do projeto: são instruções para o agente; o padrão inteiro vem pela ferramenta spock_architecture_reference"],
+      "canChange": ["Nada. É só orientação."],
+      "origin": "Gerado pelo Spock Studio da pasta Organização (catálogo de referências), com a data da análise; os caminhos a que vale vêm da stack detectada no seu projeto."
+    },
+    {
+      "id": "mariliz.rule.patterns-angular",
+      "whatItDoes": "Lista, uma linha por padrão, os padrões Angular da pasta Organização (rotas standalone, interceptor, tratamento de erro, validators, testes), com o id de cada um.",
+      "whenItActs": "Quando o agente trabalha em arquivos .ts, .html ou .scss das pastas Angular do projeto.",
+      "reads": ["Nenhum arquivo do projeto: são instruções para o agente; o padrão inteiro vem pela ferramenta spock_architecture_reference"],
+      "canChange": ["Nada. É só orientação."],
+      "origin": "Gerado pelo Spock Studio da pasta Organização (catálogo de referências), com a data da análise; os caminhos a que vale vêm da stack detectada no seu projeto."
+    },
+    {
+      "id": "mariliz.rule.patterns-dotnet",
+      "whatItDoes": "Lista, uma linha por padrão, os padrões .NET da pasta Organização (camadas, eventos depois do commit, startup, testes de convenção), com o id de cada um. Os de integração externa só entram quando o projeto integra.",
+      "whenItActs": "Quando o agente trabalha em arquivos .cs ou .csproj das soluções .NET do projeto.",
+      "reads": ["Nenhum arquivo do projeto: são instruções para o agente; o padrão inteiro vem pela ferramenta spock_architecture_reference"],
+      "canChange": ["Nada. É só orientação."],
+      "origin": "Gerado pelo Spock Studio da pasta Organização (catálogo de referências), com a data da análise; os caminhos a que vale vêm da stack detectada no seu projeto."
+    },
+    {
+      "id": "mariliz.rule.patterns-fullstack",
+      "whatItDoes": "Lista os padrões da pasta Organização para frontend e backend no mesmo repositório: CI seletivo, imagem a partir do artefato testado, ambiente local e decisões junto do código.",
+      "whenItActs": "Sempre, em projetos com frontend e backend: o Claude Code carrega esta regra nas sessões do projeto.",
+      "reads": ["Nenhum arquivo do projeto: são instruções para o agente; o padrão inteiro vem pela ferramenta spock_architecture_reference"],
+      "canChange": ["Nada. É só orientação."],
+      "origin": "Gerado pelo Spock Studio da pasta Organização (catálogo de referências), com a data da análise."
+    },
+    {
       "id": "mariliz.hook.policy",
       "whatItDoes": "Confere cada escrita de arquivo e cada comando do agente antes de acontecer e bloqueia ou pede confirmação conforme a política do Spock Studio. É uma proteção que confere o texto do pedido, não uma barreira de segurança.",
       "whenItActs": "Antes de toda escrita de arquivo e de todo comando que o agente tenta usar.",

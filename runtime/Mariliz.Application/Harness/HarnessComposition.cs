@@ -1,3 +1,4 @@
+using Mariliz.Application.Workflows;
 using Mariliz.Application.Discovery;
 using Mariliz.Application.Ideas;
 using Mariliz.Application.Ports;
@@ -309,6 +310,42 @@ internal sealed class HarnessComposition(
         var other = _architecture.Stack.Where(item => !item.Language).Select(Describe).ToList();
         if (other.Count > 0)
             _observations.Add(new("fact", $"Da arquitetura aprovada, sem regra de stack: {string.Join(", ", other)}.", [_architecture.ArchitectureFile]));
+
+        foreach (var profile in PatternRuleProfiles.All)
+            AddPatternRule(profile);
+    }
+
+    // Os frameworks que dizem que o projeto conversa com sistema externo: com eles, a §6.9 do catálogo entra na regra .NET.
+    private static readonly string[] IntegrationFrameworks = ["polly", "masstransit", "aws-sdk"];
+
+    private void AddPatternRule(PatternRuleProfile profile)
+    {
+        var detected = report.Stacks.Where(stack => PatternRuleProfiles.Wants(profile, stack.Id)).ToList();
+        var planned = _architecture.PlannedOnly(report.Stacks, id => PatternRuleProfiles.Wants(profile, id));
+        var stacks = detected.Count > 0 ? detected : planned;
+        var ids = report.Stacks.Select(stack => stack.Id).Concat(_architecture.Stack.Select(item => item.StackId).OfType<string>()).ToList();
+        var patterns = OrganizationReferences.Patterns.Where(profile.Selects).ToList();
+        var applies = PatternRuleProfiles.Applies(profile, ids, report.Frameworks.Select(framework => framework.Id).ToList()) && patterns.Count > 0;
+
+        var notes = new List<string>();
+        if (profile == PatternRuleProfiles.Dotnet && !report.Frameworks.Any(framework => IntegrationFrameworks.Contains(framework.Id)))
+        {
+            var integration = patterns.Where(pattern => pattern.Subsection.StartsWith(PatternRuleProfiles.IntegrationSubsection, StringComparison.Ordinal)).ToList();
+            patterns = patterns.Except(integration).ToList();
+            if (integration.Count > 0)
+                notes.Add($"External integrations ({integration[0].Id} to {integration[^1].Id}) are left out: no resilience, messaging or cloud SDK " +
+                          "package was detected. Read them with `spock_architecture_reference` when the project starts calling an external system.");
+        }
+        if (profile == PatternRuleProfiles.React && report.Frameworks.Any(framework => framework.Id == "mariliz-ui-kit"))
+            notes.Add("This project uses `@mariliz/ui-kit`: before building UI, search `@mariliz/ui-kit` with the `search_project` MCP tool; " +
+                      "the Organization catalog has a section on adopting it and on what the kit does not cover.");
+
+        var origin = detected.Count > 0 ? DecisionOrigins.Baseline : DecisionOrigins.Architecture;
+        var reason = $"Padrões {profile.Name} da pasta Organização para a stack {(detected.Count > 0 ? "detectada" : "planejada na arquitetura aprovada")}.";
+        List<string> evidence = detected.Count > 0 ? EvidencePaths(detected) : [_architecture.ArchitectureFile];
+        if (_components.Wants(profile.Component, applies, reason, evidence, $"Nenhuma stack {profile.Name} detectada nem planejada na arquitetura.", origin))
+            _desired.Add(new(Catalog.FilesOf(profile.Component, _naming).Single(), ComponentKind.Rule, profile.Component, origin,
+                $"Padrões {profile.Name} da pasta Organização, um por linha.", RuleContent.ForPatterns(profile, stacks, patterns, notes), "file"));
     }
 
     private static string Describe(PlannedStack item) => item.Area.Length == 0 ? item.Choice : $"{item.Choice} ({item.Area})";

@@ -1,5 +1,6 @@
 using System.Text;
 using Mariliz.Application.Ideas;
+using Mariliz.Application.Workflows;
 using Mariliz.Core.Discovery;
 using Mariliz.Core.Plan;
 using Mariliz.Core.Policy;
@@ -20,6 +21,34 @@ internal static class RuleContent
 
         var detail = string.Join(", ", stacks.Select(s => $"{s.Name} {s.Version ?? "(version unknown)"} at {(s.Root.Length == 0 ? "." : s.Root)}"));
         return naming.Render(AssetLoader.Read(asset)).Replace("{{paths}}", paths.ToString().TrimEnd('\n')).Replace("{{detail}}", detail);
+    }
+
+    // Uma linha por padrão: a regra fica curta e o detalhe está a uma chamada da ferramenta MCP. A data da análise vai no texto,
+    // então uma revisão do catálogo muda o hash e o plano mostra a regra como atualizada.
+    internal static string ForPatterns(PatternRuleProfile profile, IReadOnlyList<StackFinding> stacks, IReadOnlyList<ReferencePattern> patterns,
+        IReadOnlyList<string> notes)
+    {
+        var sb = new StringBuilder();
+        if (profile.Globs.Length > 0)
+        {
+            sb.Append("---\npaths:\n");
+            foreach (var glob in stacks.Select(stack => stack.Root).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)
+                         .SelectMany(root => profile.Globs.Select(glob => root.Length == 0 ? glob : root + "/" + glob)))
+                sb.Append("  - \"").Append(glob).Append("\"\n");
+            sb.Append("---\n\n");
+        }
+        var first = patterns[0];
+        sb.Append("# ").Append(profile.Name).Append(" patterns from the Organization\n\n");
+        sb.Append("Managed by Spock Studio. Generated from the Organization catalog (").Append(first.Source).Append(", analysis of ")
+          .Append(first.AnalyzedAt.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)).Append(").\n");
+        sb.Append("These patterns come from other projects; they are not conventions of this one. Follow what this repository already\n");
+        sb.Append("does, and reach for a pattern when the change calls for it, citing its id. Read a pattern in full (where it was seen,\n");
+        sb.Append("when to use it, when to avoid it) with the `spock_architecture_reference` MCP tool, by id.\n\n");
+        foreach (var pattern in patterns)
+            sb.Append("- `").Append(pattern.Id).Append("` ").Append(pattern.Title).Append('\n');
+        foreach (var note in notes)
+            sb.Append('\n').Append(note).Append('\n');
+        return sb.ToString();
     }
 
     internal static string ForArchitecture(IReadOnlyList<string> documents)

@@ -83,6 +83,7 @@ internal static partial class Frameworks
         ["vitest"] = new("vitest", "Vitest", Tests),
         ["jest"] = new("jest", "Jest", Tests),
         ["@playwright/test"] = new("playwright", "Playwright", Tests),
+        ["@mariliz/ui-kit"] = new("mariliz-ui-kit", "@mariliz/ui-kit", Ui),
         ["zod"] = new("zod", "Zod", Validation),
         ["@prisma/client"] = new("prisma", "Prisma", Data),
         ["@tauri-apps/api"] = new("tauri", "Tauri", Desktop),
