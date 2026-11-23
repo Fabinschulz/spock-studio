@@ -101,6 +101,9 @@ public class SecurityValidationTests
             return Authorizer.Authorize(project.Root).Project!.ProjectId;
         }
 
+        // Com o processo Python vivo, o SQLite do checkpoint ainda pode estar com arquivos auxiliares abertos; varrer depois que ele sai lê o que ficou de fato no disco.
+        public Task StopRuntimeAsync() => Runtime.ShutdownAsync();
+
         public void Dispose() => Runtime.ShutdownAsync().GetAwaiter().GetResult();
     }
 
@@ -140,11 +143,27 @@ public class SecurityValidationTests
         var found = new List<string>();
         foreach (var file in roots.SelectMany(FilesUnder).Where(f => f != source))
         {
-            var bytes = File.ReadAllBytes(file);
+            var bytes = ReadWhenReleased(file);
             foreach (var needle in needles)
                 if (bytes.AsSpan().IndexOf(Encoding.UTF8.GetBytes(needle)) >= 0) found.Add($"{file}: {needle[..6]}…");
         }
         return found;
+    }
+
+    // Antivírus e indexador do Windows abrem arquivos recém-gravados por instantes. Nenhum arquivo é pulado: se continuar bloqueado, o teste falha.
+    private static byte[] ReadWhenReleased(string file)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return File.ReadAllBytes(file);
+            }
+            catch (IOException) when (attempt < 40 && File.Exists(file))
+            {
+                Thread.Sleep(50);
+            }
+        }
     }
 
     [Fact]
@@ -244,6 +263,7 @@ public class SecurityValidationTests
         Assert.DoesNotContain("docs/credenciais.md", cited);
 
         // Nada gravado pelo motor (diário, eventos, avaliações, checkpoint, índice) nem no projeto tem o valor.
+        await world.StopRuntimeAsync();
         var leaks = Leaks([project.DataDir, project.Root], PlantedSecrets.Append(Key), source: Path.Combine(project.Root, "docs", "credenciais.md"));
         Assert.True(leaks.Count == 0, "Vazou em: " + string.Join("; ", leaks));
         // Nada do que saiu para o provedor, nem o que a tela recebe.
@@ -278,6 +298,7 @@ public class SecurityValidationTests
         var sent = string.Join('\n', world.Provider.Requests.SelectMany(r => r.Messages).Select(m => m.Content));
         Assert.DoesNotContain(credential, sent);
         Assert.DoesNotContain(credential, run.Snapshot().ToJsonString() + run.Result!.ToJsonString());
+        await world.StopRuntimeAsync();
         var leaks = Leaks([project.DataDir], [credential]);
         Assert.True(leaks.Count == 0, "Vazou em: " + string.Join("; ", leaks));
     }
@@ -321,6 +342,7 @@ public class SecurityValidationTests
             .Where(path => !path.StartsWith(Workflows.OrganizationReferences.Prefix, StringComparison.Ordinal)), path => Assert.Equal("docs/b.md", path));
 
         // No disco, cada projeto tem a sua pasta e nada de A está na pasta de B.
+        await world.StopRuntimeAsync();
         Assert.Empty(Leaks([Path.Combine(world.DataDir, "projects", projectB), b.Root], ["exclusivo-a", "zebrafish"]));
     }
 }
