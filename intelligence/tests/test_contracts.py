@@ -1,10 +1,10 @@
 import json
 import socket
-import tempfile
 import unittest
 from pathlib import Path
 
 import _paths  # noqa: F401
+from support_files import TemporaryDirectory
 
 from contracts import investigation, messages
 from workflows.engineering import graph
@@ -62,7 +62,7 @@ class ContractTests(unittest.TestCase):
             self.assertEqual(body["schema"], path.stem.split("--", 1)[0], path.name)
 
     def test_saida_do_grafo_usa_so_campos_dos_schemas(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             messages = list(graph.run_start(_payload(tmp, impact=True, requiresApproval=True)))
             paused = messages[-1]
             resumed = list(graph.run_resume({
@@ -100,7 +100,7 @@ class ContractTests(unittest.TestCase):
 
         socket.socket.connect = spy
         try:
-            with tempfile.TemporaryDirectory() as tmp:
+            with TemporaryDirectory() as tmp:
                 list(graph.run_start(_payload(tmp, impact=True)))
         finally:
             socket.socket.connect = original

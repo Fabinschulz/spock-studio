@@ -2,12 +2,12 @@ import contextlib
 import copy
 import io
 import json
-import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 import _paths  # noqa: F401
+from support_files import TemporaryDirectory
 from support_model import FakeModel
 
 from contracts.investigation import parse_groups
@@ -162,7 +162,7 @@ class NegativeControlTests(unittest.TestCase):
 
 class ScoreFileTests(unittest.TestCase):
     def _run(self, acks: dict) -> tuple[int, str]:
-        with tempfile.TemporaryDirectory() as root:
+        with TemporaryDirectory() as root:
             path = Path(root) / "acks.json"
             path.write_text(json.dumps(acks, ensure_ascii=False), encoding="utf-8")
             out = io.StringIO()
@@ -199,7 +199,7 @@ class ScoreFileTests(unittest.TestCase):
 
 class BaselineTests(unittest.TestCase):
     def setUp(self) -> None:
-        self._root = tempfile.TemporaryDirectory()
+        self._root = TemporaryDirectory()
         self.addCleanup(self._root.cleanup)
         self.folder = Path(self._root.name)
         patcher = mock.patch.object(evals, "_BASELINES", self.folder)
