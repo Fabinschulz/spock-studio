@@ -108,6 +108,21 @@
       ]
     },
     {
+      "id": "mariliz.rule.patterns-dotnet",
+      "label": "Padrões .NET da pasta Organização",
+      "kind": "rule",
+      "version": "0.1.0",
+      "state": "intact",
+      "manageable": true,
+      "files": [
+        {
+          "path": ".claude/rules/spock-patterns-dotnet.md",
+          "mode": "file",
+          "state": "intact"
+        }
+      ]
+    },
+    {
       "id": "mariliz.rule.stack-dotnet",
       "label": "Regras da stack .NET",
       "kind": "rule",
@@ -154,7 +169,7 @@
     }
   ],
   "excluded": [],
-  "intact": 8,
+  "intact": 9,
   "kept": 0,
   "modified": 1,
   "missing": 0

@@ -139,6 +139,15 @@
           "removed": []
         },
         {
+          "id": "mariliz.rule.patterns-dotnet",
+          "label": "Padrões .NET da pasta Organização",
+          "created": [
+            ".claude/rules/spock-patterns-dotnet.md"
+          ],
+          "updated": [],
+          "removed": []
+        },
+        {
           "id": "mariliz.rule.stack-dotnet",
           "label": "Regras da stack .NET",
           "created": [

@@ -54,8 +54,10 @@ public static partial class OrganizationReferences
             // O cabeçalho da tabela dá o nome de cada coluna ("Onde", "Evitar quando"): é a linha logo antes da "| --- |".
             var lines = section.Split('\n');
             IReadOnlyList<string> header = [];
+            var subsection = "";
             for (var index = 0; index < lines.Length; index++)
             {
+                if (lines[index].StartsWith("### ", StringComparison.Ordinal)) subsection = lines[index][4..].Trim();
                 if (Separator().IsMatch(lines[index]) && index > 0) header = Cells(lines[index - 1]);
                 var row = PatternRow().Match(lines[index]);
                 if (!row.Success) continue;
@@ -66,7 +68,7 @@ public static partial class OrganizationReferences
                     .Select((cell, column) => new ReferenceDetail(column + 2 < header.Count ? header[column + 2] : $"Coluna {column + 3}", Clean(cell)))
                     .Where(detail => detail.Text.Length > 0 && detail.Text != EmptyCell)
                     .ToList();
-                yield return new ReferencePattern(row.Groups["id"].Value, name, heading, technologies, title, analyzedAt, details);
+                yield return new ReferencePattern(row.Groups["id"].Value, name, heading, technologies, title, analyzedAt, details, subsection);
             }
         }
     }

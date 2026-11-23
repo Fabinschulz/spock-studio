@@ -59,7 +59,9 @@ public partial class HarnessNamingTests
             .Concat(plan.Decisions.Where(d => d.Decision == ComponentDecisions.Enable).Select(d => d.ComponentId)).ToHashSet(StringComparer.Ordinal);
         // Os do Codex e do Cursor só entram quando eles estão entre os ambientes (CodexAdapterTests, CursorAdapterTests).
         string[] codex = [Catalog.IdeCodexBootstrap, Catalog.IdeCodexMcp, Catalog.HookCodexSession, Catalog.HookCodexPrompt,
-            Catalog.IdeCursorRule, Catalog.IdeCursorMcp, Catalog.HookCursorSession, Catalog.SkillAgentsHarnessContract];
+            Catalog.IdeCursorRule, Catalog.IdeCursorMcp, Catalog.HookCursorSession, Catalog.SkillAgentsHarnessContract,
+            // Projeto .NET e Next: os padrões Angular não entram (PatternRuleTests).
+            Catalog.RulePatternsAngular];
         foreach (var component in Catalog.Components.Where(c => c.Id != Catalog.SpecificationStructure && !codex.Contains(c.Id)))
             Assert.Contains(component.Id, proposed);
         Assert.All(plan.Changes, change => Assert.DoesNotContain("mariliz", change.Path, StringComparison.OrdinalIgnoreCase));
@@ -67,6 +69,7 @@ public partial class HarnessNamingTests
         [
                      "spock.yaml", "spock.lock", ".claude/rules/spock-general.md", ".claude/rules/spock-stack-dotnet.md", ".claude/rules/spock-stack-javascript.md",
                      ".claude/rules/spock-repo.md", ".claude/rules/spock-architecture.md", ".claude/rules/spock-repo-read-first.md",
+                     ".claude/rules/spock-patterns-react.md", ".claude/rules/spock-patterns-dotnet.md", ".claude/rules/spock-patterns-fullstack.md",
                      ".claude/hooks/spock-policy.py", ".spock/schemas/harness-proposal.v1.schema.json", .. SpockAgents, SpockSkill
         ];
         foreach (var path in created)

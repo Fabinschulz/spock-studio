@@ -19,6 +19,11 @@ public static class Catalog
     public const string RuleStackJavascript = "mariliz.rule.stack-javascript";
     public const string RuleRepoCommands = "mariliz.rule.repo-commands";
     public const string RuleArchitecture = "mariliz.rule.architecture";
+    // W3-1: padrões da pasta Organização por framework, gerados do catálogo (PatternRuleProfiles).
+    public const string RulePatternsReact = "mariliz.rule.patterns-react";
+    public const string RulePatternsAngular = "mariliz.rule.patterns-angular";
+    public const string RulePatternsDotnet = "mariliz.rule.patterns-dotnet";
+    public const string RulePatternsFullstack = "mariliz.rule.patterns-fullstack";
     public const string HookPolicy = "mariliz.hook.policy";
     // C2: o que liga o Claude Code ao Spock. Ficam nos arquivos da equipe, só o trecho do Spock (ManagedRegion).
     public const string HookSession = "mariliz.hook.session";
@@ -51,6 +56,10 @@ public static class Catalog
         new(RuleStackJavascript, ComponentKind.Rule, ComponentVersion, "Regras JavaScript e TypeScript"),
         new(RuleRepoCommands, ComponentKind.Rule, ComponentVersion, "Comandos do repositório"),
         new(RuleArchitecture, ComponentKind.Rule, ComponentVersion, "Documentos de arquitetura"),
+        new(RulePatternsReact, ComponentKind.Rule, ComponentVersion, "Padrões React da Organização"),
+        new(RulePatternsAngular, ComponentKind.Rule, ComponentVersion, "Padrões Angular da Organização"),
+        new(RulePatternsDotnet, ComponentKind.Rule, ComponentVersion, "Padrões .NET da Organização"),
+        new(RulePatternsFullstack, ComponentKind.Rule, ComponentVersion, "Padrões fullstack da Organização"),
         new(HookPolicy, ComponentKind.Hook, "0.1.1", "Hook de política"),
         new(HookSession, ComponentKind.Hook, ComponentVersion, "Hook de início de sessão"),
         new(HookPrompt, ComponentKind.Hook, ComponentVersion, "Hook por prompt"),
@@ -114,6 +123,8 @@ public static class Catalog
         RuleStackJavascript => [naming.RuleJavascript],
         RuleRepoCommands => [naming.RuleRepo],
         RuleArchitecture => [naming.RuleArchitecture],
+        RulePatternsReact or RulePatternsAngular or RulePatternsDotnet or RulePatternsFullstack =>
+            [naming.PatternRule(PatternRuleProfiles.All.Single(profile => profile.Component == componentId).Stack)],
         HookPolicy => [naming.HookScript, PathSettings],
         HookSession or HookPrompt => [PathSettings],
         IdeClaudeBootstrap => [PathClaudeMd],
