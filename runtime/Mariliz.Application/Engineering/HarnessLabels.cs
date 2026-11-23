@@ -19,6 +19,7 @@ public static class HarnessLabels
         [Catalog.RulePatternsAngular] = "Padrões Angular da pasta Organização",
         [Catalog.RulePatternsDotnet] = "Padrões .NET da pasta Organização",
         [Catalog.RulePatternsFullstack] = "Padrões fullstack da pasta Organização",
+        [Catalog.RuleProjectConventions] = "Convenções do projeto (da análise de arquitetura)",
         [Catalog.HookPolicy] = "Hook de política",
         [Catalog.HookSession] = "Hook de início de sessão",
         [Catalog.HookPrompt] = "Hook por prompt",

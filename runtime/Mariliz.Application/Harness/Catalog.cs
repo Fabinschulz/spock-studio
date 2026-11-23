@@ -24,6 +24,8 @@ public static class Catalog
     public const string RulePatternsAngular = "mariliz.rule.patterns-angular";
     public const string RulePatternsDotnet = "mariliz.rule.patterns-dotnet";
     public const string RulePatternsFullstack = "mariliz.rule.patterns-fullstack";
+    // W3-4: a organização que o código já tem, da análise de arquitetura (ProjectConventions).
+    public const string RuleProjectConventions = "mariliz.rule.project-conventions";
     public const string HookPolicy = "mariliz.hook.policy";
     // C2: o que liga o Claude Code ao Spock. Ficam nos arquivos da equipe, só o trecho do Spock (ManagedRegion).
     public const string HookSession = "mariliz.hook.session";
@@ -60,6 +62,7 @@ public static class Catalog
         new(RulePatternsAngular, ComponentKind.Rule, ComponentVersion, "Padrões Angular da Organização"),
         new(RulePatternsDotnet, ComponentKind.Rule, ComponentVersion, "Padrões .NET da Organização"),
         new(RulePatternsFullstack, ComponentKind.Rule, ComponentVersion, "Padrões fullstack da Organização"),
+        new(RuleProjectConventions, ComponentKind.Rule, ComponentVersion, "Convenções do projeto"),
         new(HookPolicy, ComponentKind.Hook, "0.1.1", "Hook de política"),
         new(HookSession, ComponentKind.Hook, ComponentVersion, "Hook de início de sessão"),
         new(HookPrompt, ComponentKind.Hook, ComponentVersion, "Hook por prompt"),
@@ -123,6 +126,7 @@ public static class Catalog
         RuleStackJavascript => [naming.RuleJavascript],
         RuleRepoCommands => [naming.RuleRepo],
         RuleArchitecture => [naming.RuleArchitecture],
+        RuleProjectConventions => [naming.RuleProjectConventions],
         RulePatternsReact or RulePatternsAngular or RulePatternsDotnet or RulePatternsFullstack =>
             [naming.PatternRule(PatternRuleProfiles.All.Single(profile => profile.Component == componentId).Stack)],
         HookPolicy => [naming.HookScript, PathSettings],
