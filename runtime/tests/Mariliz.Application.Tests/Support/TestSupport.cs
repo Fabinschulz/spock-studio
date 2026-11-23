@@ -59,7 +59,20 @@ internal sealed class TempProject : IDisposable
     {
         var sb = new StringBuilder();
         foreach (var file in Directory.EnumerateFiles(Root, "*", SearchOption.AllDirectories).Where(f => !f.Contains(Path.DirectorySeparatorChar + ".git" + Path.DirectorySeparatorChar)).Order(StringComparer.Ordinal))
-            sb.Append(Path.GetRelativePath(Root, file)).Append('=').Append(Hashing.Sha256(File.ReadAllBytes(file))).Append('\n');
+        {
+            // Outro programa da máquina (ex.: um CLAUDE.MD.tmp) pode apagar o arquivo entre a listagem e a leitura.
+            // O que existe nos dois momentos continua contando.
+            byte[] content;
+            try
+            {
+                content = File.ReadAllBytes(file);
+            }
+            catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+            {
+                continue;
+            }
+            sb.Append(Path.GetRelativePath(Root, file)).Append('=').Append(Hashing.Sha256(content)).Append('\n');
+        }
         return sb.ToString();
     }
 

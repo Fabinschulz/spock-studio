@@ -1,9 +1,9 @@
 import json
-import tempfile
 import unittest
 from pathlib import Path
 
 import _paths  # noqa: F401
+from support_files import TemporaryDirectory
 from support_model import FakeModel, with_model
 
 from agents.model_client import ModelError
@@ -48,7 +48,7 @@ class ModelBaselineTests(unittest.TestCase):
         document = json.loads(_BASELINE_MODEL.read_text(encoding="utf-8"))
         self.assertEqual(document["schema"], "engineering.baseline.model.v1")
         for case in document["cases"]:
-            with tempfile.TemporaryDirectory() as tmp:
+            with TemporaryDirectory() as tmp:
                 chunk = _chunk(tmp)
                 replies = [ModelError(r) if isinstance(r, str) else _fill(r, chunk) for r in case["replies"]]
                 model = FakeModel(*replies)

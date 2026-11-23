@@ -1,9 +1,9 @@
 import json
-import tempfile
 import unittest
 from pathlib import Path
 
 import _paths  # noqa: F401
+from support_files import TemporaryDirectory
 from support_model import SOURCE
 from test_graph import _codes, _resume, _run, _start
 
@@ -26,7 +26,7 @@ def _paused(tmp: str, **options) -> tuple[list[dict], dict]:
 
 class ActionProposalTests(unittest.TestCase):
     def test_com_politica_pausa_e_impacto_o_agente_propoe_so_a_intencao(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             events, ack = _paused(tmp)
 
         self.assertEqual(ack["status"], "interrupted")
@@ -43,13 +43,13 @@ class ActionProposalTests(unittest.TestCase):
 
     def test_sem_a_politica_do_motor_nenhuma_acao_e_proposta(self) -> None:
         for allowed in ((), ("command.run",), ("config.change", "external.write")):
-            with tempfile.TemporaryDirectory() as tmp:
+            with TemporaryDirectory() as tmp:
                 _, ack = _paused(tmp, allowed=allowed)
             self.assertEqual(ack["nextActions"], [], allowed)
             self.assertEqual(ack["approval"]["actionIds"], [], allowed)
 
     def test_sem_pausa_para_aprovacao_ou_sem_impacto_nao_ha_acao(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _, no_pause = _paused(tmp, approval=False)
             _, no_impact = _paused(tmp, impact=False)
 
@@ -75,18 +75,18 @@ class ApprovalBindingTests(unittest.TestCase):
         return list(graph.run_resume(message))[-1]
 
     def test_aprovar_a_acao_proposta_ou_nenhuma_retoma_a_execucao(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _, ack = _paused(tmp)
             action_id = ack["nextActions"][0]["id"]
             done = self._resume(tmp, ack, [action_id])
             self.assertEqual(done["status"], "completed")
 
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _, ack = _paused(tmp)
             self.assertEqual(self._resume(tmp, ack, [])["status"], "completed")
 
     def test_aprovar_acao_que_nao_foi_proposta_nao_retoma_e_a_pausa_continua(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _, ack = _paused(tmp)
             refused = self._resume(tmp, ack, ["act-inventada"])
             self.assertEqual(refused["status"], "failed")
@@ -96,7 +96,7 @@ class ApprovalBindingTests(unittest.TestCase):
             self.assertEqual(self._resume(tmp, ack, [ack["nextActions"][0]["id"]])["status"], "completed")
 
     def test_sem_aprovar_nada_a_execucao_nao_continua(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _, ack = _paused(tmp)
             message = _resume(tmp, ack["approval"]["interruptId"])
             message["decision"]["approved"] = False
@@ -107,7 +107,7 @@ class ApprovalBindingTests(unittest.TestCase):
         self.assertEqual(declined["approval"]["actionIds"], [ack["nextActions"][0]["id"]])
 
     def test_checkpoint_com_acao_adulterada_nao_retoma(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _, ack = _paused(tmp)
             db = next(Path(tmp).rglob("checkpoint.sqlite"))
             self.assertTrue(db.exists())
@@ -129,7 +129,7 @@ class ApprovalBindingTests(unittest.TestCase):
         self.assertFalse(intents_ok([good, dict(good)], evidence))
 
     def test_acao_nenhuma_gravada_no_checkpoint_em_texto_livre(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _paused(tmp)
             blob = next(Path(tmp).rglob("checkpoint.sqlite")).read_bytes()
         # O estado guarda só a intenção (id, tipo e evidências): sem comando e sem conteúdo de arquivo.

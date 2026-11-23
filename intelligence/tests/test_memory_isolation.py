@@ -1,9 +1,9 @@
 import re
-import tempfile
 import unittest
 from pathlib import Path
 
 import _paths  # noqa: F401
+from support_files import TemporaryDirectory
 from test_graph import PROJECT, RUN, _resume, _run, _start
 
 from knowledge import index as rag
@@ -38,7 +38,7 @@ def _sqlite_files(root: str) -> list[Path]:
 
 class MemoryIsolationTests(unittest.TestCase):
     def test_cada_memoria_grava_so_na_propria_pasta(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _run(graph.run_start(_start(tmp, requiresApproval=True)))
             rag.sync(tmp, PROJECT, [{"path": "docs/a.md", "hash": "a" * 64, "text": "texto longo o bastante para indexar"}])
 
@@ -51,7 +51,7 @@ class MemoryIsolationTests(unittest.TestCase):
             graph.run_cancel(RUN, PROJECT, tmp)
 
     def test_checkpoint_some_quando_a_execucao_termina(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _, paused = _run(graph.run_start(_start(tmp, requiresApproval=True)))
             self.assertEqual(len(_sqlite_files(tmp)), 1)
             _, done = _run(graph.run_resume(_resume(tmp, paused["approval"]["interruptId"])))
@@ -59,14 +59,14 @@ class MemoryIsolationTests(unittest.TestCase):
             self.assertEqual(_sqlite_files(tmp), [])
 
     def test_checkpoint_some_quando_a_execucao_e_cancelada(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _run(graph.run_start(_start(tmp, requiresApproval=True)))
             self.assertEqual(len(_sqlite_files(tmp)), 1)
             graph.run_cancel(RUN, PROJECT, tmp)
             self.assertEqual(_sqlite_files(tmp), [])
 
     def test_saida_de_agente_nao_entra_no_indice_de_conhecimento(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             sources = [{"path": "docs/a.md", "hash": "a" * 64, "text": "texto longo o bastante para indexar"}]
             rag.sync(tmp, PROJECT, sources)
             before = rag.manifest(tmp, PROJECT)
@@ -78,7 +78,7 @@ class MemoryIsolationTests(unittest.TestCase):
             self.assertEqual(rag.search(tmp, PROJECT, "decisão arquitetural plano módulo cobrança"), [])
 
     def test_nenhum_sqlite_guarda_segredo(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _run(graph.run_start(_start(tmp, requiresApproval=True)))
             rag.sync(tmp, PROJECT, [{"path": "docs/a.md", "hash": "a" * 64, "text": "documentação comum sem credenciais"}])
             files = _sqlite_files(tmp)
@@ -89,7 +89,7 @@ class MemoryIsolationTests(unittest.TestCase):
 
     def test_varredura_enxerga_segredo_plantado(self) -> None:
         """Controle negativo: sem este teste, a varredura acima poderia passar por estar quebrada."""
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             rag.sync(tmp, PROJECT, [{"path": "docs/a.md", "hash": "a" * 64, "text": "x " * 20 + _FAKE_KEY.decode()}])
             (path,) = _sqlite_files(tmp)
             self.assertEqual(_secret_rules(path), [0])

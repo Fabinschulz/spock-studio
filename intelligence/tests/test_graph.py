@@ -1,13 +1,13 @@
 import io
 import json
 import sqlite3
-import tempfile
 import unittest
 from contextlib import redirect_stderr
 from pathlib import Path
 from unittest import mock
 
 import _paths  # noqa: F401
+from support_files import TemporaryDirectory
 
 from contracts.engineering import forbidden
 from knowledge.index import KnowledgeError
@@ -86,7 +86,7 @@ class GraphTests(unittest.TestCase):
         self.assertNotIn("ignore previous", json.dumps(ack))
 
     def test_pausa_para_aprovacao_e_so_segue_quando_aprovado(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             events, paused = _run(graph.run_start(_start(tmp, requiresApproval=True)))
             self.assertEqual(paused["status"], "interrupted")
             interrupt_id = paused["approval"]["interruptId"]
@@ -103,7 +103,7 @@ class GraphTests(unittest.TestCase):
             self.assertEqual(seqs, sorted(set(seqs)))
 
     def test_retomada_com_outra_interrupcao_nao_continua(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _run(graph.run_start(_start(tmp, requiresApproval=True)))
             _, ack = _run(graph.run_resume(_resume(tmp, "int-000000000000")))
             self.assertEqual(ack["status"], "failed")
@@ -111,7 +111,7 @@ class GraphTests(unittest.TestCase):
             graph.run_cancel(RUN, PROJECT, tmp)
 
     def test_retomada_sem_pausa_diz_que_o_checkpoint_sumiu(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _, ack = _run(graph.run_resume(_resume(tmp, graph.interrupt_id(EXECUTION))))
             self.assertEqual(ack["status"], "failed")
             self.assertEqual(ack["errors"][0]["code"], "CHECKPOINT_LOST")
@@ -123,7 +123,7 @@ class GraphTests(unittest.TestCase):
         self.assertEqual(validated["failure"], "PLAN_INVALID")
 
     def test_retomada_depois_que_o_processo_reinicia(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _, paused = _run(graph.run_start(_start(tmp, requiresApproval=True)))
             self.assertEqual(paused["status"], "interrupted")
             checkpoint = Path(tmp) / "projects" / PROJECT / "execution" / "checkpoint.sqlite"
@@ -147,7 +147,7 @@ class GraphTests(unittest.TestCase):
         self.assertTrue(graph.checkpoint_ok({**tampered, "plan": {"schema": "engineering.plan.v1", "steps": [{"id": "x", "title": "y"}]}}, PROJECT, RUN))
 
     def test_checkpoint_alterado_no_disco_nao_retoma(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _, paused = _run(graph.run_start(_start(tmp, requiresApproval=True)))
             from memory.execution import saver
 
@@ -217,7 +217,7 @@ class GraphTests(unittest.TestCase):
         self.assertEqual(ack["errors"][0]["code"], "CHECKPOINT_UNAVAILABLE")
 
     def test_eventos_seguem_o_contrato(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             payload = _start(impact=True)
             payload["context"]["knowledgeRoot"] = tmp
             payload["context"]["sources"] = [{"path": "docs/cobranca.md", "hash": "a" * 64, "text": "O módulo de cobrança recorrente fatura assinaturas."}]
@@ -248,7 +248,7 @@ class RagFailureTests(unittest.TestCase):
             except sqlite3.OperationalError as ex:
                 raise KnowledgeError("índice indisponível") from ex
 
-        with tempfile.TemporaryDirectory() as root:
+        with TemporaryDirectory() as root:
             payload = _start()
             payload["context"]["knowledgeRoot"] = root
             payload["context"]["sources"] = [{"path": "docs/a.md", "hash": "a" * 64, "text": "cobrança mensal"}]

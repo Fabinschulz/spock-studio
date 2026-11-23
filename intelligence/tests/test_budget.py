@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import tempfile
 import unittest
 
 import _paths  # noqa: F401
+from support_files import TemporaryDirectory
 from test_graph import EXECUTION, PROJECT, RUN, _resume, _run, _start
 
 from infrastructure.events import Emitter
@@ -68,7 +68,7 @@ class BudgetedTests(unittest.TestCase):
 
 class ResumeLimitsTests(unittest.TestCase):
     def test_a_pausa_guarda_os_limites_e_a_retomada_conclui_dentro_deles(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             _, paused = _run(graph.run_start(_start(tmp, requiresApproval=True)))
             config = {"configurable": {"thread_id": RUN}}
             with saver(tmp, PROJECT, RUN) as checkpoints:

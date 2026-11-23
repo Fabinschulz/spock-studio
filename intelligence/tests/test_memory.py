@@ -1,9 +1,9 @@
 import sqlite3
-import tempfile
 import unittest
 from pathlib import Path
 
 import _paths  # noqa: F401
+from support_files import TemporaryDirectory
 
 from memory.execution import ExecutionError, checkpoint_file, drop, saver
 
@@ -20,7 +20,7 @@ def _write(root: str, project: str, goal: str) -> None:
 
 class ExecutionMemoryTests(unittest.TestCase):
     def test_checkpoint_fica_fora_do_indice_e_nao_cruza_projeto(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             root = Path(tmp)
             first = "p-aaaaaaaaaaaa"
             second = "p-bbbbbbbbbbbb"
@@ -43,7 +43,7 @@ class ExecutionMemoryTests(unittest.TestCase):
             self.assertFalse(checkpoint.exists())
 
     def test_recusa_id_e_caminho_que_escapam_da_raiz(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with TemporaryDirectory() as tmp:
             with self.assertRaises(ExecutionError):
                 checkpoint_file(tmp, "../p-aaaaaaaaaaaa")
             with self.assertRaises(ExecutionError):

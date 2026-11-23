@@ -1,9 +1,9 @@
 import json
-import tempfile
 import unittest
 from pathlib import Path
 
 import _paths  # noqa: F401
+from support_files import TemporaryDirectory
 from test_graph import _run, _start
 
 from contracts.messages import SEARCH_SCHEMA, ContractError, parse_search
@@ -26,7 +26,7 @@ PROJECT_FILE = _doc("docs/estado.md", "d", "# Estado\n\nO estado da tela deste p
 
 
 def _paths_for(technologies: list[str] | None) -> list[str]:
-    with tempfile.TemporaryDirectory() as root:
+    with TemporaryDirectory() as root:
         index.sync(root, PROJECT, [dict(ANGULAR), dict(REACT), dict(GENERAL), dict(PROJECT_FILE)])
         return [hit["filePath"] for hit in retrieval.search(root, PROJECT, "estado da tela", 10, technologies)]
 
@@ -50,7 +50,7 @@ class TechnologyFilterTests(unittest.TestCase):
         self.assertEqual(len(_paths_for([])), 4)
 
     def test_o_frontmatter_vira_metadado_e_nao_texto_do_trecho(self) -> None:
-        with tempfile.TemporaryDirectory() as root:
+        with TemporaryDirectory() as root:
             index.sync(root, PROJECT, [dict(ANGULAR)])
             hits = retrieval.search(root, PROJECT, "estado da tela", 5)
             bodies = index.chunk_bodies(root, PROJECT, [hit["chunkId"] for hit in hits])
@@ -59,7 +59,7 @@ class TechnologyFilterTests(unittest.TestCase):
         self.assertTrue(all("technologies:" not in body for body in bodies.values()))
 
     def test_o_fluxo_de_engenharia_filtra_pelas_stacks_do_projeto(self) -> None:
-        with tempfile.TemporaryDirectory() as root:
+        with TemporaryDirectory() as root:
             payload = _start(root)
             payload["input"]["goal"] = "como guardar o estado da tela"
             payload["context"]["stacks"] = ["react"]
