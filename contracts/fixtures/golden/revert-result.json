@@ -9,6 +9,7 @@
     "create: spock.yaml",
     "create: CLAUDE.md",
     "create: .spock/schemas/harness-proposal.v1.schema.json",
+    "create: .claude/skills/spock-stack-dotnet/SKILL.md",
     "create: .claude/skills/spock-harness-contract/SKILL.md",
     "create: .claude/settings.json",
     "create: .claude/rules/spock-stack-dotnet.md",

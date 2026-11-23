@@ -102,6 +102,33 @@
       "evidence": []
     },
     {
+      "kind": "skill",
+      "componentId": "mariliz.skill.stack-react",
+      "decision": "skip",
+      "justification": "Nenhuma stack React detectada nem planejada na arquitetura.",
+      "origin": "baseline-rules",
+      "evidence": []
+    },
+    {
+      "kind": "skill",
+      "componentId": "mariliz.skill.stack-angular",
+      "decision": "skip",
+      "justification": "Nenhuma stack Angular detectada nem planejada na arquitetura.",
+      "origin": "baseline-rules",
+      "evidence": []
+    },
+    {
+      "kind": "skill",
+      "componentId": "mariliz.skill.stack-dotnet",
+      "decision": "enable",
+      "justification": "Skill .NET para a stack do projeto.",
+      "origin": "baseline-rules",
+      "evidence": [
+        "backend/App.sln",
+        "backend/src/App/App.csproj"
+      ]
+    },
+    {
       "kind": "rule",
       "componentId": "mariliz.rule.architecture",
       "decision": "skip",
@@ -320,6 +347,21 @@
       "diffTruncated": false
     },
     {
+      "id": "chg-373f3b7d50",
+      "kind": "skill",
+      "componentId": "mariliz.skill.stack-dotnet",
+      "path": ".claude/skills/spock-stack-dotnet/SKILL.md",
+      "action": "create",
+      "reason": "Skill .NET: o que não copiar e checklist de conclusão.",
+      "origin": "baseline-rules",
+      "beforeHash": null,
+      "afterHash": "8738fce33cb688346aa51747b3a99101b076694469e44b78ba38877491a02952",
+      "destructive": false,
+      "conflictReason": null,
+      "diff": "--- /dev/null\n+++ b/.claude/skills/spock-stack-dotnet/SKILL.md\n@@ -1,0 +1,34 @@\n+---\n+name: spock-stack-dotnet\n+description: What not to copy and what to check before finishing .NET work in this project. Use it when writing or reviewing .NET code.\n+---\n+\n+# .NET: anti-patterns and finishing checklist\n+\n+Managed by Spock Studio. Short on purpose. This project's own conventions, when present, are in `.claude/rules/spock-project-conventions.md` and come first; the Organization patterns are in `.claude/rules/spock-patterns-dotnet.md`; a full pattern is one `spock_architecture_reference` call away.\n+\n+## Do not copy\n+\n+Seen in reference projects (Catálogo de referências arquiteturais, analysis of 2026-11-17):\n+\n+- Mediator e `DomainError` com status HTTP no Domain; Application com JWT e `IHttpContextAccessor`.\n+- `HttpUserContext.SetHeader` copiando claims para headers da requisição.\n+- Repositório genérico com ordenação por `switch` de string e `SaveChanges` duplicado.\n+- Projetos de capacidade presumida sem consumidor (`EmpregaNet.AI`, BFF vazio).\n+- Newtonsoft e System.Text.Json configurados juntos.\n+- Connection string no console; `EnableSensitiveDataLogging` em todos os ambientes.\n+- Application referenciando Infrastructure.\n+- Migração no startup de cada réplica com `BuildServiceProvider()`.\n+- `catch (Exception)` relançando `new Exception(...)`.\n+- `static HttpClient` baixando URL vinda do request (SSRF).\n+- CORS `AllowAll` e endpoints sem autenticação; chaves AWS na configuração.\n+- Skill de conhecimento de ~50 mil tokens misturando conhecimento estável com changelog.\n+- Mediator por reflexão a cada chamada (aceitável, mas avaliar source generator).\n+\n+## Before finishing\n+\n+- Project references still point inward, and the domain takes no framework package.\n+- Input is validated at the boundary, and errors use the format the project already has.\n+- External effects (messages, e-mail, webhooks) run only after the database commit.\n+- New behavior has a test in the existing test project.\n+- `dotnet build` and `dotnet test` pass with the repository's own solution.\n",
+      "diffTruncated": false
+    },
+    {
       "id": "chg-3fabde5817",
       "kind": "agent",
       "componentId": "mariliz.agent.harness-engineer",
@@ -358,10 +400,10 @@
       "reason": "Declaração do projeto: ambiente de IA e método. É seu depois de criado; a aplicação só a lê.",
       "origin": "baseline-rules",
       "beforeHash": null,
-      "afterHash": "26f4c93b464523104c7352343256169c634e74b68fe0909dc1974876f62052d4",
+      "afterHash": "4a63c98196562f1b7e5cef84bbc34629b78729f3c1eef0dbc3f6e4ab5d089f8d",
       "destructive": false,
       "conflictReason": null,
-      "diff": "--- /dev/null\n+++ b/spock.yaml\n@@ -1,0 +1,12 @@\n+# Declaração do Harness gerenciado pelo Spock Studio.\n+# Este arquivo é seu: edite à vontade. A aplicação o lê, mas não o reescreve.\n+schema: 1\n+project:\n+  id: spk-01M845R4CX54VYBF39CYDKPCVE\n+  name: projeto\n+implementationModel: mariliz\n+aiEnvironment: claude-code\n+components:\n+  exclude: []\n+evals:\n+  required: []\n",
+      "diff": "--- /dev/null\n+++ b/spock.yaml\n@@ -1,0 +1,12 @@\n+# Declaração do Harness gerenciado pelo Spock Studio.\n+# Este arquivo é seu: edite à vontade. A aplicação o lê, mas não o reescreve.\n+schema: 1\n+project:\n+  id: spk-01M84HDE2XSW90ZDZ1XFM3QBBP\n+  name: projeto\n+implementationModel: mariliz\n+aiEnvironment: claude-code\n+components:\n+  exclude: []\n+evals:\n+  required: []\n",
       "diffTruncated": false
     },
     {

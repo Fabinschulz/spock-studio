@@ -29,6 +29,12 @@ public static partial class OrganizationReferences
     // Cada linha "| REF-… | nome |" das tabelas: o índice dos padrões que a intenção architecture do Context Engine entrega.
     public static IReadOnlyList<ReferencePattern> Patterns => AllPatterns.Value;
 
+    private static readonly Lazy<IReadOnlyList<AntiPattern>> AllAntiPatterns =
+        new(() => Files().SelectMany(file => AntiPatternsOf(file.Markdown)).ToList());
+
+    // As linhas das tabelas "### N.N Não copiar": o que as referências fazem e não deve ser repetido (W3-2, skills por stack).
+    public static IReadOnlyList<AntiPattern> AntiPatterns => AllAntiPatterns.Value;
+
     private static IEnumerable<(string Name, string Markdown)> Files()
     {
         var assembly = typeof(OrganizationReferences).Assembly;
@@ -69,6 +75,46 @@ public static partial class OrganizationReferences
                     .Where(detail => detail.Text.Length > 0 && detail.Text != EmptyCell)
                     .ToList();
                 yield return new ReferencePattern(row.Groups["id"].Value, name, heading, technologies, title, analyzedAt, details, subsection);
+            }
+        }
+    }
+
+    internal static IEnumerable<AntiPattern> AntiPatternsOf(string markdown)
+    {
+        var frontmatter = FrontmatterReader.Read(markdown);
+        if (frontmatter is null || !frontmatter.TryGetValue("titulo", out var title) || !frontmatter.TryGetValue("analisadoEm", out var analyzed)
+            || !DateTimeOffset.TryParse(analyzed, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.AssumeUniversal, out var analyzedAt))
+            yield break;
+
+        foreach (var section in Section().Split(markdown.Replace("\r\n", "\n")).Skip(1))
+        {
+            var technologies = TechnologiesOf(section);
+            var lines = section.Split('\n');
+            var inside = false;
+            IReadOnlyList<string> header = [];
+            var rows = false;
+            foreach (var (line, index) in lines.Select((line, index) => (line, index)))
+            {
+                if (line.StartsWith("### ", StringComparison.Ordinal))
+                {
+                    inside = line.Contains("Não copiar", StringComparison.Ordinal);
+                    rows = false;
+                    continue;
+                }
+                if (!inside) continue;
+                if (Separator().IsMatch(line) && index > 0)
+                {
+                    header = Cells(lines[index - 1]);
+                    rows = true;
+                    continue;
+                }
+                if (!rows || !line.StartsWith('|')) continue;
+                var cells = Cells(line);
+                var remedyColumn = header.ToList().FindIndex(name => name.StartsWith("O que fazer", StringComparison.Ordinal));
+                var remedy = remedyColumn > 0 && remedyColumn < cells.Count ? Clean(cells[remedyColumn]) : null;
+                yield return new AntiPattern(Clean(cells[0]), string.IsNullOrEmpty(remedy) || remedy == EmptyCell ? null : remedy,
+                    technologies, title, analyzedAt);
             }
         }
     }

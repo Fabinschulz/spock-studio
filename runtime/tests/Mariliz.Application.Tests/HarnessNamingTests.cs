@@ -60,8 +60,8 @@ public partial class HarnessNamingTests
         // Os do Codex e do Cursor só entram quando eles estão entre os ambientes (CodexAdapterTests, CursorAdapterTests).
         string[] codex = [Catalog.IdeCodexBootstrap, Catalog.IdeCodexMcp, Catalog.HookCodexSession, Catalog.HookCodexPrompt,
             Catalog.IdeCursorRule, Catalog.IdeCursorMcp, Catalog.HookCursorSession, Catalog.SkillAgentsHarnessContract,
-            // Projeto .NET e Next: os padrões Angular não entram (PatternRuleTests).
-            Catalog.RulePatternsAngular];
+            // Projeto .NET e Next: os padrões e a skill Angular não entram (PatternRuleTests, StackSkillTests).
+            Catalog.RulePatternsAngular, Catalog.SkillStackAngular];
         foreach (var component in Catalog.Components.Where(c => c.Id != Catalog.SpecificationStructure && !codex.Contains(c.Id)))
             Assert.Contains(component.Id, proposed);
         Assert.All(plan.Changes, change => Assert.DoesNotContain("mariliz", change.Path, StringComparison.OrdinalIgnoreCase));
@@ -82,10 +82,12 @@ public partial class HarnessNamingTests
         Assert.All(written, path => Assert.DoesNotContain("mariliz", path, StringComparison.OrdinalIgnoreCase));
         // Todo agente e toda skill que o Spock grava levam o prefixo, e o nome do frontmatter é o do arquivo (ou da pasta).
         Assert.Equal(SpockAgents.Order(StringComparer.Ordinal), written.Where(path => path.StartsWith(".claude/agents/", StringComparison.Ordinal)).Order(StringComparer.Ordinal).ToList());
-        Assert.Equal([SpockSkill], written.Where(path => path.StartsWith(".claude/skills/", StringComparison.Ordinal)).ToList());
+        string[] skills = [SpockSkill, HarnessNaming.Spock.StackSkill("dotnet"), HarnessNaming.Spock.StackSkill("react")];
+        Assert.Equal(skills.Order(StringComparer.Ordinal), written.Where(path => path.StartsWith(".claude/skills/", StringComparison.Ordinal)).Order(StringComparer.Ordinal));
         foreach (var path in SpockAgents)
             Assert.Contains($"\nname: {Path.GetFileNameWithoutExtension(path)}\n", project.Read(path));
-        Assert.Contains("\nname: spock-harness-contract\n", project.Read(SpockSkill));
+        foreach (var path in skills)
+            Assert.Contains($"\nname: {path.Split('/')[2]}\n", project.Read(path));
         Assert.All(ManagedLockFile.Read(new LocalProjectFiles(project.Root))!.ManagedFiles, entry => Assert.DoesNotContain("mariliz", entry.Path, StringComparison.Ordinal));
         foreach (var path in written)
         {

@@ -43,6 +43,8 @@ internal sealed class RequirementsCheck : IEvalCheck
         var frameworks = ctx.Discovery.Frameworks.Select(framework => framework.Id).ToList();
         foreach (var profile in PatternRuleProfiles.All.Where(profile => PatternRuleProfiles.Applies(profile, stacks, frameworks)))
             Need(profile.Component, Catalog.FilesOf(profile.Component, ctx.Naming).Single(), $"padrões {profile.Name} da pasta Organização para a stack do projeto");
+        foreach (var profile in StackSkillProfiles.All.Where(profile => stacks.Any(profile.Technologies.Contains)))
+            Need(profile.Component, ctx.Naming.StackSkill(profile.Stack), $"skill {profile.Name} para a stack do projeto");
         if (architecture.Exists) Need(Catalog.RuleArchitecture, ctx.Naming.RuleArchitecture, $"documentos de arquitetura em {ctx.Naming.ArchitectureFolder}");
         if (ctx.Discovery.Tooling.Any(HarnessComposition.IsRepositoryCommand)) Need(Catalog.RuleRepoCommands, ctx.Naming.RuleRepo, "comandos do repositório detectados");
         if (ctx.Discovery.Tools.PythonCommand is not null) Need(Catalog.HookPolicy, ctx.Naming.HookScript, "Python disponível: o hook de política é exigido");

@@ -110,6 +110,30 @@
       "origin": "Gerado pelo Spock Studio da pasta Organização (catálogo de referências), com a data da análise."
     },
     {
+      "id": "mariliz.skill.stack-react",
+      "whatItDoes": "Uma skill curta para React: o que os projetos de referência fazem e não deve ser copiado (do catálogo da pasta Organização), com o que fazer no lugar, e um checklist do que conferir antes de concluir.",
+      "whenItActs": "Quando o agente escreve ou revisa código React ou Next do projeto: ele carrega a skill pela descrição.",
+      "reads": ["Nenhum arquivo do projeto: são instruções para o agente"],
+      "canChange": ["Nada. É só orientação."],
+      "origin": "Gerada pelo Spock Studio do catálogo da pasta Organização, com a data da análise, e de um checklist escrito à mão; fica abaixo de 8.000 caracteres."
+    },
+    {
+      "id": "mariliz.skill.stack-angular",
+      "whatItDoes": "Uma skill curta para Angular: o que os projetos de referência fazem e não deve ser copiado (do catálogo da pasta Organização), com o que fazer no lugar, e um checklist do que conferir antes de concluir.",
+      "whenItActs": "Quando o agente escreve ou revisa código Angular do projeto: ele carrega a skill pela descrição.",
+      "reads": ["Nenhum arquivo do projeto: são instruções para o agente"],
+      "canChange": ["Nada. É só orientação."],
+      "origin": "Gerada pelo Spock Studio do catálogo da pasta Organização, com a data da análise, e de um checklist escrito à mão; fica abaixo de 8.000 caracteres."
+    },
+    {
+      "id": "mariliz.skill.stack-dotnet",
+      "whatItDoes": "Uma skill curta para .NET: o que os projetos de referência fazem e não deve ser copiado (do catálogo da pasta Organização), com o que fazer no lugar, e um checklist do que conferir antes de concluir.",
+      "whenItActs": "Quando o agente escreve ou revisa código .NET do projeto: ele carrega a skill pela descrição.",
+      "reads": ["Nenhum arquivo do projeto: são instruções para o agente"],
+      "canChange": ["Nada. É só orientação."],
+      "origin": "Gerada pelo Spock Studio do catálogo da pasta Organização, com a data da análise, e de um checklist escrito à mão; fica abaixo de 8.000 caracteres."
+    },
+    {
       "id": "mariliz.hook.policy",
       "whatItDoes": "Confere cada escrita de arquivo e cada comando do agente antes de acontecer e bloqueia ou pede confirmação conforme a política do Spock Studio. É uma proteção que confere o texto do pedido, não uma barreira de segurança.",
       "whenItActs": "Antes de toda escrita de arquivo e de todo comando que o agente tenta usar.",

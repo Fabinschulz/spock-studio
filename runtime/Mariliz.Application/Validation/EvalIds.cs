@@ -6,6 +6,7 @@ public static class EvalIds
     public const string Lock = "EV-LOCK-001";
     public const string Agent = "EV-AGENT-001";
     public const string Skill = "EV-SKILL-001";
+    public const string SkillSize = "EV-SKILL-002";
     public const string Hook = "EV-HOOK-001";
     public const string Rule = "EV-RULE-001";
     public const string Reference = "EV-REF-001";

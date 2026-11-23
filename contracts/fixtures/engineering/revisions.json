@@ -166,6 +166,15 @@
           "removed": []
         },
         {
+          "id": "mariliz.skill.stack-dotnet",
+          "label": "Skill .NET: o que não copiar e checklist",
+          "created": [
+            ".claude/skills/spock-stack-dotnet/SKILL.md"
+          ],
+          "updated": [],
+          "removed": []
+        },
+        {
           "id": "mariliz.skill.harness-contract",
           "label": "Skill do contrato de evidências",
           "created": [

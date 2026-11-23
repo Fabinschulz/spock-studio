@@ -1,0 +1,5 @@
+- HTTP goes through one service per resource; tokens, credentials and common headers live only in interceptors.
+- Routes stay lazy and new components are standalone.
+- Forms validate with pure validator functions and show the field errors the server returns.
+- No token or secret in `localStorage`, in a query string or in the bundle.
+- Lint, tests and build pass with the repository's own commands.
