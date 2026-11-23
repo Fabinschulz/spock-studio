@@ -20,7 +20,8 @@
           "mode": "file",
           "state": "modified"
         }
-      ]
+      ],
+      "referenceChanges": []
     },
     {
       "id": "mariliz.agent.harness-engineer",
@@ -40,7 +41,8 @@
           "mode": "file",
           "state": "intact"
         }
-      ]
+      ],
+      "referenceChanges": []
     },
     {
       "id": "mariliz.agent.verifier",
@@ -55,7 +57,8 @@
           "mode": "file",
           "state": "intact"
         }
-      ]
+      ],
+      "referenceChanges": []
     },
     {
       "id": "mariliz.ide.claude-bootstrap",
@@ -70,7 +73,8 @@
           "mode": "block",
           "state": "intact"
         }
-      ]
+      ],
+      "referenceChanges": []
     },
     {
       "id": "mariliz.rule.repo-commands",
@@ -85,7 +89,8 @@
           "mode": "file",
           "state": "intact"
         }
-      ]
+      ],
+      "referenceChanges": []
     },
     {
       "id": "mariliz.hook.policy",
@@ -105,7 +110,8 @@
           "mode": "merge",
           "state": "intact"
         }
-      ]
+      ],
+      "referenceChanges": []
     },
     {
       "id": "mariliz.rule.patterns-dotnet",
@@ -120,7 +126,8 @@
           "mode": "file",
           "state": "intact"
         }
-      ]
+      ],
+      "referenceChanges": []
     },
     {
       "id": "mariliz.rule.stack-dotnet",
@@ -135,7 +142,8 @@
           "mode": "file",
           "state": "intact"
         }
-      ]
+      ],
+      "referenceChanges": []
     },
     {
       "id": "mariliz.rule.general",
@@ -150,7 +158,8 @@
           "mode": "file",
           "state": "intact"
         }
-      ]
+      ],
+      "referenceChanges": []
     },
     {
       "id": "mariliz.skill.harness-contract",
@@ -165,7 +174,8 @@
           "mode": "file",
           "state": "intact"
         }
-      ]
+      ],
+      "referenceChanges": []
     }
   ],
   "excluded": [],

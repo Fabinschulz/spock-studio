@@ -73,7 +73,14 @@ public static class LockBuilder
         foreach (var id in components.Distinct())
         {
             var component = Catalog.Find(id);
-            lockFile.Components.Add(new() { Id = id, Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(), Version = ComponentVersion(id, component, installed ? specification.Version : null) });
+            var reference = composed.Files.FirstOrDefault(file => file.ComponentId == id && file.Reference is not null)?.Reference;
+            lockFile.Components.Add(new()
+            {
+                Id = id,
+                Kind = (component?.Kind ?? ComponentKind.Rule).ToString().ToLowerInvariant(),
+                Version = ComponentVersion(id, component, installed ? specification.Version : null),
+                Reference = reference is null ? null : ManagedLockFile.ReferenceSection.From(reference)
+            });
         }
         return lockFile.ToYaml();
     }

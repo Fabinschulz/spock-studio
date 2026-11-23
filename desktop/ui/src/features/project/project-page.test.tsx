@@ -330,6 +330,31 @@ describe('Projeto · Harness', () => {
     expect(within(harness).getByText(/Nada é aplicado sem aprovação/)).toBeTruthy();
   });
 
+  it('aponta a regra gerada da pasta Organização cuja referência mudou, com o que mudou', async () => {
+    const outdated = {
+      ...harnessFixture,
+      components: harnessFixture.components.map((component, index) =>
+        index === 1 ? { ...component, referenceChanges: ['análise de 2026-10-01 para 2026-11-17'] } : component
+      )
+    };
+    const client = clientWith([]);
+    const base = client.request.bind(client);
+    const request = vi.fn(async (method: string, params: unknown, schema: { parse(value: unknown): unknown }) =>
+      method === 'engineering.harness'
+        ? schema.parse(outdated)
+        : base(method as never, params as never, schema as never)
+    );
+    renderPage({ ...client, request } as unknown as EngineClient, project, HarnessPage);
+
+    const list = await screen.findByRole('list', { name: 'Componentes do Harness' });
+    const flagged = within(list)
+      .getAllByRole('listitem')
+      .filter((row) => row.textContent?.includes('Referência desatualizada'));
+    expect(flagged).toHaveLength(1);
+    expect(flagged[0]).toHaveTextContent('análise de 2026-10-01 para 2026-11-17');
+    expect(flagged[0]).toHaveTextContent('Configure o projeto de novo para atualizá-la.');
+  });
+
   it('dispensar um componente abre o Configurar com o pedido, sem mudar nada antes do plano', async () => {
     const client = clientWith([]);
     renderPage(client, project, HarnessPage);

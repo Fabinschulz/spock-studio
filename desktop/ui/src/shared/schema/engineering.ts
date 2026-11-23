@@ -140,7 +140,12 @@ export const harnessStatusSchema = z.object({
       version: z.string(),
       state: harnessStateSchema,
       manageable: z.boolean(),
-      files: z.array(z.object({ path: z.string(), mode: z.string(), state: harnessStateSchema }))
+      files: z.array(z.object({ path: z.string(), mode: z.string(), state: harnessStateSchema })),
+      /** Numa regra gerada da pasta Organização: o que o catálogo do motor tem de diferente do que ela registrou. */
+      referenceChanges: z
+        .array(z.string())
+        .nullish()
+        .transform((changes) => changes ?? [])
     })
   ),
   excluded: z.array(z.object({ id: z.string(), label: z.string(), manageable: z.boolean() })),
