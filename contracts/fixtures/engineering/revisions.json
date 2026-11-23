@@ -120,6 +120,15 @@
           "removed": []
         },
         {
+          "id": "mariliz.rule.project-conventions",
+          "label": "Convenções do projeto (da análise de arquitetura)",
+          "created": [
+            ".claude/rules/spock-project-conventions.md"
+          ],
+          "updated": [],
+          "removed": []
+        },
+        {
           "id": "mariliz.config.declaration",
           "label": "Declaração do projeto",
           "created": [

@@ -322,7 +322,7 @@ describe('Projeto · Harness', () => {
 
     const harness = (await screen.findByRole('heading', { name: 'Harness aplicado' })).closest('section')!;
     expect(
-      await within(harness).findByText(/11 componentes: 10 íntegros, 1 modificado à mão, 0 ausentes/)
+      await within(harness).findByText(/12 componentes: 11 íntegros, 1 modificado à mão, 0 ausentes/)
     ).toBeTruthy();
     const list = within(harness).getByRole('list', { name: 'Componentes do Harness' });
     const first = within(list).getAllByRole('listitem')[0]!;

@@ -15,7 +15,7 @@
         "status": "passed",
         "criteria": "A declaração (spock.yaml ou mariliz.yaml, se existir) e o lock são válidos, no schema 1, e declaram o mesmo ambiente de IA.",
         "evidence": [
-          "spock.lock: schema 1, motor 0.1.0, ambiente claude-code, 13 arquivo(s)",
+          "spock.lock: schema 1, motor 0.1.0, ambiente claude-code, 14 arquivo(s)",
           "spock.yaml: schema 1, implementationModel=mariliz"
         ],
         "reason": null,
@@ -30,7 +30,7 @@
         "status": "passed",
         "criteria": "Todo arquivo do lock existe e tem o hash registrado; os arquivos mesclados mantêm as chaves gerenciadas.",
         "evidence": [
-          "13 arquivo(s) conferido(s) contra o lock"
+          "14 arquivo(s) conferido(s) contra o lock"
         ],
         "reason": null,
         "limitations": []
@@ -111,6 +111,7 @@
         "evidence": [
           ".claude/rules/spock-general.md: presente",
           ".claude/rules/spock-patterns-dotnet.md: presente",
+          ".claude/rules/spock-project-conventions.md: presente",
           ".claude/rules/spock-repo.md: presente",
           ".claude/rules/spock-stack-dotnet.md: presente"
         ],
@@ -126,7 +127,7 @@
         "status": "passed",
         "criteria": "Todo link relativo dos arquivos Markdown gerenciados aponta para um arquivo que existe.",
         "evidence": [
-          "9 arquivo(s) Markdown, 0 link(s) relativo(s) resolvidos"
+          "10 arquivo(s) Markdown, 0 link(s) relativo(s) resolvidos"
         ],
         "reason": null,
         "limitations": []
@@ -158,7 +159,7 @@
         "status": "passed",
         "criteria": "Nenhum arquivo gerenciado, .mcp.json, declaração ou proposta contém formato conhecido de credencial.",
         "evidence": [
-          "15 arquivo(s) verificado(s); nenhum formato conhecido de credencial"
+          "16 arquivo(s) verificado(s); nenhum formato conhecido de credencial"
         ],
         "reason": null,
         "limitations": []
@@ -172,7 +173,7 @@
         "status": "passed",
         "criteria": "O ambiente declarado é suportado e nenhum arquivo gerenciado está fora das pastas desse ambiente.",
         "evidence": [
-          "Ambiente claude-code; 13 arquivo(s) todos nas pastas e arquivos de configuração das IDEs ou em .spock/"
+          "Ambiente claude-code; 14 arquivo(s) todos nas pastas e arquivos de configuração das IDEs ou em .spock/"
         ],
         "reason": null,
         "limitations": []
@@ -186,7 +187,7 @@
         "status": "passed",
         "criteria": "Cada requisito derivado da descoberta (stack, comandos, proteção por hook) tem o artefato correspondente. A estrutura de especificação é verificada à parte.",
         "evidence": [
-          "7 requisito(s) derivado(s) da descoberta, todos atendidos"
+          "8 requisito(s) derivado(s) da descoberta, todos atendidos"
         ],
         "reason": null,
         "limitations": []
@@ -200,7 +201,7 @@
         "status": "passed",
         "criteria": "Um novo plano não contém criação, atualização, remoção, conflito nem comando.",
         "evidence": [
-          "Novo plano: 14 arquivo(s) preservado(s), nenhuma alteração, nenhum comando"
+          "Novo plano: 15 arquivo(s) preservado(s), nenhuma alteração, nenhum comando"
         ],
         "reason": null,
         "limitations": []

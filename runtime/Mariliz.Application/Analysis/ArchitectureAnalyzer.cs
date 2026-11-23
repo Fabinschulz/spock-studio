@@ -20,7 +20,7 @@ public static class ArchitectureAnalyzer
         var findings = dotnet.Concat(frontend).Concat(CodeSize.LargeFiles(all, read))
             .OrderBy(finding => finding.Severity == ArchitectureSeverities.Warning ? 0 : 1)
             .ToList();
-        return new ArchitectureReport(projectId, analyzedAt, projects, frontends, findings);
+        return new ArchitectureReport(projectId, analyzedAt, projects, frontends, findings, OwnImplementations.Detect(all, projects));
     }
 
     private static bool Hidden(string path) => path.Split('/').SkipLast(1).Any(folder => folder.StartsWith('.'));

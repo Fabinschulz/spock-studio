@@ -102,6 +102,17 @@
       "evidence": []
     },
     {
+      "kind": "rule",
+      "componentId": "mariliz.rule.project-conventions",
+      "decision": "enable",
+      "justification": "A análise de arquitetura encontrou camadas .NET ou estrutura de frontend: o agente segue o que o projeto já faz.",
+      "origin": "baseline-rules",
+      "evidence": [
+        "backend/src/App/App.csproj",
+        "backend/tests/App.Tests/App.Tests.csproj"
+      ]
+    },
+    {
       "kind": "skill",
       "componentId": "mariliz.skill.stack-react",
       "decision": "skip",
@@ -287,6 +298,21 @@
       "diffTruncated": false
     },
     {
+      "id": "chg-071541ca32",
+      "kind": "rule",
+      "componentId": "mariliz.rule.project-conventions",
+      "path": ".claude/rules/spock-project-conventions.md",
+      "action": "create",
+      "reason": "Convenções do projeto, da análise de arquitetura.",
+      "origin": "baseline-rules",
+      "beforeHash": null,
+      "afterHash": "31ea9eaefe08c8238862f971d4986715319c35347b5c7866bcda68270d4270aa",
+      "destructive": false,
+      "conflictReason": null,
+      "diff": "--- /dev/null\n+++ b/.claude/rules/spock-project-conventions.md\n@@ -1,0 +1,18 @@\n+# Project conventions\n+\n+Managed by Spock Studio. Generated from the deterministic architecture analysis of this repository (classification: project-convention).\n+This is how the code is organized today, and it comes before the Organization patterns: when a pattern and this file\n+disagree, follow this file. If a change would go against a convention here, say so instead of changing it silently.\n+\n+## .NET layers\n+\n+- no recognized layer: App\n+\n+References point inward: host, then infrastructure, then application, then domain and shared code. Keep new\n+project references in that direction.\n+\n+## Frameworks in use\n+\n+- App: aspnetcore\n+\n+Use these before adding a package that does the same job.\n",
+      "diffTruncated": false
+    },
+    {
       "id": "chg-490f62cb31",
       "kind": "rule",
       "componentId": "mariliz.rule.repo-commands",
@@ -400,10 +426,10 @@
       "reason": "Declaração do projeto: ambiente de IA e método. É seu depois de criado; a aplicação só a lê.",
       "origin": "baseline-rules",
       "beforeHash": null,
-      "afterHash": "4a63c98196562f1b7e5cef84bbc34629b78729f3c1eef0dbc3f6e4ab5d089f8d",
+      "afterHash": "feafffc8377a34f60c5a8355c49d7c77d6af72c0575051c920d88424dcb86b6b",
       "destructive": false,
       "conflictReason": null,
-      "diff": "--- /dev/null\n+++ b/spock.yaml\n@@ -1,0 +1,12 @@\n+# Declaração do Harness gerenciado pelo Spock Studio.\n+# Este arquivo é seu: edite à vontade. A aplicação o lê, mas não o reescreve.\n+schema: 1\n+project:\n+  id: spk-01M84HDE2XSW90ZDZ1XFM3QBBP\n+  name: projeto\n+implementationModel: mariliz\n+aiEnvironment: claude-code\n+components:\n+  exclude: []\n+evals:\n+  required: []\n",
+      "diff": "--- /dev/null\n+++ b/spock.yaml\n@@ -1,0 +1,12 @@\n+# Declaração do Harness gerenciado pelo Spock Studio.\n+# Este arquivo é seu: edite à vontade. A aplicação o lê, mas não o reescreve.\n+schema: 1\n+project:\n+  id: spk-01M84JH06HVDCPVJEVT6DQ9HMS\n+  name: projeto\n+implementationModel: mariliz\n+aiEnvironment: claude-code\n+components:\n+  exclude: []\n+evals:\n+  required: []\n",
       "diffTruncated": false
     },
     {

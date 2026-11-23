@@ -110,6 +110,14 @@
       "origin": "Gerado pelo Spock Studio da pasta Organização (catálogo de referências), com a data da análise."
     },
     {
+      "id": "mariliz.rule.project-conventions",
+      "whatItDoes": "Descreve como o código deste projeto está organizado hoje: camadas .NET, frameworks em uso, implementações próprias (como um mediador escrito em casa), a estrutura do frontend e as divergências já conhecidas. O agente segue isso antes dos padrões da pasta Organização.",
+      "whenItActs": "Sempre: o Claude Code carrega esta regra nas sessões deste projeto.",
+      "reads": ["Nenhum arquivo do projeto: são instruções para o agente"],
+      "canChange": ["Nada. É só orientação."],
+      "origin": "Gerado pelo Spock Studio da análise de arquitetura do seu projeto (só leitura, sem modelo); muda quando a organização do código muda."
+    },
+    {
       "id": "mariliz.skill.stack-react",
       "whatItDoes": "Uma skill curta para React: o que os projetos de referência fazem e não deve ser copiado (do catálogo da pasta Organização), com o que fazer no lugar, e um checklist do que conferir antes de concluir.",
       "whenItActs": "Quando o agente escreve ou revisa código React ou Next do projeto: ele carrega a skill pela descrição.",

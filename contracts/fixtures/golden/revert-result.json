@@ -14,6 +14,7 @@
     "create: .claude/settings.json",
     "create: .claude/rules/spock-stack-dotnet.md",
     "create: .claude/rules/spock-repo.md",
+    "create: .claude/rules/spock-project-conventions.md",
     "create: .claude/rules/spock-patterns-dotnet.md",
     "create: .claude/rules/spock-general.md",
     "create: .claude/hooks/spock-policy.py",

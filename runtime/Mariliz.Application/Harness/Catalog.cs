@@ -24,6 +24,8 @@ public static class Catalog
     public const string RulePatternsAngular = "mariliz.rule.patterns-angular";
     public const string RulePatternsDotnet = "mariliz.rule.patterns-dotnet";
     public const string RulePatternsFullstack = "mariliz.rule.patterns-fullstack";
+    // W3-4: a organização que o código já tem, da análise de arquitetura (ProjectConventions).
+    public const string RuleProjectConventions = "mariliz.rule.project-conventions";
     // W3-2: skill curta por stack, com o "não copiar" do catálogo e um checklist (StackSkillProfiles).
     public const string SkillStackReact = "mariliz.skill.stack-react";
     public const string SkillStackAngular = "mariliz.skill.stack-angular";
@@ -64,6 +66,7 @@ public static class Catalog
         new(RulePatternsAngular, ComponentKind.Rule, ComponentVersion, "Padrões Angular da Organização"),
         new(RulePatternsDotnet, ComponentKind.Rule, ComponentVersion, "Padrões .NET da Organização"),
         new(RulePatternsFullstack, ComponentKind.Rule, ComponentVersion, "Padrões fullstack da Organização"),
+        new(RuleProjectConventions, ComponentKind.Rule, ComponentVersion, "Convenções do projeto"),
         new(SkillStackReact, ComponentKind.Skill, ComponentVersion, "Skill React"),
         new(SkillStackAngular, ComponentKind.Skill, ComponentVersion, "Skill Angular"),
         new(SkillStackDotnet, ComponentKind.Skill, ComponentVersion, "Skill .NET"),
@@ -130,6 +133,7 @@ public static class Catalog
         RuleStackJavascript => [naming.RuleJavascript],
         RuleRepoCommands => [naming.RuleRepo],
         RuleArchitecture => [naming.RuleArchitecture],
+        RuleProjectConventions => [naming.RuleProjectConventions],
         SkillStackReact or SkillStackAngular or SkillStackDotnet =>
             [naming.StackSkill(StackSkillProfiles.All.Single(profile => profile.Component == componentId).Stack)],
         RulePatternsReact or RulePatternsAngular or RulePatternsDotnet or RulePatternsFullstack =>
