@@ -315,6 +315,8 @@ internal sealed class HarnessComposition(
         foreach (var profile in PatternRuleProfiles.All)
             AddPatternRule(profile);
         AddConventionRule();
+        foreach (var profile in StackSkillProfiles.All)
+            AddStackSkill(profile);
     }
 
     private void AddConventionRule()
@@ -325,6 +327,18 @@ internal sealed class HarnessComposition(
                 ProjectConventions.Evidence(analysis), "A análise de arquitetura não encontrou projeto .NET nem frontend React.", DecisionOrigins.Baseline))
             _desired.Add(new(_naming.RuleProjectConventions, ComponentKind.Rule, Catalog.RuleProjectConventions, DecisionOrigins.Baseline,
                 "Convenções do projeto, da análise de arquitetura.", ProjectConventions.Render(analysis), "file"));
+    }
+
+    private void AddStackSkill(StackSkillProfile profile)
+    {
+        var detected = report.Stacks.Where(stack => profile.Technologies.Contains(stack.Id)).ToList();
+        var planned = _architecture.PlannedOnly(report.Stacks, id => profile.Technologies.Contains(id));
+        var origin = detected.Count > 0 ? DecisionOrigins.Baseline : DecisionOrigins.Architecture;
+        List<string> evidence = detected.Count > 0 ? EvidencePaths(detected) : [_architecture.ArchitectureFile];
+        if (_components.Wants(profile.Component, detected.Count > 0 || planned.Count > 0, $"Skill {profile.Name} para a stack do projeto.", evidence,
+                $"Nenhuma stack {profile.Name} detectada nem planejada na arquitetura.", origin))
+            _desired.Add(new(_naming.StackSkill(profile.Stack), ComponentKind.Skill, profile.Component, origin,
+                $"Skill {profile.Name}: o que não copiar e checklist de conclusão.", StackSkillProfiles.Render(_naming, profile), "file"));
     }
 
     // Os frameworks que dizem que o projeto conversa com sistema externo: com eles, a §6.9 do catálogo entra na regra .NET.

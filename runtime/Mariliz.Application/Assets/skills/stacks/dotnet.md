@@ -1,0 +1,5 @@
+- Project references still point inward, and the domain takes no framework package.
+- Input is validated at the boundary, and errors use the format the project already has.
+- External effects (messages, e-mail, webhooks) run only after the database commit.
+- New behavior has a test in the existing test project.
+- `dotnet build` and `dotnet test` pass with the repository's own solution.

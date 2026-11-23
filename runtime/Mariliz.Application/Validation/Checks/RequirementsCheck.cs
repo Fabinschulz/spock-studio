@@ -46,6 +46,8 @@ internal sealed class RequirementsCheck : IEvalCheck
             Need(profile.Component, Catalog.FilesOf(profile.Component, ctx.Naming).Single(), $"padrões {profile.Name} da pasta Organização para a stack do projeto");
         if (ProjectConventions.Applies(ArchitectureAnalyzer.Analyze("", ctx.Files, DateTimeOffset.UnixEpoch)))
             Need(Catalog.RuleProjectConventions, ctx.Naming.RuleProjectConventions, "camadas .NET ou frontend encontrados pela análise de arquitetura");
+        foreach (var profile in StackSkillProfiles.All.Where(profile => stacks.Any(profile.Technologies.Contains)))
+            Need(profile.Component, ctx.Naming.StackSkill(profile.Stack), $"skill {profile.Name} para a stack do projeto");
         if (architecture.Exists) Need(Catalog.RuleArchitecture, ctx.Naming.RuleArchitecture, $"documentos de arquitetura em {ctx.Naming.ArchitectureFolder}");
         if (ctx.Discovery.Tooling.Any(HarnessComposition.IsRepositoryCommand)) Need(Catalog.RuleRepoCommands, ctx.Naming.RuleRepo, "comandos do repositório detectados");
         if (ctx.Discovery.Tools.PythonCommand is not null) Need(Catalog.HookPolicy, ctx.Naming.HookScript, "Python disponível: o hook de política é exigido");

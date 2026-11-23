@@ -178,6 +178,22 @@
       "referenceChanges": []
     },
     {
+      "id": "mariliz.skill.stack-dotnet",
+      "label": "Skill .NET: o que não copiar e checklist",
+      "kind": "skill",
+      "version": "0.1.0",
+      "state": "intact",
+      "manageable": true,
+      "files": [
+        {
+          "path": ".claude/skills/spock-stack-dotnet/SKILL.md",
+          "mode": "file",
+          "state": "intact"
+        }
+      ],
+      "referenceChanges": []
+    },
+    {
       "id": "mariliz.skill.harness-contract",
       "label": "Skill do contrato de evidências",
       "kind": "skill",
@@ -195,7 +211,7 @@
     }
   ],
   "excluded": [],
-  "intact": 10,
+  "intact": 11,
   "kept": 0,
   "modified": 1,
   "missing": 0

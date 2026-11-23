@@ -14,6 +14,8 @@ internal static class EvalCatalog
             "Frontmatter com name igual ao arquivo, description e tools explícitos; seções obrigatórias; ferramentas dentro do conjunto permitido; agente somente leitura sem Edit/Write."),
         new(EvalIds.Skill, "Skills", "Conformidade das skills gerenciadas", EvalKind.Deterministic, true,
             "SKILL.md com frontmatter, name igual à pasta e description."),
+        new(EvalIds.SkillSize, "Tamanho das skills", "Skills curtas", EvalKind.Deterministic, false,
+            "Nenhuma skill do projeto (.claude/skills e .agents/skills, gerenciada ou não) passa de 8.000 caracteres: uma skill longa ocupa o contexto de toda sessão."),
         new(EvalIds.Hook, "Hooks", "Conformidade e comportamento do hook de política", EvalKind.Deterministic, true,
             "settings.json válido com o hook registrado uma vez, script presente e íntegro, sem rede nem escrita, e as decisões esperadas para entradas conhecidas."),
         new(EvalIds.Rule, "Regras", "Presença das regras exigidas", EvalKind.Deterministic, true,

@@ -1,0 +1,5 @@
+- Data that crosses a boundary (request, response, storage, URL) is parsed with its schema before use.
+- Loading, empty and error states are handled; a failed mutation tells the person what happened.
+- No feature imports another feature's inner files, and `shared` imports no feature.
+- New UI works by keyboard, with labels and visible focus.
+- Lint, type check, tests and build pass with the repository's own commands.
