@@ -108,6 +108,9 @@ function HarnessContent({ harness }: { harness: HarnessStatus }) {
               </span>
               <span className={styles.rowActions}>
                 <StatusChip tone={STATE[component.state].tone}>{STATE[component.state].label}</StatusChip>
+                {component.referenceChanges.length > 0 ? (
+                  <StatusChip tone="warning">Referência desatualizada</StatusChip>
+                ) : null}
                 {component.manageable ? (
                   <Button
                     type="button"
@@ -132,6 +135,12 @@ function HarnessContent({ harness }: { harness: HarnessStatus }) {
                     </li>
                   ))}
               </ul>
+            ) : null}
+            {component.referenceChanges.length > 0 ? (
+              <p className={styles.meta}>
+                A pasta Organização mudou desde que esta regra foi gerada ({component.referenceChanges.join('; ')}).
+                Configure o projeto de novo para atualizá-la.
+              </p>
             ) : null}
           </li>
         ))}

@@ -343,9 +343,18 @@ internal sealed class HarnessComposition(
         var origin = detected.Count > 0 ? DecisionOrigins.Baseline : DecisionOrigins.Architecture;
         var reason = $"Padrões {profile.Name} da pasta Organização para a stack {(detected.Count > 0 ? "detectada" : "planejada na arquitetura aprovada")}.";
         List<string> evidence = detected.Count > 0 ? EvidencePaths(detected) : [_architecture.ArchitectureFile];
-        if (_components.Wants(profile.Component, applies, reason, evidence, $"Nenhuma stack {profile.Name} detectada nem planejada na arquitetura.", origin))
-            _desired.Add(new(Catalog.FilesOf(profile.Component, _naming).Single(), ComponentKind.Rule, profile.Component, origin,
-                $"Padrões {profile.Name} da pasta Organização, um por linha.", RuleContent.ForPatterns(profile, stacks, patterns, notes), "file"));
+        if (!_components.Wants(profile.Component, applies, reason, evidence, $"Nenhuma stack {profile.Name} detectada nem planejada na arquitetura.", origin))
+            return;
+
+        var path = Catalog.FilesOf(profile.Component, _naming).Single();
+        var provenance = ReferenceProvenances.Of(patterns);
+        _desired.Add(new(path, ComponentKind.Rule, profile.Component, origin, $"Padrões {profile.Name} da pasta Organização, um por linha.",
+            RuleContent.ForPatterns(profile, stacks, patterns, notes), "file", Reference: provenance));
+
+        // W3-3: numa revisão do catálogo, o plano diz o que mudou na regra que o projeto já tem, além de mostrar a atualização do arquivo.
+        if (ManagedLockFile.Read(files)?.Components.FirstOrDefault(component => component.Id == profile.Component)?.Reference is { } recorded
+            && ReferenceProvenances.Changes(recorded.ToProvenance(), provenance) is { Count: > 0 } changes)
+            _observations.Add(new("fact", $"A referência dos padrões {profile.Name} mudou: {string.Join("; ", changes)}.", [path]));
     }
 
     private static string Describe(PlannedStack item) => item.Area.Length == 0 ? item.Choice : $"{item.Choice} ({item.Area})";

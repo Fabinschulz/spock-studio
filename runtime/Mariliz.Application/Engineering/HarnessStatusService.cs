@@ -43,7 +43,8 @@ public sealed class HarnessStatusService(WorkspaceAuthorizer workspace, IProject
                 var componentFiles = filesByComponent.GetValueOrDefault(component.Id) ?? [];
                 var state = componentFiles.Count == 0 ? "intact" : componentFiles.MaxBy(file => Array.IndexOf(Severity, file.State))!.State;
                 return new HarnessComponentStatus(component.Id, HarnessLabels.Of(component.Id), component.Kind, component.Version, state,
-                    ComponentRequest.IsManageable(component.Id), componentFiles);
+                    ComponentRequest.IsManageable(component.Id), componentFiles,
+                    component.Reference is null ? [] : ReferenceProvenances.Staleness(component.Reference.ToProvenance()));
             })
             .OrderByDescending(component => Array.IndexOf(Severity, component.State))
             .ThenBy(component => component.Label, StringComparer.Ordinal)

@@ -76,7 +76,9 @@ Uma seção sem esse trecho, ou com "qualquer tecnologia", vale para todos os pr
 todas as seções.
 
 Mudou um arquivo daqui? A versão nova do motor leva o texto novo, e o índice de cada projeto se atualiza na próxima
-execução, pelo hash.
+execução, pelo hash. As regras de padrões já gravadas num projeto guardam no `spock.lock` a fonte, a data da análise e um
+hash de cada padrão: com o motor novo, a tela do Harness marca a regra como "Referência desatualizada" (data nova, padrão
+removido ou com texto novo), e o próximo plano diz o que mudou antes de atualizar o arquivo.
 
 O eval de referências (`intelligence/evaluations/references.py`) mede se a busca acha o padrão certo para cada stack sem
 trazer seção de outra. Ele roda sobre uma cópia dos documentos que o motor gera: depois de mudar esta pasta, regenere a cópia

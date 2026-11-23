@@ -25,6 +25,22 @@ public sealed class ManagedLockFile
         public string Id { get; set; } = "";
         public string Kind { get; set; } = "";
         public string Version { get; set; } = "";
+
+        // Só nas regras geradas da pasta Organização; nos outros componentes o campo nem aparece, e um lock antigo continua igual.
+        [YamlMember(DefaultValuesHandling = DefaultValuesHandling.OmitNull)]
+        public ReferenceSection? Reference { get; set; }
+    }
+
+    public sealed class ReferenceSection
+    {
+        public string Source { get; set; } = "";
+        public string AnalyzedAt { get; set; } = "";
+        public List<string> Patterns { get; set; } = [];
+
+        public ReferenceProvenance ToProvenance() => new(Source, AnalyzedAt, Patterns);
+
+        public static ReferenceSection From(ReferenceProvenance provenance) =>
+            new() { Source = provenance.Source, AnalyzedAt = provenance.AnalyzedAt, Patterns = [.. provenance.Patterns] };
     }
 
     public sealed class ManagedFileEntry

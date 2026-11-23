@@ -6,7 +6,10 @@ public sealed record HarnessFileStatus(string Path, string Mode, string State);
 
 public sealed record HarnessExcludedComponent(string Id, string Label, bool Manageable);
 
-public sealed record HarnessComponentStatus(string Id, string Label, string Kind, string Version, string State, bool Manageable, IReadOnlyList<HarnessFileStatus> Files);
+/// <param name="ReferenceChanges">Numa regra gerada da pasta Organização, o que o catálogo deste motor tem de diferente do que ela
+/// registrou (data da análise, padrões removidos, texto novo). Vazio quando está em dia ou não é regra de referência.</param>
+public sealed record HarnessComponentStatus(string Id, string Label, string Kind, string Version, string State, bool Manageable, IReadOnlyList<HarnessFileStatus> Files,
+    IReadOnlyList<string>? ReferenceChanges = null);
 
 // Só leitura: mudar componentes é pela jornada Configurar, que planeja, pede aprovação e permite reverter.
 public sealed record HarnessStatus(
