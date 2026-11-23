@@ -377,6 +377,30 @@
     },
     {
       "sheet": {
+        "id": "mariliz.rule.project-conventions",
+        "kind": "rule",
+        "title": "Convenções do projeto (da análise de arquitetura)",
+        "version": "0.1.0",
+        "whatItDoes": "Descreve como o código deste projeto está organizado hoje: camadas .NET, frameworks em uso, implementações próprias (como um mediador escrito em casa), a estrutura do frontend e as divergências já conhecidas. O agente segue isso antes dos padrões da pasta Organização.",
+        "whenItActs": "Sempre: o Claude Code carrega esta regra nas sessões deste projeto.",
+        "reads": [
+          "Nenhum arquivo do projeto: são instruções para o agente"
+        ],
+        "canChange": [
+          "Nada. É só orientação."
+        ],
+        "tools": [],
+        "origin": "Gerado pelo Spock Studio da análise de arquitetura do seu projeto (só leitura, sem modelo); muda quando a organização do código muda.",
+        "files": [
+          ".claude/rules/spock-project-conventions.md"
+        ],
+        "manageable": true
+      },
+      "presence": "applied",
+      "state": "intact"
+    },
+    {
+      "sheet": {
         "id": "mariliz.hook.policy",
         "kind": "hook",
         "title": "Hook de política",

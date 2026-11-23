@@ -28,10 +28,12 @@ public static class ArchitectureAnalysisDocuments
     {
         var warnings = report.Findings.Where(finding => finding.Severity == ArchitectureSeverities.Warning).ToList();
         var info = report.Findings.Where(finding => finding.Severity != ArchitectureSeverities.Warning).ToList();
-        if (report.DotnetProjects.Count == 0 && report.Frontends.Count == 0 && report.Findings.Count == 0) yield break;
+        if (report.DotnetProjects.Count == 0 && report.Frontends.Count == 0 && report.Findings.Count == 0 && report.OwnImplementations.Count == 0)
+            yield break;
 
         yield return ("visao-geral", "Visão geral", Overview(report, warnings));
-        if (report.DotnetProjects.Count > 0) yield return ("projetos-dotnet", "Projetos .NET", Projects(report.DotnetProjects));
+        if (report.DotnetProjects.Count > 0)
+            yield return ("projetos-dotnet", "Projetos .NET", Projects(report.DotnetProjects) + Own(report.OwnImplementations));
         if (report.Frontends.Count > 0) yield return ("frontend", "Frontend", Frontends(report.Frontends));
         if (info.Count > 0) yield return ("tamanho-e-testes", "Tamanho e testes", List(info));
     }
@@ -66,6 +68,10 @@ public static class ArchitectureAnalysisDocuments
             $"{Join(node.Frameworks)} | {(node.Layer == ArchitectureLayers.Tests ? "é teste" : node.Tested ? "sim" : "não")} |"));
         return string.Join('\n', lines);
     }
+
+    private static string Own(IReadOnlyList<OwnImplementation> own) =>
+        own.Count == 0 ? "" : "\n\nImplementações próprias, no lugar de pacote:\n" +
+            string.Join('\n', own.Select(item => $"- {item.Name} em {item.Folder}, no lugar de {item.Replaces}"));
 
     private static string Frontends(IReadOnlyList<FrontendModule> modules) =>
         string.Join("\n\n", modules.Select(module =>

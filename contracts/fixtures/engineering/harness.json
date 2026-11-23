@@ -93,6 +93,22 @@
       "referenceChanges": []
     },
     {
+      "id": "mariliz.rule.project-conventions",
+      "label": "Convenções do projeto (da análise de arquitetura)",
+      "kind": "rule",
+      "version": "0.1.0",
+      "state": "intact",
+      "manageable": true,
+      "files": [
+        {
+          "path": ".claude/rules/spock-project-conventions.md",
+          "mode": "file",
+          "state": "intact"
+        }
+      ],
+      "referenceChanges": []
+    },
+    {
       "id": "mariliz.hook.policy",
       "label": "Hook de política",
       "kind": "hook",
@@ -179,7 +195,7 @@
     }
   ],
   "excluded": [],
-  "intact": 9,
+  "intact": 10,
   "kept": 0,
   "modified": 1,
   "missing": 0

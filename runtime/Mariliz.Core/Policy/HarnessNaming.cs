@@ -28,6 +28,7 @@ public sealed class HarnessNaming
     public string RuleArchitecture => Rule("architecture");
     public string CustomRule(string id) => Rule("repo-" + id);
     public string PatternRule(string stack) => Rule("patterns-" + stack);
+    public string RuleProjectConventions => Rule("project-conventions");
     public string RulePrefix => $".claude/rules/{Prefix}-";
     public string HookScript => $".claude/hooks/{Prefix}-policy.py";
 

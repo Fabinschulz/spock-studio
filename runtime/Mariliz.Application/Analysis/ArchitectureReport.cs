@@ -8,7 +8,8 @@ public sealed record ArchitectureReport(
     DateTimeOffset AnalyzedAt,
     IReadOnlyList<DotnetProjectNode> DotnetProjects,
     IReadOnlyList<FrontendModule> Frontends,
-    IReadOnlyList<ArchitectureFinding> Findings);
+    IReadOnlyList<ArchitectureFinding> Findings,
+    IReadOnlyList<OwnImplementation> OwnImplementations);
 
 public sealed record DotnetProjectNode(string Path, string Name, string Layer, IReadOnlyList<string> References, IReadOnlyList<string> Frameworks, bool Tested);
 

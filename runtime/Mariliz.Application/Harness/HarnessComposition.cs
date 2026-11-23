@@ -1,3 +1,4 @@
+using Mariliz.Application.Analysis;
 using Mariliz.Application.Workflows;
 using Mariliz.Application.Discovery;
 using Mariliz.Application.Ideas;
@@ -313,6 +314,17 @@ internal sealed class HarnessComposition(
 
         foreach (var profile in PatternRuleProfiles.All)
             AddPatternRule(profile);
+        AddConventionRule();
+    }
+
+    private void AddConventionRule()
+    {
+        var analysis = ArchitectureAnalyzer.Analyze(report.ProjectId, files, DateTimeOffset.UnixEpoch);
+        if (_components.Wants(Catalog.RuleProjectConventions, ProjectConventions.Applies(analysis),
+                "A análise de arquitetura encontrou camadas .NET ou estrutura de frontend: o agente segue o que o projeto já faz.",
+                ProjectConventions.Evidence(analysis), "A análise de arquitetura não encontrou projeto .NET nem frontend React.", DecisionOrigins.Baseline))
+            _desired.Add(new(_naming.RuleProjectConventions, ComponentKind.Rule, Catalog.RuleProjectConventions, DecisionOrigins.Baseline,
+                "Convenções do projeto, da análise de arquitetura.", ProjectConventions.Render(analysis), "file"));
     }
 
     // Os frameworks que dizem que o projeto conversa com sistema externo: com eles, a §6.9 do catálogo entra na regra .NET.

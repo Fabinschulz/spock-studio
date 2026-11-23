@@ -91,7 +91,7 @@ Sem proposta, o plano usa as regras-base e **diz isso** (`proposalOrigin: baseli
 | Agents | `.claude/agents/{harness-engineer,code-reviewer,verifier}.md` | EV-AGENT: frontmatter, seções, ferramentas permitidas, somente leitura sem `Edit`/`Write` |
 | Skills | `.claude/skills/harness-contract/SKILL.md` | EV-SKILL |
 | Hooks | `.claude/hooks/mariliz-policy.py` + entrada em `.claude/settings.json` | EV-HOOK: executa o script com 11 payloads (rede, processos, escrita fora do projeto, `.env`…) |
-| Rules | `.claude/rules/mariliz-{general,stack-dotnet,stack-javascript,repo}.md`, `mariliz-patterns-{react,angular,dotnet,fullstack}.md` (padrões da pasta Organização por framework) (+ regras da proposta) | EV-RULE, EV-REF (referências) |
+| Rules | `.claude/rules/mariliz-{general,stack-dotnet,stack-javascript,repo}.md`, `mariliz-patterns-{react,angular,dotnet,fullstack}.md` (padrões da pasta Organização por framework), `mariliz-project-conventions.md` (convenções do próprio projeto, da análise de arquitetura) (+ regras da proposta) | EV-RULE, EV-REF (referências) |
 | Tools/MCPs | Só 4 regras `Read(./.env*)` negadas em `settings.json`; **nenhum MCP é instalado ou alterado**. Um `.mcp.json` existente é inventariado e varrido, não modificado | EV-SEC: sem credenciais em arquivos gerenciados, `.mcp.json`, `mariliz.yaml` e proposta |
 | Evals | `.mariliz/schemas/harness-proposal.v1.schema.json` e os 14 Evals abaixo | — |
 | Declaração e lock | `mariliz.yaml` (da pessoa; criado uma vez), `mariliz.lock` (gerado, sem timestamps) | EV-CONFIG, EV-LOCK, EV-IDEMP |
