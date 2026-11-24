@@ -1,24 +1,15 @@
 import { useAction, useReloadable } from '@/shared/hooks';
 import type { SelectedProject } from '@/features/project-selection';
 import { errorMessage } from '@/shared/api';
-import {
-  ConfirmAction,
-  DiffView,
-  ErrorState,
-  LoadingState,
-  Radio,
-  StatusChip,
-  SuccessState
-} from '@/shared/components';
-import { pathTo } from '@/shared/routing';
+import { DiffView, ErrorState, LoadingState, Radio, StatusChip } from '@/shared/components';
 import type { CloudConnection, IacBootstrapPlan, IacStateRead, IacStateRoot } from '@/shared/schema';
 import { Button, Checkbox, TextField } from '@mariliz/ui-kit';
 import { useCallback, useState } from 'react';
-import { Link } from 'react-router';
 
 import styles from '../infrastructure-page.module.scss';
 import { LINKED_UNREADABLE } from '../domain/linked-connections';
 import type { BootstrapInput, IacApi } from '../service/iac-api';
+import { ReviewedChanges, SavedFiles, SaveReviewedFiles } from './reviewed-files';
 
 interface StatePanelProps {
   api: IacApi;
@@ -69,7 +60,6 @@ export function StatePanel({ api, project, linked, ready }: StatePanelProps) {
   const [provider, setProvider] = useState<Provider | null>(null);
   const [values, setValues] = useState<Record<string, string>>({});
   const [plan, setPlan] = useState<IacBootstrapPlan | null>(null);
-  const [confirming, setConfirming] = useState(false);
   const [savedRun, setSavedRun] = useState<string | null>(null);
   const [useConnection, setUseConnection] = useState(true);
 
@@ -135,7 +125,11 @@ export function StatePanel({ api, project, linked, ready }: StatePanelProps) {
               </div>
               {read?.folder === root.folder ? (
                 <div aria-label={`State de ${root.folder || 'raiz'}`}>
-                  {read.error ? <p className={styles.error}>{read.error}</p> : null}
+                  {read.error ? (
+                    <p className={styles.error} role="alert">
+                      {read.error}
+                    </p>
+                  ) : null}
                   <p className={styles.hint}>
                     Workspaces: {read.workspaces.join(', ') || 'nenhum'} · {read.addresses.length} recurso(s) no{' '}
                     {read.workspace ?? 'default'}
@@ -153,26 +147,24 @@ export function StatePanel({ api, project, linked, ready }: StatePanelProps) {
           ))}
         </ul>
       )}
-      {action.error ? <p className={styles.error}>{action.error}</p> : null}
+      {action.error ? (
+        <p className={styles.error} role="alert">
+          {action.error}
+        </p>
+      ) : null}
 
       {recommendation ? <p>{recommendation.reason}</p> : null}
 
       {savedRun ? (
-        <SuccessState>
-          Arquivos do bootstrap gravados na execução {savedRun}, em <Link to={pathTo('runs')}>Execuções</Link> (dá para
-          desfazer por lá). Próximo passo: validar, planejar e aprovar a pasta bootstrap nesta tela.
-        </SuccessState>
+        <SavedFiles
+          runId={savedRun}
+          what="Arquivos do bootstrap gravados"
+          next="validar, planejar e aprovar a pasta bootstrap nesta tela."
+        />
       ) : plan ? (
         <section className={styles.consent} aria-label="Revisar o bootstrap">
           <p className={styles.rowTitle}>Revisar o bootstrap em {plan.folder}</p>
-          {plan.changes.map((change) => (
-            <div key={change.path}>
-              <p className={styles.hint}>
-                {change.path} · {change.op === 'create' ? 'arquivo novo' : 'alterado'}
-              </p>
-              <DiffView diff={change.diff} label={change.path} />
-            </div>
-          ))}
+          <ReviewedChanges changes={plan.changes} />
           <p className={styles.rowTitle}>Bloco backend para a raiz principal (depois que o bucket existir)</p>
           <DiffView diff={plan.backendBlock} label="bloco backend" />
           <ul className={styles.impacts}>
@@ -180,32 +172,18 @@ export function StatePanel({ api, project, linked, ready }: StatePanelProps) {
               <li key={note}>{note}</li>
             ))}
           </ul>
-          {confirming ? (
-            <ConfirmAction
-              label="Gravar os arquivos do bootstrap"
-              confirmLabel="Gravar"
-              busy={action.busy}
-              onConfirm={() => {
-                setConfirming(false);
-                void action.run(
-                  async () => setSavedRun(await api.bootstrapSave({ ...input(), planId: plan.planId })),
-                  'Os arquivos não foram gravados.'
-                );
-              }}
-              onCancel={() => setConfirming(false)}
-            >
-              Só arquivos vão para o projeto; nada é criado na nuvem agora.
-            </ConfirmAction>
-          ) : (
-            <div className={styles.actions}>
-              <Button type="button" disabled={action.busy} onClick={() => setConfirming(true)}>
-                Gravar no projeto
-              </Button>
-              <Button type="button" variant="outlined" disabled={action.busy} onClick={() => setPlan(null)}>
-                Voltar
-              </Button>
-            </div>
-          )}
+          <SaveReviewedFiles
+            what="os arquivos do bootstrap"
+            busy={action.busy}
+            onSave={() =>
+              void action.run(
+                async () => setSavedRun(await api.bootstrapSave({ ...input(), planId: plan.planId })),
+                'Os arquivos não foram gravados.'
+              )
+            }
+            onBack={() => setPlan(null)}
+            backLabel="Voltar"
+          />
         </section>
       ) : (
         <section className={styles.consent} aria-label="Bootstrap do state">

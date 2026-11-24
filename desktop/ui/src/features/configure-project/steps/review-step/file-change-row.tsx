@@ -1,4 +1,4 @@
-import { DiffView } from '@/shared/components/ui';
+import { DiffView, Disclosure } from '@/shared/components/ui';
 import type { ConflictResolution, FileChange } from '@/shared/schema';
 
 import { CheckboxField } from '../../components/choice-field';
@@ -42,12 +42,9 @@ export function FileChangeRow({ change, approved, resolution, onToggle, onResolv
       {isConflict ? <ConflictResolutionField change={change} resolution={resolution} onResolve={onResolve} /> : null}
 
       {change.diff ? (
-        <details className={styles.details}>
-          <summary className={styles.summary}>Ver diferenças</summary>
-          <div className={styles.body}>
-            <DiffView diff={change.diff} label={change.path} />
-          </div>
-        </details>
+        <Disclosure summary="Ver diferenças">
+          <DiffView diff={change.diff} label={change.path} />
+        </Disclosure>
       ) : null}
     </li>
   );

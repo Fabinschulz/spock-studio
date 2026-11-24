@@ -2,7 +2,7 @@ import { formatEngineDate } from '@/shared/utils';
 import { useAction, useReloadable } from '@/shared/hooks';
 import type { SelectedProject } from '@/features/project-selection';
 import { errorMessage } from '@/shared/api';
-import { ConfirmAction, ErrorState, LoadingState, Radio, StatusChip, SuccessState } from '@/shared/components';
+import { ConfirmGate, ErrorState, LoadingState, Radio, StatusChip, SuccessState } from '@/shared/components';
 import type { CloudConnection, IacDriftedResource, IacOperation } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
 import { Fragment, useCallback, useState, type ReactNode } from 'react';
@@ -230,7 +230,11 @@ export function IacOperations({ api, project, linked: read, ready }: IacOperatio
       ) : null}
       {!ready ? <p className={styles.hint}>Instale ou escolha a ferramenta acima para validar e planejar.</p> : null}
       {action.busy ? <LoadingState>Rodando… o init pode baixar providers na primeira vez.</LoadingState> : null}
-      {action.error ? <p className={styles.error}>{action.error}</p> : null}
+      {action.error ? (
+        <p className={styles.error} role="alert">
+          {action.error}
+        </p>
+      ) : null}
       {action.notice ? <SuccessState>{action.notice.text}</SuccessState> : null}
 
       {current ? (
@@ -319,27 +323,23 @@ function outcome(operation: IacOperation): { label: string; tone: 'success' | 'w
 }
 
 function UnlockLock({ lockId, busy, onConfirm }: { lockId: string; busy: boolean; onConfirm: () => void }) {
-  const [confirming, setConfirming] = useState(false);
-  return confirming ? (
-    <ConfirmAction
+  return (
+    <ConfirmGate
       label={`Liberar a trava ${lockId}`}
       confirmLabel="Liberar a trava"
       cancelLabel="Esperar"
       busy={busy}
-      onConfirm={() => {
-        setConfirming(false);
-        onConfirm();
-      }}
-      onCancel={() => setConfirming(false)}
+      message="Só libere se ninguém estiver aplicando agora: liberar a trava de um apply em andamento pode corromper o state."
+      onConfirm={onConfirm}
     >
-      Só libere se ninguém estiver aplicando agora: liberar a trava de um apply em andamento pode corromper o state.
-    </ConfirmAction>
-  ) : (
-    <div className={styles.actions}>
-      <Button type="button" variant="outlined" disabled={busy} onClick={() => setConfirming(true)}>
-        Liberar a trava do state
-      </Button>
-    </div>
+      {(ask) => (
+        <div className={styles.actions}>
+          <Button type="button" variant="outlined" disabled={busy} onClick={ask}>
+            Liberar a trava do state
+          </Button>
+        </div>
+      )}
+    </ConfirmGate>
   );
 }
 

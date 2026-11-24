@@ -1,8 +1,7 @@
-import { ConfirmAction, DiffView, ErrorState, InlineNotice, LoadingState, PageSection } from '@/shared/components';
+import { ConfirmGate, DiffView, ErrorState, InlineNotice, LoadingState, PageSection } from '@/shared/components';
 import { pathTo } from '@/shared/routing';
 import type { SecurityFixResult, SecurityPlan } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
-import { useState } from 'react';
 import { Link } from 'react-router';
 
 import type { SecurityFix } from '../hooks/use-security-fix';
@@ -51,7 +50,6 @@ function Review({
   onApply: (plan: SecurityPlan) => void;
   onClose: () => void;
 }) {
-  const [confirming, setConfirming] = useState(false);
   return (
     <PageSection title="Revisar a correção">
       <p className={styles.note}>
@@ -67,51 +65,46 @@ function Review({
           <DiffView diff={change.diff} label={change.path} />
         </div>
       ))}
-      {confirming ? (
-        <ConfirmAction
-          label="Aplicar a correção de segurança"
-          confirmLabel="Aplicar"
-          onConfirm={() => onApply(plan)}
-          onCancel={() => setConfirming(false)}
-        >
-          Os arquivos acima mudam como mostrado. Uma cópia fica guardada e dá para desfazer depois.
-        </ConfirmAction>
-      ) : (
-        <div className={styles.actions}>
-          <Button type="button" onClick={() => setConfirming(true)}>
-            Aplicar correção
-          </Button>
-          <Button type="button" variant="outlined" color="inherit" onClick={onClose}>
-            Agora não
-          </Button>
-        </div>
-      )}
+      <ConfirmGate
+        label="Aplicar a correção de segurança"
+        confirmLabel="Aplicar"
+        message="Os arquivos acima mudam como mostrado. Uma cópia fica guardada e dá para desfazer depois."
+        onConfirm={() => onApply(plan)}
+      >
+        {(ask) => (
+          <div className={styles.actions}>
+            <Button type="button" onClick={ask}>
+              Aplicar correção
+            </Button>
+            <Button type="button" variant="outlined" color="inherit" onClick={onClose}>
+              Agora não
+            </Button>
+          </div>
+        )}
+      </ConfirmGate>
     </PageSection>
   );
 }
 
 function Applied({ result, onRevert }: { result: SecurityFixResult; onRevert: (result: SecurityFixResult) => void }) {
-  const [confirming, setConfirming] = useState(false);
   return (
     <InlineNotice tone="success" title="Correção aplicada">
       {count(result.fixed, 'achado resolvido', 'achados resolvidos')}
       {result.remaining === null ? '.' : `; ${count(result.remaining, 'continua', 'continuam')} na lista abaixo.`} O
       registro fica em <Link to={pathTo('runs')}>Execuções</Link>.
       <div className={styles.actions}>
-        {confirming ? (
-          <ConfirmAction
-            label="Desfazer a correção de segurança"
-            confirmLabel="Desfazer"
-            onConfirm={() => onRevert(result)}
-            onCancel={() => setConfirming(false)}
-          >
-            Os arquivos voltam ao que eram antes da correção.
-          </ConfirmAction>
-        ) : (
-          <Button type="button" variant="outlined" color="inherit" onClick={() => setConfirming(true)}>
-            Desfazer correção
-          </Button>
-        )}
+        <ConfirmGate
+          label="Desfazer a correção de segurança"
+          confirmLabel="Desfazer"
+          message="Os arquivos voltam ao que eram antes da correção."
+          onConfirm={() => onRevert(result)}
+        >
+          {(ask) => (
+            <Button type="button" variant="outlined" color="inherit" onClick={ask}>
+              Desfazer correção
+            </Button>
+          )}
+        </ConfirmGate>
       </div>
     </InlineNotice>
   );

@@ -25,6 +25,7 @@ function renderAt(path: string) {
 describe('rotas', () => {
   it.each([
     ['configurações', paths.settings],
+    ['infraestrutura', paths.infrastructure],
     ['execução', executionPath('run-000000000000')]
   ])('no navegador, %s diz que precisa do aplicativo em vez de falhar', async (_, path) => {
     renderAt(path);

@@ -30,7 +30,6 @@ export type GenerateFlowState = {
   vpcs: DiscoveredVpc[] | null;
   plan: IacGeneratePlan | null;
   estimate: IacCostEstimate | null;
-  confirming: boolean;
   savedRun: string | null;
 };
 
@@ -45,7 +44,6 @@ export type GenerateFlowEvent =
   | { type: 'vpc'; vpc: DiscoveredVpc }
   | { type: 'planned'; plan: IacGeneratePlan }
   | { type: 'estimated'; estimate: IacCostEstimate }
-  | { type: 'confirming'; confirming: boolean }
   | { type: 'saved'; runId: string }
   | { type: 'back' };
 
@@ -56,7 +54,6 @@ export const startFlow = (providers: IacProviderOptions[]): GenerateFlowState =>
   vpcs: null,
   plan: null,
   estimate: null,
-  confirming: false,
   savedRun: null
 });
 
@@ -99,12 +96,10 @@ export function generateFlow(state: GenerateFlowState, event: GenerateFlowEvent)
       return { ...state, plan: event.plan };
     case 'estimated':
       return { ...state, estimate: event.estimate };
-    case 'confirming':
-      return { ...state, confirming: event.confirming };
     case 'saved':
-      return { ...state, confirming: false, savedRun: event.runId };
+      return { ...state, savedRun: event.runId };
     case 'back':
-      return { ...state, plan: null, estimate: null, confirming: false };
+      return { ...state, plan: null, estimate: null };
   }
 }
 
@@ -164,14 +159,12 @@ export function useGenerateFlow({ api, cloud, projectId, providers }: GenerateFl
           }),
         'Não foi possível consultar os preços pela conexão.'
       ),
-    save: (planId: string) => {
-      dispatch({ type: 'confirming', confirming: false });
-      return action.run(
+    save: (planId: string) =>
+      action.run(
         async () =>
           dispatch({ type: 'saved', runId: await api.generateSave({ projectId, blueprint: blueprint(), planId }) }),
         'Os arquivos não foram gravados.'
-      );
-    }
+      )
   };
 }
 

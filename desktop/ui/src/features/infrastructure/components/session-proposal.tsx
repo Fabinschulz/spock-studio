@@ -55,7 +55,11 @@ export function SessionProposal({ api, projectId, busy, onUse }: SessionProposal
           Ler a proposta de novo
         </Button>
       </div>
-      {proposal.error ? <p className={styles.error}>Não foi possível ler a proposta do agente.</p> : null}
+      {proposal.error ? (
+        <p className={styles.error} role="alert">
+          Não foi possível ler a proposta do agente.
+        </p>
+      ) : null}
       {current ? (
         <div aria-label="Proposta do agente">
           <p className={styles.hint}>

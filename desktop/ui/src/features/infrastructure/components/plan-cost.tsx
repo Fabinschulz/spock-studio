@@ -51,7 +51,11 @@ export function PlanCost({ api, projectId, plan, connection }: PlanCostProps) {
         >
           Estimar o custo do plano
         </Button>
-        {action.error ? <p className={styles.error}>{action.error}</p> : null}
+        {action.error ? (
+          <p className={styles.error} role="alert">
+            {action.error}
+          </p>
+        ) : null}
       </div>
     );
 

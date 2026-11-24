@@ -1,4 +1,4 @@
-import { ConfirmAction } from '@/shared/components';
+import { ConfirmGate } from '@/shared/components';
 import type { IacApplyRequirements, IacOperation, IacPlanSummary } from '@/shared/schema';
 import { Button, Checkbox, TextField } from '@mariliz/ui-kit';
 import { useState } from 'react';
@@ -26,7 +26,6 @@ export function PlanApproval({ plan, summary, requirements, busy, onApply }: Pla
   const [destroyConfirmed, setDestroyConfirmed] = useState(false);
   const [risksAccepted, setRisksAccepted] = useState(false);
   const [typed, setTyped] = useState('');
-  const [confirming, setConfirming] = useState(false);
 
   const destructive = summary.changes.filter((change) => change.action === 'delete' || change.action === 'replace');
   const workspace = plan.workspace ?? 'default';
@@ -83,32 +82,28 @@ export function PlanApproval({ plan, summary, requirements, busy, onApply }: Pla
         />
       ) : null}
 
-      {confirming ? (
-        <ConfirmAction
-          label={`Aplicar o plano ${requirements.planId}`}
-          confirmLabel="Aplicar agora"
-          cancelLabel="Não aplicar"
-          busy={busy}
-          onConfirm={() => {
-            setConfirming(false);
-            onApply({
-              destroyConfirmed,
-              risksAccepted,
-              ...(production !== null ? { workspaceConfirmation: typed.trim() } : {})
-            });
-          }}
-          onCancel={() => setConfirming(false)}
-        >
-          Isto muda a infraestrutura de {workspace}: criar {summary.create}, alterar {summary.update}, substituir{' '}
-          {summary.replace}, destruir {summary.delete}.
-        </ConfirmAction>
-      ) : (
-        <div className={styles.actions}>
-          <Button type="button" disabled={busy || !ready} onClick={() => setConfirming(true)}>
-            Aprovar e aplicar
-          </Button>
-        </div>
-      )}
+      <ConfirmGate
+        label={`Aplicar o plano ${requirements.planId}`}
+        confirmLabel="Aplicar agora"
+        cancelLabel="Não aplicar"
+        busy={busy}
+        message={`Isto muda a infraestrutura de ${workspace}: criar ${summary.create}, alterar ${summary.update}, substituir ${summary.replace}, destruir ${summary.delete}.`}
+        onConfirm={() =>
+          onApply({
+            destroyConfirmed,
+            risksAccepted,
+            ...(production !== null ? { workspaceConfirmation: typed.trim() } : {})
+          })
+        }
+      >
+        {(ask) => (
+          <div className={styles.actions}>
+            <Button type="button" disabled={busy || !ready} onClick={ask}>
+              Aprovar e aplicar
+            </Button>
+          </div>
+        )}
+      </ConfirmGate>
     </section>
   );
 }

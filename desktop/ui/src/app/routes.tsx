@@ -1,32 +1,32 @@
-import { RequiresHost } from '@/shared/components';
+import { LoadingState, RequiresHost } from '@/shared/components';
 import { executionPattern, paths } from '@/shared/routing';
-import { Navigate, type RouteObject } from 'react-router';
+import { lazy, Suspense, type ComponentType } from 'react';
+import { Navigate, Outlet, type RouteObject } from 'react-router';
 import { WindowLayout, WindowLayoutError } from './layouts/window-layout';
-import Agents from './routes/agents';
-import Assistant from './routes/assistant';
-import Configure from './routes/configure';
-import EngineeringRequest from './routes/engineering-request';
-import Execution from './routes/execution';
 import Home from './routes/home';
-import Cloud from './routes/cloud';
-import Infrastructure from './routes/infrastructure';
-import Integrations from './routes/integrations';
-import Management from './routes/management';
-import Idea from './routes/idea';
-import Security from './routes/security';
-import Portfolio from './routes/portfolio';
-import Project from './routes/project';
-import Report from './routes/report';
-import ProjectCatalog from './routes/project-catalog';
-import Timeline from './routes/timeline';
-import Audit from './routes/audit';
-import ProjectArchitecture from './routes/project-architecture';
-import ProjectHarness from './routes/project-harness';
-import ProjectKnowledge from './routes/project-knowledge';
-import Runs from './routes/runs';
-import SettingsAi from './routes/settings-ai';
-import SettingsAbout from './routes/settings-about';
-import SettingsDiagnostics from './routes/settings-diagnostics';
+
+// A tela inicial vem no pacote principal; as outras são baixadas na primeira vez que a pessoa abre cada uma.
+const page = (load: () => Promise<{ default: ComponentType }>) => {
+  const Page = lazy(load);
+  return <Page />;
+};
+
+/** As telas que falam com o motor: no navegador (prévia), todas dizem que só funcionam no aplicativo. */
+function HostOnly() {
+  return (
+    <RequiresHost>
+      <Outlet />
+    </RequiresHost>
+  );
+}
+
+function Pages() {
+  return (
+    <Suspense fallback={<LoadingState>Abrindo a tela…</LoadingState>}>
+      <Outlet />
+    </Suspense>
+  );
+}
 
 // Os caminhos vêm de `shared/routing`: a navegação e as rotas não podem divergir.
 export const routes: RouteObject[] = [
@@ -37,177 +37,40 @@ export const routes: RouteObject[] = [
     children: [
       { index: true, element: <Home /> },
       {
-        path: paths.project,
-        element: (
-          <RequiresHost>
-            <Project />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.projectHarness,
-        element: (
-          <RequiresHost>
-            <ProjectHarness />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.projectCatalog,
-        element: (
-          <RequiresHost>
-            <ProjectCatalog />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.projectKnowledge,
-        element: (
-          <RequiresHost>
-            <ProjectKnowledge />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.projectArchitecture,
-        element: (
-          <RequiresHost>
-            <ProjectArchitecture />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.timeline,
-        element: (
-          <RequiresHost>
-            <Timeline />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.audit,
-        element: (
-          <RequiresHost>
-            <Audit />
-          </RequiresHost>
-        )
-      },
-      { path: paths.configure, element: <Configure /> },
-      { path: paths.engineeringRequest, element: <EngineeringRequest /> },
-      {
-        path: paths.agents,
-        element: (
-          <RequiresHost>
-            <Agents />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.idea,
-        element: (
-          <RequiresHost>
-            <Idea />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.security,
-        element: (
-          <RequiresHost>
-            <Security />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.portfolio,
-        element: (
-          <RequiresHost>
-            <Portfolio />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.assistant,
-        element: (
-          <RequiresHost>
-            <Assistant />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.report,
-        element: (
-          <RequiresHost>
-            <Report />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.management,
-        element: (
-          <RequiresHost>
-            <Management />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.runs,
-        element: (
-          <RequiresHost>
-            <Runs />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.integrations,
-        element: (
-          <RequiresHost>
-            <Integrations />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.cloud,
-        element: (
-          <RequiresHost>
-            <Cloud />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.infrastructure,
-        element: (
-          <RequiresHost>
-            <Infrastructure />
-          </RequiresHost>
-        )
-      },
-      {
-        path: paths.connectionsModels,
-        element: (
-          <RequiresHost>
-            <SettingsAi />
-          </RequiresHost>
-        )
-      },
-      { path: paths.settings, element: <Navigate to={paths.settingsAi} replace /> },
-      {
-        path: paths.settingsAi,
-        element: (
-          <RequiresHost>
-            <SettingsAi />
-          </RequiresHost>
-        )
-      },
-      { path: paths.settingsDiagnostics, element: <SettingsDiagnostics /> },
-      { path: paths.settingsAbout, element: <SettingsAbout /> },
-      {
-        path: executionPattern,
-        element: (
-          <RequiresHost>
-            <Execution />
-          </RequiresHost>
-        )
+        element: <Pages />,
+        children: [
+          { path: paths.configure, element: page(() => import('./routes/configure')) },
+          { path: paths.engineeringRequest, element: page(() => import('./routes/engineering-request')) },
+          { path: paths.settings, element: <Navigate to={paths.settingsAi} replace /> },
+          { path: paths.settingsDiagnostics, element: page(() => import('./routes/settings-diagnostics')) },
+          { path: paths.settingsAbout, element: page(() => import('./routes/settings-about')) },
+          {
+            element: <HostOnly />,
+            children: [
+              { path: paths.project, element: page(() => import('./routes/project')) },
+              { path: paths.projectHarness, element: page(() => import('./routes/project-harness')) },
+              { path: paths.projectCatalog, element: page(() => import('./routes/project-catalog')) },
+              { path: paths.projectKnowledge, element: page(() => import('./routes/project-knowledge')) },
+              { path: paths.projectArchitecture, element: page(() => import('./routes/project-architecture')) },
+              { path: paths.timeline, element: page(() => import('./routes/timeline')) },
+              { path: paths.audit, element: page(() => import('./routes/audit')) },
+              { path: paths.agents, element: page(() => import('./routes/agents')) },
+              { path: paths.idea, element: page(() => import('./routes/idea')) },
+              { path: paths.security, element: page(() => import('./routes/security')) },
+              { path: paths.portfolio, element: page(() => import('./routes/portfolio')) },
+              { path: paths.assistant, element: page(() => import('./routes/assistant')) },
+              { path: paths.report, element: page(() => import('./routes/report')) },
+              { path: paths.management, element: page(() => import('./routes/management')) },
+              { path: paths.runs, element: page(() => import('./routes/runs')) },
+              { path: paths.integrations, element: page(() => import('./routes/integrations')) },
+              { path: paths.cloud, element: page(() => import('./routes/cloud')) },
+              { path: paths.infrastructure, element: page(() => import('./routes/infrastructure')) },
+              { path: paths.connectionsModels, element: page(() => import('./routes/settings-ai')) },
+              { path: paths.settingsAi, element: page(() => import('./routes/settings-ai')) },
+              { path: executionPattern, element: page(() => import('./routes/execution')) }
+            ]
+          }
+        ]
       }
     ]
   }

@@ -44,6 +44,12 @@ function renderPanel(replies: Record<string, unknown> = {}) {
 
 const panel = () => screen.findByRole('group', { name: 'Desenho da infraestrutura' });
 
+// Colar em vez de digitar letra a letra: os ids da nuvem são longos e a suíte inteira roda sob carga.
+async function fill(view: HTMLElement, label: string, value: string) {
+  await userEvent.click(within(view).getByLabelText(label));
+  await userEvent.paste(value);
+}
+
 const radioNames = (group: HTMLElement) =>
   within(group)
     .getAllByRole('radio')
@@ -101,9 +107,9 @@ describe('Desenho da infraestrutura por nuvem', () => {
     expect(within(view).getByLabelText('Armazenamento (GB)')).toHaveAccessibleDescription('Entre 10 e 1000.');
     expect(within(view).getByLabelText('Alta disponibilidade (réplica em outra zona)')).toBeInTheDocument();
 
-    await userEvent.type(within(view).getByLabelText('Nome do projeto'), 'loja-api');
-    await userEvent.type(within(view).getByLabelText('Região'), 'southamerica-east1');
-    await userEvent.type(within(view).getByLabelText('Projeto do Google Cloud'), 'loja-producao-123');
+    await fill(view, 'Nome do projeto', 'loja-api');
+    await fill(view, 'Região', 'southamerica-east1');
+    await fill(view, 'Projeto do Google Cloud', 'loja-producao-123');
     await userEvent.type(
       within(view).getByLabelText('Rede VPC do banco'),
       'projects/loja-producao-123/global/networks/loja'
@@ -136,11 +142,11 @@ describe('Desenho da infraestrutura por nuvem', () => {
     expect(within(view).getByLabelText('Filas do Service Bus')).toBeInTheDocument();
     expect(within(view).queryByLabelText('Grupo de recursos da storage account')).not.toBeInTheDocument();
 
-    await userEvent.type(within(view).getByLabelText('Subnet delegada ao PostgreSQL'), 'subnet-id');
-    await userEvent.type(within(view).getByLabelText('Zona DNS privada do PostgreSQL'), 'zona-id');
-    await userEvent.type(within(view).getByLabelText('Storage account de state (opcional)'), 'lojatfstate');
-    await userEvent.type(within(view).getByLabelText('Grupo de recursos da storage account'), 'loja-tfstate');
-    await userEvent.type(within(view).getByLabelText('Container do state'), 'tfstate');
+    await fill(view, 'Subnet delegada ao PostgreSQL', 'subnet-id');
+    await fill(view, 'Zona DNS privada do PostgreSQL', 'zona-id');
+    await fill(view, 'Storage account de state (opcional)', 'lojatfstate');
+    await fill(view, 'Grupo de recursos da storage account', 'loja-tfstate');
+    await fill(view, 'Container do state', 'tfstate');
     await userEvent.click(within(view).getByRole('button', { name: 'Revisar os arquivos' }));
 
     await screen.findByLabelText('Revisar a infraestrutura gerada');
@@ -166,7 +172,7 @@ describe('Desenho da infraestrutura por nuvem', () => {
     };
     renderPanel({ 'iac.generate.plan': failing });
     const view = await panel();
-    await userEvent.type(within(view).getByLabelText('Nome do projeto'), 'loja-api');
+    await fill(view, 'Nome do projeto', 'loja-api');
     await userEvent.click(within(view).getByRole('button', { name: 'Revisar os arquivos' }));
 
     const review = await screen.findByLabelText('Revisar a infraestrutura gerada');
