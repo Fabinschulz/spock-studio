@@ -13,6 +13,7 @@ pub const MAX_MESSAGE_BYTES: usize = 4 * 1024 * 1024;
 /// ciclo de vida do host.
 pub const FRONTEND_METHODS: &[&str] = &[
     "project.discover",
+    "project.architecture",
     "harness.plan",
     "harness.apply",
     "harness.validate",

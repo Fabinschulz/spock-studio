@@ -7,6 +7,7 @@ public static class ProtocolMethods
     public const string AuthorizeWorkspace = "workspace.authorize";
 
     public const string Discover = "project.discover";
+    public const string ProjectArchitecture = "project.architecture";
     public const string Plan = "harness.plan";
     public const string Apply = "harness.apply";
     public const string Validate = "harness.validate";
@@ -122,7 +123,7 @@ public static class ProtocolMethods
     public const string IacDriftScheduleSet = "iac.drift.schedule.set";
 
     public static readonly IReadOnlyList<string> Configure =
-        [Discover, Plan, Apply, Validate, Revert, Runs];
+        [Discover, ProjectArchitecture, Plan, Apply, Validate, Revert, Runs];
 
     public static readonly IReadOnlyList<string> RunControl = [Snapshot, Cancel, RunList, RunDetail, RunLink, RunUnlink, RunLinked];
 

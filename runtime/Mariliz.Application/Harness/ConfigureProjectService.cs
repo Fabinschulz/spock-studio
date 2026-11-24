@@ -37,6 +37,14 @@ public sealed class ConfigureProjectService(
         return ArchitectureAnalyzer.Analyze(projectId, files, clock.UtcNow);
     }
 
+    // A avaliação é conferida contra a mesma análise: um achado que sumiu do código aparece como citação que não existe mais.
+    public ProjectArchitecture Architecture(string projectId)
+    {
+        var (_, files) = Open(projectId);
+        var report = ArchitectureAnalyzer.Analyze(projectId, files, clock.UtcNow);
+        return new ProjectArchitecture(report, ArchitectureAssessments.Read(files, report), ArchitectureAssessments.PathIn(files));
+    }
+
     public async Task<ConfigurationPlan> PlanAsync(string projectId, PlanOptions options, CancellationToken ct)
     {
         var (root, files) = Open(projectId);

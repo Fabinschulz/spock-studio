@@ -68,7 +68,8 @@ internal static class McpEntry
             workspace => ContextComposition.Engine(workspace, dataRoot, clock, audit, connectorTransport, tokenizers));
         try
         {
-            await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. cloud.Tools(), .. iac.Tools()]).RunStdioAsync(ct);
+            var assessment = new ArchitectureAssessmentTools(workspaces, new LocalProjectFilesFactory(), workingDirectory, options.Scope, audit);
+            await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. assessment.Tools(), .. cloud.Tools(), .. iac.Tools()]).RunStdioAsync(ct);
         }
         catch (OperationCanceledException)
         {

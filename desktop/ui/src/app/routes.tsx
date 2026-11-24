@@ -20,6 +20,7 @@ import Report from './routes/report';
 import ProjectCatalog from './routes/project-catalog';
 import Timeline from './routes/timeline';
 import Audit from './routes/audit';
+import ProjectArchitecture from './routes/project-architecture';
 import ProjectHarness from './routes/project-harness';
 import ProjectKnowledge from './routes/project-knowledge';
 import Runs from './routes/runs';
@@ -64,6 +65,14 @@ export const routes: RouteObject[] = [
         element: (
           <RequiresHost>
             <ProjectKnowledge />
+          </RequiresHost>
+        )
+      },
+      {
+        path: paths.projectArchitecture,
+        element: (
+          <RequiresHost>
+            <ProjectArchitecture />
           </RequiresHost>
         )
       },

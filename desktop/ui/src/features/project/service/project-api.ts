@@ -7,6 +7,7 @@ import {
   harnessStatusSchema,
   mcpInventorySchema,
   profileResultSchema,
+  projectArchitectureSchema,
   projectKnowledgeSchema,
   runsSchema,
   type AgentPolicy,
@@ -15,6 +16,7 @@ import {
   type HarnessRevisions,
   type HarnessStatus,
   type McpInventory,
+  type ProjectArchitecture,
   type ProjectKnowledge,
   type RunSummary,
   type ProfileResult
@@ -42,6 +44,12 @@ export async function refreshProfile(client: EngineClient, projectId: string): P
 /** O índice só é consultado se a inteligência local já estiver ligada. */
 export function readKnowledge(client: EngineClient, projectId: string): Promise<ProjectKnowledge> {
   return client.request('engineering.knowledge', { projectId }, projectKnowledgeSchema);
+}
+
+/** Lê o código de novo a cada chamada e confere a avaliação contra essa mesma análise; não chama modelo. */
+export async function readArchitecture(client: EngineClient, projectId: string): Promise<ProjectArchitecture> {
+  const { architecture } = await client.request('project.architecture', { projectId }, projectArchitectureSchema);
+  return architecture;
 }
 
 export function readHarness(client: EngineClient, projectId: string): Promise<HarnessStatus> {

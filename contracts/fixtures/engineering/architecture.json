@@ -1,0 +1,179 @@
+{
+  "architecture": {
+    "report": {
+      "projectId": "p-000000000001",
+      "analyzedAt": "2026-11-24T12:00:00+00:00",
+      "dotnetProjects": [
+        {
+          "path": "Svc.Api/Svc.Api.csproj",
+          "name": "Svc.Api",
+          "layer": "host",
+          "references": [
+            "Svc.Application/Svc.Application.csproj",
+            "Svc.Infrastructure/Svc.Infrastructure.csproj"
+          ],
+          "frameworks": [],
+          "tested": false
+        },
+        {
+          "path": "Svc.Application/Svc.Application.csproj",
+          "name": "Svc.Application",
+          "layer": "application",
+          "references": [
+            "Svc.Domain/Svc.Domain.csproj",
+            "Svc.Infrastructure/Svc.Infrastructure.csproj"
+          ],
+          "frameworks": [],
+          "tested": false
+        },
+        {
+          "path": "Svc.Domain/Svc.Domain.csproj",
+          "name": "Svc.Domain",
+          "layer": "domain",
+          "references": [],
+          "frameworks": [],
+          "tested": false
+        },
+        {
+          "path": "Svc.Infrastructure/Svc.Infrastructure.csproj",
+          "name": "Svc.Infrastructure",
+          "layer": "infrastructure",
+          "references": [
+            "Svc.Domain/Svc.Domain.csproj"
+          ],
+          "frameworks": [],
+          "tested": false
+        }
+      ],
+      "frontends": [],
+      "findings": [
+        {
+          "code": "dependency-direction",
+          "severity": "warning",
+          "title": "Svc.Application (aplicação) depende de Svc.Infrastructure (infraestrutura)",
+          "evidence": [
+            {
+              "path": "Svc.Application/Svc.Application.csproj",
+              "detail": "ProjectReference=Svc.Infrastructure/Svc.Infrastructure.csproj"
+            }
+          ]
+        },
+        {
+          "code": "untested-project",
+          "severity": "info",
+          "title": "Nenhum projeto de teste .NET",
+          "evidence": [
+            {
+              "path": "Svc.Api/Svc.Api.csproj",
+              "detail": null
+            },
+            {
+              "path": "Svc.Application/Svc.Application.csproj",
+              "detail": null
+            },
+            {
+              "path": "Svc.Domain/Svc.Domain.csproj",
+              "detail": null
+            }
+          ]
+        }
+      ],
+      "ownImplementations": []
+    },
+    "assessment": {
+      "path": ".spock/architecture-assessment.json",
+      "summary": "Camadas separadas por projeto; a aplicação depende da infraestrutura, o que inverte a direção esperada.",
+      "conventions": [
+        {
+          "title": "Um projeto por camada, com o nome da camada no sufixo",
+          "files": [
+            "Svc.Domain/Svc.Domain.csproj",
+            "Svc.Api"
+          ]
+        }
+      ],
+      "divergences": [
+        {
+          "title": "Aplicação referencia a infraestrutura",
+          "classification": "risk",
+          "description": "Svc.Application conhece detalhes de infraestrutura; trocar o banco obriga a mexer nos casos de uso.",
+          "files": [
+            "Svc.Application/Svc.Application.csproj",
+            "Svc.Application/Pedidos/CriarPedido.cs:2"
+          ],
+          "references": [
+            "REF-N1"
+          ],
+          "findings": [
+            "dependency-direction"
+          ],
+          "recommendation": "Criar a interface do repositório na aplicação e mover a implementação para a infraestrutura, um caso de uso por vez."
+        }
+      ],
+      "checks": [
+        {
+          "id": "summary",
+          "description": "Resumo da avaliação",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "limits",
+          "description": "Até 30 divergências e 20 convenções",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "divergence-text",
+          "description": "Toda divergência tem título, descrição e recomendação",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "classification",
+          "description": "Toda divergência é classificada como risk, cost ou style",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "evidence",
+          "description": "Toda divergência cita ao menos um arquivo do projeto",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "grounded",
+          "description": "Toda divergência se apoia numa referência (REF-*) ou num achado da análise do Spock",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "files-exist",
+          "description": "Todo arquivo citado existe no projeto",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "references-exist",
+          "description": "Toda referência citada existe na pasta Organização",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "findings-exist",
+          "description": "Todo achado citado está na análise atual do Spock",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "conventions-evidence",
+          "description": "Toda convenção tem título e cita um arquivo do projeto",
+          "passed": true,
+          "detail": null
+        }
+      ],
+      "valid": true
+    },
+    "assessmentPath": ".spock/architecture-assessment.json"
+  }
+}

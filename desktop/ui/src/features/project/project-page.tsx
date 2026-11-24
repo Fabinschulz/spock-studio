@@ -68,6 +68,15 @@ function MoreSection() {
             <span className={styles.meta}> · o que os agentes podem ler do projeto e o que fica de fora</span>
           </span>
         </li>
+        <li className={styles.row}>
+          <span>
+            <Link to={pathTo('projectArchitecture')}>Arquitetura</Link>
+            <span className={styles.meta}>
+              {' '}
+              · o que o código é hoje e a avaliação do seu agente contra as referências
+            </span>
+          </span>
+        </li>
       </ul>
     </PageSection>
   );

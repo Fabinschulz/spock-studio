@@ -38,6 +38,7 @@ import engineeringKnowledgeExternal from '@contracts/fixtures/engineering/knowle
 import engineeringMcp from '@contracts/fixtures/engineering/mcp.json';
 import engineeringPolicy from '@contracts/fixtures/engineering/policy.json';
 import engineeringKnowledge from '@contracts/fixtures/engineering/knowledge.json';
+import engineeringArchitecture from '@contracts/fixtures/engineering/architecture.json';
 import engineeringRevisions from '@contracts/fixtures/engineering/revisions.json';
 import engineeringProfile from '@contracts/fixtures/engineering/profile.json';
 import applyResult from '@contracts/fixtures/golden/apply-result.json';
@@ -129,6 +130,7 @@ import {
   ideaDraftSchema,
   ideaPlanSchema,
   ideaSpecificationView,
+  projectArchitectureSchema,
   projectKnowledgeSchema,
   portfolioAnswerSchema,
   portfolioEvidenceSchema,
@@ -313,6 +315,18 @@ describe('contrato do perfil tecnológico (fixture do motor)', () => {
     expect(profile?.technologies[0]).toMatchObject({ id: 'nextjs', category: 'Framework web' });
     expect(profile?.harness[0]?.covered).toBe(true);
     expect(profile?.history[0]?.kind).toBe('created');
+  });
+});
+
+describe('contrato da arquitetura do projeto (fixture do motor)', () => {
+  it('análise com evidência e avaliação do agente conferida, com a classificação de cada divergência', () => {
+    const { report, assessment, assessmentPath } =
+      projectArchitectureSchema.parse(engineeringArchitecture).architecture;
+    expect(report.findings.map((finding) => finding.code)).toEqual(['dependency-direction', 'untested-project']);
+    expect(assessmentPath).toBe('.spock/architecture-assessment.json');
+    expect(assessment?.valid).toBe(true);
+    expect(assessment?.divergences.map((divergence) => divergence.classification)).toEqual(['risk']);
+    expect(assessment?.checks.every((check) => check.passed)).toBe(true);
   });
 });
 
