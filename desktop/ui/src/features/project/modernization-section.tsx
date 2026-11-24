@@ -183,7 +183,8 @@ function Versions({ versions }: { versions: ProjectModernization['versions'] }) 
       <ul className={styles.plainList} aria-label="Versões atrás da recomendada">
         {versions.map((finding) => (
           <li key={finding.id}>
-            {finding.id} · {finding.root || 'raiz'}: {finding.name} {finding.version ?? finding.cycle}{' '}
+            {finding.id} · {finding.root === '' || finding.root === '.' ? 'raiz' : finding.root}: {finding.name}{' '}
+            {finding.version ?? finding.cycle}{' '}
             <StatusChip tone={finding.status === 'end-of-life' ? 'danger' : 'warning'}>
               {finding.statusLabel}
             </StatusChip>{' '}

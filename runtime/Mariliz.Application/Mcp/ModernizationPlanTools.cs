@@ -92,7 +92,7 @@ public sealed class ModernizationPlanTools(Func<WorkspaceAuthorizer> workspaces,
         text.Append("\n## Versões atrás da recomendada (cite pelo id em upgrade.finding)\n\n");
         foreach (var finding in versions)
         {
-            var root = finding.Root.Length == 0 ? "raiz" : finding.Root;
+            var root = finding.Root is "" or "." ? "raiz" : finding.Root;
             text.Append($"- {finding.Id} {root}: {finding.Name} {finding.Version ?? finding.Cycle} ({finding.StatusLabel}{(finding.Eol is null ? "" : $", fim do suporte {finding.Eol}")}). ");
             text.Append($"Recomendada: {finding.Target}. Caminho: {finding.Cycle} → {string.Join(" → ", finding.Hops.Select(hop => hop.To))}\n");
             foreach (var hop in finding.Hops)
