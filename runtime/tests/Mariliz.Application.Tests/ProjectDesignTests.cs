@@ -134,6 +134,13 @@ public sealed class ProjectDesignTests : IDisposable
                 a["factors"]!.AsArray().Add(new JsonObject { ["id"] = "F5", ["criterion"] = "10.4-front-e-back-na-mesma-linguagem-bff-fino", ["fact"] = "O painel é um BFF fino.", ["favors"] = "outra" });
                 Stack(a, 0)["factors"] = new JsonArray("F1", "F2", "F4", "F5");
             } },
+        { "a mesma linha citada duas vezes não desempata", "consistent", a =>
+            {
+                a["factors"]!.AsArray().Add(new JsonObject { ["id"] = "F4", ["criterion"] = "10.4-ia-ml-ciencia-de-dados", ["fact"] = "Classificação de pedidos por ML.", ["favors"] = "outra" });
+                a["factors"]!.AsArray().Add(new JsonObject { ["id"] = "F5", ["criterion"] = "10.4-ia-ml-ciencia-de-dados", ["fact"] = "Previsão de demanda por ML.", ["favors"] = "outra" });
+                Stack(a, 0)["option"] = "outra";
+                Stack(a, 0)["factors"] = new JsonArray("F1", "F4", "F5");
+            } },
         { "sem alternativa descartada", "tradeoffs", a => Stack(a, 0)["alternatives"] = new JsonArray() },
         { "alternativa sem motivo", "tradeoffs", a => Stack(a, 1)["alternatives"]![0]!["whyNot"] = "" },
         { "sem trade-off", "tradeoffs", a => { Stack(a, 2).Remove("tradeoffs"); } }
