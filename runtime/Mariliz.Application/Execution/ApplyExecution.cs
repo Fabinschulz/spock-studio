@@ -69,7 +69,7 @@ internal sealed class ApplyExecution(
 
         var fresh = await replan(ct);
         if (fresh.Plan.PlanId != Plan.PlanId)
-            throw new EngineException("STALE_PLAN", "O projeto mudou desde que o plano foi gerado. Gere o plano de novo e revise as diferenças.");
+            throw EngineErrors.StalePlan("O projeto mudou desde que o plano foi gerado. Gere o plano de novo e revise as diferenças.");
 
         approvals.EnsureBelongTo(Plan);
         var commands = Plan.Commands.Where(c => approvals.CommandIds.Contains(c.Id)).ToList();

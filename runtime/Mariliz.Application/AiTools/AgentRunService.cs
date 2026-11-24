@@ -33,7 +33,7 @@ public sealed class AgentRunService(
             throw new ParamException($"O pedido precisa ter entre 1 e {MaxPromptChars} caracteres.");
         var tool = AiToolCatalog.All.FirstOrDefault(entry => entry.Id == toolId && entry.ReadOnly is not null)
             ?? throw new ParamException("Ferramenta de IA desconhecida.");
-        if (!workspace.TryGetRoot(projectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
+        var root = workspace.RequireRoot(projectId);
         var executable = locator.Find(tool.Binary)
             ?? throw new EngineException("AGENT_NOT_INSTALLED", $"{tool.Name} não está instalado neste computador.");
         if (!tracker.TryStart(projectId, RunKinds.Agent, out var run) || run is null) throw EngineErrors.RunInProgress();

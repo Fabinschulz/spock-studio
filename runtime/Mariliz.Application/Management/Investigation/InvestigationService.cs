@@ -7,6 +7,7 @@ using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Timeline;
 using Mariliz.Application.Workspace;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Management.Investigation;
 
@@ -112,7 +113,7 @@ public sealed class InvestigationService
             }
 
             var result = Verify(ack, pack, investigationId, grant is not null, usage, _models?.Calls(executionId), documents);
-            _hub.Audit.Record("management.investigation_answered", new JsonObject
+            _hub.Audit.Record(AuditActions.InvestigationAnswered, new JsonObject
             {
                 ["projectId"] = projectId,
                 ["rounds"] = result.Rounds,

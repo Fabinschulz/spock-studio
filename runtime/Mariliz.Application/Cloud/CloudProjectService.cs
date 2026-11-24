@@ -3,6 +3,7 @@ using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Cloud;
 
@@ -35,7 +36,7 @@ public sealed class CloudProjectService(
             link = new CloudProjectLink(CloudConnectionService.NewId("clink-"), projectId, connectionId, connection.Provider, clean, agentAccess, clock.UtcNow);
             store.SaveLink(link);
         }
-        Audit("cloud.linked", link, connection.Name);
+        Audit(AuditActions.CloudLinked, link, connection.Name);
         return link;
     }
 
@@ -48,7 +49,7 @@ public sealed class CloudProjectService(
             AgentAccess = agentAccess ?? before.AgentAccess
         };
         lock (_gate) store.SaveLink(after);
-        audit.Record("cloud.scope_changed", new JsonObject
+        audit.Record(AuditActions.CloudScopeChanged, new JsonObject
         {
             ["projectId"] = projectId, ["linkId"] = linkId, ["connectionId"] = after.ConnectionId,
             ["capabilities"] = new JsonArray(after.Capabilities.Select(c => (JsonNode)JsonValue.Create(c)!).ToArray()),
@@ -61,7 +62,7 @@ public sealed class CloudProjectService(
     {
         var link = Require(projectId, linkId);
         lock (_gate) store.RemoveLink(linkId);
-        Audit("cloud.unlinked", link, null);
+        Audit(AuditActions.CloudUnlinked, link, null);
     }
 
     public CloudProjectLink Require(string projectId, string linkId)
@@ -78,7 +79,7 @@ public sealed class CloudProjectService(
 
     public void RequireProject(string projectId)
     {
-        if (!workspace.TryGetRoot(projectId, out _)) throw EngineErrors.ProjectNotAuthorized();
+        workspace.RequireRoot(projectId);
     }
 
     private IReadOnlyList<string> Capabilities(string provider, IReadOnlyList<string> asked)

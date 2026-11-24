@@ -5,6 +5,7 @@ using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Workspace;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Management.Assistant;
 
@@ -48,7 +49,7 @@ public sealed class ManagementAssistant(
     public EvidencePack Evidence(string projectId)
     {
         var integrations = hub.Projects.List(projectId);
-        var name = workspace.Projects().FirstOrDefault(project => project.ProjectId == projectId)?.DisplayName ?? projectId;
+        var name = workspace.DisplayNameOf(projectId);
         return EvidenceBuilder.Build(projectId, name, clock.UtcNow, integrations, management.Metrics(projectId, null),
             management.Forecast(projectId), management.Risks(projectId), management.Milestones(projectId));
     }
@@ -87,7 +88,7 @@ public sealed class ManagementAssistant(
         var completion = await models.ChatAsync(request, ct, ModelPurposes.Assistant);
         var verified = AnswerVerifier.Verify(completion.Text, pack);
 
-        hub.Audit.Record("management.assistant_answered", new JsonObject
+        hub.Audit.Record(AuditActions.AssistantAnswered, new JsonObject
         {
             ["projectId"] = projectId,
             ["facts"] = pack.Facts.Count,

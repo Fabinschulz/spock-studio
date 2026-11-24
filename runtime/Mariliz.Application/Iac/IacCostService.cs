@@ -33,7 +33,7 @@ public sealed class IacCostService(WorkspaceAuthorizer workspace, CloudHub? clou
     // da lista pública pela conexão do projeto. Nada é aplicado nem lido da conta.
     public async Task<IacPlanCostEstimate> EstimatePlanAsync(IacPlanCostRequest request, CloudCaller caller, CancellationToken ct)
     {
-        if (!workspace.TryGetRoot(request.ProjectId, out _)) throw EngineErrors.ProjectNotAuthorized();
+        workspace.RequireRoot(request.ProjectId);
         if (operations is null) throw IacErrors.CostSourceUnavailable();
         var plan = operations.Detail(request.ProjectId, request.OperationId);
         if (plan.Kind != IacOperationKind.Plan || plan.Status != IacOperationStatus.Succeeded || plan.PlanId is null) throw IacErrors.NotAPlan();
@@ -94,7 +94,7 @@ public sealed class IacCostService(WorkspaceAuthorizer workspace, CloudHub? clou
 
     public async Task<IacCostEstimate> EstimateAsync(IacCostRequest request, CloudCaller caller, CancellationToken ct)
     {
-        if (!workspace.TryGetRoot(request.ProjectId, out _)) throw EngineErrors.ProjectNotAuthorized();
+        workspace.RequireRoot(request.ProjectId);
         var failed = IacBlueprintChecks.Check(request.Blueprint).Where(c => !c.Passed).ToList();
         if (failed.Count > 0) throw IacErrors.BlueprintInvalid(failed);
         if (cloud is null) throw IacErrors.CostSourceUnavailable();

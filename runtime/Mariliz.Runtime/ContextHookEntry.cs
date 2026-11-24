@@ -1,11 +1,13 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Mariliz.Application.Audit;
 using Mariliz.Application.Context;
 using Mariliz.Application.Mcp;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
 using Mariliz.Infrastructure;
 using Mariliz.Infrastructure.Integrations;
+using static Mariliz.Application.JsonRead;
 
 namespace Mariliz.Runtime;
 
@@ -14,8 +16,8 @@ namespace Mariliz.Runtime;
 internal static class ContextHookEntry
 {
     public const string Command = "context";
-    public const string AuditAction = "ide.bootstrap";
-    public const string PromptAuditAction = "ide.prompt";
+    public const string AuditAction = AuditActions.IdeBootstrap;
+    public const string PromptAuditAction = AuditActions.IdePrompt;
 
     public const string Usage = """
         Uso: spock context session [--project-dir <pasta>] [--budget <tokens>] [--ide cursor]
@@ -174,9 +176,6 @@ internal static class ContextHookEntry
                 return Empty;
             }
         }
-
-        private static string? Text(JsonObject root, string name) =>
-            root[name] is JsonValue value && value.TryGetValue<string>(out var text) ? text : null;
     }
 
     private static int UsageError(string message)

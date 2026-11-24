@@ -12,6 +12,7 @@ using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Workflows;
 using Mariliz.Application.Workspace;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Mcp;
 
@@ -37,7 +38,7 @@ public sealed partial class ProjectContextTools(
     public const int MaxDecisions = 50;
     public const int DefaultResults = 5;
     public const int MaxResults = 10;
-    public const string ReadAction = "ide.context_read";
+    public const string ReadAction = AuditActions.IdeContextRead;
     // A trilha guarda os caminhos lidos, não o conteúdo; acima disso, só a contagem.
     public const int MaxAuditedPaths = 20;
     private const int MaxProjectArgument = 200;
@@ -234,7 +235,7 @@ public sealed partial class ProjectContextTools(
         var workspace = workspaces();
         var project = Resolve(workspace, call.Arguments);
         if (search is null || indexRoot is null) throw new McpToolException("A busca no índice não está disponível nesta instalação do Spock.");
-        if (!workspace.TryGetRoot(project.ProjectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
+        var root = workspace.RequireRoot(project.ProjectId);
 
         var request = new JsonObject
         {

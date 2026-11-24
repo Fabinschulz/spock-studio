@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Execution;
 
@@ -51,7 +52,7 @@ public sealed partial class RunLinkService(
                     throw new EngineException("LINK_LIMIT", $"Uma execução liga a até {MaxLinksPerRun} itens.");
                 current.Add(new RunLink(integration.Id, stored.Item.Kind, stored.Item.ExternalId, clock.UtcNow));
                 links.SaveLinks(projectId, runId, current);
-                hub.Audit.Record("run.linked", new JsonObject
+                hub.Audit.Record(AuditActions.RunLinked, new JsonObject
                 {
                     ["projectId"] = projectId,
                     ["runId"] = runId,
@@ -74,7 +75,7 @@ public sealed partial class RunLinkService(
             if (current.RemoveAll(link => Same(integrationId, kind, externalId)(link)) > 0)
             {
                 links.SaveLinks(projectId, runId, current);
-                hub.Audit.Record("run.unlinked", new JsonObject
+                hub.Audit.Record(AuditActions.RunUnlinked, new JsonObject
                 {
                     ["projectId"] = projectId,
                     ["runId"] = runId,

@@ -27,10 +27,8 @@ internal sealed class HarnessComposition(
     private readonly HarnessNaming _naming = files.Naming();
     private readonly string _proposalOrigin = proposal.Proposal is not null ? DecisionOrigins.HarnessEngineer : DecisionOrigins.Baseline;
 
-    private ComponentSelector _components = null!;
     private readonly ArchitectureDocuments _architecture = ArchitectureDocuments.Read(files);
     private List<string> _exclusion = [];
-    private HashSet<string> _retired = [];
 
     public ComposeResult Build()
     {
@@ -55,18 +53,17 @@ internal sealed class HarnessComposition(
 
         var environments = AddDeclarationEdit(requested) ?? requested ?? (declared?.Environments is { Count: > 0 } listed ? listed : [environment]);
         environment = environments[0];
-        _retired = RetiredComponents(environments);
-        _components = CreateComponentSelector();
+        var components = CreateComponentSelector(RetiredComponents(environments));
         if (environments.Contains(AiEnvironments.ClaudeCode))
         {
-            AddCoreComponents();
-            AddStackRules();
-            AddArchitectureRule();
-            AddRepositoryCommands();
+            AddCoreComponents(components);
+            AddStackRules(components);
+            AddArchitectureRule(components);
+            AddRepositoryCommands(components);
             AddProposedRules();
-            AddHooks();
-            AddIdeIntegration();
-            SpecificationPlanner.Plan(report, files, options, _exclusion, _decisions, _commands, _limitations, _risks);
+            AddHooks(components);
+            AddIdeIntegration(components);
+            AddSpecification();
         }
         else
         {
@@ -76,9 +73,9 @@ internal sealed class HarnessComposition(
                 "Sem o Claude Code entre os ambientes, o Spock grava por enquanto a ligação com a IDE (bloco, MCP e hooks) e a skill do contrato de evidência em .agents/skills. Agentes, regras, o hook de política e a estrutura de especificação ainda são só do Claude Code."));
         }
         // Uma IDE que saiu da lista passa pelo mesmo caminho: as peças dela são dispensadas e saem como numa dispensa.
-        if (environments.Contains(AiEnvironments.Codex) || Retiring(AiEnvironments.Codex)) AddCodexIntegration(environments.Contains(AiEnvironments.Codex));
-        if (environments.Contains(AiEnvironments.Cursor) || Retiring(AiEnvironments.Cursor)) AddCursorIntegration(environments.Contains(AiEnvironments.Cursor));
-        AddAgentsSkills(environments);
+        if (environments.Contains(AiEnvironments.Codex) || Retiring(components, AiEnvironments.Codex)) AddCodexIntegration(components, environments.Contains(AiEnvironments.Codex));
+        if (environments.Contains(AiEnvironments.Cursor) || Retiring(components, AiEnvironments.Cursor)) AddCursorIntegration(components, environments.Contains(AiEnvironments.Cursor));
+        AddAgentsSkills(components, environments);
 
         return new ComposeResult(environment, _proposalOrigin, _desired, _decisions, _commands, _limitations,
             [.. _observations, .. proposal.Proposal?.Observations ?? []],
@@ -127,10 +124,8 @@ internal sealed class HarnessComposition(
         return retired;
     }
 
-    private bool Retiring(string environment) => IdeComponents.Single(ide => ide.Environment == environment).Components.Any(_retired.Contains);
-
-    // A dispensa pedida e a saída da IDE tiram o que o Spock gravou do mesmo jeito.
-    private bool Releasing(string id) => _exclusion.Contains(id) || _retired.Contains(id);
+    private static bool Retiring(ComponentSelector components, string environment) =>
+        IdeComponents.Single(ide => ide.Environment == environment).Components.Any(components.IsRetired);
 
     private void NoteProposalStatus()
     {
@@ -256,18 +251,18 @@ internal sealed class HarnessComposition(
         return environments;
     }
 
-    private ComponentSelector CreateComponentSelector()
+    private ComponentSelector CreateComponentSelector(HashSet<string> retired)
     {
         var excluded = _exclusion.ToHashSet(StringComparer.Ordinal);
         var requested = excluded.Except(declared?.Components.Exclude ?? [], StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
         var proposed = proposal.Proposal?.Decisions.ToDictionary(d => d.Id, StringComparer.Ordinal) ?? [];
         var managed = (ManagedLockFile.Read(files)?.Components.Select(c => c.Id) ?? []).ToHashSet(StringComparer.Ordinal);
-        return new ComponentSelector(excluded, requested, proposed, managed, _retired, _decisions, _limitations, _naming.Declaration);
+        return new ComponentSelector(excluded, requested, proposed, managed, retired, _decisions, _limitations, _naming.Declaration);
     }
 
-    private void AddCoreComponents()
+    private void AddCoreComponents(ComponentSelector components)
     {
-        if (_components.Wants(Catalog.AgentHarnessEngineer, true, "Planeja a configuração do Harness a partir de evidências do projeto.", []))
+        if (components.Wants(Catalog.AgentHarnessEngineer, true, "Planeja a configuração do Harness a partir de evidências do projeto.", []))
         {
             _desired.Add(RuleContent.Asset(_naming, _naming.HarnessEngineerAgent, ComponentKind.Agent, Catalog.AgentHarnessEngineer, Catalog.Asset(Catalog.AgentHarnessEngineer),
                 $"Agente que propõe a composição do Harness em {_naming.Proposal}."));
@@ -275,26 +270,26 @@ internal sealed class HarnessComposition(
                 "Schema da proposta que o Harness Engineer deve seguir."));
         }
 
-        if (_components.Wants(Catalog.AgentCodeReviewer, true, "Revisão de diffs com evidência, somente leitura.", []))
+        if (components.Wants(Catalog.AgentCodeReviewer, true, "Revisão de diffs com evidência, somente leitura.", []))
             _desired.Add(RuleContent.Asset(_naming, _naming.CodeReviewerAgent, ComponentKind.Agent, Catalog.AgentCodeReviewer, Catalog.Asset(Catalog.AgentCodeReviewer),
                 "Revisor independente, sem permissão de escrita."));
 
-        if (_components.Wants(Catalog.AgentVerifier, true, "Verificação independente de requisitos e critérios de aceite, como o ciclo de especificação exige.", [$"{SpecificationManifest.SkillDirectory} (estrutura fixa)"]))
+        if (components.Wants(Catalog.AgentVerifier, true, "Verificação independente de requisitos e critérios de aceite, como o ciclo de especificação exige.", [$"{SpecificationManifest.SkillDirectory} (estrutura fixa)"]))
             _desired.Add(RuleContent.Asset(_naming, _naming.VerifierAgent, ComponentKind.Agent, Catalog.AgentVerifier, Catalog.Asset(Catalog.AgentVerifier),
                 "Verificador do ciclo spec-driven (autor diferente do verificador)."));
 
-        if (_components.Wants(Catalog.SkillHarnessContract, true, "Contrato único de evidência e confiança lido por todos os agentes.", []))
+        if (components.Wants(Catalog.SkillHarnessContract, true, "Contrato único de evidência e confiança lido por todos os agentes.", []))
             _desired.Add(RuleContent.Asset(_naming, _naming.HarnessContractSkill, ComponentKind.Skill, Catalog.SkillHarnessContract, Catalog.Asset(Catalog.SkillHarnessContract),
                 "Contrato de evidência compartilhado por referência."));
 
-        if (_components.Wants(Catalog.RuleGeneral, true, "Regras de método, limites, testes, erros, segurança e conclusão.", []))
+        if (components.Wants(Catalog.RuleGeneral, true, "Regras de método, limites, testes, erros, segurança e conclusão.", []))
             _desired.Add(RuleContent.Asset(_naming, _naming.RuleGeneral, ComponentKind.Rule, Catalog.RuleGeneral, Catalog.Asset(Catalog.RuleGeneral), "Regras gerais do produto."));
     }
 
-    private void AddStackRules()
+    private void AddStackRules(ComponentSelector components)
     {
         foreach (var profile in StackRuleProfiles.All)
-            AddStackRule(profile);
+            AddStackRule(components, profile);
 
         // Detectadas, mas sem regra de stack: o plano diz isso em vez de calar.
         foreach (var stack in report.Stacks.Where(s => Technologies.RulesOf(s.Id) == RuleFamily.None))
@@ -313,29 +308,29 @@ internal sealed class HarnessComposition(
             _observations.Add(new("fact", $"Da arquitetura aprovada, sem regra de stack: {string.Join(", ", other)}.", [_architecture.ArchitectureFile]));
 
         foreach (var profile in PatternRuleProfiles.All)
-            AddPatternRule(profile);
-        AddConventionRule();
+            AddPatternRule(components, profile);
+        AddConventionRule(components);
         foreach (var profile in StackSkillProfiles.All)
-            AddStackSkill(profile);
+            AddStackSkill(components, profile);
     }
 
-    private void AddConventionRule()
+    private void AddConventionRule(ComponentSelector components)
     {
         var analysis = ArchitectureAnalyzer.Analyze(report.ProjectId, files, DateTimeOffset.UnixEpoch);
-        if (_components.Wants(Catalog.RuleProjectConventions, ProjectConventions.Applies(analysis),
+        if (components.Wants(Catalog.RuleProjectConventions, ProjectConventions.Applies(analysis),
                 "A análise de arquitetura encontrou camadas .NET ou estrutura de frontend: o agente segue o que o projeto já faz.",
                 ProjectConventions.Evidence(analysis), "A análise de arquitetura não encontrou projeto .NET nem frontend React.", DecisionOrigins.Baseline))
             _desired.Add(new(_naming.RuleProjectConventions, ComponentKind.Rule, Catalog.RuleProjectConventions, DecisionOrigins.Baseline,
                 "Convenções do projeto, da análise de arquitetura.", ProjectConventions.Render(analysis), "file"));
     }
 
-    private void AddStackSkill(StackSkillProfile profile)
+    private void AddStackSkill(ComponentSelector components, StackSkillProfile profile)
     {
         var detected = report.Stacks.Where(stack => profile.Technologies.Contains(stack.Id)).ToList();
         var planned = _architecture.PlannedOnly(report.Stacks, id => profile.Technologies.Contains(id));
         var origin = detected.Count > 0 ? DecisionOrigins.Baseline : DecisionOrigins.Architecture;
         List<string> evidence = detected.Count > 0 ? EvidencePaths(detected) : [_architecture.ArchitectureFile];
-        if (_components.Wants(profile.Component, detected.Count > 0 || planned.Count > 0, $"Skill {profile.Name} para a stack do projeto.", evidence,
+        if (components.Wants(profile.Component, detected.Count > 0 || planned.Count > 0, $"Skill {profile.Name} para a stack do projeto.", evidence,
                 $"Nenhuma stack {profile.Name} detectada nem planejada na arquitetura.", origin))
             _desired.Add(new(_naming.StackSkill(profile.Stack), ComponentKind.Skill, profile.Component, origin,
                 $"Skill {profile.Name}: o que não copiar e checklist de conclusão.", StackSkillProfiles.Render(_naming, profile), "file"));
@@ -344,7 +339,7 @@ internal sealed class HarnessComposition(
     // Os frameworks que dizem que o projeto conversa com sistema externo: com eles, a §6.9 do catálogo entra na regra .NET.
     private static readonly string[] IntegrationFrameworks = ["polly", "masstransit", "aws-sdk"];
 
-    private void AddPatternRule(PatternRuleProfile profile)
+    private void AddPatternRule(ComponentSelector components, PatternRuleProfile profile)
     {
         var detected = report.Stacks.Where(stack => PatternRuleProfiles.Wants(profile, stack.Id)).ToList();
         var planned = _architecture.PlannedOnly(report.Stacks, id => PatternRuleProfiles.Wants(profile, id));
@@ -369,7 +364,7 @@ internal sealed class HarnessComposition(
         var origin = detected.Count > 0 ? DecisionOrigins.Baseline : DecisionOrigins.Architecture;
         var reason = $"Padrões {profile.Name} da pasta Organização para a stack {(detected.Count > 0 ? "detectada" : "planejada na arquitetura aprovada")}.";
         List<string> evidence = detected.Count > 0 ? EvidencePaths(detected) : [_architecture.ArchitectureFile];
-        if (!_components.Wants(profile.Component, applies, reason, evidence, $"Nenhuma stack {profile.Name} detectada nem planejada na arquitetura.", origin))
+        if (!components.Wants(profile.Component, applies, reason, evidence, $"Nenhuma stack {profile.Name} detectada nem planejada na arquitetura.", origin))
             return;
 
         var path = Catalog.FilesOf(profile.Component, _naming).Single();
@@ -386,7 +381,7 @@ internal sealed class HarnessComposition(
     private static string Describe(PlannedStack item) => item.Area.Length == 0 ? item.Choice : $"{item.Choice} ({item.Area})";
 
     // O que a descoberta achou no código vale mais; a arquitetura só completa uma família que o projeto ainda não tem.
-    private void AddStackRule(StackRuleProfile profile)
+    private void AddStackRule(ComponentSelector components, StackRuleProfile profile)
     {
         var (component, asset, globs, name) = (profile.Component, profile.Asset, profile.Globs, profile.Name);
         var path = Catalog.FilesOf(component, _naming).Single();
@@ -400,13 +395,13 @@ internal sealed class HarnessComposition(
             : $"Stack {name} planejada na arquitetura aprovada ({string.Join(", ", planned.Select(stack => stack.Name))}); ainda sem arquivos no projeto.";
         List<string> evidence = detected.Count > 0 ? EvidencePaths(detected) : [_architecture.ArchitectureFile];
 
-        if (_components.Wants(component, stacks.Count > 0, reason, evidence, $"Nenhuma stack {name} detectada nem planejada na arquitetura.", origin))
+        if (components.Wants(component, stacks.Count > 0, reason, evidence, $"Nenhuma stack {name} detectada nem planejada na arquitetura.", origin))
             _desired.Add(new(path, ComponentKind.Rule, component, origin, $"Regras da stack {name}.", RuleContent.ForStack(_naming, asset, stacks, globs), "file"));
     }
 
-    private void AddArchitectureRule()
+    private void AddArchitectureRule(ComponentSelector components)
     {
-        if (_components.Wants(Catalog.RuleArchitecture, _architecture.Exists,
+        if (components.Wants(Catalog.RuleArchitecture, _architecture.Exists,
                 "Documentos aprovados em Da ideia ao projeto: o agente segue a especificação, a arquitetura e o backlog.",
                 [.. _architecture.Present], $"Nenhum documento de arquitetura em {_naming.ArchitectureFolder}.", DecisionOrigins.Architecture))
             _desired.Add(new(_naming.RuleArchitecture, ComponentKind.Rule, Catalog.RuleArchitecture, DecisionOrigins.Architecture,
@@ -416,14 +411,23 @@ internal sealed class HarnessComposition(
     private static List<string> EvidencePaths(IEnumerable<StackFinding> stacks) =>
         stacks.SelectMany(s => s.Evidence.Take(2).Select(e => e.Path)).ToList();
 
-    private void AddRepositoryCommands()
+    private void AddRepositoryCommands(ComponentSelector components)
     {
         var commands = report.Tooling.Where(IsRepositoryCommand).ToList();
         var evidence = commands.SelectMany(t => t.Evidence.Take(1).Select(e => e.Path)).Distinct().ToList();
 
-        if (_components.Wants(Catalog.RuleRepoCommands, commands.Count > 0, "Comandos de build, teste e lint detectados nos arquivos do projeto.", evidence, "Nenhum comando de build ou teste foi detectado."))
+        if (components.Wants(Catalog.RuleRepoCommands, commands.Count > 0, "Comandos de build, teste e lint detectados nos arquivos do projeto.", evidence, "Nenhum comando de build ou teste foi detectado."))
             _desired.Add(new(_naming.RuleRepo, ComponentKind.Rule, Catalog.RuleRepoCommands, DecisionOrigins.Baseline,
                 "Comandos reais do repositório, com a evidência de cada um.", RuleContent.ForRepository(commands), "file"));
+    }
+
+    private void AddSpecification()
+    {
+        var plan = SpecificationPlanner.Plan(report, files, options, _exclusion);
+        _decisions.Add(plan.Decision);
+        if (plan.Command is { } command) _commands.Add(command);
+        _limitations.AddRange(plan.Limitations);
+        if (plan.Risk is { } risk) _risks.Add(risk);
     }
 
     private void AddProposedRules()
@@ -446,14 +450,14 @@ internal sealed class HarnessComposition(
 
     // .claude/settings.json guarda os dois hooks: um arquivo desejado só, mesclado na ordem política, sessão. O resto do
     // arquivo é da pessoa.
-    private void AddHooks()
+    private void AddHooks(ComponentSelector components)
     {
         var current = files.ReadText(Catalog.PathSettings);
         var text = current;
         string? owner = null;
         var reasons = new List<string>();
 
-        if (_components.Wants(Catalog.HookPolicy, true, "Controle determinístico antes de escritas e comandos: bloqueia o que a política proíbe.", []))
+        if (components.Wants(Catalog.HookPolicy, true, "Controle determinístico antes de escritas e comandos: bloqueia o que a política proíbe.", []))
         {
             var python = report.Tools.PythonCommand;
             var (merged, error) = python is null ? (null, null) : SettingsMerger.Merge(text, python, _naming);
@@ -478,7 +482,7 @@ internal sealed class HarnessComposition(
             reasons.Add("O hook foi dispensado: sai só o registro dele; o restante do arquivo e as regras que negam a leitura de .env ficam.");
         }
 
-        MergeLauncherHooks(Catalog.PathSettings, Catalog.HookSession, Catalog.HookPrompt, ref text, ref owner, reasons);
+        MergeLauncherHooks(components, Catalog.PathSettings, Catalog.HookSession, Catalog.HookPrompt, ref text, ref owner, reasons);
 
         if (owner is not null)
             _desired.Add(new(Catalog.PathSettings, ComponentKind.Hook, owner, DecisionOrigins.Baseline, string.Join(" ", reasons), text!, "merge"));
@@ -488,10 +492,10 @@ internal sealed class HarnessComposition(
 
     // Os hooks que chamam o lançador, no arquivo de hooks da IDE. Sem o lançador nesta máquina o hook não é tirado: o arquivo é
     // da equipe, e quem tem o Spock instalado continua usando. Só a dispensa pedida tira o registro.
-    private void MergeLauncherHooks(string path, string sessionId, string promptId, ref string? text, ref string? owner, List<string> reasons)
+    private void MergeLauncherHooks(ComponentSelector components, string path, string sessionId, string promptId, ref string? text, ref string? owner, List<string> reasons)
     {
         var launcher = report.Tools.Spock is not null;
-        if (_components.Wants(sessionId, launcher,
+        if (components.Wants(sessionId, launcher,
                 "Entrega à IDE, no começo de cada sessão, o contexto de abertura do projeto (spock context session).", [], LauncherMissing))
         {
             var (merged, error) = SettingsMerger.MergeSession(text, path);
@@ -504,13 +508,13 @@ internal sealed class HarnessComposition(
                 owner ??= sessionId;
             }
         }
-        else if (Releasing(sessionId) && SettingsMerger.ReleaseSession(text) is { } released)
+        else if (components.Releasing(sessionId) && SettingsMerger.ReleaseSession(text) is { } released)
         {
             text = released;
             reasons.Add("O hook de sessão foi dispensado: sai só o registro dele.");
         }
 
-        if (_components.Wants(promptId, launcher,
+        if (components.Wants(promptId, launcher,
                 "A cada prompt, avisa a IDE só quando o contexto mudou, uma fonte ficou velha ou o assunto pede uma ferramenta do Spock (spock context prompt).", [], LauncherMissing))
         {
             var (merged, error) = SettingsMerger.MergePrompt(text, path);
@@ -523,7 +527,7 @@ internal sealed class HarnessComposition(
                 owner ??= promptId;
             }
         }
-        else if (Releasing(promptId) && SettingsMerger.ReleasePrompt(text) is { } releasedPrompt)
+        else if (components.Releasing(promptId) && SettingsMerger.ReleasePrompt(text) is { } releasedPrompt)
         {
             text = releasedPrompt;
             reasons.Add("O hook por prompt foi dispensado: sai só o registro dele.");
@@ -534,13 +538,13 @@ internal sealed class HarnessComposition(
         "O comando spock não foi encontrado nesta máquina. Instale ou atualize o Spock Studio para os arquivos do projeto chamarem o Spock pelo comando.";
 
     // C2: o que liga o Claude Code ao Spock, nos arquivos da equipe e só no trecho do Spock (ManagedRegion).
-    private void AddIdeIntegration()
+    private void AddIdeIntegration(ComponentSelector components)
     {
         var launcher = report.Tools.Spock is not null;
-        AddRegion(Catalog.IdeClaudeBootstrap, true, "Diz à IDE como chegar ao contexto do Spock: hook de sessão, MCP e busca.", null,
+        AddRegion(components, Catalog.IdeClaudeBootstrap, true, "Diz à IDE como chegar ao contexto do Spock: hook de sessão, MCP e busca.", null,
             ComponentKind.Rule, Catalog.PathClaudeMd, ManagedRegion.Block, ClaudeBlockId, ClaudeBlock,
             "Bloco do Spock no CLAUDE.md: como chegar ao contexto do projeto.");
-        AddRegion(Catalog.IdeMcpServer, launcher, "Liga o servidor MCP do Spock ao Claude Code pelo comando spock, sem caminho desta máquina.",
+        AddRegion(components, Catalog.IdeMcpServer, launcher, "Liga o servidor MCP do Spock ao Claude Code pelo comando spock, sem caminho desta máquina.",
             LauncherMissing, ComponentKind.Tool, Catalog.PathMcpJson, ManagedRegion.JsonKey, McpServerKey, McpServer,
             "Registra o servidor MCP do Spock (spock mcp --project-dir .) no .mcp.json.");
         if (!launcher)
@@ -551,13 +555,13 @@ internal sealed class HarnessComposition(
     // C3: o que liga o Codex ao Spock. O mesmo bloco no AGENTS.md, o servidor no .codex/config.toml e os hooks no
     // .codex/hooks.json, que tem o formato do .claude/settings.json e aceita o texto do hook na saída padrão.
     // Sem `active`, o Codex saiu da lista: as peças dele são dispensadas, sem os avisos de quem vai usá-lo.
-    private void AddCodexIntegration(bool active)
+    private void AddCodexIntegration(ComponentSelector components, bool active)
     {
         var launcher = report.Tools.Spock is not null;
-        AddRegion(Catalog.IdeCodexBootstrap, true, "Diz ao Codex como chegar ao contexto do Spock: hook de sessão, MCP e busca.", null,
+        AddRegion(components, Catalog.IdeCodexBootstrap, true, "Diz ao Codex como chegar ao contexto do Spock: hook de sessão, MCP e busca.", null,
             ComponentKind.Rule, Catalog.PathAgentsMd, ManagedRegion.Block, ClaudeBlockId, ClaudeBlock,
             "Bloco do Spock no AGENTS.md: como chegar ao contexto do projeto.");
-        AddRegion(Catalog.IdeCodexMcp, launcher, "Liga o servidor MCP do Spock ao Codex pelo comando spock, sem caminho desta máquina.",
+        AddRegion(components, Catalog.IdeCodexMcp, launcher, "Liga o servidor MCP do Spock ao Codex pelo comando spock, sem caminho desta máquina.",
             LauncherMissing, ComponentKind.Tool, Catalog.PathCodexConfig, ManagedRegion.TomlTable, CodexMcpTable, CodexMcpServer,
             "Registra o servidor MCP do Spock (spock mcp --project-dir .) no .codex/config.toml.");
 
@@ -565,7 +569,7 @@ internal sealed class HarnessComposition(
         var text = current;
         string? owner = null;
         var reasons = new List<string>();
-        MergeLauncherHooks(Catalog.PathCodexHooks, Catalog.HookCodexSession, Catalog.HookCodexPrompt, ref text, ref owner, reasons);
+        MergeLauncherHooks(components, Catalog.PathCodexHooks, Catalog.HookCodexSession, Catalog.HookCodexPrompt, ref text, ref owner, reasons);
         if (owner is not null)
             _desired.Add(new(Catalog.PathCodexHooks, ComponentKind.Hook, owner, DecisionOrigins.Baseline, string.Join(" ", reasons), text!, "merge"));
         else if (text is not null && text != current)
@@ -581,18 +585,18 @@ internal sealed class HarnessComposition(
 
     // C3: o que liga o Cursor ao Spock. A regra é um arquivo do Spock (alwaysApply), o servidor fica numa chave do
     // .cursor/mcp.json e o hook de sessão no .cursor/hooks.json, que tem formato próprio e lê o contexto de um JSON.
-    private void AddCursorIntegration(bool active)
+    private void AddCursorIntegration(ComponentSelector components, bool active)
     {
         var launcher = report.Tools.Spock is not null;
-        if (_components.Wants(Catalog.IdeCursorRule, true, "Diz ao Cursor como chegar ao contexto do Spock: hook de sessão, MCP e busca.", []))
+        if (components.Wants(Catalog.IdeCursorRule, true, "Diz ao Cursor como chegar ao contexto do Spock: hook de sessão, MCP e busca.", []))
             _desired.Add(new(Catalog.PathCursorRule, ComponentKind.Rule, Catalog.IdeCursorRule, DecisionOrigins.Baseline,
                 "Regra do Spock no Cursor, sempre aplicada: como chegar ao contexto do projeto.", CursorRule, "file"));
-        AddRegion(Catalog.IdeCursorMcp, launcher, "Liga o servidor MCP do Spock ao Cursor pelo comando spock, sem caminho desta máquina.",
+        AddRegion(components, Catalog.IdeCursorMcp, launcher, "Liga o servidor MCP do Spock ao Cursor pelo comando spock, sem caminho desta máquina.",
             LauncherMissing, ComponentKind.Tool, Catalog.PathCursorMcp, ManagedRegion.JsonKey, McpServerKey, CursorMcpServer,
             "Registra o servidor MCP do Spock (spock mcp --project-dir ${workspaceFolder}) no .cursor/mcp.json.");
 
         var current = files.ReadText(Catalog.PathCursorHooks);
-        if (_components.Wants(Catalog.HookCursorSession, launcher,
+        if (components.Wants(Catalog.HookCursorSession, launcher,
                 "Entrega ao Cursor, no começo de cada sessão, o contexto de abertura do projeto (spock context session --ide cursor).", [], LauncherMissing))
         {
             var (merged, error) = CursorHooksMerger.MergeSession(current);
@@ -602,7 +606,7 @@ internal sealed class HarnessComposition(
                 _desired.Add(new(Catalog.PathCursorHooks, ComponentKind.Hook, Catalog.HookCursorSession, DecisionOrigins.Baseline,
                     "Registra o hook de início de sessão (spock context session --ide cursor); o restante do arquivo é preservado.", merged, "merge"));
         }
-        else if (Releasing(Catalog.HookCursorSession) && CursorHooksMerger.ReleaseSession(current) is { } released)
+        else if (components.Releasing(Catalog.HookCursorSession) && CursorHooksMerger.ReleaseSession(current) is { } released)
             _desired.Add(new(Catalog.PathCursorHooks, ComponentKind.Hook, Catalog.HookCursorSession, DecisionOrigins.Declared,
                 "O hook de sessão foi dispensado: sai só o registro dele.", released, "release"));
 
@@ -622,18 +626,18 @@ internal sealed class HarnessComposition(
         environments.Contains(AiEnvironments.Codex)
         || (environments.Contains(AiEnvironments.Cursor) && !environments.Contains(AiEnvironments.ClaudeCode));
 
-    private void AddAgentsSkills(IReadOnlyCollection<string> environments)
+    private void AddAgentsSkills(ComponentSelector components, IReadOnlyCollection<string> environments)
     {
         var claude = environments.Contains(AiEnvironments.ClaudeCode);
         var codex = environments.Contains(AiEnvironments.Codex);
         if (!AgentsSkillApplies(environments))
         {
             // Registrada como dispensada para o arquivo sair pelo plano.
-            if (_retired.Contains(Catalog.SkillAgentsHarnessContract)) _components.Wants(Catalog.SkillAgentsHarnessContract, false, "", []);
+            if (components.IsRetired(Catalog.SkillAgentsHarnessContract)) components.Wants(Catalog.SkillAgentsHarnessContract, false, "", []);
             return;
         }
 
-        if (_components.Wants(Catalog.SkillAgentsHarnessContract, true,
+        if (components.Wants(Catalog.SkillAgentsHarnessContract, true,
                 "Contrato de evidência e confiança na pasta de skills que o Codex e o Cursor leem.", []))
             _desired.Add(RuleContent.Asset(_naming, _naming.AgentsHarnessContractSkill, ComponentKind.Skill, Catalog.SkillAgentsHarnessContract,
                 Catalog.Asset(Catalog.SkillAgentsHarnessContract), "Contrato de evidência em .agents/skills, para o Codex e o Cursor."));
@@ -682,13 +686,13 @@ internal sealed class HarnessComposition(
         - O Spock só lê. As regras e os arquivos que ele gerencia mudam por plano aprovado no aplicativo; o que está fora deste bloco é da equipe.
         """;
 
-    private void AddRegion(string id, bool applicable, string baselineReason, string? notApplicableReason, ComponentKind kind, string path, string mode,
+    private void AddRegion(ComponentSelector components, string id, bool applicable, string baselineReason, string? notApplicableReason, ComponentKind kind, string path, string mode,
         string region, string content, string reason)
     {
-        if (!_components.Wants(id, applicable, baselineReason, [], notApplicableReason))
+        if (!components.Wants(id, applicable, baselineReason, [], notApplicableReason))
         {
             // Só a dispensa pedida tira o trecho; não se aplicar nesta máquina (sem o lançador) não apaga o que a equipe versiona.
-            if (Releasing(id)) ReleaseRegion(id, kind, path, mode, region);
+            if (components.Releasing(id)) ReleaseRegion(id, kind, path, mode, region);
             return;
         }
         var (file, problem) = ManagedRegion.Desired(files, path, mode, region, content, kind, id, DecisionOrigins.Baseline, reason);

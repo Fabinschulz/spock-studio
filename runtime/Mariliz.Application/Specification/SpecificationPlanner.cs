@@ -6,6 +6,12 @@ using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Specification;
 
+// Toda saída do planejador tem uma decisão sobre a estrutura; comando, limitações e risco dependem do caminho.
+internal sealed record SpecificationPlan(ComponentDecision Decision, PlannedCommand? Command, IReadOnlyList<Limitation> Limitations, string? Risk)
+{
+    public static SpecificationPlan Only(ComponentDecision decision, params Limitation[] limitations) => new(decision, null, limitations, null);
+}
+
 internal static class SpecificationPlanner
 {
     private sealed record InstallerBlock(string Decision, string Reason);
@@ -25,18 +31,17 @@ internal static class SpecificationPlanner
         return null;
     }
 
-    private static void KeepInstalled(SpecificationStatus specification, List<ComponentDecision> decisions, List<Limitation> limitations)
-    {
-        decisions.Add(new(ComponentKind.Specification, Catalog.SpecificationStructure, ComponentDecisions.Keep, $"Estrutura de especificação {specification.Version} instalada e íntegra (hash conferido com o lockfile do instalador).", DecisionOrigins.Existing, [SpecificationManifest.SkillDirectory]));
-        if (!specification.VersionTested)
-            limitations.Add(new(LimitationCodes.SpecificationUntested, $"A versão {specification.Version ?? "desconhecida"} da estrutura de especificação não foi validada por esta fase; o funcionamento não é garantido."));
-    }
+    private static ComponentDecision KeepInstalled(SpecificationStatus specification) =>
+        new(ComponentKind.Specification, Catalog.SpecificationStructure, ComponentDecisions.Keep, $"Estrutura de especificação {specification.Version} instalada e íntegra (hash conferido com o lockfile do instalador).", DecisionOrigins.Existing, [SpecificationManifest.SkillDirectory]);
+
+    private static IEnumerable<Limitation> Untested(SpecificationStatus specification) => specification.VersionTested
+        ? []
+        : [new(LimitationCodes.SpecificationUntested, $"A versão {specification.Version ?? "desconhecida"} da estrutura de especificação não foi validada por esta fase; o funcionamento não é garantido.")];
 
     // Só a declaração escrita pela pessoa dispensa a estrutura: a tela não oferece isso (ComponentRequest.IsManageable).
     internal static bool IsDeclined(IReadOnlyList<string> exclude) => exclude.Contains(Catalog.SpecificationStructure, StringComparer.Ordinal);
 
-    internal static void Plan(DiscoveryReport report, IProjectFiles files, PlanOptions options, IReadOnlyList<string> exclude,
-        List<ComponentDecision> decisions, List<PlannedCommand> commands, List<Limitation> limitations, List<string> risks)
+    internal static SpecificationPlan Plan(DiscoveryReport report, IProjectFiles files, PlanOptions options, IReadOnlyList<string> exclude)
     {
         var specification = report.Specification;
         var evidence = specification.Problems.Take(3).ToList();
@@ -46,75 +51,62 @@ internal static class SpecificationPlanner
         // Projeto com processo de especificação próprio: nada a instalar, e o plano continua idempotente. Uma estrutura já
         // instalada não é removida, porque veio de um instalador externo e pode ter conteúdo da pessoa.
         if (!installed && IsDeclined(exclude))
-        {
-            decisions.Add(new(ComponentKind.Specification, Catalog.SpecificationStructure, ComponentDecisions.Skip,
+            return SpecificationPlan.Only(new(ComponentKind.Specification, Catalog.SpecificationStructure, ComponentDecisions.Skip,
                 $"Dispensada em {files.Naming().Declaration} (components.exclude): o projeto segue o próprio processo de especificação.", DecisionOrigins.Declared, [files.Naming().Declaration]));
-            return;
-        }
 
         // Instalação íntegra e atual: nada a fazer, e o plano continua idempotente.
         if (installed && !outdated && !options.UpdateSpecification)
-        {
-            KeepInstalled(specification, decisions, limitations);
-            return;
-        }
+            return SpecificationPlan.Only(KeepInstalled(specification), [.. Untested(specification)]);
 
         var blocker = InstallerBlocker(report, files);
         if (blocker is not null)
         {
+            // A estrutura atual continua utilizável: o impedimento só barra a atualização, e a pessoa fica sabendo.
             if (installed)
-            {
-                // A estrutura atual continua utilizável: o impedimento só barra a atualização, e a pessoa fica sabendo.
-                KeepInstalled(specification, decisions, limitations);
-                limitations.Add(new(LimitationCodes.SpecificationOutdated,
+                return SpecificationPlan.Only(KeepInstalled(specification), [.. Untested(specification), new(LimitationCodes.SpecificationOutdated,
                     (outdated ? $"A estrutura de especificação {specification.Version} é anterior à versão mais recente conhecida ({SpecificationManifest.LatestKnownVersion}). " : "A atualização da estrutura de especificação foi pedida. ")
-                    + "Ela não foi planejada: " + blocker.Reason));
-            }
-            else
-            {
-                decisions.Add(new(ComponentKind.Specification, Catalog.SpecificationStructure, ComponentDecisions.Blocked, blocker.Decision, DecisionOrigins.Baseline, []));
-                limitations.Add(new(LimitationCodes.SpecificationBlocked, "A estrutura de especificação não pôde ser instalada: " + blocker.Reason));
-            }
-            return;
+                    + "Ela não foi planejada: " + blocker.Reason)]);
+            return SpecificationPlan.Only(new(ComponentKind.Specification, Catalog.SpecificationStructure, ComponentDecisions.Blocked, blocker.Decision, DecisionOrigins.Baseline, []),
+                new Limitation(LimitationCodes.SpecificationBlocked, "A estrutura de especificação não pôde ser instalada: " + blocker.Reason));
         }
 
         var needsForce = specification.State is SpecificationState.Drifted or SpecificationState.Invalid;
         if (needsForce && !options.AllowSpecificationReinstall)
-        {
-            decisions.Add(new(ComponentKind.Specification, Catalog.SpecificationStructure, ComponentDecisions.Blocked,
+            return SpecificationPlan.Only(new(ComponentKind.Specification, Catalog.SpecificationStructure, ComponentDecisions.Blocked,
                 specification.State == SpecificationState.Drifted ? "A estrutura de especificação foi alterada localmente; reinstalar sobrescreveria essas edições." : "A estrutura de especificação está incompleta.",
-                DecisionOrigins.Baseline, evidence));
-            limitations.Add(new(LimitationCodes.SpecificationNeedsReinstall,
-                "Reinstalar a estrutura de especificação sobrescreve as edições locais dela. Revise a divergência e, se for o caso, autorize a reinstalação ao planejar de novo."));
-            return;
-        }
+                DecisionOrigins.Baseline, evidence),
+                new Limitation(LimitationCodes.SpecificationNeedsReinstall,
+                    "Reinstalar a estrutura de especificação sobrescreve as edições locais dela. Revise a divergência e, se for o caso, autorize a reinstalação ao planejar de novo."));
 
         var args = needsForce ? SpecificationManifest.ForceInstallArguments : SpecificationManifest.InstallArguments;
         if (installed)
         {
             // O instalador substitui a pasta da skill inteira (remove arquivos abolidos pela versão nova). Como a instalação
             // está íntegra, não há edição local a perder.
-            decisions.Add(new(ComponentKind.Specification, Catalog.SpecificationStructure, ComponentDecisions.Enable,
-                outdated
-                    ? $"A estrutura de especificação {specification.Version} é anterior à versão mais recente conhecida ({SpecificationManifest.LatestKnownVersion}): atualização pelo instalador oficial."
-                    : "Atualização da estrutura de especificação pedida: o instalador oficial traz a versão mais recente disponível.",
-                DecisionOrigins.Baseline, [SpecificationManifest.SkillDirectory]));
-            commands.Add(new PlannedCommand(
-                "specification-update", "Atualizar a estrutura de especificação para a versão mais recente (instalador oficial)",
-                "npx", args, [CommandEffect.Process, CommandEffect.Network, CommandEffect.WriteLocal], false,
-                [SpecificationManifest.SkillDirectory, ManagedScope.SkillsLockDirectory]));
-            risks.Add("A atualização da estrutura de especificação baixa a versão mais recente da rede e substitui a pasta da skill; o resultado é validado (arquivos, hash e scripts) e, se falhar, a versão atual é restaurada.");
-            return;
+            return new SpecificationPlan(
+                new(ComponentKind.Specification, Catalog.SpecificationStructure, ComponentDecisions.Enable,
+                    outdated
+                        ? $"A estrutura de especificação {specification.Version} é anterior à versão mais recente conhecida ({SpecificationManifest.LatestKnownVersion}): atualização pelo instalador oficial."
+                        : "Atualização da estrutura de especificação pedida: o instalador oficial traz a versão mais recente disponível.",
+                    DecisionOrigins.Baseline, [SpecificationManifest.SkillDirectory]),
+                new PlannedCommand(
+                    "specification-update", "Atualizar a estrutura de especificação para a versão mais recente (instalador oficial)",
+                    "npx", args, [CommandEffect.Process, CommandEffect.Network, CommandEffect.WriteLocal], false,
+                    [SpecificationManifest.SkillDirectory, ManagedScope.SkillsLockDirectory]),
+                [],
+                "A atualização da estrutura de especificação baixa a versão mais recente da rede e substitui a pasta da skill; o resultado é validado (arquivos, hash e scripts) e, se falhar, a versão atual é restaurada.");
         }
 
-        decisions.Add(new(ComponentKind.Specification, Catalog.SpecificationStructure, ComponentDecisions.Enable,
-            needsForce ? "Reinstalação autorizada da estrutura de especificação pelo instalador oficial." : "Estrutura de especificação ausente: instalação pelo instalador oficial, sempre na versão mais recente.",
-            DecisionOrigins.Baseline, evidence));
-        commands.Add(new PlannedCommand(
-            "specification-install",
-            needsForce ? "Reinstalar a estrutura de especificação (sobrescreve edições locais)" : "Instalar a estrutura de especificação pelo instalador oficial",
-            "npx", args, [CommandEffect.Process, CommandEffect.Network, CommandEffect.WriteLocal], needsForce,
-            [SpecificationManifest.SkillDirectory, ManagedScope.SkillsLockDirectory]));
-        risks.Add("A instalação da estrutura de especificação baixa conteúdo da rede e executa o pacote npm oficial; o resultado é validado (arquivos, hash e scripts) antes de a configuração ser dada como pronta.");
+        return new SpecificationPlan(
+            new(ComponentKind.Specification, Catalog.SpecificationStructure, ComponentDecisions.Enable,
+                needsForce ? "Reinstalação autorizada da estrutura de especificação pelo instalador oficial." : "Estrutura de especificação ausente: instalação pelo instalador oficial, sempre na versão mais recente.",
+                DecisionOrigins.Baseline, evidence),
+            new PlannedCommand(
+                "specification-install",
+                needsForce ? "Reinstalar a estrutura de especificação (sobrescreve edições locais)" : "Instalar a estrutura de especificação pelo instalador oficial",
+                "npx", args, [CommandEffect.Process, CommandEffect.Network, CommandEffect.WriteLocal], needsForce,
+                [SpecificationManifest.SkillDirectory, ManagedScope.SkillsLockDirectory]),
+            [],
+            "A instalação da estrutura de especificação baixa conteúdo da rede e executa o pacote npm oficial; o resultado é validado (arquivos, hash e scripts) antes de a configuração ser dada como pronta.");
     }
 }

@@ -5,6 +5,7 @@ using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Workspace;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Management.Assistant;
 
@@ -122,7 +123,7 @@ public sealed class PortfolioAssistant(
         var pack = new EvidencePack("portfolio", "Portfólio", evidence.GeneratedAt, evidence.Facts, evidence.Withheld);
         var verified = AnswerVerifier.Verify(completion.Text, pack);
 
-        hub.Audit.Record("management.portfolio_answered", new JsonObject
+        hub.Audit.Record(AuditActions.PortfolioAnswered, new JsonObject
         {
             ["projects"] = evidence.Projects.Count,
             ["facts"] = evidence.Facts.Count,

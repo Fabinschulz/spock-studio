@@ -201,13 +201,13 @@ public sealed class EngineSession
         if (message is null)
             return (null, ProtocolMessages.Error(null, ProtocolErrorCodes.InvalidMessage, "A mensagem não é um objeto JSON válido."));
 
-        var id = ReadString(message, "id");
+        var id = JsonRead.Text(message, "id");
 
         if (!(message["v"] is JsonValue version && version.TryGetValue<int>(out var number) && number == ProtocolMessages.Version))
             return (null, ProtocolMessages.Error(id, ProtocolErrorCodes.UnsupportedProtocol, "Versão de protocolo não suportada."));
 
-        var method = ReadString(message, "method");
-        if (ReadString(message, "kind") != "request" || id is null || method is null)
+        var method = JsonRead.Text(message, "method");
+        if (JsonRead.Text(message, "kind") != "request" || id is null || method is null)
             return (null, ProtocolMessages.Error(id, ProtocolErrorCodes.InvalidMessage, "Requisição malformada."));
 
         return (new Request(id, method, message["params"] as JsonObject), null);
@@ -268,9 +268,6 @@ public sealed class EngineSession
             ["engine"] = "ready",
             ["aiRuntime"] = _workflows!.AiRuntimeStatus()
         });
-
-    private static string? ReadString(JsonObject? values, string name) =>
-        values?[name] is JsonValue node && node.TryGetValue<string>(out var text) ? text : null;
 
     private static (JsonObject Response, bool Shutdown) Reply(JsonObject response) => (response, false);
 

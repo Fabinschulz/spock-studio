@@ -14,13 +14,13 @@ public sealed class HarnessStatusService(WorkspaceAuthorizer workspace, IProject
 
     public HarnessNaming NamingOf(string projectId)
     {
-        if (!workspace.TryGetRoot(projectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
+        var root = workspace.RequireRoot(projectId);
         return files.Open(root).Naming();
     }
 
     public HarnessStatus Inspect(string projectId)
     {
-        if (!workspace.TryGetRoot(projectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
+        var root = workspace.RequireRoot(projectId);
         var project = files.Open(root);
         var excluded = (DeclaredConfig.TryRead(project).Config?.Components?.Exclude ?? [])
             .Select(id => new HarnessExcludedComponent(id, HarnessLabels.Of(id), ComponentRequest.IsManageable(id)))

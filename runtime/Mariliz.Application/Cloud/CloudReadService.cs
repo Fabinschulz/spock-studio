@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Cloud;
 
@@ -95,7 +96,7 @@ public sealed class CloudReadService(
             : target.NormalizeRegion(region);
 
     private void Audit(CloudReadRequest request, CloudCaller caller, CloudConnection connection, string? region, int rows, bool truncated, string outcome) =>
-        audit.Record("cloud.read", new JsonObject
+        audit.Record(AuditActions.CloudRead, new JsonObject
         {
             ["projectId"] = request.ProjectId, ["connectionId"] = connection.Id, ["provider"] = connection.Provider, ["name"] = connection.Name,
             ["capability"] = request.Capability, ["region"] = region, ["rows"] = rows, ["truncated"] = truncated, ["outcome"] = outcome,

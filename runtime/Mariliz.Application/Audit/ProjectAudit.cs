@@ -124,9 +124,7 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
         foreach (var record in records.OrderBy(record => record.Line))
         {
             var inProject = ProjectOf(record) == projectId;
-            var isConnection = record.Action.StartsWith("connection.", StringComparison.Ordinal)
-                || record.Action.StartsWith("cloud.connection_", StringComparison.Ordinal) || record.Action == "cloud.permissions_checked";
-            if (!inProject && !(isConnection && connectionIds.Contains(Text(record.Detail, "connectionId")))) continue;
+            if (!inProject && !(AuditActions.IsConnection(record.Action) && connectionIds.Contains(Text(record.Detail, "connectionId")))) continue;
             result.AddRange(Describe(record, state, names));
         }
         return result;
@@ -134,7 +132,7 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
 
     private static string? ProjectOf(AuditRecord record) => record.Detail["projectId"] is JsonValue ? Text(record.Detail, "projectId") : null;
 
-    private static IEnumerable<AuditEntry> Describe(AuditRecord record, Dictionary<string, (bool Feeds, string Kinds)> state, Dictionary<string, string> names)
+    internal static IEnumerable<AuditEntry> Describe(AuditRecord record, Dictionary<string, (bool Feeds, string Kinds)> state, Dictionary<string, string> names)
     {
         var d = record.Detail;
         var integrationId = Text(d, "integrationId");
@@ -144,7 +142,7 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
 
         switch (record.Action)
         {
-            case "integration.linked":
+            case AuditActions.IntegrationLinked:
             {
                 var kinds = KindsText(d);
                 var feeds = Flag(d, "feedsKnowledge");
@@ -152,7 +150,7 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                 yield return Entry("", AuditCategories.Access, $"Fonte vinculada ao projeto: {resource}", $"Dados lidos: {kinds}. Política de contexto de IA: {Policy(feeds)}.");
                 break;
             }
-            case "integration.scope_changed":
+            case AuditActions.IntegrationScopeChanged:
             {
                 var kinds = KindsText(d);
                 var feeds = Flag(d, "feedsKnowledge");
@@ -172,129 +170,152 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                     yield return Entry("", AuditCategories.Access, $"Recorte e política de {resource} salvos sem mudança", $"Dados lidos: {kinds}. Política de contexto de IA: {Policy(feeds)}.");
                 break;
             }
-            case "integration.unlinked":
+            case AuditActions.IntegrationUnlinked:
                 state.Remove(integrationId);
                 yield return Entry("", AuditCategories.Access, $"Fonte desvinculada do projeto: {resource}", "O que estava sincronizado dela foi apagado deste computador.");
                 break;
-            case "integration.synced":
+            case AuditActions.IntegrationSynced:
                 yield return Entry("", AuditCategories.Read, $"Leitura de {names.GetValueOrDefault(integrationId) ?? "uma fonte vinculada"}", $"{SyncStatus(Text(d, "status"))}; {Count(Count(d, "fetched"), "item lido", "itens lidos")}.");
                 break;
-            case "integration.sync_listener_failed":
+            case AuditActions.IntegrationSyncListenerFailed:
                 yield return Entry("", AuditCategories.Read, "Um ouvinte do fim da sincronização falhou", "A sincronização foi gravada; o erro ficou no tipo registrado.");
                 break;
-            case "decision.recorded":
+            case AuditActions.DecisionRecorded:
                 yield return Entry("", AuditCategories.Decision, "Decisão gerencial registrada",
                     $"{Count(Count(d, "facts"), "fato do momento", "fatos do momento")} e {Count(Count(d, "runs"), "execução relacionada", "execuções relacionadas")}." + (Flag(d, "redacted") ? " Houve redação de segredo no texto." : ""));
                 break;
-            case "ide.context_read":
+            case AuditActions.IdeContextRead:
                 yield return Entry("", AuditCategories.Context, IdeReadTitle(Text(d, "tool")), IdeReadDetail(d));
                 break;
-            case "ide.bootstrap":
+            case AuditActions.IdeBootstrap:
                 yield return Entry("", AuditCategories.Context, "Contexto de abertura entregue à IDE pelo hook de sessão",
                     $"Versão {Clean(Text(d, "contextVersion"))}: {Count(Count(d, "items"), "item", "itens")}, {Count(Count(d, "usedTokens"), "token", "tokens")}.");
                 break;
-            case "ide.prompt":
+            case AuditActions.IdePrompt:
                 yield return Entry("", AuditCategories.Context, "Aviso entregue à IDE pelo hook por prompt", PromptSignalsDetail(d));
                 break;
-            case "connection.created":
+            case AuditActions.ConnectionCreated:
                 yield return Entry("", AuditCategories.Credential, $"Conexão criada: {Clean(Text(d, "name"))}", $"Provedor: {Clean(Text(d, "provider"))}. Conexão usada por este projeto.");
                 break;
-            case "connection.credential_updated":
+            case AuditActions.ConnectionCredentialUpdated:
                 yield return Entry("", AuditCategories.Credential, $"Credencial atualizada: {Clean(Text(d, "name"))}", "A nova credencial foi conferida com o provedor antes de substituir a antiga.");
                 break;
-            case "connection.disconnected":
+            case AuditActions.ConnectionDisconnected:
                 yield return Entry("", AuditCategories.Credential, $"Conexão desconectada: {Clean(Text(d, "name"))}", "A credencial foi apagada deste computador.");
                 break;
-            case "connection.removed":
+            case AuditActions.ConnectionRemoved:
                 yield return Entry("", AuditCategories.Credential, $"Conexão removida: {Clean(Text(d, "name"))}", "A conexão e a credencial saíram deste computador.");
                 break;
-            case "cloud.linked":
+            case AuditActions.CloudLinked:
                 yield return Entry("", AuditCategories.Access, $"Conexão cloud vinculada: {Clean(Text(d, "name"))}",
                     $"{Count(Count(d, "capabilities"), "leitura liberada", "leituras liberadas")}; agentes: {(Flag(d, "agentAccess") ? "liberados" : "fechados")}.");
                 break;
-            case "cloud.scope_changed":
+            case AuditActions.CloudScopeChanged:
                 yield return Entry("", AuditCategories.Access, "Escopo de uma conexão cloud alterado",
                     $"{Count(d["capabilities"] is JsonArray caps ? caps.Count : 0, "leitura liberada", "leituras liberadas")}; agentes: de {(Flag(d, "agentAccessBefore") ? "liberados" : "fechados")} para {(Flag(d, "agentAccess") ? "liberados" : "fechados")}.");
                 break;
-            case "cloud.unlinked":
+            case AuditActions.CloudUnlinked:
                 yield return Entry("", AuditCategories.Access, "Conexão cloud desvinculada do projeto", "Nenhuma leitura dela vale mais para este projeto.");
                 break;
-            case "cloud.read":
+            case AuditActions.CloudRead:
                 yield return Entry("", AuditCategories.Read, $"Leitura cloud: {Clean(Text(d, "capability"))}", CloudReadDetail(d));
                 break;
-            case "cloud.connection_created":
+            case AuditActions.CloudConnectionCreated:
                 yield return Entry("", AuditCategories.Credential, $"Conexão cloud criada: {Clean(Text(d, "name"))}", $"Provedor: {Clean(Text(d, "provider"))}. Nenhuma credencial foi guardada pelo Spock.");
                 break;
-            case "cloud.connection_validated":
+            case AuditActions.CloudConnectionValidated:
                 yield return Entry("", AuditCategories.Credential, $"Conexão cloud validada: {Clean(Text(d, "name"))}", $"Estado: {Clean(Text(d, "status"))}.");
                 break;
-            case "cloud.permissions_checked":
+            case AuditActions.CloudPermissionsChecked:
                 yield return Entry("", AuditCategories.Credential, $"Permissões verificadas: {Clean(Text(d, "name"))}",
                     $"{Count(d, "allowed")} liberadas, {Count(d, "denied")} negadas, {Count(d, "failed")} sem resposta.");
                 break;
-            case "cloud.connection_removed":
+            case AuditActions.CloudConnectionRemoved:
                 yield return Entry("", AuditCategories.Credential, $"Conexão cloud removida: {Clean(Text(d, "name"))}", "Só o registro saiu: a credencial nunca esteve com o Spock.");
                 break;
-            case "iac.runtime.pinned":
+            case AuditActions.IacRuntimePinned:
                 yield return Entry("", AuditCategories.Change, $"{(Text(d, "engine") == "openTofu" ? "OpenTofu" : "Terraform")} {Clean(Text(d, "version"))} fixado no projeto",
                     (Flag(d, "automatic") ? "Fixado no primeiro uso, para que uma instalação nova não troque a versão. " : "Escolha feita na tela Infraestrutura. ")
                     + (Text(d, "source") == "managed" ? "Binário gerenciado pelo Spock." : "Binário instalado fora do Spock."));
                 break;
-            case "iac.validate":
+            case AuditActions.IacValidate:
                 yield return Entry("", AuditCategories.Read, "Infraestrutura validada",
                     $"{Count(d, "folders")} pasta(s); {Count(d, "invalid")} inválida(s), {Count(d, "unformatted")} fora do formato. Nada mudou na nuvem nem no projeto.");
                 break;
-            case "iac.plan":
+            case AuditActions.IacPlan:
                 yield return Entry("", AuditCategories.Read, $"Plano de infraestrutura gerado ({Clean(Text(d, "workspace"))})",
                     $"Criar {Count(d, "create")}, alterar {Count(d, "update")}, substituir {Count(d, "replace")}, destruir {Count(d, "delete")}; " +
                     $"{Count(d, "findings")} achado(s). Nada mudou na nuvem.");
                 break;
-            case "iac.drift":
+            case AuditActions.IacDrift:
                 yield return Entry("", AuditCategories.Read, $"Drift de infraestrutura verificado ({Clean(Text(d, "workspace"))})",
                     Text(d, "status") == "failed" ? "A verificação falhou. Nada mudou na nuvem nem no state."
                     : $"{Count(d, "changed")} recurso(s) alterado(s) e {Count(d, "deleted")} apagado(s) fora da ferramenta; {Count(d, "unmanaged")} na conta fora do state. " +
                       "Nada mudou na nuvem nem no state.");
                 break;
-            case "iac.drift_schedule_changed":
+            case AuditActions.IacDriftScheduleChanged:
                 yield return Entry("", AuditCategories.Change, Flag(d, "enabled") ? $"Verificação de drift agendada a cada {Count(d, "intervalHours")} h" : "Verificação de drift agendada desligada",
                     $"Pasta {Clean(Text(d, "folder"))}, ambiente {Clean(Text(d, "workspace"))}. Roda enquanto o Spock está aberto e só lê a nuvem.");
                 break;
-            case "iac.drift_schedule_failed":
+            case AuditActions.IacDriftScheduleFailed:
                 yield return Entry("", AuditCategories.Read, "Verificação de drift agendada não rodou", $"Código {Clean(Text(d, "code"))}. Tenta de novo no próximo intervalo.");
                 break;
-            case "iac.bootstrap_written":
+            case AuditActions.IacBootstrapWritten:
                 yield return Entry("", AuditCategories.Change, $"Bootstrap do state gravado ({Clean(Text(d, "provider"))})",
                     $"{Count(d, "files")} arquivo(s) em {Clean(Text(d, "folder"))}. O bucket só é criado depois, pelo plano e apply aprovados.");
                 break;
-            case "iac.generated":
+            case AuditActions.IacGenerated:
                 yield return Entry("", AuditCategories.Change, $"Infraestrutura gerada no modelo ({Clean(Text(d, "provider"))})",
                     $"{Count(d, "files")} arquivo(s) em {Clean(Text(d, "folder"))}. Nada foi criado na nuvem: isso só acontece pelo plano e apply aprovados.");
                 break;
-            case "iac.architecture_drafted":
+            case AuditActions.IacArchitectureDrafted:
                 yield return Entry("", AuditCategories.Read, "Desenho de infraestrutura proposto pela IA",
                     $"{Count(d, "attempts")} tentativa(s), {Count(d, "inputTokens")} tokens de entrada e {Count(d, "outputTokens")} de saída. Nada foi gravado.");
                 break;
-            case "iac.state_read":
+            case AuditActions.IacStateRead:
                 yield return Entry("", AuditCategories.Read, "State de infraestrutura consultado",
                     $"Pasta {Clean(Text(d, "folder"))}, ambiente {Clean(Text(d, "workspace"))}: {Count(d, "resources")} recurso(s). Só endereços, nenhum valor.");
                 break;
-            case "iac.state_unlocked":
+            case AuditActions.IacStateUnlocked:
                 yield return Entry("", AuditCategories.Change, "Trava do state liberada (force-unlock)",
                     $"Pasta {Clean(Text(d, "folder"))}, ambiente {Clean(Text(d, "workspace"))}, trava {Clean(Text(d, "lockId"))}, com confirmação da pessoa.");
                 break;
-            case "iac.apply_approved":
+            case AuditActions.IacApplyApproved:
                 yield return Entry("", AuditCategories.Decision, $"Plano {Clean(Text(d, "planId"))} aprovado para aplicar",
                     $"Ambiente {Clean(Text(d, "workspace"))}; destruição {(Flag(d, "destroyConfirmed") ? "confirmada" : "não havia")}; " +
                     $"riscos {(Flag(d, "risksAccepted") ? "aceitos" : "não havia graves")}.");
                 break;
-            case "iac.apply":
+            case AuditActions.IacApply:
                 yield return Entry("", AuditCategories.Change, $"Plano {Clean(Text(d, "planId"))} aplicado na nuvem",
                     Flag(d, "verified") ? "Verificado: o plano seguinte não tem mudanças."
                     : Flag(d, "applied") ? $"Aplicado com divergência: {Count(d, "remaining")} mudança(s) ainda pendente(s)."
                     : $"Falhou; {Count(d, "remaining")} mudança(s) ficaram pendentes.");
                 break;
-            case "iac.runtime.unpinned":
+            case AuditActions.IacRuntimeUnpinned:
                 yield return Entry("", AuditCategories.Change, "Ferramenta de infraestrutura do projeto de volta à escolha automática", "Vale a versão compatível mais nova até o próximo uso.");
+                break;
+            case AuditActions.IntegrationSyncBookkeepingFailed:
+                yield return Entry("", AuditCategories.Read, "O registro do fim de uma sincronização falhou", "Os itens lidos ficaram gravados; o erro ficou no tipo registrado.");
+                break;
+            case AuditActions.RunLinked:
+                yield return Entry("", AuditCategories.Change, $"Execução ligada a {ItemText(d)}", $"Execução {Clean(Text(d, "runId"))}. O vínculo fica só neste computador.");
+                break;
+            case AuditActions.RunUnlinked:
+                yield return Entry("", AuditCategories.Change, $"Execução desligada de {ItemText(d)}", $"Execução {Clean(Text(d, "runId"))}.");
+                break;
+            case AuditActions.ProfileRefreshed:
+                yield return Entry("", AuditCategories.Read, "Perfil de tecnologias do projeto atualizado",
+                    $"{Count(Count(d, "technologies"), "tecnologia", "tecnologias")}; {Count(Count(d, "changes"), "mudança", "mudanças")} desde o perfil anterior.");
+                break;
+            case AuditActions.AssistantAnswered:
+                yield return Entry("", AuditCategories.Model, "Pergunta de gestão respondida pela IA",
+                    $"{Count(Count(d, "facts"), "fato consultado", "fatos consultados")}, {Count(d, "cited")} citado(s) e {Count(d, "rejected")} recusado(s) na conferência; " +
+                    $"{Count(d, "inputTokens")} tokens de entrada e {Count(d, "outputTokens")} de saída.");
+                break;
+            case AuditActions.InvestigationAnswered:
+                yield return Entry("", AuditCategories.Model, "Investigação de gestão concluída pela IA",
+                    $"{Count(Count(d, "rounds"), "rodada", "rodadas")}, {Count(Count(d, "consulted"), "evidência citada", "evidências citadas")} e {Count(d, "rejected")} recusada(s); " +
+                    $"{Count(Count(d, "modelCalls"), "chamada", "chamadas")} ao modelo, {Count(d, "inputTokens")} tokens de entrada e {Count(d, "outputTokens")} de saída.");
                 break;
             default:
                 yield return Entry("", AuditCategories.Change, $"Operação registrada: {Clean(record.Action)}", "");
@@ -429,11 +450,15 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
 
     private static string Count(int value, string one, string many) => $"{value} {(value == 1 ? one : many)}";
 
-    private static int Count(JsonObject d, string name) => d[name] is JsonValue value && value.TryGetValue<int>(out var number) ? number : 0;
+    private static string ItemText(JsonObject d) =>
+        $"{(Text(d, "kind") == DataKinds.PullRequests ? "pull request" : "issue")} {Clean(Text(d, "externalId"))}";
 
-    private static bool Flag(JsonObject d, string name) => d[name] is JsonValue value && value.TryGetValue<bool>(out var flag) && flag;
+    // A trilha mostra campo ausente como zero ou vazio: o registro é antigo ou de uma versão que não gravava o campo.
+    private static int Count(JsonObject d, string name) => JsonRead.Int(d, name) ?? 0;
 
-    private static string Text(JsonObject d, string name) => d[name] is JsonValue value && value.TryGetValue<string>(out var text) ? text : "";
+    private static bool Flag(JsonObject d, string name) => JsonRead.Flag(d, name);
+
+    private static string Text(JsonObject d, string name) => JsonRead.Text(d, name) ?? "";
 
     private static string Clean(string text)
     {

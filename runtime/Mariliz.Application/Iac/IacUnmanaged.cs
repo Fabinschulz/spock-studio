@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Mariliz.Application.Cloud;
+using static Mariliz.Application.JsonRead;
 
 namespace Mariliz.Application.Iac;
 
@@ -67,6 +68,4 @@ public static class IacUnmanaged
         }
         return result;
     }
-
-    private static string? Text(JsonNode? node) => node is JsonValue v && v.TryGetValue<string>(out var text) ? text : null;
 }

@@ -3,6 +3,7 @@ using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Iac;
 
@@ -56,7 +57,7 @@ public sealed class IacDriftScheduler(IacOperationService operations, IIacDriftS
         var schedule = new IacDriftSchedule(request.ProjectId, request.Enabled, request.IntervalHours, Clean(request.Folder), Clean(request.Workspace),
             Clean(request.ConnectionId), clock.UtcNow, previous?.LastRunAt, previous?.LastOperationId, previous?.LastError);
         store.Save(schedule);
-        audit.Record("iac.drift_schedule_changed", new JsonObject
+        audit.Record(AuditActions.IacDriftScheduleChanged, new JsonObject
         {
             ["projectId"] = request.ProjectId,
             ["enabled"] = request.Enabled,
@@ -91,7 +92,7 @@ public sealed class IacDriftScheduler(IacOperationService operations, IIacDriftS
             catch (EngineException ex)
             {
                 store.Save(schedule with { LastRunAt = started, LastError = ex.Message });
-                audit.Record("iac.drift_schedule_failed", new JsonObject { ["projectId"] = schedule.ProjectId, ["code"] = ex.Code });
+                audit.Record(AuditActions.IacDriftScheduleFailed, new JsonObject { ["projectId"] = schedule.ProjectId, ["code"] = ex.Code });
             }
         }
         return ran;
@@ -104,6 +105,6 @@ public sealed class IacDriftScheduler(IacOperationService operations, IIacDriftS
 
     private void RequireRoot(string projectId)
     {
-        if (!workspace.TryGetRoot(projectId, out _)) throw EngineErrors.ProjectNotAuthorized();
+        workspace.RequireRoot(projectId);
     }
 }

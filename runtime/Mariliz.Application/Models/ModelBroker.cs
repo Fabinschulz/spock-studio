@@ -183,7 +183,7 @@ public sealed partial class ModelBroker(ModelGateway gateway)
     private static partial Regex AgentIdPattern();
 
     private static string Text(JsonObject node, string name) =>
-        node[name] is JsonValue value && value.TryGetValue<string>(out var text) ? text : "";
+        JsonRead.Text(node, name) ?? "";
 
     // Reserva o pior caso antes da chamada e acerta com o uso real depois.
     private sealed class Grant(string executionId, int budget, string token)

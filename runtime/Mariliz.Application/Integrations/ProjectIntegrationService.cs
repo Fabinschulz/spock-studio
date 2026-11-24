@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Integrations;
 
@@ -54,7 +55,7 @@ public sealed class ProjectIntegrationService(
             "pint-" + Guid.NewGuid().ToString("N")[..12], projectId, connectionId, connection.Provider,
             new DataScope(probe.Resource, probe.Name, kinds), ContextualizationPolicy.Closed, clock.UtcNow);
         store.SaveIntegration(integration);
-        Audit("integration.linked", integration);
+        Audit(AuditActions.IntegrationLinked, integration);
         return integration;
     }
 
@@ -76,7 +77,7 @@ public sealed class ProjectIntegrationService(
             var synced = data.Read(projectId, integrationId);
             if (synced.RemoveKindsOutside(updated.Scope.DataKinds) > 0) data.Write(projectId, integrationId, synced);
         }
-        Audit("integration.scope_changed", updated);
+        Audit(AuditActions.IntegrationScopeChanged, updated);
         return updated;
     }
 
@@ -87,7 +88,7 @@ public sealed class ProjectIntegrationService(
 
         store.RemoveIntegration(integrationId);
         data.Delete(projectId, integrationId);
-        Audit("integration.unlinked", integration);
+        Audit(AuditActions.IntegrationUnlinked, integration);
     }
 
     private void EnsureAuthorized(string projectId)

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using static Mariliz.Application.JsonRead;
 
 namespace Mariliz.Application.Iac;
 
@@ -114,8 +115,6 @@ public static partial class IacPlanBillables
         JsonValue v when v.GetValueKind() is JsonValueKind.True or JsonValueKind.False => v.GetValue<bool>() ? "true" : "false",
         _ => null
     };
-
-    private static string? Text(JsonNode? node) => node is JsonValue v && v.TryGetValue<string>(out var text) ? text : null;
 
     [GeneratedRegex(@"\[[^\]]*\]")]
     private static partial Regex IndexPattern();

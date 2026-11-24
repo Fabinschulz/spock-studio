@@ -74,10 +74,10 @@ public sealed class WorkflowContextBuilder : IWorkflowContext
                 ["stacks"] = new JsonArray(report.Stacks.Select(stack => stack.Id).Distinct().Take(8).Select(id => (JsonNode)JsonValue.Create(id)!).ToArray())
             };
         }
-        catch (OperationCanceledException) { throw; }
-        catch (Exception)
+        catch (Exception ex) when (ex is EngineException or IOException or UnauthorizedAccessException)
         {
-            // Descoberta é um extra: falhar nela não impede o pedido, só tira as stacks do contexto.
+            // Descoberta é um extra: a pasta ilegível não impede o pedido, só tira as stacks do contexto. Um defeito na
+            // descoberta não entra aqui: ele derruba o pedido em vez de sumir do contexto da IA sem aviso.
             return EmptyWorkflowContext.Unavailable();
         }
     }

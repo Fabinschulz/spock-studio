@@ -5,6 +5,7 @@ using Amazon.Pricing;
 using Amazon.Pricing.Model;
 using Amazon.Runtime;
 using Mariliz.Application.Cloud;
+using static Mariliz.Application.JsonRead;
 
 namespace Mariliz.Infrastructure.Cloud.Aws;
 
@@ -90,8 +91,6 @@ internal static class AwsPrices
         if (usage == wanted) return true;
         return usage.EndsWith("-" + wanted, StringComparison.Ordinal) && !usage[..^(wanted.Length + 1)].Contains('-');
     }
-
-    private static string? Text(JsonNode? node) => node is JsonValue value && value.TryGetValue<string>(out var text) ? text : null;
 
     private static decimal? Number(string? text) =>
         decimal.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) ? number : null;

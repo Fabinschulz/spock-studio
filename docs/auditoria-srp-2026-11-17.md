@@ -60,16 +60,16 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
 | NET-S03 | `IacGenerators.cs`, `IacStateService.cs:94,152`, `IacGenerationService.cs:44,146`, `IacOperationService.cs:494`, `IacBlueprintChecks.cs` | Shotgun Surgery; literais `"aws"`/`"azure"`/`"gcp"` em vez de `CloudProviders` | OCP | P1 | Mudar um provedor exige sete edições; um provedor desconhecido cai em AWS ou GCS sem aviso | Tabela única `IacProviders` (um registro por provedor) e erro `ProviderUnknown` | Onda 2 |
 | NET-S04 | `IacOperationService.cs:483-528`, `IacStateService.cs:157-167` | Primitive Obsession entre camadas (chave de configuração crua) | DIP | P1 | Renomear um campo no provedor ainda compila. `AWS_PROFILE` ou `GOOGLE_APPLICATION_CREDENTIALS` somem, e a ferramenta cai na cadeia padrão de credenciais, que pode ser outra conta | Os três provedores respondem pela porta `ICloudProcessCredentials` | Onda 2 |
 | NET-S08 | `Infrastructure/Iac/CliIacRuntime.cs:11-14` × `engine.rs:39,48` | Configuração espalhada | Design by Contract | P1 | O pior caso do apply no motor (~103 min) passa a espera do host (90 min): a UI mostra *timeout* enquanto a nuvem continua mudando | `IacTimeouts` com total por operação, prazo geral no serviço e teste que compara com o host | Onda 2 |
-| NET-S02 | os três geradores | Duplicate Code de regra de produto (`environment_guard`, `name_prefix`, `image_tag`, `>= 1.11`, README) | DRY | P2 | Uma regra muda em quatro a sete lugares | `IacRootCommon` com funções; o texto dos módulos fica como está | Onda 2 |
-| NET-S06 | `IacGenerationService:83`, `IacStateService:104`, `IdeaArchitectService:61`, `SecurityService:29` | Duplicate Code do ciclo "diff aprovado → execução reversível" | DRY | P2 | O JSON de resultado (contrato da UI) é montado três vezes | `ReviewedWriteRun.Start(...)` em `Execution`, mais `EngineErrors.StalePlan` | Onda 3 |
+| NET-S02 | os três geradores | Duplicate Code de regra de produto (`environment_guard`, `name_prefix`, `image_tag`, `>= 1.11`, README) | DRY | P2 | Uma regra muda em quatro a sete lugares | `IacRootCommon` com funções; o texto dos módulos fica como está | **Feito** (onda 3a) |
+| NET-S06 | `IacGenerationService:83`, `IacStateService:104`, `IdeaArchitectService:61`, `SecurityService:29` | Duplicate Code do ciclo "diff aprovado → execução reversível" | DRY | P2 | O JSON de resultado (contrato da UI) é montado três vezes | `ReviewedWriteRun.Start(...)` em `Execution`, mais `EngineErrors.StalePlan` | **Feito** (onda 3a) |
 | NET-S09 | `IacRuntimeService.cs:55` | Duas fontes de verdade (mínimo 1.6 × `>= 1.11` gerado) | DRY | P3 | Projeto fixado entre 1.6 e 1.10 é recusado depois da geração | Uma constante; decisão de produto (§6) | Decisão |
-| NET-S10 | `IacOperationService` (`CommonRoot`, `Combine`, `PlanAsync`) | Feature Envy; validação repetida | SRP | P3 | Serviços chamam estáticos uns dos outros | `IacLayout` estático; `PlanAsync` reaproveita `Target()` | Onda 3 |
-| NET-S11 | 28 arquivos | `RequireRoot` e `DisplayName` copiados | DRY | P3 | Ruído | `WorkspaceAuthorizer.RequireRoot` e `DisplayNameOf` | Onda 3 |
-| NET-S12 | `Harness/HarnessComposition.cs` | Acoplamento temporal (`null!`, NET-12 antigo), parâmetros de saída | SRP | P3 | A ordem de chamada importa sem que o tipo diga | Seletor criado antes e passado adiante; `SpecificationPlanner` devolve um record | Onda 3 |
-| NET-S13 | 6 cópias de leitor de campo JSON | Duplicate Code divergente (`""` × `null`) | DRY | P3 | Campo ausente tratado de dois jeitos | `JsonRead` único | Onda 3 |
-| NET-S14 | `WorkflowContextBuilder.cs:77` | `catch (Exception)` sem rastro | Fail Fast | P3 | Um bug na descoberta some do contexto da IA sem aviso | Estreitar o catch ou registrar o tipo | Onda 3 |
+| NET-S10 | `IacOperationService` (`CommonRoot`, `Combine`, `PlanAsync`) | Feature Envy; validação repetida | SRP | P3 | Serviços chamam estáticos uns dos outros | `IacLayout` estático; `PlanAsync` reaproveita `Target()` | **Feito** (onda 3a) |
+| NET-S11 | 28 arquivos | `RequireRoot` e `DisplayName` copiados | DRY | P3 | Ruído | `WorkspaceAuthorizer.RequireRoot` e `DisplayNameOf` | **Feito** (onda 3a) |
+| NET-S12 | `Harness/HarnessComposition.cs` | Acoplamento temporal (`null!`, NET-12 antigo), parâmetros de saída | SRP | P3 | A ordem de chamada importa sem que o tipo diga | Seletor criado antes e passado adiante; `SpecificationPlanner` devolve um record | **Feito** (onda 3a) |
+| NET-S13 | 6 cópias de leitor de campo JSON | Duplicate Code divergente (`""` × `null`) | DRY | P3 | Campo ausente tratado de dois jeitos | `JsonRead` único | **Feito** (onda 3a) |
+| NET-S14 | `WorkflowContextBuilder.cs:77` | `catch (Exception)` sem rastro | Fail Fast | P3 | Um bug na descoberta some do contexto da IA sem aviso | Estreitar o catch ou registrar o tipo | **Feito** (onda 3a) |
 | NET-S15 | `Models/ModelGateway.cs` | Divergent Change (administração + invocação) | SRP | P3 | Baixo hoje | Separar só se a configuração de modelos crescer | Monitorar |
-| NET-S16 | `Audit/ProjectAudit.cs:137-300` | Switch de 165 linhas sobre strings escritas por 12 serviços | OCP | P3 | Seis ações já aparecem como "Operação registrada" | `AuditActions` e um teste de cobertura | Onda 3 |
+| NET-S16 | `Audit/ProjectAudit.cs:137-300` | Switch de 165 linhas sobre strings escritas por 12 serviços | OCP | P3 | Seis ações já aparecem como "Operação registrada" | `AuditActions` e um teste de cobertura | **Feito** (onda 3a) |
 
 ### 3.2 Host Rust/Tauri (RS)
 
@@ -129,8 +129,13 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
   - corrigidos na onda 2b: RS-12, RS-13 e RS-14;
   - corrigidos na onda 2e: UI-18, UI-21, UI-22 e UI-23;
   - corrigidos na onda 2d: RS-10, UI-24, UI-25 e UI-26;
-  - abertos: os demais P2 das tabelas.
-- **P3:** onda 3 e itens a monitorar.
+  - corrigidos na onda 3a: NET-S02 e NET-S06;
+  - abertos: RS-17 (espera a validação no `.deb`), UI-19 e UI-20.
+- **P3:**
+  - corrigidos na onda 3a: NET-S10, NET-S11, NET-S12, NET-S13, NET-S14 e NET-S16;
+  - abertos: RS-18, RS-19, RS-20, UI-27 a UI-31 e UI-33;
+  - a monitorar: NET-S15;
+  - decisão do dono: NET-S09.
 
 ## 5. Plano de refatoração
 
@@ -144,7 +149,11 @@ Uma onda por PR, sem empilhar PR. Cada onda começa por testes de caracterizaç�
 | 2c | `shared/api`, `configure-project`, `agents`, `execution` | UI-3 | `followRun` único | — | caracterização "evento antes do `start()` aparece no progresso" e lacuna nos agentes |
 | 2d | contratos motor ⇄ UI ⇄ host | RS-10, UI-25, UI-26, UI-24 | campos tipados no lugar de texto; prazos no `engine.hello` | decisões em §6 | fixtures novas, `contracts.test.ts`, teste .NET que lê `protocol.rs` |
 | 2e | `shared/hooks`, `infrastructure` | UI-21, UI-22, UI-23, UI-18 | hooks para `shared`, uma busca por página | — | testes diretos de `useAction`/`useReloadable` (hoje não há) |
-| 3 | vários | P3 restantes, UI-19/UI-20, NET-S02, NET-S06, RS-17..20 | ver tabelas | ondas 2 | os indicados por item |
+| 3a | motor .NET | NET-S02, NET-S06, NET-S10 a NET-S14, NET-S16 | ver §7f | ondas 2 | `AuditActionsTests`, `JsonReadTests` e as suítes de IaC, Harness, ideia e segurança |
+| 3b | host Rust | RS-18, RS-19, RS-20 | `commands/`, vaga de terminal reservada antes de abrir, `Diagnostics` injetável | — | teste de concorrência do limite de terminais |
+| 3c | `infrastructure` (UI) e motor | UI-20, depois UI-19 | `iac.generate.options` no motor; `useGenerateFlow` e `PROVIDER_FIELDS` | — | caracterização do `GeneratePanel` antes de mexer |
+| 3d | UI | UI-27 a UI-31, UI-33 | `role="alert"`, `Disclosure`, rota de layout com `lazy` | — | testes de componente e o tamanho do chunk inicial |
+| depois | empacotamento | RS-17 | o .NET dono do layout do runtime | validação real num `.deb` (§6) | instalação no Linux |
 
 ## 6. Decisões que dependem do dono do produto
 
@@ -252,6 +261,24 @@ Uma onda por PR, sem empilhar PR. Cada onda começa por testes de caracterizaç�
 - UI: typecheck, eslint e prettier limpos; vitest com 891 testes aprovados.
 - Não validado: o app Tauri com o motor real recebendo os prazos do `engine.hello`; o anúncio e a leitura no host
   ficaram nos testes de cada lado.
+
+## 7f. Onda 3a executada
+
+| Item | Antes | Depois | Testes |
+|---|---|---|---|
+| NET-S02 | Os três geradores repetiam a versão mínima `>= 1.11`, a guarda do workspace `default`, o `name_prefix`, a regra da tag de imagem (com o exemplo do `tfvars`) e o roteiro do README; o bootstrap repetia a versão | `IacRootCommon` (`RequiredVersion`, `EnvironmentGuard`, `NamePrefix`, `ImageTag`, `ImageTagExample`, `ToolPrerequisite`, `ReadmeWorkflow`, `ReadmeChecks`). Os arquivos gerados saem iguais; o texto dos módulos continua de cada nuvem | As suítes de geração das três nuvens e do bootstrap passam sem mudar nenhuma expectativa |
+| NET-S06 | Geração de infraestrutura, bootstrap do state, documentos da ideia e correção de segurança montavam cada um o diário, o gravador aprovado e o resultado; três montavam o mesmo JSON de resultado | `Execution/ReviewedWriteRun`: abre a execução, grava pelo `ApprovedWriter` e fecha o diário. O resultado padrão (`files`, `error`) sai num lugar só; a segurança usa a forma com `finish`, que varre de novo e mantém o próprio resultado. `EngineErrors.StalePlan` no lugar dos cinco `"STALE_PLAN"` | Testes de geração, bootstrap, ideia e segurança sem mudança |
+| NET-S10 | `CommonRoot`, `Relative` e `Combine` moravam no `IacOperationService` e eram chamados por outros serviços; o `IacStateService` tinha um `Combine` próprio; o `PlanAsync` repetia a validação do `Target()` | `IacLayout` estático com os três; o `PlanAsync` usa o `Target()` | Suítes de IaC |
+| NET-S11 | `RequireRoot` e `DisplayName` copiados em 18 arquivos | `WorkspaceAuthorizer.RequireRoot` e `DisplayNameOf`. Ficam com `TryGetRoot` só os lugares que tratam a ausência de outro jeito (MCP, contexto, agenda de drift) | Suíte inteira |
+| NET-S12 | `HarnessComposition` guardava o seletor num campo `null!` preenchido no meio do `Build`, e o `SpecificationPlanner` escrevia em quatro listas recebidas | O seletor é criado no `Build` e passado a cada método que decide componente; a dispensa e a saída de IDE perguntam a ele (`Releasing`, `IsRetired`). O `SpecificationPlanner` devolve `SpecificationPlan` (decisão, comando, limitações, risco) | Suítes do Harness e da especificação sem mudança |
+| NET-S13 | Doze cópias do leitor de campo JSON, umas devolvendo `""` e outras `null` para campo ausente | `JsonRead` (`Text`, `NonBlank`, `Int`, `Flag`): ausente vira `null`, e quem precisa de `""` escreve isso no uso | `JsonReadTests` |
+| NET-S14 | `WorkflowContextBuilder` engolia qualquer exceção da descoberta | Só pasta ilegível (`EngineException`, `IOException`, `UnauthorizedAccessException`) tira as stacks do contexto; um defeito na descoberta derruba o pedido | Suíte de workflows |
+| NET-S16 | Os nomes das ações eram texto solto em 19 arquivos; cinco ações de projeto apareciam como "Operação registrada" (perfil de tecnologias, execução ligada e desligada de item, resposta do assistente de gestão e investigação) | `AuditActions` com todos os nomes e `MachineWide` para as que não são de um projeto; quem grava e a trilha leem de lá. As cinco ganharam título e detalhe | `AuditActionsTests`: toda ação de projeto tem descrição própria, nenhum nome se repete e nenhum serviço grava com nome literal |
+
+**Validação depois da onda 3a:**
+- .NET: 1901 testes aprovados, 0 falhas, 28 ignorados; mais 12 de integração.
+- Só o motor mudou: host, UI e contratos ficaram como estavam, e nenhuma fixture foi regenerada.
+- Não validado: a trilha de auditoria e a geração de IaC no app Tauri com um motor real; ficaram nos testes.
 
 ## 8. Arquivos grandes julgados coesos
 
