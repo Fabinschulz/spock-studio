@@ -122,7 +122,7 @@ public sealed class IacSessionModeTests : IDisposable
         var google = await Call(prepare, new JsonObject { ["provider"] = "gcp" });
 
         Assert.Contains("ECS Fargate", aws);
-        Assert.Contains(".spock/iac-proposal.json", aws);
+        Assert.Contains($"em {Path.Combine(_project.Root, ".spock", "iac-proposal.json")}.", aws);
         Assert.Contains("iac_blueprint_check", aws);
         Assert.Contains("Nunca invente ids", aws);
         Assert.Contains("Você não escreve os arquivos .tf", aws);
