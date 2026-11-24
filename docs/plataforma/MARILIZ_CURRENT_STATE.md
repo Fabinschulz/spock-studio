@@ -55,7 +55,7 @@ quatro só do host são `engine.hello`, `engine.shutdown`, `workspace.authorize`
 | Grupo | Métodos | O que cobre |
 | --- | --- | --- |
 | Sessão (só host) | `engine.hello`, `engine.shutdown`, `workspace.authorize`, `runtime.health` | Handshake, autorização de pasta, saúde do motor e do Python. |
-| Descoberta e Harness | `project.discover`, `harness.{plan,apply,validate,revert,runs}` | Descoberta, plano com diff, aplicação aprovada, validação por evals, reversão, diários. |
+| Descoberta e Harness | `project.discover`, `project.architecture`, `harness.{plan,apply,validate,revert,runs}` | Descoberta, plano com diff, aplicação aprovada, validação por evals, reversão, diários. |
 | Execuções | `run.{snapshot,cancel,list,detail,link,unlink,linked}` | Retrato com `sinceSeq`, cancelamento, lista paginada com filtro, detalhe, vínculo com item de trabalho. |
 | Workflow | `workflow.{start,resume}` | Pedido de engenharia e retomada da pausa de aprovação. |
 | Modelo | `model.{status,save,remove,default,connection,test,purpose,budget}` | Chave por provedor, provedor padrão, conferência da conexão, modelo e teto de tokens por finalidade. |

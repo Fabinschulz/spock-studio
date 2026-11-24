@@ -21,6 +21,7 @@ export function errorMessage(error: unknown, fallback: string): string {
  */
 export const ENGINE_METHODS = [
   'project.discover',
+  'project.architecture',
   'harness.plan',
   'harness.apply',
   'harness.validate',

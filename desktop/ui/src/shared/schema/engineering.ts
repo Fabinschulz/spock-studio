@@ -118,6 +118,73 @@ export const projectKnowledgeSchema = z.object({
   memory: knowledgeMemorySchema
 });
 
+const architectureFindingSchema = z.object({
+  code: z.string(),
+  severity: z.enum(['warning', 'info']),
+  title: z.string(),
+  evidence: z.array(z.object({ path: z.string(), detail: z.string().nullable() }))
+});
+
+/**
+ * A análise determinística do código (W2-2) e a avaliação que o agente da sessão gravou no projeto (W4-1), conferida pelo
+ * motor sem modelo. `assessment` é null enquanto o agente não gravou nada.
+ */
+export const projectArchitectureSchema = z.object({
+  architecture: z.object({
+    report: z.object({
+      projectId: z.string(),
+      analyzedAt: z.string(),
+      dotnetProjects: z.array(
+        z.object({
+          path: z.string(),
+          name: z.string(),
+          layer: z.string(),
+          references: z.array(z.string()),
+          frameworks: z.array(z.string()),
+          tested: z.boolean()
+        })
+      ),
+      frontends: z.array(
+        z.object({
+          root: z.string(),
+          source: z.string(),
+          folders: z.array(z.string()),
+          features: z.array(z.string()),
+          featureDependencies: z.array(z.string()),
+          layerLint: z.boolean()
+        })
+      ),
+      findings: z.array(architectureFindingSchema),
+      ownImplementations: z.array(z.object({ name: z.string(), folder: z.string(), replaces: z.string() }))
+    }),
+    assessment: z
+      .object({
+        path: z.string(),
+        summary: z.string().nullable(),
+        conventions: z.array(z.object({ title: z.string(), files: z.array(z.string()) })),
+        divergences: z.array(
+          z.object({
+            title: z.string(),
+            classification: z.string(),
+            description: z.string(),
+            files: z.array(z.string()),
+            references: z.array(z.string()),
+            findings: z.array(z.string()),
+            recommendation: z.string()
+          })
+        ),
+        checks: z.array(
+          z.object({ id: z.string(), description: z.string(), passed: z.boolean(), detail: z.string().nullable() })
+        ),
+        valid: z.boolean()
+      })
+      .nullable(),
+    assessmentPath: z.string()
+  })
+});
+
+export type ProjectArchitecture = z.infer<typeof projectArchitectureSchema>['architecture'];
+export type ArchitectureFinding = z.infer<typeof architectureFindingSchema>;
 export type KnowledgeMemory = z.infer<typeof knowledgeMemorySchema>;
 export type KnowledgeExternalSource = z.infer<typeof knowledgeExternalSourceSchema>;
 export type ProjectKnowledge = z.infer<typeof projectKnowledgeSchema>;

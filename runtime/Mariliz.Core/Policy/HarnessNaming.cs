@@ -21,6 +21,7 @@ public sealed class HarnessNaming
     public string ArchitectureFolder => StateDirectory + "/arquitetura";
     public string DecisionsFolder => StateDirectory + "/decisions";
     public string IacProposal => StateDirectory + "/iac-proposal.json";
+    public string ArchitectureAssessment => StateDirectory + "/architecture-assessment.json";
 
     public string RuleGeneral => Rule("general");
     public string RuleDotnet => Rule("stack-dotnet");

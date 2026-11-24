@@ -13,6 +13,7 @@ internal sealed class ConfigureRequestHandler(ConfigureProjectService service) :
     public async Task<JsonObject> HandleAsync(string method, RequestParams p, CancellationToken ct) => method switch
     {
         ProtocolMethods.Discover => Json(await service.DiscoverAsync(p.Str("projectId"), ct)),
+        ProtocolMethods.ProjectArchitecture => new JsonObject { ["architecture"] = JournalJson.Node(service.Architecture(p.Str("projectId"))) },
         ProtocolMethods.Plan => await PlanAsync(p, ct),
         ProtocolMethods.Apply => StartApply(p),
         ProtocolMethods.Validate => RunStarted(service.StartValidate(p.Str("projectId"))),

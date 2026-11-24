@@ -54,6 +54,8 @@
 | `iac_plan_summary`, `iac_history`, `iac_drift_summary`, `iac_state` | Infra | `project?`, `operation?` | Histórico, drift e state gravados | Nenhum | — |
 | `iac_blueprint_check` | Infra | `blueprint` | Validação em memória | Nenhum | — |
 | `iac_architecture_prepare` | Infra | `project?`, `provider?` | Regras do desenho e a proposta gravada em `.spock/iac-proposal.json` | Nenhum (quem grava a proposta é o agente) | — |
+| `spock_architecture_assessment_prepare` | Arquitetura | `project?` | Análise determinística do código, `REF-*` das stacks do projeto e formato da avaliação | Nenhum | Sim (`ide.context_read`) |
+| `spock_architecture_assessment_check` | Arquitetura | `project?` | A avaliação gravada em `.spock/architecture-assessment.json`, conferida contra a análise e a pasta Organização | Nenhum (quem grava é o agente) | Sim (`ide.context_read`) |
 
 ### 1.2 Problemas encontrados no servidor atual
 
