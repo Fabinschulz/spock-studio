@@ -1,6 +1,6 @@
 # Modos de modelo do Spock
 
-Status: proposta, aguardando decisão do dono (seção 9). Nada aqui está implementado.
+Status: proposta. DD-MM-1 decidida em 2026-11-23 (modo Sessão primeiro); as outras decisões da seção 9 continuam com o dono.
 
 ## 1. Objetivo
 
@@ -168,7 +168,7 @@ Com isso, o W2-4 deixa de travar o produto: ele valida o modo Chave, e MM-2 e MM
 
 | Id | Pergunta | Opções | Recomendação |
 |---|---|---|---|
-| DD-MM-1 | Qual modo vem primeiro | (a) Sessão (MM-2); (b) CLI (MM-1 e MM-3) | (a): maior ganho para quem usa o agente, sem custo novo e sem risco de termos de uso; o CLI vem logo depois |
+| DD-MM-1 | Qual modo vem primeiro | (a) Sessão (MM-2); (b) CLI (MM-1 e MM-3) | **Decidida em 2026-11-23: (a).** Maior ganho para quem usa o agente, sem custo novo e sem risco de termos de uso; o CLI vem logo depois |
 | DD-MM-2 | Com chave e CLI configurados, qual vale por padrão | (a) chave; (b) CLI; (c) a pessoa escolhe por finalidade, como já escolhe o modelo | (c), com a chave como padrão inicial |
 | DD-MM-3 | Como contar o orçamento no modo CLI | (a) tudo, com tetos próprios; (b) só o que não é cache | (a): o número bate com o consumo da franquia |
 | DD-MM-4 | Uso da assinatura por outro programa | A pessoa confirma que os termos do plano dela permitem, ao ligar o modo | Aviso e confirmação na tela de conexão; o Spock não decide por ela |
