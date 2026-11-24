@@ -13,6 +13,7 @@ internal sealed class IdeaRequestHandler(IdeaArchitectService service) : IReques
         ProtocolMethods.IdeaDraft => Json(await service.DraftAsync(p.Str("projectId"), p.Str("stage"), Artifacts(p), ct)),
         ProtocolMethods.IdeaPlan => Json(service.Plan(p.Str("projectId"), Artifacts(p))),
         ProtocolMethods.IdeaSave => new JsonObject { ["runId"] = service.StartSave(p.Str("projectId"), Artifacts(p), p.Str("planId")).RunId },
+        ProtocolMethods.ProjectDesign => new JsonObject { ["design"] = IntegrationJson.Node(service.Design(p.Str("projectId"))) },
         _ => throw new InvalidOperationException($"Método sem tratador: {method}.")
     };
 

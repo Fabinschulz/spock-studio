@@ -35,6 +35,9 @@ internal static class IdeaChecks
             Check("shall", "Cada requisito diz o que o sistema deve fazer", notShall.Count == 0, Missing(notShall)),
             Check("priority", "Cada requisito tem prioridade (must, should ou could) e ao menos um é must",
                 badPriority.Count == 0 && requirements.Any(item => Text(item, "priority") == "must"), Missing(badPriority)),
+            // A escolha de stack pesa requisitos não funcionais (desempenho, segurança, custo): sem eles, ela fica sem base.
+            Check("nonfunctional", "Tem ao menos um requisito não funcional (desempenho, segurança, disponibilidade, custo, operação)",
+                nonFunctional.Any(item => Text(item, "text").Length > 0)),
             NoSecret(spec)
         ];
     }
@@ -57,6 +60,7 @@ internal static class IdeaChecks
             Ids("ids", "Cada componente tem um id único no formato CMP-01", components.Select(item => Text(item, "id")).ToList(), Component),
             Check("traces", "Os componentes só citam requisitos que existem na especificação", unknown.Count == 0, Missing(unknown)),
             Check("coverage", "Todo requisito must tem ao menos um componente responsável", uncovered.Count == 0, Missing(uncovered)),
+            .. StackChecks.For(architecture, spec),
             NoSecret(architecture)
         ];
     }

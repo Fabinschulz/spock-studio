@@ -49,9 +49,8 @@ function Architecture({ artifact }: { artifact: IdeaArtifact }) {
   const architecture = ideaArchitectureView.parse(artifact);
   return (
     <div className={styles.artifact}>
-      <p className={styles.text}>
-        <strong>{architecture.style}.</strong> {architecture.summary}
-      </p>
+      <h3 className={styles.heading}>{architecture.style}</h3>
+      <p className={styles.text}>{architecture.summary}</p>
       <List
         title="Componentes"
         items={architecture.components.map((item) => (
@@ -68,6 +67,29 @@ function Architecture({ artifact }: { artifact: IdeaArtifact }) {
         items={architecture.stack.map((item) => (
           <>
             <strong>{item.area}</strong>: {item.choice}. {item.reason}
+            <ul className={styles.criteria}>
+              {item.question ? (
+                <li>
+                  Critério: pergunta {item.question} do catálogo, opção {item.option}, fatores {item.factors.join(', ')}
+                </li>
+              ) : null}
+              {item.requirements.length > 0 ? <li>Atende a {item.requirements.join(', ')}</li> : null}
+              {item.alternatives.map((alternative) => (
+                <li key={alternative.choice}>
+                  Descartado: {alternative.choice} ({alternative.whyNot})
+                </li>
+              ))}
+              {item.tradeoffs ? <li>Trade-off: {item.tradeoffs}</li> : null}
+              {item.exception ? <li>Exceção: {item.exception}</li> : null}
+            </ul>
+          </>
+        ))}
+      />
+      <List
+        title="Fatores da escolha"
+        items={architecture.factors.map((factor) => (
+          <>
+            <strong>{factor.id}</strong> ({factor.criterion}, favorece {factor.favors}): {factor.fact}
           </>
         ))}
       />
@@ -91,6 +113,7 @@ function Backlog({ artifact }: { artifact: IdeaArtifact }) {
       {backlog.epics.map((epic) => (
         <List
           key={epic.id}
+          level={3}
           title={`${epic.id} ${epic.title}`}
           items={epic.stories.map((story) => (
             <>
@@ -108,11 +131,13 @@ function Backlog({ artifact }: { artifact: IdeaArtifact }) {
   );
 }
 
-function List({ title, items }: { title: string; items: ReactNode[] }) {
+// Sob o título da etapa, cada lista é um nível abaixo; os épicos do backlog não têm título acima deles.
+function List({ title, items, level = 4 }: { title: string; items: ReactNode[]; level?: 3 | 4 }) {
   if (items.length === 0) return null;
+  const Heading = level === 3 ? 'h3' : 'h4';
   return (
     <>
-      <h4 className={styles.listTitle}>{title}</h4>
+      <Heading className={styles.listTitle}>{title}</Heading>
       <ul className={styles.list}>
         {items.map((item, index) => (
           // Os itens vêm do modelo e podem repetir texto; a posição é estável enquanto a etapa não muda.

@@ -1,3 +1,4 @@
+import designFixture from '@contracts/fixtures/idea/design.json';
 import draftFixture from '@contracts/fixtures/idea/draft.json';
 import planFixture from '@contracts/fixtures/idea/plan.json';
 import { render, screen, within } from '@testing-library/react';
@@ -57,7 +58,7 @@ const drafts = {
   }
 } as const;
 
-function fakeEngine(options: { draft?: (stage: string) => object | Error } = {}) {
+function fakeEngine(options: { draft?: (stage: string) => object | Error; design?: () => object } = {}) {
   const calls: { method: string; params: Record<string, unknown> }[] = [];
   const client: EngineClient = {
     async request(method, params, schema) {
@@ -69,6 +70,7 @@ function fakeEngine(options: { draft?: (stage: string) => object | Error } = {})
         if (reply instanceof Error) throw reply;
         return schema.parse(reply);
       }
+      if (method === 'project.design') return schema.parse(options.design?.() ?? designFixture);
       const runId = body.runId as string | undefined;
       const reply: Record<string, unknown> = {
         'idea.plan': planFixture,
@@ -206,5 +208,102 @@ describe('Da ideia ao projeto', () => {
     await userEvent.type(screen.getByLabelText(/Sua ideia/), 'curta');
 
     expect(screen.getByRole('button', { name: 'Gerar especificação' })).toBeDisabled();
+  });
+});
+
+// O arquivo do agente com a arquitetura corrigida: a opção do backend volta a ser a que os fatores favorecem.
+function validDesign() {
+  const design = structuredClone(designFixture.design);
+  const architecture = design.stages[1]!;
+  architecture.valid = true;
+  architecture.checks = architecture.checks.map((check) => ({ ...check, passed: true, detail: null }));
+  const stack = (architecture.artifact as { stack: { option: string }[] }).stack;
+  stack[0]!.option = '.NET';
+  return { design: { ...design, valid: true } };
+}
+
+describe('Da ideia ao projeto pelo agente da sessão (sem chave)', () => {
+  it('monta o pedido com a ideia, lê o que o agente gravou e grava depois de aprovar etapa por etapa', async () => {
+    const engine = fakeEngine({ design: validDesign });
+    const { container } = renderPage(engine.client);
+
+    await userEvent.click(screen.getByLabelText(/Sua ideia/));
+    await userEvent.paste(IDEA);
+    const prompt = (screen.getByLabelText('Pedido para o agente') as HTMLTextAreaElement).value;
+    expect(prompt).toContain('spock_project_design_prepare');
+    expect(prompt).toContain(`A ideia:\n${IDEA}`);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ler o que o agente gravou' }));
+    const spec = await screen.findByRole('region', { name: '1. Especificação' });
+    const architecture = screen.getByRole('region', { name: '2. Arquitetura' });
+    expect(spec).toHaveTextContent('Escrita pelo agente da sua sessão');
+    expect(architecture).toHaveTextContent('Critério: pergunta 10.4 do catálogo, opção .NET, fatores F1, F2');
+    expect(architecture).toHaveTextContent('Descartado: Node/TS');
+    expect(architecture).toHaveTextContent('F1 (10.4-conhecimento-da-equipe, favorece .NET)');
+    expect(screen.queryByRole('region', { name: 'Sem chave: pelo agente da sua sessão' })).not.toBeInTheDocument();
+    await expectNoA11yViolations(container);
+
+    // As três etapas chegam juntas, mas a aprovação segue a ordem.
+    expect(within(architecture).getByRole('button', { name: 'Aprovar e seguir' })).toBeDisabled();
+    await userEvent.click(within(spec).getByRole('button', { name: 'Aprovar e seguir' }));
+    await userEvent.click(within(architecture).getByRole('button', { name: 'Aprovar e seguir' }));
+    const backlog = screen.getByRole('region', { name: '3. Backlog' });
+    await userEvent.click(within(backlog).getByRole('button', { name: 'Aprovar e seguir' }));
+    expect(screen.queryByRole('button', { name: /^Gerar/ })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Revisar os documentos' }));
+    const review = await screen.findByRole('region', { name: 'Revisar os documentos' });
+    await userEvent.click(within(review).getByRole('button', { name: 'Gravar documentos' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Gravar' }));
+
+    expect(await screen.findByText('Documentos gravados')).toBeInTheDocument();
+    expect(engine.calls.find((call) => call.method === 'idea.save')?.params).toMatchObject({
+      idea: designFixture.design.idea,
+      architecture: validDesign().design.stages[1]!.artifact
+    });
+    expect(engine.calls.some((call) => call.method === 'idea.draft')).toBe(false);
+  }, 20_000);
+
+  it('etapa do agente que não passou não pode ser aprovada, e ler de novo busca o arquivo outra vez', async () => {
+    const engine = fakeEngine();
+    renderPage(engine.client);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ler o que o agente gravou' }));
+    const architecture = await screen.findByRole('region', { name: '2. Arquitetura' });
+    expect(within(architecture).getByText('Não passou')).toBeInTheDocument();
+    expect(architecture).toHaveTextContent(
+      'Falhou: A opção de cada escolha é a que os fatores citados favorecem (mesmos fatores, mesma escolha), ou a escolha explica a exceção (backend)'
+    );
+    expect(within(architecture).queryByRole('button', { name: 'Aprovar e seguir' })).not.toBeInTheDocument();
+
+    await userEvent.click(within(architecture).getByRole('button', { name: 'Ler de novo' }));
+    expect(engine.calls.filter((call) => call.method === 'project.design')).toHaveLength(2);
+  });
+
+  it('diz quando o agente ainda não gravou nada e quando o arquivo não serve', async () => {
+    let reply: object = {
+      design: { ...designFixture.design, found: false, idea: null, checks: [], stages: [], valid: false }
+    };
+    renderPage(fakeEngine({ design: () => reply }).client);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ler o que o agente gravou' }));
+    expect(await screen.findByText('Nada gravado ainda')).toBeInTheDocument();
+    expect(screen.getByText('.spock/project-design.json')).toBeInTheDocument();
+
+    reply = {
+      design: {
+        ...designFixture.design,
+        idea: null,
+        checks: [{ id: 'json', label: 'O arquivo é um objeto JSON', passed: false, detail: null }],
+        stages: [],
+        valid: false
+      }
+    };
+    await userEvent.click(screen.getByRole('button', { name: 'Ler o que o agente gravou' }));
+    expect(await screen.findByText('O arquivo do agente não serve ainda')).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Verificações do arquivo' })).toHaveTextContent(
+      'O arquivo é um objeto JSON'
+    );
+    expect(screen.queryByRole('region', { name: '1. Especificação' })).not.toBeInTheDocument();
   });
 });

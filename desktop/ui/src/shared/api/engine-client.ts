@@ -95,6 +95,7 @@ export const ENGINE_METHODS = [
   'idea.draft',
   'idea.plan',
   'idea.save',
+  'project.design',
   'cloud.catalog',
   'cloud.list',
   'cloud.create',

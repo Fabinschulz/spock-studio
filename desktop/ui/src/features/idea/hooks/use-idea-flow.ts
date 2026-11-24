@@ -1,13 +1,26 @@
 import { errorMessage } from '@/shared/api';
-import { IDEA_STAGES, type IdeaDraft, type IdeaPlan, type IdeaSaveResult, type IdeaStage } from '@/shared/schema';
+import {
+  IDEA_STAGES,
+  type IdeaDraft,
+  type IdeaPlan,
+  type IdeaSaveResult,
+  type IdeaStage,
+  type ProjectDesign
+} from '@/shared/schema';
 import { useCallback, useState } from 'react';
 
 import type { ApprovedIdea, IdeaApi } from '../service/idea-api';
 
-export type IdeaBusy = 'drafting' | 'planning' | 'saving' | 'reverting' | null;
+export type IdeaBusy = 'drafting' | 'reading' | 'planning' | 'saving' | 'reverting' | null;
+
+/** Quem escreveu as etapas: o modelo do Spock (modo Chave) ou o agente da sessão da pessoa (modo Sessão). */
+export type IdeaSource = 'model' | 'session';
 
 export interface IdeaFlowState {
   approved: ApprovedIdea;
+  source: IdeaSource;
+  /** A última leitura do arquivo do agente, para dizer o que falta quando ele não serve. */
+  design: ProjectDesign | null;
   drafts: Partial<Record<IdeaStage, IdeaDraft>>;
   plan: IdeaPlan | null;
   saved: IdeaSaveResult | null;
@@ -21,6 +34,8 @@ type Changes = Partial<IdeaFlowState> | ((current: IdeaFlowState) => Partial<Ide
 
 const EMPTY: IdeaFlowState = {
   approved: { idea: '' },
+  source: 'model',
+  design: null,
   drafts: {},
   plan: null,
   saved: null,
@@ -64,6 +79,27 @@ export function useIdeaFlow(api: IdeaApi, projectId: string) {
           return (current: IdeaFlowState) => ({ approved, drafts: { ...current.drafts, [stage]: result } });
         },
         'Não foi possível gerar esta etapa.'
+      ),
+    [api, projectId, run]
+  );
+
+  // O arquivo do agente traz as três etapas de uma vez; aprovar segue uma por vez, como no modo Chave. Ler de novo descarta
+  // as aprovações, porque o agente pode ter mudado o arquivo.
+  const readDesign = useCallback(
+    () =>
+      run(
+        'reading',
+        async () => {
+          const design = await api.readDesign(projectId);
+          if (!design.found || !design.idea || design.checks.some((check) => !check.passed)) return { design };
+          const drafts: Partial<Record<IdeaStage, IdeaDraft>> = {};
+          for (const stage of design.stages) {
+            if (!stage.artifact) continue;
+            drafts[stage.stage] = { ...stage, attempts: 0, inputTokens: 0, outputTokens: 0 };
+          }
+          return { ...EMPTY, design, source: 'session' as const, approved: { idea: design.idea }, drafts };
+        },
+        'Não foi possível ler o que o agente gravou.'
       ),
     [api, projectId, run]
   );
@@ -116,5 +152,5 @@ export function useIdeaFlow(api: IdeaApi, projectId: string) {
   const restart = useCallback(() => setState(EMPTY), []);
   const cancelReview = useCallback(() => setState((current) => ({ ...current, plan: null })), []);
 
-  return { state, draft, approve, review, save, revert, restart, cancelReview };
+  return { state, draft, readDesign, approve, review, save, revert, restart, cancelReview };
 }

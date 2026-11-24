@@ -66,6 +66,12 @@
       "detail": null
     },
     {
+      "id": "nonfunctional",
+      "label": "Tem ao menos um requisito não funcional (desempenho, segurança, disponibilidade, custo, operação)",
+      "passed": true,
+      "detail": null
+    },
+    {
       "id": "secrets",
       "label": "Não traz nada com formato de credencial",
       "passed": true,

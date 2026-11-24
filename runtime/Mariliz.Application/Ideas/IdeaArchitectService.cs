@@ -58,6 +58,9 @@ public sealed class IdeaArchitectService(
 
     public IdeaPlan Plan(string projectId, IdeaArtifacts approved) => Prepare(projectId, Open(projectId), approved).Plan;
 
+    // Modo Sessão: o que o agente da pessoa gravou, já conferido; a gravação dos documentos segue por Plan e StartSave.
+    public ProjectDesign Design(string projectId) => ProjectDesigns.Read(Open(projectId));
+
     public RunHandle StartSave(string projectId, IdeaArtifacts approved, string planId)
     {
         var files = Open(projectId);
