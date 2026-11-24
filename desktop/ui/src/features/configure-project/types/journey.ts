@@ -1,4 +1,4 @@
-import type { ConfigurationPlan, ConflictResolution, Discovery, RunEvent, RunResult } from '@/shared/schema';
+import type { ConfigurationPlan, ConflictResolution, Discovery, RunResult, TimelineEvent } from '@/shared/schema';
 import type { ComponentRequest } from '../domain/component-request';
 import type { PlannedStep, RunKind, RunView } from './run';
 
@@ -46,7 +46,7 @@ export type JourneyAction =
   | { type: 'step.go'; step: JourneyStepId }
   | { type: 'run.start'; kind: RunKind; at?: number; planned?: readonly PlannedStep[] }
   | { type: 'run.id'; runId: string }
-  | { type: 'run.event'; event: RunEvent; at?: number }
+  | { type: 'run.event'; event: TimelineEvent; at?: number }
   | { type: 'run.done'; result: RunResult }
   | { type: 'run.error'; message: string };
 

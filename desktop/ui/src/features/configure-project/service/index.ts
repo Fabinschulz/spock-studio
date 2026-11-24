@@ -4,5 +4,5 @@ export {
   type ApplyInput,
   type HarnessApi,
   type PlanInput,
-  type WaitOptions
+  type WaitHandlers
 } from './harness-api';

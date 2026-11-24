@@ -94,7 +94,7 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
 |---|---|---|---|---|---|---|---|
 | UI-17 | `infrastructure/components/iac-operations.tsx:141-154`, `plan-approval.tsx:8,30-40` | Regra de negócio do motor copiada, e já divergente | SRP entre camadas, DRY | P1 | Plano vencido (24 h) aparecia aprovável; a pessoa marcava tudo e só então o motor recusava. Mudar a lista de produção deixaria a UI para trás | A UI renderiza `applyRequirements` vindo do motor; `PRODUCTION` e `approvable` foram removidos | **Feito** |
 | UI-32 (parcial) | `plan-approval.tsx:30`, `iac-operations.tsx:113` | `!` em campo opcional | Type safety | P3 | Guarda longe do uso | `summary` e `planId` passam a vir garantidos dos requisitos | **Feito** na aprovação |
-| UI-3 | `configure-project/service/harness-api.ts:86`, `execution/hooks/use-run-follow.ts`, `agents/hooks/use-agent-run.ts`, `shared/api/run-until-done.ts` | Quatro implementações de "acompanhar execução" | DRY, SRP | P1 | Configuração assina os eventos depois de `start()` e perde os primeiros. Agentes aceitam lacuna de `seq` e perdem linhas de saída | `shared/api/follow-run.ts` (assina antes, ordena por `seq`, recupera lacuna); os quatro chamadores sobre ele. Começar por teste de caracterização | Onda 2 |
+| UI-3 | `configure-project/service/harness-api.ts:86`, `execution/hooks/use-run-follow.ts`, `agents/hooks/use-agent-run.ts`, `shared/api/run-until-done.ts` | Quatro implementações de "acompanhar execução" | DRY, SRP | P1 | Configuração assina os eventos depois de `start()` e perde os primeiros. Agentes aceitam lacuna de `seq` e perdem linhas de saída | `shared/api/follow-run.ts` (assina antes, ordena por `seq`, recupera lacuna); os quatro chamadores sobre ele. Começar por teste de caracterização | **Feito** (onda 2c) |
 | UI-25 | `runtime-panel.tsx:170`, `blueprint.ts:249` | Comportamento decidido por texto localizado do motor (`'já está instalado'`, `'sim'`) | Contrato explícito | P2 | Reescrever ou traduzir o texto no motor quebra a tela sem aviso | O motor passa booleanos tipados | Onda 2 (contrato) |
 | UI-26 | `proposal-guide.tsx:27`, `judge-states.ts:13`, `model-step.tsx:68` | Nomes de arquivo do Harness fixos na UI | DRY entre camadas | P2 | Projeto configurado antes do #132 vê caminhos `spock` que não existem | A descoberta ou o plano devolvem `naming` | Onda 2 (contrato) |
 | UI-20 | `infrastructure/domain/blueprint.ts:4,38-80` | Capacidade por provedor na camada de formulário | SRP entre camadas | P2 | Opções e dicas divergem da validação do motor | `iac.generate.options` no motor; a UI mantém só o mapeamento formulário ⇄ DTO | Onda 3 |
@@ -122,7 +122,8 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
   - corrigidos na onda 1: NET-6 e UI-17;
   - corrigidos na onda 2a: NET-S03, NET-S04 e NET-S08;
   - corrigido na onda 2b: RS-11b;
-  - aberto: UI-3.
+  - corrigido na onda 2c: UI-3;
+  - nenhum aberto.
 - **P2:**
   - corrigidos na onda 1: NET-S01, NET-S05, NET-S07, RS-4/RS-11a, RS-15 e RS-16;
   - corrigidos na onda 2b: RS-12, RS-13 e RS-14;
@@ -209,6 +210,16 @@ Uma onda por PR, sem empilhar PR. Cada onda começa por testes de caracterizaç�
   - fechar a janela com o motor vivo: o host saiu em 0,3 s sem deixar processo.
 - Não validado: handshake recusado ou travado com um motor real, nem um motor que para de ler o stdin; ficaram só nos
   testes com escritor falso e nas funções puras. Linux e macOS não rodaram.
+
+## 7c. Onda 2c executada
+
+| Item | Antes | Depois | Testes |
+|---|---|---|---|
+| UI-3 | Quatro jeitos de acompanhar uma execução: `waitForRun` da configuração assinava os eventos depois do `start()` e perdia os primeiros; `useAgentRun` aceitava pulo de `seq` e perdia linha; `runUntilDone` e `useRunFollow` tinham cada um a sua ordem e a sua releitura | `shared/api/follow-run.ts`: escuta antes de pedir, entrega em ordem de `seq` e uma vez, recupera lacuna com `sinceSeq`, pula o que o motor já não guarda em vez de travar, relê no fim para trazer o resultado e, com `pollMs`, cobre um término perdido. Os quatro passam por ele: `runUntilDone` e `waitForRun` (até o fim), `useAgentRun` (linhas dos eventos entregues) e `useRunFollow` (sem parar no fim, por causa da retomada; segue só pelas leituras se a escuta falhar) | `follow-run.test.ts` (9, com um motor de mentira que guarda os eventos como o `RunHandle`); caracterização: `use-configure-journey.test` (o passo publicado antes de o pedido voltar aparece no progresso) e `use-agent-run.test` (linha perdida volta pela lacuna, sem repetir a que saiu antes do id); os testes antigos da página de execução, dos agentes e da configuração passam sem mudança |
+
+**Validação depois da onda 2c:**
+- UI: typecheck, eslint e prettier limpos; vitest com 877 testes aprovados.
+- Não validado: as quatro telas no app Tauri com um motor real; ficaram nos testes de componente e de hook.
 
 ## 8. Arquivos grandes julgados coesos
 

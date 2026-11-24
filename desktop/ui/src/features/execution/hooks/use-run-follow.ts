@@ -1,101 +1,76 @@
-import type { EngineClient } from '@/shared/api';
-import { isTerminalState, type RunEvent } from '@/shared/schema';
+import { engineRunSource, followRun, type EngineClient, type RunFollow } from '@/shared/api';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { applyLive, fromSnapshot, type RunView } from '../domain/run-timeline';
-import { readSnapshot } from '../service/execution-api';
+import {
+  applyLive,
+  fromSnapshot,
+  workflowSnapshotSchema,
+  type RunView,
+  type WorkflowSnapshot
+} from '../domain/run-timeline';
 
 /**
- * Acompanha uma execução pelos eventos reais do motor. Escuta antes de ler o retrato, para não perder o que acontecer no
- * meio; eventos que chegam antes do retrato esperam e passam pela mesma dobra. Lacuna de numeração vira `sinceSeq`.
+ * Acompanha uma execução pelo `followRun`, sem parar no fim: depois de uma aprovação a mesma execução continua. A ordem,
+ * a lacuna de numeração e a escuta antes do primeiro retrato ficam com ele; aqui só se dobra o que chega na `RunView`.
  */
 export function useRunFollow(client: EngineClient, runId: string) {
   const [view, setView] = useState<RunView | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Tentar de novo depois de uma leitura que falhou recomeça o acompanhamento inteiro.
+  const [attempt, setAttempt] = useState(0);
   const viewRef = useRef<RunView | null>(null);
-  const pending = useRef<Parameters<typeof applyLive>[1][]>([]);
-  const catchingUp = useRef(false);
+  const follow = useRef<RunFollow<WorkflowSnapshot> | null>(null);
 
   const commit = useCallback((next: RunView) => {
     viewRef.current = next;
     setView(next);
   }, []);
 
-  const refresh = useCallback(async () => {
-    const current = viewRef.current;
-    const snapshot = await readSnapshot(client, runId, current?.lastSeq);
-    let next = fromSnapshot(snapshot, current ?? undefined);
-    for (const event of pending.current) next = applyLive(next, event).view;
-    pending.current = [];
-    commit(next);
-  }, [client, commit, runId]);
-
-  const catchUp = useCallback(() => {
-    if (catchingUp.current) return;
-    catchingUp.current = true;
-    refresh()
-      .catch(() => setError('Alguns eventos não chegaram. Tente de novo para reler a execução.'))
-      .finally(() => {
-        catchingUp.current = false;
-      });
-  }, [refresh]);
-
   useEffect(() => {
-    let active = true;
-    let unlisten: (() => void) | undefined;
     viewRef.current = null;
-    pending.current = [];
-
-    const onEvent = (event: RunEvent) => {
-      if (!active || event.runId !== runId) return;
-      const item = { seq: event.seq, type: event.type, data: event.data };
-      const current = viewRef.current;
-      if (!current || catchingUp.current) {
-        pending.current.push(item);
-        return;
-      }
-      const outcome = applyLive(current, item);
-      if (outcome.gap) {
-        pending.current.push(item);
-        catchUp();
-        return;
-      }
-      if (outcome.view !== current) commit(outcome.view);
-      // O resultado só vem no retrato: ao terminar, a página busca o que falta.
-      if (item.type === 'run.completed' || (item.type === 'run.state' && isTerminalState(outcome.view.snapshot.state)))
-        catchUp();
-    };
-
-    // A escuta precisa estar ativa antes do primeiro retrato: um evento entre os dois (até o de término) não se perde.
-    const follow = async () => {
-      try {
-        const stop = await client.onEvent(onEvent);
-        if (!active) {
-          stop();
-          return;
+    let active = true;
+    const current = followRun(
+      engineRunSource(client, workflowSnapshotSchema),
+      runId,
+      {
+        snapshot: (snapshot) => {
+          if (active) commit(fromSnapshot(snapshot, viewRef.current ?? undefined));
+        },
+        event: (event) => {
+          const shown = viewRef.current;
+          if (!active || !shown) return;
+          const next = applyLive(shown, event).view;
+          if (next !== shown) commit(next);
+        },
+        lost: () => {
+          if (active) setError('Alguns eventos não chegaram. Tente de novo para reler a execução.');
+        },
+        deaf: () => {
+          if (active) setError('Não foi possível acompanhar os eventos desta execução.');
         }
-        unlisten = stop;
-      } catch {
-        if (active) setError('Não foi possível acompanhar os eventos desta execução.');
-      }
-      try {
-        await refresh();
-      } catch {
-        if (active) setError('Não foi possível ler esta execução.');
-      }
-    };
-    void follow();
+      },
+      { untilDone: false }
+    );
+    follow.current = current;
+    // Sem `untilDone`, `done` só termina com erro: a leitura do retrato falhou.
+    current.done.catch(() => {
+      if (active) setError('Não foi possível ler esta execução.');
+    });
 
     return () => {
       active = false;
-      unlisten?.();
+      current.stop();
     };
-  }, [catchUp, client, commit, refresh, runId]);
+  }, [attempt, client, commit, runId]);
+
+  const refresh = useCallback(async () => {
+    await follow.current?.refresh();
+  }, []);
 
   const retry = useCallback(() => {
     setError(null);
-    refresh().catch(() => setError('Não foi possível ler esta execução.'));
-  }, [refresh]);
+    setAttempt((value) => value + 1);
+  }, []);
 
   return { view, error, setError, refresh, retry };
 }
