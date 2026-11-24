@@ -68,7 +68,7 @@ quatro só do host são `engine.hello`, `engine.shutdown`, `workspace.authorize`
 | Contexto | `context.review` | O que entraria no contexto de um pedido, com contagem de tokens. |
 | Agentes | `aitool.list`, `agent.run`, `ide.connection` | CLIs de agente instaladas, execução só de leitura, configuração do servidor MCP na IDE. |
 | Segurança | `security.{scan,plan,fix}` | Varredura, plano de correção, correção aprovada. |
-| Ideia (fase A) | `idea.{draft,plan,save}`, `project.design` | Especificação, arquitetura e backlog validados, gravados pelo plano; `project.design` lê o que o agente da sessão gravou (modo Sessão, W4-3). |
+| Ideia (fase A) | `idea.{draft,plan,save}`, `project.design`, `project.scaffold` | Especificação, arquitetura e backlog validados, gravados pelo plano; `project.design` lê o que o agente da sessão gravou (modo Sessão, W4-3); `project.scaffold` monta o plano de criação do esqueleto e confere os arquivos (MV-6). |
 | Cloud | `cloud.{catalog,list,create,validate,permissions,remove,links,link,configure,unlink,read}` | Conexões AWS, Azure e Google, vínculo por projeto, leituras. |
 | Infraestrutura como código | `iac.runtime.{status,offer,install,decline,remove,adopt,pin}`, `iac.{layout,validate,plan,apply,operations,operation}`, `iac.state{,.resources,.unlock}`, `iac.bootstrap.{plan,save}`, `iac.architect.{draft,proposal}`, `iac.generate.{plan,save}`, `iac.drift{,.schedule,.schedule.set}`, `iac.cost.{estimate,plan}` | OpenTofu ou Terraform: instalação, validação, plano, aplicação aprovada, state, bootstrap do backend, desenho e geração de `.tf`, drift e custo. |
 

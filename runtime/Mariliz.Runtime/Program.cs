@@ -3,6 +3,7 @@ using Mariliz.Application.AiTools;
 using Mariliz.Application.Analysis;
 using Mariliz.Application.Models;
 using Mariliz.Application.Protocol;
+using Mariliz.Application.Scaffold;
 using Mariliz.Application.Engineering;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
@@ -89,6 +90,7 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     management: management, assistant: assistant,
     decisions: decisions,
     modernization: new ModernizationService(engine.Workspace, engine.Files, engine.Clock, decisions, new FileModernizationApprovalStore(engine.DataRoot)),
+    scaffold: new ScaffoldService(engine.Workspace, engine.Files, engine.Clock),
     reports: new ReportService(engine.Workspace, management, decisions, engine.Store, engine.Clock),
     profiles: profiles,
     knowledge: knowledge,

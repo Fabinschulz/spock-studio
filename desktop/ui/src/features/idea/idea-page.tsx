@@ -8,6 +8,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 
 import { SavePanel } from './components/save-panel';
+import { ScaffoldSection } from './components/scaffold-section';
 import { SessionPanel } from './components/session-panel';
 import { STAGE_LABELS, StageCard } from './components/stage-card';
 import { nextStage, useIdeaFlow } from './hooks/use-idea-flow';
@@ -142,6 +143,8 @@ function ProjectIdea({ api, project }: { api: IdeaApi; project: SelectedProject 
           onRevert={(saved) => void flow.revert(saved)}
         />
       ) : null}
+
+      <ScaffoldSection api={api} projectId={project.projectId} />
     </Page>
   );
 }

@@ -86,6 +86,7 @@ public static class ProtocolMethods
     public const string IdeaPlan = "idea.plan";
     public const string IdeaSave = "idea.save";
     public const string ProjectDesign = "project.design";
+    public const string ProjectScaffold = "project.scaffold";
     public const string CloudCatalog = "cloud.catalog";
     public const string CloudList = "cloud.list";
     public const string CloudCreate = "cloud.create";
@@ -168,6 +169,8 @@ public static class ProtocolMethods
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
 
     public static readonly IReadOnlyList<string> Modernization = [ModernizationPlan, ModernizationDecide];
+
+    public static readonly IReadOnlyList<string> Scaffold = [ProjectScaffold];
 
     public static readonly IReadOnlyList<string> Timeline = [TimelineRead];
 

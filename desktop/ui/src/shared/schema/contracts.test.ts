@@ -23,6 +23,7 @@ import iacStatusFixture from '@contracts/fixtures/iac/status.json';
 import contextReviewFixture from '@contracts/fixtures/context/review.json';
 import ideConnectionFixture from '@contracts/fixtures/ide/connection.json';
 import ideaDraftFixture from '@contracts/fixtures/idea/draft.json';
+import scaffoldFixture from '@contracts/fixtures/engineering/scaffold.json';
 import ideaDesignFixture from '@contracts/fixtures/idea/design.json';
 import ideaPlanFixture from '@contracts/fixtures/idea/plan.json';
 import investigationFixture from '@contracts/fixtures/management/investigation.json';
@@ -137,6 +138,7 @@ import {
   ideaSpecificationView,
   ideaArchitectureView,
   projectDesignSchema,
+  projectScaffoldSchema,
   projectArchitectureSchema,
   projectModernizationSchema,
   projectKnowledgeSchema,
@@ -826,6 +828,33 @@ describe('contrato da ideia ao projeto (fixtures do motor)', () => {
     const view = ideaArchitectureView.parse(architecture.artifact);
     expect(view.stack[0]).toMatchObject({ question: '10.4', option: 'outra', factors: ['F1', 'F2'] });
     expect(view.factors[0]).toMatchObject({ id: 'F1', criterion: '10.4-conhecimento-da-equipe', favors: '.NET' });
+  });
+
+  it('a criação do projeto traz versões com motivo e fonte, os passos e a conferência dos arquivos', () => {
+    const { scaffold } = projectScaffoldSchema.parse(scaffoldFixture);
+
+    expect(scaffold.plan.technologies.map((technology) => [technology.id, technology.version])).toEqual([
+      ['dotnet', '10.0.15'],
+      ['node', '26.13.1'],
+      ['react', '19.3.1'],
+      ['vite', '8.3.8']
+    ]);
+    expect(scaffold.plan.steps.map((step) => step.id)).toEqual([
+      'B1',
+      'B2',
+      'B3',
+      'B4',
+      'B5',
+      'B6',
+      'F1',
+      'F2',
+      'F3',
+      'F4',
+      'F5',
+      'R1'
+    ]);
+    expect(scaffold.checks.filter((check) => check.passed).map((check) => check.id)).toEqual(['node']);
+    expect(scaffold.done).toBe(false);
   });
 
   it('o plano grava só os três documentos em .spock/arquitetura', () => {

@@ -4,12 +4,14 @@ import {
   ideaPlanSchema,
   ideaSaveSnapshotSchema,
   projectDesignSchema,
+  projectScaffoldSchema,
   runStartedSchema,
   type IdeaArtifact,
   type IdeaDraft,
   type IdeaPlan,
   type IdeaStage,
-  type ProjectDesign
+  type ProjectDesign,
+  type ProjectScaffold
 } from '@/shared/schema';
 import type { z } from 'zod';
 
@@ -30,6 +32,8 @@ export interface IdeaApi {
   revert(projectId: string, runId: string): Promise<void>;
   /** Modo Sessão: o que o agente da pessoa gravou em .spock/project-design.json, já conferido pelo motor. */
   readDesign(projectId: string): Promise<ProjectDesign>;
+  /** MV-6: o plano de criação do esqueleto e o que o motor conferiu nos arquivos que o agente criou. */
+  readScaffold(projectId: string): Promise<ProjectScaffold>;
 }
 
 export function createIdeaApi(client: EngineClient): IdeaApi {
@@ -37,6 +41,8 @@ export function createIdeaApi(client: EngineClient): IdeaApi {
     draft: (projectId, stage, approved) =>
       client.request('idea.draft', { projectId, stage, ...approved }, ideaDraftSchema),
     plan: (projectId, approved) => client.request('idea.plan', { projectId, ...approved }, ideaPlanSchema),
+    readScaffold: async (projectId) =>
+      (await client.request('project.scaffold', { projectId }, projectScaffoldSchema)).scaffold,
     readDesign: async (projectId) =>
       (await client.request('project.design', { projectId }, projectDesignSchema)).design,
     save: async (projectId, approved, planId) => {
