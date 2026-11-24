@@ -5,13 +5,15 @@ use std::cmp::Reverse;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::diagnostic_log::Diagnostics;
 use crate::lock;
+use crate::protocol::{error_code, HostError};
 
 pub const MAX_RECENTS: usize = 6;
 pub const FILE_NAME: &str = "recent-projects.json";
@@ -151,16 +153,21 @@ impl AuthorizedProject {
     }
 }
 
+/// `Clone` divide a mesma lista: conferir uma pasta pode demorar, e quem confere leva um clone para fora da thread do
+/// comando.
+#[derive(Clone)]
 pub struct Recents {
-    store: Mutex<RecentStore>,
+    store: Arc<Mutex<RecentStore>>,
     file: PathBuf,
+    diagnostics: Diagnostics,
 }
 
 impl Recents {
-    pub fn load(file: PathBuf) -> Self {
+    pub fn load(file: PathBuf, diagnostics: Diagnostics) -> Self {
         Self {
-            store: Mutex::new(RecentStore::load(&file)),
+            store: Arc::new(Mutex::new(RecentStore::load(&file))),
             file,
+            diagnostics,
         }
     }
 
@@ -175,7 +182,9 @@ impl Recents {
         store.record(path, &project.display_name, &project.display_path, now);
         // Perder o histórico não é uma falha da operação: só se registra.
         if let Err(error) = store.save(&self.file) {
-            eprintln!("[host] não foi possível gravar os projetos recentes: {error}");
+            self.diagnostics.host(&format!(
+                "não foi possível gravar os projetos recentes: {error}"
+            ));
         }
         project_id(path)
     }
@@ -194,6 +203,36 @@ impl Recents {
     pub fn path_of(&self, id: &str) -> Option<String> {
         lock(&self.store).find(id).map(|entry| entry.path.clone())
     }
+
+    /// A pasta de um recente que ainda existe. Cada tela explica de um jeito o id fora da lista, por isso a mensagem
+    /// vem de quem pede; a pasta que sumiu é dita igual para todas. Confere o disco: pode demorar num caminho de rede.
+    pub fn existing_dir(&self, id: &str, not_recent: &str) -> Result<PathBuf, HostError> {
+        self.existing_dir_with(id, not_recent, Path::is_dir)
+    }
+
+    fn existing_dir_with(
+        &self,
+        id: &str,
+        not_recent: &str,
+        exists: impl Fn(&Path) -> bool,
+    ) -> Result<PathBuf, HostError> {
+        let path = self
+            .path_of(id)
+            .map(PathBuf::from)
+            .ok_or_else(|| HostError::new(error_code::RECENT_NOT_FOUND, not_recent))?;
+        if exists(&path) {
+            Ok(path)
+        } else {
+            Err(missing_dir())
+        }
+    }
+}
+
+pub fn missing_dir() -> HostError {
+    HostError::new(
+        error_code::PATH_NOT_FOUND,
+        "A pasta deste projeto não existe mais ou não está acessível.",
+    )
 }
 
 #[cfg(test)]
@@ -210,7 +249,7 @@ mod tests {
     #[test]
     fn listar_nao_segura_o_lock_enquanto_confere_as_pastas() {
         // A conferência pode ser lenta (pasta de rede desconectada): quem grava um recente não pode esperar por ela.
-        let recents = Recents::load(temp_file("lock-livre"));
+        let recents = Recents::load(temp_file("lock-livre"), Diagnostics::default());
         recents.record(
             "C:\\a",
             &AuthorizedProject {
@@ -346,6 +385,59 @@ mod tests {
     }
 
     #[test]
+    fn a_pasta_do_recente_so_volta_se_estiver_na_lista_e_ainda_existir() {
+        let recents = Recents::load(temp_file("pasta"), Diagnostics::default());
+        let project = AuthorizedProject {
+            display_name: "a".into(),
+            display_path: "~".into(),
+        };
+        let id = recents.record("C:\\a", &project);
+
+        let found = recents.existing_dir_with(&id, "fora", |_| true);
+        let gone = recents
+            .existing_dir_with(&id, "fora", |_| false)
+            .unwrap_err();
+        let unknown = recents
+            .existing_dir_with("r-0000000000000000", "fora da lista", |_| true)
+            .unwrap_err();
+
+        assert_eq!(found.unwrap(), PathBuf::from("C:\\a"));
+        assert_eq!(gone.code, error_code::PATH_NOT_FOUND);
+        assert_eq!(
+            (unknown.code.as_str(), unknown.message.as_str()),
+            (error_code::RECENT_NOT_FOUND, "fora da lista")
+        );
+        let _ = fs::remove_dir_all(temp_file("pasta").parent().unwrap());
+    }
+
+    #[test]
+    fn falha_ao_gravar_os_recentes_vai_para_o_diagnostico_redigida() {
+        // A pasta de dados é um arquivo: criar a lista dentro dela falha.
+        let blocker = temp_file("bloqueado");
+        fs::create_dir_all(blocker.parent().unwrap()).unwrap();
+        fs::write(&blocker, "").unwrap();
+        let diagnostics = Diagnostics::default();
+        let recents = Recents::load(blocker.join(FILE_NAME), diagnostics.clone());
+
+        recents.record(
+            "C:\\a",
+            &AuthorizedProject {
+                display_name: "a".into(),
+                display_path: "~".into(),
+            },
+        );
+
+        let entries = diagnostics.snapshot();
+        assert_eq!(entries.len(), 1, "{entries:?}");
+        assert!(entries[0]
+            .message
+            .starts_with("não foi possível gravar os projetos recentes"));
+        let folder = blocker.parent().unwrap().to_string_lossy().into_owned();
+        assert!(!entries[0].message.contains(&folder));
+        let _ = fs::remove_dir_all(blocker.parent().unwrap());
+    }
+
+    #[test]
     fn so_se_reabre_o_que_esta_na_lista() {
         let mut store = RecentStore::default();
         store.record("C:\\a", "a", "~", 1);
@@ -358,7 +450,7 @@ mod tests {
     #[test]
     fn a_selecao_registrada_leva_o_id_do_recente_correspondente() {
         let file = temp_file("selecao");
-        let recents = Recents::load(file.clone());
+        let recents = Recents::load(file.clone(), Diagnostics::default());
         let authorized = serde_json::json!({
             "projectId": "p-000000000000",
             "displayName": "app",
