@@ -1,8 +1,7 @@
-import { EngineError, type EngineClient } from '@/shared/api';
+import { EngineError, followRun, type EngineClient, type FollowHandlers, type FollowOptions } from '@/shared/api';
 import {
   cancelSchema,
   discoverySchema,
-  isTerminalState,
   planSchema,
   runSnapshotSchema,
   runStartedSchema,
@@ -42,7 +41,7 @@ export type HarnessApi = {
   apply(input: ApplyInput): Promise<{ runId: string }>;
   validate(projectId: string): Promise<{ runId: string }>;
   revert(projectId: string, runId: string): Promise<{ runId: string }>;
-  snapshot(runId: string): Promise<RunSnapshot>;
+  snapshot(runId: string, sinceSeq?: number): Promise<RunSnapshot>;
   cancel(runId: string): Promise<{ cancelled: boolean }>;
   onEvent(handler: (event: RunEvent) => void): Promise<() => void>;
 };
@@ -75,59 +74,27 @@ export function createHarnessApi(client: EngineClient): HarnessApi {
     apply: (input) => client.request('harness.apply', input, runStartedSchema),
     validate: (projectId) => client.request('harness.validate', { projectId }, runStartedSchema),
     revert: (projectId, runId) => client.request('harness.revert', { projectId, runId }, runStartedSchema),
-    snapshot: (runId) => client.request('run.snapshot', { runId }, runSnapshotSchema),
+    snapshot: (runId, sinceSeq) =>
+      client.request('run.snapshot', sinceSeq === undefined ? { runId } : { runId, sinceSeq }, runSnapshotSchema),
     cancel: (runId) => client.request('run.cancel', { runId }, cancelSchema),
     onEvent: (handler) => client.onEvent(handler)
   };
 }
 
-export type WaitOptions = { pollMs?: number; signal?: AbortSignal };
+export type WaitHandlers = Pick<FollowHandlers<RunSnapshot>, 'started' | 'event'>;
 
 /**
- * Acompanha uma execução até o fim. Eventos dão o progresso em tempo real; a consulta periódica ao snapshot
- * garante o resultado mesmo se um evento se perder ou a execução terminar antes da escuta começar.
+ * Inicia e acompanha uma execução até o fim pelo `followRun`: escuta antes de pedir, então o primeiro passo aparece no
+ * progresso mesmo saindo antes de o pedido voltar. A releitura periódica cobre um evento de término perdido.
  */
 export async function waitForRun(
   api: HarnessApi,
-  runId: string,
-  onEvent: (event: RunEvent) => void,
-  { pollMs = 1200, signal }: WaitOptions = {}
+  start: () => Promise<string>,
+  handlers: WaitHandlers,
+  options: Pick<FollowOptions, 'pollMs' | 'signal'> = {}
 ): Promise<RunResult> {
-  const unlisten = await api.onEvent((event) => {
-    if (event.runId === runId) onEvent(event);
-  });
-
-  try {
-    for (;;) {
-      if (signal?.aborted) throw aborted();
-      const snapshot = await api.snapshot(runId);
-      if (isTerminalState(snapshot.state)) {
-        // Uma execução terminada sempre traz o resultado; sem ele, esperar mais não muda nada.
-        if (snapshot.result) return snapshot.result;
-        throw new EngineError('INVALID_RESPONSE', 'A execução terminou sem resultado.');
-      }
-      await sleep(pollMs, signal);
-    }
-  } finally {
-    unlisten();
-  }
-}
-
-function aborted(): EngineError {
-  return new EngineError('ABORTED', 'O acompanhamento foi interrompido.');
-}
-
-/** Espera que termina na hora em que o acompanhamento é interrompido, sem aguardar o próximo ciclo. */
-function sleep(ms: number, signal?: AbortSignal): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      signal?.removeEventListener('abort', onAbort);
-      resolve();
-    }, ms);
-    function onAbort() {
-      clearTimeout(timer);
-      reject(aborted());
-    }
-    signal?.addEventListener('abort', onAbort, { once: true });
-  });
+  const snapshot = await followRun(api, start, handlers, { pollMs: 1200, ...options }).done;
+  // Uma execução terminada sempre traz o resultado; sem ele, esperar mais não muda nada.
+  if (snapshot.result) return snapshot.result;
+  throw new EngineError('INVALID_RESPONSE', 'A execução terminou sem resultado.');
 }

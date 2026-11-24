@@ -1,8 +1,8 @@
-import { errorMessage } from '@/shared/api';
-import { agentOutputSchema, isTerminalState, type AgentRunResult, type RunEvent } from '@/shared/schema';
+import { EngineError, errorMessage, followRun } from '@/shared/api';
+import { agentOutputSchema, type AgentRunResult, type TimelineEvent } from '@/shared/schema';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { AgentApi, AgentSnapshot } from '../service/agent-api';
+import type { AgentApi } from '../service/agent-api';
 
 const MAX_LINES = 2000;
 
@@ -13,16 +13,15 @@ export type AgentRun =
   | { status: 'finished'; runId: string; lines: string[]; state: string; result: AgentRunResult | null }
   | { status: 'failed'; message: string };
 
-const outputOf = (events: readonly { type: string; data: Record<string, unknown> }[]) =>
-  events.flatMap((event) => {
-    if (event.type !== 'agent.output') return [];
-    const parsed = agentOutputSchema.safeParse(event.data);
-    return parsed.success ? [parsed.data.line] : [];
-  });
+const lineOf = (event: TimelineEvent): string | null => {
+  if (event.type !== 'agent.output') return null;
+  const parsed = agentOutputSchema.safeParse(event.data);
+  return parsed.success ? parsed.data.line : null;
+};
 
 /**
- * Escuta antes de pedir: as primeiras linhas podem sair antes de o pedido voltar com o id. O retrato traz o que já saiu;
- * o que chega depois entra pela numeração, sem repetir nem perder linha.
+ * As linhas vêm do `followRun`: as que saíram antes de o pedido voltar com o id, as do retrato e as que faltaram numa
+ * lacuna de numeração entram em ordem e uma vez só.
  */
 export function useAgentRun(api: AgentApi) {
   const [run, setRun] = useState<AgentRun>({ status: 'idle' });
@@ -30,59 +29,40 @@ export function useAgentRun(api: AgentApi) {
 
   useEffect(() => () => stop.current?.(), []);
 
-  // O retrato guarda só os últimos eventos do motor: as linhas já recebidas ao vivo valem mais que as dele.
-  const finish = useCallback((snapshot: AgentSnapshot, lines = outputOf(snapshot.events)) => {
-    setRun({
-      status: 'finished',
-      runId: snapshot.runId,
-      lines: lines.slice(-MAX_LINES),
-      state: snapshot.state,
-      result: snapshot.result
-    });
-  }, []);
-
   const start = useCallback(
     async (projectId: string, tool: string, prompt: string) => {
       stop.current?.();
       setRun({ status: 'starting' });
-      const early: RunEvent[] = [];
-      let follow: ((event: RunEvent) => void) | null = null;
-      stop.current = await api.onEvent((event) => (follow ? follow(event) : early.push(event)));
+      let runId = '';
+      let lines: string[] = [];
+      const follow = followRun(api, () => api.start(projectId, tool, prompt), {
+        started: (id) => {
+          runId = id;
+          setRun({ status: 'running', runId, lines });
+        },
+        event: (event) => {
+          const line = lineOf(event);
+          if (line === null) return;
+          lines = [...lines, line].slice(-MAX_LINES);
+          setRun({ status: 'running', runId, lines });
+        },
+        lost: () => {
+          follow.stop();
+          setRun({ status: 'failed', message: 'A resposta do agente não pôde ser lida.' });
+        }
+      });
+      stop.current = follow.stop;
 
       try {
-        const runId = await api.start(projectId, tool, prompt);
-        const snapshot = await api.snapshot(runId);
-        if (isTerminalState(snapshot.state)) {
-          finish(snapshot);
-          return;
-        }
-        let lastSeq = snapshot.lastSeq;
-        let lines = outputOf(snapshot.events);
-        setRun({ status: 'running', runId, lines });
-
-        follow = (event) => {
-          if (event.runId !== runId || event.seq <= lastSeq) return;
-          lastSeq = event.seq;
-          if (event.type === 'run.completed') {
-            void api.snapshot(runId).then(
-              (final) => finish(final, lines),
-              () => setRun({ status: 'failed', message: 'A resposta terminou, mas não foi possível lê-la.' })
-            );
-            return;
-          }
-          const added = outputOf([event]);
-          if (added.length === 0) return;
-          lines = [...lines, ...added].slice(-MAX_LINES);
-          setRun({ status: 'running', runId, lines });
-        };
-        early.forEach((event) => follow?.(event));
+        const final = await follow.done;
+        setRun({ status: 'finished', runId, lines, state: final.state, result: final.result });
       } catch (error) {
-        stop.current?.();
-        stop.current = null;
-        setRun({ status: 'failed', message: errorMessage(error, 'Não foi possível pedir ao agente.') });
+        follow.stop();
+        if (!(error instanceof EngineError && error.code === 'ABORTED'))
+          setRun({ status: 'failed', message: errorMessage(error, 'Não foi possível pedir ao agente.') });
       }
     },
-    [api, finish]
+    [api]
   );
 
   const cancel = useCallback(async () => {

@@ -112,6 +112,45 @@ describe('useConfigureJourney', () => {
     expect(hook.current.state.plan).toEqual({ status: 'error', message: 'Algo inesperado aconteceu. Tente de novo.' });
   });
 
+  it('o passo que o motor publica antes de o pedido voltar com o id aparece no progresso', async () => {
+    let listener: ((event: RunEvent) => void) | null = null;
+    const api = fakeApi({
+      onEvent: vi.fn(async (handler: (event: RunEvent) => void) => {
+        listener = handler;
+        return () => undefined;
+      }),
+      validate: vi.fn(async () => {
+        listener?.({
+          v: 1,
+          kind: 'event',
+          runId: 'run-2',
+          seq: 0,
+          type: 'step.started',
+          data: { id: 'evals', title: 'Evals' }
+        });
+        return { runId: 'run-2' };
+      }),
+      snapshot: vi.fn(async (runId: string) => ({
+        runId,
+        projectId: 'p-1',
+        kind: 'validate',
+        state: 'running',
+        lastSeq: 0,
+        events: [],
+        result: null
+      }))
+    });
+    const { result: hook, unmount } = renderHook(() => useConfigureJourney(api, 'p-1', 60_000));
+
+    act(() => {
+      void hook.current.actions.validate();
+    });
+
+    await waitFor(() => expect(hook.current.state.run?.steps.map((step) => step.id)).toEqual(['evals']));
+    expect(hook.current.state.run?.steps[0]?.status).toBe('running');
+    unmount();
+  });
+
   it('cancelar pede ao motor o cancelamento da execução em andamento', async () => {
     const api = fakeApi({
       snapshot: vi.fn(async (runId: string) => ({

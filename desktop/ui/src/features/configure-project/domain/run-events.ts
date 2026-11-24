@@ -1,10 +1,10 @@
-import type { RunEvent } from '@/shared/schema';
+import type { TimelineEvent } from '@/shared/schema';
 import type { RunEvalView, RunFeedItem, RunStepView, RunView } from '../types/run';
 
 const withFeed = (run: RunView, at: number, text: string): RunFeedItem[] => [...run.feed, { at, text }];
 
 /** O instante que o motor carimbou no evento; sem ele (motor antigo), o da chegada. */
-function instantOf(event: Pick<RunEvent, 'at'>, arrival: number): number {
+function instantOf(event: Pick<TimelineEvent, 'at'>, arrival: number): number {
   const stamped = event.at ? Date.parse(event.at) : Number.NaN;
   return Number.isFinite(stamped) ? stamped : arrival;
 }
@@ -29,7 +29,7 @@ function announcedSteps(run: RunView, announced: unknown): RunStepView[] {
   return steps.length > 0 ? steps : run.steps;
 }
 
-export function applyRunEvent(run: RunView, event: RunEvent, arrival: number): RunView {
+export function applyRunEvent(run: RunView, event: TimelineEvent, arrival: number): RunView {
   const data = event.data as Record<string, unknown>;
   const text = (key: string) => (typeof data[key] === 'string' ? (data[key] as string) : null);
   const at = instantOf(event, arrival);

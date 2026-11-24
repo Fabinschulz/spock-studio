@@ -93,12 +93,15 @@ export function useConfigureJourney(
       const planned = kind === 'apply' && plan.status === 'ready' ? plannedApplySteps(plan.data, approvedCommands) : [];
       dispatch({ type: 'run.start', kind, at: Date.now(), planned });
       try {
-        const { runId } = await start();
-        dispatch({ type: 'run.id', runId });
-        const result = await waitForRun(api, runId, (event) => dispatch({ type: 'run.event', event, at: Date.now() }), {
-          pollMs,
-          signal: controller.signal
-        });
+        const result = await waitForRun(
+          api,
+          async () => (await start()).runId,
+          {
+            started: (runId) => dispatch({ type: 'run.id', runId }),
+            event: (event) => dispatch({ type: 'run.event', event, at: Date.now() })
+          },
+          { pollMs, signal: controller.signal }
+        );
         dispatch({ type: 'run.done', result });
       } catch (error) {
         if (!(error instanceof EngineError && error.code === 'ABORTED'))
