@@ -202,7 +202,12 @@ const modernizationStepSchema = z.object({
   risk: z.string(),
   cost: z.string().nullable(),
   coexistence: z.string().nullable(),
-  fingerprint: z.string()
+  fingerprint: z.string(),
+  /** MV-7: só nos passos de salto de versão. */
+  upgrade: z
+    .object({ finding: z.string(), from: z.string(), to: z.string(), breakingChanges: z.string() })
+    .nullable()
+    .optional()
 });
 
 /** Resposta de modernization.plan e modernization.decide: o plano do agente conferido e a decisão da pessoa por passo. */
@@ -232,7 +237,25 @@ export const projectModernizationSchema = z.object({
         decisionId: z.string().nullable(),
         recordedAt: z.string().nullable()
       })
-    )
+    ),
+    /** MV-7: o que está numa linha mais antiga que a recomendada, com o caminho de saltos e a página oficial de cada um. */
+    versions: z
+      .array(
+        z.object({
+          id: z.string(),
+          root: z.string(),
+          technologyId: z.string(),
+          name: z.string(),
+          version: z.string().nullable(),
+          cycle: z.string(),
+          status: z.string(),
+          statusLabel: z.string(),
+          eol: z.string().nullable(),
+          target: z.string(),
+          hops: z.array(z.object({ from: z.string(), to: z.string(), guide: z.string().nullable() }))
+        })
+      )
+      .default([])
   })
 });
 

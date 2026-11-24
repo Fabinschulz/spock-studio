@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Analysis;
+using Mariliz.Application.Compatibility;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
@@ -10,7 +11,7 @@ namespace Mariliz.Application.Mcp;
 // W4-2 no modo Sessão: o agente propõe o plano a partir da avaliação (W4-1), grava no projeto e confere aqui. As aprovações
 // vêm da pasta de dados do Spock, onde só a pessoa as registra pela tela; daqui o agente só as lê.
 public sealed class ModernizationPlanTools(Func<WorkspaceAuthorizer> workspaces, IProjectFilesFactory files, string workingDirectory,
-    IReadOnlySet<string> scope, IModernizationApprovalStore approvals, IAuditLog? audit = null)
+    IReadOnlySet<string> scope, IModernizationApprovalStore approvals, IAuditLog? audit = null, IClock? clock = null, ReleaseCatalog? catalog = null)
 {
     public const string PrepareTool = "spock_modernization_plan_prepare";
     public const string CheckTool = "spock_modernization_plan_check";
@@ -33,7 +34,8 @@ public sealed class ModernizationPlanTools(Func<WorkspaceAuthorizer> workspaces,
     public static readonly McpToolInfo Prepare = new(
         PrepareTool, "Preparar o plano de modernização",
         "Para o agente propor a modernização do projeto sem que o Spock chame modelo: devolve as divergências da avaliação de " +
-        "arquitetura (D1, D2...), o formato do plano e onde gravá-lo. Exige a avaliação de spock_architecture_assessment_prepare. Só leitura.",
+        "arquitetura (D1, D2...), as versões desatualizadas com o caminho de saltos (V1, V2...), o formato do plano e onde gravá-lo. " +
+        "Passos estruturais exigem a avaliação de spock_architecture_assessment_prepare; saltos de versão, não. Só leitura.",
         ProjectOnly.DeepClone().AsObject());
 
     public static readonly McpToolInfo Check = new(
@@ -47,26 +49,33 @@ public sealed class ModernizationPlanTools(Func<WorkspaceAuthorizer> workspaces,
     private Task<string> PrepareAsync(McpCall call)
     {
         var (project, modernization, root) = Open(call);
-        Audit(project.ProjectId, PrepareTool, call.Client, modernization.Assessment?.Divergences.Count ?? 0);
-        if (modernization.Assessment is not { Valid: true } assessment)
+        Audit(project.ProjectId, PrepareTool, call.Client, (modernization.Assessment?.Divergences.Count ?? 0) + modernization.Versions.Count);
+        var assessment = modernization.Assessment is { Valid: true } valid ? valid : null;
+        if (assessment is null && modernization.Versions.Count == 0)
             return Task.FromResult(
                 $"O plano de modernização parte da avaliação de arquitetura de {project.DisplayName}, e ela " +
-                $"{(modernization.Assessment is null ? "ainda não existe" : "não passa nas verificações")}. " +
+                $"{(modernization.Assessment is null ? "ainda não existe" : "não passa nas verificações")}; nenhuma versão está atrás da recomendada. " +
                 $"Faça a avaliação com {ArchitectureAssessmentTools.PrepareTool} e confira com {ArchitectureAssessmentTools.CheckTool} antes.");
 
         var text = new StringBuilder($"Plano de modernização de {project.DisplayName}. O Spock não chama modelo aqui: você propõe, o Spock confere e a pessoa aprova cada passo.\n");
-        if (assessment.Summary is not null) text.Append($"\n## Avaliação de arquitetura\n\n{assessment.Summary}\n");
-        text.Append("\n## Divergências (cite pelo id)\n\n");
-        foreach (var divergence in assessment.Divergences)
+        if (assessment is null)
+            text.Append($"\nSem avaliação de arquitetura válida: o plano pode ter só saltos de versão. Passos estruturais pedem antes {ArchitectureAssessmentTools.PrepareTool}.\n");
+        else
         {
-            text.Append($"- {divergence.Id} [{divergence.Classification}] {divergence.Title}: {divergence.Description}\n");
-            text.Append($"  Arquivos: {string.Join(", ", divergence.Files)}. Recomendação da avaliação: {divergence.Recommendation}\n");
+            if (assessment.Summary is not null) text.Append($"\n## Avaliação de arquitetura\n\n{assessment.Summary}\n");
+            text.Append("\n## Divergências (cite pelo id)\n\n");
+            foreach (var divergence in assessment.Divergences)
+            {
+                text.Append($"- {divergence.Id} [{divergence.Classification}] {divergence.Title}: {divergence.Description}\n");
+                text.Append($"  Arquivos: {string.Join(", ", divergence.Files)}. Recomendação da avaliação: {divergence.Recommendation}\n");
+            }
+            if (assessment.Conventions.Count > 0)
+            {
+                text.Append("\n## Convenções do projeto (o plano preserva)\n\n");
+                foreach (var convention in assessment.Conventions) text.Append($"- {convention.Title}\n");
+            }
         }
-        if (assessment.Conventions.Count > 0)
-        {
-            text.Append("\n## Convenções do projeto (o plano preserva)\n\n");
-            foreach (var convention in assessment.Conventions) text.Append($"- {convention.Title}\n");
-        }
+        AppendVersions(text, modernization.Versions);
         text.Append("\n## Como planejar\n\n").Append(ModernizationPlanGuide.For(FullPath(root, modernization.PlanPath)));
         if (modernization.Plan is { } plan)
         {
@@ -76,6 +85,20 @@ public sealed class ModernizationPlanTools(Func<WorkspaceAuthorizer> workspaces,
         return Task.FromResult(text.ToString());
     }
 
+    // Os saltos vêm prontos: o agente não escolhe a linha de destino, só planeja cada trecho com o que a página oficial diz.
+    private static void AppendVersions(StringBuilder text, IReadOnlyList<VersionFinding> versions)
+    {
+        if (versions.Count == 0) return;
+        text.Append("\n## Versões atrás da recomendada (cite pelo id em upgrade.finding)\n\n");
+        foreach (var finding in versions)
+        {
+            var root = finding.Root.Length == 0 ? "raiz" : finding.Root;
+            text.Append($"- {finding.Id} {root}: {finding.Name} {finding.Version ?? finding.Cycle} ({finding.StatusLabel}{(finding.Eol is null ? "" : $", fim do suporte {finding.Eol}")}). ");
+            text.Append($"Recomendada: {finding.Target}. Caminho: {finding.Cycle} → {string.Join(" → ", finding.Hops.Select(hop => hop.To))}\n");
+            foreach (var hop in finding.Hops)
+                text.Append($"  {hop.From} → {hop.To}: {hop.Guide ?? "sem página conhecida pelo Spock; cite a da fonte oficial (https)"}\n");
+        }
+    }
     private Task<string> CheckAsync(McpCall call)
     {
         var (project, modernization, root) = Open(call);
@@ -126,7 +149,7 @@ public sealed class ModernizationPlanTools(Func<WorkspaceAuthorizer> workspaces,
         var authorizer = workspaces();
         var project = new McpProjectResolver(authorizer, workingDirectory, scope).Resolve(McpArguments.Text(call.Arguments, "project", MaxArgument));
         if (!authorizer.TryGetRoot(project.ProjectId, out var root)) throw new McpToolException("O projeto não está autorizado no Spock.");
-        var modernization = ModernizationService.Read(project.ProjectId, files.Open(root), DateTimeOffset.UnixEpoch, approvals.List(project.ProjectId));
+        var modernization = ModernizationService.Read(project.ProjectId, files.Open(root), clock?.UtcNow ?? DateTimeOffset.UtcNow, approvals.List(project.ProjectId), catalog);
         return (project, modernization, root);
     }
 

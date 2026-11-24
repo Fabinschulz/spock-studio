@@ -70,7 +70,7 @@ internal static class McpEntry
         {
             var assessment = new ArchitectureAssessmentTools(workspaces, new LocalProjectFilesFactory(), workingDirectory, options.Scope, audit);
             var modernization = new ModernizationPlanTools(workspaces, new LocalProjectFilesFactory(), workingDirectory, options.Scope,
-                new FileModernizationApprovalStore(dataRoot), audit);
+                new FileModernizationApprovalStore(dataRoot), audit, clock);
             var design = new ProjectDesignTools(workspaces, new LocalProjectFilesFactory(), workingDirectory, options.Scope, audit);
             var scaffold = new ProjectScaffoldTools(workspaces, new LocalProjectFilesFactory(), workingDirectory, options.Scope, clock, audit);
             await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. assessment.Tools(), .. modernization.Tools(), .. design.Tools(), .. scaffold.Tools(), .. cloud.Tools(), .. iac.Tools()])

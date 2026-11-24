@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Mariliz.Application.Compatibility;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Management;
 using Mariliz.Application.Ports;
@@ -37,8 +38,9 @@ public static class ModernizationStepStatuses
 public sealed record ModernizationStepState(string StepId, string Status, string? DecisionId, DateTimeOffset? RecordedAt);
 
 /// <param name="PlanPath">Onde o agente grava o plano, relativo ao projeto, mesmo antes de existir.</param>
+/// <param name="Versions">MV-7: o que está numa linha mais antiga que a recomendada, com o caminho de saltos.</param>
 public sealed record ProjectModernization(ArchitectureAssessment? Assessment, ModernizationPlan? Plan, string PlanPath,
-    IReadOnlyList<ModernizationStepState> Steps);
+    IReadOnlyList<ModernizationStepState> Steps, IReadOnlyList<VersionFinding> Versions);
 
 // A pessoa aprova ou recusa cada passo do plano do agente. Cada decisão vai para a memória de decisões do projeto, e o agente
 // só executa o que está aprovado para o texto atual do passo.
@@ -47,23 +49,27 @@ public sealed class ModernizationService(
     IProjectFilesFactory filesFactory,
     IClock clock,
     DecisionService decisions,
-    IModernizationApprovalStore approvals)
+    IModernizationApprovalStore approvals,
+    ReleaseCatalog? catalog = null)
 {
     public ProjectModernization Read(string projectId)
     {
         if (!workspace.TryGetRoot(projectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
-        return Read(projectId, filesFactory.Open(root), clock.UtcNow, approvals.List(projectId));
+        return Read(projectId, filesFactory.Open(root), clock.UtcNow, approvals.List(projectId), catalog);
     }
 
-    public static ProjectModernization Read(string projectId, IProjectFiles files, DateTimeOffset now, IReadOnlyList<ModernizationApproval> approvals)
+    /// <param name="catalog">Nulo é o catálogo embutido; os testes passam um fixo, para os saltos não mudarem a cada geração.</param>
+    public static ProjectModernization Read(string projectId, IProjectFiles files, DateTimeOffset now, IReadOnlyList<ModernizationApproval> approvals,
+        ReleaseCatalog? catalog = null)
     {
         var report = ArchitectureAnalyzer.Analyze(projectId, files, now);
         var assessment = ArchitectureAssessments.Read(files, report);
-        var plan = ModernizationPlans.Read(files, assessment);
+        var versions = VersionUpgrades.Find(files, catalog ?? ReleaseCatalog.Embedded, now);
+        var plan = ModernizationPlans.Read(files, assessment, versions);
         var latest = approvals.GroupBy(approval => approval.StepId, StringComparer.Ordinal)
             .ToDictionary(group => group.Key, group => group.MaxBy(approval => approval.RecordedAt)!, StringComparer.Ordinal);
         var states = (plan?.Steps ?? []).Where(step => step.Id.Length > 0).Select(step => State(step, latest.GetValueOrDefault(step.Id))).ToList();
-        return new ProjectModernization(assessment, plan, ModernizationPlans.PathIn(files), states);
+        return new ProjectModernization(assessment, plan, ModernizationPlans.PathIn(files), states, versions);
     }
 
     public ProjectModernization Decide(string projectId, string stepId, bool approve, string? rationale)
@@ -99,7 +105,8 @@ public sealed class ModernizationService(
         },
         ["plan"] = modernization.Plan is null ? null : JournalJson.Node(modernization.Plan),
         ["planPath"] = modernization.PlanPath,
-        ["steps"] = JournalJson.Node(modernization.Steps)
+        ["steps"] = JournalJson.Node(modernization.Steps),
+        ["versions"] = JournalJson.Node(modernization.Versions)
     };
 
     private static ModernizationStepState State(ModernizationStep step, ModernizationApproval? approval) =>

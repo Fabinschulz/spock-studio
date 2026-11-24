@@ -46,9 +46,11 @@ export function ModernizationSection({ client, projectId }: { client: EngineClie
       }
     >
       <p className={styles.meta}>
-        Depois da avaliação, peça ao seu agente um plano de passos pequenos que se desfazem. O Spock confere que o plano
-        caracteriza o comportamento de hoje antes de mudar e que nenhuma reescrita aparece sem custo, risco e plano de
-        convivência. Você aprova cada passo aqui; o agente só executa o que estiver aprovado.
+        Depois da avaliação, ou para sair de uma versão atrás da recomendada, peça ao seu agente um plano de passos
+        pequenos que se desfazem. O Spock confere que o plano caracteriza o comportamento de hoje antes de mudar, que
+        nenhuma reescrita aparece sem custo, risco e plano de convivência, e que cada salto de versão segue o caminho de
+        LTS em LTS com a página oficial de mudanças incompatíveis. Você aprova cada passo aqui; o agente só executa o
+        que estiver aprovado.
       </p>
       <TextField
         label="Pedido para o agente"
@@ -95,9 +97,12 @@ function PlanView({
   const plan = modernization.plan;
   if (!plan) {
     return (
-      <p className={styles.meta}>
-        Nenhum plano gravado em <span className={styles.mono}>{modernization.planPath}</span>.
-      </p>
+      <>
+        <Versions versions={modernization.versions} />
+        <p className={styles.meta}>
+          Nenhum plano gravado em <span className={styles.mono}>{modernization.planPath}</span>.
+        </p>
+      </>
     );
   }
 
@@ -136,6 +141,7 @@ function PlanView({
         </ul>
       ) : null}
       {action.error ? <InlineNotice tone="danger">{action.error}</InlineNotice> : null}
+      <Versions versions={modernization.versions} />
       {plan.characterization.length > 0 ? (
         <>
           <h3 className={styles.subsection}>Antes de mudar: o que continua igual</h3>
@@ -165,6 +171,30 @@ function PlanView({
         ))}
       </ol>
     </div>
+  );
+}
+
+// MV-7: o caminho vem calculado pelo Spock; o plano só pode seguir os trechos daqui.
+function Versions({ versions }: { versions: ProjectModernization['versions'] }) {
+  if (versions.length === 0) return null;
+  return (
+    <>
+      <h3 className={styles.subsection}>Versões atrás da recomendada</h3>
+      <ul className={styles.plainList} aria-label="Versões atrás da recomendada">
+        {versions.map((finding) => (
+          <li key={finding.id}>
+            {finding.id} · {finding.root || 'raiz'}: {finding.name} {finding.version ?? finding.cycle}{' '}
+            <StatusChip tone={finding.status === 'end-of-life' ? 'danger' : 'warning'}>
+              {finding.statusLabel}
+            </StatusChip>{' '}
+            <span className={styles.meta}>
+              · caminho {[finding.cycle, ...finding.hops.map((hop) => hop.to)].join(' → ')} (recomendada{' '}
+              {finding.target})
+            </span>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
 
@@ -199,6 +229,7 @@ function StepRow({
         </span>{' '}
         <StatusChip tone={status.tone}>{status.label}</StatusChip>{' '}
         {step.kind === 'rewrite' ? <StatusChip tone="warning">Reescrita</StatusChip> : null}
+        {step.kind === 'upgrade' ? <StatusChip tone="info">Salto de versão</StatusChip> : null}
         {state?.recordedAt ? (
           <span className={styles.meta}> · decidido em {formatEngineDate(state.recordedAt)}</span>
         ) : null}
@@ -206,9 +237,19 @@ function StepRow({
         <span>{step.change}</span>
         <br />
         <span className={styles.meta}>
-          Trata: {step.divergences.map((id) => `${id} ${divergences.get(id) ?? ''}`.trim()).join('; ')}
+          {step.upgrade
+            ? `Salto: ${step.upgrade.finding} ${step.upgrade.from} → ${step.upgrade.to}`
+            : `Trata: ${step.divergences.map((id) => `${id} ${divergences.get(id) ?? ''}`.trim()).join('; ')}`}
           {step.dependsOn.length > 0 ? ` · depende de ${step.dependsOn.join(', ')}` : ''}
         </span>
+        {step.upgrade ? (
+          <>
+            <br />
+            <span className={styles.meta}>
+              Mudanças incompatíveis: <span className={styles.mono}>{step.upgrade.breakingChanges}</span>
+            </span>
+          </>
+        ) : null}
         <br />
         <span className={styles.meta}>
           Desfazer: {step.undo} · Verificar: {step.verification} · Risco: {step.risk}

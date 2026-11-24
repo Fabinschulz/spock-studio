@@ -1,5 +1,6 @@
 import architectureFixture from '@contracts/fixtures/engineering/architecture.json';
 import modernizationFixture from '@contracts/fixtures/engineering/modernization.json';
+import upgradeFixture from '@contracts/fixtures/engineering/modernization-upgrade.json';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
@@ -176,5 +177,24 @@ describe('Plano de modernização', () => {
     const checks = await screen.findByLabelText('Verificações do plano');
     expect(checks).toHaveTextContent('Toda reescrita traz custo, risco e plano de convivência (S2)');
     expect(screen.queryByRole('button', { name: 'Aprovar S2' })).not.toBeInTheDocument();
+  });
+});
+
+describe('Saltos de versão no plano (MV-7)', () => {
+  it('mostra as versões atrás da recomendada com o caminho e cada salto com a página oficial', async () => {
+    const { client } = clientWith([architectureFixture], [upgradeFixture]);
+    const { container } = renderPage(client);
+
+    const versions = await screen.findByRole('list', { name: 'Versões atrás da recomendada' });
+    expect(versions).toHaveTextContent('V1 · api: .NET net6.0');
+    expect(versions).toHaveTextContent('caminho 6.0 → 8.0 → 10.0 (recomendada 10.0)');
+    const second = screen.getByRole('listitem', { name: 'Passo U2' });
+    expect(within(second).getByText('Salto de versão')).toBeInTheDocument();
+    expect(second).toHaveTextContent('Salto: V1 8.0 → 10.0 · depende de U1');
+    expect(second).toHaveTextContent(
+      'Mudanças incompatíveis: https://learn.microsoft.com/dotnet/core/compatibility/10.0'
+    );
+    expect(within(screen.getByRole('listitem', { name: 'Passo U1' })).getByText('Aprovado')).toBeInTheDocument();
+    await expectNoA11yViolations(container);
   });
 });

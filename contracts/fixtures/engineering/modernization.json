@@ -45,7 +45,8 @@
           "risk": "Baixo: só adiciona teste.",
           "cost": null,
           "coexistence": null,
-          "fingerprint": "ec748f4656affff5"
+          "fingerprint": "2fda9698145ff81a",
+          "upgrade": null
         },
         {
           "id": "S2",
@@ -67,13 +68,14 @@
           "risk": "Médio: muda o registro de dependências.",
           "cost": "Meio dia.",
           "coexistence": null,
-          "fingerprint": "133a64f06bc71f4b"
+          "fingerprint": "e354ab13d54cd1fe",
+          "upgrade": null
         }
       ],
       "checks": [
         {
           "id": "assessment",
-          "description": "A avaliação de arquitetura existe e passa nas verificações do Spock",
+          "description": "A avaliação de arquitetura existe e passa nas verificações do Spock (passos que tratam divergência)",
           "passed": true,
           "detail": null
         },
@@ -109,13 +111,13 @@
         },
         {
           "id": "kind",
-          "description": "Todo passo é incremental ou rewrite",
+          "description": "Todo passo é incremental, rewrite ou upgrade",
           "passed": true,
           "detail": null
         },
         {
           "id": "grounded",
-          "description": "Todo passo trata ao menos uma divergência da avaliação (D1, D2...)",
+          "description": "Todo passo trata ao menos uma divergência da avaliação (D1, D2...) ou é um salto de versão (V1, V2...)",
           "passed": true,
           "detail": null
         },
@@ -190,6 +192,7 @@
         "decisionId": null,
         "recordedAt": null
       }
-    ]
+    ],
+    "versions": []
   }
 }
