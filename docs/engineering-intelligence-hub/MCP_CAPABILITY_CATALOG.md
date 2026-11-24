@@ -56,6 +56,8 @@
 | `iac_architecture_prepare` | Infra | `project?`, `provider?` | Regras do desenho e a proposta gravada em `.spock/iac-proposal.json` | Nenhum (quem grava a proposta é o agente) | — |
 | `spock_architecture_assessment_prepare` | Arquitetura | `project?` | Análise determinística do código, `REF-*` das stacks do projeto e formato da avaliação | Nenhum | Sim (`ide.context_read`) |
 | `spock_architecture_assessment_check` | Arquitetura | `project?` | A avaliação gravada em `.spock/architecture-assessment.json`, conferida contra a análise e a pasta Organização | Nenhum (quem grava é o agente) | Sim (`ide.context_read`) |
+| `spock_modernization_plan_prepare` | Arquitetura | `project?` | Divergências da avaliação (D1, D2...), convenções e formato do plano de modernização; exige a avaliação válida | Nenhum | Sim (`ide.context_read`) |
+| `spock_modernization_plan_check` | Arquitetura | `project?` | O plano gravado em `.spock/modernization-plan.json`, conferido, e a decisão da pessoa em cada passo (só os aprovados podem ser executados) | Nenhum (quem grava é o agente; quem aprova é a pessoa, na tela) | Sim (`ide.context_read`) |
 
 ### 1.2 Problemas encontrados no servidor atual
 

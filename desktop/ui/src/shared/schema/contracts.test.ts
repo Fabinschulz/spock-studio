@@ -39,6 +39,7 @@ import engineeringMcp from '@contracts/fixtures/engineering/mcp.json';
 import engineeringPolicy from '@contracts/fixtures/engineering/policy.json';
 import engineeringKnowledge from '@contracts/fixtures/engineering/knowledge.json';
 import engineeringArchitecture from '@contracts/fixtures/engineering/architecture.json';
+import engineeringModernization from '@contracts/fixtures/engineering/modernization.json';
 import engineeringRevisions from '@contracts/fixtures/engineering/revisions.json';
 import engineeringProfile from '@contracts/fixtures/engineering/profile.json';
 import applyResult from '@contracts/fixtures/golden/apply-result.json';
@@ -132,6 +133,7 @@ import {
   ideaPlanSchema,
   ideaSpecificationView,
   projectArchitectureSchema,
+  projectModernizationSchema,
   projectKnowledgeSchema,
   portfolioAnswerSchema,
   portfolioEvidenceSchema,
@@ -343,8 +345,26 @@ describe('contrato da arquitetura do projeto (fixture do motor)', () => {
     expect(report.findings.map((finding) => finding.code)).toEqual(['dependency-direction', 'untested-project']);
     expect(assessmentPath).toBe('.spock/architecture-assessment.json');
     expect(assessment?.valid).toBe(true);
-    expect(assessment?.divergences.map((divergence) => divergence.classification)).toEqual(['risk']);
+    expect(assessment?.divergences.map((divergence) => `${divergence.id}:${divergence.classification}`)).toEqual([
+      'D1:risk'
+    ]);
     expect(assessment?.checks.every((check) => check.passed)).toBe(true);
+  });
+});
+
+describe('contrato do plano de modernização (fixture do motor)', () => {
+  it('plano conferido contra a avaliação, com a decisão da pessoa por passo', () => {
+    const { assessment, plan, planPath, steps } =
+      projectModernizationSchema.parse(engineeringModernization).modernization;
+    expect(planPath).toBe('.spock/modernization-plan.json');
+    expect(assessment?.divergences.map((divergence) => divergence.id)).toEqual(['D1', 'D2']);
+    expect(plan?.valid).toBe(true);
+    expect(plan?.checks).toHaveLength(17);
+    expect(plan?.steps.map((step) => `${step.id}:${step.kind}:${step.dependsOn.join(',')}`)).toEqual([
+      'S1:incremental:',
+      'S2:incremental:S1'
+    ]);
+    expect(steps.map((step) => `${step.stepId}:${step.status}`)).toEqual(['S1:approved', 'S2:pending']);
   });
 });
 

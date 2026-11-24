@@ -6,6 +6,7 @@ import type { ArchitectureFinding, ProjectArchitecture } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
 import { useCallback } from 'react';
 
+import { ModernizationSection } from './modernization-section';
 import { ProjectPageFrame } from './project-page-frame';
 import styles from './project-page.module.scss';
 import { readArchitecture } from './service/project-api';
@@ -60,6 +61,7 @@ function ArchitectureContent({ client, projectId }: { client: EngineClient; proj
       {(value) => (
         <>
           <AssessmentSection architecture={value} onReload={() => architecture.reload?.()} />
+          <ModernizationSection client={client} projectId={projectId} />
           <AnalysisSection report={value.report} />
         </>
       )}
@@ -210,7 +212,9 @@ function DivergenceGroup({
         {divergences.map((divergence) => (
           <li key={divergence.title} className={styles.row}>
             <span>
-              <span className={styles.rowTitle}>{divergence.title}</span>
+              <span className={styles.rowTitle}>
+                {divergence.id} · {divergence.title}
+              </span>
               <span className={styles.meta}> · {divergence.description}</span>
               <br />
               <span className={styles.meta}>Próximo passo: {divergence.recommendation}</span>

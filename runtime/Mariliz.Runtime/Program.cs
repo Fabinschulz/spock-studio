@@ -1,5 +1,6 @@
 using Mariliz.Application;
 using Mariliz.Application.AiTools;
+using Mariliz.Application.Analysis;
 using Mariliz.Application.Models;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Engineering;
@@ -86,7 +87,9 @@ var iacSchedules = new IacDriftScheduler(iacOperations, new FileIacDriftSchedule
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
     management: management, assistant: assistant,
-    decisions: decisions, reports: new ReportService(engine.Workspace, management, decisions, engine.Store, engine.Clock),
+    decisions: decisions,
+    modernization: new ModernizationService(engine.Workspace, engine.Files, engine.Clock, decisions, new FileModernizationApprovalStore(engine.DataRoot)),
+    reports: new ReportService(engine.Workspace, management, decisions, engine.Store, engine.Clock),
     profiles: profiles,
     knowledge: knowledge,
     harness: new HarnessStatusService(engine.Workspace, engine.Files, engine.Clock),

@@ -1,0 +1,195 @@
+{
+  "modernization": {
+    "assessment": {
+      "valid": true,
+      "divergences": [
+        {
+          "id": "D1",
+          "title": "Aplicação referencia a infraestrutura",
+          "classification": "risk"
+        },
+        {
+          "id": "D2",
+          "title": "Sem testes",
+          "classification": "risk"
+        }
+      ]
+    },
+    "plan": {
+      "path": ".spock/modernization-plan.json",
+      "goal": "Inverter a dependência da aplicação sem mudar o contrato HTTP.",
+      "characterization": [
+        {
+          "behavior": "POST /pedidos cria o pedido e devolve id, cliente e total.",
+          "files": [
+            "Svc.Api/Program.cs"
+          ],
+          "test": "Teste de integração do endpoint, criado no passo S1 antes de qualquer mudança."
+        }
+      ],
+      "steps": [
+        {
+          "id": "S1",
+          "title": "Prender o comportamento de hoje",
+          "kind": "incremental",
+          "change": "Criar Svc.Tests com um teste do endpoint POST /pedidos.",
+          "divergences": [
+            "D2"
+          ],
+          "files": [
+            "Svc.Api/Program.cs"
+          ],
+          "dependsOn": [],
+          "undo": "Apagar o projeto Svc.Tests.",
+          "verification": "dotnet test passa.",
+          "risk": "Baixo: só adiciona teste.",
+          "cost": null,
+          "coexistence": null,
+          "fingerprint": "ec748f4656affff5"
+        },
+        {
+          "id": "S2",
+          "title": "Interface do repositório",
+          "kind": "incremental",
+          "change": "Declarar IPedidoRepositorio e fazer CriarPedido receber a interface.",
+          "divergences": [
+            "D1"
+          ],
+          "files": [
+            "Svc.Application/Pedidos/CriarPedido.cs",
+            "Svc.Application/Svc.Application.csproj"
+          ],
+          "dependsOn": [
+            "S1"
+          ],
+          "undo": "Reverter o commit do passo.",
+          "verification": "O teste de S1 continua passando.",
+          "risk": "Médio: muda o registro de dependências.",
+          "cost": "Meio dia.",
+          "coexistence": null,
+          "fingerprint": "133a64f06bc71f4b"
+        }
+      ],
+      "checks": [
+        {
+          "id": "assessment",
+          "description": "A avaliação de arquitetura existe e passa nas verificações do Spock",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "goal",
+          "description": "Objetivo do plano",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "characterization",
+          "description": "Caracterização: ao menos um comportamento de hoje, com arquivo e o teste que o prende antes da mudança",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "limits",
+          "description": "Até 20 passos e 20 itens de caracterização",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "step-ids",
+          "description": "Todo passo tem id curto (letras, números e hífen) e único",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "step-text",
+          "description": "Todo passo tem título e a mudança proposta",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "kind",
+          "description": "Todo passo é incremental ou rewrite",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "grounded",
+          "description": "Todo passo trata ao menos uma divergência da avaliação (D1, D2...)",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "divergences-exist",
+          "description": "Toda divergência citada existe na avaliação atual",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "evidence",
+          "description": "Todo passo cita ao menos um arquivo que já existe no projeto",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "files-exist",
+          "description": "Todo arquivo citado existe no projeto",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "reversible",
+          "description": "Todo passo diz como se desfaz",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "verification",
+          "description": "Todo passo diz como verificar que deu certo",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "risk",
+          "description": "Todo passo diz o risco",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "rewrite-plan",
+          "description": "Toda reescrita traz custo, risco e plano de convivência",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "rewrite-declared",
+          "description": "Passo que fala em reescrever está declarado como rewrite",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "order",
+          "description": "Todo passo depende só de passos anteriores do plano",
+          "passed": true,
+          "detail": null
+        }
+      ],
+      "valid": true
+    },
+    "planPath": ".spock/modernization-plan.json",
+    "steps": [
+      {
+        "stepId": "S1",
+        "status": "approved",
+        "decisionId": "dec-000000000001",
+        "recordedAt": "2026-11-24T12:00:00+00:00"
+      },
+      {
+        "stepId": "S2",
+        "status": "pending",
+        "decisionId": null,
+        "recordedAt": null
+      }
+    ]
+  }
+}

@@ -15,9 +15,10 @@ public sealed record ArchitectureAssessment(string Path, string? Summary, IReadO
 // O que o projeto faz de propósito e deve continuar: não é divergência, porque as convenções valem antes das referências (W3-4).
 public sealed record ArchitectureConvention(string Title, IReadOnlyList<string> Files);
 
+/// <param name="Id">D1, D2... pela ordem no arquivo; é como o plano de modernização (W4-2) cita a divergência.</param>
 /// <param name="Classification">risk, cost ou style (DivergenceClassifications).</param>
 /// <param name="Findings">Códigos da análise determinística em que a divergência se apoia.</param>
-public sealed record ArchitectureDivergence(string Title, string Classification, string Description, IReadOnlyList<string> Files,
+public sealed record ArchitectureDivergence(string Id, string Title,string Classification, string Description, IReadOnlyList<string> Files,
     IReadOnlyList<string> References, IReadOnlyList<string> Findings, string Recommendation);
 
 public sealed record AssessmentCheck(string Id, string Description, bool Passed, string? Detail);
@@ -76,7 +77,7 @@ public static partial class ArchitectureAssessments
         var conventions = rawConventions.OfType<JsonObject>().Take(MaxConventions)
             .Select(item => new ArchitectureConvention(Text(item, "title", MaxTitle) ?? "", Texts(item, "files"))).ToList();
         var divergences = rawDivergences.OfType<JsonObject>().Take(MaxDivergences)
-            .Select(item => new ArchitectureDivergence(Text(item, "title", MaxTitle) ?? "", Text(item, "classification", 20) ?? "",
+            .Select((item, index) => new ArchitectureDivergence($"D{index + 1}", Text(item, "title", MaxTitle) ?? "", Text(item, "classification", 20) ?? "",
                 Text(item, "description", MaxText) ?? "", Texts(item, "files"), Texts(item, "references"), Texts(item, "findings"),
                 Text(item, "recommendation", MaxText) ?? ""))
             .ToList();
@@ -84,7 +85,7 @@ public static partial class ArchitectureAssessments
 
         var knownReferences = OrganizationReferences.Patterns.Select(pattern => pattern.Id).ToHashSet(StringComparer.Ordinal);
         var knownFindings = report.Findings.Select(finding => finding.Code).ToHashSet(StringComparer.Ordinal);
-        var numbered = divergences.Select((divergence, index) => (Divergence: divergence, Label: $"divergência {index + 1}")).ToList();
+        var numbered = divergences.Select(divergence => (Divergence: divergence, Label: $"divergência {divergence.Id}")).ToList();
         var cited = divergences.SelectMany(divergence => divergence.Files).Concat(conventions.SelectMany(convention => convention.Files))
             .Distinct(StringComparer.Ordinal).ToList();
 
@@ -124,7 +125,7 @@ public static partial class ArchitectureAssessments
     }
 
     // Caminho relativo à raiz, com ou sem ":linha" no fim; absoluto ou com ".." não conta como do projeto.
-    private static bool Exists(IProjectFiles files, string cited)
+    internal static bool Exists(IProjectFiles files, string cited)
     {
         var path = LineSuffix().Replace(cited.Trim().Replace('\\', '/'), "");
         while (path.StartsWith("./", StringComparison.Ordinal)) path = path[2..];

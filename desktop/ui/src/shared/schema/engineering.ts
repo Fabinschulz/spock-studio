@@ -129,6 +129,13 @@ const architectureFindingSchema = z.object({
  * A análise determinística do código (W2-2) e a avaliação que o agente da sessão gravou no projeto (W4-1), conferida pelo
  * motor sem modelo. `assessment` é null enquanto o agente não gravou nada.
  */
+const planCheckSchema = z.object({
+  id: z.string(),
+  description: z.string(),
+  passed: z.boolean(),
+  detail: z.string().nullable()
+});
+
 export const projectArchitectureSchema = z.object({
   architecture: z.object({
     report: z.object({
@@ -164,6 +171,7 @@ export const projectArchitectureSchema = z.object({
         conventions: z.array(z.object({ title: z.string(), files: z.array(z.string()) })),
         divergences: z.array(
           z.object({
+            id: z.string(),
             title: z.string(),
             classification: z.string(),
             description: z.string(),
@@ -173,9 +181,7 @@ export const projectArchitectureSchema = z.object({
             recommendation: z.string()
           })
         ),
-        checks: z.array(
-          z.object({ id: z.string(), description: z.string(), passed: z.boolean(), detail: z.string().nullable() })
-        ),
+        checks: z.array(planCheckSchema),
         valid: z.boolean()
       })
       .nullable(),
@@ -183,7 +189,56 @@ export const projectArchitectureSchema = z.object({
   })
 });
 
+const modernizationStepSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  kind: z.string(),
+  change: z.string(),
+  divergences: z.array(z.string()),
+  files: z.array(z.string()),
+  dependsOn: z.array(z.string()),
+  undo: z.string(),
+  verification: z.string(),
+  risk: z.string(),
+  cost: z.string().nullable(),
+  coexistence: z.string().nullable(),
+  fingerprint: z.string()
+});
+
+/** Resposta de modernization.plan e modernization.decide: o plano do agente conferido e a decisão da pessoa por passo. */
+export const projectModernizationSchema = z.object({
+  modernization: z.object({
+    assessment: z
+      .object({
+        valid: z.boolean(),
+        divergences: z.array(z.object({ id: z.string(), title: z.string(), classification: z.string() }))
+      })
+      .nullable(),
+    plan: z
+      .object({
+        path: z.string(),
+        goal: z.string().nullable(),
+        characterization: z.array(z.object({ behavior: z.string(), files: z.array(z.string()), test: z.string() })),
+        steps: z.array(modernizationStepSchema),
+        checks: z.array(planCheckSchema),
+        valid: z.boolean()
+      })
+      .nullable(),
+    planPath: z.string(),
+    steps: z.array(
+      z.object({
+        stepId: z.string(),
+        status: z.enum(['pending', 'approved', 'rejected', 'changed']),
+        decisionId: z.string().nullable(),
+        recordedAt: z.string().nullable()
+      })
+    )
+  })
+});
+
 export type ProjectArchitecture = z.infer<typeof projectArchitectureSchema>['architecture'];
+export type ProjectModernization = z.infer<typeof projectModernizationSchema>['modernization'];
+export type ModernizationStep = z.infer<typeof modernizationStepSchema>;
 export type ArchitectureFinding = z.infer<typeof architectureFindingSchema>;
 export type KnowledgeMemory = z.infer<typeof knowledgeMemorySchema>;
 export type KnowledgeExternalSource = z.infer<typeof knowledgeExternalSourceSchema>;

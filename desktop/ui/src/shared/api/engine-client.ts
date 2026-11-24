@@ -73,6 +73,8 @@ export const ENGINE_METHODS = [
   'decision.record',
   'decision.list',
   'decision.get',
+  'modernization.plan',
+  'modernization.decide',
   'engineering.profile',
   'engineering.analyze',
   'engineering.knowledge',

@@ -69,7 +69,10 @@ internal static class McpEntry
         try
         {
             var assessment = new ArchitectureAssessmentTools(workspaces, new LocalProjectFilesFactory(), workingDirectory, options.Scope, audit);
-            await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. assessment.Tools(), .. cloud.Tools(), .. iac.Tools()]).RunStdioAsync(ct);
+            var modernization = new ModernizationPlanTools(workspaces, new LocalProjectFilesFactory(), workingDirectory, options.Scope,
+                new FileModernizationApprovalStore(dataRoot), audit);
+            await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. assessment.Tools(), .. modernization.Tools(), .. cloud.Tools(), .. iac.Tools()])
+                .RunStdioAsync(ct);
         }
         catch (OperationCanceledException)
         {
