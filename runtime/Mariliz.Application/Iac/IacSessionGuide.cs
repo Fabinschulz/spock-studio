@@ -1,3 +1,5 @@
+using Mariliz.Application.Cloud;
+
 namespace Mariliz.Application.Iac;
 
 // O roteiro do agente da sessão para propor o desenho (modo Sessão): o Spock não chama modelo, entrega as regras e o
@@ -51,9 +53,9 @@ public static class IacSessionGuide
 
     private static string Design(string provider) => provider switch
     {
-        "aws" => IacArchitectPrompts.AwsDesign,
-        "azure" => AzureDesign,
-        "gcp" => GoogleDesign,
+        CloudProviders.Aws => IacArchitectPrompts.AwsDesign,
+        CloudProviders.Azure => AzureDesign,
+        CloudProviders.Gcp => GoogleDesign,
         _ => throw new ArgumentException($"Nuvem fora da geração: {provider}.", nameof(provider))
     };
 }

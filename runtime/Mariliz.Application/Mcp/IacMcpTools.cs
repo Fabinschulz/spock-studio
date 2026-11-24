@@ -1,7 +1,8 @@
 using System.Text;
 using System.Text.Json.Nodes;
-using Mariliz.Application.Iac;
+using Mariliz.Application.Cloud;
 using Mariliz.Application.Execution;
+using Mariliz.Application.Iac;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
 
@@ -64,8 +65,9 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
     {
         var authorizer = workspaces();
         var project = new McpProjectResolver(authorizer, workingDirectory, scope).Resolve(McpArguments.Text(call.Arguments, "project", MaxArgument));
-        var provider = McpArguments.Text(call.Arguments, "provider", MaxArgument) ?? "aws";
-        if (!IacBlueprintChecks.Providers.Contains(provider)) throw new McpToolException("'provider' deve ser aws, azure ou gcp.");
+        var provider = McpArguments.Text(call.Arguments, "provider", MaxArgument) ?? CloudProviders.Aws;
+        if (IacProviders.Find(provider) is null)
+            throw new McpToolException($"'provider' deve ser {string.Join(", ", IacBlueprintChecks.Providers)}.");
         var root = authorizer.TryGetRoot(project.ProjectId, out var found) ? found : throw EngineErrors.ProjectNotAuthorized();
         var projectFiles = files!.Open(root);
         var path = IacArchitectureProposals.PathIn(projectFiles);
