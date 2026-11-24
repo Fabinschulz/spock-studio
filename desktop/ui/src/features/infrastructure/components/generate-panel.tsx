@@ -18,6 +18,7 @@ import {
   type CloudProvider,
   fromBlueprint,
   fromConnection,
+  fromProposal,
   toBlueprint,
   vpcsFromSubnets,
   type BlueprintForm,
@@ -25,6 +26,7 @@ import {
 } from '../domain/blueprint';
 import type { IacApi } from '../service/iac-api';
 import { CostEstimateView } from './cost-estimate';
+import { SessionProposal } from './session-proposal';
 
 const MAX_NEED = 4000;
 
@@ -238,9 +240,21 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
         ))}
       </fieldset>
 
+      <SessionProposal
+        api={api}
+        projectId={projectId}
+        busy={action.busy}
+        onUse={(blueprint) => {
+          setForm((current) => fromProposal(blueprint, current));
+          setVpcs(null);
+          setDraft(null);
+        }}
+      />
+
       {!aws ? (
         <p className={styles.hint}>
-          A proposta com IA é só para AWS por enquanto; no {providerLabel}, monte o desenho abaixo.
+          A proposta com a IA do Spock é só para AWS por enquanto; no {providerLabel}, use o seu agente acima ou monte o
+          desenho abaixo.
         </p>
       ) : null}
       <section className={styles.consent} aria-label="Propor com IA" hidden={!aws}>

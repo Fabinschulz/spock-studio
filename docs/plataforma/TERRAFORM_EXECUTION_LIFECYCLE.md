@@ -139,7 +139,15 @@ certificado, e-mail e bucket são **sobrepostos** pelos fatos informados pela pe
 descartado. As checagens rodam na resposta; se falhar o que é dele (nome, tamanhos, portas, filas), o Spock pede uma
 segunda resposta com o que falhou; se faltar um fato da conta, não pede de novo e a tela mostra o que completar. A
 trilha recebe `iac.architecture_drafted` com tentativas e tokens, nunca o texto. Sem provedor de IA configurado, o
-desenho é montado à mão na mesma tela.
+desenho é montado à mão na mesma tela ou proposto pelo agente da sessão.
+
+**Agente da sessão, sem chave** (modo Sessão, MM-2). O agente que a pessoa já usa (Claude Code ou outro com o MCP do
+Spock) chama `iac_architecture_prepare`, que devolve as regras e o formato do desenho da nuvem escolhida (AWS com as mesmas
+regras do prompt do motor; Azure e Google com os componentes da geração), confere com `iac_blueprint_check` e grava a
+proposta em `.spock/iac-proposal.json` (`.mariliz/` num projeto configurado antes da troca de nome), no formato da resposta
+do modelo. O motor não chama modelo: `iac.architect.proposal` lê o arquivo e roda as mesmas checagens. Na tela, "Usar este
+desenho" leva o desenho para o formulário, inclusive a nuvem e os fatos da conta que o agente trouxe (o que vier vazio fica
+como a pessoa preencheu), e daí segue a mesma revisão do diff. Gerar os `.tf` continua sendo da pessoa.
 
 **Checagens** (`IacBlueprintChecks`, as mesmas para IA, tela e MCP): formatos de região, conta, perfil, VPC e subnets;
 combinação de CPU e memória do Fargate; porta, health check e 1 a 10 tarefas; certificado ACM da mesma região; duas
@@ -304,7 +312,8 @@ e segredo com o provider AWS real pela conexão (nada é aplicado) e o Spock cot
 | `iac_plan_summary` | 2 e 3 | Lê o último plano (ou um pelo id): contagens, endereços, achados, se já foi aplicado ou por que não pode ser |
 | `iac_history` | 3 | Lista validações, planos e aplicações, com quem pediu e o resultado da verificação |
 | `iac_state` | 4 | Onde vive o state de cada raiz, trava, criptografia, riscos e backend recomendado (só a configuração) |
-| `iac_blueprint_check` | 5 | Confere um desenho com as checagens da tela e lista os arquivos que a geração escreveria e o que é cobrado; não grava nada |
+| `iac_blueprint_check` | 5 | Confere um desenho com as checagens da tela, separa o que o agente ajusta dos fatos da conta que a pessoa informa, e lista os arquivos que a geração escreveria e o que é cobrado; não grava nada |
+| `iac_architecture_prepare` | MM-2 | Roteiro do modo Sessão: regras e formato do desenho da nuvem, onde gravar a proposta e se já existe uma; não grava nada |
 | `iac_plan_summary` (custo) | 8 | O resumo do plano lista os recursos com custo fixo que ele muda (tipo e tamanho); o valor em dólares fica na tela |
 | `iac_drift_summary` | 6 e 9 | Lê a última verificação de drift: recursos alterados ou apagados por fora, com os nomes dos atributos, o que está na conta fora do state e se veio do agendamento; não roda a verificação |
 | `iac_plan` | Depois | Gerar plano por agente pede o vínculo cloud liberado para agentes; hoje só a pessoa planeja |

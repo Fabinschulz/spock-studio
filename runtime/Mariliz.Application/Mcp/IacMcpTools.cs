@@ -1,6 +1,8 @@
 using System.Text;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Iac;
+using Mariliz.Application.Execution;
+using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
 
 namespace Mariliz.Application.Mcp;
@@ -9,9 +11,10 @@ namespace Mariliz.Application.Mcp;
 // configuração (fmt e validate, sem backend nem nuvem), ler o resumo de um plano que a pessoa gerou e conferir um desenho
 // de infraestrutura e ler a última verificação de drift. Instalar, adotar, fixar, remover, gerar arquivos, planejar, verificar
 // drift (lê a nuvem com as credenciais da pessoa) e aplicar não existem aqui; são decisões da pessoa na interface.
+// No modo Sessão, o agente propõe o desenho com iac_architecture_prepare e iac_blueprint_check, sem modelo no motor.
 public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<WorkspaceAuthorizer, IacRuntimeService> terraform,
     Func<WorkspaceAuthorizer, IacOperationService> operations, string workingDirectory, IReadOnlySet<string> scope,
-    Func<WorkspaceAuthorizer, IacStateService>? state = null)
+    Func<WorkspaceAuthorizer, IacStateService>? state = null, IProjectFilesFactory? files = null)
 {
     public const string StatusTool = "iac_status";
     public const string ValidateTool = "iac_validate";
@@ -20,15 +23,63 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
     public const string StateTool = "iac_state";
     public const string BlueprintTool = "iac_blueprint_check";
     public const string DriftTool = "iac_drift_summary";
+    public const string PrepareTool = "iac_architecture_prepare";
     private const int MaxArgument = 200;
     private const int MaxChanges = 60;
 
-    public IReadOnlyList<McpTool> Tools() =>
-        state is null
-            ? [new McpTool(Status, StatusAsync), new McpTool(Validate, ValidateAsync), new McpTool(PlanSummary, PlanSummaryAsync), new McpTool(History, HistoryAsync),
-                new McpTool(Drift, DriftAsync), new McpTool(Blueprint, BlueprintAsync)]
-            : [new McpTool(Status, StatusAsync), new McpTool(Validate, ValidateAsync), new McpTool(PlanSummary, PlanSummaryAsync), new McpTool(History, HistoryAsync),
-                new McpTool(Drift, DriftAsync), new McpTool(Blueprint, BlueprintAsync), new McpTool(State, StateAsync)];
+    public IReadOnlyList<McpTool> Tools()
+    {
+        List<McpTool> tools =
+        [
+            new(Status, StatusAsync), new(Validate, ValidateAsync), new(PlanSummary, PlanSummaryAsync), new(History, HistoryAsync),
+            new(Drift, DriftAsync), new(Blueprint, BlueprintAsync)
+        ];
+        if (state is not null) tools.Add(new McpTool(State, StateAsync));
+        if (files is not null) tools.Add(new McpTool(Prepare, PrepareAsync));
+        return tools;
+    }
+
+    private static readonly McpToolInfo Prepare = new(
+        PrepareTool, "Preparar o desenho de infraestrutura",
+        "Para o agente propor a infraestrutura do projeto sem que o Spock chame modelo: devolve as regras e o formato do desenho " +
+        "da nuvem escolhida, os passos (conferir com iac_blueprint_check e gravar a proposta no projeto) e a proposta que já existe. " +
+        "Só leitura: quem gera os arquivos .tf é a pessoa, na tela Infraestrutura do Spock.",
+        new JsonObject
+        {
+            ["type"] = "object",
+            ["properties"] = new JsonObject
+            {
+                ["project"] = ProjectArgument(),
+                ["provider"] = new JsonObject
+                {
+                    ["type"] = "string",
+                    ["enum"] = new JsonArray([.. IacBlueprintChecks.Providers.Select(p => (JsonNode)p)]),
+                    ["description"] = "A nuvem do desenho. Sem ele, aws."
+                }
+            },
+            ["additionalProperties"] = false
+        });
+
+    private Task<string> PrepareAsync(McpCall call)
+    {
+        var authorizer = workspaces();
+        var project = new McpProjectResolver(authorizer, workingDirectory, scope).Resolve(McpArguments.Text(call.Arguments, "project", MaxArgument));
+        var provider = McpArguments.Text(call.Arguments, "provider", MaxArgument) ?? "aws";
+        if (!IacBlueprintChecks.Providers.Contains(provider)) throw new McpToolException("'provider' deve ser aws, azure ou gcp.");
+        var root = authorizer.TryGetRoot(project.ProjectId, out var found) ? found : throw EngineErrors.ProjectNotAuthorized();
+        var projectFiles = files!.Open(root);
+        var path = IacArchitectureProposals.PathIn(projectFiles);
+
+        var text = new StringBuilder($"Desenho de infraestrutura de {project.DisplayName}. O Spock não chama modelo aqui: você propõe, o Spock confere e a pessoa decide.");
+        text.Append($"\nNome sugerido para \"project\": {IacBootstrapTemplates.ProjectSlug(project.DisplayName)}.\n");
+        text.Append(IacSessionGuide.For(provider, path));
+        if (IacArchitectureProposals.Read(projectFiles) is { } current)
+        {
+            var failed = current.Checks.Count(check => !check.Passed);
+            text.Append($"\nJá existe uma proposta em {path} ({(failed == 0 ? "passa em todas as verificações" : $"{failed} verificação(ões) falhando")}). Gravar de novo a substitui.");
+        }
+        return Task.FromResult(text.ToString());
+    }
 
     private static readonly McpToolInfo Drift = new(
         DriftTool, "Último drift da infraestrutura",
@@ -91,13 +142,22 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
         var failed = checks.Where(c => !c.Passed).ToList();
         var text = new StringBuilder(failed.Count == 0
             ? $"Desenho de {blueprint.Project} passa nas {checks.Count} verificações."
-            : $"Desenho com {failed.Count} de {checks.Count} verificações falhando:");
-        foreach (var check in failed) text.Append($"\n- {check.Description}{(check.Detail is null ? "" : $" ({check.Detail})")}");
+            : $"Desenho com {failed.Count} de {checks.Count} verificações falhando.");
+        Failures("Ajustes no desenho:", failed.Where(c => !IacBlueprintChecks.FactIds.Contains(c.Id)));
+        Failures("Fatos da conta, que a pessoa informa (ou a conexão cloud do projeto); não invente:", failed.Where(c => IacBlueprintChecks.FactIds.Contains(c.Id)));
         if (failed.Count > 0) return Task.FromResult(text.ToString());
         text.Append("\nArquivos que a geração escreveria em infra/: " + string.Join(", ", IacGenerators.Generate(blueprint, "").Select(f => f.Path)) + ".");
         text.Append("\nO que é cobrado: " + string.Join("; ", IacGenerators.Costs(blueprint).Select(c => $"{c.Resource} ({c.Billing})")));
         text.Append("\nGerar os arquivos exige a revisão do diff e a aprovação da pessoa na tela Infraestrutura do Spock.");
         return Task.FromResult(text.ToString());
+
+        void Failures(string title, IEnumerable<IacBlueprintCheck> group)
+        {
+            var items = group.ToList();
+            if (items.Count == 0) return;
+            text.Append('\n').Append(title);
+            foreach (var check in items) text.Append($"\n- {check.Description}{(check.Detail is null ? "" : $" ({check.Detail})")}");
+        }
     }
 
     private static readonly McpToolInfo State = new(

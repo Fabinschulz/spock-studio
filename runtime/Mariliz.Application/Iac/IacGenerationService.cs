@@ -31,12 +31,8 @@ public sealed partial class IacGenerationService(
     public const int MaxNeed = 4000;
     public const int MaxAttempts = 2;
 
-    // Fatos da conta: vêm da pessoa ou da conexão, nunca do modelo. Falharem não é motivo para pedir outra resposta.
-    private static readonly HashSet<string> FactChecks = new(StringComparer.Ordinal)
-    {
-        "region", "account", "profile", "vpc", "private-subnets", "public-subnets", "load-balancer-subnets", "certificate",
-        "database-subnets", "alarm-email", "backend"
-    };
+    // Falharem não é motivo para pedir outra resposta ao modelo.
+    private static readonly IReadOnlySet<string> FactChecks = IacBlueprintChecks.FactIds;
 
     public async Task<IacArchitectureDraft> DraftAsync(IacDraftRequest request, CancellationToken ct)
     {
@@ -78,6 +74,8 @@ public sealed partial class IacGenerationService(
         });
         return draft;
     }
+
+    public IacArchitectureProposal? Proposal(string projectId) => IacArchitectureProposals.Read(filesFactory.Open(RequireRoot(projectId)));
 
     public IacGenerationPlan Plan(IacGenerateRequest request) => Prepare(request).Plan;
 

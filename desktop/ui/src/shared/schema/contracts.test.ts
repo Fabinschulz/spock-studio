@@ -8,6 +8,7 @@ import cloudReadFixture from '@contracts/fixtures/cloud/read.json';
 import iacLayoutFixture from '@contracts/fixtures/iac/layout.json';
 import iacOfferFixture from '@contracts/fixtures/iac/offer.json';
 import iacArchitectDraftFixture from '@contracts/fixtures/iac/architect-draft.json';
+import iacArchitectProposalFixture from '@contracts/fixtures/iac/architect-proposal.json';
 import iacBootstrapFixture from '@contracts/fixtures/iac/bootstrap-plan.json';
 import iacCostEstimateFixture from '@contracts/fixtures/iac/cost-estimate.json';
 import iacDriftFixture from '@contracts/fixtures/iac/drift-operation.json';
@@ -81,6 +82,7 @@ import {
   cloudLinkListSchema,
   cloudReadResultSchema,
   iacArchitectDraftSchema,
+  iacArchitectProposalSchema,
   iacBootstrapPlanSchema,
   iacCostEstimateSchema,
   iacGeneratePlanSchema,
@@ -994,6 +996,15 @@ describe('contrato do assistente do portfólio (fixtures do motor)', () => {
     expect(generated.changes.map((change) => change.path)).toContain('infra/modules/sqs/resource.tf');
     expect(generated.checks.every((check) => check.passed)).toBe(true);
     expect(generated.costs.length).toBeGreaterThan(0);
+  });
+
+  it('aceita a proposta do agente da sessão conferida pelo motor, e a ausência dela', () => {
+    const proposal = iacArchitectProposalSchema.parse(iacArchitectProposalFixture).proposal!;
+    expect(proposal.path).toBe('.spock/iac-proposal.json');
+    expect(proposal.blueprint?.provider).toBe('azure');
+    expect(proposal.valid).toBe(false);
+    expect(proposal.checks.filter((check) => !check.passed).map((check) => check.id)).toEqual(['account']);
+    expect(iacArchitectProposalSchema.parse({ proposal: null }).proposal).toBeNull();
   });
 
   it('aceita a verificação de drift só com nomes de atributo e a estimativa marcada como tal', () => {

@@ -1,0 +1,196 @@
+{
+  "proposal": {
+    "path": ".spock/iac-proposal.json",
+    "blueprint": {
+      "provider": "azure",
+      "project": "loja-api",
+      "region": "brazilsouth",
+      "account": null,
+      "profile": null,
+      "network": {
+        "vpcId": "",
+        "privateSubnets": [
+          "/subscriptions/0f1e2d3c-4b5a-6978-8a9b-0c1d2e3f4a5b/resourceGroups/rede/providers/Microsoft.Network/virtualNetworks/vnet-loja/subnets/postgres"
+        ],
+        "publicSubnets": [],
+        "privateDnsZone": "/subscriptions/0f1e2d3c-4b5a-6978-8a9b-0c1d2e3f4a5b/resourceGroups/rede/providers/Microsoft.Network/privateDnsZones/loja.postgres.database.azure.com"
+      },
+      "service": {
+        "name": "api",
+        "port": 8080,
+        "healthPath": "/health",
+        "cpu": 512,
+        "memory": 1024,
+        "desiredCount": 2,
+        "certificateArn": "",
+        "publicIp": false
+      },
+      "database": {
+        "engine": "postgres",
+        "engineVersion": "16",
+        "instanceClass": "GP_Standard_D2ds_v5",
+        "storageGb": 32,
+        "multiAz": true
+      },
+      "queues": [
+        "pedidos",
+        "estoque"
+      ],
+      "alarmEmail": "alertas@example.com",
+      "backend": {
+        "bucket": "lojatfstate",
+        "region": "brazilsouth",
+        "resourceGroup": "loja-tfstate",
+        "container": "tfstate"
+      }
+    },
+    "notes": {
+      "services": [
+        {
+          "name": "ECS Fargate",
+          "reason": "A API roda em contêiner."
+        }
+      ],
+      "risks": [
+        "Banco em uma zona só."
+      ],
+      "alternatives": [],
+      "assumptions": []
+    },
+    "checks": [
+      {
+        "id": "provider",
+        "description": "Nuvem suportada na geração (aws, azure ou gcp)",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "project",
+        "description": "Nome do projeto em minúsculas, dígitos e hífen, até 18 caracteres",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "region",
+        "description": "Região do Azure no formato brazilsouth",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "account",
+        "description": "Subscription do Azure (GUID)",
+        "passed": false,
+        "detail": "O provider azurerm exige a subscription; ela também trava o apply nessa subscription."
+      },
+      {
+        "id": "profile",
+        "description": "Tenant do Azure (GUID), quando informado",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "service-size",
+        "description": "CPU e memória aceitas pelo Container Apps (memória o dobro da CPU, até 2 vCPU)",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "certificate",
+        "description": "Sem certificado próprio: o HTTPS usa o domínio gerenciado do Container Apps",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "database-engine",
+        "description": "Banco postgres (PostgreSQL Flexible Server, só com login do Entra ID)",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "database-class",
+        "description": "SKU do Flexible Server (ex.: B_Standard_B1ms, GP_Standard_D2ds_v5)",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "database-storage",
+        "description": "Armazenamento de 32, 64, 128, 256, 512 ou 1024 GB",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "database-ha",
+        "description": "Alta disponibilidade fora da camada Burstable (B_)",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "database-subnet",
+        "description": "Subnet delegada ao PostgreSQL (id completo do Azure)",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "database-dns",
+        "description": "Zona DNS privada *.postgres.database.azure.com (id completo)",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "backend",
+        "description": "Storage account, grupo de recursos e container do state válidos",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "service-name",
+        "description": "Nome do serviço em minúsculas, dígitos e hífen, até 10 caracteres",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "service-port",
+        "description": "Porta do contêiner entre 1024 e 65535",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "service-health",
+        "description": "Health check com caminho começando por /",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "service-count",
+        "description": "Entre 1 e 10 tarefas",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "database-version",
+        "description": "Versão principal do banco (ex.: 16)",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "queues",
+        "description": "Até 8 filas, nomes em minúsculas, dígitos e hífen, sem repetir",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "components",
+        "description": "Ao menos um componente: serviço, banco ou fila",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "alarm-email",
+        "description": "E-mail de alarme válido, quando informado",
+        "passed": true,
+        "detail": null
+      }
+    ],
+    "valid": false
+  }
+}

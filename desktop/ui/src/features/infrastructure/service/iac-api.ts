@@ -1,6 +1,7 @@
 import type { EngineClient } from '@/shared/api';
 import {
   iacArchitectDraftSchema,
+  iacArchitectProposalSchema,
   iacBootstrapPlanSchema,
   iacGeneratePlanSchema,
   iacGenerateSaveSchema,
@@ -17,6 +18,7 @@ import {
   iacRuntimeOfferResultSchema,
   iacRuntimeStatusResultSchema,
   type IacArchitectDraft,
+  type IacArchitectProposal,
   type IacListedOperation,
   type IacBlueprint,
   type IacBootstrapPlan,
@@ -100,6 +102,8 @@ export type IacApi = {
   bootstrapSave(input: BootstrapInput & { planId: string }): Promise<string>;
   /** A IA propõe componentes e explica; os fatos (região, conta, rede, certificado) valem sobre o que ela escrever. */
   architectDraft(input: { projectId: string; need: string; facts: IacBlueprint }): Promise<IacArchitectDraft>;
+  /** O desenho que o agente da sessão gravou no projeto, já conferido; null quando não há. Não chama modelo. */
+  architectProposal(projectId: string): Promise<IacArchitectProposal | null>;
   /** Confere o desenho e monta o diff dos arquivos no modelo; com checagem falhando, volta sem arquivos. */
   generatePlan(input: GenerateInput): Promise<IacGeneratePlan>;
   /** Grava os arquivos revisados como execução do Spock (desfazer pela tela da execução); devolve o id dela. */
@@ -159,6 +163,8 @@ export function createIacApi(client: EngineClient): IacApi {
     bootstrapSave: (input) => client.request('iac.bootstrap.save', input, iacBootstrapSaveSchema).then((r) => r.runId),
     architectDraft: (input) =>
       client.request('iac.architect.draft', input, iacArchitectDraftSchema).then((r) => r.draft),
+    architectProposal: (projectId) =>
+      client.request('iac.architect.proposal', { projectId }, iacArchitectProposalSchema).then((r) => r.proposal),
     generatePlan: (input) => client.request('iac.generate.plan', input, iacGeneratePlanSchema).then((r) => r.plan),
     generateSave: (input) => client.request('iac.generate.save', input, iacGenerateSaveSchema).then((r) => r.runId),
     apply: (input) => client.request('iac.apply', input, iacOperationResultSchema).then((r) => r.operation),

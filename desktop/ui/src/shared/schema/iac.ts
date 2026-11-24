@@ -449,23 +449,36 @@ export const iacBlueprintCheckSchema = z.object({
   detail: z.string().nullable()
 });
 
+const iacArchitectureNotesSchema = z.object({
+  services: z.array(z.object({ name: z.string(), reason: z.string() })),
+  risks: z.array(z.string()),
+  alternatives: z.array(z.string()),
+  assumptions: z.array(z.string())
+});
+
 export const iacArchitectDraftSchema = z.object({
   draft: z.object({
     blueprint: iacBlueprintSchema.nullable(),
-    notes: z
-      .object({
-        services: z.array(z.object({ name: z.string(), reason: z.string() })),
-        risks: z.array(z.string()),
-        alternatives: z.array(z.string()),
-        assumptions: z.array(z.string())
-      })
-      .nullable(),
+    notes: iacArchitectureNotesSchema.nullable(),
     checks: z.array(iacBlueprintCheckSchema),
     valid: z.boolean(),
     attempts: z.number(),
     inputTokens: z.number(),
     outputTokens: z.number()
   })
+});
+
+/** O desenho que o agente da sessão gravou no projeto, conferido pelo motor sem chamar modelo; null sem arquivo. */
+export const iacArchitectProposalSchema = z.object({
+  proposal: z
+    .object({
+      path: z.string(),
+      blueprint: iacBlueprintSchema.nullable(),
+      notes: iacArchitectureNotesSchema.nullable(),
+      checks: z.array(iacBlueprintCheckSchema),
+      valid: z.boolean()
+    })
+    .nullable()
 });
 
 export const iacGeneratePlanSchema = z.object({
@@ -492,4 +505,5 @@ export type IacBootstrapPlan = z.infer<typeof iacBootstrapPlanSchema>['plan'];
 export type IacBlueprint = z.infer<typeof iacBlueprintSchema>;
 export type IacBlueprintCheck = z.infer<typeof iacBlueprintCheckSchema>;
 export type IacArchitectDraft = z.infer<typeof iacArchitectDraftSchema>['draft'];
+export type IacArchitectProposal = NonNullable<z.infer<typeof iacArchitectProposalSchema>['proposal']>;
 export type IacGeneratePlan = z.infer<typeof iacGeneratePlanSchema>['plan'];
