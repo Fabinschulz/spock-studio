@@ -3,7 +3,7 @@ import { actionStatusLabel } from '@/shared/utils';
 
 import { AREA_LABEL } from '../domain/labels';
 import { failureHint, riskLabel } from '../domain/run-workspace';
-import type { WorkflowSnapshot } from '../domain/run-timeline';
+import type { WorkflowSnapshot } from '@/shared/schema';
 import styles from './workspace.module.scss';
 
 type Result = NonNullable<WorkflowSnapshot['result']>;

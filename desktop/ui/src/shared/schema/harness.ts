@@ -53,6 +53,17 @@ export const specificationStatusSchema = z.object({
 
 export const discoveryWarningSchema = z.object({ code: z.string(), message: z.string(), paths: z.array(z.string()) });
 
+/** Os nomes de arquivo do Harness neste projeto (UI-26): um projeto configurado antes da troca de nome usa os do Mariliz. */
+export const harnessNamesSchema = z.object({
+  declaration: z.string(),
+  lock: z.string(),
+  stateDirectory: z.string(),
+  proposal: z.string(),
+  proposalSchema: z.string(),
+  harnessEngineer: z.string(),
+  harnessEngineerAgent: z.string()
+});
+
 export const discoverySchema = z.object({
   projectId: z.string(),
   projectName: z.string(),
@@ -80,9 +91,10 @@ export const discoverySchema = z.object({
     pythonCommand: z.string().nullable()
   }),
   hasDeclaredConfig: z.boolean(),
-  /** C3: os ambientes que spock.yaml já lista; vazio sem declaração válida. */
+  /** C3: os ambientes que a declaração do projeto já lista; vazio sem declaração válida. */
   declaredAiEnvironments: z.array(z.string()),
-  warnings: z.array(discoveryWarningSchema)
+  warnings: z.array(discoveryWarningSchema),
+  naming: harnessNamesSchema
 });
 
 const componentKind = z.enum(['specification', 'agent', 'skill', 'hook', 'rule', 'tool', 'eval', 'config']);
@@ -217,6 +229,7 @@ export type RunSummary = z.infer<typeof runSummarySchema>;
 export type ConflictResolution = 'keep' | 'overwrite';
 
 export type Discovery = z.infer<typeof discoverySchema>;
+export type HarnessNames = z.infer<typeof harnessNamesSchema>;
 export type StackFinding = z.infer<typeof stackFindingSchema>;
 export type ConfigurationPlan = z.infer<typeof planSchema>;
 export type FileChange = z.infer<typeof fileChangeSchema>;

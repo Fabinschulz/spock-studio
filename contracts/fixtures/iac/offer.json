@@ -18,6 +18,7 @@
     "changelogUrl": "https://github.com/opentofu/opentofu/blob/v1.13.9/CHANGELOG.md",
     "currentVersion": null,
     "isUpdate": false,
+    "alreadyInstalled": false,
     "impacts": [
       "Já existe o Terraform 1.16.5 compatível nesta máquina, instalado fora do Spock. Usá-lo dispensa esta instalação.",
       "Licença MPL 2.0 (código aberto). Gratuito e de código aberto, sem licença a contratar.",

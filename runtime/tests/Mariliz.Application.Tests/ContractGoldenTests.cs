@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Harness;
@@ -9,9 +8,6 @@ namespace Mariliz.Application.Tests;
 // O Zod da interface é conferido contra as mesmas fixtures. Para regenerar depois de uma mudança deliberada: MARILIZ_UPDATE_GOLDEN=1 dotnet test.
 public class ContractGoldenTests
 {
-    private static string GoldenPath(string name) => ContractFiles.Path_("fixtures", "golden", name + ".json");
-    private static readonly bool Update = Environment.GetEnvironmentVariable("MARILIZ_UPDATE_GOLDEN") == "1";
-
     private static readonly string ProposalSchemaPath = Path.Combine(ContractFiles.Root, "runtime", "Mariliz.Application", "Assets", "schemas", "harness-proposal.v1.schema.json");
 
     public static IEnumerable<object[]> ValidProposals() => ContractFiles.Fixtures("proposal/valid");
@@ -88,83 +84,12 @@ public class ContractGoldenTests
         return scenarios;
     }
 
-    // Remove o que muda a cada máquina ou execução (ids, nome da pasta temporária, versões das ferramentas).
-    private static JsonNode Normalize(JsonNode node, TempProject project, Journey journey)
-    {
-        var text = node.ToJsonString(new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
-        text = text.Replace(journey.ProjectId, "p-000000000000").Replace(Path.GetFileName(project.Root), "projeto");
-        text = System.Text.RegularExpressions.Regex.Replace(text, "run-[0-9a-f]{12}", "run-000000000000");
-        text = System.Text.RegularExpressions.Regex.Replace(text, "plan-[0-9a-f]{16}", "plan-0000000000000000");
-        return JsonNode.Parse(text)!;
-    }
+    private static JsonNode Normalize(JsonNode node, TempProject project, Journey journey) =>
+        GoldenFixtures.Normalize(node, journey.ProjectId, Path.GetFileName(project.Root));
 
     [Fact]
     public async Task Formato_das_respostas_do_motor_confere_com_as_fixtures_golden()
     {
-        foreach (var scenario in await BuildScenarios())
-        {
-            var path = GoldenPath(scenario.Name);
-            if (Update || !File.Exists(path))
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-                File.WriteAllText(path, scenario.Json.ToJsonString(new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }) + "\n");
-                continue;
-            }
-
-            var committed = JsonNode.Parse(File.ReadAllText(path))!;
-            var drift = Shape.Diff(Shape.Of(committed), Shape.Of(scenario.Json));
-            Assert.True(drift.Count == 0, $"{scenario.Name}: o formato mudou ({string.Join("; ", drift.Take(8))}). Se foi deliberado, regenere com MARILIZ_UPDATE_GOLDEN=1 e ajuste o Zod da interface.");
-        }
-    }
-
-    // Chaves e tipos, ignorando valores, para tolerar dados que variam.
-    private static class Shape
-    {
-        public static SortedDictionary<string, SortedSet<string>> Of(JsonNode? node)
-        {
-            var map = new SortedDictionary<string, SortedSet<string>>(StringComparer.Ordinal);
-            Walk(node, "$", map);
-            return map;
-        }
-
-        private static void Walk(JsonNode? node, string path, SortedDictionary<string, SortedSet<string>> map)
-        {
-            void Add(string type) { if (!map.TryGetValue(path, out var set)) map[path] = set = []; set.Add(type); }
-            Add(node switch
-            {
-                null => "null",
-                JsonObject => "object",
-                JsonArray => "array",
-                JsonValue v => v.GetValueKind() switch
-                {
-                    JsonValueKind.String => "string",
-                    JsonValueKind.Number => "number",
-                    JsonValueKind.True or JsonValueKind.False => "boolean",
-                    _ => "other"
-                },
-                _ => "other"
-            });
-
-            if (node is JsonObject o)
-                foreach (var (key, value) in o) Walk(value, path + "." + key, map);
-            else if (node is JsonArray a)
-                foreach (var item in a) Walk(item, path + "[]", map);
-        }
-
-        public static List<string> Diff(SortedDictionary<string, SortedSet<string>> expected, SortedDictionary<string, SortedSet<string>> actual)
-        {
-            var problems = new List<string>();
-            foreach (var (path, types) in expected)
-            {
-                if (!actual.TryGetValue(path, out var now)) { if (!IsArrayElementOnly(path, expected)) problems.Add($"falta {path}"); continue; }
-                var missing = types.Except(now).Where(t => t != "null").ToList();
-                if (missing.Count > 0 && !now.IsSupersetOf(types.Where(t => t != "null"))) problems.Add($"{path}: tipo {string.Join("/", now)} em vez de {string.Join("/", types)}");
-            }
-            foreach (var path in actual.Keys.Except(expected.Keys)) problems.Add($"campo novo {path}");
-            return problems;
-        }
-
-        // Um caminho dentro de uma lista que está vazia no cenário atual não é divergência.
-        private static bool IsArrayElementOnly(string path, SortedDictionary<string, SortedSet<string>> expected) => path.Contains("[]");
+        foreach (var scenario in await BuildScenarios()) GoldenFixtures.Check(scenario.Name, scenario.Json);
     }
 }

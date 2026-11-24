@@ -45,6 +45,7 @@ import discovery from '@contracts/fixtures/golden/discovery.json';
 import plan from '@contracts/fixtures/golden/plan.json';
 import revertResult from '@contracts/fixtures/golden/revert-result.json';
 import validateResult from '@contracts/fixtures/golden/validate-result.json';
+import workflowSnapshot from '@contracts/fixtures/golden/workflow-snapshot.json';
 import integrationCatalog from '@contracts/fixtures/integrations/catalog.json';
 import integrationConnections from '@contracts/fixtures/integrations/connections.json';
 import integrationHistory from '@contracts/fixtures/integrations/history.json';
@@ -143,6 +144,7 @@ import {
   runResultSchema,
   runSnapshotSchema,
   syncHistorySchema,
+  workflowSnapshotSchema,
   workflowStartParamsSchema,
   workflowStartResultSchema
 } from '.';
@@ -153,6 +155,22 @@ describe('contrato do motor (fixtures golden)', () => {
     const parsed = discoverySchema.parse(discovery);
     expect(parsed.stacks[0]).toMatchObject({ id: 'dotnet', version: 'net10.0', confidence: 'high' });
     expect(parsed.specification.state).toBe('not_installed');
+  });
+
+  it('descoberta traz os nomes de arquivo do Harness do projeto', () => {
+    expect(discoverySchema.parse(discovery).naming).toMatchObject({
+      declaration: 'spock.yaml',
+      proposal: '.spock/proposal.json',
+      harnessEngineerAgent: '.claude/agents/spock-harness-engineer.md'
+    });
+  });
+
+  it('retrato de um pedido de engenharia de verdade, com eventos e resultado', () => {
+    const parsed = workflowSnapshotSchema.parse(workflowSnapshot);
+    expect(parsed.kind).toBe('workflow');
+    expect(parsed.events.map((event) => event.type)).toContain('workflow.completed');
+    expect(parsed.result?.kind).toBe('workflow');
+    expect(parsed.result?.limitations.length).toBeGreaterThan(0);
   });
 
   it('plano, com comando planejado e conflito com diff', () => {

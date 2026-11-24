@@ -8,9 +8,9 @@ pub const PROTOCOL_VERSION: u64 = 1;
 pub const MAX_MESSAGE_BYTES: usize = 4 * 1024 * 1024;
 
 /// Mudou um método no motor (`ProtocolMethods.cs`)? Esta lista e `engine-client.ts` mudam juntas;
-/// `engine-methods.test.ts` confere a UI contra ela. `workspace.authorize` e `engine.*` ficam de fora de propósito: o
-/// primeiro recebe um caminho e só o diálogo nativo (comando `pick_project_folder`) pode originá-lo; os demais são do
-/// ciclo de vida do host.
+/// `engine-methods.test.ts` confere a UI contra ela, e `HostProtocolTests.cs` confere esta lista contra o motor.
+/// `workspace.authorize`, `runtime.health` e `engine.*` ficam de fora de propósito: o primeiro recebe um caminho e só o
+/// diálogo nativo (comando `pick_project_folder`) pode originá-lo; os demais são do host.
 pub const FRONTEND_METHODS: &[&str] = &[
     "project.discover",
     "harness.plan",

@@ -25,7 +25,7 @@ import { useApproval } from './hooks/use-approval';
 import { useRunFollow } from './hooks/use-run-follow';
 import { useUndo } from './hooks/use-undo';
 
-export { workflowSnapshotSchema, type WorkflowSnapshot } from './domain/run-timeline';
+export { workflowSnapshotSchema, type WorkflowSnapshot } from '@/shared/schema';
 
 export function ExecutionPage({ runId, client }: { runId: string; client: EngineClient }) {
   const { view, error, setError, refresh, retry } = useRunFollow(client, runId);

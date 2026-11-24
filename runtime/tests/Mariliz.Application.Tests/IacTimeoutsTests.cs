@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Mariliz.Application.Iac;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
@@ -7,9 +6,9 @@ using Mariliz.Infrastructure.Iac;
 
 namespace Mariliz.Application.Tests;
 
-// NET-S08: o motor responde antes de o host desistir. Lê a espera de cada método em engine/timeouts.rs e confere com o total da
-// operação no motor, mais a folga do serviço.
-public sealed partial class IacTimeoutsTests
+// NET-S08: o motor responde antes de o host desistir. A espera do host é a que o motor anuncia no engine.hello
+// (ProtocolDeadlines, RS-10); aqui ela é conferida contra o total de cada operação mais a folga do serviço.
+public sealed class IacTimeoutsTests
 {
     private static readonly IacInstallation Installation =
         new(IacEngine.OpenTofu, IacRuntimeSource.Managed, "1.13.9", "tofu", true, true, false, null, null);
@@ -17,7 +16,7 @@ public sealed partial class IacTimeoutsTests
     [Fact]
     public void Cada_operacao_do_motor_termina_antes_da_espera_do_host()
     {
-        var host = HostWaits();
+        var host = ProtocolDeadlines.ByMethod;
 
         foreach (var (method, total) in IacTimeouts.ByMethod)
         {
@@ -28,9 +27,9 @@ public sealed partial class IacTimeoutsTests
     }
 
     [Fact]
-    public void Todo_metodo_de_IaC_com_espera_longa_no_host_tem_total_no_motor()
+    public void Todo_metodo_de_IaC_com_espera_anunciada_tem_total_no_motor()
     {
-        var longWaits = HostWaits().Where(wait => wait.Key.StartsWith("iac.", StringComparison.Ordinal)
+        var longWaits = ProtocolDeadlines.ByMethod.Where(wait => wait.Key.StartsWith("iac.", StringComparison.Ordinal)
             && wait.Key is not (ProtocolMethods.IacRuntimeInstall or ProtocolMethods.IacArchitectDraft)).Select(wait => wait.Key);
 
         Assert.Equal(longWaits.Order(StringComparer.Ordinal), IacTimeouts.ByMethod.Keys.Order(StringComparer.Ordinal));
@@ -90,35 +89,6 @@ public sealed partial class IacTimeoutsTests
             Directory.Delete(directory, recursive: true);
         }
     }
-
-    // Lê as constantes e o match de request_timeout; só o formato que engine/timeouts.rs usa hoje.
-    private static Dictionary<string, TimeSpan> HostWaits()
-    {
-        var rust = File.ReadAllText(Path.Combine(ContractFiles.Root, "desktop", "host", "src-tauri", "src", "engine", "timeouts.rs"));
-        var methods = MethodConst().Matches(rust).ToDictionary(m => m.Groups[1].Value, m => m.Groups[2].Value);
-        var durations = DurationConst().Matches(rust).ToDictionary(m => m.Groups[1].Value, m => TimeSpan.FromSeconds(int.Parse(m.Groups[2].Value)));
-        var body = MatchBody().Match(rust);
-        Assert.True(body.Success, "engine/timeouts.rs não tem mais o match de request_timeout no formato esperado.");
-
-        var waits = new Dictionary<string, TimeSpan>(StringComparer.Ordinal);
-        foreach (var arm in body.Groups[1].Value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-        {
-            var parts = arm.Split("=>", StringSplitOptions.TrimEntries);
-            if (parts.Length != 2 || parts[0] == "_") continue;
-            foreach (var name in parts[0].Split('|', StringSplitOptions.TrimEntries))
-                waits[methods[name]] = durations[parts[1]];
-        }
-        return waits;
-    }
-
-    [GeneratedRegex("""const (\w+_METHOD): &str = "([^"]+)";""")]
-    private static partial Regex MethodConst();
-
-    [GeneratedRegex(@"const (\w+_TIMEOUT): Duration = Duration::from_secs\((\d+)\);")]
-    private static partial Regex DurationConst();
-
-    [GeneratedRegex(@"fn request_timeout\(method: &str\) -> Duration \{\s*match method \{(.*?)\n\s*\}\s*\n\}", RegexOptions.Singleline)]
-    private static partial Regex MatchBody();
 
     private sealed class ManualTime : TimeProvider
     {

@@ -37,7 +37,16 @@ const discovery = {
   tools: { git: null, node: null, python: null, pythonCommand: null },
   hasDeclaredConfig: false,
   declaredAiEnvironments: [],
-  warnings: []
+  warnings: [],
+  naming: {
+    declaration: 'spock.yaml',
+    lock: 'spock.lock',
+    stateDirectory: '.spock',
+    proposal: '.spock/proposal.json',
+    proposalSchema: '.spock/schemas/harness-proposal.v1.schema.json',
+    harnessEngineer: 'spock-harness-engineer',
+    harnessEngineerAgent: '.claude/agents/spock-harness-engineer.md'
+  }
 };
 
 /** O perfil salvo começa vazio quando `saved` é falso: a tela precisa pedir ao motor que crie o primeiro. */

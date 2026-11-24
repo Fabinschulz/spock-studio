@@ -167,7 +167,7 @@ function OfferReview({
   onInstall: () => void;
   onCancel: () => void;
 }) {
-  const alreadyInstalled = offer.impacts.some((impact) => impact.includes('já está instalado'));
+  const alreadyInstalled = offer.alreadyInstalled;
   return (
     <section className={styles.consent} aria-label="Proposta de instalação">
       <p className={styles.rowTitle}>

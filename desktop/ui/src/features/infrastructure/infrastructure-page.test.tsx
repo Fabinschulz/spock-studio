@@ -87,17 +87,37 @@ function fakeEngine(initial: Record<string, unknown> = missing, overrides: Recor
             account: '123456789012',
             capability: 'aws.ec2.subnets',
             region: 'sa-east-1',
-            columns: ['id', 'name', 'vpc', 'zone', 'cidr', 'public', 'freeIps'].map((id) => ({ id, label: id })),
+            columns: ['id', 'name', 'vpc', 'zone', 'cidr', 'public', 'freeIps'].map((id) => ({
+              id,
+              label: id,
+              kind: id === 'public' ? 'flag' : 'text'
+            })),
             rows: [
-              ['subnet-0aaaaaaaaaaaaaaa1', 'app-a', 'vpc-0a1b2c3d4e5f60718', 'sa-east-1a', '10.0.1.0/24', 'não', '250'],
-              ['subnet-0bbbbbbbbbbbbbbb2', 'app-b', 'vpc-0a1b2c3d4e5f60718', 'sa-east-1b', '10.0.2.0/24', 'não', '250'],
+              [
+                'subnet-0aaaaaaaaaaaaaaa1',
+                'app-a',
+                'vpc-0a1b2c3d4e5f60718',
+                'sa-east-1a',
+                '10.0.1.0/24',
+                'false',
+                '250'
+              ],
+              [
+                'subnet-0bbbbbbbbbbbbbbb2',
+                'app-b',
+                'vpc-0a1b2c3d4e5f60718',
+                'sa-east-1b',
+                '10.0.2.0/24',
+                'false',
+                '250'
+              ],
               [
                 'subnet-0ccccccccccccccc3',
                 'pub-a',
                 'vpc-0a1b2c3d4e5f60718',
                 'sa-east-1a',
                 '10.0.101.0/24',
-                'sim',
+                'true',
                 '250'
               ]
             ],

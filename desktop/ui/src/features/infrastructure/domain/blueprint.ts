@@ -1,4 +1,4 @@
-import type { CloudConnection, CloudRead, IacBlueprint } from '@/shared/schema';
+import { CLOUD_FLAG, type CloudConnection, type CloudRead, type IacBlueprint } from '@/shared/schema';
 
 /** O formulário guarda texto; o desenho só existe quando a pessoa pede a revisão, e o motor confere tudo de novo. */
 export type CloudProvider = 'aws' | 'azure' | 'gcp';
@@ -276,7 +276,7 @@ export function vpcsFromSubnets(read: CloudRead): DiscoveredVpc[] {
     const vpc = row[vpcAt];
     if (!id || !vpc) continue;
     const entry = vpcs.get(vpc) ?? { id: vpc, privateSubnets: [], publicSubnets: [] };
-    (row[publicAt] === 'sim' ? entry.publicSubnets : entry.privateSubnets).push(id);
+    (row[publicAt] === CLOUD_FLAG.yes ? entry.publicSubnets : entry.privateSubnets).push(id);
     vpcs.set(vpc, entry);
   }
   return [...vpcs.values()];

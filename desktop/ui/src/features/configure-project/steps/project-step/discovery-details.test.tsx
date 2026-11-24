@@ -35,6 +35,15 @@ const discovery: Discovery = {
   tools: { git: null, node: '22.1.0', python: null, pythonCommand: null },
   hasDeclaredConfig: false,
   declaredAiEnvironments: [],
+  naming: {
+    declaration: 'spock.yaml',
+    lock: 'spock.lock',
+    stateDirectory: '.spock',
+    proposal: '.spock/proposal.json',
+    proposalSchema: '.spock/schemas/harness-proposal.v1.schema.json',
+    harnessEngineer: 'spock-harness-engineer',
+    harnessEngineerAgent: '.claude/agents/spock-harness-engineer.md'
+  },
   warnings: []
 };
 

@@ -33,7 +33,7 @@ public sealed class InvestigationService
 
     /// <summary>
     /// O tempo que o runtime de IA recebe. Termina antes do <see cref="Deadline"/> de propósito: o runtime conclui com a limitação de
-    /// tempo (e a resposta que já tem), em vez de o motor cortar a conversa. O host espera ainda mais (engine/timeouts.rs).
+    /// tempo (e a resposta que já tem), em vez de o motor cortar a conversa. O host espera ainda mais (ProtocolDeadlines).
     /// </summary>
     public const int RuntimeBudgetMilliseconds = 120_000;
 
@@ -71,7 +71,9 @@ public sealed class InvestigationService
     }
 
     /// <summary>Prazo da conversa com o runtime: até quatro chamadas de modelo, cada uma com o seu prazo.</summary>
-    internal TimeSpan Deadline { get; init; } = TimeSpan.FromSeconds(150);
+    public static readonly TimeSpan StandardDeadline = TimeSpan.FromSeconds(150);
+
+    internal TimeSpan Deadline { get; init; } = StandardDeadline;
 
     public async Task<ProjectInvestigation> InvestigateAsync(string projectId, string question, CancellationToken ct)
     {

@@ -81,7 +81,7 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
 | RS-11b | `engine.rs:69-346` | Large Class: spawn, bomba de stdout, correlação, ciclo de vida e prazos | SRP | P1 | Difícil testar o ciclo de vida isoladamente | `engine/{process,rpc,lifecycle}.rs`; o codec já está em `protocol.rs` | **Feito** (onda 2b) |
 | RS-12 | `engine.rs` (`write`, `shutdown`) | `Mutex` segurado durante escrita bloqueante no pipe | Concorrência | P2 | Motor que para de ler o stdin trava as requisições, o `on_terminated` e o encerramento | Tarefa escritora dona do `CommandChild`, alimentada por canal | **Feito** (onda 2b) |
 | RS-13 | `engine.rs:69-127,227-249` | Máquina de estados implícita (seis campos) | Encapsulamento | P2 | Handshake falho gasta o reinício automático; motor travado na partida deixa a UI 2 min em "iniciando" | `watch<Lifecycle>`, `HANDSHAKE_TIMEOUT`, fase `HandshakeFailed` | **Feito** (onda 2b) |
-| RS-10 | `engine.rs:26-59`, `protocol.rs:14-124` | Conhecimento do motor no host (prazos e lista de métodos) | OCP | P2 | Toda função nova do motor muda o Rust; prazo errado cai em 120 s sem aviso | O motor anuncia o prazo dos métodos longos no `engine.hello`; teste .NET que lê `protocol.rs` | Onda 2 (contrato) |
+| RS-10 | `engine.rs:26-59`, `protocol.rs:14-124` | Conhecimento do motor no host (prazos e lista de métodos) | OCP | P2 | Toda função nova do motor muda o Rust; prazo errado cai em 120 s sem aviso | O motor anuncia o prazo dos métodos longos no `engine.hello`; teste .NET que lê `protocol.rs` | **Feito** (onda 2d) |
 | RS-14 | `lib.rs:191-213`, `terminal/mod.rs` | Comandos síncronos com I/O bloqueante na thread principal | Responsividade | P2 | A UI congela durante o `taskkill` ou num PTY que não lê | `#[tauri::command(async)]`/`spawn_blocking`; escritor por sessão | **Feito** (onda 2b) |
 | RS-17 | `resources.rs`, `engine.rs:166`, `launcher` | Layout do runtime conhecido em três lugares | DRY | P2 | No `.deb` do Linux o `spock` provavelmente roda sem o runtime de IA (não verificado em Linux) | O .NET passa a ser o único dono do layout | Onda 3 (empacotamento) |
 | RS-18 | `terminal/mod.rs:111-150` | TOCTOU no limite de sessões; shell vaza se a abertura falha | Correção | P3 | Mais de quatro terminais em aberturas concorrentes | Pegar leitor e escritor antes de criar o processo; reservar a vaga atomicamente | Onda 3 |
@@ -95,15 +95,15 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
 | UI-17 | `infrastructure/components/iac-operations.tsx:141-154`, `plan-approval.tsx:8,30-40` | Regra de negócio do motor copiada, e já divergente | SRP entre camadas, DRY | P1 | Plano vencido (24 h) aparecia aprovável; a pessoa marcava tudo e só então o motor recusava. Mudar a lista de produção deixaria a UI para trás | A UI renderiza `applyRequirements` vindo do motor; `PRODUCTION` e `approvable` foram removidos | **Feito** |
 | UI-32 (parcial) | `plan-approval.tsx:30`, `iac-operations.tsx:113` | `!` em campo opcional | Type safety | P3 | Guarda longe do uso | `summary` e `planId` passam a vir garantidos dos requisitos | **Feito** na aprovação |
 | UI-3 | `configure-project/service/harness-api.ts:86`, `execution/hooks/use-run-follow.ts`, `agents/hooks/use-agent-run.ts`, `shared/api/run-until-done.ts` | Quatro implementações de "acompanhar execução" | DRY, SRP | P1 | Configuração assina os eventos depois de `start()` e perde os primeiros. Agentes aceitam lacuna de `seq` e perdem linhas de saída | `shared/api/follow-run.ts` (assina antes, ordena por `seq`, recupera lacuna); os quatro chamadores sobre ele. Começar por teste de caracterização | **Feito** (onda 2c) |
-| UI-25 | `runtime-panel.tsx:170`, `blueprint.ts:249` | Comportamento decidido por texto localizado do motor (`'já está instalado'`, `'sim'`) | Contrato explícito | P2 | Reescrever ou traduzir o texto no motor quebra a tela sem aviso | O motor passa booleanos tipados | Onda 2 (contrato) |
-| UI-26 | `proposal-guide.tsx:27`, `judge-states.ts:13`, `model-step.tsx:68` | Nomes de arquivo do Harness fixos na UI | DRY entre camadas | P2 | Projeto configurado antes do #132 vê caminhos `spock` que não existem | A descoberta ou o plano devolvem `naming` | Onda 2 (contrato) |
+| UI-25 | `runtime-panel.tsx:170`, `blueprint.ts:249` | Comportamento decidido por texto localizado do motor (`'já está instalado'`, `'sim'`) | Contrato explícito | P2 | Reescrever ou traduzir o texto no motor quebra a tela sem aviso | O motor passa booleanos tipados | **Feito** (onda 2d) |
+| UI-26 | `proposal-guide.tsx:27`, `judge-states.ts:13`, `model-step.tsx:68` | Nomes de arquivo do Harness fixos na UI | DRY entre camadas | P2 | Projeto configurado antes do #132 vê caminhos `spock` que não existem | A descoberta ou o plano devolvem `naming` | **Feito** (onda 2d) |
 | UI-20 | `infrastructure/domain/blueprint.ts:4,38-80` | Capacidade por provedor na camada de formulário | SRP entre camadas | P2 | Opções e dicas divergem da validação do motor | `iac.generate.options` no motor; a UI mantém só o mapeamento formulário ⇄ DTO | Onda 3 |
 | UI-19 | `generate-panel.tsx:46-557` | God Component (dados, três telas, quatro fluxos, cerca de 12 ternários por provedor) | SRP, OCP | P2 | Provedor novo mexe em todos os ternários | `useGenerateFlow` (reducer), tabela `PROVIDER_FIELDS`, subcomponentes | Onda 3, depois de UI-20 |
 | UI-18 | `generate-panel.tsx:48`, `iac-operations.tsx:35`, `state-panel.tsx:64` | Mesma busca e junção repetidas; erro vira "nada vinculado" | DRY | P2 | Sete chamadas ao abrir a página; mensagem errada quando a leitura falha | `useLinkedConnections` uma vez na página | **Feito** (onda 2e) |
 | UI-21 | `features/integrations/index.ts` | Hooks e formatadores compartilhados morando numa feature (26 imports de fora) | Regra de dependência | P2 | Acoplamento entre features | `shared/hooks/use-action.ts`, `useAsyncResource({ keepPrevious })`, `shared/utils/lib/format.ts` | **Feito** (onda 2e) |
 | UI-22 | `knowledge-section.tsx:26`, `harness-section.tsx:18`, `profile-section.tsx:16` | Efeitos de carga escritos à mão (UI-9 voltou) | DRY | P2 | Três máquinas de estado iguais | `useAsyncResource` e `ResourceView` | **Feito** (onda 2e) |
 | UI-23 | `runs/hooks/use-run-list.ts` | Quase cópia de `usePagedRead` | DRY | P2 | Duas paginações | Parâmetro `extra` em `usePagedRead` | **Feito** (onda 2e) |
-| UI-24 | `execution/domain/run-timeline.ts:1-66` | Contrato do resultado do fluxo numa feature e sem fixture | Contract-first | P2 | Mudança no motor só aparece em produção | Mover para `shared/schema/workflow.ts` e criar fixture gerada pelo motor | Onda 2 |
+| UI-24 | `execution/domain/run-timeline.ts:1-66` | Contrato do resultado do fluxo numa feature e sem fixture | Contract-first | P2 | Mudança no motor só aparece em produção | Mover para `shared/schema/workflow.ts` e criar fixture gerada pelo motor | **Feito** (onda 2d) |
 | UI-33 | `app/routes.tsx` | 19 cópias de `<RequiresHost>`; tudo carregado na partida | DRY | P3 | Chunk de 864 kB (UI-16 antigo) | Rota de layout e `lazy` | Onda 3 |
 | UI-27..31 | vários | `<p className={styles.error}>` sem `role="alert"`; `<details>` em vez de `Disclosure`; alternância de `ConfirmAction` repetida; fluxo de salvar arquivos revisados duplicado; recarga forçada em `DecisionsSection` | DRY, a11y | P3 | Ruído e acessibilidade | Ver o relatório da onda 3 | Onda 3 |
 
@@ -128,6 +128,7 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
   - corrigidos na onda 1: NET-S01, NET-S05, NET-S07, RS-4/RS-11a, RS-15 e RS-16;
   - corrigidos na onda 2b: RS-12, RS-13 e RS-14;
   - corrigidos na onda 2e: UI-18, UI-21, UI-22 e UI-23;
+  - corrigidos na onda 2d: RS-10, UI-24, UI-25 e UI-26;
   - abertos: os demais P2 das tabelas.
 - **P3:** onda 3 e itens a monitorar.
 
@@ -149,9 +150,8 @@ Uma onda por PR, sem empilhar PR. Cada onda começa por testes de caracterizaç�
 
 1. **Versão mínima da ferramenta de IaC (NET-S09).** O Spock aceita OpenTofu 1.6 e Terraform 1.5, mas tudo o que ele
    gera exige `>= 1.11`. Subir o mínimo para 1.11 ou gerar com o mínimo atual?
-2. **Prazos dos métodos longos (RS-10, NET-S08).** Duas saídas:
-   - o motor anuncia os prazos no `engine.hello` (muda o contrato do handshake);
-   - o apply passa a responder com `runId` e eventos, como o `harness.apply` já faz (muda a tela).
+2. **Prazos dos métodos longos (RS-10, NET-S08).** Decidido em 2026-11-24: o motor anuncia os prazos no `engine.hello`
+   (feito na onda 2d). A outra saída, o apply responder com `runId` e eventos, ficou de fora.
 3. **Layout do runtime no Linux (RS-17).** Precisa de uma validação real num `.deb` antes de mexer.
 
 ## 7. Onda 1 executada
@@ -234,6 +234,24 @@ Uma onda por PR, sem empilhar PR. Cada onda começa por testes de caracterizaç�
 **Validação depois da onda 2e:**
 - UI: typecheck, eslint e prettier limpos; vitest com 887 testes aprovados.
 - Não validado: as telas no app Tauri com um motor real; ficaram nos testes de componente e de hook.
+
+## 7d. Onda 2d executada
+
+| Item | Antes | Depois | Testes |
+|---|---|---|---|
+| RS-10 | O host tinha a própria tabela de esperas por método (`engine/timeouts.rs`), espelho à mão dos prazos do motor; método novo caía em 120 s sem aviso. A lista de métodos da interface no host não era conferida contra o motor | `ProtocolDeadlines` (motor) monta a espera de cada método longo a partir dos prazos do próprio motor (`IacTimeouts`, `InvestigationService.StandardDeadline`, `IacTimeouts.Download`) e o `engine.hello` a anuncia em `deadlines` (segundos). O host guarda o anúncio e usa 120 s para o resto; valor inválido cai no padrão e nada passa de 6 h. `HostProtocolTests` lê `FRONTEND_METHODS` em `protocol.rs` e confere contra `ProtocolMethods`: todo método do motor está na lista da interface ou é só do host (`engine.*`, `workspace.authorize`, `runtime.health`) | `HostProtocolTests` (hello anuncia as esperas; cada espera passa do prazo do motor; listas batem), `IacTimeoutsTests` sem ler Rust, schema `engine.hello.result` com `deadlines`; no host, `timeouts.rs` com o anúncio e o padrão |
+| UI-25 | A tela decidia pelo texto em português do motor: `'já está instalado'` nos impactos da oferta e `'sim'` na coluna "Pública" das subnets. O motor fazia o mesmo para pular a VPC padrão | A oferta traz `alreadyInstalled`. As colunas de sim/não das leituras da AWS têm `kind: "flag"` e valores `true`/`false` (`CloudFlags`); a tabela da tela e o MCP escrevem "sim" e "não", e quem decide (subnets no desenho, VPC padrão no drift) compara com o valor sem idioma | `IacRuntimeTests` (`AlreadyInstalled` verdadeiro com a versão íntegra, falso depois de adulterada), `IacDriftScheduleTests`, `cloud-read-table.test`, `infrastructure-page.test` |
+| UI-26 | A UI fixava `spock.yaml`, `.spock/proposal.json` e `spock-harness-engineer`; um projeto configurado antes da troca de nome via caminhos que não existem | A descoberta devolve `naming` (`HarnessNames`: declaração, lock, pasta de estado, proposta, schema da proposta, agente). O guia da proposta, o pedido para o Harness Engineer, o painel lateral e o passo de modelo usam os nomes do projeto | `discovery.json` golden regenerada; `proposal-guide.test` com um projeto antigo vê `.mariliz/proposal.json` e `harness-engineer` |
+| UI-24 | O schema do resultado do fluxo morava em `execution/domain/run-timeline.ts`, sem fixture do motor | `shared/schema/workflow.ts` com `workflowResultSchema` e `workflowSnapshotSchema`; a página de execução importa de lá. `WorkflowRuntimeTests` grava e confere a golden `workflow-snapshot.json` de um pedido de verdade (runtime Python, aprovação e retomada); a comparação de formato das goldens virou `Support/GoldenFixtures` | `contracts.test.ts` lê a golden nova e a `naming` da descoberta |
+
+**Validação depois da onda 2d:**
+- .NET: 1874 testes aprovados, 0 falhas, 28 ignorados; mais 12 de integração. Numa primeira rodada, com a checagem da
+  UI rodando ao mesmo tempo, dois testes que dependem do runtime Python estouraram o tempo; passaram isolados e na
+  rodada seguinte, sem carga.
+- Rust (host): fmt, clippy `-D warnings` e 61 testes limpos.
+- UI: typecheck, eslint e prettier limpos; vitest com 891 testes aprovados.
+- Não validado: o app Tauri com o motor real recebendo os prazos do `engine.hello`; o anúncio e a leitura no host
+  ficaram nos testes de cada lado.
 
 ## 8. Arquivos grandes julgados coesos
 

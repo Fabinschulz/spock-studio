@@ -90,6 +90,8 @@ export const iacRuntimeOfferSchema = z.object({
   changelogUrl: z.string().nullable(),
   currentVersion: z.string().nullable(),
   isUpdate: z.boolean(),
+  /** A versão já está na pasta do Spock: instalar não baixa nada. Decidir pelo texto dos impactos quebraria com a redação. */
+  alreadyInstalled: z.boolean(),
   impacts: z.array(z.string())
 });
 

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { applyLive, describeEvent, fromSnapshot, type WorkflowSnapshot } from './run-timeline';
+import type { WorkflowSnapshot } from '@/shared/schema';
+
+import { applyLive, describeEvent, fromSnapshot } from './run-timeline';
 
 const base: WorkflowSnapshot = {
   runId: 'run-1',

@@ -307,7 +307,11 @@ public sealed class EngineSession
         {
             ["protocol"] = ProtocolMessages.Version,
             ["engineVersion"] = _engineVersion,
-            ["capabilities"] = new JsonArray(_capabilities.Select(c => (JsonNode)JsonValue.Create(c)!).ToArray())
+            ["capabilities"] = new JsonArray(_capabilities.Select(c => (JsonNode)JsonValue.Create(c)!).ToArray()),
+            // Em segundos. O host passa a esperar isso por esses métodos; o resto fica com o padrão dele.
+            ["deadlines"] = new JsonObject(ProtocolDeadlines.ByMethod
+                .OrderBy(entry => entry.Key, StringComparer.Ordinal)
+                .Select(entry => KeyValuePair.Create(entry.Key, (JsonNode?)JsonValue.Create((int)entry.Value.TotalSeconds))))
         });
     }
 

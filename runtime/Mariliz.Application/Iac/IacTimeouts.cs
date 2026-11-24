@@ -2,11 +2,15 @@ using Mariliz.Application.Protocol;
 
 namespace Mariliz.Application.Iac;
 
-// Os prazos de cada etapa da ferramenta e o total de cada operação. As etapas somadas passavam da espera do host
-// (engine/timeouts.rs): um apply com verificação chegava a ~103 min contra 90, e a tela mostrava ENGINE_TIMEOUT enquanto a nuvem
-// continuava mudando (NET-S08). O total vale para a operação inteira, e cada etapa ganha o próprio prazo ou o que sobrou.
+// Os prazos de cada etapa da ferramenta e o total de cada operação. As etapas somadas passavam da espera do host: um
+// apply com verificação chegava a ~103 min contra 90, e a tela mostrava ENGINE_TIMEOUT enquanto a nuvem continuava
+// mudando (NET-S08). O total vale para a operação inteira, e cada etapa ganha o próprio prazo ou o que sobrou. A espera
+// do host sai daqui pelo engine.hello (ProtocolDeadlines).
 public static class IacTimeouts
 {
+    // Baixar o OpenTofu ou o Terraform (OfficialReleaseToolchain).
+    public static readonly TimeSpan Download = TimeSpan.FromMinutes(10);
+
     public static readonly TimeSpan Short = TimeSpan.FromMinutes(2);
     public static readonly TimeSpan Init = TimeSpan.FromMinutes(10);
     public static readonly TimeSpan Plan = TimeSpan.FromMinutes(30);

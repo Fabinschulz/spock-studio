@@ -1,59 +1,81 @@
+use std::collections::HashMap;
 use std::time::Duration;
 
-// Descoberta e plano leem o projeto e consultam ferramentas; execuções longas respondem na hora e avisam por eventos.
+use serde_json::Value;
+
+// Descoberta e plano leem o projeto e consultam ferramentas; execuções longas respondem na hora e avisam por eventos. Os
+// métodos que demoram mais o motor anuncia no engine.hello (ProtocolDeadlines.cs, RS-10): o host não guarda a tabela.
 pub const REQUEST_TIMEOUT: Duration = Duration::from_secs(120);
-// A investigação de gestão conversa com o modelo por até 150 s no motor (o runtime de IA recebe 120 s). O host espera mais que o
-// motor: se cortasse antes, a UI mostraria ENGINE_TIMEOUT enquanto o motor ainda termina e grava a resposta.
-const INVESTIGATION_TIMEOUT: Duration = Duration::from_secs(180);
-const INVESTIGATION_METHOD: &str = "management.investigate";
-// O desenho da infraestrutura pode pedir duas respostas ao modelo.
-const IAC_ARCHITECT_METHOD: &str = "iac.architect.draft";
-// O download do OpenTofu ou do Terraform tem até 10 min no motor (OfficialReleaseToolchain); o host espera um pouco mais.
-const TERRAFORM_INSTALL_TIMEOUT: Duration = Duration::from_secs(660);
-const TERRAFORM_INSTALL_METHOD: &str = "iac.runtime.install";
-// O motor corta validar, planejar, drift, state e unlock em 40 min no total (IacTimeouts.cs); IacTimeoutsTests confere
-// estas esperas contra esse total mais a folga do serviço.
-const IAC_OPERATION_TIMEOUT: Duration = Duration::from_secs(2700);
-const IAC_VALIDATE_METHOD: &str = "iac.validate";
-const IAC_PLAN_METHOD: &str = "iac.plan";
-// O drift é um plan -refresh-only: mesmo init e mesmo teto do plano.
-const IAC_DRIFT_METHOD: &str = "iac.drift";
-// Consultar o state e liberar a trava também rodam init (providers e backend).
-const IAC_STATE_METHOD: &str = "iac.state.resources";
-const IAC_UNLOCK_METHOD: &str = "iac.state.unlock";
-// O apply pode criar banco e cluster: até 55 min no motor, e a operação inteira com a verificação fica em 85 min.
-const IAC_APPLY_TIMEOUT: Duration = Duration::from_secs(5400);
-const IAC_APPLY_METHOD: &str = "iac.apply";
 
 // O motor responde ao hello em poucos segundos. Com os 120 s comuns, um motor travado na partida deixava a UI 2 min em
 // "iniciando" (RS-13).
 pub const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(30);
 
-pub fn request_timeout(method: &str) -> Duration {
-    match method {
-        INVESTIGATION_METHOD | IAC_ARCHITECT_METHOD => INVESTIGATION_TIMEOUT,
-        TERRAFORM_INSTALL_METHOD => TERRAFORM_INSTALL_TIMEOUT,
-        IAC_VALIDATE_METHOD | IAC_PLAN_METHOD | IAC_DRIFT_METHOD | IAC_STATE_METHOD
-        | IAC_UNLOCK_METHOD => IAC_OPERATION_TIMEOUT,
-        IAC_APPLY_METHOD => IAC_APPLY_TIMEOUT,
-        _ => REQUEST_TIMEOUT,
-    }
+// Um valor absurdo no hello não pode deixar um pedido esperando para sempre.
+const MAX_ANNOUNCED: Duration = Duration::from_secs(6 * 60 * 60);
+
+pub type Deadlines = HashMap<String, Duration>;
+
+/// O que o motor anunciou em `deadlines` (segundos por método). Valor que não é um número positivo fica de fora: o
+/// método cai no padrão, como faria com um motor que não anuncia nada.
+pub fn announced(hello: &Value) -> Deadlines {
+    hello
+        .get("deadlines")
+        .and_then(Value::as_object)
+        .map(|entries| {
+            entries
+                .iter()
+                .filter_map(|(method, seconds)| {
+                    let seconds = seconds.as_u64().filter(|value| *value > 0)?;
+                    Some((
+                        method.clone(),
+                        Duration::from_secs(seconds).min(MAX_ANNOUNCED),
+                    ))
+                })
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+pub fn request_timeout(method: &str, deadlines: &Deadlines) -> Duration {
+    deadlines.get(method).copied().unwrap_or(REQUEST_TIMEOUT)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
 
     #[test]
-    fn a_investigacao_espera_mais_que_o_prazo_do_motor_e_o_resto_o_prazo_comum() {
-        // O motor dá 150 s à investigação (InvestigationService.Deadline): o host nunca pode desistir antes dele.
-        assert!(request_timeout("management.investigate") > Duration::from_secs(150));
-        assert_eq!(request_timeout("management.ask"), REQUEST_TIMEOUT);
-        assert_eq!(request_timeout("run.snapshot"), REQUEST_TIMEOUT);
-        assert!(request_timeout("iac.runtime.install") > Duration::from_secs(600));
-        assert!(request_timeout("iac.plan") > Duration::from_secs(2400));
-        assert!(request_timeout("iac.drift") > Duration::from_secs(2400));
-        assert!(request_timeout("iac.apply") > Duration::from_secs(5000));
+    fn o_metodo_anunciado_espera_o_que_o_motor_disse_e_o_resto_o_prazo_comum() {
+        let deadlines = announced(&json!({
+            "protocol": 1,
+            "deadlines": { "iac.apply": 5400, "management.investigate": 180 }
+        }));
+
+        assert_eq!(
+            request_timeout("iac.apply", &deadlines),
+            Duration::from_secs(5400)
+        );
+        assert_eq!(
+            request_timeout("management.investigate", &deadlines),
+            Duration::from_secs(180)
+        );
+        assert_eq!(request_timeout("run.snapshot", &deadlines), REQUEST_TIMEOUT);
+    }
+
+    #[test]
+    fn motor_sem_anuncio_ou_com_valor_estranho_cai_no_padrao_e_nada_espera_para_sempre() {
+        assert!(announced(&json!({ "protocol": 1 })).is_empty());
+
+        let deadlines = announced(&json!({
+            "deadlines": { "a": 0, "b": -5, "c": "muito", "d": 999_999_999u64 }
+        }));
+
+        assert_eq!(request_timeout("a", &deadlines), REQUEST_TIMEOUT);
+        assert_eq!(request_timeout("b", &deadlines), REQUEST_TIMEOUT);
+        assert_eq!(request_timeout("c", &deadlines), REQUEST_TIMEOUT);
+        assert_eq!(request_timeout("d", &deadlines), MAX_ANNOUNCED);
     }
 
     #[test]

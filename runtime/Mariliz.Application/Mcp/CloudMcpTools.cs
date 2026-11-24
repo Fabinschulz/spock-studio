@@ -130,11 +130,17 @@ public sealed class CloudMcpTools(CloudHub cloud, Func<WorkspaceAuthorizer> work
         if (result.Rows.Count == 0) return text.Append("Nenhum item.").ToString();
         text.Append("| ").Append(string.Join(" | ", result.Columns.Select(c => c.Label))).Append(" |\n")
             .Append('|').Append(string.Concat(result.Columns.Select(_ => " --- |"))).Append('\n');
-        foreach (var row in result.Rows) text.Append("| ").Append(string.Join(" | ", row.Select(Cell))).Append(" |\n");
+        foreach (var row in result.Rows)
+            text.Append("| ").Append(string.Join(" | ", row.Select((value, i) => Cell(value, result.Columns.ElementAtOrDefault(i))))).Append(" |\n");
         return text.Append(result.Truncated ? $"{result.Rows.Count} itens; havia mais. Peça com 'limit' maior (até {MaxLimit})." : $"{result.Rows.Count} itens.").ToString();
     }
 
-    private static string Cell(string? value) => string.IsNullOrEmpty(value) ? "-" : value.Replace("|", "/").Replace('\n', ' ');
+    private static string Cell(string? value, CloudColumn? column)
+    {
+        if (string.IsNullOrEmpty(value)) return "-";
+        if (column?.Kind == CloudColumnKinds.Flag) return value == CloudFlags.True ? "sim" : "não";
+        return value.Replace("|", "/").Replace('\n', ' ');
+    }
 
     private static JsonObject ProjectArgument() => new()
     {
