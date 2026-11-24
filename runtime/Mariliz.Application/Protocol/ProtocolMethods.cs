@@ -85,6 +85,7 @@ public static class ProtocolMethods
     public const string IdeaDraft = "idea.draft";
     public const string IdeaPlan = "idea.plan";
     public const string IdeaSave = "idea.save";
+    public const string ProjectDesign = "project.design";
     public const string CloudCatalog = "cloud.catalog";
     public const string CloudList = "cloud.list";
     public const string CloudCreate = "cloud.create";
@@ -181,7 +182,7 @@ public static class ProtocolMethods
 
     public static readonly IReadOnlyList<string> Security = [SecurityScan, SecurityPlan, SecurityFix];
 
-    public static readonly IReadOnlyList<string> Idea = [IdeaDraft, IdeaPlan, IdeaSave];
+    public static readonly IReadOnlyList<string> Idea = [IdeaDraft, IdeaPlan, IdeaSave, ProjectDesign];
 
     public static readonly IReadOnlyList<string> Cloud =
         [CloudCatalog, CloudList, CloudCreate, CloudValidate, CloudPermissions, CloudRemove, CloudLinks, CloudLink, CloudConfigure, CloudUnlink, CloudRead];

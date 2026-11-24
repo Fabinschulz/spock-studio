@@ -23,6 +23,25 @@ export const ideaDraftSchema = z.object({
   outputTokens: z.number()
 });
 
+/** Modo Sessão (W4-3): o arquivo que o agente da pessoa gravou, conferido etapa por etapa pelo motor. */
+export const projectDesignSchema = z.object({
+  design: z.object({
+    path: z.string(),
+    found: z.boolean(),
+    idea: z.string().nullable(),
+    checks: z.array(ideaCheckSchema),
+    stages: z.array(
+      z.object({
+        stage: z.enum(IDEA_STAGES),
+        artifact: z.record(z.string(), z.unknown()).nullable(),
+        checks: z.array(ideaCheckSchema),
+        valid: z.boolean()
+      })
+    ),
+    valid: z.boolean()
+  })
+});
+
 export const ideaPlanSchema = z.object({
   planId: z.string(),
   projectId: z.string(),
@@ -67,7 +86,23 @@ export const ideaArchitectureView = z.object({
   style: text,
   summary: text,
   components: z.array(z.object({ id: text, name: text, responsibility: text, requirements: texts })).catch([]),
-  stack: z.array(z.object({ area: text, choice: text, reason: text })).catch([]),
+  factors: z.array(z.object({ id: text, criterion: text, fact: text, favors: text })).catch([]),
+  stack: z
+    .array(
+      z.object({
+        area: text,
+        choice: text,
+        reason: text,
+        question: text,
+        option: text,
+        factors: texts,
+        requirements: texts,
+        alternatives: z.array(z.object({ choice: text, whyNot: text })).catch([]),
+        tradeoffs: text,
+        exception: text
+      })
+    )
+    .catch([]),
   risks: z.array(z.object({ text, mitigation: text })).catch([]),
   decisions: z.array(z.object({ title: text, choice: text, reason: text })).catch([])
 });
@@ -89,5 +124,6 @@ export const ideaBacklogView = z.object({
 export type IdeaCheck = z.infer<typeof ideaCheckSchema>;
 export type IdeaDraft = z.infer<typeof ideaDraftSchema>;
 export type IdeaPlan = z.infer<typeof ideaPlanSchema>;
+export type ProjectDesign = z.infer<typeof projectDesignSchema>['design'];
 export type IdeaSaveResult = z.infer<typeof ideaSaveResultSchema>;
 export type IdeaArtifact = Record<string, unknown>;

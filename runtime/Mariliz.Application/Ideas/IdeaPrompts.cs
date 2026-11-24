@@ -16,31 +16,15 @@ internal static class IdeaPrompts
 
     private static readonly Dictionary<string, (string Task, int MaxTokens)> Stages = new(StringComparer.Ordinal)
     {
-        [IdeaStages.Specification] = ("""
-            Você é o analista de requisitos do Spock Studio. Transforme a ideia numa especificação verificável. Formato exato:
-            {"title": "nome curto", "problem": "o problema em duas frases", "users": ["quem usa"], "goals": ["resultado esperado"],
-             "requirements": [{"id": "REQ-01", "text": "Quando ..., o sistema deve ...", "priority": "must|should|could"}],
-             "nonFunctional": [{"id": "NFR-01", "text": "O sistema deve ..."}], "outOfScope": ["..."], "openQuestions": ["..."]}
-            De 3 a 30 requisitos, ids únicos em sequência. Cada requisito diz o que o sistema deve fazer (use a palavra "deve"),
-            no estilo EARS ("Quando <gatilho>, o sistema deve <resposta>"). Ao menos um requisito é must.
-            """, 3000),
-        [IdeaStages.Architecture] = ("""
-            Você é o arquiteto de software do Spock Studio. Proponha a arquitetura que atende à especificação aprovada. Formato exato:
-            {"style": "estilo (ex.: monólito modular)", "summary": "visão geral em até quatro frases",
-             "components": [{"id": "CMP-01", "name": "...", "responsibility": "...", "requirements": ["REQ-01"]}],
-             "stack": [{"area": "backend|frontend|dados|infra|outro", "choice": "tecnologia", "reason": "por que ela"}],
-             "data": ["entidade e onde fica"], "integrations": ["sistema externo e para quê"],
-             "risks": [{"text": "risco", "mitigation": "como reduzir"}], "decisions": [{"title": "...", "choice": "...", "reason": "..."}]}
-            Cite em cada componente só ids de requisitos da especificação. Todo requisito must precisa de um componente responsável.
-            Prefira a solução mais simples que atende aos requisitos.
-            """, 3000),
-        [IdeaStages.Backlog] = ("""
-            Você é o líder técnico do Spock Studio. Quebre a especificação e a arquitetura aprovadas num backlog. Formato exato:
-            {"epics": [{"id": "EPIC-01", "title": "...", "stories": [{"id": "US-01", "title": "Como <usuário>, quero <ação> para <benefício>",
-              "requirements": ["REQ-01"], "acceptance": ["Dado ..., quando ..., então ..."], "estimate": "P|M|G"}]}]}
-            Ids únicos em todo o backlog. Todo requisito da especificação precisa de ao menos uma história. Cada história tem ao
-            menos um critério de aceite e cita só requisitos que existem. Ordene do que destrava mais para o que destrava menos.
-            """, 6000)
+        [IdeaStages.Specification] = (
+            "Você é o analista de requisitos do Spock Studio. Transforme a ideia numa especificação verificável. Formato exato:\n"
+            + IdeaFormats.Specification + "\n" + IdeaFormats.SpecificationRules, 3000),
+        [IdeaStages.Architecture] = (
+            "Você é o arquiteto de software do Spock Studio. Proponha a arquitetura que atende à especificação aprovada. Formato exato:\n"
+            + IdeaFormats.Architecture + "\n" + IdeaFormats.ArchitectureRules + "\n\nCritérios do §10 do catálogo:\n" + IdeaFormats.Criteria(), 5000),
+        [IdeaStages.Backlog] = (
+            "Você é o líder técnico do Spock Studio. Quebre a especificação e a arquitetura aprovadas num backlog. Formato exato:\n"
+            + IdeaFormats.Backlog + "\n" + IdeaFormats.BacklogRules, 6000)
     };
 
     public static int MaxTokens(string stage) => Stages[stage].MaxTokens;

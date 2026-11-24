@@ -15,12 +15,25 @@ interface StageCardProps {
   index: number;
   draft: IdeaDraft;
   approved: boolean;
+  /** Só aprova depois da etapa anterior: no modo Sessão as três chegam juntas. */
+  canApprove?: boolean;
+  /** No modo Sessão, quem escreveu foi o agente da pessoa: sem tentativas nem tokens do Spock, e refazer é ler de novo. */
+  bySession?: boolean;
   busy: boolean;
   onApprove: () => void;
   onRetry: () => void;
 }
 
-export function StageCard({ index, draft, approved, busy, onApprove, onRetry }: StageCardProps) {
+export function StageCard({
+  index,
+  draft,
+  approved,
+  canApprove = true,
+  bySession = false,
+  busy,
+  onApprove,
+  onRetry
+}: StageCardProps) {
   const chip: { tone: 'success' | 'info' | 'danger'; label: string } = approved
     ? { tone: 'success', label: 'Aprovada' }
     : draft.valid
@@ -40,26 +53,34 @@ export function StageCard({ index, draft, approved, busy, onApprove, onRetry }: 
           </li>
         ))}
       </ul>
-      {draft.valid ? null : (
+      {draft.valid ? null : bySession ? (
+        <InlineNotice tone="warning" title="O agente não acertou esta etapa">
+          Peça ao agente para corrigir o arquivo com spock_project_design_check e leia de novo.
+        </InlineNotice>
+      ) : (
         <InlineNotice tone="warning" title="O modelo não acertou esta etapa">
           Mesmo depois de receber o que faltava, a resposta não passou em todas as verificações. Gere de novo; se
           insistir, detalhe mais a ideia.
         </InlineNotice>
       )}
       {draft.artifact ? <ArtifactView stage={draft.stage} artifact={draft.artifact} /> : null}
-      <p className={styles.note}>
-        {draft.attempts === 1 ? 'Gerada em 1 tentativa' : `Gerada em ${draft.attempts} tentativas`},{' '}
-        {(draft.inputTokens + draft.outputTokens).toLocaleString('pt-BR')} tokens.
-      </p>
+      {bySession ? (
+        <p className={styles.note}>Escrita pelo agente da sua sessão, sem chamada de modelo do Spock.</p>
+      ) : (
+        <p className={styles.note}>
+          {draft.attempts === 1 ? 'Gerada em 1 tentativa' : `Gerada em ${draft.attempts} tentativas`},{' '}
+          {(draft.inputTokens + draft.outputTokens).toLocaleString('pt-BR')} tokens.
+        </p>
+      )}
       {approved ? null : (
         <div className={styles.actions}>
           {draft.valid ? (
-            <Button type="button" variant="contained" disabled={busy} onClick={onApprove}>
+            <Button type="button" variant="contained" disabled={busy || !canApprove} onClick={onApprove}>
               Aprovar e seguir
             </Button>
           ) : null}
           <Button type="button" variant="outlined" color="inherit" disabled={busy} onClick={onRetry}>
-            Gerar de novo
+            {bySession ? 'Ler de novo' : 'Gerar de novo'}
           </Button>
         </div>
       )}

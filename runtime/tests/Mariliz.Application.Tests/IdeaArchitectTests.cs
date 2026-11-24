@@ -82,7 +82,13 @@ public sealed class IdeaArchitectTests : IDisposable
          "components": [
            {"id": "CMP-01", "name": "Pedidos", "responsibility": "Guarda e muda o estado dos pedidos.", "requirements": ["REQ-01", "REQ-03"]},
            {"id": "CMP-02", "name": "Avisos", "responsibility": "Avisa o cliente.", "requirements": ["REQ-02"]}],
-         "stack": [{"area": "backend", "choice": ".NET", "reason": "Equipe já conhece."}],
+         "factors": [
+           {"id": "F1", "criterion": "10.4-conhecimento-da-equipe", "fact": "A equipe trabalha com .NET.", "favors": ".NET"},
+           {"id": "F2", "criterion": "10.4-dominio-com-regras-e-transacoes", "fact": "O pedido muda de estado por regras.", "favors": ".NET"}],
+         "stack": [{"area": "backend", "choice": ".NET", "reason": "Equipe já conhece.", "question": "10.4", "option": ".NET",
+                    "factors": ["F1", "F2"], "requirements": ["NFR-01"],
+                    "alternatives": [{"choice": "Node/TS", "whyNot": "A equipe não trabalha com Node."}],
+                    "tradeoffs": "Imagem do contêiner maior que a de um serviço em Go."}],
          "data": ["Pedido no PostgreSQL"], "integrations": ["Serviço de e-mail"],
          "risks": [{"text": "Aviso duplicado.", "mitigation": "Chave de idempotência por pedido."}],
          "decisions": [{"title": "Banco", "choice": "PostgreSQL", "reason": "Relacional e simples."}]}

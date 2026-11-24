@@ -1,5 +1,5 @@
 {
-  "planId": "idea-86ba51c7590b",
+  "planId": "idea-7dc8b86e0ea7",
   "projectId": "p-000000000001",
   "changes": [
     {
@@ -13,10 +13,10 @@
     {
       "path": ".spock/arquitetura/arquitetura.md",
       "op": "create",
-      "diff": "--- /dev/null\n+++ b/.spock/arquitetura/arquitetura.md\n@@ -1,0 +1,30 @@\n+# Arquitetura\n+\n+**Estilo:** Monólito modular\n+\n+Uma API com um painel web e um serviço de avisos.\n+\n+## Componentes\n+\n+- **CMP-01 Pedidos**: Guarda e muda o estado dos pedidos. Atende a REQ-01, REQ-03.\n+- **CMP-02 Avisos**: Avisa o cliente. Atende a REQ-02.\n+\n+## Stack\n+\n+- **backend**: .NET. Equipe já conhece.\n+\n+## Dados\n+\n+- Pedido no PostgreSQL\n+\n+## Integrações\n+\n+- Serviço de e-mail\n+\n+## Riscos\n+\n+- Aviso duplicado. Mitigação: Chave de idempotência por pedido.\n+\n+## Decisões\n+\n+- **Banco**: PostgreSQL. Relacional e simples.\n",
+      "diff": "--- /dev/null\n+++ b/.spock/arquitetura/arquitetura.md\n@@ -1,0 +1,35 @@\n+# Arquitetura\n+\n+**Estilo:** Monólito modular\n+\n+Uma API com um painel web e um serviço de avisos.\n+\n+## Componentes\n+\n+- **CMP-01 Pedidos**: Guarda e muda o estado dos pedidos. Atende a REQ-01, REQ-03.\n+- **CMP-02 Avisos**: Avisa o cliente. Atende a REQ-02.\n+\n+## Stack\n+\n+- **backend**: .NET. Equipe já conhece. Critério: pergunta 10.4 do catálogo, opção .NET, fatores F1, F2. Atende a NFR-01. Descartado: Node/TS (A equipe não trabalha com Node.). Trade-off: Imagem do contêiner maior que a de um serviço em Go.\n+\n+## Fatores da escolha\n+\n+- **F1** (10.4-conhecimento-da-equipe, favorece .NET): A equipe trabalha com .NET.\n+- **F2** (10.4-dominio-com-regras-e-transacoes, favorece .NET): O pedido muda de estado por regras.\n+\n+## Dados\n+\n+- Pedido no PostgreSQL\n+\n+## Integrações\n+\n+- Serviço de e-mail\n+\n+## Riscos\n+\n+- Aviso duplicado. Mitigação: Chave de idempotência por pedido.\n+\n+## Decisões\n+\n+- **Banco**: PostgreSQL. Relacional e simples.\n",
       "truncated": false,
       "beforeHash": null,
-      "afterHash": "7c90e505f073e9a3e03b960c766a19ba081e958a87b594b404aa4e744f0b6aad"
+      "afterHash": "561b8f4842924c5c125200e058468c384d61d66d8f06348ac93f60c5ea5165fb"
     },
     {
       "path": ".spock/arquitetura/backlog.md",

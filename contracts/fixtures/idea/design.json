@@ -1,0 +1,357 @@
+{
+  "design": {
+    "path": ".spock/project-design.json",
+    "found": true,
+    "idea": "Um app para lojistas acompanharem pedidos e avisarem o cliente quando o pedido sair para entrega.",
+    "checks": [
+      {
+        "id": "idea",
+        "label": "Traz a ideia, com 20 a 4000 caracteres",
+        "passed": true,
+        "detail": null
+      }
+    ],
+    "stages": [
+      {
+        "stage": "specification",
+        "artifact": {
+          "title": "Pedidos da loja",
+          "problem": "O lojista não sabe onde está cada pedido. O cliente pergunta por telefone.",
+          "users": [
+            "Lojista",
+            "Cliente"
+          ],
+          "goals": [
+            "Menos ligações de clientes"
+          ],
+          "requirements": [
+            {
+              "id": "REQ-01",
+              "text": "Quando um pedido for criado, o sistema deve registrá-lo como recebido.",
+              "priority": "must"
+            },
+            {
+              "id": "REQ-02",
+              "text": "Quando o pedido sair para entrega, o sistema deve avisar o cliente.",
+              "priority": "must"
+            },
+            {
+              "id": "REQ-03",
+              "text": "O sistema deve mostrar ao lojista os pedidos do dia.",
+              "priority": "could"
+            }
+          ],
+          "nonFunctional": [
+            {
+              "id": "NFR-01",
+              "text": "O sistema deve responder em até dois segundos."
+            }
+          ],
+          "outOfScope": [
+            "Pagamento"
+          ],
+          "openQuestions": [
+            "O aviso é por e-mail ou mensagem?"
+          ]
+        },
+        "checks": [
+          {
+            "id": "shape",
+            "label": "Tem título, problema, usuários, objetivos e de 3 a 30 requisitos",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "ids",
+            "label": "Cada requisito tem um id único no formato REQ-01 (e NFR-01 para os não funcionais)",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "shall",
+            "label": "Cada requisito diz o que o sistema deve fazer",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "priority",
+            "label": "Cada requisito tem prioridade (must, should ou could) e ao menos um é must",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "nonfunctional",
+            "label": "Tem ao menos um requisito não funcional (desempenho, segurança, disponibilidade, custo, operação)",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "secrets",
+            "label": "Não traz nada com formato de credencial",
+            "passed": true,
+            "detail": null
+          }
+        ],
+        "valid": true
+      },
+      {
+        "stage": "architecture",
+        "artifact": {
+          "style": "Monólito modular",
+          "summary": "Uma API com um painel web e um serviço de avisos.",
+          "components": [
+            {
+              "id": "CMP-01",
+              "name": "Pedidos",
+              "responsibility": "Guarda e muda o estado dos pedidos.",
+              "requirements": [
+                "REQ-01",
+                "REQ-03"
+              ]
+            },
+            {
+              "id": "CMP-02",
+              "name": "Avisos",
+              "responsibility": "Avisa o cliente.",
+              "requirements": [
+                "REQ-02"
+              ]
+            }
+          ],
+          "factors": [
+            {
+              "id": "F1",
+              "criterion": "10.4-conhecimento-da-equipe",
+              "fact": "A equipe trabalha com .NET.",
+              "favors": ".NET"
+            },
+            {
+              "id": "F2",
+              "criterion": "10.4-dominio-com-regras-e-transacoes",
+              "fact": "O pedido muda de estado por regras.",
+              "favors": ".NET"
+            },
+            {
+              "id": "F3",
+              "criterion": "10.1-react",
+              "fact": "A equipe já usa React no painel de outra loja."
+            }
+          ],
+          "stack": [
+            {
+              "area": "backend",
+              "choice": "ASP.NET Core",
+              "reason": "Equipe já conhece.",
+              "question": "10.4",
+              "option": "outra",
+              "factors": [
+                "F1",
+                "F2"
+              ],
+              "requirements": [
+                "NFR-01"
+              ],
+              "alternatives": [
+                {
+                  "choice": "Node/TS",
+                  "whyNot": "A equipe não trabalha com Node."
+                }
+              ],
+              "tradeoffs": "Imagem do contêiner maior que a de um serviço em Go."
+            },
+            {
+              "area": "frontend",
+              "choice": "React com Vite",
+              "reason": "Painel interno sem SEO.",
+              "question": "10.1",
+              "option": "React",
+              "factors": [
+                "F3"
+              ],
+              "alternatives": [
+                {
+                  "choice": "Angular",
+                  "whyNot": "Ninguém na equipe usa Angular."
+                }
+              ],
+              "tradeoffs": "Roteador e formulários vêm de bibliotecas, não do framework."
+            },
+            {
+              "area": "dados",
+              "choice": "PostgreSQL",
+              "reason": "Relacional e simples.",
+              "requirements": [
+                "REQ-01"
+              ],
+              "alternatives": [
+                {
+                  "choice": "MongoDB",
+                  "whyNot": "Os pedidos têm relações e transações."
+                }
+              ],
+              "tradeoffs": "Esquema precisa de migração a cada mudança."
+            }
+          ],
+          "data": [
+            "Pedido no PostgreSQL"
+          ],
+          "integrations": [
+            "Serviço de e-mail"
+          ],
+          "risks": [
+            {
+              "text": "Aviso duplicado.",
+              "mitigation": "Chave de idempotência por pedido."
+            }
+          ],
+          "decisions": [
+            {
+              "title": "Banco",
+              "choice": "PostgreSQL",
+              "reason": "Relacional e simples."
+            }
+          ]
+        },
+        "checks": [
+          {
+            "id": "shape",
+            "label": "Tem estilo, resumo, componentes com responsabilidade, stack com justificativa e riscos com mitigação",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "ids",
+            "label": "Cada componente tem um id único no formato CMP-01",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "traces",
+            "label": "Os componentes só citam requisitos que existem na especificação",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "coverage",
+            "label": "Todo requisito must tem ao menos um componente responsável",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "factors",
+            "label": "Cada fator tem id único (F1, F2...), descreve um fato do projeto e cita um critério do §10 do catálogo, favorecendo uma opção que o critério tem",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "criteria",
+            "label": "Cada escolha da stack cita o critério: a pergunta do §10, a opção e os fatores dela, ou requisitos que existem na especificação",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "questions",
+            "label": "Backend e frontend são decididos pelas perguntas 10.4 e 10.1 do catálogo",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "consistent",
+            "label": "A opção de cada escolha é a que os fatores citados favorecem (mesmos fatores, mesma escolha), ou a escolha explica a exceção",
+            "passed": false,
+            "detail": "backend"
+          },
+          {
+            "id": "tradeoffs",
+            "label": "Cada escolha da stack diz a alternativa descartada, por quê, e o trade-off que aceita",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "secrets",
+            "label": "Não traz nada com formato de credencial",
+            "passed": true,
+            "detail": null
+          }
+        ],
+        "valid": false
+      },
+      {
+        "stage": "backlog",
+        "artifact": {
+          "epics": [
+            {
+              "id": "EPIC-01",
+              "title": "Ciclo do pedido",
+              "stories": [
+                {
+                  "id": "US-01",
+                  "title": "Como lojista, quero registrar pedidos para acompanhá-los",
+                  "requirements": [
+                    "REQ-01",
+                    "REQ-03"
+                  ],
+                  "acceptance": [
+                    "Dado um pedido novo, quando salvo, então ele aparece como recebido"
+                  ],
+                  "estimate": "P"
+                },
+                {
+                  "id": "US-02",
+                  "title": "Como cliente, quero ser avisado da entrega para me organizar",
+                  "requirements": [
+                    "REQ-02"
+                  ],
+                  "acceptance": [
+                    "Dado um pedido em entrega, quando o estado muda, então o cliente recebe o aviso"
+                  ],
+                  "estimate": "M"
+                }
+              ]
+            }
+          ]
+        },
+        "checks": [
+          {
+            "id": "shape",
+            "label": "Tem épicos com histórias, e cada história tem título, requisitos e estimativa P, M ou G",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "ids",
+            "label": "Cada épico e cada história têm id único (EPIC-01, US-01)",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "traces",
+            "label": "As histórias só citam requisitos que existem na especificação",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "coverage",
+            "label": "Todo requisito tem ao menos uma história",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "acceptance",
+            "label": "Cada história tem critério de aceite",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "id": "secrets",
+            "label": "Não traz nada com formato de credencial",
+            "passed": true,
+            "detail": null
+          }
+        ],
+        "valid": true
+      }
+    ],
+    "valid": false
+  }
+}

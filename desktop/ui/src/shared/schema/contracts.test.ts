@@ -22,6 +22,7 @@ import iacStatusFixture from '@contracts/fixtures/iac/status.json';
 import contextReviewFixture from '@contracts/fixtures/context/review.json';
 import ideConnectionFixture from '@contracts/fixtures/ide/connection.json';
 import ideaDraftFixture from '@contracts/fixtures/idea/draft.json';
+import ideaDesignFixture from '@contracts/fixtures/idea/design.json';
 import ideaPlanFixture from '@contracts/fixtures/idea/plan.json';
 import investigationFixture from '@contracts/fixtures/management/investigation.json';
 import portfolioAnswerFixture from '@contracts/fixtures/management/portfolio-answer.json';
@@ -132,6 +133,8 @@ import {
   ideaDraftSchema,
   ideaPlanSchema,
   ideaSpecificationView,
+  ideaArchitectureView,
+  projectDesignSchema,
   projectArchitectureSchema,
   projectModernizationSchema,
   projectKnowledgeSchema,
@@ -790,12 +793,37 @@ describe('contrato da ideia ao projeto (fixtures do motor)', () => {
     const parsed = ideaDraftSchema.parse(ideaDraftFixture);
 
     expect(parsed).toMatchObject({ stage: 'specification', valid: true, attempts: 1 });
-    expect(parsed.checks.map((check) => check.id)).toEqual(['shape', 'ids', 'shall', 'priority', 'secrets']);
+    expect(parsed.checks.map((check) => check.id)).toEqual([
+      'shape',
+      'ids',
+      'shall',
+      'priority',
+      'nonfunctional',
+      'secrets'
+    ]);
     expect(ideaSpecificationView.parse(parsed.artifact).requirements.map((item) => item.id)).toEqual([
       'REQ-01',
       'REQ-02',
       'REQ-03'
     ]);
+  });
+
+  it('o projeto pela sessão traz as três etapas, cada uma com as verificações do motor', () => {
+    const { design } = projectDesignSchema.parse(ideaDesignFixture);
+
+    expect(design).toMatchObject({ path: '.spock/project-design.json', found: true, valid: false });
+    expect(design.stages.map((stage) => [stage.stage, stage.valid])).toEqual([
+      ['specification', true],
+      ['architecture', false],
+      ['backlog', true]
+    ]);
+    const architecture = design.stages[1]!;
+    expect(architecture.checks.filter((check) => !check.passed).map((check) => [check.id, check.detail])).toEqual([
+      ['consistent', 'backend']
+    ]);
+    const view = ideaArchitectureView.parse(architecture.artifact);
+    expect(view.stack[0]).toMatchObject({ question: '10.4', option: 'outra', factors: ['F1', 'F2'] });
+    expect(view.factors[0]).toMatchObject({ id: 'F1', criterion: '10.4-conhecimento-da-equipe', favors: '.NET' });
   });
 
   it('o plano grava só os três documentos em .spock/arquitetura', () => {

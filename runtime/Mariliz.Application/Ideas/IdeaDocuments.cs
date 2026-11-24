@@ -50,12 +50,30 @@ internal static class IdeaDocuments
         text.AppendLine(Text(architecture, "summary")).AppendLine();
         Bullets(text, "Componentes", Objects(architecture, "components").Select(item =>
             $"**{Text(item, "id")} {Text(item, "name")}**: {Text(item, "responsibility")} Atende a {string.Join(", ", Strings(item, "requirements"))}."));
-        Bullets(text, "Stack", Objects(architecture, "stack").Select(item => $"**{Text(item, "area")}**: {Text(item, "choice")}. {Text(item, "reason")}"));
+        // O documento é o que fica: quem lê depois vê o critério, o que foi descartado e o trade-off de cada escolha.
+        Bullets(text, "Stack", Objects(architecture, "stack").Select(StackLine));
+        Bullets(text, "Fatores da escolha", Objects(architecture, "factors").Select(item =>
+            $"**{Text(item, "id")}** ({Text(item, "criterion")}, favorece {Text(item, "favors")}): {Text(item, "fact")}"));
         Bullets(text, "Dados", Strings(architecture, "data"));
         Bullets(text, "Integrações", Strings(architecture, "integrations"));
         Bullets(text, "Riscos", Objects(architecture, "risks").Select(item => $"{Text(item, "text")} Mitigação: {Text(item, "mitigation")}"));
         Bullets(text, "Decisões", Objects(architecture, "decisions").Select(item => $"**{Text(item, "title")}**: {Text(item, "choice")}. {Text(item, "reason")}"));
         return Lf(text);
+    }
+
+    // "escolha. motivo" abre a linha: ArchitectureDocuments lê a escolha até o primeiro ponto seguido de espaço.
+    private static string StackLine(JsonObject item)
+    {
+        var line = new StringBuilder($"**{Text(item, "area")}**: {Text(item, "choice")}. {Text(item, "reason")}");
+        if (Text(item, "question") is { Length: > 0 } question)
+            line.Append($" Critério: pergunta {question} do catálogo, opção {Text(item, "option")}, fatores {string.Join(", ", Strings(item, "factors"))}.");
+        if (Strings(item, "requirements") is { Count: > 0 } requirements)
+            line.Append($" Atende a {string.Join(", ", requirements)}.");
+        var alternatives = Objects(item, "alternatives").Select(alternative => $"{Text(alternative, "choice")} ({Text(alternative, "whyNot")})").ToList();
+        if (alternatives.Count > 0) line.Append($" Descartado: {string.Join("; ", alternatives)}.");
+        if (Text(item, "tradeoffs") is { Length: > 0 } tradeoffs) line.Append($" Trade-off: {tradeoffs}");
+        if (Text(item, "exception") is { Length: > 0 } exception) line.Append($" Exceção: {exception}");
+        return line.ToString();
     }
 
     private static string Backlog(JsonObject backlog)
