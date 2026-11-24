@@ -55,7 +55,7 @@
     {
       "id": "host-inicia-o-motor",
       "query": "Como o host Tauri inicia o motor e lê o stdout dele?",
-      "expect": ["desktop/host/src-tauri/src/engine.rs"]
+      "expect": ["desktop/host/src-tauri/src/engine/process.rs", "desktop/host/src-tauri/src/engine/mod.rs"]
     },
     {
       "id": "modelo-por-finalidade",

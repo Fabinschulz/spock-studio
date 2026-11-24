@@ -25,6 +25,7 @@ use tauri::AppHandle;
 use crate::diagnostic_log::{record, Source};
 use crate::lock;
 use crate::protocol::{error_code, HostError};
+use crate::writer::{Output, Writer};
 
 pub const MAX_SESSIONS: usize = 4;
 pub const MAX_WRITE_BYTES: usize = 64 * 1024;
@@ -87,9 +88,19 @@ pub fn clamp_size(cols: u16, rows: u16) -> PtySize {
 struct Session {
     /// Vira `None` quando o shell sai: fechar o pty é o que destrava a leitura no Windows (ConPTY).
     master: Mutex<Option<Box<dyn MasterPty + Send>>>,
-    writer: Mutex<Box<dyn Write + Send>>,
+    /// Um shell que não lê a entrada prenderia quem escreve; com a escrita numa thread da sessão, nem a tela nem o
+    /// encerramento (que responde ao cursor) esperam por ele.
+    writer: Writer,
     child: Mutex<Box<dyn Child + Send + Sync>>,
     pid: Option<u32>,
+}
+
+struct PtyInput(Box<dyn Write + Send>);
+
+impl Output for PtyInput {
+    fn write(&mut self, data: &[u8]) -> bool {
+        self.0.write_all(data).and_then(|()| self.0.flush()).is_ok()
+    }
 }
 
 #[derive(Clone, Default)]
@@ -146,7 +157,7 @@ impl Terminals {
         let session = Arc::new(Session {
             pid: child.process_id(),
             master: Mutex::new(Some(pair.master)),
-            writer: Mutex::new(writer),
+            writer: Writer::spawn(PtyInput(writer)),
             child: Mutex::new(child),
         });
         lock(&self.sessions).insert(session_id.clone(), Arc::clone(&session));
@@ -213,11 +224,11 @@ impl Terminals {
             ));
         }
         let session = self.session(session_id)?;
-        let mut writer = lock(&session.writer);
-        writer
-            .write_all(data.as_bytes())
-            .and_then(|()| writer.flush())
-            .map_err(|_| failed("Não foi possível escrever no terminal."))
+        if session.writer.send(data.as_bytes().to_vec()) {
+            Ok(())
+        } else {
+            Err(failed("Não foi possível escrever no terminal."))
+        }
     }
 
     pub fn resize(&self, session_id: &str, cols: u16, rows: u16) -> Result<(), HostError> {
@@ -276,8 +287,7 @@ fn read_output(mut reader: Box<dyn Read + Send>, sink: Arc<dyn TerminalSink>) ->
 /// chega a programa nenhum.
 fn release_console(session: &Session) {
     if cfg!(windows) {
-        let mut writer = lock(&session.writer);
-        let _ = writer.write_all(CURSOR_REPLY).and_then(|()| writer.flush());
+        session.writer.send(CURSOR_REPLY.to_vec());
     }
 }
 

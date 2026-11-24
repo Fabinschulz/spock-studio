@@ -3,7 +3,7 @@ using Mariliz.Application.Protocol;
 namespace Mariliz.Application.Iac;
 
 // Os prazos de cada etapa da ferramenta e o total de cada operação. As etapas somadas passavam da espera do host
-// (engine.rs): um apply com verificação chegava a ~103 min contra 90, e a tela mostrava ENGINE_TIMEOUT enquanto a nuvem
+// (engine/timeouts.rs): um apply com verificação chegava a ~103 min contra 90, e a tela mostrava ENGINE_TIMEOUT enquanto a nuvem
 // continuava mudando (NET-S08). O total vale para a operação inteira, e cada etapa ganha o próprio prazo ou o que sobrou.
 public static class IacTimeouts
 {

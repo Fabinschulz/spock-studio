@@ -5,6 +5,7 @@ mod recents;
 mod resources;
 mod status;
 mod terminal;
+mod writer;
 
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
@@ -188,7 +189,9 @@ fn terminal_open(
     terminals.open(&dir, cols, rows, ChannelSink::new(on_event, app))
 }
 
-#[tauri::command]
+// Os três abaixo são `async` (RS-14): síncronos, rodavam na thread principal, e o `taskkill` do fechar ou um PTY que não
+// lê congelavam a janela.
+#[tauri::command(async)]
 fn terminal_write(
     session_id: String,
     data: String,
@@ -197,7 +200,7 @@ fn terminal_write(
     terminals.write(&session_id, &data)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn terminal_resize(
     session_id: String,
     cols: u16,
@@ -207,7 +210,7 @@ fn terminal_resize(
     terminals.resize(&session_id, cols, rows)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn terminal_close(session_id: String, terminals: State<'_, Terminals>) -> Result<(), HostError> {
     terminals.close(&session_id)
 }

@@ -30,7 +30,7 @@ public class PackagedEngineE2ETests
                 CreateNoWindow = true,
                 StandardOutputEncoding = Encoding.UTF8
             };
-            // O que o host faz em engine.rs: aponta o motor para o interpretador e a inteligência empacotados.
+            // O que o host faz em engine/process.rs: aponta o motor para o interpretador e a inteligência empacotados.
             psi.Environment["MARILIZ_AI"] = Path.Combine(resources, "intelligence", "server.py");
             psi.Environment["MARILIZ_PYTHON"] = python;
             psi.Environment["MARILIZ_DATA_DIR"] = dataDir;
