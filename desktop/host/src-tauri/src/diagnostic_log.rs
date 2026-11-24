@@ -2,11 +2,10 @@
 //! antes de guardar: a UI nunca recebe o caminho completo de um projeto, e uma linha de log não é exceção.
 
 use std::collections::VecDeque;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::Serialize;
-use tauri::{AppHandle, Manager};
 
 use crate::lock;
 use crate::terminal::is_secret_variable;
@@ -41,12 +40,12 @@ pub struct LogEntry {
 }
 
 #[derive(Default)]
-pub struct DiagnosticLog {
+struct DiagnosticLog {
     entries: Mutex<VecDeque<LogEntry>>,
 }
 
 impl DiagnosticLog {
-    pub fn push(&self, source: Source, message: &str) {
+    fn push(&self, source: Source, message: &str) {
         let mut entries = lock(&self.entries);
         if entries.len() == CAPACITY {
             entries.pop_front();
@@ -58,15 +57,33 @@ impl DiagnosticLog {
         });
     }
 
-    pub fn snapshot(&self) -> Vec<LogEntry> {
+    fn snapshot(&self) -> Vec<LogEntry> {
         lock(&self.entries).iter().cloned().collect()
     }
 }
 
-/// Escreve no stderr, como o host sempre fez, e guarda a linha redigida para a tela.
-pub fn record(app: &AppHandle, source: Source, message: &str) {
-    eprintln!("[{}] {message}", source.label());
-    app.state::<DiagnosticLog>().push(source, message);
+/// O único canal de log do host: escreve no stderr e guarda a linha redigida para a tela. Quem registra recebe um clone
+/// na criação, e o teste lê o que foi registrado sem subir o Tauri.
+#[derive(Clone, Default)]
+pub struct Diagnostics(Arc<DiagnosticLog>);
+
+impl Diagnostics {
+    pub fn host(&self, message: &str) {
+        self.record(Source::Host, message);
+    }
+
+    pub fn motor(&self, message: &str) {
+        self.record(Source::Motor, message);
+    }
+
+    fn record(&self, source: Source, message: &str) {
+        eprintln!("[{}] {message}", source.label());
+        self.0.push(source, message);
+    }
+
+    pub fn snapshot(&self) -> Vec<LogEntry> {
+        self.0.snapshot()
+    }
 }
 
 fn now_ms() -> u64 {
@@ -199,6 +216,27 @@ mod tests {
         assert_eq!(
             redact(&"palavra ".repeat(200)).chars().count(),
             MAX_MESSAGE_CHARS
+        );
+    }
+
+    #[test]
+    fn os_clones_escrevem_no_mesmo_registro_e_a_linha_chega_redigida() {
+        let diagnostics = Diagnostics::default();
+        let engine = diagnostics.clone();
+
+        engine.motor("subiu");
+        diagnostics.host(r"falhou em C:\Users\ana\loja");
+
+        let entries = diagnostics.snapshot();
+        assert_eq!(
+            entries
+                .iter()
+                .map(|entry| (entry.source, entry.message.as_str()))
+                .collect::<Vec<_>>(),
+            [
+                (Source::Motor, "subiu"),
+                (Source::Host, "falhou em [caminho]")
+            ]
         );
     }
 

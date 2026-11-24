@@ -84,9 +84,9 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
 | RS-10 | `engine.rs:26-59`, `protocol.rs:14-124` | Conhecimento do motor no host (prazos e lista de métodos) | OCP | P2 | Toda função nova do motor muda o Rust; prazo errado cai em 120 s sem aviso | O motor anuncia o prazo dos métodos longos no `engine.hello`; teste .NET que lê `protocol.rs` | **Feito** (onda 2d) |
 | RS-14 | `lib.rs:191-213`, `terminal/mod.rs` | Comandos síncronos com I/O bloqueante na thread principal | Responsividade | P2 | A UI congela durante o `taskkill` ou num PTY que não lê | `#[tauri::command(async)]`/`spawn_blocking`; escritor por sessão | **Feito** (onda 2b) |
 | RS-17 | `resources.rs`, `engine.rs:166`, `launcher` | Layout do runtime conhecido em três lugares | DRY | P2 | No `.deb` do Linux o `spock` provavelmente roda sem o runtime de IA (não verificado em Linux) | O .NET passa a ser o único dono do layout | Onda 3 (empacotamento) |
-| RS-18 | `terminal/mod.rs:111-150` | TOCTOU no limite de sessões; shell vaza se a abertura falha | Correção | P3 | Mais de quatro terminais em aberturas concorrentes | Pegar leitor e escritor antes de criar o processo; reservar a vaga atomicamente | Onda 3 |
-| RS-19 | `lib.rs` | Comandos de quatro áreas e utilitários num arquivo; busca de recente duplicada | SRP | P3 | Ruído | `commands/{engine,projects,terminal,about}.rs`; `Recents::existing_dir` | Onda 3 |
-| RS-20 | `recents.rs:178` (`eprintln!`) e outros | Três canais de log | Consistência | P3 | Falha ao salvar recentes não passa pela redação | Um `Diagnostics` injetável | Onda 3 |
+| RS-18 | `terminal/mod.rs:111-150` | TOCTOU no limite de sessões; shell vaza se a abertura falha | Correção | P3 | Mais de quatro terminais em aberturas concorrentes | Pegar leitor e escritor antes de criar o processo; reservar a vaga atomicamente | **Feito** (onda 3b) |
+| RS-19 | `lib.rs` | Comandos de quatro áreas e utilitários num arquivo; busca de recente duplicada | SRP | P3 | Ruído | `commands/{engine,projects,terminal,about}.rs`; `Recents::existing_dir` | **Feito** (onda 3b) |
+| RS-20 | `recents.rs:178` (`eprintln!`) e outros | Três canais de log | Consistência | P3 | Falha ao salvar recentes não passa pela redação | Um `Diagnostics` injetável | **Feito** (onda 3b) |
 
 ### 3.3 UI React/TypeScript (UI)
 
@@ -133,7 +133,8 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
   - abertos: RS-17 (espera a validação no `.deb`), UI-19 e UI-20.
 - **P3:**
   - corrigidos na onda 3a: NET-S10, NET-S11, NET-S12, NET-S13, NET-S14 e NET-S16;
-  - abertos: RS-18, RS-19, RS-20, UI-27 a UI-31 e UI-33;
+  - corrigidos na onda 3b: RS-18, RS-19 e RS-20;
+  - abertos: UI-27 a UI-31 e UI-33;
   - a monitorar: NET-S15;
   - decisão do dono: NET-S09.
 
@@ -150,7 +151,7 @@ Uma onda por PR, sem empilhar PR. Cada onda começa por testes de caracterizaç�
 | 2d | contratos motor ⇄ UI ⇄ host | RS-10, UI-25, UI-26, UI-24 | campos tipados no lugar de texto; prazos no `engine.hello` | decisões em §6 | fixtures novas, `contracts.test.ts`, teste .NET que lê `protocol.rs` |
 | 2e | `shared/hooks`, `infrastructure` | UI-21, UI-22, UI-23, UI-18 | hooks para `shared`, uma busca por página | — | testes diretos de `useAction`/`useReloadable` (hoje não há) |
 | 3a | motor .NET | NET-S02, NET-S06, NET-S10 a NET-S14, NET-S16 | ver §7f | ondas 2 | `AuditActionsTests`, `JsonReadTests` e as suítes de IaC, Harness, ideia e segurança |
-| 3b | host Rust | RS-18, RS-19, RS-20 | `commands/`, vaga de terminal reservada antes de abrir, `Diagnostics` injetável | — | teste de concorrência do limite de terminais |
+| 3b | host Rust | RS-18, RS-19, RS-20 | ver §7g | — | teste de concorrência do limite de terminais, falha ao gravar recentes no diagnóstico |
 | 3c | `infrastructure` (UI) e motor | UI-20, depois UI-19 | `iac.generate.options` no motor; `useGenerateFlow` e `PROVIDER_FIELDS` | — | caracterização do `GeneratePanel` antes de mexer |
 | 3d | UI | UI-27 a UI-31, UI-33 | `role="alert"`, `Disclosure`, rota de layout com `lazy` | — | testes de componente e o tamanho do chunk inicial |
 | depois | empacotamento | RS-17 | o .NET dono do layout do runtime | validação real num `.deb` (§6) | instalação no Linux |
@@ -279,6 +280,19 @@ Uma onda por PR, sem empilhar PR. Cada onda começa por testes de caracterizaç�
 - .NET: 1901 testes aprovados, 0 falhas, 28 ignorados; mais 12 de integração.
 - Só o motor mudou: host, UI e contratos ficaram como estavam, e nenhuma fixture foi regenerada.
 - Não validado: a trilha de auditoria e a geração de IaC no app Tauri com um motor real; ficaram nos testes.
+
+## 7g. Onda 3b executada
+
+| Item | Antes | Depois | Testes |
+|---|---|---|---|
+| RS-18 | O limite de terminais era conferido antes de abrir e a sessão só entrava no mapa depois de o shell subir: duas aberturas ao mesmo tempo passavam as duas. O shell era criado antes de pegar leitor e escritor do pty, e uma falha nesses dois deixava o processo rodando sem dono | `Registry` junta as sessões e as vagas reservadas sob o mesmo lock; `reserve()` devolve uma `Slot` que ocupa a vaga enquanto o shell sobe e a devolve se a abertura falhar no meio. Leitor e escritor são pegos antes de criar o shell | `aberturas_ao_mesmo_tempo_nao_passam_do_limite` (16 reservas soltas juntas por uma barreira, só 4 passam), `a_vaga_de_uma_abertura_que_falhou_volta_para_o_limite`; os testes com shell de verdade passam sem mudança |
+| RS-19 | `lib.rs` com os comandos do motor, dos projetos, do terminal e da tela Sobre, mais a montagem do app; `open_recent_project` e `terminal_open` procuravam o recente e conferiam a pasta cada um do seu jeito | `commands/{engine,projects,terminal,about}.rs`; o `lib.rs` só monta o app. `Recents::existing_dir` resolve o id e confere a pasta; cada comando passa a própria mensagem para o id fora da lista, e a pasta que sumiu tem uma mensagem só. O `open_recent_project` continua conferindo o disco fora da thread do comando | `a_pasta_do_recente_so_volta_se_estiver_na_lista_e_ainda_existir` |
+| RS-20 | Três canais: `record(app, ...)` buscava o registro no `AppHandle`, o terminal guardava um `AppHandle` só para isso, e a falha ao gravar os recentes ia para o stderr sem passar pela redação nem chegar à tela de Diagnóstico | `Diagnostics` (clone de um registro só) é criado no `run()` e entregue ao motor, aos recentes e ao terminal; escreve no stderr e guarda a linha redigida. Nenhum módulo busca o registro no `AppHandle` | `os_clones_escrevem_no_mesmo_registro_e_a_linha_chega_redigida`, `falha_ao_gravar_os_recentes_vai_para_o_diagnostico_redigida` |
+
+**Validação depois da onda 3b:**
+- Rust (host): fmt, clippy `-D warnings` e 66 testes limpos (eram 61), inclusive os do terminal com shell de verdade.
+- Só o host mudou: motor, UI e contratos ficaram como estavam; os nomes dos comandos que a UI chama são os mesmos.
+- Não validado: o app Tauri aberto (terminal, recentes e tela de Diagnóstico); ficaram nos testes do host.
 
 ## 8. Arquivos grandes julgados coesos
 

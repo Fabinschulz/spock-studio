@@ -15,7 +15,7 @@ use tauri::{AppHandle, Emitter};
 use tauri_plugin_shell::process::CommandEvent;
 use tokio::sync::watch;
 
-use crate::diagnostic_log::{record, Source};
+use crate::diagnostic_log::Diagnostics;
 use crate::lock;
 use crate::protocol::{
     encode_request, error_code, method, parse_engine_line, EngineMessage, HostError,
@@ -40,24 +40,24 @@ struct Inner {
     deadlines: Mutex<timeouts::Deadlines>,
     lifecycle: watch::Sender<Lifecycle>,
     restarts: AtomicU64,
+    diagnostics: Diagnostics,
 }
 
-impl Default for Inner {
-    fn default() -> Self {
-        Self {
+#[derive(Clone)]
+pub struct Engine(Arc<Inner>);
+
+impl Engine {
+    pub fn new(diagnostics: Diagnostics) -> Self {
+        Self(Arc::new(Inner {
             process: Mutex::default(),
             rpc: Rpc::default(),
             deadlines: Mutex::default(),
             lifecycle: watch::Sender::new(Lifecycle::Starting),
             restarts: AtomicU64::new(0),
-        }
+            diagnostics,
+        }))
     }
-}
 
-#[derive(Clone, Default)]
-pub struct Engine(Arc<Inner>);
-
-impl Engine {
     pub fn status(&self) -> Status {
         self.0.lifecycle.borrow().status()
     }
@@ -111,11 +111,10 @@ impl Engine {
             let Err(error) = engine.start_and_handshake(&app).await else {
                 return;
             };
-            record(
-                &app,
-                Source::Host,
-                &format!("motor indisponível: {} ({})", error.message, error.code),
-            );
+            engine.0.diagnostics.host(&format!(
+                "motor indisponível: {} ({})",
+                error.message, error.code
+            ));
             let (next, restart) = lifecycle::on_handshake_error(&error.code, &engine.0.restarts);
             if !engine.set_if_starting(&app, next) {
                 return;
@@ -162,11 +161,9 @@ impl Engine {
                 since: Instant::now(),
             },
         ) {
-            record(
-                app,
-                Source::Host,
-                &format!("motor pronto (protocolo {PROTOCOL_VERSION}, versão {version})"),
-            );
+            self.0.diagnostics.host(&format!(
+                "motor pronto (protocolo {PROTOCOL_VERSION}, versão {version})"
+            ));
         }
         Ok(())
     }
@@ -183,18 +180,14 @@ impl Engine {
             while let Some(event) = events.recv().await {
                 match event {
                     CommandEvent::Stdout(line) => engine.on_stdout(&app, &line),
-                    CommandEvent::Stderr(line) => {
-                        record(
-                            &app,
-                            Source::Motor,
-                            String::from_utf8_lossy(&line).trim_end(),
-                        );
-                    }
-                    CommandEvent::Error(error) => record(
-                        &app,
-                        Source::Host,
-                        &format!("erro no processo do motor: {error}"),
-                    ),
+                    CommandEvent::Stderr(line) => engine
+                        .0
+                        .diagnostics
+                        .motor(String::from_utf8_lossy(&line).trim_end()),
+                    CommandEvent::Error(error) => engine
+                        .0
+                        .diagnostics
+                        .host(&format!("erro no processo do motor: {error}")),
                     CommandEvent::Terminated(payload) => {
                         engine.on_terminated(&app, pid, payload.code);
                         break;
@@ -211,7 +204,10 @@ impl Engine {
             Some(EngineMessage::Event(value)) => {
                 let _ = app.emit("engine_event", value);
             }
-            None => record(app, Source::Host, "linha descartada do stdout do motor"),
+            None => self
+                .0
+                .diagnostics
+                .host("linha descartada do stdout do motor"),
         }
     }
 
@@ -233,11 +229,9 @@ impl Engine {
             self.0.lifecycle.send_replace(next);
             return;
         }
-        record(
-            app,
-            Source::Host,
-            &format!("o motor encerrou (código {code:?})"),
-        );
+        self.0
+            .diagnostics
+            .host(&format!("o motor encerrou (código {code:?})"));
         self.set(app, next);
         if restart {
             self.boot(app.clone());
@@ -288,7 +282,7 @@ mod tests {
 
     #[test]
     fn autorizar_espera_o_motor_subir_e_nao_espera_alem_do_prazo() {
-        let engine = Engine::default();
+        let engine = Engine::new(Diagnostics::default());
         let started = Instant::now();
         tauri::async_runtime::block_on(engine.wait_until_started(Duration::from_millis(300)));
         assert!(started.elapsed() >= Duration::from_millis(300));
@@ -315,7 +309,7 @@ mod tests {
 
     #[test]
     fn sem_processo_o_pedido_falha_na_hora_e_o_encerramento_nao_espera() {
-        let engine = Engine::default();
+        let engine = Engine::new(Diagnostics::default());
 
         let error =
             tauri::async_runtime::block_on(engine.request("run.snapshot", json!({}))).unwrap_err();

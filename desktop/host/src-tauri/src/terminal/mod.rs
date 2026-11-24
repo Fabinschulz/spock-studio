@@ -20,9 +20,8 @@ use std::time::Duration;
 use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
 use serde::Serialize;
 use tauri::ipc::Channel;
-use tauri::AppHandle;
 
-use crate::diagnostic_log::{record, Source};
+use crate::diagnostic_log::Diagnostics;
 use crate::lock;
 use crate::protocol::{error_code, HostError};
 use crate::writer::{Output, Writer};
@@ -50,12 +49,15 @@ pub trait TerminalSink: Send + Sync + 'static {
 /// O canal do comando do Tauri para a tela e o registro de diagnóstico do host.
 pub struct ChannelSink {
     channel: Channel<TerminalEvent>,
-    app: AppHandle,
+    diagnostics: Diagnostics,
 }
 
 impl ChannelSink {
-    pub fn new(channel: Channel<TerminalEvent>, app: AppHandle) -> Arc<Self> {
-        Arc::new(Self { channel, app })
+    pub fn new(channel: Channel<TerminalEvent>, diagnostics: Diagnostics) -> Arc<Self> {
+        Arc::new(Self {
+            channel,
+            diagnostics,
+        })
     }
 }
 
@@ -65,7 +67,7 @@ impl TerminalSink for ChannelSink {
     }
 
     fn note(&self, message: &str) {
-        record(&self.app, Source::Host, message);
+        self.diagnostics.host(message);
     }
 }
 
@@ -103,9 +105,40 @@ impl Output for PtyInput {
     }
 }
 
+/// As vagas reservadas contam no limite junto com as sessões abertas: duas aberturas ao mesmo tempo não passam as
+/// duas pela conferência antes de qualquer uma entrar no mapa.
+#[derive(Default)]
+struct Registry {
+    sessions: HashMap<String, Arc<Session>>,
+    reserved: usize,
+}
+
+/// Uma vaga do limite presa enquanto o shell sobe. Se a abertura falha no meio, soltar a vaga a devolve.
+struct Slot<'a> {
+    registry: &'a Mutex<Registry>,
+    filled: bool,
+}
+
+impl Slot<'_> {
+    fn fill(mut self, session_id: String, session: Arc<Session>) {
+        let mut registry = lock(self.registry);
+        registry.reserved -= 1;
+        registry.sessions.insert(session_id, session);
+        self.filled = true;
+    }
+}
+
+impl Drop for Slot<'_> {
+    fn drop(&mut self) {
+        if !self.filled {
+            lock(self.registry).reserved -= 1;
+        }
+    }
+}
+
 #[derive(Clone, Default)]
 pub struct Terminals {
-    sessions: Arc<Mutex<HashMap<String, Arc<Session>>>>,
+    registry: Arc<Mutex<Registry>>,
     next_id: Arc<AtomicU64>,
 }
 
@@ -121,17 +154,21 @@ impl Terminals {
         rows: u16,
         sink: Arc<dyn TerminalSink>,
     ) -> Result<TerminalOpened, HostError> {
-        if lock(&self.sessions).len() >= MAX_SESSIONS {
-            return Err(HostError::new(
-                error_code::TERMINAL_LIMIT,
-                "Já há 4 terminais abertos. Feche um para abrir outro.",
-            ));
-        }
+        let slot = self.reserve()?;
 
         let shell = shell::default_shell();
         let pair = native_pty_system()
             .openpty(clamp_size(cols, rows))
             .map_err(|_| failed("Não foi possível criar o terminal."))?;
+        // Leitor e escritor antes do shell: depois dele, uma falha aqui deixaria o processo rodando sem dono.
+        let reader = pair
+            .master
+            .try_clone_reader()
+            .map_err(|_| failed("Não foi possível ler o terminal."))?;
+        let writer = pair
+            .master
+            .take_writer()
+            .map_err(|_| failed("Não foi possível escrever no terminal."))?;
         let mut command = CommandBuilder::new(&shell.program);
         command.args(&shell.args);
         command.cwd(project_dir);
@@ -144,14 +181,6 @@ impl Terminals {
             .spawn_command(command)
             .map_err(|_| failed("Não foi possível iniciar o shell do terminal."))?;
         drop(pair.slave);
-        let reader = pair
-            .master
-            .try_clone_reader()
-            .map_err(|_| failed("Não foi possível ler o terminal."))?;
-        let writer = pair
-            .master
-            .take_writer()
-            .map_err(|_| failed("Não foi possível escrever no terminal."))?;
 
         let session_id = format!("t-{}", self.next_id.fetch_add(1, Ordering::Relaxed) + 1);
         let session = Arc::new(Session {
@@ -160,7 +189,7 @@ impl Terminals {
             writer: Writer::spawn(PtyInput(writer)),
             child: Mutex::new(child),
         });
-        lock(&self.sessions).insert(session_id.clone(), Arc::clone(&session));
+        slot.fill(session_id.clone(), Arc::clone(&session));
         sink.note(&format!("Terminal {session_id} aberto ({}).", shell.label));
 
         let reading = read_output(reader, Arc::clone(&sink));
@@ -169,6 +198,21 @@ impl Terminals {
         Ok(TerminalOpened {
             session_id,
             shell: shell.label,
+        })
+    }
+
+    fn reserve(&self) -> Result<Slot<'_>, HostError> {
+        let mut registry = lock(&self.registry);
+        if registry.sessions.len() + registry.reserved >= MAX_SESSIONS {
+            return Err(HostError::new(
+                error_code::TERMINAL_LIMIT,
+                "Já há 4 terminais abertos. Feche um para abrir outro.",
+            ));
+        }
+        registry.reserved += 1;
+        Ok(Slot {
+            registry: &self.registry,
+            filled: false,
         })
     }
 
@@ -182,7 +226,7 @@ impl Terminals {
         reading: Receiver<()>,
         sink: Arc<dyn TerminalSink>,
     ) {
-        let sessions = Arc::clone(&self.sessions);
+        let registry = Arc::clone(&self.registry);
         std::thread::spawn(move || {
             let code = loop {
                 match lock(&session.child).try_wait() {
@@ -196,7 +240,7 @@ impl Terminals {
             let master = lock(&session.master).take();
             std::thread::spawn(move || drop(master));
             let _ = reading.recv_timeout(LAST_OUTPUT_GRACE);
-            lock(&sessions).remove(&session_id);
+            lock(&registry).sessions.remove(&session_id);
             sink.event(TerminalEvent::Exit { code });
             let exit =
                 code.map_or_else(|| "sem código".to_string(), |code| format!("código {code}"));
@@ -205,7 +249,8 @@ impl Terminals {
     }
 
     fn session(&self, session_id: &str) -> Result<Arc<Session>, HostError> {
-        lock(&self.sessions)
+        lock(&self.registry)
+            .sessions
             .get(session_id)
             .cloned()
             .ok_or_else(|| {
@@ -254,7 +299,7 @@ impl Terminals {
     }
 
     pub fn close_all(&self) {
-        let open: Vec<Arc<Session>> = lock(&self.sessions).values().cloned().collect();
+        let open: Vec<Arc<Session>> = lock(&self.registry).sessions.values().cloned().collect();
         for session in open {
             kill_tree(&session);
         }
@@ -417,13 +462,54 @@ mod tests {
             "a sessão não terminou"
         );
         assert!(
-            lock(&terminals.sessions).is_empty(),
+            lock(&terminals.registry).sessions.is_empty(),
             "a vaga continuou ocupada"
         );
         assert!(lock(&sink.notes)
             .iter()
             .any(|note| note.contains("encerrado")));
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn aberturas_ao_mesmo_tempo_nao_passam_do_limite() {
+        let terminals = Terminals::default();
+        let attempts = MAX_SESSIONS * 4;
+        let start = std::sync::Barrier::new(attempts);
+
+        let (granted, refused) = std::thread::scope(|scope| {
+            let running: Vec<_> = (0..attempts)
+                .map(|_| {
+                    scope.spawn(|| {
+                        start.wait();
+                        terminals.reserve().ok()
+                    })
+                })
+                .collect();
+            let slots: Vec<_> = running
+                .into_iter()
+                .filter_map(|attempt| attempt.join().unwrap())
+                .collect();
+            let refused = terminals.reserve().err().map(|error| error.code);
+            (slots.len(), refused)
+        });
+
+        assert_eq!(granted, MAX_SESSIONS);
+        assert_eq!(refused.as_deref(), Some(error_code::TERMINAL_LIMIT));
+        assert_eq!(lock(&terminals.registry).reserved, 0);
+    }
+
+    #[test]
+    fn a_vaga_de_uma_abertura_que_falhou_volta_para_o_limite() {
+        let terminals = Terminals::default();
+        let held: Vec<_> = (0..MAX_SESSIONS)
+            .map(|_| terminals.reserve().unwrap())
+            .collect();
+        assert!(terminals.reserve().is_err());
+
+        drop(held);
+
+        assert!(terminals.reserve().is_ok());
     }
 
     #[test]
