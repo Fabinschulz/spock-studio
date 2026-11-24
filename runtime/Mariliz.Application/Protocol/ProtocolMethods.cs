@@ -61,6 +61,8 @@ public static class ProtocolMethods
     public const string ManagementPortfolioEvidence = "management.portfolioevidence";
     public const string ManagementPortfolioAsk = "management.portfolioask";
     public const string DecisionRecord = "decision.record";
+    public const string ModernizationPlan = "modernization.plan";
+    public const string ModernizationDecide = "modernization.decide";
     public const string DecisionList = "decision.list";
     public const string DecisionGet = "decision.get";
     public const string EngineeringProfile = "engineering.profile";
@@ -162,6 +164,8 @@ public static class ProtocolMethods
     };
 
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
+
+    public static readonly IReadOnlyList<string> Modernization = [ModernizationPlan, ModernizationDecide];
 
     public static readonly IReadOnlyList<string> Timeline = [TimelineRead];
 

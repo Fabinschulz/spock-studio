@@ -9,6 +9,7 @@ import {
   profileResultSchema,
   projectArchitectureSchema,
   projectKnowledgeSchema,
+  projectModernizationSchema,
   runsSchema,
   type AgentPolicy,
   type Discovery,
@@ -18,6 +19,7 @@ import {
   type McpInventory,
   type ProjectArchitecture,
   type ProjectKnowledge,
+  type ProjectModernization,
   type RunSummary,
   type ProfileResult
 } from '@/shared/schema';
@@ -52,6 +54,27 @@ export async function readArchitecture(client: EngineClient, projectId: string):
   return architecture;
 }
 
+/** O plano que o agente gravou, conferido contra a avaliação atual, com a decisão da pessoa em cada passo. */
+export async function readModernization(client: EngineClient, projectId: string): Promise<ProjectModernization> {
+  const { modernization } = await client.request('modernization.plan', { projectId }, projectModernizationSchema);
+  return modernization;
+}
+
+/** Registra a decisão na memória de decisões do projeto; vale só para o texto atual do passo. */
+export async function decideModernizationStep(
+  client: EngineClient,
+  projectId: string,
+  stepId: string,
+  decision: 'approved' | 'rejected',
+  rationale: string
+): Promise<ProjectModernization> {
+  const { modernization } = await client.request(
+    'modernization.decide',
+    { projectId, stepId, decision, rationale: rationale.trim() || null },
+    projectModernizationSchema
+  );
+  return modernization;
+}
 export function readHarness(client: EngineClient, projectId: string): Promise<HarnessStatus> {
   return client.request('engineering.harness', { projectId }, harnessStatusSchema);
 }

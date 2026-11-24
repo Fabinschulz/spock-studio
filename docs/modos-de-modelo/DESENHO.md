@@ -160,7 +160,7 @@ Uma por PR, a partir do master, sem empilhar.
 | MM-2 | Padrão preparar e conferir no MCP, com o desenho de IaC como primeiro caso (`iac_architecture_prepare`) | - | Um agente monta e aprova um desenho só com as ferramentas, sem modelo no motor; teste MCP determinístico |
 | MM-3 | Provedor `claude-code` pelo CLI: transporte, conexão, teste, tetos próprios e tela | MM-1 | Assistente, desenho de IaC e fluxo de engenharia rodam pelo CLI; contrato da saída JSON testado |
 | MM-4 | Validação real do CLI: `live-validation.py` com um grupo novo que só roda com `MARILIZ_LIVE_CLAUDE_CLI=1`, rodado pela pessoa | MM-3 | Relatório com tokens (inclusive cache), tempo e falhas |
-| MM-5 | Onda 4 nos dois caminhos: W4-1 primeiro no modo Sessão (`architecture_assessment_prepare`/`check`), depois no motor | MM-2; W2-4 só para o caminho com chave | Avaliação cita arquivos e `REF-*` que existem, nos dois modos. **Modo Sessão do W4-1 feito** (`spock_architecture_assessment_prepare`/`check`, tela Arquitetura); o motor, com juiz, espera o W2-4 |
+| MM-5 | Onda 4 nos dois caminhos: W4-1 primeiro no modo Sessão (`architecture_assessment_prepare`/`check`), depois no motor | MM-2; W2-4 só para o caminho com chave | Avaliação cita arquivos e `REF-*` que existem, nos dois modos. **Modo Sessão do W4-1 feito** (`spock_architecture_assessment_prepare`/`check`, tela Arquitetura); **modo Sessão do W4-2 feito** (`spock_modernization_plan_prepare`/`check`, aprovação por passo na tela Arquitetura); o motor, com juiz, espera o W2-4 |
 
 Com isso, o W2-4 deixa de travar o produto: ele valida o modo Chave, e MM-2 e MM-5 andam sem chave.
 

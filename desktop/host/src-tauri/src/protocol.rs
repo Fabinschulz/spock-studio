@@ -65,6 +65,8 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "decision.record",
     "decision.list",
     "decision.get",
+    "modernization.plan",
+    "modernization.decide",
     "engineering.profile",
     "engineering.analyze",
     "engineering.knowledge",

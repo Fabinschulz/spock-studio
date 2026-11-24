@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.AiTools;
+using Mariliz.Application.Analysis;
 using Mariliz.Application.Audit;
 using Mariliz.Application.Cloud;
 using Mariliz.Application.Iac;
@@ -55,6 +56,7 @@ public sealed class EngineSession
         HarnessRevisionService? revisions = null,
         McpInventoryService? mcp = null,
         DecisionService? decisions = null,
+        ModernizationService? modernization = null,
         ReportService? reports = null,
         ProjectTimelineService? timeline = null,
         ProjectAuditService? audit = null,
@@ -91,6 +93,7 @@ public sealed class EngineSession
             _integrations,
             management is null ? null : new ManagementRequestHandler(management, assistant, reports, investigation, portfolioAssistant),
             decisions is null ? null : new DecisionRequestHandler(decisions),
+            modernization is null ? null : new ModernizationRequestHandler(modernization),
             timeline is null ? null : new TimelineRequestHandler(timeline),
             audit is null ? null : new AuditRequestHandler(audit),
             aiTools is null ? null : new AiToolRequestHandler(aiTools),

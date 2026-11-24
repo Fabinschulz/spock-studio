@@ -94,6 +94,7 @@
       ],
       "divergences": [
         {
+          "id": "D1",
           "title": "Aplicação referencia a infraestrutura",
           "classification": "risk",
           "description": "Svc.Application conhece detalhes de infraestrutura; trocar o banco obriga a mexer nos casos de uso.",

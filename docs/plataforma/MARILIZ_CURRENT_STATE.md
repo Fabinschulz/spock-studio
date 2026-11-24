@@ -62,6 +62,7 @@ quatro só do host são `engine.hello`, `engine.shutdown`, `workspace.authorize`
 | Integrações | `integration.catalog`, `connection.{list,create,test,rotate,disconnect,remove,reach}`, `integration.{list,link,configure,unlink,sync,history}` | Conexões, alcance de cada conexão, vínculo com projeto, recorte, política, sincronização. |
 | Gestão | `management.{portfolio,metrics,forecast,risks,riskhistory,milestones,report,evidence,ask,investigate,portfolioevidence,portfolioask}` | Portfólio, indicadores, previsão, riscos e histórico, marcos, relatório, assistente do projeto e do portfólio, investigação. |
 | Decisões | `decision.{record,list,get}` | Decisões gerenciais com o retrato dos fatos. |
+| Modernização | `modernization.{plan,decide}` | Plano do agente da sessão conferido contra a avaliação de arquitetura; aprovação ou recusa por passo, registrada nas decisões do projeto. |
 | Engenharia | `engineering.{profile,analyze,knowledge,harness,revisions,catalog,mcp,policy}` | Perfil, conhecimento, estado e revisões do Harness, catálogo, inventário de MCP, política dos agentes. |
 | Linha do tempo e auditoria | `timeline.read`, `audit.read` | Projeção das fontes do projeto e trilha unificada. |
 | Contexto | `context.review` | O que entraria no contexto de um pedido, com contagem de tokens. |
