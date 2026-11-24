@@ -9,8 +9,9 @@ internal static class IacArchitectPrompts
 {
     public const int MaxTokens = 2500;
 
-    private static readonly string Task = $$$"""
-        Você é o arquiteto de nuvem do Spock Studio. Proponha a infraestrutura AWS mais simples que atende à necessidade,
+    // O mesmo desenho vale para o modelo do motor e para o agente da sessão (IacSessionGuide): um só lugar para as regras.
+    internal static readonly string AwsDesign = $$$"""
+        Proponha a infraestrutura AWS mais simples que atende à necessidade,
         usando só estes componentes: um serviço em contêiner (ECS Fargate atrás de um load balancer HTTPS), um banco RDS
         (postgres ou mysql) e filas SQS (cada uma com fila de mensagens mortas). Alarmes e tópico SNS entram sempre.
         Formato exato:
@@ -25,6 +26,8 @@ internal static class IacArchitectPrompts
         Use null no componente que a necessidade não pede. Multi-AZ e mais de uma tarefa só quando a necessidade fala em
         disponibilidade ou produção. publicIp true só se a necessidade disser que não há NAT na VPC.
         """;
+
+    private static readonly string Task = "Você é o arquiteto de nuvem do Spock Studio. " + AwsDesign;
 
     private const string Rules = """
         Escreva as notas em português do Brasil, com frases curtas.

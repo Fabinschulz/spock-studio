@@ -1,9 +1,10 @@
 import draftFixture from '@contracts/fixtures/iac/architect-draft.json';
+import proposalFixture from '@contracts/fixtures/iac/architect-proposal.json';
 import { describe, expect, it } from 'vitest';
 
-import { iacArchitectDraftSchema } from '@/shared/schema';
+import { iacArchitectDraftSchema, iacArchitectProposalSchema } from '@/shared/schema';
 
-import { EMPTY_FORM, fromBlueprint, splitList, toBlueprint, withProvider } from './blueprint';
+import { EMPTY_FORM, fromBlueprint, fromProposal, splitList, toBlueprint, withProvider } from './blueprint';
 
 describe('desenho da infraestrutura', () => {
   it('separa listas por vírgula, espaço ou quebra de linha', () => {
@@ -71,5 +72,22 @@ describe('desenho da infraestrutura', () => {
     expect(back.service).toEqual(proposed.service);
     expect(back.database).toEqual(proposed.database);
     expect(back.queues).toEqual(proposed.queues);
+  });
+
+  it('o desenho do agente da sessão troca a nuvem e traz os fatos, sem apagar o que a pessoa já digitou', () => {
+    const proposed = iacArchitectProposalSchema.parse(proposalFixture).proposal!.blueprint!;
+
+    const form = fromProposal(proposed, { ...EMPTY_FORM, account: 'subscription-que-a-pessoa-digitou' });
+    const back = toBlueprint(form);
+
+    expect(form.provider).toBe('azure');
+    expect(form.account).toBe('');
+    expect(back.network).toEqual(proposed.network);
+    expect(back.database).toEqual(proposed.database);
+    expect(back.backend).toEqual(proposed.backend);
+    expect(back.alarmEmail).toBe(proposed.alarmEmail);
+
+    const sameCloud = fromProposal(proposed, { ...withProvider(EMPTY_FORM, 'azure'), account: 'digitada' });
+    expect(sameCloud.account).toBe('digitada');
   });
 });

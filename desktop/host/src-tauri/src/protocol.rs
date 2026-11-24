@@ -114,6 +114,7 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "iac.bootstrap.plan",
     "iac.bootstrap.save",
     "iac.architect.draft",
+    "iac.architect.proposal",
     "iac.generate.plan",
     "iac.generate.save",
     "iac.drift",

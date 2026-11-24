@@ -50,7 +50,8 @@ internal static class McpEntry
         var iac = new IacMcpTools(workspaces, composition.IacRuntimes,
             authorizer => composition.IacOperations(composition.IacRuntimes(authorizer), authorizer, cloud: null),
             workingDirectory, options.Scope,
-            authorizer => composition.IacState(authorizer, cloud: null, new LocalProjectFilesFactory(), new FileRunStore(dataRoot), new RunTracker()));
+            authorizer => composition.IacState(authorizer, cloud: null, new LocalProjectFilesFactory(), new FileRunStore(dataRoot), new RunTracker()),
+            new LocalProjectFilesFactory());
         var tokenizers = new TiktokenTokenizers();
         var tools = new ProjectContextTools(
             workspaces,

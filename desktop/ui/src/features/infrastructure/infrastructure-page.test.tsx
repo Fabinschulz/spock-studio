@@ -1,6 +1,7 @@
 import connectionsFixture from '@contracts/fixtures/cloud/connections.json';
 import linksFixture from '@contracts/fixtures/cloud/links.json';
 import draftFixture from '@contracts/fixtures/iac/architect-draft.json';
+import proposalFixture from '@contracts/fixtures/iac/architect-proposal.json';
 import bootstrapFixture from '@contracts/fixtures/iac/bootstrap-plan.json';
 import costFixture from '@contracts/fixtures/iac/cost-estimate.json';
 import driftFixture from '@contracts/fixtures/iac/drift-operation.json';
@@ -69,6 +70,7 @@ function fakeEngine(initial: Record<string, unknown> = missing, overrides: Recor
         'iac.bootstrap.plan': bootstrapFixture,
         'iac.bootstrap.save': { runId: 'run-iac-1' },
         'iac.architect.draft': draftFixture,
+        'iac.architect.proposal': { proposal: null },
         'iac.generate.plan': generateFixture,
         'iac.generate.save': { runId: 'run-iac-2' },
         'iac.drift': driftFixture,
@@ -334,7 +336,7 @@ describe('Infraestrutura', () => {
     const panel = await screen.findByRole('group', { name: 'Desenho da infraestrutura' });
     await userEvent.click(within(panel).getByRole('radio', { name: 'Azure' }));
 
-    expect(within(panel).getByText(/proposta com IA é só para AWS/)).toBeInTheDocument();
+    expect(within(panel).getByText(/proposta com a IA do Spock é só para AWS/)).toBeInTheDocument();
     expect(within(panel).queryByLabelText('Certificado ACM (ARN)')).not.toBeInTheDocument();
     expect(within(panel).getByText(/Container Apps com HTTPS gerenciado/)).toBeInTheDocument();
     await userEvent.type(within(panel).getByLabelText('Nome do projeto'), 'loja-api');
@@ -553,5 +555,32 @@ describe('Infraestrutura', () => {
       planId: generateFixture.plan.planId,
       blueprint: { project: 'loja-api', region: 'sa-east-1', network: { vpcId: 'vpc-0a1b2c3d4e5f60718' } }
     });
+  }, 20_000);
+
+  it('sem chave de IA, o desenho que o agente da sessão gravou entra no formulário e segue a mesma revisão', async () => {
+    const engine = fakeEngine(ready, { 'iac.architect.proposal': proposalFixture });
+    renderPage(engine.client);
+
+    const panel = await screen.findByRole('group', { name: 'Desenho da infraestrutura' });
+    const session = within(panel).getByRole('region', { name: 'Desenho do agente da sessão' });
+    expect((within(session).getByLabelText('Pedido para o agente') as HTMLTextAreaElement).value).toContain(
+      'iac_architecture_prepare'
+    );
+    const proposal = await within(session).findByLabelText('Proposta do agente');
+    expect(proposal).toHaveTextContent('.spock/iac-proposal.json: 1 verificação(ões) falhando');
+    expect(within(proposal).getByLabelText('Verificações da proposta')).toHaveTextContent('Subscription do Azure');
+    expect(methods(engine.calls)).not.toContain('iac.architect.draft');
+
+    await userEvent.click(within(proposal).getByRole('button', { name: 'Usar este desenho' }));
+    expect(within(panel).getByRole('radio', { name: 'Azure' })).toBeChecked();
+    expect(within(panel).getByLabelText('Nome do projeto')).toHaveValue('loja-api');
+
+    await userEvent.click(within(panel).getByRole('button', { name: 'Revisar os arquivos' }));
+    await screen.findByLabelText('Revisar a infraestrutura gerada');
+    expect(engine.calls.find((call) => call.method === 'iac.generate.plan')?.params).toMatchObject({
+      projectId: demo.projectId,
+      blueprint: { provider: 'azure', region: 'brazilsouth', queues: ['pedidos', 'estoque'] }
+    });
+    expect(methods(engine.calls)).not.toContain('iac.generate.save');
   }, 20_000);
 });

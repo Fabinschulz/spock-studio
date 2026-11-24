@@ -209,6 +209,36 @@ export function fromBlueprint(blueprint: IacBlueprint, current: BlueprintForm): 
   };
 }
 
+const isProvider = (value: string): value is CloudProvider => value in PROVIDER_DEFAULTS;
+
+const filled = (value: string | null | undefined, fallback: string) => (value ? value : fallback);
+
+const filledList = (values: string[], fallback: string) => (values.length > 0 ? values.join(', ') : fallback);
+
+/**
+ * O desenho que o agente da sessão gravou no projeto. Diferente da proposta da IA do motor, o agente pode trazer os fatos
+ * da conta, porque os perguntou à pessoa ou leu da conexão; o que vier vazio fica como a pessoa preencheu. A nuvem do
+ * agente vale, e o motor confere tudo de novo na revisão.
+ */
+export function fromProposal(blueprint: IacBlueprint, current: BlueprintForm): BlueprintForm {
+  const provider = isProvider(blueprint.provider) ? blueprint.provider : current.provider;
+  const form = fromBlueprint(blueprint, provider === current.provider ? current : withProvider(current, provider));
+  return {
+    ...form,
+    account: filled(blueprint.account, form.account),
+    profile: filled(blueprint.profile, form.profile),
+    vpcId: filled(blueprint.network.vpcId, form.vpcId),
+    privateSubnets: filledList(blueprint.network.privateSubnets, form.privateSubnets),
+    publicSubnets: filledList(blueprint.network.publicSubnets, form.publicSubnets),
+    privateDnsZone: filled(blueprint.network.privateDnsZone, form.privateDnsZone),
+    alarmEmail: filled(blueprint.alarmEmail, form.alarmEmail),
+    bucket: filled(blueprint.backend?.bucket, form.bucket),
+    bucketRegion: filled(blueprint.backend?.region, form.bucketRegion),
+    bucketResourceGroup: filled(blueprint.backend?.resourceGroup, form.bucketResourceGroup),
+    bucketContainer: filled(blueprint.backend?.container, form.bucketContainer)
+  };
+}
+
 /**
  * Região e conta vêm da conexão vinculada da mesma nuvem: perfil na AWS, subscription e tenant no Azure, projeto no
  * Google. Nada disso passa pelo modelo de linguagem.

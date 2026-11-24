@@ -53,6 +53,7 @@
 | `iac_validate` | Infra | `project?` | `fmt` e `validate` numa cópia | **Grava uma operação no histórico** apesar de `readOnlyHint` | Sim (`iac.validate`) |
 | `iac_plan_summary`, `iac_history`, `iac_drift_summary`, `iac_state` | Infra | `project?`, `operation?` | Histórico, drift e state gravados | Nenhum | — |
 | `iac_blueprint_check` | Infra | `blueprint` | Validação em memória | Nenhum | — |
+| `iac_architecture_prepare` | Infra | `project?`, `provider?` | Regras do desenho e a proposta gravada em `.spock/iac-proposal.json` | Nenhum (quem grava a proposta é o agente) | — |
 
 ### 1.2 Problemas encontrados no servidor atual
 

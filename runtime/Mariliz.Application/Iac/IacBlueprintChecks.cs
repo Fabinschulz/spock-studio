@@ -13,6 +13,14 @@ public static partial class IacBlueprintChecks
 
     public static readonly IReadOnlyList<string> Providers = ["aws", "azure", "gcp"];
 
+    // Fatos da conta: vêm da pessoa ou da conexão, nunca de quem propõe o desenho (modelo ou agente da sessão). Uma
+    // checagem destas falhando pede o dado à pessoa; as outras pedem outro desenho.
+    public static readonly IReadOnlySet<string> FactIds = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "region", "account", "profile", "vpc", "private-subnets", "public-subnets", "load-balancer-subnets", "certificate",
+        "database-subnets", "database-subnet", "database-dns", "database-network", "alarm-email", "backend"
+    };
+
     public static IReadOnlyList<IacBlueprintCheck> Check(IacBlueprint blueprint)
     {
         var checks = new List<IacBlueprintCheck>();
