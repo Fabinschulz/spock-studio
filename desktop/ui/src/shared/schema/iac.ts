@@ -497,6 +497,38 @@ export const iacGeneratePlanSchema = z.object({
 
 export const iacGenerateSaveSchema = z.object({ runId: z.string() });
 
+const iacServiceSizeSchema = z.object({ cpu: z.number(), memory: z.number() });
+
+/** O que a tela de geração oferece em cada nuvem, do mesmo lugar de onde o motor tira as checagens do desenho. */
+export const iacProviderOptionsSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  regionExample: z.string(),
+  service: z.object({
+    /** O primeiro é o padrão. */
+    sizes: z.array(iacServiceSizeSchema).min(1),
+    certificate: z.boolean(),
+    publicIp: z.boolean()
+  }),
+  database: z.object({
+    engines: z.array(z.string()).min(1),
+    instanceClass: z.string(),
+    storage: z.object({
+      minGb: z.number(),
+      maxGb: z.number(),
+      /** Vazio: qualquer valor da faixa. */
+      allowedGb: z.array(z.number()),
+      defaultGb: z.number()
+    })
+  }),
+  architectDraft: z.boolean(),
+  costEstimate: z.boolean()
+});
+
+export const iacGenerateOptionsSchema = z.object({
+  options: z.object({ providers: z.array(iacProviderOptionsSchema).min(1) })
+});
+
 export const iacBootstrapSaveSchema = z.object({ runId: z.string() });
 export const iacUnlockSchema = z.object({ unlocked: z.boolean() });
 
@@ -509,3 +541,5 @@ export type IacBlueprintCheck = z.infer<typeof iacBlueprintCheckSchema>;
 export type IacArchitectDraft = z.infer<typeof iacArchitectDraftSchema>['draft'];
 export type IacArchitectProposal = NonNullable<z.infer<typeof iacArchitectProposalSchema>['proposal']>;
 export type IacGeneratePlan = z.infer<typeof iacGeneratePlanSchema>['plan'];
+export type IacProviderOptions = z.infer<typeof iacProviderOptionsSchema>;
+export type IacServiceSize = z.infer<typeof iacServiceSizeSchema>;

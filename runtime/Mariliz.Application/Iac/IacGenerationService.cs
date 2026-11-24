@@ -40,7 +40,7 @@ public sealed partial class IacGenerationService(
         workspace.RequireRoot(request.ProjectId);
         if (models is null) throw new EngineException("MODEL_NOT_CONFIGURED", "Configure um provedor de IA para propor o desenho, ou monte o desenho à mão.");
         // O prompt e as checagens da resposta conhecem os componentes da AWS; no Azure e no Google o desenho é montado à mão.
-        if (request.Facts.Provider != CloudProviders.Aws)
+        if (IacProviders.Find(request.Facts.Provider) is not { Options.ArchitectDraft: true })
             throw new EngineException("IAC_DRAFT_AWS_ONLY", "A proposta com IA é só para AWS por enquanto; no Azure e no Google, monte o desenho à mão.");
         var need = request.Need.Trim();
         if (need.Length is < MinNeed or > MaxNeed) throw new ParamException($"Descreva a necessidade com {MinNeed} a {MaxNeed} caracteres.");

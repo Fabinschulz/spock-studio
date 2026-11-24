@@ -82,9 +82,10 @@ public static partial class IacBlueprintChecks
         }
         if (blueprint.Database is { } database)
         {
-            Add("database-engine", "Banco postgres ou mysql", database.Engine is "postgres" or "mysql");
+            var options = IacProviderOptionsCatalog.Aws.Database;
+            Add("database-engine", "Banco postgres ou mysql", options.Engines.Contains(database.Engine));
             Add("database-class", "Classe de instância RDS (ex.: db.t4g.micro)", RdsClass().IsMatch(database.InstanceClass));
-            Add("database-storage", "Armazenamento entre 20 e 1000 GB", database.StorageGb is >= 20 and <= 1000);
+            Add("database-storage", "Armazenamento entre 20 e 1000 GB", options.Storage.Accepts(database.StorageGb));
             Add("database-subnets", "Ao menos duas subnets privadas para o grupo de subnets do banco", blueprint.Network.PrivateSubnets.Count >= 2,
                 "O RDS exige subnets em duas zonas de disponibilidade.");
         }
@@ -108,10 +109,11 @@ public static partial class IacBlueprintChecks
         }
         if (blueprint.Database is { } database)
         {
-            Add("database-engine", "Banco postgres (PostgreSQL Flexible Server, só com login do Entra ID)", database.Engine == "postgres",
+            var options = IacProviderOptionsCatalog.Azure.Database;
+            Add("database-engine", "Banco postgres (PostgreSQL Flexible Server, só com login do Entra ID)", options.Engines.Contains(database.Engine),
                 "No Azure o modelo gera só PostgreSQL, que dispensa senha com o login do Entra ID.");
             Add("database-class", "SKU do Flexible Server (ex.: B_Standard_B1ms, GP_Standard_D2ds_v5)", AzureSku().IsMatch(database.InstanceClass));
-            Add("database-storage", "Armazenamento de 32, 64, 128, 256, 512 ou 1024 GB", database.StorageGb is 32 or 64 or 128 or 256 or 512 or 1024);
+            Add("database-storage", "Armazenamento de 32, 64, 128, 256, 512 ou 1024 GB", options.Storage.Accepts(database.StorageGb));
             Add("database-ha", "Alta disponibilidade fora da camada Burstable (B_)", !database.MultiAz || !database.InstanceClass.StartsWith("B_", StringComparison.Ordinal),
                 "O Flexible Server não oferece redundância de zona na camada Burstable.");
             Add("database-subnet", "Subnet delegada ao PostgreSQL (id completo do Azure)",
@@ -140,9 +142,10 @@ public static partial class IacBlueprintChecks
         }
         if (blueprint.Database is { } database)
         {
-            Add("database-engine", "Banco postgres ou mysql", database.Engine is "postgres" or "mysql");
+            var options = IacProviderOptionsCatalog.Gcp.Database;
+            Add("database-engine", "Banco postgres ou mysql", options.Engines.Contains(database.Engine));
             Add("database-class", "Tier do Cloud SQL (ex.: db-f1-micro, db-custom-1-3840)", CloudSqlTier().IsMatch(database.InstanceClass));
-            Add("database-storage", "Armazenamento entre 10 e 1000 GB", database.StorageGb is >= 10 and <= 1000);
+            Add("database-storage", "Armazenamento entre 10 e 1000 GB", options.Storage.Accepts(database.StorageGb));
             Add("database-network", "Rede VPC com acesso privado a serviços (projects/<projeto>/global/networks/<rede>)",
                 GoogleNetwork().IsMatch(blueprint.Network.VpcId), "O Cloud SQL do modelo tem só IP privado.");
         }

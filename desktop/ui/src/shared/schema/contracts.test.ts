@@ -13,6 +13,7 @@ import iacBootstrapFixture from '@contracts/fixtures/iac/bootstrap-plan.json';
 import iacCostEstimateFixture from '@contracts/fixtures/iac/cost-estimate.json';
 import iacDriftFixture from '@contracts/fixtures/iac/drift-operation.json';
 import iacDriftScheduleFixture from '@contracts/fixtures/iac/drift-schedule.json';
+import iacGenerateOptionsFixture from '@contracts/fixtures/iac/generate-options.json';
 import iacGeneratePlanFixture from '@contracts/fixtures/iac/generate-plan.json';
 import iacOperationsFixture from '@contracts/fixtures/iac/operations.json';
 import iacPlanCostFixture from '@contracts/fixtures/iac/plan-cost.json';
@@ -89,6 +90,7 @@ import {
   iacArchitectProposalSchema,
   iacBootstrapPlanSchema,
   iacCostEstimateSchema,
+  iacGenerateOptionsSchema,
   iacGeneratePlanSchema,
   iacOperationResultSchema,
   iacPlanCostSchema,
@@ -1076,6 +1078,13 @@ describe('contrato do assistente do portfólio (fixtures do motor)', () => {
     expect(generated.changes.map((change) => change.path)).toContain('infra/modules/sqs/resource.tf');
     expect(generated.checks.every((check) => check.passed)).toBe(true);
     expect(generated.costs.length).toBeGreaterThan(0);
+  });
+
+  it('aceita as opções de geração por nuvem que o motor anuncia', () => {
+    const { providers } = iacGenerateOptionsSchema.parse(iacGenerateOptionsFixture).options;
+    expect(providers.map((provider) => provider.id)).toEqual(['aws', 'azure', 'gcp']);
+    expect(providers.filter((provider) => provider.architectDraft).map((provider) => provider.id)).toEqual(['aws']);
+    expect(providers.find((provider) => provider.id === 'azure')?.database.engines).toEqual(['postgres']);
   });
 
   it('aceita a proposta do agente da sessão conferida pelo motor, e a ausência dela', () => {

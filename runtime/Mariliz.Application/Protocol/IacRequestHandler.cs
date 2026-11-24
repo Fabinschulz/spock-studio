@@ -29,6 +29,7 @@ internal sealed class IacRequestHandler(IacRuntimeService terraform, IacOperatio
                 IacBlueprintJson.Blueprint(p.ObjectOrEmpty("facts"))), ct))
         },
         ProtocolMethods.IacArchitectProposal => new JsonObject { ["proposal"] = IntegrationJson.Node(generation.Proposal(p.Str("projectId"))) },
+        ProtocolMethods.IacGenerateOptions => new JsonObject { ["options"] = IntegrationJson.Node(IacGenerateOptions.Current) },
         ProtocolMethods.IacGeneratePlan => new JsonObject { ["plan"] = IntegrationJson.Node(generation.Plan(Generate(p))) },
         ProtocolMethods.IacGenerateSave => new JsonObject { ["runId"] = generation.StartSave(Generate(p), p.Str("planId")).RunId },
         ProtocolMethods.IacLayout => new JsonObject { ["layout"] = IntegrationJson.Node(operations.Layout(p.Str("projectId"))) },

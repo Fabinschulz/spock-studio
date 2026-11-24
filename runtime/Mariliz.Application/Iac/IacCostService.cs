@@ -40,7 +40,7 @@ public sealed class IacCostService(WorkspaceAuthorizer workspace, CloudHub? clou
         if (plan.Billables is null) throw IacErrors.PlanWithoutCostData();
         if (cloud is null) throw IacErrors.CostSourceUnavailable();
         var connection = cloud.Connections.Require(request.ConnectionId);
-        if (connection.Provider != CloudProviders.Aws) throw IacErrors.CostSourceUnavailable();
+        if (IacProviders.Find(connection.Provider) is not { Options.CostEstimate: true }) throw IacErrors.CostSourceUnavailable();
         var region = request.Region?.Trim() is { Length: > 0 } chosen ? chosen : connection.Settings.Region ?? throw IacErrors.CostSourceUnavailable();
 
         var sides = plan.Billables.Select(b => (
@@ -97,6 +97,8 @@ public sealed class IacCostService(WorkspaceAuthorizer workspace, CloudHub? clou
         workspace.RequireRoot(request.ProjectId);
         var failed = IacBlueprintChecks.Check(request.Blueprint).Where(c => !c.Passed).ToList();
         if (failed.Count > 0) throw IacErrors.BlueprintInvalid(failed);
+        // O estimador só conhece os serviços e as listas de preço da AWS.
+        if (IacProviders.Find(request.Blueprint.Provider) is not { Options.CostEstimate: true }) throw IacErrors.CostSourceUnavailable();
         if (cloud is null) throw IacErrors.CostSourceUnavailable();
         if (cloud.Connections.Require(request.ConnectionId).Provider != request.Blueprint.Provider) throw IacErrors.CostSourceUnavailable();
 

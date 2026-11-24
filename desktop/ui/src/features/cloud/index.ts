@@ -1,2 +1,2 @@
 export { CloudPage } from './cloud-page';
-export { createCloudApi } from './service/cloud-api';
+export { createCloudApi, type CloudApi } from './service/cloud-api';

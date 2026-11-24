@@ -127,6 +127,7 @@ export const ENGINE_METHODS = [
   'iac.bootstrap.save',
   'iac.architect.draft',
   'iac.architect.proposal',
+  'iac.generate.options',
   'iac.generate.plan',
   'iac.generate.save',
   'iac.drift',

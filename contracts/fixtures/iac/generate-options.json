@@ -1,0 +1,138 @@
+{
+  "options": {
+    "providers": [
+      {
+        "id": "aws",
+        "label": "AWS",
+        "regionExample": "sa-east-1",
+        "service": {
+          "sizes": [
+            {
+              "cpu": 256,
+              "memory": 512
+            },
+            {
+              "cpu": 512,
+              "memory": 1024
+            },
+            {
+              "cpu": 1024,
+              "memory": 2048
+            },
+            {
+              "cpu": 2048,
+              "memory": 4096
+            }
+          ],
+          "certificate": true,
+          "publicIp": true
+        },
+        "database": {
+          "engines": [
+            "postgres",
+            "mysql"
+          ],
+          "instanceClass": "db.t4g.micro",
+          "storage": {
+            "minGb": 20,
+            "maxGb": 1000,
+            "allowedGb": [],
+            "defaultGb": 20
+          }
+        },
+        "architectDraft": true,
+        "costEstimate": true
+      },
+      {
+        "id": "azure",
+        "label": "Azure",
+        "regionExample": "brazilsouth",
+        "service": {
+          "sizes": [
+            {
+              "cpu": 256,
+              "memory": 512
+            },
+            {
+              "cpu": 512,
+              "memory": 1024
+            },
+            {
+              "cpu": 1024,
+              "memory": 2048
+            },
+            {
+              "cpu": 2048,
+              "memory": 4096
+            }
+          ],
+          "certificate": false,
+          "publicIp": false
+        },
+        "database": {
+          "engines": [
+            "postgres"
+          ],
+          "instanceClass": "B_Standard_B1ms",
+          "storage": {
+            "minGb": 32,
+            "maxGb": 1024,
+            "allowedGb": [
+              32,
+              64,
+              128,
+              256,
+              512,
+              1024
+            ],
+            "defaultGb": 32
+          }
+        },
+        "architectDraft": false,
+        "costEstimate": false
+      },
+      {
+        "id": "gcp",
+        "label": "Google Cloud",
+        "regionExample": "southamerica-east1",
+        "service": {
+          "sizes": [
+            {
+              "cpu": 1024,
+              "memory": 512
+            },
+            {
+              "cpu": 1024,
+              "memory": 2048
+            },
+            {
+              "cpu": 2048,
+              "memory": 4096
+            },
+            {
+              "cpu": 4096,
+              "memory": 8192
+            }
+          ],
+          "certificate": false,
+          "publicIp": false
+        },
+        "database": {
+          "engines": [
+            "postgres",
+            "mysql"
+          ],
+          "instanceClass": "db-f1-micro",
+          "storage": {
+            "minGb": 10,
+            "maxGb": 1000,
+            "allowedGb": [],
+            "defaultGb": 10
+          }
+        },
+        "architectDraft": false,
+        "costEstimate": false
+      }
+    ]
+  }
+}
