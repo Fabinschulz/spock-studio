@@ -1,5 +1,5 @@
 import { formatEngineDate } from '@/shared/utils';
-import { ConfirmAction, StatusChip } from '@/shared/components';
+import { ConfirmGate, StatusChip } from '@/shared/components';
 import type { CloudConnection, CloudProvider, CloudRead } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 import { useState } from 'react';
@@ -27,7 +27,6 @@ export function CloudConnectionRow({
   onRemove,
   onRead
 }: CloudConnectionRowProps) {
-  const [confirming, setConfirming] = useState(false);
   const [showPermissions, setShowPermissions] = useState(false);
   const [read, setRead] = useState<CloudRead | null>(null);
   const status = CLOUD_STATUS[connection.status];
@@ -86,42 +85,37 @@ export function CloudConnectionRow({
       ) : null}
       {read ? <CloudReadTable read={read} provider={provider} /> : null}
 
-      {confirming ? (
-        <ConfirmAction
-          label={`Remover ${connection.name}`}
-          confirmLabel="Remover conexão"
-          busy={busy}
-          onConfirm={() => {
-            setConfirming(false);
-            onRemove();
-          }}
-          onCancel={() => setConfirming(false)}
-        >
-          Só o registro sai do Spock Studio. A credencial nunca esteve com ele e continua onde estava.
-        </ConfirmAction>
-      ) : (
-        <div className={styles.actions}>
-          <Button type="button" variant="outlined" disabled={busy} onClick={onValidate}>
-            Validar
-          </Button>
-          <Button type="button" variant="outlined" disabled={busy} onClick={onPermissions}>
-            Verificar permissões
-          </Button>
-          <Button
-            type="button"
-            variant="text"
-            disabled={busy}
-            onClick={() => setShowPermissions((current) => !current)}
-          >
-            {showPermissions ? 'Ocultar permissões' : 'Ver permissões'}
-          </Button>
-          {connection.projects === 0 ? (
-            <Button type="button" variant="text" disabled={busy} onClick={() => setConfirming(true)}>
-              Remover
+      <ConfirmGate
+        label={`Remover ${connection.name}`}
+        confirmLabel="Remover conexão"
+        busy={busy}
+        message="Só o registro sai do Spock Studio. A credencial nunca esteve com ele e continua onde estava."
+        onConfirm={onRemove}
+      >
+        {(ask) => (
+          <div className={styles.actions}>
+            <Button type="button" variant="outlined" disabled={busy} onClick={onValidate}>
+              Validar
             </Button>
-          ) : null}
-        </div>
-      )}
+            <Button type="button" variant="outlined" disabled={busy} onClick={onPermissions}>
+              Verificar permissões
+            </Button>
+            <Button
+              type="button"
+              variant="text"
+              disabled={busy}
+              onClick={() => setShowPermissions((current) => !current)}
+            >
+              {showPermissions ? 'Ocultar permissões' : 'Ver permissões'}
+            </Button>
+            {connection.projects === 0 ? (
+              <Button type="button" variant="text" disabled={busy} onClick={ask}>
+                Remover
+              </Button>
+            ) : null}
+          </div>
+        )}
+      </ConfirmGate>
     </li>
   );
 }

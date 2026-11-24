@@ -1,6 +1,7 @@
 import type { SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 import {
+  Disclosure,
   ErrorState,
   InlineNotice,
   LoadingState,
@@ -177,12 +178,15 @@ function RunView({ run }: { run: AgentRun }) {
         </InlineNotice>
       ) : null}
       {finished && run.result?.answer ? <p className={styles.answer}>{run.result.answer}</p> : null}
-      <details className={styles.output} open={!finished}>
-        <summary>{finished ? 'O que a ferramenta escreveu' : 'A ferramenta está escrevendo…'}</summary>
+      <Disclosure
+        className={styles.output}
+        defaultOpen={!finished}
+        summary={finished ? 'O que a ferramenta escreveu' : 'A ferramenta está escrevendo…'}
+      >
         <pre className={styles.log} aria-live="off">
           {run.lines.length > 0 ? run.lines.join('\n') : 'Nada ainda.'}
         </pre>
-      </details>
+      </Disclosure>
       {finished ? (
         <p className={styles.hint}>
           O pedido ficou registrado em <Link to={pathTo('runs')}>Execuções</Link>.

@@ -104,8 +104,8 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
 | UI-22 | `knowledge-section.tsx:26`, `harness-section.tsx:18`, `profile-section.tsx:16` | Efeitos de carga escritos à mão (UI-9 voltou) | DRY | P2 | Três máquinas de estado iguais | `useAsyncResource` e `ResourceView` | **Feito** (onda 2e) |
 | UI-23 | `runs/hooks/use-run-list.ts` | Quase cópia de `usePagedRead` | DRY | P2 | Duas paginações | Parâmetro `extra` em `usePagedRead` | **Feito** (onda 2e) |
 | UI-24 | `execution/domain/run-timeline.ts:1-66` | Contrato do resultado do fluxo numa feature e sem fixture | Contract-first | P2 | Mudança no motor só aparece em produção | Mover para `shared/schema/workflow.ts` e criar fixture gerada pelo motor | **Feito** (onda 2d) |
-| UI-33 | `app/routes.tsx` | 19 cópias de `<RequiresHost>`; tudo carregado na partida | DRY | P3 | Chunk de 864 kB (UI-16 antigo) | Rota de layout e `lazy` | Onda 3 |
-| UI-27..31 | vários | `<p className={styles.error}>` sem `role="alert"`; `<details>` em vez de `Disclosure`; alternância de `ConfirmAction` repetida; fluxo de salvar arquivos revisados duplicado; recarga forçada em `DecisionsSection` | DRY, a11y | P3 | Ruído e acessibilidade | Ver o relatório da onda 3 | Onda 3 |
+| UI-33 | `app/routes.tsx` | 19 cópias de `<RequiresHost>`; tudo carregado na partida | DRY | P3 | Chunk de 864 kB (UI-16 antigo) | Rota de layout e `lazy` | **Feito** (onda 3d) |
+| UI-27..31 | vários | `<p className={styles.error}>` sem `role="alert"`; `<details>` em vez de `Disclosure`; alternância de `ConfirmAction` repetida; fluxo de salvar arquivos revisados duplicado; recarga forçada em `DecisionsSection` | DRY, a11y | P3 | Ruído e acessibilidade | Ver §7i | **Feito** (onda 3d) |
 
 ### 3.4 Contratos entre componentes
 
@@ -135,7 +135,8 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
 - **P3:**
   - corrigidos na onda 3a: NET-S10, NET-S11, NET-S12, NET-S13, NET-S14 e NET-S16;
   - corrigidos na onda 3b: RS-18, RS-19 e RS-20;
-  - abertos: UI-27 a UI-31 e UI-33;
+  - corrigidos na onda 3d: UI-27 a UI-31 e UI-33;
+  - nenhum aberto;
   - a monitorar: NET-S15;
   - decisão do dono: NET-S09.
 
@@ -154,7 +155,7 @@ Uma onda por PR, sem empilhar PR. Cada onda começa por testes de caracterizaç�
 | 3a | motor .NET | NET-S02, NET-S06, NET-S10 a NET-S14, NET-S16 | ver §7f | ondas 2 | `AuditActionsTests`, `JsonReadTests` e as suítes de IaC, Harness, ideia e segurança |
 | 3b | host Rust | RS-18, RS-19, RS-20 | ver §7g | — | teste de concorrência do limite de terminais, falha ao gravar recentes no diagnóstico |
 | 3c | `infrastructure` (UI) e motor | UI-20, depois UI-19 | ver §7h | — | caracterização do `GeneratePanel` antes de mexer, `IacGenerateOptionsTests` |
-| 3d | UI | UI-27 a UI-31, UI-33 | `role="alert"`, `Disclosure`, rota de layout com `lazy` | — | testes de componente e o tamanho do chunk inicial |
+| 3d | UI | UI-27 a UI-31, UI-33 | ver §7i | — | testes de componente e o tamanho do chunk inicial |
 | depois | empacotamento | RS-17 | o .NET dono do layout do runtime | validação real num `.deb` (§6) | instalação no Linux |
 
 ## 6. Decisões que dependem do dono do produto
@@ -307,6 +308,23 @@ Uma onda por PR, sem empilhar PR. Cada onda começa por testes de caracterizaç�
 - Rust (host): fmt, clippy `-D warnings` e 66 testes limpos; `iac.generate.options` entrou na lista de métodos da interface.
 - UI: typecheck, eslint e prettier limpos; vitest com 911 testes aprovados.
 - Não validado: a tela de Infraestrutura no app Tauri com um motor real; ficou nos testes de componente, que leem as opções da fixture gerada pelo motor.
+
+## 7i. Onda 3d executada
+
+| Item | Antes | Depois | Testes |
+|---|---|---|---|
+| UI-27 | Erros de ação em parágrafo comum: o leitor de tela não anunciava a falha de um clique | `role="alert"` nos 12 erros que nascem de uma ação da pessoa (`action.error`, `flow.error`, leitura da proposta, consulta do state). Os que mostram um estado guardado (último erro de uma conexão ou provedor, última sincronização, operação do histórico, motivo de uma execução, exigência de versão do projeto) ficam sem: seriam anunciados a cada leitura da lista, e o teste da tela de modelos já cobrava isso | Suíte inteira; `model-settings-page.test` confere que a recusa guardada não vira alerta |
+| UI-28 | Cinco `<details>` montados à mão | A saída do agente, o diff de um arquivo na revisão da configuração e os arquivos processados usam `Disclosure`; as regras de estilo que sobraram saíram. As listas de decisões do plano e de validações continuam com `<details>` próprio: o resumo é a linha inteira (nome, meta e situação), não um título | Testes da configuração e dos agentes sem mudança |
+| UI-29 | A alternância "botão ou confirmação" escrita à mão em cada tela, com o estado `confirming` e o fechar antes de agir repetidos | `ConfirmGate` (junto do `ConfirmAction`): guarda a alternância, troca os botões pela confirmação e a fecha antes de agir. Usado na trava do state, na aprovação do plano, nas gravações revisadas, no desfazer da execução, na correção de segurança (aplicar e desfazer) e nas conexões cloud (remover e desvincular); o fluxo da geração perdeu o estado `confirming`. Ficam com estado próprio as telas em que a confirmação é um modo entre vários (conexões de integração, painéis da integração, remover uma instalação, ideia, revisão e execução da configuração) | `confirm-gate.test` (abrir, desistir e confirmar) |
+| UI-30 | Bootstrap do state e geração da infraestrutura repetiam a lista de diffs, a confirmação "só arquivos vão para o projeto" e a mensagem da execução gravada | `reviewed-files.tsx` com `ReviewedChanges`, `SaveReviewedFiles` e `SavedFiles`, usados pelos dois | Testes do bootstrap e da geração sem mudança |
+| UI-31 | A seção de Decisões relia a lista com um contador que entrava na função de leitura | `reload` da própria leitura; o `useAsyncResource` passou a dizer no tipo que sempre devolve `reload` | Testes da gestão sem mudança |
+| UI-33 | 19 cópias de `<RequiresHost>` e todas as telas no pacote inicial (1.587,80 kB, 461,77 kB com gzip) | Uma rota de layout aplica o `RequiresHost` às telas que falam com o motor; a tela inicial vem no pacote principal e as outras são baixadas na primeira vez que abrem, com "Abrindo a tela…" dentro da janela. Pacote inicial com 757,48 kB (217,40 kB com gzip) e 39 arquivos JavaScript | `routes.test` com uma tela sob demanda que exige o aplicativo |
+
+**Validação depois da onda 3d:**
+- UI: typecheck, eslint e prettier limpos; vitest com 918 testes aprovados. O teste do Google do desenho (onda 3c) estourou os 20 s uma vez com a suíte inteira rodando; passou a colar os ids longos em vez de digitá-los.
+- Build: pacote inicial de 757,48 kB (217,40 kB com gzip), contra 1.587,80 kB (461,77 kB) antes.
+- Só a UI mudou: motor, host e contratos ficaram como estavam.
+- Não validado: abrir cada tela no app Tauri (o carregamento sob demanda e os anúncios do leitor de tela); ficou nos testes de componente e no build.
 
 ## 8. Arquivos grandes julgados coesos
 

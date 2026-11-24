@@ -1,13 +1,11 @@
 import { createCloudApi } from '@/features/cloud';
 import type { SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
-import { Radio, ResourceView, StatusChip, SuccessState } from '@/shared/components';
+import { Radio, ResourceView, StatusChip } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
-import { pathTo } from '@/shared/routing';
 import type { CloudConnection, IacProviderOptions } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 import { useCallback, useMemo } from 'react';
-import { Link } from 'react-router';
 
 import styles from '../infrastructure-page.module.scss';
 import { isProvider } from '../domain/provider-fields';
@@ -17,6 +15,7 @@ import { AccountSection } from './account-section';
 import { ArchitectDraftSection } from './architect-draft-section';
 import { ComponentsSection } from './components-section';
 import { GenerateReview } from './generate-review';
+import { SavedFiles } from './reviewed-files';
 import { SessionProposal } from './session-proposal';
 
 interface GeneratePanelProps {
@@ -66,10 +65,11 @@ function GenerateFlowView({
 
   if (state.savedRun)
     return (
-      <SuccessState>
-        Arquivos gravados na execução {state.savedRun}, em <Link to={pathTo('runs')}>Execuções</Link> (dá para desfazer
-        por lá). Próximo passo: validar, gerar o plano de um ambiente e aprovar, nesta tela.
-      </SuccessState>
+      <SavedFiles
+        runId={state.savedRun}
+        what="Arquivos gravados"
+        next="validar, gerar o plano de um ambiente e aprovar, nesta tela."
+      />
     );
 
   if (state.plan) return <GenerateReview flow={flow} plan={state.plan} connection={connection} linked={linked} />;
@@ -82,7 +82,11 @@ function GenerateFlowView({
         por serviço (contêiner com HTTPS, banco sem senha, filas com fila de mensagens mortas, alarmes). A IA só escolhe
         componentes e tamanhos; os arquivos saem de modelos fixos e você revisa o diff antes de gravar.
       </p>
-      {flow.error ? <p className={styles.error}>{flow.error}</p> : null}
+      {flow.error ? (
+        <p className={styles.error} role="alert">
+          {flow.error}
+        </p>
+      ) : null}
 
       <fieldset className={styles.choices}>
         <legend>Nuvem</legend>

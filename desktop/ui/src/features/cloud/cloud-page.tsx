@@ -91,7 +91,11 @@ export function CloudPage({ client, project }: { client: EngineClient; project: 
           </PageSection>
 
           <PageSection title="Conexões">
-            {action.error ? <p className={styles.error}>{action.error}</p> : null}
+            {action.error ? (
+              <p className={styles.error} role="alert">
+                {action.error}
+              </p>
+            ) : null}
             {action.notice ? <SuccessState>{action.notice.text}</SuccessState> : null}
             {hub.value.connections.length === 0 ? (
               <p className={styles.meta}>Nenhuma conexão cloud configurada.</p>

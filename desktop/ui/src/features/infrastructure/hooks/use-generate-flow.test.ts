@@ -47,18 +47,14 @@ describe('fluxo do desenho', () => {
     });
   });
 
-  it('voltar da revisão descarta o plano, a estimativa e a confirmação, e mantém o desenho', () => {
+  it('voltar da revisão descarta o plano e a estimativa, e mantém o desenho', () => {
     const edited = generateFlow(startFlow(providers), { type: 'edit', change: { project: 'loja-api' } });
-    const reviewing = generateFlow(generateFlow(edited, { type: 'planned', plan }), {
-      type: 'confirming',
-      confirming: true
-    });
+    const reviewing = generateFlow(edited, { type: 'planned', plan });
 
     const back = generateFlow(reviewing, { type: 'back' });
 
     expect(back.plan).toBeNull();
     expect(back.estimate).toBeNull();
-    expect(back.confirming).toBe(false);
     expect(back.form.project).toBe('loja-api');
   });
 });

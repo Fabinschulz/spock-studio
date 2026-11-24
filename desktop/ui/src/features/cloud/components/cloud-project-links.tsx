@@ -1,7 +1,7 @@
 import { useAction, useReloadable } from '@/shared/hooks';
 import type { SelectedProject } from '@/features/project-selection';
 import { errorMessage } from '@/shared/api';
-import { ConfirmAction, ErrorState, LoadingState, PageSection } from '@/shared/components';
+import { ConfirmGate, ErrorState, LoadingState, PageSection } from '@/shared/components';
 import { pathTo } from '@/shared/routing';
 import type { CloudConnection, CloudLink, CloudProvider } from '@/shared/schema';
 import { Button, Checkbox } from '@mariliz/ui-kit';
@@ -66,7 +66,11 @@ function ProjectLinks({
         Uma conexão ativa não libera nada sozinha. Aqui você escolhe o que este projeto pode ler e se agentes de IA
         (pelo servidor MCP do Spock) podem pedir essas leituras.
       </p>
-      {action.error ? <p className={styles.error}>{action.error}</p> : null}
+      {action.error ? (
+        <p className={styles.error} role="alert">
+          {action.error}
+        </p>
+      ) : null}
       <ul className={styles.rows}>
         {list.value.map((link) => (
           <LinkRow
@@ -121,7 +125,6 @@ interface LinkRowProps {
 function LinkRow({ link, connection, provider, busy, onSave, onUnlink }: LinkRowProps) {
   const [capabilities, setCapabilities] = useState(link.capabilities);
   const [agentAccess, setAgentAccess] = useState(link.agentAccess);
-  const [confirming, setConfirming] = useState(false);
   const changed =
     agentAccess !== link.agentAccess ||
     capabilities.length !== link.capabilities.length ||
@@ -159,34 +162,29 @@ function LinkRow({ link, connection, provider, busy, onSave, onUnlink }: LinkRow
         disabled={busy}
         onChange={(_, checked) => setAgentAccess(checked)}
       />
-      {confirming ? (
-        <ConfirmAction
-          label={`Desvincular ${connection?.name ?? 'conexão'}`}
-          confirmLabel="Desvincular"
-          busy={busy}
-          onConfirm={() => {
-            setConfirming(false);
-            onUnlink();
-          }}
-          onCancel={() => setConfirming(false)}
-        >
-          Este projeto deixa de poder ler desta conexão, e agentes também.
-        </ConfirmAction>
-      ) : (
-        <div className={styles.actions}>
-          <Button
-            type="button"
-            variant="contained"
-            disabled={busy || !changed}
-            onClick={() => onSave(capabilities, agentAccess)}
-          >
-            Salvar
-          </Button>
-          <Button type="button" variant="text" disabled={busy} onClick={() => setConfirming(true)}>
-            Desvincular
-          </Button>
-        </div>
-      )}
+      <ConfirmGate
+        label={`Desvincular ${connection?.name ?? 'conexão'}`}
+        confirmLabel="Desvincular"
+        busy={busy}
+        message="Este projeto deixa de poder ler desta conexão, e agentes também."
+        onConfirm={onUnlink}
+      >
+        {(ask) => (
+          <div className={styles.actions}>
+            <Button
+              type="button"
+              variant="contained"
+              disabled={busy || !changed}
+              onClick={() => onSave(capabilities, agentAccess)}
+            >
+              Salvar
+            </Button>
+            <Button type="button" variant="text" disabled={busy} onClick={ask}>
+              Desvincular
+            </Button>
+          </div>
+        )}
+      </ConfirmGate>
     </li>
   );
 }

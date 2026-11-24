@@ -14,7 +14,10 @@ const LOADING = { status: 'loading' } as const;
  * sem mostrar o resultado da anterior. Com `keepPrevious`, um `reload` do mesmo `load` deixa o resultado anterior na tela
  * até o novo chegar, como um botão "Ler de novo" espera.
  */
-export function useAsyncResource<T>(load: () => Promise<T>, { keepPrevious = false } = {}): Resource<T> {
+export function useAsyncResource<T>(
+  load: () => Promise<T>,
+  { keepPrevious = false } = {}
+): Resource<T> & { reload: () => void } {
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<{
     load: () => Promise<T>;

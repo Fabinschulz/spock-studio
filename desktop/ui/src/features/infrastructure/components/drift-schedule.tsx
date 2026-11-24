@@ -88,7 +88,11 @@ export function DriftSchedule({ api, projectId, view, target, disabled, onSaved 
           Salvar agendamento
         </Button>
       </div>
-      {action.error ? <p className={styles.error}>{action.error}</p> : null}
+      {action.error ? (
+        <p className={styles.error} role="alert">
+          {action.error}
+        </p>
+      ) : null}
       {action.notice ? <p className={styles.hint}>{action.notice.text}</p> : null}
     </fieldset>
   );

@@ -1,4 +1,3 @@
-import { ConfirmAction, DiffView } from '@/shared/components';
 import { pathTo } from '@/shared/routing';
 import type { CloudConnection, IacGeneratePlan } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
@@ -8,6 +7,7 @@ import styles from '../infrastructure-page.module.scss';
 import { LINKED_UNREADABLE } from '../domain/linked-connections';
 import type { GenerateFlow } from '../hooks/use-generate-flow';
 import { CostEstimateView } from './cost-estimate';
+import { ReviewedChanges, SaveReviewedFiles } from './reviewed-files';
 
 interface GenerateReviewProps {
   flow: GenerateFlow;
@@ -40,14 +40,7 @@ export function GenerateReview({ flow, plan, connection, linked }: GenerateRevie
           <p className={styles.rowTitle}>
             Revisar {plan.changes.length} arquivo(s) em {plan.root}
           </p>
-          {plan.changes.map((change) => (
-            <div key={change.path}>
-              <p className={styles.hint}>
-                {change.path} · {change.op === 'create' ? 'arquivo novo' : 'alterado'}
-              </p>
-              <DiffView diff={change.diff} label={change.path} />
-            </div>
-          ))}
+          <ReviewedChanges changes={plan.changes} />
           <p className={styles.rowTitle}>O que é cobrado (o preço depende da região e do uso)</p>
           <ul className={styles.impacts} aria-label="O que é cobrado">
             {plan.costs.map((cost) => (
@@ -81,33 +74,19 @@ export function GenerateReview({ flow, plan, connection, linked }: GenerateRevie
           ) : null}
         </>
       )}
-      {flow.error ? <p className={styles.error}>{flow.error}</p> : null}
-      {state.confirming ? (
-        <ConfirmAction
-          label="Gravar os arquivos de infraestrutura"
-          confirmLabel="Gravar"
-          busy={busy}
-          onConfirm={() => void flow.save(plan.planId)}
-          onCancel={() => flow.dispatch({ type: 'confirming', confirming: false })}
-        >
-          Só arquivos vão para o projeto; nada é criado na nuvem agora.
-        </ConfirmAction>
-      ) : (
-        <div className={styles.actions}>
-          {failed.length === 0 ? (
-            <Button
-              type="button"
-              disabled={busy}
-              onClick={() => flow.dispatch({ type: 'confirming', confirming: true })}
-            >
-              Gravar no projeto
-            </Button>
-          ) : null}
-          <Button type="button" variant="outlined" disabled={busy} onClick={() => flow.dispatch({ type: 'back' })}>
-            Voltar ao desenho
-          </Button>
-        </div>
-      )}
+      {flow.error ? (
+        <p className={styles.error} role="alert">
+          {flow.error}
+        </p>
+      ) : null}
+      <SaveReviewedFiles
+        what="os arquivos de infraestrutura"
+        busy={busy}
+        canSave={failed.length === 0}
+        onSave={() => void flow.save(plan.planId)}
+        onBack={() => flow.dispatch({ type: 'back' })}
+        backLabel="Voltar ao desenho"
+      />
     </section>
   );
 }

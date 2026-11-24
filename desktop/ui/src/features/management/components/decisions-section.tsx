@@ -13,14 +13,9 @@ const plural = (count: number, one: string, many: string) => `${count} ${count =
 
 /** Cada decisão guarda os fatos do momento, não os de hoje, e não se edita nem se apaga. */
 export function DecisionsSection({ management, projectId }: { management: ManagementApi; projectId: string }) {
-  const [version, setVersion] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
   const [notice, setNotice] = useState<{ redacted: boolean } | null>(null);
-  // `version` entra no load: registrar uma decisão relê a lista sem remontar a seção.
-  const load = useCallback(
-    () => management.decisions(projectId).then((decisions) => ({ decisions, version })),
-    [management, projectId, version]
-  );
+  const load = useCallback(() => management.decisions(projectId), [management, projectId]);
   const list = useAsyncResource(load);
 
   return (
@@ -39,7 +34,7 @@ export function DecisionsSection({ management, projectId }: { management: Manage
           onRecorded={(redacted) => {
             setNotice({ redacted });
             setFormOpen(false);
-            setVersion((current) => current + 1);
+            list.reload();
           }}
         />
       ) : null}
@@ -50,7 +45,7 @@ export function DecisionsSection({ management, projectId }: { management: Manage
         </InlineNotice>
       ) : null}
       <ResourceView resource={list} loading="Lendo as decisões…" fallbackError="Não foi possível ler as decisões.">
-        {({ decisions }) =>
+        {(decisions) =>
           decisions.length === 0 ? (
             <EmptyState>
               Nenhuma decisão registrada neste projeto. Registre uma para guardar o que se decidiu, por quê e o que o

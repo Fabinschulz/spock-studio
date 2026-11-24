@@ -81,7 +81,11 @@ export function InfrastructurePage({ client, project }: { client: EngineClient; 
           </PageSection>
 
           <PageSection title="OpenTofu e Terraform">
-            {action.error ? <p className={styles.error}>{action.error}</p> : null}
+            {action.error ? (
+              <p className={styles.error} role="alert">
+                {action.error}
+              </p>
+            ) : null}
             {action.notice ? <SuccessState>{action.notice.text}</SuccessState> : null}
             <RuntimePanel
               status={hub.value.runtime}

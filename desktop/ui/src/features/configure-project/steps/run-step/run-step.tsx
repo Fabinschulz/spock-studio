@@ -2,7 +2,7 @@ import { Alert, Button } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
 import { errorMessage } from '@/shared/api';
-import { ConfirmAction, PrimaryActionFooter } from '@/shared/components/ui';
+import { ConfirmAction, Disclosure, PrimaryActionFooter } from '@/shared/components/ui';
 import { formatElapsed } from '@/shared/utils';
 
 import { RunEvalList } from '../../components/run-eval-list';
@@ -68,8 +68,7 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
       <RunEvalList evals={run.evals} />
 
       {run.files.length > 0 ? (
-        <details className={panels.details}>
-          <summary>{run.files.length} arquivo(s) processado(s)</summary>
+        <Disclosure summary={`${run.files.length} arquivo(s) processado(s)`}>
           <ul className={panels.list}>
             {run.files.map((file, index) => (
               <li key={`${file}-${index}`} className={panels.mono}>
@@ -77,7 +76,7 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
               </li>
             ))}
           </ul>
-        </details>
+        </Disclosure>
       ) : null}
 
       {failed ? (
