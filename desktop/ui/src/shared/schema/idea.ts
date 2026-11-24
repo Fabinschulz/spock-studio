@@ -42,6 +42,58 @@ export const projectDesignSchema = z.object({
   })
 });
 
+const scaffoldStepSchema = z.object({
+  id: z.string(),
+  part: z.string(),
+  title: z.string(),
+  directory: z.string(),
+  command: z.string().nullable(),
+  file: z.string().nullable(),
+  content: z.string().nullable()
+});
+
+/** MV-6: o plano de criação do esqueleto (versões da política e comandos oficiais) e o que o motor conferiu nos arquivos. */
+export const projectScaffoldSchema = z.object({
+  scaffold: z.object({
+    plan: z.object({
+      supported: z.boolean(),
+      problems: z.array(z.string()),
+      notes: z.array(z.string()),
+      projectName: z.string(),
+      backend: z.boolean(),
+      frontend: z.boolean(),
+      technologies: z.array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          cycle: z.string(),
+          version: z.string(),
+          channel: z.string(),
+          eol: z.string().nullable(),
+          language: z.string().nullable(),
+          reason: z.string(),
+          source: z.string().nullable(),
+          checkedAt: z.string().nullable()
+        })
+      ),
+      steps: z.array(scaffoldStepSchema),
+      verification: z.array(scaffoldStepSchema),
+      recordPath: z.string(),
+      record: z.string().nullable()
+    }),
+    checks: z.array(
+      z.object({
+        id: z.string(),
+        part: z.string(),
+        label: z.string(),
+        passed: z.boolean(),
+        detail: z.string().nullable()
+      })
+    ),
+    done: z.boolean()
+  })
+});
+
 export const ideaPlanSchema = z.object({
   planId: z.string(),
   projectId: z.string(),
@@ -125,5 +177,6 @@ export type IdeaCheck = z.infer<typeof ideaCheckSchema>;
 export type IdeaDraft = z.infer<typeof ideaDraftSchema>;
 export type IdeaPlan = z.infer<typeof ideaPlanSchema>;
 export type ProjectDesign = z.infer<typeof projectDesignSchema>['design'];
+export type ProjectScaffold = z.infer<typeof projectScaffoldSchema>['scaffold'];
 export type IdeaSaveResult = z.infer<typeof ideaSaveResultSchema>;
 export type IdeaArtifact = Record<string, unknown>;

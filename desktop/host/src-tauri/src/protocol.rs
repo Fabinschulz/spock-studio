@@ -88,6 +88,7 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "idea.plan",
     "idea.save",
     "project.design",
+    "project.scaffold",
     "cloud.catalog",
     "cloud.list",
     "cloud.create",

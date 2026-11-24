@@ -1,4 +1,5 @@
 import designFixture from '@contracts/fixtures/idea/design.json';
+import scaffoldFixture from '@contracts/fixtures/engineering/scaffold.json';
 import draftFixture from '@contracts/fixtures/idea/draft.json';
 import planFixture from '@contracts/fixtures/idea/plan.json';
 import { render, screen, within } from '@testing-library/react';
@@ -58,7 +59,9 @@ const drafts = {
   }
 } as const;
 
-function fakeEngine(options: { draft?: (stage: string) => object | Error; design?: () => object } = {}) {
+function fakeEngine(
+  options: { draft?: (stage: string) => object | Error; design?: () => object; scaffold?: () => object } = {}
+) {
   const calls: { method: string; params: Record<string, unknown> }[] = [];
   const client: EngineClient = {
     async request(method, params, schema) {
@@ -71,6 +74,7 @@ function fakeEngine(options: { draft?: (stage: string) => object | Error; design
         return schema.parse(reply);
       }
       if (method === 'project.design') return schema.parse(options.design?.() ?? designFixture);
+      if (method === 'project.scaffold') return schema.parse(options.scaffold?.() ?? scaffoldFixture);
       const runId = body.runId as string | undefined;
       const reply: Record<string, unknown> = {
         'idea.plan': planFixture,
@@ -305,5 +309,44 @@ describe('Da ideia ao projeto pelo agente da sessão (sem chave)', () => {
       'O arquivo é um objeto JSON'
     );
     expect(screen.queryByRole('region', { name: '1. Especificação' })).not.toBeInTheDocument();
+  });
+});
+
+describe('Criar o projeto (MV-6)', () => {
+  it('mostra as versões com o motivo, os passos, o pedido para o agente e a conferência dos arquivos', async () => {
+    const { container } = renderPage(fakeEngine().client);
+
+    const section = await screen.findByRole('region', { name: 'Criar o projeto' });
+    const versions = await within(section).findByRole('list', { name: 'Versões escolhidas' });
+    expect(versions).toHaveTextContent('.NET 10.0.15 (linha 10.0, lts, suporte até 2028-11-14): LTS ativa mais nova');
+    expect(versions).toHaveTextContent('Vite 8.3.8');
+    expect(within(section).getByRole('list', { name: 'Passos de criação' })).toHaveTextContent(
+      'Criar a API (backend): dotnet new webapi -n LojaNova.Api -o src/LojaNova.Api -f net10.0'
+    );
+    expect((within(section).getByLabelText('Pedido de criação para o agente') as HTMLTextAreaElement).value).toContain(
+      'spock_project_scaffold_prepare'
+    );
+    const checks = within(section).getByRole('list', { name: 'Conferência da criação' });
+    expect(checks).toHaveTextContent('Passou: frontend/.nvmrc fixa o Node 26.13.1');
+    expect(checks).toHaveTextContent('Falta: frontend/package.json fixa react e react-dom em 19.3.1, sem faixa');
+    expect(within(section).getByText('1 de 10')).toBeInTheDocument();
+    await expectNoA11yViolations(container);
+  });
+
+  it('diz o que impede a criação quando a stack não é suportada', async () => {
+    const unsupported = {
+      scaffold: {
+        ...scaffoldFixture.scaffold,
+        plan: {
+          ...scaffoldFixture.scaffold.plan,
+          supported: false,
+          problems: ['Angular (frontend) ainda não é criado pelo Spock.']
+        }
+      }
+    };
+    renderPage(fakeEngine({ scaffold: () => unsupported }).client);
+
+    expect(await screen.findByText('Ainda não dá para criar o projeto')).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'O que impede a criação' })).toHaveTextContent('Angular (frontend)');
   });
 });

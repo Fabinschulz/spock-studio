@@ -1,0 +1,290 @@
+{
+  "scaffold": {
+    "plan": {
+      "supported": true,
+      "problems": [],
+      "notes": [
+        "dados: PostgreSQL não é criado aqui; fica para o projeto seguir a arquitetura.",
+        "React: A fonte de React não publica data de fim de suporte por linha.",
+        "Vite: A fonte de Vite não publica data de fim de suporte por linha.",
+        "TypeScript fica na versão que o template do Vite traz: o catálogo ainda não tem a faixa que o typescript-eslint do template aceita, e a versão mais nova pode não ser aceita por ele."
+      ],
+      "projectName": "LojaNova",
+      "backend": true,
+      "frontend": true,
+      "technologies": [
+        {
+          "id": "dotnet",
+          "name": ".NET",
+          "cycle": "10.0",
+          "version": "10.0.15",
+          "channel": "lts",
+          "eol": "2028-11-14",
+          "language": "C# 14",
+          "reason": "LTS ativa mais nova, com suporte até 2028-11-14. Empata em fim de suporte com a 11.0 (STS); a LTS ganha porque é o caminho oficial para a próxima LTS.",
+          "source": "https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json",
+          "checkedAt": "2026-11-19T16:00:00+00:00"
+        },
+        {
+          "id": "node",
+          "name": "Node.js",
+          "cycle": "26",
+          "version": "26.13.1",
+          "channel": "lts",
+          "eol": "2029-04-30",
+          "language": null,
+          "reason": "LTS ativa mais nova, com suporte até 2029-04-30.",
+          "source": "https://github.com/nodejs/Release/blob/main/schedule.json",
+          "checkedAt": "2026-11-19T16:00:00+00:00"
+        },
+        {
+          "id": "react",
+          "name": "React",
+          "cycle": "19",
+          "version": "19.3.1",
+          "channel": "stable",
+          "eol": null,
+          "language": null,
+          "reason": "Linha mais nova: só a maior mais recente de React recebe correções garantidas.",
+          "source": "https://registry.npmjs.org/react",
+          "checkedAt": "2026-11-19T16:00:00+00:00"
+        },
+        {
+          "id": "vite",
+          "name": "Vite",
+          "cycle": "8",
+          "version": "8.3.8",
+          "channel": "stable",
+          "eol": null,
+          "language": null,
+          "reason": "Linha mais nova: só a maior mais recente de Vite recebe correções garantidas.",
+          "source": "https://registry.npmjs.org/vite",
+          "checkedAt": "2026-11-19T16:00:00+00:00"
+        }
+      ],
+      "steps": [
+        {
+          "id": "B1",
+          "part": "backend",
+          "title": "Criar a solução",
+          "directory": ".",
+          "command": "dotnet new sln -n LojaNova -o backend",
+          "file": null,
+          "content": null
+        },
+        {
+          "id": "B2",
+          "part": "backend",
+          "title": "Fixar o SDK",
+          "directory": "backend",
+          "command": "dotnet new globaljson --sdk-version 10.0.100 --roll-forward latestFeature",
+          "file": null,
+          "content": null
+        },
+        {
+          "id": "B3",
+          "part": "backend",
+          "title": "Criar a API",
+          "directory": "backend",
+          "command": "dotnet new webapi -n LojaNova.Api -o src/LojaNova.Api -f net10.0",
+          "file": null,
+          "content": null
+        },
+        {
+          "id": "B4",
+          "part": "backend",
+          "title": "Criar o projeto de testes",
+          "directory": "backend",
+          "command": "dotnet new xunit -n LojaNova.Api.Tests -o tests/LojaNova.Api.Tests -f net10.0",
+          "file": null,
+          "content": null
+        },
+        {
+          "id": "B5",
+          "part": "backend",
+          "title": "Ligar os testes à API",
+          "directory": "backend",
+          "command": "dotnet add tests/LojaNova.Api.Tests reference src/LojaNova.Api",
+          "file": null,
+          "content": null
+        },
+        {
+          "id": "B6",
+          "part": "backend",
+          "title": "Pôr os projetos na solução",
+          "directory": "backend",
+          "command": "dotnet sln add src/LojaNova.Api tests/LojaNova.Api.Tests",
+          "file": null,
+          "content": null
+        },
+        {
+          "id": "F1",
+          "part": "frontend",
+          "title": "Criar o frontend",
+          "directory": ".",
+          "command": "npm create vite@8 frontend -- --template react-ts",
+          "file": null,
+          "content": null
+        },
+        {
+          "id": "F2",
+          "part": "frontend",
+          "title": "Fixar o Node",
+          "directory": "frontend",
+          "command": null,
+          "file": ".nvmrc",
+          "content": "26.13.1\n"
+        },
+        {
+          "id": "F3",
+          "part": "frontend",
+          "title": "Instalar as dependências",
+          "directory": "frontend",
+          "command": "npm install",
+          "file": null,
+          "content": null
+        },
+        {
+          "id": "F4",
+          "part": "frontend",
+          "title": "Fixar o React",
+          "directory": "frontend",
+          "command": "npm install --save-exact react@19.3.1 react-dom@19.3.1",
+          "file": null,
+          "content": null
+        },
+        {
+          "id": "F5",
+          "part": "frontend",
+          "title": "Fixar o Vite",
+          "directory": "frontend",
+          "command": "npm install --save-exact --save-dev vite@8.3.8",
+          "file": null,
+          "content": null
+        },
+        {
+          "id": "R1",
+          "part": "registro",
+          "title": "Gravar o registro das versões",
+          "directory": ".",
+          "command": null,
+          "file": "spock-versions.json",
+          "content": "{\n  \"schemaVersion\": 1,\n  \"generatedBy\": \"Spock Studio\",\n  \"catalogGeneratedAt\": \"2026-11-19\",\n  \"technologies\": [\n    {\n      \"id\": \"dotnet\",\n      \"name\": \".NET\",\n      \"cycle\": \"10.0\",\n      \"version\": \"10.0.15\",\n      \"channel\": \"lts\",\n      \"eol\": \"2028-11-14\",\n      \"language\": \"C# 14\",\n      \"reason\": \"LTS ativa mais nova, com suporte até 2028-11-14. Empata em fim de suporte com a 11.0 (STS); a LTS ganha porque é o caminho oficial para a próxima LTS.\",\n      \"source\": \"https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json\",\n      \"checkedAt\": \"2026-11-19\"\n    },\n    {\n      \"id\": \"node\",\n      \"name\": \"Node.js\",\n      \"cycle\": \"26\",\n      \"version\": \"26.13.1\",\n      \"channel\": \"lts\",\n      \"eol\": \"2029-04-30\",\n      \"language\": null,\n      \"reason\": \"LTS ativa mais nova, com suporte até 2029-04-30.\",\n      \"source\": \"https://github.com/nodejs/Release/blob/main/schedule.json\",\n      \"checkedAt\": \"2026-11-19\"\n    },\n    {\n      \"id\": \"react\",\n      \"name\": \"React\",\n      \"cycle\": \"19\",\n      \"version\": \"19.3.1\",\n      \"channel\": \"stable\",\n      \"eol\": null,\n      \"language\": null,\n      \"reason\": \"Linha mais nova: só a maior mais recente de React recebe correções garantidas.\",\n      \"source\": \"https://registry.npmjs.org/react\",\n      \"checkedAt\": \"2026-11-19\"\n    },\n    {\n      \"id\": \"vite\",\n      \"name\": \"Vite\",\n      \"cycle\": \"8\",\n      \"version\": \"8.3.8\",\n      \"channel\": \"stable\",\n      \"eol\": null,\n      \"language\": null,\n      \"reason\": \"Linha mais nova: só a maior mais recente de Vite recebe correções garantidas.\",\n      \"source\": \"https://registry.npmjs.org/vite\",\n      \"checkedAt\": \"2026-11-19\"\n    }\n  ],\n  \"notes\": [\n    \"dados: PostgreSQL não é criado aqui; fica para o projeto seguir a arquitetura.\",\n    \"React: A fonte de React não publica data de fim de suporte por linha.\",\n    \"Vite: A fonte de Vite não publica data de fim de suporte por linha.\",\n    \"TypeScript fica na versão que o template do Vite traz: o catálogo ainda não tem a faixa que o typescript-eslint do template aceita, e a versão mais nova pode não ser aceita por ele.\"\n  ]\n}\n"
+        }
+      ],
+      "verification": [
+        {
+          "id": "V1",
+          "part": "backend",
+          "title": "Compilar o backend",
+          "directory": "backend",
+          "command": "dotnet build",
+          "file": null,
+          "content": null
+        },
+        {
+          "id": "V2",
+          "part": "backend",
+          "title": "Rodar os testes do backend",
+          "directory": "backend",
+          "command": "dotnet test",
+          "file": null,
+          "content": null
+        },
+        {
+          "id": "V3",
+          "part": "frontend",
+          "title": "Compilar o frontend",
+          "directory": "frontend",
+          "command": "npm run build",
+          "file": null,
+          "content": null
+        },
+        {
+          "id": "V4",
+          "part": "frontend",
+          "title": "Rodar o lint do frontend",
+          "directory": "frontend",
+          "command": "npm run lint",
+          "file": null,
+          "content": null
+        }
+      ],
+      "recordPath": "spock-versions.json",
+      "record": "{\n  \"schemaVersion\": 1,\n  \"generatedBy\": \"Spock Studio\",\n  \"catalogGeneratedAt\": \"2026-11-19\",\n  \"technologies\": [\n    {\n      \"id\": \"dotnet\",\n      \"name\": \".NET\",\n      \"cycle\": \"10.0\",\n      \"version\": \"10.0.15\",\n      \"channel\": \"lts\",\n      \"eol\": \"2028-11-14\",\n      \"language\": \"C# 14\",\n      \"reason\": \"LTS ativa mais nova, com suporte até 2028-11-14. Empata em fim de suporte com a 11.0 (STS); a LTS ganha porque é o caminho oficial para a próxima LTS.\",\n      \"source\": \"https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json\",\n      \"checkedAt\": \"2026-11-19\"\n    },\n    {\n      \"id\": \"node\",\n      \"name\": \"Node.js\",\n      \"cycle\": \"26\",\n      \"version\": \"26.13.1\",\n      \"channel\": \"lts\",\n      \"eol\": \"2029-04-30\",\n      \"language\": null,\n      \"reason\": \"LTS ativa mais nova, com suporte até 2029-04-30.\",\n      \"source\": \"https://github.com/nodejs/Release/blob/main/schedule.json\",\n      \"checkedAt\": \"2026-11-19\"\n    },\n    {\n      \"id\": \"react\",\n      \"name\": \"React\",\n      \"cycle\": \"19\",\n      \"version\": \"19.3.1\",\n      \"channel\": \"stable\",\n      \"eol\": null,\n      \"language\": null,\n      \"reason\": \"Linha mais nova: só a maior mais recente de React recebe correções garantidas.\",\n      \"source\": \"https://registry.npmjs.org/react\",\n      \"checkedAt\": \"2026-11-19\"\n    },\n    {\n      \"id\": \"vite\",\n      \"name\": \"Vite\",\n      \"cycle\": \"8\",\n      \"version\": \"8.3.8\",\n      \"channel\": \"stable\",\n      \"eol\": null,\n      \"language\": null,\n      \"reason\": \"Linha mais nova: só a maior mais recente de Vite recebe correções garantidas.\",\n      \"source\": \"https://registry.npmjs.org/vite\",\n      \"checkedAt\": \"2026-11-19\"\n    }\n  ],\n  \"notes\": [\n    \"dados: PostgreSQL não é criado aqui; fica para o projeto seguir a arquitetura.\",\n    \"React: A fonte de React não publica data de fim de suporte por linha.\",\n    \"Vite: A fonte de Vite não publica data de fim de suporte por linha.\",\n    \"TypeScript fica na versão que o template do Vite traz: o catálogo ainda não tem a faixa que o typescript-eslint do template aceita, e a versão mais nova pode não ser aceita por ele.\"\n  ]\n}\n"
+    },
+    "checks": [
+      {
+        "id": "sdk",
+        "part": "backend",
+        "label": "backend/global.json fixa o SDK 10.0.100 com rollForward latestFeature",
+        "passed": false,
+        "detail": "arquivo ausente"
+      },
+      {
+        "id": "api",
+        "part": "backend",
+        "label": "A API existe em backend/src/LojaNova.Api/LojaNova.Api.csproj, com o SDK Web e alvo net10.0",
+        "passed": false,
+        "detail": "projeto ausente"
+      },
+      {
+        "id": "tests",
+        "part": "backend",
+        "label": "O projeto de testes existe em backend/tests/LojaNova.Api.Tests/LojaNova.Api.Tests.csproj, com alvo net10.0 e referência à API",
+        "passed": false,
+        "detail": "projeto ausente"
+      },
+      {
+        "id": "solution",
+        "part": "backend",
+        "label": "A solução LojaNova em backend/ lista a API e os testes",
+        "passed": false,
+        "detail": "solução ausente"
+      },
+      {
+        "id": "node",
+        "part": "frontend",
+        "label": "frontend/.nvmrc fixa o Node 26.13.1",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "id": "react",
+        "part": "frontend",
+        "label": "frontend/package.json fixa react e react-dom em 19.3.1, sem faixa",
+        "passed": false,
+        "detail": "package.json ausente"
+      },
+      {
+        "id": "vite",
+        "part": "frontend",
+        "label": "frontend/package.json fixa o vite em 8.3.8, sem faixa",
+        "passed": false,
+        "detail": "package.json ausente"
+      },
+      {
+        "id": "scripts",
+        "part": "frontend",
+        "label": "frontend/package.json tem os scripts build e lint do template",
+        "passed": false,
+        "detail": null
+      },
+      {
+        "id": "lockfile",
+        "part": "frontend",
+        "label": "frontend/package-lock.json existe: as dependências foram instaladas",
+        "passed": false,
+        "detail": null
+      },
+      {
+        "id": "record",
+        "part": "registro",
+        "label": "spock-versions.json tem as versões, os motivos, as fontes e as datas do plano",
+        "passed": false,
+        "detail": "arquivo ausente ou inválido"
+      }
+    ],
+    "done": false
+  }
+}

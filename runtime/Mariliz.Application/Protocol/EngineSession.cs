@@ -21,6 +21,7 @@ using Mariliz.Application.Models;
 using Mariliz.Application.Timeline;
 using Mariliz.Application.Workflows;
 using Mariliz.Application.Workspace;
+using Mariliz.Application.Scaffold;
 
 namespace Mariliz.Application.Protocol;
 
@@ -57,6 +58,7 @@ public sealed class EngineSession
         McpInventoryService? mcp = null,
         DecisionService? decisions = null,
         ModernizationService? modernization = null,
+        ScaffoldService? scaffold = null,
         ReportService? reports = null,
         ProjectTimelineService? timeline = null,
         ProjectAuditService? audit = null,
@@ -94,6 +96,7 @@ public sealed class EngineSession
             management is null ? null : new ManagementRequestHandler(management, assistant, reports, investigation, portfolioAssistant),
             decisions is null ? null : new DecisionRequestHandler(decisions),
             modernization is null ? null : new ModernizationRequestHandler(modernization),
+            scaffold is null ? null : new ScaffoldRequestHandler(scaffold),
             timeline is null ? null : new TimelineRequestHandler(timeline),
             audit is null ? null : new AuditRequestHandler(audit),
             aiTools is null ? null : new AiToolRequestHandler(aiTools),

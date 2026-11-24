@@ -72,7 +72,8 @@ internal static class McpEntry
             var modernization = new ModernizationPlanTools(workspaces, new LocalProjectFilesFactory(), workingDirectory, options.Scope,
                 new FileModernizationApprovalStore(dataRoot), audit);
             var design = new ProjectDesignTools(workspaces, new LocalProjectFilesFactory(), workingDirectory, options.Scope, audit);
-            await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. assessment.Tools(), .. modernization.Tools(), .. design.Tools(), .. cloud.Tools(), .. iac.Tools()])
+            var scaffold = new ProjectScaffoldTools(workspaces, new LocalProjectFilesFactory(), workingDirectory, options.Scope, clock, audit);
+            await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. assessment.Tools(), .. modernization.Tools(), .. design.Tools(), .. scaffold.Tools(), .. cloud.Tools(), .. iac.Tools()])
                 .RunStdioAsync(ct);
         }
         catch (OperationCanceledException)
