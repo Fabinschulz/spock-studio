@@ -1,4 +1,4 @@
-import { formatEngineDate } from '@/features/integrations';
+import { formatEngineDate } from '@/shared/utils';
 import { useProjectSelectionContext } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 import { StatusChip, EmptyState, Page, ResourceView } from '@/shared/components';

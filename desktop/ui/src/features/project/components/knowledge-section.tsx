@@ -1,11 +1,12 @@
-import { errorMessage, type EngineClient } from '@/shared/api';
+import type { EngineClient } from '@/shared/api';
+import { useAsyncResource } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 import type { KnowledgeExternalSource, KnowledgeMemory, ProjectKnowledge } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { Link } from 'react-router';
 
-import { PageSection, LoadingState, ErrorState, Disclosure, StatusChip } from '@/shared/components';
+import { PageSection, Disclosure, ResourceView, StatusChip } from '@/shared/components';
 import styles from '../project-page.module.scss';
 import { readKnowledge } from '../service/project-api';
 
@@ -23,48 +24,31 @@ const INDEX_STATE_TEXT: Record<Exclude<ProjectKnowledge['indexState'], 'read'>, 
   failed: 'A inteligência local não respondeu à consulta do índice. Tente ler de novo.'
 };
 
-type State =
-  { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; knowledge: ProjectKnowledge };
-
 /** Só caminhos e tamanhos: o conteúdo dos arquivos não sai do motor. */
 export function KnowledgeSection({ client, projectId }: { client: EngineClient; projectId: string }) {
-  const [state, setState] = useState<State>({ status: 'loading' });
-  const [tick, setTick] = useState(0);
-  const reload = useCallback(() => setTick((current) => current + 1), []);
-
-  useEffect(() => {
-    let active = true;
-    readKnowledge(client, projectId).then(
-      (knowledge) => {
-        if (active) setState({ status: 'ready', knowledge });
-      },
-      (error: unknown) => {
-        if (active)
-          setState({
-            status: 'error',
-            message: errorMessage(error, 'Não foi possível ler o conhecimento do projeto.')
-          });
-      }
-    );
-    return () => {
-      active = false;
-    };
-  }, [client, projectId, tick]);
+  const knowledge = useAsyncResource(
+    useCallback(() => readKnowledge(client, projectId), [client, projectId]),
+    { keepPrevious: true }
+  );
 
   return (
     <PageSection
       title="Conhecimento do projeto"
       action={
-        state.status !== 'loading' ? (
-          <Button type="button" variant="outlined" size="small" onClick={reload}>
+        knowledge.status !== 'loading' ? (
+          <Button type="button" variant="outlined" size="small" onClick={knowledge.reload}>
             Ler de novo
           </Button>
         ) : null
       }
     >
-      {state.status === 'loading' ? <LoadingState>Lendo as fontes de conhecimento…</LoadingState> : null}
-      {state.status === 'error' ? <ErrorState onRetry={reload}>{state.message}</ErrorState> : null}
-      {state.status === 'ready' ? <KnowledgeContent knowledge={state.knowledge} /> : null}
+      <ResourceView
+        resource={knowledge}
+        loading="Lendo as fontes de conhecimento…"
+        fallbackError="Não foi possível ler o conhecimento do projeto."
+      >
+        {(value) => <KnowledgeContent knowledge={value} />}
+      </ResourceView>
     </PageSection>
   );
 }

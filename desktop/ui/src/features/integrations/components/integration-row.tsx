@@ -1,9 +1,9 @@
+import { formatEngineDate } from '@/shared/utils';
 import { ConfirmAction, StatusChip } from '@/shared/components';
 import type { Connector, ProjectIntegration, SyncExecution } from '@/shared/schema';
 import { Button, Checkbox } from '@mariliz/ui-kit';
 import { useId, useState } from 'react';
 
-import { formatEngineDate } from '../domain/format-date';
 import { CONNECTION_STATUS, SYNC_STATUS, itemsSummary, syncCounts } from '../domain/labels';
 import styles from '../integrations-page.module.scss';
 import type { ScopeChange } from '../service/integration-api';

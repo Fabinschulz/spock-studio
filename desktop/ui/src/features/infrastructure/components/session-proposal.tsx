@@ -1,5 +1,4 @@
-import { useReloadable } from '@/features/integrations';
-import { useCopyToClipboard } from '@/shared/hooks';
+import { useCopyToClipboard, useReloadable } from '@/shared/hooks';
 import type { IacBlueprint } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
 import { useCallback } from 'react';

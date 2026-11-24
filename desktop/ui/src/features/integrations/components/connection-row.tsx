@@ -1,9 +1,9 @@
+import { formatEngineDate } from '@/shared/utils';
 import { ConfirmAction, StatusChip, SuccessState } from '@/shared/components';
 import type { Connection, ConnectionReach, Connector } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
 import { useState, type FormEvent } from 'react';
 
-import { formatEngineDate } from '../domain/format-date';
 import { CONNECTION_STATUS } from '../domain/labels';
 import styles from '../integrations-page.module.scss';
 import { ConnectionReachSummary } from './connection-reach';

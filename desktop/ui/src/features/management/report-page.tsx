@@ -1,10 +1,10 @@
-import { createIntegrationApi, formatEngineDate, type IntegrationApi } from '@/features/integrations';
+import { createIntegrationApi, type IntegrationApi } from '@/features/integrations';
 import type { SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 import { EmptyState, NoProjectState, Page, PageSection, ResourceView } from '@/shared/components';
 import { useAsyncResource, useCopyToClipboard } from '@/shared/hooks';
 import type { Connector, ProjectReport } from '@/shared/schema';
-import { runKindLabel, runStateLabel } from '@/shared/utils';
+import { formatEngineDate, runKindLabel, runStateLabel } from '@/shared/utils';
 import { Button, SelectField } from '@mariliz/ui-kit';
 import { useCallback, useMemo, useState } from 'react';
 

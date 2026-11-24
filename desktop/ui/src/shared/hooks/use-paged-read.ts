@@ -76,9 +76,11 @@ export function usePagedRead<T, E>(
       (page) =>
         update((current) => {
           const seen = new Set(current.items.map(idOf));
+          // `extra` é do conjunto inteiro (fontes, resumo): a página mais nova tem o retrato mais atual dele.
           return {
             ...current,
             items: [...current.items, ...page.items.filter((item) => !seen.has(idOf(item)))],
+            extra: page.extra,
             next: page.next,
             loadingMore: false,
             moreError: null

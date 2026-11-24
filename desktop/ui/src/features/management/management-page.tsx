@@ -1,10 +1,5 @@
-import {
-  SYNC_STATUS,
-  createIntegrationApi,
-  formatEngineDate,
-  kindCounts,
-  type IntegrationApi
-} from '@/features/integrations';
+import { formatEngineDate } from '@/shared/utils';
+import { SYNC_STATUS, createIntegrationApi, kindCounts, type IntegrationApi } from '@/features/integrations';
 import type { SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 import { StatusChip, EmptyState, NoProjectState, Page, PageSection, ResourceView } from '@/shared/components';

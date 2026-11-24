@@ -1,5 +1,5 @@
+import { formatRecentDate } from '@/shared/utils';
 import { useId } from 'react';
-import { formatRecentDate } from '../domain/format-recent-date';
 import type { RecentProject } from '../domain/types';
 import { RecentProjectButton } from './recent-project-button';
 import styles from './recent-projects.module.scss';

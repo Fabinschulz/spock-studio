@@ -1,3 +1,4 @@
+import { useAction, useReloadable } from '@/shared/hooks';
 import type { SelectedProject } from '@/features/project-selection';
 import { errorMessage } from '@/shared/api';
 import { pathTo } from '@/shared/routing';
@@ -6,8 +7,6 @@ import { Button } from '@mariliz/ui-kit';
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 
-import { useAction } from '../hooks/use-action';
-import { useReloadable } from '../hooks/use-reloadable';
 import { ErrorState, LoadingState, PageSection, SuccessState } from '@/shared/components';
 import styles from '../integrations-page.module.scss';
 import type { IntegrationApi } from '../service/integration-api';

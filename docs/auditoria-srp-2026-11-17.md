@@ -99,10 +99,10 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
 | UI-26 | `proposal-guide.tsx:27`, `judge-states.ts:13`, `model-step.tsx:68` | Nomes de arquivo do Harness fixos na UI | DRY entre camadas | P2 | Projeto configurado antes do #132 vê caminhos `spock` que não existem | A descoberta ou o plano devolvem `naming` | Onda 2 (contrato) |
 | UI-20 | `infrastructure/domain/blueprint.ts:4,38-80` | Capacidade por provedor na camada de formulário | SRP entre camadas | P2 | Opções e dicas divergem da validação do motor | `iac.generate.options` no motor; a UI mantém só o mapeamento formulário ⇄ DTO | Onda 3 |
 | UI-19 | `generate-panel.tsx:46-557` | God Component (dados, três telas, quatro fluxos, cerca de 12 ternários por provedor) | SRP, OCP | P2 | Provedor novo mexe em todos os ternários | `useGenerateFlow` (reducer), tabela `PROVIDER_FIELDS`, subcomponentes | Onda 3, depois de UI-20 |
-| UI-18 | `generate-panel.tsx:48`, `iac-operations.tsx:35`, `state-panel.tsx:64` | Mesma busca e junção repetidas; erro vira "nada vinculado" | DRY | P2 | Sete chamadas ao abrir a página; mensagem errada quando a leitura falha | `useLinkedConnections` uma vez na página | Onda 2 |
-| UI-21 | `features/integrations/index.ts` | Hooks e formatadores compartilhados morando numa feature (26 imports de fora) | Regra de dependência | P2 | Acoplamento entre features | `shared/hooks/use-action.ts`, `useAsyncResource({ keepPrevious })`, `shared/utils/lib/format.ts` | Onda 2 |
-| UI-22 | `knowledge-section.tsx:26`, `harness-section.tsx:18`, `profile-section.tsx:16` | Efeitos de carga escritos à mão (UI-9 voltou) | DRY | P2 | Três máquinas de estado iguais | `useAsyncResource` e `ResourceView` | Onda 2 |
-| UI-23 | `runs/hooks/use-run-list.ts` | Quase cópia de `usePagedRead` | DRY | P2 | Duas paginações | Parâmetro `extra` em `usePagedRead` | Onda 2 |
+| UI-18 | `generate-panel.tsx:48`, `iac-operations.tsx:35`, `state-panel.tsx:64` | Mesma busca e junção repetidas; erro vira "nada vinculado" | DRY | P2 | Sete chamadas ao abrir a página; mensagem errada quando a leitura falha | `useLinkedConnections` uma vez na página | **Feito** (onda 2e) |
+| UI-21 | `features/integrations/index.ts` | Hooks e formatadores compartilhados morando numa feature (26 imports de fora) | Regra de dependência | P2 | Acoplamento entre features | `shared/hooks/use-action.ts`, `useAsyncResource({ keepPrevious })`, `shared/utils/lib/format.ts` | **Feito** (onda 2e) |
+| UI-22 | `knowledge-section.tsx:26`, `harness-section.tsx:18`, `profile-section.tsx:16` | Efeitos de carga escritos à mão (UI-9 voltou) | DRY | P2 | Três máquinas de estado iguais | `useAsyncResource` e `ResourceView` | **Feito** (onda 2e) |
+| UI-23 | `runs/hooks/use-run-list.ts` | Quase cópia de `usePagedRead` | DRY | P2 | Duas paginações | Parâmetro `extra` em `usePagedRead` | **Feito** (onda 2e) |
 | UI-24 | `execution/domain/run-timeline.ts:1-66` | Contrato do resultado do fluxo numa feature e sem fixture | Contract-first | P2 | Mudança no motor só aparece em produção | Mover para `shared/schema/workflow.ts` e criar fixture gerada pelo motor | Onda 2 |
 | UI-33 | `app/routes.tsx` | 19 cópias de `<RequiresHost>`; tudo carregado na partida | DRY | P3 | Chunk de 864 kB (UI-16 antigo) | Rota de layout e `lazy` | Onda 3 |
 | UI-27..31 | vários | `<p className={styles.error}>` sem `role="alert"`; `<details>` em vez de `Disclosure`; alternância de `ConfirmAction` repetida; fluxo de salvar arquivos revisados duplicado; recarga forçada em `DecisionsSection` | DRY, a11y | P3 | Ruído e acessibilidade | Ver o relatório da onda 3 | Onda 3 |
@@ -127,6 +127,7 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
 - **P2:**
   - corrigidos na onda 1: NET-S01, NET-S05, NET-S07, RS-4/RS-11a, RS-15 e RS-16;
   - corrigidos na onda 2b: RS-12, RS-13 e RS-14;
+  - corrigidos na onda 2e: UI-18, UI-21, UI-22 e UI-23;
   - abertos: os demais P2 das tabelas.
 - **P3:** onda 3 e itens a monitorar.
 
@@ -220,6 +221,19 @@ Uma onda por PR, sem empilhar PR. Cada onda começa por testes de caracterizaç�
 **Validação depois da onda 2c:**
 - UI: typecheck, eslint e prettier limpos; vitest com 877 testes aprovados.
 - Não validado: as quatro telas no app Tauri com um motor real; ficaram nos testes de componente e de hook.
+
+## 7e. Onda 2e executada
+
+| Item | Antes | Depois | Testes |
+|---|---|---|---|
+| UI-21 | `useAction`, `useReloadable` e `formatEngineDate` moravam em `integrations` e eram importados por 26 arquivos de outras features; `formatEngineDate` dependia de `project-selection` | `shared/hooks/use-action.ts`, `shared/hooks/use-reloadable.ts` e `shared/utils/lib/format-date.ts` (com `formatRecentDate` e `formatRecentDateTime`); `integrations` e `project-selection` deixam de exportar o que não é delas. `useReloadable` segue um hook próprio: mantém o último valor bom quando a releitura falha, o que o `keepPrevious` do `useAsyncResource` não faz | `use-action.test` e `use-reloadable.test` (antes não havia teste direto), `format-date.test` |
+| UI-22 | `KnowledgeSection`, `HarnessSection` e `ProfileSection` com a máquina de estados de leitura escrita à mão | As três usam `useAsyncResource` e `ResourceView`. O `useAsyncResource` ganhou `keepPrevious`: "Ler de novo" e "Conferir de novo" mantêm o conteúdo na tela até a nova leitura chegar, como antes. O "Atualizar perfil" continua sem pedir de novo ao motor | Teste novo do `keepPrevious`; os testes da tela Projeto passam sem mudança |
+| UI-23 | `useRunList` era quase uma cópia do `usePagedRead` | `useRunList` é uma camada fina sobre o `usePagedRead`, só com os nomes que a tela usa. O `usePagedRead` passou a ficar com o `extra` (resumo, fontes, categorias) da página mais nova, como o `useRunList` já fazia | `use-paged-read.test` confere o `extra` da página mais nova; os testes de Execuções passam sem mudança |
+| UI-18 | `GeneratePanel`, `StatePanel` e `IacOperations` liam vínculos e conexões cada um (sete chamadas ao abrir a página) e trocavam a falha de leitura por lista vazia: a tela mandava vincular uma conexão já vinculada | A página lê vínculos e conexões uma vez e passa `linked` aos três painéis (`domain/linked-connections.ts`); `null` vira o aviso de que não deu para ler, não "nada vinculado" | `infrastructure-page.test`: uma chamada a `cloud.links` e uma a `cloud.list`; vínculo ilegível mostra o aviso e não "Vincule uma conexão" |
+
+**Validação depois da onda 2e:**
+- UI: typecheck, eslint e prettier limpos; vitest com 887 testes aprovados.
+- Não validado: as telas no app Tauri com um motor real; ficaram nos testes de componente e de hook.
 
 ## 8. Arquivos grandes julgados coesos
 

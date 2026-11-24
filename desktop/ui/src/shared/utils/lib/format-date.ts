@@ -16,3 +16,9 @@ export function formatRecentDate(ms: number, now: number = Date.now()): string {
 export function formatRecentDateTime(ms: number, now: number = Date.now()): string {
   return `${formatRecentDate(ms, now)} · ${time.format(ms)}`;
 }
+
+/** Um valor que não é data aparece como veio, em vez de "Invalid Date". */
+export function formatEngineDate(iso: string, now: number = Date.now()): string {
+  const ms = Date.parse(iso);
+  return Number.isNaN(ms) ? iso : `${formatRecentDate(ms, now).toLowerCase()} às ${time.format(ms)}`;
+}

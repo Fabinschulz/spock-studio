@@ -1,10 +1,9 @@
-import { formatEngineDate } from '@/features/integrations';
 import type { EngineClient } from '@/shared/api';
 import { InlineNotice, ResourceView, StatusChip } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import { executionPath } from '@/shared/routing';
 import type { RunDetail, RunItem } from '@/shared/schema';
-import { actionStatusLabel, evalStatusLabel, runEffectLabel, runKindLabel } from '@/shared/utils';
+import { actionStatusLabel, evalStatusLabel, formatEngineDate, runEffectLabel, runKindLabel } from '@/shared/utils';
 import { Drawer } from '@mariliz/ui-kit';
 import { useCallback, type ReactNode } from 'react';
 import { Link } from 'react-router';

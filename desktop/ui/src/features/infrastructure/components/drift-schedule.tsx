@@ -1,4 +1,5 @@
-import { formatEngineDate, useAction } from '@/features/integrations';
+import { formatEngineDate } from '@/shared/utils';
+import { useAction } from '@/shared/hooks';
 import { Radio, StatusChip } from '@/shared/components';
 import type { IacDriftScheduleView } from '@/shared/schema';
 import { Button, Checkbox } from '@mariliz/ui-kit';

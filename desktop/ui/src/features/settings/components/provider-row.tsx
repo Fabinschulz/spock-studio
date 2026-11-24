@@ -1,4 +1,4 @@
-import { formatEngineDate } from '@/features/integrations';
+import { formatEngineDate } from '@/shared/utils';
 import { ConfirmAction, StatusChip } from '@/shared/components';
 import type { ProviderConnection } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';

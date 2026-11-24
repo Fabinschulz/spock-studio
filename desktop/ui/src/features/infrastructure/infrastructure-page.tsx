@@ -1,5 +1,5 @@
+import { useAction, useReloadable } from '@/shared/hooks';
 import { createCloudApi } from '@/features/cloud';
-import { useAction, useReloadable } from '@/features/integrations';
 import type { SelectedProject } from '@/features/project-selection';
 import { errorMessage, type EngineClient } from '@/shared/api';
 import { ErrorState, LoadingState, Page, PageSection, SuccessState } from '@/shared/components';
@@ -16,16 +16,22 @@ import { ProjectRuntime } from './components/project-runtime';
 import { RuntimePanel } from './components/runtime-panel';
 import styles from './infrastructure-page.module.scss';
 import { ENGINE_NAME } from './domain/labels';
+import { linkedConnections } from './domain/linked-connections';
 import { createIacApi } from './service/iac-api';
 
 export function InfrastructurePage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
   const api = useMemo(() => createIacApi(client), [client]);
   const cloud = useMemo(() => createCloudApi(client), [client]);
   const projectId = project?.projectId;
-  // A consulta não fala com a rede: só olha a pasta do Spock e pergunta a versão ao tofu e ao terraform da máquina.
+  // A consulta não fala com a rede: só olha a pasta do Spock e pergunta a versão ao tofu e ao terraform da máquina. As
+  // conexões vinculadas são lidas aqui uma vez para os três painéis (UI-18).
   const load = useCallback(async () => {
-    const [runtime, connections] = await Promise.all([api.status(projectId), cloud.connections().catch(() => null)]);
-    return { runtime, connections };
+    const [runtime, connections, links] = await Promise.all([
+      api.status(projectId),
+      cloud.connections().catch(() => null),
+      projectId ? cloud.links(projectId).catch(() => null) : Promise.resolve([])
+    ]);
+    return { runtime, connections, linked: linkedConnections(links, connections) };
   }, [api, cloud, projectId]);
   const hub = useReloadable(load);
   const action = useAction(hub.reload);
@@ -115,7 +121,13 @@ export function InfrastructurePage({ client, project }: { client: EngineClient; 
 
           {project ? (
             <PageSection title="Gerar infraestrutura">
-              <GeneratePanel key={`generate-${project.projectId}`} client={client} api={api} project={project} />
+              <GeneratePanel
+                key={`generate-${project.projectId}`}
+                client={client}
+                api={api}
+                project={project}
+                linked={hub.value.linked}
+              />
             </PageSection>
           ) : null}
 
@@ -123,9 +135,9 @@ export function InfrastructurePage({ client, project }: { client: EngineClient; 
             <PageSection title="State">
               <StatePanel
                 key={`state-${project.projectId}`}
-                client={client}
                 api={api}
                 project={project}
+                linked={hub.value.linked}
                 ready={hub.value.runtime.project?.selected != null}
               />
             </PageSection>
@@ -135,9 +147,9 @@ export function InfrastructurePage({ client, project }: { client: EngineClient; 
             <PageSection title="Validar e planejar">
               <IacOperations
                 key={project.projectId}
-                client={client}
                 api={api}
                 project={project}
+                linked={hub.value.linked}
                 ready={hub.value.runtime.project?.selected != null}
               />
             </PageSection>

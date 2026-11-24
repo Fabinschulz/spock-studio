@@ -23,6 +23,7 @@ import type { EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
 import { expectNoA11yViolations } from '@/test/a11y';
 
+import { LINKED_UNREADABLE } from './domain/linked-connections';
 import { InfrastructurePage } from './infrastructure-page';
 
 const demo = { projectId: 'p-0123456789ab', displayName: 'loja-api', displayPath: '~\\loja-api' };
@@ -583,4 +584,26 @@ describe('Infraestrutura', () => {
     });
     expect(methods(engine.calls)).not.toContain('iac.generate.save');
   }, 20_000);
+});
+
+describe('Infraestrutura · conexões vinculadas (UI-18)', () => {
+  it('a página lê as conexões e os vínculos uma vez para os três painéis', async () => {
+    const engine = fakeEngine(ready);
+    renderPage(engine.client);
+
+    expect(await screen.findByRole('button', { name: 'Validar' })).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Conta e rede' })).toBeInTheDocument();
+    expect(await screen.findByLabelText('Raízes e onde vive o state')).toBeInTheDocument();
+
+    expect(methods(engine.calls).filter((method) => method === 'cloud.links')).toHaveLength(1);
+    expect(methods(engine.calls).filter((method) => method === 'cloud.list')).toHaveLength(1);
+  });
+
+  it('vínculos que não puderam ser lidos não viram "nada vinculado"', async () => {
+    const engine = fakeEngine(ready, { 'cloud.links': undefined });
+    renderPage(engine.client);
+
+    expect((await screen.findAllByText(LINKED_UNREADABLE)).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Vincule uma conexão/)).not.toBeInTheDocument();
+  });
 });

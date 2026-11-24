@@ -1,7 +1,6 @@
-import { createCloudApi } from '@/features/cloud';
-import { useAction, useReloadable } from '@/features/integrations';
+import { useAction, useReloadable } from '@/shared/hooks';
 import type { SelectedProject } from '@/features/project-selection';
-import { errorMessage, type EngineClient } from '@/shared/api';
+import { errorMessage } from '@/shared/api';
 import {
   ConfirmAction,
   DiffView,
@@ -12,18 +11,20 @@ import {
   SuccessState
 } from '@/shared/components';
 import { pathTo } from '@/shared/routing';
-import type { IacBootstrapPlan, IacStateRead, IacStateRoot } from '@/shared/schema';
+import type { CloudConnection, IacBootstrapPlan, IacStateRead, IacStateRoot } from '@/shared/schema';
 import { Button, Checkbox, TextField } from '@mariliz/ui-kit';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Link } from 'react-router';
 
 import styles from '../infrastructure-page.module.scss';
+import { LINKED_UNREADABLE } from '../domain/linked-connections';
 import type { BootstrapInput, IacApi } from '../service/iac-api';
 
 interface StatePanelProps {
-  client: EngineClient;
   api: IacApi;
   project: SelectedProject;
+  /** Lidas uma vez pela página; `null` quando a leitura falhou. */
+  linked: CloudConnection[] | null;
   /** Sem ferramenta pronta, consultar o state fica desligado; ler a configuração e o bootstrap não precisam dela. */
   ready: boolean;
 }
@@ -59,20 +60,9 @@ const FIELDS: Record<Provider, { name: string; label: string; hint: string }[]> 
 };
 
 /** Onde vive o state de cada raiz, os riscos, a consulta (só endereços) e o bootstrap do bucket no formato do modelo. */
-export function StatePanel({ client, api, project, ready }: StatePanelProps) {
+export function StatePanel({ api, project, linked, ready }: StatePanelProps) {
   const projectId = project.projectId;
-  const cloud = useMemo(() => createCloudApi(client), [client]);
-  const load = useCallback(async () => {
-    const [state, links, connections] = await Promise.all([
-      api.state(projectId),
-      cloud.links(projectId).catch(() => []),
-      cloud.connections().catch(() => [])
-    ]);
-    const linked = links
-      .map((link) => connections.find((connection) => connection.id === link.connectionId))
-      .filter((connection) => connection !== undefined);
-    return { ...state, linked };
-  }, [api, cloud, projectId]);
+  const load = useCallback(() => api.state(projectId), [api, projectId]);
   const report = useReloadable(load);
   const action = useAction(report.reload);
   const [read, setRead] = useState<(IacStateRead & { folder: string }) | null>(null);
@@ -89,8 +79,8 @@ export function StatePanel({ client, api, project, ready }: StatePanelProps) {
       <ErrorState onRetry={report.reload}>{errorMessage(report.error, 'Não foi possível ler o state.')}</ErrorState>
     );
 
-  const { roots, recommendation, linked } = report.value;
-  const connection = provider ? linked.find((candidate) => candidate.provider === provider) : undefined;
+  const { roots, recommendation } = report.value;
+  const connection = provider ? linked?.find((candidate) => candidate.provider === provider) : undefined;
   const input = (): BootstrapInput => ({
     projectId,
     provider: provider!,
@@ -243,6 +233,7 @@ export function StatePanel({ client, api, project, ready }: StatePanelProps) {
               />
             ))}
           </fieldset>
+          {provider && linked === null ? <p className={styles.hint}>{LINKED_UNREADABLE}</p> : null}
           {connection ? (
             <Checkbox
               label={`Preencher conta, região e perfil pela conexão ${connection.name}`}

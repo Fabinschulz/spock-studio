@@ -1,9 +1,8 @@
-import { formatEngineDate } from '@/features/integrations';
 import type { SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 import { EmptyState, ErrorState, LoadingState, Page, PageSection, StatusChip } from '@/shared/components';
 import type { RunItem } from '@/shared/schema';
-import { runEffectLabel, runKindLabel } from '@/shared/utils';
+import { formatEngineDate, runEffectLabel, runKindLabel } from '@/shared/utils';
 import { Button, SelectField } from '@mariliz/ui-kit';
 import { useState } from 'react';
 

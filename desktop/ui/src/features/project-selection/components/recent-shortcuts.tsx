@@ -1,6 +1,6 @@
+import { formatRecentDateTime } from '@/shared/utils';
 import { useId } from 'react';
 import { useProjectSelectionContext } from '../context/project-selection-context';
-import { formatRecentDateTime } from '../domain/format-recent-date';
 import { RecentProjectButton } from './recent-project-button';
 import styles from './recent-shortcuts.module.scss';
 

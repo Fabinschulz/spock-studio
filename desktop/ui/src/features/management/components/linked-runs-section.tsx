@@ -1,9 +1,8 @@
-import { formatEngineDate } from '@/features/integrations';
 import { EmptyState, PageSection, ResourceView, StatusChip, type Tone } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 import type { LinkedItem } from '@/shared/schema';
-import { runKindLabel, runStateLabel } from '@/shared/utils';
+import { formatEngineDate, runKindLabel, runStateLabel } from '@/shared/utils';
 import { useCallback } from 'react';
 import { Link } from 'react-router';
 

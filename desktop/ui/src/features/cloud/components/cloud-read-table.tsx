@@ -1,4 +1,4 @@
-import { formatEngineDate } from '@/features/integrations';
+import { formatEngineDate } from '@/shared/utils';
 import type { CloudProvider, CloudRead } from '@/shared/schema';
 
 import styles from '../cloud-page.module.scss';

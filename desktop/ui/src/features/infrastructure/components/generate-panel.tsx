@@ -1,12 +1,12 @@
+import { useAction } from '@/shared/hooks';
 import { createCloudApi } from '@/features/cloud';
-import { useAction, useReloadable } from '@/features/integrations';
 import type { SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 import { ConfirmAction, DiffView, Radio, StatusChip, SuccessState } from '@/shared/components';
 import { pathTo } from '@/shared/routing';
-import type { IacArchitectDraft, IacCostEstimate, IacGeneratePlan } from '@/shared/schema';
+import type { CloudConnection, IacArchitectDraft, IacCostEstimate, IacGeneratePlan } from '@/shared/schema';
 import { Button, Checkbox, TextField } from '@mariliz/ui-kit';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 
 import styles from '../infrastructure-page.module.scss';
@@ -24,6 +24,7 @@ import {
   type BlueprintForm,
   type DiscoveredVpc
 } from '../domain/blueprint';
+import { LINKED_UNREADABLE } from '../domain/linked-connections';
 import type { IacApi } from '../service/iac-api';
 import { CostEstimateView } from './cost-estimate';
 import { SessionProposal } from './session-proposal';
@@ -39,25 +40,17 @@ interface GeneratePanelProps {
   client: EngineClient;
   api: IacApi;
   project: SelectedProject;
+  /** Lidas uma vez pela página; `null` quando a leitura falhou. */
+  linked: CloudConnection[] | null;
 }
 
 /**
  * Arquitetura e configuração: a IA propõe componentes (opcional), a pessoa completa os fatos da conta, o motor confere e
  * gera os arquivos no formato do modelo, e só o diff aprovado vai para o projeto. Nada é criado na nuvem aqui.
  */
-export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
+export function GeneratePanel({ client, api, project, linked }: GeneratePanelProps) {
   const projectId = project.projectId;
   const cloud = useMemo(() => createCloudApi(client), [client]);
-  const loadConnection = useCallback(async () => {
-    const [links, connections] = await Promise.all([
-      cloud.links(projectId).catch(() => []),
-      cloud.connections().catch(() => [])
-    ]);
-    return links
-      .map((link) => connections.find((connection) => connection.id === link.connectionId))
-      .filter((connection) => connection !== undefined);
-  }, [cloud, projectId]);
-  const linked = useReloadable(loadConnection);
   const action = useAction(NOTHING);
   const [form, setForm] = useState<BlueprintForm>(EMPTY_FORM);
   const [need, setNeed] = useState('');
@@ -69,7 +62,7 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
   const [estimate, setEstimate] = useState<IacCostEstimate | null>(null);
 
   // A conexão vinculada da mesma nuvem do desenho; a estimativa de custo e a leitura de VPCs são só da AWS.
-  const connection = (linked.value ?? []).find((candidate) => candidate.provider === form.provider) ?? null;
+  const connection = (linked ?? []).find((candidate) => candidate.provider === form.provider) ?? null;
   const aws = form.provider === 'aws';
   const providerLabel = PROVIDER_DEFAULTS[form.provider].label;
   const set = <K extends keyof BlueprintForm>(key: K, value: BlueprintForm[K]) =>
@@ -155,6 +148,8 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
                   Estimar o custo com os preços da AWS
                 </Button>
               </div>
+            ) : linked === null ? (
+              <p className={styles.hint}>{LINKED_UNREADABLE}</p>
             ) : (
               <p className={styles.hint}>
                 Para estimar o custo, vincule uma conexão AWS ao projeto em{' '}
@@ -347,6 +342,8 @@ export function GeneratePanel({ client, api, project }: GeneratePanelProps) {
               </Button>
             ) : null}
           </div>
+        ) : linked === null ? (
+          <p className={styles.hint}>{LINKED_UNREADABLE}</p>
         ) : (
           <p className={styles.hint}>
             Vincule uma conexão {providerLabel} ao projeto em <Link to={pathTo('cloud')}>Conexões cloud</Link> para
