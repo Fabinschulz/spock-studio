@@ -43,6 +43,26 @@ describe('useAsyncResource', () => {
     expect(result.current).toBe(settled);
   });
 
+  it('com keepPrevious, ler de novo mantém o valor anterior até o novo chegar; trocar a leitura não', async () => {
+    let release: (value: string) => void = () => undefined;
+    const load = vi
+      .fn<() => Promise<string>>()
+      .mockResolvedValueOnce('primeiro')
+      .mockImplementationOnce(() => new Promise<string>((resolve) => (release = resolve)));
+    const { result, rerender } = renderHook(({ read }) => useAsyncResource(read, { keepPrevious: true }), {
+      initialProps: { read: load as () => Promise<string> }
+    });
+    await waitFor(() => expect(result.current).toMatchObject({ status: 'ready', value: 'primeiro' }));
+
+    act(() => result.current.reload?.());
+    expect(result.current).toMatchObject({ status: 'ready', value: 'primeiro' });
+    act(() => release('segundo'));
+    await waitFor(() => expect(result.current).toMatchObject({ status: 'ready', value: 'segundo' }));
+
+    rerender({ read: () => new Promise<string>(() => undefined) });
+    expect(result.current).toMatchObject({ status: 'loading' });
+  });
+
   it('trocar a leitura volta a carregar e descarta a que ficou para trás', async () => {
     let releaseSlow: (value: string) => void = () => undefined;
     const slow = () => new Promise<string>((resolve) => (releaseSlow = resolve));

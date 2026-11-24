@@ -1,54 +1,38 @@
-import { formatEngineDate } from '@/features/integrations';
+import { formatEngineDate } from '@/shared/utils';
 import { errorMessage, type EngineClient } from '@/shared/api';
 import { pathTo } from '@/shared/routing';
 import type { Compatibility, ProfileResult, TechnologyProfile } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Link } from 'react-router';
 
 import { CONFIDENCE_LABEL, changeText, toolKindLabel } from '../domain/profile-labels';
-import { PageSection, LoadingState, ErrorState, Disclosure } from '@/shared/components';
+import { PageSection, ErrorState, Disclosure, ResourceView } from '@/shared/components';
+import { useAsyncResource } from '@/shared/hooks';
 import styles from '../project-page.module.scss';
 import { readProfile, refreshProfile } from '../service/project-api';
 
 const HISTORY_SHOWN = 10;
 
-type State = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; result: ProfileResult };
-
 /** Na primeira visita o motor cria o perfil (a análise só lê o projeto). */
 export function ProfileSection({ client, projectId }: { client: EngineClient; projectId: string }) {
-  const [state, setState] = useState<State>({ status: 'loading' });
+  const read = useAsyncResource(
+    useCallback(async () => {
+      const result = await readProfile(client, projectId);
+      return result.profile ? result : refreshProfile(client, projectId);
+    }, [client, projectId])
+  );
+  // O "Atualizar perfil" já traz o perfil novo: ele vale sobre a leitura, sem pedir de novo ao motor.
+  const [refreshed, setRefreshed] = useState<ProfileResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
-  const [attempt, setAttempt] = useState(0);
-
-  const retry = () => {
-    setState({ status: 'loading' });
-    setAttempt((current) => current + 1);
-  };
-
-  useEffect(() => {
-    let active = true;
-    readProfile(client, projectId)
-      .then((result) => (result.profile ? result : refreshProfile(client, projectId)))
-      .then(
-        (result) => {
-          if (active) setState({ status: 'ready', result });
-        },
-        (error: unknown) => {
-          if (active) setState({ status: 'error', message: errorMessage(error, 'Não foi possível montar o perfil.') });
-        }
-      );
-    return () => {
-      active = false;
-    };
-  }, [client, projectId, attempt]);
+  const profile = refreshed && read.status === 'ready' ? { ...read, value: refreshed } : read;
 
   const refresh = async () => {
     setBusy(true);
     setRefreshError(null);
     try {
-      setState({ status: 'ready', result: await refreshProfile(client, projectId) });
+      setRefreshed(await refreshProfile(client, projectId));
     } catch (error) {
       setRefreshError(errorMessage(error, 'Não foi possível atualizar o perfil.'));
     } finally {
@@ -60,19 +44,25 @@ export function ProfileSection({ client, projectId }: { client: EngineClient; pr
     <PageSection
       title="Perfil tecnológico"
       action={
-        state.status === 'ready' ? (
+        profile.status === 'ready' ? (
           <Button type="button" variant="outlined" size="small" disabled={busy} onClick={() => void refresh()}>
             {busy ? 'Atualizando…' : 'Atualizar perfil'}
           </Button>
         ) : null
       }
     >
-      {state.status === 'loading' ? <LoadingState>Montando o perfil do projeto…</LoadingState> : null}
-      {state.status === 'error' ? <ErrorState onRetry={retry}>{state.message}</ErrorState> : null}
       {refreshError ? <ErrorState onRetry={() => void refresh()}>{refreshError}</ErrorState> : null}
-      {state.status === 'ready' && state.result.profile ? (
-        <ProfileContent profile={state.result.profile} compatibility={state.result.compatibility ?? null} />
-      ) : null}
+      <ResourceView
+        resource={profile}
+        loading="Montando o perfil do projeto…"
+        fallbackError="Não foi possível montar o perfil."
+      >
+        {(result) =>
+          result.profile ? (
+            <ProfileContent profile={result.profile} compatibility={result.compatibility ?? null} />
+          ) : null
+        }
+      </ResourceView>
     </PageSection>
   );
 }

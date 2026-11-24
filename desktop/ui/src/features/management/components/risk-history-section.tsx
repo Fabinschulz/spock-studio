@@ -1,4 +1,4 @@
-import { formatEngineDate } from '@/features/integrations';
+import { formatEngineDate } from '@/shared/utils';
 import { Disclosure, EmptyState, PageSection, ResourceView, StatusChip } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import type { ProjectRiskHistory, RiskTrail } from '@/shared/schema';

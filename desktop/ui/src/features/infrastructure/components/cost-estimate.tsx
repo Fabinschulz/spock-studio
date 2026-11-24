@@ -1,4 +1,4 @@
-import { formatEngineDate } from '@/features/integrations';
+import { formatEngineDate } from '@/shared/utils';
 import { StatusChip } from '@/shared/components';
 import type { IacCostEstimate, IacCostLine } from '@/shared/schema';
 

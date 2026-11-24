@@ -11,9 +11,10 @@ const LOADING = { status: 'loading' } as const;
 
 /**
  * Quem chama estabiliza `load` (useCallback ou useMemo): trocá-lo descarta a leitura em andamento e volta a `loading`,
- * sem mostrar o resultado da anterior.
+ * sem mostrar o resultado da anterior. Com `keepPrevious`, um `reload` do mesmo `load` deixa o resultado anterior na tela
+ * até o novo chegar, como um botão "Ler de novo" espera.
  */
-export function useAsyncResource<T>(load: () => Promise<T>): Resource<T> {
+export function useAsyncResource<T>(load: () => Promise<T>, { keepPrevious = false } = {}): Resource<T> {
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<{
     load: () => Promise<T>;
@@ -37,6 +38,7 @@ export function useAsyncResource<T>(load: () => Promise<T>): Resource<T> {
   }, [load, attempt]);
 
   const reload = useCallback(() => setAttempt((current) => current + 1), []);
-  const outcome = state?.load === load && state.attempt === attempt ? state.outcome : LOADING;
+  const sameLoad = state?.load === load;
+  const outcome = sameLoad && (state.attempt === attempt || keepPrevious) ? state.outcome : LOADING;
   return useMemo(() => ({ ...outcome, reload }), [outcome, reload]);
 }

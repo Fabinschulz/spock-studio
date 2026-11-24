@@ -1,10 +1,11 @@
 import { componentRequestState, type ComponentRequestItem } from '@/features/configure-project';
-import { errorMessage, type EngineClient } from '@/shared/api';
-import { StatusChip, PageSection, LoadingState, ErrorState } from '@/shared/components';
+import type { EngineClient } from '@/shared/api';
+import { StatusChip, PageSection, ResourceView } from '@/shared/components';
+import { useAsyncResource } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 import type { HarnessStatus } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { Link, useNavigate } from 'react-router';
 
 import { HARNESS_STATE } from '../domain/harness-state';
@@ -15,46 +16,34 @@ const STATE = HARNESS_STATE;
 
 const KIND_LABEL: Record<string, string> = { agent: 'agente', skill: 'skill', rule: 'regra', hook: 'hook' };
 
-type State = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; harness: HarnessStatus };
-
 /**
  * Só leitura: mudar componentes é pela jornada Configurar, que planeja, mostra a diferença, pede aprovação e permite
  * reverter.
  */
 export function HarnessSection({ client, projectId }: { client: EngineClient; projectId: string }) {
-  const [state, setState] = useState<State>({ status: 'loading' });
-  const [tick, setTick] = useState(0);
-  const reload = useCallback(() => setTick((current) => current + 1), []);
-
-  useEffect(() => {
-    let active = true;
-    readHarness(client, projectId).then(
-      (harness) => {
-        if (active) setState({ status: 'ready', harness });
-      },
-      (error: unknown) => {
-        if (active) setState({ status: 'error', message: errorMessage(error, 'Não foi possível conferir o Harness.') });
-      }
-    );
-    return () => {
-      active = false;
-    };
-  }, [client, projectId, tick]);
+  const harness = useAsyncResource(
+    useCallback(() => readHarness(client, projectId), [client, projectId]),
+    { keepPrevious: true }
+  );
 
   return (
     <PageSection
       title="Harness aplicado"
       action={
-        state.status !== 'loading' ? (
-          <Button type="button" variant="outlined" size="small" onClick={reload}>
+        harness.status !== 'loading' ? (
+          <Button type="button" variant="outlined" size="small" onClick={harness.reload}>
             Conferir de novo
           </Button>
         ) : null
       }
     >
-      {state.status === 'loading' ? <LoadingState>Conferindo o Harness…</LoadingState> : null}
-      {state.status === 'error' ? <ErrorState onRetry={reload}>{state.message}</ErrorState> : null}
-      {state.status === 'ready' ? <HarnessContent harness={state.harness} /> : null}
+      <ResourceView
+        resource={harness}
+        loading="Conferindo o Harness…"
+        fallbackError="Não foi possível conferir o Harness."
+      >
+        {(value) => <HarnessContent harness={value} />}
+      </ResourceView>
     </PageSection>
   );
 }

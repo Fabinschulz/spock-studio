@@ -26,7 +26,7 @@ describe('usePagedRead', () => {
       cuts.push(before);
       return before === null
         ? { items: [{ id: 'a' }, { id: 'b' }], next: 'b', extra: 1 }
-        : { items: [{ id: 'b' }, { id: 'c' }], next: null, extra: 1 };
+        : { items: [{ id: 'b' }, { id: 'c' }], next: null, extra: 2 };
     };
     const { result } = renderHook(() => usePagedRead(read, idOf, messages));
 
@@ -40,6 +40,8 @@ describe('usePagedRead', () => {
     expect(cuts).toEqual([null, 'b']);
     const state = result.current.state;
     expect(state.status === 'ready' && state.next).toBeNull();
+    // O resumo do conjunto vem da página mais nova.
+    expect(state.status === 'ready' && state.extra).toBe(2);
   });
 
   it('uma página que chega depois de a leitura mudar não aparece sob a leitura nova', async () => {

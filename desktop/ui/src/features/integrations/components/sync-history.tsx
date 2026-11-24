@@ -1,9 +1,9 @@
+import { formatEngineDate } from '@/shared/utils';
 import { errorMessage } from '@/shared/api';
 import { StatusChip } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import type { SyncExecution } from '@/shared/schema';
 
-import { formatEngineDate } from '../domain/format-date';
 import { SYNC_STATUS, syncCounts } from '../domain/labels';
 import styles from '../integrations-page.module.scss';
 

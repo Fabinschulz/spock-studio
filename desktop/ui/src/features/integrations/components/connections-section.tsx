@@ -1,8 +1,8 @@
+import { useAction } from '@/shared/hooks';
 import type { Connection, ConnectionReach, IntegrationCatalog } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
-import { useAction } from '../hooks/use-action';
 import { EmptyState, ErrorState, PageSection, SuccessState } from '@/shared/components';
 import styles from '../integrations-page.module.scss';
 import type { IntegrationApi } from '../service/integration-api';

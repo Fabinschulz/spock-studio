@@ -1,11 +1,10 @@
 import { FolderIcon } from '@/shared/components/ui';
 import { pathTo } from '@/shared/routing';
-import { cn } from '@/shared/utils';
+import { cn, formatRecentDate } from '@/shared/utils';
 import { Button, DownIcon } from '@mariliz/ui-kit';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useProjectSelectionContext } from '../context/project-selection-context';
-import { formatRecentDate } from '../domain/format-recent-date';
 import { RecentProjectButton } from './recent-project-button';
 import styles from './project-switcher.module.scss';
 

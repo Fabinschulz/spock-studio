@@ -1,4 +1,4 @@
-import { useAction, useReloadable } from '@/features/integrations';
+import { useAction, useReloadable } from '@/shared/hooks';
 import type { SelectedProject } from '@/features/project-selection';
 import { errorMessage, type EngineClient } from '@/shared/api';
 import { ErrorState, LoadingState, Page, PageSection, SuccessState } from '@/shared/components';

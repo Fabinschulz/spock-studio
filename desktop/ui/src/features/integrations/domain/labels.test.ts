@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import { githubConnection, syncedIntegration } from '@/test/fake-integration-engine';
 
-import { formatEngineDate } from './format-date';
 import { impactText, itemsSummary, kindCounts, syncCounts } from './labels';
 
 const sync = syncedIntegration.lastSync!;
@@ -46,13 +45,5 @@ describe('rótulos da central de integrações', () => {
     const empty = { total: 0, byKind: {}, byStatusCategory: {}, lastSyncedAt: null };
     expect(itemsSummary({ ...syncedIntegration, items: empty, lastSync: null }, github)).toBe('Ainda não sincronizada');
     expect(itemsSummary({ ...syncedIntegration, items: empty }, github)).toBe('Nenhum item no recorte');
-  });
-
-  it('escreve a data do motor para o meio de uma frase e não inventa data para texto que não é data', () => {
-    const now = new Date(2026, 10, 10, 18, 0).getTime();
-    expect(formatEngineDate(new Date(2026, 10, 10, 9, 5).toISOString(), now)).toBe('hoje às 09:05');
-    expect(formatEngineDate(new Date(2026, 10, 9, 16, 20).toISOString(), now)).toBe('ontem às 16:20');
-    expect(formatEngineDate(new Date(2026, 9, 23, 10, 15).toISOString(), now)).toBe('23/10/2026 às 10:15');
-    expect(formatEngineDate('sem data', now)).toBe('sem data');
   });
 });

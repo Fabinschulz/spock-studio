@@ -1,6 +1,7 @@
-import { errorMessage, type EngineClient } from '@/shared/api';
+import type { EngineClient } from '@/shared/api';
+import { usePagedRead } from '@/shared/hooks';
 import type { RunItem, RunList } from '@/shared/schema';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { listRuns, type RunFilters } from '../service/runs-api';
 
@@ -16,82 +17,40 @@ export type RunListState =
       moreError: string | null;
     };
 
-type Ready = Extract<RunListState, { status: 'ready' }>;
+const MESSAGES = {
+  failure: 'Não foi possível ler as execuções.',
+  more: 'Não foi possível carregar mais execuções.'
+};
 
-const LOADING: RunListState = { status: 'loading' };
+const idOf = (run: RunItem) => run.runId;
 
 /**
- * Cada leitura é guardada com a chave dos filtros que a pediu: uma página que chega depois da troca de filtro não é
- * gravada, para nunca aparecer sob um filtro novo.
+ * A paginação e o descarte da página que chega depois da troca de filtro são do `usePagedRead`; aqui só os nomes que a
+ * tela de execuções usa.
  */
 export function useRunList(client: EngineClient, filters: RunFilters) {
   const { projectId, kind, state } = filters;
-  const [version, setVersion] = useState(0);
-  const [result, setResult] = useState<{ key: string; value: RunListState } | null>(null);
-  const key = `${projectId ?? ''}|${kind ?? ''}|${state ?? ''}|${version}`;
+  const read = useCallback(
+    async (before: string | null) => {
+      const page = await listRuns(client, { projectId, kind, state }, before);
+      return { items: page.runs, next: page.nextCursor, extra: page.summary };
+    },
+    [client, projectId, kind, state]
+  );
+  const paged = usePagedRead(read, idOf, MESSAGES);
 
-  useEffect(() => {
-    let active = true;
-    listRuns(client, { projectId, kind, state }, null).then(
-      (page) => {
-        if (!active) return;
-        setResult({
-          key,
-          value: {
-            status: 'ready',
-            runs: page.runs,
-            summary: page.summary,
-            nextCursor: page.nextCursor,
-            loadingMore: false,
-            moreError: null
-          }
-        });
-      },
-      (error: unknown) => {
-        if (!active) return;
-        setResult({
-          key,
-          value: { status: 'error', message: errorMessage(error, 'Não foi possível ler as execuções.') }
-        });
-      }
-    );
-    return () => {
-      active = false;
+  const value = useMemo<RunListState>(() => {
+    const current = paged.state;
+    if (current.status !== 'ready') return current;
+    return {
+      status: 'ready',
+      runs: current.items,
+      summary: current.extra,
+      nextCursor: current.next,
+      loadingMore: current.loadingMore,
+      moreError: current.moreError
     };
-  }, [client, projectId, kind, state, key]);
+  }, [paged.state]);
 
-  const value = useMemo<RunListState>(() => (result?.key === key ? result.value : LOADING), [result, key]);
-
-  const loadMore = useCallback(() => {
-    if (value.status !== 'ready' || value.nextCursor === null || value.loadingMore) return;
-    const { nextCursor } = value;
-    // Só a leitura que ainda é a atual muda: se o filtro trocou no meio do caminho, a página velha é descartada.
-    const update = (change: (current: Ready) => Ready) =>
-      setResult((previous) =>
-        previous?.key === key && previous.value.status === 'ready' ? { key, value: change(previous.value) } : previous
-      );
-
-    update((current) => ({ ...current, loadingMore: true, moreError: null }));
-    listRuns(client, { projectId, kind, state }, nextCursor).then(
-      (page) =>
-        update((current) => ({
-          status: 'ready',
-          runs: [...current.runs, ...page.runs],
-          summary: page.summary,
-          nextCursor: page.nextCursor,
-          loadingMore: false,
-          moreError: null
-        })),
-      (error: unknown) =>
-        update((current) => ({
-          ...current,
-          loadingMore: false,
-          moreError: errorMessage(error, 'Não foi possível carregar mais execuções.')
-        }))
-    );
-  }, [client, projectId, kind, state, key, value]);
-
-  const reload = useCallback(() => setVersion((n) => n + 1), []);
-
-  return { state: value, loadMore, reload };
+  return { state: value, loadMore: paged.loadMore, reload: paged.reload };
 }

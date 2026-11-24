@@ -1,3 +1,4 @@
+import { useReloadable } from '@/shared/hooks';
 import type { SelectedProject } from '@/features/project-selection';
 import { errorMessage, type EngineClient } from '@/shared/api';
 import { ErrorState, InlineNotice, LoadingState, Page } from '@/shared/components';
@@ -5,7 +6,6 @@ import { useCallback, useMemo } from 'react';
 
 import { ConnectionsSection } from './components/connections-section';
 import { ProjectIntegrationsSection } from './components/project-integrations-section';
-import { useReloadable } from './hooks/use-reloadable';
 import styles from './integrations-page.module.scss';
 import { createIntegrationApi } from './service/integration-api';
 

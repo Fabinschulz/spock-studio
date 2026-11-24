@@ -1,9 +1,9 @@
-import { formatRecentDateTime, type SelectedProject } from '@/features/project-selection';
+import { type SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 import { EmptyState, ErrorState, LoadingState, Page, PageSection } from '@/shared/components';
 import { executionPath, pathTo } from '@/shared/routing';
 import type { Discovery, RunSummary } from '@/shared/schema';
-import { runKindLabel } from '@/shared/utils';
+import { formatRecentDateTime, runKindLabel } from '@/shared/utils';
 import { Link } from 'react-router';
 
 import { ProfileSection } from './components/profile-section';

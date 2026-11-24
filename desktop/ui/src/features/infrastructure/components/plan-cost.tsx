@@ -1,4 +1,5 @@
-import { formatEngineDate, useAction } from '@/features/integrations';
+import { formatEngineDate } from '@/shared/utils';
+import { useAction } from '@/shared/hooks';
 import { StatusChip } from '@/shared/components';
 import type { CloudConnection, IacOperation, IacPlanCost } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';

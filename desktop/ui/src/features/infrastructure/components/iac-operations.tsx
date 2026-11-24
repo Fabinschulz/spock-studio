@@ -1,23 +1,25 @@
-import { createCloudApi } from '@/features/cloud';
-import { formatEngineDate, useAction, useReloadable } from '@/features/integrations';
+import { formatEngineDate } from '@/shared/utils';
+import { useAction, useReloadable } from '@/shared/hooks';
 import type { SelectedProject } from '@/features/project-selection';
-import { errorMessage, type EngineClient } from '@/shared/api';
+import { errorMessage } from '@/shared/api';
 import { ConfirmAction, ErrorState, LoadingState, Radio, StatusChip, SuccessState } from '@/shared/components';
-import type { IacDriftedResource, IacOperation } from '@/shared/schema';
+import type { CloudConnection, IacDriftedResource, IacOperation } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
-import { Fragment, useCallback, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useCallback, useState, type ReactNode } from 'react';
 
 import styles from '../infrastructure-page.module.scss';
 import { ENGINE_NAME } from '../domain/labels';
+import { LINKED_UNREADABLE } from '../domain/linked-connections';
 import { PlanApproval } from './plan-approval';
 import { DriftSchedule } from './drift-schedule';
 import { PlanCost } from './plan-cost';
 import type { IacApi } from '../service/iac-api';
 
 interface IacOperationsProps {
-  client: EngineClient;
   api: IacApi;
   project: SelectedProject;
+  /** Lidas uma vez pela página; `null` quando a leitura falhou. */
+  linked: CloudConnection[] | null;
   /** Sem ferramenta pronta para o projeto, validar e planejar ficam desligados. */
   ready: boolean;
 }
@@ -31,19 +33,16 @@ const ACTION_LABEL: Record<string, string> = {
 };
 
 /** Validar e planejar: rodam numa cópia da configuração na pasta do Spock e nunca mudam a nuvem nem o projeto. */
-export function IacOperations({ client, api, project, ready }: IacOperationsProps) {
-  const cloud = useMemo(() => createCloudApi(client), [client]);
+export function IacOperations({ api, project, linked: read, ready }: IacOperationsProps) {
   const projectId = project.projectId;
   const load = useCallback(async () => {
-    const [layout, operations, links, connections, schedule] = await Promise.all([
+    const [layout, operations, schedule] = await Promise.all([
       api.layout(projectId),
       api.operations(projectId),
-      cloud.links(projectId).catch(() => []),
-      cloud.connections().catch(() => []),
       api.driftSchedule(projectId).catch(() => null)
     ]);
-    return { layout, operations, links, connections, schedule };
-  }, [api, cloud, projectId]);
+    return { layout, operations, schedule };
+  }, [api, projectId]);
   const hub = useReloadable(load);
   const action = useAction(hub.reload);
   const [folder, setFolder] = useState<string | null>(null);
@@ -59,14 +58,12 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
       </ErrorState>
     );
 
-  const { layout, operations, links, connections, schedule } = hub.value;
+  const { layout, operations, schedule } = hub.value;
   if (layout.folders.length === 0) return <p className={styles.meta}>Este projeto não tem arquivos .tf nem .tofu.</p>;
 
   const chosenFolder =
     folder ?? (layout.root !== null && layout.folders.includes(layout.root) ? layout.root : layout.folders[0]!);
-  const linked = links
-    .map((link) => connections.find((connection) => connection.id === link.connectionId))
-    .filter((connection) => connection !== undefined);
+  const linked = read ?? [];
   const current = operations.find((operation) => operation.id === shown) ?? operations[0] ?? null;
   // O motor diz quais planos podem ser aplicados agora (o mais recente da pasta e do ambiente, no prazo, não aplicado).
   const approval =
@@ -184,6 +181,7 @@ export function IacOperations({ client, api, project, ready }: IacOperationsProp
         helperText="Vazio usa o workspace default. O Spock só seleciona workspaces que já existem."
         slotProps={{ htmlInput: { spellCheck: false } }}
       />
+      {read === null ? <p className={styles.hint}>{LINKED_UNREADABLE}</p> : null}
       {linked.length > 0 ? (
         <fieldset className={styles.choices}>
           <legend>Credenciais do plano</legend>
