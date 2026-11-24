@@ -33,12 +33,28 @@ public interface ICloudPriceSource
     Task<IReadOnlyList<CloudPriceQuote>> PricesAsync(CloudSettings settings, IReadOnlyList<CloudPriceQuery> queries, CancellationToken ct);
 }
 
-// Para o provedor em que os nomes da conexão não levam a ferramenta de IaC à mesma identidade que as leituras usam: a AWS
-// com AssumeRole, que a ferramenta não sabe montar a partir de um Role ARN guardado só no Spock (P0-1). As variáveis valem
-// para um processo e não são guardadas.
+/// <param name="Variables">As variáveis com que a ferramenta de IaC acha a identidade da conexão. Só nomes (perfil, região,
+/// subscription, projeto, caminho do arquivo da conta de serviço), nunca segredo.</param>
+/// <param name="Scope">O perfil (AWS), a subscription (Azure) ou o projeto (Google): o valor padrão do bootstrap de state.</param>
+public sealed record CloudProcessNames(IReadOnlyDictionary<string, string> Variables, string? Scope);
+
+public static class CloudProcessVariables
+{
+    // Campo vazio não vira variável vazia: a ferramenta trataria "" como valor e não procuraria o padrão dela.
+    public static IReadOnlyDictionary<string, string> Of(params (string Name, string? Value)[] variables) =>
+        variables.Where(variable => !string.IsNullOrWhiteSpace(variable.Value))
+            .ToDictionary(variable => variable.Name, variable => variable.Value!, StringComparer.Ordinal);
+}
+
+// Como a ferramenta de IaC roda com a identidade da conexão. Só o conector sabe o nome dos próprios campos: se a IaC lesse
+// a chave crua, renomear um campo ainda compilaria e a ferramenta cairia na cadeia padrão, que pode ser outra conta.
 public interface ICloudProcessCredentials
 {
-    // Vazio quando os nomes da conexão bastam. Recusa com os códigos de CloudErrors, como uma leitura.
+    CloudProcessNames ProcessNames(CloudSettings settings);
+
+    // Para quando os nomes não levam à mesma identidade que as leituras usam: a AWS com AssumeRole, que a ferramenta não
+    // sabe montar a partir de um Role ARN guardado só no Spock (P0-1). As variáveis valem para um processo e não são
+    // guardadas. Vazio quando os nomes bastam. Recusa com os códigos de CloudErrors, como uma leitura.
     Task<IReadOnlyDictionary<string, string>> ProcessEnvironmentAsync(CloudSettings settings, CancellationToken ct);
 }
 

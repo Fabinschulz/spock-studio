@@ -3,8 +3,14 @@ using Mariliz.Application.Cloud;
 namespace Mariliz.Application.Tests.Support;
 
 // Um provedor "aws" de teste: as capacidades que o vínculo usa e a lista de preços de sa-east-1.
-internal sealed class PricedAwsProvider : ICloudProvider, ICloudPriceSource
+internal sealed class PricedAwsProvider : ICloudProvider, ICloudPriceSource, ICloudProcessCredentials
 {
+    public CloudProcessNames ProcessNames(CloudSettings settings) =>
+        new(CloudProcessVariables.Of(("AWS_REGION", settings.Region), ("AWS_DEFAULT_REGION", settings.Region)), null);
+
+    public Task<IReadOnlyDictionary<string, string>> ProcessEnvironmentAsync(CloudSettings settings, CancellationToken ct) =>
+        Task.FromResult<IReadOnlyDictionary<string, string>>(new Dictionary<string, string>());
+
     private static readonly Dictionary<string, decimal> Prices = new(StringComparer.Ordinal)
     {
         ["LoadBalancerUsage"] = 0.034m,

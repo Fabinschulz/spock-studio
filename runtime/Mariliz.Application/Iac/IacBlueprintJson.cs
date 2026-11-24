@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Mariliz.Application.Cloud;
 
 namespace Mariliz.Application.Iac;
 
@@ -17,7 +18,7 @@ public static class IacBlueprintJson
     {
         var network = json["network"] as JsonObject;
         return new IacBlueprint(
-            Text(json, "provider") ?? "aws",
+            Text(json, "provider") ?? CloudProviders.Aws,
             Text(json, "project") ?? "",
             Text(json, "region") ?? "",
             Text(json, "account"),

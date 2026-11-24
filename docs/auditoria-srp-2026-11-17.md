@@ -120,7 +120,8 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
 - **P0:** nenhum.
 - **P1:**
   - corrigidos na onda 1: NET-6 e UI-17;
-  - abertos: NET-S03, NET-S04, NET-S08, RS-11b e UI-3.
+  - corrigidos na onda 2a: NET-S03, NET-S04 e NET-S08;
+  - abertos: RS-11b e UI-3.
 - **P2:**
   - corrigidos na onda 1: NET-S01, NET-S05, NET-S07, RS-4/RS-11a, RS-15 e RS-16;
   - abertos: os demais P2 das tabelas.
@@ -170,6 +171,22 @@ Uma onda por PR, sem empilhar PR. Cada onda começa por testes de caracterizaç�
   (`cloud-page.test.tsx`, *timeout* de 5 s numa área que a onda não tocou) passa isolado, 4 de 4.
 - Python: ruff limpo e 197 testes aprovados.
 - Não validado: a tela de infraestrutura no app Tauri com um motor real; ficou só nos testes de componente.
+
+## 7a. Onda 2a executada
+
+| Item | Antes | Depois | Testes |
+|---|---|---|---|
+| NET-S03 | Literais `"aws"`/`"azure"`/`"gcp"` em sete arquivos; provedor desconhecido caía no gerador AWS, nas checagens AWS e no backend `gcs` | `IacProviders`: uma linha por nuvem (id de `CloudProviders`, nome do provider Terraform, backend, gerador, custos, checagens, se o serviço precisa de rede, textos das notas). `Require` recusa com `IAC_PROVIDER_UNKNOWN`; a recomendação de backend fica vazia para o desconhecido em vez de sugerir outra nuvem. Texto gerado idêntico | `IacGenerationTests`, `IacMultiCloudTests`, `IacStateTests` sem mudança de saída |
+| NET-S04 | A IaC lia `"profile"`, `"subscriptionId"`, `"projectId"` e `"keyFile"` crus das configurações da conexão | `ICloudProcessCredentials.ProcessNames` devolve as variáveis da ferramenta e o valor padrão do bootstrap; os três conectores implementam com as próprias constantes de campo. Conector sem a porta recusa com `IAC_PROVIDER_WITHOUT_PROCESS_NAMES` em vez de rodar na cadeia padrão de credenciais | `IacOperationTests` (só nomes, papel assumido), `IacStateTests` (bootstrap pela conexão), `IacDriftScheduleTests` |
+| NET-S08 | Etapas somadas passavam da espera do host: apply com verificação ~103 min contra 90; validar com várias pastas sem teto | `IacTimeouts` com os prazos das etapas e o total por método (40 min; apply 85, que nunca corta o apply em andamento, só a verificação). O serviço abre um `IacDeadline` ao receber o pedido e o adaptador dá a cada etapa o próprio prazo ou o que sobrou; sem tempo, a etapa nem começa. Não muda o contrato: os prazos no `engine.hello` continuam com a onda 2d (RS-10) | `IacTimeoutsTests`: lê `engine.rs` e confere cada `iac.*` contra o total mais 5 min de folga; todo método de IaC com espera longa no host tem total no motor; o apply recebe os 55 min e a verificação só o que sobrou |
+
+**Validação depois da onda 2a:**
+- .NET: 1860 testes aprovados, 0 falhas, 28 ignorados; mais 12 de integração do runtime. Nenhum aviso de build fora
+  dos projetos de teste.
+- Rust: em `engine.rs` só mudaram comentários; o host não foi recompilado.
+- UI e Python: sem mudança de contrato nem de código, então não rodaram de novo.
+- Não validado: plano, apply e drift reais com OpenTofu numa conta. A divisão do prazo foi conferida só com a
+  ferramenta e o relógio de mentira.
 
 ## 8. Arquivos grandes julgados coesos
 

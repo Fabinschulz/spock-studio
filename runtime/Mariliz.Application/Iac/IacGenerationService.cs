@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using Mariliz.Application.Cloud;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Models;
@@ -42,7 +43,7 @@ public sealed partial class IacGenerationService(
         RequireRoot(request.ProjectId);
         if (models is null) throw new EngineException("MODEL_NOT_CONFIGURED", "Configure um provedor de IA para propor o desenho, ou monte o desenho à mão.");
         // O prompt e as checagens da resposta conhecem os componentes da AWS; no Azure e no Google o desenho é montado à mão.
-        if (request.Facts.Provider != "aws")
+        if (request.Facts.Provider != CloudProviders.Aws)
             throw new EngineException("IAC_DRAFT_AWS_ONLY", "A proposta com IA é só para AWS por enquanto; no Azure e no Google, monte o desenho à mão.");
         var need = request.Need.Trim();
         if (need.Length is < MinNeed or > MaxNeed) throw new ParamException($"Descreva a necessidade com {MinNeed} a {MaxNeed} caracteres.");
@@ -143,26 +144,18 @@ public sealed partial class IacGenerationService(
             .Where(path => !path.StartsWith(folder + "/bootstrap/", StringComparison.Ordinal) && !ours.Contains(path)).Take(10).ToList();
         if (foreign.Count > 0)
             notes.Add($"Arquivos que já existem na pasta e não são do modelo ficam como estão: {string.Join(", ", foreign)}. Recurso declarado duas vezes falha no validate.");
-        var (backend, registry, protection) = blueprint.Provider switch
-        {
-            "azure" => ("a storage account com o bootstrap e colar o bloco backend \"azurerm\"", "no Azure Container Registry: o README explica a ordem (registro e Key Vault primeiro)",
-                "O banco nasce com prevent_destroy: apagar exige tirar a proteção do código antes."),
-            "gcp" => ("o bucket com o bootstrap e colar o bloco backend \"gcs\"", "no Artifact Registry: o README explica a ordem (APIs, repositório e segredo primeiro)",
-                "O banco nasce com deletion_protection: apagar exige tirar a proteção num apply anterior."),
-            _ => ("o bucket com o bootstrap e colar o bloco backend \"s3\"", "no ECR: o README explica a ordem (ECR, segredo e IAM primeiro)",
-                "O banco nasce com proteção contra exclusão e snapshot final: apagar exige tirar a proteção num apply anterior.")
-        };
+        var provider = IacProviders.Require(blueprint.Provider);
         if (blueprint.Backend is null)
-            notes.Add($"Sem backend remoto: o state fica local até você criar {backend} em providers.tf.");
-        if (blueprint.Provider == "aws" && blueprint.Service is { PublicIp: false })
+            notes.Add($"Sem backend remoto: o state fica local até você criar {provider.Notes.Backend} em providers.tf.");
+        if (provider == IacProviders.Aws && blueprint.Service is { PublicIp: false })
             notes.Add("As tarefas ficam em subnets privadas: a VPC precisa de NAT gateway ou endpoints VPC (ECR, logs, Secrets Manager) para baixar a imagem.");
         if (blueprint.Service is not null)
-            notes.Add($"O primeiro apply precisa de uma imagem {registry}.");
+            notes.Add($"O primeiro apply precisa de uma imagem {provider.Notes.Registry}.");
         if (blueprint.Database is not null)
-            notes.Add(protection);
-        if (blueprint.Provider == "azure" && blueprint.Database is not null)
+            notes.Add(provider.Notes.Protection);
+        if (provider == IacProviders.Azure && blueprint.Database is not null)
             notes.Add("Sem senha no banco: defina um administrador do Entra ID (postgres_admin_object_id) para criar o usuário da aplicação.");
-        if (blueprint.Provider == "gcp" && blueprint.Database is not null)
+        if (provider == IacProviders.Gcp && blueprint.Database is not null)
             notes.Add("A rede precisa do acesso privado a serviços (service networking) antes do apply, ou o Cloud SQL não ganha IP privado.");
         return notes;
     }
@@ -189,7 +182,7 @@ public sealed partial class IacGenerationService(
     // Os fatos informados valem sobre o que o modelo escreveu; o que a pessoa não informou fica vazio para ela completar.
     private static IacBlueprint WithFacts(IacBlueprint proposed, IacBlueprint facts) => proposed with
     {
-        Provider = "aws",
+        Provider = CloudProviders.Aws,
         Project = facts.Project.Length > 0 ? facts.Project : proposed.Project,
         Region = facts.Region.Length > 0 ? facts.Region : proposed.Region,
         Account = facts.Account,
