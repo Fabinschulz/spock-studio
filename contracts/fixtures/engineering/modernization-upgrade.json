@@ -1,0 +1,296 @@
+{
+  "modernization": {
+    "assessment": null,
+    "plan": {
+      "path": ".spock/modernization-plan.json",
+      "goal": "Sair do .NET 6, sem suporte, para o .NET 10 LTS.",
+      "characterization": [
+        {
+          "behavior": "A API sobe e responde.",
+          "files": [
+            "api/src/Api/Program.cs"
+          ],
+          "test": "Teste de fumaça que sobe a API."
+        }
+      ],
+      "steps": [
+        {
+          "id": "U1",
+          "title": "Subir o .NET de 6.0 para 8.0",
+          "kind": "upgrade",
+          "change": "Trocar o TargetFramework para net8.0 e tratar o que a página de mudanças incompatíveis aponta para ASP.NET Core.",
+          "divergences": [],
+          "files": [
+            "api/src/Api/Api.csproj"
+          ],
+          "dependsOn": [],
+          "undo": "Voltar o TargetFramework para net6.0.",
+          "verification": "dotnet build e dotnet test passam; a API sobe e responde no endpoint de saúde.",
+          "risk": "APIs obsoletas removidas na linha nova.",
+          "cost": null,
+          "coexistence": null,
+          "fingerprint": "da894768f35eabc5",
+          "upgrade": {
+            "finding": "V1",
+            "from": "6.0",
+            "to": "8.0",
+            "breakingChanges": "https://learn.microsoft.com/dotnet/core/compatibility/8.0"
+          }
+        },
+        {
+          "id": "U2",
+          "title": "Subir o .NET de 8.0 para 10.0",
+          "kind": "upgrade",
+          "change": "Trocar o TargetFramework para net10.0 e tratar o que a página de mudanças incompatíveis aponta para ASP.NET Core.",
+          "divergences": [],
+          "files": [
+            "api/src/Api/Api.csproj"
+          ],
+          "dependsOn": [
+            "U1"
+          ],
+          "undo": "Voltar o TargetFramework para net8.0.",
+          "verification": "dotnet build e dotnet test passam; a API sobe e responde no endpoint de saúde.",
+          "risk": "APIs obsoletas removidas na linha nova.",
+          "cost": null,
+          "coexistence": null,
+          "fingerprint": "890c3e438568cd18",
+          "upgrade": {
+            "finding": "V1",
+            "from": "8.0",
+            "to": "10.0",
+            "breakingChanges": "https://learn.microsoft.com/dotnet/core/compatibility/10.0"
+          }
+        }
+      ],
+      "checks": [
+        {
+          "id": "assessment",
+          "description": "A avaliação de arquitetura existe e passa nas verificações do Spock (passos que tratam divergência)",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "goal",
+          "description": "Objetivo do plano",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "characterization",
+          "description": "Caracterização: ao menos um comportamento de hoje, com arquivo e o teste que o prende antes da mudança",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "limits",
+          "description": "Até 20 passos e 20 itens de caracterização",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "step-ids",
+          "description": "Todo passo tem id curto (letras, números e hífen) e único",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "step-text",
+          "description": "Todo passo tem título e a mudança proposta",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "kind",
+          "description": "Todo passo é incremental, rewrite ou upgrade",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "grounded",
+          "description": "Todo passo trata ao menos uma divergência da avaliação (D1, D2...) ou é um salto de versão (V1, V2...)",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "divergences-exist",
+          "description": "Toda divergência citada existe na avaliação atual",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "evidence",
+          "description": "Todo passo cita ao menos um arquivo que já existe no projeto",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "files-exist",
+          "description": "Todo arquivo citado existe no projeto",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "reversible",
+          "description": "Todo passo diz como se desfaz",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "verification",
+          "description": "Todo passo diz como verificar que deu certo",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "risk",
+          "description": "Todo passo diz o risco",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "rewrite-plan",
+          "description": "Toda reescrita traz custo, risco e plano de convivência",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "rewrite-declared",
+          "description": "Passo que fala em reescrever está declarado como rewrite",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "order",
+          "description": "Todo passo depende só de passos anteriores do plano",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "upgrade-finding",
+          "description": "Todo salto de versão cita um achado de versão que existe (V1, V2...)",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "upgrade-path",
+          "description": "Todo salto é um trecho do caminho de LTS em LTS que o Spock calculou, sem pular linha",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "upgrade-chain",
+          "description": "Os saltos de cada achado vêm em ordem a partir da versão atual, cada um dependendo do anterior",
+          "passed": true,
+          "detail": null
+        },
+        {
+          "id": "upgrade-source",
+          "description": "Todo salto cita a página oficial das mudanças incompatíveis da linha de destino",
+          "passed": true,
+          "detail": null
+        }
+      ],
+      "valid": true
+    },
+    "planPath": ".spock/modernization-plan.json",
+    "steps": [
+      {
+        "stepId": "U1",
+        "status": "approved",
+        "decisionId": "dec-000000000001",
+        "recordedAt": "2026-11-24T12:00:00+00:00"
+      },
+      {
+        "stepId": "U2",
+        "status": "pending",
+        "decisionId": null,
+        "recordedAt": null
+      }
+    ],
+    "versions": [
+      {
+        "id": "V1",
+        "root": "api",
+        "technologyId": "dotnet",
+        "name": ".NET",
+        "version": "net6.0",
+        "cycle": "6.0",
+        "status": "end-of-life",
+        "statusLabel": "Legado sem suporte",
+        "eol": "2024-11-12",
+        "target": "10.0",
+        "hops": [
+          {
+            "from": "6.0",
+            "to": "8.0",
+            "guide": "https://learn.microsoft.com/dotnet/core/compatibility/8.0"
+          },
+          {
+            "from": "8.0",
+            "to": "10.0",
+            "guide": "https://learn.microsoft.com/dotnet/core/compatibility/10.0"
+          }
+        ]
+      },
+      {
+        "id": "V2",
+        "root": "web",
+        "technologyId": "node",
+        "name": "Node.js",
+        "version": "18.20.4",
+        "cycle": "18",
+        "status": "end-of-life",
+        "statusLabel": "Legado sem suporte",
+        "eol": "2025-04-30",
+        "target": "26",
+        "hops": [
+          {
+            "from": "18",
+            "to": "20",
+            "guide": "https://github.com/nodejs/node/blob/main/doc/changelogs/CHANGELOG_V20.md"
+          },
+          {
+            "from": "20",
+            "to": "22",
+            "guide": "https://github.com/nodejs/node/blob/main/doc/changelogs/CHANGELOG_V22.md"
+          },
+          {
+            "from": "22",
+            "to": "24",
+            "guide": "https://github.com/nodejs/node/blob/main/doc/changelogs/CHANGELOG_V24.md"
+          },
+          {
+            "from": "24",
+            "to": "26",
+            "guide": "https://github.com/nodejs/node/blob/main/doc/changelogs/CHANGELOG_V26.md"
+          }
+        ]
+      },
+      {
+        "id": "V3",
+        "root": "web",
+        "technologyId": "react",
+        "name": "React",
+        "version": "17.0.2",
+        "cycle": "17",
+        "status": "end-of-life",
+        "statusLabel": "Legado sem suporte",
+        "eol": null,
+        "target": "19",
+        "hops": [
+          {
+            "from": "17",
+            "to": "18",
+            "guide": "https://react.dev/blog/2022/03/08/react-18-upgrade-guide"
+          },
+          {
+            "from": "18",
+            "to": "19",
+            "guide": "https://react.dev/blog/2024/04/25/react-19-upgrade-guide"
+          }
+        ]
+      }
+    ]
+  }
+}
