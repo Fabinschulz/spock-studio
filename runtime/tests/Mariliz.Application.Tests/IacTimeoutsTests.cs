@@ -7,7 +7,7 @@ using Mariliz.Infrastructure.Iac;
 
 namespace Mariliz.Application.Tests;
 
-// NET-S08: o motor responde antes de o host desistir. Lê a espera de cada método em engine.rs e confere com o total da
+// NET-S08: o motor responde antes de o host desistir. Lê a espera de cada método em engine/timeouts.rs e confere com o total da
 // operação no motor, mais a folga do serviço.
 public sealed partial class IacTimeoutsTests
 {
@@ -91,14 +91,14 @@ public sealed partial class IacTimeoutsTests
         }
     }
 
-    // Lê as constantes e o match de request_timeout; só o formato que engine.rs usa hoje.
+    // Lê as constantes e o match de request_timeout; só o formato que engine/timeouts.rs usa hoje.
     private static Dictionary<string, TimeSpan> HostWaits()
     {
-        var rust = File.ReadAllText(Path.Combine(ContractFiles.Root, "desktop", "host", "src-tauri", "src", "engine.rs"));
+        var rust = File.ReadAllText(Path.Combine(ContractFiles.Root, "desktop", "host", "src-tauri", "src", "engine", "timeouts.rs"));
         var methods = MethodConst().Matches(rust).ToDictionary(m => m.Groups[1].Value, m => m.Groups[2].Value);
         var durations = DurationConst().Matches(rust).ToDictionary(m => m.Groups[1].Value, m => TimeSpan.FromSeconds(int.Parse(m.Groups[2].Value)));
         var body = MatchBody().Match(rust);
-        Assert.True(body.Success, "engine.rs não tem mais o match de request_timeout no formato esperado.");
+        Assert.True(body.Success, "engine/timeouts.rs não tem mais o match de request_timeout no formato esperado.");
 
         var waits = new Dictionary<string, TimeSpan>(StringComparer.Ordinal);
         foreach (var arm in body.Groups[1].Value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))

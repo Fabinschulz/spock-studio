@@ -78,11 +78,11 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
 | RS-4 / RS-11a | `engine.rs:251-319` | Envelope montado em dois lugares; entrada de `pending` vazava em erro de serialização ou future descartado | SRP, encapsulamento | P2 | Vazamento de memória pequeno e lógica duplicada | `protocol::encode_request`/`decode_response` (puros, testados) e `PendingEntry` (RAII) | **Feito** |
 | RS-15 | `diagnostic_log.rs:96` × `terminal/env.rs` | Duas listas de marcadores de segredo | DRY, segurança | P2 | `ConnectionStrings__Default=...;Password=...`, `credential=` e `passwd=` chegavam inteiros à tela de Diagnóstico | O log usa a regra do terminal (a mesma do motor), mais `key`/`senha` | **Feito** |
 | RS-16 | `launcher/src/main.rs:39` | Conversão com perda | Fail Fast | P2 | Uma queda do motor (NTSTATUS negativo) saía com código 0: o hook da IDE via sucesso | `exit_code`: fora de 0..=255 vira 1 | **Feito** |
-| RS-11b | `engine.rs:69-346` | Large Class: spawn, bomba de stdout, correlação, ciclo de vida e prazos | SRP | P1 | Difícil testar o ciclo de vida isoladamente | `engine/{process,rpc,lifecycle}.rs`; o codec já está em `protocol.rs` | Onda 2 |
-| RS-12 | `engine.rs` (`write`, `shutdown`) | `Mutex` segurado durante escrita bloqueante no pipe | Concorrência | P2 | Motor que para de ler o stdin trava as requisições, o `on_terminated` e o encerramento | Tarefa escritora dona do `CommandChild`, alimentada por canal | Onda 2 |
-| RS-13 | `engine.rs:69-127,227-249` | Máquina de estados implícita (seis campos) | Encapsulamento | P2 | Handshake falho gasta o reinício automático; motor travado na partida deixa a UI 2 min em "iniciando" | `watch<Lifecycle>`, `HANDSHAKE_TIMEOUT`, fase `HandshakeFailed` | Onda 2 |
+| RS-11b | `engine.rs:69-346` | Large Class: spawn, bomba de stdout, correlação, ciclo de vida e prazos | SRP | P1 | Difícil testar o ciclo de vida isoladamente | `engine/{process,rpc,lifecycle}.rs`; o codec já está em `protocol.rs` | **Feito** (onda 2b) |
+| RS-12 | `engine.rs` (`write`, `shutdown`) | `Mutex` segurado durante escrita bloqueante no pipe | Concorrência | P2 | Motor que para de ler o stdin trava as requisições, o `on_terminated` e o encerramento | Tarefa escritora dona do `CommandChild`, alimentada por canal | **Feito** (onda 2b) |
+| RS-13 | `engine.rs:69-127,227-249` | Máquina de estados implícita (seis campos) | Encapsulamento | P2 | Handshake falho gasta o reinício automático; motor travado na partida deixa a UI 2 min em "iniciando" | `watch<Lifecycle>`, `HANDSHAKE_TIMEOUT`, fase `HandshakeFailed` | **Feito** (onda 2b) |
 | RS-10 | `engine.rs:26-59`, `protocol.rs:14-124` | Conhecimento do motor no host (prazos e lista de métodos) | OCP | P2 | Toda função nova do motor muda o Rust; prazo errado cai em 120 s sem aviso | O motor anuncia o prazo dos métodos longos no `engine.hello`; teste .NET que lê `protocol.rs` | Onda 2 (contrato) |
-| RS-14 | `lib.rs:191-213`, `terminal/mod.rs` | Comandos síncronos com I/O bloqueante na thread principal | Responsividade | P2 | A UI congela durante o `taskkill` ou num PTY que não lê | `#[tauri::command(async)]`/`spawn_blocking`; escritor por sessão | Onda 2 |
+| RS-14 | `lib.rs:191-213`, `terminal/mod.rs` | Comandos síncronos com I/O bloqueante na thread principal | Responsividade | P2 | A UI congela durante o `taskkill` ou num PTY que não lê | `#[tauri::command(async)]`/`spawn_blocking`; escritor por sessão | **Feito** (onda 2b) |
 | RS-17 | `resources.rs`, `engine.rs:166`, `launcher` | Layout do runtime conhecido em três lugares | DRY | P2 | No `.deb` do Linux o `spock` provavelmente roda sem o runtime de IA (não verificado em Linux) | O .NET passa a ser o único dono do layout | Onda 3 (empacotamento) |
 | RS-18 | `terminal/mod.rs:111-150` | TOCTOU no limite de sessões; shell vaza se a abertura falha | Correção | P3 | Mais de quatro terminais em aberturas concorrentes | Pegar leitor e escritor antes de criar o processo; reservar a vaga atomicamente | Onda 3 |
 | RS-19 | `lib.rs` | Comandos de quatro áreas e utilitários num arquivo; busca de recente duplicada | SRP | P3 | Ruído | `commands/{engine,projects,terminal,about}.rs`; `Recents::existing_dir` | Onda 3 |
@@ -121,9 +121,11 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
 - **P1:**
   - corrigidos na onda 1: NET-6 e UI-17;
   - corrigidos na onda 2a: NET-S03, NET-S04 e NET-S08;
-  - abertos: RS-11b e UI-3.
+  - corrigido na onda 2b: RS-11b;
+  - aberto: UI-3.
 - **P2:**
   - corrigidos na onda 1: NET-S01, NET-S05, NET-S07, RS-4/RS-11a, RS-15 e RS-16;
+  - corrigidos na onda 2b: RS-12, RS-13 e RS-14;
   - abertos: os demais P2 das tabelas.
 - **P3:** onda 3 e itens a monitorar.
 
@@ -187,6 +189,26 @@ Uma onda por PR, sem empilhar PR. Cada onda começa por testes de caracterizaç�
 - UI e Python: sem mudança de contrato nem de código, então não rodaram de novo.
 - Não validado: plano, apply e drift reais com OpenTofu numa conta. A divisão do prazo foi conferida só com a
   ferramenta e o relógio de mentira.
+
+## 7b. Onda 2b executada
+
+| Item | Antes | Depois | Testes |
+|---|---|---|---|
+| RS-11b | `engine.rs` com 404 linhas: spawn, bomba do stdout, correlação, ciclo de vida e prazos | `engine/mod.rs` só liga as partes; `process.rs` sobe e encerra o sidecar; `rpc.rs` correlaciona pedido e resposta sem conhecer o processo; `lifecycle.rs` decide cada transição em funções puras; `timeouts.rs` tem os prazos por método (o `IacTimeoutsTests` da onda 2a passou a ler este arquivo) | `rpc.rs` com escritor falso: motor que não lê dá `ENGINE_TIMEOUT` sem travar os outros, pipe fechado dá `ENGINE_WRITE_FAILED`, a resposta chega a quem pediu e o fim do motor solta os pendentes |
+| RS-12 | `Mutex<Option<CommandChild>>` segurado durante a escrita no stdin | `writer.rs`: uma thread dona do pipe, alimentada por canal; o lock do processo só troca ou copia o escritor. O prazo do pedido cobre escrita e resposta. Encerrar entra na fila e, se a escrita estiver presa, o processo cai pelo pid depois de 2 s | `pipe_travado_nao_prende_quem_escreve`, `pipe_fechado_para_a_thread_e_o_recibo_diz_que_nao_escreveu` |
+| RS-13 | Seis campos soltos (`status`, `ready_since`, `terminated`, `shutting_down`...); handshake falho gastava o reinício; hello com 120 s | `watch<Lifecycle>` com `Starting`, `Ready`, `HandshakeFailed`, `Crashed`, `ShuttingDown` e `Stopped`. Na partida só o handshake decide: processo que morreu é queda (uma tentativa), recusa ou prazo vira `HandshakeFailed` sem reinício. `HANDSHAKE_TIMEOUT` de 30 s. Um processo antigo que termina tarde não leva o novo, e o encerramento do app vence um handshake em andamento | Cinco testes de ciclo de vida em `lifecycle.rs` e a espera da autorização pelo `watch` em `engine/mod.rs` |
+| RS-14 | `terminal_write`, `terminal_resize` e `terminal_close` síncronos na thread principal; escrita no PTY com o lock da sessão | Os três viraram `#[tauri::command(async)]`; cada sessão do terminal tem o próprio `Writer`, e a resposta ao cursor do ConPTY no encerramento não espera mais um shell que não lê | Testes do terminal com shell de verdade, sem mudança |
+
+**Validação depois da onda 2b:**
+- Rust (host): fmt, clippy `-D warnings` e 60 testes limpos (eram 50).
+- .NET: `IacTimeoutsTests` (5) com o caminho novo; o resto do .NET só teve comentários alterados.
+- App de verdade (`tauri dev` com o motor publicado por `build-runtime.ps1`, pela janela via CDP):
+  - partida e um pedido real (`runtime.health`) respondendo em ~20 ms;
+  - motor encerrado à força: o host registrou a queda e subiu outro em 0,25 s;
+  - segunda queda em seguida: ficou `crashed`, sem outra tentativa;
+  - fechar a janela com o motor vivo: o host saiu em 0,3 s sem deixar processo.
+- Não validado: handshake recusado ou travado com um motor real, nem um motor que para de ler o stdin; ficaram só nos
+  testes com escritor falso e nas funções puras. Linux e macOS não rodaram.
 
 ## 8. Arquivos grandes julgados coesos
 

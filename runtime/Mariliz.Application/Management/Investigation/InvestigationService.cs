@@ -33,7 +33,7 @@ public sealed class InvestigationService
 
     /// <summary>
     /// O tempo que o runtime de IA recebe. Termina antes do <see cref="Deadline"/> de propósito: o runtime conclui com a limitação de
-    /// tempo (e a resposta que já tem), em vez de o motor cortar a conversa. O host espera ainda mais (engine.rs).
+    /// tempo (e a resposta que já tem), em vez de o motor cortar a conversa. O host espera ainda mais (engine/timeouts.rs).
     /// </summary>
     public const int RuntimeBudgetMilliseconds = 120_000;
 
