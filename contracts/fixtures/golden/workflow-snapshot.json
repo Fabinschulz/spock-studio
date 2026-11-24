@@ -1,0 +1,225 @@
+{
+  "runId": "run-000000000000",
+  "projectId": "p-000000000000",
+  "kind": "workflow",
+  "state": "completed_with_limitations",
+  "lastSeq": 12,
+  "firstSeq": 0,
+  "events": [
+    {
+      "seq": 0,
+      "type": "run.state",
+      "at": "2026-11-24T14:44:48.659Z",
+      "data": {
+        "state": "running",
+        "detail": "Iniciando a execução"
+      }
+    },
+    {
+      "seq": 1,
+      "type": "workflow.started",
+      "at": "2026-11-24T14:44:50.012Z",
+      "data": {
+        "workflowId": "engineering.request.v1",
+        "executionId": "ex-f610f4437e38",
+        "status": "started",
+        "at": "2026-11-24T14:44:50.0125726+00:00"
+      }
+    },
+    {
+      "seq": 2,
+      "type": "context.retrieval.started",
+      "at": "2026-11-24T14:44:50.086Z",
+      "data": {
+        "at": "2026-11-24T14:44:50.0866981+00:00"
+      }
+    },
+    {
+      "seq": 3,
+      "type": "context.retrieved",
+      "at": "2026-11-24T14:44:50.403Z",
+      "data": {
+        "documentId": "@reference/architecture-reference-catalog/harness-de-ia-nas-referencias.md",
+        "chunkId": "@reference/architecture-reference-catalog/harness-de-ia-nas-referencias.md#h:9.-harness-de-ia-nas-referencias",
+        "filePath": "@reference/architecture-reference-catalog/harness-de-ia-nas-referencias.md",
+        "hash": "e900997362b96605124f5c1919841352fe25b014844d8384688ac396079e19fb",
+        "score": 0.016493,
+        "at": "2026-11-24T14:44:50.4031371+00:00"
+      }
+    },
+    {
+      "seq": 4,
+      "type": "context.retrieved",
+      "at": "2026-11-24T14:44:50.404Z",
+      "data": {
+        "documentId": "@reference/architecture-reference-catalog/harness-de-ia-nas-referencias.md",
+        "chunkId": "@reference/architecture-reference-catalog/harness-de-ia-nas-referencias.md#h:9.-harness-de-ia-nas-referencias~3",
+        "filePath": "@reference/architecture-reference-catalog/harness-de-ia-nas-referencias.md",
+        "hash": "e900997362b96605124f5c1919841352fe25b014844d8384688ac396079e19fb",
+        "score": 0.016229,
+        "at": "2026-11-24T14:44:50.4040705+00:00"
+      }
+    },
+    {
+      "seq": 5,
+      "type": "context.retrieved",
+      "at": "2026-11-24T14:44:50.404Z",
+      "data": {
+        "documentId": "@reference/architecture-reference-catalog/fullstack-e-monorepo.md",
+        "chunkId": "@reference/architecture-reference-catalog/fullstack-e-monorepo.md#h:8.5-monorepo-ou-varios-repositorios",
+        "filePath": "@reference/architecture-reference-catalog/fullstack-e-monorepo.md",
+        "hash": "4aaeaaec6b99a426fd9840cde47daab664f376467540051804791b2366d7d688",
+        "score": 0.015252,
+        "at": "2026-11-24T14:44:50.4043914+00:00"
+      }
+    },
+    {
+      "seq": 6,
+      "type": "context.retrieved",
+      "at": "2026-11-24T14:44:50.404Z",
+      "data": {
+        "documentId": "@reference/architecture-reference-catalog/como-o-spock-usa-este-catalogo.md",
+        "chunkId": "@reference/architecture-reference-catalog/como-o-spock-usa-este-catalogo.md#h:0.-como-o-spock-usa-este-catalogo",
+        "filePath": "@reference/architecture-reference-catalog/como-o-spock-usa-este-catalogo.md",
+        "hash": "eb36f4a517afc73e8f82a7332de4e233ae1a207670b4059930706cc0ca436454",
+        "score": 0.015025,
+        "at": "2026-11-24T14:44:50.4046536+00:00"
+      }
+    },
+    {
+      "seq": 7,
+      "type": "context.retrieved",
+      "at": "2026-11-24T14:44:50.409Z",
+      "data": {
+        "documentId": "@reference/architecture-reference-catalog/exemplos-de-uso-pelo-spock.md",
+        "chunkId": "@reference/architecture-reference-catalog/exemplos-de-uso-pelo-spock.md#h:11.-exemplos-de-uso-pelo-spock",
+        "filePath": "@reference/architecture-reference-catalog/exemplos-de-uso-pelo-spock.md",
+        "hash": "648ca879f20af97bee05f56446337af0900f71d2388e7a54f7248992e1074824",
+        "score": 0.014806,
+        "at": "2026-11-24T14:44:50.4090502+00:00"
+      }
+    },
+    {
+      "seq": 8,
+      "type": "run.state",
+      "at": "2026-11-24T14:44:50.489Z",
+      "data": {
+        "state": "awaiting_approval",
+        "detail": "Aguardando aprovação"
+      }
+    },
+    {
+      "seq": 9,
+      "type": "approval.required",
+      "at": "2026-11-24T14:44:50.489Z",
+      "data": {
+        "approvalId": "apr-1d6d61368153",
+        "executionId": "ex-f610f4437e38",
+        "actions": [],
+        "at": "2026-11-24T14:44:50.4897191+00:00"
+      }
+    },
+    {
+      "seq": 10,
+      "type": "workflow.interrupted",
+      "at": "2026-11-24T14:44:50.489Z",
+      "data": {
+        "workflowId": "engineering.request.v1",
+        "executionId": "ex-f610f4437e38",
+        "status": "interrupted",
+        "at": "2026-11-24T14:44:50.4899501+00:00",
+        "steps": [
+          "describe",
+          "context",
+          "evidence"
+        ]
+      }
+    },
+    {
+      "seq": 11,
+      "type": "run.completed",
+      "at": "2026-11-24T14:44:50.794Z",
+      "data": {
+        "state": "completed_with_limitations"
+      }
+    },
+    {
+      "seq": 12,
+      "type": "workflow.completed",
+      "at": "2026-11-24T14:44:50.795Z",
+      "data": {
+        "workflowId": "engineering.request.v1",
+        "executionId": "ex-f610f4437e38",
+        "status": "completed",
+        "at": "2026-11-24T14:44:50.7951014+00:00"
+      }
+    }
+  ],
+  "result": {
+    "kind": "workflow",
+    "workflowId": "engineering.request.v1",
+    "executionId": "ex-f610f4437e38",
+    "summary": "3 etapa(s). Stacks detectadas: 1. Trechos: 5.",
+    "stacks": [
+      "dotnet"
+    ],
+    "evidence": [
+      {
+        "documentId": "@reference/architecture-reference-catalog/harness-de-ia-nas-referencias.md",
+        "chunkId": "@reference/architecture-reference-catalog/harness-de-ia-nas-referencias.md#h:9.-harness-de-ia-nas-referencias",
+        "filePath": "@reference/architecture-reference-catalog/harness-de-ia-nas-referencias.md",
+        "hash": "e900997362b96605124f5c1919841352fe25b014844d8384688ac396079e19fb",
+        "score": 0.016493,
+        "excerpt": "Referência da Organização · Harness de IA nas referências · Catálogo de referências arquiteturais…"
+      },
+      {
+        "documentId": "@reference/architecture-reference-catalog/harness-de-ia-nas-referencias.md",
+        "chunkId": "@reference/architecture-reference-catalog/harness-de-ia-nas-referencias.md#h:9.-harness-de-ia-nas-referencias~3",
+        "filePath": "@reference/architecture-reference-catalog/harness-de-ia-nas-referencias.md",
+        "hash": "e900997362b96605124f5c1919841352fe25b014844d8384688ac396079e19fb",
+        "score": 0.016229,
+        "excerpt": "rnecedor) | Ferramentas no escopo do projeto | Credenciais de produção |\n| Permissões | `settings.json…"
+      },
+      {
+        "documentId": "@reference/architecture-reference-catalog/fullstack-e-monorepo.md",
+        "chunkId": "@reference/architecture-reference-catalog/fullstack-e-monorepo.md#h:8.5-monorepo-ou-varios-repositorios",
+        "filePath": "@reference/architecture-reference-catalog/fullstack-e-monorepo.md",
+        "hash": "4aaeaaec6b99a426fd9840cde47daab664f376467540051804791b2366d7d688",
+        "score": 0.015252,
+        "excerpt": "…são do mesmo time |\n| Um Harness de IA precisa enxergar as duas…"
+      },
+      {
+        "documentId": "@reference/architecture-reference-catalog/como-o-spock-usa-este-catalogo.md",
+        "chunkId": "@reference/architecture-reference-catalog/como-o-spock-usa-este-catalogo.md#h:0.-como-o-spock-usa-este-catalogo",
+        "filePath": "@reference/architecture-reference-catalog/como-o-spock-usa-este-catalogo.md",
+        "hash": "eb36f4a517afc73e8f82a7332de4e233ae1a207670b4059930706cc0ca436454",
+        "score": 0.015025,
+        "excerpt": "…e §10.8 |\n   | Preparar o Harness de IA | §9 |\n\n2. **Distinguir quatro…"
+      },
+      {
+        "documentId": "@reference/architecture-reference-catalog/exemplos-de-uso-pelo-spock.md",
+        "chunkId": "@reference/architecture-reference-catalog/exemplos-de-uso-pelo-spock.md#h:11.-exemplos-de-uso-pelo-spock",
+        "filePath": "@reference/architecture-reference-catalog/exemplos-de-uso-pelo-spock.md",
+        "hash": "648ca879f20af97bee05f56446337af0900f71d2388e7a54f7248992e1074824",
+        "score": 0.014806,
+        "excerpt": "…desde o início |\n| \"Preparar o Harness deste projeto Angular\" | §9, §5 | `CLAUDE…"
+      }
+    ],
+    "limitations": [
+      {
+        "code": "EMBEDDINGS_NOT_READY",
+        "message": "A busca é híbrida (texto e símbolos). Embeddings ficam para quando a avaliação mostrar ganho."
+      },
+      {
+        "code": "JUDGE_NOT_RUN",
+        "message": "O juiz por modelo não é o veredito desta fase."
+      }
+    ],
+    "evaluation": {
+      "schema": "engineering.evaluation.v1",
+      "verdict": "deterministic",
+      "judge": "not_run",
+      "tokens": 0
+    }
+  }
+}

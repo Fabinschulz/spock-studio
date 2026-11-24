@@ -19,7 +19,24 @@ public sealed record CloudField(string Name, string Label, string Hint, bool Req
 // Um jeito oficial do provedor de achar credencial. Os campos são nomes (perfil, região, tenant), nunca segredo.
 public sealed record CloudMechanism(string Id, string Label, string Description, IReadOnlyList<CloudField> Fields);
 
-public sealed record CloudColumn(string Id, string Label);
+public static class CloudColumnKinds
+{
+    public const string Text = "text";
+    public const string Flag = "flag";
+}
+
+// Sim e não sem idioma (UI-25): a tela e o MCP escrevem "sim" e "não"; quem decide alguma coisa compara com estes valores,
+// nunca com o texto mostrado, que pode mudar de redação ou de idioma.
+public static class CloudFlags
+{
+    public const string True = "true";
+    public const string False = "false";
+
+    public static string? Of(bool? value) => value switch { true => True, false => False, null => null };
+}
+
+/// <param name="Kind">"flag" quando a célula é um valor de <see cref="CloudFlags"/>; "text" no resto.</param>
+public sealed record CloudColumn(string Id, string Label, string Kind = CloudColumnKinds.Text);
 
 public enum CloudRegionUse
 {

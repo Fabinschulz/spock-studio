@@ -9,5 +9,5 @@ export const judgeStates: Record<EvalResult['status'], Pick<Participant, 'glyph'
 };
 
 export const ENGINE_NOTE = 'Executa localmente, no seu computador.';
-export const HARNESS_ENGINEER_NOTE =
-  'Roda no seu ambiente de IA, fora do Spock Studio. O motor só lê a proposta (.spock/proposal.json).';
+export const harnessEngineerNote = (proposal: string) =>
+  `Roda no seu ambiente de IA, fora do Spock Studio. O motor só lê a proposta (${proposal}).`;

@@ -127,4 +127,9 @@ public sealed record IacRuntimeOffer(
     string? ChangelogUrl,
     string? CurrentVersion,
     bool IsUpdate,
-    IReadOnlyList<string> Impacts);
+    IReadOnlyList<string> Impacts)
+{
+    // A versão já está na pasta do Spock e íntegra: instalar não baixa nada. A tela decide por isto, não pelo texto dos
+    // impactos (UI-25).
+    public bool AlreadyInstalled { get; init; }
+}

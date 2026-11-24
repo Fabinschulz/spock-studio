@@ -20,4 +20,6 @@ public sealed record DiscoveryReport(
     public IReadOnlyList<string> DeclaredAiEnvironments { get; init; } = [];
 
     public IReadOnlyList<RuntimeFinding> Runtimes { get; init; } = [];
+
+    public HarnessNames Naming { get; init; } = HarnessNames.Of(Policy.HarnessNaming.Spock);
 }

@@ -6,7 +6,12 @@
   "properties": {
     "protocol": { "type": "integer", "minimum": 1 },
     "engineVersion": { "type": "string", "minLength": 1 },
-    "capabilities": { "type": "array", "items": { "type": "string" } }
+    "capabilities": { "type": "array", "items": { "type": "string" } },
+    "deadlines": {
+      "description": "Quanto o host espera, em segundos, por cada método longo. O método que não está aqui fica com o padrão do host.",
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 1 }
+    }
   },
   "additionalProperties": false
 }

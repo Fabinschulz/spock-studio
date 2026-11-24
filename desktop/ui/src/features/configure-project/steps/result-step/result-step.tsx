@@ -1,6 +1,7 @@
 import { Alert, Button } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
+import type { HarnessNames } from '@/shared/schema';
 import { runOutcomeLabel } from '@/shared/utils';
 
 import { EvidenceDisclosure, PrimaryActionFooter } from '@/shared/components/ui';
@@ -26,9 +27,10 @@ interface ResultStepProps {
   onReplan: () => void;
   /** Estado do plano gerado a partir daqui; o erro dele precisa aparecer nesta etapa. */
   replan: Loadable<unknown>;
+  naming: HarnessNames;
 }
 
-export function ResultStep({ results, run, onRevert, onValidate, onDone, onReplan, replan }: ResultStepProps) {
+export function ResultStep({ results, run, onRevert, onValidate, onDone, onReplan, replan, naming }: ResultStepProps) {
   const [confirming, setConfirming] = useState(false);
   const { apply, revert } = results;
   const busy = run !== null && run.error === null;
@@ -86,7 +88,7 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
       ) : null}
 
       {awaitingHarnessProposal(apply, revert) ? (
-        <ProposalGuide onReplan={onReplan} replan={replan} busy={busy} />
+        <ProposalGuide onReplan={onReplan} replan={replan} busy={busy} naming={naming} />
       ) : null}
 
       {revert ? <RevertSummary result={revert} /> : null}

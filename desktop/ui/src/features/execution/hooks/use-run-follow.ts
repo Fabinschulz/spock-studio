@@ -1,13 +1,8 @@
 import { engineRunSource, followRun, type EngineClient, type RunFollow } from '@/shared/api';
+import { workflowSnapshotSchema, type WorkflowSnapshot } from '@/shared/schema';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import {
-  applyLive,
-  fromSnapshot,
-  workflowSnapshotSchema,
-  type RunView,
-  type WorkflowSnapshot
-} from '../domain/run-timeline';
+import { applyLive, fromSnapshot, type RunView } from '../domain/run-timeline';
 
 /**
  * Acompanha uma execução pelo `followRun`, sem parar no fim: depois de uma aprovação a mesma execução continua. A ordem,

@@ -147,6 +147,8 @@ public class WorkflowRuntimeTests
             var done = wire.Request("run.snapshot", new JsonObject { ["runId"] = runId })["result"]!;
             Assert.Equal("completed_with_limitations", done["state"]!.GetValue<string>());
             Assert.Equal(before, project.Fingerprint());
+            // UI-24: o retrato de um fluxo de verdade é a fixture que o Zod da página de execução lê.
+            GoldenFixtures.Check("workflow-snapshot", GoldenFixtures.Normalize(done, projectId, Path.GetFileName(project.Root)));
         }
         finally
         {

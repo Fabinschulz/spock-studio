@@ -19,7 +19,7 @@ public static class IacUnmanaged
     public static readonly IReadOnlyList<Mapping> Aws =
     [
         new("aws_instance", "aws.ec2.instances", "id", "id", "name", (row, _) => row.GetValueOrDefault("state") is "terminated" or "shutting-down"),
-        new("aws_vpc", "aws.ec2.vpcs", "id", "id", "name", (row, _) => row.GetValueOrDefault("default") == "sim"),
+        new("aws_vpc", "aws.ec2.vpcs", "id", "id", "name", (row, _) => row.GetValueOrDefault("default") == CloudFlags.True),
         new("aws_subnet", "aws.ec2.subnets", "id", "id", "name"),
         new("aws_db_instance", "aws.rds.instances", "identifier", "id", null),
         new("aws_ecr_repository", "aws.ecr.repositories", "name", "name", null),

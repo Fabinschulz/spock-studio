@@ -269,14 +269,20 @@ public sealed class IacRuntimeService
         var offerId = Hashing.Sha256(string.Join('|', EngineId(engine), release.Version, platform.Key, release.ArchiveUrl, release.ShasumsUrl,
             release.SignatureUrl, toolchain.SigningKey))[..24];
         return (new IacRuntimeOffer(offerId, engine, name, toolchain.License, release.Version, platform, release.ArchiveUrl, release.ShasumsUrl,
-            release.SignatureUrl, toolchain.SigningKey, release.PublishedAt, release.ChangelogUrl, newest?.ToString(), isUpdate, impacts), release);
+            release.SignatureUrl, toolchain.SigningKey, release.PublishedAt, release.ChangelogUrl, newest?.ToString(), isUpdate, impacts)
+        {
+            AlreadyInstalled = Installed(toolchain, chosen)
+        }, release);
     }
+
+    private static bool Installed(IIacToolchain toolchain, IacVersion version) =>
+        toolchain.Managed().Any(m => IacVersion.Parse(m.Version).CompareTo(version) == 0 && toolchain.Intact(m));
 
     private IEnumerable<string> Impacts(IIacToolchain toolchain, IacVersion chosen, IacVersion? newest,
         IReadOnlyList<IacRequirement> requirements)
     {
         var name = NameOf(toolchain.Engine);
-        if (toolchain.Managed().Any(m => IacVersion.Parse(m.Version).CompareTo(chosen) == 0 && toolchain.Intact(m)))
+        if (Installed(toolchain, chosen))
         {
             yield return $"O {name} {chosen} já está instalado pelo Spock; nada será baixado.";
             yield break;

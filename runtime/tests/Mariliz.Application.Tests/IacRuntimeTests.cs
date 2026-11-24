@@ -218,6 +218,7 @@ public sealed class IacRuntimeTests : IDisposable
         var service = Service();
         var offer = await service.OfferAsync(null, null, IacEngine.Terraform, CancellationToken.None);
         var installed = (await service.InstallAsync(offer.OfferId, offer.Version, IacEngine.Terraform, CancellationToken.None)).Installations.Single();
+        Assert.True((await service.OfferAsync(installed.Version, null, IacEngine.Terraform, CancellationToken.None)).AlreadyInstalled);
         File.WriteAllText(installed.Path, "adulterado");
 
         var status = await service.StatusAsync(Project(), CancellationToken.None);
@@ -229,7 +230,8 @@ public sealed class IacRuntimeTests : IDisposable
 
         var again = await service.OfferAsync(installed.Version, null, IacEngine.Terraform, CancellationToken.None);
         var repaired = await service.InstallAsync(again.OfferId, again.Version, IacEngine.Terraform, CancellationToken.None);
-        Assert.DoesNotContain(again.Impacts, i => i.Contains("já está instalado"));
+        // Adulterado não conta como instalado: a oferta volta a baixar.
+        Assert.False(again.AlreadyInstalled);
         Assert.True(repaired.Installations.Single().Verified);
         Assert.Equal("binario 1.17.2", File.ReadAllText(installed.Path));
     }

@@ -1,6 +1,6 @@
 import { PageSection } from '@/shared/components/ui';
 
-import type { WorkflowSnapshot } from '../domain/run-timeline';
+import type { WorkflowSnapshot } from '@/shared/schema';
 import styles from './workspace.module.scss';
 
 /** Nota mínima por critério (critérios versão 1); abaixo dela a opinião é "reprovada". Igual a PASSING_SCORE no motor. */

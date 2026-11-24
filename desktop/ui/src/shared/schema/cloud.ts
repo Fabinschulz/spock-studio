@@ -10,7 +10,14 @@ export const cloudMechanismSchema = z.object({
   fields: z.array(cloudFieldSchema)
 });
 
-export const cloudColumnSchema = z.object({ id: z.string(), label: z.string() });
+/** Sim e não chegam sem idioma nas colunas `flag`; a tela escreve "sim" e "não" e decide por estes valores. */
+export const CLOUD_FLAG = { yes: 'true', no: 'false' } as const;
+
+export const cloudColumnSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  kind: z.enum(['text', 'flag']).default('text')
+});
 
 export const cloudRegionUseSchema = z.enum(['none', 'required', 'filter']);
 
@@ -116,3 +123,4 @@ export type CloudConnection = z.infer<typeof cloudConnectionSchema>;
 export type CloudConnectionStatus = z.infer<typeof cloudConnectionStatusSchema>;
 export type CloudLink = z.infer<typeof cloudLinkSchema>;
 export type CloudRead = z.infer<typeof cloudReadResultSchema>['result'];
+export type CloudColumn = z.infer<typeof cloudColumnSchema>;

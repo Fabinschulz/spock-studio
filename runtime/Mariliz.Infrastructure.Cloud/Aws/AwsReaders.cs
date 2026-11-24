@@ -40,6 +40,8 @@ internal static class AwsReaders
 
     private static CloudColumn C(string id, string label) => new(id, label);
 
+    private static CloudColumn F(string id, string label) => new(id, label, CloudColumnKinds.Flag);
+
     public static readonly IReadOnlyList<CloudCapability> Capabilities =
     [
         new("aws.regions", "Regiões", "Regiões da conta e se estão habilitadas.", "EC2", ["ec2:DescribeRegions"], CloudRegionUse.None,
@@ -47,16 +49,16 @@ internal static class AwsReaders
         new("aws.ec2.instances", "Instâncias EC2", "Máquinas virtuais da região, com estado e tipo.", "EC2", ["ec2:DescribeInstances"], CloudRegionUse.Required,
             [C("id", "Id"), C("name", "Nome"), C("type", "Tipo"), C("state", "Estado"), C("zone", "Zona"), C("privateIp", "IP privado"), C("launchedAt", "Iniciada em")]),
         new("aws.ec2.vpcs", "VPCs", "Redes virtuais da região, com faixa de endereços e se é a padrão.", "EC2", ["ec2:DescribeVpcs"], CloudRegionUse.Required,
-            [C("id", "Id"), C("name", "Nome"), C("cidr", "Faixa"), C("default", "Padrão"), C("state", "Estado")]),
+            [C("id", "Id"), C("name", "Nome"), C("cidr", "Faixa"), F("default", "Padrão"), C("state", "Estado")]),
         new("aws.ec2.subnets", "Subnets", "Subnets da região, com zona e se saem para a internet por um internet gateway (pública).", "EC2",
             ["ec2:DescribeSubnets", "ec2:DescribeRouteTables"], CloudRegionUse.Required,
-            [C("id", "Id"), C("name", "Nome"), C("vpc", "VPC"), C("zone", "Zona"), C("cidr", "Faixa"), C("public", "Pública"), C("freeIps", "IPs livres")]),
+            [C("id", "Id"), C("name", "Nome"), C("vpc", "VPC"), C("zone", "Zona"), C("cidr", "Faixa"), F("public", "Pública"), C("freeIps", "IPs livres")]),
         new("aws.ecs.clusters", "Clusters ECS", "Clusters de contêineres da região, com tarefas e serviços.", "ECS", ["ecs:ListClusters", "ecs:DescribeClusters"], CloudRegionUse.Required,
             [C("name", "Nome"), C("status", "Estado"), C("runningTasks", "Tarefas em execução"), C("services", "Serviços ativos"), C("instances", "Instâncias registradas")]),
         new("aws.ecr.repositories", "Repositórios ECR", "Registros de imagens de contêiner da região.", "ECR", ["ecr:DescribeRepositories"], CloudRegionUse.Required,
-            [C("name", "Nome"), C("uri", "URI"), C("createdAt", "Criado em"), C("tagMutability", "Tags"), C("scanOnPush", "Varredura no push")]),
+            [C("name", "Nome"), C("uri", "URI"), C("createdAt", "Criado em"), C("tagMutability", "Tags"), F("scanOnPush", "Varredura no push")]),
         new("aws.rds.instances", "Bancos RDS", "Instâncias de banco de dados gerenciado da região.", "RDS", ["rds:DescribeDBInstances"], CloudRegionUse.Required,
-            [C("id", "Id"), C("engine", "Motor"), C("version", "Versão"), C("class", "Classe"), C("status", "Estado"), C("multiAz", "Multi-AZ"), C("zone", "Zona")]),
+            [C("id", "Id"), C("engine", "Motor"), C("version", "Versão"), C("class", "Classe"), C("status", "Estado"), F("multiAz", "Multi-AZ"), C("zone", "Zona")]),
         new("aws.s3.buckets", "Buckets S3", "Buckets da conta, com a região de cada um quando a AWS informa.", "S3", ["s3:ListAllMyBuckets"], CloudRegionUse.None,
             [C("name", "Nome"), C("createdAt", "Criado em"), C("region", "Região")]),
         new("aws.lambda.functions", "Funções Lambda", "Funções da região, com runtime, memória e tempo limite.", "Lambda", ["lambda:ListFunctions"], CloudRegionUse.Required,
@@ -314,5 +316,5 @@ internal static class AwsReaders
 
     private static string? Number(int? value) => value?.ToString(CultureInfo.InvariantCulture);
 
-    private static string? Flag(bool? value) => value switch { true => "sim", false => "não", null => null };
+    private static string? Flag(bool? value) => CloudFlags.Of(value);
 }

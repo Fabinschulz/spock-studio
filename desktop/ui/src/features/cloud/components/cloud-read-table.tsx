@@ -1,8 +1,14 @@
 import { formatEngineDate } from '@/shared/utils';
-import type { CloudProvider, CloudRead } from '@/shared/schema';
+import { CLOUD_FLAG, type CloudColumn, type CloudProvider, type CloudRead } from '@/shared/schema';
 
 import styles from '../cloud-page.module.scss';
 import { capabilityTitle } from '../domain/labels';
+
+function cellText(cell: string | null, column: CloudColumn | undefined): string {
+  if (cell === null) return '-';
+  if (column?.kind !== 'flag') return cell;
+  return cell === CLOUD_FLAG.yes ? 'sim' : 'não';
+}
 
 export function CloudReadTable({ read, provider }: { read: CloudRead; provider: CloudProvider | undefined }) {
   const title = capabilityTitle(provider, read.capability);
@@ -29,7 +35,7 @@ export function CloudReadTable({ read, provider }: { read: CloudRead; provider: 
             {read.rows.map((row, index) => (
               <tr key={index}>
                 {row.map((cell, column) => (
-                  <td key={read.columns[column]?.id ?? column}>{cell ?? '-'}</td>
+                  <td key={read.columns[column]?.id ?? column}>{cellText(cell, read.columns[column])}</td>
                 ))}
               </tr>
             ))}

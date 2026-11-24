@@ -1,5 +1,5 @@
 import type { EvalResult } from '@/shared/schema';
-import { ENGINE_NOTE, HARNESS_ENGINEER_NOTE, judgeStates } from '../constants/judge-states';
+import { ENGINE_NOTE, harnessEngineerNote, judgeStates } from '../constants/judge-states';
 import type { Participant, ParticipantsContext } from '../types/participant';
 import { HARNESS_ENGINEER_NOT_INVOKED } from './harness-engineer-prompt';
 import { runningStep } from './run-progress';
@@ -36,7 +36,7 @@ function engineOf({ step, run, results }: ParticipantsContext): Participant {
   return { ...ENGINE, glyph: 'pending', state: 'Aguardando' };
 }
 
-function harnessEngineerOf({ plan }: ParticipantsContext): Participant | null {
+function harnessEngineerOf({ plan, naming }: ParticipantsContext): Participant | null {
   if (plan.status !== 'ready') return null;
   const waiting = plan.data.limitations.some((l) => l.code === HARNESS_ENGINEER_NOT_INVOKED);
   return {
@@ -45,7 +45,7 @@ function harnessEngineerOf({ plan }: ParticipantsContext): Participant | null {
     glyph: waiting ? 'pending' : 'done',
     state: waiting ? 'Aguardando proposta' : 'Proposta recebida',
     activity: waiting ? 'Sem proposta: o plano usa as regras-base.' : null,
-    note: HARNESS_ENGINEER_NOTE
+    note: harnessEngineerNote(naming.proposal)
   };
 }
 

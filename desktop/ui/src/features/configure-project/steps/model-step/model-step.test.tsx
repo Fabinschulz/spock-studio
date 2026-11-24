@@ -28,6 +28,15 @@ const discovery = (
   tools: { git: '2.45', node: null, python: '3.12', pythonCommand: 'python' },
   hasDeclaredConfig: declaredAiEnvironments.length > 0,
   declaredAiEnvironments,
+  naming: {
+    declaration: 'spock.yaml',
+    lock: 'spock.lock',
+    stateDirectory: '.spock',
+    proposal: '.spock/proposal.json',
+    proposalSchema: '.spock/schemas/harness-proposal.v1.schema.json',
+    harnessEngineer: 'spock-harness-engineer',
+    harnessEngineerAgent: '.claude/agents/spock-harness-engineer.md'
+  },
   warnings: []
 });
 

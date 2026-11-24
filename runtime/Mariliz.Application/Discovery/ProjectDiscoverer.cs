@@ -45,13 +45,15 @@ public sealed class ProjectDiscoverer(IProcessRunner processRunner)
         else if (git.HasUncommittedChanges == true)
             warnings.Add(new(DiscoveryWarningCodes.UncommittedChanges, "Há alterações locais ainda não commitadas.", git.ChangedPaths));
 
+        var naming = files.Naming();
         return new DiscoveryReport(
             projectId, files.RootName, stacks, tooling, aiEnvironments, inventory, specification, git, tools,
-            files.FileExists(files.Naming().Declaration), warnings)
+            files.FileExists(naming.Declaration), warnings)
         {
             Frameworks = frameworks,
             DeclaredAiEnvironments = DeclaredConfig.TryRead(files).Config?.Environments ?? [],
-            Runtimes = runtimes
+            Runtimes = runtimes,
+            Naming = HarnessNames.Of(naming)
         };
     }
 

@@ -38,7 +38,7 @@ public abstract class OfficialReleaseToolchain : IIacToolchain, IDisposable
         _http = handler is null
             ? new HttpClient(new SocketsHttpHandler { AllowAutoRedirect = false })
             : new HttpClient(handler, disposeHandler: false);
-        _http.Timeout = TimeSpan.FromMinutes(10);
+        _http.Timeout = IacTimeouts.Download;
         _http.DefaultRequestHeaders.UserAgent.ParseAdd("SpockStudio");
     }
 

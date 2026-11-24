@@ -36,6 +36,8 @@ struct Inner {
     /// Travado só para trocar ou copiar o processo, nunca durante uma escrita.
     process: Mutex<Option<Process>>,
     rpc: Rpc,
+    /// O que o motor anunciou no último hello; vazio até lá, e todo método fica com o padrão.
+    deadlines: Mutex<timeouts::Deadlines>,
     lifecycle: watch::Sender<Lifecycle>,
     restarts: AtomicU64,
 }
@@ -45,6 +47,7 @@ impl Default for Inner {
         Self {
             process: Mutex::default(),
             rpc: Rpc::default(),
+            deadlines: Mutex::default(),
             lifecycle: watch::Sender::new(Lifecycle::Starting),
             restarts: AtomicU64::new(0),
         }
@@ -148,6 +151,7 @@ impl Engine {
                 "O motor não fala a versão de protocolo esperada.",
             ));
         }
+        *lock(&self.0.deadlines) = timeouts::announced(&hello);
         let version = hello
             .get("engineVersion")
             .and_then(Value::as_str)
@@ -251,14 +255,11 @@ impl Engine {
     }
 
     pub async fn request(&self, method: &str, params: Value) -> Result<Value, HostError> {
+        // Calculado antes do await: o lock não pode atravessar a espera pela resposta.
+        let timeout = timeouts::request_timeout(method, &lock(&self.0.deadlines));
         self.0
             .rpc
-            .call(
-                self.writer(),
-                method,
-                Some(params),
-                timeouts::request_timeout(method),
-            )
+            .call(self.writer(), method, Some(params), timeout)
             .await
     }
 

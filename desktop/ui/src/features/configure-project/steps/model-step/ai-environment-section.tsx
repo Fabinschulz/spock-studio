@@ -30,7 +30,8 @@ export function AiEnvironmentSection({ discovery, selected, onToggle }: AiEnviro
       <fieldset className={styles.fieldset}>
         <legend className="visually-hidden">Ambientes de IA do projeto</legend>
         <p className={styles.note}>
-          Marque as IDEs que a equipe usa. Cada uma recebe só as peças dela, e a lista fica em spock.yaml.
+          Marque as IDEs que a equipe usa. Cada uma recebe só as peças dela, e a lista fica em{' '}
+          {discovery.naming.declaration}.
         </p>
         <ul role="list" className={styles.rows}>
           {AI_ENVIRONMENTS.map((id) => {

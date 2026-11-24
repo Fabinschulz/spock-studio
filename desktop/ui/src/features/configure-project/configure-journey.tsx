@@ -7,6 +7,7 @@ import { ContextPanel } from './components/context-panel';
 import { JourneyFrame } from './components/journey-frame';
 import { useJourneyStore } from './context/journey-store';
 import { countApprovals } from './domain/approvals';
+import { namingOf } from './domain/harness-engineer-prompt';
 import { hasComponentRequest, type ComponentRequest } from './domain/component-request';
 import { canReopenEarlierSteps } from './domain/step-navigation';
 import { stepIssue } from './domain/step-issue';
@@ -48,6 +49,7 @@ export function ConfigureJourney({
   useScrollToTop(state.step, { focus: true });
 
   const approvalCount = state.plan.status === 'ready' ? countApprovals(state, state.plan.data) : 0;
+  const naming = namingOf(state.discovery);
   const live = state.run !== null && state.run.error === null;
 
   return (
@@ -65,6 +67,7 @@ export function ConfigureJourney({
           approvalCount={approvalCount}
           run={state.run}
           results={state.results}
+          naming={naming}
         />
       }
     >
@@ -132,6 +135,7 @@ export function ConfigureJourney({
           onValidate={() => void actions.validate()}
           onReplan={() => void actions.generatePlan()}
           replan={state.plan}
+          naming={naming}
           onDone={home}
         />
       ) : null}

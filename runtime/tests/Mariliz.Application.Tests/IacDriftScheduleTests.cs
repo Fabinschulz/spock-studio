@@ -88,8 +88,8 @@ public sealed class IacDriftScheduleTests : IDisposable
             ["aws_instance"] = new HashSet<string> { "i-1" },
             ["aws_s3_bucket"] = new HashSet<string> { "loja-state" }
         });
-        _provider.Tables["aws.ec2.vpcs"] = [["vpc-1", "loja", "10.0.0.0/16", "não", "available"], ["vpc-2", "manual", "10.1.0.0/16", "não", "available"],
-            ["vpc-default", null, "172.31.0.0/16", "sim", "available"]];
+        _provider.Tables["aws.ec2.vpcs"] = [["vpc-1", "loja", "10.0.0.0/16", "false", "available"], ["vpc-2", "manual", "10.1.0.0/16", "false", "available"],
+            ["vpc-default", null, "172.31.0.0/16", "true", "available"]];
         _provider.Tables["aws.s3.buckets"] = [["loja-state", "2026-01-01", "sa-east-1"], ["esquecido", "2026-01-02", "sa-east-1"], ["de-fora", "2026-01-03", "us-east-1"]];
 
         var drift = await operations.DriftAsync(new IacPlanRequest(_projectId, null, null, connectionId), IacOperationService.Person, CancellationToken.None);
