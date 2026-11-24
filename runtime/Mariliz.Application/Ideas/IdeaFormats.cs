@@ -37,8 +37,8 @@ internal static class IdeaFormats
         Escolha a stack pelos critérios do §10 do catálogo da Organização, listados abaixo: cada fator (F1, F2...) é um fato
         do projeto, tirado da ideia ou da especificação, que cita um critério e diz a opção que ele favorece. O backend responde
         à pergunta 10.4 e o frontend à 10.1, com "question", "option" e os fatores; outras áreas citam a pergunta do §10 que
-        se aplica ou os requisitos (REQ, NFR) que a escolha atende. A opção é a que os fatores citados favorecem; se for outra,
-        ou se houver empate, escreva a exceção. Não recomende .NET por padrão: liste os fatores e mostre qual opção eles
+        se aplica ou os requisitos (REQ, NFR) que a escolha atende. A opção é a que os fatores citados favorecem, e cada critério
+        conta uma vez, mesmo citado em dois fatores; se a opção for outra, ou se houver empate, escreva a exceção. Não recomende .NET por padrão: liste os fatores e mostre qual opção eles
         favorecem. Toda escolha diz o que descartou, por quê, e o trade-off que aceita. Não invente fato que a ideia não traz:
         o que faltar vira pergunta em aberto.
         """;

@@ -69,6 +69,8 @@ internal static partial class StackChecks
     {
         var tally = factorIds.Select(id => factors.GetValueOrDefault(id)).OfType<Factor>()
             .Where(factor => factor.Question == question)
+            // Cada linha do catálogo vota uma vez por opção: citar o mesmo critério com outro fato não desempata a escolha.
+            .DistinctBy(factor => (factor.Criterion, factor.Favors))
             .GroupBy(factor => factor.Favors, StringComparer.Ordinal)
             .Select(group => (Option: group.Key, Count: group.Count()))
             .OrderByDescending(item => item.Count)
