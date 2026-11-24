@@ -68,7 +68,7 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
         var provider = McpArguments.Text(call.Arguments, "provider", MaxArgument) ?? CloudProviders.Aws;
         if (IacProviders.Find(provider) is null)
             throw new McpToolException($"'provider' deve ser {string.Join(", ", IacBlueprintChecks.Providers)}.");
-        var root = authorizer.TryGetRoot(project.ProjectId, out var found) ? found : throw EngineErrors.ProjectNotAuthorized();
+        var root = authorizer.RequireRoot(project.ProjectId);
         var projectFiles = files!.Open(root);
         // Caminho completo: a sessão do agente pode estar aberta em outra pasta, e um caminho relativo iria parar lá.
         var path = Path.Combine(root, IacArchitectureProposals.PathIn(projectFiles).Replace('/', Path.DirectorySeparatorChar));

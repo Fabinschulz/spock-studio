@@ -23,7 +23,7 @@ public static partial class IacBootstrapTemplates
 
         var providers = $$"""
             terraform {
-              required_version = ">= 1.11"
+              required_version = "{{IacRootCommon.RequiredVersion}}"
 
               required_providers {
                 aws = {

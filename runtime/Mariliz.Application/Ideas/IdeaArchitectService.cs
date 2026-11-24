@@ -63,29 +63,9 @@ public sealed class IdeaArchitectService(
         var files = Open(projectId);
         var (plan, writes) = Prepare(projectId, files, approved);
         if (plan.PlanId != planId)
-            throw new EngineException("STALE_PLAN", "Os documentos ou o projeto mudaram desde a revisão. Revise de novo antes de aprovar.");
-        if (!tracker.TryStart(projectId, RunKinds.Idea, out var run) || run is null) throw EngineErrors.RunInProgress();
+            throw EngineErrors.StalePlan("Os documentos ou o projeto mudaram desde a revisão. Revise de novo antes de aprovar.");
 
-        run.Start(() =>
-        {
-            var journal = new RunJournal { RunId = run.RunId, ProjectId = projectId, Kind = RunKinds.Idea, PlanId = plan.PlanId, StartedAt = clock.UtcNow };
-            var recorder = new RunJournalRecorder(run, journal, store);
-            run.SetState(RunStates.Running);
-            var error = new ApprovedWriter(store, files, WriteScope.Managed, OpSources.Write).Apply(run, journal, recorder, writes);
-
-            journal.State = error is null ? RunStates.Completed : RunStates.Failed;
-            journal.FinishedAt = clock.UtcNow;
-            recorder.Save();
-            run.Complete(journal.State, new JsonObject
-            {
-                ["runId"] = run.RunId,
-                ["kind"] = RunKinds.Idea,
-                ["outcome"] = journal.State,
-                ["files"] = new JsonArray(journal.Ops.Select(op => (JsonNode)new JsonObject { ["path"] = op.Path, ["op"] = op.Op, ["status"] = op.Status }).ToArray()),
-                ["error"] = error
-            });
-        });
-        return run;
+        return new ReviewedWriteRun(tracker, store, clock).Start(projectId, RunKinds.Idea, plan.PlanId, files, WriteScope.Managed, OpSources.Write, writes);
     }
 
     private static (IdeaPlan Plan, IReadOnlyList<ApprovedWrite> Writes) Prepare(string projectId, IProjectFiles files, IdeaArtifacts approved)
@@ -177,5 +157,5 @@ public sealed class IdeaArchitectService(
     };
 
     private IProjectFiles Open(string projectId) =>
-        workspace.TryGetRoot(projectId, out var root) ? filesFactory.Open(root) : throw EngineErrors.ProjectNotAuthorized();
+        filesFactory.Open(workspace.RequireRoot(projectId));
 }

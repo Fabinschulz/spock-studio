@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using static Mariliz.Application.JsonRead;
 
 namespace Mariliz.Application.Iac;
 
@@ -181,10 +182,6 @@ public static class IacPlanReader
         JsonArray a => a.Any(item => item is JsonValue v && v.TryGetValue<string>(out var text) && text == value),
         _ => false
     };
-
-    private static string? Text(JsonObject node, string name) => node[name] is JsonValue v && v.TryGetValue<string>(out var text) ? text : null;
-
-    private static bool Flag(JsonObject node, string name) => node[name] is JsonValue v && v.TryGetValue<bool>(out var flag) && flag;
 
     private static long? Number(JsonObject node, string name) => node[name] is JsonValue v && v.TryGetValue<long>(out var number) ? number : null;
 

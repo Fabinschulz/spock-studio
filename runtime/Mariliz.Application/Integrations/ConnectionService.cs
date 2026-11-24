@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Ports;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Integrations;
 
@@ -42,7 +43,7 @@ public sealed class ConnectionService(IIntegrationStore store, ISecretVault vaul
             vault.Store(connection.Id, cleanSecret);
             store.SaveConnection(connection);
         }
-        Audit("connection.created", connection);
+        Audit(AuditActions.ConnectionCreated, connection);
         return connection;
     }
 
@@ -94,7 +95,7 @@ public sealed class ConnectionService(IIntegrationStore store, ISecretVault vaul
                 Status = ConnectionStatus.Connected, Account = probe.Account, Scopes = probe.Scopes, CheckedAt = clock.UtcNow, LastError = null
             });
         }
-        Audit("connection.credential_updated", updated);
+        Audit(AuditActions.ConnectionCredentialUpdated, updated);
         return updated;
     }
 
@@ -108,7 +109,7 @@ public sealed class ConnectionService(IIntegrationStore store, ISecretVault vaul
             vault.Remove(connectionId);
             updated = Update(connectionId, c => c with { Status = ConnectionStatus.Disconnected, Scopes = [], LastError = null });
         }
-        Audit("connection.disconnected", updated);
+        Audit(AuditActions.ConnectionDisconnected, updated);
         return updated;
     }
 
@@ -122,7 +123,7 @@ public sealed class ConnectionService(IIntegrationStore store, ISecretVault vaul
             vault.Remove(connectionId);
             store.RemoveConnection(connectionId);
         }
-        Audit("connection.removed", connection);
+        Audit(AuditActions.ConnectionRemoved, connection);
     }
 
     // A credencial sai do cofre só aqui.

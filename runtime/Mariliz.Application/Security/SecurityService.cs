@@ -33,42 +33,24 @@ public sealed class SecurityService(
         var (plan, writes) = SecurityFixPlanner.Plan(projectId, files, before);
         if (writes.Count == 0) throw new EngineException("NOTHING_TO_APPLY", "Não há o que corrigir automaticamente.");
         if (plan.PlanId != planId)
-            throw new EngineException("STALE_PLAN", "O projeto mudou desde a revisão. Revise as mudanças de novo antes de aprovar.");
-        if (!tracker.TryStart(projectId, RunKinds.Security, out var run) || run is null) throw EngineErrors.RunInProgress();
+            throw EngineErrors.StalePlan("O projeto mudou desde a revisão. Revise as mudanças de novo antes de aprovar.");
 
-        run.Start(() =>
-        {
-            var result = Execute(run, files, plan, writes);
-            run.Complete(result["outcome"]!.GetValue<string>(), result);
-        });
-        return run;
-    }
+        var run = new ReviewedWriteRun(tracker, store, clock);
+        return run.Start(projectId, RunKinds.Security, plan.PlanId, files, WriteScope.SecurityFix, OpSources.Security, writes,
+            (handle, journal, recorder, error) =>
+            {
+                if (error is not null)
+                {
+                    run.Finish(journal, recorder, RunStates.Failed);
+                    return Result(handle, journal, plan, null, error);
+                }
 
-    private JsonObject Execute(RunHandle run, IProjectFiles files, SecurityPlan plan, IReadOnlyList<ApprovedWrite> writes)
-    {
-        var journal = new RunJournal
-        {
-            RunId = run.RunId, ProjectId = run.ProjectId, Kind = RunKinds.Security, PlanId = plan.PlanId, StartedAt = clock.UtcNow
-        };
-        var recorder = new RunJournalRecorder(run, journal, store);
-        run.SetState(RunStates.Running);
-
-        var error = new ApprovedWriter(store, files, WriteScope.SecurityFix, OpSources.Security).Apply(run, journal, recorder, writes);
-        if (error is not null) return Finish(journal, recorder, RunStates.Failed, Result(run, journal, plan, null, error));
-
-        var validate = recorder.BeginStep("validate", "Varrer o projeto de novo");
-        var after = SecurityScanner.Scan(files).Findings;
-        recorder.CompleteStep(validate, StepStatus.Completed, $"{after.Count} achado(s) restante(s)");
-        return Finish(journal, recorder, RunStates.Completed, Result(run, journal, plan, after, null));
-    }
-
-    private JsonObject Finish(RunJournal journal, RunJournalRecorder recorder, string state, JsonObject result)
-    {
-        journal.State = state;
-        journal.FinishedAt = clock.UtcNow;
-        recorder.Save();
-        result["outcome"] = state;
-        return result;
+                var validate = recorder.BeginStep("validate", "Varrer o projeto de novo");
+                var after = SecurityScanner.Scan(files).Findings;
+                recorder.CompleteStep(validate, StepStatus.Completed, $"{after.Count} achado(s) restante(s)");
+                run.Finish(journal, recorder, RunStates.Completed);
+                return Result(handle, journal, plan, after, null);
+            });
     }
 
     private static JsonObject Result(RunHandle run, RunJournal journal, SecurityPlan plan, IReadOnlyList<SecurityFinding>? after, string? error)
@@ -78,13 +60,14 @@ public sealed class SecurityService(
         {
             ["runId"] = run.RunId,
             ["kind"] = RunKinds.Security,
-            ["changes"] = new JsonArray(journal.Ops.Select(op => (JsonNode)new JsonObject { ["path"] = op.Path, ["op"] = op.Op, ["status"] = op.Status }).ToArray()),
+            ["changes"] = ReviewedWriteRun.Changes(journal),
             ["fixed"] = remaining is null ? 0 : plan.FindingIds.Count(id => !remaining.Contains(id)),
             ["remaining"] = after?.Count,
-            ["error"] = error
+            ["error"] = error,
+            ["outcome"] = journal.State
         };
     }
 
     private IProjectFiles Open(string projectId) =>
-        workspace.TryGetRoot(projectId, out var root) ? filesFactory.Open(root) : throw EngineErrors.ProjectNotAuthorized();
+        filesFactory.Open(workspace.RequireRoot(projectId));
 }

@@ -5,6 +5,7 @@ using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
 using Mariliz.Core.Text;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Iac;
 
@@ -58,7 +59,7 @@ public sealed class IacRuntimeService
 
     public async Task<IacRuntimeStatus> StatusAsync(string? projectId, CancellationToken ct)
     {
-        var root = projectId is null ? null : RequireRoot(projectId);
+        var root = projectId is null ? null : _workspace.RequireRoot(projectId);
         var settings = _store.Read();
         var installations = new List<IacInstallation>();
         foreach (var toolchain in Ordered())
@@ -102,13 +103,13 @@ public sealed class IacRuntimeService
             }
             catch (EngineException ex)
             {
-                _audit.Record("iac.runtime.install_failed", new JsonObject
+                _audit.Record(AuditActions.IacRuntimeInstallFailed, new JsonObject
                 {
                     ["engine"] = EngineId(engine), ["version"] = offer.Version, ["platform"] = offer.Platform.Key, ["code"] = ex.Code
                 });
                 throw;
             }
-            _audit.Record("iac.runtime.installed", new JsonObject
+            _audit.Record(AuditActions.IacRuntimeInstalled, new JsonObject
             {
                 ["engine"] = EngineId(engine),
                 ["version"] = installed.Version,
@@ -129,7 +130,7 @@ public sealed class IacRuntimeService
     public async Task<IacRuntimeStatus> DeclineAsync(CancellationToken ct)
     {
         _store.Write(_store.Read() with { DeclinedAt = _clock.UtcNow });
-        _audit.Record("iac.runtime.declined", new JsonObject());
+        _audit.Record(AuditActions.IacRuntimeDeclined, new JsonObject());
         return await StatusAsync(null, ct);
     }
 
@@ -140,12 +141,12 @@ public sealed class IacRuntimeService
         if (!toolchain.Managed().Any(m => m.Version == version)) throw IacErrors.NotInstalled(NameOf(engine), version);
         var pinnedBy = _store.Read().Pins
             .Where(p => p.Value.Engine == engine && p.Value.Source == IacRuntimeSource.Managed && p.Value.Version == version)
-            .Select(p => DisplayName(p.Key))
+            .Select(p => _workspace.DisplayNameOf(p.Key))
             .ToList();
         if (pinnedBy.Count > 0) throw IacErrors.InUse(NameOf(engine), version, pinnedBy);
 
         toolchain.Remove(version);
-        _audit.Record("iac.runtime.removed", new JsonObject { ["engine"] = EngineId(engine), ["version"] = version });
+        _audit.Record(AuditActions.IacRuntimeRemoved, new JsonObject { ["engine"] = EngineId(engine), ["version"] = version });
         return await StatusAsync(null, ct);
     }
 
@@ -156,7 +157,7 @@ public sealed class IacRuntimeService
         var toolchain = Toolchain(engine);
         if (_policy.For(engine) is { ExternalUse: false } blocked)
         {
-            _audit.Record("iac.runtime.adopt_blocked", new JsonObject { ["engine"] = EngineId(engine), ["edition"] = _policy.Edition });
+            _audit.Record(AuditActions.IacRuntimeAdoptBlocked, new JsonObject { ["engine"] = EngineId(engine), ["edition"] = _policy.Edition });
             throw IacErrors.ExternalUseDisabled(NameOf(engine), blocked.Note);
         }
         var found = toolchain.FindExternal() ?? throw IacErrors.ExternalNotFound(NameOf(engine));
@@ -168,7 +169,7 @@ public sealed class IacRuntimeService
         var adopted = settings.Adopted.Where(a => !SamePath(a.Path, found)).ToList();
         adopted.Add(new AdoptedRuntime(found, version.ToString(), toolchain.HashFile(found), _clock.UtcNow, engine));
         _store.Write(settings with { Adopted = adopted });
-        _audit.Record("iac.runtime.adopted", new JsonObject { ["engine"] = EngineId(engine), ["version"] = version.ToString() });
+        _audit.Record(AuditActions.IacRuntimeAdopted, new JsonObject { ["engine"] = EngineId(engine), ["version"] = version.ToString() });
         return await StatusAsync(null, ct);
     }
 
@@ -176,14 +177,14 @@ public sealed class IacRuntimeService
     // nova compatível).
     public async Task<IacRuntimeStatus> PinAsync(string projectId, string? version, IacRuntimeSource? source, IacEngine? engine, CancellationToken ct)
     {
-        RequireRoot(projectId);
+        _workspace.RequireRoot(projectId);
         var settings = _store.Read();
         if (version is null)
         {
             if (settings.Pins.Remove(projectId))
             {
                 _store.Write(settings);
-                _audit.Record("iac.runtime.unpinned", new JsonObject { ["projectId"] = projectId });
+                _audit.Record(AuditActions.IacRuntimeUnpinned, new JsonObject { ["projectId"] = projectId });
             }
             return await StatusAsync(projectId, ct);
         }
@@ -234,12 +235,12 @@ public sealed class IacRuntimeService
         // A trava fica aqui, antes de consultar versões: proposta e instalação passam por este método, venham da interface ou não.
         if (_policy.For(engine) is { ManagedInstall: false } blocked)
         {
-            _audit.Record("iac.runtime.install_blocked", new JsonObject { ["engine"] = EngineId(engine), ["edition"] = _policy.Edition });
+            _audit.Record(AuditActions.IacRuntimeInstallBlocked, new JsonObject { ["engine"] = EngineId(engine), ["edition"] = _policy.Edition });
             throw IacErrors.ManagedInstallDisabled(name, blocked.Note);
         }
         var minimum = MinimumFor(engine);
         var platform = toolchain.Platform ?? throw IacErrors.UnsupportedPlatform(name);
-        var requirements = projectId is null ? [] : _config.Requirements(RequireRoot(projectId));
+        var requirements = projectId is null ? [] : _config.Requirements(_workspace.RequireRoot(projectId));
         var wanted = version is null ? null : IacVersion.TryParse(version) ?? throw IacErrors.VersionInvalid(name, version);
         if (wanted is { IsPrerelease: true }) throw IacErrors.VersionNotPublished(name, version!);
         if (wanted is not null && wanted < minimum) throw IacErrors.BelowMinimum(name, wanted.ToString(), minimum.ToString());
@@ -297,7 +298,7 @@ public sealed class IacRuntimeService
             if (chosen.Major != newest.Major || chosen.Minor != newest.Minor)
                 yield return $"Muda a versão menor ({newest.Major}.{newest.Minor} para {chosen.Major}.{chosen.Minor}): leia o changelog antes de fixar a versão nova num projeto.";
             foreach (var group in _store.Read().Pins.Where(p => p.Value.Engine == toolchain.Engine).GroupBy(p => p.Value.Version).OrderBy(g => g.Key, StringComparer.Ordinal))
-                yield return $"Fixados no {name} {group.Key}: {string.Join(", ", group.Select(p => DisplayName(p.Key)))}.";
+                yield return $"Fixados no {name} {group.Key}: {string.Join(", ", group.Select(p => _workspace.DisplayNameOf(p.Key)))}.";
         }
         if (Unmet(requirements, chosen) is { } constraint)
             yield return $"O projeto exige versão {constraint}; esta não poderá ser fixada nele.";
@@ -426,7 +427,7 @@ public sealed class IacRuntimeService
     {
         settings.Pins[projectId] = new ProjectRuntimePin(installation.Version, installation.Source, _clock.UtcNow, installation.Engine);
         _store.Write(settings);
-        _audit.Record("iac.runtime.pinned", new JsonObject
+        _audit.Record(AuditActions.IacRuntimePinned, new JsonObject
         {
             ["projectId"] = projectId,
             ["engine"] = EngineId(installation.Engine),
@@ -456,12 +457,6 @@ public sealed class IacRuntimeService
         IacRuntimeState.UnsupportedPlatform => "Não há pacote oficial do OpenTofu nem do Terraform para o sistema e a arquitetura desta máquina.",
         _ => "Nenhuma ferramenta de infraestrutura como código instalada. O Spock pode instalar o OpenTofu, gratuito, com a sua autorização."
     };
-
-    private string RequireRoot(string projectId) =>
-        _workspace.TryGetRoot(projectId, out var root) ? root : throw EngineErrors.ProjectNotAuthorized();
-
-    private string DisplayName(string projectId) =>
-        _workspace.Projects().FirstOrDefault(p => p.ProjectId == projectId)?.DisplayName ?? projectId;
 
     private static bool SamePath(string left, string right) =>
         string.Equals(Path.GetFullPath(left), Path.GetFullPath(right), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);

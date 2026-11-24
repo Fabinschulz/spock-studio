@@ -4,6 +4,7 @@ using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Iac;
 
@@ -29,10 +30,10 @@ public sealed class IacStateService(
 
     public async Task<IacStateReport> ReportAsync(string projectId, CancellationToken ct)
     {
-        var root = RequireRoot(projectId);
+        var root = workspace.RequireRoot(projectId);
         var folders = config.Folders(root);
         if (folders.Count == 0) return new IacStateReport(projectId, null, [], null);
-        var iacRoot = IacOperationService.CommonRoot(folders);
+        var iacRoot = IacLayout.CommonRoot(folders);
 
         var roots = new List<IacStateRoot>();
         foreach (var folder in folders.Where(f => states.IsRoot(root, f)))
@@ -61,15 +62,15 @@ public sealed class IacStateService(
             _ => false
         };
         var files = states.LocalStateFiles(root, folder);
-        var shared = registry.Owners(identity).Where(owner => owner != projectId).Select(DisplayName).ToList();
+        var shared = registry.Owners(identity).Where(owner => owner != projectId).Select(workspace.DisplayNameOf).ToList();
         var bootstrap = folder == "bootstrap" || folder.EndsWith("/bootstrap", StringComparison.Ordinal);
 
         var risks = new List<IacStateRisk>();
         if (shared.Count > 0)
             risks.Add(new(IacStateRiskLevel.Danger, "shared", $"O mesmo state é usado por {string.Join(", ", shared)}. Um apply de um projeto apagaria o que o outro criou."));
         foreach (var file in files)
-            if (await TrackedByGitAsync(root, Combine(folder, file), ct))
-                risks.Add(new(IacStateRiskLevel.Danger, "state-in-git", $"{Combine(folder, file)} não está no .gitignore: o state tem dados sensíveis e não pode ir para o repositório."));
+            if (await TrackedByGitAsync(root, IacLayout.Combine(folder, file), ct))
+                risks.Add(new(IacStateRiskLevel.Danger, "state-in-git", $"{IacLayout.Combine(folder, file)} não está no .gitignore: o state tem dados sensíveis e não pode ir para o repositório."));
         if (mode == IacStateMode.LocalInProject && !bootstrap)
             risks.Add(new(IacStateRiskLevel.Warning, "local-state",
                 "State local: sem trava compartilhada nem versões. Serve para uma pessoa; para um time, use um backend remoto com bootstrap."));
@@ -105,19 +106,11 @@ public sealed class IacStateService(
     {
         var (plan, writes, files) = PrepareBootstrap(request);
         if (plan.PlanId != planId)
-            throw new EngineException("STALE_PLAN", "Os arquivos ou os valores mudaram desde a revisão. Revise o bootstrap de novo antes de aprovar.");
-        if (!tracker.TryStart(request.ProjectId, RunKinds.Infrastructure, out var run) || run is null) throw EngineErrors.RunInProgress();
+            throw EngineErrors.StalePlan("Os arquivos ou os valores mudaram desde a revisão. Revise o bootstrap de novo antes de aprovar.");
 
-        run.Start(() =>
-        {
-            var journal = new RunJournal { RunId = run.RunId, ProjectId = request.ProjectId, Kind = RunKinds.Infrastructure, PlanId = plan.PlanId, StartedAt = clock.UtcNow };
-            var recorder = new RunJournalRecorder(run, journal, store);
-            run.SetState(RunStates.Running);
-            var error = new ApprovedWriter(store, files, WriteScope.Infrastructure, OpSources.Infrastructure).Apply(run, journal, recorder, writes);
-            journal.State = error is null ? RunStates.Completed : RunStates.Failed;
-            journal.FinishedAt = clock.UtcNow;
-            recorder.Save();
-            audit.Record("iac.bootstrap_written", new JsonObject
+        return new ReviewedWriteRun(tracker, store, clock).Start(request.ProjectId, RunKinds.Infrastructure, plan.PlanId, files,
+            WriteScope.Infrastructure, OpSources.Infrastructure, writes, (run, journal) =>
+            audit.Record(AuditActions.IacBootstrapWritten, new JsonObject
             {
                 ["projectId"] = request.ProjectId,
                 ["provider"] = plan.Provider,
@@ -125,27 +118,17 @@ public sealed class IacStateService(
                 ["files"] = plan.Changes.Count,
                 ["runId"] = run.RunId,
                 ["status"] = journal.State
-            });
-            run.Complete(journal.State, new JsonObject
-            {
-                ["runId"] = run.RunId,
-                ["kind"] = RunKinds.Infrastructure,
-                ["outcome"] = journal.State,
-                ["files"] = new JsonArray(journal.Ops.Select(op => (JsonNode)new JsonObject { ["path"] = op.Path, ["op"] = op.Op, ["status"] = op.Status }).ToArray()),
-                ["error"] = error
-            });
-        });
-        return run;
+            }));
     }
 
     private (IacBootstrapPlan Plan, IReadOnlyList<ApprovedWrite> Writes, IProjectFiles Files) PrepareBootstrap(IacBootstrapRequest request)
     {
-        var root = RequireRoot(request.ProjectId);
+        var root = workspace.RequireRoot(request.ProjectId);
         var files = filesFactory.Open(root);
         var folders = config.Folders(root);
-        var iacRoot = folders.Count == 0 ? "infra" : IacOperationService.CommonRoot(folders);
-        var folder = Combine(iacRoot.Length == 0 ? "infra" : iacRoot, "bootstrap");
-        var project = IacBootstrapTemplates.ProjectSlug(Value(request, "project") ?? DisplayName(request.ProjectId));
+        var iacRoot = folders.Count == 0 ? "infra" : IacLayout.CommonRoot(folders);
+        var folder = IacLayout.Combine(iacRoot.Length == 0 ? "infra" : iacRoot, "bootstrap");
+        var project = IacBootstrapTemplates.ProjectSlug(Value(request, "project") ?? workspace.DisplayNameOf(request.ProjectId));
         var provider = IacProviders.Require(request.Provider);
         var connection = Connection(request);
         // O perfil, a subscription ou o projeto da conexão, pelo nome que só o conector conhece.
@@ -171,7 +154,7 @@ public sealed class IacStateService(
             _ => throw IacErrors.ProviderUnknown(request.Provider)
         };
 
-        var prepared = generated.Files.Select(file => ReviewedChanges.Prepare(files, Combine(folder, file.File), file.Content)).ToList();
+        var prepared = generated.Files.Select(file => ReviewedChanges.Prepare(files, IacLayout.Combine(folder, file.File), file.Content)).ToList();
         if (GitIgnore(files.ReadText(".gitignore")) is { } gitignore) prepared.Add(ReviewedChanges.Prepare(files, ".gitignore", gitignore));
         var changes = prepared.Select(item => item.Change).ToList();
         var plan = new IacBootstrapPlan(ReviewedChanges.PlanId("iacboot-", changes), request.ProjectId, request.Provider, folder, changes,
@@ -207,11 +190,4 @@ public sealed class IacStateService(
     private static string? Value(IacBootstrapRequest request, string name) =>
         request.Values.TryGetValue(name, out var value) && !string.IsNullOrWhiteSpace(value) ? value.Trim() : null;
 
-    private static string Combine(string a, string b) => a.Length == 0 ? b : $"{a}/{b}";
-
-    private string RequireRoot(string projectId) =>
-        workspace.TryGetRoot(projectId, out var root) ? root : throw EngineErrors.ProjectNotAuthorized();
-
-    private string DisplayName(string projectId) =>
-        workspace.Projects().FirstOrDefault(p => p.ProjectId == projectId)?.DisplayName ?? projectId;
 }

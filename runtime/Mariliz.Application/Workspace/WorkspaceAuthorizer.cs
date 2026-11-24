@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Mariliz.Application.Execution;
 using Mariliz.Application.Harness;
 using Mariliz.Core.Policy;
 using Mariliz.Core.Text;
@@ -72,6 +73,13 @@ public sealed class WorkspaceAuthorizer
         root = value ?? "";
         return found;
     }
+
+    public string RequireRoot(string projectId) =>
+        TryGetRoot(projectId, out var root) ? root : throw EngineErrors.ProjectNotAuthorized();
+
+    // Um projeto que saiu da lista aparece pelo id.
+    public string DisplayNameOf(string projectId) =>
+        Projects().FirstOrDefault(project => project.ProjectId == projectId)?.DisplayName ?? projectId;
 
     // F1: o id estável que está na declaração da cópia (spock.yaml, ou mariliz.yaml num projeto anterior à troca de nome). Lido a cada pergunta: um plano aplicado o grava sem passar por aqui.
     public HarnessNaming NamingOf(string projectId) =>

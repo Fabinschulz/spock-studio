@@ -138,7 +138,7 @@ public static class IacAzureGenerator
         var h = new IacHcl();
         h.Block("terraform", t =>
         {
-            t.Attr("required_version", Quote(">= 1.11"));
+            IacRootCommon.RequiredVersionAttr(t);
             t.Blank();
             t.Block("required_providers", r => r.Object("azurerm", o => o.Attr("source", Quote("hashicorp/azurerm")).Attr("version", Quote(IacBootstrapTemplates.AzurermVersion))));
             t.Blank();
@@ -181,9 +181,7 @@ public static class IacAzureGenerator
             v.Nullable("postgres_admin_name", "string", "Nome desse administrador no Entra ID");
         }
         if (b.Service is not null)
-            v.Validated("image_tag", "string", "Tag da imagem inicial; só vale para o primeiro apply, porque depois o CI é o dono da revisão",
-                "can(regex(\"^[A-Za-z0-9_.-]{1,128}$\", var.image_tag)) && var.image_tag != \"latest\"",
-                "Use uma tag imutável (o SHA do commit), nunca latest.", "Imagem");
+            IacRootCommon.ImageTag(v, "Tag da imagem inicial; só vale para o primeiro apply, porque depois o CI é o dono da revisão");
         v.Default("alarm_email", "string", "E-mail que recebe os alarmes; null cria o grupo de ação sem destinatário",
             b.AlarmEmail is null ? "null" : Quote(b.AlarmEmail), "Alarmes");
         return v.ToString();
@@ -192,20 +190,11 @@ public static class IacAzureGenerator
     private static string RootResources(IacBlueprint b)
     {
         var h = new IacHcl();
-        h.Section("Environment guard");
-        h.Comment("O ambiente é o workspace selecionado; no workspace default os recursos não teriam ambiente definido.");
-        h.Block("resource \"terraform_data\" \"environment_guard\"", r =>
-        {
-            r.Attr("input", "terraform.workspace");
-            r.Blank();
-            r.Block("lifecycle", l => l.Block("precondition", p => p
-                .Attr("condition", "terraform.workspace != \"default\"")
-                .Attr("error_message", Quote("Selecione o workspace do ambiente antes do plan/apply (ex.: tofu workspace select dev)."))));
-        });
+        IacRootCommon.EnvironmentGuard(h);
         h.Blank();
         h.Block("locals", l =>
         {
-            l.Attr("name_prefix", Quote($"{b.Project}-${{terraform.workspace}}"));
+            IacRootCommon.NamePrefix(l, b.Project);
             l.Blank();
             l.Object("tags", t => t.Attr("Project", Quote(b.Project)).Attr("Environment", "terraform.workspace").Attr("ManagedBy", Quote("terraform")));
         });
@@ -325,7 +314,7 @@ public static class IacAzureGenerator
             h.Blank();
             h.Section("Imagem");
             h.Comment("SHA do commit da primeira imagem publicada no registro; só vale para o primeiro apply.");
-            h.Attr("image_tag", Quote("0000000000000000000000000000000000000000"));
+            IacRootCommon.ImageTagExample(h);
         }
         return h.ToString();
     }
@@ -354,11 +343,9 @@ public static class IacAzureGenerator
         text.Append("| Caminho | O que é |\n| ------- | ------- |\n");
         foreach (var (path, what) in rows) text.Append($"| {path} | {what} |\n");
         text.Append($"\nRegião `{b.Region}`, subscription `{b.Account}`: o provider opera só nela.\n");
-        text.Append("\n## Pré-requisitos\n\n- OpenTofu **≥ 1.11** (ou Terraform ≥ 1.11). O Spock instala e verifica a ferramenta.\n");
+        text.Append("\n## Pré-requisitos\n\n" + IacRootCommon.ToolPrerequisite());
         text.Append($"- Provider azurerm fixado em `{IacBootstrapTemplates.AzurermVersion}`.\n- Login com `az login` (ou a credencial da máquina) na subscription.\n");
-        text.Append($"\n## Plan e apply de um ambiente\n\nPela tela Infraestrutura do Spock (validar, gerar plano, aprovar) ou no terminal:\n\n");
-        text.Append($"```bash\ntofu -chdir={dir} init\n```\n\n```bash\ntofu -chdir={dir} workspace select dev\n```\n\n```bash\ntofu -chdir={dir} plan -out=dev.tfplan\n```\n\n```bash\ntofu -chdir={dir} apply dev.tfplan\n```\n\n");
-        text.Append("- No workspace `default` o plan falha de propósito.\n- Depois de um apply, `plan -detailed-exitcode` deve informar `No changes`.\n");
+        IacRootCommon.ReadmeWorkflow(text, dir);
         text.Append("- Nomes globais (registro, Key Vault, namespace) saem do projeto e do ambiente; se já existirem em outra subscription, troque o projeto.\n");
         if (b.Service is not null)
             text.Append("\n## Primeiro deploy\n\n1. Aplique registro e Key Vault (`-target=module.acr -target=module.keyvault`).\n" +
@@ -368,8 +355,7 @@ public static class IacAzureGenerator
         if (b.Database is not null)
             text.Append("\n## Banco\n\nSem senha: o acesso é pelo Entra ID. Defina `postgres_admin_object_id` (um grupo de DBAs) e, como administrador, crie o usuário da identidade da aplicação " +
                         "(`identity_name` do módulo containerapp) com `pgaadauth_create_principal`.\n");
-        text.Append("\n## Verificações\n\n```bash\ntofu fmt -check -recursive " + dir + "\n```\n\n");
-        text.Append("Rode `tofu validate` em cada pasta com `.tf` depois de `tofu init -backend=false`.\n");
+        IacRootCommon.ReadmeChecks(text, dir);
         return text.ToString();
     }
 

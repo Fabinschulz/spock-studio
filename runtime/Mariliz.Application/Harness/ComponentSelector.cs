@@ -16,6 +16,11 @@ internal sealed class ComponentSelector(
     List<Limitation> limitations,
     string declaration)
 {
+    // A dispensa pedida e a saída da IDE tiram o que o Spock gravou do mesmo jeito.
+    public bool Releasing(string id) => userExcluded.Contains(id) || retired.Contains(id);
+
+    public bool IsRetired(string id) => retired.Contains(id);
+
     /// <param name="origin">De onde vem a decisão quando nem a pessoa nem a proposta decidiram.</param>
     public bool Wants(string id, bool applicable, string baselineReason, IReadOnlyList<string> baselineEvidence, string? notApplicableReason = null,
         string origin = DecisionOrigins.Baseline)

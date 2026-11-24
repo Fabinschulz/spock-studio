@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Cloud;
 
@@ -35,7 +36,7 @@ public sealed class CloudConnectionService(ICloudStore store, CloudProviderRegis
         var connection = new CloudConnection(NewId("cloud-"), provider, cleanName, settings, status, identity, Unchecked(target, now),
             now, now, error, target.Descriptor.Version);
         lock (_gate) store.SaveConnection(connection);
-        Audit("cloud.connection_created", connection);
+        Audit(AuditActions.CloudConnectionCreated, connection);
         return connection;
     }
 
@@ -48,7 +49,7 @@ public sealed class CloudConnectionService(ICloudStore store, CloudProviderRegis
         {
             Status = status, Identity = identity ?? c.Identity, CheckedAt = clock.UtcNow, LastError = error
         });
-        Audit("cloud.connection_validated", updated);
+        Audit(AuditActions.CloudConnectionValidated, updated);
         return updated;
     }
 
@@ -62,7 +63,7 @@ public sealed class CloudConnectionService(ICloudStore store, CloudProviderRegis
             : await ProbeAsync(target, connection.Settings, capabilities, ct);
 
         var updated = Update(connectionId, c => c with { Permissions = results, CheckedAt = clock.UtcNow });
-        audit.Record("cloud.permissions_checked", new JsonObject
+        audit.Record(AuditActions.CloudPermissionsChecked, new JsonObject
         {
             ["connectionId"] = updated.Id, ["provider"] = updated.Provider, ["name"] = updated.Name,
             ["allowed"] = results.Count(r => r.State == CloudPermissionState.Allowed),
@@ -81,7 +82,7 @@ public sealed class CloudConnectionService(ICloudStore store, CloudProviderRegis
             if (store.Links().Any(l => l.ConnectionId == connectionId)) throw CloudErrors.ConnectionInUse();
             store.RemoveConnection(connectionId);
         }
-        Audit("cloud.connection_removed", connection);
+        Audit(AuditActions.CloudConnectionRemoved, connection);
     }
 
     // Só erro de credencial muda o estado: leitura negada ou serviço desabilitado são da leitura, não da conexão.

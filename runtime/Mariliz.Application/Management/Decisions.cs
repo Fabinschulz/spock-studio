@@ -6,6 +6,7 @@ using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Application.Workspace;
 using Mariliz.Core.Policy;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Management;
 
@@ -75,7 +76,7 @@ public sealed class DecisionService(
         store.Save(record);
 
         // Na trilha vão os números e identificadores, nunca o texto da decisão.
-        audit.Record("decision.recorded", new JsonObject
+        audit.Record(AuditActions.DecisionRecorded, new JsonObject
         {
             ["projectId"] = projectId,
             ["decisionId"] = record.Id,

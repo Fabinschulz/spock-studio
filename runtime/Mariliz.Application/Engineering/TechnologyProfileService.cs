@@ -5,6 +5,7 @@ using Mariliz.Application.Harness;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Engineering;
 
@@ -31,7 +32,7 @@ public sealed class TechnologyProfileService(
         store.Write(profile);
 
         var changes = profile.History.Count(change => change.At == profile.AnalyzedAt);
-        hub.Audit.Record("engineering.profile_refreshed", new JsonObject
+        hub.Audit.Record(AuditActions.ProfileRefreshed, new JsonObject
         {
             ["projectId"] = projectId,
             ["technologies"] = profile.Technologies.Count,

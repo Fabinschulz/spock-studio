@@ -9,6 +9,10 @@ public static class EngineErrors
     public static EngineException RunInProgress() =>
         new("RUN_IN_PROGRESS", "Já há uma execução em andamento neste projeto.");
 
+    // O que mudou desde a revisão varia por tela; o código é o mesmo para a UI pedir uma revisão nova.
+    public static EngineException StalePlan(string message) =>
+        new("STALE_PLAN", message);
+
     public static EngineException RunNotFound() =>
         new("RUN_NOT_FOUND", "Execução não encontrada.");
 

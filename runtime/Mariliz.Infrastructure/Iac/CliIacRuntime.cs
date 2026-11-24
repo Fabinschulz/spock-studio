@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Iac;
 using Mariliz.Application.Ports;
+using static Mariliz.Application.JsonRead;
 
 namespace Mariliz.Infrastructure.Iac;
 
@@ -213,8 +214,8 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
             {
                 var backend = JsonNode.Parse(File.ReadAllText(file))?["backend"];
                 type = backend?["type"]?.GetValue<string>();
-                path = Text(backend?["config"]?["path"]);
-                workspaceDir = Text(backend?["config"]?["workspace_dir"]);
+                path = NonBlank(backend?["config"]?["path"]);
+                workspaceDir = NonBlank(backend?["config"]?["workspace_dir"]);
             }
             catch (Exception ex) when (ex is JsonException or InvalidOperationException or IOException)
             {
@@ -235,8 +236,6 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
             return ("local", IacStateMode.LocalInProject, null, "O state local aponta para fora da pasta da configuração. Use um caminho absoluto ou um backend remoto.");
         return ("local", IacStateMode.LocalInProject, local, null);
     }
-
-    private static string? Text(JsonNode? node) => node is JsonValue value && value.TryGetValue<string>(out var text) && text.Length > 0 ? text : null;
 
     private static IacPlanRun Failed(string error) => new(false, false, null, [], error);
 

@@ -94,7 +94,7 @@ internal static class IdeaChecks
             : [];
 
     public static string Text(JsonObject node, string name) =>
-        node[name] is JsonValue value && value.TryGetValue<string>(out var text) ? text.Trim() : "";
+        JsonRead.Text(node, name)?.Trim() ?? "";
 
     private static HashSet<string> RequirementIds(JsonObject spec) =>
         Objects(spec, "requirements").Select(item => Text(item, "id")).Where(id => id.Length > 0).ToHashSet(StringComparer.Ordinal);

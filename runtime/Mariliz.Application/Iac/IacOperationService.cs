@@ -6,6 +6,7 @@ using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Iac;
 
@@ -33,13 +34,13 @@ public sealed partial class IacOperationService(
 
     public IacProjectLayout Layout(string projectId)
     {
-        var folders = config.Folders(RequireRoot(projectId));
-        return new IacProjectLayout(projectId, folders.Count == 0 ? null : CommonRoot(folders), folders);
+        var folders = config.Folders(workspace.RequireRoot(projectId));
+        return new IacProjectLayout(projectId, folders.Count == 0 ? null : IacLayout.CommonRoot(folders), folders);
     }
 
     public IReadOnlyList<IacOperation> History(string projectId)
     {
-        RequireRoot(projectId);
+        workspace.RequireRoot(projectId);
         return area.History(projectId);
     }
 
@@ -53,17 +54,17 @@ public sealed partial class IacOperationService(
 
     public IacOperation Detail(string projectId, string operationId)
     {
-        RequireRoot(projectId);
+        workspace.RequireRoot(projectId);
         return area.History(projectId).FirstOrDefault(o => o.Id == operationId) ?? throw IacErrors.OperationNotFound();
     }
 
     public async Task<IacOperation> ValidateAsync(string projectId, string requestedBy, CancellationToken ct)
     {
         var deadline = new IacDeadline(IacTimeouts.ValidateTotal);
-        var root = RequireRoot(projectId);
+        var root = workspace.RequireRoot(projectId);
         var folders = config.Folders(root);
         if (folders.Count == 0) throw IacErrors.NoConfiguration();
-        var iacRoot = CommonRoot(folders);
+        var iacRoot = IacLayout.CommonRoot(folders);
 
         return await Exclusive(projectId, async () =>
         {
@@ -79,15 +80,15 @@ public sealed partial class IacOperationService(
                 var results = new List<IacFolderValidation>();
                 for (var i = 0; i < folders.Count; i++)
                 {
-                    var relative = Relative(iacRoot, folders[i]);
-                    var result = await runtime.ValidateAsync(Combine(snapshot.Directory, relative), folders[i], Path.Combine(directory, "data", i.ToString()), ct);
+                    var relative = IacLayout.Relative(iacRoot, folders[i]);
+                    var result = await runtime.ValidateAsync(IacLayout.Combine(snapshot.Directory, relative), folders[i], Path.Combine(directory, "data", i.ToString()), ct);
                     var unformatted = format.Unformatted.Any(file => DirectoryOf(file) == relative);
                     results.Add(result with { Formatted = !unformatted });
                 }
 
                 var ok = format.Succeeded && results.All(r => r.Valid && r.Formatted);
                 var error = format.Error ?? (results.Any(r => !r.Formatted)
-                    ? "Há arquivos fora do formato: " + string.Join(", ", format.Unformatted.Take(10).Select(f => Combine(iacRoot, f)))
+                    ? "Há arquivos fora do formato: " + string.Join(", ", format.Unformatted.Take(10).Select(f => IacLayout.Combine(iacRoot, f)))
                     : null);
                 var operation = new IacOperation(id, projectId, IacOperationKind.Validate, ok ? IacOperationStatus.Succeeded : IacOperationStatus.Failed,
                     installation.Engine, installation.Version, iacRoot, null, null, null, snapshot.ConfigHash, started, clock.UtcNow, requestedBy,
@@ -111,19 +112,11 @@ public sealed partial class IacOperationService(
     public async Task<IacOperation> PlanAsync(IacPlanRequest request, string requestedBy, CancellationToken ct)
     {
         var deadline = new IacDeadline(IacTimeouts.PlanTotal);
-        var root = RequireRoot(request.ProjectId);
-        var folders = config.Folders(root);
-        if (folders.Count == 0) throw IacErrors.NoConfiguration();
-        var iacRoot = CommonRoot(folders);
-        var folder = request.Folder ?? (folders.Contains(iacRoot) ? iacRoot : folders[0]);
-        if (!folders.Contains(folder, StringComparer.Ordinal)) throw IacErrors.FolderUnknown(folder);
-        var workspaceName = string.IsNullOrWhiteSpace(request.Workspace) ? null : request.Workspace.Trim();
-        if (workspaceName is not null && !WorkspacePattern().IsMatch(workspaceName)) throw IacErrors.WorkspaceInvalid();
-        var environment = CloudEnvironment(request.ProjectId, request.ConnectionId);
+        var (root, iacRoot, folder, workspaceName, environment) = Target(request.ProjectId, request.Folder, request.Workspace, request.ConnectionId);
         // Dois projetos do Spock nunca planejam sobre o mesmo state remoto: um apply de um apagaria o que o outro criou.
         var identity = states?.Backend(root, folder) is { } declared ? IacStateIdentity.Of(declared) : null;
         if (identity is not null && registry?.Owners(identity).Where(owner => owner != request.ProjectId).ToList() is { Count: > 0 } others)
-            throw IacErrors.StateShared(others.Select(DisplayName));
+            throw IacErrors.StateShared(others.Select(workspace.DisplayNameOf));
 
         return await Exclusive(request.ProjectId, async () =>
         {
@@ -134,7 +127,7 @@ public sealed partial class IacOperationService(
             var started = clock.UtcNow;
             var directory = area.OperationDirectory(request.ProjectId, id);
             var snapshot = area.Snapshot(root, iacRoot, Path.Combine(directory, "config"), includeLocalState: true);
-            var planDirectory = Combine(snapshot.Directory, Relative(iacRoot, folder));
+            var planDirectory = IacLayout.Combine(snapshot.Directory, IacLayout.Relative(iacRoot, folder));
             string? localStateHash = null;
             var planFile = Path.Combine(directory, "plan.tfplan");
             IacPlanRun run;
@@ -143,7 +136,7 @@ public sealed partial class IacOperationService(
                 run = await runtime.PlanAsync(new IacPlanSpec(planDirectory, Path.Combine(directory, "data"), planFile, workspaceName, session), ct);
                 // O state local que o plano leu: na hora de aplicar, o do projeto tem de ser este mesmo.
                 if (run is { StateMode: IacStateMode.LocalInProject, LocalStatePath: { } local })
-                    localStateHash = area.StateHash(Combine(planDirectory, local));
+                    localStateHash = area.StateHash(IacLayout.Combine(planDirectory, local));
             }
             finally
             {
@@ -191,7 +184,7 @@ public sealed partial class IacOperationService(
     public async Task<IacOperation> ApplyAsync(IacApplyRequest request, CancellationToken ct)
     {
         var deadline = new IacDeadline(IacTimeouts.ApplyTotal);
-        var root = RequireRoot(request.ProjectId);
+        var root = workspace.RequireRoot(request.ProjectId);
         var history = area.History(request.ProjectId);
         var plan = history.FirstOrDefault(o => o.Id == request.OperationId) ?? throw IacErrors.OperationNotFound();
         if (!IacApplyPolicy.IsPlan(plan)) throw IacErrors.NotAPlan();
@@ -217,7 +210,7 @@ public sealed partial class IacOperationService(
             throw IacErrors.PlanChanged();
         }
         var folders = config.Folders(root);
-        if (folders.Count == 0 || area.ConfigHash(Combine(root, plan.Root)) != plan.ConfigHash) throw IacErrors.PlanStale();
+        if (folders.Count == 0 || area.ConfigHash(IacLayout.Combine(root, plan.Root)) != plan.ConfigHash) throw IacErrors.PlanStale();
         var environment = CloudEnvironment(request.ProjectId, plan.ConnectionId);
 
         return await Exclusive(request.ProjectId, async () =>
@@ -228,7 +221,7 @@ public sealed partial class IacOperationService(
 
             var approval = new IacApproval(needs.PlanId, plan.ConfigHash, clock.UtcNow, request.DestroyConfirmed, request.RisksAccepted,
                 request.WorkspaceConfirmation?.Trim());
-            audit.Record("iac.apply_approved", new JsonObject
+            audit.Record(AuditActions.IacApplyApproved, new JsonObject
             {
                 ["projectId"] = request.ProjectId,
                 ["operationId"] = plan.Id,
@@ -244,13 +237,13 @@ public sealed partial class IacOperationService(
             var id = NewId();
             var started = clock.UtcNow;
             var applyDirectory = area.OperationDirectory(request.ProjectId, id);
-            var planDirectory = Combine(copy, Relative(plan.Root, plan.Folder ?? plan.Root));
+            var planDirectory = IacLayout.Combine(copy, IacLayout.Relative(plan.Root, plan.Folder ?? plan.Root));
             // State local: o do projeto entra na cópia (tem de ser o que o plano leu) e o que o apply gravar volta ao projeto.
             string? projectState = null, copiedState = null;
             if (plan is { StateMode: IacStateMode.LocalInProject, LocalStatePath: { } local })
             {
-                projectState = Combine(Combine(root, plan.Folder ?? plan.Root), local);
-                copiedState = Combine(planDirectory, local);
+                projectState = IacLayout.Combine(IacLayout.Combine(root, plan.Folder ?? plan.Root), local);
+                copiedState = IacLayout.Combine(planDirectory, local);
                 if (area.StateHash(projectState) != plan.LocalStateHash) throw IacErrors.StateChanged();
                 if (plan.LocalStateHash is not null) area.CopyState(projectState, copiedState);
             }
@@ -311,7 +304,7 @@ public sealed partial class IacOperationService(
         var (root, iacRoot, folder, ws, environment) = Target(request.ProjectId, request.Folder, request.Workspace, request.ConnectionId);
         var identity = states?.Backend(root, folder) is { } declared ? IacStateIdentity.Of(declared) : null;
         if (identity is not null && registry?.Owners(identity).Where(owner => owner != request.ProjectId).ToList() is { Count: > 0 } others)
-            throw IacErrors.StateShared(others.Select(DisplayName));
+            throw IacErrors.StateShared(others.Select(workspace.DisplayNameOf));
 
         return await Exclusive(request.ProjectId, async () =>
         {
@@ -323,7 +316,7 @@ public sealed partial class IacOperationService(
             try
             {
                 var snapshot = area.Snapshot(root, iacRoot, Path.Combine(directory, "config"), includeLocalState: true);
-                var run = await factory.For(installation, deadline).DriftAsync(new IacPlanSpec(Combine(snapshot.Directory, Relative(iacRoot, folder)),
+                var run = await factory.For(installation, deadline).DriftAsync(new IacPlanSpec(IacLayout.Combine(snapshot.Directory, IacLayout.Relative(iacRoot, folder)),
                     Path.Combine(directory, "data"), Path.Combine(directory, "drift.tfplan"), ws, session), ct);
                 var (unmanaged, notes) = run.Succeeded && request.ConnectionId is { } connectionId
                     ? await UnmanagedAsync(request.ProjectId, connectionId, run.StateIds ?? new Dictionary<string, IReadOnlySet<string>>(), ct)
@@ -403,8 +396,8 @@ public sealed partial class IacOperationService(
             {
                 var snapshot = area.Snapshot(root, iacRoot, Path.Combine(directory, "config"), includeLocalState: true);
                 var read = await factory.For(installation, deadline).StateAsync(
-                    new IacStateSpec(Combine(snapshot.Directory, Relative(iacRoot, chosen)), Path.Combine(directory, "data"), ws, session), ct);
-                audit.Record("iac.state_read", new JsonObject
+                    new IacStateSpec(IacLayout.Combine(snapshot.Directory, IacLayout.Relative(iacRoot, chosen)), Path.Combine(directory, "data"), ws, session), ct);
+                audit.Record(AuditActions.IacStateRead, new JsonObject
                 {
                     ["projectId"] = projectId,
                     ["folder"] = chosen,
@@ -441,8 +434,8 @@ public sealed partial class IacOperationService(
             {
                 var snapshot = area.Snapshot(root, iacRoot, Path.Combine(directory, "config"), includeLocalState: false);
                 var error = await factory.For(installation, deadline).UnlockAsync(
-                    new IacStateSpec(Combine(snapshot.Directory, Relative(iacRoot, chosen)), Path.Combine(directory, "data"), ws, session), lockId, ct);
-                audit.Record("iac.state_unlocked", new JsonObject
+                    new IacStateSpec(IacLayout.Combine(snapshot.Directory, IacLayout.Relative(iacRoot, chosen)), Path.Combine(directory, "data"), ws, session), lockId, ct);
+                audit.Record(AuditActions.IacStateUnlocked, new JsonObject
                 {
                     ["projectId"] = projectId,
                     ["folder"] = chosen,
@@ -467,10 +460,10 @@ public sealed partial class IacOperationService(
     private (string Root, string IacRoot, string Folder, string? Workspace, IReadOnlyDictionary<string, string> Environment) Target(string projectId,
         string? folder, string? workspaceName, string? connectionId)
     {
-        var root = RequireRoot(projectId);
+        var root = workspace.RequireRoot(projectId);
         var folders = config.Folders(root);
         if (folders.Count == 0) throw IacErrors.NoConfiguration();
-        var iacRoot = CommonRoot(folders);
+        var iacRoot = IacLayout.CommonRoot(folders);
         var chosen = folder ?? (folders.Contains(iacRoot) ? iacRoot : folders[0]);
         if (!folders.Contains(chosen, StringComparer.Ordinal)) throw IacErrors.FolderUnknown(chosen);
         var ws = string.IsNullOrWhiteSpace(workspaceName) ? null : workspaceName.Trim();
@@ -512,10 +505,10 @@ public sealed partial class IacOperationService(
         detail["configHash"] = operation.ConfigHash;
         audit.Record(operation.Kind switch
         {
-            IacOperationKind.Validate => "iac.validate",
-            IacOperationKind.Plan => "iac.plan",
-            IacOperationKind.Drift => "iac.drift",
-            _ => "iac.apply"
+            IacOperationKind.Validate => AuditActions.IacValidate,
+            IacOperationKind.Plan => AuditActions.IacPlan,
+            IacOperationKind.Drift => AuditActions.IacDrift,
+            _ => AuditActions.IacApply
         }, detail);
     }
 
@@ -533,22 +526,6 @@ public sealed partial class IacOperationService(
         }
     }
 
-    // A pasta comum a todas as que têm configuração: no modelo, "infra" (raiz, bootstrap/ e modules/*).
-    public static string CommonRoot(IReadOnlyList<string> folders)
-    {
-        var parts = folders.Select(f => f.Length == 0 ? [] : f.Split('/')).ToList();
-        var common = new List<string>();
-        for (var i = 0; parts.All(p => p.Length > i) && parts.Select(p => p[i]).Distinct(StringComparer.Ordinal).Count() == 1; i++)
-            common.Add(parts[0][i]);
-        return string.Join('/', common);
-    }
-
-    private static string Relative(string root, string folder) =>
-        root.Length == 0 ? folder : folder == root ? "" : folder[(root.Length + 1)..];
-
-    private static string Combine(string a, string b) =>
-        b.Length == 0 ? a : a.Length == 0 ? b : a.Contains('\\') || Path.IsPathRooted(a) ? Path.Combine(a, b.Replace('/', Path.DirectorySeparatorChar)) : $"{a}/{b}";
-
     private static string DirectoryOf(string file)
     {
         var index = file.LastIndexOf('/');
@@ -561,17 +538,11 @@ public sealed partial class IacOperationService(
     private static string? LockIdIn(string error) =>
         error.Contains("state lock", StringComparison.OrdinalIgnoreCase) && LockPattern().Match(error) is { Success: true } match ? match.Groups[1].Value : null;
 
-    private string DisplayName(string projectId) =>
-        workspace.Projects().FirstOrDefault(p => p.ProjectId == projectId)?.DisplayName ?? projectId;
-
     [GeneratedRegex("^[0-9A-Za-z-]{8,64}$")]
     private static partial Regex LockIdPattern();
 
     [GeneratedRegex(@"ID:\s+([0-9A-Za-z-]{8,64})")]
     private static partial Regex LockPattern();
-
-    private string RequireRoot(string projectId) =>
-        workspace.TryGetRoot(projectId, out var root) ? root : throw EngineErrors.ProjectNotAuthorized();
 
     [GeneratedRegex("^[a-z0-9][a-z0-9_-]{0,31}$")]
     private static partial Regex WorkspacePattern();

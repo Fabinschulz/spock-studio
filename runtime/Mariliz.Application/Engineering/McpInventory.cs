@@ -30,7 +30,7 @@ public sealed partial class McpInventoryService(WorkspaceAuthorizer workspace, I
 
     public McpInventory Read(string projectId)
     {
-        if (!workspace.TryGetRoot(projectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
+        var root = workspace.RequireRoot(projectId);
         var text = files.Open(root).ReadText(FileName);
         if (text is null) return new McpInventory(projectId, false, true, []);
 

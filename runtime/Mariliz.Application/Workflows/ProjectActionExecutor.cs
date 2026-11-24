@@ -16,7 +16,7 @@ public sealed class ProjectActionExecutor(WorkspaceAuthorizer workspace, IProjec
     public ActionOutcome Execute(string projectId, JournalAction action)
     {
         if (action.Kind != "file.write") return new ActionOutcome(JournalAction.Failed);
-        if (!workspace.TryGetRoot(projectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
+        var root = workspace.RequireRoot(projectId);
 
         // O conteúdo aprovado é o do hash: um diário alterado depois da aprovação não vira escrita.
         var bytes = Encoding.UTF8.GetBytes(action.Content);

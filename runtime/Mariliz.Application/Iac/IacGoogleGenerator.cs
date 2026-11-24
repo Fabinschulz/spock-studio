@@ -143,7 +143,7 @@ public static class IacGoogleGenerator
         var h = new IacHcl();
         h.Block("terraform", t =>
         {
-            t.Attr("required_version", Quote(">= 1.11"));
+            IacRootCommon.RequiredVersionAttr(t);
             t.Blank();
             t.Block("required_providers", r => r.Object("google", o => o.Attr("source", Quote("hashicorp/google")).Attr("version", Quote(IacBootstrapTemplates.GoogleVersion))));
             t.Blank();
@@ -173,9 +173,7 @@ public static class IacGoogleGenerator
                 "can(regex(\"^projects/[^/]+/global/networks/[^/]+$\", var.network_id))", "Informe a rede no formato projects/<projeto>/global/networks/<rede>.",
                 "Rede existente");
         if (b.Service is not null)
-            v.Validated("image_tag", "string", "Tag da imagem inicial; só vale para o primeiro apply, porque depois o CI é o dono da revisão",
-                "can(regex(\"^[A-Za-z0-9_.-]{1,128}$\", var.image_tag)) && var.image_tag != \"latest\"",
-                "Use uma tag imutável (o SHA do commit), nunca latest.", "Imagem");
+            IacRootCommon.ImageTag(v, "Tag da imagem inicial; só vale para o primeiro apply, porque depois o CI é o dono da revisão");
         v.Default("alarm_email", "string", "E-mail que recebe os alertas; null cria os alertas sem canal",
             b.AlarmEmail is null ? "null" : Quote(b.AlarmEmail), "Alarmes");
         return v.ToString();
@@ -189,20 +187,11 @@ public static class IacGoogleGenerator
         if (b.Service is not null) apis.AddRange(["run.googleapis.com", "artifactregistry.googleapis.com", "secretmanager.googleapis.com"]);
         if (b.Database is not null) apis.AddRange(["sqladmin.googleapis.com", "servicenetworking.googleapis.com"]);
 
-        h.Section("Environment guard");
-        h.Comment("O ambiente é o workspace selecionado; no workspace default os recursos não teriam ambiente definido.");
-        h.Block("resource \"terraform_data\" \"environment_guard\"", r =>
-        {
-            r.Attr("input", "terraform.workspace");
-            r.Blank();
-            r.Block("lifecycle", l => l.Block("precondition", p => p
-                .Attr("condition", "terraform.workspace != \"default\"")
-                .Attr("error_message", Quote("Selecione o workspace do ambiente antes do plan/apply (ex.: tofu workspace select dev)."))));
-        });
+        IacRootCommon.EnvironmentGuard(h);
         h.Blank();
         h.Block("locals", l =>
         {
-            l.Attr("name_prefix", Quote($"{b.Project}-${{terraform.workspace}}"));
+            IacRootCommon.NamePrefix(l, b.Project);
             l.Blank();
             l.Object("labels", t => t.Attr("project", Quote(b.Project)).Attr("environment", "terraform.workspace").Attr("managed-by", Quote("terraform")));
         });
@@ -310,7 +299,7 @@ public static class IacGoogleGenerator
             h.Blank();
             h.Section("Imagem");
             h.Comment("SHA do commit da primeira imagem publicada no Artifact Registry; só vale para o primeiro apply.");
-            h.Attr("image_tag", Quote("0000000000000000000000000000000000000000"));
+            IacRootCommon.ImageTagExample(h);
         }
         return h.ToString();
     }
@@ -339,11 +328,9 @@ public static class IacGoogleGenerator
         text.Append("| Caminho | O que é |\n| ------- | ------- |\n");
         foreach (var (path, what) in rows) text.Append($"| {path} | {what} |\n");
         text.Append($"\nRegião `{b.Region}`, projeto `{b.Account}`.\n");
-        text.Append("\n## Pré-requisitos\n\n- OpenTofu **≥ 1.11** (ou Terraform ≥ 1.11). O Spock instala e verifica a ferramenta.\n");
+        text.Append("\n## Pré-requisitos\n\n" + IacRootCommon.ToolPrerequisite());
         text.Append($"- Provider google fixado em `{IacBootstrapTemplates.GoogleVersion}`.\n- Application Default Credentials (`gcloud auth application-default login`).\n");
-        text.Append($"\n## Plan e apply de um ambiente\n\nPela tela Infraestrutura do Spock (validar, gerar plano, aprovar) ou no terminal:\n\n");
-        text.Append($"```bash\ntofu -chdir={dir} init\n```\n\n```bash\ntofu -chdir={dir} workspace select dev\n```\n\n```bash\ntofu -chdir={dir} plan -out=dev.tfplan\n```\n\n```bash\ntofu -chdir={dir} apply dev.tfplan\n```\n\n");
-        text.Append("- No workspace `default` o plan falha de propósito.\n- Depois de um apply, `plan -detailed-exitcode` deve informar `No changes`.\n");
+        IacRootCommon.ReadmeWorkflow(text, dir);
         if (b.Service is not null)
             text.Append("\n## Primeiro deploy\n\n1. Aplique as APIs, o repositório e o segredo (`-target=google_project_service.apis -target=module.artifact -target=module.secrets`).\n" +
                         "2. Grave a primeira versão do segredo fora do Terraform (console ou gcloud), a partir de um arquivo fora do repositório.\n" +
@@ -351,8 +338,7 @@ public static class IacGoogleGenerator
                         "4. Aplique o restante. Depois disso o CI é dono da imagem do serviço (`ignore_changes`).\n");
         if (b.Database is not null)
             text.Append("\n## Banco\n\nSem senha: a conta de serviço da aplicação entra pelo login IAM do Cloud SQL. A rede precisa ter o acesso privado a serviços configurado antes do apply.\n");
-        text.Append("\n## Verificações\n\n```bash\ntofu fmt -check -recursive " + dir + "\n```\n\n");
-        text.Append("Rode `tofu validate` em cada pasta com `.tf` depois de `tofu init -backend=false`.\n");
+        IacRootCommon.ReadmeChecks(text, dir);
         return text.ToString();
     }
 

@@ -28,11 +28,11 @@ internal static class ConnectorJson
     }
 
     public static string? Text(JsonNode? node) =>
-        node is JsonValue value && value.TryGetValue<string>(out var text) && !string.IsNullOrWhiteSpace(text) ? text : null;
+        JsonRead.NonBlank(node);
 
     public static string RequiredText(JsonNode? node) => Text(node) ?? throw IntegrationErrors.InvalidResponse();
 
-    public static bool Flag(JsonNode? node) => node is JsonValue value && value.TryGetValue<bool>(out var flag) && flag;
+    public static bool Flag(JsonNode? node) => JsonRead.Flag(node);
 
     public static IEnumerable<JsonObject> Objects(JsonNode? node) =>
         node is JsonArray array ? array.OfType<JsonObject>() : [];

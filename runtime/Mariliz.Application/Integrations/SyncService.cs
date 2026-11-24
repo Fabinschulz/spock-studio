@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Ports;
+using Mariliz.Application.Audit;
 
 namespace Mariliz.Application.Integrations;
 
@@ -167,7 +168,7 @@ public sealed class SyncService(
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            audit.Record("integration.sync_bookkeeping_failed", new JsonObject { ["integrationId"] = integration.Id, ["error"] = ex.GetType().Name });
+            audit.Record(AuditActions.IntegrationSyncBookkeepingFailed, new JsonObject { ["integrationId"] = integration.Id, ["error"] = ex.GetType().Name });
         }
     }
 
@@ -182,7 +183,7 @@ public sealed class SyncService(
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 // Um ouvinte com defeito não pode transformar uma sincronização gravada em falha: o tipo fica na trilha.
-                audit.Record("integration.sync_listener_failed", new JsonObject { ["integrationId"] = integration.Id, ["error"] = ex.GetType().Name });
+                audit.Record(AuditActions.IntegrationSyncListenerFailed, new JsonObject { ["integrationId"] = integration.Id, ["error"] = ex.GetType().Name });
             }
         }
     }
@@ -263,7 +264,7 @@ public sealed class SyncService(
     }
 
     private void Audit(ProjectIntegration integration, SyncExecution execution) =>
-        audit.Record("integration.synced", new JsonObject
+        audit.Record(AuditActions.IntegrationSynced, new JsonObject
         {
             ["projectId"] = integration.ProjectId,
             ["integrationId"] = integration.Id,

@@ -34,7 +34,7 @@ public sealed class ProjectKnowledgeService(
 
     public async Task<ProjectKnowledge> InspectAsync(string projectId, CancellationToken ct)
     {
-        if (!workspace.TryGetRoot(projectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
+        var root = workspace.RequireRoot(projectId);
         var project = files.Open(root);
         var (include, exclude) = KnowledgeSources.DeclaredRules(project);
         // Descarta o texto de cada arquivo logo depois de medir.

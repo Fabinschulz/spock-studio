@@ -15,7 +15,7 @@ public sealed partial class HarnessRevisionService(WorkspaceAuthorizer workspace
 
     public HarnessRevisions Read(string projectId)
     {
-        if (!workspace.TryGetRoot(projectId, out var root)) throw EngineErrors.ProjectNotAuthorized();
+        var root = workspace.RequireRoot(projectId);
         var project = files.Open(root);
         var lockFile = ManagedLockFile.Read(project);
 
