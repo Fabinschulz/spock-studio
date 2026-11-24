@@ -70,7 +70,8 @@ public sealed class IacMcpTools(Func<WorkspaceAuthorizer> workspaces, Func<Works
             throw new McpToolException($"'provider' deve ser {string.Join(", ", IacBlueprintChecks.Providers)}.");
         var root = authorizer.TryGetRoot(project.ProjectId, out var found) ? found : throw EngineErrors.ProjectNotAuthorized();
         var projectFiles = files!.Open(root);
-        var path = IacArchitectureProposals.PathIn(projectFiles);
+        // Caminho completo: a sessão do agente pode estar aberta em outra pasta, e um caminho relativo iria parar lá.
+        var path = Path.Combine(root, IacArchitectureProposals.PathIn(projectFiles).Replace('/', Path.DirectorySeparatorChar));
 
         var text = new StringBuilder($"Desenho de infraestrutura de {project.DisplayName}. O Spock não chama modelo aqui: você propõe, o Spock confere e a pessoa decide.");
         text.Append($"\nNome sugerido para \"project\": {IacBootstrapTemplates.ProjectSlug(project.DisplayName)}.\n");
