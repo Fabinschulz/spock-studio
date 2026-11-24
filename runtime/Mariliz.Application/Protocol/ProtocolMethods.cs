@@ -116,6 +116,7 @@ public static class ProtocolMethods
     public const string IacBootstrapSave = "iac.bootstrap.save";
     public const string IacArchitectDraft = "iac.architect.draft";
     public const string IacArchitectProposal = "iac.architect.proposal";
+    public const string IacGenerateOptions = "iac.generate.options";
     public const string IacGeneratePlan = "iac.generate.plan";
     public const string IacGenerateSave = "iac.generate.save";
     public const string IacDrift = "iac.drift";
@@ -189,7 +190,7 @@ public static class ProtocolMethods
     public static readonly IReadOnlyList<string> Iac =
         [IacRuntimeStatus, IacRuntimeOffer, IacRuntimeInstall, IacRuntimeDecline, IacRuntimeRemove, IacRuntimeAdopt, IacRuntimePin,
             IacLayout, IacValidate, IacPlan, IacOperations, IacOperation, IacApply, IacState, IacStateResources, IacStateUnlock, IacBootstrapPlan,
-            IacBootstrapSave, IacArchitectDraft, IacArchitectProposal, IacGeneratePlan, IacGenerateSave, IacDrift, IacCostEstimate, IacCostPlan, IacDriftSchedule, IacDriftScheduleSet];
+            IacBootstrapSave, IacArchitectDraft, IacArchitectProposal, IacGenerateOptions, IacGeneratePlan, IacGenerateSave, IacDrift, IacCostEstimate, IacCostPlan, IacDriftSchedule, IacDriftScheduleSet];
 
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }

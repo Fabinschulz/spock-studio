@@ -6,6 +6,7 @@ import bootstrapFixture from '@contracts/fixtures/iac/bootstrap-plan.json';
 import costFixture from '@contracts/fixtures/iac/cost-estimate.json';
 import driftFixture from '@contracts/fixtures/iac/drift-operation.json';
 import scheduleFixture from '@contracts/fixtures/iac/drift-schedule.json';
+import optionsFixture from '@contracts/fixtures/iac/generate-options.json';
 import generateFixture from '@contracts/fixtures/iac/generate-plan.json';
 import layoutFixture from '@contracts/fixtures/iac/layout.json';
 import offerFixture from '@contracts/fixtures/iac/offer.json';
@@ -72,6 +73,7 @@ function fakeEngine(initial: Record<string, unknown> = missing, overrides: Recor
         'iac.bootstrap.save': { runId: 'run-iac-1' },
         'iac.architect.draft': draftFixture,
         'iac.architect.proposal': { proposal: null },
+        'iac.generate.options': optionsFixture,
         'iac.generate.plan': generateFixture,
         'iac.generate.save': { runId: 'run-iac-2' },
         'iac.drift': driftFixture,

@@ -13,7 +13,8 @@ public sealed record IacProvider(
     Func<IacBlueprint, IReadOnlyList<IacCostItem>> Costs,
     Action<IacBlueprint, Action<string, string, bool, string?>> Checks,
     bool ServiceNeedsNetwork,
-    IacProviderNotes Notes);
+    IacProviderNotes Notes,
+    IacProviderOptions Options);
 
 /// <param name="Backend">Completa "o state fica local até você criar ...".</param>
 /// <param name="Registry">Completa "O primeiro apply precisa de uma imagem ...".</param>
@@ -26,18 +27,21 @@ public static class IacProviders
     public static readonly IacProvider Aws = new(CloudProviders.Aws, "aws", "s3", IacAwsGenerator.Generate, IacAwsGenerator.Costs,
         IacBlueprintChecks.Aws, ServiceNeedsNetwork: true,
         new("o bucket com o bootstrap e colar o bloco backend \"s3\"", "no ECR: o README explica a ordem (ECR, segredo e IAM primeiro)",
-            "O banco nasce com proteção contra exclusão e snapshot final: apagar exige tirar a proteção num apply anterior."));
+            "O banco nasce com proteção contra exclusão e snapshot final: apagar exige tirar a proteção num apply anterior."),
+        IacProviderOptionsCatalog.Aws);
 
     public static readonly IacProvider Azure = new(CloudProviders.Azure, "azurerm", "azurerm", IacAzureGenerator.Generate, IacAzureGenerator.Costs,
         IacBlueprintChecks.Azure, ServiceNeedsNetwork: false,
         new("a storage account com o bootstrap e colar o bloco backend \"azurerm\"",
             "no Azure Container Registry: o README explica a ordem (registro e Key Vault primeiro)",
-            "O banco nasce com prevent_destroy: apagar exige tirar a proteção do código antes."));
+            "O banco nasce com prevent_destroy: apagar exige tirar a proteção do código antes."),
+        IacProviderOptionsCatalog.Azure);
 
     public static readonly IacProvider Gcp = new(CloudProviders.Gcp, "google", "gcs", IacGoogleGenerator.Generate, IacGoogleGenerator.Costs,
         IacBlueprintChecks.Google, ServiceNeedsNetwork: false,
         new("o bucket com o bootstrap e colar o bloco backend \"gcs\"", "no Artifact Registry: o README explica a ordem (APIs, repositório e segredo primeiro)",
-            "O banco nasce com deletion_protection: apagar exige tirar a proteção num apply anterior."));
+            "O banco nasce com deletion_protection: apagar exige tirar a proteção num apply anterior."),
+        IacProviderOptionsCatalog.Gcp);
 
     public static readonly IReadOnlyList<IacProvider> All = [Aws, Azure, Gcp];
 

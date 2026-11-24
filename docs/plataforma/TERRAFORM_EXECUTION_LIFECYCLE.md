@@ -154,6 +154,12 @@ combinação de CPU e memória do Fargate; porta, health check e 1 a 10 tarefas;
 subnets públicas para o load balancer e duas privadas para o banco; motor, versão, classe e 20 a 1000 GB do banco; até 8
 filas sem repetir; e-mail; bucket. Rede só é exigida com serviço ou banco.
 
+**Opções por nuvem** (`iac.generate.options`): o que a tela oferece em cada nuvem (tamanhos de CPU e memória, motores e
+faixa de armazenamento do banco, classe padrão, exemplo de região, certificado próprio e IP público) e onde há proposta
+com IA e estimativa de custo (só AWS). As checagens leem desta mesma tabela os motores e o armazenamento, e um teste
+confere que todo tamanho e padrão anunciado passa nelas; a tela guarda só os nomes dos campos e o mapeamento do
+formulário para o desenho.
+
 **Arquivos** (`iac.generate.plan`), na pasta de IaC que o projeto já tem (sem o `bootstrap`) ou em `infra/`: raiz com
 `providers.tf` (versão mínima 1.11, provider fixado, `allowed_account_ids`, backend S3 com `use_lockfile`),
 `variables.tf` (com `validation`), `resource.tf` (`environment_guard`, `name_prefix` e tags, um bloco por módulo),

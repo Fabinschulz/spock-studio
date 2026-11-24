@@ -97,8 +97,8 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
 | UI-3 | `configure-project/service/harness-api.ts:86`, `execution/hooks/use-run-follow.ts`, `agents/hooks/use-agent-run.ts`, `shared/api/run-until-done.ts` | Quatro implementações de "acompanhar execução" | DRY, SRP | P1 | Configuração assina os eventos depois de `start()` e perde os primeiros. Agentes aceitam lacuna de `seq` e perdem linhas de saída | `shared/api/follow-run.ts` (assina antes, ordena por `seq`, recupera lacuna); os quatro chamadores sobre ele. Começar por teste de caracterização | **Feito** (onda 2c) |
 | UI-25 | `runtime-panel.tsx:170`, `blueprint.ts:249` | Comportamento decidido por texto localizado do motor (`'já está instalado'`, `'sim'`) | Contrato explícito | P2 | Reescrever ou traduzir o texto no motor quebra a tela sem aviso | O motor passa booleanos tipados | **Feito** (onda 2d) |
 | UI-26 | `proposal-guide.tsx:27`, `judge-states.ts:13`, `model-step.tsx:68` | Nomes de arquivo do Harness fixos na UI | DRY entre camadas | P2 | Projeto configurado antes do #132 vê caminhos `spock` que não existem | A descoberta ou o plano devolvem `naming` | **Feito** (onda 2d) |
-| UI-20 | `infrastructure/domain/blueprint.ts:4,38-80` | Capacidade por provedor na camada de formulário | SRP entre camadas | P2 | Opções e dicas divergem da validação do motor | `iac.generate.options` no motor; a UI mantém só o mapeamento formulário ⇄ DTO | Onda 3 |
-| UI-19 | `generate-panel.tsx:46-557` | God Component (dados, três telas, quatro fluxos, cerca de 12 ternários por provedor) | SRP, OCP | P2 | Provedor novo mexe em todos os ternários | `useGenerateFlow` (reducer), tabela `PROVIDER_FIELDS`, subcomponentes | Onda 3, depois de UI-20 |
+| UI-20 | `infrastructure/domain/blueprint.ts:4,38-80` | Capacidade por provedor na camada de formulário | SRP entre camadas | P2 | Opções e dicas divergem da validação do motor | `iac.generate.options` no motor; a UI mantém só o mapeamento formulário ⇄ DTO | **Feito** (onda 3c) |
+| UI-19 | `generate-panel.tsx:46-557` | God Component (dados, três telas, quatro fluxos, cerca de 12 ternários por provedor) | SRP, OCP | P2 | Provedor novo mexe em todos os ternários | `useGenerateFlow` (reducer), tabela `PROVIDER_FIELDS`, subcomponentes | **Feito** (onda 3c) |
 | UI-18 | `generate-panel.tsx:48`, `iac-operations.tsx:35`, `state-panel.tsx:64` | Mesma busca e junção repetidas; erro vira "nada vinculado" | DRY | P2 | Sete chamadas ao abrir a página; mensagem errada quando a leitura falha | `useLinkedConnections` uma vez na página | **Feito** (onda 2e) |
 | UI-21 | `features/integrations/index.ts` | Hooks e formatadores compartilhados morando numa feature (26 imports de fora) | Regra de dependência | P2 | Acoplamento entre features | `shared/hooks/use-action.ts`, `useAsyncResource({ keepPrevious })`, `shared/utils/lib/format.ts` | **Feito** (onda 2e) |
 | UI-22 | `knowledge-section.tsx:26`, `harness-section.tsx:18`, `profile-section.tsx:16` | Efeitos de carga escritos à mão (UI-9 voltou) | DRY | P2 | Três máquinas de estado iguais | `useAsyncResource` e `ResourceView` | **Feito** (onda 2e) |
@@ -130,7 +130,8 @@ manutenibilidade; P3 legibilidade e padronização. A coluna **Status** diz o qu
   - corrigidos na onda 2e: UI-18, UI-21, UI-22 e UI-23;
   - corrigidos na onda 2d: RS-10, UI-24, UI-25 e UI-26;
   - corrigidos na onda 3a: NET-S02 e NET-S06;
-  - abertos: RS-17 (espera a validação no `.deb`), UI-19 e UI-20.
+  - corrigidos na onda 3c: UI-19 e UI-20;
+  - aberto: RS-17 (espera a validação no `.deb`).
 - **P3:**
   - corrigidos na onda 3a: NET-S10, NET-S11, NET-S12, NET-S13, NET-S14 e NET-S16;
   - corrigidos na onda 3b: RS-18, RS-19 e RS-20;
@@ -152,7 +153,7 @@ Uma onda por PR, sem empilhar PR. Cada onda começa por testes de caracterizaç�
 | 2e | `shared/hooks`, `infrastructure` | UI-21, UI-22, UI-23, UI-18 | hooks para `shared`, uma busca por página | — | testes diretos de `useAction`/`useReloadable` (hoje não há) |
 | 3a | motor .NET | NET-S02, NET-S06, NET-S10 a NET-S14, NET-S16 | ver §7f | ondas 2 | `AuditActionsTests`, `JsonReadTests` e as suítes de IaC, Harness, ideia e segurança |
 | 3b | host Rust | RS-18, RS-19, RS-20 | ver §7g | — | teste de concorrência do limite de terminais, falha ao gravar recentes no diagnóstico |
-| 3c | `infrastructure` (UI) e motor | UI-20, depois UI-19 | `iac.generate.options` no motor; `useGenerateFlow` e `PROVIDER_FIELDS` | — | caracterização do `GeneratePanel` antes de mexer |
+| 3c | `infrastructure` (UI) e motor | UI-20, depois UI-19 | ver §7h | — | caracterização do `GeneratePanel` antes de mexer, `IacGenerateOptionsTests` |
 | 3d | UI | UI-27 a UI-31, UI-33 | `role="alert"`, `Disclosure`, rota de layout com `lazy` | — | testes de componente e o tamanho do chunk inicial |
 | depois | empacotamento | RS-17 | o .NET dono do layout do runtime | validação real num `.deb` (§6) | instalação no Linux |
 
@@ -293,6 +294,19 @@ Uma onda por PR, sem empilhar PR. Cada onda começa por testes de caracterizaç�
 - Rust (host): fmt, clippy `-D warnings` e 66 testes limpos (eram 61), inclusive os do terminal com shell de verdade.
 - Só o host mudou: motor, UI e contratos ficaram como estavam; os nomes dos comandos que a UI chama são os mesmos.
 - Não validado: o app Tauri aberto (terminal, recentes e tela de Diagnóstico); ficaram nos testes do host.
+
+## 7h. Onda 3c executada
+
+| Item | Antes | Depois | Testes |
+|---|---|---|---|
+| UI-20 | A tela fixava por nuvem os tamanhos de CPU e memória, a classe e o armazenamento padrão, a região de exemplo, os motores de banco, a dica de armazenamento e quem tem proposta com IA, certificado e IP público; o motor tinha as mesmas regras escritas à parte nas checagens | `IacProviderOptions` (uma linha por nuvem, no `IacProvider`) e o método `iac.generate.options`. As checagens leem dali os motores de banco e a faixa de armazenamento; a proposta com IA e as duas estimativas de custo recusam pela mesma tabela (a estimativa do desenho, que antes só falhava ao pedir preço, agora recusa logo a nuvem sem estimador). A tela lê as opções antes do formulário e guarda só o mapeamento formulário ⇄ desenho | `IacGenerateOptionsTests`: todo tamanho, motor e padrão anunciado passa nas checagens, a faixa anunciada é a aceita e só a AWS tem IA e custo; fixture `generate-options.json` gerada pelo motor e lida no `contracts.test.ts` e no `blueprint.test` |
+| UI-19 | `GeneratePanel` com 557 linhas: oito estados soltos, três telas (desenho, revisão, gravado), quatro chamadas ao motor e cerca de doze ternários por nuvem | `useGenerateFlow`: o reducer `generateFlow` (puro) com as três telas num estado só, e o hook com as chamadas ao motor. `PROVIDER_FIELDS` com os nomes dos campos de cada nuvem e as chaves da conexão; nenhum ternário por nuvem sobra no painel nem no mapeamento. O painel virou `GenerateReview`, `ArchitectDraftSection`, `AccountSection`, `ComponentsSection` e campos comuns | Caracterização escrita antes da mudança (`generate-panel.test`: AWS, Google e Azure com banco e state, e o desenho reprovado), que passou igual depois; `use-generate-flow.test` com o reducer; os testes antigos da página passam sem mudança |
+
+**Validação depois da onda 3c:**
+- .NET: 1941 testes aprovados, 0 falhas, 28 ignorados; mais 12 de integração.
+- Rust (host): fmt, clippy `-D warnings` e 66 testes limpos; `iac.generate.options` entrou na lista de métodos da interface.
+- UI: typecheck, eslint e prettier limpos; vitest com 911 testes aprovados.
+- Não validado: a tela de Infraestrutura no app Tauri com um motor real; ficou nos testes de componente, que leem as opções da fixture gerada pelo motor.
 
 ## 8. Arquivos grandes julgados coesos
 
