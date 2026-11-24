@@ -139,7 +139,12 @@ public static class IacErrors
         new("IAC_LOCK_ID_INVALID", "O id da trava deve ser o que a ferramenta informou (letras, dígitos e hífen).");
 
     public static EngineException ProviderUnknown(string provider) =>
-        new("IAC_PROVIDER_UNKNOWN", $"Não há bootstrap de state para {provider}. Use aws, azure ou gcp.");
+        new("IAC_PROVIDER_UNKNOWN", $"A infraestrutura como código do Spock não conhece o provedor {provider}. Use aws, azure ou gcp.");
+
+    // Sem os nomes do conector, a ferramenta cairia na cadeia padrão de credenciais, que pode ser outra conta.
+    public static EngineException ProviderWithoutProcessNames(string provider) =>
+        new("IAC_PROVIDER_WITHOUT_PROCESS_NAMES",
+            $"O conector de {provider} não informa o perfil, a conta ou o projeto que a ferramenta de IaC deve usar. Rode sem a conexão ou atualize o Spock.");
 
     public static EngineException BootstrapValueInvalid(string message) => new("IAC_BOOTSTRAP_INVALID", message);
 

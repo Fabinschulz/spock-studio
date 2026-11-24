@@ -59,6 +59,7 @@ public sealed partial class IacOperationService(
 
     public async Task<IacOperation> ValidateAsync(string projectId, string requestedBy, CancellationToken ct)
     {
+        var deadline = new IacDeadline(IacTimeouts.ValidateTotal);
         var root = RequireRoot(projectId);
         var folders = config.Folders(root);
         if (folders.Count == 0) throw IacErrors.NoConfiguration();
@@ -67,7 +68,7 @@ public sealed partial class IacOperationService(
         return await Exclusive(projectId, async () =>
         {
             var installation = await runtimes.ResolveForUseAsync(projectId, ct);
-            var runtime = factory.For(installation);
+            var runtime = factory.For(installation, deadline);
             var id = NewId();
             var started = clock.UtcNow;
             var directory = area.OperationDirectory(projectId, id);
@@ -109,6 +110,7 @@ public sealed partial class IacOperationService(
 
     public async Task<IacOperation> PlanAsync(IacPlanRequest request, string requestedBy, CancellationToken ct)
     {
+        var deadline = new IacDeadline(IacTimeouts.PlanTotal);
         var root = RequireRoot(request.ProjectId);
         var folders = config.Folders(root);
         if (folders.Count == 0) throw IacErrors.NoConfiguration();
@@ -127,7 +129,7 @@ public sealed partial class IacOperationService(
         {
             var installation = await runtimes.ResolveForUseAsync(request.ProjectId, ct);
             var session = await SessionEnvironmentAsync(environment, request.ConnectionId, ct);
-            var runtime = factory.For(installation);
+            var runtime = factory.For(installation, deadline);
             var id = NewId();
             var started = clock.UtcNow;
             var directory = area.OperationDirectory(request.ProjectId, id);
@@ -188,6 +190,7 @@ public sealed partial class IacOperationService(
     // produção pedem confirmações a mais. Só a pessoa aprova; agentes não chegam aqui.
     public async Task<IacOperation> ApplyAsync(IacApplyRequest request, CancellationToken ct)
     {
+        var deadline = new IacDeadline(IacTimeouts.ApplyTotal);
         var root = RequireRoot(request.ProjectId);
         var history = area.History(request.ProjectId);
         var plan = history.FirstOrDefault(o => o.Id == request.OperationId) ?? throw IacErrors.OperationNotFound();
@@ -256,7 +259,7 @@ public sealed partial class IacOperationService(
             string? stateError = null;
             try
             {
-                run = await factory.For(installation).ApplyAsync(new IacApplySpec(planDirectory, Path.Combine(applyDirectory, "data"), planFile,
+                run = await factory.For(installation, deadline).ApplyAsync(new IacApplySpec(planDirectory, Path.Combine(applyDirectory, "data"), planFile,
                     plan.Workspace, session, Path.Combine(applyDirectory, "apply.log")), ct);
             }
             finally
@@ -304,6 +307,7 @@ public sealed partial class IacOperationService(
     // (apply -refresh-only) fica fora do Spock: ou o código passa a declarar a mudança, ou um plano normal a desfaz.
     public async Task<IacOperation> DriftAsync(IacPlanRequest request, string requestedBy, CancellationToken ct)
     {
+        var deadline = new IacDeadline(IacTimeouts.DriftTotal);
         var (root, iacRoot, folder, ws, environment) = Target(request.ProjectId, request.Folder, request.Workspace, request.ConnectionId);
         var identity = states?.Backend(root, folder) is { } declared ? IacStateIdentity.Of(declared) : null;
         if (identity is not null && registry?.Owners(identity).Where(owner => owner != request.ProjectId).ToList() is { Count: > 0 } others)
@@ -319,7 +323,7 @@ public sealed partial class IacOperationService(
             try
             {
                 var snapshot = area.Snapshot(root, iacRoot, Path.Combine(directory, "config"), includeLocalState: true);
-                var run = await factory.For(installation).DriftAsync(new IacPlanSpec(Combine(snapshot.Directory, Relative(iacRoot, folder)),
+                var run = await factory.For(installation, deadline).DriftAsync(new IacPlanSpec(Combine(snapshot.Directory, Relative(iacRoot, folder)),
                     Path.Combine(directory, "data"), Path.Combine(directory, "drift.tfplan"), ws, session), ct);
                 var (unmanaged, notes) = run.Succeeded && request.ConnectionId is { } connectionId
                     ? await UnmanagedAsync(request.ProjectId, connectionId, run.StateIds ?? new Dictionary<string, IReadOnlySet<string>>(), ct)
@@ -387,6 +391,7 @@ public sealed partial class IacOperationService(
     public async Task<IacStateRead> ReadStateAsync(string projectId, string? folder, string? workspaceName, string? connectionId, string requestedBy,
         CancellationToken ct)
     {
+        var deadline = new IacDeadline(IacTimeouts.StateTotal);
         var (root, iacRoot, chosen, ws, environment) = Target(projectId, folder, workspaceName, connectionId);
         return await Exclusive(projectId, async () =>
         {
@@ -397,7 +402,7 @@ public sealed partial class IacOperationService(
             try
             {
                 var snapshot = area.Snapshot(root, iacRoot, Path.Combine(directory, "config"), includeLocalState: true);
-                var read = await factory.For(installation).StateAsync(
+                var read = await factory.For(installation, deadline).StateAsync(
                     new IacStateSpec(Combine(snapshot.Directory, Relative(iacRoot, chosen)), Path.Combine(directory, "data"), ws, session), ct);
                 audit.Record("iac.state_read", new JsonObject
                 {
@@ -422,6 +427,7 @@ public sealed partial class IacOperationService(
     public async Task UnlockAsync(string projectId, string? folder, string? workspaceName, string? connectionId, string lockId, bool confirmed,
         CancellationToken ct)
     {
+        var deadline = new IacDeadline(IacTimeouts.UnlockTotal);
         if (!confirmed) throw IacErrors.UnlockConfirmationRequired();
         if (!LockIdPattern().IsMatch(lockId)) throw IacErrors.LockIdInvalid();
         var (root, iacRoot, chosen, ws, environment) = Target(projectId, folder, workspaceName, connectionId);
@@ -434,7 +440,7 @@ public sealed partial class IacOperationService(
             try
             {
                 var snapshot = area.Snapshot(root, iacRoot, Path.Combine(directory, "config"), includeLocalState: false);
-                var error = await factory.For(installation).UnlockAsync(
+                var error = await factory.For(installation, deadline).UnlockAsync(
                     new IacStateSpec(Combine(snapshot.Directory, Relative(iacRoot, chosen)), Path.Combine(directory, "data"), ws, session), lockId, ct);
                 audit.Record("iac.state_unlocked", new JsonObject
                 {
@@ -472,39 +478,12 @@ public sealed partial class IacOperationService(
         return (root, iacRoot, chosen, ws, CloudEnvironment(projectId, connectionId));
     }
 
-    // Só nomes (perfil, região, subscription, projeto, caminho do arquivo de conta de serviço): a credencial fica onde a
-    // ferramenta e o SDK já a procuram.
+    // Só nomes: a credencial fica onde a ferramenta e o SDK já a procuram.
     private IReadOnlyDictionary<string, string> CloudEnvironment(string projectId, string? connectionId)
     {
-        var env = new Dictionary<string, string>(StringComparer.Ordinal);
-        if (connectionId is null) return env;
+        if (connectionId is null) return new Dictionary<string, string>(StringComparer.Ordinal);
         if (cloud is null || cloud.Projects.List(projectId).All(link => link.ConnectionId != connectionId)) throw IacErrors.ConnectionNotLinked();
-        var connection = cloud.Connections.Require(connectionId);
-        var settings = connection.Settings;
-        void Set(string name, string? value)
-        {
-            if (!string.IsNullOrWhiteSpace(value)) env[name] = value;
-        }
-        switch (connection.Provider)
-        {
-            case "aws":
-                // Com AssumeRole, a credencial do papel chega pelo provedor (SessionEnvironmentAsync); o perfil de origem não vai.
-                Set("AWS_PROFILE", settings.Value("profile"));
-                Set("AWS_REGION", settings.Region);
-                Set("AWS_DEFAULT_REGION", settings.Region);
-                break;
-            case "azure":
-                Set("ARM_SUBSCRIPTION_ID", settings.Value("subscriptionId"));
-                Set("ARM_TENANT_ID", settings.Value("tenantId"));
-                break;
-            case "gcp":
-                Set("GOOGLE_CLOUD_PROJECT", settings.Value("projectId"));
-                Set("GOOGLE_PROJECT", settings.Value("projectId"));
-                Set("GOOGLE_REGION", settings.Region);
-                Set("GOOGLE_APPLICATION_CREDENTIALS", settings.Value("keyFile"));
-                break;
-        }
-        return env;
+        return IacProviders.ProcessNames(cloud, cloud.Connections.Require(connectionId)).Variables;
     }
 
     // Pedida dentro da trava do projeto, logo antes de rodar: um apply que esperou a vez não recebe credencial perto de vencer.
@@ -513,7 +492,7 @@ public sealed partial class IacOperationService(
     {
         if (connectionId is null || cloud is null) return names;
         var connection = cloud.Connections.Require(connectionId);
-        if (cloud.Providers.Find(connection.Provider) is not ICloudProcessCredentials issuer) return names;
+        if (cloud.Providers.Find(connection.Provider) is not ICloudProcessCredentials issuer) throw IacErrors.ProviderWithoutProcessNames(connection.Provider);
         var temporary = await issuer.ProcessEnvironmentAsync(connection.Settings, ct);
         if (temporary.Count == 0) return names;
         var merged = new Dictionary<string, string>(names, StringComparer.Ordinal);

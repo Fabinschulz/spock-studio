@@ -11,7 +11,7 @@ namespace Mariliz.Infrastructure.Cloud.Azure;
 
 // A credencial é a que o Azure.Identity acha (login do Azure CLI, variáveis de ambiente, identidade gerenciada, Visual
 // Studio): o Spock guarda só tenant, subscription e região de filtro. Login interativo fica desligado.
-public sealed partial class AzureCloudProvider : ICloudProvider
+public sealed partial class AzureCloudProvider : ICloudProvider, ICloudProcessCredentials
 {
     public const string CliMechanism = "azure-cli";
     public const string DefaultMechanism = "default";
@@ -27,6 +27,14 @@ public sealed partial class AzureCloudProvider : ICloudProvider
     ];
 
     private static CloudColumn C(string id, string label) => new(id, label);
+
+    // O provider azurerm acha a credencial sozinho (az login, variáveis, identidade gerenciada); só a subscription e o tenant vão.
+    public CloudProcessNames ProcessNames(CloudSettings settings) => new(CloudProcessVariables.Of(
+        ("ARM_SUBSCRIPTION_ID", settings.Value(SubscriptionField)),
+        ("ARM_TENANT_ID", settings.Value(TenantField))), settings.Value(SubscriptionField));
+
+    public Task<IReadOnlyDictionary<string, string>> ProcessEnvironmentAsync(CloudSettings settings, CancellationToken ct) =>
+        Task.FromResult<IReadOnlyDictionary<string, string>>(new Dictionary<string, string>());
 
     private static readonly CloudColumn[] ResourceColumns = [C("name", "Nome"), C("resourceGroup", "Grupo de recursos"), C("location", "Região"), C("sku", "SKU"), C("kind", "Tipo")];
 

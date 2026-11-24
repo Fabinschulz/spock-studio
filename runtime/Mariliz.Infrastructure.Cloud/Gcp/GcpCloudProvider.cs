@@ -16,7 +16,7 @@ namespace Mariliz.Infrastructure.Cloud.Gcp;
 // Application Default Credentials (gcloud auth application-default login, GOOGLE_APPLICATION_CREDENTIALS, workload
 // identity, metadados da máquina) ou uma chave de service account lida do arquivo onde ela já está: o Spock guarda só o
 // projeto, a região de filtro e o caminho do arquivo, nunca a chave.
-public sealed partial class GcpCloudProvider : ICloudProvider, ICloudPermissionTester
+public sealed partial class GcpCloudProvider : ICloudProvider, ICloudPermissionTester, ICloudProcessCredentials
 {
     public const string AdcMechanism = "adc";
     public const string KeyFileMechanism = "service-account-file";
@@ -28,6 +28,16 @@ public sealed partial class GcpCloudProvider : ICloudProvider, ICloudPermissionT
     private static readonly CloudField Region = new(CloudFields.Region, "Região (filtro)", "Opcional, por exemplo southamerica-east1. Só filtra as leituras que aceitam região.", Required: false);
 
     private static CloudColumn C(string id, string label) => new(id, label);
+
+    // O arquivo da chave vai pelo caminho, como o provider google e o SDK já o procuram; o conteúdo nunca passa pelo Spock.
+    public CloudProcessNames ProcessNames(CloudSettings settings) => new(CloudProcessVariables.Of(
+        ("GOOGLE_CLOUD_PROJECT", settings.Value(ProjectField)),
+        ("GOOGLE_PROJECT", settings.Value(ProjectField)),
+        ("GOOGLE_REGION", settings.Region),
+        ("GOOGLE_APPLICATION_CREDENTIALS", settings.Value(KeyFileField))), settings.Value(ProjectField));
+
+    public Task<IReadOnlyDictionary<string, string>> ProcessEnvironmentAsync(CloudSettings settings, CancellationToken ct) =>
+        Task.FromResult<IReadOnlyDictionary<string, string>>(new Dictionary<string, string>());
 
     public CloudProviderDescriptor Descriptor { get; } = new(
         CloudProviders.Gcp,

@@ -7,12 +7,14 @@ namespace Mariliz.Infrastructure.Iac;
 
 // O adaptador de linha de comando, o mesmo para `tofu` e `terraform`: as duas têm os mesmos subcomandos e saídas JSON.
 // Cada operação monta argumentos fixos; sem shell, sem argumento vindo de texto livre, sem pergunta interativa.
-public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner runner, string? pluginCache = null) : IIacRuntime
+public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner runner, string? pluginCache = null, IacDeadline? deadline = null)
+    : IIacRuntime
 {
-    private static readonly TimeSpan ShortTimeout = TimeSpan.FromMinutes(2);
-    private static readonly TimeSpan InitTimeout = TimeSpan.FromMinutes(10);
-    private static readonly TimeSpan PlanTimeout = TimeSpan.FromMinutes(30);
-    private static readonly TimeSpan ApplyTimeout = TimeSpan.FromMinutes(55);
+    private readonly IacDeadline _deadline = deadline ?? IacDeadline.Unlimited;
+    private TimeSpan ShortTimeout => _deadline.Stage(IacTimeouts.Short);
+    private TimeSpan InitTimeout => _deadline.Stage(IacTimeouts.Init);
+    private TimeSpan PlanTimeout => _deadline.Stage(IacTimeouts.Plan);
+    private TimeSpan ApplyTimeout => _deadline.Stage(IacTimeouts.Apply);
     private const int ErrorLines = 25;
     private const int MaxOutput = 300;
 
@@ -59,8 +61,9 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
         if (await PrepareAsync(spec.Directory, spec.Workspace, env, ct) is { } failure) return Failed(failure);
         var state = Backend(spec.Directory, spec.DataDirectory, spec.Workspace);
 
-        var plan = await RunAsync(spec.Directory, ["plan", "-input=false", "-no-color", "-detailed-exitcode", "-out=" + spec.PlanFile], env, PlanTimeout, ct);
-        if (plan.TimedOut) return Failed("O plano passou de 30 minutos e foi interrompido.");
+        var planTimeout = PlanTimeout;
+        var plan = await RunAsync(spec.Directory, ["plan", "-input=false", "-no-color", "-detailed-exitcode", "-out=" + spec.PlanFile], env, planTimeout, ct);
+        if (plan.TimedOut) return Failed($"O plano passou de {Minutes(planTimeout)} e foi interrompido.");
         // -detailed-exitcode: 0 sem mudanças, 2 com mudanças, 1 erro.
         if (plan.ExitCode is not (0 or 2)) return Failed(Tail(plan));
 
@@ -79,10 +82,11 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
         if (Backend(spec.Directory, spec.DataDirectory, spec.Workspace).Blocker is { } blocker) return NotApplied(blocker);
 
         Directory.CreateDirectory(Path.GetDirectoryName(spec.LogFile)!);
-        var apply = await RunAsync(spec.Directory, ["apply", "-input=false", "-no-color", spec.PlanFile], env, ApplyTimeout, ct);
+        var applyTimeout = ApplyTimeout;
+        var apply = await RunAsync(spec.Directory, ["apply", "-input=false", "-no-color", spec.PlanFile], env, applyTimeout, ct);
         await File.WriteAllTextAsync(spec.LogFile, $"$ apply (código {apply.ExitCode})\n{apply.StandardOutput}\n{apply.StandardError}\n", ct);
         var applied = apply.ExitCode == 0 && !apply.TimedOut;
-        var error = applied ? null : apply.TimedOut ? "O apply passou de 55 minutos e foi interrompido." : Tail(apply);
+        var error = applied ? null : apply.TimedOut ? $"O apply passou de {Minutes(applyTimeout)} e foi interrompido." : Tail(apply);
 
         // A prova: um plano novo sobre o mesmo state. Sem mudanças, aplicado; com mudanças, o que faltou ou divergiu.
         var verifyFile = spec.PlanFile + ".verify";
@@ -129,9 +133,10 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
         if (await PrepareAsync(spec.Directory, spec.Workspace, env, ct) is { } failure) return new IacDriftRun(false, [], failure);
         var state = Backend(spec.Directory, spec.DataDirectory, spec.Workspace);
 
+        var planTimeout = PlanTimeout;
         var plan = await RunAsync(spec.Directory, ["plan", "-refresh-only", "-input=false", "-no-color", "-detailed-exitcode", "-out=" + spec.PlanFile], env,
-            PlanTimeout, ct);
-        if (plan.TimedOut) return new IacDriftRun(false, [], "A verificação passou de 30 minutos e foi interrompida.", state.Type);
+            planTimeout, ct);
+        if (plan.TimedOut) return new IacDriftRun(false, [], $"A verificação passou de {Minutes(planTimeout)} e foi interrompida.", state.Type);
         if (plan.ExitCode is not (0 or 2)) return new IacDriftRun(false, [], Tail(plan), state.Type);
 
         var show = await RunAsync(spec.Directory, ["show", "-json", "-no-color", spec.PlanFile], env, ShortTimeout, ct);
@@ -237,10 +242,14 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
 
     private static IacApplyRun NotApplied(string error) => new(false, false, null, null, new Dictionary<string, string>(), error);
 
+    // Sem tempo no total da operação, a etapa não começa: sai como se tivesse estourado o prazo.
     private Task<ProcessResult> RunAsync(string directory, IReadOnlyList<string> arguments, IReadOnlyDictionary<string, string>? env, TimeSpan timeout,
         CancellationToken ct) =>
-        runner.RunAsync(new ProcessSpec(installation.Path, arguments, directory, timeout,
-            Environment: env ?? IacRuntimeService.QuietEnvironment), ct);
+        timeout <= TimeSpan.Zero
+            ? Task.FromResult(new ProcessResult(-1, "", "O prazo total da operação acabou antes desta etapa.", TimedOut: true, NotFound: false))
+            : runner.RunAsync(new ProcessSpec(installation.Path, arguments, directory, timeout, Environment: env ?? IacRuntimeService.QuietEnvironment), ct);
+
+    private static string Minutes(TimeSpan timeout) => $"{Math.Max(1, (int)Math.Ceiling(timeout.TotalMinutes))} minutos";
 
     // .terraform/ e o workspace selecionado ficam na pasta da operação; os providers baixados ficam num cache do Spock,
     // para cada operação não baixar tudo de novo.
@@ -282,6 +291,7 @@ public sealed class CliIacRuntime(IacInstallation installation, IProcessRunner r
 public sealed class CliIacRuntimeFactory(IProcessRunner runner, string dataRoot) : IIacRuntimeFactory
 {
     // Um cache por ferramenta: OpenTofu e Terraform baixam providers de registros diferentes.
-    public IIacRuntime For(IacInstallation installation) =>
-        new CliIacRuntime(installation, runner, Path.Combine(dataRoot, "iac", "plugin-cache", installation.Engine == IacEngine.OpenTofu ? "opentofu" : "terraform"));
+    public IIacRuntime For(IacInstallation installation, IacDeadline? deadline = null) =>
+        new CliIacRuntime(installation, runner, Path.Combine(dataRoot, "iac", "plugin-cache", installation.Engine == IacEngine.OpenTofu ? "opentofu" : "terraform"),
+            deadline);
 }
