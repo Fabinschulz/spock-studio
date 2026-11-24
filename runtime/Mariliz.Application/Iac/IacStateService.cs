@@ -90,12 +90,12 @@ public sealed class IacStateService(
     {
         var main = roots.FirstOrDefault(r => r.Mode == IacStateMode.LocalInProject && !r.Folder.EndsWith("bootstrap", StringComparison.Ordinal));
         if (main is null) return null;
-        var provider = cloud?.Projects.List(projectId).Select(link => link.Provider).FirstOrDefault()
-            ?? new[] { "aws", "azure", "gcp" }.FirstOrDefault(p => states.Providers(root, main.Folder).Contains(p == "azure" ? "azurerm" : p == "gcp" ? "google" : p));
+        // Provedor sem linha na tabela fica sem recomendação: recomendar o backend de outra nuvem seria pior que nada.
+        var provider = cloud?.Projects.List(projectId).Select(link => IacProviders.Find(link.Provider)).FirstOrDefault()
+            ?? IacProviders.All.FirstOrDefault(p => states.Providers(root, main.Folder).Contains(p.TerraformName));
         if (provider is null) return null;
-        var backend = provider switch { "aws" => "s3", "azure" => "azurerm", _ => "gcs" };
-        return new IacStateRecommendation(provider, backend,
-            $"A raiz {main.Folder} guarda o state localmente. Para versões, trava e time, crie o bucket de state com o bootstrap e use o backend \"{backend}\".");
+        return new IacStateRecommendation(provider.Id, provider.Backend,
+            $"A raiz {main.Folder} guarda o state localmente. Para versões, trava e time, crie o bucket de state com o bootstrap e use o backend \"{provider.Backend}\".");
     }
 
     public IacBootstrapPlan BootstrapPlan(IacBootstrapRequest request) => PrepareBootstrap(request).Plan;
@@ -146,25 +146,27 @@ public sealed class IacStateService(
         var iacRoot = folders.Count == 0 ? "infra" : IacOperationService.CommonRoot(folders);
         var folder = Combine(iacRoot.Length == 0 ? "infra" : iacRoot, "bootstrap");
         var project = IacBootstrapTemplates.ProjectSlug(Value(request, "project") ?? DisplayName(request.ProjectId));
+        var provider = IacProviders.Require(request.Provider);
         var connection = Connection(request);
-        string? FromConnection(string name) => connection?.Settings.Value(name);
+        // O perfil, a subscription ou o projeto da conexão, pelo nome que só o conector conhece.
+        var scope = connection is null ? null : IacProviders.ProcessNames(cloud!, connection).Scope;
 
-        var generated = request.Provider switch
+        var generated = provider.Id switch
         {
-            "aws" => IacBootstrapTemplates.Aws(project,
+            CloudProviders.Aws => IacBootstrapTemplates.Aws(project,
                 Value(request, "bucket") ?? throw IacErrors.BootstrapValueInvalid("Informe o nome do bucket de state."),
                 Value(request, "region") ?? connection?.Settings.Region ?? throw IacErrors.BootstrapValueInvalid("Informe a região."),
-                Value(request, "profile") ?? FromConnection("profile"),
+                Value(request, "profile") ?? scope,
                 Value(request, "account") ?? connection?.Identity?.Account),
-            "azure" => IacBootstrapTemplates.Azure(project,
+            CloudProviders.Azure => IacBootstrapTemplates.Azure(project,
                 Value(request, "resourceGroup") ?? throw IacErrors.BootstrapValueInvalid("Informe o grupo de recursos."),
                 Value(request, "storageAccount") ?? throw IacErrors.BootstrapValueInvalid("Informe a storage account."),
                 Value(request, "container") ?? "tfstate",
                 Value(request, "location") ?? connection?.Settings.Region ?? throw IacErrors.BootstrapValueInvalid("Informe a região."),
-                Value(request, "subscription") ?? FromConnection("subscriptionId")),
-            "gcp" => IacBootstrapTemplates.Gcp(project,
+                Value(request, "subscription") ?? scope),
+            CloudProviders.Gcp => IacBootstrapTemplates.Gcp(project,
                 Value(request, "bucket") ?? throw IacErrors.BootstrapValueInvalid("Informe o nome do bucket de state."),
-                Value(request, "gcpProject") ?? FromConnection("projectId") ?? throw IacErrors.BootstrapValueInvalid("Informe o projeto do Google Cloud."),
+                Value(request, "gcpProject") ?? scope ?? throw IacErrors.BootstrapValueInvalid("Informe o projeto do Google Cloud."),
                 Value(request, "location") ?? connection?.Settings.Region ?? "US"),
             _ => throw IacErrors.ProviderUnknown(request.Provider)
         };

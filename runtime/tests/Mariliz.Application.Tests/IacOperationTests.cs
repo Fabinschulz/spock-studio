@@ -6,6 +6,7 @@ using Mariliz.Application.Tests.Support;
 using Mariliz.Application.Workspace;
 using Mariliz.Infrastructure;
 using Mariliz.Infrastructure.Cloud;
+using Mariliz.Infrastructure.Cloud.Aws;
 using Mariliz.Infrastructure.Iac;
 
 namespace Mariliz.Application.Tests;
@@ -245,7 +246,7 @@ public sealed class IacOperationTests : IDisposable
         store.SaveConnection(new CloudConnection("c-outra", "aws", "Outra", new CloudSettings("default", new Dictionary<string, string>()),
             CloudConnectionStatus.Connected, null, [], _clock.UtcNow, _clock.UtcNow, null, "1"));
         store.SaveLink(new CloudProjectLink("l-1", _projectId, "c-aws", "aws", [], false, _clock.UtcNow));
-        var cloud = new CloudHub(store, new CloudProviderRegistry([]), Workspace(), _clock, _audit);
+        var cloud = new CloudHub(store, new CloudProviderRegistry([new AwsCloudProvider()]), Workspace(), _clock, _audit);
         var service = await Service(cloud);
 
         var refused = await Assert.ThrowsAsync<EngineException>(() =>
@@ -279,6 +280,9 @@ public sealed class IacOperationTests : IDisposable
             Task.FromResult(new CloudIdentity("123456789012", null, "arn:teste", null));
 
         public Task<CloudTable> ReadAsync(CloudSettings settings, CloudQuery query, CancellationToken ct) => Task.FromResult(new CloudTable([], false));
+
+        public CloudProcessNames ProcessNames(CloudSettings settings) =>
+            new(CloudProcessVariables.Of(("AWS_REGION", settings.Region), ("AWS_DEFAULT_REGION", settings.Region)), null);
 
         public Task<IReadOnlyDictionary<string, string>> ProcessEnvironmentAsync(CloudSettings settings, CancellationToken ct)
         {
@@ -589,7 +593,7 @@ public sealed class IacOperationTests : IDisposable
 
     internal sealed class FakeFactory(FakeRuntime runtime) : IIacRuntimeFactory
     {
-        public IIacRuntime For(IacInstallation installation) => runtime;
+        public IIacRuntime For(IacInstallation installation, IacDeadline? deadline = null) => runtime;
     }
 
     internal sealed class FakeRuntime : IIacRuntime

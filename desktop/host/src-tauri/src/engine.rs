@@ -35,7 +35,8 @@ const IAC_ARCHITECT_METHOD: &str = "iac.architect.draft";
 // O download do OpenTofu ou do Terraform tem até 10 min no motor (OfficialReleaseToolchain); o host espera um pouco mais.
 const TERRAFORM_INSTALL_TIMEOUT: Duration = Duration::from_secs(660);
 const TERRAFORM_INSTALL_METHOD: &str = "iac.runtime.install";
-// Validar e planejar rodam init (até 10 min por pasta) e plan (até 30 min) no motor.
+// O motor corta validar, planejar, drift, state e unlock em 40 min no total (IacTimeouts.cs); IacTimeoutsTests confere
+// estas esperas contra esse total mais a folga do serviço.
 const IAC_OPERATION_TIMEOUT: Duration = Duration::from_secs(2700);
 const IAC_VALIDATE_METHOD: &str = "iac.validate";
 const IAC_PLAN_METHOD: &str = "iac.plan";
@@ -44,7 +45,7 @@ const IAC_DRIFT_METHOD: &str = "iac.drift";
 // Consultar o state e liberar a trava também rodam init (providers e backend).
 const IAC_STATE_METHOD: &str = "iac.state.resources";
 const IAC_UNLOCK_METHOD: &str = "iac.state.unlock";
-// O apply pode criar banco e cluster: até 55 min no motor, mais o plano de verificação.
+// O apply pode criar banco e cluster: até 55 min no motor, e a operação inteira com a verificação fica em 85 min.
 const IAC_APPLY_TIMEOUT: Duration = Duration::from_secs(5400);
 const IAC_APPLY_METHOD: &str = "iac.apply";
 

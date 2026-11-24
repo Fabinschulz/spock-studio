@@ -6,6 +6,7 @@ using Mariliz.Application.Tests.Support;
 using Mariliz.Application.Workspace;
 using Mariliz.Infrastructure;
 using Mariliz.Infrastructure.Cloud;
+using Mariliz.Infrastructure.Cloud.Aws;
 using Mariliz.Infrastructure.Iac;
 
 namespace Mariliz.Application.Tests;
@@ -66,7 +67,7 @@ public sealed class IacStateTests : IDisposable
                 new Dictionary<string, string> { ["profile"] = "dev-sso", ["region"] = "sa-east-1" }), CloudConnectionStatus.Connected,
             new CloudIdentity("123456789012", null, "arn:aws:sts::123456789012:assumed-role/Dev/pessoa", null), [], _clock.UtcNow, _clock.UtcNow, null, "1"));
         foreach (var link in links) store.SaveLink(link);
-        return new CloudHub(store, new CloudProviderRegistry([]), Workspace(), _clock, _audit);
+        return new CloudHub(store, new CloudProviderRegistry([new AwsCloudProvider()]), Workspace(), _clock, _audit);
     }
 
     private IacStateService State(CloudHub? cloud = null, InterceptingRunner? runner = null) =>

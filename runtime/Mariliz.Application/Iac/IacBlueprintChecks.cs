@@ -11,7 +11,8 @@ public static partial class IacBlueprintChecks
     // O nome do load balancer tem até 32 caracteres: "<projeto>-<env>-alb" com ambiente de até 7.
     public const int MaxProjectLength = 18;
 
-    public static readonly IReadOnlyList<string> Providers = ["aws", "azure", "gcp"];
+    // Propriedade, não campo: IacProviders aponta para as checagens daqui, e um campo estático dependeria da ordem de inicialização.
+    public static IReadOnlyList<string> Providers => IacProviders.All.Select(provider => provider.Id).ToList();
 
     // Fatos da conta: vêm da pessoa ou da conexão, nunca de quem propõe o desenho (modelo ou agente da sessão). Uma
     // checagem destas falhando pede o dado à pessoa; as outras pedem outro desenho.
@@ -27,21 +28,11 @@ public static partial class IacBlueprintChecks
         void Add(string id, string description, bool passed, string? detail = null) =>
             checks.Add(new IacBlueprintCheck(id, description, passed, passed ? null : detail));
 
-        Add("provider", "Nuvem suportada na geração (aws, azure ou gcp)", Providers.Contains(blueprint.Provider));
+        var provider = IacProviders.Find(blueprint.Provider);
+        Add("provider", "Nuvem suportada na geração (aws, azure ou gcp)", provider is not null);
         Add("project", $"Nome do projeto em minúsculas, dígitos e hífen, até {MaxProjectLength} caracteres",
             Project().IsMatch(blueprint.Project) && blueprint.Project.Length <= MaxProjectLength, "Ex.: loja-api.");
-        switch (blueprint.Provider)
-        {
-            case "azure":
-                Azure(blueprint, Add);
-                break;
-            case "gcp":
-                Google(blueprint, Add);
-                break;
-            default:
-                Aws(blueprint, Add);
-                break;
-        }
+        provider?.Checks(blueprint, Add);
 
         if (blueprint.Service is { } service)
         {
@@ -61,10 +52,11 @@ public static partial class IacBlueprintChecks
         return checks;
     }
 
-    // Filas e alarmes não ficam em rede. Na AWS o serviço também precisa da VPC; no Azure e no Google só o banco.
-    public static bool NeedsNetwork(IacBlueprint b) => b.Database is not null || b.Provider == "aws" && b.Service is not null;
+    // Filas e alarmes não ficam em rede.
+    public static bool NeedsNetwork(IacBlueprint b) =>
+        b.Database is not null || b.Service is not null && IacProviders.Find(b.Provider) is { ServiceNeedsNetwork: true };
 
-    private static void Aws(IacBlueprint blueprint, Action<string, string, bool, string?> add)
+    internal static void Aws(IacBlueprint blueprint, Action<string, string, bool, string?> add)
     {
         void Add(string id, string description, bool passed, string? detail = null) => add(id, description, passed, detail);
         Add("region", "Região AWS no formato sa-east-1", CloudIdentifiers.AwsRegion().IsMatch(blueprint.Region));
@@ -100,7 +92,7 @@ public static partial class IacBlueprintChecks
             Add("backend", "Bucket de state e região válidos", CloudIdentifiers.S3Bucket().IsMatch(backend.Bucket) && CloudIdentifiers.AwsRegion().IsMatch(backend.Region));
     }
 
-    private static void Azure(IacBlueprint blueprint, Action<string, string, bool, string?> add)
+    internal static void Azure(IacBlueprint blueprint, Action<string, string, bool, string?> add)
     {
         void Add(string id, string description, bool passed, string? detail = null) => add(id, description, passed, detail);
         Add("region", "Região do Azure no formato brazilsouth", CloudIdentifiers.AzureLocation().IsMatch(blueprint.Region));
@@ -133,7 +125,7 @@ public static partial class IacBlueprintChecks
                 CloudIdentifiers.AzureStorage().IsMatch(backend.Bucket) && backend.ResourceGroup is { Length: > 0 } && backend.Container is { } container && CloudIdentifiers.AzureContainer().IsMatch(container));
     }
 
-    private static void Google(IacBlueprint blueprint, Action<string, string, bool, string?> add)
+    internal static void Google(IacBlueprint blueprint, Action<string, string, bool, string?> add)
     {
         void Add(string id, string description, bool passed, string? detail = null) => add(id, description, passed, detail);
         Add("region", "Região do Google Cloud no formato southamerica-east1", GoogleRegion().IsMatch(blueprint.Region));

@@ -110,6 +110,12 @@ public sealed partial class AwsCloudProvider : ICloudProvider, ICloudPriceSource
         }
     }
 
+    // Com AssumeRole, a credencial do papel chega por ProcessEnvironmentAsync; o perfil de origem não vai.
+    public CloudProcessNames ProcessNames(CloudSettings settings) => new(CloudProcessVariables.Of(
+        ("AWS_PROFILE", settings.Value(ProfileField)),
+        ("AWS_REGION", settings.Region),
+        ("AWS_DEFAULT_REGION", settings.Region)), settings.Value(ProfileField));
+
     // O OpenTofu/Terraform só conhece o perfil de origem: com ele, rodaria com a identidade de origem, não com a do papel.
     public async Task<IReadOnlyDictionary<string, string>> ProcessEnvironmentAsync(CloudSettings settings, CancellationToken ct)
     {

@@ -34,7 +34,8 @@ public interface IIacRuntime
 
 public interface IIacRuntimeFactory
 {
-    IIacRuntime For(IacInstallation installation);
+    // Um adaptador por operação: as etapas dele dividem o prazo total daquela operação (IacTimeouts).
+    IIacRuntime For(IacInstallation installation, IacDeadline? deadline = null);
 }
 
 // Onde o Spock guarda as operações de cada projeto: cópia da configuração, arquivo de plano, histórico.
