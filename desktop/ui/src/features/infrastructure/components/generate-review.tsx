@@ -62,7 +62,7 @@ export function GenerateReview({ flow, plan, connection, linked }: GenerateRevie
           ) : (
             <p className={styles.hint}>
               Para estimar o custo, vincule uma conexão {options.label} ao projeto em{' '}
-              <Link to={pathTo('cloud')}>Conexões cloud</Link> e libere nela a leitura de preços públicos.
+              <Link to={pathTo('cloud')}>Conexões › Nuvem</Link> e libere nela a leitura de preços públicos.
             </p>
           )}
           {plan.notes.length > 0 ? (

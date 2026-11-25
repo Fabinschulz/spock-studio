@@ -20,7 +20,8 @@ export const paths = {
   integrations: '/integracoes',
   cloud: '/cloud',
   infrastructure: '/infraestrutura',
-  // A mesma tela de Minha IA, aberta como aba de Conexões: o provedor de IA é uma conexão como as outras.
+  // A mesma tela de Minha IA, aberta pela área Conexões com o nome que o menu de lá lhe dá: o provedor de IA é uma
+  // conexão como as outras.
   connectionsModels: '/conexoes/modelos',
   settings: '/configuracoes',
   settingsAi: '/configuracoes/ia',

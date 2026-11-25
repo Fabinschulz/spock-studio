@@ -31,6 +31,12 @@ const page = (client: EngineClient, project: SelectedProject | null) => (
 );
 
 describe('Integrações · conexões', () => {
+  it('o título é o nome que o menu dá à tela', async () => {
+    render(page(fakeIntegrationEngine().client, null));
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Serviços' })).toBeInTheDocument();
+  });
+
   it('conecta, mostra a conta que o provedor reconheceu e não deixa a credencial na tela', async () => {
     const engine = fakeIntegrationEngine();
     const { container } = render(page(engine.client, null));

@@ -99,12 +99,12 @@ function ActivitySection({ integrations }: { integrations: ProjectIntegration[] 
       {integrations.length === 0 ? (
         <EmptyState>
           Não há dados de atividades: nenhuma ferramenta foi vinculada a este projeto. Vincule uma em{' '}
-          <Link to={pathTo('integrations')}>Integrações</Link>.
+          <Link to={pathTo('integrations')}>Conexões › Serviços</Link>.
         </EmptyState>
       ) : summary.total === 0 ? (
         <EmptyState>
           Não há dados de atividades: as fontes vinculadas ainda não trouxeram nenhum item. Sincronize em{' '}
-          <Link to={pathTo('integrations')}>Integrações</Link>.
+          <Link to={pathTo('integrations')}>Conexões › Serviços</Link>.
         </EmptyState>
       ) : (
         <>
@@ -158,7 +158,7 @@ function SourcesSection({ integrations, connectors }: { integrations: ProjectInt
         })}
       </ul>
       <p className={styles.muted}>
-        Conexões, recortes e sincronização ficam em <Link to={pathTo('integrations')}>Integrações</Link>.
+        Conexões, recortes e sincronização ficam em <Link to={pathTo('integrations')}>Conexões › Serviços</Link>.
       </p>
     </PageSection>
   );

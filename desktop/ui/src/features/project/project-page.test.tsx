@@ -260,7 +260,10 @@ describe('Projeto · conhecimento', () => {
       const section = await openSection(knowledgeFixture);
 
       expect(await within(section).findByText(/Nenhuma ferramenta vinculada a este projeto/)).toBeTruthy();
-      expect(within(section).getByRole('link', { name: 'Integrações' })).toHaveAttribute('href', '/integracoes');
+      expect(within(section).getByRole('link', { name: 'Conexões › Serviços' })).toHaveAttribute(
+        'href',
+        '/integracoes'
+      );
       expect(within(section).queryByRole('list', { name: 'Fontes externas' })).toBeNull();
     });
 

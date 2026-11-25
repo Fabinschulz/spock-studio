@@ -1,6 +1,6 @@
 # Spock Studio — Workspace unificado
 
-> **Estado:** quatro incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade; o quarto, a largura ajustável desse painel. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
+> **Estado:** cinco incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade; o quarto, a largura ajustável desse painel; o quinto, os títulos das telas iguais aos nomes do menu. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
 >
 > O tema, os tokens e a linguagem visual vêm do redesign Workbench anterior e não mudaram; a fonte de verdade deles é o código (`desktop/ui/src/shared/styles/_tokens.scss`). Os produtos de referência estudados não são nomeados aqui; deles saíram princípios, não telas.
 
@@ -130,8 +130,14 @@ Cada item de `navigation.tsx` separa três coisas: `label` (o que a pessoa lê),
 | Padrões do projeto | Harness | descrição da tela, seções internas, glossário |
 | Conhecimento | RAG, índice | glossário |
 | Infraestrutura | IaC | textos da tela |
-| Serviços | Integrações | título da tela |
-| Modelos de IA | Minha IA, provedores | Configurações |
+| Serviços | Integrações | descrição da tela e busca |
+| Nuvem | Conexões cloud | descrição da tela e busca |
+| Modelos de IA | Minha IA, provedores | a mesma tela, aberta por Configurações › Minha IA |
+| Catálogo | Catálogo do Harness | descrição da tela |
+
+O título de cada tela é o nome que o menu dá a ela. A tela dos modelos de IA abre por dois menus e, em cada um, leva o nome que aquele menu usa. Quando uma tela manda a pessoa a outra, o link diz o caminho que a trilha mostra (por exemplo "Conexões › Serviços"), em vez de um nome que não aparece em lugar nenhum do menu.
+
+Ficam como estão, de propósito: os textos que vêm do motor (como "Validação do Harness" na linha do tempo), que mudariam o motor, e "Minha IA" nos textos que explicam onde guardar a chave, porque é o nome em Configurações.
 
 Nenhum nome interno, contrato ou método do motor mudou.
 
@@ -185,12 +191,13 @@ Feita no aplicativo real (janela Tauri, motor .NET e um projeto de verdade), dir
 | As 24 telas existentes abrem no novo shell, sem tela de erro | passou |
 | Ctrl B recolhe e expande o painel | passou |
 | Painel de atividade: largura pelo teclado e pelo arraste, limites e largura lembrada | passou |
+| O título de cada tela e aba é o nome do menu, e os links entre telas usam o caminho da trilha | passou |
 | 800×600: painel recolhido, abre por cima, fecha com Esc, sem rolagem horizontal | passou |
 | 480×800: barra só de ícones com nome acessível, sem rolagem horizontal | passou |
-| axe (WCAG 2.2 AA, com contraste) em 13 estados de tela | 0 violações |
+| axe (WCAG 2.2 AA, com contraste) em 14 estados de tela | 0 violações |
 | Console sem erros durante as jornadas | passou |
 
-Total: 34 de 34. Além disso, `pnpm check` (tipos, lint, formatação e 1019 testes em 108 arquivos) passa.
+Total: 37 de 37. Além disso, `pnpm check` (tipos, lint, formatação e 1023 testes em 108 arquivos) passa.
 
 A validação achou e corrigiu três defeitos que já existiam: dois ícones da biblioteca com atributos SVG que o React recusava (aviso no console a cada renderização), as abas da biblioteca ilegíveis no tema escuro e uma chave repetida na lista de ferramentas da Visão geral quando dois módulos declaram a mesma ferramenta.
 
@@ -208,9 +215,8 @@ A validação achou e corrigiu três defeitos que já existiam: dois ícones da 
 
 Incrementos:
 
-1. **Nomes dentro das telas**: "Integrações" e "Conexões cloud" ainda são os títulos das telas que o menu chama de "Serviços" e "Nuvem".
-2. **`CheckboxOption`**: o par do `Radio` com rótulo rico ainda é local; cabe no `Checkbox` da biblioteca quando o rótulo dele aceitar conteúdo.
-3. **Fluxos internos** de Engenharia e de Gestão (filtros de Execuções, que ocupam três linhas inteiras; a tela de Configurar) não foram redesenhados.
+1. **`CheckboxOption`**: o par do `Radio` com rótulo rico ainda é local; cabe no `Checkbox` da biblioteca quando o rótulo dele aceitar conteúdo.
+2. **Fluxos internos** de Engenharia e de Gestão (filtros de Execuções, que ocupam três linhas inteiras; a tela de Configurar) não foram redesenhados.
 
 Decisões do dono:
 

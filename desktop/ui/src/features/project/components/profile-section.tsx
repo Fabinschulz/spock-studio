@@ -158,7 +158,7 @@ function ProfileContent({
       {profile.connections.length === 0 ? (
         <p className={styles.meta}>
           Nenhuma ferramenta externa vinculada. Vincule repositório e gestão em{' '}
-          <Link to={pathTo('integrations')}>Integrações</Link>.
+          <Link to={pathTo('integrations')}>Conexões › Serviços</Link>.
         </p>
       ) : (
         <ul className={styles.plainList}>

@@ -65,7 +65,7 @@ export const routes: RouteObject[] = [
               { path: paths.integrations, element: page(() => import('./routes/integrations')) },
               { path: paths.cloud, element: page(() => import('./routes/cloud')) },
               { path: paths.infrastructure, element: page(() => import('./routes/infrastructure')) },
-              { path: paths.connectionsModels, element: page(() => import('./routes/settings-ai')) },
+              { path: paths.connectionsModels, element: page(() => import('./routes/connections-models')) },
               { path: paths.settingsAi, element: page(() => import('./routes/settings-ai')) },
               { path: executionPattern, element: page(() => import('./routes/execution')) }
             ]
