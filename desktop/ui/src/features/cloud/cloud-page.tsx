@@ -36,7 +36,7 @@ export function CloudPage({ client, project }: { client: EngineClient; project: 
 
   return (
     <Page
-      title="Conexões cloud"
+      title="Nuvem"
       description="Conecte AWS, Microsoft Azure e Google Cloud pelos mecanismos oficiais de cada provedor e decida, projeto a projeto, o que pode ser lido e se agentes de IA podem pedir essas leituras. Só leitura: nada é criado, alterado ou apagado nas contas."
     >
       {!hub.settled ? <LoadingState>Lendo as conexões cloud…</LoadingState> : null}

@@ -36,10 +36,10 @@ function CatalogView({ client, project }: { client: EngineClient; project: Selec
 
   return (
     <Page
-      title="Catálogo do Harness"
+      title="Catálogo"
       description={
         project
-          ? `${project.displayName} · o que cada componente faz no projeto e o que está aplicado nele.`
+          ? `${project.displayName} · o que cada componente do Harness faz no projeto e o que está aplicado nele.`
           : 'O que cada componente do Harness faz, quando age, o que lê e o que pode alterar.'
       }
     >

@@ -49,7 +49,7 @@ export function AccountSection({ flow, connection, linked }: AccountSectionProps
         <p className={styles.hint}>{LINKED_UNREADABLE}</p>
       ) : (
         <p className={styles.hint}>
-          Vincule uma conexão {options.label} ao projeto em <Link to={pathTo('cloud')}>Conexões cloud</Link> para
+          Vincule uma conexão {options.label} ao projeto em <Link to={pathTo('cloud')}>Conexões › Nuvem</Link> para
           preencher conta e região sem digitar.
         </p>
       )}

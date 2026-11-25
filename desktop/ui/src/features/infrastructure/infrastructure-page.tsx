@@ -165,7 +165,7 @@ export function InfrastructurePage({ client, project }: { client: EngineClient; 
                 ? 'Não foi possível ler as conexões cloud.'
                 : `${hub.value.connections.length} ${hub.value.connections.length === 1 ? 'conexão' : 'conexões'} cloud, ${connected} ${connected === 1 ? 'conectada' : 'conectadas'}. `}
               As conexões identificam contas e leem recursos; o OpenTofu (ou o Terraform) declara e muda a
-              infraestrutura. Uma não substitui a outra. <Link to={pathTo('cloud')}>Abrir Conexões cloud</Link>
+              infraestrutura. Uma não substitui a outra. <Link to={pathTo('cloud')}>Abrir Conexões › Nuvem</Link>
             </p>
           </PageSection>
         </>

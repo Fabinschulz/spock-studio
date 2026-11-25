@@ -169,10 +169,10 @@ function client(initial: ModelConnection, behavior: Behavior = {}): Fake {
   };
 }
 
-const renderPage = (api: EngineClient) =>
+const renderPage = (api: EngineClient, title?: string) =>
   render(
     <AppProviders>
-      <ModelSettingsPage client={api} />
+      <ModelSettingsPage client={api} title={title} />
     </AppProviders>
   );
 
@@ -181,6 +181,15 @@ const modelCalls = (api: Fake) =>
   api.requests.map((request) => request.method).filter((method) => method.startsWith('model.'));
 
 describe('Minha IA · provedores', () => {
+  it('em Configurações a tela se chama Minha IA; aberta por Conexões, Modelos de IA, como no menu de lá', async () => {
+    const { unmount } = renderPage(client(none));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Minha IA' })).toBeInTheDocument();
+    unmount();
+
+    renderPage(client(none), 'Modelos de IA');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Modelos de IA' })).toBeInTheDocument();
+  });
+
   it('mostra um provedor por linha e guarda a chave sem ecoá-la na interface', async () => {
     const api = client(none);
     const { container } = renderPage(api);

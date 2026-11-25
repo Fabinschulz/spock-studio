@@ -53,6 +53,12 @@ function renderPage(client: EngineClient, project: typeof demo | null = demo) {
 }
 
 describe('Conexões cloud', () => {
+  it('o título é o nome que o menu dá à tela', async () => {
+    renderPage(fakeEngine().client);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Nuvem' })).toBeInTheDocument();
+  });
+
   it('separa provedor disponível, estado da conexão e permissão de cada leitura', async () => {
     const { container } = renderPage(fakeEngine().client);
 

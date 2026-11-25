@@ -24,8 +24,8 @@ export function IntegrationsPage({ client, project }: { client: EngineClient; pr
 
   return (
     <Page
-      title="Integrações"
-      description="Conecte as ferramentas da equipe e decida, projeto a projeto, o que o Spock Studio pode ler. As credenciais ficam protegidas neste computador e não aparecem em nenhuma tela."
+      title="Serviços"
+      description="Conecte as ferramentas da equipe, como GitHub e Jira, e decida, projeto a projeto, o que o Spock Studio pode ler. As credenciais ficam protegidas neste computador e não aparecem em nenhuma tela."
     >
       {!hub.settled ? <LoadingState>Lendo as integrações…</LoadingState> : null}
       {hub.settled && hub.value === null ? (

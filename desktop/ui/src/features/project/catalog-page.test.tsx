@@ -51,6 +51,13 @@ const renderPage = (client: EngineClient, selected: typeof project | null = proj
 const card = async (title: string) => (await screen.findByRole('heading', { name: title })).closest('li')!;
 
 describe('Catálogo do Harness', () => {
+  it('o título é o nome da aba, e a descrição diz que o catálogo é do Harness', async () => {
+    renderPage(clientWith(parsed).client);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Catálogo' })).toBeInTheDocument();
+    expect(screen.getByText(/o que cada componente do Harness faz no projeto/)).toBeInTheDocument();
+  });
+
   it('pede o catálogo do projeto aberto e o do geral quando não há projeto', async () => {
     const withProject = clientWith(parsed);
     const { unmount } = renderPage(withProject.client);

@@ -138,7 +138,7 @@ function ExternalSources({ sources }: { sources: KnowledgeExternalSource[] }) {
       {sources.length === 0 ? (
         <p className={styles.meta}>
           Nenhuma ferramenta vinculada a este projeto. Itens do GitHub ou do Jira só entram aqui se você vincular a
-          ferramenta em <Link to={pathTo('integrations')}>Integrações</Link> e autorizar.
+          ferramenta em <Link to={pathTo('integrations')}>Conexões › Serviços</Link> e autorizar.
         </p>
       ) : (
         <>
