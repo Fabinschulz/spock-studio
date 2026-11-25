@@ -44,12 +44,13 @@ export function RunsPage({ client, project }: { client: EngineClient; project: S
           : 'Tudo o que o Spock Studio executou nos projetos que você autorizou.'
       }
     >
-      <PageSection title="Filtros">
-        <div className={styles.filters}>
+      <PageSection title="Histórico">
+        <div className={styles.filters} role="group" aria-label="Filtros">
           {project ? (
             <SelectField
               label="Projeto"
               size="small"
+              fullWidth={false}
               sx={FILTER_SX}
               value={onlyProject ? 'one' : 'all'}
               onChange={(event) => setOnlyProject(event.target.value === 'one')}
@@ -62,6 +63,7 @@ export function RunsPage({ client, project }: { client: EngineClient; project: S
           <SelectField
             label="Tipo"
             size="small"
+            fullWidth={false}
             sx={FILTER_SX}
             value={kind}
             onChange={(event) => setKind(String(event.target.value))}
@@ -70,15 +72,14 @@ export function RunsPage({ client, project }: { client: EngineClient; project: S
           <SelectField
             label="Estado"
             size="small"
+            fullWidth={false}
             sx={FILTER_SX}
             value={state}
             onChange={(event) => setState(String(event.target.value))}
             options={[{ label: 'Todos os estados', value: ALL }, ...STATE_OPTIONS]}
           />
         </div>
-      </PageSection>
 
-      <PageSection title="Histórico">
         {list.status === 'loading' ? <LoadingState>Lendo as execuções…</LoadingState> : null}
         {list.status === 'error' ? <ErrorState onRetry={reload}>{list.message}</ErrorState> : null}
         {list.status === 'ready' ? (

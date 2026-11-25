@@ -61,6 +61,7 @@ function ProjectReportView({
         <SelectField
           label="Largura do período"
           size="small"
+          fullWidth={false}
           sx={{ minWidth: '14rem' }}
           value={weeks}
           onChange={(event) => setWeeks(Number(event.target.value))}
