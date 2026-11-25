@@ -20,6 +20,8 @@ export interface JourneyState {
   aiEnvironments: string[];
   allowSpecificationReinstall: boolean;
   updateSpecification: boolean;
+  /** A escolha da etapa 2 quando a estrutura de especificação não está instalada: o comando vem marcado na revisão. */
+  installSpecification: boolean;
   componentRequest: ComponentRequest;
   plan: Loadable<ConfigurationPlan>;
   approvedChanges: string[];
@@ -36,6 +38,7 @@ export type JourneyAction =
   | { type: 'environment.toggle'; id: string }
   | { type: 'reinstall.set'; value: boolean }
   | { type: 'update.set'; value: boolean }
+  | { type: 'install.set'; value: boolean }
   | { type: 'request.clear' }
   | { type: 'plan.start' }
   | { type: 'plan.ok'; plan: ConfigurationPlan }

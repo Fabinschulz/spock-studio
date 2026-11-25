@@ -16,6 +16,8 @@ export function restorableJourney(saved: JourneyState): JourneyState | null {
 
   const state: JourneyState = {
     ...saved,
+    // Guardada antes desta escolha existir.
+    installSpecification: saved.installSpecification ?? false,
     discovery: saved.discovery.status === 'loading' ? { status: 'idle' } : saved.discovery,
     plan: saved.plan.status === 'loading' ? { status: 'idle' } : saved.plan
   };

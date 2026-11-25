@@ -142,6 +142,7 @@ export function useConfigureJourney(
       toggleEnvironment: (id: string) => dispatch({ type: 'environment.toggle', id }),
       setReinstall: (value: boolean) => dispatch({ type: 'reinstall.set', value }),
       setUpdateSpecification: (value: boolean) => dispatch({ type: 'update.set', value }),
+      setInstallSpecification: (value: boolean) => dispatch({ type: 'install.set', value }),
       clearComponentRequest: () => dispatch({ type: 'request.clear' }),
       toggleChange: (id: string) => dispatch({ type: 'change.toggle', id }),
       toggleCommand: (id: string) => dispatch({ type: 'command.toggle', id }),

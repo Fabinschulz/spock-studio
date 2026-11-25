@@ -50,7 +50,7 @@ describe('JourneyFrame · stepper', () => {
     const buttons = within(steps).getAllByRole('button');
     expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
       'Voltar para a etapa Projeto',
-      'Voltar para a etapa Modelo e ambiente'
+      'Voltar para a etapa Ambiente de IA'
     ]);
     await userEvent.click(buttons[1]!);
 

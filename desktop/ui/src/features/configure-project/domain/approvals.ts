@@ -2,11 +2,19 @@ import type { ConfigurationPlan } from '@/shared/schema';
 
 import type { JourneyState } from '../types/journey';
 
-/** Criar e atualizar vêm marcados; remover, conflito e comandos exigem um gesto da pessoa. */
-export function defaultApprovals(plan: ConfigurationPlan) {
+// Ids estáveis do motor (PlanBuilder) para o instalador oficial da estrutura de especificação.
+const SPECIFICATION_COMMANDS = new Set(['specification-install', 'specification-update']);
+
+/**
+ * Criar e atualizar vêm marcados; remover, conflito e comandos exigem um gesto da pessoa. Escolher "Instalar agora" na
+ * etapa 2 é esse gesto para o comando da estrutura de especificação: ele vem marcado, e a revisão ainda deixa desmarcar.
+ */
+export function defaultApprovals(plan: ConfigurationPlan, installSpecification = false) {
   return {
     approvedChanges: plan.changes.filter((c) => c.action === 'create' || c.action === 'update').map((c) => c.id),
-    approvedCommands: [] as string[],
+    approvedCommands: installSpecification
+      ? plan.commands.filter((c) => SPECIFICATION_COMMANDS.has(c.id)).map((c) => c.id)
+      : [],
     resolutions: Object.fromEntries(
       plan.changes.filter((c) => c.action === 'conflict').map((c) => [c.id, 'keep' as const])
     )
