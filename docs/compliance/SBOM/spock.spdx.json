@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Inventário consolidado (distribuído, sob demanda, externo e desenvolvimento)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--1d8f6e5d-4823-4d77-876a-529945f5c896",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-invent-rio-consolidado--distribu-do--sob-demanda--externo-e-desenvolvimento--26352977-5ade-43c1-8a22-29c7fcf468b3",
   "creationInfo": {
-    "created": "2026-11-25T20:58:02Z",
+    "created": "2026-11-25T22:00:38Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -11488,27 +11488,27 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
+      "SPDXID": "SPDXRef-Package-npm--mariliz-ui-kit-0.10.1",
       "name": "@mariliz/ui-kit",
-      "versionInfo": "0.9.0",
+      "versionInfo": "0.10.1",
       "downloadLocation": "https://github.com/Fabinschulz/mariliz-ui-kit#readme",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT",
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Biblioteca de componentes própria (publicada no npm). Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mariliz+ui-kit@0.9.0_07e3bcddc8350d37f0f3e1f1b544f6d2/node_modules/@mariliz/ui-kit.",
+      "comment": "Uso: Biblioteca de componentes própria (publicada no npm). Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mariliz+ui-kit@0.10.1_07e3bcddc8350d37f0f3e1f1b544f6d2/node_modules/@mariliz/ui-kit.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40mariliz/ui-kit@0.9.0"
+          "referenceLocator": "pkg:npm/%40mariliz/ui-kit@0.10.1"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "480fce85db3cb81a043ba31e19a0700eefdf64906407eac24d545e462fcf95db9a07828093cd37cd381fe0f6f9a2e74f0d338139f4135e5a8a336343ea01a62b"
+          "checksumValue": "65fcfe3b54e53d9c6e9aad8d7b1ebc67da409a3695c07acea766a074551fd6aa080cc717ef07269e9097bc23d5c07609a469798b1137070f03b6b2add95d4b58"
         }
       ]
     },
@@ -30243,60 +30243,60 @@
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0"
+      "relatedSpdxElement": "SPDXRef-Package-npm--mariliz-ui-kit-0.10.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.10.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm--emotion-cache-11.14.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.10.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm--emotion-react-11.14.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.10.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm--emotion-styled-11.14.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.10.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm--mui-material-9.5.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.10.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm--mui-x-data-grid-9.16.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.10.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm-clsx-2.1.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.10.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm-react-code-input-3.10.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.10.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm-react-dom-19.3.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.10.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm-react-hook-form-7.91.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.10.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm-react-19.3.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.10.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm-tslib-2.8.1"
     },

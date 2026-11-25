@@ -322,7 +322,7 @@ hashes) em `inventory.csv` / `inventory.json`. W = Windows x64, L = Linux x64.
 | @jridgewell/resolve-uri | 3.1.2 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | @jridgewell/sourcemap-codec | 1.6.0 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | @jridgewell/trace-mapping | 0.3.31 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
-| @mariliz/ui-kit | 0.9.0 | npm | direta | x | x | MIT | CONFERE | BAIXO |
+| @mariliz/ui-kit | 0.10.1 | npm | direta | x | x | MIT | CONFERE | BAIXO |
 | @mui/core-downloads-tracker | 9.5.0 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | @mui/material | 9.5.0 | npm | direta | x | x | MIT | CONFERE | BAIXO |
 | @mui/private-theming | 9.5.0 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
