@@ -1,6 +1,6 @@
 # Spock Studio — Workspace unificado
 
-> **Estado:** seis incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade; o quarto, a largura ajustável desse painel; o quinto, os títulos das telas iguais aos nomes do menu; o sexto, o `Checkbox` da biblioteca no lugar do componente local e o resumo da jornada Configurar que não cobre mais o conteúdo. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
+> **Estado:** sete incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade; o quarto, a largura ajustável desse painel; o quinto, os títulos das telas iguais aos nomes do menu; o sexto, o `Checkbox` da biblioteca no lugar do componente local e o resumo da jornada Configurar que não cobre mais o conteúdo; o sétimo, os filtros de Execuções numa linha. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
 >
 > O tema, os tokens e a linguagem visual vêm do redesign Workbench anterior e não mudaram; a fonte de verdade deles é o código (`desktop/ui/src/shared/styles/_tokens.scss`). Os produtos de referência estudados não são nomeados aqui; deles saíram princípios, não telas.
 
@@ -145,13 +145,17 @@ Nenhum nome interno, contrato ou método do motor mudou.
 
 O resumo ao lado da jornada decidia se começava aberto pela largura da janela (1180 px ou mais), enquanto o layout decide se ele cabe ao lado pela largura da área de conteúdo (62rem). Com o menu da área e o painel de atividade ocupando espaço, ele nascia aberto por cima da página e cobria o botão "Analisar projeto". Agora os dois olham a área de conteúdo: aberto ao lado quando cabe, fechado quando cobriria o conteúdo, e de novo aberto quando o espaço volta. A escolha da pessoa vale enquanto o espaço não muda de faixa.
 
+### Filtros de Execuções
+
+Os três filtros (projeto, tipo e estado) ocupavam três linhas inteiras numa seção só deles, e a lista começava na metade da tela. A causa estava no `SelectField` da biblioteca, que se esticava sempre e ignorava o tamanho pequeno; corrigido na 0.9.0. Agora os filtros ficam numa linha, logo acima da lista que filtram, dentro da seção Histórico: a 1440 px, a primeira execução aparece em y = 279 em vez de por volta de y = 493.
+
 ## 6. Simples e avançado
 
 Não há dois modos. O que existe é ordem: o caminho simples vem primeiro (pergunta, sugestões, primeiros passos) e as ferramentas de quem conhece o produto continuam a um atalho de distância (Ctrl K para qualquer tela, Ctrl J e Ctrl ` para o terminal, Ctrl B, Ctrl + ponto, o painel da área com todas as telas). Um seletor de "modo simples" foi avaliado e descartado nesta rodada: esconderia telas sem que nenhuma permissão o justificasse.
 
 ## 7. Componentes
 
-A biblioteca `@mariliz/ui-kit` passou de 0.6.0 para **0.7.0** e depois para **0.8.0**. A 0.7.0 recebeu o que o Spock Studio mantinha por conta própria e usava em dezenas de telas:
+A biblioteca `@mariliz/ui-kit` passou de 0.6.0 para **0.7.0**, depois para **0.8.0** e **0.9.0**. A 0.7.0 recebeu o que o Spock Studio mantinha por conta própria e usava em dezenas de telas:
 
 | Componente | Uso |
 | --- | --- |
@@ -162,6 +166,7 @@ A biblioteca `@mariliz/ui-kit` passou de 0.6.0 para **0.7.0** e depois para **0.
 | `TabBar` | abas do painel de atividade; ganhou `aria-label` e ficou legível no tema escuro |
 | `LoadingBar` | progresso dos primeiros passos |
 | `Checkbox` (0.8.0) | rótulo com ícone, nome e etiquetas e `labelProps`; a lista de ambientes de IA da jornada Configurar passou a usá-lo |
+| `SelectField` (0.9.0) | `fullWidth={false}` e `size="small"` passaram a valer; os filtros de Execuções cabem numa linha e o período do Relatório tem a largura do que mostra |
 
 Os átomos locais equivalentes foram removidos; as telas continuam importando de `@/shared/components`, que os repassa. Um teste (`ui-kit-atoms.test.tsx`) guarda o comportamento de que o aplicativo depende. Os tons de atenção e de informação do tema passaram a vir dos mesmos tokens das demais cores.
 
@@ -201,6 +206,7 @@ Feita no aplicativo real (janela Tauri, motor .NET e um projeto de verdade), dir
 | O título de cada tela e aba é o nome do menu, e os links entre telas usam o caminho da trilha | passou |
 | Configurar: o resumo da jornada fica ao lado quando cabe e fechado quando cobriria o conteúdo (com o painel de atividade aberto) | passou |
 | Configurar: lista de ambientes de IA com o `Checkbox` da biblioteca, sem violação do axe nem erro no console | passou |
+| Execuções: os três filtros numa linha a 1440 px (duas a 900 px), com 40 px de altura, e filtrar pelo teclado funciona | passou |
 | 800×600: painel recolhido, abre por cima, fecha com Esc, sem rolagem horizontal | passou |
 | 480×800: barra só de ícones com nome acessível, sem rolagem horizontal | passou |
 | axe (WCAG 2.2 AA, com contraste) em 14 estados de tela | 0 violações |
@@ -224,7 +230,7 @@ A validação achou e corrigiu três defeitos que já existiam: dois ícones da 
 
 Incrementos:
 
-1. **Fluxos internos** de Engenharia e de Gestão (filtros de Execuções, que ocupam três linhas inteiras; a tela de Configurar) não foram redesenhados.
+1. **Jornada Configurar**: o diagnóstico e a proposta de redesenho estão sendo feitos numa sessão própria, antes de qualquer mudança.
 
 Decisões do dono:
 
