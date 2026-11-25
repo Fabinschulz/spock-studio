@@ -1,41 +1,12 @@
-import { formatEngineDate } from '@/shared/utils';
 import type { SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
-import {
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  NoProjectState,
-  Page,
-  PageSection,
-  StatusChip,
-  type Tone
-} from '@/shared/components';
-import { executionPath, pathTo } from '@/shared/routing';
-import type { ProjectTimelineEvent } from '@/shared/schema';
+import { EmptyState, ErrorState, LoadingState, NoProjectState, Page, PageSection } from '@/shared/components';
 import { Button } from '@mariliz/ui-kit';
 import { Fragment, useState } from 'react';
-import { Link } from 'react-router';
 
+import { TimelineEvents } from './components/timeline-events';
 import { useTimeline } from './hooks/use-timeline';
 import styles from './timeline-page.module.scss';
-
-/** Um tipo que a tela não conhece aparece com o nome que veio. */
-const KIND_LABEL: Record<string, string> = {
-  harness: 'Harness',
-  profile: 'Perfil',
-  run: 'Execução',
-  decision: 'Decisão',
-  risk: 'Risco',
-  sync: 'Sincronização'
-};
-
-/** A cor reforça, mas a palavra diz (nunca só a cor). `info` não leva aviso. */
-const LEVEL: Record<string, { label: string; tone: Tone } | undefined> = {
-  ok: { label: 'Deu certo', tone: 'success' },
-  attention: { label: 'Atenção', tone: 'warning' },
-  problem: { label: 'Problema', tone: 'danger' }
-};
 
 /** Só leitura: cada área continua guardando o que é dela, e a linha do tempo só junta. */
 export function TimelinePage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
@@ -112,11 +83,7 @@ function TimelineView({ client, projectId }: { client: EngineClient; projectId: 
                 : 'Ainda não aconteceu nada neste projeto que a linha do tempo conte.'}
             </EmptyState>
           ) : (
-            <ol className={styles.events} aria-label="Acontecimentos do projeto">
-              {state.events.map((event) => (
-                <EventItem key={event.id} event={event} />
-              ))}
-            </ol>
+            <TimelineEvents events={state.events} label="Acontecimentos do projeto" />
           )}
 
           {state.moreError ? <ErrorState>{state.moreError}</ErrorState> : null}
@@ -130,22 +97,5 @@ function TimelineView({ client, projectId }: { client: EngineClient; projectId: 
         </>
       ) : null}
     </PageSection>
-  );
-}
-
-function EventItem({ event }: { event: ProjectTimelineEvent }) {
-  const level = LEVEL[event.level];
-  return (
-    <li className={styles.event}>
-      <div className={styles.eventHead}>
-        <span className={styles.when}>{formatEngineDate(event.at)}</span>
-        <StatusChip tone="neutral">{KIND_LABEL[event.kind] ?? event.kind}</StatusChip>
-        {level ? <StatusChip tone={level.tone}>{level.label}</StatusChip> : null}
-      </div>
-      <p className={styles.title}>{event.title}</p>
-      {event.detail ? <p className={styles.meta}>{event.detail}</p> : null}
-      {event.refType === 'run' && event.refId ? <Link to={executionPath(event.refId)}>Ver execução</Link> : null}
-      {event.refType === 'decision' ? <Link to={pathTo('management')}>Ver em Acompanhamento</Link> : null}
-    </li>
   );
 }
