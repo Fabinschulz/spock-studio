@@ -11,9 +11,12 @@ const HEIGHT_KEY = 'spock.panelHeight';
 export const PANEL_HEIGHT = { min: 140, initial: 260, step: 32 } as const;
 
 /** O painel nunca toma mais de 65% da janela: o conteúdo da tela continua à vista. */
+export function maxPanelHeight(windowHeight: number): number {
+  return Math.max(PANEL_HEIGHT.min, Math.round(windowHeight * 0.65));
+}
+
 export function clampHeight(height: number, windowHeight: number): number {
-  const max = Math.max(PANEL_HEIGHT.min, Math.round(windowHeight * 0.65));
-  return Math.min(Math.max(Math.round(height), PANEL_HEIGHT.min), max);
+  return Math.min(Math.max(Math.round(height), PANEL_HEIGHT.min), maxPanelHeight(windowHeight));
 }
 
 function readHeight(): number {

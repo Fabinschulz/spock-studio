@@ -1,0 +1,32 @@
+@use '@/shared/styles/abstracts' as *;
+
+// Fica sobre a borda do painel que ele redimensiona; o painel precisa de `position: relative`.
+.splitter {
+  position: absolute;
+  z-index: 2;
+
+  &:hover,
+  &:focus-visible {
+    background-color: var(--color-primary-subtle);
+  }
+
+  &:focus-visible {
+    @include focus-ring(-2px);
+  }
+}
+
+.horizontal {
+  top: -3px;
+  right: 0;
+  left: 0;
+  height: 6px;
+  cursor: row-resize;
+}
+
+.vertical {
+  top: 0;
+  bottom: 0;
+  left: -3px;
+  width: 6px;
+  cursor: col-resize;
+}

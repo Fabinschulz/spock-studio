@@ -24,7 +24,8 @@ import { ShortcutSheet } from './shortcuts/ShortcutSheet';
 import { useShortcuts } from './shortcuts/use-shortcuts';
 import { StatusBar } from './StatusBar';
 import { tabSetOf, trailOf } from './trail';
-import { useActivityPanel } from './use-activity-panel';
+import { Splitter } from './splitter/Splitter';
+import { ACTIVITY_WIDTH, maxActivityWidth, useActivityPanel } from './use-activity-panel';
 import { useRail } from './use-rail';
 
 const MAIN_CONTENT_ID = 'conteudo';
@@ -157,15 +158,26 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       {activity.open ? (
-        <ActivityPanel
-          client={tauriEngineClient}
-          hosted={engine.hosted}
-          ready={engine.status === 'ready'}
-          focusRequest={activity.focusRequest}
-          onClose={closeActivity}
-          projectFeed={<ProjectFeed client={tauriEngineClient} project={selected} />}
-          className={styles.activityPanel}
-        />
+        <div className={styles.activitySlot} style={{ width: activity.width }}>
+          <Splitter
+            orientation="vertical"
+            label="Largura do painel de atividade"
+            size={activity.width}
+            min={ACTIVITY_WIDTH.min}
+            max={maxActivityWidth(window.innerWidth)}
+            step={ACTIVITY_WIDTH.step}
+            onResize={activity.resize}
+          />
+          <ActivityPanel
+            client={tauriEngineClient}
+            hosted={engine.hosted}
+            ready={engine.status === 'ready'}
+            focusRequest={activity.focusRequest}
+            onClose={closeActivity}
+            projectFeed={<ProjectFeed client={tauriEngineClient} project={selected} />}
+            className={styles.activityPanel}
+          />
+        </div>
       ) : null}
 
       <StatusBar engine={engine} panel={panel} onPanelTab={togglePanelTab} onShortcuts={showSheet} />

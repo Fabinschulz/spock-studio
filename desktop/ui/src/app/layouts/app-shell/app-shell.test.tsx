@@ -526,6 +526,51 @@ describe('AppShell · atividade', () => {
     expect(within(feed).getByRole('button', { name: /Concluído/ })).toBeInTheDocument();
   });
 
+  it('a divisória ajusta a largura do painel pelo teclado, dentro dos limites', async () => {
+    renderShell();
+    await userEvent.click(toggle());
+    const divider = screen.getByRole('separator', { name: 'Largura do painel de atividade' });
+    const before = Number(divider.getAttribute('aria-valuenow'));
+    divider.focus();
+
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(Number(divider.getAttribute('aria-valuenow'))).toBe(before + 32);
+
+    // A janela do teste tem 1024 px: o painel não passa da metade nem fica menor que o mínimo.
+    await userEvent.keyboard('{End}');
+    expect(divider).toHaveAttribute('aria-valuenow', '512');
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(divider).toHaveAttribute('aria-valuenow', '512');
+    await userEvent.keyboard('{Home}{ArrowRight}');
+    expect(divider).toHaveAttribute('aria-valuenow', '288');
+  });
+
+  it('a largura escolhida vale para a próxima abertura do aplicativo', async () => {
+    const { unmount } = renderShell();
+    await userEvent.click(toggle());
+    screen.getByRole('separator', { name: 'Largura do painel de atividade' }).focus();
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}');
+    unmount();
+
+    renderShell();
+
+    expect(screen.getByRole('separator', { name: 'Largura do painel de atividade' })).toHaveAttribute(
+      'aria-valuenow',
+      '400'
+    );
+  });
+
+  it('uma largura guardada que não é número é ignorada', () => {
+    window.localStorage.setItem('spock.activity', 'open');
+    window.localStorage.setItem('spock.activityWidth', 'qualquer-coisa');
+    renderShell();
+
+    expect(screen.getByRole('separator', { name: 'Largura do painel de atividade' })).toHaveAttribute(
+      'aria-valuenow',
+      '336'
+    );
+  });
+
   it('a aba Projeto mostra o que aconteceu no projeto aberto, e sem projeto diz o que fazer', async () => {
     host({ running: 0, awaitingApproval: 0 });
     renderShell();

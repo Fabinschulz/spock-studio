@@ -1,6 +1,6 @@
 # Spock Studio — Workspace unificado
 
-> **Estado:** três incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
+> **Estado:** quatro incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade; o quarto, a largura ajustável desse painel. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
 >
 > O tema, os tokens e a linguagem visual vêm do redesign Workbench anterior e não mudaram; a fonte de verdade deles é o código (`desktop/ui/src/shared/styles/_tokens.scss`). Os produtos de referência estudados não são nomeados aqui; deles saíram princípios, não telas.
 
@@ -66,6 +66,7 @@ Aberto pelo botão "Atividade" do topo ou por Ctrl + ponto; começa fechado e le
 - **Projeto**: os doze acontecimentos mais recentes do projeto aberto, vindos da linha do tempo: execuções, decisões, riscos, sincronizações e mudanças de perfil. Sem projeto aberto, a aba diz para abrir um. A linha do tempo só é lida quando a aba é pedida, e a lista completa, com filtros, continua em Histórico.
 - Cada linha abre o detalhe da execução na própria tela, e o detalhe só lê. A lista completa, com filtros, continua em Execuções.
 - O aviso de quantas execuções esperam aprovação ou estão andando aparece na área Atividade da barra, no botão do topo e no item Execuções, com a frase inteira no nome acessível.
+- A largura se ajusta pela divisória da borda esquerda, arrastando ou pelo teclado (setas, Home e End), entre 288 px e a metade da janela, e vale para a próxima abertura. É a mesma divisória (`Splitter`) do painel inferior.
 - Abaixo de 1088 px o painel fica por cima do conteúdo, encostado à direita.
 
 Os dados vêm de `run.list` e de `timeline.read`, que já existiam; nenhum contrato novo. A aba do projeto é um encaixe (`projectFeed`) que o shell entrega ao painel: a fatia de execuções não depende da fatia da linha do tempo.
@@ -183,12 +184,13 @@ Feita no aplicativo real (janela Tauri, motor .NET e um projeto de verdade), dir
 | Cada área leva à tela dela e lista as telas certas (5 áreas) | passou |
 | As 24 telas existentes abrem no novo shell, sem tela de erro | passou |
 | Ctrl B recolhe e expande o painel | passou |
+| Painel de atividade: largura pelo teclado e pelo arraste, limites e largura lembrada | passou |
 | 800×600: painel recolhido, abre por cima, fecha com Esc, sem rolagem horizontal | passou |
 | 480×800: barra só de ícones com nome acessível, sem rolagem horizontal | passou |
 | axe (WCAG 2.2 AA, com contraste) em 13 estados de tela | 0 violações |
 | Console sem erros durante as jornadas | passou |
 
-Total: 33 de 33. Além disso, `pnpm check` (tipos, lint, formatação e 1009 testes em 106 arquivos) passa.
+Total: 34 de 34. Além disso, `pnpm check` (tipos, lint, formatação e 1019 testes em 108 arquivos) passa.
 
 A validação achou e corrigiu três defeitos que já existiam: dois ícones da biblioteca com atributos SVG que o React recusava (aviso no console a cada renderização), as abas da biblioteca ilegíveis no tema escuro e uma chave repetida na lista de ferramentas da Visão geral quando dois módulos declaram a mesma ferramenta.
 
@@ -206,10 +208,9 @@ A validação achou e corrigiu três defeitos que já existiam: dois ícones da 
 
 Incrementos:
 
-1. **Painel redimensionável**, como já é o inferior.
-2. **Nomes dentro das telas**: "Integrações" e "Conexões cloud" ainda são os títulos das telas que o menu chama de "Serviços" e "Nuvem".
-3. **`CheckboxOption`**: o par do `Radio` com rótulo rico ainda é local; cabe no `Checkbox` da biblioteca quando o rótulo dele aceitar conteúdo.
-4. **Fluxos internos** de Engenharia e de Gestão (filtros de Execuções, que ocupam três linhas inteiras; a tela de Configurar) não foram redesenhados.
+1. **Nomes dentro das telas**: "Integrações" e "Conexões cloud" ainda são os títulos das telas que o menu chama de "Serviços" e "Nuvem".
+2. **`CheckboxOption`**: o par do `Radio` com rótulo rico ainda é local; cabe no `Checkbox` da biblioteca quando o rótulo dele aceitar conteúdo.
+3. **Fluxos internos** de Engenharia e de Gestão (filtros de Execuções, que ocupam três linhas inteiras; a tela de Configurar) não foram redesenhados.
 
 Decisões do dono:
 
