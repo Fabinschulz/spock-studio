@@ -1,7 +1,5 @@
 import type { Discovery } from '@/shared/schema';
 import { Checkbox } from '@mariliz/ui-kit';
-import { useId } from 'react';
-import { CheckboxField } from '../../components/choice-field';
 import { RefreshGlyph } from '../../components/glyphs';
 import styles from '../../components/panels.module.scss';
 
@@ -21,7 +19,6 @@ export function SpecificationFooter({
   onReinstall
 }: SpecificationFooterProps) {
   const needsForce = state === 'drifted' || state === 'invalid';
-  const updateHintId = useId();
 
   return (
     <div className={styles.specificationFooter}>
@@ -35,23 +32,20 @@ export function SpecificationFooter({
               label="Buscar a versão mais recente da estrutura de especificação"
               checked={updateSpecification}
               onChange={(_, value) => onUpdateSpecification(value)}
-              slotProps={{ input: { 'aria-describedby': updateHintId } }}
+              description="O plano já propõe a atualização quando a versão instalada é anterior à mais recente conhecida. Marque para pedir ao instalador oficial a versão mais nova disponível. Usa a rede e só executa se você aprovar o comando."
             />
-            <span id={updateHintId} className={styles.subCardText}>
-              O plano já propõe a atualização quando a versão instalada é anterior à mais recente conhecida. Marque para
-              pedir ao instalador oficial a versão mais nova disponível. Usa a rede e só executa se você aprovar o
-              comando.
-            </span>
           </div>
         </div>
       ) : null}
       {needsForce ? (
-        <CheckboxField
-          checked={allowReinstall}
-          onChange={onReinstall}
-          label="Permitir reinstalar a estrutura de especificação"
-          description="Sobrescreve as edições locais. Sem esta permissão, a estrutura de especificação não é alterada."
-        />
+        <div className={styles.choice}>
+          <Checkbox
+            checked={allowReinstall}
+            onChange={(_, value) => onReinstall(value)}
+            label="Permitir reinstalar a estrutura de especificação"
+            description="Sobrescreve as edições locais. Sem esta permissão, a estrutura de especificação não é alterada."
+          />
+        </div>
       ) : null}
     </div>
   );

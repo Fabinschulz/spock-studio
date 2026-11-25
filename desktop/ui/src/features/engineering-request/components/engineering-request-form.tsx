@@ -3,7 +3,7 @@ import { Alert, Button, CheckboxFormField, FormProvider, TextFormField, useFormC
 
 import { Term } from '@/shared/components';
 import { pathTo, readHandoff } from '@/shared/routing';
-import { useId, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 
 import {
@@ -26,7 +26,6 @@ interface EngineeringRequestFormProps {
 /** O que a pessoa precisa saber antes de marcar: o que sai do computador, para onde, e o que o motor faz para limitar. */
 function ModelOption({ configured }: { configured: boolean | null }) {
   const navigate = useNavigate();
-  const descriptionId = useId();
 
   return (
     <div className={styles.model}>
@@ -34,13 +33,14 @@ function ModelOption({ configured }: { configured: boolean | null }) {
         name="useModel"
         label="Usar o modelo de IA no planejamento e na análise"
         disabled={configured !== true}
-        slotProps={{ input: { 'aria-describedby': descriptionId } }}
+        description={
+          <>
+            Se marcado, o pedido e os trechos do projeto recuperados para ele são enviados ao provedor do modelo
+            configurado em Minha IA, com segredos removidos antes. O gasto é limitado a{' '}
+            <Term id="token">8.000 tokens</Term> e o Spock Studio o contabiliza. Sem marcar, nada sai do seu computador.
+          </>
+        }
       />
-      <p id={descriptionId} className={styles.note}>
-        Se marcado, o pedido e os trechos do projeto recuperados para ele são enviados ao provedor do modelo configurado
-        em Minha IA, com segredos removidos antes. O gasto é limitado a <Term id="token">8.000 tokens</Term> e o Spock
-        Studio o contabiliza. Sem marcar, nada sai do seu computador.
-      </p>
       {configured === false ? (
         <p className={styles.note}>
           Nenhum modelo está configurado.{' '}

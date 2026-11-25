@@ -139,7 +139,10 @@ describe('ModelStep', () => {
     const props = renderStep({ discovery: discovery('drifted', '4.0.0'), aiEnvironments: ['claude-code'] });
 
     expect(screen.getByText(/Versão 4.0.0, validada/)).toBeTruthy();
-    await userEvent.click(screen.getByRole('checkbox', { name: /Permitir reinstalar/ }));
+    const reinstall = screen.getByRole('checkbox', { name: 'Permitir reinstalar a estrutura de especificação' });
+    // A descrição vem do Checkbox da biblioteca (DC5): lida junto com o nome, sem fazer parte dele.
+    expect(reinstall).toHaveAccessibleDescription(/Sobrescreve as edições locais/);
+    await userEvent.click(reinstall);
     expect(props.onReinstall).toHaveBeenCalledWith(true);
   });
 });

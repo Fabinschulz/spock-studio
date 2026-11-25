@@ -170,19 +170,6 @@
 
     background-color: var(--color-primary-subtle);
   }
-
-  .muted {
-    padding-left: 2.5rem;
-  }
-}
-
-.choicePlain {
-  display: flex;
-  flex-direction: column;
-
-  .muted {
-    padding-left: 2.5rem;
-  }
 }
 
 // Explicação de uma opção, ligada a ela por aria-describedby: alinhada ao texto do rótulo, não à borda.
@@ -345,12 +332,6 @@
   align-self: flex-start;
   padding-top: var(--space-2);
   color: var(--color-primary-text);
-}
-
-.subCardText {
-  padding-left: 2.5rem;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
 }
 
 .version {

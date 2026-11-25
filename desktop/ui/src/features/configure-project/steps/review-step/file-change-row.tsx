@@ -1,7 +1,8 @@
+import { Checkbox } from '@mariliz/ui-kit';
+
 import { DiffView, Disclosure, StatusChip } from '@/shared/components/ui';
 import type { ConflictResolution, FileChange } from '@/shared/schema';
 
-import { CheckboxField } from '../../components/choice-field';
 import rows from '../../components/rows.module.scss';
 import { actionLabel, actionTone, originLabel } from '../../domain/labels';
 import { ConflictResolutionField } from './conflict-resolution';
@@ -25,7 +26,7 @@ export function FileChangeRow({ change, approved, resolution, onToggle, onResolv
         {isConflict ? (
           <span className={rows.mono}>{change.path}</span>
         ) : (
-          <CheckboxField plain checked={approved} onChange={onToggle} label={change.path} />
+          <Checkbox checked={approved} onChange={onToggle} label={change.path} />
         )}
         <StatusChip tone={change.destructive && !isConflict ? 'danger' : actionTone[change.action]}>{state}</StatusChip>
       </div>

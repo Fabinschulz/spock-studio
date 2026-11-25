@@ -1,6 +1,6 @@
 # Spock Studio — Jornada Configurar: diagnóstico e proposta
 
-> **Estado:** diagnóstico feito no aplicativo real e proposta escrita. Os incrementos C1 a C7 foram entregues (PRs #199 a #204 e o do C5); DC1 e DC2 foram decididas pelo dono (juntar e tirar), DC5 continua com ele, e DC3, DC4 e DC6 seguiram a recomendação. Continua o item 1 da seção 10 de [`workspace-unificado.md`](workspace-unificado.md).
+> **Estado:** diagnóstico feito no aplicativo real e proposta escrita. Os incrementos C1 a C7 foram entregues (PRs #199 a #204 e o do C5); DC1, DC2 e DC5 foram decididas pelo dono (juntar, tirar e pôr na biblioteca), e DC3, DC4 e DC6 seguiram a recomendação. Continua o item 1 da seção 10 de [`workspace-unificado.md`](workspace-unificado.md).
 >
 > Caminhos de arquivo relativos a `desktop/ui/src/features/configure-project/`, salvo indicação.
 
@@ -127,7 +127,7 @@ Em 1440×900 aparecem o título, o alerta "Concluído com limitações" (que nã
 | `InlineNotice` nas etapas 2 a 4 e `Alert` nas etapas 1, 5 e 6 | `Alert` | Um aviso só na jornada: o `InlineNotice`. Ele já é o `Alert` da biblioteca, com uma diferença: só o erro recebe `role="alert"`. O `Alert` puro anuncia qualquer aviso no leitor de tela, até o de sucesso (feito no C2). |
 | Estado em texto à direita (`.end`): "Habilitar/Dispensar", "Criar", "encontrado/ausente", "declarado/detectado" | `StatusChip` (já usado no Resultado) | Trocar. |
 | `RadioField` (`components/choice-field.tsx:43`), que só repassa uma classe ao `Radio` da biblioteca | `Radio` | Remover o invólucro. |
-| `CheckboxField` (`components/choice-field.tsx:16`), que acrescenta uma descrição ligada por `aria-describedby` | `Checkbox` sem descrição | Manter por enquanto. Se a biblioteca ganhar `description`, trocar (decisão DC5). |
+| `CheckboxField` (`components/choice-field.tsx:16`), que acrescenta uma descrição ligada por `aria-describedby` | `Checkbox` sem descrição | Feito: a biblioteca ganhou `description` (0.10.0, cor corrigida na 0.10.1) e o `CheckboxField` saiu (DC5). |
 | Subcartão com ícone (`specification-footer.tsx:35`, `components/glyphs.tsx`) | — | Some quando a estrutura de especificação vira uma escolha (seção 5). |
 | `.line`, `.end`, `.rows`, `.title` e `.note` definidos de novo em `panels.module.scss`, `model.module.scss`, `plan.module.scss` e `review.module.scss` | — | Um padrão só de linha, que quebra em vez de cortar (resolve M4 e R3). |
 | Confirmação: `ConfirmAction` em linha (descartar plano, cancelar execução) e `Modal` da biblioteca (reverter) | `Modal` | Usar um padrão só. Proposta: `ConfirmAction` nos três, porque não tira a pessoa da página. |
@@ -179,5 +179,5 @@ C1 e C2 não dependem de decisão e podem começar logo. C3, C4, C6 e C7 são in
 | DC2 | O selo "Modelo de implementação Spock" e o "Modelo" do Resumo: explicar ou tirar. | Tirar. Hoje é texto fixo, igual em todo projeto, e não informa nada que mude a decisão. **Decidido em 2026-11-25: tirar.** |
 | DC3 | O comando da estrutura de especificação continua desmarcado por padrão. | Manter desmarcado e mostrar a consequência na escolha (C4) e na Revisão (C5). |
 | DC4 | Para onde "Concluir" leva. | Padrões do projeto › Estado e revisões. |
-| DC5 | Descrição no `Checkbox` da biblioteca (nova versão do `@mariliz/ui-kit`) ou manter o `CheckboxField` local. | Pôr na biblioteca: outras telas têm o mesmo invólucro. |
+| DC5 | Descrição no `Checkbox` da biblioteca (nova versão do `@mariliz/ui-kit`) ou manter o `CheckboxField` local. | Pôr na biblioteca: outras telas têm o mesmo invólucro. **Decidido em 2026-11-25: pôr na biblioteca (`@mariliz/ui-kit` 0.10.1).** |
 | DC6 | Atalhos de Validar de novo e Reverter na segunda visita ao Configurar, ou só em Padrões do projeto. | Nos dois: o Configurar mostra o resumo e leva para lá. |
