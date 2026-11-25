@@ -1,7 +1,8 @@
+import { Checkbox } from '@mariliz/ui-kit';
+
 import { EvidenceDisclosure, InlineNotice } from '@/shared/components/ui';
 import type { PlannedCommand } from '@/shared/schema';
 
-import { CheckboxField } from '../../components/choice-field';
 import rows from '../../components/rows.module.scss';
 import { isSpecificationCommand } from '../../domain/approvals';
 import { effectLabel } from '../../domain/labels';
@@ -17,12 +18,7 @@ export function CommandRow({ command, approved, onToggle }: CommandRowProps) {
   return (
     <li>
       <div className={rows.line}>
-        <CheckboxField
-          plain
-          checked={approved}
-          onChange={onToggle}
-          label={`Aprovar a execução: ${command.description}`}
-        />
+        <Checkbox checked={approved} onChange={onToggle} label={`Aprovar a execução: ${command.description}`} />
         <span className={rows.end}>{command.effects.map((effect) => effectLabel[effect]).join(' · ')}</span>
       </div>
       <code className={rows.mono}>

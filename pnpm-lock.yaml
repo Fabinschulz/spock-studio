@@ -219,8 +219,8 @@ importers:
         specifier: ^7.0.0
         version: 7.0.0(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(zod@4.6.7)
       '@mariliz/ui-kit':
-        specifier: 0.9.0
-        version: 0.9.0(07e3bcddc8350d37f0f3e1f1b544f6d2)
+        specifier: 0.10.1
+        version: 0.10.1(07e3bcddc8350d37f0f3e1f1b544f6d2)
       '@mui/material':
         specifier: ^9.4.0
         version: 9.5.0(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.1)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.1)(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.1)(supports-color@8.1.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -687,8 +687,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@mariliz/ui-kit@0.9.0':
-    resolution: {integrity: sha512-SA/Ohds8uBoEO6MeGaBwDu/fZJBkB+rCTVReRi/PlduaB4KAk803zTgf4Pb5oudPDTOBOfQTXlqKM2ND6gGmKw==}
+  '@mariliz/ui-kit@0.10.1':
+    resolution: {integrity: sha512-Zfz+O1TlPZxumq2Nex68Z9pAmjaVwHrOp2agdFUf1qoIDMcX7wcmnpCXvCPVwHYJpGl5ixE3Bw8DtrKt2V1LWA==}
     peerDependencies:
       '@emotion/react': ^11.14.0
       '@emotion/styled': ^11.14.0
@@ -3145,7 +3145,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@mariliz/ui-kit@0.9.0(07e3bcddc8350d37f0f3e1f1b544f6d2)':
+  '@mariliz/ui-kit@0.10.1(07e3bcddc8350d37f0f3e1f1b544f6d2)':
     dependencies:
       '@emotion/cache': 11.14.0
       '@emotion/react': 11.14.0(@types/react@19.3.0)(react@19.3.1)(supports-color@8.1.1)
