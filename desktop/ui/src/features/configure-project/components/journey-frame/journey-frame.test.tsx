@@ -4,26 +4,36 @@ import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
 import { AppProviders } from '@/shared/components';
+import { ContentAreaProvider } from '@/shared/hooks';
 import { expectNoA11yViolations } from '@/test/a11y';
 
 import { JourneyFrame } from './journey-frame';
 
-function renderFrame(props: Partial<React.ComponentProps<typeof JourneyFrame>> = {}) {
+/** A área de conteúdo do shell, com a largura que o teste quiser (o jsdom não faz layout). */
+function contentArea(width: number) {
+  const element = document.createElement('main');
+  Object.defineProperty(element, 'clientWidth', { configurable: true, get: () => width });
+  return { current: element };
+}
+
+function renderFrame(props: Partial<React.ComponentProps<typeof JourneyFrame>> = {}, areaWidth = 600) {
   return render(
     <AppProviders>
       <MemoryRouter>
-        <JourneyFrame
-          step="plan"
-          panel={
-            <>
-              <p>resumo</p>
-              <button type="button">dentro do painel</button>
-            </>
-          }
-          {...props}
-        >
-          <p>conteúdo da etapa</p>
-        </JourneyFrame>
+        <ContentAreaProvider value={contentArea(areaWidth)}>
+          <JourneyFrame
+            step="plan"
+            panel={
+              <>
+                <p>resumo</p>
+                <button type="button">dentro do painel</button>
+              </>
+            }
+            {...props}
+          >
+            <p>conteúdo da etapa</p>
+          </JourneyFrame>
+        </ContentAreaProvider>
       </MemoryRouter>
     </AppProviders>
   );
@@ -90,18 +100,28 @@ describe('JourneyFrame · painel de contexto', () => {
     expect(screen.getByRole('complementary', { name: 'Contexto da configuração' })).toBeInTheDocument();
   });
 
-  it('o painel que já nasce aberto, em janela larga, não toma o foco', () => {
-    const original = window.matchMedia;
-    window.matchMedia = vi.fn().mockReturnValue({ matches: true }) as unknown as typeof window.matchMedia;
-    try {
-      renderFrame();
+  it('nasce aberto quando cabe ao lado do conteúdo, e então não toma o foco', () => {
+    renderFrame({}, 1100);
 
-      const panel = screen.getByRole('complementary', { name: 'Contexto da configuração' });
-      expect(panel).not.toHaveFocus();
-      expect(toggle()).toHaveAttribute('aria-expanded', 'true');
-    } finally {
-      window.matchMedia = original;
-    }
+    const panel = screen.getByRole('complementary', { name: 'Contexto da configuração' });
+    expect(panel).not.toHaveFocus();
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('nasce fechado quando cobriria o conteúdo, mesmo numa janela larga', () => {
+    // A janela pode ser larga e a área de conteúdo estreita: o menu da área e o painel de atividade também ocupam largura.
+    renderFrame({}, 900);
+
+    expect(screen.queryByRole('complementary', { name: 'Contexto da configuração' })).not.toBeInTheDocument();
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('quando cabe ao lado, a pessoa ainda pode fechá-lo', async () => {
+    renderFrame({}, 1100);
+
+    await userEvent.click(toggle());
+
+    expect(screen.queryByRole('complementary', { name: 'Contexto da configuração' })).not.toBeInTheDocument();
   });
 
   it('fechar e abrir de novo leva o foco ao painel outra vez', async () => {

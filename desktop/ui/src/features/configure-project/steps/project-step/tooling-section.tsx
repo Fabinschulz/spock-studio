@@ -13,8 +13,9 @@ export function ToolingSection({ tooling }: { tooling: Discovery['tooling'] }) {
       </h3>
       <p className={styles.note}>Nada é executado por ter sido detectado.</p>
       <ul role="list" className={styles.rows}>
-        {tooling.map((tool) => (
-          <li key={tool.kind + tool.name}>
+        {/* Dois módulos do projeto podem declarar a mesma ferramenta: a posição desempata a chave. */}
+        {tooling.map((tool, index) => (
+          <li key={`${tool.kind}:${tool.name}:${index}`}>
             <div className={styles.line}>
               <span>
                 <span className={styles.name}>{toolKindLabel[tool.kind] ?? tool.kind}</span>{' '}
