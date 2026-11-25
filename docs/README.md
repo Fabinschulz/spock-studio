@@ -5,6 +5,7 @@ continuam no histórico do git.
 
 | Pasta ou arquivo | Conteúdo | Quem depende |
 | --- | --- | --- |
+| [ROADMAP.md](ROADMAP.md) | O que ficou pendente em todas as áreas: em andamento, decisões do dono, entregas e validações | — |
 | [architecture/](architecture/) | Arquitetura do motor e da interface, e as decisões registradas (ADRs) | — |
 | [organizacao/](organizacao/README.md) | Catálogo de referências arquiteturais, anonimizado | O motor gera regras a partir dela |
 | [compliance/](compliance/README.md) | Licenças, SBOM, avisos de terceiros e as ferramentas que os geram | CI, host e a tela Sobre |

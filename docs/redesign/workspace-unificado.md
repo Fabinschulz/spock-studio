@@ -230,7 +230,7 @@ A validação achou e corrigiu três defeitos que já existiam: dois ícones da 
 
 Incrementos:
 
-1. **Jornada Configurar**: o diagnóstico e a proposta estão em [`configurar.md`](configurar.md). O incremento C1 (textos e quebras) foi aprovado; os demais esperam as decisões DC1 a DC6.
+1. **Jornada Configurar**: o diagnóstico e a proposta estão em [`configurar.md`](configurar.md). Os incrementos C1 a C7 e a decisão DC2 foram entregues (#199 a #206); o que sobrou está em [`ROADMAP.md`](../ROADMAP.md).
 
 Decisões do dono:
 
