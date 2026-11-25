@@ -29,7 +29,7 @@ internal sealed class SkillSizeCheck : IEvalCheck
         var tooLong = skills.Where(skill => skill.Length > StackSkillProfiles.MaxCharacters).ToList();
         return tooLong.Count == 0
             ? Pass(spec, skills.Select(skill => $"{skill.Path}: {skill.Length} caracteres").ToList())
-            : Fail(spec, $"{tooLong.Count} skill(s) acima de {StackSkillProfiles.MaxCharacters} caracteres: divida por assunto ou leve o detalhe para a referência.",
+            : Fail(spec, $"{Plural(tooLong.Count, "skill", "skills")} acima de {StackSkillProfiles.MaxCharacters} caracteres: divida por assunto ou leve o detalhe para a referência.",
                 tooLong.Select(skill => $"{skill.Path}: {skill.Length} caracteres").ToList());
     }
 }

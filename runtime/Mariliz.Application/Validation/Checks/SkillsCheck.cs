@@ -26,6 +26,6 @@ internal sealed class SkillsCheck : IEvalCheck
         }
         return problems.Count == 0
             ? Pass(spec, skills.Select(s => $"{s.Path}: conforme").ToList())
-            : Fail(spec, $"{problems.Count} não conformidade(s) nas skills.", problems);
+            : Fail(spec, $"{Plural(problems.Count, "não conformidade", "não conformidades")} nas skills.", problems);
     }
 }

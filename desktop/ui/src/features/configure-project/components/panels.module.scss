@@ -14,6 +14,11 @@
 
 .title {
   font-size: var(--font-size-xl);
+
+  // O título só recebe foco por programa, ao trocar de etapa; não é um controle, então não ganha anel de foco.
+  &:focus {
+    outline: none;
+  }
 }
 
 .intro {

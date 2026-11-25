@@ -9,7 +9,6 @@ import { StepHeader } from '../../components/step-header';
 import { isSupportedEnvironment } from '../../domain/ai-environments';
 import type { Loadable } from '../../types/journey';
 import { AiEnvironmentSection } from './ai-environment-section';
-import { ConfiguredItemsSection } from './configured-items-section';
 import { SpecificationSection } from './specification-section';
 
 interface ModelStepProps {
@@ -46,7 +45,7 @@ export function ModelStep({
       <StepHeader title="Modelo e ambiente">
         Vamos preparar a estrutura de engenharia do seu projeto, configurando especificações, agentes, ferramentas,
         regras e validações de acordo com as necessidades identificadas. O Harness Engineer planeja a configuração no
-        ambiente de IA que você escolher.
+        ambiente de IA que você escolher. Nada é gravado antes da sua aprovação na revisão.
       </StepHeader>
 
       <SpecificationSection
@@ -58,7 +57,6 @@ export function ModelStep({
         onReinstall={onReinstall}
       />
       <AiEnvironmentSection discovery={discovery} selected={aiEnvironments} onToggle={onToggleEnvironment} />
-      <ConfiguredItemsSection />
 
       {showUnsupportedNotice ? (
         <InlineNotice tone="warning" title="Ambiente ainda sem suporte">
@@ -69,7 +67,9 @@ export function ModelStep({
 
       <PlanError plan={plan} />
 
-      <PrimaryActionFooter>
+      <PrimaryActionFooter
+        hint={aiEnvironments.length === 0 ? 'Escolha ao menos um ambiente de IA para gerar o plano.' : null}
+      >
         <Button variant="outlined" color="inherit" onClick={onBack}>
           Voltar
         </Button>

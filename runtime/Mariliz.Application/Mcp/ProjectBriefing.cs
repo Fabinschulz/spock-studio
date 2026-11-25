@@ -1,3 +1,4 @@
+using Mariliz.Application.Discovery;
 using Mariliz.Application.Engineering;
 using Mariliz.Application.Management;
 using Mariliz.Application.Workspace;
@@ -30,7 +31,7 @@ internal static class ProjectBriefing
         {
             var versions = technology.Versions.Count > 0 ? " " + string.Join(", ", technology.Versions) : "";
             var roots = technology.Roots.Count > 0 ? $" em {string.Join(", ", technology.Roots)}" : "";
-            return $"- {technology.Name}{versions} ({technology.Category}){roots}, confiança {Confidence(technology.Confidence)}";
+            return $"- {technology.Name}{versions} ({technology.Category}){roots}, confiança {ConfidenceText.Of(technology.Confidence)}";
         }));
         if (profile.AiEnvironments.Count > 0) lines.Add($"Ambientes de IA no projeto: {string.Join(", ", profile.AiEnvironments)}.");
         lines.Add($"Analisado em {profile.AnalyzedAt:yyyy-MM-dd}.");
@@ -65,13 +66,6 @@ internal static class ProjectBriefing
             ? "## Decisões\nNenhuma decisão registrada."
             : string.Join("\n\n", decisions.Take(Decisions).Select(item => item.Text)
                 .Prepend($"## Decisões ({Math.Min(Decisions, decisions.Count)} mais recentes de {decisions.Count}; o resto em decisions)"));
-
-    private static string Confidence(Confidence confidence) => confidence switch
-    {
-        Core.Discovery.Confidence.High => "alta",
-        Core.Discovery.Confidence.Medium => "média",
-        _ => "baixa"
-    };
 
     private static string State(string state) => state switch
     {

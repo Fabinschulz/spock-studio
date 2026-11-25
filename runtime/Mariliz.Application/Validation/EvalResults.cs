@@ -14,6 +14,9 @@ internal static class EvalResults
 
     public static EvalResult NotRun(EvalSpec spec, string reason) => Make(spec, EvalStatus.NotRun, [], reason, []);
 
+    /// <summary>Contagem com o substantivo concordando: "1 arquivo", "3 arquivos", nunca "arquivo(s)".</summary>
+    public static string Plural(int count, string one, string many) => $"{count} {(count == 1 ? one : many)}";
+
     public static EvalResult Make(EvalSpec spec, EvalStatus status, IReadOnlyList<string> evidence, string? reason, IReadOnlyList<string> limitations) =>
         new(spec.Id, spec.Name, spec.Property, spec.Kind, spec.Required, status, spec.Criteria, evidence, reason, limitations);
 }

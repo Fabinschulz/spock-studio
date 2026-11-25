@@ -56,7 +56,7 @@ describe('DiscoveryDetails', () => {
     expect(screen.getByText(/em raiz do projeto/)).toBeTruthy();
     expect(screen.getByText('dotnet test')).toBeTruthy();
     expect(screen.getByText('Nada é executado por ter sido detectado.')).toBeTruthy();
-    expect(screen.getByText(/1 agente\(s\)/)).toBeTruthy();
+    expect(screen.getByText(/1 agente, 0 skills/)).toBeTruthy();
     expect(screen.getByText('não é um repositório')).toBeTruthy();
     expect(screen.getByText(/Python: não encontrado/)).toBeTruthy();
     expect(screen.getByText(/Node: versão 22.1.0/)).toBeTruthy();

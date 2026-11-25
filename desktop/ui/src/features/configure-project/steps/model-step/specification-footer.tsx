@@ -25,12 +25,6 @@ export function SpecificationFooter({
 
   return (
     <div className={styles.specificationFooter}>
-      {state === 'not_installed' ? (
-        <span className={styles.muted}>
-          A estrutura de especificação será instalada pelo instalador oficial somente se você aprovar o comando na
-          revisão.
-        </span>
-      ) : null}
       {state === 'installed' ? (
         <div className={styles.subCard}>
           <span className={styles.subCardIcon} aria-hidden="true">

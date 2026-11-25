@@ -66,6 +66,13 @@ describe('ModelStep', () => {
     expect(screen.getByText('ausente')).toBeTruthy();
     expect(screen.getByText('detectado')).toBeTruthy();
     expect((screen.getByRole('button', { name: 'Gerar plano' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText('Escolha ao menos um ambiente de IA para gerar o plano.')).toBeTruthy();
+  });
+
+  it('a frase sobre o instalador aparece uma vez só e a lista fixa do que seria configurado não volta', () => {
+    renderStep();
+    expect(screen.getAllByText(/instalador oficial/)).toHaveLength(1);
+    expect(screen.queryByRole('heading', { name: 'O que será configurado' })).toBeNull();
   });
 
   it('marcar e desmarcar IDEs avisa a jornada, uma de cada vez', async () => {
@@ -81,6 +88,7 @@ describe('ModelStep', () => {
     const props = renderStep({ aiEnvironments: ['claude-code', 'codex'] });
     await userEvent.click(screen.getByRole('button', { name: 'Gerar plano' }));
     expect(props.onPlan).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(/Escolha ao menos um ambiente/)).toBeNull();
   });
 
   it('num projeto configurado, o Claude Code não sai e a IDE desmarcada avisa o que o plano vai tirar', () => {

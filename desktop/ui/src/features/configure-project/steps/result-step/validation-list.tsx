@@ -1,19 +1,24 @@
 import { StatusChip } from '@/shared/components/ui';
 import type { EvalResult, RunResult } from '@/shared/schema';
+import { plural } from '@/shared/utils';
 
 import { evalStatusLabel, evalStatusTone } from '../../domain/labels';
 import styles from './validation-list.module.scss';
 
 type Report = NonNullable<RunResult['validation']>;
 
-const EVAL_STATUSES: readonly EvalResult['status'][] = ['passed', 'failed', 'blocked', 'not_run'];
+const OTHER_STATUSES: Record<Exclude<EvalResult['status'], 'passed'>, [string, string]> = {
+  failed: ['reprovado', 'reprovados'],
+  blocked: ['bloqueado', 'bloqueados'],
+  not_run: ['não executado', 'não executados']
+};
 
 export function validationSummary(results: readonly EvalResult[]): string {
   const count = (status: EvalResult['status']) => results.filter((result) => result.status === status).length;
-  const rest = EVAL_STATUSES.filter((status) => status !== 'passed' && count(status) > 0).map(
-    (status) => `${count(status)} ${evalStatusLabel[status].toLowerCase()}`
-  );
-  return [`${count('passed')} de ${results.length} aprovados`, ...rest].join(' · ');
+  const rest = (Object.keys(OTHER_STATUSES) as (keyof typeof OTHER_STATUSES)[])
+    .filter((status) => count(status) > 0)
+    .map((status) => plural(count(status), ...OTHER_STATUSES[status]));
+  return [`${count('passed')} de ${plural(results.length, 'aprovado', 'aprovados')}`, ...rest].join(' · ');
 }
 
 /** O que impede a verificação de estar certa já aparece aberto; o que passou fica recolhido. */

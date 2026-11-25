@@ -46,8 +46,8 @@ internal sealed class LockIntegrityCheck : IEvalCheck
         }
 
         return problems.Count == 0
-            ? Pass(spec, [$"{checkedFiles} arquivo(s) conferido(s) contra o lock"])
-            : Fail(spec, $"{problems.Count} divergência(s) entre o lock e o disco.", problems);
+            ? Pass(spec, [$"{Plural(checkedFiles, "arquivo conferido", "arquivos conferidos")} contra o lock"])
+            : Fail(spec, $"{Plural(problems.Count, "divergência", "divergências")} entre o lock e o disco.", problems);
     }
 
     // Num trecho, só ele é conferido: o resto do arquivo é da pessoa.
