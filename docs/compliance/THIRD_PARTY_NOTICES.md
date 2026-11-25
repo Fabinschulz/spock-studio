@@ -237,9 +237,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @mariliz/ui-kit 0.6.0
+### @mariliz/ui-kit 0.9.0
 
-Arquivo `mariliz-ui-kit-LICENSE (de https://github.com/Fabinschulz/mariliz-ui-kit @ 2fc27605317a)`:
+Arquivo `LICENSE`:
 
 ```text
 MIT License
@@ -2251,7 +2251,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ```
 
-### callsites 3.1.0, parent-module 1.0.1, path-type 4.0.0, resolve-from 4.0.0
+### callsites 3.1.0, has-flag 4.0.0, parent-module 1.0.1, path-type 4.0.0, resolve-from 4.0.0
 
 Arquivo `license`:
 
@@ -6482,7 +6482,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### escape-string-regexp 4.0.0, import-fresh 3.3.1, parse-json 5.2.0
+### escape-string-regexp 4.0.0, import-fresh 3.3.1, parse-json 5.2.0, supports-color 8.1.1
 
 Arquivo `license`:
 

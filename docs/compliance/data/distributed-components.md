@@ -322,7 +322,7 @@ hashes) em `inventory.csv` / `inventory.json`. W = Windows x64, L = Linux x64.
 | @jridgewell/resolve-uri | 3.1.2 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | @jridgewell/sourcemap-codec | 1.6.0 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | @jridgewell/trace-mapping | 0.3.31 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
-| @mariliz/ui-kit | 0.6.0 | npm | direta | x | x | MIT | SEM ARQUIVO | BAIXO |
+| @mariliz/ui-kit | 0.9.0 | npm | direta | x | x | MIT | CONFERE | BAIXO |
 | @mui/core-downloads-tracker | 9.5.0 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | @mui/material | 9.5.0 | npm | direta | x | x | MIT | CONFERE | BAIXO |
 | @mui/private-theming | 9.5.0 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
@@ -358,6 +358,7 @@ hashes) em `inventory.csv` / `inventory.json`. W = Windows x64, L = Linux x64.
 | escape-string-regexp | 4.0.0 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | find-root | 1.1.0 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | function-bind | 1.1.2 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
+| has-flag | 4.0.0 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | hasown | 2.0.4 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | hoist-non-react-statics | 3.3.2 | npm | transitiva | x | x | BSD-3-Clause | TEXTO NÃO RECONHECIDO | BAIXO |
 | import-fresh | 3.3.1 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
@@ -390,6 +391,7 @@ hashes) em `inventory.csv` / `inventory.json`. W = Windows x64, L = Linux x64.
 | scheduler | 0.28.0 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | source-map | 0.5.7 | npm | transitiva | x | x | BSD-3-Clause | CONFERE | BAIXO |
 | stylis | 4.2.0 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
+| supports-color | 8.1.1 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | supports-preserve-symlinks-flag | 1.0.0 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |
 | tslib | 2.8.1 | npm | transitiva | x | x | 0BSD | CONFERE | BAIXO |
 | use-sync-external-store | 1.7.0 | npm | transitiva | x | x | MIT | CONFERE | BAIXO |

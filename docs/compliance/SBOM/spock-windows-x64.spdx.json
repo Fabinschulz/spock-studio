@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "Spock Studio 0.1.0 - Spock Studio para Windows x64 (instalador NSIS)",
-  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-windows-x64--instalador-nsis--888b99a8-d326-43bf-9dc4-59740e7f1e9e",
+  "documentNamespace": "https://spdx.org/spdxdocs/spock-studio-spock-studio-para-windows-x64--instalador-nsis--12a82be3-4031-4095-9997-4a767f326587",
   "creationInfo": {
-    "created": "2026-11-20T14:55:10Z",
+    "created": "2026-11-25T20:58:02Z",
     "creators": [
       "Tool: spock-compliance-generator-1.0.0"
     ],
@@ -5264,7 +5264,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @emotion/babel-plugin. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@babel+helper-module-imports@7.29.7/node_modules/@babel/helper-module-imports.",
+      "comment": "Uso: transitiva de @emotion/babel-plugin. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@babel+helper-module-imports@7.29.7_supports-color@8.1.1/node_modules/@babel/helper-module-imports.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5439,7 +5439,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @babel/helper-module-imports. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@babel+traverse@7.29.10/node_modules/@babel/traverse.",
+      "comment": "Uso: transitiva de @babel/helper-module-imports. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@babel+traverse@7.29.10_supports-color@8.1.1/node_modules/@babel/traverse.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5514,7 +5514,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @emotion/react. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+babel-plugin@11.13.5/node_modules/@emotion/babel-plugin.",
+      "comment": "Uso: transitiva de @emotion/react. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+babel-plugin@11.13.5_supports-color@8.1.1/node_modules/@emotion/babel-plugin.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5639,7 +5639,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: CSS-in-JS do MUI. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+react@11.14.0_@types+react@19.3.0_react@19.3.1/node_modules/@emotion/react.",
+      "comment": "Uso: CSS-in-JS do MUI. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+react@11.14.0_@typ_f64b531e5a3c3f7c26e1bae819e167b3/node_modules/@emotion/react.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5714,7 +5714,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: CSS-in-JS do MUI. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+styled@11.14.1_@em_eaf01582f5ac4d2227dff53086611941/node_modules/@emotion/styled.",
+      "comment": "Uso: CSS-in-JS do MUI. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@emotion+styled@11.14.1_@em_2f426a171b1210e146bae530eab665c0/node_modules/@emotion/styled.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -5980,27 +5980,27 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-npm--mariliz-ui-kit-0.6.0",
+      "SPDXID": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
       "name": "@mariliz/ui-kit",
-      "versionInfo": "0.6.0",
+      "versionInfo": "0.9.0",
       "downloadLocation": "https://github.com/Fabinschulz/mariliz-ui-kit#readme",
       "filesAnalyzed": false,
       "licenseDeclared": "MIT",
-      "licenseConcluded": "NOASSERTION",
+      "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Biblioteca de componentes própria (publicada no npm). Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: SEM ARQUIVO. Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mariliz+ui-kit@0.6.0_@emot_4f53bddc30065a6973d0a2a5f01e0d1e/node_modules/@mariliz/ui-kit.",
+      "comment": "Uso: Biblioteca de componentes própria (publicada no npm). Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mariliz+ui-kit@0.9.0_07e3bcddc8350d37f0f3e1f1b544f6d2/node_modules/@mariliz/ui-kit.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40mariliz/ui-kit@0.6.0"
+          "referenceLocator": "pkg:npm/%40mariliz/ui-kit@0.9.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "1b4d948a377349db01828c592e6b72c147ca0aa04e68e047be67c5b7b51919668f4744a8e4151d2ac378997e38636faad5a4f8defd7dca92294b7a76d9f19e49"
+          "checksumValue": "480fce85db3cb81a043ba31e19a0700eefdf64906407eac24d545e462fcf95db9a07828093cd37cd381fe0f6f9a2e74f0d338139f4135e5a8a336343ea01a62b"
         }
       ]
     },
@@ -6039,7 +6039,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: Componentes visuais (base do ui-kit). Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+material@9.5.0_@emotio_e4d91915e94d9ca442999cd0ee28c248/node_modules/@mui/material.",
+      "comment": "Uso: Componentes visuais (base do ui-kit). Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+material@9.5.0_@emotio_88db490ef0f2b9eea6e7dc2d834c8050/node_modules/@mui/material.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -6089,7 +6089,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mui/system. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+styled-engine@9.5.0_@e_87f28f2389eaa902c96844bc73ca42dc/node_modules/@mui/styled-engine.",
+      "comment": "Uso: transitiva de @mui/system. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+styled-engine@9.5.0_@e_445c6db9994fd6e34f0e6ce516572691/node_modules/@mui/styled-engine.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -6114,7 +6114,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mui/material. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+system@9.5.0_@emotion+_52a30419c1516986dc83ae59b406b756/node_modules/@mui/system.",
+      "comment": "Uso: transitiva de @mui/material. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+system@9.5.0_@emotion+_51783575cbfbe2564be4ee789a01515a/node_modules/@mui/system.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -6189,7 +6189,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @mariliz/ui-kit. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+x-data-grid@9.16.0_@em_99e2cf4dc9b9c352e03201a3982b1abe/node_modules/@mui/x-data-grid.",
+      "comment": "Uso: transitiva de @mariliz/ui-kit. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/@mui+x-data-grid@9.16.0_@em_1ec78c4ae35880aaba7ca9c495448911/node_modules/@mui/x-data-grid.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -6714,7 +6714,7 @@
       "licenseConcluded": "MIT",
       "copyrightText": "NOASSERTION",
       "primaryPackagePurpose": "LIBRARY",
-      "comment": "Uso: transitiva de @babel/traverse. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/debug@4.4.3/node_modules/debug.",
+      "comment": "Uso: transitiva de @babel/traverse. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug.",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -6876,6 +6876,31 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "ed71cdc47eea5fdc46e66230c6486e993a31fcc21135c3a00ebc56b0cb76a40af6dd61e9e8cad194dec50521690a9afea153b417be38894811f369c931f1b648"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-npm-has-flag-4.0.0",
+      "name": "has-flag",
+      "versionInfo": "4.0.0",
+      "downloadLocation": "https://github.com/sindresorhus/has-flag#readme",
+      "filesAnalyzed": false,
+      "licenseDeclared": "MIT",
+      "licenseConcluded": "MIT",
+      "copyrightText": "NOASSERTION",
+      "primaryPackagePurpose": "LIBRARY",
+      "comment": "Uso: transitiva de supports-color. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/has-flag@4.0.0/node_modules/has-flag.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/has-flag@4.0.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "1329094ff4352a34d672da698080207d23b4b4a56e6548e180caf5ee4a93ba6325e807efdc421295e53ba99533a170c54c01d30c2e0d3a81bf67153712f94c3d"
         }
       ]
     },
@@ -7676,6 +7701,31 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "3aba2fea0e81075b037d883359f4c70cec5a9ad5f56c4ff3a35d380e1f5ee9fa89dcfa288a96327c9d29526ad93b6c00bcef186c4c9e16b915f755d3b06312af"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-npm-supports-color-8.1.1",
+      "name": "supports-color",
+      "versionInfo": "8.1.1",
+      "downloadLocation": "https://github.com/chalk/supports-color#readme",
+      "filesAnalyzed": false,
+      "licenseDeclared": "MIT",
+      "licenseConcluded": "MIT",
+      "copyrightText": "NOASSERTION",
+      "primaryPackagePurpose": "LIBRARY",
+      "comment": "Uso: transitiva de debug. Ambiente: execução. Distribuição: incorporado (bundle da interface). Conferência do arquivo de licença: CONFERE (MIT). Risco: BAIXO. Evidência: pnpm-lock.yaml | node_modules/.pnpm/supports-color@8.1.1/node_modules/supports-color.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/supports-color@8.1.1"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "3295043763a876d533c6f29097bd9c505ed14391221ec1af4ac546d226bd73945b5862f6088e02ec4a4f4bc513048a659e5cd988db95e7ac3e16e371cb7b72d9"
         }
       ]
     },
@@ -12781,60 +12831,60 @@
     {
       "spdxElementId": "SPDXRef-Package-spock-studio",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-npm--mariliz-ui-kit-0.6.0"
+      "relatedSpdxElement": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.6.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm--emotion-cache-11.14.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.6.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm--emotion-react-11.14.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.6.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm--emotion-styled-11.14.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.6.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm--mui-material-9.5.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.6.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm--mui-x-data-grid-9.16.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.6.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm-clsx-2.1.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.6.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm-react-code-input-3.10.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.6.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm-react-dom-19.3.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.6.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm-react-hook-form-7.91.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.6.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm-react-19.3.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.6.0",
+      "spdxElementId": "SPDXRef-Package-npm--mariliz-ui-kit-0.9.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm-tslib-2.8.1"
     },
@@ -13319,6 +13369,11 @@
       "relatedSpdxElement": "SPDXRef-Package-npm-ms-2.1.3"
     },
     {
+      "spdxElementId": "SPDXRef-Package-npm-debug-4.4.3",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-npm-supports-color-8.1.1"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-npm-dom-helpers-5.2.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm--babel-runtime-7.29.10"
@@ -13532,6 +13587,11 @@
       "spdxElementId": "SPDXRef-Package-npm-resolve-1.22.13",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-npm-supports-preserve-symlinks-flag-1.0.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-npm-supports-color-8.1.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-npm-has-flag-4.0.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-npm-use-sync-external-store-1.7.0",
