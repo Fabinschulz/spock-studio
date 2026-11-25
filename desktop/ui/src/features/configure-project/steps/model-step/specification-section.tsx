@@ -1,7 +1,7 @@
 import type { Discovery } from '@/shared/schema';
 
 import { specificationStateLabel } from '../../domain/labels';
-import styles from './model.module.scss';
+import rows from '../../components/rows.module.scss';
 import { SpecificationDependencies } from './specification-dependencies';
 import { SpecificationFooter } from './specification-footer';
 
@@ -32,17 +32,17 @@ export function SpecificationSection({
   onReinstall
 }: SpecificationSectionProps) {
   return (
-    <section aria-labelledby="specification-title" className={styles.section}>
-      <h3 id="specification-title" className={styles.title}>
+    <section aria-labelledby="specification-title" className={rows.section}>
+      <h3 id="specification-title" className={rows.title}>
         Estrutura de especificação
       </h3>
-      <p className={styles.note}>
+      <p className={rows.note}>
         Organiza as especificações do projeto em um ciclo guiado (especificar, desenhar, planejar, executar e validar),
         com foco em qualidade, rastreabilidade e entrega contínua.
       </p>
-      <div className={styles.line}>
-        <span className={styles.name}>{specificationStateLabel[specification.state]}</span>
-        <span className={styles.end}>{installationText(specification)}</span>
+      <div className={rows.line}>
+        <span className={rows.name}>{specificationStateLabel[specification.state]}</span>
+        <span className={rows.end}>{installationText(specification)}</span>
       </div>
       <SpecificationDependencies tools={tools} />
       <SpecificationFooter

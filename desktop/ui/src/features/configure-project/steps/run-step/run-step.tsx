@@ -1,8 +1,8 @@
-import { Alert, Button } from '@mariliz/ui-kit';
+import { Button } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
 import { errorMessage } from '@/shared/api';
-import { ConfirmAction, Disclosure, PrimaryActionFooter } from '@/shared/components/ui';
+import { ConfirmAction, Disclosure, InlineNotice, PrimaryActionFooter } from '@/shared/components/ui';
 import { formatElapsed, plural } from '@/shared/utils';
 
 import { RunEvalList } from '../../components/run-eval-list';
@@ -80,10 +80,16 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
       ) : null}
 
       {failed ? (
-        <Alert severity="error" title="Não foi possível acompanhar a execução" description={run.error} />
+        <InlineNotice tone="danger" title="Não foi possível acompanhar a execução">
+          {run.error}
+        </InlineNotice>
       ) : null}
 
-      {cancelError ? <Alert severity="error" title="Não foi possível cancelar" description={cancelError} /> : null}
+      {cancelError ? (
+        <InlineNotice tone="danger" title="Não foi possível cancelar">
+          {cancelError}
+        </InlineNotice>
+      ) : null}
 
       {confirming ? (
         <ConfirmAction

@@ -201,39 +201,6 @@
   }
 }
 
-// Progresso indeterminado: a operação real não informa percentual, então nenhum percentual é inventado.
-.progress {
-  height: 4px;
-  overflow: hidden;
-  border-radius: 2px;
-  background-color: var(--color-border);
-
-  &::after {
-    display: block;
-    width: 40%;
-    height: 100%;
-    background-color: var(--color-primary);
-    content: '';
-    animation: slide 1.2s ease-in-out infinite;
-  }
-}
-
-@keyframes slide {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(250%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .progress::after {
-    width: 100%;
-    animation: none;
-  }
-}
-
 .prompt {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);

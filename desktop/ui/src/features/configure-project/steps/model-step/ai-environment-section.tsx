@@ -1,7 +1,11 @@
 import { Checkbox } from '@mariliz/ui-kit';
+
+import { StatusChip, type Tone } from '@/shared/components/ui';
 import type { Discovery } from '@/shared/schema';
+import { cn } from '@/shared/utils';
 
 import { EnvironmentGlyph } from '../../components/environment-glyph';
+import rows from '../../components/rows.module.scss';
 import {
   AI_ENVIRONMENTS,
   aiEnvironmentNames,
@@ -23,24 +27,25 @@ export function AiEnvironmentSection({ discovery, selected, onToggle }: AiEnviro
   const leaving = discovery.declaredAiEnvironments.filter((id) => !selected.includes(id));
 
   return (
-    <section aria-labelledby="ambiente-titulo" className={styles.section}>
-      <h3 id="ambiente-titulo" className={styles.title}>
+    <section aria-labelledby="ambiente-titulo" className={rows.section}>
+      <h3 id="ambiente-titulo" className={rows.title}>
         Ambientes de IA
       </h3>
       <fieldset className={styles.fieldset}>
         <legend className="visually-hidden">Ambientes de IA do projeto</legend>
-        <p className={styles.note}>
+        <p className={rows.note}>
           Marque as IDEs que a equipe usa. Cada uma recebe só as peças dela, e a lista fica em{' '}
           {discovery.naming.declaration}.
         </p>
-        <ul role="list" className={styles.rows}>
+        <ul role="list" className={rows.rows}>
           {AI_ENVIRONMENTS.map((id) => {
             const supported = isSupportedEnvironment(id);
             const locked = isLockedEnvironment(discovery, id);
-            const tags = [
-              declared.has(id) ? 'declarado' : detectedIds.has(id) ? 'detectado' : '',
-              supported ? (partialEnvironmentNote[id] ?? '') : 'ainda sem suporte'
-            ];
+            const tags: [string, Tone][] = [];
+            if (declared.has(id)) tags.push(['declarado', 'info']);
+            else if (detectedIds.has(id)) tags.push(['detectado', 'neutral']);
+            if (!supported) tags.push(['ainda sem suporte', 'warning']);
+            const note = supported ? partialEnvironmentNote[id] : undefined;
             return (
               <li key={id}>
                 <Checkbox
@@ -53,9 +58,18 @@ export function AiEnvironmentSection({ discovery, selected, onToggle }: AiEnviro
                   label={
                     <>
                       <EnvironmentGlyph id={id} />
-                      <span className={styles.name}>{aiEnvironmentNames[id]}</span>
+                      <span className={cn(rows.name, styles.label)}>{aiEnvironmentNames[id]}</span>
                       {supported ? <span className="visually-hidden">configuração suportada</span> : null}
-                      <span className={styles.end}>{tags.filter(Boolean).join(' · ')}</span>
+                      {tags.length > 0 ? (
+                        <span className={rows.chips}>
+                          {tags.map(([text, tone]) => (
+                            <StatusChip key={text} tone={tone}>
+                              {text}
+                            </StatusChip>
+                          ))}
+                        </span>
+                      ) : null}
+                      {note ? <span className={rows.meta}>{note}</span> : null}
                     </>
                   }
                 />
@@ -64,13 +78,13 @@ export function AiEnvironmentSection({ discovery, selected, onToggle }: AiEnviro
           })}
         </ul>
         {declared.has('claude-code') ? (
-          <p className={styles.note}>
+          <p className={rows.note}>
             O Claude Code continua marcado: tirá-lo de um projeto já configurado levaria agentes, regras e a estrutura
             de especificação, o que o plano ainda não faz.
           </p>
         ) : null}
         {leaving.length > 0 ? (
-          <p className={styles.note} role="status">
+          <p className={rows.note} role="status">
             {leaving.map((id) => aiEnvironmentNames[id] ?? id).join(' e ')} {leaving.length > 1 ? 'saem' : 'sai'} da
             lista: o plano vai propor tirar o que o Spock gravou para {leaving.length > 1 ? 'elas' : 'ela'}, e o que é
             da equipe fica.

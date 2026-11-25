@@ -1,10 +1,10 @@
-import { DiffView, Disclosure } from '@/shared/components/ui';
+import { DiffView, Disclosure, StatusChip } from '@/shared/components/ui';
 import type { ConflictResolution, FileChange } from '@/shared/schema';
 
 import { CheckboxField } from '../../components/choice-field';
-import { actionLabel, componentKindLabel, originLabel } from '../../domain/labels';
+import rows from '../../components/rows.module.scss';
+import { actionLabel, actionTone, componentKindLabel, originLabel } from '../../domain/labels';
 import { ConflictResolutionField } from './conflict-resolution';
-import styles from './review.module.scss';
 
 interface FileChangeRowProps {
   change: FileChange;
@@ -21,9 +21,9 @@ export function FileChangeRow({ change, approved, resolution, onToggle, onResolv
 
   return (
     <li>
-      <div className={styles.line}>
+      <div className={rows.line}>
         {isConflict ? (
-          <span className={styles.mono}>{change.path}</span>
+          <span className={rows.mono}>{change.path}</span>
         ) : (
           <CheckboxField
             plain
@@ -32,9 +32,9 @@ export function FileChangeRow({ change, approved, resolution, onToggle, onResolv
             label={`Aprovar ${actionLabel[change.action].toLowerCase()} ${change.path}`}
           />
         )}
-        <span className={`${styles.end} ${change.destructive || isConflict ? styles.danger : ''}`}>{state}</span>
+        <StatusChip tone={change.destructive && !isConflict ? 'danger' : actionTone[change.action]}>{state}</StatusChip>
       </div>
-      <p className={styles.meta}>
+      <p className={rows.meta}>
         {componentKindLabel[change.kind]} · {originLabel[change.origin] ?? change.origin}
       </p>
       <p>{change.reason}</p>

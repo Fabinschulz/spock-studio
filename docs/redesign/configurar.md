@@ -124,7 +124,7 @@ Em 1440×900 aparecem o título, o alerta "Concluído com limitações" (que nã
 | Hoje | Na biblioteca | Proposta |
 | --- | --- | --- |
 | Barra de progresso indeterminada em CSS (`components/panels.module.scss:200`, usada em `project-step.tsx:38` e `result-step.tsx:103`) | `LoadingBar` | Trocar. |
-| `InlineNotice` local nas etapas 2 a 4 | `Alert` (já usado nas etapas 1, 5 e 6) | Trocar dentro da jornada; o `InlineNotice` continua onde outras telas o usam. |
+| `InlineNotice` nas etapas 2 a 4 e `Alert` nas etapas 1, 5 e 6 | `Alert` | Um aviso só na jornada: o `InlineNotice`. Ele já é o `Alert` da biblioteca, com uma diferença: só o erro recebe `role="alert"`. O `Alert` puro anuncia qualquer aviso no leitor de tela, até o de sucesso (feito no C2). |
 | Estado em texto à direita (`.end`): "Habilitar/Dispensar", "Criar", "encontrado/ausente", "declarado/detectado" | `StatusChip` (já usado no Resultado) | Trocar. |
 | `RadioField` (`components/choice-field.tsx:43`), que só repassa uma classe ao `Radio` da biblioteca | `Radio` | Remover o invólucro. |
 | `CheckboxField` (`components/choice-field.tsx:16`), que acrescenta uma descrição ligada por `aria-describedby` | `Checkbox` sem descrição | Manter por enquanto. Se a biblioteca ganhar `description`, trocar (decisão DC5). |
@@ -162,7 +162,7 @@ Nenhuma capacidade é removida: tudo o que sai é texto repetido, ou some só qu
 | # | Incremento | Toca | Risco |
 | --- | --- | --- | --- |
 | C1 | **Textos e quebras sem mexer na estrutura:** plurais (T7); frase repetida (M3); motivo no "Gerar plano" (M2); "O que será configurado" coerente com o plano ou removido (M5); linhas que quebram em vez de cortar (M4, R3); hierarquia da Aplicação (A1); selos zerados (RS1); foco no título da etapa (T9); os dois textos do motor (`HarnessComposition.cs`, `IdempotenceCheck.cs`). | UI e motor, só textos e CSS | Baixo |
-| C2 | **Biblioteca:** `LoadingBar`, `Alert` no lugar do `InlineNotice`, `StatusChip` nos estados, `Radio` sem invólucro, um padrão de linha nos SCSS, um padrão de confirmação. | UI | Baixo |
+| C2 | **Biblioteca:** `LoadingBar`, um aviso só (`InlineNotice`, ver seção 4), `StatusChip` nos estados, `Radio` sem invólucro, um padrão de linha nos SCSS, um padrão de confirmação. | UI | Baixo |
 | C3 | **Projeto:** sem seletor duplicado quando há projeto; resultado no topo; um botão primário por vez; resumo e atalhos na segunda visita. | `project-step`, `configure-project-page.tsx` | Médio (estado restaurado) |
 | C4 | **Ambiente de IA:** ordem nova, estrutura de especificação como escolha com consequência, nome da etapa. | `model-step`, `constants/journey-steps.ts` | Médio |
 | C5 | **Revisão com abas:** Plano e Revisão juntos, grupos com aprovação em lote, consequência do comando. Depende de DC1. | `plan-step`, `review-step`, `journey-reducer.ts`, `step-navigation.ts`, `restore-journey.ts` | Alto (muda o número de etapas e o estado guardado) |

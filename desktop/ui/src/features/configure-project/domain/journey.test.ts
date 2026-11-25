@@ -11,7 +11,7 @@ import type { JourneyState } from '../types/journey';
 import { buildApplyInput, countApprovals, defaultApprovals } from './approvals';
 import { journeyReducer } from './journey-reducer';
 import { applyRunEvent } from './run-events';
-import { awaitingHarnessProposal, explainOutcome, outcomeSeverity } from './run-outcome';
+import { awaitingHarnessProposal, explainOutcome, outcomeTone } from './run-outcome';
 
 /** Caracterização com as fixtures geradas pelo motor real: se um destes testes mudar, o comportamento mudou. */
 const discovery = discoverySchema.parse(discoveryFixture);
@@ -236,9 +236,9 @@ describe('resultado', () => {
   it('cada desfecho tem gravidade e explicação próprias, nunca um sucesso genérico', () => {
     const ok = runResultSchema.parse(applyResult);
     const failure = runResultSchema.parse(applyFailure);
-    expect(outcomeSeverity[ok.outcome]).toBe('success');
+    expect(outcomeTone[ok.outcome]).toBe('success');
     expect(explainOutcome(ok)).toBe('Todas as verificações obrigatórias foram aprovadas com evidência.');
-    expect(outcomeSeverity[failure.outcome]).toBe('error');
+    expect(outcomeTone[failure.outcome]).toBe('danger');
     expect(explainOutcome(failure)).toMatch(/falhou/);
   });
 

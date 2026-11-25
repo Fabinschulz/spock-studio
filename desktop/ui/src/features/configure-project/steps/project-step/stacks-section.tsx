@@ -2,7 +2,7 @@ import { EvidenceDisclosure } from '@/shared/components/ui';
 import type { Discovery } from '@/shared/schema';
 
 import { confidenceLabel } from '../../domain/labels';
-import styles from './discovery.module.scss';
+import styles from '../../components/rows.module.scss';
 
 export function StacksSection({ stacks }: { stacks: Discovery['stacks'] }) {
   return (

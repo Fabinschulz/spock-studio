@@ -6,6 +6,7 @@ import type { ConfigurationPlan, ConflictResolution, FileChange } from '@/shared
 import { plural } from '@/shared/utils';
 
 import panels from '../../components/panels.module.scss';
+import rows from '../../components/rows.module.scss';
 import { StepHeader } from '../../components/step-header';
 import { CommandRow } from './command-row';
 import { FileChangeRow } from './file-change-row';
@@ -68,19 +69,19 @@ export function ReviewStep({
         tocado.
       </StepHeader>
 
-      <p className={styles.note} aria-label="Resumo do plano">
+      <p className={rows.note} aria-label="Resumo do plano">
         {changesSummary(plan.changes)}
       </p>
 
       {plan.commands.length > 0 ? (
-        <section aria-labelledby="comandos-titulo" className={styles.section}>
-          <h3 id="comandos-titulo" className={styles.title}>
+        <section aria-labelledby="comandos-titulo" className={rows.section}>
+          <h3 id="comandos-titulo" className={rows.title}>
             Comandos que executam fora do arquivo
           </h3>
-          <p className={styles.note}>
+          <p className={rows.note}>
             Desmarcados por padrão: executar programas e acessar a rede exige a sua aprovação.
           </p>
-          <ul role="list" className={styles.rows}>
+          <ul role="list" className={rows.rows}>
             {plan.commands.map((command) => (
               <CommandRow
                 key={command.id}
@@ -93,12 +94,12 @@ export function ReviewStep({
         </section>
       ) : null}
 
-      <section aria-labelledby="arquivos-titulo" className={styles.section}>
-        <h3 id="arquivos-titulo" className={styles.title}>
+      <section aria-labelledby="arquivos-titulo" className={rows.section}>
+        <h3 id="arquivos-titulo" className={rows.title}>
           Arquivos
         </h3>
-        {actionable.length === 0 ? <p className={styles.note}>Nenhum arquivo precisa mudar.</p> : null}
-        <ul role="list" className={styles.rows} aria-label="Alterações em arquivos">
+        {actionable.length === 0 ? <p className={rows.note}>Nenhum arquivo precisa mudar.</p> : null}
+        <ul role="list" className={rows.rows} aria-label="Alterações em arquivos">
           {actionable.map((change) => (
             <FileChangeRow
               key={change.id}
@@ -119,8 +120,8 @@ export function ReviewStep({
       </section>
 
       {plan.validations.length > 0 ? (
-        <section aria-labelledby="validacao-titulo" className={styles.section}>
-          <h3 id="validacao-titulo" className={styles.title}>
+        <section aria-labelledby="validacao-titulo" className={rows.section}>
+          <h3 id="validacao-titulo" className={rows.title}>
             Depois de aplicar, a validação executa
           </h3>
           <ul role="list" className={styles.list}>

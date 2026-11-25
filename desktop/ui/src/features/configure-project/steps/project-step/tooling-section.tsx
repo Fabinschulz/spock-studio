@@ -1,7 +1,7 @@
 import type { Discovery } from '@/shared/schema';
 
 import { toolKindLabel } from '../../domain/labels';
-import styles from './discovery.module.scss';
+import styles from '../../components/rows.module.scss';
 
 export function ToolingSection({ tooling }: { tooling: Discovery['tooling'] }) {
   if (tooling.length === 0) return null;

@@ -1,6 +1,5 @@
-import { Radio } from '@/shared/components';
 import { Checkbox } from '@mariliz/ui-kit';
-import { useId, type ReactNode } from 'react';
+import { useId } from 'react';
 import styles from './panels.module.scss';
 
 interface CheckboxFieldProps {
@@ -30,24 +29,5 @@ export function CheckboxField({ checked, onChange, label, description, plain }: 
         </span>
       ) : null}
     </div>
-  );
-}
-
-interface RadioFieldProps {
-  name: string;
-  checked: boolean;
-  onChange: () => void;
-  children: ReactNode;
-}
-
-export function RadioField({ name, checked, onChange, children }: RadioFieldProps) {
-  return (
-    <Radio
-      name={name}
-      checked={checked}
-      onChange={onChange}
-      label={children}
-      labelProps={{ className: styles.field }}
-    />
   );
 }

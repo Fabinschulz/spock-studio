@@ -1,8 +1,6 @@
-import { Alert } from '@mariliz/ui-kit';
-
 import { runOutcomeLabel } from '@/shared/utils';
 
-import { EvidenceDisclosure, StatusChip } from '@/shared/components/ui';
+import { EvidenceDisclosure, InlineNotice, StatusChip } from '@/shared/components/ui';
 import type { RunResult } from '@/shared/schema';
 
 import styles from '../../components/panels.module.scss';
@@ -16,7 +14,7 @@ export function RevertSummary({ result }: { result: RunResult }) {
           {runOutcomeLabel[result.outcome]}
         </StatusChip>
       </h3>
-      {result.error ? <Alert severity="error" description={result.error.message} /> : null}
+      {result.error ? <InlineNotice tone="danger">{result.error.message}</InlineNotice> : null}
       <span className={styles.muted}>
         {result.verified
           ? 'Conferido: os arquivos restaurados voltaram ao estado anterior.'
@@ -26,13 +24,9 @@ export function RevertSummary({ result }: { result: RunResult }) {
         <EvidenceDisclosure summary={`Restaurados (${result.reverted.length})`} items={result.reverted} />
       ) : null}
       {result.conflicts && result.conflicts.length > 0 ? (
-        <Alert
-          severity="warning"
-          title="Mantidos como estão"
-          description={
-            <EvidenceDisclosure summary={`Arquivos (${result.conflicts.length})`} items={result.conflicts} />
-          }
-        />
+        <InlineNotice tone="warning" title="Mantidos como estão">
+          <EvidenceDisclosure summary={`Arquivos (${result.conflicts.length})`} items={result.conflicts} />
+        </InlineNotice>
       ) : null}
     </div>
   );

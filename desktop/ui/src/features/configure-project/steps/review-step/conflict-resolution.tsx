@@ -1,7 +1,6 @@
-import { InlineNotice } from '@/shared/components/ui';
+import { InlineNotice, Radio } from '@/shared/components/ui';
 import type { ConflictResolution, FileChange } from '@/shared/schema';
 
-import { RadioField } from '../../components/choice-field';
 import styles from '../../components/panels.module.scss';
 
 interface ConflictResolutionProps {
@@ -18,12 +17,20 @@ export function ConflictResolutionField({ change, resolution, onResolve }: Confl
       <InlineNotice tone="warning">{change.conflictReason ?? 'O arquivo atual é diferente do proposto.'}</InlineNotice>
       <fieldset className={styles.fieldset}>
         <legend>{`Decisão para ${change.path}`}</legend>
-        <RadioField name={name} checked={resolution === 'keep'} onChange={() => onResolve('keep')}>
-          <span>Manter o meu arquivo (padrão)</span>
-        </RadioField>
-        <RadioField name={name} checked={resolution === 'overwrite'} onChange={() => onResolve('overwrite')}>
-          <span>Substituir pelo proposto (o meu fica guardado em backup e pode ser restaurado)</span>
-        </RadioField>
+        <Radio
+          name={name}
+          checked={resolution === 'keep'}
+          onChange={() => onResolve('keep')}
+          label="Manter o meu arquivo (padrão)"
+          labelProps={{ className: styles.field }}
+        />
+        <Radio
+          name={name}
+          checked={resolution === 'overwrite'}
+          onChange={() => onResolve('overwrite')}
+          label="Substituir pelo proposto (o meu fica guardado em backup e pode ser restaurado)"
+          labelProps={{ className: styles.field }}
+        />
       </fieldset>
     </>
   );

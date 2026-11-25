@@ -1,7 +1,9 @@
+// A lista em linhas que todas as etapas usam: título, nota e uma linha por item, com o estado à direita.
+
 .section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .title {
@@ -21,6 +23,10 @@
   list-style: none;
 
   > li {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: 0;
     padding-block: var(--space-2);
     border-bottom: 1px solid var(--color-border);
   }
@@ -41,6 +47,7 @@
 }
 
 .meta {
+  margin: 0;
   color: var(--color-text-muted);
 }
 
@@ -53,4 +60,10 @@
   min-width: 0;
   color: var(--color-text-muted);
   overflow-wrap: anywhere;
+}
+
+.chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
 }
