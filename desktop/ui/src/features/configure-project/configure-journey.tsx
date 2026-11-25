@@ -1,4 +1,3 @@
-import { EngineeringRequestShortcut } from '@/features/engineering-request';
 import { useScrollToTop } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 import { useNavigate } from 'react-router';
@@ -81,7 +80,6 @@ export function ConfigureJourney({
         />
       }
     >
-      <EngineeringRequestShortcut />
       {hasComponentRequest(state.componentRequest) && ['project', 'model', 'review'].includes(state.step) ? (
         <ComponentRequestNotice request={state.componentRequest} onClear={actions.clearComponentRequest} />
       ) : null}

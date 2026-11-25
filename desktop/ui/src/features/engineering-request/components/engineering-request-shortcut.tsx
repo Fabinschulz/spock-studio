@@ -1,21 +1,15 @@
-import { InlineNotice } from '@/shared/components/ui';
+import { Link } from 'react-router';
+
 import { pathTo } from '@/shared/routing';
-import { Button } from '@mariliz/ui-kit';
-import { useNavigate } from 'react-router';
 
 import styles from './engineering-request-shortcut.module.scss';
 
+/** Uma linha discreta, não um aviso: é uma saída para outro caminho, não algo que a pessoa precise resolver aqui. */
 export function EngineeringRequestShortcut() {
-  const navigate = useNavigate();
-
   return (
-    <InlineNotice tone="info" className={styles.notice}>
-      <p className={styles.text}>
-        Precisa analisar objetivo, evidências ou impacto sem alterar o Harness?{' '}
-        <Button type="button" variant="text" size="small" onClick={() => navigate(pathTo('engineeringRequest'))}>
-          Abrir pedido de engenharia
-        </Button>
-      </p>
-    </InlineNotice>
+    <p className={styles.text}>
+      Só quer analisar objetivo, evidências ou impacto, sem mudar o Harness?{' '}
+      <Link to={pathTo('engineeringRequest')}>Abrir pedido de engenharia</Link>
+    </p>
   );
 }
