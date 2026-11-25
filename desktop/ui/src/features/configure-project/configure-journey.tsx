@@ -46,7 +46,7 @@ export function ConfigureJourney({
     navigate(pathTo('home'));
   };
 
-  useScrollToTop(state.step, { focus: true });
+  useScrollToTop(state.step, { focus: true, focusSelector: '[data-step-title]' });
 
   const approvalCount = state.plan.status === 'ready' ? countApprovals(state, state.plan.data) : 0;
   const naming = namingOf(state.discovery);

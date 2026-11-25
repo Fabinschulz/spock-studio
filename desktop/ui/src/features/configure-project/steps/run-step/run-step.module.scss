@@ -5,11 +5,11 @@
   gap: var(--space-4);
 }
 
+// Abaixo do título da etapa: a linha de andamento informa, não compete com ele.
 .headline {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  line-height: 1.3;
-  letter-spacing: -0.015em;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
 }
 
 .elapsed {

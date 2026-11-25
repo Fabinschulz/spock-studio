@@ -36,6 +36,6 @@ internal sealed class RulesCheck : IEvalCheck
         }
         return problems.Count == 0
             ? Pass(spec, rules.Select(r => $"{r.Path}: presente").ToList())
-            : Fail(spec, $"{problems.Count} problema(s) nas regras.", problems);
+            : Fail(spec, $"{Plural(problems.Count, "problema", "problemas")} nas regras.", problems);
     }
 }

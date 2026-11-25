@@ -55,7 +55,7 @@ internal sealed class RequirementsCheck : IEvalCheck
         // A estrutura de especificação é verificada pelo EV-SPEC-001 (bloqueado quando não instalado); contá-lo aqui duplicaria a falha.
 
         return missing.Count == 0
-            ? Pass(spec, [$"{checks} requisito(s) derivado(s) da descoberta, todos atendidos"])
-            : Fail(spec, $"{missing.Count} requisito(s) sem o artefato correspondente.", missing);
+            ? Pass(spec, [$"{Plural(checks, "requisito derivado da descoberta, atendido", "requisitos derivados da descoberta, todos atendidos")}"])
+            : Fail(spec, $"{Plural(missing.Count, "requisito", "requisitos")} sem o artefato correspondente.", missing);
     }
 }

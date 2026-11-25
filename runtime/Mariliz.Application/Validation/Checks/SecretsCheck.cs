@@ -27,7 +27,7 @@ internal sealed class SecretsCheck : IEvalCheck
             foreach (var f in SecretScanner.Scan(text)) findings.Add($"{path}:{f.Line} ({f.Rule})");
         }
         return findings.Count == 0
-            ? Pass(spec, [$"{scanned} arquivo(s) verificado(s); nenhum formato conhecido de credencial"])
-            : Fail(spec, $"{findings.Count} possível(is) credencial(is) encontrada(s); os valores não são exibidos.", findings);
+            ? Pass(spec, [$"{Plural(scanned, "arquivo verificado", "arquivos verificados")}; nenhum formato conhecido de credencial"])
+            : Fail(spec, $"{Plural(findings.Count, "possível credencial encontrada", "possíveis credenciais encontradas")}; os valores não são exibidos.", findings);
     }
 }

@@ -24,7 +24,7 @@ internal sealed class ConfigCheck : IEvalCheck
         if (ctx.Lock.Schema != 1) return Fail(spec, $"{ctx.Naming.Lock} com schema {ctx.Lock.Schema}; esperado 1.", [ctx.Naming.Lock]);
         if (string.IsNullOrWhiteSpace(ctx.Lock.Engine)) return Fail(spec, $"{ctx.Naming.Lock} sem a versão do motor.", [ctx.Naming.Lock]);
         if (!AiEnvironments.Known.Contains(ctx.Lock.AiEnvironment)) return Fail(spec, $"{ctx.Naming.Lock} declara um ambiente de IA desconhecido.", [ctx.Naming.Lock]);
-        evidence.Add($"{ctx.Naming.Lock}: schema 1, motor {ctx.Lock.Engine}, ambiente {ctx.Lock.AiEnvironment}, {ctx.Lock.ManagedFiles.Count} arquivo(s)");
+        evidence.Add($"{ctx.Naming.Lock}: schema 1, motor {ctx.Lock.Engine}, ambiente {ctx.Lock.AiEnvironment}, {Plural(ctx.Lock.ManagedFiles.Count, "arquivo", "arquivos")}");
 
         if (ctx.Declared is not null)
         {

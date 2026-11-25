@@ -23,7 +23,7 @@ internal sealed class ApprovedWriter(IRunStore store, IProjectFiles files, Write
         try
         {
             foreach (var write in writes) Write(run, journal, recorder, write);
-            recorder.CompleteStep(step, StepStatus.Completed, $"{writes.Count} arquivo(s)");
+            recorder.CompleteStep(step, StepStatus.Completed, writes.Count == 1 ? "1 arquivo" : $"{writes.Count} arquivos");
             return null;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or EngineException)

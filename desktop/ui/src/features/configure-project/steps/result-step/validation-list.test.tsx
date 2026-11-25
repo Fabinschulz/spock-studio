@@ -24,7 +24,10 @@ describe('ValidationList', () => {
     expect(validationSummary([result({}), result({}), result({ status: 'failed' })])).toBe(
       '2 de 3 aprovados · 1 reprovado'
     );
-    expect(validationSummary([result({})])).toBe('1 de 1 aprovados');
+    expect(validationSummary([result({})])).toBe('1 de 1 aprovado');
+    expect(validationSummary([result({}), result({ status: 'blocked' }), result({ status: 'blocked' })])).toBe(
+      '1 de 3 aprovados · 2 bloqueados'
+    );
   });
 
   it('abre sozinha a verificação reprovada ou bloqueada e deixa a aprovada recolhida', () => {

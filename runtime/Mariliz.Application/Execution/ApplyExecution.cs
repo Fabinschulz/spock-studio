@@ -167,7 +167,7 @@ internal sealed class ApplyExecution(
             run.Publish("file.applied", new JsonObject { ["path"] = change.Path, ["op"] = kind });
         }
 
-        _recorder.CompleteStep(step, StepStatus.Completed, $"{decision.Writes.Count} operação(ões)");
+        _recorder.CompleteStep(step, StepStatus.Completed, decision.Writes.Count == 1 ? "1 operação" : $"{decision.Writes.Count} operações");
     }
 
     private static string EnsureWritable(string path) =>

@@ -49,7 +49,7 @@ internal static class DotnetDetector
 
         var version = Newest(frameworks);
         if (web) notes.Add("ASP.NET Core (Microsoft.NET.Sdk.Web)");
-        if (testProjects > 0) notes.Add($"{testProjects} projeto(s) de teste");
+        if (testProjects > 0) notes.Add(testProjects == 1 ? "1 projeto de teste" : $"{testProjects} projetos de teste");
         if (version is null)
             warnings.Add(new(DiscoveryWarningCodes.UnknownVersion, "A versão do .NET não pôde ser determinada pelos arquivos de projeto.", projects.Take(3).ToList()));
 

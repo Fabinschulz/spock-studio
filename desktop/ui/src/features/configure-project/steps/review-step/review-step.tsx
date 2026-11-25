@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { ConfirmAction, EvidenceDisclosure, PrimaryActionFooter } from '@/shared/components/ui';
 import type { ConfigurationPlan, ConflictResolution, FileChange } from '@/shared/schema';
+import { plural } from '@/shared/utils';
 
 import panels from '../../components/panels.module.scss';
 import { StepHeader } from '../../components/step-header';
@@ -111,7 +112,7 @@ export function ReviewStep({
         </ul>
         {preserved.length > 0 ? (
           <EvidenceDisclosure
-            summary={`${preserved.length} arquivo(s) preservado(s), sem alteração`}
+            summary={`${plural(preserved.length, 'arquivo preservado', 'arquivos preservados')}, sem alteração`}
             items={preserved.map((change) => change.path)}
           />
         ) : null}

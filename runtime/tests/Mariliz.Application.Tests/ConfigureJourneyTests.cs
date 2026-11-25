@@ -67,6 +67,8 @@ public class ConfigureJourneyTests
         var journey = new Journey(project, Journey.FakeInstaller(project));
 
         var plan = await journey.PlanAsync();
+        Assert.Contains(plan.Observations, o => o.Kind == "fact" && o.Text.Contains("(confiança alta)", StringComparison.Ordinal));
+        Assert.DoesNotContain(plan.Observations, o => o.Text.Contains("confiança high", StringComparison.Ordinal));
         var command = Assert.Single(plan.Commands);
         Assert.Equal("npx", command.Executable);
         Assert.Contains("tlc-spec-driven", command.Arguments);
@@ -78,6 +80,13 @@ public class ConfigureJourneyTests
         Assert.DoesNotContain(journey.Runner.Calls, c => c.Executable == "npx");
         Assert.Equal("blocked", Journey.Status(notInstalled, "EV-SPEC-001"));
         Assert.Equal("completed_with_limitations", notInstalled["outcome"]!.GetValue<string>());
+        // O motivo fala da pendência como a pessoa a viu na revisão, sem id interno nem valor de enum.
+        var idempotence = notInstalled["validation"]!["results"]!.AsArray().First(r => r!["id"]!.GetValue<string>() == "EV-IDEMP-001")!;
+        Assert.Equal("blocked", idempotence["status"]!.GetValue<string>());
+        var reason = idempotence["reason"]!.GetValue<string>();
+        Assert.StartsWith("Falta aprovar", reason);
+        Assert.Contains($"o comando \"{command.Description}\"", reason);
+        Assert.DoesNotContain(command.Id, reason);
 
         // Com aprovação, instala, verifica e o Eval da estrutura de especificação passa com evidência.
         var plan2 = await journey.PlanAsync();

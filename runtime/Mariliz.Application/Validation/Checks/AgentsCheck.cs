@@ -42,7 +42,7 @@ internal sealed class AgentsCheck : IEvalCheck
 
         return problems.Count == 0
             ? Pass(spec, agents.Select(a => $"{a.Path}: conforme").ToList())
-            : Fail(spec, $"{problems.Count} não conformidade(s) nos agentes.", problems);
+            : Fail(spec, $"{Plural(problems.Count, "não conformidade", "não conformidades")} nos agentes.", problems);
     }
 
     // Pelo componente, não pelo caminho: o nome do arquivo muda com a convenção do projeto.

@@ -68,7 +68,7 @@ internal sealed class HookCheck : IEvalCheck
             if (result.NotFound || result.TimedOut || result.ExitCode != 0 || actual != expected)
                 failures.Add($"{name}: esperado {expected ?? "sem objeção"}, obtido {(result.ExitCode != 0 ? $"saída {result.ExitCode}" : actual ?? "sem objeção")}");
         }
-        if (failures.Count > 0) return Fail(spec, $"{failures.Count} caso(s) do hook com decisão inesperada.", failures);
+        if (failures.Count > 0) return Fail(spec, $"{Plural(failures.Count, "caso", "casos")} do hook com decisão inesperada.", failures);
         evidence.Add($"{cases.Length} entradas conhecidas com a decisão esperada ({python} {ctx.Naming.HookScript})");
         return Pass(spec, evidence, ["O hook é uma barreira de apoio: casa texto de comandos e não é um limite de segurança."]);
     }

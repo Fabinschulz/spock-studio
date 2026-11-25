@@ -17,16 +17,30 @@ internal sealed class IdempotenceCheck : IEvalCheck
         // Mudança em arquivo que a aplicação já gerencia = a configuração não se repete igual: falha.
         var drift = plan.Changes
             .Where(c => c.Action is ChangeAction.Create or ChangeAction.Update or ChangeAction.Remove && managed.Contains(c.Path))
-            .Select(c => $"{c.Path}: {c.Action}").ToList();
+            .Select(c => $"{c.Path} ({ActionText(c.Action)})").ToList();
         // Pendências de decisão (comando, arquivo ainda não aplicado, conflito): não é falha, é o que falta aprovar.
         var pending = plan.Changes
             .Where(c => c.Action == ChangeAction.Conflict || (c.Action is ChangeAction.Create or ChangeAction.Update or ChangeAction.Remove && !managed.Contains(c.Path)))
-            .Select(c => $"{c.Path}: {c.Action}").ToList();
-        pending.AddRange(plan.Commands.Select(c => $"comando {c.Id}"));
+            .Select(c => $"{c.Path} ({ActionText(c.Action)})").ToList();
+        pending.AddRange(plan.Commands.Select(c => $"o comando \"{c.Description}\""));
 
         if (drift.Count > 0) return Fail(spec, "Um novo plano ainda altera arquivos que a aplicação já gerencia: a configuração não é idempotente.", drift);
-        if (pending.Count > 0) return Block(spec, $"Há {pending.Count} item(ns) pendente(s) de aprovação ({string.Join(", ", pending.Take(3))}); a idempotência só pode ser avaliada com tudo aplicado.");
+        if (pending.Count > 0)
+        {
+            var items = Plural(pending.Count, "item", "itens");
+            var examples = string.Join(", ", pending.Take(3)) + (pending.Count > 3 ? ", entre outros" : "");
+            return Block(spec, $"Falta aprovar {items}: {examples}. Só dá para conferir se a configuração se repete igual com tudo aplicado.");
+        }
 
-        return Pass(spec, [$"Novo plano: {plan.Changes.Count(c => c.Action == ChangeAction.Preserve)} arquivo(s) preservado(s), nenhuma alteração, nenhum comando"]);
+        var preserved = plan.Changes.Count(c => c.Action == ChangeAction.Preserve);
+        return Pass(spec, [$"Novo plano: {Plural(preserved, "arquivo preservado", "arquivos preservados")}, nenhuma alteração, nenhum comando"]);
     }
+
+    private static string ActionText(ChangeAction action) => action switch
+    {
+        ChangeAction.Create => "criar",
+        ChangeAction.Update => "atualizar",
+        ChangeAction.Remove => "remover",
+        _ => "conflito"
+    };
 }

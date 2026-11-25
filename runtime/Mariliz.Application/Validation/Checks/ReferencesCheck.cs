@@ -37,8 +37,8 @@ internal sealed class ReferencesCheck : IEvalCheck
             }
         }
         return problems.Count == 0
-            ? Pass(spec, [$"{markdown.Count} arquivo(s) Markdown, {links} link(s) relativo(s) resolvidos"])
-            : Fail(spec, $"{problems.Count} link(s) quebrado(s).", problems);
+            ? Pass(spec, [$"{Plural(markdown.Count, "arquivo Markdown", "arquivos Markdown")}, {Plural(links, "link relativo resolvido", "links relativos resolvidos")}"])
+            : Fail(spec, $"{Plural(problems.Count, "link quebrado", "links quebrados")}.", problems);
     }
 
     private static string Resolve(string path)

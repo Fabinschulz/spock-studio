@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import { errorMessage } from '@/shared/api';
 import { ConfirmAction, Disclosure, PrimaryActionFooter } from '@/shared/components/ui';
-import { formatElapsed } from '@/shared/utils';
+import { formatElapsed, plural } from '@/shared/utils';
 
 import { RunEvalList } from '../../components/run-eval-list';
 import { RunStepRow } from '../../components/run-step-row';
@@ -68,7 +68,7 @@ export function RunStep({ run, onCancel, onBack }: RunStepProps) {
       <RunEvalList evals={run.evals} />
 
       {run.files.length > 0 ? (
-        <Disclosure summary={`${run.files.length} arquivo(s) processado(s)`}>
+        <Disclosure summary={plural(run.files.length, 'arquivo processado', 'arquivos processados')}>
           <ul className={panels.list}>
             {run.files.map((file, index) => (
               <li key={`${file}-${index}`} className={panels.mono}>

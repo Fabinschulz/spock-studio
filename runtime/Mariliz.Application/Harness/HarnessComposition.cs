@@ -147,7 +147,7 @@ internal sealed class HarnessComposition(
         {
             var root = stack.Root.Length == 0 ? "." : stack.Root;
             _observations.Add(new("fact",
-                $"{stack.Name} {stack.Version ?? "(versão desconhecida)"} em '{root}' (confiança {stack.Confidence.ToString().ToLowerInvariant()}).",
+                $"{stack.Name} {stack.Version ?? "(versão desconhecida)"} em '{root}' (confiança {ConfidenceText.Of(stack.Confidence)}).",
                 stack.Evidence.Take(3).Select(e => e.Path).ToList()));
         }
 

@@ -20,7 +20,7 @@ internal sealed class RegressionCheck : IEvalCheck
             if (now is not null && now.Status != EvalStatus.Passed) regressions.Add($"{previous.Id}: passava e agora está {now.Status}");
         }
         return regressions.Count == 0
-            ? Pass(spec, [$"{ctx.PreviousEvals.Count(p => p.Status == nameof(EvalStatus.Passed))} Eval(s) aprovado(s) antes continuam aprovados"])
-            : Fail(spec, $"{regressions.Count} regressão(ões) em relação à execução anterior.", regressions);
+            ? Pass(spec, [$"{Plural(ctx.PreviousEvals.Count(p => p.Status == nameof(EvalStatus.Passed)), "eval aprovado antes continua aprovado", "evals aprovados antes continuam aprovados")}"])
+            : Fail(spec, $"{Plural(regressions.Count, "regressão", "regressões")} em relação à execução anterior.", regressions);
     }
 }

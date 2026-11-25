@@ -502,7 +502,7 @@
   "observations": [
     {
       "kind": "fact",
-      "text": ".NET net10.0 em 'backend' (confiança high).",
+      "text": ".NET net10.0 em 'backend' (confiança alta).",
       "evidence": [
         "backend/App.sln",
         "backend/src/App/App.csproj",

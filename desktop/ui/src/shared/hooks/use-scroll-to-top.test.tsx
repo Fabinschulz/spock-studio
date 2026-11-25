@@ -63,6 +63,28 @@ describe('useScrollToTop', () => {
     expect(area).toHaveFocus();
   });
 
+  it('com seletor, leva o foco para o elemento que casar e, sem ele na área, para a própria área', () => {
+    const area = contentArea();
+    const title = document.createElement('h2');
+    title.tabIndex = -1;
+    title.dataset.stepTitle = '';
+    area.append(title);
+    const { rerender } = renderHook(
+      ({ key }) => useScrollToTop(key, { focus: true, focusSelector: '[data-step-title]' }),
+      {
+        wrapper: within(area),
+        initialProps: { key: 'a' }
+      }
+    );
+
+    rerender({ key: 'b' });
+    expect(title).toHaveFocus();
+
+    title.remove();
+    rerender({ key: 'c' });
+    expect(area).toHaveFocus();
+  });
+
   it('sem pedir foco, não mexe no foco', () => {
     const area = contentArea();
     const { rerender } = renderHook(({ key }) => useScrollToTop(key), {

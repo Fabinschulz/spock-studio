@@ -1,5 +1,6 @@
 import { EvidenceDisclosure } from '@/shared/components/ui';
 import type { Discovery } from '@/shared/schema';
+import { plural } from '@/shared/utils';
 
 import { specificationStateLabel } from '../../domain/labels';
 import styles from './discovery.module.scss';
@@ -9,14 +10,21 @@ const versionText = (version: string | null) => (version ? `versão ${version}` 
 function gitText(git: Discovery['git']): string {
   if (!git.isRepository) return 'não é um repositório';
   return git.hasUncommittedChanges
-    ? `${git.changedPaths.length} alteração(ões) local(is) não commitada(s)`
+    ? plural(git.changedPaths.length, 'alteração local não commitada', 'alterações locais não commitadas')
     : 'sem alterações locais';
 }
 
 function harnessText(inventory: Discovery['inventory']): string {
   const total = Object.values(inventory).reduce((sum, items) => sum + items.length, 0);
   if (total === 0) return 'nenhuma configuração encontrada: o projeto começa do zero';
-  return `${inventory.agents.length} agente(s), ${inventory.skills.length} skill(s), ${inventory.rules.length} regra(s), ${inventory.hooks.length} hook(s), ${inventory.mcpServers.length} servidor(es) MCP, ${inventory.evals.length} arquivo(s) de eval`;
+  return [
+    plural(inventory.agents.length, 'agente', 'agentes'),
+    plural(inventory.skills.length, 'skill', 'skills'),
+    plural(inventory.rules.length, 'regra', 'regras'),
+    plural(inventory.hooks.length, 'hook', 'hooks'),
+    plural(inventory.mcpServers.length, 'servidor MCP', 'servidores MCP'),
+    plural(inventory.evals.length, 'arquivo de eval', 'arquivos de eval')
+  ].join(', ');
 }
 
 export function DiscoverySummary({ discovery }: { discovery: Discovery }) {
