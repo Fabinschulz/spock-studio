@@ -117,8 +117,6 @@ export const cloudReadResultSchema = z.object({
 });
 
 export type CloudProvider = z.infer<typeof cloudProviderSchema>;
-export type CloudCapability = z.infer<typeof cloudCapabilitySchema>;
-export type CloudMechanism = z.infer<typeof cloudMechanismSchema>;
 export type CloudConnection = z.infer<typeof cloudConnectionSchema>;
 export type CloudConnectionStatus = z.infer<typeof cloudConnectionStatusSchema>;
 export type CloudLink = z.infer<typeof cloudLinkSchema>;

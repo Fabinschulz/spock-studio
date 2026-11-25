@@ -1,6 +1,6 @@
 # Contrato v2: regras do motor fora do Python e da UI
 
-Decisão do dono do produto (2026-11-13), a partir de PY-N4, UI-N11 e UI-N12 da auditoria (`docs/auditoria-plataforma-2026-11.md`).
+Decisão do dono do produto (2026-11-13), a partir de PY-N4, UI-N11 e UI-N12 da auditoria de qualidade da plataforma de 2026-11-13 (removida do repositório em 2026-11-24; está no histórico do git).
 Em todos os três casos, outra camada repetia uma regra do motor .NET, e renomear ou mudar a regra no motor degradava a outra camada em silêncio.
 
 ## Fase 1: grupos de fatos descritos pelo motor (PY-N4) — feita

@@ -315,7 +315,6 @@ export const projectInvestigationSchema = z.object({
   limitations: z.array(investigationLimitationSchema)
 });
 
-export type InvestigationStep = z.infer<typeof investigationStepSchema>;
 export type ProjectInvestigation = z.infer<typeof projectInvestigationSchema>;
 /** Um projeto que entra na pergunta ao portfólio. `alias` (p1, p2...) prefixa os ids dos fatos dele. */
 export const portfolioEvidenceProjectSchema = z.object({
@@ -337,10 +336,8 @@ export const portfolioAnswerSchema = z.object({
   answer: assistantAnswerSchema
 });
 
-export type PortfolioEvidenceProject = z.infer<typeof portfolioEvidenceProjectSchema>;
 export type PortfolioEvidence = z.infer<typeof portfolioEvidenceSchema>;
 export type PortfolioAnswer = z.infer<typeof portfolioAnswerSchema>;
-export type EvidenceFact = z.infer<typeof evidenceFactSchema>;
 export type EvidencePack = z.infer<typeof evidencePackSchema>;
 export type AssistantAnswer = z.infer<typeof assistantAnswerSchema>;
 export type AssistantStatement = z.infer<typeof statementSchema>;

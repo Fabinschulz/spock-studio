@@ -45,6 +45,5 @@ export const decisionGetSchema = z.object({ decision: managementDecisionSchema }
 
 export const DECISION_LIMITS = { title: 120, decision: 1000, rationale: 2000, runs: 10 } as const;
 
-export type DecisionRun = z.infer<typeof decisionRunSchema>;
 export type ManagementDecision = z.infer<typeof managementDecisionSchema>;
 export type DecisionSummary = z.infer<typeof decisionSummarySchema>;

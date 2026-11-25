@@ -397,10 +397,8 @@ export const agentPolicySchema = z.object({
 });
 
 export type AgentPolicy = z.infer<typeof agentPolicySchema>;
-export type PolicyRule = z.infer<typeof policyRuleSchema>;
 export type McpServer = z.infer<typeof mcpServerSchema>;
 export type McpInventory = z.infer<typeof mcpInventorySchema>;
-export type ComponentSheet = z.infer<typeof componentSheetSchema>;
 export type CatalogEntry = z.infer<typeof catalogEntrySchema>;
 export type HarnessCatalog = z.infer<typeof harnessCatalogSchema>;
 export type HarnessRevision = z.infer<typeof harnessRevisionSchema>;

@@ -2,9 +2,9 @@
 
 A experiência desktop é `desktop/`: `ui` (esta página) e `host` (janela Tauri). O runtime está em `runtime/` e a intelligence em `intelligence/`.
 
-Espelha a organização do frontend do EmpregaNet: camadas `app → features → shared`, uma pasta por feature com
-responsabilidades separadas e nada de lógica no JSX. O transporte aqui é o motor .NET via host Tauri, e não HTTP; por isso
-`shared/api` faz o papel do cliente axios.
+A organização é em camadas `app → features → shared`, uma pasta por feature com responsabilidades separadas e nada de
+lógica no JSX. O transporte é o motor .NET via host Tauri, e não HTTP; por isso `shared/api` faz o papel de um cliente
+HTTP.
 
 ## Linguagem do produto
 
@@ -12,13 +12,20 @@ A interface fala só do **modelo de implementação Mariliz** e da **estrutura d
 metodologias de terceiros não aparecem como escolha, rótulo ou título; o teste da etapa "Modelo e ambiente" falha se
 aparecerem. Os ids das etapas são `project`, `model`, `plan`, `review`, `run` e `result`.
 
-## Ambientes
+## Áreas
 
-O menu lateral agrupa as telas em **Engenharia** (`project`, `configure-project`, `engineering-request`, `execution`),
-**Gestão** (`management`) e **Plataforma** (`integrations`, `settings`). Os dois ambientes leem o mesmo projeto selecionado
-(`features/project-selection`); nenhum tem cadastro próprio de projeto. `management` só consome o que `integrations`
-expõe pelo `index.ts` e não chama métodos de engenharia. Uma tela que depende do projeto é remontada com
-`key={projectId}`: dado de um projeto não aparece em outro.
+O shell (`src/app/layouts/app-shell`) tem uma barra de áreas fixa (**Início**, **Engenharia**, **Gestão**, **Atividade**,
+**Conexões** e **Configurações**) e, ao lado, um painel com as telas da área aberta. As áreas, as telas de cada uma, o
+nome apresentado e o nome técnico ficam num só lugar, `navigation.tsx`; a área atual vem da rota (`areaOf`), e a
+trilha, as abas de página e a busca (Ctrl K) saem da mesma tabela. O desenho e as decisões estão em
+[workspace-unificado.md](../redesign/workspace-unificado.md).
+
+Engenharia e Gestão leem o mesmo projeto selecionado (`features/project-selection`); nenhuma tem cadastro próprio de
+projeto. `management` só consome o que `integrations` expõe pelo `index.ts` e não chama métodos de engenharia. Uma tela
+que depende do projeto é remontada com `key={projectId}`: dado de um projeto não aparece em outro.
+
+A entrada de pedidos (`features/ask`) só encaminha: o texto segue no estado da navegação (`shared/routing/handoff.ts`)
+até a tela que trata aquele tipo de pedido.
 
 ## Camadas
 
@@ -55,8 +62,9 @@ features/<feature>/
 | `shared/api/` | Cliente do motor (`EngineClient`, `EngineError`) e detecção do runtime Tauri |
 | `shared/schema/` | Contratos Zod do runtime, conferidos contra as fixtures de `contracts` |
 | `shared/hooks/` | Hooks sem domínio (`useCopyToClipboard`, `useScrollToTop`, `useEngineStatus`) |
-| `shared/components/ui/` | Atomic design: `atoms/` ← `molecules/` |
-| `shared/utils/` | Utilitários puros (`cn`) |
+| `shared/routing/` | Caminhos das rotas e o repasse do pedido entre telas |
+| `shared/components/ui/` | Atomic design: `atoms/` ← `molecules/`. Os átomos genéricos (`Tooltip`, `Radio`, `StatusChip`, `CountBadge`) vêm do `@mariliz/ui-kit` e são repassados pelo barrel |
+| `shared/utils/` | Utilitários puros (`cn`, datas, preferências de tela) |
 
 ## Regras de código
 

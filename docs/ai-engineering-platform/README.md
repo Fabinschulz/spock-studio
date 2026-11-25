@@ -23,7 +23,7 @@ compilar nem executar nada; os testes do Spock rodaram localmente, sem rede.
 - [engineering-intelligence-hub](../engineering-intelligence-hub/README.md) (2026-11-16): Context Engine, MCP v2,
   Harness multi-IDE, conectores. Este estudo não o substitui; acrescenta referências arquiteturais, análise de projeto
   existente e Harness por framework, e aponta onde ele ficou desatualizado.
-- [product-audit](../product-audit/README.md) (2026-11-15): auditoria de produto. Os itens AI-09 e AI-18 foram revistos
+- Auditoria de produto de 2026-11-15 (removida do repositório em 2026-11-24; está no histórico do git). Os itens AI-09 e AI-18 foram revistos
   aqui com o código atual.
 
 ## Síntese

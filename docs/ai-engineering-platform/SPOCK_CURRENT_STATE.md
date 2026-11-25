@@ -3,7 +3,7 @@
 > Parte do estudo [Plataforma de engenharia com IA](README.md). Diagnóstico de código em `docs/c2-homologacao-cenario-1`
 > @ `cd0103c` (2026-11-17), só leitura, com testes locais sem rede. Os estudos anteriores
 > ([engineering-intelligence-hub](../engineering-intelligence-hub/README.md),
-> [product-audit](../product-audit/README.md)) são citados, não repetidos; onde divergem do código, a §9 aponta.
+> a auditoria de produto de 2026-11-15, removida do repositório em 2026-11-24; está no histórico do git) são citados, não repetidos; onde divergem do código, a §9 aponta.
 
 ## 1. Resumo
 
@@ -90,7 +90,7 @@ Detalhe em [SPOCK_AI_ENGINEERING_CAPABILITIES.md](SPOCK_AI_ENGINEERING_CAPABILIT
 - **Workflows:** `engineering.request` (linear, sem laço de replanejamento) e `management.investigation` (laço com teto).
 - **RAG:** lexical (FTS5 BM25 + símbolos, RRF). **Achado novo:** o agente recebe ~100-160 caracteres por trecho porque o
   índice corta o `excerpt` em 160 e usa `snippet` de 12 tokens (`knowledge/index.py:103,221`); o `MAX_EXCERPT = 1200`
-  nunca é alcançado. Corrige o AI-09 da [auditoria de IA](../product-audit/AI_ENGINEERING_AUDIT.md), que leu o limite
+  nunca é alcançado. Corrige o AI-09 da auditoria de IA, que leu o limite
   declarado.
 - **Sem filtro por metadado** (linguagem, caminho, tags) e frontmatter não é lido; o índice é estritamente por projeto.
 - **Contrato morto:** `ai.agent.result.v1` não é usado por nenhum código.
@@ -171,7 +171,7 @@ classifica limite de taxa e indisponibilidade, e guarda credenciais no cofre do 
 | [MCP_CAPABILITY_CATALOG.md](../engineering-intelligence-hub/MCP_CAPABILITY_CATALOG.md) §1 | JSON-RPC próprio; sem `structuredContent`; MCP-1 e MCP-2 abertos | SDK oficial 2.4.0; bootstrap estruturado; MCP-1 e MCP-2 corrigidos (#120) |
 | [CURRENT_STATE_REASSESSMENT.md](../engineering-intelligence-hub/CURRENT_STATE_REASSESSMENT.md) §1 | P0-1, P1-6, P2-10 abertos; só a ADR 0001 | H0-1..H0-5 feitos; ADRs 0001-0009 |
 | [backend-architecture.md](../architecture/backend-architecture.md) | 8 pastas na Application; 4 projetos | 24 pastas; `Infrastructure.Cloud` ausente do documento |
-| [AI_ENGINEERING_AUDIT.md](../product-audit/AI_ENGINEERING_AUDIT.md) AI-09 | 1.200 caracteres por trecho | Efetivo é 160 |
-| [AI_ENGINEERING_AUDIT.md](../product-audit/AI_ENGINEERING_AUDIT.md) AI-18 | Python corta em 20k/40k tokens | Corrigido (64k/120k) |
+| Auditoria de engenharia de IA (15/11), AI-09 | 1.200 caracteres por trecho | Efetivo é 160 |
+| Auditoria de engenharia de IA (15/11), AI-18 | Python corta em 20k/40k tokens | Corrigido (64k/120k) |
 | `Engineering/McpInventory.cs:27` (comentário) | "o Spock Studio não grava .mcp.json" | Grava a chave `spock` desde o C2 |
 | `intelligence/server.py:65` (comentário) | Checkpoint "consistente a cada passo" | `durability="exit"` (AI-07) |

@@ -1,6 +1,6 @@
 # Spock Studio: direção visual e de experiência
 
-**Data:** 2026-11-12, com a segunda rodada de 2026-11-17 na seção 13. Documento 5 da análise de referência. Complementa `docs/redesign/proposta-de-redesign.md`
+**Data:** 2026-11-12, com a segunda rodada de 2026-11-17 na seção 13. Documento 5 da análise de referência. Complementa a proposta de redesign Workbench (fora do repositório desde 2026-11-24; a navegação atual está em `docs/redesign/workspace-unificado.md`)
 (direção Workbench, aprovada) e não a substitui: o que aquela proposta decidiu continua valendo.
 
 Este documento é direção, não implementação. Nenhuma tela foi alterada. Os desenhos abaixo são esquemas de estrutura,

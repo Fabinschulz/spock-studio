@@ -29,7 +29,6 @@ export const RUN_STATES = [
 ] as const;
 
 export type RunKind = (typeof RUN_KINDS)[number];
-export type RunState = (typeof RUN_STATES)[number];
 
 export const runItemSchema = z.object({
   runId: z.string(),

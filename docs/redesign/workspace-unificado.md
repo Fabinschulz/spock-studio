@@ -2,7 +2,7 @@
 
 > **Estado:** primeiro incremento entregue no aplicativo real (shell, navegação, Início, entrada de pedidos, painel de atividade, busca e comandos, primeiros passos). As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
 >
-> Continua o trabalho de [proposta-de-redesign.md](proposta-de-redesign.md) (tema, tokens e linguagem visual, que não mudaram). Os produtos de referência estudados não são nomeados aqui; deles saíram princípios, não telas.
+> O tema, os tokens e a linguagem visual vêm do redesign Workbench anterior e não mudaram; a fonte de verdade deles é o código (`desktop/ui/src/shared/styles/_tokens.scss`). Os produtos de referência estudados não são nomeados aqui; deles saíram princípios, não telas.
 
 ## 1. Diagnóstico da interface anterior
 

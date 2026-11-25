@@ -1,7 +1,7 @@
 # Reavaliação do estado atual
 
 > Parte do estudo [Engineering Intelligence Hub](README.md) (2026-11-16). Código lido em `master` `bea3302` (depois dos
-> PRs #109 a #118). Os achados da auditoria de 15/11 ([../product-audit/](../product-audit/README.md)) foram conferidos
+> PRs #109 a #118). Os achados da auditoria estratégica de 15/11 (removida do repositório em 2026-11-24; está no histórico do git) foram conferidos
 > de novo no código. Somente leitura; os testes não foram executados nesta rodada.
 
 ## 1. Os achados da auditoria, hoje
@@ -12,7 +12,7 @@
 | P0-2 Teto de tokens (R-05) | Tela 64k/120k, Python 20k/40k | **Parcial**: o motor já envia o teto (`WorkflowRequests.cs:36`, `InvestigationService.cs:93`), mas o Python faz `min(MAX_TOKENS, pedido)` | `engineering/graph.py:80`, `engineering/state.py:18,110`, `investigation/graph.py:32,82` | Aberto: o corte continua silencioso |
 | P0-3 D-02 no build | CI sem `SpockEdition` | **Igual**, e agora também no MCP | `ci.yml:145,150-151` sem edição; `McpEntry.cs:52-53` monta o runtime da IaC sem política, que cai em `Unrestricted` (`IacRuntimeService.cs:49`) | Aberto, com uma via nova (MCP-2) |
 | P0-3 Ícone e nome | Associação ao personagem | Não reavaliado neste estudo | — | Decisão do dono |
-| P0-4 Validação com modelo real (R-03) | Nunca rodou | **Igual** (C-17 da homologação) | `docs/homologacao-kaivor-2026-11-16/RELATORIO.md:132` | Aberto, depende das chaves do dono |
+| P0-4 Validação com modelo real (R-03) | Nunca rodou | **Igual** (C-17 da homologação) | relatório de homologação de 16/11, fora do repositório | Aberto, depende das chaves do dono |
 | P1-1 ADR de execução e de IA | Inexistente | Igual | `docs/architecture/adr/` só tem a 0001 | Aberto |
 | P1-2 Elo de entrega | Inexistente | Igual | Sem pacote de tarefa, critérios nem pendências no motor | Aberto |
 | P1-3 Git e GitHub tipados | Só `git status`; GitHub só issues e PRs como item | Igual | `Discovery/SystemProbe.cs:36,40`; `GitHubConnector.cs:57-112` | Aberto |

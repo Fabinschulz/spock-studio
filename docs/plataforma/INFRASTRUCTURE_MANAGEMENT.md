@@ -17,7 +17,7 @@ responsabilidades, o que já existe e a ordem das entregas.
 ## 1. Pré-condição verificada
 
 O pedido exigia não começar com pendências críticas ou altas abertas. Em 2026-11-15
-[REMEDIATION_REPORT.md](REMEDIATION_REPORT.md) fechava todo P0 e P1 como corrigido ou bloqueado por dependência externa
+O relatório de remediação de 2026-11-15 (fora do repositório, no histórico do git) fechava todo P0 e P1 como corrigido ou bloqueado por dependência externa
 com dono (A3 OAuth do Jira, E1 Jira real, E2 modelo real). Nenhum deles toca infraestrutura.
 
 ## 2. Responsabilidades

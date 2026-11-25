@@ -13,4 +13,3 @@ export const aiToolSchema = z.object({
 export const aiToolListSchema = z.object({ tools: z.array(aiToolSchema) });
 
 export type AiTool = z.infer<typeof aiToolSchema>;
-export type AiToolList = z.infer<typeof aiToolListSchema>;

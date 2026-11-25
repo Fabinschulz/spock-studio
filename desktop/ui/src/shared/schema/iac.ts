@@ -98,7 +98,6 @@ export const iacRuntimeOfferSchema = z.object({
 export const iacRuntimeOfferResultSchema = z.object({ offer: iacRuntimeOfferSchema });
 
 export type IacEngine = z.infer<typeof iacEngineSchema>;
-export type IacEngineInfo = z.infer<typeof iacEngineInfoSchema>;
 export type IacRuntimeSource = z.infer<typeof iacRuntimeSourceSchema>;
 export type IacRuntimeState = z.infer<typeof iacRuntimeStateSchema>;
 export type IacInstallation = z.infer<typeof iacInstallationSchema>;
@@ -331,7 +330,6 @@ export const iacDriftScheduleSchema = z.object({
 });
 
 export type IacDriftScheduleView = z.infer<typeof iacDriftScheduleSchema>['schedule'];
-export type IacUnmanagedResource = z.infer<typeof iacUnmanagedResourceSchema>;
 export type IacCostEstimate = z.infer<typeof iacCostEstimateSchema>['estimate'];
 export type IacLayout = z.infer<typeof iacLayoutSchema>['layout'];
 
@@ -537,7 +535,6 @@ export type IacStateRoot = z.infer<typeof iacStateRootSchema>;
 export type IacStateRead = z.infer<typeof iacStateReadSchema>['state'];
 export type IacBootstrapPlan = z.infer<typeof iacBootstrapPlanSchema>['plan'];
 export type IacBlueprint = z.infer<typeof iacBlueprintSchema>;
-export type IacBlueprintCheck = z.infer<typeof iacBlueprintCheckSchema>;
 export type IacArchitectDraft = z.infer<typeof iacArchitectDraftSchema>['draft'];
 export type IacArchitectProposal = NonNullable<z.infer<typeof iacArchitectProposalSchema>['proposal']>;
 export type IacGeneratePlan = z.infer<typeof iacGeneratePlanSchema>['plan'];

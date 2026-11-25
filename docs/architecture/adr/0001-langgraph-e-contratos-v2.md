@@ -1,6 +1,6 @@
 # ADR-0001 — LangGraph na inteligência e contratos v2 entre motor e inteligência
 
-**Status:** aceita em 2026-11-02 (Fase 2). **Contexto completo:** [auditoria-orquestracao-agentic.md](../auditoria-orquestracao-agentic.md).
+**Status:** aceita em 2026-11-02 (Fase 2). **Contexto completo:** a auditoria da orquestração agentic de 2026-11-02 (removida do repositório em 2026-11-24; está no histórico do git).
 
 ## Contexto
 
@@ -132,7 +132,7 @@ Sem isso, as dependências dariam 50,6 MB. No macOS o `strip` invalidaria a assi
 | D3 | Pendente: embeddings. Recomendação: adiar até a eval de recall mostrar ganho; o `sqlite-vec` já vem com o checkpointer |
 | D4 | **Decidida** (2026-11-05): só OpenAI, teto em **tokens** por execução (seção D4 abaixo) |
 | D5 | Pendente: Harness Engineer dentro ou fora do produto (reavaliar na Fase 6) |
-| D6 | **Feita**: `docs/blueprints/architecture-blueprint.md` §1 e §10 atualizados |
+| D6 | **Feita** no blueprint de arquitetura da época, hoje fora do repositório |
 | D7 | Pendente: `workspaceId` reservado como `null` no `ai.workflow.start.v2` |
 | D8 | Pendente: acompanhamento ao vivo por `seq` na página de execução já na Fase 3 |
 

@@ -2,7 +2,7 @@
 
 > Parte do estudo [Plataforma de engenharia com IA](README.md), 2026-11-17, sobre `cd0103c`. Avalia se o Spock tem os
 > mecanismos para atuar como plataforma de engenharia assistida por IA: o que existe, o que falta e o que impede o
-> Harness de ser específico por projeto. Complementa [AI_ENGINEERING_AUDIT.md](../product-audit/AI_ENGINEERING_AUDIT.md)
+> Harness de ser específico por projeto. Complementa a auditoria de engenharia de IA de 2026-11-15 (removida do repositório em 2026-11-24; está no histórico do git)
 > (2026-11-15) com o que mudou desde então.
 
 ## 1. Resposta curta

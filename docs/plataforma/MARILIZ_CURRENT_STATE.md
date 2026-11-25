@@ -4,8 +4,8 @@
 **Retrato anterior:** 2026-11-15, `master` em `3f898c3` (#101), com os gates da CI rodados na máquina: motor .NET com
 1389 testes aprovados e 18 ignorados, 5 de integração do executável, inteligência com 192, interface com 823, host com
 45. **Nesta atualização os gates não foram rodados de novo**: as contagens acima são as de 15/11. O que mudou de #102 a
-#132 foi lido no código, nos commits e nos documentos de cada entrega. O que foi provado com serviço real vem de
-[MARILIZ_REAL_WORLD_VALIDATION.md](../MARILIZ_REAL_WORLD_VALIDATION.md), [REMEDIATION_REPORT.md](REMEDIATION_REPORT.md)
+#132 foi lido no código, nos commits e nos documentos de cada entrega. O que foi provado com serviço real vem
+da validação real de 2026-11-14 e do relatório de remediação de 2026-11-15 (os dois fora do repositório, no histórico do git)
 e [INFRASTRUCTURE_MANAGEMENT.md](INFRASTRUCTURE_MANAGEMENT.md).
 
 Registra o que o Spock Studio já faz, o que está parcial e o que não existe, para que as propostas não recriem o que já
