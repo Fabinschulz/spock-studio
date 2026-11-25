@@ -1,11 +1,11 @@
 import { useProjectSelectionContext } from '@/features/project-selection';
-import { Radio } from '@/shared/components';
+import { InlineNotice, Radio } from '@/shared/components';
 import { handoffState } from '@/shared/routing';
 import { ArrowRightIcon, Button, TextField } from '@mariliz/ui-kit';
 import { useId, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 
-import { ASK_KINDS, ASK_OPTIONS, suggestAskKind, type AskKind } from '../domain/intent';
+import { ASK_KINDS, ASK_OPTIONS, askNotice, suggestAskKind, type AskKind, type AskReadiness } from '../domain/intent';
 import styles from './request-composer.module.scss';
 
 const MIN_TEXT = 3;
@@ -21,14 +21,17 @@ export interface ComposerShortcut {
 
 interface RequestComposerProps {
   findShortcuts?: (text: string) => readonly ComposerShortcut[];
+  /** O que o motor disse estar pronto. Sem isso, a entrada não avisa nada. */
+  readiness?: AskReadiness;
 }
 
 /**
  * A pessoa escreve o que quer e escolhe (ou aceita) o caminho. Nada é executado aqui: o texto segue para a tela que
  * trata aquele tipo de pedido, onde ela revisa as opções antes de iniciar.
  */
-export function RequestComposer({ findShortcuts }: RequestComposerProps) {
+export function RequestComposer({ findShortcuts, readiness }: RequestComposerProps) {
   const hintId = useId();
+  const noticeId = useId();
   const navigate = useNavigate();
   const { selected, pick, busy, unavailableReason } = useProjectSelectionContext();
   const [text, setText] = useState('');
@@ -38,6 +41,7 @@ export function RequestComposer({ findShortcuts }: RequestComposerProps) {
   const trimmed = text.trim();
   const kind = chosen ?? suggestAskKind(trimmed);
   const option = ASK_OPTIONS[kind];
+  const notice = readiness ? askNotice(kind, readiness) : null;
   const ready = trimmed.length >= MIN_TEXT && !busy && !unavailableReason;
   const shortcuts = trimmed.length >= MIN_TEXT ? (findShortcuts?.(trimmed).slice(0, MAX_SHORTCUTS) ?? []) : [];
 
@@ -67,7 +71,7 @@ export function RequestComposer({ findShortcuts }: RequestComposerProps) {
         value={text}
         onChange={(event) => setText(event.target.value)}
         onKeyDown={onKeyDown}
-        slotProps={{ htmlInput: { 'aria-describedby': hintId } }}
+        slotProps={{ htmlInput: { 'aria-describedby': notice ? `${hintId} ${noticeId}` : hintId } }}
       />
 
       <fieldset className={styles.kinds}>
@@ -83,6 +87,20 @@ export function RequestComposer({ findShortcuts }: RequestComposerProps) {
           />
         ))}
       </fieldset>
+
+      {notice ? (
+        <div id={noticeId}>
+          <InlineNotice tone="warning">
+            {notice.text}
+            {notice.action ? (
+              <>
+                {' '}
+                <Link to={notice.action.to}>{notice.action.label}</Link>
+              </>
+            ) : null}
+          </InlineNotice>
+        </div>
+      ) : null}
 
       <div className={styles.footer}>
         <p id={hintId} className={styles.hint} aria-live="polite">

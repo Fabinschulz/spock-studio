@@ -1,6 +1,6 @@
 # Spock Studio — Workspace unificado
 
-> **Estado:** primeiro incremento entregue no aplicativo real (shell, navegação, Início, entrada de pedidos, painel de atividade, busca e comandos, primeiros passos). As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
+> **Estado:** dois incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
 >
 > O tema, os tokens e a linguagem visual vêm do redesign Workbench anterior e não mudaram; a fonte de verdade deles é o código (`desktop/ui/src/shared/styles/_tokens.scss`). Os produtos de referência estudados não são nomeados aqui; deles saíram princípios, não telas.
 
@@ -73,14 +73,25 @@ Os dados vêm de `run.list`, que já existia; nenhum contrato novo.
 
 Existe em dois lugares com as mesmas regras (`features/ask`):
 
-- No **Início**, um campo de texto com três tipos de atividade: Pedido de engenharia, Pergunta sobre o projeto, Nova ideia.
-- Em **qualquer tela**, a busca do topo (Ctrl K): uma frase com três ou mais palavras passa a oferecer os mesmos três caminhos, com o mais provável já marcado.
+- No **Início**, um campo de texto com quatro tipos de atividade: Pedido de engenharia, Pergunta sobre o código, Pergunta sobre o andamento e Nova ideia.
+- Em **qualquer tela**, a busca do topo (Ctrl K): uma frase com três ou mais palavras passa a oferecer os mesmos quatro caminhos, com o mais provável já marcado.
 
 A entrada **só encaminha**. O texto segue no estado da navegação até a tela que trata aquele tipo de pedido, que abre com ele preenchido; nada é iniciado sem o clique nessa tela, e as opções dela (análise de impacto, uso do modelo, aprovação) continuam lá. O texto não entra na URL nem fica guardado.
 
-O tipo sugerido vem de regras simples e explicáveis (`suggestAskKind`): palavras como "risco", "prazo", "andamento" ou uma pergunta sugerem o Assistente; "ideia" ou "novo projeto" sugerem Da ideia ao projeto; o resto é pedido de engenharia. Nenhum modelo de IA decide: o aplicativo funciona sem chave configurada, e a pessoa vê a sugestão e pode trocá-la. Depois que ela escolhe um tipo, a escolha dela fica.
+| Tipo de atividade | Tela que trata | O que ela faz |
+| --- | --- | --- |
+| Pedido de engenharia | Pedidos | Analisa o pedido no projeto e mostra o impacto antes de mexer em arquivo |
+| Pergunta sobre o código | Agentes de IA | Uma ferramenta de IA instalada no computador lê o projeto e responde, só para leitura |
+| Pergunta sobre o andamento | Assistente | Responde sobre prazos, riscos e previsão, separando fato de interpretação |
+| Nova ideia | Da ideia ao projeto | Monta especificação, arquitetura e backlog, uma etapa por vez |
+
+O tipo sugerido vem de regras simples e explicáveis (`suggestAskKind`): "ideia" ou "novo projeto" sugerem Da ideia ao projeto; o vocabulário de gestão ("risco", "prazo", "andamento", "entrega") sugere o Assistente; uma pergunta sem esse vocabulário, ou um "explique" e um "como funciona", é sobre o código; o resto é pedido de engenharia. Nenhum modelo de IA decide: o aplicativo funciona sem chave configurada, e a pessoa vê a sugestão e pode trocá-la. Depois que ela escolhe um tipo, a escolha dela fica.
 
 Como às vezes quem escreve procurava um lugar, a entrada também mostra até três telas relacionadas ao texto (`suggestCommands`): "configure as integrações" oferece Serviços.
+
+A entrada do Início avisa quando o caminho escolhido depende de algo que falta (`askNotice`), e só então: a pergunta sobre o andamento sem modelo de IA conectado mostra o aviso com o link para Conexões › Modelos de IA; a pergunta sobre o código sem ferramenta de IA instalada diz que nenhuma foi encontrada. O pedido de engenharia e a nova ideia não avisam nada, porque funcionam sem os dois. O aviso sai do que o motor responde (`model.status`, `aitool.list`); sem resposta, não aparece.
+
+Seletores de modelo e de agente dentro da entrada foram avaliados e ficaram de fora: o contrato de início de pedido não recebe modelo por pedido (o modelo por finalidade se define em Conexões), e a escolha da ferramenta de IA continua na tela de agentes, que mostra quais estão instaladas.
 
 ## 3. Início
 
@@ -102,7 +113,7 @@ A paleta (Ctrl K) agora agrupa o que oferece:
 - **Ações**: abrir pasta de projeto, mostrar a atividade, abrir o terminal, recolher o menu, ver os atalhos.
 - **Telas**: todas, de todas as áreas, com uma frase dizendo para que servem. Acham-se pelo nome apresentado e pelo técnico ("harness" acha Padrões do projeto; "integrações" acha Serviços).
 - **Projetos**: os recentes, pelo nome ou pelo caminho.
-- **Pedir ao Spock Studio**: os três caminhos, quando o texto é uma frase.
+- **Pedir ao Spock Studio**: os quatro caminhos, quando o texto é uma frase.
 
 Quem escreve o nome de algo recebe esse algo primeiro; quem escreve uma frase recebe os caminhos de pedido primeiro e as telas relacionadas depois.
 
@@ -163,6 +174,8 @@ Feita no aplicativo real (janela Tauri, motor .NET e um projeto de verdade), dir
 | Teclado: ordem do foco (atalho, marca, áreas) e foco visível | passou |
 | Frase no Início vira pedido de engenharia com o objetivo preenchido | passou |
 | Pergunta no Início sugere o Assistente e oferece telas relacionadas | passou |
+| Pergunta sobre o andamento sem modelo conectado mostra o aviso e o link para conectar | passou |
+| Pergunta sobre o código segue para os agentes, preenchida, com o aviso de ferramenta ausente | passou |
 | Ctrl K: "harness" leva a Padrões do projeto | passou |
 | Ctrl K: frase oferece os caminhos e leva a pergunta ao Assistente, preenchida | passou |
 | Ctrl + ponto: tarefas, feed e detalhe de uma execução sem sair da tela | passou |
@@ -171,10 +184,10 @@ Feita no aplicativo real (janela Tauri, motor .NET e um projeto de verdade), dir
 | Ctrl B recolhe e expande o painel | passou |
 | 800×600: painel recolhido, abre por cima, fecha com Esc, sem rolagem horizontal | passou |
 | 480×800: barra só de ícones com nome acessível, sem rolagem horizontal | passou |
-| axe (WCAG 2.2 AA, com contraste) em 11 estados de tela | 0 violações |
+| axe (WCAG 2.2 AA, com contraste) em 12 estados de tela | 0 violações |
 | Console sem erros durante as jornadas | passou |
 
-Total: 29 de 29. Além disso, `pnpm check` (tipos, lint, formatação e 984 testes em 105 arquivos) passa.
+Total: 32 de 32. Além disso, `pnpm check` (tipos, lint, formatação e 999 testes em 105 arquivos) passa.
 
 A validação achou e corrigiu três defeitos que já existiam: dois ícones da biblioteca com atributos SVG que o React recusava (aviso no console a cada renderização), as abas da biblioteca ilegíveis no tema escuro e uma chave repetida na lista de ferramentas da Visão geral quando dois módulos declaram a mesma ferramenta.
 
@@ -183,6 +196,8 @@ A validação achou e corrigiu três defeitos que já existiam: dois ícones da 
 - Leitor de tela de verdade (NVDA ou Narrador). O axe e os testes cobrem nomes, papéis e estados, não a experiência de ouvir a tela.
 - Um computador sem nenhum projeto recente. O estado "primeiro projeto" está coberto pelos testes de componente, não foi visto no aplicativo real.
 - Uma execução esperando aprovação de verdade. A aba Tarefas foi vista vazia no aplicativo; com tarefa, só nos testes.
+- A entrada de pedidos com modelo conectado e com ferramenta de IA instalada: no computador da validação o motor respondeu que não havia nenhum dos dois, então o aplicativo real mostrou os avisos; a ausência deles está só nos testes.
+- O envio de uma pergunta a uma ferramenta de IA: a jornada confere que o texto chega preenchido e para ali.
 - macOS e Linux.
 - As jornadas não estão no repositório nem no CI: rodaram a partir de um roteiro fora dele (seção 10).
 
@@ -190,12 +205,11 @@ A validação achou e corrigiu três defeitos que já existiam: dois ícones da 
 
 Incrementos:
 
-1. **Entrada de pedidos**: seletores de modelo e de agente quando fizerem diferença; "Pedir a um agente de IA" como quarto tipo.
-2. **Feed por projeto**: a linha do tempo do projeto aberto (`timeline.read`) como terceira aba do painel, com decisões e sincronizações além das execuções.
-3. **Painel redimensionável**, como já é o inferior.
-4. **Nomes dentro das telas**: "Integrações" e "Conexões cloud" ainda são os títulos das telas que o menu chama de "Serviços" e "Nuvem".
-5. **`CheckboxOption`**: o par do `Radio` com rótulo rico ainda é local; cabe no `Checkbox` da biblioteca quando o rótulo dele aceitar conteúdo.
-6. **Fluxos internos** de Engenharia e de Gestão (filtros de Execuções, que ocupam três linhas inteiras; a tela de Configurar) não foram redesenhados.
+1. **Feed por projeto**: a linha do tempo do projeto aberto (`timeline.read`) como terceira aba do painel, com decisões e sincronizações além das execuções.
+2. **Painel redimensionável**, como já é o inferior.
+3. **Nomes dentro das telas**: "Integrações" e "Conexões cloud" ainda são os títulos das telas que o menu chama de "Serviços" e "Nuvem".
+4. **`CheckboxOption`**: o par do `Radio` com rótulo rico ainda é local; cabe no `Checkbox` da biblioteca quando o rótulo dele aceitar conteúdo.
+5. **Fluxos internos** de Engenharia e de Gestão (filtros de Execuções, que ocupam três linhas inteiras; a tela de Configurar) não foram redesenhados.
 
 Decisões do dono:
 

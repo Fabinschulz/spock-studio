@@ -40,11 +40,33 @@ const run = (runId: string, state: string) => ({
 });
 
 /** O motor de mentira responde só o que o início pergunta. */
-function engine(facts: { model?: boolean; connections?: number; applied?: boolean; runs?: unknown[] }): EngineClient {
+interface Facts {
+  model?: boolean;
+  connections?: number;
+  applied?: boolean;
+  runs?: unknown[];
+  /** Há uma ferramenta de IA instalada no computador. */
+  agent?: boolean;
+}
+
+function engine(facts: Facts): EngineClient {
   return {
     request: vi.fn(async (method: string, params: Record<string, unknown>, schema) => {
       if (method === 'model.status') return schema.parse({ configured: facts.model ?? false, provider: 'anthropic' });
       if (method === 'connection.list') return { connections: Array(facts.connections ?? 0).fill({}) } as never;
+      if (method === 'aitool.list')
+        return schema.parse({
+          tools: [
+            {
+              id: 'claude-code',
+              name: 'Claude Code',
+              binary: 'claude',
+              installed: facts.agent ?? false,
+              version: null,
+              harnessSupport: true
+            }
+          ]
+        });
       if (method === 'engineering.harness') return { applied: facts.applied ?? false } as never;
       if (method === 'run.list')
         return schema.parse({
@@ -247,11 +269,80 @@ describe('Início · entrada de pedidos', () => {
     expect(screen.getByRole('radio', { name: 'Pedido de engenharia' })).toBeChecked();
 
     await userEvent.type(field(), 'Quais são os riscos do projeto?');
-    expect(screen.getByRole('radio', { name: 'Pergunta sobre o projeto' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Pergunta sobre o andamento' })).toBeChecked();
 
     await userEvent.click(screen.getByRole('radio', { name: 'Nova ideia' }));
     await userEvent.type(field(), ' e os prazos');
     expect(screen.getByRole('radio', { name: 'Nova ideia' })).toBeChecked();
+  });
+
+  it('oferece os quatro caminhos, com nomes que dizem para que servem', () => {
+    renderHome();
+
+    expect(screen.getAllByRole('radio').map((radio) => radio.getAttribute('value'))).toEqual([
+      'request',
+      'agent',
+      'assistant',
+      'idea'
+    ]);
+    expect(screen.getByRole('radio', { name: 'Pergunta sobre o código' })).toBeInTheDocument();
+  });
+
+  it('uma pergunta sem vocabulário de gestão é sobre o código, e segue para a tela de agentes', async () => {
+    renderHome({ picker: { pick: vi.fn().mockResolvedValue(project) } });
+
+    await userEvent.type(field(), 'Como funciona a autenticação?{Enter}');
+
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/agentes'));
+    expect(screen.getByTestId('handoff')).toHaveTextContent('Como funciona a autenticação?');
+  });
+
+  it('avisa quando o caminho escolhido usa um modelo de IA e nenhum está conectado, e diz onde conectar', async () => {
+    hosted();
+    renderHome({ client: engine({ model: false, agent: true }) });
+
+    await userEvent.type(field(), 'Quais são os riscos do projeto?');
+
+    const notice = await screen.findByRole('note');
+    expect(notice).toHaveTextContent(/usa um modelo de IA.*nenhum está conectado/);
+    expect(within(notice).getByRole('link', { name: 'Conectar um modelo de IA' })).toHaveAttribute(
+      'href',
+      '/conexoes/modelos'
+    );
+    expect(field()).toHaveAccessibleDescription(/nenhum está conectado/);
+  });
+
+  it('avisa quando a pergunta sobre o código não tem ferramenta de IA instalada para responder', async () => {
+    hosted();
+    renderHome({ client: engine({ model: true, agent: false }) });
+
+    await userEvent.click(screen.getByRole('radio', { name: 'Pergunta sobre o código' }));
+
+    expect(await screen.findByRole('note')).toHaveTextContent(/nenhuma foi encontrada/);
+  });
+
+  it('não avisa nada para o caminho que não depende do que falta', async () => {
+    hosted();
+    const { client } = renderHome({ client: engine({ model: false, agent: false }) });
+    await userEvent.type(field(), 'trocar a cor do botão');
+    // O motor já respondeu que não há modelo nem ferramenta: o pedido de engenharia roda sem os dois.
+    await waitFor(() => expect(client.request).toHaveBeenCalledWith('aitool.list', {}, expect.anything()));
+    await waitFor(() => expect(client.request).toHaveBeenCalledWith('model.status', {}, expect.anything()));
+
+    expect(screen.getByRole('radio', { name: 'Pedido de engenharia' })).toBeChecked();
+    expect(screen.queryByRole('note')).not.toBeInTheDocument();
+
+    // Com a mesma resposta do motor, trocar para um caminho que depende do modelo faz o aviso aparecer.
+    await userEvent.click(screen.getByRole('radio', { name: 'Pergunta sobre o andamento' }));
+    expect(await screen.findByRole('note')).toBeInTheDocument();
+  });
+
+  it('fora do aplicativo não há motor para perguntar, então não há aviso', async () => {
+    renderHome();
+
+    await userEvent.type(field(), 'Quais são os riscos do projeto?');
+
+    expect(screen.queryByRole('note')).not.toBeInTheDocument();
   });
 
   it('só continua com texto, e explica o que vai acontecer', async () => {

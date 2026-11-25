@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
 import type { RunEvent } from '@/shared/schema';
+import { handoffState } from '@/shared/routing';
 import { expectNoA11yViolations } from '@/test/a11y';
 
 import { AgentsPage } from './agents-page';
@@ -89,10 +90,11 @@ function fakeEngine(
   };
 }
 
-function renderPage(client: EngineClient, project: typeof loja | null = loja) {
+function renderPage(client: EngineClient, project: typeof loja | null = loja, handoff?: string) {
+  const entry = handoff ? { pathname: '/agentes', state: handoffState(handoff) } : '/agentes';
   return render(
     <AppProviders>
-      <MemoryRouter>
+      <MemoryRouter initialEntries={[entry]}>
         <AgentsPage client={client} project={project} />
       </MemoryRouter>
     </AppProviders>
@@ -115,6 +117,14 @@ describe('Agentes de IA', () => {
     expect(screen.getByRole('button', { name: 'Pedir ao agente' })).toBeDisabled();
     expect(screen.getByText('Escolha uma ferramenta instalada e escreva o pedido para enviar.')).toBeInTheDocument();
     await expectNoA11yViolations(container);
+  });
+
+  it('quem chega pela entrada de pedidos encontra a pergunta preenchida, e nada é enviado sem o clique', async () => {
+    const engine = fakeEngine();
+    renderPage(engine.client, loja, 'Como funciona a autenticação?');
+
+    expect(await screen.findByLabelText(/O que você quer saber/)).toHaveValue('Como funciona a autenticação?');
+    expect(screen.getByRole('button', { name: 'Pedir ao agente' })).toBeDisabled();
   });
 
   it('pede pelo projeto aberto, mostra a saída ao vivo e depois a resposta', async () => {

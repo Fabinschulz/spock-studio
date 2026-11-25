@@ -1,3 +1,4 @@
+import { useAgentInstalled } from '@/features/agents';
 import { RequestComposer, type ComposerShortcut } from '@/features/ask';
 import { RecentShortcuts, useProjectSelectionContext } from '@/features/project-selection';
 import { isTauriRuntime, type EngineClient } from '@/shared/api';
@@ -29,6 +30,7 @@ export function HomePage({ client, findShortcuts }: HomePageProps) {
   const engine = useEngineStatus();
   const engineReady = isTauriRuntime() && engine.status === 'ready';
   const setup = useSetupStatus(client, selected?.projectId ?? null, engineReady);
+  const agentInstalled = useAgentInstalled(client, engineReady);
   const [setupHidden, setSetupHidden] = useState(() => readPreference(SETUP_KEY) === HIDDEN);
 
   const showSetup = (visible: boolean) => {
@@ -51,7 +53,7 @@ export function HomePage({ client, findShortcuts }: HomePageProps) {
     <div className={styles.page}>
       <Hero />
       {error ? <Alert severity="error" title="Não foi possível abrir o projeto" description={error} /> : null}
-      <RequestComposer findShortcuts={findShortcuts} />
+      <RequestComposer findShortcuts={findShortcuts} readiness={{ modelConfigured: setup.model, agentInstalled }} />
       <JourneyGrid
         journeys={journeysFor({ hasProject: selected !== null, hasRecents: recents.length > 0 })}
         onStartJourney={(journey) => void startJourney(journey)}

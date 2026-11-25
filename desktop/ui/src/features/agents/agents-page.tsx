@@ -14,12 +14,12 @@ import {
   Term
 } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
-import { pathTo } from '@/shared/routing';
+import { pathTo, readHandoff } from '@/shared/routing';
 import type { AiTool } from '@/shared/schema';
 import { runStateLabel } from '@/shared/utils';
 import { Button, TextField } from '@mariliz/ui-kit';
 import { useCallback, useMemo, useState, type FormEvent } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 
 import styles from './agents-page.module.scss';
 import { IdeConnectionSection } from './components/ide-connection-section';
@@ -51,7 +51,8 @@ function ProjectAgents({ api, project }: { api: AgentApi; project: SelectedProje
   const tools = useAsyncResource(useCallback(() => api.tools(), [api]));
   const { run, start, cancel } = useAgentRun(api);
   const [chosen, setChosen] = useState<string | null>(null);
-  const [prompt, setPrompt] = useState('');
+  const { state } = useLocation();
+  const [prompt, setPrompt] = useState(() => readHandoff(state)?.slice(0, MAX_PROMPT) ?? '');
   const busy = run.status === 'starting' || run.status === 'running';
 
   const submit = (event: FormEvent) => {

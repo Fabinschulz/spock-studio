@@ -165,14 +165,15 @@ describe('CommandPalette', () => {
     // A frase é um pedido: o caminho mais provável já vem marcado, e Enter o segue.
     const first = screen.getAllByRole('option')[0]!;
     expect(first).toHaveAttribute('aria-selected', 'true');
-    expect(first).toHaveTextContent('Pergunta sobre o projeto');
+    expect(first).toHaveTextContent('Pergunta sobre o andamento');
     expect(
       within(ask)
         .getAllByRole('option')
         .map((option) => option.textContent)
     ).toEqual([
-      expect.stringContaining('Pergunta sobre o projeto'),
+      expect.stringContaining('Pergunta sobre o andamento'),
       expect.stringContaining('Pedido de engenharia'),
+      expect.stringContaining('Pergunta sobre o código'),
       expect.stringContaining('Nova ideia')
     ]);
     expect(
