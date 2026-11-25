@@ -30,7 +30,7 @@ describe('ValidationList', () => {
     );
   });
 
-  it('abre sozinha a verificação reprovada ou bloqueada e deixa a aprovada recolhida', () => {
+  it('o que pede atenção vem primeiro e aberto; as aprovadas ficam numa linha recolhida', () => {
     const report = {
       outcome: 'failed' as const,
       results: [
@@ -41,8 +41,10 @@ describe('ValidationList', () => {
     };
     const { container } = render(<ValidationList report={report} />);
 
+    const names = [...container.querySelectorAll('summary')].map((node) => node.textContent);
+    expect(names).toEqual(['QuebrouReprovado', 'TravouBloqueado', '1 aprovada', 'PassouAprovado']);
     const open = [...container.querySelectorAll('details')].map((node) => node.open);
-    expect(open).toEqual([false, true, true]);
+    expect(open).toEqual([true, true, false, false]);
   });
 
   it('expande para mostrar critério, evidências e limites', async () => {
@@ -51,7 +53,8 @@ describe('ValidationList', () => {
       results: [result({ limitations: ['sem juiz por modelo'], evidence: ['AGENTS.md', 'CLAUDE.md'] })]
     };
     const { container } = render(<ValidationList report={report} />);
-    const details = container.querySelector('details')!;
+    await userEvent.click(screen.getByText('1 aprovada'));
+    const details = container.querySelectorAll('details')[1]!;
     expect(details.open).toBe(false);
 
     await userEvent.click(screen.getByText('Estrutura presente'));

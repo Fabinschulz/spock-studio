@@ -14,9 +14,11 @@ interface ProposalGuideProps {
   /** Uma reversão ou validação em andamento: gerar outro plano agora tiraria a pessoa do resultado no meio dela. */
   busy: boolean;
   naming: HarnessNames;
+  /** Quando é a saída principal do Resultado, o botão vem preenchido; senão, contornado. */
+  primary?: boolean;
 }
 
-export function ProposalGuide({ onReplan, replan, busy, naming }: ProposalGuideProps) {
+export function ProposalGuide({ onReplan, replan, busy, naming, primary = true }: ProposalGuideProps) {
   const { state: copyState, copy } = useCopyToClipboard();
   const prompt = harnessEngineerPrompt(naming);
 
@@ -42,7 +44,12 @@ export function ProposalGuide({ onReplan, replan, busy, naming }: ProposalGuideP
         <Button variant="outlined" color="inherit" onClick={() => void copy(prompt)}>
           {copyState === 'copied' ? 'Copiado' : 'Copiar pedido'}
         </Button>
-        <Button variant="contained" onClick={onReplan} disabled={busy || replan.status === 'loading'}>
+        <Button
+          variant={primary ? 'contained' : 'outlined'}
+          color={primary ? 'primary' : 'inherit'}
+          onClick={onReplan}
+          disabled={busy || replan.status === 'loading'}
+        >
           {replan.status === 'loading' ? 'Gerando plano…' : 'Gerar o plano de novo'}
         </Button>
       </div>

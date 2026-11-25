@@ -41,13 +41,30 @@ export function explainOutcome(result: RunResult): string {
   }
 }
 
+/** A aplicação deixou alterações no projeto e ninguém as reverteu: só aí faz sentido seguir a partir dela. */
+const stillApplied = (apply: RunResult | null, revert: RunResult | null): apply is RunResult =>
+  apply !== null && apply.changesApplied === true && !apply.rolledBack && revert?.outcome !== 'completed';
+
 /** O agente só existe no projeto depois de aplicado: enquanto o plano usou as regras-base, falta pedir a proposta. */
 export function awaitingHarnessProposal(apply: RunResult | null, revert: RunResult | null): boolean {
   return (
-    apply !== null &&
-    apply.changesApplied === true &&
-    !apply.rolledBack &&
-    revert?.outcome !== 'completed' &&
+    stillApplied(apply, revert) &&
     (apply.limitations ?? []).some((limitation) => limitation.code === HARNESS_ENGINEER_NOT_INVOKED)
   );
+}
+
+/** A saída que vira o botão principal do Resultado; sem nenhuma, o principal é Concluir. */
+export type ResultExit = 'proposal' | 'install' | null;
+
+/**
+ * Uma saída por vez. A proposta do agente vem antes: o plano novo, gerado depois dela, já traz a estrutura de
+ * especificação para aprovar de novo.
+ */
+export function resultExit(
+  apply: RunResult | null,
+  revert: RunResult | null,
+  specificationSkipped: boolean
+): ResultExit {
+  if (awaitingHarnessProposal(apply, revert)) return 'proposal';
+  return stillApplied(apply, revert) && specificationSkipped ? 'install' : null;
 }

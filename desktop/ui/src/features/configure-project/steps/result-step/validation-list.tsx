@@ -1,4 +1,4 @@
-import { StatusChip } from '@/shared/components/ui';
+import { Disclosure, StatusChip } from '@/shared/components/ui';
 import type { EvalResult, RunResult } from '@/shared/schema';
 import { plural } from '@/shared/utils';
 
@@ -26,21 +26,36 @@ function needsAttention(result: EvalResult): boolean {
   return result.status === 'failed' || result.status === 'blocked';
 }
 
+/** O que pede atenção vem primeiro, na ordem do motor; as aprovadas ficam numa linha que se abre. */
 export function ValidationList({ report }: { report: Report }) {
+  const problems = report.results.filter((result) => result.status !== 'passed');
+  const passed = report.results.filter((result) => result.status === 'passed');
+
   return (
     <section aria-labelledby="validacao-titulo" className={styles.section}>
       <h3 id="validacao-titulo" className={styles.title}>
         Verificações
       </h3>
       <p className={styles.summary}>{validationSummary(report.results)}</p>
-      <ul role="list" className={styles.list}>
-        {report.results.map((result) => (
-          <li key={result.id}>
-            <EvalRow result={result} />
-          </li>
-        ))}
-      </ul>
+      {problems.length > 0 ? <EvalRows results={problems} /> : null}
+      {passed.length > 0 ? (
+        <Disclosure summary={plural(passed.length, 'aprovada', 'aprovadas')}>
+          <EvalRows results={passed} />
+        </Disclosure>
+      ) : null}
     </section>
+  );
+}
+
+function EvalRows({ results }: { results: readonly EvalResult[] }) {
+  return (
+    <ul role="list" className={styles.list}>
+      {results.map((result) => (
+        <li key={result.id}>
+          <EvalRow result={result} />
+        </li>
+      ))}
+    </ul>
   );
 }
 

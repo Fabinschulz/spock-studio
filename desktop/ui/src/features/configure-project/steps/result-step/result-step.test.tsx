@@ -18,8 +18,8 @@ const naming: HarnessNames = {
   harnessEngineerAgent: '.claude/agents/spock-harness-engineer.md'
 };
 
-const renderStep = (onRevert = vi.fn()) => {
-  const apply = { ...runResultSchema.parse(applyResult), rollbackAvailable: true };
+const renderStep = (onRevert = vi.fn(), over: Partial<Parameters<typeof ResultStep>[0]> = {}) => {
+  const apply = { ...runResultSchema.parse(applyResult), rollbackAvailable: true, limitations: [] };
   render(
     <AppProviders>
       <ResultStep
@@ -31,6 +31,7 @@ const renderStep = (onRevert = vi.fn()) => {
         onReplan={vi.fn()}
         replan={{ status: 'idle' }}
         naming={naming}
+        {...over}
       />
     </AppProviders>
   );
@@ -62,5 +63,25 @@ describe('ResultStep', () => {
 
     expect(onRevert).not.toHaveBeenCalled();
     expect(screen.queryByRole('group', { name: 'Reverter as alterações' })).not.toBeInTheDocument();
+  });
+
+  it('instalador sem aprovação: o alerta diz a causa e a saída vira o único botão principal', async () => {
+    const onInstallSpecification = vi.fn();
+    renderStep(vi.fn(), { specificationSkipped: true, onInstallSpecification });
+
+    expect(screen.getByText(/Causa: a estrutura de especificação não foi instalada/)).toBeInTheDocument();
+    const exit = screen.getByRole('button', { name: 'Instalar a estrutura e gerar o plano de novo' });
+    expect(exit).toHaveClass('MuiButton-contained');
+    expect(screen.getByRole('button', { name: 'Concluir' })).toHaveClass('MuiButton-outlined');
+
+    await userEvent.click(exit);
+    expect(onInstallSpecification).toHaveBeenCalledTimes(1);
+  });
+
+  it('sem nada pendente, Concluir é o principal e não há causa no alerta', () => {
+    renderStep();
+
+    expect(screen.queryByText(/^Causa:/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Concluir' })).toHaveClass('MuiButton-contained');
   });
 });

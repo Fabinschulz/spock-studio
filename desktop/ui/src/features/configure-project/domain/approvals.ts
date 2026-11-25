@@ -21,6 +21,10 @@ export function defaultApprovals(plan: ConfigurationPlan, installSpecification =
   };
 }
 
+/** O plano trazia o instalador da estrutura de especificação e a pessoa não o aprovou. */
+export const specificationSkipped = (plan: ConfigurationPlan, approvedCommands: readonly string[]): boolean =>
+  plan.commands.some((c) => SPECIFICATION_COMMANDS.has(c.id) && !approvedCommands.includes(c.id));
+
 export const toggleId = (list: string[], id: string) =>
   list.includes(id) ? list.filter((item) => item !== id) : [...list, id];
 
