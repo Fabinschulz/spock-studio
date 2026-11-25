@@ -1,4 +1,4 @@
-import { CheckboxOption } from '@/shared/components';
+import { Checkbox } from '@mariliz/ui-kit';
 import type { Discovery } from '@/shared/schema';
 
 import { EnvironmentGlyph } from '../../components/environment-glyph';
@@ -43,7 +43,7 @@ export function AiEnvironmentSection({ discovery, selected, onToggle }: AiEnviro
             ];
             return (
               <li key={id}>
-                <CheckboxOption
+                <Checkbox
                   name="ai-environment"
                   value={id}
                   checked={selected.includes(id)}

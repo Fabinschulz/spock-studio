@@ -1,6 +1,6 @@
 # Spock Studio — Workspace unificado
 
-> **Estado:** cinco incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade; o quarto, a largura ajustável desse painel; o quinto, os títulos das telas iguais aos nomes do menu. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
+> **Estado:** seis incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade; o quarto, a largura ajustável desse painel; o quinto, os títulos das telas iguais aos nomes do menu; o sexto, o `Checkbox` da biblioteca no lugar do componente local e o resumo da jornada Configurar que não cobre mais o conteúdo. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
 >
 > O tema, os tokens e a linguagem visual vêm do redesign Workbench anterior e não mudaram; a fonte de verdade deles é o código (`desktop/ui/src/shared/styles/_tokens.scss`). Os produtos de referência estudados não são nomeados aqui; deles saíram princípios, não telas.
 
@@ -141,13 +141,17 @@ Ficam como estão, de propósito: os textos que vêm do motor (como "Validação
 
 Nenhum nome interno, contrato ou método do motor mudou.
 
+### Resumo da jornada Configurar
+
+O resumo ao lado da jornada decidia se começava aberto pela largura da janela (1180 px ou mais), enquanto o layout decide se ele cabe ao lado pela largura da área de conteúdo (62rem). Com o menu da área e o painel de atividade ocupando espaço, ele nascia aberto por cima da página e cobria o botão "Analisar projeto". Agora os dois olham a área de conteúdo: aberto ao lado quando cabe, fechado quando cobriria o conteúdo, e de novo aberto quando o espaço volta. A escolha da pessoa vale enquanto o espaço não muda de faixa.
+
 ## 6. Simples e avançado
 
 Não há dois modos. O que existe é ordem: o caminho simples vem primeiro (pergunta, sugestões, primeiros passos) e as ferramentas de quem conhece o produto continuam a um atalho de distância (Ctrl K para qualquer tela, Ctrl J e Ctrl ` para o terminal, Ctrl B, Ctrl + ponto, o painel da área com todas as telas). Um seletor de "modo simples" foi avaliado e descartado nesta rodada: esconderia telas sem que nenhuma permissão o justificasse.
 
 ## 7. Componentes
 
-A biblioteca `@mariliz/ui-kit` passou de 0.6.0 para **0.7.0**, que recebeu o que o Spock Studio mantinha por conta própria e usava em dezenas de telas:
+A biblioteca `@mariliz/ui-kit` passou de 0.6.0 para **0.7.0** e depois para **0.8.0**. A 0.7.0 recebeu o que o Spock Studio mantinha por conta própria e usava em dezenas de telas:
 
 | Componente | Uso |
 | --- | --- |
@@ -157,8 +161,11 @@ A biblioteca `@mariliz/ui-kit` passou de 0.6.0 para **0.7.0**, que recebeu o que
 | `CountBadge` | avisos de contagem na barra, no topo e no painel |
 | `TabBar` | abas do painel de atividade; ganhou `aria-label` e ficou legível no tema escuro |
 | `LoadingBar` | progresso dos primeiros passos |
+| `Checkbox` (0.8.0) | rótulo com ícone, nome e etiquetas e `labelProps`; a lista de ambientes de IA da jornada Configurar passou a usá-lo |
 
 Os átomos locais equivalentes foram removidos; as telas continuam importando de `@/shared/components`, que os repassa. Um teste (`ui-kit-atoms.test.tsx`) guarda o comportamento de que o aplicativo depende. Os tons de atenção e de informação do tema passaram a vir dos mesmos tokens das demais cores.
+
+O `CheckboxOption` local saiu na 0.8.0: era o par do `Radio` com rótulo rico, e o `Checkbox` da biblioteca passou a aceitar o mesmo rótulo. A lista de ambientes de IA ganhou a aparência das outras caixas de marcar do aplicativo.
 
 Componentes novos que ficaram no aplicativo, por serem dele: `ActivityBar`, `AreaPanel`, `ActivityPanel`, `ActivityList`, `RequestComposer`, `SetupChecklist`, `RecentActivity`.
 
@@ -192,12 +199,14 @@ Feita no aplicativo real (janela Tauri, motor .NET e um projeto de verdade), dir
 | Ctrl B recolhe e expande o painel | passou |
 | Painel de atividade: largura pelo teclado e pelo arraste, limites e largura lembrada | passou |
 | O título de cada tela e aba é o nome do menu, e os links entre telas usam o caminho da trilha | passou |
+| Configurar: o resumo da jornada fica ao lado quando cabe e fechado quando cobriria o conteúdo (com o painel de atividade aberto) | passou |
+| Configurar: lista de ambientes de IA com o `Checkbox` da biblioteca, sem violação do axe nem erro no console | passou |
 | 800×600: painel recolhido, abre por cima, fecha com Esc, sem rolagem horizontal | passou |
 | 480×800: barra só de ícones com nome acessível, sem rolagem horizontal | passou |
 | axe (WCAG 2.2 AA, com contraste) em 14 estados de tela | 0 violações |
 | Console sem erros durante as jornadas | passou |
 
-Total: 37 de 37. Além disso, `pnpm check` (tipos, lint, formatação e 1023 testes em 108 arquivos) passa.
+Total: 37 de 37 no roteiro, mais as duas verificações da jornada Configurar. Além disso, `pnpm check` (tipos, lint, formatação e 1025 testes em 108 arquivos) passa.
 
 A validação achou e corrigiu três defeitos que já existiam: dois ícones da biblioteca com atributos SVG que o React recusava (aviso no console a cada renderização), as abas da biblioteca ilegíveis no tema escuro e uma chave repetida na lista de ferramentas da Visão geral quando dois módulos declaram a mesma ferramenta.
 
@@ -215,8 +224,7 @@ A validação achou e corrigiu três defeitos que já existiam: dois ícones da 
 
 Incrementos:
 
-1. **`CheckboxOption`**: o par do `Radio` com rótulo rico ainda é local; cabe no `Checkbox` da biblioteca quando o rótulo dele aceitar conteúdo.
-2. **Fluxos internos** de Engenharia e de Gestão (filtros de Execuções, que ocupam três linhas inteiras; a tela de Configurar) não foram redesenhados.
+1. **Fluxos internos** de Engenharia e de Gestão (filtros de Execuções, que ocupam três linhas inteiras; a tela de Configurar) não foram redesenhados.
 
 Decisões do dono:
 

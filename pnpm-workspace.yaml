@@ -7,7 +7,7 @@ packages:
 allowBuilds:
   '@parcel/watcher': false
 
-# O pnpm segura versões publicadas há pouco tempo. A 0.7.0 do ui-kit é nossa e saiu junto com a mudança que a usa:
-# esta exceção vale só para ela e pode ser removida quando a versão deixar de ser recente.
+# O pnpm segura versões publicadas há pouco tempo. O ui-kit é nosso e cada versão sai junto com a mudança que a usa:
+# a exceção vale só para a versão em uso e pode sair quando ela deixar de ser recente.
 minimumReleaseAgeExclude:
-  - '@mariliz/ui-kit@0.7.0'
+  - '@mariliz/ui-kit@0.8.0'
