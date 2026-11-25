@@ -6,5 +6,5 @@ import type { JourneyStepId } from '../types/journey';
  * em diante, o caminho é o botão da própria etapa ("planejar de novo", "validar de novo").
  */
 export function canReopenEarlierSteps(step: JourneyStepId): boolean {
-  return step === 'project' || step === 'model' || step === 'plan' || step === 'review';
+  return step === 'project' || step === 'model' || step === 'review';
 }

@@ -6,9 +6,9 @@ export function stepIssue(state: JourneyState): StepIssue | undefined {
       return state.discovery.status === 'error' ? { stepId: 'project', kind: 'error' } : undefined;
     case 'model':
       return state.plan.status === 'error' ? { stepId: 'model', kind: 'error' } : undefined;
-    case 'plan':
+    case 'review':
       return state.plan.status === 'ready' && state.plan.data.decisions.some((d) => d.decision === 'blocked')
-        ? { stepId: 'plan', kind: 'blocked' }
+        ? { stepId: 'review', kind: 'blocked' }
         : undefined;
     case 'run':
       return state.run?.error ? { stepId: 'run', kind: 'error' } : undefined;

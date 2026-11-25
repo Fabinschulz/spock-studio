@@ -64,7 +64,8 @@ describe('jornada Configurar · o que dá para retomar', () => {
 
   it('nenhuma etapa volta em branco: sem o dado que ela mostra, recua para a anterior', () => {
     expect(restorableJourney({ ...initialJourneyState, step: 'model' })?.step).toBe('project');
-    expect(restorableJourney({ ...discovered(), step: 'plan' })?.step).toBe('model');
+    // Guardada antes de Plano e Revisão virarem uma etapa só.
+    expect(restorableJourney({ ...discovered(), step: 'plan' as JourneyState['step'] })?.step).toBe('model');
     expect(restorableJourney({ ...discovered(), step: 'review' })?.step).toBe('model');
   });
 

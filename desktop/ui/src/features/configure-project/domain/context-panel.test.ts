@@ -32,7 +32,7 @@ describe('Resumo do painel', () => {
 
 describe('Participantes', () => {
   const context = (over: Partial<Parameters<typeof participantsOf>[0]>) =>
-    participantsOf({ step: 'plan', run: null, results: noResults, plan: { status: 'idle' }, naming, ...over });
+    participantsOf({ step: 'review', run: null, results: noResults, plan: { status: 'idle' }, naming, ...over });
 
   it('o Harness Engineer só aparece quando entregou a proposta', () => {
     const waiting = {

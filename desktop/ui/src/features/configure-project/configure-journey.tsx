@@ -15,14 +15,13 @@ import { useConfigureJourney } from './hooks/use-configure-journey';
 import { useConfiguredProject } from './hooks/use-configured-project';
 import type { HarnessApi } from './service';
 import { ModelStep } from './steps/model-step';
-import { PlanStep } from './steps/plan-step';
 import { ProjectStep } from './steps/project-step';
 import { ResultStep } from './steps/result-step';
 import { ReviewStep } from './steps/review-step';
 import { RunStep } from './steps/run-step';
 import type { JourneyStepId } from './types/journey';
 
-const SHORTCUT_SKIPPED: readonly JourneyStepId[] = ['model', 'plan', 'review', 'run'];
+const SHORTCUT_SKIPPED: readonly JourneyStepId[] = ['model', 'review', 'run'];
 
 interface ConfigureJourneyProps {
   api: HarnessApi;
@@ -83,7 +82,7 @@ export function ConfigureJourney({
       }
     >
       <EngineeringRequestShortcut />
-      {hasComponentRequest(state.componentRequest) && ['project', 'model', 'plan'].includes(state.step) ? (
+      {hasComponentRequest(state.componentRequest) && ['project', 'model', 'review'].includes(state.step) ? (
         <ComponentRequestNotice request={state.componentRequest} onClear={actions.clearComponentRequest} />
       ) : null}
       {state.step === 'project' ? (
@@ -116,14 +115,6 @@ export function ConfigureJourney({
         />
       ) : null}
 
-      {state.step === 'plan' && state.plan.status === 'ready' ? (
-        <PlanStep
-          plan={state.plan.data}
-          onBack={() => actions.goTo('model')}
-          onContinue={() => actions.goTo('review')}
-        />
-      ) : null}
-
       {state.step === 'review' && state.plan.status === 'ready' ? (
         <ReviewStep
           plan={state.plan.data}
@@ -132,9 +123,10 @@ export function ConfigureJourney({
           resolutions={state.resolutions}
           approvalCount={approvalCount}
           onToggleChange={actions.toggleChange}
+          onSetChanges={actions.setChanges}
           onToggleCommand={actions.toggleCommand}
           onResolution={actions.setResolution}
-          onBack={() => actions.goTo('plan')}
+          onBack={() => actions.goTo('model')}
           onCancel={() => leave('home')}
           onApply={() => void actions.apply()}
         />

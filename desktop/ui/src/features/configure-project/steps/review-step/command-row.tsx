@@ -3,6 +3,7 @@ import type { PlannedCommand } from '@/shared/schema';
 
 import { CheckboxField } from '../../components/choice-field';
 import rows from '../../components/rows.module.scss';
+import { isSpecificationCommand } from '../../domain/approvals';
 import { effectLabel } from '../../domain/labels';
 
 interface CommandRowProps {
@@ -27,6 +28,12 @@ export function CommandRow({ command, approved, onToggle }: CommandRowProps) {
       <code className={rows.mono}>
         {command.executable} {command.arguments.join(' ')}
       </code>
+      {isSpecificationCommand(command.id) ? (
+        <p className={rows.meta}>
+          Sem aprovar, a estrutura de especificação não é instalada e as verificações que dependem dela ficam bloqueadas
+          no Resultado.
+        </p>
+      ) : null}
       <EvidenceDisclosure summary="Pastas afetadas" items={command.affectedPaths} />
       {command.destructive ? (
         <InlineNotice tone="warning">
