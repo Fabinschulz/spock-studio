@@ -12,6 +12,7 @@ import { hasComponentRequest, type ComponentRequest } from './domain/component-r
 import { canReopenEarlierSteps } from './domain/step-navigation';
 import { stepIssue } from './domain/step-issue';
 import { useConfigureJourney } from './hooks/use-configure-journey';
+import { useConfiguredProject } from './hooks/use-configured-project';
 import type { HarnessApi } from './service';
 import { ModelStep } from './steps/model-step';
 import { PlanStep } from './steps/plan-step';
@@ -19,6 +20,9 @@ import { ProjectStep } from './steps/project-step';
 import { ResultStep } from './steps/result-step';
 import { ReviewStep } from './steps/review-step';
 import { RunStep } from './steps/run-step';
+import type { JourneyStepId } from './types/journey';
+
+const SHORTCUT_SKIPPED: readonly JourneyStepId[] = ['model', 'plan', 'review', 'run'];
 
 interface ConfigureJourneyProps {
   api: HarnessApi;
@@ -46,16 +50,22 @@ export function ConfigureJourney({
     navigate(pathTo('home'));
   };
 
+  // Relê depois de cada execução terminada, para o resumo da segunda visita não mostrar o estado de antes.
+  const configured = useConfiguredProject(api, projectId, state.results);
+
   useScrollToTop(state.step, { focus: true, focusSelector: '[data-step-title]' });
 
   const approvalCount = state.plan.status === 'ready' ? countApprovals(state, state.plan.data) : 0;
   const naming = namingOf(state.discovery);
   const live = state.run !== null && state.run.error === null;
+  // Validar ou reverter pelo atalho da etapa Projeto chega ao Resultado sem passar pelo plano nem aplicar nada.
+  const skipped = state.step === 'result' && state.results.apply === null ? SHORTCUT_SKIPPED : undefined;
 
   return (
     <JourneyFrame
       step={state.step}
       issue={stepIssue(state)}
+      skipped={skipped}
       live={live}
       onSelectStep={canReopenEarlierSteps(state.step) ? actions.goTo : undefined}
       panel={
@@ -81,6 +91,10 @@ export function ConfigureJourney({
           discovery={state.discovery}
           onAnalyze={() => void actions.discover()}
           onContinue={() => actions.goTo('model')}
+          configured={configured}
+          run={state.run}
+          onValidate={() => void actions.validate()}
+          onRevert={(runId) => void actions.revert(runId)}
         />
       ) : null}
 

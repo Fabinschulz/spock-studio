@@ -8,7 +8,7 @@ import styles from './journey-frame.module.scss';
 import type { JourneyStepId } from '../../types/journey';
 import type { JourneyFrameProps } from './types';
 
-export function JourneyFrame({ step, issue, panel, live = false, onSelectStep, children }: JourneyFrameProps) {
+export function JourneyFrame({ step, issue, skipped, panel, live = false, onSelectStep, children }: JourneyFrameProps) {
   const { open, toggle, close } = usePanelOpen();
   const trail = usePageTrail();
   const toggleButton = useRef<HTMLButtonElement>(null);
@@ -73,6 +73,7 @@ export function JourneyFrame({ step, issue, panel, live = false, onSelectStep, c
         <WizardSteps
           steps={journeySteps}
           currentId={step}
+          skippedIds={skipped}
           issue={issue}
           onSelect={onSelectStep ? (id) => onSelectStep(id as JourneyStepId) : undefined}
         />

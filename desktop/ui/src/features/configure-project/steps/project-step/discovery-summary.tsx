@@ -2,8 +2,9 @@ import { EvidenceDisclosure } from '@/shared/components/ui';
 import type { Discovery } from '@/shared/schema';
 import { plural } from '@/shared/utils';
 
-import { specificationStateLabel } from '../../domain/labels';
 import styles from '../../components/rows.module.scss';
+import { aiEnvironmentNames } from '../../domain/ai-environments';
+import { specificationStateLabel } from '../../domain/labels';
 
 const versionText = (version: string | null) => (version ? `versão ${version}` : 'não encontrado');
 
@@ -14,9 +15,33 @@ function gitText(git: Discovery['git']): string {
     : 'sem alterações locais';
 }
 
+const inventoryTotal = (inventory: Discovery['inventory']) =>
+  Object.values(inventory).reduce((sum, items) => sum + items.length, 0);
+
+/** A primeira coisa que a análise diz: de onde o projeto parte. */
+export function discoveryHeadline(discovery: Discovery): string {
+  if (discovery.hasDeclaredConfig) {
+    const names = discovery.declaredAiEnvironments.map((id) => aiEnvironmentNames[id] ?? id);
+    return names.length > 0 ? `Já configurado pelo Spock para ${names.join(' e ')}.` : 'Já configurado pelo Spock.';
+  }
+  return inventoryTotal(discovery.inventory) > 0
+    ? 'Já tem configuração de IA, feita fora do Spock.'
+    : 'Começa do zero: nenhuma configuração de IA encontrada.';
+}
+
+export function SystemRow({ tools }: { tools: Discovery['tools'] }) {
+  return (
+    <div className={styles.line}>
+      <span className={styles.name}>Sistema</span>
+      <span className={styles.end}>
+        Node: {versionText(tools.node)} · Python: {versionText(tools.python)} · Git: {versionText(tools.git)}
+      </span>
+    </div>
+  );
+}
+
 function harnessText(inventory: Discovery['inventory']): string {
-  const total = Object.values(inventory).reduce((sum, items) => sum + items.length, 0);
-  if (total === 0) return 'nenhuma configuração encontrada: o projeto começa do zero';
+  if (inventoryTotal(inventory) === 0) return 'nenhuma configuração encontrada: o projeto começa do zero';
   return [
     plural(inventory.agents.length, 'agente', 'agentes'),
     plural(inventory.skills.length, 'skill', 'skills'),
@@ -28,7 +53,7 @@ function harnessText(inventory: Discovery['inventory']): string {
 }
 
 export function DiscoverySummary({ discovery }: { discovery: Discovery }) {
-  const { specification, inventory, git, tools } = discovery;
+  const { specification, inventory, git } = discovery;
   const existing = Object.values(inventory)
     .flat()
     .map((item) => (item.issue ? `${item.path} (aviso: ${item.issue})` : item.path));
@@ -66,14 +91,6 @@ export function DiscoverySummary({ discovery }: { discovery: Discovery }) {
           <div className={styles.line}>
             <span className={styles.name}>Git</span>
             <span className={styles.end}>{gitText(git)}</span>
-          </div>
-        </li>
-        <li>
-          <div className={styles.line}>
-            <span className={styles.name}>Sistema</span>
-            <span className={styles.end}>
-              Node: {versionText(tools.node)} · Python: {versionText(tools.python)} · Git: {versionText(tools.git)}
-            </span>
           </div>
         </li>
       </ul>

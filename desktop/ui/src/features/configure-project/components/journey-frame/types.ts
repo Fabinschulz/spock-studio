@@ -7,6 +7,8 @@ import type { JourneyStepId } from '../../types/journey';
 export interface JourneyFrameProps {
   step: JourneyStepId;
   issue?: StepIssue;
+  /** Etapas que um atalho da segunda visita pulou: a trilha não as mostra como concluídas. */
+  skipped?: readonly JourneyStepId[];
   panel?: ReactNode;
   live?: boolean;
   /** Volta a uma etapa já concluída pelo stepper. Ausente quando voltar não faz sentido (execução em andamento ou concluída). */

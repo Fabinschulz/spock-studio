@@ -241,7 +241,6 @@
   background-color: var(--color-surface-sunken);
 }
 
-.pathValue,
 .pathEmpty {
   display: block;
   flex: 1;
@@ -285,14 +284,36 @@
   }
 }
 
-.analyzeRow {
+.projectLine {
   display: flex;
-  justify-content: flex-end;
-  margin-top: var(--space-5);
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  min-width: 0;
+}
 
-  button {
-    min-height: 3rem;
-  }
+.projectName {
+  font-weight: var(--font-weight-medium);
+}
+
+.projectPath {
+  min-width: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.analyze {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+// O que a análise encontrou, antes do detalhe: é a primeira coisa que a pessoa lê depois de analisar.
+.headline {
+  margin: 0;
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-medium);
 }
 
 .subCard {

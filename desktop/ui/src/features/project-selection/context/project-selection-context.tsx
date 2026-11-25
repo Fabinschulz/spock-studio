@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 import { isTauriRuntime, tauriProjectPicker } from '../domain/tauri-project-picker';
 import type { ProjectPickerPort, RecentProject, SelectedProject } from '../domain/types';
 import { useProjectSelection } from '../hooks/use-project-selection';
@@ -16,6 +16,9 @@ export interface ProjectSelectionValue {
   recents: RecentProject[];
   openRecent: (id: string) => Promise<SelectedProject | null>;
   unavailableReason?: string;
+  /** O seletor do topo: outra tela pode abri-lo em vez de repetir a escolha de pasta e a lista de recentes. */
+  switcherOpen: boolean;
+  setSwitcherOpen: (open: boolean) => void;
 }
 
 const Context = createContext<ProjectSelectionValue | null>(null);
@@ -39,10 +42,22 @@ export function ProjectSelectionProvider({
     picker ?? tauriProjectPicker,
     { restoreLast }
   );
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
   const value = useMemo<ProjectSelectionValue>(
-    () => ({ selected, busy, error, cancelled, recents, pick, openRecent, unavailableReason: reason }),
-    [selected, busy, error, cancelled, recents, pick, openRecent, reason]
+    () => ({
+      selected,
+      busy,
+      error,
+      cancelled,
+      recents,
+      pick,
+      openRecent,
+      unavailableReason: reason,
+      switcherOpen,
+      setSwitcherOpen
+    }),
+    [selected, busy, error, cancelled, recents, pick, openRecent, reason, switcherOpen]
   );
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
