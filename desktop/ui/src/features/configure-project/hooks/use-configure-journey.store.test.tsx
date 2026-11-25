@@ -21,6 +21,9 @@ function fakeApi(overrides: Partial<HarnessApi> = {}) {
     validate: vi.fn(async () => ({ runId: 'run-2' })),
     revert: vi.fn(async () => ({ runId: 'run-3' })),
     cancel: vi.fn(async () => ({ cancelled: true })),
+    // A segunda visita não entra nestes testes: o hook da jornada não lê o estado aplicado.
+    status: vi.fn(),
+    runs: vi.fn(async () => []),
     snapshot: vi.fn(async (runId: string) => ({
       runId,
       projectId: 'p-1',

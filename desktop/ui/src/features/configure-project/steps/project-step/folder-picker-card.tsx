@@ -12,13 +12,8 @@ export interface PickedProject {
   path: string;
 }
 
-interface FolderPickerCardProps {
-  project: PickedProject | null;
-  analyzing: boolean;
-  onAnalyze: () => void;
-}
-
-export function FolderPickerCard({ project, analyzing, onAnalyze }: FolderPickerCardProps) {
+/** Só sem projeto aberto: com projeto, a etapa mostra a linha do projeto e a troca é pelo seletor do topo. */
+export function FolderPickerCard() {
   const { selected, busy, error, cancelled, recents, pick, openRecent, unavailableReason } =
     useProjectSelectionContext();
   const onPick = () => void pick();
@@ -36,23 +31,15 @@ export function FolderPickerCard({ project, analyzing, onAnalyze }: FolderPicker
       ) : null}
 
       <div className={styles.pathField} role="group" aria-label="Pasta do projeto">
-        <span className={project ? styles.pathValue : styles.pathEmpty} title={project?.path}>
-          {project ? project.path : 'Nenhuma pasta selecionada'}
-        </span>
+        <span className={styles.pathEmpty}>Nenhuma pasta selecionada</span>
         <Button
           variant="text"
           className={styles.pathButton}
           aria-disabled={inactive || undefined}
-          aria-label={project ? `Trocar a pasta do projeto ${project.name}` : 'Selecionar pasta do projeto'}
+          aria-label="Selecionar pasta do projeto"
           onClick={inactive ? undefined : onPick}
         >
           <FolderIcon />
-        </Button>
-      </div>
-
-      <div className={styles.analyzeRow}>
-        <Button variant="contained" onClick={onAnalyze} disabled={project === null || analyzing}>
-          {analyzing ? 'Analisando…' : 'Analisar projeto'}
         </Button>
       </div>
 
@@ -61,7 +48,6 @@ export function FolderPickerCard({ project, analyzing, onAnalyze }: FolderPicker
           <InlineNotice tone="info">Seleção cancelada. Nenhuma pasta foi escolhida e nada foi alterado.</InlineNotice>
         ) : null}
         {busy ? <span className={styles.muted}>Abrindo o seletor de pastas…</span> : null}
-        {analyzing ? <span className={styles.muted}>Analisando o projeto…</span> : null}
       </div>
 
       <RecentProjects recents={recents} currentId={selected?.recentId} busy={busy} onOpen={onOpenRecent} />

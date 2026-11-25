@@ -2,7 +2,7 @@ import { FolderIcon } from '@/shared/components/ui';
 import { pathTo } from '@/shared/routing';
 import { cn, formatRecentDate } from '@/shared/utils';
 import { Button, DownIcon } from '@mariliz/ui-kit';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useProjectSelectionContext } from '../context/project-selection-context';
 import { RecentProjectButton } from './recent-project-button';
@@ -25,13 +25,28 @@ export function ProjectSwitcher() {
   const panelId = useId();
   const recentsId = useId();
   const hintId = useId();
-  const { selected, recents, busy, error, pick, openRecent, unavailableReason } = useProjectSelectionContext();
+  const {
+    selected,
+    recents,
+    busy,
+    error,
+    pick,
+    openRecent,
+    unavailableReason,
+    switcherOpen: open,
+    setSwitcherOpen: setOpen
+  } = useProjectSelectionContext();
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   // O texto visível do botão fica dentro do nome acessível ("Projeto: loja"), como pede a regra de rótulo no nome.
   const triggerName = selected ? selected.displayName : 'Nenhum projeto aberto';
+
+  // Aberto por outra tela, o foco entra no painel; aberto pelo próprio botão, fica nele, como num disclosure comum.
+  useEffect(() => {
+    if (open && document.activeElement !== trigger.current) panel.current?.querySelector('button')?.focus();
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -49,7 +64,7 @@ export function ProjectSwitcher() {
       document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [open]);
+  }, [open, setOpen]);
 
   async function openProject(recentId: string) {
     if (await openRecent(recentId)) setOpen(false);
@@ -76,7 +91,7 @@ export function ProjectSwitcher() {
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         title={selected?.displayPath}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => setOpen(!open)}
       >
         <span className={styles.triggerIcon} aria-hidden="true">
           <FolderIcon size={18} />
@@ -88,7 +103,7 @@ export function ProjectSwitcher() {
       </Button>
 
       {open ? (
-        <div id={panelId} role="group" aria-label="Trocar de projeto" className={styles.panel}>
+        <div ref={panel} id={panelId} role="group" aria-label="Trocar de projeto" className={styles.panel}>
           {selected ? (
             <p className={styles.current}>
               <span className={styles.label}>Projeto aberto</span>

@@ -2,15 +2,19 @@ import { EngineError, followRun, type EngineClient, type FollowHandlers, type Fo
 import {
   cancelSchema,
   discoverySchema,
+  harnessStatusSchema,
   planSchema,
+  runsSchema,
   runSnapshotSchema,
   runStartedSchema,
   type ConfigurationPlan,
   type ConflictResolution,
   type Discovery,
+  type HarnessStatus,
   type RunEvent,
   type RunResult,
-  type RunSnapshot
+  type RunSnapshot,
+  type RunSummary
 } from '@/shared/schema';
 
 export type PlanInput = {
@@ -44,6 +48,10 @@ export type HarnessApi = {
   snapshot(runId: string, sinceSeq?: number): Promise<RunSnapshot>;
   cancel(runId: string): Promise<{ cancelled: boolean }>;
   onEvent(handler: (event: RunEvent) => void): Promise<() => void>;
+  /** O que já está aplicado no projeto: o resumo da segunda visita. */
+  status(projectId: string): Promise<HarnessStatus>;
+  /** Da mais recente para a mais antiga. */
+  runs(projectId: string): Promise<RunSummary[]>;
 };
 
 export function createHarnessApi(client: EngineClient): HarnessApi {
@@ -77,7 +85,9 @@ export function createHarnessApi(client: EngineClient): HarnessApi {
     snapshot: (runId, sinceSeq) =>
       client.request('run.snapshot', sinceSeq === undefined ? { runId } : { runId, sinceSeq }, runSnapshotSchema),
     cancel: (runId) => client.request('run.cancel', { runId }, cancelSchema),
-    onEvent: (handler) => client.onEvent(handler)
+    onEvent: (handler) => client.onEvent(handler),
+    status: (projectId) => client.request('engineering.harness', { projectId }, harnessStatusSchema),
+    runs: async (projectId) => (await client.request('harness.runs', { projectId }, runsSchema)).runs
   };
 }
 

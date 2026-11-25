@@ -50,6 +50,16 @@ describe('WizardSteps', () => {
     expect(item()).toHaveTextContent('Método e ambiente (bloqueada)');
   });
 
+  it('etapa pulada por um atalho não aparece como concluída nem vira botão de voltar', () => {
+    render(<WizardSteps steps={steps} currentId="c" skippedIds={['b']} onSelect={vi.fn()} />);
+
+    const [done, skipped] = within(screen.getByRole('list')).getAllByRole('listitem');
+    expect(done).toHaveTextContent('Projeto (concluída)');
+    expect(skipped).toHaveTextContent('Método e ambiente (não usada nesta visita)');
+    expect(skipped).toHaveTextContent('2');
+    expect(within(skipped!).queryByRole('button')).not.toBeInTheDocument();
+  });
+
   it('com onSelect, só as etapas concluídas viram botões que voltam a elas', async () => {
     const onSelect = vi.fn();
     render(<WizardSteps steps={steps} currentId="c" onSelect={onSelect} />);
