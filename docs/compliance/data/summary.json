@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-11-20",
+  "gerado_em": "2026-11-25",
   "total": 962,
   "por_ecossistema": {
     "GitHub Actions": 1,
@@ -16,18 +16,18 @@
   },
   "diretas": 104,
   "transitivas": 858,
-  "distribuidos": 484,
+  "distribuidos": 486,
   "distribuidos_por_ecossistema": {
     "asset": 3,
     "binário": 6,
     "cargo": 276,
-    "npm": 105,
+    "npm": 107,
     "nuget": 53,
     "pypi": 41
   },
   "sob_demanda": 5,
   "externos": 9,
-  "desenvolvimento_build": 465,
+  "desenvolvimento_build": 463,
   "nao_instalados": 1,
   "risco": {
     "BAIXO": 943,
@@ -36,12 +36,12 @@
     "ALTO": 4
   },
   "risco_distribuidos": {
-    "BAIXO": 473,
+    "BAIXO": 475,
     "PENDENTE": 1,
     "MÉDIO": 10
   },
   "licencas_distribuidos": {
-    "MIT": 397,
+    "MIT": 399,
     "Apache-2.0": 30,
     "BSD-3-Clause": 15,
     "Unicode-3.0": 15,
@@ -105,16 +105,16 @@
   "conferencia_arquivo": {
     "PENDENTE": 3,
     "CONFERIDO MANUALMENTE": 24,
-    "CONFERE": 846,
-    "SEM ARQUIVO": 25,
+    "CONFERE": 847,
+    "SEM ARQUIVO": 24,
     "DIVERGE": 6,
     "TEXTO NÃO RECONHECIDO": 1,
     "SÓ EXPRESSÃO": 57
   },
   "conferencia_distribuidos": {
     "CONFERIDO MANUALMENTE": 11,
-    "CONFERE": 424,
-    "SEM ARQUIVO": 8,
+    "CONFERE": 427,
+    "SEM ARQUIVO": 7,
     "DIVERGE": 1,
     "TEXTO NÃO RECONHECIDO": 1,
     "SÓ EXPRESSÃO": 39
@@ -123,7 +123,6 @@
     "crossbeam-channel@0.5.17: declarado MIT OR Apache-2.0, arquivo Apache-2.0, BSD-3-Clause, MIT"
   ],
   "sem_arquivo_distribuidos": [
-    "@mariliz/ui-kit@0.6.0 (MIT)",
     "alloc-stdlib@0.3.0 (BSD-3-Clause)",
     "dlopen2@0.8.2 (MIT)",
     "hoist-non-react-statics@3.3.2 (BSD-3-Clause)",

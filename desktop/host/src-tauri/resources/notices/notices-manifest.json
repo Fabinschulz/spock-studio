@@ -1,6 +1,6 @@
 {
   "product": "Spock Studio 0.1.0",
-  "components": 484,
+  "components": 486,
   "complete": true,
   "gaps": [],
   "licenseFiles": [
@@ -370,7 +370,7 @@
     "npm:@jridgewell/resolve-uri@3.1.2",
     "npm:@jridgewell/sourcemap-codec@1.6.0",
     "npm:@jridgewell/trace-mapping@0.3.31",
-    "npm:@mariliz/ui-kit@0.6.0",
+    "npm:@mariliz/ui-kit@0.9.0",
     "npm:@mui/core-downloads-tracker@9.5.0",
     "npm:@mui/material@9.5.0",
     "npm:@mui/private-theming@9.5.0",
@@ -406,6 +406,7 @@
     "npm:escape-string-regexp@4.0.0",
     "npm:find-root@1.1.0",
     "npm:function-bind@1.1.2",
+    "npm:has-flag@4.0.0",
     "npm:hasown@2.0.4",
     "npm:hoist-non-react-statics@3.3.2",
     "npm:import-fresh@3.3.1",
@@ -438,6 +439,7 @@
     "npm:scheduler@0.28.0",
     "npm:source-map@0.5.7",
     "npm:stylis@4.2.0",
+    "npm:supports-color@8.1.1",
     "npm:supports-preserve-symlinks-flag@1.0.0",
     "npm:tslib@2.8.1",
     "npm:use-sync-external-store@1.7.0",
