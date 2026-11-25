@@ -161,7 +161,8 @@ describe('TerminalPanel', () => {
 
     await screen.findByText('PowerShell em Loja');
 
-    expect(focused).toBe(1);
+    // O foco vem num efeito depois de o rótulo aparecer: com a máquina ocupada, ele ainda não rodou neste ponto.
+    await waitFor(() => expect(focused).toBe(1));
   });
 
   it('reaberto sozinho ao iniciar o aplicativo, o terminal não toma o foco de ninguém', async () => {

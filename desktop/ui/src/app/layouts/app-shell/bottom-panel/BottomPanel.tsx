@@ -1,8 +1,8 @@
 import { CloseIcon } from '@mariliz/ui-kit';
 import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 
-import { PanelResizer } from './PanelResizer';
-import type { PanelTab } from './use-bottom-panel';
+import { Splitter } from '../splitter/Splitter';
+import { maxPanelHeight, PANEL_HEIGHT, type PanelTab } from './use-bottom-panel';
 import styles from './BottomPanel.module.scss';
 
 export const BOTTOM_PANEL_ID = 'painel-inferior';
@@ -52,7 +52,15 @@ export function BottomPanel({ open, tab, height, onSelectTab, onResize, onClose,
       aria-label="Painel inferior"
       hidden={!open}
     >
-      <PanelResizer height={height} onResize={onResize} />
+      <Splitter
+        orientation="horizontal"
+        label="Altura do painel inferior"
+        size={height}
+        min={PANEL_HEIGHT.min}
+        max={maxPanelHeight(window.innerHeight)}
+        step={PANEL_HEIGHT.step}
+        onResize={onResize}
+      />
       <div className={styles.bar}>
         <div role="tablist" aria-label="Painel inferior" className={styles.tabs}>
           {TABS.map((entry) => (

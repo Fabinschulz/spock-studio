@@ -10,25 +10,6 @@
   background-color: var(--color-sidebar);
 }
 
-.resizer {
-  position: absolute;
-  top: -3px;
-  right: 0;
-  left: 0;
-  z-index: 2;
-  height: 6px;
-  cursor: row-resize;
-
-  &:hover,
-  &:focus-visible {
-    background-color: var(--color-primary-subtle);
-  }
-
-  &:focus-visible {
-    @include focus-ring(-2px);
-  }
-}
-
 .bar {
   display: flex;
   flex: none;

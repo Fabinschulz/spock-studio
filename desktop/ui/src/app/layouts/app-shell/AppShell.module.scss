@@ -3,7 +3,6 @@
 $bar-width: 5.75rem;
 $bar-compact: 3.5rem;
 $panel-width: 13.5rem;
-$activity-width: 21rem;
 
 // Barra de áreas | painel da área | conteúdo | painel de atividade; a barra de status ocupa a linha de baixo inteira.
 .shell {
@@ -498,12 +497,20 @@ button.statusButtonActive {
   }
 }
 
-.activityPanel {
+// A largura vem da preferência da pessoa (a divisória a ajusta); a moldura só a limita ao espaço que existe.
+.activitySlot {
+  position: relative;
+  display: flex;
   grid-row: 1;
   grid-column: 4;
-  width: $activity-width;
+  max-width: 100%;
+  min-height: 0;
   border-left: var(--border-width-divider) solid var(--color-divider);
   animation: activity-in var(--duration-base) var(--ease);
+}
+
+.activityPanel {
+  flex: 1;
 }
 
 @keyframes activity-in {
@@ -515,11 +522,10 @@ button.statusButtonActive {
 
 // Sem largura para os dois lado a lado, a atividade fica por cima do conteúdo, encostada à direita.
 @media (max-width: 67.99rem) {
-  .activityPanel {
+  .activitySlot {
     z-index: 6;
     grid-column: 3;
     justify-self: end;
-    width: min(#{$activity-width}, 100%);
     box-shadow: var(--shadow-raised);
   }
 }
