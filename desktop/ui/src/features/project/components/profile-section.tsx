@@ -138,8 +138,9 @@ function ProfileContent({
 
       {profile.tooling.length > 0 ? (
         <ul className={styles.rows} aria-label="Ferramentas">
-          {profile.tooling.map((tool) => (
-            <li key={`${tool.kind}:${tool.name}`} className={styles.row}>
+          {/* Dois módulos do projeto podem declarar a mesma ferramenta: a posição desempata a chave. */}
+          {profile.tooling.map((tool, index) => (
+            <li key={`${tool.kind}:${tool.name}:${index}`} className={styles.row}>
               <span>
                 <span className={styles.rowTitle}>{toolKindLabel(tool.kind)}</span>{' '}
                 {tool.command ? (

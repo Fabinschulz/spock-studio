@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { expectNoA11yViolations } from '@/test/a11y';
 
-import { Radio } from './Radio';
+import { CountBadge, Radio, StatusChip, Tooltip } from './index';
 
 function Group() {
   const [value, setValue] = useState('manter');
@@ -83,5 +83,61 @@ describe('Radio', () => {
     const { container } = render(<Group />);
 
     await expectNoA11yViolations(container);
+  });
+});
+
+describe('StatusChip', () => {
+  it('o estado é o texto: a cor só reforça', () => {
+    render(<StatusChip tone="danger">Falhou</StatusChip>);
+
+    expect(screen.getByText('Falhou')).toBeInTheDocument();
+  });
+});
+
+describe('CountBadge', () => {
+  it('com rótulo, quem vê lê o número e o leitor de tela recebe a frase', () => {
+    render(
+      <a href="/execucoes">
+        Execuções
+        <CountBadge count={3} label="3 aguardando aprovação" tone="warning" />
+      </a>
+    );
+
+    expect(screen.getByRole('link')).toHaveAccessibleName('Execuções , 3 aguardando aprovação');
+    expect(screen.getByText('3')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('sem rótulo, o número é o que se lê', () => {
+    render(<CountBadge count={7} />);
+
+    expect(screen.getByText('7')).not.toHaveAttribute('aria-hidden');
+  });
+});
+
+describe('Tooltip', () => {
+  it('descreve o elemento sem trocar o nome acessível dele', async () => {
+    render(
+      <Tooltip title="Abre em outra janela">
+        <button type="button">Abrir</button>
+      </Tooltip>
+    );
+    const button = screen.getByRole('button', { name: 'Abrir' });
+
+    await userEvent.hover(button);
+
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Abre em outra janela');
+    expect(button).toHaveAccessibleName('Abrir');
+  });
+
+  it('desativada, devolve o elemento intacto', async () => {
+    render(
+      <Tooltip title="Abre em outra janela" disabled>
+        <button type="button">Abrir</button>
+      </Tooltip>
+    );
+
+    await userEvent.hover(screen.getByRole('button', { name: 'Abrir' }));
+
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 });

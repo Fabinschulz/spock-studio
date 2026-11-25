@@ -2,11 +2,11 @@ import type { SelectedProject } from '@/features/project-selection';
 import { EngineError, errorMessage, type EngineClient } from '@/shared/api';
 import { InlineNotice, ErrorState, LoadingState, NoProjectState, Page, Disclosure } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
-import { pathTo } from '@/shared/routing';
+import { pathTo, readHandoff } from '@/shared/routing';
 import type { AssistantAnswer, ProjectInvestigation } from '@/shared/schema';
 import { Button, Checkbox, TextField } from '@mariliz/ui-kit';
 import { useCallback, useMemo, useState, type FormEvent } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 
 import { AssistantAnswerView } from './components/assistant-answer';
 import { InvestigationPath } from './components/investigation-path';
@@ -37,7 +37,8 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
     return { configured: status.configured, evidence };
   }, [api, project.projectId]);
   const context = useAsyncResource(load);
-  const [question, setQuestion] = useState('');
+  const { state } = useLocation();
+  const [question, setQuestion] = useState(() => readHandoff(state)?.slice(0, MAX_QUESTION) ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ message: string; needsKey: boolean } | null>(null);
   const [answer, setAnswer] = useState<AssistantAnswer | null>(null);

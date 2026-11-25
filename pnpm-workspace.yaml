@@ -6,3 +6,8 @@ packages:
 # só compila do código-fonte quando falta o binário pronto, que já vem pelas dependências opcionais de cada plataforma.
 allowBuilds:
   '@parcel/watcher': false
+
+# O pnpm segura versões publicadas há pouco tempo. A 0.7.0 do ui-kit é nossa e saiu junto com a mudança que a usa:
+# esta exceção vale só para ela e pode ser removida quando a versão deixar de ser recente.
+minimumReleaseAgeExclude:
+  - '@mariliz/ui-kit@0.7.0'

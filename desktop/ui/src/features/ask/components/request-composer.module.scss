@@ -1,0 +1,74 @@
+@use '@/shared/styles/abstracts' as *;
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border-field);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  transition: border-color var(--duration-fast) var(--ease);
+
+  &:focus-within {
+    border-color: var(--color-border-strong);
+  }
+}
+
+.kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  @include visually-hidden;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.hint {
+  flex: 1;
+  min-width: min(100%, 18rem);
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-muted);
+}
+
+.shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  padding-top: var(--space-3);
+  border-top: var(--border-width-divider) solid var(--color-divider);
+  font-size: var(--font-size-sm);
+}
+
+.shortcutsLabel {
+  color: var(--color-text-muted);
+}
+
+.shortcutList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shortcutHint {
+  color: var(--color-text-muted);
+}

@@ -1,0 +1,122 @@
+@use '@/shared/styles/abstracts' as *;
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background-color: var(--color-sidebar);
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring(-2px);
+  }
+}
+
+.header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 3rem;
+  padding: 0 var(--space-2) 0 var(--space-4);
+  border-bottom: var(--border-width-divider) solid var(--color-divider);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+.close {
+  @include plain-button;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--target-min);
+  min-height: var(--target-min);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+
+  @include hover {
+    background-color: var(--color-menu-hover);
+    color: var(--color-text);
+  }
+
+  &:focus-visible {
+    @include focus-ring(-2px);
+  }
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden auto;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0 calc(var(--space-2) * -1);
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease);
+
+  @include hover {
+    background-color: var(--color-menu-hover);
+  }
+
+  &:focus-visible {
+    @include focus-ring(-2px);
+  }
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rowTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.rowMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  flex: none;
+  padding: var(--space-3) var(--space-4);
+  border-top: var(--border-width-divider) solid var(--color-divider);
+  font-size: var(--font-size-sm);
+}

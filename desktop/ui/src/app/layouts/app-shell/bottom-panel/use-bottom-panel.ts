@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { readPreference, writePreference } from '../preference';
+import { readPreference, writePreference } from '@/shared/utils';
 
 export type PanelTab = 'terminal' | 'output';
 

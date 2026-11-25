@@ -1,6 +1,6 @@
+import { Tooltip } from '@mariliz/ui-kit';
 import type { ReactNode } from 'react';
 
-import { Tooltip } from '../tooltip';
 import { GLOSSARY, type GlossaryId } from './glossary';
 import styles from './Term.module.scss';
 
