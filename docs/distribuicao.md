@@ -1,6 +1,6 @@
 # Distribuição da primeira versão
 
-Decisão de 2026-11-05: a primeira versão do Mariliz Studio sai para **Windows** e, se der, **Linux**. **macOS fica de fora**
+Decisão de 2026-11-05: a primeira versão do Spock Studio (na época, Mariliz Studio) sai para **Windows** e, se der, **Linux**. **macOS fica de fora**
 (sem Mac para validar e sem conta Apple Developer para assinar e notarizar). Nenhum instalador é assinado nesta versão.
 
 ## O que cada sistema exige

@@ -974,7 +974,7 @@ colidir com as fases A a G, com as do ecossistema (U, W, I2, P, C, S, A) nem com
 | Escrita em provedores | Parcial: só nuvem | `iac.apply` com aprovação presa ao hash; GitHub e Jira só leitura (W1) |
 | Bancos e APIs como conexão | Não feito | I3 e DD-10 |
 | Identidade, papéis e organização | Não feito | M3 e DD-2 |
-| Tema claro | Não feito, removido de propósito | `docs/redesign/proposta-de-redesign.md` |
+| Tema claro | Não feito, removido de propósito | proposta de redesign Workbench (no histórico do git) |
 
 Os sete itens fora de qualquer horizonte continuam fora. Observação: o terminal integrado (fase W) e a infraestrutura
 completa não estavam na lista de exclusões, mas tensionam a regra do estudo do hub de não reconstruir o que a IDE já

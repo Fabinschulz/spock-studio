@@ -132,7 +132,6 @@ export const syncResultSchema = z.object({ sync: syncExecutionSchema });
 export const syncHistorySchema = z.object({ syncs: z.array(syncExecutionSchema) });
 
 export type ConnectionReach = z.infer<typeof connectionReachSchema>;
-export type ReachProject = z.infer<typeof reachProjectSchema>;
 export type Connector = z.infer<typeof connectorSchema>;
 export type IntegrationCatalog = z.infer<typeof integrationCatalogSchema>;
 export type Connection = z.infer<typeof connectionSchema>;

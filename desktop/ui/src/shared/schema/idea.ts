@@ -173,7 +173,6 @@ export const ideaBacklogView = z.object({
     .catch([])
 });
 
-export type IdeaCheck = z.infer<typeof ideaCheckSchema>;
 export type IdeaDraft = z.infer<typeof ideaDraftSchema>;
 export type IdeaPlan = z.infer<typeof ideaPlanSchema>;
 export type ProjectDesign = z.infer<typeof projectDesignSchema>['design'];

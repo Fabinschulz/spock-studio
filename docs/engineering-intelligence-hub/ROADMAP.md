@@ -2,7 +2,7 @@
 
 > Parte do estudo [Engineering Intelligence Hub](README.md) (2026-11-16). **Recomendação, não plano aprovado.** Cada
 > iniciativa precisa de aprovação do dono, uma por vez, em PR próprio contra `master`, como nas fases anteriores.
-> Reconcilia o roadmap da auditoria ([../product-audit/RECOMMENDED_ROADMAP.md](../product-audit/RECOMMENDED_ROADMAP.md)):
+> Reconcilia o roadmap recomendado pela auditoria estratégica de 15/11 (removida do repositório em 2026-11-24; está no histórico do git):
 > nenhum P0 ou P1 de lá foi descartado; o §7 registra o que mudou de lugar e por quê.
 
 ## 1. Visão geral da sequência
@@ -67,7 +67,7 @@ critério de aceite.
 - **Métrica:** tokens e latência por intenção.
 - **Estado:** entrega 1 feita: `ContextEngine` (`Mariliz.Application/Context/`) com o modelo de item (origem, classificação,
   data, frescor), orçamento com `omitted[]`, `contextVersion` e a intenção `bootstrap`; `mariliz context <pasta>` na CLI.
-  Medido em três pastas reais (Kaivor, o próprio SPOCK e uma worktree dele): 143 a 153 tokens, menos de 1 s com o
+  Medido em três pastas reais (um projeto de homologação, o próprio SPOCK e uma worktree dele): 143 a 153 tokens, menos de 1 s com o
   processo inteiro. As demais intenções (`development`, `management`, `infrastructure`, `investigation`, `delivery`)
   entram nas próximas entregas; pedir uma delas hoje é erro `CONTEXT_INTENT_UNKNOWN`.
 

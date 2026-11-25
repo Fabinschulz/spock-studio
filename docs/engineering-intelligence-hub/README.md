@@ -1,7 +1,7 @@
 # SPOCK como Engineering Intelligence Hub
 
 **Estudo de arquitetura e estratégia de produto.** Data: 2026-11-16. Branch observada: `master`, HEAD `bea3302`, árvore
-limpa no início. Base: a auditoria estratégica de 15/11 ([../product-audit/](../product-audit/README.md)), reavaliada
+limpa no início. Base: a auditoria estratégica de 15/11 (removida do repositório em 2026-11-24; está no histórico do git), reavaliada
 contra o código atual.
 
 ## Navegação
@@ -146,7 +146,7 @@ Code); E1 (gestão na IDE com dados que já existem); C3 (Cursor e Codex); D1 a 
 | DD-8 | Nível padrão do destino `ide` | `summary` |
 | DD-9 | Ler comentários do Jira | Opcional, sob política, como dado não confiável |
 | DD-10 | Escopo de banco | Níveis 1 e 2; 3 só com decisão; 4 fora |
-| — | Pendências anteriores que continuam: D5 (agente próprio de implementação), D3 (embeddings), D-02, D-05, D-07, D-09 a D-12, nome exibido e ícone, automação de processos fora do escopo | Ver [../product-audit/GAP_ANALYSIS.md](../product-audit/GAP_ANALYSIS.md) §6 |
+| — | Pendências anteriores que continuam: D5 (agente próprio de implementação), D3 (embeddings), D-02, D-05, D-07, D-09 a D-12, nome exibido e ícone, automação de processos fora do escopo | Análise de lacunas da auditoria de 15/11, §6 (no histórico do git) |
 
 ### Alternativas rejeitadas
 

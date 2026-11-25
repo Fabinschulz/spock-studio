@@ -1,1 +1,1 @@
-export { Logo, Wordmark } from './Logo';
+export { Logo } from './Logo';

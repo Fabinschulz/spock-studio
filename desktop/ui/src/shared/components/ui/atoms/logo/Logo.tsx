@@ -18,17 +18,3 @@ export function Logo({ className }: LogoProps) {
     </svg>
   );
 }
-
-export function Wordmark({ className }: LogoProps) {
-  return (
-    <svg className={cn(styles.wordmark, className)} viewBox="-2.5 -2.5 123 42" aria-hidden="true" focusable="false">
-      <path
-        className={styles.letters}
-        d="M11.33 10.5A5 5 0 1 0 7 18A5 5 0 1 1 2.67 25.5M22 8V37M94.43 10.34A10 10 0 1 0 94.43 25.66M104 0V28M110.5 16.5L118 28"
-      />
-      <circle className={styles.letters} cx="32" cy="18" r="10" />
-      <circle className={styles.letters} cx="60" cy="18" r="10" />
-      <path className={styles.arm} d="M105 20.5L117 10" />
-    </svg>
-  );
-}

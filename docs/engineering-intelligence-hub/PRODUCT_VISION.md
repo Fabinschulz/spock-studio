@@ -1,7 +1,7 @@
 # Visão de produto: SPOCK como hub de inteligência de projetos
 
 > Parte do estudo [Engineering Intelligence Hub](README.md) (2026-11-16). Proposta para decisão do dono; nada aqui foi
-> implementado. A visão consolidada até 15/11 está em [../product-audit/PRODUCT_VISION.md](../product-audit/PRODUCT_VISION.md);
+> implementado. A visão consolidada até 15/11 estava na auditoria estratégica daquela data (removida do repositório em 2026-11-24; está no histórico do git);
 > este documento descreve o que muda com a nova direção e o que continua valendo.
 
 ## 1. Tese
