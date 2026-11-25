@@ -6,7 +6,7 @@ import { ComponentRequestNotice } from './components/component-request-notice';
 import { ContextPanel } from './components/context-panel';
 import { JourneyFrame } from './components/journey-frame';
 import { useJourneyStore } from './context/journey-store';
-import { countApprovals } from './domain/approvals';
+import { countApprovals, specificationSkipped } from './domain/approvals';
 import { namingOf } from './domain/harness-engineer-prompt';
 import { hasComponentRequest, type ComponentRequest } from './domain/component-request';
 import { canReopenEarlierSteps } from './domain/step-navigation';
@@ -44,10 +44,11 @@ export function ConfigureJourney({
   const navigate = useNavigate();
   const store = useJourneyStore();
   const { state, actions } = useConfigureJourney(api, projectId, pollMs, componentRequest, store);
-  // Concluir ou cancelar encerra a jornada: a próxima visita ao Configurar começa limpa.
-  const home = () => {
+  // Concluir ou cancelar encerra a jornada: a próxima visita ao Configurar começa limpa. Concluir leva ao estado do
+  // que foi configurado; cancelar, sem nada aplicado, volta ao Início.
+  const leave = (to: 'home' | 'projectHarness') => {
     store?.clear(projectId);
-    navigate(pathTo('home'));
+    navigate(pathTo(to));
   };
 
   // Relê depois de cada execução terminada, para o resumo da segunda visita não mostrar o estado de antes.
@@ -134,7 +135,7 @@ export function ConfigureJourney({
           onToggleCommand={actions.toggleCommand}
           onResolution={actions.setResolution}
           onBack={() => actions.goTo('plan')}
-          onCancel={home}
+          onCancel={() => leave('home')}
           onApply={() => void actions.apply()}
         />
       ) : null}
@@ -152,7 +153,11 @@ export function ConfigureJourney({
           onReplan={() => void actions.generatePlan()}
           replan={state.plan}
           naming={naming}
-          onDone={home}
+          onDone={() => leave('projectHarness')}
+          specificationSkipped={
+            state.plan.status === 'ready' && specificationSkipped(state.plan.data, state.approvedCommands)
+          }
+          onInstallSpecification={() => void actions.installSpecificationAndReplan()}
         />
       ) : null}
     </JourneyFrame>

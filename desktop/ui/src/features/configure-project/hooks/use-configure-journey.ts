@@ -124,6 +124,12 @@ export function useConfigureJourney(
 
   const validate = useCallback(async () => track('validate', () => api.validate(projectId)), [api, projectId, track]);
 
+  // A saída do Resultado quando o instalador ficou sem aprovação: um plano novo, já com ele marcado para a revisão.
+  const installSpecificationAndReplan = useCallback(async () => {
+    dispatch({ type: 'install.set', value: true });
+    await generatePlan();
+  }, [generatePlan]);
+
   const cancelRun = useCallback(async () => {
     const runId = latest.current.run?.runId;
     if (runId) await api.cancel(runId);
@@ -137,6 +143,7 @@ export function useConfigureJourney(
       apply,
       revert,
       validate,
+      installSpecificationAndReplan,
       cancelRun,
       goTo: (step: JourneyStepId) => dispatch({ type: 'step.go', step }),
       toggleEnvironment: (id: string) => dispatch({ type: 'environment.toggle', id }),

@@ -186,6 +186,19 @@
 }
 
 // Explicação de uma opção, ligada a ela por aria-describedby: alinhada ao texto do rótulo, não à borda.
+// A causa dentro do alerta do Resultado, separada da frase geral.
+.cause {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+
+  p {
+    margin: 0;
+  }
+}
+
 .choiceNote {
   margin: 0 0 var(--space-2);
   padding-left: var(--space-4);

@@ -8,10 +8,10 @@ import { discoverySchema, planSchema, runResultSchema, type RunEvent } from '@/s
 
 import { initialJourneyState } from '../constants/initial-journey-state';
 import type { JourneyState } from '../types/journey';
-import { buildApplyInput, countApprovals, defaultApprovals } from './approvals';
+import { buildApplyInput, countApprovals, defaultApprovals, specificationSkipped } from './approvals';
 import { journeyReducer } from './journey-reducer';
 import { applyRunEvent } from './run-events';
-import { awaitingHarnessProposal, explainOutcome, outcomeTone } from './run-outcome';
+import { awaitingHarnessProposal, explainOutcome, outcomeTone, resultExit } from './run-outcome';
 
 /** Caracterização com as fixtures geradas pelo motor real: se um destes testes mudar, o comportamento mudou. */
 const discovery = discoverySchema.parse(discoveryFixture);
@@ -256,5 +256,20 @@ describe('resultado', () => {
     expect(awaitingHarnessProposal(null, null)).toBe(false);
     expect(awaitingHarnessProposal({ ...applied, rolledBack: true }, null)).toBe(false);
     expect(awaitingHarnessProposal(applied, { ...applied, kind: 'revert', outcome: 'completed' })).toBe(false);
+  });
+
+  it('uma saída por vez: a proposta antes da estrutura de especificação, e nenhuma depois de reverter', () => {
+    const applied = runResultSchema.parse(applyResult);
+    const withProposal = { ...applied, limitations: [] };
+    expect(resultExit(applied, null, true)).toBe('proposal');
+    expect(resultExit(withProposal, null, true)).toBe('install');
+    expect(resultExit(withProposal, null, false)).toBeNull();
+    expect(resultExit(withProposal, { ...applied, kind: 'revert', outcome: 'completed' }, true)).toBeNull();
+  });
+
+  it('sabe quando o instalador da estrutura de especificação ficou sem aprovação', () => {
+    expect(specificationSkipped(plan, [])).toBe(true);
+    expect(specificationSkipped(plan, ['specification-install'])).toBe(false);
+    expect(specificationSkipped({ ...plan, commands: [] }, [])).toBe(false);
   });
 });

@@ -7,11 +7,12 @@ import { runOutcomeLabel } from '@/shared/utils';
 import { ConfirmAction, EvidenceDisclosure, InlineNotice, PrimaryActionFooter } from '@/shared/components/ui';
 
 import styles from '../../components/panels.module.scss';
+import { PlanError } from '../../components/plan-error';
 import { StepHeader } from '../../components/step-header';
 import type { JourneyResults, Loadable } from '../../types/journey';
 import type { RunView } from '../../types/run';
 import { runKindLabel } from '../../domain/labels';
-import { awaitingHarnessProposal, explainOutcome, outcomeTone } from '../../domain/run-outcome';
+import { explainOutcome, outcomeTone, resultExit } from '../../domain/run-outcome';
 import { FilesSummary } from './files-summary';
 import { ProposalGuide } from './proposal-guide';
 import { RevertSummary } from './revert-summary';
@@ -27,14 +28,30 @@ interface ResultStepProps {
   /** Estado do plano gerado a partir daqui; o erro dele precisa aparecer nesta etapa. */
   replan: Loadable<unknown>;
   naming: HarnessNames;
+  /** O plano trazia o instalador da estrutura de especificação e ele ficou sem aprovação. */
+  specificationSkipped?: boolean;
+  onInstallSpecification?: () => void;
 }
 
-export function ResultStep({ results, run, onRevert, onValidate, onDone, onReplan, replan, naming }: ResultStepProps) {
+export function ResultStep({
+  results,
+  run,
+  onRevert,
+  onValidate,
+  onDone,
+  onReplan,
+  replan,
+  naming,
+  specificationSkipped = false,
+  onInstallSpecification = () => undefined
+}: ResultStepProps) {
   const [confirming, setConfirming] = useState(false);
   const { apply, revert } = results;
   const busy = run !== null && run.error === null;
   const validation = results.validate?.validation ?? apply?.validation;
   const canRevert = apply?.rollbackAvailable === true && revert?.outcome !== 'completed';
+  const exit = resultExit(apply, revert, specificationSkipped);
+  const replanning = replan.status === 'loading';
 
   const confirmRevert = () => {
     setConfirming(false);
@@ -49,6 +66,29 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
         <InlineNotice tone={outcomeTone[apply.outcome]} title={runOutcomeLabel[apply.outcome]}>
           {explainOutcome(apply)}
           {apply.error ? <div>{apply.error.message}</div> : null}
+          {exit === 'proposal' ? (
+            <p className={styles.cause}>
+              Causa: o plano usou as regras-base. Falta a proposta do Harness Engineer; o próximo passo, abaixo, diz
+              como pedir.
+            </p>
+          ) : null}
+          {exit !== null && specificationSkipped ? (
+            <div className={styles.cause}>
+              <p>
+                {exit === 'proposal' ? 'Também: a' : 'Causa: a'} estrutura de especificação não foi instalada, porque o
+                comando do instalador ficou sem aprovação. As verificações que dependem dela ficaram bloqueadas.
+              </p>
+              <Button
+                variant={exit === 'install' ? 'contained' : 'outlined'}
+                color={exit === 'install' ? 'primary' : 'inherit'}
+                size="small"
+                disabled={busy || replanning}
+                onClick={onInstallSpecification}
+              >
+                {replanning ? 'Gerando plano…' : 'Instalar a estrutura e gerar o plano de novo'}
+              </Button>
+            </div>
+          ) : null}
         </InlineNotice>
       ) : null}
 
@@ -82,9 +122,8 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
         <EvidenceDisclosure summary={`Riscos remanescentes (${apply.risks.length})`} items={apply.risks} />
       ) : null}
 
-      {awaitingHarnessProposal(apply, revert) ? (
-        <ProposalGuide onReplan={onReplan} replan={replan} busy={busy} naming={naming} />
-      ) : null}
+      {exit === 'proposal' ? <ProposalGuide onReplan={onReplan} replan={replan} busy={busy} naming={naming} /> : null}
+      {exit === 'install' ? <PlanError plan={replan} /> : null}
 
       {revert ? <RevertSummary result={revert} /> : null}
 
@@ -123,7 +162,12 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
         <Button variant="outlined" color="inherit" disabled={busy} onClick={onValidate}>
           Validar de novo
         </Button>
-        <Button variant="contained" disabled={busy} onClick={onDone}>
+        <Button
+          variant={exit === null ? 'contained' : 'outlined'}
+          color={exit === null ? 'primary' : 'inherit'}
+          disabled={busy}
+          onClick={onDone}
+        >
           Concluir
         </Button>
       </PrimaryActionFooter>
