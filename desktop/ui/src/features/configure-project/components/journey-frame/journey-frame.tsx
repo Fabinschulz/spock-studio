@@ -3,7 +3,6 @@ import { Button } from '@mariliz/ui-kit';
 import { useEffect, useRef } from 'react';
 import { journeySteps } from '../../constants/journey-steps';
 import { usePanelOpen } from '../../hooks/use-panel-open';
-import { ImplementationModelBadge } from '../implementation-model-badge';
 import styles from './journey-frame.module.scss';
 import type { JourneyStepId } from '../../types/journey';
 import type { JourneyFrameProps } from './types';
@@ -47,7 +46,6 @@ export function JourneyFrame({ step, issue, skipped, panel, live = false, onSele
         <header className={styles.bar}>
           <div className={styles.heading}>
             <TrailNav trail={trail} />
-            <ImplementationModelBadge />
           </div>
           {/* O título visível é o da etapa; o da tela fica na trilha, e o h1 o anuncia a quem usa leitor de tela. */}
           <h1 className="visually-hidden">Configurar projeto</h1>

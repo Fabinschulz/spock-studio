@@ -27,6 +27,8 @@ describe('Resumo do painel', () => {
       `${files} arquivos · ${plan.commands.length === 1 ? '1 comando' : `${plan.commands.length} comandos`}`
     );
     expect(facts.Plano).not.toMatch(/alteraç/);
+    // DC2: o modelo era texto fixo, igual em todo projeto, e não mudava nenhuma decisão.
+    expect(facts).not.toHaveProperty('Modelo');
   });
 });
 
