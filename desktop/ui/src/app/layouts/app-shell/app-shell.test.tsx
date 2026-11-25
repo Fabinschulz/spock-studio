@@ -9,8 +9,7 @@ import { AppProviders, Page } from '@/shared/components';
 import { expectNoA11yViolations } from '@/test/a11y';
 
 import { AppShell } from './AppShell';
-import { NavEntry } from './NavGroupList';
-import { describeRunActivity } from './SideNav';
+import { NavEntry } from './NavEntry';
 
 const invoke = vi.fn();
 const listen = vi.fn();
@@ -49,7 +48,16 @@ function renderShell(route = '/', page?: ReactNode) {
   );
 }
 
-const navigation = () => screen.getByRole('navigation', { name: 'Navegação principal' });
+const areas = () => screen.getByRole('navigation', { name: 'Navegação principal' });
+const areaPanel = (name: string) => screen.getByRole('navigation', { name });
+const queryAreaPanel = (name: string) => screen.queryByRole('navigation', { name });
+
+/** O jsdom não tem `matchMedia`: aqui a janela "casa" só com as consultas pedidas. */
+function narrowWindow(...queries: string[]) {
+  window.matchMedia = ((query: string) => ({ matches: queries.includes(query) })) as typeof window.matchMedia;
+}
+const NARROW = '(max-width: 863.98px)';
+const COMPACT = '(max-width: 599.98px)';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -59,9 +67,10 @@ beforeEach(() => {
 
 afterEach(() => {
   delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__;
+  delete (window as unknown as Record<string, unknown>).matchMedia;
 });
 
-describe('AppShell · navegação', () => {
+describe('AppShell · áreas', () => {
   it('a marca leva ao início e tem nome acessível, e o conteúdo fica no <main>', () => {
     renderShell();
 
@@ -69,37 +78,89 @@ describe('AppShell · navegação', () => {
     expect(within(screen.getByRole('main')).getByRole('heading', { name: 'Conteúdo' })).toBeInTheDocument();
   });
 
-  it('marca a página atual e leva cada item do menu ao seu destino', () => {
+  it('a barra mostra as áreas, cada uma com o nome à vista, e marca a atual', () => {
     renderShell();
-    const nav = navigation();
+    const nav = areas();
 
+    expect(
+      within(nav)
+        .getAllByRole('link')
+        .map((link) => link.textContent)
+    ).toEqual(['Início', 'Engenharia', 'Gestão', 'Atividade', 'Conexões', 'Configurações']);
     expect(within(nav).getByRole('link', { name: 'Início' })).toHaveAttribute('aria-current', 'page');
-    expect(within(nav).getByRole('link', { name: 'Visão geral' })).toHaveAttribute('href', '/projeto');
-    // "Configurar" abre a primeira etapa da jornada, onde se escolhe a pasta: sempre existe.
-    expect(within(nav).getByRole('link', { name: 'Configurar' })).toHaveAttribute('href', '/configurar');
-    // Configurações é preferência, não tela de trabalho: sai do menu e fica na barra de estado.
-    expect(within(nav).queryByRole('link', { name: 'Configurações' })).not.toBeInTheDocument();
-    expect(within(screen.getByRole('contentinfo')).getByRole('link', { name: 'Configurações' })).toHaveAttribute(
-      'href',
-      '/configuracoes'
-    );
+    expect(within(nav).getByRole('link', { name: 'Engenharia' })).toHaveAttribute('href', '/projeto');
+    expect(within(nav).getByRole('link', { name: 'Atividade' })).toHaveAttribute('href', '/execucoes');
+    expect(within(nav).getByRole('link', { name: 'Conexões' })).toHaveAttribute('href', '/integracoes');
+    expect(within(nav).getByRole('link', { name: 'Configurações' })).toHaveAttribute('href', '/configuracoes/ia');
   });
 
-  it('o menu consolidado: onze itens em Engenharia e sete em Gestão, contando o Início', () => {
-    const { unmount } = renderShell('/projeto');
-    expect(within(navigation()).getAllByRole('link')).toHaveLength(11);
-    unmount();
+  it('no início não há painel de área: a tela é toda da entrada de pedidos', () => {
+    renderShell();
 
-    renderShell('/gestao');
-    expect(within(navigation()).getAllByRole('link')).toHaveLength(7);
+    expect(screen.getAllByRole('navigation')).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: 'Recolher menu' })).not.toBeInTheDocument();
+  });
+
+  it('dentro de uma área, o painel ao lado lista as telas dela e marca a atual', () => {
+    renderShell('/projeto');
+    const panel = areaPanel('Engenharia');
+
+    expect(
+      within(panel)
+        .getAllByRole('link')
+        .map((link) => link.textContent)
+    ).toEqual([
+      'Visão geral',
+      'Padrões do projeto',
+      'Configurar',
+      'Pedidos',
+      'Conhecimento',
+      'Segurança',
+      'Infraestrutura'
+    ]);
+    expect(within(panel).getByRole('link', { name: 'Visão geral' })).toHaveAttribute('aria-current', 'page');
+    expect(within(panel).getByRole('link', { name: 'Padrões do projeto' })).toHaveAttribute('href', '/projeto/harness');
+    expect(within(panel).getByRole('link', { name: 'Configurar' })).toHaveAttribute('href', '/configurar');
+    // Na barra, a área fica marcada como a atual também nas telas que não são a inicial dela.
+    expect(within(areas()).getByRole('link', { name: 'Engenharia' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('numa tela interna a área segue marcada, como conjunto, e a Visão geral não', () => {
+    renderShell('/projeto/harness');
+
+    expect(within(areas()).getByRole('link', { name: 'Engenharia' })).toHaveAttribute('aria-current', 'true');
+    const panel = areaPanel('Engenharia');
+    expect(within(panel).getByRole('link', { name: 'Padrões do projeto' })).toHaveAttribute('aria-current', 'page');
+    expect(within(panel).getByRole('link', { name: 'Visão geral' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('Gestão, Atividade, Conexões e Configurações têm cada uma o seu painel', () => {
+    const cases: [string, string, string[]][] = [
+      ['/gestao', 'Gestão', ['Portfólio', 'Acompanhamento', 'Assistente', 'Relatório']],
+      ['/linha-do-tempo', 'Atividade', ['Execuções', 'Histórico']],
+      ['/cloud', 'Conexões', ['Serviços', 'Nuvem', 'Modelos de IA']],
+      ['/configuracoes/diagnostico', 'Configurações', ['Minha IA', 'Diagnóstico', 'Sobre']]
+    ];
+    for (const [route, name, items] of cases) {
+      const { unmount } = renderShell(route);
+      expect(
+        within(areaPanel(name))
+          .getAllByRole('link')
+          .map((link) => link.textContent)
+      ).toEqual(items);
+      expect(within(areas()).getByRole('link', { name })).toHaveAttribute('aria-current');
+      unmount();
+    }
   });
 
   it('um item com abas fica marcado em qualquer uma delas, e a página mostra as abas', () => {
     renderShell('/projeto/catalogo', <Page title="Catálogo" />);
-    const nav = navigation();
 
-    expect(within(nav).getByRole('link', { name: 'Harness' })).toHaveAttribute('aria-current', 'page');
-    const tabs = screen.getByRole('navigation', { name: 'Seções de Harness' });
+    expect(within(areaPanel('Engenharia')).getByRole('link', { name: 'Padrões do projeto' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+    const tabs = screen.getByRole('navigation', { name: 'Seções de Padrões do projeto' });
     expect(within(tabs).getByRole('link', { name: 'Catálogo' })).toHaveAttribute('aria-current', 'page');
     expect(within(tabs).getByRole('link', { name: 'Estado e revisões' })).toHaveAttribute('href', '/projeto/harness');
   });
@@ -110,73 +171,49 @@ describe('AppShell · navegação', () => {
     expect(screen.queryByRole('navigation', { name: /^Seções de/ })).not.toBeInTheDocument();
   });
 
-  it('mostra só o ambiente atual no menu e deixa as conexões fora dos dois', () => {
-    renderShell();
-    const nav = navigation();
+  it('nenhum item à vista repete o ícone de outro', () => {
+    renderShell('/projeto');
 
-    const engineering = within(nav).getByRole('list', { name: 'Engenharia' });
-    expect(within(engineering).getByRole('link', { name: 'Visão geral' })).toHaveAttribute('href', '/projeto');
-    expect(within(engineering).getByRole('link', { name: 'Harness' })).toHaveAttribute('href', '/projeto/harness');
-    expect(within(engineering).getByRole('link', { name: 'Conhecimento' })).toHaveAttribute(
-      'href',
-      '/projeto/conhecimento'
-    );
-    expect(within(engineering).getByRole('link', { name: 'Configurar' })).toHaveAttribute('href', '/configurar');
-    expect(within(engineering).getByRole('link', { name: 'Pedidos' })).toHaveAttribute('href', '/pedido');
-    expect(within(engineering).getByRole('link', { name: 'Infraestrutura' })).toHaveAttribute(
-      'href',
-      '/infraestrutura'
-    );
-    expect(within(nav).queryByRole('list', { name: 'Gestão' })).not.toBeInTheDocument();
-
-    const platform = within(nav).getByRole('list', { name: 'Plataforma' });
-    expect(within(platform).getByRole('link', { name: 'Conexões' })).toHaveAttribute('href', '/integracoes');
-    expect(within(platform).getByRole('link', { name: 'Histórico' })).toHaveAttribute('href', '/linha-do-tempo');
-  });
-
-  it('em Gestão, o menu traz as telas de Gestão e some com as de Engenharia', () => {
-    renderShell('/gestao');
-    const nav = navigation();
-
-    const management = within(nav).getByRole('list', { name: 'Gestão' });
-    expect(within(management).getByRole('link', { name: 'Acompanhamento' })).toHaveAttribute('href', '/gestao');
-    expect(within(management).getByRole('link', { name: 'Portfólio' })).toHaveAttribute('href', '/portfolio');
-    expect(within(management).getByRole('link', { name: 'Assistente' })).toHaveAttribute('href', '/gestao/assistente');
-    expect(within(nav).queryByRole('list', { name: 'Engenharia' })).not.toBeInTheDocument();
-    expect(within(nav).queryByRole('link', { name: 'Configurar' })).not.toBeInTheDocument();
-    const platform = within(nav).getByRole('list', { name: 'Plataforma' });
-    expect(within(platform).getByRole('link', { name: 'Execuções' })).toBeInTheDocument();
-    // Conexões é tarefa de quem configura: o gestor não a vê no menu.
-    expect(within(platform).queryByRole('link', { name: 'Conexões' })).not.toBeInTheDocument();
-  });
-
-  it('nenhum item do menu repete o ícone de outro', () => {
-    renderShell();
-    const nav = navigation();
-
-    const icons = within(nav)
-      .getAllByRole('link')
-      .map((link) => link.querySelector('svg')?.innerHTML);
+    const icons = [
+      ...within(areas()).getAllByRole('link'),
+      ...within(areaPanel('Engenharia')).getAllByRole('link')
+    ].map((link) => link.querySelector('svg')?.innerHTML);
     expect(icons.every(Boolean)).toBe(true);
     expect(new Set(icons).size).toBe(icons.length);
   });
 
-  it('a Visão geral só fica marcada em /projeto, não nas telas que ficam abaixo dele', () => {
-    renderShell('/projeto/harness');
-    const nav = navigation();
+  it('sem projeto aberto, a Gestão abre no Portfólio; com projeto, no Acompanhamento dele', async () => {
+    renderShell();
+    // Sem projeto, o Acompanhamento ficaria vazio.
+    expect(within(areas()).getByRole('link', { name: 'Gestão' })).toHaveAttribute('href', '/portfolio');
 
-    expect(within(nav).getByRole('link', { name: 'Harness' })).toHaveAttribute('aria-current', 'page');
-    expect(within(nav).getByRole('link', { name: 'Visão geral' })).not.toHaveAttribute('aria-current');
-    expect(within(nav).getByRole('list', { name: 'Engenharia' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'escolher' }));
+    await within(screen.getByRole('banner')).findByRole('button', { name: 'Projeto: EmpregaNetAPI' });
+
+    expect(within(areas()).getByRole('link', { name: 'Gestão' })).toHaveAttribute('href', '/gestao');
+  });
+
+  it('trocar de área leva à tela dela, troca o painel e não troca o projeto', async () => {
+    renderShell('/projeto');
+    await userEvent.click(screen.getByRole('button', { name: 'escolher' }));
+    const header = screen.getByRole('banner');
+    await within(header).findByRole('button', { name: 'Projeto: EmpregaNetAPI' });
+
+    await userEvent.click(within(areas()).getByRole('link', { name: 'Gestão' }));
+
+    expect(screen.getByTestId('where')).toHaveTextContent('/gestao');
+    expect(areaPanel('Gestão')).toBeInTheDocument();
+    expect(queryAreaPanel('Engenharia')).not.toBeInTheDocument();
+    expect(within(header).getByRole('button', { name: 'Projeto: EmpregaNetAPI' })).toBeInTheDocument();
   });
 
   it('trocar de tela volta o conteúdo ao topo e leva o foco para ele; ao abrir, não mexe no foco', async () => {
-    renderShell();
+    renderShell('/projeto');
     const main = screen.getByRole('main');
     main.scrollTo = vi.fn();
     expect(main).not.toHaveFocus();
 
-    await userEvent.click(within(navigation()).getByRole('link', { name: 'Harness' }));
+    await userEvent.click(within(areaPanel('Engenharia')).getByRole('link', { name: 'Padrões do projeto' }));
 
     expect(screen.getByTestId('where')).toHaveTextContent('/projeto/harness');
     expect(main.scrollTo).toHaveBeenCalledWith({ top: 0 });
@@ -191,7 +228,7 @@ describe('AppShell · navegação', () => {
     expect(screen.getByRole('main')).toHaveFocus();
   });
 
-  it('a navegação por teclado segue a ordem do documento: atalho, marca, menu', async () => {
+  it('a navegação por teclado segue a ordem do documento: atalho, marca, áreas', async () => {
     renderShell();
 
     await userEvent.tab();
@@ -202,9 +239,12 @@ describe('AppShell · navegação', () => {
     expect(screen.getByRole('link', { name: 'Início' })).toHaveFocus();
   });
 
-  it('não tem violações estruturais de acessibilidade', async () => {
-    const { container } = renderShell();
+  it('não tem violações estruturais de acessibilidade, no início e dentro de uma área', async () => {
+    const home = renderShell();
+    await expectNoA11yViolations(home.container);
+    home.unmount();
 
+    const { container } = renderShell('/projeto');
     await expectNoA11yViolations(container);
   });
 });
@@ -213,8 +253,8 @@ describe('AppShell · busca', () => {
   it('o botão do topo abre a paleta, que se fecha com Esc', async () => {
     renderShell();
 
-    await userEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: /Buscar/ }));
-    expect(screen.getByRole('combobox', { name: 'Tela ou projeto' })).toBeInTheDocument();
+    await userEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: /Buscar ou pedir algo/ }));
+    expect(screen.getByRole('combobox', { name: 'Tela, projeto, comando ou pedido' })).toBeInTheDocument();
 
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByRole('combobox')).not.toBeInTheDocument());
@@ -238,44 +278,24 @@ describe('AppShell · busca', () => {
 
     expect(screen.getByTestId('where')).toHaveTextContent('/gestao/relatorio');
   });
-});
 
-describe('AppShell · configurações', () => {
-  it('em Configurações o menu troca pelas seções e deixa voltar ao ambiente', () => {
-    renderShell('/configuracoes/ia');
+  it('um comando da paleta age sobre o próprio shell, como mostrar os atalhos', async () => {
+    renderShell();
 
-    const settings = screen.getByRole('navigation', { name: 'Configurações' });
-    expect(within(settings).getByRole('link', { name: 'Minha IA' })).toHaveAttribute('aria-current', 'page');
-    expect(within(settings).getByRole('link', { name: 'Diagnóstico' })).toHaveAttribute(
-      'href',
-      '/configuracoes/diagnostico'
-    );
-    expect(within(settings).getByRole('link', { name: 'Voltar para Engenharia' })).toHaveAttribute('href', '/projeto');
-    expect(screen.queryByRole('navigation', { name: 'Navegação principal' })).not.toBeInTheDocument();
-  });
+    await userEvent.keyboard('{Control>}k{/Control}');
+    await userEvent.type(screen.getByRole('combobox'), 'atalhos de teclado{Enter}');
 
-  it('o retorno leva ao ambiente em que a pessoa estava', () => {
-    window.localStorage.setItem('spock.environment', 'management');
-    renderShell('/configuracoes/diagnostico');
-
-    expect(screen.getByRole('link', { name: 'Voltar para Gestão' })).toHaveAttribute('href', '/gestao');
-  });
-
-  it('nas outras telas o menu principal segue no lugar', () => {
-    renderShell('/projeto');
-
-    expect(navigation()).toBeInTheDocument();
-    expect(screen.queryByRole('navigation', { name: 'Configurações' })).not.toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: 'Atalhos de teclado' })).toBeInTheDocument();
   });
 });
 
 describe('AppShell · trilha', () => {
-  it('a página mostra onde está: o grupo, que leva à tela dele, e o nome da tela', () => {
-    renderShell('/projeto/harness', <Page title="Harness" />);
+  it('a página mostra onde está: a área, que leva à tela dela, e o nome da tela', () => {
+    renderShell('/projeto/conhecimento', <Page title="Conhecimento" />);
 
     const trail = within(screen.getByRole('main')).getByRole('navigation', { name: 'Trilha de navegação' });
     expect(within(trail).getByRole('link', { name: 'Engenharia' })).toHaveAttribute('href', '/projeto');
-    expect(within(trail).getByText('Harness')).toBeInTheDocument();
+    expect(within(trail).getByText('Conhecimento')).toBeInTheDocument();
   });
 
   it('o início não tem trilha', () => {
@@ -296,90 +316,17 @@ describe('AppShell · topo', () => {
     expect(await within(header).findByRole('button', { name: 'Projeto: EmpregaNetAPI' })).toBeInTheDocument();
   });
 
-  it('marca o ambiente atual por estado, não só por cor', () => {
-    renderShell();
-    const environments = within(screen.getByRole('banner')).getByRole('navigation', { name: 'Ambiente' });
-
-    expect(within(environments).getByRole('link', { name: 'Engenharia' })).toHaveAttribute('aria-current', 'true');
-    expect(within(environments).getByRole('link', { name: 'Gestão' })).not.toHaveAttribute('aria-current');
-    // Sem projeto aberto, a Gestão abre no Portfólio: o Acompanhamento ficaria vazio.
-    expect(within(environments).getByRole('link', { name: 'Gestão' })).toHaveAttribute('href', '/portfolio');
-  });
-
-  it('com projeto aberto, a Gestão abre no Acompanhamento dele', async () => {
-    renderShell();
-    await userEvent.click(screen.getByRole('button', { name: 'escolher' }));
-    const header = screen.getByRole('banner');
-    await within(header).findByRole('button', { name: 'Projeto: EmpregaNetAPI' });
-
-    expect(within(header).getByRole('link', { name: 'Gestão' })).toHaveAttribute('href', '/gestao');
-  });
-
-  it('trocar de ambiente leva à tela dele, troca o menu e não troca o projeto', async () => {
-    renderShell();
-    await userEvent.click(screen.getByRole('button', { name: 'escolher' }));
-    const header = screen.getByRole('banner');
-    await within(header).findByRole('button', { name: 'Projeto: EmpregaNetAPI' });
-
-    await userEvent.click(within(header).getByRole('link', { name: 'Gestão' }));
-
-    expect(screen.getByTestId('where')).toHaveTextContent('/gestao');
-    expect(within(header).getByRole('link', { name: 'Gestão' })).toHaveAttribute('aria-current', 'true');
-    expect(within(navigation()).getByRole('list', { name: 'Gestão' })).toBeInTheDocument();
-    expect(within(header).getByRole('button', { name: 'Projeto: EmpregaNetAPI' })).toBeInTheDocument();
-  });
-
-  it('numa tela comum, como o Histórico, mantém o ambiente em que a pessoa estava', async () => {
-    renderShell('/gestao');
-    const nav = navigation();
-
-    await userEvent.click(within(nav).getByRole('link', { name: 'Histórico' }));
-
-    expect(screen.getByTestId('where')).toHaveTextContent('/linha-do-tempo');
-    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'Gestão' })).toHaveAttribute(
-      'aria-current',
-      'true'
-    );
-    expect(within(nav).getByRole('list', { name: 'Gestão' })).toBeInTheDocument();
-  });
-
-  it('lembra o último ambiente na próxima vez que o aplicativo abre', () => {
-    window.localStorage.setItem('spock.environment', 'management');
-    renderShell();
-
-    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'Gestão' })).toHaveAttribute(
-      'aria-current',
-      'true'
-    );
-  });
-
-  it('grava o ambiente ao entrar numa tela dele', async () => {
-    renderShell('/gestao');
-
-    await waitFor(() => expect(window.localStorage.getItem('spock.environment')).toBe('management'));
-  });
-
-  it('um valor guardado que não é um ambiente é ignorado', () => {
-    window.localStorage.setItem('spock.environment', 'qualquer-coisa');
-    renderShell();
-
-    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'Engenharia' })).toHaveAttribute(
-      'aria-current',
-      'true'
-    );
-  });
-
   it('o estado do motor aparece uma vez só, na barra de status, junto da versão do pacote', () => {
-    renderShell();
+    renderShell('/projeto');
 
     const statusbar = screen.getByRole('contentinfo');
     expect(within(statusbar).getByRole('status')).toHaveTextContent('Prévia no navegador');
     expect(within(statusbar).getByText(/^v\d+\.\d+\.\d+/)).toBeInTheDocument();
-    expect(within(screen.getByRole('complementary')).queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('status')).toHaveLength(1);
     const header = screen.getByRole('banner');
-    expect(within(header).queryByText('Online')).not.toBeInTheDocument();
     expect(within(header).queryByText(/^v\d+\.\d+\.\d+/)).not.toBeInTheDocument();
-    expect(within(header).queryByText('Engenharia de software assistida por IA')).not.toBeInTheDocument();
+    // As Configurações são uma área da barra, não um link perdido na barra de status.
+    expect(within(statusbar).queryByRole('link', { name: 'Configurações' })).not.toBeInTheDocument();
   });
 });
 
@@ -434,31 +381,63 @@ describe('AppShell · estado do motor', () => {
   });
 });
 
-describe('AppShell · execuções no menu', () => {
+describe('AppShell · atividade', () => {
+  const run = (runId: string, state: string) => ({
+    runId,
+    projectId: 'p-1',
+    projectName: 'loja-api',
+    kind: 'workflow',
+    state,
+    startedAt: '2026-11-20T10:00:00Z',
+    finishedAt: null,
+    live: state === 'running',
+    interrupted: false,
+    changesApplied: false,
+    reverted: false,
+    canRevert: false,
+    revertsRunId: null,
+    error: null,
+    operations: 0,
+    pending: 0,
+    notApplied: 0,
+    tokens: null
+  });
+
   const host = (summary: { running: number; awaitingApproval: number } | 'falha') => {
     (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {};
-    invoke.mockImplementation(async (command: string) => {
+    invoke.mockImplementation(async (command: string, args?: { envelope?: { params?: { states?: string[] } } }) => {
       if (command === 'engine_status') return 'ready';
       if (summary === 'falha') throw { code: 'ENGINE_STOPPED', message: 'motor parado' };
-      return { runs: [], nextCursor: null, summary: { total: 3, ...summary } };
+      const open = args?.envelope?.params?.states !== undefined;
+      return {
+        runs: open ? [run('r-1', 'awaiting_approval')] : [run('r-1', 'awaiting_approval'), run('r-2', 'completed')],
+        nextCursor: null,
+        summary: { total: 3, ...summary }
+      };
     });
   };
 
-  it('avisa o que espera aprovação e o que está andando, e o nome do link diz os dois', async () => {
+  const toggle = () => within(screen.getByRole('banner')).getByRole('button', { name: /^Atividade/ });
+  const panel = () => screen.getByRole('complementary', { name: 'Atividade' });
+
+  it('a área Atividade avisa o que espera aprovação e o que está andando, e o nome do link diz os dois', async () => {
     host({ running: 2, awaitingApproval: 1 });
     renderShell();
 
-    const link = await within(navigation()).findByRole('link', {
-      name: /Execuções.*1 aguardando aprovação, 2 em andamento/
+    const link = await within(areas()).findByRole('link', {
+      name: /Atividade.*1 aguardando aprovação, 2 em andamento/
     });
     expect(link).toHaveAttribute('href', '/execucoes');
+    expect(toggle()).toHaveAccessibleName(/1 aguardando aprovação, 2 em andamento/);
   });
 
-  it('sem aprovação pendente mostra só o que anda', async () => {
+  it('dentro da área, o aviso acompanha o item Execuções', async () => {
     host({ running: 3, awaitingApproval: 0 });
-    renderShell();
+    renderShell('/linha-do-tempo');
 
-    expect(await within(navigation()).findByRole('link', { name: /Execuções.*3 em andamento/ })).toBeInTheDocument();
+    expect(
+      await within(areaPanel('Atividade')).findByRole('link', { name: /Execuções.*3 em andamento/ })
+    ).toBeInTheDocument();
   });
 
   it('sem nada andando o link fica só com o nome', async () => {
@@ -466,7 +445,7 @@ describe('AppShell · execuções no menu', () => {
     renderShell();
 
     await waitFor(() => expect(invoke).toHaveBeenCalledWith('engine_request', expect.anything()));
-    expect(within(navigation()).getByRole('link', { name: 'Execuções' })).toBeInTheDocument();
+    expect(within(areas()).getByRole('link', { name: 'Atividade' })).toBeInTheDocument();
   });
 
   it('se a leitura falha o menu segue sem aviso e sem erro na tela', async () => {
@@ -474,7 +453,7 @@ describe('AppShell · execuções no menu', () => {
     renderShell();
 
     await waitFor(() => expect(invoke).toHaveBeenCalledWith('engine_request', expect.anything()));
-    expect(within(navigation()).getByRole('link', { name: 'Execuções' })).toBeInTheDocument();
+    expect(within(areas()).getByRole('link', { name: 'Atividade' })).toBeInTheDocument();
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
@@ -482,63 +461,144 @@ describe('AppShell · execuções no menu', () => {
     renderShell();
 
     expect(invoke).not.toHaveBeenCalled();
-    expect(within(navigation()).getByRole('link', { name: 'Execuções' })).toBeInTheDocument();
+    expect(within(areas()).getByRole('link', { name: 'Atividade' })).toBeInTheDocument();
   });
 
-  it('a descrição do aviso prefere a aprovação pendente e some quando não há nada', () => {
-    expect(describeRunActivity(null)).toBeUndefined();
-    expect(describeRunActivity({ running: 0, awaitingApproval: 0 })).toBeUndefined();
-    expect(describeRunActivity({ running: 2, awaitingApproval: 1 })).toEqual({
-      text: '1',
-      label: '1 aguardando aprovação, 2 em andamento',
-      tone: 'warning'
-    });
-    expect(describeRunActivity({ running: 2, awaitingApproval: 0 })).toEqual({
-      text: '2',
-      label: '2 em andamento',
-      tone: 'info'
-    });
+  it('o painel começa fechado; o botão do topo o abre, leva o foco para ele e diz que está aberto', async () => {
+    renderShell();
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+
+    await userEvent.click(toggle());
+
+    expect(panel()).toHaveFocus();
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+    expect(within(panel()).getByText(/Sem motor local, não há atividade nesta prévia/)).toBeInTheDocument();
+    expect(within(panel()).getByRole('link', { name: 'Ver todas as execuções' })).toHaveAttribute('href', '/execucoes');
+  });
+
+  it('fechar pelo painel devolve o foco ao botão que o abre', async () => {
+    renderShell();
+    await userEvent.click(toggle());
+
+    await userEvent.click(within(panel()).getByRole('button', { name: 'Fechar o painel de atividade' }));
+
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+    expect(toggle()).toHaveFocus();
+  });
+
+  it('Ctrl+. abre e fecha o painel, e a escolha vale para a próxima abertura do aplicativo', async () => {
+    const { unmount } = renderShell();
+
+    await userEvent.keyboard('{Control>}.{/Control}');
+    expect(panel()).toBeInTheDocument();
+    unmount();
+
+    renderShell();
+    expect(panel()).toBeInTheDocument();
+    // O painel que reabre sozinho não puxa o foco.
+    expect(panel()).not.toHaveFocus();
+
+    await userEvent.keyboard('{Control>}.{/Control}');
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+  });
+
+  it('com o motor, separa o que espera a pessoa do que já aconteceu, e cada linha abre o detalhe', async () => {
+    host({ running: 0, awaitingApproval: 1 });
+    renderShell();
+    await userEvent.click(toggle());
+
+    const tasks = await within(panel()).findByRole('tab', { name: 'Tarefas (1)' });
+    expect(tasks).toHaveAttribute('aria-selected', 'true');
+    expect(within(panel()).getByRole('button', { name: /Pedido de engenharia.*Aguardando aprovação/ })).toHaveAttribute(
+      'aria-haspopup',
+      'dialog'
+    );
+
+    await userEvent.click(within(panel()).getByRole('tab', { name: 'Feed' }));
+
+    // O que está nas tarefas não se repete no feed.
+    const feed = within(panel()).getByRole('list', { name: 'Execuções recentes' });
+    expect(within(feed).getAllByRole('button')).toHaveLength(1);
+    expect(within(feed).getByRole('button', { name: /Concluído/ })).toBeInTheDocument();
+  });
+
+  it('não tem violações estruturais de acessibilidade com o painel aberto', async () => {
+    const { container } = renderShell('/projeto');
+    await userEvent.click(toggle());
+
+    await expectNoA11yViolations(container);
   });
 });
 
 describe('AppShell · menu recolhível', () => {
-  it('recolhe e expande o menu sem tirar o nome dos itens', async () => {
-    renderShell();
+  it('recolhe e expande o painel da área; a barra de áreas continua no lugar', async () => {
+    renderShell('/projeto');
+    const button = screen.getByRole('button', { name: 'Recolher menu' });
+    expect(button).toHaveAttribute('aria-expanded', 'true');
 
-    await userEvent.click(screen.getByRole('button', { name: 'Recolher menu' }));
+    await userEvent.click(button);
 
-    expect(screen.getByRole('button', { name: 'Expandir menu' })).toBeInTheDocument();
-    expect(within(navigation()).getByRole('link', { name: 'Harness' })).toHaveAttribute('href', '/projeto/harness');
+    expect(queryAreaPanel('Engenharia')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Expandir menu' })).toHaveAttribute('aria-expanded', 'false');
+    expect(within(areas()).getByRole('link', { name: 'Engenharia' })).toHaveAttribute('href', '/projeto');
 
     await userEvent.click(screen.getByRole('button', { name: 'Expandir menu' }));
-    expect(screen.getByRole('button', { name: 'Recolher menu' })).toBeInTheDocument();
+    expect(areaPanel('Engenharia')).toBeInTheDocument();
+  });
+
+  it('Ctrl+B faz o mesmo pelo teclado', async () => {
+    renderShell('/projeto');
+
+    await userEvent.keyboard('{Control>}b{/Control}');
+
+    expect(queryAreaPanel('Engenharia')).not.toBeInTheDocument();
   });
 
   it('lembra a escolha na próxima vez que o aplicativo abre', async () => {
-    const { unmount } = renderShell();
+    const { unmount } = renderShell('/projeto');
     await userEvent.click(screen.getByRole('button', { name: 'Recolher menu' }));
     unmount();
 
-    renderShell();
+    renderShell('/projeto');
 
     expect(screen.getByRole('button', { name: 'Expandir menu' })).toBeInTheDocument();
+    expect(queryAreaPanel('Engenharia')).not.toBeInTheDocument();
   });
 
-  it('recolhido, mostra o nome do item como dica, sem trocar o nome acessível', async () => {
-    window.localStorage.setItem('spock.rail', 'collapsed');
-    renderShell();
-    const harness = within(navigation()).getByRole('link', { name: 'Harness' });
+  it('na janela estreita o painel começa recolhido, abre por cima do conteúdo e fecha com Esc ou ao trocar de tela', async () => {
+    narrowWindow(NARROW);
+    renderShell('/projeto');
+    expect(queryAreaPanel('Engenharia')).not.toBeInTheDocument();
 
-    await userEvent.hover(harness);
+    await userEvent.click(screen.getByRole('button', { name: 'Expandir menu' }));
+    const panel = areaPanel('Engenharia');
+    within(panel).getByRole('link', { name: 'Configurar' }).focus();
+    await userEvent.keyboard('{Escape}');
+    expect(queryAreaPanel('Engenharia')).not.toBeInTheDocument();
 
-    expect(await screen.findByRole('tooltip')).toHaveTextContent('Harness');
-    expect(harness).toHaveAccessibleName('Harness');
+    await userEvent.click(screen.getByRole('button', { name: 'Expandir menu' }));
+    await userEvent.click(within(areaPanel('Engenharia')).getByRole('link', { name: 'Configurar' }));
+
+    expect(screen.getByTestId('where')).toHaveTextContent('/configurar');
+    expect(queryAreaPanel('Engenharia')).not.toBeInTheDocument();
   });
 
-  it('expandido, não há dica: o nome já está na tela', async () => {
+  it('com a barra só de ícones, o nome da área aparece como dica, sem trocar o nome acessível', async () => {
+    narrowWindow(NARROW, COMPACT);
+    renderShell();
+    const engineering = within(areas()).getByRole('link', { name: 'Engenharia' });
+
+    await userEvent.hover(engineering);
+
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Engenharia');
+    expect(engineering).toHaveAccessibleName('Engenharia');
+  });
+
+  it('com o nome à vista, não há dica', async () => {
     renderShell();
 
-    await userEvent.hover(within(navigation()).getByRole('link', { name: 'Harness' }));
+    await userEvent.hover(within(areas()).getByRole('link', { name: 'Engenharia' }));
 
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });

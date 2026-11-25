@@ -10,6 +10,8 @@ export const palette = {
   divider: c.line,
   error: { main: c.error },
   success: { main: c.success },
+  warning: { main: c.warning },
+  info: { main: c.info },
   brand: {
     lightest: alpha(c.teal400, 0.12),
     light: c.teal300,

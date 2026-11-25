@@ -1,71 +1,137 @@
 import type { RecentProject } from '@/features/project-selection';
 import { paths } from '@/shared/routing';
 
-import {
-  APP_GROUP,
-  ENGINEERING_GROUP,
-  MANAGEMENT_GROUP,
-  PLATFORM_GROUP,
-  SETTINGS_GROUP,
-  type NavGroup
-} from '../navigation';
+import { AREAS, type NavArea } from '../navigation';
+import { shortcutLabel, type ShortcutId } from '../shortcuts/shortcuts';
 
-export type CommandAction = { kind: 'go'; to: string } | { kind: 'open-project'; recentId: string };
+/** O que o próprio shell sabe fazer, sem trocar de tela. */
+export type ShellAction = Extract<ShortcutId, 'rail' | 'activity' | 'terminal' | 'shortcuts'>;
+
+export type CommandAction =
+  | { kind: 'go'; to: string }
+  | { kind: 'open-project'; recentId: string }
+  | { kind: 'pick-project' }
+  | { kind: 'shell'; action: ShellAction };
+
+export type CommandGroup = 'Ações' | 'Telas' | 'Projetos';
 
 export interface Command {
   id: string;
+  group: CommandGroup;
   label: string;
   hint: string;
-  /** Texto que só a busca enxerga, como o caminho de um projeto. */
+  /** O que acontece ao escolher, para quem ainda não conhece o nome. */
+  description?: string;
+  /** Texto que só a busca enxerga, como o nome técnico de uma tela ou o caminho de um projeto. */
   keywords: string;
   action: CommandAction;
 }
 
-const SCREEN_GROUPS: readonly NavGroup[] = [
-  APP_GROUP,
-  ENGINEERING_GROUP,
-  MANAGEMENT_GROUP,
-  PLATFORM_GROUP,
-  SETTINGS_GROUP
-];
-
-// A ideia saiu do menu (é jornada de começo, está no Início), mas a busca ainda a acha.
-const OFF_MENU: readonly Command[] = [
+const ACTIONS: readonly Command[] = [
   {
-    id: 'screen:idea',
-    label: 'Da ideia ao projeto',
-    hint: 'Engenharia',
-    keywords: 'especificação arquitetura backlog',
-    action: { kind: 'go', to: paths.idea }
+    id: 'action:pick-project',
+    group: 'Ações',
+    label: 'Abrir pasta de projeto',
+    hint: 'Projeto',
+    description: 'Escolha a pasta de um projeto para trabalhar nele.',
+    keywords: 'conectar novo projeto selecionar pasta trocar',
+    action: { kind: 'pick-project' }
+  },
+  {
+    id: 'action:activity',
+    group: 'Ações',
+    label: 'Mostrar ou ocultar a atividade',
+    hint: shortcutLabel('activity'),
+    description: 'O que espera você e as últimas execuções, ao lado da tela.',
+    keywords: 'tarefas feed painel aprovação',
+    action: { kind: 'shell', action: 'activity' }
+  },
+  {
+    id: 'action:terminal',
+    group: 'Ações',
+    label: 'Abrir o terminal do projeto',
+    hint: shortcutLabel('terminal'),
+    keywords: 'shell console linha de comando',
+    action: { kind: 'shell', action: 'terminal' }
+  },
+  {
+    id: 'action:rail',
+    group: 'Ações',
+    label: 'Recolher ou expandir o menu da área',
+    hint: shortcutLabel('rail'),
+    keywords: 'painel lateral barra',
+    action: { kind: 'shell', action: 'rail' }
+  },
+  {
+    id: 'action:shortcuts',
+    group: 'Ações',
+    label: 'Ver os atalhos de teclado',
+    hint: shortcutLabel('shortcuts'),
+    keywords: 'ajuda teclas',
+    action: { kind: 'shell', action: 'shortcuts' }
   }
 ];
 
-function screenCommands(): Command[] {
-  const screens = SCREEN_GROUPS.flatMap((group) =>
-    group.items.flatMap((item): Command[] => {
-      if (!item.to) return [];
-      const hint = group.label ?? 'Aplicativo';
-      const own = {
-        id: `screen:${item.id}`,
-        label: item.label,
-        hint,
+// Telas que abrem a partir de outra e não estão no menu, mas que a busca precisa achar.
+const OFF_MENU: readonly Command[] = [
+  {
+    id: 'screen:idea',
+    group: 'Telas',
+    label: 'Da ideia ao projeto',
+    hint: 'Engenharia',
+    description: 'Descreva uma ideia e receba especificação, arquitetura e backlog.',
+    keywords: 'especificação arquitetura backlog novo projeto',
+    action: { kind: 'go', to: paths.idea }
+  },
+  {
+    id: 'screen:architecture',
+    group: 'Telas',
+    label: 'Arquitetura',
+    hint: 'Engenharia, Visão geral',
+    description: 'O que o código é hoje e a avaliação contra as referências.',
+    keywords: 'camadas dependências modernização problemas',
+    action: { kind: 'go', to: paths.projectArchitecture }
+  }
+];
+
+function areaCommands(area: NavArea): Command[] {
+  if (area.items.length === 0)
+    return [
+      {
+        id: `screen:${area.id}`,
+        group: 'Telas',
+        label: area.label,
+        hint: 'Aplicativo',
+        description: area.description,
         keywords: '',
-        action: { kind: 'go' as const, to: item.to }
-      };
-      // Cada aba vira um comando com o nome dela; a que é o próprio destino do item já está no comando dele.
-      const tabs = (item.tabs ?? [])
-        .filter((tab) => tab.to !== item.to)
-        .map((tab) => ({
-          id: `screen:${tab.id}`,
-          label: tab.label,
-          hint: `${hint}, ${item.label}`,
-          keywords: tab.keywords ?? '',
-          action: { kind: 'go' as const, to: tab.to }
-        }));
-      return [own, ...tabs];
-    })
-  );
-  return [...screens, ...OFF_MENU];
+        action: { kind: 'go', to: area.to }
+      }
+    ];
+
+  return area.items.flatMap((item): Command[] => {
+    if (!item.to) return [];
+    const own: Command = {
+      id: `screen:${item.id}`,
+      group: 'Telas',
+      label: item.label,
+      hint: area.label,
+      description: item.description,
+      keywords: item.technical ?? '',
+      action: { kind: 'go', to: item.to }
+    };
+    // Cada aba vira um comando com o nome dela; a que é o próprio destino do item já está no comando dele.
+    const tabs = (item.tabs ?? [])
+      .filter((tab) => tab.to !== item.to)
+      .map((tab): Command => ({
+        id: `screen:${tab.id}`,
+        group: 'Telas',
+        label: tab.label,
+        hint: `${area.label}, ${item.label}`,
+        keywords: [tab.keywords, item.technical].filter(Boolean).join(' '),
+        action: { kind: 'go', to: tab.to }
+      }));
+    return [own, ...tabs];
+  });
 }
 
 function projectCommands(recents: readonly RecentProject[]): Command[] {
@@ -73,6 +139,7 @@ function projectCommands(recents: readonly RecentProject[]): Command[] {
     .filter((project) => project.available)
     .map((project) => ({
       id: `project:${project.id}`,
+      group: 'Projetos' as const,
       label: project.displayName,
       hint: 'Abrir projeto',
       keywords: project.displayPath,
@@ -81,5 +148,5 @@ function projectCommands(recents: readonly RecentProject[]): Command[] {
 }
 
 export function buildCommands(recents: readonly RecentProject[]): Command[] {
-  return [...screenCommands(), ...projectCommands(recents)];
+  return [...ACTIONS, ...AREAS.flatMap(areaCommands), ...OFF_MENU, ...projectCommands(recents)];
 }

@@ -5,10 +5,10 @@ export function Hero() {
     <header className={styles.hero}>
       <div className={styles.main}>
         <h1 className={styles.title}>
-          Como podemos <span className={styles.accent}>ajudar?</span>
+          Olá! O que você deseja <span className={styles.accent}>realizar hoje?</span>
         </h1>
         <p className={styles.text}>
-          Escolha uma atividade para começar. Vamos configurar o ambiente conforme as necessidades do seu projeto.
+          Descreva o que precisa ou escolha uma atividade. Nada muda no seu projeto sem a sua aprovação.
         </p>
       </div>
     </header>

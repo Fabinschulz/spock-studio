@@ -1,6 +1,6 @@
 const MODIFIER = /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘' : 'Ctrl';
 
-export type ShortcutId = 'palette' | 'rail' | 'panel' | 'terminal' | 'shortcuts';
+export type ShortcutId = 'palette' | 'rail' | 'activity' | 'panel' | 'terminal' | 'shortcuts';
 
 interface Shortcut {
   id: ShortcutId;
@@ -13,8 +13,14 @@ interface Shortcut {
 }
 
 export const SHORTCUTS: readonly Shortcut[] = [
-  { id: 'palette', key: 'k', keyLabel: 'K', description: 'Buscar uma tela ou um projeto' },
-  { id: 'rail', key: 'b', keyLabel: 'B', description: 'Recolher ou expandir o menu lateral' },
+  {
+    id: 'palette',
+    key: 'k',
+    keyLabel: 'K',
+    description: 'Buscar uma tela, um projeto ou um comando, ou fazer um pedido'
+  },
+  { id: 'rail', key: 'b', keyLabel: 'B', description: 'Recolher ou expandir o menu da área' },
+  { id: 'activity', key: '.', keyLabel: '.', description: 'Abrir ou fechar o painel de atividade (tarefas e feed)' },
   {
     id: 'panel',
     key: 'j',

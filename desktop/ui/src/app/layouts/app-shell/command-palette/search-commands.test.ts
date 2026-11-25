@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Command } from './commands';
-import { searchCommands } from './search-commands';
+import { buildCommands, type Command } from './commands';
+import { searchCommands, suggestCommands } from './search-commands';
 
 const command = (id: string, label: string, hint = 'Engenharia', keywords = ''): Command => ({
   id,
+  group: 'Telas',
   label,
   hint,
   keywords,
@@ -47,5 +48,28 @@ describe('searchCommands', () => {
 
   it('encontra um projeto pelo caminho', () => {
     expect(ids(searchCommands(commands, 'dev loja'))).toEqual(['loja']);
+  });
+});
+
+describe('suggestCommands · de uma frase para as telas que têm relação com ela', () => {
+  const screens = buildCommands([]);
+  const labels = (sentence: string) => suggestCommands(screens, sentence).map((entry) => entry.label);
+
+  it('acha a tela pelo nome técnico, mesmo conjugado e com palavras de ligação', () => {
+    expect(labels('Configure as integrações')).toContain('Serviços');
+    expect(labels('quero configurar o harness')).toContain('Padrões do projeto');
+  });
+
+  it('acha pelo que a tela faz, não só pelo nome dela', () => {
+    expect(labels('Verifique os problemas de arquitetura')[0]).toBe('Arquitetura');
+    expect(labels('Mostre os riscos dos meus projetos')).toEqual(
+      expect.arrayContaining(['Portfólio', 'Acompanhamento'])
+    );
+  });
+
+  it('devolve no máximo três, e nada quando a frase não tem relação com tela nenhuma', () => {
+    expect(suggestCommands(screens, 'conexões de nuvem e modelos de IA').length).toBeLessThanOrEqual(3);
+    expect(labels('bom dia para você')).toEqual([]);
+    expect(labels('de a o')).toEqual([]);
   });
 });

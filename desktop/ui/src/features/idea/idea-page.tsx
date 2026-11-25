@@ -1,11 +1,11 @@
 import type { SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 import { ErrorState, LoadingState, NoProjectState, Page } from '@/shared/components';
-import { pathTo } from '@/shared/routing';
+import { pathTo, readHandoff } from '@/shared/routing';
 import { IDEA_STAGES, type IdeaStage } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 
 import { SavePanel } from './components/save-panel';
 import { ScaffoldSection } from './components/scaffold-section';
@@ -42,7 +42,8 @@ function ProjectIdea({ api, project }: { api: IdeaApi; project: SelectedProject 
   const flow = useIdeaFlow(api, project.projectId);
   const { approved, drafts, busy, error, source, design } = flow.state;
   const bySession = source === 'session';
-  const [idea, setIdea] = useState('');
+  const { state } = useLocation();
+  const [idea, setIdea] = useState(() => readHandoff(state)?.slice(0, MAX_IDEA) ?? '');
   const next = nextStage(approved);
   const started = Boolean(drafts.specification);
   const ideaReady = idea.trim().length >= MIN_IDEA;

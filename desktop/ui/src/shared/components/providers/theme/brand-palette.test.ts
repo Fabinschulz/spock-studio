@@ -33,6 +33,8 @@ describe('brandPalette × _tokens.scss', () => {
   it('cor de texto sobre o primário e erro coincidem com os tokens semânticos', () => {
     expect(brandPalette.onPrimary).toBe(declared('color-on-primary'));
     expect(brandPalette.error).toBe(declared('color-error'));
+    expect(brandPalette.warning).toBe(declared('tone-warning-fg'));
+    expect(brandPalette.info).toBe(declared('tone-info-fg'));
   });
 
   it('o vidro das camadas flutuantes coincide com --color-overlay e --backdrop-overlay', () => {

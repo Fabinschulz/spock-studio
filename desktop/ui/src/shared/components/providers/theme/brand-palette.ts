@@ -11,7 +11,9 @@ export const brandPalette = {
   line: 'rgba(255, 255, 255, 0.08)',
   borderStrong: '#737373',
   error: '#f2766e',
-  success: '#7bd88f'
+  success: '#7bd88f',
+  warning: '#e9b44c',
+  info: '#8cc8f0'
 } as const;
 
 // Camada flutuante (diálogo, menu, dica): o mesmo vidro de --color-overlay e --backdrop-overlay.

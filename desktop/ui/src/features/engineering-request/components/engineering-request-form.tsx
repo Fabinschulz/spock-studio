@@ -2,9 +2,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Alert, Button, CheckboxFormField, FormProvider, TextFormField, useFormContext } from '@mariliz/ui-kit';
 
 import { Term } from '@/shared/components';
-import { pathTo } from '@/shared/routing';
-import { useId } from 'react';
-import { useNavigate } from 'react-router';
+import { pathTo, readHandoff } from '@/shared/routing';
+import { useId, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 
 import {
   engineeringRequestFormDefaults,
@@ -96,9 +96,16 @@ export function EngineeringRequestForm({
   reviewing,
   onReview
 }: EngineeringRequestFormProps) {
+  const { state } = useLocation();
+  // Quem chegou pela entrada de pedidos já escreveu o objetivo: ele vem preenchido, e nada começa sem o clique.
+  const defaults = useMemo(
+    () => ({ ...engineeringRequestFormDefaults, goal: readHandoff(state) ?? engineeringRequestFormDefaults.goal }),
+    [state]
+  );
+
   return (
     <FormProvider<EngineeringRequestFormValues>
-      defaultValues={engineeringRequestFormDefaults}
+      defaultValues={defaults}
       resolver={zodResolver(engineeringRequestFormSchema)}
       onSubmit={onSubmit}
     >

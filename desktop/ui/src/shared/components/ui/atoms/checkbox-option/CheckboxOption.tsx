@@ -1,9 +1,25 @@
 import type { CheckboxProps, FormControlLabelProps } from '@mui/material';
-import { Checkbox } from '@mui/material';
+import { Checkbox, FormControlLabel } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import type { ReactNode } from 'react';
 
-import { StyledFormControlLabel } from '../radio/Radio.styled';
+// A mesma linha do `Radio` do ui-kit: rótulo flexível, para caber ícone, nome e etiquetas.
+const StyledFormControlLabel = styled(FormControlLabel)(({ theme }) => ({
+  marginLeft: 0,
+  marginRight: 0,
+  gap: theme.spacing(1),
+  alignItems: 'center',
+  '& .MuiFormControlLabel-label': {
+    ...theme.typography.body2,
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(1.5),
+    flex: 1,
+    minWidth: 0,
+    color: theme.palette.text.primary,
+    '&.Mui-disabled': { color: theme.palette.text.disabled }
+  }
+}));
 
 const StyledCheckbox = styled(Checkbox)(({ theme }) => ({
   padding: theme.spacing(0.5),

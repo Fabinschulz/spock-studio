@@ -8,6 +8,7 @@ import { MemoryRouter, Route, Routes } from 'react-router';
 import { EngineError, type EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
 import { ProjectSelectionProvider, useProjectSelectionContext } from '@/features/project-selection';
+import { handoffState } from '@/shared/routing';
 import { workflowStartParamsSchema, workflowStartResultSchema } from '@/shared/schema';
 import { expectNoA11yViolations } from '@/test/a11y';
 
@@ -55,11 +56,12 @@ function clientFor(
   };
 }
 
-function renderPage(client: EngineClient) {
+function renderPage(client: EngineClient, handoff?: string) {
+  const entry = handoff ? { pathname: '/pedido', state: handoffState(handoff) } : '/pedido';
   return render(
     <AppProviders>
       <ProjectSelectionProvider picker={{ pick: vi.fn().mockResolvedValue(project) }}>
-        <MemoryRouter initialEntries={['/pedido']}>
+        <MemoryRouter initialEntries={[entry]}>
           <AutoPick>
             <Routes>
               <Route path="/pedido" element={<EngineeringRequestPage client={client} />} />
@@ -91,6 +93,18 @@ describe('Pedido de engenharia', () => {
         }
       }
     ]);
+  });
+
+  it('quem chega pela entrada de pedidos encontra o objetivo preenchido, e nada começa sem o clique', async () => {
+    const client = clientFor('run-eng-2');
+    renderPage(client, 'trocar o contrato de autenticação');
+
+    expect(await screen.findByRole('textbox', { name: /Objetivo/ })).toHaveValue('trocar o contrato de autenticação');
+    expect(client.calls.some((call) => call.method === 'workflow.start')).toBe(false);
+
+    await userEvent.click(screen.getByRole('button', { name: /^Iniciar pedido$/ }));
+
+    expect(await screen.findByTestId('exec')).toBeInTheDocument();
   });
 
   it('sem modelo configurado a opção fica desligada e leva às Configurações', async () => {

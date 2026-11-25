@@ -189,7 +189,7 @@ describe('Projeto · visão geral', () => {
     expect(screen.queryByRole('heading', { name: 'Revisões do Harness' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Conhecimento do projeto' })).toBeNull();
     const more = screen.getByRole('region', { name: 'Mais sobre o projeto' });
-    expect(within(more).getByRole('link', { name: 'Harness' })).toHaveAttribute('href', '/projeto/harness');
+    expect(within(more).getByRole('link', { name: 'Padrões do projeto' })).toHaveAttribute('href', '/projeto/harness');
     expect(within(more).getByRole('link', { name: 'Conhecimento' })).toHaveAttribute('href', '/projeto/conhecimento');
   });
 

@@ -1,2 +1,2 @@
 export { JourneyGrid } from './journey-grid';
-export { journeys, type JourneyId } from './journeys';
+export { journeysFor, type Journey, type JourneyId } from './journeys';

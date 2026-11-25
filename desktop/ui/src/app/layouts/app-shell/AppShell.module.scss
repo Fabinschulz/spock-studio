@@ -1,19 +1,17 @@
 @use '@/shared/styles/abstracts' as *;
 
-$rail-wide: 14.5rem;
-$rail-narrow: 3.75rem;
+$bar-width: 5.75rem;
+$bar-compact: 3.5rem;
+$panel-width: 13.5rem;
+$activity-width: 21rem;
 
+// Barra de áreas | painel da área | conteúdo | painel de atividade; a barra de status ocupa a linha de baixo inteira.
 .shell {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
-  grid-template-columns: $rail-wide minmax(0, 1fr);
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
   height: 100vh;
   background-color: var(--color-background);
-  transition: grid-template-columns var(--duration-base) var(--ease);
-}
-
-.collapsed {
-  grid-template-columns: $rail-narrow minmax(0, 1fr);
 }
 
 button.skip {
@@ -32,25 +30,27 @@ button.skip {
   }
 }
 
-.rail {
+.bar {
   display: flex;
+  grid-row: 1;
+  grid-column: 1;
   flex-direction: column;
-  gap: var(--space-4);
+  align-items: stretch;
+  gap: var(--space-3);
+  width: $bar-width;
   min-height: 0;
-  padding: var(--space-4) var(--space-3);
+  padding: var(--space-3) var(--space-1);
   border-right: var(--border-width-divider) solid var(--color-divider);
   background-color: var(--color-sidebar);
-
-  nav {
-    flex: 1;
-  }
 }
 
 .brand {
   display: flex;
+  align-self: center;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-1) var(--space-2);
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: var(--radius-sm);
   color: var(--color-text);
   text-decoration: none;
@@ -65,8 +65,132 @@ button.skip {
   height: 1.75rem;
 }
 
-.wordmark {
-  height: 1.2rem;
+.areasNav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 0;
+  overflow: hidden auto;
+}
+
+.areas {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// Ícone sobre o nome: a área se reconhece sem depender de dica, e o alvo de clique é a largura toda da barra.
+.area,
+button.area {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: var(--space-1) 2px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-caption);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-menu);
+  text-align: center;
+  text-decoration: none;
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
+
+  @include hover {
+    background-color: var(--color-menu-hover);
+    color: var(--color-text);
+  }
+
+  &:focus-visible {
+    @include focus-ring(-2px);
+  }
+}
+
+// A área atual se marca por forma (fundo e filete) e pelo estado que o link anuncia, não só por cor.
+.area[aria-current] {
+  background-color: var(--color-active);
+  color: var(--color-text);
+
+  .areaIcon {
+    color: var(--color-primary-text);
+  }
+
+  &::before {
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: 0;
+    width: 2px;
+    border-radius: 2px;
+    background-color: var(--color-primary);
+    content: '';
+  }
+}
+
+.areaIcon {
+  display: flex;
+  font-size: 1.25rem;
+}
+
+.areaBadge {
+  position: absolute;
+  top: 4px;
+  right: 14px;
+}
+
+.panel {
+  display: flex;
+  grid-row: 1;
+  grid-column: 2;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: $panel-width;
+  min-height: 0;
+  padding: var(--space-4) var(--space-3);
+  border-right: var(--border-width-divider) solid var(--color-divider);
+  background-color: var(--color-sidebar);
+  overflow: hidden auto;
+  animation: panel-in var(--duration-base) var(--ease);
+}
+
+// Janela estreita: o painel divide a célula do conteúdo e fica por cima dele, em vez de espremê-lo.
+.panelOverlay {
+  z-index: 6;
+  grid-column: 3;
+  justify-self: start;
+  box-shadow: var(--shadow-raised);
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(-0.5rem);
+  }
+}
+
+.panelTitle {
+  margin: 0;
+  padding: var(--space-1) var(--space-3) var(--space-2);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
 }
 
 .nav {
@@ -76,24 +200,6 @@ button.skip {
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.groups {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  min-height: 0;
-  overflow: hidden auto;
-}
-
-.groupLabel {
-  margin: 0 0 var(--space-1);
-  padding: 0 var(--space-3);
-  font-size: var(--font-size-badge);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-subtle);
 }
 
 .item {
@@ -147,11 +253,6 @@ button.skip {
   }
 }
 
-.back {
-  margin-bottom: var(--space-2);
-  color: var(--color-text-muted);
-}
-
 .unavailable {
   cursor: default;
   color: var(--color-text-subtle);
@@ -201,29 +302,6 @@ button.item {
   min-width: 0;
 }
 
-.activity {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.25rem;
-  padding: 0 var(--space-2);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-badge);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.25rem;
-}
-
-.warning {
-  color: var(--tone-warning-fg);
-  background-color: var(--tone-warning-bg);
-}
-
-.info {
-  color: var(--tone-info-fg);
-  background-color: var(--tone-info-bg);
-}
-
 .itemReason {
   flex: none;
   font-size: var(--font-size-badge);
@@ -234,6 +312,7 @@ button.item {
 
 .statusbar {
   display: flex;
+  grid-row: 2;
   grid-column: 1 / -1;
   align-items: center;
   justify-content: space-between;
@@ -300,6 +379,8 @@ button.item {
 
 .column {
   display: flex;
+  grid-row: 1;
+  grid-column: 3;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
@@ -317,56 +398,49 @@ button.item {
   border-bottom: var(--border-width-divider) solid var(--color-divider);
 }
 
-.search {
-  margin-left: auto;
+// A busca é também a entrada de pedidos: fica no meio do topo, larga o bastante para se ler de relance.
+button.search {
+  flex: 1;
+  justify-content: flex-start;
   gap: var(--space-2);
+  max-width: 28rem;
+  margin-inline: auto;
+  border-color: var(--color-border-field);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-muted);
+
+  @include hover {
+    border-color: var(--color-border-strong);
+    color: var(--color-text);
+  }
+}
+
+.searchText {
+  flex: 1;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+button.activityToggle {
+  flex: none;
+  gap: var(--space-2);
+  color: var(--color-text-menu);
+
+  &[aria-expanded='true'] {
+    background-color: var(--color-active);
+    color: var(--color-text);
+    box-shadow: inset 0 -2px 0 var(--color-primary);
+  }
 }
 
 .shortcut {
+  flex: none;
   margin-left: var(--space-2);
   font-family: inherit;
   font-size: var(--font-size-xs);
   color: var(--color-text-subtle);
-}
-
-// O ambiente atual se marca por forma (fundo e filete), não só por cor.
-.environments {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding-left: var(--space-3);
-  border-left: var(--border-width-divider) solid var(--color-divider);
-}
-
-.environment {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--target-min);
-  padding: 0 var(--space-3);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-navigation);
-  line-height: var(--line-height-navigation);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-menu);
-  text-decoration: none;
-  transition:
-    background-color var(--duration-fast) var(--ease),
-    color var(--duration-fast) var(--ease);
-
-  @include hover {
-    background-color: var(--color-menu-hover);
-    color: var(--color-text);
-  }
-
-  &:focus-visible {
-    @include focus-ring(-2px);
-  }
-}
-
-.environmentActive {
-  background-color: var(--color-active);
-  color: var(--color-text);
-  box-shadow: inset 0 -2px 0 var(--color-primary);
 }
 
 .version {
@@ -424,35 +498,44 @@ button.statusButtonActive {
   }
 }
 
-// Menu estreito: só os ícones; o nome de cada item continua sendo o nome acessível e aparece como dica ao lado.
-.collapsed {
-  .rail {
-    align-items: center;
-    padding-inline: var(--space-2);
+.activityPanel {
+  grid-row: 1;
+  grid-column: 4;
+  width: $activity-width;
+  border-left: var(--border-width-divider) solid var(--color-divider);
+  animation: activity-in var(--duration-base) var(--ease);
+}
+
+@keyframes activity-in {
+  from {
+    opacity: 0;
+    transform: translateX(0.5rem);
+  }
+}
+
+// Sem largura para os dois lado a lado, a atividade fica por cima do conteúdo, encostada à direita.
+@media (max-width: 67.99rem) {
+  .activityPanel {
+    z-index: 6;
+    grid-column: 3;
+    justify-self: end;
+    width: min(#{$activity-width}, 100%);
+    box-shadow: var(--shadow-raised);
+  }
+}
+
+// Janela muito estreita ou muito zoom: a barra fica só com os ícones; o nome continua sendo o nome acessível e aparece
+// como dica ao lado.
+@media (max-width: 599.98px) {
+  .bar {
+    width: $bar-compact;
   }
 
-  .wordmark,
-  .itemLabel,
-  .itemReason,
-  .groupLabel {
+  .areaLabel {
     @include visually-hidden;
   }
 
-  .brand {
-    padding: 0;
-  }
-
-  .groups {
-    gap: var(--space-3);
-  }
-
-  .group + .group {
-    padding-top: var(--space-3);
-    border-top: var(--border-width-divider) solid var(--color-divider);
-  }
-
-  .item {
-    justify-content: center;
-    padding-inline: 0;
+  .areaBadge {
+    right: 4px;
   }
 }

@@ -1,4 +1,4 @@
-// O armazenamento do navegador pode faltar ou recusar (janela privada, dados bloqueados): as preferências do shell são
+// O armazenamento do navegador pode faltar ou recusar (janela privada, dados bloqueados): as preferências de tela são
 // só conforto e, sem ele, duram até fechar o aplicativo.
 
 export function readPreference(key: string): string | null {

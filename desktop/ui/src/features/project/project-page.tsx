@@ -55,10 +55,10 @@ function MoreSection() {
       <ul className={styles.rows}>
         <li className={styles.row}>
           <span>
-            <Link to={pathTo('projectHarness')}>Harness</Link>
+            <Link to={pathTo('projectHarness')}>Padrões do projeto</Link>
             <span className={styles.meta}>
               {' '}
-              · o que foi aplicado no projeto, conferido contra o disco, e as revisões
+              · o Harness aplicado no projeto, conferido contra o disco, e as revisões
             </span>
           </span>
         </li>

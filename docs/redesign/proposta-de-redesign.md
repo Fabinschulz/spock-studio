@@ -2,6 +2,8 @@
 
 > **Estado:** Fases 1 a 6 concluídas (seção 13). O desenho Workbench está no aplicativo real. O protótipo visual (`desktop/ui/src/prototype/` e `prototype.html`) foi removido ao fim da Fase 6; a última revisão que o contém é o commit `6e9918b` (`git show 6e9918b:desktop/ui/src/prototype/main.tsx`). O que ficou como registro é a análise abaixo; as capturas que ficavam em `screenshots/` saíram do repositório para deixá-lo mais leve e estão no histórico até o commit `7728b4b` (`git show 7728b4b:<caminho>`).
 >
+> A navegação, o Início e a entrada de pedidos descritos aqui foram substituídos pelo que está em [workspace-unificado.md](workspace-unificado.md); a linguagem visual continua valendo.
+>
 > Documentos relacionados: [contratos-propostos.md](contratos-propostos.md) (eventos que o motor ainda não publica) e [ui-modernization.md](../ui-modernization.md) (desenho atual).
 
 ## O protótipo (removido)

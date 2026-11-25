@@ -7,7 +7,7 @@ describe('trailOf', () => {
     expect(trailOf('/')).toEqual([]);
   });
 
-  it('uma tela do menu mostra o grupo, que leva à tela inicial dele, e o nome da tela', () => {
+  it('uma tela do menu mostra a área, que leva à tela inicial dela, e o nome da tela', () => {
     expect(trailOf('/projeto/conhecimento')).toEqual([
       { label: 'Engenharia', to: '/projeto' },
       { label: 'Conhecimento' }
@@ -18,18 +18,19 @@ describe('trailOf', () => {
   it('uma aba mostra o item do menu que a contém e o nome da aba', () => {
     expect(trailOf('/projeto/catalogo')).toEqual([
       { label: 'Engenharia', to: '/projeto' },
-      { label: 'Harness', to: '/projeto/harness' },
+      { label: 'Padrões do projeto', to: '/projeto/harness' },
       { label: 'Catálogo' }
+    ]);
+    expect(trailOf('/auditoria')).toEqual([
+      { label: 'Atividade', to: '/execucoes' },
+      { label: 'Histórico', to: '/linha-do-tempo' },
+      { label: 'Auditoria' }
     ]);
   });
 
-  it('a Plataforma não tem tela própria: o nome dela é só texto', () => {
-    expect(trailOf('/execucoes')).toEqual([{ label: 'Plataforma' }, { label: 'Execuções' }]);
-    expect(trailOf('/cloud')).toEqual([
-      { label: 'Plataforma' },
-      { label: 'Conexões', to: '/integracoes' },
-      { label: 'Nuvem' }
-    ]);
+  it('Atividade e Conexões são áreas com tela própria', () => {
+    expect(trailOf('/execucoes')).toEqual([{ label: 'Atividade', to: '/execucoes' }, { label: 'Execuções' }]);
+    expect(trailOf('/cloud')).toEqual([{ label: 'Conexões', to: '/integracoes' }, { label: 'Nuvem' }]);
   });
 
   it('as Configurações têm trilha própria, que leva à primeira seção', () => {
@@ -41,7 +42,7 @@ describe('trailOf', () => {
 
   it('a execução passa pela lista de execuções', () => {
     expect(trailOf('/execucao/run-1')).toEqual([
-      { label: 'Engenharia', to: '/projeto' },
+      { label: 'Atividade', to: '/execucoes' },
       { label: 'Execuções', to: '/execucoes' },
       { label: 'Execução' }
     ]);
