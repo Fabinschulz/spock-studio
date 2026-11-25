@@ -1,16 +1,15 @@
+import type { NoticeTone } from '@/shared/components/ui';
 import type { RunResult } from '@/shared/schema';
 import { HARNESS_ENGINEER_NOT_INVOKED } from './harness-engineer-prompt';
 
 type Outcome = RunResult['outcome'];
 
-export type OutcomeSeverity = 'success' | 'warning' | 'error' | 'info';
-
-export const outcomeSeverity: Record<Outcome, OutcomeSeverity> = {
+export const outcomeTone: Record<Outcome, NoticeTone> = {
   completed: 'success',
   completed_with_limitations: 'warning',
   cancelled: 'info',
-  failed: 'error',
-  requires_intervention: 'error'
+  failed: 'danger',
+  requires_intervention: 'danger'
 };
 
 function explainFailure(result: RunResult): string {

@@ -4,10 +4,10 @@ import { EvidenceDisclosure, InlineNotice, PrimaryActionFooter } from '@/shared/
 import type { ConfigurationPlan } from '@/shared/schema';
 
 import styles from '../../components/panels.module.scss';
+import rows from '../../components/rows.module.scss';
 import { StepHeader } from '../../components/step-header';
 import { observationLabel } from '../../domain/labels';
 import { DecisionsList } from './decisions-list';
-import planStyles from './plan.module.scss';
 
 interface PlanStepProps {
   plan: ConfigurationPlan;
@@ -37,8 +37,8 @@ export function PlanStep({ plan, onBack, onContinue }: PlanStepProps) {
       <DecisionsList decisions={plan.decisions} />
 
       {plan.limitations.length > 0 ? (
-        <section aria-labelledby="limitacoes-titulo" className={planStyles.section}>
-          <h3 id="limitacoes-titulo" className={planStyles.title}>
+        <section aria-labelledby="limitacoes-titulo" className={rows.section}>
+          <h3 id="limitacoes-titulo" className={rows.title}>
             Limitações
           </h3>
           {plan.limitations.map((limitation) => (
@@ -50,16 +50,16 @@ export function PlanStep({ plan, onBack, onContinue }: PlanStepProps) {
       ) : null}
 
       {plan.observations.length > 0 ? (
-        <section aria-labelledby="observacoes-titulo" className={planStyles.section}>
-          <h3 id="observacoes-titulo" className={planStyles.title}>
+        <section aria-labelledby="observacoes-titulo" className={rows.section}>
+          <h3 id="observacoes-titulo" className={rows.title}>
             Observações
           </h3>
-          <ul role="list" className={planStyles.rows}>
+          <ul role="list" className={rows.rows}>
             {plan.observations.map((observation) => (
               <li key={observation.kind + observation.text}>
-                <div className={planStyles.line}>
+                <div className={rows.line}>
                   <span>{observation.text}</span>
-                  <span className={planStyles.end}>{observationLabel[observation.kind]}</span>
+                  <span className={rows.end}>{observationLabel[observation.kind]}</span>
                 </div>
                 <EvidenceDisclosure
                   summary={`Evidências (${observation.evidence.length})`}
@@ -72,11 +72,11 @@ export function PlanStep({ plan, onBack, onContinue }: PlanStepProps) {
       ) : null}
 
       {plan.risks.length > 0 ? (
-        <section aria-labelledby="riscos-titulo" className={planStyles.section}>
-          <h3 id="riscos-titulo" className={planStyles.title}>
+        <section aria-labelledby="riscos-titulo" className={rows.section}>
+          <h3 id="riscos-titulo" className={rows.title}>
             Riscos
           </h3>
-          <ul role="list" className={planStyles.rows}>
+          <ul role="list" className={rows.rows}>
             {plan.risks.map((risk) => (
               <li key={risk}>{risk}</li>
             ))}

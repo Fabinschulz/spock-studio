@@ -3,7 +3,7 @@ import type { Discovery } from '@/shared/schema';
 import { plural } from '@/shared/utils';
 
 import { specificationStateLabel } from '../../domain/labels';
-import styles from './discovery.module.scss';
+import styles from '../../components/rows.module.scss';
 
 const versionText = (version: string | null) => (version ? `versão ${version}` : 'não encontrado');
 

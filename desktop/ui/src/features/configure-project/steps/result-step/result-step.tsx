@@ -1,20 +1,19 @@
-import { Alert, Button } from '@mariliz/ui-kit';
+import { Button, LoadingBar } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
 import type { HarnessNames } from '@/shared/schema';
 import { runOutcomeLabel } from '@/shared/utils';
 
-import { EvidenceDisclosure, PrimaryActionFooter } from '@/shared/components/ui';
+import { ConfirmAction, EvidenceDisclosure, InlineNotice, PrimaryActionFooter } from '@/shared/components/ui';
 
 import styles from '../../components/panels.module.scss';
 import { StepHeader } from '../../components/step-header';
 import type { JourneyResults, Loadable } from '../../types/journey';
 import type { RunView } from '../../types/run';
 import { runKindLabel } from '../../domain/labels';
-import { awaitingHarnessProposal, explainOutcome, outcomeSeverity } from '../../domain/run-outcome';
+import { awaitingHarnessProposal, explainOutcome, outcomeTone } from '../../domain/run-outcome';
 import { FilesSummary } from './files-summary';
 import { ProposalGuide } from './proposal-guide';
-import { RevertConfirmModal } from './revert-confirm-modal';
 import { RevertSummary } from './revert-summary';
 import { ValidationList } from './validation-list';
 
@@ -47,16 +46,10 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
       <StepHeader title="Resultado" />
 
       {apply ? (
-        <Alert
-          severity={outcomeSeverity[apply.outcome]}
-          title={runOutcomeLabel[apply.outcome]}
-          description={
-            <>
-              {explainOutcome(apply)}
-              {apply.error ? <div>{apply.error.message}</div> : null}
-            </>
-          }
-        />
+        <InlineNotice tone={outcomeTone[apply.outcome]} title={runOutcomeLabel[apply.outcome]}>
+          {explainOutcome(apply)}
+          {apply.error ? <div>{apply.error.message}</div> : null}
+        </InlineNotice>
       ) : null}
 
       {apply?.files ? <FilesSummary files={apply.files} /> : null}
@@ -78,7 +71,9 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
         <>
           <h3 className={styles.sectionTitle}>Limitações do plano</h3>
           {apply.limitations.map((limitation) => (
-            <Alert key={limitation.code + limitation.message} severity="warning" description={limitation.message} />
+            <InlineNotice key={limitation.code + limitation.message} tone="warning">
+              {limitation.message}
+            </InlineNotice>
           ))}
         </>
       ) : null}
@@ -94,14 +89,29 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
       {revert ? <RevertSummary result={revert} /> : null}
 
       {run?.error ? (
-        <Alert severity="error" title={`${runKindLabel[run.kind]} não concluída`} description={run.error} />
+        <InlineNotice tone="danger" title={`${runKindLabel[run.kind]} não concluída`}>
+          {run.error}
+        </InlineNotice>
       ) : null}
 
       {busy ? (
         <div role="status" aria-live="polite" className={styles.card}>
           <span>{runKindLabel[run.kind]} em andamento…</span>
-          <div className={styles.progress} />
+          <LoadingBar aria-label={`${runKindLabel[run.kind]} em andamento`} />
         </div>
+      ) : null}
+
+      {confirming ? (
+        <ConfirmAction
+          label="Reverter as alterações"
+          confirmLabel="Reverter agora"
+          cancelLabel="Não reverter"
+          onConfirm={confirmRevert}
+          onCancel={() => setConfirming(false)}
+        >
+          Isto restaura o estado anterior dos arquivos que a aplicação alterou. Arquivos que você editou depois da
+          aplicação não são sobrescritos: ficam como estão e aparecem como pendência.
+        </ConfirmAction>
       ) : null}
 
       <PrimaryActionFooter>
@@ -117,8 +127,6 @@ export function ResultStep({ results, run, onRevert, onValidate, onDone, onRepla
           Concluir
         </Button>
       </PrimaryActionFooter>
-
-      <RevertConfirmModal open={confirming} onCancel={() => setConfirming(false)} onConfirm={confirmRevert} />
     </section>
   );
 }

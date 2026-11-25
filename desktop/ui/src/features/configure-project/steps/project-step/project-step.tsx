@@ -1,6 +1,6 @@
-import { Alert, ArrowRightIcon, Button } from '@mariliz/ui-kit';
+import { ArrowRightIcon, Button, LoadingBar } from '@mariliz/ui-kit';
 
-import { PrimaryActionFooter } from '@/shared/components/ui';
+import { InlineNotice, PrimaryActionFooter } from '@/shared/components/ui';
 import type { Discovery } from '@/shared/schema';
 
 import styles from '../../components/panels.module.scss';
@@ -35,10 +35,12 @@ export function ProjectStep({ project, discovery, onAnalyze, onContinue }: Proje
 
       <FolderPickerCard project={project} analyzing={analyzing} onAnalyze={onAnalyze} />
 
-      {analyzing ? <div aria-hidden="true" className={styles.progress} /> : null}
+      {analyzing ? <LoadingBar aria-label="Analisando o projeto" /> : null}
 
       {discovery.status === 'error' && project ? (
-        <Alert severity="error" title="Não foi possível analisar o projeto" description={discovery.message} />
+        <InlineNotice tone="danger" title="Não foi possível analisar o projeto">
+          {discovery.message}
+        </InlineNotice>
       ) : null}
 
       {ready ? <DiscoveryDetails discovery={discovery.data} /> : null}

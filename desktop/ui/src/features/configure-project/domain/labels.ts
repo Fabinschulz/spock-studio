@@ -31,6 +31,14 @@ export const actionLabel: Record<FileChange['action'], string> = {
   conflict: 'Conflito'
 };
 
+export const actionTone: Record<FileChange['action'], Tone> = {
+  create: 'success',
+  update: 'info',
+  preserve: 'neutral',
+  remove: 'danger',
+  conflict: 'warning'
+};
+
 export const componentKindLabel: Record<ComponentDecision['kind'], string> = {
   specification: 'Estrutura de especificação',
   agent: 'Agente',
@@ -55,6 +63,13 @@ export const decisionLabel: Record<string, string> = {
   keep: 'Manter',
   skip: 'Dispensar',
   blocked: 'Bloqueado'
+};
+
+export const decisionTone: Record<string, Tone> = {
+  enable: 'success',
+  keep: 'info',
+  skip: 'neutral',
+  blocked: 'warning'
 };
 
 export const originLabel: Record<string, string> = {

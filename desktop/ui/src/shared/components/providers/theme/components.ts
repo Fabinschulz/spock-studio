@@ -1,4 +1,4 @@
-import type { ThemeOptions } from '@mui/material/styles';
+import { lighten, type ThemeOptions } from '@mui/material/styles';
 
 import { brandPalette as c, overlay, veil } from './brand-palette';
 import { RouterLinkBehavior } from './router-link';
@@ -28,6 +28,13 @@ export const components: ThemeOptions['components'] = {
           ownerState.variant === 'text' && {
             color: c.textMuted,
             '&:hover': { backgroundColor: veil.hover, color: c.text }
+          }),
+        // O vermelho do tema escuro é claro: o texto branco do MUI fica em 2,8:1. Texto escuro passa de 6:1, e o hover
+        // clareia em vez de escurecer para não perder esse contraste.
+        ...(ownerState.color === 'error' &&
+          ownerState.variant === 'contained' && {
+            color: c.background,
+            '&:hover': { backgroundColor: lighten(c.error, 0.15) }
           })
       })
     }

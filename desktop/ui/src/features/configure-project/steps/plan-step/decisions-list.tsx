@@ -1,8 +1,10 @@
 import { Fragment } from 'react';
 
+import { StatusChip } from '@/shared/components/ui';
 import type { ConfigurationPlan } from '@/shared/schema';
 
-import { componentKindLabel, decisionLabel, originLabel } from '../../domain/labels';
+import rows from '../../components/rows.module.scss';
+import { componentKindLabel, decisionLabel, decisionTone, originLabel } from '../../domain/labels';
 import styles from './plan.module.scss';
 
 type Decision = ConfigurationPlan['decisions'][number];
@@ -35,28 +37,30 @@ const needsAttention = (decision: Decision) => decision.decision === 'blocked';
 
 export function DecisionsList({ decisions }: { decisions: ConfigurationPlan['decisions'] }) {
   return (
-    <section aria-labelledby="decisoes-titulo" className={styles.section}>
-      <h3 id="decisoes-titulo" className={styles.title}>
+    <section aria-labelledby="decisoes-titulo" className={rows.section}>
+      <h3 id="decisoes-titulo" className={rows.title}>
         Decisões por componente
       </h3>
-      <p className={styles.note}>{decisionsSummary(decisions)}</p>
-      <ul role="list" className={styles.rows}>
+      <p className={rows.note}>{decisionsSummary(decisions)}</p>
+      <ul role="list" className={rows.rows}>
         {decisions.map((decision) => (
           <li key={decision.componentId}>
             <details className={styles.details} open={needsAttention(decision) || undefined}>
               <summary className={styles.summary}>
                 <span>
-                  <span className={styles.name}>{componentKindLabel[decision.kind]}</span>
-                  <span className={`${styles.meta} ${styles.mono}`}>
+                  <span className={rows.name}>{componentKindLabel[decision.kind]}</span>
+                  <span className={`${rows.meta} ${rows.mono}`}>
                     {' '}
                     <BreakableId id={decision.componentId} />
                   </span>
-                  <span className={`${styles.meta} ${styles.block}`}>{decision.justification}</span>
+                  <span className={`${rows.meta} ${styles.block}`}>{decision.justification}</span>
                 </span>
-                <span className={styles.end}>{decisionLabel[decision.decision] ?? decision.decision}</span>
+                <StatusChip tone={decisionTone[decision.decision] ?? 'neutral'}>
+                  {decisionLabel[decision.decision] ?? decision.decision}
+                </StatusChip>
               </summary>
               <div className={styles.body}>
-                <p className={styles.meta}>Origem: {originLabel[decision.origin] ?? decision.origin}</p>
+                <p className={rows.meta}>Origem: {originLabel[decision.origin] ?? decision.origin}</p>
                 {decision.evidence.length > 0 ? (
                   <ul role="list" className={styles.evidence}>
                     {decision.evidence.map((line, index) => (
@@ -65,7 +69,7 @@ export function DecisionsList({ decisions }: { decisions: ConfigurationPlan['dec
                     ))}
                   </ul>
                 ) : (
-                  <p className={styles.meta}>Sem evidências registradas.</p>
+                  <p className={rows.meta}>Sem evidências registradas.</p>
                 )}
               </div>
             </details>
