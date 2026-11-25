@@ -22,7 +22,7 @@ function renderFrame(props: Partial<React.ComponentProps<typeof JourneyFrame>> =
       <MemoryRouter>
         <ContentAreaProvider value={contentArea(areaWidth)}>
           <JourneyFrame
-            step="plan"
+            step="review"
             panel={
               <>
                 <p>resumo</p>

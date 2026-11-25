@@ -50,6 +50,18 @@ export const componentKindLabel: Record<ComponentDecision['kind'], string> = {
   config: 'Configuração'
 };
 
+/** Título do grupo de arquivos na Revisão. */
+export const componentKindGroupLabel: Record<ComponentDecision['kind'], string> = {
+  specification: 'Estrutura de especificação',
+  agent: 'Agentes',
+  skill: 'Skills',
+  hook: 'Hooks',
+  rule: 'Regras',
+  tool: 'Ferramentas e MCP',
+  eval: 'Evals',
+  config: 'Configuração'
+};
+
 export const toolKindLabel: Record<string, string> = {
   build: 'Build',
   test: 'Teste',

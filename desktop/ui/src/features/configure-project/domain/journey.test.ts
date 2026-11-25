@@ -66,9 +66,9 @@ describe('reducer da jornada', () => {
     expect(journeyReducer(initialJourneyState, { type: 'discover.ok', discovery: weak }).aiEnvironments).toEqual([]);
   });
 
-  it('plano novo vai para a etapa do plano com criar/atualizar marcados, comandos desmarcados e conflitos mantidos', () => {
+  it('plano novo vai para a Revisão com criar/atualizar marcados, comandos desmarcados e conflitos mantidos', () => {
     const state = planned();
-    expect(state.step).toBe('plan');
+    expect(state.step).toBe('review');
     expect(state.approvedChanges).toEqual(createIds);
     expect(state.approvedCommands).toEqual([]);
     expect(state.resolutions).toEqual({ [conflictId]: 'keep' });
@@ -98,7 +98,7 @@ describe('reducer da jornada', () => {
     expect(apply.run!.steps).toEqual([
       { id: 'backup', title: 'Backup', status: 'pending', detail: null, startedAt: null, endedAt: null }
     ]);
-    expect(journeyReducer(base, { type: 'run.start', kind: 'validate' }).step).toBe('plan');
+    expect(journeyReducer(base, { type: 'run.start', kind: 'validate' }).step).toBe('review');
   });
 
   it('ids, eventos e fim de execução só valem com execução em andamento', () => {

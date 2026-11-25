@@ -16,6 +16,8 @@ export function restorableJourney(saved: JourneyState): JourneyState | null {
 
   const state: JourneyState = {
     ...saved,
+    // A etapa Plano juntou-se à Revisão: uma jornada guardada nela reabre na Revisão.
+    step: (saved.step as string) === 'plan' ? 'review' : saved.step,
     // Guardada antes desta escolha existir.
     installSpecification: saved.installSpecification ?? false,
     discovery: saved.discovery.status === 'loading' ? { status: 'idle' } : saved.discovery,
@@ -35,7 +37,6 @@ function reachableStep(state: JourneyState): JourneyStepId {
       return state.step;
     case 'model':
       return earlier;
-    case 'plan':
     case 'review':
       return state.plan.status === 'ready' ? state.step : earlier;
     case 'run':

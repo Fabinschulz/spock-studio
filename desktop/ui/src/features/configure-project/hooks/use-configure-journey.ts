@@ -152,6 +152,7 @@ export function useConfigureJourney(
       setInstallSpecification: (value: boolean) => dispatch({ type: 'install.set', value }),
       clearComponentRequest: () => dispatch({ type: 'request.clear' }),
       toggleChange: (id: string) => dispatch({ type: 'change.toggle', id }),
+      setChanges: (ids: readonly string[], approved: boolean) => dispatch({ type: 'changes.set', ids, approved }),
       toggleCommand: (id: string) => dispatch({ type: 'command.toggle', id }),
       setResolution: (id: string, value: ConflictResolution) => dispatch({ type: 'resolution.set', id, value })
     }

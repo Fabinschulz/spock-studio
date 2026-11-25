@@ -85,7 +85,7 @@ describe('useConfigureJourney', () => {
       allowSpecificationReinstall: false,
       updateSpecification: false
     });
-    expect(hook.current.state.step).toBe('plan');
+    expect(hook.current.state.step).toBe('review');
 
     act(() => hook.current.actions.toggleCommand('specification-install'));
     await act(() => hook.current.actions.apply());

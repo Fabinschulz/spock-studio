@@ -2,7 +2,7 @@ import type { ConfigurationPlan, ConflictResolution, Discovery, RunResult, Timel
 import type { ComponentRequest } from '../domain/component-request';
 import type { PlannedStep, RunKind, RunView } from './run';
 
-export type JourneyStepId = 'project' | 'model' | 'plan' | 'review' | 'run' | 'result';
+export type JourneyStepId = 'project' | 'model' | 'review' | 'run' | 'result';
 
 export type Loadable<T> =
   { status: 'idle' } | { status: 'loading' } | { status: 'ready'; data: T } | { status: 'error'; message: string };
@@ -38,6 +38,7 @@ export type JourneyAction =
   | { type: 'environment.toggle'; id: string }
   | { type: 'reinstall.set'; value: boolean }
   | { type: 'update.set'; value: boolean }
+  | { type: 'changes.set'; ids: readonly string[]; approved: boolean }
   | { type: 'install.set'; value: boolean }
   | { type: 'request.clear' }
   | { type: 'plan.start' }

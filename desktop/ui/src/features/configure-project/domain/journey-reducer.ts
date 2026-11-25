@@ -32,12 +32,16 @@ export function journeyReducer(state: JourneyState, action: JourneyAction): Jour
         ...state,
         plan: { status: 'ready', data: action.plan },
         ...defaultApprovals(action.plan, state.installSpecification),
-        step: 'plan'
+        step: 'review'
       };
     case 'plan.error':
       return { ...state, plan: { status: 'error', message: action.message } };
     case 'change.toggle':
       return { ...state, approvedChanges: toggleId(state.approvedChanges, action.id) };
+    case 'changes.set': {
+      const rest = state.approvedChanges.filter((id) => !action.ids.includes(id));
+      return { ...state, approvedChanges: action.approved ? [...rest, ...action.ids] : rest };
+    }
     case 'command.toggle':
       return { ...state, approvedCommands: toggleId(state.approvedCommands, action.id) };
     case 'resolution.set':

@@ -1,16 +1,17 @@
-import { Button } from '@mariliz/ui-kit';
+import { Button, TabBar } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
-import { ConfirmAction, EvidenceDisclosure, PrimaryActionFooter } from '@/shared/components/ui';
+import { ConfirmAction, PrimaryActionFooter } from '@/shared/components/ui';
 import type { ConfigurationPlan, ConflictResolution, FileChange } from '@/shared/schema';
 import { plural } from '@/shared/utils';
 
 import panels from '../../components/panels.module.scss';
 import rows from '../../components/rows.module.scss';
 import { StepHeader } from '../../components/step-header';
-import { CommandRow } from './command-row';
-import { FileChangeRow } from './file-change-row';
+import { ChangesTab } from './changes-tab';
+import { DecisionsList } from './decisions-list';
 import styles from './review.module.scss';
+import { RisksTab, risksCount } from './risks-tab';
 
 interface ReviewStepProps {
   plan: ConfigurationPlan;
@@ -19,6 +20,7 @@ interface ReviewStepProps {
   resolutions: Readonly<Record<string, ConflictResolution>>;
   approvalCount: number;
   onToggleChange: (id: string) => void;
+  onSetChanges?: (ids: readonly string[], approved: boolean) => void;
   onToggleCommand: (id: string) => void;
   onResolution: (id: string, value: ConflictResolution) => void;
   onBack: () => void;
@@ -45,6 +47,7 @@ export function changesSummary(changes: readonly FileChange[]): string {
   return text.length > 0 ? text.join(' · ') : 'Nenhuma alteração no plano';
 }
 
+/** Plano e revisão numa etapa só: o que muda (e se aprova), por que muda e o que fica de risco. */
 export function ReviewStep({
   plan,
   approvedChanges,
@@ -52,85 +55,62 @@ export function ReviewStep({
   resolutions,
   approvalCount,
   onToggleChange,
+  onSetChanges = () => undefined,
   onToggleCommand,
   onResolution,
   onBack,
   onCancel,
   onApply
 }: ReviewStepProps) {
-  const actionable = plan.changes.filter((change) => change.action !== 'preserve');
-  const preserved = plan.changes.filter((change) => change.action === 'preserve');
   const [discarding, setDiscarding] = useState(false);
+  const blocked = plan.decisions.filter((decision) => decision.decision === 'blocked').length;
+  const risks = risksCount(plan);
+  const fromEngineer = plan.proposalOrigin === 'harness-engineer';
 
   return (
     <section className={panels.step}>
-      <StepHeader title="Revisão das alterações">
-        Confira o que será criado, atualizado ou removido, e aprove o que quiser aplicar. O que você não aprovar não é
-        tocado.
+      <StepHeader title="Revisão">
+        Confira o que muda, por que muda e o que fica de risco, e aprove o que quiser aplicar. O que você não aprovar
+        não é tocado.
       </StepHeader>
 
       <p className={rows.note} aria-label="Resumo do plano">
         {changesSummary(plan.changes)}
+        {plan.commands.length > 0 ? ` · ${plural(plan.commands.length, 'comando', 'comandos')}` : ''}
       </p>
 
-      {plan.commands.length > 0 ? (
-        <section aria-labelledby="comandos-titulo" className={rows.section}>
-          <h3 id="comandos-titulo" className={rows.title}>
-            Comandos que executam fora do arquivo
-          </h3>
-          <p className={rows.note}>
-            Desmarcados por padrão: executar programas e acessar a rede exige a sua aprovação.
-          </p>
-          <ul role="list" className={rows.rows}>
-            {plan.commands.map((command) => (
-              <CommandRow
-                key={command.id}
-                command={command}
-                approved={approvedCommands.includes(command.id)}
-                onToggle={() => onToggleCommand(command.id)}
-              />
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      <section aria-labelledby="arquivos-titulo" className={rows.section}>
-        <h3 id="arquivos-titulo" className={rows.title}>
-          Arquivos
-        </h3>
-        {actionable.length === 0 ? <p className={rows.note}>Nenhum arquivo precisa mudar.</p> : null}
-        <ul role="list" className={rows.rows} aria-label="Alterações em arquivos">
-          {actionable.map((change) => (
-            <FileChangeRow
-              key={change.id}
-              change={change}
-              approved={approvedChanges.includes(change.id)}
-              resolution={resolutions[change.id] ?? 'keep'}
-              onToggle={() => onToggleChange(change.id)}
-              onResolve={(value) => onResolution(change.id, value)}
-            />
-          ))}
-        </ul>
-        {preserved.length > 0 ? (
-          <EvidenceDisclosure
-            summary={`${plural(preserved.length, 'arquivo preservado', 'arquivos preservados')}, sem alteração`}
-            items={preserved.map((change) => change.path)}
+      <TabBar
+        aria-label="Revisão do plano"
+        tabs={[
+          { label: 'Alterações' },
+          { label: blocked > 0 ? `Por quê (${plural(blocked, 'bloqueada', 'bloqueadas')})` : 'Por quê' },
+          { label: risks > 0 ? `Riscos (${risks})` : 'Riscos' }
+        ]}
+      >
+        <div className={panels.stack}>
+          <ChangesTab
+            plan={plan}
+            approvedChanges={approvedChanges}
+            approvedCommands={approvedCommands}
+            resolutions={resolutions}
+            onToggleChange={onToggleChange}
+            onSetChanges={onSetChanges}
+            onToggleCommand={onToggleCommand}
+            onResolution={onResolution}
           />
-        ) : null}
-      </section>
-
-      {plan.validations.length > 0 ? (
-        <section aria-labelledby="validacao-titulo" className={rows.section}>
-          <h3 id="validacao-titulo" className={rows.title}>
-            Depois de aplicar, a validação executa
-          </h3>
-          <ul role="list" className={styles.list}>
-            {plan.validations.map((validation) => (
-              <li key={validation}>{validation}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+        </div>
+        <div className={panels.stack}>
+          <p className={styles.origin}>
+            {fromEngineer
+              ? 'Origem do plano: a proposta do Harness Engineer, validada pelo motor (formato, catálogo de componentes e ausência de segredos).'
+              : 'Origem do plano: as regras-base do Spock.'}
+          </p>
+          <DecisionsList decisions={plan.decisions} />
+        </div>
+        <div className={panels.stack}>
+          <RisksTab plan={plan} />
+        </div>
+      </TabBar>
 
       {discarding ? (
         <ConfirmAction

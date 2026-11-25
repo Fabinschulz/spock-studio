@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
+import { AppProviders } from '@/shared/components';
+
 import { ReviewStep, changesSummary } from './review-step';
 
 const change = (over: Partial<FileChange>): FileChange =>
@@ -18,7 +20,17 @@ const change = (over: Partial<FileChange>): FileChange =>
   }) as FileChange;
 
 const plan = (changes: FileChange[], over: Partial<ConfigurationPlan> = {}) =>
-  ({ changes, commands: [], validations: [], ...over }) as unknown as ConfigurationPlan;
+  ({
+    changes,
+    commands: [],
+    validations: [],
+    decisions: [],
+    limitations: [],
+    observations: [],
+    risks: [],
+    proposalOrigin: 'baseline-rules',
+    ...over
+  }) as unknown as ConfigurationPlan;
 
 const renderStep = (p: ConfigurationPlan, props: Partial<Parameters<typeof ReviewStep>[0]> = {}) =>
   render(
@@ -35,7 +47,9 @@ const renderStep = (p: ConfigurationPlan, props: Partial<Parameters<typeof Revie
       onCancel={vi.fn()}
       onApply={vi.fn()}
       {...props}
-    />
+    />,
+    // O TabBar da biblioteca lê a paleta do tema.
+    { wrapper: AppProviders }
   );
 
 describe('ReviewStep', () => {
@@ -71,7 +85,7 @@ describe('ReviewStep', () => {
 
     expect(screen.getByText('Criar')).toBeTruthy();
     expect(screen.getByText('Agente que planeja a configuração')).toBeTruthy();
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Aprovar criar .claude/agents/harness-engineer.md' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: '.claude/agents/harness-engineer.md' }));
     expect(onToggleChange).toHaveBeenCalledWith('c1');
   });
 
@@ -146,5 +160,88 @@ describe('ReviewStep', () => {
     expect(
       (screen.getByRole('button', { name: 'Aplicar configuração (1 aprovado)' }) as HTMLButtonElement).disabled
     ).toBe(false);
+  });
+
+  it('arquivos agrupados por tipo, com aprovar tudo ou nada no grupo; conflito fica fora do lote', async () => {
+    const onSetChanges = vi.fn();
+    renderStep(
+      plan([
+        change({ id: 'a1' }),
+        change({ id: 'a2', path: '.claude/agents/verifier.md' }),
+        change({ id: 'a3', path: '.claude/agents/revisor.md', action: 'conflict' }),
+        change({ id: 'r1', kind: 'rule', path: '.claude/rules/geral.md' })
+      ]),
+      { approvedChanges: ['a1'], onSetChanges }
+    );
+
+    const agents = screen.getByRole('checkbox', { name: 'Agentes (3)' }) as HTMLInputElement;
+    expect(agents.checked).toBe(false);
+    expect(agents.dataset.indeterminate ?? agents.indeterminate.toString()).toBe('true');
+    expect(screen.getByRole('checkbox', { name: 'Regras (1)' })).toBeTruthy();
+
+    await userEvent.click(agents);
+    expect(onSetChanges).toHaveBeenCalledWith(['a1', 'a2'], true);
+  });
+
+  it('o comando da estrutura de especificação diz o que acontece sem aprovar', () => {
+    renderStep(
+      plan([], {
+        commands: [
+          {
+            id: 'specification-install',
+            description: 'Instalar a estrutura de especificação',
+            executable: 'npx',
+            arguments: [],
+            effects: ['network'],
+            affectedPaths: [],
+            destructive: false
+          }
+        ] as unknown as ConfigurationPlan['commands']
+      })
+    );
+    expect(screen.getByText(/Sem aprovar, a estrutura de especificação não é instalada/)).toBeTruthy();
+  });
+
+  it('Por quê agrupa as decisões: bloqueadas e as que entram abertas, as que não se aplicam recolhidas', async () => {
+    const decision = (componentId: string, value: string, justification: string) => ({
+      componentId,
+      kind: 'rule',
+      decision: value,
+      origin: 'baseline-rules',
+      justification,
+      evidence: []
+    });
+    renderStep(
+      plan([change({})], {
+        decisions: [
+          decision('a', 'enable', 'Stack .NET detectada.'),
+          decision('b', 'skip', 'Nenhuma stack React.'),
+          decision('c', 'blocked', 'Falta o package.json.')
+        ] as unknown as ConfigurationPlan['decisions']
+      })
+    );
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Por quê (1 bloqueada)' }));
+    expect(screen.getByText('Origem do plano: as regras-base do Spock.')).toBeTruthy();
+    const group = (name: string) => screen.getByText(name).closest('details')!;
+    expect(group('1 Bloqueada').open).toBe(true);
+    expect(group('Entram (1)').open).toBe(true);
+    expect(group('Não se aplicam (1)').open).toBe(false);
+    expect(screen.getByText('Stack .NET detectada.')).toBeTruthy();
+  });
+
+  it('Riscos junta limitações, observações e riscos num lugar só', async () => {
+    renderStep(
+      plan([change({})], {
+        limitations: [{ code: 'X', message: 'sem proposta do agente' }],
+        observations: [{ kind: 'inference', text: 'Usa .NET', evidence: [] }],
+        risks: ['pode sobrescrever regras']
+      } as unknown as Partial<ConfigurationPlan>)
+    );
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Riscos (3)' }));
+    expect(screen.getByText('sem proposta do agente')).toBeTruthy();
+    expect(screen.getByText('Inferência')).toBeTruthy();
+    expect(screen.getByText('pode sobrescrever regras')).toBeTruthy();
   });
 });
