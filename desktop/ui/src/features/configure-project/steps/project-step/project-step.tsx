@@ -1,5 +1,6 @@
 import { ArrowRightIcon, Button, LoadingBar } from '@mariliz/ui-kit';
 
+import { EngineeringRequestShortcut } from '@/features/engineering-request';
 import { InlineNotice, PrimaryActionFooter } from '@/shared/components/ui';
 import type { Discovery } from '@/shared/schema';
 
@@ -89,6 +90,8 @@ export function ProjectStep({
       ) : null}
 
       {ready ? <DiscoveryDetails discovery={discovery.data} /> : null}
+
+      {project ? <EngineeringRequestShortcut /> : null}
 
       <PrimaryActionFooter hint={continueHint(project, discovery.status)}>
         <Button variant="contained" onClick={onContinue} disabled={!ready} endIcon={<ArrowRightIcon />}>
