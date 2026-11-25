@@ -46,6 +46,7 @@ export function AiEnvironmentSection({ discovery, selected, onToggle }: AiEnviro
             else if (detectedIds.has(id)) tags.push(['detectado', 'neutral']);
             if (!supported) tags.push(['ainda sem suporte', 'warning']);
             const note = supported ? partialEnvironmentNote[id] : undefined;
+            const noteId = `ambiente-${id}-nota`;
             return (
               <li key={id}>
                 <Checkbox
@@ -55,6 +56,7 @@ export function AiEnvironmentSection({ discovery, selected, onToggle }: AiEnviro
                   disabled={locked}
                   onChange={() => onToggle(id)}
                   labelProps={{ className: styles.choice, 'aria-disabled': !supported || undefined }}
+                  slotProps={{ input: { 'aria-describedby': note ? noteId : undefined } }}
                   label={
                     <>
                       <EnvironmentGlyph id={id} />
@@ -69,10 +71,14 @@ export function AiEnvironmentSection({ discovery, selected, onToggle }: AiEnviro
                           ))}
                         </span>
                       ) : null}
-                      {note ? <span className={rows.meta}>{note}</span> : null}
                     </>
                   }
                 />
+                {note ? (
+                  <p id={noteId} className={cn(rows.meta, styles.note)}>
+                    {note}
+                  </p>
+                ) : null}
               </li>
             );
           })}

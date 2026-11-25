@@ -17,6 +17,10 @@ const dependencies = (tools: Tools) => [
   { id: 'git', text: tools.git ? `Git ${tools.git}` : 'Git: não encontrado (recomendado)', ok: Boolean(tools.git) }
 ];
 
+/** Só o que o instalador exige; o Git é recomendado e não entra. */
+export const missingDependencies = (tools: Tools): string[] =>
+  [!tools.node && 'Node.js', !tools.python && 'Python 3'].filter((name): name is string => Boolean(name));
+
 export function SpecificationDependencies({ tools }: { tools: Tools }) {
   return (
     <ul role="list" aria-label="Dependências da estrutura de especificação" className={rows.rows}>

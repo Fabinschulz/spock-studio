@@ -2,7 +2,7 @@ import type { JourneyStepId } from '../types/journey';
 
 export const journeySteps = [
   { id: 'project', label: 'Projeto' },
-  { id: 'model', label: 'Modelo e ambiente' },
+  { id: 'model', label: 'Ambiente de IA' },
   { id: 'plan', label: 'Plano' },
   { id: 'review', label: 'Revisão' },
   { id: 'run', label: 'Aplicação' },

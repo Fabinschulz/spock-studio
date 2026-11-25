@@ -9,7 +9,7 @@ HTTP.
 ## Linguagem do produto
 
 A interface fala só do **modelo de implementação Mariliz** e da **estrutura de especificação**. Nomes de kits ou
-metodologias de terceiros não aparecem como escolha, rótulo ou título; o teste da etapa "Modelo e ambiente" falha se
+metodologias de terceiros não aparecem como escolha, rótulo ou título; o teste da etapa "Ambiente de IA" falha se
 aparecerem. Os ids das etapas são `project`, `model`, `plan`, `review`, `run` e `result`.
 
 ## Áreas

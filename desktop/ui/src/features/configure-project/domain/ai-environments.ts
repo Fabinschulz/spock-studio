@@ -14,8 +14,8 @@ export const isSupportedEnvironment = (id: string): boolean => SUPPORTED_AI_ENVI
 
 /** C3: no Cursor e no Codex o Spock grava a ligação com a IDE e a skill do contrato; agentes e regras ainda são do Claude Code. */
 export const partialEnvironmentNote: Record<string, string> = {
-  cursor: 'ligação com a IDE e skill',
-  codex: 'ligação com a IDE e skill'
+  cursor: 'Recebe a ligação com a IDE e a skill do contrato. Agentes e regras ainda são só do Claude Code.',
+  codex: 'Recebe a ligação com a IDE e a skill do contrato. Agentes e regras ainda são só do Claude Code.'
 };
 
 const order = (id: string) => {

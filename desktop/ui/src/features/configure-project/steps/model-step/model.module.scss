@@ -29,3 +29,9 @@
   padding: 0;
   border: 0;
 }
+
+// Alinhada ao nome do ambiente, depois da caixa e do ícone.
+.note {
+  padding-left: 4.5rem;
+  font-size: var(--font-size-sm);
+}

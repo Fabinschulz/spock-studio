@@ -16,10 +16,12 @@ interface ModelStepProps {
   aiEnvironments: readonly string[];
   allowReinstall: boolean;
   updateSpecification: boolean;
+  installSpecification: boolean;
   plan: Loadable<unknown>;
   onToggleEnvironment: (id: string) => void;
   onReinstall: (value: boolean) => void;
   onUpdateSpecification: (value: boolean) => void;
+  onInstallSpecification: (value: boolean) => void;
   onBack: () => void;
   onPlan: () => void;
 }
@@ -29,10 +31,12 @@ export function ModelStep({
   aiEnvironments,
   allowReinstall,
   updateSpecification,
+  installSpecification,
   plan,
   onToggleEnvironment,
   onReinstall,
   onUpdateSpecification,
+  onInstallSpecification,
   onBack,
   onPlan
 }: ModelStepProps) {
@@ -42,20 +46,11 @@ export function ModelStep({
 
   return (
     <section className={styles.step}>
-      <StepHeader title="Modelo e ambiente">
-        Vamos preparar a estrutura de engenharia do seu projeto, configurando especificações, agentes, ferramentas,
-        regras e validações de acordo com as necessidades identificadas. O Harness Engineer planeja a configuração no
-        ambiente de IA que você escolher. Nada é gravado antes da sua aprovação na revisão.
+      <StepHeader title="Ambiente de IA">
+        Escolha onde a equipe trabalha e se a estrutura de especificação entra agora. Nada é gravado antes da sua
+        aprovação na revisão.
       </StepHeader>
 
-      <SpecificationSection
-        specification={discovery.specification}
-        tools={discovery.tools}
-        updateSpecification={updateSpecification}
-        allowReinstall={allowReinstall}
-        onUpdateSpecification={onUpdateSpecification}
-        onReinstall={onReinstall}
-      />
       <AiEnvironmentSection discovery={discovery} selected={aiEnvironments} onToggle={onToggleEnvironment} />
 
       {showUnsupportedNotice ? (
@@ -64,6 +59,17 @@ export function ModelStep({
           skills, regras e hooks não serão gerados para este ambiente.
         </InlineNotice>
       ) : null}
+
+      <SpecificationSection
+        specification={discovery.specification}
+        tools={discovery.tools}
+        updateSpecification={updateSpecification}
+        installSpecification={installSpecification}
+        allowReinstall={allowReinstall}
+        onUpdateSpecification={onUpdateSpecification}
+        onInstallSpecification={onInstallSpecification}
+        onReinstall={onReinstall}
+      />
 
       <PlanError plan={plan} />
 

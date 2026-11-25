@@ -104,10 +104,12 @@ export function ConfigureJourney({
           aiEnvironments={state.aiEnvironments}
           allowReinstall={state.allowSpecificationReinstall}
           updateSpecification={state.updateSpecification}
+          installSpecification={state.installSpecification}
           plan={state.plan}
           onToggleEnvironment={actions.toggleEnvironment}
           onReinstall={actions.setReinstall}
           onUpdateSpecification={actions.setUpdateSpecification}
+          onInstallSpecification={actions.setInstallSpecification}
           onBack={() => actions.goTo('project')}
           onPlan={() => void actions.generatePlan()}
         />

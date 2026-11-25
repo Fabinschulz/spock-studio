@@ -46,10 +46,12 @@ function renderStep(over: Partial<Parameters<typeof ModelStep>[0]> = {}) {
     aiEnvironments: [] as readonly string[],
     allowReinstall: false,
     updateSpecification: false,
+    installSpecification: false,
     plan: { status: 'idle' } as const,
     onToggleEnvironment: vi.fn(),
     onReinstall: vi.fn(),
     onUpdateSpecification: vi.fn(),
+    onInstallSpecification: vi.fn(),
     onBack: vi.fn(),
     onPlan: vi.fn(),
     ...over
@@ -101,6 +103,36 @@ describe('ModelStep', () => {
     expect((screen.getByRole('checkbox', { name: /Cursor/ }) as HTMLInputElement).disabled).toBe(false);
     expect(screen.getAllByText(/declarado/)).toHaveLength(2);
     expect(screen.getByRole('status').textContent).toMatch(/Cursor sai da lista/);
+  });
+
+  it('a escolha obrigatória vem primeiro, na etapa que leva o nome dela', () => {
+    renderStep();
+
+    expect(screen.getByRole('heading', { level: 2, name: 'Ambiente de IA' })).toBeTruthy();
+    const headings = screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent);
+    expect(headings.indexOf('Ambientes de IA')).toBeLessThan(headings.indexOf('Estrutura de especificação'));
+  });
+
+  it('sem a estrutura instalada, não instalar é o padrão e cada opção diz a consequência', async () => {
+    const props = renderStep();
+
+    const skip = screen.getByRole('radio', { name: 'Não instalar agora' });
+    expect(skip).toBeChecked();
+    expect(skip).toHaveAccessibleDescription(/verificações que dependem dela ficam bloqueadas/);
+    const install = screen.getByRole('radio', { name: 'Instalar agora' });
+    expect(install).toHaveAccessibleDescription(/usa a rede.*vem marcado na revisão/);
+    expect(screen.getByText('O que a instalação precisa (falta Node.js)')).toBeTruthy();
+
+    await userEvent.click(install);
+    expect(props.onInstallSpecification).toHaveBeenCalledWith(true);
+  });
+
+  it('a nota do ambiente parcial explica o que ele recebe, fora do nome da caixa', () => {
+    renderStep();
+
+    const cursor = screen.getByRole('checkbox', { name: /Cursor/ });
+    expect(cursor).toHaveAccessibleName(expect.not.stringMatching(/skill/));
+    expect(cursor).toHaveAccessibleDescription(/ligação com a IDE e a skill do contrato/);
   });
 
   it('estrutura alterada pede permissão explícita para reinstalar', async () => {

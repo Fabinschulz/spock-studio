@@ -7,6 +7,7 @@ export const initialJourneyState: JourneyState = {
   aiEnvironments: [],
   allowSpecificationReinstall: false,
   updateSpecification: false,
+  installSpecification: false,
   componentRequest: EMPTY_COMPONENT_REQUEST,
   plan: { status: 'idle' },
   approvedChanges: [],

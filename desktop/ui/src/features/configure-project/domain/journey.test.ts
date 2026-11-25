@@ -144,6 +144,14 @@ describe('aprovações', () => {
   it('preservar nunca entra nas aprovações padrão', () => {
     expect(defaultApprovals(plan).approvedChanges).not.toContain(preserveId);
   });
+
+  it('o comando da estrutura de especificação só vem marcado se a pessoa escolheu instalar na etapa 2', () => {
+    expect(defaultApprovals(plan).approvedCommands).toEqual([]);
+    expect(defaultApprovals(plan, true).approvedCommands).toEqual(['specification-install']);
+
+    const chosen = journeyReducer({ ...initialJourneyState, installSpecification: true }, { type: 'plan.ok', plan });
+    expect(chosen.approvedCommands).toEqual(['specification-install']);
+  });
 });
 
 describe('eventos da execução', () => {
