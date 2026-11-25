@@ -1,6 +1,6 @@
 # Spock Studio — Jornada Configurar: diagnóstico e proposta
 
-> **Estado:** diagnóstico feito no aplicativo real e proposta escrita. Os incrementos C1 a C7 foram entregues (PRs #199 a #204 e o do C5); DC2 e DC5 continuam com o dono, e DC3, DC4 e DC6 seguiram a recomendação. Continua o item 1 da seção 10 de [`workspace-unificado.md`](workspace-unificado.md).
+> **Estado:** diagnóstico feito no aplicativo real e proposta escrita. Os incrementos C1 a C7 foram entregues (PRs #199 a #204 e o do C5); DC1 e DC2 foram decididas pelo dono (juntar e tirar), DC5 continua com ele, e DC3, DC4 e DC6 seguiram a recomendação. Continua o item 1 da seção 10 de [`workspace-unificado.md`](workspace-unificado.md).
 >
 > Caminhos de arquivo relativos a `desktop/ui/src/features/configure-project/`, salvo indicação.
 
@@ -176,7 +176,7 @@ C1 e C2 não dependem de decisão e podem começar logo. C3, C4, C6 e C7 são in
 | # | Decisão | Recomendação |
 | --- | --- | --- |
 | DC1 | Juntar Plano e Revisão numa etapa com abas (seis etapas viram cinco) ou manter separadas, com o Plano mais curto. | Juntar: o Plano não pede decisão e repete o que a Revisão mostra. **Decidido em 2026-11-25: juntar (C5).** |
-| DC2 | O selo "Modelo de implementação Spock" e o "Modelo" do Resumo: explicar ou tirar. | Tirar. Hoje é texto fixo, igual em todo projeto, e não informa nada que mude a decisão. |
+| DC2 | O selo "Modelo de implementação Spock" e o "Modelo" do Resumo: explicar ou tirar. | Tirar. Hoje é texto fixo, igual em todo projeto, e não informa nada que mude a decisão. **Decidido em 2026-11-25: tirar.** |
 | DC3 | O comando da estrutura de especificação continua desmarcado por padrão. | Manter desmarcado e mostrar a consequência na escolha (C4) e na Revisão (C5). |
 | DC4 | Para onde "Concluir" leva. | Padrões do projeto › Estado e revisões. |
 | DC5 | Descrição no `Checkbox` da biblioteca (nova versão do `@mariliz/ui-kit`) ou manter o `CheckboxField` local. | Pôr na biblioteca: outras telas têm o mesmo invólucro. |

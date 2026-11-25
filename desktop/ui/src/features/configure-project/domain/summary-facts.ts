@@ -25,7 +25,6 @@ export function buildSummaryFacts({
   const environments = aiEnvironments.map((id) => aiEnvironmentNames[id] ?? id).join(', ');
   return [
     ['Projeto', projectName],
-    ['Modelo', 'Spock'],
     [aiEnvironments.length > 1 ? 'Ambientes de IA' : 'Ambiente de IA', environments || 'a escolher'],
     ['Plano', planText(plan)],
     ['Aprovados', STEPS_WITH_APPROVALS.includes(step) ? `${approvalCount}` : 'não se aplica']
