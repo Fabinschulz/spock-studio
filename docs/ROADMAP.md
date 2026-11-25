@@ -8,8 +8,6 @@
 
 | Item | Situação | Onde |
 | --- | --- | --- |
-| T1 do Configurar: o atalho para o pedido de engenharia vira uma linha só na etapa Projeto | PR #207 aberto, esperando revisão e merge | [configurar.md](redesign/configurar.md) |
-| DC5: descrição no `Checkbox` do `@mariliz/ui-kit` | Começado na branch `feat/checkbox-descricao` do ui-kit, sem commit nem publicação; a decisão é do dono (pôr na biblioteca ou manter o `CheckboxField` local) | [configurar.md §4](redesign/configurar.md) |
 | Aba IDEs em Conexões e resíduos da etapa 2 do ciclo 2 | Um commit na branch `feat/ciclo2-etapas-1-2` do GitHub que nunca entrou no master (o PR #137 foi mergeado antes dele). Precisa de rebase; parte já foi feita por outros PRs (a reversão com `ConfirmAction` entrou no C2 do Configurar) | [SPOCK_IMPLEMENTATION_ROADMAP.md](plataforma/SPOCK_IMPLEMENTATION_ROADMAP.md) |
 
 ## 2. Bloqueado pela chave de modelo do dono
@@ -38,7 +36,6 @@ Nada rodou ainda com um modelo real. Tudo abaixo espera uma chave com limite de 
 | Licenças e marca | D-02 Terraform (parecer), D-08 (confirmação de dois fornecedores), D-09 EULA (redação), D-10 política (aprovação; o `--enforce` só entra depois), D-11 validador JSON Schema, D-12 marca (parecer) | [LICENSE_DECISIONS.md](compliance/LICENSE_DECISIONS.md) |
 | Distribuição | Certificado de assinatura no Windows; macOS fora da primeira versão (exige assinatura, notarização e conta Apple) | [distribuicao.md](distribuicao.md) |
 | Workspace unificado | D1 tema claro, D2 jornadas com Playwright no repositório e no CI, D3 área Projetos e organização, D4 painel de atividade aberto por padrão | [workspace-unificado.md §10](redesign/workspace-unificado.md) |
-| Configurar | DC5 (ver seção 1) | [configurar.md](redesign/configurar.md) |
 | Auditoria SRP | NET-S09 e RS-17, registradas no fim da auditoria | — |
 
 ## 4. Entregas não iniciadas ou parciais
