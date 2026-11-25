@@ -1,6 +1,8 @@
+import { useProjectSelectionContext } from '@/features/project-selection';
 import { ACTIVITY_PANEL_ID, ActivityPanel, useRunActivity } from '@/features/runs';
 import { OutputLog } from '@/features/settings';
 import { TerminalPanel } from '@/features/terminal';
+import { ProjectFeed } from '@/features/timeline';
 import { tauriEngineClient } from '@/shared/api';
 import { Container, Logo, PageTabsProvider, PageTrailProvider } from '@/shared/components';
 import { app } from '@/shared/config/app';
@@ -31,6 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const main = useRef<HTMLElement>(null);
   const engine = useEngineStatus();
   const { pathname } = useLocation();
+  const { selected } = useProjectSelectionContext();
   const area = useMemo(() => areaOf(pathname), [pathname]);
   const trail = useMemo(() => trailOf(pathname), [pathname]);
   const tabs = useMemo(() => tabSetOf(pathname), [pathname]);
@@ -160,6 +163,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           ready={engine.status === 'ready'}
           focusRequest={activity.focusRequest}
           onClose={closeActivity}
+          projectFeed={<ProjectFeed client={tauriEngineClient} project={selected} />}
           className={styles.activityPanel}
         />
       ) : null}

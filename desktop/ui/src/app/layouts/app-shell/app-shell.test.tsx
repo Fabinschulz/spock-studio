@@ -2,6 +2,7 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { MemoryRouter, useLocation } from 'react-router';
+import timelineFixture from '@contracts/fixtures/timeline/timeline.json';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ProjectSelectionProvider, useProjectSelectionContext } from '@/features/project-selection';
@@ -405,9 +406,11 @@ describe('AppShell · atividade', () => {
 
   const host = (summary: { running: number; awaitingApproval: number } | 'falha') => {
     (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {};
-    invoke.mockImplementation(async (command: string, args?: { envelope?: { params?: { states?: string[] } } }) => {
+    type Envelope = { method?: string; params?: { states?: string[] } };
+    invoke.mockImplementation(async (command: string, args?: { envelope?: Envelope }) => {
       if (command === 'engine_status') return 'ready';
       if (summary === 'falha') throw { code: 'ENGINE_STOPPED', message: 'motor parado' };
+      if (args?.envelope?.method === 'timeline.read') return timelineFixture;
       const open = args?.envelope?.params?.states !== undefined;
       return {
         runs: open ? [run('r-1', 'awaiting_approval')] : [run('r-1', 'awaiting_approval'), run('r-2', 'completed')],
@@ -521,6 +524,44 @@ describe('AppShell · atividade', () => {
     const feed = within(panel()).getByRole('list', { name: 'Execuções recentes' });
     expect(within(feed).getAllByRole('button')).toHaveLength(1);
     expect(within(feed).getByRole('button', { name: /Concluído/ })).toBeInTheDocument();
+  });
+
+  it('a aba Projeto mostra o que aconteceu no projeto aberto, e sem projeto diz o que fazer', async () => {
+    host({ running: 0, awaitingApproval: 0 });
+    renderShell();
+    await userEvent.click(toggle());
+    await userEvent.click(await within(panel()).findByRole('tab', { name: 'Projeto' }));
+
+    expect(within(panel()).getByText('Abra um projeto para ver o que aconteceu nele.')).toBeInTheDocument();
+    // A linha do tempo só é pedida com um projeto aberto.
+    expect(invoke).not.toHaveBeenCalledWith(
+      'engine_request',
+      expect.objectContaining({ envelope: expect.objectContaining({ method: 'timeline.read' }) })
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'escolher' }));
+
+    const events = await within(panel()).findByRole('list', { name: 'Acontecimentos de EmpregaNetAPI' });
+    expect(within(events).getByText('Decisão: Adiar o marco em duas semanas')).toBeInTheDocument();
+    expect(invoke).toHaveBeenCalledWith(
+      'engine_request',
+      expect.objectContaining({
+        envelope: expect.objectContaining({ method: 'timeline.read', params: { projectId: 'p-1', limit: 30 } })
+      })
+    );
+  });
+
+  it('a aba do projeto só lê a linha do tempo quando a pessoa a abre', async () => {
+    host({ running: 0, awaitingApproval: 0 });
+    renderShell();
+    await userEvent.click(screen.getByRole('button', { name: 'escolher' }));
+    await userEvent.click(toggle());
+    await within(panel()).findByRole('tab', { name: /^Tarefas/ });
+
+    expect(invoke).not.toHaveBeenCalledWith(
+      'engine_request',
+      expect.objectContaining({ envelope: expect.objectContaining({ method: 'timeline.read' }) })
+    );
   });
 
   it('não tem violações estruturais de acessibilidade com o painel aberto', async () => {

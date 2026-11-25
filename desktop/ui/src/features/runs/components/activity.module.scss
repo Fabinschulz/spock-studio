@@ -120,3 +120,9 @@
   border-top: var(--border-width-divider) solid var(--color-divider);
   font-size: var(--font-size-sm);
 }
+
+// Três abas não cabem no painel com o respiro lateral padrão das abas da biblioteca, pensado para a largura da página.
+.body :global(.MuiTab-root) {
+  min-width: 0;
+  padding-inline: var(--space-2);
+}
