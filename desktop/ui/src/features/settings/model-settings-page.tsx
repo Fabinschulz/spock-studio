@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react';
 import { BudgetsSection } from './components/budgets-section';
 import { ConnectProvider } from './components/connect-provider';
 import { ProviderRow } from './components/provider-row';
+import { RestartEngine } from './components/restart-engine';
 import { PurposesSection } from './components/purposes-section';
 import { useModelSettings } from './hooks/use-model-settings';
 import styles from './model-settings-page.module.scss';
@@ -80,7 +81,10 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
             </Disclosure>
           </>
         ) : loadError ? (
-          <ErrorState onRetry={reload}>{loadError}</ErrorState>
+          <>
+            <ErrorState onRetry={reload}>{loadError}</ErrorState>
+            <RestartEngine onReady={reload} />
+          </>
         ) : (
           <LoadingState>Lendo a configuração…</LoadingState>
         )}

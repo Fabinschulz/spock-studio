@@ -52,6 +52,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::engine::engine_request,
             commands::engine::engine_status,
+            commands::engine::restart_engine,
             commands::projects::pick_project_folder,
             commands::projects::list_recent_projects,
             commands::projects::open_recent_project,

@@ -60,6 +60,12 @@ pub fn on_handshake_error(code: &str, restarts: &AtomicU64) -> (Lifecycle, bool)
     }
 }
 
+/// A pessoa pede pela tela: só um motor parado por queda ou por handshake recusado sobe de novo. Um que está de pé,
+/// subindo ou encerrando com o aplicativo não é derrubado por um clique.
+pub fn restart_requested(current: Lifecycle) -> bool {
+    matches!(current, Lifecycle::Crashed | Lifecycle::HandshakeFailed)
+}
+
 /// Um motor que ficou estável por `STABLE_UPTIME` zera a conta, para uma queda esporádica horas depois também ser
 /// recuperada.
 fn restart_allowed(restarts: &AtomicU64, uptime: Option<Duration>) -> bool {
@@ -72,6 +78,16 @@ fn restart_allowed(restarts: &AtomicU64, uptime: Option<Duration>) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn so_um_motor_parado_reinicia_a_pedido() {
+        assert!(restart_requested(Lifecycle::Crashed));
+        assert!(restart_requested(Lifecycle::HandshakeFailed));
+        assert!(!restart_requested(Lifecycle::Starting));
+        assert!(!restart_requested(ready_for(Duration::from_secs(2))));
+        assert!(!restart_requested(Lifecycle::ShuttingDown));
+        assert!(!restart_requested(Lifecycle::Stopped));
+    }
 
     fn ready_for(uptime: Duration) -> Lifecycle {
         Lifecycle::Ready {

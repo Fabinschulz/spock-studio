@@ -242,6 +242,26 @@ impl Engine {
             .map(|process| process.writer.clone())
     }
 
+    /// A saída que o Diagnóstico oferece quando o motor parou e a tentativa automática já foi gasta: zera a conta de
+    /// tentativas, como um motor recém-aberto, e sobe de novo.
+    pub fn restart(&self, app: AppHandle) -> Result<(), HostError> {
+        if !lifecycle::restart_requested(*self.0.lifecycle.borrow()) {
+            return Err(HostError::new(
+                error_code::ENGINE_NOT_STOPPED,
+                "O motor não está parado: não há o que reiniciar.",
+            ));
+        }
+        self.0
+            .restarts
+            .store(0, std::sync::atomic::Ordering::SeqCst);
+        self.kill_process();
+        self.0
+            .diagnostics
+            .host("reinício do motor pedido pela tela");
+        self.boot(app);
+        Ok(())
+    }
+
     fn kill_process(&self) -> Option<std::thread::JoinHandle<()>> {
         lock(&self.0.process).take().map(Process::kill)
     }

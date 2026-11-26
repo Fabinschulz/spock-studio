@@ -42,7 +42,12 @@ function engineCheck({ engine }: ChecksInput): DiagnosticCheck {
     case 'ready':
       return { ...base, state: 'ok', summary: 'Pronto.' };
     case 'crashed':
-      return { ...base, state: 'problem', summary: 'Parou e não voltou sozinho. Feche e abra o aplicativo.' };
+      return {
+        ...base,
+        state: 'problem',
+        summary:
+          'Parou e não voltou sozinho. Reinicie o motor; se ele parar de novo, feche e abra o aplicativo e copie as informações abaixo para o suporte.'
+      };
     default:
       return { ...base, state: 'waiting', summary: 'Iniciando.' };
   }

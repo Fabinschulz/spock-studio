@@ -1,5 +1,5 @@
 use serde_json::Value;
-use tauri::State;
+use tauri::{AppHandle, State};
 
 use crate::engine::Engine;
 use crate::protocol::{method, validate_frontend_request, HostError};
@@ -25,4 +25,9 @@ pub async fn engine_status(engine: State<'_, Engine>) -> Result<Value, HostError
         .await
         .ok();
     Ok(compose_status(lifecycle, health.as_ref()))
+}
+
+#[tauri::command]
+pub fn restart_engine(app: AppHandle, engine: State<'_, Engine>) -> Result<(), HostError> {
+    engine.restart(app)
 }

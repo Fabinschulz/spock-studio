@@ -68,7 +68,8 @@ describe('buildChecks', () => {
 
     expect(check(checks, 'engine')).toMatchObject({
       state: 'problem',
-      summary: 'Parou e não voltou sozinho. Feche e abra o aplicativo.'
+      summary:
+        'Parou e não voltou sozinho. Reinicie o motor; se ele parar de novo, feche e abra o aplicativo e copie as informações abaixo para o suporte.'
     });
     for (const id of ['localIntelligence', 'model', 'aiTools'] as const)
       expect(check(checks, id)).toMatchObject({ state: 'waiting', summary: 'Depende do motor, que está parado.' });
