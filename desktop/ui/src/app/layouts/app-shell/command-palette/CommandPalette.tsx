@@ -1,3 +1,4 @@
+import { useInstalledTools } from '@/features/agents';
 import { looksLikeRequest, rankAskOptions } from '@/features/ask';
 import { useProjectSelectionContext } from '@/features/project-selection';
 import { useActivityFeed } from '@/features/runs';
@@ -44,10 +45,11 @@ function PaletteBody({ onClose, onShellAction, client }: Omit<CommandPaletteProp
   const listId = useId();
   const navigate = useNavigate();
   const { selected, recents, openRecent, pick } = useProjectSelectionContext();
-  // Sem resposta do motor, a busca segue sem as execuções: o resto da paleta não depende dele.
+  // Sem resposta do motor, a busca segue sem as execuções e sem as ferramentas de IA: o resto da paleta não depende dele.
   const activity = useActivityFeed(client);
   const feed = activity.status === 'ready' ? activity.value : undefined;
-  const commands = useMemo(() => buildCommands(recents, feed), [recents, feed]);
+  const tools = useInstalledTools(client);
+  const commands = useMemo(() => buildCommands(recents, { feed, tools }), [recents, feed, tools]);
   const field = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);

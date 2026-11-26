@@ -91,7 +91,7 @@ describe('buildCommands', () => {
         recent: [item('run-r', 'completed')]
       };
 
-      const runs = buildCommands([], feed).filter((command) => command.group === 'Atividade');
+      const runs = buildCommands([], { feed }).filter((command) => command.group === 'Atividade');
 
       expect(runs.map((command) => command.id)).toEqual(['run:run-t', 'run:run-r']);
       expect(runs[0]).toMatchObject({
@@ -105,9 +105,8 @@ describe('buildCommands', () => {
       const many = (prefix: string, state: string) =>
         Array.from({ length: 12 }, (_, index) => item(`${prefix}-${index}`, state));
 
-      const runs = buildCommands([], { tasks: many('t', 'running'), recent: many('r', 'completed') }).filter(
-        (command) => command.group === 'Atividade'
-      );
+      const feed = { tasks: many('t', 'running'), recent: many('r', 'completed') };
+      const runs = buildCommands([], { feed }).filter((command) => command.group === 'Atividade');
 
       expect(runs).toHaveLength(10);
     });
@@ -115,6 +114,55 @@ describe('buildCommands', () => {
     it('sem a lista do motor, não há grupo de atividade', () => {
       expect(buildCommands([]).some((command) => command.group === 'Atividade')).toBe(false);
     });
+  });
+
+  describe('ferramentas de IA', () => {
+    const tool = (id: string, name: string, version: string | null) => ({
+      id,
+      name,
+      binary: id,
+      installed: true,
+      version,
+      harnessSupport: true
+    });
+
+    it('cada ferramenta instalada vira um comando que leva a Agentes de IA, com a versão como dica', () => {
+      const commands = buildCommands([], {
+        tools: [tool('claude', 'Claude Code', '2.1.0'), tool('codex', 'Codex', null)]
+      });
+
+      expect(commands.filter((command) => command.group === 'Agentes')).toEqual([
+        expect.objectContaining({
+          id: 'agent:claude',
+          label: 'Claude Code',
+          hint: 'Instalado, 2.1.0',
+          action: { kind: 'go', to: '/agentes' }
+        }),
+        expect.objectContaining({ id: 'agent:codex', label: 'Codex', hint: 'Instalado' })
+      ]);
+    });
+
+    it('o executável entra só na busca, para quem o conhece pelo comando', () => {
+      const command = buildCommands([], { tools: [tool('claude', 'Claude Code', null)] }).find(
+        (entry) => entry.id === 'agent:claude'
+      );
+
+      expect(command?.keywords).toContain('claude');
+      expect(command?.label).toBe('Claude Code');
+    });
+
+    it('sem a lista do motor, não há grupo de agentes', () => {
+      expect(buildCommands([]).some((command) => command.group === 'Agentes')).toBe(false);
+    });
+  });
+
+  it('as telas que tratam de documentos e de assistentes se acham por essas palavras', () => {
+    const byId = new Map(buildCommands([]).map((command) => [command.id, command]));
+
+    expect(byId.get('screen:knowledge')?.keywords).toContain('documentos');
+    expect(byId.get('screen:idea')?.keywords).toContain('documentos');
+    expect(byId.get('screen:catalog')?.keywords).toContain('assistentes');
+    expect(byId.get('screen:agents')?.keywords).toContain('assistentes');
   });
 
   it('nenhum comando repete o id de outro', () => {

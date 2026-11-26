@@ -1,6 +1,6 @@
 # Spock Studio — Workspace unificado
 
-> **Estado:** oito incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade; o quarto, a largura ajustável desse painel; o quinto, os títulos das telas iguais aos nomes do menu; o sexto, o `Checkbox` da biblioteca no lugar do componente local e o resumo da jornada Configurar que não cobre mais o conteúdo; o sétimo, os filtros de Execuções numa linha; o oitavo, tarefas e execuções recentes na busca. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
+> **Estado:** oito incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade; o quarto, a largura ajustável desse painel; o quinto, os títulos das telas iguais aos nomes do menu; o sexto, o `Checkbox` da biblioteca no lugar do componente local e o resumo da jornada Configurar que não cobre mais o conteúdo; o sétimo, os filtros de Execuções numa linha; o oitavo, tarefas, execuções recentes e ferramentas de IA na busca. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
 >
 > O tema, os tokens e a linguagem visual vêm do redesign Workbench anterior e não mudaram; a fonte de verdade deles é o código (`desktop/ui/src/shared/styles/_tokens.scss`). Os produtos de referência estudados não são nomeados aqui; deles saíram princípios, não telas.
 
@@ -116,11 +116,23 @@ A paleta (Ctrl K) agora agrupa o que oferece:
 - **Telas**: todas, de todas as áreas, com uma frase dizendo para que servem. Acham-se pelo nome apresentado e pelo técnico ("harness" acha Padrões do projeto; "integrações" acha Serviços).
 - **Projetos**: os recentes, pelo nome ou pelo caminho.
 - **Atividade**: até cinco tarefas (o que espera aprovação ou intervenção, ou está andando) e as cinco execuções mais recentes, com o estado como dica. Escolher uma abre a execução pelo endereço dela, sem texto na URL. A lista vem de `run.list`, lido só quando a paleta abre; sem resposta do motor, o grupo não aparece e o resto da paleta segue igual. Execuções mais antigas se acham em Execuções, com filtros.
+- **Agentes**: as ferramentas de IA instaladas neste computador (`aitool.list`, lido junto com a lista de execuções quando a paleta abre), com a versão como dica. Cada uma leva a Agentes de IA, onde a pessoa a escolhe; quem procura pelo nome ou pelo executável ("claude") a acha. As que não estão instaladas ficam de fora. Sem resposta do motor, o grupo não aparece.
 - **Pedir ao Spock Studio**: os quatro caminhos, quando o texto é uma frase.
 
 Quem escreve o nome de algo recebe esse algo primeiro; quem escreve uma frase recebe os caminhos de pedido primeiro e as telas relacionadas depois.
 
-Ainda não são buscados: documentos e agentes (o pedido original os lista; falta avaliar de onde viria a lista de cada um). Comandos que iniciam trabalho, como "Executar análise", também não existem: seguem o princípio da entrada de pedidos, que só encaminha para a tela onde a pessoa decide e aprova.
+### Documentos e agentes: o que foi avaliado
+
+O pedido original lista documentos e agentes entre o que a busca deve achar. A avaliação olhou de onde o aplicativo já lê cada lista e para onde cada linha levaria.
+
+| O quê | Fonte que existe | Decisão |
+| --- | --- | --- |
+| Ferramentas de IA (Claude Code e outras) | `aitool.list`, a mesma lista da tela de agentes e do Início | **Entra.** Barata, e a linha leva a uma tela que existe. |
+| Assistentes do Harness (os agentes do catálogo) | `engineering.catalog`, com uma ficha por componente | **Não entra linha a linha.** O Catálogo não abre uma entrada: todas as linhas cairiam na mesma lista. A tela passa a ser achada por "assistentes" e "capacidades". |
+| Arquivos do projeto indexados | `engineering.knowledge`, só caminho e tamanho | **Não entra.** Não existe visualizador de documento, a lista pode ter milhares de caminhos, e lê-la a cada Ctrl K seria pesado e sem destino. Conhecimento, Da ideia ao projeto e a pasta de decisões ficam acháveis por "documentos". |
+| Comandos que iniciam trabalho ("Executar análise") | — | **Não existem**, de propósito: seguem o princípio da entrada de pedidos, que só encaminha para a tela onde a pessoa decide e aprova. |
+
+Se um dia houver um visualizador de documento ou um catálogo que abra uma entrada, as duas linhas que ficaram de fora passam a ter destino e podem entrar.
 
 Não há identidade de usuário no aplicativo, então não há comando escondido por permissão. O contexto que existe é o projeto: um pedido sem projeto aberto pede a pasta antes de seguir.
 
@@ -203,6 +215,9 @@ Feita no aplicativo real (janela Tauri, motor .NET e um projeto de verdade), dir
 | Ctrl K: frase oferece os caminhos e leva a pergunta ao Assistente, preenchida | passou |
 | Ctrl K: o grupo Atividade vem depois das ações e antes das telas, lista as execuções reais com o estado, e Enter abre a execução pelo endereço dela, sem texto na URL | passou |
 | axe (WCAG 2.2 AA, com contraste) com a paleta aberta a 1440 e a 900 px, sem rolagem horizontal a 900 px, Esc fecha, console sem erros | passou |
+| Ctrl K: sem ferramenta de IA instalada, a paleta não mostra grupo Agentes vazio e "claude" não oferece o que não está instalado | passou |
+| Ctrl K: "documentos" acha Conhecimento e Da ideia ao projeto e Enter abre Conhecimento; "assistentes" acha Catálogo e Agentes de IA e o clique abre o Catálogo | passou |
+| axe com a paleta aberta e filtrada a 1440 e a 900 px, sem rolagem horizontal, Esc fecha, console sem erros | passou |
 | Ctrl + ponto: tarefas, feed, acontecimentos do projeto aberto e detalhe de uma execução sem sair da tela | passou |
 | Cada área leva à tela dela e lista as telas certas (5 áreas) | passou |
 | As 24 telas existentes abrem no novo shell, sem tela de erro | passou |
@@ -217,7 +232,7 @@ Feita no aplicativo real (janela Tauri, motor .NET e um projeto de verdade), dir
 | axe (WCAG 2.2 AA, com contraste) em 14 estados de tela | 0 violações |
 | Console sem erros durante as jornadas | passou |
 
-Total: 37 de 37 no roteiro, mais as duas verificações da jornada Configurar e as onze da paleta com o grupo Atividade, rodadas à parte. Além disso, `pnpm check` (tipos, lint, formatação e 1025 testes em 108 arquivos) passa.
+Total: 37 de 37 no roteiro, mais as duas verificações da jornada Configurar as onze da paleta com o grupo Atividade e as onze da paleta com agentes e documentos, rodadas à parte. Além disso, `pnpm check` (tipos, lint, formatação e 1025 testes em 108 arquivos) passa.
 
 Uma armadilha do roteiro: o modal da biblioteca entra com um fade, e o axe medido no meio dele acusa contraste que não existe (22 elementos, com opacidade de 0,11 a 0,16); assentado, dá zero. O roteiro espera a opacidade chegar a 1 antes de medir.
 
@@ -233,6 +248,7 @@ A validação achou e corrigiu três defeitos que já existiam: dois ícones da 
 - macOS e Linux.
 - As jornadas não estão no repositório nem no CI: rodaram a partir de um roteiro fora dele (seção 10).
 - O grupo Atividade da paleta com uma tarefa esperando aprovação: no computador da validação só havia execuções concluídas ou que falharam, então a ordem "tarefa antes de recente" está só nos testes. No aplicativo real foram vistas as cinco execuções mais recentes.
+- O grupo Agentes da paleta com uma ferramenta de IA instalada: neste computador nenhuma das quatro (Claude Code, Cursor Agent, Codex CLI e Gemini CLI) está instalada, e a tela de agentes diz o mesmo, então o grupo com linhas só foi exercitado nos testes. O que o aplicativo real mostrou foi a ausência correta do grupo.
 - A avaliação escrita, pergunta por pergunta, pelos 13 critérios do §15 do pedido original: há evidências por jornada, mas nenhuma resposta registrada para cada critério.
 
 ## 10. O que ficou para depois

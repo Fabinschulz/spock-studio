@@ -50,19 +50,31 @@ const run = (runId: string, state: string) => ({
   tokens: null
 });
 
+const tool = (id: string, name: string, installed: boolean, version: string | null = null) => ({
+  id,
+  name,
+  binary: id,
+  installed,
+  version,
+  harnessSupport: true
+});
+
 interface Feed {
   /** O que espera a pessoa ou está andando. */
   tasks?: unknown[];
   recent?: unknown[];
+  /** As ferramentas de IA que o motor acha neste computador, instaladas ou não. */
+  tools?: unknown[];
   /** O motor não responde. */
   down?: boolean;
 }
 
-/** O motor de mentira responde só a lista de execuções, a mesma que o painel de atividade lê. */
-function engine({ tasks = [], recent = [], down = false }: Feed = {}): EngineClient {
+/** O motor de mentira responde só o que a paleta lê: as execuções do painel de atividade e as ferramentas de IA. */
+function engine({ tasks = [], recent = [], tools = [], down = false }: Feed = {}): EngineClient {
   return {
     request: vi.fn(async (method: string, params: Record<string, unknown>, schema) => {
       if (down) throw new Error('motor fora do ar');
+      if (method === 'aitool.list') return schema.parse({ tools });
       if (method !== 'run.list') throw new Error(`método inesperado: ${method}`);
       const runs = params.states ? tasks : [...tasks, ...recent];
       return schema.parse({ runs, nextCursor: null, summary: { total: runs.length, running: 0, awaitingApproval: 0 } });
@@ -195,13 +207,53 @@ describe('CommandPalette', () => {
     expect(screen.getByTestId('handoff')).toBeEmptyDOMElement();
   });
 
-  it('sem resposta do motor, a paleta segue sem o grupo de atividade', async () => {
+  it('sem resposta do motor, a paleta segue sem os grupos de atividade e de agentes', async () => {
     const { client } = renderPalette({}, engine({ down: true }));
 
     await waitFor(() => expect(client.request).toHaveBeenCalled());
 
     expect(screen.queryByRole('group', { name: 'Atividade' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Agentes' })).not.toBeInTheDocument();
     expect(screen.getByRole('option', { name: /^Portfólio/ })).toBeInTheDocument();
+  });
+
+  it('oferece as ferramentas de IA instaladas, sem as que faltam, e leva a Agentes de IA', async () => {
+    renderPalette({}, engine({ tools: [tool('claude', 'Claude Code', true, '2.1.0'), tool('codex', 'Codex', false)] }));
+
+    const agents = await screen.findByRole('group', { name: 'Agentes' });
+
+    const options = within(agents).getAllByRole('option');
+    expect(options).toHaveLength(1);
+    expect(options[0]).toHaveTextContent('Claude Code');
+    expect(options[0]).toHaveTextContent('Instalado, 2.1.0');
+    await userEvent.click(options[0]!);
+    expect(screen.getByTestId('where')).toHaveTextContent('/agentes');
+  });
+
+  it('acha a ferramenta de IA pelo nome do executável', async () => {
+    renderPalette({}, engine({ tools: [tool('claude', 'Claude Code', true)] }));
+
+    await userEvent.type(screen.getByRole('combobox'), 'claude');
+
+    expect(await screen.findByRole('option', { name: /^Claude Code/ })).toBeInTheDocument();
+  });
+
+  it('quem procura "documentos" acha as telas que tratam deles', async () => {
+    renderPalette();
+
+    await userEvent.type(screen.getByRole('combobox'), 'documentos');
+
+    expect(screen.getByRole('option', { name: /^Conhecimento/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /^Da ideia ao projeto/ })).toBeInTheDocument();
+  });
+
+  it('quem procura "assistentes" acha o catálogo e a tela de agentes', async () => {
+    renderPalette();
+
+    await userEvent.type(screen.getByRole('combobox'), 'assistentes');
+
+    expect(screen.getByRole('option', { name: /^Catálogo/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /^Agentes de IA/ })).toBeInTheDocument();
   });
 
   it('acha a tela pelo nome técnico e diz para que ela serve', async () => {
