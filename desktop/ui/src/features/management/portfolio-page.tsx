@@ -10,7 +10,7 @@ import { useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router';
 
 import { resolveOpenAction, type OpenAction } from './domain/open-project';
-import styles from './management-page.module.scss';
+import styles from './management.module.scss';
 import { PortfolioAsk } from './components/portfolio-ask';
 import { createManagementApi } from './service/management-api';
 
@@ -78,13 +78,13 @@ interface ProjectRowProps {
 
 function ProjectRow({ project, weeks, action, busy, onOpen }: ProjectRowProps) {
   return (
-    <li className={styles.portfolioRow}>
-      <div className={styles.portfolioHead}>
+    <li className={styles.item}>
+      <div className={styles.itemHead}>
         <span>
           <span className={styles.rowTitle}>{project.displayName}</span>
           <span className={styles.muted}> · {project.displayPath}</span>
         </span>
-        <span className={styles.portfolioEnd}>
+        <span className={styles.itemEnd}>
           {project.signals.length === 0 ? <StatusChip tone="success">Sem pontos de atenção</StatusChip> : null}
           {action?.kind === 'current' ? (
             <>

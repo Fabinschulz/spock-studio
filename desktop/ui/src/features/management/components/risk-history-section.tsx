@@ -6,7 +6,7 @@ import { useCallback } from 'react';
 
 import { severityLabel } from '../domain/delivery-labels';
 import { describeRiskChange } from '../domain/risk-history-text';
-import styles from '../management-page.module.scss';
+import styles from '../management.module.scss';
 import type { ManagementApi } from '../service/management-api';
 
 /** Vem dos registros que o motor faz a cada sincronização completa, então só existe a partir do primeiro registro. */
@@ -65,8 +65,8 @@ function TrailRow({ trail }: { trail: RiskTrail }) {
   const current = trail.currentSeverity !== null ? severityLabel(trail.currentSeverity) : null;
 
   return (
-    <li className={styles.portfolioRow}>
-      <div className={styles.portfolioHead}>
+    <li className={styles.item}>
+      <div className={styles.itemHead}>
         <span className={styles.rowTitle}>{trail.title}</span>
         {trail.active && current ? (
           <StatusChip tone={current.tone}>Ativo, gravidade {current.label}</StatusChip>

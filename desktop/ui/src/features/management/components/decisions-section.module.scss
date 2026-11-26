@@ -1,0 +1,30 @@
+.decisionForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.runPicker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm, 6px);
+
+  legend {
+    padding-inline: var(--space-1);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-muted);
+  }
+}
+
+.runOption {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: var(--target-min, 2.75rem);
+}

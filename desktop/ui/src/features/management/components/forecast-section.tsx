@@ -4,7 +4,8 @@ import { useId } from 'react';
 
 import { CONFIDENCE_LABEL } from '../domain/delivery-labels';
 import { formatDay, formatWeeks } from '../domain/format';
-import styles from '../management-page.module.scss';
+import { Figure, Figures } from './figures';
+import styles from '../management.module.scss';
 
 interface ForecastSectionProps {
   forecast: ProjectForecast;
@@ -46,7 +47,7 @@ function KindForecast({ forecast, label }: { forecast: DeliveryForecast; label: 
 
   return (
     <div className={styles.kind} role="group" aria-labelledby={titleId}>
-      <div className={styles.portfolioHead}>
+      <div className={styles.itemHead}>
         <h3 id={titleId} className={styles.kindTitle}>
           {label}: {forecast.remaining} {forecast.remaining === 1 ? 'aberto' : 'abertos'}
         </h3>
@@ -61,20 +62,16 @@ function KindForecast({ forecast, label }: { forecast: DeliveryForecast; label: 
         <p className={styles.muted}>Sem previsão. {forecast.unavailable}</p>
       ) : (
         <>
-          <dl className={styles.figures}>
+          <Figures>
             {forecast.scenarios.map((scenario) => (
-              <div key={scenario.id} className={styles.figure}>
-                <dt>
-                  {scenario.label}
-                  <span className={styles.figureNote}>
-                    {formatWeeks(scenario.weeks)}; {scenario.percentile}% de chance de terminar até esta data, se o
-                    ritmo das últimas semanas se mantiver
-                  </span>
-                </dt>
-                <dd>{formatDay(scenario.by)}</dd>
-              </div>
+              <Figure
+                key={scenario.id}
+                label={scenario.label}
+                value={formatDay(scenario.by)}
+                note={`${formatWeeks(scenario.weeks)}; ${scenario.percentile}% de chance de terminar até esta data, se o ritmo das últimas semanas se mantiver`}
+              />
             ))}
-          </dl>
+          </Figures>
           <p className={styles.muted}>
             Base: {forecast.historyWeeks} semanas de histórico, com {forecast.weeklyThroughput.join(', ')} entregas por
             semana; {forecast.trials.toLocaleString('pt-BR')} <Term id="simulation" />.

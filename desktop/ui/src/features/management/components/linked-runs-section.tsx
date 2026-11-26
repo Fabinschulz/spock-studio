@@ -6,7 +6,7 @@ import { formatEngineDate, runKindLabel, runStateLabel } from '@/shared/utils';
 import { useCallback } from 'react';
 import { Link } from 'react-router';
 
-import styles from '../management-page.module.scss';
+import styles from '../management.module.scss';
 import type { ManagementApi } from '../service/management-api';
 
 const PROVIDER_LABEL: Record<string, string> = { github: 'GitHub', jira: 'Jira' };
@@ -50,8 +50,8 @@ export function LinkedRunsSection({ management, projectId }: { management: Manag
 
 function ItemRow({ item }: { item: LinkedItem }) {
   return (
-    <li className={styles.portfolioRow}>
-      <div className={styles.portfolioHead}>
+    <li className={styles.item}>
+      <div className={styles.itemHead}>
         <span>
           <span className={styles.rowTitle}>#{item.externalId}</span>
           {item.available ? (

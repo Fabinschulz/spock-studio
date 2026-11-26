@@ -4,7 +4,8 @@ import type { EvidencePack, ProjectInvestigation } from '@/shared/schema';
 import { plural } from '@/shared/utils';
 import { Link } from 'react-router';
 
-import styles from '../management-page.module.scss';
+import askStyles from './ask.module.scss';
+import styles from '../management.module.scss';
 
 /**
  * Não mostra texto de hipótese nem a pergunta: o motor não os guarda. O caminho só traz ids de fato; o texto vem dos fatos
@@ -21,7 +22,7 @@ export function InvestigationPath({
   const facts = new Map([...known, ...investigation.answer.evidence].map((fact) => [fact.id, fact.text]));
 
   return (
-    <section aria-label="Caminho da investigação" className={styles.answerGroup}>
+    <section aria-label="Caminho da investigação" className={askStyles.answerGroup}>
       <Disclosure
         summary={
           <>
@@ -30,7 +31,7 @@ export function InvestigationPath({
           </>
         }
       >
-        <ol className={styles.path}>
+        <ol className={askStyles.path}>
           {investigation.path.map((step, index) => (
             <li key={`${step.id}-${index}`}>
               <strong>{step.title}</strong>

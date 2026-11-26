@@ -76,6 +76,30 @@ export const GLOSSARY = {
     label: 'simulações',
     text: 'Futuros possíveis sorteados a partir das entregas reais de cada semana. A data é a que a maioria deles alcança; não é promessa.'
   },
+  milestone: {
+    label: 'marco',
+    text: 'Um conjunto de itens com uma data de entrega, como uma versão. Vem da ferramenta de tarefas ou de código vinculada.'
+  },
+  riskRule: {
+    label: 'regra de risco',
+    text: 'Uma condição fixa sobre os dados sincronizados, como "item aberto com prazo vencido". Quando ela se cumpre, o risco aparece: é contagem, não previsão nem opinião.'
+  },
+  leadTime: {
+    label: 'tempo total',
+    text: 'Os dias corridos da criação de um item até a entrega. Em inglês, lead time.'
+  },
+  cycleTime: {
+    label: 'tempo de trabalho',
+    text: 'Os dias corridos do começo do trabalho num item até a entrega. Em inglês, cycle time.'
+  },
+  fact: {
+    label: 'fato',
+    text: 'Uma informação que o Spock Studio leu ou calculou sobre o projeto, como uma contagem ou uma data. A resposta só pode afirmar o que um fato sustenta.'
+  },
+  stepInvestigation: {
+    label: 'investigação em etapas',
+    text: 'Reúne os fatos do projeto por grupos e lista os sinais de atenção, sem precisar de modelo de IA. Com modelo, ela também cruza os fatos e levanta hipóteses.'
+  },
   state: {
     label: 'state',
     text: 'O arquivo em que a ferramenta de infraestrutura anota o que já existe na nuvem, para saber o que criar, mudar ou apagar.'

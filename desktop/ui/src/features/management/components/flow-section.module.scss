@@ -1,0 +1,53 @@
+.weeks {
+  width: 100%;
+  max-width: 32rem;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+
+  th,
+  td {
+    padding: var(--space-1) var(--space-2) var(--space-1) 0;
+    text-align: left;
+    font-weight: 400;
+  }
+
+  thead th {
+    font-size: 0.8125rem;
+    color: var(--color-text-subtle);
+  }
+
+  tbody th {
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  td {
+    width: 40%;
+  }
+}
+
+.barCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.barValue {
+  min-width: 1.5rem;
+  text-align: right;
+}
+
+.barDelivered,
+.barCreated {
+  height: 0.5rem;
+  min-width: 1px;
+  border-radius: 2px;
+}
+
+.barDelivered {
+  background-color: var(--color-primary);
+}
+
+.barCreated {
+  background-color: var(--color-border-strong);
+}

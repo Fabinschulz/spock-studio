@@ -104,7 +104,8 @@ describe('Marcos · conteúdo', () => {
   it('sem nenhum marco explica de onde eles vêm e, se há itens sem marco, sugere sincronizar de novo', async () => {
     renderWith({ ...base, milestones: [], unassigned: [{ kind: 'issues', items: 5, open: 2 }] });
 
-    const text = await screen.findByText(/Nenhum item sincronizado pertence a um marco/);
+    const text = await screen.findByText(/Nenhum item sincronizado pertence a um/);
+    expect(text).toHaveTextContent('Nenhum item sincronizado pertence a um marco');
 
     expect(text).toHaveTextContent('milestone da issue');
     expect(text).toHaveTextContent('versão de correção');

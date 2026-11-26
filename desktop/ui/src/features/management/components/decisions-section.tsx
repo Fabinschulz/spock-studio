@@ -1,12 +1,13 @@
 import { errorMessage } from '@/shared/api';
-import { EmptyState, ErrorState, InlineNotice, PageSection, ResourceView } from '@/shared/components';
+import { EmptyState, InlineNotice, PageSection, ResourceView } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import { DECISION_LIMITS, type DecisionSummary, type ManagementDecision, type RunItem } from '@/shared/schema';
 import { formatEngineDate, plural, runKindLabel, runStateLabel } from '@/shared/utils';
 import { Button, Checkbox, TextField } from '@mariliz/ui-kit';
 import { useCallback, useId, useState, type FormEvent } from 'react';
 
-import styles from '../management-page.module.scss';
+import form from './decisions-section.module.scss';
+import styles from '../management.module.scss';
 import type { ManagementApi } from '../service/management-api';
 
 /** Cada decisão guarda os fatos do momento, não os de hoje, e não se edita nem se apaga. */
@@ -104,7 +105,7 @@ function DecisionForm({
   };
 
   return (
-    <form className={styles.decisionForm} onSubmit={(event) => void submit(event)} aria-label="Nova decisão">
+    <form className={form.decisionForm} onSubmit={(event) => void submit(event)} aria-label="Nova decisão">
       <TextField
         label="Título"
         fullWidth
@@ -132,7 +133,7 @@ function DecisionForm({
         onChange={(event) => setRationale(event.target.value)}
         slotProps={{ htmlInput: { maxLength: DECISION_LIMITS.rationale } }}
       />
-      <fieldset className={styles.runPicker}>
+      <fieldset className={form.runPicker}>
         <legend>Execuções relacionadas (até {DECISION_LIMITS.runs})</legend>
         <ResourceView resource={runs} loading="Lendo as execuções…" fallbackError="Não foi possível ler as execuções.">
           {(value) =>
@@ -155,7 +156,7 @@ function DecisionForm({
         Os fatos que o motor tem hoje ficam guardados com a decisão. Depois de registrada, ela não pode ser editada nem
         apagada. Não escreva senhas nem chaves: o que parecer um segredo é substituído.
       </p>
-      {error ? <ErrorState>{error}</ErrorState> : null}
+      {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
       <div className={styles.actions}>
         <Button
           type="submit"
@@ -177,7 +178,7 @@ function DecisionForm({
 
 function RunOption({ run, checked, onToggle }: { run: RunItem; checked: boolean; onToggle: () => void }) {
   return (
-    <div className={styles.runOption}>
+    <div className={form.runOption}>
       <Checkbox
         checked={checked}
         onChange={onToggle}
@@ -218,8 +219,8 @@ function DecisionRow({
   };
 
   return (
-    <li className={styles.portfolioRow}>
-      <div className={styles.portfolioHead}>
+    <li className={styles.item}>
+      <div className={styles.itemHead}>
         <span className={styles.rowTitle}>{decision.title}</span>
         <time dateTime={decision.recordedAt} className={styles.muted}>
           {formatEngineDate(decision.recordedAt)}
@@ -238,7 +239,7 @@ function DecisionRow({
           {open ? 'Esconder os fatos do dia' : `Ver os fatos do dia (${decision.factCount})`}
         </Button>
       </div>
-      {error ? <ErrorState>{error}</ErrorState> : null}
+      {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
       {open && facts ? (
         <>
           <ul className={styles.plainList} aria-label={`Fatos de ${decision.title}`}>

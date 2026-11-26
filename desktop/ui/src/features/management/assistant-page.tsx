@@ -1,17 +1,20 @@
 import type { SelectedProject } from '@/features/project-selection';
-import { EngineError, errorMessage, type EngineClient } from '@/shared/api';
-import { InlineNotice, ErrorState, LoadingState, NoProjectState, Page, Disclosure } from '@/shared/components';
+import { errorMessage, type EngineClient } from '@/shared/api';
+import { ErrorState, LoadingState, NoProjectState, Page, Disclosure, Term } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
-import { pathTo, readHandoff } from '@/shared/routing';
+import { readHandoff } from '@/shared/routing';
 import type { AssistantAnswer, ProjectInvestigation } from '@/shared/schema';
 import { Button, Checkbox, TextField } from '@mariliz/ui-kit';
 import { useCallback, useId, useMemo, useState, type FormEvent } from 'react';
-import { Link, useLocation } from 'react-router';
+import { useLocation } from 'react-router';
 
 import { AssistantAnswerView } from './components/assistant-answer';
 import { InvestigationPath } from './components/investigation-path';
+import { AskErrorNotice, ModelKeyNotice } from './components/model-key';
 import { MAX_QUESTION, MIN_QUESTION, SUGGESTED_QUESTIONS, questionHint } from './domain/assistant';
-import styles from './management-page.module.scss';
+import askStyles from './components/ask.module.scss';
+import { useAsk } from './hooks/use-ask';
+import styles from './management.module.scss';
 import { createManagementApi, type ManagementApi } from './service/management-api';
 
 /**
@@ -39,8 +42,7 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
   const context = useAsyncResource(load);
   const { state } = useLocation();
   const [question, setQuestion] = useState(() => readHandoff(state)?.slice(0, MAX_QUESTION) ?? '');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<{ message: string; needsKey: boolean } | null>(null);
+  const { busy, error, run } = useAsk();
   const [answer, setAnswer] = useState<AssistantAnswer | null>(null);
   const [investigation, setInvestigation] = useState<ProjectInvestigation | null>(null);
   const [steps, setSteps] = useState(false);
@@ -56,27 +58,13 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
   const ask = async (event: FormEvent) => {
     event.preventDefault();
     if (!valid || busy) return;
-    setBusy(true);
-    setError(null);
-    try {
-      if (steps) {
-        const result = await api.investigate(project.projectId, trimmed);
-        setInvestigation(result);
-        setAnswer(result.answer);
-      } else {
-        setInvestigation(null);
-        setAnswer(await api.ask(project.projectId, trimmed));
-      }
-    } catch (cause) {
-      setAnswer(null);
-      setInvestigation(null);
-      setError({
-        message: errorMessage(cause, 'Não foi possível obter a resposta.'),
-        needsKey: cause instanceof EngineError && cause.code === 'MODEL_NOT_CONFIGURED'
-      });
-    } finally {
-      setBusy(false);
-    }
+    const result = await run(async () => {
+      if (!steps) return { answer: await api.ask(project.projectId, trimmed), investigation: null };
+      const found = await api.investigate(project.projectId, trimmed);
+      return { answer: found.answer, investigation: found };
+    });
+    setAnswer(result?.answer ?? null);
+    setInvestigation(result?.investigation ?? null);
   };
 
   return (
@@ -94,14 +82,13 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
       {context.status === 'ready' ? (
         <>
           {!context.value.configured ? (
-            <InlineNotice tone="warning" title="Nenhuma chave de modelo configurada">
-              O assistente usa um modelo de linguagem para escrever a explicação (sem ele, só a investigação em etapas
-              roda, e lista os sinais). Configure a chave em{' '}
-              <Link to={pathTo('settingsAi')}>Configurações › Minha IA</Link>.
-            </InlineNotice>
+            <ModelKeyNotice>
+              O assistente usa um modelo de linguagem para escrever a explicação (sem ele, só a{' '}
+              <Term id="stepInvestigation" /> roda, e lista os sinais).
+            </ModelKeyNotice>
           ) : null}
 
-          <form className={styles.askForm} aria-label="Pergunta ao assistente" onSubmit={(event) => void ask(event)}>
+          <form className={askStyles.askForm} aria-label="Pergunta ao assistente" onSubmit={(event) => void ask(event)}>
             <TextField
               label="Sua pergunta"
               multiline
@@ -133,7 +120,7 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
                 </p>
               ) : null}
             </div>
-            <div className={styles.suggestions} role="group" aria-label="Sugestões de pergunta">
+            <div className={askStyles.suggestions} role="group" aria-label="Sugestões de pergunta">
               {SUGGESTED_QUESTIONS.map((text) => (
                 <Button
                   key={text}
@@ -160,24 +147,14 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
                 <li key={text}>{text}</li>
               ))}
             </ul>
-            <ul className={styles.factList}>
+            <ul className={askStyles.factList}>
               {context.value.evidence.facts.map((fact) => (
                 <li key={fact.id}>{fact.text}</li>
               ))}
             </ul>
           </Disclosure>
 
-          {error ? (
-            <p className={styles.errorText} role="alert">
-              {error.message}
-              {error.needsKey ? (
-                <>
-                  {' '}
-                  Configure a chave em <Link to={pathTo('settingsAi')}>Configurações › Minha IA</Link>.
-                </>
-              ) : null}
-            </p>
-          ) : null}
+          {error ? <AskErrorNotice error={error} /> : null}
           {busy ? (
             <LoadingState>
               {steps ? 'Cruzando riscos, execuções e mudanças…' : 'O modelo está escrevendo a resposta…'}
