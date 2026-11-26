@@ -21,8 +21,7 @@ public sealed class ModelGateway(
     public const int MaxChatTokens = 8192;
     public const int MaxChatText = 64000;
 
-    public static readonly TimeSpan DefaultChatTimeout = TimeSpan.FromSeconds(30);
-    private readonly TimeSpan _chatTimeout = chatTimeout ?? DefaultChatTimeout;
+    private readonly TimeSpan _chatTimeout = chatTimeout ?? ModelTimeouts.Chat;
     private readonly TimeSpan _timeout = timeout ?? TimeSpan.FromSeconds(10);
 
     // O provedor só precisa aceitá-la; a resposta não é usada.

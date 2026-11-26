@@ -160,6 +160,54 @@ class NegativeControlTests(unittest.TestCase):
         self.assertFalse(report["passed"])
 
 
+class FallbackTests(unittest.TestCase):
+    """Uma conclusão escrita pelas regras (prazo, teto) mede o plano de reserva, não o modelo."""
+
+    def setUp(self) -> None:
+        self.acks = _reference_acks()
+
+    def _with_fallback(self) -> dict[str, dict]:
+        acks = copy.deepcopy(self.acks)
+        acks["riscos-principais"]["limitations"] = [
+            {"code": "MODEL_TIMEOUT", "message": "O modelo não respondeu no prazo."},
+            {"code": "INVESTIGATION_CONCLUSION_FALLBACK", "message": "A resposta veio das regras, não do modelo."},
+        ]
+        return acks
+
+    def test_rodada_de_referencia_nao_tem_fallback(self) -> None:
+        report = _score(self.acks)
+
+        self.assertEqual(report["fallbacks"], [])
+        self.assertFalse(any(item["fallback"] for item in report["cases"]))
+
+    def test_caso_que_caiu_no_plano_de_reserva_e_marcado_e_a_rodada_fica_inconclusiva(self) -> None:
+        report = _score(self._with_fallback())
+
+        self.assertEqual(report["fallbacks"], ["riscos-principais"])
+        self.assertTrue(_case_score(report, "riscos-principais")["fallback"])
+        self.assertFalse(report["passed"])
+        text = evals.format_report(report)
+        self.assertIn("INCONCLUSIVA", text)
+        self.assertIn("resultado: inconclusiva", text)
+
+    def test_so_a_conclusao_conta_hipoteses_das_regras_nao_invalidam_a_rodada(self) -> None:
+        acks = copy.deepcopy(self.acks)
+        acks["riscos-principais"]["limitations"] = [{"code": "INVESTIGATION_HYPOTHESES_FALLBACK", "message": "x"}]
+
+        self.assertEqual(_score(acks)["fallbacks"], [])
+
+    def test_linha_de_base_recusa_rodada_com_fallback(self) -> None:
+        with TemporaryDirectory() as root:
+            path = Path(root) / "management-eval-openai.json"
+            path.write_text(json.dumps(self._with_fallback(), ensure_ascii=False), encoding="utf-8")
+            with mock.patch.object(evals, "_BASELINES", Path(root)), contextlib.redirect_stderr(io.StringIO()) as err:
+                code = evals.main(["baseline", str(path)])
+
+            self.assertEqual(code, 1)
+            self.assertIn("sem conclusão do modelo", err.getvalue())
+            self.assertFalse((Path(root) / "management-baseline-openai.json").exists())
+
+
 class ScoreFileTests(unittest.TestCase):
     def _run(self, acks: dict) -> tuple[int, str]:
         with TemporaryDirectory() as root:

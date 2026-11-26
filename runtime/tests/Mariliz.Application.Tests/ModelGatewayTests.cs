@@ -115,9 +115,8 @@ public class ModelGatewayTests
     }
 
     [Fact]
-    public async Task Prazo_da_conversa_e_configuravel_e_o_padrao_continua_30_s()
+    public async Task Prazo_da_conversa_e_configuravel()
     {
-        Assert.Equal(TimeSpan.FromSeconds(30), ModelGateway.DefaultChatTimeout);
         var request = new ChatRequest([new ChatMessage("user", "oi")], 64, false);
         var slow = new SlowChat(TimeSpan.FromMilliseconds(300));
 

@@ -4,10 +4,11 @@ import threading
 import time
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from unittest import mock
 
 import _paths  # noqa: F401
 
-from agents.model_client import ModelClient, ModelError
+from agents.model_client import DEFAULT_TIMEOUT, TIMEOUT_VARIABLE, ModelClient, ModelError, configured_timeout
 
 TOKEN = "t" * 43
 EXECUTION = "ex-aaaaaaaaaaaa"
@@ -139,6 +140,30 @@ class ModelClientTests(unittest.TestCase):
                 else:
                     os.environ[key] = value
         self.assertEqual(reply.text, "{}")
+
+
+class ConfiguredTimeoutTests(unittest.TestCase):
+    """O Python espera mais que o motor: o prazo vem do motor pelo ambiente, e valor ruim volta ao padrão."""
+
+    def test_o_prazo_do_motor_vale_quando_esta_na_faixa(self) -> None:
+        self.assertEqual(configured_timeout("125"), 125.0)
+        self.assertEqual(configured_timeout("35"), 35.0)
+
+    def test_valor_ausente_ilegivel_ou_fora_da_faixa_volta_ao_padrao(self) -> None:
+        for raw in (None, "", "abc", "0", "-5", "5", "100000", "nan"):
+            with mock.patch.dict(os.environ, {}, clear=False):
+                os.environ.pop(TIMEOUT_VARIABLE, None)
+                self.assertEqual(configured_timeout(raw), DEFAULT_TIMEOUT, raw)
+
+    def test_o_cliente_sem_prazo_explicito_le_o_ambiente(self) -> None:
+        with mock.patch.dict(os.environ, {TIMEOUT_VARIABLE: "200"}):
+            client = ModelClient("http://127.0.0.1:49152/v1/model", TOKEN, EXECUTION)
+            self.assertEqual(client._timeout, 200.0)  # noqa: SLF001
+
+    def test_prazo_explicito_prevalece_sobre_o_ambiente(self) -> None:
+        with mock.patch.dict(os.environ, {TIMEOUT_VARIABLE: "200"}):
+            client = ModelClient("http://127.0.0.1:49152/v1/model", TOKEN, EXECUTION, 1.5)
+            self.assertEqual(client._timeout, 1.5)  # noqa: SLF001
 
 
 if __name__ == "__main__":

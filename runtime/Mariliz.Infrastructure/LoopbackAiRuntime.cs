@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using System.Text;
 using Mariliz.Application.Execution;
+using Mariliz.Application.Models;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Protocol;
 using Mariliz.Core.Text;
@@ -223,6 +224,8 @@ public sealed class LoopbackAiRuntime : IAiRuntime, IInvestigationRuntime, ICont
         ["MARILIZ_AI_TOKEN"] = token,
         ["PYTHONUNBUFFERED"] = "1",
         ["PYTHONIOENCODING"] = "utf-8",
+        // O cliente de modelo do Python espera um pouco mais que o motor, que é quem corta a chamada ao provedor.
+        ["MARILIZ_MODEL_CLIENT_TIMEOUT_SECONDS"] = ((int)ModelTimeouts.Client.TotalSeconds).ToString(System.Globalization.CultureInfo.InvariantCulture),
         // A inteligência não fala com serviços de telemetria; o servidor também desliga, isto vale antes do primeiro import.
         ["LANGSMITH_TRACING"] = "false",
         ["LANGCHAIN_TRACING_V2"] = "false",
