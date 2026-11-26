@@ -96,10 +96,6 @@ export const GLOSSARY = {
     label: 'fato',
     text: 'Uma informação que o Spock Studio leu ou calculou sobre o projeto, como uma contagem ou uma data. A resposta só pode afirmar o que um fato sustenta.'
   },
-  stepInvestigation: {
-    label: 'investigação em etapas',
-    text: 'Reúne os fatos do projeto por grupos e lista os sinais de atenção, sem precisar de modelo de IA. Com modelo, ela também cruza os fatos e levanta hipóteses.'
-  },
   state: {
     label: 'state',
     text: 'O arquivo em que a ferramenta de infraestrutura anota o que já existe na nuvem, para saber o que criar, mudar ou apagar.'
