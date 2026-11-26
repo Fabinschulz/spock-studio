@@ -1,6 +1,6 @@
 # Spock Studio — Workspace unificado
 
-> **Estado:** sete incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade; o quarto, a largura ajustável desse painel; o quinto, os títulos das telas iguais aos nomes do menu; o sexto, o `Checkbox` da biblioteca no lugar do componente local e o resumo da jornada Configurar que não cobre mais o conteúdo; o sétimo, os filtros de Execuções numa linha. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
+> **Estado:** oito incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade; o quarto, a largura ajustável desse painel; o quinto, os títulos das telas iguais aos nomes do menu; o sexto, o `Checkbox` da biblioteca no lugar do componente local e o resumo da jornada Configurar que não cobre mais o conteúdo; o sétimo, os filtros de Execuções numa linha; o oitavo, tarefas e execuções recentes na busca. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
 >
 > O tema, os tokens e a linguagem visual vêm do redesign Workbench anterior e não mudaram; a fonte de verdade deles é o código (`desktop/ui/src/shared/styles/_tokens.scss`). Os produtos de referência estudados não são nomeados aqui; deles saíram princípios, não telas.
 
@@ -115,9 +115,12 @@ A paleta (Ctrl K) agora agrupa o que oferece:
 - **Ações**: abrir pasta de projeto, mostrar a atividade, abrir o terminal, recolher o menu, ver os atalhos.
 - **Telas**: todas, de todas as áreas, com uma frase dizendo para que servem. Acham-se pelo nome apresentado e pelo técnico ("harness" acha Padrões do projeto; "integrações" acha Serviços).
 - **Projetos**: os recentes, pelo nome ou pelo caminho.
+- **Atividade**: até cinco tarefas (o que espera aprovação ou intervenção, ou está andando) e as cinco execuções mais recentes, com o estado como dica. Escolher uma abre a execução pelo endereço dela, sem texto na URL. A lista vem de `run.list`, lido só quando a paleta abre; sem resposta do motor, o grupo não aparece e o resto da paleta segue igual. Execuções mais antigas se acham em Execuções, com filtros.
 - **Pedir ao Spock Studio**: os quatro caminhos, quando o texto é uma frase.
 
 Quem escreve o nome de algo recebe esse algo primeiro; quem escreve uma frase recebe os caminhos de pedido primeiro e as telas relacionadas depois.
+
+Ainda não são buscados: documentos e agentes (o pedido original os lista; falta avaliar de onde viria a lista de cada um). Comandos que iniciam trabalho, como "Executar análise", também não existem: seguem o princípio da entrada de pedidos, que só encaminha para a tela onde a pessoa decide e aprova.
 
 Não há identidade de usuário no aplicativo, então não há comando escondido por permissão. O contexto que existe é o projeto: um pedido sem projeto aberto pede a pasta antes de seguir.
 
@@ -198,6 +201,8 @@ Feita no aplicativo real (janela Tauri, motor .NET e um projeto de verdade), dir
 | Pergunta sobre o código segue para os agentes, preenchida, com o aviso de ferramenta ausente | passou |
 | Ctrl K: "harness" leva a Padrões do projeto | passou |
 | Ctrl K: frase oferece os caminhos e leva a pergunta ao Assistente, preenchida | passou |
+| Ctrl K: o grupo Atividade vem depois das ações e antes das telas, lista as execuções reais com o estado, e Enter abre a execução pelo endereço dela, sem texto na URL | passou |
+| axe (WCAG 2.2 AA, com contraste) com a paleta aberta a 1440 e a 900 px, sem rolagem horizontal a 900 px, Esc fecha, console sem erros | passou |
 | Ctrl + ponto: tarefas, feed, acontecimentos do projeto aberto e detalhe de uma execução sem sair da tela | passou |
 | Cada área leva à tela dela e lista as telas certas (5 áreas) | passou |
 | As 24 telas existentes abrem no novo shell, sem tela de erro | passou |
@@ -212,7 +217,9 @@ Feita no aplicativo real (janela Tauri, motor .NET e um projeto de verdade), dir
 | axe (WCAG 2.2 AA, com contraste) em 14 estados de tela | 0 violações |
 | Console sem erros durante as jornadas | passou |
 
-Total: 37 de 37 no roteiro, mais as duas verificações da jornada Configurar. Além disso, `pnpm check` (tipos, lint, formatação e 1025 testes em 108 arquivos) passa.
+Total: 37 de 37 no roteiro, mais as duas verificações da jornada Configurar e as onze da paleta com o grupo Atividade, rodadas à parte. Além disso, `pnpm check` (tipos, lint, formatação e 1025 testes em 108 arquivos) passa.
+
+Uma armadilha do roteiro: o modal da biblioteca entra com um fade, e o axe medido no meio dele acusa contraste que não existe (22 elementos, com opacidade de 0,11 a 0,16); assentado, dá zero. O roteiro espera a opacidade chegar a 1 antes de medir.
 
 A validação achou e corrigiu três defeitos que já existiam: dois ícones da biblioteca com atributos SVG que o React recusava (aviso no console a cada renderização), as abas da biblioteca ilegíveis no tema escuro e uma chave repetida na lista de ferramentas da Visão geral quando dois módulos declaram a mesma ferramenta.
 
@@ -225,12 +232,17 @@ A validação achou e corrigiu três defeitos que já existiam: dois ícones da 
 - O envio de uma pergunta a uma ferramenta de IA: a jornada confere que o texto chega preenchido e para ali.
 - macOS e Linux.
 - As jornadas não estão no repositório nem no CI: rodaram a partir de um roteiro fora dele (seção 10).
+- O grupo Atividade da paleta com uma tarefa esperando aprovação: no computador da validação só havia execuções concluídas ou que falharam, então a ordem "tarefa antes de recente" está só nos testes. No aplicativo real foram vistas as cinco execuções mais recentes.
+- A avaliação escrita, pergunta por pergunta, pelos 13 critérios do §15 do pedido original: há evidências por jornada, mas nenhuma resposta registrada para cada critério.
 
 ## 10. O que ficou para depois
 
 Incrementos:
 
-1. **Jornada Configurar**: o diagnóstico e a proposta estão em [`configurar.md`](configurar.md). Os incrementos C1 a C7 e a decisão DC2 foram entregues (#199 a #206); o que sobrou está em [`ROADMAP.md`](../ROADMAP.md).
+1. **Jornada Configurar**: o diagnóstico e a proposta estão em [`configurar.md`](configurar.md). Os incrementos C1 a C7, a DC2 e a DC5 foram entregues (#199 a #210); as sobras (T6, P4, P5, P6, PL2 e RS3) estão numa sessão própria.
+2. **Fluxos internos de Gestão e de Configurações**: nunca foram redesenhados (etapa 4, itens 10 e 11 do pedido original). Cada um tem uma sessão própria, que começa por diagnóstico e proposta em `docs/redesign/gestao.md` e `docs/redesign/configuracoes.md` e espera a sua aprovação antes de implementar.
+3. **Entrada de pedidos com arquivo ou informação extra** (§4.4 do pedido): os seletores de modelo e de agente foram avaliados e ficaram de fora com justificativa; anexar arquivo nem foi avaliado.
+4. **Avaliação pelos 13 critérios** (§15): registrar a resposta de cada pergunta, com a evidência.
 
 Decisões do dono:
 

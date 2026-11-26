@@ -1,5 +1,7 @@
 import type { RecentProject } from '@/features/project-selection';
-import { paths } from '@/shared/routing';
+import { displayState, type ActivityFeed } from '@/features/runs';
+import { executionPath, paths } from '@/shared/routing';
+import { formatEngineDate, runKindLabel } from '@/shared/utils';
 
 import { AREAS, type NavArea } from '../navigation';
 import { shortcutLabel, type ShortcutId } from '../shortcuts/shortcuts';
@@ -13,7 +15,7 @@ export type CommandAction =
   | { kind: 'pick-project' }
   | { kind: 'shell'; action: ShellAction };
 
-export type CommandGroup = 'Ações' | 'Telas' | 'Projetos';
+export type CommandGroup = 'Ações' | 'Atividade' | 'Telas' | 'Projetos';
 
 export interface Command {
   id: string;
@@ -147,6 +149,27 @@ function projectCommands(recents: readonly RecentProject[]): Command[] {
     }));
 }
 
-export function buildCommands(recents: readonly RecentProject[]): Command[] {
-  return [...ACTIONS, ...AREAS.flatMap(areaCommands), ...OFF_MENU, ...projectCommands(recents)];
+// Sem texto, a lista já tem mais de trinta linhas: só as execuções mais urgentes e as mais recentes entram.
+const TASK_LIMIT = 5;
+const RECENT_LIMIT = 5;
+
+function runCommands(feed: ActivityFeed | undefined): Command[] {
+  if (!feed) return [];
+  const toCommand = (run: ActivityFeed['tasks'][number], pending: boolean): Command => ({
+    id: `run:${run.runId}`,
+    group: 'Atividade',
+    label: `${runKindLabel(run.kind)} · ${run.projectName}`,
+    hint: displayState(run),
+    description: `Iniciada ${formatEngineDate(run.startedAt)}. Abre o detalhe da execução.`,
+    keywords: pending ? 'tarefa pendente' : 'execução recente',
+    action: { kind: 'go', to: executionPath(run.runId) }
+  });
+  return [
+    ...feed.tasks.slice(0, TASK_LIMIT).map((run) => toCommand(run, true)),
+    ...feed.recent.slice(0, RECENT_LIMIT).map((run) => toCommand(run, false))
+  ];
+}
+
+export function buildCommands(recents: readonly RecentProject[], feed?: ActivityFeed): Command[] {
+  return [...ACTIONS, ...runCommands(feed), ...AREAS.flatMap(areaCommands), ...OFF_MENU, ...projectCommands(recents)];
 }

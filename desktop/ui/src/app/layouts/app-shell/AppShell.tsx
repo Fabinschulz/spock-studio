@@ -182,7 +182,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <StatusBar engine={engine} panel={panel} onPanelTab={togglePanelTab} onShortcuts={showSheet} />
 
-      <CommandPalette open={palette.open} onClose={palette.hide} onShellAction={(action) => shellActions[action]?.()} />
+      <CommandPalette
+        open={palette.open}
+        onClose={palette.hide}
+        onShellAction={(action) => shellActions[action]?.()}
+        client={tauriEngineClient}
+      />
       <ShortcutSheet open={sheetOpen} onClose={hideSheet} />
     </div>
   );

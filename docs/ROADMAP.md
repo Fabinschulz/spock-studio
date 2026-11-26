@@ -8,6 +8,10 @@
 
 | Item | Situação | Onde |
 | --- | --- | --- |
+| Fluxos internos de Gestão (Portfólio, Acompanhamento, Assistente, Relatório) | Sessão própria: diagnóstico e proposta em `docs/redesign/gestao.md`, esperando a aprovação do dono antes de implementar | [workspace-unificado.md §10](redesign/workspace-unificado.md) |
+| Fluxos internos de Configurações (Minha IA, Diagnóstico, Sobre) | Sessão própria: diagnóstico e proposta em `docs/redesign/configuracoes.md`, esperando a aprovação do dono antes de implementar | [workspace-unificado.md §10](redesign/workspace-unificado.md) |
+| Configurar: T6, P4, P5, P6, PL2 e RS3 | Sessão própria, um PR | [configurar.md](redesign/configurar.md) |
+| Execuções e tarefas na busca (Ctrl K) | PR #212 aberto; validado no aplicativo real (axe e console limpos); a ordem tarefa antes de recente só está nos testes, porque não havia tarefa pendente | [workspace-unificado.md §4](redesign/workspace-unificado.md) |
 | Aba IDEs em Conexões e resíduos da etapa 2 do ciclo 2 | Um commit na branch `feat/ciclo2-etapas-1-2` do GitHub que nunca entrou no master (o PR #137 foi mergeado antes dele). Precisa de rebase; parte já foi feita por outros PRs (a reversão com `ConfirmAction` entrou no C2 do Configurar) | [SPOCK_IMPLEMENTATION_ROADMAP.md](plataforma/SPOCK_IMPLEMENTATION_ROADMAP.md) |
 
 ## 2. Bloqueado pela chave de modelo do dono
@@ -67,6 +71,9 @@ Nada rodou ainda com um modelo real. Tudo abaixo espera uma chave com limite de 
 - **Fase B**: nome de exibição do projeto editável. **Fase D**: resumo do período por IA, indicadores visuais e previsão,
   histórico do assistente, uso agregado de tokens.
 - **Execução sem endereço próprio**: o link do caminho da investigação abre a lista, não a execução.
+- **Redesign do workspace, o que falta do pedido original**: documentos e agentes na busca; anexar arquivo ou informação
+  extra na entrada de pedidos (os seletores de modelo e de agente já foram avaliados e ficaram de fora); a avaliação
+  escrita pelos 13 critérios do §15. Fonte: [workspace-unificado.md §10](redesign/workspace-unificado.md).
 - **Medição**: a listagem de execuções lê o diário inteiro de cada uma.
 - **Adiados**: sincronização agendada, MCP de terceiros no plano do Harness, assistente de engenharia, modo de
   diagnóstico, leitura de `.specs`, coluna "conferido pelo Spock", Azure DevOps, mapa de etapas, escrita em GitHub e Jira,
@@ -115,7 +122,8 @@ Nada rodou ainda com um modelo real. Tudo abaixo espera uma chave com limite de 
 - **Pacotes**: instalação real do NSIS e do `.deb`; pacotes Linux e macOS nunca rodaram, porque o CI está sem orçamento.
 - **App empacotado**: indicador do menu, resumo de entrega, seção em Gestão, eventos de sincronização e tema do `Drawer`.
 - **Workspace unificado**: leitor de tela real; computador sem projeto recente; tarefa real esperando aprovação; entrada
-  de pedidos com modelo e ferramenta de IA instalados; envio de pergunta a uma ferramenta de IA; macOS e Linux.
+  de pedidos com modelo e ferramenta de IA instalados; envio de pergunta a uma ferramenta de IA; macOS e Linux; uma tarefa
+  pendente de verdade no grupo Atividade da busca.
 - **Configurar**: conflito de arquivo, comando destrutivo, plano com proposta do agente, execução que falha ou é
   cancelada, comando de rede aprovado e leitor de tela.
 

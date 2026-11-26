@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import type { ActivityFeed } from '@/features/runs';
+
 import { buildCommands } from './commands';
 
 const recent = (id: string, available = true) => ({
@@ -69,6 +71,50 @@ describe('buildCommands', () => {
 
   it('um projeto cuja pasta não existe mais não é oferecido', () => {
     expect(buildCommands([recent('a', false)]).some((command) => command.id === 'project:a')).toBe(false);
+  });
+
+  describe('execuções', () => {
+    const item = (runId: string, state: string) =>
+      ({
+        runId,
+        projectId: 'p-1',
+        projectName: 'loja-api',
+        kind: 'validate',
+        state,
+        startedAt: '2026-11-20T10:00:00Z',
+        interrupted: false
+      }) as ActivityFeed['tasks'][number];
+
+    it('cada tarefa e execução recente vira um comando que abre a execução, a tarefa primeiro', () => {
+      const feed: ActivityFeed = {
+        tasks: [item('run-t', 'awaiting_approval')],
+        recent: [item('run-r', 'completed')]
+      };
+
+      const runs = buildCommands([], feed).filter((command) => command.group === 'Atividade');
+
+      expect(runs.map((command) => command.id)).toEqual(['run:run-t', 'run:run-r']);
+      expect(runs[0]).toMatchObject({
+        label: 'Validação · loja-api',
+        hint: 'Aguardando aprovação',
+        action: { kind: 'go', to: '/execucao/run-t' }
+      });
+    });
+
+    it('sem texto a lista não se enche: há um teto de tarefas e de execuções recentes', () => {
+      const many = (prefix: string, state: string) =>
+        Array.from({ length: 12 }, (_, index) => item(`${prefix}-${index}`, state));
+
+      const runs = buildCommands([], { tasks: many('t', 'running'), recent: many('r', 'completed') }).filter(
+        (command) => command.group === 'Atividade'
+      );
+
+      expect(runs).toHaveLength(10);
+    });
+
+    it('sem a lista do motor, não há grupo de atividade', () => {
+      expect(buildCommands([]).some((command) => command.group === 'Atividade')).toBe(false);
+    });
   });
 
   it('nenhum comando repete o id de outro', () => {
