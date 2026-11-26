@@ -114,6 +114,30 @@ public class ModelGatewayTests
         Assert.Equal(Timeout.InfiniteTimeSpan, transport.RequestTimeout);
     }
 
+    [Fact]
+    public async Task Prazo_da_conversa_e_configuravel_e_o_padrao_continua_30_s()
+    {
+        Assert.Equal(TimeSpan.FromSeconds(30), ModelGateway.DefaultChatTimeout);
+        var request = new ChatRequest([new ChatMessage("user", "oi")], 64, false);
+        var slow = new SlowChat(TimeSpan.FromMilliseconds(300));
+
+        var tight = new ModelGateway(new EnvModelSettings("openai", Key), new FakeTransport(), chat: slow, chatTimeout: TimeSpan.FromMilliseconds(30));
+        var error = await Assert.ThrowsAsync<EngineException>(() => tight.ChatAsync(request, CancellationToken.None));
+        Assert.Equal("MODEL_TIMEOUT", error.Code);
+
+        var roomy = new ModelGateway(new EnvModelSettings("openai", Key), new FakeTransport(), chat: slow, chatTimeout: TimeSpan.FromSeconds(5));
+        Assert.Equal("ok", (await roomy.ChatAsync(request, CancellationToken.None)).Text);
+    }
+
+    private sealed class SlowChat(TimeSpan delay) : IModelChatTransport
+    {
+        public async Task<ChatTransportResult> SendChatAsync(Uri endpoint, string key, string model, ChatRequest request, CancellationToken ct)
+        {
+            await Task.Delay(delay, ct);
+            return new ChatTransportResult("ok", model, 1, 1);
+        }
+    }
+
     private static string Line(string method, JsonObject parameters) =>
         new JsonObject { ["v"] = 1, ["kind"] = "request", ["id"] = "t", ["method"] = method, ["params"] = parameters }.ToJsonString();
 

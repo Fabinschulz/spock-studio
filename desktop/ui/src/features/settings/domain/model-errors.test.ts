@@ -16,6 +16,10 @@ describe('erros do modelo com o próximo passo', () => {
     expect(withNextStep('ENGINE_NOT_RUNNING', 'O motor não está em execução.')).toMatch(/feche e abra o aplicativo\.$/);
   });
 
+  it('provedor sobrecarregado diz que a chave não é o problema', () => {
+    expect(withNextStep('MODEL_OVERLOADED', 'O provedor está indisponível ou sobrecarregado agora (HTTP 502).')).toMatch(/não na sua chave/);
+  });
+
   it('um código sem próximo passo conhecido fica só com a mensagem do motor', () => {
     expect(withNextStep('MODEL_RATE_LIMITED', 'Tente de novo em instantes.')).toBe('Tente de novo em instantes.');
   });

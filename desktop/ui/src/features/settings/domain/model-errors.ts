@@ -7,6 +7,7 @@ const NEXT_STEP: Record<string, string> = {
   MODEL_AUTH_FAILED:
     'Confira se copiou a chave inteira, sem espaços. Se ela foi apagada ou venceu, crie outra no site do provedor.',
   MODEL_UNAVAILABLE: 'Confira a conexão com a internet, ou o proxy da empresa, e tente de novo.',
+  MODEL_OVERLOADED: 'Tente de novo em instantes; se continuar, o problema está no provedor ou no gateway, não na sua chave.',
   MODEL_TIMEOUT: 'Tente de novo em instantes.',
   ENGINE_NOT_RUNNING: ENGINE_DOWN,
   ENGINE_STOPPED: ENGINE_DOWN,

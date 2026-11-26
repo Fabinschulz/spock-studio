@@ -15,12 +15,14 @@ public sealed class ModelGateway(
     IModelCheckStore? checks = null,
     IClock? clock = null,
     IModelPreferences? preferences = null,
-    IModelBudgetStore? budgets = null)
+    IModelBudgetStore? budgets = null,
+    TimeSpan? chatTimeout = null)
 {
     public const int MaxChatTokens = 8192;
     public const int MaxChatText = 64000;
 
-    private static readonly TimeSpan ChatTimeout = TimeSpan.FromSeconds(30);
+    public static readonly TimeSpan DefaultChatTimeout = TimeSpan.FromSeconds(30);
+    private readonly TimeSpan _chatTimeout = chatTimeout ?? DefaultChatTimeout;
     private readonly TimeSpan _timeout = timeout ?? TimeSpan.FromSeconds(10);
 
     // O provedor só precisa aceitá-la; a resposta não é usada.
@@ -133,7 +135,7 @@ public sealed class ModelGateway(
             await ProbeAsync(target, key, ct);
             checks?.Write(target.Id, new ModelCheck("connected", Now, null));
         }
-        catch (EngineException ex) when (ex.Code is "MODEL_AUTH_FAILED" or "MODEL_RATE_LIMITED" or "MODEL_UNAVAILABLE" or "MODEL_TIMEOUT" or "MODEL_INVALID_RESPONSE")
+        catch (EngineException ex) when (ex.Code is "MODEL_AUTH_FAILED" or "MODEL_RATE_LIMITED" or "MODEL_UNAVAILABLE" or "MODEL_OVERLOADED" or "MODEL_TIMEOUT" or "MODEL_INVALID_RESPONSE")
         {
             checks?.Write(target.Id, new ModelCheck("error", Now, new ModelCheckError(ex.Code, ex.Message, Now)));
         }
@@ -206,7 +208,7 @@ public sealed class ModelGateway(
         var bounded = request with { Messages = messages, MaxTokens = Math.Clamp(request.MaxTokens, 1, MaxChatTokens) };
 
         using var budget = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        budget.CancelAfter(ChatTimeout);
+        budget.CancelAfter(_chatTimeout);
         ChatTransportResult result;
         try
         {

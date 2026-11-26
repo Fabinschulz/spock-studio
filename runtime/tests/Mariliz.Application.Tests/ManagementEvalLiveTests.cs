@@ -24,7 +24,7 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
         var dataset = JsonNode.Parse(File.ReadAllText(DatasetPath()))!.AsObject();
         var scenarios = dataset["scenarios"]!.AsObject();
         using var network = chat is null ? new HttpsModelTransport() : null;
-        var gateway = new ModelGateway(new EnvModelSettings(provider, key), network ?? (IModelTransport)new NoopTransport(), timeout: TimeSpan.FromSeconds(60), chat: chat ?? network);
+        var gateway = new ModelGateway(new EnvModelSettings(provider, key), network ?? (IModelTransport)new NoopTransport(), timeout: TimeSpan.FromSeconds(60), chat: chat ?? network, chatTimeout: TimeSpan.FromSeconds(240));
         using var access = new LocalModelAccess(new ModelBroker(gateway));
         var python = new LoopbackAiRuntime();
         var acks = new JsonObject();

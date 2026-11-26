@@ -309,7 +309,7 @@ public class ModelConnectionTests
     [InlineData(HttpStatusCode.Unauthorized, "MODEL_AUTH_FAILED")]
     [InlineData(HttpStatusCode.Forbidden, "MODEL_AUTH_FAILED")]
     [InlineData(HttpStatusCode.TooManyRequests, "MODEL_RATE_LIMITED")]
-    [InlineData(HttpStatusCode.InternalServerError, "MODEL_INVALID_RESPONSE")]
+    [InlineData(HttpStatusCode.InternalServerError, "MODEL_OVERLOADED")]
     public async Task O_transporte_distingue_chave_recusada_de_uso_limitado_sem_repetir_o_corpo(HttpStatusCode status, string code)
     {
         // O corpo de uma recusa pode citar a chave: ele nunca vai para a mensagem.
