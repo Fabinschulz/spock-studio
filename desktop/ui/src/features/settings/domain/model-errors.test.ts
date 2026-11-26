@@ -17,7 +17,9 @@ describe('erros do modelo com o próximo passo', () => {
   });
 
   it('provedor sobrecarregado diz que a chave não é o problema', () => {
-    expect(withNextStep('MODEL_OVERLOADED', 'O provedor está indisponível ou sobrecarregado agora (HTTP 502).')).toMatch(/não na sua chave/);
+    expect(
+      withNextStep('MODEL_OVERLOADED', 'O provedor está indisponível ou sobrecarregado agora (HTTP 502).')
+    ).toMatch(/não na sua chave/);
   });
 
   it('um código sem próximo passo conhecido fica só com a mensagem do motor', () => {
