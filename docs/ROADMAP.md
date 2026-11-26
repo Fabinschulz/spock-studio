@@ -70,9 +70,14 @@ Nada rodou ainda com um modelo real. Tudo abaixo espera uma chave com limite de 
 - **Fase B**: nome de exibição do projeto editável. **Fase D**: resumo do período por IA, indicadores visuais e previsão,
   histórico do assistente, uso agregado de tokens.
 - **Execução sem endereço próprio**: o link do caminho da investigação abre a lista, não a execução.
-- **Redesign do workspace, o que falta do pedido original**: anexar arquivo ou informação extra na entrada de pedidos
-  (os seletores de modelo e de agente já foram avaliados e ficaram de fora); a avaliação escrita pelos 13 critérios do §15.
-  Fonte: [workspace-unificado.md §10](redesign/workspace-unificado.md).
+- **Redesign do workspace, o que sobra do pedido original**: a avaliação pelos 13 critérios (§11 do registro) não achou
+  critério que falhe; as lacunas são um teste de uso com pessoas (iniciante, desenvolvedor, gestor), o leitor de tela e
+  as rodadas com dados do dono (ferramenta vinculada, chave de modelo, tarefa esperando aprovação).
+  Fonte: [workspace-unificado.md §11](redesign/workspace-unificado.md).
+- **Entrada de pedidos: escolher arquivos do projeto para um pedido**: anexar arquivo foi avaliado e não entra, porque
+  nenhum destino o recebe e o motor controla o que vai ao modelo. O caminho seguro é escolher só entre os arquivos que o
+  índice já autoriza, com um campo novo no contrato do motor e a prévia de contexto mostrando a escolha. Pede decisão do
+  dono. Fonte: [workspace-unificado.md §2D](redesign/workspace-unificado.md).
 - **Busca: documentos e assistentes do Harness linha a linha**: avaliados e fora, por falta de destino (não há
   visualizador de documento, e o Catálogo não abre uma entrada). Entram se uma dessas telas passar a existir. Fonte:
   [workspace-unificado.md §4](redesign/workspace-unificado.md).
