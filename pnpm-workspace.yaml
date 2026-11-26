@@ -8,6 +8,7 @@ allowBuilds:
   '@parcel/watcher': false
 
 # O pnpm segura versões publicadas há pouco tempo. O ui-kit é nosso e cada versão sai junto com a mudança que a usa:
-# a exceção vale só para a versão em uso e pode sair quando ela deixar de ser recente.
+# a exceção vale só para a versão em uso e pode sair quando ela deixar de ser recente. Trocar a versão muda os avisos de
+# terceiros do instalador: rode `python docs/compliance/tools/generate_sbom.py` no mesmo PR, ou o CI de licenças falha.
 minimumReleaseAgeExclude:
   - '@mariliz/ui-kit@0.10.1'

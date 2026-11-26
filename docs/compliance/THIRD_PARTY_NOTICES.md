@@ -237,7 +237,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @mariliz/ui-kit 0.9.0
+### @mariliz/ui-kit 0.10.1
 
 Arquivo `LICENSE`:
 

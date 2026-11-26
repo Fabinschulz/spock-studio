@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:65828bbc-fbd4-4ccf-90dc-9e29071cab67",
+  "serialNumber": "urn:uuid:d9662a2c-c05c-4cd6-aa8f-e64eda8eff35",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-25T20:58:02Z",
+    "timestamp": "2026-11-25T22:00:38Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -29142,15 +29142,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "npm--mariliz-ui-kit-0.9.0",
+      "bom-ref": "npm--mariliz-ui-kit-0.10.1",
       "name": "@mariliz/ui-kit",
-      "version": "0.9.0",
-      "purl": "pkg:npm/%40mariliz/ui-kit@0.9.0",
+      "version": "0.10.1",
+      "purl": "pkg:npm/%40mariliz/ui-kit@0.10.1",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "480fce85db3cb81a043ba31e19a0700eefdf64906407eac24d545e462fcf95db9a07828093cd37cd381fe0f6f9a2e74f0d338139f4135e5a8a336343ea01a62b"
+          "content": "65fcfe3b54e53d9c6e9aad8d7b1ebc67da409a3695c07acea766a074551fd6aa080cc717ef07269e9097bc23d5c07609a469798b1137070f03b6b2add95d4b58"
         }
       ],
       "licenses": [
@@ -29199,7 +29199,7 @@
         },
         {
           "name": "spock:evidence",
-          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mariliz+ui-kit@0.9.0_07e3bcddc8350d37f0f3e1f1b544f6d2/node_modules/@mariliz/ui-kit"
+          "value": "pnpm-lock.yaml | node_modules/.pnpm/@mariliz+ui-kit@0.10.1_07e3bcddc8350d37f0f3e1f1b544f6d2/node_modules/@mariliz/ui-kit"
         },
         {
           "name": "spock:usage",
@@ -60291,7 +60291,7 @@
         "npm--emotion-styled-11.14.1",
         "npm--eslint-js-9.39.5",
         "npm--hookform-resolvers-7.0.0",
-        "npm--mariliz-ui-kit-0.9.0",
+        "npm--mariliz-ui-kit-0.10.1",
         "npm--mui-material-9.5.0",
         "npm--tauri-apps-api-2.12.5",
         "npm--tauri-apps-cli-2.12.6",
@@ -63819,7 +63819,7 @@
       ]
     },
     {
-      "ref": "npm--mariliz-ui-kit-0.9.0",
+      "ref": "npm--mariliz-ui-kit-0.10.1",
       "dependsOn": [
         "npm--emotion-cache-11.14.0",
         "npm--emotion-react-11.14.0",
