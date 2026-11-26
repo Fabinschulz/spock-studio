@@ -25,10 +25,13 @@ interface PortfolioTableProps {
  * linhas separadas: não se somam. O que o motor não sabe aparece como "sem dado", nunca como zero.
  */
 export function PortfolioTable({ projects, weeks, actionOf, busy, onOpen }: PortfolioTableProps) {
+  // Sem nenhuma linha de dado, cabeçalhos de coluna sobre nada só confundem: ficam só para o leitor de tela.
+  const hasRows = projects.some((project) => project.kinds.length > 0);
+
   return (
     <table className={styles.table}>
       <caption className="visually-hidden">Projetos, de quem mais pede atenção a quem menos pede</caption>
-      <thead>
+      <thead className={hasRows ? undefined : 'visually-hidden'}>
         <tr>
           <th scope="col">Tipo</th>
           <th scope="col" className={styles.number}>

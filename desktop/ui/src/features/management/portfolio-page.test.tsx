@@ -125,6 +125,14 @@ describe('Gestão · portfólio', () => {
     expect(group(table, 'loja').compareDocumentPosition(portal) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
+  it('sem nenhuma linha de dado, os cabeçalhos de coluna ficam só para o leitor de tela', async () => {
+    const withoutTool = portfolioFixture.projects.find((project) => project.displayName === 'portal')!;
+    renderPortfolio(undefined, {}, { ...portfolioFixture, projects: [withoutTool] });
+
+    const table = await screen.findByRole('table', { name: /Projetos/ });
+    expect(within(table).getAllByRole('columnheader')[0]!.closest('thead')).toHaveClass('visually-hidden');
+  });
+
   it('lista os pontos de atenção do projeto e o prazo vencido do tipo que o informa', async () => {
     const withTool = portfolioFixture.projects.find((project) => project.displayName === 'loja')!;
     const withoutTool = portfolioFixture.projects.find((project) => project.displayName === 'portal')!;
