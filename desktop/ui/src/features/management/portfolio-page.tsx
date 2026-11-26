@@ -11,7 +11,6 @@ import { Link, useNavigate } from 'react-router';
 
 import { resolveOpenAction, type OpenAction } from './domain/open-project';
 import styles from './management.module.scss';
-import { PortfolioAsk } from './components/portfolio-ask';
 import { createManagementApi } from './service/management-api';
 
 const KIND_LABEL: Record<string, string> = { issues: 'Issues', pullRequests: 'Pull requests' };
@@ -53,7 +52,12 @@ export function PortfolioPage({ client }: { client: EngineClient }) {
                   />
                 ))}
               </ul>
-              <PortfolioAsk api={api} projects={value.projects} />
+              {value.projects.length > 1 ? (
+                <p className={styles.muted}>
+                  Para uma pergunta que cruza os projetos, use o <Link to={pathTo('assistant')}>Assistente</Link>, em
+                  "Vários projetos".
+                </p>
+              ) : null}
               {value.projects.some((project) => !resolveOpenAction(project, selected, recents)) ? (
                 <p className={styles.muted}>
                   Um projeto sem o botão de abrir não está entre os recentes. Escolha a pasta dele na{' '}

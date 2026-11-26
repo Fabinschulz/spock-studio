@@ -11,9 +11,6 @@ import {
   type SelectedProject
 } from '@/features/project-selection';
 import { AppProviders } from '@/shared/components';
-import { EngineError } from '@/shared/api';
-import portfolioAnswerFixture from '@contracts/fixtures/management/portfolio-answer.json';
-import portfolioEvidenceFixture from '@contracts/fixtures/management/portfolio-evidence.json';
 import { expectNoA11yViolations } from '@/test/a11y';
 import { fakeIntegrationEngine } from '@/test/fake-integration-engine';
 
@@ -80,7 +77,7 @@ describe('Gestão · portfólio', () => {
     expect(within(loja!).getByText('Sem pontos de atenção')).toBeInTheDocument();
     expect(loja).toHaveTextContent('Issues: 1 aberto · 1 em andamento · 6 entregues em 8 semanas');
     expect(loja).not.toHaveTextContent('prazo vencido');
-    // Só leituras: ler o portfólio e preparar a pergunta (o estado do modelo e o pacote). Nada é perguntado sem o clique.
+    // Só leitura: a tela não pergunta nada ao modelo.
     expect(engine.calls.map((call) => call.method)).not.toContain('management.portfolioask');
     expect(engine.calls.map((call) => call.method)).toContain('management.portfolio');
 
@@ -121,91 +118,11 @@ describe('Gestão · portfólio', () => {
     expect(screen.queryByRole('button', { name: 'Abrir projeto loja' })).not.toBeInTheDocument();
   });
 
-  describe('perguntar sobre o portfólio', () => {
-    const ask = () => screen.findByRole('form', { name: 'Pergunta ao portfólio' });
+  it('a pergunta entre projetos fica no Assistente, e a tela leva até lá', async () => {
+    renderPortfolio();
 
-    it('oferece os projetos, todos marcados, e mostra o que vai ao provedor antes de perguntar', async () => {
-      const { engine } = renderPortfolio();
-
-      const form = await ask();
-
-      const group = within(form).getByRole('group', { name: 'Projetos que entram na pergunta' });
-      expect(within(group).getByRole('checkbox', { name: 'loja' })).toBeChecked();
-      expect(within(group).getByRole('checkbox', { name: 'portal' })).toBeChecked();
-      expect(
-        await screen.findByText(/O que será enviado ao provedor de modelo: a pergunta e \d+ fatos de 2 projetos/)
-      ).toBeInTheDocument();
-      expect(engine.calls.some((call) => call.method === 'management.portfolioask')).toBe(false);
-    });
-
-    it('desmarcar um projeto pede o pacote só dos que ficaram, e sem nenhum não dá para perguntar', async () => {
-      const { engine } = renderPortfolio();
-      const form = await ask();
-      await userEvent.type(within(form).getByLabelText('Sua pergunta sobre o portfólio'), 'Qual está mais atrasado?');
-      await screen.findByText(/O que será enviado ao provedor de modelo/);
-
-      await userEvent.click(within(form).getByRole('checkbox', { name: 'portal' }));
-      await waitFor(() =>
-        expect(engine.calls.filter((call) => call.method === 'management.portfolioevidence').at(-1)?.params).toEqual({
-          projectIds: ['p-000000000001']
-        })
-      );
-      await userEvent.click(within(form).getByRole('checkbox', { name: 'loja' }));
-
-      expect(within(form).getByRole('button', { name: 'Perguntar ao portfólio' })).toBeDisabled();
-    });
-
-    it('pergunta com os projetos escolhidos e mostra a resposta conferida e quem é cada projeto', async () => {
-      const { engine, container } = renderPortfolio();
-      const form = await ask();
-      await userEvent.type(within(form).getByLabelText('Sua pergunta sobre o portfólio'), 'Qual está mais atrasado?');
-
-      await userEvent.click(within(form).getByRole('button', { name: 'Perguntar ao portfólio' }));
-
-      const answer = (await screen.findByRole('heading', { name: 'Resposta' })).closest('section')!;
-      expect(within(answer).getByText(portfolioAnswerFixture.answer.summary)).toBeInTheDocument();
-      expect(screen.getByText('Projetos nesta resposta: p1 = Loja, p2 = Painel.')).toBeInTheDocument();
-      const params = engine.calls.find((call) => call.method === 'management.portfolioask')?.params as {
-        question: string;
-        projectIds: string[];
-      };
-      expect(params.question).toBe('Qual está mais atrasado?');
-      expect([...params.projectIds].sort()).toEqual(['p-000000000001', 'p-000000000002']);
-      expect(portfolioEvidenceFixture.projects).toHaveLength(2);
-
-      await expectNoA11yViolations(container);
-    });
-
-    it('sem chave de modelo avisa, aponta para Configurações e não deixa perguntar', async () => {
-      renderPortfolio(undefined, { modelConfigured: false });
-      const form = await ask();
-
-      expect(await screen.findByText('Nenhuma chave de modelo configurada')).toBeInTheDocument();
-      await userEvent.type(within(form).getByLabelText('Sua pergunta sobre o portfólio'), 'Qual está mais atrasado?');
-      expect(within(form).getByRole('button', { name: 'Perguntar ao portfólio' })).toBeDisabled();
-      expect(within(form).getByRole('button', { name: 'Perguntar ao portfólio' })).toHaveAccessibleDescription(
-        'Para perguntar ao portfólio, configure uma chave de modelo.'
-      );
-      expect(screen.getByRole('link', { name: 'Configurações › Minha IA' })).toHaveAttribute(
-        'href',
-        '/configuracoes/ia'
-      );
-    });
-
-    it('erro do motor aparece com o motivo e nenhuma resposta fica na tela', async () => {
-      const { engine } = renderPortfolio();
-      const form = await ask();
-      const original = engine.client.request.bind(engine.client);
-      engine.client.request = ((method: string, ...rest: unknown[]) =>
-        method === 'management.portfolioask'
-          ? Promise.reject(new EngineError('MODEL_NOT_CONFIGURED', 'Nenhum modelo está configurado.'))
-          : (original as (...args: unknown[]) => unknown)(method, ...rest)) as typeof engine.client.request;
-      await userEvent.type(within(form).getByLabelText('Sua pergunta sobre o portfólio'), 'Qual está mais atrasado?');
-
-      await userEvent.click(within(form).getByRole('button', { name: 'Perguntar ao portfólio' }));
-
-      expect(await screen.findByRole('alert')).toHaveTextContent('Nenhum modelo está configurado.');
-      expect(screen.queryByRole('heading', { name: 'Resposta' })).not.toBeInTheDocument();
-    });
+    await screen.findByRole('list', { name: 'Projetos' });
+    expect(screen.queryByRole('form')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Assistente' })).toHaveAttribute('href', '/gestao/assistente');
   });
 });
