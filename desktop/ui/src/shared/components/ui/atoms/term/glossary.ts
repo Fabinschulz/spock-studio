@@ -4,6 +4,14 @@ export const GLOSSARY = {
     label: 'Harness',
     text: 'O conjunto de regras, assistentes de IA e verificações que o Spock Studio instala no projeto para a IA trabalhar do jeito da equipe.'
   },
+  harnessEngineer: {
+    label: 'Harness Engineer',
+    text: 'O agente que o Spock Studio instala no projeto para ler o código e propor a configuração de IA sob medida. Ele só propõe: você revisa e aprova antes de qualquer arquivo mudar.'
+  },
+  baseRules: {
+    label: 'regras-base',
+    text: 'A configuração padrão que o Spock Studio monta a partir do que encontrou no projeto, antes de o Harness Engineer propor ajustes sob medida.'
+  },
   agent: {
     label: 'agente',
     text: 'Um assistente de IA com uma função definida, como revisar código, que trabalha dentro do projeto.'

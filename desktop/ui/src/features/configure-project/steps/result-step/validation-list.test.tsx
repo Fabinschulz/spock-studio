@@ -65,6 +65,30 @@ describe('ValidationList', () => {
     expect(screen.getByText(/Limite: sem juiz por modelo/)).toBeTruthy();
   });
 
+  it('diz quem confere e o que pesa no resultado, sem jargão; o código fica no fim', () => {
+    const report = {
+      outcome: 'failed' as const,
+      results: [
+        result({ id: 'EV-SPEC-001', status: 'failed' }),
+        result({ id: 'EV-JUDGE-001', kind: 'model', required: false, status: 'blocked' })
+      ]
+    };
+    render(<ValidationList report={report} />);
+
+    expect(screen.queryByText(/determinístico|juiz por modelo/)).toBeNull();
+    expect(
+      screen.getByText(
+        'Conferida por uma regra fixa do Spock, que dá sempre o mesmo resultado. Obrigatória: se for reprovada, a aplicação conta como falha.'
+      )
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        /Conferida por um modelo de IA.*Opcional: se for reprovada, a aplicação conclui com limitações\./
+      )
+    ).toBeTruthy();
+    expect(screen.getByText('Código da verificação: EV-SPEC-001')).toBeTruthy();
+  });
+
   it('cada verificação diz o estado em texto, não só pela cor', () => {
     render(<ValidationList report={{ outcome: 'passed', results: [result({})] }} />);
     expect(screen.getByText('Estrutura presente')).toBeTruthy();

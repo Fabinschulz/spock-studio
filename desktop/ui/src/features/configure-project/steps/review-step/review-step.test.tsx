@@ -214,7 +214,7 @@ describe('ReviewStep', () => {
     renderStep(
       plan([change({})], {
         decisions: [
-          decision('a', 'enable', 'Stack .NET detectada.'),
+          decision('mariliz.rule.dotnet', 'enable', 'Stack .NET detectada.'),
           decision('b', 'skip', 'Nenhuma stack React.'),
           decision('c', 'blocked', 'Falta o package.json.')
         ] as unknown as ConfigurationPlan['decisions']
@@ -222,12 +222,16 @@ describe('ReviewStep', () => {
     );
 
     await userEvent.click(screen.getByRole('tab', { name: 'Por quê (1 bloqueada)' }));
-    expect(screen.getByText('Origem do plano: as regras-base do Spock.')).toBeTruthy();
+    expect(screen.getByText(/Origem do plano/)).toHaveTextContent('Origem do plano: as regras-base do Spock.');
+    expect(screen.getByRole('button', { name: 'regras-base' })).toBeTruthy();
     const group = (name: string) => screen.getByText(name).closest('details')!;
     expect(group('1 Bloqueada').open).toBe(true);
     expect(group('Entram (1)').open).toBe(true);
     expect(group('Não se aplicam (1)').open).toBe(false);
     expect(screen.getByText('Stack .NET detectada.')).toBeTruthy();
+    const id = screen.getByText('Stack .NET detectada.').nextElementSibling!;
+    expect(id).toHaveTextContent('rule.dotnet');
+    expect(id).not.toHaveTextContent('mariliz.');
   });
 
   it('Riscos junta limitações, observações e riscos num lugar só', async () => {

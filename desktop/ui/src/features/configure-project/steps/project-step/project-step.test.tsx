@@ -97,10 +97,24 @@ describe('ProjectStep · com projeto aberto', () => {
     );
 
     expect(screen.queryByRole('group', { name: 'Pasta do projeto' })).not.toBeInTheDocument();
-    expect(within(screen.getByRole('group', { name: 'Projeto' })).getByText(project.path)).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('group', { name: 'Projeto' })).getByText(`na pasta ${project.path}`)
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/O nome vem do próprio projeto/)).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Trocar o projeto Loja' }));
     expect(screen.getByRole('group', { name: 'Trocar de projeto' })).toBeInTheDocument();
+  });
+
+  it('quando a pasta tem outro nome, diz de onde vem o nome do projeto', () => {
+    renderStep({ project: { name: 'svc-catalogo', path: '~/Desktop/spock-teste' } });
+
+    expect(screen.getByRole('heading', { name: 'Analisar svc-catalogo' })).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'O nome vem do próprio projeto (do package.json, por exemplo), não do nome da pasta, que é spock-teste.'
+      )
+    ).toBeInTheDocument();
   });
 
   it('depois da análise, diz de onde o projeto parte e o Próximo passa a ser o único botão principal', () => {

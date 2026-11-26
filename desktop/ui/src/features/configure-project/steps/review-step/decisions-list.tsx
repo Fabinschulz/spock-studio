@@ -5,7 +5,7 @@ import type { ConfigurationPlan } from '@/shared/schema';
 import { plural } from '@/shared/utils';
 
 import rows from '../../components/rows.module.scss';
-import { componentKindLabel, decisionLabel, decisionTone, originLabel } from '../../domain/labels';
+import { componentIdLabel, componentKindLabel, decisionLabel, decisionTone, originLabel } from '../../domain/labels';
 import styles from './decisions.module.scss';
 
 type Decision = ConfigurationPlan['decisions'][number];
@@ -79,7 +79,7 @@ function DecisionRows({ decisions }: { decisions: readonly Decision[] }) {
                 <span className={`${rows.meta} ${styles.block}`}>
                   {componentKindLabel[decision.kind]} ·{' '}
                   <span className={rows.mono}>
-                    <BreakableId id={decision.componentId} />
+                    <BreakableId id={componentIdLabel(decision.componentId)} />
                   </span>
                 </span>
               </span>

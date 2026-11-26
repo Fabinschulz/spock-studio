@@ -1,4 +1,5 @@
 import type { Discovery } from '@/shared/schema';
+import { cn } from '@/shared/utils';
 
 import { toolKindLabel } from '../../domain/labels';
 import styles from '../../components/rows.module.scss';
@@ -17,14 +18,12 @@ export function ToolingSection({ tooling }: { tooling: Discovery['tooling'] }) {
         {tooling.map((tool, index) => (
           <li key={`${tool.kind}:${tool.name}:${index}`}>
             <div className={styles.line}>
-              <span>
-                <span className={styles.name}>{toolKindLabel[tool.kind] ?? tool.kind}</span>{' '}
-                {tool.command ? (
-                  <span className={styles.mono}>{tool.command}</span>
-                ) : (
-                  <span className={styles.meta}>{tool.name}</span>
-                )}
-              </span>
+              <span className={styles.name}>{toolKindLabel[tool.kind] ?? tool.kind}</span>
+              {tool.command ? (
+                <code className={cn(styles.mono, styles.end)}>{tool.command}</code>
+              ) : (
+                <span className={styles.end}>{tool.name}</span>
+              )}
             </div>
           </li>
         ))}

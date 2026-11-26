@@ -21,6 +21,18 @@ export function validationSummary(results: readonly EvalResult[]): string {
   return [`${count('passed')} de ${plural(results.length, 'aprovado', 'aprovados')}`, ...rest].join(' · ');
 }
 
+/** Quem confere e o que pesa no resultado (a regra de `ValidationReport.Outcome` no motor), em palavras simples. */
+export function howChecked(result: EvalResult): string {
+  const who =
+    result.kind === 'model'
+      ? 'Conferida por um modelo de IA, que avalia o conteúdo dos arquivos'
+      : 'Conferida por uma regra fixa do Spock, que dá sempre o mesmo resultado';
+  const weight = result.required
+    ? 'Obrigatória: se for reprovada, a aplicação conta como falha'
+    : 'Opcional: se for reprovada, a aplicação conclui com limitações';
+  return `${who}. ${weight}.`;
+}
+
 /** O que impede a verificação de estar certa já aparece aberto; o que passou fica recolhido. */
 function needsAttention(result: EvalResult): boolean {
   return result.status === 'failed' || result.status === 'blocked';
@@ -67,11 +79,8 @@ function EvalRow({ result }: { result: EvalResult }) {
         <StatusChip tone={evalStatusTone[result.status]}>{evalStatusLabel[result.status]}</StatusChip>
       </summary>
       <div className={styles.body}>
-        <p className={styles.meta}>
-          {result.id} · {result.kind === 'model' ? 'juiz por modelo' : 'determinístico'} ·{' '}
-          {result.required ? 'obrigatório' : 'opcional'}
-        </p>
         <p>{result.property}</p>
+        <p className={styles.meta}>{howChecked(result)}</p>
         <p className={styles.meta}>Critério: {result.criteria}</p>
         {result.reason ? <p>{result.reason}</p> : null}
         {result.limitations.map((limitation) => (
@@ -87,6 +96,7 @@ function EvalRow({ result }: { result: EvalResult }) {
             ))}
           </ul>
         ) : null}
+        <p className={styles.meta}>Código da verificação: {result.id}</p>
       </div>
     </details>
   );

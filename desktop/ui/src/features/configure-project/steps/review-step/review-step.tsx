@@ -1,7 +1,7 @@
 import { Button, TabBar } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
-import { ConfirmAction, PrimaryActionFooter } from '@/shared/components/ui';
+import { ConfirmAction, PrimaryActionFooter, Term } from '@/shared/components/ui';
 import type { ConfigurationPlan, ConflictResolution, FileChange } from '@/shared/schema';
 import { plural } from '@/shared/utils';
 
@@ -101,9 +101,16 @@ export function ReviewStep({
         </div>
         <div className={panels.stack}>
           <p className={styles.origin}>
-            {fromEngineer
-              ? 'Origem do plano: a proposta do Harness Engineer, validada pelo motor (formato, catálogo de componentes e ausência de segredos).'
-              : 'Origem do plano: as regras-base do Spock.'}
+            {fromEngineer ? (
+              <>
+                Origem do plano: a proposta do <Term id="harnessEngineer" />, validada pelo motor (formato, catálogo de
+                componentes e ausência de segredos).
+              </>
+            ) : (
+              <>
+                Origem do plano: as <Term id="baseRules" /> do Spock.
+              </>
+            )}
           </p>
           <DecisionsList decisions={plan.decisions} />
         </div>

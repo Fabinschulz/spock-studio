@@ -12,11 +12,13 @@ export const aiEnvironmentNames: Record<string, string> = {
 
 export const isSupportedEnvironment = (id: string): boolean => SUPPORTED_AI_ENVIRONMENTS.includes(id);
 
-/** C3: no Cursor e no Codex o Spock grava a ligação com a IDE e a skill do contrato; agentes e regras ainda são do Claude Code. */
-export const partialEnvironmentNote: Record<string, string> = {
-  cursor: 'Recebe a ligação com a IDE e a skill do contrato. Agentes e regras ainda são só do Claude Code.',
-  codex: 'Recebe a ligação com a IDE e a skill do contrato. Agentes e regras ainda são só do Claude Code.'
-};
+/**
+ * C3: no Cursor e no Codex o Spock grava a ligação MCP do editor e a skill do contrato; agentes e regras ainda são do
+ * Claude Code. O texto da tela diz isso sem os termos técnicos.
+ */
+const PARTIAL_NOTE =
+  'Recebe a conexão do editor com o Spock e as instruções do contrato do projeto. Agentes e regras ainda são só do Claude Code.';
+export const partialEnvironmentNote: Record<string, string> = { cursor: PARTIAL_NOTE, codex: PARTIAL_NOTE };
 
 const order = (id: string) => {
   const index = (AI_ENVIRONMENTS as readonly string[]).indexOf(id);

@@ -1,5 +1,6 @@
 import { Button, TextField } from '@mariliz/ui-kit';
 
+import { Term } from '@/shared/components/ui';
 import { useCopyToClipboard } from '@/shared/hooks';
 import type { HarnessNames } from '@/shared/schema';
 
@@ -26,10 +27,14 @@ export function ProposalGuide({ onReplan, replan, busy, naming, primary = true }
     <div className={styles.card}>
       <h3 className={styles.cardTitle}>Próximo passo: peça a proposta ao Harness Engineer</h3>
       <span className={styles.muted}>
-        O plano usou as regras-base. O agente <span className={styles.mono}>{naming.harnessEngineer}</span> já está no
-        projeto (<span className={styles.mono}>{naming.harnessEngineerAgent}</span>). Abra a pasta no Claude Code, cole
-        o pedido abaixo e deixe que ele escreva a proposta (<span className={styles.mono}>{naming.proposal}</span>). O
-        motor valida a proposta antes de usá-la e você revisa tudo de novo antes de aplicar.
+        O plano usou as <Term id="baseRules" />. O agente{' '}
+        <Term id="harnessEngineer">
+          <span className={styles.mono}>{naming.harnessEngineer}</span>
+        </Term>{' '}
+        já está no projeto (<span className={styles.mono}>{naming.harnessEngineerAgent}</span>). Abra a pasta no Claude
+        Code, cole o pedido abaixo e deixe que ele escreva a proposta (
+        <span className={styles.mono}>{naming.proposal}</span>). O motor valida a proposta antes de usá-la e você revisa
+        tudo de novo antes de aplicar.
       </span>
       <TextField
         label="Pedido para o Harness Engineer"

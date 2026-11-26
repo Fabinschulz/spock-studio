@@ -34,7 +34,7 @@ export function AiEnvironmentSection({ discovery, selected, onToggle }: AiEnviro
       <fieldset className={styles.fieldset}>
         <legend className="visually-hidden">Ambientes de IA do projeto</legend>
         <p className={rows.note}>
-          Marque as IDEs que a equipe usa. Cada uma recebe só as peças dela, e a lista fica em{' '}
+          Marque as ferramentas de IA em que a equipe programa. Cada uma recebe só as peças dela, e a lista fica em{' '}
           {discovery.naming.declaration}.
         </p>
         <ul role="list" className={rows.rows}>
