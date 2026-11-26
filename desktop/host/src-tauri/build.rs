@@ -5,6 +5,7 @@ fn main() {
         "engine_request",
         "pick_project_folder",
         "engine_status",
+        "restart_engine",
         "list_recent_projects",
         "open_recent_project",
         "diagnostic_log",

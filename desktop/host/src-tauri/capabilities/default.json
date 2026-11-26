@@ -7,6 +7,7 @@
     "allow-engine-request",
     "allow-pick-project-folder",
     "allow-engine-status",
+    "allow-restart-engine",
     "allow-list-recent-projects",
     "allow-open-recent-project",
     "allow-diagnostic-log",

@@ -135,6 +135,7 @@ pub mod error_code {
     pub const DIALOG_FAILED: &str = "DIALOG_FAILED";
     pub const ENGINE_NOT_FOUND: &str = "ENGINE_NOT_FOUND";
     pub const ENGINE_NOT_RUNNING: &str = "ENGINE_NOT_RUNNING";
+    pub const ENGINE_NOT_STOPPED: &str = "ENGINE_NOT_STOPPED";
     pub const ENGINE_START_FAILED: &str = "ENGINE_START_FAILED";
     pub const ENGINE_STOPPED: &str = "ENGINE_STOPPED";
     pub const ENGINE_TIMEOUT: &str = "ENGINE_TIMEOUT";

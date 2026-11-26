@@ -5,6 +5,7 @@ import { Link } from 'react-router';
 
 import { CHECK_STATE, type DiagnosticCheck } from '../domain/diagnostic-checks';
 import { AiToolList } from './ai-tool-list';
+import { RestartEngine } from './restart-engine';
 import styles from './diagnostic-checks-section.module.scss';
 
 interface DiagnosticChecksSectionProps {
@@ -38,6 +39,7 @@ export function DiagnosticChecksSection({ checks, tools, onRecheck }: Diagnostic
               </p>
               <p className={styles.summary}>{check.summary}</p>
               {check.action ? <Link to={check.action.to}>{check.action.label}</Link> : null}
+              {check.id === 'engine' ? <RestartEngine /> : null}
               {check.id === 'aiTools' && tools && tools.length > 0 ? (
                 <Disclosure summary="Ver cada ferramenta">
                   <p className={styles.summary}>
