@@ -25,14 +25,14 @@ export interface PurposeOption {
   label: string;
 }
 
-/** Os modelos de todo provedor com chave. O do provedor padrão que vale sem escolha leva "(padrão)" e é o que "volta ao padrão". */
+/** Os modelos de todo provedor com chave. O do provedor padrão que vale sem escolha leva ", padrão" e é o que "volta ao padrão". */
 export function purposeModelOptions(connection: ModelConnection): PurposeOption[] {
   return connection.providers
     .filter((provider) => provider.configured)
     .flatMap((provider) =>
       provider.models.map((model) => ({
         value: model.id,
-        label: `${model.name} (${provider.name})${isDefaultModel(provider, model.id) ? ' (padrão)' : ''}`
+        label: `${model.name} (${provider.name}${isDefaultModel(provider, model.id) ? ', padrão' : ''})`
       }))
     );
 }

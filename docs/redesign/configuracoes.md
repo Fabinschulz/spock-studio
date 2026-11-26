@@ -1,6 +1,6 @@
 # Spock Studio — Área Configurações: diagnóstico e proposta
 
-> **Estado:** diagnóstico feito no aplicativo real e proposta escrita, **aguardando a aprovação do dono**. Nenhum incremento foi implementado. Cobre os itens 10 e 11 da etapa 4 do pedido original, na parte de Configurações; a Gestão tem o seu próprio documento.
+> **Estado:** diagnóstico feito no aplicativo real e proposta aprovada pelo dono em 2026-11-25, com as cinco decisões seguindo a recomendação. Os incrementos CF1 a CF5 entram um por PR. Cobre os itens 10 e 11 da etapa 4 do pedido original, na parte de Configurações; a Gestão tem o seu próprio documento.
 >
 > Caminhos de arquivo relativos a `desktop/ui/src/features/settings/`, salvo indicação.
 
@@ -69,7 +69,7 @@ Em 1440×900: o título, a descrição "SPOCK: System of Programming, Organizati
 | # | Problema | Onde |
 | --- | --- | --- |
 | S1 | A descrição da tela, primeira frase que se lê, é a sigla expandida em inglês. | `about-page.tsx:9` e `:20` |
-| S2 | O aviso diz que "os textos longos estão na pasta licenses/", sem dizer onde fica essa pasta. | texto gerado por `docs/compliance/tools/generate_sbom.py`, exibido em `about-page.tsx:47-49` |
+| S2 | O aviso diz que "os textos longos estão na pasta licenses/", sem dizer onde fica essa pasta. | texto gerado por `docs/compliance/tools/generate_sbom.py`, exibido em `about-page.tsx:47-49`; a tela passa a dizer onde fica, sem mexer no texto gerado (que obrigaria a gerar de novo o inventário) |
 
 ## 6. Componentes locais e a biblioteca (`@mariliz/ui-kit` 0.10.1)
 
@@ -82,6 +82,7 @@ Em 1440×900: o título, a descrição "SPOCK: System of Programming, Organizati
 | `ConfirmAction` (local) em Remover chave | `Modal` | Fica: é o padrão escolhido no Configurar. |
 | Lista `<dl>` do Diagnóstico | sem equivalente | Vira uma lista de verificações com `StatusChip` e uma ação por linha. |
 | Bloco `<pre>` dos avisos de terceiros | sem equivalente | Fica. |
+| Ajuda do `TextField` na cor primária, que parece link ou sucesso | é o estilo do próprio `TextField` | Fica: mudar é decisão da biblioteca, para todas as telas (anotado na seção 8). |
 | — | `Disclosure` (local, já usado no Configurar) | Recolhe o que não é decisão: onde a chave fica, tetos de tokens, dados para o suporte. |
 
 Nenhum componente novo na biblioteca: a proposta não exige nova versão do `@mariliz/ui-kit`.
@@ -110,7 +111,7 @@ Nenhuma capacidade é removida: a lista de ferramentas muda de tela, os tetos fi
 
 | # | Incremento | Toca | Risco |
 | --- | --- | --- | --- |
-| CF1 | **Textos, retorno e foco, sem mexer na estrutura:** retorno e erro na linha da ação (G2); foco preservado depois de salvar (G3); motor parado sem "Lendo…" junto do erro, com a saída escrita (G4); `Term` nas ferramentas, no Diagnóstico e nos tetos (G5); selo e frase sem repetir (IA3); motivo do botão de chave desabilitado e ajuda em cor neutra (IA4); próximo passo por código de erro do provedor (IA5); "não encontrada" em vez de "não instalada" (IA8); rótulo do modelo sem parênteses duplos (IA9); origem e data no registro (D3); texto do host sem `Some(…)` (D3); retorno do copiar ao lado do botão (D5); descrição do Sobre e pasta de licenças (S1, S2). | UI de `settings`; uma linha em `desktop/host/src-tauri/src/engine/mod.rs`; o texto do aviso em `docs/compliance/tools/generate_sbom.py`, que obriga a gerar de novo o inventário e os avisos | Baixo |
+| CF1 | **Textos, retorno e foco, sem mexer na estrutura:** retorno e erro na linha da ação (G2); foco preservado depois de salvar (G3); motor parado sem "Lendo…" junto do erro, com a saída escrita (G4); `Term` nas ferramentas, no Diagnóstico e nos tetos (G5); selo e frase sem repetir (IA3); chave mal copiada como erro no campo, com o motivo (IA4); próximo passo por código de erro do provedor (IA5); "não encontrada" em vez de "não instalada" (IA8); rótulo do modelo sem parênteses duplos (IA9); origem e data no registro (D3); texto do host sem `Some(…)` (D3); retorno do copiar ao lado do botão (D5); descrição do Sobre e pasta de licenças (S1, S2). | UI de `settings`; uma linha em `desktop/host/src-tauri/src/engine/mod.rs` | Baixo |
 | CF2 | **Um nome para a tela dos modelos** (DCF2): o mesmo nome e a mesma descrição nos dois menus; os textos que mandam a "Minha IA" passam a dizer o caminho do menu. | `navigation.tsx`, `model-settings-page.tsx`, `engineering-request`, `idea` | Baixo |
 | CF3 | **Modelos de IA, primeiro uso e ordem:** estado no topo, "Conectar um provedor" com `Radio`, cartões só dos conectados, "Conectar outro provedor", modelo por finalidade anunciado, tetos recolhidos (IA1, IA2, IA6, IA7). Depende de DCF5. | `model-settings-page.tsx`, `components/`, `domain/provider-labels.ts` | Médio (muitos estados de provedor; só os sem chave podem ser vistos sem uma chave real) |
 | CF4 | **Diagnóstico com verificações:** a lista de verificações com selo, significado e ação; ferramentas de IA vindas de Minha IA (DCF1); dados para o suporte recolhidos; o texto copiado com as verificações (D1, D4). Só usa métodos que o motor já tem (`model.connection`, `aitool.list`, `engine_status`). | `diagnostics-page.tsx`, `domain/diagnostics-report.ts`, `components/` | Médio |
@@ -122,14 +123,15 @@ CF1 não depende de decisão e pode começar logo. CF2 espera DCF2, CF3 espera D
 
 | # | Decisão | Recomendação |
 | --- | --- | --- |
-| DCF1 | Onde fica a lista "Ferramentas de IA neste computador": em Modelos de IA, como hoje, ou no Diagnóstico, como uma verificação. | **No Diagnóstico.** Ela responde "o que existe neste computador", não "qual modelo responde"; a escolha da ferramenta continua em Agentes de IA, que já mostra quais existem. |
-| DCF2 | A tela dos modelos aberta por dois menus: (a) o mesmo nome e a mesma descrição nos dois; (b) só em Conexões, saindo de Configurações; (c) como hoje, dois nomes. | **(a), com o nome "Modelos de IA".** É o nome que o Início e a busca já usam; tirar a entrada de Configurações mudaria o destino da área e o que `workspace-unificado.md` descreve. |
-| DCF3 | Um botão "Reiniciar o motor" (comando novo no host) ou manter "Reinicie o aplicativo". | **O botão.** É a correção que o diagnóstico deve oferecer; hoje o aplicativo desiste depois de uma reinicialização rápida e a única saída é fechar tudo. |
-| DCF4 | O Diagnóstico inclui verificações do projeto aberto (estado do Harness, índice) ou só deste computador. | **Só deste computador.** O estado do projeto já está em Padrões do projeto › Estado e revisões; repetir ali criaria dois lugares para a mesma coisa. |
-| DCF5 | Como dizer onde se consegue a chave: (a) uma linha de texto por provedor, com o caminho no site dele; (b) um link que abre o navegador (exige um plugin novo no host e uma permissão de abrir endereços externos). | **(a).** Não acrescenta dependência nem permissão; o link pode vir depois, se a linha não bastar. |
+| DCF1 | Onde fica a lista "Ferramentas de IA neste computador": em Modelos de IA, como hoje, ou no Diagnóstico, como uma verificação. | **No Diagnóstico.** **Decidido em 2026-11-25: no Diagnóstico.** Ela responde "o que existe neste computador", não "qual modelo responde"; a escolha da ferramenta continua em Agentes de IA, que já mostra quais existem. |
+| DCF2 | A tela dos modelos aberta por dois menus: (a) o mesmo nome e a mesma descrição nos dois; (b) só em Conexões, saindo de Configurações; (c) como hoje, dois nomes. | **(a), com o nome "Modelos de IA".** **Decidido em 2026-11-25: (a).** É o nome que o Início e a busca já usam; tirar a entrada de Configurações mudaria o destino da área e o que `workspace-unificado.md` descreve. |
+| DCF3 | Um botão "Reiniciar o motor" (comando novo no host) ou manter "Reinicie o aplicativo". | **O botão.** **Decidido em 2026-11-25: o botão.** É a correção que o diagnóstico deve oferecer; hoje o aplicativo desiste depois de uma reinicialização rápida e a única saída é fechar tudo. |
+| DCF4 | O Diagnóstico inclui verificações do projeto aberto (estado do Harness, índice) ou só deste computador. | **Só deste computador.** **Decidido em 2026-11-25: só deste computador.** O estado do projeto já está em Padrões do projeto › Estado e revisões; repetir ali criaria dois lugares para a mesma coisa. |
+| DCF5 | Como dizer onde se consegue a chave: (a) uma linha de texto por provedor, com o caminho no site dele; (b) um link que abre o navegador (exige um plugin novo no host e uma permissão de abrir endereços externos). | **(a).** **Decidido em 2026-11-25: (a).** Não acrescenta dependência nem permissão; o link pode vir depois, se a linha não bastar. |
 
 ## 8. O que mudaria em outros documentos (não editados aqui)
 
 - `docs/redesign/workspace-unificado.md`, seção 5: a linha "Modelos de IA | Minha IA, provedores" e o parágrafo sobre "Minha IA" nos textos que explicam onde guardar a chave mudam se DCF2 ficar em (a) ou (b). A seção 2 ("Configurações | Minha IA · Diagnóstico · Sobre") muda junto.
 - `docs/redesign/workspace-unificado.md`, seção 10: um item novo apontando para este documento, como o da jornada Configurar.
 - `docs/ROADMAP.md`: os incrementos CF1 a CF5 e as decisões DCF1 a DCF5, até serem entregues.
+- `@mariliz/ui-kit`: a ajuda do `TextField` (`FormHelperText`) usa a cor primária quando não há erro; em texto explicativo ela parece link ou sucesso. Vale avaliar a cor neutra na biblioteca.

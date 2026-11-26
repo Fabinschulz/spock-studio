@@ -229,9 +229,7 @@ impl Engine {
             self.0.lifecycle.send_replace(next);
             return;
         }
-        self.0
-            .diagnostics
-            .host(&format!("o motor encerrou (código {code:?})"));
+        self.0.diagnostics.host(&exit_message(code));
         self.set(app, next);
         if restart {
             self.boot(app.clone());
@@ -276,9 +274,26 @@ impl Engine {
     }
 }
 
+/// A linha do registro que o Diagnóstico mostra: sem a forma de depuração do Rust (`Some(1)`).
+fn exit_message(code: Option<i32>) -> String {
+    match code {
+        Some(code) => format!("o motor encerrou (código {code})"),
+        None => "o motor encerrou sem código de saída (encerrado pelo sistema)".to_string(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn o_registro_diz_o_codigo_de_saida_sem_a_forma_de_depuracao() {
+        assert_eq!(exit_message(Some(-1)), "o motor encerrou (código -1)");
+        assert_eq!(
+            exit_message(None),
+            "o motor encerrou sem código de saída (encerrado pelo sistema)"
+        );
+    }
 
     #[test]
     fn autorizar_espera_o_motor_subir_e_nao_espera_alem_do_prazo() {

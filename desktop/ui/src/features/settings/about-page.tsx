@@ -17,10 +17,10 @@ export function AboutPage() {
   const notices = useAsyncResource(read);
 
   return (
-    <Page title="Sobre" description={`SPOCK: ${PRODUCT_MEANING}.`}>
+    <Page title="Sobre" description={`${app.name}: ${app.tagline.charAt(0).toLowerCase()}${app.tagline.slice(1)}.`}>
       <PageSection title="Aplicativo">
         <p>
-          {app.name} v{app.version}. {app.tagline}.
+          {app.name} v{app.version}. SPOCK quer dizer {PRODUCT_MEANING}.
         </p>
       </PageSection>
 
@@ -40,7 +40,8 @@ export function AboutPage() {
               <>
                 <p className={styles.summary}>
                   {value.components} componentes de terceiros.
-                  {value.complete ? '' : ' Alguns textos de licença ainda estão sendo reunidos.'}
+                  {value.complete ? '' : ' Alguns textos de licença ainda estão sendo reunidos.'} Os textos longos ficam
+                  na pasta notices/licenses, dentro da pasta em que o aplicativo foi instalado.
                 </p>
                 {/* Bloco rolável: precisa de foco para quem navega só pelo teclado. */}
                 {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex */}

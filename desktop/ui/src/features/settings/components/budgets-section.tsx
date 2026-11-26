@@ -1,28 +1,37 @@
-import { PageSection } from '@/shared/components';
+import { PageSection, Term } from '@/shared/components';
 import type { ModelBudget, ModelConnection } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
 import { useState } from 'react';
 
+import type { Feedback } from '../hooks/use-model-settings';
+import { useRefocus } from '../hooks/use-refocus';
+import { ActionFeedback } from './action-feedback';
 import styles from './budgets-section.module.scss';
 
 interface BudgetsSectionProps {
   connection: ModelConnection;
   busy: boolean;
-  onSave: (budget: ModelBudget, tokens: number | null) => void;
+  feedback: Feedback | null;
+  onSave: (budget: ModelBudget, tokens: number | null) => Promise<boolean>;
 }
 
 const number = (value: number) => value.toLocaleString('pt-BR');
 
-export function BudgetsSection({ connection, busy, onSave }: BudgetsSectionProps) {
+export function BudgetsSection({ connection, busy, feedback, onSave }: BudgetsSectionProps) {
   return (
     <PageSection
       title="Teto de tokens por finalidade"
-      description="Quanto uma execução pode gastar do modelo, entrada e resposta somadas. O motor cobra o teto antes e depois de cada chamada: o que não couber roda pelas regras do motor, sem o modelo. Um teto maior deixa o modelo ver e escrever mais, e custa mais."
+      description={
+        <>
+          Quanto uma execução pode gastar do modelo, em <Term id="token" />, somando o que vai e o que volta. Se o teto
+          acabar, o resto roda pelas regras do Spock Studio, sem o modelo. Um teto maior deixa o modelo ver e escrever
+          mais, e custa mais.
+        </>
+      }
     >
       <ul className={styles.budgets}>
         {connection.budgets.map((budget) => (
-          // Remonta quando o motor devolve outro valor: o campo volta a mostrar o que vale.
-          <BudgetRow key={`${budget.purpose}-${budget.tokens}`} budget={budget} busy={busy} onSave={onSave} />
+          <BudgetRow key={budget.purpose} budget={budget} busy={busy} feedback={feedback} onSave={onSave} />
         ))}
       </ul>
     </PageSection>
@@ -32,13 +41,22 @@ export function BudgetsSection({ connection, busy, onSave }: BudgetsSectionProps
 function BudgetRow({
   budget,
   busy,
+  feedback,
   onSave
 }: {
   budget: ModelBudget;
   busy: boolean;
+  feedback: Feedback | null;
   onSave: BudgetsSectionProps['onSave'];
 }) {
+  const { target, after } = useRefocus<HTMLInputElement>(busy);
   const [text, setText] = useState(String(budget.tokens));
+  const [shown, setShown] = useState(budget.tokens);
+  // O motor devolveu outro valor (salvou ou voltou ao padrão): o campo passa a mostrar o que vale, sem remontar a linha.
+  if (shown !== budget.tokens) {
+    setShown(budget.tokens);
+    setText(String(budget.tokens));
+  }
   const tokens = /^\d+$/.test(text.trim()) ? Number(text.trim()) : null;
   const valid = tokens !== null && tokens >= budget.minTokens && tokens <= budget.maxTokens;
   const range = `De ${number(budget.minTokens)} a ${number(budget.maxTokens)} tokens. Padrão: ${number(budget.defaultTokens)}.`;
@@ -50,6 +68,7 @@ function BudgetRow({
         size="small"
         fullWidth
         inputMode="numeric"
+        inputRef={target}
         value={text}
         disabled={busy}
         error={!valid}
@@ -62,7 +81,7 @@ function BudgetRow({
           type="button"
           disabled={busy || !valid || tokens === budget.tokens}
           aria-label={`Salvar o teto de ${budget.label}`}
-          onClick={() => onSave(budget, tokens === budget.defaultTokens ? null : tokens)}
+          onClick={() => void after(onSave(budget, tokens === budget.defaultTokens ? null : tokens))}
         >
           Salvar teto
         </Button>
@@ -72,12 +91,13 @@ function BudgetRow({
             variant="outlined"
             disabled={busy}
             aria-label={`Voltar o teto de ${budget.label} ao padrão`}
-            onClick={() => onSave(budget, null)}
+            onClick={() => void after(onSave(budget, null))}
           >
             Voltar ao padrão
           </Button>
         )}
       </div>
+      <ActionFeedback feedback={feedback} target={`budget:${budget.purpose}`} />
     </li>
   );
 }

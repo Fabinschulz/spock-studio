@@ -23,21 +23,16 @@ describe('describeAiTool', () => {
     expect(describeAiTool(tool({ version: null })).detail).toBe('Instalada, mas não informou a versão.');
   });
 
-  it('não instalada fica neutra: faltar uma ferramenta não é erro', () => {
-    expect(describeAiTool(tool({ installed: false, version: null }))).toMatchObject({
-      state: 'Não encontrada',
-      tone: 'neutral'
-    });
+  it('não encontrada fica neutra e diz onde o Spock procurou, sem afirmar que não está instalada', () => {
+    const missing = describeAiTool(tool({ installed: false, version: null }));
+    expect(missing).toMatchObject({ state: 'Não encontrada', tone: 'neutral' });
+    expect(missing.detail).toBe('O Spock procurou o comando codex nas pastas de programas do sistema e não achou.');
   });
 
-  it('diz se o Spock configura o Harness da ferramenta', () => {
-    expect(describeAiTool(tool({ id: 'claude-code', harnessSupport: true })).harness).toBe(
-      'O Spock configura o Harness para esta ferramenta.'
-    );
-    expect(describeAiTool(tool({ harnessSupport: false })).harness).toContain('ainda não configura');
-    expect(describeAiTool(tool({ id: 'codex', harnessSupport: true })).harness).toContain(
-      'ainda são só do Claude Code'
-    );
-    expect(describeAiTool(tool({ id: 'cursor', harnessSupport: true })).harness).toContain('.cursor/rules');
+  it('diz até onde o Spock configura a ferramenta', () => {
+    expect(describeAiTool(tool({ id: 'claude-code', harnessSupport: true })).harness).toBe('full');
+    expect(describeAiTool(tool({ harnessSupport: false })).harness).toBe('none');
+    expect(describeAiTool(tool({ id: 'codex', harnessSupport: true })).harness).toBe('partial');
+    expect(describeAiTool(tool({ id: 'cursor', harnessSupport: true })).harness).toBe('partial');
   });
 });

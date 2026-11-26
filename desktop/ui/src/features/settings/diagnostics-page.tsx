@@ -1,4 +1,4 @@
-import { Page, PageSection } from '@/shared/components';
+import { Page, PageSection, Term } from '@/shared/components';
 import { app } from '@/shared/config/app';
 import { useAsyncResource, useCopyToClipboard, useEngineStatus, type CopyState } from '@/shared/hooks';
 import { Button } from '@mariliz/ui-kit';
@@ -10,8 +10,9 @@ import { collapseRepeats } from './domain/diagnostic-log';
 import { buildDiagnostics, formatDiagnostics } from './domain/diagnostics-report';
 import { readDiagnosticLog } from './service/diagnostic-log-api';
 
+// Fica ao lado do botão: quem clica olha para ali.
 const COPY_FEEDBACK: Record<CopyState, string> = {
-  idle: 'O texto copiado traz as linhas desta tela e o registro recente.',
+  idle: '',
   copied: 'Informações copiadas.',
   failed: 'Não foi possível copiar. Selecione o texto da tela e copie à mão.'
 };
@@ -34,23 +35,26 @@ export function DiagnosticsPage() {
     >
       <PageSection
         title="Este computador"
+        description="O texto copiado traz as linhas desta tela e o registro recente."
         action={
-          <Button variant="outlined" onClick={() => void copy(report())}>
-            Copiar informações
-          </Button>
+          <div className={styles.copy}>
+            <p className={styles.hint} role="status">
+              {COPY_FEEDBACK[state]}
+            </p>
+            <Button variant="outlined" onClick={() => void copy(report())}>
+              Copiar informações
+            </Button>
+          </div>
         }
       >
         <dl className={styles.lines}>
-          {lines.map(({ label, value }) => (
+          {lines.map(({ label, value, term }) => (
             <div key={label} className={styles.line}>
-              <dt className={styles.label}>{label}</dt>
+              <dt className={styles.label}>{term ? <Term id={term}>{label}</Term> : label}</dt>
               <dd className={styles.value}>{value}</dd>
             </div>
           ))}
         </dl>
-        <p className={styles.hint} role="status">
-          {COPY_FEEDBACK[state]}
-        </p>
       </PageSection>
 
       <DiagnosticLogSection log={log} hosted={engine.hosted} />

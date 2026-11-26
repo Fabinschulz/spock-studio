@@ -13,8 +13,12 @@ describe('buildDiagnostics', () => {
 
     expect(lines).toEqual([
       { label: 'Aplicativo', value: 'Spock Studio v1.2.3' },
-      { label: 'Motor local', value: 'Pronto' },
-      { label: 'Inteligência local', value: 'Parada' },
+      { label: 'Motor local', value: 'Pronto', term: 'engine' },
+      {
+        label: 'Inteligência local',
+        value: 'Parada. É o normal: ela liga no primeiro pedido que precisa dela.',
+        term: 'localIntelligence'
+      },
       { label: 'Navegador interno', value: 'WebView2/130' }
     ]);
   });
@@ -22,7 +26,10 @@ describe('buildDiagnostics', () => {
   it('um motor que caiu aparece como indisponível, nunca como pronto', () => {
     const lines = buildDiagnostics({ ...base, engine: { hosted: true, status: 'crashed', aiRuntime: 'unknown' } });
 
-    expect(lines.find((line) => line.label === 'Motor local')?.value).toBe('Indisponível');
+    expect(lines.find((line) => line.label === 'Motor local')?.value).toBe(
+      'Indisponível. Ele parou e não voltou sozinho: feche e abra o aplicativo.'
+    );
+    expect(lines.find((line) => line.label === 'Inteligência local')?.value).toBe('Depende do motor, que está parado.');
   });
 
   it('fora do aplicativo desktop não finge que há motor', () => {
