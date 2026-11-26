@@ -67,10 +67,12 @@ export function ResultStep({
           {explainOutcome(apply)}
           {apply.error ? <div>{apply.error.message}</div> : null}
           {exit === 'proposal' ? (
-            <p className={styles.cause}>
-              Causa: o plano usou as <Term id="baseRules" />. Falta a proposta do <Term id="harnessEngineer" />; o
-              próximo passo, abaixo, diz como pedir.
-            </p>
+            <div className={styles.cause}>
+              <p>
+                Causa: o plano usou as <Term id="baseRules" />. Falta a proposta do <Term id="harnessEngineer" />; o
+                próximo passo, abaixo, diz como pedir.
+              </p>
+            </div>
           ) : null}
           {exit !== null && specificationSkipped ? (
             <div className={styles.cause}>
