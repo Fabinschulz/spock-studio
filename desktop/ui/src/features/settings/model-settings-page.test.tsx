@@ -169,10 +169,10 @@ function client(initial: ModelConnection, behavior: Behavior = {}): Fake {
   };
 }
 
-const renderPage = (api: EngineClient, title?: string) =>
+const renderPage = (api: EngineClient) =>
   render(
     <AppProviders>
-      <ModelSettingsPage client={api} title={title} />
+      <ModelSettingsPage client={api} />
     </AppProviders>
   );
 
@@ -180,13 +180,9 @@ const rowOf = async (name: string) => (await screen.findByRole('heading', { leve
 const modelCalls = (api: Fake) =>
   api.requests.map((request) => request.method).filter((method) => method.startsWith('model.'));
 
-describe('Minha IA · provedores', () => {
-  it('em Configurações a tela se chama Minha IA; aberta por Conexões, Modelos de IA, como no menu de lá', async () => {
-    const { unmount } = renderPage(client(none));
-    expect(await screen.findByRole('heading', { level: 1, name: 'Minha IA' })).toBeInTheDocument();
-    unmount();
-
-    renderPage(client(none), 'Modelos de IA');
+describe('Modelos de IA · provedores', () => {
+  it('a tela se chama Modelos de IA, o mesmo nome nos dois menus que a abrem', async () => {
+    renderPage(client(none));
     expect(await screen.findByRole('heading', { level: 1, name: 'Modelos de IA' })).toBeInTheDocument();
   });
 
@@ -403,7 +399,7 @@ describe('Minha IA · provedores', () => {
   });
 });
 
-describe('Minha IA · modelo por finalidade', () => {
+describe('Modelos de IA · modelo por finalidade', () => {
   const selectOf = async (label: string) => await screen.findByRole('combobox', { name: label });
 
   it('mostra uma linha por finalidade, com modelos de todo provedor com chave e o padrão marcado', async () => {
@@ -506,7 +502,7 @@ describe('Minha IA · modelo por finalidade', () => {
   });
 });
 
-describe('Minha IA · teto de tokens por finalidade', () => {
+describe('Modelos de IA · teto de tokens por finalidade', () => {
   const fieldOf = async (label: string) => screen.findByLabelText(`${label} (tokens por execução)`);
 
   it('aparece mesmo sem chave, com o teto de hoje, a faixa e o padrão', async () => {

@@ -140,7 +140,7 @@ describe('AppShell · áreas', () => {
       ['/gestao', 'Gestão', ['Portfólio', 'Acompanhamento', 'Assistente', 'Relatório']],
       ['/linha-do-tempo', 'Atividade', ['Execuções', 'Histórico']],
       ['/cloud', 'Conexões', ['Serviços', 'Nuvem', 'Modelos de IA']],
-      ['/configuracoes/diagnostico', 'Configurações', ['Minha IA', 'Diagnóstico', 'Sobre']]
+      ['/configuracoes/diagnostico', 'Configurações', ['Modelos de IA', 'Diagnóstico', 'Sobre']]
     ];
     for (const [route, name, items] of cases) {
       const { unmount } = renderShell(route);

@@ -263,9 +263,10 @@ const SETTINGS: NavArea = {
   items: [
     {
       id: 'settings-ai',
-      label: 'Minha IA',
+      label: 'Modelos de IA',
       icon: <IdeaIcon fontSize="small" />,
-      description: 'A chave e o modelo de IA usados neste computador.',
+      description: 'O provedor e o modelo de IA que respondem aos pedidos.',
+      technical: 'Minha IA provedores chave de API',
       to: pathTo('settingsAi')
     },
     {
