@@ -177,6 +177,15 @@ const renderPage = (api: EngineClient) =>
   );
 
 const rowOf = async (name: string) => (await screen.findByRole('heading', { level: 3, name })).closest('li')!;
+const connectBlock = async () => (await screen.findByRole('group', { name: 'Qual provedor você usa?' })).parentElement!;
+
+async function connectWith(name: string, key = testKey) {
+  const block = await connectBlock();
+  await userEvent.click(within(block).getByRole('radio', { name }));
+  await userEvent.type(within(block).getByLabelText(`Chave de API (${name})`), key);
+  await userEvent.click(within(block).getByRole('button', { name: `Conferir e guardar a chave de ${name}` }));
+  return block;
+}
 const modelCalls = (api: Fake) =>
   api.requests.map((request) => request.method).filter((method) => method.startsWith('model.'));
 
@@ -186,21 +195,41 @@ describe('Modelos de IA · provedores', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Modelos de IA' })).toBeInTheDocument();
   });
 
-  it('mostra um provedor por linha e guarda a chave sem ecoá-la na interface', async () => {
+  it('no primeiro uso, diz que nada depende de IA e pede um provedor só, não três chaves', async () => {
+    const { container } = renderPage(client(none));
+
+    expect(await screen.findByText('Nenhum modelo conectado')).toBeInTheDocument();
+    expect(screen.getByText(/as leituras e verificações locais continuam funcionando/)).toBeInTheDocument();
+    const block = await connectBlock();
+    expect(
+      within(block)
+        .getAllByRole('radio')
+        .map((radio) => radio.getAttribute('value'))
+    ).toEqual(['openai', 'anthropic', 'google']);
+    expect(within(block).getAllByLabelText(/^Chave de API/)).toHaveLength(1);
+    expect(within(block).getByText(/platform\.openai\.com/)).toBeInTheDocument();
+
+    await userEvent.click(within(block).getByRole('radio', { name: 'Anthropic' }));
+    expect(within(block).getByLabelText('Chave de API (Anthropic)')).toBeInTheDocument();
+    expect(within(block).getByText(/console\.anthropic\.com/)).toBeInTheDocument();
+    expect(within(block).getByText('Cole a chave para continuar.')).toBeInTheDocument();
+
+    await expectNoA11yViolations(container);
+  });
+
+  it('conecta um provedor, guarda a chave sem ecoá-la e leva o foco ao cartão dele', async () => {
     const api = client(none);
     const { container } = renderPage(api);
 
-    const openai = await rowOf('OpenAI');
-    expect(screen.getAllByText('Sem chave')).toHaveLength(3);
-    const field = within(openai).getByLabelText('Chave de API (OpenAI)');
-    await userEvent.type(field, testKey);
-    await userEvent.click(within(openai).getByRole('button', { name: 'Salvar a chave de OpenAI' }));
+    await connectWith('OpenAI');
 
+    const openai = await rowOf('OpenAI');
     expect(await within(openai).findByText('Chave de OpenAI guardada: o provedor a aceitou.')).toBeInTheDocument();
     expect(within(openai).getByText('Conectado')).toBeInTheDocument();
     expect(within(openai).getByText('Padrão')).toBeInTheDocument();
-    expect(field).toHaveValue('');
-    await waitFor(() => expect(field).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole('heading', { level: 3, name: 'OpenAI' })).toHaveFocus());
+    expect(screen.queryByText('Nenhum modelo conectado')).not.toBeInTheDocument();
+    expect(screen.getByText('Conectar outro provedor')).toBeInTheDocument();
     expect(container.textContent).not.toContain(testKey);
     expect(modelCalls(api)).toEqual(['model.connection', 'model.save', 'model.connection']);
     expect(api.requests.find((request) => request.method === 'model.save')!.params).toEqual({
@@ -211,30 +240,29 @@ describe('Modelos de IA · provedores', () => {
     await expectNoA11yViolations(container);
   });
 
-  it('se o provedor recusa ao guardar, diz o motivo e o provedor continua sem chave', async () => {
+  it('se o provedor recusa ao guardar, diz o motivo ali mesmo e nada fica conectado', async () => {
     renderPage(client(none, { refuseSave: true }));
 
-    const openai = await rowOf('OpenAI');
-    await userEvent.type(within(openai).getByLabelText('Chave de API (OpenAI)'), testKey);
-    await userEvent.click(within(openai).getByRole('button', { name: 'Salvar a chave de OpenAI' }));
+    const block = await connectWith('OpenAI');
 
-    expect(await within(openai).findByRole('alert')).toHaveTextContent(
+    expect(await within(block).findByRole('alert')).toHaveTextContent(
       'O provedor recusou a chave. Confira se copiou a chave inteira'
     );
-    expect(screen.getAllByText('Sem chave')).toHaveLength(3);
-    expect(screen.queryByText(/guardada: o provedor a aceitou/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 3 })).not.toBeInTheDocument();
+    expect(screen.getByText('Nenhum modelo conectado')).toBeInTheDocument();
+    await waitFor(() => expect(within(block).getByLabelText('Chave de API (OpenAI)')).toHaveFocus());
   });
 
   it('uma chave mal copiada aparece como erro no campo e explica a regra', async () => {
     renderPage(client(none));
 
-    const openai = await rowOf('OpenAI');
-    const field = within(openai).getByLabelText('Chave de API (OpenAI)');
+    const block = await connectBlock();
+    const field = within(block).getByLabelText('Chave de API (OpenAI)');
     await userEvent.type(field, 'curta demais');
 
     expect(field).toHaveAttribute('aria-invalid', 'true');
-    expect(within(openai).getByText(/^Confira se copiou a chave inteira\./)).toBeInTheDocument();
-    expect(within(openai).getByRole('button', { name: 'Salvar a chave de OpenAI' })).toBeDisabled();
+    expect(within(block).getByText(/^Confira se copiou a chave inteira\./)).toBeInTheDocument();
+    expect(within(block).getByRole('button', { name: 'Conferir e guardar a chave de OpenAI' })).toBeDisabled();
   });
 
   it('sem motor, diz o que fazer e deixa tentar de novo, sem ficar "lendo" junto do erro', async () => {
@@ -256,7 +284,7 @@ describe('Modelos de IA · provedores', () => {
 
     down = false;
     await userEvent.click(within(providers).getByRole('button', { name: 'Tentar de novo' }));
-    expect(await rowOf('OpenAI')).toBeInTheDocument();
+    expect(await connectBlock()).toBeInTheDocument();
   });
 
   it('diz que cada chave é de um provedor, que é conferida antes de ser guardada e que a atual fica se ele recusar', async () => {
@@ -334,9 +362,9 @@ describe('Modelos de IA · provedores', () => {
   it('guardar a chave de um segundo provedor não troca o padrão e mantém o primeiro conectado', async () => {
     renderPage(client(connected));
 
-    const anthropic = await rowOf('Anthropic');
-    await userEvent.type(within(anthropic).getByLabelText('Chave de API (Anthropic)'), testKey);
-    await userEvent.click(within(anthropic).getByRole('button', { name: 'Salvar a chave de Anthropic' }));
+    await userEvent.click(await screen.findByText('Conectar outro provedor'));
+    expect(within(await connectBlock()).getAllByRole('radio')).toHaveLength(2);
+    await connectWith('Anthropic');
 
     expect(await screen.findByText('Chave de Anthropic guardada: o provedor a aceitou.')).toBeInTheDocument();
     expect(within(await rowOf('Anthropic')).getByText('Conectado')).toBeInTheDocument();
@@ -351,9 +379,7 @@ describe('Modelos de IA · provedores', () => {
     const openai = await rowOf('OpenAI');
 
     expect(within(openai).getByRole('button', { name: 'Trocar a chave de OpenAI' })).toHaveTextContent('Trocar chave');
-    expect(
-      within(await rowOf('Anthropic')).getByRole('button', { name: 'Salvar a chave de Anthropic' })
-    ).toHaveTextContent('Salvar chave');
+    expect(screen.queryByRole('heading', { level: 3, name: 'Anthropic' })).not.toBeInTheDocument();
   });
 
   it('tornar um provedor o padrão passa a marca para ele', async () => {
@@ -381,7 +407,7 @@ describe('Modelos de IA · provedores', () => {
     await userEvent.click(within(confirm).getByRole('button', { name: 'Remover chave' }));
 
     expect(await screen.findByText('Chave de Anthropic removida deste computador.')).toBeInTheDocument();
-    expect(within(await rowOf('Anthropic')).getByText('Sem chave')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 3, name: 'Anthropic' })).not.toBeInTheDocument();
     expect(within(await rowOf('OpenAI')).getByText('Conectado')).toBeInTheDocument();
     expect(api.requests.find((request) => request.method === 'model.remove')!.params).toEqual({
       provider: 'anthropic'
@@ -394,8 +420,9 @@ describe('Modelos de IA · provedores', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Remover a chave de OpenAI' }));
     await userEvent.click(screen.getByRole('button', { name: 'Remover chave' }));
 
-    await waitFor(() => expect(screen.getAllByText('Sem chave')).toHaveLength(3));
-    expect(screen.queryByText('Modelo por finalidade')).not.toBeInTheDocument();
+    expect(await screen.findByText('Nenhum modelo conectado')).toBeInTheDocument();
+    expect(within(await connectBlock()).getAllByRole('radio')).toHaveLength(3);
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 });
 
@@ -450,15 +477,18 @@ describe('Modelos de IA · modelo por finalidade', () => {
     renderPage(client(connected));
 
     expect(await screen.findByText(/nenhum agente escolhe o modelo: a escolha é sua/)).toBeInTheDocument();
-    expect(screen.getByText(/O teto de tokens de cada execução fica na seção seguinte/)).toBeInTheDocument();
+    expect(screen.getByText(/O limite de gasto de cada execução fica na seção seguinte/)).toBeInTheDocument();
   });
 
-  it('sem chave a seção não aparece', async () => {
+  it('sem chave, a seção diz que a escolha aparece ali depois de conectar', async () => {
     renderPage(client(none));
 
-    await screen.findByRole('heading', { name: 'OpenAI' });
+    const section = await screen.findByRole('region', { name: 'Modelo por finalidade' });
 
-    expect(screen.queryByText('Modelo por finalidade')).not.toBeInTheDocument();
+    expect(
+      within(section).getByText('Depois de conectar um provedor, você escolhe aqui o modelo de cada tarefa.')
+    ).toBeInTheDocument();
+    expect(within(section).queryByRole('combobox')).not.toBeInTheDocument();
   });
 
   it('se o motor recusa a escolha, mostra o motivo e mantém o modelo de antes', async () => {
@@ -474,9 +504,8 @@ describe('Modelos de IA · modelo por finalidade', () => {
     renderPage(client(connected));
     expect(await optionsOf(await selectOf('Juiz'))).toEqual(['GPT-4o mini (OpenAI, padrão)', 'GPT-4o (OpenAI)']);
 
-    const anthropic = await rowOf('Anthropic');
-    await userEvent.type(within(anthropic).getByLabelText('Chave de API (Anthropic)'), testKey);
-    await userEvent.click(within(anthropic).getByRole('button', { name: 'Salvar a chave de Anthropic' }));
+    await userEvent.click(screen.getByText('Conectar outro provedor'));
+    await connectWith('Anthropic');
     await screen.findByText('Chave de Anthropic guardada: o provedor a aceitou.');
 
     expect(await optionsOf(await selectOf('Juiz'))).toContain('Claude Opus 5.5 (Anthropic)');
@@ -508,7 +537,10 @@ describe('Modelos de IA · teto de tokens por finalidade', () => {
   it('aparece mesmo sem chave, com o teto de hoje, a faixa e o padrão', async () => {
     renderPage(client(none));
 
-    expect(await screen.findByRole('heading', { name: 'Teto de tokens por finalidade' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Limite de gasto por execução' })).toBeInTheDocument();
+    expect(
+      screen.getByText('Fluxos de engenharia: 8.000 tokens · Investigação do assistente: 30.000 tokens')
+    ).toBeInTheDocument();
     expect(await fieldOf('Fluxos de engenharia')).toHaveValue('8000');
     expect(screen.getByText('De 2.000 a 64.000 tokens. Padrão: 8.000.')).toBeInTheDocument();
     expect(await fieldOf('Investigação do assistente')).toHaveValue('30000');
