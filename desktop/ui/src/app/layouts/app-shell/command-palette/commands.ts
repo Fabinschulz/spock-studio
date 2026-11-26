@@ -1,6 +1,7 @@
 import type { RecentProject } from '@/features/project-selection';
 import { displayState, type ActivityFeed } from '@/features/runs';
 import { executionPath, paths } from '@/shared/routing';
+import type { AiTool } from '@/shared/schema';
 import { formatEngineDate, runKindLabel } from '@/shared/utils';
 
 import { AREAS, type NavArea } from '../navigation';
@@ -15,7 +16,7 @@ export type CommandAction =
   | { kind: 'pick-project' }
   | { kind: 'shell'; action: ShellAction };
 
-export type CommandGroup = 'Ações' | 'Atividade' | 'Telas' | 'Projetos';
+export type CommandGroup = 'Ações' | 'Atividade' | 'Telas' | 'Agentes' | 'Projetos';
 
 export interface Command {
   id: string;
@@ -82,7 +83,7 @@ const OFF_MENU: readonly Command[] = [
     label: 'Da ideia ao projeto',
     hint: 'Engenharia',
     description: 'Descreva uma ideia e receba especificação, arquitetura e backlog.',
-    keywords: 'especificação arquitetura backlog novo projeto',
+    keywords: 'especificação documentos arquitetura backlog novo projeto',
     action: { kind: 'go', to: paths.idea }
   },
   {
@@ -118,7 +119,7 @@ function areaCommands(area: NavArea): Command[] {
       label: item.label,
       hint: area.label,
       description: item.description,
-      keywords: item.technical ?? '',
+      keywords: [item.technical, item.keywords].filter(Boolean).join(' '),
       action: { kind: 'go', to: item.to }
     };
     // Cada aba vira um comando com o nome dela; a que é o próprio destino do item já está no comando dele.
@@ -170,6 +171,32 @@ function runCommands(feed: ActivityFeed | undefined): Command[] {
   ];
 }
 
-export function buildCommands(recents: readonly RecentProject[], feed?: ActivityFeed): Command[] {
-  return [...ACTIONS, ...runCommands(feed), ...AREAS.flatMap(areaCommands), ...OFF_MENU, ...projectCommands(recents)];
+/** Cada ferramenta de IA instalada leva à tela onde a pessoa a escolhe; quem procura pelo nome dela a acha. */
+function agentCommands(tools: readonly AiTool[]): Command[] {
+  return tools.map((tool) => ({
+    id: `agent:${tool.id}`,
+    group: 'Agentes',
+    label: tool.name,
+    hint: tool.version ? `Instalado, ${tool.version}` : 'Instalado',
+    description: 'Ferramenta de IA deste computador. Abre Agentes de IA, onde você a escolhe.',
+    keywords: `${tool.binary} agente assistente ferramenta de IA`,
+    action: { kind: 'go', to: paths.agents }
+  }));
+}
+
+/** O que o motor sabe e a paleta mostra além do que o aplicativo já conhece; sem resposta dele, fica de fora. */
+export interface CommandSources {
+  feed?: ActivityFeed;
+  tools?: readonly AiTool[];
+}
+
+export function buildCommands(recents: readonly RecentProject[], { feed, tools = [] }: CommandSources = {}): Command[] {
+  return [
+    ...ACTIONS,
+    ...runCommands(feed),
+    ...AREAS.flatMap(areaCommands),
+    ...OFF_MENU,
+    ...agentCommands(tools),
+    ...projectCommands(recents)
+  ];
 }

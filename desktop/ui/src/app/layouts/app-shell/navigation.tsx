@@ -44,6 +44,8 @@ export interface NavItem {
   description?: string;
   /** O nome técnico, quando difere do apresentado: quem o conhece ainda acha a tela por ele. */
   technical?: string;
+  /** Outras palavras com que a pessoa procura a tela, que o nome e a descrição não trazem (como "documentos"). */
+  keywords?: string;
   /** Sem destino = indisponível; `unavailableReason` diz por quê. */
   to?: string;
   end?: boolean;
@@ -103,7 +105,12 @@ const ENGINEERING: NavArea = {
       to: pathTo('projectHarness'),
       tabs: [
         { id: 'harness-state', label: 'Estado e revisões', to: pathTo('projectHarness') },
-        { id: 'catalog', label: 'Catálogo', to: pathTo('projectCatalog'), keywords: 'skills hooks agentes MCP' }
+        {
+          id: 'catalog',
+          label: 'Catálogo',
+          to: pathTo('projectCatalog'),
+          keywords: 'skills hooks agentes MCP assistentes capacidades'
+        }
       ]
     },
     {
@@ -128,6 +135,7 @@ const ENGINEERING: NavArea = {
       id: 'knowledge',
       label: 'Conhecimento',
       technical: 'RAG',
+      keywords: 'documentos arquivos indexados busca',
       icon: <BookOpenIcon fontSize="small" />,
       description: 'O que os assistentes podem ler do projeto e o que fica de fora.',
       to: pathTo('projectKnowledge')
