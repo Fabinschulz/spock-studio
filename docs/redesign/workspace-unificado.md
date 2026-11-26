@@ -1,6 +1,6 @@
 # Spock Studio — Workspace unificado
 
-> **Estado:** sete incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade; o quarto, a largura ajustável desse painel; o quinto, os títulos das telas iguais aos nomes do menu; o sexto, o `Checkbox` da biblioteca no lugar do componente local e o resumo da jornada Configurar que não cobre mais o conteúdo; o sétimo, os filtros de Execuções numa linha. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
+> **Estado:** sete incrementos entregues no aplicativo real, e um oitavo (execuções e tarefas na busca) só com testes de componente. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade; o quarto, a largura ajustável desse painel; o quinto, os títulos das telas iguais aos nomes do menu; o sexto, o `Checkbox` da biblioteca no lugar do componente local e o resumo da jornada Configurar que não cobre mais o conteúdo; o sétimo, os filtros de Execuções numa linha. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
 >
 > O tema, os tokens e a linguagem visual vêm do redesign Workbench anterior e não mudaram; a fonte de verdade deles é o código (`desktop/ui/src/shared/styles/_tokens.scss`). Os produtos de referência estudados não são nomeados aqui; deles saíram princípios, não telas.
 
@@ -115,9 +115,12 @@ A paleta (Ctrl K) agora agrupa o que oferece:
 - **Ações**: abrir pasta de projeto, mostrar a atividade, abrir o terminal, recolher o menu, ver os atalhos.
 - **Telas**: todas, de todas as áreas, com uma frase dizendo para que servem. Acham-se pelo nome apresentado e pelo técnico ("harness" acha Padrões do projeto; "integrações" acha Serviços).
 - **Projetos**: os recentes, pelo nome ou pelo caminho.
+- **Atividade**: até cinco tarefas (o que espera aprovação ou intervenção, ou está andando) e as cinco execuções mais recentes, com o estado como dica. Escolher uma abre a execução pelo endereço dela, sem texto na URL. A lista vem de `run.list`, lido só quando a paleta abre; sem resposta do motor, o grupo não aparece e o resto da paleta segue igual. Execuções mais antigas se acham em Execuções, com filtros.
 - **Pedir ao Spock Studio**: os quatro caminhos, quando o texto é uma frase.
 
 Quem escreve o nome de algo recebe esse algo primeiro; quem escreve uma frase recebe os caminhos de pedido primeiro e as telas relacionadas depois.
+
+Ainda não são buscados: documentos e agentes (o pedido original os lista; falta avaliar de onde viria a lista de cada um). Comandos que iniciam trabalho, como "Executar análise", também não existem: seguem o princípio da entrada de pedidos, que só encaminha para a tela onde a pessoa decide e aprova.
 
 Não há identidade de usuário no aplicativo, então não há comando escondido por permissão. O contexto que existe é o projeto: um pedido sem projeto aberto pede a pasta antes de seguir.
 
@@ -225,12 +228,17 @@ A validação achou e corrigiu três defeitos que já existiam: dois ícones da 
 - O envio de uma pergunta a uma ferramenta de IA: a jornada confere que o texto chega preenchido e para ali.
 - macOS e Linux.
 - As jornadas não estão no repositório nem no CI: rodaram a partir de um roteiro fora dele (seção 10).
+- O grupo Atividade da paleta (oitavo incremento) só foi exercitado nos testes de componente e de `buildCommands`: as portas do aplicativo (1420 e 9333) estavam com a janela de outra sessão, que não se dirige, e o aplicativo real não foi aberto para ele.
+- A avaliação escrita, pergunta por pergunta, pelos 13 critérios do §15 do pedido original: há evidências por jornada, mas nenhuma resposta registrada para cada critério.
 
 ## 10. O que ficou para depois
 
 Incrementos:
 
-1. **Jornada Configurar**: o diagnóstico e a proposta estão em [`configurar.md`](configurar.md). Os incrementos C1 a C7 e a decisão DC2 foram entregues (#199 a #206); o que sobrou está em [`ROADMAP.md`](../ROADMAP.md).
+1. **Jornada Configurar**: o diagnóstico e a proposta estão em [`configurar.md`](configurar.md). Os incrementos C1 a C7, a DC2 e a DC5 foram entregues (#199 a #210); as sobras (T6, P4, P5, P6, PL2 e RS3) estão numa sessão própria.
+2. **Fluxos internos de Gestão e de Configurações**: nunca foram redesenhados (etapa 4, itens 10 e 11 do pedido original). Cada um tem uma sessão própria, que começa por diagnóstico e proposta em `docs/redesign/gestao.md` e `docs/redesign/configuracoes.md` e espera a sua aprovação antes de implementar.
+3. **Entrada de pedidos com arquivo ou informação extra** (§4.4 do pedido): os seletores de modelo e de agente foram avaliados e ficaram de fora com justificativa; anexar arquivo nem foi avaliado.
+4. **Avaliação pelos 13 critérios** (§15): registrar a resposta de cada pergunta, com a evidência.
 
 Decisões do dono:
 

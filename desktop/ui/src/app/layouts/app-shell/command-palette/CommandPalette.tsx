@@ -1,5 +1,7 @@
 import { looksLikeRequest, rankAskOptions } from '@/features/ask';
 import { useProjectSelectionContext } from '@/features/project-selection';
+import { useActivityFeed } from '@/features/runs';
+import type { EngineClient } from '@/shared/api';
 import { handoffState } from '@/shared/routing';
 import { cn } from '@/shared/utils';
 import { Modal, TextField } from '@mariliz/ui-kit';
@@ -26,21 +28,26 @@ interface CommandPaletteProps {
   open: boolean;
   onClose: () => void;
   onShellAction: (action: ShellAction) => void;
+  /** De onde vêm as tarefas e execuções que a busca também acha. */
+  client: EngineClient;
 }
 
-export function CommandPalette({ open, onClose, onShellAction }: CommandPaletteProps) {
+export function CommandPalette({ open, onClose, onShellAction, client }: CommandPaletteProps) {
   return (
     <Modal open={open} onClose={onClose} title="Buscar ou pedir" closeLabel="Fechar" sizeModal="medium">
-      <PaletteBody onClose={onClose} onShellAction={onShellAction} />
+      <PaletteBody onClose={onClose} onShellAction={onShellAction} client={client} />
     </Modal>
   );
 }
 
-function PaletteBody({ onClose, onShellAction }: Omit<CommandPaletteProps, 'open'>) {
+function PaletteBody({ onClose, onShellAction, client }: Omit<CommandPaletteProps, 'open'>) {
   const listId = useId();
   const navigate = useNavigate();
   const { selected, recents, openRecent, pick } = useProjectSelectionContext();
-  const commands = useMemo(() => buildCommands(recents), [recents]);
+  // Sem resposta do motor, a busca segue sem as execuções: o resto da paleta não depende dele.
+  const activity = useActivityFeed(client);
+  const feed = activity.status === 'ready' ? activity.value : undefined;
+  const commands = useMemo(() => buildCommands(recents, feed), [recents, feed]);
   const field = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);

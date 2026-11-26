@@ -4,6 +4,7 @@ import { MemoryRouter, useLocation } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ProjectSelectionProvider, type ProjectPickerPort } from '@/features/project-selection';
+import type { EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
 import { readHandoff } from '@/shared/routing';
 import { expectNoA11yViolations } from '@/test/a11y';
@@ -28,7 +29,49 @@ function Where() {
   );
 }
 
-function renderPalette(picker: Partial<ProjectPickerPort> = {}) {
+const run = (runId: string, state: string) => ({
+  runId,
+  projectId: 'p-1',
+  projectName: 'loja-api',
+  kind: 'validate',
+  state,
+  startedAt: '2026-11-20T10:00:00Z',
+  finishedAt: null,
+  live: false,
+  interrupted: false,
+  changesApplied: false,
+  reverted: false,
+  canRevert: false,
+  revertsRunId: null,
+  error: null,
+  operations: 0,
+  pending: 0,
+  notApplied: 0,
+  tokens: null
+});
+
+interface Feed {
+  /** O que espera a pessoa ou está andando. */
+  tasks?: unknown[];
+  recent?: unknown[];
+  /** O motor não responde. */
+  down?: boolean;
+}
+
+/** O motor de mentira responde só a lista de execuções, a mesma que o painel de atividade lê. */
+function engine({ tasks = [], recent = [], down = false }: Feed = {}): EngineClient {
+  return {
+    request: vi.fn(async (method: string, params: Record<string, unknown>, schema) => {
+      if (down) throw new Error('motor fora do ar');
+      if (method !== 'run.list') throw new Error(`método inesperado: ${method}`);
+      const runs = params.states ? tasks : [...tasks, ...recent];
+      return schema.parse({ runs, nextCursor: null, summary: { total: runs.length, running: 0, awaitingApproval: 0 } });
+    }) as EngineClient['request'],
+    onEvent: vi.fn().mockResolvedValue(() => undefined)
+  };
+}
+
+function renderPalette(picker: Partial<ProjectPickerPort> = {}, client: EngineClient = engine()) {
   const onClose = vi.fn();
   const onShellAction = vi.fn();
   const port: ProjectPickerPort = { pick: vi.fn().mockResolvedValue(null), ...picker };
@@ -37,12 +80,12 @@ function renderPalette(picker: Partial<ProjectPickerPort> = {}) {
       <ProjectSelectionProvider picker={port}>
         <MemoryRouter>
           <Where />
-          <CommandPalette open onClose={onClose} onShellAction={onShellAction} />
+          <CommandPalette open onClose={onClose} onShellAction={onShellAction} client={client} />
         </MemoryRouter>
       </ProjectSelectionProvider>
     </AppProviders>
   );
-  return { onClose, onShellAction, port };
+  return { onClose, onShellAction, port, client };
 }
 
 describe('CommandPalette', () => {
@@ -128,6 +171,37 @@ describe('CommandPalette', () => {
     expect(
       within(await screen.findByRole('group', { name: 'Projetos' })).getByRole('option', { name: /loja-api/ })
     ).toBeInTheDocument();
+  });
+
+  it('oferece as tarefas e as execuções recentes, o que espera a pessoa primeiro', async () => {
+    renderPalette({}, engine({ tasks: [run('run-t', 'awaiting_approval')], recent: [run('run-r', 'completed')] }));
+
+    const activity = await screen.findByRole('group', { name: 'Atividade' });
+
+    const options = within(activity).getAllByRole('option');
+    expect(options).toHaveLength(2);
+    expect(options[0]).toHaveTextContent('Validação · loja-api');
+    expect(options[0]).toHaveTextContent('Aguardando aprovação');
+    expect(options[1]).toHaveTextContent('Concluído');
+  });
+
+  it('acha a execução pelo estado e abre o detalhe dela pelo endereço, sem texto na URL', async () => {
+    renderPalette({}, engine({ tasks: [run('run-t', 'awaiting_approval')] }));
+
+    await userEvent.type(screen.getByRole('combobox'), 'tarefa pendente');
+    await userEvent.click(await screen.findByRole('option', { name: /Validação · loja-api/ }));
+
+    expect(screen.getByTestId('where')).toHaveTextContent('/execucao/run-t');
+    expect(screen.getByTestId('handoff')).toBeEmptyDOMElement();
+  });
+
+  it('sem resposta do motor, a paleta segue sem o grupo de atividade', async () => {
+    const { client } = renderPalette({}, engine({ down: true }));
+
+    await waitFor(() => expect(client.request).toHaveBeenCalled());
+
+    expect(screen.queryByRole('group', { name: 'Atividade' })).not.toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /^Portfólio/ })).toBeInTheDocument();
   });
 
   it('acha a tela pelo nome técnico e diz para que ela serve', async () => {
