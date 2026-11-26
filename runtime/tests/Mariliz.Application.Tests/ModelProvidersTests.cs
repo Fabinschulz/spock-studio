@@ -161,7 +161,7 @@ public class ModelProvidersTests
     [InlineData(HttpStatusCode.Unauthorized, "MODEL_AUTH_FAILED")]
     [InlineData(HttpStatusCode.Forbidden, "MODEL_AUTH_FAILED")]
     [InlineData(HttpStatusCode.TooManyRequests, "MODEL_RATE_LIMITED")]
-    [InlineData(HttpStatusCode.InternalServerError, "MODEL_INVALID_RESPONSE")]
+    [InlineData(HttpStatusCode.InternalServerError, "MODEL_OVERLOADED")]
     public async Task Os_codigos_de_recusa_valem_tambem_para_a_anthropic_sem_repetir_o_corpo(HttpStatusCode status, string code)
     {
         using var transport = new HttpsModelTransport(new RecordingHandler("{\"error\":{\"message\":\"chave " + AnthropicKey + " invalida\"}}", status));

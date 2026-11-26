@@ -51,6 +51,9 @@ public sealed partial class HttpsModelTransport : IModelTransport, IModelChatTra
             using var response = await _http.SendAsync(request, ct);
             var text = await response.Content.ReadAsStringAsync(ct);
             ThrowIfRefused(format, response.StatusCode, text);
+            // Um 5xx é do lado do provedor (ou do gateway na frente dele), não uma resposta fora do contrato; o corpo não é repetido.
+            if ((int)response.StatusCode >= 500)
+                throw new EngineException("MODEL_OVERLOADED", $"O provedor está indisponível ou sobrecarregado agora (HTTP {(int)response.StatusCode}).");
             if (!response.IsSuccessStatusCode || JsonNode.Parse(text) is not JsonObject document)
                 throw new EngineException("MODEL_INVALID_RESPONSE", "O modelo respondeu fora do contrato.");
 
