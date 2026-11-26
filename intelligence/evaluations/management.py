@@ -120,6 +120,12 @@ def abstention(case: dict, answer: dict | None) -> float | None:
     return 1.0 if not any(answer.get(section) for section in ("calculations", "inferences", "recommendations")) else 0.0
 
 
+def fell_back(ack: dict | None) -> bool:
+    """A conclusão veio das regras, não do modelo (prazo, teto, resposta inválida): a nota mede o plano de reserva, não o modelo."""
+    limitations = (ack or {}).get("limitations") or []
+    return any(isinstance(item, dict) and item.get("code") == "INVESTIGATION_CONCLUSION_FALLBACK" for item in limitations)
+
+
 def score_case(case: dict, scenario: list[dict], ack: dict | None) -> dict[str, Any]:
     ack = ack or {}
     answer = ack.get("answer") if ack.get("status") in ("completed", "completed_with_limitations") else None
@@ -128,6 +134,7 @@ def score_case(case: dict, scenario: list[dict], ack: dict | None) -> dict[str, 
     return {
         "id": case["id"],
         "failed": answer is None,
+        "fallback": fell_back(ack),
         "framing": framing(case, ack),
         "grounding": grounding(answer, facts, consulted),
         "coverage": 0.0 if answer is None and case["mustCite"] else coverage(case, answer),
@@ -149,7 +156,15 @@ def score_dataset(document: dict[str, Any], acks: dict[str, dict]) -> dict[str, 
         metric: {"value": means[metric], "minimum": minimums[metric], "ok": means[metric] is None or means[metric] >= minimums[metric]}
         for metric in _METRICS
     }
-    return {"cases": results, "means": means, "verdict": verdict, "passed": all(item["ok"] for item in verdict.values())}
+    # Uma rodada em que o modelo não escreveu a conclusão de algum caso é inconclusiva: não passa, e não vira linha de base.
+    fallbacks = [item["id"] for item in results if item["fallback"]]
+    return {
+        "cases": results,
+        "means": means,
+        "verdict": verdict,
+        "fallbacks": fallbacks,
+        "passed": all(item["ok"] for item in verdict.values()) and not fallbacks,
+    }
 
 
 def request_for(document: dict[str, Any], case: dict, with_model: bool) -> dict:
@@ -186,12 +201,18 @@ def format_report(report: dict[str, Any]) -> str:
     lines = ["caso".ljust(28) + "".join(metric[:10].ljust(12) for metric in _METRICS) + "afirmações"]
     for item in report["cases"]:
         cells = "".join(("-" if item[metric] is None else f"{item[metric]:.2f}").ljust(12) for metric in _METRICS)
-        lines.append(item["id"].ljust(28) + cells + f"{item['claims']}" + (" (falhou)" if item["failed"] else ""))
+        mark = " (falhou)" if item["failed"] else " (conclusão das regras, não do modelo)" if item["fallback"] else ""
+        lines.append(item["id"].ljust(28) + cells + f"{item['claims']}" + mark)
     lines.append("")
     for metric, state in report["verdict"].items():
         value = "n/a" if state["value"] is None else f"{state['value']:.2f}"
         lines.append(f"{metric.ljust(10)} média {value}  mínimo {state['minimum']:.2f}  {'ok' if state['ok'] else 'ABAIXO DO MÍNIMO'}")
-    lines.append("resultado: " + ("passou" if report["passed"] else "não passou"))
+    if report["fallbacks"]:
+        lines.append(
+            f"INCONCLUSIVA: em {len(report['fallbacks'])} de {len(report['cases'])} casos o modelo não escreveu a conclusão "
+            "(prazo, teto ou resposta inválida); as notas acima medem o plano de reserva, não o modelo."
+        )
+    lines.append("resultado: " + ("passou" if report["passed"] else "inconclusiva" if report["fallbacks"] else "não passou"))
     return "\n".join(lines)
 
 
@@ -289,9 +310,9 @@ def _baseline_command(results: Path, provider: str) -> int:
     if acks is None:
         return 2
     report = score_dataset(load_dataset(), acks)
-    if any(item["failed"] for item in report["cases"]):
-        # Uma rodada com investigação que falhou (rede, chave, teto) mede a infraestrutura, não o modelo.
-        print("rodada com caso que falhou: rode de novo antes de gravar a linha de base", file=sys.stderr)
+    if any(item["failed"] or item["fallback"] for item in report["cases"]):
+        # Uma rodada com investigação que falhou ou que caiu no plano de reserva (rede, chave, prazo, teto) mede a infraestrutura, não o modelo.
+        print("rodada com caso que falhou ou sem conclusão do modelo: rode de novo antes de gravar a linha de base", file=sys.stderr)
         return 1
     target = baseline_path(provider)
     baseline = make_baseline(report, provider, date.today().isoformat(), dataset_digest())

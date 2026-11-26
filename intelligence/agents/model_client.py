@@ -5,13 +5,31 @@ execução. O token nunca entra em estado, checkpoint, evento, log ou mensagem d
 from __future__ import annotations
 
 import json
+import os
 import re
 import socket
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
 
-URL = re.compile(r"^http://127\.0\.0\.1:[0-9]{1,5}/v1/model$")
+# O motor define o prazo da conversa com o provedor e passa a este processo o dele mais uma margem: o Python precisa esperar mais
+# que o motor, senão corta a conexão antes de o motor responder (com o MODEL_TIMEOUT dele ou com o texto do modelo).
+TIMEOUT_VARIABLE = "MARILIZ_MODEL_CLIENT_TIMEOUT_SECONDS"
+DEFAULT_TIMEOUT = 125.0
+_TIMEOUT_RANGE = (15.0, 620.0)
+
+
+def configured_timeout(raw: str | None = None) -> float:
+    """Um valor ausente, ilegível ou fora da faixa volta ao padrão: nunca trava nem corta toda conversa."""
+    value = os.environ.get(TIMEOUT_VARIABLE) if raw is None else raw
+    try:
+        seconds = float(value) if value else DEFAULT_TIMEOUT
+    except ValueError:
+        return DEFAULT_TIMEOUT
+    return seconds if _TIMEOUT_RANGE[0] <= seconds <= _TIMEOUT_RANGE[1] else DEFAULT_TIMEOUT
+
+
+URL =re.compile(r"^http://127\.0\.0\.1:[0-9]{1,5}/v1/model$")
 _CODES = {"MODEL_NOT_CONFIGURED", "MODEL_BUDGET_EXCEEDED", "MODEL_TIMEOUT", "MODEL_UNAVAILABLE", "MODEL_FORBIDDEN"}
 _MAX_RESPONSE = 256_000
 _AGENT = re.compile(r"^[a-z][a-z0-9-]{0,31}$")
@@ -36,13 +54,13 @@ class ModelReply:
 
 
 class ModelClient:
-    def __init__(self, url: str, token: str, execution_id: str, timeout: float = 35.0) -> None:
+    def __init__(self, url: str, token: str, execution_id: str, timeout: float | None = None) -> None:
         if not URL.match(url) or not 32 <= len(token) <= 128:
             raise ValueError("broker")
         self._url = url
         self._token = token
         self._execution_id = execution_id
-        self._timeout = timeout
+        self._timeout = configured_timeout() if timeout is None else timeout
         # O ambiente pode ter proxy de saída; o proxy do motor está no loopback e nunca deve passar por ele.
         self._opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 

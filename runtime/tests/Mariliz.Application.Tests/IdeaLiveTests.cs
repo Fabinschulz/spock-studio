@@ -33,7 +33,7 @@ public class IdeaLiveTests(ITestOutputHelper output)
         var workspace = new WorkspaceAuthorizer(new LocalWorkspaceFileSystem());
         var projectId = workspace.Authorize(project.Root).Project!.ProjectId;
         using var network = new HttpsModelTransport();
-        var gateway = new ModelGateway(new EnvModelSettings(provider, key), network, timeout: TimeSpan.FromSeconds(120), chat: network, chatTimeout: TimeSpan.FromSeconds(240));
+        var gateway = new ModelGateway(new EnvModelSettings(provider, key), network, timeout: TimeSpan.FromSeconds(120), chat: network);
         var service = new IdeaArchitectService(
             workspace, gateway, new TestFilesFactory(), new FileRunStore(project.DataDir), new SystemClock(), new RunTracker());
 
