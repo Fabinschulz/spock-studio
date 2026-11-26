@@ -1,24 +1,29 @@
-import { formatEngineDate } from '@/shared/utils';
-import { SYNC_STATUS, createIntegrationApi, kindCounts, type IntegrationApi } from '@/features/integrations';
+import { createIntegrationApi, type IntegrationApi } from '@/features/integrations';
 import type { SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
-import { StatusChip, EmptyState, NoProjectState, Page, PageSection, ResourceView } from '@/shared/components';
+import { NoProjectState, Page, ResourceView } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
-import { pathTo } from '@/shared/routing';
-import type { Connector, ProjectIntegration, ProjectMetrics } from '@/shared/schema';
+import type { Connector, ProjectForecast, ProjectIntegration, ProjectMetrics, ProjectRisks } from '@/shared/schema';
+import { plural } from '@/shared/utils';
+import { TabBar } from '@mariliz/ui-kit';
 import { useCallback, useMemo } from 'react';
-import { Link } from 'react-router';
 
+import { ActivitySection } from './components/activity-section';
+import { AttentionStrip } from './components/attention-strip';
+import { DecisionsSection } from './components/decisions-section';
 import { FlowSection } from './components/flow-section';
+import { ForecastSection } from './components/forecast-section';
 import { LinkedRunsSection } from './components/linked-runs-section';
 import { MilestonesSection } from './components/milestones-section';
-import { DecisionsSection } from './components/decisions-section';
-import { Figure, Figures } from './components/figures';
+import { NoData } from './components/no-data';
+import { NoSourcesState } from './components/no-sources-state';
+import { NotCalculated } from './components/not-calculated';
 import { PeriodField } from './components/period-field';
-import { ForecastSection } from './components/forecast-section';
 import { RiskHistorySection } from './components/risk-history-section';
 import { RisksSection } from './components/risks-section';
+import { SourcesSection } from './components/sources-section';
 import { summarizeActivity } from './domain/activity-summary';
+import { summarizeAttention } from './domain/attention';
 import { usePeriod } from './hooks/use-period';
 import styles from './management.module.scss';
 import { createManagementApi, type ManagementApi } from './service/management-api';
@@ -38,6 +43,14 @@ export function ManagementPage({ client, project }: { client: EngineClient; proj
   return <ProjectManagement key={project.projectId} api={api} management={management} project={project} />;
 }
 
+interface Loaded {
+  connectors: Connector[];
+  integrations: ProjectIntegration[];
+  metrics: ProjectMetrics;
+  forecast: ProjectForecast;
+  risks: ProjectRisks;
+}
+
 function ProjectManagement({
   api,
   management,
@@ -48,7 +61,7 @@ function ProjectManagement({
   project: SelectedProject;
 }) {
   const [weeks, setWeeks] = usePeriod();
-  const load = useCallback(async () => {
+  const load = useCallback(async (): Promise<Loaded> => {
     const [catalog, integrations, metrics, forecast, risks] = await Promise.all([
       api.catalog(),
       api.integrations(project.projectId),
@@ -71,112 +84,83 @@ function ProjectManagement({
         loading="Lendo as fontes do projeto…"
         fallbackError="Não foi possível ler as fontes do projeto."
       >
-        {(value) => (
-          <>
-            <ActivitySection integrations={value.integrations} />
-            <RisksSection risks={value.risks} />
-            {value.integrations.length > 0 ? (
-              <RiskHistorySection management={management} projectId={project.projectId} />
-            ) : null}
-            {value.integrations.length > 0 ? (
-              <LinkedRunsSection management={management} projectId={project.projectId} />
-            ) : null}
-            <ForecastSection forecast={value.forecast} connectors={value.connectors} />
-            {value.integrations.length > 0 ? (
-              <MilestonesSection management={management} projectId={project.projectId} />
-            ) : null}
-            <FlowSection metrics={value.metrics} connectors={value.connectors} />
-            <DecisionsSection management={management} projectId={project.projectId} />
-            <SourcesSection integrations={value.integrations} connectors={value.connectors} />
-            <NotCalculatedSection metrics={value.metrics} />
-          </>
-        )}
+        {(value) =>
+          value.integrations.length === 0 ? (
+            <>
+              <NoSourcesState />
+              <DecisionsSection management={management} projectId={project.projectId} />
+              <NotCalculated metrics={value.metrics} />
+            </>
+          ) : (
+            <WithSources value={value} management={management} projectId={project.projectId} />
+          )
+        }
       </ResourceView>
     </Page>
   );
 }
 
-function ActivitySection({ integrations }: { integrations: ProjectIntegration[] }) {
-  const summary = summarizeActivity(integrations);
-
-  return (
-    <PageSection title="Atividades">
-      {integrations.length === 0 ? (
-        <EmptyState>
-          Não há dados de atividades: nenhuma ferramenta foi vinculada a este projeto. Vincule uma em{' '}
-          <Link to={pathTo('integrations')}>Conexões › Serviços</Link>.
-        </EmptyState>
-      ) : summary.total === 0 ? (
-        <EmptyState>
-          Não há dados de atividades: as fontes vinculadas ainda não trouxeram nenhum item. Sincronize em{' '}
-          <Link to={pathTo('integrations')}>Conexões › Serviços</Link>.
-        </EmptyState>
-      ) : (
-        <>
-          <Figures>
-            {summary.byCategory.map((entry) => (
-              <Figure key={entry.category} label={entry.label} value={entry.count} />
-            ))}
-          </Figures>
-          <p className={styles.muted}>
-            Contagem do que foi sincronizado
-            {summary.oldestReadAt ? `; a leitura mais antiga é de ${formatEngineDate(summary.oldestReadAt)}` : ''}. No
-            GitHub, issue aberta conta como a fazer e pull request aberto como em andamento; no Jira vale a categoria do
-            status.
-          </p>
-        </>
-      )}
-    </PageSection>
-  );
+interface WithSourcesProps {
+  value: Loaded;
+  management: ManagementApi;
+  projectId: string;
 }
 
-function SourcesSection({ integrations, connectors }: { integrations: ProjectIntegration[]; connectors: Connector[] }) {
-  if (integrations.length === 0) return null;
+/** A faixa vem antes das abas e responde sozinha; cada aba só carrega o que as seções dela pedem. */
+function WithSources({ value, management, projectId }: WithSourcesProps) {
+  const { connectors, integrations, metrics, forecast, risks } = value;
+  const activity = summarizeActivity(integrations);
+  const attention = summarizeAttention({ risks, metrics, oldestReadAt: activity.oldestReadAt });
+  const activeRisks = risks.hasData ? risks.risks.length : 0;
 
   return (
-    <PageSection title="Fontes de dados">
-      <ul className={styles.rows}>
-        {integrations.map((integration) => {
-          const connector = connectors.find((entry) => entry.provider === integration.provider);
-          const kinds = kindCounts(integration, connector);
-          return (
-            <li key={integration.id} className={styles.row}>
-              <span>
-                <span className={styles.rowTitle}>{integration.scope.resourceName}</span>
-                <span className={styles.muted}>
-                  {' '}
-                  · {connector?.name ?? integration.provider}
-                  {kinds.length > 0 ? ` · ${kinds.join(', ')}` : ' · sem itens sincronizados'}
-                  {integration.items.lastSyncedAt ? ` · lido ${formatEngineDate(integration.items.lastSyncedAt)}` : ''}
-                </span>
-              </span>
-              {integration.lastSync ? (
-                <StatusChip tone={SYNC_STATUS[integration.lastSync.status].tone}>
-                  {SYNC_STATUS[integration.lastSync.status].label}
-                </StatusChip>
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
-      <p className={styles.muted}>
-        Conexões, recortes e sincronização ficam em <Link to={pathTo('integrations')}>Conexões › Serviços</Link>.
-      </p>
-    </PageSection>
-  );
-}
-
-/** Nenhum desses aparece com valor. */
-function NotCalculatedSection({ metrics }: { metrics: ProjectMetrics }) {
-  return (
-    <PageSection title="Ainda não calculado">
-      <ul className={styles.plain}>
-        {metrics.notCalculated.map((entry) => (
-          <li key={entry.id}>
-            <span className={styles.rowTitle}>{entry.label}.</span> <span className={styles.muted}>{entry.reason}</span>
-          </li>
-        ))}
-      </ul>
-    </PageSection>
+    <>
+      <AttentionStrip attention={attention} oldestReadAt={activity.oldestReadAt} />
+      <TabBar
+        aria-label="Acompanhamento do projeto"
+        tabs={[
+          { label: 'Visão geral' },
+          { label: 'Entregas' },
+          { label: activeRisks > 0 ? `Riscos (${activeRisks})` : 'Riscos' },
+          { label: 'Decisões' },
+          { label: 'Fontes' }
+        ]}
+      >
+        <div className={styles.tab}>
+          <ActivitySection integrations={integrations} />
+          {forecast.kinds.length > 0 ? (
+            <ForecastSection forecast={forecast} connectors={connectors} />
+          ) : (
+            <NoData title="Previsão de entrega">Sem dados para calcular a previsão ainda.</NoData>
+          )}
+        </div>
+        <div className={styles.tab}>
+          {metrics.kinds.length > 0 ? (
+            <FlowSection metrics={metrics} connectors={connectors} />
+          ) : (
+            <NoData title={`Fluxo nas últimas ${plural(metrics.periodWeeks, 'semana', 'semanas')}`}>
+              Sem dados para calcular o fluxo ainda.
+            </NoData>
+          )}
+          <MilestonesSection management={management} projectId={projectId} />
+        </div>
+        <div className={styles.tab}>
+          {risks.hasData ? (
+            <RisksSection risks={risks} />
+          ) : (
+            <NoData title="Riscos">Sem dados para detectar riscos ainda.</NoData>
+          )}
+          <RiskHistorySection management={management} projectId={projectId} />
+        </div>
+        <div className={styles.tab}>
+          <DecisionsSection management={management} projectId={projectId} />
+        </div>
+        <div className={styles.tab}>
+          <SourcesSection integrations={integrations} connectors={connectors} />
+          <LinkedRunsSection management={management} projectId={projectId} />
+          <NotCalculated metrics={metrics} />
+        </div>
+      </TabBar>
+    </>
   );
 }

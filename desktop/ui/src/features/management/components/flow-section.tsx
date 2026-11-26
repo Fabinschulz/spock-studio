@@ -1,4 +1,4 @@
-import { InlineNotice, PageSection, Term } from '@/shared/components';
+import { Disclosure, InlineNotice, PageSection, Term } from '@/shared/components';
 import type { Connector, KindFlow, ProjectMetrics } from '@/shared/schema';
 import { useId } from 'react';
 
@@ -29,12 +29,14 @@ export function FlowSection({ metrics, connectors }: FlowSectionProps) {
       {metrics.kinds.map((flow) => (
         <KindFlowBlock key={flow.kind} flow={flow} label={label(flow.kind)} />
       ))}
-      <p className={styles.muted}>
-        Entregue é o item concluído com data de conclusão; tarefa descartada ou duplicada e pull request fechado sem ser
-        incorporado não contam. O tempo total são os dias corridos da criação à conclusão. O tempo de trabalho são os
-        dias corridos do início do trabalho à conclusão: o início é a primeira vez que o item entrou em andamento no
-        histórico de status, que só o Jira informa. Tipos diferentes não são somados.
-      </p>
+      <Disclosure className={styles.method} summary="Como os números de fluxo são contados">
+        <p>
+          Entregue é o item concluído com data de conclusão; tarefa descartada ou duplicada e pull request fechado sem
+          ser incorporado não contam. O tempo total são os dias corridos da criação à conclusão. O tempo de trabalho são
+          os dias corridos do início do trabalho à conclusão: o início é a primeira vez que o item entrou em andamento
+          no histórico de status, que só o Jira informa. Tipos diferentes não são somados.
+        </p>
+      </Disclosure>
     </PageSection>
   );
 }

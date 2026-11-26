@@ -46,10 +46,12 @@ export function DecisionsSection({ management, projectId }: { management: Manage
       <ResourceView resource={list} loading="Lendo as decisões…" fallbackError="Não foi possível ler as decisões.">
         {(decisions) =>
           decisions.length === 0 ? (
-            <EmptyState>
-              Nenhuma decisão registrada neste projeto. Registre uma para guardar o que se decidiu, por quê e o que o
-              motor sabia naquele dia.
-            </EmptyState>
+            formOpen ? null : (
+              <EmptyState>
+                Nenhuma decisão registrada neste projeto. Registre uma para guardar o que se decidiu, por quê e o que o
+                motor sabia naquele dia.
+              </EmptyState>
+            )
           ) : (
             <ul className={styles.rows} aria-label="Decisões registradas">
               {decisions.map((decision) => (
@@ -106,6 +108,10 @@ function DecisionForm({
 
   return (
     <form className={form.decisionForm} onSubmit={(event) => void submit(event)} aria-label="Nova decisão">
+      <p className={styles.muted}>
+        Os fatos que o motor tem hoje ficam guardados com a decisão. Depois de registrada, ela não pode ser editada nem
+        apagada. Não escreva senhas nem chaves: o que parecer um segredo é substituído.
+      </p>
       <TextField
         label="Título"
         fullWidth
@@ -152,10 +158,6 @@ function DecisionForm({
           }
         </ResourceView>
       </fieldset>
-      <p className={styles.muted}>
-        Os fatos que o motor tem hoje ficam guardados com a decisão. Depois de registrada, ela não pode ser editada nem
-        apagada. Não escreva senhas nem chaves: o que parecer um segredo é substituído.
-      </p>
       {error ? <InlineNotice tone="danger">{error}</InlineNotice> : null}
       <div className={styles.actions}>
         <Button
