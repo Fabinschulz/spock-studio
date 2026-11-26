@@ -4,7 +4,6 @@ import type { EngineClient } from '@/shared/api';
 import { NoProjectState, Page, ResourceView } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import type { Connector, ProjectForecast, ProjectIntegration, ProjectMetrics, ProjectRisks } from '@/shared/schema';
-import { plural } from '@/shared/utils';
 import { TabBar } from '@mariliz/ui-kit';
 import { useCallback, useMemo } from 'react';
 
@@ -15,7 +14,6 @@ import { FlowSection } from './components/flow-section';
 import { ForecastSection } from './components/forecast-section';
 import { LinkedRunsSection } from './components/linked-runs-section';
 import { MilestonesSection } from './components/milestones-section';
-import { NoData } from './components/no-data';
 import { NoSourcesState } from './components/no-sources-state';
 import { NotCalculated } from './components/not-calculated';
 import { PeriodField } from './components/period-field';
@@ -128,28 +126,14 @@ function WithSources({ value, management, projectId }: WithSourcesProps) {
       >
         <div className={styles.tab}>
           <ActivitySection integrations={integrations} />
-          {forecast.kinds.length > 0 ? (
-            <ForecastSection forecast={forecast} connectors={connectors} />
-          ) : (
-            <NoData title="Previsão de entrega">Sem dados para calcular a previsão ainda.</NoData>
-          )}
+          <ForecastSection forecast={forecast} connectors={connectors} />
         </div>
         <div className={styles.tab}>
-          {metrics.kinds.length > 0 ? (
-            <FlowSection metrics={metrics} connectors={connectors} />
-          ) : (
-            <NoData title={`Fluxo nas últimas ${plural(metrics.periodWeeks, 'semana', 'semanas')}`}>
-              Sem dados para calcular o fluxo ainda.
-            </NoData>
-          )}
+          <FlowSection metrics={metrics} connectors={connectors} />
           <MilestonesSection management={management} projectId={projectId} />
         </div>
         <div className={styles.tab}>
-          {risks.hasData ? (
-            <RisksSection risks={risks} />
-          ) : (
-            <NoData title="Riscos">Sem dados para detectar riscos ainda.</NoData>
-          )}
+          <RisksSection risks={risks} />
           <RiskHistorySection management={management} projectId={projectId} />
         </div>
         <div className={styles.tab}>

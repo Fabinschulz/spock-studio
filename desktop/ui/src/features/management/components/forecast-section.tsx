@@ -4,8 +4,10 @@ import { useId } from 'react';
 
 import { CONFIDENCE_LABEL } from '../domain/delivery-labels';
 import { formatDay, formatWeeks } from '../domain/format';
+import { FORECAST_TITLE, NO_DATA } from '../domain/section-text';
 import { Figure, Figures } from './figures';
 import styles from '../management.module.scss';
+import { NoData } from './no-data';
 
 interface ForecastSectionProps {
   forecast: ProjectForecast;
@@ -14,12 +16,12 @@ interface ForecastSectionProps {
 
 /** Sem base suficiente, a seção diz que não há previsão em vez de mostrar uma data. */
 export function ForecastSection({ forecast, connectors }: ForecastSectionProps) {
-  if (forecast.kinds.length === 0) return null;
+  if (forecast.kinds.length === 0) return <NoData title={FORECAST_TITLE}>{NO_DATA.forecast}</NoData>;
   const label = (kind: string) =>
     connectors.flatMap((connector) => connector.dataKinds).find((entry) => entry.id === kind)?.label ?? kind;
 
   return (
-    <PageSection title="Previsão de entrega">
+    <PageSection title={FORECAST_TITLE}>
       {forecast.kinds.map((kind) => (
         <KindForecast key={kind.kind} forecast={kind} label={label(kind.kind)} />
       ))}
