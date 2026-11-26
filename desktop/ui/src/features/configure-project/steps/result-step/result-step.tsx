@@ -4,7 +4,7 @@ import { useState } from 'react';
 import type { HarnessNames } from '@/shared/schema';
 import { runOutcomeLabel } from '@/shared/utils';
 
-import { ConfirmAction, EvidenceDisclosure, InlineNotice, PrimaryActionFooter } from '@/shared/components/ui';
+import { ConfirmAction, EvidenceDisclosure, InlineNotice, PrimaryActionFooter, Term } from '@/shared/components/ui';
 
 import styles from '../../components/panels.module.scss';
 import { PlanError } from '../../components/plan-error';
@@ -67,10 +67,12 @@ export function ResultStep({
           {explainOutcome(apply)}
           {apply.error ? <div>{apply.error.message}</div> : null}
           {exit === 'proposal' ? (
-            <p className={styles.cause}>
-              Causa: o plano usou as regras-base. Falta a proposta do Harness Engineer; o próximo passo, abaixo, diz
-              como pedir.
-            </p>
+            <div className={styles.cause}>
+              <p>
+                Causa: o plano usou as <Term id="baseRules" />. Falta a proposta do <Term id="harnessEngineer" />; o
+                próximo passo, abaixo, diz como pedir.
+              </p>
+            </div>
           ) : null}
           {exit !== null && specificationSkipped ? (
             <div className={styles.cause}>

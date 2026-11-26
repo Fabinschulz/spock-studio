@@ -296,6 +296,13 @@
   overflow-wrap: anywhere;
 }
 
+.projectNote {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
 .analyze {
   display: flex;
   flex-wrap: wrap;

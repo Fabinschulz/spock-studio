@@ -132,7 +132,7 @@ describe('ModelStep', () => {
 
     const cursor = screen.getByRole('checkbox', { name: /Cursor/ });
     expect(cursor).toHaveAccessibleName(expect.not.stringMatching(/skill/));
-    expect(cursor).toHaveAccessibleDescription(/ligação com a IDE e a skill do contrato/);
+    expect(cursor).toHaveAccessibleDescription(/conexão do editor com o Spock e as instruções do contrato/);
   });
 
   it('estrutura alterada pede permissão explícita para reinstalar', async () => {

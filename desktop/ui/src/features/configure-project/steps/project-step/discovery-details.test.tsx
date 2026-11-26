@@ -56,10 +56,64 @@ describe('DiscoveryDetails', () => {
     expect(screen.getByText(/em raiz do projeto/)).toBeTruthy();
     expect(screen.getByText('dotnet test')).toBeTruthy();
     expect(screen.getByText('Nada é executado por ter sido detectado.')).toBeTruthy();
-    expect(screen.getByText(/1 agente, 0 skills/)).toBeTruthy();
+    expect(screen.getByText(/existente/).closest('li')).toHaveTextContent(
+      'Harness existente 1 agente, 0 skills, 0 regras, 0 hooks, 0 servidores MCP, 0 arquivos de eval'
+    );
     expect(screen.getByText('não é um repositório')).toBeTruthy();
     expect(screen.getByText(/Python: não encontrado/)).toBeTruthy();
     expect(screen.getByText(/Node: versão 22.1.0/)).toBeTruthy();
+  });
+
+  it('os termos técnicos do estado atual levam a explicação do glossário', () => {
+    render(<DiscoveryDetails discovery={discovery} />);
+
+    for (const name of ['Harness', 'skills', 'hooks', 'servidores MCP', 'arquivos de eval']) {
+      expect(screen.getByRole('button', { name })).toBeTruthy();
+    }
+  });
+
+  it('separa o rótulo do comando detectado', () => {
+    render(<DiscoveryDetails discovery={discovery} />);
+
+    const command = screen.getByText('dotnet test');
+    expect(command.tagName).toBe('CODE');
+    expect(command.previousElementSibling).toHaveTextContent(/^Testes?$/);
+  });
+
+  it('diz o que a confiança da stack muda, e só quando não é alta', () => {
+    const stack = discovery.stacks[0]!;
+    const { rerender } = render(<DiscoveryDetails discovery={discovery} />);
+    expect(screen.queryByText(/não muda o que entra no plano/)).toBeNull();
+
+    rerender(
+      <DiscoveryDetails discovery={{ ...discovery, stacks: [{ ...stack, version: null, confidence: 'low' }] }} />
+    );
+    expect(
+      screen.getByText(/A versão não foi encontrada nos arquivos\. Isso não muda o que entra no plano/)
+    ).toBeTruthy();
+
+    rerender(<DiscoveryDetails discovery={{ ...discovery, stacks: [{ ...stack, confidence: 'medium' }] }} />);
+    expect(screen.getByText(/deduzida do que o projeto declara/)).toBeTruthy();
+  });
+
+  it('sem ambiente de IA detectado, aponta a etapa em que se escolhe em vez de pedir a escolha aqui', () => {
+    render(
+      <DiscoveryDetails
+        discovery={{
+          ...discovery,
+          warnings: [
+            {
+              code: 'NO_AI_ENVIRONMENT_DETECTED',
+              message: 'Nenhum ambiente de IA foi detectado; selecione o que o projeto usa.',
+              paths: []
+            }
+          ]
+        }}
+      />
+    );
+
+    expect(screen.queryByText(/selecione o que o projeto usa/)).toBeNull();
+    expect(screen.getByText(/Você escolhe qual a equipe usa na próxima etapa, Ambiente de IA\./)).toBeTruthy();
   });
 
   it('sem stack nem harness, diz que o projeto começa do zero', () => {

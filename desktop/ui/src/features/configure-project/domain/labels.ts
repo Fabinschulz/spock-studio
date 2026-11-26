@@ -129,3 +129,12 @@ const stepStatusLabels: Record<string, string> = {
 
 /** Estado de uma etapa; um estado novo do motor aparece legível (`a_b` vira `a b`), nunca some. */
 export const stepStatusLabel = (status: string): string => stepStatusLabels[status] ?? status.replace(/_/g, ' ');
+
+const LEGACY_ID_PREFIX = 'mariliz.';
+
+/**
+ * O id dos componentes ainda começa pelo nome antigo do produto. Só a tela tira o prefixo: o motor, o lock e os
+ * contratos seguem com o id inteiro, e o que se mostra continua sendo um trecho exato dele, que dá para buscar.
+ */
+export const componentIdLabel = (id: string): string =>
+  id.startsWith(LEGACY_ID_PREFIX) ? id.slice(LEGACY_ID_PREFIX.length) : id;
