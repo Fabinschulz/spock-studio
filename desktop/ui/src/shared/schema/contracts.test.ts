@@ -297,7 +297,7 @@ describe('contrato da visão gerencial (fixtures do motor)', () => {
 
   it('portfólio com uma linha por projeto e os pontos de atenção', () => {
     const parsed = portfolioSchema.parse(managementPortfolio);
-    expect(parsed.projects.map((project) => project.signals.map((signal) => signal.id))).toEqual([['no-sources'], []]);
+    expect(parsed.projects.map((project) => project.signals.map((signal) => signal.id))).toEqual([[], ['no-sources']]);
   });
 });
 

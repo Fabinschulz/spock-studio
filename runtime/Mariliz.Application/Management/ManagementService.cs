@@ -24,7 +24,12 @@ public sealed class ManagementService(WorkspaceAuthorizer workspace, Integration
     {
         var now = clock.UtcNow;
         var projects = workspace.Projects().Select(project => ProjectRow(project, now)).ToList();
-        var ordered = projects.OrderByDescending(p => p.Signals.Count).ThenBy(p => p.DisplayName, StringComparer.OrdinalIgnoreCase).ToList();
+        // Quem pede atenção vem primeiro. Sem ferramenta não é atenção, é falta de dado: fica depois dos que têm dado.
+        var ordered = projects
+            .OrderByDescending(p => p.Signals.Count(signal => signal.Id != PortfolioSignals.NoSources))
+            .ThenBy(p => p.Sources == 0)
+            .ThenBy(p => p.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
         return new Portfolio(now, DefaultWeeks, ordered);
     }
 

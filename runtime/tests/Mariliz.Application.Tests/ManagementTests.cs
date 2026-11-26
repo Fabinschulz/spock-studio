@@ -193,7 +193,22 @@ public class ManagementTests
         Assert.Empty(other.Kinds);
         Assert.Equal(0, other.Sources);
         Assert.Equal("no-sources", Assert.Single(other.Signals).Id);
-        Assert.Equal(h.OtherProjectId, portfolio.Projects[0].ProjectId);
+    }
+
+    [Fact]
+    public async Task Portfolio_poe_primeiro_quem_pede_atencao_e_nao_conta_a_falta_de_ferramenta_como_atencao()
+    {
+        using var h = new IntegrationHarness();
+        h.Clock.UtcNow = Now;
+        await Seed(h, [Item("A-1", StatusCategories.Todo, Now.AddDays(-30), due: new DateOnly(2026, 11, 1))]);
+        h.Clock.UtcNow = Now.AddDays(10);
+
+        var projects = h.Management.Portfolio().Projects;
+
+        Assert.Equal(h.ProjectId, projects[0].ProjectId);
+        Assert.Contains(projects[0].Signals, signal => signal.Id == "overdue");
+        Assert.Equal(h.OtherProjectId, projects[1].ProjectId);
+        Assert.Equal(["no-sources"], projects[1].Signals.Select(signal => signal.Id));
     }
 
     [Fact]

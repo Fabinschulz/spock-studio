@@ -4,6 +4,9 @@ namespace Mariliz.Application.Management;
 
 public static class PortfolioSignals
 {
+    /// <summary>Projeto sem ferramenta vinculada: falta dado, e isso não é um ponto de atenção sobre o projeto.</summary>
+    public const string NoSources = "no-sources";
+
     /// <summary>Dados mais antigos que isso deixam de descrever o andamento atual.</summary>
     public static readonly TimeSpan StaleAfter = TimeSpan.FromDays(7);
 
@@ -13,7 +16,7 @@ public static class PortfolioSignals
         DateTimeOffset? oldestReadAt,
         DateTimeOffset now)
     {
-        if (sources.Count == 0) return [new PortfolioSignal("no-sources", "Nenhuma ferramenta vinculada: não há dados de andamento.")];
+        if (sources.Count == 0) return [new PortfolioSignal(NoSources, "Nenhuma ferramenta vinculada: não há dados de andamento.")];
 
         var signals = new List<PortfolioSignal>();
         var neverSynced = sources.Count(source => source.Data.History.All(sync => sync.FinishedAt is null));
