@@ -37,7 +37,11 @@ function describe(
     case 'starting':
       return { title: 'Sistema local', detail: 'Iniciando o motor…', tone: 'pending' };
     case 'crashed':
-      return { title: 'Sistema local', detail: 'Motor indisponível. Reinicie o aplicativo.', tone: 'bad' };
+      return {
+        title: 'Sistema local',
+        detail: 'Motor indisponível. Reinicie-o em Configurações › Diagnóstico.',
+        tone: 'bad'
+      };
     default:
       return { title: 'Sistema local', detail: 'Verificando o motor…', tone: 'pending' };
   }
