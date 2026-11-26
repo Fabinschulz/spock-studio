@@ -7,7 +7,17 @@ import styles from './diagnostic-log-section.module.scss';
 
 const SHOWN = 50;
 
-const timeOf = (atMs: number) => new Date(atMs).toLocaleTimeString('pt-BR');
+const timeOf = (atMs: number) =>
+  new Date(atMs).toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+
+// O texto copiado para o suporte continua com a origem técnica (`[motor]`, `[host]`).
+const SOURCE: Record<LogLine['source'], string> = { motor: 'Motor', host: 'Aplicativo' };
 
 export function LogList({ lines }: { lines: readonly LogLine[] }) {
   if (lines.length === 0) return <EmptyState>Nenhuma linha ainda.</EmptyState>;
@@ -20,7 +30,7 @@ export function LogList({ lines }: { lines: readonly LogLine[] }) {
         .map((line) => (
           <li key={`${line.atMs}-${line.source}-${line.message}`} className={styles.line}>
             <span className={styles.time}>{timeOf(line.atMs)}</span>
-            <span className={styles.source}>{line.source}</span>
+            <span className={styles.source}>{SOURCE[line.source]}</span>
             <span className={styles.message}>
               {line.message}
               {line.count > 1 ? ` (×${line.count})` : ''}

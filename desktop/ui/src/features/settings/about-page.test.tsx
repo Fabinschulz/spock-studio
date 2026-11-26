@@ -44,8 +44,11 @@ describe('Sobre', () => {
     hostWith({ text: 'MIT License\n\nCopyright (c) Exemplo', components: 484, complete: true });
     const { container } = renderPage();
 
-    expect(screen.getByText(`SPOCK: ${PRODUCT_MEANING}.`)).toBeInTheDocument();
-    expect(await screen.findByText('484 componentes de terceiros.')).toBeInTheDocument();
+    expect(screen.getByText('Spock Studio: engenharia de software assistida por IA.')).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`SPOCK quer dizer ${PRODUCT_MEANING}\\.`))).toBeInTheDocument();
+    expect(await screen.findByText(/^484 componentes de terceiros\./)).toHaveTextContent(
+      'dentro da pasta em que o aplicativo foi instalado'
+    );
     expect(screen.getByLabelText('Textos de licença de terceiros')).toHaveTextContent('Copyright (c) Exemplo');
     expect(invoke).toHaveBeenCalledWith('third_party_notices');
     await expectNoA11yViolations(container);
@@ -55,9 +58,9 @@ describe('Sobre', () => {
     hostWith({ text: 'texto', components: 10, complete: false });
     renderPage();
 
-    expect(
-      await screen.findByText('10 componentes de terceiros. Alguns textos de licença ainda estão sendo reunidos.')
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/^10 componentes de terceiros\./)).toHaveTextContent(
+      '10 componentes de terceiros. Alguns textos de licença ainda estão sendo reunidos.'
+    );
   });
 
   it('mostra o erro quando a instalação não traz os avisos', async () => {

@@ -32,13 +32,13 @@ describe('purposeModelOptions', () => {
   it('traz só os modelos de provedores com chave, cada um com o nome do provedor', () => {
     const labels = purposeModelOptions(connection).map((option) => option.label);
 
-    expect(labels).toContain('GPT-4o mini (OpenAI) (padrão)');
+    expect(labels).toContain('GPT-4o mini (OpenAI, padrão)');
     expect(labels).toContain('Claude Opus 5.5 (Anthropic)');
     expect(labels.some((label) => label.includes('Gemini'))).toBe(false);
   });
 
   it('marca como padrão só o modelo padrão do provedor padrão', () => {
-    const marked = purposeModelOptions(connection).filter((option) => option.label.endsWith('(padrão)'));
+    const marked = purposeModelOptions(connection).filter((option) => option.label.endsWith(', padrão)'));
 
     expect(marked.map((option) => option.value)).toEqual(['gpt-4o-mini']);
     expect(defaultModelOf(connection)).toBe('gpt-4o-mini');

@@ -206,8 +206,8 @@ mod tests {
     #[test]
     fn texto_comum_passa_sem_mudar() {
         assert_eq!(
-            redact("o motor encerrou (código Some(1))"),
-            "o motor encerrou (código Some(1))"
+            redact("o motor encerrou (código 1)"),
+            "o motor encerrou (código 1)"
         );
     }
 

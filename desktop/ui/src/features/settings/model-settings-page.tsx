@@ -1,5 +1,5 @@
 import type { EngineClient } from '@/shared/api';
-import { ErrorState, LoadingState, Page, PageSection, SuccessState, Term } from '@/shared/components';
+import { ErrorState, LoadingState, Page, PageSection, Term } from '@/shared/components';
 import { useMemo } from 'react';
 
 import { AiToolsSection } from './components/ai-tools-section';
@@ -18,7 +18,8 @@ interface ModelSettingsPageProps {
 
 export function ModelSettingsPage({ client, title = 'Minha IA' }: ModelSettingsPageProps) {
   const api = useMemo(() => createModelApi(client), [client]);
-  const { connection, busy, error, notice, save, test, choose, setBudget, remove, setDefault } = useModelSettings(api);
+  const { connection, busy, loadError, reload, feedback, save, test, choose, setBudget, remove, setDefault } =
+    useModelSettings(api);
 
   return (
     <Page
@@ -48,25 +49,27 @@ export function ModelSettingsPage({ client, title = 'Minha IA' }: ModelSettingsP
                 key={provider.id}
                 provider={provider}
                 busy={busy}
+                feedback={feedback}
                 onSave={(entry, key) => save(entry.id, entry.name, key)}
-                onTest={(entry) => void test(entry.id, entry.name)}
-                onSetDefault={(entry) => void setDefault(entry.id, entry.name)}
-                onRemove={(entry) => void remove(entry.id, entry.name)}
+                onTest={(entry) => test(entry.id, entry.name)}
+                onSetDefault={(entry) => setDefault(entry.id, entry.name)}
+                onRemove={(entry) => remove(entry.id, entry.name)}
               />
             ))}
           </ul>
+        ) : loadError ? (
+          <ErrorState onRetry={reload}>{loadError}</ErrorState>
         ) : (
           <LoadingState>Lendo a configuração…</LoadingState>
         )}
-        {error ? <ErrorState>{error}</ErrorState> : null}
-        {notice ? <SuccessState>{notice}</SuccessState> : null}
       </PageSection>
 
       {connection?.configured ? (
         <PurposesSection
           connection={connection}
           busy={busy}
-          onChoose={(purpose, model) => void choose(purpose.id, model, purpose.label)}
+          feedback={feedback}
+          onChoose={(purpose, model) => choose(purpose.id, model, purpose.label)}
         />
       ) : null}
 
@@ -74,7 +77,8 @@ export function ModelSettingsPage({ client, title = 'Minha IA' }: ModelSettingsP
         <BudgetsSection
           connection={connection}
           busy={busy}
-          onSave={(budget, tokens) => void setBudget(budget.purpose, tokens, budget.label)}
+          feedback={feedback}
+          onSave={(budget, tokens) => setBudget(budget.purpose, tokens, budget.label)}
         />
       ) : null}
 

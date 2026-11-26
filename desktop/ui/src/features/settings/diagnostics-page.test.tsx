@@ -94,6 +94,7 @@ describe('DiagnosticsPage · registro recente', () => {
     const section = await screen.findByRole('region', { name: 'Registro recente' });
     const items = await within(section).findAllByRole('listitem');
 
+    expect(items[0]).toHaveTextContent('Motor');
     expect(items.map((item) => item.textContent)).toEqual([
       expect.stringContaining('caiu'),
       expect.stringContaining('falhou (×2)'),

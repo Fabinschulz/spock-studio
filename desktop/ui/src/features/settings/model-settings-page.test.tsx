@@ -195,15 +195,16 @@ describe('Minha IA · provedores', () => {
     const { container } = renderPage(api);
 
     const openai = await rowOf('OpenAI');
-    expect(screen.getAllByText('Sem chave neste computador.')).toHaveLength(3);
+    expect(screen.getAllByText('Sem chave')).toHaveLength(3);
     const field = within(openai).getByLabelText('Chave de API (OpenAI)');
     await userEvent.type(field, testKey);
     await userEvent.click(within(openai).getByRole('button', { name: 'Salvar a chave de OpenAI' }));
 
-    expect(await screen.findByText('Chave de OpenAI guardada: o provedor a aceitou.')).toBeInTheDocument();
+    expect(await within(openai).findByText('Chave de OpenAI guardada: o provedor a aceitou.')).toBeInTheDocument();
     expect(within(openai).getByText('Conectado')).toBeInTheDocument();
     expect(within(openai).getByText('Padrão')).toBeInTheDocument();
     expect(field).toHaveValue('');
+    await waitFor(() => expect(field).toHaveFocus());
     expect(container.textContent).not.toContain(testKey);
     expect(modelCalls(api)).toEqual(['model.connection', 'model.save', 'model.connection']);
     expect(api.requests.find((request) => request.method === 'model.save')!.params).toEqual({
@@ -221,9 +222,45 @@ describe('Minha IA · provedores', () => {
     await userEvent.type(within(openai).getByLabelText('Chave de API (OpenAI)'), testKey);
     await userEvent.click(within(openai).getByRole('button', { name: 'Salvar a chave de OpenAI' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('O provedor recusou a chave.');
-    expect(screen.getAllByText('Sem chave neste computador.')).toHaveLength(3);
+    expect(await within(openai).findByRole('alert')).toHaveTextContent(
+      'O provedor recusou a chave. Confira se copiou a chave inteira'
+    );
+    expect(screen.getAllByText('Sem chave')).toHaveLength(3);
     expect(screen.queryByText(/guardada: o provedor a aceitou/)).not.toBeInTheDocument();
+  });
+
+  it('uma chave mal copiada aparece como erro no campo e explica a regra', async () => {
+    renderPage(client(none));
+
+    const openai = await rowOf('OpenAI');
+    const field = within(openai).getByLabelText('Chave de API (OpenAI)');
+    await userEvent.type(field, 'curta demais');
+
+    expect(field).toHaveAttribute('aria-invalid', 'true');
+    expect(within(openai).getByText(/^Confira se copiou a chave inteira\./)).toBeInTheDocument();
+    expect(within(openai).getByRole('button', { name: 'Salvar a chave de OpenAI' })).toBeDisabled();
+  });
+
+  it('sem motor, diz o que fazer e deixa tentar de novo, sem ficar "lendo" junto do erro', async () => {
+    const api = client(none);
+    const request = api.request.bind(api);
+    let down = true;
+    api.request = async (method, params, schema) => {
+      if (down && method === 'model.connection')
+        throw new EngineError('ENGINE_NOT_RUNNING', 'O motor não está em execução.');
+      return request(method, params, schema);
+    };
+    renderPage(api);
+
+    const providers = await screen.findByRole('region', { name: 'Provedores' });
+    expect(await within(providers).findByRole('alert')).toHaveTextContent(
+      'O motor não está em execução. Tente de novo em instantes; se continuar, feche e abra o aplicativo.'
+    );
+    expect(within(providers).queryByText('Lendo a configuração…')).not.toBeInTheDocument();
+
+    down = false;
+    await userEvent.click(within(providers).getByRole('button', { name: 'Tentar de novo' }));
+    expect(await rowOf('OpenAI')).toBeInTheDocument();
   });
 
   it('diz que cada chave é de um provedor, que é conferida antes de ser guardada e que a atual fica se ele recusar', async () => {
@@ -281,7 +318,7 @@ describe('Minha IA · provedores', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Conferir OpenAI com o provedor' }));
 
     expect(await screen.findByText('Com erro')).toBeInTheDocument();
-    expect(screen.getByText('O provedor recusou a chave.')).toBeInTheDocument();
+    expect(screen.getByText(/^O provedor recusou a chave\. Confira se copiou a chave inteira/)).toBeInTheDocument();
     expect(screen.queryByText('OpenAI aceitou a chave.')).not.toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
@@ -361,7 +398,7 @@ describe('Minha IA · provedores', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Remover a chave de OpenAI' }));
     await userEvent.click(screen.getByRole('button', { name: 'Remover chave' }));
 
-    await waitFor(() => expect(screen.getAllByText('Sem chave neste computador.')).toHaveLength(3));
+    await waitFor(() => expect(screen.getAllByText('Sem chave')).toHaveLength(3));
     expect(screen.queryByText('Modelo por finalidade')).not.toBeInTheDocument();
   });
 });
@@ -376,14 +413,14 @@ describe('Minha IA · modelo por finalidade', () => {
 
     expect(screen.getByText('Modelo por finalidade')).toBeInTheDocument();
     expect(await optionsOf(judge)).toEqual([
-      'GPT-4o mini (OpenAI) (padrão)',
+      'GPT-4o mini (OpenAI, padrão)',
       'GPT-4o (OpenAI)',
       'Claude Haiku 5.5 (Anthropic)',
       'Claude Sonnet 5.5 (Anthropic)',
       'Claude Opus 5.5 (Anthropic)'
     ]);
     expect(judge).toHaveTextContent('Claude Opus 5.5 (Anthropic)');
-    expect(await selectOf('Assistente gerencial')).toHaveTextContent('GPT-4o mini (OpenAI) (padrão)');
+    expect(await selectOf('Assistente gerencial')).toHaveTextContent('GPT-4o mini (OpenAI, padrão)');
     expect(screen.getByText(/Dá uma segunda opinião sobre o resultado de uma execução/)).toBeInTheDocument();
   });
 
@@ -399,18 +436,18 @@ describe('Minha IA · modelo por finalidade', () => {
       model: 'claude-sonnet-5-5'
     });
     expect(await selectOf('Assistente gerencial')).toHaveTextContent(/^Claude Sonnet 5.5 \(Anthropic\)$/);
-    expect(await selectOf('Fluxos de engenharia')).toHaveTextContent('GPT-4o mini (OpenAI) (padrão)');
+    expect(await selectOf('Fluxos de engenharia')).toHaveTextContent('GPT-4o mini (OpenAI, padrão)');
   });
 
   it('escolher o padrão volta a finalidade ao padrão sem mandar modelo', async () => {
     const api = client(multi);
     renderPage(api);
 
-    await chooseOption(await selectOf('Juiz'), 'GPT-4o mini (OpenAI) (padrão)');
+    await chooseOption(await selectOf('Juiz'), 'GPT-4o mini (OpenAI, padrão)');
 
     await waitFor(() => expect(api.requests.some((request) => request.method === 'model.purpose')).toBe(true));
     expect(api.requests.find((request) => request.method === 'model.purpose')!.params).toEqual({ purpose: 'judge' });
-    expect(await selectOf('Juiz')).toHaveTextContent('GPT-4o mini (OpenAI) (padrão)');
+    expect(await selectOf('Juiz')).toHaveTextContent('GPT-4o mini (OpenAI, padrão)');
   });
 
   it('diz que a escolha é da pessoa e onde fica o teto de tokens', async () => {
@@ -434,12 +471,12 @@ describe('Minha IA · modelo por finalidade', () => {
     await chooseOption(await selectOf('Assistente gerencial'), /^GPT-4o \(OpenAI\)$/);
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Esse modelo não está disponível');
-    expect(await selectOf('Assistente gerencial')).toHaveTextContent('GPT-4o mini (OpenAI) (padrão)');
+    expect(await selectOf('Assistente gerencial')).toHaveTextContent('GPT-4o mini (OpenAI, padrão)');
   });
 
   it('conectar outro provedor acrescenta os modelos dele às opções', async () => {
     renderPage(client(connected));
-    expect(await optionsOf(await selectOf('Juiz'))).toEqual(['GPT-4o mini (OpenAI) (padrão)', 'GPT-4o (OpenAI)']);
+    expect(await optionsOf(await selectOf('Juiz'))).toEqual(['GPT-4o mini (OpenAI, padrão)', 'GPT-4o (OpenAI)']);
 
     const anthropic = await rowOf('Anthropic');
     await userEvent.type(within(anthropic).getByLabelText('Chave de API (Anthropic)'), testKey);
@@ -457,7 +494,7 @@ describe('Minha IA · modelo por finalidade', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Remover chave' }));
 
     await screen.findByText('Chave de Anthropic removida deste computador.');
-    expect(await selectOf('Juiz')).toHaveTextContent('GPT-4o mini (OpenAI) (padrão)');
+    expect(await selectOf('Juiz')).toHaveTextContent('GPT-4o mini (OpenAI, padrão)');
     expect(await optionsOf(await selectOf('Juiz'))).not.toContain('Claude Opus 5.5 (Anthropic)');
   });
 
@@ -492,14 +529,20 @@ describe('Minha IA · teto de tokens por finalidade', () => {
     await userEvent.type(field, '16000');
     await userEvent.click(screen.getByRole('button', { name: 'Salvar o teto de Fluxos de engenharia' }));
 
-    expect(await screen.findByText('Teto de fluxos de engenharia: 16.000 tokens por execução.')).toBeInTheDocument();
+    const row = field.closest('li')!;
+    expect(
+      await within(row).findByText('Teto de fluxos de engenharia: 16.000 tokens por execução.')
+    ).toBeInTheDocument();
     expect(api.requests.at(-1)).toEqual({ method: 'model.budget', params: { purpose: 'workflow', tokens: 16000 } });
     expect(await fieldOf('Fluxos de engenharia')).toHaveValue('16000');
+    await waitFor(() => expect(field).toHaveFocus());
 
     await userEvent.click(screen.getByRole('button', { name: 'Voltar o teto de Fluxos de engenharia ao padrão' }));
 
     expect(await screen.findByText('Teto de fluxos de engenharia: 8.000 tokens por execução.')).toBeInTheDocument();
     expect(api.requests.at(-1)).toEqual({ method: 'model.budget', params: { purpose: 'workflow', tokens: null } });
+    expect(field).toHaveValue('8000');
+    await waitFor(() => expect(field).toHaveFocus());
   });
 
   it('fora da faixa ou sem ser número, explica e não deixa salvar', async () => {

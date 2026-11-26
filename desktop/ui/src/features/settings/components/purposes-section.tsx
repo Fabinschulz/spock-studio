@@ -3,16 +3,20 @@ import type { ModelConnection, ModelPurpose } from '@/shared/schema';
 import { SelectField } from '@mariliz/ui-kit';
 import { useMemo } from 'react';
 
-import { defaultModelOf, purposeModelOptions } from '../domain/provider-labels';
+import { defaultModelOf, purposeModelOptions, type PurposeOption } from '../domain/provider-labels';
+import type { Feedback } from '../hooks/use-model-settings';
+import { useRefocus } from '../hooks/use-refocus';
+import { ActionFeedback } from './action-feedback';
 import styles from './purposes-section.module.scss';
 
 interface PurposesSectionProps {
   connection: ModelConnection;
   busy: boolean;
-  onChoose: (purpose: ModelPurpose, model: string | null) => void;
+  feedback: Feedback | null;
+  onChoose: (purpose: ModelPurpose, model: string | null) => Promise<boolean>;
 }
 
-export function PurposesSection({ connection, busy, onChoose }: PurposesSectionProps) {
+export function PurposesSection({ connection, busy, feedback, onChoose }: PurposesSectionProps) {
   const options = useMemo(() => purposeModelOptions(connection), [connection]);
   const defaultModel = defaultModelOf(connection);
 
@@ -23,23 +27,45 @@ export function PurposesSection({ connection, busy, onChoose }: PurposesSectionP
     >
       <ul className={styles.purposes}>
         {connection.purposes.map((purpose) => (
-          <li key={purpose.id} className={styles.purpose}>
-            <SelectField
-              label={purpose.label}
-              size="small"
-              fullWidth
-              value={purpose.model}
-              disabled={busy}
-              onChange={(event) => {
-                const model = String(event.target.value);
-                onChoose(purpose, model === defaultModel ? null : model);
-              }}
-              options={options}
-            />
-            <p className={styles.hint}>{purpose.description}</p>
-          </li>
+          <PurposeRow
+            key={purpose.id}
+            purpose={purpose}
+            options={options}
+            busy={busy}
+            feedback={feedback}
+            onChoose={(model) => onChoose(purpose, model === defaultModel ? null : model)}
+          />
         ))}
       </ul>
     </PageSection>
+  );
+}
+
+interface PurposeRowProps {
+  purpose: ModelPurpose;
+  options: PurposeOption[];
+  busy: boolean;
+  feedback: Feedback | null;
+  onChoose: (model: string) => Promise<boolean>;
+}
+
+function PurposeRow({ purpose, options, busy, feedback, onChoose }: PurposeRowProps) {
+  const { target, after } = useRefocus<{ focus: () => void }>(busy);
+
+  return (
+    <li className={styles.purpose}>
+      <SelectField
+        label={purpose.label}
+        size="small"
+        fullWidth
+        inputRef={target}
+        value={purpose.model}
+        disabled={busy}
+        onChange={(event) => void after(onChoose(String(event.target.value)))}
+        options={options}
+      />
+      <p className={styles.hint}>{purpose.description}</p>
+      <ActionFeedback feedback={feedback} target={`purpose:${purpose.id}`} />
+    </li>
   );
 }
