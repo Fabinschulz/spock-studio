@@ -59,7 +59,7 @@ public sealed class PortfolioAssistant(
         var now = clock.UtcNow;
         var projects = new List<PortfolioEvidenceProject>();
         var facts = new List<EvidenceFact>();
-        var withheld = new List<string> { "Nenhum código, documento ou arquivo de nenhum projeto é enviado." };
+        var withheld = new List<string> { "Nenhum código, documento ou arquivo de nenhum projeto entra nos fatos." };
 
         foreach (var (project, index) in chosen.Select((project, index) => (project, index)))
         {

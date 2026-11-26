@@ -42,9 +42,14 @@ function RiskRow({ risk }: { risk: ProjectRisk }) {
       ))}
       {risk.trend ? <p className={styles.muted}>Tendência: {risk.trend}</p> : null}
       {risk.items.length > 0 ? (
-        <p className={styles.muted}>
-          Itens: {risk.items.map((item) => `${item.externalId} (${item.title})`).join(', ')}
-        </p>
+        <>
+          <p className={styles.muted}>Itens:</p>
+          <ul className={styles.notes} aria-label={`Itens de ${risk.title}`}>
+            {risk.items.map((item) => (
+              <li key={item.externalId}>{item.title ? `${item.externalId} (${item.title})` : item.externalId}</li>
+            ))}
+          </ul>
+        </>
       ) : null}
       <p>
         <span className={styles.kindLabel}>O que fazer:</span> {risk.recommendation}

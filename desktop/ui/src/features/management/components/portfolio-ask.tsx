@@ -4,10 +4,10 @@ import { useAsyncResource } from '@/shared/hooks';
 import { pathTo } from '@/shared/routing';
 import type { PortfolioAnswer, PortfolioProject } from '@/shared/schema';
 import { Button, Checkbox, TextField } from '@mariliz/ui-kit';
-import { useCallback, useState, type FormEvent } from 'react';
+import { useCallback, useId, useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
 
-import { MAX_QUESTION, MIN_QUESTION } from '../domain/assistant';
+import { MAX_QUESTION, MIN_QUESTION, questionHint } from '../domain/assistant';
 import styles from '../management-page.module.scss';
 import type { ManagementApi } from '../service/management-api';
 import { AssistantAnswerView } from './assistant-answer';
@@ -28,6 +28,12 @@ export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: 
   const trimmed = question.trim();
   const valid = trimmed.length >= MIN_QUESTION && trimmed.length <= MAX_QUESTION && chosen.length > 0;
   const configured = status.status === 'ready' && status.value.configured;
+  const hintId = useId();
+  const blocked = !configured
+    ? 'Para perguntar ao portfólio, configure uma chave de modelo.'
+    : chosen.length === 0
+      ? 'Escolha pelo menos um projeto.'
+      : questionHint(question);
 
   const toggle = (projectId: string) =>
     setChosen((current) =>
@@ -65,7 +71,7 @@ export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: 
       {status.status === 'ready' && !status.value.configured ? (
         <InlineNotice tone="warning" title="Nenhuma chave de modelo configurada">
           O assistente usa um modelo de linguagem para escrever a resposta. Configure a chave em{' '}
-          <Link to={pathTo('settings')}>Configurações</Link>.
+          <Link to={pathTo('settingsAi')}>Configurações › Minha IA</Link>.
         </InlineNotice>
       ) : null}
       {status.status === 'error' ? (
@@ -86,7 +92,6 @@ export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: 
               onChange={() => toggle(project.projectId)}
             />
           ))}
-          {chosen.length === 0 ? <p className={styles.muted}>Escolha pelo menos um projeto para perguntar.</p> : null}
         </fieldset>
         <TextField
           label="Sua pergunta sobre o portfólio"
@@ -99,9 +104,19 @@ export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: 
           helperText={`Entre ${MIN_QUESTION} e ${MAX_QUESTION} caracteres.`}
         />
         <div className={styles.actions}>
-          <Button type="submit" variant="contained" disabled={busy || !valid || !configured}>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={busy || blocked !== null}
+            aria-describedby={blocked ? hintId : undefined}
+          >
             {busy ? 'Perguntando…' : 'Perguntar ao portfólio'}
           </Button>
+          {blocked && !busy ? (
+            <p id={hintId} className={styles.hint}>
+              {blocked}
+            </p>
+          ) : null}
         </div>
       </form>
 
@@ -144,7 +159,7 @@ export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: 
           {error.needsKey ? (
             <>
               {' '}
-              Configure a chave em <Link to={pathTo('settings')}>Configurações</Link>.
+              Configure a chave em <Link to={pathTo('settingsAi')}>Configurações › Minha IA</Link>.
             </>
           ) : null}
         </p>

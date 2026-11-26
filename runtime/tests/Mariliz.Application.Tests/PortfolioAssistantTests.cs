@@ -198,7 +198,7 @@ public class PortfolioAssistantTests
         var closedLine = Assert.Single(evidence.Withheld, line => line.Contains("Títulos de itens não foram incluídos", StringComparison.Ordinal));
         Assert.StartsWith(evidence.Projects.Single(project => project.ProjectId == s.B).Name + ": ", closedLine);
         Assert.Contains(evidence.Withheld, line => line.StartsWith(evidence.Projects.Single(project => project.ProjectId == s.A).Name + ": Títulos de itens citados em riscos foram incluídos", StringComparison.Ordinal));
-        Assert.Contains("Nenhum código, documento ou arquivo de nenhum projeto é enviado.", evidence.Withheld);
+        Assert.Contains("Nenhum código, documento ou arquivo de nenhum projeto entra nos fatos.", evidence.Withheld);
     }
 
     [Fact]

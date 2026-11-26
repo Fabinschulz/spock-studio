@@ -4,7 +4,7 @@ import type { EngineClient } from '@/shared/api';
 import { EmptyState, NoProjectState, Page, PageSection, ResourceView } from '@/shared/components';
 import { useAsyncResource, useCopyToClipboard } from '@/shared/hooks';
 import type { Connector, ProjectReport } from '@/shared/schema';
-import { formatEngineDate, runKindLabel, runStateLabel } from '@/shared/utils';
+import { formatEngineDate, formatRecentDate, runKindLabel, runStateLabel } from '@/shared/utils';
 import { Button, SelectField } from '@mariliz/ui-kit';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -18,6 +18,9 @@ import styles from './management-page.module.scss';
 import { createManagementApi, type ManagementApi } from './service/management-api';
 
 const PERIODS = [2, 4, 8, 12] as const;
+
+/** O período conta semanas: a hora do fim não diz nada e só polui. */
+const reportDay = (iso: string) => formatRecentDate(Date.parse(iso)).toLowerCase();
 
 /** Tudo vem do motor; nenhuma frase é escrita por modelo. */
 export function ReportPage({ client, project }: { client: EngineClient; project: SelectedProject | null }) {
@@ -97,12 +100,16 @@ function ReportBody({ connectors, report }: { connectors: Connector[]; report: P
           </Button>
         }
       >
+        <p className={styles.muted}>
+          Período: de {reportDay(report.periodFrom)} a {reportDay(report.periodTo)}. O texto copiado traz o mesmo
+          conteúdo desta tela, em Markdown.
+        </p>
         <p className={styles.muted} role="status">
           {state === 'copied'
             ? 'Relatório copiado.'
             : state === 'failed'
               ? 'Não foi possível copiar. Selecione o texto da tela e copie à mão.'
-              : `Período de ${formatEngineDate(report.periodFrom)} a ${formatEngineDate(report.periodTo)}. O texto copiado traz o mesmo conteúdo desta tela, em Markdown.`}
+              : ''}
         </p>
       </PageSection>
       <FlowSection metrics={report.metrics} connectors={connectors} />

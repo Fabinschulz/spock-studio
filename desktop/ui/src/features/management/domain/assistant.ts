@@ -3,6 +3,14 @@ import type { AssistantAnswer } from '@/shared/schema';
 export const MIN_QUESTION = 3;
 export const MAX_QUESTION = 500;
 
+/** O que falta na pergunta para o botão habilitar; `null` quando ela já serve. */
+export function questionHint(question: string): string | null {
+  const length = question.trim().length;
+  if (length < MIN_QUESTION) return `Escreva a pergunta, de ${MIN_QUESTION} a ${MAX_QUESTION} caracteres.`;
+  if (length > MAX_QUESTION) return `A pergunta passou de ${MAX_QUESTION} caracteres.`;
+  return null;
+}
+
 export const SUGGESTED_QUESTIONS = [
   'Quais entregas estão comprometidas?',
   'Quando provavelmente concluiremos este projeto?',

@@ -36,9 +36,12 @@ describe('Gestão · assistente', () => {
     renderPage(engine.client);
 
     expect(await screen.findByText('Nenhuma chave de modelo configurada')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Configurações' })).toHaveAttribute('href', '/configuracoes');
+    expect(screen.getByRole('link', { name: 'Configurações › Minha IA' })).toHaveAttribute('href', '/configuracoes/ia');
     await userEvent.type(screen.getByLabelText('Sua pergunta'), 'Qual o risco?');
     expect(screen.getByRole('button', { name: 'Perguntar' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Perguntar' })).toHaveAccessibleDescription(
+      'Sem chave de modelo, só a investigação em etapas responde.'
+    );
   });
 
   it('mostra o que será enviado, pergunta e exibe a resposta separada, com os fatos citados', async () => {
@@ -105,13 +108,29 @@ describe('Gestão · assistente', () => {
     const path = screen.getByRole('region', { name: 'Caminho da investigação' });
     expect(path).toHaveTextContent('Caminho da investigação: 1 rodada, 3 etapas');
     expect(path).toHaveTextContent('Pergunta enquadrada');
-    expect(path).toHaveTextContent('Fatos: today, flow.issues.items, risk.overdue.');
+    // O caminho só traz ids; o texto vem dos fatos da resposta, e o id que ela não traz conta sem aparecer cru.
+    const facts = within(path).getByRole('list', { name: 'Fatos usados nesta etapa' });
+    expect(facts).toHaveTextContent('Issues: 18 itens sincronizados, 2 abertos.');
+    expect(facts).toHaveTextContent(/Hoje é/);
+    expect(path).not.toHaveTextContent('flow.issues.items');
     expect(within(path).getByRole('list', { name: 'O que limitou a investigação' })).toHaveTextContent(
       'A investigação parou antes de olhar: riscos.'
     );
-    expect(within(path).getByRole('link', { name: 'central de execuções' })).toHaveAttribute('href', '/execucoes');
+    expect(within(path).getByRole('link', { name: 'Execuções' })).toHaveAttribute('href', '/execucoes');
+    expect(path).not.toHaveTextContent('inv-000000000001');
 
     await expectNoA11yViolations(container);
+  });
+
+  it('o botão diz o que falta na pergunta', async () => {
+    const engine = fakeIntegrationEngine();
+    renderPage(engine.client);
+
+    const button = await screen.findByRole('button', { name: 'Perguntar' });
+    expect(button).toHaveAccessibleDescription('Escreva a pergunta, de 3 a 500 caracteres.');
+    await userEvent.type(screen.getByLabelText('Sua pergunta'), 'Qual o risco?');
+    expect(button).toBeEnabled();
+    expect(button).not.toHaveAccessibleDescription();
   });
 
   it('a investigação roda sem chave de modelo, e perguntar normalmente continua travado', async () => {
@@ -136,7 +155,9 @@ describe('Gestão · assistente', () => {
 
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('Nenhum modelo está configurado.');
-    await waitFor(() => expect(within(alert).getByRole('link', { name: 'Configurações' })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(within(alert).getByRole('link', { name: 'Configurações › Minha IA' })).toBeInTheDocument()
+    );
     expect(screen.queryByRole('heading', { name: 'Resposta' })).not.toBeInTheDocument();
   });
 });

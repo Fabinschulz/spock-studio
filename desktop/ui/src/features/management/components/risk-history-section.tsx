@@ -1,4 +1,4 @@
-import { formatEngineDate } from '@/shared/utils';
+import { formatEngineDate, plural } from '@/shared/utils';
 import { Disclosure, EmptyState, PageSection, ResourceView, StatusChip } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import type { ProjectRiskHistory, RiskTrail } from '@/shared/schema';
@@ -8,8 +8,6 @@ import { severityLabel } from '../domain/delivery-labels';
 import { describeRiskChange } from '../domain/risk-history-text';
 import styles from '../management-page.module.scss';
 import type { ManagementApi } from '../service/management-api';
-
-const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
 /** Vem dos registros que o motor faz a cada sincronização completa, então só existe a partir do primeiro registro. */
 export function RiskHistorySection({ management, projectId }: { management: ManagementApi; projectId: string }) {

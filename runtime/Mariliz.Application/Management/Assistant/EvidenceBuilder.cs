@@ -33,12 +33,14 @@ public static class EvidenceBuilder
         facts.AddRange(Milestones(milestones));
         facts.AddRange(Risks(risks, titlesAllowed));
         foreach (var missing in metrics.NotCalculated)
-            facts.Add(new($"missing.{missing.Id}", FactGroups.NotCalculated, $"{missing.Label} não é calculado: {missing.Reason}"));
+            facts.Add(new($"missing.{missing.Id}", FactGroups.NotCalculated, $"{missing.Label}: ainda sem cálculo. {missing.Reason}"));
 
-        var withheld = new List<string> { "Nenhum código, documento ou arquivo do projeto é enviado." };
-        withheld.Add(titlesAllowed
-            ? "Títulos de itens citados em riscos foram incluídos: todas as fontes autorizaram servir de contexto."
-            : "Títulos de itens não foram incluídos: nem todas as fontes autorizaram servir de contexto; vão só os identificadores.");
+        var withheld = new List<string> { "Nenhum código, documento ou arquivo do projeto entra nos fatos." };
+        // Sem fonte não há item, e falar de títulos retidos só confunde.
+        if (integrations.Count > 0)
+            withheld.Add(titlesAllowed
+                ? "Títulos de itens citados em riscos foram incluídos: todas as fontes autorizaram servir de contexto."
+                : "Títulos de itens não foram incluídos: nem todas as fontes autorizaram servir de contexto; vão só os identificadores.");
         return new EvidencePack(projectId, projectName, now, facts, withheld);
     }
 
@@ -169,7 +171,9 @@ public static class EvidenceBuilder
         _ => "baixa"
     };
 
-    private static string Day(DateTimeOffset at) => at.UtcDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    // O dia de quem lê, não o de Greenwich: às 22h de um dia no Brasil, o UTC já está no seguinte.
+    private static string Day(DateTimeOffset at) =>
+        TimeZoneInfo.ConvertTime(at, TimeZoneInfo.Local).ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
 
     private static string Number(double value) => value.ToString("0.#", CultureInfo.InvariantCulture);
 }

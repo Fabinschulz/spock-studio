@@ -129,6 +129,7 @@ describe('Decisões · registro', () => {
     const form = await openForm();
     const submit = within(form).getByRole('button', { name: 'Registrar decisão' });
     expect(submit).toBeDisabled();
+    expect(submit).toHaveAccessibleDescription('Preencha o título e o que foi decidido.');
 
     await userEvent.type(within(form).getByRole('textbox', { name: 'Título' }), 'Adiar');
     expect(submit).toBeDisabled();

@@ -18,7 +18,7 @@
     {
       "id": "today",
       "group": "contexto",
-      "text": "Hoje é 2026-11-10. Período dos indicadores: últimas 8 semanas."
+      "text": "Hoje é 10/11/2026. Período dos indicadores: últimas 8 semanas."
     },
     {
       "id": "p1.name",
@@ -28,7 +28,7 @@
     {
       "id": "p1.src.1",
       "group": "fontes",
-      "text": "Fonte github acme/app: última sincronização concluída, dados lidos em 2026-11-10."
+      "text": "Fonte github acme/app: última sincronização concluída, dados lidos em 10/11/2026."
     },
     {
       "id": "p1.flow.issues.items",
@@ -83,12 +83,12 @@
     {
       "id": "p1.missing.scopeChange",
       "group": "não calculado",
-      "text": "Mudança de escopo não é calculado: Precisa comparar o escopo do marco no começo e agora, e o histórico do escopo ainda não é guardado."
+      "text": "Mudança de escopo: ainda sem cálculo. Precisa comparar o escopo do marco no começo e agora, e o histórico do escopo ainda não é guardado."
     },
     {
       "id": "p1.missing.predictability",
       "group": "não calculado",
-      "text": "Previsibilidade não é calculado: Precisa do que foi planejado por período, que ainda não é sincronizado."
+      "text": "Previsibilidade: ainda sem cálculo. Precisa do que foi planejado por período, que ainda não é sincronizado."
     },
     {
       "id": "p2.name",
@@ -98,7 +98,7 @@
     {
       "id": "p2.src.1",
       "group": "fontes",
-      "text": "Fonte github acme/app: última sincronização concluída, dados lidos em 2026-11-10."
+      "text": "Fonte github acme/app: última sincronização concluída, dados lidos em 10/11/2026."
     },
     {
       "id": "p2.flow.issues.items",
@@ -148,16 +148,16 @@
     {
       "id": "p2.missing.scopeChange",
       "group": "não calculado",
-      "text": "Mudança de escopo não é calculado: Precisa comparar o escopo do marco no começo e agora, e o histórico do escopo ainda não é guardado."
+      "text": "Mudança de escopo: ainda sem cálculo. Precisa comparar o escopo do marco no começo e agora, e o histórico do escopo ainda não é guardado."
     },
     {
       "id": "p2.missing.predictability",
       "group": "não calculado",
-      "text": "Previsibilidade não é calculado: Precisa do que foi planejado por período, que ainda não é sincronizado."
+      "text": "Previsibilidade: ainda sem cálculo. Precisa do que foi planejado por período, que ainda não é sincronizado."
     }
   ],
   "withheld": [
-    "Nenhum código, documento ou arquivo de nenhum projeto é enviado.",
+    "Nenhum código, documento ou arquivo de nenhum projeto entra nos fatos.",
     "Loja: Títulos de itens não foram incluídos: nem todas as fontes autorizaram servir de contexto; vão só os identificadores.",
     "Painel: Títulos de itens não foram incluídos: nem todas as fontes autorizaram servir de contexto; vão só os identificadores."
   ]
