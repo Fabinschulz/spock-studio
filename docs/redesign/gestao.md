@@ -1,7 +1,8 @@
 # Spock Studio — Área Gestão: diagnóstico e proposta
 
 > **Estado:** diagnóstico feito no aplicativo real e proposta aprovada pelo dono em 2026-11-25, com as seis decisões
-> conforme a recomendação (seção 5). Os incrementos G-1 a G-7 entram um PR por vez. Continua o item 4 do briefing (fluxos internos de Gestão), que o redesign de
+> conforme a recomendação (seção 5). Os incrementos G-1 a G-6 estão entregues (o G-6 neste PR) e o G-7 não foi feito. O que
+> ficou sem validar com dados reais tem etapa própria, na seção 6. Continua o item 4 do briefing (fluxos internos de Gestão), que o redesign de
 > [`workspace-unificado.md`](workspace-unificado.md) não cobriu: ele entregou a área e a navegação, não as telas de dentro.
 >
 > Caminhos de arquivo relativos a `desktop/ui/src/features/management/`, salvo indicação.
@@ -189,6 +190,18 @@ G-1, G-2 e G-3 não dependem de decisão e podem começar logo. G-4 e G-5 são i
 de pergunta que o G-4 deixa no lugar. G-7 vem depois do G-6. Cada PR é validado no aplicativo real, nas duas larguras, com
 o axe, sem erros no console e com projetos de teste descartáveis.
 
+### Estado das entregas
+
+| # | PR | Situação |
+| --- | --- | --- |
+| G-1 | #214 | Mergeado. O aviso de chave passou depois a apontar para Conexões › Modelos de IA (#224). |
+| G-2 | #216 | Mergeado. |
+| G-3 | #219 | Mergeado. |
+| G-4 | #223 | Mergeado. Ordenação do motor: sem ferramenta não conta como atenção e vem depois de quem tem dado. |
+| G-5 | #222 | Mergeado. |
+| G-6 | este PR | Faixa "O que pede atenção" e cinco abas (Visão geral, Entregas, Riscos, Decisões, Fontes). Sem ferramenta, um estado só com a ação de vincular. Os estados com dados não foram vistos no aplicativo (seção 6). |
+| G-7 | — | Não feito: copiar como ação primária, ordem igual à das abas do Acompanhamento e seções que não somem caladas no Relatório (RL1, RL4, RL5). |
+
 ### Decisões do dono
 
 | # | Decisão | Recomendação |
@@ -199,3 +212,39 @@ o axe, sem erros no console e com projetos de teste descartáveis.
 | DG4 | O Portfólio como tabela simples, com estilo local, ou com o `DataTable` da biblioteca. | Tabela simples: o `DataTable` traz paginação e seleção que o Portfólio não usa. **Decidido em 2026-11-25: tabela simples.** |
 | DG5 | Como validar os estados com dados: o dono vincula uma ferramenta num projeto de teste (com o token dele, digitado por ele na janela de teste) antes do G-4 e do G-6, ou esses incrementos são validados só nos estados vazios, com os estados com dados cobertos pelos testes. | O dono vincular uma ferramenta: sem isso, a parte maior da proposta (AC1, PF3) não terá sido vista em uso. **Decidido em 2026-11-25: o dono vincula.** |
 | DG6 | A sugestão de pergunta preenche o campo e leva o foco a ele, ou já pergunta. | Preencher e focar: perguntar envia dados ao provedor, e isso deve ser um clique consciente. **Decidido em 2026-11-25: preencher e focar.** |
+
+## 6. Validação que falta (etapa própria)
+
+Tudo abaixo passou nos testes automatizados, com as respostas reais do motor como fixture, mas **não foi visto no
+aplicativo real**. Os estados vazios, o sem ferramenta e os controles foram validados em 1440×900 e 900×650, com o axe e
+sem erros no console. O que falta precisa de dados que só uma ferramenta vinculada e sincronizada traz, ou de uma chave de
+modelo, e por isso depende do dono (DG5): o token é digitado por ele, numa instância do aplicativo com pasta de dados
+própria, em projeto de teste descartável.
+
+**Com uma ferramenta vinculada e sincronizada** (de preferência dois projetos, um deles sem ferramenta):
+
+1. **Portfólio:** as linhas por tipo com os números; "sem dado" no prazo vencido quando a fonte não informa; pontos de
+   atenção reais (prazo vencido, sincronização incompleta, dados antigos, conexão sem acesso); a ordem (quem pede atenção
+   primeiro, depois quem tem dado, depois quem está sem ferramenta).
+2. **Acompanhamento:**
+   - a faixa, com riscos ativos e quantos são de gravidade alta, prazo vencido, dados incompletos, dados antigos e a
+     leitura mais antiga;
+   - as cinco abas e a contagem no rótulo de Riscos;
+   - fluxo, previsão e marcos com números;
+   - riscos com os itens em lista e, depois de duas sincronizações, o histórico dos riscos;
+   - as execuções ligadas a itens e o último estado de cada fonte;
+   - a troca de período e a decisão registrada com os fatos do dia.
+3. **Relatório:** as seções com dados e o texto copiado em Markdown.
+
+**Com uma chave de modelo configurada:** a resposta direta do Assistente (conferida, com afirmações descartadas), a
+investigação em etapas com modelo, a pergunta a vários projetos com a prévia do que vai ao provedor, e a nota "Escrito por"
+com o nome do modelo.
+
+**Sem projeto aberto:** o Assistente em "Vários projetos" no aplicativo real (hoje só coberto por teste).
+
+**Com tecnologia assistiva de verdade:** a tabela do Portfólio (grupo de linhas), as abas do Acompanhamento e os grupos de
+escolha do Assistente, que o axe e os testes só conferem na marcação.
+
+**Pendências conhecidas, fora desta etapa:** os fatos guardados ao registrar uma decisão sempre dizem "últimas 8 semanas",
+mesmo com outro período escolhido na tela (o motor usa o padrão ao registrar); e a investigação de gestão não tem tela de
+detalhe própria, só a gaveta da lista de Execuções.

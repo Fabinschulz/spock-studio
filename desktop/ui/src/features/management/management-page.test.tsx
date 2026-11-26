@@ -1,5 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
-import { MemoryRouter } from 'react-router';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter, useLocation } from 'react-router';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { SelectedProject } from '@/features/project-selection';
@@ -15,24 +16,40 @@ import { ManagementPage } from './management-page';
 
 const loja: SelectedProject = { projectId: 'p-aaaaaaaaaaaa', displayName: 'Loja', displayPath: '~\\Loja' };
 
+function Where() {
+  return <p data-testid="where">{useLocation().pathname}</p>;
+}
+
 const renderPage = (client: EngineClient, project: SelectedProject | null) =>
   render(
     <AppProviders>
       <MemoryRouter>
         <ManagementPage client={client} project={project} />
+        <Where />
       </MemoryRouter>
     </AppProviders>
   );
 
+/** As abas só montam o painel aberto: cada seção é procurada na aba dela. */
+const openTab = (name: string | RegExp) => userEvent.click(screen.getByRole('tab', { name }));
+
+const withSources = async () => {
+  const engine = fakeIntegrationEngine();
+  engine.seed(loja.projectId);
+  const view = renderPage(engine.client, loja);
+  await screen.findByRole('heading', { name: 'O que pede atenção' });
+  return { engine, ...view };
+};
+
 beforeEach(() => localStorage.clear());
 
-describe('Gestão · acompanhamento do projeto', () => {
+describe('Gestão · acompanhamento sem ferramenta', () => {
   it('pede os indicadores do período comum e troca junto com ele, para o Relatório abrir igual', async () => {
     const engine = fakeIntegrationEngine();
     renderPage(engine.client, loja);
     const metrics = () => engine.calls.filter((call) => call.method === 'management.metrics');
 
-    await screen.findByRole('heading', { name: 'Atividades' });
+    await screen.findByRole('heading', { name: 'Nenhuma ferramenta vinculada' });
     expect(metrics()[0]?.params).toEqual({ projectId: loja.projectId, weeks: 8 });
 
     await chooseOption('Período', 'Últimas 4 semanas');
@@ -49,15 +66,71 @@ describe('Gestão · acompanhamento do projeto', () => {
     expect(engine.calls).toEqual([]);
   });
 
-  it('sem fonte vinculada diz que não há dados, em vez de mostrar zeros', async () => {
+  it('diz o que aparece depois de vincular, com uma ação só, e mantém as decisões', async () => {
     const engine = fakeIntegrationEngine();
-    renderPage(engine.client, loja);
+    const { container } = renderPage(engine.client, loja);
 
-    expect(await screen.findByText(/Não há dados de atividades: nenhuma ferramenta foi vinculada/)).toBeInTheDocument();
+    const state = (await screen.findByRole('heading', { name: 'Nenhuma ferramenta vinculada' })).closest('section')!;
+    expect(state).toHaveTextContent('as atividades, a previsão de entrega, o fluxo, os marcos e os riscos');
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'O que pede atenção' })).not.toBeInTheDocument();
     expect(screen.queryByText('A fazer')).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Fontes de dados' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Previsão de entrega' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Riscos' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Decisões' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Registrar uma decisão' })).toBeInTheDocument();
+    expect(screen.getByText('O que ainda não é calculado')).toBeInTheDocument();
+    for (const method of ['management.milestones', 'run.linked', 'management.riskhistory'])
+      expect(engine.calls.some((call) => call.method === method)).toBe(false);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Vincular uma ferramenta' }));
+
+    expect(screen.getByTestId('where')).toHaveTextContent('/integracoes');
+    await expectNoA11yViolations(container);
+  });
+});
+
+describe('Gestão · acompanhamento com ferramenta', () => {
+  it('abre com a faixa do que pede atenção, vinda dos riscos que o motor calculou, e as cinco abas', async () => {
+    const { container } = await withSources();
+
+    const strip = screen.getByRole('heading', { name: 'O que pede atenção' }).closest('section')!;
+    expect(within(strip).getByRole('list', { name: 'Pontos de atenção do projeto' })).toHaveTextContent(
+      '3 riscos ativos, 1 de gravidade alta.'
+    );
+    expect(strip).toHaveTextContent(/Leitura mais antiga das fontes:/);
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+      'Visão geral',
+      'Entregas',
+      'Riscos (3)',
+      'Decisões',
+      'Fontes'
+    ]);
+    expect(screen.getByRole('tab', { name: 'Visão geral' })).toHaveAttribute('aria-selected', 'true');
+
+    await expectNoA11yViolations(container);
+  });
+
+  it('visão geral: as contagens observadas e a previsão de entrega, com o método recolhido', async () => {
+    const { engine, container } = await withSources();
+
+    const activity = screen.getByRole('heading', { name: 'Atividades' }).closest('section')!;
+    expect(within(activity).getByText('A fazer').nextElementSibling).toHaveTextContent('1');
+    expect(within(activity).getByText('Concluídas').nextElementSibling).toHaveTextContent('1');
+    expect(within(activity).queryByText('Em andamento')).not.toBeInTheDocument();
+    expect(within(activity).getByText('Como as atividades são contadas')).toBeInTheDocument();
+
+    const forecast = screen.getByRole('heading', { name: 'Previsão de entrega' }).closest('section')!;
+    const issueForecast = within(forecast).getByRole('group', { name: 'Issues: 11 abertos' });
+    expect(within(issueForecast).getByText('Confiança alta')).toBeInTheDocument();
+    expect(within(issueForecast).getByText('Provável').closest('div')).toHaveTextContent('22/12/2026');
+    expect(within(issueForecast).getByText('Conservador').closest('div')).toHaveTextContent('29/12/2026');
+    expect(within(issueForecast).getByText(/85% de chance de terminar até esta data/)).toBeInTheDocument();
+    expect(within(forecast).getByRole('group', { name: 'Pull requests: 1 aberto' })).toHaveTextContent(
+      'Sem previsão. São precisas ao menos 6 semanas de histórico'
+    );
+    expect(within(forecast).getByText('Como a previsão é calculada')).toBeInTheDocument();
+    expect(engine.calls.every((call) => /^(integration|management|run|decision)\./.test(call.method))).toBe(true);
+
+    await expectNoA11yViolations(container);
   });
 
   it('fonte vinculada e ainda não sincronizada também é ausência de dado', async () => {
@@ -70,24 +143,13 @@ describe('Gestão · acompanhamento do projeto', () => {
     renderPage(engine.client, loja);
 
     expect(await screen.findByText(/ainda não trouxeram nenhum item/)).toBeInTheDocument();
+    await openTab('Fontes');
     expect(screen.getByText(/sem itens sincronizados/)).toBeInTheDocument();
   });
 
-  it('mostra as contagens observadas, de onde vieram e o que ainda não é calculado', async () => {
-    const engine = fakeIntegrationEngine();
-    engine.seed(loja.projectId);
-    const { container } = renderPage(engine.client, loja);
-
-    const activity = (await screen.findByRole('heading', { name: 'Atividades' })).closest('section')!;
-    expect(within(activity).getByText('A fazer').nextElementSibling).toHaveTextContent('1');
-    expect(within(activity).getByText('Concluídas').nextElementSibling).toHaveTextContent('1');
-    expect(within(activity).queryByText('Em andamento')).not.toBeInTheDocument();
-
-    const sources = screen.getByRole('heading', { name: 'Fontes de dados' }).closest('section')!;
-    expect(within(sources).getByText('acme/app')).toBeInTheDocument();
-    expect(within(sources).getByText(/GitHub · Issues: 1, Pull requests: 1 · lido/)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Ainda não calculado' })).toBeInTheDocument();
-    expect(engine.calls.every((call) => /^(integration|management|run|decision)\./.test(call.method))).toBe(true);
+  it('entregas: o fluxo diz de onde vem cada número e o motivo do que não tem base', async () => {
+    const { container } = await withSources();
+    await openTab('Entregas');
 
     const flow = screen.getByRole('heading', { name: 'Fluxo nas últimas 4 semanas' }).closest('section')!;
     const issues = within(flow).getByRole('group', { name: 'Issues' });
@@ -113,23 +175,14 @@ describe('Gestão · acompanhamento do projeto', () => {
       within(flow).getByRole('table', { name: 'Issues: itens entregues e itens novos por semana' })
     ).toBeInTheDocument();
     expect(within(flow).queryByText('Dados incompletos')).not.toBeInTheDocument();
+    expect(within(flow).getByText('Como os números de fluxo são contados')).toBeInTheDocument();
 
-    const missing = screen.getByRole('heading', { name: 'Ainda não calculado' }).closest('section')!;
-    expect(within(missing).getByText('Mudança de escopo.')).toBeInTheDocument();
-    expect(within(missing).queryByText('Bloqueios.')).not.toBeInTheDocument();
-    expect(within(missing).queryByText('Cycle time.')).not.toBeInTheDocument();
-    expect(within(missing).queryByText('Previsão de entrega.')).not.toBeInTheDocument();
+    await expectNoA11yViolations(container);
+  });
 
-    const forecast = screen.getByRole('heading', { name: 'Previsão de entrega' }).closest('section')!;
-    const issueForecast = within(forecast).getByRole('group', { name: 'Issues: 11 abertos' });
-    expect(within(issueForecast).getByText('Confiança alta')).toBeInTheDocument();
-    expect(within(issueForecast).getByText('Provável').closest('div')).toHaveTextContent('22/12/2026');
-    expect(within(issueForecast).getByText('Conservador').closest('div')).toHaveTextContent('29/12/2026');
-    expect(within(issueForecast).getByText(/85% de chance de terminar até esta data/)).toBeInTheDocument();
-    expect(within(forecast).getByRole('group', { name: 'Pull requests: 1 aberto' })).toHaveTextContent(
-      'Sem previsão. São precisas ao menos 6 semanas de histórico'
-    );
-    expect(within(forecast).getByText('Como a previsão é calculada')).toBeInTheDocument();
+  it('riscos: cada risco com a regra, a evidência e o que fazer', async () => {
+    const { container } = await withSources();
+    await openTab(/^Riscos/);
 
     const risks = screen.getByRole('heading', { name: 'Riscos' }).closest('section')!;
     const list = within(risks).getByRole('list', { name: 'Riscos detectados' });
@@ -137,6 +190,39 @@ describe('Gestão · acompanhamento do projeto', () => {
     expect(first).toHaveTextContent('Itens com prazo vencido');
     expect(first).toHaveTextContent('Gravidade alta');
     expect(first).toHaveTextContent('O que fazer:');
+    expect(screen.getByRole('heading', { name: 'Histórico dos riscos' })).toBeInTheDocument();
+
+    await expectNoA11yViolations(container);
+  });
+
+  it('decisões: o aviso de que não dá para editar vem antes dos campos, e o estado vazio sai do formulário aberto', async () => {
+    await withSources();
+    await openTab('Decisões');
+
+    expect(await screen.findByText(/Nenhuma decisão registrada neste projeto/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Registrar uma decisão' }));
+
+    const form = screen.getByRole('form', { name: 'Nova decisão' });
+    const notice = within(form).getByText(/ela não pode ser editada nem apagada/);
+    const title = within(form).getByRole('textbox', { name: 'Título' });
+    expect(notice.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByText(/Nenhuma decisão registrada neste projeto/)).not.toBeInTheDocument();
+  });
+
+  it('fontes: de onde vêm os dados, e o que ainda não é calculado fica recolhido', async () => {
+    const { engine, container } = await withSources();
+    await openTab('Fontes');
+
+    const sources = screen.getByRole('heading', { name: 'Fontes de dados' }).closest('section')!;
+    expect(within(sources).getByText('acme/app')).toBeInTheDocument();
+    expect(within(sources).getByText(/GitHub · Issues: 1, Pull requests: 1 · lido/)).toBeInTheDocument();
+    const missing = screen.getByText('O que ainda não é calculado').closest('details')!;
+    expect(missing).not.toHaveAttribute('open');
+    expect(within(missing).getByText('Mudança de escopo.')).toBeInTheDocument();
+    expect(within(missing).queryByText('Bloqueios.')).not.toBeInTheDocument();
+    expect(within(missing).queryByText('Cycle time.')).not.toBeInTheDocument();
+    expect(within(missing).queryByText('Previsão de entrega.')).not.toBeInTheDocument();
+    expect(engine.calls.some((call) => call.method === 'run.linked')).toBe(true);
 
     await expectNoA11yViolations(container);
   });
@@ -177,16 +263,15 @@ describe('Gestão · marcos', () => {
     const engine = fakeIntegrationEngine();
     renderPage(engine.client, loja);
 
-    await screen.findByText(/Não há dados de atividades/);
+    await screen.findByRole('heading', { name: 'Nenhuma ferramenta vinculada' });
 
     expect(screen.queryByRole('heading', { name: 'Marcos' })).not.toBeInTheDocument();
     expect(engine.calls.some((call) => call.method === 'management.milestones')).toBe(false);
   });
 
   it('com fonte mostra cada marco com o andamento, o prazo e a previsão do que falta', async () => {
-    const engine = fakeIntegrationEngine();
-    engine.seed(loja.projectId);
-    renderPage(engine.client, loja);
+    await withSources();
+    await openTab('Entregas');
 
     const section = (await screen.findByRole('heading', { name: 'Marcos' })).closest('section')!;
     const list = await within(section).findByRole('list', { name: 'Marcos do projeto' });
@@ -208,16 +293,15 @@ describe('Gestão · execuções ligadas a itens', () => {
     const engine = fakeIntegrationEngine();
     renderPage(engine.client, loja);
 
-    await screen.findByText(/Não há dados de atividades/);
+    await screen.findByRole('heading', { name: 'Nenhuma ferramenta vinculada' });
 
     expect(screen.queryByRole('heading', { name: 'Execuções ligadas a itens' })).not.toBeInTheDocument();
     expect(engine.calls.some((call) => call.method === 'run.linked')).toBe(false);
   });
 
   it('com fonte e sem ligação diz como ligar, apontando para Execuções', async () => {
-    const engine = fakeIntegrationEngine();
-    engine.seed(loja.projectId);
-    renderPage(engine.client, loja);
+    await withSources();
+    await openTab('Fontes');
 
     const section = (await screen.findByRole('heading', { name: 'Execuções ligadas a itens' })).closest('section')!;
 
@@ -232,6 +316,8 @@ describe('Gestão · execuções ligadas a itens', () => {
     engine.seed(loja.projectId);
     engine.seedLinked(linkedFixture.items);
     renderPage(engine.client, loja);
+    await screen.findByRole('heading', { name: 'O que pede atenção' });
+    await openTab('Fontes');
 
     const section = (await screen.findByRole('heading', { name: 'Execuções ligadas a itens' })).closest('section')!;
 
@@ -252,6 +338,8 @@ describe('Gestão · execuções ligadas a itens', () => {
       { ...linkedFixture.items[0]!, available: false, title: null, status: null, statusCategory: null }
     ]);
     renderPage(engine.client, loja);
+    await screen.findByRole('heading', { name: 'O que pede atenção' });
+    await openTab('Fontes');
 
     const section = (await screen.findByRole('heading', { name: 'Execuções ligadas a itens' })).closest('section')!;
 

@@ -140,3 +140,10 @@
     margin: 0;
   }
 }
+
+// Cada aba empilha as seções dela, com o mesmo respiro das seções da página.
+.tab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
