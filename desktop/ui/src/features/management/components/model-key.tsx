@@ -8,7 +8,7 @@ import type { AskError } from '../hooks/use-ask';
 function KeySettingsLink() {
   return (
     <>
-      Configure a chave em <Link to={pathTo('settingsAi')}>Configurações › Minha IA</Link>.
+      Configure a chave em <Link to={pathTo('connectionsModels')}>Conexões › Modelos de IA</Link>.
     </>
   );
 }

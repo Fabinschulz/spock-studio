@@ -46,7 +46,7 @@ O seletor de ambiente do topo e o menu que mudava com ele viraram uma coisa só.
 | Gestão | Portfólio · Acompanhamento · Assistente · Relatório |
 | Atividade | Execuções · Histórico (Linha do tempo, Auditoria). Fora do menu: a execução aberta |
 | Conexões | Serviços · Nuvem · Modelos de IA |
-| Configurações | Minha IA · Diagnóstico · Sobre |
+| Configurações | Modelos de IA · Diagnóstico · Sobre |
 
 - A área atual vem da rota (`areaOf`), não de uma preferência guardada: não existe mais "ambiente lembrado".
 - O painel recolhe e expande (botão no pé da barra, Ctrl B), e a escolha vale para a próxima abertura.
@@ -135,12 +135,12 @@ Cada item de `navigation.tsx` separa três coisas: `label` (o que a pessoa lê),
 | Infraestrutura | IaC | textos da tela |
 | Serviços | Integrações | descrição da tela e busca |
 | Nuvem | Conexões cloud | descrição da tela e busca |
-| Modelos de IA | Minha IA, provedores | a mesma tela, aberta por Configurações › Minha IA |
+| Modelos de IA | Minha IA, provedores | a mesma tela, aberta também por Configurações › Modelos de IA (antes "Minha IA"); a busca ainda a acha por "Minha IA" |
 | Catálogo | Catálogo do Harness | descrição da tela |
 
-O título de cada tela é o nome que o menu dá a ela. A tela dos modelos de IA abre por dois menus e, em cada um, leva o nome que aquele menu usa. Quando uma tela manda a pessoa a outra, o link diz o caminho que a trilha mostra (por exemplo "Conexões › Serviços"), em vez de um nome que não aparece em lugar nenhum do menu.
+O título de cada tela é o nome que o menu dá a ela. A tela dos modelos de IA abre por dois menus, Conexões e Configurações, e leva o mesmo nome nos dois (CF2 de [`configuracoes.md`](configuracoes.md)). Quando uma tela manda a pessoa a outra, o link diz o caminho que a trilha mostra (por exemplo "Conexões › Serviços"), em vez de um nome que não aparece em lugar nenhum do menu.
 
-Ficam como estão, de propósito: os textos que vêm do motor (como "Validação do Harness" na linha do tempo), que mudariam o motor, e "Minha IA" nos textos que explicam onde guardar a chave, porque é o nome em Configurações.
+Ficam como estão, de propósito: os textos que vêm do motor (como "Validação do Harness" na linha do tempo), que mudariam o motor, e os textos que explicam onde guardar a chave, que agora dizem "Conexões › Modelos de IA".
 
 Nenhum nome interno, contrato ou método do motor mudou.
 
@@ -240,7 +240,7 @@ A validação achou e corrigiu três defeitos que já existiam: dois ícones da 
 Incrementos:
 
 1. **Jornada Configurar**: o diagnóstico e a proposta estão em [`configurar.md`](configurar.md). Os incrementos C1 a C7, a DC2 e a DC5 foram entregues (#199 a #210); as sobras (T6, P4, P5, P6, PL2 e RS3) estão numa sessão própria.
-2. **Fluxos internos de Gestão e de Configurações**: nunca foram redesenhados (etapa 4, itens 10 e 11 do pedido original). Cada um tem uma sessão própria, que começa por diagnóstico e proposta em `docs/redesign/gestao.md` e `docs/redesign/configuracoes.md` e espera a sua aprovação antes de implementar.
+2. **Fluxos internos de Gestão e de Configurações**: nunca foram redesenhados (etapa 4, itens 10 e 11 do pedido original). Cada um teve uma sessão própria, que começou por diagnóstico e proposta em `docs/redesign/gestao.md` e `docs/redesign/configuracoes.md`. Configurações foi entregue em cinco incrementos (CF1 a CF5, #215 a #221, com a tela dos modelos de IA chamada Modelos de IA nos dois menus); o que sobrou está em [`configuracoes.md`](configuracoes.md) e em [`ROADMAP.md`](../ROADMAP.md). O andamento da Gestão está em `gestao.md`.
 3. **Entrada de pedidos com arquivo ou informação extra** (§4.4 do pedido): os seletores de modelo e de agente foram avaliados e ficaram de fora com justificativa; anexar arquivo nem foi avaliado.
 4. **Avaliação pelos 13 critérios** (§15): registrar a resposta de cada pergunta, com a evidência.
 

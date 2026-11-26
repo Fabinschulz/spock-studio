@@ -40,7 +40,7 @@ describe('Gestão · assistente sobre o projeto', () => {
     renderPage(engine.client);
 
     expect(await screen.findByText('Nenhuma chave de modelo configurada')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Configurações › Minha IA' })).toHaveAttribute('href', '/configuracoes/ia');
+    expect(screen.getByRole('link', { name: 'Conexões › Modelos de IA' })).toHaveAttribute('href', '/conexoes/modelos');
     const direct = within(mode()).getByRole('radio', { name: 'Resposta direta' });
     expect(direct).toBeDisabled();
     expect(direct).toHaveAccessibleDescription('Precisa de uma chave de modelo, e nenhuma está configurada.');
@@ -160,7 +160,7 @@ describe('Gestão · assistente sobre o projeto', () => {
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('Nenhum modelo está configurado.');
     await waitFor(() =>
-      expect(within(alert).getByRole('link', { name: 'Configurações › Minha IA' })).toBeInTheDocument()
+      expect(within(alert).getByRole('link', { name: 'Conexões › Modelos de IA' })).toBeInTheDocument()
     );
     expect(screen.queryByRole('heading', { name: 'Resposta' })).not.toBeInTheDocument();
   });
