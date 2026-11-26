@@ -2,7 +2,6 @@ import type { EngineClient } from '@/shared/api';
 import { ErrorState, LoadingState, Page, PageSection, Term } from '@/shared/components';
 import { useMemo } from 'react';
 
-import { AiToolsSection } from './components/ai-tools-section';
 import { BudgetsSection } from './components/budgets-section';
 import { ProviderRow } from './components/provider-row';
 import { PurposesSection } from './components/purposes-section';
@@ -75,8 +74,6 @@ export function ModelSettingsPage({ client }: { client: EngineClient }) {
           onSave={(budget, tokens) => setBudget(budget.purpose, tokens, budget.label)}
         />
       ) : null}
-
-      <AiToolsSection client={client} />
     </Page>
   );
 }
