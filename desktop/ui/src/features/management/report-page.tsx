@@ -5,19 +5,19 @@ import { EmptyState, NoProjectState, Page, PageSection, ResourceView } from '@/s
 import { useAsyncResource, useCopyToClipboard } from '@/shared/hooks';
 import type { Connector, ProjectReport } from '@/shared/schema';
 import { formatEngineDate, formatRecentDate, runKindLabel, runStateLabel } from '@/shared/utils';
-import { Button, SelectField } from '@mariliz/ui-kit';
-import { useCallback, useMemo, useState } from 'react';
+import { Button } from '@mariliz/ui-kit';
+import { useCallback, useMemo } from 'react';
 
 import { MilestonesBody } from './components/milestones-section';
 import { ForecastSection } from './components/forecast-section';
+import { PeriodField } from './components/period-field';
 import { FlowSection } from './components/flow-section';
 import { RisksSection } from './components/risks-section';
 import { reportToMarkdown } from './domain/report-markdown';
 import { describeRiskChange } from './domain/risk-history-text';
+import { usePeriod } from './hooks/use-period';
 import styles from './management.module.scss';
 import { createManagementApi, type ManagementApi } from './service/management-api';
-
-const PERIODS = [2, 4, 8, 12] as const;
 
 /** O período conta semanas: a hora do fim não diz nada e só polui. */
 const reportDay = (iso: string) => formatRecentDate(Date.parse(iso)).toLowerCase();
@@ -48,7 +48,7 @@ function ProjectReportView({
   management: ManagementApi;
   project: SelectedProject;
 }) {
-  const [weeks, setWeeks] = useState<number>(4);
+  const [weeks, setWeeks] = usePeriod();
   const load = useCallback(async () => {
     const [catalog, report] = await Promise.all([integrations.catalog(), management.report(project.projectId, weeks)]);
     return { connectors: catalog.connectors, report };
@@ -59,18 +59,8 @@ function ProjectReportView({
     <Page
       title="Relatório"
       description={`${project.displayName} · o que aconteceu no período, a partir do que o motor leu e registrou.`}
+      actions={<PeriodField weeks={weeks} onChange={setWeeks} />}
     >
-      <PageSection title="Período">
-        <SelectField
-          label="Largura do período"
-          size="small"
-          fullWidth={false}
-          sx={{ minWidth: '14rem' }}
-          value={weeks}
-          onChange={(event) => setWeeks(Number(event.target.value))}
-          options={PERIODS.map((value) => ({ label: `Últimas ${value} semanas`, value }))}
-        />
-      </PageSection>
       <ResourceView
         resource={content}
         loading="Montando o relatório…"

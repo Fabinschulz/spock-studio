@@ -14,10 +14,12 @@ import { LinkedRunsSection } from './components/linked-runs-section';
 import { MilestonesSection } from './components/milestones-section';
 import { DecisionsSection } from './components/decisions-section';
 import { Figure, Figures } from './components/figures';
+import { PeriodField } from './components/period-field';
 import { ForecastSection } from './components/forecast-section';
 import { RiskHistorySection } from './components/risk-history-section';
 import { RisksSection } from './components/risks-section';
 import { summarizeActivity } from './domain/activity-summary';
+import { usePeriod } from './hooks/use-period';
 import styles from './management.module.scss';
 import { createManagementApi, type ManagementApi } from './service/management-api';
 
@@ -45,22 +47,24 @@ function ProjectManagement({
   management: ManagementApi;
   project: SelectedProject;
 }) {
+  const [weeks, setWeeks] = usePeriod();
   const load = useCallback(async () => {
     const [catalog, integrations, metrics, forecast, risks] = await Promise.all([
       api.catalog(),
       api.integrations(project.projectId),
-      management.metrics(project.projectId),
+      management.metrics(project.projectId, weeks),
       management.forecast(project.projectId),
       management.risks(project.projectId)
     ]);
     return { connectors: catalog.connectors, integrations, metrics, forecast, risks };
-  }, [api, management, project.projectId]);
+  }, [api, management, project.projectId, weeks]);
   const sources = useAsyncResource(load);
 
   return (
     <Page
       title="Acompanhamento"
       description={`${project.displayName} · o andamento do projeto, a partir do que foi lido das ferramentas vinculadas a ele.`}
+      actions={<PeriodField weeks={weeks} onChange={setWeeks} />}
     >
       <ResourceView
         resource={sources}

@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { SelectedProject } from '@/features/project-selection';
 import { EngineError, type EngineClient } from '@/shared/api';
@@ -25,6 +25,7 @@ const renderPage = (client: EngineClient, project: SelectedProject | null = loja
 const reportCalls = (calls: { method: string; params: Record<string, unknown> }[]) =>
   calls.filter((call) => call.method === 'management.report');
 
+beforeEach(() => localStorage.clear());
 afterEach(() => vi.restoreAllMocks());
 
 describe('Relatório', () => {
@@ -36,13 +37,13 @@ describe('Relatório', () => {
     expect(engine.calls).toEqual([]);
   });
 
-  it('pede quatro semanas e mostra as seções do relatório', async () => {
+  it('pede o período comum, de oito semanas, e mostra as seções do relatório', async () => {
     const engine = fakeIntegrationEngine();
     renderPage(engine.client);
 
     expect(await screen.findByRole('heading', { name: 'Decisões do período' })).toBeInTheDocument();
 
-    expect(reportCalls(engine.calls)[0]?.params).toEqual({ projectId: loja.projectId, weeks: 4 });
+    expect(reportCalls(engine.calls)[0]?.params).toEqual({ projectId: loja.projectId, weeks: 8 });
     for (const title of [
       'Fluxo nas últimas 4 semanas',
       'Previsão de entrega',
@@ -63,11 +64,20 @@ describe('Relatório', () => {
     renderPage(engine.client);
     await screen.findByRole('heading', { name: 'Decisões do período' });
 
-    await chooseOption('Largura do período', 'Últimas 12 semanas');
+    await chooseOption('Período', 'Últimas 12 semanas');
 
     await waitFor(() =>
       expect(reportCalls(engine.calls).at(-1)?.params).toEqual({ projectId: loja.projectId, weeks: 12 })
     );
+  });
+
+  it('abre no período escolhido antes em outra tela', async () => {
+    localStorage.setItem('spock.management.periodWeeks', '12');
+    const engine = fakeIntegrationEngine();
+    renderPage(engine.client);
+
+    await screen.findByRole('heading', { name: 'Decisões do período' });
+    expect(reportCalls(engine.calls)[0]?.params).toEqual({ projectId: loja.projectId, weeks: 12 });
   });
 
   it('copia o relatório como texto e diz que copiou', async () => {
