@@ -68,8 +68,9 @@ function ProjectIdea({ api, project }: { api: IdeaApi; project: SelectedProject 
           slotProps={{ htmlInput: { maxLength: MAX_IDEA } }}
         />
         <p className={styles.note}>
-          Com chave, cada etapa usa o modelo configurado em <Link to={pathTo('settingsAi')}>Minha IA</Link> e aparece em
-          Execuções com os tokens gastos.
+          Com chave, cada etapa usa o modelo configurado em{' '}
+          <Link to={pathTo('connectionsModels')}>Conexões › Modelos de IA</Link> e aparece em Execuções com os tokens
+          gastos.
         </p>
         <div className={styles.actions}>
           {started ? null : (

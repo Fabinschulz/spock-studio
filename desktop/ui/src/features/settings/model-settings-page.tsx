@@ -10,20 +10,14 @@ import { useModelSettings } from './hooks/use-model-settings';
 import styles from './model-settings-page.module.scss';
 import { createModelApi } from './service/model-api';
 
-interface ModelSettingsPageProps {
-  client: EngineClient;
-  /** O nome que o menu de onde a pessoa veio dá à tela. */
-  title?: string;
-}
-
-export function ModelSettingsPage({ client, title = 'Minha IA' }: ModelSettingsPageProps) {
+export function ModelSettingsPage({ client }: { client: EngineClient }) {
   const api = useMemo(() => createModelApi(client), [client]);
   const { connection, busy, loadError, reload, feedback, save, test, choose, setBudget, remove, setDefault } =
     useModelSettings(api);
 
   return (
     <Page
-      title={title}
+      title="Modelos de IA"
       description={
         <>
           Os <Term id="provider">provedores</Term> e os <Term id="model">modelos</Term> que o Spock Studio usa. Cada

@@ -36,7 +36,7 @@ function ModelOption({ configured }: { configured: boolean | null }) {
         description={
           <>
             Se marcado, o pedido e os trechos do projeto recuperados para ele são enviados ao provedor do modelo
-            configurado em Minha IA, com segredos removidos antes. O gasto é limitado a{' '}
+            configurado em Conexões › Modelos de IA, com segredos removidos antes. O gasto é limitado a{' '}
             <Term id="token">8.000 tokens</Term> e o Spock Studio o contabiliza. Sem marcar, nada sai do seu computador.
           </>
         }

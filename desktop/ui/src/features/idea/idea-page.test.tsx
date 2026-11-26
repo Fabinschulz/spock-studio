@@ -203,7 +203,7 @@ describe('Da ideia ao projeto', () => {
     await describeIdea();
 
     expect(await screen.findByText('Nenhum modelo está configurado.')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Minha IA' })).toHaveAttribute('href', '/configuracoes/ia');
+    expect(screen.getByRole('link', { name: 'Conexões › Modelos de IA' })).toHaveAttribute('href', '/conexoes/modelos');
   });
 
   it('só gera com uma ideia descrita', async () => {
