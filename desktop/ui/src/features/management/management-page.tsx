@@ -13,11 +13,12 @@ import { FlowSection } from './components/flow-section';
 import { LinkedRunsSection } from './components/linked-runs-section';
 import { MilestonesSection } from './components/milestones-section';
 import { DecisionsSection } from './components/decisions-section';
+import { Figure, Figures } from './components/figures';
 import { ForecastSection } from './components/forecast-section';
 import { RiskHistorySection } from './components/risk-history-section';
 import { RisksSection } from './components/risks-section';
 import { summarizeActivity } from './domain/activity-summary';
-import styles from './management-page.module.scss';
+import styles from './management.module.scss';
 import { createManagementApi, type ManagementApi } from './service/management-api';
 
 /** O que ainda não é calculado aparece dito como ausente, nunca como zero. */
@@ -108,14 +109,11 @@ function ActivitySection({ integrations }: { integrations: ProjectIntegration[] 
         </EmptyState>
       ) : (
         <>
-          <dl className={styles.figures}>
+          <Figures>
             {summary.byCategory.map((entry) => (
-              <div key={entry.category} className={styles.figure}>
-                <dt>{entry.label}</dt>
-                <dd>{entry.count}</dd>
-              </div>
+              <Figure key={entry.category} label={entry.label} value={entry.count} />
             ))}
-          </dl>
+          </Figures>
           <p className={styles.muted}>
             Contagem do que foi sincronizado
             {summary.oldestReadAt ? `; a leitura mais antiga é de ${formatEngineDate(summary.oldestReadAt)}` : ''}. No

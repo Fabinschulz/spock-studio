@@ -1,4 +1,4 @@
-import { Disclosure, EmptyState, PageSection, ResourceView, StatusChip } from '@/shared/components';
+import { Disclosure, EmptyState, PageSection, ResourceView, StatusChip, Term } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import type { MilestoneProgress, ProjectMilestones } from '@/shared/schema';
 import { plural } from '@/shared/utils';
@@ -6,7 +6,7 @@ import { useCallback } from 'react';
 
 import { milestoneOutlookLabel } from '../domain/delivery-labels';
 import { formatDay } from '../domain/format';
-import styles from '../management-page.module.scss';
+import styles from '../management.module.scss';
 import type { ManagementApi } from '../service/management-api';
 
 const KIND_LABEL: Record<string, string> = { issues: 'Issues', pullRequests: 'Pull requests' };
@@ -31,7 +31,8 @@ export function MilestonesBody({ value }: { value: ProjectMilestones }) {
   if (value.milestones.length === 0)
     return (
       <EmptyState>
-        Nenhum item sincronizado pertence a um marco. No GitHub, é o milestone da issue; no Jira, a versão de correção.
+        Nenhum item sincronizado pertence a um <Term id="milestone" />. No GitHub, é o milestone da issue; no Jira, a
+        versão de correção.
         {unassigned.length > 0 ? ' Se já usa marcos, sincronize de novo para trazê-los.' : ''}
       </EmptyState>
     );
@@ -73,8 +74,8 @@ function MilestoneRow({ milestone }: { milestone: MilestoneProgress }) {
   const outlook = milestoneOutlookLabel(milestone.outlook);
 
   return (
-    <li className={styles.portfolioRow}>
-      <div className={styles.portfolioHead}>
+    <li className={styles.item}>
+      <div className={styles.itemHead}>
         <span>
           <span className={styles.rowTitle}>{milestone.name}</span>
           <span className={styles.muted}>

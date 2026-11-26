@@ -20,7 +20,12 @@ describe('Resposta do assistente', () => {
   it('diz qual modelo escreveu a resposta', () => {
     renderAnswer('modelo-x');
 
-    expect(screen.getByText(/Escrito por modelo-x a partir dos fatos do projeto/)).toBeInTheDocument();
+    expect(screen.getByText(/Escrito por modelo-x a partir dos/)).toHaveTextContent(
+      'Escrito por modelo-x a partir dos fatos do projeto'
+    );
+    expect(screen.getByRole('button', { name: 'fatos' })).toHaveAccessibleDescription(
+      /informação que o Spock Studio leu/
+    );
   });
 
   it('sem modelo, não diz que um modelo escreveu', () => {

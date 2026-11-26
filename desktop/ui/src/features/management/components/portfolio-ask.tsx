@@ -1,23 +1,23 @@
-import { EngineError, errorMessage } from '@/shared/api';
-import { Disclosure, ErrorState, InlineNotice, LoadingState } from '@/shared/components';
+import { errorMessage } from '@/shared/api';
+import { Disclosure, ErrorState, LoadingState } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
-import { pathTo } from '@/shared/routing';
 import type { PortfolioAnswer, PortfolioProject } from '@/shared/schema';
 import { Button, Checkbox, TextField } from '@mariliz/ui-kit';
 import { useCallback, useId, useState, type FormEvent } from 'react';
-import { Link } from 'react-router';
 
 import { MAX_QUESTION, MIN_QUESTION, questionHint } from '../domain/assistant';
-import styles from '../management-page.module.scss';
+import { useAsk } from '../hooks/use-ask';
+import askStyles from './ask.module.scss';
+import styles from '../management.module.scss';
 import type { ManagementApi } from '../service/management-api';
 import { AssistantAnswerView } from './assistant-answer';
+import { AskErrorNotice, ModelKeyNotice } from './model-key';
 
 /** A política de cada projeto vale por inteiro: título de item só entra no projeto cujas fontes autorizaram. */
 export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: PortfolioProject[] }) {
   const [chosen, setChosen] = useState<string[]>(() => projects.map((project) => project.projectId));
   const [question, setQuestion] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<{ message: string; needsKey: boolean } | null>(null);
+  const { busy, error, run } = useAsk();
   const [answer, setAnswer] = useState<PortfolioAnswer | null>(null);
 
   const status = useAsyncResource(useCallback(() => api.modelStatus(), [api]));
@@ -43,23 +43,11 @@ export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: 
   const ask = async (event: FormEvent) => {
     event.preventDefault();
     if (!valid || busy) return;
-    setBusy(true);
-    setError(null);
-    try {
-      setAnswer(await api.askPortfolio(trimmed, chosen));
-    } catch (cause) {
-      setAnswer(null);
-      setError({
-        message: errorMessage(cause, 'Não foi possível obter a resposta.'),
-        needsKey: cause instanceof EngineError && cause.code === 'MODEL_NOT_CONFIGURED'
-      });
-    } finally {
-      setBusy(false);
-    }
+    setAnswer(await run(() => api.askPortfolio(trimmed, chosen)));
   };
 
   return (
-    <section aria-labelledby="portfolio-ask" className={styles.answerGroup}>
+    <section aria-labelledby="portfolio-ask" className={askStyles.answerGroup}>
       <h2 id="portfolio-ask" className={styles.section}>
         Perguntar sobre o portfólio
       </h2>
@@ -69,10 +57,7 @@ export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: 
       </p>
 
       {status.status === 'ready' && !status.value.configured ? (
-        <InlineNotice tone="warning" title="Nenhuma chave de modelo configurada">
-          O assistente usa um modelo de linguagem para escrever a resposta. Configure a chave em{' '}
-          <Link to={pathTo('settingsAi')}>Configurações › Minha IA</Link>.
-        </InlineNotice>
+        <ModelKeyNotice>O assistente usa um modelo de linguagem para escrever a resposta.</ModelKeyNotice>
       ) : null}
       {status.status === 'error' ? (
         <ErrorState onRetry={status.reload}>
@@ -81,7 +66,7 @@ export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: 
       ) : null}
 
       <form aria-label="Pergunta ao portfólio" onSubmit={(event) => void ask(event)}>
-        <fieldset className={styles.chooser}>
+        <fieldset className={askStyles.chooser}>
           <legend>Projetos que entram na pergunta</legend>
           {projects.map((project) => (
             <Checkbox
@@ -135,7 +120,7 @@ export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: 
               <li key={text}>{text}</li>
             ))}
           </ul>
-          <ul className={styles.factList}>
+          <ul className={askStyles.factList}>
             {preview.value.projects.map((project) => (
               <li key={project.alias}>
                 <strong>
@@ -153,17 +138,7 @@ export function PortfolioAsk({ api, projects }: { api: ManagementApi; projects: 
         </ErrorState>
       ) : null}
 
-      {error ? (
-        <p className={styles.errorText} role="alert">
-          {error.message}
-          {error.needsKey ? (
-            <>
-              {' '}
-              Configure a chave em <Link to={pathTo('settingsAi')}>Configurações › Minha IA</Link>.
-            </>
-          ) : null}
-        </p>
-      ) : null}
+      {error ? <AskErrorNotice error={error} /> : null}
       {busy ? <LoadingState>O modelo está escrevendo a resposta…</LoadingState> : null}
       {answer ? (
         <>

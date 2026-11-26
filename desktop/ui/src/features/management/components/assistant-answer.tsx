@@ -2,8 +2,9 @@ import type { AssistantAnswer, AssistantStatement } from '@/shared/schema';
 import { useEffect, useId, useRef } from 'react';
 
 import { ANSWER_SECTIONS } from '../domain/assistant';
-import { Disclosure } from '@/shared/components';
-import styles from '../management-page.module.scss';
+import { Disclosure, Term } from '@/shared/components';
+import askStyles from './ask.module.scss';
+import styles from '../management.module.scss';
 
 /**
  * O que a verificação descartou continua visível, com o motivo, para que nada suma sem explicação. A resposta nova leva o
@@ -19,11 +20,11 @@ export function AssistantAnswerView({ answer }: { answer: AssistantAnswer }) {
   }, [answer]);
 
   return (
-    <section aria-labelledby={titleId} className={styles.answer}>
+    <section aria-labelledby={titleId} className={askStyles.answer}>
       <h2 id={titleId} ref={title} tabIndex={-1} className={styles.section}>
         Resposta
       </h2>
-      {answer.summary ? <p className={styles.summary}>{answer.summary}</p> : null}
+      {answer.summary ? <p className={askStyles.summary}>{answer.summary}</p> : null}
 
       {ANSWER_SECTIONS.map((section) =>
         answer[section.key].length > 0 ? (
@@ -38,7 +39,7 @@ export function AssistantAnswerView({ answer }: { answer: AssistantAnswer }) {
       )}
 
       {answer.unavailable.length > 0 ? (
-        <div className={styles.answerGroup}>
+        <div className={askStyles.answerGroup}>
           <h3 className={styles.kindTitle}>Informações indisponíveis</h3>
           <ul className={styles.notes}>
             {answer.unavailable.map((text) => (
@@ -70,9 +71,17 @@ export function AssistantAnswerView({ answer }: { answer: AssistantAnswer }) {
       ) : null}
 
       <p className={styles.ruleNote}>
-        {answer.model
-          ? `Escrito por ${answer.model} a partir dos fatos do projeto e conferido pelo Spock Studio: cada afirmação cita os fatos que usou, e número que não está neles é descartado.`
-          : 'Montado pelo Spock Studio só com os fatos do projeto: nenhum modelo de IA escreveu esta resposta.'}
+        {answer.model ? (
+          <>
+            Escrito por {answer.model} a partir dos <Term id="fact">fatos</Term> do projeto e conferido pelo Spock
+            Studio: cada afirmação cita os fatos que usou, e número que não está neles é descartado.
+          </>
+        ) : (
+          <>
+            Montado pelo Spock Studio só com os <Term id="fact">fatos</Term> do projeto: nenhum modelo de IA escreveu
+            esta resposta.
+          </>
+        )}
       </p>
     </section>
   );
@@ -89,17 +98,17 @@ function AnswerSection({ label, hint, statements, facts }: AnswerSectionProps) {
   const titleId = useId();
 
   return (
-    <div className={styles.answerGroup} role="group" aria-labelledby={titleId}>
+    <div className={askStyles.answerGroup} role="group" aria-labelledby={titleId}>
       <h3 id={titleId} className={styles.kindTitle}>
         {label}
-        <span className={styles.sectionHint}>{hint}</span>
+        <span className={askStyles.sectionHint}>{hint}</span>
       </h3>
-      <ul className={styles.statements}>
+      <ul className={askStyles.statements}>
         {statements.map((statement) => (
           <li key={statement.text}>
             {statement.text}
             <Disclosure
-              className={styles.sources}
+              className={askStyles.sources}
               summary={
                 <>{statement.evidence.length === 1 ? '1 fato citado' : `${statement.evidence.length} fatos citados`}</>
               }

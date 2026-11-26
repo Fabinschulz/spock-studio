@@ -1,9 +1,11 @@
-import { InlineNotice, PageSection } from '@/shared/components';
+import { InlineNotice, PageSection, Term } from '@/shared/components';
 import type { Connector, KindFlow, ProjectMetrics } from '@/shared/schema';
 import { useId } from 'react';
 
 import { formatDays, formatDecimal, formatWindow } from '../domain/format';
-import styles from '../management-page.module.scss';
+import { Figure, Figures } from './figures';
+import flowStyles from './flow-section.module.scss';
+import styles from '../management.module.scss';
 
 interface FlowSectionProps {
   metrics: ProjectMetrics;
@@ -29,9 +31,9 @@ export function FlowSection({ metrics, connectors }: FlowSectionProps) {
       ))}
       <p className={styles.muted}>
         Entregue é o item concluído com data de conclusão; tarefa descartada ou duplicada e pull request fechado sem ser
-        incorporado não contam. O tempo total são os dias corridos da criação à conclusão (lead time). O tempo de
-        trabalho são os dias corridos do início do trabalho à conclusão (cycle time): o início é a primeira vez que o
-        item entrou em andamento no histórico de status, que só o Jira informa. Tipos diferentes não são somados.
+        incorporado não contam. O tempo total são os dias corridos da criação à conclusão. O tempo de trabalho são os
+        dias corridos do início do trabalho à conclusão: o início é a primeira vez que o item entrou em andamento no
+        histórico de status, que só o Jira informa. Tipos diferentes não são somados.
       </p>
     </PageSection>
   );
@@ -66,7 +68,7 @@ function KindFlowBlock({ flow, label }: { flow: KindFlow; label: string }) {
       <h3 id={titleId} className={styles.kindTitle}>
         {label}
       </h3>
-      <dl className={styles.figures}>
+      <Figures>
         <Figure label="Em andamento" value={flow.wip.value} unavailable={flow.wip.unavailable} />
         <Figure
           label="Entregues por semana (média)"
@@ -74,13 +76,21 @@ function KindFlowBlock({ flow, label }: { flow: KindFlow; label: string }) {
           unavailable={flow.throughput.unavailable}
         />
         <Figure
-          label="Tempo total, da criação à entrega (mediana)"
+          label={
+            <>
+              <Term id="leadTime">Tempo total</Term>, da criação à entrega (mediana)
+            </>
+          }
           value={flow.leadTime.medianDays === null ? null : formatDays(flow.leadTime.medianDays)}
           note={flow.leadTime.p85Days === null ? undefined : `85% em até ${formatDays(flow.leadTime.p85Days)}`}
           unavailable={flow.leadTime.unavailable}
         />
         <Figure
-          label="Tempo de trabalho, do início à entrega (mediana)"
+          label={
+            <>
+              <Term id="cycleTime">Tempo de trabalho</Term>, do início à entrega (mediana)
+            </>
+          }
           value={flow.cycleTime.medianDays === null ? null : formatDays(flow.cycleTime.medianDays)}
           note={cycleTimeNote(flow.cycleTime)}
           unavailable={flow.cycleTime.unavailable}
@@ -92,10 +102,10 @@ function KindFlowBlock({ flow, label }: { flow: KindFlow; label: string }) {
           unavailable={flow.blocked.unavailable}
         />
         <Figure label="Prazo vencido" value={flow.overdue.value} unavailable={flow.overdue.unavailable} />
-      </dl>
+      </Figures>
 
       {flow.throughput.weeks.length > 0 ? (
-        <table className={styles.weeks}>
+        <table className={flowStyles.weeks}>
           <caption className="visually-hidden">{label}: itens entregues e itens novos por semana</caption>
           <thead>
             <tr>
@@ -123,33 +133,13 @@ function KindFlowBlock({ flow, label }: { flow: KindFlow; label: string }) {
   );
 }
 
-interface FigureProps {
-  label: string;
-  value: number | string | null;
-  note?: string;
-  unavailable: string | null;
-}
-
-function Figure({ label, value, note, unavailable }: FigureProps) {
-  const detail = value === null ? (unavailable ?? 'Sem dado.') : note;
-  return (
-    <div className={styles.figure}>
-      <dt>
-        {label}
-        {detail ? <span className={styles.figureNote}>{detail}</span> : null}
-      </dt>
-      {value === null ? <dd className={styles.absent}>sem dado</dd> : <dd>{value}</dd>}
-    </div>
-  );
-}
-
 /** A barra é só leitura rápida; o número ao lado é o dado. */
 function Bar({ value, peak, tone }: { value: number; peak: number; tone: 'delivered' | 'created' }) {
   return (
-    <span className={styles.barCell}>
-      <span className={styles.barValue}>{value}</span>
+    <span className={flowStyles.barCell}>
+      <span className={flowStyles.barValue}>{value}</span>
       <span
-        className={tone === 'delivered' ? styles.barDelivered : styles.barCreated}
+        className={tone === 'delivered' ? flowStyles.barDelivered : flowStyles.barCreated}
         style={{ width: `${(value / peak) * 100}%` }}
         aria-hidden="true"
       />

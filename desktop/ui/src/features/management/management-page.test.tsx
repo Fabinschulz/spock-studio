@@ -83,11 +83,11 @@ describe('Gestão · acompanhamento do projeto', () => {
     expect(blocked).toHaveTextContent('não foram lidos nesta fonte');
     // Os itens do cenário têm histórico de status: cada um levou n dias em andamento, mediana 3 e percentil 85 em 6.
     expect(
-      within(issues).getByText('Tempo de trabalho, do início à entrega (mediana)').nextElementSibling
+      within(issues).getByRole('button', { name: 'Tempo de trabalho' }).closest('dt')!.nextElementSibling
     ).toHaveTextContent('3');
-    expect(
-      within(issues).getByText('Tempo de trabalho, do início à entrega (mediana)').closest('div')
-    ).toHaveTextContent('85% em até 6');
+    expect(within(issues).getByRole('button', { name: 'Tempo de trabalho' }).closest('div')).toHaveTextContent(
+      '85% em até 6'
+    );
     // O pull request não traz histórico de status: o motivo aparece no lugar do número.
     const pulls = within(flow).getByRole('group', { name: 'Pull requests' });
     expect(within(pulls).getByText(/A fonte não informa quando o trabalho começou/)).toBeInTheDocument();

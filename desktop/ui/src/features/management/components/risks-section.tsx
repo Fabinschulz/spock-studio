@@ -1,8 +1,8 @@
-import { StatusChip, PageSection } from '@/shared/components';
+import { StatusChip, PageSection, Term } from '@/shared/components';
 import type { ProjectRisk, ProjectRisks } from '@/shared/schema';
 
 import { severityLabel } from '../domain/delivery-labels';
-import styles from '../management-page.module.scss';
+import styles from '../management.module.scss';
 
 export function RisksSection({ risks }: { risks: ProjectRisks }) {
   if (!risks.hasData) return null;
@@ -30,8 +30,8 @@ function RiskRow({ risk }: { risk: ProjectRisk }) {
   const severity = severityLabel(risk.severity);
 
   return (
-    <li className={styles.portfolioRow}>
-      <div className={styles.portfolioHead}>
+    <li className={styles.item}>
+      <div className={styles.itemHead}>
         <span className={styles.rowTitle}>{risk.title}</span>
         <StatusChip tone={severity.tone}>Gravidade {severity.label}</StatusChip>
       </div>
@@ -54,7 +54,9 @@ function RiskRow({ risk }: { risk: ProjectRisk }) {
       <p>
         <span className={styles.kindLabel}>O que fazer:</span> {risk.recommendation}
       </p>
-      <p className={styles.ruleNote}>Regra: {risk.rule}</p>
+      <p className={styles.ruleNote}>
+        <Term id="riskRule">Regra</Term>: {risk.rule}
+      </p>
     </li>
   );
 }

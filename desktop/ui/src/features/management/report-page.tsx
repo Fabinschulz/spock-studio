@@ -14,7 +14,7 @@ import { FlowSection } from './components/flow-section';
 import { RisksSection } from './components/risks-section';
 import { reportToMarkdown } from './domain/report-markdown';
 import { describeRiskChange } from './domain/risk-history-text';
-import styles from './management-page.module.scss';
+import styles from './management.module.scss';
 import { createManagementApi, type ManagementApi } from './service/management-api';
 
 const PERIODS = [2, 4, 8, 12] as const;
