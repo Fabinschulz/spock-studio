@@ -358,7 +358,9 @@ describe('AppShell · estado do motor', () => {
     const handler = listen.mock.calls[0]![1] as (event: { payload: unknown }) => void;
     act(() => handler({ payload: 'crashed' }));
 
-    expect(screen.getByRole('status')).toHaveTextContent('Motor indisponível');
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Motor indisponível. Reinicie-o em Configurações › Diagnóstico.'
+    );
   });
 
   it('inteligência indisponível não aparece como motor caído', async () => {
