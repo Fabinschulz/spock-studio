@@ -3,6 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import aiToolsFixture from '@contracts/fixtures/aitools/list.json';
+import connectionFixture from '@contracts/fixtures/models/connection.json';
+
+import type { EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
 import { expectNoA11yViolations } from '@/test/a11y';
 
@@ -14,11 +18,22 @@ vi.mock('@tauri-apps/api/event', () => ({ listen: vi.fn().mockResolvedValue(() =
 
 const motor = (atMs: number, message: string) => ({ atMs, source: 'motor', message });
 
+const engineClient: EngineClient = {
+  async request(method, _params, schema) {
+    if (method === 'model.connection') return schema.parse(connectionFixture);
+    if (method === 'aitool.list') return schema.parse(aiToolsFixture);
+    throw new Error(method);
+  },
+  async onEvent() {
+    return () => undefined;
+  }
+};
+
 function renderPage() {
   return render(
     <AppProviders>
       <MemoryRouter>
-        <DiagnosticsPage />
+        <DiagnosticsPage client={engineClient} />
       </MemoryRouter>
     </AppProviders>
   );
@@ -42,12 +57,36 @@ afterEach(() => {
 });
 
 describe('DiagnosticsPage · este computador', () => {
-  it('mostra as informações do computador e diz que o motor não existe fora do aplicativo', () => {
+  it('fora do aplicativo as verificações dizem que não há motor, sem fingir que está pronto', () => {
     renderPage();
 
     expect(screen.getByRole('heading', { level: 1, name: 'Diagnóstico' })).toBeInTheDocument();
+    const checks = screen.getByRole('region', { name: 'Verificações' });
+    expect(within(checks).getAllByText('Indisponível na prévia do navegador.').length).toBeGreaterThanOrEqual(2);
+    expect(within(checks).queryByText('Certo')).not.toBeInTheDocument();
     expect(screen.getByText('Aplicativo')).toBeInTheDocument();
-    expect(screen.getAllByText('Indisponível na prévia do navegador')).toHaveLength(2);
+  });
+
+  it('no aplicativo, cada verificação diz o estado, o que quer dizer e leva aonde se corrige', async () => {
+    hostWith([]);
+    renderPage();
+
+    const checks = screen.getByRole('region', { name: 'Verificações' });
+    const model = (await within(checks).findByText('OpenAI conectado, com o modelo gpt-4o-mini.')).closest('li')!;
+    expect(within(model).getByText('Certo')).toBeInTheDocument();
+    const storage = within(checks).getByText('Onde a chave fica').closest('li')!;
+    expect(within(storage).getByText('Atenção')).toBeInTheDocument();
+    expect(within(storage).getByRole('link', { name: 'Abrir Conexões › Serviços' })).toHaveAttribute(
+      'href',
+      '/integracoes'
+    );
+    const tools = within(checks)
+      .getByText(/^3 de 4 encontradas/)
+      .closest('li')!;
+    expect(within(tools).getByText('Cursor Agent')).toBeInTheDocument();
+    expect(within(tools).getByText(/Ele não confere o login de nenhuma delas/)).toBeInTheDocument();
+
+    await expectNoA11yViolations(document.body);
   });
 
   it('copia as linhas da tela e confirma', async () => {
@@ -57,6 +96,7 @@ describe('DiagnosticsPage · este computador', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Copiar informações' }));
 
+    expect(writeText).toHaveBeenCalledWith(expect.stringContaining('Verificações:\nMotor: '));
     expect(writeText).toHaveBeenCalledWith(expect.stringContaining('Aplicativo: Spock Studio v'));
     expect(await screen.findByText('Informações copiadas.')).toBeInTheDocument();
   });
