@@ -1,6 +1,6 @@
 import type { SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
-import { NoProjectState, Page, ResourceView, Term } from '@/shared/components';
+import { NoProjectState, Page, ResourceView } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import { readHandoff } from '@/shared/routing';
 import type { PortfolioProject } from '@/shared/schema';
@@ -91,8 +91,8 @@ function Assistant({ api, project, projects, configured }: AssistantProps) {
     <>
       {!configured ? (
         <ModelKeyNotice>
-          O assistente usa um modelo de linguagem para escrever a resposta. Sem ele, só a{' '}
-          <Term id="stepInvestigation" /> de um projeto responde, e lista os sinais.
+          O assistente usa um modelo de linguagem para escrever a resposta. Sem ele, só a investigação em etapas de um
+          projeto responde, e lista os sinais.
         </ModelKeyNotice>
       ) : null}
       <ChoiceGroup
