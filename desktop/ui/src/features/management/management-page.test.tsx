@@ -1,12 +1,13 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { SelectedProject } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
 import { expectNoA11yViolations } from '@/test/a11y';
 import linkedFixture from '@contracts/fixtures/runs/run-linked.json';
+import { chooseOption } from '@/test/choose-option';
 import { fakeIntegrationEngine, syncedIntegration } from '@/test/fake-integration-engine';
 
 import { summarizeActivity } from './domain/activity-summary';
@@ -23,7 +24,23 @@ const renderPage = (client: EngineClient, project: SelectedProject | null) =>
     </AppProviders>
   );
 
+beforeEach(() => localStorage.clear());
+
 describe('Gestão · acompanhamento do projeto', () => {
+  it('pede os indicadores do período comum e troca junto com ele, para o Relatório abrir igual', async () => {
+    const engine = fakeIntegrationEngine();
+    renderPage(engine.client, loja);
+    const metrics = () => engine.calls.filter((call) => call.method === 'management.metrics');
+
+    await screen.findByRole('heading', { name: 'Atividades' });
+    expect(metrics()[0]?.params).toEqual({ projectId: loja.projectId, weeks: 8 });
+
+    await chooseOption('Período', 'Últimas 4 semanas');
+
+    await waitFor(() => expect(metrics().at(-1)?.params).toEqual({ projectId: loja.projectId, weeks: 4 }));
+    expect(localStorage.getItem('spock.management.periodWeeks')).toBe('4');
+  });
+
   it('sem projeto aberto não pede nada ao motor', () => {
     const engine = fakeIntegrationEngine();
     renderPage(engine.client, null);
