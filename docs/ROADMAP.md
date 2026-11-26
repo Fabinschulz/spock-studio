@@ -8,7 +8,7 @@
 
 | Item | Situação | Onde |
 | --- | --- | --- |
-| Fluxos internos de Gestão (Portfólio, Acompanhamento, Assistente, Relatório) | Sessão própria: diagnóstico e proposta em `docs/redesign/gestao.md`, esperando a aprovação do dono antes de implementar | [workspace-unificado.md §10](redesign/workspace-unificado.md) |
+| Fluxos internos de Gestão (Portfólio, Acompanhamento, Assistente, Relatório) | Entregues em G-1 a G-7. Sobra a validação com dados reais, que depende de o dono vincular e sincronizar uma ferramenta (DG5): portfólio com pontos de atenção, faixa e abas do Acompanhamento com números, e o Relatório com dados | [workspace-unificado.md §10](redesign/workspace-unificado.md) |
 | Fluxos internos de Configurações (Modelos de IA, Diagnóstico, Sobre) | Entregues em CF1 a CF5 (#215 a #221). Sobram: ver os estados que exigem uma chave real aceita ou recusada por um provedor (provedor conectado, com erro, finalidades, remover, trocar a chave), a inteligência local indisponível e o botão "Reiniciar o motor" na tela dos modelos sem o app ter sido visto com ele; e a cor da ajuda do `TextField`, que na biblioteca é a cor de destaque e parece link ou sucesso | [configuracoes.md](redesign/configuracoes.md) |
 | Configurar: T6, P4, P5, P6, PL2 e RS3 | Sessão própria, um PR | [configurar.md](redesign/configurar.md) |
 | Aba IDEs em Conexões e resíduos da etapa 2 do ciclo 2 | Um commit na branch `feat/ciclo2-etapas-1-2` do GitHub que nunca entrou no master (o PR #137 foi mergeado antes dele). Precisa de rebase; parte já foi feita por outros PRs (a reversão com `ConfirmAction` entrou no C2 do Configurar) | [SPOCK_IMPLEMENTATION_ROADMAP.md](plataforma/SPOCK_IMPLEMENTATION_ROADMAP.md) |

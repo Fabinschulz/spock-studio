@@ -1,7 +1,7 @@
 # Spock Studio — Área Gestão: diagnóstico e proposta
 
 > **Estado:** diagnóstico feito no aplicativo real e proposta aprovada pelo dono em 2026-11-25, com as seis decisões
-> conforme a recomendação (seção 5). Os incrementos G-1 a G-6 estão entregues (o G-6 neste PR) e o G-7 não foi feito. O que
+> conforme a recomendação (seção 5). Os incrementos G-1 a G-7 estão entregues (o G-7 neste PR). O que
 > ficou sem validar com dados reais tem etapa própria, na seção 6. Continua o item 4 do briefing (fluxos internos de Gestão), que o redesign de
 > [`workspace-unificado.md`](workspace-unificado.md) não cobriu: ele entregou a área e a navegação, não as telas de dentro.
 >
@@ -199,8 +199,8 @@ o axe, sem erros no console e com projetos de teste descartáveis.
 | G-3 | #219 | Mergeado. |
 | G-4 | #223 | Mergeado. Ordenação do motor: sem ferramenta não conta como atenção e vem depois de quem tem dado. |
 | G-5 | #222 | Mergeado. |
-| G-6 | este PR | Faixa "O que pede atenção" e cinco abas (Visão geral, Entregas, Riscos, Decisões, Fontes). Sem ferramenta, um estado só com a ação de vincular. Os estados com dados não foram vistos no aplicativo (seção 6). |
-| G-7 | — | Não feito: copiar como ação primária, ordem igual à das abas do Acompanhamento e seções que não somem caladas no Relatório (RL1, RL4, RL5). |
+| G-6 | #225 | Mergeado. Faixa "O que pede atenção" e cinco abas (Visão geral, Entregas, Riscos, Decisões, Fontes). Sem ferramenta, um estado só com a ação de vincular. Os estados com dados não foram vistos no aplicativo (seção 6). |
+| G-7 | este PR | "Copiar como Markdown" é a ação primária, no cabeçalho; sem as seções "Período" e "Para levar". As seções seguem a ordem das abas do Acompanhamento (Previsão de entrega, Fluxo, Marcos, Riscos, Mudanças de risco, Decisões, Execuções do período), com os mesmos nomes, e o texto copiado segue a mesma ordem. Previsão, fluxo e riscos sem dado ficam no lugar com a frase do Acompanhamento (`NoData`, que agora vive dentro das seções e vale nas duas telas). As execuções saem de "tipo, estado: número" para "tipo · estado · N execuções" (RL5). Os estados com dados não foram vistos no aplicativo (seção 6). |
 
 ### Decisões do dono
 
@@ -217,7 +217,9 @@ o axe, sem erros no console e com projetos de teste descartáveis.
 
 Tudo abaixo passou nos testes automatizados, com as respostas reais do motor como fixture, mas **não foi visto no
 aplicativo real**. Os estados vazios, o sem ferramenta e os controles foram validados em 1440×900 e 900×650, com o axe e
-sem erros no console. O que falta precisa de dados que só uma ferramenta vinculada e sincronizada traz, ou de uma chave de
+sem erros no console. O Relatório sem ferramenta (G-7) também: as sete seções na ordem das abas, três delas com a frase de
+"sem dados", a ação de copiar alcançada pelo teclado (Enter e Espaço), a troca de período e o texto copiado, em 1440×900 e 900×650 com
+axe sem violações. O que falta precisa de dados que só uma ferramenta vinculada e sincronizada traz, ou de uma chave de
 modelo, e por isso depende do dono (DG5): o token é digitado por ele, numa instância do aplicativo com pasta de dados
 própria, em projeto de teste descartável.
 
@@ -234,7 +236,9 @@ própria, em projeto de teste descartável.
    - riscos com os itens em lista e, depois de duas sincronizações, o histórico dos riscos;
    - as execuções ligadas a itens e o último estado de cada fonte;
    - a troca de período e a decisão registrada com os fatos do dia.
-3. **Relatório:** as seções com dados e o texto copiado em Markdown.
+3. **Relatório:** as seções com dados (previsão, fluxo, marcos, riscos, mudanças de risco, decisões e execuções do
+   período), com a mesma ordem e os mesmos números do Acompanhamento no mesmo período; e o texto copiado em Markdown,
+   conferido contra a tela e colado num editor.
 
 **Com uma chave de modelo configurada:** a resposta direta do Assistente (conferida, com afirmações descartadas), a
 investigação em etapas com modelo, a pergunta a vários projetos com a prévia do que vai ao provedor, e a nota "Escrito por"

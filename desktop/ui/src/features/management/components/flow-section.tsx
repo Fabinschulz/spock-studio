@@ -3,9 +3,11 @@ import type { Connector, KindFlow, ProjectMetrics } from '@/shared/schema';
 import { useId } from 'react';
 
 import { formatDays, formatDecimal, formatWindow } from '../domain/format';
+import { flowTitle, NO_DATA } from '../domain/section-text';
 import { Figure, Figures } from './figures';
 import flowStyles from './flow-section.module.scss';
 import styles from '../management.module.scss';
+import { NoData } from './no-data';
 
 interface FlowSectionProps {
   metrics: ProjectMetrics;
@@ -14,12 +16,13 @@ interface FlowSectionProps {
 
 /** Cada número diz de onde vem; o que não tem base aparece com o motivo. */
 export function FlowSection({ metrics, connectors }: FlowSectionProps) {
-  if (metrics.kinds.length === 0) return null;
+  const title = flowTitle(metrics.periodWeeks);
+  if (metrics.kinds.length === 0) return <NoData title={title}>{NO_DATA.flow}</NoData>;
   const label = (kind: string) =>
     connectors.flatMap((connector) => connector.dataKinds).find((entry) => entry.id === kind)?.label ?? kind;
 
   return (
-    <PageSection title={`Fluxo nas últimas ${metrics.periodWeeks} semanas`}>
+    <PageSection title={title}>
       {!metrics.complete ? (
         <InlineNotice tone="warning" title="Dados incompletos">
           Ao menos uma fonte teve a última sincronização parcial ou com falha. Os números abaixo valem para o que

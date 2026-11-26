@@ -1,9 +1,9 @@
 import type { ProjectReport } from '@/shared/schema';
-import { runKindLabel, runStateLabel } from '@/shared/utils';
 
 import { milestoneOutlookLabel, severityLabel } from './delivery-labels';
 import { formatDay, formatDays, formatDecimal } from './format';
 import { describeRiskChange } from './risk-history-text';
+import { describeRunCount, flowTitle, FORECAST_TITLE, NO_DATA, RISKS_TITLE } from './section-text';
 
 const day = (iso: string) => formatDay(iso.slice(0, 10));
 
@@ -21,9 +21,21 @@ export function reportToMarkdown(report: ProjectReport, kindLabel: (kind: string
     ''
   ];
 
-  lines.push('## Fluxo');
-  if (report.metrics.kinds.length === 0) lines.push('', 'Sem itens sincronizados.');
-  if (!report.metrics.complete)
+  lines.push(`## ${FORECAST_TITLE}`);
+  if (report.forecast.kinds.length === 0) lines.push('', NO_DATA.forecast);
+  for (const forecast of report.forecast.kinds) {
+    lines.push(
+      '',
+      `### ${kindLabel(forecast.kind)}: ${forecast.remaining} ${forecast.remaining === 1 ? 'aberto' : 'abertos'}`
+    );
+    if (forecast.unavailable !== null) lines.push(`- Sem previsão: ${forecast.unavailable}`);
+    for (const scenario of forecast.scenarios) lines.push(`- ${scenario.label}: até ${formatDay(scenario.by)}`);
+  }
+
+  lines.push('', `## ${flowTitle(report.metrics.periodWeeks)}`);
+  if (report.metrics.kinds.length === 0) lines.push('', NO_DATA.flow);
+  // Sem nenhum tipo lido não há fonte incompleta: a tela só avisa quando há números.
+  else if (!report.metrics.complete)
     lines.push('', 'Atenção: ao menos uma fonte está incompleta; os números valem para o que chegou.');
   for (const flow of report.metrics.kinds) {
     lines.push(
@@ -38,17 +50,6 @@ export function reportToMarkdown(report: ProjectReport, kindLabel: (kind: string
     );
   }
 
-  lines.push('', '## Previsão');
-  if (report.forecast.kinds.length === 0) lines.push('', 'Sem itens sincronizados.');
-  for (const forecast of report.forecast.kinds) {
-    lines.push(
-      '',
-      `### ${kindLabel(forecast.kind)}: ${forecast.remaining} ${forecast.remaining === 1 ? 'aberto' : 'abertos'}`
-    );
-    if (forecast.unavailable !== null) lines.push(`- Sem previsão: ${forecast.unavailable}`);
-    for (const scenario of forecast.scenarios) lines.push(`- ${scenario.label}: até ${formatDay(scenario.by)}`);
-  }
-
   lines.push('', '## Marcos');
   if (report.milestones.milestones.length === 0) lines.push('', 'Nenhum item pertence a um marco.');
   for (const milestone of report.milestones.milestones) {
@@ -59,14 +60,15 @@ export function reportToMarkdown(report: ProjectReport, kindLabel: (kind: string
     );
   }
 
-  lines.push('', '## Riscos agora');
-  if (report.risks.risks.length === 0) lines.push('', 'Nenhuma regra de risco disparou.');
+  lines.push('', `## ${RISKS_TITLE}`);
+  if (!report.risks.hasData) lines.push('', NO_DATA.risks);
+  else if (report.risks.risks.length === 0) lines.push('', 'Nenhuma regra de risco disparou.');
   for (const risk of report.risks.risks) {
     lines.push(`- ${risk.title} (gravidade ${severityLabel(risk.severity).label}): ${risk.evidence.join(' ')}`);
   }
 
   lines.push('', '## Mudanças de risco no período');
-  if (report.riskChanges.length === 0) lines.push('', 'Nenhuma mudança registrada no período.');
+  if (report.riskChanges.length === 0) lines.push('', 'Nenhuma mudança de risco registrada no período.');
   for (const item of report.riskChanges) {
     lines.push(`- ${day(item.change.at)}: ${item.title}. ${describeRiskChange(item.change)}`);
   }
@@ -77,9 +79,8 @@ export function reportToMarkdown(report: ProjectReport, kindLabel: (kind: string
     lines.push(`- ${day(decision.recordedAt)}: ${decision.title}. ${decision.decision}`);
 
   lines.push('', '## Execuções do período');
-  if (report.runs.length === 0) lines.push('', 'Nenhuma execução no período.');
-  for (const run of report.runs)
-    lines.push(`- ${runKindLabel(run.kind)}, ${runStateLabel(run.state).toLowerCase()}: ${run.count}`);
+  if (report.runs.length === 0) lines.push('', 'Nenhuma execução começou no período.');
+  for (const run of report.runs) lines.push(`- ${describeRunCount(run)}`);
 
   lines.push('', '---', '', report.basis, '');
   return lines.join('\n');

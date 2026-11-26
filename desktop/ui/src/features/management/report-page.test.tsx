@@ -6,8 +6,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SelectedProject } from '@/features/project-selection';
 import { EngineError, type EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
+import { projectReportSchema } from '@/shared/schema';
+import { expectNoA11yViolations } from '@/test/a11y';
 import { fakeIntegrationEngine } from '@/test/fake-integration-engine';
 import { chooseOption } from '@/test/choose-option';
+import reportFixture from '@contracts/fixtures/management/report.json';
 
 import { ReportPage } from './report-page';
 
@@ -21,6 +24,30 @@ const renderPage = (client: EngineClient, project: SelectedProject | null = loja
       </MemoryRouter>
     </AppProviders>
   );
+
+const parsedReport = projectReportSchema.parse(reportFixture);
+
+const withReport = (report: typeof parsedReport): EngineClient => {
+  const engine = fakeIntegrationEngine();
+  return {
+    ...engine.client,
+    request: async (method, params, schema) =>
+      method === 'management.report' ? schema.parse(report) : engine.client.request(method, params, schema)
+  };
+};
+
+/** Os títulos de seção (h2) na ordem em que aparecem, sem o título da página. */
+const sectionTitles = () => screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent);
+
+const SECTION_ORDER = [
+  'Previsão de entrega',
+  'Fluxo nas últimas 4 semanas',
+  'Marcos',
+  'Riscos',
+  'Mudanças de risco no período',
+  'Decisões do período',
+  'Execuções do período'
+];
 
 const reportCalls = (calls: { method: string; params: Record<string, unknown> }[]) =>
   calls.filter((call) => call.method === 'management.report');
@@ -44,19 +71,61 @@ describe('Relatório', () => {
     expect(await screen.findByRole('heading', { name: 'Decisões do período' })).toBeInTheDocument();
 
     expect(reportCalls(engine.calls)[0]?.params).toEqual({ projectId: loja.projectId, weeks: 8 });
-    for (const title of [
-      'Fluxo nas últimas 4 semanas',
-      'Previsão de entrega',
-      'Marcos',
-      'Riscos',
-      'Mudanças de risco no período',
-      'Execuções do período'
-    ])
-      expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
     expect(screen.getByRole('list', { name: 'Decisões do período' })).toHaveTextContent('Adiar a release');
+    // Tipo e estado são rótulos: o estado no masculino não concorda com o tipo no feminino.
     expect(screen.getByRole('list', { name: 'Execuções do período' })).toHaveTextContent(
-      'Pedido de engenharia, falhou: 1'
+      'Pedido de engenharia · Falhou · 1 execução'
     );
+  });
+
+  it('segue a ordem das abas do Acompanhamento, com os mesmos nomes', async () => {
+    const engine = fakeIntegrationEngine();
+    renderPage(engine.client);
+    await screen.findByRole('heading', { name: 'Decisões do período' });
+
+    expect(sectionTitles()).toEqual(SECTION_ORDER);
+  });
+
+  it('sem dado, a seção continua no lugar e diz o que falta, como o Acompanhamento', async () => {
+    renderPage(
+      withReport({
+        ...parsedReport,
+        forecast: { ...parsedReport.forecast, kinds: [] },
+        metrics: { ...parsedReport.metrics, kinds: [] },
+        risks: { ...parsedReport.risks, hasData: false, risks: [] }
+      })
+    );
+    await screen.findByRole('heading', { name: 'Decisões do período' });
+
+    expect(sectionTitles()).toEqual(SECTION_ORDER);
+    expect(screen.getByRole('heading', { name: 'Previsão de entrega' }).closest('section')).toHaveTextContent(
+      'Sem dados para calcular a previsão ainda.'
+    );
+    expect(screen.getByRole('heading', { name: 'Fluxo nas últimas 4 semanas' }).closest('section')).toHaveTextContent(
+      'Sem dados para calcular o fluxo ainda.'
+    );
+    expect(screen.getByRole('heading', { name: 'Riscos' }).closest('section')).toHaveTextContent(
+      'Sem dados para detectar riscos ainda.'
+    );
+    expect(screen.getAllByRole('link', { name: 'Conexões › Serviços' })).toHaveLength(3);
+  });
+
+  it('as seções do período dizem que estão vazias em vez de sumir', async () => {
+    renderPage(withReport({ ...parsedReport, riskChanges: [], decisions: [], runs: [] }));
+
+    expect(await screen.findByText('Nenhuma decisão registrada no período.')).toBeInTheDocument();
+    expect(screen.getByText('Nenhuma mudança de risco registrada no período.')).toBeInTheDocument();
+    expect(screen.getByText('Nenhuma execução começou no período.')).toBeInTheDocument();
+  });
+
+  it('a ação principal é copiar, no cabeçalho, e não há seção "Para levar"', async () => {
+    const engine = fakeIntegrationEngine();
+    const { container } = renderPage(engine.client);
+
+    const copy = await screen.findByRole('button', { name: 'Copiar como Markdown' });
+    expect(copy.closest('header')).toContainElement(screen.getByRole('heading', { level: 1, name: 'Relatório' }));
+    expect(screen.queryByRole('heading', { name: 'Para levar' })).not.toBeInTheDocument();
+    await expectNoA11yViolations(container);
   });
 
   it('trocar o período pede o relatório de novo com as semanas escolhidas', async () => {
@@ -86,7 +155,7 @@ describe('Relatório', () => {
     const engine = fakeIntegrationEngine();
     renderPage(engine.client);
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Copiar como texto' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Copiar como Markdown' }));
 
     await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
     const text = (writeText.mock.calls as unknown as string[][])[0]![0]!;
@@ -109,7 +178,7 @@ describe('Relatório', () => {
     const engine = fakeIntegrationEngine();
     renderPage(engine.client);
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Copiar como texto' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Copiar como Markdown' }));
 
     expect(await screen.findByText(/Não foi possível copiar/)).toBeInTheDocument();
   });

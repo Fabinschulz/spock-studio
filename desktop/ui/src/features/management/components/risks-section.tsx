@@ -2,13 +2,15 @@ import { StatusChip, PageSection, Term } from '@/shared/components';
 import type { ProjectRisk, ProjectRisks } from '@/shared/schema';
 
 import { severityLabel } from '../domain/delivery-labels';
+import { NO_DATA, RISKS_TITLE } from '../domain/section-text';
 import styles from '../management.module.scss';
+import { NoData } from './no-data';
 
 export function RisksSection({ risks }: { risks: ProjectRisks }) {
-  if (!risks.hasData) return null;
+  if (!risks.hasData) return <NoData title={RISKS_TITLE}>{NO_DATA.risks}</NoData>;
 
   return (
-    <PageSection title="Riscos">
+    <PageSection title={RISKS_TITLE}>
       {risks.risks.length === 0 ? (
         <p>Nenhuma das {risks.rulesEvaluated.length} regras de risco disparou com os dados sincronizados.</p>
       ) : (
