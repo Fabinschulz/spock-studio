@@ -1,4 +1,4 @@
-import { PageSection } from '@/shared/components';
+import { EmptyState, PageSection } from '@/shared/components';
 import type { ModelConnection, ModelPurpose } from '@/shared/schema';
 import { SelectField } from '@mariliz/ui-kit';
 import { useMemo } from 'react';
@@ -23,20 +23,24 @@ export function PurposesSection({ connection, busy, feedback, onChoose }: Purpos
   return (
     <PageSection
       title="Modelo por finalidade"
-      description="Cada tarefa pode usar um modelo diferente, de qualquer provedor com chave. Um modelo maior costuma responder melhor, custa mais e demora mais. O teto de tokens de cada execução fica na seção seguinte, e nenhum agente escolhe o modelo: a escolha é sua."
+      description="Cada tarefa pode usar um modelo diferente, de qualquer provedor com chave. Um modelo maior costuma responder melhor, custa mais e demora mais. O limite de gasto de cada execução fica na seção seguinte, e nenhum agente escolhe o modelo: a escolha é sua."
     >
-      <ul className={styles.purposes}>
-        {connection.purposes.map((purpose) => (
-          <PurposeRow
-            key={purpose.id}
-            purpose={purpose}
-            options={options}
-            busy={busy}
-            feedback={feedback}
-            onChoose={(model) => onChoose(purpose, model === defaultModel ? null : model)}
-          />
-        ))}
-      </ul>
+      {connection.configured ? (
+        <ul className={styles.purposes}>
+          {connection.purposes.map((purpose) => (
+            <PurposeRow
+              key={purpose.id}
+              purpose={purpose}
+              options={options}
+              busy={busy}
+              feedback={feedback}
+              onChoose={(model) => onChoose(purpose, model === defaultModel ? null : model)}
+            />
+          ))}
+        </ul>
+      ) : (
+        <EmptyState>Depois de conectar um provedor, você escolhe aqui o modelo de cada tarefa.</EmptyState>
+      )}
     </PageSection>
   );
 }

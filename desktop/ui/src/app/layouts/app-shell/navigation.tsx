@@ -177,7 +177,7 @@ const MANAGEMENT: NavArea = {
       id: 'assistant',
       label: 'Assistente',
       icon: <ChatIcon fontSize="small" />,
-      description: 'Pergunte sobre andamento, riscos e previsão do projeto.',
+      description: 'Pergunte sobre andamento, riscos e previsão, de um projeto ou de vários.',
       to: pathTo('assistant')
     },
     {

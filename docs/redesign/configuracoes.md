@@ -1,6 +1,6 @@
 # Spock Studio — Área Configurações: diagnóstico e proposta
 
-> **Estado:** diagnóstico feito no aplicativo real e proposta aprovada pelo dono em 2026-11-25, com as cinco decisões seguindo a recomendação. Os incrementos CF1 a CF5 entram um por PR; entregues: CF1 (#215), CF2 (#217), CF4 (#218) e CF5. Cobre os itens 10 e 11 da etapa 4 do pedido original, na parte de Configurações; a Gestão tem o seu próprio documento.
+> **Estado:** diagnóstico feito no aplicativo real e proposta aprovada pelo dono em 2026-11-25, com as cinco decisões seguindo a recomendação. Os incrementos CF1 a CF5 entram um por PR; entregues: CF1 (#215), CF2 (#217), CF4 (#218), CF3 (#220) e CF5. Cobre os itens 10 e 11 da etapa 4 do pedido original, na parte de Configurações; a Gestão tem o seu próprio documento.
 >
 > Caminhos de arquivo relativos a `desktop/ui/src/features/settings/`, salvo indicação.
 

@@ -3,7 +3,14 @@ import { describe, expect, it } from 'vitest';
 
 import { modelConnectionSchema } from '@/shared/schema';
 
-import { defaultModelOf, describeProviderState, protectionText, purposeModelOptions } from './provider-labels';
+import {
+  defaultModelOf,
+  describeProviderState,
+  protectionText,
+  purposeModelOptions,
+  keySource,
+  readKey
+} from './provider-labels';
 
 const connection = modelConnectionSchema.parse(multiFixture);
 
@@ -52,5 +59,19 @@ describe('purposeModelOptions', () => {
 
     expect(purposeModelOptions(none)).toEqual([]);
     expect(defaultModelOf(none)).toBeNull();
+  });
+});
+
+describe('readKey e keySource', () => {
+  it('tira os espaços de quem cola e só aceita o formato de uma chave', () => {
+    expect(readKey('  abcdefghij_klmnopqrst-123  ')).toMatchObject({ key: 'abcdefghij_klmnopqrst-123', ready: true });
+    expect(readKey('')).toMatchObject({ ready: false, malformed: false });
+    expect(readKey('curta demais')).toMatchObject({ ready: false, malformed: true });
+    expect(readKey('curta demais').helper).toMatch(/^Confira se copiou a chave inteira\./);
+  });
+
+  it('diz onde conseguir a chave de cada provedor, e um texto geral para os outros', () => {
+    expect(keySource('anthropic')).toMatch(/console\.anthropic\.com/);
+    expect(keySource('outro')).toBe('Crie a chave na área de chaves de API do site do provedor.');
   });
 });

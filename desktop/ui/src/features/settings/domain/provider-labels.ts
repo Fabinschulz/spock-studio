@@ -44,3 +44,33 @@ export function defaultModelOf(connection: ModelConnection): string | null {
 function isDefaultModel(provider: ProviderConnection, model: string): boolean {
   return provider.isDefault && provider.model === model;
 }
+
+const KEY_PATTERN = /^[A-Za-z0-9_-]{20,200}$/;
+const KEY_RULE = 'Entre 20 e 200 caracteres: letras, números, hífen e sublinhado.';
+
+export interface KeyInput {
+  /** O que vai para o motor: sem os espaços que vêm junto ao colar. */
+  key: string;
+  ready: boolean;
+  malformed: boolean;
+  helper: string;
+}
+
+/** Uma chave mal copiada aparece como erro no campo, com o motivo, antes de ir ao provedor. */
+export function readKey(text: string): KeyInput {
+  const key = text.trim();
+  const ready = KEY_PATTERN.test(key);
+  const malformed = key.length > 0 && !ready;
+  return { key, ready, malformed, helper: malformed ? `Confira se copiou a chave inteira. ${KEY_RULE}` : KEY_RULE };
+}
+
+// DCF5: onde conseguir a chave vai em texto; abrir o navegador exigiria outro plugin e outra permissão no host.
+const KEY_SOURCE: Record<string, string> = {
+  openai: 'Crie a chave em platform.openai.com, na área API keys da sua conta.',
+  anthropic: 'Crie a chave em console.anthropic.com, na área API Keys da sua conta.',
+  google: 'Crie a chave no Google AI Studio (aistudio.google.com), em Get API key.'
+};
+
+export function keySource(provider: string): string {
+  return KEY_SOURCE[provider] ?? 'Crie a chave na área de chaves de API do site do provedor.';
+}
