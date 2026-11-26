@@ -1,6 +1,6 @@
 # Spock Studio — Workspace unificado
 
-> **Estado:** oito incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade; o quarto, a largura ajustável desse painel; o quinto, os títulos das telas iguais aos nomes do menu; o sexto, o `Checkbox` da biblioteca no lugar do componente local e o resumo da jornada Configurar que não cobre mais o conteúdo; o sétimo, os filtros de Execuções numa linha; o oitavo, tarefas, execuções recentes e ferramentas de IA na busca. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. Os próximos incrementos e as decisões pendentes estão na seção 10.
+> **Estado:** oito incrementos entregues no aplicativo real. O primeiro trouxe o shell, a navegação, o Início, a entrada de pedidos, o painel de atividade, a busca com comandos e os primeiros passos; o segundo, a pergunta sobre o código como quarto caminho da entrada e o aviso do que cada caminho precisa; o terceiro, a aba do projeto no painel de atividade; o quarto, a largura ajustável desse painel; o quinto, os títulos das telas iguais aos nomes do menu; o sexto, o `Checkbox` da biblioteca no lugar do componente local e o resumo da jornada Configurar que não cobre mais o conteúdo; o sétimo, os filtros de Execuções numa linha; o oitavo, tarefas, execuções recentes e ferramentas de IA na busca. As 24 telas que já existiam continuam abrindo, agora dentro do novo shell. O que falta e as decisões pendentes estão na seção 10, e a avaliação pelos critérios do pedido, na seção 11.
 >
 > O tema, os tokens e a linguagem visual vêm do redesign Workbench anterior e não mudaram; a fonte de verdade deles é o código (`desktop/ui/src/shared/styles/_tokens.scss`). Os produtos de referência estudados não são nomeados aqui; deles saíram princípios, não telas.
 
@@ -94,6 +94,25 @@ Como às vezes quem escreve procurava um lugar, a entrada também mostra até tr
 A entrada do Início avisa quando o caminho escolhido depende de algo que falta (`askNotice`), e só então: a pergunta sobre o andamento sem modelo de IA conectado mostra o aviso com o link para Conexões › Modelos de IA; a pergunta sobre o código sem ferramenta de IA instalada diz que nenhuma foi encontrada. O pedido de engenharia e a nova ideia não avisam nada, porque funcionam sem os dois. O aviso sai do que o motor responde (`model.status`, `aitool.list`); sem resposta, não aparece.
 
 Seletores de modelo e de agente dentro da entrada foram avaliados e ficaram de fora: o contrato de início de pedido não recebe modelo por pedido (o modelo por finalidade se define em Conexões), e a escolha da ferramenta de IA continua na tela de agentes, que mostra quais estão instaladas.
+
+### Anexar arquivo ou informação extra: avaliado, não feito
+
+O pedido original sugere que a entrada aceite "arquivos ou informações adicionais" (§4.4). A avaliação olhou o que cada destino recebe.
+
+| Destino | O que recebe | Aceita arquivo? |
+| --- | --- | --- |
+| Pedido de engenharia (`workflow.start`) | `projectId` e `input` com `goal`, `impact`, `requiresApproval` e `useModel`; o esquema é estrito e espelha `contracts/schemas/ai/workflow.start.params.schema.json` | Não |
+| Pergunta sobre o código (`agent.run`) | `projectId`, a ferramenta e o texto (até 8.000 caracteres) | Não: a ferramenta de IA lê o projeto sozinha |
+| Pergunta sobre o andamento (`management.ask` e `management.portfolioask`) | a pergunta e o projeto, ou a lista de projetos | Não |
+| Nova ideia (`idea.draft`) | o projeto, a etapa e o que já foi aprovado nas etapas anteriores; a ideia tem até 4.000 caracteres | Não |
+
+**Decisão: não anexar.** Três razões:
+
+1. Nenhum destino tem onde receber um arquivo. Anexar seria um botão sem efeito, ou um contrato novo no motor.
+2. O motor decide o que vai ao modelo: monta o contexto a partir do índice do projeto, com a lista do que entra e do que fica de fora que a pessoa vê em Conhecimento, e `context.review` mostra exatamente o que sairia. Um anexo livre passaria por fora desse controle: a prévia e o aviso "sem marcar, nada sai do seu computador" teriam de passar a cobrir o anexo, e isso é mudança de contrato e de segurança no motor.
+3. A necessidade já tem caminho: a informação adicional é o próprio texto do pedido, que segue preenchido para a tela de destino; e os arquivos do projeto já entram pelo índice, com a lista do que entra e do que fica de fora em Conhecimento.
+
+**O que faria valer a pena:** escolher, para um pedido, quais arquivos do projeto priorizar, só entre os que o índice já autoriza (a lista de `engineering.knowledge`), com um campo novo no contrato do motor e a prévia de contexto mostrando a escolha. É trabalho de motor e de segurança, não de interface; está no `ROADMAP.md` para a decisão do dono.
 
 ## 3. Início
 
@@ -257,8 +276,8 @@ Incrementos:
 
 1. **Jornada Configurar**: o diagnóstico e a proposta estão em [`configurar.md`](configurar.md). Os incrementos C1 a C7, a DC2 e a DC5 foram entregues (#199 a #210); as sobras (T6, P4, P5, P6, PL2 e RS3) estão numa sessão própria.
 2. **Fluxos internos de Gestão e de Configurações**: nunca foram redesenhados (etapa 4, itens 10 e 11 do pedido original). Cada um teve uma sessão própria, que começou por diagnóstico e proposta em `docs/redesign/gestao.md` e `docs/redesign/configuracoes.md`. Configurações foi entregue em cinco incrementos (CF1 a CF5, #215 a #221, com a tela dos modelos de IA chamada Modelos de IA nos dois menus); o que sobrou está em [`configuracoes.md`](configuracoes.md) e em [`ROADMAP.md`](../ROADMAP.md). A Gestão foi entregue em sete incrementos (G-1 a G-7); falta validar com dados reais os estados que exigem uma ferramenta vinculada e sincronizada, com o token digitado pelo dono (seção 6 de [`gestao.md`](gestao.md)).
-3. **Entrada de pedidos com arquivo ou informação extra** (§4.4 do pedido): os seletores de modelo e de agente foram avaliados e ficaram de fora com justificativa; anexar arquivo nem foi avaliado.
-4. **Avaliação pelos 13 critérios** (§15): registrar a resposta de cada pergunta, com a evidência.
+3. **Entrada de pedidos com arquivo ou informação extra** (§4.4 do pedido): avaliada. Os seletores de modelo e de agente ficaram de fora, e anexar arquivo também, pelas razões da seção 2D; a escolha de arquivos do projeto para um pedido depende de um campo novo no motor e vai ao dono.
+4. **Avaliação pelos 13 critérios** (§15): feita na seção 11.
 
 Decisões do dono:
 
@@ -268,3 +287,30 @@ Decisões do dono:
 | D2 | Jornadas com Playwright no repositório e no CI | Exige uma dependência de desenvolvimento nova e minutos de CI. O roteiro existe e pode entrar. |
 | D3 | Área "Projetos" e contexto de organização na barra | Hoje o projeto se troca pelo seletor do topo e o Portfólio cobre todos. O aplicativo não tem o conceito de organização nem de usuário. |
 | D4 | Painel de atividade aberto por padrão no Início | Hoje começa fechado, e o Início mostra o resumo. |
+
+## 11. Avaliação pelos critérios do pedido
+
+O pedido original (§15) lista treze perguntas para avaliar a interface. Esta é a resposta de cada uma, com a evidência que existe e o que falta. As evidências vêm das validações no aplicativo real registradas na seção 9 e nos documentos de cada área ([`configurar.md`](configurar.md), [`configuracoes.md`](configuracoes.md), [`gestao.md`](gestao.md)). Nenhuma pessoa de fora usou o aplicativo: onde a pergunta é sobre uma pessoa, a resposta é por inspeção e diz isso.
+
+| # | Pergunta | Resposta | Evidência e limite |
+| --- | --- | --- | --- |
+| 1 | Quem nunca usou entende por onde começar? | **Sim, por inspeção** | O Início abre com "Olá! O que você deseja realizar hoje?", uma entrada de pedidos, sugestões que mudam com o estado e "Primeiros passos" com progresso que o motor confirma (visto no aplicativo: "2 de 4 concluídos"). Limite: nenhuma pessoa nova usou; o estado "primeiro projeto" só foi visto nos testes de componente. |
+| 2 | Conecta o primeiro projeto? | **Em parte** | "Conectar meu primeiro projeto" abre o seletor de pasta do sistema, que o roteiro não consegue dirigir. Abrir pelos recentes e a jornada Configurar (Projeto até Resultado, a 1440 e a 900 px, axe 0) foram validados num projeto descartável. O primeiro projeto de um computador limpo não foi visto. |
+| 3 | Entende o que cada funcionalidade faz? | **Em boa parte** | Cada tela tem nome apresentado, nome técnico e descrição (seção 5); o título é o do menu; os termos técnicos têm explicação (`Term`). Parte dos textos que vêm do motor ficou como estava, de propósito (como "Validação do Harness" na linha do tempo), e alguns ainda são técnicos. Limite: sem pessoas. |
+| 4 | Configura um provedor sem conceitos técnicos? | **Em parte** | Modelos de IA começa por um provedor só, diz onde conseguir a chave e recolhe os tetos (CF3), com o mesmo nome nos dois menus (CF2). Validado até o ponto sem chave. Salvar e testar uma chave de verdade nunca foi exercitado. |
+| 5 | Solicita uma atividade em linguagem natural? | **Sim na entrada; ponta a ponta, não** | O Início e o Ctrl K aceitam uma frase, oferecem os quatro caminhos com o mais provável marcado e levam o texto, preenchido, à tela que o trata (validado no aplicativo). A entrada só encaminha, por decisão. Nenhum fluxo rodou com um modelo real: depende da chave do dono. |
+| 6 | Acompanha o que os agentes executam? | **Em parte** | Painel de atividade com Tarefas, Feed e Projeto, detalhe da execução, aviso de contagem e o grupo Atividade na busca, validados com execuções concluídas e que falharam. Uma execução andando ou esperando aprovação de verdade nunca foi vista no aplicativo; só nos testes. |
+| 7 | Entende os resultados? | **Em parte** | O Resultado do Configurar diz a causa e a saída (C6), a execução traz resumo e o próximo passo, e o Relatório copia em Markdown (G-7). Os números reais de Gestão (ferramenta vinculada, DG5) e as respostas escritas por modelo não foram vistos. |
+| 8 | O desenvolvedor experiente acessa as ferramentas avançadas rápido? | **Sim** | Ctrl K leva a qualquer tela, inclusive pelo nome técnico; atalhos para menu, atividade e terminal; painel inferior com terminal e saída; nenhuma tela escondida (seção 6). Validado. Limite: sem medida de tempo nem de cliques. |
+| 9 | O gestor encontra o que precisa? | **Em parte** | Gestão redesenhada em sete incrementos: Portfólio em tabela, faixa "O que pede atenção" e abas no Acompanhamento, Assistente com escopo, Relatório copiável. Os estados vazios e sem ferramenta foram validados a 1440 e a 900 px. As linhas com números e os pontos de atenção reais só nos testes (DG5). |
+| 10 | Usável com teclado e leitor de tela? | **Teclado sim; leitor de tela não verificado** | Ordem do foco, foco visível, divisórias pelo teclado, paleta como `combobox`, Esc que fecha; axe sem violação em todos os estados validados nas três áreas e na paleta. NVDA ou Narrador nunca foi usado: o axe confere a marcação, não a experiência de ouvir. |
+| 11 | Há consistência visual entre as áreas? | **Em boa parte** | Tokens e tema únicos; componentes da biblioteca no lugar dos locais (`Tooltip`, `Radio`, `StatusChip`, `CountBadge`, `Checkbox`, `SelectField`, `LoadingBar`); um padrão de aviso, de linha e de confirmação; o mesmo método de diagnóstico nas três áreas. Limite: não houve revisão visual lado a lado de todas as telas, e só existe o tema escuro (D1). |
+| 12 | O ambiente transmite qualidade e confiança? | **Sem como medir daqui** | É percepção. Há indicadores objetivos: o Início diz que nada muda sem aprovação, os avisos só aparecem quando o caminho depende do que falta, erros trazem o próximo passo, e o console e o axe ficaram limpos nas jornadas. A resposta é das pessoas. |
+| 13 | As funcionalidades continuam completas? | **Sim** | Nenhuma capacidade foi removida. As 24 telas que existiam seguem abrindo no novo shell, o roteiro de 37 jornadas passou, e os testes (mais de mil) cobrem os fluxos. Limite: as jornadas rodam de um roteiro fora do repositório e do CI (D2). |
+
+**O que a avaliação mostra.** Nenhum critério falha. As lacunas são de dois tipos:
+
+1. **Dependem de pessoas:** um teste de uso com poucas pessoas (um iniciante, um desenvolvedor, um gestor) e o leitor de tela. Cobrem os critérios 1, 3, 8, 10 e 12.
+2. **Dependem de dados ou credenciais do dono:** uma ferramenta vinculada e sincronizada (DG5), uma chave de modelo e uma tarefa esperando aprovação. Cobrem os critérios 4, 5, 6, 7 e 9.
+
+O critério 2 pede o primeiro projeto de um computador limpo, o que o roteiro atual não alcança. Nada disso pede mais código de interface: pede uma rodada com você e, se quiser medir a percepção, um teste com pessoas.
