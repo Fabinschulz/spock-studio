@@ -1,0 +1,87 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+
+  thead th {
+    padding: var(--space-1) var(--space-2) var(--space-2) 0;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    text-align: left;
+    color: var(--color-text-subtle);
+  }
+
+  tbody tr > th[scope='row'],
+  tbody tr > td {
+    padding: var(--space-1) var(--space-2) var(--space-1) 0;
+    font-weight: 400;
+    text-align: left;
+  }
+
+  tbody tr > th[scope='row'] {
+    color: var(--color-text-muted);
+  }
+}
+
+.group {
+  border-top: 1px solid var(--color-border);
+}
+
+.name {
+  padding: var(--space-3) 0 var(--space-1);
+  font-weight: 500;
+  text-align: left;
+}
+
+// O caminho é onde o projeto está, não outro nome para ele: menor e apagado, na linha do nome.
+.path {
+  margin-left: var(--space-2);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--color-text-subtle);
+}
+
+.state {
+  padding-bottom: var(--space-2);
+}
+
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+}
+
+.status,
+.open {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.signals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+  padding: 0 0 0 var(--space-3);
+  border-left: 2px solid var(--tone-warning-fg);
+  list-style: none;
+}
+
+.source {
+  margin: var(--space-1) 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-subtle);
+}
+
+.table .number {
+  text-align: right;
+}
+
+.table .absent {
+  text-align: right;
+  color: var(--color-text-subtle);
+}
