@@ -1,4 +1,4 @@
-import { PageSection, Term } from '@/shared/components';
+import { Disclosure, PageSection, Term } from '@/shared/components';
 import type { ModelBudget, ModelConnection } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
 import { useState } from 'react';
@@ -17,10 +17,14 @@ interface BudgetsSectionProps {
 
 const number = (value: number) => value.toLocaleString('pt-BR');
 
+/** O valor de hoje fica à vista com o limite recolhido: quase ninguém precisa mudá-lo no primeiro uso. */
+const summaryOf = (budgets: readonly ModelBudget[]) =>
+  budgets.map((budget) => `${budget.label}: ${number(budget.tokens)} tokens`).join(' · ');
+
 export function BudgetsSection({ connection, busy, feedback, onSave }: BudgetsSectionProps) {
   return (
     <PageSection
-      title="Teto de tokens por finalidade"
+      title="Limite de gasto por execução"
       description={
         <>
           Quanto uma execução pode gastar do modelo, em <Term id="token" />, somando o que vai e o que volta. Se o teto
@@ -29,11 +33,13 @@ export function BudgetsSection({ connection, busy, feedback, onSave }: BudgetsSe
         </>
       }
     >
-      <ul className={styles.budgets}>
-        {connection.budgets.map((budget) => (
-          <BudgetRow key={budget.purpose} budget={budget} busy={busy} feedback={feedback} onSave={onSave} />
-        ))}
-      </ul>
+      <Disclosure summary={summaryOf(connection.budgets)}>
+        <ul className={styles.budgets}>
+          {connection.budgets.map((budget) => (
+            <BudgetRow key={budget.purpose} budget={budget} busy={busy} feedback={feedback} onSave={onSave} />
+          ))}
+        </ul>
+      </Disclosure>
     </PageSection>
   );
 }

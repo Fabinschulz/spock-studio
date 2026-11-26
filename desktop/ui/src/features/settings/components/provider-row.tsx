@@ -2,17 +2,14 @@ import { formatEngineDate } from '@/shared/utils';
 import { ConfirmAction, StatusChip } from '@/shared/components';
 import type { ProviderConnection } from '@/shared/schema';
 import { Button, TextField } from '@mariliz/ui-kit';
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import { withNextStep } from '../domain/model-errors';
-import { describeProviderState, protectionText } from '../domain/provider-labels';
+import { describeProviderState, protectionText, readKey } from '../domain/provider-labels';
 import type { Feedback } from '../hooks/use-model-settings';
 import { useRefocus } from '../hooks/use-refocus';
 import { ActionFeedback } from './action-feedback';
 import styles from './provider-row.module.scss';
-
-const KEY_PATTERN = /^[A-Za-z0-9_-]{20,200}$/;
-const KEY_RULE = 'Entre 20 e 200 caracteres: letras, números, hífen e sublinhado.';
 
 interface ProviderRowProps {
   provider: ProviderConnection;
@@ -22,27 +19,46 @@ interface ProviderRowProps {
   onTest: (provider: ProviderConnection) => Promise<boolean>;
   onSetDefault: (provider: ProviderConnection) => Promise<boolean>;
   onRemove: (provider: ProviderConnection) => Promise<boolean>;
+  /** Acabou de ser conectado: o foco vem para o cartão, que é onde o resultado aparece. */
+  announce?: boolean;
 }
 
-export function ProviderRow({ provider, busy, feedback, onSave, onTest, onSetDefault, onRemove }: ProviderRowProps) {
+export function ProviderRow({
+  provider,
+  busy,
+  feedback,
+  onSave,
+  onTest,
+  onSetDefault,
+  onRemove,
+  announce = false
+}: ProviderRowProps) {
   const inputId = useId();
   const { target: field, after } = useRefocus<HTMLInputElement>(busy);
   const [key, setKey] = useState('');
   const [removing, setRemoving] = useState(false);
   const state = describeProviderState(provider.status);
   const protection = protectionText(provider.protection);
-  const typed = key.trim();
-  const canSave = KEY_PATTERN.test(typed);
-  const malformed = typed.length > 0 && !canSave;
+  const input = readKey(key);
+  const heading = useRef<HTMLHeadingElement>(null);
+
+  // Depois do foco que o bloco de conectar devolve ao próprio campo: o cartão novo é o que importa agora.
+  useEffect(() => {
+    if (!announce) return;
+    const frame = requestAnimationFrame(() => heading.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [announce]);
 
   const save = async () => {
-    if (canSave && (await after(onSave(provider, typed)))) setKey('');
+    if (input.ready && (await after(onSave(provider, input.key)))) setKey('');
   };
 
   return (
     <li className={styles.provider}>
       <div className={styles.header}>
-        <h3 className={styles.name}>{provider.name}</h3>
+        <h3 ref={heading} tabIndex={-1} className={styles.name}>
+          {provider.name}
+        </h3>
         <StatusChip tone={state.tone}>{state.label}</StatusChip>
         {provider.isDefault ? <StatusChip tone="info">Padrão</StatusChip> : null}
       </div>
@@ -71,16 +87,16 @@ export function ProviderRow({ provider, busy, feedback, onSave, onTest, onSetDef
         fullWidth
         value={key}
         disabled={busy}
-        error={malformed}
+        error={input.malformed}
         onChange={(event) => setKey(event.target.value)}
-        helperText={malformed ? `Confira se copiou a chave inteira. ${KEY_RULE}` : KEY_RULE}
+        helperText={input.helper}
         slotProps={{ htmlInput: { spellCheck: false } }}
       />
 
       <div className={styles.actions}>
         <Button
           type="button"
-          disabled={busy || !canSave}
+          disabled={busy || !input.ready}
           aria-label={`${provider.configured ? 'Trocar' : 'Salvar'} a chave de ${provider.name}`}
           onClick={() => void save()}
         >
