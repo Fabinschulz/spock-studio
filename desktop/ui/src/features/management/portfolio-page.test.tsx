@@ -183,6 +183,13 @@ describe('Gestão · portfólio', () => {
       expect(await screen.findByText('Nenhuma chave de modelo configurada')).toBeInTheDocument();
       await userEvent.type(within(form).getByLabelText('Sua pergunta sobre o portfólio'), 'Qual está mais atrasado?');
       expect(within(form).getByRole('button', { name: 'Perguntar ao portfólio' })).toBeDisabled();
+      expect(within(form).getByRole('button', { name: 'Perguntar ao portfólio' })).toHaveAccessibleDescription(
+        'Para perguntar ao portfólio, configure uma chave de modelo.'
+      );
+      expect(screen.getByRole('link', { name: 'Configurações › Minha IA' })).toHaveAttribute(
+        'href',
+        '/configuracoes/ia'
+      );
     });
 
     it('erro do motor aparece com o motivo e nenhuma resposta fica na tela', async () => {

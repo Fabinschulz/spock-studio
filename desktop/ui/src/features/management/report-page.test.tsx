@@ -83,6 +83,8 @@ describe('Relatório', () => {
     expect(text).toContain('# Relatório do período:');
     expect(text).toContain('## Decisões do período');
     expect(await screen.findByText('Relatório copiado.')).toBeInTheDocument();
+    // A confirmação tem lugar próprio: o período continua à vista, sem a hora.
+    expect(screen.getByText(/Período: de 15\/10\/2026 a 12\/11\/2026\./)).toBeInTheDocument();
   });
 
   it('se a cópia falha diz como seguir', async () => {

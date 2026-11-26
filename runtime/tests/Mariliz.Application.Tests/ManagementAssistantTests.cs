@@ -97,6 +97,18 @@ public class ManagementAssistantTests
             created, closed ?? created, closed, due, null, "https://example.test/" + id, []);
 
     [Fact]
+    public void Sem_fonte_o_pacote_nao_fala_de_titulos_e_mostra_o_dia_no_formato_de_quem_le()
+    {
+        using var s = new Setup();
+
+        var pack = s.Assistant.Evidence(s.Harness.ProjectId);
+
+        Assert.Equal(["Nenhum código, documento ou arquivo do projeto entra nos fatos."], pack.Withheld);
+        Assert.StartsWith("Hoje é 10/11/2026.", pack.Facts.Single(f => f.Id == "today").Text);
+        Assert.StartsWith("Mudança de escopo: ainda sem cálculo. ", pack.Facts.Single(f => f.Id == "missing.scopeChange").Text);
+    }
+
+    [Fact]
     public async Task Pacote_traz_os_numeros_calculados_e_so_inclui_titulos_quando_todas_as_fontes_autorizam()
     {
         using var s = new Setup();

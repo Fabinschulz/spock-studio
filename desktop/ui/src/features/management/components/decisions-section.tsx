@@ -1,15 +1,13 @@
 import { errorMessage } from '@/shared/api';
-import { EmptyState, ErrorState, InlineNotice, PageSection, ResourceView, StatusChip } from '@/shared/components';
+import { EmptyState, ErrorState, InlineNotice, PageSection, ResourceView } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import { DECISION_LIMITS, type DecisionSummary, type ManagementDecision, type RunItem } from '@/shared/schema';
-import { formatEngineDate, runKindLabel, runStateLabel } from '@/shared/utils';
+import { formatEngineDate, plural, runKindLabel, runStateLabel } from '@/shared/utils';
 import { Button, Checkbox, TextField } from '@mariliz/ui-kit';
-import { useCallback, useState, type FormEvent } from 'react';
+import { useCallback, useId, useState, type FormEvent } from 'react';
 
 import styles from '../management-page.module.scss';
 import type { ManagementApi } from '../service/management-api';
-
-const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
 /** Cada decisão guarda os fatos do momento, não os de hoje, e não se edita nem se apaga. */
 export function DecisionsSection({ management, projectId }: { management: ManagementApi; projectId: string }) {
@@ -79,6 +77,8 @@ function DecisionForm({
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hintId = useId();
+  const missing = title.trim() === '' || decision.trim() === '';
   const loadRuns = useCallback(() => management.recentRuns(projectId), [management, projectId]);
   const runs = useAsyncResource(loadRuns);
 
@@ -156,10 +156,20 @@ function DecisionForm({
         apagada. Não escreva senhas nem chaves: o que parecer um segredo é substituído.
       </p>
       {error ? <ErrorState>{error}</ErrorState> : null}
-      <div>
-        <Button type="submit" disabled={busy || title.trim() === '' || decision.trim() === ''}>
+      <div className={styles.actions}>
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={busy || missing}
+          aria-describedby={missing ? hintId : undefined}
+        >
           Registrar decisão
         </Button>
+        {missing ? (
+          <p id={hintId} className={styles.hint}>
+            Preencha o título e o que foi decidido.
+          </p>
+        ) : null}
       </div>
     </form>
   );
@@ -211,7 +221,9 @@ function DecisionRow({
     <li className={styles.portfolioRow}>
       <div className={styles.portfolioHead}>
         <span className={styles.rowTitle}>{decision.title}</span>
-        <StatusChip tone="neutral">{formatEngineDate(decision.recordedAt)}</StatusChip>
+        <time dateTime={decision.recordedAt} className={styles.muted}>
+          {formatEngineDate(decision.recordedAt)}
+        </time>
       </div>
       <p>{decision.decision}</p>
       {decision.rationale ? <p className={styles.muted}>Por quê: {decision.rationale}</p> : null}

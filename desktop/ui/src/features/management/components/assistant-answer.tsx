@@ -70,8 +70,9 @@ export function AssistantAnswerView({ answer }: { answer: AssistantAnswer }) {
       ) : null}
 
       <p className={styles.ruleNote}>
-        Escrito por {answer.model} a partir dos fatos do projeto e conferido pelo Spock Studio: cada afirmação cita os
-        fatos que usou, e número que não está neles é descartado.
+        {answer.model
+          ? `Escrito por ${answer.model} a partir dos fatos do projeto e conferido pelo Spock Studio: cada afirmação cita os fatos que usou, e número que não está neles é descartado.`
+          : 'Montado pelo Spock Studio só com os fatos do projeto: nenhum modelo de IA escreveu esta resposta.'}
       </p>
     </section>
   );

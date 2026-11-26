@@ -1,4 +1,4 @@
-import { formatEngineDate } from '@/shared/utils';
+import { formatEngineDate, plural } from '@/shared/utils';
 import { useProjectSelectionContext } from '@/features/project-selection';
 import type { EngineClient } from '@/shared/api';
 import { StatusChip, EmptyState, Page, ResourceView } from '@/shared/components';
@@ -112,8 +112,8 @@ function ProjectRow({ project, weeks, action, busy, onOpen }: ProjectRowProps) {
       {project.kinds.map((kind) => (
         <p key={kind.kind} className={styles.muted}>
           <span className={styles.kindLabel}>{KIND_LABEL[kind.kind] ?? kind.kind}:</span>{' '}
-          {count(kind.open, 'aberto', 'abertos')} · {kind.inProgress} em andamento ·{' '}
-          {count(kind.deliveredInPeriod, 'entregue', 'entregues')} em {weeks} semanas
+          {plural(kind.open, 'aberto', 'abertos')} · {kind.inProgress} em andamento ·{' '}
+          {plural(kind.deliveredInPeriod, 'entregue', 'entregues')} em {weeks} semanas
           {kind.overdue !== null ? ` · ${kind.overdue} com prazo vencido` : ''}
         </p>
       ))}
@@ -133,8 +133,4 @@ function ProjectRow({ project, weeks, action, busy, onOpen }: ProjectRowProps) {
       ) : null}
     </li>
   );
-}
-
-function count(value: number, one: string, many: string): string {
-  return `${value} ${value === 1 ? one : many}`;
 }

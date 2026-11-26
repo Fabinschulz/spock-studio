@@ -1,7 +1,7 @@
 # Spock Studio — Área Gestão: diagnóstico e proposta
 
-> **Estado:** diagnóstico feito no aplicativo real e proposta escrita, **aguardando a aprovação do dono** antes de qualquer
-> incremento. Continua o item 4 do briefing (fluxos internos de Gestão), que o redesign de
+> **Estado:** diagnóstico feito no aplicativo real e proposta aprovada pelo dono em 2026-11-25, com as seis decisões
+> conforme a recomendação (seção 5). Os incrementos G-1 a G-7 entram um PR por vez. Continua o item 4 do briefing (fluxos internos de Gestão), que o redesign de
 > [`workspace-unificado.md`](workspace-unificado.md) não cobriu: ele entregou a área e a navegação, não as telas de dentro.
 >
 > Caminhos de arquivo relativos a `desktop/ui/src/features/management/`, salvo indicação.
@@ -177,7 +177,7 @@ texto que passa a ficar recolhido.
 
 | # | Incremento | Toca | Risco |
 | --- | --- | --- | --- |
-| G-1 | **Textos e correções sem mexer na estrutura:** nota do modelo sem modelo (AS3); fatos por texto e link para o detalhe da execução (AS4); motivo nos botões desabilitados (G5); aviso de chave aponta Configurações › Minha IA (G4); data da decisão sem selo (G10); período sem hora (RL3); itens do risco em lista (AC7); `plural` compartilhado (G9); no motor, data local em dia/mês/ano, concordância do "não calculado" e as frases de títulos e de envio só quando cabem (G8). | UI e motor, só textos | Baixo |
+| G-1 | **Textos e correções sem mexer na estrutura:** nota do modelo sem modelo (AS3); fatos por texto e sem o id da execução (AS4; o link continua indo para a lista de Execuções, porque a investigação não tem tela de detalhe própria, só a gaveta da lista); motivo nos botões desabilitados (G5); aviso de chave aponta Configurações › Minha IA (G4); data da decisão sem selo (G10); período sem hora (RL3); itens do risco em lista (AC7); `plural` compartilhado (G9); no motor, data local em dia/mês/ano, concordância do "não calculado" e as frases de títulos e de envio só quando cabem (G8). | UI e motor, só textos | Baixo |
 | G-2 | **Base comum:** um padrão de aviso e erro (G6); termos novos no glossário e `Term` nos rótulos (G7); o SCSS dividido por componente, com um padrão de linha (G9); a lógica de perguntar num hook único usado pelo Assistente e pelo Portfólio (G2). | UI | Baixo |
 | G-3 | **Período comum:** um seletor no Acompanhamento e no Relatório, com o mesmo valor guardado na sessão (G3, AC8, RL2). | `management-page.tsx`, `report-page.tsx`, `service/management-api.ts` | Baixo |
 | G-4 | **Portfólio:** tabela, "Sem ferramenta" neutro com Vincular, estado vazio com os recentes, um nome por projeto (PF1-PF4, PF6). O bloco de pergunta sai só no G-5. Depende de DG4. | `portfolio-page.tsx`, motor `PortfolioSignals.cs` | Médio |
@@ -193,9 +193,9 @@ o axe, sem erros no console e com projetos de teste descartáveis.
 
 | # | Decisão | Recomendação |
 | --- | --- | --- |
-| DG1 | Onde fica a pergunta que cruza projetos: no Assistente, com a escolha "Este projeto / Vários projetos", ou no Portfólio, recolhida. | No Assistente: uma tela para perguntar, um código para isso, e o Portfólio fica com a pergunta "quem pede atenção?". |
-| DG2 | O Acompanhamento em abas, com a faixa "O que pede atenção" no topo, ou uma página só, reordenada e com as seções secundárias recolhidas. | Abas: dez seções não cabem numa leitura, e a faixa no topo responde o essencial sem abrir nenhuma. |
-| DG3 | O período padrão comum: 8 semanas (o do motor no Acompanhamento e no Portfólio) ou 4 (o do Relatório hoje). | 8 semanas: a previsão usa até 12 de histórico e 4 deixa a média semanal instável. |
-| DG4 | O Portfólio como tabela simples, com estilo local, ou com o `DataTable` da biblioteca. | Tabela simples: o `DataTable` traz paginação e seleção que o Portfólio não usa. |
-| DG5 | Como validar os estados com dados: o dono vincula uma ferramenta num projeto de teste (com o token dele, digitado por ele na janela de teste) antes do G-4 e do G-6, ou esses incrementos são validados só nos estados vazios, com os estados com dados cobertos pelos testes. | O dono vincular uma ferramenta: sem isso, a parte maior da proposta (AC1, PF3) não terá sido vista em uso. |
-| DG6 | A sugestão de pergunta preenche o campo e leva o foco a ele, ou já pergunta. | Preencher e focar: perguntar envia dados ao provedor, e isso deve ser um clique consciente. |
+| DG1 | Onde fica a pergunta que cruza projetos: no Assistente, com a escolha "Este projeto / Vários projetos", ou no Portfólio, recolhida. | No Assistente: uma tela para perguntar, um código para isso, e o Portfólio fica com a pergunta "quem pede atenção?". **Decidido em 2026-11-25: no Assistente.** |
+| DG2 | O Acompanhamento em abas, com a faixa "O que pede atenção" no topo, ou uma página só, reordenada e com as seções secundárias recolhidas. | Abas: dez seções não cabem numa leitura, e a faixa no topo responde o essencial sem abrir nenhuma. **Decidido em 2026-11-25: abas.** |
+| DG3 | O período padrão comum: 8 semanas (o do motor no Acompanhamento e no Portfólio) ou 4 (o do Relatório hoje). | 8 semanas: a previsão usa até 12 de histórico e 4 deixa a média semanal instável. **Decidido em 2026-11-25: 8 semanas.** |
+| DG4 | O Portfólio como tabela simples, com estilo local, ou com o `DataTable` da biblioteca. | Tabela simples: o `DataTable` traz paginação e seleção que o Portfólio não usa. **Decidido em 2026-11-25: tabela simples.** |
+| DG5 | Como validar os estados com dados: o dono vincula uma ferramenta num projeto de teste (com o token dele, digitado por ele na janela de teste) antes do G-4 e do G-6, ou esses incrementos são validados só nos estados vazios, com os estados com dados cobertos pelos testes. | O dono vincular uma ferramenta: sem isso, a parte maior da proposta (AC1, PF3) não terá sido vista em uso. **Decidido em 2026-11-25: o dono vincula.** |
+| DG6 | A sugestão de pergunta preenche o campo e leva o foco a ele, ou já pergunta. | Preencher e focar: perguntar envia dados ao provedor, e isso deve ser um clique consciente. **Decidido em 2026-11-25: preencher e focar.** |

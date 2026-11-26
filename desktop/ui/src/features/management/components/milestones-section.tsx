@@ -1,6 +1,7 @@
 import { Disclosure, EmptyState, PageSection, ResourceView, StatusChip } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
 import type { MilestoneProgress, ProjectMilestones } from '@/shared/schema';
+import { plural } from '@/shared/utils';
 import { useCallback } from 'react';
 
 import { milestoneOutlookLabel } from '../domain/delivery-labels';
@@ -9,8 +10,6 @@ import styles from '../management-page.module.scss';
 import type { ManagementApi } from '../service/management-api';
 
 const KIND_LABEL: Record<string, string> = { issues: 'Issues', pullRequests: 'Pull requests' };
-
-const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
 /** A previsão usa o ritmo do tipo de dado inteiro; as premissas ficam à vista. */
 export function MilestonesSection({ management, projectId }: { management: ManagementApi; projectId: string }) {

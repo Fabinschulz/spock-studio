@@ -5,12 +5,12 @@ import { useAsyncResource } from '@/shared/hooks';
 import { pathTo, readHandoff } from '@/shared/routing';
 import type { AssistantAnswer, ProjectInvestigation } from '@/shared/schema';
 import { Button, Checkbox, TextField } from '@mariliz/ui-kit';
-import { useCallback, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useId, useMemo, useState, type FormEvent } from 'react';
 import { Link, useLocation } from 'react-router';
 
 import { AssistantAnswerView } from './components/assistant-answer';
 import { InvestigationPath } from './components/investigation-path';
-import { MAX_QUESTION, MIN_QUESTION, SUGGESTED_QUESTIONS } from './domain/assistant';
+import { MAX_QUESTION, MIN_QUESTION, SUGGESTED_QUESTIONS, questionHint } from './domain/assistant';
 import styles from './management-page.module.scss';
 import { createManagementApi, type ManagementApi } from './service/management-api';
 
@@ -47,6 +47,11 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
 
   const trimmed = question.trim();
   const valid = trimmed.length >= MIN_QUESTION && trimmed.length <= MAX_QUESTION;
+  const hintId = useId();
+  const configured = context.status === 'ready' && context.value.configured;
+  // Sem chave, o motivo vem antes do tamanho da pergunta: escrever não resolve.
+  const blocked =
+    !steps && !configured ? 'Sem chave de modelo, só a investigação em etapas responde.' : questionHint(question);
 
   const ask = async (event: FormEvent) => {
     event.preventDefault();
@@ -91,7 +96,8 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
           {!context.value.configured ? (
             <InlineNotice tone="warning" title="Nenhuma chave de modelo configurada">
               O assistente usa um modelo de linguagem para escrever a explicação (sem ele, só a investigação em etapas
-              roda, e lista os sinais). Configure a chave em <Link to={pathTo('settings')}>Configurações</Link>.
+              roda, e lista os sinais). Configure a chave em{' '}
+              <Link to={pathTo('settingsAi')}>Configurações › Minha IA</Link>.
             </InlineNotice>
           ) : null}
 
@@ -110,7 +116,8 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
               <Button
                 type="submit"
                 variant="contained"
-                disabled={busy || !valid || (!steps && !context.value.configured)}
+                disabled={busy || blocked !== null}
+                aria-describedby={blocked ? hintId : undefined}
               >
                 {busy ? (steps ? 'Investigando…' : 'Perguntando…') : steps ? 'Investigar' : 'Perguntar'}
               </Button>
@@ -120,6 +127,11 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
                 disabled={busy}
                 onChange={(_, checked) => setSteps(checked)}
               />
+              {blocked && !busy ? (
+                <p id={hintId} className={styles.hint}>
+                  {blocked}
+                </p>
+              ) : null}
             </div>
             <div className={styles.suggestions} role="group" aria-label="Sugestões de pergunta">
               {SUGGESTED_QUESTIONS.map((text) => (
@@ -161,7 +173,7 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
               {error.needsKey ? (
                 <>
                   {' '}
-                  Configure a chave em <Link to={pathTo('settings')}>Configurações</Link>.
+                  Configure a chave em <Link to={pathTo('settingsAi')}>Configurações › Minha IA</Link>.
                 </>
               ) : null}
             </p>
@@ -172,7 +184,9 @@ function ProjectAssistant({ api, project }: { api: ManagementApi; project: Selec
             </LoadingState>
           ) : null}
           {answer ? <AssistantAnswerView answer={answer} /> : null}
-          {investigation ? <InvestigationPath investigation={investigation} /> : null}
+          {investigation ? (
+            <InvestigationPath investigation={investigation} known={context.value.evidence.facts} />
+          ) : null}
         </>
       ) : null}
     </Page>

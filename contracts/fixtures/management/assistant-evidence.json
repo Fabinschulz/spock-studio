@@ -6,12 +6,12 @@
     {
       "id": "today",
       "group": "contexto",
-      "text": "Hoje é 2026-11-10. Período dos indicadores: últimas 8 semanas."
+      "text": "Hoje é 10/11/2026. Período dos indicadores: últimas 8 semanas."
     },
     {
       "id": "src.1",
       "group": "fontes",
-      "text": "Fonte github acme/app: última sincronização concluída, dados lidos em 2026-11-10."
+      "text": "Fonte github acme/app: última sincronização concluída, dados lidos em 10/11/2026."
     },
     {
       "id": "flow.issues.items",
@@ -66,16 +66,16 @@
     {
       "id": "missing.scopeChange",
       "group": "não calculado",
-      "text": "Mudança de escopo não é calculado: Precisa comparar o escopo do marco no começo e agora, e o histórico do escopo ainda não é guardado."
+      "text": "Mudança de escopo: ainda sem cálculo. Precisa comparar o escopo do marco no começo e agora, e o histórico do escopo ainda não é guardado."
     },
     {
       "id": "missing.predictability",
       "group": "não calculado",
-      "text": "Previsibilidade não é calculado: Precisa do que foi planejado por período, que ainda não é sincronizado."
+      "text": "Previsibilidade: ainda sem cálculo. Precisa do que foi planejado por período, que ainda não é sincronizado."
     }
   ],
   "withheld": [
-    "Nenhum código, documento ou arquivo do projeto é enviado.",
+    "Nenhum código, documento ou arquivo do projeto entra nos fatos.",
     "Títulos de itens não foram incluídos: nem todas as fontes autorizaram servir de contexto; vão só os identificadores."
   ]
 }
