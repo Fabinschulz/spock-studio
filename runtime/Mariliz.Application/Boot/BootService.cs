@@ -144,10 +144,17 @@ public sealed class BootService(
         return Find(projectId, bootId);
     }
 
+    // Só o interrompido que tem plano e ainda não foi recuperado: sem plano não há o que retomar, e o motor recusa recuperar duas vezes.
+    public static bool CanResume(BootRecord record) => record is { State: BootStates.Interrupted, RecoveredByBootId: null, Plan: not null };
+
+    // Os mais novos até o limite, e mais todo Boot que dá para retomar, por antigo que seja: é o que a pessoa precisa achar, e com
+    // muitos pedidos mais novos ele sumiria da lista.
     public IReadOnlyList<BootRecord> List(string? projectId, int limit = 20)
     {
         RequireAuthorized(projectId);
-        return [.. store.List(projectId).Take(Math.Clamp(limit, 1, 100))];
+        var all = store.List(projectId);
+        var take = Math.Clamp(limit, 1, 100);
+        return [.. all.Take(take), .. all.Skip(take).Where(CanResume)];
     }
 
     public IReadOnlyList<(CapabilityStatus Status, PermissionDecision Decision)> Capabilities(string? projectId, AutonomyLevel autonomy = PermissionEvaluator.Ceiling)

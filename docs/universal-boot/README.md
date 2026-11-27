@@ -262,7 +262,8 @@ Clicar numa linha com resumo abre o detalhe (`boot.detail`) no mesmo cartão. O 
 interrompido que ainda não foi recuperado; ele chama `boot.resume` e o resultado cai no mesmo cartão de um pedido novo,
 com a mesma regra de um Boot por vez (retomar e abrir ficam desabilitados enquanto há um em preparo). Se a retomada falha
 a tela avisa e a lista é relida. Os mais novos vêm primeiro, até cinco; um Boot interrompido ainda não recuperado fica à
-vista mesmo que seja mais antigo, porque é o que dá para retomar.
+vista mesmo que seja mais antigo, porque é o que dá para retomar. Quem garante isso é o motor: `boot.list` devolve os mais
+novos até o limite e mais todo Boot retomável, por antigo que seja (a interface só filtra o que recebeu).
 
 ## 4. Evidências
 

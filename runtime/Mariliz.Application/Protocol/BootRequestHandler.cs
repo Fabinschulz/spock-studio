@@ -48,7 +48,7 @@ internal sealed class BootRequestHandler(BootService service) : IRequestHandler
         // Um Boot interrompido não tem manchete: o objetivo (ou o pedido) é o que o distingue na lista.
         Objective = Brief(record.Plan?.Objective ?? record.Request),
         // Sem plano não há o que retomar: o motor recusa, então a tela nem oferece.
-        Resumable = record is { State: BootStates.Interrupted, RecoveredByBootId: null, Plan: not null },
+        Resumable = BootService.CanResume(record),
         Capabilities = record.Plan?.Capabilities ?? []
     });
 

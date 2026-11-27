@@ -267,6 +267,36 @@ public sealed class BootServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task A_lista_traz_o_interrompido_retomavel_mesmo_com_muitos_pedidos_mais_novos()
+    {
+        var old = Now.AddDays(-30);
+        var resumable = new BootRecord { Id = BootIds.New(), ProjectId = _projectId, State = BootStates.Interrupted, Plan = new BootPlan { Objective = "x" }, CreatedAt = old, UpdatedAt = old };
+        var noPlan = new BootRecord { Id = BootIds.New(), ProjectId = _projectId, State = BootStates.Interrupted, CreatedAt = old.AddMinutes(1), UpdatedAt = old };
+        var recovered = new BootRecord { Id = BootIds.New(), ProjectId = _projectId, State = BootStates.Interrupted, Plan = new BootPlan { Objective = "y" }, RecoveredByBootId = BootIds.New(), CreatedAt = old.AddMinutes(2), UpdatedAt = old };
+        foreach (var record in new[] { resumable, noPlan, recovered }) _store.Save(record);
+        for (var i = 0; i < 30; i++)
+            _store.Save(new BootRecord { Id = BootIds.New(), ProjectId = _projectId, State = BootStates.Completed, CreatedAt = Now.AddMinutes(i), UpdatedAt = Now });
+
+        var listed = _boot.List(_projectId, limit: 10);
+
+        Assert.Equal(11, listed.Count);
+        Assert.Contains(listed, record => record.Id == resumable.Id);
+        Assert.DoesNotContain(listed, record => record.Id == noPlan.Id || record.Id == recovered.Id);
+        await Task.CompletedTask;
+    }
+
+    [Fact]
+    public async Task A_aprovacao_de_uma_configuracao_diz_configuracao_e_nao_projeto()
+    {
+        var drift = await Start("Tem drift na infraestrutura?");
+        var configure = await Start("Configurar meu ambiente");
+
+        Assert.Equal("infrastructure.drift", drift.Intent!.CapabilityId);
+        Assert.Contains("configuração", drift.Plan!.Approvals.Single(), StringComparison.Ordinal);
+        Assert.StartsWith("Altera o projeto", configure.Plan!.Approvals.Single(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Pedido_sem_capacidade_diz_que_nao_sabe_em_vez_de_chutar()
     {
         var boot = await Start("Quero um bolo de chocolate");
