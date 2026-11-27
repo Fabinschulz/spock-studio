@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mariliz.Application.Models;
-using Mariliz.Application.Management.Investigation;
 using Mariliz.Application.Tests.Support;
 using Mariliz.Infrastructure;
 
@@ -11,6 +10,11 @@ namespace Mariliz.Application.Tests;
 public class ManagementEvalLiveTests(ITestOutputHelper output)
 {
     private const string OutputFolder = "MARILIZ_LIVE_EVAL_OUT";
+
+    // Cada chamada ao modelo pode levar até o prazo do chat (120 s) e uma investigação faz várias; com modelos de topo ela passa dos
+    // 150 s do produto. Aqui o que se mede é a qualidade da resposta, então o caso tem folga; a duração de cada um sai no relatório.
+    private const int CaseBudgetMilliseconds = 360_000;
+    private const int CaseDeadlineMilliseconds = 420_000;
 
     [LiveFact(LiveKeys.OpenAi)]
     public Task Evals_de_gestao_com_a_OpenAI() => RunAsync(ModelProviders.OpenAi.Id, LiveKeys.Read(LiveKeys.OpenAi));
@@ -48,14 +52,15 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
                     ["facts"] = facts,
                     ["groups"] = GroupsFor(facts),
                     ["policy"] = new JsonObject { ["modelAllowed"] = true },
-                    ["limits"] = new JsonObject { ["maxIterations"] = 12, ["maxMilliseconds"] = 150_000, ["maxTokens"] = grant.TokenBudget },
+                    ["limits"] = new JsonObject { ["maxIterations"] = 12, ["maxMilliseconds"] = CaseBudgetMilliseconds, ["maxTokens"] = grant.TokenBudget },
                     ["broker"] = new JsonObject { ["url"] = grant.Url, ["token"] = grant.Token }
                 };
                 JsonObject ack;
                 ModelUsage usage;
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 try
                 {
-                    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(150));
+                    using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(CaseDeadlineMilliseconds));
                     ack = await python.InvestigateAsync(request, _ => { }, deadline.Token);
                 }
                 finally
@@ -65,7 +70,7 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
                 calls += usage.Calls;
                 tokens += usage.InputTokens + usage.OutputTokens;
                 acks[testCase["id"]!.GetValue<string>()] = ack;
-                output.WriteLine($"[evals de gestão] {provider} {testCase["id"]}: {ack["status"]}; rodadas: {ack["rounds"]}; chamadas: {usage.Calls}; tokens: {usage.InputTokens}+{usage.OutputTokens}");
+                output.WriteLine($"[evals de gestão] {provider} {testCase["id"]}: {ack["status"]}; rodadas: {ack["rounds"]}; chamadas: {usage.Calls}; tokens: {usage.InputTokens}+{usage.OutputTokens}; duração: {watch.Elapsed.TotalSeconds:0}s");
                 Assert.Equal("ai.investigation.ack.v1", ack["schema"]!.GetValue<string>());
             }
         }

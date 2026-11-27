@@ -16,7 +16,7 @@ from contracts.investigation import (
 )
 
 AGENT_ID = "investigator"
-AGENT_VERSION = "1"
+AGENT_VERSION = "2"
 MAX_OUTPUT_TOKENS = 1200
 PURPOSE = "investigate"
 
@@ -28,7 +28,8 @@ _HYPOTHESES_TASK = (
     f"grupos da lista de grupos disponíveis que ainda não foram consultados, no máximo {MAX_NEEDS}. Formato exato, em JSON: "
     f'{{"schema":"{HYPOTHESES_SCHEMA}","hypotheses":[{{"text":"hipótese em uma frase, em linguagem de hipótese","evidence":["id"]}}],'
     '"needs":["grupo"]}. '
-    "Em 'evidence' cite só ids que aparecem nos fatos. Uma hipótese sem fato que a sustente não entra."
+    "Em 'evidence' cite só ids que aparecem nos fatos. Uma hipótese sem fato que a sustente não entra. Não proponha causa para "
+    "algo que um fato diz 'não é calculado' ou que não há dados: isso fica sem hipótese."
 )
 
 # Só entra no pedido quando o motor mandou memória do projeto (decisões registradas e itens autorizados).
@@ -41,11 +42,19 @@ _SEARCH_TASK = (
 
 _CONCLUSION_TASK = (
     "Você escreve a resposta final de uma investigação de gestão de entrega de software, em português do Brasil, com frases "
-    "curtas e diretas. Use SOMENTE os fatos fornecidos, cada um com um id entre colchetes. Todo número que você escrever "
-    "precisa aparecer nos fatos que você citar. Separe a resposta assim: observed (o que os dados mostram), calculations (o que "
-    "o sistema calculou), inferences (interpretações suas, em linguagem de hipótese: 'pode indicar', 'sugere'), "
-    "recommendations (ações possíveis, ligadas aos fatos) e unavailable (o que a pergunta pede e os fatos não têm: diga isso em "
-    "vez de supor). Cada item, e o resumo, cita em 'evidence' os ids dos fatos que o sustentam. Use as hipóteses consideradas "
+    "curtas e diretas. Use SOMENTE os fatos fornecidos, cada um com um id entre colchetes. "
+    "Números: escreva só números que aparecem, do jeito que estão, nos fatos que o próprio item cita. Não faça conta nova "
+    "(média, percentual, diferença entre datas ou valores, contagem, amplitude): se um fato traz o número pronto, use-o; se não "
+    "traz, não o escreva. Não invente limite, meta, prazo nem quantidade numa recomendação. Datas ficam como nos fatos. Para falar "
+    "do período dos indicadores ou da data de hoje, cite também o fato 'today'. "
+    "Separe a resposta assim: observed (o que os dados mostram), calculations (só o que o sistema já calculou e está nos fatos), "
+    "inferences (interpretações suas, em linguagem de hipótese: 'pode indicar', 'sugere'), recommendations (ações possíveis, "
+    "ligadas aos fatos) e unavailable (o que a pergunta pede e os fatos não têm). "
+    "Quando a pergunta, ou parte dela, pede o que os fatos não trazem, diga isso em unavailable e pare ali: não suponha causas, "
+    "não interprete e não recomende nada sobre essa lacuna (nem 'coletar o dado', nem 'vincular uma ferramenta'). Um fato que "
+    "diz que algo 'não é calculado' encerra aquele assunto: não o contorne cruzando outros fatos para concluir sobre ele. "
+    "Inferências e recomendações valem só para o que os fatos respondem. "
+    "Cada item, e o resumo, cita em 'evidence' os ids dos fatos que o sustentam. Use as hipóteses consideradas "
     "só como pista do que cruzar: uma hipótese sem fato que a confirme vira 'unavailable' ou fica de fora. Formato exato, em "
     f'JSON: {{"schema":"{CONCLUSION_SCHEMA}","summary":{{"text":"uma ou duas frases","evidence":["id"]}},'
     '"observed":[{"text":"...","evidence":["id"]}],"calculations":[],"inferences":[],"recommendations":[],'
