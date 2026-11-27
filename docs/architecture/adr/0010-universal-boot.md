@@ -26,6 +26,9 @@ próprios serviços, aprovações e histórico, e todos devem continuar como est
    projeto e precisa coexistir com uma execução em andamento. A correlação com execuções é por id, sem copiar dados.
 6. **A sessão do protocolo liga o Boot ao despacho depois de montada** (`BindEngine`), porque o Boot precisa das rotas e
    não pode conhecer a sessão.
+7. **No MCP o Boot tem despacho próprio, só de leitura** (BD-3, 2026-11-27). A ferramenta `spock_boot` roda sempre no nível 0,
+   por projeto, sobre um roteador pequeno (`McpBootDispatcher`) com uma lista fechada de leituras e sem `EngineSession`: a
+   sessão traria os tratadores que gravam e o serviço de configuração. O que altera algo continua sendo a rota da tela.
 
 ## Alternativas descartadas
 

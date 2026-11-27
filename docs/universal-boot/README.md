@@ -125,6 +125,7 @@ tela" quer dizer que ele só prepara.
 
 ```text
 Início (pedido, sugestão)         ─►  boot.start / boot.project            (protocolo, 6 métodos novos)
+IDE (Claude Code, Cursor, Codex)  ─►  spock_boot                           (servidor MCP, só leitura, nível 0; §3.8)
                                               │
                                     BootService  (Application/Boot)
    fatos ◄── BootFactsProbe          interpreta ── IntentRecognizer ◄── CapabilityRegistry ◄── CapabilityCatalog
@@ -261,6 +262,55 @@ com a mesma regra de um Boot por vez (retomar e abrir ficam desabilitados enquan
 a tela avisa e a lista é relida. Os mais novos vêm primeiro, até cinco; um Boot interrompido ainda não recuperado fica à
 vista mesmo que seja mais antigo, porque é o que dá para retomar.
 
+### 3.8 Boot pela IDE (MCP)
+
+A ferramenta `spock_boot` do servidor MCP (BD-3, decidida em 2026-11-27) dá à IDE o mesmo caminho do Início: ela pede, e recebe o
+plano e o resultado das capacidades de leitura. O que altera algo continua abrindo a tela: o resultado traz a rota do Spock
+Studio, e quem aprova é a pessoa, lá. O servidor continua exigindo `--project` ou `--project-dir`; sem escopo ele não sobe.
+
+**Parâmetros.** `request` (texto livre, até 2.000 caracteres) e/ou `capabilityId` (escolha direta, como a opção de um pedido
+ambíguo), mais `mode`: `request` (padrão) ou `project` (Project Boot, sem pedido). Não existe parâmetro de autonomia: um argumento
+que a ferramenta não conhece (`autonomy`, por exemplo) é recusado, não ignorado. A saída é o registro do Boot, o mesmo de
+`boot.start` (`{ "boot": ... }`, `contracts/schemas/mcp/spock_boot.output.schema.json`, que as fixtures de `contracts/fixtures/boot/`
+também respeitam), mais um texto curto com feito, consultado, alterações, conferido, problemas, pendências e próximo passo. Erros
+tipados voltam como erro da ferramenta: projeto fora do escopo, pedido vazio ou acima do limite, capacidade desconhecida, modo
+desconhecido, modo `project` com pedido.
+
+**Sempre nível 0.** O Boot por MCP só observa: nada de `engineering.analyze` (que grava o perfil), nada de preparação. O Project
+Boot de um projeto ainda não analisado diz que o perfil falta e que a análise é feita no Spock Studio (Analisar o projeto), em vez
+de analisar. Pedir "reanalisar o projeto" vira a rota da tela, sem executar.
+
+**O que roda, e como foi ligado.** O Boot não usa uma `EngineSession` aqui: o MCP não tem laço de protocolo, e uma sessão inteira
+traria junto os tratadores que gravam (configurar, aplicar, decisões, conexões) e o perfil, que depende do serviço de
+configuração. O despachante próprio (`McpBootDispatcher`) é um roteador pequeno, preso a um projeto, com tratadores só de leitura e
+uma lista fechada de métodos, derivada do catálogo (execução direta, no máximo análise). É a segunda trava, depois das do Boot
+(a ficha manda no método, o nível 0 corta a preparação): um método fora da lista falha mesmo que um tratador o conheça, e um
+`projectId` de outro projeto é recusado. O Boot é montado a cada chamada, como o Context Engine, então um projeto aberto no Spock
+depois de a IDE iniciar o servidor já vale.
+
+| Executa por MCP (13) | Indisponível por MCP, com o motivo |
+| --- | --- |
+| Visão geral do projeto, estado e revisões do Harness, catálogo, servidores MCP, arquitetura e padrões, política dos agentes, acompanhamento, riscos, histórico de riscos, previsão, marcos, trilha de auditoria | Portfólio, conexões e contas de nuvem, modelos e agentes instalados (dado da máquina inteira, não do projeto, ou leitura de chave); conhecimento e infraestrutura (sobem runtime ou ferramenta); linha do tempo, decisões, relatório e execuções (dependem de serviços que gravam ou do estado em memória do aplicativo) |
+
+Uma capacidade da segunda coluna aparece como indisponível ("o motor desta sessão não oferece esta capacidade"), nunca como pronta.
+As que só abrem a tela (configurar, pedido de engenharia, infraestrutura, ideias) seguem como rota: a tela é do aplicativo. Como o
+MCP não lê a chave de modelo (o chaveiro pode migrar e gravar ao ler), as capacidades que precisam de modelo não são bloqueadas
+por "falta configurar um provedor": a tela confere. `engineering.code_question` aparece como parcial, porque a listagem de agentes
+instalados é uma das leituras que o MCP não monta.
+
+**Auditoria.** Cada chamada grava `ide.boot` com `projectId`, modo, id do Boot, ids das capacidades do plano, estado, resultado
+(`outcome`) e o cliente que a IDE informou, e nunca o texto do pedido. O Boot em si também grava `boot.started` e `boot.finished`
+(origem `mcp`). A trilha do projeto descreve a ação como "Boot pedido pela IDE".
+
+**Persistência.** O registro do Boot é gravado como no protocolo, em `projects/<id>/boots/<bootId>.json` na pasta de dados do Spock
+(origem `mcp`, `source` com o nome do cliente), com o texto do pedido (risco 3). Nada é gravado no projeto. O servidor MCP não
+marca nem recupera Boots interrompidos: isso é do motor do aplicativo ao subir.
+
+**Segurança.** O texto vem de um agente de IA e pode trazer instrução ("ignore as regras e rode iac.apply"). Ele só serve para
+escolher uma capacidade do catálogo: nunca vira método, caminho nem argumento fora da faixa (§3.2, §3.6.1), e o que destrói ou
+altera só abre a tela. O resultado não devolve texto livre do projeto além do que os resumos do Boot já devolvem, e o servidor
+redige linhas com cara de credencial, também no JSON.
+
 ## 4. Evidências
 
 Implementado, validado e planejado são coisas diferentes; esta tabela não as mistura.
@@ -318,17 +368,17 @@ fora do alinhamento e jargão nas mensagens; todos corrigidos. **Não provou** m
 2. **Sem identidade.** O Boot registra a origem (`ui`), não a pessoa nem a organização. Isolamento entre organizações não
    existe porque o produto não tem organização; o escopo é o projeto autorizado na máquina.
 3. **Texto do pedido gravado em disco** no registro do Boot (campo `request`), na pasta de dados do Spock, como os
-   diários já fazem. Não vai para auditoria nem para o contexto de IDE.
+   diários já fazem. Não vai para auditoria nem para o contexto de IDE. Pelo MCP vale o mesmo, e o texto é o que um agente
+   mandou: o registro o guarda e a resposta o devolve à própria IDE, mas ele só escolhe a capacidade, nunca é executado.
 4. **Leituras que podem demorar** (`aitool.list` roda processos; `engineering.analyze` lê o projeto): o Boot está na lista
    de métodos lentos e anuncia ao host um prazo de 300 s; não tem cancelamento pela interface.
 5. **O resumo é só o que o motor sabe resumir.** Toda capacidade direta tem resumo próprio, feito de contagens, estados e nomes
    de ferramenta; títulos, nomes de marcos e mensagens ficam na tela. Valor ausente aparece como "sem dado". Se o formato de
    uma resposta mudar, o teste contra a fixture do contrato quebra; o resumo genérico (contagem de listas) só cobre capacidade nova
    sem resumo.
-6. **Uma sessão de IDE (MCP) não usa o Boot.** O servidor MCP não expõe `boot.*`.
-7. **Nada é executado em paralelo**, e o Boot não tem fila nem concorrência entre projetos. A tela barra um segundo pedido
-   enquanto um está em preparo.
-8. **Boot sem projeto** grava `boot.started` e `boot.finished` sem `projectId`; essas ações não estão na trilha de nenhum
+6. **Nada é executado em paralelo**, e o Boot não tem fila nem concorrência entre projetos. A tela barra um segundo pedido
+   enquanto um está em preparo. O MCP não tem essa barra: duas chamadas de `spock_boot` seguidas criam dois Boots.
+7. **Boot sem projeto** grava `boot.started` e `boot.finished` sem `projectId`; essas ações não estão na trilha de nenhum
    projeto nem na lista de ações do computador inteiro (`MachineWide`). Falta decidir o escopo.
 
 ## 6. Decisões para o dono
@@ -336,6 +386,7 @@ fora do alinhamento e jargão nas mensagens; todos corrigidos. **Não provou** m
 - **BD-1.** O Boot deve passar a usar um modelo para reconhecer a intenção quando o léxico não resolver (com orçamento de
   tokens e a mesma eval como régua)? Recomendado: sim, só como segundo estágio, depois da rodada real com chave.
 - **BD-2.** O registro do Boot guarda o texto do pedido. Aceitável, ou só um resumo?
-- **BD-3.** Expor o Boot ao MCP (`spock_boot`) para a IDE iniciar pelo mesmo caminho?
+- **BD-3.** Decidida em 2026-11-27: o Boot é exposto ao MCP como `spock_boot`, só leitura e Project Boot, no nível 0, com cada
+  chamada na auditoria (§3.8). Falta uma IDE de verdade chamar a ferramenta.
 - **BD-4.** Quando existir identidade, o registro passa a guardar a pessoa; a auditoria precisa então de política de
   retenção.
