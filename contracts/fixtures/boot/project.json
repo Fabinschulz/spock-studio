@@ -49,6 +49,8 @@
         "startedAt": null,
         "finishedAt": null,
         "summary": "Projeto loja, autorizado neste computador.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [
           "O Spock não tem usuário nem organização: o escopo é o projeto autorizado nesta máquina."
         ],
@@ -68,6 +70,8 @@
         "startedAt": "2026-11-26T12:01:00+00:00",
         "finishedAt": "2026-11-26T12:01:00+00:00",
         "summary": "Contexto do projeto reunido: 9 itens, 120 tokens.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [
           "As conexões cloud não estão disponíveis nesta sessão do motor."
         ],
@@ -87,6 +91,8 @@
         "startedAt": "2026-11-26T12:01:00+00:00",
         "finishedAt": "2026-11-26T12:01:00+00:00",
         "summary": "3 tecnologias no projeto.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [
           "3 tecnologias encontradas.",
           "Entre elas: ASP.NET Core, .NET, xUnit.",
@@ -108,6 +114,8 @@
         "startedAt": "2026-11-26T12:01:00+00:00",
         "finishedAt": "2026-11-26T12:01:00+00:00",
         "summary": "3 tecnologias no projeto.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [
           "3 tecnologias encontradas.",
           "Entre elas: ASP.NET Core, .NET, xUnit.",
@@ -129,6 +137,8 @@
         "startedAt": "2026-11-26T12:01:00+00:00",
         "finishedAt": "2026-11-26T12:01:00+00:00",
         "summary": "O Harness ainda não foi aplicado.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [
           "O projeto não tem as regras gerenciadas pelo Spock."
         ],
@@ -148,6 +158,8 @@
         "startedAt": "2026-11-26T12:01:00+00:00",
         "finishedAt": "2026-11-26T12:01:00+00:00",
         "summary": "Nenhuma conexão cadastrada.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [],
         "errorCode": null
       },
@@ -165,6 +177,8 @@
         "startedAt": "2026-11-26T12:01:00+00:00",
         "finishedAt": "2026-11-26T12:01:00+00:00",
         "summary": "O motor desta sessão não oferece esta capacidade.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [],
         "errorCode": null
       },
@@ -182,6 +196,8 @@
         "startedAt": "2026-11-26T12:01:00+00:00",
         "finishedAt": "2026-11-26T12:01:00+00:00",
         "summary": "0 execuções: 0 em andamento e 0 aguardando aprovação.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [],
         "errorCode": null
       }
@@ -279,7 +295,7 @@
         "O perfil tecnológico foi gravado na pasta de dados do Spock (fora do projeto)."
       ],
       "validations": [
-        "12 de 39 capacidades estão prontas para este projeto.",
+        "12 de 40 capacidades estão prontas para este projeto.",
         "Cada leitura veio do motor, pelo mesmo caminho da interface.",
         "Nenhum arquivo do projeto foi criado nem alterado."
       ],

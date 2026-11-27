@@ -89,6 +89,7 @@ tela" quer dizer que ele só prepara.
 | Estado da infraestrutura | `infrastructure.state` | sensível | abre a tela | `/infraestrutura` |
 | Gerar a infraestrutura | `infrastructure.generate` | alteração interna | abre a tela | `/infraestrutura` |
 | Validar e planejar a infraestrutura | `infrastructure.validate_plan` | análise | abre a tela | `/infraestrutura` |
+| Desvio da infraestrutura (drift) | `infrastructure.drift` | configuração | abre a tela | `/infraestrutura` |
 | Provisionar infraestrutura | `infrastructure.apply` | destrutiva | abre a tela | `/infraestrutura` |
 | Ler recursos da nuvem | `infrastructure.cloud_read` | leitura | abre a tela | `/cloud` |
 
@@ -113,8 +114,9 @@ tela" quer dizer que ele só prepara.
 - **Evals e juízes** não têm método próprio: rodam por `harness.validate` e pelo workflow.
 - **RAG e MCP** não têm capacidade própria: o índice entra em `engineering.knowledge` e o inventário em
   `engineering.mcp_inventory`.
-- **Drift e custo** não têm ficha própria: `iac.drift` e `iac.cost.*` entram em `infrastructure.validate_plan`. O agendamento de drift
-  (`iac.drift.schedule*`) e o plano de bootstrap do estado remoto (`iac.bootstrap.plan`) ficam fora do catálogo.
+- **Custo** não tem ficha própria: `iac.cost.*` entra em `infrastructure.validate_plan`. O drift tem a sua
+  (`infrastructure.drift`, com o agendamento, que é configuração e por isso só abre a tela). O plano de bootstrap do estado
+  remoto (`iac.bootstrap.plan`) fica fora do catálogo.
 - **Triggers, Roadmap e backlog, Dependency Intelligence, Work Readiness**: não existem no produto. Estão no roadmap.
 - **Agentes, Skills e Workflows** aparecem como metadados da ficha (`agents`, `skills`, `workflows`), não como capacidade
   separada: o catálogo do Harness já os lista.
@@ -232,6 +234,17 @@ integração, sem modelo, sem nuvem); e entrega o relatório: o que foi feito, c
 que está pendente e o próximo passo. **Projeto existente não é reanalisado nem reinicializado e nada é apagado.** O Boot
 não cria nem altera arquivo do projeto.
 
+### 3.6.1 Parâmetros do pedido
+
+Quatro capacidades de leitura aceitam um parâmetro que o Boot tira do texto: o **período em semanas** (indicadores e
+relatório: "últimas 12 semanas", "30 dias" vira 5, "2 meses" vira 8, "trimestre" 13, "semestre" 26) e a **quantidade** de
+eventos, registros ou execuções (linha do tempo, auditoria e execuções: "últimos 30 eventos"). O número só vale com a
+unidade da própria capacidade ("12 semanas" não vira quantidade de eventos). Cada parâmetro tem a faixa que o motor aceita
+(semanas de 2 a 26; eventos e registros de 1 a 200; execuções de 1 a 100); fora dela o Boot ajusta e **diz que ajustou** no
+passo ("pedido 40, o motor aceita de 2 a 26; usei 26"). O argumento fica no passo do registro, mas ao executar só passa o que a
+ficha declara e sempre dentro da faixa, então um registro adulterado não leva um argumento livre ao motor. Só capacidades
+que o Boot executa levam parâmetro; as que abrem a tela deixam a pergunta para ela. Filtros por tipo e estado ainda não.
+
 ### 3.7 Início
 
 A entrada de pedidos passa a chamar `boot.start` e mostra o resultado em um cartão (objetivo, o que foi feito e
@@ -255,8 +268,8 @@ Implementado, validado e planejado são coisas diferentes; esta tabela não as m
 | Critério de aceite | Implementado | Prova |
 | --- | --- | --- |
 | Identidade e ciclo de vida | `BootRecord`, estados, checkpoints, `version` | `BootServiceTests` (registro no disco, checkpoints, queda) |
-| Catálogo baseado no produto real | 39 fichas, cada método existe no protocolo e cada tela em `paths.ts` | `BootCatalogTests` (os dois conferem contra o código) |
-| Reconhecer intenções e domínios diferentes | `IntentRecognizer` | `BootIntentEvalTests`: 73/73 ajustado, 10/14 em frases novas |
+| Catálogo baseado no produto real | 40 fichas, cada método existe no protocolo e cada tela em `paths.ts` | `BootCatalogTests` (os dois conferem contra o código) |
+| Reconhecer intenções e domínios diferentes | `IntentRecognizer` | `BootIntentEvalTests`: 79/79 ajustado, 10/14 em frases novas |
 | Recuperar contexto | `ContextEngine` no passo de contexto | `BootServiceTests`, `BootProtocolTests` |
 | Verificar permissão antes | `PermissionEvaluator` | Destrutivo nunca executa; autonomia acima do teto recusada; sem projeto, modelo ou integração, bloqueado com o motivo |
 | Montar plano | `BootPlanner` | Plano com passos, dependências, aprovações e riscos no registro |
@@ -264,12 +277,12 @@ Implementado, validado e planejado são coisas diferentes; esta tabela não as m
 | Histórico e resultado | `FileBootStore`, auditoria, retenção de 200 por escopo | Registro no disco; a auditoria não guarda o texto do pedido; `BootRetentionTests` |
 | Recuperar execução interrompida | `boot.resume` | `BootServiceTests`: não repete o que foi feito; detecta contexto que mudou |
 | Project Boot em projeto real | Sim, com o processo real do motor (não com o app Tauri) | Projeto .NET de teste; projeto existente não é reanalisado; `BootProcessTests` roda o Project Boot pelo stdin/stdout do motor e confere por impressão digital que nenhum arquivo do projeto mudou |
-| Funcionalidades originais seguem | Nenhum método existente mudou | Motor: 2.087 aprovados, 0 falhas, 28 ignorados (os de chave real). Processo real do motor: 21. Interface: 1.148 aprovados. Com o Python 3.12 do PATH, 38 testes do runtime de IA falham por ambiente (o motor exige o 3.14, via `MARILIZ_PYTHON`); não são do Boot |
+| Funcionalidades originais seguem | Nenhum método existente mudou | Motor: 2.104 aprovados, 0 falhas, 28 ignorados (os de chave real). Processo real do motor: 21. Interface: 1.148 aprovados. Com o Python 3.12 do PATH, 38 testes do runtime de IA falham por ambiente (o motor exige o 3.14, via `MARILIZ_PYTHON`); não são do Boot |
 | Sem duplicação | Reusa `ContextEngine`, tratadores, `IAuditLog`, `WorkspaceAuthorizer` | Revisão do código |
-| Testes automatizados | 64 no motor em memória, 9 com o processo real do motor, mais os da interface | Ver abaixo |
+| Testes automatizados | 73 no motor em memória, 9 com o processo real do motor, mais os da interface | Ver abaixo |
 | Roadmap registrado | [ROADMAP](../ROADMAP.md) | — |
 
-Testes novos: `BootCatalogTests` (9), `BootIntentEvalTests` (8), `BootServiceTests` (24), `BootRetentionTests` (5), `BootProtocolTests` (9, incluindo
+Testes novos: `BootCatalogTests` (9), `BootIntentEvalTests` (8), `BootServiceTests` (26), `BootParametersTests` (6), `BootRetentionTests` (5), `BootProtocolTests` (9, incluindo
 as fixtures de contrato de `contracts/fixtures/boot/`), `BootSummariesTests` (9, cada resumo contra a fixture real do contrato), e na interface o contrato com o Zod, o cartão pelo Início (9) e o próprio cartão (2) e a
 conferência das três listas de métodos.
 
@@ -296,7 +309,7 @@ respondeu `boot.*`; pedido de leitura, pedido que só abre a tela, pedido ambíg
 plano e outro sem), envio duplo (um só Boot, por Enter duas vezes em 29 ms e por dois cliques) e console sem erro. Achou um
 bloco repetido no Project Boot, a lista que não distinguia os interrompidos e oferecia Retomar ao que não tem plano, o botão
 fora do alinhamento e jargão nas mensagens; todos corrigidos. **Não provou** modelo real, os fluxos Python do motor
-(o empacotamento da inteligência falhou no build por causa do Python 3.12 do PATH) nem projeto real.
+(o empacotamento da inteligência falhou no build por causa do Python 3.12 do PATH; o script aceita `MARILIZ_BUILD_PYTHON` apontando para o 3.14, o que não foi refeito) nem projeto real.
 
 ## 5. Riscos e limitações
 

@@ -73,6 +73,8 @@ internal sealed class BootRequestHandler(BootService service) : IRequestHandler
             entry.Status.Capability.Composes,
             entry.Status.Capability.ExpectedResult,
             entry.Status.Capability.Preconditions,
+            Parameters = CapabilityParameters.For(entry.Status.Capability.Id)
+                .Select(spec => new { spec.Name, spec.Label, spec.Min, spec.Max }).ToList(),
             Needs = Enum.GetValues<CapabilityNeeds>().Where(flag => flag != CapabilityNeeds.None && entry.Status.Capability.Needs.HasFlag(flag)).Select(flag => flag.ToString()).ToList(),
             entry.Status.Availability,
             entry.Status.Reason,

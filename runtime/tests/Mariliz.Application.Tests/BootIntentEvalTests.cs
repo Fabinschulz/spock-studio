@@ -66,6 +66,14 @@ public class BootIntentEvalTests(ITestOutputHelper output)
         // Sem projeto aberto, risco de "meus projetos" só se responde pelo portfólio (os sinais de risco de cada projeto).
         new("Quais riscos meus projetos têm?", "management.portfolio", HasProject: false),
 
+        // Drift e parâmetros
+        new("Tem drift na infraestrutura?", "infrastructure.drift"),
+        new("Quero agendar a verificação de drift", "infrastructure.drift"),
+        new("A nuvem mudou fora do terraform?", "infrastructure.drift"),
+        new("Mostre os indicadores das últimas 12 semanas", "management.tracking"),
+        new("Quais as últimas 10 execuções?", "platform.runs"),
+        new("Os últimos 30 eventos da linha do tempo", "platform.timeline"),
+
         // Atividade
         new("Mostre a linha do tempo do projeto", "platform.timeline"),
         new("Quem acessou os dados do projeto?", "platform.audit"),

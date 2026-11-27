@@ -57,6 +57,8 @@
         "startedAt": null,
         "finishedAt": null,
         "summary": "Projeto loja, autorizado neste computador.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [
           "O Spock não tem usuário nem organização: o escopo é o projeto autorizado nesta máquina."
         ],
@@ -76,6 +78,8 @@
         "startedAt": "2026-11-26T12:02:00+00:00",
         "finishedAt": "2026-11-26T12:02:00+00:00",
         "summary": "Contexto do projeto reunido: 9 itens, 120 tokens.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [
           "As conexões cloud não estão disponíveis nesta sessão do motor."
         ],
@@ -95,6 +99,8 @@
         "startedAt": null,
         "finishedAt": null,
         "summary": "Disponível. Leitura ou análise que não altera o projeto.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [
           "Operação: leitura; nível mínimo 0."
         ],
@@ -114,6 +120,8 @@
         "startedAt": "2026-11-26T12:02:00+00:00",
         "finishedAt": "2026-11-26T12:02:00+00:00",
         "summary": "3 tecnologias no projeto.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [
           "3 tecnologias encontradas.",
           "Entre elas: ASP.NET Core, .NET, xUnit.",

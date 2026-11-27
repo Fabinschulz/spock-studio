@@ -15,6 +15,9 @@ public sealed class BootStep
     public DateTimeOffset? StartedAt { get; set; }
     public DateTimeOffset? FinishedAt { get; set; }
     public string Summary { get; set; } = "";
+    // O que o Boot tirou do pedido para a capacidade (período, quantidade). Só nomes que a ficha declara; ao executar, de novo dentro da faixa.
+    public Dictionary<string, int> Arguments { get; set; } = [];
+    public List<string> ArgumentNotes { get; set; } = [];
     // Linhas que o motor leu do resultado da capacidade; o texto nunca é escrito por modelo.
     public List<string> Evidence { get; set; } = [];
     public string? ErrorCode { get; set; }

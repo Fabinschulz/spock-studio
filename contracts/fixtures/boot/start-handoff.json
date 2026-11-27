@@ -61,6 +61,8 @@
         "startedAt": null,
         "finishedAt": null,
         "summary": "Projeto loja, autorizado neste computador.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [
           "O Spock não tem usuário nem organização: o escopo é o projeto autorizado nesta máquina."
         ],
@@ -80,6 +82,8 @@
         "startedAt": "2026-11-26T12:03:00+00:00",
         "finishedAt": "2026-11-26T12:03:00+00:00",
         "summary": "Contexto do projeto reunido: 9 itens, 120 tokens.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [
           "As conexões cloud não estão disponíveis nesta sessão do motor."
         ],
@@ -99,6 +103,8 @@
         "startedAt": null,
         "finishedAt": null,
         "summary": "Disponível. Altera o projeto: a tela mostra o que muda e só grava o que você aprovar.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [
           "Operação: alteração interna; nível mínimo 2."
         ],
@@ -118,6 +124,8 @@
         "startedAt": "2026-11-26T12:03:00+00:00",
         "finishedAt": "2026-11-26T12:03:00+00:00",
         "summary": "Pronto para abrir.",
+        "arguments": {},
+        "argumentNotes": [],
         "evidence": [],
         "errorCode": null
       }
