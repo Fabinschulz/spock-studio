@@ -10,6 +10,7 @@
     "state": "completed",
     "autonomy": "preparation",
     "request": null,
+    "requestRedacted": false,
     "hint": null,
     "intent": null,
     "plan": {

@@ -10,6 +10,7 @@
     "state": "awaitingClarification",
     "autonomy": "preparation",
     "request": "Quero ver os riscos e as entregas",
+    "requestRedacted": false,
     "hint": null,
     "intent": {
       "resolution": "needsClarification",

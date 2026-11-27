@@ -74,6 +74,8 @@ export const bootRecordSchema = z.object({
   state: bootStateSchema,
   autonomy: z.string(),
   request: z.string().nullable(),
+  /** Uma linha do pedido parecia um segredo e foi omitida antes de usar e de guardar o texto. */
+  requestRedacted: z.boolean(),
   hint: z.string().nullable(),
   intent: z
     .object({

@@ -5,6 +5,7 @@ using Mariliz.Application.Execution;
 using Mariliz.Application.Integrations;
 using Mariliz.Application.Ports;
 using Mariliz.Application.Workspace;
+using Mariliz.Core.Policy;
 
 namespace Mariliz.Application.Boot;
 
@@ -51,7 +52,12 @@ public sealed class BootService(
     public async Task<BootRecord> StartAsync(BootStartRequest request, CancellationToken ct)
     {
         Validate(request);
+        // Uma pessoa pode colar uma chave no pedido: a linha com cara de segredo sai antes de qualquer outro uso do texto
+        // (reconhecer a intenção, gravar o registro, o plano), com o mesmo detector que o motor usa nas outras leituras.
+        var text = request.Text is null ? null : SecretScanner.RedactLines(request.Text);
+        request = request with { Text = text };
         var record = New(BootMode.Request, request.ProjectId, request.Autonomy, request.Origin, request.Source);
+        record.RequestRedacted = text is not null && text.Contains(SecretScanner.RedactedLine, StringComparison.Ordinal);
         record.Request = request.Text?.Trim();
         record.Hint = request.Hint;
         Begin(record, "Pedido recebido.");
@@ -107,6 +113,7 @@ public sealed class BootService(
 
         var record = New(BootMode.Recovery, original.ProjectId, original.Autonomy, original.Origin, original.Source);
         record.Request = original.Request;
+        record.RequestRedacted = original.RequestRedacted;
         record.Hint = original.Hint;
         record.Intent = original.Intent;
         record.Plan = original.Plan;
@@ -137,10 +144,17 @@ public sealed class BootService(
         return Find(projectId, bootId);
     }
 
+    // Só o interrompido que tem plano e ainda não foi recuperado: sem plano não há o que retomar, e o motor recusa recuperar duas vezes.
+    public static bool CanResume(BootRecord record) => record is { State: BootStates.Interrupted, RecoveredByBootId: null, Plan: not null };
+
+    // Os mais novos até o limite, e mais todo Boot que dá para retomar, por antigo que seja: é o que a pessoa precisa achar, e com
+    // muitos pedidos mais novos ele sumiria da lista.
     public IReadOnlyList<BootRecord> List(string? projectId, int limit = 20)
     {
         RequireAuthorized(projectId);
-        return [.. store.List(projectId).Take(Math.Clamp(limit, 1, 100))];
+        var all = store.List(projectId);
+        var take = Math.Clamp(limit, 1, 100);
+        return [.. all.Take(take), .. all.Skip(take).Where(CanResume)];
     }
 
     public IReadOnlyList<(CapabilityStatus Status, PermissionDecision Decision)> Capabilities(string? projectId, AutonomyLevel autonomy = PermissionEvaluator.Ceiling)
@@ -284,6 +298,7 @@ public sealed class BootService(
 
     private BootRecord Finish(BootRecord record, BootResult result, string state)
     {
+        if (record.RequestRedacted) result.Problems.Add("Uma linha do pedido parecia um segredo e foi omitida: não foi usada nem guardada.");
         record.Result = result;
         record.State = state;
         record.FinishedAt = clock.UtcNow;
@@ -361,16 +376,21 @@ public sealed class BootService(
     }
 
     // O registro de auditoria diz que houve um Boot e como terminou; o texto do pedido não entra.
-    private void Audit(string action, BootRecord record) => audit.Record(action, new JsonObject
+    // Boot sem projeto fica só no próprio registro: a trilha é de projeto, e uma ação sem projectId não aparece em nenhuma.
+    private void Audit(string action, BootRecord record)
     {
-        ["bootId"] = record.Id,
-        ["projectId"] = record.ProjectId,
-        ["mode"] = record.Mode.ToString().ToLowerInvariant(),
-        ["origin"] = record.Origin,
-        ["state"] = record.State,
-        ["outcome"] = record.Result?.Outcome,
-        ["capabilities"] = new JsonArray([.. (record.Plan?.Capabilities ?? []).Select(id => (JsonNode)JsonValue.Create(id)!)])
-    });
+        if (record.ProjectId is null) return;
+        audit.Record(action, new JsonObject
+        {
+            ["bootId"] = record.Id,
+            ["projectId"] = record.ProjectId,
+            ["mode"] = record.Mode.ToString().ToLowerInvariant(),
+            ["origin"] = record.Origin,
+            ["state"] = record.State,
+            ["outcome"] = record.Result?.Outcome,
+            ["capabilities"] = new JsonArray([.. (record.Plan?.Capabilities ?? []).Select(id => (JsonNode)JsonValue.Create(id)!)])
+        });
+    }
 
     private static BootStep Clone(BootStep step) => new()
     {

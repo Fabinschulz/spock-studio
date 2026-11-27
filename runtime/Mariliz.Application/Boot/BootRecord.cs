@@ -82,6 +82,8 @@ public sealed class BootRecord
     public string State { get; set; } = BootStates.Created;
     public AutonomyLevel Autonomy { get; set; } = AutonomyLevel.Observation;
     public string? Request { get; set; }
+    // O pedido tinha uma linha com cara de segredo: ela foi omitida antes de reconhecer a intenção e de gravar o registro.
+    public bool RequestRedacted { get; set; }
     public string? Hint { get; set; }
     public IntentResult? Intent { get; set; }
     public BootPlan? Plan { get; set; }

@@ -232,6 +232,71 @@ public sealed class BootServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Linha_com_cara_de_segredo_no_pedido_nao_e_usada_nem_guardada_e_a_pessoa_e_avisada()
+    {
+        var boot = await Start("Quais tecnologias o projeto usa?\nminha chave é AKIAIOSFODNN7EXAMPLE");
+
+        Assert.True(boot.RequestRedacted);
+        Assert.DoesNotContain("AKIA", boot.Request, StringComparison.Ordinal);
+        Assert.DoesNotContain("AKIA", boot.Plan!.Objective, StringComparison.Ordinal);
+        Assert.Equal("engineering.project_overview", boot.Intent!.CapabilityId);
+        Assert.Contains(boot.Result!.Problems, line => line.Contains("parecia um segredo", StringComparison.Ordinal));
+        var onDisk = File.ReadAllText(Path.Combine(_project.DataDir, "projects", _projectId, "boots", boot.Id + ".json"));
+        Assert.DoesNotContain("AKIA", onDisk, StringComparison.Ordinal);
+        Assert.DoesNotContain(_audit.Entries, entry => entry.Detail.Contains("AKIA", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Pedido_comum_nao_e_marcado_como_redigido()
+    {
+        var boot = await Start("Quais tecnologias o projeto usa?");
+
+        Assert.False(boot.RequestRedacted);
+        Assert.DoesNotContain(boot.Result!.Problems, line => line.Contains("segredo", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Boot_sem_projeto_fica_so_no_proprio_registro_e_o_de_projeto_vai_para_a_auditoria()
+    {
+        var noProject = await Start("Conectar ferramentas", projectId: null);
+        Assert.DoesNotContain(_audit.Entries, entry => entry.Action.StartsWith("boot.", StringComparison.Ordinal));
+        Assert.NotNull(_store.Find(null, noProject.Id));
+
+        await Start("Conectar ferramentas");
+        Assert.Equal(["boot.started", "boot.finished"], _audit.Entries.Select(entry => entry.Action).Where(action => action.StartsWith("boot.", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    public async Task A_lista_traz_o_interrompido_retomavel_mesmo_com_muitos_pedidos_mais_novos()
+    {
+        var old = Now.AddDays(-30);
+        var resumable = new BootRecord { Id = BootIds.New(), ProjectId = _projectId, State = BootStates.Interrupted, Plan = new BootPlan { Objective = "x" }, CreatedAt = old, UpdatedAt = old };
+        var noPlan = new BootRecord { Id = BootIds.New(), ProjectId = _projectId, State = BootStates.Interrupted, CreatedAt = old.AddMinutes(1), UpdatedAt = old };
+        var recovered = new BootRecord { Id = BootIds.New(), ProjectId = _projectId, State = BootStates.Interrupted, Plan = new BootPlan { Objective = "y" }, RecoveredByBootId = BootIds.New(), CreatedAt = old.AddMinutes(2), UpdatedAt = old };
+        foreach (var record in new[] { resumable, noPlan, recovered }) _store.Save(record);
+        for (var i = 0; i < 30; i++)
+            _store.Save(new BootRecord { Id = BootIds.New(), ProjectId = _projectId, State = BootStates.Completed, CreatedAt = Now.AddMinutes(i), UpdatedAt = Now });
+
+        var listed = _boot.List(_projectId, limit: 10);
+
+        Assert.Equal(11, listed.Count);
+        Assert.Contains(listed, record => record.Id == resumable.Id);
+        Assert.DoesNotContain(listed, record => record.Id == noPlan.Id || record.Id == recovered.Id);
+        await Task.CompletedTask;
+    }
+
+    [Fact]
+    public async Task A_aprovacao_de_uma_configuracao_diz_configuracao_e_nao_projeto()
+    {
+        var drift = await Start("Tem drift na infraestrutura?");
+        var configure = await Start("Configurar meu ambiente");
+
+        Assert.Equal("infrastructure.drift", drift.Intent!.CapabilityId);
+        Assert.Contains("configuração", drift.Plan!.Approvals.Single(), StringComparison.Ordinal);
+        Assert.StartsWith("Altera o projeto", configure.Plan!.Approvals.Single(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Pedido_sem_capacidade_diz_que_nao_sabe_em_vez_de_chutar()
     {
         var boot = await Start("Quero um bolo de chocolate");
