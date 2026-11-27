@@ -194,6 +194,9 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
             case AuditActions.IdePrompt:
                 yield return Entry("", AuditCategories.Context, "Aviso entregue à IDE pelo hook por prompt", PromptSignalsDetail(d));
                 break;
+            case AuditActions.IdeBoot:
+                yield return Entry("", AuditCategories.Context, "Boot pedido pela IDE", IdeBootDetail(d));
+                break;
             case AuditActions.ConnectionCreated:
                 yield return Entry("", AuditCategories.Credential, $"Conexão criada: {Clean(Text(d, "name"))}", $"Provedor: {Clean(Text(d, "provider"))}. Conexão usada por este projeto.");
                 break;
@@ -411,6 +414,19 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
         }).Where(text => text.Length > 0).Distinct().ToList();
         var version = Clean(Text(d, "contextVersion"));
         return what.Count == 0 ? $"Versão {version}." : $"Versão {version}: {string.Join("; ", what)}.";
+    }
+
+    // O texto do pedido nunca é gravado: só o modo, o que foi usado e como terminou.
+    private static string IdeBootDetail(JsonObject d)
+    {
+        var capabilities = d["capabilities"] is JsonArray list
+            ? list.OfType<JsonValue>().Select(item => item.TryGetValue<string>(out var id) ? Clean(id) : "").Where(id => id.Length > 0).ToList()
+            : [];
+        var outcome = Text(d, "outcome");
+        var used = capabilities.Count == 0 ? "nenhuma capacidade usada" : $"{Count(capabilities.Count, "capacidade usada", "capacidades usadas")}: {string.Join(", ", capabilities.Take(ShownPaths))}";
+        var client = Clean(Text(d, "client"));
+        return $"{BootLabel(Text(d, "mode"))}: {Clean(Text(d, "state"))}{(outcome.Length > 0 ? $", resultado {Clean(outcome)}" : "")}; {used}. Só leitura, e o texto do pedido não é registrado." +
+               (client.Length > 0 ? $" Cliente MCP informado: {client}." : "");
     }
 
     private static string IdeReadDetail(JsonObject d)
