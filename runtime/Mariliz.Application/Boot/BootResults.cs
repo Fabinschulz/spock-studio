@@ -16,6 +16,9 @@ public static class BootResults
         ["profile"] = "o perfil tecnológico"
     };
 
+    // Só o fato de o modelo ter ajudado; o que ele escreveu como motivo não é usado em lugar nenhum.
+    public const string ModelNote = "Entendido com ajuda do modelo; o motor conferiu que a capacidade existe no catálogo e decidiu o resto.";
+
     public static BootResult Unresolved(IntentResult intent, CapabilityRegistry registry, BootFacts facts, IReadOnlyList<CapabilityStatus> statuses)
     {
         var result = new BootResult
@@ -25,6 +28,7 @@ public static class BootResults
             Changes = [],
             Validations = ["Nada foi executado: o Boot prefere perguntar a escolher errado."]
         };
+        if (intent.Source == "model") result.Done.Add(ModelNote);
         result.Alternatives = [.. intent.Candidates.Select(candidate => Alternative(registry, candidate, statuses))];
         if (intent.Resolution == IntentResolution.NeedsClarification)
         {
@@ -50,6 +54,7 @@ public static class BootResults
             Changes = [],
             Validations = [$"Disponibilidade: {BootPlanner.Describe(status.Availability).ToLowerInvariant()}."]
         };
+        if (intent.Source == "model") result.Done.Insert(1, ModelNote);
         (result.NextStep, result.Route, result.RouteLabel) = status.Availability switch
         {
             CapabilityAvailability.BlockedByPermission => ("Escolha ou abra um projeto e peça de novo.", null, null),
@@ -86,6 +91,7 @@ public static class BootResults
         capability ??= registry.Find(record.Intent!.CapabilityId!)!;
         var result = new BootResult { Changes = [], Route = capability.Route, RouteLabel = capability.Route is null ? null : $"Abrir {capability.Name}" };
         result.Done.Add($"Reconheci o pedido como \"{capability.Name}\".");
+        if (record.Intent!.Source == "model") result.Done.Add(ModelNote);
         result.Done.Add("Conferi o projeto, a disponibilidade e a permissão.");
 
         if (capability.IsComposite)

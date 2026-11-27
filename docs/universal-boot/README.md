@@ -137,7 +137,8 @@ IDE (Claude Code, Cursor, Codex)  ─►  spock_boot                           (
                                      audita    ── boot.started / boot.finished (sem o texto do pedido)
 ```
 
-Camadas: tudo do Boot vive em `Mariliz.Application/Boot`; só o `FileBootStore` está na `Infrastructure`. O Python e a
+Camadas: tudo do Boot vive em `Mariliz.Application/Boot`; só o `FileBootStore` está na `Infrastructure`. O segundo estágio do
+reconhecimento (`ModelIntentStage`, §3.2) conversa com o `ModelGateway` que já existia, pela finalidade `boot`. O Python e a
 interface não conhecem o Boot além do protocolo.
 
 ### 3.1 Papéis
@@ -156,7 +157,8 @@ interface não conhecem o Boot além do protocolo.
 
 Léxico e determinístico, de propósito. Cada ficha traz termos com peso (palavra, frase em ordem com até duas palavras no
 meio, ou prefixo com `*`). A pontuação soma os termos, a dica do tipo de atividade que a tela já sabe (que só reforça o
-que o texto sugeriu, nunca escolhe sozinha) e o contexto (há projeto aberto?). Duas regras evitam palpite:
+que o texto sugeriu, nunca escolhe sozinha) e o contexto (há projeto aberto?). Duas regras evitam palpite (e o que elas
+deixam sem resposta pode ir a um modelo, ver "Segundo estágio" abaixo):
 
 - candidatos próximos, com diferença menor que 2, viram **pergunta com opções** (`awaitingClarification`);
 - abaixo do mínimo, o Boot diz que **não há capacidade** (`unsupported`) e oferece as mais próximas.
@@ -169,7 +171,38 @@ direto e pula a interpretação.
 escritas depois e nunca usadas no ajuste**. Os quatro erros são de vocabulário que o léxico não cobre ("permissão para
 mexer" para a política dos agentes, "rodar o plano do terraform", "senhas esquecidas" que caiu em pergunta sobre código, e
 uma pergunta que devia ter sido de esclarecimento). As quatro fichas da etapa 2 entraram sem mudar esse grupo: os mesmos quatro erros, 10 de 14. O número de 71% é o que vale esperar de frase nova; o 100% mostra só
-que os termos foram ajustados ao corpus. Uma troca por reconhecimento com modelo deve ser julgada pela mesma eval.
+que os termos foram ajustados ao corpus. O segundo estágio com modelo (abaixo) é julgado pela mesma eval.
+
+**Segundo estágio: um modelo para o que o léxico não resolve (BD-1, 2026-11-27).** O léxico continua primeiro. Só um
+pedido em texto que terminou em "sem capacidade" (`noMatch`) ou em pergunta (`needsClarification`) vai a um modelo
+(`ModelIntentStage`), e só se há provedor de modelo configurado. Escolha direta por `capabilityId` e léxico `resolved`
+nunca chamam o modelo: ele **nunca rebaixa nem troca** uma intenção que o léxico resolveu.
+
+- *O que o modelo recebe.* Um prompt fixo e curto, a lista compacta do catálogo (id, nome e uma frase de cada capacidade,
+  cerca de 1.300 tokens com as 40 fichas) e o texto do pedido (até 2.000 caracteres) entre `<pedido>` e `</pedido>`, tratado
+  como dado. O texto passa antes pela redação de segredos do motor (`SecretScanner.RedactLines`, linha por linha) e perde os
+  sinais `<` e `>` que fechariam o delimitador. Nada do projeto vai junto: nem nome, nem caminho, nem identificador. Por isso
+  a política de contexto dos vínculos (que governa dado de projeto) não se aplica ao estágio, e a única porta é o provedor
+  configurado. A resposta é limitada a 120 tokens e a 20 s; uma chamada só, sem nova tentativa.
+- *O que o modelo devolve e o motor confere.* `{ "capabilityId": "<id>|null", "alternatives": ["<id>", ...até 3], "reason": "..." }`.
+  O contrato é estrito: JSON objeto com só essas chaves, ids que existem no catálogo (comparação exata), no máximo 3
+  alternativas. Qualquer desvio, inclusive um id inventado, derruba a resposta inteira (`failed`). O `reason` tem de ser
+  texto, mas nunca é lido, mostrado nem guardado.
+- *A regra de combinação (`IntentRecognizer.WithModel`).* Uma capacidade sem alternativas **resolve** (origem `model`). Uma
+  capacidade com alternativas, ou duas ou mais alternativas sem capacidade, viram **pergunta** com essas opções (até 3, todas
+  do catálogo): foi o próprio modelo que disse que o pedido cabe em mais de uma coisa. Nenhuma capacidade, ou uma alternativa
+  solta, deixa o resultado do léxico como estava. A capacidade apontada segue o fluxo de sempre: disponibilidade,
+  `PermissionEvaluator`, plano, e execução só se a ficha é direta e permitida. O modelo não escolhe método, rota, argumento nem
+  nível; uma capacidade que o Boot não executa (por exemplo `infrastructure.apply`) vira "abrir a tela" com as aprovações dela,
+  ou bloqueio, como qualquer outra.
+- *Estado no registro.* `intent.modelStage` diz o que houve: `skipped` (não era caso), `unavailable` (era caso, mas sem
+  provedor, ou sem o estágio nesta sessão), `failed` (erro, prazo ou resposta fora do contrato: o resultado é exatamente o
+  do léxico) ou `used` (resposta válida; se ela propôs algo, `intent.source` é `model`). `modelUsage` guarda chamadas e
+  tokens de entrada e de saída. O cartão do Início mostra "Entendido com ajuda do modelo" na lista do que foi feito.
+- *Orçamento e auditoria.* Finalidade própria, `boot` ("Entendimento do pedido"), para a pessoa escolher um modelo pequeno
+  e rápido sem mexer no que o assistente e os fluxos usam. O Boot não é uma execução com teto por execução (como a pergunta
+  direta ao assistente): o teto é por chamada, e o gasto fica no registro do Boot e na auditoria (`boot.intent_model`,
+  categoria de modelo: estado, quantas capacidades foram propostas, tokens; sem o texto do pedido e sem o motivo do modelo).
 
 ### 3.3 Permissão e autonomia
 
@@ -324,6 +357,7 @@ Implementado, validado e planejado são coisas diferentes; esta tabela não as m
 | Identidade e ciclo de vida | `BootRecord`, estados, checkpoints, `version` | `BootServiceTests` (registro no disco, checkpoints, queda) |
 | Catálogo baseado no produto real | 40 fichas, cada método existe no protocolo e cada tela em `paths.ts` | `BootCatalogTests` (os dois conferem contra o código) |
 | Reconhecer intenções e domínios diferentes | `IntentRecognizer` | `BootIntentEvalTests`: 79/79 ajustado, 10/14 em frases novas |
+| Segundo estágio: modelo onde o léxico não resolve (BD-1) | `ModelIntentStage`, `IntentRecognizer.WithModel`, finalidade `boot`, auditoria `boot.intent_model` | Só com modelo dublê: `ModelIntentStageTests` (contrato estrito, prompt, redação, prazo, falhas), `BootModelStageTests` (quando chama, o que nunca decide, falha igual ao léxico, "ignore as regras" com `infrastructure.apply` vira tela com aprovação, id inventado vira `failed`), `BootIntentModelEvalTests` (os dois corpora pelo mesmo encanamento). **A qualidade com modelo real não foi medida** |
 | Recuperar contexto | `ContextEngine` no passo de contexto | `BootServiceTests`, `BootProtocolTests` |
 | Verificar permissão antes | `PermissionEvaluator` | Destrutivo nunca executa; autonomia acima do teto recusada; sem projeto, modelo ou integração, bloqueado com o motivo |
 | Montar plano | `BootPlanner` | Plano com passos, dependências, aprovações e riscos no registro |
@@ -339,7 +373,9 @@ Implementado, validado e planejado são coisas diferentes; esta tabela não as m
 
 Testes novos: `BootCatalogTests` (9), `BootIntentEvalTests` (8), `BootServiceTests` (26), `BootParametersTests` (6), `BootRetentionTests` (5), `BootProtocolTests` (9, incluindo
 as fixtures de contrato de `contracts/fixtures/boot/`), `BootSummariesTests` (9, cada resumo contra a fixture real do contrato), e na interface o contrato com o Zod, o cartão pelo Início (9) e o próprio cartão (2) e a
-conferência das três listas de métodos.
+conferência das três listas de métodos. Do segundo estágio (2026-11-27): `ModelIntentStageTests`, `BootModelStageTests` e
+`BootIntentModelEvalTests`, 60 testes ao todo, dois deles ao vivo (pulam sem chave). Suítes depois dele: motor 2.162
+aprovados, 0 falhas, 30 ignorados (os de chave real e os de pacote); processo real do motor 21; interface 1.149.
 
 `BootProcessTests` (9, em `runtime/tests/Mariliz.Runtime.IntegrationTests`) sobe o motor de verdade (`dotnet Mariliz.Runtime.dll`, NDJSON no
 stdin/stdout, `MARILIZ_DATA_DIR` temporária por teste) e prova o que os testes em memória não alcançam: o `engine.hello` anuncia os seis métodos e os
@@ -353,8 +389,17 @@ código 0 no `engine.shutdown` e não deixa processo filho. **Não prova**: a in
 aberto nem qualquer fluxo com modelo real. O registro do Boot interrompido é gravado pelo teste (o formato é o do motor, os campos são editados);
 não há queda real de processo no meio de um passo.
 
-**Nada disso rodou com modelo real**, e o Boot da fundação não usa modelo: o que depende de modelo (`engineering.request`,
-`management.assistant`, `ideas.idea_to_project`) só abre a tela. O Project Boot foi exercitado no teste com um projeto .NET
+**Nada disso rodou com modelo real.** O Boot da fundação não executa nada com modelo: o que depende de modelo
+(`engineering.request`, `management.assistant`, `ideas.idea_to_project`) só abre a tela. O único uso de modelo é o segundo
+estágio do reconhecimento, e ele só foi provado com um dublê. O dublê da eval responde por uma regra boba (palavras em comum
+com o nome e a descrição) e prova o encanamento, não a qualidade: ele repete 10 de 14 no holdout e 79 de 79 no corpus de
+ajuste. Um fato da eval, esse sim real: **dos quatro erros do léxico no holdout, nenhum foi "sem capacidade" ou pergunta;
+os quatro foram resolvidos para a capacidade errada** (`ai.agents_detect`, `infrastructure.status`, `engineering.code_question`
+e `standards.architecture` no lugar de uma pergunta). O estágio, por desenho, não toca no que o léxico resolveu, então no
+holdout ele só é chamado em 1 das 14 frases (uma que o léxico já acertava como "sem capacidade") e não tem como corrigir
+nenhum dos quatro erros. O ganho que a medição ao vivo pode mostrar fica limitado a pedidos que o léxico deixa sem resolver
+(o erro seguro). Se o dono quiser atacar os erros de resolução errada, é outra decisão (chamar o modelo também para
+resoluções de pontuação baixa), que muda a garantia "o modelo nunca troca um léxico resolvido". O Project Boot foi exercitado no teste com um projeto .NET
 temporário e, depois, no aplicativo Tauri aberto (próximo parágrafo), nunca em um projeto real do dono.
 
 **No aplicativo real** (Tauri dev, WebView2 e o motor recém-construído, dirigidos pelo CDP, com um projeto .NET temporário,
@@ -385,11 +430,25 @@ fora do alinhamento e jargão nas mensagens; todos corrigidos. **Não provou** m
    sem resumo.
 6. **Nada é executado em paralelo**, e o Boot não tem fila nem concorrência entre projetos. A tela barra um segundo pedido
    enquanto um está em preparo. O MCP não tem essa barra: duas chamadas de `spock_boot` seguidas criam dois Boots.
+7. **O texto do pedido, já sem segredos, vai ao provedor que o dono configurou** quando o léxico não resolve e há chave. A
+   redação cobre os formatos de segredo que o `SecretScanner` conhece; um dado sensível escrito em prosa passa. Nada do
+   projeto vai junto, só o texto e a lista de capacidades. Quem não quer isso não configura provedor, ou escolhe para a
+   finalidade `boot` um provedor em que confia: sem chave o Boot é só léxico.
+8. **Custo e latência do segundo estágio.** Uma chamada por pedido não resolvido, cerca de 1.300 tokens de entrada (a lista
+    do catálogo cresce com as fichas) e no máximo 120 de saída, com prazo de 20 s; ao estourar, o Boot segue com o léxico.
+    O gasto fica no registro e na auditoria, mas não há teto por período: um uso intenso soma. O número de tokens real
+    depende do tokenizador do provedor; o de 1.300 é a estimativa do `o200k_base`.
+9. **O estágio só alcança o que o léxico deixa sem resolver.** No holdout os quatro erros foram de resolução errada, que ele
+    não corrige (§4). O ganho esperado é menor do que a manchete "modelo no reconhecimento" sugere, e só a medição ao vivo
+    (`BootIntentModelEvalTests`, ver [validação real](../validacao-real.md)) diz se vale mantê-lo.
+10. **Sem segunda tentativa.** Uma resposta fora do contrato vira `failed` e o pedido segue pelo léxico; não há nova
+    chamada. Troca por custo previsível, e a eval ao vivo mostra quantas respostas caem aí.
 
 ## 6. Decisões para o dono
 
 - **BD-1.** O Boot deve passar a usar um modelo para reconhecer a intenção quando o léxico não resolver (com orçamento de
-  tokens e a mesma eval como régua)? Recomendado: sim, só como segundo estágio, depois da rodada real com chave.
+  tokens e a mesma eval como régua)? **Decidido em 2026-11-27: sim, como segundo estágio**, implementado com dublê. Falta
+  medir com chave (holdout ao vivo) e decidir se ele fica ligado e se vale estendê-lo às resoluções de pontuação baixa.
 - **BD-2.** *(decidida em 2026-11-27)* O registro do Boot guarda o texto do pedido, com a linha de segredo redigida.
 - **BD-3.** Decidida em 2026-11-27: o Boot é exposto ao MCP como `spock_boot`, só leitura e Project Boot, no nível 0, com cada
   chamada na auditoria (§3.8). Falta uma IDE de verdade chamar a ferramenta.

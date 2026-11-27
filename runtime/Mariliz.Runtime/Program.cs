@@ -99,7 +99,8 @@ BootRetention.Apply(bootStore);
 var bootRegistry = new CapabilityRegistry();
 var boot = new BootService(engine.Workspace, bootRegistry, new IntentRecognizer(bootRegistry),
     new BootFactsProbe(engine.Workspace, models, integrations, cloud, harnessStatus, profileStore), new BootPlanner(bootRegistry), bootStore, engine.Clock,
-    integrations.Audit, new ContextEngine(engine.Workspace, harnessStatus, profileStore, tokenizers, engine.Clock, integrations, cloud));
+    integrations.Audit, new ContextEngine(engine.Workspace, harnessStatus, profileStore, tokenizers, engine.Clock, integrations, cloud),
+    new ModelIntentStage(models, bootRegistry));
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
     management: management, assistant: assistant,

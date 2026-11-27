@@ -28,8 +28,10 @@
         }
       ],
       "question": null,
-      "objective": "Quais tecnologias o projeto usa?"
+      "objective": "Quais tecnologias o projeto usa?",
+      "modelStage": "skipped"
     },
+    "modelUsage": null,
     "plan": {
       "objective": "Quais tecnologias o projeto usa?",
       "domain": "engineering",

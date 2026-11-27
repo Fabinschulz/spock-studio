@@ -9,9 +9,9 @@ public class BootIntentEvalTests(ITestOutputHelper output)
 {
     private const double MinimumAccuracy = 0.9;
 
-    private sealed record Case(string Text, string Expected, bool HasProject = true, string? Hint = null);
+    internal sealed record Case(string Text, string Expected, bool HasProject = true, string? Hint = null);
 
-    private static readonly Case[] Corpus =
+    internal static readonly Case[] Corpus =
     [
         // Os exemplos do pedido original
         new("Quero analisar os riscos dos meus projetos", "management.risks"),
@@ -115,7 +115,7 @@ public class BootIntentEvalTests(ITestOutputHelper output)
     ];
 
     // Escrito depois do ajuste dos termos e nunca usado para ajustar: dá a medida do que o reconhecedor faz com frases que ele não viu.
-    private static readonly Case[] Holdout =
+    internal static readonly Case[] Holdout =
     [
         new("Preciso saber se os agentes de IA têm permissão para mexer no meu repositório", "standards.agent_policy"),
         new("Quero ver como andam as entregas da equipe nas últimas semanas", "management.tracking"),
@@ -135,7 +135,7 @@ public class BootIntentEvalTests(ITestOutputHelper output)
 
     private static IntentRecognizer Recognizer() => new(new CapabilityRegistry());
 
-    private static string Outcome(IntentResult result) => result.Resolution switch
+    internal static string Outcome(IntentResult result) => result.Resolution switch
     {
         IntentResolution.Resolved => result.CapabilityId!,
         IntentResolution.NeedsClarification => "?",

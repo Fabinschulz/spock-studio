@@ -28,7 +28,8 @@ public sealed class BootService(
     IBootStore store,
     IClock clock,
     IAuditLog audit,
-    ContextEngine? context = null)
+    ContextEngine? context = null,
+    ModelIntentStage? modelStage = null)
 {
     public const int MaxText = 2000;
     private static readonly string[] Hints = ["request", "agent", "assistant", "idea"];
@@ -63,8 +64,19 @@ public sealed class BootService(
         Begin(record, "Pedido recebido.");
 
         var facts = Facts(record);
-        record.Intent = recognizer.Recognize(new IntentRequest(request.Text, request.Hint, request.CapabilityId, facts.ProjectAuthorized));
-        Checkpoint(record, BootStates.Interpreting, null, $"Intenção: {record.Intent.Resolution}.");
+        var lexicon = recognizer.Recognize(new IntentRequest(request.Text, request.Hint, request.CapabilityId, facts.ProjectAuthorized));
+        try
+        {
+            record.Intent = await RefineWithModelAsync(record, lexicon, facts, ct);
+        }
+        catch (OperationCanceledException)
+        {
+            record.Intent = lexicon;
+            return Interrupt(record);
+        }
+        // O estado do estágio do modelo só entra na nota quando houve chamada; o que não chamou continua com a nota de sempre.
+        var staged = record.Intent.ModelStage is ModelStages.Used or ModelStages.Failed ? $" (modelo: {record.Intent.ModelStage})" : "";
+        Checkpoint(record, BootStates.Interpreting, null, $"Intenção: {record.Intent.Resolution}{staged}.");
 
         if (record.Intent.Resolution != IntentResolution.Resolved)
             return Finish(record, BootResults.Unresolved(record.Intent, registry, facts, registry.Resolve(facts)), record.Intent.Resolution == IntentResolution.NeedsClarification ? BootStates.AwaitingClarification : BootStates.Completed);
@@ -197,12 +209,7 @@ public sealed class BootService(
         }
         catch (OperationCanceledException)
         {
-            foreach (var step in record.Steps.Where(step => step.Status == StepStatuses.Running)) step.Status = StepStatuses.Pending;
-            record.State = BootStates.Interrupted;
-            record.FinishedAt = clock.UtcNow;
-            Checkpoint(record, BootStates.Interrupted, null, "Interrompido antes de terminar.");
-            Audit(AuditActions.BootFinished, record);
-            return record;
+            return Interrupt(record);
         }
 
         var result = BootResults.Build(record, facts, registry, capability, decision, previousContextVersion);
@@ -212,6 +219,30 @@ public sealed class BootService(
         var everyoneFailed = capabilitySteps.Count > 0 && capabilitySteps.All(step => step.Status == StepStatuses.Failed);
         var state = record.Mode == BootMode.Project ? (everyoneFailed ? BootStates.Failed : BootStates.Completed) : failed ? BootStates.Failed : BootStates.Completed;
         return Finish(record, result, state);
+    }
+
+    private BootRecord Interrupt(BootRecord record)
+    {
+        foreach (var step in record.Steps.Where(step => step.Status == StepStatuses.Running)) step.Status = StepStatuses.Pending;
+        record.State = BootStates.Interrupted;
+        record.FinishedAt = clock.UtcNow;
+        Checkpoint(record, BootStates.Interrupted, null, "Interrompido antes de terminar.");
+        Audit(AuditActions.BootFinished, record);
+        return record;
+    }
+
+    // O modelo só entra onde o léxico não resolveu e a pessoa escreveu um texto: escolha direta e léxico resolvido nunca o chamam. Sem
+    // provedor, ou com qualquer falha do modelo, o resultado é o do léxico; o estado do estágio é o que fica dito no registro.
+    private async Task<IntentResult> RefineWithModelAsync(BootRecord record, IntentResult lexicon, BootFacts facts, CancellationToken ct)
+    {
+        if (lexicon.Resolution == IntentResolution.Resolved || lexicon.Source == "explicit" || string.IsNullOrWhiteSpace(record.Request))
+            return lexicon;
+        if (modelStage is null || !facts.ModelConfigured) return lexicon with { ModelStage = ModelStages.Unavailable };
+
+        var proposal = await modelStage.ProposeAsync(record.Request, ct);
+        record.ModelUsage = proposal.Usage;
+        if (proposal.Usage.Calls > 0) AuditModel(record, proposal);
+        return recognizer.WithModel(lexicon, proposal);
     }
 
     private async Task RunStepAsync(BootRecord record, BootStep step, BootFacts facts, CancellationToken ct)
@@ -391,6 +422,19 @@ public sealed class BootService(
             ["capabilities"] = new JsonArray([.. (record.Plan?.Capabilities ?? []).Select(id => (JsonNode)JsonValue.Create(id)!)])
         });
     }
+
+    // Como a auditoria de uma pergunta ao assistente: o gasto e o resultado, nunca o texto do pedido nem o que o modelo escreveu.
+    private void AuditModel(BootRecord record, ModelIntentProposal proposal) => audit.Record(AuditActions.BootIntentModel, new JsonObject
+    {
+        ["bootId"] = record.Id,
+        ["projectId"] = record.ProjectId,
+        ["stage"] = proposal.State,
+        ["proposed"] = proposal.Proposed,
+        ["failure"] = proposal.FailureCode,
+        ["calls"] = proposal.Usage.Calls,
+        ["inputTokens"] = proposal.Usage.InputTokens,
+        ["outputTokens"] = proposal.Usage.OutputTokens
+    });
 
     private static BootStep Clone(BootStep step) => new()
     {
