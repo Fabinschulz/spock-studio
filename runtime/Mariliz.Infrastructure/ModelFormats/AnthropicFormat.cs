@@ -39,8 +39,13 @@ internal sealed class AnthropicFormat : IModelFormat
             ? string.Concat(blocks.OfType<JsonObject>().Where(b => b["type"]?.GetValue<string>() == "text").Select(b => b["text"]?.GetValue<string>() ?? ""))
             : "";
         var version = document["model"]?.GetValue<string>() ?? "";
-        var input = document["usage"]?["input_tokens"]?.GetValue<int>() ?? 0;
-        var output = document["usage"]?["output_tokens"]?.GetValue<int>() ?? 0;
+        // O que entrou no cache vem em campos próprios e não está em input_tokens: sem somar, o teto de tokens e o uso mostrado
+        // ficam abaixo do que foi gasto (o gateway chegou a devolver 5 de entrada com 42 gravados no cache).
+        var usage = document["usage"];
+        var input = Count(usage?["input_tokens"]) + Count(usage?["cache_creation_input_tokens"]) + Count(usage?["cache_read_input_tokens"]);
+        var output = Count(usage?["output_tokens"]);
         return new ModelReply(content, version, input, output, input + output);
     }
+
+    private static int Count(JsonNode? node) => node is JsonValue value && value.TryGetValue<int>(out var number) && number > 0 ? number : 0;
 }

@@ -100,6 +100,22 @@ public class ModelProvidersTests
     }
 
     [Fact]
+    public async Task Na_anthropic_o_que_entrou_no_cache_conta_como_entrada()
+    {
+        var body = new JsonObject
+        {
+            ["model"] = "claude-versao-exata",
+            ["content"] = new JsonArray(new JsonObject { ["type"] = "text", ["text"] = "ok" }),
+            ["usage"] = new JsonObject { ["input_tokens"] = 5, ["cache_creation_input_tokens"] = 42, ["cache_read_input_tokens"] = 3, ["output_tokens"] = 64 }
+        }.ToJsonString();
+        using var transport = new HttpsModelTransport(new RecordingHandler(body));
+
+        var result = await transport.SendChatAsync(ModelProviders.Anthropic.Endpoint, AnthropicKey, ModelProviders.Anthropic.DefaultModel, Chat(), CancellationToken.None);
+
+        Assert.Equal((50, 64), (result.InputTokens, result.OutputTokens));
+    }
+
+    [Fact]
     public async Task A_openai_continua_com_bearer_e_sem_cabecalhos_da_anthropic()
     {
         var handler = new RecordingHandler("""{"choices":[{"message":{"content":"ok"}}],"model":"gpt-exato","usage":{"prompt_tokens":5,"completion_tokens":3,"total_tokens":8}}""");
