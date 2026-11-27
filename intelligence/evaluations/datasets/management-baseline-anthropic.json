@@ -1,0 +1,94 @@
+{
+  "schema": "management.eval.baseline.v1",
+  "provider": "anthropic",
+  "recordedOn": "2026-11-27",
+  "dataset": "50c767f711db4d2c37fa7aa01a8980a72090055eae7f13443f21f8c2757354ba",
+  "means": {
+    "framing": 1.0,
+    "grounding": 0.9458,
+    "coverage": 1.0,
+    "abstention": 1.0
+  },
+  "cases": [
+    {
+      "id": "queda-de-vazao",
+      "framing": 1.0,
+      "grounding": 1.0,
+      "coverage": 1.0,
+      "abstention": null,
+      "failed": false
+    },
+    {
+      "id": "riscos-principais",
+      "framing": 1.0,
+      "grounding": 1.0,
+      "coverage": 1.0,
+      "abstention": null,
+      "failed": false
+    },
+    {
+      "id": "prazo-do-marco",
+      "framing": 1.0,
+      "grounding": 1.0,
+      "coverage": 1.0,
+      "abstention": null,
+      "failed": false
+    },
+    {
+      "id": "execucoes-que-falharam",
+      "framing": 1.0,
+      "grounding": 1.0,
+      "coverage": 1.0,
+      "abstention": 1.0,
+      "failed": false
+    },
+    {
+      "id": "o-que-mudou",
+      "framing": 1.0,
+      "grounding": 0.8333333333333334,
+      "coverage": 1.0,
+      "abstention": null,
+      "failed": false
+    },
+    {
+      "id": "gargalo-do-fluxo",
+      "framing": 1.0,
+      "grounding": 0.625,
+      "coverage": 1.0,
+      "abstention": null,
+      "failed": false
+    },
+    {
+      "id": "cycle-time-nao-calculado",
+      "framing": 1.0,
+      "grounding": 1.0,
+      "coverage": null,
+      "abstention": 1.0,
+      "failed": false
+    },
+    {
+      "id": "mais-gente-resolve",
+      "framing": 1.0,
+      "grounding": 1.0,
+      "coverage": null,
+      "abstention": 1.0,
+      "failed": false
+    },
+    {
+      "id": "ritmo-estavel",
+      "framing": 1.0,
+      "grounding": 1.0,
+      "coverage": 1.0,
+      "abstention": null,
+      "failed": false
+    },
+    {
+      "id": "projeto-sem-dados",
+      "framing": 1.0,
+      "grounding": 1.0,
+      "coverage": null,
+      "abstention": 1.0,
+      "failed": false
+    }
+  ]
+}
