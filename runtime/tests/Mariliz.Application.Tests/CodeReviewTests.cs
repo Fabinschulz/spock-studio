@@ -195,6 +195,20 @@ public sealed class CodeReviewTests : IDisposable
     }
 
     [Fact]
+    public async Task Credencial_em_arquivo_de_teste_e_so_recomendacao_e_nao_pesa_no_veredito()
+    {
+        _project.Write("tests/FixtureTests.cs", $"class FixtureTests {{ const string K = \"{FakeToken}\"; }}\n");
+
+        var review = await _service.ReviewWorkingTreeAsync(_projectId, CancellationToken.None);
+
+        var finding = Assert.Single(review.Findings, item => item.RuleId == ReviewRules.SecretGeneric);
+        Assert.Equal((QualitySeverities.Informational, "tests/FixtureTests.cs"), (finding.Severity, finding.Path));
+        Assert.Equal(ReviewVerdicts.Approved, review.Verdict);
+        Assert.Equal(1, review.Counts.Recommendations);
+        Assert.DoesNotContain(FakeToken, System.Text.Json.JsonSerializer.Serialize(review), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Arquivo_gerado_e_binario_ficam_na_lista_mas_nao_sao_analisados()
     {
         _project.Write("obj/Debug/x.cs", $"var t = \"{FakeToken}\";\n");

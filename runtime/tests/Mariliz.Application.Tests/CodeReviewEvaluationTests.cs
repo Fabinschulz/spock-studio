@@ -75,7 +75,9 @@ public class CodeReviewEvaluationTests
         bool Matches(ReviewFinding finding, (string Rule, string Path, int? Line) wanted) =>
             finding.RuleId == wanted.Rule && finding.Path == wanted.Path && (wanted.Line is null || finding.StartLine == wanted.Line);
 
-        var missing = expect.Where(wanted => !findings.Any(finding => Matches(finding, wanted))).Select(wanted => $"{wanted.Rule} {wanted.Path}:{wanted.Line}").ToList();
+        // O esperado pode ser uma recomendação (informativa); o que sobra só conta quando pesa no veredito.
+        var everything = review.Findings.Where(finding => finding.RuleId != ReviewRules.Architecture).ToList();
+        var missing = expect.Where(wanted => !everything.Any(finding => Matches(finding, wanted))).Select(wanted => $"{wanted.Rule} {wanted.Path}:{wanted.Line}").ToList();
         var surplus = findings.Where(finding => !expect.Any(wanted => Matches(finding, wanted))).Select(finding => $"{finding.RuleId} {finding.Path}:{finding.StartLine}").ToList();
         return new CaseResult(item["id"]!.GetValue<string>(), expect.Count, expect.Count - missing.Count, missing, surplus);
     }

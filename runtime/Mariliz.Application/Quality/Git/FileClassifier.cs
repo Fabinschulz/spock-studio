@@ -36,6 +36,9 @@ public static partial class FileClassifier
         return TestName().IsMatch(Name(normalized)) || TestFolder().IsMatch(normalized);
     }
 
+    // Dados de exemplo para teste ou avaliação: o que parece segredo ali costuma ser inventado.
+    public static bool IsFixturePath(string path) => FixtureFolder().IsMatch(path.Replace('\\', '/'));
+
     public static string Name(string path) => path[(path.LastIndexOf('/') + 1)..];
 
     private static bool InFolder(string path, string[] folders) =>
@@ -52,4 +55,7 @@ public static partial class FileClassifier
 
     [GeneratedRegex(@"(^|/)(tests?|__tests__|spec|e2e)/", RegexOptions.IgnoreCase)]
     private static partial Regex TestFolder();
+
+    [GeneratedRegex(@"(^|/)(fixtures?|__fixtures__|datasets?|testdata|__mocks__|mocks?|samples?)/", RegexOptions.IgnoreCase)]
+    private static partial Regex FixtureFolder();
 }

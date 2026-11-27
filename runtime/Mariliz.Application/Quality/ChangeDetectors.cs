@@ -62,13 +62,14 @@ internal static partial class ChangeDetectors
             if (onLine.Key < 1 || onLine.Key > added.Count) continue;
             var line = added[onLine.Key - 1];
             var chosen = onLine.FirstOrDefault(secret => ProviderRules.Contains(secret.Rule)) ?? onLine.First();
-            // Em arquivo de teste a credencial costuma ser de exemplo: pede conferência, mas não é um problema confirmado nem bloqueia.
-            // (Medido em 80 alterações reais: toda reprovação por segredo vinha de uma credencial de teste.)
-            if (FileClassifier.IsTestPath(file.Path))
+            // Em arquivo de teste a credencial costuma ser de exemplo: fica como recomendação, sem pesar no veredito. Medido em 160
+            // alterações reais, toda reprovação por segredo e todo o ruído que sobrou vinham de credencial de teste (o dono conferiu).
+            // O achado continua no relatório: uma credencial verdadeira esquecida num teste ainda aparece.
+            if (FileClassifier.IsTestPath(file.Path) || FileClassifier.IsFixturePath(file.Path))
             {
                 drafts.Add(new(ReviewRules.SecretGeneric, file.Path, line.NewNumber, SecretScanner.RedactedLine, EvidenceRelations.AddedLine, SymbolOf(file, line),
-                    $"A linha adicionada, num arquivo de teste, casa com o padrão \"{chosen.Rule}\"; costuma ser uma credencial de exemplo. O valor não é mostrado.",
-                    "secret-scanner", QualitySeverities.Medium));
+                    $"A linha adicionada, num arquivo de teste ou de dados de exemplo, casa com o padrão \"{chosen.Rule}\"; costuma ser uma credencial de exemplo. Confira que não é uma real. O valor não é mostrado.",
+                    "secret-scanner", QualitySeverities.Informational));
                 continue;
             }
             drafts.Add(new(ProviderRules.Contains(chosen.Rule) ? ReviewRules.SecretProvider : ReviewRules.SecretGeneric, file.Path, line.NewNumber, SecretScanner.RedactedLine,

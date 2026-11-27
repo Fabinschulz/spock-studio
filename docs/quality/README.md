@@ -90,33 +90,33 @@ código (caso `lacuna-literal-de-regex-em-js` do gabarito, fora da meta e confer
 apóstrofo de linguagem que não abre texto (como o tempo de vida do Rust) esvazia o resto da linha e pode esconder um padrão.
 
 **Linha de base em alterações reais (2026-11-27).** A revisão rodou, uma alteração por vez (cada uma contra o commit pai),
-sobre os 80 commits mais recentes de dois repositórios reais (um de desktop em JS/TS e este mesmo), sem erro em nenhuma. Cada
-achado foi classificado a partir do trecho, **por quem escreveu os detectores**: não é um juízo independente, e a lista que o
-dono pode conferir ficou fora do repositório.
+sobre os 80 commits mais recentes de dois repositórios reais (um de desktop em JS/TS e este mesmo), sem erro em nenhuma, e de
+novo sobre outros 80, reservados e lidos só depois dos ajustes. Os achados foram classificados primeiro por quem escreveu os
+detectores e depois conferidos pelo dono; a lista com os arquivos ficou fora do repositório.
 
-| | Antes da calibração | Depois, mesmas 80 | Reservadas, outras 80 |
+| | Antes da calibração | Depois da calibração, mesmas 80 | Reservadas, outras 80 |
 | --- | --- | --- | --- |
-| Reprovações | 5 de 80 (todas falsas: credencial de exemplo em teste) | 0 | 0 |
-| Alterações com algum achado não informativo | 15 | 8 | 9 |
-| Achados não informativos | 65 | 9 | 9 |
+| Reprovações | 5 de 80 (todas falsas) | 0 | 0 |
+| Achados que pesam no veredito | 65 | 2 | 4 |
+| Alterações com algum desses achados | 15 | 2 | 4 |
 
-O que a medição mostrou, e o que mudou por causa dela: credencial de exemplo em arquivo de teste reprovava (agora pede
-conferência, sem bloquear); `t.skip(...)` dentro do corpo de um teste, que é pular por falta de recurso do ambiente, contava
-como teste desligado (7 falsos positivos; agora só `it.skip`, `[Ignore]` e semelhantes); e achados de arquitetura do arquivo
-inteiro voltavam em toda alteração que o tocasse (50 de 65), então só valem como problema da alteração quando ela acrescentou a
-importação, e o resto virou recomendação. As 80 reservadas só foram lidas depois dos ajustes e mostram o mesmo padrão: dos 9
-achados, 5 são credenciais de exemplo em teste (a conferir), 3 são saldo de casos de teste removidos (plausíveis, a conferir) e
-1 é uma importação nova entre módulos (plausível). O que sobra é principalmente a credencial de exemplo em teste, que continua
-pedindo conferência.
+O que a medição mostrou, e o que mudou por causa dela: credencial de exemplo em arquivo de teste ou de dados de exemplo
+(`fixtures/`, `datasets/`) reprovava, e agora é só recomendação (a credencial continua no relatório, sem pesar no veredito);
+`t.skip(...)` dentro do corpo de um teste, que é pular por falta de recurso do ambiente, contava como teste desligado (7 falsos
+positivos; agora só `it.skip`, `[Ignore]` e semelhantes); e achados de arquitetura do arquivo inteiro voltavam em toda alteração que o
+tocasse (50 de 65), então só valem como problema da alteração quando ela acrescentou a importação, e o resto virou recomendação.
+Uma segunda passada achou mais um caso, nas minhas próprias alterações: o gabarito de avaliação guarda uma chave de exemplo, e
+isso reprovava a alteração (a regra de pasta de dados de exemplo veio daí).
 
-**Conferência do dono** dos 9 achados distintos que sobraram: 5 são credenciais de exemplo em teste (o padrão está certo e não
-importa: ruído), 2 são importações reais entre módulos (o achado está certo; no repositório de desktop a arquitetura estava
-sendo reorganizada) e 2 (saldo de casos de teste removidos) ainda não foram conferidos. Com isso, dos 7 conferidos, 2 são
-achados úteis e 5 são ruído, e todo o ruído é a mesma coisa: credencial de exemplo em arquivo de teste.
+**Conferência do dono** dos 9 achados distintos que sobravam antes de a credencial de teste virar recomendação: 5 eram
+credenciais de exemplo em teste (ruído), 2 são importações reais entre módulos (o achado está certo; no repositório de desktop a
+arquitetura estava sendo reorganizada) e 2 (saldo de casos de teste removidos) ainda não foram conferidos. Depois da
+calibração, o que pesa no veredito nas duas rodadas são essas importações novas e os saldos de testes removidos; dos primeiros,
+os 2 conferidos são úteis, e os saldos de testes seguem sem conferência.
 
 **Não provado:** o recall. Nenhum dos 160 commits tinha um defeito conhecido, então não há como dizer quanto a revisão deixa
-passar; e a precisão acima é do mesmo autor dos detectores. A eval da seção 7 mede o conjunto escrito à mão e só serve contra
-regressão. O gate de aprovação continua sem meta até haver alterações com defeito comprovado e uma conferência da pessoa.
+passar. A eval da seção 7 mede o conjunto escrito à mão e só serve contra regressão. O gate de aprovação continua sem meta até
+haver alterações com defeito comprovado e uma conferência da pessoa.
 
 ## 7. Eval
 

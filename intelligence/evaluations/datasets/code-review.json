@@ -166,6 +166,19 @@
       ]
     },
     {
+      "id": "segredo-de-exemplo-em-dados-de-avaliacao",
+      "change": {
+        "datasets/exemplo.json": "{ \"chave\": \"AKIAABCDEFGHIJKLMNOP\" }\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-SEC-002",
+          "path": "datasets/exemplo.json",
+          "line": 1
+        }
+      ]
+    },
+    {
       "id": "arquivo-sensivel",
       "change": {
         ".env": "A=1\n"
