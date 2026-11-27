@@ -62,6 +62,15 @@ internal static partial class ChangeDetectors
             if (onLine.Key < 1 || onLine.Key > added.Count) continue;
             var line = added[onLine.Key - 1];
             var chosen = onLine.FirstOrDefault(secret => ProviderRules.Contains(secret.Rule)) ?? onLine.First();
+            // Em arquivo de teste a credencial costuma ser de exemplo: pede conferência, mas não é um problema confirmado nem bloqueia.
+            // (Medido em 80 alterações reais: toda reprovação por segredo vinha de uma credencial de teste.)
+            if (FileClassifier.IsTestPath(file.Path))
+            {
+                drafts.Add(new(ReviewRules.SecretGeneric, file.Path, line.NewNumber, SecretScanner.RedactedLine, EvidenceRelations.AddedLine, SymbolOf(file, line),
+                    $"A linha adicionada, num arquivo de teste, casa com o padrão \"{chosen.Rule}\"; costuma ser uma credencial de exemplo. O valor não é mostrado.",
+                    "secret-scanner", QualitySeverities.Medium));
+                continue;
+            }
             drafts.Add(new(ProviderRules.Contains(chosen.Rule) ? ReviewRules.SecretProvider : ReviewRules.SecretGeneric, file.Path, line.NewNumber, SecretScanner.RedactedLine,
                 EvidenceRelations.AddedLine, SymbolOf(file, line), $"A linha adicionada casa com o padrão \"{chosen.Rule}\"; o valor não é mostrado.", "secret-scanner"));
         }
@@ -231,7 +240,9 @@ internal static partial class ChangeDetectors
 
     private static Regex DynamicExecution(string language) => language == Language.Python ? DynamicExecutionPython() : DynamicExecutionScript();
 
-    [GeneratedRegex(@"Skip\s*=\s*""|\[Ignore\b|\.skip\s*\(|\b(xit|xdescribe|xtest)\s*\(|@Ignore\b|@Disabled\b|pytest\.mark\.skip|\bt\.Skip\(|\bit\.skip\b")]
+    // Só o que desliga um teste de ponta a ponta. `t.skip(...)` e `t.Skip(...)` dentro do corpo do teste são a pulada de execução
+    // (o ambiente não tem o recurso), e foram 7 falsos positivos em 80 alterações reais.
+    [GeneratedRegex(@"Skip\s*=\s*""|\[Ignore\b|\b(it|test|describe|suite|context|specify)\.skip\b|\b(xit|xdescribe|xtest)\s*\(|@Ignore\b|@Disabled\b|pytest\.mark\.skip")]
     private static partial Regex TestSkipped();
 
     [GeneratedRegex(@"^\s*(\[(Fact|Theory|Test|TestMethod|TestCase)\b|(it|test)(\.each\([^)]*\))?\s*\(|(async\s+)?def\s+test_|@Test\b|func\s+Test\w+\()")]

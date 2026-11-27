@@ -91,6 +91,13 @@
       "expect": []
     },
     {
+      "id": "guarda-pulada-de-execucao",
+      "change": {
+        "tests/a.test.js": "test('x', (t) => {\n  if (!ok) return t.skip('sem symlink');\n});\n"
+      },
+      "expect": []
+    },
+    {
       "id": "guarda-except-tratado-em-python",
       "change": {
         "src/a.py": "try:\n    go()\nexcept ValueError as e:\n    log(e)\n"
@@ -141,6 +148,19 @@
         {
           "ruleId": "QR-SEC-002",
           "path": "src/c.ts",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "id": "segredo-de-exemplo-em-teste",
+      "change": {
+        "tests/k.test.ts": "const k = 'AKIAABCDEFGHIJKLMNOP';\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-SEC-002",
+          "path": "tests/k.test.ts",
           "line": 1
         }
       ]
@@ -270,6 +290,19 @@
         {
           "ruleId": "QR-REG-003",
           "path": "tests/BTests.cs",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "id": "teste-desligado-em-js",
+      "change": {
+        "tests/b.test.js": "it.skip('x', () => {});\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-REG-003",
+          "path": "tests/b.test.js",
           "line": 1
         }
       ]

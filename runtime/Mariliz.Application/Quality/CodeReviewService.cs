@@ -126,11 +126,32 @@ public sealed class CodeReviewService(
             foreach (var evidence in finding.Evidence.Where(item => changed.Contains(item.Path)))
             {
                 var severity = finding.Severity == ArchitectureSeverities.Warning ? QualitySeverities.Medium : QualitySeverities.Informational;
+                // Uma importação que a alteração acrescentou é do diff; uma que já estava no arquivo é o estado do projeto, e vira
+                // recomendação. (Medido em 80 alterações reais: sem isso o mesmo achado voltava em toda alteração que tocasse o arquivo.)
+                var added = AddedImport(changes, evidence);
+                if (added is { } line)
+                {
+                    drafts.Add(new FindingDraft(ReviewRules.Architecture, evidence.Path, line.NewNumber, ChangeDetectors.Excerpt(line.Text), EvidenceRelations.AddedLine, null,
+                        $"{finding.Title}. A alteração acrescentou esta importação.", "architecture-analyzer", severity, null, finding.Code));
+                    continue;
+                }
+                var carried = evidence.Detail is { } detail && detail.StartsWith("import ", StringComparison.Ordinal);
                 drafts.Add(new FindingDraft(ReviewRules.Architecture, evidence.Path, null, evidence.Detail ?? finding.Title, EvidenceRelations.ProjectAnalysis, null,
-                    $"{finding.Title}.", "architecture-analyzer", severity, null, finding.Code));
+                    carried ? $"{finding.Title}. Esta importação não está nas linhas alteradas: já existia no arquivo." : $"{finding.Title}.",
+                    "architecture-analyzer", carried ? QualitySeverities.Informational : severity, null, finding.Code));
             }
         }
         return null;
+    }
+
+    // A linha adicionada que traz a importação que a análise apontou ("import <especificador>"), quando existe.
+    private static DiffLine? AddedImport(ChangeSet changes, Core.Discovery.Evidence evidence)
+    {
+        if (evidence.Detail is not { } detail || !detail.StartsWith("import ", StringComparison.Ordinal)) return null;
+        var specifier = detail["import ".Length..].Trim();
+        if (specifier.Length == 0) return null;
+        return changes.Files.FirstOrDefault(file => file.Path == evidence.Path)?.AddedLines
+            .FirstOrDefault(line => line.NewNumber is not null && line.Text.Contains(specifier, StringComparison.Ordinal));
     }
 
     private List<ReviewFinding> Build(string reviewId, string projectId, ChangeSet changes, List<FindingDraft> drafts, IProjectFiles files, List<string> limitations)

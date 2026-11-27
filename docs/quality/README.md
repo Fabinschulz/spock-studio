@@ -89,9 +89,29 @@ pedido "Revise minhas alterações antes do commit" em nível 0, reconheceu e ex
 código (caso `lacuna-literal-de-regex-em-js` do gabarito, fora da meta e conferido para avisar quando for corrigido); um
 apóstrofo de linguagem que não abre texto (como o tempo de vida do Rust) esvazia o resto da linha e pode esconder um padrão.
 
-**Não provado:** a precisão dos detectores. Não há linha de base (a eval da seção 7 mede o conjunto atual, escrito por quem
-escreveu os detectores, e por isso só serve contra regressão, não como medida de qualidade). Também não foi vista no
-aplicativo aberto com um projeto real do dono.
+**Linha de base em alterações reais (2026-11-27).** A revisão rodou, uma alteração por vez (cada uma contra o commit pai),
+sobre os 80 commits mais recentes de dois repositórios reais (um de desktop em JS/TS e este mesmo), sem erro em nenhuma. Cada
+achado foi classificado a partir do trecho, **por quem escreveu os detectores**: não é um juízo independente, e a lista que o
+dono pode conferir ficou fora do repositório.
+
+| | Antes da calibração | Depois, mesmas 80 | Reservadas, outras 80 |
+| --- | --- | --- | --- |
+| Reprovações | 5 de 80 (todas falsas: credencial de exemplo em teste) | 0 | 0 |
+| Alterações com algum achado não informativo | 15 | 8 | 9 |
+| Achados não informativos | 65 | 9 | 9 |
+
+O que a medição mostrou, e o que mudou por causa dela: credencial de exemplo em arquivo de teste reprovava (agora pede
+conferência, sem bloquear); `t.skip(...)` dentro do corpo de um teste, que é pular por falta de recurso do ambiente, contava
+como teste desligado (7 falsos positivos; agora só `it.skip`, `[Ignore]` e semelhantes); e achados de arquitetura do arquivo
+inteiro voltavam em toda alteração que o tocasse (50 de 65), então só valem como problema da alteração quando ela acrescentou a
+importação, e o resto virou recomendação. As 80 reservadas só foram lidas depois dos ajustes e mostram o mesmo padrão: dos 9
+achados, 5 são credenciais de exemplo em teste (a conferir), 3 são saldo de casos de teste removidos (plausíveis, a conferir) e
+1 é uma importação nova entre módulos (plausível). O que sobra é principalmente a credencial de exemplo em teste, que continua
+pedindo conferência.
+
+**Não provado:** o recall. Nenhum dos 160 commits tinha um defeito conhecido, então não há como dizer quanto a revisão deixa
+passar; e a precisão acima é do mesmo autor dos detectores. A eval da seção 7 mede o conjunto escrito à mão e só serve contra
+regressão. O gate de aprovação continua sem meta até haver alterações com defeito comprovado e uma conferência da pessoa.
 
 ## 7. Eval
 
