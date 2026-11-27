@@ -1,6 +1,6 @@
 import { useAgentInstalled } from '@/features/agents';
 import { RequestComposer, type AskKind, type ComposerRequest, type ComposerShortcut } from '@/features/ask';
-import { BootResultCard, createBootApi, useBoot } from '@/features/boot';
+import { BootResultCard, createBootApi, RecentBoots, useBoot } from '@/features/boot';
 import { RecentShortcuts, useProjectSelectionContext } from '@/features/project-selection';
 import { isTauriRuntime, type EngineClient } from '@/shared/api';
 import { handoffState } from '@/shared/routing';
@@ -76,6 +76,19 @@ export function HomePage({ client, findShortcuts }: HomePageProps) {
     return record !== null;
   };
 
+  // O Boot antigo volta ao mesmo cartão do pedido novo; `null` quando já há um em preparo ou o motor não respondeu.
+  const resumeBoot = async (bootId: string) => {
+    if (!selected || boot.isRunning()) return null;
+    lastProject.current = selected.projectId;
+    return boot.resume(selected.projectId, bootId);
+  };
+
+  const openBoot = async (bootId: string) => {
+    if (!selected || boot.isRunning()) return null;
+    lastProject.current = selected.projectId;
+    return boot.open(selected.projectId, bootId);
+  };
+
   const chooseCapability = (capabilityId: string) => {
     if (boot.state.status !== 'ready') return;
     void boot.request({ projectId: lastProject.current ?? undefined, text: boot.state.text, capabilityId });
@@ -111,6 +124,16 @@ export function HomePage({ client, findShortcuts }: HomePageProps) {
           }
           onChoose={chooseCapability}
           onDismiss={boot.dismiss}
+        />
+      ) : null}
+      {bootApi && selected ? (
+        <RecentBoots
+          api={bootApi}
+          projectId={selected.projectId}
+          busy={boot.state.status === 'running'}
+          refreshKey={boot.state.status === 'ready' ? boot.state.record.id : null}
+          onResume={resumeBoot}
+          onOpen={openBoot}
         />
       ) : null}
       <JourneyGrid

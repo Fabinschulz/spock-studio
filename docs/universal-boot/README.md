@@ -220,7 +220,7 @@ cada domínio continua nele.
 | --- | --- |
 | Request Boot | Implementado e ligado à entrada de pedidos do Início |
 | Project Boot | Implementado e ligado à sugestão "Analisar o projeto" |
-| Recovery Boot | Implementado (`boot.resume`), sem botão na interface ainda |
+| Recovery Boot | Implementado (`boot.resume`) e ligado ao botão Retomar da lista de pedidos recentes do Início (§3.7) |
 | Work Boot, Autonomous Boot | No vocabulário, recusados; dependem de backlog, dependências e prontidão, que não existem |
 
 ### 3.6 Project Boot
@@ -238,6 +238,15 @@ A entrada de pedidos passa a chamar `boot.start` e mostra o resultado em um cart
 consultado, alterações, o que foi conferido, problemas, pendências, próximo passo, as etapas para quem quiser ver). Abrir a
 tela sugerida continua levando o texto, como antes. Se o motor não responde ao Boot, o pedido segue direto para a tela, como
 sempre seguiu. "Analisar o projeto" roda o Project Boot. Não há segunda Home nem segundo chat.
+
+**Pedidos recentes.** Com o motor pronto e um projeto selecionado, logo abaixo do cartão aparece a lista dos últimos Boots
+do projeto (`boot.list`): o resumo, o resultado ou o estado em português, o horário e, quando for o caso, "recuperado" ou
+"recupera outro". Sem nenhum Boot o bloco não aparece; se a lista não carrega, o bloco avisa e oferece tentar de novo.
+Clicar numa linha com resumo abre o detalhe (`boot.detail`) no mesmo cartão. O botão **Retomar** só existe no Boot
+interrompido que ainda não foi recuperado; ele chama `boot.resume` e o resultado cai no mesmo cartão de um pedido novo,
+com a mesma regra de um Boot por vez (retomar e abrir ficam desabilitados enquanto há um em preparo). Se a retomada falha
+a tela avisa e a lista é relida. Os mais novos vêm primeiro, até cinco; um Boot interrompido ainda não recuperado fica à
+vista mesmo que seja mais antigo, porque é o que dá para retomar.
 
 ## 4. Evidências
 
