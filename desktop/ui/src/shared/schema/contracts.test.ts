@@ -1,6 +1,12 @@
 import agentResultFixture from '@contracts/fixtures/agents/run-result.json';
 import aiToolsFixture from '@contracts/fixtures/aitools/list.json';
 import auditFixture from '@contracts/fixtures/audit/audit.json';
+import bootAnsweredFixture from '@contracts/fixtures/boot/start-answered.json';
+import bootCapabilitiesFixture from '@contracts/fixtures/boot/capabilities.json';
+import bootClarifyFixture from '@contracts/fixtures/boot/start-clarify.json';
+import bootHandoffFixture from '@contracts/fixtures/boot/start-handoff.json';
+import bootListFixture from '@contracts/fixtures/boot/list.json';
+import bootProjectFixture from '@contracts/fixtures/boot/project.json';
 import cloudCatalogFixture from '@contracts/fixtures/cloud/catalog.json';
 import cloudConnectionsFixture from '@contracts/fixtures/cloud/connections.json';
 import cloudLinksFixture from '@contracts/fixtures/cloud/links.json';
@@ -130,6 +136,9 @@ import {
   aiToolListSchema,
   agentRunResultSchema,
   ideConnectionSchema,
+  bootCapabilitiesSchema,
+  bootListSchema,
+  bootResponseSchema,
   contextReviewSchema,
   securityPlanSchema,
   securityReportSchema,
@@ -1153,5 +1162,49 @@ describe('contrato do assistente do portfólio (fixtures do motor)', () => {
     const drift = iacOperationResultSchema.parse(iacDriftFixture).operation;
     expect(drift.unmanaged?.map((item) => item.type)).toEqual(['aws_subnet', 'aws_s3_bucket']);
     expect(drift.unmanagedNotes?.[0]).toMatch(/não está liberada/);
+  });
+});
+
+describe('contrato do Boot (fixtures do motor)', () => {
+  it('o Project Boot, a consulta, o encaminhamento e a pergunta passam pelo schema', () => {
+    const project = bootResponseSchema.parse(bootProjectFixture).boot;
+    const answered = bootResponseSchema.parse(bootAnsweredFixture).boot;
+    const handoff = bootResponseSchema.parse(bootHandoffFixture).boot;
+    const clarify = bootResponseSchema.parse(bootClarifyFixture).boot;
+
+    expect(project.mode).toBe('project');
+    expect(project.result?.outcome).toBe('prepared');
+    expect(answered.result?.outcome).toBe('answered');
+    expect(answered.result?.changes).toEqual([]);
+    expect(handoff.result?.outcome).toBe('handoff');
+    expect(handoff.plan?.approvals.length).toBeGreaterThan(0);
+    expect(clarify.state).toBe('awaitingClarification');
+    expect(clarify.result?.alternatives.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('a lista e o catálogo de capacidades passam pelo schema e dizem por que algo não está disponível', () => {
+    const list = bootListSchema.parse(bootListFixture);
+    const catalog = bootCapabilitiesSchema.parse(bootCapabilitiesFixture);
+
+    expect(list.boots.length).toBeGreaterThan(0);
+    expect(catalog.autonomy).toBe(1);
+    const unavailable = catalog.capabilities.filter((capability) => capability.availability !== 'available');
+    expect(unavailable.length).toBeGreaterThan(0);
+    expect(unavailable.every((capability) => capability.reason !== null)).toBe(true);
+    expect(catalog.capabilities.find((capability) => capability.id === 'infrastructure.apply')?.verdict).not.toBe(
+      'allowed'
+    );
+  });
+
+  it('nenhum registro guarda o texto do pedido além do campo request, e nenhum caminho do computador vaza', () => {
+    const text = JSON.stringify([
+      bootProjectFixture,
+      bootAnsweredFixture,
+      bootHandoffFixture,
+      bootClarifyFixture,
+      bootListFixture
+    ]);
+
+    expect(text).not.toMatch(/AppData|Users\\|mariliz-proj/);
   });
 });

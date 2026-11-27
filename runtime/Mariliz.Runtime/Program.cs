@@ -12,6 +12,7 @@ using Mariliz.Application.Management.Assistant;
 using Mariliz.Application.Management.Investigation;
 using Mariliz.Application.Mcp;
 using Mariliz.Application.Audit;
+using Mariliz.Application.Boot;
 using Mariliz.Application.Context;
 using Mariliz.Application.Iac;
 using Mariliz.Application.Ideas;
@@ -72,7 +73,8 @@ var runs = new RunQueries(engine.Tracker, engine.Store,
     new RunCatalog(engine.Store, engine.Workspace, engine.Tracker, new RunLinkService(engine.Store, engine.Store, integrations, engine.Workspace, engine.Clock)));
 var assistant = new ManagementAssistant(management, integrations, engine.Workspace, models, engine.Clock, engine.Store);
 var decisions = new DecisionService(engine.Workspace, decisionStore, engine.Store, assistant.Evidence, integrations.Audit, engine.Clock);
-var profiles = new TechnologyProfileService(engine.Configure, integrations, engine.Workspace, new FileTechnologyProfileStore(engine.DataRoot), engine.Clock);
+var profileStore = new FileTechnologyProfileStore(engine.DataRoot);
+var profiles = new TechnologyProfileService(engine.Configure, integrations, engine.Workspace, profileStore, engine.Clock);
 var harnessRevisions = new HarnessRevisionService(engine.Workspace, engine.Files, engine.Store);
 var timeline = new ProjectTimelineService(engine.Workspace, engine.Clock, engine.Store, harnessRevisions, profiles, decisions, management, integrations);
 var audit = new ProjectAuditService(engine.Workspace, engine.Clock, engine.Store, integrations.AuditReader, integrations);
@@ -85,6 +87,15 @@ var iacRuntimes = composition.IacRuntimes(engine.Workspace);
 var knowledge = new ProjectKnowledgeService(engine.Workspace, engine.Files, aiRuntime, engine.DataRoot, engine.Clock, integrations.ExternalKnowledge, decisionMemory);
 var iacOperations = composition.IacOperations(iacRuntimes, engine.Workspace, cloud);
 var iacSchedules = new IacDriftScheduler(iacOperations, new FileIacDriftScheduleStore(engine.DataRoot), engine.Workspace, engine.Clock, integrations.Audit);
+var harnessStatus = new HarnessStatusService(engine.Workspace, engine.Files, engine.Clock);
+// Um Boot que a queda anterior deixou em andamento não vai terminar: fica interrompido, à espera de recuperação.
+var bootStore = new FileBootStore(engine.DataRoot);
+if (BootService.MarkInterrupted(bootStore, engine.Clock) is > 0 and var bootsInterrupted)
+    await Console.Error.WriteLineAsync($"{bootsInterrupted} Boot(s) interrompido(s) pela queda anterior podem ser recuperados.");
+var bootRegistry = new CapabilityRegistry();
+var boot = new BootService(engine.Workspace, bootRegistry, new IntentRecognizer(bootRegistry),
+    new BootFactsProbe(engine.Workspace, models, integrations, cloud, harnessStatus, profileStore), new BootPlanner(bootRegistry), bootStore, engine.Clock,
+    integrations.Audit, new ContextEngine(engine.Workspace, harnessStatus, profileStore, new TiktokenTokenizers(), engine.Clock, integrations, cloud));
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
     management: management, assistant: assistant,
@@ -94,7 +105,7 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     reports: new ReportService(engine.Workspace, management, decisions, engine.Store, engine.Clock),
     profiles: profiles,
     knowledge: knowledge,
-    harness: new HarnessStatusService(engine.Workspace, engine.Files, engine.Clock),
+    harness: harnessStatus,
     revisions: harnessRevisions,
     mcp: new McpInventoryService(engine.Workspace, engine.Files), timeline: timeline, audit: audit, investigation: investigation, portfolioAssistant: portfolioAssistant,
     aiTools: new AiToolService(ExecutableLocator.FromEnvironment(), engine.Runner),
@@ -110,7 +121,8 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     iacGeneration: new IacGenerationService(engine.Workspace, new IacConfigReader(), models, engine.Files, engine.Store, engine.Clock, engine.Tracker,
         integrations.Audit),
     iacCosts: new IacCostService(engine.Workspace, cloud, engine.Clock, iacOperations),
-    iacSchedules: iacSchedules);
+    iacSchedules: iacSchedules,
+    boot: boot);
 // Verificação de drift agendada: uma volta por minuto enquanto o motor vive; falha de uma volta não derruba o laço.
 _ = Task.Run(async () =>
 {

@@ -128,6 +128,12 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "iac.cost.plan",
     "iac.drift.schedule",
     "iac.drift.schedule.set",
+    "boot.start",
+    "boot.project",
+    "boot.resume",
+    "boot.list",
+    "boot.detail",
+    "boot.capabilities",
 ];
 
 pub mod error_code {

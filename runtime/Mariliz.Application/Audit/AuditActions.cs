@@ -35,6 +35,8 @@ public static class AuditActions
     public const string AssistantAnswered = "management.assistant_answered";
     public const string InvestigationAnswered = "management.investigation_answered";
     public const string PortfolioAnswered = "management.portfolio_answered";
+    public const string BootStarted = "boot.started";
+    public const string BootFinished = "boot.finished";
 
     public const string IacValidate = "iac.validate";
     public const string IacPlan = "iac.plan";

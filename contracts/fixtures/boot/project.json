@@ -1,0 +1,315 @@
+{
+  "boot": {
+    "id": "boot-000000000001",
+    "version": 11,
+    "mode": "project",
+    "origin": "ui",
+    "source": null,
+    "projectId": "p-000000000001",
+    "stableProjectId": null,
+    "state": "completed",
+    "autonomy": "preparation",
+    "request": null,
+    "hint": null,
+    "intent": null,
+    "plan": {
+      "objective": "Preparar o projeto loja",
+      "domain": "engineering",
+      "capabilities": [
+        "engineering.analyze_project",
+        "engineering.project_overview",
+        "engineering.harness_status",
+        "connections.list",
+        "management.milestones",
+        "platform.runs"
+      ],
+      "operation": "preparation",
+      "requiredLevel": "preparation",
+      "approvals": [],
+      "risks": [
+        "A análise grava o perfil só na pasta de dados do Spock; o projeto não é tocado."
+      ],
+      "successCriteria": [
+        "Cada leitura vem do motor e fica no registro com o que ela encontrou.",
+        "O que não está pronto aparece como limitação, não como sucesso.",
+        "Nenhum arquivo do projeto é criado nem alterado."
+      ],
+      "expectedResult": "Um relatório de inicialização: o que está preparado, o que está indisponível e o que pede a sua intervenção."
+    },
+    "steps": [
+      {
+        "id": "project",
+        "kind": "check",
+        "title": "Identificar o projeto",
+        "capabilityId": null,
+        "method": null,
+        "dependsOn": [],
+        "operation": "read",
+        "status": "completed",
+        "startedAt": null,
+        "finishedAt": null,
+        "summary": "Projeto loja, autorizado neste computador.",
+        "evidence": [
+          "O Spock não tem usuário nem organização: o escopo é o projeto autorizado nesta máquina."
+        ],
+        "errorCode": null
+      },
+      {
+        "id": "context",
+        "kind": "context",
+        "title": "Reunir o contexto do projeto",
+        "capabilityId": null,
+        "method": null,
+        "dependsOn": [
+          "project"
+        ],
+        "operation": "read",
+        "status": "completed",
+        "startedAt": "2026-11-26T12:01:00+00:00",
+        "finishedAt": "2026-11-26T12:01:00+00:00",
+        "summary": "Contexto ctx-0000000000000000: 9 itens, 120 tokens.",
+        "evidence": [
+          "As conexões cloud não estão disponíveis nesta sessão do motor."
+        ],
+        "errorCode": null
+      },
+      {
+        "id": "capability:engineering.analyze_project",
+        "kind": "capability",
+        "title": "Analisar o projeto pela primeira vez",
+        "capabilityId": "engineering.analyze_project",
+        "method": "engineering.analyze",
+        "dependsOn": [
+          "context"
+        ],
+        "operation": "preparation",
+        "status": "completed",
+        "startedAt": "2026-11-26T12:01:00+00:00",
+        "finishedAt": "2026-11-26T12:01:00+00:00",
+        "summary": "3 tecnologias no projeto.",
+        "evidence": [
+          "3 tecnologias encontradas.",
+          "Entre elas: ASP.NET Core, .NET, xUnit.",
+          "2 ferramentas de build e teste."
+        ],
+        "errorCode": null
+      },
+      {
+        "id": "capability:engineering.project_overview",
+        "kind": "capability",
+        "title": "Consultar: Visão geral do projeto",
+        "capabilityId": "engineering.project_overview",
+        "method": "engineering.profile",
+        "dependsOn": [
+          "capability:engineering.analyze_project"
+        ],
+        "operation": "read",
+        "status": "completed",
+        "startedAt": "2026-11-26T12:01:00+00:00",
+        "finishedAt": "2026-11-26T12:01:00+00:00",
+        "summary": "3 tecnologias no projeto.",
+        "evidence": [
+          "3 tecnologias encontradas.",
+          "Entre elas: ASP.NET Core, .NET, xUnit.",
+          "2 ferramentas de build e teste."
+        ],
+        "errorCode": null
+      },
+      {
+        "id": "capability:engineering.harness_status",
+        "kind": "capability",
+        "title": "Consultar: Estado do Harness",
+        "capabilityId": "engineering.harness_status",
+        "method": "engineering.harness",
+        "dependsOn": [
+          "capability:engineering.project_overview"
+        ],
+        "operation": "read",
+        "status": "completed",
+        "startedAt": "2026-11-26T12:01:00+00:00",
+        "finishedAt": "2026-11-26T12:01:00+00:00",
+        "summary": "O Harness ainda não foi aplicado.",
+        "evidence": [
+          "O projeto não tem as regras gerenciadas pelo Spock."
+        ],
+        "errorCode": null
+      },
+      {
+        "id": "capability:connections.list",
+        "kind": "capability",
+        "title": "Consultar: Conexões com ferramentas",
+        "capabilityId": "connections.list",
+        "method": "connection.list",
+        "dependsOn": [
+          "capability:engineering.harness_status"
+        ],
+        "operation": "read",
+        "status": "completed",
+        "startedAt": "2026-11-26T12:01:00+00:00",
+        "finishedAt": "2026-11-26T12:01:00+00:00",
+        "summary": "Nenhuma conexão cadastrada.",
+        "evidence": [],
+        "errorCode": null
+      },
+      {
+        "id": "capability:management.milestones",
+        "kind": "capability",
+        "title": "Consultar: Marcos",
+        "capabilityId": "management.milestones",
+        "method": "management.milestones",
+        "dependsOn": [
+          "capability:connections.list"
+        ],
+        "operation": "read",
+        "status": "skipped",
+        "startedAt": "2026-11-26T12:01:00+00:00",
+        "finishedAt": "2026-11-26T12:01:00+00:00",
+        "summary": "O motor desta sessão não oferece esta capacidade.",
+        "evidence": [],
+        "errorCode": null
+      },
+      {
+        "id": "capability:platform.runs",
+        "kind": "capability",
+        "title": "Consultar: Execuções",
+        "capabilityId": "platform.runs",
+        "method": "run.list",
+        "dependsOn": [
+          "capability:management.milestones"
+        ],
+        "operation": "read",
+        "status": "completed",
+        "startedAt": "2026-11-26T12:01:00+00:00",
+        "finishedAt": "2026-11-26T12:01:00+00:00",
+        "summary": "0 execuções: 0 em andamento e 0 aguardando aprovação.",
+        "evidence": [],
+        "errorCode": null
+      }
+    ],
+    "checkpoints": [
+      {
+        "at": "2026-11-26T12:01:00+00:00",
+        "state": "created",
+        "stepId": null,
+        "note": "Project Boot iniciado."
+      },
+      {
+        "at": "2026-11-26T12:01:00+00:00",
+        "state": "planned",
+        "stepId": null,
+        "note": "Plano com 8 passos."
+      },
+      {
+        "at": "2026-11-26T12:01:00+00:00",
+        "state": "executing",
+        "stepId": null,
+        "note": "Executando os passos."
+      },
+      {
+        "at": "2026-11-26T12:01:00+00:00",
+        "state": "executing",
+        "stepId": "context",
+        "note": "Reunir o contexto do projeto: completed."
+      },
+      {
+        "at": "2026-11-26T12:01:00+00:00",
+        "state": "executing",
+        "stepId": "capability:engineering.analyze_project",
+        "note": "Analisar o projeto pela primeira vez: completed."
+      },
+      {
+        "at": "2026-11-26T12:01:00+00:00",
+        "state": "executing",
+        "stepId": "capability:engineering.project_overview",
+        "note": "Consultar: Visão geral do projeto: completed."
+      },
+      {
+        "at": "2026-11-26T12:01:00+00:00",
+        "state": "executing",
+        "stepId": "capability:engineering.harness_status",
+        "note": "Consultar: Estado do Harness: completed."
+      },
+      {
+        "at": "2026-11-26T12:01:00+00:00",
+        "state": "executing",
+        "stepId": "capability:connections.list",
+        "note": "Consultar: Conexões com ferramentas: completed."
+      },
+      {
+        "at": "2026-11-26T12:01:00+00:00",
+        "state": "executing",
+        "stepId": "capability:management.milestones",
+        "note": "Consultar: Marcos: skipped."
+      },
+      {
+        "at": "2026-11-26T12:01:00+00:00",
+        "state": "executing",
+        "stepId": "capability:platform.runs",
+        "note": "Consultar: Execuções: completed."
+      },
+      {
+        "at": "2026-11-26T12:01:00+00:00",
+        "state": "completed",
+        "stepId": null,
+        "note": "loja é novo no Spock: reuni o contexto e o que ele já sabe."
+      }
+    ],
+    "result": {
+      "outcome": "prepared",
+      "headline": "loja é novo no Spock: reuni o contexto e o que ele já sabe.",
+      "done": [
+        "Reunir o contexto do projeto.",
+        "Analisar o projeto pela primeira vez.",
+        "Consultar: Visão geral do projeto.",
+        "Consultar: Estado do Harness.",
+        "Consultar: Conexões com ferramentas.",
+        "Consultar: Execuções."
+      ],
+      "consulted": [
+        "3 tecnologias no projeto.",
+        "3 tecnologias encontradas.",
+        "Entre elas: ASP.NET Core, .NET, xUnit.",
+        "2 ferramentas de build e teste.",
+        "3 tecnologias no projeto.",
+        "3 tecnologias encontradas.",
+        "Entre elas: ASP.NET Core, .NET, xUnit.",
+        "2 ferramentas de build e teste.",
+        "O Harness ainda não foi aplicado.",
+        "O projeto não tem as regras gerenciadas pelo Spock.",
+        "Nenhuma conexão cadastrada.",
+        "0 execuções: 0 em andamento e 0 aguardando aprovação."
+      ],
+      "changes": [
+        "O perfil tecnológico foi gravado na pasta de dados do Spock (fora do projeto)."
+      ],
+      "validations": [
+        "11 de 35 capacidades estão prontas para este projeto.",
+        "Cada leitura veio do motor, pelo mesmo caminho da interface.",
+        "Nenhum arquivo do projeto foi criado nem alterado."
+      ],
+      "problems": [
+        "Marcos: O motor desta sessão não oferece esta capacidade.",
+        "O Spock ainda não tem usuário nem organização: o Boot trabalha por projeto autorizado neste computador.",
+        "Não consegui conferir os provedores de IA nesta sessão do motor.",
+        "Não consegui conferir as conexões cloud nesta sessão do motor.",
+        "As conexões cloud não estão disponíveis nesta sessão do motor."
+      ],
+      "pending": [
+        "O Harness ainda não foi aplicado: o projeto não tem as regras gerenciadas pelo Spock.",
+        "Nenhum GitHub ou Jira vinculado: a gestão não terá dados.",
+        "Nenhum provedor de IA configurado: assistentes e pedidos com IA ficam indisponíveis."
+      ],
+      "nextStep": "Configure o ambiente para o Spock gerenciar as regras dos agentes.",
+      "route": "/configurar",
+      "routeLabel": "Configurar o ambiente",
+      "alternatives": []
+    },
+    "contextVersion": "ctx-0000000000000000",
+    "recoversBootId": null,
+    "recoveredByBootId": null,
+    "createdAt": "2026-11-26T12:01:00+00:00",
+    "updatedAt": "2026-11-26T12:01:00+00:00",
+    "finishedAt": "2026-11-26T12:01:00+00:00",
+    "errorCode": null
+  }
+}

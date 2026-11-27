@@ -317,6 +317,13 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                     $"{Count(Count(d, "rounds"), "rodada", "rodadas")}, {Count(Count(d, "consulted"), "evidência citada", "evidências citadas")} e {Count(d, "rejected")} recusada(s); " +
                     $"{Count(Count(d, "modelCalls"), "chamada", "chamadas")} ao modelo, {Count(d, "inputTokens")} tokens de entrada e {Count(d, "outputTokens")} de saída.");
                 break;
+            case AuditActions.BootStarted:
+                yield return Entry("", AuditCategories.Context, "Boot iniciado", $"{BootLabel(Text(d, "mode"))} a partir de {Clean(Text(d, "origin"))}. O texto do pedido não é registrado.");
+                break;
+            case AuditActions.BootFinished:
+                yield return Entry("", AuditCategories.Context, "Boot encerrado",
+                    $"{BootLabel(Text(d, "mode"))}: {Clean(Text(d, "state"))}{(Text(d, "outcome") is { Length: > 0 } outcome ? $", resultado {Clean(outcome)}" : "")}; {Count((d["capabilities"] as JsonArray)?.Count ?? 0, "capacidade usada", "capacidades usadas")}.");
+                break;
             default:
                 yield return Entry("", AuditCategories.Change, $"Operação registrada: {Clean(record.Action)}", "");
                 break;
@@ -447,6 +454,15 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
         var outcome = Text(d, "outcome") is "ok" or "" ? Count(Count(d, "rows"), "item lido", "itens lidos") + (Flag(d, "truncated") ? " (havia mais)" : "") : $"recusada: {Clean(Text(d, "outcome"))}";
         return $"{Clean(Text(d, "provider"))}{where}, pedida por {who}; {outcome}.";
     }
+
+    private static string BootLabel(string mode) => mode switch
+    {
+        "project" => "Project Boot",
+        "recovery" => "Boot de recuperação",
+        "work" => "Work Boot",
+        "autonomous" => "Boot autônomo",
+        _ => "Boot de pedido"
+    };
 
     private static string Count(int value, string one, string many) => $"{value} {(value == 1 ? one : many)}";
 

@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using Mariliz.Application.AiTools;
 using Mariliz.Application.Analysis;
 using Mariliz.Application.Audit;
+using Mariliz.Application.Boot;
 using Mariliz.Application.Cloud;
 using Mariliz.Application.Iac;
 using Mariliz.Application.Context;
@@ -76,7 +77,8 @@ public sealed class EngineSession
         IacStateService? iacState = null,
         IacGenerationService? iacGeneration = null,
         IacCostService? iacCosts = null,
-        IacDriftScheduler? iacSchedules = null)
+        IacDriftScheduler? iacSchedules = null,
+        BootService? boot = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
@@ -108,10 +110,12 @@ public sealed class EngineSession
             cloud is null ? null : new CloudRequestHandler(cloud),
             terraform is null || iacOperations is null || iacState is null || iacGeneration is null ? null
                 : new IacRequestHandler(terraform, iacOperations, iacState, iacGeneration, iacCosts, iacSchedules),
-            profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions, mcp)
+            profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions, mcp),
+            boot is null ? null : new BootRequestHandler(boot)
         ];
         var present = handlers.OfType<IRequestHandler>().ToArray();
         _routes = Routes(present);
+        boot?.BindEngine(new HashSet<string>(_routes.Keys, StringComparer.Ordinal), DispatchForBootAsync);
         _capabilities =
         [
             .. capabilities ?? [],
@@ -130,6 +134,12 @@ public sealed class EngineSession
         }
         return routes;
     }
+
+    // O Boot só chega aqui com o método que a ficha do catálogo autoriza (leitura ou preparação); os próprios métodos dele ficam de fora.
+    private async Task<JsonObject> DispatchForBootAsync(string method, JsonObject parameters, CancellationToken ct) =>
+        !ProtocolMethods.Boot.Contains(method) && _routes.TryGetValue(method, out var handler)
+            ? await handler.HandleAsync(method, new RequestParams(parameters), ct)
+            : throw new EngineException(ProtocolErrorCodes.MethodNotFound, "Método desconhecido.");
 
     public async Task RunAsync(TextReader input, TextWriter output, CancellationToken ct)
     {

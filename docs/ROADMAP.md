@@ -147,3 +147,21 @@ Corrigir quando a área for tocada de novo:
   feito.
 - [IMPLEMENTATION_STATUS.md](compliance/IMPLEMENTATION_STATUS.md): trata D-06 e D-07 como pendentes, e o registro de
   riscos dá os avisos do linux-x64 como faltando, embora o status os dê como cobertos.
+
+## 7. Universal Boot
+
+Fundação entregue em 2026-11-26 (branch `feat/universal-boot-fundacao`). O desenho, as evidências e os riscos estão em
+[universal-boot](universal-boot/README.md) e na [ADR-0010](architecture/adr/0010-universal-boot.md). Este é o único lugar
+onde as etapas ficam registradas.
+
+| Etapa | Situação | O que falta | Depende de |
+| --- | --- | --- | --- |
+| 0. Auditoria e arquitetura | Feita | Conferir o cartão do Início no aplicativo aberto | — |
+| 1. Fundação | Feita: registro, ciclo de vida, checkpoints, recuperação, catálogo de 35 fichas, reconhecimento, permissão, plano, Project Boot, Request Boot | Botão para recuperar um Boot interrompido; lista de Boots na tela; rodar o Project Boot no aplicativo com um projeto real | — |
+| 2. Capacidades do produto | Parcial: um fluxo real por domínio, só leitura e análise executam | Resumos próprios para mais capacidades; ficha para estado, drift e geração de infraestrutura; parâmetros por capacidade (período, filtros); `spock_boot` no MCP (BD-3); reconhecimento por modelo como segundo estágio (BD-1) | BD-1, BD-3; chave de modelo (H0-7) para medir |
+| 3. Work Intelligence | Não iniciada | Gatilho de ingestão de backlog; sincronizador de roadmap; Harness State incremental; grafo de dependências e Dependency Resolution Brief; avaliação de prontidão do item | Sincronização agendada (hoje adiada); dependências e responsáveis (hoje inexistentes em Gestão); publicar o Brief num card exige **escrita em Jira ou GitHub**, o que contraria a decisão atual de só leitura |
+| 4. Engenharia autônoma | Não iniciada | Work Boot, seleção de tarefas, orquestrador do Harness, execução de agentes com escrita, juízes e Pull Request | Etapa 3; nível 3 de autonomia com política explícita (ADR-0007); fronteira "a IA propõe, o motor decide" revista; validação com modelo real (H0-7) |
+| 5. Automação empresarial | Não iniciada | Gatilhos contínuos, automação por organização, concorrência, priorização, indicadores gerenciais do Boot, evals contínuos | Identidade e organização (DD-2, inexistentes); etapa 4 |
+
+Decisões do dono desta entrega: BD-1 (modelo no reconhecimento), BD-2 (guardar o texto do pedido), BD-3 (Boot no MCP) e BD-4
+(identidade e retenção), em [universal-boot §6](universal-boot/README.md).

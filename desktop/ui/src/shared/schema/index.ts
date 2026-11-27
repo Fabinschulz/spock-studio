@@ -1,6 +1,7 @@
 export * from './agent';
 export * from './ai-tool';
 export * from './audit';
+export * from './boot';
 export * from './cloud';
 export * from './iac';
 export * from './context';

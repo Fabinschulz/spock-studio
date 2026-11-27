@@ -1,0 +1,204 @@
+{
+  "boot": {
+    "id": "boot-000000000001",
+    "version": 7,
+    "mode": "request",
+    "origin": "ui",
+    "source": null,
+    "projectId": "p-000000000001",
+    "stableProjectId": null,
+    "state": "completed",
+    "autonomy": "preparation",
+    "request": "Quais tecnologias o projeto usa?",
+    "hint": null,
+    "intent": {
+      "resolution": "resolved",
+      "capabilityId": "engineering.project_overview",
+      "source": "text",
+      "domain": "engineering",
+      "candidates": [
+        {
+          "capabilityId": "engineering.project_overview",
+          "score": 4,
+          "confidence": 0.5,
+          "matched": [
+            "tecnologias"
+          ]
+        }
+      ],
+      "question": null,
+      "objective": "Quais tecnologias o projeto usa?"
+    },
+    "plan": {
+      "objective": "Quais tecnologias o projeto usa?",
+      "domain": "engineering",
+      "capabilities": [
+        "engineering.project_overview"
+      ],
+      "operation": "read",
+      "requiredLevel": "observation",
+      "approvals": [],
+      "risks": [],
+      "successCriteria": [
+        "Resultado vindo do motor, sem texto escrito pelo Boot."
+      ],
+      "expectedResult": "O perfil tecnológico guardado do projeto."
+    },
+    "steps": [
+      {
+        "id": "project",
+        "kind": "check",
+        "title": "Conferir o projeto",
+        "capabilityId": null,
+        "method": null,
+        "dependsOn": [],
+        "operation": "read",
+        "status": "completed",
+        "startedAt": null,
+        "finishedAt": null,
+        "summary": "Projeto loja, autorizado neste computador.",
+        "evidence": [
+          "O Spock não tem usuário nem organização: o escopo é o projeto autorizado nesta máquina."
+        ],
+        "errorCode": null
+      },
+      {
+        "id": "context",
+        "kind": "context",
+        "title": "Reunir o contexto do projeto",
+        "capabilityId": null,
+        "method": null,
+        "dependsOn": [
+          "project"
+        ],
+        "operation": "read",
+        "status": "completed",
+        "startedAt": "2026-11-26T12:02:00+00:00",
+        "finishedAt": "2026-11-26T12:02:00+00:00",
+        "summary": "Contexto ctx-0000000000000000: 9 itens, 120 tokens.",
+        "evidence": [
+          "As conexões cloud não estão disponíveis nesta sessão do motor."
+        ],
+        "errorCode": null
+      },
+      {
+        "id": "permission",
+        "kind": "check",
+        "title": "Conferir disponibilidade e permissão",
+        "capabilityId": "engineering.project_overview",
+        "method": null,
+        "dependsOn": [
+          "context"
+        ],
+        "operation": "read",
+        "status": "completed",
+        "startedAt": null,
+        "finishedAt": null,
+        "summary": "Disponível. Leitura ou análise que não altera o projeto.",
+        "evidence": [
+          "Operação: leitura; nível mínimo 0."
+        ],
+        "errorCode": null
+      },
+      {
+        "id": "capability:engineering.project_overview",
+        "kind": "capability",
+        "title": "Consultar: Visão geral do projeto",
+        "capabilityId": "engineering.project_overview",
+        "method": "engineering.profile",
+        "dependsOn": [
+          "permission"
+        ],
+        "operation": "read",
+        "status": "completed",
+        "startedAt": "2026-11-26T12:02:00+00:00",
+        "finishedAt": "2026-11-26T12:02:00+00:00",
+        "summary": "3 tecnologias no projeto.",
+        "evidence": [
+          "3 tecnologias encontradas.",
+          "Entre elas: ASP.NET Core, .NET, xUnit.",
+          "2 ferramentas de build e teste."
+        ],
+        "errorCode": null
+      }
+    ],
+    "checkpoints": [
+      {
+        "at": "2026-11-26T12:02:00+00:00",
+        "state": "created",
+        "stepId": null,
+        "note": "Pedido recebido."
+      },
+      {
+        "at": "2026-11-26T12:02:00+00:00",
+        "state": "interpreting",
+        "stepId": null,
+        "note": "Intenção: Resolved."
+      },
+      {
+        "at": "2026-11-26T12:02:00+00:00",
+        "state": "planned",
+        "stepId": null,
+        "note": "Plano com 4 passos."
+      },
+      {
+        "at": "2026-11-26T12:02:00+00:00",
+        "state": "executing",
+        "stepId": null,
+        "note": "Executando os passos."
+      },
+      {
+        "at": "2026-11-26T12:02:00+00:00",
+        "state": "executing",
+        "stepId": "context",
+        "note": "Reunir o contexto do projeto: completed."
+      },
+      {
+        "at": "2026-11-26T12:02:00+00:00",
+        "state": "executing",
+        "stepId": "capability:engineering.project_overview",
+        "note": "Consultar: Visão geral do projeto: completed."
+      },
+      {
+        "at": "2026-11-26T12:02:00+00:00",
+        "state": "completed",
+        "stepId": null,
+        "note": "3 tecnologias no projeto."
+      }
+    ],
+    "result": {
+      "outcome": "answered",
+      "headline": "3 tecnologias no projeto.",
+      "done": [
+        "Reconheci o pedido como \"Visão geral do projeto\".",
+        "Conferi o projeto, a disponibilidade e a permissão.",
+        "Consultei \"Visão geral do projeto\" pelo mesmo caminho da tela."
+      ],
+      "consulted": [
+        "3 tecnologias encontradas.",
+        "Entre elas: ASP.NET Core, .NET, xUnit.",
+        "2 ferramentas de build e teste."
+      ],
+      "changes": [],
+      "validations": [
+        "O resultado veio do motor; o Boot não escreveu texto sobre ele.",
+        "Nada no projeto foi alterado."
+      ],
+      "problems": [
+        "As conexões cloud não estão disponíveis nesta sessão do motor."
+      ],
+      "pending": [],
+      "nextStep": "Abra \"Visão geral do projeto\" para ver o detalhe.",
+      "route": "/projeto",
+      "routeLabel": "Abrir Visão geral do projeto",
+      "alternatives": []
+    },
+    "contextVersion": "ctx-0000000000000000",
+    "recoversBootId": null,
+    "recoveredByBootId": null,
+    "createdAt": "2026-11-26T12:02:00+00:00",
+    "updatedAt": "2026-11-26T12:02:00+00:00",
+    "finishedAt": "2026-11-26T12:02:00+00:00",
+    "errorCode": null
+  }
+}
