@@ -35,8 +35,10 @@
         }
       ],
       "question": "O pedido cabe em mais de uma coisa: Riscos do projeto ou Acompanhamento do projeto. Qual delas?",
-      "objective": "Quero ver os riscos e as entregas"
+      "objective": "Quero ver os riscos e as entregas",
+      "modelStage": "unavailable"
     },
+    "modelUsage": null,
     "plan": null,
     "steps": [],
     "checkpoints": [

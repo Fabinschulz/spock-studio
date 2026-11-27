@@ -8,12 +8,14 @@ public static class ModelPurposes
     public const string Assistant = "assistant";
     public const string Judge = "judge";
     public const string Workflow = "workflow";
+    public const string Boot = "boot";
 
     public static IReadOnlyList<ModelPurpose> All { get; } =
     [
         new(Assistant, "Assistente gerencial", "Responde perguntas sobre os indicadores do portfólio e investiga, em etapas, o que explica um resultado, só com os fatos que o motor calculou."),
         new(Judge, "Juiz", "Dá uma segunda opinião sobre o resultado de uma execução. Não decide sozinho: quem decide é a verificação do motor."),
-        new(Workflow, "Fluxos de engenharia", "Classifica o pedido, planeja, desenha a arquitetura e reformula buscas nos fluxos de engenharia.")
+        new(Workflow, "Fluxos de engenharia", "Classifica o pedido, planeja, desenha a arquitetura e reformula buscas nos fluxos de engenharia."),
+        new(Boot, "Entendimento do pedido", "Segunda tentativa de entender um pedido do Início quando as palavras do Spock não bastam. Recebe só o texto do pedido, sem segredos, e a lista de capacidades; só aponta qual serve. Um modelo pequeno basta e responde mais rápido.")
     ];
 
     public static ModelPurpose? Find(string? id) => All.FirstOrDefault(purpose => string.Equals(purpose.Id, id, StringComparison.Ordinal));

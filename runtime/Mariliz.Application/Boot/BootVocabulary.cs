@@ -99,6 +99,19 @@ public static class BootStates
     public static bool IsLive(string state) => state is Created or Interpreting or Preparing or Planned or Executing;
 }
 
+// O que aconteceu com o segundo estágio do reconhecimento (o modelo). O estado fica no registro de todo pedido em texto livre.
+public static class ModelStages
+{
+    // Não era caso de chamar o modelo: o léxico resolveu, ou a pessoa escolheu a capacidade, ou não havia texto.
+    public const string Skipped = "skipped";
+    // Era caso, mas não há provedor de modelo configurado (ou esta sessão do motor não tem o estágio).
+    public const string Unavailable = "unavailable";
+    // O modelo foi chamado e a resposta não serviu (erro, prazo, formato fora do contrato). O resultado é o do léxico.
+    public const string Failed = "failed";
+    // O modelo respondeu dentro do contrato. Se ele propôs algo, a origem da intenção é "model".
+    public const string Used = "used";
+}
+
 public static class BootOutcomes
 {
     public const string Answered = "answered";

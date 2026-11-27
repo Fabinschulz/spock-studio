@@ -12,6 +12,7 @@
     "request": null,
     "hint": null,
     "intent": null,
+    "modelUsage": null,
     "plan": {
       "objective": "Preparar o projeto loja",
       "domain": "engineering",

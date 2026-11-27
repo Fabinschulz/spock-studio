@@ -27,8 +27,10 @@
         }
       ],
       "question": null,
-      "objective": "Configurar meu ambiente"
+      "objective": "Configurar meu ambiente",
+      "modelStage": "skipped"
     },
+    "modelUsage": null,
     "plan": {
       "objective": "Configurar meu ambiente",
       "domain": "engineering",

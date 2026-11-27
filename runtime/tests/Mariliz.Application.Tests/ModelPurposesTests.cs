@@ -64,9 +64,9 @@ public class ModelPurposesTests
     private static string ModelOf(ModelConnection connection, string purpose) => connection.Purposes.Single(item => item.Id == purpose).Model;
 
     [Fact]
-    public void As_finalidades_sao_tres_com_nome_e_descricao_sem_travessao()
+    public void As_finalidades_sao_quatro_com_nome_e_descricao_sem_travessao()
     {
-        Assert.Equal(["assistant", "judge", "workflow"], ModelPurposes.All.Select(purpose => purpose.Id));
+        Assert.Equal(["assistant", "judge", "workflow", "boot"], ModelPurposes.All.Select(purpose => purpose.Id));
         Assert.All(ModelPurposes.All, purpose =>
         {
             Assert.NotEmpty(purpose.Label);
@@ -109,7 +109,7 @@ public class ModelPurposesTests
 
         var purposes = s.Gateway.Connection().Purposes;
 
-        Assert.Equal(["assistant", "judge", "workflow"], purposes.Select(item => item.Id));
+        Assert.Equal(["assistant", "judge", "workflow", "boot"], purposes.Select(item => item.Id));
         Assert.All(purposes, item => Assert.Equal((ModelProviders.OpenAi.DefaultModel, true), (item.Model, item.IsDefault)));
         Assert.All(purposes, item => Assert.NotEmpty(item.Label));
     }
