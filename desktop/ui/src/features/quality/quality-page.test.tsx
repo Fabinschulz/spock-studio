@@ -83,6 +83,30 @@ describe('Revisão de código', () => {
     expect(limits).toHaveTextContent('build, testes e lint não rodaram');
   });
 
+  it('o aviso não repete o veredito no texto', async () => {
+    renderPage(fakeEngine().client);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Revisar alterações locais' }));
+
+    const notice = await screen.findByRole('alert');
+    expect(notice).toHaveTextContent(/^Reprovada\s*1 problema confirmado e grave/);
+    expect(notice).not.toHaveTextContent('Reprovada: ');
+  });
+
+  it('um erro tira da tela o relatório anterior', async () => {
+    const options: { fail?: { code: string; message: string } } = {};
+    renderPage(fakeEngine(options).client);
+    await userEvent.click(await screen.findByRole('button', { name: 'Revisar alterações locais' }));
+    expect(await screen.findByRole('region', { name: 'Problemas confirmados' })).toBeInTheDocument();
+
+    options.fail = { code: 'REVIEW_REF_NOT_FOUND', message: 'A referência base não existe neste repositório.' };
+    await userEvent.type(screen.getByLabelText('Comparar com a base'), 'nao-existe');
+    await userEvent.click(screen.getByRole('button', { name: 'Revisar a branch' }));
+
+    expect(await screen.findByText('A referência base não existe neste repositório.')).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Problemas confirmados' })).not.toBeInTheDocument();
+  });
+
   it('a branch só é revisada com a base escrita', async () => {
     const engine = fakeEngine();
     renderPage(engine.client);

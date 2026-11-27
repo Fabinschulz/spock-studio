@@ -159,8 +159,10 @@ internal static partial class ChangeDetectors
     private static FindingDraft Draft(string ruleId, ChangedFile file, DiffLine line, string actual, string detector) =>
         new(ruleId, file.Path, line.NewNumber, Excerpt(line.Text), EvidenceRelations.AddedLine, SymbolOf(file, line), actual, detector);
 
+    // O git só chuta a declaração mais próxima por uma regra de texto (às vezes "namespace X;" para uma linha dentro de um método).
+    // O símbolo só vale quando parece a assinatura de um método ou função; do contrário é melhor não dizer nada.
     private static string? SymbolOf(ChangedFile file, DiffLine line) =>
-        file.Hunks.FirstOrDefault(hunk => hunk.Lines.Contains(line))?.Symbol;
+        file.Hunks.FirstOrDefault(hunk => hunk.Lines.Contains(line))?.Symbol is { } symbol && symbol.Contains('(') ? symbol : null;
 
     // Esvazia o que está entre aspas (", ' e `) numa linha, com barra de escape; as aspas ficam. Um texto que não fecha na linha vale até o fim dela.
     internal static string WithoutStringContents(string text)

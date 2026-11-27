@@ -333,6 +333,22 @@ public sealed class CodeReviewTests : IDisposable
     }
 
     [Fact]
+    public async Task O_simbolo_so_aparece_quando_parece_a_assinatura_de_uma_funcao()
+    {
+        var body = string.Concat(Enumerable.Range(1, 6).Select(i => $"  const v{i} = {i};\n"));
+        _project.Write("src/total.js", $"function total(items) {{\n{body}  return 1;\n}}\n");
+        _project.Write("src/Loja.cs", $"namespace Loja;\n\nclass A\n{{\n{string.Concat(Enumerable.Range(1, 6).Select(i => $"    int v{i};\n"))}    int fim;\n}}\n");
+        Commit("base");
+        _project.Write("src/total.js", $"function total(items) {{\n{body}  try {{ go(); }} catch (e) {{}}\n  return 1;\n}}\n");
+        _project.Write("src/Loja.cs", $"namespace Loja;\n\nclass A\n{{\n{string.Concat(Enumerable.Range(1, 6).Select(i => $"    int v{i};\n"))}    void M() {{ try {{ }} catch {{ }} }}\n}}\n");
+
+        var review = await _service.ReviewWorkingTreeAsync(_projectId, CancellationToken.None);
+
+        Assert.Equal("function total(items) {", review.Findings.Single(item => item.Path == "src/total.js" && item.RuleId == ReviewRules.EmptyCatch).Evidence.Symbol);
+        Assert.Null(review.Findings.Single(item => item.Path == "src/Loja.cs" && item.RuleId == ReviewRules.EmptyCatch).Evidence.Symbol);
+    }
+
+    [Fact]
     public async Task O_mesmo_defeito_no_mesmo_lugar_tem_o_mesmo_id_entre_revisoes()
     {
         _project.Write("src/E.cs", "class E { void M() { try { } catch { } } }\n");
