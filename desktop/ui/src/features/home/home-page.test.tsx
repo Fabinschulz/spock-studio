@@ -515,6 +515,53 @@ describe('Início · o pedido passa pelo Boot', () => {
     expect(bootCalls(client)[0]).toEqual(['boot.project', { projectId: 'p-1', source: 'home' }, expect.anything()]);
   });
 
+  it('com um pedido em preparo o Continuar espera: um segundo Enter não cria outro Boot', async () => {
+    hosted();
+    const base = engine({ boot: () => bootAnswered });
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const client = {
+      ...base,
+      request: vi.fn(async (method: string, params: Record<string, unknown>, schema: never) => {
+        if (method === 'boot.start') await gate;
+        return base.request(method as never, params, schema);
+      })
+    } as unknown as EngineClient;
+    renderHome({ picker: withProject, client });
+
+    await userEvent.type(field(), 'Quais tecnologias o projeto usa?{Enter}');
+    await screen.findByRole('status');
+    expect(screen.getByRole('button', { name: 'Continuar' })).toBeDisabled();
+    await userEvent.keyboard('{Enter}');
+    release();
+
+    await screen.findByRole('region', { name: 'Resultado do preparo do pedido' });
+    expect(bootCalls(client)).toHaveLength(1);
+  });
+
+  it('se a escolha de uma opção falha, a tela diz que não deu certo em vez de sumir com o cartão', async () => {
+    hosted();
+    const client = engine({
+      boot: (_method, params) => {
+        if (params.capabilityId) throw new Error('motor fora');
+        return bootClarify;
+      }
+    });
+    renderHome({ picker: withProject, client });
+
+    await userEvent.type(field(), 'Quero ver os riscos e as entregas{Enter}');
+    const card = await screen.findByRole('region', { name: 'Resultado do preparo do pedido' });
+    const option = within(card)
+      .getAllByRole('button')
+      .find((button) => !/Fechar|Abrir/.test(button.textContent ?? ''))!;
+    await userEvent.click(option);
+
+    expect(await screen.findByText(/motor fora|não conseguiu preparar/i)).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Resultado do preparo do pedido' })).not.toBeInTheDocument();
+  });
+
   it('o resultado do Boot não tem violações estruturais de acessibilidade', async () => {
     hosted();
     renderHome({ picker: withProject, client: engine({ boot: () => bootProject }) });

@@ -35,6 +35,8 @@ interface RequestComposerProps {
    * navega. Falso ou ausente: o caminho de sempre, direto para a tela do tipo escolhido.
    */
   onRequest?: (request: ComposerRequest) => Promise<boolean>;
+  /** Há um pedido sendo preparado: o Continuar espera, para um duplo Enter não criar dois. */
+  busy?: boolean;
   /** O que o motor disse estar pronto. Sem isso, a entrada não avisa nada. */
   readiness?: AskReadiness;
 }
@@ -43,7 +45,12 @@ interface RequestComposerProps {
  * A pessoa escreve o que quer e escolhe (ou aceita) o caminho. Nada é executado aqui: o pedido vai para o Boot, que o
  * interpreta e mostra o plano; sem Boot, o texto segue para a tela que trata aquele tipo de pedido.
  */
-export function RequestComposer({ findShortcuts, onRequest, readiness }: RequestComposerProps) {
+export function RequestComposer({
+  findShortcuts,
+  onRequest,
+  busy: preparing = false,
+  readiness
+}: RequestComposerProps) {
   const hintId = useId();
   const noticeId = useId();
   const navigate = useNavigate();
@@ -56,7 +63,7 @@ export function RequestComposer({ findShortcuts, onRequest, readiness }: Request
   const kind = chosen ?? suggestAskKind(trimmed);
   const option = ASK_OPTIONS[kind];
   const notice = readiness ? askNotice(kind, readiness) : null;
-  const ready = trimmed.length >= MIN_TEXT && !busy && !unavailableReason;
+  const ready = trimmed.length >= MIN_TEXT && !busy && !preparing && !unavailableReason;
   const shortcuts = trimmed.length >= MIN_TEXT ? (findShortcuts?.(trimmed).slice(0, MAX_SHORTCUTS) ?? []) : [];
 
   const submit = async (event?: FormEvent) => {

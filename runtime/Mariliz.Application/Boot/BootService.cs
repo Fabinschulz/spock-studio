@@ -101,6 +101,9 @@ public sealed class BootService(
         var original = Find(projectId, bootId);
         if (original.State != BootStates.Interrupted || original.RecoveredByBootId is not null)
             throw new EngineException("BOOT_NOT_RESUMABLE", "Este Boot não foi interrompido, ou já foi recuperado.");
+        // Sem plano não há o que retomar, e o formato do resultado (pedido ou Project Boot) sairia errado: a pessoa pede de novo.
+        if (original.Plan is null)
+            throw new EngineException("BOOT_NOT_RESUMABLE", "Este Boot foi interrompido antes de ter um plano. Faça o pedido de novo.");
 
         var record = New(BootMode.Recovery, original.ProjectId, original.Autonomy, original.Origin, original.Source);
         record.Request = original.Request;
@@ -189,8 +192,9 @@ public sealed class BootService(
         }
 
         var result = BootResults.Build(record, facts, registry, capability, decision, previousContextVersion);
-        var failed = record.Steps.Any(step => step.Status == StepStatuses.Failed);
         var capabilitySteps = record.Steps.Where(step => step.Kind == StepKinds.Capability).ToList();
+        // Só a capacidade decide: uma falha no passo de contexto fica nos problemas do resultado, não vira falha de um pedido respondido.
+        var failed = capabilitySteps.Any(step => step.Status == StepStatuses.Failed);
         var everyoneFailed = capabilitySteps.Count > 0 && capabilitySteps.All(step => step.Status == StepStatuses.Failed);
         var state = record.Mode == BootMode.Project ? (everyoneFailed ? BootStates.Failed : BootStates.Completed) : failed ? BootStates.Failed : BootStates.Completed;
         return Finish(record, result, state);

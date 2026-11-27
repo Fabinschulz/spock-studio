@@ -16,6 +16,10 @@ public static class ProtocolDeadlines
     // O desenho da infraestrutura pode pedir duas respostas ao modelo.
     public static readonly TimeSpan ArchitectDraft = TimeSpan.FromSeconds(180);
 
+    // O Boot executa em sequência as leituras de vários domínios (a análise do projeto lê as pastas; a lista de agentes roda os
+    // programas instalados). Cada leitura tem o próprio prazo, e o Boot não passa disso por muito.
+    public static readonly TimeSpan Boot = TimeSpan.FromSeconds(300);
+
     public static readonly IReadOnlyDictionary<string, TimeSpan> ByMethod = Build();
 
     private static Dictionary<string, TimeSpan> Build()
@@ -24,7 +28,10 @@ public static class ProtocolDeadlines
         {
             [ProtocolMethods.ManagementInvestigate] = InvestigationService.StandardDeadline + InvestigationMargin,
             [ProtocolMethods.IacArchitectDraft] = ArchitectDraft,
-            [ProtocolMethods.IacRuntimeInstall] = IacTimeouts.Download + DownloadMargin
+            [ProtocolMethods.IacRuntimeInstall] = IacTimeouts.Download + DownloadMargin,
+            [ProtocolMethods.BootStart] = Boot,
+            [ProtocolMethods.BootProject] = Boot,
+            [ProtocolMethods.BootResume] = Boot
         };
         foreach (var (method, total) in IacTimeouts.ByMethod) waits[method] = total + IacTimeouts.HostMargin;
         return waits;

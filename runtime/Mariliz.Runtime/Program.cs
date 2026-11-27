@@ -47,6 +47,8 @@ if (args.Length > 0)
 var relay = new EventRelay();
 var engine = LocalEngine.Create(FileRunStore.DefaultDataRoot(), relay.Emit, rememberWorkspaces: true);
 using var transport = new HttpsModelTransport();
+// Um só tokenizador no motor: cada instância carrega o vocabulário por conta própria.
+var tokenizers = new TiktokenTokenizers();
 var models = new ModelGateway(engine.Settings, transport, chat: transport, checks: new FileModelCheckStore(engine.DataRoot), clock: engine.Clock,
     preferences: new FileModelPreferences(engine.DataRoot), budgets: new FileModelBudgets(engine.DataRoot));
 using var modelAccess = new LocalModelAccess(new ModelBroker(models));
@@ -95,7 +97,7 @@ if (BootService.MarkInterrupted(bootStore, engine.Clock) is > 0 and var bootsInt
 var bootRegistry = new CapabilityRegistry();
 var boot = new BootService(engine.Workspace, bootRegistry, new IntentRecognizer(bootRegistry),
     new BootFactsProbe(engine.Workspace, models, integrations, cloud, harnessStatus, profileStore), new BootPlanner(bootRegistry), bootStore, engine.Clock,
-    integrations.Audit, new ContextEngine(engine.Workspace, harnessStatus, profileStore, new TiktokenTokenizers(), engine.Clock, integrations, cloud));
+    integrations.Audit, new ContextEngine(engine.Workspace, harnessStatus, profileStore, tokenizers, engine.Clock, integrations, cloud));
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
     management: management, assistant: assistant,
@@ -111,7 +113,7 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     aiTools: new AiToolService(ExecutableLocator.FromEnvironment(), engine.Runner),
     agents: new AgentRunService(ExecutableLocator.FromEnvironment(), engine.Runner, engine.Workspace, engine.Tracker, engine.Store, engine.Clock),
     ide: new IdeConnection(Environment.ProcessPath, () => LauncherLocator.IsInstalled(Environment.ProcessPath)),
-    contextReview: new ContextReviewService(engine.Workspace, workflowContext, aiRuntime, new TiktokenTokenizers(), models, knowledge),
+    contextReview: new ContextReviewService(engine.Workspace, workflowContext, aiRuntime, tokenizers, models, knowledge),
     security: new SecurityService(engine.Workspace, engine.Files, engine.Store, engine.Clock, engine.Tracker),
     ideas: new IdeaArchitectService(engine.Workspace, models, engine.Files, engine.Store, engine.Clock, engine.Tracker),
     cloud: cloud,

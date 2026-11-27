@@ -20,7 +20,8 @@ public sealed class BootPlanner(CapabilityRegistry registry)
     {
         var steps = new List<BootStep>();
         var previous = Check(steps, "project", "Conferir o projeto", facts, null);
-        if (capability.Needs.HasFlag(CapabilityNeeds.Project) && facts.ProjectAuthorized)
+        // Capacidade negada não executa passo nenhum: um passo de contexto no plano ficaria "aguardando" num Boot já encerrado.
+        if (capability.Needs.HasFlag(CapabilityNeeds.Project) && facts.ProjectAuthorized && decision.Verdict != PermissionVerdict.Denied)
             previous = Add(steps, Step(ContextStepId, StepKinds.Context, "Reunir o contexto do projeto", null, null, OperationClass.Read, previous));
 
         previous = Add(steps, new BootStep

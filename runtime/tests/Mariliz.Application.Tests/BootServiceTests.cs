@@ -149,6 +149,29 @@ public sealed class BootServiceTests : IDisposable
         Assert.Equal(BootOutcomes.NeedsInput, pedido.Result!.Outcome);
         Assert.Equal("/configuracoes/ia", pedido.Result.Route);
         Assert.Empty(_calls);
+        // Um Boot encerrado não deixa passo "aguardando": o que não rodou fica fora do plano.
+        Assert.DoesNotContain(gestao.Steps.Concat(pedido.Steps), step => step.Status == StepStatuses.Pending);
+    }
+
+    [Fact]
+    public async Task Boot_interrompido_antes_do_plano_nao_e_recuperado_como_outro_formato()
+    {
+        var early = new BootRecord { Id = BootIds.New(), ProjectId = _projectId, State = BootStates.Interpreting, Request = "Corrigir o bug do frete", CreatedAt = Now, UpdatedAt = Now };
+        _store.Save(early);
+        BootService.MarkInterrupted(_store, _clock);
+
+        var refused = await Assert.ThrowsAsync<EngineException>(() => _boot.ResumeAsync(_projectId, early.Id, CancellationToken.None));
+
+        Assert.Equal("BOOT_NOT_RESUMABLE", refused.Code);
+        Assert.Contains("plano", refused.Message, StringComparison.Ordinal);
+        Assert.Null(_store.Find(_projectId, early.Id)!.RecoveredByBootId);
+    }
+
+    [Fact]
+    public void Os_metodos_longos_do_Boot_anunciam_prazo_proprio_ao_host()
+    {
+        Assert.All(new[] { ProtocolMethods.BootStart, ProtocolMethods.BootProject, ProtocolMethods.BootResume },
+            method => Assert.True(ProtocolDeadlines.ByMethod.ContainsKey(method) && ProtocolDeadlines.ByMethod[method] >= TimeSpan.FromMinutes(2), method));
     }
 
     [Fact]

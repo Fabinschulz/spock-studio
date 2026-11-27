@@ -195,7 +195,8 @@ só o formato `boot-<12 hex>` passa.
 **Recuperação.** Ao subir, o motor marca como `interrupted` todo Boot que a queda deixou em andamento. `boot.resume`
 cria um Boot de modo `recovery` ligado ao original: o que já estava feito é mantido e **não é repetido**; o contexto é lido
 de novo e comparado com o do começo, e o resultado diz se "o contexto do projeto mudou desde a interrupção". O original
-guarda `recoveredByBootId`, e recuperar duas vezes é recusado.
+guarda `recoveredByBootId`, e recuperar duas vezes é recusado. Um Boot interrompido antes de ter plano também é recusado
+(`BOOT_NOT_RESUMABLE`): não há o que retomar, e a pessoa faz o pedido de novo.
 
 **Quatro estados, sem duplicar dados.** O estado do Boot (este registro) correlaciona com os outros por id e não os copia:
 a execução/Session (`runId` nos diários), o Harness (lock e declaração no projeto, só lidos), as integrações (conexões e
@@ -243,13 +244,13 @@ Implementado, validado e planejado são coisas diferentes; esta tabela não as m
 | Histórico e resultado | `FileBootStore`, auditoria | Registro no disco; a auditoria não guarda o texto do pedido |
 | Recuperar execução interrompida | `boot.resume` | `BootServiceTests`: não repete o que foi feito; detecta contexto que mudou |
 | Project Boot em projeto real | Sim | Projeto .NET de teste; projeto existente não é reanalisado |
-| Funcionalidades originais seguem | Nenhum método existente mudou | Motor: 2.066 aprovados, 0 falhas, 28 ignorados (os de chave real). Interface: 1.131 aprovados. Com o Python 3.12 do PATH, 38 testes do runtime de IA falham por ambiente (o motor exige o 3.14, via `MARILIZ_PYTHON`); não são do Boot |
+| Funcionalidades originais seguem | Nenhum método existente mudou | Motor: 2.068 aprovados, 0 falhas, 28 ignorados (os de chave real). Interface: 1.135 aprovados. Com o Python 3.12 do PATH, 38 testes do runtime de IA falham por ambiente (o motor exige o 3.14, via `MARILIZ_PYTHON`); não são do Boot |
 | Sem duplicação | Reusa `ContextEngine`, tratadores, `IAuditLog`, `WorkspaceAuthorizer` | Revisão do código |
-| Testes automatizados | 44 no motor, mais os da interface | Ver abaixo |
+| Testes automatizados | 46 no motor, mais os da interface | Ver abaixo |
 | Roadmap registrado | [ROADMAP](../ROADMAP.md) | — |
 
-Testes novos: `BootCatalogTests` (9), `BootIntentEvalTests` (8), `BootServiceTests` (21), `BootProtocolTests` (6, incluindo
-as fixtures de contrato de `contracts/fixtures/boot/`), e na interface o contrato com o Zod, o cartão pelo Início (7) e a
+Testes novos: `BootCatalogTests` (9), `BootIntentEvalTests` (8), `BootServiceTests` (23), `BootProtocolTests` (6, incluindo
+as fixtures de contrato de `contracts/fixtures/boot/`), e na interface o contrato com o Zod, o cartão pelo Início (9) e o próprio cartão (2) e a
 conferência das três listas de métodos.
 
 **Nada disso rodou com modelo real**, e o Boot da fundação não usa modelo: o que depende de modelo (`engineering.request`,
@@ -267,11 +268,16 @@ cartão não foi visto no aplicativo**.
 3. **Texto do pedido gravado em disco** no registro do Boot (campo `request`), na pasta de dados do Spock, como os
    diários já fazem. Não vai para auditoria nem para o contexto de IDE.
 4. **Leituras que podem demorar** (`aitool.list` roda processos; `engineering.analyze` lê o projeto): o Boot está na lista
-   de métodos lentos do protocolo, mas não tem cancelamento pela interface nem prazo próprio.
+   de métodos lentos e anuncia ao host um prazo de 300 s; não tem cancelamento pela interface.
 5. **O resumo é só o que o motor sabe resumir.** Capacidades sem resumo próprio mostram só a contagem das listas;
    o detalhe está na tela.
 6. **Uma sessão de IDE (MCP) não usa o Boot.** O servidor MCP não expõe `boot.*`.
-7. **Nada é executado em paralelo**, e o Boot não tem fila nem concorrência entre projetos.
+7. **Nada é executado em paralelo**, e o Boot não tem fila nem concorrência entre projetos. A tela barra um segundo pedido
+   enquanto um está em preparo.
+8. **Os registros não têm retenção.** Cada Boot fica em um arquivo, e a listagem e a subida do motor leem todos; falta
+   decidir quantos manter por projeto.
+9. **Boot sem projeto** grava `boot.started` e `boot.finished` sem `projectId`; essas ações não estão na trilha de nenhum
+   projeto nem na lista de ações do computador inteiro (`MachineWide`). Falta decidir o escopo.
 
 ## 6. Decisões para o dono
 

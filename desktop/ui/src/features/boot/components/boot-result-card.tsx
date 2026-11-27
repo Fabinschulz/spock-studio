@@ -39,8 +39,9 @@ function List({ title, items, empty }: { title: string; items: readonly string[]
         <p className={styles.muted}>{empty}</p>
       ) : (
         <ul className={styles.list}>
-          {items.map((item) => (
-            <li key={item}>{item}</li>
+          {items.map((item, index) => (
+            // O motor não garante linhas diferentes entre si: o texto sozinho repetiria a chave.
+            <li key={`${index}-${item}`}>{item}</li>
           ))}
         </ul>
       )}
@@ -102,8 +103,8 @@ export function BootResultCard({ record, onOpen, onChoose, onDismiss }: BootResu
           <h3 className={styles.sectionTitle}>Problemas e limitações</h3>
           <InlineNotice tone={result.outcome === 'failed' ? 'danger' : 'warning'}>
             <ul className={styles.list}>
-              {result.problems.map((problem) => (
-                <li key={problem}>{problem}</li>
+              {result.problems.map((problem, index) => (
+                <li key={`${index}-${problem}`}>{problem}</li>
               ))}
             </ul>
           </InlineNotice>

@@ -4,6 +4,7 @@ import { BootResultCard, createBootApi, useBoot } from '@/features/boot';
 import { RecentShortcuts, useProjectSelectionContext } from '@/features/project-selection';
 import { isTauriRuntime, type EngineClient } from '@/shared/api';
 import { handoffState } from '@/shared/routing';
+import { InlineNotice } from '@/shared/components';
 import { useEngineStatus } from '@/shared/hooks';
 import { readPreference, writePreference } from '@/shared/utils';
 import { Alert, Button } from '@mariliz/ui-kit';
@@ -56,6 +57,7 @@ export function HomePage({ client, findShortcuts }: HomePageProps) {
     if (journey.needsProject && !project) return;
     // "Analisar o projeto" é o Project Boot: reúne o contexto e diz o que está pronto. Se o motor não responder, abre a tela.
     if (journey.id === PROJECT_JOURNEY && project) {
+      if (boot.isRunning()) return;
       lastProject.current = project.projectId;
       if (await boot.project(project.projectId)) return;
     }
@@ -63,6 +65,8 @@ export function HomePage({ client, findShortcuts }: HomePageProps) {
   };
 
   const prepareRequest = async (request: ComposerRequest) => {
+    // Já há um pedido em preparo: este é descartado, e a tela não navega no lugar do primeiro.
+    if (boot.isRunning()) return true;
     lastProject.current = request.projectId;
     const record = await boot.request({
       projectId: request.projectId,
@@ -90,6 +94,7 @@ export function HomePage({ client, findShortcuts }: HomePageProps) {
       <RequestComposer
         findShortcuts={findShortcuts}
         onRequest={boot.available ? prepareRequest : undefined}
+        busy={boot.state.status === 'running'}
         readiness={{ modelConfigured: setup.model, agentInstalled }}
       />
       {boot.state.status === 'running' ? (
@@ -97,6 +102,7 @@ export function HomePage({ client, findShortcuts }: HomePageProps) {
           {boot.state.label}
         </p>
       ) : null}
+      {boot.state.status === 'failed' ? <InlineNotice tone="danger">{boot.state.message}</InlineNotice> : null}
       {boot.state.status === 'ready' ? (
         <BootResultCard
           record={boot.state.record}
