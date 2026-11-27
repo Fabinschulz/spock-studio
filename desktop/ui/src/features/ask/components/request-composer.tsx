@@ -19,17 +19,38 @@ export interface ComposerShortcut {
   to: string;
 }
 
+/** O que a pessoa pediu, já com o projeto: é o que a camada de cima entrega ao Boot. */
+export interface ComposerRequest {
+  projectId: string;
+  text: string;
+  kind: AskKind;
+  /** A pessoa marcou o tipo de propósito; sem isso, o tipo é só a sugestão feita pelo texto. */
+  explicit: boolean;
+}
+
 interface RequestComposerProps {
   findShortcuts?: (text: string) => readonly ComposerShortcut[];
+  /**
+   * Quem prepara o pedido antes de a pessoa chegar à tela (o Boot). Devolve verdadeiro quando assumiu: o composer então não
+   * navega. Falso ou ausente: o caminho de sempre, direto para a tela do tipo escolhido.
+   */
+  onRequest?: (request: ComposerRequest) => Promise<boolean>;
+  /** Há um pedido sendo preparado: o Continuar espera, para um duplo Enter não criar dois. */
+  busy?: boolean;
   /** O que o motor disse estar pronto. Sem isso, a entrada não avisa nada. */
   readiness?: AskReadiness;
 }
 
 /**
- * A pessoa escreve o que quer e escolhe (ou aceita) o caminho. Nada é executado aqui: o texto segue para a tela que
- * trata aquele tipo de pedido, onde ela revisa as opções antes de iniciar.
+ * A pessoa escreve o que quer e escolhe (ou aceita) o caminho. Nada é executado aqui: o pedido vai para o Boot, que o
+ * interpreta e mostra o plano; sem Boot, o texto segue para a tela que trata aquele tipo de pedido.
  */
-export function RequestComposer({ findShortcuts, readiness }: RequestComposerProps) {
+export function RequestComposer({
+  findShortcuts,
+  onRequest,
+  busy: preparing = false,
+  readiness
+}: RequestComposerProps) {
   const hintId = useId();
   const noticeId = useId();
   const navigate = useNavigate();
@@ -42,7 +63,7 @@ export function RequestComposer({ findShortcuts, readiness }: RequestComposerPro
   const kind = chosen ?? suggestAskKind(trimmed);
   const option = ASK_OPTIONS[kind];
   const notice = readiness ? askNotice(kind, readiness) : null;
-  const ready = trimmed.length >= MIN_TEXT && !busy && !unavailableReason;
+  const ready = trimmed.length >= MIN_TEXT && !busy && !preparing && !unavailableReason;
   const shortcuts = trimmed.length >= MIN_TEXT ? (findShortcuts?.(trimmed).slice(0, MAX_SHORTCUTS) ?? []) : [];
 
   const submit = async (event?: FormEvent) => {
@@ -50,6 +71,11 @@ export function RequestComposer({ findShortcuts, readiness }: RequestComposerPro
     if (!ready) return;
     const project = selected ?? (await pick());
     if (!project) return;
+    if (
+      onRequest &&
+      (await onRequest({ projectId: project.projectId, text: trimmed, kind, explicit: chosen !== null }))
+    )
+      return;
     navigate(option.to, { state: handoffState(trimmed) });
   };
 

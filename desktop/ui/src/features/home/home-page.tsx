@@ -1,11 +1,14 @@
 import { useAgentInstalled } from '@/features/agents';
-import { RequestComposer, type ComposerShortcut } from '@/features/ask';
+import { RequestComposer, type AskKind, type ComposerRequest, type ComposerShortcut } from '@/features/ask';
+import { BootResultCard, createBootApi, useBoot } from '@/features/boot';
 import { RecentShortcuts, useProjectSelectionContext } from '@/features/project-selection';
 import { isTauriRuntime, type EngineClient } from '@/shared/api';
+import { handoffState } from '@/shared/routing';
+import { InlineNotice } from '@/shared/components';
 import { useEngineStatus } from '@/shared/hooks';
 import { readPreference, writePreference } from '@/shared/utils';
 import { Alert, Button } from '@mariliz/ui-kit';
-import { useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { Hero } from './hero';
@@ -15,6 +18,14 @@ import { RecentActivity } from './recent-activity';
 import { countDone, SETUP_STEPS, SetupChecklist, useSetupStatus } from './setup-checklist';
 
 const SETUP_KEY = 'spock.setup';
+// O tipo de atividade que a pessoa marcou de propósito vira a capacidade do Spock direto, sem interpretar o texto.
+const CAPABILITY_BY_KIND: Record<AskKind, string> = {
+  request: 'engineering.request',
+  agent: 'engineering.code_question',
+  assistant: 'management.assistant',
+  idea: 'ideas.idea_to_project'
+};
+const PROJECT_JOURNEY = 'project-overview';
 const HIDDEN = 'hidden';
 const SHOWN = 'shown';
 
@@ -32,6 +43,9 @@ export function HomePage({ client, findShortcuts }: HomePageProps) {
   const setup = useSetupStatus(client, selected?.projectId ?? null, engineReady);
   const agentInstalled = useAgentInstalled(client, engineReady);
   const [setupHidden, setSetupHidden] = useState(() => readPreference(SETUP_KEY) === HIDDEN);
+  const bootApi = useMemo(() => (engineReady ? createBootApi(client) : null), [client, engineReady]);
+  const boot = useBoot(bootApi);
+  const lastProject = useRef<string | null>(null);
 
   const showSetup = (visible: boolean) => {
     setSetupHidden(!visible);
@@ -39,8 +53,32 @@ export function HomePage({ client, findShortcuts }: HomePageProps) {
   };
 
   const startJourney = async (journey: Journey) => {
-    if (journey.needsProject && !selected && !(await pick())) return;
+    const project = journey.needsProject ? (selected ?? (await pick())) : selected;
+    if (journey.needsProject && !project) return;
+    // "Analisar o projeto" é o Project Boot: reúne o contexto e diz o que está pronto. Se o motor não responder, abre a tela.
+    if (journey.id === PROJECT_JOURNEY && project) {
+      if (boot.isRunning()) return;
+      lastProject.current = project.projectId;
+      if (await boot.project(project.projectId)) return;
+    }
     navigate(journey.to);
+  };
+
+  const prepareRequest = async (request: ComposerRequest) => {
+    // Já há um pedido em preparo: este é descartado, e a tela não navega no lugar do primeiro.
+    if (boot.isRunning()) return true;
+    lastProject.current = request.projectId;
+    const record = await boot.request({
+      projectId: request.projectId,
+      text: request.text,
+      ...(request.explicit ? { capabilityId: CAPABILITY_BY_KIND[request.kind] } : { hint: request.kind })
+    });
+    return record !== null;
+  };
+
+  const chooseCapability = (capabilityId: string) => {
+    if (boot.state.status !== 'ready') return;
+    void boot.request({ projectId: lastProject.current ?? undefined, text: boot.state.text, capabilityId });
   };
 
   const pickAndConfigure = async () => {
@@ -53,7 +91,28 @@ export function HomePage({ client, findShortcuts }: HomePageProps) {
     <div className={styles.page}>
       <Hero />
       {error ? <Alert severity="error" title="Não foi possível abrir o projeto" description={error} /> : null}
-      <RequestComposer findShortcuts={findShortcuts} readiness={{ modelConfigured: setup.model, agentInstalled }} />
+      <RequestComposer
+        findShortcuts={findShortcuts}
+        onRequest={boot.available ? prepareRequest : undefined}
+        busy={boot.state.status === 'running'}
+        readiness={{ modelConfigured: setup.model, agentInstalled }}
+      />
+      {boot.state.status === 'running' ? (
+        <p role="status" className={styles.restore}>
+          {boot.state.label}
+        </p>
+      ) : null}
+      {boot.state.status === 'failed' ? <InlineNotice tone="danger">{boot.state.message}</InlineNotice> : null}
+      {boot.state.status === 'ready' ? (
+        <BootResultCard
+          record={boot.state.record}
+          onOpen={(route) =>
+            navigate(route, { state: handoffState(boot.state.status === 'ready' ? boot.state.text : '') })
+          }
+          onChoose={chooseCapability}
+          onDismiss={boot.dismiss}
+        />
+      ) : null}
       <JourneyGrid
         journeys={journeysFor({ hasProject: selected !== null, hasRecents: recents.length > 0 })}
         onStartJourney={(journey) => void startJourney(journey)}

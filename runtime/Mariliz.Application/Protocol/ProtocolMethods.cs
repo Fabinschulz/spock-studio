@@ -126,6 +126,12 @@ public static class ProtocolMethods
     public const string IacCostPlan = "iac.cost.plan";
     public const string IacDriftSchedule = "iac.drift.schedule";
     public const string IacDriftScheduleSet = "iac.drift.schedule.set";
+    public const string BootStart = "boot.start";
+    public const string BootProject = "boot.project";
+    public const string BootResume = "boot.resume";
+    public const string BootList = "boot.list";
+    public const string BootDetail = "boot.detail";
+    public const string BootCapabilities = "boot.capabilities";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, ProjectArchitecture, Plan, Apply, Validate, Revert, Runs];
@@ -163,7 +169,9 @@ public static class ProtocolMethods
         // Consulta a lista de preços do provedor de cloud.
         IacCostEstimate, IacCostPlan,
         // Chama o provedor de IA.
-        IacArchitectDraft
+        IacArchitectDraft,
+        // Executam, em sequência, leituras de outros domínios (algumas rodam processos ou leem o projeto inteiro).
+        BootStart, BootProject, BootResume
     };
 
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
@@ -195,6 +203,8 @@ public static class ProtocolMethods
         [IacRuntimeStatus, IacRuntimeOffer, IacRuntimeInstall, IacRuntimeDecline, IacRuntimeRemove, IacRuntimeAdopt, IacRuntimePin,
             IacLayout, IacValidate, IacPlan, IacOperations, IacOperation, IacApply, IacState, IacStateResources, IacStateUnlock, IacBootstrapPlan,
             IacBootstrapSave, IacArchitectDraft, IacArchitectProposal, IacGenerateOptions, IacGeneratePlan, IacGenerateSave, IacDrift, IacCostEstimate, IacCostPlan, IacDriftSchedule, IacDriftScheduleSet];
+
+    public static readonly IReadOnlyList<string> Boot = [BootStart, BootProject, BootResume, BootList, BootDetail, BootCapabilities];
 
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }

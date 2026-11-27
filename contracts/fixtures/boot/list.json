@@ -1,0 +1,67 @@
+{
+  "boots": [
+    {
+      "id": "boot-000000000001",
+      "mode": "request",
+      "state": "awaitingClarification",
+      "projectId": "p-000000000001",
+      "createdAt": "2026-11-26T12:04:00+00:00",
+      "finishedAt": "2026-11-26T12:04:00+00:00",
+      "recoversBootId": null,
+      "recoveredByBootId": null,
+      "outcome": "needsClarification",
+      "headline": "O pedido cabe em mais de uma coisa: Riscos do projeto ou Acompanhamento do projeto. Qual delas?",
+      "capabilities": []
+    },
+    {
+      "id": "boot-000000000002",
+      "mode": "request",
+      "state": "completed",
+      "projectId": "p-000000000001",
+      "createdAt": "2026-11-26T12:03:00+00:00",
+      "finishedAt": "2026-11-26T12:03:00+00:00",
+      "recoversBootId": null,
+      "recoveredByBootId": null,
+      "outcome": "handoff",
+      "headline": "Pronto para continuar em \"Configurar o ambiente de engenharia\".",
+      "capabilities": [
+        "engineering.configure"
+      ]
+    },
+    {
+      "id": "boot-000000000003",
+      "mode": "request",
+      "state": "completed",
+      "projectId": "p-000000000001",
+      "createdAt": "2026-11-26T12:02:00+00:00",
+      "finishedAt": "2026-11-26T12:02:00+00:00",
+      "recoversBootId": null,
+      "recoveredByBootId": null,
+      "outcome": "answered",
+      "headline": "3 tecnologias no projeto.",
+      "capabilities": [
+        "engineering.project_overview"
+      ]
+    },
+    {
+      "id": "boot-000000000004",
+      "mode": "project",
+      "state": "completed",
+      "projectId": "p-000000000001",
+      "createdAt": "2026-11-26T12:01:00+00:00",
+      "finishedAt": "2026-11-26T12:01:00+00:00",
+      "recoversBootId": null,
+      "recoveredByBootId": null,
+      "outcome": "prepared",
+      "headline": "loja é novo no Spock: reuni o contexto e o que ele já sabe.",
+      "capabilities": [
+        "engineering.analyze_project",
+        "engineering.project_overview",
+        "engineering.harness_status",
+        "connections.list",
+        "management.milestones",
+        "platform.runs"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "boot": {
+    "id": "boot-000000000001",
+    "version": 3,
+    "mode": "request",
+    "origin": "ui",
+    "source": null,
+    "projectId": "p-000000000001",
+    "stableProjectId": null,
+    "state": "awaitingClarification",
+    "autonomy": "preparation",
+    "request": "Quero ver os riscos e as entregas",
+    "hint": null,
+    "intent": {
+      "resolution": "needsClarification",
+      "capabilityId": null,
+      "source": "text",
+      "domain": null,
+      "candidates": [
+        {
+          "capabilityId": "management.risks",
+          "score": 6,
+          "confidence": 0.6,
+          "matched": [
+            "riscos"
+          ]
+        },
+        {
+          "capabilityId": "management.tracking",
+          "score": 5,
+          "confidence": 0.56,
+          "matched": [
+            "entregas"
+          ]
+        }
+      ],
+      "question": "O pedido cabe em mais de uma coisa: Riscos do projeto ou Acompanhamento do projeto. Qual delas?",
+      "objective": "Quero ver os riscos e as entregas"
+    },
+    "plan": null,
+    "steps": [],
+    "checkpoints": [
+      {
+        "at": "2026-11-26T12:04:00+00:00",
+        "state": "created",
+        "stepId": null,
+        "note": "Pedido recebido."
+      },
+      {
+        "at": "2026-11-26T12:04:00+00:00",
+        "state": "interpreting",
+        "stepId": null,
+        "note": "Intenção: NeedsClarification."
+      },
+      {
+        "at": "2026-11-26T12:04:00+00:00",
+        "state": "awaitingClarification",
+        "stepId": null,
+        "note": "O pedido cabe em mais de uma coisa: Riscos do projeto ou Acompanhamento do projeto. Qual delas?"
+      }
+    ],
+    "result": {
+      "outcome": "needsClarification",
+      "headline": "O pedido cabe em mais de uma coisa: Riscos do projeto ou Acompanhamento do projeto. Qual delas?",
+      "done": [
+        "Li o pedido e comparei com as capacidades do Spock."
+      ],
+      "consulted": [],
+      "changes": [],
+      "validations": [
+        "Nada foi executado: o Boot prefere perguntar a escolher errado."
+      ],
+      "problems": [],
+      "pending": [],
+      "nextStep": "Escolha uma das opções para eu continuar.",
+      "route": null,
+      "routeLabel": null,
+      "alternatives": [
+        {
+          "capabilityId": "management.risks",
+          "name": "Riscos do projeto",
+          "reason": "O motor desta sessão não oferece esta capacidade."
+        },
+        {
+          "capabilityId": "management.tracking",
+          "name": "Acompanhamento do projeto",
+          "reason": "O motor desta sessão não oferece esta capacidade."
+        }
+      ]
+    },
+    "contextVersion": null,
+    "recoversBootId": null,
+    "recoveredByBootId": null,
+    "createdAt": "2026-11-26T12:04:00+00:00",
+    "updatedAt": "2026-11-26T12:04:00+00:00",
+    "finishedAt": "2026-11-26T12:04:00+00:00",
+    "errorCode": null
+  }
+}

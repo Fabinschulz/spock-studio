@@ -1,0 +1,929 @@
+{
+  "autonomy": 1,
+  "capabilities": [
+    {
+      "id": "engineering.project_overview",
+      "name": "Visão geral do projeto",
+      "description": "Tecnologias, comandos e ferramentas que o Spock encontrou no projeto.",
+      "domain": "engineering",
+      "goals": [
+        "Conhecer as tecnologias do projeto"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/projeto",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O perfil tecnológico guardado do projeto.",
+      "preconditions": [
+        "O projeto precisa ter sido analisado ao menos uma vez."
+      ],
+      "needs": [
+        "Project"
+      ],
+      "availability": "available",
+      "reason": null,
+      "verdict": "allowed",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "engineering.analyze_project",
+      "name": "Analisar o projeto de novo",
+      "description": "Refaz o perfil tecnológico a partir dos arquivos do projeto; grava só na pasta de dados do Spock.",
+      "domain": "engineering",
+      "goals": [
+        "Atualizar o perfil do projeto"
+      ],
+      "operation": "preparation",
+      "mode": "direct",
+      "route": "/projeto",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O perfil tecnológico atualizado.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "available",
+      "reason": null,
+      "verdict": "allowed",
+      "needsApproval": false,
+      "requiredLevel": 1
+    },
+    {
+      "id": "engineering.harness_status",
+      "name": "Estado do Harness",
+      "description": "O que do Harness está íntegro, mantido pela equipe, modificado ou faltando.",
+      "domain": "engineering",
+      "goals": [
+        "Saber se o Harness está em dia"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/projeto/harness",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O estado de cada componente do Harness.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "available",
+      "reason": null,
+      "verdict": "allowed",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "engineering.catalog",
+      "name": "Catálogo do Harness",
+      "description": "Agentes, skills, regras e hooks que o Harness oferece, e quais estão aplicados.",
+      "domain": "engineering",
+      "goals": [
+        "Conhecer os componentes do Harness"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/projeto/catalogo",
+      "agents": [
+        "harness-engineer",
+        "code-reviewer",
+        "verifier"
+      ],
+      "skills": [
+        "harness-contract"
+      ],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "A lista de componentes do Harness.",
+      "preconditions": [],
+      "needs": [],
+      "availability": "available",
+      "reason": null,
+      "verdict": "allowed",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "engineering.knowledge",
+      "name": "Conhecimento do projeto",
+      "description": "O que a IA pode ler do projeto e o que foi indexado.",
+      "domain": "engineering",
+      "goals": [
+        "Saber o que a IA enxerga do projeto"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/projeto/conhecimento",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O estado do índice de conhecimento.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "available",
+      "reason": null,
+      "verdict": "allowed",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "engineering.mcp_inventory",
+      "name": "Servidores MCP do projeto",
+      "description": "Os servidores MCP configurados no projeto, sem os valores das credenciais.",
+      "domain": "engineering",
+      "goals": [
+        "Saber quais MCPs o projeto usa"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/projeto/harness",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O inventário de MCP.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "available",
+      "reason": null,
+      "verdict": "allowed",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "engineering.configure",
+      "name": "Configurar o ambiente de engenharia",
+      "description": "Descobre o projeto, planeja o Harness com diff e aplica o que a pessoa aprovar.",
+      "domain": "engineering",
+      "goals": [
+        "Preparar o projeto para trabalhar com IA"
+      ],
+      "operation": "internalChange",
+      "mode": "handoff",
+      "route": "/configurar",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "Um plano de configuração para revisar; nada é gravado antes da aprovação.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "available",
+      "reason": null,
+      "verdict": "handoffOnly",
+      "needsApproval": true,
+      "requiredLevel": 2
+    },
+    {
+      "id": "engineering.request",
+      "name": "Pedido de engenharia",
+      "description": "Revisa o contexto e inicia o fluxo de engenharia, que pausa para aprovação antes de gravar.",
+      "domain": "engineering",
+      "goals": [
+        "Implementar, corrigir ou alterar o projeto"
+      ],
+      "operation": "internalChange",
+      "mode": "handoff",
+      "route": "/pedido",
+      "agents": [],
+      "skills": [],
+      "workflows": [
+        "engineering"
+      ],
+      "composes": [],
+      "expectedResult": "Uma execução de engenharia aguardando a sua decisão.",
+      "preconditions": [],
+      "needs": [
+        "Project",
+        "Model"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 2
+    },
+    {
+      "id": "engineering.code_question",
+      "name": "Pergunta sobre o código",
+      "description": "Pergunta a um agente de IA instalado na máquina, em modo só de leitura.",
+      "domain": "engineering",
+      "goals": [
+        "Entender o código"
+      ],
+      "operation": "analysis",
+      "mode": "handoff",
+      "route": "/agentes",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "A resposta de um agente de IA em modo só de leitura.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "engineering.security_scan",
+      "name": "Varredura de segurança",
+      "description": "Procura credenciais, arquivos sensíveis e permissões perigosas de agentes.",
+      "domain": "engineering",
+      "goals": [
+        "Achar riscos de segurança no projeto"
+      ],
+      "operation": "analysis",
+      "mode": "handoff",
+      "route": "/seguranca",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "Os achados da varredura, sem os valores dos segredos.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "engineering.modernization",
+      "name": "Modernização",
+      "description": "Confere o plano de modernização do agente contra a avaliação de arquitetura e registra a decisão por passo.",
+      "domain": "engineering",
+      "goals": [
+        "Planejar a modernização do sistema"
+      ],
+      "operation": "analysis",
+      "mode": "handoff",
+      "route": "/projeto",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O plano de modernização conferido.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "standards.architecture",
+      "name": "Análise de arquitetura e padrões",
+      "description": "Camadas, dependências e aderência do projeto aos padrões de arquitetura.",
+      "domain": "standards",
+      "goals": [
+        "Saber se o projeto segue os padrões",
+        "Achar violações arquiteturais"
+      ],
+      "operation": "analysis",
+      "mode": "direct",
+      "route": "/projeto/arquitetura",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O relatório de arquitetura do projeto.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "available",
+      "reason": null,
+      "verdict": "allowed",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "standards.agent_policy",
+      "name": "Política dos agentes",
+      "description": "As regras que dizem o que o agente pode ler, escrever e executar no projeto.",
+      "domain": "standards",
+      "goals": [
+        "Saber o que os agentes podem fazer"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/projeto/harness",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "A política de leitura, escrita e comandos dos agentes.",
+      "preconditions": [],
+      "needs": [],
+      "availability": "available",
+      "reason": null,
+      "verdict": "allowed",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "management.portfolio",
+      "name": "Portfólio",
+      "description": "Prazos, riscos e sinais de atenção de todos os projetos autorizados.",
+      "domain": "management",
+      "goals": [
+        "Ver todos os projetos de uma vez"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/portfolio",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "A tabela do portfólio, com os sinais de cada projeto.",
+      "preconditions": [],
+      "needs": [
+        "AnyIntegration"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "management.tracking",
+      "name": "Acompanhamento do projeto",
+      "description": "Indicadores de fluxo: itens em andamento, entregues por semana, lead time e cycle time.",
+      "domain": "management",
+      "goals": [
+        "Acompanhar as entregas"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/gestao",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "As métricas de fluxo do projeto, calculadas pelo motor.",
+      "preconditions": [],
+      "needs": [
+        "Project",
+        "ProjectIntegration"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "management.risks",
+      "name": "Riscos do projeto",
+      "description": "Atrasos, bloqueios e outros riscos que as regras do motor encontram nos dados das integrações.",
+      "domain": "management",
+      "goals": [
+        "Analisar riscos",
+        "Identificar atrasos e bloqueios"
+      ],
+      "operation": "analysis",
+      "mode": "direct",
+      "route": "/gestao",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "A lista de riscos com a regra e a evidência de cada um.",
+      "preconditions": [],
+      "needs": [
+        "Project",
+        "ProjectIntegration"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "management.forecast",
+      "name": "Previsão de entrega",
+      "description": "Previsão Monte Carlo a partir do histórico de entregas; recusa quando não há histórico.",
+      "domain": "management",
+      "goals": [
+        "Saber quando vai terminar"
+      ],
+      "operation": "analysis",
+      "mode": "direct",
+      "route": "/gestao",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "A previsão com a faixa de datas, ou o motivo de não haver.",
+      "preconditions": [],
+      "needs": [
+        "Project",
+        "ProjectIntegration"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "management.milestones",
+      "name": "Marcos",
+      "description": "Marcos (milestones e versões) com a situação contra a previsão.",
+      "domain": "management",
+      "goals": [
+        "Ver os marcos"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/gestao",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "Os marcos do projeto e a situação de cada um.",
+      "preconditions": [],
+      "needs": [
+        "Project",
+        "ProjectIntegration"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "management.report",
+      "name": "Relatório do projeto",
+      "description": "Métricas, previsão, riscos, marcos e decisões do período, em texto do motor.",
+      "domain": "management",
+      "goals": [
+        "Preparar um relatório"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/gestao/relatorio",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O relatório do período.",
+      "preconditions": [],
+      "needs": [
+        "Project",
+        "ProjectIntegration"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "management.decisions",
+      "name": "Decisões registradas",
+      "description": "As decisões gerenciais gravadas, com o retrato dos fatos de cada uma.",
+      "domain": "management",
+      "goals": [
+        "Consultar decisões"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/gestao",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "A lista de decisões do projeto.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "management.assistant",
+      "name": "Assistente de gestão",
+      "description": "Responde perguntas sobre o andamento a partir dos fatos do motor, com números e citações conferidos.",
+      "domain": "management",
+      "goals": [
+        "Tirar dúvidas sobre o andamento",
+        "Apoiar uma decisão"
+      ],
+      "operation": "analysis",
+      "mode": "handoff",
+      "route": "/gestao/assistente",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "Uma resposta com os fatos e as citações que a sustentam.",
+      "preconditions": [],
+      "needs": [
+        "Project",
+        "Model",
+        "ProjectIntegration"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "platform.timeline",
+      "name": "Linha do tempo",
+      "description": "O que aconteceu no projeto: Harness, execuções, decisões, riscos e sincronizações.",
+      "domain": "platform",
+      "goals": [
+        "Ver o que mudou"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/linha-do-tempo",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "Os eventos recentes do projeto.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "platform.audit",
+      "name": "Trilha de auditoria",
+      "description": "Quem leu, mudou ou autorizou o quê neste computador.",
+      "domain": "platform",
+      "goals": [
+        "Auditar o uso do Spock"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/auditoria",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "A trilha de auditoria do projeto.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "platform.runs",
+      "name": "Execuções",
+      "description": "As execuções do projeto, com as que esperam aprovação.",
+      "domain": "platform",
+      "goals": [
+        "Ver o que está rodando ou pendente"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/execucoes",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "A lista de execuções recentes.",
+      "preconditions": [],
+      "needs": [],
+      "availability": "available",
+      "reason": null,
+      "verdict": "allowed",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "infrastructure.status",
+      "name": "Ferramenta de infraestrutura",
+      "description": "Se o OpenTofu ou o Terraform está instalado, em que versão e qual o projeto usa.",
+      "domain": "infrastructure",
+      "goals": [
+        "Saber se a máquina está pronta para infraestrutura como código"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/infraestrutura",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O estado da ferramenta de infraestrutura como código.",
+      "preconditions": [],
+      "needs": [],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "infrastructure.layout",
+      "name": "Pastas de infraestrutura",
+      "description": "Onde ficam os arquivos .tf do projeto e como estão organizados.",
+      "domain": "infrastructure",
+      "goals": [
+        "Ver a estrutura de infraestrutura do projeto"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/infraestrutura",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O layout da infraestrutura do projeto.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "infrastructure.validate_plan",
+      "name": "Validar e planejar a infraestrutura",
+      "description": "Roda fmt, validate e plan numa cópia; o projeto e a nuvem não são alterados.",
+      "domain": "infrastructure",
+      "goals": [
+        "Validar a infraestrutura",
+        "Conhecer o impacto antes de aplicar"
+      ],
+      "operation": "analysis",
+      "mode": "handoff",
+      "route": "/infraestrutura",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O resumo do que o plano criaria, alteraria ou destruiria.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "infrastructure.apply",
+      "name": "Provisionar infraestrutura",
+      "description": "Aplica um plano aprovado, preso ao hash do plano, com confirmações extras para destruição e produção.",
+      "domain": "infrastructure",
+      "goals": [
+        "Provisionar ou alterar recursos na nuvem"
+      ],
+      "operation": "destructive",
+      "mode": "handoff",
+      "route": "/infraestrutura",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "Um plano aprovado por você, aplicado só depois das confirmações.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 3
+    },
+    {
+      "id": "infrastructure.cloud_read",
+      "name": "Ler recursos da nuvem",
+      "description": "Lê o que a conta de nuvem vinculada ao projeto libera, sem escrever nada nela.",
+      "domain": "infrastructure",
+      "goals": [
+        "Consultar recursos cloud"
+      ],
+      "operation": "read",
+      "mode": "handoff",
+      "route": "/cloud",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "As leituras de nuvem liberadas para o projeto.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "ideas.idea_to_project",
+      "name": "Da ideia ao projeto",
+      "description": "Escreve especificação, arquitetura e backlog por etapas; nada é gravado sem aprovação.",
+      "domain": "ideas",
+      "goals": [
+        "Transformar uma ideia em projeto"
+      ],
+      "operation": "internalChange",
+      "mode": "handoff",
+      "route": "/ideia",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "Documentos da ideia para revisar e um plano de gravação aprovável.",
+      "preconditions": [],
+      "needs": [
+        "Project",
+        "Model"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 2
+    },
+    {
+      "id": "ai.model_status",
+      "name": "Modelos de IA",
+      "description": "Provedores configurados, modelo padrão, finalidades e tetos de tokens.",
+      "domain": "ai",
+      "goals": [
+        "Configurar o ambiente de IA",
+        "Saber qual modelo está ativo"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/configuracoes/ia",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O estado de cada provedor de modelo, sem a chave.",
+      "preconditions": [],
+      "needs": [],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "ai.agents_detect",
+      "name": "Agentes de IA instalados",
+      "description": "Quais CLIs de agentes (Claude Code, Cursor, Codex, Gemini) existem nesta máquina.",
+      "domain": "ai",
+      "goals": [
+        "Saber quais agentes posso usar"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/agentes",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "A lista de agentes de IA encontrados.",
+      "preconditions": [],
+      "needs": [],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "connections.list",
+      "name": "Conexões com ferramentas",
+      "description": "Conexões com GitHub e Jira e o estado de cada uma.",
+      "domain": "connections",
+      "goals": [
+        "Conectar ferramentas",
+        "Ver o que está conectado"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/integracoes",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "A lista de conexões e o estado de cada uma.",
+      "preconditions": [],
+      "needs": [],
+      "availability": "available",
+      "reason": null,
+      "verdict": "allowed",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "connections.cloud",
+      "name": "Contas de nuvem",
+      "description": "Contas AWS, Azure e Google conectadas e o estado de cada uma.",
+      "domain": "connections",
+      "goals": [
+        "Ver as contas de nuvem conectadas"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/cloud",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "A lista de contas de nuvem.",
+      "preconditions": [],
+      "needs": [],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "composite.idea_to_development",
+      "name": "Da ideia ao desenvolvimento",
+      "description": "Estrutura a ideia, prepara o ambiente e só então abre o pedido de engenharia; cada etapa pede a sua aprovação.",
+      "domain": "ideas",
+      "goals": [
+        "Da ideia ao desenvolvimento"
+      ],
+      "operation": "internalChange",
+      "mode": "composite",
+      "route": null,
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [
+        "ideas.idea_to_project",
+        "engineering.configure",
+        "engineering.request"
+      ],
+      "expectedResult": "Três etapas encadeadas, uma por vez.",
+      "preconditions": [],
+      "needs": [
+        "Project",
+        "Model"
+      ],
+      "availability": "unavailable",
+      "reason": "A etapa \"Da ideia ao projeto\" não está disponível: O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 2
+    }
+  ]
+}

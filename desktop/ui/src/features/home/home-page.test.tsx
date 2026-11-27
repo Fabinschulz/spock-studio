@@ -1,3 +1,7 @@
+import bootAnswered from '@contracts/fixtures/boot/start-answered.json';
+import bootClarify from '@contracts/fixtures/boot/start-clarify.json';
+import bootHandoff from '@contracts/fixtures/boot/start-handoff.json';
+import bootProject from '@contracts/fixtures/boot/project.json';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useLocation } from 'react-router';
@@ -47,6 +51,8 @@ interface Facts {
   runs?: unknown[];
   /** Há uma ferramenta de IA instalada no computador. */
   agent?: boolean;
+  /** O Boot do motor: devolve a resposta (já no formato do contrato) ou lança, como o motor faria. */
+  boot?: (method: string, params: Record<string, unknown>) => unknown;
 }
 
 function engine(facts: Facts): EngineClient {
@@ -74,6 +80,7 @@ function engine(facts: Facts): EngineClient {
           nextCursor: null,
           summary: { total: 0, running: 0, awaitingApproval: 0 }
         });
+      if (method.startsWith('boot.') && facts.boot) return schema.parse(facts.boot(method, params));
       throw new Error(`método inesperado: ${method}`);
     }) as EngineClient['request'],
     onEvent: vi.fn().mockResolvedValue(() => undefined)
@@ -396,6 +403,170 @@ describe('Início · entrada de pedidos', () => {
   it('não tem violações estruturais de acessibilidade', async () => {
     renderHome();
     await userEvent.type(field(), 'analise meu projeto');
+
+    await expectNoA11yViolations(document.body);
+  });
+});
+
+describe('Início · o pedido passa pelo Boot', () => {
+  const field = () => screen.getByRole('textbox', { name: 'O que você deseja fazer?' });
+  const withProject = { pick: vi.fn().mockResolvedValue(project), recents: vi.fn().mockResolvedValue([recent]) };
+
+  const bootCalls = (client: EngineClient) =>
+    vi.mocked(client.request).mock.calls.filter(([method]) => String(method).startsWith('boot.'));
+
+  it('uma pergunta de leitura mostra o que o Spock consultou, sem sair da tela e sem alterar nada', async () => {
+    hosted();
+    const client = engine({ boot: () => bootAnswered });
+    renderHome({ picker: withProject, client });
+
+    await userEvent.type(field(), 'Quais tecnologias o projeto usa?{Enter}');
+
+    const card = await screen.findByRole('region', { name: 'Resultado do preparo do pedido' });
+    expect(within(card).getByText('Consultado')).toBeInTheDocument();
+    expect(within(card).getByText('Nenhuma alteração foi feita no projeto.')).toBeInTheDocument();
+    expect(screen.getByTestId('where')).toHaveTextContent(/^\/$/);
+    const [method, params] = bootCalls(client)[0]!;
+    expect(method).toBe('boot.start');
+    expect(params).toMatchObject({
+      projectId: 'p-1',
+      text: 'Quais tecnologias o projeto usa?',
+      hint: 'agent',
+      source: 'home'
+    });
+    expect(params).not.toHaveProperty('capabilityId');
+  });
+
+  it('abrir a tela sugerida leva o texto junto, como antes', async () => {
+    hosted();
+    renderHome({ picker: withProject, client: engine({ boot: () => bootHandoff }) });
+
+    await userEvent.type(field(), 'Configurar meu ambiente{Enter}');
+    const card = await screen.findByRole('region', { name: 'Resultado do preparo do pedido' });
+    await userEvent.click(within(card).getByRole('button', { name: /Configurar|Abrir/ }));
+
+    expect(screen.getByTestId('where')).toHaveTextContent('/configurar');
+    expect(screen.getByTestId('handoff')).toHaveTextContent('Configurar meu ambiente');
+  });
+
+  it('o tipo marcado de propósito vai como capacidade, sem interpretar o texto', async () => {
+    hosted();
+    const client = engine({ boot: () => bootAnswered });
+    renderHome({ picker: withProject, client });
+
+    await userEvent.click(screen.getByRole('radio', { name: 'Nova ideia' }));
+    await userEvent.type(field(), 'um aplicativo de entregas{Enter}');
+
+    await screen.findByRole('region', { name: 'Resultado do preparo do pedido' });
+    expect(bootCalls(client)[0]![1]).toMatchObject({ capabilityId: 'ideas.idea_to_project' });
+    expect(bootCalls(client)[0]![1]).not.toHaveProperty('hint');
+  });
+
+  it('pedido ambíguo vira pergunta, e escolher uma opção refaz o pedido com a capacidade', async () => {
+    hosted();
+    const client = engine({ boot: (_method, params) => (params.capabilityId ? bootAnswered : bootClarify) });
+    renderHome({ picker: withProject, client });
+
+    await userEvent.type(field(), 'Quero ver os riscos e as entregas{Enter}');
+    const card = await screen.findByRole('region', { name: 'Resultado do preparo do pedido' });
+    expect(within(card).getByText('Preciso de uma escolha')).toBeInTheDocument();
+    const options = within(card)
+      .getAllByRole('button')
+      .filter((button) => !/Fechar|Abrir/.test(button.textContent ?? ''));
+    expect(options.length).toBeGreaterThanOrEqual(2);
+
+    await userEvent.click(options[0]!);
+
+    await waitFor(() => expect(bootCalls(client)).toHaveLength(2));
+    expect(bootCalls(client)[1]![1]).toMatchObject({
+      projectId: 'p-1',
+      text: 'Quero ver os riscos e as entregas',
+      capabilityId: expect.any(String)
+    });
+  });
+
+  it('se o motor não responde ao Boot, o pedido segue para a tela como sempre seguiu', async () => {
+    hosted();
+    renderHome({
+      picker: withProject,
+      client: engine({
+        boot: () => {
+          throw new Error('motor fora');
+        }
+      })
+    });
+
+    await userEvent.type(field(), 'Como funciona a autenticação?{Enter}');
+
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/agentes'));
+    expect(screen.getByTestId('handoff')).toHaveTextContent('Como funciona a autenticação?');
+  });
+
+  it('"Analisar o projeto" roda o Project Boot e só abre a tela quando a pessoa pede', async () => {
+    hosted();
+    const client = engine({ boot: () => bootProject });
+    renderHome({ picker: withProject, client });
+    await userEvent.click(screen.getByRole('button', { name: /Abrir um projeto|Conectar meu primeiro projeto/ }));
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/configurar'));
+    await userEvent.click(screen.getByRole('button', { name: /Analisar o projeto/ }));
+
+    const card = await screen.findByRole('region', { name: 'Resultado do preparo do pedido' });
+    expect(within(card).getByText('Preparado')).toBeInTheDocument();
+    expect(bootCalls(client)[0]).toEqual(['boot.project', { projectId: 'p-1', source: 'home' }, expect.anything()]);
+  });
+
+  it('com um pedido em preparo o Continuar espera: um segundo Enter não cria outro Boot', async () => {
+    hosted();
+    const base = engine({ boot: () => bootAnswered });
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const client = {
+      ...base,
+      request: vi.fn(async (method: string, params: Record<string, unknown>, schema: never) => {
+        if (method === 'boot.start') await gate;
+        return base.request(method as never, params, schema);
+      })
+    } as unknown as EngineClient;
+    renderHome({ picker: withProject, client });
+
+    await userEvent.type(field(), 'Quais tecnologias o projeto usa?{Enter}');
+    await screen.findByRole('status');
+    expect(screen.getByRole('button', { name: 'Continuar' })).toBeDisabled();
+    await userEvent.keyboard('{Enter}');
+    release();
+
+    await screen.findByRole('region', { name: 'Resultado do preparo do pedido' });
+    expect(bootCalls(client)).toHaveLength(1);
+  });
+
+  it('se a escolha de uma opção falha, a tela diz que não deu certo em vez de sumir com o cartão', async () => {
+    hosted();
+    const client = engine({
+      boot: (_method, params) => {
+        if (params.capabilityId) throw new Error('motor fora');
+        return bootClarify;
+      }
+    });
+    renderHome({ picker: withProject, client });
+
+    await userEvent.type(field(), 'Quero ver os riscos e as entregas{Enter}');
+    const card = await screen.findByRole('region', { name: 'Resultado do preparo do pedido' });
+    const option = within(card)
+      .getAllByRole('button')
+      .find((button) => !/Fechar|Abrir/.test(button.textContent ?? ''))!;
+    await userEvent.click(option);
+
+    expect(await screen.findByText(/motor fora|não conseguiu preparar/i)).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Resultado do preparo do pedido' })).not.toBeInTheDocument();
+  });
+
+  it('o resultado do Boot não tem violações estruturais de acessibilidade', async () => {
+    hosted();
+    renderHome({ picker: withProject, client: engine({ boot: () => bootProject }) });
+    await userEvent.type(field(), 'Quais tecnologias o projeto usa?{Enter}');
+    await screen.findByRole('region', { name: 'Resultado do preparo do pedido' });
 
     await expectNoA11yViolations(document.body);
   });

@@ -1,0 +1,200 @@
+{
+  "boot": {
+    "id": "boot-000000000001",
+    "version": 7,
+    "mode": "request",
+    "origin": "ui",
+    "source": null,
+    "projectId": "p-000000000001",
+    "stableProjectId": null,
+    "state": "completed",
+    "autonomy": "preparation",
+    "request": "Configurar meu ambiente",
+    "hint": null,
+    "intent": {
+      "resolution": "resolved",
+      "capabilityId": "engineering.configure",
+      "source": "text",
+      "domain": "engineering",
+      "candidates": [
+        {
+          "capabilityId": "engineering.configure",
+          "score": 7,
+          "confidence": 0.64,
+          "matched": [
+            "configur* ambiente"
+          ]
+        }
+      ],
+      "question": null,
+      "objective": "Configurar meu ambiente"
+    },
+    "plan": {
+      "objective": "Configurar meu ambiente",
+      "domain": "engineering",
+      "capabilities": [
+        "engineering.configure"
+      ],
+      "operation": "internalChange",
+      "requiredLevel": "assisted",
+      "approvals": [
+        "Altera o projeto: a tela mostra o que muda e só grava o que você aprovar."
+      ],
+      "risks": [
+        "Operação de tipo \"alteração interna\": o Boot só prepara; a execução é da tela."
+      ],
+      "successCriteria": [
+        "A tela confere e pede a aprovação antes de qualquer alteração."
+      ],
+      "expectedResult": "Um plano de configuração para revisar; nada é gravado antes da aprovação."
+    },
+    "steps": [
+      {
+        "id": "project",
+        "kind": "check",
+        "title": "Conferir o projeto",
+        "capabilityId": null,
+        "method": null,
+        "dependsOn": [],
+        "operation": "read",
+        "status": "completed",
+        "startedAt": null,
+        "finishedAt": null,
+        "summary": "Projeto loja, autorizado neste computador.",
+        "evidence": [
+          "O Spock não tem usuário nem organização: o escopo é o projeto autorizado nesta máquina."
+        ],
+        "errorCode": null
+      },
+      {
+        "id": "context",
+        "kind": "context",
+        "title": "Reunir o contexto do projeto",
+        "capabilityId": null,
+        "method": null,
+        "dependsOn": [
+          "project"
+        ],
+        "operation": "read",
+        "status": "completed",
+        "startedAt": "2026-11-26T12:03:00+00:00",
+        "finishedAt": "2026-11-26T12:03:00+00:00",
+        "summary": "Contexto ctx-0000000000000000: 9 itens, 120 tokens.",
+        "evidence": [
+          "As conexões cloud não estão disponíveis nesta sessão do motor."
+        ],
+        "errorCode": null
+      },
+      {
+        "id": "permission",
+        "kind": "check",
+        "title": "Conferir disponibilidade e permissão",
+        "capabilityId": "engineering.configure",
+        "method": null,
+        "dependsOn": [
+          "context"
+        ],
+        "operation": "internalChange",
+        "status": "completed",
+        "startedAt": null,
+        "finishedAt": null,
+        "summary": "Disponível. Altera o projeto: a tela mostra o que muda e só grava o que você aprovar.",
+        "evidence": [
+          "Operação: alteração interna; nível mínimo 2."
+        ],
+        "errorCode": null
+      },
+      {
+        "id": "handoff:engineering.configure",
+        "kind": "handoff",
+        "title": "Abrir: Configurar o ambiente de engenharia",
+        "capabilityId": "engineering.configure",
+        "method": "harness.plan",
+        "dependsOn": [
+          "permission"
+        ],
+        "operation": "internalChange",
+        "status": "completed",
+        "startedAt": "2026-11-26T12:03:00+00:00",
+        "finishedAt": "2026-11-26T12:03:00+00:00",
+        "summary": "Pronto para abrir.",
+        "evidence": [],
+        "errorCode": null
+      }
+    ],
+    "checkpoints": [
+      {
+        "at": "2026-11-26T12:03:00+00:00",
+        "state": "created",
+        "stepId": null,
+        "note": "Pedido recebido."
+      },
+      {
+        "at": "2026-11-26T12:03:00+00:00",
+        "state": "interpreting",
+        "stepId": null,
+        "note": "Intenção: Resolved."
+      },
+      {
+        "at": "2026-11-26T12:03:00+00:00",
+        "state": "planned",
+        "stepId": null,
+        "note": "Plano com 4 passos."
+      },
+      {
+        "at": "2026-11-26T12:03:00+00:00",
+        "state": "executing",
+        "stepId": null,
+        "note": "Executando os passos."
+      },
+      {
+        "at": "2026-11-26T12:03:00+00:00",
+        "state": "executing",
+        "stepId": "context",
+        "note": "Reunir o contexto do projeto: completed."
+      },
+      {
+        "at": "2026-11-26T12:03:00+00:00",
+        "state": "executing",
+        "stepId": "handoff:engineering.configure",
+        "note": "Abrir: Configurar o ambiente de engenharia: completed."
+      },
+      {
+        "at": "2026-11-26T12:03:00+00:00",
+        "state": "completed",
+        "stepId": null,
+        "note": "Pronto para continuar em \"Configurar o ambiente de engenharia\"."
+      }
+    ],
+    "result": {
+      "outcome": "handoff",
+      "headline": "Pronto para continuar em \"Configurar o ambiente de engenharia\".",
+      "done": [
+        "Reconheci o pedido como \"Configurar o ambiente de engenharia\".",
+        "Conferi o projeto, a disponibilidade e a permissão."
+      ],
+      "consulted": [],
+      "changes": [],
+      "validations": [
+        "Nada foi alterado: o Boot só preparou o caminho."
+      ],
+      "problems": [
+        "As conexões cloud não estão disponíveis nesta sessão do motor."
+      ],
+      "pending": [
+        "Altera o projeto: a tela mostra o que muda e só grava o que você aprovar."
+      ],
+      "nextStep": "Abra \"Configurar o ambiente de engenharia\", revise o que muda e aprove.",
+      "route": "/configurar",
+      "routeLabel": "Abrir Configurar o ambiente de engenharia",
+      "alternatives": []
+    },
+    "contextVersion": "ctx-0000000000000000",
+    "recoversBootId": null,
+    "recoveredByBootId": null,
+    "createdAt": "2026-11-26T12:03:00+00:00",
+    "updatedAt": "2026-11-26T12:03:00+00:00",
+    "finishedAt": "2026-11-26T12:03:00+00:00",
+    "errorCode": null
+  }
+}
