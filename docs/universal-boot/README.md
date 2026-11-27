@@ -263,15 +263,27 @@ Implementado, validado e planejado são coisas diferentes; esta tabela não as m
 | Iniciar operações existentes | `Dispatch` pelo tratador da interface | `BootProtocolTests`: dez fluxos reais pelo protocolo; o Project Boot analisa um projeto .NET de verdade |
 | Histórico e resultado | `FileBootStore`, auditoria, retenção de 200 por escopo | Registro no disco; a auditoria não guarda o texto do pedido; `BootRetentionTests` |
 | Recuperar execução interrompida | `boot.resume` | `BootServiceTests`: não repete o que foi feito; detecta contexto que mudou |
-| Project Boot em projeto real | Sim | Projeto .NET de teste; projeto existente não é reanalisado |
+| Project Boot em projeto real | Sim, com o processo real do motor (não com o app Tauri) | Projeto .NET de teste; projeto existente não é reanalisado; `BootProcessTests` roda o Project Boot pelo stdin/stdout do motor e confere por impressão digital que nenhum arquivo do projeto mudou |
 | Funcionalidades originais seguem | Nenhum método existente mudou | Motor: 2.084 aprovados, 0 falhas, 28 ignorados (os de chave real). Interface: 1.135 aprovados. Com o Python 3.12 do PATH, 38 testes do runtime de IA falham por ambiente (o motor exige o 3.14, via `MARILIZ_PYTHON`); não são do Boot |
 | Sem duplicação | Reusa `ContextEngine`, tratadores, `IAuditLog`, `WorkspaceAuthorizer` | Revisão do código |
-| Testes automatizados | 61 no motor, mais os da interface | Ver abaixo |
+| Testes automatizados | 61 no motor em memória, 9 com o processo real do motor, mais os da interface | Ver abaixo |
 | Roadmap registrado | [ROADMAP](../ROADMAP.md) | — |
 
 Testes novos: `BootCatalogTests` (9), `BootIntentEvalTests` (8), `BootServiceTests` (24), `BootRetentionTests` (5), `BootProtocolTests` (7, incluindo
 as fixtures de contrato de `contracts/fixtures/boot/`), `BootSummariesTests` (8, cada resumo contra a fixture real do contrato), e na interface o contrato com o Zod, o cartão pelo Início (9) e o próprio cartão (2) e a
 conferência das três listas de métodos.
+
+`BootProcessTests` (9, em `runtime/tests/Mariliz.Runtime.IntegrationTests`) sobe o motor de verdade (`dotnet Mariliz.Runtime.dll`, NDJSON no
+stdin/stdout, `MARILIZ_DATA_DIR` temporária por teste) e prova o que os testes em memória não alcançam: o `engine.hello` anuncia os seis métodos e os
+300 s de `boot.start`, `boot.project` e `boot.resume`; a jornada completa (leitura, Project Boot, lista e detalhe iguais ao arquivo gravado, pedido
+ambíguo, destrutivo que só abre a tela sem chamada de infraestrutura, sem capacidade, autonomia 2 recusada, projeto não autorizado); o Project Boot
+não muda nenhum arquivo do projeto e grava o perfil só na pasta de dados; um registro `executing` deixado no disco vira `interrupted` ao subir (com o
+aviso no stderr), `boot.resume` refaz só os passos pendentes (a análise já feita não roda de novo), o original passa a ter `recoveredByBootId` e a
+segunda recuperação, ou a de um Boot sem plano, é recusada; a retenção na subida deixa 200 por escopo e preserva o interrompido não recuperado; as
+chaves das respostas reais têm o mesmo conjunto das fixtures de `contracts/fixtures/boot/`; o stdout só tem mensagens do protocolo, o motor sai com
+código 0 no `engine.shutdown` e não deixa processo filho. **Não prova**: a interface (Zod, cartão do Início), o host Rust (`protocol.rs`), o app Tauri
+aberto nem qualquer fluxo com modelo real. O registro do Boot interrompido é gravado pelo teste (o formato é o do motor, os campos são editados);
+não há queda real de processo no meio de um passo.
 
 **Nada disso rodou com modelo real**, e o Boot da fundação não usa modelo: o que depende de modelo (`engineering.request`,
 `management.assistant`, `ideas.idea_to_project`) só abre a tela. O Project Boot foi exercitado no teste com um projeto .NET
