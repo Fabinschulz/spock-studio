@@ -373,6 +373,18 @@ public sealed class BootServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Ao_terminar_um_Boot_o_historico_do_projeto_volta_ao_limite_e_o_novo_fica()
+    {
+        for (var i = 0; i < BootRetention.Keep + BootRetention.Slack + 5; i++)
+            _store.Save(new BootRecord { Id = BootIds.New(), ProjectId = _projectId, State = BootStates.Completed, CreatedAt = Now.AddDays(-30).AddMinutes(i), UpdatedAt = Now });
+
+        var boot = await Start("Quais tecnologias o projeto usa?");
+
+        Assert.Equal(BootRetention.Keep, _store.Count(_projectId));
+        Assert.NotNull(_store.Find(_projectId, boot.Id));
+    }
+
+    [Fact]
     public void Registro_de_projeto_nao_autorizado_nao_e_lido_nem_listado()
     {
         var other = Ids();
