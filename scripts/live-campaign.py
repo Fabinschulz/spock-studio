@@ -25,6 +25,9 @@ import subprocess
 import sys
 import tempfile
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -47,6 +50,41 @@ def parse_summary(text: str) -> dict[str, int] | None:
         return None
     total, failed, passed, skipped = (int(value) for value in found[-1])
     return {"total": total, "failed": failed, "passed": passed, "skipped": skipped}
+
+
+def key_format_problem(key: str) -> str | None:
+    """Uma chave com espaço, quebra de linha ou caractere fora do ASCII não cabe num cabeçalho HTTP e o transporte a recusa em silêncio."""
+    if not key:
+        return "vazia"
+    if not key.isascii() or not key.isprintable() or any(char.isspace() for char in key):
+        return f"tem espaço, quebra de linha ou caractere fora do ASCII (tamanho {len(key)})"
+    return None
+
+
+def preflight_request(provider: str, key: str, gateway: str | None) -> tuple[str, dict[str, str]]:
+    """A listagem de modelos é a chamada mais barata que prova que a chave é aceita; o mesmo cabeçalho que o transporte usa."""
+    base = (gateway or ("https://api.anthropic.com" if provider == "anthropic" else "https://api.openai.com")).rstrip("/")
+    if provider == "anthropic":
+        return f"{base}/v1/models", {"x-api-key": key, "anthropic-version": "2023-06-01"}
+    return f"{base}/v1/models", {"Authorization": f"Bearer {key}"}
+
+
+def preflight(provider: str, key: str, gateway: str | None) -> bool:
+    """Diz, antes de gastar uma rodada de 40 minutos, se a chave chega e é aceita. Nunca imprime a chave."""
+    problem = key_format_problem(key)
+    if problem:
+        print(f"  {provider}: chave inválida para cabeçalho: {problem}")
+        return False
+    url, headers = preflight_request(provider, key, gateway)
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=30) as response:
+            print(f"  {provider}: chave aceita (HTTP {response.status}) em {urllib.parse.urlsplit(url).netloc}")
+            return True
+    except urllib.error.HTTPError as ex:
+        print(f"  {provider}: o servidor respondeu HTTP {ex.code}; a chave não foi aceita ou o serviço está indisponível")
+    except (urllib.error.URLError, TimeoutError, OSError) as ex:
+        print(f"  {provider}: sem conexão com {urllib.parse.urlsplit(url).netloc}: {type(ex).__name__}")
+    return False
 
 
 def leaked(folder: Path, secrets: list[str]) -> list[Path]:
@@ -119,8 +157,16 @@ def evals_phase(env: dict[str, str], out: Path, retries: int, baseline: bool) ->
                 {**env, "MARILIZ_LIVE_EVAL_OUT": str(retry_folder), "MARILIZ_LIVE_EVAL_CASES": ",".join(redo)}, out)
             results.append(retry)
             retry_file = retry_folder / f"management-eval-{provider}.json"
-            if retry_file.exists():
-                management.main(["merge", str(file), str(retry_file)])
+            if not retry_file.exists():
+                break
+            fresh = json.loads(retry_file.read_text(encoding="utf-8"))
+            merged, replaced = management.merge_acks(json.loads(file.read_text(encoding="utf-8")), fresh)
+            file.write_text(json.dumps(merged, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            print(f"  trocados: {', '.join(replaced) or 'nenhum'}")
+            if not any(management.conclusive(fresh.get(case_id)) for case_id in redo):
+                # Nenhum caso melhorou: repetir não adianta (chave recusada, gateway fora do ar); o relatório mostra o que houve.
+                print("  sem progresso na retentativa: parando as retentativas deste provedor")
+                break
         print(f"\n  Pontuação de {provider}:")
         management.main(["score", str(file)])
         if baseline:
@@ -178,6 +224,14 @@ def main() -> int:
         env["MARILIZ_DEV_ANTHROPIC_MODEL"] = args.anthropic_model
     if args.openai_model:
         env["MARILIZ_DEV_OPENAI_MODEL"] = args.openai_model
+
+    print("Pré-voo (a chave é testada contra o servidor antes de qualquer rodada):")
+    checked = {provider: preflight(provider, key, args.gateway) for provider, key in (("anthropic", anthropic), ("openai", openai))}
+    if not any(checked.values()):
+        print("Nenhuma chave foi aceita: nada foi executado.", file=sys.stderr)
+        return 2
+    if not all(checked.values()):
+        print("Atenção: só os provedores aceitos no pré-voo terão resultado útil.")
 
     out = args.out or Path(tempfile.mkdtemp(prefix="spock-campanha-"))
     out.mkdir(parents=True, exist_ok=True)

@@ -23,6 +23,24 @@ class SummaryTests(unittest.TestCase):
         self.assertIsNone(campaign.parse_summary("nada"))
 
 
+class KeyTests(unittest.TestCase):
+    def test_chave_que_nao_cabe_num_cabecalho_e_recusada_sem_ser_impressa(self) -> None:
+        self.assertIsNone(campaign.key_format_problem("chave-falsa-de-teste-0000"))
+        for bad in ("", "tem espaco", "quebra\nde linha", "com\ttab", "acentuação-ç", "fim\r"):
+            with self.subTest(bad=bad):
+                problem = campaign.key_format_problem(bad)
+                self.assertIsNotNone(problem)
+                if bad:
+                    self.assertNotIn(bad, problem or "")
+
+    def test_o_pre_voo_usa_o_mesmo_cabecalho_do_transporte(self) -> None:
+        url, headers = campaign.preflight_request("anthropic", "K", "https://gw.exemplo/")
+        self.assertEqual((url, headers["x-api-key"]), ("https://gw.exemplo/v1/models", "K"))
+        url, headers = campaign.preflight_request("openai", "K", None)
+        self.assertEqual((url, headers["Authorization"]), ("https://api.openai.com/v1/models", "Bearer K"))
+        self.assertEqual(campaign.preflight_request("anthropic", "K", None)[0], "https://api.anthropic.com/v1/models")
+
+
 class LeakTests(unittest.TestCase):
     def test_acha_o_arquivo_em_que_o_segredo_aparece_e_ignora_segredo_vazio(self) -> None:
         with tempfile.TemporaryDirectory() as root:
