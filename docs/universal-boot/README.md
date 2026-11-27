@@ -454,3 +454,5 @@ fora do alinhamento e jargão nas mensagens; todos corrigidos. **Não provou** m
   chamada na auditoria (§3.8). Falta uma IDE de verdade chamar a ferramenta.
 - **BD-4.** Quando existir identidade, o registro passa a guardar a pessoa; a auditoria precisa então de política de
   retenção.
+
+O que falta validar de cada item, com a dependência e o critério de aceite, está em [ROADMAP §7.1](../ROADMAP.md) (BP-01 a BP-18).
