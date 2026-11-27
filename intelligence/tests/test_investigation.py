@@ -276,10 +276,11 @@ class InvestigationTests(unittest.TestCase):
         self.assertEqual(len(fake.calls), 2)
 
     def test_o_orcamento_de_tokens_encerra_o_laco_e_a_conclusao_cai_nas_regras(self) -> None:
-        # Cada chamada reserva 1200 de saída; com 2000 de teto, depois da primeira (900 gastos) não cabe outra rodada nem a conclusão.
+        # Cada chamada reserva 1200 de saída mais a entrada estimada: com 2400 de teto a primeira cabe com folga para o prompt crescer,
+        # e depois dela (900 gastos) não cabe outra rodada nem a conclusão.
         fake = FakeModel(_hypotheses([("H", ["flow.throughput"])], needs=["riscos"]), input_tokens=800, output_tokens=100)
 
-        _events, ack = _go(_payload(maxTokens=2000), fake)
+        _events, ack = _go(_payload(maxTokens=2400), fake)
 
         self.assertEqual(ack["rounds"], 1)
         decide = [step for step in ack["path"] if step["id"] == "decide"][-1]
@@ -620,6 +621,28 @@ class FactsTests(unittest.TestCase):
     def test_fact_e_imutavel(self) -> None:
         with self.assertRaises(AttributeError):
             Fact("a", "g", "t").id = "b"  # type: ignore[misc]
+
+
+class PromptRulesTests(unittest.TestCase):
+    """As regras que a rodada real com modelo de topo mostrou serem necessárias não podem sumir do prompt sem ninguém perceber."""
+
+    def test_a_conclusao_proibe_conta_nova_manda_citar_today_e_manda_parar_na_lacuna(self) -> None:
+        from agents import investigation as agent
+
+        text = agent._CONCLUSION_TASK  # noqa: SLF001
+        for rule in ("Não faça conta nova", "'today'", "Não invente limite", "pare ali", "encerra aquele assunto"):
+            with self.subTest(rule=rule):
+                self.assertIn(rule, text)
+
+    def test_as_hipoteses_nao_propoem_causa_para_o_que_nao_e_calculado(self) -> None:
+        from agents import investigation as agent
+
+        self.assertIn("não é calculado", agent._HYPOTHESES_TASK)  # noqa: SLF001
+
+    def test_a_versao_do_agente_acompanha_o_prompt(self) -> None:
+        from agents import investigation as agent
+
+        self.assertEqual(agent.AGENT_VERSION, "2")
 
 
 if __name__ == "__main__":
