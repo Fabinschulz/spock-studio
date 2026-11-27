@@ -318,7 +318,9 @@ Implementado, validado e planejado são coisas diferentes; esta tabela não as m
 
 Testes novos: `BootCatalogTests` (9), `BootIntentEvalTests` (8), `BootServiceTests` (26), `BootParametersTests` (6), `BootRetentionTests` (5), `BootProtocolTests` (9, incluindo
 as fixtures de contrato de `contracts/fixtures/boot/`), `BootSummariesTests` (9, cada resumo contra a fixture real do contrato), e na interface o contrato com o Zod, o cartão pelo Início (9) e o próprio cartão (2) e a
-conferência das três listas de métodos.
+conferência das três listas de métodos. Do segundo estágio (2026-11-27): `ModelIntentStageTests`, `BootModelStageTests` e
+`BootIntentModelEvalTests`, 60 testes ao todo, dois deles ao vivo (pulam sem chave). Suítes depois dele: motor 2.162
+aprovados, 0 falhas, 30 ignorados (os de chave real e os de pacote); processo real do motor 21; interface 1.149.
 
 `BootProcessTests` (9, em `runtime/tests/Mariliz.Runtime.IntegrationTests`) sobe o motor de verdade (`dotnet Mariliz.Runtime.dll`, NDJSON no
 stdin/stdout, `MARILIZ_DATA_DIR` temporária por teste) e prova o que os testes em memória não alcançam: o `engine.hello` anuncia os seis métodos e os
