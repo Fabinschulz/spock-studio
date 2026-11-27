@@ -43,7 +43,7 @@
     {
       "id": "p1.flow.issues.throughput",
       "group": "indicadores",
-      "text": "Issues entregues por semana, da mais antiga para a mais recente: 2, 2, 2, 2, 2, 2, 2, 2; total 16, média 2 por semana. Itens novos por semana: 2, 2, 2, 3, 2, 2, 2, 3."
+      "text": "Issues entregues por semana nas últimas 8 semanas, da mais antiga para a mais recente: 2, 2, 2, 2, 2, 2, 2, 2; total 16, média 2 por semana. Itens novos por semana: 2, 2, 2, 3, 2, 2, 2, 3."
     },
     {
       "id": "p1.flow.issues.leadtime",
@@ -113,7 +113,7 @@
     {
       "id": "p2.flow.issues.throughput",
       "group": "indicadores",
-      "text": "Issues entregues por semana, da mais antiga para a mais recente: 0, 0, 0, 0, 0, 0, 3, 0; total 3, média 0.4 por semana. Itens novos por semana: 0, 0, 1, 0, 0, 3, 0, 0."
+      "text": "Issues entregues por semana nas últimas 8 semanas, da mais antiga para a mais recente: 0, 0, 0, 0, 0, 0, 3, 0; total 3, média 0.4 por semana. Itens novos por semana: 0, 0, 1, 0, 0, 3, 0, 0."
     },
     {
       "id": "p2.flow.issues.leadtime",

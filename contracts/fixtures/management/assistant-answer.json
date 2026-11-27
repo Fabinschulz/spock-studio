@@ -42,7 +42,7 @@
     {
       "id": "flow.issues.throughput",
       "group": "indicadores",
-      "text": "Issues entregues por semana, da mais antiga para a mais recente: 2, 2, 2, 2, 2, 2, 2, 2; total 16, média 2 por semana. Itens novos por semana: 2, 2, 2, 3, 2, 2, 2, 3."
+      "text": "Issues entregues por semana nas últimas 8 semanas, da mais antiga para a mais recente: 2, 2, 2, 2, 2, 2, 2, 2; total 16, média 2 por semana. Itens novos por semana: 2, 2, 2, 3, 2, 2, 2, 3."
     },
     {
       "id": "flow.issues.overdue",

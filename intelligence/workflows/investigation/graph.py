@@ -55,6 +55,7 @@ class State(TypedDict, total=False):
     limitations: list[dict]
     failure: str
     stopped: str
+    answerable: bool | None
     valid: bool
     tokens: int
     model_calls: int
@@ -180,6 +181,7 @@ def _initial(request: InvestigationRequest) -> dict:
         "rejected": [],
         "limitations": [],
         "failure": "",
+        "answerable": None,
         "valid": False,
         "answer": None,
         "tokens": 0,

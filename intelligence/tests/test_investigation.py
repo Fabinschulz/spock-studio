@@ -63,12 +63,15 @@ def _go(payload: dict, fake: FakeModel | None = None) -> tuple[list[dict], dict]
     return items[:-1], items[-1]
 
 
-def _hypotheses(hypotheses: list[tuple[str, list[str]]], needs: list[str] | None = None) -> dict:
-    return {
+def _hypotheses(hypotheses: list[tuple[str, list[str]]], needs: list[str] | None = None, answerable: object = None) -> dict:
+    document = {
         "schema": "management.hypotheses.v1",
         "hypotheses": [{"text": text, "evidence": ids} for text, ids in hypotheses],
         "needs": needs or [],
     }
+    if answerable is not None:
+        document["answerable"] = answerable
+    return document
 
 
 def _conclusion(**overrides) -> dict:
@@ -727,7 +730,74 @@ class PromptRulesTests(unittest.TestCase):
     def test_a_versao_do_agente_acompanha_o_prompt(self) -> None:
         from agents import investigation as agent
 
-        self.assertEqual(agent.AGENT_VERSION, "3")
+        self.assertEqual(agent.AGENT_VERSION, "4")
+
+    def test_as_hipoteses_pedem_o_juizo_de_answerable_e_dizem_quando_e_false(self) -> None:
+        from agents import investigation as agent
+
+        text = agent._HYPOTHESES_TASK  # noqa: SLF001
+        self.assertIn('"answerable":true', text)
+        self.assertIn("false só quando nenhum fato trata dele", text)
+
+
+class AbstentionTests(unittest.TestCase):
+    """Sem o assunto nos fatos o motor garante a abstenção; com o juízo ausente ou verdadeiro, a resposta do modelo fica como veio."""
+
+    BIG = _conclusion(
+        calculations=[{"text": "A média é de 3 por semana.", "evidence": ["flow.throughput"]}],
+        recommendations=[{"text": "Reduzir os 9 itens em andamento.", "evidence": ["flow.wip"]}],
+    )
+
+    def _run(self, answerable: object, conclusion: dict | None = None) -> tuple[dict, FakeModel]:
+        fake = FakeModel(_hypotheses([("H", ["flow.throughput"])], answerable=answerable), conclusion or self.BIG)
+        _events, ack = _go(_payload(), fake)
+        return ack, fake
+
+    def test_answerable_false_zera_calculo_inferencia_e_recomendacao_e_pede_so_observed_e_unavailable(self) -> None:
+        ack, fake = self._run(False)
+
+        for section in ("calculations", "inferences", "recommendations"):
+            self.assertEqual(ack["answer"][section], [], section)
+        self.assertTrue(ack["answer"]["observed"])
+        self.assertTrue(ack["answer"]["unavailable"])
+        self.assertIn("NÃO trazem o assunto", fake.calls[-1]["messages"][0]["content"])
+        self.assertIn("só o que mostram e o que falta", [step for step in ack["path"] if step["id"] == "conclude"][-1]["detail"])
+
+    def test_answerable_false_com_unavailable_vazio_ganha_a_lacuna_padrao(self) -> None:
+        ack, _fake = self._run(False, _conclusion(unavailable=[]))
+
+        self.assertEqual(ack["answer"]["unavailable"], [{"text": "Os fatos reunidos não trazem o que a pergunta pede."}])
+
+    def test_answerable_true_ou_ausente_deixa_a_resposta_do_modelo_como_veio(self) -> None:
+        for answerable in (True, None, "talvez", 1):
+            with self.subTest(answerable=answerable):
+                ack, fake = self._run(answerable)
+
+                self.assertTrue(ack["answer"]["calculations"])
+                self.assertTrue(ack["answer"]["recommendations"])
+                self.assertNotIn("NÃO trazem o assunto", fake.calls[-1]["messages"][0]["content"])
+
+    def test_o_ultimo_juizo_vale_uma_rodada_com_mais_fatos_pode_mudar_a_resposta(self) -> None:
+        fake = FakeModel(
+            _hypotheses([("H", ["flow.throughput"])], needs=["riscos"], answerable=False),
+            _hypotheses([("H2", ["risk.blocked"])], answerable=True),
+            self.BIG,
+        )
+
+        _events, ack = _go(_payload(), fake)
+
+        self.assertTrue(ack["answer"]["recommendations"])
+        self.assertNotIn("NÃO trazem o assunto", fake.calls[-1]["messages"][0]["content"])
+
+    def test_a_hipotese_aceita_answerable_so_booleano(self) -> None:
+        from contracts.investigation import hypotheses_from_model
+
+        known = {"flow.throughput"}
+        base = {"hypotheses": [{"text": "H", "evidence": ["flow.throughput"]}], "needs": []}
+        self.assertIs(hypotheses_from_model({**base, "answerable": False}, known, set())["answerable"], False)
+        self.assertIs(hypotheses_from_model({**base, "answerable": True}, known, set())["answerable"], True)
+        self.assertIsNone(hypotheses_from_model(base, known, set())["answerable"])
+        self.assertIsNone(hypotheses_from_model({**base, "answerable": "false"}, known, set())["answerable"])
 
 
 class OutputCapTests(unittest.TestCase):

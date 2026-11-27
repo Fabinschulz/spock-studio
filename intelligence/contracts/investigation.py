@@ -205,7 +205,15 @@ def hypotheses_from_model(document: dict, known: set[str], groups: set[str], can
     if not isinstance(needs, list):
         raise Rejected("'needs' precisa ser uma lista de nomes de grupos de fatos.")
     wanted = [name for name in dict.fromkeys(needs) if isinstance(name, str) and name in groups][:MAX_NEEDS]
-    return {"schema": HYPOTHESES_SCHEMA, "hypotheses": hypotheses, "needs": wanted, "searches": _searches(document.get("searches"), can_search, searched)}
+    # Um campo ausente ou fora da forma não recusa a resposta: sem o juízo do modelo, o motor não força a abstenção (None).
+    answerable = document.get("answerable")
+    return {
+        "schema": HYPOTHESES_SCHEMA,
+        "hypotheses": hypotheses,
+        "needs": wanted,
+        "searches": _searches(document.get("searches"), can_search, searched),
+        "answerable": answerable if isinstance(answerable, bool) else None,
+    }
 
 
 def _searches(value: object, can_search: bool, searched: tuple[str, ...]) -> list[str]:
