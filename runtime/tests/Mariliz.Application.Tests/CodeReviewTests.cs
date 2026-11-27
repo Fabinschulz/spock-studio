@@ -195,6 +195,20 @@ public sealed class CodeReviewTests : IDisposable
     }
 
     [Fact]
+    public async Task Credencial_em_arquivo_de_teste_e_so_recomendacao_e_nao_pesa_no_veredito()
+    {
+        _project.Write("tests/FixtureTests.cs", $"class FixtureTests {{ const string K = \"{FakeToken}\"; }}\n");
+
+        var review = await _service.ReviewWorkingTreeAsync(_projectId, CancellationToken.None);
+
+        var finding = Assert.Single(review.Findings, item => item.RuleId == ReviewRules.SecretGeneric);
+        Assert.Equal((QualitySeverities.Informational, "tests/FixtureTests.cs"), (finding.Severity, finding.Path));
+        Assert.Equal(ReviewVerdicts.Approved, review.Verdict);
+        Assert.Equal(1, review.Counts.Recommendations);
+        Assert.DoesNotContain(FakeToken, System.Text.Json.JsonSerializer.Serialize(review), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Arquivo_gerado_e_binario_ficam_na_lista_mas_nao_sao_analisados()
     {
         _project.Write("obj/Debug/x.cs", $"var t = \"{FakeToken}\";\n");
@@ -330,6 +344,63 @@ public sealed class CodeReviewTests : IDisposable
         Assert.Equal("REVIEW_NOT_FOUND", Assert.Throws<EngineException>(() => _service.Detail(_projectId, "rev-000000000000")).Code);
         Assert.Equal("REVIEW_NOT_FOUND", Assert.Throws<EngineException>(() => _service.Detail(_projectId, "../x")).Code);
         Assert.Contains(_audit.Entries, entry => entry.Action == AuditActions.QualityReviewed);
+    }
+
+    private void WriteFrontendWithCrossImport()
+    {
+        _project.Write("frontend/package.json", "{\"dependencies\":{\"next\":\"^16.0.0\",\"react\":\"^19.0.0\"}}");
+        _project.Write("frontend/eslint.config.mjs", "export default [{ rules: { 'no-restricted-imports': ['error', { patterns: [] }] } }];\n");
+        _project.Write("frontend/src/features/candidaturas/service/index.ts", "export const useApply = () => null;\n");
+        _project.Write("frontend/src/features/candidaturas/status-badge.tsx", "export const StatusBadge = () => null;\n");
+        _project.Write("frontend/src/features/recrutamento/candidatos/card.tsx", "import { StatusBadge } from '@/features/candidaturas/status-badge';\nexport const Card = () => StatusBadge;\n");
+    }
+
+    [Fact]
+    public async Task Achado_de_arquitetura_de_uma_importacao_que_ja_existia_e_so_recomendacao()
+    {
+        WriteFrontendWithCrossImport();
+        Commit("front");
+        _project.Write("frontend/src/features/recrutamento/candidatos/card.tsx",
+            "import { StatusBadge } from '@/features/candidaturas/status-badge';\nexport const Card = () => StatusBadge;\nexport const outra = 1;\n");
+
+        var review = await _service.ReviewWorkingTreeAsync(_projectId, CancellationToken.None);
+
+        var finding = Assert.Single(review.Findings, item => item.RuleId == ReviewRules.Architecture);
+        Assert.Equal((QualitySeverities.Informational, false), (finding.Severity, finding.OnChangedLines));
+        Assert.Contains("já existia", finding.ActualBehavior, StringComparison.Ordinal);
+        Assert.Equal(ReviewVerdicts.Approved, review.Verdict);
+    }
+
+    [Fact]
+    public async Task Achado_de_arquitetura_de_uma_importacao_acrescentada_pela_alteracao_e_do_diff()
+    {
+        WriteFrontendWithCrossImport();
+        Commit("front");
+        _project.Write("frontend/src/features/recrutamento/candidatos/card.tsx",
+            "import { StatusBadge } from '@/features/candidaturas/status-badge';\nimport { Detail } from '@/features/candidaturas/detail/card';\nexport const Card = () => StatusBadge;\n");
+
+        var review = await _service.ReviewWorkingTreeAsync(_projectId, CancellationToken.None);
+
+        var added = review.Findings.Where(item => item.RuleId == ReviewRules.Architecture && item.OnChangedLines).ToList();
+        Assert.All(added, item => Assert.Equal((QualitySeverities.Medium, 2), (item.Severity, item.StartLine)));
+        Assert.NotEmpty(added);
+        Assert.Contains(review.Findings, item => item.RuleId == ReviewRules.Architecture && item.StartLine is null && item.Severity == QualitySeverities.Informational);
+    }
+
+    [Fact]
+    public async Task O_simbolo_so_aparece_quando_parece_a_assinatura_de_uma_funcao()
+    {
+        var body = string.Concat(Enumerable.Range(1, 6).Select(i => $"  const v{i} = {i};\n"));
+        _project.Write("src/total.js", $"function total(items) {{\n{body}  return 1;\n}}\n");
+        _project.Write("src/Loja.cs", $"namespace Loja;\n\nclass A\n{{\n{string.Concat(Enumerable.Range(1, 6).Select(i => $"    int v{i};\n"))}    int fim;\n}}\n");
+        Commit("base");
+        _project.Write("src/total.js", $"function total(items) {{\n{body}  try {{ go(); }} catch (e) {{}}\n  return 1;\n}}\n");
+        _project.Write("src/Loja.cs", $"namespace Loja;\n\nclass A\n{{\n{string.Concat(Enumerable.Range(1, 6).Select(i => $"    int v{i};\n"))}    void M() {{ try {{ }} catch {{ }} }}\n}}\n");
+
+        var review = await _service.ReviewWorkingTreeAsync(_projectId, CancellationToken.None);
+
+        Assert.Equal("function total(items) {", review.Findings.Single(item => item.Path == "src/total.js" && item.RuleId == ReviewRules.EmptyCatch).Evidence.Symbol);
+        Assert.Null(review.Findings.Single(item => item.Path == "src/Loja.cs" && item.RuleId == ReviewRules.EmptyCatch).Evidence.Symbol);
     }
 
     [Fact]

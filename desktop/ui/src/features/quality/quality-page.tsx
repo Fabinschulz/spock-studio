@@ -63,6 +63,8 @@ function ProjectQuality({ api, project }: { api: QualityApi; project: SelectedPr
   const execute = useCallback(
     async (what: string, start: () => Promise<Review>) => {
       setRun({ status: 'running', what });
+      // O relatório anterior sai da tela: depois de um erro, ele pareceria o resultado deste pedido.
+      setReview(null);
       try {
         setReview(await start());
         setRun({ status: 'idle' });
@@ -77,6 +79,7 @@ function ProjectQuality({ api, project }: { api: QualityApi; project: SelectedPr
   const open = useCallback(
     async (id: string) => {
       setRun({ status: 'running', what: 'Abrindo a revisão…' });
+      setReview(null);
       try {
         setReview(await api.detail(project.projectId, id));
         setRun({ status: 'idle' });
@@ -185,11 +188,15 @@ function ReviewReport({ review }: { review: Review }) {
   const toCheck = review.findings.filter((f) => f.severity !== 'informational' && f.confidence !== 'confirmed');
   const recommendations = review.findings.filter((f) => f.severity === 'informational');
   const verdict = VERDICT[review.verdict];
+  // O resumo do motor começa pelo veredito ("Reprovada: ..."), que já é o título do aviso.
+  const reason = review.summary.startsWith(`${verdict.label}: `)
+    ? review.summary.slice(verdict.label.length + 2)
+    : review.summary;
 
   return (
     <>
       <InlineNotice tone={verdict.tone === 'neutral' ? 'info' : verdict.tone} title={verdict.label}>
-        {review.summary}
+        {reason}
       </InlineNotice>
       <p className={styles.note}>
         {review.mode === 'branch'
@@ -254,7 +261,7 @@ function ReviewReport({ review }: { review: Review }) {
           {review.files.map((file) => (
             <li key={`${file.status}:${file.path}`}>
               <span className={styles.path}>{file.path}</span>
-              {` — ${file.status}`}
+              {`: ${file.status}`}
               {file.analyzed
                 ? `, +${file.added} −${file.removed}`
                 : `, não analisado (${SKIPPED[file.skippedReason ?? ''] ?? 'sem leitura'})`}

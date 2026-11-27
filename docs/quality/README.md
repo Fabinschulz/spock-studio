@@ -20,7 +20,7 @@ nenhum arquivo do projeto analisado.
 | Camada | Onde | O que faz |
 | --- | --- | --- |
 | Leitor de alterações | `Quality/Git/GitChangeReader.cs` | Só comandos de leitura do git, sem shell, sem checkout, reset, stash, commit nem troca de branch, sem driver de diff nem conversão de texto do repositório, sem o monitor de arquivos e sem travar o índice. Lê o diff contra `HEAD` (índice e pasta de trabalho juntos), os arquivos novos, os conflitos, e a diferença `base...head` de uma branch. A base é sempre explícita. |
-| Parser e classificação | `Quality/Git/UnifiedDiffParser.cs`, `FileClassifier.cs` | Linhas por hunk com a numeração nova, o símbolo mais próximo que o git mostra, renomeados, apagados, binários. Gerado, de terceiros, arquivo de bloqueio e alteração enorme ficam na lista mas não são lidos linha a linha. |
+| Parser e classificação | `Quality/Git/UnifiedDiffParser.cs`, `FileClassifier.cs` | Linhas por hunk com a numeração nova, o símbolo que o git mostra (o achado só o guarda quando parece a assinatura de uma função, porque o palpite do git erra com frequência), renomeados, apagados, binários. Gerado, de terceiros, arquivo de bloqueio e alteração enorme ficam na lista mas não são lidos linha a linha. |
 | Regras | `Quality/ReviewRules.cs` | 15 regras `QR-*`, cada uma com categoria, gravidade, confiança, juiz, o esperado e a correção. É o embrião do modelo de regras da Q4. |
 | Detectores | `Quality/ChangeDetectors.cs` | Só as linhas adicionadas e a lista de arquivos. Segredos (o mesmo detector do resto do motor), arquivo sensível, conflito de merge, erro engolido, `async void`, certificado desligado, SQL concatenado e execução dinâmica (hipóteses), teste apagado, removido em saldo ou desligado, dependência sem arquivo de bloqueio, arquivo do Harness alterado. |
 | Arquitetura | `ArchitectureAnalyzer` (existente) | Os achados que tocam arquivos alterados entram como heurística: a análise lê o projeto inteiro e não separa o que existia antes. |
@@ -89,9 +89,34 @@ pedido "Revise minhas alterações antes do commit" em nível 0, reconheceu e ex
 código (caso `lacuna-literal-de-regex-em-js` do gabarito, fora da meta e conferido para avisar quando for corrigido); um
 apóstrofo de linguagem que não abre texto (como o tempo de vida do Rust) esvazia o resto da linha e pode esconder um padrão.
 
-**Não provado:** a precisão dos detectores. Não há linha de base (a eval da seção 7 mede o conjunto atual, escrito por quem
-escreveu os detectores, e por isso só serve contra regressão, não como medida de qualidade). Também não foi vista no
-aplicativo aberto com um projeto real do dono.
+**Linha de base em alterações reais (2026-11-27).** A revisão rodou, uma alteração por vez (cada uma contra o commit pai),
+sobre os 80 commits mais recentes de dois repositórios reais (um de desktop em JS/TS e este mesmo), sem erro em nenhuma, e de
+novo sobre outros 80, reservados e lidos só depois dos ajustes. Os achados foram classificados primeiro por quem escreveu os
+detectores e depois conferidos pelo dono; a lista com os arquivos ficou fora do repositório.
+
+| | Antes da calibração | Depois da calibração, mesmas 80 | Reservadas, outras 80 |
+| --- | --- | --- | --- |
+| Reprovações | 5 de 80 (todas falsas) | 0 | 0 |
+| Achados que pesam no veredito | 65 | 2 | 4 |
+| Alterações com algum desses achados | 15 | 2 | 4 |
+
+O que a medição mostrou, e o que mudou por causa dela: credencial de exemplo em arquivo de teste ou de dados de exemplo
+(`fixtures/`, `datasets/`) reprovava, e agora é só recomendação (a credencial continua no relatório, sem pesar no veredito);
+`t.skip(...)` dentro do corpo de um teste, que é pular por falta de recurso do ambiente, contava como teste desligado (7 falsos
+positivos; agora só `it.skip`, `[Ignore]` e semelhantes); e achados de arquitetura do arquivo inteiro voltavam em toda alteração que o
+tocasse (50 de 65), então só valem como problema da alteração quando ela acrescentou a importação, e o resto virou recomendação.
+Uma segunda passada achou mais um caso, nas minhas próprias alterações: o gabarito de avaliação guarda uma chave de exemplo, e
+isso reprovava a alteração (a regra de pasta de dados de exemplo veio daí).
+
+**Conferência do dono** dos 9 achados distintos que sobravam antes de a credencial de teste virar recomendação: 5 eram
+credenciais de exemplo em teste (ruído), 2 são importações reais entre módulos (o achado está certo; no repositório de desktop a
+arquitetura estava sendo reorganizada) e 2 (saldo de casos de teste removidos) ainda não foram conferidos. Depois da
+calibração, o que pesa no veredito nas duas rodadas são essas importações novas e os saldos de testes removidos; dos primeiros,
+os 2 conferidos são úteis, e os saldos de testes seguem sem conferência.
+
+**Não provado:** o recall. Nenhum dos 160 commits tinha um defeito conhecido, então não há como dizer quanto a revisão deixa
+passar. A eval da seção 7 mede o conjunto escrito à mão e só serve contra regressão. O gate de aprovação continua sem meta até
+haver alterações com defeito comprovado e uma conferência da pessoa.
 
 ## 7. Eval
 

@@ -62,6 +62,16 @@ internal static partial class ChangeDetectors
             if (onLine.Key < 1 || onLine.Key > added.Count) continue;
             var line = added[onLine.Key - 1];
             var chosen = onLine.FirstOrDefault(secret => ProviderRules.Contains(secret.Rule)) ?? onLine.First();
+            // Em arquivo de teste a credencial costuma ser de exemplo: fica como recomendação, sem pesar no veredito. Medido em 160
+            // alterações reais, toda reprovação por segredo e todo o ruído que sobrou vinham de credencial de teste (o dono conferiu).
+            // O achado continua no relatório: uma credencial verdadeira esquecida num teste ainda aparece.
+            if (FileClassifier.IsTestPath(file.Path) || FileClassifier.IsFixturePath(file.Path))
+            {
+                drafts.Add(new(ReviewRules.SecretGeneric, file.Path, line.NewNumber, SecretScanner.RedactedLine, EvidenceRelations.AddedLine, SymbolOf(file, line),
+                    $"A linha adicionada, num arquivo de teste ou de dados de exemplo, casa com o padrão \"{chosen.Rule}\"; costuma ser uma credencial de exemplo. Confira que não é uma real. O valor não é mostrado.",
+                    "secret-scanner", QualitySeverities.Informational));
+                continue;
+            }
             drafts.Add(new(ProviderRules.Contains(chosen.Rule) ? ReviewRules.SecretProvider : ReviewRules.SecretGeneric, file.Path, line.NewNumber, SecretScanner.RedactedLine,
                 EvidenceRelations.AddedLine, SymbolOf(file, line), $"A linha adicionada casa com o padrão \"{chosen.Rule}\"; o valor não é mostrado.", "secret-scanner"));
         }
@@ -159,8 +169,10 @@ internal static partial class ChangeDetectors
     private static FindingDraft Draft(string ruleId, ChangedFile file, DiffLine line, string actual, string detector) =>
         new(ruleId, file.Path, line.NewNumber, Excerpt(line.Text), EvidenceRelations.AddedLine, SymbolOf(file, line), actual, detector);
 
+    // O git só chuta a declaração mais próxima por uma regra de texto (às vezes "namespace X;" para uma linha dentro de um método).
+    // O símbolo só vale quando parece a assinatura de um método ou função; do contrário é melhor não dizer nada.
     private static string? SymbolOf(ChangedFile file, DiffLine line) =>
-        file.Hunks.FirstOrDefault(hunk => hunk.Lines.Contains(line))?.Symbol;
+        file.Hunks.FirstOrDefault(hunk => hunk.Lines.Contains(line))?.Symbol is { } symbol && symbol.Contains('(') ? symbol : null;
 
     // Esvazia o que está entre aspas (", ' e `) numa linha, com barra de escape; as aspas ficam. Um texto que não fecha na linha vale até o fim dela.
     internal static string WithoutStringContents(string text)
@@ -229,7 +241,9 @@ internal static partial class ChangeDetectors
 
     private static Regex DynamicExecution(string language) => language == Language.Python ? DynamicExecutionPython() : DynamicExecutionScript();
 
-    [GeneratedRegex(@"Skip\s*=\s*""|\[Ignore\b|\.skip\s*\(|\b(xit|xdescribe|xtest)\s*\(|@Ignore\b|@Disabled\b|pytest\.mark\.skip|\bt\.Skip\(|\bit\.skip\b")]
+    // Só o que desliga um teste de ponta a ponta. `t.skip(...)` e `t.Skip(...)` dentro do corpo do teste são a pulada de execução
+    // (o ambiente não tem o recurso), e foram 7 falsos positivos em 80 alterações reais.
+    [GeneratedRegex(@"Skip\s*=\s*""|\[Ignore\b|\b(it|test|describe|suite|context|specify)\.skip\b|\b(xit|xdescribe|xtest)\s*\(|@Ignore\b|@Disabled\b|pytest\.mark\.skip")]
     private static partial Regex TestSkipped();
 
     [GeneratedRegex(@"^\s*(\[(Fact|Theory|Test|TestMethod|TestCase)\b|(it|test)(\.each\([^)]*\))?\s*\(|(async\s+)?def\s+test_|@Test\b|func\s+Test\w+\()")]
