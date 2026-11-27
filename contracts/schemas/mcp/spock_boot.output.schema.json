@@ -19,8 +19,10 @@
         "state",
         "autonomy",
         "request",
+        "requestRedacted",
         "hint",
         "intent",
+        "modelUsage",
         "plan",
         "steps",
         "checkpoints",
@@ -108,6 +110,10 @@
           ],
           "description": "O texto do pedido, devolvido como foi enviado; só serve para escolher uma capacidade."
         },
+        "requestRedacted": {
+          "type": "boolean",
+          "description": "Uma linha do pedido parecia um segredo e foi omitida antes de usar e de guardar o texto."
+        },
         "hint": {
           "type": [
             "string",
@@ -126,7 +132,8 @@
             "domain",
             "candidates",
             "question",
-            "objective"
+            "objective",
+            "modelStage"
           ],
           "properties": {
             "resolution": {
@@ -193,6 +200,38 @@
             },
             "objective": {
               "type": "string"
+            },
+            "modelStage": {
+              "type": "string",
+              "enum": [
+                "skipped",
+                "unavailable",
+                "failed",
+                "used"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "modelUsage": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "calls",
+            "inputTokens",
+            "outputTokens"
+          ],
+          "properties": {
+            "calls": {
+              "type": "integer"
+            },
+            "inputTokens": {
+              "type": "integer"
+            },
+            "outputTokens": {
+              "type": "integer"
             }
           },
           "additionalProperties": false

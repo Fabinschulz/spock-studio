@@ -47,7 +47,7 @@ public static class BootOutputSchema
 
     public static JsonObject Build()
     {
-        var intent = Nullable(Object(["resolution", "capabilityId", "source", "domain", "candidates", "question", "objective"], new JsonObject
+        var intent = Nullable(Object(["resolution", "capabilityId", "source", "domain", "candidates", "question", "objective", "modelStage"], new JsonObject
         {
             ["resolution"] = Enum("resolved", "needsClarification", "noMatch"),
             ["capabilityId"] = NullableText("A capacidade do catálogo que o pedido escolheu."),
@@ -61,7 +61,8 @@ public static class BootOutputSchema
                 ["matched"] = Strings()
             })),
             ["question"] = NullableText("A pergunta de esclarecimento, quando o pedido cabe em mais de uma capacidade."),
-            ["objective"] = Text()
+            ["objective"] = Text(),
+            ["modelStage"] = Enum(ModelStages.Skipped, ModelStages.Unavailable, ModelStages.Failed, ModelStages.Used)
         }));
 
         var plan = Nullable(Object(
@@ -127,7 +128,7 @@ public static class BootOutputSchema
             }));
 
         var boot = Object(
-            ["id", "version", "mode", "origin", "source", "projectId", "stableProjectId", "state", "autonomy", "request", "hint", "intent", "plan", "steps",
+            ["id", "version", "mode", "origin", "source", "projectId", "stableProjectId", "state", "autonomy", "request", "requestRedacted", "hint", "intent", "modelUsage", "plan", "steps",
                 "checkpoints", "result", "contextVersion", "recoversBootId", "recoveredByBootId", "createdAt", "updatedAt", "finishedAt", "errorCode"],
             new JsonObject
             {
@@ -142,8 +143,15 @@ public static class BootOutputSchema
                     BootStates.Completed, BootStates.Failed, BootStates.Cancelled, BootStates.Interrupted),
                 ["autonomy"] = Enum(Levels),
                 ["request"] = NullableText("O texto do pedido, devolvido como foi enviado; só serve para escolher uma capacidade."),
+                ["requestRedacted"] = new JsonObject { ["type"] = "boolean", ["description"] = "Uma linha do pedido parecia um segredo e foi omitida antes de usar e de guardar o texto." },
                 ["hint"] = NullableText(),
                 ["intent"] = intent,
+                ["modelUsage"] = Nullable(Object(["calls", "inputTokens", "outputTokens"], new JsonObject
+                {
+                    ["calls"] = Whole(),
+                    ["inputTokens"] = Whole(),
+                    ["outputTokens"] = Whole()
+                })),
                 ["plan"] = plan,
                 ["steps"] = List(step),
                 ["checkpoints"] = List(checkpoint),
