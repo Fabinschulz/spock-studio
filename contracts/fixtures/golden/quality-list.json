@@ -1,0 +1,29 @@
+{
+  "reviews": [
+    {
+      "id": "rev-000000000000",
+      "mode": "working_tree",
+      "branch": "main",
+      "base": null,
+      "head": null,
+      "createdAt": "2026-11-10T12:00:00+00:00",
+      "verdict": "rejected",
+      "summary": "Reprovada: 1 problema confirmado e grave: a entrega não deve seguir sem a correção. 2 arquivos analisados, 3 achados.",
+      "counts": {
+        "files": 3,
+        "filesAnalyzed": 2,
+        "findings": 3,
+        "confirmed": 1,
+        "needsCheck": 2,
+        "recommendations": 0,
+        "bySeverity": {
+          "critical": 1,
+          "high": 0,
+          "medium": 2,
+          "low": 0,
+          "informational": 0
+        }
+      }
+    }
+  ]
+}

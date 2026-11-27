@@ -72,6 +72,19 @@ public static class CapabilityCatalog
             [T("modernizar", 5), T("modernizacao", 5), T("atualizar versoes", 4), T("salto de versao", 5), T("legado", 4)],
             method: ProtocolMethods.ModernizationPlan),
 
+        // Qualidade da entrega: revisão do que mudou, só leitura
+        Direct("quality.review_changes", "Revisão das alterações locais", "Lê o que mudou no git (só leitura), procura defeitos com detectores determinísticos e deixa juízes com critérios escritos decidirem; o relatório fica só na pasta de dados do Spock.",
+            BootDomains.Engineering, ProtocolMethods.QualityReviewStart, "/qualidade", OperationClass.Analysis, CapabilityNeeds.Project,
+            "O relatório da revisão: veredito, achados com evidência, juízes e o que não pôde ser verificado.", ["Revisar as alterações antes do commit", "Saber se uma alteração tem defeitos"],
+            [T("revis* alteracoes", 9), T("revis* mudancas", 9), T("revis* diff", 8), T("code review", 8), T("revis* codigo", 8), T("revisao de codigo", 8), T("antes do commit", 6),
+             T("alteracoes locais", 7), T("working tree", 7), T("conferir alteracoes", 7), T("conferir mudancas", 7)],
+            preconditions: ["O projeto precisa ser um repositório git."], agents: ["code-reviewer", "verifier"]),
+        Handoff("quality.review_branch", "Revisão de uma branch", "Compara uma branch com uma referência base que você informa e revisa a diferença; só leitura.",
+            BootDomains.Engineering, [ProtocolMethods.QualityReviewStart], "/qualidade", OperationClass.Analysis, CapabilityNeeds.Project,
+            "O relatório da revisão da branch contra a base escolhida.", ["Revisar uma branch antes do merge"],
+            [T("revis* branch", 9), T("revis* ramo", 9), T("comparar branch", 8), T("diferenca entre branches", 8), T("revis* antes do merge", 8)],
+            method: ProtocolMethods.QualityReviewStart),
+
         // Padrões e governança
         Direct("standards.architecture", "Análise de arquitetura e padrões", "Camadas, dependências e aderência do projeto aos padrões de arquitetura.",
             BootDomains.Standards, ProtocolMethods.ProjectArchitecture, "/projeto/arquitetura", OperationClass.Analysis, CapabilityNeeds.Project,

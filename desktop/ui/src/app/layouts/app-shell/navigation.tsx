@@ -9,6 +9,7 @@ import {
   ChartBarIcon,
   ChartPieIcon,
   ChatIcon,
+  CheckCircleIcon,
   GlobeIcon,
   GridIcon,
   Home01Icon,
@@ -146,6 +147,14 @@ const ENGINEERING: NavArea = {
       icon: <ShieldAlertIcon fontSize="small" />,
       description: 'Procura segredos e riscos no projeto e propõe a correção.',
       to: pathTo('security')
+    },
+    {
+      id: 'quality',
+      label: 'Revisão de código',
+      keywords: 'code review alterações diff commit branch qualidade juízes',
+      icon: <CheckCircleIcon fontSize="small" />,
+      description: 'Revisa o que mudou no git, só leitura, com evidências e o que não pôde ser verificado.',
+      to: pathTo('quality')
     },
     // A infraestrutura é do projeto (os .tf dele, a nuvem dele), não do computador: fica com a Engenharia.
     {

@@ -19,6 +19,7 @@ using Mariliz.Application.Management.Assistant;
 using Mariliz.Application.Management.Investigation;
 using Mariliz.Application.Mcp;
 using Mariliz.Application.Models;
+using Mariliz.Application.Quality;
 using Mariliz.Application.Timeline;
 using Mariliz.Application.Workflows;
 using Mariliz.Application.Workspace;
@@ -78,7 +79,8 @@ public sealed class EngineSession
         IacGenerationService? iacGeneration = null,
         IacCostService? iacCosts = null,
         IacDriftScheduler? iacSchedules = null,
-        BootService? boot = null)
+        BootService? boot = null,
+        CodeReviewService? quality = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
@@ -111,7 +113,8 @@ public sealed class EngineSession
             terraform is null || iacOperations is null || iacState is null || iacGeneration is null ? null
                 : new IacRequestHandler(terraform, iacOperations, iacState, iacGeneration, iacCosts, iacSchedules),
             profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions, mcp),
-            boot is null ? null : new BootRequestHandler(boot)
+            boot is null ? null : new BootRequestHandler(boot),
+            quality is null ? null : new QualityRequestHandler(quality)
         ];
         var present = handlers.OfType<IRequestHandler>().ToArray();
         _routes = Routes(present);

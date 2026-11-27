@@ -57,6 +57,7 @@ export const routes: RouteObject[] = [
               { path: paths.agents, element: page(() => import('./routes/agents')) },
               { path: paths.idea, element: page(() => import('./routes/idea')) },
               { path: paths.security, element: page(() => import('./routes/security')) },
+              { path: paths.quality, element: page(() => import('./routes/quality')) },
               { path: paths.portfolio, element: page(() => import('./routes/portfolio')) },
               { path: paths.assistant, element: page(() => import('./routes/assistant')) },
               { path: paths.report, element: page(() => import('./routes/report')) },

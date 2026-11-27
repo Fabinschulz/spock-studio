@@ -134,6 +134,9 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "boot.list",
     "boot.detail",
     "boot.capabilities",
+    "quality.review.start",
+    "quality.review.list",
+    "quality.review.detail",
 ];
 
 pub mod error_code {

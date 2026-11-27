@@ -9,6 +9,7 @@ medição, com a data). O histórico mostra a tendência; o teste só diz se a m
 | Recuperação no próprio Spock | Recall@5, MRR e trechos de teste no topo | `datasets/spock-questions.json` | manual | não grava |
 | Referências da Organização | Recall@3, MRR e contaminação (trecho de outra stack), com e sem o filtro de stack | `datasets/references.json` sobre `datasets/reference-corpus.json` | `tests/test_reference_eval.py` (recall@3 ≥ 0,8 e contaminação 0) | `python intelligence/evaluations/references.py --record` |
 | Análise de arquitetura | Violações esperadas encontradas e falsos positivos, contra um gabarito | `datasets/architecture.json` | `ArchitectureEvaluationTests` (recall 1 e nenhum falso positivo) | `MARILIZ_RECORD_EVALS=1 dotnet test runtime/tests/Mariliz.Application.Tests --filter ArchitectureEvaluationTests` |
+| Revisão de código | Defeitos esperados encontrados e falsos positivos, pelo caminho inteiro (git, leitor, detectores, juízes), contra um gabarito escrito à mão; só impede regressão | `datasets/code-review.json` | `CodeReviewEvaluationTests` (recall 1 e nenhum falso positivo) | `MARILIZ_RECORD_EVALS=1 dotnet test runtime/tests/Mariliz.Application.Tests --filter CodeReviewEvaluationTests` |
 | Gestão | Fatos e agrupamentos dos relatórios gerenciais | `datasets/management.json` | `tests/test_management_eval.py` | não grava |
 
 O corpus de referências é gerado pelo motor a partir dos documentos `@reference/` que ele indexa. Mudou a pasta

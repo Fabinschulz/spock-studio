@@ -179,7 +179,7 @@ pedido em texto que terminou em "sem capacidade" (`noMatch`) ou em pergunta (`ne
 nunca chamam o modelo: ele **nunca rebaixa nem troca** uma intenção que o léxico resolveu.
 
 - *O que o modelo recebe.* Um prompt fixo e curto, a lista compacta do catálogo (id, nome e uma frase de cada capacidade,
-  cerca de 1.300 tokens com as 40 fichas) e o texto do pedido (até 2.000 caracteres) entre `<pedido>` e `</pedido>`, tratado
+  cerca de 1.300 tokens com as 42 fichas) e o texto do pedido (até 2.000 caracteres) entre `<pedido>` e `</pedido>`, tratado
   como dado. O texto passa antes pela redação de segredos do motor (`SecretScanner.RedactLines`, linha por linha) e perde os
   sinais `<` e `>` que fechariam o delimitador. Nada do projeto vai junto: nem nome, nem caminho, nem identificador. Por isso
   a política de contexto dos vínculos (que governa dado de projeto) não se aplica ao estágio, e a única porta é o provedor
@@ -355,7 +355,7 @@ Implementado, validado e planejado são coisas diferentes; esta tabela não as m
 | Critério de aceite | Implementado | Prova |
 | --- | --- | --- |
 | Identidade e ciclo de vida | `BootRecord`, estados, checkpoints, `version` | `BootServiceTests` (registro no disco, checkpoints, queda) |
-| Catálogo baseado no produto real | 40 fichas, cada método existe no protocolo e cada tela em `paths.ts` | `BootCatalogTests` (os dois conferem contra o código) |
+| Catálogo baseado no produto real | 42 fichas, cada método existe no protocolo e cada tela em `paths.ts` | `BootCatalogTests` (os dois conferem contra o código) |
 | Reconhecer intenções e domínios diferentes | `IntentRecognizer` | `BootIntentEvalTests`: 79/79 ajustado, 10/14 em frases novas |
 | Segundo estágio: modelo onde o léxico não resolve (BD-1) | `ModelIntentStage`, `IntentRecognizer.WithModel`, finalidade `boot`, auditoria `boot.intent_model` | Só com modelo dublê: `ModelIntentStageTests` (contrato estrito, prompt, redação, prazo, falhas), `BootModelStageTests` (quando chama, o que nunca decide, falha igual ao léxico, "ignore as regras" com `infrastructure.apply` vira tela com aprovação, id inventado vira `failed`), `BootIntentModelEvalTests` (os dois corpora pelo mesmo encanamento). **A qualidade com modelo real não foi medida** |
 | Recuperar contexto | `ContextEngine` no passo de contexto | `BootServiceTests`, `BootProtocolTests` |

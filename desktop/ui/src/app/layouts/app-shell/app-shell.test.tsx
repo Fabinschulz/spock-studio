@@ -117,6 +117,7 @@ describe('AppShell · áreas', () => {
       'Pedidos',
       'Conhecimento',
       'Segurança',
+      'Revisão de código',
       'Infraestrutura'
     ]);
     expect(within(panel).getByRole('link', { name: 'Visão geral' })).toHaveAttribute('aria-current', 'page');

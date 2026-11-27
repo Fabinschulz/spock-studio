@@ -1,0 +1,324 @@
+{
+  "schema": "code-review.eval.v1",
+  "note": "Gabarito escrito à mão por quem escreveu os detectores: serve contra regressão, não como medida de qualidade. {{TOKEN}} vira, na hora do teste, uma credencial falsa no formato de um provedor.",
+  "target": {
+    "recall": 1,
+    "falsePositives": 0
+  },
+  "cases": [
+    {
+      "id": "limpo-edicao-simples",
+      "base": {
+        "src/A.cs": "class A\n{\n    int x;\n}\n"
+      },
+      "change": {
+        "src/A.cs": "class A\n{\n    int x;\n    int y;\n}\n"
+      },
+      "expect": []
+    },
+    {
+      "id": "guarda-erro-tratado",
+      "change": {
+        "src/h.ts": "try { go(); } catch (e) { log(e); }\n"
+      },
+      "expect": []
+    },
+    {
+      "id": "guarda-manipulador-de-evento",
+      "change": {
+        "src/Form.cs": "class F\n{\n    async void OnClick(object sender, EventArgs e) { }\n}\n"
+      },
+      "expect": []
+    },
+    {
+      "id": "guarda-comentarios",
+      "change": {
+        "src/c.js": "// eval(x) e rejectUnauthorized: false são ruins\n/* new Function(a) */\n"
+      },
+      "expect": []
+    },
+    {
+      "id": "guarda-sql-sem-concatenacao",
+      "change": {
+        "src/q.cs": "var sql = \"SELECT Id FROM Users WHERE Id = @id\";\n"
+      },
+      "expect": []
+    },
+    {
+      "id": "guarda-modelo-de-env",
+      "change": {
+        ".env.example": "API_URL=http://localhost\n"
+      },
+      "expect": []
+    },
+    {
+      "id": "guarda-teste-acrescentado",
+      "base": {
+        "tests/ATests.cs": "[Fact]\npublic void A() { }\n"
+      },
+      "change": {
+        "tests/ATests.cs": "[Fact]\npublic void A() { }\n[Fact]\npublic void B() { }\n"
+      },
+      "expect": []
+    },
+    {
+      "id": "guarda-codigo-apagado",
+      "base": {
+        "src/old.cs": "class Old { }\n"
+      },
+      "delete": [
+        "src/old.cs"
+      ],
+      "expect": []
+    },
+    {
+      "id": "guarda-dependencia-com-bloqueio",
+      "base": {
+        "package.json": "{\n  \"dependencies\": {}\n}\n",
+        "pnpm-lock.yaml": "a\n"
+      },
+      "change": {
+        "package.json": "{\n  \"dependencies\": {\n    \"left-pad\": \"^1.3.0\"\n  }\n}\n",
+        "pnpm-lock.yaml": "b\n"
+      },
+      "expect": []
+    },
+    {
+      "id": "guarda-arquivo-gerado",
+      "change": {
+        "obj/x.cs": "class X { void M() { try { } catch { } } }\n"
+      },
+      "expect": []
+    },
+    {
+      "id": "guarda-except-tratado-em-python",
+      "change": {
+        "src/a.py": "try:\n    go()\nexcept ValueError as e:\n    log(e)\n"
+      },
+      "expect": []
+    },
+    {
+      "id": "guarda-padrao-dentro-de-texto",
+      "change": {
+        "src/t.cs": "var fonte = \"class E { void M() { try { } catch { } } }\";\n"
+      },
+      "expect": []
+    },
+    {
+      "id": "guarda-padrao-em-regex-e-template",
+      "change": {
+        "src/u.ts": "const s = `eval(x) e rejectUnauthorized: false`;\n"
+      },
+      "expect": []
+    },
+    {
+      "id": "lacuna-literal-de-regex-em-js",
+      "knownGap": "O detector não distingue um literal de expressão regular de código: /eval(/ é lido como chamada a eval.",
+      "change": {
+        "src/r.ts": "const r = /eval(/;\n"
+      },
+      "expect": []
+    },
+    {
+      "id": "segredo-de-provedor",
+      "change": {
+        "src/k.txt": "key={{TOKEN}}\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-SEC-001",
+          "path": "src/k.txt",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "id": "segredo-atribuido",
+      "change": {
+        "src/c.ts": "const password = \"hunter2hunter2\";\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-SEC-002",
+          "path": "src/c.ts",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "id": "arquivo-sensivel",
+      "change": {
+        ".env": "A=1\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-SEC-003",
+          "path": ".env"
+        }
+      ]
+    },
+    {
+      "id": "erro-engolido-csharp",
+      "change": {
+        "src/E.cs": "class E\n{\n    void M() { try { } catch { } }\n}\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-REL-001",
+          "path": "src/E.cs",
+          "line": 3
+        }
+      ]
+    },
+    {
+      "id": "erro-engolido-python",
+      "change": {
+        "src/e.py": "try:\n    go()\nexcept Exception: pass\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-REL-001",
+          "path": "src/e.py",
+          "line": 3
+        }
+      ]
+    },
+    {
+      "id": "async-void",
+      "change": {
+        "src/V.cs": "class V\n{\n    async void Go() { }\n}\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-REL-002",
+          "path": "src/V.cs",
+          "line": 3
+        }
+      ]
+    },
+    {
+      "id": "marcador-de-conflito",
+      "change": {
+        "src/M.cs": "class M\n{\n<<<<<<< HEAD\n}\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-BUG-001",
+          "path": "src/M.cs",
+          "line": 3
+        }
+      ]
+    },
+    {
+      "id": "certificado-desligado",
+      "change": {
+        "src/n.ts": "const agent = new https.Agent({ rejectUnauthorized: false });\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-SEC-004",
+          "path": "src/n.ts",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "id": "certificado-desligado-por-ambiente",
+      "change": {
+        "src/env.ts": "process.env.NODE_TLS_REJECT_UNAUTHORIZED = \"0\";\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-SEC-004",
+          "path": "src/env.ts",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "id": "sql-concatenado",
+      "change": {
+        "src/s.cs": "var q = \"SELECT * FROM Users WHERE Id = \" + id;\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-SEC-005",
+          "path": "src/s.cs",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "id": "execucao-dinamica",
+      "change": {
+        "src/d.js": "const v = eval(input);\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-SEC-006",
+          "path": "src/d.js",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "id": "teste-desligado",
+      "change": {
+        "tests/BTests.cs": "[Fact(Skip = \"x\")]\npublic void B() { }\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-REG-003",
+          "path": "tests/BTests.cs",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "id": "arquivo-de-teste-apagado",
+      "base": {
+        "tests/CTests.cs": "[Fact]\npublic void C() { }\n"
+      },
+      "delete": [
+        "tests/CTests.cs"
+      ],
+      "expect": [
+        {
+          "ruleId": "QR-REG-001",
+          "path": "tests/CTests.cs"
+        }
+      ]
+    },
+    {
+      "id": "casos-de-teste-removidos",
+      "base": {
+        "tests/DTests.cs": "[Fact]\npublic void D1() { }\n[Fact]\npublic void D2() { }\n"
+      },
+      "change": {
+        "tests/DTests.cs": "[Fact]\npublic void D1() { }\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-REG-002",
+          "path": "tests/DTests.cs"
+        }
+      ]
+    },
+    {
+      "id": "dependencia-sem-bloqueio",
+      "base": {
+        "package.json": "{\n  \"dependencies\": {}\n}\n"
+      },
+      "change": {
+        "package.json": "{\n  \"dependencies\": {\n    \"left-pad\": \"^1.3.0\"\n  }\n}\n"
+      },
+      "expect": [
+        {
+          "ruleId": "QR-CMP-001",
+          "path": "package.json",
+          "line": 3
+        }
+      ]
+    }
+  ]
+}

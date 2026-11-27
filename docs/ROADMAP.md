@@ -159,8 +159,8 @@ registrados; a seção 7.1 lista cada pendência com o que ela exige e como prov
 | Etapa | Situação | O que falta | Depende de |
 | --- | --- | --- | --- |
 | 0. Auditoria e arquitetura | Feita; o cartão do Início e a lista de Boots foram conferidos no aplicativo aberto | — | — |
-| 1. Fundação | Feita: registro, ciclo de vida, checkpoints, recuperação, catálogo de 40 fichas, reconhecimento, permissão, plano, Project Boot, Request Boot; na Home, lista dos últimos Boots do projeto com Retomar e detalhe, conferidos no aplicativo aberto com um projeto temporário | BP-05 (projeto real), BP-06 (queda real) | — |
-| 2. Capacidades do produto | Parcial: um fluxo real por domínio, só leitura e análise executam; toda capacidade direta tem resumo próprio (conferido contra a fixture do contrato) e há 40 fichas, com histórico de riscos, revisões do Harness, estado, geração e drift de infraestrutura; período e quantidade tirados do pedido (indicadores, relatório, linha do tempo, auditoria, execuções); `spock_boot` no MCP (BD-3, só leitura, nível 0, 13 leituras do projeto; falta uma IDE de verdade chamar a ferramenta); reconhecimento por modelo como segundo estágio (BD-1) implementado com dublê, só onde o léxico não resolve, com a finalidade própria `boot`, teto de tokens e a mesma eval como régua | BP-02 (medir o modelo), BP-03 (IDE real), BP-04 (app com modelo e MCP), BP-08 (envio duplo no MCP), BP-09 (mais leituras no MCP), BP-10 (filtros), BP-11 (opções ambíguas) | Chave de modelo (H0-7), uma IDE logada com o lançador `spock`, decisões por capacidade |
+| 1. Fundação | Feita: registro, ciclo de vida, checkpoints, recuperação, catálogo de 42 fichas, reconhecimento, permissão, plano, Project Boot, Request Boot; na Home, lista dos últimos Boots do projeto com Retomar e detalhe, conferidos no aplicativo aberto com um projeto temporário | BP-05 (projeto real), BP-06 (queda real) | — |
+| 2. Capacidades do produto | Parcial: um fluxo real por domínio, só leitura e análise executam; toda capacidade direta tem resumo próprio (conferido contra a fixture do contrato) e há 42 fichas, com histórico de riscos, revisões do Harness, estado, geração e drift de infraestrutura; período e quantidade tirados do pedido (indicadores, relatório, linha do tempo, auditoria, execuções); `spock_boot` no MCP (BD-3, só leitura, nível 0, 13 leituras do projeto; falta uma IDE de verdade chamar a ferramenta); reconhecimento por modelo como segundo estágio (BD-1) implementado com dublê, só onde o léxico não resolve, com a finalidade própria `boot`, teto de tokens e a mesma eval como régua | BP-02 (medir o modelo), BP-03 (IDE real), BP-04 (app com modelo e MCP), BP-08 (envio duplo no MCP), BP-09 (mais leituras no MCP), BP-10 (filtros), BP-11 (opções ambíguas) | Chave de modelo (H0-7), uma IDE logada com o lançador `spock`, decisões por capacidade |
 | 3. Work Intelligence | Não iniciada | Gatilho de ingestão de backlog; sincronizador de roadmap; Harness State incremental; grafo de dependências e Dependency Resolution Brief; avaliação de prontidão do item | BP-14: sincronização agendada (hoje adiada); dependências e responsáveis (hoje inexistentes em Gestão); publicar o Brief num card exige **escrita em Jira ou GitHub**, o que contraria a decisão atual de só leitura |
 | 4. Engenharia autônoma | Não iniciada | Work Boot, seleção de tarefas, orquestrador do Harness, execução de agentes com escrita, juízes e Pull Request | BP-15: etapa 3; nível 3 de autonomia com política explícita (ADR-0007); fronteira "a IA propõe, o motor decide" revista; validação com modelo real (H0-7) |
 | 5. Automação empresarial | Não iniciada | Gatilhos contínuos, automação por organização, concorrência, priorização, indicadores gerenciais do Boot, evals contínuos | BP-16: identidade e organização (DD-2, inexistentes); etapa 4 |
@@ -196,3 +196,97 @@ documento de origem e a linha daqui removida ou marcada como feita. O detalhe de
 | BP-16 | Etapa 5 (automação empresarial) | Identidade e organização (DD-2); BP-15 | Por entrega |
 | BP-17 | Teto de gasto do estágio de modelo por período (hoje o teto é por chamada) | Decisão de política de custo | Teste do teto e do aviso ao atingi-lo |
 | BP-18 | Build do motor com a inteligência empacotada no Python 3.14 (`MARILIZ_BUILD_PYTHON`) | Já validado no aplicativo (a inteligência subiu e o índice respondeu); falta o interpretador embarcado ser refeito do zero | Build limpo do pacote e do instalador, e a rodada do app depois dele |
+
+## 8. Engineering Quality Intelligence (Q0 a Q7)
+
+Desenho, contratos e o que está provado em [quality](quality/README.md); decisão na
+[ADR-0011](architecture/adr/0011-engineering-quality-intelligence.md). Uma onda por vez, cada uma com o seu PR; a ordem só muda
+com dependência técnica comprovada. A referência é a categoria das ferramentas de revisão por IA, sem dependência de nenhuma.
+
+| Onda | Situação | Prioridade |
+| --- | --- | --- |
+| Q0 Estabilização da fundação | Parcial: o PR #231 e os seguintes do Boot estão mergeados e a suíte do Boot passa; as pendências BP-02 a BP-07 da seção 7.1 seguem abertas | Alta |
+| Q1 Revisão nativa | **Primeira fatia entregue**: leitor de alterações, revisão das alterações locais e de uma branch, contrato de achados, 15 regras, juízes determinísticos, histórico, tela e Boot; faltam o Requirements Judge e o contexto de código por diff | Alta |
+| Q2 Multi-juiz e execução de qualidade | Não iniciada | Alta |
+| Q3 Segurança | Não iniciada | Média |
+| Q4 Governança de regras | Não iniciada; espera a QD-1 | Média |
+| Q5 Inteligência de software | Não iniciada | Média |
+| Q6 Revisão de Pull Request | Não iniciada | Baixa |
+| Q7 Qualidade autônoma | Não iniciada; espera Q2 e a etapa 4 do Boot | Baixa |
+
+### Q0 — Estabilização da fundação
+
+- **Objetivo:** só ampliar a qualidade sobre um Boot que se prova.
+- **Escopo:** fechar BP-02 (medir o estágio de modelo), BP-03 (IDE real chamando `spock_boot`), BP-04 (aplicativo com modelo e
+  MCP), BP-05 (Project Boot num projeto real), BP-06 (queda real). Um classificador léxico só (hoje há mais de um); nada de
+  reconhecimento por modelo sem medir o léxico antes. Linha de base das evals com modelo real (H0-7).
+- **Aceite:** os critérios de cada BP em 7.1; uma capacidade nova (como a de revisão) se registra, é reconhecida, tem a
+  disponibilidade avaliada e executa com a permissão certa, provado por teste e no aplicativo aberto.
+- **Depende de:** chave de modelo, IDE logada, projeto real escolhido pelo dono. **Risco:** medir o holdout já usado.
+- **Evidência esperada:** relatórios em [validacao-real.md](validacao-real.md).
+
+### Q1 — Revisão nativa (entregue em parte)
+
+- **Entregue:** `quality.review.start/list/detail`; Working Tree Review e Branch Review (base sempre explícita); achados com
+  arquivo, linha, evidência e confiança por critério; deduplicação, descarte de linha que mudou, gerado/binário/terceiros
+  fora da leitura; juízes de Segurança, Arquitetura, Qualidade, Regressão e Entrega; relatório, histórico e tela `/qualidade`;
+  capacidades `quality.review_changes` e `quality.review_branch`; eval com gabarito (`code-review.json`).
+- **Falta:** Commit Review; Requirements Judge (precisa de uma atividade ligada à alteração); contexto de código ao redor do
+  diff além do hunk; leitor de `.gitattributes` (`linguist-generated`); revisão de arquivos fora da pasta do projeto.
+- **Aceite do que falta:** cada item com teste sobre um repositório git de verdade e uma linha no [quality](quality/README.md).
+- **Risco:** os detectores são padrões e não medem qualidade; sem linha de base sobre alterações reais, a eval só impede regressão.
+- **Evidência esperada:** uma revisão de alterações reais do dono, comparada com o que a pessoa teria apontado.
+
+### Q2 — Multi-juiz e execução de qualidade
+
+- **Objetivo:** juízes que dependem de dados novos e verificações que rodam de verdade.
+- **Escopo:** revisão por modelo (finalidade própria, teto de tokens, resposta em contrato, achado só vale com arquivo, linha e
+  trecho que existem no diff, sempre como hipótese); Regression, Dependency e Final Delivery com mais critérios; catálogo de
+  ferramentas de qualidade por stack (comando, versão, diretório, prazo, risco); execução de build, testes, lint e typecheck
+  com lista fechada, aprovação e limites, sem afirmar isolamento que o processo filho não tem.
+- **Aceite:** execução bloqueada por falta de ferramenta nunca é aprovada; comando só vem do projeto ou do usuário; relatório
+  com comando, versão, duração, saída redigida e estado (`passed`, `failed`, `blocked`, `not_run`, `timed_out`, `cancelled`).
+- **Depende de:** QD-2, QD-3, a decisão 3 do ciclo 2 e a chave de modelo. **Risco:** executar código do projeto na máquina da pessoa.
+- **Evidência esperada:** rodada real num projeto .NET e num React, mais a comparação de modelos nos mesmos casos.
+
+### Q3 — Segurança
+
+- **Escopo:** SAST (avaliar licença e cobertura por stack antes de escolher), SCA (dependências diretas e transitivas, CVEs,
+  abandono, licenças, a partir de fontes públicas), normalizados no mesmo contrato de achados, sem duplicar o scanner atual.
+- **Aceite:** o catálogo de compatibilidade de versões não é tratado como SCA; ferramenta só entra com plano, origem, licença e aprovação.
+- **Depende de:** Q2 (execução). **Risco:** licença e taxa de ferramentas; falso positivo de dependência.
+
+### Q4 — Governança de regras
+
+- **Escopo:** modelo canônico de regra (id, escopo, severidade, tipo de validação, modo informativo/aviso/bloqueante,
+  exceção com responsável, histórico); hierarquia organização, portfólio, projeto, repositório, diretório, stack e tipo de
+  atividade, com precedência e sem regra local contornando uma obrigatória; medição de conformidade; o Harness segue
+  projetando regras nas IDEs. O modelo nunca altera regra obrigatória; sugestão de regra passa por revisão humana.
+- **Aceite:** as regras `QR-*` viram o primeiro conjunto do modelo; uma exceção autorizada fica registrada e aparece no relatório.
+- **Depende de:** QD-1 e de identidade/organização (DD-2) para as camadas de cima. **Risco:** criar um segundo sistema de configuração.
+
+### Q5 — Inteligência de software
+
+- **Escopo:** evals de contexto de código (Recall@K, MRR, precisão, contaminação, frescor, cobertura de símbolos, dependências,
+  context fit) antes de qualquer embedding ou mudança de armazenamento; análise estrutural por AST onde compensar; contexto
+  multirrepositório só com controle de acesso entre projetos, sem afrouxar o isolamento de hoje.
+- **Aceite:** comparação com o SQLite FTS5 atual no mesmo dataset antes de trocar qualquer coisa.
+- **Depende de:** Q1 (dataset de revisão) e de uma decisão do dono sobre escopo entre projetos. **Risco:** vazar contexto entre projetos.
+
+### Q6 — Revisão de Pull Request
+
+- **Escopo:** leitura do PR no GitHub (metadados, base e head, arquivos, diff, comentários, checks); contrato de escrita
+  separado do de leitura e desligado por padrão (escopo de credencial, identidade, aprovação, auditoria, idempotência e
+  controle de duplicação); Azure DevOps só se for suportado; adaptador opcional e isolado de uma ferramenta de código aberto,
+  depois de avaliar licença, manutenção, segurança, consumo de modelo e substituição pelo mecanismo nativo.
+- **Aceite:** nenhum comentário sem autorização; a ausência do adaptador não tira nada do núcleo.
+- **Depende de:** a decisão sobre escrita em GitHub e Jira (BP-14). **Risco:** permissão de escrita ampliada globalmente.
+
+### Q7 — Qualidade autônoma
+
+- **Escopo:** devolver os achados ao agente que implementou, ciclo de correção com limite de tentativas, revisão e gates de
+  novo a cada volta, histórico por ciclo; o agente não altera o resultado dos juízes, não remove teste nem enfraquece regra,
+  e não corrige fora do escopo original; integração com o Work Boot e o Boot autônomo; monitoramento e evals contínuos.
+- **Aceite:** achados corrigíveis sozinhos e os que exigem pessoa definidos por regra; o ciclo termina em aprovado, no limite
+  ou como inconclusivo.
+- **Depende de:** Q2, a etapa 4 do Boot (BP-15) e o nível 3 de autonomia com política explícita (ADR-0007). **Risco:** autonomia sem freio.

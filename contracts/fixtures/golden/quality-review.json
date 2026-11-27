@@ -1,0 +1,297 @@
+{
+  "review": {
+    "contract": "quality.review.v1",
+    "id": "rev-000000000000",
+    "projectId": "p-000000000000",
+    "mode": "working_tree",
+    "branch": "main",
+    "base": null,
+    "head": null,
+    "headCommit": "be9097385f3dd4ab1fc536e2909db29453906026",
+    "createdAt": "2026-11-10T12:00:00+00:00",
+    "finishedAt": "2026-11-10T12:00:00+00:00",
+    "verdict": "rejected",
+    "summary": "Reprovada: 1 problema confirmado e grave: a entrega não deve seguir sem a correção. 2 arquivos analisados, 3 achados.",
+    "counts": {
+      "files": 3,
+      "filesAnalyzed": 2,
+      "findings": 3,
+      "confirmed": 1,
+      "needsCheck": 2,
+      "recommendations": 0,
+      "bySeverity": {
+        "critical": 1,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "informational": 0
+      }
+    },
+    "files": [
+      {
+        "path": "tests/FooTests.cs",
+        "oldPath": null,
+        "status": "deleted",
+        "added": 0,
+        "removed": 5,
+        "analyzed": false,
+        "skippedReason": null
+      },
+      {
+        "path": "config.txt",
+        "oldPath": null,
+        "status": "untracked",
+        "added": 1,
+        "removed": 0,
+        "analyzed": true,
+        "skippedReason": null
+      },
+      {
+        "path": "src/E.cs",
+        "oldPath": null,
+        "status": "untracked",
+        "added": 4,
+        "removed": 0,
+        "analyzed": true,
+        "skippedReason": null
+      }
+    ],
+    "findings": [
+      {
+        "id": "f-000000000000",
+        "ruleId": "QR-SEC-001",
+        "reviewId": "rev-000000000000",
+        "projectId": "p-000000000000",
+        "path": "config.txt",
+        "startLine": 1,
+        "endLine": 1,
+        "onChangedLines": true,
+        "category": "security",
+        "severity": "critical",
+        "confidence": "confirmed",
+        "title": "Credencial de um provedor no código alterado",
+        "description": "Credencial de um provedor no código alterado. A linha adicionada casa com o padrão \"github-token\"; o valor não é mostrado.",
+        "evidence": {
+          "excerpt": "[linha omitida: possível segredo]",
+          "relation": "added-line",
+          "origin": "linhas adicionadas no diff",
+          "symbol": null,
+          "contextConsulted": [
+            "O diff e as linhas ao redor da alteração."
+          ]
+        },
+        "expectedBehavior": "Credenciais ficam fora do código, no cofre ou em variável de ambiente.",
+        "actualBehavior": "A linha adicionada casa com o padrão \"github-token\"; o valor não é mostrado.",
+        "suggestedCorrection": "Revogue a credencial agora, remova-a do código e do histórico do git e use o cofre ou uma variável de ambiente.",
+        "relatedRequirement": null,
+        "relatedArchitectureRule": null,
+        "source": "deterministic",
+        "detector": "secret-scanner",
+        "status": "open",
+        "createdAt": "2026-11-10T12:00:00+00:00"
+      },
+      {
+        "id": "f-000000000000",
+        "ruleId": "QR-REL-001",
+        "reviewId": "rev-000000000000",
+        "projectId": "p-000000000000",
+        "path": "src/E.cs",
+        "startLine": 3,
+        "endLine": 3,
+        "onChangedLines": true,
+        "category": "reliability",
+        "severity": "medium",
+        "confidence": "heuristic",
+        "title": "Erro engolido por um tratamento vazio",
+        "description": "Erro engolido por um tratamento vazio. O bloco de tratamento da exceção não tem nenhuma instrução.",
+        "evidence": {
+          "excerpt": "void M() { try { } catch { } }",
+          "relation": "added-line",
+          "origin": "linhas adicionadas no diff",
+          "symbol": null,
+          "contextConsulted": [
+            "O diff e as linhas ao redor da alteração."
+          ]
+        },
+        "expectedBehavior": "Uma falha é tratada, registrada ou repassada, não descartada em silêncio.",
+        "actualBehavior": "O bloco de tratamento da exceção não tem nenhuma instrução.",
+        "suggestedCorrection": "Trate o erro, registre-o ou deixe-o subir; se ignorar é intencional, diga o porquê num comentário.",
+        "relatedRequirement": null,
+        "relatedArchitectureRule": null,
+        "source": "deterministic",
+        "detector": "empty-catch",
+        "status": "open",
+        "createdAt": "2026-11-10T12:00:00+00:00"
+      },
+      {
+        "id": "f-000000000000",
+        "ruleId": "QR-REG-001",
+        "reviewId": "rev-000000000000",
+        "projectId": "p-000000000000",
+        "path": "tests/FooTests.cs",
+        "startLine": null,
+        "endLine": null,
+        "onChangedLines": false,
+        "category": "reliability",
+        "severity": "medium",
+        "confidence": "heuristic",
+        "title": "Arquivo de teste removido",
+        "description": "Arquivo de teste removido. O arquivo foi apagado e tinha 1 caso(s) de teste.",
+        "evidence": {
+          "excerpt": "tests/FooTests.cs",
+          "relation": "changed-file",
+          "origin": "lista de arquivos do diff",
+          "symbol": null,
+          "contextConsulted": [
+            "A lista de arquivos alterados do diff."
+          ]
+        },
+        "expectedBehavior": "Uma alteração mantém ou amplia a proteção dos testes.",
+        "actualBehavior": "O arquivo foi apagado e tinha 1 caso(s) de teste.",
+        "suggestedCorrection": "Confirme que os casos foram movidos ou ficaram obsoletos; se não, restaure o arquivo.",
+        "relatedRequirement": null,
+        "relatedArchitectureRule": null,
+        "source": "deterministic",
+        "detector": "test-file-deleted",
+        "status": "open",
+        "createdAt": "2026-11-10T12:00:00+00:00"
+      }
+    ],
+    "judges": [
+      {
+        "id": "security",
+        "name": "Segurança",
+        "verdict": "rejected",
+        "reason": "1 problema confirmado e grave contra os critérios.",
+        "criteria": [
+          "Nenhuma credencial de provedor nas linhas alteradas.",
+          "Nenhum arquivo que guarda credenciais entra na alteração.",
+          "A verificação de certificado do servidor continua ligada.",
+          "Consultas e HTML não são montados com valores sem tratamento (só como hipótese: o fluxo do valor não é visto)."
+        ],
+        "findingIds": [
+          "f-000000000000"
+        ],
+        "deterministic": true
+      },
+      {
+        "id": "architecture",
+        "name": "Arquitetura",
+        "verdict": "not_run",
+        "reason": "Nenhum projeto .NET nem frontend reconhecido: a análise de arquitetura não se aplica a este projeto.",
+        "criteria": [
+          "Os arquivos alterados não aparecem nos achados da análise de arquitetura (direção de camadas, fronteiras entre módulos)."
+        ],
+        "findingIds": [],
+        "deterministic": true
+      },
+      {
+        "id": "code-quality",
+        "name": "Qualidade do código",
+        "verdict": "approved_with_warnings",
+        "reason": "1 ponto para conferir; nenhum é confirmado e grave.",
+        "criteria": [
+          "Nenhum conflito de merge não resolvido.",
+          "Nenhuma falha engolida por um tratamento vazio.",
+          "Nenhum método async void fora de manipulador de evento."
+        ],
+        "findingIds": [
+          "f-000000000000"
+        ],
+        "deterministic": true
+      },
+      {
+        "id": "regression",
+        "name": "Regressão",
+        "verdict": "approved_with_warnings",
+        "reason": "1 ponto para conferir; nenhum é confirmado e grave.",
+        "criteria": [
+          "Testes não são apagados, removidos em saldo nem desligados.",
+          "Dependências alteradas levam o arquivo de bloqueio junto."
+        ],
+        "findingIds": [
+          "f-000000000000"
+        ],
+        "deterministic": true
+      },
+      {
+        "id": "requirements",
+        "name": "Requisitos",
+        "verdict": "not_run",
+        "reason": "A revisão não recebeu requisitos nem critérios de aceite; este juiz entra quando houver uma atividade ligada à alteração.",
+        "criteria": [
+          "A alteração atende a descrição, as regras de negócio e os critérios de aceite da atividade."
+        ],
+        "findingIds": [],
+        "deterministic": true
+      },
+      {
+        "id": "dependency",
+        "name": "Dependências entre componentes",
+        "verdict": "not_run",
+        "reason": "O mapa de dependências entre módulos e repositórios ainda não existe (Q5).",
+        "criteria": [
+          "Contratos, eventos e serviços que dependem do que mudou foram identificados."
+        ],
+        "findingIds": [],
+        "deterministic": true
+      },
+      {
+        "id": "model-review",
+        "name": "Revisão por modelo de IA",
+        "verdict": "not_run",
+        "reason": "Nenhuma análise de IA foi feita nesta revisão: a revisão por modelo ainda não existe (Q2), e o que está acima são só verificações determinísticas.",
+        "criteria": [
+          "Um modelo, em contexto separado do agente que implementou, procura defeitos que os padrões não alcançam."
+        ],
+        "findingIds": [],
+        "deterministic": true
+      },
+      {
+        "id": "final-delivery",
+        "name": "Entrega",
+        "verdict": "rejected",
+        "reason": "1 problema confirmado e grave: a entrega não deve seguir sem a correção.",
+        "criteria": [
+          "Nenhum achado confirmado e grave.",
+          "A alteração foi lida por inteiro.",
+          "Nenhum juiz determinístico reprovou."
+        ],
+        "findingIds": [
+          "f-000000000000",
+          "f-000000000000",
+          "f-000000000000"
+        ],
+        "deterministic": true
+      }
+    ],
+    "rulesApplied": [
+      "QR-SEC-001",
+      "QR-SEC-002",
+      "QR-SEC-003",
+      "QR-SEC-004",
+      "QR-SEC-005",
+      "QR-SEC-006",
+      "QR-BUG-001",
+      "QR-REL-001",
+      "QR-REL-002",
+      "QR-REG-001",
+      "QR-REG-002",
+      "QR-REG-003",
+      "QR-CMP-001",
+      "QR-ARC-001",
+      "QR-SCP-001"
+    ],
+    "contextConsulted": [],
+    "limitations": [
+      "Nenhum comando do projeto foi executado: build, testes e lint não rodaram nesta revisão (quality gates: Q2).",
+      "Os detectores olham padrões nas linhas adicionadas; não seguem o fluxo dos dados nem leem código fora do diff.",
+      "As regras do Harness são texto para os agentes; o motor aplica as regras QR-* e a análise de arquitetura, e ainda não verifica cada regra do Harness (modelo de regras: Q4)."
+    ],
+    "nextActions": [
+      "Corrija antes de seguir: Credencial de um provedor no código alterado em config.txt:1.",
+      "Confira 2 pontos que o motor não consegue provar sozinho.",
+      "Rode o build e os testes do projeto: o Spock não os executou nesta revisão."
+    ]
+  }
+}
