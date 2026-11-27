@@ -39,10 +39,11 @@ PHASES = {
     "boot": "Reconhecimento de intenção do Boot por modelo (holdout)",
     "validation": "Modelo no cofre e assistente gerencial (OpenAI)",
     "workflow": "Fluxo de engenharia de ponta a ponta (plano, arquitetura, juiz) e instrução plantada no projeto, por provedor",
+    "iac": "Desenho de infraestrutura com IA (conta e rede dos fatos valem sobre a necessidade), por provedor",
 }
 _SUMMARY = re.compile(r"(?:Resumo do teste|Test summary): total: (\d+); (?:falhou|failed): (\d+); (?:bem-sucedido|succeeded): (\d+); (?:ignorado|skipped): (\d+)")
 # As linhas que cada teste vivo escreve com o resultado; só elas (e o veredito de cada teste) vão para a tela e para o relatório.
-_RESULT_MARKS = ("[evals de gestão]", "[validação real]", "[fluxo real]", "[eval de intenção ao vivo", "léxico errou")
+_RESULT_MARKS = ("[evals de gestão]", "[validação real]", "[fluxo real]", "[iac real]", "[eval de intenção ao vivo", "léxico errou")
 _SHOW = (*_RESULT_MARKS, "Aprovado", "Com falha", "Ignorado", "Falha")
 
 
@@ -268,6 +269,9 @@ def main() -> int:
     if "workflow" in phases:
         print("\n== Fluxo de engenharia de ponta a ponta")
         runs.append(run_dotnet("workflow", "FullyQualifiedName~EngineeringWorkflowLiveTests", env, out))
+    if "iac" in phases:
+        print("\n== Desenho de infraestrutura com IA")
+        runs.append(run_dotnet("iac", "FullyQualifiedName~IacArchitectLiveTests", env, out))
 
     leaks = leaked(out, [anthropic, openai])
     report = write_report(out, phases, runs, leaks)
