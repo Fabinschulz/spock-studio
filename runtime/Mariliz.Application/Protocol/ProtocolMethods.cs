@@ -132,6 +132,9 @@ public static class ProtocolMethods
     public const string BootList = "boot.list";
     public const string BootDetail = "boot.detail";
     public const string BootCapabilities = "boot.capabilities";
+    public const string QualityReviewStart = "quality.review.start";
+    public const string QualityReviewList = "quality.review.list";
+    public const string QualityReviewDetail = "quality.review.detail";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, ProjectArchitecture, Plan, Apply, Validate, Revert, Runs];
@@ -171,7 +174,9 @@ public static class ProtocolMethods
         // Chama o provedor de IA.
         IacArchitectDraft,
         // Executam, em sequência, leituras de outros domínios (algumas rodam processos ou leem o projeto inteiro).
-        BootStart, BootProject, BootResume
+        BootStart, BootProject, BootResume,
+        // Lê o diff do git e roda a análise de arquitetura do projeto inteiro.
+        QualityReviewStart
     };
 
     public static readonly IReadOnlyList<string> Decision = [DecisionRecord, DecisionList, DecisionGet];
@@ -205,6 +210,8 @@ public static class ProtocolMethods
             IacBootstrapSave, IacArchitectDraft, IacArchitectProposal, IacGenerateOptions, IacGeneratePlan, IacGenerateSave, IacDrift, IacCostEstimate, IacCostPlan, IacDriftSchedule, IacDriftScheduleSet];
 
     public static readonly IReadOnlyList<string> Boot = [BootStart, BootProject, BootResume, BootList, BootDetail, BootCapabilities];
+
+    public static readonly IReadOnlyList<string> Quality = [QualityReviewStart, QualityReviewList, QualityReviewDetail];
 
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }

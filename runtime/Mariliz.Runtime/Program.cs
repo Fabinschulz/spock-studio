@@ -17,6 +17,8 @@ using Mariliz.Application.Context;
 using Mariliz.Application.Iac;
 using Mariliz.Application.Ideas;
 using Mariliz.Application.Security;
+using Mariliz.Application.Quality;
+using Mariliz.Application.Quality.Git;
 using Mariliz.Runtime;
 using Mariliz.Application.Timeline;
 using Mariliz.Application.Workflows;
@@ -97,9 +99,10 @@ if (BootService.MarkInterrupted(bootStore, engine.Clock) is > 0 and var bootsInt
 // Passando de 200 registros por escopo saem os mais antigos que já terminaram; o interrompido que ninguém recuperou fica.
 BootRetention.Apply(bootStore);
 var bootRegistry = new CapabilityRegistry();
+var contextEngine = new ContextEngine(engine.Workspace, harnessStatus, profileStore, tokenizers, engine.Clock, integrations, cloud);
 var boot = new BootService(engine.Workspace, bootRegistry, new IntentRecognizer(bootRegistry),
     new BootFactsProbe(engine.Workspace, models, integrations, cloud, harnessStatus, profileStore), new BootPlanner(bootRegistry), bootStore, engine.Clock,
-    integrations.Audit, new ContextEngine(engine.Workspace, harnessStatus, profileStore, tokenizers, engine.Clock, integrations, cloud),
+    integrations.Audit, contextEngine,
     new ModelIntentStage(models, bootRegistry));
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
@@ -127,7 +130,9 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
         integrations.Audit),
     iacCosts: new IacCostService(engine.Workspace, cloud, engine.Clock, iacOperations),
     iacSchedules: iacSchedules,
-    boot: boot);
+    boot: boot,
+    quality: new CodeReviewService(engine.Workspace, new GitChangeReader(engine.Runner, new LocalProjectFilesFactory()), new FileReviewStore(engine.DataRoot), engine.Clock,
+        new LocalProjectFilesFactory(), integrations.Audit, harnessStatus, contextEngine));
 // Verificação de drift agendada: uma volta por minuto enquanto o motor vive; falha de uma volta não derruba o laço.
 _ = Task.Run(async () =>
 {

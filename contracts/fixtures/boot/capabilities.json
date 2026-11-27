@@ -335,6 +335,66 @@
       "requiredLevel": 0
     },
     {
+      "id": "quality.review_changes",
+      "name": "Revisão das alterações locais",
+      "description": "Lê o que mudou no git (só leitura), procura defeitos com detectores determinísticos e deixa juízes com critérios escritos decidirem; o relatório fica só na pasta de dados do Spock.",
+      "domain": "engineering",
+      "goals": [
+        "Revisar as alterações antes do commit",
+        "Saber se uma alteração tem defeitos"
+      ],
+      "operation": "analysis",
+      "mode": "direct",
+      "route": "/qualidade",
+      "agents": [
+        "code-reviewer",
+        "verifier"
+      ],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O relatório da revisão: veredito, achados com evidência, juízes e o que não pôde ser verificado.",
+      "preconditions": [
+        "O projeto precisa ser um repositório git."
+      ],
+      "parameters": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
+      "id": "quality.review_branch",
+      "name": "Revisão de uma branch",
+      "description": "Compara uma branch com uma referência base que você informa e revisa a diferença; só leitura.",
+      "domain": "engineering",
+      "goals": [
+        "Revisar uma branch antes do merge"
+      ],
+      "operation": "analysis",
+      "mode": "handoff",
+      "route": "/qualidade",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O relatório da revisão da branch contra a base escolhida.",
+      "preconditions": [],
+      "parameters": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
       "id": "standards.architecture",
       "name": "Análise de arquitetura e padrões",
       "description": "Camadas, dependências e aderência do projeto aos padrões de arquitetura.",

@@ -328,6 +328,10 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                     $"{(Text(d, "stage") == "failed" ? "A resposta do modelo não serviu" : "O modelo respondeu")}; {Count(Count(d, "proposed"), "capacidade proposta", "capacidades propostas")}; " +
                     $"{Count(d, "inputTokens")} tokens de entrada e {Count(d, "outputTokens")} de saída. O texto do pedido não é registrado.");
                 break;
+            case AuditActions.QualityReviewed:
+                yield return Entry("", AuditCategories.Read, "Alterações revisadas pelo Spock",
+                    $"Revisão de {(Text(d, "mode") == "branch" ? "branch" : "alterações locais")}: {Clean(Text(d, "verdict"))}; {Count(Count(d, "files"), "arquivo", "arquivos")} e {Count(Count(d, "findings"), "achado", "achados")}. Só leitura: nada no projeto foi alterado.");
+                break;
             case AuditActions.BootFinished:
                 yield return Entry("", AuditCategories.Context, "Boot encerrado",
                     $"{BootLabel(Text(d, "mode"))}: {Clean(Text(d, "state"))}{(Text(d, "outcome") is { Length: > 0 } outcome ? $", resultado {Clean(outcome)}" : "")}; {Count((d["capabilities"] as JsonArray)?.Count ?? 0, "capacidade usada", "capacidades usadas")}.");

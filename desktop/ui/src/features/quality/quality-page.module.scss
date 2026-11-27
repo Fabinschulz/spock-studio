@@ -1,0 +1,79 @@
+.branchForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.note {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.findings,
+.judges,
+.history,
+.plain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plain {
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+}
+
+.finding,
+.judge {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.findingHead,
+.historyRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.rule {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.path {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.excerpt {
+  margin: 0;
+  padding: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--color-surface-muted, transparent);
+  border-left: 3px solid var(--color-border);
+}
+
+.advice {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.provenance {
+  margin: 0;
+  font-size: var(--font-size-xs, var(--font-size-sm));
+  color: var(--color-text-muted);
+}

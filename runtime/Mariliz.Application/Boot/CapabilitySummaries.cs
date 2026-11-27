@@ -18,6 +18,7 @@ public static class CapabilitySummaries
         "engineering.knowledge" => EngineeringSummaries.Knowledge(result),
         "engineering.mcp_inventory" => EngineeringSummaries.Mcp(result),
         "engineering.harness_revisions" => EngineeringSummaries.Revisions(result),
+        "quality.review_changes" => QualitySummaries.Review(result),
         "standards.architecture" => StandardsSummaries.Architecture(result),
         "standards.agent_policy" => StandardsSummaries.AgentPolicy(result),
         "management.portfolio" => Portfolio(result),
