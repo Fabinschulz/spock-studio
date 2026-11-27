@@ -727,10 +727,19 @@ class PromptRulesTests(unittest.TestCase):
             with self.subTest(rule=rule):
                 self.assertIn(rule, text)
 
+    def test_a_conclusao_manda_responder_a_pergunta_feita_e_nao_resumir_o_projeto(self) -> None:
+        """A rodada real mostrou o modelo consultar o resumo de mudanças e responder sobre vazão e riscos, uma pergunta que ninguém fez."""
+        from agents import investigation as agent
+
+        text = agent._CONCLUSION_TASK  # noqa: SLF001
+        for rule in ("Responda primeiro e diretamente à pergunta feita", "cite o resumo de mudanças", "Não faça um resumo geral do projeto"):
+            with self.subTest(rule=rule):
+                self.assertIn(rule, text)
+
     def test_a_versao_do_agente_acompanha_o_prompt(self) -> None:
         from agents import investigation as agent
 
-        self.assertEqual(agent.AGENT_VERSION, "5")
+        self.assertEqual(agent.AGENT_VERSION, "6")
 
     def test_as_hipoteses_pedem_o_juizo_de_answerable_e_dizem_quando_e_false(self) -> None:
         from agents import investigation as agent
