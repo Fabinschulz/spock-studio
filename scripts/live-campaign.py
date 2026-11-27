@@ -40,10 +40,11 @@ PHASES = {
     "validation": "Modelo no cofre e assistente gerencial (OpenAI)",
     "workflow": "Fluxo de engenharia de ponta a ponta (plano, arquitetura, juiz) e instrução plantada no projeto, por provedor",
     "iac": "Desenho de infraestrutura com IA (conta e rede dos fatos valem sobre a necessidade), por provedor",
+    "probe": "Sonda do gateway: poucas chamadas pequenas e só a forma das respostas (o modelo é o anunciado? o texto é JSON?)",
 }
 _SUMMARY = re.compile(r"(?:Resumo do teste|Test summary): total: (\d+); (?:falhou|failed): (\d+); (?:bem-sucedido|succeeded): (\d+); (?:ignorado|skipped): (\d+)")
 # As linhas que cada teste vivo escreve com o resultado; só elas (e o veredito de cada teste) vão para a tela e para o relatório.
-_RESULT_MARKS = ("[evals de gestão]", "[validação real]", "[fluxo real]", "[iac real]", "[eval de intenção ao vivo", "léxico errou")
+_RESULT_MARKS = ("[evals de gestão]", "[validação real]", "[fluxo real]", "[iac real]", "[sonda]", "[eval de intenção ao vivo", "léxico errou")
 _SHOW = (*_RESULT_MARKS, "Aprovado", "Com falha", "Ignorado", "Falha")
 
 
@@ -89,6 +90,64 @@ def preflight(provider: str, key: str, gateway: str | None) -> bool:
     except (urllib.error.URLError, TimeoutError, OSError) as ex:
         print(f"  {provider}: sem conexão com {urllib.parse.urlsplit(url).netloc}: {type(ex).__name__}")
     return False
+
+
+PROBE_PROMPT = "Responda somente com um objeto JSON com as chaves a (um número) e b (uma lista de 3 textos curtos), sem nada antes nem depois."
+
+
+def completion_request(provider: str, key: str, gateway: str | None, model: str) -> tuple[str, dict[str, str], dict]:
+    """A mesma chamada que o transporte do Spock faz, para um pedido de uma linha."""
+    base = (gateway or ("https://api.anthropic.com" if provider == "anthropic" else "https://api.openai.com")).rstrip("/")
+    messages = [{"role": "user", "content": PROBE_PROMPT}]
+    if provider == "anthropic":
+        headers = {"x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json"}
+        return f"{base}/v1/messages", headers, {"model": model, "max_tokens": 400, "messages": messages}
+    headers = {"Authorization": f"Bearer {key}", "content-type": "application/json"}
+    body = {"model": model, "max_tokens": 400, "messages": messages, "response_format": {"type": "json_object"}}
+    return f"{base}/v1/chat/completions", headers, body
+
+
+def describe_reply(provider: str, document: dict) -> dict:
+    """Só a forma da resposta: de que modelo diz ser, quantos blocos de que tipo, por que parou, o uso e se o texto é um JSON."""
+    if provider == "anthropic":
+        blocks = [block for block in document.get("content") or [] if isinstance(block, dict)]
+        text = "".join(str(block.get("text", "")) for block in blocks if block.get("type") == "text")
+        shape = {"blocos": [f"{block.get('type')}:{len(str(block.get('text', block.get('thinking', ''))))}" for block in blocks], "parou": document.get("stop_reason")}
+    else:
+        choice = (document.get("choices") or [{}])[0]
+        text = str((choice.get("message") or {}).get("content") or "")
+        shape = {"blocos": [f"text:{len(text)}"], "parou": choice.get("finish_reason")}
+    try:
+        parsed = json.loads(text)
+        json_state = f"JSON ok, chaves {sorted(parsed) if isinstance(parsed, dict) else type(parsed).__name__}"
+    except json.JSONDecodeError as ex:
+        json_state = f"não é JSON (posição {ex.pos} de {len(text)})"
+    return {"modelo": document.get("model"), **shape, "uso": document.get("usage"), "texto_comeca_com": text[:60].replace("\n", "\\n"), "json": json_state}
+
+
+def probe_phase(env: dict[str, str], providers: tuple[str, ...], gateway: str | None, models: dict[str, str], repeats: int = 3) -> list[dict]:
+    """Poucas chamadas pequenas ao gateway, para ver se o modelo se comporta como o anunciado antes de culpar o Spock."""
+    runs: list[dict] = []
+    for provider in providers:
+        key = env["MARILIZ_LIVE_ANTHROPIC_KEY" if provider == "anthropic" else "MARILIZ_LIVE_OPENAI_KEY"]
+        url, headers, body = completion_request(provider, key, gateway, models[provider])
+        lines: list[str] = []
+        started = time.monotonic()
+        for attempt in range(1, repeats + 1):
+            began = time.monotonic()
+            try:
+                request = urllib.request.Request(url, data=json.dumps(body).encode("utf-8"), headers=headers, method="POST")
+                with urllib.request.urlopen(request, timeout=180) as response:
+                    document = json.loads(response.read().decode("utf-8", errors="replace"))
+                lines.append(f"[sonda] {provider} #{attempt} ({time.monotonic() - began:.0f}s): {json.dumps(describe_reply(provider, document), ensure_ascii=False)}")
+            except urllib.error.HTTPError as ex:
+                lines.append(f"[sonda] {provider} #{attempt}: HTTP {ex.code}")
+            except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError) as ex:
+                lines.append(f"[sonda] {provider} #{attempt}: {type(ex).__name__}")
+        for line in lines:
+            print("  " + line)
+        runs.append({"label": f"probe-{provider}", "code": 0, "seconds": int(time.monotonic() - started), "summary": None, "lines": lines})
+    return runs
 
 
 def leaked(folder: Path, secrets: list[str]) -> list[Path]:
@@ -255,6 +314,10 @@ def main() -> int:
     print(f"Pasta de saída: {out}\nFases: {', '.join(phases)}")
 
     runs: list[dict] = []
+    if "probe" in phases:
+        print("\n== Sonda do gateway")
+        models = {"anthropic": args.anthropic_model or "claude-haiku-5-5", "openai": args.openai_model or "gpt-4o-mini"}
+        runs += probe_phase(env, providers, args.gateway, models)
     if "evals" in phases:
         runs += evals_phase(env, out, args.retries, args.baseline, providers)
     if "idea" in phases:

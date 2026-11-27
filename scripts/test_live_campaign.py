@@ -41,6 +41,33 @@ class KeyTests(unittest.TestCase):
         self.assertEqual(campaign.preflight_request("anthropic", "K", None)[0], "https://api.anthropic.com/v1/models")
 
 
+class ProbeTests(unittest.TestCase):
+    def test_a_sonda_faz_a_mesma_chamada_do_transporte(self) -> None:
+        url, headers, body = campaign.completion_request("anthropic", "K", "https://gw.exemplo/", "m1")
+        self.assertEqual((url, headers["x-api-key"], body["model"]), ("https://gw.exemplo/v1/messages", "K", "m1"))
+        self.assertNotIn("response_format", body)
+        url, headers, body = campaign.completion_request("openai", "K", None, "m2")
+        self.assertEqual((url, headers["Authorization"], body["response_format"]), ("https://api.openai.com/v1/chat/completions", "Bearer K", {"type": "json_object"}))
+
+    def test_descreve_so_a_forma_da_resposta_da_anthropic_com_bloco_de_pensamento_e_texto_com_cerca(self) -> None:
+        document = {"model": "claude-x", "stop_reason": "end_turn", "usage": {"input_tokens": 9, "output_tokens": 30},
+                    "content": [{"type": "thinking", "thinking": "raciocínio"}, {"type": "text", "text": "```json\n{\"a\":1}\n```"}]}
+
+        shape = campaign.describe_reply("anthropic", document)
+
+        self.assertEqual(shape["blocos"], ["thinking:10", "text:19"])
+        self.assertTrue(shape["json"].startswith("não é JSON"))
+        self.assertEqual((shape["modelo"], shape["parou"]), ("claude-x", "end_turn"))
+
+    def test_descreve_a_resposta_da_openai_e_reconhece_json_valido(self) -> None:
+        document = {"model": "gpt-x", "choices": [{"finish_reason": "stop", "message": {"content": "{\"a\":1,\"b\":[]}"}}], "usage": {"total_tokens": 5}}
+
+        shape = campaign.describe_reply("openai", document)
+
+        self.assertEqual(shape["json"], "JSON ok, chaves ['a', 'b']")
+        self.assertEqual(shape["parou"], "stop")
+
+
 class LeakTests(unittest.TestCase):
     def test_acha_o_arquivo_em_que_o_segredo_aparece_e_ignora_segredo_vazio(self) -> None:
         with tempfile.TemporaryDirectory() as root:
