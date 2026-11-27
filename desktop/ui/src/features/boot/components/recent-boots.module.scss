@@ -89,5 +89,6 @@ button.row {
 
 .resume {
   flex: none;
-  padding-top: var(--space-1);
+  // Alinha com o selo da linha, que termina antes do preenchimento da própria linha.
+  padding: var(--space-1) var(--space-2) 0 0;
 }

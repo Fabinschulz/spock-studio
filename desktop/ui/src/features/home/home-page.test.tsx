@@ -593,7 +593,7 @@ describe('Início · pedidos recentes e Retomar', () => {
     const [clarify, handoff, answered, prepared] = bootList.boots;
     return bootListSchema.parse({
       boots: [
-        { ...clarify, state: 'interrupted', outcome: null, headline: 'Revisar os riscos do projeto' },
+        { ...clarify, state: 'interrupted', outcome: null, headline: 'Revisar os riscos do projeto', resumable: true },
         {
           ...handoff,
           state: 'interrupted',
@@ -636,6 +636,42 @@ describe('Início · pedidos recentes e Retomar', () => {
     expect(within(rows[3]!).getByText('Preparado')).toBeInTheDocument();
   });
 
+  it('o interrompido sem manchete mostra o pedido, e sem plano não oferece Retomar', async () => {
+    hosted();
+    const [base] = bootList.boots;
+    const list = () =>
+      bootListSchema.parse({
+        boots: [
+          {
+            ...base,
+            id: 'boot-00000000000b',
+            state: 'interrupted',
+            outcome: null,
+            headline: null,
+            objective: 'Quais riscos o projeto tem?',
+            resumable: true
+          },
+          {
+            ...base,
+            id: 'boot-00000000000c',
+            state: 'interrupted',
+            outcome: null,
+            headline: null,
+            objective: 'Corrigir o bug do frete',
+            resumable: false
+          }
+        ]
+      });
+    renderHome({ picker: withProject, client: engine({ bootList: list }) });
+    await openProject();
+
+    const section = await region();
+    expect(within(section).getByText('Quais riscos o projeto tem?')).toBeInTheDocument();
+    expect(within(section).getByText('Corrigir o bug do frete')).toBeInTheDocument();
+    expect(within(section).getAllByRole('button', { name: /^Retomar/ })).toHaveLength(1);
+    expect(within(section).getByRole('button', { name: 'Retomar: Quais riscos o projeto tem?' })).toBeInTheDocument();
+  });
+
   it('Retomar só aparece no interrompido que ainda não foi recuperado', async () => {
     hosted();
     renderHome({ picker: withProject, client: engine({ bootList: mixedList }) });
@@ -655,7 +691,10 @@ describe('Início · pedidos recentes e Retomar', () => {
       boot: (method) => {
         if (method !== 'boot.resume') throw new Error(`inesperado: ${method}`);
         list = bootListSchema.parse({
-          boots: [{ ...list.boots[0], recoveredByBootId: 'boot-0000000000bb' }, ...list.boots.slice(1)]
+          boots: [
+            { ...list.boots[0], recoveredByBootId: 'boot-0000000000bb', resumable: false },
+            ...list.boots.slice(1)
+          ]
         });
         return resumed;
       }

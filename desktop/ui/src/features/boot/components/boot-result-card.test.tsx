@@ -31,3 +31,14 @@ describe('BootResultCard', () => {
     expect(screen.getByText(/interrompido antes de terminar/)).toBeInTheDocument();
   });
 });
+
+describe('BootResultCard · etapas', () => {
+  it('sem etapas, como no cartão de escolha, não oferece "Ver as etapas (0)"', () => {
+    const record = bootResponseSchema.parse(bootProject).boot;
+    render(
+      <BootResultCard record={{ ...record, steps: [] }} onOpen={vi.fn()} onChoose={vi.fn()} onDismiss={vi.fn()} />
+    );
+
+    expect(screen.queryByText(/Ver as etapas/)).not.toBeInTheDocument();
+  });
+});

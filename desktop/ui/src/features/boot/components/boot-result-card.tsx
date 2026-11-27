@@ -117,16 +117,18 @@ export function BootResultCard({ record, onOpen, onChoose, onDismiss }: BootResu
         </div>
       </footer>
 
-      <Disclosure summary={`Ver as etapas (${record.steps.length})`}>
-        <ol className={styles.steps}>
-          {record.steps.map((step) => (
-            <li key={step.id}>
-              <strong>{step.title}</strong> <span className={styles.muted}>({STEP_LABEL[step.status]})</span>
-              {step.summary ? <div>{step.summary}</div> : null}
-            </li>
-          ))}
-        </ol>
-      </Disclosure>
+      {record.steps.length > 0 ? (
+        <Disclosure summary={`Ver as etapas (${record.steps.length})`}>
+          <ol className={styles.steps}>
+            {record.steps.map((step) => (
+              <li key={step.id}>
+                <strong>{step.title}</strong> <span className={styles.muted}>({STEP_LABEL[step.status]})</span>
+                {step.summary ? <div>{step.summary}</div> : null}
+              </li>
+            ))}
+          </ol>
+        </Disclosure>
+      ) : null}
     </section>
   );
 }

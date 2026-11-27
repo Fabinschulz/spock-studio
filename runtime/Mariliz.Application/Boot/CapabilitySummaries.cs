@@ -90,10 +90,11 @@ public static class CapabilitySummaries
     private static CapabilitySummary Runs(JsonObject result)
     {
         var summary = result["summary"] as JsonObject;
-        var total = Number(summary, "total") ?? Array(result, "runs").Count;
-        var running = Number(summary, "running") ?? 0;
-        var awaiting = Number(summary, "awaitingApproval") ?? 0;
-        return new CapabilitySummary($"{Plural(total, "execução", "execuções")}: {running} em andamento e {awaiting} aguardando aprovação.", []);
+        if (summary is null && !HasList(result, "runs")) return NoData("das execuções");
+        // Campo ausente é "sem dado", nunca zero: zero diria que o motor olhou e não achou.
+        var total = Number(summary, "total") ?? (HasList(result, "runs") ? Array(result, "runs").Count : null);
+        var head = total is { } known ? Plural(known, "execução", "execuções") : "Total sem dado";
+        return new CapabilitySummary($"{head}: {Count(Number(summary, "running"))} em andamento e {Count(Number(summary, "awaitingApproval"))} aguardando aprovação.", []);
     }
 
     private static CapabilitySummary Models(JsonObject result)

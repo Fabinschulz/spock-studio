@@ -59,7 +59,7 @@ export function listedTone(item: Pick<BootListItem, 'state' | 'outcome'>): Tone 
   }
 }
 
-/** Só o que a queda deixou no meio e ainda não foi recuperado: o motor recusa recuperar duas vezes. */
-export function canResume(item: Pick<BootListItem, 'state' | 'recoveredByBootId'>): boolean {
-  return item.state === 'interrupted' && item.recoveredByBootId === null;
+/** Quem decide é o motor: ele recusa retomar o que não tem plano e o que já foi recuperado. */
+export function canResume(item: Pick<BootListItem, 'resumable'>): boolean {
+  return item.resumable;
 }

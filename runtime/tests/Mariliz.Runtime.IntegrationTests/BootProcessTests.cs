@@ -370,7 +370,7 @@ public sealed class BootProcessTests : IAsyncLifetime
             Assert.Equal("completed", Text(Step(recovery, done)["status"]));
             Assert.Equal(sentinel, Text(Step(recovery, done)["summary"]));
         }
-        Assert.StartsWith("Contexto ctx-", Text(Step(recovery, "context")["summary"]));
+        Assert.StartsWith("Contexto do projeto reunido", Text(Step(recovery, "context")["summary"]));
         foreach (var ran in new[] { "capability:engineering.harness_status", "capability:connections.list", "capability:platform.runs" })
         {
             Assert.Equal("completed", Text(Step(recovery, ran)["status"]));

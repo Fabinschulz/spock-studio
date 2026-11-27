@@ -127,6 +127,10 @@ export const bootListSchema = z.object({
       recoveredByBootId: z.string().nullable(),
       outcome: bootOutcomeSchema.nullable(),
       headline: z.string().nullable(),
+      /** Um Boot interrompido não tem manchete: o objetivo é o que o distingue na lista. */
+      objective: z.string().nullable(),
+      /** O motor só aceita retomar o interrompido que tem plano e ainda não foi recuperado. */
+      resumable: z.boolean(),
       capabilities: z.array(z.string())
     })
   )

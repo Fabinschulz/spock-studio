@@ -264,13 +264,13 @@ Implementado, validado e planejado são coisas diferentes; esta tabela não as m
 | Histórico e resultado | `FileBootStore`, auditoria, retenção de 200 por escopo | Registro no disco; a auditoria não guarda o texto do pedido; `BootRetentionTests` |
 | Recuperar execução interrompida | `boot.resume` | `BootServiceTests`: não repete o que foi feito; detecta contexto que mudou |
 | Project Boot em projeto real | Sim, com o processo real do motor (não com o app Tauri) | Projeto .NET de teste; projeto existente não é reanalisado; `BootProcessTests` roda o Project Boot pelo stdin/stdout do motor e confere por impressão digital que nenhum arquivo do projeto mudou |
-| Funcionalidades originais seguem | Nenhum método existente mudou | Motor: 2.084 aprovados, 0 falhas, 28 ignorados (os de chave real). Interface: 1.146 aprovados. Com o Python 3.12 do PATH, 38 testes do runtime de IA falham por ambiente (o motor exige o 3.14, via `MARILIZ_PYTHON`); não são do Boot |
+| Funcionalidades originais seguem | Nenhum método existente mudou | Motor: 2.087 aprovados, 0 falhas, 28 ignorados (os de chave real). Processo real do motor: 21. Interface: 1.148 aprovados. Com o Python 3.12 do PATH, 38 testes do runtime de IA falham por ambiente (o motor exige o 3.14, via `MARILIZ_PYTHON`); não são do Boot |
 | Sem duplicação | Reusa `ContextEngine`, tratadores, `IAuditLog`, `WorkspaceAuthorizer` | Revisão do código |
-| Testes automatizados | 61 no motor em memória, 9 com o processo real do motor, mais os da interface | Ver abaixo |
+| Testes automatizados | 64 no motor em memória, 9 com o processo real do motor, mais os da interface | Ver abaixo |
 | Roadmap registrado | [ROADMAP](../ROADMAP.md) | — |
 
-Testes novos: `BootCatalogTests` (9), `BootIntentEvalTests` (8), `BootServiceTests` (24), `BootRetentionTests` (5), `BootProtocolTests` (7, incluindo
-as fixtures de contrato de `contracts/fixtures/boot/`), `BootSummariesTests` (8, cada resumo contra a fixture real do contrato), e na interface o contrato com o Zod, o cartão pelo Início (9) e o próprio cartão (2) e a
+Testes novos: `BootCatalogTests` (9), `BootIntentEvalTests` (8), `BootServiceTests` (24), `BootRetentionTests` (5), `BootProtocolTests` (9, incluindo
+as fixtures de contrato de `contracts/fixtures/boot/`), `BootSummariesTests` (9, cada resumo contra a fixture real do contrato), e na interface o contrato com o Zod, o cartão pelo Início (9) e o próprio cartão (2) e a
 conferência das três listas de métodos.
 
 `BootProcessTests` (9, em `runtime/tests/Mariliz.Runtime.IntegrationTests`) sobe o motor de verdade (`dotnet Mariliz.Runtime.dll`, NDJSON no
@@ -287,9 +287,16 @@ não há queda real de processo no meio de um passo.
 
 **Nada disso rodou com modelo real**, e o Boot da fundação não usa modelo: o que depende de modelo (`engineering.request`,
 `management.assistant`, `ideas.idea_to_project`) só abre a tela. O Project Boot foi exercitado no teste com um projeto .NET
-temporário, não no aplicativo Tauri aberto. O host Rust (`protocol.rs`) só teve a lista de métodos conferida pelo teste do
-motor; não foi compilado nesta entrega. A interface foi testada com motor de mentira e as fixtures reais do motor; **o
-cartão não foi visto no aplicativo**.
+temporário e, depois, no aplicativo Tauri aberto (próximo parágrafo), nunca em um projeto real do dono.
+
+**No aplicativo real** (Tauri dev, WebView2 e o motor recém-construído, dirigidos pelo CDP, com um projeto .NET temporário,
+pasta de dados separada e sem chave, rede, Jira, GitHub ou nuvem): o host compilou com a lista nova de métodos e o motor
+respondeu `boot.*`; pedido de leitura, pedido que só abre a tela, pedido ambíguo com escolha de uma opção, Project Boot
+(hash dos arquivos do projeto idêntico antes e depois), recuperação com Retomar (dois Boots interrompidos semeados, um com
+plano e outro sem), envio duplo (um só Boot, por Enter duas vezes em 29 ms e por dois cliques) e console sem erro. Achou um
+bloco repetido no Project Boot, a lista que não distinguia os interrompidos e oferecia Retomar ao que não tem plano, o botão
+fora do alinhamento e jargão nas mensagens; todos corrigidos. **Não provou** modelo real, os fluxos Python do motor
+(o empacotamento da inteligência falhou no build por causa do Python 3.12 do PATH) nem projeto real.
 
 ## 5. Riscos e limitações
 

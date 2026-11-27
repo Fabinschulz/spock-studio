@@ -126,6 +126,47 @@ public sealed class BootProtocolTests : IDisposable
     }
 
     [Fact]
+    public void A_lista_distingue_o_Boot_sem_resumo_e_so_oferece_retomar_o_que_tem_plano()
+    {
+        var store = new FileBootStore(_project.DataDir);
+        var withPlan = new BootRecord
+        {
+            Id = BootIds.New(), ProjectId = _projectId, State = BootStates.Interrupted, Request = "Quais riscos o projeto tem?",
+            Plan = new BootPlan { Objective = "Quais riscos o projeto tem?" }, CreatedAt = Now, UpdatedAt = Now
+        };
+        var noPlan = new BootRecord
+        {
+            Id = BootIds.New(), ProjectId = _projectId, State = BootStates.Interrupted, Request = new string('x', 300), CreatedAt = Now.AddMinutes(1), UpdatedAt = Now
+        };
+        var recovered = new BootRecord
+        {
+            Id = BootIds.New(), ProjectId = _projectId, State = BootStates.Interrupted, RecoveredByBootId = BootIds.New(),
+            Plan = new BootPlan { Objective = "Já recuperado" }, CreatedAt = Now.AddMinutes(2), UpdatedAt = Now
+        };
+        foreach (var record in new[] { withPlan, noPlan, recovered }) store.Save(record);
+
+        var boots = Result(ProtocolMethods.BootList, new JsonObject { ["projectId"] = _projectId })["boots"]!.AsArray();
+        JsonNode Of(BootRecord record) => boots.Single(node => node!["id"]!.GetValue<string>() == record.Id)!;
+
+        Assert.True(Of(withPlan)["resumable"]!.GetValue<bool>());
+        Assert.Equal("Quais riscos o projeto tem?", Of(withPlan)["objective"]!.GetValue<string>());
+        Assert.False(Of(noPlan)["resumable"]!.GetValue<bool>());
+        Assert.False(Of(recovered)["resumable"]!.GetValue<bool>());
+        // O pedido longo vira uma linha: o resumo da lista nunca devolve o texto inteiro.
+        Assert.Equal(120, Of(noPlan)["objective"]!.GetValue<string>().Length);
+    }
+
+    [Fact]
+    public void Project_Boot_nao_repete_a_mesma_linha_em_O_que_foi_consultado()
+    {
+        var boot = Result(ProtocolMethods.BootProject, new JsonObject { ["projectId"] = _projectId })["boot"]!;
+        var consulted = boot["result"]!["consulted"]!.AsArray().Select(node => node!.GetValue<string>()).ToList();
+
+        Assert.NotEmpty(consulted);
+        Assert.Equal(consulted.Count, consulted.Distinct(StringComparer.Ordinal).Count());
+    }
+
+    [Fact]
     public void Lista_detalhe_e_capacidades_respondem_com_o_que_foi_gravado()
     {
         var started = Result(ProtocolMethods.BootStart, new JsonObject { ["projectId"] = _projectId, ["text"] = "Quais tecnologias o projeto usa?" })["boot"]!;

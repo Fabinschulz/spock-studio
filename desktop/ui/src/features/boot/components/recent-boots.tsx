@@ -69,7 +69,7 @@ export function RecentBoots({ api, projectId, busy, refreshKey, onResume, onOpen
       {feed.status === 'ready' ? (
         <ul className={styles.list} role="list" aria-label="Últimos pedidos do projeto">
           {visible(feed.value.boots).map((item) => {
-            const title = item.headline ?? 'Pedido sem resumo';
+            const title = item.headline ?? item.objective ?? 'Pedido sem resumo';
             const content = (
               <>
                 <span className={styles.rowText}>
@@ -92,7 +92,7 @@ export function RecentBoots({ api, projectId, busy, refreshKey, onResume, onOpen
                     type="button"
                     className={styles.row}
                     disabled={busy}
-                    aria-label={`Abrir: ${title}. ${listedLabel(item)}`}
+                    aria-label={`Abrir: ${title.replace(/\.$/, '')}. ${listedLabel(item)}`}
                     onClick={() => void onOpen(item.id)}
                   >
                     {content}
@@ -104,7 +104,7 @@ export function RecentBoots({ api, projectId, busy, refreshKey, onResume, onOpen
                       variant="outlined"
                       size="small"
                       disabled={busy}
-                      aria-label={`Retomar: ${title}`}
+                      aria-label={`Retomar: ${title.replace(/\.$/, '')}`}
                       onClick={() => void resume(item.id)}
                     >
                       Retomar

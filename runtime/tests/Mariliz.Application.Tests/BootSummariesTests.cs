@@ -105,6 +105,16 @@ public class BootSummariesTests
     }
 
     [Fact]
+    public void Execucoes_sem_o_campo_dizem_sem_dado_e_nao_zero()
+    {
+        var empty = CapabilitySummaries.Describe("platform.runs", new JsonObject());
+        var partial = CapabilitySummaries.Describe("platform.runs", new JsonObject { ["summary"] = new JsonObject { ["total"] = 3 } });
+
+        Assert.StartsWith("Sem dado", empty.Headline);
+        Assert.Equal("3 execuções: sem dado em andamento e sem dado aguardando aprovação.", partial.Headline);
+    }
+
+    [Fact]
     public void Lista_vazia_diz_que_nao_ha_nada_em_vez_de_sem_dado()
     {
         (string Capability, JsonObject Result, string Headline)[] cases =
