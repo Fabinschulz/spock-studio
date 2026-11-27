@@ -254,7 +254,7 @@ function ReviewReport({ review }: { review: Review }) {
           {review.files.map((file) => (
             <li key={`${file.status}:${file.path}`}>
               <span className={styles.path}>{file.path}</span>
-              {` — ${file.status}`}
+              {`: ${file.status}`}
               {file.analyzed
                 ? `, +${file.added} −${file.removed}`
                 : `, não analisado (${SKIPPED[file.skippedReason ?? ''] ?? 'sem leitura'})`}
