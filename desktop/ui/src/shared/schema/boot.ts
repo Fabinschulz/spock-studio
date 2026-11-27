@@ -16,6 +16,9 @@ export const bootStepSchema = z.object({
   startedAt: z.string().nullable(),
   finishedAt: z.string().nullable(),
   summary: z.string(),
+  /** O que o Spock tirou do pedido para a consulta (período, quantidade), sempre dentro da faixa que o motor aceita. */
+  arguments: z.record(z.string(), z.number()),
+  argumentNotes: z.array(z.string()),
   evidence: z.array(z.string()),
   errorCode: z.string().nullable()
 });
@@ -151,6 +154,7 @@ export const bootCapabilitySchema = z.object({
   composes: z.array(z.string()),
   expectedResult: z.string(),
   preconditions: z.array(z.string()),
+  parameters: z.array(z.object({ name: z.string(), label: z.string(), min: z.number(), max: z.number() })),
   needs: z.array(z.string()),
   availability: z.enum([
     'available',

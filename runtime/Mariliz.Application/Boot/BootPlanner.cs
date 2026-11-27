@@ -51,8 +51,19 @@ public sealed class BootPlanner(CapabilityRegistry registry)
         }
 
         var kind = decision.Verdict == PermissionVerdict.Allowed ? StepKinds.Capability : StepKinds.Handoff;
-        var title = kind == StepKinds.Capability ? $"Consultar: {capability.Name}" : $"Abrir: {capability.Name}";
-        Add(steps, Step(kind + ":" + capability.Id, kind, title, capability.Id, capability.Method, capability.Operation, previous));
+        var step = Step(kind + ":" + capability.Id, kind, kind == StepKinds.Capability ? $"Consultar: {capability.Name}" : $"Abrir: {capability.Name}",
+            capability.Id, capability.Method, capability.Operation, previous);
+        // Só o que o Boot executa leva parâmetro: a tela que ele abre pergunta o que precisa.
+        if (kind == StepKinds.Capability)
+        {
+            foreach (var extracted in CapabilityParameters.Extract(capability.Id, intent.Objective))
+            {
+                step.Arguments[extracted.Parameter.Name] = extracted.Value;
+                step.ArgumentNotes.Add(extracted.Note);
+            }
+            if (step.Arguments.Count > 0) step.Title += $" ({string.Join(", ", step.ArgumentNotes.Select(note => note.TrimEnd('.')))})";
+        }
+        Add(steps, step);
         return new PlannedBoot(PlanFor(intent, [capability], decision), steps);
     }
 

@@ -20,6 +20,7 @@
       "preconditions": [
         "O projeto precisa ter sido analisado ao menos uma vez."
       ],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -46,6 +47,7 @@
       "composes": [],
       "expectedResult": "O perfil tecnológico atualizado.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -72,6 +74,7 @@
       "composes": [],
       "expectedResult": "O estado de cada componente do Harness.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -98,6 +101,7 @@
       "composes": [],
       "expectedResult": "A lista de revisões do Harness, da mais nova para a mais antiga.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -130,6 +134,7 @@
       "composes": [],
       "expectedResult": "A lista de componentes do Harness.",
       "preconditions": [],
+      "parameters": [],
       "needs": [],
       "availability": "available",
       "reason": null,
@@ -154,6 +159,7 @@
       "composes": [],
       "expectedResult": "O estado do índice de conhecimento.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -180,6 +186,7 @@
       "composes": [],
       "expectedResult": "O inventário de MCP.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -206,6 +213,7 @@
       "composes": [],
       "expectedResult": "Um plano de configuração para revisar; nada é gravado antes da aprovação.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -234,6 +242,7 @@
       "composes": [],
       "expectedResult": "Uma execução de engenharia aguardando a sua decisão.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project",
         "Model"
@@ -261,6 +270,7 @@
       "composes": [],
       "expectedResult": "A resposta de um agente de IA em modo só de leitura.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -287,6 +297,7 @@
       "composes": [],
       "expectedResult": "Os achados da varredura, sem os valores dos segredos.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -313,6 +324,7 @@
       "composes": [],
       "expectedResult": "O plano de modernização conferido.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -340,6 +352,7 @@
       "composes": [],
       "expectedResult": "O relatório de arquitetura do projeto.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -366,6 +379,7 @@
       "composes": [],
       "expectedResult": "A política de leitura, escrita e comandos dos agentes.",
       "preconditions": [],
+      "parameters": [],
       "needs": [],
       "availability": "available",
       "reason": null,
@@ -390,6 +404,7 @@
       "composes": [],
       "expectedResult": "A tabela do portfólio, com os sinais de cada projeto.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "AnyIntegration"
       ],
@@ -416,6 +431,14 @@
       "composes": [],
       "expectedResult": "As métricas de fluxo do projeto, calculadas pelo motor.",
       "preconditions": [],
+      "parameters": [
+        {
+          "name": "weeks",
+          "label": "Período em semanas",
+          "min": 2,
+          "max": 26
+        }
+      ],
       "needs": [
         "Project",
         "ProjectIntegration"
@@ -444,6 +467,7 @@
       "composes": [],
       "expectedResult": "A lista de riscos com a regra e a evidência de cada um.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project",
         "ProjectIntegration"
@@ -471,6 +495,7 @@
       "composes": [],
       "expectedResult": "A trilha de cada risco ao longo das sincronizações.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project",
         "ProjectIntegration"
@@ -498,6 +523,7 @@
       "composes": [],
       "expectedResult": "A previsão com a faixa de datas, ou o motivo de não haver.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project",
         "ProjectIntegration"
@@ -525,6 +551,7 @@
       "composes": [],
       "expectedResult": "Os marcos do projeto e a situação de cada um.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project",
         "ProjectIntegration"
@@ -552,6 +579,14 @@
       "composes": [],
       "expectedResult": "O relatório do período.",
       "preconditions": [],
+      "parameters": [
+        {
+          "name": "weeks",
+          "label": "Período em semanas",
+          "min": 2,
+          "max": 26
+        }
+      ],
       "needs": [
         "Project",
         "ProjectIntegration"
@@ -579,6 +614,7 @@
       "composes": [],
       "expectedResult": "A lista de decisões do projeto.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -606,6 +642,7 @@
       "composes": [],
       "expectedResult": "Uma resposta com os fatos e as citações que a sustentam.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project",
         "Model",
@@ -634,6 +671,14 @@
       "composes": [],
       "expectedResult": "Os eventos recentes do projeto.",
       "preconditions": [],
+      "parameters": [
+        {
+          "name": "limit",
+          "label": "Quantidade de eventos",
+          "min": 1,
+          "max": 200
+        }
+      ],
       "needs": [
         "Project"
       ],
@@ -660,6 +705,14 @@
       "composes": [],
       "expectedResult": "A trilha de auditoria do projeto.",
       "preconditions": [],
+      "parameters": [
+        {
+          "name": "limit",
+          "label": "Quantidade de registros",
+          "min": 1,
+          "max": 200
+        }
+      ],
       "needs": [
         "Project"
       ],
@@ -686,6 +739,14 @@
       "composes": [],
       "expectedResult": "A lista de execuções recentes.",
       "preconditions": [],
+      "parameters": [
+        {
+          "name": "limit",
+          "label": "Quantidade de execuções",
+          "min": 1,
+          "max": 100
+        }
+      ],
       "needs": [],
       "availability": "available",
       "reason": null,
@@ -710,6 +771,7 @@
       "composes": [],
       "expectedResult": "O estado da ferramenta de infraestrutura como código.",
       "preconditions": [],
+      "parameters": [],
       "needs": [],
       "availability": "unavailable",
       "reason": "O motor desta sessão não oferece esta capacidade.",
@@ -734,6 +796,7 @@
       "composes": [],
       "expectedResult": "O layout da infraestrutura do projeto.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -761,6 +824,7 @@
       "composes": [],
       "expectedResult": "O estado da infraestrutura, mostrado pela tela sem os valores sensíveis.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -787,6 +851,7 @@
       "composes": [],
       "expectedResult": "Uma proposta de arquitetura e um plano de gravação dos arquivos de infraestrutura para revisar.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project",
         "Model"
@@ -815,6 +880,7 @@
       "composes": [],
       "expectedResult": "O resumo do que o plano criaria, alteraria ou destruiria.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -823,6 +889,33 @@
       "verdict": "denied",
       "needsApproval": false,
       "requiredLevel": 0
+    },
+    {
+      "id": "infrastructure.drift",
+      "name": "Desvio da infraestrutura (drift)",
+      "description": "Compara o que existe na nuvem com o state, numa cópia, e agenda a verificação periódica; o projeto e a nuvem não são alterados.",
+      "domain": "infrastructure",
+      "goals": [
+        "Saber se a infraestrutura foi alterada fora do código"
+      ],
+      "operation": "configuration",
+      "mode": "handoff",
+      "route": "/infraestrutura",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O que mudou na nuvem fora do Terraform, e a verificação agendada se você ligar.",
+      "preconditions": [],
+      "parameters": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 2
     },
     {
       "id": "infrastructure.apply",
@@ -841,6 +934,7 @@
       "composes": [],
       "expectedResult": "Um plano aprovado por você, aplicado só depois das confirmações.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -867,6 +961,7 @@
       "composes": [],
       "expectedResult": "As leituras de nuvem liberadas para o projeto.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project"
       ],
@@ -893,6 +988,7 @@
       "composes": [],
       "expectedResult": "Documentos da ideia para revisar e um plano de gravação aprovável.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project",
         "Model"
@@ -921,6 +1017,7 @@
       "composes": [],
       "expectedResult": "O estado de cada provedor de modelo, sem a chave.",
       "preconditions": [],
+      "parameters": [],
       "needs": [],
       "availability": "unavailable",
       "reason": "O motor desta sessão não oferece esta capacidade.",
@@ -945,6 +1042,7 @@
       "composes": [],
       "expectedResult": "A lista de agentes de IA encontrados.",
       "preconditions": [],
+      "parameters": [],
       "needs": [],
       "availability": "unavailable",
       "reason": "O motor desta sessão não oferece esta capacidade.",
@@ -970,6 +1068,7 @@
       "composes": [],
       "expectedResult": "A lista de conexões e o estado de cada uma.",
       "preconditions": [],
+      "parameters": [],
       "needs": [],
       "availability": "available",
       "reason": null,
@@ -994,6 +1093,7 @@
       "composes": [],
       "expectedResult": "A lista de contas de nuvem.",
       "preconditions": [],
+      "parameters": [],
       "needs": [],
       "availability": "unavailable",
       "reason": "O motor desta sessão não oferece esta capacidade.",
@@ -1022,6 +1122,7 @@
       ],
       "expectedResult": "Três etapas encadeadas, uma por vez.",
       "preconditions": [],
+      "parameters": [],
       "needs": [
         "Project",
         "Model"

@@ -196,6 +196,42 @@ public sealed class BootServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task A_quantidade_pedida_vai_ao_motor_dentro_da_faixa_e_fica_no_plano()
+    {
+        var boot = await Start("Mostre os últimos 30 eventos da linha do tempo");
+        var clamped = await Start("Mostre 500 eventos da linha do tempo");
+
+        Assert.Equal("platform.timeline", boot.Intent!.CapabilityId);
+        Assert.Equal(30, _calls[0].Params["limit"]!.GetValue<int>());
+        var step = boot.Steps.Single(s => s.Kind == StepKinds.Capability);
+        Assert.Equal(30, step.Arguments["limit"]);
+        Assert.Contains("(Quantidade de eventos: 30)", step.Title);
+        Assert.Equal(200, _calls[1].Params["limit"]!.GetValue<int>());
+        Assert.Contains("pedido 500", clamped.Steps.Single(s => s.Kind == StepKinds.Capability).Evidence[0]);
+    }
+
+    [Fact]
+    public async Task Argumento_adulterado_no_registro_nao_chega_ao_motor_alem_da_ficha()
+    {
+        var record = new BootRecord { Id = BootIds.New(), ProjectId = _projectId, State = BootStates.Interrupted, Autonomy = AutonomyLevel.Preparation, CreatedAt = Now, UpdatedAt = Now };
+        record.Intent = new IntentResult(IntentResolution.Resolved, "platform.timeline", "text", "platform", [], null, "x");
+        record.Plan = new BootPlan { Objective = "x", Capabilities = ["platform.timeline"] };
+        record.Steps.Add(new BootStep
+        {
+            Id = "capability:platform.timeline", Kind = StepKinds.Capability, CapabilityId = "platform.timeline", Method = "audit.read",
+            Arguments = new Dictionary<string, int> { ["limit"] = 99999, ["weeks"] = 7, ["projectId"] = 1 }
+        });
+        _store.Save(record);
+
+        await _boot.ResumeAsync(_projectId, record.Id, CancellationToken.None);
+
+        var call = _calls.Single(c => c.Method == ProtocolMethods.TimelineRead);
+        Assert.Equal(200, call.Params["limit"]!.GetValue<int>());
+        Assert.False(call.Params.ContainsKey("weeks"));
+        Assert.Equal(_projectId, call.Params["projectId"]!.GetValue<string>());
+    }
+
+    [Fact]
     public async Task Pedido_sem_capacidade_diz_que_nao_sabe_em_vez_de_chutar()
     {
         var boot = await Start("Quero um bolo de chocolate");

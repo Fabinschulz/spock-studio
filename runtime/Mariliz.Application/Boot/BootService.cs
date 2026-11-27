@@ -269,11 +269,14 @@ public sealed class BootService(
         // A prova de que o passo é o que o catálogo autoriza: o método vem da ficha, nunca do registro gravado nem do pedido.
         var parameters = new JsonObject();
         if (record.ProjectId is not null) parameters["projectId"] = record.ProjectId;
+        // Só o que a ficha declara, e sempre dentro da faixa do motor: o registro gravado não é fonte de argumento livre.
+        foreach (var (name, value) in step.Arguments)
+            if (CapabilityParameters.Bound(capability.Id, name, value) is { } bounded) parameters[name] = bounded;
         var result = await _dispatch(capability.Method!, parameters, ct);
         var summary = CapabilitySummaries.Describe(capability.Id, result);
         step.Status = StepStatuses.Completed;
         step.Summary = summary.Headline;
-        step.Evidence = [.. summary.Evidence];
+        step.Evidence = [.. step.ArgumentNotes, .. summary.Evidence];
     }
 
     private static bool DependenciesMet(BootRecord record, BootStep step) =>
@@ -373,6 +376,6 @@ public sealed class BootService(
     {
         Id = step.Id, Kind = step.Kind, Title = step.Title, CapabilityId = step.CapabilityId, Method = step.Method, DependsOn = [.. step.DependsOn],
         Operation = step.Operation, Status = step.Status, StartedAt = step.StartedAt, FinishedAt = step.FinishedAt, Summary = step.Summary,
-        Evidence = [.. step.Evidence], ErrorCode = step.ErrorCode
+        Arguments = new Dictionary<string, int>(step.Arguments), ArgumentNotes = [.. step.ArgumentNotes], Evidence = [.. step.Evidence], ErrorCode = step.ErrorCode
     };
 }
