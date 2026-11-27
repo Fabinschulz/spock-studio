@@ -71,6 +71,12 @@ public class EngineeringWorkflowLiveTests(ITestOutputHelper output)
             await run.Completion!.WaitAsync(TimeSpan.FromMinutes(10));
 
             var result = run.Result;
+            // Execução que falhou não traz resultado: os últimos eventos do motor (tipo e dados, que são do motor) dizem por quê.
+            if (result is null)
+            {
+                var last = string.Join(" | ", run.Snapshot()["events"]!.AsArray().TakeLast(4).Select(e => $"{e!["type"]} {e["data"]?.ToJsonString()}"));
+                output.WriteLine($"[fluxo real] {provider} {scenario}: sem resultado; últimos eventos: {last[..Math.Min(500, last.Length)]}");
+            }
             var limitations = result?["limitations"]?.AsArray().Select(item => item!["code"]!.GetValue<string>()).ToList() ?? [];
             var usage = result?["usage"];
             var judge = result?["evaluation"]?["judge"]?.GetValue<string>() ?? "?";
