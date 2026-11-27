@@ -442,7 +442,10 @@ public sealed class BootProcessTests : IAsyncLifetime
         Assert.Equal(Enumerable.Range(11, 200).Select(index => Id(index) + ".json").Order(StringComparer.Ordinal).ToList(), inPortfolio);
         Assert.Equal("interrupted", Text(protectedDetail["state"]));
         Assert.Equal(Id(230), Text(newest[0]!["id"]));
-        Assert.Equal(100, newest.Count);
+        // Os 100 mais novos e, além do limite, o interrompido retomável: a lista nunca esconde o que dá para retomar.
+        Assert.Equal(101, newest.Count);
+        Assert.Equal("boot-ffffffffffff", Text(newest[^1]!["id"]));
+        Assert.True(newest[^1]!["resumable"]!.GetValue<bool>());
     }
 
     [Fact]

@@ -10,6 +10,7 @@
     "state": "completed",
     "autonomy": "preparation",
     "request": "Configurar meu ambiente",
+    "requestRedacted": false,
     "hint": null,
     "intent": {
       "resolution": "resolved",
@@ -27,8 +28,10 @@
         }
       ],
       "question": null,
-      "objective": "Configurar meu ambiente"
+      "objective": "Configurar meu ambiente",
+      "modelStage": "skipped"
     },
+    "modelUsage": null,
     "plan": {
       "objective": "Configurar meu ambiente",
       "domain": "engineering",

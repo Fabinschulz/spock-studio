@@ -49,7 +49,8 @@ public static class PermissionEvaluator
         {
             OperationClass.Destructive => "Pode destruir recursos: só a tela executa, com a aprovação do plano e as confirmações extras.",
             OperationClass.ExternalChange or OperationClass.Sensitive => "Altera algo fora do projeto: só a tela executa, depois da sua aprovação.",
-            OperationClass.InternalChange or OperationClass.Configuration => "Altera o projeto: a tela mostra o que muda e só grava o que você aprovar.",
+            OperationClass.InternalChange => "Altera o projeto: a tela mostra o que muda e só grava o que você aprovar.",
+            OperationClass.Configuration => "Altera uma configuração: a tela mostra o que muda e só aplica o que você aprovar.",
             _ => "A tela que já existe faz o trabalho."
         };
         return new PermissionDecision(PermissionVerdict.HandoffOnly, reason, required, needsApproval);

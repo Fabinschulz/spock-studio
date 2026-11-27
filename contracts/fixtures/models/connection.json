@@ -94,6 +94,14 @@
       "provider": "openai",
       "model": "gpt-4o-mini",
       "isDefault": true
+    },
+    {
+      "id": "boot",
+      "label": "Entendimento do pedido",
+      "description": "Segunda tentativa de entender um pedido do Início quando as palavras do Spock não bastam. Recebe só o texto do pedido, sem segredos, e a lista de capacidades; só aponta qual serve. Um modelo pequeno basta e responde mais rápido.",
+      "provider": "openai",
+      "model": "gpt-4o-mini",
+      "isDefault": true
     }
   ],
   "budgets": [

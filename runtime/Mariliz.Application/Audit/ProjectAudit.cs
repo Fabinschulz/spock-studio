@@ -194,6 +194,9 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
             case AuditActions.IdePrompt:
                 yield return Entry("", AuditCategories.Context, "Aviso entregue à IDE pelo hook por prompt", PromptSignalsDetail(d));
                 break;
+            case AuditActions.IdeBoot:
+                yield return Entry("", AuditCategories.Context, "Boot pedido pela IDE", IdeBootDetail(d));
+                break;
             case AuditActions.ConnectionCreated:
                 yield return Entry("", AuditCategories.Credential, $"Conexão criada: {Clean(Text(d, "name"))}", $"Provedor: {Clean(Text(d, "provider"))}. Conexão usada por este projeto.");
                 break;
@@ -320,6 +323,11 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
             case AuditActions.BootStarted:
                 yield return Entry("", AuditCategories.Context, "Boot iniciado", $"{BootLabel(Text(d, "mode"))} a partir de {Clean(Text(d, "origin"))}. O texto do pedido não é registrado.");
                 break;
+            case AuditActions.BootIntentModel:
+                yield return Entry("", AuditCategories.Model, "Pedido interpretado com ajuda da IA",
+                    $"{(Text(d, "stage") == "failed" ? "A resposta do modelo não serviu" : "O modelo respondeu")}; {Count(Count(d, "proposed"), "capacidade proposta", "capacidades propostas")}; " +
+                    $"{Count(d, "inputTokens")} tokens de entrada e {Count(d, "outputTokens")} de saída. O texto do pedido não é registrado.");
+                break;
             case AuditActions.BootFinished:
                 yield return Entry("", AuditCategories.Context, "Boot encerrado",
                     $"{BootLabel(Text(d, "mode"))}: {Clean(Text(d, "state"))}{(Text(d, "outcome") is { Length: > 0 } outcome ? $", resultado {Clean(outcome)}" : "")}; {Count((d["capabilities"] as JsonArray)?.Count ?? 0, "capacidade usada", "capacidades usadas")}.");
@@ -411,6 +419,19 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
         }).Where(text => text.Length > 0).Distinct().ToList();
         var version = Clean(Text(d, "contextVersion"));
         return what.Count == 0 ? $"Versão {version}." : $"Versão {version}: {string.Join("; ", what)}.";
+    }
+
+    // O texto do pedido nunca é gravado: só o modo, o que foi usado e como terminou.
+    private static string IdeBootDetail(JsonObject d)
+    {
+        var capabilities = d["capabilities"] is JsonArray list
+            ? list.OfType<JsonValue>().Select(item => item.TryGetValue<string>(out var id) ? Clean(id) : "").Where(id => id.Length > 0).ToList()
+            : [];
+        var outcome = Text(d, "outcome");
+        var used = capabilities.Count == 0 ? "nenhuma capacidade usada" : $"{Count(capabilities.Count, "capacidade usada", "capacidades usadas")}: {string.Join(", ", capabilities.Take(ShownPaths))}";
+        var client = Clean(Text(d, "client"));
+        return $"{BootLabel(Text(d, "mode"))}: {Clean(Text(d, "state"))}{(outcome.Length > 0 ? $", resultado {Clean(outcome)}" : "")}; {used}. Só leitura, e o texto do pedido não é registrado." +
+               (client.Length > 0 ? $" Cliente MCP informado: {client}." : "");
     }
 
     private static string IdeReadDetail(JsonObject d)

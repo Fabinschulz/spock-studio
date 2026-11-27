@@ -678,7 +678,7 @@ describe('contrato da conexão do modelo (fixtures do motor)', () => {
   it('cada finalidade diz o provedor e o modelo de hoje, e sem escolha é o padrão do provedor padrão', () => {
     const parsed = modelConnectionSchema.parse(modelConnection);
     const fallback = providerOf(parsed, parsed.provider);
-    expect(parsed.purposes.map((purpose) => purpose.id)).toEqual(['assistant', 'judge', 'workflow']);
+    expect(parsed.purposes.map((purpose) => purpose.id)).toEqual(['assistant', 'judge', 'workflow', 'boot']);
     expect(
       parsed.purposes.every(
         (purpose) => purpose.isDefault && purpose.model === fallback.model && purpose.provider === fallback.id
@@ -694,7 +694,8 @@ describe('contrato da conexão do modelo (fixtures do motor)', () => {
     expect(judge).toMatchObject({ model: 'claude-opus-5-5', provider: 'anthropic', isDefault: false });
     expect(parsed.purposes.filter((purpose) => purpose.isDefault).map((purpose) => purpose.id)).toEqual([
       'assistant',
-      'workflow'
+      'workflow',
+      'boot'
     ]);
     expect(providerOf(parsed, judge.provider).models.map((option) => option.id)).toContain(judge.model);
   });
@@ -929,7 +930,8 @@ describe('contrato da ligação com a IDE (fixture do motor)', () => {
       'decisions',
       'search_project',
       'spock_architecture_reference',
-      'spock_version_check'
+      'spock_version_check',
+      'spock_boot'
     ]);
   });
 });
@@ -1180,6 +1182,28 @@ describe('contrato do Boot (fixtures do motor)', () => {
     expect(handoff.plan?.approvals.length).toBeGreaterThan(0);
     expect(clarify.state).toBe('awaitingClarification');
     expect(clarify.result?.alternatives.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('a intenção diz se o modelo ajudou: estágio e gasto, e só o léxico quando não há modelo', () => {
+    const clarify = bootResponseSchema.parse(bootClarifyFixture).boot;
+    const withModel = bootResponseSchema.parse({
+      boot: {
+        ...bootClarifyFixture.boot,
+        intent: { ...bootClarifyFixture.boot.intent, source: 'model', modelStage: 'used' },
+        modelUsage: { calls: 1, inputTokens: 1287, outputTokens: 30 }
+      }
+    }).boot;
+
+    expect(clarify.intent?.source).toBe('text');
+    expect(clarify.intent?.modelStage).toBe('unavailable');
+    expect(clarify.modelUsage).toBeNull();
+    expect(withModel.intent).toMatchObject({ source: 'model', modelStage: 'used' });
+    expect(withModel.modelUsage).toEqual({ calls: 1, inputTokens: 1287, outputTokens: 30 });
+    expect(() =>
+      bootResponseSchema.parse({
+        boot: { ...bootClarifyFixture.boot, intent: { ...bootClarifyFixture.boot.intent, modelStage: 'talvez' } }
+      })
+    ).toThrow();
   });
 
   it('a lista e o catálogo de capacidades passam pelo schema e dizem por que algo não está disponível', () => {

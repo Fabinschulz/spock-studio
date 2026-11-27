@@ -1,0 +1,637 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mariliz.dev/schemas/mcp/spock_boot.output.schema.json",
+  "type": "object",
+  "required": [
+    "boot"
+  ],
+  "properties": {
+    "boot": {
+      "type": "object",
+      "required": [
+        "id",
+        "version",
+        "mode",
+        "origin",
+        "source",
+        "projectId",
+        "stableProjectId",
+        "state",
+        "autonomy",
+        "request",
+        "requestRedacted",
+        "hint",
+        "intent",
+        "modelUsage",
+        "plan",
+        "steps",
+        "checkpoints",
+        "result",
+        "contextVersion",
+        "recoversBootId",
+        "recoveredByBootId",
+        "createdAt",
+        "updatedAt",
+        "finishedAt",
+        "errorCode"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^boot-[0-9a-f]{12}$"
+        },
+        "version": {
+          "type": "integer",
+          "description": "Sobe a cada gravação do registro."
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "request",
+            "project",
+            "work",
+            "recovery",
+            "autonomous"
+          ]
+        },
+        "origin": {
+          "type": "string",
+          "description": "Quem iniciou; pelo MCP é sempre mcp."
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "O nome que a IDE deu de si, sem conferência."
+        },
+        "projectId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Id da cópia de trabalho (p-)."
+        },
+        "stableProjectId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "created",
+            "interpreting",
+            "awaitingClarification",
+            "preparing",
+            "planned",
+            "executing",
+            "completed",
+            "failed",
+            "cancelled",
+            "interrupted"
+          ]
+        },
+        "autonomy": {
+          "type": "string",
+          "enum": [
+            "observation",
+            "preparation",
+            "assisted",
+            "governed",
+            "extended"
+          ]
+        },
+        "request": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "O texto do pedido, devolvido como foi enviado; só serve para escolher uma capacidade."
+        },
+        "requestRedacted": {
+          "type": "boolean",
+          "description": "Uma linha do pedido parecia um segredo e foi omitida antes de usar e de guardar o texto."
+        },
+        "hint": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "intent": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "resolution",
+            "capabilityId",
+            "source",
+            "domain",
+            "candidates",
+            "question",
+            "objective",
+            "modelStage"
+          ],
+          "properties": {
+            "resolution": {
+              "type": "string",
+              "enum": [
+                "resolved",
+                "needsClarification",
+                "noMatch"
+              ]
+            },
+            "capabilityId": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "A capacidade do catálogo que o pedido escolheu."
+            },
+            "source": {
+              "type": "string",
+              "description": "Como foi escolhida: pelo texto ou direto pelo capabilityId."
+            },
+            "domain": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "candidates": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "capabilityId",
+                  "score",
+                  "confidence",
+                  "matched"
+                ],
+                "properties": {
+                  "capabilityId": {
+                    "type": "string"
+                  },
+                  "score": {
+                    "type": "integer"
+                  },
+                  "confidence": {
+                    "type": "number"
+                  },
+                  "matched": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "question": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "A pergunta de esclarecimento, quando o pedido cabe em mais de uma capacidade."
+            },
+            "objective": {
+              "type": "string"
+            },
+            "modelStage": {
+              "type": "string",
+              "enum": [
+                "skipped",
+                "unavailable",
+                "failed",
+                "used"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "modelUsage": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "calls",
+            "inputTokens",
+            "outputTokens"
+          ],
+          "properties": {
+            "calls": {
+              "type": "integer"
+            },
+            "inputTokens": {
+              "type": "integer"
+            },
+            "outputTokens": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "plan": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "objective",
+            "domain",
+            "capabilities",
+            "operation",
+            "requiredLevel",
+            "approvals",
+            "risks",
+            "successCriteria",
+            "expectedResult"
+          ],
+          "properties": {
+            "objective": {
+              "type": "string"
+            },
+            "domain": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "capabilities": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "operation": {
+              "type": "string",
+              "enum": [
+                "read",
+                "query",
+                "analysis",
+                "preparation",
+                "configuration",
+                "internalChange",
+                "externalChange",
+                "sensitive",
+                "destructive"
+              ]
+            },
+            "requiredLevel": {
+              "type": "string",
+              "enum": [
+                "observation",
+                "preparation",
+                "assisted",
+                "governed",
+                "extended"
+              ]
+            },
+            "approvals": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "risks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "successCriteria": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "expectedResult": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "kind",
+              "title",
+              "capabilityId",
+              "method",
+              "dependsOn",
+              "operation",
+              "status",
+              "startedAt",
+              "finishedAt",
+              "summary",
+              "arguments",
+              "argumentNotes",
+              "evidence",
+              "errorCode"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "check",
+                  "context",
+                  "capability",
+                  "handoff"
+                ]
+              },
+              "title": {
+                "type": "string"
+              },
+              "capabilityId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "method": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "dependsOn": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "operation": {
+                "type": "string",
+                "enum": [
+                  "read",
+                  "query",
+                  "analysis",
+                  "preparation",
+                  "configuration",
+                  "internalChange",
+                  "externalChange",
+                  "sensitive",
+                  "destructive"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "running",
+                  "completed",
+                  "skipped",
+                  "failed",
+                  "blocked"
+                ]
+              },
+              "startedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "finishedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "summary": {
+                "type": "string",
+                "description": "O que o passo leu do motor; nunca texto escrito por modelo."
+              },
+              "arguments": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer"
+                }
+              },
+              "argumentNotes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "evidence": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "errorCode": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "checkpoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "at",
+              "state",
+              "stepId",
+              "note"
+            ],
+            "properties": {
+              "at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "state": {
+                "type": "string"
+              },
+              "stepId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "note": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "result": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "outcome",
+            "headline",
+            "done",
+            "consulted",
+            "changes",
+            "validations",
+            "problems",
+            "pending",
+            "nextStep",
+            "route",
+            "routeLabel",
+            "alternatives"
+          ],
+          "properties": {
+            "outcome": {
+              "type": "string",
+              "enum": [
+                "answered",
+                "prepared",
+                "handoff",
+                "needsClarification",
+                "needsInput",
+                "unsupported",
+                "failed"
+              ]
+            },
+            "headline": {
+              "type": "string"
+            },
+            "done": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "consulted": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "changes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "validations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "problems": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "pending": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "nextStep": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "route": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "A tela do Spock Studio onde a pessoa continua e aprova; o Boot não a abre."
+            },
+            "routeLabel": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "alternatives": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "capabilityId",
+                  "name",
+                  "reason"
+                ],
+                "properties": {
+                  "capabilityId": {
+                    "type": "string",
+                    "description": "Passe em capabilityId para escolher esta."
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "contextVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recoversBootId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recoveredByBootId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "finishedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "errorCode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

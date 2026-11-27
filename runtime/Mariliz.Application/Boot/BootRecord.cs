@@ -59,6 +59,9 @@ public sealed class BootResult
     public List<BootAlternative> Alternatives { get; set; } = [];
 }
 
+// O gasto de modelo do reconhecimento de intenção (segundo estágio); o Boot não é uma execução, então o consumo fica no registro dele.
+public sealed record BootModelUsage(int Calls, int InputTokens, int OutputTokens);
+
 public sealed class BootCheckpoint
 {
     public DateTimeOffset At { get; set; }
@@ -82,8 +85,12 @@ public sealed class BootRecord
     public string State { get; set; } = BootStates.Created;
     public AutonomyLevel Autonomy { get; set; } = AutonomyLevel.Observation;
     public string? Request { get; set; }
+    // O pedido tinha uma linha com cara de segredo: ela foi omitida antes de reconhecer a intenção e de gravar o registro.
+    public bool RequestRedacted { get; set; }
     public string? Hint { get; set; }
     public IntentResult? Intent { get; set; }
+    // Só no Boot que chamou o modelo; a recuperação não copia, para o mesmo gasto não contar duas vezes.
+    public BootModelUsage? ModelUsage { get; set; }
     public BootPlan? Plan { get; set; }
     public List<BootStep> Steps { get; set; } = [];
     public List<BootCheckpoint> Checkpoints { get; set; } = [];

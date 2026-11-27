@@ -29,6 +29,7 @@ public static class AuditActions
     public const string IdeContextRead = "ide.context_read";
     public const string IdeBootstrap = "ide.bootstrap";
     public const string IdePrompt = "ide.prompt";
+    public const string IdeBoot = "ide.boot";
     public const string RunLinked = "run.linked";
     public const string RunUnlinked = "run.unlinked";
     public const string ProfileRefreshed = "engineering.profile_refreshed";
@@ -37,6 +38,7 @@ public static class AuditActions
     public const string PortfolioAnswered = "management.portfolio_answered";
     public const string BootStarted = "boot.started";
     public const string BootFinished = "boot.finished";
+    public const string BootIntentModel = "boot.intent_model";
 
     public const string IacValidate = "iac.validate";
     public const string IacPlan = "iac.plan";

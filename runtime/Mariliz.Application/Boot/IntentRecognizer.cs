@@ -17,6 +17,8 @@ public sealed record IntentRequest(string? Text, string? Hint, string? Capabilit
 /// <param name="Score">Soma dos pesos dos termos e do contexto. Ordena candidatos; não é probabilidade.</param>
 public sealed record IntentCandidate(string CapabilityId, int Score, double Confidence, IReadOnlyList<string> Matched);
 
+/// <param name="Source">"text" (léxico), "explicit" (escolha direta) ou "model" (segundo estágio).</param>
+/// <param name="ModelStage">O que houve com o estágio do modelo; ver <see cref="ModelStages"/>.</param>
 public sealed record IntentResult(
     IntentResolution Resolution,
     string? CapabilityId,
@@ -24,13 +26,14 @@ public sealed record IntentResult(
     string? Domain,
     IReadOnlyList<IntentCandidate> Candidates,
     string? Question,
-    string Objective);
+    string Objective,
+    string ModelStage = ModelStages.Skipped);
 
 /// <summary>
 /// Reconhece a intenção a partir das fichas do catálogo: termos ponderados (palavra ou frase em ordem), reforço pela dica da tela e
 /// pelo contexto (há projeto aberto?), e uma regra de desempate que prefere perguntar a adivinhar. É léxico e roda sem modelo, de
-/// propósito: o resultado é reprodutível e a eval de intenção mede o que erra. Compreensão semântica fica para depois, medida pela
-/// mesma eval.
+/// propósito: o resultado é reprodutível e a eval de intenção mede o que erra. O que o léxico não resolve pode ir a um modelo
+/// (<see cref="ModelIntentStage"/>), e <see cref="WithModel"/> é a única regra que aceita a proposta dele.
 /// </summary>
 public sealed class IntentRecognizer(CapabilityRegistry registry)
 {
@@ -40,6 +43,7 @@ public sealed class IntentRecognizer(CapabilityRegistry registry)
     public const int HintBonus = 3;
     public const int NoProjectPenalty = 3;
     public const int MaxObjective = 280;
+    public const int MaxOptions = 3;
 
     public IntentResult Recognize(IntentRequest request)
     {
@@ -90,12 +94,48 @@ public sealed class IntentRecognizer(CapabilityRegistry registry)
         if (close.Count > 0 && !IsMemberOf(top, close, registry))
         {
             var options = new[] { top }.Concat(close).Take(3).ToList();
-            var names = options.Select(option => registry.Find(option.CapabilityId)!.Name).ToList();
-            return new IntentResult(IntentResolution.NeedsClarification, null, "text", null, options,
-                $"O pedido cabe em mais de uma coisa: {string.Join(", ", names.Take(names.Count - 1))} ou {names[^1]}. Qual delas?", objective);
+            return new IntentResult(IntentResolution.NeedsClarification, null, "text", null, options, Question(options), objective);
         }
 
         return new IntentResult(IntentResolution.Resolved, top.CapabilityId, "text", registry.Find(top.CapabilityId)!.Domain, [.. ranked.Take(3)], null, objective);
+    }
+
+    /// <summary>
+    /// Aceita a proposta do modelo só onde o léxico não resolveu; um léxico <see cref="IntentResolution.Resolved"/> nunca é trocado.
+    /// A proposta já veio validada contra o catálogo, e aqui ela só decide entre três saídas: uma capacidade (resolve), duas ou mais
+    /// opções (pergunta, que é o que o léxico faria) ou nada (o resultado do léxico fica como estava). O que acontece depois da
+    /// escolha, disponibilidade, permissão e plano, é o fluxo de sempre.
+    /// </summary>
+    public IntentResult WithModel(IntentResult lexicon, ModelIntentProposal proposal)
+    {
+        if (lexicon.Resolution == IntentResolution.Resolved || lexicon.Source == "explicit") return lexicon;
+        if (proposal.State != ModelStages.Used) return lexicon with { ModelStage = proposal.State };
+
+        var options = new List<string>();
+        if (proposal.CapabilityId is not null) options.Add(proposal.CapabilityId);
+        options.AddRange(proposal.Alternatives);
+        options = [.. options.Distinct(StringComparer.Ordinal).Take(MaxOptions)];
+
+        // Uma só opção resolve; duas ou mais viram pergunta (o modelo mesmo disse que o pedido cabe em mais de uma coisa). Alternativa
+        // solta, sem capacidade principal, não é palpite que valha uma pergunta: o léxico segue.
+        if (options.Count == 1 && proposal.CapabilityId is not null && proposal.Alternatives.Count == 0)
+            return new IntentResult(IntentResolution.Resolved, options[0], "model", registry.Find(options[0])!.Domain, [Proposed(options[0])], null,
+                lexicon.Objective, ModelStages.Used);
+        if (options.Count >= 2)
+        {
+            var proposed = options.Select(Proposed).ToList();
+            return new IntentResult(IntentResolution.NeedsClarification, null, "model", null, proposed, Question(proposed), lexicon.Objective, ModelStages.Used);
+        }
+        return lexicon with { ModelStage = ModelStages.Used };
+    }
+
+    // O modelo não pontua: o candidato dele não tem peso de termo, só a origem.
+    private static IntentCandidate Proposed(string capabilityId) => new(capabilityId, 0, 0, ["modelo"]);
+
+    private string Question(IReadOnlyList<IntentCandidate> options)
+    {
+        var names = options.Select(option => registry.Find(option.CapabilityId)!.Name).ToList();
+        return $"O pedido cabe em mais de uma coisa: {string.Join(", ", names.Take(names.Count - 1))} ou {names[^1]}. Qual delas?";
     }
 
     // Uma composição sempre empata com os próprios membros por construção; perguntar entre elas seria ruído.

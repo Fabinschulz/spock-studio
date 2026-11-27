@@ -120,7 +120,7 @@ public sealed partial class ProjectContextTools(
         });
 
     public static IReadOnlyList<McpToolInfo> Catalog { get; } =
-        [ContextBootstrapTool.Info, ListProjects, Briefing, Decisions, Search, ArchitectureReferenceTool.Info, VersionCheckTool.Info];
+        [ContextBootstrapTool.Info, ListProjects, Briefing, Decisions, Search, ArchitectureReferenceTool.Info, VersionCheckTool.Info, BootTool.Info];
 
     // O bootstrap só existe com o Context Engine montado (o modo mcp do motor sempre monta).
     public IReadOnlyList<McpTool> Tools() =>

@@ -74,20 +74,26 @@ export const bootRecordSchema = z.object({
   state: bootStateSchema,
   autonomy: z.string(),
   request: z.string().nullable(),
+  /** Uma linha do pedido parecia um segredo e foi omitida antes de usar e de guardar o texto. */
+  requestRedacted: z.boolean(),
   hint: z.string().nullable(),
   intent: z
     .object({
       resolution: z.enum(['resolved', 'needsClarification', 'noMatch']),
       capabilityId: z.string().nullable(),
+      // 'text' (léxico), 'explicit' (escolha direta) ou 'model' (segundo estágio, conferido pelo motor contra o catálogo).
       source: z.string(),
       domain: z.string().nullable(),
       candidates: z.array(
         z.object({ capabilityId: z.string(), score: z.number(), confidence: z.number(), matched: z.array(z.string()) })
       ),
       question: z.string().nullable(),
-      objective: z.string()
+      objective: z.string(),
+      modelStage: z.enum(['skipped', 'unavailable', 'failed', 'used'])
     })
     .nullable(),
+  // O gasto de modelo do reconhecimento da intenção; nulo quando o modelo não foi chamado.
+  modelUsage: z.object({ calls: z.number(), inputTokens: z.number(), outputTokens: z.number() }).nullable(),
   plan: z
     .object({
       objective: z.string(),
