@@ -10,6 +10,7 @@
     "state": "completed",
     "autonomy": "preparation",
     "request": "Quais tecnologias o projeto usa?",
+    "requestRedacted": false,
     "hint": null,
     "intent": {
       "resolution": "resolved",

@@ -200,6 +200,9 @@ Estados: `created`, `interpreting`, `awaitingClarification`, `preparing`, `plann
 checkpoints. Arquivo ilegível vai para `.corrupt-*` e some da lista sem derrubar os outros; o id vira nome de arquivo, então
 só o formato `boot-<12 hex>` passa.
 
+**Auditoria.** Só o Boot de um projeto grava `boot.started` e `boot.finished`: a trilha é de projeto, e o Boot sem projeto
+(portfólio, conexões, modelos) fica no próprio registro, que já guarda o que ele fez.
+
 **Retenção.** Cada escopo (um projeto, ou o Boot sem projeto) guarda os 200 registros mais novos. Ao subir o motor a poda
 vai até o limite exato; ao terminar um Boot ela só roda quando a pasta passa de 220, para não reler tudo a cada pedido.
 Saem só os mais antigos que já terminaram: um Boot vivo, ou interrompido e ainda não recuperado, nunca é apagado, porque é o
@@ -318,7 +321,9 @@ fora do alinhamento e jargão nas mensagens; todos corrigidos. **Não provou** m
 2. **Sem identidade.** O Boot registra a origem (`ui`), não a pessoa nem a organização. Isolamento entre organizações não
    existe porque o produto não tem organização; o escopo é o projeto autorizado na máquina.
 3. **Texto do pedido gravado em disco** no registro do Boot (campo `request`), na pasta de dados do Spock, como os
-   diários já fazem. Não vai para auditoria nem para o contexto de IDE.
+   diários já fazem. Não vai para auditoria nem para o contexto de IDE. A linha com cara de segredo (o mesmo detector das
+   leituras do MCP) é omitida antes de qualquer uso do texto, e o resultado avisa; o resto do texto continua inteiro, e o
+   detector não pega todo formato de segredo.
 4. **Leituras que podem demorar** (`aitool.list` roda processos; `engineering.analyze` lê o projeto): o Boot está na lista
    de métodos lentos e anuncia ao host um prazo de 300 s; não tem cancelamento pela interface.
 5. **O resumo é só o que o motor sabe resumir.** Toda capacidade direta tem resumo próprio, feito de contagens, estados e nomes
@@ -328,14 +333,12 @@ fora do alinhamento e jargão nas mensagens; todos corrigidos. **Não provou** m
 6. **Uma sessão de IDE (MCP) não usa o Boot.** O servidor MCP não expõe `boot.*`.
 7. **Nada é executado em paralelo**, e o Boot não tem fila nem concorrência entre projetos. A tela barra um segundo pedido
    enquanto um está em preparo.
-8. **Boot sem projeto** grava `boot.started` e `boot.finished` sem `projectId`; essas ações não estão na trilha de nenhum
-   projeto nem na lista de ações do computador inteiro (`MachineWide`). Falta decidir o escopo.
 
 ## 6. Decisões para o dono
 
 - **BD-1.** O Boot deve passar a usar um modelo para reconhecer a intenção quando o léxico não resolver (com orçamento de
   tokens e a mesma eval como régua)? Recomendado: sim, só como segundo estágio, depois da rodada real com chave.
-- **BD-2.** O registro do Boot guarda o texto do pedido. Aceitável, ou só um resumo?
+- **BD-2.** *(decidida em 2026-11-27)* O registro do Boot guarda o texto do pedido, com a linha de segredo redigida.
 - **BD-3.** Expor o Boot ao MCP (`spock_boot`) para a IDE iniciar pelo mesmo caminho?
 - **BD-4.** Quando existir identidade, o registro passa a guardar a pessoa; a auditoria precisa então de política de
   retenção.

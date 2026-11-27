@@ -232,6 +232,41 @@ public sealed class BootServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Linha_com_cara_de_segredo_no_pedido_nao_e_usada_nem_guardada_e_a_pessoa_e_avisada()
+    {
+        var boot = await Start("Quais tecnologias o projeto usa?\nminha chave é AKIAIOSFODNN7EXAMPLE");
+
+        Assert.True(boot.RequestRedacted);
+        Assert.DoesNotContain("AKIA", boot.Request, StringComparison.Ordinal);
+        Assert.DoesNotContain("AKIA", boot.Plan!.Objective, StringComparison.Ordinal);
+        Assert.Equal("engineering.project_overview", boot.Intent!.CapabilityId);
+        Assert.Contains(boot.Result!.Problems, line => line.Contains("parecia um segredo", StringComparison.Ordinal));
+        var onDisk = File.ReadAllText(Path.Combine(_project.DataDir, "projects", _projectId, "boots", boot.Id + ".json"));
+        Assert.DoesNotContain("AKIA", onDisk, StringComparison.Ordinal);
+        Assert.DoesNotContain(_audit.Entries, entry => entry.Detail.Contains("AKIA", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Pedido_comum_nao_e_marcado_como_redigido()
+    {
+        var boot = await Start("Quais tecnologias o projeto usa?");
+
+        Assert.False(boot.RequestRedacted);
+        Assert.DoesNotContain(boot.Result!.Problems, line => line.Contains("segredo", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Boot_sem_projeto_fica_so_no_proprio_registro_e_o_de_projeto_vai_para_a_auditoria()
+    {
+        var noProject = await Start("Conectar ferramentas", projectId: null);
+        Assert.DoesNotContain(_audit.Entries, entry => entry.Action.StartsWith("boot.", StringComparison.Ordinal));
+        Assert.NotNull(_store.Find(null, noProject.Id));
+
+        await Start("Conectar ferramentas");
+        Assert.Equal(["boot.started", "boot.finished"], _audit.Entries.Select(entry => entry.Action).Where(action => action.StartsWith("boot.", StringComparison.Ordinal)));
+    }
+
+    [Fact]
     public async Task Pedido_sem_capacidade_diz_que_nao_sabe_em_vez_de_chutar()
     {
         var boot = await Start("Quero um bolo de chocolate");
