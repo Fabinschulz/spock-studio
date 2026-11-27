@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Callable
 
-from agents.runner import Outcome
+from agents.runner import BUDGET, Outcome
 from workflows.engineering.state import (
     AGENT_VERSION,
     ARCHITECTURE,
@@ -30,7 +30,7 @@ def budgeted(segment: Segment, node: Callable[[dict], dict], counts_iteration: b
             return state
         if counts_iteration and state["iterations"] > segment.max_iterations:
             fail(state, "LIMIT_ITERATIONS", "A execução passou do limite de etapas.")
-        elif (segment.clock() - segment.started) * 1000 > segment.max_milliseconds:
+        elif segment.work_ms() > segment.max_milliseconds:
             fail(state, "LIMIT_TIME", "A execução passou do limite de tempo.")
         elif int(state.get("tokens") or 0) > segment.max_tokens:
             fail(state, "LIMIT_TOKENS", "A execução passou do limite de tokens.")
@@ -41,9 +41,26 @@ def budgeted(segment: Segment, node: Callable[[dict], dict], counts_iteration: b
 
 def model_call(state: dict, segment: Segment, call: ModelCall, adopt: Callable[[Outcome], None],
                fallback_code: str, fallback_message: str) -> int:
-    """O que o modelo escreveu entra só se passou na validação; senão o resultado determinístico fica e duas limitações dizem o motivo."""
+    """
+    O que o modelo escreveu entra só se passou na validação; senão o resultado determinístico fica e duas limitações dizem o motivo.
+    Passado o tempo da execução, nenhuma chamada nova começa (o resultado determinístico fica); a que já começou termina, e a espera
+    por ela não conta como tempo de trabalho do runtime: um modelo lento não derruba a execução, só deixa de ser usado nas etapas seguintes.
+    """
     spent = int(state.get("tokens") or 0)
-    outcome = call(lambda needed: spent + needed <= segment.max_tokens)
+    out_of_time = False
+
+    def can_spend(needed: int) -> bool:
+        nonlocal out_of_time
+        if segment.elapsed_ms() >= segment.max_milliseconds:
+            out_of_time = True
+            return False
+        return spent + needed <= segment.max_tokens
+
+    waiting_since = segment.clock()
+    outcome = call(can_spend)
+    segment.model_seconds += segment.clock() - waiting_since
+    if out_of_time and outcome.value is None and outcome.code == BUDGET:
+        outcome.code = "MODEL_TIME_EXCEEDED"
     state["model_calls"] = int(state.get("model_calls") or 0) + outcome.calls
     state["input_tokens"] = int(state.get("input_tokens") or 0) + outcome.input_tokens
     state["output_tokens"] = int(state.get("output_tokens") or 0) + outcome.output_tokens

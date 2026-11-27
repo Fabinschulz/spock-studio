@@ -10,10 +10,16 @@ internal static class WorkflowRequests
     public const string GraphId = "engineering.request";
     public const string GraphVersion = "1";
 
-    // O limite de tempo que o runtime recebe vem daqui: os dois precisam concordar, senão o motor desiste antes do que o runtime foi autorizado a gastar.
-    public static readonly TimeSpan RuntimeDeadline = TimeSpan.FromSeconds(60);
+    // O tempo em que o runtime ainda começa uma chamada ao modelo (o runtime espelha esse teto em MAX_MILLISECONDS_MODEL). Depois dele ele
+    // segue só com o que é determinístico, e a chamada que já estava em andamento termina.
+    public static readonly TimeSpan RuntimeBudget = TimeSpan.FromSeconds(90);
 
-    public static int ModelMilliseconds => (int)RuntimeDeadline.TotalMilliseconds;
+    // O prazo da conversa com o runtime: o tempo de começar chamadas mais uma chamada que comece no fim dele (o prazo do chat) e uma folga.
+    // Menor que isso o motor desistia no meio de uma resposta de modelo lento, e a execução falhava sem resultado em vez de seguir com o plano
+    // determinístico.
+    public static readonly TimeSpan StandardDeadline = RuntimeBudget + ModelTimeouts.Chat + TimeSpan.FromSeconds(15);
+
+    public static int ModelMilliseconds => (int)RuntimeBudget.TotalMilliseconds;
 
     public static JsonObject Start(RunHandle run, string executionId, JsonObject input, JsonObject context, ModelGrant? model = null,
         IReadOnlyList<string>? allowedActions = null)

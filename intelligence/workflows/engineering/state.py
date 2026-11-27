@@ -14,8 +14,9 @@ WORKFLOW_VERSION = "1"
 MAX_ITERATIONS = 8
 # Igual ao que o motor pede sem modelo (WorkflowRequests): com 2 s, recuperar contexto num projeto grande já estourava.
 MAX_MILLISECONDS = 10000
-# Com modelo, uma chamada leva segundos: o tempo e os tokens sobem, mas o motor continua sendo quem define o teto.
-MAX_MILLISECONDS_MODEL = 60000
+# Com modelo, uma chamada leva segundos: o tempo e os tokens sobem, mas o motor continua sendo quem define o teto. Este é o tempo
+# em que o runtime ainda começa uma chamada ao modelo; a que já está em andamento termina (o motor dá o prazo dela a mais).
+MAX_MILLISECONDS_MODEL = 90000
 # Espelha Technology.Area do registro do motor (Technologies.cs), com os ids que o motor manda; um teste do .NET confere.
 AREA_BY_STACK = {
     "dotnet": "servico",
@@ -31,6 +32,7 @@ AGENTS = {PLANNING, ARCHITECTURE}
 AGENT_VERSION = "1"
 MODEL_LIMITATIONS = {
     "MODEL_BUDGET_EXCEEDED": "O orçamento de tokens da execução acabou.",
+    "MODEL_TIME_EXCEEDED": "O tempo da execução acabou antes de outra chamada ao modelo.",
     "MODEL_TIMEOUT": "O modelo não respondeu no prazo.",
     "MODEL_UNAVAILABLE": "O modelo não está disponível.",
     "MODEL_NOT_CONFIGURED": "Nenhum modelo está configurado.",
@@ -87,6 +89,14 @@ class Segment:
         self.model = model
         self.max_tokens = max_tokens
         self.bodies: dict[str, str] = {}
+        # Tempo gasto esperando o modelo: o limite de tempo vale para o trabalho do runtime, e a espera pelo modelo tem o prazo do motor.
+        self.model_seconds = 0.0
+
+    def elapsed_ms(self) -> float:
+        return (self.clock() - self.started) * 1000
+
+    def work_ms(self) -> float:
+        return self.elapsed_ms() - self.model_seconds * 1000
 
     def prompt_state(self, state: dict) -> dict:
         """O que o agente lê: o estado com o corpo de cada trecho no lugar do recorte. O estado e o checkpoint não mudam."""
