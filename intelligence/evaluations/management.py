@@ -331,8 +331,39 @@ def _baseline_command(results: Path, provider: str) -> int:
     return 0
 
 
+def conclusive(ack: dict | None) -> bool:
+    """Uma investigação que terminou com resposta e com a conclusão escrita pelo modelo."""
+    return isinstance(ack, dict) and ack.get("status") in ("completed", "completed_with_limitations") and not fell_back(ack)
+
+
+def merge_acks(base: dict[str, dict], retry: dict[str, dict]) -> tuple[dict[str, dict], list[str]]:
+    """
+    Junta uma nova rodada de só alguns casos (o que um gateway instável derrubou) à rodada anterior: o resultado novo entra quando é
+    conclusivo, ou quando o antigo também não era. Um resultado conclusivo nunca é trocado por um pior.
+    """
+    merged = dict(base)
+    replaced: list[str] = []
+    for case_id, ack in retry.items():
+        if conclusive(ack) or not conclusive(base.get(case_id)):
+            merged[case_id] = ack
+            replaced.append(case_id)
+    return merged, replaced
+
+
+def _merge_command(base: Path, retry: Path) -> int:
+    first, second = _read_acks(base), _read_acks(retry)
+    if first is None or second is None:
+        return 2
+    merged, replaced = merge_acks(first, second)
+    base.write_text(json.dumps(merged, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"trocados em {base.name}: {', '.join(replaced) or 'nenhum'}")
+    return 0
+
+
 def main(argv: list[str]) -> int:
-    usage = "uso: python management.py score <acks.json> [provedor] | baseline <acks.json> [provedor]"
+    usage = "uso: python management.py score <acks.json> [provedor] | baseline <acks.json> [provedor] | merge <base.json> <nova.json>"
+    if len(argv) == 3 and argv[0] == "merge":
+        return _merge_command(Path(argv[1]), Path(argv[2]))
     if len(argv) not in (2, 3) or argv[0] not in ("score", "baseline"):
         print(usage, file=sys.stderr)
         return 2
