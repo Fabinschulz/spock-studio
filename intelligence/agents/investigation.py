@@ -16,7 +16,7 @@ from contracts.investigation import (
 )
 
 AGENT_ID = "investigator"
-AGENT_VERSION = "4"
+AGENT_VERSION = "5"
 # Hipóteses são curtas. A conclusão leva seis seções com texto e citações: a rodada real com modelos de topo mostrou 1200 tokens
 # cortando o JSON no meio (MODEL_OUTPUT_INVALID nas duas tentativas, e a resposta caía nas regras), por isso o teto próprio.
 MAX_OUTPUT_TOKENS = 1200
@@ -34,7 +34,10 @@ _HYPOTHESES_TASK = (
     "Em 'evidence' cite só ids que aparecem nos fatos. Uma hipótese sem fato que a sustente não entra. Não proponha causa para "
     "algo que um fato diz 'não é calculado' ou que não há dados: isso fica sem hipótese. "
     "Em 'answerable' diga se os fatos reunidos trazem o ASSUNTO que a pergunta pede: false só quando nenhum fato trata dele (um "
-    "fato diz que ele 'não é calculado', ou não há fonte vinculada); true quando os fatos trazem o assunto, mesmo que falte a causa."
+    "fato diz que ele 'não é calculado', ou não há fonte vinculada); true quando os fatos trazem o assunto, mesmo que falte a causa. "
+    "Se a pergunta pede o EFEITO de uma ação ou de uma decisão (por exemplo, pôr mais gente, mudar uma data) e o fato de que essa "
+    "resposta depende diz que algo 'não é calculado' (por exemplo, a capacidade da equipe), o assunto NÃO está nos fatos, mesmo "
+    "que existam fatos sobre atraso, riscos e previsão: marque false."
 )
 
 # Entra na conclusão quando o próprio investigador disse que os fatos não trazem o assunto da pergunta. O motor ainda confere:
