@@ -264,7 +264,7 @@ Implementado, validado e planejado são coisas diferentes; esta tabela não as m
 | Histórico e resultado | `FileBootStore`, auditoria, retenção de 200 por escopo | Registro no disco; a auditoria não guarda o texto do pedido; `BootRetentionTests` |
 | Recuperar execução interrompida | `boot.resume` | `BootServiceTests`: não repete o que foi feito; detecta contexto que mudou |
 | Project Boot em projeto real | Sim, com o processo real do motor (não com o app Tauri) | Projeto .NET de teste; projeto existente não é reanalisado; `BootProcessTests` roda o Project Boot pelo stdin/stdout do motor e confere por impressão digital que nenhum arquivo do projeto mudou |
-| Funcionalidades originais seguem | Nenhum método existente mudou | Motor: 2.084 aprovados, 0 falhas, 28 ignorados (os de chave real). Interface: 1.135 aprovados. Com o Python 3.12 do PATH, 38 testes do runtime de IA falham por ambiente (o motor exige o 3.14, via `MARILIZ_PYTHON`); não são do Boot |
+| Funcionalidades originais seguem | Nenhum método existente mudou | Motor: 2.084 aprovados, 0 falhas, 28 ignorados (os de chave real). Interface: 1.146 aprovados. Com o Python 3.12 do PATH, 38 testes do runtime de IA falham por ambiente (o motor exige o 3.14, via `MARILIZ_PYTHON`); não são do Boot |
 | Sem duplicação | Reusa `ContextEngine`, tratadores, `IAuditLog`, `WorkspaceAuthorizer` | Revisão do código |
 | Testes automatizados | 61 no motor em memória, 9 com o processo real do motor, mais os da interface | Ver abaixo |
 | Roadmap registrado | [ROADMAP](../ROADMAP.md) | — |
