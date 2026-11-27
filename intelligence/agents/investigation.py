@@ -16,7 +16,7 @@ from contracts.investigation import (
 )
 
 AGENT_ID = "investigator"
-AGENT_VERSION = "3"
+AGENT_VERSION = "4"
 # Hipóteses são curtas. A conclusão leva seis seções com texto e citações: a rodada real com modelos de topo mostrou 1200 tokens
 # cortando o JSON no meio (MODEL_OUTPUT_INVALID nas duas tentativas, e a resposta caía nas regras), por isso o teto próprio.
 MAX_OUTPUT_TOKENS = 1200
@@ -30,9 +30,19 @@ _HYPOTHESES_TASK = (
     "reunidos. Se faltarem fatos de outro grupo para confirmar ou descartar uma hipótese, peça esse grupo em 'needs'. Peça só "
     f"grupos da lista de grupos disponíveis que ainda não foram consultados, no máximo {MAX_NEEDS}. Formato exato, em JSON: "
     f'{{"schema":"{HYPOTHESES_SCHEMA}","hypotheses":[{{"text":"hipótese em uma frase, em linguagem de hipótese","evidence":["id"]}}],'
-    '"needs":["grupo"]}. '
+    '"needs":["grupo"],"answerable":true}. '
     "Em 'evidence' cite só ids que aparecem nos fatos. Uma hipótese sem fato que a sustente não entra. Não proponha causa para "
-    "algo que um fato diz 'não é calculado' ou que não há dados: isso fica sem hipótese."
+    "algo que um fato diz 'não é calculado' ou que não há dados: isso fica sem hipótese. "
+    "Em 'answerable' diga se os fatos reunidos trazem o ASSUNTO que a pergunta pede: false só quando nenhum fato trata dele (um "
+    "fato diz que ele 'não é calculado', ou não há fonte vinculada); true quando os fatos trazem o assunto, mesmo que falte a causa."
+)
+
+# Entra na conclusão quando o próprio investigador disse que os fatos não trazem o assunto da pergunta. O motor ainda confere:
+# ver ``abstain`` em ``workflows.investigation.nodes``.
+_ABSTAIN_TASK = (
+    " ATENÇÃO: os fatos reunidos NÃO trazem o assunto da pergunta. Responda só com observed (o que os fatos mostram) e unavailable "
+    "(o que a pergunta pede e falta); deixe calculations, inferences e recommendations vazios, sem substituir a métrica que falta "
+    "por outra parecida."
 )
 
 # Só entra no pedido quando o motor mandou memória do projeto (decisões registradas e itens autorizados).
@@ -110,7 +120,7 @@ def hypothesize(model: Model, question: str, gathered: list[Fact], groups: list[
     )
 
 
-def conclude(model: Model, question: str, gathered: list[Fact], hypotheses: list[dict], can_spend) -> Outcome:
+def conclude(model: Model, question: str, gathered: list[Fact], hypotheses: list[dict], can_spend, abstain: bool = False) -> Outcome:
     known = {fact.id for fact in fit(gathered)[0]}
     considered = "\n".join(f"- {item['text']}" for item in hypotheses) or "(nenhuma)"
     user = f"{prompts.request_block(question)}\n\nHipóteses consideradas:\n{prompts.neutralize(considered)}\n\n{facts_block(gathered)}"
@@ -118,7 +128,7 @@ def conclude(model: Model, question: str, gathered: list[Fact], hypotheses: list
         model,
         agent_id=AGENT_ID,
         purpose=PURPOSE,
-        messages=[prompts.system(_CONCLUSION_TASK), {"role": "user", "content": user}],
+        messages=[prompts.system(_CONCLUSION_TASK + (_ABSTAIN_TASK if abstain else "")), {"role": "user", "content": user}],
         max_tokens=CONCLUSION_MAX_OUTPUT_TOKENS,
         response_schema=CONCLUSION_SCHEMA,
         parse=lambda document: conclusion_from_model(document, known),

@@ -54,7 +54,7 @@ public static class EvidenceBuilder
             yield return new($"{id}.throughput", FactGroups.Flow, $"{label} entregues por semana: sem valor ({throughputMissing})");
         else
             yield return new($"{id}.throughput", FactGroups.Flow,
-                $"{label} entregues por semana, da mais antiga para a mais recente: {string.Join(", ", flow.Throughput.Weeks.Select(w => w.Delivered))}; "
+                $"{label} entregues por semana nas últimas {flow.Throughput.Weeks.Count()} semanas, da mais antiga para a mais recente: {string.Join(", ", flow.Throughput.Weeks.Select(w => w.Delivered))}; "
                 + $"total {flow.Throughput.Total}, média {Number(flow.Throughput.WeeklyAverage!.Value)} por semana. "
                 + $"Itens novos por semana: {string.Join(", ", flow.Throughput.Weeks.Select(w => w.Created))}.");
         yield return flow.LeadTime.Unavailable is { } leadMissing

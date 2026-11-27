@@ -53,6 +53,19 @@ class DatasetTests(unittest.TestCase):
         self.assertTrue(any(case["unanswerable"] for case in DOCUMENT["cases"]))
         self.assertTrue(any(not case["unanswerable"] for case in DOCUMENT["cases"]))
 
+    def test_ha_caso_parcial_e_o_fato_de_vazao_traz_o_periodo(self) -> None:
+        self.assertEqual({case["id"] for case in DOCUMENT["cases"] if case.get("partial")}, {"execucoes-que-falharam"})
+        self.assertFalse(CASES["execucoes-que-falharam"]["unanswerable"])
+        for scenario in DOCUMENT["scenarios"].values():
+            for fact in scenario:
+                if fact["id"] == "flow.issues.throughput":
+                    self.assertIn("nas últimas 8 semanas", fact["text"])
+
+    def test_os_casos_sem_resposta_possivel_dizem_na_referencia_que_nao_ha_o_que_responder(self) -> None:
+        for case in DOCUMENT["cases"]:
+            if case["unanswerable"]:
+                self.assertIs(case["reference"][0].get("answerable"), False, case["id"])
+
     def test_o_dataset_nao_traz_travessao(self) -> None:
         text = (Path(evals.__file__).parent / "datasets" / "management.json").read_text(encoding="utf-8")
         self.assertNotIn(chr(0x2014), text)
@@ -130,6 +143,18 @@ class NegativeControlTests(unittest.TestCase):
         )
 
         self.assertEqual(score["abstention"], 0.0)
+
+    def test_caso_parcial_aceita_inferencia_cautelosa_mas_nao_calculo_nem_lacuna_omitida(self) -> None:
+        cautious = {"text": "A revisão do Harness pode ter contribuído.", "evidence": ["runs.failed"]}
+        computed = {"text": "A taxa de falha é de 33%.", "evidence": ["runs.failed"]}
+
+        accepted = self._mutate("execucoes-que-falharam", lambda ack: ack["answer"]["inferences"].append(cautious))
+        calculated = self._mutate("execucoes-que-falharam", lambda ack: ack["answer"]["calculations"].append(computed))
+        omitted = self._mutate("execucoes-que-falharam", lambda ack: ack["answer"].update(unavailable=[]))
+
+        self.assertEqual(accepted["abstention"], 1.0)
+        self.assertEqual(calculated["abstention"], 0.0)
+        self.assertEqual(omitted["abstention"], 0.0)
 
     def test_nao_dizer_que_esta_indisponivel_derruba_a_abstencao(self) -> None:
         score = self._mutate("cycle-time-nao-calculado", lambda ack: ack["answer"].update(unavailable=[]))

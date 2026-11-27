@@ -111,13 +111,22 @@ def coverage(case: dict, answer: dict | None) -> float | None:
     return len(set(case["mustCite"]) & cited) / len(case["mustCite"])
 
 
+def expects_abstention(case: dict) -> bool:
+    return bool(case["unanswerable"] or case.get("partial"))
+
+
 def abstention(case: dict, answer: dict | None) -> float | None:
-    """Sem o que a pergunta pede nos fatos: precisa dizer que está indisponível e não inventar cálculo, inferência nem recomendação."""
-    if not case["unanswerable"]:
+    """
+    Sem o assunto da pergunta nos fatos (``unanswerable``): precisa dizer que está indisponível e não inventar cálculo, inferência
+    nem recomendação. Com o assunto nos fatos e uma parte faltando (``partial``, como a causa): precisa marcar a lacuna em
+    "indisponível" e não calcular o que falta; inferir com cautela, citando fatos, é o que se aceita em qualquer pergunta de "por quê".
+    """
+    if not expects_abstention(case):
         return None
     if not isinstance(answer, dict) or not answer.get("unavailable"):
         return 0.0
-    return 1.0 if not any(answer.get(section) for section in ("calculations", "inferences", "recommendations")) else 0.0
+    forbidden = ("calculations",) if case.get("partial") else ("calculations", "inferences", "recommendations")
+    return 1.0 if not any(answer.get(section) for section in forbidden) else 0.0
 
 
 def fell_back(ack: dict | None) -> bool:
@@ -138,7 +147,7 @@ def score_case(case: dict, scenario: list[dict], ack: dict | None) -> dict[str, 
         "framing": framing(case, ack),
         "grounding": grounding(answer, facts, consulted),
         "coverage": 0.0 if answer is None and case["mustCite"] else coverage(case, answer),
-        "abstention": 0.0 if answer is None and case["unanswerable"] else abstention(case, answer),
+        "abstention": 0.0 if answer is None and expects_abstention(case) else abstention(case, answer),
         "claims": len(claims_of(answer)),
         "rejected": len(ack.get("rejected") or []),
     }

@@ -1,6 +1,6 @@
 {
   "schema": "management.eval.v1",
-  "description": "Evals de gestão: perguntas reais de gestão sobre cenários de fatos do motor. Mede o enquadramento, a ancoragem (cada afirmação cita fatos que a investigação consultou e só traz números que eles têm), a cobertura dos fatos essenciais e a abstenção (o que os fatos não têm vira 'indisponível', sem inferência, cálculo nem recomendação inventados). Cada caso traz a resposta de referência roteirizada: com ela o pipeline tem de pontuar 1,0; com um modelo real o resultado precisa ficar acima dos mínimos.",
+  "description": "Evals de gestão: perguntas reais de gestão sobre cenários de fatos do motor. Mede o enquadramento, a ancoragem (cada afirmação cita fatos que a investigação consultou e só traz números que eles têm), a cobertura dos fatos essenciais e a abstenção. Há dois tipos de caso sem resposta completa: os sem resposta possível (unanswerable: nenhum fato trata do assunto, e a resposta é só 'indisponível', sem cálculo, inferência nem recomendação) e os parciais (partial: o assunto está nos fatos e falta uma parte, como a causa; a resposta marca a lacuna em 'indisponível' e não calcula o que falta, mas pode inferir com cautela, citando fatos). Cada caso traz a resposta de referência roteirizada: com ela o pipeline tem de pontuar 1,0; com um modelo real o resultado precisa ficar acima dos mínimos.",
   "minimums": {
     "framing": 1.0,
     "grounding": 0.95,
@@ -32,7 +32,7 @@
       {
         "id": "flow.issues.throughput",
         "group": "indicadores",
-        "text": "Issues entregues por semana, da mais antiga para a mais recente: 5, 5, 4, 5, 4, 2, 1, 1; total 27, média 3,38 por semana. Itens novos por semana: 4, 5, 4, 5, 5, 5, 4, 5."
+        "text": "Issues entregues por semana nas últimas 8 semanas, da mais antiga para a mais recente: 5, 5, 4, 5, 4, 2, 1, 1; total 27, média 3,38 por semana. Itens novos por semana: 4, 5, 4, 5, 5, 5, 4, 5."
       },
       {
         "id": "flow.issues.leadtime",
@@ -124,7 +124,7 @@
       {
         "id": "flow.issues.throughput",
         "group": "indicadores",
-        "text": "Issues entregues por semana, da mais antiga para a mais recente: 4, 5, 4, 5, 4, 5, 4, 5; total 36, média 4,5 por semana. Itens novos por semana: 4, 5, 4, 5, 4, 5, 4, 5."
+        "text": "Issues entregues por semana nas últimas 8 semanas, da mais antiga para a mais recente: 4, 5, 4, 5, 4, 5, 4, 5; total 36, média 4,5 por semana. Itens novos por semana: 4, 5, 4, 5, 4, 5, 4, 5."
       },
       {
         "id": "flow.issues.blocked",
@@ -398,7 +398,7 @@
       "mustCite": [
         "runs.failed"
       ],
-      "unanswerable": true,
+      "unanswerable": false,
       "reference": [
         {
           "schema": "management.hypotheses.v1",
@@ -439,7 +439,8 @@
             }
           ]
         }
-      ]
+      ],
+      "partial": true
     },
     {
       "id": "o-que-mudou",
@@ -576,7 +577,8 @@
             }
           ],
           "needs": [],
-          "searches": []
+          "searches": [],
+          "answerable": false
         },
         {
           "schema": "management.conclusion.v1",
@@ -620,7 +622,8 @@
             }
           ],
           "needs": [],
-          "searches": []
+          "searches": [],
+          "answerable": false
         },
         {
           "schema": "management.conclusion.v1",
@@ -720,7 +723,8 @@
             }
           ],
           "needs": [],
-          "searches": []
+          "searches": [],
+          "answerable": false
         },
         {
           "schema": "management.conclusion.v1",

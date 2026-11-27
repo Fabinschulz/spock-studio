@@ -96,6 +96,9 @@ def hypothesize(state: dict, run: Run) -> dict:
         state["hypotheses"] = outcome.value["hypotheses"]
         state["needs"] = outcome.value["needs"]
         state["searches"] = outcome.value["searches"][: MAX_SEARCHES - len(searched)]
+        # O último juízo do modelo vale: uma rodada com mais fatos pode mudar a resposta; sem juízo, o anterior fica.
+        if outcome.value.get("answerable") is not None:
+            state["answerable"] = outcome.value["answerable"]
 
     def work() -> int:
         return model_call(
@@ -229,6 +232,9 @@ def conclude(state: dict, run: Run) -> dict:
     state["rejected"] = []
     state["answer"] = None
     written = False
+    # O investigador disse que os fatos não trazem o assunto da pergunta: a conclusão pede só o que os fatos mostram e o que falta, e o
+    # motor garante isso mesmo que o modelo escreva mais (``_abstain``).
+    abstain = state.get("answerable") is False
     # Sem tempo ou tokens (``stopped``) o modelo não é chamado de novo: a conclusão sai das regras, com o que já foi reunido.
     if run.segment.model is not None and not state.get("stopped"):
         _warn_if_facts_do_not_fit(state, gathered)
@@ -238,11 +244,13 @@ def conclude(state: dict, run: Run) -> dict:
             written = True
             state["answer"] = {key: value for key, value in outcome.value.items() if key not in ("schema", "rejected")}
             state["rejected"] = outcome.value["rejected"]
+            if abstain:
+                _abstain(state["answer"])
 
         def work() -> int:
             return model_call(
                 state, run.segment,
-                lambda can_spend: agent.conclude(run.segment.model, run.request.question, gathered, state.get("hypotheses") or [], can_spend),
+                lambda can_spend: agent.conclude(run.segment.model, run.request.question, gathered, state.get("hypotheses") or [], can_spend, abstain),
                 adopt, "INVESTIGATION_CONCLUSION_FALLBACK", "A resposta veio das regras, não do modelo.",
             )
 
@@ -250,13 +258,22 @@ def conclude(state: dict, run: Run) -> dict:
     if not written:
         state["answer"] = _signs_only(gathered, {group.name for group in run.request.catalog if "sign" in group.roles})
     detail = (
-        "Escrita pelo modelo, a conferir pelo motor." if written
+        "Escrita pelo modelo, a conferir pelo motor." + (" Os fatos não trazem o assunto: só o que mostram e o que falta." if abstain else "")
+        if written
         else "Montada pelas regras: o limite foi atingido antes de o modelo concluir." if state.get("stopped")
         else "Montada pelas regras: só os sinais reunidos, sem texto do modelo."
     )
     _step(state, "conclude", "Conclusão", detail)
     state["valid"] = True
     return state
+
+
+def _abstain(answer: dict) -> None:
+    """Sem o assunto nos fatos não há cálculo, interpretação nem recomendação a escrever: sobram o que os fatos mostram e o que falta."""
+    for section in ("calculations", "inferences", "recommendations"):
+        answer[section] = []
+    if not answer.get("unavailable"):
+        answer["unavailable"] = [{"text": "Os fatos reunidos não trazem o que a pergunta pede."}]
 
 
 def _signs_only(gathered: list[Fact], sign_groups: set[str]) -> dict:
