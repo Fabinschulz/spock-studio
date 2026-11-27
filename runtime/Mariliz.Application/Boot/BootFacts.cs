@@ -30,7 +30,8 @@ public sealed class BootFactsProbe(
     IntegrationHub? integrations = null,
     CloudHub? cloud = null,
     HarnessStatusService? harness = null,
-    ITechnologyProfileStore? profiles = null)
+    ITechnologyProfileStore? profiles = null,
+    bool modelDecidedByScreen = false)
 {
     public BootFacts Read(string? projectId, IReadOnlySet<string> routedMethods)
     {
@@ -39,7 +40,12 @@ public sealed class BootFactsProbe(
         var name = authorized ? workspace.DisplayNameOf(projectId!) : null;
 
         var modelConfigured = false;
-        if (models is null) unknown.Add("model");
+        if (models is null)
+        {
+            unknown.Add("model");
+            // O MCP não lê a chave (o chaveiro pode migrar e gravar ao ler): quem precisa de modelo só abre a tela, e ela confere.
+            modelConfigured = modelDecidedByScreen;
+        }
         else modelConfigured = models.Status().Configured;
 
         var links = 0;

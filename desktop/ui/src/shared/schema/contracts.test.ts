@@ -929,7 +929,8 @@ describe('contrato da ligação com a IDE (fixture do motor)', () => {
       'decisions',
       'search_project',
       'spock_architecture_reference',
-      'spock_version_check'
+      'spock_version_check',
+      'spock_boot'
     ]);
   });
 });

@@ -20,7 +20,8 @@ public sealed partial class McpServer(string version, IReadOnlyList<McpTool> too
         "Contexto do Spock Studio sobre os projetos que a pessoa abriu nele: tecnologias, comandos, estado do Harness, decisões registradas " +
         "e busca no índice de conhecimento. Só leitura. Numa sessão nova, comece por spock_context_bootstrap; para planejar uma mudança, " +
         "use project_briefing e search_project para achar o código e os documentos " +
-        "de um assunto; sem 'project', vale o projeto da pasta atual. Quando o projeto liberou conexões cloud para agentes, cloud_connections e as " +
+        "de um assunto; sem 'project', vale o projeto da pasta atual. Para perguntar ao Spock o que ele sabe fazer ou o estado do projeto, " +
+        "spock_boot (só leitura: o que altera algo volta como a tela do aplicativo onde a pessoa aprova). Quando o projeto liberou conexões cloud para agentes, cloud_connections e as " +
         "ferramentas aws_*, azure_* e gcp_* leem a infraestrutura, também só leitura.";
 
     public McpServerOptions Options() => new()
