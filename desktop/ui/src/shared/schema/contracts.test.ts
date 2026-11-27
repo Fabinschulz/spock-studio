@@ -1197,9 +1197,8 @@ describe('contrato do Boot (fixtures do motor)', () => {
     expect(catalog.capabilities.find((capability) => capability.id === 'management.tracking')?.parameters).toEqual([
       { name: 'weeks', label: 'Período em semanas', min: 2, max: 26 }
     ]);
-    expect(catalog.capabilities.find((capability) => capability.id === 'infrastructure.drift')?.verdict).toBe(
-      'handoffOnly'
-    );
+    // O drift só abre a tela: nunca é execução direta, esteja disponível ou não nesta sessão do motor.
+    expect(catalog.capabilities.find((capability) => capability.id === 'infrastructure.drift')?.mode).toBe('handoff');
   });
 
   it('nenhum registro guarda o texto do pedido além do campo request, e nenhum caminho do computador vaza', () => {
