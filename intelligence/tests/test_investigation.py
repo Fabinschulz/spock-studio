@@ -623,6 +623,83 @@ class FactsTests(unittest.TestCase):
             Fact("a", "g", "t").id = "b"  # type: ignore[misc]
 
 
+class _Clock:
+    def __init__(self, step: float = 0.0) -> None:
+        self.now, self.step = 0.0, step
+
+    def __call__(self) -> float:
+        value = self.now
+        self.now += self.step
+        return value
+
+
+class _SlowModel:
+    """Cada chamada leva ``latency`` segundos do relógio do teste, como um modelo de topo."""
+
+    def __init__(self, fake: FakeModel, clock: _Clock, latency: float) -> None:
+        self.fake, self.clock, self.latency = fake, clock, latency
+        self.calls = fake.calls
+
+    def complete(self, *args, **kwargs):
+        self.clock.now += self.latency
+        return self.fake.complete(*args, **kwargs)
+
+
+def _go_slow(payload: dict, replies: list, latency: float) -> tuple[dict, FakeModel]:
+    clock = _Clock()
+    fake = FakeModel(*replies)
+    slow = _SlowModel(fake, clock, latency)
+    items = list(graph.run_investigation(payload, clock=clock, model_factory=lambda _request: slow))
+    return items[-1], fake
+
+
+class TimeLimitTests(unittest.TestCase):
+    """Passar do tempo não pode jogar fora o que já foi reunido nem uma conclusão que o modelo escreveu."""
+
+    HYPOTHESES = _hypotheses([("H", ["flow.throughput"])], needs=["riscos"])
+
+    def test_estourar_o_tempo_na_rodada_conclui_com_os_fatos_reunidos_em_vez_de_falhar(self) -> None:
+        ack, fake = _go_slow(_payload(maxMilliseconds=60000), [self.HYPOTHESES, _conclusion()], latency=70)
+
+        self.assertEqual(ack["status"], "completed_with_limitations")
+        self.assertNotIn("failure", ack)
+        self.assertIsNotNone(ack["answer"])
+        self.assertIn("LIMIT_TIME", {item["code"] for item in ack["limitations"]})
+        self.assertEqual(len(fake.calls), 1)
+        self.assertIn("limite foi atingido", [step for step in ack["path"] if step["id"] == "conclude"][-1]["detail"])
+
+    def test_o_laco_reserva_tempo_para_a_conclusao_ao_ritmo_das_chamadas(self) -> None:
+        # 20 s por chamada: outra rodada e a conclusão (2 x 20 s) depois da primeira (20 s) passam dos 55 s; conclui já, com o modelo.
+        ack, fake = _go_slow(_payload(maxMilliseconds=55000), [self.HYPOTHESES, _conclusion()], latency=20)
+
+        codes = {item["code"] for item in ack["limitations"]}
+        self.assertEqual(ack["status"], "completed_with_limitations")
+        self.assertEqual(len(fake.calls), 2)
+        self.assertIn("INVESTIGATION_STOPPED", codes)  # o grupo pedido ficou sem consulta, e a resposta diz isso
+        self.assertNotIn("LIMIT_TIME", codes)
+        self.assertIn("tempo", [step for step in ack["path"] if step["id"] == "decide"][-1]["detail"])
+        self.assertEqual(ack["answer"]["summary"]["text"], _conclusion()["summary"]["text"])
+
+    def test_conclusao_que_terminou_tarde_continua_valendo_com_a_limitacao(self) -> None:
+        ack, fake = _go_slow(_payload(maxMilliseconds=60000), [self.HYPOTHESES, _conclusion()], latency=40)
+
+        self.assertEqual(ack["status"], "completed_with_limitations")
+        self.assertNotIn("failure", ack)
+        self.assertEqual(len(fake.calls), 2)
+        self.assertEqual(ack["answer"]["summary"]["text"], _conclusion()["summary"]["text"])
+        self.assertIn("LIMIT_TIME", {item["code"] for item in ack["limitations"]})
+
+    def test_sem_nada_reunido_passar_do_tempo_ainda_falha(self) -> None:
+        clock = _Clock(step=100.0)
+        items = list(graph.run_investigation(_payload(model=False, maxMilliseconds=1000), clock=clock))
+
+        self.assertEqual(items[-1]["status"], "failed")
+        self.assertEqual(items[-1]["failure"], "LIMIT_TIME")
+
+    def test_o_teto_de_tempo_do_runtime_deixa_o_motor_pedir_mais_que_150_s(self) -> None:
+        self.assertGreaterEqual(graph.MAX_MILLISECONDS_MODEL, 300000)
+
+
 class PromptRulesTests(unittest.TestCase):
     """As regras que a rodada real com modelo de topo mostrou serem necessárias não podem sumir do prompt sem ninguém perceber."""
 
