@@ -51,7 +51,9 @@ def model_call(state: dict, segment: Segment, call: ModelCall, adopt: Callable[[
     if outcome.value is not None:
         adopt(outcome)
     else:
-        limit(state, outcome.code, MODEL_LIMITATIONS.get(outcome.code, "O modelo não pôde ser usado."))
+        message = MODEL_LIMITATIONS.get(outcome.code, "O modelo não pôde ser usado.")
+        # O motivo da recusa (JSON cortado, texto antes do JSON, campo que falta) é texto do motor, nunca do modelo.
+        limit(state, outcome.code, f"{message} ({outcome.reason})" if outcome.reason and outcome.code == "MODEL_OUTPUT_INVALID" else message)
         limit(state, fallback_code, fallback_message)
     return outcome.tokens
 

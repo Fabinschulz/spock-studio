@@ -1,3 +1,4 @@
+import re
 import unittest
 from pathlib import Path
 
@@ -79,6 +80,30 @@ class PlanningWithModelTests(unittest.TestCase):
         self.assertEqual(ack["usage"]["modelCalls"], 2)
         # O agente rodou e gastou tokens, mesmo sem a saída: o gasto conta.
         self.assertEqual(ack["agents"][0]["tokens"], 300)
+
+    def test_a_limitacao_diz_por_que_a_saida_foi_recusada_sem_texto_do_modelo(self) -> None:
+        """JSON cortado, texto antes do JSON e campo que falta pedem consertos diferentes: a limitação diz qual foi."""
+        with TemporaryDirectory() as tmp:
+            truncated = '{"schema":"engineering.plan.v1","steps":[{"id":"ler","title":"Ler'
+            _, ack = _go(with_model(tmp), FakeModel("Aqui está o plano: SEGREDO-DO-MODELO", truncated))
+        message = next(item["message"] for item in ack["warnings"] + ack["errors"] if item["code"] == "MODEL_OUTPUT_INVALID")
+
+        self.assertIn("mesmo depois de uma nova tentativa", message)
+        # A última recusa vale: o JSON da segunda resposta estava cortado. O Python aponta onde a string aberta começou, perto do fim;
+        # uma resposta com texto antes do JSON seria apontada na posição 0, e a diferença é o que a pessoa precisa ver.
+        match = re.search(rf"JSON inválido na posição (\d+) de {len(truncated)} caracteres", message)
+        self.assertIsNotNone(match, message)
+        self.assertGreater(int(match.group(1)), len(truncated) - 15)
+        self.assertNotIn("SEGREDO-DO-MODELO", message)
+        self.assertNotIn("Ler", message)
+
+    def test_a_limitacao_traz_o_motivo_do_validador_quando_o_json_e_valido_mas_a_forma_nao(self) -> None:
+        with TemporaryDirectory() as tmp:
+            _, ack = _go(with_model(tmp), FakeModel("[]", '{"schema":"engineering.plan.v1"}'))
+        message = next(item["message"] for item in ack["warnings"] + ack["errors"] if item["code"] == "MODEL_OUTPUT_INVALID")
+
+        self.assertRegex(message, r"\(.+\)$")
+        self.assertNotIn("posição", message)
 
     def test_o_que_o_modelo_nao_pode_escrever_e_recusado(self) -> None:
         with TemporaryDirectory() as tmp:
