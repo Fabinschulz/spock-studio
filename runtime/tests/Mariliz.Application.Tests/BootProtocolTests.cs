@@ -143,6 +143,24 @@ public sealed class BootProtocolTests : IDisposable
         Assert.Equal("BOOT_NOT_FOUND", notFound["error"]!["code"]!.GetValue<string>());
     }
 
+    [Fact]
+    public void Resumo_de_resposta_real_le_o_formato_real_e_nao_cai_em_sem_dado()
+    {
+        (string Text, string Capability, string Starts)[] flows =
+        [
+            ("O projeto respeita Clean Architecture?", "standards.architecture", "2 projetos .NET"),
+            ("O que os agentes podem fazer no meu projeto?", "standards.agent_policy", "18 regras de política"),
+            ("Quero ver o catálogo de skills", "engineering.catalog", "32 componentes no catálogo do Harness")
+        ];
+
+        foreach (var (text, capability, starts) in flows)
+        {
+            var boot = Result(ProtocolMethods.BootStart, new JsonObject { ["projectId"] = _projectId, ["text"] = text })["boot"]!;
+            var step = boot["steps"]!.AsArray().Single(item => item!["capabilityId"]?.GetValue<string>() == capability && item["kind"]!.GetValue<string>() == "capability")!;
+            Assert.StartsWith(starts, step["summary"]!.GetValue<string>(), StringComparison.Ordinal);
+        }
+    }
+
     // Os contratos que a interface valida com Zod. Regenere com MARILIZ_UPDATE_GOLDEN=1 quando a mudança for deliberada.
     [Fact]
     public void Fixtures_de_contrato_do_Boot()
