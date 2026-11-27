@@ -2,7 +2,6 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.RegularExpressions;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Models;
 using Mariliz.Infrastructure.ModelFormats;
@@ -10,7 +9,7 @@ using Mariliz.Infrastructure.ModelFormats;
 namespace Mariliz.Infrastructure;
 
 // A chave vai no cabeçalho e não entra na mensagem de erro. O formato é escolhido pelo provedor do endereço, nunca pelo chamador.
-public sealed partial class HttpsModelTransport : IModelTransport, IModelChatTransport, IDisposable
+public sealed class HttpsModelTransport : IModelTransport, IModelChatTransport, IDisposable
 {
     private readonly HttpClient _http;
 
@@ -55,7 +54,7 @@ public sealed partial class HttpsModelTransport : IModelTransport, IModelChatTra
             if ((int)response.StatusCode >= 500)
                 throw new EngineException("MODEL_OVERLOADED", $"O provedor está indisponível ou sobrecarregado agora (HTTP {(int)response.StatusCode}).");
             var reply = ReadReply(format, response.IsSuccessStatusCode, text);
-            return jsonObject ? reply with { Text = StripFence(reply.Text) } : reply;
+            return jsonObject ? reply with { Text = JsonReply.Extract(reply.Text) } : reply;
         }
         catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or FormatException)
         {
@@ -82,16 +81,6 @@ public sealed partial class HttpsModelTransport : IModelTransport, IModelChatTra
 
     private static string Cause(Exception ex) =>
         ex is HttpRequestException { HttpRequestError: not HttpRequestError.Unknown } http ? http.HttpRequestError.ToString() : ex.GetType().Name;
-
-    // Um modelo às vezes põe uma cerca de código em volta do JSON.
-    private static string StripFence(string text)
-    {
-        var match = Fence().Match(text.Trim());
-        return match.Success ? match.Groups["body"].Value.Trim() : text;
-    }
-
-    [GeneratedRegex(@"^```[a-zA-Z]*\s*(?<body>.*?)\s*```$", RegexOptions.Singleline)]
-    private static partial Regex Fence();
 
     // O corpo da resposta não é repetido: ele pode citar a chave.
     private static void ThrowIfRefused(IModelFormat format, HttpStatusCode status, string body)

@@ -149,6 +149,17 @@ public class ModelProvidersTests
     }
 
     [Fact]
+    public async Task Na_anthropic_uma_frase_antes_e_depois_do_JSON_nao_derruba_a_resposta()
+    {
+        var handler = new RecordingHandler(AnthropicReply("Segue o desenho:\n```json\n{\"a\": 1}\n```\nSe quiser, ajusto."));
+        using var transport = new HttpsModelTransport(handler);
+
+        var json = await transport.SendChatAsync(ModelProviders.Anthropic.Endpoint, AnthropicKey, "m", Chat(json: true), CancellationToken.None);
+
+        Assert.Equal("{\"a\": 1}", json.Text);
+    }
+
+    [Fact]
     public async Task Conversa_so_de_instrucoes_ainda_vira_uma_mensagem_do_usuario_na_anthropic()
     {
         var handler = new RecordingHandler(AnthropicReply("ok"));
