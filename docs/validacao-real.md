@@ -15,6 +15,9 @@ GitHub e um Jira falsos. Este documento diz o que falta provar com dados reais, 
 | Cofre no Linux e no macOS | A lógica, com um cofre falso | O `secret-tool` e o Keychain de verdade | `UnixVaultRealityTests` (rodar na máquina) |
 | Reconhecimento de intenção do Boot por modelo (BD-1) | O encanamento e as garantias, com um modelo dublê que responde por regra: só onde o léxico não resolve, ids conferidos no catálogo, falha igual ao léxico, sem segredo nem texto no registro | Quanto o modelo acerta nas frases que o léxico erra (holdout), quanto ele estraga, quantos tokens gasta por pedido e quanto demora | `BootIntentModelEvalTests` (`Holdout_ao_vivo_com_a_OpenAI`, `Holdout_ao_vivo_com_a_Anthropic`) |
 
+O que falta provar do Universal Boot (modelo real, uma IDE chamando `spock_boot`, o aplicativo com modelo e MCP, um projeto real, a
+queda real de processo, Linux e macOS) está em [ROADMAP §7.1](ROADMAP.md), com o que cada item exige e o critério de aceite (BP-02 a BP-07).
+
 Ficam fora daqui, porque pedem uma pessoa na frente da tela: a conferência das telas no Tauri com leitor de tela, zoom e
 alto contraste do Windows.
 
