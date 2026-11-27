@@ -716,10 +716,44 @@ class PromptRulesTests(unittest.TestCase):
 
         self.assertIn("não é calculado", agent._HYPOTHESES_TASK)  # noqa: SLF001
 
+    def test_a_conclusao_manda_ser_breve_e_traz_o_exemplo_da_lacuna(self) -> None:
+        from agents import investigation as agent
+
+        text = agent._CONCLUSION_TASK  # noqa: SLF001
+        for rule in ("Seja breve: no máximo 4 itens por seção", "Exemplo:", "sem dizer que falta ou que não falta gente"):
+            with self.subTest(rule=rule):
+                self.assertIn(rule, text)
+
     def test_a_versao_do_agente_acompanha_o_prompt(self) -> None:
         from agents import investigation as agent
 
-        self.assertEqual(agent.AGENT_VERSION, "2")
+        self.assertEqual(agent.AGENT_VERSION, "3")
+
+
+class OutputCapTests(unittest.TestCase):
+    """A conclusão tem teto próprio: com 1200 tokens o JSON de um modelo de topo chegava cortado e caía nas regras."""
+
+    def test_a_conclusao_pede_mais_saida_que_as_hipoteses(self) -> None:
+        from agents import investigation as agent
+
+        fake = FakeModel(_hypotheses([("H", ["flow.throughput"])]), _conclusion())
+
+        _go(_payload(), fake)
+
+        self.assertEqual([call["maxTokens"] for call in fake.calls], [agent.MAX_OUTPUT_TOKENS, agent.CONCLUSION_MAX_OUTPUT_TOKENS])
+        self.assertGreater(agent.CONCLUSION_MAX_OUTPUT_TOKENS, agent.MAX_OUTPUT_TOKENS)
+
+    def test_o_orcamento_reserva_outra_rodada_e_a_conclusao_com_os_tetos_de_cada_uma(self) -> None:
+        from agents import investigation as agent
+
+        # Depois da primeira chamada (900 gastos) outra rodada de hipóteses mais a conclusão pedem 900 + 1200 + 2400.
+        need = 900 + agent.MAX_OUTPUT_TOKENS + agent.CONCLUSION_MAX_OUTPUT_TOKENS
+        fake = FakeModel(_hypotheses([("H", ["flow.throughput"])], needs=["riscos"]), _conclusion(), input_tokens=800, output_tokens=100)
+
+        _events, ack = _go(_payload(maxTokens=need - 1), fake)
+
+        decide = [step for step in ack["path"] if step["id"] == "decide"][-1]
+        self.assertIn("orçamento", decide["detail"])
 
 
 if __name__ == "__main__":

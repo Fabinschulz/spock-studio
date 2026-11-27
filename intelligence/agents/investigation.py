@@ -16,8 +16,11 @@ from contracts.investigation import (
 )
 
 AGENT_ID = "investigator"
-AGENT_VERSION = "2"
+AGENT_VERSION = "3"
+# Hipóteses são curtas. A conclusão leva seis seções com texto e citações: a rodada real com modelos de topo mostrou 1200 tokens
+# cortando o JSON no meio (MODEL_OUTPUT_INVALID nas duas tentativas, e a resposta caía nas regras), por isso o teto próprio.
 MAX_OUTPUT_TOKENS = 1200
+CONCLUSION_MAX_OUTPUT_TOKENS = 2400
 PURPOSE = "investigate"
 
 _HYPOTHESES_TASK = (
@@ -53,7 +56,10 @@ _CONCLUSION_TASK = (
     "Quando a pergunta, ou parte dela, pede o que os fatos não trazem, diga isso em unavailable e pare ali: não suponha causas, "
     "não interprete e não recomende nada sobre essa lacuna (nem 'coletar o dado', nem 'vincular uma ferramenta'). Um fato que "
     "diz que algo 'não é calculado' encerra aquele assunto: não o contorne cruzando outros fatos para concluir sobre ele. "
+    "Exemplo: se a pergunta é se mais gente resolveria o atraso e o fato de capacidade diz que ela não é calculada, a resposta é "
+    "'unavailable' (mais, no máximo, o que os fatos mostram em observed), sem dizer que falta ou que não falta gente. "
     "Inferências e recomendações valem só para o que os fatos respondem. "
+    "Seja breve: no máximo 4 itens por seção, cada um com uma frase, e no máximo 3 em unavailable. "
     "Cada item, e o resumo, cita em 'evidence' os ids dos fatos que o sustentam. Use as hipóteses consideradas "
     "só como pista do que cruzar: uma hipótese sem fato que a confirme vira 'unavailable' ou fica de fora. Formato exato, em "
     f'JSON: {{"schema":"{CONCLUSION_SCHEMA}","summary":{{"text":"uma ou duas frases","evidence":["id"]}},'
@@ -113,7 +119,7 @@ def conclude(model: Model, question: str, gathered: list[Fact], hypotheses: list
         agent_id=AGENT_ID,
         purpose=PURPOSE,
         messages=[prompts.system(_CONCLUSION_TASK), {"role": "user", "content": user}],
-        max_tokens=MAX_OUTPUT_TOKENS,
+        max_tokens=CONCLUSION_MAX_OUTPUT_TOKENS,
         response_schema=CONCLUSION_SCHEMA,
         parse=lambda document: conclusion_from_model(document, known),
         can_spend=can_spend,
