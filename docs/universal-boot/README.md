@@ -49,6 +49,7 @@ tela" quer dizer que ele só prepara.
 | Visão geral do projeto | `engineering.project_overview` | leitura | executa | `/projeto` |
 | Analisar o projeto de novo | `engineering.analyze_project` | preparação | executa | `/projeto` |
 | Estado do Harness | `engineering.harness_status` | leitura | executa | `/projeto/harness` |
+| Revisões do Harness | `engineering.harness_revisions` | leitura | executa | `/projeto/harness` |
 | Catálogo do Harness | `engineering.catalog` | leitura | executa | `/projeto/catalogo` |
 | Conhecimento do projeto | `engineering.knowledge` | leitura | executa | `/projeto/conhecimento` |
 | Servidores MCP do projeto | `engineering.mcp_inventory` | leitura | executa | `/projeto/harness` |
@@ -72,6 +73,7 @@ tela" quer dizer que ele só prepara.
 | Portfólio | `management.portfolio` | leitura | executa | `/portfolio` |
 | Acompanhamento do projeto | `management.tracking` | leitura | executa | `/gestao` |
 | Riscos do projeto | `management.risks` | análise | executa | `/gestao` |
+| Histórico de riscos | `management.risk_history` | leitura | executa | `/gestao` |
 | Previsão de entrega | `management.forecast` | análise | executa | `/gestao` |
 | Marcos | `management.milestones` | leitura | executa | `/gestao` |
 | Relatório do projeto | `management.report` | leitura | executa | `/gestao/relatorio` |
@@ -84,6 +86,8 @@ tela" quer dizer que ele só prepara.
 | --- | --- | --- | --- | --- |
 | Ferramenta de infraestrutura | `infrastructure.status` | leitura | executa | `/infraestrutura` |
 | Pastas de infraestrutura | `infrastructure.layout` | leitura | executa | `/infraestrutura` |
+| Estado da infraestrutura | `infrastructure.state` | sensível | abre a tela | `/infraestrutura` |
+| Gerar a infraestrutura | `infrastructure.generate` | alteração interna | abre a tela | `/infraestrutura` |
 | Validar e planejar a infraestrutura | `infrastructure.validate_plan` | análise | abre a tela | `/infraestrutura` |
 | Provisionar infraestrutura | `infrastructure.apply` | destrutiva | abre a tela | `/infraestrutura` |
 | Ler recursos da nuvem | `infrastructure.cloud_read` | leitura | abre a tela | `/cloud` |
@@ -109,6 +113,8 @@ tela" quer dizer que ele só prepara.
 - **Evals e juízes** não têm método próprio: rodam por `harness.validate` e pelo workflow.
 - **RAG e MCP** não têm capacidade própria: o índice entra em `engineering.knowledge` e o inventário em
   `engineering.mcp_inventory`.
+- **Drift e custo** não têm ficha própria: `iac.drift` e `iac.cost.*` entram em `infrastructure.validate_plan`. O agendamento de drift
+  (`iac.drift.schedule*`) e o plano de bootstrap do estado remoto (`iac.bootstrap.plan`) ficam fora do catálogo.
 - **Triggers, Roadmap e backlog, Dependency Intelligence, Work Readiness**: não existem no produto. Estão no roadmap.
 - **Agentes, Skills e Workflows** aparecem como metadados da ficha (`agents`, `skills`, `workflows`), não como capacidade
   separada: o catálogo do Harness já os lista.
@@ -156,10 +162,10 @@ Uma capacidade composta (`composite.idea_to_development`) nasce de fichas existe
 uma outra aparecem no pedido. Quem marca o tipo de atividade de propósito, ou escolhe uma opção, manda a capacidade
 direto e pula a interpretação.
 
-**Medida (eval `BootIntentEvalTests`)**: 63 de 63 no corpus usado para ajustar os termos; **10 de 14 (71%) em frases
+**Medida (eval `BootIntentEvalTests`)**: 73 de 73 no corpus usado para ajustar os termos; **10 de 14 (71%) em frases
 escritas depois e nunca usadas no ajuste**. Os quatro erros são de vocabulário que o léxico não cobre ("permissão para
 mexer" para a política dos agentes, "rodar o plano do terraform", "senhas esquecidas" que caiu em pergunta sobre código, e
-uma pergunta que devia ter sido de esclarecimento). O número de 71% é o que vale esperar de frase nova; o 100% mostra só
+uma pergunta que devia ter sido de esclarecimento). As quatro fichas da etapa 2 entraram sem mudar esse grupo: os mesmos quatro erros, 10 de 14. O número de 71% é o que vale esperar de frase nova; o 100% mostra só
 que os termos foram ajustados ao corpus. Uma troca por reconhecimento com modelo deve ser julgada pela mesma eval.
 
 ### 3.3 Permissão e autonomia
@@ -240,8 +246,8 @@ Implementado, validado e planejado são coisas diferentes; esta tabela não as m
 | Critério de aceite | Implementado | Prova |
 | --- | --- | --- |
 | Identidade e ciclo de vida | `BootRecord`, estados, checkpoints, `version` | `BootServiceTests` (registro no disco, checkpoints, queda) |
-| Catálogo baseado no produto real | 35 fichas, cada método existe no protocolo e cada tela em `paths.ts` | `BootCatalogTests` (os dois conferem contra o código) |
-| Reconhecer intenções e domínios diferentes | `IntentRecognizer` | `BootIntentEvalTests`: 63/63 ajustado, 10/14 em frases novas |
+| Catálogo baseado no produto real | 39 fichas, cada método existe no protocolo e cada tela em `paths.ts` | `BootCatalogTests` (os dois conferem contra o código) |
+| Reconhecer intenções e domínios diferentes | `IntentRecognizer` | `BootIntentEvalTests`: 73/73 ajustado, 10/14 em frases novas |
 | Recuperar contexto | `ContextEngine` no passo de contexto | `BootServiceTests`, `BootProtocolTests` |
 | Verificar permissão antes | `PermissionEvaluator` | Destrutivo nunca executa; autonomia acima do teto recusada; sem projeto, modelo ou integração, bloqueado com o motivo |
 | Montar plano | `BootPlanner` | Plano com passos, dependências, aprovações e riscos no registro |
@@ -249,13 +255,13 @@ Implementado, validado e planejado são coisas diferentes; esta tabela não as m
 | Histórico e resultado | `FileBootStore`, auditoria, retenção de 200 por escopo | Registro no disco; a auditoria não guarda o texto do pedido; `BootRetentionTests` |
 | Recuperar execução interrompida | `boot.resume` | `BootServiceTests`: não repete o que foi feito; detecta contexto que mudou |
 | Project Boot em projeto real | Sim | Projeto .NET de teste; projeto existente não é reanalisado |
-| Funcionalidades originais seguem | Nenhum método existente mudou | Motor: 2.075 aprovados, 0 falhas, 28 ignorados (os de chave real). Interface: 1.135 aprovados. Com o Python 3.12 do PATH, 38 testes do runtime de IA falham por ambiente (o motor exige o 3.14, via `MARILIZ_PYTHON`); não são do Boot |
+| Funcionalidades originais seguem | Nenhum método existente mudou | Motor: 2.084 aprovados, 0 falhas, 28 ignorados (os de chave real). Interface: 1.135 aprovados. Com o Python 3.12 do PATH, 38 testes do runtime de IA falham por ambiente (o motor exige o 3.14, via `MARILIZ_PYTHON`); não são do Boot |
 | Sem duplicação | Reusa `ContextEngine`, tratadores, `IAuditLog`, `WorkspaceAuthorizer` | Revisão do código |
-| Testes automatizados | 52 no motor, mais os da interface | Ver abaixo |
+| Testes automatizados | 61 no motor, mais os da interface | Ver abaixo |
 | Roadmap registrado | [ROADMAP](../ROADMAP.md) | — |
 
-Testes novos: `BootCatalogTests` (9), `BootIntentEvalTests` (8), `BootServiceTests` (24), `BootRetentionTests` (5), `BootProtocolTests` (6, incluindo
-as fixtures de contrato de `contracts/fixtures/boot/`), e na interface o contrato com o Zod, o cartão pelo Início (9) e o próprio cartão (2) e a
+Testes novos: `BootCatalogTests` (9), `BootIntentEvalTests` (8), `BootServiceTests` (24), `BootRetentionTests` (5), `BootProtocolTests` (7, incluindo
+as fixtures de contrato de `contracts/fixtures/boot/`), `BootSummariesTests` (8, cada resumo contra a fixture real do contrato), e na interface o contrato com o Zod, o cartão pelo Início (9) e o próprio cartão (2) e a
 conferência das três listas de métodos.
 
 **Nada disso rodou com modelo real**, e o Boot da fundação não usa modelo: o que depende de modelo (`engineering.request`,
@@ -274,8 +280,10 @@ cartão não foi visto no aplicativo**.
    diários já fazem. Não vai para auditoria nem para o contexto de IDE.
 4. **Leituras que podem demorar** (`aitool.list` roda processos; `engineering.analyze` lê o projeto): o Boot está na lista
    de métodos lentos e anuncia ao host um prazo de 300 s; não tem cancelamento pela interface.
-5. **O resumo é só o que o motor sabe resumir.** Capacidades sem resumo próprio mostram só a contagem das listas;
-   o detalhe está na tela.
+5. **O resumo é só o que o motor sabe resumir.** Toda capacidade direta tem resumo próprio, feito de contagens, estados e nomes
+   de ferramenta; títulos, nomes de marcos e mensagens ficam na tela. Valor ausente aparece como "sem dado". Se o formato de
+   uma resposta mudar, o teste contra a fixture do contrato quebra; o resumo genérico (contagem de listas) só cobre capacidade nova
+   sem resumo.
 6. **Uma sessão de IDE (MCP) não usa o Boot.** O servidor MCP não expõe `boot.*`.
 7. **Nada é executado em paralelo**, e o Boot não tem fila nem concorrência entre projetos. A tela barra um segundo pedido
    enquanto um está em preparo.
