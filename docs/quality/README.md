@@ -109,6 +109,11 @@ achados, 5 são credenciais de exemplo em teste (a conferir), 3 são saldo de ca
 1 é uma importação nova entre módulos (plausível). O que sobra é principalmente a credencial de exemplo em teste, que continua
 pedindo conferência.
 
+**Conferência do dono** dos 9 achados distintos que sobraram: 5 são credenciais de exemplo em teste (o padrão está certo e não
+importa: ruído), 2 são importações reais entre módulos (o achado está certo; no repositório de desktop a arquitetura estava
+sendo reorganizada) e 2 (saldo de casos de teste removidos) ainda não foram conferidos. Com isso, dos 7 conferidos, 2 são
+achados úteis e 5 são ruído, e todo o ruído é a mesma coisa: credencial de exemplo em arquivo de teste.
+
 **Não provado:** o recall. Nenhum dos 160 commits tinha um defeito conhecido, então não há como dizer quanto a revisão deixa
 passar; e a precisão acima é do mesmo autor dos detectores. A eval da seção 7 mede o conjunto escrito à mão e só serve contra
 regressão. O gate de aprovação continua sem meta até haver alterações com defeito comprovado e uma conferência da pessoa.
