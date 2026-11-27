@@ -66,14 +66,18 @@ internal static class McpEntry
             audit,
             workspace => composition.Management(workspace, LocalIntegrationHub.Create(dataRoot, workspace, clock, connectorTransport)),
             workspace => ContextComposition.Engine(workspace, dataRoot, clock, audit, connectorTransport, tokenizers));
+        // O Boot da IDE: só leitura e nível 0, montado por chamada (BootComposition).
+        var bootTool = new BootTool(workspaces,
+            (workspace, projectId) => BootComposition.Create(projectId, workspace, dataRoot, clock, audit, connectorTransport, tokenizers, composition),
+            workingDirectory, options.Scope, audit);
         try
         {
-            var assessment = new ArchitectureAssessmentTools(workspaces, new LocalProjectFilesFactory(), workingDirectory, options.Scope, audit);
+            var assessment =new ArchitectureAssessmentTools(workspaces, new LocalProjectFilesFactory(), workingDirectory, options.Scope, audit);
             var modernization = new ModernizationPlanTools(workspaces, new LocalProjectFilesFactory(), workingDirectory, options.Scope,
                 new FileModernizationApprovalStore(dataRoot), audit, clock);
             var design = new ProjectDesignTools(workspaces, new LocalProjectFilesFactory(), workingDirectory, options.Scope, audit);
             var scaffold = new ProjectScaffoldTools(workspaces, new LocalProjectFilesFactory(), workingDirectory, options.Scope, clock, audit);
-            await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. assessment.Tools(), .. modernization.Tools(), .. design.Tools(), .. scaffold.Tools(), .. cloud.Tools(), .. iac.Tools()])
+            await new McpServer(BuildInfo.Version, [.. tools.Tools(), .. bootTool.Tools(), .. assessment.Tools(), .. modernization.Tools(), .. design.Tools(), .. scaffold.Tools(), .. cloud.Tools(), .. iac.Tools()])
                 .RunStdioAsync(ct);
         }
         catch (OperationCanceledException)

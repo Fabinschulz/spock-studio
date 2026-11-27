@@ -62,6 +62,7 @@
 | `spock_project_design_check` | Arquitetura | `project?` | O arquivo gravado, conferido etapa por etapa com as verificações do modo Chave (rastreio até os requisitos, critério do §10, alternativa e trade-off de cada escolha), e se os documentos já foram gravados | Nenhum (quem grava os documentos é a pessoa, na tela) | Sim (`ide.context_read`) |
 | `spock_project_scaffold_prepare` | Arquitetura | `project?` | Plano de criação do esqueleto a partir da arquitetura aprovada: versões da política (MV-5) com o motivo, comandos oficiais (`dotnet new`, `npm create vite`) em ordem, o registro `spock-versions.json` e a verificação | Nenhum (quem roda os comandos é o agente) | Sim (`ide.context_read`) |
 | `spock_project_scaffold_check` | Arquitetura | `project?` | O esqueleto criado conferido contra o plano: SDK, alvo e referências do .NET, Node e versões exatas do frontend, registro | Nenhum | Sim (`ide.context_read`) |
+| `spock_boot` | Boot | `project?`, `request?` (até 2.000 caracteres), `capabilityId?`, `mode` (`request` ou `project`) | O [Universal Boot](../universal-boot/README.md) no nível 0, com `structuredContent` e `outputSchema` (`spock_boot.output.schema.json`): 13 leituras do projeto (engenharia, padrões, gestão, auditoria); o que altera algo volta como a rota da tela, e o que o MCP não monta aparece como indisponível | Nenhum no projeto; só o registro do Boot (`projects/<id>/boots/`) e a auditoria, na pasta de dados do Spock | Sim (`ide.boot`, sem o texto do pedido) |
 
 ### 1.2 Problemas encontrados no servidor atual
 

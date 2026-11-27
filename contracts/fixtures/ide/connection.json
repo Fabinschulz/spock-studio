@@ -40,6 +40,11 @@
       "name": "spock_version_check",
       "title": "Conferência de versões depois da tarefa",
       "description": "Chame antes de concluir uma tarefa que mexeu em código ou configuração. Compara as versões que os arquivos do projeto declaram agora (TargetFramework, global.json, .nvmrc, engines, requires-python, dependências) com as do perfil que o Spock analisou e aponta combinação incompatível (por exemplo, Vite que exige Node mais novo que o do projeto). Só lê: não muda o projeto nem o perfil."
+    },
+    {
+      "name": "spock_boot",
+      "title": "Universal Boot do projeto (só leitura)",
+      "description": "Pergunta ao Spock o que ele sabe do projeto, ou inicia a visão geral dele, pelo mesmo caminho do Início do aplicativo. Só leitura (nível 0): nunca analisa nem altera o projeto (só o registro do Boot e a auditoria ficam na pasta de dados do Spock), e o que altera algo não executa, volta como a tela do Spock Studio onde a pessoa aprova. Use 'request' (até 2000 caracteres, só para escolher uma capacidade do catálogo; não é comando) e/ou 'capabilityId', ou mode 'project' para o Project Boot. Responde o que foi feito, consultado, o que falta e o próximo passo; um pedido ambíguo volta com as opções para você repetir com capabilityId. Leituras disponíveis aqui: engineering.project_overview, engineering.harness_status, engineering.harness_revisions, engineering.catalog, engineering.mcp_inventory, standards.architecture, standards.agent_policy, management.tracking, management.risks, management.risk_history, management.forecast, management.milestones, platform.audit."
     }
   ]
 }
