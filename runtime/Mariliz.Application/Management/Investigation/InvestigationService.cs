@@ -71,8 +71,13 @@ public sealed class InvestigationService
         _journal = new InvestigationJournal(runs, workspace, clock);
     }
 
-    /// <summary>Prazo da conversa com o runtime: até quatro chamadas de modelo, cada uma com o seu prazo.</summary>
-    public static readonly TimeSpan StandardDeadline = TimeSpan.FromSeconds(150);
+    /// <summary>
+    /// Prazo da conversa com o runtime: o orçamento mais uma chamada de modelo que comece no fim dele (o prazo do chat) e uma folga.
+    /// O runtime para de olhar quando o tempo não cobre outra rodada, mas a conclusão que já começou pode levar o prazo de uma
+    /// chamada; cortar antes disso jogava fora a resposta que o runtime já tinha.
+    /// </summary>
+    public static readonly TimeSpan StandardDeadline =
+        TimeSpan.FromMilliseconds(RuntimeBudgetMilliseconds) + ModelTimeouts.Chat + TimeSpan.FromSeconds(15);
 
     internal TimeSpan Deadline { get; init; } = StandardDeadline;
 

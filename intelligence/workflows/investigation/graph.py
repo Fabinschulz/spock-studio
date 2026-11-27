@@ -19,16 +19,16 @@ from contracts.investigation import (
 )
 from contracts.messages import ContractError
 from infrastructure.events import Emitter, now
-from workflows.engineering.budget import budgeted
-from workflows.engineering.state import Segment, copy_state
+from workflows.engineering.state import Segment, copy_state, fail, limit
 from workflows.investigation import nodes
 
 WORKFLOW_ID = "management.investigation"
 WORKFLOW_VERSION = "1"
 MAX_ITERATIONS = 12
 MAX_MILLISECONDS = 5000
-# Até quatro chamadas de modelo (três rodadas de hipóteses e a conclusão): o motor define o teto, o runtime só restringe.
-MAX_MILLISECONDS_MODEL = 150000
+# O motor define o orçamento de tempo; o runtime só restringe. Cada chamada de modelo de topo pode levar dezenas de segundos, então
+# o teto aqui é folgado e quem decide o valor é o pedido do motor.
+MAX_MILLISECONDS_MODEL = 300000
 
 __all__ = ["WORKFLOW_ID", "WORKFLOW_VERSION", "build", "run_investigation"]
 
@@ -54,6 +54,7 @@ class State(TypedDict, total=False):
     rejected: list[dict]
     limitations: list[dict]
     failure: str
+    stopped: str
     valid: bool
     tokens: int
     model_calls: int
@@ -92,28 +93,69 @@ def run_investigation(payload: dict, clock: Callable[[], float] | None = None,
     yield _ack(request, final)
 
 
+def _over_limit(state: dict, segment: Segment) -> tuple[str, str] | None:
+    if (segment.clock() - segment.started) * 1000 > segment.max_milliseconds:
+        return "LIMIT_TIME", "A investigação passou do limite de tempo."
+    if int(state.get("tokens") or 0) > segment.max_tokens:
+        return "LIMIT_TOKENS", "A investigação passou do limite de tokens."
+    return None
+
+
+def _bounded(segment: Segment, node: Callable[[dict], dict], name: str, counts_iteration: bool = True) -> Callable[[dict], dict]:
+    """
+    Passar do tempo ou dos tokens depois de um nó não derruba o que já existe: com fatos reunidos a investigação para de olhar e
+    conclui só com eles (``stopped``), e uma conclusão que terminou tarde continua valendo. Só falha quando não há nada reunido.
+    """
+
+    def run(state: dict) -> dict:
+        state = node(copy_state(state))
+        if counts_iteration:
+            state["iterations"] = int(state.get("iterations") or 0) + 1
+        if state.get("failure"):
+            return state
+        if counts_iteration and state["iterations"] > segment.max_iterations:
+            fail(state, "LIMIT_ITERATIONS", "A execução passou do limite de etapas.")
+            return state
+        if (over := _over_limit(state, segment)) is None:
+            return state
+        code, message = over
+        if name != "conclude" and not state.get("gathered"):
+            fail(state, code, message)
+            return state
+        if name != "conclude":
+            state["stopped"] = code
+        limit(state, code, message)
+        return state
+
+    return run
+
+
+def _after(state: dict, normal: str) -> str:
+    return END if state.get("failure") else "conclude" if state.get("stopped") else normal
+
+
 def build(run: nodes.Run) -> StateGraph:
     segment = run.segment
     graph = StateGraph(State)
-    graph.add_node("frame", budgeted(segment, lambda state: nodes.frame(state, run)))
-    graph.add_node("gather", budgeted(segment, lambda state: nodes.gather(state, run)))
-    graph.add_node("hypothesize", budgeted(segment, lambda state: nodes.hypothesize(state, run)))
-    graph.add_node("retrieve", budgeted(segment, lambda state: nodes.retrieve(state, run)))
-    graph.add_node("decide", budgeted(segment, lambda state: nodes.decide(state, run), counts_iteration=False))
-    graph.add_node("conclude", budgeted(segment, lambda state: nodes.conclude(state, run)))
+    graph.add_node("frame", _bounded(segment, lambda state: nodes.frame(state, run), "frame"))
+    graph.add_node("gather", _bounded(segment, lambda state: nodes.gather(state, run), "gather"))
+    graph.add_node("hypothesize", _bounded(segment, lambda state: nodes.hypothesize(state, run), "hypothesize"))
+    graph.add_node("retrieve", _bounded(segment, lambda state: nodes.retrieve(state, run), "retrieve"))
+    graph.add_node("decide", _bounded(segment, lambda state: nodes.decide(state, run), "decide", counts_iteration=False))
+    graph.add_node("conclude", _bounded(segment, lambda state: nodes.conclude(state, run), "conclude"))
 
     graph.add_edge(START, "frame")
-    graph.add_conditional_edges("frame", lambda state: END if state.get("failure") else "gather", ["gather", END])
-    graph.add_conditional_edges("gather", lambda state: END if state.get("failure") else "hypothesize", ["hypothesize", END])
-    graph.add_conditional_edges("hypothesize", lambda state: END if state.get("failure") else "decide", ["decide", END])
-    # O teto de rodadas e o orçamento estão em ``decide``, não aqui.
+    graph.add_conditional_edges("frame", lambda state: _after(state, "gather"), ["gather", "conclude", END])
+    graph.add_conditional_edges("gather", lambda state: _after(state, "hypothesize"), ["hypothesize", "conclude", END])
+    graph.add_conditional_edges("hypothesize", lambda state: _after(state, "decide"), ["decide", "conclude", END])
+    # O teto de rodadas, o orçamento e o tempo para outra rodada estão em ``decide``, não aqui.
     graph.add_conditional_edges(
         "decide",
-        lambda state: END if state.get("failure") else ("retrieve" if state.get("searches") else "gather" if state.get("next_groups") else "conclude"),
+        lambda state: _after(state, "retrieve" if state.get("searches") else "gather" if state.get("next_groups") else "conclude"),
         ["retrieve", "gather", "conclude", END],
     )
     graph.add_conditional_edges(
-        "retrieve", lambda state: END if state.get("failure") else ("gather" if state.get("next_groups") else "hypothesize"), ["gather", "hypothesize", END]
+        "retrieve", lambda state: _after(state, "gather" if state.get("next_groups") else "hypothesize"), ["gather", "hypothesize", "conclude", END]
     )
     graph.add_edge("conclude", END)
     return graph

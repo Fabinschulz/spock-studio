@@ -20,6 +20,8 @@ MAX_HITS = 3
 MEMORY_GROUP = "memória"
 MAX_GATHERED = 120
 MAX_DETERMINISTIC_SIGNS = 6
+# Outra rodada (uma chamada de hipóteses) mais a conclusão (outra chamada), ao ritmo já observado.
+RESERVED_CALLS_AFTER_ROUND = 2
 NO_MODEL = "INVESTIGATION_NO_MODEL"
 
 @dataclass
@@ -119,6 +121,19 @@ def _rounds_needed(wanted: list[str], searches: list[str]) -> int:
     return bool(searches) + bool(wanted)
 
 
+def _time_short_for_another_round(state: dict, segment: Segment) -> bool:
+    """
+    Cada chamada de modelo leva o que o modelo levar (dezenas de segundos num modelo de topo). Outra rodada só entra se, ao ritmo
+    observado, ela e a conclusão ainda cabem no orçamento: sem essa reserva a conclusão chegava depois do limite.
+    """
+    calls = int(state.get("model_calls") or 0)
+    if calls == 0:
+        return False
+    elapsed = (segment.clock() - segment.started) * 1000
+    per_call = elapsed / calls
+    return elapsed + RESERVED_CALLS_AFTER_ROUND * per_call > segment.max_milliseconds
+
+
 def decide(state: dict, run: Run) -> dict:
     segment = run.segment
     present = {fact.group for fact in run.request.facts}
@@ -136,6 +151,8 @@ def decide(state: dict, run: Run) -> dict:
         reason = "Não restam etapas para outra rodada."
     elif int(state.get("tokens") or 0) + 2 * agent.MAX_OUTPUT_TOKENS > segment.max_tokens:
         reason = "O orçamento de tokens não cobre outra rodada."
+    elif _time_short_for_another_round(state, segment):
+        reason = "O tempo não cobre outra rodada com a conclusão."
     else:
         state["next_groups"] = wanted
         _step(state, "decide", "Decisão: olhar mais", f"Pede: {_asked(wanted, len(searches))}.", round=state["round"], groups=wanted)
@@ -212,7 +229,8 @@ def conclude(state: dict, run: Run) -> dict:
     state["rejected"] = []
     state["answer"] = None
     written = False
-    if run.segment.model is not None:
+    # Sem tempo ou tokens (``stopped``) o modelo não é chamado de novo: a conclusão sai das regras, com o que já foi reunido.
+    if run.segment.model is not None and not state.get("stopped"):
         _warn_if_facts_do_not_fit(state, gathered)
 
         def adopt(outcome) -> None:
@@ -231,10 +249,12 @@ def conclude(state: dict, run: Run) -> dict:
         _agent_call(state, run.segment, work)
     if not written:
         state["answer"] = _signs_only(gathered, {group.name for group in run.request.catalog if "sign" in group.roles})
-    _step(
-        state, "conclude", "Conclusão",
-        "Escrita pelo modelo, a conferir pelo motor." if written else "Montada pelas regras: só os sinais reunidos, sem texto do modelo.",
+    detail = (
+        "Escrita pelo modelo, a conferir pelo motor." if written
+        else "Montada pelas regras: o limite foi atingido antes de o modelo concluir." if state.get("stopped")
+        else "Montada pelas regras: só os sinais reunidos, sem texto do modelo."
     )
+    _step(state, "conclude", "Conclusão", detail)
     state["valid"] = True
     return state
 

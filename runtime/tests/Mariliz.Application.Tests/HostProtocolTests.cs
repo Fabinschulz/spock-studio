@@ -27,7 +27,9 @@ public sealed partial class HostProtocolTests
         Assert.Equal(ProtocolDeadlines.ByMethod.Keys.Order(StringComparer.Ordinal), deadlines.Select(entry => entry.Key));
         Assert.Equal(5400, deadlines[ProtocolMethods.IacApply]!.GetValue<int>());
         Assert.Equal(2700, deadlines[ProtocolMethods.IacPlan]!.GetValue<int>());
-        Assert.Equal(180, deadlines[ProtocolMethods.ManagementInvestigate]!.GetValue<int>());
+        Assert.Equal(
+            (int)(InvestigationService.StandardDeadline + ProtocolDeadlines.InvestigationMargin).TotalSeconds,
+            deadlines[ProtocolMethods.ManagementInvestigate]!.GetValue<int>());
         Assert.Equal(660, deadlines[ProtocolMethods.IacRuntimeInstall]!.GetValue<int>());
     }
 
