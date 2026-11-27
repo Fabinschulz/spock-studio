@@ -1,18 +1,9 @@
 import { Disclosure, InlineNotice } from '@/shared/components';
-import type { BootRecord, BootResult, BootStep } from '@/shared/schema';
+import type { BootRecord, BootStep } from '@/shared/schema';
 import { Button } from '@mariliz/ui-kit';
 
+import { OUTCOME_LABEL } from '../domain/boot-labels';
 import styles from './boot-result-card.module.scss';
-
-const OUTCOME_LABEL: Record<BootResult['outcome'], string> = {
-  answered: 'Consultado',
-  prepared: 'Preparado',
-  handoff: 'Pronto para continuar',
-  needsClarification: 'Preciso de uma escolha',
-  needsInput: 'Falta algo',
-  unsupported: 'Fora do que o Spock faz agora',
-  failed: 'Não deu certo'
-};
 
 const STEP_LABEL: Record<BootStep['status'], string> = {
   pending: 'aguardando',
