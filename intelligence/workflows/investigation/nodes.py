@@ -149,7 +149,7 @@ def decide(state: dict, run: Run) -> dict:
         reason = f"Teto de {MAX_ROUNDS} rodadas."
     elif int(state.get("iterations") or 0) + 3 > segment.max_iterations:
         reason = "Não restam etapas para outra rodada."
-    elif int(state.get("tokens") or 0) + 2 * agent.MAX_OUTPUT_TOKENS > segment.max_tokens:
+    elif int(state.get("tokens") or 0) + agent.MAX_OUTPUT_TOKENS + agent.CONCLUSION_MAX_OUTPUT_TOKENS > segment.max_tokens:
         reason = "O orçamento de tokens não cobre outra rodada."
     elif _time_short_for_another_round(state, segment):
         reason = "O tempo não cobre outra rodada com a conclusão."
