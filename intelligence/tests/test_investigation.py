@@ -730,7 +730,7 @@ class PromptRulesTests(unittest.TestCase):
     def test_a_versao_do_agente_acompanha_o_prompt(self) -> None:
         from agents import investigation as agent
 
-        self.assertEqual(agent.AGENT_VERSION, "4")
+        self.assertEqual(agent.AGENT_VERSION, "5")
 
     def test_as_hipoteses_pedem_o_juizo_de_answerable_e_dizem_quando_e_false(self) -> None:
         from agents import investigation as agent
@@ -738,6 +738,15 @@ class PromptRulesTests(unittest.TestCase):
         text = agent._HYPOTHESES_TASK  # noqa: SLF001
         self.assertIn('"answerable":true', text)
         self.assertIn("false só quando nenhum fato trata dele", text)
+
+    def test_pergunta_de_efeito_de_acao_com_fato_necessario_nao_calculado_e_false(self) -> None:
+        """A rodada real mostrou o modelo julgar true porque havia fatos de atraso e risco, sem ver que faltava a capacidade."""
+        from agents import investigation as agent
+
+        text = agent._HYPOTHESES_TASK  # noqa: SLF001
+        for rule in ("EFEITO de uma ação", "a capacidade da equipe", "mesmo que existam fatos sobre atraso, riscos e previsão", "marque false"):
+            with self.subTest(rule=rule):
+                self.assertIn(rule, text)
 
 
 class AbstentionTests(unittest.TestCase):
