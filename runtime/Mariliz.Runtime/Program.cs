@@ -94,6 +94,8 @@ var harnessStatus = new HarnessStatusService(engine.Workspace, engine.Files, eng
 var bootStore = new FileBootStore(engine.DataRoot);
 if (BootService.MarkInterrupted(bootStore, engine.Clock) is > 0 and var bootsInterrupted)
     await Console.Error.WriteLineAsync($"{bootsInterrupted} Boot(s) interrompido(s) pela queda anterior podem ser recuperados.");
+// Passando de 200 registros por escopo saem os mais antigos que já terminaram; o interrompido que ninguém recuperou fica.
+BootRetention.Apply(bootStore);
 var bootRegistry = new CapabilityRegistry();
 var boot = new BootService(engine.Workspace, bootRegistry, new IntentRecognizer(bootRegistry),
     new BootFactsProbe(engine.Workspace, models, integrations, cloud, harnessStatus, profileStore), new BootPlanner(bootRegistry), bootStore, engine.Clock,

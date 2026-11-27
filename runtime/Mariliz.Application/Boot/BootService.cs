@@ -286,6 +286,7 @@ public sealed class BootService(
         record.FinishedAt = clock.UtcNow;
         Checkpoint(record, state, null, result.Headline);
         Audit(AuditActions.BootFinished, record);
+        BootRetention.PruneIfNeeded(store, record.ProjectId);
         return record;
     }
 

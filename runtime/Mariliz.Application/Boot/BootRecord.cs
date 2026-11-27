@@ -107,6 +107,12 @@ public interface IBootStore
 
     // Todos os projetos, para achar o que a queda anterior deixou em andamento.
     IReadOnlyList<BootRecord> ListAll();
+
+    // Sem ler nenhum arquivo: é o que decide se vale podar.
+    int Count(string? projectId);
+
+    // Falso quando não havia o que apagar.
+    bool Delete(string? projectId, string bootId);
 }
 
 public static partial class BootIds

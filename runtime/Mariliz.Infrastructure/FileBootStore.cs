@@ -42,6 +42,27 @@ public sealed class FileBootStore(string dataRoot) : IBootStore
         }
     }
 
+    public int Count(string? projectId)
+    {
+        lock (_gate)
+        {
+            var folder = FolderOf(projectId);
+            return Directory.Exists(folder) ? Directory.EnumerateFiles(folder, "boot-*.json").Count() : 0;
+        }
+    }
+
+    public bool Delete(string? projectId, string bootId)
+    {
+        if (!BootIds.IsValid(bootId)) return false;
+        lock (_gate)
+        {
+            var path = PathOf(projectId, bootId);
+            if (!File.Exists(path)) return false;
+            File.Delete(path);
+            return true;
+        }
+    }
+
     private string FolderOf(string? projectId)
     {
         if (projectId is null) return Path.Combine(dataRoot, "boots");

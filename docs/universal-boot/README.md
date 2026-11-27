@@ -192,6 +192,11 @@ Estados: `created`, `interpreting`, `awaitingClarification`, `preparing`, `plann
 checkpoints. Arquivo ilegível vai para `.corrupt-*` e some da lista sem derrubar os outros; o id vira nome de arquivo, então
 só o formato `boot-<12 hex>` passa.
 
+**Retenção.** Cada escopo (um projeto, ou o Boot sem projeto) guarda os 200 registros mais novos. Ao subir o motor a poda
+vai até o limite exato; ao terminar um Boot ela só roda quando a pasta passa de 220, para não reler tudo a cada pedido.
+Saem só os mais antigos que já terminaram: um Boot vivo, ou interrompido e ainda não recuperado, nunca é apagado, porque é o
+que a recuperação precisa. Se um arquivo está travado, a poda fica para a próxima vez e o Boot não falha por isso.
+
 **Recuperação.** Ao subir, o motor marca como `interrupted` todo Boot que a queda deixou em andamento. `boot.resume`
 cria um Boot de modo `recovery` ligado ao original: o que já estava feito é mantido e **não é repetido**; o contexto é lido
 de novo e comparado com o do começo, e o resultado diz se "o contexto do projeto mudou desde a interrupção". O original
@@ -241,15 +246,15 @@ Implementado, validado e planejado são coisas diferentes; esta tabela não as m
 | Verificar permissão antes | `PermissionEvaluator` | Destrutivo nunca executa; autonomia acima do teto recusada; sem projeto, modelo ou integração, bloqueado com o motivo |
 | Montar plano | `BootPlanner` | Plano com passos, dependências, aprovações e riscos no registro |
 | Iniciar operações existentes | `Dispatch` pelo tratador da interface | `BootProtocolTests`: dez fluxos reais pelo protocolo; o Project Boot analisa um projeto .NET de verdade |
-| Histórico e resultado | `FileBootStore`, auditoria | Registro no disco; a auditoria não guarda o texto do pedido |
+| Histórico e resultado | `FileBootStore`, auditoria, retenção de 200 por escopo | Registro no disco; a auditoria não guarda o texto do pedido; `BootRetentionTests` |
 | Recuperar execução interrompida | `boot.resume` | `BootServiceTests`: não repete o que foi feito; detecta contexto que mudou |
 | Project Boot em projeto real | Sim | Projeto .NET de teste; projeto existente não é reanalisado |
-| Funcionalidades originais seguem | Nenhum método existente mudou | Motor: 2.068 aprovados, 0 falhas, 28 ignorados (os de chave real). Interface: 1.135 aprovados. Com o Python 3.12 do PATH, 38 testes do runtime de IA falham por ambiente (o motor exige o 3.14, via `MARILIZ_PYTHON`); não são do Boot |
+| Funcionalidades originais seguem | Nenhum método existente mudou | Motor: 2.075 aprovados, 0 falhas, 28 ignorados (os de chave real). Interface: 1.135 aprovados. Com o Python 3.12 do PATH, 38 testes do runtime de IA falham por ambiente (o motor exige o 3.14, via `MARILIZ_PYTHON`); não são do Boot |
 | Sem duplicação | Reusa `ContextEngine`, tratadores, `IAuditLog`, `WorkspaceAuthorizer` | Revisão do código |
-| Testes automatizados | 46 no motor, mais os da interface | Ver abaixo |
+| Testes automatizados | 52 no motor, mais os da interface | Ver abaixo |
 | Roadmap registrado | [ROADMAP](../ROADMAP.md) | — |
 
-Testes novos: `BootCatalogTests` (9), `BootIntentEvalTests` (8), `BootServiceTests` (23), `BootProtocolTests` (6, incluindo
+Testes novos: `BootCatalogTests` (9), `BootIntentEvalTests` (8), `BootServiceTests` (24), `BootRetentionTests` (5), `BootProtocolTests` (6, incluindo
 as fixtures de contrato de `contracts/fixtures/boot/`), e na interface o contrato com o Zod, o cartão pelo Início (9) e o próprio cartão (2) e a
 conferência das três listas de métodos.
 
@@ -274,9 +279,7 @@ cartão não foi visto no aplicativo**.
 6. **Uma sessão de IDE (MCP) não usa o Boot.** O servidor MCP não expõe `boot.*`.
 7. **Nada é executado em paralelo**, e o Boot não tem fila nem concorrência entre projetos. A tela barra um segundo pedido
    enquanto um está em preparo.
-8. **Os registros não têm retenção.** Cada Boot fica em um arquivo, e a listagem e a subida do motor leem todos; falta
-   decidir quantos manter por projeto.
-9. **Boot sem projeto** grava `boot.started` e `boot.finished` sem `projectId`; essas ações não estão na trilha de nenhum
+8. **Boot sem projeto** grava `boot.started` e `boot.finished` sem `projectId`; essas ações não estão na trilha de nenhum
    projeto nem na lista de ações do computador inteiro (`MachineWide`). Falta decidir o escopo.
 
 ## 6. Decisões para o dono
