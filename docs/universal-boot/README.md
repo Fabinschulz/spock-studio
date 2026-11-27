@@ -49,6 +49,7 @@ tela" quer dizer que ele só prepara.
 | Visão geral do projeto | `engineering.project_overview` | leitura | executa | `/projeto` |
 | Analisar o projeto de novo | `engineering.analyze_project` | preparação | executa | `/projeto` |
 | Estado do Harness | `engineering.harness_status` | leitura | executa | `/projeto/harness` |
+| Revisões do Harness | `engineering.harness_revisions` | leitura | executa | `/projeto/harness` |
 | Catálogo do Harness | `engineering.catalog` | leitura | executa | `/projeto/catalogo` |
 | Conhecimento do projeto | `engineering.knowledge` | leitura | executa | `/projeto/conhecimento` |
 | Servidores MCP do projeto | `engineering.mcp_inventory` | leitura | executa | `/projeto/harness` |
@@ -72,6 +73,7 @@ tela" quer dizer que ele só prepara.
 | Portfólio | `management.portfolio` | leitura | executa | `/portfolio` |
 | Acompanhamento do projeto | `management.tracking` | leitura | executa | `/gestao` |
 | Riscos do projeto | `management.risks` | análise | executa | `/gestao` |
+| Histórico de riscos | `management.risk_history` | leitura | executa | `/gestao` |
 | Previsão de entrega | `management.forecast` | análise | executa | `/gestao` |
 | Marcos | `management.milestones` | leitura | executa | `/gestao` |
 | Relatório do projeto | `management.report` | leitura | executa | `/gestao/relatorio` |
@@ -84,6 +86,8 @@ tela" quer dizer que ele só prepara.
 | --- | --- | --- | --- | --- |
 | Ferramenta de infraestrutura | `infrastructure.status` | leitura | executa | `/infraestrutura` |
 | Pastas de infraestrutura | `infrastructure.layout` | leitura | executa | `/infraestrutura` |
+| Estado da infraestrutura | `infrastructure.state` | sensível | abre a tela | `/infraestrutura` |
+| Gerar a infraestrutura | `infrastructure.generate` | alteração interna | abre a tela | `/infraestrutura` |
 | Validar e planejar a infraestrutura | `infrastructure.validate_plan` | análise | abre a tela | `/infraestrutura` |
 | Provisionar infraestrutura | `infrastructure.apply` | destrutiva | abre a tela | `/infraestrutura` |
 | Ler recursos da nuvem | `infrastructure.cloud_read` | leitura | abre a tela | `/cloud` |
@@ -109,6 +113,8 @@ tela" quer dizer que ele só prepara.
 - **Evals e juízes** não têm método próprio: rodam por `harness.validate` e pelo workflow.
 - **RAG e MCP** não têm capacidade própria: o índice entra em `engineering.knowledge` e o inventário em
   `engineering.mcp_inventory`.
+- **Drift e custo** não têm ficha própria: `iac.drift` e `iac.cost.*` entram em `infrastructure.validate_plan`. O agendamento de drift
+  (`iac.drift.schedule*`) e o plano de bootstrap do estado remoto (`iac.bootstrap.plan`) ficam fora do catálogo.
 - **Triggers, Roadmap e backlog, Dependency Intelligence, Work Readiness**: não existem no produto. Estão no roadmap.
 - **Agentes, Skills e Workflows** aparecem como metadados da ficha (`agents`, `skills`, `workflows`), não como capacidade
   separada: o catálogo do Harness já os lista.
@@ -156,10 +162,10 @@ Uma capacidade composta (`composite.idea_to_development`) nasce de fichas existe
 uma outra aparecem no pedido. Quem marca o tipo de atividade de propósito, ou escolhe uma opção, manda a capacidade
 direto e pula a interpretação.
 
-**Medida (eval `BootIntentEvalTests`)**: 63 de 63 no corpus usado para ajustar os termos; **10 de 14 (71%) em frases
+**Medida (eval `BootIntentEvalTests`)**: 73 de 73 no corpus usado para ajustar os termos; **10 de 14 (71%) em frases
 escritas depois e nunca usadas no ajuste**. Os quatro erros são de vocabulário que o léxico não cobre ("permissão para
 mexer" para a política dos agentes, "rodar o plano do terraform", "senhas esquecidas" que caiu em pergunta sobre código, e
-uma pergunta que devia ter sido de esclarecimento). O número de 71% é o que vale esperar de frase nova; o 100% mostra só
+uma pergunta que devia ter sido de esclarecimento). As quatro fichas da etapa 2 entraram sem mudar esse grupo: os mesmos quatro erros, 10 de 14. O número de 71% é o que vale esperar de frase nova; o 100% mostra só
 que os termos foram ajustados ao corpus. Uma troca por reconhecimento com modelo deve ser julgada pela mesma eval.
 
 ### 3.3 Permissão e autonomia
@@ -214,7 +220,7 @@ cada domínio continua nele.
 | --- | --- |
 | Request Boot | Implementado e ligado à entrada de pedidos do Início |
 | Project Boot | Implementado e ligado à sugestão "Analisar o projeto" |
-| Recovery Boot | Implementado (`boot.resume`), sem botão na interface ainda |
+| Recovery Boot | Implementado (`boot.resume`) e ligado ao botão Retomar da lista de pedidos recentes do Início (§3.7) |
 | Work Boot, Autonomous Boot | No vocabulário, recusados; dependem de backlog, dependências e prontidão, que não existem |
 
 ### 3.6 Project Boot
@@ -233,6 +239,15 @@ consultado, alterações, o que foi conferido, problemas, pendências, próximo 
 tela sugerida continua levando o texto, como antes. Se o motor não responde ao Boot, o pedido segue direto para a tela, como
 sempre seguiu. "Analisar o projeto" roda o Project Boot. Não há segunda Home nem segundo chat.
 
+**Pedidos recentes.** Com o motor pronto e um projeto selecionado, logo abaixo do cartão aparece a lista dos últimos Boots
+do projeto (`boot.list`): o resumo, o resultado ou o estado em português, o horário e, quando for o caso, "recuperado" ou
+"recupera outro". Sem nenhum Boot o bloco não aparece; se a lista não carrega, o bloco avisa e oferece tentar de novo.
+Clicar numa linha com resumo abre o detalhe (`boot.detail`) no mesmo cartão. O botão **Retomar** só existe no Boot
+interrompido que ainda não foi recuperado; ele chama `boot.resume` e o resultado cai no mesmo cartão de um pedido novo,
+com a mesma regra de um Boot por vez (retomar e abrir ficam desabilitados enquanto há um em preparo). Se a retomada falha
+a tela avisa e a lista é relida. Os mais novos vêm primeiro, até cinco; um Boot interrompido ainda não recuperado fica à
+vista mesmo que seja mais antigo, porque é o que dá para retomar.
+
 ## 4. Evidências
 
 Implementado, validado e planejado são coisas diferentes; esta tabela não as mistura.
@@ -240,29 +255,48 @@ Implementado, validado e planejado são coisas diferentes; esta tabela não as m
 | Critério de aceite | Implementado | Prova |
 | --- | --- | --- |
 | Identidade e ciclo de vida | `BootRecord`, estados, checkpoints, `version` | `BootServiceTests` (registro no disco, checkpoints, queda) |
-| Catálogo baseado no produto real | 35 fichas, cada método existe no protocolo e cada tela em `paths.ts` | `BootCatalogTests` (os dois conferem contra o código) |
-| Reconhecer intenções e domínios diferentes | `IntentRecognizer` | `BootIntentEvalTests`: 63/63 ajustado, 10/14 em frases novas |
+| Catálogo baseado no produto real | 39 fichas, cada método existe no protocolo e cada tela em `paths.ts` | `BootCatalogTests` (os dois conferem contra o código) |
+| Reconhecer intenções e domínios diferentes | `IntentRecognizer` | `BootIntentEvalTests`: 73/73 ajustado, 10/14 em frases novas |
 | Recuperar contexto | `ContextEngine` no passo de contexto | `BootServiceTests`, `BootProtocolTests` |
 | Verificar permissão antes | `PermissionEvaluator` | Destrutivo nunca executa; autonomia acima do teto recusada; sem projeto, modelo ou integração, bloqueado com o motivo |
 | Montar plano | `BootPlanner` | Plano com passos, dependências, aprovações e riscos no registro |
 | Iniciar operações existentes | `Dispatch` pelo tratador da interface | `BootProtocolTests`: dez fluxos reais pelo protocolo; o Project Boot analisa um projeto .NET de verdade |
 | Histórico e resultado | `FileBootStore`, auditoria, retenção de 200 por escopo | Registro no disco; a auditoria não guarda o texto do pedido; `BootRetentionTests` |
 | Recuperar execução interrompida | `boot.resume` | `BootServiceTests`: não repete o que foi feito; detecta contexto que mudou |
-| Project Boot em projeto real | Sim | Projeto .NET de teste; projeto existente não é reanalisado |
-| Funcionalidades originais seguem | Nenhum método existente mudou | Motor: 2.075 aprovados, 0 falhas, 28 ignorados (os de chave real). Interface: 1.135 aprovados. Com o Python 3.12 do PATH, 38 testes do runtime de IA falham por ambiente (o motor exige o 3.14, via `MARILIZ_PYTHON`); não são do Boot |
+| Project Boot em projeto real | Sim, com o processo real do motor (não com o app Tauri) | Projeto .NET de teste; projeto existente não é reanalisado; `BootProcessTests` roda o Project Boot pelo stdin/stdout do motor e confere por impressão digital que nenhum arquivo do projeto mudou |
+| Funcionalidades originais seguem | Nenhum método existente mudou | Motor: 2.087 aprovados, 0 falhas, 28 ignorados (os de chave real). Processo real do motor: 21. Interface: 1.148 aprovados. Com o Python 3.12 do PATH, 38 testes do runtime de IA falham por ambiente (o motor exige o 3.14, via `MARILIZ_PYTHON`); não são do Boot |
 | Sem duplicação | Reusa `ContextEngine`, tratadores, `IAuditLog`, `WorkspaceAuthorizer` | Revisão do código |
-| Testes automatizados | 52 no motor, mais os da interface | Ver abaixo |
+| Testes automatizados | 64 no motor em memória, 9 com o processo real do motor, mais os da interface | Ver abaixo |
 | Roadmap registrado | [ROADMAP](../ROADMAP.md) | — |
 
-Testes novos: `BootCatalogTests` (9), `BootIntentEvalTests` (8), `BootServiceTests` (24), `BootRetentionTests` (5), `BootProtocolTests` (6, incluindo
-as fixtures de contrato de `contracts/fixtures/boot/`), e na interface o contrato com o Zod, o cartão pelo Início (9) e o próprio cartão (2) e a
+Testes novos: `BootCatalogTests` (9), `BootIntentEvalTests` (8), `BootServiceTests` (24), `BootRetentionTests` (5), `BootProtocolTests` (9, incluindo
+as fixtures de contrato de `contracts/fixtures/boot/`), `BootSummariesTests` (9, cada resumo contra a fixture real do contrato), e na interface o contrato com o Zod, o cartão pelo Início (9) e o próprio cartão (2) e a
 conferência das três listas de métodos.
+
+`BootProcessTests` (9, em `runtime/tests/Mariliz.Runtime.IntegrationTests`) sobe o motor de verdade (`dotnet Mariliz.Runtime.dll`, NDJSON no
+stdin/stdout, `MARILIZ_DATA_DIR` temporária por teste) e prova o que os testes em memória não alcançam: o `engine.hello` anuncia os seis métodos e os
+300 s de `boot.start`, `boot.project` e `boot.resume`; a jornada completa (leitura, Project Boot, lista e detalhe iguais ao arquivo gravado, pedido
+ambíguo, destrutivo que só abre a tela sem chamada de infraestrutura, sem capacidade, autonomia 2 recusada, projeto não autorizado); o Project Boot
+não muda nenhum arquivo do projeto e grava o perfil só na pasta de dados; um registro `executing` deixado no disco vira `interrupted` ao subir (com o
+aviso no stderr), `boot.resume` refaz só os passos pendentes (a análise já feita não roda de novo), o original passa a ter `recoveredByBootId` e a
+segunda recuperação, ou a de um Boot sem plano, é recusada; a retenção na subida deixa 200 por escopo e preserva o interrompido não recuperado; as
+chaves das respostas reais têm o mesmo conjunto das fixtures de `contracts/fixtures/boot/`; o stdout só tem mensagens do protocolo, o motor sai com
+código 0 no `engine.shutdown` e não deixa processo filho. **Não prova**: a interface (Zod, cartão do Início), o host Rust (`protocol.rs`), o app Tauri
+aberto nem qualquer fluxo com modelo real. O registro do Boot interrompido é gravado pelo teste (o formato é o do motor, os campos são editados);
+não há queda real de processo no meio de um passo.
 
 **Nada disso rodou com modelo real**, e o Boot da fundação não usa modelo: o que depende de modelo (`engineering.request`,
 `management.assistant`, `ideas.idea_to_project`) só abre a tela. O Project Boot foi exercitado no teste com um projeto .NET
-temporário, não no aplicativo Tauri aberto. O host Rust (`protocol.rs`) só teve a lista de métodos conferida pelo teste do
-motor; não foi compilado nesta entrega. A interface foi testada com motor de mentira e as fixtures reais do motor; **o
-cartão não foi visto no aplicativo**.
+temporário e, depois, no aplicativo Tauri aberto (próximo parágrafo), nunca em um projeto real do dono.
+
+**No aplicativo real** (Tauri dev, WebView2 e o motor recém-construído, dirigidos pelo CDP, com um projeto .NET temporário,
+pasta de dados separada e sem chave, rede, Jira, GitHub ou nuvem): o host compilou com a lista nova de métodos e o motor
+respondeu `boot.*`; pedido de leitura, pedido que só abre a tela, pedido ambíguo com escolha de uma opção, Project Boot
+(hash dos arquivos do projeto idêntico antes e depois), recuperação com Retomar (dois Boots interrompidos semeados, um com
+plano e outro sem), envio duplo (um só Boot, por Enter duas vezes em 29 ms e por dois cliques) e console sem erro. Achou um
+bloco repetido no Project Boot, a lista que não distinguia os interrompidos e oferecia Retomar ao que não tem plano, o botão
+fora do alinhamento e jargão nas mensagens; todos corrigidos. **Não provou** modelo real, os fluxos Python do motor
+(o empacotamento da inteligência falhou no build por causa do Python 3.12 do PATH) nem projeto real.
 
 ## 5. Riscos e limitações
 
@@ -274,8 +308,10 @@ cartão não foi visto no aplicativo**.
    diários já fazem. Não vai para auditoria nem para o contexto de IDE.
 4. **Leituras que podem demorar** (`aitool.list` roda processos; `engineering.analyze` lê o projeto): o Boot está na lista
    de métodos lentos e anuncia ao host um prazo de 300 s; não tem cancelamento pela interface.
-5. **O resumo é só o que o motor sabe resumir.** Capacidades sem resumo próprio mostram só a contagem das listas;
-   o detalhe está na tela.
+5. **O resumo é só o que o motor sabe resumir.** Toda capacidade direta tem resumo próprio, feito de contagens, estados e nomes
+   de ferramenta; títulos, nomes de marcos e mensagens ficam na tela. Valor ausente aparece como "sem dado". Se o formato de
+   uma resposta mudar, o teste contra a fixture do contrato quebra; o resumo genérico (contagem de listas) só cobre capacidade nova
+   sem resumo.
 6. **Uma sessão de IDE (MCP) não usa o Boot.** O servidor MCP não expõe `boot.*`.
 7. **Nada é executado em paralelo**, e o Boot não tem fila nem concorrência entre projetos. A tela barra um segundo pedido
    enquanto um está em preparo.

@@ -100,10 +100,10 @@ public sealed class BootService(
         if (projectId is not null && !workspace.IsAuthorized(projectId)) throw EngineErrors.ProjectNotAuthorized();
         var original = Find(projectId, bootId);
         if (original.State != BootStates.Interrupted || original.RecoveredByBootId is not null)
-            throw new EngineException("BOOT_NOT_RESUMABLE", "Este Boot não foi interrompido, ou já foi recuperado.");
+            throw new EngineException("BOOT_NOT_RESUMABLE", "Este pedido não foi interrompido, ou já foi retomado.");
         // Sem plano não há o que retomar, e o formato do resultado (pedido ou Project Boot) sairia errado: a pessoa pede de novo.
         if (original.Plan is null)
-            throw new EngineException("BOOT_NOT_RESUMABLE", "Este Boot foi interrompido antes de ter um plano. Faça o pedido de novo.");
+            throw new EngineException("BOOT_NOT_RESUMABLE", "Este pedido foi interrompido antes de ter um plano. Faça o pedido de novo.");
 
         var record = New(BootMode.Recovery, original.ProjectId, original.Autonomy, original.Origin, original.Source);
         record.Request = original.Request;
@@ -249,7 +249,7 @@ public sealed class BootService(
         // Na recuperação este é o contexto de agora; o do Boot interrompido continua no registro dele.
         record.ContextVersion = package.ContextVersion;
         step.Status = StepStatuses.Completed;
-        step.Summary = $"Contexto {package.ContextVersion}: {package.Items.Count} itens, {package.UsedTokens} tokens.";
+        step.Summary = $"Contexto do projeto reunido: {package.Items.Count} itens, {package.UsedTokens} tokens.";
         step.Evidence = [.. package.Limitations, .. package.Omitted.Select(omission => $"Ficou de fora ({omission.Section}): {omission.Ref}.")];
     }
 
@@ -335,8 +335,8 @@ public sealed class BootService(
 
     private BootRecord Find(string? projectId, string bootId)
     {
-        if (!BootIds.IsValid(bootId)) throw new EngineException("BOOT_NOT_FOUND", "Boot não encontrado.");
-        return store.Find(projectId, bootId) ?? throw new EngineException("BOOT_NOT_FOUND", "Boot não encontrado.");
+        if (!BootIds.IsValid(bootId)) throw new EngineException("BOOT_NOT_FOUND", "Pedido não encontrado.");
+        return store.Find(projectId, bootId) ?? throw new EngineException("BOOT_NOT_FOUND", "Pedido não encontrado.");
     }
 
     private void Validate(BootStartRequest request)
@@ -354,7 +354,7 @@ public sealed class BootService(
     private static void RequireAutonomy(AutonomyLevel autonomy)
     {
         if (autonomy > PermissionEvaluator.Ceiling)
-            throw new EngineException("BOOT_AUTONOMY_NOT_ENABLED", "Este nível de autonomia não está habilitado. O Boot trabalha até o nível 1 (preparação).");
+            throw new EngineException("BOOT_AUTONOMY_NOT_ENABLED", "Este nível de autonomia não está habilitado. O Spock prepara até o nível 1.");
     }
 
     // O registro de auditoria diz que houve um Boot e como terminou; o texto do pedido não entra.

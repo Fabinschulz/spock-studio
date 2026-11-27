@@ -45,8 +45,14 @@ internal sealed class BootRequestHandler(BootService service) : IRequestHandler
         record.RecoveredByBootId,
         Outcome = record.Result?.Outcome,
         Headline = record.Result?.Headline,
+        // Um Boot interrompido não tem manchete: o objetivo (ou o pedido) é o que o distingue na lista.
+        Objective = Brief(record.Plan?.Objective ?? record.Request),
+        // Sem plano não há o que retomar: o motor recusa, então a tela nem oferece.
+        Resumable = record is { State: BootStates.Interrupted, RecoveredByBootId: null, Plan: not null },
         Capabilities = record.Plan?.Capabilities ?? []
     });
+
+    private static string? Brief(string? text) => text is null ? null : text.Length <= 120 ? text : text[..119] + "…";
 
     private JsonObject Capabilities(RequestParams p)
     {

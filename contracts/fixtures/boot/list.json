@@ -11,6 +11,8 @@
       "recoveredByBootId": null,
       "outcome": "needsClarification",
       "headline": "O pedido cabe em mais de uma coisa: Riscos do projeto ou Acompanhamento do projeto. Qual delas?",
+      "objective": "Quero ver os riscos e as entregas",
+      "resumable": false,
       "capabilities": []
     },
     {
@@ -24,6 +26,8 @@
       "recoveredByBootId": null,
       "outcome": "handoff",
       "headline": "Pronto para continuar em \"Configurar o ambiente de engenharia\".",
+      "objective": "Configurar meu ambiente",
+      "resumable": false,
       "capabilities": [
         "engineering.configure"
       ]
@@ -39,6 +43,8 @@
       "recoveredByBootId": null,
       "outcome": "answered",
       "headline": "3 tecnologias no projeto.",
+      "objective": "Quais tecnologias o projeto usa?",
+      "resumable": false,
       "capabilities": [
         "engineering.project_overview"
       ]
@@ -54,6 +60,8 @@
       "recoveredByBootId": null,
       "outcome": "prepared",
       "headline": "loja é novo no Spock: reuni o contexto e o que ele já sabe.",
+      "objective": "Preparar o projeto loja",
+      "resumable": false,
       "capabilities": [
         "engineering.analyze_project",
         "engineering.project_overview",

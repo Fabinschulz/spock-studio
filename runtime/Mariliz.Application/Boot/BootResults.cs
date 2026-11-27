@@ -150,6 +150,8 @@ public static class BootResults
             result.Consulted.Add(step.Summary);
             result.Consulted.AddRange(step.Evidence);
         }
+        // A análise do projeto e a leitura do perfil dizem as mesmas coisas, uma depois da outra.
+        result.Consulted = [.. result.Consulted.Distinct(StringComparer.Ordinal)];
         foreach (var step in capabilitySteps.Where(step => step.Status == StepStatuses.Skipped))
             result.Problems.Add($"{registry.Find(step.CapabilityId ?? "")?.Name ?? step.Title}: {step.Summary}");
         if (capabilitySteps.Any(step => step.CapabilityId == "engineering.analyze_project" && step.Status == StepStatuses.Completed))

@@ -75,7 +75,7 @@
         "status": "completed",
         "startedAt": "2026-11-26T12:02:00+00:00",
         "finishedAt": "2026-11-26T12:02:00+00:00",
-        "summary": "Contexto ctx-0000000000000000: 9 itens, 120 tokens.",
+        "summary": "Contexto do projeto reunido: 9 itens, 120 tokens.",
         "evidence": [
           "As conexões cloud não estão disponíveis nesta sessão do motor."
         ],

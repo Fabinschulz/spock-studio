@@ -1,0 +1,94 @@
+@use '@/shared/styles/abstracts' as *;
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+}
+
+.muted {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0 calc(var(--space-2) * -1);
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.row {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+button.row {
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease);
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  &:not(:disabled) {
+    @include hover {
+      background-color: var(--color-menu-hover);
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring(-2px);
+  }
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rowTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.rowMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.resume {
+  flex: none;
+  // Alinha com o selo da linha, que termina antes do preenchimento da própria linha.
+  padding: var(--space-1) var(--space-2) 0 0;
+}

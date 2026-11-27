@@ -67,7 +67,7 @@
         "status": "completed",
         "startedAt": "2026-11-26T12:01:00+00:00",
         "finishedAt": "2026-11-26T12:01:00+00:00",
-        "summary": "Contexto ctx-0000000000000000: 9 itens, 120 tokens.",
+        "summary": "Contexto do projeto reunido: 9 itens, 120 tokens.",
         "evidence": [
           "As conexões cloud não estão disponíveis nesta sessão do motor."
         ],
@@ -270,10 +270,6 @@
         "3 tecnologias encontradas.",
         "Entre elas: ASP.NET Core, .NET, xUnit.",
         "2 ferramentas de build e teste.",
-        "3 tecnologias no projeto.",
-        "3 tecnologias encontradas.",
-        "Entre elas: ASP.NET Core, .NET, xUnit.",
-        "2 ferramentas de build e teste.",
         "O Harness ainda não foi aplicado.",
         "O projeto não tem as regras gerenciadas pelo Spock.",
         "Nenhuma conexão cadastrada.",
@@ -283,7 +279,7 @@
         "O perfil tecnológico foi gravado na pasta de dados do Spock (fora do projeto)."
       ],
       "validations": [
-        "11 de 35 capacidades estão prontas para este projeto.",
+        "12 de 39 capacidades estão prontas para este projeto.",
         "Cada leitura veio do motor, pelo mesmo caminho da interface.",
         "Nenhum arquivo do projeto foi criado nem alterado."
       ],

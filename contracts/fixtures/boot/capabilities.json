@@ -82,6 +82,32 @@
       "requiredLevel": 0
     },
     {
+      "id": "engineering.harness_revisions",
+      "name": "Revisões do Harness",
+      "description": "O histórico de aplicações e reversões do Harness no projeto, com o que cada uma criou, alterou ou removeu.",
+      "domain": "engineering",
+      "goals": [
+        "Saber o que mudou no Harness e quando"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/projeto/harness",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "A lista de revisões do Harness, da mais nova para a mais antiga.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "available",
+      "reason": null,
+      "verdict": "allowed",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
       "id": "engineering.catalog",
       "name": "Catálogo do Harness",
       "description": "Agentes, skills, regras e hooks que o Harness oferece, e quais estão aplicados.",
@@ -429,6 +455,33 @@
       "requiredLevel": 0
     },
     {
+      "id": "management.risk_history",
+      "name": "Histórico de riscos",
+      "description": "Como cada risco apareceu, mudou de gravidade e foi resolvido entre as sincronizações.",
+      "domain": "management",
+      "goals": [
+        "Ver a evolução dos riscos"
+      ],
+      "operation": "read",
+      "mode": "direct",
+      "route": "/gestao",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "A trilha de cada risco ao longo das sincronizações.",
+      "preconditions": [],
+      "needs": [
+        "Project",
+        "ProjectIntegration"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 0
+    },
+    {
       "id": "management.forecast",
       "name": "Previsão de entrega",
       "description": "Previsão Monte Carlo a partir do histórico de entregas; recusa quando não há histórico.",
@@ -689,6 +742,60 @@
       "verdict": "denied",
       "needsApproval": false,
       "requiredLevel": 0
+    },
+    {
+      "id": "infrastructure.state",
+      "name": "Estado da infraestrutura",
+      "description": "Lê o arquivo de estado do OpenTofu ou Terraform e destrava o estado quando a pessoa confirma; o estado pode conter valores sensíveis.",
+      "domain": "infrastructure",
+      "goals": [
+        "Saber o que a infraestrutura já criou",
+        "Destravar o estado de um plano interrompido"
+      ],
+      "operation": "sensitive",
+      "mode": "handoff",
+      "route": "/infraestrutura",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O estado da infraestrutura, mostrado pela tela sem os valores sensíveis.",
+      "preconditions": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 2
+    },
+    {
+      "id": "infrastructure.generate",
+      "name": "Gerar a infraestrutura",
+      "description": "Desenha a arquitetura de nuvem e gera os arquivos de infraestrutura a partir de opções; nada é gravado sem a aprovação do plano.",
+      "domain": "infrastructure",
+      "goals": [
+        "Gerar o código de infraestrutura de um sistema"
+      ],
+      "operation": "internalChange",
+      "mode": "handoff",
+      "route": "/infraestrutura",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "Uma proposta de arquitetura e um plano de gravação dos arquivos de infraestrutura para revisar.",
+      "preconditions": [],
+      "needs": [
+        "Project",
+        "Model"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 2
     },
     {
       "id": "infrastructure.validate_plan",

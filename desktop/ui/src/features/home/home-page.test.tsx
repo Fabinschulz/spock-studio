@@ -1,8 +1,9 @@
 import bootAnswered from '@contracts/fixtures/boot/start-answered.json';
 import bootClarify from '@contracts/fixtures/boot/start-clarify.json';
 import bootHandoff from '@contracts/fixtures/boot/start-handoff.json';
+import bootList from '@contracts/fixtures/boot/list.json';
 import bootProject from '@contracts/fixtures/boot/project.json';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -11,6 +12,7 @@ import { ProjectSelectionProvider, type ProjectPickerPort } from '@/features/pro
 import type { EngineClient } from '@/shared/api';
 import { AppProviders } from '@/shared/components';
 import { readHandoff } from '@/shared/routing';
+import { bootListSchema } from '@/shared/schema';
 import { expectNoA11yViolations } from '@/test/a11y';
 
 import { HomePage } from './home-page';
@@ -53,6 +55,8 @@ interface Facts {
   agent?: boolean;
   /** O Boot do motor: devolve a resposta (já no formato do contrato) ou lança, como o motor faria. */
   boot?: (method: string, params: Record<string, unknown>) => unknown;
+  /** Os Boots anteriores do projeto, no formato do contrato; sem isso a lista vem vazia e o bloco some. */
+  bootList?: () => unknown;
 }
 
 function engine(facts: Facts): EngineClient {
@@ -80,6 +84,7 @@ function engine(facts: Facts): EngineClient {
           nextCursor: null,
           summary: { total: 0, running: 0, awaitingApproval: 0 }
         });
+      if (method === 'boot.list') return schema.parse(facts.bootList ? facts.bootList() : { boots: [] });
       if (method.startsWith('boot.') && facts.boot) return schema.parse(facts.boot(method, params));
       throw new Error(`método inesperado: ${method}`);
     }) as EngineClient['request'],
@@ -413,7 +418,9 @@ describe('Início · o pedido passa pelo Boot', () => {
   const withProject = { pick: vi.fn().mockResolvedValue(project), recents: vi.fn().mockResolvedValue([recent]) };
 
   const bootCalls = (client: EngineClient) =>
-    vi.mocked(client.request).mock.calls.filter(([method]) => String(method).startsWith('boot.'));
+    vi
+      .mocked(client.request)
+      .mock.calls.filter(([method]) => String(method).startsWith('boot.') && method !== 'boot.list');
 
   it('uma pergunta de leitura mostra o que o Spock consultou, sem sair da tela e sem alterar nada', async () => {
     hosted();
@@ -567,6 +574,262 @@ describe('Início · o pedido passa pelo Boot', () => {
     renderHome({ picker: withProject, client: engine({ boot: () => bootProject }) });
     await userEvent.type(field(), 'Quais tecnologias o projeto usa?{Enter}');
     await screen.findByRole('region', { name: 'Resultado do preparo do pedido' });
+
+    await expectNoA11yViolations(document.body);
+  });
+});
+
+describe('Início · pedidos recentes e Retomar', () => {
+  const withProject = { pick: vi.fn().mockResolvedValue(project), recents: vi.fn().mockResolvedValue([recent]) };
+  async function openProject() {
+    await userEvent.click(screen.getByRole('button', { name: /Abrir um projeto|Conectar meu primeiro projeto/ }));
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/configurar'));
+  }
+  const region = () => screen.findByRole('region', { name: 'Pedidos recentes' });
+  const card = () => screen.findByRole('region', { name: 'Resultado do preparo do pedido' });
+
+  /** A lista do contrato com os três tipos de linha: o que a queda deixou no meio, o que já foi recuperado e o concluído. */
+  const mixedList = () => {
+    const [clarify, handoff, answered, prepared] = bootList.boots;
+    return bootListSchema.parse({
+      boots: [
+        { ...clarify, state: 'interrupted', outcome: null, headline: 'Revisar os riscos do projeto', resumable: true },
+        {
+          ...handoff,
+          state: 'interrupted',
+          outcome: null,
+          headline: 'Configurar o ambiente',
+          recoveredByBootId: 'boot-00000000000a'
+        },
+        answered,
+        { ...prepared, mode: 'recovery', recoversBootId: 'boot-000000000001' }
+      ]
+    });
+  };
+
+  const resumed = { boot: { ...bootAnswered.boot, mode: 'recovery', recoversBootId: 'boot-000000000001' } };
+  const calls = (client: EngineClient, method: string) =>
+    vi.mocked(client.request).mock.calls.filter(([called]) => called === method);
+  const bootActions = (client: EngineClient) =>
+    vi
+      .mocked(client.request)
+      .mock.calls.filter(([method]) => String(method).startsWith('boot.') && method !== 'boot.list');
+
+  it('lista os pedidos do projeto com o resultado, o horário e o aviso de recuperação', async () => {
+    hosted();
+    const client = engine({ bootList: mixedList });
+    renderHome({ picker: withProject, client });
+    await openProject();
+
+    const section = await region();
+    const rows = within(within(section).getByRole('list', { name: 'Últimos pedidos do projeto' })).getAllByRole(
+      'listitem'
+    );
+    expect(rows).toHaveLength(4);
+    expect(calls(client, 'boot.list')[0]![1]).toEqual({ projectId: 'p-1' });
+    expect(within(rows[0]!).getByText('Revisar os riscos do projeto')).toBeInTheDocument();
+    expect(within(rows[0]!).getByText('Interrompido')).toBeInTheDocument();
+    expect(within(rows[0]!).getByText(/\d{2}:\d{2}/)).toBeInTheDocument();
+    expect(within(rows[1]!).getByText(/recuperado/)).toBeInTheDocument();
+    expect(within(rows[2]!).getByText('Consultado')).toBeInTheDocument();
+    expect(within(rows[3]!).getByText(/recupera outro/)).toBeInTheDocument();
+    expect(within(rows[3]!).getByText('Preparado')).toBeInTheDocument();
+  });
+
+  it('o interrompido sem manchete mostra o pedido, e sem plano não oferece Retomar', async () => {
+    hosted();
+    const [base] = bootList.boots;
+    const list = () =>
+      bootListSchema.parse({
+        boots: [
+          {
+            ...base,
+            id: 'boot-00000000000b',
+            state: 'interrupted',
+            outcome: null,
+            headline: null,
+            objective: 'Quais riscos o projeto tem?',
+            resumable: true
+          },
+          {
+            ...base,
+            id: 'boot-00000000000c',
+            state: 'interrupted',
+            outcome: null,
+            headline: null,
+            objective: 'Corrigir o bug do frete',
+            resumable: false
+          }
+        ]
+      });
+    renderHome({ picker: withProject, client: engine({ bootList: list }) });
+    await openProject();
+
+    const section = await region();
+    expect(within(section).getByText('Quais riscos o projeto tem?')).toBeInTheDocument();
+    expect(within(section).getByText('Corrigir o bug do frete')).toBeInTheDocument();
+    expect(within(section).getAllByRole('button', { name: /^Retomar/ })).toHaveLength(1);
+    expect(within(section).getByRole('button', { name: 'Retomar: Quais riscos o projeto tem?' })).toBeInTheDocument();
+  });
+
+  it('Retomar só aparece no interrompido que ainda não foi recuperado', async () => {
+    hosted();
+    renderHome({ picker: withProject, client: engine({ bootList: mixedList }) });
+    await openProject();
+
+    const section = await region();
+    const buttons = within(section).getAllByRole('button', { name: /^Retomar/ });
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0]).toHaveAccessibleName('Retomar: Revisar os riscos do projeto');
+  });
+
+  it('Retomar pede ao motor o projeto e o Boot certos e mostra o resultado no mesmo cartão', async () => {
+    hosted();
+    let list = mixedList();
+    const client = engine({
+      bootList: () => list,
+      boot: (method) => {
+        if (method !== 'boot.resume') throw new Error(`inesperado: ${method}`);
+        list = bootListSchema.parse({
+          boots: [
+            { ...list.boots[0], recoveredByBootId: 'boot-0000000000bb', resumable: false },
+            ...list.boots.slice(1)
+          ]
+        });
+        return resumed;
+      }
+    });
+    renderHome({ picker: withProject, client });
+    await openProject();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Retomar: Revisar os riscos do projeto' }));
+
+    expect(within(await card()).getByText('Consultado')).toBeInTheDocument();
+    expect(bootActions(client)).toEqual([
+      ['boot.resume', { projectId: 'p-1', bootId: 'boot-000000000001' }, expect.anything()]
+    ]);
+    await waitFor(() => expect(calls(client, 'boot.list')).toHaveLength(2));
+    await waitFor(() => expect(screen.queryByRole('button', { name: /^Retomar/ })).not.toBeInTheDocument());
+    expect(await region()).toBeInTheDocument();
+  });
+
+  it('uma linha concluída abre o detalhe no mesmo cartão', async () => {
+    hosted();
+    const client = engine({ bootList: mixedList, boot: () => bootAnswered });
+    renderHome({ picker: withProject, client });
+    await openProject();
+
+    await userEvent.click(await screen.findByRole('button', { name: /^Abrir: 3 tecnologias no projeto\./ }));
+
+    expect(within(await card()).getByText('Consultado')).toBeInTheDocument();
+    expect(bootActions(client)).toEqual([
+      ['boot.detail', { projectId: 'p-1', bootId: 'boot-000000000003' }, expect.anything()]
+    ]);
+  });
+
+  it('com um Boot em preparo o Retomar espera e um segundo clique não cria outro', async () => {
+    hosted();
+    const base = engine({ bootList: mixedList, boot: () => resumed });
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const client = {
+      ...base,
+      request: vi.fn(async (method: string, params: Record<string, unknown>, schema: never) => {
+        if (method === 'boot.resume') await gate;
+        return base.request(method as never, params, schema);
+      })
+    } as unknown as EngineClient;
+    renderHome({ picker: withProject, client });
+    await openProject();
+
+    await userEvent.click(await screen.findByRole('button', { name: /^Retomar/ }));
+    await screen.findByText('Retomando o pedido…');
+    expect(screen.getByRole('button', { name: /^Retomar/ })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: /^Retomar/ }));
+    release();
+
+    await card();
+    expect(bootActions(client)).toHaveLength(1);
+  });
+
+  it('se o motor falha ao retomar, avisa e o bloco continua na tela', async () => {
+    hosted();
+    const client = engine({
+      bootList: mixedList,
+      boot: () => {
+        throw new Error('motor fora');
+      }
+    });
+    renderHome({ picker: withProject, client });
+    await openProject();
+
+    await userEvent.click(await screen.findByRole('button', { name: /^Retomar/ }));
+
+    expect(await screen.findByText('O Spock não conseguiu retomar este pedido.')).toBeInTheDocument();
+    expect(await region()).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Retomar/ })).toBeEnabled();
+  });
+
+  it('se a lista não carrega, avisa e deixa tentar de novo', async () => {
+    hosted();
+    let broken = true;
+    const client = engine({
+      bootList: () => {
+        if (broken) throw new Error('motor fora');
+        return mixedList();
+      }
+    });
+    renderHome({ picker: withProject, client });
+    await openProject();
+
+    const section = await region();
+    expect(await within(section).findByRole('alert')).toHaveTextContent(
+      'O Spock não conseguiu buscar os últimos pedidos.'
+    );
+    broken = false;
+    await userEvent.click(within(section).getByRole('button', { name: 'Tentar de novo' }));
+
+    expect(await screen.findByRole('list', { name: 'Últimos pedidos do projeto' })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('sem nenhum Boot o bloco não aparece', async () => {
+    hosted();
+    const client = engine({});
+    renderHome({ picker: withProject, client });
+    await openProject();
+
+    await waitFor(() => expect(calls(client, 'boot.list')).toHaveLength(1));
+    await waitFor(() => expect(screen.queryByRole('region', { name: 'Pedidos recentes' })).not.toBeInTheDocument());
+  });
+
+  it('sem projeto selecionado não pergunta nada ao motor e o bloco não aparece', async () => {
+    hosted();
+    const client = engine({ bootList: mixedList });
+    renderHome({ client });
+    await screen.findByRole('heading', { level: 1 });
+
+    expect(calls(client, 'boot.list')).toHaveLength(0);
+    expect(screen.queryByRole('region', { name: 'Pedidos recentes' })).not.toBeInTheDocument();
+  });
+
+  it('fora do aplicativo (sem o motor) não pergunta nada ao motor', async () => {
+    const client = engine({ bootList: mixedList });
+    renderHome({ picker: withProject, client });
+    await openProject();
+    await screen.findByRole('heading', { level: 1 });
+
+    expect(calls(client, 'boot.list')).toHaveLength(0);
+    expect(screen.queryByRole('region', { name: 'Pedidos recentes' })).not.toBeInTheDocument();
+  });
+
+  it('a lista de pedidos recentes não tem violações estruturais de acessibilidade', async () => {
+    hosted();
+    renderHome({ picker: withProject, client: engine({ bootList: mixedList }) });
+    await openProject();
+    await region();
 
     await expectNoA11yViolations(document.body);
   });
