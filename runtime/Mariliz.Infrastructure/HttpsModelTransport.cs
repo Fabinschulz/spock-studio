@@ -54,17 +54,34 @@ public sealed partial class HttpsModelTransport : IModelTransport, IModelChatTra
             // Um 5xx é do lado do provedor (ou do gateway na frente dele), não uma resposta fora do contrato; o corpo não é repetido.
             if ((int)response.StatusCode >= 500)
                 throw new EngineException("MODEL_OVERLOADED", $"O provedor está indisponível ou sobrecarregado agora (HTTP {(int)response.StatusCode}).");
-            if (!response.IsSuccessStatusCode || JsonNode.Parse(text) is not JsonObject document)
-                throw new EngineException("MODEL_INVALID_RESPONSE", "O modelo respondeu fora do contrato.");
-
-            var reply = format.Read(document);
+            var reply = ReadReply(format, response.IsSuccessStatusCode, text);
             return jsonObject ? reply with { Text = StripFence(reply.Text) } : reply;
         }
-        catch (Exception ex) when (ex is HttpRequestException or JsonException or InvalidOperationException or FormatException)
+        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or FormatException)
         {
-            throw new EngineException("MODEL_UNAVAILABLE", "O modelo não pôde ser contactado.");
+            // Só a falha de conexão chega aqui; dizer a causa (DNS, TLS, proxy) é o que deixa a pessoa agir. Nunca a mensagem da exceção,
+            // que pode trazer o endereço ou o cabeçalho.
+            throw new EngineException("MODEL_UNAVAILABLE", $"O modelo não pôde ser contactado ({Cause(ex)}).");
         }
     }
+
+    // Uma resposta que chegou mas não é um JSON do formato esperado é do provedor (ou de um gateway na frente dele), não da conexão.
+    private static ModelReply ReadReply(IModelFormat format, bool success, string text)
+    {
+        try
+        {
+            if (!success || JsonNode.Parse(text) is not JsonObject document)
+                throw new EngineException("MODEL_INVALID_RESPONSE", "O modelo respondeu fora do contrato.");
+            return format.Read(document);
+        }
+        catch (Exception ex) when (ex is JsonException or InvalidOperationException or FormatException)
+        {
+            throw new EngineException("MODEL_INVALID_RESPONSE", $"O modelo respondeu fora do contrato ({ex.GetType().Name}).");
+        }
+    }
+
+    private static string Cause(Exception ex) =>
+        ex is HttpRequestException { HttpRequestError: not HttpRequestError.Unknown } http ? http.HttpRequestError.ToString() : ex.GetType().Name;
 
     // Um modelo às vezes põe uma cerca de código em volta do JSON.
     private static string StripFence(string text)
