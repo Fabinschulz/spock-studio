@@ -38,9 +38,12 @@ PHASES = {
     "idea": "Da ideia ao projeto (especificação, arquitetura, backlog) por provedor",
     "boot": "Reconhecimento de intenção do Boot por modelo (holdout)",
     "validation": "Modelo no cofre e assistente gerencial (OpenAI)",
+    "workflow": "Fluxo de engenharia de ponta a ponta (plano, arquitetura, juiz) e instrução plantada no projeto, por provedor",
 }
 _SUMMARY = re.compile(r"(?:Resumo do teste|Test summary): total: (\d+); (?:falhou|failed): (\d+); (?:bem-sucedido|succeeded): (\d+); (?:ignorado|skipped): (\d+)")
-_SHOW = ("[evals de gestão]", "[validação real]", "[boot]", "Aprovado", "Com falha", "Ignorado", "Falha")
+# As linhas que cada teste vivo escreve com o resultado; só elas (e o veredito de cada teste) vão para a tela e para o relatório.
+_RESULT_MARKS = ("[evals de gestão]", "[validação real]", "[fluxo real]", "[eval de intenção ao vivo", "léxico errou")
+_SHOW = (*_RESULT_MARKS, "Aprovado", "Com falha", "Ignorado", "Falha")
 
 
 def parse_summary(text: str) -> dict[str, int] | None:
@@ -117,7 +120,7 @@ def run_dotnet(label: str, test_filter: str, env: dict[str, str], out: Path) -> 
         "code": code,
         "seconds": int(time.monotonic() - started),
         "summary": parse_summary(joined),
-        "lines": [line.strip() for line in text if any(mark in line for mark in ("[evals de gestão]", "[validação real]", "[boot]"))],
+        "lines": [line.strip() for line in text if any(mark in line for mark in _RESULT_MARKS)],
     }
 
 
@@ -130,12 +133,12 @@ def _load_scorer():
     return management
 
 
-def evals_phase(env: dict[str, str], out: Path, retries: int, baseline: bool) -> list[dict]:
+def evals_phase(env: dict[str, str], out: Path, retries: int, baseline: bool, providers: tuple[str, ...] = PROVIDERS) -> list[dict]:
     management = _load_scorer()
     folder = out / "evals"
     folder.mkdir(parents=True, exist_ok=True)
     results: list[dict] = []
-    for provider in PROVIDERS:
+    for provider in providers:
         name = provider.capitalize() if provider != "openai" else "OpenAI"
         print(f"\n== Evals de gestão: {provider}")
         run = run_dotnet(f"evals-{provider}", f"FullyQualifiedName~ManagementEvalLiveTests.Evals_de_gestao_com_a_{name}", {**env, "MARILIZ_LIVE_EVAL_OUT": str(folder)}, out)
@@ -202,6 +205,8 @@ def main() -> int:
     parser.add_argument("--anthropic-model", help="modelo da Anthropic no gateway")
     parser.add_argument("--openai-model", help="modelo da OpenAI no gateway")
     parser.add_argument("--retries", type=int, default=3, help="retentativas dos casos das evals que o gateway derrubou")
+    parser.add_argument("--providers", default=",".join(PROVIDERS), help="provedores das evals de gestão, separados por vírgula")
+    parser.add_argument("--chat-timeout", type=int, help="prazo de uma chamada ao modelo em segundos (10 a 600); o padrão do produto é 120")
     parser.add_argument("--baseline", action="store_true", help="grava a linha de base das evals se a rodada ficar conclusiva")
     args = parser.parse_args()
 
@@ -209,6 +214,14 @@ def main() -> int:
     unknown = [name for name in phases if name not in PHASES]
     if unknown:
         print(f"fases desconhecidas: {', '.join(unknown)}", file=sys.stderr)
+        return 2
+
+    providers = tuple(name.strip() for name in args.providers.split(",") if name.strip())
+    if not providers or any(name not in PROVIDERS for name in providers):
+        print(f"provedores válidos: {', '.join(PROVIDERS)}", file=sys.stderr)
+        return 2
+    if args.chat_timeout is not None and not 10 <= args.chat_timeout <= 600:
+        print("--chat-timeout vai de 10 a 600 segundos", file=sys.stderr)
         return 2
 
     anthropic = os.environ.get("MARILIZ_LIVE_ANTHROPIC_KEY") or getpass.getpass("Chave da Anthropic (oculta): ").strip()
@@ -224,6 +237,9 @@ def main() -> int:
         env["MARILIZ_DEV_ANTHROPIC_MODEL"] = args.anthropic_model
     if args.openai_model:
         env["MARILIZ_DEV_OPENAI_MODEL"] = args.openai_model
+    if args.chat_timeout is not None:
+        # O motor e o cliente Python do runtime de IA leem o mesmo valor (o do cliente é o do motor mais uma margem).
+        env["MARILIZ_MODEL_CHAT_TIMEOUT_SECONDS"] = str(args.chat_timeout)
 
     print("Pré-voo (a chave é testada contra o servidor antes de qualquer rodada):")
     checked = {provider: preflight(provider, key, args.gateway) for provider, key in (("anthropic", anthropic), ("openai", openai))}
@@ -239,7 +255,7 @@ def main() -> int:
 
     runs: list[dict] = []
     if "evals" in phases:
-        runs += evals_phase(env, out, args.retries, args.baseline)
+        runs += evals_phase(env, out, args.retries, args.baseline, providers)
     if "idea" in phases:
         print("\n== Da ideia ao projeto")
         runs.append(run_dotnet("idea", "FullyQualifiedName~IdeaLiveTests", env, out))
@@ -249,6 +265,9 @@ def main() -> int:
     if "validation" in phases:
         print("\n== Modelo no cofre e assistente gerencial")
         runs.append(run_dotnet("validation", "FullyQualifiedName~LiveValidationTests", env, out))
+    if "workflow" in phases:
+        print("\n== Fluxo de engenharia de ponta a ponta")
+        runs.append(run_dotnet("workflow", "FullyQualifiedName~EngineeringWorkflowLiveTests", env, out))
 
     leaks = leaked(out, [anthropic, openai])
     report = write_report(out, phases, runs, leaks)
