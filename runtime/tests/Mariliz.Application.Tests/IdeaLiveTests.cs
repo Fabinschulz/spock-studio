@@ -48,6 +48,14 @@ public class IdeaLiveTests(ITestOutputHelper output)
                 + $"tokens: {draft.InputTokens}+{draft.OutputTokens}");
             foreach (var check in failed)
                 output.WriteLine($"[validação real]   falhou: {check.Label}{(check.Detail is null ? "" : " (" + check.Detail + ")")}");
+            if (!draft.Valid)
+            {
+                // Só a forma do que o modelo escreveu (chaves de cima e quantos itens cada lista tem): a ideia do teste é de mentira, e isso
+                // diz se faltou um campo, se o nome é outro ou se a resposta veio em outro formato.
+                var shape = draft.Artifact is null ? "sem artefato (o JSON não foi lido)"
+                    : string.Join(", ", draft.Artifact.Select(item => $"{item.Key}={(item.Value is System.Text.Json.Nodes.JsonArray list ? $"lista[{list.Count}]" : item.Value?.GetValueKind().ToString() ?? "nulo")}"));
+                output.WriteLine($"[validação real]   forma do artefato recusado: {shape}");
+            }
             Assert.True(draft.Valid, $"A etapa {stage} não passou nas checagens do motor depois de {draft.Attempts} tentativas.");
 
             approved = stage switch

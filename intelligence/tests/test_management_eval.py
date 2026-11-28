@@ -233,6 +233,66 @@ class FallbackTests(unittest.TestCase):
             self.assertFalse((Path(root) / "management-baseline-openai.json").exists())
 
 
+class MergeTests(unittest.TestCase):
+    """Refazer só o que o gateway derrubou e juntar: a linha de base precisa de uma rodada inteira conclusiva."""
+
+    def setUp(self) -> None:
+        self.complete = _reference_acks()
+        self.fallback_limits = [{"code": "INVESTIGATION_CONCLUSION_FALLBACK", "message": "x"}]
+
+    def _fell(self, case_id: str) -> dict:
+        acks = copy.deepcopy(self.complete)
+        acks[case_id]["limitations"] = self.fallback_limits
+        return acks
+
+    def test_o_resultado_novo_conclusivo_troca_o_que_caiu_no_plano_de_reserva(self) -> None:
+        base = self._fell("riscos-principais")
+        retry = {"riscos-principais": self.complete["riscos-principais"]}
+
+        merged, replaced = evals.merge_acks(base, retry)
+
+        self.assertEqual(replaced, ["riscos-principais"])
+        self.assertTrue(_score(merged)["passed"], evals.format_report(_score(merged)))
+
+    def test_um_resultado_conclusivo_nunca_e_trocado_por_um_pior(self) -> None:
+        retry = {"riscos-principais": self._fell("riscos-principais")["riscos-principais"]}
+
+        merged, replaced = evals.merge_acks(self.complete, retry)
+
+        self.assertEqual(replaced, [])
+        self.assertEqual(merged["riscos-principais"], self.complete["riscos-principais"])
+
+    def test_se_os_dois_nao_sao_conclusivos_entra_o_mais_novo(self) -> None:
+        base = self._fell("riscos-principais")
+        newer = self._fell("riscos-principais")["riscos-principais"]
+        newer["usage"] = {"modelCalls": 9, "inputTokens": 1, "outputTokens": 1, "tokens": 2}
+
+        merged, replaced = evals.merge_acks(base, {"riscos-principais": newer})
+
+        self.assertEqual(replaced, ["riscos-principais"])
+        self.assertEqual(merged["riscos-principais"]["usage"]["modelCalls"], 9)
+
+    def test_um_caso_que_o_antigo_nao_tinha_entra(self) -> None:
+        base = {key: value for key, value in self.complete.items() if key != "gargalo-do-fluxo"}
+
+        merged, replaced = evals.merge_acks(base, {"gargalo-do-fluxo": self.complete["gargalo-do-fluxo"]})
+
+        self.assertEqual(replaced, ["gargalo-do-fluxo"])
+        self.assertIn("gargalo-do-fluxo", merged)
+
+    def test_o_comando_grava_no_arquivo_base_e_a_linha_de_base_passa_a_aceitar(self) -> None:
+        with TemporaryDirectory() as root:
+            base = Path(root) / "management-eval-openai.json"
+            retry = Path(root) / "retry.json"
+            base.write_text(json.dumps(self._fell("riscos-principais"), ensure_ascii=False), encoding="utf-8")
+            retry.write_text(json.dumps({"riscos-principais": self.complete["riscos-principais"]}, ensure_ascii=False), encoding="utf-8")
+            with mock.patch.object(evals, "_BASELINES", Path(root)), contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(evals.main(["merge", str(base), str(retry)]), 0)
+                self.assertEqual(evals.main(["baseline", str(base)]), 0)
+
+            self.assertTrue((Path(root) / "management-baseline-openai.json").exists())
+
+
 class ScoreFileTests(unittest.TestCase):
     def _run(self, acks: dict) -> tuple[int, str]:
         with TemporaryDirectory() as root:

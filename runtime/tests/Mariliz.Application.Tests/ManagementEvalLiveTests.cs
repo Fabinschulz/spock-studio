@@ -11,6 +11,9 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
 {
     private const string OutputFolder = "MARILIZ_LIVE_EVAL_OUT";
 
+    // Ids de caso separados por vírgula: roda só esses (refazer o que um gateway instável derrubou). Vazio roda todos.
+    private const string CasesFilter = "MARILIZ_LIVE_EVAL_CASES";
+
     // Cada chamada ao modelo pode levar até o prazo do chat (120 s) e uma investigação faz várias; com modelos de topo ela passa dos
     // 150 s do produto. Aqui o que se mede é a qualidade da resposta, então o caso tem folga; a duração de cada um sai no relatório.
     private const int CaseBudgetMilliseconds = 360_000;
@@ -36,9 +39,12 @@ public class ManagementEvalLiveTests(ITestOutputHelper output)
         var tokens = 0;
         try
         {
+            var only = (Environment.GetEnvironmentVariable(CasesFilter) ?? "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToHashSet(StringComparer.Ordinal);
             foreach (var item in dataset["cases"]!.AsArray())
             {
                 var testCase = item!.AsObject();
+                if (only.Count > 0 && !only.Contains(testCase["id"]!.GetValue<string>())) continue;
                 var executionId = "ex-" + Guid.NewGuid().ToString("N")[..12];
                 var grant = access.Open(executionId, ModelPurposes.Assistant);
                 var facts = scenarios[testCase["scenario"]!.GetValue<string>()]!.DeepClone().AsArray();
