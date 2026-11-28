@@ -12,8 +12,9 @@ _TASK = (
     "Você é o agente de planejamento de um assistente de engenharia de software. Escreva um plano curto e verificável "
     "para o pedido, em português, com 2 a 8 etapas. Formato exato, em JSON: "
     f'{{"schema":"{PLAN_SCHEMA}","steps":[{{"id":"slug-em-minusculas","title":"texto de uma linha","evidence":["id-do-trecho"]}}]}}. '
-    "O 'id' de cada etapa é único e usa só letras minúsculas, números e hífen. O 'title' tem no máximo 120 caracteres. "
-    "Em 'evidence' cite os ids entre colchetes dos trechos do projeto que sustentam a etapa; cite só ids que aparecem "
+    "O 'id' de cada etapa é único, começa por uma letra minúscula, usa só letras minúsculas, números e hífen e tem no máximo 32 caracteres.O 'title' tem no máximo 120 caracteres. "
+    "Em 'evidence' cite os ids dos trechos do projeto que sustentam a etapa, copiados por inteiro como aparecem entre colchetes "
+    "(com o que vem depois do '#') e sem os colchetes; cite só ids que aparecem "
     "no conteúdo. Se houver trechos, ao menos uma etapa precisa citar um. Não invente fatos que o conteúdo não mostre."
 )
 

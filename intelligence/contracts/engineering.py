@@ -58,6 +58,29 @@ class Rejected(Exception):
     """A mensagem é nossa (nunca texto do modelo) e pode voltar a ele."""
 
 
+def resolve_refs(refs: list[str], known: set[str]) -> list[str] | None:
+    """
+    O id do trecho é ``caminho#âncora``. O modelo às vezes o cita entre colchetes, como o viu no conteúdo, ou só com o caminho. Só se
+    aceita o que aponta para um único trecho fornecido; o que não aponta (ou aponta para vários) segue recusado. ``None`` se alguma
+    citação não se resolve.
+    """
+    resolved: list[str] = []
+    for ref in refs:
+        if not isinstance(ref, str):
+            return None
+        text = ref.strip()
+        if text.startswith("[") and text.endswith("]"):
+            text = text[1:-1].strip()
+        if text in known:
+            resolved.append(text)
+            continue
+        same_file = [chunk for chunk in known if chunk.split("#", 1)[0] == text]
+        if len(same_file) != 1:
+            return None
+        resolved.append(same_file[0])
+    return resolved
+
+
 def plan_from_model(document: object, known: set[str]) -> dict:
     if not isinstance(document, dict) or document.get("schema") != PLAN_SCHEMA or set(document) != {"schema", "steps"}:
         raise Rejected(f"O objeto precisa ter só 'schema' ({PLAN_SCHEMA}) e 'steps'.")
@@ -84,7 +107,8 @@ def plan_from_model(document: object, known: set[str]) -> dict:
         if refs is not None:
             if not isinstance(refs, list) or len(refs) > MAX_STEP_EVIDENCE or any(not isinstance(r, str) for r in refs):
                 raise Rejected(f"'evidence' é uma lista de até {MAX_STEP_EVIDENCE} ids de trechos.")
-            if any(ref not in known for ref in refs):
+            refs = resolve_refs(refs, known)
+            if refs is None:
                 raise Rejected("'evidence' só pode citar ids de trechos que foram fornecidos.")
             if refs:
                 item["evidence"] = list(dict.fromkeys(refs))
@@ -104,6 +128,8 @@ def impact_from_model(document: object, known: set[str], has_stacks: bool) -> di
     if set(document) != set(impact):
         raise Rejected("Só 'schema', 'areas', 'risks' e 'evidence' são permitidos.")
     evidence = [{"chunkId": chunk} for chunk in sorted(known)]
+    if isinstance(impact["evidence"], list) and (resolved := resolve_refs(impact["evidence"], known)) is not None:
+        impact["evidence"] = resolved
     if not impact_ok(impact, evidence):
         raise Rejected(
             f"'areas' usa só {sorted(AREAS)}, 'risks' só {sorted(RISKS)} e 'evidence' só ids de trechos fornecidos."
@@ -158,7 +184,8 @@ def judgment_from_model(document: object, known: set[str], with_impact: bool) ->
     if not _rationale_ok(document["rationale"]):
         raise Rejected(f"'rationale' é um texto de até {MAX_RATIONALE} caracteres.")
     refs = document["evidence"]
-    if not isinstance(refs, list) or len(refs) > MAX_STEP_EVIDENCE or any(not isinstance(r, str) or r not in known for r in refs):
+    refs = resolve_refs(refs, known) if isinstance(refs, list) and len(refs) <= MAX_STEP_EVIDENCE else None
+    if refs is None:
         raise Rejected("'evidence' só cita ids de trechos que foram fornecidos.")
     if known and not refs:
         raise Rejected("Há trechos do projeto: 'evidence' precisa citar ao menos um.")
