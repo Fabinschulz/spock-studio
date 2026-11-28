@@ -7,7 +7,7 @@
     "branch": "main",
     "base": null,
     "head": null,
-    "headCommit": "be9097385f3dd4ab1fc536e2909db29453906026",
+    "headCommit": "e6921f186896cafa57eec690147e4ca1985c65a2",
     "createdAt": "2026-11-10T12:00:00+00:00",
     "finishedAt": "2026-11-10T12:00:00+00:00",
     "verdict": "rejected",
@@ -58,7 +58,7 @@
     ],
     "findings": [
       {
-        "id": "f-000000000000",
+        "id": "f-000000000001",
         "ruleId": "QR-SEC-001",
         "reviewId": "rev-000000000000",
         "projectId": "p-000000000000",
@@ -91,7 +91,7 @@
         "createdAt": "2026-11-10T12:00:00+00:00"
       },
       {
-        "id": "f-000000000000",
+        "id": "f-000000000002",
         "ruleId": "QR-REL-001",
         "reviewId": "rev-000000000000",
         "projectId": "p-000000000000",
@@ -124,7 +124,7 @@
         "createdAt": "2026-11-10T12:00:00+00:00"
       },
       {
-        "id": "f-000000000000",
+        "id": "f-000000000003",
         "ruleId": "QR-REG-001",
         "reviewId": "rev-000000000000",
         "projectId": "p-000000000000",
@@ -170,7 +170,7 @@
           "Consultas e HTML não são montados com valores sem tratamento (só como hipótese: o fluxo do valor não é visto)."
         ],
         "findingIds": [
-          "f-000000000000"
+          "f-000000000001"
         ],
         "deterministic": true
       },
@@ -196,7 +196,7 @@
           "Nenhum método async void fora de manipulador de evento."
         ],
         "findingIds": [
-          "f-000000000000"
+          "f-000000000002"
         ],
         "deterministic": true
       },
@@ -210,7 +210,7 @@
           "Dependências alteradas levam o arquivo de bloqueio junto."
         ],
         "findingIds": [
-          "f-000000000000"
+          "f-000000000003"
         ],
         "deterministic": true
       },
@@ -218,9 +218,9 @@
         "id": "requirements",
         "name": "Requisitos",
         "verdict": "not_run",
-        "reason": "A revisão não recebeu requisitos nem critérios de aceite; este juiz entra quando houver uma atividade ligada à alteração.",
+        "reason": "A revisão não recebeu critérios de aceite: escreva-os para este juiz entrar.",
         "criteria": [
-          "A alteração atende a descrição, as regras de negócio e os critérios de aceite da atividade."
+          "A alteração atende os critérios de aceite da atividade, e dá para apontar a linha do diff que atende cada um."
         ],
         "findingIds": [],
         "deterministic": true
@@ -240,9 +240,20 @@
         "id": "model-review",
         "name": "Revisão por modelo de IA",
         "verdict": "not_run",
-        "reason": "Nenhuma análise de IA foi feita nesta revisão: a revisão por modelo ainda não existe (Q2), e o que está acima são só verificações determinísticas.",
+        "reason": "Nenhuma análise de IA foi feita nesta revisão: você não a pediu (ela envia o diff, sem segredos, ao provedor configurado), e o que está acima são só verificações determinísticas.",
         "criteria": [
-          "Um modelo, em contexto separado do agente que implementou, procura defeitos que os padrões não alcançam."
+          "Um modelo procura defeitos que os padrões não alcançam; o que ele aponta só vale com linha do diff e nunca bloqueia."
+        ],
+        "findingIds": [],
+        "deterministic": true
+      },
+      {
+        "id": "execution",
+        "name": "Verificações do projeto",
+        "verdict": "not_run",
+        "reason": "Build, testes e lint do projeto não foram pedidos: eles rodam código do projeto e só com a sua autorização.",
+        "criteria": [
+          "As verificações que o próprio projeto define (build, testes, lint) passam com a alteração."
         ],
         "findingIds": [],
         "deterministic": true
@@ -258,9 +269,9 @@
           "Nenhum juiz determinístico reprovou."
         ],
         "findingIds": [
-          "f-000000000000",
-          "f-000000000000",
-          "f-000000000000"
+          "f-000000000001",
+          "f-000000000002",
+          "f-000000000003"
         ],
         "deterministic": true
       }
@@ -284,7 +295,7 @@
     ],
     "contextConsulted": [],
     "limitations": [
-      "Nenhum comando do projeto foi executado: build, testes e lint não rodaram nesta revisão (quality gates: Q2).",
+      "Nenhum comando do projeto foi executado: build, testes e lint não rodaram nesta revisão (você pode pedir e autorizar, escolhendo as verificações).",
       "Os detectores olham padrões nas linhas adicionadas; não seguem o fluxo dos dados nem leem código fora do diff.",
       "As regras do Harness são texto para os agentes; o motor aplica as regras QR-* e a análise de arquitetura, e ainda não verifica cada regra do Harness (modelo de regras: Q4)."
     ],
@@ -292,6 +303,17 @@
       "Corrija antes de seguir: Credencial de um provedor no código alterado em config.txt:1.",
       "Confira 2 pontos que o motor não consegue provar sozinho.",
       "Rode o build e os testes do projeto: o Spock não os executou nesta revisão."
-    ]
+    ],
+    "modelRuns": null,
+    "requirements": null,
+    "gates": null
+  },
+  "decisions": [],
+  "status": {
+    "engineVerdict": "rejected",
+    "openBlocking": 1,
+    "openNeedsCheck": 2,
+    "readyForDelivery": false,
+    "delivery": null
   }
 }

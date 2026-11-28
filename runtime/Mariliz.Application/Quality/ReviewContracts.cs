@@ -79,6 +79,8 @@ public static class EvidenceRelations
     public const string RemovedLines = "removed-lines";
     public const string ChangedFile = "changed-file";
     public const string ProjectAnalysis = "project-analysis";
+    public const string Requirement = "requirement";
+    public const string GateOutput = "gate-output";
 }
 
 public static class ReviewVerdicts
@@ -167,7 +169,61 @@ public sealed record ReviewRecord(
     IReadOnlyList<string> RulesApplied,
     IReadOnlyList<string> ContextConsulted,
     IReadOnlyList<string> Limitations,
-    IReadOnlyList<string> NextActions);
+    IReadOnlyList<string> NextActions,
+    // Opcionais e nulos nas revisões antigas, que não tinham modelo, requisitos nem execução.
+    IReadOnlyList<ModelRun>? ModelRuns = null,
+    IReadOnlyList<RequirementCheck>? Requirements = null,
+    IReadOnlyList<GateResult>? Gates = null);
+
+/// <summary>
+/// Uma chamada de modelo da revisão, como o motor a viu: qual modelo, o hash do que foi enviado (já sem segredos), o gasto e quantas
+/// respostas valeram. O modelo só propõe; o que ele devolve sem evidência no diff é descartado e contado aqui.
+/// </summary>
+public sealed record ModelRun(string Purpose, string State, string? Model, string? ModelVersion, string? PromptHash, int InputTokens, int OutputTokens, int Accepted, int Discarded, string? FailureCode);
+
+public static class ModelRunStates
+{
+    public const string Used = "used";
+    public const string Failed = "failed";
+    public const string Skipped = "skipped";
+}
+
+/// <param name="Status"><c>met</c> (só com linha do diff como evidência), <c>partial</c>, <c>not_met</c> ou <c>unknown</c>.</param>
+public sealed record RequirementCheck(int Index, string Text, string Status, string? Path, int? Line, string? Excerpt, string? Note);
+
+public static class RequirementStatuses
+{
+    public const string Met = "met";
+    public const string Partial = "partial";
+    public const string NotMet = "not_met";
+    public const string Unknown = "unknown";
+
+    public static bool IsKnown(string? value) => value is Met or Partial or NotMet or Unknown;
+}
+
+/// <summary>Uma verificação do projeto (build, teste, lint) que a pessoa autorizou rodar.</summary>
+public sealed record GateResult(
+    string Id,
+    string Kind,
+    string Tool,
+    string Command,
+    string Directory,
+    string Origin,
+    string State,
+    int? ExitCode,
+    long DurationMs,
+    string Summary,
+    string? LogTail);
+
+public static class GateStates
+{
+    public const string Passed = "passed";
+    public const string Failed = "failed";
+    public const string Blocked = "blocked";
+    public const string NotRun = "not_run";
+    public const string TimedOut = "timed_out";
+    public const string Cancelled = "cancelled";
+}
 
 public static partial class ReviewIds
 {
@@ -199,4 +255,9 @@ public interface IReviewStore
     IReadOnlyList<ReviewRecord> List(string projectId);
 
     bool Delete(string projectId, string reviewId);
+
+    // As decisões da pessoa ficam à parte do relatório do motor, que não muda depois de gravado.
+    DecisionLog LoadDecisions(string projectId);
+
+    void SaveDecisions(string projectId, DecisionLog log);
 }

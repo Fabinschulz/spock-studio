@@ -7,7 +7,10 @@ internal sealed record JudgeInput(
     int FilesAnalyzed,
     bool Truncated,
     IReadOnlyList<string> Limitations,
-    string? ArchitectureNotRunReason);
+    string? ArchitectureNotRunReason,
+    // O que a pessoa pediu e não rodou: verificação do projeto sem resultado não aprova, e modelo ou requisitos sem resposta não deixam passar limpo.
+    bool GatesRequestedNotRun = false,
+    bool OptionalRequestedNotRun = false);
 
 /// <summary>
 /// Juízes determinísticos: cada um aplica critérios escritos e conferíveis aos achados da sua dimensão. Não há modelo aqui, e o
@@ -37,7 +40,7 @@ internal static class ReviewJudges
             "Dependências alteradas levam o arquivo de bloqueio junto."])
     ];
 
-    public static IReadOnlyList<JudgeResult> Evaluate(JudgeInput input)
+    public static IReadOnlyList<JudgeResult> Evaluate(JudgeInput input, IReadOnlyDictionary<string, JudgeResult>? overrides = null)
     {
         var results = new List<JudgeResult>();
         foreach (var dimension in Dimensions)
@@ -45,12 +48,14 @@ internal static class ReviewJudges
             var owned = input.Findings.Where(finding => ReviewRules.Find(finding.RuleId).Judge == dimension.Id).ToList();
             results.Add(Judge(dimension, owned, input));
         }
-        results.Add(NotRun(JudgeIds.Requirements, "Requisitos", "A revisão não recebeu requisitos nem critérios de aceite; este juiz entra quando houver uma atividade ligada à alteração.",
-            ["A alteração atende a descrição, as regras de negócio e os critérios de aceite da atividade."]));
+        results.Add(overrides?.GetValueOrDefault(JudgeIds.Requirements) ?? NotRun(JudgeIds.Requirements, "Requisitos", "A revisão não recebeu critérios de aceite: escreva-os para este juiz entrar.",
+            ["A alteração atende os critérios de aceite da atividade, e dá para apontar a linha do diff que atende cada um."]));
         results.Add(NotRun(JudgeIds.Dependency, "Dependências entre componentes", "O mapa de dependências entre módulos e repositórios ainda não existe (Q5).",
             ["Contratos, eventos e serviços que dependem do que mudou foram identificados."]));
-        results.Add(NotRun(JudgeIds.Model, "Revisão por modelo de IA", "Nenhuma análise de IA foi feita nesta revisão: a revisão por modelo ainda não existe (Q2), e o que está acima são só verificações determinísticas.",
-            ["Um modelo, em contexto separado do agente que implementou, procura defeitos que os padrões não alcançam."]));
+        results.Add(overrides?.GetValueOrDefault(JudgeIds.Model) ?? NotRun(JudgeIds.Model, "Revisão por modelo de IA", "Nenhuma análise de IA foi feita nesta revisão: você não a pediu (ela envia o diff, sem segredos, ao provedor configurado), e o que está acima são só verificações determinísticas.",
+            ["Um modelo procura defeitos que os padrões não alcançam; o que ele aponta só vale com linha do diff e nunca bloqueia."]));
+        results.Add(overrides?.GetValueOrDefault(JudgeIds.Execution) ?? NotRun(JudgeIds.Execution, "Verificações do projeto", "Build, testes e lint do projeto não foram pedidos: eles rodam código do projeto e só com a sua autorização.",
+            ["As verificações que o próprio projeto define (build, testes, lint) passam com a alteração."]));
         results.Add(Final(results, input));
         return results;
     }
@@ -104,9 +109,14 @@ internal static class ReviewJudges
                 ? "A alteração é grande demais para ser lida inteira: o que ficou de fora não foi avaliado."
                 : "Nenhum arquivo alterado pôde ser analisado linha a linha.");
 
+        if (input.GatesRequestedNotRun)
+            return (ReviewVerdicts.Inconclusive, "Uma verificação do projeto que você pediu não rodou ou não terminou: sem o resultado dela, a revisão não aprova.");
+
         var warnings = input.Findings.Where(finding => finding.Severity != QualitySeverities.Informational).ToList();
         if (warnings.Count > 0)
             return (ReviewVerdicts.ApprovedWithWarnings, $"{Plural(warnings.Count, "ponto")} para conferir, nenhum confirmado e grave.");
+        if (input.OptionalRequestedNotRun)
+            return (ReviewVerdicts.ApprovedWithWarnings, "A revisão por modelo ou a conferência de requisitos que você pediu não rodou: o que passou é só o que as verificações determinísticas alcançam.");
         return (ReviewVerdicts.Approved, "Nenhum problema encontrado pelas verificações determinísticas.");
     }
 

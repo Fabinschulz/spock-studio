@@ -20,8 +20,9 @@ public static class ProtocolDeadlines
     // programas instalados). Cada leitura tem o próprio prazo, e o Boot não passa disso por muito.
     public static readonly TimeSpan Boot = TimeSpan.FromSeconds(300);
 
-    // Cinco chamadas de git de 60 s no pior caso e a análise de arquitetura do projeto inteiro.
-    public static readonly TimeSpan QualityReview = TimeSpan.FromSeconds(300);
+    // Cinco chamadas de git de 60 s, a análise de arquitetura do projeto inteiro e, se pedidas, duas chamadas de modelo e até quatro
+    // verificações do projeto de 5 min cada. O motor tem prazos próprios para cada uma; este é o teto do pedido.
+    public static readonly TimeSpan QualityReview = TimeSpan.FromMinutes(30);
 
     public static readonly IReadOnlyDictionary<string, TimeSpan> ByMethod = Build();
 

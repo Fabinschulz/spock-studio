@@ -80,7 +80,8 @@ public sealed class EngineSession
         IacCostService? iacCosts = null,
         IacDriftScheduler? iacSchedules = null,
         BootService? boot = null,
-        CodeReviewService? quality = null)
+        CodeReviewService? quality = null,
+        ReviewDecisionService? qualityDecisions = null)
     {
         _engineVersion = engineVersion;
         _workspace = workspace;
@@ -114,7 +115,7 @@ public sealed class EngineSession
                 : new IacRequestHandler(terraform, iacOperations, iacState, iacGeneration, iacCosts, iacSchedules),
             profiles is null ? null : new EngineeringRequestHandler(profiles, knowledge, harness, revisions, mcp),
             boot is null ? null : new BootRequestHandler(boot),
-            quality is null ? null : new QualityRequestHandler(quality)
+            quality is null || qualityDecisions is null ? null : new QualityRequestHandler(quality, qualityDecisions)
         ];
         var present = handlers.OfType<IRequestHandler>().ToArray();
         _routes = Routes(present);

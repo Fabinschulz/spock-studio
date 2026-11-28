@@ -432,9 +432,10 @@ public sealed class QualityProtocolTests : IDisposable
         _project.Git("-c", "commit.gpgsign=false", "commit", "-m", "inicio");
         _projectId = engine.Workspace.Authorize(_project.Root).Project!.ProjectId;
         var files = new TestFilesFactory();
-        var quality = new CodeReviewService(engine.Workspace, new GitChangeReader(new SystemProcessRunner(), files), new FileReviewStore(_project.DataDir),
-            new FakeClock(), files, new MemoryAudit());
-        _session = new EngineSession("test", workspace: engine.Workspace, quality: quality);
+        var store = new FileReviewStore(_project.DataDir);
+        var quality = new CodeReviewService(engine.Workspace, new GitChangeReader(new SystemProcessRunner(), files), store, new FakeClock(), files, new MemoryAudit());
+        _session = new EngineSession("test", workspace: engine.Workspace, quality: quality,
+            qualityDecisions: new ReviewDecisionService(engine.Workspace, store, new FakeClock(), new MemoryAudit()));
     }
 
     public void Dispose() => _project.Dispose();
@@ -497,7 +498,10 @@ public sealed class QualityProtocolTests : IDisposable
     {
         var text = GoldenFixtures.Normalize(node, _projectId, Path.GetFileName(_project.Root)).ToJsonString();
         text = System.Text.RegularExpressions.Regex.Replace(text, "rev-[0-9a-f]{12}", "rev-000000000000");
-        text = System.Text.RegularExpressions.Regex.Replace(text, "\"f-[0-9a-f]{12}\"", "\"f-000000000000\"");
+        // Cada achado mantém um id próprio, só que estável: a interface usa o id para ligar a decisão ao achado.
+        var ids = new Dictionary<string, string>();
+        text = System.Text.RegularExpressions.Regex.Replace(text, "\"f-[0-9a-f]{12}\"", match =>
+            ids.TryGetValue(match.Value, out var known) ? known : ids[match.Value] = $"\"f-{ids.Count + 1:D12}\"");
         return JsonNode.Parse(text)!;
     }
 }
@@ -572,7 +576,7 @@ public class ReviewJudgesTests
     [Fact]
     public void Toda_regra_tem_juiz_categoria_e_texto_e_os_ids_nao_se_repetem()
     {
-        var judges = new[] { JudgeIds.Security, JudgeIds.Architecture, JudgeIds.CodeQuality, JudgeIds.Regression };
+        var judges = new[] { JudgeIds.Security, JudgeIds.Architecture, JudgeIds.CodeQuality, JudgeIds.Regression, JudgeIds.Model, JudgeIds.Requirements, JudgeIds.Execution };
 
         Assert.Equal(ReviewRules.All.Count, ReviewRules.All.Select(rule => rule.Id).Distinct().Count());
         Assert.All(ReviewRules.All, rule =>
@@ -649,6 +653,9 @@ public class ReviewBootTests
         var quality = CapabilityCatalog.All.Where(capability => capability.Id.StartsWith("quality.", StringComparison.Ordinal)).ToList();
 
         Assert.NotEmpty(quality);
-        Assert.All(quality, capability => Assert.True(capability.Operation <= OperationClass.Analysis, capability.Id));
+        // O que roda comando do projeto ou monta pedido de correção só abre a tela, que pede a autorização; o Boot executa sozinho só a leitura.
+        Assert.All(quality.Where(capability => capability.Operation > OperationClass.Analysis), capability => Assert.Equal(ExecutionMode.Handoff, capability.Mode));
+        Assert.All(quality.Where(capability => capability.Mode == ExecutionMode.Direct), capability => Assert.True(capability.Operation <= OperationClass.Analysis, capability.Id));
+        Assert.Equal(["quality.review_changes"], quality.Where(capability => capability.Mode == ExecutionMode.Direct).Select(capability => capability.Id));
     }
 }

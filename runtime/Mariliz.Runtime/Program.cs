@@ -104,6 +104,7 @@ var boot = new BootService(engine.Workspace, bootRegistry, new IntentRecognizer(
     new BootFactsProbe(engine.Workspace, models, integrations, cloud, harnessStatus, profileStore), new BootPlanner(bootRegistry), bootStore, engine.Clock,
     integrations.Audit, contextEngine,
     new ModelIntentStage(models, bootRegistry));
+var reviewStore = new FileReviewStore(engine.DataRoot);
 var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, configure: engine.Configure, relay: relay,
     tracker: engine.Tracker, workflows: workflows, models: models, runs: runs, integrations: integrations,
     management: management, assistant: assistant,
@@ -131,8 +132,10 @@ var session = new EngineSession(BuildInfo.Version, workspace: engine.Workspace, 
     iacCosts: new IacCostService(engine.Workspace, cloud, engine.Clock, iacOperations),
     iacSchedules: iacSchedules,
     boot: boot,
-    quality: new CodeReviewService(engine.Workspace, new GitChangeReader(engine.Runner, new LocalProjectFilesFactory()), new FileReviewStore(engine.DataRoot), engine.Clock,
-        new LocalProjectFilesFactory(), integrations.Audit, harnessStatus, contextEngine));
+    quality: new CodeReviewService(engine.Workspace, new GitChangeReader(engine.Runner, new LocalProjectFilesFactory()), reviewStore, engine.Clock,
+        new LocalProjectFilesFactory(), integrations.Audit, harnessStatus, contextEngine, new ModelReviewer(models),
+        new QualityGateRunner(engine.Runner, new QualityGateCatalog(new LocalProjectFilesFactory()))),
+    qualityDecisions: new ReviewDecisionService(engine.Workspace, reviewStore, engine.Clock, integrations.Audit));
 // Verificação de drift agendada: uma volta por minuto enquanto o motor vive; falha de uma volta não derruba o laço.
 _ = Task.Run(async () =>
 {

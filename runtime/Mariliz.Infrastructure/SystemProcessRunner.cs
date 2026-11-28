@@ -81,7 +81,8 @@ public sealed class SystemProcessRunner : IProcessRunner
     /// </summary>
     private static string Executable(string name)
     {
-        if (!OperatingSystem.IsWindows() || name is not ("npx" or "npm")) return name;
+        // pnpm e yarn também são scripts .cmd quando vêm do npm; quando vêm como executável (instalador próprio), o nome simples já serve.
+        if (!OperatingSystem.IsWindows() || name is not ("npx" or "npm" or "pnpm" or "yarn")) return name;
 
         var script = name + ".cmd";
         foreach (var dir in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
@@ -93,7 +94,7 @@ public sealed class SystemProcessRunner : IProcessRunner
             }
             catch (ArgumentException) { /* entrada inválida no PATH: segue para a próxima */ }
         }
-        return script;
+        return name is "npx" or "npm" ? script : name;
     }
 
     private static void Receive(StringBuilder sb, string? line, Action<string>? onLine)

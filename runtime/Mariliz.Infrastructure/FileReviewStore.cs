@@ -49,6 +49,17 @@ public sealed class FileReviewStore(string dataRoot) : IReviewStore
         }
     }
 
+    public DecisionLog LoadDecisions(string projectId)
+    {
+        lock (_gate)
+            return AtomicFile.ReadJson<DecisionLog>(Path.Combine(FolderOf(projectId), "decisions.json"), IntegrationJson.Options, log => log.Findings is not null && log.Deliveries is not null) ?? DecisionLog.Empty;
+    }
+
+    public void SaveDecisions(string projectId, DecisionLog log)
+    {
+        lock (_gate) AtomicFile.Write(Path.Combine(FolderOf(projectId), "decisions.json"), JsonSerializer.Serialize(log, IntegrationJson.Options));
+    }
+
     private string FolderOf(string projectId)
     {
         // O id vira nome de pasta: só o formato exato de um id de projeto passa.

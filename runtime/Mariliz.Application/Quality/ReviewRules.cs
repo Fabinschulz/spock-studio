@@ -10,6 +10,7 @@ public static class JudgeIds
     public const string Requirements = "requirements";
     public const string Dependency = "dependency";
     public const string Model = "model-review";
+    public const string Execution = "execution";
     public const string Final = "final-delivery";
 }
 
@@ -44,6 +45,9 @@ public static class ReviewRules
     public const string ManifestWithoutLock = "QR-CMP-001";
     public const string Architecture = "QR-ARC-001";
     public const string HarnessFileChanged = "QR-SCP-001";
+    public const string ModelFinding = "QR-MOD-001";
+    public const string RequirementNotMet = "QR-REQ-001";
+    public const string GateFailed = "QR-GATE-001";
 
     public static readonly IReadOnlyList<ReviewRule> All =
     [
@@ -76,7 +80,15 @@ public static class ReviewRules
         new(Architecture, "Achado da análise de arquitetura num arquivo alterado", FindingCategories.Architecture, QualitySeverities.Medium, FindingConfidences.Heuristic, JudgeIds.Architecture,
             "O código segue a direção das camadas e as convenções do projeto.", "Veja o achado na tela de Arquitetura; a análise lê o projeto inteiro e não separa o que já existia antes da alteração."),
         new(HarnessFileChanged, "Arquivo do Harness do Spock foi alterado", FindingCategories.Maintainability, QualitySeverities.Informational, FindingConfidences.Heuristic, JudgeIds.CodeQuality,
-            "Agentes, regras e hooks mudam pelo plano do Harness, com diff e aprovação.", "Se a mudança foi à mão, confira que é intencional; o Spock a mostrará como modificada no estado do Harness.")
+            "Agentes, regras e hooks mudam pelo plano do Harness, com diff e aprovação.", "Se a mudança foi à mão, confira que é intencional; o Spock a mostrará como modificada no estado do Harness."),
+        // O modelo só propõe: o achado vale com arquivo, linha e trecho que existem no diff, e é sempre hipótese, nunca bloqueia.
+        new(ModelFinding, "Possível defeito apontado pelo modelo de IA", FindingCategories.Bug, QualitySeverities.Medium, FindingConfidences.Hypothesis, JudgeIds.Model,
+            "A alteração faz o que pretende, sem os defeitos que um revisor atento acharia.", "Confira o trecho: o modelo pode ter razão ou ter errado; só uma pessoa sabe."),
+        new(RequirementNotMet, "Critério de aceite sem evidência de que foi atendido", FindingCategories.RequirementCompliance, QualitySeverities.Medium, FindingConfidences.Hypothesis, JudgeIds.Requirements,
+            "A alteração atende cada critério de aceite da atividade, e dá para apontar onde.", "Confira o critério na alteração; se faltar, implemente, e se já estiver atendido, aponte onde."),
+        // Um comando que o próprio projeto define e a pessoa autorizou: se falha, é um fato, não uma opinião.
+        new(GateFailed, "Verificação do projeto falhou", FindingCategories.Reliability, QualitySeverities.High, FindingConfidences.Confirmed, JudgeIds.Execution,
+            "Build, testes e lint do projeto passam com a alteração.", "Veja o fim da saída da verificação e corrija a causa; rode de novo para conferir.")
     ];
 
     public static ReviewRule Find(string id) => All.First(rule => rule.Id == id);

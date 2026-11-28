@@ -76,6 +76,45 @@ export const reviewCountsSchema = z.object({
   bySeverity: z.record(z.string(), z.number())
 });
 
+export const modelRunSchema = z.object({
+  purpose: z.string(),
+  state: z.enum(['used', 'failed', 'skipped']),
+  model: z.string().nullable(),
+  modelVersion: z.string().nullable(),
+  promptHash: z.string().nullable(),
+  inputTokens: z.number(),
+  outputTokens: z.number(),
+  accepted: z.number(),
+  discarded: z.number(),
+  failureCode: z.string().nullable()
+});
+
+export const requirementCheckSchema = z.object({
+  index: z.number(),
+  text: z.string(),
+  status: z.enum(['met', 'partial', 'not_met', 'unknown']),
+  path: z.string().nullable(),
+  line: z.number().nullable(),
+  excerpt: z.string().nullable(),
+  note: z.string().nullable()
+});
+
+export const gateStateSchema = z.enum(['passed', 'failed', 'blocked', 'not_run', 'timed_out', 'cancelled']);
+
+export const gateResultSchema = z.object({
+  id: z.string(),
+  kind: z.string(),
+  tool: z.string(),
+  command: z.string(),
+  directory: z.string(),
+  origin: z.string(),
+  state: gateStateSchema,
+  exitCode: z.number().nullable(),
+  durationMs: z.number(),
+  summary: z.string(),
+  logTail: z.string().nullable()
+});
+
 export const reviewSchema = z.object({
   contract: z.string(),
   id: z.string(),
@@ -96,10 +135,65 @@ export const reviewSchema = z.object({
   rulesApplied: z.array(z.string()),
   contextConsulted: z.array(z.string()),
   limitations: z.array(z.string()),
-  nextActions: z.array(z.string())
+  nextActions: z.array(z.string()),
+  /** Só existem quando a pessoa pediu o modelo, os critérios ou as verificações; nulos nas revisões antigas. */
+  modelRuns: z.array(modelRunSchema).nullish(),
+  requirements: z.array(requirementCheckSchema).nullish(),
+  gates: z.array(gateResultSchema).nullish()
 });
 
-export const reviewResponseSchema = z.object({ review: reviewSchema });
+export const findingDecisionSchema = z.object({
+  findingId: z.string(),
+  decision: z.enum(['confirmed', 'dismissed_false_positive', 'accepted_risk', 'fix_requested']),
+  justification: z.string().nullable(),
+  decidedAt: z.string(),
+  reviewId: z.string()
+});
+
+export const deliveryDecisionSchema = z.object({
+  reviewId: z.string(),
+  decision: z.enum(['approved', 'rejected']),
+  justification: z.string(),
+  decidedAt: z.string()
+});
+
+/** O veredito do motor não muda com as decisões: elas só dizem o que ainda bloqueia e se a pessoa assinou a entrega. */
+export const reviewStatusSchema = z.object({
+  engineVerdict: reviewVerdictSchema,
+  openBlocking: z.number(),
+  openNeedsCheck: z.number(),
+  readyForDelivery: z.boolean(),
+  delivery: deliveryDecisionSchema.nullable()
+});
+
+export const reviewResponseSchema = z.object({
+  review: reviewSchema,
+  decisions: z.array(findingDecisionSchema),
+  status: reviewStatusSchema
+});
+
+export const gateCandidateSchema = z.object({
+  id: z.string(),
+  kind: z.string(),
+  tool: z.string(),
+  command: z.string(),
+  directory: z.string(),
+  origin: z.string()
+});
+
+export const gatesListSchema = z.object({ gates: z.array(gateCandidateSchema), modelAvailable: z.boolean() });
+
+export const correctionBriefSchema = z.object({
+  brief: z.object({
+    reviewId: z.string(),
+    attempt: z.number(),
+    maxAttempts: z.number(),
+    stopped: z.boolean(),
+    items: z.array(z.object({ findingId: z.string(), title: z.string(), location: z.string(), attempt: z.number() })),
+    constraints: z.array(z.string()),
+    text: z.string()
+  })
+});
 
 export const reviewSummarySchema = z.object({
   id: z.string(),
@@ -120,3 +214,8 @@ export type ReviewJudge = z.infer<typeof reviewJudgeSchema>;
 export type Review = z.infer<typeof reviewSchema>;
 export type ReviewSummary = z.infer<typeof reviewSummarySchema>;
 export type ReviewVerdict = z.infer<typeof reviewVerdictSchema>;
+export type ReviewView = z.infer<typeof reviewResponseSchema>;
+export type FindingDecision = z.infer<typeof findingDecisionSchema>;
+export type GateCandidate = z.infer<typeof gateCandidateSchema>;
+export type GateResult = z.infer<typeof gateResultSchema>;
+export type CorrectionBrief = z.infer<typeof correctionBriefSchema>['brief'];
