@@ -30,4 +30,24 @@ public class JsonReplyTests
 
         Assert.Equal(truncated, JsonReply.Extract(truncated));
     }
+
+    [Fact]
+    public void Chave_repetida_vale_a_ultima_em_qualquer_nivel_e_ler_a_chave_nao_lanca()
+    {
+        var reply = "Segue:\n```json\n{\"assumptions\":[\"a\"],\"x\":{\"k\":1,\"k\":[true,null,2.5,\"t\"]},\"assumptions\":[\"b\",\"c\"],\"list\":[{\"i\":1,\"i\":2}]}\n```";
+
+        var json = System.Text.Json.Nodes.JsonNode.Parse(JsonReply.Extract(reply))!.AsObject();
+
+        Assert.Equal(["b", "c"], json["assumptions"]!.AsArray().Select(item => item!.GetValue<string>()));
+        Assert.Equal(4, json["x"]!["k"]!.AsArray().Count);
+        Assert.Equal(2, json["list"]![0]!["i"]!.GetValue<int>());
+    }
+
+    [Fact]
+    public void Sem_chave_repetida_o_texto_nao_e_reescrito()
+    {
+        var reply = "{\"a\": 1,  \"b\": [1, 2]}";
+
+        Assert.Equal(reply, JsonReply.Extract(reply));
+    }
 }
