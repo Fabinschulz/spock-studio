@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
 namespace Mariliz.Infrastructure;
@@ -10,19 +11,51 @@ internal static partial class JsonReply
     public static string Extract(string text)
     {
         var trimmed = text.Trim();
-        if (IsObject(trimmed)) return trimmed;
+        if (IsObject(trimmed)) return WithoutDuplicateKeys(trimmed);
 
         var fenced = Fence().Match(trimmed);
-        if (fenced.Success && IsObject(fenced.Groups["body"].Value.Trim())) return fenced.Groups["body"].Value.Trim();
+        if (fenced.Success && IsObject(fenced.Groups["body"].Value.Trim())) return WithoutDuplicateKeys(fenced.Groups["body"].Value.Trim());
 
         for (var start = trimmed.IndexOf('{'); start >= 0; start = trimmed.IndexOf('{', start + 1))
         {
             var end = BalancedEnd(trimmed, start);
             // Um objeto que não fecha é uma resposta cortada: um objeto menor de dentro dela não é o que o modelo quis dizer.
             if (end < 0) break;
-            if (IsObject(trimmed[start..(end + 1)])) return trimmed[start..(end + 1)];
+            if (IsObject(trimmed[start..(end + 1)])) return WithoutDuplicateKeys(trimmed[start..(end + 1)]);
         }
         return fenced.Success ? fenced.Groups["body"].Value.Trim() : text;
+    }
+
+    // Um modelo às vezes repete uma chave do objeto ("assumptions" duas vezes). O JSON aceita, mas ler a chave num JsonObject lança
+    // ArgumentException lá na frente, fora de qualquer tratamento de resposta inválida. Vale a última, como no resto das bibliotecas;
+    // o texto só é reescrito quando há repetição.
+    private static string WithoutDuplicateKeys(string json)
+    {
+        using var document = JsonDocument.Parse(json);
+        var repeated = false;
+        var rebuilt = Rebuild(document.RootElement, ref repeated);
+        return repeated ? rebuilt!.ToJsonString() : json;
+    }
+
+    private static JsonNode? Rebuild(JsonElement element, ref bool repeated)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                var obj = new JsonObject();
+                foreach (var property in element.EnumerateObject())
+                {
+                    if (obj.ContainsKey(property.Name)) repeated = true;
+                    obj[property.Name] = Rebuild(property.Value, ref repeated);
+                }
+                return obj;
+            case JsonValueKind.Array:
+                var array = new JsonArray();
+                foreach (var item in element.EnumerateArray()) array.Add(Rebuild(item, ref repeated));
+                return array;
+            default:
+                return JsonValue.Create(element.Clone());
+        }
     }
 
     // Fim do objeto que abre em start, contando chaves fora das strings; -1 se não fecha.

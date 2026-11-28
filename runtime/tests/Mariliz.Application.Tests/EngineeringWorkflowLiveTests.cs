@@ -78,6 +78,10 @@ public class EngineeringWorkflowLiveTests(ITestOutputHelper output)
                 output.WriteLine($"[fluxo real] {provider} {scenario}: sem resultado; últimos eventos: {last[..Math.Min(500, last.Length)]}");
             }
             var limitations = result?["limitations"]?.AsArray().Select(item => item!["code"]!.GetValue<string>()).ToList() ?? [];
+            // O motivo da recusa do modelo é texto do motor (posição do JSON ou mensagem do validador), nunca do modelo.
+            foreach (var item in result?["limitations"]?.AsArray() ?? [])
+                if (item?["code"]?.GetValue<string>() is "MODEL_OUTPUT_INVALID" or "IMPACT_INVALID")
+                    output.WriteLine($"[fluxo real] {provider} {scenario}: {item["code"]}: {item["message"]}");
             var usage = result?["usage"];
             var judge = result?["evaluation"]?["judge"]?.GetValue<string>() ?? "?";
             var scores = result?["evaluation"]?["judgment"]?["scores"]?.ToJsonString() ?? "-";
