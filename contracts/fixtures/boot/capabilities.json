@@ -395,6 +395,87 @@
       "requiredLevel": 0
     },
     {
+      "id": "quality.run_quality_gates",
+      "name": "Verificações do projeto",
+      "description": "Roda o build, os testes e o lint que o próprio projeto define, só os que você escolher e autorizar; é código do projeto rodando neste computador.",
+      "domain": "engineering",
+      "goals": [
+        "Executar os testes e validar a entrega"
+      ],
+      "operation": "internalChange",
+      "mode": "handoff",
+      "route": "/qualidade",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O resultado de cada verificação (passou, falhou, não rodou) dentro do relatório da revisão.",
+      "preconditions": [],
+      "parameters": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 2
+    },
+    {
+      "id": "quality.resolve_findings",
+      "name": "Corrigir os achados da revisão",
+      "description": "Monta o pedido de correção com o que ficou aberto e as regras que o agente não pode quebrar (nada de apagar teste nem enfraquecer verificação); até três tentativas por achado.",
+      "domain": "engineering",
+      "goals": [
+        "Corrigir o que a revisão apontou"
+      ],
+      "operation": "internalChange",
+      "mode": "handoff",
+      "route": "/qualidade",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O pedido de correção para o agente, e a decisão da pessoa sobre cada achado.",
+      "preconditions": [],
+      "parameters": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 2
+    },
+    {
+      "id": "quality.evaluate_delivery",
+      "name": "Avaliar a entrega",
+      "description": "Mostra o que ainda bloqueia a entrega e deixa você assinar a aprovação ou a recusa; o veredito do motor não muda, e a assinatura é sua.",
+      "domain": "engineering",
+      "goals": [
+        "Saber se a entrega pode seguir"
+      ],
+      "operation": "internalChange",
+      "mode": "handoff",
+      "route": "/qualidade",
+      "agents": [],
+      "skills": [],
+      "workflows": [],
+      "composes": [],
+      "expectedResult": "O estado da entrega: o que bloqueia, as decisões tomadas e a assinatura da pessoa.",
+      "preconditions": [],
+      "parameters": [],
+      "needs": [
+        "Project"
+      ],
+      "availability": "unavailable",
+      "reason": "O motor desta sessão não oferece esta capacidade.",
+      "verdict": "denied",
+      "needsApproval": false,
+      "requiredLevel": 2
+    },
+    {
       "id": "standards.architecture",
       "name": "Análise de arquitetura e padrões",
       "description": "Camadas, dependências e aderência do projeto aos padrões de arquitetura.",

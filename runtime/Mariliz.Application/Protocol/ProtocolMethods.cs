@@ -135,6 +135,10 @@ public static class ProtocolMethods
     public const string QualityReviewStart = "quality.review.start";
     public const string QualityReviewList = "quality.review.list";
     public const string QualityReviewDetail = "quality.review.detail";
+    public const string QualityGatesList = "quality.gates.list";
+    public const string QualityReviewBrief = "quality.review.brief";
+    public const string QualityFindingDecide = "quality.finding.decide";
+    public const string QualityDeliveryDecide = "quality.delivery.decide";
 
     public static readonly IReadOnlyList<string> Configure =
         [Discover, ProjectArchitecture, Plan, Apply, Validate, Revert, Runs];
@@ -211,7 +215,7 @@ public static class ProtocolMethods
 
     public static readonly IReadOnlyList<string> Boot = [BootStart, BootProject, BootResume, BootList, BootDetail, BootCapabilities];
 
-    public static readonly IReadOnlyList<string> Quality = [QualityReviewStart, QualityReviewList, QualityReviewDetail];
+    public static readonly IReadOnlyList<string> Quality = [QualityReviewStart, QualityReviewList, QualityReviewDetail, QualityGatesList, QualityReviewBrief, QualityFindingDecide, QualityDeliveryDecide];
 
     public static readonly IReadOnlyList<string> Engineering = [EngineeringProfile, EngineeringAnalyze, EngineeringKnowledge, EngineeringHarness, EngineeringRevisions, EngineeringCatalog, EngineeringMcp, EngineeringPolicy];
 }

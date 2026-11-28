@@ -18,7 +18,11 @@ internal sealed record FindingDraft(
     string Detector,
     string? Severity = null,
     string? Confidence = null,
-    string? ArchitectureRule = null);
+    string? ArchitectureRule = null,
+    string? Category = null,
+    string? Title = null,
+    string? Suggestion = null,
+    string? Source = null);
 
 /// <summary>
 /// Os detectores determinísticos da revisão. Cada um olha só as linhas adicionadas (ou a lista de arquivos) e devolve um

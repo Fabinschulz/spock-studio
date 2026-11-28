@@ -332,6 +332,14 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
                 yield return Entry("", AuditCategories.Read, "Alterações revisadas pelo Spock",
                     $"Revisão de {(Text(d, "mode") == "branch" ? "branch" : "alterações locais")}: {Clean(Text(d, "verdict"))}; {Count(Count(d, "files"), "arquivo", "arquivos")} e {Count(Count(d, "findings"), "achado", "achados")}. Só leitura: nada no projeto foi alterado.");
                 break;
+            case AuditActions.QualityFindingDecided:
+                yield return Entry("", AuditCategories.Decision, "Decisão sobre um achado da revisão",
+                    $"{DecisionLabel(Text(d, "decision"))} ({Clean(Text(d, "ruleId"))}). A justificativa fica só neste computador, junto da revisão.");
+                break;
+            case AuditActions.QualityDeliveryDecided:
+                yield return Entry("", AuditCategories.Decision, Text(d, "decision") == "approved" ? "Entrega aprovada pela pessoa" : "Entrega recusada pela pessoa",
+                    "Assinatura humana sobre o relatório da revisão; o veredito do motor não muda.");
+                break;
             case AuditActions.BootFinished:
                 yield return Entry("", AuditCategories.Context, "Boot encerrado",
                     $"{BootLabel(Text(d, "mode"))}: {Clean(Text(d, "state"))}{(Text(d, "outcome") is { Length: > 0 } outcome ? $", resultado {Clean(outcome)}" : "")}; {Count((d["capabilities"] as JsonArray)?.Count ?? 0, "capacidade usada", "capacidades usadas")}.");
@@ -479,6 +487,14 @@ public sealed class ProjectAuditService(WorkspaceAuthorizer workspace, IClock cl
         var outcome = Text(d, "outcome") is "ok" or "" ? Count(Count(d, "rows"), "item lido", "itens lidos") + (Flag(d, "truncated") ? " (havia mais)" : "") : $"recusada: {Clean(Text(d, "outcome"))}";
         return $"{Clean(Text(d, "provider"))}{where}, pedida por {who}; {outcome}.";
     }
+
+    private static string DecisionLabel(string decision) => decision switch
+    {
+        "dismissed_false_positive" => "Descartado como falso positivo",
+        "accepted_risk" => "Risco aceito",
+        "fix_requested" => "Correção pedida",
+        _ => "Confirmado"
+    };
 
     private static string BootLabel(string mode) => mode switch
     {

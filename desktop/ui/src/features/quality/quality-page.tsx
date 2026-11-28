@@ -2,12 +2,16 @@ import type { SelectedProject } from '@/features/project-selection';
 import { errorMessage, type EngineClient } from '@/shared/api';
 import { InlineNotice, NoProjectState, Page, PageSection, ResourceView, StatusChip } from '@/shared/components';
 import { useAsyncResource } from '@/shared/hooks';
-import type { Review, ReviewFinding, ReviewSummary, ReviewVerdict } from '@/shared/schema';
+import type { CorrectionBrief, ReviewFinding, ReviewSummary, ReviewVerdict, ReviewView } from '@/shared/schema';
 import { Button, TextField, type Tone } from '@mariliz/ui-kit';
 import { useCallback, useMemo, useState, type FormEvent } from 'react';
 
+import { DeliveryPanel } from './components/delivery-panel';
+import { FindingList } from './components/finding-list';
+import { ReviewExtras } from './components/review-extras';
+import { ReviewOptionsForm } from './components/review-options';
 import styles from './quality-page.module.scss';
-import { createQualityApi, type QualityApi } from './service/quality-api';
+import { createQualityApi, SIMPLE_REVIEW, type QualityApi, type ReviewRequest } from './service/quality-api';
 
 const VERDICT: Record<ReviewVerdict, { tone: Tone; label: string }> = {
   approved: { tone: 'success', label: 'Aprovada' },
@@ -15,14 +19,6 @@ const VERDICT: Record<ReviewVerdict, { tone: Tone; label: string }> = {
   rejected: { tone: 'danger', label: 'Reprovada' },
   inconclusive: { tone: 'warning', label: 'Inconclusiva' },
   not_run: { tone: 'neutral', label: 'Não executada' }
-};
-
-const SEVERITY: Record<ReviewFinding['severity'], { tone: Tone; label: string }> = {
-  critical: { tone: 'danger', label: 'Crítico' },
-  high: { tone: 'danger', label: 'Grave' },
-  medium: { tone: 'warning', label: 'Médio' },
-  low: { tone: 'info', label: 'Baixo' },
-  informational: { tone: 'neutral', label: 'Informativo' }
 };
 
 const SKIPPED: Record<string, string> = {
@@ -51,22 +47,26 @@ export function QualityPage({ client, project }: { client: EngineClient; project
 function ProjectQuality({ api, project }: { api: QualityApi; project: SelectedProject }) {
   const history = useAsyncResource(
     useCallback(() => api.list(project.projectId), [api, project.projectId]),
-    {
-      keepPrevious: true
-    }
+    { keepPrevious: true }
   );
+  const options = useAsyncResource(useCallback(() => api.gates(project.projectId), [api, project.projectId]));
   const [run, setRun] = useState<Run>({ status: 'idle' });
-  const [review, setReview] = useState<Review | null>(null);
+  const [view, setView] = useState<ReviewView | null>(null);
+  const [brief, setBrief] = useState<CorrectionBrief | null>(null);
+  const [request, setRequest] = useState<ReviewRequest>(SIMPLE_REVIEW);
   const [base, setBase] = useState('');
   const busy = run.status === 'running';
+  const gatesNeedApproval = request.gates.length > 0 && !request.gatesApproved;
+  const info = options.status === 'ready' ? options.value : null;
 
   const execute = useCallback(
-    async (what: string, start: () => Promise<Review>) => {
+    async (what: string, start: () => Promise<ReviewView>) => {
       setRun({ status: 'running', what });
       // O relatório anterior sai da tela: depois de um erro, ele pareceria o resultado deste pedido.
-      setReview(null);
+      setView(null);
+      setBrief(null);
       try {
-        setReview(await start());
+        setView(await start());
         setRun({ status: 'idle' });
         history.reload();
       } catch (error) {
@@ -79,9 +79,10 @@ function ProjectQuality({ api, project }: { api: QualityApi; project: SelectedPr
   const open = useCallback(
     async (id: string) => {
       setRun({ status: 'running', what: 'Abrindo a revisão…' });
-      setReview(null);
+      setView(null);
+      setBrief(null);
       try {
-        setReview(await api.detail(project.projectId, id));
+        setView(await api.detail(project.projectId, id));
         setRun({ status: 'idle' });
       } catch (error) {
         setRun({ status: 'failed', message: errorMessage(error, 'Não foi possível abrir a revisão.') });
@@ -90,26 +91,47 @@ function ProjectQuality({ api, project }: { api: QualityApi; project: SelectedPr
     [api, project.projectId]
   );
 
+  // Uma decisão devolve a revisão com o que ainda bloqueia; um erro (justificativa curta, risco crítico) aparece sem tirar o relatório.
+  const decide = useCallback(async (change: () => Promise<ReviewView>, fallback: string) => {
+    setRun({ status: 'running', what: 'Registrando a decisão…' });
+    try {
+      setView(await change());
+      setRun({ status: 'idle' });
+    } catch (error) {
+      setRun({ status: 'failed', message: errorMessage(error, fallback) });
+    }
+  }, []);
+
   const submitBranch = (event: FormEvent) => {
     event.preventDefault();
-    if (base.trim()) void execute('Revisando a branch…', () => api.reviewBranch(project.projectId, base.trim()));
+    if (base.trim())
+      void execute('Revisando a branch…', () =>
+        api.reviewBranch(project.projectId, base.trim(), { ...request, gates: [], gatesApproved: false })
+      );
   };
 
   return (
     <Page
       title="Revisão de código"
-      description={`Lê o que mudou em ${project.displayName} e procura defeitos com verificações do próprio Spock, sem alterar nenhum arquivo nem rodar comandos do projeto. Cada achado mostra a evidência e o quanto o Spock consegue provar; o que não foi verificado aparece como limitação.`}
+      description={`Lê o que mudou em ${project.displayName} e procura defeitos com verificações do próprio Spock. A revisão simples não altera nenhum arquivo nem roda comandos do projeto; o modelo de IA e as verificações do projeto só entram se você marcar. Cada achado mostra a evidência e o quanto o Spock consegue provar; o que não foi verificado aparece como limitação.`}
       actions={
         <Button
           type="button"
           variant="contained"
-          disabled={busy}
-          onClick={() => void execute('Revisando as alterações…', () => api.reviewWorkingTree(project.projectId))}
+          disabled={busy || gatesNeedApproval}
+          onClick={() =>
+            void execute('Revisando as alterações…', () => api.reviewWorkingTree(project.projectId, request))
+          }
         >
           Revisar alterações locais
         </Button>
       }
     >
+      <ReviewOptionsForm info={info} request={request} onChange={setRequest} disabled={busy} />
+      {gatesNeedApproval ? (
+        <p className={styles.note}>Marque a autorização para rodar as verificações escolhidas, ou desmarque-as.</p>
+      ) : null}
+
       <form className={styles.branchForm} aria-label="Revisar uma branch" onSubmit={submitBranch}>
         <TextField
           label="Comparar com a base"
@@ -117,7 +139,7 @@ function ProjectQuality({ api, project }: { api: QualityApi; project: SelectedPr
           value={base}
           disabled={busy}
           onChange={(event) => setBase(event.target.value)}
-          helperText="Uma branch, tag ou commit. O Spock não adivinha a base."
+          helperText="Uma branch, tag ou commit. O Spock não adivinha a base. As verificações do projeto não rodam numa branch."
         />
         <Button type="submit" variant="outlined" color="inherit" disabled={busy || !base.trim()}>
           Revisar a branch
@@ -130,16 +152,43 @@ function ProjectQuality({ api, project }: { api: QualityApi; project: SelectedPr
         </p>
       ) : null}
       {run.status === 'failed' ? (
-        <InlineNotice tone="danger" title="A revisão não foi feita">
+        <InlineNotice tone="danger" title="Não foi possível concluir">
           {run.message}
         </InlineNotice>
       ) : null}
 
-      {review ? <ReviewReport review={review} /> : null}
+      {view ? (
+        <ReviewReport
+          view={view}
+          brief={brief}
+          busy={busy}
+          onDecideFinding={(finding, decision, justification) =>
+            decide(
+              () => api.decideFinding(project.projectId, view.review.id, finding.id, decision, justification),
+              'Não foi possível registrar a decisão.'
+            )
+          }
+          onDecideDelivery={(decision, justification) =>
+            decide(
+              () => api.decideDelivery(project.projectId, view.review.id, decision, justification),
+              'Não foi possível registrar a decisão sobre a entrega.'
+            )
+          }
+          onBrief={async () => {
+            try {
+              setBrief(await api.brief(project.projectId, view.review.id));
+              // O pedido marca "correção pedida" nos achados: a revisão volta com isso.
+              setView(await api.detail(project.projectId, view.review.id));
+            } catch (error) {
+              setRun({ status: 'failed', message: errorMessage(error, 'Não foi possível montar o pedido.') });
+            }
+          }}
+        />
+      ) : null}
 
       <PageSection title="Revisões anteriores" description="O histórico fica só neste computador.">
         <ResourceView resource={history} loading="Lendo o histórico…" fallbackError="Não foi possível ler o histórico.">
-          {(list) => <History list={list} selected={review?.id} disabled={busy} onOpen={(id) => void open(id)} />}
+          {(list) => <History list={list} selected={view?.review.id} disabled={busy} onOpen={(id) => void open(id)} />}
         </ResourceView>
       </PageSection>
     </Page>
@@ -183,7 +232,22 @@ function History({
   );
 }
 
-function ReviewReport({ review }: { review: Review }) {
+function ReviewReport({
+  view,
+  brief,
+  busy,
+  onDecideFinding,
+  onDecideDelivery,
+  onBrief
+}: {
+  view: ReviewView;
+  brief: CorrectionBrief | null;
+  busy: boolean;
+  onDecideFinding: (finding: ReviewFinding, decision: string, justification?: string) => Promise<void>;
+  onDecideDelivery: (decision: 'approved' | 'rejected', justification: string) => Promise<void>;
+  onBrief: () => Promise<void>;
+}) {
+  const { review, decisions } = view;
   const confirmed = review.findings.filter((f) => f.severity !== 'informational' && f.confidence === 'confirmed');
   const toCheck = review.findings.filter((f) => f.severity !== 'informational' && f.confidence !== 'confirmed');
   const recommendations = review.findings.filter((f) => f.severity === 'informational');
@@ -192,6 +256,9 @@ function ReviewReport({ review }: { review: Review }) {
   const reason = review.summary.startsWith(`${verdict.label}: `)
     ? review.summary.slice(verdict.label.length + 2)
     : review.summary;
+  const list = (findings: ReviewFinding[], empty: string) => (
+    <FindingList findings={findings} decisions={decisions} empty={empty} onDecide={onDecideFinding} disabled={busy} />
+  );
 
   return (
     <>
@@ -209,21 +276,28 @@ function ReviewReport({ review }: { review: Review }) {
         title="Problemas confirmados"
         description="O padrão encontrado já é o defeito, e a linha está no que foi alterado."
       >
-        <FindingList findings={confirmed} empty="Nenhum problema confirmado." />
+        {list(confirmed, 'Nenhum problema confirmado.')}
       </PageSection>
       <PageSection
         title="A conferir"
         description="O Spock achou o padrão, mas só uma pessoa sabe se é defeito naquele contexto. Não bloqueiam a entrega."
       >
-        <FindingList findings={toCheck} empty="Nada para conferir." />
+        {list(toCheck, 'Nada para conferir.')}
       </PageSection>
-      <PageSection title="Recomendações">
-        <FindingList findings={recommendations} empty="Nenhuma recomendação." />
+      <PageSection title="Recomendações">{list(recommendations, 'Nenhuma recomendação.')}</PageSection>
+
+      <PageSection
+        title="Decisão sobre a entrega"
+        description="O veredito do Spock não muda com as suas decisões. Elas dizem o que ainda bloqueia, e a assinatura da entrega é sua."
+      >
+        <DeliveryPanel view={view} brief={brief} busy={busy} onDecide={onDecideDelivery} onBrief={onBrief} />
       </PageSection>
+
+      <ReviewExtras review={review} />
 
       <PageSection
         title="Quem avaliou"
-        description="Cada juiz aplica critérios escritos; nenhum deles é um modelo de IA."
+        description="Os juízes aplicam critérios escritos. O de revisão por modelo, quando você o pede, só propõe hipóteses."
       >
         <ul className={styles.judges}>
           {review.judges.map((judge) => (
@@ -270,45 +344,5 @@ function ReviewReport({ review }: { review: Review }) {
         </ul>
       </PageSection>
     </>
-  );
-}
-
-function FindingList({ findings, empty }: { findings: ReviewFinding[]; empty: string }) {
-  if (findings.length === 0) return <p className={styles.note}>{empty}</p>;
-  return (
-    <ul className={styles.findings}>
-      {findings.map((finding) => (
-        <li key={finding.id} className={styles.finding}>
-          <div className={styles.findingHead}>
-            <StatusChip tone={SEVERITY[finding.severity].tone}>{SEVERITY[finding.severity].label}</StatusChip>
-            <strong>{finding.title}</strong>
-            <span className={styles.rule}>{finding.ruleId}</span>
-          </div>
-          <span className={styles.path}>
-            {finding.path}
-            {finding.startLine === null ? '' : `, linha ${finding.startLine}`}
-            {finding.evidence.symbol ? ` · ${finding.evidence.symbol}` : ''}
-          </span>
-          <pre className={styles.excerpt} aria-label="Evidência">
-            {finding.evidence.excerpt}
-          </pre>
-          <p className={styles.advice}>{finding.actualBehavior}</p>
-          <p className={styles.advice}>
-            <strong>Esperado:</strong> {finding.expectedBehavior}
-          </p>
-          <p className={styles.advice}>
-            <strong>Como corrigir:</strong> {finding.suggestedCorrection}
-          </p>
-          <p className={styles.provenance}>
-            {finding.confidence === 'confirmed'
-              ? 'Confirmado'
-              : finding.confidence === 'heuristic'
-                ? 'Heurística'
-                : 'Hipótese'}{' '}
-            · {finding.evidence.origin}
-          </p>
-        </li>
-      ))}
-    </ul>
   );
 }

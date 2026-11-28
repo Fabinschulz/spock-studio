@@ -144,7 +144,11 @@ export const ENGINE_METHODS = [
   'boot.capabilities',
   'quality.review.start',
   'quality.review.list',
-  'quality.review.detail'
+  'quality.review.detail',
+  'quality.gates.list',
+  'quality.review.brief',
+  'quality.finding.decide',
+  'quality.delivery.decide'
 ] as const;
 
 export type EngineMethod = (typeof ENGINE_METHODS)[number];

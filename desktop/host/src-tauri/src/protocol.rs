@@ -137,6 +137,10 @@ pub const FRONTEND_METHODS: &[&str] = &[
     "quality.review.start",
     "quality.review.list",
     "quality.review.detail",
+    "quality.gates.list",
+    "quality.review.brief",
+    "quality.finding.decide",
+    "quality.delivery.decide",
 ];
 
 pub mod error_code {

@@ -1,6 +1,6 @@
 # Engineering Quality Intelligence
 
-> Primeira entrega, de 2026-11-27: a revisão nativa das alterações locais e de uma branch. O que é futuro está no
+> Primeira entrega, de 2026-11-27 (revisão nativa das alterações locais e de uma branch), e a jornada de decisão de 2026-11-28 (modelo, critérios, verificações do projeto, decisões da pessoa e pedido de correção). O que é futuro está no
 > [ROADMAP](../ROADMAP.md), seção 8 (Q0 a Q7), sem backlog paralelo. A decisão de arquitetura está na
 > [ADR-0011](../architecture/adr/0011-engineering-quality-intelligence.md).
 
@@ -10,10 +10,12 @@ O Spock configura e orquestra agentes de desenvolvimento; este domínio verifica
 pessoa) deixaram no projeto. Lê o que mudou no git, procura defeitos com verificações do próprio motor, deixa juízes com
 critérios escritos decidirem e guarda o relatório na pasta de dados do Spock.
 
-Não é um agente de IA, não escreve o relatório com modelo e não depende de nenhum serviço externo. **Nesta entrega nenhum
-modelo participa**: a revisão por modelo (que acharia o que os padrões não alcançam) é a Q2, e o relatório diz isso em cada
-revisão. Também não executa build, testes nem lint do projeto (Q2), não publica nada em GitHub ou Jira (Q6) e não altera
-nenhum arquivo do projeto analisado.
+Não é um agente de IA e não depende de nenhum serviço externo. A revisão simples (a única que o Boot e o MCP chamam) não usa
+modelo, não roda comando do projeto e não altera arquivo nenhum. **O resto só entra por escolha da pessoa, na tela**: a
+revisão por modelo (envia o diff, sem as linhas com cara de segredo, ao provedor configurado; o que ele aponta é hipótese e
+nunca bloqueia), a conferência de critérios de aceite (cada um só vale como atendido com uma linha do diff como evidência) e
+as verificações do projeto (build, testes e lint que o próprio projeto define, rodados como processo filho, sem sandbox e só
+com a autorização dela). Nada é publicado em GitHub ou Jira (Q6).
 
 ## 2. O que existe, por camada
 
@@ -24,11 +26,14 @@ nenhum arquivo do projeto analisado.
 | Regras | `Quality/ReviewRules.cs` | 15 regras `QR-*`, cada uma com categoria, gravidade, confiança, juiz, o esperado e a correção. É o embrião do modelo de regras da Q4. |
 | Detectores | `Quality/ChangeDetectors.cs` | Só as linhas adicionadas e a lista de arquivos. Segredos (o mesmo detector do resto do motor), arquivo sensível, conflito de merge, erro engolido, `async void`, certificado desligado, SQL concatenado e execução dinâmica (hipóteses), teste apagado, removido em saldo ou desligado, dependência sem arquivo de bloqueio, arquivo do Harness alterado. |
 | Arquitetura | `ArchitectureAnalyzer` (existente) | Os achados que tocam arquivos alterados entram como heurística: a análise lê o projeto inteiro e não separa o que existia antes. |
-| Juízes | `Quality/ReviewJudges.cs` | Segurança, Arquitetura, Qualidade do código, Regressão e Entrega, todos determinísticos. Requisitos, Dependências e Revisão por modelo aparecem como `not_run`, com o motivo. |
+| Juízes | `Quality/ReviewJudges.cs` | Segurança, Arquitetura, Qualidade do código, Regressão e Entrega, determinísticos. Revisão por modelo, Requisitos e Verificações do projeto entram quando a pessoa os pede; Dependências aparece como `not_run`. Sem o que foi pedido, o juiz mostra o motivo e a revisão não passa limpa. |
+| Modelo | `Quality/ModelReviewer.cs` | Duas perguntas ao provedor configurado (finalidade `judge`): defeitos no diff e critérios de aceite. O diff vai redigido, dentro de um bloco que o prompt manda tratar como dado; a resposta é JSON no contrato e só vale com arquivo, linha adicionada e trecho que existem no diff. O resto é descartado e contado. Registra modelo, versão, hash do que foi enviado e tokens. |
+| Verificações | `Quality/QualityGates.cs` | Catálogo só de leitura (scripts `build`, `test`, `lint` e `typecheck` do package.json com o gerenciador do projeto; build e testes de uma solução .NET) e executor. Roda só o que o catálogo achou e a pessoa marcou e autorizou, só nas alterações locais. Passou, falhou, bloqueada (ferramenta ausente, nunca aprovação), estourou o prazo ou cancelada. Falha é achado confirmado e reprova. |
+| Decisões | `Quality/ReviewDecisions.cs` | A pessoa confirma, descarta (falso positivo) ou aceita o risco de cada achado, e assina a entrega. Ver a seção 8. |
 | Serviço e histórico | `Quality/CodeReviewService.cs`, `FileReviewStore.cs` | Monta o relatório, descarta o achado cuja linha mudou durante a revisão, deduplica, grava em `projects/<id>/reviews/` (100 por projeto) e audita. |
-| Protocolo | `quality.review.start`, `.list`, `.detail` | `start` sem `mode` é a revisão das alterações locais; `mode: "branch"` exige `base`. |
-| Boot | `quality.review_changes` (direta), `quality.review_branch` (abre a tela) | A primeira executa no nível de observação porque só lê. A segunda abre a tela porque pede a base. |
-| Interface | `/qualidade`, em Engenharia | Veredito, problemas confirmados, a conferir, recomendações, juízes, o que não foi verificado, próximos passos, arquivos e histórico. |
+| Protocolo | `quality.review.start`, `.list`, `.detail`, `quality.gates.list`, `quality.finding.decide`, `quality.delivery.decide`, `quality.review.brief` | `start` sem `mode` é a revisão das alterações locais; `mode: "branch"` exige `base`. `useModel`, `requirements`, `gates` e `gatesApproved` são opcionais. |
+| Boot | `quality.review_changes` (direta); `quality.review_branch`, `quality.run_quality_gates`, `quality.resolve_findings` e `quality.evaluate_delivery` (abrem a tela) | A primeira executa no nível de observação porque só lê. As outras abrem a tela porque pedem a base, rodam comandos do projeto ou registram a decisão da pessoa. |
+| Interface | `/qualidade`, em Engenharia | Opções da revisão, veredito, achados com as decisões, a assinatura da entrega, o pedido de correção, verificações, critérios, uso do modelo, juízes, o que não foi verificado, arquivos e histórico. |
 
 ## 3. Contratos
 
@@ -124,3 +129,32 @@ haver alterações com defeito comprovado e uma conferência da pessoa.
 um defeito por regra, falsos positivos conhecidos) e mede recall e falsos positivos. O gabarito foi escrito à mão; o
 conjunto é pequeno e serve para impedir regressão. Antes de transformar uma meta em gate é preciso uma linha de base sobre
 alterações reais, revisadas por uma pessoa.
+
+## 8. A jornada de decisão
+
+Demanda, alteração do agente, **revisão** (simples, com modelo, critérios e verificações do projeto), **decisão da pessoa**,
+**pedido de correção**, nova revisão, **assinatura da entrega**. O motor decide o que prova; o modelo só propõe; a pessoa decide
+o que fazer e assina.
+
+- **Decisão por achado** (`quality.finding.decide`): confirmar, descartar como falso positivo ou aceitar o risco. Descartar e
+  aceitar exigem justificativa (10 a 500 caracteres, redigida como o resto). Um achado crítico não se aceita como risco: corrige-se,
+  ou se descarta dizendo por que o motor errou. Nada some: o relatório do motor não muda e a decisão aparece ao lado. A decisão vale
+  para o mesmo achado (mesmo id) em revisões seguintes.
+- **Estado da entrega**: o veredito do motor nunca muda. O que muda é o que ainda bloqueia (achado confirmado e grave sem
+  descarte nem aceite) e se a revisão está pronta (sem bloqueio, nem inconclusiva, nem vazia).
+- **Assinatura** (`quality.delivery.decide`): aprovar só abre quando está pronta, e exige justificativa. Um juiz que aprova
+  nunca substitui essa assinatura. Aprovar e recusar ficam na trilha de auditoria, sem o texto da justificativa.
+- **Pedido de correção** (`quality.review.brief`): devolve ao agente só o que está aberto, com as regras que ele não pode quebrar
+  (não remover, desligar nem enfraquecer testes, verificações, regras ou segurança; não sair do escopo; não mexer no relatório;
+  conferir hipóteses antes). Cada pedido registra "correção pedida" nos achados, e depois de três tentativas sobre o mesmo
+  achado o motor para e devolve a decisão a uma pessoa.
+- **Veredito com o que foi pedido**: verificação do projeto que não rodou deixa a revisão inconclusiva; modelo ou critérios que
+  não rodaram a deixam, no máximo, aprovada com ressalvas. Falha de verificação é achado confirmado e reprova.
+
+**Jornada de ponta a ponta** (`QualityJourneyTests`): git de verdade, o npm do projeto rodando de verdade, o protocolo que a
+interface usa. Um agente entrega um desconto errado, com uma instrução injetada no código; a revisão (modelo, critérios e o teste
+do projeto) reprova pela falha do teste; a aprovação é recusada; a justificativa curta é recusada; o pedido de correção sai;
+o agente corrige; a revisão passa; a pessoa assina. A versão com modelo roteirizado roda sempre e confere os valores; as versões
+ao vivo (OpenAI e Anthropic, por um gateway de teste) só rodam com a chave no terminal e conferem o que o modelo real não pode
+mudar: a verificação reprova por si, o que o modelo aponta tem linha do diff, nenhum critério vira "atendido" sem evidência, e a
+hipótese de modelo não bloqueia a aprovação.

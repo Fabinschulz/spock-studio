@@ -39,6 +39,26 @@ só avalia planos e impacto de uma execução de engenharia, os juízes de gest�
 - **QD-3**: executar build e testes do projeto (Q2) só com o comando descoberto, e com aprovação por execução ou por
   projeto? É a decisão 3 do ciclo 2, ainda aberta.
 
+## Atualização de 2026-11-28: a jornada de decisão
+
+O pedido de implementar a jornada inteira deixou QD-2 e QD-3 resolvidas como abaixo (decisão tomada ao implementar, a rever se o
+dono discordar). A QD-1 segue aberta e é o que trava a Q4.
+
+- **QD-2 (modelo na revisão):** o revisor é o provedor configurado no Spock, pela finalidade `judge`, sem escolher outro modelo.
+  O Spock não sabe qual modelo escreveu a alteração, então a independência não é verificada, e isso fica dito em cada relatório que
+  usou o modelo. O que o modelo devolve é hipótese com linha do diff, nunca bloqueia, e um critério só é "atendido" com evidência.
+  O uso é opt-in (o diff vai ao provedor) e nunca por Boot nem MCP.
+- **QD-3 (executar comandos do projeto):** só os que o catálogo descobre lendo arquivos (scripts `build`, `test`, `lint` e
+  `typecheck` do package.json; build e testes de uma solução .NET), só nas alterações locais, só marcados e autorizados pela pessoa
+  a cada revisão, nunca pelo Boot, pelo MCP ou por texto de modelo. Rodam como processo filho, sem sandbox (o relatório diz), sem as
+  variáveis de ambiente com cara de segredo, com prazo de 5 min cada. Verificação que não rodou nunca é aprovação. Isso **não**
+  resolve a decisão 3 do ciclo 2 em geral (o verificador rodar comandos por conta própria): aqui a pessoa dispara cada execução.
+- **Decisões humanas:** decidir por achado (confirmar, descartar, aceitar o risco; crítico não se aceita) e assinar a entrega. O
+  veredito do motor não muda; a assinatura é a autorização humana que um juiz não substitui. Pedido de correção com as regras que o
+  agente não pode quebrar e limite de três tentativas por achado.
+- **Alternativa descartada:** deixar o modelo recomendar a decisão final. A recomendação de um modelo seria a autoridade sobre o
+  motor; o contrato é o contrário.
+
 ## Alternativas descartadas
 
 - **Adotar uma ferramenta externa de revisão como núcleo.** Cria dependência de produto, de licença e de envio de código para

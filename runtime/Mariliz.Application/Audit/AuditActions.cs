@@ -40,6 +40,8 @@ public static class AuditActions
     public const string BootFinished = "boot.finished";
     public const string BootIntentModel = "boot.intent_model";
     public const string QualityReviewed = "quality.reviewed";
+    public const string QualityFindingDecided = "quality.finding_decided";
+    public const string QualityDeliveryDecided = "quality.delivery_decided";
 
     public const string IacValidate = "iac.validate";
     public const string IacPlan = "iac.plan";

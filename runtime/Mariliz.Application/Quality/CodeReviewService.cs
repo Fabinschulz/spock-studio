@@ -13,10 +13,12 @@ namespace Mariliz.Application.Quality;
 
 /// <summary>
 /// A revisão de código do próprio motor: lê o que mudou (só leitura), aplica os detectores e a análise de arquitetura, deixa os
-/// juízes decidirem e guarda o resultado na pasta de dados do Spock. Nada no projeto analisado é escrito, e nenhum comando do
-/// projeto roda. O que não pôde ser feito aparece como limitação no relatório, nunca como aprovação.
+/// juízes decidirem e guarda o resultado na pasta de dados do Spock. Nada no projeto analisado é escrito. Só o que a pessoa pede
+/// vai além disso: a revisão por modelo (envia o diff, sem segredos, ao provedor configurado), a conferência de critérios de
+/// aceite e as verificações do projeto, que rodam comandos do próprio projeto e só com a autorização dela. O que não pôde ser
+/// feito aparece como limitação no relatório, nunca como aprovação.
 /// </summary>
-public sealed class CodeReviewService(
+public sealed partial class CodeReviewService(
     WorkspaceAuthorizer workspace,
     GitChangeReader git,
     IReviewStore store,
@@ -24,24 +26,39 @@ public sealed class CodeReviewService(
     IProjectFilesFactory filesFactory,
     IAuditLog audit,
     HarnessStatusService? harness = null,
-    ContextEngine? context = null)
+    ContextEngine? context = null,
+    ModelReviewer? modelReviewer = null,
+    QualityGateRunner? gateRunner = null)
 {
     public const int MaxFindings = 200;
     public const int MaxStored = 100;
 
-    public async Task<ReviewRecord> ReviewWorkingTreeAsync(string projectId, CancellationToken ct)
+    public Task<ReviewRecord> ReviewWorkingTreeAsync(string projectId, CancellationToken ct) => ReviewWorkingTreeAsync(projectId, ReviewOptions.Default, ct);
+
+    public async Task<ReviewRecord> ReviewWorkingTreeAsync(string projectId, ReviewOptions options, CancellationToken ct)
     {
         var root = RequireRoot(projectId);
         var changes = await git.ReadWorkingTreeAsync(root, ct);
-        return Complete(projectId, root, changes, clock.UtcNow);
+        return await CompleteAsync(projectId, root, changes, options, clock.UtcNow, ct);
     }
 
-    public async Task<ReviewRecord> ReviewBranchAsync(string projectId, string baseRef, string? headRef, CancellationToken ct)
+    public Task<ReviewRecord> ReviewBranchAsync(string projectId, string baseRef, string? headRef, CancellationToken ct) =>
+        ReviewBranchAsync(projectId, baseRef, headRef, ReviewOptions.Default, ct);
+
+    public async Task<ReviewRecord> ReviewBranchAsync(string projectId, string baseRef, string? headRef, ReviewOptions options, CancellationToken ct)
     {
         var root = RequireRoot(projectId);
+        // As verificações do projeto rodam na pasta de trabalho: numa branch elas testariam outro estado que o do diff.
+        if (options.Gates.Count > 0)
+            throw new EngineException("REVIEW_GATES_NOT_FOR_BRANCH", "As verificações do projeto só rodam sobre as alterações locais: a branch não está na pasta de trabalho.");
         var changes = await git.ReadBranchAsync(root, baseRef, headRef, ct);
-        return Complete(projectId, root, changes, clock.UtcNow);
+        return await CompleteAsync(projectId, root, changes, options, clock.UtcNow, ct);
     }
+
+    /// <summary>As verificações que o projeto oferece, para a pessoa escolher quais autorizar. Só lê arquivos.</summary>
+    public IReadOnlyList<GateCandidate> Gates(string projectId) => gateRunner?.Candidates(RequireRoot(projectId)) ?? [];
+
+    public bool ModelAvailable => modelReviewer?.Available ?? false;
 
     public IReadOnlyList<ReviewRecord> List(string projectId, int limit = 20)
     {
@@ -58,7 +75,7 @@ public sealed class CodeReviewService(
 
     private string RequireRoot(string projectId) => workspace.TryGetRoot(projectId, out var root) ? root : throw EngineErrors.ProjectNotAuthorized();
 
-    private ReviewRecord Complete(string projectId, string root, ChangeSet changes, DateTimeOffset startedAt)
+    private async Task<ReviewRecord> CompleteAsync(string projectId, string root, ChangeSet changes, ReviewOptions options, DateTimeOffset startedAt, CancellationToken ct)
     {
         var reviewId = ReviewIds.New();
         var limitations = new List<string>(changes.Limitations);
@@ -66,14 +83,19 @@ public sealed class CodeReviewService(
 
         var drafts = new List<FindingDraft>(ChangeDetectors.Run(changes));
         var architectureNotRun = ArchitectureDrafts(projectId, files, changes, drafts, limitations);
+
+        // Só o que a pessoa pediu: modelo, critérios de aceite e verificações do projeto, cada um com o seu resultado no relatório.
+        var extras = await RunExtrasAsync(root, changes, options, drafts, limitations, ct);
         var findings = Build(reviewId, projectId, changes, drafts, files, limitations);
 
         var analyzed = changes.Files.Count(file => file.Analyzable);
-        var input = new JudgeInput(findings, changes.Files.Count + changes.Conflicts.Count, analyzed, changes.Truncated, limitations, architectureNotRun);
-        var judges = ReviewJudges.Evaluate(input);
+        var input = new JudgeInput(findings, changes.Files.Count + changes.Conflicts.Count, analyzed, changes.Truncated, limitations, architectureNotRun,
+            extras.GatesRequestedNotRun, extras.OptionalRequestedNotRun);
+        var judges = ReviewJudges.Evaluate(input, extras.Judges);
         var final = judges[^1];
 
-        limitations.Add("Nenhum comando do projeto foi executado: build, testes e lint não rodaram nesta revisão (quality gates: Q2).");
+        if (extras.Gates is null)
+            limitations.Add("Nenhum comando do projeto foi executado: build, testes e lint não rodaram nesta revisão (você pode pedir e autorizar, escolhendo as verificações).");
         limitations.Add("Os detectores olham padrões nas linhas adicionadas; não seguem o fluxo dos dados nem leem código fora do diff.");
         limitations.Add("As regras do Harness são texto para os agentes; o motor aplica as regras QR-* e a análise de arquitetura, e ainda não verifica cada regra do Harness (modelo de regras: Q4).");
 
@@ -82,7 +104,8 @@ public sealed class CodeReviewService(
         var record = new ReviewRecord(
             ReviewContract.Version, reviewId, projectId, changes.Mode, changes.Branch, changes.Base, changes.Head, changes.HeadCommit, startedAt, finished,
             final.Verdict, Summary(final, findings, analyzed), Counts(changes, findings, analyzed), FileList(changes), findings, judges,
-            [.. ReviewRules.All.Select(rule => rule.Id)], consulted, [.. limitations.Distinct(StringComparer.Ordinal)], NextActions(findings));
+            [.. ReviewRules.All.Where(rule => RuleRan(rule, extras)).Select(rule => rule.Id)], consulted, [.. limitations.Distinct(StringComparer.Ordinal)], NextActions(findings),
+            extras.ModelRuns, extras.Requirements, extras.Gates);
 
         store.Save(record);
         Prune(projectId);
@@ -180,11 +203,11 @@ public sealed class CodeReviewService(
 
             var onChanged = draft.Relation == EvidenceRelations.AddedLine;
             result.Add(new ReviewFinding(
-                id, rule.Id, reviewId, projectId, draft.Path, draft.Line, draft.Line, onChanged, rule.Category,
-                draft.Severity ?? rule.Severity, draft.Confidence ?? rule.Confidence, rule.Title, Description(rule, draft),
+                id, rule.Id, reviewId, projectId, draft.Path, draft.Line, draft.Line, onChanged, draft.Category ?? rule.Category,
+                draft.Severity ?? rule.Severity, draft.Confidence ?? rule.Confidence, draft.Title ?? rule.Title, Description(rule, draft),
                 new FindingEvidence(draft.Excerpt, draft.Relation, Origin(draft), draft.Symbol, Consulted(draft)),
-                rule.Expected, draft.Actual, rule.Suggestion, null, draft.ArchitectureRule is { } code ? $"architecture:{code}" : null,
-                "deterministic", draft.Detector, FindingStatuses.Open, now));
+                rule.Expected, draft.Actual, draft.Suggestion ?? rule.Suggestion, null, draft.ArchitectureRule is { } code ? $"architecture:{code}" : null,
+                draft.Source ?? "deterministic", draft.Detector, FindingStatuses.Open, now));
         }
 
         if (stale > 0) limitations.Add($"{stale} achado(s) foram descartados porque o arquivo mudou enquanto a revisão rodava; revise de novo.");
