@@ -13,8 +13,8 @@ _TASK = (
     f'{{"schema":"{IMPACT_SCHEMA}","areas":[...],"risks":[...],"evidence":["id-do-trecho"]}}. '
     f"'areas' usa só estes valores: {', '.join(sorted(AREAS))}. 'risks' usa só estes valores: {', '.join(sorted(RISKS))} "
     "(use 'sem-evidencia' se nenhum trecho do projeto foi fornecido e 'sem-stack' se nenhuma stack foi detectada). "
-    "'evidence' lista os ids entre colchetes dos trechos que sustentam o impacto; cite só ids que aparecem no conteúdo e, "
-    "se houver trechos, cite ao menos um."
+    "'evidence' lista os ids dos trechos que sustentam o impacto, copiados por inteiro como aparecem entre colchetes (com o que "
+    "vem depois do '#') e sem os colchetes; cite só ids que aparecem no conteúdo e, se houver trechos, cite ao menos um."
 )
 
 
