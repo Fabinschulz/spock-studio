@@ -1,6 +1,7 @@
 using Mariliz.Application.Management.Investigation;
 using Mariliz.Application.Models;
 using Mariliz.Application.Protocol;
+using Mariliz.Application.Workflows;
 using Mariliz.Infrastructure;
 
 namespace Mariliz.Application.Tests;
@@ -40,6 +41,14 @@ public class ModelTimeoutsTests
         // A conclusão pode começar no fim do orçamento e levar o prazo de uma chamada: cortar antes jogava fora a resposta pronta.
         Assert.True(InvestigationService.StandardDeadline >= budget + ModelTimeouts.Chat);
         Assert.True(ProtocolDeadlines.ByMethod[ProtocolMethods.ManagementInvestigate] > InvestigationService.StandardDeadline);
+    }
+
+    [Fact]
+    public void O_prazo_do_fluxo_de_engenharia_cobre_o_tempo_de_comecar_chamadas_mais_uma_chamada_de_modelo()
+    {
+        // O runtime só começa chamada nova até o fim do orçamento, mas a que já começou leva o prazo do chat: cortar antes derrubava a execução sem resultado.
+        Assert.True(WorkflowRequests.StandardDeadline >= WorkflowRequests.RuntimeBudget + ModelTimeouts.Chat);
+        Assert.Equal(WorkflowRequests.RuntimeBudget.TotalMilliseconds, WorkflowRequests.ModelMilliseconds);
     }
 
     [Fact]

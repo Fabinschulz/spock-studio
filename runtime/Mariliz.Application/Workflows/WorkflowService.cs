@@ -23,7 +23,7 @@ public sealed class WorkflowService(
     public const string Kind = RunKinds.Workflow;
     public const string WorkflowId = WorkflowRequests.GraphId + ".v" + WorkflowRequests.GraphVersion;
 
-    internal TimeSpan Deadline { get; init; } = WorkflowRequests.RuntimeDeadline;
+    internal TimeSpan Deadline { get; init; } = WorkflowRequests.StandardDeadline;
 
     private readonly ApprovalGate _approvals = new();
     private readonly WorkflowJournal _journal = new(store, clock);

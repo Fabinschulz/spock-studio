@@ -2,7 +2,6 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.RegularExpressions;
 using Mariliz.Application.Execution;
 using Mariliz.Application.Models;
 using Mariliz.Infrastructure.ModelFormats;
@@ -10,7 +9,7 @@ using Mariliz.Infrastructure.ModelFormats;
 namespace Mariliz.Infrastructure;
 
 // A chave vai no cabeçalho e não entra na mensagem de erro. O formato é escolhido pelo provedor do endereço, nunca pelo chamador.
-public sealed partial class HttpsModelTransport : IModelTransport, IModelChatTransport, IDisposable
+public sealed class HttpsModelTransport : IModelTransport, IModelChatTransport, IDisposable
 {
     private readonly HttpClient _http;
 
@@ -54,27 +53,34 @@ public sealed partial class HttpsModelTransport : IModelTransport, IModelChatTra
             // Um 5xx é do lado do provedor (ou do gateway na frente dele), não uma resposta fora do contrato; o corpo não é repetido.
             if ((int)response.StatusCode >= 500)
                 throw new EngineException("MODEL_OVERLOADED", $"O provedor está indisponível ou sobrecarregado agora (HTTP {(int)response.StatusCode}).");
-            if (!response.IsSuccessStatusCode || JsonNode.Parse(text) is not JsonObject document)
-                throw new EngineException("MODEL_INVALID_RESPONSE", "O modelo respondeu fora do contrato.");
-
-            var reply = format.Read(document);
-            return jsonObject ? reply with { Text = StripFence(reply.Text) } : reply;
+            var reply = ReadReply(format, response.IsSuccessStatusCode, text);
+            return jsonObject ? reply with { Text = JsonReply.Extract(reply.Text) } : reply;
         }
-        catch (Exception ex) when (ex is HttpRequestException or JsonException or InvalidOperationException or FormatException)
+        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or FormatException)
         {
-            throw new EngineException("MODEL_UNAVAILABLE", "O modelo não pôde ser contactado.");
+            // Só a falha de conexão chega aqui; dizer a causa (DNS, TLS, proxy) é o que deixa a pessoa agir. Nunca a mensagem da exceção,
+            // que pode trazer o endereço ou o cabeçalho.
+            throw new EngineException("MODEL_UNAVAILABLE", $"O modelo não pôde ser contactado ({Cause(ex)}).");
         }
     }
 
-    // Um modelo às vezes põe uma cerca de código em volta do JSON.
-    private static string StripFence(string text)
+    // Uma resposta que chegou mas não é um JSON do formato esperado é do provedor (ou de um gateway na frente dele), não da conexão.
+    private static ModelReply ReadReply(IModelFormat format, bool success, string text)
     {
-        var match = Fence().Match(text.Trim());
-        return match.Success ? match.Groups["body"].Value.Trim() : text;
+        try
+        {
+            if (!success || JsonNode.Parse(text) is not JsonObject document)
+                throw new EngineException("MODEL_INVALID_RESPONSE", "O modelo respondeu fora do contrato.");
+            return format.Read(document);
+        }
+        catch (Exception ex) when (ex is JsonException or InvalidOperationException or FormatException)
+        {
+            throw new EngineException("MODEL_INVALID_RESPONSE", $"O modelo respondeu fora do contrato ({ex.GetType().Name}).");
+        }
     }
 
-    [GeneratedRegex(@"^```[a-zA-Z]*\s*(?<body>.*?)\s*```$", RegexOptions.Singleline)]
-    private static partial Regex Fence();
+    private static string Cause(Exception ex) =>
+        ex is HttpRequestException { HttpRequestError: not HttpRequestError.Unknown } http ? http.HttpRequestError.ToString() : ex.GetType().Name;
 
     // O corpo da resposta não é repetido: ele pode citar a chave.
     private static void ThrowIfRefused(IModelFormat format, HttpStatusCode status, string body)

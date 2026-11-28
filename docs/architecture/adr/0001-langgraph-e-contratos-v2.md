@@ -117,7 +117,7 @@ Sem isso, as dependências dariam 50,6 MB. No macOS o `strip` invalidaria a assi
 **Decisão:**
 
 - **Provedor:** só OpenAI, como hoje. O modelo padrão é `gpt-4o-mini`, escolhido pelo motor (`ModelGateway.DefaultModel`); o agente nunca escolhe modelo, provedor nem chave. Outros provedores ficam para uma decisão futura.
-- **Teto:** em **tokens** por execução, não em dinheiro. São 8.000 tokens (entrada somada à saída) e 60 s por execução com modelo, valores em `WorkflowRequests`. Cada chamada ainda tem o seu limite (`maxTokens` do pedido, até 8.192) e 30 s.
+- **Teto:** em **tokens** por execução, não em dinheiro. São 8.000 tokens (entrada somada à saída) e 90 s por execução com modelo, valores em `WorkflowRequests`. Passados os 90 s nenhuma chamada nova ao modelo começa e o que falta segue determinístico (limitação `MODEL_TIME_EXCEEDED`); a chamada em andamento termina, e a espera por ela não conta no limite de tempo. O prazo do motor é esse tempo mais o do chat e uma folga. Cada chamada ainda tem o seu limite (`maxTokens` do pedido, até 8.192) e o prazo do chat.
 - **Quem cobra:** o proxy do motor (`ModelBroker`), nunca o Python. Antes de cada chamada ele reserva o pior caso (`maxTokens` do pedido) e recusa com `MODEL_BUDGET_EXCEEDED` se o total passar do teto; depois acerta com o uso que o provedor informou. O modelo nem é chamado numa recusa.
 - **Dinheiro:** `costUsd` sai sempre `0`. Sem tabela de preços não há custo confiável, e uma tabela envelhece. `maxCostUsd` segue no contrato, sempre `0`, para o dia em que houver essa decisão.
 

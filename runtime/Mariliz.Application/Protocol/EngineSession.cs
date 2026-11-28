@@ -210,8 +210,9 @@ public sealed class EngineSession
     // O envelope vem de fora: campo com tipo errado vira erro de protocolo, nunca exceção que derruba o processo.
     private static (Request? Request, JsonObject? Error) ParseRequest(string line)
     {
+        // O id vai na resposta: sem ele quem correlaciona por id nunca recebe o erro e fica esperando até o prazo.
         if (Encoding.UTF8.GetByteCount(line) > ProtocolMessages.MaxMessageBytes)
-            return (null, ProtocolMessages.Error(null, ProtocolErrorCodes.MessageTooLarge, "Mensagem acima do limite permitido."));
+            return (null, ProtocolMessages.Error(TryReadId(line), ProtocolErrorCodes.MessageTooLarge, "Mensagem acima do limite permitido."));
 
         var message = ParseObject(line);
         if (message is null)
@@ -227,6 +228,45 @@ public sealed class EngineSession
             return (null, ProtocolMessages.Error(id, ProtocolErrorCodes.InvalidMessage, "Requisição malformada."));
 
         return (new Request(id, method, message["params"] as JsonObject), null);
+    }
+
+    private const int IdPrefixChars = 4096;
+    private const int MaxIdLength = 200;
+
+    // Só o começo da linha e só o "id" do nível de cima: uma mensagem grande demais não é lida inteira, e um "id" dentro dos params
+    // (que vem depois do envelope, ou aninhado) não pode ser tomado pelo id do pedido.
+    internal static string? TryReadId(string line)
+    {
+        var prefix = Encoding.UTF8.GetBytes(line[..Math.Min(line.Length, IdPrefixChars)]);
+        var reader = new Utf8JsonReader(prefix, isFinalBlock: false, state: default);
+        var depth = 0;
+        string? property = null;
+        try
+        {
+            while (reader.Read())
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonTokenType.StartObject or JsonTokenType.StartArray:
+                        depth++;
+                        break;
+                    case JsonTokenType.EndObject or JsonTokenType.EndArray:
+                        depth--;
+                        break;
+                    case JsonTokenType.PropertyName when depth == 1:
+                        property = reader.GetString();
+                        break;
+                    case JsonTokenType.String when depth == 1 && property == "id":
+                        var id = reader.GetString();
+                        return id is { Length: > 0 and <= MaxIdLength } ? id : null;
+                }
+            }
+        }
+        catch (JsonException)
+        {
+            // O começo não é JSON: não há id a devolver.
+        }
+        return null;
     }
 
     private async Task<(JsonObject Response, bool Shutdown)> ExecuteAsync(Request request, CancellationToken ct)

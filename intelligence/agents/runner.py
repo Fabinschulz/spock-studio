@@ -33,6 +33,9 @@ class Outcome:
     output_tokens: int = 0
     model: str = ""
     model_version: str = ""
+    # Por que a última saída foi recusada, em texto do próprio motor (nunca texto do modelo): é o que diferencia um JSON cortado, um texto
+    # antes do JSON e um campo que falta, e o que deixa a pessoa agir.
+    reason: str = ""
 
     @property
     def tokens(self) -> int:
@@ -70,14 +73,16 @@ def ask(
         try:
             document = json.loads(reply.text)
             if not isinstance(document, dict):
-                raise Rejected("A resposta precisa ser um objeto JSON.")
+                raise Rejected("A resposta precisa ser um objeto JSON.")  # vira outcome.reason no except abaixo
             outcome.value = parse(document)
             outcome.code = ""
             return outcome
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as ex:
             reason = "A resposta não é um JSON válido. Responda só com o objeto JSON, sem texto nem cercas de código."
+            outcome.reason = f"JSON inválido na posição {ex.pos} de {len(reply.text)} caracteres"
         except Rejected as ex:
             reason = str(ex)
+            outcome.reason = reason[:200]
         outcome.code = INVALID
         conversation = [
             *messages,

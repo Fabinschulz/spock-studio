@@ -34,7 +34,7 @@ class FakeModel:
 
 def with_model(root: str = "", *, max_tokens: int = 8000, sources: bool = True, **input_fields) -> dict:
     payload = _start(root, **input_fields)
-    payload["limits"] = {"maxIterations": 8, "maxMilliseconds": 60000, "maxTokens": max_tokens, "maxCostUsd": 0}
+    payload["limits"] = {"maxIterations": 8, "maxMilliseconds": 90000, "maxTokens": max_tokens, "maxCostUsd": 0}
     payload["policy"] = {"allowedActions": [], "modelAllowed": True}
     payload["broker"] = {"url": URL, "token": TOKEN}
     if root and sources:

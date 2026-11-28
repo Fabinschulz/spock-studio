@@ -16,7 +16,7 @@ from contracts.investigation import (
 )
 
 AGENT_ID = "investigator"
-AGENT_VERSION = "5"
+AGENT_VERSION = "6"
 # Hipóteses são curtas. A conclusão leva seis seções com texto e citações: a rodada real com modelos de topo mostrou 1200 tokens
 # cortando o JSON no meio (MODEL_OUTPUT_INVALID nas duas tentativas, e a resposta caía nas regras), por isso o teto próprio.
 MAX_OUTPUT_TOKENS = 1200
@@ -63,6 +63,9 @@ _CONCLUSION_TASK = (
     "(média, percentual, diferença entre datas ou valores, contagem, amplitude): se um fato traz o número pronto, use-o; se não "
     "traz, não o escreva. Não invente limite, meta, prazo nem quantidade numa recomendação. Datas ficam como nos fatos. Para falar "
     "do período dos indicadores ou da data de hoje, cite também o fato 'today'. "
+    "Responda primeiro e diretamente à pergunta feita: o resumo e o primeiro item de observed tratam do que foi perguntado e citam o "
+    "fato desse assunto (se a pergunta é sobre mudanças, cite o resumo de mudanças; se é sobre riscos, os fatos de risco). Não faça "
+    "um resumo geral do projeto: fatos de outros assuntos só entram se ajudam a responder a pergunta. "
     "Separe a resposta assim: observed (o que os dados mostram), calculations (só o que o sistema já calculou e está nos fatos), "
     "inferences (interpretações suas, em linguagem de hipótese: 'pode indicar', 'sugere'), recommendations (ações possíveis, "
     "ligadas aos fatos) e unavailable (o que a pergunta pede e os fatos não têm). "
