@@ -15,7 +15,22 @@
 
 ## 2. Bloqueado pela chave de modelo do dono
 
-Nada rodou ainda com um modelo real. Tudo abaixo espera uma chave com limite de gasto.
+Em 2026-11-26 a 28 rodou uma campanha com modelos reais (OpenAI e Anthropic) por um gateway de revenda, com chave temporária:
+evals de gestão, Fase A (só a Especificação passou), fluxo de engenharia, desenho de IaC, assistente e o estágio de modelo do
+Boot. O resultado está em [validacao-real.md](validacao-real.md). Como o gateway não verifica os modelos e oscilou (timeouts e
+502), os números servem para achar defeito, não como linha de base definitiva. O que segue espera uma chave oficial com
+limite de gasto, ou uma pessoa na frente da tela:
+
+- **Remedir com chave oficial:** as linhas de base dos evals de gestão (`datasets/management-baseline-*.json`, medidas pelo
+  gateway) e o teto de ~210 s que derrubou a Arquitetura da Fase A com HTTP 502 nos dois provedores.
+- **Confirmar com modelo real:** a resolução de citações de trecho (#248) e a chave repetida no JSON (#247), mergeadas sem
+  nova rodada.
+- **Decisão do dono:** o teto padrão de 8.000 tokens do fluxo de engenharia faz o juiz por modelo não rodar
+  (`MODEL_BUDGET_EXCEEDED` e `JUDGE_NOT_RUN`) em quase toda execução com modelo de topo; subir o padrão (por exemplo
+  16.000) muda o gasto por execução.
+- **Nunca rodados com modelo real:** etapa Backlog da Fase A, Gemini (sem chave), jornada pela interface com modelo,
+  assistente do portfólio com modelo, Boot de segunda etapa com projeto real e a escolha do segundo estágio (o modelo não
+  mudou nenhum resultado das 14 frases).
 
 - **H0-7 / W2-4**: `scripts/live-validation.py` com orçamento pequeno; relatório com fluxos, tokens, latência e falhas.
   Fontes: [hub](engineering-intelligence-hub/ROADMAP.md), [evolução](ai-engineering-platform/SPOCK_EVOLUTION_ROADMAP.md),
@@ -23,8 +38,9 @@ Nada rodou ainda com um modelo real. Tudo abaixo espera uma chave com limite de 
 - **W4-1, W4-2 e W4-3 pelo motor** (modo Chave): juiz com modelo e estabilidade do `project.design` em várias rodadas. O
   modo Sessão já está feito. Mesmo item que o **MM-5** do [desenho dos modos](modos-de-modelo/DESENHO.md).
 - **C5 do hub**: homologação multi-IDE.
-- **Grupos da [validação real](validacao-real.md)** ainda não rodados: modelo e assistente, evals de gestão, fase A (Da
-  ideia ao projeto) e a investigação da fase G com modelo.
+- **Grupos da [validação real](validacao-real.md)** ainda não rodados: GitHub, Jira, cofre no Linux e no macOS. Modelo e
+  assistente, evals de gestão, fluxo de engenharia, IaC com IA e a investigação da fase G já rodaram (ver acima); a Fase A
+  rodou só na Especificação.
 
 ## 3. Decisões do dono
 
