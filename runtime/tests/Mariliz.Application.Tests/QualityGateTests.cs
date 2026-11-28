@@ -119,12 +119,31 @@ public sealed class QualityGateTests : IDisposable
         Assert.DoesNotContain(FakeToken, System.Text.Json.JsonSerializer.Serialize(review), StringComparison.Ordinal);
         var finding = Assert.Single(review.Findings, item => item.RuleId == ReviewRules.GateFailed);
         Assert.Equal((FindingConfidences.Confirmed, QualitySeverities.High), (finding.Confidence, finding.Severity));
+        Assert.Contains("expected 2 to be 3", finding.Evidence.Excerpt);
         Assert.Equal(ReviewVerdicts.Rejected, review.Verdict);
         Assert.Equal(ReviewVerdicts.Rejected, review.Judges.Single(judge => judge.Id == JudgeIds.Execution).Verdict);
         // O processo filho recebeu argumentos separados e a pasta do projeto, sem shell.
         var spec = Assert.Single(_fake.Gates);
         Assert.Equal((new[] { "run", "test" }, _project.Root), (spec.Arguments.ToArray(), spec.WorkingDirectory));
     }
+
+    [Fact]
+    public void O_trecho_do_achado_e_a_causa_da_falha_e_nao_a_versao_da_ferramenta()
+    {
+        const string node = "    at Module.load (node:internal/modules/cjs/loader:1480:32)\n    at node:internal/main/run_main_module:33:47 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: 45,\n  expected: 50,\n  operator: 'strictEqual'\n}\n\nNode.js v25.2.1";
+
+        var excerpt = ModelReviewerExcerpt(node);
+
+        Assert.Contains("actual: 45", excerpt);
+        Assert.Contains("expected: 50", excerpt);
+        Assert.DoesNotContain("Node.js", excerpt);
+        Assert.DoesNotContain("at Module.load", excerpt);
+        // Sem nenhuma linha de erro, vale a última que não é cabeçalho; sem saída, o comando.
+        Assert.Equal("tudo certo aqui", ModelReviewerExcerpt("tudo certo aqui\nNode.js v25.2.1"));
+        Assert.Equal("npm run test", CodeReviewService.CauseExcerpt(null, "npm run test"));
+    }
+
+    private static string ModelReviewerExcerpt(string tail) => CodeReviewService.CauseExcerpt(tail, "comando");
 
     [Fact]
     public async Task Todas_passando_aprova_e_o_relatorio_diz_que_nao_ha_sandbox()

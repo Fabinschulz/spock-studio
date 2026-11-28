@@ -148,10 +148,25 @@ public sealed partial class CodeReviewService
     private static FindingDraft GateDraft(GateResult gate)
     {
         var timedOut = gate.State == GateStates.TimedOut;
-        var last = gate.LogTail?.Split('\n').LastOrDefault(line => !string.IsNullOrWhiteSpace(line));
-        return new FindingDraft(ReviewRules.GateFailed, gate.Directory, null, ChangeDetectors.Excerpt(last ?? gate.Command), EvidenceRelations.GateOutput, null,
+        return new FindingDraft(ReviewRules.GateFailed, gate.Directory, null, CauseExcerpt(gate.LogTail, gate.Command), EvidenceRelations.GateOutput, null,
             $"`{gate.Command}` ({gate.Origin}): {gate.Summary}", "quality-gate",
             timedOut ? QualitySeverities.Medium : null, timedOut ? FindingConfidences.Heuristic : null, null, null, $"Verificação do projeto {(timedOut ? "não terminou" : "falhou")}: {gate.Kind}", null, null);
+    }
+
+    private static readonly System.Text.RegularExpressions.Regex Cause = new(
+        @"\b(error|erro|assert\w*|expected|actual|fail\w*|falh\w*|exception|cannot|unexpected)\b|ERR_|✗|×",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static readonly System.Text.RegularExpressions.Regex Banner = new(@"^(Node\.js v|npm (notice|warn)|> )", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    // O fim da saída costuma ser a versão da ferramenta, não a causa. O trecho do achado junta até três das últimas linhas que falam
+    // de erro (fora os quadros da pilha); sem nenhuma, vale a última linha que não seja só um cabeçalho.
+    internal static string CauseExcerpt(string? tail, string fallback)
+    {
+        var lines = (tail ?? "").Split('\n').Select(line => line.Trim()).Where(line => line.Length > 0 && !line.StartsWith("at ", StringComparison.Ordinal)).ToList();
+        var hits = lines.Where(line => Cause.IsMatch(line)).TakeLast(3).ToList();
+        var pick = hits.Count > 0 ? string.Join(" | ", hits) : lines.LastOrDefault(line => !Banner.IsMatch(line)) ?? fallback;
+        return ChangeDetectors.Excerpt(pick);
     }
 
     private static string FailureText(string? code) => code switch
